@@ -72,6 +72,9 @@ const WP_MODULE_MAP = {
    `opinion`: tab OpinionSignoff (3-tingkat + checklist + finalize) yang me-mirror ke wpState['900']. */
 const WP_SUBBAR_HIDE = { opinion: true };
 
+/* Taksonomi disposisi kesimpulan auditor (P1). Daftar tetap + rasional bebas. */
+const WP_DISPOSITIONS = ['Memadai', 'Perlu tindak lanjut', 'Eskalasi ke partner'];
+
 function wpKeyFor(moduleId) {
   const m = WP_MODULE_MAP[moduleId];
   return (m && m.ref) || moduleId;
@@ -137,8 +140,14 @@ function useWpSignoff(moduleId) {
       setWp(ref, { chain: nc, status: 'In Progress', reviewer: null, signedAt: null });
     }
   };
+  /* ---- kesimpulan auditor (P1): persist ke wpState[ref].conclusion ---- */
+  const conclusion = st.conclusion || null;
+  const saveConclusion = (text, disposition) =>
+    setWp(ref, { conclusion: { text, disposition, by: me, at: wpToday() } });
+
   return { ref, me, chain, status, locked, sign, unsign,
-    preparer: chain.preparer || null, reviewer: chain.reviewer || null };
+    preparer: chain.preparer || null, reviewer: chain.reviewer || null,
+    conclusion, saveConclusion };
 }
 
 /* ---- kelengkapan bukti (required vs attached) ---- */
@@ -216,10 +225,43 @@ function WpEvidenceLink({ moduleId }) {
   );
 }
 
+/* ---- Kesimpulan auditor (P1): editable + persist ke wpState[ref].conclusion ----
+   Penilaian auditor (SA 230) — BERDAMPINGAN dengan verdict otomatis canon, bukan
+   menggantikannya. Disposisi terstruktur + rasional bebas, lock LUNAK. */
+function WpConclusion({ moduleId }) {
+  const { conclusion, saveConclusion, locked } = useWpSignoff(moduleId);
+  const baseText = (conclusion && conclusion.text) || '';
+  const baseDisp = (conclusion && conclusion.disposition) || WP_DISPOSITIONS[0];
+  const [text, setText] = useStateWPS(baseText);
+  const [disp, setDisp] = useStateWPS(baseDisp);
+  const dirty = text !== baseText || disp !== baseDisp;
+  const dispKind = (d) => d === 'Memadai' ? 'green' : d === 'Perlu tindak lanjut' ? 'amber' : 'red';
+  return (
+    <div>
+      <div className="field" style={{ marginBottom: 8 }}>
+        <label className="tiny muted" style={{ fontWeight: 700 }}>Disposisi</label>
+        <select className="select" value={disp} onChange={e => setDisp(e.target.value)} disabled={locked}>
+          {WP_DISPOSITIONS.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      </div>
+      <textarea className="input" value={text} onChange={e => setText(e.target.value)} disabled={locked}
+        placeholder="Dasar kesimpulan & pertimbangan profesional (SA 230)…"
+        style={{ height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', width: '100%', marginBottom: 8 }} />
+      <div className="row ac jb">
+        {conclusion
+          ? <span className="tiny muted"><I.check size={11} /> {conclusion.by} · {conclusion.at}</span>
+          : <span className="tiny muted">Belum ada kesimpulan</span>}
+        <Btn sm variant={dirty && !locked && text.trim() ? 'primary' : ''} disabled={locked || !dirty || !text.trim()} onClick={() => saveConclusion(text.trim(), disp)}><I.check size={12} /> Simpan</Btn>
+      </div>
+      {conclusion && <div className="row ac" style={{ gap: 6, marginTop: 6 }}><Badge kind={dispKind(conclusion.disposition)} dot>{conclusion.disposition}</Badge></div>}
+    </div>
+  );
+}
+
 /* ---- Panel gabungan: drop-in untuk view modul ("kertas kerja auditable") ---- */
 function WpPanel({ moduleId, title }) {
   return (
-    <Panel title={title || 'Kertas Kerja — Sign-off & Bukti'}>
+    <Panel title={title || 'Kertas Kerja — Sign-off, Bukti & Kesimpulan'}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div>
           <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 2 }}>RANTAI SIGN-OFF</div>
@@ -230,6 +272,9 @@ function WpPanel({ moduleId, title }) {
           <WpEvidenceLink moduleId={moduleId} />
         </div>
       </div>
+      <div style={{ borderTop: '1px solid var(--line)', margin: '12px 0 10px' }} />
+      <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 4 }}>KESIMPULAN AUDITOR</div>
+      <WpConclusion moduleId={moduleId} />
     </Panel>
   );
 }
@@ -252,14 +297,17 @@ function WpSubBarControl({ moduleId }) {
           <div style={{ position: 'fixed', inset: 0, zIndex: 74 }} onClick={() => setOpen(false)} />
           <div className="ev-pop" style={{ width: 340 }}>
             <div className="ev-pop-h" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line)', fontWeight: 700, fontSize: 12.5 }}>
-              Kertas Kerja — Sign-off &amp; Bukti
+              Kertas Kerja — Sign-off, Bukti &amp; Kesimpulan
             </div>
-            <div style={{ padding: 12 }}>
+            <div style={{ padding: 12, maxHeight: '70vh', overflowY: 'auto' }}>
               <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 2 }}>RANTAI SIGN-OFF</div>
               <WpSignoff moduleId={moduleId} />
               <div style={{ borderTop: '1px solid var(--line)', margin: '10px 0' }} />
               <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 4 }}>BUKTI AUDIT</div>
               <WpEvidenceLink moduleId={moduleId} />
+              <div style={{ borderTop: '1px solid var(--line)', margin: '10px 0' }} />
+              <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 4 }}>KESIMPULAN AUDITOR</div>
+              <WpConclusion moduleId={moduleId} />
             </div>
           </div>
         </>
@@ -318,11 +366,11 @@ function WpCompletenessRecap({ moduleIds }) {
 }
 
 Object.assign(window, {
-  WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor, wpSignersFor,
-  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
+  WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
+  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
 });
 
 export {
-  WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor, wpSignersFor,
-  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
+  WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
+  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
 };
