@@ -6,6 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui.jsx';
 import { PROGRAMME } from './view_cockpit.jsx';
+import { WpCompletenessRecap } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — Engagement Cockpit (DEEP)
@@ -711,6 +712,11 @@ function TabRisiko({ D, e, nav }) {
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{ready} / {gate.length} kriteria siap</div>
                 <div className="tiny muted">Gate penerbitan laporan auditor (SA 700 · ISQM 2)</div>
               </div>
+            </div>
+            {/* rekap kelengkapan kertas kerja auditable (sign-off + bukti kanonik) */}
+            <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--line-soft)' }}>
+              <div className="tiny muted upper" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 8 }}>Kelengkapan Kertas Kerja</div>
+              <WpCompletenessRecap />
             </div>
             {gate.map((g, i) => (
               <div key={i} className="ckp-gate">

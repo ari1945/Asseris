@@ -14,7 +14,7 @@
 import React from 'react';
 import { useAudit, useAuth } from './contexts.jsx';
 import { I } from './icons.jsx';
-import { Badge, Btn, Panel, Avatar } from './ui.jsx';
+import { Badge, Btn, Panel, Avatar, Progress } from './ui.jsx';
 import { amsEvidenceCount } from './evidence.jsx';
 
 const { useState: useStateWPS } = React;
@@ -236,13 +236,18 @@ function WpSubBarControl({ moduleId }) {
   );
 }
 
-/* ---- Rekap kelengkapan per-engagement (Fase 4) ---- */
+/* ---- Rekap kelengkapan per-engagement (Fase 4) ----
+   Dedupe per ref kanonik: modul ber-alias (lease/psak73→F, revenue/psak72→R)
+   berbagi WP yg sama → dihitung SEKALI, bukan ganda. */
 function wpCompletenessFor(audit, moduleIds) {
   const wpState = (audit && audit.wpState) || {};
-  let signed = 0, withEvidence = 0;
-  const total = moduleIds.length;
+  const seen = new Set();
+  let total = 0, signed = 0, withEvidence = 0;
   moduleIds.forEach(mid => {
     const ref = wpKeyFor(mid);
+    if (seen.has(ref)) return;
+    seen.add(ref);
+    total++;
     const st = wpState[ref] || {};
     if (st.chain && st.chain.reviewer) signed++;
     const req = requiredEvidenceFor(mid);
@@ -254,12 +259,38 @@ function wpCompletenessFor(audit, moduleIds) {
     evidencePct: total ? Math.round(withEvidence / total * 100) : 0 };
 }
 
+/* ---- Widget rekap kelengkapan (drop-in untuk Cockpit/Finalisasi) ----
+   Dua bar: kertas kerja ter-review (sign-off reviewer) + berbukti lengkap.
+   Sumber = wpState kanonik + store evidence; lingkup = semua modul auditable. */
+function WpCompletenessRecap({ moduleIds }) {
+  const audit = useAudit();
+  const ids = moduleIds || Object.keys(WP_MODULE_MAP);
+  const r = wpCompletenessFor(audit, ids);
+  const Row = ({ label, pct, count, total, color }) => (
+    <div style={{ marginBottom: 9 }}>
+      <div className="row jb ac" style={{ marginBottom: 4 }}>
+        <span className="tiny" style={{ fontWeight: 600 }}>{label}</span>
+        <span className="mono tiny" style={{ fontWeight: 700, color }}>
+          {pct}% <span className="muted" style={{ fontWeight: 500 }}>· {count}/{total}</span>
+        </span>
+      </div>
+      <Progress value={pct} color={color} />
+    </div>
+  );
+  return (
+    <div>
+      <Row label="Kertas kerja ter-review (sign-off)" pct={r.signedPct} count={r.signed} total={r.total} color="var(--green)" />
+      <Row label="Kertas kerja berbukti lengkap" pct={r.evidencePct} count={r.withEvidence} total={r.total} color="var(--teal)" />
+    </div>
+  );
+}
+
 Object.assign(window, {
   WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor,
-  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor,
+  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
 });
 
 export {
   WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor,
-  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor,
+  useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
 };
