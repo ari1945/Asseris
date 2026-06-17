@@ -1,9 +1,36 @@
-# W3 Phase 3 — canon.js / data.js engine split (ATTEMPTED, reverted; notes for next run)
+# W3 Phase 3 — canon.js / data.js engine split (DONE — `dc35a93`, `3c8c3b6`)
 
-## Status
-Attempted the canon.js split; **reverted** to committed-good (`d60199d`) because the
-numeric oracle caught a regression. No code change landed. Prep artifacts kept:
-`.claude/w3-canon-baseline.json` (oracle), `.claude/w3-split-canon.mjs` (generator).
+## Status: COMPLETE
+Both monoliths split into <600-line ESM modules, oracle-verified zero regression.
+- canon.js 2026L -> canon_base + canon_part1..4 + index (`dc35a93`). AMS_CANON 74/74 match.
+- data.js  2002L -> data_base  + data_part1..4 + index (`3c8c3b6`). window.AMS 142/142 match.
+Lint 0-error (207 warns unchanged), vite build green, app renders identically both times.
+
+The first canon attempt (`538678d`, reverted) failed because parts didn't import each
+other (6 orchestrators broke at call time). FIX that worked: generator computes EVERY
+external symbol each part references (via @babel AST, comment/string-safe) and emits
+grouped cross-module imports. See `.claude/w3-split-{canon,data}.mjs` + `w3-canon-dag.mjs`
+(generalized: `node w3-canon-dag.mjs <file> <firstNonFoundationDecl>` reports the DAG +
+forward refs). Live-oracle baselines: `w3-{canon,data}-live-{pre,post}.json`.
+
+### Key learnings (reusable for W4 Vitest + any future IIFE->ESM split)
+1. **Gate on the runtime oracle, never `vite build`.** Rollup stays green on missing
+   in-function refs; only calling every engine (the fingerprint does this) catches it.
+2. **ESM cycles are safe IFF no module has top-level (load-time) initializers that read
+   across the cycle.** canon has a part3<->part4 cycle (reconcile->psak66 forward edge +
+   psak22->GOODWILL back edge) — harmless because both are function-body refs; the only
+   load-time computed consts (SRC, FIG) live self-contained in canon_base. Proven by oracle.
+3. **Watch for BARE top-level statements** (not decls) in the IIFE. data.js had 3 trailing
+   seed-normalization `.forEach` passes that mutate seeds at load time. They must go in the
+   INDEX after all imports (where every symbol is imported for the assembly), NOT swept into
+   a part's last decl block. The dag analyzer's AST walk flags them (`s.type` not Fn/VarDecl).
+4. **Preview eval runs in an isolated world** — `window.AMS_CANON` reads undefined there
+   though DOM is shared. Bridge: inject a `<script>` that computes + writes JSON into a DOM
+   node, then read the node's textContent back via eval. (See the fingerprint snippets.)
+
+## Original prep notes (kept for context)
+Prep artifacts kept: `.claude/w3-canon-baseline.json` (old fingerprint format, superseded
+by the live-pre/post pairs), `.claude/w3-split-canon.mjs` (generator).
 
 ## The numeric oracle (USE THIS — reusable for W4 Vitest too)
 - Baseline = frozen **prod** build (`NeoSuite AMS (prod).html`, original canon).
