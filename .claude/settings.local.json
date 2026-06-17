@@ -20,7 +20,12 @@
       "Bash(node \".claude/w2-split-groupaudit.mjs\")",
       "PowerShell(git -C $root add -A 2>&1)",
       "PowerShell(git -C $root log --oneline -1)",
-      "PowerShell($root = \"D:\\\\Claude AI\\\\06-BUSINESS-DEVELOPMENT\\\\Audit System\")"
+      "PowerShell($root = \"D:\\\\Claude AI\\\\06-BUSINESS-DEVELOPMENT\\\\Audit System\")",
+      "Bash(grep -nE \"^\\(function |const |let \\)[A-Za-z_]|^\\\\\\(function|^\\\\}\\\\\\)\\\\\\(\\\\\\);?$\" app/related_modules.jsx)",
+      "Bash(node \".claude/w2-ast-map.mjs\" app/related_modules.jsx)",
+      "Bash(node \".claude/w2-split-related.mjs\")",
+      "Bash(grep -nE \"^const \\(LINEAGE|SA_GROUPS|SA_REVERSE|SA_FULFILLED_BY\\)|Object.assign\\\\\\(window, \\\\{ LINEAGE, SA_GROUPS\" app/related_modules_data.js)",
+      "Bash(node \".claude/w2-ast-map.mjs\" app/related_modules_data.js)"
     ]
   }
 }
