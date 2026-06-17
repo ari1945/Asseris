@@ -24,8 +24,29 @@ cd migration
 npm run lint     # error-gate (no-undef + no-dupe-keys = 0) — MUST stay green
 npm run build    # vite build — 245 modules, no resolution failures
 npm run dev      # http://localhost:5180 (HMR) — verify render + numbers
-npm run test     # vitest (added in W4)
+npm run test     # vitest — canon "number engine" net (W4); add --coverage for the gate
 ```
+
+## Test harness (W4 — `vitest.config.mjs`)
+- **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
+  numeric I/O, highest value-per-test-line.
+- **Env:** `node` + a hand-rolled `window`/`localStorage`/`BENCHMARKS` stub in
+  `src/__tests__/setup.js` (no jsdom). Setup uses **dynamic** imports ordered
+  `data.js → canon.js` (static imports hoist above the stub and crash on
+  `window.AMS = …`; canon_base computes `SRC`/`FIG` from `window.AMS.WTB` at load).
+- **Files:** one `*.test.js` per canon module (`canon_base`, `canon_part1..4`,
+  `forensic_canon`). Key figures are **hard-pinned** to the audit-verified
+  `W0-BASELINE.md` examples (materiality OM 4.260 / PM 3.195 / CTT 213, PSAK 46
+  `deferredTax`, PSAK 71 `psak71`, PSAK 73 `leasePortfolio`, `reconcile` tie-out).
+- **Regression net:** `canon_regression.test.js` sweeps every zero-arg `AMS_CANON`
+  engine, deep-normalizes (round 3dp, sort keys) and **snapshots** it
+  (`src/__snapshots__/`). Any W2/3/6 refactor that shifts a canonical number fails
+  the snapshot. Update intentionally with `npm run test -- -u` only after
+  re-verifying against an audit-confirmed example.
+- **Fixture:** `src/__fixtures__/wtb.js` — a minimal WTB proving engines are pure
+  functions of the trial balance they're handed.
+- **Coverage gate:** `npm run test -- --coverage` → v8, ≥80% lines/stmts/funcs on
+  canon (currently ~99% lines / 100% funcs / 77% branches).
 
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.

@@ -8,6 +8,7 @@ app/compiled/
 app/vendor/
 NeoSuite AMS (prod).html
 migration/dist/
+migration/coverage/
 
 # NOTE (W3 Phase 2): migration/src/ + migration/index.html are now the
 # CANONICAL hand-maintained ESM source — committed, no longer codemod-generated.
