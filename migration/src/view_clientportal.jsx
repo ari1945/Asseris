@@ -83,9 +83,9 @@ function AddRequestModal({ onClose, onAdd, nextNo, staff, engId, clientName }) {
 
 /* ---- Dock keterkaitan satu item: area audit · WP kanonik · DMS · asersi ---- */
 function ReqLinkage({ r }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
+  const nav = useNav();
+  const audit = useAudit();
+  const firm = useFirm();
   const lk = linkFor(r);
   const mod = MODULE_INDEX[lk.module] || { label: lk.module, icon: 'panel' };
   const ModIc = I[mod.icon] || I.panel;
@@ -226,9 +226,9 @@ function PBCUploadModal({ req, persona, onClose, onConfirm }) {
 
 /* ---- Tab Kesiapan Area Audit: REKONSILIASI lintas-modul dari satu sumber kebenaran ---- */
 function CoveragePanel({ reqs, today }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
+  const nav = useNav();
+  const audit = useAudit();
+  const firm = useFirm();
   const cats = PBC_CATS.filter(c => reqs.some(r => r.cat === c));
   const openWp = (wp) => { if (window.openCanonicalWp) window.openCanonicalWp(nav, wp); else nav('workpapers'); };
   return (
@@ -290,8 +290,8 @@ function CoveragePanel({ reqs, today }) {
 }
 
 function ClientPortal() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
+  const firm = useFirm();
+  const audit = useAudit();
   const eng = firm.activeEngagement || {};
   const clientObj = firm.activeClient || {};
   const engId = eng.id || 'ENG-2025-014';

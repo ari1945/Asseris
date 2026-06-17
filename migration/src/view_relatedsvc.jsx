@@ -437,7 +437,7 @@ function OtherAssurance() {
   const meta = window.AMS.NONAUDIT.reduce((m, e) => { m[e.id] = e; return m; }, {});
   const [sel, setSel] = useRS(ids[0]);
   const [rpt, setRpt] = useRS(false);
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   /* PFI-2025-090 ditarik LIVE dari pfiEngine (SUMBER KEBENARAN SJAH 3400);
      ASR-2025-081 ditarik LIVE dari socEngine (SUMBER KEBENARAN SJAH 3402). */
   const isPfi = window.AMS.pfiEngine && window.AMS.PFI_3400 && sel === window.AMS.PFI_3400.id;

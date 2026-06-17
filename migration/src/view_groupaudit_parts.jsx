@@ -14,11 +14,11 @@ import { GA_CONSOL_DOWN, GA_CONSOL_PROC, GA_CONSOL_UP, PKG_FIELDS, PKG_NUM_KEYS,
 const { useState: useStateGAP } = React;
 
 function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }) {
-  if (!p65) return <div style={{ padding: 24 }} className="muted">Memuat paket pelaporan (AMS_CANON.psak65)…</div>;
   const [editId, setEditId] = useStateGAP(null);
   const [impId, setImpId] = useStateGAP(null);
   const [impText, setImpText] = useStateGAP('');
   const [impErr, setImpErr] = useStateGAP('');
+  if (!p65) return <div style={{ padding: 24 }} className="muted">Memuat paket pelaporan (AMS_CANON.psak65)…</div>;
 
   const todayStr = () => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   const setPkg = (id, patch) => setPackages(m => ({ ...m, [id]: { ...m[id], ...patch } }));

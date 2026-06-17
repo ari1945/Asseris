@@ -220,7 +220,7 @@ function P117WorkPaper({ p117, fmt, rp, nav }) {
 
 function PSAK117View() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const canon = window.AMS_CANON;
   const p117 = useMemoP117(() => canon.psak117(), []);

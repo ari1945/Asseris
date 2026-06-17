@@ -44,7 +44,7 @@ const ADD_TRIGGERS = [
 /* ============================================================ */
 function SPR2400View() {
   const [tab, setTab] = useState2400('kontinum');
-  const nav = (typeof useNav === 'function') ? useNav() : () => {};
+  const nav = useNav();
 
   const tabs = [
     { id: 'kontinum', label: 'Kontinum Keyakinan' },
@@ -215,7 +215,7 @@ function F2400Proc() {
 }
 
 function NavRow2400({ to, label }) {
-  const nav = (typeof useNav === 'function') ? useNav() : () => {};
+  const nav = useNav();
   return (
     <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
       <span className="row ac gap8"><span style={{ color: 'var(--teal)' }}><I.search2 size={14} /></span>{label}</span>

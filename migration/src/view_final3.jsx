@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts.jsx';
+import { useAmsPersist, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg } from './ui.jsx';
@@ -491,7 +491,7 @@ function MLStatStrip({ findings }) {
    ============================================================ */
 function ManagementLetter() {
   const { activeClient, activeEngagement } = useFirm();
-  const persist = (typeof window.useAmsPersist === 'function') ? window.useAmsPersist : ((k, v) => useStateF3(v));
+  const persist = useAmsPersist;
   const [findings, setFindings] = persist('mgmtletter.findings.v2', ML_FINDINGS_SEED);
   const [discussions, setDiscussions] = persist('mgmtletter.discussions.v2', ML_DISCUSSIONS_SEED);
   const [tab, setTab] = useStateF3('workflow');

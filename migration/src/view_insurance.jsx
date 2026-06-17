@@ -36,8 +36,8 @@ function ScoreBox({ v, color, size = 26 }) {
 }
 
 function FirmInsurance() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : { engagements: [], clients: [] };
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const nav = useNav();
   const IRM = window.IRM;
   const [tab, setTab] = useStateIns(() => { try { return localStorage.getItem('ams.ins.tab') || 'ikhtisar'; } catch (e) { return 'ikhtisar'; } });
   React.useEffect(() => { try { localStorage.setItem('ams.ins.tab', tab); } catch (e) {} }, [tab]);

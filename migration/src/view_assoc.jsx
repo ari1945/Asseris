@@ -17,7 +17,7 @@ const { useState: useStateAS, useMemo: useMemoAS } = React;
 
 /* link kecil ke modul sumber (TrSrc tidak global) */
 function Src({ module, children }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   return <b onClick={() => nav(module)} style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>{children}</b>;
 }
 

@@ -125,7 +125,7 @@ function readSideRecent() {
 function Sidebar({ active, onNavigate, collapsed, onToggle }) {
   const [closedGroups, setClosedGroups] = useStateSH({});
   const toggleGroup = (g) => setClosedGroups(s => ({ ...s, [g]: !s[g] }));
-  const firmCtx = (typeof useFirm === 'function') ? useFirm() : null;
+  const firmCtx = useFirm();
   const [ws, setWs] = useStateSH(() => {
     try { const s = localStorage.getItem('ams.ws'); if (s && WORKSPACES.some(w => w.id === s)) return s; } catch (e) {}
     return (window.wsForModule && window.wsForModule(active)) || 'engagement';
@@ -283,7 +283,7 @@ function SubBar({ moduleId, right }) {
   const m = MODULE_INDEX[moduleId] || { label: moduleId, group: '' };
   const firm = useFirm();
   const nav = useNav();
-  const navFrom = (typeof useNavFrom === 'function') ? useNavFrom() : null;
+  const navFrom = useNavFrom();
   const fromMeta = navFrom && navFrom !== moduleId ? (MODULE_INDEX[navFrom] || { label: navFrom }) : null;
   const firmWide = FIRMWIDE_GROUPS.includes(m.group) || ['dashboard'].includes(moduleId);
   const scoped = !firmWide && m.group !== '';

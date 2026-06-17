@@ -24,7 +24,7 @@ const MODE_LABEL = { auto: 'Otomatis', semi: 'Semi-otomatis', manual: 'Manual' }
 
 /* chip sumber → loncat ke modul pemilik data */
 function ImSrc({ module, children, title }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   return (
     <button type="button" className="chip tiny" title={title || ('Buka ' + module)}
       onClick={() => module && nav(module, { from: 'integrations' })}
@@ -145,7 +145,7 @@ function Integrations() {
 /* ---------------- Antrean Impor: staging → validasi → posting ---------------- */
 function ImportQueue({ sum }) {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [open, setOpen] = useStateIN(null);
   const jobs = sum.jobs;
   return (
@@ -223,7 +223,7 @@ function ImportQueue({ sum }) {
 /* ---------------- Rekonsiliasi SSOT: posting == konsumsi ---------------- */
 function ImportRecon({ IM, sum }) {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const recon = IM.reconciliation();
   return (
     <Panel noBody>
@@ -268,7 +268,7 @@ function ImportRecon({ IM, sum }) {
 
 function IntegrationDetail({ it, onToggle }) {
   const [tab, setTab] = useStateIN('ringkasan');
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const { fmt } = window.AMS;
   const IconC = I[it.icon] || I.panel;
   const st = INTEG_STATUS[it.status];

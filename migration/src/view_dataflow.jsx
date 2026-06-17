@@ -22,7 +22,7 @@ const DF_ICON = { ok: 'checkCircle', warn: 'alert', err: 'x' };
 /* ---- Riwayat bukti yang masuk lewat AI Co-pilot (intake) ---- */
 function AIIntakeLog() {
   const nav = useNav();
-  const log = (typeof useEvidence === 'function') ? useEvidence(null) : [];
+  const log = useEvidence(null);
   const openCopilot = () => { if (window.__amsOpenCopilot) window.__amsOpenCopilot(); };
   const fileExtIc = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : 'doc';
 

@@ -105,8 +105,8 @@ Object.assign(window, { GA_CONSOL_PROC, GA_CONSOL_UP, GA_CONSOL_DOWN, PKG_STATUS
 
 function GroupAudit() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
+  const nav = useNav();
+  const audit = useAudit();
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   const [packages, setPackages] = useAmsPersist('gaPackages', () => gaDefaultPackages(wtb));
   const p65 = useMemoGA(() => (window.AMS_CANON && window.AMS_CANON.psak65) ? window.AMS_CANON.psak65(wtb, packages) : null, [wtb, packages]);

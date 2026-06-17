@@ -136,8 +136,8 @@ function amsCrossChecks(ctx) {
    kelola keputusan (persisten + jejak audit).
    ------------------------------------------------------------ */
 function useAiInsights(scope) {
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const audit = useAudit();
+  const nav = useNav();
   const [decisions, setDecisions] = window.useAmsPersist('aiInsights.v1', () => ({}));
   const USER = (window.AMS && window.AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
 
@@ -229,7 +229,7 @@ function AiInsightCard({ ins, decision, onDecide, onOpen }) {
 
 function AiInsightPanel({ scope, title, embedded }) {
   const { insights, decisions, decide, openCount } = useAiInsights(scope);
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [showDone, setShowDone] = React.useState(false);
 
   if (!insights.length) {

@@ -36,21 +36,18 @@ export default [
       // --- the W3 migration gate ---
       // no-undef (non-JSX refs) is a hard gate — already green.
       'no-undef': 'error',
-      // jsx-no-undef is the W3 component-wiring WORKLIST (warn, not error): the
-      // 444 hits are 3 unpublished helper components (KvBox/RowKv/Kv) + 2 views
-      // used across files, plus a rule limitation (it ignores declared globals,
-      // so it false-flags `window` in <window.X/> dynamic renders). Promote to
-      // error once W3 wires the components and removes the dynamic-window JSX.
-      'react/jsx-no-undef': 'warn',
+      // ERROR since W3 Phase 4: the dynamic-window JSX (<window.X/>) was rewritten
+      // to imported refs, so any unwired JSX component is now a real regression.
+      'react/jsx-no-undef': 'error',
       // real correctness bug — silent data loss from duplicate object keys.
       'no-dupe-keys': 'error',
       // --- hooks correctness ---
-      // WARN (not error) during migration: the 163 current hits are intentional
-      // buildless-era patterns, not bugs — the CLAUDE.md rule-#6 defensive guard
-      // `(typeof useNav === 'function') ? useNav() : (()=>{})` (conditional call)
-      // and `window.useAmsPersist` (window-assigned custom hook the plugin can't
-      // see). Both disappear once W3 makes imports static; promote to error then.
-      'react-hooks/rules-of-hooks': 'warn',
+      // ERROR since W3 Phase 4: the buildless-era defensive guards
+      // `(typeof useNav === 'function') ? useNav() : (()=>{})` were dissolved to
+      // bare imported-hook calls and `window.useAmsPersist` was renamed to a
+      // proper `useAmsPersist` hook, so any remaining conditional/misplaced hook
+      // call is a real rules-of-hooks bug.
+      'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'off',
       // --- quieted during migration (revisit post-W3/W5) ---
       'no-unused-vars': 'off',

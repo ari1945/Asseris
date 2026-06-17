@@ -37,12 +37,12 @@ function FacAlerts({ B, FA, firm, nav, setTab, setSel }) {
     <div style={{ display: 'grid', gap: 7 }}>
       {items.slice(0, 7).map((a, i) => (
         <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-          <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(window.I[a.ic] || window.I.alert, { size: 15 })}</span>
+          <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(I[a.ic] || I.alert, { size: 15 })}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 300 }}>{a.t}</div>
             <div className="tiny muted truncate" style={{ maxWidth: 300 }}>{a.s}</div>
           </div>
-          <window.I.arrowRight size={12} style={{ color: 'var(--ink-4)', flex: '0 0 auto' }} />
+          <I.arrowRight size={12} style={{ color: 'var(--ink-4)', flex: '0 0 auto' }} />
         </button>
       ))}
       {!items.length && <div className="tiny muted">Tidak ada peringatan terbuka.</div>}
@@ -55,7 +55,7 @@ function FacAlerts({ B, FA, firm, nav, setTab, setSel }) {
    ============================================================ */
 function Facilities() {
   const firm = useFirm();
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const FA = window.FAC;
   const B = window.BO;
   const [tab, setTab] = useStateFac('overview');
@@ -168,7 +168,7 @@ function FacMaintMini({ FA, nav, setTab }) {
         const col = m.days < 0 ? 'var(--red)' : m.days <= 14 ? 'var(--amber)' : 'var(--green)';
         return (
           <div key={m.id} className="row ac gap8" style={{ padding: '6px 8px', borderRadius: 7, border: '1px solid var(--line)', cursor: 'pointer' }} onClick={() => setTab('maint')}>
-            <span style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', flex: '0 0 24px', background: (m.k3 ? 'var(--purple)' : 'var(--blue)') + '1a', color: m.k3 ? 'var(--purple)' : 'var(--blue)' }}>{React.createElement(m.k3 ? window.I.shield : window.I.settings, { size: 12 })}</span>
+            <span style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', flex: '0 0 24px', background: (m.k3 ? 'var(--purple)' : 'var(--blue)') + '1a', color: m.k3 ? 'var(--purple)' : 'var(--blue)' }}>{React.createElement(m.k3 ? I.shield : I.settings, { size: 12 })}</span>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 200 }}>{m.asset}</div>
               <div className="tiny muted">{m.type} · {m.vendorId ? <span style={{ color: 'var(--blue)' }}>{m.vendorId}</span> : m.vendor}</div>

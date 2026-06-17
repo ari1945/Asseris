@@ -18,7 +18,7 @@ const leaseCalc = window.AMS_CANON.leaseCalc;
 
 function LeaseCalculator() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [selId, setSelId] = useStateL('LS-01');
   const [override, setOverride] = useStateL({});
   const [yearly, setYearly] = useStateL(true);

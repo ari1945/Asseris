@@ -30,7 +30,7 @@ const SA200_SKEPTIS = [
 
 /* ============================================================ */
 function SA200View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateS2('tujuan');
 

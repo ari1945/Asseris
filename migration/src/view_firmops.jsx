@@ -23,14 +23,14 @@ const FOPS_PALETTE = ['#013a52', '#005085', '#0a6b73', '#2f7bb0', '#5b3fa6', '#9
 
 /* kartu kesehatan sub-modul (klik → buka modul mendalam) */
 function FopsModuleCard({ m, stat, sub, status, statusKind, onNav }) {
-  const Ic = window.I[m.icon] || window.I.building;
+  const Ic = I[m.icon] || I.building;
   return (
     <button type="button" className="panel fops-card" onClick={() => onNav(m.id, { from: 'firmops' })}
       style={{ padding: '12px 13px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 7, border: '1px solid var(--line)', background: 'var(--surface-1)' }}>
       <div className="row ac gap8">
         <span style={{ width: 28, height: 28, borderRadius: 7, display: 'grid', placeItems: 'center', flex: '0 0 28px', background: m.c + '1a', color: m.c }}><Ic size={15} /></span>
         <span style={{ fontWeight: 600, fontSize: 12, lineHeight: 1.2 }}>{m.label}</span>
-        <span style={{ marginLeft: 'auto', color: 'var(--ink-4)' }}><window.I.arrowRight size={13} /></span>
+        <span style={{ marginLeft: 'auto', color: 'var(--ink-4)' }}><I.arrowRight size={13} /></span>
       </div>
       <div className="row ac jb" style={{ marginTop: 2 }}>
         <div>
@@ -45,7 +45,7 @@ function FopsModuleCard({ m, stat, sub, status, statusKind, onNav }) {
 
 function FirmOps() {
   const firm = useFirm();
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [tab, setTab] = useStateFops('overview');
   const [vSel, setVSel] = useStateFops(null);
   const [calFilter, setCalFilter] = useStateFops('all');
@@ -151,7 +151,7 @@ function FirmOps() {
                   <div style={{ display: 'grid', gap: 7 }}>
                     {obligations.slice(0, 7).map((o, i) => {
                       const meta = F.SUBMODULES.find(s => s.id === o.module) || {};
-                      const Ic = window.I[meta.icon] || window.I.calendar;
+                      const Ic = I[meta.icon] || I.calendar;
                       const col = F.SEV_COLOR[F.sev(o.days)];
                       return (
                         <div key={i} className="row ac gap8" style={{ padding: '6px 8px', borderRadius: 7, border: '1px solid var(--line)', cursor: 'pointer' }} onClick={() => nav(o.module, { from: 'firmops' })}>

@@ -22,7 +22,7 @@ const t23Date = (s) => { if (!s) return '—'; const [y, m, d] = s.split('-'); r
 function TaxPPh23() {
   const { fmt } = window.AMS;
   const T = window.TAX23;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [tab, setTab] = useStateT23('ikhtisar');
   const [extra, setExtra] = useAmsPersist('tax23.extra', []);
   const [ov, setOv] = useAmsPersist('tax23.ov', {});

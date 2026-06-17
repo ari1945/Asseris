@@ -36,7 +36,7 @@ const MON_SOURCE = {
 };
 
 function SOQM() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [risks, setRisks] = useAmsPersist('soqmRisks', () => window.AMS.SOQM_RISKS);
   const [complaints] = useAmsPersist('complaints.v2', () => window.AMS.COMPLAINTS);
   const inspections = window.AMS.QM_INSPECTIONS;
@@ -130,7 +130,7 @@ function SOQM() {
                         <div className="tiny" style={{ marginTop: 4, color: 'var(--ink-2)' }}>{a.cover}</div>
                         {src && (
                           <button type="button" className="soqm-src" style={{ marginTop: 6 }} onClick={() => nav(src.mod, { from: 'soqm' })}>
-                            <span className="tiny muted">Sumber:</span><span className="tiny mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{src.src}</span>{window.I ? <window.I.arrowRight size={11} /> : null}
+                            <span className="tiny muted">Sumber:</span><span className="tiny mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{src.src}</span>{I ? <I.arrowRight size={11} /> : null}
                           </button>
                         )}
                       </div>
@@ -159,7 +159,7 @@ function SOQM() {
                           <td className="mono tiny muted">{new Date(ins.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                           <td className="num"><span className="mono" style={{ fontWeight: 700, color: ins.findings ? 'var(--amber)' : 'var(--green)' }}>{ins.findings}</span></td>
                           <td><Badge kind={INSP_GRADE[ins.grade]}>{ins.grade}</Badge></td>
-                          <td><button type="button" className="soqm-go" title="Buka EQR perikatan" onClick={() => nav('eqr', { from: 'soqm' })}>{window.I ? <window.I.arrowRight size={13} /> : '→'}</button></td>
+                          <td><button type="button" className="soqm-go" title="Buka EQR perikatan" onClick={() => nav('eqr', { from: 'soqm' })}>{I ? <I.arrowRight size={13} /> : '→'}</button></td>
                         </tr>
                       );
                     })}
@@ -278,8 +278,8 @@ function RemediationTab({ deficiencies, nav }) {
             {capacityTie && (
               <div className="panel" style={{ marginTop: 12, padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
                 <div className="row jb ac" style={{ marginBottom: 8 }}>
-                  <div className="row ac gap6"><span style={{ color: 'var(--blue)' }}>{window.I ? <window.I.link2 size={14} /> : null}</span><span className="tiny" style={{ fontWeight: 700 }}>Tarikan langsung — Capacity Planning (validasi defisiensi)</span></div>
-                  <button type="button" className="soqm-src" onClick={() => nav('capacity', { from: 'soqm' })}><span className="tiny mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>CAPACITY</span>{window.I ? <window.I.arrowRight size={11} /> : null}</button>
+                  <div className="row ac gap6"><span style={{ color: 'var(--blue)' }}>{I ? <I.link2 size={14} /> : null}</span><span className="tiny" style={{ fontWeight: 700 }}>Tarikan langsung — Capacity Planning (validasi defisiensi)</span></div>
+                  <button type="button" className="soqm-src" onClick={() => nav('capacity', { from: 'soqm' })}><span className="tiny mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>CAPACITY</span>{I ? <I.arrowRight size={11} /> : null}</button>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <OKv label="Senior > 92% (puncak)" v={P.overloaded.length + ' orang'} accent={P.overloaded.length ? 'var(--amber)' : 'var(--green)'} />
@@ -345,7 +345,7 @@ function RiskDetail({ r, nav, onClose }) {
           {comp && (
             <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny" style={{ fontWeight: 700 }}>Komponen SPM {comp.id} · {comp.name}</span><span className="mono" style={{ fontWeight: 800, color: comp.score >= 85 ? 'var(--green)' : 'var(--amber)' }}>{comp.score}</span></div>
-              <button type="button" className="soqm-src" onClick={() => nav && nav('governance', { from: 'soqm' })}><span className="tiny muted">Pemilik {comp.owner} · skor ditarik dari Governance</span>{window.I ? <window.I.arrowRight size={11} /> : null}</button>
+              <button type="button" className="soqm-src" onClick={() => nav && nav('governance', { from: 'soqm' })}><span className="tiny muted">Pemilik {comp.owner} · skor ditarik dari Governance</span>{I ? <I.arrowRight size={11} /> : null}</button>
             </div>
           )}
           <OKv label="Pemilik Kontrol" v={r.owner} />

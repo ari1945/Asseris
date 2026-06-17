@@ -34,7 +34,7 @@ const NOCLAR_REGISTER = [
 ];
 
 function SA250View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateSC('kerangka');
   const tabs = [{ id: 'kerangka', label: 'Kerangka & Kategori' }, { id: 'register', label: 'Register Ketidakpatuhan' }, { id: 'pelaporan', label: 'Respons & Pelaporan' }];
@@ -229,7 +229,7 @@ const TCWG_FINDINGS = [
 ];
 
 function SA260View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateSC('pihak');
   const tabs = [{ id: 'pihak', label: 'Pihak & Bentuk' }, { id: 'matriks', label: 'Matriks Komunikasi' }, { id: 'temuan', label: 'Temuan Signifikan' }];
@@ -388,7 +388,7 @@ const SIG_INDICATORS = [
 ];
 
 function SA265View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateSC('register');
   const sig = DEFICIENCIES.filter(d => d.sig).length;

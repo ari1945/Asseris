@@ -68,7 +68,7 @@ function I35Nav({ items, active, onChange }) {
 
 function ISAK35View() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const canon = window.AMS_CANON;
   const m = useMemoI35(() => canon.isak35(), []);
 

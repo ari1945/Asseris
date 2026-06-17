@@ -68,7 +68,7 @@ function crAlgorithms(docs, evCount, signCount, streamLen) {
    Komponen utama
    ============================================================ */
 function CryptoCompliance() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const { logEntries } = useAudit();
   const [tab, setTab] = useCR('postur');
   const [tamperId, setTamperId] = useCR(null);      // simulasi perubahan (tamper-evidence demo)

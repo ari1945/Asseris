@@ -94,8 +94,8 @@ function StatusPill({ meta }) {
 
 function PSAK1View() {
   const { fmt } = window.AMS;
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   const [comps, setComps] = useStateP1(() => loader('ams.psak1.comps', P1_COMPONENTS));

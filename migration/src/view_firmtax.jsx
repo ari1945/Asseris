@@ -17,7 +17,7 @@ const TAX_STAT = { 'Lapor': 'green', 'Bayar': 'blue', 'Belum Lapor': 'amber', 'D
 
 function FirmTax() {
   const { fmt } = window.AMS;
-  const navTX = (typeof useNav === 'function') ? useNav() : (() => {});
+  const navTX = useNav();
   const EF = window.AMS.EFAKTUR;
   const PPH = window.AMS.PPH_WITHHELD;
   const [tab, setTab] = useStateTX('kalender');

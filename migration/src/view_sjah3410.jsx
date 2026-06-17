@@ -28,7 +28,7 @@ const { useState: useS3410 } = React;
 
 function SJAH3410View() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('ghg3410.exec', {});
   const [tab, setTab] = useS3410('anatomi');
   const E = window.AMS.ghgEngine(exec);

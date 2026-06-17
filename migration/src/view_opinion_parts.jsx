@@ -259,7 +259,7 @@ function Field({ label, children }) {
    ============================================================ */
 function OpinionDecisionTree({ doc, patch }) {
   const { fmt } = window.AMS;
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
+  const audit = useAudit();
   const { activeEngagement } = useFirm();
   const USER = (window.AMS && window.AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
   const om = activeEngagement?.materiality || 4_250_000_000;

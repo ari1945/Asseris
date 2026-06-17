@@ -69,8 +69,8 @@ function SRStdRow({ s, fmt, nav, dense }) {
 
 function SAKRoadmapView() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
+  const nav = useNav();
+  const firm = useFirm();
   const loader = window.loadLS || ((k, d) => d);
   const H = useMemoSR(() => window.AMS_CANON.sakHorizon(), []);
   const client = (firm && firm.activeClient) || { name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', listed: true };

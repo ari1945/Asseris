@@ -28,7 +28,7 @@ function pseudoHash(str) {
 
 function AuditTrail() {
   const { logEntries } = useAudit();
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [q, setQ] = useStateAT('');
   const [actFilter, setActFilter] = useStateAT('All');
   const [userFilter, setUserFilter] = useStateAT('All');

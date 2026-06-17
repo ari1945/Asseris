@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Spark } from './ui.jsx';
 
 /* ============================================================
@@ -96,7 +97,7 @@ function SoqmObjectives({ risks, nav, onPick }) {
     <div style={{ padding: 14, display: 'grid', gap: 14 }}>
       <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'transparent', boxShadow: 'none' }}>
         <div className="row ac gap8">
-          <span style={{ color: 'var(--blue)' }}>{window.I ? <window.I.target size={16} /> : null}</span>
+          <span style={{ color: 'var(--blue)' }}>{I ? <I.target size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>
             ISQM 1 ¶25–¶28 — firma menetapkan <b>tujuan mutu</b> untuk setiap komponen SPM, mengidentifikasi <b>risiko mutu</b> atas pencapaiannya, lalu merancang & menerapkan <b>respons</b>. Tujuan, risiko & respons di bawah ditarik dari register <span className="mono">SOQM_RISKS</span> & dipetakan langsung ke 8 komponen pada <span className="mono">QM_COMPONENTS</span> (Governance).
           </div>
@@ -111,7 +112,7 @@ function SoqmObjectives({ risks, nav, onPick }) {
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Tujuan Mutu per Komponen SPM</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{window.I ? <window.I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
+        <div className="panel-h"><h3>Tujuan Mutu per Komponen SPM</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
         <div style={{ padding: 14, display: 'grid', gap: 10 }}>
           {comps.map(c => {
             const cRisks = matched(c);
@@ -194,7 +195,7 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }) {
     <div className="panel" style={{ padding: '12px 14px', boxShadow: 'none', background: 'var(--surface-2)' }}>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
         <div className="row ac gap8">
-          <span style={{ color: 'var(--blue)' }}>{window.I ? <window.I.scale size={14} /> : null}</span>
+          <span style={{ color: 'var(--blue)' }}>{I ? <I.scale size={14} /> : null}</span>
           <span className="tiny" style={{ fontWeight: 700 }}>Penilaian Keparahan &amp; Pervasivitas Defisiensi (ISQM 1 ¶41)</span>
         </div>
         <span className="tiny muted">Basis kesimpulan evaluasi tahunan SPM</span>
@@ -282,7 +283,7 @@ function SoqmInfoComm({ nav }) {
     <div style={{ padding: 14, display: 'grid', gap: 14 }}>
       <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'transparent', boxShadow: 'none' }}>
         <div className="row ac gap8">
-          <span style={{ color: 'var(--blue)' }}>{window.I ? <window.I.mail size={16} /> : null}</span>
+          <span style={{ color: 'var(--blue)' }}>{I ? <I.mail size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>
             ISQM 1 ¶33–¶37 — firma membangun sistem informasi &amp; komunikasi mutu yang memungkinkan informasi tepat waktu mengalir <b>naik · turun · lateral · keluar</b>. Setiap kanal di bawah tertaut ke modul sumber kanonik — bukan kanal terpisah yang berisiko inkonsisten.
           </div>
@@ -291,7 +292,7 @@ function SoqmInfoComm({ nav }) {
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
         {channels.map((ch, i) => {
-          const Ic = window.I && (window.I[ch.icon] || window.I.mail);
+          const Ic = I && (I[ch.icon] || I.mail);
           return (
             <Panel key={i} noBody>
               <div className="panel-h">
@@ -308,7 +309,7 @@ function SoqmInfoComm({ nav }) {
                       <span className="tiny muted">Sumber: <span className="mono" style={{ color: 'var(--blue)' }}>{f.src}</span></span>
                     </span>
                     <span className="soqm-flow-val tiny mono">{f.n}</span>
-                    {window.I ? <window.I.arrowRight size={12} /> : null}
+                    {I ? <I.arrowRight size={12} /> : null}
                   </button>
                 ))}
               </div>
@@ -417,7 +418,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }) {
           <div style={{ padding: '4px 0 8px' }}>
             {factors.map((f, i) => (
               <div key={i} className="soqm-factor-row">
-                <span style={{ color: f.ok ? 'var(--green)' : 'var(--amber)', display: 'inline-flex', flex: '0 0 18px' }}>{window.I ? (f.ok ? <window.I.checkCircle size={15} /> : <window.I.alert size={15} />) : null}</span>
+                <span style={{ color: f.ok ? 'var(--green)' : 'var(--amber)', display: 'inline-flex', flex: '0 0 18px' }}>{I ? (f.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />) : null}</span>
                 <span className="soqm-factor-t" style={{ fontSize: 12, fontWeight: 600 }}>{f.t}</span>
                 <span className="soqm-factor-d tiny muted">{f.detail}</span>
                 <span className="mono tiny" style={{ fontWeight: 700, color: f.ok ? 'var(--green)' : 'var(--amber)' }}>{f.v}</span>
@@ -472,8 +473,8 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }) {
             <D2Action ok={true} t="Laporkan ke PPPK & TCWG terkait" v="Sesuai jadwal" />
           </div>
           <div style={{ padding: '0 14px 14px', display: 'grid', gap: 8 }}>
-            <Btn variant="primary" onClick={() => nav('soqm', { from: 'soqm' })}><span style={{ display: 'inline-flex', verticalAlign: -2 }}>{window.I ? <window.I.download size={13} /> : null}</span> Unduh Memo Evaluasi</Btn>
-            <Btn onClick={() => nav('pppk', { from: 'soqm' })}>{window.I ? <window.I.report size={13} /> : null} Cantumkan ke Laporan PPPK</Btn>
+            <Btn variant="primary" onClick={() => nav('soqm', { from: 'soqm' })}><span style={{ display: 'inline-flex', verticalAlign: -2 }}>{I ? <I.download size={13} /> : null}</span> Unduh Memo Evaluasi</Btn>
+            <Btn onClick={() => nav('pppk', { from: 'soqm' })}>{I ? <I.report size={13} /> : null} Cantumkan ke Laporan PPPK</Btn>
           </div>
         </Panel>
 
@@ -507,7 +508,7 @@ function D2Action({ ok, t, v }) {
   return (
     <div className="row jb ac">
       <span className="row ac gap8" style={{ minWidth: 0 }}>
-        <span style={{ color: ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{window.I ? (ok ? <window.I.checkCircle size={14} /> : <window.I.alert size={14} />) : null}</span>
+        <span style={{ color: ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{I ? (ok ? <I.checkCircle size={14} /> : <I.alert size={14} />) : null}</span>
         <span className="tiny" style={{ lineHeight: 1.3 }}>{t}</span>
       </span>
       <span className="mono tiny" style={{ fontWeight: 700, color: ok ? 'var(--green)' : 'var(--amber)' }}>{v}</span>

@@ -27,7 +27,7 @@ function SecCard({ value, label, sub, accent }) {
 }
 
 function SectorChecklistView() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const S = useMemoSec(() => window.AMS_CANON.ojkSector(), []);
 

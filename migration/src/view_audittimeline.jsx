@@ -65,8 +65,8 @@ function AuditTimeline() {
   const A = window.AMS;
   const { CLIENTS, ENGAGEMENTS, DELIVERY, DELIVERY_WINDOW, FIRM, fmt } = A;
   const today = DELIVERY_WINDOW.today;
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const nav = useNav();
 
   // perikatan yang punya rencana pengiriman
   const planned = DELIVERY.map(d => d.id);

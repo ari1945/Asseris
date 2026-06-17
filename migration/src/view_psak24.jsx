@@ -103,8 +103,8 @@ function P24Card({ value, label, sub, accent }) {
 
 function PSAK24View() {
   const { fmt } = window.AMS;
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   const [scenario, setScenario] = useStateP24(() => loader('ams.psak24.scenario', 'avail'));

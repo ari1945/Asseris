@@ -274,7 +274,7 @@ function F810Proc({ sel }) {
 }
 
 function NavRow810({ to, label, ic: Ic }) {
-  const nav = (typeof useNav === 'function') ? useNav() : () => {};
+  const nav = useNav();
   return (
     <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
       <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Ic size={14} /></span>{label}</span>

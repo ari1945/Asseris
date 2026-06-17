@@ -34,7 +34,7 @@ function PdpCard({ value, label, sub, accent }) {
 }
 
 function PDPView() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const P = useMemoPDP(() => window.AMS_CANON.pdp(), []);
   const [tab, setTab] = useStatePDP(() => loader('ams.pdp.tab', 'ropa'));

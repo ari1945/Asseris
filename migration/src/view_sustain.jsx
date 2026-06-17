@@ -33,7 +33,7 @@ function SusCard({ value, label, sub, accent }) {
 }
 
 function SustainabilityView() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const S = useMemoSus(() => window.AMS_CANON.ojkSustain(), []);
 

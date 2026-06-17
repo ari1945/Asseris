@@ -46,7 +46,7 @@ function kbTypeKind(type) {
 function kbIsStdPage(module) { return module && /^(sa|psak|spr|sjah|sakep|psak)\d|^(sa|psak|spr|sjah|sakep)/.test(module); }
 
 function KnowledgeBase() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [q, setQ] = useStateKB('');
   const [fam, setFam] = useStateKB('Semua');
   const [reading, setReading] = useStateKB(null);
@@ -221,7 +221,7 @@ function KBCard({ a, onOpen }) {
 
 /* ---------- pembaca artikel (mendalam, tarikan lintas-modul) ---------- */
 function ArticleReader({ code, onClose, onOpenCode }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const reg = (window.STANDARDS_REGISTRY || []).find(r => r.code === code);
   React.useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };

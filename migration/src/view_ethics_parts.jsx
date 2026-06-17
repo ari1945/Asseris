@@ -16,7 +16,7 @@ const { useState: useStateEP } = React;
    G7 · ALUR NOCLAR PROFESI (Kode Etik §360) — terpisah SA 250
    =========================================================== */
 function NoclarEthics() {
-  const A = window.AMS, nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const A = window.AMS, nav = useNav();
   const list = A.NOCLAR_ETHICS, STAGES = A.NOCLAR_STAGES;
   const [sel, setSel] = useStateEP(list[0].id);
   const cur = list.find(r => r.id === sel);
@@ -138,7 +138,7 @@ function TaxTechEthics() {
    =========================================================== */
 function StdVersionStrip({ highlight }) {
   const A = window.AMS, list = A.STD_VERSIONS || [];
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   return (
     <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, boxShadow: 'none', background: 'var(--surface-2)', borderColor: 'var(--line)' }}>
       <div className="row ac jb" style={{ marginBottom: 9 }}>

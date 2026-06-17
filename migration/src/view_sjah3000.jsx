@@ -101,7 +101,7 @@ function SJAH3000View() {
   const [selId, setSelId] = useState3000('ASR-080');
   const [tab, setTab] = useState3000('anatomi');
   const sel = ASR_ENG.find(e => e.id === selId);
-  const nav = (typeof useNav === 'function') ? useNav() : () => {};
+  const nav = useNav();
 
   const tabs = [
     { id: 'anatomi', label: 'Anatomi Perikatan' },
@@ -341,7 +341,7 @@ function F3000Evidence({ sel }) {
 }
 
 function NavRow3000({ to, label }) {
-  const nav = (typeof useNav === 'function') ? useNav() : () => {};
+  const nav = useNav();
   return (
     <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
       <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.shield size={14} /></span>{label}</span>

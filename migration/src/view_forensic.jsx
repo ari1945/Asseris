@@ -37,8 +37,8 @@ const FC_ACT = { O: { label: 'Operasi', kind: 'blue' }, I: { label: 'Investasi',
 function ForensicCashFlow() {
   const { fmt } = window.AMS;
   const nav = useNav();
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
+  const audit = useAudit();
+  const firm = useFirm();
 
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   const model = useMemoFC(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);

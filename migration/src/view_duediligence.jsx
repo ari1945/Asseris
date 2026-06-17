@@ -62,7 +62,7 @@ function DDBar({ label, value, max, color, strong }) {
 function DueDiligence() {
   const { fmt } = window.AMS;
   const D = window.AMS.DUE_DILIGENCE;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [tab, setTab] = window.useAmsPersist('dd.tab', 'ikhtisar');
   const [showReport, setShowReport] = useDD(false);
 

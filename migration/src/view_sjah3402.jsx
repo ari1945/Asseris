@@ -25,7 +25,7 @@ import { RowKv } from './view_calc.jsx';
 const { useState: useS42 } = React;
 
 function SJAH3402View() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('soc3402.exec', {});
   const [tab, setTab] = useS42('anatomi');
   const E = window.AMS.socEngine(exec);
@@ -96,7 +96,7 @@ function SJAH3402View() {
 /* ---------------- Tab: Anatomi Perikatan ---------------- */
 function SocAnatomy({ E, A }) {
   const acc = A.terms.filter(t => t.ok).length;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>

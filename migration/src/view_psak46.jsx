@@ -131,8 +131,8 @@ function P46Card({ value, label, sub, accent }) {
 
 function PSAK46View() {
   const { fmt } = window.AMS;
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   const [scenario, setScenario] = useStateP46(() => loader('ams.psak46.scenario', 'support'));

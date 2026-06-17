@@ -45,7 +45,7 @@ function LglRenewalTimeline({ items, onSel }) {
 
 function FirmLegal() {
   const firm = useFirm();
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [tab, setTab] = useStateLgl2('overview');
   const [sel, setSel] = useStateLgl2(null);
   const [selDispute, setSelDispute] = useStateLgl2('LIT-03');

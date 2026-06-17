@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { I } from './icons.jsx';
 import { useNav } from './contexts.jsx';
 import { LINEAGE } from './related_modules_data.js';
 import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2.js';
@@ -12,18 +13,18 @@ import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2.
 
 function ModuleLineage({ moduleId }) {
   const L = (typeof LINEAGE !== 'undefined' ? LINEAGE : window.LINEAGE || {})[moduleId];
-  const nav = (typeof useNav === 'function') ? useNav() : (window.__amsNav || (() => {}));
+  const nav = useNav();
   const [open, setOpen] = React.useState(true);
   if (!L) return null;
 
   const Chip = ({ m, color }) => {
-    const Ic = (window.I && (window.I[m.ic] || window.I.doc));
+    const Ic = (I && (I[m.ic] || I.doc));
     return (
       <button type="button" className="lin-chip" title={m.rel + ' — buka ' + m.lbl}
         onClick={() => nav(m.id, { from: moduleId })} style={{ borderLeftColor: color }}>
         <span className="lin-ic" style={{ color }}>{Ic ? <Ic size={14} /> : null}</span>
         <span className="lin-txt"><span className="lin-lbl">{m.lbl}</span><span className="lin-rel">{m.rel}</span></span>
-        <span className="lin-go">{window.I ? <window.I.arrowRight size={12} /> : '→'}</span>
+        <span className="lin-go">{I ? <I.arrowRight size={12} /> : '→'}</span>
       </button>
     );
   };
@@ -31,11 +32,11 @@ function ModuleLineage({ moduleId }) {
   return (
     <div className={'lineage-dock' + (open ? '' : ' collapsed')}>
       <button type="button" className="lin-head" onClick={() => setOpen(o => !o)} title={open ? 'Sembunyikan' : 'Tampilkan keterkaitan'}>
-        {window.I ? <window.I.link2 size={14} /> : null}
+        {I ? <I.link2 size={14} /> : null}
         <span className="lin-h-t">Keterkaitan Modul</span>
         <span className="lin-h-s">{L.std}</span>
         <span className="lin-h-c">lineage dua arah</span>
-        {window.I ? <window.I.chevDown size={14} style={{ transform: open ? 'none' : 'rotate(180deg)', transition: '.15s', marginLeft: 'auto' }} /> : null}
+        {I ? <I.chevDown size={14} style={{ transform: open ? 'none' : 'rotate(180deg)', transition: '.15s', marginLeft: 'auto' }} /> : null}
       </button>
       {open && (
         <div className="lin-body">
@@ -55,7 +56,7 @@ function ModuleLineage({ moduleId }) {
 
 function StandardLinkback({ moduleId }) {
   const meta = (window.MODULE_INDEX || {})[moduleId];
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   /* default COLLAPSE — bar keterkaitan standar tampil terlipat di semua modul */
   const [open, setOpen] = React.useState(false);
   if (!meta) return null;
@@ -93,18 +94,18 @@ function StandardLinkback({ moduleId }) {
 
   const ProcChip = ({ p }) => {
     const m = (window.MODULE_INDEX || {})[p.module] || { label: p.module, icon: 'doc' };
-    const Ic = window.I && (window.I[m.icon] || window.I.doc);
+    const Ic = I && (I[m.icon] || I.doc);
     return (
       <button type="button" className="lin-chip" title={p.note + ' — buka ' + m.label}
         onClick={() => nav(p.module, { from: moduleId })} style={{ borderLeftColor: 'var(--navy)' }}>
         <span className="lin-ic" style={{ color: 'var(--navy)' }}>{Ic ? <Ic size={14} /> : null}</span>
         <span className="lin-txt"><span className="lin-lbl">{m.label}</span><span className="lin-rel">{p.note}</span></span>
-        <span className="lin-go">{window.I ? <window.I.arrowRight size={12} /> : '→'}</span>
+        <span className="lin-go">{I ? <I.arrowRight size={12} /> : '→'}</span>
       </button>
     );
   };
   const SibChip = ({ s }) => {
-    const Ic = window.I && (window.I[s.icon] || window.I.doc);
+    const Ic = I && (I[s.icon] || I.doc);
     return (
       <button type="button" className="lin-chip sib" title={'Buka ' + s.label}
         onClick={() => nav(s.id, { from: moduleId })} style={{ borderLeftColor: 'var(--teal)' }}>
@@ -114,24 +115,24 @@ function StandardLinkback({ moduleId }) {
     );
   };
   const StdChip = ({ r }) => {
-    const Ic = window.I && window.I.shield;
+    const Ic = I && I.shield;
     return (
       <button type="button" className="lin-chip" title={r.code + ' · ' + r.title + (r.view ? ' — buka rujukan standar' : ' — lihat di Matriks Kepatuhan')}
         onClick={() => openSA(r)} style={{ borderLeftColor: 'var(--navy)' }}>
         <span className="lin-ic" style={{ color: 'var(--navy)' }}>{Ic ? <Ic size={14} /> : null}</span>
         <span className="lin-txt"><span className="lin-lbl">{r.code}</span><span className="lin-rel">{r.title}{r.phase ? ' · ' + r.phase : ''}</span></span>
-        <span className="lin-go">{window.I ? <window.I.arrowRight size={12} /> : '→'}</span>
+        <span className="lin-go">{I ? <I.arrowRight size={12} /> : '→'}</span>
       </button>
     );
   };
 
   const Header = (
     <button type="button" className="lin-head" onClick={() => setOpen(o => !o)} title={open ? 'Sembunyikan' : 'Tampilkan keterkaitan standar'}>
-      {window.I ? <window.I.shield size={14} /> : null}
+      {I ? <I.shield size={14} /> : null}
       <span className="lin-h-t">Keterkaitan Standar</span>
       <span className="lin-h-s">{stdLabel}</span>
       <span className="lin-h-c">ketertelusuran</span>
-      {window.I ? <window.I.chevDown size={14} style={{ transform: open ? 'none' : 'rotate(180deg)', transition: '.15s', marginLeft: 'auto' }} /> : null}
+      {I ? <I.chevDown size={14} style={{ transform: open ? 'none' : 'rotate(180deg)', transition: '.15s', marginLeft: 'auto' }} /> : null}
     </button>
   );
 
@@ -156,7 +157,7 @@ function StandardLinkback({ moduleId }) {
               <span className="lin-col-h sib">Standar serumpun · {meta.group.replace(/^SA · /, '')}</span>
               <div className="lin-chips">
                 <button type="button" className="lin-cta" onClick={() => nav('compmatrix', { from: moduleId })}>
-                  {window.I ? <window.I.table size={13} /> : null} Lihat di Matriks Kepatuhan
+                  {I ? <I.table size={13} /> : null} Lihat di Matriks Kepatuhan
                 </button>
                 {siblings.map(s => <SibChip key={s.id} s={s} />)}
               </div>
@@ -181,11 +182,11 @@ function StandardLinkback({ moduleId }) {
             <span className="lin-col-h sib">Ketertelusuran kepatuhan</span>
             <div className="lin-chips">
               <button type="button" className="lin-cta" onClick={() => nav('compmatrix', { from: moduleId })}>
-                {window.I ? <window.I.table size={13} /> : null} Lihat di Matriks Kepatuhan
+                {I ? <I.table size={13} /> : null} Lihat di Matriks Kepatuhan
               </button>
               <button type="button" className="lin-chip sib" title="Buka Basis Pengetahuan Standar (SA/PSAK)"
                 onClick={() => nav('kb', { from: moduleId })} style={{ borderLeftColor: 'var(--teal)' }}>
-                <span className="lin-ic" style={{ color: 'var(--teal)' }}>{window.I ? <window.I.book size={14} /> : null}</span>
+                <span className="lin-ic" style={{ color: 'var(--teal)' }}>{I ? <I.book size={14} /> : null}</span>
                 <span className="lin-txt"><span className="lin-lbl">Basis Pengetahuan</span></span>
               </button>
             </div>

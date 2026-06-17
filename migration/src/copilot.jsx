@@ -2,7 +2,7 @@
 import React from 'react';
 import { ExtractReview } from './ai_extract.jsx';
 import { AiInsightPanel } from './ai_insights.jsx';
-import { useFirm, useNav } from './contexts.jsx';
+import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
 import { AMS } from './data.js';
 import { amsAttachEvidence } from './evidence.jsx';
 import { I, MODULE_INDEX, RELATED_SA } from './icons.jsx';
@@ -475,9 +475,9 @@ const CP_GREETING = {
 };
 
 function Copilot({ open, onClose, route }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const persist = (typeof window.useAmsPersist === 'function') ? window.useAmsPersist : ((k, init) => useStateCP(init));
+  const nav = useNav();
+  const firm = useFirm();
+  const persist = useAmsPersist;
 
   const [msgs, setMsgs] = persist('copilot.msgs2', [CP_GREETING]);
   const [input, setInput] = useStateCP('');

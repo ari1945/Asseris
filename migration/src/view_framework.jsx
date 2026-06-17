@@ -223,7 +223,7 @@ function FWTree({ result }) {
    VIEW UTAMA
    ============================================================ */
 function FrameworkView() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* kandidat aktif — default prospek baru bertipe menengah */

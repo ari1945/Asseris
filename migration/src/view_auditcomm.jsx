@@ -29,7 +29,7 @@ function AcCard({ value, label, sub, accent }) {
 const AC_MEETING_KIND = { 'Pra-audit': 'blue', 'Interim': 'amber', 'Penyelesaian': 'purple', 'Independensi': 'teal' };
 
 function AuditCommitteeView() {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const A = useMemoAc(() => window.AMS_CANON.ojkAuditComm(), []);
 

@@ -209,7 +209,7 @@ function verdictForAvg(avg) {
 
 /* ============================================================ */
 function UseOfExpert() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [experts, setExperts] = useStateSP2(EXPERTS_SEED);
   const [selId, setSelId] = useStateSP2('EX-01');

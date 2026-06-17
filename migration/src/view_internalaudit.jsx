@@ -98,7 +98,7 @@ const IA_PROHIBIT = [
 
 /* ============================================================ */
 function InternalAudit() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateIA('konteks');
   const [factors, setFactors] = useStateIA(IA_FACTORS_SEED);

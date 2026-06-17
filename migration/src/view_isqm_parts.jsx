@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { I } from './icons.jsx';
 import { Badge } from './ui.jsx';
 
 /* ============================================================
@@ -73,7 +74,7 @@ function SoqmFlow({ active, onPick }) {
   return (
     <div className="soqm-flow">
       {steps.map((st, i) => {
-        const Ic = window.I && (window.I[st.ic] || window.I.doc);
+        const Ic = I && (I[st.ic] || I.doc);
         const on = st.id === active;
         return (
           <React.Fragment key={i}>
@@ -81,7 +82,7 @@ function SoqmFlow({ active, onPick }) {
               <span className="sfs-ic">{Ic ? <Ic size={15} /> : null}</span>
               <span className="sfs-txt"><span className="sfs-t">{st.t}</span><span className="sfs-s mono">{st.s}</span></span>
             </button>
-            {i < steps.length - 1 && <span className="soqm-flow-arr">{window.I ? <window.I.arrowRight size={13} /> : '→'}</span>}
+            {i < steps.length - 1 && <span className="soqm-flow-arr">{I ? <I.arrowRight size={13} /> : '→'}</span>}
           </React.Fragment>
         );
       })}
@@ -99,7 +100,7 @@ function SoqmComponents({ risks, nav }) {
     <div>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
         <div className="tiny muted upper">8 Komponen SPM · ISQM 1 ¶25 (tarikan dari Governance)</div>
-        <button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{window.I ? <window.I.building size={12} /> : null} Buka Governance (SOQM)</button>
+        <button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Buka Governance (SOQM)</button>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
         {comps.map(c => (
@@ -119,10 +120,10 @@ function SoqmComponents({ risks, nav }) {
 
 /* —— Kartu rekonsiliasi satu masukan pemantauan ke sumbernya —— */
 function PullRow({ ok, input, ref_, source, sourceMod, value, nav, warn }) {
-  const Ic = window.I && (window.I.arrowRight);
+  const Ic = I && (I.arrowRight);
   return (
     <tr>
-      <td><span className="row ac gap6"><span style={{ color: ok ? 'var(--green)' : 'var(--amber)', display: 'inline-flex' }}>{ok ? (window.I ? <window.I.checkCircle size={14} /> : '✓') : (window.I ? <window.I.alert size={14} /> : '!')}</span><span className="tiny" style={{ fontWeight: 600 }}>{input}</span></span><div className="tiny muted" style={{ marginLeft: 20 }}>{ref_}</div></td>
+      <td><span className="row ac gap6"><span style={{ color: ok ? 'var(--green)' : 'var(--amber)', display: 'inline-flex' }}>{ok ? (I ? <I.checkCircle size={14} /> : '✓') : (I ? <I.alert size={14} /> : '!')}</span><span className="tiny" style={{ fontWeight: 600 }}>{input}</span></span><div className="tiny muted" style={{ marginLeft: 20 }}>{ref_}</div></td>
       <td>
         <button type="button" className="soqm-src" onClick={() => sourceMod && nav && nav(sourceMod, { from: 'soqm' })} disabled={!sourceMod}>
           <span className="tiny" style={{ fontWeight: 600, color: sourceMod ? 'var(--blue)' : 'var(--ink-2)' }}>{source}</span>
@@ -198,7 +199,7 @@ function SoqmLineage({ nav }) {
     <div style={{ padding: 14, display: 'grid', gap: 16 }}>
       <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
         <div className="row ac gap8">
-          <span style={{ color: 'var(--blue)' }}>{window.I ? <window.I.link2 size={16} /> : null}</span>
+          <span style={{ color: 'var(--blue)' }}>{I ? <I.link2 size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>
             Seluruh angka pemantauan SOQM <b>ditarik langsung</b> dari satu sumber kebenaran — master <b>ENGAGEMENTS · CLIENTS · STAFF</b> dan register modul terkait — bukan disalin manual. Satu perubahan di sumber mengalir konsisten ke seluruh kartu, tabel & evaluasi tahunan di bawah ini.
           </div>
@@ -218,7 +219,7 @@ function SoqmLineage({ nav }) {
                 <td className="tiny" style={{ fontWeight: 600 }}>{i._m ? i._m.shortClient : '—'}</td>
                 <td className="tiny">{i._m ? i._m.partner : '—'}</td>
                 <td>{i._m && i._m.pie ? <Badge kind="red">PIE</Badge> : <Badge kind="gray">Non-PIE</Badge>}</td>
-                <td><span style={{ color: i._m ? 'var(--green)' : 'var(--amber)' }}>{i._m ? (window.I ? <window.I.checkCircle size={14} /> : '✓') : (window.I ? <window.I.alert size={14} /> : '!')}</span></td>
+                <td><span style={{ color: i._m ? 'var(--green)' : 'var(--amber)' }}>{i._m ? (I ? <I.checkCircle size={14} /> : '✓') : (I ? <I.alert size={14} /> : '!')}</span></td>
               </tr>
             ))}
             {P.eqr.map(r => (
@@ -228,7 +229,7 @@ function SoqmLineage({ nav }) {
                 <td className="tiny" style={{ fontWeight: 600 }}>{r._m ? r._m.shortClient : '—'}</td>
                 <td className="tiny">{r._m ? r._m.partner : '—'}</td>
                 <td>{r._m && r._m.pie ? <Badge kind="red">PIE</Badge> : <Badge kind="gray">Non-PIE</Badge>}</td>
-                <td><span className="row ac gap4" style={{ color: r.independent ? 'var(--green)' : 'var(--red)' }}>{r.independent ? (window.I ? <window.I.checkCircle size={14} /> : '✓') : (window.I ? <window.I.alert size={14} /> : '!')}<span className="tiny">{r.independent ? '' : 'benturan'}</span></span></td>
+                <td><span className="row ac gap4" style={{ color: r.independent ? 'var(--green)' : 'var(--red)' }}>{r.independent ? (I ? <I.checkCircle size={14} /> : '✓') : (I ? <I.alert size={14} /> : '!')}<span className="tiny">{r.independent ? '' : 'benturan'}</span></span></td>
               </tr>
             ))}
           </tbody>

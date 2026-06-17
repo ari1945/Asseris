@@ -52,7 +52,7 @@ const LIT_CASES = getLitCases();
 
 /* ============================================================ */
 function SA501View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useState501('ringkasan');
 

@@ -90,9 +90,9 @@ function MeasureRow({ label, v, sc, cite, sub, total, neg, memo }) {
 
 function PSAK58View() {
   const { fmt } = window.AMS;
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const audit = useAudit();
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */

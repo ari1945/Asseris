@@ -34,9 +34,9 @@ function saCoverageBadge(cov) {
 
 /* baca status kanonik untuk seluruh WP yang dipetakan ke sebuah standar */
 function useSACanon(stdId) {
-  const audit = (typeof useAudit === 'function') ? useAudit() : null;
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
-  const navigate = (typeof useNav === 'function') ? useNav() : (() => {});
+  const audit = useAudit();
+  const firm = useFirm();
+  const navigate = useNav();
   const map = SA_WP_MAP[stdId] || { refs: [], focus: '' };
   const derive = window.deriveWpStatus;
   const rows = (derive ? map.refs.map(r => derive(r, audit, firm)) : []).filter(Boolean);

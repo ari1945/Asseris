@@ -104,7 +104,7 @@ const evCell = (v) => v === 0 ? { bg: 'var(--surface-3)', fg: 'var(--ink-4)', t:
 
 /* ============================================================ */
 function EvidenceEvaluation() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateEV('ringkasan');
   const [items, setItems] = useStateEV(EV_SEED);

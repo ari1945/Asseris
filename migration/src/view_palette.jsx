@@ -133,8 +133,8 @@ function NotificationsPanel({ open, onClose, onNavigate, items, onMarkAll }) {
 
 /* ---------------- User menu ---------------- */
 function UserMenu({ open, onClose, user, onNavigate }) {
-  if (!open) return null;
   const auth = useAuth();
+  if (!open) return null;
   const roles = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor'];
   const go = (id) => { onClose(); onNavigate && onNavigate(id); };
   const items = [

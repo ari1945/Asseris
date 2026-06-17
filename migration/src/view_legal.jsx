@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { I } from './icons.jsx';
 import { Btn } from './ui.jsx';
 import { BoBadge, boJt, boM } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';
@@ -29,7 +30,7 @@ const lglDate = (d) => d || '—';
 function LglSourceChip({ kind, id, onNav }) {
   const meta = window.LEGAL.SOURCE_META[kind];
   if (!meta) return <span className="tiny muted">—</span>;
-  const Ic = window.I[meta.icon] || window.I.link2;
+  const Ic = I[meta.icon] || I.link2;
   return (
     <button type="button" className="chip tiny" title={'Sumber: ' + meta.label + ' · ' + id + ' — buka modul'}
       onClick={(e) => { e.stopPropagation(); onNav(meta.module, { from: 'legal' }); }}
@@ -73,7 +74,7 @@ function lglObligations(c) {
 function LglContractDrawer({ c, onClose, onNav }) {
   if (!c) return null;
   const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
-  const Ic = window.I[cat.ic] || window.I.doc;
+  const Ic = I[cat.ic] || I.doc;
   const d = window.LEGAL.daysTo(c.end);
   const clauses = window.LEGAL.CLAUSES[c.category] || [];
   const obligs = lglObligations(c);
@@ -96,7 +97,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
         {/* lineage sumber kebenaran */}
         <div className="panel" style={{ padding: '11px 13px', marginBottom: 14, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row ac gap8" style={{ marginBottom: 8 }}>
-            <window.I.link2 size={14} style={{ color: 'var(--blue)' }} />
+            <I.link2 size={14} style={{ color: 'var(--blue)' }} />
             <b style={{ fontSize: 12 }}>Sumber Kebenaran (SSOT)</b>
             <div style={{ flex: 1 }} />
             <span className="tiny muted">nilai ditarik, bukan disalin</span>
@@ -133,7 +134,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
           {clauses.map((cl, i) => (
             <div key={i} className="row ac gap8" style={{ fontSize: 12 }}>
               <span style={{ width: 16, height: 16, borderRadius: 4, display: 'grid', placeItems: 'center', flex: '0 0 16px', background: cl.ok ? 'var(--green-bg)' : 'var(--amber-bg)', color: cl.ok ? 'var(--green)' : 'var(--amber)' }}>
-                {cl.ok ? <window.I.check size={11} /> : <window.I.alert size={11} />}
+                {cl.ok ? <I.check size={11} /> : <I.alert size={11} />}
               </span>
               <span style={{ color: cl.ok ? 'var(--ink-1)' : 'var(--ink-2)' }}>{cl.k}</span>
               {!cl.ok && <span className="tiny" style={{ color: 'var(--amber)', marginLeft: 'auto', fontWeight: 600 }}>perlu reviu</span>}
@@ -157,8 +158,8 @@ function LglContractDrawer({ c, onClose, onNav }) {
         </table>
 
         <div className="row gap8">
-          <Btn sm variant="primary"><window.I.doc size={13} /> Buka Dokumen (DMS)</Btn>
-          <Btn sm onClick={() => onNav(window.LEGAL.SOURCE_META[c.source.kind].module, { from: 'legal' })}><window.I.arrowRight size={13} /> Ke Modul Sumber</Btn>
+          <Btn sm variant="primary"><I.doc size={13} /> Buka Dokumen (DMS)</Btn>
+          <Btn sm onClick={() => onNav(window.LEGAL.SOURCE_META[c.source.kind].module, { from: 'legal' })}><I.arrowRight size={13} /> Ke Modul Sumber</Btn>
         </div>
       </div>
     </PDrawer>

@@ -36,7 +36,7 @@ function FmtBadge({ fmt, size = 38 }) {
 
 function Templates() {
   const T = window.AMS.TEMPLATES || [];
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [q, setQ] = useStateM2('');
   const [phase, setPhase] = useStateM2('Semua');
   const [detail, setDetail] = useStateM2(null);
@@ -182,8 +182,8 @@ function TplDocPreview({ t }) {
 }
 
 function TemplateDetail({ t, onClose }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
+  const nav = useNav();
+  const firm = useFirm();
   const [used, setUsed] = useStateM2(false);
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
   const ModIc = window.I[mod.icon] || window.I.panel;

@@ -4,7 +4,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui.jsx';
-import { WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep.jsx';
+import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep.jsx';
 
 /* ============================================================
    NeoSuite AMS — Working Trial Balance (WTB) + AJE
@@ -261,7 +261,7 @@ function WtbDrill({ row, onClose, nav }) {
                 </div>
               </div>
               <div className="row ac gap12" style={{ padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 6, marginBottom: 12 }}>
-                <window.TrendBars py={row.ly} cy={row.adj} w={70} h={46} />
+                <TrendBars py={row.ly} cy={row.adj} w={70} h={46} />
                 <div style={{ flex: 1 }}>
                   <div className="tiny muted upper">Komposisi saldo kini</div>
                   <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3 }}>Unadjusted {fmt(row.unadj / 1e6, 1)} {row.aje ? <>+ AJE <b style={{ color: 'var(--blue)' }}>{fmt(row.aje / 1e6, 1)}</b></> : null} = <b>{fmt(row.adj / 1e6, 1)}</b> jt</div>

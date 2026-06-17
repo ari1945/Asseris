@@ -506,8 +506,8 @@ function prIncludedFindingCount(data) {
    STAGE (scaling 1280×720) + KONTROL
    ============================================================ */
 function PresentasiKlien() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const nav = useNav();
   const data = useMemoPR(() => prData(firm), [firm.activeEngagement, firm.activeClient]);
   const allSlides = useMemoPR(() => prBuildSlides(data), [data]);
 

@@ -237,7 +237,7 @@ function SamplingEngine() {
 function ECLCalculator() {
   const { fmt } = window.AMS;
   const nav = useNav();
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
+  const audit = useAudit();
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   /* SATU sumber: matriks bucket, gross & loss-rate efektif ditarik dari AMS_CANON.psak71(wtb).
      Tidak ada lagi angka hardcode — konsisten dengan modul PSAK 71 & tab Rekonsiliasi. */

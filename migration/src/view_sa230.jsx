@@ -35,9 +35,9 @@ const d2addYears = (d, n) => { const x = new Date(d); x.setFullYear(x.getFullYea
 
 /* ---- baca seluruh status WP kanonik sekali, untuk semua tab ---- */
 function useDocCanon() {
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const audit = useAudit();
+  const firm = useFirm();
+  const nav = useNav();
   const refs = window.WP_REFS || [];
   const derive = window.deriveWpStatus;
 
@@ -87,7 +87,7 @@ function useDocCanon() {
 
 /* ============================================================ */
 function SA230View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const eng = firm?.activeEngagement?.id || 'ENG-2025-014';
   const [tab, setTab] = useStateD2('ikhtisar');

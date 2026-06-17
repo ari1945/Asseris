@@ -25,7 +25,7 @@ const { useState: usePF } = React;
 
 function SJAH3420View() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('pf3420.exec', {});
   const [tab, setTab] = usePF('anatomi');
   const E = window.AMS.proformaEngine(exec);

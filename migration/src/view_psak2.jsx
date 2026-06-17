@@ -95,9 +95,9 @@ function CFRow({ label, v, sc, head, sub, total, memo, note }) {
 
 function PSAK2View() {
   const { fmt } = window.AMS;
-  const firm = (typeof useFirm === 'function') ? useFirm() : {};
-  const audit = (typeof useAudit === 'function') ? useAudit() : {};
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const firm = useFirm();
+  const audit = useAudit();
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */

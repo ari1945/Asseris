@@ -20,7 +20,7 @@ const trRb = (v) => 'Rp ' + window.AMS.fmt(v / 1e3, 0) + ' rb';
 
 /* navigable SSOT chip → loncat ke modul pemilik data */
 function TrSrc({ module, children, title }) {
-  const nav = (typeof useNav === 'function') ? useNav() : (window.__amsNav || (() => {}));
+  const nav = useNav();
   return (
     <button type="button" className="chip tiny" title={title || ('Buka ' + module)}
       onClick={() => nav(module, { from: 'travel' })}

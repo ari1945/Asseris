@@ -35,7 +35,7 @@ const BIAS_ROWS = [
 
 /* ============================================================ */
 function SA540View() {
-  const firm = (typeof useFirm === 'function') ? useFirm() : null;
+  const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useState540('inventaris');
 

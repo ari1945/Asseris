@@ -24,7 +24,7 @@ const { useState: useS34 } = React;
 
 function SJAH3400View() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('pfi3400.exec', {});
   const [tab, setTab] = useS34('penerimaan');
   const E = window.AMS.pfiEngine(exec);

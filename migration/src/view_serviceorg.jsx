@@ -293,7 +293,7 @@ function SOImpact() {
 function SORegister() {
   const [selId, setSelId] = useStateSO('SO-02');
   const sel = SO_ORGS.find(o => o.id === selId);
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
 
   const covMap = {
     full: { label: 'Periode penuh', kind: 'green' },

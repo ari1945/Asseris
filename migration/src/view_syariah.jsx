@@ -230,7 +230,7 @@ function SYWorkPaper({ sy, fmt, rp, nav }) {
 
 function SyariahView() {
   const { fmt } = window.AMS;
-  const nav = (typeof useNav === 'function') ? useNav() : (() => {});
+  const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const canon = window.AMS_CANON;
   const sy = useMemoSY(() => canon.syariah(), []);

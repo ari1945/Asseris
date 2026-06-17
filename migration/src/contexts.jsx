@@ -33,7 +33,7 @@ function clearPersisted() {
   try { Object.keys(localStorage).filter(k => k.startsWith('ams.v1.') || k.startsWith('ams.')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
 }
 /* standalone persisted-state hook for modules outside the providers */
-window.useAmsPersist = function (key, initial) {
+function useAmsPersist(key, initial) {
   const sk = 'ams.v1.' + key;
   const [val, setVal] = React.useState(() => {
     try { const s = localStorage.getItem(sk); if (s != null) return JSON.parse(s); } catch (e) {}
@@ -41,7 +41,8 @@ window.useAmsPersist = function (key, initial) {
   });
   React.useEffect(() => { try { localStorage.setItem(sk, JSON.stringify(val)); } catch (e) {} }, [val]);
   return [val, setVal];
-};
+}
+window.useAmsPersist = useAmsPersist;
 
 function AppProviders({ children }) {
   const D = window.AMS;
@@ -195,4 +196,4 @@ window.clearPersisted = clearPersisted;
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, useAudit, useAuth, useFirm, useNav, useNavFrom };
-export const useAmsPersist = window.useAmsPersist;
+export { useAmsPersist };

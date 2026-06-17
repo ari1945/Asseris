@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { useAmsPersist } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
@@ -21,7 +22,7 @@ const NRV_CLS_SHORT = { rm: 'Bahan baku', wip: 'WIP', fg: 'Barang jadi', spare: 
 
 function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
   const items = (inv && inv.items) || [];
-  const persist = window.useAmsPersist || ((k, d) => useStateNRV(typeof d === 'function' ? d() : d));
+  const persist = useAmsPersist;
 
   /* sampel default: seluruh item ber-selisih + 2 item sehat bernilai besar (cakupan) */
   const [sample, setSample] = persist('psak14.nrv.sample', () => {
