@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matriks Kepatuhan — Opsi Penempatan Navigasi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app/styles.css" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    body { background: var(--bg-sunken, #f1f4f7); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 40px 32px 80px; }
+    .doc-head { max-width: 880px; margin-bottom: 8px; }
+    .kicker { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+    .doc-head h1 { font-size: 27px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 12px; color: var(--navy); line-height: 1.18; }
+    .doc-head p { font-size: 14.5px; line-height: 1.62; color: var(--ink-2); margin: 0 0 6px; }
+    .doc-head .q { font-style: italic; color: var(--ink); border-left: 3px solid var(--blue); padding-left: 12px; }
+
+    .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 34px; align-items: start; }
+    .col-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+    .col-tag { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .col-tag.now { background: #e7ebef; color: #5b6b76; }
+    .col-tag.a { background: var(--blue-100); color: var(--blue); }
+    .col-tag.b { background: var(--green-bg, #e3f3ea); color: var(--green, #1f8a5b); }
+    .col-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+    .col-sub { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; margin: 0 0 14px; min-height: 36px; }
+
+    /* faithful sidebar card */
+    .nav-card { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,40,60,.08), 0 8px 24px rgba(0,40,60,.07); border: 1px solid rgba(0,40,60,.10); }
+    .nav-card .sidebar { width: 100%; flex: none; height: 466px; border-right: none; }
+    .ws-mini { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.07); display: flex; gap: 4px; }
+    .ws-mini button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 6px; border-radius: 7px; border: none; font-size: 11px; font-weight: 700; cursor: default; }
+    .ws-mini .on { background: var(--blue); color: #fff; }
+    .ws-mini .off { background: transparent; color: var(--on-navy-dim); }
+
+    /* spotlight on the moved item */
+    .side-item.spot { background: rgba(77,184,255,.16); box-shadow: inset 0 0 0 1.5px #4db8ff; }
+    .side-item.spot .lbl { color: #eaf6ff; font-weight: 700; }
+    .side-item.spot .ico { opacity: 1; color: #9fdcff; }
+    .lone-wrap { padding: 6px 0 2px; margin: 4px 6px 0; border-top: 1px dashed rgba(255,255,255,.16); }
+    .more-row { padding: 9px 18px 4px; font-size: 10.5px; color: var(--on-navy-dim); font-style: italic; letter-spacing: .02em; }
+
+    /* annotation */
+    .ann { margin-top: 16px; background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 15px 16px; }
+    .ann h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin: 0 0 9px; }
+    .ann ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .ann li { font-size: 12.7px; line-height: 1.5; color: var(--ink-2); padding-left: 20px; position: relative; }
+    .ann li::before { position: absolute; left: 0; top: 0; font-weight: 700; }
+    .ann li.pro::before { content: '+'; color: var(--green, #1f8a5b); }
+    .ann li.con::before { content: '–'; color: #c2562f; }
+    .ann + .ann { margin-top: 10px; }
+
+    .verdict { margin-top: 40px; background: var(--navy); color: #fff; border-radius: 14px; padding: 26px 30px; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: start; }
+    .verdict .badge-rec { background: #4db8ff; color: var(--navy); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 6px 12px; border-radius: 7px; white-space: nowrap; }
+    .verdict h3 { margin: 0 0 8px; font-size: 17px; font-weight: 700; }
+    .verdict p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.62; color: #cfdde6; }
+    .verdict b { color: #fff; }
+    @media (max-width: 1080px) { .cols { grid-template-columns: 1fr; } .nav-card .sidebar { height: auto; } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" src="app/icons.jsx"></script>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function itemsOf(groupName) {
+      const g = (window.MODULES || []).find(x => x.group === groupName);
+      return g ? g.items : [];
+    }
+
+    function Item({ m, spot }) {
+      const IconC = (window.I && window.I[m.icon]) || (window.I && window.I.panel);
+      return (
+        <div className={'side-item' + (spot ? ' spot' : '')}>
+          <span className="ico">{IconC ? <IconC size={16} /> : null}</span>
+          <span className="lbl">{m.label}</span>
+          {m.tag && <span className="tag">{m.tag}</span>}
+        </div>
+      );
+    }
+
+    function Group({ name, items, spotId }) {
+      const list = items || itemsOf(name);
+      return (
+        <div className="side-group">
+          <div className="side-group-h"><span>{name}</span>{window.I && <window.I.chevDown size={13} className="chev" />}</div>
+          {list.map(m => <Item key={m.id} m={m} spot={m.id === spotId} />)}
+        </div>
+      );
+    }
+
+    function Sidebar({ children }) {
+      return (
+        <div className="nav-card">
+          <nav className="sidebar">
+            <div className="ws-mini">
+              <button className="on">{window.I && <window.I.briefcase size={14} />} Perikatan</button>
+              <button className="off">{window.I && <window.I.building size={14} />} Firma</button>
+            </div>
+            <div className="side-scroll">{children}</div>
+          </nav>
+        </div>
+      );
+    }
+
+    const More = () => <div className="more-row">… Core Execution · Core Specifics · Finalisasi &amp; Pelaporan</div>;
+
+    // Option B: fill "Indeks Standar" with siblings pulled from the hidden Knowledge group
+    const kb = itemsOf('Knowledge'); // templates, kb
+    const compmatrix = itemsOf('Indeks Standar')[0];
+    const indeksB = [compmatrix, ...kb].filter(Boolean);
+
+    function App() {
+      return (
+        <div className="wrap">
+          <div className="doc-head">
+            <p className="kicker">NeoSuite AMS · Information Architecture</p>
+            <h1>Penempatan “Matriks Kepatuhan” di sidebar Perikatan</h1>
+            <p>Matriks Kepatuhan adalah <b>register/indeks standar</b> — bukan working paper. Karena itu ia tetap dipisah dari grup alat-kerja <i>Engagement Workspace</i>. Masalahnya: grup <b>Indeks Standar</b> saat ini hanya berisi satu baris, sehingga header grup terasa berlebih. Berikut dua cara merapikannya — berdampingan.</p>
+            <p className="q">“Apakah tidak sebaiknya Matriks Kepatuhan dijadikan satu ke Engagement Workspace?” → Tidak dilebur; tapi penempatannya bisa dirapikan lewat Opsi A atau B.</p>
+          </div>
+
+          <div className="cols">
+            {/* CURRENT */}
+            <div>
+              <div className="col-head"><span className="col-tag now">SAAT INI</span><span className="col-title">Grup satu-baris</span></div>
+              <p className="col-sub">Header “Indeks Standar” berdiri sendiri hanya untuk satu item.</p>
+              <Sidebar>
+                <Group name="Engagement Workspace" />
+                <Group name="Indeks Standar" spotId="compmatrix" />
+                <Group name="Core Planning" />
+                <More />
+              </Sidebar>
+              <div className="ann">
+                <h4>Catatan</h4>
+                <ul>
+                  <li className="con">Header grup untuk 1 baris terasa “bau” desain — rasio header:isi 1:1.</li>
+                  <li className="pro">Label grup tetap memberi konteks: ini indeks, bukan prosedur.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* OPTION A */}
+            <div>
+              <div className="col-head"><span className="col-tag a">OPSI A</span><span className="col-title">Entri mandiri</span></div>
+              <p className="col-sub">Buang header grup. Matriks Kepatuhan jadi baris top-level mandiri di atas Core Planning.</p>
+              <Sidebar>
+                <Group name="Engagement Workspace" />
+                <div className="lone-wrap">
+                  {compmatrix && <Item m={compmatrix} spot />}
+                </div>
+                <Group name="Core Planning" />
+                <More />
+              </Sidebar>
+              <div className="ann">
+                <h4>Kelebihan &amp; kekurangan</h4>
+                <ul>
+                  <li className="pro">Menghapus header redundan; sidebar lebih ringkas.</li>
+                  <li className="pro">Tetap menonjol sebagai “pintu masuk” lapisan standar, persis di antara alat-kerja dan inti audit.</li>
+                  <li className="con">Tanpa label grup, jenis objeknya (indeks vs prosedur) kurang eksplisit.</li>
+                  <li className="con">Baris tunggal tanpa header bisa terbaca seperti “yatim” bila nanti ada entri sejenis.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* OPTION B */}
+            <div>
+              <div className="col-head"><span className="col-tag b">OPSI B</span><span className="col-title">Grup terisi</span></div>
+              <p className="col-sub">Isi “Indeks Standar” dengan saudara sejenis: Template Library &amp; Knowledge Base.</p>
+              <Sidebar>
+                <Group name="Engagement Workspace" />
+                <Group name="Indeks Standar" items={indeksB} spotId="compmatrix" />
+                <Group name="Core Planning" />
+                <More />
+              </Sidebar>
+              <div className="ann">
+                <h4>Kelebihan &amp; kekurangan</h4>
+                <ul>
+                  <li className="pro">Header grup kini punya alasan kuat: 3 item rujukan/indeks senasib.</li>
+                  <li className="pro">Mengangkat Template &amp; Knowledge yang tadinya tersembunyi — temuan lebih baik.</li>
+                  <li className="pro">Label “Indeks Standar” menegaskan ini lapisan referensi, bukan prosedur.</li>
+                  <li className="con">Menambah 2 baris ke sidebar — sedikit menambah panjang.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="verdict">
+            <span className="badge-rec">Rekomendasi</span>
+            <div>
+              <h3>Pilih Opsi B bila Template/Knowledge memang ingin diangkat; jika ingin sidebar paling ramping, Opsi A.</h3>
+              <p>Keduanya benar dalam hal prinsip: <b>Matriks Kepatuhan tidak dilebur ke Engagement Workspace</b> karena beda peran (register lintas-scope &amp; pintu masuk ke ~50+ halaman standar yang disembunyikan), bukan alat kerja harian per-engagement.</p>
+              <p><b>Opsi B</b> umumnya lebih kuat: header grup jadi bermakna, dan dua rujukan yang selama ini hanya bisa diakses lewat ⌘K menjadi terlihat. <b>Opsi A</b> lebih baik jika prioritasnya menjaga sidebar sependek mungkin dan tidak ada rencana menambah entri indeks lain.</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+build/node_modules/
+migration/node_modules/
+
+# generated build artifacts (regenerable — not the source of truth)
+app/compiled/
+app/vendor/
+NeoSuite AMS (prod).html
+migration/dist/
+
+# codemod-generated ESM tree (regenerated each run until W1 promotes it)
+migration/src/
+migration/index.html
+
+# archived originals (24 MB zip + duplicate PDFs + old inlined build)
+_archive/
+
+# misc
+.thumbnail
+.DS_Store
+Thumbs.db

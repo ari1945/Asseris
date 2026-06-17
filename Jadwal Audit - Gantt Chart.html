@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal &amp; Lini Masa Audit — PT Sentosa Makmur Tbk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#002C3F; --blue:#005085; --blue-600:#00608f; --blue-050:#f0f6fb;
+    --bg:#e7eaef; --surface:#ffffff; --surface-2:#f7f8fa; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee; --line-strong:#c3cad2;
+    --ink:#12242e; --ink-2:#3a4a55; --ink-3:#61717c; --ink-4:#8a97a1;
+    --green:#1f7a4d; --amber:#9a6a00; --amber-bg:#fbf0d9; --red:#b3261e;
+    --purple:#5b3fa6; --teal:#0a6b73;
+    --ui:'Inter',-apple-system,system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+    --radius:4px;
+    --shadow:0 2px 6px rgba(7,30,42,.10),0 1px 2px rgba(7,30,42,.06);
+    --shadow-lg:0 14px 44px rgba(7,30,42,.16);
+    --labelW:300px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);font-family:var(--ui);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  .upper{text-transform:uppercase;letter-spacing:.07em;}
+
+  .wrap{padding:30px 24px 64px;display:flex;justify-content:center;}
+  .paper{width:1240px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-lg);overflow:hidden;}
+
+  /* ---- masthead ---- */
+  .mast{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:22px 28px;background:linear-gradient(180deg,#013143,#002C3F);color:#eaf2f7;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .mark{width:34px;height:34px;border-radius:7px;background:#eaf2f7;color:var(--navy);display:grid;place-items:center;font-weight:700;font-size:15px;letter-spacing:-.02em;}
+  .brand .kap{font-weight:700;font-size:14px;letter-spacing:.01em;}
+  .brand .sub{font-size:10.5px;color:#9fb9c8;letter-spacing:.04em;margin-top:1px;}
+  .mast h1{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;}
+  .mast .docref{text-align:right;font-size:10.5px;color:#9fb9c8;line-height:1.7;}
+  .mast .docref b{color:#eaf2f7;font-weight:600;}
+
+  /* ---- meta strip ---- */
+  .meta{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);}
+  .meta .cell{padding:11px 16px;border-right:1px solid var(--line-soft);}
+  .meta .cell:last-child{border-right:0;}
+  .meta .k{font-size:9.5px;color:var(--ink-4);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+  .meta .v{font-size:13px;font-weight:600;color:var(--ink);margin-top:3px;}
+  .meta .v.mono{font-size:12.5px;}
+
+  /* ---- summary tiles ---- */
+  .summary{display:flex;gap:14px;padding:16px 28px;flex-wrap:wrap;background:var(--surface-2);border-bottom:1px solid var(--line);}
+  .tile{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:11px 13px;}
+  .tile .tk{font-size:10px;color:var(--ink-4);font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+  .tile .tv{font-size:17px;font-weight:700;color:var(--navy);margin-top:4px;line-height:1.1;}
+  .tile .tn{font-size:10.5px;color:var(--ink-3);margin-top:3px;}
+  .tile .bar{height:5px;border-radius:3px;background:var(--surface-3);margin-top:8px;overflow:hidden;}
+  .tile .bar i{display:block;height:100%;background:var(--blue);border-radius:3px;}
+
+  /* ---- legend ---- */
+  .legend{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:11px 28px;border-bottom:1px solid var(--line);font-size:11px;color:var(--ink-2);}
+  .legend .grp{display:flex;align-items:center;gap:7px;}
+  .legend .sw{width:22px;height:11px;border-radius:3px;}
+  .legend .dia{width:11px;height:11px;transform:rotate(45deg);background:var(--ink-2);}
+  .legend .nowk{width:0;border-left:2px dashed var(--red);height:14px;}
+  .legend .sep{width:1px;height:14px;background:var(--line);}
+
+  /* ---- gantt ---- */
+  .gantt{display:flex;overflow-x:auto;}
+  .col-labels{flex:0 0 var(--labelW);width:var(--labelW);border-right:2px solid var(--line-strong);background:var(--surface);position:sticky;left:0;z-index:5;box-shadow:2px 0 6px rgba(7,30,42,.05);}
+  .col-time{position:relative;flex:1;}
+  .tl-inner{position:relative;}
+
+  .lbl-head{height:48px;border-bottom:1px solid var(--line);display:flex;align-items:flex-end;padding:0 14px 7px;font-size:9.5px;font-weight:600;color:var(--ink-4);letter-spacing:.05em;text-transform:uppercase;}
+  .lbl{height:30px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--line-soft);font-size:11.5px;color:var(--ink-2);gap:8px;}
+  .lbl.task{padding-left:26px;}
+  .lbl.task .dot{position:absolute;left:14px;width:6px;height:6px;border-radius:50%;}
+  .lbl.task{position:relative;}
+  .lbl.phase{background:var(--surface-3);font-weight:700;font-size:11px;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;}
+  .lbl.phase .pdot{width:9px;height:9px;border-radius:2px;}
+  .lbl.milestone{font-weight:600;color:var(--ink);}
+  .lbl.milestone .md{position:absolute;left:15px;width:8px;height:8px;transform:rotate(45deg);}
+  .lbl.milestone{position:relative;padding-left:30px;}
+  .lbl .ref{margin-left:auto;font-size:9.5px;color:var(--ink-4);font-weight:500;}
+
+  .head-band{height:48px;border-bottom:1px solid var(--line);position:relative;}
+  .month{position:absolute;top:0;height:24px;border-left:1px solid var(--line);display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:var(--navy);background:var(--surface-2);}
+  .wk{position:absolute;top:24px;height:24px;border-left:1px solid var(--line-soft);font-size:8.5px;color:var(--ink-4);padding-left:3px;display:flex;align-items:center;}
+  .gl{position:absolute;top:48px;bottom:0;width:1px;background:var(--line-soft);}
+  .gl.month{background:var(--line);}
+
+  .lane{height:30px;position:relative;border-bottom:1px solid var(--line-soft);}
+  .lane.phase{background:rgba(0,80,133,.03);}
+  .bar{position:absolute;top:7px;height:16px;border-radius:4px;overflow:hidden;box-shadow:0 1px 2px rgba(7,30,42,.14);cursor:default;}
+  .bar .fill{position:absolute;top:0;left:0;bottom:0;border-radius:4px 0 0 4px;}
+  .bar .lab{position:absolute;left:7px;top:0;bottom:0;display:flex;align-items:center;font-size:9.5px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 1px rgba(0,0,0,.18);}
+  .bar.sub{top:11px;height:8px;border-radius:3px;opacity:.55;box-shadow:none;}
+  .pctout{position:absolute;top:8px;font-size:9px;font-weight:700;color:var(--ink-3);white-space:nowrap;}
+
+  .ms{position:absolute;top:7px;width:15px;height:15px;transform:rotate(45deg);border-radius:2px;box-shadow:0 1px 2px rgba(7,30,42,.2);}
+  .ms.hollow{background:var(--surface)!important;}
+  .ms-date{position:absolute;top:8px;font-size:9px;font-weight:600;color:var(--ink-3);white-space:nowrap;}
+
+  .nowline{position:absolute;top:24px;bottom:0;width:0;border-left:2px dashed var(--red);z-index:3;pointer-events:none;}
+  .nowflag{position:absolute;top:26px;transform:translateX(-50%);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;z-index:4;}
+
+  /* ---- foot ---- */
+  .foot{padding:16px 28px 22px;border-top:1px solid var(--line);background:var(--surface-2);font-size:11px;color:var(--ink-3);line-height:1.6;}
+  .foot .ft{font-size:10px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .foot ul{margin:0;padding-left:16px;}
+  .foot li{margin:2px 0;}
+  .sign{display:flex;justify-content:space-between;gap:40px;margin-top:18px;}
+  .sign .box{flex:1;}
+  .sign .line{border-top:1px solid var(--ink-3);margin-top:38px;padding-top:5px;font-size:10.5px;color:var(--ink-2);}
+  .sign .nm{font-weight:600;color:var(--ink);}
+
+  @media print{
+    @page{size:A4 landscape;margin:8mm;}
+    html,body{background:#fff;}
+    .wrap{padding:0;}
+    .paper{border:0;border-radius:0;box-shadow:none;width:100%;}
+    .gantt{overflow:visible;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="paper" id="paper">
+    <div class="mast">
+      <div>
+        <div class="brand">
+          <div class="mark">NS</div>
+          <div>
+            <div class="kap">Kantor Akuntan Publik Wijaya, Gunawan &amp; Rekan</div>
+            <div class="sub">Izin Usaha KAP No. 1234/KM.1/2018 · NeoSuite AMS</div>
+          </div>
+        </div>
+        <h1 style="margin-top:16px;">Jadwal &amp; Lini Masa Audit</h1>
+      </div>
+      <div class="docref">
+        Ref. <b>WP A-310 · Audit Plan Timeline</b><br>
+        Perikatan <b>ENG-2025-014</b><br>
+        Disusun <b>09 Mar 2026</b> · Rev. 2<br>
+        Status <b style="color:#7fd6a3;">Disetujui Partner</b>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">Klien</div><div class="v">PT Sentosa Makmur Tbk</div></div>
+      <div class="cell"><div class="k">Tahun Buku</div><div class="v">FY2025 · 31 Des 2025</div></div>
+      <div class="cell"><div class="k">Jenis Perikatan</div><div class="v">Audit Laporan Keuangan</div></div>
+      <div class="cell"><div class="k">Partner Penanggung Jawab</div><div class="v">Hartono Wijaya, CPA</div></div>
+      <div class="cell"><div class="k">Standar</div><div class="v">SA (ISA-converged)</div></div>
+    </div>
+
+    <div class="summary">
+      <div class="tile"><div class="tk">Mulai Perikatan</div><div class="tv">03 Nov 2025</div><div class="tn">Penerimaan &amp; perencanaan</div></div>
+      <div class="tile"><div class="tk">Selesai Fieldwork</div><div class="tv">31 Mar 2026</div><div class="tn">Akhir pengujian substantif</div></div>
+      <div class="tile"><div class="tk">Target Tanda Tangan Opini</div><div class="tv" style="color:var(--green);">30 Apr 2026</div><div class="tn">Penerbitan laporan auditor</div></div>
+      <div class="tile"><div class="tk">Durasi Total</div><div class="tv">± 26 minggu</div><div class="tn">4 fase · 24 aktivitas · 6 milestone</div></div>
+      <div class="tile"><div class="tk">Progres Keseluruhan</div><div class="tv">58%</div><div class="bar"><i style="width:58%;"></i></div></div>
+    </div>
+
+    <div class="legend">
+      <div class="grp"><span class="sw" style="background:var(--blue);"></span>Perencanaan</div>
+      <div class="grp"><span class="sw" style="background:var(--teal);"></span>Interim &amp; Uji Pengendalian</div>
+      <div class="grp"><span class="sw" style="background:var(--purple);"></span>Eksekusi Substantif</div>
+      <div class="grp"><span class="sw" style="background:var(--green);"></span>Finalisasi &amp; Pelaporan</div>
+      <div class="sep"></div>
+      <div class="grp"><span class="dia"></span>Milestone</div>
+      <div class="grp"><span class="sw" style="background:linear-gradient(90deg,var(--blue) 60%,rgba(0,80,133,.22) 60%);"></span>Progres aktual</div>
+      <div class="grp"><span class="nowk"></span>Hari ini</div>
+    </div>
+
+    <div class="gantt" id="gantt">
+      <div class="col-labels" id="labels"></div>
+      <div class="col-time" id="coltime"><div class="tl-inner" id="tl"></div></div>
+    </div>
+
+    <div class="foot">
+      <div class="ft">Catatan &amp; Asumsi Penjadwalan</div>
+      <ul>
+        <li>Lini masa mengasumsikan kelengkapan dan ketepatan waktu penyerahan dokumen PBC (<i>Prepared by Client</i>) sesuai daftar permintaan; keterlambatan dapat menggeser milestone berikutnya.</li>
+        <li>Observasi <i>stock opname</i> dilaksanakan pada/menjelang tanggal tutup buku, 31 Des 2025; konfirmasi pihak ketiga (bank, piutang, utang) dikirim pada awal pelaksanaan substantif.</li>
+        <li>Tanggal tanda tangan opini bersifat <b>target</b> dan bergantung pada penyelesaian <i>Engagement Quality Review</i> (EQR), surat representasi manajemen, serta penilaian peristiwa kemudian.</li>
+        <li>Jadwal dapat direvisi melalui kesepakatan tertulis antara KAP dan manajemen klien.</li>
+      </ul>
+      <div class="sign">
+        <div class="box"><div class="line"><span class="nm">Hartono Wijaya, CPA</span><br>Partner Penanggung Jawab — KAP Wijaya, Gunawan &amp; Rekan</div></div>
+        <div class="box"><div class="line"><span class="nm">_______________________</span><br>Direktur Keuangan — PT Sentosa Makmur Tbk</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DAY=86400000;
+  var t0=new Date('2025-11-01T00:00:00');
+  var tEnd=new Date('2026-05-03T00:00:00');
+  var totalDays=Math.round((tEnd-t0)/DAY);
+  var PXD=5.3;                       // px per day
+  var TLW=Math.round(totalDays*PXD); // timeline width
+  var ROW=30, HEAD=48;
+  var D=function(s){return new Date(s+'T00:00:00');};
+  var x=function(d){return ((D(d)-t0)/DAY)*PXD;};
+  var NOW=D('2026-03-09');
+
+  var C={plan:'#005085',interim:'#0a6b73',subst:'#5b3fa6',final:'#1f7a4d'};
+  function tint(hex,a){var n=parseInt(hex.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
+  var MON=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  function fdate(d){var x=D(d);return x.getDate()+' '+MON[x.getMonth()];}
+
+  // ---- task model ----
+  var items=[
+    {type:'phase',ph:'plan',name:'Perencanaan'},
+    {type:'task',ph:'plan',name:'Penerimaan & keberlanjutan perikatan',s:'2025-11-03',e:'2025-11-14',pct:100,ref:'A-100'},
+    {type:'ms',ph:'plan',name:'Surat perikatan ditandatangani',d:'2025-11-17'},
+    {type:'task',ph:'plan',name:'Pemahaman entitas & lingkungan',s:'2025-11-17',e:'2025-12-05',pct:100,ref:'A-200'},
+    {type:'task',ph:'plan',name:'Penilaian risiko & materialitas',s:'2025-12-01',e:'2025-12-19',pct:100,ref:'A-300'},
+    {type:'task',ph:'plan',name:'Strategi & program audit',s:'2025-12-15',e:'2026-01-09',pct:100,ref:'A-310'},
+    {type:'task',ph:'plan',name:'Permintaan data awal (daftar PBC)',s:'2026-01-05',e:'2026-01-16',pct:100,ref:'A-410'},
+
+    {type:'phase',ph:'interim',name:'Interim & Uji Pengendalian'},
+    {type:'task',ph:'interim',name:'Walkthrough proses signifikan',s:'2025-12-08',e:'2025-12-19',pct:100,ref:'B-110'},
+    {type:'task',ph:'interim',name:'Pengujian pengendalian (ToC)',s:'2026-01-12',e:'2026-01-30',pct:100,ref:'B-200'},
+    {type:'ms',ph:'interim',name:'Observasi stock opname · tutup buku',d:'2025-12-31'},
+
+    {type:'phase',ph:'subst',name:'Eksekusi Substantif'},
+    {type:'task',ph:'subst',name:'Kas, bank & konfirmasi bank',s:'2026-02-09',e:'2026-02-20',pct:100,ref:'C-100'},
+    {type:'task',ph:'subst',name:'Piutang usaha & ECL (PSAK 71)',s:'2026-02-09',e:'2026-03-06',pct:80,ref:'C-200'},
+    {type:'task',ph:'subst',name:'Persediaan & penilaian',s:'2026-02-16',e:'2026-03-06',pct:70,ref:'C-300'},
+    {type:'task',ph:'subst',name:'Aset tetap & penyusutan (PSAK 16)',s:'2026-02-23',e:'2026-03-13',pct:45,ref:'C-400'},
+    {type:'task',ph:'subst',name:'Pendapatan & cut-off (PSAK 72)',s:'2026-02-23',e:'2026-03-20',pct:35,ref:'C-500'},
+    {type:'task',ph:'subst',name:'Sewa (PSAK 73)',s:'2026-03-02',e:'2026-03-20',pct:20,ref:'C-550'},
+    {type:'task',ph:'subst',name:'Liabilitas & konfirmasi utang',s:'2026-03-02',e:'2026-03-20',pct:15,ref:'C-600'},
+    {type:'task',ph:'subst',name:'Pajak kini & tangguhan (PSAK 46)',s:'2026-03-09',e:'2026-03-27',pct:5,ref:'C-700'},
+    {type:'task',ph:'subst',name:'Penyesuaian (AJE) & WTB final',s:'2026-03-23',e:'2026-03-31',pct:0,ref:'C-900'},
+    {type:'ms',ph:'subst',name:'Selesai fieldwork',d:'2026-03-31'},
+
+    {type:'phase',ph:'final',name:'Finalisasi & Pelaporan'},
+    {type:'task',ph:'final',name:'Reviu manajer',s:'2026-03-23',e:'2026-04-03',pct:0,ref:'R-200'},
+    {type:'task',ph:'final',name:'Penilaian peristiwa kemudian',s:'2026-03-30',e:'2026-04-10',pct:0,ref:'R-300'},
+    {type:'task',ph:'final',name:'Reviu partner',s:'2026-04-06',e:'2026-04-15',pct:0,ref:'R-400'},
+    {type:'task',ph:'final',name:'Engagement Quality Review (EQR)',s:'2026-04-13',e:'2026-04-22',pct:0,ref:'R-500'},
+    {type:'ms',ph:'final',name:'Closing meeting dengan manajemen',d:'2026-04-20'},
+    {type:'task',ph:'final',name:'Penerbitan laporan auditor & opini',s:'2026-04-22',e:'2026-04-28',pct:0,ref:'R-700'},
+    {type:'task',ph:'final',name:'Management letter',s:'2026-04-24',e:'2026-04-30',pct:0,ref:'R-800'},
+    {type:'ms',ph:'final',name:'Tanda tangan opini — target',d:'2026-04-30',target:true}
+  ];
+
+  // roll-up span per phase
+  var span={};
+  items.forEach(function(it){
+    if(it.type==='phase') return;
+    var sd=it.s||it.d, ed=it.e||it.d;
+    if(!span[it.ph]) span[it.ph]={s:sd,e:ed};
+    if(D(sd)<D(span[it.ph].s)) span[it.ph].s=sd;
+    if(D(ed)>D(span[it.ph].e)) span[it.ph].e=ed;
+  });
+
+  var labels=document.getElementById('labels');
+  var tl=document.getElementById('tl');
+  var totalH=HEAD+items.length*ROW;
+  tl.style.width=TLW+'px';
+  tl.style.height=totalH+'px';
+  document.getElementById('coltime').style.minWidth=TLW+'px';
+
+  // ----- header band: months + weeks -----
+  var head=document.createElement('div');
+  head.className='head-band'; head.style.width=TLW+'px';
+  // months
+  var m=new Date(t0);
+  while(m<tEnd){
+    var mEnd=new Date(m.getFullYear(),m.getMonth()+1,1);
+    var clampEnd=mEnd<tEnd?mEnd:tEnd;
+    var left=((m-t0)/DAY)*PXD, w=((clampEnd-m)/DAY)*PXD;
+    var md=document.createElement('div');
+    md.className='month'; md.style.left=left+'px'; md.style.width=w+'px';
+    md.textContent=MON[m.getMonth()]+' '+(''+m.getFullYear()).slice(2);
+    head.appendChild(md);
+    // gridline at month start
+    var gl=document.createElement('div'); gl.className='gl month'; gl.style.left=left+'px'; gl.style.height=totalH+'px'; tl.appendChild(gl);
+    m=mEnd;
+  }
+  // weeks (Mondays)
+  var wkn=1, cur=new Date(t0);
+  // advance to first Monday >= t0
+  while(cur.getDay()!==1) cur=new Date(cur.getTime()+DAY);
+  while(cur<tEnd){
+    var lx=((cur-t0)/DAY)*PXD;
+    var wk=document.createElement('div'); wk.className='wk'; wk.style.left=lx+'px';
+    wk.textContent='W'+wkn;
+    head.appendChild(wk);
+    var g=document.createElement('div'); g.className='gl'; g.style.left=lx+'px'; g.style.height=totalH+'px'; tl.insertBefore(g,tl.firstChild);
+    cur=new Date(cur.getTime()+7*DAY); wkn++;
+  }
+  tl.appendChild(head);
+
+  // header label spacer
+  var lh=document.createElement('div'); lh.className='lbl-head'; lh.textContent='Aktivitas Audit'; labels.appendChild(lh);
+
+  // ----- rows -----
+  items.forEach(function(it,i){
+    var top=HEAD+i*ROW;
+    var c=C[it.ph];
+
+    // label cell
+    var L=document.createElement('div');
+    if(it.type==='phase'){
+      L.className='lbl phase';
+      L.innerHTML='<span class="pdot" style="background:'+c+'"></span>'+it.name;
+    } else if(it.type==='ms'){
+      L.className='lbl milestone';
+      L.innerHTML='<span class="md" style="background:'+c+'"></span>'+it.name+'<span class="ref mono">'+fdate(it.d)+'</span>';
+    } else {
+      L.className='lbl task';
+      L.innerHTML='<span class="dot" style="background:'+c+'"></span>'+it.name+'<span class="ref mono">'+(it.ref||'')+'</span>';
+    }
+    labels.appendChild(L);
+
+    // lane
+    var lane=document.createElement('div');
+    lane.className='lane'+(it.type==='phase'?' phase':'');
+    lane.style.top=top+'px'; lane.style.left='0'; lane.style.position='absolute'; lane.style.width=TLW+'px';
+
+    if(it.type==='phase'){
+      var sp=span[it.ph];
+      var b=document.createElement('div');
+      b.className='bar sub'; b.style.background=c;
+      b.style.left=x(sp.s)+'px'; b.style.width=Math.max(2,x(sp.e)-x(sp.s))+'px';
+      b.title=it.name+' · '+fdate(sp.s)+' – '+fdate(sp.e);
+      lane.appendChild(b);
+    } else if(it.type==='ms'){
+      var left=x(it.d);
+      var done=D(it.d)<=NOW;
+      var dia=document.createElement('div');
+      dia.className='ms'+(done?'':' hollow');
+      dia.style.left=(left-7.5)+'px';
+      dia.style.background=c; dia.style.border='2px solid '+c;
+      dia.title=it.name+' · '+fdate(it.d);
+      lane.appendChild(dia);
+      var dl=document.createElement('div'); dl.className='ms-date mono';
+      dl.style.left=(left+12)+'px'; dl.textContent=fdate(it.d)+(it.target?' (target)':'');
+      if(it.target) dl.style.color=c, dl.style.fontWeight='700';
+      lane.appendChild(dl);
+    } else {
+      var L0=x(it.s), W0=Math.max(4,x(it.e)-x(it.s));
+      var bar=document.createElement('div');
+      bar.className='bar'; bar.style.left=L0+'px'; bar.style.width=W0+'px';
+      bar.style.background=tint(c,.24);
+      var fill=document.createElement('div');
+      fill.className='fill'; fill.style.background=c; fill.style.width=it.pct+'%';
+      bar.appendChild(fill);
+      if(W0>54){
+        var lab=document.createElement('div'); lab.className='lab'; lab.textContent=it.pct+'%';
+        bar.appendChild(lab);
+      }
+      bar.title=it.name+' · '+fdate(it.s)+' – '+fdate(it.e)+'  ('+it.pct+'% selesai)';
+      lane.appendChild(bar);
+      if(W0<=54){
+        var po=document.createElement('div'); po.className='pctout mono';
+        po.style.left=(L0+W0+5)+'px'; po.textContent=it.pct+'%';
+        lane.appendChild(po);
+      }
+    }
+    tl.appendChild(lane);
+  });
+
+  // ----- today marker -----
+  var nx=x('2026-03-09');
+  var nl=document.createElement('div'); nl.className='nowline'; nl.style.left=nx+'px'; nl.style.height=(totalH-24)+'px'; tl.appendChild(nl);
+  var nf=document.createElement('div'); nf.className='nowflag'; nf.style.left=nx+'px'; nf.textContent='Hari ini · 9 Mar'; tl.appendChild(nf);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evaluasi NeoSuite AMS — Desain &amp; Prototipe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:980px; margin:0 auto; padding:40px 24px 96px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:34px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.12; position:relative; max-width:680px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:680px; position:relative; }
+  .cover .meta{ display:flex; gap:28px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 19px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  /* ---------- scorecard ---------- */
+  .scores{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 8px; }
+  .score{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 16px 14px; box-shadow:var(--shadow); }
+  .score .v{ font:800 26px/1 var(--mono); color:var(--navy); }
+  .score .v small{ font-size:14px; color:var(--ink-4); font-weight:700; }
+  .score .l{ font-size:11.5px; color:var(--ink-3); font-weight:600; margin-top:6px; }
+  .score .s{ font-size:11px; color:var(--ink-4); margin-top:3px; }
+  .score.good .v{ color:var(--green); } .score.warn .v{ color:var(--amber); } .score.bad .v{ color:var(--red); }
+  .bar{ height:5px; border-radius:3px; background:var(--surface-3); margin-top:10px; overflow:hidden; }
+  .bar i{ display:block; height:100%; border-radius:3px; background:var(--blue); }
+  .score.good .bar i{ background:var(--green); } .score.warn .bar i{ background:var(--amber); } .score.bad .bar i{ background:var(--red); }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:40px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:780px; }
+
+  h3{ font-size:15px; font-weight:700; margin:24px 0 8px; }
+  p{ margin:0 0 12px; }
+  .lead{ font-size:15px; color:var(--ink-2); }
+  .grade{ font:700 10.5px/1 var(--mono); padding:4px 8px; border-radius:6px; letter-spacing:.04em; }
+  .g-a{ background:var(--green-bg); color:var(--green); } .g-b{ background:var(--blue-100); color:var(--blue); }
+  .g-c{ background:var(--amber-bg); color:var(--amber); } .g-d{ background:var(--red-bg); color:var(--red); }
+
+  /* verdict banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--green); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:6px; }
+  .verdict.warn{ border-left-color:var(--amber); } .verdict.bad{ border-left-color:var(--red); } .verdict.blue{ border-left-color:var(--blue); }
+  .verdict .tag{ font:700 11px/1.3 var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--green); white-space:nowrap; padding-top:2px; width:96px; flex:0 0 96px; }
+  .verdict.warn .tag{ color:var(--amber); } .verdict.bad .tag{ color:var(--red); } .verdict.blue .tag{ color:var(--blue); }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* two-col strengths/weaknesses */
+  .cols{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0; }
+  .col{ background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:15px 17px; box-shadow:var(--shadow); }
+  .col h4{ font:700 11px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; margin:0 0 12px; display:flex; align-items:center; gap:7px; }
+  .col.pos h4{ color:var(--green); } .col.neg h4{ color:var(--amber); }
+  ul.clean{ margin:0; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:20px; margin-bottom:9px; font-size:13px; color:var(--ink-2); line-height:1.5; }
+  ul.clean li:last-child{ margin-bottom:0; }
+  ul.clean li::before{ content:""; position:absolute; left:3px; top:7px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); } ul.clean li.no::before{ background:var(--amber); } ul.clean li.bad::before{ background:var(--red); }
+  ul.clean li b{ color:var(--ink); } ul.clean li .mono{ font-family:var(--mono); font-size:11.5px; color:var(--navy); }
+
+  /* finding cards */
+  .gap{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px; }
+  .gap-h{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--line-soft); }
+  .gap-pri{ font:700 10.5px/1 var(--mono); letter-spacing:.05em; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+  .p1{ background:var(--red-bg); color:var(--red); } .p2{ background:var(--amber-bg); color:var(--amber); } .p3{ background:var(--blue-100); color:var(--blue); }
+  .gap-t{ font-size:14.5px; font-weight:700; flex:1; }
+  .gap-eff{ font:600 11px/1 var(--mono); color:var(--ink-3); white-space:nowrap; }
+  .gap-b{ padding:13px 16px; font-size:13px; color:var(--ink-2); }
+  .gap-b b{ color:var(--ink); } .gap-b .mono{ font-family:var(--mono); font-size:12px; color:var(--navy); }
+  .ev{ margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:8px; font-size:11.5px; color:var(--ink-3); }
+  .ev b{ color:var(--ink-2); }
+
+  /* table */
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--surface); border:1px solid var(--line); border-radius:11px; overflow:hidden; box-shadow:var(--shadow); margin:6px 0 4px; }
+  th{ text-align:left; background:var(--navy); color:#fff; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding:10px 13px; font-weight:700; }
+  td{ padding:10px 13px; border-top:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
+  td b{ color:var(--ink); } tr:nth-child(even) td{ background:var(--surface-2); }
+  .mono{ font-family:var(--mono); }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .d-red{ background:var(--red); } .d-amber{ background:var(--amber); } .d-green{ background:var(--green); } .d-blue{ background:var(--blue); }
+  .cell-score{ font:700 12px/1 var(--mono); white-space:nowrap; }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:8px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:720px){ .scores{ grid-template-columns:repeat(2,1fr);} .cols{ grid-template-columns:1fr;} .cover{ padding:30px 26px;} .cover h1{ font-size:26px;} .verdict{ flex-direction:column; gap:6px;} .verdict .tag{ width:auto;} }
+  @media print{
+    body{ background:#fff; } .doc{ padding:0; max-width:none; }
+    .cover,.score,.gap,table,.verdict,.col{ box-shadow:none; }
+    section{ break-inside:avoid; } .gap,.col,.verdict{ break-inside:avoid; }
+    .cover{ border-radius:0; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Information Systems Design Review</p>
+    <h1>Evaluasi Desain &amp; Prototipe Aplikasi</h1>
+    <p>Penilaian pakar sistem informasi atas arsitektur informasi, desain interaksi, integritas data, dan kesiapan sistem. Setiap temuan ditelusuri ke perilaku nyata aplikasi dan kode sumbernya — menilai apa yang sudah matang, dan apa yang harus berubah sebelum prototipe menjadi sistem yang dapat dioperasikan.</p>
+    <div class="meta">
+      <div>Tanggal<b>17 Jun 2026</b></div>
+      <div>Versi<b>v4.2 Enterprise</b></div>
+      <div>Lingkup<b>~131 modul · ~75 standar</b></div>
+      <div>Lensa<b>Sistem Informasi</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== SCORECARD ===================== -->
+  <div class="scores">
+    <div class="score good"><div class="v">A−</div><div class="l">Cakupan &amp; Kedalaman Fungsional</div><div class="s">Domain audit + ERP firma menyeluruh</div><div class="bar"><i style="width:93%"></i></div></div>
+    <div class="score good"><div class="v">A−</div><div class="l">Integritas Data (SSOT)</div><div class="s">Canon engine ditarik dari WTB</div><div class="bar"><i style="width:91%"></i></div></div>
+    <div class="score good"><div class="v">A−</div><div class="l">Desain Visual &amp; Konsistensi</div><div class="s">Token disiplin, density tinggi terkendali</div><div class="bar"><i style="width:90%"></i></div></div>
+    <div class="score"><div class="v">B+</div><div class="l">Desain Interaksi &amp; UX</div><div class="s">Heuristik kuat, beban kognitif perlu dijaga</div><div class="bar"><i style="width:84%"></i></div></div>
+    <div class="score"><div class="v">B</div><div class="l">Arsitektur Informasi</div><div class="s">Workspace + ⌘K + lineage; sidebar padat</div><div class="bar"><i style="width:80%"></i></div></div>
+    <div class="score warn"><div class="v">C+</div><div class="l">Skalabilitas Teknis (Runtime)</div><div class="s">Transpile in-browser, scope global</div><div class="bar"><i style="width:58%"></i></div></div>
+    <div class="score warn"><div class="v">C</div><div class="l">Aksesibilitas</div><div class="s">Kontras &amp; keyboard belum tuntas</div><div class="bar"><i style="width:55%"></i></div></div>
+    <div class="score warn"><div class="v">C−</div><div class="l">Kesiapan Produksi (Sistem)</div><div class="s">Front-end murni; backend belum ada</div><div class="bar"><i style="width:46%"></i></div></div>
+  </div>
+  <p class="note">Skala huruf relatif terhadap ekspektasi perangkat lunak audit enterprise. Skor "Kesiapan Produksi" rendah adalah <b>sifat sebuah prototipe</b>, bukan cacat desain — lihat §6.</p>
+
+  <!-- ===================== 1 · VERDICT ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">Ringkasan Eksekutif</h2></div>
+    <p class="lead">NeoSuite AMS adalah salah satu prototipe perangkat lunak audit paling lengkap dan paling matang secara desain yang akan Anda temui dalam bentuk front-end. Ia bukan mock-up layar; ia adalah <b>model fungsional</b> dari sebuah firma audit (KAP) — dari pemenangan klien, perencanaan, eksekusi kertas kerja, sampai opini dan pelaporan regulator — yang dirakit di atas satu lapisan angka kanonik yang konsisten.</p>
+
+    <div class="verdict">
+      <span class="tag">Verdict</span>
+      <p><b>Matang sebagai prototipe desain, belum matang sebagai sistem.</b> Kualitas pemikiran desain — arsitektur informasi, model data tunggal-sumber-kebenaran, konsistensi visual — sudah pada level produk komersial. Yang memisahkannya dari "sistem yang dapat dioperasikan" bukanlah desain, melainkan <b>fondasi rekayasa</b>: tidak ada backend, otorisasi belum ditegakkan di server, dan pemuatan masih bergantung pada transpilasi di peramban. Ini bukan kelemahan untuk sebuah prototipe — ini adalah peta jalan ke produksi.</p>
+    </div>
+    <div class="verdict blue">
+      <span class="tag">Inti Nilai</span>
+      <p>Keunggulan struktural aplikasi adalah <b>satu sumber kebenaran (SSOT)</b>: seluruh figur akuntansi ditarik dari Working Trial Balance melalui <span class="mono">AMS_CANON</span>, sehingga satu jurnal penyesuaian mengalir konsisten ke PSAK 46, PSAK 71, generator laporan keuangan, hingga opini. Inilah yang membedakannya dari demo yang sekadar "tampak penuh angka".</p>
+    </div>
+
+    <div class="cols">
+      <div class="col pos">
+        <h4>● Kekuatan menonjol</h4>
+        <ul class="clean">
+          <li class="ok"><b>Lapisan data kanonik (SSOT).</b> <span class="mono">canon.js</span> memetakan akun WTB → pos akuntansi dengan tanda & lineage eksplisit; angka tidak di-hardcode.</li>
+          <li class="ok"><b>Ketertelusuran (traceability).</b> Dock "Keterkaitan Modul" (hulu/hilir) + chip Standar Audit + Matriks Kepatuhan membuat setiap prosedur dapat dilacak ke standarnya.</li>
+          <li class="ok"><b>Disiplin design system.</b> Token warna/spasi/tipografi konsisten; primitif UI bersama (Badge, Panel, Stat, Tabs) dipakai lintas ~131 modul.</li>
+          <li class="ok"><b>Ketahanan runtime.</b> <span class="mono">ViewErrorBoundary</span> per-rute: satu modul gagal tidak meruntuhkan seluruh aplikasi.</li>
+          <li class="ok"><b>Realisme domain.</b> Bahasa, format Rupiah (id-ID, negatif dalam kurung), tarif PPh 22% UU HPP, kerangka SA/PSAK/SPAP akurat secara konteks.</li>
+        </ul>
+      </div>
+      <div class="col neg">
+        <h4>● Risiko &amp; keterbatasan</h4>
+        <ul class="clean">
+          <li class="no"><b>Tanpa build step.</b> 200+ berkas JSX ditranspilasi Babel di peramban tiap muat → waktu muat & memori tinggi, tak ada type-safety/tree-shaking.</li>
+          <li class="no"><b>Scope global rapuh.</b> Semua komponen berbagi satu namespace <span class="mono">window</span>; tabrakan nama = layar putih senyap.</li>
+          <li class="no"><b>Persistensi lokal.</b> State disimpan di <span class="mono">localStorage</span> — tunggal-pengguna, tanpa konkurensi, tanpa validasi server, mudah hilang.</li>
+          <li class="bad"><b>Otorisasi kosmetik.</b> Peran (RBAC) memengaruhi tampilan, bukan akses sebenarnya; tidak ada penegakan di sisi server.</li>
+          <li class="no"><b>Beban kognitif.</b> Sidebar memuat puluhan modul; tanpa progressive disclosure, pengguna baru dapat tersesat.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 2 · ARSITEKTUR INFORMASI ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">Arsitektur Informasi &amp; Navigasi</h2><span class="grade g-b" style="margin-left:auto">Nilai B</span></div>
+    <p class="sec-sub">Bagaimana ~131 modul diorganisasi, ditemukan, dan dihubungkan. Skala adalah tantangan utama di sini — dan aplikasi menjawabnya dengan beberapa mekanisme yang tepat.</p>
+
+    <h3>Yang dikerjakan dengan benar</h3>
+    <ul class="clean">
+      <li class="ok"><b>Pemisahan ruang kerja (workspace).</b> "Perikatan" vs "Firma" memisahkan konteks penugasan dari konteks operasi firma — model mental yang benar untuk pengguna KAP yang berpindah peran.</li>
+      <li class="ok"><b>Command palette (⌘K).</b> Jalur pintas datar untuk pencarian-lalu-lompat melampaui kedalaman sidebar — pola yang tepat untuk aplikasi padat-modul.</li>
+      <li class="ok"><b>Lineage dock & breadcrumb "kembali".</b> Navigasi <span class="mono">nav(id, {from})</span> mempertahankan jejak asal; dock hulu/hilir membangun pemahaman keterhubungan, bukan sekadar daftar menu.</li>
+      <li class="ok"><b>Grup tersembunyi (HIDDEN_GROUPS).</b> Modul jarang-pakai tetap dapat diakses via ⌘K/chip/Matriks tanpa membebani sidebar — sebuah progressive disclosure parsial.</li>
+    </ul>
+
+    <h3>Yang menahan nilai</h3>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">IA · BEBAN</span><span class="gap-t">Kedalaman menu vs. orientasi pengguna baru</span><span class="gap-eff">Sedang</span></div>
+      <div class="gap-b">Dengan puluhan item terlihat sekaligus dalam satu sidebar tergulir, beban memilih (Hick's Law) tinggi. Tidak ada onboarding terpandu, "modul yang baru dilihat", atau pengelompokan progresif berbasis fase audit yang aktif. <b>Saran:</b> sidebar adaptif yang menonjolkan modul fase berjalan (mis. saat fase Perencanaan, dahulukan Materiality/Risk/Strategy), serta "resume where you left off".
+        <div class="ev"><b>Bukti:</b> <span class="mono">MODULES</span> di <span class="mono">icons.jsx</span> memuat puluhan item per workspace; cockpit sudah menandai "FASE: PERENCANAAN" tetapi sidebar belum memanfaatkan sinyal fase itu untuk menyaring/menyorot.</div>
+      </div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">IA · TEMU</span><span class="gap-t">Tidak ada "peta" tunggal yang selalu tersedia</span><span class="gap-eff">Rendah</span></div>
+      <div class="gap-b">Sudah ada visualisasi graf (<span class="mono">peta/</span>) dan Matriks Kepatuhan, namun keduanya adalah destinasi, bukan lapisan orientasi yang selalu hadir. Sebuah mini-map keterhubungan yang dapat dipanggil dari mana saja akan memperkuat model mental "di mana saya sekarang".</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 3 · DESAIN INTERAKSI / HEURISTIK ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">Desain Interaksi — Heuristik Usability</h2><span class="grade g-b" style="margin-left:auto">Nilai B+</span></div>
+    <p class="sec-sub">Penilaian terhadap sepuluh heuristik Nielsen, berdasarkan perilaku nyata modul (Materiality, WTB, Opinion Generator, Cockpit).</p>
+    <table>
+      <thead><tr><th style="width:26%">Heuristik</th><th style="width:14%">Skor</th><th>Catatan</th></tr></thead>
+      <tbody>
+        <tr><td><b>Visibilitas status sistem</b></td><td class="cell-score"><span class="dot d-green"></span>Kuat</td><td>Cockpit menampilkan % per fase, deadline, budget burn; WTB menandai "21/22 ditelaah". Status selalu terlihat.</td></tr>
+        <tr><td><b>Kecocokan dgn dunia nyata</b></td><td class="cell-score"><span class="dot d-green"></span>Kuat</td><td>Istilah, alur, dan format mengikuti praktik audit KAP Indonesia (SA/PSAK/SPAP, Rupiah lokal).</td></tr>
+        <tr><td><b>Kontrol &amp; kebebasan pengguna</b></td><td class="cell-score"><span class="dot d-amber"></span>Cukup</td><td>Drawer SA & palette dapat ditutup (Esc). Namun belum tampak <b>undo/redo</b> untuk perubahan data (mis. AJE, slider materialitas).</td></tr>
+        <tr><td><b>Konsistensi &amp; standar</b></td><td class="cell-score"><span class="dot d-green"></span>Kuat</td><td>Primitif UI bersama menjamin tombol, badge, tabel berperilaku seragam lintas modul.</td></tr>
+        <tr><td><b>Pencegahan galat</b></td><td class="cell-score"><span class="dot d-amber"></span>Cukup</td><td>Validasi ditampilkan (mis. "OM konsisten", "23 akun melebihi PM"). Konfirmasi untuk aksi destruktif/final (Finalisasi Laporan) perlu diperjelas.</td></tr>
+        <tr><td><b>Pengenalan &gt; pengingatan</b></td><td class="cell-score"><span class="dot d-green"></span>Kuat</td><td>Chip standar, dock lineage, dan konteks "klien/engagement aktif" di TopBar mengurangi beban ingatan.</td></tr>
+        <tr><td><b>Fleksibilitas &amp; efisiensi</b></td><td class="cell-score"><span class="dot d-green"></span>Kuat</td><td>⌘K, pintasan, "Halaman penuh" dari drawer, AI Co-pilot melayani pengguna ahli maupun pemula.</td></tr>
+        <tr><td><b>Estetika &amp; desain minimalis</b></td><td class="cell-score"><span class="dot d-amber"></span>Cukup</td><td>Density tinggi sesuai untuk audit, tetapi beberapa layar (mis. WTB) mendekati ambang kepadatan; hierarki visual harus terus dijaga.</td></tr>
+        <tr><td><b>Bantuan pemulihan galat</b></td><td class="cell-score"><span class="dot d-green"></span>Kuat</td><td><span class="mono">ViewErrorBoundary</span> menampilkan pesan & stack yang dapat dibaca alih-alih layar putih.</td></tr>
+        <tr><td><b>Bantuan &amp; dokumentasi</b></td><td class="cell-score"><span class="dot d-amber"></span>Cukup</td><td>Knowledge Base & teks bantuan kontekstual ada; tur produk/tooltip terpandu untuk pengguna baru belum menyeluruh.</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Dua perbaikan berdampak tertinggi: <b>(1)</b> pola undo yang konsisten untuk perubahan data, dan <b>(2)</b> dialog konfirmasi berstandar untuk aksi final/destruktif.</p>
+  </section>
+
+  <!-- ===================== 4 · INTEGRITAS DATA ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">Integritas Data &amp; Desain Sistem</h2><span class="grade g-a" style="margin-left:auto">Nilai A−</span></div>
+    <p class="sec-sub">Aspek paling kuat secara rekayasa. Dinilai sebagai arsitektur model data, bukan sekadar tampilan.</p>
+
+    <div class="verdict">
+      <span class="tag">Sorotan</span>
+      <p>Pola <b>single source of truth</b> diterapkan secara nyata, bukan slogan. <span class="mono">canon.js</span> mendefinisikan <span class="mono">WTB_MAP</span> yang memetakan kode akun (mis. <span class="mono">1-2300</span> Aset Hak-Guna → PSAK 73) ke pos akuntansi dengan tanda dan lineage. Fungsi <span class="mono">figuresFromWTB(wtb)</span> menarik saldo <i>by-code</i> sehingga perubahan satu AJE mengalir reaktif ke seluruh modul kanonik.</p>
+    </div>
+
+    <ul class="clean">
+      <li class="ok"><b>Lineage eksplisit.</b> "Satu tempat untuk mengubah lineage" — perubahan pemetaan akun terpusat, bukan tersebar di banyak modul. Ini mengurangi kelas-kesalahan "angka tak sinkron".</li>
+      <li class="ok"><b>Pemisahan unadj/adj.</b> Canon membedakan saldo dibukukan klien vs setelah AJE audit (mis. CKPN/PSAK 71) — sebuah kebenaran domain yang sering dilewatkan prototipe.</li>
+      <li class="ok"><b>Status kertas kerja terderivasi.</b> <span class="mono">deriveWpStatus</span> menghitung status WP dari sumber kanonik, bukan menyimpan salinan privat.</li>
+      <li class="no"><b>Batas: belum ada lapisan persistensi transaksional.</b> SSOT hidup di memori + localStorage. Tidak ada server, tidak ada riwayat versi yang tahan-audit, tidak ada penguncian optimistik untuk kerja kolaboratif.</li>
+      <li class="no"><b>Batas: validasi hanya di klien.</b> Aturan konsistensi (mis. neraca seimbang) dihitung di front-end; sistem produksi memerlukan penegakan & integritas referensial di backend.</li>
+    </ul>
+    <p class="note">Ironi yang patut dicatat: aplikasi <b>audit</b> ini sendiri belum memiliki jejak-audit data yang tahan-rusak (immutable) di sisi server — justru hal yang akan diuji oleh standar mutu (SOQM/ISQM) yang ia modelkan.</p>
+  </section>
+
+  <!-- ===================== 5 · VISUAL & DESIGN SYSTEM ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><h2 class="sec-t">Desain Visual &amp; Konsistensi</h2><span class="grade g-a" style="margin-left:auto">Nilai A−</span></div>
+    <p class="sec-sub">Bahasa visual: navy/biru tepercaya, Inter untuk UI, JetBrains Mono untuk angka & kode — pilihan yang tepat untuk perangkat lunak keuangan.</p>
+    <div class="cols">
+      <div class="col pos">
+        <h4>● Berhasil</h4>
+        <ul class="clean">
+          <li class="ok"><b>Token-driven.</b> Variabel CSS (<span class="mono">--navy --blue --ink-2 --line</span>) menjaga warna konsisten; tidak ada warna liar baru.</li>
+          <li class="ok"><b>Angka sebagai warga kelas satu.</b> Font mono untuk Rupiah, persentase, kode akun → keterbacaan tabular yang kuat.</li>
+          <li class="ok"><b>Density terkendali.</b> Kepadatan tinggi cocok untuk audit, dengan kartu/panel & garis pembatas yang menjaga keterbacaan.</li>
+          <li class="ok"><b>Mode gelap & padat.</b> Preferensi <span class="mono">dark/dense</span> dipersist — perhatian pada kenyamanan kerja panjang.</li>
+        </ul>
+      </div>
+      <div class="col neg">
+        <h4>● Perlu dijaga</h4>
+        <ul class="clean">
+          <li class="no"><b>Kontras teks sekunder.</b> Beberapa <span class="mono">--ink-3/--ink-4</span> di atas permukaan terang berisiko di bawah ambang WCAG AA (lihat §7).</li>
+          <li class="no"><b>Ambang kepadatan.</b> Layar seperti WTB mendekati batas; perlu kontrol density per-tabel agar tidak melelahkan.</li>
+          <li class="no"><b>Konsistensi ikonografi.</b> Dengan ratusan modul, perlu tata kelola agar satu makna = satu ikon (mis. <span class="mono">shield</span> dipakai untuk beberapa konsep berbeda).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 6 · FIDELITAS PROTOTIPE ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">06</span><h2 class="sec-t">Fidelitas Prototipe vs. Sistem Produksi</h2><span class="grade g-c" style="margin-left:auto">Nilai C−</span></div>
+    <p class="sec-sub">Bagian ini menilai jarak ke "sistem yang dapat dioperasikan". Skor rendah di sini wajar — ini adalah ukuran kematangan rekayasa, bukan kualitas desain.</p>
+    <table>
+      <thead><tr><th style="width:30%">Kapabilitas</th><th style="width:18%">Status saat ini</th><th>Yang dibutuhkan untuk produksi</th></tr></thead>
+      <tbody>
+        <tr><td><b>Backend / API</b></td><td><span class="dot d-red"></span>Tidak ada</td><td>Layanan data, API ber-versi, model domain server-side.</td></tr>
+        <tr><td><b>Persistensi</b></td><td><span class="dot d-amber"></span>localStorage</td><td>Basis data transaksional + migrasi + cadangan.</td></tr>
+        <tr><td><b>Autentikasi</b></td><td><span class="dot d-amber"></span>Profil mock</td><td>Identitas terpusat (SSO/OIDC), sesi, MFA.</td></tr>
+        <tr><td><b>Otorisasi (RBAC)</b></td><td><span class="dot d-red"></span>Tampilan saja</td><td>Penegakan izin di server per-aksi/per-data.</td></tr>
+        <tr><td><b>Jejak audit data</b></td><td><span class="dot d-amber"></span>Modul UI ada</td><td>Log tak-terubah (append-only) di backend, tahan-tamper.</td></tr>
+        <tr><td><b>Kolaborasi multi-pengguna</b></td><td><span class="dot d-red"></span>Tunggal</td><td>Konkurensi, penguncian, realtime, resolusi konflik.</td></tr>
+        <tr><td><b>Integrasi (AI/GL/e-Filing)</b></td><td><span class="dot d-amber"></span>Antarmuka simulasi</td><td>Konektor nyata + penanganan galat & kuota.</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Catatan positif: arsitektur sudah <b>memodelkan</b> semua kapabilitas ini sebagai modul (Approvals, Audit Trail, Integrations, Independence). Artinya bentuk produk sudah benar — yang tersisa adalah memberinya fondasi nyata.</p>
+  </section>
+
+  <!-- ===================== 7 · AKSESIBILITAS ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">07</span><h2 class="sec-t">Aksesibilitas</h2><span class="grade g-c" style="margin-left:auto">Nilai C</span></div>
+    <p class="sec-sub">Untuk perangkat lunak profesional yang dipakai berjam-jam, aksesibilitas adalah persoalan ergonomi sekaligus kepatuhan.</p>
+    <ul class="clean">
+      <li class="no"><b>Kontras warna.</b> Teks abu sekunder/tersier (<span class="mono">--ink-3 #6a7c87</span>, <span class="mono">--ink-4 #94a3ad</span>) pada permukaan terang perlu diuji terhadap WCAG AA (4.5:1) — beberapa kemungkinan gagal untuk teks kecil.</li>
+      <li class="no"><b>Navigasi keyboard.</b> ⌘K & Esc sudah ada, tetapi belum jelas seluruh alur (tabel, drawer, slider, tab) dapat dioperasikan penuh tanpa tetikus dan memiliki <span class="mono">focus ring</span> yang terlihat.</li>
+      <li class="no"><b>Semantik untuk pembaca layar.</b> Komponen kaya (Donut, Spark, tabel kompleks) memerlukan <span class="mono">aria-*</span>, label, dan urutan fokus yang sengaja dirancang.</li>
+      <li class="ok"><b>Sudah baik:</b> ketergantungan warna dikurangi dengan label teks (mis. status "DIJELASKAN", badge berteks) — bukan warna semata.</li>
+      <li class="ok"><b>Sudah baik:</b> mode padat/gelap & tipografi terukur membantu kenyamanan visual.</li>
+    </ul>
+  </section>
+
+  <!-- ===================== 8 · ARSITEKTUR TEKNIS ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">08</span><h2 class="sec-t">Arsitektur Teknis &amp; Skalabilitas</h2><span class="grade g-c" style="margin-left:auto">Nilai C+</span></div>
+    <p class="sec-sub">Keputusan "satu SPA, tanpa build step, dirakit dari ratusan <span class="mono">&lt;script&gt;</span>" sangat tepat untuk iterasi cepat prototipe — dan menjadi beban bila dibawa ke produksi apa adanya.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">TEKNIS · MUAT</span><span class="gap-t">Transpilasi Babel di peramban untuk 200+ berkas</span><span class="gap-eff">Tinggi</span></div>
+      <div class="gap-b">Setiap pemuatan halaman mengompilasi seluruh JSX di sisi klien. Konsekuensi: waktu muat awal lama, penggunaan memori besar, tidak ada <i>code-splitting</i>, <i>tree-shaking</i>, atau <i>caching</i> per-modul. <b>Saran produksi:</b> pipeline build (Vite/esbuild) + lazy-loading per rute. Ini mengubah skor skalabilitas dari C+ ke A tanpa menyentuh desain.</div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">TEKNIS · RAPUH</span><span class="gap-t">Scope global tunggal &amp; konvensi anti-tabrakan manual</span><span class="gap-eff">Sedang</span></div>
+      <div class="gap-b">Karena semua berkas berbagi namespace, tim harus mematuhi aturan manual (alias hook per-file, larangan <span class="mono">const styles</span> global, ekspor via <span class="mono">Object.assign(window,…)</span>). Disiplin ini terdokumentasi rapi — tetapi <b>bergantung pada kepatuhan manusia</b>; satu pelanggaran = layar putih senyap. <b>Saran:</b> modul ES (ESM) + bundler menghapus seluruh kelas-risiko ini (runbook migrasi sudah disiapkan di proyek).</div>
+        <div class="ev"><b>Bukti:</b> <span class="mono">CLAUDE.md §2 "Aturan Emas Anti-Tabrakan"</span> & <span class="mono">Runbook Migrasi window ke ESM</span> — risikonya dikenali dan jalur keluarnya sudah dipetakan.</div>
+      </div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">TEKNIS · UJI</span><span class="gap-t">Belum ada lapisan pengujian otomatis</span><span class="gap-eff">Sedang</span></div>
+      <div class="gap-b">Dengan logika finansial kritis di <span class="mono">canon.js</span> (pajak tangguhan, ECL, sewa), pengujian unit atas mesin kanonik akan memberi jaring pengaman terbesar per-upaya. Transpilasi runtime saat ini menyulitkan CI yang deterministik — alasan tambahan untuk pindah ke build step.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 9 · REKOMENDASI ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">09</span><h2 class="sec-t">Rekomendasi Berprioritas</h2></div>
+    <p class="sec-sub">Diurutkan menurut rasio dampak terhadap upaya. Tidak satu pun menuntut perombakan desain — semuanya memperkuat fondasi di bawah desain yang sudah baik.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-t">Pindah ke build step (ESM + bundler) &amp; lazy-load per rute</span><span class="gap-eff">Fondasi</span></div>
+      <div class="gap-b">Menghapus risiko scope global, mempercepat muat, dan membuka pintu type-safety + CI. Runbook sudah ada. <b>Dampak:</b> menaikkan Skalabilitas & keandalan sekaligus.</div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-t">Backend + persistensi transaksional + penegakan RBAC di server</span><span class="gap-eff">Fondasi</span></div>
+      <div class="gap-b">Mengubah prototipe menjadi sistem multi-pengguna yang dapat dioperasikan; menjadikan jejak-audit data tahan-tamper (selaras tuntutan SOQM/ISQM yang dimodelkan aplikasi).</div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-t">Pengujian unit untuk mesin kanonik (<span class="mono">canon.js</span>)</span><span class="gap-eff">Sedang</span></div>
+      <div class="gap-b">Jaring pengaman terbesar per-upaya: mengunci kebenaran perhitungan pajak/ECL/sewa sebelum perubahan lanjutan.</div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-t">Sidebar adaptif berbasis fase + onboarding terpandu</span><span class="gap-eff">Sedang</span></div>
+      <div class="gap-b">Menurunkan beban kognitif tanpa membuang kelengkapan; manfaatkan sinyal "fase aktif" yang sudah dihitung cockpit.</div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-t">Audit aksesibilitas (WCAG AA): kontras, fokus keyboard, ARIA</span><span class="gap-eff">Sedang</span></div>
+      <div class="gap-b">Naikkan <span class="mono">--ink-3/4</span> hingga lolos 4.5:1; pastikan seluruh alur dapat dioperasikan keyboard dengan focus ring jelas.</div>
+    </div>
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-t">Pola undo/redo &amp; dialog konfirmasi berstandar untuk aksi final</span><span class="gap-eff">Ringan</span></div>
+      <div class="gap-b">Menutup dua celah heuristik (kontrol pengguna & pencegahan galat) dengan upaya kecil dan konsisten lintas modul.</div>
+    </div>
+  </section>
+
+  <!-- ===================== PENUTUP ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">10</span><h2 class="sec-t">Kesimpulan</h2></div>
+    <p class="lead">NeoSuite AMS membuktikan sesuatu yang jarang: bahwa sebuah prototipe front-end dapat memodelkan keseluruhan sistem informasi firma audit secara koheren — dengan satu sumber kebenaran data, ketertelusuran standar, dan disiplin desain pada level produk. <b>Sebagai artefak desain, ia berada di kuartil teratas.</b></p>
+    <p>Yang memisahkannya dari sistem yang dapat dioperasikan adalah pekerjaan rekayasa fondasi, bukan desain: build pipeline, backend, dan otorisasi yang ditegakkan. Kabar baiknya, aplikasi sudah <i>memodelkan</i> kapabilitas-kapabilitas itu sebagai modul dan bahkan menyiapkan runbook migrasinya — sehingga jalur dari prototipe menuju produk bukan terkaan, melainkan eksekusi atas peta yang sudah jelas.</p>
+    <div class="verdict blue" style="margin-top:14px">
+      <span class="tag">Satu kalimat</span>
+      <p><b>Desain dan model datanya sudah setara produk; fondasi rekayasanya yang masih setara prototipe.</b> Tutup jarak itu, dan NeoSuite AMS layak menjadi sistem, bukan sekadar demonstrasi.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Evaluasi Desain &amp; Prototipe — perspektif sistem informasi</span>
+    <span class="mono">v4.2 Enterprise · 17 Jun 2026</span>
+  </div>
+
+</div>
+</body>
+</html>

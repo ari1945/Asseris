@@ -1,0 +1,137 @@
+/* ============================================================
+   NeoSuite AMS — styles · Tokens, tema, density & app frame
+   (dipecah dari styles.css demi presisi edit; urutan cascade dipertahankan)
+   ============================================================ */
+/* ============================================================
+   NeoSuite AMS — Enterprise Audit Management System
+   Design tokens & global styles
+   ============================================================ */
+
+:root {
+  /* Brand palette */
+  --navy:        #002C3F;   /* Classic Navy  — chrome, headers */
+  --navy-700:    #013a52;
+  --navy-600:    #024661;
+  --blue:        #005085;   /* Oracle Blue   — primary, links */
+  --blue-600:    #00608f;
+  --blue-400:    #2f7bb0;
+  --blue-100:    #e3eef6;
+  --blue-050:    #f0f6fb;
+
+  /* Surfaces */
+  --bg:          #f0f2f5;   /* app canvas */
+  --bg-sunken:   #e7eaef;
+  --surface:     #ffffff;
+  --surface-2:   #f7f8fa;
+  --surface-3:   #eef1f4;
+
+  /* Lines */
+  --line:        #d6dbe1;
+  --line-soft:   #e6e9ee;
+  --line-strong: #c3cad2;
+
+  /* Text */
+  --ink:         #12242e;
+  --ink-2:       #3a4a55;
+  --ink-3:       #61717c;
+  --ink-4:       #8a97a1;
+  --on-navy:     #cfdde6;
+  --on-navy-dim: #7e98a8;
+
+  /* Semantic */
+  --green:       #1f7a4d;
+  --green-bg:    #e4f3ea;
+  --amber:       #9a6a00;
+  --amber-bg:    #fbf0d9;
+  --red:         #b3261e;
+  --red-bg:      #fbe6e4;
+  --purple:      #5b3fa6;
+  --purple-bg:   #ece6f8;
+  --teal:        #0a6b73;
+  --teal-bg:     #def0f1;
+
+  /* Type */
+  --ui:   'Inter', -apple-system, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Metrics — dense enterprise */
+  --topbar-h:   46px;
+  --subbar-h:   34px;
+  --row-h:      28px;
+  --radius:     4px;
+  --radius-sm:  3px;
+
+  --shadow-sm: 0 1px 2px rgba(7,30,42,.08);
+  --shadow:    0 2px 6px rgba(7,30,42,.10), 0 1px 2px rgba(7,30,42,.06);
+  --shadow-lg: 0 8px 28px rgba(7,30,42,.18);
+}
+
+/* ---------- Dark theme ---------- */
+body.dark {
+  --navy: #0a1620; --navy-700: #0d1d29; --navy-600: #112634;
+  --bg: #0d1117; --bg-sunken: #090d12; --surface: #161c24; --surface-2: #1b232d; --surface-3: #222c38;
+  --line: #2a3744; --line-soft: #232e3a; --line-strong: #3a4a59;
+  --ink: #e6edf3; --ink-2: #c2ccd6; --ink-3: #8b98a5; --ink-4: #687480;
+  --blue-100: #173040; --blue-050: #14222e;
+  --green-bg: #11241a; --amber-bg: #2a2210; --red-bg: #2a1513; --purple-bg: #1d1730; --teal-bg: #0c2429;
+  --on-navy: #9fb3c0; --on-navy-dim: #6b8294;
+}
+body.dark .global-search { background: rgba(255,255,255,.07); }
+body.dark .topbar { background: linear-gradient(180deg,#0d1d29,#070e15); }
+body.dark .doc-paper { color: #16242c; }
+body.dark ::-webkit-scrollbar-thumb { background: #3a4a59; background-clip: content-box; }
+
+/* ---------- Density ---------- */
+body.dense {
+  --row-h: 24px;
+  --topbar-h: 42px;
+  --subbar-h: 30px;
+}
+body.dense .dtbl tbody td { height: 24px; }
+body.dense .view-pad { padding: 10px; }
+body.dense .grid { gap: 9px; }
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--ui);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root { height: 100%; }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb {
+  background: #b7c0c8;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background: #95a1ab; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+a { color: var(--blue); text-decoration: none; }
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.num  { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.muted { color: var(--ink-3); }
+.tiny  { font-size: 11px; }
+.upper { text-transform: uppercase; letter-spacing: .06em; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.neg { color: var(--red); }
+
+/* ---------- App frame ---------- */
+.app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.app-body { flex: 1; display: flex; min-height: 0; }
+.main-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.view-scroll { flex: 1; overflow: auto; min-height: 0; }
+.view-pad { padding: 14px; }
+

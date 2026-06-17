@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evaluasi NeoSuite AMS — Berkaca dari Laporan Keuangan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:980px; margin:0 auto; padding:40px 24px 96px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:34px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.12; position:relative; max-width:700px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:680px; position:relative; }
+  .cover .meta{ display:flex; gap:28px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 17px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  /* ---------- scorecard ---------- */
+  .scores{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 8px; }
+  .score{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 16px 14px; box-shadow:var(--shadow); }
+  .score .v{ font:800 25px/1 var(--mono); color:var(--navy); }
+  .score .l{ font-size:11.5px; color:var(--ink-3); font-weight:600; margin-top:6px; }
+  .score .s{ font-size:11px; color:var(--ink-4); margin-top:3px; }
+  .score.good .v{ color:var(--green); } .score.warn .v{ color:var(--amber); } .score.bad .v{ color:var(--red); }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:38px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:780px; }
+
+  h3{ font-size:15px; font-weight:700; margin:24px 0 8px; }
+  p{ margin:0 0 12px; }
+  .lead{ font-size:15px; color:var(--ink-2); }
+
+  /* verdict banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--blue); white-space:nowrap; padding-top:2px; }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* gap cards */
+  .gap{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px; }
+  .gap-h{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--line-soft); }
+  .gap-pri{ font:700 10.5px/1 var(--mono); letter-spacing:.05em; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+  .p1{ background:var(--red-bg); color:var(--red); } .p2{ background:var(--amber-bg); color:var(--amber); } .p3{ background:var(--blue-100); color:var(--blue); }
+  .pok{ background:var(--green-bg); color:var(--green); }
+  .gap-t{ font-size:14.5px; font-weight:700; flex:1; }
+  .gap-eff{ font:600 11px/1 var(--mono); color:var(--ink-3); white-space:nowrap; }
+  .gap-b{ padding:13px 16px; font-size:13px; color:var(--ink-2); }
+  .gap-b b{ color:var(--ink); } .gap-b .mono{ font-family:var(--mono); font-size:12px; color:var(--navy); }
+  .ev{ margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:8px; font-size:11.5px; color:var(--ink-3); }
+  .ev b{ color:var(--ink-2); }
+  .pills{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .pill{ font:600 11px/1 var(--mono); padding:5px 9px; border-radius:20px; background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line-soft); }
+  .pill.warn{ background:var(--amber-bg); color:var(--amber); border-color:transparent; }
+  .pill.bad{ background:var(--red-bg); color:var(--red); border-color:transparent; }
+  .pill.ok{ background:var(--green-bg); color:var(--green); border-color:transparent; }
+
+  /* table */
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--surface); border:1px solid var(--line); border-radius:11px; overflow:hidden; box-shadow:var(--shadow); }
+  th{ text-align:left; background:var(--navy); color:#fff; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding:10px 13px; font-weight:700; }
+  td{ padding:9px 13px; border-top:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
+  td b{ color:var(--ink); } tr:nth-child(even) td{ background:var(--surface-2); }
+  .mono{ font-family:var(--mono); }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .d-red{ background:var(--red); } .d-amber{ background:var(--amber); } .d-green{ background:var(--green); } .d-blue{ background:var(--blue); }
+  .stat{ font:700 10px/1.4 var(--mono); padding:3px 7px; border-radius:5px; white-space:nowrap; display:inline-block; }
+  .s-full{ background:var(--green-bg); color:var(--green); }
+  .s-part{ background:var(--amber-bg); color:var(--amber); }
+  .s-none{ background:var(--red-bg); color:var(--red); }
+
+  ul.clean{ margin:8px 0 14px; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:22px; margin-bottom:7px; font-size:13.5px; color:var(--ink-2); }
+  ul.clean li::before{ content:""; position:absolute; left:4px; top:9px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); } ul.clean li.no::before{ background:var(--amber); }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:8px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:720px){ .scores{ grid-template-columns:repeat(2,1fr);} .cover{ padding:30px 26px;} .cover h1{ font-size:26px;} }
+  @media print{
+    body{ background:#fff; } .doc{ padding:0; max-width:none; }
+    .cover,.score,.gap,table,.verdict{ box-shadow:none; }
+    section{ break-inside:avoid; } .gap{ break-inside:avoid; }
+    .cover{ border-radius:0; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Evaluasi Berbasis Produk Akhir Audit</p>
+    <h1>Berkaca dari Laporan Keuangan — Apa yang Bisa Diperbaiki</h1>
+    <p>Tujuan akhir audit adalah opini atas <b style="color:#fff">kewajaran penyajian laporan keuangan</b>. Maka LK adalah spesifikasi keluaran sebenarnya dari aplikasi ini. Dokumen ini membaca LK konsolidasian ilustratif <i>PT Indonesia Tbk</i> (SFAS 2024) sebagai cetak biru, lalu menilai sejauh mana NeoSuite memetakan ke bentuk LK riil dan di mana ia dapat dipertajam.</p>
+    <div class="meta">
+      <div>Rujukan<b>LK Ilustratif SFAS 2024</b></div>
+      <div>Struktur LK<b>4 laporan · 46 catatan</b></div>
+      <div>Tanggal<b>14 Jun 2026</b></div>
+      <div>Verdict<b>Selaras — perlu pemutakhiran</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== SCORECARD ===================== -->
+  <div class="scores">
+    <div class="score bad"><div class="v">Legacy</div><div class="l">Penomoran PSAK aplikasi</div><div class="s">LK 2024 pakai nomor selaras-IFRS</div></div>
+    <div class="score warn"><div class="v">~34/46</div><div class="l">Catatan LK ber-modul pendukung</div><div class="s">≈8 area tanpa modul khusus</div></div>
+    <div class="score warn"><div class="v">Indirect</div><div class="l">Metode arus kas FS Generator</div><div class="s">OJK wajib <b>direct</b> utk emiten</div></div>
+    <div class="score good"><div class="v">Tie-out</div><div class="l">4 laporan saling-kunci</div><div class="s">Fondasi sudah kuat</div></div>
+  </div>
+
+  <!-- ===================== RINGKASAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">00</span><h2 class="sec-t">Ringkasan eksekutif</h2></div>
+    <p class="lead">Dibaca terbalik dari produk akhirnya, NeoSuite <b>sudah sangat dekat</b> dengan bentuk LK riil: FS Generator menghasilkan keempat laporan utama yang <b>saling-kunci</b> (posisi keuangan, laba rugi &amp; PKL, perubahan ekuitas, arus kas), menarik angka dari satu sumber kebenaran (WTB → canon), dan sudah menangani kasus lanjutan seperti <b>laporan posisi keuangan ketiga</b> saat ada penyajian kembali material. Catatan estimasi penting, pihak berelasi, kombinasi bisnis, dan konsolidasi pun punya modul nyata.</p>
+    <div class="verdict">
+      <span class="tag">Verdict</span>
+      <p>Tidak ada cacat fondasi. Yang dituntut LK 2024 adalah <b>pemutakhiran &amp; pelengkapan</b>, bukan pembangunan ulang: (1) <b>penomoran PSAK</b> aplikasi masih memakai skema lama, sedangkan LK efektif 2024 memakai penomoran <b>selaras-IFRS</b> (SFAS 201, 207, 212, 116, 115, 109…); (2) sekitar <b>8 area pengungkapan</b> yang tampil di LK belum punya modul khusus; (3) <b>metode arus kas</b> Generator masih tidak-langsung, padahal emiten wajib metode langsung; dan (4) sejumlah <b>pengungkapan baru 2024</b> (Pilar Dua, iklim, pendanaan pemasok) belum tercermin. Empat dimensi berikut merincinya.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 1. PENOMORAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">Penomoran PSAK — temuan utama</h2></div>
+    <p class="sec-sub">LK ilustratif 2024 memakai penomoran SFAS/PSAK <b>selaras-IFRS</b>: rujukan di margin tampil sebagai <span class="mono">201p54</span>, <span class="mono">115p105</span>, <span class="mono">116p47</span>, <span class="mono">212</span>, dst. Registri NeoSuite (<span class="mono">STANDARDS_REGISTRY</span>) dan seluruh modul masih memakai nomor lama (PSAK 1, 71, 72, 73, 46…). Bagi pengguna yang membandingkan kertas kerja dengan LK terbit, ini menimbulkan <b>friksi penelusuran</b>.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1 · UTAMA</span><span class="gap-t">Tambahkan lapisan alias penomoran selaras-IFRS</span><span class="gap-eff">Effort: rendah/sedang</span></div>
+      <div class="gap-b">
+        <p>Cukup satu <b>peta alias</b> di registri (tanpa mengganti <span class="mono">id</span> modul). Setiap baris standar memikul label lama <i>dan</i> baru; Matriks Kepatuhan, judul modul, dan <span class="mono">TrSrc</span> menampilkan keduanya. Penelusuran dari rujukan margin LK (<span class="mono">201p54(i)</span>) ke modul jadi langsung.</p>
+        <table style="margin-top:6px">
+          <thead><tr><th>Modul / nomor lama</th><th>Nomor selaras-IFRS (LK 2024)</th><th>Pos LK terkait</th></tr></thead>
+          <tbody>
+            <tr><td><b>PSAK 1</b> · Penyajian LK</td><td class="mono">PSAK 201 (IAS 1)</td><td>Seluruh laporan · CALK 1</td></tr>
+            <tr><td><b>PSAK 2</b> · Arus Kas</td><td class="mono">PSAK 207 (IAS 7)</td><td>Laporan arus kas · CALK 43</td></tr>
+            <tr><td><b>PSAK 25</b> · Kebijakan &amp; Kesalahan</td><td class="mono">PSAK 208 (IAS 8)</td><td>CALK 2 · 4</td></tr>
+            <tr><td><b>PSAK 16</b> · Aset Tetap</td><td class="mono">PSAK 216 (IAS 16)</td><td>CALK 18</td></tr>
+            <tr><td><b>PSAK 24</b> · Imbalan Kerja</td><td class="mono">PSAK 219 (IAS 19)</td><td>CALK 24 · 36</td></tr>
+            <tr><td><b>PSAK 46</b> · Pajak Penghasilan</td><td class="mono">PSAK 212 (IAS 12)</td><td>CALK 13</td></tr>
+            <tr><td><b>PSAK 58</b> · Dimiliki untuk Dijual</td><td class="mono">PSAK 105 (IFRS 5)</td><td>CALK 14</td></tr>
+            <tr><td><b>PSAK 71</b> · Instrumen Keuangan</td><td class="mono">PSAK 109 / 107 (IFRS 9 / 7)</td><td>CALK 3 · 8 · 9 · 11</td></tr>
+            <tr><td><b>PSAK 72</b> · Pendapatan</td><td class="mono">PSAK 115 (IFRS 15)</td><td>CALK 31 · aset kontrak</td></tr>
+            <tr><td><b>PSAK 73</b> · Sewa</td><td class="mono">PSAK 116 (IFRS 16)</td><td>CALK 18 · aset hak-guna</td></tr>
+            <tr><td><b>PSAK 10</b> · Kurs Valas <span class="stat s-none">belum ada</span></td><td class="mono">PSAK 221 (IAS 21)</td><td>CALK 41</td></tr>
+          </tbody>
+        </table>
+        <div class="ev"><b>Bukti:</b> margin LK memakai <span class="mono">201p51 · 201p54 · 115p105 · 116p47 · 216p47(b) · 207p9</span>; registri NeoSuite (<span class="mono">view_compmatrix.jsx</span>) memuat <span class="mono">PSAK 1 / 2 / 46 / 71 / 72 / 73…</span>. Penomoran baru juga sudah masuk ke <b>SA terbit</b> (LK menyebut adopsi pertama amandemen SFAS 201, 116, 207/117 untuk periode 2024) — jadi pemutakhiran ini bukan kosmetik, melainkan menyamakan bahasa dengan dokumen yang akan diaudit.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3 · PENDUKUNG</span><span class="gap-t">Tandai standar yang baru diadopsi &amp; belum efektif</span><span class="gap-eff">Effort: rendah</span></div>
+      <div class="gap-b">
+        <p>LK dibuka dengan catatan <b>"standar baru yang diterapkan pertama kali"</b> dan <b>"belum efektif / belum diadopsi dini"</b> (mis. amandemen SFAS 221 <i>Lack of Exchangeability</i> efektif 2025; amandemen klasifikasi SFAS 109/107 efektif 2026). Modul <span class="mono">psak25</span> sudah memodelkan perubahan kebijakan/estimasi — perluas agar otomatis menghasilkan <b>paragraf CALK "standar baru"</b> ini, ditarik dari tanggal efektif registri.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 2. PETA CATATAN → MODUL ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">Peta 46 catatan LK → modul NeoSuite</h2></div>
+    <p class="sec-sub">Membaca indeks catatan LK sebagai <b>daftar uji kelengkapan</b>: setiap catatan dipasangkan ke modul yang mendukungnya. <span class="stat s-full">PENUH</span> = ada modul/kertas kerja khusus · <span class="stat s-part">PARSIAL</span> = tertangani lewat WTB/FS Generator tetapi tanpa kertas kerja khusus · <span class="stat s-none">BELUM</span> = tidak ada dukungan modul.</p>
+    <table>
+      <thead><tr><th style="width:30px">#</th><th>Catatan LK</th><th style="width:150px">Modul NeoSuite</th><th style="width:78px">Status</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">2–4</td><td><b>Kebijakan akuntansi, risiko keuangan &amp; estimasi penting</b></td><td class="mono">psak25 · psak71 · psak68 · materiality</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">5–6</td><td>Kombinasi bisnis &amp; transaksi NCI</td><td class="mono">psak22 · groupaudit</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">7–8</td><td>Kas &amp; piutang usaha</td><td class="mono">wtb · psak71 · confirm</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">9–11</td><td>Aset keuangan FVTPL · derivatif · FVOCI</td><td class="mono">psak68 · psak71</td><td><span class="stat s-part">PARSIAL</span></td></tr>
+        <tr><td class="mono">12–14</td><td>Persediaan · perpajakan · dimiliki untuk dijual</td><td class="mono">psak14 · psak46 · psak58</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">15</td><td><b>Investasi pada entitas asosiasi</b> (metode ekuitas)</td><td class="mono">— (IAS 28)</td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">16–19</td><td>Ventura bersama · entitas anak · aset tetap · takberwujud</td><td class="mono">psak66 · psak65 · psak16 · psak19</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">20</td><td><b>Properti investasi</b></td><td class="mono">— (PSAK 13 / IAS 40)</td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">21–22</td><td>Utang usaha · pinjaman <span style="color:var(--ink-4)">(termasuk obligasi konversi)</span></td><td class="mono">wtb · fsgen</td><td><span class="stat s-part">PARSIAL</span></td></tr>
+        <tr><td class="mono">23–24</td><td>Provisi · imbalan kerja</td><td class="mono">psak48 · psak24</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">25</td><td>Modal saham &amp; APIC <span style="color:var(--ink-4)">(termasuk saham treasuri)</span></td><td class="mono">eqr · fsgen</td><td><span class="stat s-part">PARSIAL</span></td></tr>
+        <tr><td class="mono">26</td><td><b>Pembayaran berbasis saham</b></td><td class="mono">— (PSAK 53 / IFRS 2)</td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">27–30</td><td>Saldo laba · dividen · laba per saham · transaksi non-kas</td><td class="mono">eqr · fsgen</td><td><span class="stat s-part">PARSIAL</span></td></tr>
+        <tr><td class="mono">31–36</td><td>Pendapatan · beban per sifat · keuangan · imbalan kerja</td><td class="mono">psak72 · profit · psak24</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">37–39</td><td>Pihak berelasi · kontinjensi · komitmen</td><td class="mono">related · legal · sa501</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">40</td><td><b>Informasi segmen</b></td><td class="mono">— (PSAK 5 / IFRS 8)</td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">41</td><td><b>Aset/liabilitas moneter dalam valas</b></td><td class="mono">— (PSAK 10 / IAS 21)</td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">42</td><td>Peristiwa setelah periode pelaporan</td><td class="mono">subsequent</td><td><span class="stat s-full">PENUH</span></td></tr>
+        <tr><td class="mono">43</td><td><b>Rekonsiliasi utang bersih</b> (net debt)</td><td class="mono">duediligence <span style="color:var(--ink-4)">(bukan CALK)</span></td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">App A</td><td>Aset biologis</td><td class="mono">groupaudit <span style="color:var(--ink-4)">(rujukan)</span></td><td><span class="stat s-none">BELUM</span></td></tr>
+        <tr><td class="mono">App C</td><td><b>Dampak perubahan iklim</b></td><td class="mono">— (ESG / SJAH 3410)</td><td><span class="stat s-none">BELUM</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">Cakupan inti (pos neraca &amp; laba rugi utama) sudah penuh. Yang "BELUM" cenderung terkonsentrasi pada pos yang ada di LK ilustratif ini tetapi <b>tidak selalu material untuk tiap klien</b> — keputusan membangunnya bergantung profil portofolio firma.</p>
+  </section>
+
+  <!-- ===================== 3. AREA TANPA MODUL ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">Pengungkapan di LK yang belum punya modul</h2></div>
+    <p class="sec-sub">Delapan area di bawah tampil eksplisit di LK ilustratif (sebagai pos atau catatan) namun belum memiliki modul khusus di NeoSuite. Diurutkan dari yang paling lazim ditemui pada audit komersial.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-t">Informasi segmen · properti investasi · asosiasi (ekuitas)</span><span class="gap-eff">Effort: sedang/modul</span></div>
+      <div class="gap-b">
+        <p>Tiga pos akuntansi arus-utama yang muncul di LK tetapi absen dari registri:</p>
+        <div class="pills">
+          <span class="pill warn">CALK 40 · Informasi segmen (PSAK 5 / IFRS 8)</span>
+          <span class="pill warn">CALK 20 · Properti investasi Rp 15.748 (PSAK 13)</span>
+          <span class="pill warn">CALK 15 · Asosiasi metode ekuitas (IAS 28)</span>
+        </div>
+        <div class="ev"><b>Catatan:</b> registri sudah punya <span class="mono">psak65</span> (konsolidasi) &amp; <span class="mono">psak66</span> (ventura bersama), tetapi <b>metode ekuitas untuk asosiasi</b> berdiri sendiri. Properti investasi tampil sebagai baris neraca Rp 15.748 jt &mdash; perlu modul model nilai wajar/biaya tersendiri.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-t">Pengungkapan baru 2024: Pilar Dua, iklim, pendanaan pemasok</span><span class="gap-eff">Effort: sedang</span></div>
+      <div class="gap-b">
+        <p>LK 2024 menonjolkan tiga pengungkapan baru yang belum tercermin di aplikasi:</p>
+        <ul class="clean">
+          <li class="no"><b>OECD Pilar Dua (top-up tax 15%)</b> — amandemen SFAS 212 memberi pengecualian sementara pengakuan pajak tangguhan + pengungkapan eksposur. Idealnya jadi panel di modul <span class="mono">psak46</span>/<span class="mono">firmtax</span>.</li>
+          <li class="no"><b>Dampak perubahan iklim (Lampiran C)</b> — LK menambah lampiran khusus tentang bagaimana iklim memengaruhi estimasi &amp; penurunan nilai. Bersinggungan dengan gap <b>SJAH 3410 (asurans emisi GRK)</b> yang sudah diakui di Matriks.</li>
+          <li class="no"><b>Pengaturan pendanaan pemasok</b> (<i>supplier finance</i>) — pengungkapan baru SFAS 207/117 di CALK 21 &amp; 43; menyentuh klasifikasi utang usaha vs pinjaman dan arus kas.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-t">Instrumen majemuk, saham treasuri &amp; rekonsiliasi utang bersih</span><span class="gap-eff">Effort: rendah/sedang</span></div>
+      <div class="gap-b">
+        <p>Tiga item penyajian yang muncul di neraca/ekuitas LK namun belum dimodelkan eksplisit:</p>
+        <div class="pills">
+          <span class="pill">Obligasi konversi → pemisahan komponen ekuitas Rp 7.761</span>
+          <span class="pill">Saham treasuri (Rp 2.564) · PSAK 50 / IAS 32</span>
+          <span class="pill">CALK 43 · Rekonsiliasi utang bersih (PSAK 207 ¶44A–E)</span>
+        </div>
+        <div class="ev"><b>Peluang cepat:</b> "rekonsiliasi utang bersih" sudah ada logikanya di modul <span class="mono">duediligence</span> (net-debt bridge) — tinggal dipromosikan menjadi <b>catatan FS Generator</b> agar lengkap sebagai pengungkapan, bukan hanya alat transaksi.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4. INSPIRASI FITUR ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">Inspirasi fitur dari struktur LK</h2></div>
+    <p class="sec-sub">Selain menutup gap, struktur LK ilustratif menyodorkan beberapa fitur bernilai tinggi yang memanfaatkan kekuatan FS Generator yang sudah ada.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-t">Arus kas metode langsung untuk emiten</span><span class="gap-eff">Effort: sedang</span></div>
+      <div class="gap-b">
+        <p>FS Generator menyusun arus kas dengan <b>metode tidak langsung</b> (<span class="mono">fsgen_model.jsx</span>: "Cash flow (indirect)"). LK ilustratif menegaskan bahwa <b>entitas tercatat wajib metode langsung</b> — penerimaan dari pelanggan, pembayaran ke pemasok/karyawan, dst. Karena Generator sudah punya semua mutasi pos, penyajian langsung dapat <b>diturunkan</b> dan tetap menutup ke Δkas.</p>
+        <div class="ev"><b>Bukti:</b> <i>Guidance notes – Statement of Cash Flows</i>: "a listed entity is required to present its cash flow statement using the direct method." Tambahkan saklar <b>Langsung / Tidak Langsung</b> pada Generator, default <b>langsung</b> bila klien berstatus emiten (sudah dideteksi di modul independensi/cockpit).</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-t">Mesin daftar-uji pengungkapan berbasis rujukan paragraf</span><span class="gap-eff">Effort: sedang</span></div>
+      <div class="gap-b">
+        <p>LK ilustratif memberi sesuatu yang berharga: setiap baris ditandai rujukan paragraf di margin (<span class="mono">201p54(i)</span>, <span class="mono">115p105</span>, <span class="mono">DV</span> = <i>disclose voluntary</i>). Jadikan ini <b>daftar-uji pengungkapan</b> yang otomatis mencocokkan keluaran FS Generator: tiap paragraf wajib → ✓ terpenuhi / ⚠ belum, dengan tautan ke pos yang relevan. Ini melengkapi <span class="mono">checklist</span> yang sudah ada pada PSAK 71/72 di Matriks Kepatuhan.</p>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-t">LK dwibahasa &amp; Surat Pernyataan Direksi</span><span class="gap-eff">Effort: rendah</span></div>
+      <div class="gap-b">
+        <p>Dua kelengkapan khas LK Indonesia yang mudah ditambahkan:</p>
+        <ul class="clean">
+          <li class="no"><b>Penyajian dwibahasa (ID/EN) berdampingan</b> — LK ilustratif menyajikan tiap pos dalam dua bahasa; FS Generator dapat memancarkan kolom paralel untuk klien PMA/emiten.</li>
+          <li class="no"><b>Surat Pernyataan Direksi</b> tentang tanggung jawab atas LK — halaman pembuka wajib LK Indonesia. Hubungkan ke modul <b>representasi manajemen (SA 580)</b> sebagai artefak yang dapat dihasilkan, bukan sekadar template.</li>
+        </ul>
+        <div class="ev"><b>Apresiasi:</b> NeoSuite sudah menangani satu kasus lanjutan dengan elegan — penyajian kembali material memicu <b>laporan posisi keuangan ketiga</b> (<span class="mono">canon.js: thirdBalanceSheet</span>), persis seperti yang diwajibkan <i>Guidance Note</i> LK saat ada restatement retrospektif. Pola inilah yang patut diperluas ke area lain.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 5. MATRIKS PRIORITAS ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><h2 class="sec-t">Matriks prioritas penanganan</h2></div>
+    <table>
+      <thead><tr><th style="width:42px">#</th><th>Rekomendasi</th><th style="width:96px">Dimensi</th><th style="width:78px">Prioritas</th><th style="width:88px">Effort</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td><b>Lapisan alias penomoran selaras-IFRS</b> di registri + label ganda di Matriks/modul</td><td>Penomoran</td><td><span class="dot d-red"></span>P1</td><td>Rendah/Sedang</td></tr>
+        <tr><td class="mono">2</td><td><b>Saklar arus kas metode langsung</b> untuk klien emiten (default langsung)</td><td>FS Generator</td><td><span class="dot d-red"></span>P1</td><td>Sedang</td></tr>
+        <tr><td class="mono">3</td><td><b>Modul: segmen (IFRS 8), properti investasi (PSAK 13), asosiasi (IAS 28)</b></td><td>Cakupan</td><td><span class="dot d-amber"></span>P2</td><td>Sedang</td></tr>
+        <tr><td class="mono">4</td><td><b>Pengungkapan baru 2024</b>: Pilar Dua, iklim (Lamp. C), pendanaan pemasok</td><td>Cakupan</td><td><span class="dot d-amber"></span>P2</td><td>Sedang</td></tr>
+        <tr><td class="mono">5</td><td><b>Mesin daftar-uji pengungkapan</b> berbasis rujukan paragraf (201p54, DV)</td><td>FS Generator</td><td><span class="dot d-amber"></span>P2</td><td>Sedang</td></tr>
+        <tr><td class="mono">6</td><td><b>Promosikan rekonsiliasi utang bersih</b> dari DD menjadi catatan FS</td><td>Cakupan</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">7</td><td><b>Instrumen majemuk &amp; saham treasuri</b>; catatan "standar baru/belum efektif"</td><td>Penyajian</td><td><span class="dot d-blue"></span>P3</td><td>Rendah/Sedang</td></tr>
+        <tr><td class="mono">8</td><td><b>LK dwibahasa</b> &amp; <b>Surat Pernyataan Direksi</b> tertaut SA 580</td><td>Penyajian</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Prioritas P1 paling berdampak relatif terhadap effort: keduanya menyamakan "bahasa" dan "bentuk" keluaran aplikasi dengan LK riil yang akan diopinikan — tanpa membangun modul akuntansi baru.</p>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Evaluasi berbasis LK ilustratif SFAS 2024 (PT Indonesia Tbk) · untuk tinjauan kualitas internal</span>
+    <span class="mono">14·06·2026</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evaluasi NeoSuite AMS — Kesiapan Pengembangan &amp; Roadmap Eksekusi (Claude Code)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:980px; margin:0 auto; padding:40px 24px 96px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:33px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.13; position:relative; max-width:720px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:680px; position:relative; }
+  .cover .meta{ display:flex; gap:28px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 17px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  /* ---------- scorecard ---------- */
+  .scores{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 8px; }
+  .score{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 16px 14px; box-shadow:var(--shadow); }
+  .score .v{ font:800 25px/1 var(--mono); color:var(--navy); }
+  .score .l{ font-size:11.5px; color:var(--ink-3); font-weight:600; margin-top:6px; }
+  .score .s{ font-size:11px; color:var(--ink-4); margin-top:3px; }
+  .score.good .v{ color:var(--green); } .score.warn .v{ color:var(--amber); } .score.bad .v{ color:var(--red); }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:38px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:780px; }
+
+  h3{ font-size:15px; font-weight:700; margin:24px 0 8px; }
+  p{ margin:0 0 12px; }
+  .lead{ font-size:15px; color:var(--ink-2); }
+
+  /* verdict banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); }
+  .verdict.amber{ border-left-color:var(--amber); } .verdict.green{ border-left-color:var(--green); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--blue); white-space:nowrap; padding-top:2px; }
+  .verdict.amber .tag{ color:var(--amber); } .verdict.green .tag{ color:var(--green); }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* gap / finding cards */
+  .gap{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px; }
+  .gap-h{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--line-soft); }
+  .gap-pri{ font:700 10.5px/1 var(--mono); letter-spacing:.05em; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+  .p1{ background:var(--red-bg); color:var(--red); } .p2{ background:var(--amber-bg); color:var(--amber); } .p3{ background:var(--blue-100); color:var(--blue); }
+  .pgood{ background:var(--green-bg); color:var(--green); }
+  .gap-t{ font-size:14.5px; font-weight:700; flex:1; }
+  .gap-eff{ font:600 11px/1 var(--mono); color:var(--ink-3); white-space:nowrap; }
+  .gap-b{ padding:13px 16px; font-size:13px; color:var(--ink-2); }
+  .gap-b b{ color:var(--ink); } .gap-b .mono{ font-family:var(--mono); font-size:12px; color:var(--navy); }
+  .ev{ margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:8px; font-size:11.5px; color:var(--ink-3); }
+  .ev b{ color:var(--ink-2); }
+  .pills{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .pill{ font:600 11px/1 var(--mono); padding:5px 9px; border-radius:20px; background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line-soft); }
+  .pill.warn{ background:var(--amber-bg); color:var(--amber); border-color:transparent; }
+  .pill.bad{ background:var(--red-bg); color:var(--red); border-color:transparent; }
+  .pill.ok{ background:var(--green-bg); color:var(--green); border-color:transparent; }
+
+  /* table */
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--surface); border:1px solid var(--line); border-radius:11px; overflow:hidden; box-shadow:var(--shadow); }
+  th{ text-align:left; background:var(--navy); color:#fff; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding:10px 13px; font-weight:700; }
+  td{ padding:10px 13px; border-top:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
+  td b{ color:var(--ink); } tr:nth-child(even) td{ background:var(--surface-2); }
+  .mono{ font-family:var(--mono); }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .d-red{ background:var(--red); } .d-amber{ background:var(--amber); } .d-green{ background:var(--green); } .d-blue{ background:var(--blue); }
+
+  ul.clean{ margin:8px 0 14px; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:22px; margin-bottom:7px; font-size:13.5px; color:var(--ink-2); }
+  ul.clean li::before{ content:""; position:absolute; left:4px; top:9px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); } ul.clean li.no::before{ background:var(--amber); } ul.clean li.bad::before{ background:var(--red); }
+
+  /* readiness meter */
+  .meter{ display:grid; grid-template-columns:170px 1fr 52px; align-items:center; gap:14px; margin-bottom:11px; }
+  .meter .ml{ font-size:12.5px; font-weight:600; color:var(--ink-2); }
+  .meter .track{ height:9px; border-radius:6px; background:var(--surface-3); overflow:hidden; }
+  .meter .fill{ height:100%; border-radius:6px; }
+  .meter .mv{ font:700 12px/1 var(--mono); color:var(--ink-3); text-align:right; }
+
+  /* roadmap */
+  .road{ counter-reset:step; margin-top:6px; }
+  .step{ display:flex; gap:15px; padding:14px 0; border-top:1px solid var(--line-soft); }
+  .step:first-child{ border-top:none; }
+  .step .num{ counter-increment:step; flex:0 0 34px; height:34px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center; font:800 14px/1 var(--mono); }
+  .step .body{ flex:1; }
+  .step .st{ font-size:14px; font-weight:700; margin:2px 0 4px; }
+  .step .sd{ font-size:12.5px; color:var(--ink-2); margin:0; }
+  .step .sm{ font:600 10.5px/1 var(--mono); color:var(--ink-4); margin-top:7px; display:flex; gap:8px; flex-wrap:wrap; }
+  .step .sm span{ background:var(--surface-3); padding:4px 8px; border-radius:5px; }
+  .step.now .num{ background:var(--green); }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:8px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  /* ---------- execution backlog ---------- */
+  .code{ background:#0c2733; color:#cfe6f2; border-radius:9px; padding:11px 13px; font:500 11.5px/1.75 var(--mono); overflow-x:auto; margin:10px 0 4px; border:1px solid #143a4a; white-space:pre; }
+  .code .c{ color:#6f93a5; } .code .k{ color:#7fd1b9; } .code b{ color:#fff; font-weight:600; }
+
+  .wave{ display:flex; align-items:center; gap:12px; margin:30px 0 12px; }
+  .wave .wn{ font:800 11.5px/1 var(--mono); color:#fff; background:var(--navy); padding:8px 11px; border-radius:7px; letter-spacing:.04em; white-space:nowrap; }
+  .wave.prod .wn{ background:var(--purple); }
+  .wave .wt{ font-size:16px; font-weight:800; letter-spacing:-.01em; }
+  .wave .wmeta{ margin-left:auto; font:600 10.5px/1 var(--mono); color:var(--ink-4); white-space:nowrap; }
+
+  .phase-band{ display:flex; align-items:center; gap:10px; margin:34px 0 4px; }
+  .phase-band .pb-t{ font:800 12px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; }
+  .phase-band .pb-l{ flex:1; height:2px; border-radius:2px; }
+  .phase-band.eng .pb-t{ color:var(--blue); } .phase-band.eng .pb-l{ background:linear-gradient(90deg,var(--blue),transparent); }
+  .phase-band.prod .pb-t{ color:var(--purple); } .phase-band.prod .pb-l{ background:linear-gradient(90deg,var(--purple),transparent); }
+
+  .task{ background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); margin-bottom:11px; overflow:hidden; }
+  .task-h{ display:flex; align-items:center; gap:11px; padding:11px 14px; border-bottom:1px solid var(--line-soft); }
+  .task-id{ font:700 10.5px/1 var(--mono); color:var(--blue); background:var(--blue-100); padding:5px 8px; border-radius:6px; white-space:nowrap; }
+  .task.kit .task-id{ color:var(--green); background:var(--green-bg); }
+  .task-t{ font-size:13.5px; font-weight:700; flex:1; }
+  .task-eff{ font:600 10.5px/1 var(--mono); color:var(--ink-4); white-space:nowrap; }
+  .task-b{ padding:12px 14px 13px; font-size:12.5px; color:var(--ink-2); }
+  .task-b p{ margin:0 0 8px; }
+  .dod{ list-style:none; margin:11px 0 0; padding:11px 0 0; border-top:1px solid var(--line-soft); }
+  .dod .dod-h{ font:700 10px/1 var(--mono); letter-spacing:.07em; text-transform:uppercase; color:var(--green); margin-bottom:7px; }
+  .dod li{ position:relative; padding-left:23px; margin-bottom:5px; font-size:12px; color:var(--ink-2); }
+  .dod li::before{ content:"\2713"; position:absolute; left:4px; top:0; color:var(--green); font-weight:800; font-size:12px; }
+  .files{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .files span{ font:600 10.5px/1 var(--mono); color:var(--navy); background:var(--surface-3); padding:4px 7px; border-radius:5px; border:1px solid var(--line-soft); }
+
+  @media (max-width:720px){
+    .scores{ grid-template-columns:repeat(2,1fr);} .cover{ padding:30px 26px;} .cover h1{ font-size:25px;}
+    .meter{ grid-template-columns:130px 1fr 44px; }
+  }
+  @media print{
+    body{ background:#fff; } .doc{ padding:0; max-width:none; }
+    .cover,.score,.gap,table,.verdict{ box-shadow:none; }
+    section{ break-inside:avoid; } .gap{ break-inside:avoid; } .step{ break-inside:avoid; }
+    .cover{ border-radius:0; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Feature &amp; Engineering Readiness Review</p>
+    <h1>Kelengkapan Fitur &amp; Kesiapan Pengembangan di Claude Code</h1>
+    <p>Dua pertanyaan, satu dokumen: apakah cakupan fungsional sudah lengkap, dan apakah basis kode siap diserahkan ke Claude Code untuk dikembangkan menjadi produk. Temuan disertai bukti terukur dari kode sumber, peta gap prototipe&rarr;produk, dan <b>backlog eksekusi 11 gelombang</b> berikut perintah &amp; kriteria selesai yang dapat dijalankan agen.</p>
+    <div class="meta">
+      <div>Tanggal<b>15 Jun 2026</b></div>
+      <div>Lingkup kode<b>190 berkas app · ~72.000 baris</b></div>
+      <div>Fitur<b>Matang (lihat Gap Analysis)</b></div>
+      <div>Kesiapan dev<b>Siap bersyarat (7,0/10)</b></div>
+      <div>Eksekusi<b>Backlog 11 gelombang &middot; §07</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== SCORECARD ===================== -->
+  <div class="scores">
+    <div class="score good"><div class="v">~131</div><div class="l">Modul fungsional</div><div class="s">Semua <span class="mono">deep:true</span> · bukan stub</div></div>
+    <div class="score warn"><div class="v">7.0/10</div><div class="l">Skor kesiapan dev</div><div class="s">Modular kuat · perkakas kurang</div></div>
+    <div class="score warn"><div class="v">¼</div><div class="l">Build · test · tipe · docs</div><div class="s">Docs ✓ (CLAUDE.md) · 3 sisa absen</div></div>
+    <div class="score warn"><div class="v">~150</div><div class="l">Ekspor ke <span class="mono">window</span></div><div class="s">Kit migrasi ESM siap &middot; <span class="mono">migration/</span></div></div>
+  </div>
+
+  <!-- ===================== RINGKASAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">00</span><h2 class="sec-t">Ringkasan eksekutif</h2></div>
+    <p class="lead">Dua hal harus dibedakan tegas. <b>Sebagai produk,</b> NeoSuite AMS sudah <b>lengkap dan matang</b> &mdash; ~131 modul fungsional, cakupan SA&nbsp;200&ndash;810, PSAK inti, ERP/SDM firma, dan jasa non-audit, semuanya berderajat <span class="mono">deep:true</span> dan ter-render bersih. <b>Sebagai basis kode yang akan dikembangkan di Claude Code,</b> ia <b>siap bersyarat</b>: arsitekturnya sudah termodularisasi rapi (keunggulan besar untuk agen), tetapi belum memiliki lapisan rekayasa &mdash; build, tipe, uji, dan dokumentasi &mdash; yang membuat agen bekerja cepat, aman, dan terverifikasi.</p>
+    <div class="verdict amber">
+      <span class="tag">Verdict</span>
+      <p>Tidak ada penghalang fundamental. Yang dibutuhkan adalah <b>lapisan migrasi tipis</b> sebelum pengembangan skala besar: (1) <b style="color:var(--green)">[SELESAI]</b> <b class="mono" style="color:var(--navy)">CLAUDE.md</b> + peta arsitektur kini sudah ada di akar proyek &mdash; gap berdampak-tertinggi ini telah ditutup; (2) perkenalkan <b>build tool + impor ESM</b> menggantikan namespace <span class="mono">window</span> dan Babel runtime; (3) pecah <b>6 berkas raksasa</b> (&gt;900 baris); (4) pasang <b>jaring uji</b> agar perubahan agen dapat diverifikasi. Bagian 02&ndash;04 merinci masing-masing; <b>&sect;06</b> memetakan gap prototipe&rarr;produk dan <b>&sect;07</b> menjabarkannya menjadi <b>backlog eksekusi 11 gelombang</b> &mdash; tugas konkret berikut perintah &amp; kriteria selesai yang dapat dijalankan agen.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 1. KELENGKAPAN FITUR ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">Kelengkapan fitur &mdash; ringkas</h2></div>
+    <p class="sec-sub">Dimensi ini sudah dinilai mendalam pada dokumen <b>Gap Analysis</b>. Ringkasannya: produk matang, gap tersisa bersifat marginal &amp; sebagiannya disengaja. Berikut intinya agar dokumen ini berdiri sendiri.</p>
+    <ul class="clean">
+      <li class="ok"><b>Cakupan standar lengkap:</b> rangkaian SA&nbsp;200&ndash;810, SPM/SPR/SPA/SJAH, dan PSAK inti (1, 2, 14, 16, 19, 22, 24, 25, 46, 48, 58, 65, 66, 68, 71, 72, 73) terdaftar di <span class="mono">STANDARDS_REGISTRY</span>.</li>
+      <li class="ok"><b>Semua navigasi punya view nyata:</b> ~131 entri menu berderajat <span class="mono">deep:true</span> &mdash; halaman fungsional, bukan placeholder.</li>
+      <li class="ok"><b>Integritas data lintas-modul:</b> satu sumber kebenaran (WTB&nbsp;&rarr;&nbsp;<span class="mono">canon</span>) mengalir ke PSAK 46/24/71/73, FS Generator, dan opini &mdash; angka diturunkan, bukan di-hardcode.</li>
+      <li class="ok"><b>Dua gap lama sudah ditutup:</b> SJAH&nbsp;3410 (Emisi GRK) &amp; 3420 (Info Proforma) kini <b>modul penuh</b> dengan engine kalkulasi sendiri (<span class="mono">ghgEngine</span>/<span class="mono">proformaEngine</span>, <span class="mono">coverage:'module'</span>) &mdash; bukan lagi gap.</li>
+      <li class="no"><b>Penyempurnaan audit-trail (sempit):</b> beberapa PSAK (13, 15, 26, 10, 67, 5, 3, 53) belum terdaftar sebagai baris <span class="mono">N/A</span> eksplisit di registri.</li>
+      <li class="no"><b>Batas prototipe:</b> persistensi via <span class="mono">localStorage</span> (tanpa backend multi-pengguna); aksi ekspor/integrasi masih simulatif; AI Co-pilot jatuh ke "mode demo" tanpa <span class="mono">window.claude</span>.</li>
+    </ul>
+    <div class="verdict green">
+      <span class="tag">Fitur</span>
+      <p><b>Lengkap untuk tahap prototipe.</b> Tidak ada modul kosong yang menghalangi demonstrasi alur audit ujung-ke-ujung. Pekerjaan berikutnya bukan "menambah fitur" melainkan "mematangkan menjadi produk" &mdash; dan itu adalah pekerjaan rekayasa, yang dinilai di bawah.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 2. KESIAPAN DEV — DIMENSI ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">Kesiapan pengembangan di Claude Code</h2></div>
+    <p class="sec-sub">Penilaian basis kode sebagai artefak rekayasa yang akan dilanjutkan oleh agen koding. Skor per dimensi (0&ndash;10) mencerminkan seberapa lancar &amp; aman Claude Code dapat membaca, mengubah, dan memverifikasi kode.</p>
+
+    <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); padding:18px 20px; margin-bottom:18px;">
+      <div class="meter"><span class="ml">Modularitas berkas</span><div class="track"><div class="fill" style="width:88%;background:var(--green)"></div></div><span class="mv">8.8</span></div>
+      <div class="meter"><span class="ml">Konsistensi pola</span><div class="track"><div class="fill" style="width:85%;background:var(--green)"></div></div><span class="mv">8.5</span></div>
+      <div class="meter"><span class="ml">Penamaan &amp; struktur</span><div class="track"><div class="fill" style="width:82%;background:var(--green)"></div></div><span class="mv">8.2</span></div>
+      <div class="meter"><span class="ml">Isolasi kegagalan</span><div class="track"><div class="fill" style="width:75%;background:var(--teal)"></div></div><span class="mv">7.5</span></div>
+      <div class="meter"><span class="ml">Sistem modul (impor)</span><div class="track"><div class="fill" style="width:35%;background:var(--amber)"></div></div><span class="mv">3.5</span></div>
+      <div class="meter"><span class="ml">Build &amp; reproduktibilitas</span><div class="track"><div class="fill" style="width:20%;background:var(--red)"></div></div><span class="mv">2.0</span></div>
+      <div class="meter"><span class="ml">Keamanan tipe</span><div class="track"><div class="fill" style="width:10%;background:var(--red)"></div></div><span class="mv">1.0</span></div>
+      <div class="meter"><span class="ml">Jaring uji</span><div class="track"><div class="fill" style="width:5%;background:var(--red)"></div></div><span class="mv">0.5</span></div>
+      <div class="meter"><span class="ml">Dokumentasi untuk agen</span><div class="track"><div class="fill" style="width:85%;background:var(--green)"></div></div><span class="mv">8.5</span></div>
+      <div class="meter" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);"><span class="ml" style="font-weight:800;color:var(--ink)">Skor gabungan</span><div class="track" style="height:11px"><div class="fill" style="width:70%;background:linear-gradient(90deg,var(--amber),var(--blue))"></div></div><span class="mv" style="color:var(--navy);font-size:13px">7.0</span></div>
+    </div>
+
+    <p class="lead">Pembacaannya jelas: <b>paruh atas hijau</b> &mdash; struktur kode justru ramah-agen, dan kini <b>dokumentasi agen ikut hijau</b> setelah <span class="mono">CLAUDE.md</span> ditambahkan &mdash; sementara <b>tiga baris merah tersisa</b> (build, tipe, uji) adalah lapisan perkakas yang masih absen. Kabar baiknya, sisa inilah yang paling cepat mengangkat skor keseluruhan.</p>
+  </section>
+
+  <!-- ===================== 3. APA YANG SUDAH MENDUKUNG ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">Yang sudah mendukung agen</h2></div>
+    <p class="sec-sub">Kekuatan struktural ini bukan kebetulan &mdash; ia membuat Claude Code dapat menargetkan perubahan dengan presisi tanpa membaca seluruh aplikasi.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri pgood">&#10003; KUAT</span><span class="gap-t">Termodularisasi pada granularitas ideal</span><span class="gap-eff">190 berkas app</span></div>
+      <div class="gap-b">
+        <p>Aplikasi sudah dipecah menjadi berkas-berkas kecil-menengah, persis ukuran yang nyaman untuk edit tertarget oleh agen: <b>117 berkas berada di rentang 200&ndash;500 baris</b>, 25 di bawah 200, dan 37 di 500&ndash;1.000. Satu modul = satu view (<span class="mono">view_*.jsx</span>), satu domain data = satu berkas (<span class="mono">data_*.js</span>).</p>
+        <div class="pills">
+          <span class="pill ok">200&ndash;500 baris · 117 berkas</span>
+          <span class="pill ok">&lt;200 baris · 25 berkas</span>
+          <span class="pill">500&ndash;1k · 37 berkas</span>
+        </div>
+        <div class="ev"><b>Mengapa penting:</b> Claude Code dapat membuka, memahami, dan menulis-ulang satu modul dalam satu jendela konteks &mdash; tanpa risiko memuat 70k baris sekaligus. Inilah aset rekayasa terbesar proyek ini.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri pgood">&#10003; KUAT</span><span class="gap-t">Pola berulang yang sangat konsisten</span><span class="gap-eff">~150 modul seragam</span></div>
+      <div class="gap-b">
+        <p>Hampir setiap view mengikuti cetakan yang sama: definisi komponen &rarr; <span class="mono">Object.assign(window, {&hellip;})</span> di akhir berkas; router tunggal berupa <span class="mono">switch</span> di <span class="mono">app.jsx</span>; menu dideklarasikan satu tempat di <span class="mono">icons.jsx</span> (<span class="mono">MODULES</span>). Keseragaman ini berarti agen cukup mempelajari <b>satu</b> pola untuk menambah modul ke-132.</p>
+        <div class="ev"><b>Bukti:</b> menambah view baru = buat <span class="mono">view_x.jsx</span> &rarr; ekspor komponen ke <span class="mono">window</span> &rarr; tambah satu <span class="mono">case</span> di <span class="mono">viewFor()</span> &rarr; tambah satu entri di <span class="mono">MODULES</span> &rarr; daftarkan satu <span class="mono">&lt;script&gt;</span>. Jalur yang sangat dapat diprediksi.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri pgood">&#10003; KUAT</span><span class="gap-t">Isolasi kegagalan &amp; sumber kebenaran tunggal</span><span class="gap-eff">ViewErrorBoundary</span></div>
+      <div class="gap-b">
+        <p>Setiap rute dibungkus <span class="mono">ViewErrorBoundary</span> &mdash; modul yang gagal merender tidak merobohkan aplikasi, melainkan menampilkan jejak galat. Lapisan data mengalir dari satu kanon (<span class="mono">canon.js</span>/WTB), sehingga perubahan angka cukup di satu tempat. Komentar domain berbahasa Indonesia yang kaya memberi agen konteks regulasi yang biasanya hilang.</p>
+        <div class="pills">
+          <span class="pill ok">error boundary per-rute</span>
+          <span class="pill ok">WTB &rarr; canon (1 sumber)</span>
+          <span class="pill ok">CSS token terpusat (styles.css)</span>
+          <span class="pill ok">komentar domain kaya</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4. HAMBATAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">Hambatan untuk pengembangan agen</h2></div>
+    <p class="sec-sub">Lima hambatan, diurutkan dari leverage tertinggi. Tak satu pun bersifat fundamental &mdash; semuanya adalah lapisan yang ditambahkan, bukan arsitektur yang dibongkar.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri pgood">&#10003; SELESAI · BEKAS P1 TERTINGGI</span><span class="gap-t">CLAUDE.md / peta arsitektur kini ada</span><span class="gap-eff">Effort: rendah</span></div>
+      <div class="gap-b">
+        <p>Direktori akar <b>kini memuat</b> <span class="mono">CLAUDE.md</span> &mdash; onboarding agen sekali-baca: peta direktori, urutan boot (= urutan <span class="mono">&lt;script&gt;</span>), "cara menambah modul" 4 langkah, daftar global <span class="mono">window</span> kunci (<span class="mono">AMS, AMS_CANON, MODULE_INDEX, useAmsPersist, I, LINEAGE</span>), dan aturan emas anti-tabrakan (alias hook per-file; jangan <span class="mono">const styles =</span> global; ekspor via <span class="mono">Object.assign(window,&hellip;)</span>; <span class="mono">app.jsx</span> terakhir). Pemborosan konteks terbesar &mdash; menurunkan ulang arsitektur tiap sesi &mdash; telah dihilangkan.</p>
+        <div class="ev"><b>Status:</b> ditutup. <b>Dampak terealisasi:</b> setiap sesi agen berikutnya langsung produktif tanpa harus menebak peran <span class="mono">canon.js</span>, urutan muat, atau kontrak <span class="mono">window</span>.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1 · STRUKTURAL</span><span class="gap-t">Namespace <span class="mono" style="font-size:13px">window</span> menggantikan impor ESM</span><span class="gap-eff">Effort: sedang&ndash;tinggi</span></div>
+      <div class="gap-b">
+        <p>Modul berbagi lewat <span class="mono">Object.assign(window, {&hellip;})</span> (~150 titik), bukan <span class="mono">import/export</span>. Akibatnya tidak ada <b>graf dependensi statis</b>: agen tak bisa menelusuri "siapa memakai fungsi ini" secara andal, dan ada risiko tabrakan nama nyata (cetakan global <span class="mono">const styles</span> akan saling menimpa &mdash; footgun yang sudah diketahui).</p>
+        <div class="pills">
+          <span class="pill bad">tanpa import graph</span>
+          <span class="pill warn">risiko tabrakan nama</span>
+          <span class="pill warn">refactor tak terlindungi</span>
+        </div>
+        <div class="ev"><b>Tindakan:</b> migrasikan ke modul ES (<span class="mono">export</span>/<span class="mono">import</span>) di bawah bundler. Karena polanya seragam, sebagian besar konversi bersifat mekanis &mdash; kandidat ideal untuk dikerjakan Claude Code sendiri secara batch, modul demi modul.</div>
+        <div class="ev" style="border-left:3px solid var(--green);background:var(--green-bg)"><b style="color:var(--green)">[KIT SIAP]</b> Paket migrasi <b>dual-publish</b> kini tersedia di <span class="mono">migration/</span>: codemod AST (<span class="mono">codemod.mjs</span>) yang menyisipkan <span class="mono">import</span>/<span class="mono">export</span> ESM sambil mempertahankan tulisan <span class="mono">window</span> sebagai jaring pengaman, plus scaffold Vite + runbook. App asli tidak tersentuh; rollback = hapus folder. Tinggal dijalankan &amp; diverifikasi di Node/Claude Code (<span class="mono">npm i &amp;&amp; npm run codemod &amp;&amp; npm run dev</span>). Lihat <b>Runbook Migrasi window &rarr; ESM</b>.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2 · TEKNIS</span><span class="gap-t">Tanpa build &mdash; Babel runtime + urutan skrip manual</span><span class="gap-eff">Effort: sedang</span></div>
+      <div class="gap-b">
+        <p>~4,7&nbsp;MB JSX ditranspilasi <span class="mono">@babel/standalone</span> di browser saat muat, dan <b>180+ tag <span class="mono">&lt;script&gt;</span> diurutkan manual</b> di <span class="mono">NeoSuite AMS.html</span> &mdash; urutan muat menentukan keberhasilan. Tanpa <span class="mono">package.json</span>, dependensi (React/Babel) datang dari CDN dan tidak reproducible. Agen tak bisa menjalankan <span class="mono">lint</span>, <span class="mono">typecheck</span>, atau <span class="mono">test</span>.</p>
+        <div class="ev"><b>Tindakan:</b> adopsi Vite (atau setara). Hasil: HMR, tree-shaking, satu titik entri menggantikan 180 tag skrip, dan perintah <span class="mono">npm</span> yang bisa dipanggil agen untuk memverifikasi pekerjaannya. <b>Menghilangkan kelas "rusak karena salah urutan muat" sepenuhnya.</b></div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2 · KETERBACAAN</span><span class="gap-t">Enam berkas raksasa &gt;900 baris</span><span class="gap-eff">Effort: rendah</span></div>
+      <div class="gap-b">
+        <p>Mayoritas berkas berukuran ideal, tetapi enam melampaui jendela edit yang nyaman &mdash; berisiko untuk <span class="mono">str_replace</span> yang presisi dan boros konteks saat dibaca utuh:</p>
+        <div class="pills">
+          <span class="pill warn">canon.js · 2.023 baris</span>
+          <span class="pill warn">data.js · 1.978 baris</span>
+          <span class="pill warn">styles.css · 1.198 baris</span>
+          <span class="pill warn">related_modules.jsx · 1.124 baris</span>
+          <span class="pill warn">view_groupaudit.jsx · 1.016 baris</span>
+          <span class="pill warn">copilot.jsx · 917 baris</span>
+        </div>
+        <div class="ev"><b>Tindakan:</b> pecah per domain (mis. <span class="mono">canon.js</span> &rarr; per-area neraca/laba-rugi; <span class="mono">data.js</span> &rarr; per-entitas). Upaya rendah, langsung menaikkan presisi edit agen.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2 · KEAMANAN PERUBAHAN</span><span class="gap-t">Tanpa uji &amp; tanpa tipe</span><span class="gap-eff">Effort: sedang</span></div>
+      <div class="gap-b">
+        <p>Tidak ada satu pun berkas uji, dan tidak ada TypeScript. Untuk aplikasi 70k baris dengan banyak perhitungan akuntansi saling bergantung, ini berarti perubahan agen <b>tidak punya jaring pengaman</b> &mdash; regresi pada, misalnya, kalkulasi pajak tangguhan hanya ketahuan secara manual. Kontrak antar-modul lewat <span class="mono">window</span> juga tak bertipe, sehingga refactor tak terverifikasi.</p>
+        <div class="ev"><b>Tindakan:</b> mulai dari uji terhadap "mesin angka" (kanon, materialitas, PSAK 46/71/73) memakai Vitest &mdash; di sinilah nilai uji tertinggi. Adopsi TypeScript bertahap (mulai dari <span class="mono">canon</span> &amp; kontrak <span class="mono">window</span>). Keduanya memberi agen <b>sinyal lulus/gagal</b> untuk menilai pekerjaannya sendiri.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 5. MATRIKS KESIAPAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><h2 class="sec-t">Matriks kesiapan</h2></div>
+    <table>
+      <thead><tr><th>Dimensi</th><th style="width:96px">Status</th><th>Kondisi saat ini</th><th style="width:80px">Effort</th></tr></thead>
+      <tbody>
+        <tr><td><b>Modularitas berkas</b></td><td><span class="dot d-green"></span>Kuat</td><td>190 berkas app; mayoritas di rentang ideal 200&ndash;500 baris</td><td>&mdash;</td></tr>
+        <tr><td><b>Konsistensi pola</b></td><td><span class="dot d-green"></span>Kuat</td><td>Cetakan view + ekspor <span class="mono">window</span> seragam; router <span class="mono">switch</span> tunggal</td><td>&mdash;</td></tr>
+        <tr><td><b>Isolasi kegagalan</b></td><td><span class="dot d-green"></span>Baik</td><td><span class="mono">ViewErrorBoundary</span> per-rute; sumber data tunggal</td><td>&mdash;</td></tr>
+        <tr><td><b>Dokumentasi agen</b></td><td><span class="dot d-green"></span>Sudah ada</td><td><span class="mono">CLAUDE.md</span> lengkap hadir: peta arsitektur, cara tambah modul, daftar global, aturan anti-tabrakan</td><td>Selesai</td></tr>
+        <tr><td><b>Sistem modul</b></td><td><span class="dot d-amber"></span>Kit siap</td><td>Namespace <span class="mono">window</span> global; <b>codemod dual-publish + scaffold Vite tersedia</b> di <span class="mono">migration/</span> &mdash; tinggal dijalankan di Node</td><td>Sedang</td></tr>
+        <tr><td><b>Build &amp; deps</b></td><td><span class="dot d-red"></span>Absen</td><td>Babel runtime; 180+ skrip manual; tanpa <span class="mono">package.json</span></td><td>Sedang</td></tr>
+        <tr><td><b>Berkas raksasa</b></td><td><span class="dot d-amber"></span>6 berkas</td><td>canon/data/styles/related/groupaudit/copilot &gt; 900 baris</td><td>Rendah</td></tr>
+        <tr><td><b>Jaring uji</b></td><td><span class="dot d-red"></span>Absen</td><td>0 berkas uji; perubahan tanpa verifikasi otomatis</td><td>Sedang</td></tr>
+        <tr><td><b>Keamanan tipe</b></td><td><span class="dot d-red"></span>Absen</td><td>Tanpa TypeScript; kontrak <span class="mono">window</span> tak bertipe</td><td>Tinggi</td></tr>
+        <tr><td><b>Backend / data nyata</b></td><td><span class="dot d-amber"></span>Prototipe</td><td><span class="mono">localStorage</span> saja; ekspor/integrasi simulatif</td><td>Tinggi</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Pola jelas: dimensi berdampak tertinggi & berbiaya rendah (dokumentasi) <b>sudah ditutup</b>; berikutnya pecah berkas raksasa, lalu pasang build & uji.</p>
+  </section>
+
+  <!-- ===================== 6. PROTOTIPE -> PRODUK ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">06</span><h2 class="sec-t">Prototipe &rarr; produk &mdash; peta gap produksi</h2></div>
+    <p class="sec-sub">Di luar lapisan rekayasa (&sect;04), empat dimensi memisahkan <b>demo</b> dari <b>produk yang dipakai banyak pengguna pada data nyata</b>. Semua berakar pada satu fakta arsitektural: <b>seluruh status hidup di browser</b> &mdash; tak ada server, tak ada basis data. Tiap gap di bawah dipetakan ke gelombang eksekusi di &sect;07.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P&middot;A &middot; DATA</span><span class="gap-t"><span class="mono" style="font-size:13px">localStorage</span> adalah satu-satunya basis data</span><span class="gap-eff">&rarr; Wave 6</span></div>
+      <div class="gap-b">
+        <p>Setiap status yang dapat diubah pengguna disimpan ke <span class="mono">localStorage</span> di bawah kunci <span class="mono">ams.v1.&lt;modul&gt;</span> &mdash; puluhan titik <span class="mono">localStorage.setItem</span> tersebar di view (risiko, CRM, PSAK 2/24, matriks&hellip;), dan bahkan <b>mesin kalkulasi di <span class="mono">data.js</span></b> (<span class="mono">aupNarrate</span>, <span class="mono">pfiEngine</span>, <span class="mono">socEngine</span>, <span class="mono">ghgEngine</span>) membaca status pelaksanaan langsung dari <span class="mono">localStorage</span> bila argumen tak diberi.</p>
+        <div class="pills">
+          <span class="pill bad">satu perangkat, satu peramban</span>
+          <span class="pill bad">tanpa backup / hilang saat clear cache</span>
+          <span class="pill warn">tanpa konkurensi / penguncian</span>
+          <span class="pill warn">tanpa multi-pengguna</span>
+        </div>
+        <div class="ev"><b>Mitigasi arsitektural yang sudah ada:</b> seluruh engine menerima status via argumen (mis. <span class="mono">ghgEngine(exec)</span>) dan hanya jatuh ke <span class="mono">localStorage</span> sebagai default &mdash; sehingga <b>mengalihkan sumber dari browser ke server adalah perubahan kecil &amp; terlokalisasi</b>, bukan penulisan ulang.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P&middot;B &middot; AKSES</span><span class="gap-t">Autentikasi, sesi &amp; peran adalah tampilan</span><span class="gap-eff">&rarr; Wave 7</span></div>
+      <div class="gap-b">
+        <p>Pengguna &amp; firma adalah konstanta statis (<span class="mono">USER</span>/<span class="mono">FIRM</span> di <span class="mono">data.js</span>). Layar keamanan (<span class="mono">view_settings.jsx</span>) menampilkan ganti sandi, 2FA, timeout sesi, dan allowlist IP &mdash; tetapi tombolnya hanya memanggil <span class="mono">flash('Kata sandi diperbarui')</span>; tak ada sandi yang benar-benar berubah. Peristiwa <span class="mono">LOGIN</span>/MFA di jejak audit adalah <b>data seed</b> (<span class="mono">data_platform.js</span>), bukan sesi nyata.</p>
+        <div class="pills">
+          <span class="pill bad">tanpa sesi / token</span>
+          <span class="pill bad">peran tak ditegakkan</span>
+          <span class="pill warn">MFA / allowlist IP simulatif</span>
+        </div>
+        <div class="ev"><b>Konsekuensi:</b> tak ada batas akses nyata &mdash; setiap pengguna efektif melihat seluruh perikatan. <b>Aset yang sudah ada:</b> model peran (<span class="mono">USER.role</span>: Partner/Manager/Junior/EQR) sudah dirujuk UI, jadi penegakan tinggal disambungkan ke lapisan auth.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P&middot;C &middot; AI &amp; INTEGRASI</span><span class="gap-t">Co-pilot &amp; konektor bekerja dalam mode demo</span><span class="gap-eff">&rarr; Wave 8&ndash;9</span></div>
+      <div class="gap-b">
+        <p>AI Co-pilot memanggil <span class="mono">window.claude.complete</span> bila tersedia, dan <b>jatuh ke <span class="mono">demoReply()</span> ("Mode demo")</b> bila tidak (<span class="mono">copilot.jsx</span>) &mdash; tanpa proxy server, manajemen kunci, atau RAG atas dokumen nyata. Konektor di <span class="mono">data_import.js</span> (Coretax/e-Faktur, Bank Feed BCA&middot;Mandiri, e-Sign PrivyID, DMS SharePoint, AHU, e-Meterai) menampilkan <span class="mono">status:'connected'</span>, jadwal sync, &amp; pemetaan field &mdash; semuanya <b>statis</b>; tak ada OAuth maupun perpindahan data nyata. Endpoint di <span class="mono">view_platform2.jsx</span> hanya untuk ditampilkan.</p>
+        <div class="pills">
+          <span class="pill warn">LLM tak terotentikasi (kunci di klien)</span>
+          <span class="pill bad">konektor tanpa OAuth / sync</span>
+          <span class="pill">pemetaan field sudah terdefinisi</span>
+        </div>
+        <div class="ev"><b>Aset yang sudah ada:</b> kontrak integrasi (scope, webhook, pemetaan field per konektor) sudah dimodelkan di <span class="mono">data_import.js</span> &mdash; cetak biru yang tinggal diimplementasi di server, satu konektor per kali.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P&middot;D &middot; INTEGRITAS</span><span class="gap-t">Jejak audit, ekspor &amp; keamanan data sensitif</span><span class="gap-eff">&rarr; Wave 10</span></div>
+      <div class="gap-b">
+        <p>Rantai jejak audit "tamper-evident" memakai <b>pseudo-hash deterministik di klien</b> (komentar <span class="mono">view_platform3.jsx</span>: "tamper-evident chain <i>demo</i>"). Ekspor PDF/XLSX, e-Meterai, &amp; tanda tangan digital bersifat simulatif. Yang paling kritis: data klien (laporan keuangan, PII, kertas kerja) hanya berada di peramban &mdash; <b>tanpa enkripsi, retensi, atau pemulihan bencana</b>, padahal ISQM menuntut retensi 10 tahun &amp; kerahasiaan.</p>
+        <div class="pills">
+          <span class="pill bad">jejak audit tak tahan-rusak</span>
+          <span class="pill bad">tanpa enkripsi / retensi / DR</span>
+          <span class="pill warn">ekspor &amp; e-meterai simulatif</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict amber">
+      <span class="tag">Catatan</span>
+      <p>Tak satu pun gap di atas adalah kesalahan desain &mdash; semuanya adalah <b>batas yang disengaja dari sebuah prototipe</b>, dan masing-masing memiliki cantelan arsitektural (engine ber-argumen, model peran, kontrak konektor) yang membuat pematangannya <b>terlokalisasi, bukan penulisan ulang</b>. &sect;07 menjabarkannya menjadi tugas yang dapat dieksekusi agen.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 7. BACKLOG EKSEKUSI ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">07</span><h2 class="sec-t">Backlog eksekusi Claude Code</h2></div>
+    <p class="sec-sub">Sebelas gelombang, diurutkan agar tiap gelombang memudahkan berikutnya. <b>Gelombang 0&ndash;5 = fondasi rekayasa</b> &mdash; sebagian besar mekanis, kit sudah tersedia di <span class="mono">build/</span> &amp; <span class="mono">migration/</span>, cocok diserahkan penuh ke agen. <b>Gelombang 6&ndash;10 = membangun produk</b> di atasnya. Tiap tugas menyertakan perintah/berkas &amp; <b>Definition of Done (DoD)</b> agar Claude Code dapat memverifikasi pekerjaannya sendiri.</p>
+
+    <div class="phase-band eng"><span class="pb-t">Fase A &middot; Fondasi rekayasa (mekanis)</span><span class="pb-l"></span></div>
+
+    <div class="wave"><span class="wn">W0</span><span class="wt">Baseline hijau &amp; verifikasi kit</span><span class="wmeta">~&frac12; hari</span></div>
+    <div class="task kit">
+      <div class="task-h"><span class="task-id">W0&middot;1</span><span class="task-t">Jalankan pipeline produksi &amp; migrasi, buktikan identik dengan versi root</span><span class="task-eff">Effort: rendah</span></div>
+      <div class="task-b">
+        <p>Tegakkan titik awal yang dapat diverifikasi: pra-kompilasi produksi dan target Vite/ESM keduanya boot &amp; menghasilkan angka yang sama dengan <span class="mono">NeoSuite AMS.html</span>.</p>
+        <div class="code"><span class="c"># build produksi (Babel sekali di Node -&gt; HTML cepat, offline)</span>
+<span class="k">cd</span> build &amp;&amp; npm install &amp;&amp; npm run build      <span class="c"># -&gt; "NeoSuite AMS (prod).html"</span>
+<span class="c"># target Vite + ESM (dual-publish, app root tak tersentuh)</span>
+<span class="k">cd</span> ../migration &amp;&amp; npm install
+npm run codemod:dry                            <span class="c"># laporan: tabrakan nama + global tak dikenal</span>
+npm run codemod &amp;&amp; npm run dev                 <span class="c"># Vite :5180 -- bandingkan side-by-side</span></div>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li><span class="mono">prod.html</span> boot ~2&ndash;3 dtk tanpa error konsol; angka kunci (materialitas, PSAK 46/71/73) identik versi root.</li>
+          <li>Vite dev membuka app; navigasi &#8984;K, sidebar, &amp; drawer SA berfungsi; tak ada "X is not defined".</li>
+          <li>Laporan <span class="mono">codemod:dry</span> ditinjau &mdash; daftar tabrakan nama dicatat untuk Wave 3.</li>
+        </ul>
+        <div class="files"><span>build/precompile.mjs</span><span>migration/codemod.mjs</span><span>NeoSuite AMS.html</span></div>
+      </div>
+    </div>
+
+    <div class="wave"><span class="wn">W1</span><span class="wt">Jadikan Vite sumber kebenaran build</span><span class="wmeta">~1&ndash;2 hari</span></div>
+    <div class="task kit">
+      <div class="task-h"><span class="task-id">W1&middot;1</span><span class="task-t">Promosikan <span class="mono" style="font-size:12px">migration/</span> ke pipeline utama + pasang lint</span><span class="task-eff">Effort: sedang</span></div>
+      <div class="task-b">
+        <p>Satu titik entri (<span class="mono">main.jsx</span>) menggantikan <b>188 tag <span class="mono">&lt;script&gt;</span></b> (167 JSX + 21 data) yang kini diurutkan manual. Tambahkan ESLint sebagai gerbang mutu yang dapat dipanggil agen.</p>
+        <div class="code"><span class="k">cd</span> migration &amp;&amp; npm run build &amp;&amp; npm run preview   <span class="c"># bundel prod tervalidasi</span>
+npm i -D eslint @eslint/js eslint-plugin-react-hooks
+npx eslint src --max-warnings=0</div>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li><span class="mono">npm run build</span> sukses; <span class="mono">eslint</span> hijau (0 warning).</li>
+          <li>Urutan boot tak lagi bergantung pada urutan tag <span class="mono">&lt;script&gt;</span> &mdash; dijamin graf impor.</li>
+          <li><span class="mono">migration/README</span> dipromosikan jadi alur build resmi; root tetap untuk edit-cepat.</li>
+        </ul>
+        <div class="files"><span>migration/vite.config.mjs</span><span>migration/src/main.jsx</span><span>migration/package.json</span></div>
+      </div>
+    </div>
+
+    <div class="wave"><span class="wn">W2</span><span class="wt">Pecah 6 berkas raksasa</span><span class="wmeta">~1 hari</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W2&middot;1</span><span class="task-t">Modularkan berkas &gt;900 baris per domain</span><span class="task-eff">Effort: rendah</span></div>
+      <div class="task-b">
+        <p>Enam berkas melampaui jendela edit nyaman. Pecah per domain sambil mempertahankan agregat <span class="mono">window.AMS_CANON</span>/<span class="mono">AMS</span> agar perilaku identik:</p>
+        <div class="code"><span class="c"># contoh pemecahan</span>
+canon.js  <span class="k">2.023</span> -&gt; canon/{materiality,psak46,psak71,psak73,reconcile,index}.js
+data.js   <span class="k">1.978</span> -&gt; data/{clients,engagements,wtb,team,workpapers,assurance-engines}.js
+styles.css<span class="k">1.198</span> -&gt; styles/{tokens,layout,components,print}.css
++ related_modules.jsx &middot; view_groupaudit.jsx &middot; copilot.jsx</div>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>Tiap berkas hasil &lt; 600 baris; tak ada simbol <span class="mono">window</span> yang hilang (grep <span class="mono">Object.assign(window</span> tetap cocok).</li>
+          <li>App identik secara visual &amp; numerik (regresi nol) &mdash; dipatok ke uji Wave 4 bila sudah ada.</li>
+        </ul>
+        <div class="files"><span>app/canon.js</span><span>app/data.js</span><span>app/styles.css</span><span>app/related_modules.jsx</span><span>app/view_groupaudit.jsx</span><span>app/copilot.jsx</span></div>
+      </div>
+    </div>
+
+    <div class="wave"><span class="wn">W3</span><span class="wt">Lucuti <span class="mono" style="font-size:13px">window</span> &rarr; ESM</span><span class="wmeta">~2&ndash;4 hari &middot; sebagian besar mekanis</span></div>
+    <div class="task kit">
+      <div class="task-h"><span class="task-id">W3&middot;1</span><span class="task-t">Konversi per-workspace, hapus dual-publish</span><span class="task-eff">Effort: sedang&ndash;tinggi</span></div>
+      <div class="task-b">
+        <p>Setelah codemod menanam <span class="mono">import</span>/<span class="mono">export</span>, hapus <span class="mono">Object.assign(window, {&hellip;})</span> berkas-demi-berkas &amp; ganti baca <span class="mono">window.X</span> dengan <span class="mono">import</span>. Satu PR per workspace (audit, firma, PSAK, asurans). Bus runtime imperatif (<span class="mono">__amsOpenSA</span>, <span class="mono">useAmsPersist</span>) <b>sengaja dipertahankan</b>.</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li><span class="mono">npm run build</span> men-tree-shake tanpa "is not defined"; <span class="mono">eslint no-undef</span> hijau.</li>
+          <li>Tak ada lagi <span class="mono">Object.assign(window</span> pada berkas yang dikonversi (kecuali bus runtime).</li>
+          <li>Diff angka nol terhadap baseline (uji Wave 4 sebagai gerbang).</li>
+        </ul>
+        <div class="files"><span>migration/src/*.jsx</span></div>
+      </div>
+    </div>
+
+    <div class="wave"><span class="wn">W4</span><span class="wt">Jaring uji "mesin angka"</span><span class="wmeta">~2 hari</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W4&middot;1</span><span class="task-t">Vitest atas <span class="mono" style="font-size:12px">AMS_CANON</span> &amp; PSAK 46/71/73</span><span class="task-eff">Effort: sedang</span></div>
+      <div class="task-b">
+        <p>Rasio nilai-per-baris-uji tertinggi: fungsi murni tanpa DOM dengan I/O numerik. Vitest sudah terpasang di <span class="mono">migration/package.json</span>.</p>
+        <div class="code"><span class="k">cd</span> migration &amp;&amp; npm run test
+<span class="c"># fixture WTB minimum -&gt; src/__fixtures__/  |  satu *.test.ts per modul kanon</span>
+<span class="c"># materiality() &middot; reconcile(WTB<->LK) &middot; psak46 &middot; psak71(ECL/staging) &middot; psak73.leasePortfolio</span></div>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>&ge;1 berkas uji per modul kanon; <span class="mono">npm run test</span> hijau; cakupan <span class="mono">canon</span> &ge; 80%.</li>
+          <li>Angka kunci dipatok (snapshot bertoleransi pembulatan) ke contoh terverifikasi tim audit.</li>
+          <li>Uji menjadi gerbang regresi untuk Wave 2/3/6 &mdash; CI gagal bila angka bergeser.</li>
+        </ul>
+        <div class="files"><span>migration/src/canon/*</span><span>migration/src/__fixtures__/</span></div>
+      </div>
+    </div>
+
+    <div class="wave"><span class="wn">W5</span><span class="wt">TypeScript bertahap</span><span class="wmeta">~3&ndash;5 hari</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W5&middot;1</span><span class="task-t">TS mulai dari <span class="mono" style="font-size:12px">canon</span> + kontrak antar-modul</span><span class="task-eff">Effort: tinggi</span></div>
+      <div class="task-b">
+        <p>Ketik permukaan paling bernilai lebih dulu: tipe <span class="mono">WTB</span>, <span class="mono">FIG</span>, dan hasil tiap engine. Aktifkan <span class="mono">strict</span> secara bertahap.</p>
+        <div class="code">npm i -D typescript &amp;&amp; npx tsc --init --allowJs --checkJs false
+<span class="c"># rename canon/*.js -&gt; .ts; ekspor tipe WTB/FIG; konsumsi di view</span>
+npx tsc --noEmit</div>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li><span class="mono">tsc --noEmit</span> hijau pada <span class="mono">src/canon</span>; tipe <span class="mono">WTB</span>/<span class="mono">FIG</span> dipakai &ge; 3 view.</li>
+          <li>Tanpa <span class="mono">any</span> pada permukaan kanon; kontrak <span class="mono">window</span> yang tersisa diketik sebagai deklarasi global.</li>
+        </ul>
+        <div class="files"><span>migration/src/canon/*.ts</span><span>migration/tsconfig.json</span></div>
+      </div>
+    </div>
+
+    <div class="phase-band prod"><span class="pb-t">Fase B &middot; Membangun produk</span><span class="pb-l"></span></div>
+
+    <div class="wave prod"><span class="wn">W6</span><span class="wt">Backend &amp; lapisan data</span><span class="wmeta">~1&ndash;2 minggu</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W6&middot;1</span><span class="task-t">API + DB; ganti <span class="mono" style="font-size:12px">localStorage</span> sebagai SSOT</span><span class="task-eff">Effort: tinggi</span></div>
+      <div class="task-b">
+        <p>Skema inti (firma, pengguna, perikatan, WTB, kertas kerja, status-pelaksanaan per modul) + API (REST/tRPC). Ganti <span class="mono">useAmsPersist</span>/<span class="mono">loadLS</span> dengan hook ber-API: kunci <span class="mono">ams.v1.*</span> dipetakan ke endpoint, optimistic-update + sinkron server; <span class="mono">localStorage</span> turun pangkat jadi cache offline.</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>Dua peramban berbeda berbagi status perikatan yang sama; muat ulang tanpa kehilangan data.</li>
+          <li>Engine (<span class="mono">ghgEngine</span>, <span class="mono">socEngine</span>, &hellip;) membaca status dari server via argumen &mdash; bukan <span class="mono">localStorage</span>.</li>
+          <li>Penguncian/optimistic-concurrency mencegah tabrakan tulis antar-pengguna.</li>
+        </ul>
+        <div class="files"><span>contexts.jsx (useAmsPersist)</span><span>app/data.js (engines)</span><span>server/ (baru)</span></div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W6&middot;2</span><span class="task-t">Pindahkan data seed ke seed DB + fixtures</span><span class="task-eff">Effort: sedang</span></div>
+      <div class="task-b">
+        <p><span class="mono">CLIENTS</span>/<span class="mono">ENGAGEMENTS</span>/<span class="mono">WTB</span>/<span class="mono">TEAM</span> di <span class="mono">data.js</span> berhenti jadi konstanta runtime &mdash; menjadi seed migrasi DB &amp; fixtures uji.</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>App memuat data dari API; <span class="mono">data.js</span> hanya menyisakan helper murni (<span class="mono">fmt</span>/<span class="mono">rp</span>) &amp; engine.</li>
+        </ul>
+        <div class="files"><span>app/data.js</span><span>server/seed/</span></div>
+      </div>
+    </div>
+
+    <div class="wave prod"><span class="wn">W7</span><span class="wt">Auth, sesi &amp; RBAC</span><span class="wmeta">~1 minggu</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W7&middot;1</span><span class="task-t">Login nyata + peran ditegakkan</span><span class="task-eff">Effort: tinggi</span></div>
+      <div class="task-b">
+        <p>Provider auth (OIDC atau email + TOTP), sesi/token, dan penegakan peran (<span class="mono">USER.role</span>: Partner/Manager/Junior/EQR) di <b>API maupun UI</b>. Ganti mock sandi/2FA di <span class="mono">view_settings.jsx</span> dengan operasi nyata; alirkan peristiwa <span class="mono">LOGIN</span>/MFA nyata ke jejak audit.</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>Rute &amp; data difilter per peran; uji otorisasi negatif (akses terlarang) lulus.</li>
+          <li>Ganti sandi benar-benar mengubah kredensial; sesi kedaluwarsa sesuai timeout.</li>
+          <li>Jejak audit mencatat login nyata, bukan seed.</li>
+        </ul>
+        <div class="files"><span>app/view_settings.jsx</span><span>contexts.jsx (AuthContext)</span><span>server/auth/</span></div>
+      </div>
+    </div>
+
+    <div class="wave prod"><span class="wn">W8</span><span class="wt">AI Co-pilot produksi</span><span class="wmeta">~3&ndash;5 hari</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W8&middot;1</span><span class="task-t">Proxy LLM server-side + RAG dokumen perikatan</span><span class="task-eff">Effort: sedang</span></div>
+      <div class="task-b">
+        <p>Ganti panggilan <span class="mono">window.claude.complete</span> di klien dengan endpoint server (kunci di server, auth, rate-limit, logging, redaksi PII). Tambah RAG atas dokumen perikatan nyata. Pertahankan <span class="mono">demoReply()</span> hanya sebagai fallback offline.</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>Jawaban berasal dari model nyata di balik auth; <b>tanpa kunci API di klien</b>.</li>
+          <li>Kuota per pengguna ditegakkan; setiap prompt/keluaran tercatat untuk audit &amp; kerahasiaan.</li>
+        </ul>
+        <div class="files"><span>app/copilot.jsx</span><span>server/ai/</span></div>
+      </div>
+    </div>
+
+    <div class="wave prod"><span class="wn">W9</span><span class="wt">Integrasi nyata</span><span class="wmeta">~2&ndash;3 minggu &middot; per konektor</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W9&middot;1</span><span class="task-t">Implementasi konektor prioritas tinggi</span><span class="task-eff">Effort: tinggi</span></div>
+      <div class="task-b">
+        <p>Ganti <span class="mono">status</span> statis di <span class="mono">data_import.js</span> dengan OAuth + job sync nyata + webhook; gunakan pemetaan field yang sudah didefinisikan untuk memposting ke modul target. Urutkan menurut nilai: <span class="mono">Coretax/e-Faktur &rarr; firmtax</span>, <span class="mono">Bank Feed &rarr; cashbank</span>, <span class="mono">PrivyID &rarr; opinion</span>, <span class="mono">SharePoint &rarr; workpapers</span>.</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>&ge;1 konektor menarik data nyata ujung-ke-ujung &amp; memposting ke modul target.</li>
+          <li>Status &amp; log sync berasal dari server, bukan seed; kegagalan ditampilkan dari kondisi nyata.</li>
+        </ul>
+        <div class="files"><span>app/data_import.js</span><span>app/view_platform2.jsx</span><span>server/integrations/</span></div>
+      </div>
+    </div>
+
+    <div class="wave prod"><span class="wn">W10</span><span class="wt">Keamanan, ekspor, observability &amp; deploy</span><span class="wmeta">~1&ndash;2 minggu</span></div>
+    <div class="task">
+      <div class="task-h"><span class="task-id">W10&middot;1</span><span class="task-t">Pengerasan &amp; rilis</span><span class="task-eff">Effort: tinggi</span></div>
+      <div class="task-b">
+        <p>Enkripsi at-rest/in-transit; retensi 10 tahun &amp; arsip (ISQM); jejak audit <b>append-only server-side</b> menggantikan pseudo-hash demo; ekspor PDF/XLSX nyata + e-Meterai/e-Sign; observability (log/error/metrik); CI/CD; target deploy (mis. kontainer + Postgres, atau FE statis + API).</p>
+        <ul class="dod"><div class="dod-h">Definition of Done</div>
+          <li>Jejak audit tak-terbantah &amp; tak dapat diubah dari klien; ekspor menghasilkan berkas nyata.</li>
+          <li>Backup/restore teruji; pen-test dasar lulus; retensi &amp; kerahasiaan memenuhi ISQM.</li>
+          <li>Pipeline CI men-deploy otomatis; dasbor observability menampilkan kesehatan produksi.</li>
+        </ul>
+        <div class="files"><span>app/view_platform3.jsx</span><span>server/ (audit, export, infra)</span><span>.github/workflows/</span></div>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <span class="tag">Pembagian</span>
+      <p><b>Fase A (W0&ndash;W5, ~1,5&ndash;2,5 minggu)</b> sebagian besar mekanis &amp; ber-kit &mdash; <b>dapat diserahkan penuh ke Claude Code</b> dengan verifikasi otomatis. <b>Fase B (W6&ndash;W10, ~6&ndash;9 minggu)</b> adalah pembangunan produk: butuh keputusan arsitektur (skema, auth, deploy) bersama engineer, dengan agen mengeksekusi sebagian besar implementasi per-tugas di atas DoD yang sudah pasti.</p>
+    </div>
+  </section>
+
+  <!-- ===================== VERDICT AKHIR ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">08</span><h2 class="sec-t">Kesimpulan</h2></div>
+    <div class="verdict amber">
+      <span class="tag">Putusan</span>
+      <p><b>Fitur: lengkap.</b> <b>Kesiapan dev: siap bersyarat (7,0/10).</b> NeoSuite AMS adalah salah satu fondasi terbaik yang bisa diserahkan ke agen koding &mdash; sudah termodularisasi, konsisten, dan terisolasi kegagalannya. Gap P1 berdampak-tertinggi &mdash; <span class="mono">CLAUDE.md</span> &mdash; <b>kini sudah ditutup</b>, sehingga skor naik dari 6,4. Yang memisahkannya dari "siap-penuh" tinggal <b>tiga lapisan perkakas</b>: build, uji, dan tipe. Langkah berikutnya tertata sebagai <b>backlog eksekusi 11 gelombang (&sect;07)</b>: <b>Fase A (W0&ndash;W5)</b> &mdash; pecah berkas raksasa, lalu Vite + ESM + Vitest &mdash; sebagian besar mekanis &amp; ber-kit, dapat dieksekusi penuh oleh Claude Code; <b>Fase B (W6&ndash;W10)</b> menutup gap prototipe&rarr;produk (backend, auth, AI, integrasi, pengerasan) di atas fondasi itu.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Feature &amp; Engineering Readiness Review</span>
+    <span class="mono">15·06·2026</span>
+  </div>
+
+</div>
+</body>
+</html>

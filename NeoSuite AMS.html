@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeoSuite AMS | Audit Enterprise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app/styles_base.css" />
+  <link rel="stylesheet" href="app/styles_chrome.css" />
+  <link rel="stylesheet" href="app/styles_ai.css" />
+  <link rel="stylesheet" href="app/styles_work.css" />
+  <link rel="stylesheet" href="app/styles_modules.css" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- data (plain JS) -->
+  <script src="app/data.js"></script>
+  <script src="app/data_people.js"></script>
+  <script src="app/data_fpm.js"></script>
+  <script src="app/data_backoffice.js"></script>
+  <script src="app/data_legal.js"></script>
+  <script src="app/data_firmops.js"></script>
+  <script src="app/data_travel.js"></script>
+  <script src="app/data_licensing.js"></script>
+  <script src="app/data_reg_compliance.js"></script>
+  <script src="app/data_import.js"></script>
+  <script src="app/data_templates.js"></script>
+  <script src="app/data_knowledge.js"></script>
+  <script src="app/canon.js"></script>
+  <script src="app/data_proforma.js"></script>
+  <script src="app/forensic_canon.js"></script>
+  <script src="app/data_psak117.js"></script>
+  <script src="app/data_isak35.js"></script>
+  <script src="app/data_sakroadmap.js"></script>
+  <script src="app/data_syariah.js"></script>
+  <script src="app/data_platform.js"></script>
+  <script src="app/data_firmfin.js"></script>
+  <script src="app/data_pph23.js"></script>
+  <script src="app/data_procurement.js"></script>
+  <script src="app/data_facilities.js"></script>
+  <script src="app/data_records.js"></script>
+  <script src="app/data_risk.js"></script>
+  <script src="app/data_ojk.js"></script>
+  <script src="app/data_legaldigital.js"></script>
+  <script src="app/llm_providers.js"></script>
+
+  <!-- modules (Babel JSX) -->
+  <script type="text/babel" src="app/icons.jsx"></script>
+  <script type="text/babel" src="app/contexts.jsx"></script>
+  <script type="text/babel" src="app/ui.jsx"></script>
+  <script type="text/babel" src="app/evidence.jsx"></script>
+  <script type="text/babel" src="app/related_modules.jsx"></script>
+  <script type="text/babel" src="app/view_fpm_parts.jsx"></script>
+  <script type="text/babel" src="app/shell.jsx"></script>
+  <script type="text/babel" src="app/view_palette.jsx"></script>
+  <script type="text/babel" src="app/copilot.jsx"></script>
+  <script type="text/babel" src="app/ai_insights.jsx"></script>
+  <script type="text/babel" src="app/ai_extract.jsx"></script>
+  <script type="text/babel" src="app/view_dashboard.jsx"></script>
+  <script type="text/babel" src="app/view_dashboard2.jsx"></script>
+  <script type="text/babel" src="app/view_bi.jsx"></script>
+  <script type="text/babel" src="app/view_bi2.jsx"></script>
+  <script type="text/babel" src="app/view_dataflow.jsx"></script>
+  <script type="text/babel" src="app/view_dataflow2.jsx"></script>
+  <script type="text/babel" src="app/view_reconcile.jsx"></script>
+  <script type="text/babel" src="app/view_firm.jsx"></script>
+  <script type="text/babel" src="app/view_crm2.jsx"></script>
+  <script type="text/babel" src="app/view_eng2.jsx"></script>
+  <script type="text/babel" src="app/view_execution.jsx"></script>
+  <script type="text/babel" src="app/view_aje.jsx"></script>
+  <script type="text/babel" src="app/view_wtb_deep.jsx"></script>
+  <script type="text/babel" src="app/view_risk.jsx"></script>
+  <script type="text/babel" src="app/view_risk2.jsx"></script>
+  <script type="text/babel" src="app/view_materiality_parts.jsx"></script>
+  <script type="text/babel" src="app/view_materiality.jsx"></script>
+  <script type="text/babel" src="app/view_calc.jsx"></script>
+  <script type="text/babel" src="app/view_goingconcern.jsx"></script>
+  <script type="text/babel" src="app/view_jet.jsx"></script>
+  <script type="text/babel" src="app/view_opinion_parts.jsx"></script>
+  <script type="text/babel" src="app/view_opinion.jsx"></script>
+  <script type="text/babel" src="app/view_analytical.jsx"></script>
+  <script type="text/babel" src="app/view_analytical2.jsx"></script>
+  <script type="text/babel" src="app/view_confirm_parts.jsx"></script>
+  <script type="text/babel" src="app/view_confirm.jsx"></script>
+  <script type="text/babel" src="app/view_lease.jsx"></script>
+  <script type="text/babel" src="app/view_psak1.jsx"></script>
+  <script type="text/babel" src="app/view_psak2.jsx"></script>
+  <script type="text/babel" src="app/view_psak14_nrv.jsx"></script>
+  <script type="text/babel" src="app/view_psak14.jsx"></script>
+  <script type="text/babel" src="app/view_psak16_register.jsx"></script>
+  <script type="text/babel" src="app/view_psak16.jsx"></script>
+  <script type="text/babel" src="app/view_psak19.jsx"></script>
+  <script type="text/babel" src="app/view_psak24.jsx"></script>
+  <script type="text/babel" src="app/view_psak22.jsx"></script>
+  <script type="text/babel" src="app/view_psak25.jsx"></script>
+  <script type="text/babel" src="app/view_psak46.jsx"></script>
+  <script type="text/babel" src="app/view_psak48.jsx"></script>
+  <script type="text/babel" src="app/view_psak58.jsx"></script>
+  <script type="text/babel" src="app/view_psak65.jsx"></script>
+  <script type="text/babel" src="app/view_psak66.jsx"></script>
+  <script type="text/babel" src="app/view_psak68.jsx"></script>
+  <script type="text/babel" src="app/view_psak71.jsx"></script>
+  <script type="text/babel" src="app/view_psak72_parts.jsx"></script>
+  <script type="text/babel" src="app/view_psak72.jsx"></script>
+  <script type="text/babel" src="app/view_psak117.jsx"></script>
+  <script type="text/babel" src="app/view_isak35.jsx"></script>
+  <script type="text/babel" src="app/view_sakroadmap.jsx"></script>
+  <script type="text/babel" src="app/view_framework.jsx"></script>
+  <script type="text/babel" src="app/view_syariah.jsx"></script>
+  <script type="text/babel" src="app/view_segmen.jsx"></script>
+  <script type="text/babel" src="app/view_invprop.jsx"></script>
+  <script type="text/babel" src="app/view_assoc.jsx"></script>
+  <script type="text/babel" src="app/view_newdisc.jsx"></script>
+  <script type="text/babel" src="app/view_disclosure.jsx"></script>
+  <script type="text/babel" src="app/view_icfr.jsx"></script>
+  <script type="text/babel" src="app/fsgen_model.jsx"></script>
+  <script type="text/babel" src="app/view_fsgen_panels.jsx"></script>
+  <script type="text/babel" src="app/view_fsgen.jsx"></script>
+  <script type="text/babel" src="app/view_related.jsx"></script>
+  <script type="text/babel" src="app/view_subsequent.jsx"></script>
+  <script type="text/babel" src="app/view_sad.jsx"></script>
+  <script type="text/babel" src="app/view_firmfinance.jsx"></script>
+  <script type="text/babel" src="app/view_bo1.jsx"></script>
+  <script type="text/babel" src="app/view_records.jsx"></script>
+  <script type="text/babel" src="app/view_procurement.jsx"></script>
+  <script type="text/babel" src="app/view_procurement2.jsx"></script>
+  <script type="text/babel" src="app/view_facilities.jsx"></script>
+  <script type="text/babel" src="app/view_facilities2.jsx"></script>
+  <script type="text/babel" src="app/view_bo2.jsx"></script>
+  <script type="text/babel" src="app/view_insurance.jsx"></script>
+  <script type="text/babel" src="app/view_bo3.jsx"></script>
+  <script type="text/babel" src="app/view_legal.jsx"></script>
+  <script type="text/babel" src="app/view_legal2.jsx"></script>
+  <script type="text/babel" src="app/view_firmops.jsx"></script>
+  <script type="text/babel" src="app/view_firmops2.jsx"></script>
+  <script type="text/babel" src="app/view_forensic.jsx"></script>
+  <script type="text/babel" src="app/view_independence_parts.jsx"></script>
+  <script type="text/babel" src="app/view_ethics_parts.jsx"></script>
+  <script type="text/babel" src="app/view_groupaudit.jsx"></script>
+  <script type="text/babel" src="app/view_compliance.jsx"></script>
+  <script type="text/babel" src="app/view_compmatrix.jsx"></script>
+  <script type="text/babel" src="app/view_specifics2.jsx"></script>
+  <script type="text/babel" src="app/view_serviceorg.jsx"></script>
+  <script type="text/babel" src="app/view_internalaudit.jsx"></script>
+  <script type="text/babel" src="app/view_sa200.jsx"></script>
+  <script type="text/babel" src="app/view_sa230.jsx"></script>
+  <script type="text/babel" src="app/view_sa240.jsx"></script>
+  <script type="text/babel" src="app/view_sa501.jsx"></script>
+  <script type="text/babel" src="app/view_sa520.jsx"></script>
+  <script type="text/babel" src="app/view_sa530.jsx"></script>
+  <script type="text/babel" src="app/view_sa540.jsx"></script>
+  <script type="text/babel" src="app/view_sa580.jsx"></script>
+  <script type="text/babel" src="app/view_sa701.jsx"></script>
+  <script type="text/babel" src="app/view_sa705.jsx"></script>
+  <script type="text/babel" src="app/view_sa710.jsx"></script>
+  <script type="text/babel" src="app/view_sa720.jsx"></script>
+  <script type="text/babel" src="app/view_sa800.jsx"></script>
+  <script type="text/babel" src="app/view_sa805.jsx"></script>
+  <script type="text/babel" src="app/view_sa810.jsx"></script>
+  <script type="text/babel" src="app/view_spr2400.jsx"></script>
+  <script type="text/babel" src="app/view_spr2410.jsx"></script>
+  <script type="text/babel" src="app/view_sjah3000.jsx"></script>
+  <script type="text/babel" src="app/view_sjah3400.jsx"></script>
+  <script type="text/babel" src="app/view_sjah3402.jsx"></script>
+  <script type="text/babel" src="app/view_sjah3410.jsx"></script>
+  <script type="text/babel" src="app/view_sjah3420.jsx"></script>
+  <script type="text/babel" src="app/view_sustain.jsx"></script>
+  <script type="text/babel" src="app/view_sectorck.jsx"></script>
+  <script type="text/babel" src="app/view_ojkfiling.jsx"></script>
+  <script type="text/babel" src="app/view_auditcomm.jsx"></script>
+  <script type="text/babel" src="app/view_sa2comm.jsx"></script>
+  <script type="text/babel" src="app/view_opening.jsx"></script>
+  <script type="text/babel" src="app/view_misc1.jsx"></script>
+  <script type="text/babel" src="app/view_wp.jsx"></script>
+  <script type="text/babel" src="app/sa_canonical.jsx"></script>
+  <script type="text/babel" src="app/view_settings.jsx"></script>
+  <script type="text/babel" src="app/view_isqm_parts.jsx"></script>
+  <script type="text/babel" src="app/view_isqm_deep.jsx"></script>
+  <script type="text/babel" src="app/view_isqm.jsx"></script>
+  <script type="text/babel" src="app/view_governance.jsx"></script>
+  <script type="text/babel" src="app/view_eqr.jsx"></script>
+  <script type="text/babel" src="app/view_pppk.jsx"></script>
+  <script type="text/babel" src="app/view_docparts.jsx"></script>
+  <script type="text/babel" src="app/view_clientportal.jsx"></script>
+  <script type="text/babel" src="app/view_dms.jsx"></script>
+  <script type="text/babel" src="app/view_nonaudit.jsx"></script>
+  <script type="text/babel" src="app/view_relatedsvc.jsx"></script>
+  <script type="text/babel" src="app/view_nonaudit2.jsx"></script>
+  <script type="text/babel" src="app/view_duediligence.jsx"></script>
+  <script type="text/babel" src="app/view_misc2.jsx"></script>
+  <script type="text/babel" src="app/view_tax23.jsx"></script>
+  <script type="text/babel" src="app/view_kb.jsx"></script>
+  <script type="text/babel" src="app/view_final3.jsx"></script>
+  <script type="text/babel" src="app/view_crypto.jsx"></script>
+  <script type="text/babel" src="app/view_pdp.jsx"></script>
+  <script type="text/babel" src="app/view_evidence.jsx"></script>
+  <script type="text/babel" src="app/view_evidence2.jsx"></script>
+  <script type="text/babel" src="app/view_cockpit.jsx"></script>
+  <script type="text/babel" src="app/view_cockpit2.jsx"></script>
+  <script type="text/babel" src="app/view_workspace.jsx"></script>
+  <script type="text/babel" src="app/view_timebudget.jsx"></script>
+  <script type="text/babel" src="app/view_mytasks_parts.jsx"></script>
+  <script type="text/babel" src="app/view_mytasks.jsx"></script>
+  <script type="text/babel" src="app/view_pipeline.jsx"></script>
+  <script type="text/babel" src="app/view_onboarding.jsx"></script>
+  <script type="text/babel" src="app/view_onboarding2.jsx"></script>
+  <script type="text/babel" src="app/view_onboarding3.jsx"></script>
+  <script type="text/babel" src="app/view_scheduler.jsx"></script>
+  <script type="text/babel" src="app/view_delivery.jsx"></script>
+  <script type="text/babel" src="app/view_audittimeline.jsx"></script>
+  <script type="text/babel" src="app/view_wip_firm.jsx"></script>
+  <script type="text/babel" src="app/view_capacity.jsx"></script>
+  <script type="text/babel" src="app/view_people.jsx"></script>
+  <script type="text/babel" src="app/view_pc_hcm.jsx"></script>
+  <script type="text/babel" src="app/view_pc_org.jsx"></script>
+  <script type="text/babel" src="app/view_pc_talent.jsx"></script>
+  <script type="text/babel" src="app/view_pc_conduct.jsx"></script>
+  <script type="text/babel" src="app/view_payroll.jsx"></script>
+  <script type="text/babel" src="app/view_hrops.jsx"></script>
+  <script type="text/babel" src="app/view_firmgl.jsx"></script>
+  <script type="text/babel" src="app/view_firmtreasury.jsx"></script>
+  <script type="text/babel" src="app/view_firmtax.jsx"></script>
+  <script type="text/babel" src="app/view_firmrevenue.jsx"></script>
+  <script type="text/babel" src="app/view_profit.jsx"></script>
+  <script type="text/babel" src="app/view_platform.jsx"></script>
+  <script type="text/babel" src="app/view_platform2.jsx"></script>
+  <script type="text/babel" src="app/view_platform3.jsx"></script>
+  <script type="text/babel" src="app/view_presentasi.jsx"></script>
+  <script type="text/babel" src="app/minimap.jsx"></script>
+  <script type="text/babel" src="app/app.jsx"></script>
+</body>
+</html>

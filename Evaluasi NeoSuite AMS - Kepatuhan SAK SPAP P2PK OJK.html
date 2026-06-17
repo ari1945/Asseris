@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evaluasi NeoSuite AMS — Kepatuhan SAK · SPAP · P2PK · OJK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:980px; margin:0 auto; padding:40px 24px 96px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:33px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.14; position:relative; max-width:720px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:700px; position:relative; }
+  .cover .meta{ display:flex; gap:26px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 16px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  /* ---------- scorecard ---------- */
+  .scores{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 8px; }
+  .score{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 16px 14px; box-shadow:var(--shadow); border-top:3px solid var(--line); }
+  .score .v{ font:800 22px/1.1 var(--ui); color:var(--navy); letter-spacing:-.01em; }
+  .score .l{ font-size:11.5px; color:var(--ink-3); font-weight:700; margin-top:7px; text-transform:uppercase; letter-spacing:.04em; }
+  .score .s{ font-size:11px; color:var(--ink-4); margin-top:4px; line-height:1.4; }
+  .score.good{ border-top-color:var(--green); } .score.good .v{ color:var(--green); }
+  .score.warn{ border-top-color:var(--amber); } .score.warn .v{ color:var(--amber); }
+  .score.bad{ border-top-color:var(--red); } .score.bad .v{ color:var(--red); }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:38px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:780px; }
+
+  h3{ font-size:15px; font-weight:700; margin:24px 0 8px; }
+  p{ margin:0 0 12px; }
+  .lead{ font-size:15px; color:var(--ink-2); }
+
+  /* verdict banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); }
+  .verdict.warn{ border-left-color:var(--amber); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--blue); white-space:nowrap; padding-top:2px; }
+  .verdict.warn .tag{ color:var(--amber); }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* gap cards */
+  .gap{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px; }
+  .gap-h{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--line-soft); }
+  .gap-pri{ font:700 10.5px/1 var(--mono); letter-spacing:.05em; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+  .p1{ background:var(--red-bg); color:var(--red); } .p2{ background:var(--amber-bg); color:var(--amber); } .p3{ background:var(--blue-100); color:var(--blue); }
+  .gap-id{ font:700 11px/1 var(--mono); color:var(--ink-4); }
+  .gap-t{ font-size:14.5px; font-weight:700; flex:1; }
+  .gap-eff{ font:600 11px/1 var(--mono); color:var(--ink-3); white-space:nowrap; }
+  .gap-b{ padding:13px 16px; font-size:13px; color:var(--ink-2); }
+  .gap-b p{ margin:0 0 10px; } .gap-b p:last-child{ margin-bottom:0; }
+  .gap-b b{ color:var(--ink); } .gap-b .mono{ font-family:var(--mono); font-size:12px; color:var(--navy); }
+  .basis{ display:inline-block; font:600 11px/1 var(--mono); padding:3px 7px; border-radius:5px; background:var(--teal-bg); color:var(--teal); margin:0 4px 4px 0; }
+  .ev{ margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:8px; font-size:11.5px; color:var(--ink-3); border-left:2px solid var(--line); }
+  .ev b{ color:var(--ink-2); }
+  .fix{ margin-top:10px; padding:10px 12px; background:var(--green-bg); border-radius:8px; font-size:12px; color:#155c3a; }
+  .fix b{ color:#0e4429; }
+  /* resolved-gap treatment */
+  .gap.resolved{ border-left:4px solid var(--green); }
+  .gap-fixed{ display:inline-flex; align-items:center; gap:5px; font:700 10.5px/1 var(--mono); letter-spacing:.04em; padding:5px 9px; border-radius:6px; background:var(--green-bg); color:#0e7a45; white-space:nowrap; }
+  .impl{ margin-top:10px; padding:11px 13px; background:#0e4429; border-radius:8px; font-size:12px; color:#d6f0e0; line-height:1.55; }
+  .impl b{ color:#fff; }
+  .impl .mono{ font-family:var(--mono); font-size:11.5px; color:#8fe3b4; }
+  .impl .tag{ display:inline-block; font:700 9.5px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; color:#7fe0a8; margin-bottom:6px; }
+  .done-chk{ color:var(--green); font-weight:800; margin-left:6px; }
+  .pills{ display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+  .pill{ font:600 11px/1 var(--mono); padding:5px 9px; border-radius:20px; background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line-soft); }
+
+  /* table */
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--surface); border:1px solid var(--line); border-radius:11px; overflow:hidden; box-shadow:var(--shadow); }
+  th{ text-align:left; background:var(--navy); color:#fff; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding:10px 13px; font-weight:700; }
+  td{ padding:10px 13px; border-top:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
+  td b{ color:var(--ink); } tr:nth-child(even) td{ background:var(--surface-2); }
+  .mono{ font-family:var(--mono); }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .d-red{ background:var(--red); } .d-amber{ background:var(--amber); } .d-green{ background:var(--green); } .d-blue{ background:var(--blue); }
+
+  ul.clean{ margin:8px 0 14px; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:22px; margin-bottom:7px; font-size:13.5px; color:var(--ink-2); }
+  ul.clean li::before{ content:""; position:absolute; left:4px; top:9px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); } ul.clean li.no::before{ background:var(--amber); }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:8px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:720px){ .scores{ grid-template-columns:repeat(2,1fr);} .cover{ padding:30px 26px;} .cover h1{ font-size:25px;} }
+  @media print{
+    body{ background:#fff; } .doc{ padding:0; max-width:none; }
+    .cover,.score,.gap,table,.verdict{ box-shadow:none; }
+    section{ break-inside:avoid; } .gap{ break-inside:avoid; }
+    .cover{ border-radius:0; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Regulatory Compliance Review</p>
+    <h1>Evaluasi Kepatuhan Regulatori &mdash; SAK · SPAP · P2PK Kemenkeu · OJK</h1>
+    <p>Tinjauan substantif aplikasi dari sudut pandang pakar akuntansi &amp; audit Indonesia. Setiap temuan ditelusuri ke modul/kode sumber, diberi dasar hukum yang relevan, prioritas, dan rekomendasi perbaikan. Pelengkap &mdash; bukan pengganti &mdash; Gap Analysis arsitektur yang sudah ada.</p>
+    <div class="meta">
+      <div>Tanggal<b>16 Jun 2026</b></div>
+      <div>Lingkup<b>4 pilar regulasi</b></div>
+      <div>Temuan<b>19 (4 · P1)</b></div>
+      <div>Verdict<b>Matang — presisi regulatori</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== SCORECARD ===================== -->
+  <div class="scores">
+    <div class="score good"><div class="v">Kuat</div><div class="l">SAK</div><div class="s">PSAK komersial lengkap; gap di kerangka non-komersial &amp; asuransi</div></div>
+    <div class="score good"><div class="v">Sangat kuat</div><div class="l">SPAP</div><div class="s">SA 200–810 + SPM/SPR/SJAH; presisi etika perlu diperdalam</div></div>
+    <div class="score warn"><div class="v">Perlu koreksi</div><div class="l">P2PK Kemenkeu</div><div class="s">Pelaporan PPPK ada; ambang rotasi &amp; dasar hukum tidak akurat</div></div>
+    <div class="score good"><div class="v">Kuat</div><div class="l">OJK</div><div class="s">STTD &amp; GRK ada; keberlanjutan, sektoral, batas waktu &amp; komite audit kini tercakup</div></div>
+  </div>
+
+  <!-- ===================== RINGKASAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">00</span><h2 class="sec-t">Ringkasan eksekutif</h2></div>
+    <p class="lead">NeoSuite AMS sudah mencakup hampir seluruh kerangka SPAP (SA 200&ndash;810, SPM 1/2, SPR, SJAH) dan PSAK komersial inti, serta kewajiban kelembagaan seperti pelaporan PPPK, registrasi STTD OJK, PMPJ/APU-PPT, dan retensi UU PDP. Dari sisi <b>cakupan</b>, sistem ini termasuk yang paling lengkap. Temuan berikut bukan soal &ldquo;modul yang hilang besar-besaran&rdquo;, melainkan <b>presisi regulatori</b>: satu kesalahan substantif, beberapa kerangka pelaporan yang absen, kedalaman sektoral OJK, dan kemutakhiran rujukan hukum.</p>
+    <div class="verdict warn">
+      <span class="tag">Verdict</span>
+      <p>Empat hal berprioritas tinggi (P1) wajib ditangani sebelum sistem dipakai untuk klien nyata: <b>(1)</b> ambang rotasi AP yang dipatok <b>flat 7 tahun</b> &mdash; tidak sesuai rezim mana pun (seharusnya 5 tahun umum / 3 tahun sektor jasa keuangan); <b>(2)</b> tiadanya modul kerja <b>PSAK 117 Kontrak Asuransi</b> padahal firma mengaudit entitas jasa keuangan; <b>(3)</b> presisi <b>independensi etika</b> di luar rotasi (ketergantungan imbalan, pra-persetujuan jasa selain asurans); dan <b>(4)</b> ketiadaan jejak <b>Laporan Keberlanjutan (POJK 51/2017)</b> sisi klien. Sisanya P2&ndash;P3: penyempurnaan cakupan &amp; kemutakhiran.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 1. SAK ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">SAK — Standar Akuntansi Keuangan</h2></div>
+    <p class="sec-sub">Registri PSAK komersial sangat lengkap (PSAK 1, 2, 5, 13, 14, 15, 16, 19, 22, 24, 25, 46, 48/57, 58, 65, 66, 68, 71, 72, 73 + SAK EP/EMKM). Gap berada pada kerangka pelaporan di luar entitas komersial umum dan pada satu standar baru yang berdampak besar.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-id">G1</span><span class="gap-t">PSAK 117 Kontrak Asuransi hanya muncul sebagai topik PPL, bukan modul kerja</span><span class="gap-eff">Effort: Tinggi</span></div>
+      <div class="gap-b">
+        <p><b>PSAK 117 Kontrak Asuransi</b> (adopsi IFRS 17, efektif <b>1 Januari 2025</b>) hanya tercatat sebagai materi pelatihan di <span class="mono">data.js → CPE_LOG</span>; tidak ada view akuntansi/audit. Padahal portofolio klien mencakup entitas jasa keuangan (mis. <span class="mono">PT Mandiri Sejahtera Finance</span>). Tanpa modul, audit pengukuran liabilitas kontrak asuransi tidak terdukung.</p>
+        <span class="basis">PSAK 117 (IFRS 17)</span><span class="basis">SA 540 Estimasi</span>
+        <div class="ev"><b>Bukti:</b> tidak ada <span class="mono">view_psak117.jsx</span>; entri hanya di <span class="mono">data.js:273</span> (PPL). Grup &ldquo;Akuntansi (PSAK &amp; SAK)&rdquo; di <span class="mono">icons.jsx</span> tidak memuat kontrak asuransi.</div>
+        <div class="fix"><b>Rekomendasi:</b> bangun modul <span class="mono">psak117</span> &mdash; pemilihan model pengukuran (GMM / PAA / VFA), <i>Contractual Service Margin</i>, <i>risk adjustment</i>, agregasi portofolio &amp; <i>onerous test</i>, ketentuan transisi; tautkan ke SA 540 (audit estimasi) &amp; pakar aktuaria (SA 620).</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G2</span><span class="gap-t">SAK Syariah (PSAK 101–112) tidak ada sama sekali</span><span class="gap-eff">Effort: Tinggi</span></div>
+      <div class="gap-b">
+        <p>Tidak ada kerangka pelaporan syariah untuk bank syariah, asuransi syariah (takaful), pembiayaan syariah, koperasi syariah/BMT. Pengakuan berbasis akad (murabahah, ijarah, mudharabah, musyarakah), zakat &amp; wakaf, serta penyajian LK syariah seluruhnya absen.</p>
+        <span class="basis">PSAK 101 Penyajian LK Syariah</span><span class="basis">PSAK 102–107 Akad</span><span class="basis">PSAK 108 Asuransi Syariah</span><span class="basis">PSAK 109 Zakat</span><span class="basis">PSAK 112 Wakaf</span>
+        <div class="ev"><b>Bukti:</b> kata kunci &ldquo;syariah&rdquo; nihil sebagai kerangka akuntansi di seluruh basis kode; tidak ada di registri standar maupun navigasi.</div>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan grup &ldquo;Akuntansi Syariah&rdquo; dengan penyajian LK syariah, daftar-uji per akad, laporan sumber &amp; penggunaan dana zakat/kebajikan, dan rekonsiliasi pendapatan yang harus dimurnikan &mdash; relevan mengingat besarnya sektor keuangan syariah Indonesia.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G3</span><span class="gap-t">Entitas berorientasi nonlaba (ISAK 35) belum terdukung</span><span class="gap-eff">Effort: Sedang</span></div>
+      <div class="gap-b">
+        <p>Tidak ada format pelaporan untuk yayasan, organisasi nirlaba, dan entitas berorientasi nonlaba lain. <b>ISAK 35</b> (menggantikan PSAK 45) mengatur penyajian Laporan Penghasilan Komprehensif, Perubahan Aset Neto, dan Arus Kas khusus nonlaba &mdash; berbeda dari format komersial yang sudah ada di <span class="mono">fsgen</span>.</p>
+        <span class="basis">ISAK 35</span><span class="basis">PSAK 1 (dasar)</span>
+        <div class="ev"><b>Bukti:</b> generator LK (<span class="mono">fsgen_model.jsx</span>) hanya mengasumsikan struktur entitas berorientasi laba.</div>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan profil pelaporan &ldquo;Nonlaba (ISAK 35)&rdquo; di FSGen + daftar-uji pengungkapan nonlaba.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G4</span><span class="gap-t">Belum ada penentu kerangka pelaporan berjenjang (SAK / SAK EP / SAK EMKM)</span><span class="gap-eff">Effort: Rendah</span></div>
+      <div class="gap-b">
+        <p>Ketiga tingkatan sudah disinggung (SAK penuh, SAK EP, kompilasi SAK EMKM via SPSJL 4410), tetapi tidak ada alat keputusan yang menetapkan <b>entitas mana memakai kerangka mana</b> berikut uji kelayakan (akuntabilitas publik, ambang EMKM). Ini penting karena salah pilih kerangka berdampak ke jenis perikatan &amp; bentuk opini (SA 700/800).</p>
+        <span class="basis">SAK EP (eff 1 Jan 2025)</span><span class="basis">SAK EMKM</span><span class="basis">SA 210 Kerangka</span>
+        <div class="fix"><b>Rekomendasi:</b> &ldquo;Penentu Kerangka Pelaporan&rdquo; di onboarding &mdash; pohon keputusan akuntabilitas publik &rarr; SAK / SAK EP / SAK EMKM, mengikat ke standar perikatan &amp; template opini.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G5</span><span class="gap-t">Tidak ada horizon SAK &amp; pelacak ISAK</span><span class="gap-eff">Effort: Rendah</span></div>
+      <div class="gap-b">
+        <p>Sistem memotret standar yang berlaku, tetapi tidak mengantisipasi perubahan: <b>PSAK 207</b> (adopsi IFRS 18, Penyajian &amp; Pengungkapan LK, efektif 2027), pengungkapan tereduksi untuk entitas anak, serta interpretasi <b>ISAK</b> (16, 30, 36, dll.) tidak terlacak terpisah.</p>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan &ldquo;Roadmap SAK&rdquo; (efektif/akan datang) + baris ISAK di registri agar audit-trail kelengkapan kerangka utuh.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 2. SPAP ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">SPAP — Standar Profesional Akuntan Publik</h2></div>
+    <p class="sec-sub">Cakupan SA, SPM 1/2 (SOQM/EQR), SPR 2400/2410, dan SJAH 3000&ndash;3420 sudah menyeluruh. Gap bersifat presisi: kedalaman etika di luar rotasi, NOCLAR, dan kemutakhiran versi standar revisi.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-id">G6</span><span class="gap-t">Independensi terbatas pada rotasi &amp; deklarasi — dimensi etika lain belum terpantau</span><span class="gap-eff">Effort: Sedang</span></div>
+      <div class="gap-b">
+        <p>Modul <span class="mono">independence</span> memantau deklarasi tahunan, konflik, dan rotasi, tetapi Kode Etik (KEPAP/IESBA) menuntut lebih: <b>rasio ketergantungan imbalan</b> (untuk PIE, total imbalan dari satu klien &gt;15% dua tahun berturut &rarr; pengamanan &amp; komunikasi ke TCWG), <b>imbalan jatuh tempo</b> yang setara pinjaman, <b>pra-persetujuan jasa selain asurans (NAS)</b> terhadap larangan IESBA revisi untuk PIE, serta hadiah/keramahtamahan dan asosiasi jangka panjang non-partner.</p>
+        <span class="basis">KEPAP / Kode Etik IAPI</span><span class="basis">IESBA NAS &amp; Fee (rev. 2022)</span>
+        <div class="ev"><b>Bukti:</b> <span class="mono">view_people.jsx</span> &amp; <span class="mono">AMS.INDEPENDENCE</span> hanya bermuatan rotasi/konflik/deklarasi; tidak ada perhitungan rasio imbalan atau alur pra-persetujuan NAS.</div>
+        <div class="fix"><b>Rekomendasi:</b> monitor ketergantungan imbalan (tarik dari <span class="mono">FIRMFIN</span>/<span class="mono">revenue</span> per klien) + alur pra-persetujuan NAS yang menautkan portofolio <span class="mono">nonaudit</span> ke daftar larangan PIE.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G7</span><span class="gap-t">NOCLAR belum punya alur tersendiri (terpisah dari SA 250)</span><span class="gap-eff">Effort: Sedang</span></div>
+      <div class="gap-b">
+        <p>SA 250 (respons audit atas hukum &amp; regulasi) tercakup, tetapi kewajiban etika <b>NOCLAR</b> (Respons atas Ketidakpatuhan terhadap Hukum &amp; Peraturan) berbeda: dokumentasi, eskalasi ke manajemen/TCWG, dan keputusan pengungkapan ke otoritas. Ini melekat pada profesi, bukan hanya pada perikatan audit.</p>
+        <span class="basis">Kode Etik — NOCLAR</span>
+        <div class="fix"><b>Rekomendasi:</b> alur NOCLAR di modul <span class="mono">ethics</span> &mdash; registrasi indikasi, pertimbangan eskalasi, &amp; jejak keputusan pengungkapan.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G8</span><span class="gap-t">Kemutakhiran versi standar revisi perlu ditegaskan (SA 315/540/600/220)</span><span class="gap-eff">Effort: Sedang</span></div>
+      <div class="gap-b">
+        <p>Perlu dipastikan modul mencerminkan versi <b>revisi</b>: <b>SA 315 (Revisi 2021)</b> &mdash; pemisahan risiko inheren &amp; pengendalian, faktor risiko inheren, &ldquo;stand-back&rdquo;; <b>SA 540 (Revisi)</b> &mdash; spektrum ekspektasi &amp; bias manajemen; <b>SA 600 (Revisi, efektif periode mulai &ge; 15 Des 2023)</b> &mdash; keterlibatan tim grup dalam penilaian risiko komponen &amp; pelingkupan berbasis risiko (bukan sekadar &ldquo;komponen signifikan&rdquo;); <b>SA 220 (Revisi)</b> selaras SPM 1.</p>
+        <span class="basis">SA 315/540/600/220 (Revisi)</span>
+        <div class="ev"><b>Bukti:</b> <span class="mono">view_groupaudit.jsx</span> masih bertumpu pada signifikansi komponen (% pendapatan/aset) &mdash; cek apakah pelingkupan sudah berbasis risiko sesuai SA 600 Revisi.</div>
+        <div class="fix"><b>Rekomendasi:</b> stempel versi standar di tiap modul SA + sesuaikan logika pelingkupan grup ke pendekatan risiko.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G9</span><span class="gap-t">Provisi etika jasa pajak &amp; teknologi (IESBA terbaru) baru tersentuh ringan</span><span class="gap-eff">Effort: Rendah</span></div>
+      <div class="gap-b">
+        <p>Ketentuan etika atas <b>jasa perencanaan pajak</b> dan <b>etika terkait teknologi</b> (amandemen IESBA 2024) belum tercermin di modul etika/non-audit.</p>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan daftar-uji etika jasa pajak &amp; penggunaan teknologi (termasuk AI) pada modul <span class="mono">ethics</span>/<span class="mono">nonaudit</span>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 3. P2PK ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">P2PK Kemenkeu — Pembinaan &amp; Pengawasan Akuntan Publik</h2></div>
+    <p class="sec-sub">Pelaporan PPPK (laporan tahunan KAP, register klien, realisasi PPL, register rotasi, riwayat inspeksi) sudah terbangun baik. Namun ada satu kesalahan substantif dan beberapa rujukan hukum yang perlu dimutakhirkan.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-id">G10</span><span class="gap-t">Ambang rotasi AP dipatok flat 7 tahun — tidak sesuai rezim mana pun</span><span class="gap-eff">Effort: Rendah (berdampak luas)</span></div>
+      <div class="gap-b">
+        <p>Sistem menerapkan batas rotasi <b>7 tahun</b> secara seragam dengan rujukan &ldquo;UU 5/2011 jo. POJK 13/2017&rdquo;. Angka 7 tahun <b>tidak benar</b> di kedua rezim:</p>
+        <ul class="clean">
+          <li class="no"><b>Entitas kepentingan publik umum</b> &mdash; <b>5 tahun buku berturut-turut</b> untuk seorang AP atas satu entitas (KAP tidak dibatasi).</li>
+          <li class="no"><b>Entitas sektor jasa keuangan</b> (bank, asuransi, pembiayaan, dsb.) &mdash; <b>3 tahun buku berturut-turut</b> untuk seorang AP; <i>cooling-off</i> 2 tahun.</li>
+        </ul>
+        <span class="basis">PP 20/2015 Ps. 11</span><span class="basis">POJK 13/POJK.03/2017</span>
+        <div class="ev"><b>Bukti:</b> <span class="mono">view_people.jsx:317</span> menyatakan &ldquo;maksimal 7 tahun&rdquo;; data <span class="mono">PPPK_ROTATION</span> &amp; <span class="mono">INDEPENDENCE</span> memakai <span class="mono">rotationLimit: 7</span>; angka ini mengalir ke dashboard firma &amp; lampiran PPPK. Angka 7 tahun adalah peninggalan rezim KAP pra-2008, bukan batas AP yang berlaku.</div>
+        <div class="fix"><b>Rekomendasi:</b> ubah <span class="mono">rotationLimit</span> menjadi terdiferensiasi per sektor &mdash; <b>5</b> (PIE umum) / <b>3</b> (sektor jasa keuangan) &mdash; dengan <i>cooling-off</i> 2 tahun; karena angka ini sumber tunggal (SSOT), satu perubahan memperbaiki seluruh modul yang menariknya.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G11</span><span class="gap-t">Dasar hukum pembinaan AP perlu dimutakhirkan (PMK 154/2017 → PMK 186/2021)</span><span class="gap-eff">Effort: Rendah</span></div>
+      <div class="gap-b">
+        <p>Modul <span class="mono">pppk</span> merujuk <b>PMK 154/PMK.01/2017</b>. Ketentuan tersebut telah diubah oleh <b>PMK 186/PMK.01/2021</b> (perubahan pembinaan &amp; pengawasan AP). Rujukan &amp; isi field laporan (laporan kegiatan usaha tahunan, batas waktu) sebaiknya disesuaikan.</p>
+        <span class="basis">UU 5/2011</span><span class="basis">PMK 154/2017 jo. PMK 186/2021</span>
+        <div class="ev"><b>Bukti:</b> header <span class="mono">view_pppk.jsx</span> menyebut PMK 154/2017 tanpa PMK 186/2021.</div>
+        <div class="fix"><b>Rekomendasi:</b> mutakhirkan sitasi &amp; tinjau ulang kelengkapan field laporan tahunan terhadap PMK 186/2021.</div>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G12</span><span class="gap-t">Izin cabang KAP, afiliasi OAA/KAPA, &amp; tanda terima pelaporan elektronik belum eksplisit</span><span class="gap-eff">Effort: Rendah</span></div>
+      <div class="gap-b">
+        <p>Modul lisensi menyimpan izin usaha KAP, tetapi <b>izin kantor cabang</b>, <b>pelaporan afiliasi jaringan internasional (OAA/KAPA)</b>, dan <b>tanda terima penyampaian elektronik PPPK</b> belum dilacak terpisah.</p>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan baris izin cabang &amp; afiliasi pada <span class="mono">licensing</span>; simpan bukti tanda terima e-reporting di <span class="mono">pppk</span>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4. OJK ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">OJK — Otoritas Jasa Keuangan</h2></div>
+    <p class="sec-sub">Registrasi STTD emiten &amp; asurans GRK (SJAH 3410) sudah ada. Empat gap sebelumnya &mdash; keberlanjutan sisi klien, daftar-uji spesifik-sektor, batas waktu penyampaian elektronik, &amp; komunikasi komite audit &mdash; <b>kini ditindaklanjuti</b> melalui grup modul baru &ldquo;OJK &middot; Pasar Modal &amp; Keberlanjutan&rdquo;.</p>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p1">P1</span><span class="gap-id">G13</span><span class="gap-t">Tidak ada jejak Laporan Keberlanjutan klien (POJK 51/2017) &amp; adopsi standar keberlanjutan</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Sistem punya <b>asurans</b> emisi GRK (SJAH 3410), tetapi tidak ada daftar-uji <b>kepatuhan Laporan Keberlanjutan</b> wajib (muatan minimum per POJK 51/2017) di sisi klien, maupun pelacak adopsi standar pengungkapan keberlanjutan (ISSB / IFRS S1&ndash;S2) yang sedang diadopsi IAI &amp; didorong OJK.</p>
+        <span class="basis">POJK 51/POJK.03/2017</span><span class="basis">IFRS S1–S2 (ISSB)</span>
+        <div class="fix"><b>Rekomendasi:</b> modul &ldquo;Laporan Keberlanjutan&rdquo; &mdash; daftar-uji muatan POJK 51, pemetaan ke IFRS S1/S2, dan jembatan ke perikatan asurans (SJAH 3410/SPA 3000).</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Modul Laporan Keberlanjutan ditambahkan</b> (<span class="mono">view_sustain.jsx</span> &middot; grup &ldquo;OJK &middot; Pasar Modal &amp; Keberlanjutan&rdquo;): daftar-uji 9 muatan wajib POJK 51 (Lampiran II), status RAKB &amp; Laporan Keberlanjutan per entitas (LJK &amp; Emiten), pelacak kesiapan adopsi <b>ISSB / IFRS S1&ndash;S2</b>, serta jembatan ke asurans GRK (SJAH 3410) &amp; SA 720. Angka ditarik dari <span class="mono">AMS_CANON.ojkSustain()</span>.</div>
+      </div>
+    </div>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G14</span><span class="gap-t">Daftar-uji audit spesifik-sektor jasa keuangan belum ada</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Firma mengaudit entitas sektor jasa keuangan, namun tidak ada daftar-uji regulatori spesifik: <b>bank</b> (kualitas aset/CKPN, KPMM, BMPK), <b>asuransi</b> (RBC, interaksi PSAK 117), <b>pembiayaan/multifinance</b>, &amp; <b>pasar modal</b> (format &amp; muatan LK emiten per POJK 4/2022 &amp; SEOJK terkait). Generator LK &amp; daftar-uji pengungkapan masih generik.</p>
+        <span class="basis">POJK 4/2022</span><span class="basis">POJK perbankan/asuransi/pembiayaan</span>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan profil sektor (bank/asuransi/pembiayaan/emiten) yang memuat daftar-uji regulatori &amp; format LK khusus.</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Modul Daftar-Uji Sektor Jasa Keuangan ditambahkan</b> (<span class="mono">view_sectorck.jsx</span>): empat profil sektor &mdash; <b>bank</b> (KPMM, NPL, CKPN PSAK 71, BMPK, LCR/NSFR), <b>asuransi</b> (RBC, cadangan teknis PSAK 117), <b>pembiayaan</b> (gearing, NPF, BMPP) &amp; <b>emiten</b> (format LK POJK 4/2022 + SEOJK sektor) &mdash; tiap profil memuat rasio kehati-hatian, daftar-uji regulatori, &amp; tautan ke modul akuntansi terkait. Sumber: <span class="mono">AMS_CANON.ojkSector()</span>.</div>
+      </div>
+    </div>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G15</span><span class="gap-t">Batas waktu &amp; penyampaian elektronik LK auditan ke OJK/BEI belum dilacak</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Untuk emiten, LK tahunan auditan wajib disampaikan dalam batas waktu (umumnya akhir bulan ketiga/90 hari) melalui pelaporan elektronik (SPRINT OJK / e-reporting BEI). Modul <span class="mono">delivery</span>/<span class="mono">audittimeline</span> melacak milestone internal, tetapi tidak batas regulatori penyampaian &amp; tanda terima.</p>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan pelacak batas waktu OJK/BEI per emiten + status &amp; bukti penyampaian elektronik.</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Modul Batas Waktu &amp; e-Filing OJK/BEI ditambahkan</b> (<span class="mono">view_ojkfiling.jsx</span>): kewajiban pelaporan berkala &amp; batas waktu regulatori (LK Tahunan akhir bulan ke-3, Laporan Tahunan ke-4), status penyampaian elektronik <b>SPRINT (OJK)</b> &amp; <b>IDXnet (BEI)</b> per emiten beserta bukti tanda terima, indikator terlambat/berisiko, &amp; sanksi. Sumber: <span class="mono">AMS_CANON.ojkFiling()</span>.</div>
+      </div>
+    </div>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G16</span><span class="gap-t">Komunikasi komite audit (POJK 55/2015 jo. 13/2017) di luar SA 260</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Komunikasi auditor&ndash;komite audit memiliki dimensi regulatori OJK (mis. penilaian &amp; rekomendasi penunjukan AP/KAP oleh komite audit) selain SA 260. Belum terlihat sebagai daftar-uji tersendiri.</p>
+        <div class="fix"><b>Rekomendasi:</b> tautkan modul <span class="mono">sa260</span>/governance ke daftar-uji komite audit POJK 13/2015.</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Modul Komite Audit ditambahkan</b> (<span class="mono">view_auditcomm.jsx</span>): daftar-uji tugas komite audit di luar SA 260 (rekomendasi penunjukan AP/KAP, evaluasi independensi &amp; mutu, telaah LK &amp; ketaatan regulasi, pra-persetujuan NAS), risalah rapat auditor&ndash;komite, &amp; pemenuhan syarat komposisi. Rujukan dimutakhirkan ke <b>POJK 55/POJK.04/2015</b> (pedoman kerja Komite Audit) jo. <b>POJK 13/POJK.03/2017</b> (rekomendasi AP pada LJK). Sumber: <span class="mono">AMS_CANON.ojkAuditComm()</span>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 5. LINTAS-SEKTOR ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><h2 class="sec-t">Lintas-sektor — legal-digital &amp; perpajakan</h2></div>
+    <p class="sec-sub">Bukan inti SAK/SPAP, tetapi melekat pada keabsahan hukum produk audit Indonesia &amp; kepatuhan operasional firma.</p>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p2">P2</span><span class="gap-id">G17</span><span class="gap-t">Keabsahan tanda tangan &amp; meterai elektronik belum mengikat (e-Meterai / PSrE)</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Surat perikatan &amp; opini menyimpan array <span class="mono">esign</span>, tetapi tidak ada <b>e-Meterai</b> (Peruri) &amp; <b>sertifikat elektronik tersertifikasi (PSrE)</b> yang memberi kekuatan hukum sesuai UU ITE jo. PP 71/2019. Tanda tangan elektronik tak tersertifikasi lemah secara pembuktian.</p>
+        <span class="basis">UU ITE jo. PP 71/2019</span><span class="basis">e-Meterai</span>
+        <div class="fix"><b>Rekomendasi:</b> ikat alur e-sign ke PSrE tersertifikasi + pembubuhan e-Meterai pada dokumen yang dipersyaratkan.</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Tab Meterai &amp; PSrE ditambahkan</b> pada <span class="mono">Compliance &amp; Kriptografi</span> (<span class="mono">AMS_CANON.legalSeal()</span>): register pengikatan <b>TTE tersertifikasi PSrE</b> (PrivyID / Peruri / VIDA) &amp; pembubuhan <b>e-Meterai Rp 10.000</b> pada surat perikatan, dengan status keabsahan per dokumen (mengikat / menunggu / belum mengikat). Alur <span class="mono">Onboarding (SA 210)</span> kini menandatangani via PSrE tersertifikasi &amp; membubuhkan e-Meterai. Dasar: <b>UU ITE Ps. 11 jo. PP 71/2019</b> + <b>UU 10/2020</b> (e-Meterai).</div>
+      </div>
+    </div>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G18</span><span class="gap-t">Referensi perpajakan perlu menyesuaikan Coretax DJP (2025)</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Modul pajak firma &amp; PPh 23 masih bersandar pada e-Bupot/e-Faktur lama (aksi simulatif). Sejak 2025, administrasi pindah ke <b>Coretax DJP</b>; rujukan &amp; alur bukti potong sebaiknya disesuaikan.</p>
+        <div class="fix"><b>Rekomendasi:</b> mutakhirkan label/alur ke Coretax (bukti potong unifikasi, NIK sebagai NPWP OP).</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Rujukan perpajakan dimutakhirkan ke Coretax DJP (2025)</b>: modul <span class="mono">Pajak PPh 23</span> &amp; <span class="mono">Pajak Firma</span> kini menerbitkan <b>Bukti Potong Unifikasi via Coretax</b> (menggantikan e-Bupot / e-Faktur lama); identitas Orang Pribadi memakai <b>NIK sebagai NPWP</b> (<span class="mono">data_pph23 → resolveParty</span> mendeteksi NIK 16 digit, dihitung ber-NPWP). Label, alur bukti potong, kolom NPWP/NIK &amp; catatan e-Faktur disesuaikan.</div>
+      </div>
+    </div>
+
+    <div class="gap resolved">
+      <div class="gap-h"><span class="gap-pri p3">P3</span><span class="gap-id">G19</span><span class="gap-t">UU PDP baru dipenuhi pada sisi retensi — hak subjek data &amp; notifikasi insiden belum</span><span class="gap-fixed">&#10003; Teratasi</span></div>
+      <div class="gap-b">
+        <p>Retensi data pribadi sudah merujuk UU PDP, tetapi operasionalisasi lain &mdash; dasar pemrosesan/persetujuan, pemenuhan hak subjek data, &amp; <b>notifikasi kebocoran dalam 3&times;24 jam</b> &mdash; belum ada alurnya untuk data klien.</p>
+        <span class="basis">UU 27/2022 (PDP)</span>
+        <div class="fix"><b>Rekomendasi:</b> tambahkan registrasi aktivitas pemrosesan &amp; alur notifikasi insiden pada modul <span class="mono">crypto</span>/<span class="mono">records</span>.</div>
+        <div class="impl"><span class="tag">Implementasi</span><b>Modul Pelindungan Data Pribadi ditambahkan</b> (<span class="mono">view_pdp.jsx</span> · <span class="mono">AMS_CANON.pdp()</span>): registri aktivitas pemrosesan (<b>RoPA</b>) berikut <b>dasar pemrosesan/persetujuan</b> (Ps. 20), pemenuhan <b>hak subjek data</b> (DSR — Ps. 5–13) dengan SLA &amp; konfirmasi 3&times;24 jam, serta alur <b>notifikasi insiden kebocoran &le; 3&times;24 jam</b> ke subjek data &amp; Lembaga PDP (Ps. 46). Retensi tetap merujuk kelas PMPJ di modul Retensi &amp; Arsip; keamanan teknis di modul Kriptografi.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 6. MATRIKS PRIORITAS ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">06</span><h2 class="sec-t">Matriks prioritas penanganan</h2></div>
+    <table>
+      <thead><tr><th style="width:42px">#</th><th>Gap / fitur</th><th style="width:120px">Pilar</th><th style="width:78px">Prioritas</th><th style="width:96px">Effort</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">G10</td><td><b>Koreksi ambang rotasi AP</b> — 7 thn &rarr; 5 (PIE) / 3 (sektor keuangan), cooling-off 2 thn</td><td>P2PK Kemenkeu</td><td><span class="dot d-red"></span>P1</td><td>Rendah</td></tr>
+        <tr><td class="mono">G1</td><td><b>Modul PSAK 117 Kontrak Asuransi</b> (GMM/PAA/VFA, CSM, transisi)</td><td>SAK</td><td><span class="dot d-red"></span>P1</td><td>Tinggi</td></tr>
+        <tr><td class="mono">G6</td><td><b>Perdalam independensi etika</b> — rasio imbalan + pra-persetujuan NAS</td><td>SPAP</td><td><span class="dot d-red"></span>P1</td><td>Sedang</td></tr>
+        <tr><td class="mono">G13</td><td><b>Jejak Laporan Keberlanjutan klien</b> (POJK 51) + ISSB/IFRS S1–S2</td><td>OJK</td><td><span class="dot d-red"></span>P1<span class="done-chk">&#10003;</span></td><td>Sedang</td></tr>
+        <tr><td class="mono">G2</td><td><b>SAK Syariah</b> (PSAK 101–112, zakat &amp; wakaf)</td><td>SAK</td><td><span class="dot d-amber"></span>P2</td><td>Tinggi</td></tr>
+        <tr><td class="mono">G3</td><td><b>Entitas nonlaba</b> (ISAK 35) di FSGen</td><td>SAK</td><td><span class="dot d-amber"></span>P2</td><td>Sedang</td></tr>
+        <tr><td class="mono">G7</td><td><b>Alur NOCLAR</b> pada modul etika</td><td>SPAP</td><td><span class="dot d-amber"></span>P2</td><td>Sedang</td></tr>
+        <tr><td class="mono">G8</td><td><b>Tegaskan versi standar revisi</b> (SA 315/540/600/220) + pelingkupan grup berbasis risiko</td><td>SPAP</td><td><span class="dot d-amber"></span>P2</td><td>Sedang</td></tr>
+        <tr><td class="mono">G11</td><td><b>Mutakhirkan dasar hukum PPPK</b> (PMK 186/2021)</td><td>P2PK Kemenkeu</td><td><span class="dot d-amber"></span>P2</td><td>Rendah</td></tr>
+        <tr><td class="mono">G14</td><td><b>Daftar-uji audit spesifik-sektor</b> (bank/asuransi/pembiayaan/emiten)</td><td>OJK</td><td><span class="dot d-amber"></span>P2<span class="done-chk">&#10003;</span></td><td>Sedang</td></tr>
+        <tr><td class="mono">G15</td><td><b>Pelacak batas waktu &amp; penyampaian elektronik</b> OJK/BEI</td><td>OJK</td><td><span class="dot d-amber"></span>P2<span class="done-chk">&#10003;</span></td><td>Rendah</td></tr>
+        <tr><td class="mono">G17</td><td><b>e-Meterai &amp; PSrE</b> pada opini &amp; surat perikatan</td><td>Legal-digital</td><td><span class="dot d-amber"></span>P2<span class="done-chk">&#10003;</span></td><td>Rendah</td></tr>
+        <tr><td class="mono">G4</td><td>Penentu kerangka pelaporan (SAK/SAK EP/EMKM)</td><td>SAK</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">G5</td><td>Roadmap SAK (PSAK 207/IFRS 18) + pelacak ISAK</td><td>SAK</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">G9</td><td>Etika jasa pajak &amp; teknologi (IESBA terbaru)</td><td>SPAP</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">G12</td><td>Izin cabang, afiliasi OAA/KAPA, tanda terima e-reporting</td><td>P2PK Kemenkeu</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">G16</td><td>Daftar-uji komite audit (POJK 55/2015 jo. 13/2017)</td><td>OJK</td><td><span class="dot d-blue"></span>P3<span class="done-chk">&#10003;</span></td><td>Rendah</td></tr>
+        <tr><td class="mono">G18</td><td>Penyesuaian referensi Coretax DJP (2025)</td><td>Perpajakan</td><td><span class="dot d-blue"></span>P3<span class="done-chk">&#10003;</span></td><td>Rendah</td></tr>
+        <tr><td class="mono">G19</td><td>UU PDP — hak subjek data &amp; notifikasi insiden</td><td>Legal-digital</td><td><span class="dot d-blue"></span>P3<span class="done-chk">&#10003;</span></td><td>Rendah</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Quick win berdampak besar: G10 (koreksi rotasi) effort rendah tetapi memperbaiki integritas data kepatuhan lintas-modul karena bersumber tunggal (SSOT). Disarankan dieksekusi lebih dulu, diikuti G11 &amp; G17 yang juga ringan.</p>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Evaluasi Kepatuhan SAK · SPAP · P2PK Kemenkeu · OJK · tinjauan teknis profesi</span>
+    <span class="mono">16·06·2026</span>
+  </div>
+
+</div>
+</body>
+</html>

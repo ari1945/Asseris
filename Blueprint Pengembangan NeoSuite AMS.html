@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blueprint Pengembangan — NeoSuite AMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:1020px; margin:0 auto; padding:40px 24px 110px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:44px 46px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-90px; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:35px; font-weight:800; letter-spacing:-.022em; margin:0 0 13px; line-height:1.1; position:relative; max-width:760px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:720px; position:relative; }
+  .cover .meta{ display:flex; gap:30px; margin-top:28px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:11.5px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 16px/1.2 var(--mono); color:#fff; margin-top:4px; }
+
+  /* ---------- TOC ---------- */
+  .toc{ background:var(--surface); border:1px solid var(--line); border-radius:13px; box-shadow:var(--shadow); padding:20px 24px; margin-top:22px; }
+  .toc h4{ font:700 10.5px/1 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-4); margin:0 0 14px; }
+  .toc ol{ margin:0; padding:0; list-style:none; columns:2; column-gap:34px; }
+  .toc li{ display:flex; gap:11px; padding:6px 0; font-size:13px; break-inside:avoid; }
+  .toc li a{ color:var(--ink-2); text-decoration:none; }
+  .toc li a:hover{ color:var(--blue); }
+  .toc .tn{ font:700 11px/1.5 var(--mono); color:var(--blue); min-width:24px; }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:46px; scroll-margin-top:20px; }
+  .sec-h{ display:flex; align-items:baseline; gap:13px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:22px; font-weight:800; letter-spacing:-.017em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 18px; max-width:840px; }
+  p{ margin:0 0 12px; } .lead{ font-size:15px; color:var(--ink-2); }
+  .mono{ font-family:var(--mono); }
+  b.ik{ color:var(--ink); }
+  code{ font:600 12px/1.5 var(--mono); background:var(--surface-3); border:1px solid var(--line-soft); border-radius:5px; padding:1px 6px; color:var(--navy); }
+
+  /* verdict / callout banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); margin:14px 0; }
+  .verdict.amber{ border-left-color:var(--amber); } .verdict.green{ border-left-color:var(--green); } .verdict.red{ border-left-color:var(--red); } .verdict.teal{ border-left-color:var(--teal); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--blue); white-space:nowrap; padding-top:2px; }
+  .verdict.amber .tag{ color:var(--amber); } .verdict.green .tag{ color:var(--green); } .verdict.red .tag{ color:var(--red); } .verdict.teal .tag{ color:var(--teal); }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* stat strip */
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin:6px 0 4px; }
+  .stat{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); padding:15px 16px; }
+  .stat .v{ font:800 25px/1 var(--ui); letter-spacing:-.02em; color:var(--navy); }
+  .stat .l{ font-size:11.5px; color:var(--ink-3); margin-top:7px; }
+  .stat .l b{ color:var(--ink-2); }
+
+  /* principle cards */
+  .princ{ display:grid; grid-template-columns:repeat(2,1fr); gap:13px; }
+  .pc{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); padding:16px 18px; }
+  .pc .pn{ font:800 12px/1 var(--mono); color:var(--blue); margin-bottom:9px; letter-spacing:.03em; }
+  .pc h4{ margin:0 0 6px; font-size:15px; font-weight:700; letter-spacing:-.01em; }
+  .pc p{ margin:0; font-size:12.5px; color:var(--ink-2); }
+
+  /* boot phases */
+  .boot{ display:grid; grid-template-columns:1fr; gap:0; margin-top:6px; }
+  .bp{ display:grid; grid-template-columns:128px 1fr; gap:16px; padding:15px 0; border-top:1px solid var(--line-soft); }
+  .bp:first-child{ border-top:none; }
+  .bp .ph{ }
+  .bp .pn{ font:800 11px/1 var(--mono); color:#fff; background:var(--navy); padding:6px 9px; border-radius:6px; display:inline-block; letter-spacing:.04em; }
+  .bp.f1 .pn{ background:var(--teal); } .bp.f2 .pn{ background:var(--blue); } .bp.f3 .pn{ background:var(--purple); } .bp.f4 .pn{ background:var(--green); } .bp.f5 .pn{ background:var(--red); }
+  .bp .pl{ font-size:11px; color:var(--ink-4); margin-top:8px; font-family:var(--mono); }
+  .bp h4{ margin:1px 0 5px; font-size:14.5px; font-weight:700; }
+  .bp p{ margin:0 0 6px; font-size:12.5px; color:var(--ink-2); }
+  .bp .files{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .bp .files span{ font:600 10.5px/1 var(--mono); background:var(--surface-3); color:var(--ink-2); padding:5px 8px; border-radius:5px; border:1px solid var(--line-soft); }
+
+  /* code block */
+  .code{ background:#0c2733; color:#cfe6f2; border-radius:9px; padding:13px 15px; font:500 11.5px/1.78 var(--mono); overflow-x:auto; margin:12px 0 4px; border:1px solid #143a4a; white-space:pre; }
+  .code .c{ color:#6f93a5; } .code .k{ color:#7fd1b9; } .code .s{ color:#e6b27a; } .code .y{ color:#e6b27a; } .code b{ color:#fff; font-weight:600; }
+  .code .r{ color:#ff9a8f; }
+
+  /* generic table */
+  table.tb{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--surface); border:1px solid var(--line); border-radius:11px; overflow:hidden; box-shadow:var(--shadow); }
+  table.tb th{ background:var(--surface-2); text-align:left; font:700 10.5px/1.3 var(--mono); letter-spacing:.04em; text-transform:uppercase; color:var(--ink-3); padding:10px 14px; border-bottom:1px solid var(--line); }
+  table.tb td{ padding:10px 14px; border-top:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
+  table.tb td .g{ font:700 12px/1.5 var(--mono); color:var(--navy); }
+  table.tb tr:first-child td{ border-top:none; }
+  table.tb td b{ color:var(--ink); }
+
+  /* steps */
+  .steps{ display:grid; grid-template-columns:1fr; gap:0; }
+  .st{ display:grid; grid-template-columns:42px 1fr; gap:15px; padding:15px 0; border-top:1px solid var(--line-soft); }
+  .st:first-child{ border-top:none; }
+  .st .sn{ height:34px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center; font:800 14px/1 var(--mono); }
+  .st.opt .sn{ background:var(--ink-4); }
+  .st h4{ margin:1px 0 5px; font-size:14.5px; font-weight:700; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .st h4 .req{ font:700 9px/1 var(--mono); letter-spacing:.05em; padding:4px 7px; border-radius:5px; background:var(--red-bg); color:var(--red); text-transform:uppercase; }
+  .st h4 .o{ background:var(--surface-3); color:var(--ink-3); }
+  .st p{ margin:0; font-size:12.5px; color:var(--ink-2); }
+  .st p code{ font-size:11.5px; }
+
+  /* domain bands + module group grid */
+  .domband{ display:flex; align-items:center; gap:11px; margin:26px 0 12px; }
+  .domband .dn{ font:800 10.5px/1 var(--mono); color:#fff; padding:7px 11px; border-radius:7px; letter-spacing:.05em; white-space:nowrap; text-transform:uppercase; }
+  .domband .dt{ font-size:15px; font-weight:800; letter-spacing:-.01em; }
+  .domband .dl{ flex:1; height:2px; border-radius:2px; background:var(--line); }
+  .domband .dmeta{ font:600 10.5px/1 var(--mono); color:var(--ink-4); white-space:nowrap; }
+  .domband.eng .dn{ background:var(--blue); } .domband.eng .dl{ background:linear-gradient(90deg,var(--blue),transparent); }
+  .domband.firm .dn{ background:var(--green); } .domband.firm .dl{ background:linear-gradient(90deg,var(--green),transparent); }
+  .domband.std .dn{ background:var(--purple); } .domband.std .dl{ background:linear-gradient(90deg,var(--purple),transparent); }
+  .domband.acc .dn{ background:var(--teal); } .domband.acc .dl{ background:linear-gradient(90deg,var(--teal),transparent); }
+
+  .mods{ display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+  .mg{ background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); padding:13px 15px; }
+  .mg h5{ margin:0 0 4px; font-size:13px; font-weight:700; letter-spacing:-.01em; }
+  .mg .c{ font:600 10.5px/1 var(--mono); color:var(--ink-4); }
+  .mg p{ margin:7px 0 0; font-size:11.5px; color:var(--ink-3); line-height:1.5; }
+
+  /* global registry chips */
+  .gl{ display:grid; grid-template-columns:148px 1fr; gap:0; }
+  .glr{ display:grid; grid-template-columns:subgrid; grid-column:1/3; padding:11px 0; border-top:1px solid var(--line-soft); }
+  .glr:first-child{ border-top:none; }
+  .glr .gk{ font:700 12px/1.5 var(--mono); color:var(--navy); }
+  .glr .gv{ font-size:12.5px; color:var(--ink-2); }
+  .glr .gv code{ font-size:11px; }
+
+  /* swatches */
+  .sw-row{ display:flex; flex-wrap:wrap; gap:10px; margin:4px 0; }
+  .swatch{ border:1px solid var(--line); border-radius:9px; overflow:hidden; width:118px; box-shadow:var(--shadow); }
+  .swatch .chip{ height:46px; }
+  .swatch .lab{ padding:7px 9px; font:600 10px/1.3 var(--mono); color:var(--ink-2); background:var(--surface); }
+  .swatch .lab b{ display:block; color:var(--ink); font-size:11px; }
+
+  /* roadmap */
+  .rm{ display:grid; grid-template-columns:1fr; gap:0; }
+  .rmr{ display:grid; grid-template-columns:120px 1fr; gap:16px; padding:14px 0; border-top:1px solid var(--line-soft); }
+  .rmr:first-child{ border-top:none; }
+  .rmr .rh{ font:700 11px/1.4 var(--mono); color:var(--blue); }
+  .rmr .rh span{ display:block; color:var(--ink-4); font-weight:600; margin-top:3px; }
+  .rmr h4{ margin:0 0 5px; font-size:14px; font-weight:700; }
+  .rmr p{ margin:0; font-size:12.5px; color:var(--ink-2); }
+
+  ul.tick{ margin:6px 0 12px; padding:0; list-style:none; }
+  ul.tick li{ position:relative; padding:5px 0 5px 24px; font-size:13px; color:var(--ink-2); }
+  ul.tick li::before{ content:""; position:absolute; left:4px; top:11px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.tick li b{ color:var(--ink); }
+
+  .foot{ margin-top:56px; padding-top:20px; border-top:1px solid var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; font:600 11px/1.5 var(--mono); color:var(--ink-4); }
+
+  @media (max-width:760px){
+    .princ,.stats,.mods,.toc ol{ grid-template-columns:1fr; columns:1; }
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    .bp,.st,.rmr,.gl,.glr{ grid-template-columns:1fr; }
+    .bp .ph{ margin-bottom:4px; }
+  }
+  @media print{
+    body{ background:#fff; } .doc{ max-width:none; padding:0; }
+    section{ break-inside:avoid; } .cover{ break-after:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ============ COVER ============ -->
+  <header class="cover">
+    <p class="kick">Blueprint Pengembangan Aplikasi · v1.0</p>
+    <h1>NeoSuite AMS — Cetak Biru Arsitektur &amp; Pengembangan</h1>
+    <p>Audit Management System untuk Kantor Akuntan Publik (KAP) Indonesia. Satu Single-Page Application React tanpa build step, dirakit dari ratusan modul melalui registry global — dengan satu lapisan angka kanonik sebagai sumber kebenaran tunggal.</p>
+    <div class="meta">
+      <div>Domain<b>Audit · SAK · SPAP</b></div>
+      <div>Arsitektur<b>SPA · No-build</b></div>
+      <div>Modul<b>150+ / 23 grup</b></div>
+      <div>Bahasa<b>Indonesia (id-ID)</b></div>
+    </div>
+  </header>
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc">
+    <h4>Daftar Isi</h4>
+    <ol>
+      <li><span class="tn">01</span><a href="#s1">Ringkasan Eksekutif &amp; Visi Produk</a></li>
+      <li><span class="tn">02</span><a href="#s2">Prinsip Arsitektur</a></li>
+      <li><span class="tn">03</span><a href="#s3">Stack Teknologi &amp; Urutan Boot</a></li>
+      <li><span class="tn">04</span><a href="#s4">Lapisan Data &amp; SSOT (AMS_CANON)</a></li>
+      <li><span class="tn">05</span><a href="#s5">Navigasi &amp; Taksonomi Modul</a></li>
+      <li><span class="tn">06</span><a href="#s6">Cakupan Fungsional per Domain</a></li>
+      <li><span class="tn">07</span><a href="#s7">Anatomi Modul &amp; Kontrak Pengembangan</a></li>
+      <li><span class="tn">08</span><a href="#s8">Aturan Emas Anti-Tabrakan</a></li>
+      <li><span class="tn">09</span><a href="#s9">Sistem Desain &amp; Komponen UI</a></li>
+      <li><span class="tn">10</span><a href="#s10">State, Persistensi &amp; AI</a></li>
+      <li><span class="tn">11</span><a href="#s11">Mutu Kode, QA &amp; Jebakan</a></li>
+      <li><span class="tn">12</span><a href="#s12">Peta Jalan &amp; Lampiran Global</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 01 ============ -->
+  <section id="s1">
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">Ringkasan Eksekutif &amp; Visi Produk</h2></div>
+    <p class="sec-sub">NeoSuite AMS adalah platform tunggal yang menyatukan seluruh siklus hidup praktik audit sebuah KAP — dari pengembangan bisnis dan penerimaan perikatan, perencanaan dan pelaksanaan audit, sampai finalisasi opini, pelaporan regulator, dan operasi internal firma — di atas satu basis data yang konsisten dan dapat ditelusuri.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="v">150+</div><div class="l"><b>Modul fungsional</b> tersebar di 23 grup &amp; 2 ruang kerja</div></div>
+      <div class="stat"><div class="v">~220</div><div class="l"><b>File sumber</b> di <code>app/</code>, dirakit via <span class="mono">&lt;script&gt;</span></div></div>
+      <div class="stat"><div class="v">1</div><div class="l"><b>Sumber kebenaran</b> angka — <span class="mono">AMS_CANON</span> di atas WTB</div></div>
+      <div class="stat"><div class="v">0</div><div class="l"><b>Build step</b> — Babel mentranspilasi JSX di browser</div></div>
+    </div>
+
+    <div class="verdict">
+      <div class="tag">Inti</div>
+      <p><b>Taruhan produk:</b> alih-alih membangun puluhan alat terpisah, AMS menempatkan setiap standar (SA, PSAK/SAK, SPAP, regulasi OJK) sebagai modul yang menarik angkanya dari satu Working Trial Balance lewat mesin kanonik. Satu jurnal penyesuaian audit (AJE) mengalir konsisten ke pajak tangguhan, konsolidasi, sewa, sampai laporan keuangan — tanpa angka yang di-hardcode terpisah.</p>
+    </div>
+
+    <div class="princ" style="margin-top:14px;">
+      <div class="pc"><div class="pn">SIAPA</div><h4>Pengguna</h4><p>Partner, manajer, dan tim audit KAP; fungsi mutu (EQR/SOQM); back-office firma (HR, keuangan firma, pengadaan, legal). Antarmuka sepenuhnya Bahasa Indonesia dengan format mata uang id-ID.</p></div>
+      <div class="pc"><div class="pn">APA</div><h4>Cakupan</h4><p>Perikatan audit end-to-end, jasa non-audit (reviu, asurans, due diligence), kepatuhan SA/PSAK/SAK Syariah, pelaporan OJK/PPPK, plus ERP ringan firma (GL, payroll, fasilitas).</p></div>
+      <div class="pc"><div class="pn">MENGAPA</div><h4>Diferensiasi</h4><p>Keterlacakan (lineage) angka lintas-standar dan keterhubungan modul-ke-standar — bukan sekadar kumpulan formulir. Setiap figur dapat ditelusuri ke akun WTB sumbernya.</p></div>
+      <div class="pc"><div class="pn">BAGAIMANA</div><h4>Filosofi teknis</h4><p>SPA no-build yang sengaja sederhana untuk dirakit cepat: registry global, transpilasi di browser, persistensi localStorage. Dirancang agar mudah ditambah modul tanpa pipeline.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 02 ============ -->
+  <section id="s2">
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">Prinsip Arsitektur</h2></div>
+    <p class="sec-sub">Tujuh prinsip yang menjadi kontrak tak tertulis di seluruh basis kode. Pelanggaran terhadapnya tidak menghasilkan error yang jelas — melainkan layar putih senyap atau angka yang tak sinkron.</p>
+
+    <div class="princ">
+      <div class="pc"><div class="pn">P1</div><h4>Single Source of Truth (SSOT)</h4><p>Angka berasal dari <code>window.AMS.WTB</code> melalui <code>AMS_CANON.*</code>. Tidak ada salinan privat atau angka hardcode untuk nilai yang sudah ada di canon. Status kertas kerja berasal dari <code>deriveWpStatus</code>.</p></div>
+      <div class="pc"><div class="pn">P2</div><h4>SPA no-build</h4><p>Satu file entry <code>NeoSuite AMS.html</code> memuat seluruh app via tag <span class="mono">&lt;script&gt;</span> berurutan. Babel mentranspilasi JSX di browser. Tidak ada bundler, tidak ada langkah kompilasi.</p></div>
+      <div class="pc"><div class="pn">P3</div><h4>Scope global bersama</h4><p>Semua <code>.jsx</code> ditranspilasi ke <i>scope global yang sama</i>. Komponen dipublikasikan ke <code>window</code> di akhir tiap file; nama top-level harus unik lintas-file.</p></div>
+      <div class="pc"><div class="pn">P4</div><h4>Registry-driven navigation</h4><p>Navigasi digerakkan data: <code>MODULES</code> → <code>MODULE_INDEX</code> → <code>WORKSPACES</code>/<code>GROUP_WS</code>. Menambah modul = mendaftar entri, bukan menulis ulang router.</p></div>
+      <div class="pc"><div class="pn">P5</div><h4>Boot order = urutan script</h4><p>Lima fase berurutan: Data → Fondasi → Lintas-sektor → Modul Halaman → <code>app.jsx</code>. <code>app.jsx</code> <b>selalu</b> terakhir; script baru disisipkan sebelumnya.</p></div>
+      <div class="pc"><div class="pn">P6</div><h4>Akses context defensif</h4><p>Modul bisa dirender di drawer/luar provider. Hook context selalu dipanggil dengan penjaga: <code>const nav = (typeof useNav==='function') ? useNav() : (()=&gt;{});</code></p></div>
+      <div class="pc"><div class="pn">P7</div><h4>Graceful degradation</h4><p>Router <code>viewFor()</code> jatuh ke <code>&lt;ComplianceView&gt;</code> (bila ada config) atau <code>&lt;StubView&gt;</code> berdesain untuk modul tanpa view khusus — sistem tak pernah crash karena modul belum lengkap.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 03 ============ -->
+  <section id="s3">
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">Stack Teknologi &amp; Urutan Boot</h2></div>
+    <p class="sec-sub">Entry tunggal <code>NeoSuite AMS.html</code> berisi <code>&lt;div id="root"&gt;</code> dan rangkaian <span class="mono">&lt;script&gt;</span> yang dimuat dalam lima fase. Urutan tag = urutan boot = urutan dependensi.</p>
+
+    <div class="verdict teal">
+      <div class="tag">Stack</div>
+      <p><b>React 18.3.1</b> (UMD, di-pin + integrity) · <b>Babel Standalone 7.x</b> untuk transpilasi JSX di browser · <b>JS biasa (IIFE)</b> untuk lapisan data · <b>CSS variabel</b> di <code>app/styles_*.css</code> · <b>localStorage</b> untuk persistensi. Tanpa npm, tanpa bundler, tanpa server di sisi front-end.</p>
+    </div>
+
+    <div class="boot">
+      <div class="bp f1">
+        <div class="ph"><span class="pn">Fase 1</span><div class="pl">data · plain JS / IIFE</div></div>
+        <div><h4>Lapisan Data</h4>
+          <p><code>data.js</code> mengisi <code>window.AMS</code> (fmt, rp, FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, TEAM, WORKPAPERS…). File <code>data_*.js</code> melakukan <code>Object.assign(window.AMS, …)</code> atau membuat namespace tersendiri (<code>PROC · BO · FAC · FIRMFIN · FSGEN</code>). <code>canon.js</code> &amp; <code>forensic_canon.js</code> membentuk <code>AMS_CANON</code> — mesin hitung.</p>
+          <div class="files"><span>data.js</span><span>data_*.js ×30</span><span>canon.js</span><span>forensic_canon.js</span></div>
+        </div>
+      </div>
+      <div class="bp f2">
+        <div class="ph"><span class="pn">Fase 2</span><div class="pl">fondasi · Babel JSX</div></div>
+        <div><h4>Fondasi UI</h4>
+          <p><code>icons.jsx</code> → <code>window.I</code> + registry navigasi (<code>MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, HIDDEN_GROUPS, RELATED_SA</code>). <code>contexts.jsx</code> → Auth/Firm/Audit context + hooks + <code>&lt;AppProviders&gt;</code>. <code>ui.jsx</code> → primitif bersama. <code>shell.jsx</code> → TopBar/Sidebar/SubBar.</p>
+          <div class="files"><span>icons.jsx</span><span>contexts.jsx</span><span>ui.jsx</span><span>shell.jsx</span></div>
+        </div>
+      </div>
+      <div class="bp f3">
+        <div class="ph"><span class="pn">Fase 3</span><div class="pl">lintas-sektor · Babel JSX</div></div>
+        <div><h4>Fitur Lintas-Sektor</h4>
+          <p>Komponen yang dipakai banyak modul: evidence dock, LINEAGE hulu-hilir, Copilot AI, AI insights, status SA kanonik, generator LK, dan sub-komponen besar yang dipecah ke <code>view_*_parts.jsx</code>.</p>
+          <div class="files"><span>evidence.jsx</span><span>related_modules.jsx</span><span>copilot.jsx</span><span>ai_insights.jsx</span><span>sa_canonical.jsx</span><span>fsgen_model.jsx</span></div>
+        </div>
+      </div>
+      <div class="bp f4">
+        <div class="ph"><span class="pn">Fase 4</span><div class="pl">halaman · Babel JSX</div></div>
+        <div><h4>Modul Halaman</h4>
+          <p>~150 file <code>view_*.jsx</code>, masing-masing satu atau beberapa komponen halaman. Diakhiri <code>Object.assign(window, {…})</code> agar dapat dipanggil router. Inilah lapisan tempat sebagian besar pengembangan fitur baru terjadi.</p>
+          <div class="files"><span>view_dashboard.jsx</span><span>view_psak*.jsx</span><span>view_sa*.jsx</span><span>view_firm*.jsx</span><span>…</span></div>
+        </div>
+      </div>
+      <div class="bp f5">
+        <div class="ph"><span class="pn">Fase 5</span><div class="pl">entry akhir · WAJIB terakhir</div></div>
+        <div><h4>app.jsx — Router &amp; Root</h4>
+          <p><code>ViewErrorBoundary</code> · <code>viewFor(moduleId)</code> (switch router) · <code>&lt;App/&gt;</code> · <code>&lt;Root/&gt;</code> · <code>ReactDOM.createRoot(...).render</code>. Karena memakai semua global di atas, file ini <b>harus</b> dimuat paling akhir.</p>
+          <div class="files"><span>app.jsx</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict amber" style="margin-top:16px;">
+      <div class="tag">Struktur</div>
+      <p><code>NeoSuite AMS.html</code> = aplikasi · <code>app/</code> = seluruh kode sumber · <code>peta/</code> = visualisasi graf modul · <code>connectivity.json</code> = data keterhubungan (out/inc/status per modul) · <code>Evaluasi …html</code> &amp; <code>Peta Jalan …html</code> = deliverable terpisah, <b>bukan</b> bagian app.</p>
+    </div>
+  </section>
+
+  <!-- ============ 04 ============ -->
+  <section id="s4">
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">Lapisan Data &amp; SSOT — AMS_CANON</h2></div>
+    <p class="sec-sub">Jantung diferensiasi produk. Working Trial Balance adalah sumber kebenaran untuk saldo akun; <code>AMS_CANON</code> menarik figur akuntansi <i>by-code</i> dari WTB sehingga satu perubahan AJE mengalir konsisten ke seluruh modul. Tidak ada angka yang di-hardcode dua kali.</p>
+
+    <div class="domband acc"><span class="dn">Aliran</span><span class="dt">WTB → CANON → Modul</span><span class="dl"></span><span class="dmeta">single source of truth</span></div>
+
+    <p>Setiap akun WTB dipetakan ke pos akuntansi kanonik lewat <code>WTB_MAP</code> — satu tempat untuk mengubah lineage. Fungsi <code>figuresFromWTB(wtb)</code> menghitung nilai tercatat neto (aset tetap, takberwujud, ROU/sewa, CKPN, DTA) dari saldo <code>adj</code> (setelah AJE) atau <code>unadj</code> (sebelum AJE), lalu modul-modul standar (PSAK 46, 24, 71, 73, 65 …) menarik darinya.</p>
+
+    <div class="code"><span class="c">// canon.js — lineage by-code, bukan hardcode</span>
+<span class="k">const</span> WTB_MAP = {
+  dbo:      { code: <span class="s">'2-2300'</span>, label: <span class="s">'Liabilitas Imbalan Kerja'</span>, sign: -1 }, <span class="c">// PSAK 24</span>
+  ckpn:     { code: <span class="s">'1-1210'</span>, label: <span class="s">'CKPN'</span>,                   sign: -1 }, <span class="c">// PSAK 71</span>
+  rou:      { code: <span class="s">'1-2300'</span>, label: <span class="s">'Aset Hak-Guna'</span>,         sign:  1 }, <span class="c">// PSAK 73</span>
+  dta:      { code: <span class="s">'1-2500'</span>, label: <span class="s">'Aset Pajak Tangguhan'</span>,   sign:  1 }, <span class="c">// PSAK 46</span>
+  …
+};
+<span class="c">// satu AJE di WTB → figur konsisten di semua modul yang memakai AMS_CANON</span>
+<span class="k">const</span> fig = AMS_CANON.<b>figuresFromWTB</b>(useAudit().wtb);</div>
+
+    <table class="tb" style="margin-top:16px;">
+      <tr><th>API canon</th><th>Tanggung jawab</th><th>Ditarik oleh</th></tr>
+      <tr><td><span class="g">materiality()</span></td><td>Materialitas perencanaan &amp; pelaksanaan</td><td>view_materiality, SAD, sampling</td></tr>
+      <tr><td><span class="g">figuresFromWTB()</span></td><td>Figur akuntansi neto dari WTB by-code</td><td>seluruh modul PSAK</td></tr>
+      <tr><td><span class="g">psak65(wtb)</span></td><td>Konsolidasi &amp; kepentingan nonpengendali</td><td>view_psak65, fsgen</td></tr>
+      <tr><td><span class="g">deferredTax / psak46</span></td><td>Pajak tangguhan dari beda temporer lintas-standar</td><td>view_psak46, fsgen</td></tr>
+      <tr><td><span class="g">leasePortfolio</span></td><td>ROU &amp; liabilitas sewa (PSAK 73)</td><td>view_lease, psak73</td></tr>
+      <tr><td><span class="g">reconcile</span></td><td>Rekonsiliasi saldo antar-sumber</td><td>view_reconcile, dataflow</td></tr>
+      <tr><td><span class="g">FIG</span> / forensic</td><td>Figur ringkas &amp; arus kas forensik</td><td>cockpit, forensic, BI</td></tr>
+    </table>
+
+    <div class="verdict red">
+      <div class="tag">Pantangan</div>
+      <p>Jangan menyimpan salinan privat atau hardcode angka yang sudah tersedia di <code>AMS_CANON</code>. Pelanggaran SSOT menghasilkan angka tak sinkron antar-modul — bug paling halus dan paling mahal di sistem ini. Semua nilai dalam Rp <b>juta</b> kecuali data sewa (rupiah penuh, dinormalkan saat dipakai). Tarif PPh Badan 22% (UU HPP 7/2021).</p>
+    </div>
+  </section>
+
+  <!-- ============ 05 ============ -->
+  <section id="s5">
+    <div class="sec-h"><span class="sec-n">05</span><h2 class="sec-t">Navigasi &amp; Taksonomi Modul</h2></div>
+    <p class="sec-sub">Navigasi dua tingkat berbasis data. Ruang kerja (workspace) memberi konteks tingkat atas; grup memetakan modul ke ruang kerja; sebagian grup standar sengaja disembunyikan dari sidebar namun tetap dapat diakses.</p>
+
+    <div class="princ">
+      <div class="pc"><div class="pn">TIER 1</div><h4>Workspace</h4><p>Dua ruang kerja: <b>Perikatan</b> (kerja audit per-engagement) dan <b>Firma</b> (operasi &amp; tata kelola firma). <code>WORKSPACES</code> mendaftar grup mana milik ruang kerja mana; <code>GROUP_WS</code> membalik peta itu.</p></div>
+      <div class="pc"><div class="pn">TIER 2</div><h4>Grup &amp; Modul</h4><p><code>MODULES</code> = array grup berisi item <code>{id,label,icon,deep,tag}</code>. <code>MODULE_INDEX</code> meratakannya jadi <code>id → {…,group}</code>. <code>deep:true</code> = punya view nyata; selain itu render stub berdesain.</p></div>
+      <div class="pc"><div class="pn">HIDDEN</div><h4>Grup Tersembunyi</h4><p><code>HIDDEN_GROUPS</code> (SA 200/500/700, PSAK &amp; SAK, Syariah) tak muncul di sidebar agar ramping — namun tetap diakses via ⌘K, chip "Standar Terkait", atau Matriks Kepatuhan.</p></div>
+      <div class="pc"><div class="pn">LINK</div><h4>Modul ↔ Standar</h4><p><code>RELATED_SA[id]</code> memetakan tiap prosedur perikatan ke Standar Audit terkait (chip + drawer). <code>LINEAGE[id]</code> (related_modules) memetakan dependensi hulu/hilir antar-modul.</p></div>
+    </div>
+
+    <div class="code" style="margin-top:14px;"><span class="c">// icons.jsx — registry yang menggerakkan seluruh navigasi</span>
+<span class="k">const</span> WORKSPACES = [
+  { id:<span class="s">'engagement'</span>, label:<span class="s">'Perikatan'</span>, groups:[<span class="s">'Engagement Workspace'</span>,<span class="s">'Core Planning'</span>,<span class="s">'Core Execution'</span>,…] },
+  { id:<span class="s">'firm'</span>,       label:<span class="s">'Firma'</span>,     groups:[<span class="s">'Practice Operations'</span>,<span class="s">'People &amp; Compliance'</span>,…] },
+];
+<span class="k">const</span> HIDDEN_GROUPS = [<span class="s">'SA · Tanggung Jawab (200)'</span>,<span class="s">'Akuntansi (PSAK &amp; SAK)'</span>, …];
+<span class="c">// chip standar terkait pada tiap prosedur</span>
+RELATED_SA[<span class="s">'materiality'</span>] = [{ code:<span class="s">'SA 320'</span>, title:<span class="s">'Materialitas …'</span>, phase:<span class="s">'Perencanaan'</span> }];</div>
+
+    <div class="verdict">
+      <div class="tag">Navigasi</div>
+      <p>Selalu memanggil <code>nav(id, { from:'modulIni' })</code> agar breadcrumb "kembali" (SubBar) dan follow-workspace bekerja. Drawer SA dibuka via <code>window.__amsOpenSA({ code, title, view? })</code>. Modul tak terdaftar di router otomatis jatuh ke <code>&lt;ComplianceView&gt;</code> atau <code>&lt;StubView&gt;</code>.</p>
+    </div>
+  </section>
+
+  <!-- ============ 06 ============ -->
+  <section id="s6">
+    <div class="sec-h"><span class="sec-n">06</span><h2 class="sec-t">Cakupan Fungsional per Domain</h2></div>
+    <p class="sec-sub">23 grup modul terbagi ke empat domain besar. Berikut peta kemampuan — bukan daftar lengkap setiap modul, melainkan tulang punggung fungsional tiap domain.</p>
+
+    <div class="domband eng"><span class="dn">Domain A</span><span class="dt">Perikatan Audit</span><span class="dl"></span><span class="dmeta">workspace: engagement</span></div>
+    <div class="mods">
+      <div class="mg"><h5>Engagement Workspace</h5><span class="c">cockpit · tasks · programme · time</span><p>Cockpit perikatan, daftar tugas, program audit, anggaran waktu, catatan reviu.</p></div>
+      <div class="mg"><h5>Core Planning</h5><span class="c">materiality · icfr · strategy</span><p>Materialitas (SA 320), pengendalian internal (SA 315), memo strategi audit.</p></div>
+      <div class="mg"><h5>Core Execution</h5><span class="c">wtb · aje · workpapers · sampling · jet</span><p>Working Trial Balance, jurnal penyesuaian, kertas kerja, analitis, sampling, journal entry testing.</p></div>
+      <div class="mg"><h5>Core Specifics</h5><span class="c">confirm · goingconcern · related …</span><p>Konfirmasi, kelangsungan usaha, saldo awal, peristiwa kemudian, audit grup, pakar, organisasi jasa, SAD.</p></div>
+      <div class="mg"><h5>Finalisasi &amp; Pelaporan</h5><span class="c">fsgen · disclosure · opinion</span><p>Generator LK, daftar-uji pengungkapan, generator opini, management letter.</p></div>
+      <div class="mg"><h5>Referensi &amp; Indeks</h5><span class="c">compmatrix · templates · kb</span><p>Matriks kepatuhan, pustaka template, basis pengetahuan.</p></div>
+    </div>
+
+    <div class="domband std"><span class="dn">Domain B</span><span class="dt">Standar &amp; Kepatuhan</span><span class="dl"></span><span class="dmeta">hidden groups · diakses via chip/⌘K</span></div>
+    <div class="mods">
+      <div class="mg"><h5>SA · Tanggung Jawab (200)</h5><span class="c">sa200 · 230 · 240 · 250 · 260 · 265</span><p>Tujuan keseluruhan, dokumentasi, fraud, hukum &amp; regulasi, komunikasi TCWG, defisiensi.</p></div>
+      <div class="mg"><h5>SA · Bukti Audit (500)</h5><span class="c">sa501 · 520 · 530 · 540 · 580</span><p>Bukti spesifik, prosedur analitis, sampling, estimasi akuntansi, representasi tertulis.</p></div>
+      <div class="mg"><h5>SA · Pelaporan (700)</h5><span class="c">sa701 · 705 · 710 · 720</span><p>Hal audit utama (KAM), modifikasi opini, komparatif, informasi lain.</p></div>
+      <div class="mg"><h5>SA · Area Khusus</h5><span class="c">sa800/805/810 · SPR · SJAH</span><p>Kerangka khusus, reviu, asurans, info prospektif, organisasi jasa, emisi GRK, proforma.</p></div>
+      <div class="mg"><h5>Akuntansi (PSAK &amp; SAK)</h5><span class="c">27 modul PSAK + SAK EP/EMKM</span><p>PSAK 1–117, ISAK 35, kalkulator ECL, penentu kerangka, roadmap SAK.</p></div>
+      <div class="mg"><h5>Akuntansi Syariah</h5><span class="c">syariah · PSAK 101–112</span><p>Standar akuntansi syariah dengan tautan ke SA 250/620/540/701.</p></div>
+    </div>
+
+    <div class="domband firm"><span class="dn">Domain C</span><span class="dt">Operasi &amp; ERP Firma</span><span class="dl"></span><span class="dmeta">workspace: firm</span></div>
+    <div class="mods">
+      <div class="mg"><h5>Practice Operations</h5><span class="c">pipeline · delivery · wipreal · billing</span><p>Pipeline penjualan, milestone, WIP &amp; realisasi, penagihan, penjadwalan sumber daya, kapasitas.</p></div>
+      <div class="mg"><h5>People &amp; Compliance</h5><span class="c">hcm · payroll · cpe · independence …</span><p>Human capital, payroll &amp; PPh 21, kinerja, CPE/PPL, kode etik &amp; AML, independensi &amp; rotasi.</p></div>
+      <div class="mg"><h5>Firm Finance (ERP)</h5><span class="c">firmgl · apar · treasury · firmtax</span><p>Buku besar firma, AP/AR, pendapatan &amp; WIP, treasury, kas-bank, aset tetap, pajak firma.</p></div>
+      <div class="mg"><h5>Backoffice &amp; Firm Mgmt</h5><span class="c">procurement · facilities · legal · pdp</span><p>Pengadaan, fasilitas, retensi arsip (SA 230), kontrak legal, asuransi PII, perjalanan, lisensi, PDP.</p></div>
+      <div class="mg"><h5>Jasa Non-Audit (SPAP)</h5><span class="c">nonaudit · review2400 · relatedsvc</span><p>Portofolio jasa, reviu LK (SPR 2400), jasa terkait (4400/4410), asurans, due diligence.</p></div>
+      <div class="mg"><h5>Mutu, Risiko &amp; Regulasi</h5><span class="c">governance · soqm · eqr · pppk</span><p>Tata kelola SOQM, operasional mutu, workflow EQR, pelaporan PPPK.</p></div>
+    </div>
+
+    <div class="domband acc"><span class="dn">Domain D</span><span class="dt">Regulator, Portal &amp; Platform</span><span class="dl"></span><span class="dmeta">lintas-workspace</span></div>
+    <div class="mods">
+      <div class="mg"><h5>OJK · Pasar Modal</h5><span class="c">sustain · sectorck · ojkfiling · auditcomm</span><p>Laporan keberlanjutan (POJK 51), daftar-uji sektor JK, e-filing OJK/BEI, komite audit (POJK 55).</p></div>
+      <div class="mg"><h5>Portal &amp; Dokumen</h5><span class="c">presentasi · clientportal · dms</span><p>Presentasi klien, portal PBC, manajemen dokumen.</p></div>
+      <div class="mg"><h5>Firm Platform</h5><span class="c">approvals · integrations · audittrail</span><p>Approval, integrasi, jejak audit sistem.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 07 ============ -->
+  <section id="s7">
+    <div class="sec-h"><span class="sec-n">07</span><h2 class="sec-t">Anatomi Modul &amp; Kontrak Pengembangan</h2></div>
+    <p class="sec-sub">Prosedur baku menambah satu modul halaman: empat langkah wajib yang merekatkan modul ke router, registry, dan boot order — plus empat kaitan opsional yang mengintegrasikannya ke ekosistem standar.</p>
+
+    <div class="steps">
+      <div class="st"><div class="sn">1</div><div><h4>Buat file view <span class="req">Wajib</span></h4><p>Buat <code>app/view_&lt;nama&gt;.jsx</code> → alias hook React unik (lihat §08) → <code>function MyView(){…}</code> → akhiri dengan <code>Object.assign(window, { MyView });</code> agar dapat dipanggil router dan file lain.</p></div></div>
+      <div class="st"><div class="sn">2</div><div><h4>Daftarkan di registry <span class="req">Wajib</span></h4><p>Di <code>app/icons.jsx</code>, tambah <code>{ id:'myid', label:'…', icon:'&lt;key di I&gt;', deep:true }</code> ke grup yang tepat dalam <code>MODULES</code>. Grup sudah dipetakan ke workspace via <code>GROUP_WS</code>.</p></div></div>
+      <div class="st"><div class="sn">3</div><div><h4>Sambungkan route <span class="req">Wajib</span></h4><p>Di <code>app/app.jsx</code>, tambah <code>case 'myid': return &lt;MyView /&gt;;</code> di dalam <code>viewFor()</code>.</p></div></div>
+      <div class="st"><div class="sn">4</div><div><h4>Sisipkan script <span class="req">Wajib</span></h4><p>Tambah <code>&lt;script type="text/babel" src="app/view_&lt;nama&gt;.jsx"&gt;&lt;/script&gt;</code> di <code>NeoSuite AMS.html</code>, <b>sebelum</b> <code>app.jsx</code>.</p></div></div>
+      <div class="st opt"><div class="sn">+</div><div><h4>Data &amp; angka <span class="o">Opsional</span></h4><p>IIFE <code>data_&lt;x&gt;.js</code> yang <code>Object.assign(window.AMS, …)</code> atau namespace baru. Figur angka <b>ditarik dari</b> <code>AMS_CANON</code> — jangan hardcode.</p></div></div>
+      <div class="st opt"><div class="sn">+</div><div><h4>Kaitan ekosistem <span class="o">Opsional</span></h4><p>Chip standar: <code>RELATED_SA['myid']</code>. Dock hulu/hilir: <code>LINEAGE['myid']</code>. Checklist kepatuhan: <code>COMPLIANCE_CONFIG['myid']</code> (modul tanpa view khusus otomatis dirender <code>&lt;ComplianceView&gt;</code>).</p></div></div>
+    </div>
+
+    <div class="code" style="margin-top:14px;"><span class="c">// app/view_myid.jsx — kerangka modul baru</span>
+<span class="k">const</span> { useState: <b>useStateMY</b>, useMemo: <b>useMemoMY</b> } = React;   <span class="c">// alias unik!</span>
+<span class="k">function</span> <b>MyView</b>() {
+  <span class="k">const</span> nav = (<span class="k">typeof</span> useNav === <span class="s">'function'</span>) ? useNav() : (() =&gt; {});  <span class="c">// defensif</span>
+  <span class="k">const</span> fig = AMS_CANON.figuresFromWTB(useAudit().wtb);          <span class="c">// SSOT, bukan hardcode</span>
+  <span class="k">return</span> &lt;Portlet title=<span class="s">"Modul Saya"</span>&gt;…&lt;/Portlet&gt;;        <span class="c">// primitif dari ui.jsx</span>
+}
+<b>Object.assign</b>(window, { MyView });                            <span class="c">// publish ke global</span></div>
+  </section>
+
+  <!-- ============ 08 ============ -->
+  <section id="s8">
+    <div class="sec-h"><span class="sec-n">08</span><h2 class="sec-t">Aturan Emas Anti-Tabrakan</h2></div>
+    <p class="sec-sub">Karena semua <code>.jsx</code> berbagi satu scope global, nama top-level bertabrakan lintas-file. Pelanggaran enam aturan ini menghasilkan layar putih senyap — periksa konsol untuk "Identifier already declared".</p>
+
+    <table class="tb">
+      <tr><th style="width:38px;">#</th><th>Aturan</th><th>Konsekuensi bila dilanggar</th></tr>
+      <tr><td><b>1</b></td><td>Alias hook React per-file, unik. <b>Jangan</b> <code>const {useState}=React;</code> polos. Pakai sufiks modul: <code>const {useState:useStateR}=React;</code></td><td>Layar putih · "Identifier 'useState' already declared"</td></tr>
+      <tr><td><b>2</b></td><td>Jangan <code>const styles = {}</code> global. Beri nama spesifik (<code>const riskStyles=…</code>) atau inline.</td><td>Breakage senyap · style salah modul</td></tr>
+      <tr><td><b>3</b></td><td>Ekspor di akhir file: <code>Object.assign(window, { NamaKomponen, helperLain });</code></td><td><code>ReferenceError</code> saat dirender</td></tr>
+      <tr><td><b>4</b></td><td><code>app.jsx</code> selalu paling akhir; script baru disisipkan sebelumnya.</td><td>Modul "tak terdefinisi" di <code>viewFor</code></td></tr>
+      <tr><td><b>5</b></td><td>Jangan redefinisi nama yang sudah di window (cek <code>MODULE_INDEX</code>, primitif <code>ui.jsx</code>, key <code>I</code>, namespace data).</td><td>Override senyap komponen/data lain</td></tr>
+      <tr><td><b>6</b></td><td>Akses context defensif: <code>const nav = (typeof useNav==='function') ? useNav() : (()=&gt;{});</code></td><td>Crash saat dirender di drawer/luar provider</td></tr>
+    </table>
+
+    <div class="verdict amber" style="margin-top:14px;">
+      <div class="tag">Konvensi sufiks</div>
+      <p>Sufiks alias mengikuti nama modul: Risk → <code>R</code>, Materiality2 → <code>M2</code>, PSAK46 → <code>P46</code>, FSGen → <code>FS</code>, Workspace → <code>WS</code>, ui.jsx → <code>UI</code>. File raksasa dipecah ke <code>view_&lt;x&gt;_parts.jsx</code> dan diimpor <b>sebelum</b> file utamanya.</p>
+    </div>
+  </section>
+
+  <!-- ============ 09 ============ -->
+  <section id="s9">
+    <div class="sec-h"><span class="sec-n">09</span><h2 class="sec-t">Sistem Desain &amp; Komponen UI</h2></div>
+    <p class="sec-sub">Palet navy/biru profesional dengan aksen status, tipografi Inter + JetBrains Mono, dan satu set primitif bersama di <code>ui.jsx</code>. Styling memakai CSS variabel di <code>app/styles_*.css</code> — selalu pakai variabel, bukan warna hardcode baru.</p>
+
+    <div class="sw-row">
+      <div class="swatch"><div class="chip" style="background:#002C3F;"></div><div class="lab"><b>--navy</b>#002C3F</div></div>
+      <div class="swatch"><div class="chip" style="background:#005085;"></div><div class="lab"><b>--blue</b>#005085</div></div>
+      <div class="swatch"><div class="chip" style="background:#0a6b73;"></div><div class="lab"><b>--teal</b>#0a6b73</div></div>
+      <div class="swatch"><div class="chip" style="background:#1f7a4d;"></div><div class="lab"><b>--green</b>#1f7a4d</div></div>
+      <div class="swatch"><div class="chip" style="background:#9a6a00;"></div><div class="lab"><b>--amber</b>#9a6a00</div></div>
+      <div class="swatch"><div class="chip" style="background:#b3261e;"></div><div class="lab"><b>--red</b>#b3261e</div></div>
+      <div class="swatch"><div class="chip" style="background:#5b3fa6;"></div><div class="lab"><b>--purple</b>#5b3fa6</div></div>
+      <div class="swatch"><div class="chip" style="background:#eceff3;border-bottom:1px solid var(--line)"></div><div class="lab"><b>--bg</b>#eceff3</div></div>
+    </div>
+
+    <div class="princ" style="margin-top:14px;">
+      <div class="pc"><div class="pn">TIPOGRAFI</div><h4>Inter + JetBrains Mono</h4><p><b>Inter</b> untuk UI &amp; teks; <b>JetBrains Mono</b> untuk kode, label, angka, &amp; kode standar. Mata uang via <code>rp()</code>/<code>fmt()</code> locale id-ID — mis. <code>Rp 1.850.000.000</code>, negatif dalam kurung.</p></div>
+      <div class="pc"><div class="pn">IKON</div><h4>window.I — stroke SVG</h4><p>Set ikon stroke 24×24 dipanggil lewat key string (mis. <code>icon:'shield'</code>). Satu sumber ikon untuk seluruh app; tambah ikon baru sebagai entri di objek <code>I</code>.</p></div>
+      <div class="pc"><div class="pn">PRIMITIF</div><h4>ui.jsx</h4><p><code>Badge · Btn · Panel · Portlet · Stat · Progress · Avatar · Tabs · Seg · Placeholder · Spark · MiniBars · Donut · Menu · StubView · LockBanner</code> — bahan baku setiap halaman.</p></div>
+      <div class="pc"><div class="pn">CHROME</div><h4>shell.jsx</h4><p><code>TopBar</code> (⌘K, profil, notifikasi) · <code>Sidebar</code> (workspace + grup) · <code>SubBar</code> (breadcrumb "kembali" + chip standar terkait).</p></div>
+    </div>
+
+    <div class="verdict teal">
+      <div class="tag">Aturan styling</div>
+      <p>CSS terpisah per concern: <code>styles_base.css · styles_chrome.css · styles_modules.css · styles_work.css · styles_ai.css</code>. Pakai variabel (<code>--navy --blue --ink-2 --line --red --amber-bg …</code>), bukan warna baru. React &amp; Babel di-pin (versi + integrity di <code>&lt;head&gt;</code>) — jangan diubah.</p>
+    </div>
+  </section>
+
+  <!-- ============ 10 ============ -->
+  <section id="s10">
+    <div class="sec-h"><span class="sec-n">10</span><h2 class="sec-t">State, Persistensi &amp; AI</h2></div>
+    <p class="sec-sub">State perikatan/firma mengalir lewat context; state lokal modul dipersistensi ke localStorage dengan namespace ketat. Lapisan AI (Copilot + insights) berdiri di atas data kanonik yang sama.</p>
+
+    <div class="princ">
+      <div class="pc"><div class="pn">CONTEXT</div><h4>Auth · Firm · Audit</h4><p><code>contexts.jsx</code> menyediakan <code>useAuth · useFirm · useAudit · useNav · useNavFrom</code> dan <code>&lt;AppProviders&gt;</code>. <code>useAudit().wtb</code> reaktif — perubahan AJE mengalir ke canon yang menerimanya.</p></div>
+      <div class="pc"><div class="pn">PERSIST</div><h4>localStorage bernamespace</h4><p><code>usePersisted</code>/<code>useAmsPersist(key,init)</code> → key <code>ams.v1.&lt;key&gt;</code>. Prefs app → <code>ams.&lt;key&gt;</code>. Checklist → <code>ams.comp.&lt;stdId&gt;.*</code>. Selalu try/catch JSON.</p></div>
+      <div class="pc"><div class="pn">WP STATUS</div><h4>Status kanonik</h4><p>Status kertas kerja dari <code>deriveWpStatus(ref,audit,firm)</code> — bukan flag privat. Buka WP kanonik via <code>openCanonicalWp(nav,ref)</code>.</p></div>
+      <div class="pc"><div class="pn">AI</div><h4>Copilot &amp; Insights</h4><p><code>copilot.jsx</code> + <code>ai_insights.jsx</code> + <code>ai_extract.jsx</code> di atas <code>llm_providers.js</code>. Dibuka via <code>window.__amsOpenCopilot()</code>; membaca data kanonik, bukan menyalinnya.</p></div>
+    </div>
+
+    <div class="verdict">
+      <div class="tag">Kontrol global</div>
+      <p>Hook imperatif untuk kontrol lintas-modul: <code>__amsOpenSA(data)</code> (drawer standar) · <code>__amsOpenCopilot()</code> · <code>__amsSetSidebar()</code> · <code>amsApplyPrefs(s)</code> · <code>compliancePct(stdId)</code>. Gunakan ini alih-alih menyentuh state internal modul lain.</p>
+    </div>
+  </section>
+
+  <!-- ============ 11 ============ -->
+  <section id="s11">
+    <div class="sec-h"><span class="sec-n">11</span><h2 class="sec-t">Mutu Kode, QA &amp; Jebakan Umum</h2></div>
+    <p class="sec-sub">Daftar periksa sebelum menganggap modul "selesai", dan jebakan yang paling sering menjatuhkan kontributor baru.</p>
+
+    <div class="domband eng"><span class="dn">Checklist</span><span class="dt">Definition of Done modul</span><span class="dl"></span></div>
+    <ul class="tick">
+      <li><b>Alias hook unik</b> per file; tidak ada <code>styles</code> global polos.</li>
+      <li><b>Ekspor</b> komponen &amp; helper ke <code>window</code> di akhir file.</li>
+      <li><b>Script disisipkan</b> sebelum <code>app.jsx</code>; route ditambahkan di <code>viewFor()</code>.</li>
+      <li><b>Angka dari <code>AMS_CANON</code></b> — tidak ada figur hardcode yang sudah tersedia di canon.</li>
+      <li><b>Akses context defensif</b>; modul aman dirender di drawer/luar provider.</li>
+      <li><b>UI Bahasa Indonesia</b>; mata uang via <code>rp()</code>/<code>fmt()</code>; warna dari CSS variabel.</li>
+      <li><b>Kaitan ekosistem</b> bila relevan: <code>RELATED_SA</code>, <code>LINEAGE</code>, <code>COMPLIANCE_CONFIG</code>.</li>
+    </ul>
+
+    <div class="domband std" style="margin-top:20px;"><span class="dn">Jebakan</span><span class="dt">Penyebab tersering kegagalan</span><span class="dl"></span></div>
+    <table class="tb">
+      <tr><th>Gejala</th><th>Akar masalah</th><th>Perbaikan</th></tr>
+      <tr><td>Modul "tak terdefinisi" di <code>viewFor</code></td><td>Lupa <span class="mono">&lt;script&gt;</span> baru sebelum <code>app.jsx</code></td><td>Sisipkan tag di urutan benar</td></tr>
+      <tr><td><code>ReferenceError</code> saat render</td><td>Lupa <code>Object.assign(window, …)</code></td><td>Publish komponen ke global</td></tr>
+      <tr><td>Layar putih senyap</td><td>Hook/<code>styles</code> polos tak ber-alias</td><td>Cek konsol "already declared"; beri alias</td></tr>
+      <tr><td>Angka tak sinkron antar-modul</td><td>Hardcode angka yang seharusnya dari canon</td><td>Tarik dari <code>AMS_CANON</code> (SSOT)</td></tr>
+      <tr><td>File sulit dirawat / lambat</td><td>File raksasa monolitik</td><td>Pecah ke <code>view_&lt;x&gt;_parts.jsx</code></td></tr>
+    </table>
+  </section>
+
+  <!-- ============ 12 ============ -->
+  <section id="s12">
+    <div class="sec-h"><span class="sec-n">12</span><h2 class="sec-t">Peta Jalan &amp; Lampiran Global</h2></div>
+    <p class="sec-sub">Arah evolusi arsitektur dan referensi cepat daftar global <code>window</code> yang menjadi kontrak antar-modul.</p>
+
+    <div class="domband acc"><span class="dn">Roadmap</span><span class="dt">Evolusi arsitektur</span><span class="dl"></span><span class="dmeta">arah, bukan komitmen tanggal</span></div>
+    <div class="rm">
+      <div class="rmr"><div class="rh">Tahap 1<span>Konsolidasi</span></div><div><h4>Perkuat SSOT &amp; lineage</h4><p>Pastikan setiap modul standar menarik dari <code>AMS_CANON</code>; lengkapi <code>RELATED_SA</code> &amp; <code>LINEAGE</code> untuk modul yang masih lepas; rapikan stub menjadi view nyata sesuai prioritas.</p></div></div>
+      <div class="rmr"><div class="rh">Tahap 2<span>Modularisasi</span></div><div><h4>Migrasi window → ESM</h4><p>Lihat <code>Runbook Migrasi window ke ESM</code>: ganti publikasi global dengan modul ESM bertahap, menjaga registry tetap berfungsi. Mengurangi risiko tabrakan nama global.</p></div></div>
+      <div class="rmr"><div class="rh">Tahap 3<span>Build &amp; Backend</span></div><div><h4>Pipeline build + persistensi server</h4><p>Perkenalkan build step (bundling/transpile pra-deploy), pindahkan persistensi dari localStorage ke backend, dan siapkan multi-user/peran. Lihat <code>Peta Jalan Teknis — Handoff Claude Code</code>.</p></div></div>
+    </div>
+
+    <div class="domband firm" style="margin-top:22px;"><span class="dn">Lampiran A</span><span class="dt">Daftar global window kunci</span><span class="dl"></span></div>
+    <div class="gl">
+      <div class="glr"><div class="gk">AMS</div><div class="gv">Data master + helper <code>fmt</code>/<code>rp</code>: WTB, AJE, RISKS, CLIENTS, ENGAGEMENTS, TEAM, WORKPAPERS, TEMPLATES, KB_*…</div></div>
+      <div class="glr"><div class="gk">AMS_CANON</div><div class="gv">Sumber kebenaran tunggal perhitungan: <code>materiality()</code>, <code>psak65/22/46/48/58/25</code>, <code>reconcile</code>, <code>leasePortfolio</code>, <code>deferredTax</code>, <code>figuresFromWTB</code>, <code>FIG</code>.</div></div>
+      <div class="glr"><div class="gk">PROC · BO · FAC · FIRMFIN · FSGEN</div><div class="gv">Data/kalkulasi domain: pengadaan, back-office, fasilitas, keuangan firma, generator LK.</div></div>
+      <div class="glr"><div class="gk">I</div><div class="gv">Ikon stroke-SVG; dipanggil via key string (mis. <code>icon:'shield'</code>).</div></div>
+      <div class="glr"><div class="gk">MODULES · MODULE_INDEX · WORKSPACES · GROUP_WS · HIDDEN_GROUPS</div><div class="gv">Registry navigasi (id → {label, icon, group}).</div></div>
+      <div class="glr"><div class="gk">RELATED_SA</div><div class="gv">Peta modul → Standar Audit (chip + drawer SA).</div></div>
+      <div class="glr"><div class="gk">useAuth · useFirm · useAudit · useNav · useNavFrom</div><div class="gv">Hooks context perikatan/firma.</div></div>
+      <div class="glr"><div class="gk">useAmsPersist(k,init) · loadLS(k,d)</div><div class="gv">State → localStorage bernamespace.</div></div>
+      <div class="glr"><div class="gk">deriveWpStatus · openCanonicalWp</div><div class="gv">Status &amp; pembukaan kertas kerja kanonik.</div></div>
+      <div class="glr"><div class="gk">__amsOpenSA · __amsOpenCopilot · __amsSetSidebar · amsApplyPrefs · compliancePct</div><div class="gv">Kontrol imperatif global app.</div></div>
+      <div class="glr"><div class="gk">Badge · Btn · Panel · Portlet · Stat · Tabs · Seg · Menu · Donut · Spark…</div><div class="gv">Primitif UI dari <code>ui.jsx</code>.</div></div>
+    </div>
+
+    <div class="verdict green" style="margin-top:22px;">
+      <div class="tag">Prinsip penutup</div>
+      <p>Tiga kalimat untuk diingat: <b>(1)</b> angka berasal dari WTB lewat <code>AMS_CANON</code> — jangan pernah hardcode ulang. <b>(2)</b> Setiap nama top-level harus unik karena scope global dibagi — beri alias &amp; publish ke window. <b>(3)</b> Menambah modul = mendaftar di registry &amp; router, bukan menulis ulang inti.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Blueprint Pengembangan v1.0</span>
+    <span>Dokumen internal · referensi arsitektur</span>
+  </div>
+
+</div>
+</body>
+</html>

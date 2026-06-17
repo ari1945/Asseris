@@ -1,0 +1,217 @@
+/* ============================================================
+   NeoSuite AMS — Management Letter (SA 265/260)
+   (Evidence Evaluation kini di view_evidence.jsx)
+   ============================================================ */
+const { useState: useStateF3, useMemo: useMemoF3 } = React;
+
+/* ---------------- Management Letter ---------------- */
+const ML_FINDINGS = [
+  {
+    id: 'ML-01', title: 'Penilaian nilai realisasi neto (NRV) persediaan belum konsisten terdokumentasi',
+    sev: 'Significant', area: 'Persediaan', ref: 'PSAK 14 ¶9, 28–33', pic: 'Manajer Akuntansi', target: 'Q2 2026', respStatus: 'Setuju',
+    cond: 'Pengujian kami atas 14 dari 38 lini produk slow-moving (umur > 180 hari) menunjukkan perhitungan nilai realisasi neto (NRV) tidak didukung kertas kerja yang memadai. Estimasi harga jual neto disusun secara lisan oleh staf gudang tanpa referensi daftar harga terkini, dan tidak terdapat reviu berjenjang atas hasil perhitungan.',
+    cause: 'Belum tersedia prosedur tertulis (SOP) untuk penilaian NRV persediaan dan belum ada penetapan ambang umur persediaan yang memicu pengujian penurunan nilai. Fungsi akuntansi dan gudang belum memiliki mekanisme pertukaran data harga jual aktual secara berkala.',
+    criteria: 'PSAK 14: Persediaan (¶9, ¶28–33) mensyaratkan persediaan diukur pada nilai terendah antara biaya perolehan dan nilai realisasi neto, dengan penurunan ke NRV dilakukan butir-per-butir berdasarkan estimasi yang andal dan dapat diverifikasi.',
+    effect: 'Persediaan berpotensi tersaji lebih (overstatement) karena cadangan penurunan nilai tidak dihitung secara konsisten. Atas sampel yang diuji, terdapat indikasi kurang cadang sekitar Rp 412 juta yang kami masukkan ke Summary of Audit Differences (SAD) sebagai selisih belum dikoreksi.',
+    rec: 'Susun SOP penilaian NRV yang memuat: (a) ambang umur persediaan (mis. > 180 hari) sebagai pemicu reviu; (b) sumber harga jual neto yang dapat diverifikasi (daftar harga, kontrak, transaksi terkini); (c) reviu berjenjang oleh Manajer Akuntansi tiap kuartal; serta (d) pengarsipan kertas kerja perhitungan.',
+    resp: 'Manajemen sepakat dengan temuan. SOP penilaian NRV akan disusun dan diberlakukan mulai Q2 2026 di bawah koordinasi Manajer Akuntansi. Reviu pertama akan mencakup seluruh persediaan slow-moving per 30 Juni 2026.',
+  },
+  {
+    id: 'ML-02', title: 'Reviu jurnal manual oleh Controller tidak meninggalkan jejak yang dapat diaudit',
+    sev: 'Significant', area: 'Pelaporan Keuangan', ref: 'SA 240 ¶32–33 · SA 315', pic: 'Controller', target: 'Q3 2026', respStatus: 'Setuju',
+    cond: 'Kontrol reviu atas jurnal manual oleh Controller berjalan, namun tidak meninggalkan bukti reviu (sign-off) yang dapat diaudit. Dari 64 jurnal manual material yang kami uji, 41 di antaranya tidak memiliki jejak persetujuan elektronik maupun paraf reviu pada cetakan.',
+    cause: 'Modul persetujuan jurnal pada sistem ERP belum diaktifkan sehingga reviu dilakukan secara informal. Belum ada kebijakan yang menetapkan ambang nilai jurnal manual yang wajib melalui persetujuan berjenjang.',
+    criteria: 'SA 240 (¶32–33) dan SA 315 mensyaratkan pengendalian atas jurnal entri manual — termasuk persetujuan dan reviu — sebagai respons terhadap risiko pengesampingan pengendalian oleh manajemen (management override).',
+    effect: 'Defisiensi pengendalian ini meningkatkan risiko management override dan salah saji yang tidak terdeteksi melalui jurnal non-rutin. Sebagai respons, kami memperluas pengujian jurnal (journal entry testing) yang menambah lingkup dan waktu audit.',
+    rec: 'Aktifkan modul persetujuan jurnal pada ERP dengan: (a) ambang nilai yang memicu persetujuan berjenjang; (b) sign-off elektronik dengan audit trail; dan (c) larangan posting tanpa reviewer yang berbeda dari preparer (pemisahan tugas).',
+    resp: 'Manajemen sepakat. Konfigurasi modul persetujuan jurnal pada ERP sedang berlangsung dan ditargetkan aktif penuh pada akhir Q3 2026. Selama modul belum aktif, reviu manual akan didokumentasikan dengan paraf dan tanggal.',
+  },
+  {
+    id: 'ML-03', title: 'Keterlambatan rekonsiliasi sub-buku besar piutang usaha',
+    sev: 'Deficiency', area: 'Piutang Usaha', ref: 'SA 315 · COSO', pic: 'Manajer Keuangan', target: 'Jul 2026', respStatus: 'Setuju',
+    cond: 'Rekonsiliasi sub-buku besar piutang usaha ke buku besar tertunda rata-rata 15 hari kerja dari jadwal internal (target 5 hari). Pada 4 dari 12 bulan, rekonsiliasi baru diselesaikan setelah tutup buku periode berikutnya.',
+    cause: 'Beban kerja tim akuntansi piutang yang tinggi pada awal bulan, ketiadaan SLA formal, serta tidak adanya pemantauan atas ketepatan waktu penyelesaian rekonsiliasi.',
+    criteria: 'Prinsip pengendalian internal yang baik (COSO — Control Activities) dan SA 315 mengharuskan rekonsiliasi akun signifikan dilakukan tepat waktu dan ditelaah oleh personel yang berwenang.',
+    effect: 'Selisih rekonsiliasi tidak teridentifikasi dan tidak terkoreksi tepat waktu, meningkatkan risiko salah saji saldo piutang serta menghambat ketepatan pelaporan keuangan bulanan.',
+    rec: 'Tetapkan SLA rekonsiliasi maksimal 5 hari kerja setelah tutup bulan, dilengkapi dashboard pemantauan item terbuka dan reviu bulanan oleh Manajer Keuangan atas pos rekonsiliasi yang belum selesai.',
+    resp: 'Manajemen sepakat dan akan menerapkan SLA 5 hari kerja mulai periode Juli 2026. Dashboard pemantauan akan dibangun dengan memanfaatkan modul pelaporan ERP yang telah tersedia.',
+  },
+  {
+    id: 'ML-04', title: 'Transaksi pihak berelasi belum diungkapkan secara lengkap',
+    sev: 'Significant', area: 'Pengungkapan', ref: 'PSAK 7', pic: 'Sekretaris Perusahaan', target: 'Q3 2026', respStatus: 'Dalam Pembahasan',
+    cond: 'Dua transaksi dengan pihak berelasi — pembelian jasa manajemen dari entitas sepengendali senilai Rp 1,8 miliar dan pinjaman dari pemegang saham senilai Rp 5,0 miliar — belum tercatat dalam daftar pengungkapan pihak berelasi yang disusun manajemen.',
+    cause: 'Belum tersedia register pihak berelasi terpusat dan prosedur konfirmasi tahunan kepada manajemen kunci serta pemegang saham mengenai keberadaan transaksi pihak berelasi.',
+    criteria: 'PSAK 7: Pengungkapan Pihak-pihak Berelasi mensyaratkan pengungkapan sifat hubungan, jenis, jumlah transaksi, dan saldo dengan pihak berelasi dalam catatan atas laporan keuangan.',
+    effect: 'Risiko salah saji pengungkapan laporan keuangan. Atas kedua transaksi tersebut, manajemen telah menambahkan pengungkapan pada draf catatan laporan keuangan sebelum penerbitan.',
+    rec: 'Bangun register pihak berelasi terpusat yang dimutakhirkan setiap ada perubahan, didukung prosedur konfirmasi tahunan kepada direksi, komisaris, dan pemegang saham utama mengenai transaksi berelasi.',
+    resp: 'Dalam pembahasan. Manajemen menyetujui penambahan pengungkapan untuk dua transaksi yang teridentifikasi, namun masih mengevaluasi format dan kepemilikan register pihak berelasi. Keputusan final ditargetkan pada Q3 2026.',
+  },
+  {
+    id: 'ML-05', title: 'Pengendalian akses fisik gudang belum ditinjau secara berkala',
+    sev: 'Observation', area: 'Persediaan', ref: 'SA 315 · COSO', pic: 'Kepala Gudang', target: 'Q4 2026', respStatus: 'Dipertimbangkan',
+    cond: 'Log akses kartu masuk area gudang tidak ditinjau secara berkala. Pengamatan kami menemukan 3 kartu akses milik karyawan yang telah mengundurkan diri masih berstatus aktif pada sistem akses fisik.',
+    cause: 'Belum ada prosedur penonaktifan akses fisik yang terintegrasi dengan proses offboarding kepegawaian, serta tidak ada reviu berkala atas daftar pemegang akses aktif.',
+    criteria: 'COSO — pengendalian fisik atas aset — dan SA 315 menekankan pembatasan akses ke aset hanya kepada personel yang berwenang sebagai bagian dari pengendalian preventif.',
+    effect: 'Risiko akses tidak sah atas persediaan dan potensi kehilangan aset. Dampak finansial saat ini dinilai rendah, namun kelemahan ini perlu diperbaiki untuk mencegah penyalahgunaan di masa depan.',
+    rec: 'Integrasikan penonaktifan akses fisik ke dalam checklist offboarding kepegawaian dan lakukan reviu daftar pemegang akses gudang setiap bulan oleh Kepala Gudang.',
+    resp: 'Manajemen mempertimbangkan. Penonaktifan tiga kartu akses telah dilakukan segera. Integrasi dengan proses offboarding akan dikaji bersama fungsi SDM dan keamanan.',
+  },
+];
+const ML_SEV_KIND = { Significant: 'red', Deficiency: 'amber', Observation: 'blue' };
+const ML_RESP_KIND = { 'Setuju': 'green', 'Dalam Pembahasan': 'amber', 'Dipertimbangkan': 'blue', 'Sebagian': 'amber' };
+const ML_SECTIONS = [
+  ['1', 'Kondisi', 'cond'],
+  ['2', 'Sebab', 'cause'],
+  ['3', 'Kriteria', 'criteria'],
+  ['4', 'Akibat', 'effect'],
+  ['5', 'Rekomendasi', 'rec'],
+  ['6', 'Tanggapan Manajemen', 'resp'],
+];
+
+function MLFinding({ f, editing, setField }) {
+  return (
+    <div>
+      <div className="row jb ac" style={{ marginBottom: 6, gap: 10 }}>
+        <span style={{ fontWeight: 800, fontSize: 13.5, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
+        <Badge kind={ML_SEV_KIND[f.sev]}>{f.sev}</Badge>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 10.5, color: '#6a7a85', marginBottom: 16, paddingBottom: 13, borderBottom: '1px dashed #e0e4e8' }}>
+        {[['Area', f.area], ['Acuan', f.ref], ['Penanggung Jawab', f.pic], ['Target Tindak Lanjut', f.target]].map(([l, v]) => (
+          <span key={l}><span style={{ color: '#9aa7b0', textTransform: 'uppercase', letterSpacing: '.04em', fontSize: 9.5, fontWeight: 700 }}>{l} </span><b style={{ color: '#46555f', fontWeight: 600 }}>{v}</b></span>
+        ))}
+      </div>
+      {ML_SECTIONS.map(([num, label, key]) => {
+        const isResp = key === 'resp';
+        return (
+          <div key={key} style={{ display: 'flex', gap: 12, marginBottom: 13, alignItems: 'flex-start', ...(isResp ? { background: '#f1f6fa', border: '1px solid #dde7ef', borderRadius: 8, padding: '13px 15px', marginTop: 4 } : {}) }}>
+            <div style={{ flex: '0 0 21px', width: 21, height: 21, borderRadius: '50%', background: isResp ? '#005085' : '#e3eef6', color: isResp ? '#fff' : '#005085', display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 800, marginTop: 1 }}>{num}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="row ac jb" style={{ marginBottom: 3, gap: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#005085', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+                {isResp && <Badge kind={ML_RESP_KIND[f.respStatus] || 'gray'}>{f.respStatus}</Badge>}
+              </div>
+              <div
+                contentEditable={editing}
+                suppressContentEditableWarning
+                onBlur={editing ? (e => setField(f.id, key, e.currentTarget.textContent)) : undefined}
+                style={{ fontSize: 12, lineHeight: 1.62, color: isResp ? '#2a3a44' : '#16242c', outline: editing ? '1px dashed #9fc0d2' : 'none', borderRadius: 4, padding: editing ? '4px 7px' : 0, background: editing ? '#fffef5' : 'transparent', cursor: editing ? 'text' : 'default' }}
+              >{f[key]}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ManagementLetter() {
+  const { activeClient, activeEngagement } = useFirm();
+  const [selId, setSelId] = useStateF3('ML-01');
+  const [findings, setFindings] = useStateF3(ML_FINDINGS);
+  const [editing, setEditing] = useStateF3(false);
+  const [viewAll, setViewAll] = useStateF3(false);
+  const sel = findings.find(f => f.id === selId);
+  const setField = (id, k, v) => setFindings(list => list.map(f => f.id === id ? { ...f, [k]: v } : f));
+  const counts = { sig: findings.filter(f => f.sev === 'Significant').length, def: findings.filter(f => f.sev === 'Deficiency').length, obs: findings.filter(f => f.sev === 'Observation').length };
+
+  return (
+    <>
+      <SubBar moduleId="mgmtletter" right={
+        <div className="row gap8 ac">
+          <Badge kind="blue">SA 265 · SA 260</Badge>
+          <Seg options={[{ value: false, label: 'Per Temuan' }, { value: true, label: 'Surat Lengkap' }]} value={viewAll} onChange={setViewAll} />
+          <Btn sm onClick={() => setEditing(e => !e)} variant={editing ? 'primary' : ''}>{editing ? <><I.check size={13} /> Selesai Edit</> : <><I.doc size={13} /> Edit Teks</>}</Btn>
+          <Btn sm onClick={() => window.amsPrintDoc()}><I.download size={13} /> Export PDF</Btn>
+          <Btn sm variant="primary"><I.send size={14} /> Kirim ke TCWG</Btn>
+        </div>
+      } />
+      <div className="view-scroll"><div className="view-pad">
+        <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
+          {/* left: findings list */}
+          <div className="grid" style={{ gap: 12 }}>
+            <Panel noBody>
+              <div style={{ display: 'flex', gap: 0 }}>
+                {[['Signifikan', counts.sig, 'red'], ['Defisiensi', counts.def, 'amber'], ['Observasi', counts.obs, 'blue']].map(([l, n, k], i) => (
+                  <div key={l} style={{ flex: 1, padding: '10px 8px', textAlign: 'center', borderLeft: i ? '1px solid var(--line-soft)' : 0 }}>
+                    <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: `var(--${k === 'red' ? 'red' : k === 'amber' ? 'amber' : 'blue'})` }}>{n}</div>
+                    <div className="tiny muted">{l}</div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+            <Panel title="Daftar Temuan" sub={`${findings.length} temuan`}>
+              <div style={{ display: 'grid', gap: 2 }}>
+                {findings.map(f => (
+                  <div key={f.id} onClick={() => { setSelId(f.id); setViewAll(false); }} style={{ padding: '9px 10px', borderRadius: 7, cursor: 'pointer', background: (!viewAll && f.id === selId) ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + ((!viewAll && f.id === selId) ? 'var(--blue)' : 'transparent') }}>
+                    <div className="row jb ac" style={{ marginBottom: 2 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.id}</span><Badge kind={ML_SEV_KIND[f.sev]}>{f.sev}</Badge></div>
+                    <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{f.title}</div>
+                    <div className="row jb ac" style={{ marginTop: 3 }}>
+                      <span className="tiny muted">{f.area}</span>
+                      <span className="tiny" style={{ color: `var(--${ML_RESP_KIND[f.respStatus] || 'gray'})`, fontWeight: 600 }}>{f.respStatus}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+            <Panel title="Struktur Temuan" sub="SA 265">
+              <div style={{ display: 'grid', gap: 7 }}>
+                {ML_SECTIONS.map(([num, label]) => (
+                  <div key={num} className="row ac gap8">
+                    <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800 }}>{num}</span>
+                    <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          </div>
+
+          {/* right: letter document */}
+          <Panel noBody>
+            <div style={{ background: '#e7eaef', padding: 18 }}>
+              <div className="doc-paper" style={{ background: '#fff', maxWidth: 720, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c', lineHeight: 1.6 }}>
+                <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 22, paddingBottom: 16, borderBottom: '2px solid #0c2430', gap: 16 }}>
+                  <div style={{ minWidth: 0 }}><div style={{ fontWeight: 800, fontSize: 14, color: '#0c2430', whiteSpace: 'nowrap', lineHeight: 1.25 }}>KAP Wijaya Hartono &amp; Rekan</div><div style={{ fontSize: 10.5, color: '#7a8893', marginTop: 2 }}>Registered Public Accountants</div></div>
+                  <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' }}>{activeEngagement.id}<br />14 Maret 2026</div>
+                </div>
+                <div style={{ marginBottom: 14 }}>
+                  Kepada Yth. <b>Dewan Komisaris &amp; Komite Audit</b><br />{activeClient?.name}<br />{activeClient?.city}
+                </div>
+                <div style={{ fontWeight: 700, marginBottom: 10 }}>Perihal: Surat Manajemen (Management Letter) — Audit {activeEngagement.fy}</div>
+                <p style={{ margin: '0 0 8px' }}>
+                  Dalam rangka audit kami atas laporan keuangan {activeClient?.name} untuk tahun yang berakhir 31 Desember 2025, kami mengidentifikasi sejumlah hal terkait pengendalian internal dan praktik akuntansi yang ingin kami sampaikan untuk perbaikan. Sesuai SA 265 dan SA 260, setiap temuan kami uraikan menurut <b>enam unsur</b>: Kondisi, Sebab, Kriteria, Akibat, Rekomendasi, dan Tanggapan Manajemen.
+                </p>
+                <p style={{ margin: '0 0 16px', color: '#52616b', fontSize: 11.5 }}>
+                  Hal-hal berikut tidak memengaruhi opini audit kami atas laporan keuangan.
+                </p>
+
+                {viewAll ? (
+                  findings.map((f, i) => (
+                    <div key={f.id} style={{ borderTop: '1px solid #e0e4e8', paddingTop: 18, marginTop: i ? 22 : 0 }}>
+                      <div className="mono" style={{ fontSize: 10, color: '#9aa7b0', letterSpacing: '.08em', marginBottom: 8 }}>TEMUAN {i + 1} DARI {findings.length}</div>
+                      <MLFinding f={f} editing={editing} setField={setField} />
+                    </div>
+                  ))
+                ) : (
+                  sel && (
+                    <div style={{ borderTop: '1px solid #e0e4e8', paddingTop: 18 }}>
+                      <MLFinding f={sel} editing={editing} setField={setField} />
+                    </div>
+                  )
+                )}
+
+                <p style={{ margin: '20px 0 0', paddingTop: 14, borderTop: '1px solid #e0e4e8', color: '#52616b', fontSize: 11.5 }}>
+                  {viewAll
+                    ? `Surat ini memuat seluruh ${findings.length} temuan beserta tanggapan manajemen. Kami mengapresiasi kerja sama tim manajemen dan siap membahas tindak lanjut lebih lanjut.`
+                    : `Menampilkan 1 dari ${findings.length} temuan. Pilih temuan lain di panel kiri, atau beralih ke "Surat Lengkap" untuk meninjau keseluruhan surat.`}
+                </p>
+                <div style={{ marginTop: 18 }}>Hormat kami,<br /><b>{activeEngagement.partner}</b><br /><span style={{ color: '#7a8893', fontSize: 11 }}>Engagement Partner</span></div>
+              </div>
+            </div>
+          </Panel>
+        </div>
+      </div></div>
+    </>
+  );
+}
+
+Object.assign(window, { ManagementLetter });

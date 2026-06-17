@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Peta Jalan Teknis — Handoff ke Claude Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:1020px; margin:0 auto; padding:40px 24px 96px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:33px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.13; position:relative; max-width:740px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:700px; position:relative; }
+  .cover .meta{ display:flex; gap:28px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 17px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:40px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:820px; }
+  p{ margin:0 0 12px; } .lead{ font-size:15px; color:var(--ink-2); }
+  .mono{ font-family:var(--mono); }
+
+  /* verdict banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); }
+  .verdict.amber{ border-left-color:var(--amber); } .verdict.green{ border-left-color:var(--green); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--blue); white-space:nowrap; padding-top:2px; }
+  .verdict.amber .tag{ color:var(--amber); } .verdict.green .tag{ color:var(--green); }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* legend chips */
+  .legend{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px; }
+  .lg{ font:600 11px/1 var(--mono); padding:6px 10px; border-radius:7px; border:1px solid var(--line-soft); background:var(--surface); color:var(--ink-2); display:flex; align-items:center; gap:7px; }
+  .lg b{ color:var(--ink); }
+  .sw{ width:11px; height:11px; border-radius:3px; display:inline-block; }
+
+  /* ---------- ordered task list ---------- */
+  .seq{ display:grid; grid-template-columns:1fr; gap:0; }
+  .srow{ display:grid; grid-template-columns:46px 1fr; gap:14px; padding:14px 0; border-top:1px solid var(--line-soft); }
+  .srow:first-child{ border-top:none; }
+  .snum{ height:38px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center; font:800 14px/1 var(--mono); }
+  .srow.prod .snum{ background:var(--purple); }
+  .stitle{ font-size:14.5px; font-weight:700; margin:1px 0 4px; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .stitle .ph{ font:700 9.5px/1 var(--mono); letter-spacing:.05em; padding:4px 7px; border-radius:5px; background:var(--blue-100); color:var(--blue); text-transform:uppercase; }
+  .srow.prod .ph{ background:var(--purple-bg); color:var(--purple); }
+  .sdesc{ font-size:12.5px; color:var(--ink-2); margin:0; }
+  .smeta{ display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; }
+  .smeta span{ font:600 10.5px/1 var(--mono); background:var(--surface-3); color:var(--ink-3); padding:4px 8px; border-radius:5px; border:1px solid var(--line-soft); }
+  .smeta .dep{ background:var(--amber-bg); color:var(--amber); border-color:transparent; }
+  .smeta .out{ background:var(--green-bg); color:var(--green); border-color:transparent; }
+
+  /* ---------- schema entities ---------- */
+  .domband{ display:flex; align-items:center; gap:11px; margin:26px 0 12px; }
+  .domband .dn{ font:800 11px/1 var(--mono); color:#fff; padding:7px 11px; border-radius:7px; letter-spacing:.05em; white-space:nowrap; text-transform:uppercase; }
+  .domband .dt{ font-size:15px; font-weight:800; letter-spacing:-.01em; }
+  .domband .dl{ flex:1; height:2px; border-radius:2px; background:var(--line); }
+  .domband .dmeta{ font:600 10.5px/1 var(--mono); color:var(--ink-4); white-space:nowrap; }
+  .domband.core .dn{ background:var(--navy); } .domband.core .dl{ background:linear-gradient(90deg,var(--navy),transparent); }
+  .domband.audit .dn{ background:var(--blue); } .domband.audit .dl{ background:linear-gradient(90deg,var(--blue),transparent); }
+  .domband.canon .dn{ background:var(--teal); } .domband.canon .dl{ background:linear-gradient(90deg,var(--teal),transparent); }
+  .domband.firm .dn{ background:var(--green); } .domband.firm .dl{ background:linear-gradient(90deg,var(--green),transparent); }
+  .domband.plat .dn{ background:var(--purple); } .domband.plat .dl{ background:linear-gradient(90deg,var(--purple),transparent); }
+
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:13px; }
+  .ent{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; }
+  .ent-h{ display:flex; align-items:center; gap:9px; padding:11px 14px; background:var(--surface-2); border-bottom:1px solid var(--line-soft); flex-wrap:wrap; }
+  .ent-n{ font:700 13.5px/1 var(--mono); color:var(--navy); }
+  .ent-src{ font:600 10px/1 var(--mono); color:var(--ink-4); margin-left:auto; }
+  .ent-pill{ font:700 9px/1 var(--mono); padding:3px 6px; border-radius:4px; letter-spacing:.04em; text-transform:uppercase; }
+  .ent-pill.new{ background:var(--amber-bg); color:var(--amber); }
+  .ent-pill.live{ background:var(--green-bg); color:var(--green); }
+  table.ft{ width:100%; border-collapse:collapse; font-size:12px; }
+  table.ft td{ padding:6px 14px; border-top:1px solid var(--line-soft); vertical-align:top; }
+  table.ft tr:first-child td{ border-top:none; }
+  .fkey{ width:34px; }
+  .badge{ font:700 8.5px/1 var(--mono); padding:3px 5px; border-radius:4px; letter-spacing:.03em; }
+  .pk{ background:var(--navy); color:#fff; } .fk{ background:var(--blue-100); color:var(--blue); }
+  .uq{ background:var(--purple-bg); color:var(--purple); }
+  .fname{ font:600 12px/1.5 var(--mono); color:var(--ink); }
+  .ftype{ font:500 11px/1.5 var(--mono); color:var(--teal); width:118px; }
+  .fnote{ color:var(--ink-3); font-size:11px; }
+  .fnote .m{ font-family:var(--mono); color:var(--navy); }
+
+  /* code */
+  .code{ background:#0c2733; color:#cfe6f2; border-radius:9px; padding:12px 14px; font:500 11.5px/1.75 var(--mono); overflow-x:auto; margin:12px 0 4px; border:1px solid #143a4a; white-space:pre; }
+  .code .c{ color:#6f93a5; } .code .k{ color:#7fd1b9; } .code .s{ color:#e6b27a; } .code b{ color:#fff; font-weight:600; }
+
+  /* ---------- seam (file connection) cards ---------- */
+  .seam{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px; }
+  .seam-h{ display:flex; align-items:center; gap:11px; padding:13px 16px; border-bottom:1px solid var(--line-soft); }
+  .seam-id{ font:700 10.5px/1 var(--mono); padding:5px 9px; border-radius:6px; white-space:nowrap; background:var(--red-bg); color:var(--red); }
+  .seam-id.p2{ background:var(--amber-bg); color:var(--amber); }
+  .seam-t{ font-size:14.5px; font-weight:700; flex:1; }
+  .seam-w{ font:600 10.5px/1 var(--mono); color:var(--ink-4); white-space:nowrap; }
+  .seam-b{ padding:13px 16px; font-size:12.5px; color:var(--ink-2); }
+  .seam-b p{ margin:0 0 11px; }
+  .touch{ display:grid; grid-template-columns:1fr; gap:0; margin-top:6px; border-top:1px solid var(--line-soft); }
+  .trow{ display:grid; grid-template-columns:230px 1fr; gap:12px; padding:9px 0; border-bottom:1px solid var(--line-soft); }
+  .trow:last-child{ border-bottom:none; }
+  .tfile{ font:600 11px/1.5 var(--mono); color:var(--navy); }
+  .tfile .sym{ color:var(--blue); }
+  .twhat{ font-size:11.5px; color:var(--ink-2); }
+  .twhat .ar{ color:var(--ink-4); }
+  .twhat b{ color:var(--ink); }
+
+  ul.clean{ margin:8px 0 14px; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:22px; margin-bottom:7px; font-size:13px; color:var(--ink-2); }
+  ul.clean li::before{ content:""; position:absolute; left:4px; top:8px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:10px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:760px){
+    .cover{ padding:30px 26px;} .cover h1{ font-size:25px;}
+    .grid{ grid-template-columns:1fr; } .trow{ grid-template-columns:1fr; gap:3px; }
+  }
+  @media print{
+    body{ background:#fff; } .doc{ padding:0; max-width:none; }
+    .cover,.ent,.seam,.verdict{ box-shadow:none; }
+    section,.ent,.seam,.srow{ break-inside:avoid; }
+    .cover{ border-radius:0; }
+    .grid{ grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Engineering Handoff · Claude Code</p>
+    <h1>Peta Jalan Teknis — Skema Basis Data, Tugas Berurut &amp; Titik Sambung per Celah</h1>
+    <p>Cetak biru implementasi untuk agen koding. Tiga bagian: <b>(A)</b> daftar tugas berurut dengan dependensi dan keluaran terverifikasi; <b>(B)</b> skema basis data yang diturunkan langsung dari struktur <span class="mono">AMS</span>/<span class="mono">AMS_CANON</span> di kode sumber; <b>(C)</b> titik-titik sambung file persis — baris dan simbol mana yang disentuh untuk menutup tiap celah prototipe&rarr;produk.</p>
+    <div class="meta">
+      <div>Tanggal<b>17 Jun 2026</b></div>
+      <div>Turunan dari<b>data.js · canon.js</b></div>
+      <div>Entitas skema<b>24 tabel · 5 domain</b></div>
+      <div>Pendamping<b>Backlog 11 gelombang</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== 00 CARA BACA ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">00</span><h2 class="sec-t">Cara membaca dokumen ini</h2></div>
+    <p class="lead">Dokumen <b>Kesiapan Pengembangan</b> menetapkan <i>apa</i> &amp; <i>mengapa</i> (backlog 11 gelombang). Dokumen ini adalah lapisan <i>bagaimana</i> &mdash; artefak yang dapat langsung dieksekusi agen: urutan kerja yang aman, bentuk basis data target, dan peta seam per file. Skema di &sect;B <b>bukan rekaan</b>: setiap tabel dipetakan ke array/objek nyata di <span class="mono">app/data.js</span> &amp; <span class="mono">app/canon.js</span>, sehingga migrasi seed (W6&middot;2) bersifat mekanis.</p>
+    <div class="legend">
+      <span class="lg"><span class="sw" style="background:var(--navy)"></span> <b>Core</b> firma · pengguna · klien · perikatan</span>
+      <span class="lg"><span class="sw" style="background:var(--blue)"></span> <b>Audit set</b> WTB · AJE · risiko · KKP</span>
+      <span class="lg"><span class="sw" style="background:var(--teal)"></span> <b>Canon</b> mesin angka · state modul</span>
+      <span class="lg"><span class="sw" style="background:var(--green)"></span> <b>Firma</b> faktur · pipeline</span>
+      <span class="lg"><span class="sw" style="background:var(--purple)"></span> <b>Platform</b> konektor · jejak audit · AI</span>
+    </div>
+    <div class="legend">
+      <span class="lg"><span class="badge pk">PK</span> kunci primer</span>
+      <span class="lg"><span class="badge fk">FK</span> kunci asing</span>
+      <span class="lg"><span class="badge uq">UQ</span> unik</span>
+      <span class="lg"><span class="ent-pill new">SEED</span> isi awal dari <span class="mono">data.js</span></span>
+      <span class="lg"><span class="ent-pill live">DERIVED</span> dihitung oleh canon, bukan disimpan</span>
+    </div>
+  </section>
+
+  <!-- ===================== A · TUGAS BERURUT ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">A</span><h2 class="sec-t">Daftar tugas berurut</h2></div>
+    <p class="sec-sub">Urutan dipilih agar tiap langkah membuka langkah berikutnya &amp; menjaga "diff angka nol" terhadap versi root. <b>Fase rekayasa (1&ndash;6)</b> sebagian besar mekanis; <b>fase produk (7&ndash;13)</b> berdiri di atas skema &sect;B. Setiap tugas menyatakan <span class="mono" style="color:var(--amber)">dep</span> (prasyarat) &amp; <span class="mono" style="color:var(--green)">out</span> (keluaran terverifikasi).</p>
+
+    <div class="seq">
+      <div class="srow">
+        <div class="snum">1</div>
+        <div>
+          <div class="stitle"><span class="ph">Rekayasa</span>Baseline hijau &amp; verifikasi kit migrasi</div>
+          <p class="sdesc">Jalankan <span class="mono">build/</span> (precompile) &amp; <span class="mono">migration/</span> (Vite + codemod dry-run). Patok angka kunci (materialitas, PSAK 46/71/73) sebagai snapshot rujukan untuk seluruh langkah berikutnya.</p>
+          <div class="smeta"><span class="dep">dep: —</span><span class="out">out: prod.html &amp; Vite boot identik root</span><span>~½ hari</span></div>
+        </div>
+      </div>
+      <div class="srow">
+        <div class="snum">2</div>
+        <div>
+          <div class="stitle"><span class="ph">Rekayasa</span>Pecah 6 berkas raksasa per domain</div>
+          <p class="sdesc"><span class="mono">canon.js</span>&rarr;<span class="mono">canon/{materiality,psak46,psak71,psak73,reconcile}.js</span>; <span class="mono">data.js</span>&rarr;<span class="mono">data/{clients,engagements,wtb,team,engines}.js</span>; + styles/related/groupaudit/copilot. Pemecahan ini juga memetakan langsung ke batas tabel di &sect;B.</p>
+          <div class="smeta"><span class="dep">dep: 1</span><span class="out">out: tiap berkas &lt;600 baris · regresi nol</span><span>~1 hari</span></div>
+        </div>
+      </div>
+      <div class="srow">
+        <div class="snum">3</div>
+        <div>
+          <div class="stitle"><span class="ph">Rekayasa</span>Vite jadi sumber build + ESLint gate</div>
+          <p class="sdesc">Satu entri <span class="mono">main.jsx</span> menggantikan 188 tag <span class="mono">&lt;script&gt;</span>. Pasang <span class="mono">eslint</span> (0 warning) sebagai gerbang mutu yang dapat dipanggil agen.</p>
+          <div class="smeta"><span class="dep">dep: 2</span><span class="out">out: npm run build &amp; eslint hijau</span><span>~1&ndash;2 hari</span></div>
+        </div>
+      </div>
+      <div class="srow">
+        <div class="snum">4</div>
+        <div>
+          <div class="stitle"><span class="ph">Rekayasa</span>Jaring uji "mesin angka" (Vitest)</div>
+          <p class="sdesc">Uji fungsi murni canon: <span class="mono">materiality()</span>, <span class="mono">reconcile</span>, <span class="mono">psak46/71/73</span>. Inilah gerbang regresi yang melindungi langkah 5&ndash;7 &amp; migrasi data nanti.</p>
+          <div class="smeta"><span class="dep">dep: 2</span><span class="out">out: cakupan canon ≥80% · test hijau</span><span>~2 hari</span></div>
+        </div>
+      </div>
+      <div class="srow">
+        <div class="snum">5</div>
+        <div>
+          <div class="stitle"><span class="ph">Rekayasa</span>Lucuti <span class="mono" style="font-size:13px">window</span> &rarr; ESM (per workspace)</div>
+          <p class="sdesc">Codemod tanam <span class="mono">import/export</span>, lalu hapus <span class="mono">Object.assign(window,…)</span> berkas-demi-berkas. Bus runtime imperatif (<span class="mono">__amsOpenSA</span>, <span class="mono">useAmsPersist</span>) sengaja dipertahankan.</p>
+          <div class="smeta"><span class="dep">dep: 3, 4</span><span class="out">out: tree-shake tanpa "is not defined"</span><span>~2&ndash;4 hari</span></div>
+        </div>
+      </div>
+      <div class="srow">
+        <div class="snum">6</div>
+        <div>
+          <div class="stitle"><span class="ph">Rekayasa</span>TypeScript bertahap dari kontrak canon</div>
+          <p class="sdesc">Ketik permukaan paling bernilai: tipe <span class="mono">WTB</span>, <span class="mono">FIG</span>, hasil tiap engine — tipe-tipe ini menjadi <b>kontrak bersama dengan skema DB</b> di langkah 7.</p>
+          <div class="smeta"><span class="dep">dep: 5</span><span class="out">out: tsc --noEmit hijau di src/canon</span><span>~3&ndash;5 hari</span></div>
+        </div>
+      </div>
+
+      <div class="srow prod">
+        <div class="snum">7</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>Skema DB + migrasi + seed dari <span class="mono" style="font-size:13px">data.js</span></div>
+          <p class="sdesc">Implementasikan 24 tabel &sect;B (Postgres/Prisma). Konstanta di <span class="mono">data.js</span> (<span class="mono">CLIENTS/ENGAGEMENTS/WTB/TEAM…</span>) berhenti jadi runtime → jadi <b>seed migrasi &amp; fixtures uji</b>. Tipe langkah 6 dipakai ulang sebagai model ORM.</p>
+          <div class="smeta"><span class="dep">dep: 6</span><span class="out">out: seed memuat 8 klien · 8 perikatan · WTB utuh</span><span>~4&ndash;6 hari</span></div>
+        </div>
+      </div>
+      <div class="srow prod">
+        <div class="snum">8</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>API + ganti <span class="mono" style="font-size:13px">localStorage</span> sebagai SSOT</div>
+          <p class="sdesc">REST/tRPC di atas skema. Ganti <span class="mono">useAmsPersist</span>/<span class="mono">loadLS</span> dengan hook ber-API ke tabel <span class="mono">module_state</span>; <span class="mono">localStorage</span> turun pangkat jadi cache offline. (Seam &sect;C&middot;A.)</p>
+          <div class="smeta"><span class="dep">dep: 7</span><span class="out">out: 2 peramban berbagi state perikatan</span><span>~1&ndash;2 minggu</span></div>
+        </div>
+      </div>
+      <div class="srow prod">
+        <div class="snum">9</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>Auth, sesi &amp; RBAC ditegakkan</div>
+          <p class="sdesc">Login nyata (OIDC / email+TOTP); peran <span class="mono">USER.role</span> ditegakkan di API &amp; UI; ganti mock di <span class="mono">view_settings.jsx</span>. (Seam &sect;C&middot;B.)</p>
+          <div class="smeta"><span class="dep">dep: 8</span><span class="out">out: uji otorisasi negatif lulus</span><span>~1 minggu</span></div>
+        </div>
+      </div>
+      <div class="srow prod">
+        <div class="snum">10</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>AI Co-pilot via proxy server + RAG</div>
+          <p class="sdesc">Pindahkan <span class="mono">window.claude.complete</span> ke endpoint server (kunci di server, auth, rate-limit, log). RAG atas dokumen perikatan; <span class="mono">demoReply()</span> jadi fallback. (Seam &sect;C&middot;C.)</p>
+          <div class="smeta"><span class="dep">dep: 9</span><span class="out">out: jawaban model nyata · tanpa kunci di klien</span><span>~3&ndash;5 hari</span></div>
+        </div>
+      </div>
+      <div class="srow prod">
+        <div class="snum">11</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>Konektor nyata (OAuth + sync)</div>
+          <p class="sdesc">Ganti <span class="mono">status</span> statis di <span class="mono">data_import.js</span> dengan OAuth + job sync + webhook; gunakan <span class="mono">field_mapping</span> yang sudah dimodelkan. Urut nilai: Coretax→firmtax, Bank Feed→cashbank. (Seam &sect;C&middot;D.)</p>
+          <div class="smeta"><span class="dep">dep: 8</span><span class="out">out: ≥1 konektor tarik data ujung-ke-ujung</span><span>~2&ndash;3 minggu</span></div>
+        </div>
+      </div>
+      <div class="srow prod">
+        <div class="snum">12</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>Jejak audit append-only + ekspor nyata</div>
+          <p class="sdesc">Ganti pseudo-hash klien (<span class="mono">view_platform3.jsx</span>) dengan rantai hash <b>server-side</b> di tabel <span class="mono">audit_log</span>; ekspor PDF/XLSX &amp; e-Meterai/e-Sign nyata. (Seam &sect;C&middot;E.)</p>
+          <div class="smeta"><span class="dep">dep: 8, 9</span><span class="out">out: jejak tak-dapat-diubah dari klien</span><span>~1 minggu</span></div>
+        </div>
+      </div>
+      <div class="srow prod">
+        <div class="snum">13</div>
+        <div>
+          <div class="stitle"><span class="ph">Produk</span>Pengerasan, observability &amp; deploy</div>
+          <p class="sdesc">Enkripsi at-rest/in-transit; retensi 10 thn (ISQM); CI/CD; target deploy (kontainer + Postgres). Backup/restore teruji; pen-test dasar.</p>
+          <div class="smeta"><span class="dep">dep: 8&ndash;12</span><span class="out">out: CI deploy otomatis · DR teruji</span><span>~1&ndash;2 minggu</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== B · SKEMA BASIS DATA ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">B</span><h2 class="sec-t">Skema basis data (turunan AMS / canon)</h2></div>
+    <p class="sec-sub">24 tabel dalam 5 domain. Tipe ditulis netral-dialek (cocok Postgres). Kolom <span class="ent-pill live" style="display:inline-block">DERIVED</span> <b>tidak disimpan</b> — dihitung <span class="mono">AMS_CANON</span> saat baca, untuk menjaga SSOT (mis. <span class="mono">wtb.adj = unadj + aje</span>, materialitas, PSAK 46/71/73). Tag <span class="ent-src">← SRC</span> menunjuk sumber seed.</p>
+
+    <!-- ---- CORE ---- -->
+    <div class="domband core"><span class="dn">Core</span><span class="dt">Firma, pengguna, klien, perikatan</span><span class="dl"></span><span class="dmeta">6 tabel · data.js</span></div>
+    <div class="grid">
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">firms</span><span class="ent-pill new">SEED</span><span class="ent-src">← FIRM</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">name</span></td><td class="ftype">text</td><td class="fnote">KAP Wijaya Hartono &amp; Rekan</td></tr>
+          <tr><td></td><td><span class="fname">short</span></td><td class="ftype">text</td><td class="fnote">WHR</td></tr>
+          <tr><td></td><td><span class="fname">license</span></td><td class="ftype">text</td><td class="fnote">Izin KAP No. …</td></tr>
+          <tr><td></td><td><span class="fname">partners, managers, staff</span></td><td class="ftype">int</td><td class="fnote">headcount</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">users</span><span class="ent-pill new">SEED</span><span class="ent-src">← USER · TEAM</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">WHR-AM-0142</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">firm_id</span></td><td class="ftype">uuid</td><td class="fnote">→ firms</td></tr>
+          <tr><td></td><td><span class="fname">name, initials</span></td><td class="ftype">text</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">role</span></td><td class="ftype">enum</td><td class="fnote">Partner·Manager·Senior·Junior·EQR</td></tr>
+          <tr><td><span class="badge uq">UQ</span></td><td><span class="fname">email</span></td><td class="ftype">citext</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">ap_number, iapi_number, stan</span></td><td class="ftype">text</td><td class="fnote">izin akuntan publik</td></tr>
+          <tr><td></td><td><span class="fname">cpe_hours, cpe_target</span></td><td class="ftype">int</td><td class="fnote">PPL / CPE</td></tr>
+          <tr><td></td><td><span class="fname">department, office, reports_to</span></td><td class="ftype">text</td><td class="fnote"></td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">clients</span><span class="ent-pill new">SEED</span><span class="ent-src">← CLIENTS</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">C-014</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">firm_id</span></td><td class="ftype">uuid</td><td class="fnote">→ firms</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">partner_id</span></td><td class="ftype">text</td><td class="fnote">→ users (engagement partner)</td></tr>
+          <tr><td></td><td><span class="fname">name, industry, city</span></td><td class="ftype">text</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">tier, risk</span></td><td class="ftype">enum</td><td class="fnote">Tier 1–3 · Low/Med/High</td></tr>
+          <tr><td></td><td><span class="fname">npwp</span></td><td class="ftype">text</td><td class="fnote">NPWP klien</td></tr>
+          <tr><td></td><td><span class="fname">listed</span></td><td class="ftype">bool</td><td class="fnote">emiten?</td></tr>
+          <tr><td></td><td><span class="fname">since, fee, status</span></td><td class="ftype">int·money·enum</td><td class="fnote">Active/Proposal</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">engagements</span><span class="ent-pill new">SEED</span><span class="ent-src">← ENGAGEMENTS</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">ENG-2025-014</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">client_id</span></td><td class="ftype">text</td><td class="fnote">→ clients</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">partner_id, manager_id</span></td><td class="ftype">text</td><td class="fnote">→ users</td></tr>
+          <tr><td></td><td><span class="fname">type, standard</span></td><td class="ftype">text</td><td class="fnote">Audit LK · SA+PSAK 71</td></tr>
+          <tr><td></td><td><span class="fname">fy, status, phase</span></td><td class="ftype">text·enum</td><td class="fnote">FY2025 · Fieldwork · Eksekusi</td></tr>
+          <tr><td></td><td><span class="fname">progress</span></td><td class="ftype">int</td><td class="fnote">0–100</td></tr>
+          <tr><td></td><td><span class="fname">deadline</span></td><td class="ftype">date</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">budget_hrs, actual_hrs</span></td><td class="ftype">numeric</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">materiality</span></td><td class="ftype">money</td><td class="fnote">overall — lihat materiality_runs</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">engagement_team</span><span class="ent-pill new">SEED</span><span class="ent-src">← TEAM</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote">junction</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">user_id</span></td><td class="ftype">text</td><td class="fnote">→ users</td></tr>
+          <tr><td></td><td><span class="fname">role</span></td><td class="ftype">text</td><td class="fnote">peran pada perikatan</td></tr>
+          <tr><td></td><td><span class="fname">util</span></td><td class="ftype">int</td><td class="fnote">% utilisasi</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">deadlines</span><span class="ent-pill new">SEED</span><span class="ent-src">← DEADLINES · ENGAGEMENTS</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">task</span></td><td class="ftype">text</td><td class="fnote">EQR &amp; ttd opini</td></tr>
+          <tr><td></td><td><span class="fname">due_date</span></td><td class="ftype">date</td><td class="fnote"><span class="ent-pill live" style="display:inline-block">DERIVED</span> sev dari selisih hari</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- AUDIT SET ---- -->
+    <div class="domband audit"><span class="dn">Audit set</span><span class="dt">Kertas kerja per perikatan</span><span class="dl"></span><span class="dmeta">7 tabel · data.js</span></div>
+    <div class="grid">
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">wtb_accounts</span><span class="ent-pill new">SEED</span><span class="ent-src">← WTB</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote">key wtb0…</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td><span class="badge uq">UQ</span></td><td><span class="fname">code</span></td><td class="ftype">text</td><td class="fnote">1-1100 (unik per perikatan)</td></tr>
+          <tr><td></td><td><span class="fname">group, name, lead</span></td><td class="ftype">text</td><td class="fnote">caption LK · ref lead schedule</td></tr>
+          <tr><td></td><td><span class="fname">ly, unadj</span></td><td class="ftype">money</td><td class="fnote">prior audited · current unadjusted</td></tr>
+          <tr><td></td><td><span class="fname">aje</span></td><td class="ftype">money</td><td class="fnote">Σ dampak AJE pada akun</td></tr>
+          <tr><td></td><td><span class="fname">adj</span></td><td class="ftype">money</td><td class="fnote"><span class="ent-pill live" style="display:inline-block">DERIVED</span> unadj + aje</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">aje</span><span class="ent-pill new">SEED</span><span class="ent-src">← AJE</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">AJE-01</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">description, ref</span></td><td class="ftype">text</td><td class="fnote">ref → KKP (B-3)</td></tr>
+          <tr><td></td><td><span class="fname">status</span></td><td class="ftype">enum</td><td class="fnote">Proposed · Posted</td></tr>
+          <tr><td></td><td><span class="fname">dr_account, cr_account</span></td><td class="ftype">text</td><td class="fnote">→ wtb_accounts.code</td></tr>
+          <tr><td></td><td><span class="fname">amount</span></td><td class="ftype">money</td><td class="fnote">memutakhirkan wtb.aje</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">risks</span><span class="ent-pill new">SEED</span><span class="ent-src">← RISKS (RoMM)</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">R-01</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">owner_id</span></td><td class="ftype">text</td><td class="fnote">→ users</td></tr>
+          <tr><td></td><td><span class="fname">area, assertion, description</span></td><td class="ftype">text</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">likelihood, impact</span></td><td class="ftype">int</td><td class="fnote">1–5</td></tr>
+          <tr><td></td><td><span class="fname">inherent</span></td><td class="ftype">enum</td><td class="fnote">Moderate · Significant</td></tr>
+          <tr><td></td><td><span class="fname">fraud, assertion_lvl</span></td><td class="ftype">bool</td><td class="fnote">SA 240 · tingkat asersi</td></tr>
+          <tr><td></td><td><span class="fname">response, wp_ref, proc</span></td><td class="ftype">text</td><td class="fnote">tautan ke modul prosedur</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">workpapers</span><span class="ent-pill new">SEED</span><span class="ent-src">← WORKPAPERS</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">ref, title</span></td><td class="ftype">text</td><td class="fnote">A · Kas dan Setara Kas</td></tr>
+          <tr><td></td><td><span class="fname">status</span></td><td class="ftype">enum</td><td class="fnote">In Progress · In Review · Reviewed</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">preparer_id, reviewer_id</span></td><td class="ftype">text</td><td class="fnote">→ users · deriveWpStatus</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">review_notes</span><span class="ent-pill new">SEED</span><span class="ent-src">← REVIEW_NOTES</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">RN-01</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">module, module_label, ref</span></td><td class="ftype">text</td><td class="fnote">tautan modul asal</td></tr>
+          <tr><td></td><td><span class="fname">type</span></td><td class="ftype">enum</td><td class="fnote">review·coaching·eqr·query</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">author_id, to_user_id</span></td><td class="ftype">text</td><td class="fnote">→ users</td></tr>
+          <tr><td></td><td><span class="fname">status, priority</span></td><td class="ftype">enum</td><td class="fnote">open·resolved · low/med/high</td></tr>
+          <tr><td></td><td><span class="fname">raised, due</span></td><td class="ftype">date</td><td class="fnote">SLA kliring</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">review_note_thread</span><span class="ent-pill new">SEED</span><span class="ent-src">← REVIEW_NOTES.thread[]</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">note_id</span></td><td class="ftype">text</td><td class="fnote">→ review_notes</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">author_id</span></td><td class="ftype">text</td><td class="fnote">→ users</td></tr>
+          <tr><td></td><td><span class="fname">kind</span></td><td class="ftype">enum</td><td class="fnote">response·comment·clear</td></tr>
+          <tr><td></td><td><span class="fname">text, created_at</span></td><td class="ftype">text·ts</td><td class="fnote">urutan percakapan</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">time_entries</span><span class="ent-pill new">SEED</span><span class="ent-src">← TIME_ENTRIES</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">TE-01</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id, user_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements · users</td></tr>
+          <tr><td></td><td><span class="fname">date, phase, task</span></td><td class="ftype">date·text</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">hours</span></td><td class="ftype">numeric</td><td class="fnote">agregasi → actual_hrs</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- CANON ---- -->
+    <div class="domband canon"><span class="dn">Canon</span><span class="dt">Input mesin angka &amp; state modul</span><span class="dl"></span><span class="dmeta">5 tabel · canon.js + persist</span></div>
+    <div class="grid">
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">leases</span><span class="ent-pill new">SEED</span><span class="ent-src">← canon.js LEASES</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">LS-01</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">name</span></td><td class="ftype">text</td><td class="fnote">Sewa Gudang Cikarang</td></tr>
+          <tr><td></td><td><span class="fname">term_mo, pmt, rate</span></td><td class="ftype">int·money·num</td><td class="fnote">input PSAK 73</td></tr>
+          <tr><td></td><td><span class="fname">start_date</span></td><td class="ftype">date</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">rou, liab, schedule</span></td><td class="ftype">—</td><td class="fnote"><span class="ent-pill live" style="display:inline-block">DERIVED</span> leasePortfolio()</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">fiscal_inputs</span><span class="ent-pill new">SEED</span><span class="ent-src">← canon.js FISCAL</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements (1:1)</td></tr>
+          <tr><td></td><td><span class="fname">ppe_tax_base_delta, provisi</span></td><td class="ftype">money</td><td class="fnote">beda temporer (non-WTB)</td></tr>
+          <tr><td></td><td><span class="fname">tax_loss, oci_remeasure</span></td><td class="ftype">money</td><td class="fnote">rugi fiskal · pajak OCI</td></tr>
+          <tr><td></td><td><span class="fname">pbt, pkp</span></td><td class="ftype">money</td><td class="fnote">laba komersial · PKP</td></tr>
+          <tr><td></td><td><span class="fname">perm_add, perm_less</span></td><td class="ftype">money</td><td class="fnote">beda permanen</td></tr>
+          <tr><td></td><td><span class="fname">rate</span></td><td class="ftype">numeric</td><td class="fnote">PPh badan 22% (UU HPP)</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">materiality_runs</span><span class="ent-pill live">DERIVED</span><span class="ent-src">← AMS_CANON.materiality()</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote">snapshot opsional</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">benchmark, basis, pct</span></td><td class="ftype">text·num</td><td class="fnote">PBT / pendapatan / aset</td></tr>
+          <tr><td></td><td><span class="fname">overall, performance, trivial</span></td><td class="ftype">money</td><td class="fnote">dihitung dari WTB</td></tr>
+          <tr><td></td><td><span class="fname">computed_at</span></td><td class="ftype">ts</td><td class="fnote">cache, bukan SSOT</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">module_state</span><span class="ent-pill new">SEED</span><span class="ent-src">← localStorage ams.v1.*</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id, user_id</span></td><td class="ftype">text</td><td class="fnote">scope state</td></tr>
+          <tr><td><span class="badge uq">UQ</span></td><td><span class="fname">module_key</span></td><td class="ftype">text</td><td class="fnote">ghg·soc·aup·pfi·checklist…</td></tr>
+          <tr><td></td><td><span class="fname">payload</span></td><td class="ftype">jsonb</td><td class="fnote">status pelaksanaan modul</td></tr>
+          <tr><td></td><td><span class="fname">updated_at, version</span></td><td class="ftype">ts·int</td><td class="fnote">optimistic concurrency</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">compliance_checks</span><span class="ent-pill new">SEED</span><span class="ent-src">← ams.comp.&lt;stdId&gt;.*</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ engagements</td></tr>
+          <tr><td></td><td><span class="fname">std_id, item_id</span></td><td class="ftype">text</td><td class="fnote">SA/PSAK · butir checklist</td></tr>
+          <tr><td></td><td><span class="fname">checked, na</span></td><td class="ftype">bool</td><td class="fnote">isApplicable() / N/A</td></tr>
+          <tr><td></td><td><span class="fname">pct</span></td><td class="ftype">numeric</td><td class="fnote"><span class="ent-pill live" style="display:inline-block">DERIVED</span> compliancePct()</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- FIRMA ---- -->
+    <div class="domband firm"><span class="dn">Firma</span><span class="dt">Keuangan &amp; pengembangan bisnis</span><span class="dl"></span><span class="dmeta">2 tabel · data.js</span></div>
+    <div class="grid">
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">invoices</span><span class="ent-pill new">SEED</span><span class="ent-src">← INVOICES</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">INV-2026-031</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">client_id, engagement_id</span></td><td class="ftype">text</td><td class="fnote">→ clients · engagements</td></tr>
+          <tr><td></td><td><span class="fname">issued, due</span></td><td class="ftype">date</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">amount, paid</span></td><td class="ftype">money</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">status</span></td><td class="ftype">enum</td><td class="fnote">Sent·Paid·Partial·Overdue</td></tr>
+          <tr><td></td><td><span class="fname">milestone</span></td><td class="ftype">text</td><td class="fnote">Termin 1 (50%)</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">opportunities</span><span class="ent-pill new">SEED</span><span class="ent-src">← PIPELINE</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">text</td><td class="fnote">OPP-101</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">firm_id, owner_id</span></td><td class="ftype">text</td><td class="fnote">→ firms · users</td></tr>
+          <tr><td></td><td><span class="fname">name, service, industry</span></td><td class="ftype">text</td><td class="fnote">calon klien</td></tr>
+          <tr><td></td><td><span class="fname">stage</span></td><td class="ftype">enum</td><td class="fnote">Lead→Qualified→…→Won/Lost</td></tr>
+          <tr><td></td><td><span class="fname">value, prob</span></td><td class="ftype">money·int</td><td class="fnote">nilai · probabilitas %</td></tr>
+          <tr><td></td><td><span class="fname">close_date</span></td><td class="ftype">date</td><td class="fnote"></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- PLATFORM ---- -->
+    <div class="domband plat"><span class="dn">Platform</span><span class="dt">Integrasi, jejak audit &amp; AI</span><span class="dl"></span><span class="dmeta">4 tabel · data_import/platform + AI</span></div>
+    <div class="grid">
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">connectors</span><span class="ent-pill new">SEED</span><span class="ent-src">← data_import.js</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">firm_id</span></td><td class="ftype">uuid</td><td class="fnote">→ firms</td></tr>
+          <tr><td></td><td><span class="fname">provider, category</span></td><td class="ftype">text</td><td class="fnote">Coretax·BCA·PrivyID·SharePoint</td></tr>
+          <tr><td></td><td><span class="fname">status</span></td><td class="ftype">enum</td><td class="fnote">connected·error·disconnected</td></tr>
+          <tr><td></td><td><span class="fname">scope, field_mapping</span></td><td class="ftype">jsonb</td><td class="fnote">cetak biru → modul target</td></tr>
+          <tr><td></td><td><span class="fname">oauth_tokens</span></td><td class="ftype">jsonb</td><td class="fnote"><span class="ent-pill new" style="display:inline-block">BARU</span> terenkripsi</td></tr>
+          <tr><td></td><td><span class="fname">sync_schedule, last_sync</span></td><td class="ftype">text·ts</td><td class="fnote"></td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">audit_log</span><span class="ent-pill new">SEED+</span><span class="ent-src">← data_platform.js</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">bigserial</td><td class="fnote">append-only</td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">firm_id, user_id</span></td><td class="ftype">text</td><td class="fnote">aktor</td></tr>
+          <tr><td></td><td><span class="fname">event_type, entity, entity_id</span></td><td class="ftype">text</td><td class="fnote">LOGIN·MFA·EDIT·SIGN</td></tr>
+          <tr><td></td><td><span class="fname">payload</span></td><td class="ftype">jsonb</td><td class="fnote"></td></tr>
+          <tr><td></td><td><span class="fname">prev_hash, hash</span></td><td class="ftype">text</td><td class="fnote"><span class="ent-pill new" style="display:inline-block">BARU</span> rantai server-side</td></tr>
+          <tr><td></td><td><span class="fname">created_at</span></td><td class="ftype">ts</td><td class="fnote">immutable</td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">ai_conversations</span><span class="ent-pill new">BARU</span><span class="ent-src">← copilot.jsx</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">user_id, engagement_id</span></td><td class="ftype">text</td><td class="fnote">konteks RAG</td></tr>
+          <tr><td></td><td><span class="fname">title, created_at</span></td><td class="ftype">text·ts</td><td class="fnote"></td></tr>
+        </table>
+      </div>
+
+      <div class="ent">
+        <div class="ent-h"><span class="ent-n">ai_messages</span><span class="ent-pill new">BARU</span><span class="ent-src">← copilot.jsx</span></div>
+        <table class="ft">
+          <tr><td class="fkey"><span class="badge pk">PK</span></td><td><span class="fname">id</span></td><td class="ftype">uuid</td><td class="fnote"></td></tr>
+          <tr><td><span class="badge fk">FK</span></td><td><span class="fname">conversation_id</span></td><td class="ftype">uuid</td><td class="fnote">→ ai_conversations</td></tr>
+          <tr><td></td><td><span class="fname">role</span></td><td class="ftype">enum</td><td class="fnote">user · assistant</td></tr>
+          <tr><td></td><td><span class="fname">content, tokens</span></td><td class="ftype">text·int</td><td class="fnote">log untuk audit &amp; kuota</td></tr>
+          <tr><td></td><td><span class="fname">redacted_pii</span></td><td class="ftype">bool</td><td class="fnote">kerahasiaan</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="verdict green" style="margin-top:18px;">
+      <span class="tag">Aturan SSOT</span>
+      <p>Tabel hanya menyimpan <b>input</b>. Saldo teradjustasi, materialitas, pajak tangguhan (PSAK 46), ECL (71), &amp; portofolio sewa (73) tetap <b>dihitung <span class="mono">AMS_CANON</span> dari WTB saat baca</b> — jangan dipersist sebagai kolom otoritatif. Materiality/compliance boleh di-cache (kolom <span class="ent-pill live" style="display:inline-block">DERIVED</span>) untuk performa, tetapi WTB tetap satu-satunya sumber kebenaran. Ini menjaga invarian yang sama yang sudah berlaku di prototipe.</p>
+    </div>
+
+    <div class="code"><span class="c">-- contoh DDL inti (Postgres) — turunan langsung dari data.js</span>
+<span class="k">CREATE TABLE</span> engagements (
+  id            <span class="k">text</span> <span class="k">PRIMARY KEY</span>,            <span class="c">-- "ENG-2025-014"</span>
+  client_id     <span class="k">text</span> <span class="k">REFERENCES</span> clients(id),
+  partner_id    <span class="k">text</span> <span class="k">REFERENCES</span> users(id),
+  manager_id    <span class="k">text</span> <span class="k">REFERENCES</span> users(id),
+  type          <span class="k">text</span>, standard <span class="k">text</span>, fy <span class="k">text</span>,
+  status        <span class="k">text</span>, phase <span class="k">text</span>, progress <span class="k">int</span>,
+  deadline      <span class="k">date</span>, budget_hrs <span class="k">numeric</span>, actual_hrs <span class="k">numeric</span>,
+  materiality   <span class="k">bigint</span>                       <span class="c">-- overall; rincian di materiality_runs</span>
+);
+<span class="k">CREATE TABLE</span> wtb_accounts (
+  id            <span class="k">uuid</span> <span class="k">DEFAULT</span> gen_random_uuid() <span class="k">PRIMARY KEY</span>,
+  engagement_id <span class="k">text</span> <span class="k">REFERENCES</span> engagements(id),
+  code          <span class="k">text</span>, "group" <span class="k">text</span>, name <span class="k">text</span>, lead <span class="k">text</span>,
+  ly <span class="k">bigint</span>, unadj <span class="k">bigint</span>, aje <span class="k">bigint</span>,    <span class="c">-- adj = unadj+aje DIHITUNG, tak disimpan</span>
+  <span class="k">UNIQUE</span> (engagement_id, code)
+);</div>
+  </section>
+
+  <!-- ===================== C · TITIK SAMBUNG ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">C</span><h2 class="sec-t">Titik-titik sambung file per celah</h2></div>
+    <p class="sec-sub">Untuk tiap celah prototipe&rarr;produk: berkas &amp; simbol persis yang disentuh, dan apa yang berubah di tiap titik. Karena setiap engine sudah menerima state via argumen &amp; jatuh ke <span class="mono">localStorage</span> hanya sebagai default, perubahan bersifat <b>terlokalisasi — bukan penulisan ulang</b>.</p>
+
+    <!-- A -->
+    <div class="seam">
+      <div class="seam-h"><span class="seam-id">C·A · DATA</span><span class="seam-t"><span class="mono">localStorage</span> &rarr; API / basis data</span><span class="seam-w">→ Tugas 7–8</span></div>
+      <div class="seam-b">
+        <p>Ganti SSOT dari peramban ke server. Hook persist &amp; engine adalah dua satu-satunya seam — sengaja terpusat.</p>
+        <div class="touch">
+          <div class="trow"><div class="tfile">app/contexts.jsx <span class="sym">· useAmsPersist · loadLS · usePersisted</span></div><div class="twhat"><b>Seam utama.</b> Ganti baca/tulis <span class="mono">localStorage</span> dgn fetch ke <span class="mono">module_state</span>. <span class="ar">→</span> optimistic-update + sinkron server; key <span class="mono">ams.v1.&lt;k&gt;</span> ↔ <span class="mono">module_key</span>.</div></div>
+          <div class="trow"><div class="tfile">app/data.js <span class="sym">· ghgEngine · socEngine · aupNarrate · pfiEngine</span></div><div class="twhat">Sudah menerima <span class="mono">exec</span> via argumen; hapus fallback <span class="mono">loadLS()</span> internal — state selalu disuntik pemanggil dari server.</div></div>
+          <div class="trow"><div class="tfile">app/canon.js <span class="sym">· figuresFromWTB(wtb)</span></div><div class="twhat">Tetap. Terima <span class="mono">wtb</span> reaktif dari <span class="mono">useAudit().wtb</span> yang kini ber-sumber API — <b>tanpa perubahan logika</b>.</div></div>
+          <div class="trow"><div class="tfile">server/ <span class="sym">(baru)</span></div><div class="twhat">Endpoint CRUD untuk 24 tabel; map kunci persist → rute. Seed dari <span class="mono">data.js</span> (Tugas 7).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="seam">
+      <div class="seam-h"><span class="seam-id">C·B · AKSES</span><span class="seam-t">Autentikasi, sesi &amp; RBAC nyata</span><span class="seam-w">→ Tugas 9</span></div>
+      <div class="seam-b">
+        <p>Model peran sudah ada (<span class="mono">USER.role</span>) &amp; dirujuk UI — tinggal menegakkannya di auth.</p>
+        <div class="touch">
+          <div class="trow"><div class="tfile">app/contexts.jsx <span class="sym">· AuthContext · useAuth</span></div><div class="twhat"><b>Seam utama.</b> Ganti <span class="mono">USER</span> statis dgn sesi/token nyata; sediakan <span class="mono">can(perm)</span> untuk gating rute.</div></div>
+          <div class="trow"><div class="tfile">app/data.js <span class="sym">· USER · FIRM</span></div><div class="twhat">Berhenti jadi konstanta → baris di <span class="mono">users/firms</span>; dipinjam hanya sbg seed.</div></div>
+          <div class="trow"><div class="tfile">app/view_settings.jsx <span class="sym">· flash('Kata sandi diperbarui')</span></div><div class="twhat">Ganti tombol mock (ganti sandi · 2FA · timeout · IP allowlist) dgn panggilan API nyata.</div></div>
+          <div class="trow"><div class="tfile">app/data_platform.js <span class="sym">· seed LOGIN/MFA</span></div><div class="twhat">Peristiwa login berhenti jadi seed → ditulis nyata ke <span class="mono">audit_log</span> oleh server auth.</div></div>
+          <div class="trow"><div class="tfile">app/app.jsx <span class="sym">· viewFor()</span></div><div class="twhat">Bungkus rute sensitif dgn cek peran; uji otorisasi negatif sbg DoD.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="seam">
+      <div class="seam-h"><span class="seam-id">C·C · AI</span><span class="seam-t">Co-pilot: klien &rarr; proxy server + RAG</span><span class="seam-w">→ Tugas 10</span></div>
+      <div class="seam-b">
+        <p>Panggilan LLM dipindah ke server agar kunci tak di klien; <span class="mono">demoReply()</span> jadi fallback offline saja.</p>
+        <div class="touch">
+          <div class="trow"><div class="tfile">app/copilot.jsx <span class="sym">· window.claude.complete · demoReply()</span></div><div class="twhat"><b>Seam utama.</b> Arahkan ke <span class="mono">POST /ai/complete</span>; simpan ke <span class="mono">ai_conversations/messages</span>; pertahankan <span class="mono">demoReply</span> sbg degradasi.</div></div>
+          <div class="trow"><div class="tfile">app/llm_providers.js</div><div class="twhat">Pindahkan pemilihan provider/kunci ke konfigurasi server; klien hanya tahu endpoint.</div></div>
+          <div class="trow"><div class="tfile">server/ai/ <span class="sym">(baru)</span></div><div class="twhat">Proxy ber-auth, rate-limit, redaksi PII, RAG atas dokumen perikatan; log tiap prompt/keluaran.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="seam">
+      <div class="seam-h"><span class="seam-id p2">C·D · INTEGRASI</span><span class="seam-t">Konektor statis &rarr; OAuth + sync nyata</span><span class="seam-w">→ Tugas 11</span></div>
+      <div class="seam-b">
+        <p>Kontrak integrasi (scope, webhook, pemetaan field) sudah dimodelkan — implementasi per konektor.</p>
+        <div class="touch">
+          <div class="trow"><div class="tfile">app/data_import.js <span class="sym">· status:'connected' · field map</span></div><div class="twhat"><b>Seam utama.</b> <span class="mono">status</span> &amp; <span class="mono">last_sync</span> berasal dari tabel <span class="mono">connectors</span>, bukan literal; <span class="mono">field_mapping</span> dipakai apa adanya.</div></div>
+          <div class="trow"><div class="tfile">app/view_platform2.jsx <span class="sym">· daftar endpoint</span></div><div class="twhat">Tampilkan status &amp; log sync nyata; tombol "Hubungkan" memicu OAuth.</div></div>
+          <div class="trow"><div class="tfile">server/integrations/ <span class="sym">(baru)</span></div><div class="twhat">OAuth + job sync + webhook; post ke modul target sesuai map (Coretax→firmtax, Bank→cashbank, Privy→opinion, SharePoint→workpapers).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E -->
+    <div class="seam">
+      <div class="seam-h"><span class="seam-id p2">C·E · INTEGRITAS</span><span class="seam-t">Jejak audit append-only &amp; ekspor nyata</span><span class="seam-w">→ Tugas 12</span></div>
+      <div class="seam-b">
+        <p>Pseudo-hash klien diganti rantai server; ekspor/e-meterai jadi berkas nyata.</p>
+        <div class="touch">
+          <div class="trow"><div class="tfile">app/view_platform3.jsx <span class="sym">· "tamper-evident chain demo"</span></div><div class="twhat"><b>Seam utama.</b> Render dari <span class="mono">audit_log</span> server (kolom <span class="mono">prev_hash/hash</span>); klien hanya menampilkan, tak menghitung.</div></div>
+          <div class="trow"><div class="tfile">app/ <span class="sym">tombol Export PDF/XLSX · e-Meterai · e-Sign</span></div><div class="twhat">Ganti aksi simulatif → panggilan layanan ekspor server; unduhan berkas nyata.</div></div>
+          <div class="trow"><div class="tfile">server/ <span class="sym">(audit, export, infra)</span></div><div class="twhat">Append-only log; generator PDF/XLSX; enkripsi at-rest, retensi 10 thn (ISQM).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict amber">
+      <span class="tag">Catatan handoff</span>
+      <p>Bus runtime imperatif (<span class="mono">__amsOpenSA</span>, <span class="mono">__amsOpenCopilot</span>, <span class="mono">useAmsPersist</span>) <b>sengaja dipertahankan</b> melintasi migrasi ESM — ia bukan utang teknis, melainkan kontrak event antar-modul. Hanya <span class="mono">Object.assign(window,…)</span> untuk <i>komponen/data</i> yang dilucuti ke <span class="mono">import/export</span>. Mulai tiap celah dari <b>seam utama</b> (baris ber-label) — sisanya mengikuti.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Peta Jalan Teknis — Handoff ke Claude Code · pendamping Backlog 11 Gelombang</span>
+    <span class="mono">17·06·2026</span>
+  </div>
+
+</div>
+</body>
+</html>

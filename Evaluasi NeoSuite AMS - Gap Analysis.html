@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evaluasi NeoSuite AMS — Gap yang Masih Ada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --purple:#5b3fa6; --purple-bg:#ece6f8;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:980px; margin:0 auto; padding:40px 24px 96px; }
+
+  /* ---------- cover ---------- */
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:34px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.12; position:relative; max-width:680px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:660px; position:relative; }
+  .cover .meta{ display:flex; gap:28px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 19px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  /* ---------- scorecard ---------- */
+  .scores{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 8px; }
+  .score{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 16px 14px; box-shadow:var(--shadow); }
+  .score .v{ font:800 26px/1 var(--mono); color:var(--navy); }
+  .score .l{ font-size:11.5px; color:var(--ink-3); font-weight:600; margin-top:6px; }
+  .score .s{ font-size:11px; color:var(--ink-4); margin-top:3px; }
+  .score.good .v{ color:var(--green); } .score.warn .v{ color:var(--amber); } .score.bad .v{ color:var(--red); }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:38px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:760px; }
+
+  h3{ font-size:15px; font-weight:700; margin:24px 0 8px; }
+  p{ margin:0 0 12px; }
+  .lead{ font-size:15px; color:var(--ink-2); }
+
+  /* verdict banner */
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--green); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--green); white-space:nowrap; padding-top:2px; }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .verdict b{ color:var(--ink); }
+
+  /* gap cards */
+  .gap{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px; }
+  .gap-h{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--line-soft); }
+  .gap-pri{ font:700 10.5px/1 var(--mono); letter-spacing:.05em; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+  .p1{ background:var(--red-bg); color:var(--red); } .p2{ background:var(--amber-bg); color:var(--amber); } .p3{ background:var(--blue-100); color:var(--blue); }
+  .gap-t{ font-size:14.5px; font-weight:700; flex:1; }
+  .gap-eff{ font:600 11px/1 var(--mono); color:var(--ink-3); white-space:nowrap; }
+  .gap-b{ padding:13px 16px; font-size:13px; color:var(--ink-2); }
+  .gap-b b{ color:var(--ink); } .gap-b .mono{ font-family:var(--mono); font-size:12px; color:var(--navy); }
+  .ev{ margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:8px; font-size:11.5px; color:var(--ink-3); }
+  .ev b{ color:var(--ink-2); }
+  .pills{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .pill{ font:600 11px/1 var(--mono); padding:5px 9px; border-radius:20px; background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line-soft); }
+  .pill.warn{ background:var(--amber-bg); color:var(--amber); border-color:transparent; }
+
+  /* table */
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--surface); border:1px solid var(--line); border-radius:11px; overflow:hidden; box-shadow:var(--shadow); }
+  th{ text-align:left; background:var(--navy); color:#fff; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding:10px 13px; font-weight:700; }
+  td{ padding:10px 13px; border-top:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
+  td b{ color:var(--ink); } tr:nth-child(even) td{ background:var(--surface-2); }
+  .mono{ font-family:var(--mono); }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .d-red{ background:var(--red); } .d-amber{ background:var(--amber); } .d-green{ background:var(--green); } .d-blue{ background:var(--blue); }
+
+  ul.clean{ margin:8px 0 14px; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:22px; margin-bottom:7px; font-size:13.5px; color:var(--ink-2); }
+  ul.clean li::before{ content:""; position:absolute; left:4px; top:9px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); } ul.clean li.no::before{ background:var(--amber); }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:8px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:720px){ .scores{ grid-template-columns:repeat(2,1fr);} .cover{ padding:30px 26px;} .cover h1{ font-size:26px;} }
+  @media print{
+    body{ background:#fff; } .doc{ padding:0; max-width:none; }
+    .cover,.score,.gap,table,.verdict{ box-shadow:none; }
+    section{ break-inside:avoid; } .gap{ break-inside:avoid; }
+    .cover{ border-radius:0; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Quality &amp; Architecture Review</p>
+    <h1>Evaluasi Aplikasi &mdash; Gap yang Masih Ada</h1>
+    <p>Penilaian menyeluruh atas cakupan standar, keterhubungan modul, dan kedalaman fungsional. Temuan dikelompokkan per dimensi dengan bukti yang dapat ditelusuri ke kode sumber, lengkap dengan prioritas penanganan.</p>
+    <div class="meta">
+      <div>Tanggal<b>14 Jun 2026</b></div>
+      <div>Versi<b>v4.2 Enterprise</b></div>
+      <div>Lingkup<b>131 modul · ~75 standar</b></div>
+      <div>Verdict<b>Matang — gap di pinggiran</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== SCORECARD ===================== -->
+  <div class="scores">
+    <div class="score good"><div class="v">0</div><div class="l">Error JS saat render</div><div class="s">Hanya warning Babel dev</div></div>
+    <div class="score good"><div class="v">739</div><div class="l">Tautan antar-modul</div><div class="s">94 hub · 28 dua-arah · pasca-P1</div></div>
+    <div class="score good"><div class="v">0</div><div class="l">Modul terisolasi (pulau)</div><div class="s">Pasca-P2 · semua terhubung</div></div>
+    <div class="score good"><div class="v">0</div><div class="l">Standar belum tercakup</div><div class="s">SJAH 3410/3420 kini modul penuh</div></div>
+  </div>
+
+  <!-- ===================== RINGKASAN ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">00</span><h2 class="sec-t">Ringkasan eksekutif</h2></div>
+    <p class="lead">NeoSuite AMS adalah aplikasi yang <b>sangat matang</b>. Hampir seluruh standar SA (200&ndash;810), kerangka PSAK utama, jasa non-audit, dan modul operasi/ERP/SDM firma sudah terbangun sebagai halaman fungsional &mdash; bukan sekadar stub. Seluruh ~131 entri navigasi memiliki view nyata (<span class="mono">deep:&nbsp;true</span>), dan aplikasi ter-render bersih tanpa error JavaScript.</p>
+    <div class="verdict">
+      <span class="tag">Verdict</span>
+      <p>Tidak ada gap fundamental pada produk. Gap yang tersisa bersifat <b>marginal &amp; pemeliharaan</b>: (1) <b style="color:var(--green)">[SELESAI]</b> artefak Peta Keterhubungan diregenerasi dari lineage live, (2) <b style="color:var(--green)">[SELESAI]</b> tiga modul pulau (hrcase, soqm, sakep) sudah dirangkai &mdash; <b>nol pulau tersisa</b>, (3) dua standar asurans khusus yang sengaja ditandai &ldquo;belum&rdquo;, dan (4) keterbatasan yang melekat pada sifat <b>prototipe</b> (tanpa backend). Empat dimensi di bawah merinci masing-masing.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 1. KONEKTIVITAS ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">Keterhubungan modul</h2></div>
+    <p class="sec-sub">Temuan paling penting. Lapisan lineage live (<span class="mono">related_modules.jsx → LINEAGE</span>) sudah jauh lebih kaya daripada snapshot yang menggerakkan halaman <b>Peta Keterhubungan</b> (<span class="mono">connectivity.json</span>).</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri" style="background:var(--green-bg);color:var(--green)">&#10003; P1 · SELESAI</span><span class="gap-t">Peta Keterhubungan basi &mdash; sudah diregenerasi</span><span class="gap-eff">Diselesaikan</span></div>
+      <div class="gap-b">
+        <p>Sebelumnya <span class="mono">connectivity.json</span> menandai <b>17 modul sebagai &ldquo;pulau&rdquo;</b>, padahal banyak sudah dirangkai di <span class="mono">LINEAGE</span> dan tampil di dock &ldquo;Keterkaitan Modul&rdquo; saat dijalankan &mdash; peta <b>melebih-lebihkan isolasi</b>.</p>
+        <p><b>Tindakan:</b> graf diekstrak langsung dari <span class="mono">window.LINEAGE</span> (54 entri) &cup; <span class="mono">RELATED_SA</span> (38 tautan SA), digabung dengan edge lama, lalu derajat &amp; status dihitung ulang. Node <span class="mono">firmops</span> yang sebelumnya <b>hilang dari peta</b> juga ditambahkan.</p>
+        <div class="pills">
+          <span class="pill">edge 553 &rarr; 739</span><span class="pill">pulau 17 &rarr; 3</span><span class="pill">satu-arah 18 &rarr; 7</span><span class="pill">node 131 &rarr; 132</span>
+        </div>
+        <div class="ev"><b>Hasil:</b> Peta kini menjadi <b>turunan dari kode</b>, bukan daftar manual. 68 dari 75 rekomendasi tautan evaluasi awal ternyata sudah terpasang; overlay &ldquo;tautan baru&rdquo; dirampingkan ke 16 (7 sisa + 9 saran untuk pulau tersisa). <b>Berkas diubah:</b> <span class="mono">connectivity.json</span>, <span class="mono">peta/Peta Keterhubungan Modul.html</span>, <span class="mono">peta/peta_map.js</span>.</p>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri" style="background:var(--green-bg);color:var(--green)">&#10003; P2 · SELESAI</span><span class="gap-t">Tiga modul pulau sudah dirangkai &mdash; nol pulau</span><span class="gap-eff">Diselesaikan</span></div>
+      <div class="gap-b">
+        <p>Regenerasi P1 menyingkap bahwa hanya <b>tiga</b> modul yang benar-benar belum punya entri <span class="mono">LINEAGE</span>. Ketiganya kini diberi dock &ldquo;Keterkaitan Modul&rdquo; dua-arah di <span class="mono">related_modules.jsx</span>:</p>
+        <div class="pills">
+          <span class="pill">hrcase &rarr; connected (3&uarr;/4&darr;)</span>
+          <span class="pill">soqm &rarr; hub (4&uarr;/3&darr;)</span>
+          <span class="pill">sakep &rarr; connected (3&uarr;/3&darr;)</span>
+        </div>
+        <div class="ev"><b>Tautan ditambahkan:</b> <span class="mono">hcm/ethics/independence/performance &rarr; hrcase &rarr; governance/learning</span>; <span class="mono">governance/independence/cpe &rarr; soqm &rarr; eqr/pppk/compmatrix</span>; <span class="mono">kb/compmatrix/wtb &rarr; sakep &rarr; fsgen/opinion</span>. <b>Hasil Peta:</b> pulau <b>3 &rarr; 0</b>, edge 739 &rarr; <b>759</b>, grup Akuntansi kini <b>100%</b> terhubung. <b>Koreksi:</b> facilities/records/legal/insurance/firmops ternyata sudah terhubung sejak P1.</p>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri" style="background:var(--green-bg);color:var(--green)">&#10003; P3 · SELESAI</span><span class="gap-t">Simpul inti &ldquo;sink&rdquo; kini dua-arah</span><span class="gap-eff">Diselesaikan</span></div>
+      <div class="gap-b">
+        <p>Dua simpul inti yang tadinya hanya <b>dirujuk</b> tanpa menaut balik kini diberi entri <span class="mono">LINEAGE</span> dengan sisi hilir:</p>
+        <div class="pills">
+          <span class="pill">workpapers &rarr; hub (4&uarr;/9&darr;)</span>
+          <span class="pill">expert &rarr; connected (3&uarr;/5&darr;)</span>
+        </div>
+        <div class="ev"><b>Tautan hilir ditambahkan:</b> <span class="mono">workpapers &rarr; opinion/eqr/sad/dms</span> (SA 230/330); <span class="mono">expert &rarr; evidence/workpapers/opinion</span> (SA 620). <b>Sink tersisa (4)</b> &mdash; <span class="mono">tasks</span>, <span class="mono">reviewnotes</span>, <span class="mono">succession</span>, <span class="mono">review2400</span> &mdash; bersifat <b>agregator/log terminal</b> yang wajar sebagai sink secara desain, sehingga sengaja dibiarkan. Sink turun <b>6 &rarr; 4</b>, edge &rarr; <b>768</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 2. CAKUPAN STANDAR ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">Cakupan standar</h2></div>
+    <p class="sec-sub">Registri standar (<span class="mono">STANDARDS_REGISTRY</span>) sudah komprehensif: rangkaian SA 200&ndash;810 lengkap, SPM/SPR/SPA/SJAH, serta PSAK inti. Gap di sini sempit dan sebagiannya disengaja.</p>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri pgood">&#10003; SELESAI</span><span class="gap-t">Dua standar SJAH kini sudah jadi modul penuh</span><span class="gap-eff">coverage: module</span></div>
+      <div class="gap-b">
+        <p>Dua standar yang sebelumnya ditandai <span class="mono">coverage:&nbsp;'gap'</span> kini <b>telah dibangun lengkap</b> (<span class="mono">coverage:&nbsp;'module'</span>, dengan view + engine kalkulasi + lineage):</p>
+        <ul class="clean">
+          <li class="ok"><b>SJAH 3410</b> &mdash; Asurans Laporan Emisi GRK · <span class="mono">view_sjah3410.jsx</span> + <span class="mono">ghgEngine</span> (emisi = aktivitas × faktor, selaras ISAE 3410 · GHG Protocol · ISO 14064-1)</li>
+          <li class="ok"><b>SJAH 3420</b> &mdash; Asurans Info Keuangan Proforma · <span class="mono">view_sjah3420.jsx</span> + <span class="mono">proformaEngine</span> (kolom tidak disesuaikan ditarik live dari AMS_CANON, selaras ISAE 3420 · PSAK 22)</li>
+        </ul>
+        <p>Keduanya terdaftar di menu (<span class="mono">deep:true</span>), ter-routing di <span class="mono">viewFor()</span>, dan punya entri <span class="mono">LINEAGE</span>. <b>Cakupan standar audit kini efektif 100%</b> &mdash; tidak ada lagi standar bertanda gap.</p>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="gap-h"><span class="gap-pri p3">P3 · KANDIDAT</span><span class="gap-t">PSAK yang absen dari registri</span><span class="gap-eff">Effort: per-kebutuhan</span></div>
+      <div class="gap-b">
+        <p>Registri memuat PSAK 1, 2, 7, 8, 14, 16, 19, 22, 24, 25, 46, 48/57, 58, 65, 66, 68, 71, 72, 73 + SAK EP. Beberapa PSAK yang lazim tersentuh audit komersial <b>belum ada sama sekali</b> di registri (bukan ditandai N/A):</p>
+        <div class="pills">
+          <span class="pill">PSAK 13 · Properti Investasi</span>
+          <span class="pill">PSAK 15 · Asosiasi &amp; Ventura</span>
+          <span class="pill">PSAK 26 · Biaya Pinjaman</span>
+          <span class="pill">PSAK 10 · Kurs Valas</span>
+          <span class="pill">PSAK 67 · Pengungkapan Kepentingan</span>
+          <span class="pill">PSAK 5 · Segmen Operasi</span>
+          <span class="pill">PSAK 3 · Interim</span>
+          <span class="pill">PSAK 53 · Pembayaran Berbasis Saham</span>
+        </div>
+        <div class="ev"><b>Catatan:</b> ini <b>kandidat</b>, bukan defisiensi pasti. Matriks sudah punya mekanisme <span class="mono">isApplicable()</span>/N/A, jadi keputusan masuknya bergantung pada profil klien firma. Disarankan minimal mendaftarkannya sebagai baris <b>N/A eksplisit</b> agar lengkap secara audit-trail. PSAK 67 secara khusus melengkapi PSAK 65/66 yang sudah ada.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 3. KEDALAMAN FUNGSIONAL ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">Kedalaman fungsional &amp; sifat prototipe</h2></div>
+    <p class="sec-sub">Aplikasi adalah prototipe hi-fi yang sangat lengkap dengan satu sumber kebenaran (WTB → canon) yang mengalir konsisten. Gap di sini adalah batas yang melekat pada arsitektur tanpa backend.</p>
+    <ul class="clean">
+      <li class="ok"><b>Persistensi:</b> kuat untuk prototipe — state disimpan ke <span class="mono">localStorage</span> (<span class="mono">useAmsPersist</span>) sehingga edit AJE/checklist bertahan. Namun tanpa backend, <b>tidak ada multi-pengguna, otorisasi nyata, audit trail server-side, atau kunci konkurensi</b>.</li>
+      <li class="no"><b>AI Co-pilot bersifat kondisional:</b> memakai <span class="mono">window.claude.complete</span> bila tersedia, jika tidak jatuh ke balasan kalengan (&ldquo;<b>Mode demo</b>&rdquo;). Di luar lingkungan yang menyuntik <span class="mono">window.claude</span>, jawaban AI tidak hidup.</li>
+      <li class="no"><b>Aksi ekspor &amp; integrasi simulatif:</b> tombol seperti &ldquo;Export Timesheet&rdquo;, e-Bupot/Coretax, dan pipeline integrasi adalah mock UI — belum menghasilkan berkas/koneksi nyata.</li>
+      <li class="no"><b>Performa muat:</b> ~150 berkas JSX ditranspilasi <span class="mono">@babel/standalone</span> di browser saat runtime. Bagus untuk iterasi desain, tetapi memberi jeda muat awal; untuk produksi perlu langkah build (precompile).</li>
+      <li class="ok"><b>Integritas data lintas-modul:</b> sangat baik — angka pajak tangguhan PSAK 46 ditarik dari WTB/PSAK 24/71/73, bukan di-hardcode. Ini kekuatan arsitektur, bukan gap.</li>
+    </ul>
+    <p class="note">Catatan: poin-poin ini wajar untuk artefak demo dan tidak menurunkan kualitas desain; dicantumkan agar batas cakupan eksplisit sebelum dianggap &ldquo;siap produksi&rdquo;.</p>
+  </section>
+
+  <!-- ===================== 4. MATRIKS PRIORITAS ===================== -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">Matriks prioritas penanganan</h2></div>
+    <table>
+      <thead><tr><th style="width:42px">#</th><th>Gap</th><th style="width:90px">Dimensi</th><th style="width:78px">Prioritas</th><th style="width:88px">Effort</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td><b style="color:var(--green)">&#10003; SELESAI &mdash;</b> Regenerasi <span class="mono">connectivity.json</span> dari <span class="mono">LINEAGE</span>; pulau 17&rarr;3, +node firmops</td><td>Konektivitas</td><td><span class="dot d-green"></span>Done</td><td>&mdash;</td></tr>
+        <tr><td class="mono">2</td><td><b style="color:var(--green)">&#10003; SELESAI &mdash;</b> 3 entri <span class="mono">LINEAGE</span> (hrcase, soqm, sakep) ditambah; pulau 3&rarr;0, edge 739&rarr;759</td><td>Konektivitas</td><td><span class="dot d-green"></span>Done</td><td>&mdash;</td></tr>
+        <tr><td class="mono">3</td><td><b style="color:var(--green)">&#10003; SELESAI &mdash;</b> Modul SJAH 3410 &amp; 3420 dibangun penuh (view + engine + lineage); <span class="mono">coverage:'module'</span></td><td>Cakupan</td><td><span class="dot d-green"></span>Done</td><td>&mdash;</td></tr>
+        <tr><td class="mono">4</td><td><b>Daftarkan PSAK absen sebagai N/A eksplisit</b> (13, 15, 26, 10, 67, 5, 3, 53)</td><td>Cakupan</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">5</td><td><b style="color:var(--green)">&#10003; SELESAI &mdash;</b> workpapers &amp; expert dibuat dua-arah; sink 6&rarr;4 (sisanya terminal by-design)</td><td>Konektivitas</td><td><span class="dot d-green"></span>Done</td><td>&mdash;</td></tr>
+        <tr><td class="mono">6</td><td><b>Tandai mock secara eksplisit</b> — beri label &ldquo;demo&rdquo; pada ekspor/integrasi simulatif</td><td>Fungsional</td><td><span class="dot d-blue"></span>P3</td><td>Rendah</td></tr>
+        <tr><td class="mono">7</td><td><b>Langkah build untuk produksi</b> — precompile JSX, hilangkan Babel runtime</td><td>Teknis</td><td><span class="dot d-blue"></span>P3</td><td>Sedang</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Prioritas P1&ndash;P2 dapat diselesaikan tanpa membangun modul baru — murni sinkronisasi data &amp; penambahan entri lineage. Gap P3 bersifat penyempurnaan, bukan penghalang.</p>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Evaluasi Gap · disusun untuk tinjauan kualitas internal</span>
+    <span class="mono">14·06·2026</span>
+  </div>
+
+</div>
+</body>
+</html>

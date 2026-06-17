@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NeoSuite — Sistem Desain & Template Aplikasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<!-- Stylesheet aplikasi asli — sampel komponen di bawah 100% akurat -->
+<link rel="stylesheet" href="app/styles.css" />
+<style>
+/* ============================================================
+   Lapisan dokumentasi (doc chrome). Token diwarisi dari styles.css
+   ============================================================ */
+html { background: var(--bg); }
+.doc { background: var(--bg); color: var(--ink); min-height: 100%; }
+.doc-wrap { max-width: 1080px; margin: 0 auto; padding: 0 40px 120px; }
+
+/* Cover */
+.cover {
+  background: linear-gradient(135deg, var(--navy-600) 0%, var(--navy) 60%, #00202e 100%);
+  color: #fff; padding: 76px 0 64px; position: relative; overflow: hidden;
+  border-bottom: 3px solid var(--blue);
+}
+.cover::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 80px);
+  pointer-events: none;
+}
+.cover-in { max-width: 1080px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 1; }
+.cover .mark {
+  display: inline-flex; align-items: center; gap: 12px; margin-bottom: 28px;
+}
+.cover .mark .bm {
+  width: 44px; height: 44px; border-radius: 9px;
+  background: linear-gradient(135deg, #1f9ad6, var(--blue));
+  display: grid; place-items: center; font-weight: 800; font-size: 23px; color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
+}
+.cover .mark b { font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+.cover .mark span { font-size: 10px; letter-spacing: .18em; color: var(--on-navy); display: block; margin-top: 1px; }
+.cover h1 { font-size: 46px; line-height: 1.05; font-weight: 800; margin: 0 0 18px; letter-spacing: -.02em; max-width: 760px; text-wrap: balance; }
+.cover p.lead { font-size: 16px; line-height: 1.6; color: #cfe0ea; max-width: 620px; margin: 0; }
+.cover .meta { display: flex; gap: 40px; margin-top: 38px; flex-wrap: wrap; }
+.cover .meta div span { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--on-navy-dim); display: block; }
+.cover .meta div b { font-size: 14px; font-weight: 600; font-family: var(--mono); }
+
+/* Section scaffolding */
+.sec { padding-top: 68px; }
+.sec-num {
+  font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--blue);
+  letter-spacing: .12em;
+}
+.sec h2 {
+  font-size: 30px; font-weight: 800; letter-spacing: -.02em; color: var(--navy);
+  margin: 6px 0 10px;
+}
+.sec > .intro { font-size: 15px; line-height: 1.65; color: var(--ink-2); max-width: 680px; margin: 0 0 28px; text-wrap: pretty; }
+.sub-h {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink-3); margin: 34px 0 14px; display: flex; align-items: center; gap: 10px;
+}
+.sub-h::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* doc card */
+.dcard {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.dcard-pad { padding: 22px; }
+
+/* color swatches */
+.sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px; }
+.sw { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.sw .chip { height: 64px; display: block; border-bottom: 1px solid var(--line-soft); }
+.sw .meta { padding: 9px 11px; }
+.sw .nm { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.sw .hex { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.sw .var { font-family: var(--mono); font-size: 10px; color: var(--ink-4); margin-top: 4px; }
+
+/* type specimen */
+.type-row { display: flex; align-items: baseline; gap: 22px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); }
+.type-row:last-child { border-bottom: 0; }
+.type-row .tspec { flex: 0 0 130px; }
+.type-row .tspec .nm { font-size: 12px; font-weight: 700; color: var(--ink); }
+.type-row .tspec .det { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-top: 2px; }
+.type-row .samp { flex: 1; color: var(--navy); overflow: hidden; }
+
+/* token table */
+.ttable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ttable th { text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); padding: 0 12px 9px; border-bottom: 1px solid var(--line); }
+.ttable td { padding: 11px 12px; border-bottom: 1px solid var(--line-soft); color: var(--ink-2); vertical-align: middle; }
+.ttable td.k { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--blue); white-space: nowrap; }
+.ttable td.v { font-family: var(--mono); font-size: 12px; color: var(--ink); white-space: nowrap; }
+.ttable tr:last-child td { border-bottom: 0; }
+
+/* component demo cell */
+.demo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.demo-block { padding: 22px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; }
+.demo-label { font-family: var(--mono); font-size: 10.5px; color: var(--ink-4); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .06em; }
+
+/* spacing scale viz */
+.space-row { display: flex; align-items: center; gap: 16px; padding: 9px 0; }
+.space-row .bar { background: var(--blue); height: 14px; border-radius: 2px; }
+.space-row .lab { font-family: var(--mono); font-size: 12px; color: var(--ink-2); min-width: 92px; }
+
+/* shadow viz */
+.shadow-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.shadow-box { height: 88px; background: var(--surface); border-radius: 8px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+
+/* radius viz */
+.radius-grid { display: flex; gap: 18px; flex-wrap: wrap; }
+.radius-box { width: 88px; height: 64px; background: var(--blue-100); border: 1.5px solid var(--blue); display: grid; place-items: end center; padding-bottom: 7px; font-family: var(--mono); font-size: 10.5px; color: var(--blue); font-weight: 700; }
+
+/* layout diagram */
+.layout-fig {
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  display: grid; grid-template-rows: 46px 34px 1fr; height: 380px;
+  font-size: 11px; box-shadow: var(--shadow);
+}
+.lf-top { background: linear-gradient(180deg, var(--navy-600), var(--navy)); color: #cfe0ea; display: flex; align-items: center; padding: 0 14px; gap: 10px; }
+.lf-top .lf-tag { font-family: var(--mono); font-size: 10px; letter-spacing: .04em; }
+.lf-top .lf-bm { width: 22px; height: 22px; border-radius: 5px; background: linear-gradient(135deg,#1f9ad6,var(--blue)); display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 12px; }
+.lf-sub { background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; color: var(--ink-3); font-family: var(--mono); font-size: 10px; }
+.lf-body { display: flex; min-height: 0; }
+.lf-side { width: 200px; background: var(--navy); color: var(--on-navy); padding: 14px 12px; font-family: var(--mono); font-size: 10px; display: flex; flex-direction: column; gap: 8px; }
+.lf-side .lf-sg { color: var(--on-navy-dim); text-transform: uppercase; letter-spacing: .08em; font-size: 9px; }
+.lf-side .lf-it { padding: 5px 9px; border-radius: 5px; background: rgba(255,255,255,.06); }
+.lf-side .lf-it.on { background: var(--blue); color: #fff; }
+.lf-main { flex: 1; background: var(--bg); padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
+.lf-port { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; height: 74px; box-shadow: var(--shadow-sm); position: relative; }
+.lf-port::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 22px; background: linear-gradient(180deg,#fbfcfd,#eef1f4); border-bottom: 1px solid var(--line); border-radius: 6px 6px 0 0; }
+.lf-cap { font-family: var(--mono); font-size: 10px; color: var(--ink-4); text-align: center; padding: 3px; }
+
+/* principle cards */
+.princ-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.princ { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); }
+.princ .n { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--blue); }
+.princ h4 { margin: 8px 0 7px; font-size: 15px; font-weight: 700; color: var(--navy); }
+.princ p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+
+/* do / dont */
+.dd { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dd-col { border-radius: 8px; padding: 18px 20px; border: 1px solid; }
+.dd-col.do { background: var(--green-bg); border-color: transparent; }
+.dd-col.dont { background: var(--red-bg); border-color: transparent; }
+.dd-col h4 { margin: 0 0 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; display: flex; align-items: center; gap: 7px; }
+.dd-col.do h4 { color: var(--green); }
+.dd-col.dont h4 { color: var(--red); }
+.dd-col ul { margin: 0; padding-left: 0; list-style: none; }
+.dd-col li { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); padding: 6px 0 6px 22px; position: relative; }
+.dd-col li::before { position: absolute; left: 0; top: 6px; font-weight: 800; }
+.dd-col.do li::before { content: '✓'; color: var(--green); }
+.dd-col.dont li::before { content: '✕'; color: var(--red); }
+
+/* TOC */
+.toc { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; margin-top: 30px; }
+.toc a { display: flex; align-items: baseline; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line-soft); color: var(--ink-2); font-size: 14px; font-weight: 600; text-decoration: none; transition: color .12s, padding .12s; }
+.toc a:hover { color: var(--blue); padding-left: 6px; }
+.toc a .tn { font-family: var(--mono); font-size: 12px; color: var(--blue); font-weight: 700; flex: 0 0 26px; }
+.toc a .ta { margin-left: auto; color: var(--ink-4); }
+
+.note { background: var(--blue-050); border-left: 3px solid var(--blue); border-radius: 0 6px 6px 0; padding: 13px 16px; font-size: 13px; line-height: 1.55; color: var(--ink-2); margin-top: 18px; }
+.note b { color: var(--navy); }
+
+.codeline { font-family: var(--mono); font-size: 12px; background: var(--surface-3); color: var(--ink); padding: 2px 6px; border-radius: 4px; }
+
+footer.doc-foot { margin-top: 80px; padding-top: 28px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; color: var(--ink-4); font-size: 12px; }
+
+@media (max-width: 720px) {
+  .doc-wrap, .cover-in { padding-left: 22px; padding-right: 22px; }
+  .princ-grid, .dd, .toc, .shadow-grid { grid-template-columns: 1fr; }
+  .cover h1 { font-size: 32px; }
+}
+</style>
+</head>
+<body class="doc">
+
+<header class="cover">
+  <div class="cover-in">
+    <div class="mark">
+      <div class="bm">N</div>
+      <div><b>NeoSuite AMS</b><span>AUDIT ENTERPRISE</span></div>
+    </div>
+    <h1>Sistem Desain &amp; Template Aplikasi</h1>
+    <p class="lead">Fondasi visual dan struktural untuk membangun aplikasi enterprise yang padat-data, profesional, dan konsisten — disarikan dari NeoSuite AMS dan siap dipakai ulang.</p>
+    <div class="meta">
+      <div><span>Versi</span><b>v4.2 · 2026</b></div>
+      <div><span>Tipe</span><b>Enterprise / Padat-data</b></div>
+      <div><span>Stack</span><b>HTML · React · CSS Tokens</b></div>
+      <div><span>Tema</span><b>Terang + Gelap</b></div>
+    </div>
+  </div>
+</header>
+
+<div class="doc-wrap">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <a href="#filosofi"><span class="tn">01</span> Filosofi Desain <span class="ta">→</span></a>
+    <a href="#warna"><span class="tn">02</span> Warna <span class="ta">→</span></a>
+    <a href="#tipografi"><span class="tn">03</span> Tipografi <span class="ta">→</span></a>
+    <a href="#spasi"><span class="tn">04</span> Spasi, Radius &amp; Bayangan <span class="ta">→</span></a>
+    <a href="#layout"><span class="tn">05</span> Layout &amp; Arsitektur <span class="ta">→</span></a>
+    <a href="#komponen"><span class="tn">06</span> Komponen <span class="ta">→</span></a>
+    <a href="#tema"><span class="tn">07</span> Tema &amp; Kepadatan <span class="ta">→</span></a>
+    <a href="#pedoman"><span class="tn">08</span> Pedoman Penerapan <span class="ta">→</span></a>
+  </nav>
+
+  <!-- 01 FILOSOFI -->
+  <section class="sec" id="filosofi">
+    <div class="sec-num">01</div>
+    <h2>Filosofi Desain</h2>
+    <p class="intro">NeoSuite dirancang untuk profesional yang bekerja berjam-jam dengan data padat — auditor, analis, akuntan. Setiap keputusan tunduk pada empat prinsip. Pakai ini sebagai filter saat membangun aplikasi baru di atas template.</p>
+    <div class="princ-grid">
+      <div class="princ">
+        <div class="n">P1</div>
+        <h4>Kepadatan terkendali</h4>
+        <p>Tampilkan banyak informasi tanpa berantakan. Baris 28px, padding rapat, ukuran font 13px dasar. Ruang putih dipakai untuk mengelompokkan, bukan memboroskan layar.</p>
+      </div>
+      <div class="princ">
+        <div class="n">P2</div>
+        <h4>Hierarki yang tenang</h4>
+        <p>Chrome navy yang stabil, kanvas abu-abu netral, aksen biru hanya untuk aksi &amp; status. Warna jenuh disimpan untuk makna (status), bukan dekorasi.</p>
+      </div>
+      <div class="princ">
+        <div class="n">P3</div>
+        <h4>Angka yang bisa dipercaya</h4>
+        <p>Semua angka pakai font monospace dengan <span class="codeline">tabular-nums</span> dan rata-kanan. Kolom tersejajar sempurna agar mata bisa memindai dan membandingkan.</p>
+      </div>
+      <div class="princ">
+        <div class="n">P4</div>
+        <h4>Konsistensi via token</h4>
+        <p>Tidak ada nilai ajaib. Warna, jarak, radius, bayangan semua berasal dari variabel CSS. Ganti token → seluruh aplikasi ikut berubah secara seragam.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 WARNA -->
+  <section class="sec" id="warna">
+    <div class="sec-num">02</div>
+    <h2>Warna</h2>
+    <p class="intro">Palet bertumpu pada dua warna brand — Classic Navy untuk chrome dan Oracle Blue untuk aksi — di atas dasar abu-abu sejuk yang netral. Warna semantik hanya muncul untuk menyampaikan status.</p>
+
+    <div class="sub-h">Brand</div>
+    <div class="sw-grid">
+      <div class="sw"><span class="chip" style="background:#002C3F"></span><div class="meta"><div class="nm">Classic Navy</div><div class="hex">#002C3F</div><div class="var">--navy · chrome, header</div></div></div>
+      <div class="sw"><span class="chip" style="background:#013a52"></span><div class="meta"><div class="nm">Navy 700</div><div class="hex">#013A52</div><div class="var">--navy-700</div></div></div>
+      <div class="sw"><span class="chip" style="background:#005085"></span><div class="meta"><div class="nm">Oracle Blue</div><div class="hex">#005085</div><div class="var">--blue · aksi, link</div></div></div>
+      <div class="sw"><span class="chip" style="background:#2f7bb0"></span><div class="meta"><div class="nm">Blue 400</div><div class="hex">#2F7BB0</div><div class="var">--blue-400</div></div></div>
+      <div class="sw"><span class="chip" style="background:#e3eef6"></span><div class="meta"><div class="nm">Blue 100</div><div class="hex">#E3EEF6</div><div class="var">--blue-100 · isian lembut</div></div></div>
+      <div class="sw"><span class="chip" style="background:#f0f6fb;box-shadow:inset 0 0 0 1px var(--line-soft)"></span><div class="meta"><div class="nm">Blue 050</div><div class="hex">#F0F6FB</div><div class="var">--blue-050 · hover baris</div></div></div>
+    </div>
+
+    <div class="sub-h">Permukaan &amp; garis</div>
+    <div class="sw-grid">
+      <div class="sw"><span class="chip" style="background:#f0f2f5;box-shadow:inset 0 0 0 1px var(--line-soft)"></span><div class="meta"><div class="nm">Kanvas app</div><div class="hex">#F0F2F5</div><div class="var">--bg</div></div></div>
+      <div class="sw"><span class="chip" style="background:#ffffff;box-shadow:inset 0 0 0 1px var(--line-soft)"></span><div class="meta"><div class="nm">Surface</div><div class="hex">#FFFFFF</div><div class="var">--surface · kartu, panel</div></div></div>
+      <div class="sw"><span class="chip" style="background:#f7f8fa;box-shadow:inset 0 0 0 1px var(--line-soft)"></span><div class="meta"><div class="nm">Surface 2</div><div class="hex">#F7F8FA</div><div class="var">--surface-2</div></div></div>
+      <div class="sw"><span class="chip" style="background:#eef1f4;box-shadow:inset 0 0 0 1px var(--line-soft)"></span><div class="meta"><div class="nm">Surface 3</div><div class="hex">#EEF1F4</div><div class="var">--surface-3 · header tabel</div></div></div>
+      <div class="sw"><span class="chip" style="background:#d6dbe1"></span><div class="meta"><div class="nm">Garis</div><div class="hex">#D6DBE1</div><div class="var">--line</div></div></div>
+      <div class="sw"><span class="chip" style="background:#c3cad2"></span><div class="meta"><div class="nm">Garis kuat</div><div class="hex">#C3CAD2</div><div class="var">--line-strong · border input</div></div></div>
+    </div>
+
+    <div class="sub-h">Teks (ink)</div>
+    <div class="sw-grid">
+      <div class="sw"><span class="chip" style="background:#12242e"></span><div class="meta"><div class="nm">Ink</div><div class="hex">#12242E</div><div class="var">--ink · teks utama</div></div></div>
+      <div class="sw"><span class="chip" style="background:#3a4a55"></span><div class="meta"><div class="nm">Ink 2</div><div class="hex">#3A4A55</div><div class="var">--ink-2 · sekunder</div></div></div>
+      <div class="sw"><span class="chip" style="background:#61717c"></span><div class="meta"><div class="nm">Ink 3</div><div class="hex">#61717C</div><div class="var">--ink-3 · muted, label</div></div></div>
+      <div class="sw"><span class="chip" style="background:#8a97a1"></span><div class="meta"><div class="nm">Ink 4</div><div class="hex">#8A97A1</div><div class="var">--ink-4 · placeholder</div></div></div>
+    </div>
+
+    <div class="sub-h">Semantik (status)</div>
+    <div class="sw-grid">
+      <div class="sw"><span class="chip" style="background:#1f7a4d"></span><div class="meta"><div class="nm">Hijau</div><div class="hex">#1F7A4D</div><div class="var">--green · sukses, selesai</div></div></div>
+      <div class="sw"><span class="chip" style="background:#9a6a00"></span><div class="meta"><div class="nm">Amber</div><div class="hex">#9A6A00</div><div class="var">--amber · perhatian, proses</div></div></div>
+      <div class="sw"><span class="chip" style="background:#b3261e"></span><div class="meta"><div class="nm">Merah</div><div class="hex">#B3261E</div><div class="var">--red · risiko, terlambat</div></div></div>
+      <div class="sw"><span class="chip" style="background:#5b3fa6"></span><div class="meta"><div class="nm">Ungu</div><div class="hex">#5B3FA6</div><div class="var">--purple · perencanaan</div></div></div>
+      <div class="sw"><span class="chip" style="background:#0a6b73"></span><div class="meta"><div class="nm">Teal</div><div class="hex">#0A6B73</div><div class="var">--teal · kategori</div></div></div>
+    </div>
+
+    <div class="note">Setiap warna semantik berpasangan dengan latar lembutnya (mis. <span class="codeline">--green</span> + <span class="codeline">--green-bg</span>) untuk badge &amp; pill. <b>Aturan:</b> warna jenuh hanya untuk makna — jangan untuk dekorasi atau latar besar.</div>
+  </section>
+
+  <!-- 03 TIPOGRAFI -->
+  <section class="sec" id="tipografi">
+    <div class="sec-num">03</div>
+    <h2>Tipografi</h2>
+    <p class="intro">Dua keluarga huruf saja. <b>Inter</b> untuk seluruh antarmuka — netral, hemat ruang, sangat terbaca di ukuran kecil. <b>JetBrains Mono</b> untuk semua angka, kode, ID, dan standar.</p>
+
+    <div class="dcard dcard-pad">
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Display</div><div class="det">Inter 800 · 30px</div></div>
+        <div class="samp" style="font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1">Audit Laporan Keuangan</div>
+      </div>
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Judul H2</div><div class="det">Inter 700 · 18px</div></div>
+        <div class="samp" style="font-size:18px;font-weight:700">Ringkasan Engagement Cockpit</div>
+      </div>
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Judul panel</div><div class="det">Inter 700 · 13px</div></div>
+        <div class="samp" style="font-size:13px;font-weight:700">Working Trial Balance</div>
+      </div>
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Body / UI</div><div class="det">Inter 400 · 13px</div></div>
+        <div class="samp" style="font-size:13px;color:var(--ink-2);font-weight:400">Teks antarmuka standar untuk baris tabel, deskripsi, dan isi panel.</div>
+      </div>
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Label / eyebrow</div><div class="det">Inter 700 · 10.5px · UPPER · .05em</div></div>
+        <div class="samp" style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)">Klien Aktif · Standar Terkait</div>
+      </div>
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Angka (KPI)</div><div class="det">JetBrains Mono 700 · 22px · tabular</div></div>
+        <div class="samp mono" style="font-size:22px;font-weight:700;color:var(--navy)">Rp 4.812.350</div>
+      </div>
+      <div class="type-row">
+        <div class="tspec"><div class="nm">Mono / ID</div><div class="det">JetBrains Mono 500 · 12px</div></div>
+        <div class="samp mono" style="font-size:12px;color:var(--ink-2)">ENG-2025-014 · FY2025 · SA 540 · PSAK 71</div>
+      </div>
+    </div>
+
+    <div class="note"><b>Aturan angka:</b> setiap nilai numerik, mata uang, ID dokumen, dan kode standar memakai <span class="codeline">font-family: var(--mono)</span> + <span class="codeline">font-variant-numeric: tabular-nums</span> dan rata-kanan dalam tabel. Inilah yang membuat aplikasi terasa "alat presisi".</div>
+  </section>
+
+  <!-- 04 SPASI -->
+  <section class="sec" id="spasi">
+    <div class="sec-num">04</div>
+    <h2>Spasi, Radius &amp; Bayangan</h2>
+    <p class="intro">Sistem padat namun teratur. Jarak antar-elemen kelipatan dari skala kecil; radius kecil menjaga kesan presisi; bayangan halus dan rendah-kontras.</p>
+
+    <div class="sub-h">Skala jarak (gap / padding)</div>
+    <div class="dcard dcard-pad">
+      <div class="space-row"><span class="lab">4px · gap4</span><span class="bar" style="width:4px"></span></div>
+      <div class="space-row"><span class="lab">6px · gap6</span><span class="bar" style="width:6px"></span></div>
+      <div class="space-row"><span class="lab">8px · gap8</span><span class="bar" style="width:8px"></span></div>
+      <div class="space-row"><span class="lab">10px · gap10</span><span class="bar" style="width:10px"></span></div>
+      <div class="space-row"><span class="lab">12px · grid</span><span class="bar" style="width:12px"></span></div>
+      <div class="space-row"><span class="lab">14px · view-pad</span><span class="bar" style="width:14px"></span></div>
+      <div class="space-row"><span class="lab">22px · seksi</span><span class="bar" style="width:22px"></span></div>
+    </div>
+
+    <div class="sub-h">Radius</div>
+    <div class="radius-grid">
+      <div class="radius-box" style="border-radius:3px">3px</div>
+      <div class="radius-box" style="border-radius:4px">4px</div>
+      <div class="radius-box" style="border-radius:5px">5px</div>
+      <div class="radius-box" style="border-radius:8px">8px</div>
+      <div class="radius-box" style="border-radius:11px">11px · pill</div>
+    </div>
+    <div class="note">Default radius kartu adalah <span class="codeline">4px</span> (<span class="codeline">--radius</span>). Tombol/input 5px, popover/modal 8–11px, badge/chip membulat penuh. Hindari radius besar — kesan presisi enterprise berasal dari sudut yang tegas.</div>
+
+    <div class="sub-h">Bayangan</div>
+    <div class="shadow-grid">
+      <div class="shadow-box" style="box-shadow:var(--shadow-sm)">shadow-sm</div>
+      <div class="shadow-box" style="box-shadow:var(--shadow)">shadow</div>
+      <div class="shadow-box" style="box-shadow:var(--shadow-lg)">shadow-lg</div>
+    </div>
+
+    <div class="sub-h">Metrik chrome</div>
+    <div class="dcard">
+      <table class="ttable">
+        <thead><tr><th>Token</th><th>Nilai</th><th>Penggunaan</th></tr></thead>
+        <tbody>
+          <tr><td class="k">--topbar-h</td><td class="v">46px</td><td>Tinggi bilah atas (chrome navy)</td></tr>
+          <tr><td class="k">--subbar-h</td><td class="v">34px</td><td>Breadcrumb / toolbar tampilan</td></tr>
+          <tr><td class="k">--row-h</td><td class="v">28px</td><td>Tinggi baris tabel data</td></tr>
+          <tr><td class="k">sidebar</td><td class="v">232px / 48px</td><td>Lebar normal / saat diciutkan</td></tr>
+          <tr><td class="k">font-size</td><td class="v">13px</td><td>Ukuran dasar dokumen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 05 LAYOUT -->
+  <section class="sec" id="layout">
+    <div class="sec-num">05</div>
+    <h2>Layout &amp; Arsitektur</h2>
+    <p class="intro">Kerangka aplikasi tetap: <b>TopBar</b> (chrome navy global) di atas, <b>Sidebar</b> navigasi di kiri, <b>SubBar</b> breadcrumb di bawah topbar, dan area tampilan yang menggulir berisi <b>Portlet</b> / panel. Kerangka ini tidak berubah antar-modul — hanya area tampilan yang berganti.</p>
+
+    <div class="layout-fig">
+      <div class="lf-top">
+        <div class="lf-bm">N</div>
+        <span class="lf-tag">Brand</span>
+        <span class="lf-tag" style="margin-left:18px;opacity:.7">⌘K Global Search</span>
+        <span style="flex:1"></span>
+        <span class="lf-tag" style="opacity:.7">Konteks · Notifikasi · User</span>
+      </div>
+      <div class="lf-sub">Workspace › <b style="color:var(--ink);margin:0 4px">Modul Aktif</b> · chip engagement · Standar Terkait</div>
+      <div class="lf-body">
+        <div class="lf-side">
+          <span class="lf-sg">Workspace</span>
+          <span class="lf-it on">Modul aktif</span>
+          <span class="lf-it">Modul</span>
+          <span class="lf-it">Modul</span>
+          <span class="lf-sg" style="margin-top:6px">Grup B</span>
+          <span class="lf-it">Modul</span>
+          <span class="lf-it">Modul</span>
+        </div>
+        <div class="lf-main">
+          <div class="lf-port"></div>
+          <div class="lf-port"></div>
+          <div class="lf-port"></div>
+          <div class="lf-port"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+      <div class="lf-cap">↑ TopBar 46px</div>
+      <div class="lf-cap">Sidebar 232px</div>
+      <div class="lf-cap">SubBar 34px</div>
+      <div class="lf-cap">View · Portlet grid</div>
+    </div>
+
+    <div class="sub-h">Aturan struktur</div>
+    <div class="dcard dcard-pad">
+      <table class="ttable">
+        <tbody>
+          <tr><td class="k" style="vertical-align:top">TopBar</td><td>Brand kiri · pencarian global (⌘K) · pemilih konteks/engagement · ikon AI, notifikasi, pengaturan · chip pengguna. Latar gradien navy, teks putih.</td></tr>
+          <tr><td class="k" style="vertical-align:top">Sidebar</td><td>Switcher workspace di atas, lalu grup modul yang bisa dilipat. Item aktif diberi latar biru + indikator garis kiri. Bisa diciutkan ke 48px (ikon saja).</td></tr>
+          <tr><td class="k" style="vertical-align:top">SubBar</td><td>Breadcrumb grup › modul, chip konteks engagement, chip "Standar Terkait", dan kontrol level-tampilan di kanan.</td></tr>
+          <tr><td class="k" style="vertical-align:top">View</td><td>Area gulir tunggal dengan <span class="codeline">.view-pad</span> 14px. Konten disusun sebagai grid Portlet/Panel — kartu dengan header bertekstur dan body.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 06 KOMPONEN -->
+  <section class="sec" id="komponen">
+    <div class="sec-num">06</div>
+    <h2>Komponen</h2>
+    <p class="intro">Sampel di bawah dirender langsung dengan stylesheet aplikasi — bukan replika. Ini adalah primitif yang dipakai ulang di setiap modul.</p>
+
+    <div class="sub-h">Tombol</div>
+    <div class="demo-block">
+      <div class="demo">
+        <button class="btn primary">Aksi Utama</button>
+        <button class="btn navy">Navy</button>
+        <button class="btn">Sekunder</button>
+        <button class="btn ghost">Ghost</button>
+        <button class="btn primary sm">Kecil</button>
+        <button class="btn icon">+</button>
+      </div>
+    </div>
+
+    <div class="sub-h">Badge &amp; status</div>
+    <div class="demo-block">
+      <div class="demo">
+        <span class="badge b-green">Completed</span>
+        <span class="badge b-blue">Fieldwork</span>
+        <span class="badge b-amber">In Progress</span>
+        <span class="badge b-red">High</span>
+        <span class="badge b-purple">Planning</span>
+        <span class="badge b-teal">Review</span>
+        <span class="badge b-gray">Arsip</span>
+      </div>
+      <div class="demo" style="margin-top:14px">
+        <span class="chip">Chip biasa</span>
+        <span class="chip" style="background:var(--blue-100);color:var(--blue)">Chip biru</span>
+        <span class="chip x">Chip x ✕</span>
+      </div>
+    </div>
+
+    <div class="sub-h">Portlet (kartu dashboard)</div>
+    <div class="demo-block">
+      <div style="max-width:420px">
+        <div class="portlet">
+          <div class="portlet-h">
+            <span class="grip" style="color:var(--ink-4)">⋮⋮</span>
+            <span class="portlet-title"><span class="dotmark"></span>Status Fase</span>
+            <span style="flex:1"></span>
+            <button class="p-act">▾</button>
+          </div>
+          <div class="portlet-body pad">
+            <div class="mb12">
+              <div class="row ac jb" style="margin-bottom:5px"><span style="font-size:12.5px">Perencanaan</span><span class="mono" style="font-size:11px;color:var(--green);font-weight:700">91%</span></div>
+              <div class="pbar"><span style="width:91%;background:var(--green)"></span></div>
+            </div>
+            <div class="mb12">
+              <div class="row ac jb" style="margin-bottom:5px"><span style="font-size:12.5px">Eksekusi</span><span class="mono" style="font-size:11px;color:var(--blue);font-weight:700">65%</span></div>
+              <div class="pbar"><span style="width:65%"></span></div>
+            </div>
+            <div>
+              <div class="row ac jb" style="margin-bottom:5px"><span style="font-size:12.5px">Finalisasi</span><span class="mono" style="font-size:11px;color:var(--amber);font-weight:700">30%</span></div>
+              <div class="pbar"><span style="width:30%;background:var(--amber)"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-h">KPI / statistik</div>
+    <div class="demo-block">
+      <div class="demo" style="gap:40px">
+        <div class="stat"><div class="s-val">22</div><div class="s-lbl">Hari ke deadline</div><div class="s-delta s-down">▼ 3 hari</div></div>
+        <div class="stat"><div class="s-val" style="color:var(--green)">62%</div><div class="s-lbl">Budget burn</div><div class="s-delta s-up">▲ 4%</div></div>
+        <div class="stat"><div class="s-val" style="color:var(--red)">3</div><div class="s-lbl">Review notes open</div></div>
+      </div>
+    </div>
+
+    <div class="sub-h">Tabel data</div>
+    <div class="dcard">
+      <table class="dtbl">
+        <thead><tr><th>Akun</th><th>Kode</th><th class="num">Saldo Buku</th><th class="num">Penyesuaian</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Kas &amp; Setara Kas</td><td class="mono">1-1100</td><td class="num">4.812.350</td><td class="num">0</td><td><span class="badge b-green">Reviewed</span></td></tr>
+          <tr><td>Piutang Usaha</td><td class="mono">1-1200</td><td class="num">12.640.000</td><td class="num neg">(220.000)</td><td><span class="badge b-amber">In Review</span></td></tr>
+          <tr><td>Persediaan</td><td class="mono">1-1300</td><td class="num">8.105.420</td><td class="num">155.000</td><td><span class="badge b-blue">Fieldwork</span></td></tr>
+          <tr class="sel"><td>Aset Tetap</td><td class="mono">1-1500</td><td class="num">31.200.000</td><td class="num neg">(1.040.000)</td><td><span class="badge b-red">High</span></td></tr>
+        </tbody>
+        <tfoot><tr><td>Total Aset</td><td></td><td class="num">56.757.770</td><td class="num neg">(1.105.000)</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="sub-h">Tabs &amp; segmented control</div>
+    <div class="demo-block">
+      <div class="tabs" style="margin-bottom:18px">
+        <button class="tab on">Ikhtisar</button>
+        <button class="tab">Register <span class="muted" style="margin-left:6px;font-weight:500">24</span></button>
+        <button class="tab">Prosedur</button>
+        <button class="tab">Kesimpulan</button>
+      </div>
+      <div class="seg">
+        <button class="on">Bulan</button>
+        <button>Kuartal</button>
+        <button>Tahun</button>
+      </div>
+    </div>
+
+    <div class="sub-h">Form</div>
+    <div class="demo-block">
+      <div class="demo" style="gap:18px;align-items:flex-end">
+        <div class="field"><label>Klien</label><input class="input" value="PT Sentosa Makmur Tbk" style="width:230px" /></div>
+        <div class="field"><label>Fase</label><select class="select" style="width:160px"><option>Perencanaan</option><option>Eksekusi</option></select></div>
+        <button class="btn primary">Simpan</button>
+      </div>
+    </div>
+
+    <div class="note">Komponen lain yang tersedia di template: <b>Panel</b>, <b>Donut/Spark/MiniBars</b> (chart ringan SVG), <b>Menu</b> dropdown, papan <b>Kanban</b>, drawer detail, modal, timeline, dan panel <b>AI Co-pilot</b> melayang. Semuanya memakai token yang sama.</div>
+  </section>
+
+  <!-- 07 TEMA -->
+  <section class="sec" id="tema">
+    <div class="sec-num">07</div>
+    <h2>Tema &amp; Kepadatan</h2>
+    <p class="intro">Tema dan kepadatan dikontrol lewat class pada <span class="codeline">&lt;body&gt;</span> dan tersimpan di localStorage. Karena semua warna adalah token, mengganti tema cukup mengganti definisi variabel.</p>
+    <div class="dcard">
+      <table class="ttable">
+        <thead><tr><th>Class</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td class="k">body.dark</td><td>Mode gelap — meredefinisi --navy, --bg, --surface, --ink, dan latar semantik. Chrome menjadi nyaris hitam-biru.</td></tr>
+          <tr><td class="k">body.dense</td><td>Kepadatan tinggi — baris 24px, topbar 42px, padding tampilan 10px, gap grid 9px.</td></tr>
+          <tr><td class="k">body.reduce-motion</td><td>Aksesibilitas — mematikan transisi &amp; animasi untuk pengguna sensitif gerak.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Saat membuat aplikasi baru, <b>jangan</b> menulis warna mentah. Selalu rujuk token (mis. <span class="codeline">color: var(--ink)</span>) supaya mode gelap &amp; kepadatan otomatis berfungsi tanpa kerja tambahan.</div>
+  </section>
+
+  <!-- 08 PEDOMAN -->
+  <section class="sec" id="pedoman">
+    <div class="sec-num">08</div>
+    <h2>Pedoman Penerapan</h2>
+    <p class="intro">Cara memakai NeoSuite sebagai template untuk aplikasi baru — pertahankan kerangka &amp; token, ganti modul &amp; data.</p>
+
+    <div class="dd">
+      <div class="dd-col do">
+        <h4>Lakukan</h4>
+        <ul>
+          <li>Pertahankan kerangka TopBar + Sidebar + SubBar + View di setiap aplikasi.</li>
+          <li>Pakai token <span class="codeline">--var</span> untuk semua warna, jarak, radius, bayangan.</li>
+          <li>Susun konten sebagai Portlet/Panel dalam grid 12px.</li>
+          <li>Pakai monospace + tabular-nums untuk semua angka &amp; ID.</li>
+          <li>Pakai warna semantik hanya untuk status (badge, pill, indikator).</li>
+          <li>Jaga kepadatan: baris 28px, font dasar 13px, padding rapat.</li>
+        </ul>
+      </div>
+      <div class="dd-col dont">
+        <h4>Hindari</h4>
+        <ul>
+          <li>Menulis hex/px mentah di komponen — merusak tema &amp; kepadatan.</li>
+          <li>Gradien dekoratif, sudut sangat membulat, atau bayangan tebal.</li>
+          <li>Warna jenuh sebagai latar besar atau hiasan.</li>
+          <li>Font selain Inter (UI) &amp; JetBrains Mono (angka).</li>
+          <li>Spasi longgar bergaya marketing — ini alat kerja, bukan landing page.</li>
+          <li>Emoji atau ikon dekoratif yang tidak menyampaikan makna.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub-h">Langkah membuat modul baru</div>
+    <div class="dcard dcard-pad">
+      <table class="ttable">
+        <tbody>
+          <tr><td class="k">1</td><td>Daftarkan modul ke navigasi (grup + label + ikon) di indeks modul.</td></tr>
+          <tr><td class="k">2</td><td>Buat file tampilan <span class="codeline">view_namamodul.jsx</span> yang mengembalikan grid Portlet/Panel.</td></tr>
+          <tr><td class="k">3</td><td>Pakai primitif siap pakai: <span class="codeline">Portlet</span>, <span class="codeline">Panel</span>, <span class="codeline">Stat</span>, <span class="codeline">Badge</span>, <span class="codeline">Btn</span>, <span class="codeline">Tabs</span>, tabel <span class="codeline">.dtbl</span>.</td></tr>
+          <tr><td class="k">4</td><td>Hubungkan ke konteks aktif (engagement/klien) lewat hook bersama agar SubBar &amp; data sinkron.</td></tr>
+          <tr><td class="k">5</td><td>Verifikasi di mode terang, gelap, dan padat — tanpa menambah CSS warna apa pun.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="doc-foot">
+    <span>NeoSuite AMS — Sistem Desain</span>
+    <span class="mono">v4.2 · Enterprise · 2026</span>
+  </footer>
+
+</div>
+<script>
+(async () => {
+  // Prepend so page-supplied @page / break rules (deck-stage's margin:0,
+  // author CSS) keep source-order precedence over the baseline.
+  const baseCss = document.createElement('style');
+  baseCss.textContent = "@media print {\n  @page { margin: 0.5cm; }\n  html, body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }\n  section, article, figure, table { break-inside: avoid; }\n  *, *::before, *::after {\n    animation-delay: -99s !important; animation-duration: .001s !important;\n    animation-iteration-count: 1 !important; animation-fill-mode: both !important;\n    animation-play-state: running !important; transition-duration: 0s !important;\n  }\n}";
+  document.head.prepend(baseCss);
+  if (document.readyState === 'loading') {
+    await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+  }
+  let ds = document.querySelector('deck-stage');
+  // whenDefined never resolves when nothing registers the element, so only
+  // await it when a <deck-stage> tag exists (and race a timeout regardless).
+  if (ds && !customElements.get('deck-stage')) {
+    try {
+      await Promise.race([
+        customElements.whenDefined('deck-stage'),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) {}
+    ds = document.querySelector('deck-stage');
+  }
+  // dc-runtime assigns window.DCLogic at init and mounts into #dc-root on
+  // DOMContentLoaded; settle on that subtree so React has rendered before
+  // print(). Non-DC pages fall through to weighing body.
+  const isDc = !ds && 'DCLogic' in window;
+  const settleRoot = ds || (isDc ? document.getElementById('dc-root') : null) || document.body;
+  if (settleRoot) {
+    // Weigh only content children — skip script/style/template so inline
+    // Babel/CSS doesn't register as stable "content" before the framework
+    // has mounted anything.
+    const MEDIA = 'img,svg,canvas,video,picture,iframe,embed,object';
+    const weigh = () => {
+      let text = 0, media = 0;
+      for (const c of settleRoot.children) {
+        const t = c.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+        text += (c.textContent || '').trim().length;
+        media += c.querySelectorAll(MEDIA).length + (c.matches(MEDIA) ? 1 : 0);
+      }
+      return text + media * 100;
+    };
+    // "Non-zero and stable" alone is not sufficient to mean rendered: generic
+    // body can carry a static shell while async main content is pending, and
+    // #dc-root can carry the root DC's static text while child refs are still
+    // .sc-placeholder boxes. Gate generic on readyState 'complete', and never
+    // accept stability while a dc-runtime placeholder is present.
+    const isGeneric = settleRoot === document.body;
+    const deadline = Date.now() + 15000;
+    let last = -1, stable = 0;
+    while (Date.now() < deadline) {
+      const n = weigh();
+      const ready =
+        (!isGeneric || document.readyState === 'complete') &&
+        !settleRoot.querySelector('.sc-placeholder');
+      if (n > 0 && n === last && ready) { if (++stable >= 2) break; } else { stable = 0; }
+      last = n;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  try { await document.fonts.ready; } catch (e) {}
+  // Jump every animation to its end state so print() never captures a slide
+  // mid-entrance. Ordering matters: the 0s-transition style must be live
+  // BEFORE data-deck-active is set so attribute-keyed transitions don't
+  // start a (now-0s) run from the pre-active base.
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}';
+  document.head.appendChild(st);
+  for (const d of document.querySelectorAll('deck-stage')) {
+    for (const c of d.children) {
+      const t = c.tagName;
+      if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+      c.setAttribute('data-deck-active', '');
+    }
+  }
+  try {
+    const sweep = () => {
+      for (const a of document.getAnimations()) {
+        try { a.finish(); } catch (e) {
+          try { a.currentTime = (a.effect && a.effect.getComputedTiming().duration) || 0; a.pause(); } catch (e2) {}
+        }
+      }
+    };
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+  } catch (e) {}
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 200);
+})();
+</script>
+</body>
+</html>

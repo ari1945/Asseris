@@ -1,0 +1,15 @@
+{
+  "name": "neosuite-ams-build",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Pra-kompilasi JSX NeoSuite AMS menjadi JS biasa untuk boot produksi cepat (tanpa Babel di browser).",
+  "scripts": {
+    "build": "node precompile.mjs",
+    "watch": "node precompile.mjs --watch"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-react": "^7.27.0"
+  }
+}

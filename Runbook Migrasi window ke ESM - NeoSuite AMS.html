@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Runbook Migrasi window → ESM — NeoSuite AMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661; --blue:#005085; --blue-100:#e2edf4;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e; --red-bg:#fbe6e4; --teal:#0a6b73; --teal-bg:#def0f1;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+  }
+  *{box-sizing:border-box;}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.6; }
+  .doc{ max-width:980px; margin:0 auto; padding:40px 24px 96px; }
+
+  .cover{ background:linear-gradient(150deg,var(--navy) 0%,var(--navy-600) 78%); color:#fff; border-radius:16px; padding:40px 44px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .cover::after{ content:""; position:absolute; right:-80px; top:-80px; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(0,80,133,.55),transparent 70%); }
+  .cover .kick{ font:700 11.5px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:#7fb4d4; margin:0 0 18px; position:relative; }
+  .cover h1{ font-size:33px; font-weight:800; letter-spacing:-.02em; margin:0 0 12px; line-height:1.13; position:relative; max-width:760px; }
+  .cover p{ font-size:14.5px; color:#cfe0ea; margin:0; max-width:700px; position:relative; }
+  .cover .meta{ display:flex; gap:28px; margin-top:26px; position:relative; flex-wrap:wrap; }
+  .cover .meta div{ font-size:12px; color:#9fc1d4; }
+  .cover .meta b{ display:block; font:700 16px/1.2 var(--mono); color:#fff; margin-top:3px; }
+
+  section{ margin-top:38px; }
+  .sec-h{ display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--navy); padding-bottom:9px; margin-bottom:18px; }
+  .sec-n{ font:700 13px/1 var(--mono); color:var(--blue); letter-spacing:.04em; }
+  .sec-t{ font-size:21px; font-weight:800; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ color:var(--ink-2); font-size:14px; margin:0 0 16px; max-width:800px; }
+  p{ margin:0 0 12px; } .lead{ font-size:15px; color:var(--ink-2); }
+  .mono{ font-family:var(--mono); }
+
+  .verdict{ display:flex; gap:14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:11px; padding:16px 18px; box-shadow:var(--shadow); }
+  .verdict.green{ border-left-color:var(--green); } .verdict.amber{ border-left-color:var(--amber); }
+  .verdict .tag{ font:700 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--blue); white-space:nowrap; padding-top:2px; }
+  .verdict.green .tag{ color:var(--green); } .verdict.amber .tag{ color:var(--amber); }
+  .verdict p{ margin:0; font-size:13.5px; color:var(--ink-2); } .verdict b{ color:var(--ink); }
+
+  /* code block */
+  pre.code{ background:var(--navy); color:#e7eef4; border-radius:11px; padding:16px 18px; overflow:auto; box-shadow:var(--shadow); margin:0 0 14px; }
+  pre.code code{ font:500 12.5px/1.7 var(--mono); white-space:pre; }
+  pre.code .c{ color:#7fb4d4; } pre.code .k{ color:#9fd0a8; }
+
+  /* two-col compare */
+  .cmp{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:6px 0 8px; }
+  .cmp .card{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); overflow:hidden; }
+  .cmp .ch{ font:700 10.5px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; padding:11px 14px; border-bottom:1px solid var(--line-soft); }
+  .cmp .a .ch{ color:var(--ink-3); } .cmp .b .ch{ color:var(--green); }
+  .cmp .cb{ padding:13px 14px; font:500 12px/1.7 var(--mono); color:var(--ink-2); white-space:pre-wrap; }
+  .cmp .cb .add{ color:var(--green); } .cmp .cb .keep{ color:var(--ink-4); }
+
+  /* file tree */
+  .tree{ background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); padding:16px 18px; font:500 12.5px/1.85 var(--mono); color:var(--ink-2); }
+  .tree .dir{ color:var(--navy); font-weight:700; } .tree .gen{ color:var(--blue); } .tree .cmt{ color:var(--ink-4); }
+
+  /* steps */
+  .road{ counter-reset:step; margin-top:6px; }
+  .step{ display:flex; gap:15px; padding:14px 0; border-top:1px solid var(--line-soft); }
+  .step:first-child{ border-top:none; }
+  .step .num{ counter-increment:step; flex:0 0 34px; height:34px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center; font:800 14px/1 var(--mono); }
+  .step .num::before{ content:counter(step); }
+  .step .body{ flex:1; } .step .st{ font-size:14px; font-weight:700; margin:2px 0 4px; }
+  .step .sd{ font-size:12.5px; color:var(--ink-2); margin:0; }
+
+  ul.clean{ margin:8px 0 14px; padding-left:0; list-style:none; }
+  ul.clean li{ position:relative; padding-left:22px; margin-bottom:7px; font-size:13.5px; color:var(--ink-2); }
+  ul.clean li::before{ content:""; position:absolute; left:4px; top:9px; width:7px; height:7px; border-radius:2px; background:var(--blue); }
+  ul.clean li.ok::before{ background:var(--green); } ul.clean li.no::before{ background:var(--amber); }
+
+  .pills{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px; }
+  .pill{ font:600 11px/1 var(--mono); padding:6px 10px; border-radius:20px; background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line-soft); }
+  .pill.ok{ background:var(--green-bg); color:var(--green); border-color:transparent; }
+  .pill.warn{ background:var(--amber-bg); color:var(--amber); border-color:transparent; }
+
+  .note{ font-size:12px; color:var(--ink-4); margin-top:10px; font-style:italic; }
+  .foot{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:720px){ .cmp{ grid-template-columns:1fr; } .cover{ padding:30px 26px;} .cover h1{ font-size:25px;} }
+  @media print{ body{ background:#fff; } .doc{ padding:0; max-width:none; } .cover,.verdict,.cmp .card,.tree,pre.code{ box-shadow:none; } section,.step{ break-inside:avoid; } .cover{ border-radius:0; } }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <header class="cover">
+    <p class="kick">NeoSuite AMS · Migration Runbook</p>
+    <h1>Migrasi Namespace <span class="mono" style="font-size:.82em">window</span> → Impor ESM</h1>
+    <p>Menutup gap P1 dari evaluasi kesiapan Claude Code: mengganti ~150 titik <span class="mono">Object.assign(window,…)</span> dengan graf dependensi ESM statis di bawah Vite — secara mekanis, bertahap, dan tanpa pernah membuat app "layar putih". Paket sudah dibuat di folder <span class="mono">migration/</span>; app asli tidak tersentuh.</p>
+    <div class="meta">
+      <div>Pendekatan<b>Dual-publish</b></div>
+      <div>Target<b>Vite + ESM</b></div>
+      <div>Risiko app asli<b>Nol (terisolasi)</b></div>
+      <div>Eksekusi<b>Node · Claude Code</b></div>
+    </div>
+  </header>
+
+  <!-- 00 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">00</span><h2 class="sec-t">Strategi: dual-publish</h2></div>
+    <p class="lead">Inti yang membuat migrasi 190-berkas ini <b>aman</b>: codemod <b>menambah</b>, tidak menimpa. Setiap berkas tetap menulis ke <span class="mono">window</span> seperti sekarang, <b>dan</b> sekaligus mengekspor lewat ESM. Konsumen kini mengimpor secara eksplisit, tetapi bila satu simbol terlewat, runtime masih menemukannya via <span class="mono">window</span>. Hasilnya: konversi yang <b>selalu hijau</b>, bukan big-bang yang rapuh.</p>
+    <div class="cmp">
+      <div class="card a">
+        <div class="ch">Sebelum — global ajaib</div>
+        <div class="cb">// ui.jsx (kaki berkas)
+<span class="keep">Object.assign(window, { Badge, Btn });</span>
+
+// view_psak46.jsx
+function PSAK46View(){
+  return &lt;Badge&gt;…&lt;/Badge&gt;  // Badge dari mana?
+}</div>
+      </div>
+      <div class="card b">
+        <div class="ch">Sesudah — impor eksplisit</div>
+        <div class="cb"><span class="add">import { Badge, Btn } from './ui.jsx';</span>
+// …kode asli tak berubah…
+<span class="keep">Object.assign(window, { Badge, Btn });</span>  <span class="keep">// tetap (jaring)</span>
+<span class="add">export { Badge, Btn };</span>
+
+// view_psak46.jsx
+<span class="add">import { Badge } from './ui.jsx';</span></div>
+      </div>
+    </div>
+    <div class="verdict green">
+      <span class="tag">Kenapa aman</span>
+      <p>Tidak ada kode lama yang ditimpa — codemod hanya menyisipkan blok <span class="mono">import</span> di atas dan <span class="mono">export</span> di bawah. Bus imperatif runtime (<span class="mono">window.__amsOpenSA</span>, <span class="mono">__amsOpenCopilot</span>, <span class="mono">COMPLIANCE_CONFIG</span>, <span class="mono">window.claude</span>) sengaja dibiarkan apa adanya. <b>Rollback = hapus folder <span class="mono">migration/</span>.</b></p>
+    </div>
+  </section>
+
+  <!-- 01 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2 class="sec-t">Isi paket</h2></div>
+    <p class="sec-sub">Semuanya berada di <span class="mono">migration/</span>. Berkas bertanda <span class="gen mono">biru</span> dihasilkan oleh codemod saat dijalankan.</p>
+    <div class="tree">
+<span class="dir">migration/</span>
+  codemod.mjs          <span class="cmt">← konverter AST (@babel/parser), jalan di Node</span>
+  package.json         <span class="cmt">← deps + skrip: dev · build · test · codemod</span>
+  vite.config.mjs      <span class="cmt">← satu titik entri · plugin-react · sourcemap</span>
+  README.md            <span class="cmt">← runbook teks</span>
+  <span class="gen">index.html</span>           <span class="cmt">← GENERATED · 1 &lt;script type="module"&gt; (bukan ~190 tag)</span>
+  <span class="gen">src/</span>                 <span class="cmt">← GENERATED · salinan app/* + import/export ESM</span>
+    <span class="gen">main.jsx</span>           <span class="cmt">← entri: CSS → semua modul (boot order) → app.jsx</span>
+    <span class="gen">*.js / *.jsx</span>       <span class="cmt">← modul hasil konversi (asli tetap di /app)</span>
+    <span class="gen">styles.css</span>
+    </div>
+    <div class="pills">
+      <span class="pill ok">app asli /app — utuh</span>
+      <span class="pill ok">root buildless — tetap jalan</span>
+      <span class="pill warn">butuh Node ≥ 18</span>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2 class="sec-t">Cara kerja codemod</h2></div>
+    <div class="road">
+      <div class="step"><div class="num"></div><div class="body"><p class="st">Baca boot order dari HTML</p><p class="sd">Urutan <span class="mono">&lt;script src="app/…"&gt;</span> di <span class="mono">NeoSuite AMS.html</span> menjadi sumber kebenaran urutan muat & daftar berkas.</p></div></div>
+      <div class="step"><div class="num"></div><div class="body"><p class="st">Bangun peta simbol global (AST)</p><p class="sd">Deteksi pemilik tiap simbol: <span class="mono">Object.assign(window,{…})</span>, <span class="mono">window.NAMA = …</span>, dan namespace data (<span class="mono">AMS · PROC · BO · FAC · FIRMFIN · FSGEN</span>; pemilik = berkas pertama dalam load order).</p></div></div>
+      <div class="step"><div class="num"></div><div class="body"><p class="st">Sisipkan impor via analisis scope</p><p class="sd">Identifier bebas — termasuk komponen JSX <span class="mono">&lt;Foo/&gt;</span> dan <span class="mono">&lt;I.x/&gt;</span> — yang ada di peta tetapi tak dideklarasi lokal → <span class="mono">import { … } from './pemilik'</span>. <span class="mono">React</span> → <span class="mono">'react'</span>; <span class="mono">ReactDOM</span> → <span class="mono">'react-dom/client'</span>.</p></div></div>
+      <div class="step"><div class="num"></div><div class="body"><p class="st">Dual-publish + buat entri</p><p class="sd">Tambah blok <span class="mono">export</span> di kaki berkas (window writes dipertahankan). Hasilkan <span class="mono">src/main.jsx</span> (impor urutan boot) dan <span class="mono">index.html</span> Vite.</p></div></div>
+    </div>
+    <p class="note">Codemod juga melaporkan <b>tabrakan nama</b> (footgun <span class="mono">const styles</span> dll — dipakai pemilik pertama + fallback window, tetap perlu tinjauan) dan <b>global tak dikenal</b> (kemungkinan simbol terlewat / global runtime baru).</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2 class="sec-t">Jalankan</h2></div>
+    <pre class="code"><code><span class="c"># Node ≥ 18 — Vite perlu Node, tak bisa diverifikasi di preview HTML</span>
+cd migration
+npm install
+npm run codemod:dry     <span class="c"># laporan: tabrakan nama + global tak dikenal (TIDAK menulis)</span>
+npm run codemod         <span class="c"># tulis src/*, main.jsx, index.html</span>
+npm run dev             <span class="c"># Vite — verifikasi app identik di http://localhost:5180</span>
+npm run build           <span class="c"># bundel produksi → migration/dist</span></code></pre>
+    <div class="verdict amber">
+      <span class="tag">Catatan lingkungan</span>
+      <p>Paket ini <b>tidak dapat dijalankan/diverifikasi di dalam preview ini</b> — Vite & codemod butuh runtime Node. Jalankan di mesin Anda atau sesi <b>Claude Code</b>. Pass <span class="mono">--dry</span> dulu untuk membaca laporan sebelum menulis apa pun.</p>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2 class="sec-t">Verifikasi & rollback</h2></div>
+    <ul class="clean">
+      <li class="ok"><span class="mono">npm run dev</span> membuka app; ⌘K, sidebar, dan drawer SA berfungsi.</li>
+      <li class="ok">Konsol bersih — tak ada <span class="mono">"X is not defined"</span> (kalau ada → impor terlewat, cek laporan codemod).</li>
+      <li class="ok">Angka konsisten dengan versi root: PSAK 46/71/73 & materialitas identik.</li>
+      <li class="ok"><span class="mono">npm run build</span> sukses; <span class="mono">npm run preview</span> jalan.</li>
+      <li class="no">Bila ada yang aneh: hapus folder <span class="mono">migration/</span> — app asli tidak pernah tersentuh.</li>
+    </ul>
+  </section>
+
+  <!-- 05 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><h2 class="sec-t">Setelah dev hijau — langkah lanjut</h2></div>
+    <p class="sec-sub">Urutan ini melanjutkan roadmap dokumen evaluasi, dan sebagian besar cocok diserahkan ke Claude Code sebagai PR kecil yang terverifikasi.</p>
+    <div class="road">
+      <div class="step"><div class="num"></div><div class="body"><p class="st">Lucuti lapisan <span class="mono">window</span> berkas demi berkas</p><p class="sd">Hapus <span class="mono">Object.assign(window,…)</span> dan ganti sisa baca <span class="mono">window.X</span> dengan <span class="mono">import</span>. Setiap berkas = satu PR kecil, selalu bisa diverifikasi karena import sudah ada.</p></div></div>
+      <div class="step"><div class="num"></div><div class="body"><p class="st">Jaring uji Vitest untuk "mesin angka"</p><p class="sd"><span class="mono">AMS_CANON</span> (materialitas, rekonsiliasi WTB↔LK), PSAK 46/71/73 — rasio nilai-per-uji tertinggi, fungsi murni tanpa DOM.</p></div></div>
+      <div class="step"><div class="num"></div><div class="body"><p class="st">TypeScript bertahap</p><p class="sd">Mulai dari <span class="mono">canon</span> + kontrak antar-modul, lalu meluas. Graf ESM dari langkah ini adalah prasyaratnya.</p></div></div>
+    </div>
+    <div class="verdict green">
+      <span class="tag">Hasil</span>
+      <p>Begitu graf ESM terbentuk: <b>tree-shaking</b>, <b>lint</b>, dan penelusuran "siapa memakai apa" menjadi mungkin; kelas bug <b>tabrakan nama top-level</b> hilang; dan urutan boot tak lagi bergantung pada urutan tag <span class="mono">&lt;script&gt;</span> — persis tujuan gap P1.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Runbook Migrasi window → ESM</span>
+    <span class="mono">migration/ · 15·06·2026</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Konsep — Pengaturan: Navigasi &amp; Sidebar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#002C3F; --navy-600:#024661;
+    --blue:#005085; --blue-600:#013f69; --blue-400:#2f8a90; --blue-100:#e2edf4; --blue-050:#eef5fa;
+    --on-navy:#9fb3c0; --on-navy-dim:#6f8a9a; --accent:#4db8ff;
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9; --surface-3:#eef1f4;
+    --line:#d6dbe1; --line-soft:#e6e9ee; --line-strong:#c4ccd4;
+    --ink:#0f1b22; --ink-2:#39505c; --ink-3:#6a7c87; --ink-4:#94a3ad;
+    --green:#1f7a4d; --green-bg:#e3f3ea; --amber:#9a6a00; --amber-bg:#fbf1dc;
+    --red:#b3261e;
+    --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --shadow:0 1px 2px rgba(7,30,42,.06),0 10px 34px rgba(7,30,42,.09);
+    --shadow-sm:0 1px 2px rgba(7,30,42,.08);
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--ui); line-height:1.55; }
+  .wrap{ max-width:1300px; margin:0 auto; padding:28px 24px 80px; }
+
+  /* concept header */
+  .chead{ display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-bottom:18px; }
+  .chead .kick{ font:700 11px/1 var(--mono); letter-spacing:.2em; text-transform:uppercase; color:var(--blue); margin:0 0 10px; }
+  .chead h1{ font-size:26px; font-weight:800; letter-spacing:-.02em; margin:0; }
+  .chead p{ margin:8px 0 0; color:var(--ink-2); font-size:14px; max-width:680px; }
+  .status-pill{ margin-left:auto; align-self:center; display:inline-flex; align-items:center; gap:8px; background:var(--amber-bg); color:var(--amber); border:1px solid #ecd9a6; border-radius:999px; padding:8px 14px; font:700 12px/1 var(--ui); white-space:nowrap; }
+  .status-pill .d{ width:8px; height:8px; border-radius:50%; background:var(--amber); }
+
+  /* app frame */
+  .frame{ border:1px solid var(--line-strong); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); background:#fff; }
+  .subbar{ height:44px; border-bottom:1px solid var(--line); background:#fff; display:flex; align-items:center; gap:10px; padding:0 16px; }
+  .crumb{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-3); }
+  .crumb b{ color:var(--ink); } .crumb .sep{ color:var(--ink-4); }
+  .chip{ display:inline-flex; align-items:center; gap:6px; font:600 11px/1 var(--ui); padding:5px 9px; border-radius:7px; }
+  .chip.blue{ background:var(--blue-100); color:var(--blue); }
+  .subbar .sp{ flex:1; }
+  .saved{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-4); }
+  .saved .dg{ width:7px; height:7px; border-radius:50%; background:var(--green); }
+
+  .panecols{ display:grid; grid-template-columns:222px 1fr 312px; gap:14px; align-items:start; padding:16px; background:var(--surface-2); }
+
+  /* settings left nav */
+  .snav{ background:#fff; border:1px solid var(--line); border-radius:11px; padding:6px; box-shadow:var(--shadow-sm); }
+  .snav .it{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; margin-bottom:2px; }
+  .snav .it .ic{ width:30px; height:30px; flex:0 0 30px; border-radius:8px; display:grid; place-items:center; background:var(--surface-3); color:var(--ink-3); }
+  .snav .it .tx .l{ font-size:12.5px; font-weight:600; color:var(--ink); }
+  .snav .it .tx .s{ font-size:10.5px; color:var(--ink-4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .snav .it.on{ background:var(--blue-050); }
+  .snav .it.on .ic{ background:var(--blue); color:#fff; }
+  .snav .it.on .tx .l{ color:var(--blue); font-weight:700; }
+  .snav .it .nw{ margin-left:auto; font:700 8px/1 var(--mono); letter-spacing:.05em; color:#fff; background:var(--accent); border-radius:5px; padding:3px 5px; }
+
+  /* control panels */
+  .pcol{ display:grid; gap:12px; min-width:0; }
+  .panel{ background:#fff; border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow-sm); overflow:hidden; }
+  .panel-h{ padding:12px 14px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; gap:8px; }
+  .panel-h h3{ margin:0; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--navy); }
+  .panel-h .gr{ flex:1; }
+  .srow{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 14px; border-bottom:1px solid var(--line-soft); }
+  .srow:last-child{ border-bottom:0; }
+  .srow .lt .t{ font-size:12.5px; font-weight:600; }
+  .srow .lt .s{ font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.45; max-width:340px; }
+  .srow.disabled{ opacity:.45; pointer-events:none; }
+  .srow .ctl{ flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+
+  /* toggle */
+  .tg{ width:38px; height:21px; border-radius:11px; background:var(--line-strong); position:relative; cursor:pointer; flex:0 0 38px; transition:.15s; }
+  .tg.on{ background:var(--blue); }
+  .tg i{ position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#fff; transition:left .15s; box-shadow:0 1px 2px rgba(0,0,0,.2); }
+  .tg.on i{ left:19px; }
+
+  /* segmented */
+  .seg{ display:inline-flex; background:var(--surface-3); border:1px solid var(--line); border-radius:7px; padding:2px; gap:2px; }
+  .seg button{ height:26px; padding:0 12px; border:0; background:transparent; border-radius:5px; font-size:11.5px; font-weight:600; color:var(--ink-3); cursor:pointer; transition:.12s; }
+  .seg button:hover{ color:var(--ink); }
+  .seg button.on{ background:#fff; color:var(--navy); box-shadow:var(--shadow-sm); }
+
+  /* select */
+  select.sel{ height:30px; border:1px solid var(--line-strong); border-radius:7px; background:#fff; font-family:var(--ui); font-size:12px; color:var(--ink); padding:0 8px; cursor:pointer; }
+
+  .hintbar{ display:flex; gap:9px; align-items:flex-start; padding:11px 14px; background:var(--blue-050); border:1px solid transparent; border-radius:11px; }
+  .hintbar svg{ flex:0 0 auto; margin-top:1px; color:var(--blue); }
+  .hintbar .tx{ font-size:11.5px; color:var(--ink-2); line-height:1.5; }
+  .hintbar .tx b{ color:var(--ink); }
+
+  /* preview column */
+  .prev{ position:sticky; top:8px; }
+  .prev-cap{ font:700 9.5px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); margin:0 0 8px; display:flex; align-items:center; gap:7px; }
+  .prev-cap .ph{ margin-left:auto; color:var(--blue); background:var(--blue-100); border-radius:5px; padding:3px 6px; font-size:9px; }
+  .sbprev{ background:var(--navy); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); border:1px solid #00202e; }
+  .sbprev .ws{ display:flex; gap:5px; padding:8px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .sbprev .ws button{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:7px 6px; border-radius:7px; border:0; cursor:default; font-size:11px; font-weight:600; background:transparent; color:var(--on-navy); }
+  .sbprev .ws button.on{ background:var(--blue); color:#fff; font-weight:700; }
+  .sbscroll{ max-height:444px; overflow-y:auto; padding:8px 0 14px; }
+  .sbscroll::-webkit-scrollbar{ width:8px; } .sbscroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.16); border-radius:6px; border:2px solid transparent; background-clip:content-box; }
+
+  .pin{ margin:8px 8px 0; border-radius:10px; }
+  .pin-resume{ background:linear-gradient(165deg,rgba(77,184,255,.14),rgba(77,184,255,.05)); border:1px solid rgba(77,184,255,.24); padding:9px 9px 10px; }
+  .pin-h{ display:flex; align-items:center; gap:6px; font:700 9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:#bfe2fb; margin-bottom:8px; }
+  .pin-h .gr{ flex:1; } .pin-h .mu{ opacity:.7; font-weight:600; }
+  .rit{ display:flex; align-items:center; gap:8px; padding:6px 7px; border-radius:7px; }
+  .rit.lead{ background:rgba(255,255,255,.07); }
+  .rit .ic{ width:24px; height:24px; flex:0 0 24px; border-radius:6px; background:rgba(255,255,255,.1); display:grid; place-items:center; color:#dbeefb; }
+  .rit.lead .ic{ background:var(--blue); color:#fff; }
+  .rit .mn{ flex:1; min-width:0; }
+  .rit .l{ font-size:11.5px; font-weight:600; color:#eaf3f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rit .pr{ height:3px; border-radius:2px; background:rgba(255,255,255,.14); margin-top:4px; overflow:hidden; }
+  .rit .pr i{ display:block; height:100%; background:var(--accent); border-radius:2px; }
+  .rit .ar{ color:#cfeaff; flex:0 0 auto; }
+
+  .focus-h{ display:flex; align-items:center; gap:7px; padding:0 10px 6px; }
+  .focus-h .ft{ font:700 9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:#cfe6f2; }
+  .focus-h .fb{ font:700 9px/1 var(--mono); color:var(--navy); background:var(--accent); border-radius:5px; padding:3px 6px; }
+  .focus-h .fp{ margin-left:auto; font:700 9.5px/1 var(--mono); color:#bfe2fb; }
+  .focus-wrap{ margin:0 8px; background:rgba(255,255,255,.04); border:1px solid rgba(77,184,255,.16); border-radius:10px; padding:4px; }
+
+  .it{ display:flex; align-items:center; gap:9px; height:30px; padding:0 10px; margin:1px 0; border-radius:6px; position:relative; color:var(--on-navy); }
+  .it .ic{ width:16px; flex:0 0 16px; display:grid; place-items:center; opacity:.85; }
+  .it .l{ flex:1; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .it .pc{ font:600 9.5px/1 var(--mono); color:var(--on-navy); }
+  .it .dn{ color:#5fcf9a; display:grid; place-items:center; }
+  .it .ftag{ font:700 7.5px/1 var(--mono); letter-spacing:.04em; padding:2px 5px; border-radius:8px; background:rgba(77,184,255,.18); color:#bfe2fb; text-transform:uppercase; }
+  .focus-wrap .it{ color:#eaf3f8; }
+  .focus-wrap .it.active{ background:var(--blue); color:#fff; font-weight:600; }
+  .focus-wrap .it.active::before{ content:''; position:absolute; left:-4px; top:5px; bottom:5px; width:3px; border-radius:3px; background:var(--accent); }
+  .it.relev{ color:#dbeaf4; } .it.relev .ic{ color:var(--accent); opacity:1; }
+  .it.dim{ color:var(--on-navy-dim); opacity:.6; } .it.dim .ic{ opacity:.5; }
+
+  .grp{ margin-top:3px; }
+  .grp-h{ display:flex; align-items:center; gap:6px; padding:7px 12px 3px; font:700 9px/1 var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--on-navy-dim); }
+  .alltree-h{ padding:11px 12px 4px; }
+
+  /* why card */
+  .why{ background:var(--navy); color:#dbe9f1; border-radius:12px; padding:14px 15px; margin-top:12px; }
+  .why h3{ margin:0 0 9px; font-size:12px; font-weight:700; color:#fff; display:flex; align-items:center; gap:7px; }
+  .why ul{ margin:0; padding-left:0; list-style:none; }
+  .why li{ position:relative; padding-left:16px; margin-bottom:8px; font-size:11.5px; line-height:1.5; color:#bcd2de; }
+  .why li:last-child{ margin-bottom:0; }
+  .why li::before{ content:''; position:absolute; left:2px; top:6px; width:5px; height:5px; border-radius:2px; background:var(--accent); }
+  .why li b{ color:#fff; }
+
+  .foot{ margin-top:30px; padding-top:16px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-4); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:1140px){ .panecols{ grid-template-columns:1fr; } .snav{ display:none; } .prev{ position:static; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="chead">
+    <div>
+      <p class="kick">NeoSuite AMS · Konsep Pengaturan</p>
+      <h1>Pengaturan — Navigasi &amp; Sidebar</h1>
+      <p>Kontrol untuk menyalakan, mematikan, dan menyetel sidebar adaptif — hidup berdampingan dengan bagian Pengaturan yang sudah ada. <b>Ubah kontrol mana pun di kiri; sidebar di kanan langsung menyesuaikan.</b></p>
+    </div>
+    <span class="status-pill"><span class="d"></span>Konsep — belum diterapkan</span>
+  </div>
+
+  <div class="frame">
+    <div class="subbar">
+      <div class="crumb"><span>Firm Platform</span><span class="sep">›</span><span>Pengaturan</span><span class="sep">›</span><b>Navigasi &amp; Sidebar</b></div>
+      <span class="chip blue">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1Z"/></svg>
+        WHR · Enterprise
+      </span>
+      <div class="sp"></div>
+      <span class="saved"><span class="dg"></span> Tersimpan otomatis</span>
+    </div>
+
+    <div class="panecols">
+      <!-- settings left nav -->
+      <div class="snav">
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><div class="tx"><div class="l">Tampilan</div><div class="s">Tema, kepadatan, warna</div></div></div>
+        <div class="it on"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="6" height="16" rx="1.4"/><path d="M13 7h7M13 12h7M13 17h4"/></svg></span><div class="tx"><div class="l">Navigasi &amp; Sidebar</div><div class="s">Adaptif &amp; Lanjutkan</div></div><span class="nw">BARU</span></div>
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div class="tx"><div class="l">Profil &amp; Akun</div><div class="s">Identitas &amp; peran</div></div></div>
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg></span><div class="tx"><div class="l">Notifikasi</div><div class="s">Saluran &amp; ringkasan</div></div></div>
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div class="tx"><div class="l">Keamanan</div><div class="s">2FA, sesi, sandi</div></div></div>
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V5l7-2 7 2v16"/></svg></span><div class="tx"><div class="l">Firma &amp; Standar</div><div class="s">Default metodologi</div></div></div>
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4h11l-2 4 2 4H5"/></svg></span><div class="tx"><div class="l">Lokalisasi</div><div class="s">Bahasa, format, zona</div></div></div>
+        <div class="it"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12a4 4 0 0 1 4-4h3a4 4 0 0 1 0 8h-1"/><path d="M15 12a4 4 0 0 1-4 4H8a4 4 0 0 1 0-8h1"/></svg></span><div class="tx"><div class="l">Integrasi</div><div class="s">Koneksi sistem</div></div></div>
+      </div>
+
+      <!-- controls -->
+      <div class="pcol">
+        <div class="panel">
+          <div class="panel-h"><h3>Sidebar Adaptif</h3><span class="gr"></span></div>
+          <div class="srow" id="row-master">
+            <div class="lt"><div class="t">Aktifkan sidebar adaptif</div><div class="s">Sidebar menyesuaikan urutan &amp; penekanan modul dengan fase audit yang sedang berjalan. Saat dimatikan, sidebar kembali ke perilaku standar (semua grup setara).</div></div>
+            <div class="ctl"><div class="tg on" data-k="adaptif"><i></i></div></div>
+          </div>
+          <div class="srow sub" data-sub>
+            <div class="lt"><div class="t">Mode penyesuaian</div><div class="s"><b>Sorot</b> — semua modul tetap tampil, yang tak relevan diredupkan. <b>Ringkas</b> — grup fase lain disembunyikan demi fokus maksimal.</div></div>
+            <div class="ctl"><div class="seg" data-k="mode"><button data-v="sorot" class="on">Sorot</button><button data-v="ringkas">Ringkas</button></div></div>
+          </div>
+          <div class="srow sub" data-sub>
+            <div class="lt"><div class="t">Sumber fase aktif</div><div class="s">Otomatis membaca fase dari Engagement Cockpit, atau pilih manual bila Anda ingin mengunci fokus.</div></div>
+            <div class="ctl"><select class="sel" data-k="source"><option value="auto">Otomatis dari Cockpit</option><option value="manual">Manual</option></select></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><h3>Komponen Tersemat</h3></div>
+          <div class="srow sub" data-sub>
+            <div class="lt"><div class="t">Grup “Fokus Fase”</div><div class="s">Mengangkat modul paling relevan untuk fase aktif ke puncak sidebar dalam satu grup tersorot.</div></div>
+            <div class="ctl"><div class="tg on" data-k="focus"><i></i></div></div>
+          </div>
+          <div class="srow sub" data-sub>
+            <div class="lt"><div class="t">Kartu “Lanjutkan”</div><div class="s">Jalan cepat kembali ke modul yang terakhir dibuka beserta progresnya.</div></div>
+            <div class="ctl"><div class="tg on" data-k="resume"><i></i></div></div>
+          </div>
+          <div class="srow sub" data-sub>
+            <div class="lt"><div class="t">Jumlah item “Lanjutkan”</div><div class="s">Berapa modul terakhir yang ditampilkan.</div></div>
+            <div class="ctl"><div class="seg" data-k="count"><button data-v="2">2</button><button data-v="3" class="on">3</button><button data-v="5">5</button></div></div>
+          </div>
+          <div class="srow sub" data-sub>
+            <div class="lt"><div class="t">Tandai fase selesai</div><div class="s">Beri centang pada modul dari fase yang sudah rampung di pohon penuh.</div></div>
+            <div class="ctl"><div class="tg on" data-k="done"><i></i></div></div>
+          </div>
+        </div>
+
+        <div class="hintbar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <div class="tx"><b>Preferensi per-pengguna.</b> Pengaturan ini tersimpan otomatis di profil Anda (<span style="font-family:var(--mono)">ams.v1.settings.nav</span>) dan tidak memengaruhi rekan tim. Murni lapisan tampilan — tidak menyentuh data, perhitungan, atau hak akses.</div>
+        </div>
+
+        <div class="why">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4db8ff" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12c.6.6 1 1.2 1 2h6c0-.8.4-1.4 1-2a7 7 0 0 0-4-12Z"/></svg>Pertimbangan desain</h3>
+          <ul>
+            <li><b>Aman dimatikan.</b> Mode “off” mengembalikan persis perilaku sidebar saat ini — tanpa risiko.</li>
+            <li><b>Reuse pola yang ada.</b> Memakai <span style="font-family:var(--mono);color:#cfe6f2">SRow · SetToggle · Seg · SSelect</span> yang sudah dipakai di Pengaturan, jadi tampak native.</li>
+            <li><b>Letak yang tepat.</b> Bagian baru disisipkan setelah “Tampilan”, sejajar dengan pengaturan visual lain.</li>
+            <li><b>Default menyala.</b> Manfaatnya terasa sejak awal; pengguna ahli bebas mematikan.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- live preview -->
+      <div class="prev">
+        <p class="prev-cap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/></svg> Pratinjau Langsung <span class="ph">FASE: PERENCANAAN</span></p>
+        <div class="sbprev">
+          <div class="ws"><button class="on">Perikatan</button><button>Firma</button></div>
+          <div class="sbscroll" id="prev"></div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-4);margin-top:9px;line-height:1.5;text-align:center;">Pratinjau memakai contoh data fase Perencanaan.<br/>Di aplikasi, fase mengikuti engagement aktif.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>NeoSuite AMS · Konsep Pengaturan “Navigasi &amp; Sidebar” — ubah kontrol, pratinjau menyesuaikan</span>
+    <span style="font-family:var(--mono)">Konsep · 17 Jun 2026</span>
+  </div>
+</div>
+
+<script>
+const IC = {
+  doc:'<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/>',
+  calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h4M8 15h2M12 15h4"/>',
+  shield:'<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
+  swap:'<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
+  trend:'<path d="M4 17l5-5 3 3 7-7M16 8h4v4"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  coins:'<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3M3 12v5c0 1.7 2.7 3 6 3"/><circle cx="16" cy="15" r="5"/>',
+  building:'<path d="M3 21h18M5 21V5l7-2 7 2v16M9 9h.01M9 13h.01"/>',
+  link:'<path d="M9 12a4 4 0 0 1 4-4h3a4 4 0 0 1 0 8h-1M15 12a4 4 0 0 1-4 4H8a4 4 0 0 1 0-8h1"/>',
+  pulse:'<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>',
+  ledger:'<path d="M4 4h16v16H4z"/><path d="M8 4v16M11 8h6M11 12h6"/>',
+  report:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v5h5M9 13h6M9 17h6"/>',
+  checkdoc:'<path d="M6 2h8l4 4v16H6z"/><path d="m9 14 2 2 4-4"/>',
+  checkc:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-5"/>',
+  dash:'<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>'
+};
+function svg(n,s){ s=s||16; return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(IC[n]||IC.doc)+'</svg>'; }
+function check(s){ return '<svg width="'+(s||13)+'" height="'+(s||13)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+IC.check+'</svg>'; }
+function arrow(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'; }
+
+/* model — engagement workspace, phase = plan */
+const GROUPS = [
+  { label:'Engagement Workspace', items:[
+    {id:'cockpit',label:'Engagement Cockpit',icon:'dash',phase:'all'},
+    {id:'tasks',label:'My Tasks',icon:'check',phase:'all'},
+    {id:'programme',label:'Audit Programme',icon:'list',phase:'plan'},
+    {id:'time',label:'Time & Budget',icon:'pulse',phase:'all'},
+  ]},
+  { label:'Core Planning', items:[
+    {id:'strategy',label:'Strategy Memo',icon:'doc',phase:'plan'},
+    {id:'materiality',label:'Materiality',icon:'calc',phase:'plan'},
+    {id:'risk',label:'Risk Assessment',icon:'shield',phase:'plan'},
+    {id:'icfr',label:'Internal Control',icon:'lock',phase:'plan'},
+  ]},
+  { label:'Core Execution', items:[
+    {id:'wtb',label:'Working Trial Balance',icon:'table',phase:'exec'},
+    {id:'aje',label:'Adjusting Entries',icon:'swap',phase:'exec'},
+    {id:'analytical',label:'Analytical Review',icon:'trend',phase:'exec'},
+    {id:'sampling',label:'Sampling Engine',icon:'grid',phase:'exec'},
+  ]},
+  { label:'Core Specifics', items:[
+    {id:'ecl',label:'ECL (PSAK 71)',icon:'coins',phase:'spec'},
+    {id:'lease',label:'Sewa (PSAK 73)',icon:'building',phase:'spec'},
+    {id:'gc',label:'Going Concern',icon:'pulse',phase:'spec'},
+  ]},
+  { label:'Finalisasi', items:[
+    {id:'fsgen',label:'Financial Statements',icon:'report',phase:'final'},
+    {id:'opinion',label:'Audit Opinion',icon:'checkdoc',phase:'final'},
+  ]},
+];
+const BYID={}; GROUPS.forEach(g=>g.items.forEach(m=>BYID[m.id]={...m,group:g.label}));
+const FOCUS=['strategy','materiality','risk','icfr','programme'];
+const RESUME=[['materiality',62],['risk',90],['strategy',100],['icfr',75],['programme',88]];
+const PCT={}; RESUME.forEach(([id,p])=>PCT[id]=p);
+const ACTIVE='materiality';
+const PHASE_ORDER=['plan','exec','spec','final'];
+const CURPHASE='plan';
+
+const st={ adaptif:true, mode:'sorot', source:'auto', focus:true, resume:true, count:3, done:true };
+
+function renderPrev(){
+  const A=st.adaptif;
+  let h='';
+  if(A && st.resume){
+    const items=RESUME.slice(0,st.count);
+    h+='<div class="pin pin-resume"><div class="pin-h">'+
+       '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/></svg>'+
+       '<span>Lanjutkan</span><span class="gr"></span><span class="mu">terakhir</span></div>';
+    items.forEach(([id,p],i)=>{ const m=BYID[id]; h+=
+      '<div class="rit '+(i===0?'lead':'')+'"><span class="ic">'+svg(m.icon,14)+'</span>'+
+      '<span class="mn"><span class="l">'+m.label+'</span><span class="pr"><i style="width:'+p+'%"></i></span></span>'+
+      '<span class="ar">'+arrow()+'</span></div>'; });
+    h+='</div>';
+  }
+  if(A && st.focus){
+    h+='<div class="pin" style="margin-top:12px"><div class="focus-h"><span class="ft">Fokus Fase</span><span class="fb">PERENCANAAN</span><span class="fp">91%</span></div><div class="focus-wrap">';
+    FOCUS.forEach(id=>{ const m=BYID[id]; const act=id===ACTIVE; const pc=PCT[id];
+      h+='<div class="it '+(act?'active':'')+'"><span class="ic">'+svg(m.icon)+'</span><span class="l">'+m.label+'</span>'+
+         (pc!=null?(pc===100?'<span class="dn">'+check(12)+'</span>':'<span class="pc">'+pc+'%</span>'):'')+'</div>'; });
+    h+='</div></div>';
+  }
+  /* full tree */
+  h+='<div class="grp" style="margin-top:'+(A&&(st.focus||st.resume)?'14':'4')+'px">';
+  if(A && (st.focus||st.resume)) h+='<div class="grp-h alltree-h">Semua Modul</div>';
+  GROUPS.forEach(g=>{
+    const relevantGroup = g.items.some(m=>m.phase===CURPHASE || m.phase==='all');
+    if(A && st.mode==='ringkas' && !relevantGroup) return; /* hide other-phase groups */
+    h+='<div class="grp"><div class="grp-h">'+g.label+'</div>';
+    g.items.forEach(m=>{
+      const relevant = A && m.phase===CURPHASE;
+      const phaseDone = A && st.done && m.phase!=='all' && PHASE_ORDER.indexOf(m.phase)<PHASE_ORDER.indexOf(CURPHASE);
+      let cls='it';
+      if(A){ if(relevant) cls+=' relev'; else if(st.mode==='sorot' && m.phase!=='all') cls+=' dim'; }
+      let right='';
+      if(phaseDone) right='<span class="dn">'+check(12)+'</span>';
+      else if(relevant) right='<span class="ftag">fokus</span>';
+      h+='<div class="'+cls+'"><span class="ic">'+svg(m.icon)+'</span><span class="l">'+m.label+'</span>'+right+'</div>';
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  document.getElementById('prev').innerHTML=h;
+}
+
+/* sync control states to disabled when master off */
+function syncDisabled(){
+  document.querySelectorAll('.srow.sub').forEach(r=>r.classList.toggle('disabled', !st.adaptif));
+  /* sub-rows of resume count only meaningful when resume on — keep simple, leave enabled */
+}
+
+/* wire toggles */
+document.querySelectorAll('.tg').forEach(t=>{
+  t.addEventListener('click',()=>{
+    const k=t.dataset.k; st[k]=!st[k]; t.classList.toggle('on',st[k]);
+    if(k==='adaptif') syncDisabled();
+    renderPrev();
+  });
+});
+/* wire segmented */
+document.querySelectorAll('.seg').forEach(sg=>{
+  sg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    sg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    const k=sg.dataset.k; st[k]= k==='count'? parseInt(b.dataset.v,10): b.dataset.v;
+    renderPrev();
+  }));
+});
+/* wire select */
+document.querySelectorAll('select.sel').forEach(s=>s.addEventListener('change',()=>{ st[s.dataset.k]=s.value; renderPrev(); }));
+
+syncDisabled();
+renderPrev();
+</script>
+</body>
+</html>
