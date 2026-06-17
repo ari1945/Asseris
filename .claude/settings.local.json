@@ -29,7 +29,9 @@
       "Bash(sed -n '301,304p' app/view_execution.jsx)",
       "Bash(sed -n '80,83p' app/view_aje.jsx)",
       "Bash(sed -n '1,6p' migration/src/related_modules_data2.js)",
-      "Bash(sed -n '80p;485p' migration/src/related_modules_data2.js)"
+      "Bash(sed -n '80p;485p' migration/src/related_modules_data2.js)",
+      "Bash(awk '/window\\\\.AMS_CANON = \\\\{/{p=1} p{print NR\": \"$0} /^\\\\s*\\\\};\\\\s*$/{if\\(p\\){exit}}' canon.js)",
+      "Bash(node \"../../.claude/w3-split-canon.mjs\")"
     ]
   }
 }

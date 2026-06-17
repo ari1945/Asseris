@@ -1,0 +1,21 @@
+{
+  "ASOF": "21:93a0e2fc", "ECL_AGING": "432:4489cd", "ECL_HISTORY": "188:78a3ae6c", "ECL_SCENARIOS": "299:7dd29c8e",
+  "FIG": "309:ed7aee43", "FISCAL": "157:3b2cbe82", "FV_PORTFOLIO": "2630:dcf16559", "GOODWILL": "8:734f912a",
+  "GROUP_ASSOCIATES": "426:89a690af", "GROUP_CONTROL": "1104:8aafe40c", "GROUP_SUBS": "1728:12df7b2a",
+  "INTAN_CLASSES": "669:affc6bf8", "INTERCO": "926:27fddc2b", "INV_FG_AGING": "213:679fc41c", "INV_ITEMS": "3150:e1118e8f",
+  "INV_MIX": "213:f0899418", "ISAK35_DISCLOSURES": "1571:e01fe53f", "ISAK35_TB": "1581:c828b19a", "JOINT_ARR": "1712:423e266d",
+  "LEASES": "346:569c04fe", "P117_PORTFOLIOS": "1272:6222234f", "P22_PROC": "1273:14eaf0c7", "P48_INDICATORS": "795:6fcbbf61",
+  "P57_TREAT": "229:667d9829", "P58_GROUP": "379:b36a737e", "P66_DISCLOSURE": "876:3d79fc9d", "PPA_DEALS": "2376:42605078",
+  "PPE_CLASSES": "520:af7af5fe", "PROV_REGISTER": "1753:93d40f75", "RATE": "8:7350e13a", "REGISTER_MAP": "642:5c78c4f5",
+  "REGISTER_SEED": "1904:b4ae838e", "RESTATE": "101:d2fcaf7a", "REV_CHANNELS": "242:fd0159e1", "REV_CONTRACT_BAL": "91:997dbe4b",
+  "REV_GEO": "101:349f194d", "REV_SSP_CONTRACT": "497:76fdf074", "REV_STREAMS": "637:dc7f9622", "REV_VC": "50:eca021dd",
+  "SAK_ISAKS": "3838:98c535e0", "SAK_STANDARDS": "4884:29ffa20c", "SYARIAH_AKAD": "2057:e8169bc1", "WTB_MAP": "811:caf10242",
+  "assetRegister": "8718:c5abb41b", "deferredTax": "1288:92bcdb44", "figuresFromWTB": "249:58333354", "fixedAssets": "1699:e293514",
+  "intangibles": "1878:5f622bb1", "inventory": "19275:b97828c6", "isak35": "13567:bdb7678", "leaseCalc": "24:b0559c1f",
+  "leasePortfolio": "649:aa870f65", "legalSeal": "5267:e5474d0f", "materiality": "235:c47259a3", "ojkAuditComm": "2549:82681c08",
+  "ojkFiling": "1874:89dac81", "ojkSector": "4860:ca35501", "ojkSustain": "4224:6e672e5d", "pdp": "7219:4e8b87c1",
+  "psak117": "10108:6af6322f", "psak22": "10401:ae0b6315", "psak25": "4205:fb789cc3", "psak48": "3338:d7b555e6",
+  "psak57": "2750:f9d9a9e2", "psak58": "1770:adc43afb", "psak65": "8672:be2871ad", "psak66": "18078:364e5170",
+  "psak68": "10455:84d9ba23", "psak71": "2497:38bcfb8f", "reconcile": "70465:802f261f", "revenue": "3570:eecd9d3c",
+  "sakHorizon": "20714:e7c0ed1b", "syariah": "7947:59d281f4", "valueInUse": "62:b9225b77"
+}
