@@ -29,10 +29,14 @@ const WP_MODULE_MAP = {
   lease:   { ref: 'F',   requiredEvidence: ['Daftar kontrak sewa', 'Kalkulasi ROU & liabilitas sewa'] },
   psak24:  { ref: 'H',   requiredEvidence: ['Laporan aktuaria', 'Rekonsiliasi data karyawan'] },
   revenue: { ref: 'R',   requiredEvidence: ['Analitis pendapatan', 'Sampel kontrak penjualan'] },
+  psak72:  { ref: 'R',   requiredEvidence: ['Analisis 5-langkah pengakuan pendapatan', 'Sampel kontrak penjualan', 'Uji cut-off pendapatan'] },
   sad:     { ref: '810', requiredEvidence: ['Daftar salah saji (SAD)', 'Surat representasi manajemen'] },
   opinion: { ref: '900', requiredEvidence: ['Draf laporan auditor', 'Checklist pengungkapan LK'] },
   calc:    { ref: '300', requiredEvidence: ['Kertas kerja perhitungan materialitas'] },
   /* tanpa ref huruf → key = id modul (WP berlingkup modul) */
+  psak1:   { ref: 'psak1',  requiredEvidence: ['Checklist penyajian & pengungkapan LK', 'Uji asumsi kelangsungan usaha'] },
+  psak2:   { ref: 'psak2',  requiredEvidence: ['Rekonsiliasi arus kas (metode tidak langsung)', 'Klasifikasi operasi/investasi/pendanaan'] },
+  psak19:  { ref: 'psak19', requiredEvidence: ['Register aset takberwujud', 'Uji amortisasi & penurunan nilai'] },
   psak46:  { ref: 'psak46', requiredEvidence: ['Rekonsiliasi fiskal', 'Skedul pajak tangguhan'] },
   psak48:  { ref: 'psak48', requiredEvidence: ['Uji penurunan nilai (value-in-use/DCF)'] },
   psak22:  { ref: 'psak22', requiredEvidence: ['Alokasi harga akuisisi (PPA)', 'Laporan penilai (KJPP)'] },
@@ -44,10 +48,18 @@ const WP_MODULE_MAP = {
   psak68:  { ref: 'psak68', requiredEvidence: ['Laporan penilai nilai wajar (KJPP)'] },
   segmen:  { ref: 'segmen', requiredEvidence: ['Kertas kerja informasi segmen'] },
   assoc:   { ref: 'assoc',  requiredEvidence: ['Kertas kerja entitas asosiasi (ekuitas)'] },
-  /* modul prosedur SA */
+  /* modul prosedur SA (seri 500 · bukti audit) */
   sa501:   { ref: 'sa501',  requiredEvidence: ['Observasi persediaan', 'Konfirmasi litigasi & klaim'] },
+  sa520:   { ref: 'sa520',  requiredEvidence: ['Ekspektasi & ambang investigasi analitis', 'Investigasi varians signifikan'] },
+  sa530:   { ref: 'sa530',  requiredEvidence: ['Penentuan ukuran sampel', 'Evaluasi hasil & proyeksi salah saji'] },
   sa540:   { ref: 'sa540',  requiredEvidence: ['Evaluasi estimasi akuntansi'] },
+  sa580:   { ref: 'sa580',  requiredEvidence: ['Surat representasi tertulis manajemen'] },
   spr2410: { ref: 'spr2410', requiredEvidence: ['Kertas kerja prosedur reviu interim'] },
+  /* Core Execution — kertas kerja pelaksanaan substantif */
+  aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
+  analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
+  sampling:   { ref: 'sampling',   requiredEvidence: ['Parameter & metode sampling', 'Daftar item terpilih & hasil pengujian'] },
+  jet:        { ref: 'jet',        requiredEvidence: ['Kriteria pengujian jurnal (JET)', 'Tindak lanjut jurnal anomali'] },
 };
 
 function wpKeyFor(moduleId) {
