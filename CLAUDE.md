@@ -1,5 +1,15 @@
 # NeoSuite AMS — Onboarding Agen (sekali-baca, langsung produktif)
 
+> **⚠️ STATUS ARSITEKTUR (sejak W3 Phase 2):** aplikasi kini **ESM-only**.
+> Sumber kebenaran = **`migration/` (Vite + ESM)**; edit di **`migration/src/*`**
+> (hand-maintained). Build/lint/dev: lihat **`BUILD.md`**. Berkas buildless
+> di bawah (`NeoSuite AMS.html`, `app/*`, `build/`, codemod) kini **REFERENSI
+> BEKU** — jangan diedit/dibangun/dikirim. Dokumen di bawah tetap berlaku untuk
+> memahami struktur modul, kontrak `window`/runtime-bus, dan konvensi domain
+> yang `migration/src` warisi; aturan emas anti-tabrakan masih relevan selama
+> `window` belum dilucuti penuh (W3 Phase 4). Progres arc: lihat memory
+> `neosuite-ams-arc`.
+
 > Aplikasi audit firma (KAP) berbahasa Indonesia. **Satu SPA React, tanpa build step**, dirakit dari ratusan file via `<script>` di `NeoSuite AMS.html`. Babel mentranspilasi JSX di browser. Baca dokumen ini lebih dulu, lalu langsung kerja.
 
 ---

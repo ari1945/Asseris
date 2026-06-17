@@ -9,9 +9,8 @@ app/vendor/
 NeoSuite AMS (prod).html
 migration/dist/
 
-# codemod-generated ESM tree (regenerated each run until W1 promotes it)
-migration/src/
-migration/index.html
+# NOTE (W3 Phase 2): migration/src/ + migration/index.html are now the
+# CANONICAL hand-maintained ESM source — committed, no longer codemod-generated.
 
 # generated lint report
 migration/.eslint-report.json

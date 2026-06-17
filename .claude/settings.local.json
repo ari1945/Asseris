@@ -27,7 +27,9 @@
       "Bash(grep -nE \"^const \\(LINEAGE|SA_GROUPS|SA_REVERSE|SA_FULFILLED_BY\\)|Object.assign\\\\\\(window, \\\\{ LINEAGE, SA_GROUPS\" app/related_modules_data.js)",
       "Bash(node \".claude/w2-ast-map.mjs\" app/related_modules_data.js)",
       "Bash(sed -n '301,304p' app/view_execution.jsx)",
-      "Bash(sed -n '80,83p' app/view_aje.jsx)"
+      "Bash(sed -n '80,83p' app/view_aje.jsx)",
+      "Bash(sed -n '1,6p' migration/src/related_modules_data2.js)",
+      "Bash(sed -n '80p;485p' migration/src/related_modules_data2.js)"
     ]
   }
 }

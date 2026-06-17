@@ -3,10 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "NeoSuite AMS — Vite + ESM target (migrasi dari namespace window). App asli buildless tetap utuh di root.",
+  "description": "NeoSuite AMS — CANONICAL app (Vite + ESM). src/ is hand-maintained source (W3). Buildless app/ + NeoSuite AMS.html at repo root are a FROZEN reference only.",
   "scripts": {
-    "codemod": "node codemod.mjs",
-    "codemod:dry": "node codemod.mjs --dry",
+    "_codemod_RETIRED": "node codemod.mjs — DO NOT RUN: src/ is canonical now; this would overwrite hand edits. Kept for reference only.",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
