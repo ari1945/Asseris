@@ -4,7 +4,7 @@
    penambahan + keuntungan nilai wajar − pelepasan = saldo akhir.
    Nilai wajar Level 3 (KJPP/MAPPI) dengan input takteramati.
    ============================================================ */
-const { useState: useStateIP, useMemo: useMemoIP } = React;
+const { useState: useStateIVP, useMemo: useMemoIVP } = React;
 
 /* portofolio properti investasi (Rp juta) — sub-ledger kanonik modul */
 const IP_PORTFOLIO = [
@@ -23,9 +23,9 @@ const IP_SENS = [
 function InvestmentProperty() {
   const { fmt } = window.AMS;
   const nav = useNav();
-  const [tab, setTab] = useStateIP('porto');
+  const [tab, setTab] = useStateIVP('porto');
 
-  const D = useMemoIP(() => {
+  const D = useMemoIVP(() => {
     const close = IP_ROLL.open + IP_ROLL.additions + IP_ROLL.fvGain - IP_ROLL.disposals;
     const fvSum = IP_PORTFOLIO.reduce((a, p) => a + p.fv, 0);
     const noi = IP_PL.rental - IP_PL.directOpexRented;

@@ -4,7 +4,7 @@
    register risiko, asumsi risiko (pendapatan & override
    manajemen), respons & JET, serta komunikasi.
    ============================================================ */
-const { useState: useStateF, useMemo: useMemoF } = React;
+const { useState: useStateS240, useMemo: useMemoS240 } = React;
 
 /* ---- Faktor risiko fraud (segitiga) ---- */
 const FRAUD_TRIANGLE = {
@@ -72,7 +72,7 @@ const FRAUD_COMMS = [
 function SA240View() {
   const firm = (typeof useFirm === 'function') ? useFirm() : null;
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const [tab, setTab] = useStateF('risiko');
+  const [tab, setTab] = useStateS240('risiko');
 
   const sigCount = FRAUD_REGISTER.filter(r => r.sig).length;
   const tabs = [
@@ -215,7 +215,7 @@ function F240Risk({ client }) {
 
 /* ---------------- Tab: Segitiga Fraud ---------------- */
 function F240Triangle() {
-  const [selId, setSelId] = useStateF('pressure');
+  const [selId, setSelId] = useStateS240('pressure');
   const sel = FRAUD_TRIANGLE[selId];
   const keys = Object.keys(FRAUD_TRIANGLE);
   const sevKind = s => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
@@ -283,7 +283,7 @@ function F240Triangle() {
 
 /* ---------------- Tab: Register Risiko ---------------- */
 function F240Register() {
-  const [selId, setSelId] = useStateF('FR-01');
+  const [selId, setSelId] = useStateS240('FR-01');
   const sel = FRAUD_REGISTER.find(r => r.id === selId);
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>

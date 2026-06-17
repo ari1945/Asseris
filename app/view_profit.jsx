@@ -1,7 +1,7 @@
 /* ============================================================
    NeoSuite AMS — Partner & Engagement Profitability (Package F)
    ============================================================ */
-const { useState: useStateF3, useMemo: useMemoF3 } = React;
+const { useState: useStatePRF, useMemo: useMemoPRF } = React;
 
 const RATE_CARD = { Partner: 2_500_000, Manager: 1_200_000, Senior: 700_000, Junior: 400_000 };
 const DEFAULT_MIX = { Partner: 0.05, Manager: 0.15, Senior: 0.35, Junior: 0.45 };
@@ -41,8 +41,8 @@ function Profitability() {
   const { fmt } = window.AMS;
   const nav = useNav();
   const { timeEntries } = useAudit();
-  const [view, setView] = useStateF3('engagement');
-  const [sel, setSel] = useStateF3(null);
+  const [view, setView] = useStatePRF('engagement');
+  const [sel, setSel] = useStatePRF(null);
 
   // logged timesheet hours flow into the active engagement's hours (ENG-2025-014)
   const loggedHours = (timeEntries || []).reduce((s, t) => s + (+t.hours || 0), 0);
@@ -65,7 +65,7 @@ function Profitability() {
   const avgReal = rows.reduce((s, r) => s + r.realized, 0) / rows.length * 100;
 
   // by partner
-  const partners = useMemoF3(() => {
+  const partners = useMemoPRF(() => {
     const m = {};
     rows.forEach(r => {
       if (!m[r.partner]) m[r.partner] = { partner: r.partner, fee: 0, billed: 0, margin: 0, count: 0, hours: 0 };

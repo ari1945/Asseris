@@ -3,7 +3,7 @@
    Deep workpaper: konteks perikatan, penelusuran saldo awal,
    prosedur spesifik, konsistensi kebijakan, dampak opini.
    ============================================================ */
-const { useState: useStateOB } = React;
+const { useState: useStateOPN } = React;
 
 /* ---- static reference data ---- */
 const OB_TRANSITION = { '1-2300': 13_100_000_000, '2-1500': -3_050_000_000, '2-2200': -10_050_000_000 };
@@ -46,8 +46,8 @@ const OB_OPINION_MATRIX = [
 function OpeningBalance() {
   const { fmt } = window.AMS;
   const { wtb } = useAudit();
-  const [tab, setTab] = useStateOB('konteks');
-  const [engType, setEngType] = useStateOB('lanjutan'); // 'lanjutan' | 'awal'
+  const [tab, setTab] = useStateOPN('konteks');
+  const [engType, setEngType] = useStateOPN('lanjutan'); // 'lanjutan' | 'awal'
 
   const tabs = [
     { id: 'konteks', label: 'Konteks & Strategi' },
@@ -283,7 +283,7 @@ function OBTrace({ wtb, fmt }) {
 
 /* ---------------- Tab: Prosedur Spesifik ---------------- */
 function OBProcedures({ fmt }) {
-  const [selId, setSelId] = useStateOB('C');
+  const [selId, setSelId] = useStateOPN('C');
   const sel = OB_SPECIFIC.find(s => s.id === selId);
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>

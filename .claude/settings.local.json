@@ -6,7 +6,14 @@
       "Bash(grep -vE \"^$|Length|----\")",
       "Bash(awk -F/ '{print $1}')",
       "Bash(npm -v)",
-      "Bash(git -C \"D:\\\\Claude AI\\\\06-BUSINESS-DEVELOPMENT\\\\Audit System\" rev-parse --is-inside-work-tree)"
+      "Bash(git -C \"D:\\\\Claude AI\\\\06-BUSINESS-DEVELOPMENT\\\\Audit System\" rev-parse --is-inside-work-tree)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(node -e ' *)",
+      "Bash(node \".claude/w0-rename-aliases.mjs\" --dry)",
+      "Bash(node \".claude/w0-rename-aliases.mjs\")",
+      "Bash(node -e 'const t=require\\(\"fs\"\\).readFileSync\\(\"app/shell.jsx\",\"utf8\"\\);const m=t.match\\(/const\\\\s*\\\\{[^}]*\\\\}\\\\s*=\\\\s*React\\\\s*;/g\\);console.log\\(m||\"\\(none\\)\"\\);')",
+      "Bash(node -e 'const t=require\\(\"fs\"\\).readFileSync\\(\"app/shell.jsx\",\"utf8\"\\);for\\(const tok of [\"useStateUI\",\"useState\",\"useEffect\",\"useRef\",\"useMemo\",\"useCallback\"]\\){const n=\\(t.match\\(new RegExp\\(\"\\\\\\\\b\"+tok+\"\\\\\\\\b\",\"g\"\\)\\)||[]\\).length;console.log\\(\"  \"+tok+\": \"+n\\);}')",
+      "Bash(node -e 'const t=require\\(\"fs\"\\).readFileSync\\(\"app/ui.jsx\",\"utf8\"\\);console.log\\(\"Object.assign window line:\", \\(t.match\\(/Object\\\\.assign\\\\\\(window[^;]*\\\\\\)/s\\)||[\"\\(none\\)\"]\\)[0].slice\\(0,200\\)\\);')"
     ]
   }
 }

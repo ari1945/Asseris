@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "prod",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-static.mjs"],
+      "port": 5188
+    },
+    {
+      "name": "vite",
+      "runtimeExecutable": "pwsh",
+      "runtimeArgs": ["-NoProfile", "-Command", "Set-Location migration; npm run dev -- --port 5180 --strictPort"],
+      "port": 5180
+    }
+  ]
+}

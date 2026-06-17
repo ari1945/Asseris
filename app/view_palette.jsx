@@ -1,19 +1,19 @@
 /* ============================================================
    NeoSuite AMS — Command Palette (⌘K) + Notifications + User menu
    ============================================================ */
-const { useState: useStateCP, useMemo: useMemoCP, useEffect: useEffectCP, useRef: useRefCP } = React;
+const { useState: useStatePAL, useMemo: useMemoPAL, useEffect: useEffectPAL, useRef: useRefPAL } = React;
 
 /* ---------------- Command Palette ---------------- */
 function CommandPalette({ onClose, onNavigate }) {
   const { clients, engagements, setActiveEngagementId } = useFirm();
-  const [q, setQ] = useStateCP('');
-  const [sel, setSel] = useStateCP(0);
-  const inputRef = useRefCP(null);
+  const [q, setQ] = useStatePAL('');
+  const [sel, setSel] = useStatePAL(0);
+  const inputRef = useRefPAL(null);
 
-  useEffectCP(() => { inputRef.current?.focus(); }, []);
+  useEffectPAL(() => { inputRef.current?.focus(); }, []);
 
   // build searchable index: modules, clients, engagements, accounts, standards
-  const index = useMemoCP(() => {
+  const index = useMemoPAL(() => {
     const items = [];
     MODULES.forEach(g => g.items.forEach(m => items.push({ kind: 'Modul', group: g.group, label: m.label, icon: m.icon, action: () => onNavigate(m.id), hint: g.group })));
     clients.forEach(c => items.push({ kind: 'Klien', label: c.name, icon: 'users', action: () => onNavigate('crm'), hint: c.id + ' · ' + c.industry }));
@@ -25,7 +25,7 @@ function CommandPalette({ onClose, onNavigate }) {
     return items;
   }, [clients, engagements]);
 
-  const results = useMemoCP(() => {
+  const results = useMemoPAL(() => {
     if (!q.trim()) {
       // default: top modules + recent
       return index.filter(i => i.kind === 'Modul').slice(0, 8);
@@ -34,7 +34,7 @@ function CommandPalette({ onClose, onNavigate }) {
     return index.filter(i => i.label.toLowerCase().includes(ql) || (i.hint || '').toLowerCase().includes(ql)).slice(0, 14);
   }, [q, index]);
 
-  useEffectCP(() => { setSel(0); }, [q]);
+  useEffectPAL(() => { setSel(0); }, [q]);
 
   const onKey = (e) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.min(s + 1, results.length - 1)); }
