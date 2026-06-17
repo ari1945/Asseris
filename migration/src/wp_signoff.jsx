@@ -176,7 +176,8 @@ function WpStatusBadge({ moduleId }) {
 
 /* ---- Kartu sign-off 2-tingkat (preparer → reviewer), lock lunak ---- */
 function WpSignoff({ moduleId }) {
-  const { status, locked, sign, unsign, preparer, reviewer, me } = useWpSignoff(moduleId);
+  const { status, locked, sign, unsign, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
+  const hasConclusion = !!(conclusion && conclusion.text);
   const Line = ({ role, who, onSign, onUnsign, canSign }) => (
     <div className="row ac gap8" style={{ padding: '7px 0' }}>
       <span style={{ width: 24, height: 24, borderRadius: '50%', flex: '0 0 24px', display: 'grid', placeItems: 'center',
@@ -197,6 +198,11 @@ function WpSignoff({ moduleId }) {
       <Line role="Preparer" who={preparer} canSign onSign={() => sign('preparer')} onUnsign={() => unsign('preparer')} />
       <div style={{ borderTop: '1px solid var(--line-soft)' }} />
       <Line role="Reviewer" who={reviewer} canSign={!!preparer} onSign={() => sign('reviewer')} onUnsign={() => unsign('reviewer')} />
+      {!hasConclusion && (
+        reviewer
+          ? <div className="tiny" style={{ marginTop: 6, color: 'var(--amber)', fontWeight: 600 }}><I.alert size={11} /> Ditelaah tanpa kesimpulan terdokumentasi (SA 230) — lengkapi di bawah.</div>
+          : <div className="tiny muted" style={{ marginTop: 6 }}><I.alert size={11} /> Belum ada kesimpulan auditor (SA 230) — sarankan isi sebelum telaah.</div>
+      )}
       {locked && <div className="tiny muted" style={{ marginTop: 6 }}><I.lock size={11} /> Engagement diarsipkan — read-only.</div>}
     </div>
   );
@@ -322,7 +328,7 @@ function WpSubBarControl({ moduleId }) {
 function wpCompletenessFor(audit, moduleIds) {
   const wpState = (audit && audit.wpState) || {};
   const seen = new Set();
-  let total = 0, signed = 0, withEvidence = 0;
+  let total = 0, signed = 0, withEvidence = 0, withConclusion = 0;
   moduleIds.forEach(mid => {
     const ref = wpKeyFor(mid);
     if (seen.has(ref)) return;
@@ -333,15 +339,18 @@ function wpCompletenessFor(audit, moduleIds) {
     const req = requiredEvidenceFor(mid);
     const att = (typeof amsEvidenceCount === 'function') ? amsEvidenceCount(mid) : 0;
     if (req.length ? att >= req.length : att > 0) withEvidence++;
+    if (st.conclusion && st.conclusion.text) withConclusion++;
   });
-  return { total, signed, withEvidence,
+  return { total, signed, withEvidence, withConclusion,
     signedPct: total ? Math.round(signed / total * 100) : 0,
-    evidencePct: total ? Math.round(withEvidence / total * 100) : 0 };
+    evidencePct: total ? Math.round(withEvidence / total * 100) : 0,
+    conclusionPct: total ? Math.round(withConclusion / total * 100) : 0 };
 }
 
 /* ---- Widget rekap kelengkapan (drop-in untuk Cockpit/Finalisasi) ----
-   Dua bar: kertas kerja ter-review (sign-off reviewer) + berbukti lengkap.
-   Sumber = wpState kanonik + store evidence; lingkup = semua modul auditable. */
+   Tiga bar: kertas kerja ter-review (sign-off reviewer) + berbukti lengkap +
+   berkesimpulan (penilaian auditor SA 230). Sumber = wpState kanonik + store
+   evidence; lingkup = semua modul auditable. */
 function WpCompletenessRecap({ moduleIds }) {
   const audit = useAudit();
   const ids = moduleIds || Object.keys(WP_MODULE_MAP);
@@ -361,6 +370,7 @@ function WpCompletenessRecap({ moduleIds }) {
     <div>
       <Row label="Kertas kerja ter-review (sign-off)" pct={r.signedPct} count={r.signed} total={r.total} color="var(--green)" />
       <Row label="Kertas kerja berbukti lengkap" pct={r.evidencePct} count={r.withEvidence} total={r.total} color="var(--teal)" />
+      <Row label="Kertas kerja berkesimpulan (SA 230)" pct={r.conclusionPct} count={r.withConclusion} total={r.total} color="var(--blue)" />
     </div>
   );
 }
