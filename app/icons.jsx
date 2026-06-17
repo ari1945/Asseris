@@ -328,7 +328,6 @@ const RELATED_SA = {
   subsequent:  [{ code: 'SA 560', title: 'Peristiwa Kemudian', phase: 'Pelaporan' }],
   related:     [{ code: 'SA 550', title: 'Pihak Berelasi', phase: 'Pelaksanaan' }],
   groupaudit:  [{ code: 'SA 600', title: 'Audit Grup (Komponen)', phase: 'Pelaksanaan' }],
-  internalaudit:[{ code: 'SA 610', title: 'Penggunaan Pekerjaan Auditor Internal', phase: 'Pelaksanaan' }],
   expert:      [{ code: 'SA 620', title: 'Penggunaan Pekerjaan Pakar Auditor', phase: 'Pelaksanaan' }],
   serviceorg:  [{ code: 'SA 402', title: 'Pertimbangan Audit atas Organisasi Jasa', phase: 'Pelaksanaan' }],
   sad:         [{ code: 'SA 450', title: 'Evaluasi Salah Saji', phase: 'Pelaporan' }],

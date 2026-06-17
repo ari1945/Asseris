@@ -578,4 +578,4 @@ function ManagementLetter() {
   );
 }
 
-Object.assign(window, { ManagementLetter });
+Object.assign(window, { ManagementLetter, ML_FINDINGS_SEED });

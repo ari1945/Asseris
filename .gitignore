@@ -13,6 +13,9 @@ migration/dist/
 migration/src/
 migration/index.html
 
+# generated lint report
+migration/.eslint-report.json
+
 # archived originals (24 MB zip + duplicate PDFs + old inlined build)
 _archive/
 

@@ -417,4 +417,4 @@ function AuditProgramme() {
   );
 }
 
-Object.assign(window, { AuditProgramme });
+Object.assign(window, { AuditProgramme, PROGRAMME });

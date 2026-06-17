@@ -2,14 +2,18 @@
    NeoSuite AMS — App shell: TopBar + Sidebar
    ============================================================ */
 
+// Own per-file hook alias (golden-rule #1) — previously borrowed ui.jsx's
+// useStateUI via global scope, which is invisible under ESM module scope.
+const { useState: useStateSH } = React;
+
 function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, onNavigate, route }) {
   const { user, firm } = useAuth();
   const { activeClient, activeEngagement, engagements, clients, setActiveEngagementId } = useFirm();
-  const [open, setOpen] = useStateUI(false);
-  const [notifOpen, setNotifOpen] = useStateUI(false);
-  const [userOpen, setUserOpen] = useStateUI(false);
-  const [settingsOpen, setSettingsOpen] = useStateUI(false);
-  const [notifs, setNotifs] = useStateUI(() => window.NOTIFS || []);
+  const [open, setOpen] = useStateSH(false);
+  const [notifOpen, setNotifOpen] = useStateSH(false);
+  const [userOpen, setUserOpen] = useStateSH(false);
+  const [settingsOpen, setSettingsOpen] = useStateSH(false);
+  const [notifs, setNotifs] = useStateSH(() => window.NOTIFS || []);
   const unread = notifs.filter(n => n.unread).length;
 
   return (
@@ -111,10 +115,10 @@ function readSideRecent() {
 }
 
 function Sidebar({ active, onNavigate, collapsed, onToggle }) {
-  const [closedGroups, setClosedGroups] = useStateUI({});
+  const [closedGroups, setClosedGroups] = useStateSH({});
   const toggleGroup = (g) => setClosedGroups(s => ({ ...s, [g]: !s[g] }));
   const firmCtx = (typeof useFirm === 'function') ? useFirm() : null;
-  const [ws, setWs] = useStateUI(() => {
+  const [ws, setWs] = useStateSH(() => {
     try { const s = localStorage.getItem('ams.ws'); if (s && WORKSPACES.some(w => w.id === s)) return s; } catch (e) {}
     return (window.wsForModule && window.wsForModule(active)) || 'engagement';
   });
@@ -125,7 +129,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }) {
     if (target && target !== ws) setWs(target);
   }, [active]);
   /* re-read prefs/recent when Pengaturan changes them or navigation happens */
-  const [, bumpNav] = useStateUI(0);
+  const [, bumpNav] = useStateSH(0);
   React.useEffect(() => {
     const bump = () => bumpNav(t => t + 1);
     window.addEventListener('ams:navprefs', bump);
@@ -330,8 +334,8 @@ function SubBar({ moduleId, right }) {
 
 /* Display settings: dark mode + density (persisted to localStorage + body class) */
 function SettingsMenu({ open, onClose, onNavigate }) {
-  const [dark, setDark] = useStateUI(() => localStorage.getItem('ams.dark') === '1');
-  const [dense, setDense] = useStateUI(() => localStorage.getItem('ams.dense') === '1');
+  const [dark, setDark] = useStateSH(() => localStorage.getItem('ams.dark') === '1');
+  const [dense, setDense] = useStateSH(() => localStorage.getItem('ams.dense') === '1');
   React.useEffect(() => { document.body.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
   React.useEffect(() => { document.body.classList.toggle('dense', dense); localStorage.setItem('ams.dense', dense ? '1' : '0'); }, [dense]);
   if (!open) return null;

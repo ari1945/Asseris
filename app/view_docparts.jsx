@@ -159,4 +159,4 @@ function pNowTime() {
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 }
 
-Object.assign(window, { PModal, PField, PDrawer, PTimeline, PVerList, PThread, pNowTime });
+Object.assign(window, { PModal, PField, PDrawer, PTimeline, PVerList, PThread, pNowTime, PEVT });

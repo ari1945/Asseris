@@ -9,7 +9,7 @@ const boJt = (v) => 'Rp ' + window.AMS.fmt(v / 1e6, 0) + ' jt';
 const boM = (v, d = 1) => 'Rp ' + window.AMS.fmt(v / 1e9, d) + ' M';
 const boBadge = {
   Aktif: 'green', Disetujui: 'green', Lengkap: 'green', Berlaku: 'green', Patuh: 'green', Digunakan: 'green', Dibayar: 'green', Selesai: 'green', Reimbursed: 'green', Terkunci: 'green',
-  'Menunggu Approval': 'amber', 'Perlu Reviu': 'amber', Evaluasi: 'amber', Draft: 'gray', Berjalan: 'amber', Perpanjangan: 'amber', 'Perlu Servis': 'amber', Terjadwal: 'blue', Diproses: 'blue', Mediasi: 'amber', 'Jatuh Tempo': 'amber', Dilaporkan: 'blue', 'Usul Hapus': 'amber', 'PPL Kurang': 'amber', Diproses: 'blue',
+  'Menunggu Approval': 'amber', 'Perlu Reviu': 'amber', Evaluasi: 'amber', Draft: 'gray', Berjalan: 'amber', Perpanjangan: 'amber', 'Perlu Servis': 'amber', Terjadwal: 'blue', Diproses: 'blue', Mediasi: 'amber', 'Jatuh Tempo': 'amber', Dilaporkan: 'blue', 'Usul Hapus': 'amber', 'PPL Kurang': 'amber',
   Ditolak: 'red', Diblokir: 'red', Terlambat: 'red', 'Legal Hold': 'red', Ditahan: 'red', Tinggi: 'red', 'Gagal — pajak': 'red',
   Putusan: 'gray', Dicabut: 'gray', Sedang: 'amber', Rendah: 'green',
 };
