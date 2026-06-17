@@ -2,6 +2,7 @@
 import React from 'react';
 import { useAuth, useFirm, useNav, useNavFrom } from './contexts.jsx';
 import { EvidenceControl } from './evidence.jsx';
+import { WpSubBarControl } from './wp_signoff.jsx';
 import { GROUP_WS, I, MODULES, MODULE_INDEX, WORKSPACES } from './icons.jsx';
 import { Avatar } from './ui.jsx';
 import { NotificationsPanel, UserMenu } from './view_palette.jsx';
@@ -334,6 +335,7 @@ function SubBar({ moduleId, right }) {
         </span>
       )}
       <div className="subbar-spacer" />
+      {typeof WpSubBarControl !== 'undefined' && <WpSubBarControl moduleId={moduleId} />}
       {typeof EvidenceControl !== 'undefined' && <EvidenceControl moduleId={moduleId} />}
       {right}
     </div>

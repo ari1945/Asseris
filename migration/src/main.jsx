@@ -165,6 +165,7 @@ import './view_opening.jsx';
 import './view_misc1.jsx';
 import './view_wp.jsx';
 import './sa_canonical.jsx';
+import './wp_signoff.jsx';   // P2: lapisan sign-off + bukti bersama (butuh view_wp/evidence/contexts)
 import './view_settings.jsx';
 import './view_isqm_parts.jsx';
 import './view_isqm_deep.jsx';
