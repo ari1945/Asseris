@@ -11,7 +11,8 @@ const parser = require('@babel/parser');
 const traverseMod = require('@babel/traverse');
 const traverse = traverseMod.default || traverseMod;
 
-const SRC = 'D:/Claude AI/06-BUSINESS-DEVELOPMENT/Audit System/migration/src/canon.js';
+const SRC = process.argv[2] || 'D:/Claude AI/06-BUSINESS-DEVELOPMENT/Audit System/migration/src/canon.js';
+const CUT = process.argv[3] || 'deferredTax';
 const code = readFileSync(SRC, 'utf8');
 const ast = parser.parse(code, { sourceType: 'module', plugins: ['jsx'] });
 
@@ -65,7 +66,7 @@ function refsOf(decl) {
 }
 
 const FOUND = ['RATE','ASOF','jt','wtbRow','wtbVal','WTB_MAP','figuresFromWTB','elapsedMonths','leaseCalc','leasePortfolio','LEASES','FISCAL','SRC','FIG'];
-const firstEngineIdx = decls.findIndex(d => d.name === 'deferredTax');
+const firstEngineIdx = decls.findIndex(d => d.name === CUT);
 console.log('total decls:', decls.length, '| foundation cut at deferredTax idx', firstEngineIdx);
 console.log('foundation decls:', decls.slice(0, firstEngineIdx).map(d=>d.name).join(', '));
 
