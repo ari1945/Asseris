@@ -60,10 +60,10 @@ npm run test       # vitest — canon "number engine" net (W4); add --coverage f
   `WTB`/`Figures`/`Fig`/`MaterialityResult`/`FsModel`), `canon_selectors.ts`
   (typed accessors consumed by views), and `src/types/globals.d.ts` (the residual
   `window` contract: `AMS`/`AMS_CANON`/`BENCHMARKS`/`FSGEN`/`AMS_FORENSIC`).
-- **Posture:** `strict: true` **except** `strictNullChecks: false` — the deliberate
-  "gradual" ramp (DoD W5). `noImplicitAny` is on, so the canon **surface has zero
-  `any`** (verified by emitting `.d.ts` and scanning). Next ramp step: flip
-  `strictNullChecks` on (will surface `.find().prop` nullability across the engines).
+- **Posture:** **full `strict: true`** (incl. `strictNullChecks` — flipped on in the
+  W5 ramp). The canon **surface has zero `any`** (verified by emitting `.d.ts` and
+  scanning). `.find().prop` lookups that are domain-guaranteed use `!` non-null
+  assertions (type-only, erased — zero runtime change, gated by the 49-test snapshot).
 - **Gate:** `npm run typecheck` (`tsc --noEmit`) MUST stay **0 errors**. This is the
   gate for `.ts` files — ESLint does **not** lint `.ts` (flat config matches only
   `.js/.jsx`); `tsc` is the stronger check there (catches undefined refs + duplicate

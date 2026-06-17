@@ -139,8 +139,8 @@ import type { WTB } from './canon_types';
         sourceLabel: 'WTB · 2-2300', sourceRoute: 'wtb', source: s.dboBooked, ref: 'PSAK 24',
         note: 'Nilai tercatat liabilitas imbalan pasti; jadi beda temporer dapat dikurangkan (dasar pajak 0).',
         consumers: [
-          { module: 'psak24', label: 'PSAK 24 · Imbalan Kerja', val: dt.items.find(i => i.id === 'eb').car },
-          { module: 'psak46', label: 'PSAK 46 · beda temporer (eb)', val: dt.items.find(i => i.id === 'eb').car },
+          { module: 'psak24', label: 'PSAK 24 · Imbalan Kerja', val: dt.items.find(i => i.id === 'eb')!.car! },
+          { module: 'psak46', label: 'PSAK 46 · beda temporer (eb)', val: dt.items.find(i => i.id === 'eb')!.car! },
         ],
       }),
       row({
@@ -150,7 +150,7 @@ import type { WTB } from './canon_types';
         note: 'PSAK 46 memakai saldo dibukukan klien (Rp ' + s.ckpnBooked + ' jt). Model ECL Rp ' + eclModel + ' jt → AJE menaikkan ke saldo audited Rp ' + s.ckpnAudited + ' jt. Pertimbangkan dasar audited untuk beda temporer.',
         consumers: [
           { module: 'ecl', label: 'Kalkulator ECL · dibukukan', val: s.ckpnBooked },
-          { module: 'psak46', label: 'PSAK 46 · beda temporer (ecl)', val: dt.items.find(i => i.id === 'ecl').diff },
+          { module: 'psak46', label: 'PSAK 46 · beda temporer (ecl)', val: dt.items.find(i => i.id === 'ecl')!.diff },
         ],
         extra: [
           { label: 'Model ECL (PSAK 71)', val: eclModel },
@@ -161,16 +161,16 @@ import type { WTB } from './canon_types';
         id: 'ppe', pos: 'Aset Tetap — nilai tercatat neto', unit: 'Rp juta',
         sourceLabel: 'WTB · 1-2100 + 1-2110', sourceRoute: 'wtb', source: s.ppeNetCarry, ref: 'PSAK 16',
         warnOnly: true,
-        note: 'Beda temporer aset tetap (Rp ' + dt.items.find(i => i.id === 'ppe').diff + ' jt) berasal dari selisih dengan dasar pajak (kertas kerja fiskal), bukan seluruh nilai tercatat. Carrying per WTB ditunjukkan untuk ketertelusuran.',
+        note: 'Beda temporer aset tetap (Rp ' + dt.items.find(i => i.id === 'ppe')!.diff + ' jt) berasal dari selisih dengan dasar pajak (kertas kerja fiskal), bukan seluruh nilai tercatat. Carrying per WTB ditunjukkan untuk ketertelusuran.',
         consumers: [
           { module: 'psak16', label: 'PSAK 16 · nilai tercatat neto', val: Math.round(fa.netClose) },
           { module: 'fsgen', label: 'FS Generator · Aset tetap (Neraca)', val: Math.round(fa.netClose) },
-          { module: 'psak46', label: 'PSAK 46 · carrying (sub-pool)', val: dt.items.find(i => i.id === 'ppe').car },
+          { module: 'psak46', label: 'PSAK 46 · carrying (sub-pool)', val: dt.items.find(i => i.id === 'ppe')!.car! },
         ],
         extra: [
           { label: 'Penyusutan audited (PSAK 16)', val: Math.round(fa.deprAudited) },
           { label: 'Belanja modal neto (capex)', val: Math.round(fa.capexNet) },
-          { label: 'Beda temporer aset tetap (PSAK 46)', val: dt.items.find(i => i.id === 'ppe').diff },
+          { label: 'Beda temporer aset tetap (PSAK 46)', val: dt.items.find(i => i.id === 'ppe')!.diff },
         ],
       }),
       row({
@@ -209,8 +209,8 @@ import type { WTB } from './canon_types';
           { module: 'specifics', label: 'Evaluasi Pakar · V-2 (SA 500)', val: p68.revalTotal },
         ],
         extra: [
-          { label: 'Tanah (Level 2 · pendekatan pasar)', val: p68.get('land').fv },
-          { label: 'Bangunan (Level 3 · DRC)', val: p68.get('build').fv },
+          { label: 'Tanah (Level 2 · pendekatan pasar)', val: p68.get('land')!.fv },
+          { label: 'Bangunan (Level 3 · DRC)', val: p68.get('build')!.fv },
           { label: 'Pajak tangguhan surplus (OCI · PSAK 46)', val: p68.dtlOci },
         ],
       }),
@@ -225,7 +225,7 @@ import type { WTB } from './canon_types';
         extra: [
           { label: 'Liab. sewa per WTB', val: s.leaseLiab },
           { label: 'Liab. sewa portofolio', val: Math.round(dt.lease.liab) },
-          { label: 'Beda temporer neto (PSAK 46)', val: dt.items.find(i => i.id === 'lse').diff },
+          { label: 'Beda temporer neto (PSAK 46)', val: dt.items.find(i => i.id === 'lse')!.diff },
         ],
       }),
       row({
@@ -268,8 +268,8 @@ import type { WTB } from './canon_types';
         warnOnly: true,
         note: 'Nilai tercatat UPK Operasi Inti Rp ' + p48.carry + ' jt (aset tetap + takberwujud + ROU + goodwill) ditarik dari modul sumber ber-WTB. Jumlah terpulihkan (nilai pakai) Rp ' + p48.recoverable + ' jt → headroom Rp ' + Math.round(p48.headroom) + ' jt (' + (p48.headroomPct * 100).toFixed(1) + '%). Rugi penurunan nilai Rp ' + p48.impairLoss + ' jt.',
         consumers: [
-          { module: 'psak16', label: 'PSAK 16 · aset tetap neto (komponen UPK)', val: p48.parts.find(x => x.id === 'ppe').val },
-          { module: 'psak19', label: 'PSAK 19 · takberwujud terbatas (komponen UPK)', val: p48.parts.find(x => x.id === 'intanFin').val },
+          { module: 'psak16', label: 'PSAK 16 · aset tetap neto (komponen UPK)', val: p48.parts.find(x => x.id === 'ppe')!.val },
+          { module: 'psak19', label: 'PSAK 19 · takberwujud terbatas (komponen UPK)', val: p48.parts.find(x => x.id === 'intanFin')!.val },
         ],
         extra: [
           { label: 'Lisensi tak-terbatas — uji tahunan (¶10)', val: p48.license.carry },
@@ -281,10 +281,10 @@ import type { WTB } from './canon_types';
         id: 'prov', pos: 'Provisi diakui (PSAK 57)', unit: 'Rp juta',
         sourceLabel: 'AMS_CANON.psak57 · PROV_REGISTER', sourceRoute: 'psak57', source: p57.provisionTotal, ref: 'PSAK 57',
         warnOnly: true,
-        note: 'Provisi diakui Rp ' + p57.provisionTotal + ' jt (garansi Rp ' + p57.items.find(i => i.id === 'PRV-WAR').recognized + ' jt + litigasi LIT-02 Rp ' + p57.items.find(i => i.id === 'LIT-02').recognized + ' jt) menutup ke roll-forward (¶84). Liabilitas kontinjensi diungkap Rp ' + p57.contingentTotal + ' jt. Beda temporer ke PSAK 46 = Rp ' + p57.tempDiffModeled + ' jt (porsi garansi deductible).',
+        note: 'Provisi diakui Rp ' + p57.provisionTotal + ' jt (garansi Rp ' + p57.items.find(i => i.id === 'PRV-WAR')!.recognized + ' jt + litigasi LIT-02 Rp ' + p57.items.find(i => i.id === 'LIT-02')!.recognized + ' jt) menutup ke roll-forward (¶84). Liabilitas kontinjensi diungkap Rp ' + p57.contingentTotal + ' jt. Beda temporer ke PSAK 46 = Rp ' + p57.tempDiffModeled + ' jt (porsi garansi deductible).',
         consumers: [
           { module: 'sa501', label: 'SA 501 · register litigasi (provisi)', val: p57.litigation.reduce((a, i) => a + i.recognized, 0) },
-          { module: 'sa540', label: 'SA 540 · estimasi provisi garansi', val: p57.items.find(i => i.id === 'PRV-WAR').recognized },
+          { module: 'sa540', label: 'SA 540 · estimasi provisi garansi', val: p57.items.find(i => i.id === 'PRV-WAR')!.recognized },
           { module: 'psak46', label: 'PSAK 46 · beda temporer provisi (prv)', val: p57.tempDiffModeled },
         ],
         extra: [
@@ -298,16 +298,16 @@ import type { WTB } from './canon_types';
     const p66 = psak66(wtb);
     accounting.push(row({
       id: 'ja', pos: 'Pengaturan Bersama (PSAK 66)', unit: 'Rp juta',
-      sourceLabel: 'AMS_CANON.GROUP_ASSOCIATES · AS-02', sourceRoute: 'psak66', source: p66.jv.carry, ref: 'PSAK 66 · 15',
+      sourceLabel: 'AMS_CANON.GROUP_ASSOCIATES · AS-02', sourceRoute: 'psak66', source: p66.jv!.carry!, ref: 'PSAK 66 · 15',
       warnOnly: true,
-      note: 'Ventura bersama (KSO Sentosa-Andalan) disajikan metode ekuitas Rp ' + p66.jv.carry + ' jt — nilai tercatat yang SAMA dipakai PSAK 65 di luar batas konsolidasi. Operasi bersama: bagian aset tetap Rp ' + p66.jo.ppeShare + ' jt ditarik dari Register Aset Tetap (WTB 1-2100). Pengendalian BERSAMA → tidak dikonsolidasi.',
+      note: 'Ventura bersama (KSO Sentosa-Andalan) disajikan metode ekuitas Rp ' + p66.jv!.carry + ' jt — nilai tercatat yang SAMA dipakai PSAK 65 di luar batas konsolidasi. Operasi bersama: bagian aset tetap Rp ' + p66.jo!.ppeShare + ' jt ditarik dari Register Aset Tetap (WTB 1-2100). Pengendalian BERSAMA → tidak dikonsolidasi.',
       consumers: [
-        { module: 'psak65', label: 'PSAK 65 · asosiasi/ventura (ekuitas)', val: p66.jv.carry },
-        { module: 'psak16', label: 'PSAK 16 · bagian aset tetap operasi bersama', val: p66.jo.ppeShare },
+        { module: 'psak65', label: 'PSAK 65 · asosiasi/ventura (ekuitas)', val: p66.jv!.carry! },
+        { module: 'psak16', label: 'PSAK 16 · bagian aset tetap operasi bersama', val: p66.jo!.ppeShare! },
       ],
       extra: [
-        { label: 'Bagian laba ventura → Laba Rugi', val: p66.jv.shareProfit },
-        { label: 'Bagian aset neto operasi bersama', val: p66.jo.netAssets },
+        { label: 'Bagian laba ventura → Laba Rugi', val: p66.jv!.shareProfit! },
+        { label: 'Bagian aset neto operasi bersama', val: p66.jo!.netAssets! },
         { label: 'Tie-out lintas-laporan (lolos)', val: p66.tiePass },
       ],
     }));
@@ -454,8 +454,8 @@ import type { WTB } from './canon_types';
     /* —— kertas kerja konsolidasi (laporan posisi keuangan ringkas) ——
        Induk + investasi(seed) + Σ Anak − Eliminasi = Konsolidasian. Karena tiap
        jurnal eliminasi berimbang & tiap kolom menutup, konsolidasian otomatis tie. */
-    const unrInv = INTERCO.find(e => e.id === 'ELM-02').amount;   // laba blm terealisasi persediaan
-    const intercoAR = INTERCO.find(e => e.id === 'ELM-03').amount; // piutang/utang antar-pr.
+    const unrInv = INTERCO.find(e => e.id === 'ELM-02')!.amount;   // laba blm terealisasi persediaan
+    const intercoAR = INTERCO.find(e => e.id === 'ELM-03')!.amount; // piutang/utang antar-pr.
     const indukSaldoLaba = par.saldoLabaWTB + npatParent;         // termasuk laba th berjalan
 
     const ws = [
@@ -493,9 +493,9 @@ import type { WTB } from './canon_types';
     const ownersProfit = consolNpat - nciProfit;
 
     /* —— translasi entitas asing (PSAK 10) — Sentosa Trading —— */
-    const trad = subs.find(s => s.id === 'CP-05');
+    const trad = subs.find(s => s.id === 'CP-05')!;
     const translation = { name: trad.name, ccy: 'SGD', closeRate: 11950, avgRate: 11720,
-      netAssetsSgd: R(trad.equityNow / 11.95), cta: INTERCO.find(e => e.id === 'ELM-05').amount };
+      netAssetsSgd: R(trad.equityNow / 11.95), cta: INTERCO.find(e => e.id === 'ELM-05')!.amount };
 
     /* —— rekonsiliasi lintas-modul (lineage satu sumber) —— */
     const recon = [

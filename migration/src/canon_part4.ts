@@ -84,37 +84,37 @@ import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
     const arrangements: JointArrResult[] = JOINT_ARR.map(a => {
       if (a.type === 'jv') {
         /* metode ekuitas — closing harus = nilai tercatat kanonik GROUP_ASSOCIATES */
-        const rfClose = a.openCarry + a.shareProfit - a.dividend + a.oci;
+        const rfClose = a.openCarry! + a.shareProfit! - a.dividend! + a.oci!;
         const carry   = assoc.carry;                       // SUMBER KEBENARAN (= 3.100)
-        const netAssetShare = R((a.sf.assets - a.sf.liab) * a.interest / 100);
+        const netAssetShare = R((a.sf!.assets - a.sf!.liab) * a.interest / 100);
         const goodwillInCarry = carry - netAssetShare;     // selisih nilai tercatat vs bagian aset neto
-        const shareProfitCheck = R(a.sf.profit * a.interest / 100);
+        const shareProfitCheck = R(a.sf!.profit * a.interest / 100);
         return { ...a, rfClose, carry, netAssetShare, goodwillInCarry, shareProfitCheck,
           carryTie: rfClose === carry, ctrl, label: 'Ventura bersama · ekuitas (PSAK 15)' };
       }
       /* operasi bersama — bagian aset tetap ditarik per tag dari register (WTB 1-2100) */
-      const tagRows = a.ppeTags.map(t => reg.rows.find(r => r.tag === t)).filter(Boolean);
-      const ppeShare = R(tagRows.reduce((s, r) => s + r.nbv, 0));
-      const assetsShare = ppeShare + a.shareCurrent;
-      const netAssets = assetsShare - a.shareLiab;
-      const result = a.shareRev - a.shareExp;              // kontribusi laba operasi bersama
+      const tagRows = a.ppeTags!.map(t => reg.rows.find(r => r.tag === t)).filter(Boolean);
+      const ppeShare = R(tagRows.reduce((s, r) => s + r!.nbv, 0));
+      const assetsShare = ppeShare + a.shareCurrent!;
+      const netAssets = assetsShare - a.shareLiab!;
+      const result = a.shareRev! - a.shareExp!;              // kontribusi laba operasi bersama
       return { ...a, tagRows, ppeShare, assetsShare, netAssets, result,
         ctrl, label: 'Operasi bersama · bagian proporsional (¶20)' };
     });
 
-    const jv = arrangements.find(a => a.type === 'jv');
-    const jo = arrangements.find(a => a.type === 'jo');
+    const jv = arrangements.find(a => a.type === 'jv')!;
+    const jo = arrangements.find(a => a.type === 'jo')!;
 
     /* tie-out lintas-laporan (satu sumber kebenaran) */
     const tieRows = [
-      { id: 't1', label: 'Nilai tercatat ventura bersama = pos PSAK 65 (luar konsolidasi)', std: 'PSAK 15 · ¶24', a: jv.carry, b: assoc.carry, route: 'psak65',
+      { id: 't1', label: 'Nilai tercatat ventura bersama = pos PSAK 65 (luar konsolidasi)', std: 'PSAK 15 · ¶24', a: jv.carry!, b: assoc.carry, route: 'psak65',
         note: 'Metode ekuitas. Nilai tercatat Rp ' + jv.carry + ' jt = GROUP_ASSOCIATES AS-02 — angka yang SAMA disajikan PSAK 65 sebagai asosiasi/ventura di luar batas konsolidasi.' },
-      { id: 't2', label: 'Roll-forward ekuitas menutup ke nilai tercatat', std: 'PSAK 15 · ¶10', a: jv.rfClose, b: jv.carry, route: null,
+      { id: 't2', label: 'Roll-forward ekuitas menutup ke nilai tercatat', std: 'PSAK 15 · ¶10', a: jv.rfClose!, b: jv.carry!, route: null,
         note: 'Saldo awal + bagian laba − dividen ± OCI = Rp ' + jv.rfClose + ' jt = nilai tercatat akhir.' },
-      { id: 't3', label: 'Bagian aset tetap operasi bersama = Register Aset Tetap (PSAK 16)', std: '¶20(a)', a: jo.ppeShare, b: jo.ppeShare, route: 'psak16',
-        note: 'Bagian aset tetap operasi bersama (tag ' + jo.ppeTags.join(', ') + ') ditarik dari Register Aset Tetap → menutup ke akun kontrol GL WTB 1-2100.' },
-      { id: 't4', label: 'Bagian laba ventura → Laba Rugi (ekuitas)', std: 'PSAK 15 · ¶10', a: jv.shareProfit, b: jv.shareProfitCheck, route: 'fsgen',
-        note: 'Bagian laba Rp ' + jv.shareProfit + ' jt = ' + jv.interest + '% × laba ventura Rp ' + jv.sf.profit + ' jt (info keuangan ringkas).' },
+      { id: 't3', label: 'Bagian aset tetap operasi bersama = Register Aset Tetap (PSAK 16)', std: '¶20(a)', a: jo.ppeShare!, b: jo.ppeShare!, route: 'psak16',
+        note: 'Bagian aset tetap operasi bersama (tag ' + jo.ppeTags!.join(', ') + ') ditarik dari Register Aset Tetap → menutup ke akun kontrol GL WTB 1-2100.' },
+      { id: 't4', label: 'Bagian laba ventura → Laba Rugi (ekuitas)', std: 'PSAK 15 · ¶10', a: jv.shareProfit!, b: jv.shareProfitCheck!, route: 'fsgen',
+        note: 'Bagian laba Rp ' + jv.shareProfit + ' jt = ' + jv.interest + '% × laba ventura Rp ' + jv.sf!.profit + ' jt (info keuangan ringkas).' },
       { id: 't5', label: 'Ventura bersama TIDAK dikonsolidasi (batas PSAK 65)', std: 'PSAK 66 · ¶24', a: 0, b: 0, route: 'psak65',
         note: 'Pengendalian BERSAMA (bukan pengendalian) → tidak dikonsolidasi; disajikan metode ekuitas, konsisten dengan penilaian GROUP_CONTROL AS-02.' },
     ].map(r => ({ ...r, diff: r.a - r.b, ok: Math.abs(r.a - r.b) < 1.5 }));
@@ -131,13 +131,13 @@ import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
       { k: 'Metode ekuitas — investasi asosiasi/JV', src: 'PSAK 15 · IAS 28', route: 'psak65', icon: 'layers' },
     ];
 
-    const carryTotal = jv.carry;                                  // nilai tercatat di Neraca (ekuitas)
-    const joAssets = jo.assetsShare, joNet = jo.netAssets, joResult = jo.result;
+    const carryTotal = jv.carry!;                                  // nilai tercatat di Neraca (ekuitas)
+    const joAssets = jo.assetsShare!, joNet = jo.netAssets!, joResult = jo.result!;
 
     return {
       arrangements, jv, jo, tieRows, tiePass, lineage,
       carryTotal, joAssets, joNet, joResult,
-      shareProfit: jv.shareProfit,
+      shareProfit: jv.shareProfit!,
       disclosure: P66_DISCLOSURE,
       counts: { total: JOINT_ARR.length, jv: arrangements.filter(a => a.type === 'jv').length, jo: arrangements.filter(a => a.type === 'jo').length },
       reg,

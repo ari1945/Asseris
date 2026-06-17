@@ -102,7 +102,7 @@ import type { WTB, AjeRow } from './canon_types';
 
     /* ---- register per-SKU (kertas kerja NRV C-2) — sumber bawah uji NRV ---- */
     const items = INV_ITEMS.map(it => {
-      const cls   = INV_MIX.find(m => m.id === it.cls);
+      const cls   = INV_MIX.find(m => m.id === it.cls)!;   // it.cls selalu salah satu id INV_MIX
       const carry = closeNet * cls.pct * it.w;        // nilai tercatat neto (alokasi WTB)
       const bookedWD = it.bookedWD;                   // cadangan dibukukan klien (Rp jt)
       const cost  = carry + bookedWD;                 // biaya perolehan bruto
@@ -285,8 +285,8 @@ import type { WTB, AjeRow } from './canon_types';
       const cost = (c.gross || 0) * s.w;
       const acqYear = Number(s.acq.split('-')[0]);
       const age = c.life ? Math.max(0, ASOF.y - acqYear) : 0;
-      const annual = c.life ? cost * (1 - c.residual) / c.life : 0;
-      const rawAccum = c.life ? Math.min(cost * (1 - c.residual), annual * age) : 0;
+      const annual = c.life ? cost * (1 - c.residual!) / c.life : 0;
+      const rawAccum = c.life ? Math.min(cost * (1 - c.residual!), annual * age) : 0;
       return { ...s, classLabel: c.label, cost, life: c.life, residual: c.residual, acqYear, age, annual, rawAccum };
     });
     /* normalisasi akumulasi per kelompok → Σ sub-ledger = akum GL (rekonsiliasi menutup) */
@@ -297,7 +297,7 @@ import type { WTB, AjeRow } from './canon_types';
       const accum = r.rawAccum * k;
       const nbv = r.cost - accum;
       const rate = (r.life && r.cost) ? r.annual / r.cost : 0;
-      return { ...r, accum, nbv, rate, fullyDep: r.life ? (nbv <= r.cost * r.residual + 1) : false };
+      return { ...r, accum, nbv, rate, fullyDep: r.life ? (nbv <= r.cost * r.residual! + 1) : false };
     });
     const sumCost  = rows.reduce((a, r) => a + r.cost, 0);
     const sumAccum = rows.reduce((a, r) => a + r.accum, 0);

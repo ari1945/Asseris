@@ -13,7 +13,7 @@
 > **W5 (TypeScript bertahap):** lapisan **kanon kini TypeScript** —
 > `canon*.ts` + `forensic_canon.ts` + `canon_types.ts` + `canon_selectors.ts` +
 > `src/types/globals.d.ts`. Gate `npm run typecheck` (`tsc --noEmit`) WAJIB 0
-> error; `strict` ON kecuali `strictNullChecks` (ramp berikutnya). View tetap
+> error; **full `strict`** (termasuk `strictNullChecks`). View tetap
 > `.jsx` dan menarik tipe via `canon_selectors`. ESLint tak melint `.ts` (tsc
 > yang menjaganya). Detail: `BUILD.md`.
 

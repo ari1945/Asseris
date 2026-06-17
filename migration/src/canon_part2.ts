@@ -59,7 +59,7 @@ import type { WTB } from './canon_types';
         basis: 'Proyeksi laba fiskal masa depan',
         assumpPy: 'Proyeksi 3 th', assumpCy: 'Proyeksi 4 th',
         carryPy: prevDta, carryCy: s.dtaReported, drives: 'Manfaat pajak tangguhan',
-        sens: dt.items.find(i => i.id === 'tlc') ? Math.abs(dt.items.find(i => i.id === 'tlc').dt) : 660, sensLbl: 'rugi fiskal', treat: 'Prospektif' },
+        sens: dt.items.find(i => i.id === 'tlc') ? Math.abs(dt.items.find(i => i.id === 'tlc')!.dt) : 660, sensLbl: 'rugi fiskal', treat: 'Prospektif' },
     ];
     const estTotalCy = estimates.reduce((a, e) => a + e.carryCy, 0);
 
@@ -290,7 +290,7 @@ import type { WTB } from './canon_types';
     l3RF.closing = l3RF.opening + l3RF.additions + l3RF.gainsPl + l3RF.gainsOci + l3RF.transfersIn - l3RF.transfersOut - l3RF.settlements;
 
     /* sensitivitas input signifikan tak teramati (¶93h) — dampak ke NW (Rp juta) */
-    const fvBuild = get('build').fv, fvEq = get('equity').fv;
+    const fvBuild = get('build')!.fv, fvEq = get('equity')!.fv;
     const sens = [
       { item: 'build', label: 'Bangunan · biaya pengganti /m²', shock: '±5%', fav: Math.round(fvBuild * 0.05), unf: -Math.round(fvBuild * 0.05) },
       { item: 'build', label: 'Bangunan · tingkat penyusutan', shock: '∓5 pp', fav: Math.round(fvBuild * 0.08), unf: -Math.round(fvBuild * 0.08) },
@@ -457,9 +457,9 @@ import type { WTB } from './canon_types';
 
     /* roll-forward provisi (¶84) — agregat pos yang diakui */
     const rf = items.filter(i => i.roll).reduce((a, i) => ({
-      opening: a.opening + i.roll.opening, addl: a.addl + i.roll.addl,
-      used: a.used + i.roll.used, reversed: a.reversed + i.roll.reversed,
-      unwind: a.unwind + i.roll.unwind,
+      opening: a.opening + i.roll!.opening, addl: a.addl + i.roll!.addl,
+      used: a.used + i.roll!.used, reversed: a.reversed + i.roll!.reversed,
+      unwind: a.unwind + i.roll!.unwind,
     }), { opening: 0, addl: 0, used: 0, reversed: 0, unwind: 0 } as Record<string, number>);
     rf.closing = rf.opening + rf.addl - rf.used - rf.reversed + rf.unwind;
     const rollTies = Math.abs(rf.closing - provisionTotal) <= 1;

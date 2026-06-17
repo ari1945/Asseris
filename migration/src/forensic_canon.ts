@@ -100,7 +100,7 @@ interface JournalEntry {
   }
 
   /* ---- efek-kas mutasi neraca: −Δsaldo (sama dgn FSGEN & PSAK 2) ---- */
-  function dmod(by: Record<string, WtbRow>, c: string) { const r = by[c]; const cy = r ? r.adj : 0, py = r ? r.ly : 0; return -((cy) - (py)); }
+  function dmod(by: Record<string, WtbRow>, c: string) { const r = by[c]; const cy = r ? r.adj! : 0, py = r ? r.ly! : 0; return -((cy) - (py)); }
 
   /* ============================================================
      buildCash(model, wtb) — jembatan arus kas bruto + waterfall,
