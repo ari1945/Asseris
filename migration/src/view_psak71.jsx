@@ -4,6 +4,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
+import { wpSignersFor } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — PSAK 71 · Instrumen Keuangan (IFRS 9)
@@ -111,8 +112,8 @@ function P71RowKv({ label, v, strong, accent }) {
   );
 }
 
-/* ---- meta sign-off kertas kerja (dokumentasi SA 230) ---- */
-function p71WpSignoff() {
+/* ---- default penanda tangan kertas kerja (dipakai bila chain kanonik kosong) ---- */
+function p71WpSignoffDefaults() {
   const TEAM = (window.AMS && window.AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
@@ -130,7 +131,8 @@ function p71WpSignoff() {
    ============================================================ */
 function P71WorkPaper({ p71, client, eng, fmt, rp, nav }) {
   const FIRM = (window.AMS && window.AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
-  const so = p71WpSignoff();
+  const audit = useAudit();
+  const so = wpSignersFor(audit, 'psak71', p71WpSignoffDefaults());
   const r0 = (x) => Math.round(x);
   const Sect = ({ n, title, sub, children }) => (
     <div style={{ marginTop: 22 }}>

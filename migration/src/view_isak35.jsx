@@ -4,6 +4,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Panel, Tabs } from './ui.jsx';
+import { useWpSignoff } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — ISAK 35 · Entitas Berorientasi Nonlaba
@@ -79,7 +80,12 @@ function ISAK35View() {
   const [dock, setDock] = useStateI35('validate');
   const [disc, setDisc] = window.useAmsPersist('isak35.disc', m.disclosures);
   const [procDone, setProcDone] = window.useAmsPersist('isak35.proc', {});
-  const [signoff, setSignoff] = window.useAmsPersist('isak35.signoff', {});
+  /* sign-off kanonik (SSOT wpState['isak35']) — bentuk {prepared,reviewed} dipertahankan utk KPI & footnote */
+  const i35Wp = useWpSignoff('isak35');
+  const signoff = {
+    prepared: i35Wp.preparer ? { by: i35Wp.preparer.by, date: i35Wp.preparer.at } : null,
+    reviewed: i35Wp.reviewer ? { by: i35Wp.reviewer.by, date: i35Wp.reviewer.at } : null,
+  };
 
   const U = window.FSGEN.UNITS[unit];
   const sc = (n) => { if (n == null) return ''; const x = n / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
@@ -182,7 +188,7 @@ function ISAK35View() {
                   </div>
                 </div>
               </Panel>
-              <I35Signoff signoff={signoff} setSignoff={setSignoff} />
+              <I35Signoff moduleId="isak35" />
             </div>
 
             {/* dokumen */}
@@ -465,29 +471,26 @@ function I35Audit({ proc, done, setDone, nav }) {
   );
 }
 
-/* ---- rail: sign-off ---- */
-function I35Signoff({ signoff, setSignoff }) {
-  const today = '16 Jun 2026';
-  const stamp = (role) => setSignoff(s => ({ ...s, [role]: s[role] ? null : { by: role === 'prepared' ? 'A. Pratama (Senior)' : 'R. Wijaya (Partner)', date: today } }));
-  const Row = ({ role, label }) => {
-    const v = signoff[role];
-    return (
-      <button onClick={() => stamp(role)} className="row ac gap8" style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1px solid ' + (v ? 'var(--green)' : 'var(--line)'), background: v ? 'var(--green-bg)' : 'var(--surface)', cursor: 'pointer', textAlign: 'left' }}>
-        <span style={{ color: v ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto' }}>{v ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="tiny muted">{label}</div>
-          <div style={{ fontSize: 11.5, fontWeight: 600 }}>{v ? v.by : 'Belum ditandatangani'}</div>
-        </div>
-        {v && <span className="tiny mono" style={{ color: 'var(--ink-4)' }}>{v.date}</span>}
-      </button>
-    );
-  };
+/* ---- rail: sign-off (kanonik wpState['isak35']) ---- */
+function I35Signoff({ moduleId }) {
+  const s = useWpSignoff(moduleId || 'isak35');
+  const Row = ({ slot, label, signed, canSign }) => (
+    <button onClick={() => signed ? s.unsign(slot) : (canSign && s.sign(slot))} disabled={!signed && !canSign}
+      className="row ac gap8" style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1px solid ' + (signed ? 'var(--green)' : 'var(--line)'), background: signed ? 'var(--green-bg)' : 'var(--surface)', cursor: (signed || canSign) ? 'pointer' : 'not-allowed', textAlign: 'left', opacity: (signed || canSign) ? 1 : 0.6 }}>
+      <span style={{ color: signed ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto' }}>{signed ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="tiny muted">{label}</div>
+        <div style={{ fontSize: 11.5, fontWeight: 600 }}>{signed ? signed.by : 'Belum ditandatangani'}</div>
+      </div>
+      {signed && <span className="tiny mono" style={{ color: 'var(--ink-4)' }}>{signed.at}</span>}
+    </button>
+  );
   return (
     <Panel noBody>
       <div className="panel-h"><h3>Sign-off</h3></div>
       <div style={{ padding: 10, display: 'grid', gap: 8 }}>
-        <Row role="prepared" label="Disusun oleh" />
-        <Row role="reviewed" label="Direviu oleh" />
+        <Row slot="preparer" label="Disusun oleh" signed={s.preparer} canSign={!s.locked} />
+        <Row slot="reviewer" label="Direviu oleh" signed={s.reviewer} canSign={!s.locked && !!s.preparer} />
       </div>
     </Panel>
   );

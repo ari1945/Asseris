@@ -12,7 +12,7 @@
    Bukti memakai store evidence global (per-modul) yg sudah ada.
    ============================================================ */
 import React from 'react';
-import { useAudit, useAuth } from './contexts.jsx';
+import { useAudit, useAuth, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui.jsx';
 import { amsEvidenceCount } from './evidence.jsx';
@@ -48,6 +48,11 @@ const WP_MODULE_MAP = {
   psak68:  { ref: 'psak68', requiredEvidence: ['Laporan penilai nilai wajar (KJPP)'] },
   segmen:  { ref: 'segmen', requiredEvidence: ['Kertas kerja informasi segmen'] },
   assoc:   { ref: 'assoc',  requiredEvidence: ['Kertas kerja entitas asosiasi (ekuitas)'] },
+  /* modul LK & standar sektor spesialis (blok tanda tangan kertas kerja CETAK + sign-off kanonik) */
+  fsgen:   { ref: 'fsgen',   requiredEvidence: ['Kertas kerja tie-out laporan keuangan', 'Checklist penyajian & pengungkapan LK'] },
+  isak35:  { ref: 'isak35',  requiredEvidence: ['Laporan keuangan entitas nonlaba (ISAK 35)', 'Checklist klasifikasi aset neto'] },
+  psak117: { ref: 'psak117', requiredEvidence: ['Laporan aktuaria kontrak asuransi', 'Kertas kerja valuasi GMM/PAA/VFA'] },
+  syariah: { ref: 'syariah', requiredEvidence: ['Opini Dewan Pengawas Syariah', 'Kertas kerja pemurnian & dana kebajikan'] },
   /* modul prosedur SA (seri 500 · bukti audit) */
   sa501:   { ref: 'sa501',  requiredEvidence: ['Observasi persediaan', 'Konfirmasi litigasi & klaim'] },
   sa520:   { ref: 'sa520',  requiredEvidence: ['Ekspektasi & ambang investigasi analitis', 'Investigasi varians signifikan'] },
@@ -62,6 +67,11 @@ const WP_MODULE_MAP = {
   jet:        { ref: 'jet',        requiredEvidence: ['Kriteria pengujian jurnal (JET)', 'Tindak lanjut jurnal anomali'] },
 };
 
+/* Modul yang TERPETAKAN tapi punya kontrol sign-off khusus sendiri di view-nya
+   → jangan tampilkan chip "Kertas Kerja" SubBar (hindari duplikasi kontrol).
+   `opinion`: tab OpinionSignoff (3-tingkat + checklist + finalize) yang me-mirror ke wpState['900']. */
+const WP_SUBBAR_HIDE = { opinion: true };
+
 function wpKeyFor(moduleId) {
   const m = WP_MODULE_MAP[moduleId];
   return (m && m.ref) || moduleId;
@@ -75,16 +85,38 @@ function wpToday() {
   catch (e) { return ''; }
 }
 
+/* ---- Penanda tangan kanonik untuk blok tanda tangan kertas kerja CETAK ----
+   Membaca chain dari wpState (preparer/reviewer/partner) dengan fallback ke
+   default statis, agar lembar cetak tetap lengkap sebelum ditandatangani secara
+   live. Begitu auditor sign-off via SubBar/register WP, blok cetak ikut nyata.
+   Fungsi MURNI (bukan hook) — panggil dengan `audit` dari useAudit() di komponen. */
+function wpSignersFor(audit, moduleId, defaults) {
+  const d = defaults || {};
+  const ref = wpKeyFor(moduleId);
+  const chain = ((audit && audit.wpState && audit.wpState[ref]) || {}).chain || {};
+  const merge = (slot, def) => {
+    const c = chain[slot];
+    if (!c) return def || null;
+    return { by: c.by, at: c.at, role: (def && def.role) || '' };
+  };
+  return {
+    preparer: merge('preparer', d.preparer),
+    reviewer: merge('reviewer', d.reviewer),
+    approver: merge('partner', d.approver),
+  };
+}
+
 /* ---- hook: state sign-off kanonik per modul ---- */
 function useWpSignoff(moduleId) {
   const audit = useAudit();
   const auth = useAuth();
+  const firm = useFirm();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const ref = wpKeyFor(moduleId);
   const st = (audit.wpState && audit.wpState[ref]) || {};
   const chain = st.chain || {};
   const setWp = audit.setWp || (() => {});
-  const locked = !!audit.locked;               // hanya arsip engagement = read-only mutlak (lock LUNAK)
+  const locked = !!(firm && firm.locked);      // arsip/selesai engagement = read-only (sign-off lunak: boleh buka kembali selama belum diarsipkan)
   const status = chain.reviewer ? 'reviewed' : chain.preparer ? 'prepared' : 'draft';
 
   const sign = (level) => {
@@ -207,7 +239,7 @@ function WpPanel({ moduleId, title }) {
 function WpSubBarControl({ moduleId }) {
   const [open, setOpen] = useStateWPS(false);
   const s = useWpSignoff(moduleId);
-  if (!WP_MODULE_MAP[moduleId]) return null;
+  if (!WP_MODULE_MAP[moduleId] || WP_SUBBAR_HIDE[moduleId]) return null;
   const dotKind = s.status === 'reviewed' ? 'var(--green)' : s.status === 'prepared' ? 'var(--blue)' : 'var(--ink-4)';
   return (
     <div style={{ position: 'relative' }}>
@@ -286,11 +318,11 @@ function WpCompletenessRecap({ moduleIds }) {
 }
 
 Object.assign(window, {
-  WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor,
+  WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
 });
 
 export {
-  WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor,
+  WP_MODULE_MAP, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
 };

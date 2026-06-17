@@ -448,6 +448,7 @@ const REVIEW_CHAIN = [
 
 function OpinionSignoff({ doc, patch }) {
   const { activeEngagement, activeClient } = useFirm();
+  const { wpState, setWp } = useAudit();   // mirror sign-off opini ke SSOT wpState['900']
   const o = OPINIONS[doc.type];
   const eqrRequired = !!activeClient?.listed;
   const today = '2026-03-14';
@@ -476,11 +477,23 @@ function OpinionSignoff({ doc, patch }) {
   const autoDone = autoChecks.every(c => c.ok || c.na);
   const manualDone = manualChecks.every(c => doc.checklist[c.id]);
 
-  const sign = (role) => patch({ signoff: { ...doc.signoff, [role]: doc.signoff[role] ? null : { date: today } } });
+  const sign = (role) => {
+    const next = doc.signoff[role] ? null : { date: today };
+    patch({ signoff: { ...doc.signoff, [role]: next } });
+    /* mirror ke chain kanonik wpState['900']: manager→reviewer, partner→partner, eqr→eqr */
+    const slot = role === 'manager' ? 'reviewer' : role;
+    const who = (REVIEW_CHAIN.find(r => r.role === role) || {}).who || role;
+    const curChain = { ...(((wpState || {})['900'] || {}).chain || {}) };
+    if (next) { curChain[slot] = { by: who, at: today }; if (!curChain.preparer) curChain.preparer = { by: 'Generator Laporan', at: today }; }
+    else delete curChain[slot];
+    const wpPatch = { chain: curChain };
+    if (slot === 'reviewer') { wpPatch.status = next ? 'Reviewed' : 'In Review'; wpPatch.reviewer = next ? who : null; wpPatch.signedAt = next ? today : null; }
+    setWp('900', wpPatch);
+  };
   const chainComplete = REVIEW_CHAIN.every(r => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
   const canFinalize = autoDone && manualDone && chainComplete && !doc.finalized;
 
-  const finalize = () => patch({ finalized: true, finalizedDate: today });
+  const finalize = () => { patch({ finalized: true, finalizedDate: today }); setWp('900', { status: 'Reviewed' }); };
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>

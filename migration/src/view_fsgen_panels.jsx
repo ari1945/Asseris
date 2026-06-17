@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAuth } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Seg } from './ui.jsx';
+import { useWpSignoff } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — FS Generator · Workspace panels
@@ -83,34 +83,30 @@ function Toggle({ on, set }) {
   );
 }
 
-/* ---------------- Left rail: review sign-off ---------------- */
-function FSSignoff({ signoff, setSignoff, locked }) {
-  const { user } = useAuth();
-  const now = () => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-  const Step = ({ k, role, who }) => {
-    const s = signoff[k];
-    return (
-      <div className="row ac jb" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
-        <div>
-          <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700 }}>{role}</div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: s ? 'var(--ink)' : 'var(--ink-4)' }}>{who}</div>
-          {s && <div className="tiny mono muted">{s.date}</div>}
-        </div>
-        {s
-          ? <Badge kind="green"><I.check size={11} /> Selesai</Badge>
-          : <Btn sm disabled={locked} onClick={() => setSignoff(o => ({ ...o, [k]: { by: who, date: now() } }))}>Tandatangani</Btn>}
+/* ---------------- Left rail: review sign-off (kanonik wpState['fsgen']) ---------------- */
+function FSSignoff({ moduleId }) {
+  const s = useWpSignoff(moduleId || 'fsgen');
+  const Step = ({ signed, role, fallbackWho, canSign, onSign }) => (
+    <div className="row ac jb" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
+      <div>
+        <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700 }}>{role}</div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: signed ? 'var(--ink)' : 'var(--ink-4)' }}>{signed ? signed.by : fallbackWho}</div>
+        {signed && <div className="tiny mono muted">{signed.at}</div>}
       </div>
-    );
-  };
-  const allDone = signoff.prepared && signoff.reviewed;
+      {signed
+        ? <Badge kind="green"><I.check size={11} /> Selesai</Badge>
+        : <Btn sm disabled={!canSign} onClick={onSign}>Tandatangani</Btn>}
+    </div>
+  );
+  const allDone = !!s.reviewer;
   return (
     <Panel noBody>
       <div className="panel-h" style={{ padding: '8px 12px' }}>
         <h3 style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Status & Tanda Tangan</h3>
       </div>
       <div style={{ padding: '4px 12px 12px' }}>
-        <Step k="prepared" role="Disusun oleh" who={user.name} />
-        <Step k="reviewed" role="Direviu oleh" who="Hartono Wijaya, CPA" />
+        <Step signed={s.preparer} role="Disusun oleh" fallbackWho={s.me} canSign={!s.locked} onSign={() => s.sign('preparer')} />
+        <Step signed={s.reviewer} role="Direviu oleh" fallbackWho="menunggu reviewer" canSign={!s.locked && !!s.preparer} onSign={() => s.sign('reviewer')} />
         <div className="row ac jb" style={{ paddingTop: 10 }}>
           <span style={{ fontSize: 12.5, fontWeight: 600 }}>Status laporan</span>
           <Badge kind={allDone ? 'green' : 'amber'}>{allDone ? 'Final — siap EQR' : 'Draft kerja'}</Badge>

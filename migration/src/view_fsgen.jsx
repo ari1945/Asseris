@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, LockBanner, Panel, Tabs } from './ui.jsx';
 import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels.jsx';
+import { useWpSignoff } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — Financial Statement Generator (workspace)
@@ -27,7 +28,12 @@ function FSGenerator() {
   const [rounding, setRounding] = window.useAmsPersist('fsgen.rounding', true);
   const [dock, setDock] = useStateFS('validate');
   const [activeKey, setActiveKey] = useStateFS(null);
-  const [signoff, setSignoff] = window.useAmsPersist('fsgen.signoff', {});
+  /* sign-off kanonik (SSOT wpState['fsgen']) — bentuk {prepared,reviewed} dipertahankan utk KPI & footnote */
+  const fsWp = useWpSignoff('fsgen');
+  const signoff = {
+    prepared: fsWp.preparer ? { by: fsWp.preparer.by, date: fsWp.preparer.at } : null,
+    reviewed: fsWp.reviewer ? { by: fsWp.reviewer.by, date: fsWp.reviewer.at } : null,
+  };
   const [disclosures, setDisclosures] = window.useAmsPersist('fsgen.disclosures', window.FSGEN.DISCLOSURES);
   const [cfMethodPref, setCfMethodPref] = window.useAmsPersist('fsgen.cfMethod', 'auto');
   /* Emiten/entitas tercatat → OJK mewajibkan metode langsung; jika belum dipilih, ikuti status klien. */
@@ -121,7 +127,7 @@ function FSGenerator() {
             <div style={{ width: 212, flex: '0 0 212px', position: 'sticky', top: 0, display: 'flex', flexDirection: 'column', gap: 12 }} className="no-print">
               <FSStatementNav items={navItems} active={tab} onChange={setTab} />
               <FSPresentation unit={unit} setUnit={setUnit} comparative={comparative} setComparative={setComparative} rounding={rounding} setRounding={setRounding} cfMethod={cfMethod} setCfMethod={setCfMethodPref} listed={!!activeClient?.listed} />
-              <FSSignoff signoff={signoff} setSignoff={setSignoff} locked={locked} />
+              <FSSignoff moduleId="fsgen" />
             </div>
 
             {/* document */}

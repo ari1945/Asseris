@@ -1,9 +1,10 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts.jsx';
+import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
+import { wpSignersFor } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — PSAK 117 · Kontrak Asuransi (adopsi IFRS 17)
@@ -46,7 +47,7 @@ function P117Kv({ label, v, strong, accent }) {
   );
 }
 
-function p117WpSignoff() {
+function p117WpSignoffDefaults() {
   const TEAM = (window.AMS && window.AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
@@ -62,7 +63,8 @@ function p117WpSignoff() {
    ============================================================ */
 function P117WorkPaper({ p117, fmt, rp, nav }) {
   const FIRM = (window.AMS && window.AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
-  const so = p117WpSignoff();
+  const audit = useAudit();
+  const so = wpSignersFor(audit, 'psak117', p117WpSignoffDefaults());
   const cl = p117.client;
   const Sect = ({ n, title, sub, children }) => (
     <div style={{ marginTop: 22 }}>
