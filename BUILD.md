@@ -20,12 +20,18 @@
 ## Workflow
 ```powershell
 cd migration
-# 1) edit src/*.jsx | *.js
-npm run lint     # error-gate (no-undef + no-dupe-keys = 0) — MUST stay green
-npm run build    # vite build — 245 modules, no resolution failures
-npm run dev      # http://localhost:5180 (HMR) — verify render + numbers
-npm run test     # vitest — canon "number engine" net (W4); add --coverage for the gate
+# 1) edit src/*.jsx | *.js | *.ts
+npm run lint       # error-gate (no-undef + no-dupe-keys = 0) on .js/.jsx — MUST stay green
+npm run typecheck  # tsc --noEmit — canon TypeScript gate (W5), MUST stay 0 errors
+npm run build      # vite build — no resolution failures
+npm run dev        # http://localhost:5180 (HMR) — verify render + numbers
+npm run test       # vitest — canon "number engine" net (W4); add --coverage for the gate
 ```
+
+> **Loader note (W5):** the canon layer is now TypeScript (`.ts`). `vite.config.mjs`
+> uses esbuild `loader: 'tsx'` over `.js/.jsx/.ts/.tsx` (a superset that strips
+> types and transforms JSX uniformly). Bare generics in `.ts` need a trailing
+> comma (`<T,>`) to avoid being parsed as JSX.
 
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
@@ -47,6 +53,21 @@ npm run test     # vitest — canon "number engine" net (W4); add --coverage for
   functions of the trial balance they're handed.
 - **Coverage gate:** `npm run test -- --coverage` → v8, ≥80% lines/stmts/funcs on
   canon (currently ~99% lines / 100% funcs / 77% branches).
+
+## TypeScript gate (W5 — `migration/tsconfig.json`)
+- **Scope:** the canon "number engines" only — `canon.ts`, `canon_base.ts`,
+  `canon_part1..4.ts`, `forensic_canon.ts`, plus `canon_types.ts` (public types
+  `WTB`/`Figures`/`Fig`/`MaterialityResult`/`FsModel`), `canon_selectors.ts`
+  (typed accessors consumed by views), and `src/types/globals.d.ts` (the residual
+  `window` contract: `AMS`/`AMS_CANON`/`BENCHMARKS`/`FSGEN`/`AMS_FORENSIC`).
+- **Posture:** `strict: true` **except** `strictNullChecks: false` — the deliberate
+  "gradual" ramp (DoD W5). `noImplicitAny` is on, so the canon **surface has zero
+  `any`** (verified by emitting `.d.ts` and scanning). Next ramp step: flip
+  `strictNullChecks` on (will surface `.find().prop` nullability across the engines).
+- **Gate:** `npm run typecheck` (`tsc --noEmit`) MUST stay **0 errors**. This is the
+  gate for `.ts` files — ESLint does **not** lint `.ts` (flat config matches only
+  `.js/.jsx`); `tsc` is the stronger check there (catches undefined refs + duplicate
+  keys + types). Views stay `.jsx` and consume canon types via `canon_selectors`.
 
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.

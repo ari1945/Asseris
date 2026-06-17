@@ -9,6 +9,13 @@
 > yang `migration/src` warisi; aturan emas anti-tabrakan masih relevan selama
 > `window` belum dilucuti penuh (W3 Phase 4). Progres arc: lihat memory
 > `neosuite-ams-arc`.
+>
+> **W5 (TypeScript bertahap):** lapisan **kanon kini TypeScript** —
+> `canon*.ts` + `forensic_canon.ts` + `canon_types.ts` + `canon_selectors.ts` +
+> `src/types/globals.d.ts`. Gate `npm run typecheck` (`tsc --noEmit`) WAJIB 0
+> error; `strict` ON kecuali `strictNullChecks` (ramp berikutnya). View tetap
+> `.jsx` dan menarik tipe via `canon_selectors`. ESLint tak melint `.ts` (tsc
+> yang menjaganya). Detail: `BUILD.md`.
 
 > Aplikasi audit firma (KAP) berbahasa Indonesia. **Satu SPA React, tanpa build step**, dirakit dari ratusan file via `<script>` di `NeoSuite AMS.html`. Babel mentranspilasi JSX di browser. Baca dokumen ini lebih dulu, lalu langsung kerja.
 

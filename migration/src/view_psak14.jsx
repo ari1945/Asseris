@@ -3,6 +3,7 @@ import React from 'react';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
+import { materialityFor } from './canon_selectors';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { NRVWorkingPaper } from './view_psak14_nrv.jsx';
 
@@ -160,9 +161,8 @@ function PSAK14View() {
   /* ——— materialitas: SATU sumber dari SA 320 (Materiality Workspace) ———
      membaca konfigurasi benchmark/PM%/CTT% & override yang sama dipakai modul
      Materialitas & SAD — bukan lagi hardcode 75%. */
-  const mat = (window.AMS_CANON && window.AMS_CANON.materiality)
-    ? window.AMS_CANON.materiality({ engMateriality: eng.materiality })
-    : { pm: null, ctt: null, om: null };
+  /** @type {import('./canon_selectors').MaterialityResult} */
+  const mat = materialityFor({ engMateriality: eng.materiality });
   const overMat  = inv.shortfallWD;                      // usulan penurunan belum dibukukan (juta)
   const pm  = mat.pm;                                     // materialitas pelaksanaan (juta)
   const ctt = mat.ctt;                                    // ambang jelas remeh (juta)

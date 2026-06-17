@@ -1,19 +1,20 @@
 /* ============================================================
    NeoSuite AMS — canon part1 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './canon_base.js';
+import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './canon_base';
+import type { WTB, AjeRow } from './canon_types';
 
-  function deferredTax(wtb) {
+  function deferredTax(wtb?: WTB) {
     const f = wtb ? (() => {
       const s = figuresFromWTB(wtb);
       return Object.assign({}, FIG, { dbo: s.dboBooked, ckpn: s.ckpnBooked, dtaReported: s.dtaReported });
     })() : FIG;
     const lease = leasePortfolio();
-    const mk = (id, diff, type) => {
+    const mk = (id: string, diff: number, type: string) => {
       const dtRaw = Math.round(diff * RATE);
       return { id, diff: Math.round(diff), dt: type === 'tax' ? -dtRaw : dtRaw, type };
     };
-    const items = [
+    const items: Array<{ id: string; diff: number; dt: number; type: string; car: number | null; base: number | null }> = [
       Object.assign(mk('ppe', f.ppeTempDiff, 'tax'),  { car: f.ppeCarry, base: f.ppeBase }),
       Object.assign(mk('eb', f.dbo, 'ded'),           { car: f.dbo, base: 0 }),
       Object.assign(mk('ecl', f.ckpn, 'ded'),         { car: null, base: null }),
@@ -89,7 +90,7 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
     { code: 'SP-OBS05', label: 'Cadangan mesin telah afkir',    cls: 'spare', w: 0.08, qty: 28000,   bookedWD: 240, reqWD: 380, compR: 0, sellcR: 0.10 },
   ];
 
-  function inventory(wtb) {
+  function inventory(wtb?: WTB) {
     const openingCost = jt(wtbVal(wtb, '1-1300', 'ly'));    // saldo awal audited
     const closeUnadj  = jt(wtbVal(wtb, '1-1300', 'unadj')); // saldo akhir per klien (pra-audit)
     const ajeInv      = jt(wtbVal(wtb, '1-1300', 'aje'));   // AJE pisah batas (negatif)
@@ -167,7 +168,7 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
      Klasifikasi per kelompok aset (¶73) bersifat alokasi pengungkapan atas total WTB
      — dinormalkan agar Σ kelompok = saldo WTB. Pelepasan ber-sumber kertas kerja E
      (vouching/cek fisik), bukan saldo tunggal di buku besar. Rp juta. */
-  const PPE_CLASSES = [
+  const PPE_CLASSES: Array<{ id: string; label: string; pct: number; life: number | null; residual: number; mature: number; note?: string }> = [
     { id: 'tanah',     label: 'Tanah',                         pct: 0.16, life: null, residual: 0.00, mature: 0.00, note: 'HGB · tidak disusutkan (¶58)' },
     { id: 'bangunan',  label: 'Bangunan & prasarana',          pct: 0.40, life: 30,   residual: 0.10, mature: 0.22 },
     { id: 'mesin',     label: 'Mesin & peralatan produksi',    pct: 0.30, life: 16,   residual: 0.05, mature: 0.42 },
@@ -175,7 +176,7 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
     { id: 'inventaris',label: 'Inventaris & peralatan kantor', pct: 0.06, life: 8,    residual: 0.05, mature: 0.62 },
   ];
 
-  function fixedAssets(wtb) {
+  function fixedAssets(wtb?: WTB) {
     const grossOpen   = jt(wtbVal(wtb, '1-2100', 'ly'));
     const grossClose  = jt(wtbVal(wtb, '1-2100', 'adj'));
     const accumOpen   = -jt(wtbVal(wtb, '1-2110', 'ly'));      // magnitudo (tersimpan negatif)
@@ -275,11 +276,12 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
     { col: 'H', xls: 'No. Dokumen / Bukti',     field: 'doc',      type: 'teks' },
   ];
 
-  function assetRegister(wtb) {
+  function assetRegister(wtb?: WTB) {
     const fa = fixedAssets(wtb);
-    const byCls = {}; fa.classes.forEach(c => { byCls[c.id] = c; });
-    let rows = REGISTER_SEED.map(s => {
-      const c = byCls[s.cls] || {};
+    type PpeClass = (typeof fa.classes)[number];
+    const byCls: Record<string, PpeClass> = {}; fa.classes.forEach(c => { byCls[c.id] = c; });
+    const baseRows = REGISTER_SEED.map(s => {
+      const c: Partial<PpeClass> = byCls[s.cls] || {};
       const cost = (c.gross || 0) * s.w;
       const acqYear = Number(s.acq.split('-')[0]);
       const age = c.life ? Math.max(0, ASOF.y - acqYear) : 0;
@@ -288,9 +290,9 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
       return { ...s, classLabel: c.label, cost, life: c.life, residual: c.residual, acqYear, age, annual, rawAccum };
     });
     /* normalisasi akumulasi per kelompok → Σ sub-ledger = akum GL (rekonsiliasi menutup) */
-    const clsRaw = {}; rows.forEach(r => { clsRaw[r.cls] = (clsRaw[r.cls] || 0) + r.rawAccum; });
-    rows = rows.map(r => {
-      const c = byCls[r.cls] || {};
+    const clsRaw: Record<string, number> = {}; baseRows.forEach(r => { clsRaw[r.cls] = (clsRaw[r.cls] || 0) + r.rawAccum; });
+    const rows = baseRows.map(r => {
+      const c: Partial<PpeClass> = byCls[r.cls] || {};
       const k = clsRaw[r.cls] ? (c.accum || 0) / clsRaw[r.cls] : 0;
       const accum = r.rawAccum * k;
       const nbv = r.cost - accum;
@@ -357,7 +359,7 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
   /* roll-forward saldo kontrak (¶116) — sub-ledger kontrak, Rp juta */
   const REV_CONTRACT_BAL = { caOpen: 3200, caAdd: 6100, caReclass: 4650, clOpen: 5400, clAdd: 9250, clRecog: 7400 };
 
-  function revenue(wtb) {
+  function revenue(wtb?: WTB) {
     const revBooked  = -jt(wtbVal(wtb, '4-1100', 'unadj'));     // dibukukan klien (sebelum AJE audit)
     const revAdjWTB  = -jt(wtbVal(wtb, '4-1100', 'adj'));       // per WTB adjusted → Laba Rugi
     const revPY      = -jt(wtbVal(wtb, '4-1100', 'ly'));        // komparatif 2024 (audited)
@@ -373,7 +375,7 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
     const growthAudited = revPY ? (revAudited - revPY) / revPY : 0;
 
     /* disagregasi (¶114) — alokasi atas pendapatan dibukukan, dinormalkan agar menutup */
-    const norm = (arr) => {
+    const norm = <T extends { pct: number }>(arr: T[]) => {
       const s = arr.reduce((a, x) => a + x.pct, 0) || 1;
       return arr.map(x => ({ ...x, amount: revBooked * x.pct / s }));
     };
@@ -441,7 +443,7 @@ import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './c
     { id: 'license',  label: 'Lisensi operasi \u2014 umur tak terbatas',  pct: 0.12, life: null, mature: 0.00, internal: false, note: '\u00b6107 \u00b7 tdk diamortisasi' },
   ];
 
-  function intangibles(wtb) {
+  function intangibles(wtb?: WTB) {
     const grossOpen   = jt(wtbVal(wtb, '1-2400', 'ly'));
     const grossClose  = jt(wtbVal(wtb, '1-2400', 'adj'));
     const accumOpen   = -jt(wtbVal(wtb, '1-2410', 'ly'));      // magnitudo (tersimpan negatif)

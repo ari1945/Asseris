@@ -13,6 +13,15 @@
    kanonik SA 550 / PSAK 7 (window.RP_PARTIES / RP_TXN) bila tersedia.
    Semua nilai dalam Rupiah penuh.
    ============================================================ */
+import type { WTB, WtbRow, FsModel } from './canon_types';
+
+interface JournalEntry {
+  id: string; date: string; time: string; user: string; amount: number;
+  dr: string; cr: string; flags?: string[];
+  cash?: boolean; dir?: string; act?: string; code?: string;
+  party?: string; forensic?: string[]; rpId?: string; note?: string;
+}
+
 (function () {
   'use strict';
 
@@ -39,7 +48,7 @@
        party  : nama lawan transaksi
        forensic: indikator forensik (naratif)
        note   : narasi singkat */
-  const JOURNAL_POP = [
+  const JOURNAL_POP: JournalEntry[] = [
     /* —— jurnal non-kas (relevan untuk JET, diabaikan analitik kas) —— */
     { id: 'JV-24-08841', date: '31-12-2025', time: '23:48', user: 'finance.adm2', amount: 2_000_000_000, dr: 'Pendapatan', cr: 'Piutang Usaha', flags: ['weekend', 'afterhrs', 'periodend', 'round', 'unusual'],
       cash: false, code: '4-1100', note: 'Pembalikan pendapatan tanpa dokumen retur — indikasi channel stuffing (R-01).' },
@@ -82,7 +91,7 @@
   ];
 
   /* ---- skoring kriteria JET (jumlah kriteria aktif yang terpenuhi) ---- */
-  function score(pop, activeIds) {
+  function score(pop: JournalEntry[], activeIds?: string[]) {
     const active = activeIds || JET_CRITERIA.filter(c => c.on).map(c => c.id);
     return pop.map(je => {
       const hit = (je.flags || []).filter(f => active.includes(f));
@@ -91,15 +100,15 @@
   }
 
   /* ---- efek-kas mutasi neraca: −Δsaldo (sama dgn FSGEN & PSAK 2) ---- */
-  function dmod(by, c) { const r = by[c]; const cy = r ? r.adj : 0, py = r ? r.ly : 0; return -((cy) - (py)); }
+  function dmod(by: Record<string, WtbRow>, c: string) { const r = by[c]; const cy = r ? r.adj : 0, py = r ? r.ly : 0; return -((cy) - (py)); }
 
   /* ============================================================
      buildCash(model, wtb) — jembatan arus kas bruto + waterfall,
      SELURUHNYA diturunkan dari FSGEN model (single source of truth).
      ============================================================ */
-  function buildCash(model, wtb) {
+  function buildCash(model: FsModel | null, wtb?: WTB) {
     if (!model) return null;
-    const by = {}; (wtb || []).forEach(r => { by[r.code] = r; });
+    const by: Record<string, WtbRow> = {}; (wtb || []).forEach(r => { by[r.code] = r; });
     const cf = model.cf;
 
     /* —— waterfall: stage = saldo & aktivitas dari laporan arus kas —— */
@@ -121,7 +130,7 @@
     const cfoDirect = recCust + paySupp + payOpex + intPaid + taxPaid;
 
     /* —— komponen arus kas bruto (setiap pos diklasifikasi O/I/F) —— */
-    const comps = [
+    const comps: Array<{ label: string; v: number; act: string; memo?: string }> = [
       { label: 'Penerimaan dari pelanggan', v: recCust, act: 'O' },
       { label: 'Pembayaran kepada pemasok', v: paySupp, act: 'O' },
       { label: 'Pembayaran karyawan & beban operasi', v: payOpex, act: 'O' },

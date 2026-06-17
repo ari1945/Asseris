@@ -1,8 +1,9 @@
 /* ============================================================
    NeoSuite AMS — canon part2 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { FIG, FISCAL, RATE, figuresFromWTB, jt, wtbVal } from './canon_base.js';
-import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.js';
+import { FIG, FISCAL, RATE, figuresFromWTB, jt, wtbVal } from './canon_base';
+import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1';
+import type { WTB } from './canon_types';
 
   const RESTATE = {
     // Kesalahan periode lalu (prior period error) — penjualan & piutang fiktif FY2024
@@ -12,7 +13,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     parValue: 100,   // nilai nominal saham (Rp) untuk EPS dasar
   };
 
-  function psak25(wtb) {
+  function psak25(wtb?: WTB) {
     const s   = figuresFromWTB(wtb);
     const inv = inventory(wtb);
     const fa  = fixedAssets(wtb);
@@ -123,7 +124,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     };
 
     /* ringkasan klasifikasi untuk kartu/donut */
-    const counts = { estimate: 0, policy: 0, error: 0, reclass: 0 };
+    const counts: Record<string, number> = { estimate: 0, policy: 0, error: 0, reclass: 0 };
     changes.forEach(c => { counts[c.cat] = (counts[c.cat] || 0) + 1; });
 
     return { estimates, estTotalCy, changes, counts, restate, rate: RATE };
@@ -165,7 +166,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     { y: 2025, writeOff: 1485, recovery: 165, current: true },
   ];
 
-  function psak71(wtb) {
+  function psak71(wtb?: WTB) {
     const grossAudited = jt(wtbVal(wtb, '1-1200', 'adj'));     // piutang bruto audited (= dasar matriks)
     const grossUnadj   = jt(wtbVal(wtb, '1-1200', 'unadj'));   // bruto pra-audit (sebelum AJE-03 piutang fiktif)
     const grossPy      = jt(wtbVal(wtb, '1-1200', 'ly'));      // bruto PY audited
@@ -235,7 +236,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
      Output: tabel hierarki (Level 1/2/3), teknik valuasi & input,
      roll-forward Level 3 + sensitivitas input tak teramati (¶91-99),
      serta dampak pajak tangguhan (OCI) yang dirujuk PSAK 46. Rp juta. */
-  const FV_PORTFOLIO = [
+  const FV_PORTFOLIO: Array<{ id: string; p71id?: string; side?: string; label: string; std: string; cls: string; level: number; recurring: boolean; fv: number; module: string; expert?: string; approach: string; technique: string; inputs: Array<{ k: string; obs: boolean; val: string; range?: string }>; hbu: string | null; note: string }> = [
     { id: 'sun',    p71id: 'bond',   side: 'aset', label: 'Obligasi pemerintah (SUN)',
       std: 'PSAK 71 · FVOCI', cls: 'FVOCI', level: 1, recurring: true, fv: 4200, module: 'psak71',
       approach: 'pasar', technique: 'Harga kuotasi pasar aktif (IBPA/IDX)',
@@ -263,7 +264,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
       hbu: 'Penggunaan saat ini (fasilitas produksi)', note: 'KJPP Mitra · DRC · input signifikan tak teramati' },
   ];
 
-  function psak68(wtb) {
+  function psak68(wtb?: WTB) {
     const items = FV_PORTFOLIO.map(it => ({
       ...it,
       nObs: it.inputs.filter(i => i.obs).length,
@@ -275,7 +276,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
       const amt = list.reduce((a, x) => a + x.fv, 0);
       return { level: L, amt, pct: total ? amt / total : 0, n: list.length, items: list };
     });
-    const get = (id) => items.find(i => i.id === id);
+    const get = (id: string) => items.find(i => i.id === id);
     const finItems   = items.filter(i => i.module === 'psak71');
     const finTotal   = finItems.reduce((a, x) => a + x.fv, 0);   // 12.700 — SAMA dgn pos FV non-WTB di PSAK 71
     const reval      = items.filter(i => i.cls === 'Revaluasi');
@@ -285,7 +286,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     const recurringTot = items.filter(i => i.recurring).reduce((a, x) => a + x.fv, 0);
 
     /* roll-forward Level 3 (¶93e) — menutup persis ke l3Total */
-    const l3RF = { opening: 31200, additions: 600, gainsPl: 0, gainsOci: 2800, transfersIn: 0, transfersOut: 0, settlements: 0 };
+    const l3RF = { opening: 31200, additions: 600, gainsPl: 0, gainsOci: 2800, transfersIn: 0, transfersOut: 0, settlements: 0, closing: 0 };
     l3RF.closing = l3RF.opening + l3RF.additions + l3RF.gainsPl + l3RF.gainsOci + l3RF.transfersIn - l3RF.transfersOut - l3RF.settlements;
 
     /* sensitivitas input signifikan tak teramati (¶93h) — dampak ke NW (Rp juta) */
@@ -339,7 +340,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
   ];
 
   /* nilai pakai (value-in-use, ¶30-57): DCF arus kas pra-pajak + nilai terminal */
-  function valueInUse(cf1, growth, wacc, years, tg) {
+  function valueInUse(cf1: number, growth: number, wacc: number, years: number, tg: number) {
     let pv = 0, cf = cf1;
     const flows = [];
     for (let y = 1; y <= years; y++) {
@@ -353,7 +354,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     return { pv: pv + tvPv, explicitPv: pv, tv, tvPv, flows };
   }
 
-  function psak48(wtb) {
+  function psak48(wtb?: WTB) {
     const s = figuresFromWTB(wtb);
     const fa = fixedAssets(wtb);
     const intan = intangibles(wtb);
@@ -376,7 +377,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     const impairLoss = Math.max(0, carry - recoverable);  // 0 bila terpulihkan > tercatat
 
     /* —— sensitivitas (¶134f) — pergeseran asumsi utama vs headroom —— */
-    const mkSens = (label, shock, w, g, c) => {
+    const mkSens = (label: string, shock: string, w: number, g: number, c: number) => {
       const rec = R(valueInUse(P48.cf1 * c, g, w, P48.years, P48.terminal).pv);
       return { label, shock, rec, head: rec - carry };
     };
@@ -434,13 +435,13 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
       assess: 'Kemungkinan kalah kecil (remote); tidak diakui maupun diungkap.' },
   ];
   /* kemungkinan → perlakuan akuntansi (pohon keputusan ¶14/27/86) */
-  const P57_TREAT = {
+  const P57_TREAT: Record<string, { treat: string; disc: string; kind: string }> = {
     'Besar Kemungkinan': { treat: 'provision',  disc: 'Provisi diakui',          kind: 'red'  },
     'Mungkin':           { treat: 'contingent', disc: 'Diungkap (kontinjensi)',  kind: 'amber'},
     'Kecil':             { treat: 'remote',     disc: 'Tidak diungkap',          kind: 'gray' },
   };
 
-  function psak57(wtb) {
+  function psak57(wtb?: WTB) {
     const R = Math.round;
     const items = PROV_REGISTER.map(p => {
       const m = P57_TREAT[p.likely] || P57_TREAT['Mungkin'];
@@ -459,7 +460,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
       opening: a.opening + i.roll.opening, addl: a.addl + i.roll.addl,
       used: a.used + i.roll.used, reversed: a.reversed + i.roll.reversed,
       unwind: a.unwind + i.roll.unwind,
-    }), { opening: 0, addl: 0, used: 0, reversed: 0, unwind: 0 });
+    }), { opening: 0, addl: 0, used: 0, reversed: 0, unwind: 0 } as Record<string, number>);
     rf.closing = rf.opening + rf.addl - rf.used - rf.reversed + rf.unwind;
     const rollTies = Math.abs(rf.closing - provisionTotal) <= 1;
 
@@ -470,7 +471,7 @@ import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1.
     const tempDiffPotensi = items.filter(i => i.deductibleTemp).reduce((a, i) => a + i.recognized, 0); // 1.080
     const dtAsset = R(tempDiffModeled * RATE);                       // aset pajak tangguhan provisi
 
-    const counts = { provision: 0, contingent: 0, remote: 0 };
+    const counts: Record<string, number> = { provision: 0, contingent: 0, remote: 0 };
     items.forEach(i => { counts[i.treat] = (counts[i.treat] || 0) + 1; });
 
     return { items, provisionTotal, contingentTotal, remoteTotal, claimExposure,

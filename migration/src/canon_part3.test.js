@@ -1,6 +1,6 @@
 /* W4 — canon_part3: reconcile (cross-module tie-out orchestrator) + psak65, psak58. */
 import { describe, it, expect } from 'vitest';
-import { reconcile, psak58, psak65 } from './canon_part3.js';
+import { reconcile, psak58, psak65 } from './canon_part3';
 
 describe('reconcile() — tie-out lintas-modul', () => {
   const r = reconcile();

@@ -1,6 +1,6 @@
 /* W4 — forensic_canon: JET scoring + cash-effect helper. */
 import { describe, it, expect } from 'vitest';
-import { AMS_FORENSIC } from './forensic_canon.js';
+import { AMS_FORENSIC } from './forensic_canon';
 
 const { JET_CRITERIA, JOURNAL_POP, score, dmod, buildCash } = AMS_FORENSIC;
 

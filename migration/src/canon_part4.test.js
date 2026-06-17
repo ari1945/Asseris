@@ -1,6 +1,6 @@
 /* W4 — canon_part4: materiality (W0 anchor) + psak22, psak66. */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { materiality, psak22, psak66 } from './canon_part4.js';
+import { materiality, psak22, psak66 } from './canon_part4';
 
 describe('materiality() — penentuan materialitas (patokan W0-BASELINE)', () => {
   beforeEach(() => localStorage.clear()); // pakai default (benchId pbt, 5% / 75% / 5%)

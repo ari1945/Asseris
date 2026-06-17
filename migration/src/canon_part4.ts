@@ -1,12 +1,34 @@
 /* ============================================================
    NeoSuite AMS — canon part4 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { RATE, jt } from './canon_base.js';
-import { assetRegister, intangibles } from './canon_part1.js';
-import { GOODWILL } from './canon_part2.js';
-import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3.js';
+import { RATE, jt } from './canon_base';
+import { assetRegister, intangibles } from './canon_part1';
+import { GOODWILL } from './canon_part2';
+import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3';
+import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
 
-  const JOINT_ARR = [
+  interface JointArr {
+    id: string; refId: string | null; type: string; name: string; partner: string; activity: string;
+    interest: number; since: string; vehicle: boolean; vehicleForm: string; legalForm: string;
+    contractTerms: string; otherFacts: string; classify: string; collective: boolean; unanimous: boolean;
+    decisionRule: string;
+    cost?: number; openCarry?: number; shareProfit?: number; dividend?: number; oci?: number;
+    sf?: { assets: number; liab: number; rev: number; profit: number };
+    ppeTags?: string[]; shareCurrent?: number; shareLiab?: number; shareRev?: number; shareExp?: number;
+  }
+
+  /** Hasil tiap pengaturan bersama — gabungan field ventura (jv) & operasi (jo),
+   *  opsional sesuai cabang; index signature untuk field warisan dari seed. */
+  export interface JointArrResult {
+    type: string;
+    carry?: number; rfClose?: number; netAssetShare?: number; goodwillInCarry?: number;
+    shareProfitCheck?: number; carryTie?: boolean; shareProfit?: number; interest?: number;
+    sf?: { assets: number; liab: number; rev: number; profit: number };
+    ppeShare?: number; assetsShare?: number; netAssets?: number; result?: number; ppeTags?: string[];
+    [k: string]: unknown;
+  }
+
+  const JOINT_ARR: JointArr[] = [
     {
       id: 'JA-01', refId: 'AS-02', type: 'jv',
       name: 'KSO Sentosa-Andalan', partner: 'PT Andalan Maritim',
@@ -53,13 +75,13 @@ import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3.js';
     { id: 'd22c', ref: 'PSAK 67 ¶22(c)', t: 'Pembatasan kemampuan ventura mentransfer dana ke entitas', ok: false, na: true },
   ];
 
-  function psak66(wtb) {
+  function psak66(wtb?: WTB) {
     const R = Math.round;
     const assoc = GROUP_ASSOCIATES.find(a => a.id === 'AS-02') || { carry: 3100 };
     const ctrl  = GROUP_CONTROL.find(c => c.id === 'AS-02') || {};
     const reg   = assetRegister(wtb);            // sub-ledger ber-WTB (PSAK 16) → 1-2100
 
-    const arrangements = JOINT_ARR.map(a => {
+    const arrangements: JointArrResult[] = JOINT_ARR.map(a => {
       if (a.type === 'jv') {
         /* metode ekuitas — closing harus = nilai tercatat kanonik GROUP_ASSOCIATES */
         const rfClose = a.openCarry + a.shareProfit - a.dividend + a.oci;
@@ -142,7 +164,12 @@ import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3.js';
      − liabilitas pajak tangguhan atas PNW (22% · ¶24) → konsekuensi ke PSAK 46.
      Takberwujud teridentifikasi (hubungan pelanggan, merek, teknologi) diakui &
      diamortisasi via PSAK 19 (kelas 'customer'). Rp juta. */
-  const PPA_DEALS = {
+  const PPA_DEALS: Record<string, {
+    acqDate?: string; acquiree?: string; business?: boolean; foreign?: boolean; rationale?: string;
+    consid: Array<{ k: string; v: number }>; contingent: number; contingentNow?: number; acqCosts?: number;
+    nciMethod?: string; nciPremium?: number; mpStatus?: string;
+    fva: Array<{ id: string; cls: string; label: string; amount: number; life: number }>;
+  }> = {
     'CP-02': {
       acqDate: '01-07-2017', acquiree: 'PT Sentosa Logistik', business: true,
       rationale: 'Akuisisi 99% saham — internalisasi jaringan distribusi & gudang.',
@@ -201,7 +228,7 @@ import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3.js';
     { ref: 'PSAK 22 ¶45', t: 'Periode pengukuran (≤12 bln) — uji penyesuaian provisional & pengukuran kembali imbalan kontinjensi (¶58)' },
   ];
 
-  function psak22(wtb) {
+  function psak22(wtb?: WTB) {
     const R = Math.round;
     const deals = GROUP_SUBS.map(s => {
       const d = PPA_DEALS[s.id] || { consid: [{ k: 'Kas', v: s.cost }], fva: [], acqCosts: 0, contingent: 0, nciMethod: 'proportional', nciPremium: 0 };
@@ -231,7 +258,7 @@ import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3.js';
         bargain, intangFVA, ppeFVA, intangTot, foreign: !!d.foreign, mpStatus: d.mpStatus };
     });
 
-    const sum = (k) => deals.reduce((a, x) => a + (x[k] || 0), 0);
+    const sum = (k: string) => deals.reduce((a, x) => a + ((x as unknown as Record<string, number>)[k] || 0), 0);
     const goodwillTotal  = sum('goodwill');     // 6.800
     const considTotal    = sum('considTotal');  // Σ imbalan dialihkan
     const fvniaTotal     = sum('fvnia');
@@ -284,9 +311,9 @@ import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3.js';
      alih-alih meng-hardcode 75%/5%, sehingga perubahan di workspace mengalir serempak.
      opts.engMateriality = materialitas engagement (Rp penuh) sbg basis bila tak ada override.
      Nilai penuh (Rp) & Rp juta. */
-  function materiality(opts) {
+  function materiality(opts?: MaterialityOpts): MaterialityResult {
     opts = opts || {};
-    const LS = (k, d) => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
+    const LS = <T,>(k: string, d: T): T => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
     const benchId  = LS('mat.benchId', 'pbt');
     const pct      = LS('mat.pct', 5);
     const pmPct    = LS('mat.pmPct', 75);

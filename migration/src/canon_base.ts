@@ -1,16 +1,18 @@
 /* ============================================================
    NeoSuite AMS — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
+import type { WTB, WtbAmountField, Figures, Fig } from './canon_types';
+
   const RATE = 0.22;
   const ASOF = { y: 2025, m: 12 };           // 31 Des 2025
 
   /* ---------- helper: tarik saldo akun dari WTB (by code) ---------- */
-  const jt = (n) => Math.round((n || 0) / 1e6);                 // rupiah penuh → juta
-  function wtbRow(wtb, code) {
+  const jt = (n: number) => Math.round((n || 0) / 1e6);                 // rupiah penuh → juta
+  function wtbRow(wtb: WTB | undefined, code: string) {
     const W = (wtb && wtb.length) ? wtb : ((window.AMS && window.AMS.WTB) || []);
     return W.find(r => r.code === code) || null;
   }
-  function wtbVal(wtb, code, field) {
+  function wtbVal(wtb: WTB | undefined, code: string, field: WtbAmountField) {
     const r = wtbRow(wtb, code);
     return r ? (r[field] != null ? r[field] : 0) : 0;
   }
@@ -32,8 +34,8 @@
 
   /* figur akuntansi entitas yang ditarik dari WTB (Rp juta). `wtb` opsional:
      bila diberi (mis. dari useAudit().wtb yang reaktif) → angka mengikuti AJE live. */
-  function figuresFromWTB(wtb) {
-    const v = (k, field) => WTB_MAP[k].sign * jt(wtbVal(wtb, WTB_MAP[k].code, field));
+  function figuresFromWTB(wtb?: WTB): Figures {
+    const v = (k: keyof typeof WTB_MAP, field: WtbAmountField) => WTB_MAP[k].sign * jt(wtbVal(wtb, WTB_MAP[k].code, field));
     const dboBooked     = v('dbo', 'adj');
     const ckpnBooked    = v('ckpn', 'unadj');          // saldo dibukukan klien (sebelum AJE audit)
     const ckpnAudited   = v('ckpn', 'adj');            // setelah AJE PSAK 71
@@ -59,7 +61,7 @@
     { id: 'LS-03', name: 'Sewa Kantor Cabang Surabaya', termMo: 36, pmt: 62_000_000, rate: 9.0, start: '01-04-2025' },
   ];
 
-  function leaseCalc(termMo, pmt, ratePct) {
+  function leaseCalc(termMo: number, pmt: number, ratePct: number) {
     const r = ratePct / 100 / 12;
     const n = termMo;
     const pv = r === 0 ? pmt * n : pmt * (1 - Math.pow(1 + r, -n)) / r;
@@ -75,7 +77,7 @@
   }
 
   // jumlah pembayaran yang telah jatuh tempo per tanggal pelaporan
-  function elapsedMonths(start) {
+  function elapsedMonths(start: string) {
     const [, mm, yy] = start.split('-').map(Number);
     return (ASOF.y - yy) * 12 + (ASOF.m - mm) + 1;
   }
@@ -117,7 +119,7 @@
      Figur ber-sumber WTB ditarik saat load dari window.AMS.WTB; sisanya dari FISCAL.
      Nama field lama dipertahankan agar konsumen (PSAK 46, ECL, Sewa) tetap kompatibel. */
   const SRC = figuresFromWTB();
-  const FIG = {
+  const FIG: Fig = {
     // —— ditarik dari WTB (buku besar) ——
     dbo:          SRC.dboBooked,        // 13.080 — WTB 2-2300 (nilai tercatat; dasar pajak 0)
     ckpn:         SRC.ckpnBooked,       // 1.980  — WTB 1-1210 (saldo dibukukan klien)

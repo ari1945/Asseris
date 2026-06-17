@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Berkas hasil codemod memakai ekstensi asli (.js berisi JSX? TIDAK — .js = data polos,
-// .jsx = view). Konfigurasi ini memastikan plugin-react men-transform .jsx, dan esbuild
-// memuat .js sebagai JS biasa. Tidak ada Babel-in-browser lagi.
+// Berkas hasil codemod memakai ekstensi asli (.js = data polos, .jsx = view).
+// Sejak W5 lapisan kanon ditulis TypeScript (.ts). Loader esbuild 'tsx' adalah
+// superset (TS + JSX) sehingga keempat ekstensi .js/.jsx/.ts/.tsx ditransform
+// seragam: tipe di-strip & JSX ditransform. Tidak ada Babel-in-browser lagi.
 export default defineConfig({
-  plugins: [react({ include: /\.(jsx|js)$/ })],
+  plugins: [react({ include: /\.(jsx|js|ts|tsx)$/ })],
   server: { port: 5180, open: true },
   build: {
     target: 'es2020',
@@ -14,9 +15,8 @@ export default defineConfig({
     sourcemap: true,
   },
   esbuild: {
-    // dukung JSX yang mungkin muncul di berkas .js jika nanti ada
-    loader: 'jsx',
-    include: /src\/.*\.(jsx|js)$/,
+    loader: 'tsx',
+    include: /src\/.*\.(jsx|js|ts|tsx)$/,
     exclude: [],
   },
 });

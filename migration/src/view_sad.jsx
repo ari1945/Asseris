@@ -3,6 +3,7 @@ import React from 'react';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
+import { materialityFor } from './canon_selectors';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { RowKv } from './view_calc.jsx';
 
@@ -65,9 +66,8 @@ function SADLedger() {
 
   /* materialitas: SATU sumber dari SA 320 (Materiality Workspace) — PM%/CTT% & override
      yang sama dipakai PSAK 14 dkk., bukan lagi hardcode 75%/5%. */
-  const _mat = (window.AMS_CANON && window.AMS_CANON.materiality)
-    ? window.AMS_CANON.materiality({ engMateriality: activeEngagement.materiality })
-    : null;
+  /** @type {import('./canon_selectors').MaterialityResult} */
+  const _mat = materialityFor({ engMateriality: activeEngagement.materiality });
   const om = (_mat && _mat.omFull != null) ? _mat.omFull : activeEngagement.materiality;
   const pm = (_mat && _mat.pmFull != null) ? _mat.pmFull : Math.round(om * 0.75);
   const ctt = (_mat && _mat.cttFull != null) ? _mat.cttFull : Math.round(om * 0.05);

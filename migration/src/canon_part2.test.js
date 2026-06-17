@@ -1,6 +1,6 @@
 /* W4 — canon_part2: PSAK 71 (psak71/ECL) anchor + psak68, psak48, psak57, psak25. */
 import { describe, it, expect } from 'vitest';
-import { psak25, psak71, psak68, psak48, psak57 } from './canon_part2.js';
+import { psak25, psak71, psak68, psak48, psak57 } from './canon_part2';
 import { FIXTURE_WTB } from './__fixtures__/wtb.js';
 
 describe('psak71() — ECL / staging (patokan W0-BASELINE)', () => {

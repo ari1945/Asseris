@@ -8,7 +8,7 @@
    the change against an audit-confirmed example.
    ============================================================ */
 import { describe, it, expect } from 'vitest';
-import { AMS_CANON } from './canon.js';
+import { AMS_CANON } from './canon';
 
 // Engines that legitimately require explicit arguments — exercised by the
 // dedicated module tests, not by the zero-arg sweep.

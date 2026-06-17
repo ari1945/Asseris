@@ -1,0 +1,36 @@
+{
+  "//": "NeoSuite AMS — W5 gradual TypeScript. Scope: lapisan kanonik (number engines). strict ON kecuali strictNullChecks (ramp berikutnya). Lihat BUILD.md.",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    "strict": true,
+    "strictNullChecks": false,
+
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "include": [
+    "src/canon.ts",
+    "src/canon_base.ts",
+    "src/canon_part1.ts",
+    "src/canon_part2.ts",
+    "src/canon_part3.ts",
+    "src/canon_part4.ts",
+    "src/forensic_canon.ts",
+    "src/canon_types.ts",
+    "src/canon_selectors.ts",
+    "src/types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

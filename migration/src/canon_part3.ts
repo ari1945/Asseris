@@ -1,10 +1,11 @@
 /* ============================================================
    NeoSuite AMS — canon part3 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, RATE, figuresFromWTB, jt, wtbVal } from './canon_base.js';
-import { assetRegister, deferredTax, fixedAssets, intangibles, inventory, revenue } from './canon_part1.js';
-import { GOODWILL, psak48, psak57, psak68, psak71 } from './canon_part2.js';
-import { psak66 } from './canon_part4.js';
+import { ASOF, RATE, figuresFromWTB, jt, wtbVal } from './canon_base';
+import { assetRegister, deferredTax, fixedAssets, intangibles, inventory, revenue } from './canon_part1';
+import { GOODWILL, psak48, psak57, psak68, psak71 } from './canon_part2';
+import { psak66 } from './canon_part4';
+import type { WTB } from './canon_types';
 
   const P58_GROUP = {
     id: 'logistik',
@@ -20,7 +21,7 @@ import { psak66 } from './canon_part4.js';
     costToSellPct: 0.028,             // biaya menjual: broker, notaris, balik nama HGB
   };
 
-  function psak58(wtb) {
+  function psak58(wtb?: WTB) {
     const R = Math.round;
     const reg = assetRegister(wtb);
     const rev = revenue(wtb);
@@ -28,7 +29,7 @@ import { psak66 } from './canon_part4.js';
 
     /* anggota disposal group ditarik dari Register Aset Tetap (sub-ledger ber-WTB) */
     const members = P58_GROUP.tags.map(tag => {
-      const r = reg.rows.find(x => x.tag === tag) || {};
+      const r: Partial<(typeof reg.rows)[number]> = reg.rows.find(x => x.tag === tag) || {};
       return {
         tag, name: r.name || tag, classLabel: r.classLabel || '', cls: r.cls || '',
         cost: r.cost || 0, accum: r.accum || 0, nbv: r.nbv || 0,
@@ -103,7 +104,7 @@ import { psak66 } from './canon_part4.js';
      modul) lalu mencocokkan nilai yang dipakai modul-modul konsumen.
      Dipakai oleh tab "Rekonsiliasi Angka" di modul Alur Data.
      ============================================================ */
-  function reconcile(wtb) {
+  function reconcile(wtb?: WTB) {
     const s = figuresFromWTB(wtb);
     const dt = deferredTax(wtb);
     const inv = inventory(wtb);
@@ -113,7 +114,13 @@ import { psak66 } from './canon_part4.js';
     const p48 = psak48(wtb);
     const p57 = psak57(wtb);
     const tol = 1; // toleransi Rp 1 jt (pembulatan)
-    const row = (o) => {
+    interface ReconInput {
+      id: string; pos: string; unit?: string; sourceLabel?: string; sourceRoute?: string;
+      source: number; ref?: string; note?: string; warnOnly?: boolean; statusOverride?: string;
+      consumers: Array<{ module?: string; label?: string; val: number }>;
+      extra?: Array<{ label: string; val: number }>;
+    }
+    const row = (o: ReconInput) => {
       const vals = o.consumers.map(c => c.val);
       const max = Math.max(o.source, ...vals), min = Math.min(o.source, ...vals);
       const variance = Math.round(max - min);
@@ -365,7 +372,7 @@ import { psak66 } from './canon_part4.js';
 
   /* jurnal eliminasi & penyesuaian konsolidasi (selain eliminasi investasi) —
      SATU sumber yang juga dipakai modul Group Audit (SA 600). */
-  const INTERCO = [
+  const INTERCO: Array<{ id: string; desc: string; type: string; amount: number; status: string; dr: string; cr: string; cap: string | null; diff?: number; oci?: boolean }> = [
     { id: 'ELM-01', desc: 'Penjualan antar-perusahaan (Induk → Logistik)', type: 'Pendapatan', amount: 8400, status: 'Diverifikasi', dr: 'Penjualan', cr: 'Beban Pokok Penjualan', cap: null },
     { id: 'ELM-02', desc: 'Laba belum terealisasi dalam persediaan', type: 'Laba', amount: 640, status: 'Diverifikasi', dr: 'Beban Pokok Penjualan', cr: 'Persediaan', cap: 'persediaan' },
     { id: 'ELM-03', desc: 'Piutang / utang antar-perusahaan', type: 'Posisi', amount: 3200, status: 'Selisih', diff: 180, dr: 'Utang Usaha', cr: 'Piutang Usaha', cap: 'interco' },
@@ -373,9 +380,11 @@ import { psak66 } from './canon_part4.js';
     { id: 'ELM-05', desc: 'Selisih kurs translasi — Sentosa Trading (SGD)', type: 'OCI', amount: 410, status: 'Review', oci: true, dr: '— (OCI)', cr: 'CTA — Selisih Kurs Translasi', cap: null },
   ];
 
-  function psak65(wtb, pkgOverride) {
+  interface PkgData { status?: string; received?: string; [field: string]: unknown }
+
+  function psak65(wtb?: WTB, pkgOverride?: Record<string, PkgData> | null) {
     const R = Math.round;
-    const aj = (code) => jt(wtbVal(wtb, code, 'adj'));
+    const aj = (code: string) => jt(wtbVal(wtb, code, 'adj'));
 
     /* —— paket pelaporan komponen (impor) ——
        Status & figur tiap anak dapat diimpor/disunting di modul Group Audit
@@ -383,18 +392,16 @@ import { psak66 } from './canon_part4.js';
        ke kertas kerja konsolidasi & PSAK 65; status = overlay tata kelola
        (tidak mengubah angka). Argumen pkgOverride dipakai pemanggil yang ingin
        angka selalu segar tanpa lag localStorage. */
-    const PKG_OVR = pkgOverride || (function () {
+    const PKG_OVR: Record<string, PkgData> | null = pkgOverride || (function (): Record<string, PkgData> | null {
       try { const s = localStorage.getItem('ams.v1.gaPackages'); return s ? JSON.parse(s) : null; }
       catch (e) { return null; }
     })();
     const PKG_NUMF = ['rev', 'npat', 'kas', 'piutang', 'persediaan', 'asetTetap', 'asetLain', 'utangUsaha', 'utangBank', 'liabLain', 'modal', 'rePre', 'rePost', 'cost'];
     const effSubs = GROUP_SUBS.map(s => {
       const p = PKG_OVR && PKG_OVR[s.id];
-      if (!p) return { ...s, pkgStatus: 'Seed', pkgReceived: null };
-      const m = { ...s };
-      PKG_NUMF.forEach(k => { if (typeof p[k] === 'number' && isFinite(p[k])) m[k] = p[k]; });
-      m.pkgStatus = p.status || 'Diterima';
-      m.pkgReceived = p.received || null;
+      if (!p) return { ...s, pkgStatus: 'Seed', pkgReceived: null as string | null };
+      const m = { ...s, pkgStatus: (p.status as string) || 'Diterima', pkgReceived: (p.received as string) || null as string | null };
+      PKG_NUMF.forEach(k => { const v = (p as Record<string, unknown>)[k]; if (typeof v === 'number' && isFinite(v)) (m as unknown as Record<string, number>)[k] = v; });
       return m;
     });
     const par = {
@@ -433,7 +440,7 @@ import { psak66 } from './canon_part4.js';
       return { ...s, equityAcq, equityNow, nciPct, goodwill, nciAcq, nciPost, nciClose, nciProfit, assets, liab, internalBal, balanced: internalBal === 0 };
     });
 
-    const sum = (k) => subs.reduce((a, x) => a + x[k], 0);
+    const sum = (k: string) => subs.reduce((a, x) => a + (x as unknown as Record<string, number>)[k], 0);
     const goodwillTotal = sum('goodwill');                  // = 6.800 → tie ke AMS_CANON.GOODWILL
     const costTotal = sum('cost');
     const nciAcqTotal = sum('nciAcq');
@@ -469,7 +476,7 @@ import { psak66 } from './canon_part4.js';
       { sec: 'Ekuitas', cap: 'nci',       label: 'Kepentingan nonpengendali (NCI)', induk: 0,           anak: 0,             elim: nciAcqTotal + nciPostTotal, nci: true },
     ].map(r => ({ ...r, konsol: r.induk + r.anak + r.elim }));
 
-    const totBy = (sec, col) => ws.filter(r => r.sec === sec).reduce((a, r) => a + r[col], 0);
+    const totBy = (sec: string, col: 'induk' | 'anak' | 'elim' | 'konsol') => ws.filter(r => r.sec === sec).reduce((a, r) => a + r[col], 0);
     const totals = {
       aset:      { induk: totBy('Aset', 'induk'), anak: totBy('Aset', 'anak'), elim: totBy('Aset', 'elim'), konsol: totBy('Aset', 'konsol') },
       liab:      { induk: totBy('Liabilitas', 'induk'), anak: totBy('Liabilitas', 'anak'), elim: totBy('Liabilitas', 'elim'), konsol: totBy('Liabilitas', 'konsol') },
@@ -504,7 +511,7 @@ import { psak66 } from './canon_part4.js';
     const pkgApproved = subs.filter(s => s.pkgStatus === 'Disetujui').length;
     const pkgAllApproved = subs.length > 0 && subs.every(s => s.pkgStatus === 'Disetujui');
     const pkgAllBalanced = subs.every(s => s.balanced);
-    const pkgCounts = subs.reduce((m, s) => { m[s.pkgStatus] = (m[s.pkgStatus] || 0) + 1; return m; }, {});
+    const pkgCounts = subs.reduce((m, s) => { m[s.pkgStatus] = (m[s.pkgStatus] || 0) + 1; return m; }, {} as Record<string, number>);
 
     return {
       rate: RATE65, subs, associates: GROUP_ASSOCIATES, control: GROUP_CONTROL, interco: INTERCO,

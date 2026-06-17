@@ -3,6 +3,7 @@ import React from 'react';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
+import { materialityFor } from './canon_selectors';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
 import { RowKv } from './view_calc.jsx';
@@ -69,9 +70,8 @@ function SPR2410View() {
   const model = useMemo2410(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025', materiality: 4_250_000_000 };
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const mat = (window.AMS_CANON && window.AMS_CANON.materiality)
-    ? window.AMS_CANON.materiality({ engMateriality: eng.materiality })
-    : { om: null, pm: null, ctt: null };
+  /** @type {import('./canon_selectors').MaterialityResult} */
+  const mat = materialityFor({ engMateriality: eng.materiality });
   const risks = (audit && audit.risks) ? audit.risks : ((window.AMS && window.AMS.RISKS) || []);
 
   const [tab, setTab] = useState2410(() => loader('ams.spr2410.tab', 'ikhtisar'));
