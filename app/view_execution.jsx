@@ -298,7 +298,7 @@ function WtbDrill({ row, onClose, nav }) {
 }
 
 /* ---------------- AJE ---------------- */
-function AJEView() {
+function AJEViewLegacy() {
   const { fmt } = window.AMS;
   const { aje, toggleAjeStatus, addAje, wtb } = useAudit();
   const { locked } = useFirm();
@@ -469,4 +469,4 @@ function AJEForm({ accounts, onClose, onPost }) {
   );
 }
 
-Object.assign(window, { WTBView, AJEView, AJEForm });
+Object.assign(window, { WTBView, AJEForm }); // AJEView intentionally overridden by view_aje.jsx (renamed AJEViewLegacy here)

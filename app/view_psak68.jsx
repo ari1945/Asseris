@@ -700,3 +700,5 @@ function PSAK68View() {
     </>
   );
 }
+
+Object.assign(window, { PSAK68View });

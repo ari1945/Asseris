@@ -402,4 +402,4 @@ function KvBox({ label, v, accent }) {
   );
 }
 
-Object.assign(window, { AnalyticalReview, arDerive, benchVerdict, VERDICT_COLOR, FLUX_SEED });
+Object.assign(window, { AnalyticalReview, arDerive, benchVerdict, VERDICT_COLOR, FLUX_SEED, KvBox });

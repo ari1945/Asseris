@@ -578,3 +578,5 @@ function PSAK48View() {
     </>
   );
 }
+
+Object.assign(window, { PSAK48View });
