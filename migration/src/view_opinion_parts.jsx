@@ -3,6 +3,7 @@ import React from 'react';
 import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
+import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — Audit Opinion Generator · Engine & Panels
@@ -449,6 +450,7 @@ const REVIEW_CHAIN = [
 function OpinionSignoff({ doc, patch }) {
   const { activeEngagement, activeClient } = useFirm();
   const { wpState, setWp } = useAudit();   // mirror sign-off opini ke SSOT wpState['900']
+  const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
   const o = OPINIONS[doc.type];
   const eqrRequired = !!activeClient?.listed;
   const today = '2026-03-14';
@@ -571,10 +573,19 @@ function OpinionSignoff({ doc, patch }) {
             </div>
             {!doc.finalized
               ? <Btn variant="primary" disabled={!canFinalize} style={{ width: '100%' }} onClick={finalize}><I.lock size={14} /> Finalisasi Laporan Auditor</Btn>
-              : <Btn style={{ width: '100%' }} onClick={() => patch({ finalized: false })}><I.sync size={13} /> Buka Kembali (reopen)</Btn>}
+              : <div className="grid" style={{ gap: 8 }}>
+                  {activeEngagement && activeEngagement.phase !== 'Arsip' && (
+                    <Btn variant="primary" style={{ width: '100%' }} onClick={() => pg.attempt(activeEngagement.id, activeEngagement.phase, 'Arsip')}><I.archive size={14} /> Arsipkan engagement</Btn>
+                  )}
+                  {activeEngagement && activeEngagement.phase === 'Arsip' && (
+                    <div className="tiny row ac gap6" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={12} /> Engagement telah diarsipkan & terkunci.</div>
+                  )}
+                  <Btn style={{ width: '100%' }} onClick={() => patch({ finalized: false })}><I.sync size={13} /> Buka Kembali (reopen)</Btn>
+                </div>}
           </div>
         </div>
       </div>
+      {pg.pending && <PhaseGateDialog gate={pg.pending.gate} fromPhase={pg.pending.fromPhase} toPhase={pg.pending.toPhase} onConfirm={pg.confirm} onCancel={pg.cancel} />}
     </div>
   );
 }
