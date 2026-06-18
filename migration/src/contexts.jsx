@@ -19,6 +19,14 @@ const useAudit = () => useContext(AuditContext);
 const useNav   = () => useContext(NavContext);
 const useNavFrom = () => useContext(NavFromContext);
 
+/* P5 Fase 2 — catatan review berlingkup-engagement. Selektor murni: catatan
+   milik engagement `engId`; catatan legacy tanpa `engagementId` ikut tampil
+   (tak ada yang hilang dari state lama). */
+function notesForEngagement(notes, engId) {
+  if (!Array.isArray(notes)) return [];
+  return notes.filter(n => n.engagementId === engId || n.engagementId == null);
+}
+
 /* persisted state hook — JSON-serialized to localStorage under ams.<key> */
 function usePersisted(key, initial) {
   const sk = 'ams.v1.' + key;
@@ -114,13 +122,15 @@ function AppProviders({ children }) {
   const [logEntries, setLogEntries] = usePersisted('logEntries', []);
   const logActivity = useCallback((e) => setLogEntries(list => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
 
-  const addReviewNote = useCallback((note) => setReviewNotes(list => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', thread: [], ...note }, ...list]), []);
+  const addReviewNote = useCallback((note) => setReviewNotes(list => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
   const resolveReviewNote = useCallback((id) => setReviewNotes(list => list.map(n => n.id === id ? { ...n, status: n.status === 'open' ? 'resolved' : 'open' } : n)), []);
   const updateReviewNote = useCallback((id, patch) => setReviewNotes(list => list.map(n => n.id === id ? { ...n, ...patch } : n)), []);
   /* append a reply/comment/clearance to ANY note's conversation (keyed overlay) */
   const addNoteReply = useCallback((id, reply) => setNoteThreads(m => ({ ...m, [id]: [...(m[id] || []), { when: 'baru saja', ...reply }] })), []);
   const addTimeEntry = useCallback((entry) => setTimeEntries(list => [{ id: 'T-' + Date.now(), ...entry }, ...list]), []);
   const toggleTask = useCallback((id) => setTaskState(s => ({ ...s, [id]: !s[id] })), []);
+  /* P5 Fase 2 — catatan engagement aktif (turunan; konsumen berlingkup-engagement memakai ini) */
+  const reviewNotesActive = useMemo(() => notesForEngagement(reviewNotes, activeEngagementId), [reviewNotes, activeEngagementId]);
 
   /* derive extra per-account adjustment from POSTED user AJEs (those with structured lines) */
   const userPostDeltas = useMemo(() => {
@@ -168,13 +178,13 @@ function AppProviders({ children }) {
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides,
     wpState, setWp,
-    reviewNotes, addReviewNote, resolveReviewNote, updateReviewNote,
+    reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
     timeEntries, addTimeEntry,
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wpState, setWp, reviewNotes, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>
@@ -190,10 +200,11 @@ function AppProviders({ children }) {
 Object.assign(window, {
   AuthContext, FirmContext, AuditContext, NavContext, NavFromContext,
   useAuth, useFirm, useAudit, useNav, useNavFrom, AppProviders, clearPersisted,
+  notesForEngagement,
 });
 window.clearPersisted = clearPersisted;
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, useAudit, useAuth, useFirm, useNav, useNavFrom };
+export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom };
 export { useAmsPersist };

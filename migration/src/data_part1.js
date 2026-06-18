@@ -177,7 +177,7 @@
       thread: [
         { author: 'Dimas R.', kind: 'response', when: '6 jam lalu', text: 'Perhitungan ulang terlampir di E-4. Masa manfaat mesin lini-2 direvisi 10→8 thn berdasarkan kajian teknis pabrik.' },
       ] },
-  ];
+  ].map(n => ({ engagementId: 'ENG-2025-014', ...n }));   /* P5 Fase 2: seed milik engagement demo */
 
   /* ---- Time entries (timesheet) ---- */
   const TIME_ENTRIES = [
