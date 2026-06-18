@@ -87,6 +87,22 @@ model AuthEvent {
   @@index([ts])
 }
 
+// W8 — append-only LLM proxy usage audit (who called the proxy, when, which provider/model).
+// Records usage, NOT content — the prompt and the model output (which carry redacted finding
+// text) are never persisted. kind = NARRATE | ERROR | RATE_LIMIT | FORBIDDEN | NOT_CONFIGURED.
+model LlmEvent {
+  id       String   @id @default(cuid())
+  userId   String?
+  kind     String
+  ts       DateTime @default(now())
+  provider String?
+  model    String?
+  detail   String? // e.g. "findings=5; in=1200 out=300" — no client data
+
+  @@index([userId])
+  @@index([ts])
+}
+
 model TeamMember {
   id     String @id @default(cuid())
   firmId String

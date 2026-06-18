@@ -22,18 +22,22 @@ export const CAP = {
   FIRMFIN_EDIT: 'firmfin.edit', // keuangan firma (ERP)
   ENGAGEMENT_MANAGE: 'engagement.manage', // tambah/ubah klien & perikatan (roster firma)
   FIRM_ADMIN: 'firm.admin', // pengaturan firma & RBAC
+  LLM_USE: 'llm.use', // W8 — panggil proxy LLM (narasi diagnostik). Bantuan baca, di-rate-limit & di-audit.
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE } = CAP;
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
-   ENGAGEMENT_MANAGE (roster) follows ROLE_CAPS ("edit: Engagement & WP" for Manager). */
+   ENGAGEMENT_MANAGE (roster) follows ROLE_CAPS ("edit: Engagement & WP" for Manager).
+   LLM_USE granted to ALL four roles (W8 Q5) — narasi = bantuan baca, bukan aksi istimewa;
+   biaya/abuse dijaga rate-limit + audit, bukan RBAC. The gate still denies by default, so
+   unknown/future roles get FORBIDDEN. */
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN],
-  'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE],
-  'Senior Auditor': [WP_EDIT, AJE_EDIT],
-  'Junior Auditor': [WP_EDIT],
+  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE],
+  'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE],
+  'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE],
+  'Junior Auditor': [WP_EDIT, LLM_USE],
 };
 
 /** True if `role` is granted `cap`. Unknown role/cap → false (deny by default). */
