@@ -5,6 +5,7 @@
 // is caught by verifyAuditChain(). There is intentionally NO update/delete path here.
 import { createHash } from 'node:crypto';
 import { prisma } from '../db';
+import { inc } from '../obs/log';
 
 // The chain root. The first row's prevHash is this; an empty DB verifies as ok.
 export const GENESIS_HASH = '0'.repeat(64);
@@ -82,6 +83,7 @@ export async function appendAudit(entry: AuditEntry): Promise<void> {
     };
     const hash = hashRow(row);
     await prisma.auditLog.create({ data: { ...row, hash } });
+    inc('audit_appends_total');
   });
   // Keep the queue alive even if this append throws, so a single failure doesn't wedge the
   // chain for every later append. The error is intentionally not propagated to the caller.

@@ -17,6 +17,7 @@ import { complete } from './llm/providers';
 import { rateLimit } from './llm/ratelimit';
 import { logLlmEvent } from './llm/events';
 import { appendAudit, verifyAuditChain } from './audit/log';
+import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
 
@@ -119,6 +120,7 @@ export const appRouter = router({
         // W10 — issue the session as an httpOnly cookie (the client no longer persists the token
         // in localStorage). The token is still returned in the body for tests/curl Bearer use.
         ctx.setCookie?.(buildSessionCookie(session.token));
+        inc('logins_total');
         return { token: session.token, user: publicUser(user) };
       }),
 
@@ -256,6 +258,7 @@ export const appRouter = router({
           actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'LLM_NARRATE',
           detail: `findings=${safe.length}; ${cfg.provider}/${cfg.model}`,
         });
+        inc('llm_requests_total');
         return { status: 'ok' as const, text: result.text, provider: cfg.provider, model: cfg.model, usage: result.usage };
       }),
   }),

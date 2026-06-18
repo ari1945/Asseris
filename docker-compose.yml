@@ -1,0 +1,48 @@
+# W10 — app + Postgres, the "container + Postgres" deploy target (PRD Q3).
+#
+# ⚠️ UNTESTED FROM THE DEV MACHINE. This is a deploy-ready artifact, not a verified deployment.
+#    Bring up locally to validate:  docker compose up --build
+#    One-time demo seed (DESTRUCTIVE — wipes + reseeds):  docker compose run --rm server npm run seed
+#
+# Secrets come from the environment / an .env file beside this compose (NOT committed). At minimum
+# set POSTGRES_PASSWORD and APP_ENCRYPTION_KEY in prod; set COOKIE_SECURE=1 behind TLS.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: neosuite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: neosuite
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neosuite -d neosuite"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://neosuite:${POSTGRES_PASSWORD:-changeme}@db:5432/neosuite
+      PORT: "5181"
+      NODE_ENV: production
+      COOKIE_SECURE: ${COOKIE_SECURE:-0}          # set 1 when fronted by TLS
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}  # 32B hex/base64 → encrypts totpSecret at rest
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}  # optional CSV of IPs/CIDRs for login
+      LLM_API_KEY: ${LLM_API_KEY:-}                # optional — enables LLM narration proxy
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    # Apply schema to Postgres (no migrations dir yet — db push is the current workflow), then run.
+    command: sh -c "npx prisma db push --skip-generate && npm start"
+    ports:
+      - "5181:5181"
+
+volumes:
+  pgdata:

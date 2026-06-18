@@ -180,6 +180,67 @@ Restart the server (`npm run dev:all`). Without a key the app runs deterministic
 > `.claude/w8-mock-llm.mjs` (:9999) and run with `LLM_PROVIDER=openai
 > LLM_BASE_URL=http://localhost:9999/v1`.
 
+## W10 — Hardening, audit trail, observability & deploy
+
+> **W10 slice 1 (this wave): audit-trail core + hardening + observability + deploy-readiness.**
+> Export (PDF/XLSX) + e-Meterai/e-Sign are deferred to a later slice (W10.5). Deploy artifacts
+> are **authored, not verified from the dev machine** — treat them as a runbook starting point.
+
+**Audit trail (`server/src/audit/log.ts`).** Real server-side, append-only, hash-chained record
+that replaces the client pseudo-hash demo (`amsFakeHash`/`buildAuditStream`). Each row chains via
+`hash = SHA-256(seq|ts|actor|action|target|detail|prevHash)`; `verifyAuditChain()` recomputes and
+reports the first break. `appendAudit()` is serialized in-process (single-process deploy
+assumption — horizontal scaling needs DB-level sequencing). Hooked on `state.set` (create+CAS),
+`auth.login`/`logout`, `llm.complete`. **`detail` is metadata only** (key + version delta) — never
+working-paper content, so the trail is safe firm-wide. No update/delete path. Endpoints
+`audit.list`/`audit.verify` gated by `CAP.AUDIT_VIEW` (Partner+Manager). Client: `api.js`
+`auditList`/`auditVerify`; `view_crypto.jsx` chain tab renders the real chain (falls back to the
+demo when offline/forbidden). **Tests run files serially** (`vitest.config.ts fileParallelism:false`)
+— the chain is global state every `state.set` appends to.
+
+**Auth/secret hardening.**
+- **httpOnly cookie** (`auth/cookie.ts`): login sets `Set-Cookie ams_session` (HttpOnly,
+  SameSite=Strict, Path=/, Max-Age=TTL; `Secure` when `COOKIE_SECURE=1`), logout clears it.
+  `createContext` exposes `ctx.setCookie` (v11 standalone adapter passes `res`). The **client no
+  longer persists the token** — in-memory only, `credentials:'include'`; a reload restores the
+  session from the cookie. Bearer header still works for tests/curl.
+- **Encryption-at-rest** (`crypto/secretbox.ts`): AES-256-GCM over `totpSecret`, key from
+  `APP_ENCRYPTION_KEY` (32B hex/base64). Legacy plaintext stays readable; no key = dev pass-through.
+- **IP-allowlist** (`security/ipAllowlist.ts`): optional `ADMIN_IP_ALLOWLIST` (exact IPs + IPv4
+  CIDR), off by default, fail-closed when set; gates `auth.login`.
+
+**Observability (`server/src/obs/log.ts`, wrapped in `server.ts`).** Structured JSON logs (one
+line per event; `tRPC onError` → error log + counter). The HTTP server wraps the tRPC handler so
+the same port answers ops probes:
+- `GET /healthz` → `{status, db, uptime}` (cheap `SELECT 1` DB check; 503 if DB down).
+- `GET /metrics` → Prometheus text (`neosuite_http_requests_total`, `_errors_total`,
+  `logins_total`, `llm_requests_total`, `audit_appends_total`, `process_uptime_seconds`).
+
+**New env vars (all optional; absence = feature off / dev defaults):**
+```
+APP_ENCRYPTION_KEY=<32B hex or base64>   # encrypts totpSecret at rest
+COOKIE_SECURE=1                          # add Secure to the session cookie (prod behind TLS)
+ADMIN_IP_ALLOWLIST=127.0.0.1,10.0.0.0/8  # CSV of IPs/CIDRs allowed to log in
+SESSION_TTL_HOURS=8                      # session lifetime (existing)
+```
+
+**Deploy (W10) — container + Postgres (UNTESTED FROM HERE).**
+- `server/Dockerfile` (build context = **repo root** — the server imports `migration/src`),
+  `docker-compose.yml` (app + `postgres:16`), `.github/workflows/ci.yml` (server typecheck+tests;
+  migration lint+typecheck+tests+build).
+- **Postgres flip:** the repo schema stays `sqlite` for zero-ops dev; the Docker build flips
+  `provider = "sqlite"` → `"postgresql"` via `sed` at image build. No vendor-specific SQL is used,
+  so the flip is mechanical. Schema is applied with `prisma db push` (no `migrations/` dir yet — a
+  proper migration history is a follow-up).
+- **Run locally to validate:** `docker compose up --build`; then `curl localhost:5181/healthz`.
+  One-time demo seed (DESTRUCTIVE): `docker compose run --rm server npm run seed`.
+- **Before trusting it:** confirm the Prisma engine resolves on the image platform, set
+  `APP_ENCRYPTION_KEY` + `POSTGRES_PASSWORD` + `COOKIE_SECURE=1`, and put a TLS terminator in front.
+
+**Deferred to W10.5 / later:** real PDF/XLSX export + e-Meterai/e-Sign; SMTP (email
+alerts/password-reset); cross-device revoke; full ISQM retention/legal-hold workflow; OIDC; a
+real migration history; an actual cloud deploy.
+
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
   numeric I/O, highest value-per-test-line.
