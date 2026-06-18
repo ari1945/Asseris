@@ -6,6 +6,89 @@ import { SubBar } from './shell.jsx';
 import { Btn, LockBanner, Panel, Tabs } from './ui.jsx';
 import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels.jsx';
 import { useWpSignoff } from './wp_signoff.jsx';
+import { amsExportPdf } from './export_pdf.js';
+
+/* W10.5 — map the FSGEN model → PDF table blocks for the sealed export. NUMBERS come from the
+   shared `model` via the caller's `sc()` scaler (same source as the on-screen statements → zero
+   numeric drift); only the statement scaffolding/labels are restated here. Mirrors the document
+   in FSGenerator's preview — keep the two in step. */
+function buildFsBlocks(model, sc, comparative) {
+  const num = (n) => (n == null ? '' : sc(n));
+  const head = comparative ? ['', '2025', '2024'] : ['', '2025'];
+  const colStyles = comparative
+    ? { 1: { halign: 'right', font: 'courier' }, 2: { halign: 'right', font: 'courier' } }
+    : { 1: { halign: 'right', font: 'courier' } };
+  const mk = (rows) => {
+    const bold = [];
+    const body = rows.map((r, i) => { if (r.b) bold.push(i); return comparative ? [r.l, num(r.cy), num(r.py)] : [r.l, num(r.cy)]; });
+    return { type: 'table', head, body, boldRows: bold, columnStyles: colStyles };
+  };
+  const bs = model.bs, is = model.is, e = model.eqr, cf = model.cf;
+  const neraca = [
+    { l: 'ASET', b: 1 }, { l: 'Aset Lancar', b: 1 },
+    ...bs.ca.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    { l: 'Total Aset Lancar', cy: bs.totalCA.cy, py: bs.totalCA.py, b: 1 },
+    { l: 'Aset Tidak Lancar', b: 1 },
+    ...bs.nca.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    { l: 'Total Aset Tidak Lancar', cy: bs.totalNCA.cy, py: bs.totalNCA.py, b: 1 },
+    { l: 'TOTAL ASET', cy: bs.totalAssets.cy, py: bs.totalAssets.py, b: 1 },
+    { l: 'LIABILITAS DAN EKUITAS', b: 1 }, { l: 'Liabilitas Jangka Pendek', b: 1 },
+    ...bs.cl.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    { l: 'Total Liabilitas Jangka Pendek', cy: bs.totalCL.cy, py: bs.totalCL.py, b: 1 },
+    { l: 'Liabilitas Jangka Panjang', b: 1 },
+    ...bs.ncl.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    { l: 'Total Liabilitas Jangka Panjang', cy: bs.totalNCL.cy, py: bs.totalNCL.py, b: 1 },
+    { l: 'Ekuitas', b: 1 },
+    ...bs.eq.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    { l: 'Total Ekuitas', cy: bs.totalEq.cy, py: bs.totalEq.py, b: 1 },
+    { l: 'TOTAL LIABILITAS DAN EKUITAS', cy: bs.totalLE.cy, py: bs.totalLE.py, b: 1 },
+  ];
+  const lr = [
+    { l: 'Penjualan bersih', cy: is.sales.cy, py: is.sales.py },
+    { l: 'Beban pokok penjualan', cy: -is.cogs.cy, py: -is.cogs.py },
+    { l: 'LABA BRUTO', cy: is.gross.cy, py: is.gross.py, b: 1 },
+    { l: 'Beban penjualan', cy: -is.sell.cy, py: -is.sell.py },
+    { l: 'Beban umum dan administrasi', cy: -is.admin.cy, py: -is.admin.py },
+    { l: 'LABA USAHA', cy: is.opProfit.cy, py: is.opProfit.py, b: 1 },
+    { l: 'Beban keuangan', cy: -is.finCost.cy, py: -is.finCost.py },
+    { l: 'LABA SEBELUM PAJAK', cy: is.pbt.cy, py: is.pbt.py, b: 1 },
+    { l: 'Beban pajak penghasilan', cy: -is.tax.cy, py: -is.tax.py },
+    { l: 'LABA TAHUN BERJALAN', cy: is.netIncome.cy, py: is.netIncome.py, b: 1 },
+    { l: 'Penghasilan komprehensif lain — pengukuran kembali imbalan kerja', cy: e.oci, py: 0 },
+    { l: 'TOTAL LABA KOMPREHENSIF TAHUN BERJALAN', cy: is.netIncome.cy + e.oci, py: is.netIncome.py, b: 1 },
+  ];
+  const eqRows = [
+    { l: 'Saldo per 1 Januari 2025', m: e.beginModal, re: e.beginRE, b: 1 },
+    { l: 'Laba tahun berjalan', m: 0, re: e.netIncome },
+    { l: 'Penghasilan komprehensif lain — neto', m: 0, re: e.oci },
+    { l: 'Dividen tunai', m: 0, re: 0 },
+    { l: 'Saldo per 31 Desember 2025', m: e.endModal, re: e.endRE, b: 1 },
+  ];
+  const eqBold = [];
+  const eqBody = eqRows.map((r, i) => { if (r.b) eqBold.push(i); return [r.l, num(r.m), num(r.re), num(r.m + r.re)]; });
+  const ekuitas = { type: 'table', head: ['', 'Modal Saham', 'Saldo Laba', 'Total Ekuitas'], body: eqBody, boldRows: eqBold,
+    columnStyles: { 1: { halign: 'right', font: 'courier' }, 2: { halign: 'right', font: 'courier' }, 3: { halign: 'right', font: 'courier' } } };
+  const ak = [
+    { l: 'ARUS KAS DARI AKTIVITAS OPERASI', b: 1 },
+    ...cf.cfo.map((x) => (x.head ? { l: x.label, b: 1 } : { l: '   ' + x.label, cy: x.v })),
+    { l: 'Kas Neto dari Aktivitas Operasi', cy: cf.cfoTotal, b: 1 },
+    { l: 'ARUS KAS DARI AKTIVITAS INVESTASI', b: 1 },
+    ...cf.cfi.map((x) => ({ l: '   ' + x.label, cy: x.v })),
+    { l: 'Kas Neto untuk Aktivitas Investasi', cy: cf.cfiTotal, b: 1 },
+    { l: 'ARUS KAS DARI AKTIVITAS PENDANAAN', b: 1 },
+    ...cf.cff.map((x) => ({ l: '   ' + x.label, cy: x.v })),
+    { l: 'Kas Neto dari Aktivitas Pendanaan', cy: cf.cffTotal, b: 1 },
+    { l: 'KENAIKAN KAS DAN SETARA KAS — NETO', cy: cf.netChange, b: 1 },
+    { l: 'Kas dan setara kas awal tahun', cy: cf.cashOpen },
+    { l: 'KAS DAN SETARA KAS AKHIR TAHUN', cy: cf.cashClose, b: 1 },
+  ];
+  return [
+    { type: 'heading', text: 'Laporan Posisi Keuangan — Per 31 Desember 2025' }, mk(neraca),
+    { type: 'heading', text: 'Laporan Laba Rugi & Penghasilan Komprehensif Lain — TYE 31 Desember 2025' }, mk(lr),
+    { type: 'heading', text: 'Laporan Perubahan Ekuitas — TYE 31 Desember 2025' }, ekuitas,
+    { type: 'heading', text: 'Laporan Arus Kas — TYE 31 Desember 2025' }, mk(ak),
+  ];
+}
 
 /* ============================================================
    NeoSuite AMS — Financial Statement Generator (workspace)
@@ -19,8 +102,9 @@ const { useState: useStateFS, useMemo: useMemoFS } = React;
 function FSGenerator() {
   const { fmt } = window.AMS;
   const { wtb, ajeTotalPosted } = useAudit();
-  const { activeClient, locked } = useFirm();
+  const { activeClient, activeEngagement, locked } = useFirm();
   const nav = useNav();
+  const [exporting, setExporting] = useStateFS(false);
 
   const [tab, setTab] = useStateFS('neraca');
   const [unit, setUnit] = window.useAmsPersist('fsgen.unit', 'jutaan');
@@ -52,6 +136,34 @@ function FSGenerator() {
   const allSigned = signoff.prepared && signoff.reviewed;
 
   const pickLine = (key) => { setActiveKey(key); setDock('mapping'); };
+
+  // W10.5 — sealed "Laporan Keuangan" PDF: all four primary statements from the shared model.
+  const onExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const signers = [
+        signoff.prepared && { label: 'Disusun oleh', name: signoff.prepared.by, at: signoff.prepared.date },
+        signoff.reviewed && { label: 'Direviu oleh', name: signoff.reviewed.by, at: signoff.reviewed.date },
+      ].filter(Boolean);
+      await amsExportPdf({
+        kind: 'fs', scope: 'engagement', scopeId: activeEngagement?.id,
+        fileName: `Laporan Keuangan - ${activeClient?.name || 'Klien'}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Laporan Keuangan — ${activeClient?.name || ''}`,
+        meta: [
+          `${activeEngagement?.id || ''} · FY2025 · ${activeEngagement?.standard || 'SAK'}`,
+          `(dalam ${U.label}) · dihasilkan dari Working Trial Balance (saldo setelah penyesuaian audit)`,
+        ],
+        blocks: [
+          ...buildFsBlocks(model, sc, comparative),
+          ...(signers.length ? [{ type: 'signature', signers }] : []),
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* statement nav meta */
   const navItems = [
@@ -101,7 +213,8 @@ function FSGenerator() {
           <span className="tiny mono" style={{ color: model.bs.balanced ? 'var(--green)' : 'var(--red)' }}>{model.bs.balanced ? '● Neraca seimbang' : '● Tidak seimbang'}</span>
           <span className="tiny mono" style={{ color: passed === checks.length ? 'var(--green)' : 'var(--amber)' }}>● {passed}/{checks.length} tie-out</span>
           <Btn sm onClick={() => nav('wtb')}><I.table size={13} /> Buka WTB</Btn>
-          <Btn sm variant="primary" onClick={() => window.amsPrintDoc()}><I.download size={14} /> Export PDF</Btn>
+          <Btn sm onClick={() => window.amsPrintDoc()}><I.doc size={13} /> Cetak</Btn>
+          <Btn sm variant="primary" onClick={onExportPdf} disabled={exporting}><I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Export PDF'}</Btn>
         </div>
       } />
       <div className="view-scroll">

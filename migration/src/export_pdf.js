@@ -124,12 +124,14 @@ export async function amsExportPdf(model) {
       });
       y = doc.lastAutoTable.finalY + 12;
     } else if (b.type === 'table') {
+      const bold = new Set(b.boldRows || []); // row indices to render bold (FS sections/totals)
       autoTable(doc, {
         startY: y, margin: { left: MARGIN, right: MARGIN }, theme: 'striped',
         headStyles: { fillColor: NAVY, fontSize: 9.5 },
         styles: { fontSize: 9, cellPadding: 4 },
         columnStyles: b.columnStyles || {},
         head: [b.head], body: b.body,
+        didParseCell: bold.size ? (data) => { if (data.section === 'body' && bold.has(data.row.index)) data.cell.styles.fontStyle = 'bold'; } : undefined,
       });
       y = doc.lastAutoTable.finalY + 12;
     } else if (b.type === 'signature') {

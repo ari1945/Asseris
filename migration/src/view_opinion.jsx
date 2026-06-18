@@ -4,6 +4,7 @@ import { useAmsPersist, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
+import { amsExportPdf } from './export_pdf.js';
 
 /* ============================================================
    NeoSuite AMS — Audit Opinion Generator
@@ -31,6 +32,72 @@ const DEFAULT_DOC_O = {
   finalized: false, finalizedDate: '',
 };
 
+/* W10.5 — opinion report prose, SINGLE-SOURCED so the on-screen preview (ReportBuilder) and the
+   sealed PDF export (buildOpinionBlocks) can't drift. The four opinion paragraphs vary by type;
+   the rest is standard SA 700 boilerplate. */
+const OPINION_PARA_O = (type, basisTitle, client) => ({
+  unmodified: `Menurut opini kami, laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
+  qualified: `Menurut opini kami, kecuali untuk dampak hal yang dijelaskan dalam paragraf "${basisTitle}", laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
+  adverse: `Menurut opini kami, karena signifikannya hal yang dijelaskan dalam paragraf "${basisTitle}", laporan keuangan terlampir tidak menyajikan secara wajar posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
+  disclaimer: `Kami tidak menyatakan suatu opini atas laporan keuangan ${client} terlampir. Karena signifikannya hal yang dijelaskan dalam paragraf "${basisTitle}", kami tidak dapat memperoleh bukti audit yang cukup dan tepat untuk menyediakan suatu basis bagi opini audit atas laporan keuangan tersebut.`,
+}[type]);
+
+const OP_TXT = {
+  intro: (client) => `Kami telah mengaudit laporan keuangan ${client} (“Perusahaan”), yang terdiri dari laporan posisi keuangan tanggal 31 Desember 2025, serta laporan laba rugi, perubahan ekuitas, dan arus kas untuk tahun yang berakhir pada tanggal tersebut, dan suatu ikhtisar kebijakan akuntansi signifikan.`,
+  basisStd: (modified) => `Kami melaksanakan audit kami berdasarkan Standar Audit (“SA”) yang ditetapkan oleh Institut Akuntan Publik Indonesia. Tanggung jawab kami menurut standar tersebut diuraikan lebih lanjut dalam paragraf Tanggung Jawab Auditor. Kami independen terhadap Perusahaan sesuai dengan ketentuan etika yang relevan, dan kami yakin bahwa bukti audit yang telah kami peroleh adalah cukup dan tepat untuk menyediakan suatu basis bagi opini ${modified ? '' : 'audit'} kami.`,
+  gc: 'Kami mengarahkan perhatian pada Catatan atas laporan keuangan yang menjelaskan adanya ketidakpastian material yang dapat menyebabkan keraguan signifikan atas kemampuan Perusahaan untuk mempertahankan kelangsungan usahanya. Opini kami tidak dimodifikasi sehubungan dengan hal tersebut.',
+  eom: 'Kami mengarahkan perhatian pada Catatan atas laporan keuangan mengenai penerapan PSAK 73 “Sewa” yang pertama kali diterapkan pada tahun berjalan. Opini kami tidak dimodifikasi sehubungan dengan hal tersebut.',
+  kamIntro: 'Hal audit utama adalah hal-hal yang, menurut pertimbangan profesional kami, merupakan hal yang paling signifikan dalam audit kami atas laporan keuangan periode kini. Hal-hal tersebut ditangani dalam konteks audit kami atas laporan keuangan secara keseluruhan, dan kami tidak menyatakan opini terpisah atas hal-hal tersebut.',
+  om: 'Laporan keuangan ini disusun untuk memenuhi ketentuan pelaporan kepada Otoritas Jasa Keuangan. Akibatnya, laporan keuangan mungkin tidak sesuai untuk tujuan lain.',
+  otherInfo: 'Manajemen bertanggung jawab atas informasi lain, yang terdiri dari informasi yang tercakup dalam Laporan Tahunan, tetapi tidak termasuk laporan keuangan dan laporan auditor kami atasnya. Opini kami atas laporan keuangan tidak mencakup informasi lain tersebut dan kami tidak menyatakan suatu bentuk kesimpulan asurans apa pun atasnya. Sehubungan dengan audit kami, tanggung jawab kami adalah membaca informasi lain dan, dalam melakukannya, mempertimbangkan apakah terdapat inkonsistensi material dengan laporan keuangan.',
+  mgmtResp: 'Manajemen bertanggung jawab atas penyusunan dan penyajian wajar laporan keuangan sesuai dengan Standar Akuntansi Keuangan di Indonesia, dan atas pengendalian internal yang dipandang perlu untuk memungkinkan penyusunan laporan keuangan yang bebas dari kesalahan penyajian material.',
+  auditorResp: 'Tujuan kami adalah untuk memperoleh keyakinan memadai tentang apakah laporan keuangan secara keseluruhan bebas dari kesalahan penyajian material, baik yang disebabkan oleh kecurangan maupun kesalahan, dan untuk menerbitkan laporan auditor yang mencakup opini kami. Keyakinan memadai merupakan keyakinan tingkat tinggi, namun bukan merupakan jaminan bahwa audit yang dilaksanakan berdasarkan SA akan selalu mendeteksi kesalahan penyajian material yang ada.',
+  legalReg: 'Sebagaimana diwajibkan oleh peraturan perundang-undangan, kami melaporkan bahwa pembukuan dan catatan yang diwajibkan telah diselenggarakan secara memadai sesuai dengan ketentuan yang berlaku.',
+  comparative: (client, mode) => mode === 'corresponding'
+    ? `Audit atas laporan keuangan ${client} untuk tahun yang berakhir 31 Desember 2024 (angka koresponding) dilaksanakan oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`
+    : `Laporan keuangan komparatif ${client} untuk tahun yang berakhir 31 Desember 2024 telah diaudit oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`,
+};
+
+/* Ordered body blocks for the sealed PDF — mirrors ReportBuilder's preview, same prose source. */
+function buildOpinionBlocks(doc, client, O) {
+  const o = O.OPINIONS[doc.type];
+  const modified = doc.type !== 'unmodified';
+  const showKam = doc.opts.kam && doc.type !== 'disclaimer';
+  const blocks = [
+    { type: 'para', text: `Kepada Yth. Para Pemegang Saham, Dewan Komisaris, dan Direksi — ${client}` },
+    { type: 'heading', text: 'Opini' + (modified ? ' ' + o.title : '') },
+    { type: 'para', text: OP_TXT.intro(client) },
+    { type: 'para', text: OPINION_PARA_O(doc.type, o.basisTitle, client) },
+    { type: 'heading', text: o.basisTitle },
+  ];
+  if (modified) blocks.push({ type: 'para', text: doc.basisText });
+  blocks.push({ type: 'para', text: OP_TXT.basisStd(modified) });
+  if (doc.opts.gc) blocks.push({ type: 'heading', text: 'Ketidakpastian Material Terkait Kelangsungan Usaha' }, { type: 'para', text: OP_TXT.gc });
+  if (doc.opts.eom) blocks.push({ type: 'heading', text: 'Penekanan Suatu Hal' }, { type: 'para', text: OP_TXT.eom });
+  if (showKam) {
+    blocks.push({ type: 'heading', text: 'Hal-Hal Audit Utama' }, { type: 'para', text: OP_TXT.kamIntro });
+    doc.kams.forEach((k, i) => {
+      blocks.push({ type: 'para', text: `${i + 1}. ${k.title}` });
+      if (k.why) blocks.push({ type: 'para', text: k.why });
+      if (k.how) blocks.push({ type: 'para', text: `Penanganan audit — ${k.how}` });
+      if (k.wpRef) blocks.push({ type: 'para', text: `Ref. KKP: ${k.wpRef}` });
+    });
+  }
+  if (doc.opts.om) blocks.push({ type: 'heading', text: 'Hal Lain' }, { type: 'para', text: OP_TXT.om });
+  if (doc.opts.otherInfo) blocks.push({ type: 'heading', text: 'Informasi Lain' }, { type: 'para', text: OP_TXT.otherInfo });
+  blocks.push(
+    { type: 'heading', text: 'Tanggung Jawab Manajemen dan Pihak yang Bertanggung Jawab atas Tata Kelola' },
+    { type: 'para', text: OP_TXT.mgmtResp },
+    { type: 'heading', text: 'Tanggung Jawab Auditor atas Audit Laporan Keuangan' },
+    { type: 'para', text: OP_TXT.auditorResp },
+  );
+  if (doc.opts.legalReg) blocks.push({ type: 'heading', text: 'Laporan atas Ketentuan Hukum dan Regulasi Lain' }, { type: 'para', text: OP_TXT.legalReg });
+  if (doc.opts.comparative) blocks.push({ type: 'para', text: OP_TXT.comparative(client, doc.compMode) });
+  const signer = O.SIGNERS[doc.signer] || O.SIGNERS.partner1;
+  blocks.push({ type: 'signature', signers: [{ label: 'KAP Wijaya Hartono & Rekan', name: signer.name, role: `${signer.role} · Izin AP No. ${signer.reg}`, at: `Jakarta, ${fmtDateID(doc.reportDate)}` }] });
+  return blocks;
+}
+
 function AuditOpinionGen() {
   const { activeClient, activeEngagement } = useFirm();
   const O = window.AMSOpinion;
@@ -38,6 +105,27 @@ function AuditOpinionGen() {
   const [doc, setDoc] = useAmsPersist('opinionDoc.' + engId, () => DEFAULT_DOC_O);
   const patch = (p) => setDoc(d => ({ ...d, ...p }));
   const [tab, setTab] = useStateO('determine');
+  const [exporting, setExporting] = useStateO(false);
+
+  // W10.5 — sealed audit-opinion PDF built from the SAME prose the preview renders (OP_TXT /
+  // buildOpinionBlocks), so the document and its on-screen twin can't diverge.
+  const onExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await amsExportPdf({
+        kind: 'opinion', scope: 'engagement', scopeId: activeEngagement?.id,
+        fileName: `Laporan Auditor Independen - ${client}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Laporan Auditor Independen',
+        refNo: 'No. 142/WHR-CPA/AR/III/2026',
+        meta: [`${activeEngagement?.id || ''} · ${client} · FY2025`, `${o.title} (SA 700/705/701)`],
+        blocks: buildOpinionBlocks(doc, client, O),
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const o = O.OPINIONS[doc.type];
   const client = activeClient?.name || 'PT Sentosa Makmur Tbk';
@@ -58,7 +146,8 @@ function AuditOpinionGen() {
           <Badge kind={o.k}>{o.short}</Badge>
           {doc.finalized && <Badge kind="green">Final</Badge>}
           <Badge kind="blue">SA 700 · 705 · 701</Badge>
-          {tab === 'builder' && <Btn sm onClick={() => window.amsPrintDoc()}><I.download size={13} /> Export PDF</Btn>}
+          {tab === 'builder' && <Btn sm onClick={() => window.amsPrintDoc()}><I.doc size={13} /> Cetak</Btn>}
+          {tab === 'builder' && <Btn sm onClick={onExportPdf} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export PDF'}</Btn>}
           <Btn sm variant="primary" onClick={() => setTab('signoff')}><I.checkCircle size={14} /> {doc.finalized ? 'Lihat Status' : 'Finalisasi'}</Btn>
         </div>
       } />
@@ -115,12 +204,7 @@ function ReportBuilder({ doc, patch, client, O }) {
   const signer = O.SIGNERS[doc.signer] || O.SIGNERS.partner1;
   const showKam = doc.opts.kam && doc.type !== 'disclaimer';
 
-  const opinionPara = {
-    unmodified: `Menurut opini kami, laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
-    qualified: `Menurut opini kami, kecuali untuk dampak hal yang dijelaskan dalam paragraf "${o.basisTitle}", laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
-    adverse: `Menurut opini kami, karena signifikannya hal yang dijelaskan dalam paragraf "${o.basisTitle}", laporan keuangan terlampir tidak menyajikan secara wajar posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
-    disclaimer: `Kami tidak menyatakan suatu opini atas laporan keuangan ${client} terlampir. Karena signifikannya hal yang dijelaskan dalam paragraf "${o.basisTitle}", kami tidak dapat memperoleh bukti audit yang cukup dan tepat untuk menyediakan suatu basis bagi opini audit atas laporan keuangan tersebut.`,
-  }[doc.type];
+  const opinionPara = OPINION_PARA_O(doc.type, o.basisTitle, client);
 
   const DocH = O.DocH;
 
@@ -215,26 +299,26 @@ function ReportBuilder({ doc, patch, client, O }) {
             <p style={{ margin: '0 0 20px', fontWeight: 700 }}>{client}</p>
 
             <DocH>Opini {modified ? o.title : ''}</DocH>
-            <p style={{ margin: '0 0 12px', textAlign: 'justify' }}>Kami telah mengaudit laporan keuangan {client} (“Perusahaan”), yang terdiri dari laporan posisi keuangan tanggal 31 Desember 2025, serta laporan laba rugi, perubahan ekuitas, dan arus kas untuk tahun yang berakhir pada tanggal tersebut, dan suatu ikhtisar kebijakan akuntansi signifikan.</p>
+            <p style={{ margin: '0 0 12px', textAlign: 'justify' }}>{OP_TXT.intro(client)}</p>
             <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{opinionPara}</p>
 
             <DocH>{o.basisTitle}</DocH>
             {modified && <p style={{ margin: '0 0 10px', textAlign: 'justify' }}>{doc.basisText}</p>}
-            <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Kami melaksanakan audit kami berdasarkan Standar Audit (“SA”) yang ditetapkan oleh Institut Akuntan Publik Indonesia. Tanggung jawab kami menurut standar tersebut diuraikan lebih lanjut dalam paragraf Tanggung Jawab Auditor. Kami independen terhadap Perusahaan sesuai dengan ketentuan etika yang relevan, dan kami yakin bahwa bukti audit yang telah kami peroleh adalah cukup dan tepat untuk menyediakan suatu basis bagi opini {modified ? '' : 'audit'} kami.</p>
+            <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.basisStd(modified)}</p>
 
             {doc.opts.gc && <>
               <DocH>Ketidakpastian Material Terkait Kelangsungan Usaha</DocH>
-              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Kami mengarahkan perhatian pada Catatan atas laporan keuangan yang menjelaskan adanya ketidakpastian material yang dapat menyebabkan keraguan signifikan atas kemampuan Perusahaan untuk mempertahankan kelangsungan usahanya. Opini kami tidak dimodifikasi sehubungan dengan hal tersebut.</p>
+              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.gc}</p>
             </>}
 
             {doc.opts.eom && <>
               <DocH>Penekanan Suatu Hal</DocH>
-              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Kami mengarahkan perhatian pada Catatan atas laporan keuangan mengenai penerapan PSAK 73 “Sewa” yang pertama kali diterapkan pada tahun berjalan. Opini kami tidak dimodifikasi sehubungan dengan hal tersebut.</p>
+              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.eom}</p>
             </>}
 
             {showKam && <>
               <DocH>Hal-Hal Audit Utama</DocH>
-              <p style={{ margin: '0 0 12px', textAlign: 'justify' }}>Hal audit utama adalah hal-hal yang, menurut pertimbangan profesional kami, merupakan hal yang paling signifikan dalam audit kami atas laporan keuangan periode kini. Hal-hal tersebut ditangani dalam konteks audit kami atas laporan keuangan secara keseluruhan, dan kami tidak menyatakan opini terpisah atas hal-hal tersebut.</p>
+              <p style={{ margin: '0 0 12px', textAlign: 'justify' }}>{OP_TXT.kamIntro}</p>
               {doc.kams.map((k, i) => (
                 <div key={k.id} style={{ margin: '0 0 14px' }}>
                   <p style={{ margin: '0 0 4px', fontWeight: 700 }}>{i + 1}. {k.title}</p>
@@ -247,28 +331,26 @@ function ReportBuilder({ doc, patch, client, O }) {
 
             {doc.opts.om && <>
               <DocH>Hal Lain</DocH>
-              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Laporan keuangan ini disusun untuk memenuhi ketentuan pelaporan kepada Otoritas Jasa Keuangan. Akibatnya, laporan keuangan mungkin tidak sesuai untuk tujuan lain.</p>
+              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.om}</p>
             </>}
 
             {doc.opts.otherInfo && <>
               <DocH>Informasi Lain</DocH>
-              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Manajemen bertanggung jawab atas informasi lain, yang terdiri dari informasi yang tercakup dalam Laporan Tahunan, tetapi tidak termasuk laporan keuangan dan laporan auditor kami atasnya. Opini kami atas laporan keuangan tidak mencakup informasi lain tersebut dan kami tidak menyatakan suatu bentuk kesimpulan asurans apa pun atasnya. Sehubungan dengan audit kami, tanggung jawab kami adalah membaca informasi lain dan, dalam melakukannya, mempertimbangkan apakah terdapat inkonsistensi material dengan laporan keuangan.</p>
+              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.otherInfo}</p>
             </>}
 
             <DocH>Tanggung Jawab Manajemen dan Pihak yang Bertanggung Jawab atas Tata Kelola</DocH>
-            <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Manajemen bertanggung jawab atas penyusunan dan penyajian wajar laporan keuangan sesuai dengan Standar Akuntansi Keuangan di Indonesia, dan atas pengendalian internal yang dipandang perlu untuk memungkinkan penyusunan laporan keuangan yang bebas dari kesalahan penyajian material.</p>
+            <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.mgmtResp}</p>
 
             <DocH>Tanggung Jawab Auditor atas Audit Laporan Keuangan</DocH>
-            <p style={{ margin: '0 0 ' + (doc.opts.legalReg || doc.opts.comparative ? '16px' : '20px'), textAlign: 'justify' }}>Tujuan kami adalah untuk memperoleh keyakinan memadai tentang apakah laporan keuangan secara keseluruhan bebas dari kesalahan penyajian material, baik yang disebabkan oleh kecurangan maupun kesalahan, dan untuk menerbitkan laporan auditor yang mencakup opini kami. Keyakinan memadai merupakan keyakinan tingkat tinggi, namun bukan merupakan jaminan bahwa audit yang dilaksanakan berdasarkan SA akan selalu mendeteksi kesalahan penyajian material yang ada.</p>
+            <p style={{ margin: '0 0 ' + (doc.opts.legalReg || doc.opts.comparative ? '16px' : '20px'), textAlign: 'justify' }}>{OP_TXT.auditorResp}</p>
 
             {doc.opts.legalReg && <>
               <DocH>Laporan atas Ketentuan Hukum dan Regulasi Lain</DocH>
-              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>Sebagaimana diwajibkan oleh peraturan perundang-undangan, kami melaporkan bahwa pembukuan dan catatan yang diwajibkan telah diselenggarakan secara memadai sesuai dengan ketentuan yang berlaku.</p>
+              <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.legalReg}</p>
             </>}
 
-            {doc.opts.comparative && <p style={{ margin: '0 0 20px', textAlign: 'justify', fontStyle: 'italic', color: '#5a6770' }}>{doc.compMode === 'corresponding'
-              ? `Audit atas laporan keuangan ${client} untuk tahun yang berakhir 31 Desember 2024 (angka koresponding) dilaksanakan oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`
-              : `Laporan keuangan komparatif ${client} untuk tahun yang berakhir 31 Desember 2024 telah diaudit oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`}</p>}
+            {doc.opts.comparative && <p style={{ margin: '0 0 20px', textAlign: 'justify', fontStyle: 'italic', color: '#5a6770' }}>{OP_TXT.comparative(client, doc.compMode)}</p>}
 
             <div style={{ marginTop: 30 }}>
               <p style={{ margin: '0 0 2px', fontWeight: 700 }}>KAP Wijaya Hartono &amp; Rekan</p>
