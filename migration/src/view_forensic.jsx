@@ -4,6 +4,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
+import { DiagnosticPanel } from './diagnostics_panel.jsx';
 
 /* ============================================================
    NeoSuite AMS — Forensic Cash Flow (analitik anomali kas)
@@ -111,6 +112,9 @@ function ForensicCashFlow() {
       } />
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
+
+          {/* P4 — diagnostik forensik terembed (deterministik) */}
+          <DiagnosticPanel area="forensic" title="Diagnostik Forensik — Temuan Otomatis" />
 
           {/* ringkasan */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>

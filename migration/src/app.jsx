@@ -43,6 +43,7 @@ import { FirmRevenue } from './view_firmrevenue.jsx';
 import { FirmTax } from './view_firmtax.jsx';
 import { CashBank, FirmTreasury, FixedAssets } from './view_firmtreasury.jsx';
 import { ForensicCashFlow } from './view_forensic.jsx';
+import { TaxAuditDiagnostic } from './view_diagnostics.jsx';
 import { FrameworkView } from './view_framework.jsx';
 import { FSGenerator } from './view_fsgen.jsx';
 import { GoingConcern } from './view_goingconcern.jsx';
@@ -183,6 +184,7 @@ function viewFor(moduleId) {
     case 'ecl':        return <ECLCalculator />;
     case 'goingconcern': return <GoingConcern />;
     case 'jet':        return <JournalEntryTesting />;
+    case 'diagnostic': return <TaxAuditDiagnostic />;
     case 'opinion':    return <AuditOpinionGen />;
     case 'presentasi': return <PresentasiKlien />;
     case 'analytical': return <AnalyticalReview />;

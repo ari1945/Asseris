@@ -172,6 +172,7 @@ const MODULES = [
     { id: 'analytical', label: 'Analytical Review', icon: 'trend', deep: true },
     { id: 'sampling',   label: 'Sampling Engine', icon: 'dice', deep: true },
     { id: 'jet',        label: 'Journal Entry Testing', icon: 'flask', deep: true },
+    { id: 'diagnostic', label: 'Tax Audit Diagnostic', icon: 'sparkle', deep: true },
   ]},
   { group: 'Core Specifics', items: [
     { id: 'confirm',    label: 'Confirmation Hub', icon: 'mail', deep: true },
