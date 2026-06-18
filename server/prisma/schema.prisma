@@ -49,8 +49,25 @@ model User {
   failedLogins Int       @default(0)
   lockedUntil  DateTime?
 
-  sessions   Session[]
-  authEvents AuthEvent[]
+  sessions            Session[]
+  authEvents          AuthEvent[]
+  engagementMemberships EngagementMember[]
+}
+
+// W7.5 — per-engagement data isolation. A user may read/write an engagement's WORKING DATA
+// (bootstrap + StateDoc scope='engagement' + WTB) only if they are a member here, OR their role
+// has the ENGAGEMENT_VIEW_ALL capability (Partner/Manager oversight). The free-text
+// Engagement.partner/manager name fields are NOT a membership source (they don't map to login users).
+model EngagementMember {
+  id           String     @id @default(cuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id])
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  addedAt      DateTime   @default(now())
+
+  @@unique([engagementId, userId])
+  @@index([userId])
 }
 
 // W7 — opaque server-side session. Token is random (≥128-bit); resolved on every
@@ -150,6 +167,7 @@ model Engagement {
   risk        String?
   materiality Float?
   wtb         WtbRow[]
+  members     EngagementMember[]
 }
 
 // Working Trial Balance rows for an engagement. Mirrors the runtime object shape

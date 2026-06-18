@@ -23,19 +23,22 @@ export const CAP = {
   ENGAGEMENT_MANAGE: 'engagement.manage', // tambah/ubah klien & perikatan (roster firma)
   FIRM_ADMIN: 'firm.admin', // pengaturan firma & RBAC
   LLM_USE: 'llm.use', // W8 — panggil proxy LLM (narasi diagnostik). Bantuan baca, di-rate-limit & di-audit.
+  ENGAGEMENT_VIEW_ALL: 'engagement.viewAll', // W7.5 — lihat/akses SEMUA engagement tanpa keanggotaan (oversight portofolio)
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL } = CAP;
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
    ENGAGEMENT_MANAGE (roster) follows ROLE_CAPS ("edit: Engagement & WP" for Manager).
    LLM_USE granted to ALL four roles (W8 Q5) — narasi = bantuan baca, bukan aksi istimewa;
    biaya/abuse dijaga rate-limit + audit, bukan RBAC. The gate still denies by default, so
-   unknown/future roles get FORBIDDEN. */
+   unknown/future roles get FORBIDDEN.
+   ENGAGEMENT_VIEW_ALL granted to Partner + Manager only (W7.5 Q1) — oversight portofolio;
+   Senior/Junior dibatasi ke engagement tempat mereka anggota (per-engagement data isolation). */
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE],
-  'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE],
+  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL],
+  'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL],
   'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE],
   'Junior Auditor': [WP_EDIT, LLM_USE],
 };

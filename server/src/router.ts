@@ -9,6 +9,7 @@ import { generateSecret, verifyTotp as checkTotp, otpauthUrl } from './auth/totp
 import { createSession, revokeSession } from './auth/session';
 import { logAuthEvent } from './auth/events';
 import { can, capForWrite, CAP } from './rbac';
+import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
 import { redactFindings, buildNarrationPrompt } from './llm/redact';
 import { complete } from './llm/providers';
@@ -238,19 +239,23 @@ export const appRouter = router({
       }),
   }),
 
-  // Reference list for pickers (client roster + engagement select). W7 Fase 1: any
-  // authenticated role may read (no per-engagement data isolation in W7 — that is W7.5/W9).
+  // Reference list for pickers (client roster + engagement select). W7.5: filtered to the
+  // engagements the caller may access (oversight roles → all; others → their memberships).
   engagement: router({
-    list: protectedProcedure.query(() =>
-      prisma.engagement.findMany({ include: { client: true }, orderBy: { id: 'asc' } }),
-    ),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const acc = await accessibleEngagementIds(ctx.user);
+      const where = acc === 'all' ? {} : { id: { in: acc } };
+      return prisma.engagement.findMany({ where, include: { client: true }, orderBy: { id: 'asc' } });
+    }),
   }),
 
   // One round-trip boot payload: core entities + this engagement's WTB + its open state docs.
-  // Used by the client to hydrate window.AMS before canon computes. Requires a session.
+  // Used by the client to hydrate window.AMS before canon computes. Requires a session AND
+  // (W7.5) access to the requested engagement.
   bootstrap: protectedProcedure
     .input(z.object({ engagementId: z.string().min(1) }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await assertEngagementAccess(ctx.user, input.engagementId);
       const [firm, users, team, clients, engagements, wtb, states] = await Promise.all([
         prisma.firm.findFirst(),
         prisma.user.findMany(),
@@ -265,8 +270,10 @@ export const appRouter = router({
 
   state: router({
     // Read a single versioned doc. Missing → { value: null, version: 0 } (the "create next" signal).
-    // W7 Fase 1: requires a session (reads are role-agnostic in W7; data isolation is W7.5/W9).
-    get: protectedProcedure.input(stateKey).query(async ({ input }) => {
+    // W7.5: an engagement-scoped read requires access to that engagement (isolation applies to
+    // reads, not just writes — you can't read another engagement's working papers).
+    get: protectedProcedure.input(stateKey).query(async ({ input, ctx }) => {
+      if (input.scope === 'engagement') await assertEngagementAccess(ctx.user, input.scopeId);
       const doc = await prisma.stateDoc.findUnique({
         where: { scope_scopeId_key: input },
       });
@@ -286,6 +293,9 @@ export const appRouter = router({
       )
       .mutation(async ({ input, ctx }) => {
         const { scope, scopeId, key, baseVersion } = input;
+        // W7.5 — engagement isolation first (may you touch this engagement at all?), then the
+        // W7 capability gate (may your role write this key?).
+        if (scope === 'engagement') await assertEngagementAccess(ctx.user, scopeId);
         assertCanWrite(ctx.user, scope, scopeId, key);
         const valueJson = JSON.stringify(input.value ?? null);
         const updatedBy = ctx.user.id;

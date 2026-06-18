@@ -21,12 +21,17 @@ const PRIMARY_PASSWORD = 'Manager#2025!';
 async function main() {
   const A = await loadAmsSeed();
 
-  // Idempotent dev seed: clear in FK-safe order, then repopulate.
+  // Idempotent dev seed: clear in FK-safe order, then repopulate. Session/AuthEvent reference
+  // User, so they must be cleared before users (otherwise a re-seed after anyone has logged in
+  // trips a foreign-key violation).
   await prisma.stateDoc.deleteMany();
+  await prisma.engagementMember.deleteMany();
   await prisma.wtbRow.deleteMany();
   await prisma.engagement.deleteMany();
   await prisma.client.deleteMany();
   await prisma.teamMember.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.authEvent.deleteMany();
   await prisma.user.deleteMany();
   await prisma.firm.deleteMany();
 
@@ -44,10 +49,11 @@ async function main() {
   });
 
   const u = A.USER as Record<string, unknown>;
+  const PRIMARY_ID = (u.employeeId as string) ?? 'USER-1'; // Anindya (Audit Manager)
   // Primary user first (preserves bootstrap users[0] → client window.AMS.USER hydration).
   await prisma.user.create({
     data: {
-      id: (u.employeeId as string) ?? 'USER-1',
+      id: PRIMARY_ID,
       firmId: FIRM_ID,
       name: A.USER.name,
       initials: (u.initials as string) ?? null,
@@ -139,10 +145,29 @@ async function main() {
     });
   }
 
+  // W7.5 — engagement memberships. All four accounts join the active demo engagement
+  // (ENG-2025-014) so boot (which always bootstraps it) works for everyone. The Senior also
+  // joins a second engagement (ENG-2025-031) to demonstrate isolation: Junior is NOT a member
+  // of it, so Junior→ENG-2025-031 is FORBIDDEN while Senior→ENG-2025-031 is allowed.
+  // (Partner+Manager have ENGAGEMENT_VIEW_ALL → they see all regardless; their rows here are
+  // explicit-but-redundant, kept for clarity/robustness.)
+  const SECOND_ENG = 'ENG-2025-031';
+  const memberships: Array<{ engagementId: string; userId: string }> = [
+    { engagementId: ACTIVE_ENG, userId: PRIMARY_ID }, // Anindya (Manager)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-EP-0001' }, // Hartono (Partner)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-SR-0210' }, // Bagas (Senior)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-JR-0388' }, // Citra (Junior)
+    { engagementId: SECOND_ENG, userId: 'WHR-SR-0210' }, // Senior also on a 2nd engagement
+  ];
+  for (const m of memberships) {
+    await prisma.engagementMember.create({ data: m });
+  }
+
   console.log(
     `Seeded: 1 firm, ${1 + EXTRA_USERS.length} users (1 per RBAC role, w/ dev passwords), ` +
       `${A.TEAM.length} team, ${A.CLIENTS.length} clients, ` +
-      `${A.ENGAGEMENTS.length} engagements, ${A.WTB.length} WTB rows (${ACTIVE_ENG}).`,
+      `${A.ENGAGEMENTS.length} engagements, ${A.WTB.length} WTB rows (${ACTIVE_ENG}), ` +
+      `${memberships.length} engagement memberships.`,
   );
 }
 
