@@ -128,7 +128,7 @@ function EngagementCockpit() {
   const { fmt } = window.AMS;
   const nav = useNav();
   const { activeEngagement, activeClient } = useFirm();
-  const { reviewNotes, aje, risks, workpapers, team, activity, deadlines, wpState } = useAudit();
+  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState } = useAudit();  // P5 Fase 2: catatan engagement aktif
   const e = activeEngagement;
   const [tab, setTab] = useStateCkp('ringkasan');
 
@@ -144,7 +144,7 @@ function EngagementCockpit() {
     const burnPct = e.budgetHrs ? e.actualHrs / e.budgetHrs * 100 : 0;
 
     /* review notes (engagement scope) */
-    const openNotes = reviewNotes.filter(n => n.status === 'open');
+    const openNotes = reviewNotesActive.filter(n => n.status === 'open');
     const highOpen = openNotes.filter(n => n.priority === 'high');
     /* AJE */
     const proposedAje = aje.filter(a => a.status === 'Proposed');
@@ -208,7 +208,7 @@ function EngagementCockpit() {
       schedTone, budgetTone, qualTone, riskTone, docTone, verdict,
       phaseRows, members, wipTot, stdBudgetCost, fee,
     };
-  }, [e, reviewNotes, aje, risks, workpapers, team, activeClient, wpState]);
+  }, [e, reviewNotesActive, aje, risks, workpapers, team, activeClient, wpState]);
 
   const TABS = [
     { id: 'ringkasan', label: 'Ringkasan' },

@@ -58,7 +58,7 @@ const RN_PHASE_META = {
 function ReviewNotes() {
   const nav = useNav();
   const firm = useFirm();
-  const { reviewNotes, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, wpState, setWp } = useAudit();
+  const { reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, wpState, setWp } = useAudit();  // P5 Fase 2: catatan engagement aktif
 
   const [statusF, setStatusF] = useStateWS2('open');      // open | resolved | all
   const [typeF, setTypeF] = useStateWS2('all');           // all | review | coaching | eqr | query
@@ -76,10 +76,10 @@ function ReviewNotes() {
 
   /* unified, enriched note list (module + WP), with merged seed metadata */
   const allNotes = useMemoWS2(() => {
-    const moduleNotes = reviewNotes.map(n => ({ type: 'review', thread: [], ...(seedById[n.id] || {}), ...n, wp: false }));
+    const moduleNotes = reviewNotesActive.map(n => ({ type: 'review', thread: [], ...(seedById[n.id] || {}), ...n, wp: false }));
     const wpNotes = (window.collectWpNotes ? window.collectWpNotes(wpState) : []).map(n => ({ type: 'review', thread: [], ...n }));
     return [...moduleNotes, ...wpNotes];
-  }, [reviewNotes, wpState, seedById]);
+  }, [reviewNotesActive, wpState, seedById]);
 
   const threadOf = (n) => [...(n.thread || []), ...((noteThreads || {})[n.id] || [])];
 

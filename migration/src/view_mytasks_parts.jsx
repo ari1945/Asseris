@@ -34,7 +34,8 @@ const MT_BUCKETS = [
 
 /* synthetic due-day offsets & effort estimates by source */
 function mtSystemTasks(audit) {
-  const { reviewNotes, deadlines, aje, wpState, workpapers } = audit;
+  const { deadlines, aje, wpState, workpapers } = audit;
+  const reviewNotes = audit.reviewNotesActive || audit.reviewNotes || [];  // P5 Fase 2: catatan engagement aktif
   const me = 'Anindya P.';
   const out = [];
   const rnOff = { high: 1, medium: 3, low: 6 };
@@ -74,7 +75,7 @@ function useMyTasks() {
   const engId = firm.activeEngagement ? firm.activeEngagement.id : '';
 
   const system = useMemoMT(() => mtSystemTasks(audit),
-    [audit.reviewNotes, audit.aje, audit.workpapers, audit.deadlines, audit.wpState]);
+    [audit.reviewNotesActive, audit.aje, audit.workpapers, audit.deadlines, audit.wpState]);
 
   const tasks = useMemoMT(() => {
     const decorate = (base) => {

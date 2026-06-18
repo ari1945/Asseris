@@ -421,7 +421,7 @@ function engagementGate(audit, firm, opts) {
   }
 
   const recap = wpCompletenessFor(audit, moduleIds);
-  const notes = (audit && audit.reviewNotes) || [];
+  const notes = (audit && (audit.reviewNotesActive || audit.reviewNotes)) || [];  // P5 Fase 2: engagement-scope
   const openNotes = notes.filter(n => n.status === 'open');
   const highOpen = openNotes.filter(n => n.priority === 'high');
   const opFinal = opinionFinalized(firm);
