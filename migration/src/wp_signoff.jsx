@@ -12,7 +12,7 @@
    Bukti memakai store evidence global (per-modul) yg sudah ada.
    ============================================================ */
 import React from 'react';
-import { useAudit, useAuth, useFirm } from './contexts.jsx';
+import { useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui.jsx';
 import { amsEvidenceCount } from './evidence.jsx';
@@ -381,12 +381,126 @@ function WpCompletenessRecap({ moduleIds }) {
   );
 }
 
+/* ============================================================
+   P5 — Gerbang Fase Lifecycle Engagement (Fase 0: helper + ringkasan)
+   ------------------------------------------------------------
+   Mengikat transisi fase (`setEngagementPhase`) ke kelengkapan kertas
+   kerja yg SUDAH terukur (SSOT: wpCompletenessFor + reviewNotes + opini).
+   Fungsi MURNI — belum menegakkan (penegakan = Fase 1). Konsisten lock
+   LUNAK: gerbang bertingkat (warn → confirm), override selalu mungkin.
+   ============================================================ */
+const PHASE_ORDER = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
+
+/* baca status finalisasi opini dari SSOT persist (ams.v1.opinionDoc.<engId>).
+   Murni-baca; fallback false bila berkas opini belum disentuh. */
+function opinionFinalized(firm) {
+  try {
+    const engId = firm && firm.activeEngagementId;
+    if (!engId) return false;
+    const raw = localStorage.getItem('ams.v1.opinionDoc.' + engId);
+    if (raw) { const d = JSON.parse(raw); if (d && typeof d.finalized === 'boolean') return d.finalized; }
+  } catch (e) { /* localStorage/JSON gagal → anggap belum final */ }
+  return false;
+}
+
+/* engagementGate — daftar prasyarat transisi ke fase berikutnya.
+   Kriteria mengikuti spek disetujui (Q2): →Finalisasi butuh 0 catatan
+   prioritas-tinggi terbuka; →Arsip butuh opini final + 100% WP ter-review
+   + 0 catatan terbuka. Maju-mundur/sama-fase = bebas (severity 'none'). */
+function engagementGate(audit, firm, opts) {
+  const o = opts || {};
+  const moduleIds = o.moduleIds || Object.keys(WP_MODULE_MAP);
+  const fromPhase = (firm && firm.activeEngagement && firm.activeEngagement.phase) || 'Perencanaan';
+  const fromIdx = PHASE_ORDER.indexOf(fromPhase);
+  const nextPhase = o.nextPhase || PHASE_ORDER[Math.min(fromIdx + 1, PHASE_ORDER.length - 1)];
+  const toIdx = PHASE_ORDER.indexOf(nextPhase);
+
+  // mundur / tetap → tak bergerbang
+  if (toIdx <= fromIdx) {
+    return { fromPhase, nextPhase, severity: 'none', criteria: [], blockers: [], allMet: true };
+  }
+
+  const recap = wpCompletenessFor(audit, moduleIds);
+  const notes = (audit && audit.reviewNotes) || [];
+  const openNotes = notes.filter(n => n.status === 'open');
+  const highOpen = openNotes.filter(n => n.priority === 'high');
+  const opFinal = opinionFinalized(firm);
+
+  let criteria = [];
+  let severity = 'warn';
+  if (nextPhase === 'Eksekusi') {
+    severity = 'warn';
+    criteria = []; // Perencanaan→Eksekusi: tak ada prasyarat keras (informasional)
+  } else if (nextPhase === 'Finalisasi') {
+    severity = 'warn';
+    criteria = [
+      { key: 'noHighNotes', label: 'Tidak ada catatan review prioritas tinggi terbuka',
+        met: highOpen.length === 0, detail: `${highOpen.length} catatan prioritas tinggi terbuka`, view: 'cockpit' },
+    ];
+  } else if (nextPhase === 'Arsip') {
+    severity = 'confirm'; // titik lock — gesekan layak (graduated, Q1)
+    criteria = [
+      { key: 'opinionFinal', label: 'Laporan auditor difinalisasi (SA 700)',
+        met: opFinal, detail: opFinal ? 'Opini terkunci' : 'Opini belum difinalisasi', view: 'opinion' },
+      { key: 'allReviewed', label: 'Seluruh kertas kerja kunci ter-review (sign-off)',
+        met: recap.signed === recap.total, detail: `${recap.signed}/${recap.total} WP ter-review (${recap.signedPct}%)`, view: 'wp' },
+      { key: 'noOpenNotes', label: 'Seluruh catatan review terselesaikan',
+        met: openNotes.length === 0, detail: `${openNotes.length} catatan terbuka`, view: 'cockpit' },
+    ];
+  }
+  const blockers = criteria.filter(c => !c.met);
+  return { fromPhase, nextPhase, severity, criteria, blockers, allMet: blockers.length === 0 };
+}
+
+/* EngagementGateSummary — ringkasan prasyarat + tautan "buka modul" untuk
+   menyelesaikan blocker. Drop-in (firm board / dialog konfirmasi Fase 1). */
+function EngagementGateSummary({ nextPhase, moduleIds, compact }) {
+  const audit = useAudit();
+  const firm = useFirm();
+  const nav = useNav();
+  const g = engagementGate(audit, firm, { nextPhase, moduleIds });
+  if (g.severity === 'none' || g.criteria.length === 0) {
+    return <div className="tiny muted"><I.check size={11} /> Tidak ada prasyarat untuk transisi ke <strong>{g.nextPhase}</strong>.</div>;
+  }
+  const tone = g.allMet ? 'var(--green)' : g.severity === 'confirm' ? 'var(--red)' : 'var(--amber)';
+  return (
+    <div>
+      {!compact && (
+        <div className="tiny" style={{ fontWeight: 700, marginBottom: 6, color: tone }}>
+          {g.allMet ? <I.checkCircle size={12} /> : <I.alert size={12} />} Prasyarat → {g.nextPhase}
+          {' '}<span className="muted" style={{ fontWeight: 500 }}>· {g.criteria.length - g.blockers.length}/{g.criteria.length} terpenuhi</span>
+        </div>
+      )}
+      <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+        {g.criteria.map(c => (
+          <li key={c.key} className="row ac jb" style={{ gap: 8, padding: '4px 0' }}>
+            <span className="row ac gap6" style={{ minWidth: 0 }}>
+              <span style={{ color: c.met ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>
+                {c.met ? <I.checkCircle size={13} /> : <I.alert size={13} />}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span className="tiny" style={{ fontWeight: 600, color: c.met ? 'var(--ink-1)' : 'var(--ink-2)' }}>{c.label}</span>
+                <span className="tiny muted" style={{ display: 'block' }}>{c.detail}</span>
+              </span>
+            </span>
+            {!c.met && c.view && (
+              <button className="btn sm" style={{ flex: '0 0 auto' }} onClick={() => nav(c.view, { from: 'firm' })}>Buka</button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 Object.assign(window, {
   WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
+  PHASE_ORDER, engagementGate, EngagementGateSummary,
 });
 
 export {
   WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
+  PHASE_ORDER, engagementGate, EngagementGateSummary,
 };
