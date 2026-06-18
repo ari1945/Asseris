@@ -1,8 +1,13 @@
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import type { User } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure } from './trpc';
+import { router, publicProcedure, protectedProcedure } from './trpc';
 import { prisma } from './db';
+import { hashPassword, verifyPassword } from './auth/password';
+import { generateSecret, verifyTotp as checkTotp, otpauthUrl } from './auth/totp';
+import { createSession, revokeSession } from './auth/session';
+import { logAuthEvent } from './auth/events';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -16,7 +21,103 @@ function isUniqueViolation(e: unknown): boolean {
   return e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002';
 }
 
+// Brute-force lockout policy.
+const MAX_FAILED = 5;
+const LOCK_MINUTES = 15;
+
+// The user shape the client may see — never the passwordHash/totpSecret.
+function publicUser(u: User) {
+  return { id: u.id, name: u.name, initials: u.initials, role: u.role, email: u.email, totpEnabled: u.totpEnabled };
+}
+
+// Generic credential failure — same message for unknown email vs wrong password, so the
+// endpoint can't be used to enumerate accounts.
+const badCreds = () => new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-credentials' });
+
 export const appRouter = router({
+  // W7 — authentication. login/me are public (no session yet); the rest require one.
+  auth: router({
+    login: publicProcedure
+      .input(z.object({ email: z.string().email(), password: z.string().min(1), totp: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        const meta = { ip: ctx.ip, userAgent: ctx.userAgent };
+        const user = await prisma.user.findUnique({ where: { email: input.email } });
+        if (!user || !user.passwordHash) {
+          await logAuthEvent('LOGIN_FAIL', { ...meta, detail: `unknown:${input.email}` });
+          throw badCreds();
+        }
+        if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'account-locked' });
+        }
+        if (!(await verifyPassword(input.password, user.passwordHash))) {
+          const failed = user.failedLogins + 1;
+          const lock = failed >= MAX_FAILED;
+          await prisma.user.update({
+            where: { id: user.id },
+            data: lock
+              ? { failedLogins: 0, lockedUntil: new Date(Date.now() + LOCK_MINUTES * 60_000) }
+              : { failedLogins: failed },
+          });
+          await logAuthEvent(lock ? 'LOCKOUT' : 'LOGIN_FAIL', { ...meta, userId: user.id, detail: `failed=${failed}` });
+          throw badCreds();
+        }
+        if (user.totpEnabled) {
+          if (!input.totp || !user.totpSecret || !checkTotp(user.totpSecret, input.totp)) {
+            await logAuthEvent('LOGIN_FAIL', { ...meta, userId: user.id, detail: 'totp' });
+            throw new TRPCError({ code: 'UNAUTHORIZED', message: 'totp-required' });
+          }
+        }
+        // Success — clear the failure counter and open a session.
+        if (user.failedLogins !== 0 || user.lockedUntil) {
+          await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null } });
+        }
+        const session = await createSession(user.id, meta);
+        await logAuthEvent('LOGIN', { ...meta, userId: user.id });
+        return { token: session.token, user: publicUser(user) };
+      }),
+
+    me: publicProcedure.query(({ ctx }) => (ctx.user ? publicUser(ctx.user) : null)),
+
+    logout: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.token) await revokeSession(ctx.token);
+      await logAuthEvent('LOGOUT', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
+      return { ok: true };
+    }),
+
+    changePassword: protectedProcedure
+      .input(z.object({ oldPassword: z.string().min(1), newPassword: z.string().min(12) }))
+      .mutation(async ({ ctx, input }) => {
+        const u = await prisma.user.findUnique({ where: { id: ctx.user.id } });
+        if (!u?.passwordHash || !(await verifyPassword(input.oldPassword, u.passwordHash))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'wrong-password' });
+        }
+        await prisma.user.update({ where: { id: u.id }, data: { passwordHash: await hashPassword(input.newPassword) } });
+        await logAuthEvent('PASSWORD_CHANGE', { userId: u.id, ip: ctx.ip, userAgent: ctx.userAgent });
+        return { ok: true };
+      }),
+
+    // Step 1 of TOTP enrolment: mint a secret (totpEnabled stays false until verifyTotp).
+    enrollTotp: protectedProcedure.mutation(async ({ ctx }) => {
+      const secret = generateSecret();
+      await prisma.user.update({ where: { id: ctx.user.id }, data: { totpSecret: secret, totpEnabled: false } });
+      await logAuthEvent('TOTP_ENROLL', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
+      return { secret, otpauthUrl: otpauthUrl(secret, ctx.user.email ?? ctx.user.id) };
+    }),
+
+    // Step 2: confirm the user can produce a valid code, then arm 2FA.
+    verifyTotp: protectedProcedure
+      .input(z.object({ token: z.string().min(6) }))
+      .mutation(async ({ ctx, input }) => {
+        const u = await prisma.user.findUnique({ where: { id: ctx.user.id } });
+        if (!u?.totpSecret || !checkTotp(u.totpSecret, input.token)) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-totp' });
+        }
+        await prisma.user.update({ where: { id: u.id }, data: { totpEnabled: true } });
+        await logAuthEvent('TOTP_VERIFY', { userId: u.id, ip: ctx.ip, userAgent: ctx.userAgent });
+        return { ok: true };
+      }),
+  }),
+
   // Reference list for pickers (client roster + engagement select).
   engagement: router({
     list: publicProcedure.query(() =>

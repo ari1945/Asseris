@@ -1,8 +1,22 @@
 import { prisma } from './db';
 import { loadAmsSeed } from './seedData';
+import { hashPassword } from './auth/password';
 
 const FIRM_ID = 'FIRM-WHR';
 const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engagement
+
+// W7 — one login account per RBAC role so authorization (and negative-authz tests) are
+// meaningful. The primary user (Anindya, Audit Manager) stays FIRST so bootstrap's users[0]
+// still feeds the client's window.AMS.USER hydration unchanged. Dev passwords are
+// documented in BUILD.md — NOT production credentials.
+type SeedUser = { id: string; name: string; initials: string; role: string; email: string; password: string; title?: string };
+const EXTRA_USERS: SeedUser[] = [
+  { id: 'WHR-EP-0001', name: 'Hartono Wijaya', initials: 'HW', role: 'Engagement Partner', email: 'hartono.w@whr-cpa.id', password: 'Partner#2025!', title: 'Engagement Partner' },
+  { id: 'WHR-SR-0210', name: 'Bagas Nugroho', initials: 'BN', role: 'Senior Auditor', email: 'bagas.n@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
+  { id: 'WHR-JR-0388', name: 'Citra Lestari', initials: 'CL', role: 'Junior Auditor', email: 'citra.l@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
+];
+// Dev password for the primary seed user (Anindya, Audit Manager).
+const PRIMARY_PASSWORD = 'Manager#2025!';
 
 async function main() {
   const A = await loadAmsSeed();
@@ -30,6 +44,7 @@ async function main() {
   });
 
   const u = A.USER as Record<string, unknown>;
+  // Primary user first (preserves bootstrap users[0] → client window.AMS.USER hydration).
   await prisma.user.create({
     data: {
       id: (u.employeeId as string) ?? 'USER-1',
@@ -39,8 +54,24 @@ async function main() {
       role: A.USER.role,
       email: (u.email as string) ?? null,
       dataJson: JSON.stringify(A.USER),
+      passwordHash: await hashPassword(PRIMARY_PASSWORD),
     },
   });
+
+  for (const su of EXTRA_USERS) {
+    await prisma.user.create({
+      data: {
+        id: su.id,
+        firmId: FIRM_ID,
+        name: su.name,
+        initials: su.initials,
+        role: su.role,
+        email: su.email,
+        dataJson: JSON.stringify({ name: su.name, initials: su.initials, role: su.role, email: su.email, employeeId: su.id, title: su.title }),
+        passwordHash: await hashPassword(su.password),
+      },
+    });
+  }
 
   for (const t of A.TEAM) {
     await prisma.teamMember.create({
@@ -109,7 +140,8 @@ async function main() {
   }
 
   console.log(
-    `Seeded: 1 firm, 1 user, ${A.TEAM.length} team, ${A.CLIENTS.length} clients, ` +
+    `Seeded: 1 firm, ${1 + EXTRA_USERS.length} users (1 per RBAC role, w/ dev passwords), ` +
+      `${A.TEAM.length} team, ${A.CLIENTS.length} clients, ` +
       `${A.ENGAGEMENTS.length} engagements, ${A.WTB.length} WTB rows (${ACTIVE_ENG}).`,
   );
 }

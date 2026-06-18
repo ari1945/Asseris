@@ -3,7 +3,8 @@ import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
 
-const caller = createCallerFactory(appRouter)({});
+// W7 — Context now carries user/token; state.* stay public, so an anonymous context works.
+const caller = createCallerFactory(appRouter)({ user: null, token: null });
 
 describe('StateDoc optimistic-concurrency (compare-and-swap)', () => {
   const scope = 'engagement' as const;

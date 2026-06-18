@@ -36,8 +36,55 @@ model User {
   name     String
   initials String?
   role     String
-  email    String?
+  email    String? @unique // login identity (W7). SQLite treats multiple NULLs as distinct.
   dataJson String // full original USER object (lossless envelope for the ~15 profile fields)
+
+  // W7 — authentication credentials. All optional so the W6 seed stays valid until
+  // the seed sets them; scrypt hash (Node built-in crypto, no native dep). TOTP secret
+  // is base32; totpEnabled flips true only after a verify. failedLogins/lockedUntil drive
+  // brute-force lockout.
+  passwordHash String?
+  totpSecret   String?
+  totpEnabled  Boolean   @default(false)
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+
+  sessions   Session[]
+  authEvents AuthEvent[]
+}
+
+// W7 — opaque server-side session. Token is random (≥128-bit); resolved on every
+// request to populate ctx.user. Absolute expiry (expiresAt) + sliding lastSeenAt;
+// logout sets revokedAt. Transport (cookie vs header) is the client's concern (Fase 2).
+model Session {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+  userAgent  String?
+  ip         String?
+
+  @@index([userId])
+}
+
+// W7 — append-only authentication audit trail (real LOGIN/LOGOUT/MFA/password events,
+// not seed). userId is nullable so failed logins on unknown emails are still recorded.
+model AuthEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  kind      String // LOGIN | LOGIN_FAIL | LOGOUT | PASSWORD_CHANGE | TOTP_ENROLL | TOTP_VERIFY | LOCKOUT
+  ts        DateTime @default(now())
+  ip        String?
+  userAgent String?
+  detail    String?
+
+  @@index([userId])
+  @@index([ts])
 }
 
 model TeamMember {

@@ -46,9 +46,37 @@ npm run prisma:generate
 npm run db:push        # create/sync dev.db (SQLite)
 npm run seed           # seed core entities + WTB from migration/src/data.js (byte-identical)
 npm run typecheck      # tsc --noEmit — MUST stay 0 (extends the W5 gate to server/)
-npm run test           # vitest — StateDoc compare-and-swap integration tests
-npm start              # tRPC server on http://localhost:5181 (localhost only — no auth until W7)
+npm run test           # vitest — StateDoc CAS + W7 auth/authz integration tests
+npm start              # tRPC server on http://localhost:5181 (localhost only)
 ```
+
+## W7 — Auth, sesi & RBAC (`server/src/auth/`)
+
+> **Fase 0 (here):** server-side auth — real login/sessions/TOTP/password + the auth audit
+> trail. No client wiring yet (Fase 2), no RBAC enforcement on the W6 endpoints yet (Fase 1):
+> `state.*`/`bootstrap`/`engagement.list` stay public so the current SPA keeps working.
+
+- **Crypto = Node built-in only** (no `bcrypt`/`argon2`/`otpauth` deps): scrypt for password
+  hashing (`auth/password.ts`), RFC 6238 HMAC-SHA1 for TOTP (`auth/totp.ts`). Keeps the W6
+  "nol-vendor / agent-executable" stance and dodges Windows native builds.
+- **Schema:** `User` gains `passwordHash`/`totpSecret`/`totpEnabled`/`failedLogins`/`lockedUntil`
+  (+ `email @unique`); new `Session` (opaque token, absolute expiry + sliding lastSeen, revoke on
+  logout) and `AuthEvent` (append-only LOGIN/LOGIN_FAIL/LOGOUT/PASSWORD_CHANGE/TOTP_*/LOCKOUT).
+- **Context:** `context.ts` `createContext` reads the token from `Authorization: Bearer …` **or**
+  the `ams_session` cookie, resolves the session → `ctx.user`. `protectedProcedure` (in `trpc.ts`)
+  requires it. `SESSION_TTL_HOURS` env (default 8) sets expiry.
+- **Router (`auth.*`):** `login` (public; 5-fail → 15-min lockout; generic error, no enumeration),
+  `me` (public), `logout`/`changePassword`/`enrollTotp`/`verifyTotp` (protected).
+- **Seed dev accounts** (one per RBAC role — `npm run seed`; **dev passwords, NOT production**):
+
+  | Role | Email | Password |
+  |---|---|---|
+  | Engagement Partner | `hartono.w@whr-cpa.id` | `Partner#2025!` |
+  | Audit Manager (primary) | `anindya.p@whr-cpa.id` | `Manager#2025!` |
+  | Senior Auditor | `bagas.n@whr-cpa.id` | `Senior#2025!` |
+  | Junior Auditor | `citra.l@whr-cpa.id` | `Junior#2025!` |
+
+  > After editing `schema.prisma`: `npm run prisma:generate && npm run db:push && npm run seed`.
 
 **Run the app WITH the backend** (from `migration/`):
 ```powershell
