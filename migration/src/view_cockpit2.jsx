@@ -171,7 +171,9 @@ function EngagementCockpit() {
     const budgetTone = burnPct <= overall + 5 ? 'green' : burnPct <= overall + 15 ? 'amber' : 'red';
     const qualTone = openNotes.length === 0 ? 'green' : highOpen.length >= 3 ? 'red' : 'amber';
     const riskTone = sigAreas.length && sigCovered === sigAreas.length && excTot === 0 ? 'green' : excTot > 2 || (sigAreas.length && sigCovered < sigAreas.length / 2) ? 'red' : 'amber';
-    const docTone = wpReviewed === workpapers.length ? 'green' : wpNoReviewer.length > 2 ? 'red' : 'amber';
+    /* P5 cleanup: signal band "Dokumentasi WP" ikut SSOT wpRecap (37 WP kanonik),
+       sama dgn gerbang fase & WpCompletenessRecap — bukan register `workpapers` legacy. */
+    const docTone = wpRecap.total > 0 && wpRecap.signed === wpRecap.total ? 'green' : (wpRecap.total - wpRecap.signed) > 2 ? 'red' : 'amber';
 
     const toneScore = { green: 0, amber: 1, red: 2, blue: 0, gray: 0 };
     const tones = [schedTone, budgetTone, qualTone, riskTone, docTone];
@@ -280,8 +282,8 @@ function EngagementCockpit() {
             read={D.qualTone === 'green' ? 'Semua terselesaikan' : `${D.highOpen.length} prioritas tinggi tertunda`} onClick={() => setTab('risiko')} />
           <SignalCard icon="shield" label="Risiko & Pengecualian" tone={D.riskTone} value={`${D.excTot} pengecualian`}
             read={`${D.sigCovered}/${D.sigAreas.length} risiko signifikan tertangani`} onClick={() => setTab('risiko')} />
-          <SignalCard icon="flask" label="Dokumentasi WP" tone={D.docTone} value={`${D.wpReviewed}/${workpapers.length} di-review`}
-            read={D.wpNoReviewer.length ? `${D.wpNoReviewer.length} WP belum ada reviewer` : 'Lengkap'} onClick={() => nav('workpapers')} />
+          <SignalCard icon="flask" label="Dokumentasi WP" tone={D.docTone} value={`${D.wpRecap.signed}/${D.wpRecap.total} di-review`}
+            read={D.wpRecap.signed === D.wpRecap.total ? 'Lengkap' : `${D.wpRecap.total - D.wpRecap.signed} WP belum ditandatangani`} onClick={() => nav('workpapers')} />
         </div>
 
         <div style={{ marginBottom: 12 }}>
