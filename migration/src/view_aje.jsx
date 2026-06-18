@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAudit, useFirm, useNav } from './contexts.jsx';
+import { useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
+import { CAP } from './rbac.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui.jsx';
@@ -90,6 +91,11 @@ function AJEView() {
   const { fmt } = window.AMS;
   const { aje, addAje, wtb } = useAudit();
   const { locked } = useFirm();
+  const auth = useAuth();
+  // W7 — AJE write needs the aje.edit capability (server-enforced; mirrored here).
+  // A Junior Auditor sees the data read-only. Combine with the archive lock.
+  const canEditAje = !auth || typeof auth.can !== 'function' || auth.can(CAP.AJE_EDIT);
+  const writeLocked = locked || !canEditAje;
   const [tab, setTab] = useStateAJ('register');
   const [showForm, setShowForm] = useStateAJ(false);
 
@@ -114,12 +120,18 @@ function AJEView() {
         <div className="row gap8 ac">
           <Badge kind="blue">SA 450</Badge>
           <Btn sm><I.download size={13} /> Export Jurnal</Btn>
-          <Btn sm variant="primary" disabled={locked} style={{ opacity: locked ? .5 : 1 }} onClick={() => !locked && setShowForm(true)}><I.plus size={14} /> AJE Baru</Btn>
+          <Btn sm variant="primary" disabled={writeLocked} style={{ opacity: writeLocked ? .5 : 1 }} title={!canEditAje && !locked ? 'Peran Anda tidak berhak mengubah AJE' : ''} onClick={() => !writeLocked && setShowForm(true)}><I.plus size={14} /> AJE Baru</Btn>
         </div>
       } />
       <div className="view-scroll">
         <div className="view-pad">
           {locked && <LockBanner />}
+          {!locked && !canEditAje && (
+            <div className="panel" style={{ margin: '0 0 12px', padding: '10px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ color: 'var(--amber)' }}><I.lock size={16} /></span>
+              <span style={{ fontSize: 12.5, fontWeight: 600 }}>Peran <b>{auth.role}</b> hanya dapat melihat AJE. Penyusunan/posting jurnal memerlukan peran Senior Auditor ke atas (ditegakkan di server).</span>
+            </div>
+          )}
           <div style={{ marginBottom: 12 }}><DiagnosticPanel area="aje" title="Diagnostik AJE — Temuan Otomatis" /></div>
 
           {/* KPI strip — always visible */}
@@ -136,7 +148,7 @@ function AJEView() {
             <div style={{ padding: '0 12px' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
           </Panel>
 
-          {tab === 'register' && <AjeRegister model={model} locked={locked} />}
+          {tab === 'register' && <AjeRegister model={model} locked={writeLocked} />}
           {tab === 'impact' && <AjeImpact model={model} posted={posted} proposed={proposed} reportedPbt={reportedPbt} pbtPosted={pbtPosted} pbtProposed={pbtProposed} />}
           {tab === 'approvals' && <AjeApprovals model={model} />}
         </div>

@@ -1,5 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { api } from './api.js';
+import { CAP } from './rbac.js';
 import { useAuth, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
@@ -93,7 +95,8 @@ function SettingsView() {
   useEffectSet(() => { amsApplyPrefs(s); }, [s.accent, s.reduceMotion]);
   useEffectSet(() => { try { window.dispatchEvent(new Event('ams:navprefs')); } catch (e) {} }, [JSON.stringify(s.nav)]);
 
-  const isPartner = auth.role === 'Engagement Partner';
+  // W7 — firm-methodology defaults need firm.admin (server-enforced); mirror with can().
+  const isPartner = typeof auth.can === 'function' ? auth.can(CAP.FIRM_ADMIN) : auth.role === 'Engagement Partner';
 
   const SECTIONS = [
     { id: 'tampilan', icon: 'sliders', label: 'Tampilan', sub: 'Tema, kepadatan, warna' },
@@ -319,7 +322,6 @@ function SecProfil({ auth, flash }) {
   const up = auth.updateProfile;
   const fileRef = React.useRef(null);
   const [drag, setDrag] = useStateSet(false);
-  const roles = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor'];
   const onFile = (file) => readAvatarFile(file, 256, (data) => { up({ photo: data }); flash('Foto profil diperbarui'); });
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   const cpeTarget = u.cpeTarget || 40;
@@ -412,8 +414,8 @@ function SecProfil({ auth, flash }) {
 
       <Panel noBody>
         <div className="panel-h"><h3>Peran & Tanda Tangan</h3></div>
-        <SRow title="Peran Aktif (RBAC)" sub="Menentukan hak persetujuan, sign-off, dan akses modul. Berbeda dari Jabatan — ini kontrol akses.">
-          <SSelect value={auth.role} onChange={auth.setRole} options={roles} w={210} />
+        <SRow title="Peran Aktif (RBAC)" sub="Ditentukan oleh sesi login Anda — tak dapat diubah sendiri. Menentukan hak persetujuan, sign-off, dan akses modul (ditegakkan di server).">
+          <span className="chip" style={{ background: 'var(--blue-050)', color: 'var(--blue)', fontWeight: 700, height: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 12px' }}><I.shield size={12} /> {auth.role}</span>
         </SRow>
         <SRow title="Inisial Tanda Tangan" sub="Dipakai pada sign-off kertas kerja & tickmark." last>
           <input className="input" value={u.initials} onChange={e => up({ initials: e.target.value.toUpperCase().slice(0, 3) })} style={{ width: 80, height: 30, textAlign: 'center', fontWeight: 700, letterSpacing: '.05em' }} />
@@ -485,27 +487,94 @@ function SecNotif({ s, setGroup }) {
 }
 
 /* ---------------- Keamanan ---------------- */
+const AUTH_EVENT_LABEL = {
+  LOGIN: 'Masuk', LOGIN_FAIL: 'Gagal masuk', LOGOUT: 'Keluar',
+  PASSWORD_CHANGE: 'Ubah kata sandi', TOTP_ENROLL: 'Pendaftaran 2FA',
+  TOTP_VERIFY: 'Aktivasi 2FA', LOCKOUT: 'Akun terkunci',
+};
+function fmtWhen(ts) {
+  try { return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  catch (e) { return String(ts); }
+}
+
 function SecKeamanan({ s, setGroup, flash }) {
+  const auth = useAuth();
   const sec = s.security;
-  const sessions = [
-    { dev: 'Chrome · Windows 11', loc: 'Jakarta, ID', ip: '103.94.xx.xx', when: 'Sesi ini', cur: true },
-    { dev: 'Safari · iPhone 15', loc: 'Jakarta, ID', ip: '114.122.xx.xx', when: '2 jam lalu', cur: false },
-    { dev: 'Edge · Windows 10', loc: 'Surabaya, ID', ip: '125.166.xx.xx', when: 'Kemarin', cur: false },
-  ];
+
+  // Real 2FA enrolment flow (server: enrollTotp → verifyTotp).
+  const [totpOn, setTotpOn] = useStateSet(!!auth.twoFactorEnabled);
+  const [enroll, setEnroll] = useStateSet(null); // { secret, otpauthUrl }
+  const [otp, setOtp] = useStateSet('');
+  const [busy2fa, setBusy2fa] = useStateSet(false);
+  // Real password change (server: changePassword).
+  const [pw, setPw] = useStateSet({ old: '', n1: '', n2: '' });
+  const [pwErr, setPwErr] = useStateSet('');
+  const [pwBusy, setPwBusy] = useStateSet(false);
+  // Real sessions + auth audit events.
+  const [sessions, setSessions] = useStateSet([]);
+  const [events, setEvents] = useStateSet([]);
+
+  const refresh = React.useCallback(() => {
+    api.auth.sessions.query().then(setSessions).catch(() => {});
+    api.auth.events.query().then(setEvents).catch(() => {});
+  }, []);
+  useEffectSet(() => { refresh(); }, [refresh]);
+
+  async function startEnroll() {
+    setBusy2fa(true);
+    try { setEnroll(await api.auth.enrollTotp.mutate()); }
+    catch (e) { flash('Gagal memulai 2FA'); }
+    finally { setBusy2fa(false); }
+  }
+  async function confirmEnroll() {
+    setBusy2fa(true);
+    try { await api.auth.verifyTotp.mutate({ token: otp.trim() }); setTotpOn(true); setEnroll(null); setOtp(''); flash('2FA diaktifkan'); refresh(); }
+    catch (e) { flash('Kode 2FA salah'); }
+    finally { setBusy2fa(false); }
+  }
+  async function changePw() {
+    setPwErr('');
+    if (pw.n1.length < 12) { setPwErr('Sandi baru minimal 12 karakter.'); return; }
+    if (pw.n1 !== pw.n2) { setPwErr('Konfirmasi sandi tidak cocok.'); return; }
+    setPwBusy(true);
+    try { await api.auth.changePassword.mutate({ oldPassword: pw.old, newPassword: pw.n1 }); setPw({ old: '', n1: '', n2: '' }); flash('Kata sandi diperbarui'); refresh(); }
+    catch (e) { setPwErr('Sandi saat ini salah.'); }
+    finally { setPwBusy(false); }
+  }
+  async function revokeOthers() {
+    try { const r = await api.auth.revokeOtherSessions.mutate(); flash(r.revoked ? (r.revoked + ' sesi lain dikeluarkan') : 'Tidak ada sesi lain'); refresh(); }
+    catch (e) {}
+  }
+
   return (
     <>
       <Panel noBody>
         <div className="panel-h"><h3>Autentikasi</h3></div>
-        <SRow title="Autentikasi Dua Faktor (2FA)" sub="Wajib untuk akses kertas kerja emiten (PIE). Gunakan aplikasi authenticator.">
-          <div className="row ac gap8">{sec.twoFA && <Badge kind="green">Aktif</Badge>}<SetToggle on={sec.twoFA} set={v => setGroup('security', 'twoFA', v)} /></div>
+        <SRow title="Autentikasi Dua Faktor (2FA)" sub="Berbasis TOTP (Google Authenticator, Authy, 1Password). Wajib untuk akses kertas kerja emiten (PIE).">
+          {totpOn
+            ? <Badge kind="green"><I.check size={11} /> Aktif</Badge>
+            : (enroll
+              ? <span className="tiny muted">Lihat di bawah</span>
+              : <Btn sm variant="primary" onClick={startEnroll} disabled={busy2fa}><I.shield size={12} /> Aktifkan</Btn>)}
         </SRow>
-        <SRow title="Batas Waktu Sesi" sub="Keluar otomatis setelah idle.">
+        {!totpOn && enroll && (
+          <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 8, maxWidth: 460 }}>
+            <div className="tiny muted">Tambahkan ke aplikasi authenticator (masukkan kunci ini), lalu masukkan kode 6 digit untuk mengaktifkan:</div>
+            <div className="mono" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 7, fontSize: 12.5, wordBreak: 'break-all', userSelect: 'all' }}>{enroll.secret}</div>
+            <div className="row ac gap8">
+              <input className="input mono" inputMode="numeric" maxLength={6} value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="123456" style={{ width: 120, height: 32, letterSpacing: 3 }} />
+              <Btn sm variant="primary" onClick={confirmEnroll} disabled={busy2fa || otp.length < 6}><I.check size={12} /> Verifikasi & Aktifkan</Btn>
+              <Btn sm onClick={() => { setEnroll(null); setOtp(''); }}>Batal</Btn>
+            </div>
+          </div>
+        )}
+        <SRow title="Batas Waktu Sesi" sub="Berlaku di server (SESSION_TTL_HOURS); pilihan ini bersifat preferensi tampilan.">
           <SSelect value={sec.sessionTimeout} onChange={v => setGroup('security', 'sessionTimeout', v)} options={['15 menit', '30 menit', '1 jam', '4 jam']} w={140} />
         </SRow>
-        <SRow title="Peringatan Login" sub="Email saat ada login dari perangkat/lokasi baru.">
+        <SRow title="Peringatan Login" sub="Email saat ada login dari perangkat/lokasi baru (rencana W10).">
           <SetToggle on={sec.loginAlerts} set={v => setGroup('security', 'loginAlerts', v)} />
         </SRow>
-        <SRow title="Daftar Izin IP Kantor" sub="Batasi akses hanya dari jaringan kantor terdaftar." last>
+        <SRow title="Daftar Izin IP Kantor" sub="Batasi akses hanya dari jaringan kantor terdaftar (rencana W10)." last>
           <SetToggle on={sec.ipAllowlist} set={v => setGroup('security', 'ipAllowlist', v)} />
         </SRow>
       </Panel>
@@ -513,25 +582,43 @@ function SecKeamanan({ s, setGroup, flash }) {
       <Panel noBody>
         <div className="panel-h"><h3>Ubah Kata Sandi</h3></div>
         <div style={{ padding: 14, display: 'grid', gap: 10, maxWidth: 420 }}>
-          <div className="field"><label>Sandi Saat Ini</label><input className="input" type="password" defaultValue="" placeholder="••••••••" style={{ height: 32 }} /></div>
-          <div className="field"><label>Sandi Baru</label><input className="input" type="password" placeholder="Min. 12 karakter" style={{ height: 32 }} /></div>
-          <div className="field"><label>Konfirmasi Sandi Baru</label><input className="input" type="password" style={{ height: 32 }} /></div>
-          <div className="row je"><Btn sm variant="primary" onClick={() => flash('Kata sandi diperbarui')}><I.lock size={13} /> Perbarui Sandi</Btn></div>
+          {pwErr && <div className="tiny" style={{ color: 'var(--red)', background: 'var(--red-bg, #fde8e8)', padding: '7px 10px', borderRadius: 7 }}>{pwErr}</div>}
+          <div className="field"><label>Sandi Saat Ini</label><input className="input" type="password" autoComplete="current-password" value={pw.old} onChange={e => setPw(p => ({ ...p, old: e.target.value }))} placeholder="••••••••" style={{ height: 32 }} /></div>
+          <div className="field"><label>Sandi Baru</label><input className="input" type="password" autoComplete="new-password" value={pw.n1} onChange={e => setPw(p => ({ ...p, n1: e.target.value }))} placeholder="Min. 12 karakter" style={{ height: 32 }} /></div>
+          <div className="field"><label>Konfirmasi Sandi Baru</label><input className="input" type="password" autoComplete="new-password" value={pw.n2} onChange={e => setPw(p => ({ ...p, n2: e.target.value }))} style={{ height: 32 }} /></div>
+          <div className="row je"><Btn sm variant="primary" onClick={changePw} disabled={pwBusy || !pw.old || !pw.n1}><I.lock size={13} /> Perbarui Sandi</Btn></div>
         </div>
       </Panel>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Sesi Aktif</h3><div style={{ flex: 1 }} /><Btn sm onClick={() => flash('Semua sesi lain dikeluarkan')}>Keluarkan Semua</Btn></div>
+        <div className="panel-h"><h3>Sesi Aktif</h3><div style={{ flex: 1 }} /><Btn sm onClick={revokeOthers} disabled={sessions.length < 2}>Keluarkan Sesi Lain</Btn></div>
         <table className="dtbl">
-          <thead><tr><th>Perangkat</th><th>Lokasi</th><th>Alamat IP</th><th>Aktivitas</th><th style={{ width: 90 }}></th></tr></thead>
+          <thead><tr><th>Perangkat (User-Agent)</th><th>Alamat IP</th><th>Aktivitas Terakhir</th><th style={{ width: 90 }}></th></tr></thead>
           <tbody>
-            {sessions.map((ss, i) => (
+            {sessions.length === 0 && <tr><td colSpan={4} className="tiny muted" style={{ padding: 14 }}>Tidak ada sesi aktif.</td></tr>}
+            {sessions.map((ss) => (
+              <tr key={ss.id}>
+                <td style={{ fontWeight: 600, maxWidth: 280 }} className="truncate" title={ss.userAgent || ''}>{ss.userAgent || 'Tidak diketahui'}</td>
+                <td className="mono tiny muted">{ss.ip || '—'}</td>
+                <td className="tiny muted">{fmtWhen(ss.lastSeenAt)}</td>
+                <td>{ss.current ? <Badge kind="green">Sesi ini</Badge> : <span className="tiny muted">—</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Panel>
+
+      <Panel noBody>
+        <div className="panel-h"><h3>Aktivitas Autentikasi</h3><div style={{ flex: 1 }} /><span className="tiny muted">Jejak nyata — bukan data contoh</span></div>
+        <table className="dtbl">
+          <thead><tr><th>Peristiwa</th><th>Alamat IP</th><th>Waktu</th></tr></thead>
+          <tbody>
+            {events.length === 0 && <tr><td colSpan={3} className="tiny muted" style={{ padding: 14 }}>Belum ada aktivitas.</td></tr>}
+            {events.map((e, i) => (
               <tr key={i}>
-                <td style={{ fontWeight: 600 }}>{ss.dev}</td>
-                <td className="tiny muted">{ss.loc}</td>
-                <td className="mono tiny muted">{ss.ip}</td>
-                <td>{ss.cur ? <Badge kind="green">{ss.when}</Badge> : <span className="tiny muted">{ss.when}</span>}</td>
-                <td>{ss.cur ? <span className="tiny muted">—</span> : <button className="btn sm">Keluarkan</button>}</td>
+                <td style={{ fontWeight: 600 }}>{AUTH_EVENT_LABEL[e.kind] || e.kind}{e.detail ? <span className="tiny muted"> · {e.detail}</span> : null}</td>
+                <td className="mono tiny muted">{e.ip || '—'}</td>
+                <td className="tiny muted">{fmtWhen(e.ts)}</td>
               </tr>
             ))}
           </tbody>
@@ -678,7 +765,7 @@ function SecAkses({ auth }) {
         <div style={{ padding: 14 }}>
           <div className="row ac jb" style={{ marginBottom: 12 }}>
             <div className="row ac gap10"><span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.shield size={19} /></span><div><div style={{ fontWeight: 700, fontSize: 13.5 }}>{auth.role}</div><div className="tiny muted">Kontrol akses berbasis peran (RBAC)</div></div></div>
-            <select className="select" value={auth.role} onChange={e => auth.setRole(e.target.value)} style={{ width: 210, height: 32 }}>{roles.map(r => <option key={r}>{r}</option>)}</select>
+            <span className="chip tiny" style={{ background: 'var(--green-050, var(--surface-3))', color: 'var(--green)' }} title="Peran berasal dari sesi login & ditegakkan di server"><I.lock size={11} /> Ditegakkan di server</span>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
             <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Hak Sign-off</div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{cap.sign}</div></div>
@@ -705,6 +792,9 @@ function SecAkses({ auth }) {
             ))}
           </tbody>
         </table>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.45 }}>
+          <I.lock size={11} style={{ verticalAlign: '-1px' }} /> Hak <b>Ubah</b> ditegakkan di server dari peta kapabilitas bersama (<span className="mono">rbac.js</span>) — UI &amp; API memakai sumber yang sama. Tindakan terlarang ditolak server, bukan sekadar disembunyikan.
+        </div>
       </Panel>
     </>
   );

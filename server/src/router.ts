@@ -131,6 +131,40 @@ export const appRouter = router({
         await logAuthEvent('TOTP_VERIFY', { userId: u.id, ip: ctx.ip, userAgent: ctx.userAgent });
         return { ok: true };
       }),
+
+    // This user's live sessions (token never leaves the server) — `current` flags this one.
+    sessions: protectedProcedure.query(async ({ ctx }) => {
+      const rows = await prisma.session.findMany({
+        where: { userId: ctx.user.id, revokedAt: null },
+        orderBy: { lastSeenAt: 'desc' },
+      });
+      const now = Date.now();
+      return rows
+        .filter((r) => r.expiresAt.getTime() > now)
+        .map((r) => ({
+          id: r.id, createdAt: r.createdAt, lastSeenAt: r.lastSeenAt, expiresAt: r.expiresAt,
+          userAgent: r.userAgent, ip: r.ip, current: r.token === ctx.token,
+        }));
+    }),
+
+    // "Log out everywhere else" — revoke every session except the one making the call.
+    revokeOtherSessions: protectedProcedure.mutation(async ({ ctx }) => {
+      const res = await prisma.session.updateMany({
+        where: { userId: ctx.user.id, revokedAt: null, NOT: { token: ctx.token ?? '' } },
+        data: { revokedAt: new Date() },
+      });
+      return { revoked: res.count };
+    }),
+
+    // Recent authentication audit events for this user (login/logout/2FA/password/lockout).
+    events: protectedProcedure.query(async ({ ctx }) => {
+      const rows = await prisma.authEvent.findMany({
+        where: { userId: ctx.user.id },
+        orderBy: { ts: 'desc' },
+        take: 12,
+      });
+      return rows.map((e) => ({ kind: e.kind, ts: e.ts, ip: e.ip, detail: e.detail }));
+    }),
   }),
 
   // Reference list for pickers (client roster + engagement select). W7 Fase 1: any

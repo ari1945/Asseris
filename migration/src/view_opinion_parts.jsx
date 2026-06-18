@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAudit, useFirm } from './contexts.jsx';
+import { useAudit, useAuth, useFirm } from './contexts.jsx';
+import { CAP } from './rbac.js';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
@@ -450,6 +451,9 @@ const REVIEW_CHAIN = [
 function OpinionSignoff({ doc, patch }) {
   const { activeEngagement, activeClient } = useFirm();
   const { wpState, setWp } = useAudit();   // mirror sign-off opini ke SSOT wpState['900']
+  const auth = useAuth();
+  // W7 — issuing the auditor's opinion requires opinion.approve (Engagement Partner; server-enforced).
+  const canApprove = !auth || typeof auth.can !== 'function' || auth.can(CAP.OPINION_APPROVE);
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
   const o = OPINIONS[doc.type];
   const eqrRequired = !!activeClient?.listed;
@@ -493,7 +497,7 @@ function OpinionSignoff({ doc, patch }) {
     setWp('900', wpPatch);
   };
   const chainComplete = REVIEW_CHAIN.every(r => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
-  const canFinalize = autoDone && manualDone && chainComplete && !doc.finalized;
+  const canFinalize = autoDone && manualDone && chainComplete && !doc.finalized && canApprove;
 
   const finalize = () => { patch({ finalized: true, finalizedDate: today }); setWp('900', { status: 'Reviewed' }); };
 
@@ -571,6 +575,9 @@ function OpinionSignoff({ doc, patch }) {
               <Pill ok={manualDone} label="Konfirmasi manual" />
               <Pill ok={chainComplete} label="Tanda tangan" />
             </div>
+            {!doc.finalized && !canApprove && (
+              <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> Hanya Engagement Partner yang dapat menerbitkan opini (ditegakkan di server).</div>
+            )}
             {!doc.finalized
               ? <Btn variant="primary" disabled={!canFinalize} style={{ width: '100%' }} onClick={finalize}><I.lock size={14} /> Finalisasi Laporan Auditor</Btn>
               : <div className="grid" style={{ gap: 8 }}>

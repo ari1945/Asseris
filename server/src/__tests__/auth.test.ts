@@ -161,3 +161,30 @@ describe('TOTP 2FA', () => {
     await expect(caller.auth.verifyTotp({ token: '000000' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
   });
 });
+
+describe('sessions & auth events (settings surface)', () => {
+  it('lists this session as current and records it in events', async () => {
+    const { email } = await makeUser('Sessions#List1');
+    const { token } = await anon.auth.login({ email, password: 'Sessions#List1' });
+    const caller = await authed(token);
+    const sessions = await caller.auth.sessions();
+    expect(sessions.length).toBeGreaterThanOrEqual(1);
+    expect(sessions.some((s) => s.current)).toBe(true);
+    expect(sessions[0]).not.toHaveProperty('token');
+    const events = await caller.auth.events();
+    expect(events.map((e) => e.kind)).toContain('LOGIN');
+  });
+
+  it('revokeOtherSessions keeps the current one and drops the rest', async () => {
+    const { email } = await makeUser('Sessions#Revoke1');
+    const a = await anon.auth.login({ email, password: 'Sessions#Revoke1' }); // session A
+    await anon.auth.login({ email, password: 'Sessions#Revoke1' }); // session B
+    const callerA = await authed(a.token);
+    expect((await callerA.auth.sessions()).length).toBe(2);
+    const r = await callerA.auth.revokeOtherSessions();
+    expect(r.revoked).toBe(1);
+    const after = await callerA.auth.sessions();
+    expect(after.length).toBe(1);
+    expect(after[0].current).toBe(true);
+  });
+});
