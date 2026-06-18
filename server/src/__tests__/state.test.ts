@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
 
-// W7 — Context now carries user/token; state.* stay public, so an anonymous context works.
-const caller = createCallerFactory(appRouter)({ user: null, token: null });
+// W7 Fase 1 — state.* now require a session. Inject a Partner (all capabilities) so this
+// suite tests compare-and-swap, not authorization (that is authz.test.ts).
+const partner = { id: 'TEST-PARTNER', role: 'Engagement Partner' } as unknown as User;
+const caller = createCallerFactory(appRouter)({ user: partner, token: 'test' });
 
 describe('StateDoc optimistic-concurrency (compare-and-swap)', () => {
   const scope = 'engagement' as const;

@@ -8,6 +8,7 @@ import { hashPassword, verifyPassword } from './auth/password';
 import { generateSecret, verifyTotp as checkTotp, otpauthUrl } from './auth/totp';
 import { createSession, revokeSession } from './auth/session';
 import { logAuthEvent } from './auth/events';
+import { can, capForWrite, CAP } from './rbac';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -33,6 +34,20 @@ function publicUser(u: User) {
 // Generic credential failure — same message for unknown email vs wrong password, so the
 // endpoint can't be used to enumerate accounts.
 const badCreds = () => new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-credentials' });
+
+// W7 Fase 1 — server-side RBAC gate for StateDoc writes. The real enforcement boundary:
+// the UI's can() is convenience, this is what actually stops a wrong-role write.
+function assertCanWrite(user: { id: string; role: string }, scope: string, scopeId: string, key: string) {
+  if (scope === 'user') {
+    // Own profile/prefs only — unless you administer the firm.
+    if (scopeId === user.id || can(user.role, CAP.FIRM_ADMIN)) return;
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+  }
+  const cap = capForWrite(scope, key);
+  if (cap && !can(user.role, cap)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${cap}` });
+  }
+}
 
 export const appRouter = router({
   // W7 — authentication. login/me are public (no session yet); the rest require one.
@@ -118,16 +133,17 @@ export const appRouter = router({
       }),
   }),
 
-  // Reference list for pickers (client roster + engagement select).
+  // Reference list for pickers (client roster + engagement select). W7 Fase 1: any
+  // authenticated role may read (no per-engagement data isolation in W7 — that is W7.5/W9).
   engagement: router({
-    list: publicProcedure.query(() =>
+    list: protectedProcedure.query(() =>
       prisma.engagement.findMany({ include: { client: true }, orderBy: { id: 'asc' } }),
     ),
   }),
 
   // One round-trip boot payload: core entities + this engagement's WTB + its open state docs.
-  // Used by the client to hydrate window.AMS before canon computes (Fase 3).
-  bootstrap: publicProcedure
+  // Used by the client to hydrate window.AMS before canon computes. Requires a session.
+  bootstrap: protectedProcedure
     .input(z.object({ engagementId: z.string().min(1) }))
     .query(async ({ input }) => {
       const [firm, users, team, clients, engagements, wtb, states] = await Promise.all([
@@ -144,7 +160,8 @@ export const appRouter = router({
 
   state: router({
     // Read a single versioned doc. Missing → { value: null, version: 0 } (the "create next" signal).
-    get: publicProcedure.input(stateKey).query(async ({ input }) => {
+    // W7 Fase 1: requires a session (reads are role-agnostic in W7; data isolation is W7.5/W9).
+    get: protectedProcedure.input(stateKey).query(async ({ input }) => {
       const doc = await prisma.stateDoc.findUnique({
         where: { scope_scopeId_key: input },
       });
@@ -154,18 +171,19 @@ export const appRouter = router({
 
     // Optimistic-concurrency write. baseVersion=0 ⇒ expect to create; >0 ⇒ atomic
     // compare-and-swap. A losing writer gets CONFLICT (→ HTTP 409) and must refetch.
-    set: publicProcedure
+    // W7 Fase 1: RBAC-gated by (scope,key); updatedBy comes from the session, not the client.
+    set: protectedProcedure
       .input(
         stateKey.extend({
           value: z.unknown(),
           baseVersion: z.number().int().nonnegative(),
-          updatedBy: z.string().optional(),
         }),
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { scope, scopeId, key, baseVersion } = input;
+        assertCanWrite(ctx.user, scope, scopeId, key);
         const valueJson = JSON.stringify(input.value ?? null);
-        const updatedBy = input.updatedBy ?? null;
+        const updatedBy = ctx.user.id;
 
         if (baseVersion === 0) {
           try {
