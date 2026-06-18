@@ -57,6 +57,21 @@ const AMS_PERSIST_SCOPE = {
 
 const SYNC_DEBOUNCE_MS = 400;
 
+/* W6 Fase 2 — surface optimistic-concurrency conflicts (no silent clobber).
+   useServerState emits a window event on a lost CAS race; <ConflictToaster>
+   renders it with two choices (adopt latest / overwrite with mine). */
+const CONFLICT_LABELS = {
+  aje: 'Jurnal Penyesuaian (AJE)', risks: 'Register Risiko', wpState: 'Status Kertas Kerja',
+  reviewNotes: 'Catatan Review', noteThreads: 'Balasan Catatan', timeEntries: 'Entri Waktu',
+  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB',
+  clients: 'Daftar Klien', engagements: 'Daftar Perikatan', activeEng: 'Perikatan Aktif',
+  profile: 'Profil Pengguna', role: 'Peran',
+};
+function conflictLabel(key) { return CONFLICT_LABELS[key] || key; }
+function emitConflict(detail) {
+  try { window.dispatchEvent(new CustomEvent('ams:conflict', { detail })); } catch (e) {}
+}
+
 function cacheRead(cacheKey, legacyKey, initial) {
   try { const s = localStorage.getItem(cacheKey); if (s != null) return JSON.parse(s); } catch (e) {}
   // one-time fallback to the pre-W6 unscoped key so existing local edits survive the upgrade
@@ -95,12 +110,23 @@ function useServerState(key, initial, scope, scopeId) {
     api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current, updatedBy: userScopeId() })
       .then(res => { versionRef.current = res.version; })
       .catch(err => {
-        // Lost an optimistic-concurrency race → adopt the server's value.
-        // (Fase 2 surfaces this as a conflict toast; here we silently reconcile.)
+        // Lost an optimistic-concurrency race. Don't silently clobber EITHER side:
+        // keep the user's local value, sync versionRef to the server's latest, and
+        // surface a conflict toast that lets the user adopt latest or overwrite.
         if (isConflict(err)) {
+          const attempted = value;
           api.state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then(res => {
             versionRef.current = res.version;
-            if (res.version > 0) { setValRaw(res.value); cacheWrite(t.cacheKey, res.value); }
+            const serverVal = res.version > 0 ? res.value : value;
+            emitConflict({
+              scope: t.scope, key: t.key, label: conflictLabel(t.key),
+              adopt: () => { setValRaw(serverVal); cacheWrite(t.cacheKey, serverVal); },
+              keepMine: () => {
+                api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current, updatedBy: userScopeId() })
+                  .then(r => { versionRef.current = r.version; cacheWrite(t.cacheKey, attempted); })
+                  .catch(() => {});
+              },
+            });
           }).catch(() => {});
         }
         /* other errors (offline): cache already holds the value; the next edit retries */
@@ -136,6 +162,58 @@ function useAmsPersist(key, initial) {
   return useServerState(key, initial, scope, scopeId);
 }
 window.useAmsPersist = useAmsPersist;
+
+/* W6 Fase 2 — global toaster for save conflicts. Listens for 'ams:conflict',
+   dedupes by (scope,key), auto-dismisses, offers adopt-latest / overwrite-mine. */
+function ConflictToaster() {
+  const [items, setItems] = React.useState([]);
+  const dismiss = React.useCallback((id) => setItems(list => list.filter(t => t.id !== id)), []);
+
+  React.useEffect(() => {
+    const onConflict = (ev) => {
+      const d = (ev && ev.detail) || {};
+      const id = (d.scope || '') + ':' + (d.key || '') + ':' + (window.performance ? Math.round(performance.now()) : 0);
+      setItems(list => {
+        const rest = list.filter(t => !(t.key === d.key && t.scope === d.scope)); // one toast per target
+        return [...rest, { id, key: d.key, scope: d.scope, label: d.label || d.key, adopt: d.adopt, keepMine: d.keepMine }];
+      });
+    };
+    window.addEventListener('ams:conflict', onConflict);
+    return () => window.removeEventListener('ams:conflict', onConflict);
+  }, []);
+
+  React.useEffect(() => {
+    if (!items.length) return undefined;
+    const timers = items.map(t => setTimeout(() => dismiss(t.id), 14000));
+    return () => timers.forEach(clearTimeout);
+  }, [items, dismiss]);
+
+  if (!items.length) return null;
+  const wrap = { position: 'fixed', right: 18, bottom: 18, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 360 };
+  const card = { background: 'var(--surface,#fff)', border: '1px solid var(--line,#e3e6ea)', borderLeft: '3px solid var(--amber,#d98a00)', borderRadius: 10, boxShadow: '0 8px 28px rgba(15,23,42,.16)', padding: '12px 14px', font: '13px/1.45 inherit', color: 'var(--ink,#1f2733)' };
+  const head = { display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 };
+  const row = { display: 'flex', gap: 8, marginTop: 10 };
+  const btn = { cursor: 'pointer', border: '1px solid var(--line,#e3e6ea)', borderRadius: 7, padding: '5px 10px', font: '12px inherit', background: '#fff', color: 'var(--ink,#1f2733)' };
+  const btnPrimary = { ...btn, background: 'var(--navy,#1f3a5f)', color: '#fff', borderColor: 'var(--navy,#1f3a5f)' };
+  const x = { marginLeft: 'auto', cursor: 'pointer', border: 'none', background: 'none', color: 'var(--ink-2,#8a93a2)', fontSize: 16, lineHeight: 1 };
+  return (
+    <div style={wrap} role="status" aria-live="polite" data-testid="conflict-toaster">
+      {items.map(t => (
+        <div key={t.id} style={card} data-conflict-key={t.key}>
+          <div style={head}>
+            <span>⚠︎ Konflik penyimpanan</span>
+            <button style={x} title="Tutup" onClick={() => dismiss(t.id)}>×</button>
+          </div>
+          <div><b>{t.label}</b> diubah dari sesi/peramban lain. Perubahan Anda belum tersimpan.</div>
+          <div style={row}>
+            <button style={btnPrimary} onClick={() => { try { t.adopt && t.adopt(); } finally { dismiss(t.id); } }}>Muat versi terbaru</button>
+            <button style={btn} onClick={() => { try { t.keepMine && t.keepMine(); } finally { dismiss(t.id); } }}>Timpa dengan perubahan saya</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function AppProviders({ children }) {
   const D = window.AMS;
@@ -278,6 +356,7 @@ function AppProviders({ children }) {
       <FirmContext.Provider value={firm}>
         <AuditContext.Provider value={audit}>
           {children}
+          <ConflictToaster />
         </AuditContext.Provider>
       </FirmContext.Provider>
     </AuthContext.Provider>
