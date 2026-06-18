@@ -1,12 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAudit, useNav } from './contexts.jsx';
+import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Stat } from './ui.jsx';
 import { MSub } from './view_fpm_parts.jsx';
 import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2.jsx';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
    NeoSuite AMS — Risk Assessment (RoMM register + heatmap)
@@ -29,9 +30,38 @@ function scoreLabel(v) {
 function RiskAssessment() {
   const nav = useNav();
   const { risks, updateRisk } = useAudit();
+  const { activeEngagement, activeClient } = useFirm();
   const [selId, setSelId] = useStateR(risks[0].id);
   const [hoverCell, setHoverCell] = useStateR(null);
+  const [exporting, setExporting] = useStateR(false);
   const sel = risks.find(r => r.id === selId);
+
+  // W10.5 Fase 2 — sealed XLSX risk register (RoMM). No currency: L/I/score are integers.
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const rows = risks.map(r => {
+        const sc = r.likelihood * r.impact;
+        return [r.id, r.area, r.assertion, r.assertionLvl ? 'Level Asersi' : 'Level LK', r.desc, r.likelihood, r.impact, sc, scoreLabel(sc), r.fraud ? 'Ya' : '—', r.response, r.owner, r.wp];
+      });
+      await amsExportXlsx({
+        kind: 'risk-register', scope: 'engagement', scopeId: activeEngagement?.id,
+        fileName: `Register Risiko (RoMM) - ${activeClient?.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Register Risiko Salah Saji Material (RoMM) — ${activeClient?.name || ''}`,
+        meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · SA 315/330`,
+          `${risks.length} risiko · skor = Kemungkinan (L) × Dampak (I)`],
+        sheets: [{
+          name: 'Register RoMM',
+          columns: ['ID', 'Area', 'Asersi', 'Tingkat', 'Deskripsi Risiko', 'L', 'I', 'Skor', 'Tingkat Risiko', 'Fraud (SA 240)', 'Respons Audit', 'Penanggung Jawab', 'WP'],
+          rows, colWidths: [8, 22, 14, 13, 46, 5, 5, 7, 14, 14, 40, 20, 8],
+        }],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // build 5x5 occupancy
   const cellRisks = (impact, likelihood) => risks.filter(r => r.impact === impact && r.likelihood === likelihood);
@@ -52,7 +82,7 @@ function RiskAssessment() {
     <>
       <SubBar moduleId="risk" right={mtab === 'register' ?
         <div className="row gap8">
-          <Btn sm><I.download size={13} /> Export Register</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Register (XLSX)'}</Btn>
           <Btn sm variant="primary"><I.plus size={14} /> Tambah Risiko</Btn>
         </div> :
         <Badge kind="blue">RoMM · {risks.length} risiko</Badge>

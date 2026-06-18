@@ -6,6 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Placeholder, Progress, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
 import { RowKv } from './view_calc.jsx';
+import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
    NeoSuite AMS — Compliance & Kriptografi (mendalam)
@@ -453,11 +454,39 @@ function CRDocDrawer({ d, onClose, nav }) {
 function CRServerChain({ rows, verify, nav }) {
   const SRV_ACT_COLOR = { LOGIN: 'green', LOGOUT: 'gray', STATE_SET: 'blue', LLM_NARRATE: 'purple' };
   const SRV_ACT_LABEL = { LOGIN: 'LOGIN', LOGOUT: 'LOGOUT', STATE_SET: 'WRITE', LLM_NARRATE: 'LLM' };
+  const [exporting, setExporting] = useCR(false);
   const ok = verify ? verify.ok : true;
   const fmtTs = (ts) => { try { return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch (e) { return String(ts); } }
   const target = (e) => e.scope ? (e.scope + (e.scopeId ? '/' + e.scopeId : '') + (e.key ? ' · ' + e.key : '')) : '—';
   const writes = rows.filter(e => e.action === 'STATE_SET').length;
   const logins = rows.filter(e => e.action === 'LOGIN').length;
+
+  // W10.5 Fase 2 — sealed XLSX export of the REAL server audit chain. Only reachable when rows
+  // loaded (server returns them solely to roles holding AUDIT_VIEW), so the button is itself
+  // AUDIT_VIEW-gated. Detail stays metadata only — never working-paper content (same as the chain).
+  const onExportXlsx = async () => {
+    if (exporting || !rows.length) return;
+    setExporting(true);
+    try {
+      const xrows = rows.map(e => [String(e.seq).padStart(3, '0'), fmtTs(e.ts), e.actorRole || '—', e.actorUserId || '—',
+        SRV_ACT_LABEL[e.action] || e.action, target(e), e.detail || '', String(e.prevHash).slice(0, 16), String(e.hash).slice(0, 16)]);
+      await amsExportXlsx({
+        kind: 'audit-trail', scope: 'firm',
+        fileName: 'Jejak Audit Server (append-only).xlsx',
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Jejak Audit Server — Append-only (tamper-evident)',
+        meta: [`Model AuditLog · ${rows.length} entri terbaru · verifikasi server: ${ok ? 'TERVERIFIKASI' : 'TERPUTUS #' + (verify && verify.brokenAt)}`,
+          'Detail = metadata saja (kunci + delta versi), bukan isi kertas kerja · retensi 10 tahun (ISQM 1)'],
+        sheets: [{
+          name: 'Jejak Audit Server',
+          columns: ['#', 'Waktu', 'Peran', 'Pelaku (userId)', 'Aksi', 'Sasaran', 'Detail', 'Prev Hash', 'Hash'],
+          rows: xrows, colWidths: [6, 22, 16, 24, 10, 28, 40, 20, 20],
+        }],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
@@ -472,7 +501,7 @@ function CRServerChain({ rows, verify, nav }) {
       </div>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Jejak Audit Server (append-only · tamper-evident)</h3></div>
+        <div className="panel-h"><h3>Jejak Audit Server (append-only · tamper-evident)</h3><div style={{ flex: 1 }} /><Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Ekspor Jejak (XLSX)'}</Btn></div>
         <table className="dtbl">
           <thead><tr><th style={{ width: 40 }}>#</th><th style={{ width: 150 }}>Waktu</th><th>Pelaku</th><th style={{ width: 78 }}>Aksi</th><th>Sasaran / Detail</th><th style={{ width: 96 }}>Prev → Hash</th></tr></thead>
           <tbody>

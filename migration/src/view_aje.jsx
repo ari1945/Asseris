@@ -7,6 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { AJEForm } from './view_execution.jsx';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
    NeoSuite AMS — Adjusting & Reclassifying Journal Entries (deep)
@@ -87,11 +88,20 @@ const signColor = (n) => n < 0 ? 'var(--red)' : n > 0 ? 'var(--green)' : 'var(--
 /* ============================================================
    SHELL — tabbed AJE module
    ============================================================ */
+/* derive structured journal lines for a single AJE (mirror of AjeDrill's fallback) */
+function ajeLines(a) {
+  return a.lines || [
+    { code: a.dr.split(' ')[0], name: a.dr.split(' ').slice(1).join(' ') || a.dr, debit: a.amount, credit: 0 },
+    { code: a.cr.split(' ')[0], name: a.cr.split(' ').slice(1).join(' ') || a.cr, debit: 0, credit: a.amount },
+  ];
+}
+
 function AJEView() {
-  const { fmt } = window.AMS;
+  const { fmt, rp } = window.AMS;
   const { aje, addAje, wtb } = useAudit();
-  const { locked } = useFirm();
+  const { locked, activeEngagement, activeClient } = useFirm();
   const auth = useAuth();
+  const [exporting, setExporting] = useStateAJ(false);
   // W7 — AJE write needs the aje.edit capability (server-enforced; mirrored here).
   // A Junior Auditor sees the data read-only. Combine with the archive lock.
   const canEditAje = !auth || typeof auth.can !== 'function' || auth.can(CAP.AJE_EDIT);
@@ -108,6 +118,35 @@ function AJEView() {
   const reportedPbt = AJE_PBT_UNADJ + pbtPosted;
   const accounts = wtb.map(r => ({ code: r.code, name: r.name }));
 
+  // W10.5 Fase 2 — sealed XLSX register: AJE list + every journal line, full-rupiah via rp().
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const regRows = model.map(a => [a.id, a.desc, KIND_LABEL[a.kind] || a.kind, a.mis || '—', a.cycle, a.std, a.ref, a.status, rp(a.amount), a.pbt === 0 ? '—' : rp(a.pbt)]);
+      const lineRows = [];
+      model.forEach(a => ajeLines(a).forEach(l => lineRows.push([a.id, l.code, l.name, +l.debit ? rp(+l.debit) : '', +l.credit ? rp(+l.credit) : ''])));
+      await amsExportXlsx({
+        kind: 'aje-register', scope: 'engagement', scopeId: activeEngagement?.id,
+        fileName: `Register AJE - ${activeClient?.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Register Jurnal Penyesuaian & Reklasifikasi — ${activeClient?.name || ''}`,
+        meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · SA 450`,
+          `${model.length} jurnal · ${posted.length} posted · ${proposed.length} usulan · efek laba & saldo penuh dalam Rupiah`],
+        sheets: [
+          { name: 'Daftar Jurnal',
+            columns: ['No.', 'Deskripsi', 'Jenis', 'Salah Saji', 'Siklus', 'Standar', 'WP', 'Status', 'Nilai', 'Efek Laba'],
+            rows: regRows, colWidths: [9, 42, 14, 11, 24, 22, 8, 11, 20, 18] },
+          { name: 'Baris Jurnal',
+            columns: ['No. AJE', 'Kode Akun', 'Nama Akun', 'Debit', 'Kredit'],
+            rows: lineRows, colWidths: [10, 12, 34, 20, 20] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const tabs = [
     { id: 'register', label: 'Daftar Jurnal', count: model.length },
     { id: 'impact', label: 'Dampak Laba & Neraca' },
@@ -119,7 +158,7 @@ function AJEView() {
       <SubBar moduleId="aje" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 450</Badge>
-          <Btn sm><I.download size={13} /> Export Jurnal</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Jurnal (XLSX)'}</Btn>
           <Btn sm variant="primary" disabled={writeLocked} style={{ opacity: writeLocked ? .5 : 1 }} title={!canEditAje && !locked ? 'Peran Anda tidak berhak mengubah AJE' : ''} onClick={() => !writeLocked && setShowForm(true)}><I.plus size={14} /> AJE Baru</Btn>
         </div>
       } />

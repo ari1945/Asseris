@@ -264,7 +264,33 @@ Router `exporter`:
 **Batas jujur:** segel ini **BUKAN** e-Meterai (PERURI) / PSrE tersertifikasi (PrivyID/VIDA) —
 hanya provenans (siapa) + integritas (hash tak berubah). Disclaimer wajib di artefak & UI.
 
-**Deferred:** real e-Meterai/PSrE; pengiriman ekspor via email; paket-engagement (zip multi-artefak).
+**Fase 1 (klien — PDF deliverable, SELESAI).** `src/export_pdf.js` → `amsExportPdf(model)`: komposer
+dokumen terstruktur (heading/para/kv/table/signature) → PDF Blob nyata via **lazy** `import()`
+jspdf+jspdf-autotable+qrcode (chunk rollup sendiri — di luar bundle boot). Hitung sha256 payload
+kanonik → `exportSeal` → benamkan sealId+pubKeyId+hash+QR-verifikasi + `SEAL_DISCLAIMER`. Degrade ke
+**UNSEALED** + `exportLogEvent` bila server mati / peran tanpa EXPORT. Tersambung: **memo
+materialitas** (`view_materiality_parts`), **LK** (`view_fsgen`, 4 laporan dari model FSGEN),
+**opini** (`view_opinion`) — prosa single-source dgn pratinjau, nol-drift numerik.
+
+**Fase 2 (klien — XLSX register, SELESAI).** `src/export_xlsx.js` → `amsExportXlsx(model)`: dari model
+sheet terstruktur (`sheets:[{name, columns, rows, totals?, colWidths?}]`) → workbook .xlsx Blob nyata
+via **lazy** `import('xlsx')` (SheetJS, chunk sendiri ~499 KB — di luar boot). Alur segel identik
+Fase 1 (hash payload sheet kanonik → `exportSeal` → sheet **"Segel"** memuat sealId+pubKeyId+hash+
+disclaimer; degrade UNSEALED+`logEvent`). Angka **pre-formatted via `rp()`/`fmt()`** di pemanggil
+(SSOT = `AMS_CANON`/`wtb`), sel = teks id-ID identik layar (negatif dalam kurung). Tersambung 5
+register: **WTB** (`view_execution` `WTBView`, kind `wtb-register`), **AJE** (`view_aje`, 2 sheet:
+daftar+baris jurnal, `aje-register`), **risk RoMM** (`view_risk`, `risk-register`), **register aset
+tetap** (`view_psak16` "Kertas Kerja E", 2 sheet: sub-ledger+rekonsiliasi-GL, `fixed-asset-register`),
+**jejak audit** (`view_crypto` tab Rantai `CRServerChain`, `audit-trail`, scope=firm) — tombol ekspor
+jejak **otomatis ter-gate AUDIT_VIEW** karena hanya muncul saat `srvChain` termuat (server hanya
+mengembalikan baris ke peran AUDIT_VIEW). 4 register kerja scope=engagement (isolasi W7.5).
+
+**Catatan SheetJS:** dipasang dari CDN resmi (`https://cdn.sheetjs.com/xlsx-0.20.3/...`, bukan npm
+0.18.5 yang ber-CVE pada jalur *parse*) → **0 prod vulnerabilities**. Kita hanya **menulis** (writeFile),
+tak pernah parse berkas tak-tepercaya, jadi jalur baca yang rentan tak terjangkau.
+
+**Deferred:** real e-Meterai/PSrE; pengiriman ekspor via email; paket-engagement (zip multi-artefak);
+**Fase 3 opsional** (UI verify-seal di `view_crypto`: tempel id/hash/QR → `exportVerifySeal`).
 
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure

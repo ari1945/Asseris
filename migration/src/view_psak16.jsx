@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { AssetRegisterTable, ImportMappingPanel, SubLedgerRecon } from './view_psak16_register.jsx';
+import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
    NeoSuite AMS — PSAK 16 · Aset Tetap (Property, Plant & Equipment)
@@ -102,7 +103,7 @@ function RfMatrixRow({ label, hp, ak, net, sc, sub, total, memo }) {
 }
 
 function PSAK16View() {
-  const { fmt } = window.AMS;
+  const { fmt, rp } = window.AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
@@ -120,6 +121,7 @@ function PSAK16View() {
   const [tab, setTab] = useStateP16(() => loader('ams.psak16.tab', 'ikhtisar'));
   const [disc, setDisc] = useStateP16(() => loader('ams.psak16.disc', P16_DISCLOSURE));
   const [impair, setImpair] = useStateP16(() => loader('ams.psak16.impair', P16_IMPAIR));
+  const [exporting, setExporting] = useStateP16(false);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.measure', JSON.stringify(measure)); } catch (e) {} }, [measure]);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.regtab', JSON.stringify(regTab)); } catch (e) {} }, [regTab]);
@@ -137,6 +139,37 @@ function PSAK16View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const aje05 = ((window.AMS && window.AMS.AJE) || []).find(a => a.id === 'AJE-05');
   const riskPPE = ((window.AMS && window.AMS.RISKS) || []).find(r => r.id === 'R-04');
+
+  // W10.5 Fase 2 — sealed XLSX "Kertas Kerja E": the PSAK 16 fixed-asset sub-ledger + the
+  // sub-ledger↔GL control-total reconciliation, full-rupiah via rp() (SSOT = AMS_CANON.assetRegister).
+  const onExportXlsx = async () => {
+    if (exporting || !reg) return;
+    setExporting(true);
+    try {
+      const assetRows = reg.rows.map(r => [r.tag, r.name + (r.fullyDep ? ' (tersusut penuh)' : ''), r.classLabel, r.acqYear, r.life ? r.life + ' th' : '—', rp(r.cost), r.accum ? rp(-r.accum) : '—', rp(r.nbv)]);
+      const reconRows = reg.recon.map(r => [r.label, r.code, rp(r.sub), rp(r.gl), r.ok ? '0' : rp(r.diff), r.ok ? 'Menutup' : 'Selisih']);
+      await amsExportXlsx({
+        kind: 'fixed-asset-register', scope: 'engagement', scopeId: eng?.id,
+        fileName: `Register Aset Tetap (KK-E) - ${client?.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Register Aset Tetap — Kertas Kerja E (PSAK 16) — ${client?.name || ''}`,
+        meta: [`${eng?.id || ''} · ${eng?.fy || 'FY2025'} · PSAK 16 / IAS 16`,
+          `${reg.count} aset · rekonsiliasi sub-ledger ↔ GL: ${reg.reconciled ? 'MENUTUP' : 'SELISIH'} · saldo penuh dalam Rupiah`],
+        sheets: [
+          { name: 'Register Sub-ledger',
+            columns: ['Tag', 'Nama Aset', 'Kelompok', 'Perolehan', 'Umur', 'Harga Perolehan', 'Akm. Penyusutan', 'Nilai Buku'],
+            rows: assetRows,
+            totals: ['', `TOTAL (${reg.count} aset)`, '', '', '', rp(reg.sumCost), rp(-reg.sumAccum), rp(reg.sumNbv)],
+            colWidths: [12, 38, 18, 11, 9, 22, 22, 22] },
+          { name: 'Rekonsiliasi GL',
+            columns: ['Total Kontrol', 'Akun GL', 'Sub-ledger', 'GL (WTB)', 'Selisih', 'Status'],
+            rows: reconRows, colWidths: [28, 12, 22, 22, 18, 12] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
@@ -531,7 +564,7 @@ function PSAK16View() {
           <Btn sm onClick={() => nav('psak46', { from: 'psak16' })}><I.receipt size={13} /> PSAK 46</Btn>
           <Btn sm onClick={() => nav('fsgen', { from: 'psak16' })}><I.report size={13} /> FS Generator</Btn>
           <Btn sm onClick={() => nav('wtb', { from: 'psak16' })}><I.ledger size={13} /> Buku Besar</Btn>
-          <Btn sm><I.download size={13} /> Kertas Kerja E</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Kertas Kerja E (XLSX)'}</Btn>
         </div>
       } />
       <div className="view-scroll">

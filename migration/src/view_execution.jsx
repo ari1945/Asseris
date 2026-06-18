@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui.jsx';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep.jsx';
+import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
    NeoSuite AMS — Working Trial Balance (WTB) + AJE
@@ -18,17 +19,49 @@ const WTB_TABS = [
 ];
 
 function WTBView() {
-  const { fmt } = window.AMS;
+  const { fmt, rp } = window.AMS;
   const { wtb, ajeTotalPosted } = useAudit();
-  const { activeEngagement } = useFirm();
+  const { activeEngagement, activeClient } = useFirm();
   const nav = useNav();
   const [tab, setTab] = useStateX('tb');
   const [showAdj, setShowAdj] = useStateX(true);
   const [q, setQ] = useStateX('');
   const [collapsed, setCollapsed] = useStateX({});
   const [drill, setDrill] = useStateX(null);
+  const [exporting, setExporting] = useStateX(false);
 
   const pm = activeEngagement.materiality * 0.75;
+
+  // W10.5 Fase 2 — sealed XLSX register: the full Working Trial Balance, full-rupiah via rp()
+  // (SSOT = the same wtb rows the table renders). Δ YoY mirrors the on-screen adjusted-vs-LY view.
+  const onExportXlsx = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const rows = wtb.map((r) => {
+        const yoy = r.ly !== 0 ? ((r.adj - r.ly) / Math.abs(r.ly)) * 100 : 0;
+        return [r.code, r.name, r.group, r.lead, rp(r.ly), rp(r.unadj), r.aje ? rp(r.aje) : '—', rp(r.adj), fmt(yoy, 1) + '%'];
+      });
+      const t = wtb.reduce((a, r) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
+      await amsExportXlsx({
+        kind: 'wtb-register', scope: 'engagement', scopeId: activeEngagement?.id,
+        fileName: `Working Trial Balance - ${activeClient?.name || 'Klien'}.xlsx`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: `Working Trial Balance — ${activeClient?.name || ''}`,
+        meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · ${activeEngagement?.standard || 'SAK'}`,
+          `Performance materiality: ${rp(pm)} · saldo penuh dalam Rupiah (setelah penyesuaian audit)`],
+        sheets: [{
+          name: 'Neraca Saldo Kerja',
+          columns: ['Kode', 'Nama Akun', 'Grup FS', 'WP', 'TA Lalu', 'Unadjusted', 'AJE', 'Adjusted', 'Δ YoY'],
+          rows,
+          totals: ['', 'TOTAL', '', '', rp(t.ly), rp(t.unadj), rp(t.aje), rp(t.adj), ''],
+          colWidths: [12, 34, 18, 8, 20, 20, 18, 20, 10],
+        }],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const summary = useMemoX(() => window.computeWtbSummary(wtb, pm), [wtb, pm]);
 
   // group rows
@@ -56,7 +89,7 @@ function WTBView() {
         <div className="row gap8 ac">
           <span className="tiny muted mono">PM: Rp {fmt(pm / 1e6, 0)} jt</span>
           <Btn sm><I.sync size={13} /> Sync GL</Btn>
-          <Btn sm><I.download size={13} /> Export</Btn>
+          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export XLSX'}</Btn>
           <Btn sm variant="primary"><I.plus size={14} /> Add Account</Btn>
         </div>
       } />
