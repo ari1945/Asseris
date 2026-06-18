@@ -80,6 +80,33 @@ export async function llmNarrateDiagnostics(findings) {
 Object.assign(window, { amsLlmStatus: llmStatus, amsLlmNarrateDiagnostics: llmNarrateDiagnostics });
 
 /* ============================================================
+   W10 — server-side append-only audit trail. The real, tamper-evident chain that replaces
+   the client pseudo-hash demo. Both degrade gracefully: when the server is absent (or the
+   role lacks AUDIT_VIEW), they return null so the UI can fall back to the local demo stream
+   instead of erroring. Read-only — there is no client path to write or alter the chain.
+   ============================================================ */
+
+/** Recent audit-chain rows (newest first), or null when unavailable/forbidden. */
+export async function auditList(limit) {
+  try {
+    return await api.audit.list.query(limit ? { limit } : undefined);
+  } catch (e) {
+    return null;
+  }
+}
+
+/** Server-side chain integrity check → { ok, brokenAt, count }, or null when unavailable. */
+export async function auditVerify() {
+  try {
+    return await api.audit.verify.query();
+  } catch (e) {
+    return null;
+  }
+}
+
+Object.assign(window, { amsAuditList: auditList, amsAuditVerify: auditVerify });
+
+/* ============================================================
    W6 Fase 3 — hydrate window.AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the

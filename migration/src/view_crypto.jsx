@@ -22,7 +22,7 @@ import { RowKv } from './view_calc.jsx';
    Konsekuensinya: satu perubahan di modul hulu (mis. unggah dokumen,
    posting AJE, legal hold) mengalir serempak ke seluruh kartu di sini.
    ============================================================ */
-const { useState: useCR, useMemo: useMCR } = React;
+const { useState: useCR, useMemo: useMCR, useEffect: useECR } = React;
 
 /* hash-chain pendek (tamper-evident) — diturunkan dari SHA-256 helper bersama */
 function crChain(seed) {
@@ -76,6 +76,21 @@ function CryptoCompliance() {
   const [verifiedAt, setVerifiedAt] = useCR(null);
   const [selDoc, setSelDoc] = useCR(null);
 
+  /* ---- W10: the REAL server-side append-only chain (replaces the client pseudo-hash demo
+     as source of truth). null = unavailable (server down / role lacks AUDIT_VIEW) → CRRantai
+     falls back to the derived demo stream below. Read-only; the client cannot alter it. ---- */
+  const [srvChain, setSrvChain] = useCR(null);
+  const [srvVerify, setSrvVerify] = useCR(null);
+  useECR(() => {
+    let alive = true;
+    (async () => {
+      const rows = window.amsAuditList ? await window.amsAuditList(100) : null;
+      const v = window.amsAuditVerify ? await window.amsAuditVerify() : null;
+      if (alive) { setSrvChain(rows); setSrvVerify(v); }
+    })();
+    return () => { alive = false; };
+  }, []);
+
   /* ---- SSOT compute ---- */
   const docs = useMCR(() => crCryptoDocs(), []);
   const rules = (window.AMS && window.AMS.INTEGRITY_RULES) || [];
@@ -127,7 +142,7 @@ function CryptoCompliance() {
     setTimeout(() => { setVerifying(false); setVerifiedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })); }, 900);
   };
 
-  const ctx = { docs, docInteg, anomali, rules, evidence, stream, chain, certs, encCount, sealedCount, hashedCount, rulePass, signCount, nav, tamperId, setTamperId, verifying, verifiedAt, selDoc, setSelDoc, setTab };
+  const ctx = { docs, docInteg, anomali, rules, evidence, stream, chain, certs, encCount, sealedCount, hashedCount, rulePass, signCount, nav, tamperId, setTamperId, verifying, verifiedAt, selDoc, setSelDoc, setTab, srvChain, srvVerify };
 
   return (
     <>
@@ -433,9 +448,58 @@ function CRDocDrawer({ d, onClose, nav }) {
 /* ============================================================
    TAB 3 — Jejak & Rantai-Hash
    ============================================================ */
+/* W10 — the authoritative, server-side append-only chain. Rendered when the proxy is reachable
+   AND the role holds AUDIT_VIEW; otherwise CRRantai degrades to the derived demo stream. */
+function CRServerChain({ rows, verify, nav }) {
+  const SRV_ACT_COLOR = { LOGIN: 'green', LOGOUT: 'gray', STATE_SET: 'blue', LLM_NARRATE: 'purple' };
+  const SRV_ACT_LABEL = { LOGIN: 'LOGIN', LOGOUT: 'LOGOUT', STATE_SET: 'WRITE', LLM_NARRATE: 'LLM' };
+  const ok = verify ? verify.ok : true;
+  const fmtTs = (ts) => { try { return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch (e) { return String(ts); } }
+  const target = (e) => e.scope ? (e.scope + (e.scopeId ? '/' + e.scopeId : '') + (e.key ? ' · ' + e.key : '')) : '—';
+  const writes = rows.filter(e => e.action === 'STATE_SET').length;
+  const logins = rows.filter(e => e.action === 'LOGIN').length;
+  return (
+    <>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={window.AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={writes} label="Penulisan Kertas Kerja" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={logins} label="Autentikasi (LOGIN)" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
+      </div>
+
+      <div className="panel" style={{ padding: '10px 14px', background: 'var(--green-bg)', borderColor: 'transparent', marginBottom: 12 }}>
+        <div className="row ac gap10"><span style={{ color: 'var(--green)' }}><I.lock size={16} /></span><div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}><b>Rantai server (W10).</b> Setiap entri ditulis <b>append-only</b> di server dan ditaut-hash (SHA-256) ke entri sebelumnya. Verifikasi dihitung ulang di server — klien tak punya jalur untuk menyunting atau menyusun ulang riwayat. Detail hanya metadata (kunci + delta versi), bukan isi kertas kerja.</div></div>
+      </div>
+
+      <Panel noBody>
+        <div className="panel-h"><h3>Jejak Audit Server (append-only · tamper-evident)</h3></div>
+        <table className="dtbl">
+          <thead><tr><th style={{ width: 40 }}>#</th><th style={{ width: 150 }}>Waktu</th><th>Pelaku</th><th style={{ width: 78 }}>Aksi</th><th>Sasaran / Detail</th><th style={{ width: 96 }}>Prev → Hash</th></tr></thead>
+          <tbody>
+            {rows.map((e) => (
+              <tr key={e.seq}>
+                <td className="mono tiny muted">{String(e.seq).padStart(3, '0')}</td>
+                <td className="mono tiny muted">{fmtTs(e.ts)}</td>
+                <td className="tiny"><div style={{ fontWeight: 600 }}>{e.actorRole || '—'}</div><div className="tiny mono muted truncate">{e.actorUserId || '—'}</div></td>
+                <td><Badge kind={SRV_ACT_COLOR[e.action] || 'gray'}>{SRV_ACT_LABEL[e.action] || e.action}</Badge></td>
+                <td className="tiny" style={{ color: 'var(--ink-2)' }}><span className="mono">{target(e)}</span>{e.detail && <span className="muted"> — {e.detail}</span>}</td>
+                <td className="mono tiny" style={{ color: 'var(--ink-4)' }}><span style={{ color: 'var(--ink-4)' }}>{String(e.prevHash).slice(0, 6)}</span><span style={{ color: 'var(--blue)', fontWeight: 700 }}> ▸{String(e.hash).slice(0, 6)}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server NeoSuite AMS</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (ISQM 1). Menampilkan hingga 100 entri terbaru.</div>
+      </Panel>
+    </>
+  );
+}
+
 function CRRantai({ ctx }) {
-  const { chain, nav } = ctx;
-  const [act, setAct] = useCR('Kripto');
+  const { chain, nav, srvChain, srvVerify } = ctx;
+  const [act, setAct] = useCR('Kripto'); // declared before any early return (rules of hooks)
+  // W10 — prefer the real server chain. srvChain===null means "not loaded/unavailable".
+  if (Array.isArray(srvChain)) return <CRServerChain rows={srvChain} verify={srvVerify} nav={nav} />;
+
   const cryptoActs = ['SIGN', 'UPLOAD', 'LOGIN', 'APPROVE', 'EXPORT', 'SYNC'];
   const filtered = act === 'Semua' ? chain : act === 'Kripto'
     ? chain.filter(e => cryptoActs.includes(e.action))
@@ -444,6 +508,9 @@ function CRRantai({ ctx }) {
 
   return (
     <>
+      <div className="panel" style={{ padding: '9px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 12 }}>
+        <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>Rantai server tak tersedia (proxy mati atau peran tanpa <span className="mono">AUDIT_VIEW</span>) — menampilkan <b>arus turunan lokal</b> dari log aktivitas. Bukan jejak append-only otoritatif.</div>
+      </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={window.AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter(e => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>

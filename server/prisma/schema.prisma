@@ -120,6 +120,34 @@ model LlmEvent {
   @@index([ts])
 }
 
+// W10 — append-only, hash-chained audit trail. Replaces the client-side pseudo-hash demo
+// (window.amsFakeHash / buildAuditStream in view_crypto/view_records) with a server-owned,
+// tamper-evident record. Each row chains to the previous via hash =
+// SHA-256(seq|ts|actor|action|target|detail|prevHash); the first row chains to GENESIS_HASH.
+// There is NO update/delete endpoint — appends only (appendAudit), reads (audit.list), and
+// integrity re-computation (audit.verify) — so a client can neither rewrite nor reorder history.
+// `seq` is assigned server-side under an in-process serialization queue (single-process Node);
+// horizontal scaling would need DB-level sequencing (see deploy notes). `detail` carries ONLY
+// metadata (key + version delta), never working-paper content — so the trail is safe to read
+// across roles without leaking another engagement's numbers.
+model AuditLog {
+  id          String   @id @default(cuid())
+  seq         Int      @unique // monotonic chain position, assigned by appendAudit
+  ts          DateTime // explicit (NOT @default) — the exact value hashed into the chain
+  actorUserId String?
+  actorRole   String?
+  action      String // STATE_SET | LOGIN | LOGOUT | LLM_NARRATE
+  scope       String? // engagement | firm | user (for STATE_SET)
+  scopeId     String?
+  key         String?
+  detail      String? // metadata only, e.g. "v3->v4" — never working-paper content
+  prevHash    String
+  hash        String
+
+  @@index([ts])
+  @@index([actorUserId])
+}
+
 model TeamMember {
   id     String @id @default(cuid())
   firmId String

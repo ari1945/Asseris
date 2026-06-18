@@ -15,6 +15,7 @@ import { redactFindings, buildNarrationPrompt } from './llm/redact';
 import { complete } from './llm/providers';
 import { rateLimit } from './llm/ratelimit';
 import { logLlmEvent } from './llm/events';
+import { appendAudit, verifyAuditChain } from './audit/log';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -107,6 +108,7 @@ export const appRouter = router({
         }
         const session = await createSession(user.id, meta);
         await logAuthEvent('LOGIN', { ...meta, userId: user.id });
+        await appendAudit({ actorUserId: user.id, actorRole: user.role, action: 'LOGIN' });
         return { token: session.token, user: publicUser(user) };
       }),
 
@@ -115,6 +117,7 @@ export const appRouter = router({
     logout: protectedProcedure.mutation(async ({ ctx }) => {
       if (ctx.token) await revokeSession(ctx.token);
       await logAuthEvent('LOGOUT', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
+      await appendAudit({ actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'LOGOUT' });
       return { ok: true };
     }),
 
@@ -235,6 +238,10 @@ export const appRouter = router({
           userId: ctx.user.id, provider: cfg.provider, model: cfg.model,
           detail: `findings=${safe.length}; in=${result.usage?.input ?? '?'} out=${result.usage?.output ?? '?'}`,
         });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'LLM_NARRATE',
+          detail: `findings=${safe.length}; ${cfg.provider}/${cfg.model}`,
+        });
         return { status: 'ok' as const, text: result.text, provider: cfg.provider, model: cfg.model, usage: result.usage };
       }),
   }),
@@ -246,6 +253,35 @@ export const appRouter = router({
       const acc = await accessibleEngagementIds(ctx.user);
       const where = acc === 'all' ? {} : { id: { in: acc } };
       return prisma.engagement.findMany({ where, include: { client: true }, orderBy: { id: 'asc' } });
+    }),
+  }),
+
+  // W10 — read-only window onto the server-side append-only audit chain. No mutation path
+  // exists (appends happen internally as a side-effect of audited actions), so a client can
+  // read and verify history but never rewrite it. Gated by AUDIT_VIEW (Partner/Manager).
+  audit: router({
+    // Recent chain rows, newest first. `detail` is metadata only (key + version delta), so
+    // this is safe to return firm-wide without leaking another engagement's working data.
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(200).default(50) }).optional())
+      .query(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.AUDIT_VIEW)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.AUDIT_VIEW}` });
+        }
+        const rows = await prisma.auditLog.findMany({ orderBy: { seq: 'desc' }, take: input?.limit ?? 50 });
+        return rows.map((r) => ({
+          seq: r.seq, ts: r.ts, actorUserId: r.actorUserId, actorRole: r.actorRole,
+          action: r.action, scope: r.scope, scopeId: r.scopeId, key: r.key, detail: r.detail,
+          prevHash: r.prevHash, hash: r.hash,
+        }));
+      }),
+
+    // Recompute the whole chain server-side and report the first break (tamper-evidence).
+    verify: protectedProcedure.query(async ({ ctx }) => {
+      if (!can(ctx.user.role, CAP.AUDIT_VIEW)) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.AUDIT_VIEW}` });
+      }
+      return verifyAuditChain();
     }),
   }),
 
@@ -305,6 +341,10 @@ export const appRouter = router({
             const created = await prisma.stateDoc.create({
               data: { scope, scopeId, key, valueJson, version: 1, updatedBy },
             });
+            await appendAudit({
+              actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
+              scope, scopeId, key, detail: 'v0->v1',
+            });
             return { version: created.version };
           } catch (e) {
             if (isUniqueViolation(e)) {
@@ -324,6 +364,10 @@ export const appRouter = router({
           const current = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
           throw new TRPCError({ code: 'CONFLICT', message: `version-mismatch:server=${current?.version ?? 0}` });
         }
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
+          scope, scopeId, key, detail: `v${baseVersion}->v${baseVersion + 1}`,
+        });
         return { version: baseVersion + 1 };
       }),
   }),
