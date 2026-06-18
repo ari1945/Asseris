@@ -108,6 +108,31 @@ export async function auditVerify() {
 Object.assign(window, { amsAuditList: auditList, amsAuditVerify: auditVerify });
 
 /* ============================================================
+   W10.5 — export seal + export-event logging. The artifact bytes are built client-side
+   (export_pdf.js); these only ask the server to (a) sign a content hash into a verifiable
+   provenance seal and (b) record the export to the audit chain. seal() may throw so the
+   generator can degrade to an UNSEALED artifact when the server is down; verify/log swallow.
+   ============================================================ */
+
+/** Seal a content hash → { sealId, signature, pubKeyId, signedAt, … }. Throws on failure
+    (caller degrades to unsealed). */
+export async function exportSeal({ kind, contentHash, scope, scopeId }) {
+  return api.exporter.seal.mutate({ kind, contentHash, scope, scopeId });
+}
+
+/** Verify a seal against a presented hash → result | null when unavailable. */
+export async function exportVerifySeal({ sealId, contentHash }) {
+  try { return await api.exporter.verifySeal.query({ sealId, contentHash }); } catch (e) { return null; }
+}
+
+/** Record an unsealed export to the audit chain (best-effort; null when unavailable). */
+export async function exportLogEvent({ kind, format, scope, scopeId, contentHash }) {
+  try { return await api.exporter.logEvent.mutate({ kind, format, scope, scopeId, contentHash }); } catch (e) { return null; }
+}
+
+Object.assign(window, { amsExportSeal: exportSeal, amsExportVerifySeal: exportVerifySeal, amsExportLogEvent: exportLogEvent });
+
+/* ============================================================
    W6 Fase 3 — hydrate window.AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the

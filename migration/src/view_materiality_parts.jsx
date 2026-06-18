@@ -3,6 +3,7 @@ import React from 'react';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui.jsx';
+import { amsExportPdf } from './export_pdf.js';
 
 /* ============================================================
    NeoSuite AMS — Materiality (SA 320 / SA 450) — heavy tab panels
@@ -14,6 +15,15 @@ const { useState: useStateMP, useMemo: useMemoMP } = React;
 const _FM = (n, d = 0) => window.AMS.fmt(n, d);
 const _RP = (n) => 'Rp ' + window.AMS.fmt(n);
 const _M = (n) => 'Rp ' + window.AMS.fmt(n / 1e6) + ' jt';
+
+/* Memo prose — single source shared by the on-screen preview AND the PDF export (W10.5), so the
+   two can't drift. Section 1 is dynamic (interpolates the chosen benchmark/percentages). */
+const MAT_MEMO_SEC1 = (bench, pct, om) =>
+  `Benchmark utama adalah ${bench.label} sebesar ${_RP(bench.value)} (${bench.note}). Persentase ${pct}% diterapkan (kisaran lazim ${bench.lo}–${bench.hi}%), menghasilkan Materialitas Keseluruhan ${_RP(om)}.`;
+const MAT_MEMO_SEC2 =
+  'Materialitas spesifik ditetapkan lebih rendah untuk remunerasi manajemen kunci, transaksi pihak berelasi, dan pengungkapan segmen (lihat tab terkait). Untuk audit grup, materialitas dialokasikan ke tiap komponen sesuai SA 600.';
+const MAT_MEMO_SEC3 =
+  'Materialitas dinilai memadai untuk merancang sifat, saat, dan luas prosedur audit. Salah saji agregat yang belum dikoreksi dievaluasi terhadap OM pada penyelesaian audit (SA 450).';
 
 /* compact money editor — value held in Rupiah, edited in juta */
 function MoneyJuta({ value, onChange, step = 50, w = 96, locked }) {
@@ -449,6 +459,47 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
   const doSign = (key, name, role) => setSign(s => ({ ...s, [key]: s[key] ? null : { name, role, at: now() } }));
   const fullySigned = sign.preparer && sign.manager && sign.partner;
   const diff = Math.abs(om - applied) / applied;
+  const [exporting, setExporting] = useStateMP(false);
+
+  // W10.5 — build the memo PDF from the SAME prose the preview shows (MAT_MEMO_SEC1..3), seal it
+  // server-side, and download. Degrades to an unsealed PDF if the server/role won't seal.
+  const onExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const signers = [
+        sign.preparer && { label: 'Disusun oleh', name: sign.preparer.name, role: sign.preparer.role, at: sign.preparer.at },
+        sign.manager && { label: 'Ditelaah — Manager', name: sign.manager.name, role: sign.manager.role, at: sign.manager.at },
+        sign.partner && { label: 'Disetujui — Partner', name: sign.partner.name, role: sign.partner.role, at: sign.partner.at },
+      ].filter(Boolean);
+      await amsExportPdf({
+        kind: 'materiality', scope: 'engagement', scopeId: activeEngagement?.id,
+        fileName: `Memo Materialitas - ${activeClient?.name || 'Klien'}.pdf`,
+        firm: 'KAP Wijaya Hartono & Rekan',
+        title: 'Penetapan Materialitas Audit',
+        meta: [
+          `${activeEngagement?.id || ''} · ${activeClient?.name || ''}`,
+          `FY2025 · Standar ${activeEngagement?.standard || 'SAK'} · SA 320 & SA 450`,
+        ],
+        blocks: [
+          { type: 'heading', text: '1. Pemilihan Benchmark & Persentase' },
+          { type: 'para', text: MAT_MEMO_SEC1(bench, pct, om) },
+          { type: 'kv', rows: [
+            ['Materialitas Keseluruhan (OM)', _RP(om)],
+            [`Performance Materiality (${pmPct}% OM)`, _RP(pm)],
+            [`Ambang Jelas Remeh (${cttPct}% OM)`, _RP(ctt)],
+          ] },
+          { type: 'heading', text: '2. Materialitas Spesifik & Komponen' },
+          { type: 'para', text: MAT_MEMO_SEC2 },
+          { type: 'heading', text: '3. Kesimpulan' },
+          { type: 'para', text: MAT_MEMO_SEC3 },
+          { type: 'signature', signers: signers.length ? signers : [{ label: 'Disusun oleh', name: '—' }] },
+        ],
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const Row = ({ label, value, strong }) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
@@ -480,7 +531,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
           <h3>Memo Penetapan Materialitas</h3>
           <span className="sub">{activeEngagement?.id} · {activeClient?.name}</span>
           <div style={{ flex: 1 }} />
-          <Btn sm><I.download size={13} /> Unduh PDF</Btn>
+          <Btn sm onClick={onExportPdf} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Unduh PDF'}</Btn>
         </div>
         <div style={{ padding: '16px 20px', maxWidth: 720 }}>
           <div className="tiny muted upper" style={{ letterSpacing: '.08em', marginBottom: 3 }}>KAP Wijaya Hartono & Rekan</div>
@@ -497,16 +548,10 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
           <Row label={`Ambang Jelas Remeh (${cttPct}% OM)`} value={_RP(ctt)} />
 
           <SecTitle n="2" t="Materialitas Spesifik & Komponen" mt />
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>
-            Materialitas spesifik ditetapkan lebih rendah untuk remunerasi manajemen kunci, transaksi pihak berelasi, dan
-            pengungkapan segmen (lihat tab terkait). Untuk audit grup, materialitas dialokasikan ke tiap komponen sesuai SA 600.
-          </p>
+          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>{MAT_MEMO_SEC2}</p>
 
           <SecTitle n="3" t="Kesimpulan" mt />
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>
-            Materialitas dinilai memadai untuk merancang sifat, saat, dan luas prosedur audit. Salah saji agregat yang belum
-            dikoreksi dievaluasi terhadap OM pada penyelesaian audit (SA 450).
-          </p>
+          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>{MAT_MEMO_SEC3}</p>
         </div>
       </Panel>
 
