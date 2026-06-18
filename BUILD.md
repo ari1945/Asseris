@@ -289,8 +289,16 @@ mengembalikan baris ke peran AUDIT_VIEW). 4 register kerja scope=engagement (iso
 0.18.5 yang ber-CVE pada jalur *parse*) → **0 prod vulnerabilities**. Kita hanya **menulis** (writeFile),
 tak pernah parse berkas tak-tepercaya, jadi jalur baca yang rentan tak terjangkau.
 
-**Deferred:** real e-Meterai/PSrE; pengiriman ekspor via email; paket-engagement (zip multi-artefak);
-**Fase 3 opsional** (UI verify-seal di `view_crypto`: tempel id/hash/QR → `exportVerifySeal`).
+**Fase 3 (klien — verify-seal UI, SELESAI).** `CRVerifySeal` di tab "Meterai & PSrE" (`view_crypto`):
+tempel Seal ID + hash konten, atau muatan QR `neosuite-seal:<id>;<hash>` (auto-split) →
+`exportVerifySeal` → verdikt. Peta semua alasan server: `ok` / `hash-mismatch` (diubah) /
+`bad-signature` (dipalsukan) / `not-found` / `key-rotated` (kunci dev ephemeral) / `unavailable`;
+validasi 64-heks di klien sebelum panggil. Tampilkan kind/scope/signer/signedAt/pubKeyId saat cocok.
+Dibingkai "BUKAN e-Meterai" kontras dgn register TTE/PSrE legal di bawahnya. Tombol legacy "Unduh
+Bukti Segel" di drawer DMS **sengaja tak disentuh** (itu demo `amsFakeHash`, bukan segel ekspor W10.5).
+
+**W10.5 SELESAI (Fase 0–3).** **Deferred:** real e-Meterai/PSrE; pengiriman ekspor via email;
+paket-engagement (zip multi-artefak).
 
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
