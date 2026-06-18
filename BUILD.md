@@ -52,14 +52,18 @@ npm start              # tRPC server on http://localhost:5181 (localhost only)
 
 ## W7 — Auth, sesi & RBAC (`server/src/auth/`)
 
-> **Fase 0–2 done.** Fase 0: server-side auth (login/sessions/TOTP/password + audit trail).
+> **W7 COMPLETE (Fase 0–3).** Fase 0: server-side auth (login/sessions/TOTP/password + audit trail).
 > Fase 1: RBAC enforced — W6 endpoints are `protectedProcedure`; `state.set` is capability-gated
 > by `(scope,key)` via the shared map (`migration/src/rbac.js` → `server/src/rbac.ts`); `updatedBy`
 > comes from the session. Fase 2: client login — `api.js` sends a Bearer token (localStorage;
 > httpOnly-cookie hardening = W10) and broadcasts `ams:auth-expired` on 401; `app.jsx` `Root` is a
 > session gate (checking → `<LoginScreen>` → app); `contexts.jsx` `AuthContext` is real
-> (`login`/`logout`/`can`, role from session, act-as removed). **Fase 3 TODO:** wire `can()` to
-> action buttons, replace mock `SecKeamanan`/`SecAkses` with real ops.
+> (`login`/`logout`/`can`, role from session, act-as removed). Fase 3: UI mirrors enforcement —
+> `useAuth().can(CAP.*)` gates AJE/opinion/firm-settings; `SecKeamanan` does real changePassword/TOTP/
+> session-list+revoke/auth-event panel (endpoints `auth.sessions`/`auth.revokeOtherSessions`/
+> `auth.events`); `SecAkses` is read-only from the shared map. **Deferred → W10:** httpOnly cookies,
+> IP-allowlist, email login-alerts/reset, cross-device revoke. **No per-engagement data isolation**
+> (any authenticated role reads any engagement) → W7.5/W9.
 >
 > **Run it:** `cd migration; npm run dev:all` then open :5180 → login. Dev accounts below. If the
 > server grabbed the wrong port behind a port-injecting launcher, pin it: `$env:PORT='5181'`.
