@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui.jsx';
 import { PROGRAMME } from './view_cockpit.jsx';
-import { WpCompletenessRecap } from './wp_signoff.jsx';
+import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — Engagement Cockpit (DEEP)
@@ -128,7 +128,7 @@ function EngagementCockpit() {
   const { fmt } = window.AMS;
   const nav = useNav();
   const { activeEngagement, activeClient } = useFirm();
-  const { reviewNotes, aje, risks, workpapers, team, activity, deadlines } = useAudit();
+  const { reviewNotes, aje, risks, workpapers, team, activity, deadlines, wpState } = useAudit();
   const e = activeEngagement;
   const [tab, setTab] = useStateCkp('ringkasan');
 
@@ -152,6 +152,10 @@ function EngagementCockpit() {
     /* WP */
     const wpReviewed = workpapers.filter(w => w.status === 'Reviewed').length;
     const wpNoReviewer = workpapers.filter(w => w.reviewer === '—');
+    /* WP kanonik (SSOT wpState) — SUMBER TUNGGAL gerbang kelengkapan,
+       sama dgn firm-board gate (engagementGate) & WpCompletenessRecap.
+       Mengganti hitungan demo `workpapers` utk kriteria gate (Fase 2 P5). */
+    const wpRecap = wpCompletenessFor({ wpState }, Object.keys(WP_MODULE_MAP));
     /* risks */
     const sigRisks = risks.filter(r => r.inherent === 'Significant');
     const fraudRisks = risks.filter(r => r.fraud);
@@ -199,12 +203,12 @@ function EngagementCockpit() {
 
     return {
       overall, phasePct, elapsedPct, daysLeft, burnPct,
-      openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer,
+      openNotes, highOpen, proposedAje, proposedAmt, wpReviewed, wpNoReviewer, wpRecap,
       sigRisks, fraudRisks, excTot, sigAreas, sigCovered,
       schedTone, budgetTone, qualTone, riskTone, docTone, verdict,
       phaseRows, members, wipTot, stdBudgetCost, fee,
     };
-  }, [e, reviewNotes, aje, risks, workpapers, team, activeClient]);
+  }, [e, reviewNotes, aje, risks, workpapers, team, activeClient, wpState]);
 
   const TABS = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -659,7 +663,7 @@ function TabRisiko({ D, e, nav }) {
     { l: 'Seluruh risiko signifikan direspons & diuji', ok: D.sigCovered === D.sigAreas.length, sub: `${D.sigCovered}/${D.sigAreas.length} area tuntas` },
     { l: 'Tidak ada pengecualian belum dievaluasi', ok: D.excTot === 0, sub: `${D.excTot} pengecualian terbuka` },
     { l: 'AJE signifikan telah dibukukan', ok: D.proposedAje.length === 0, sub: `${D.proposedAje.length} AJE usulan tertunda` },
-    { l: 'Seluruh kertas kerja telah di-review', ok: D.wpNoReviewer.length === 0, sub: `${D.wpNoReviewer.length} WP tanpa reviewer` },
+    { l: 'Seluruh kertas kerja kunci telah di-review (sign-off)', ok: D.wpRecap.signed === D.wpRecap.total, sub: `${D.wpRecap.signed}/${D.wpRecap.total} WP ter-review · ${D.wpRecap.signedPct}% (SSOT)` },
     { l: 'Seluruh catatan review terselesaikan', ok: D.openNotes.length === 0, sub: `${D.openNotes.length} catatan open` },
     { l: 'Penilaian going concern selesai', ok: false, sub: 'Going Concern 65% — dalam proses' },
     { l: 'Telaah peristiwa kemudian (subsequent)', ok: false, sub: 'Subsequent Events 30% — dalam proses' },
