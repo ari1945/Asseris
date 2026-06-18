@@ -3,3 +3,8 @@ node_modules/
 *.db-journal
 dev.db
 test.db
+
+# Secrets — never commit. The tracked .env holds only DATABASE_URL (no secret);
+# real keys (LLM_API_KEY etc.) go in .env.local, which stays local.
+.env.local
+.env.*.local
