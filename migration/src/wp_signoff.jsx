@@ -410,7 +410,7 @@ function opinionFinalized(firm) {
 function engagementGate(audit, firm, opts) {
   const o = opts || {};
   const moduleIds = o.moduleIds || Object.keys(WP_MODULE_MAP);
-  const fromPhase = (firm && firm.activeEngagement && firm.activeEngagement.phase) || 'Perencanaan';
+  const fromPhase = o.fromPhase || (firm && firm.activeEngagement && firm.activeEngagement.phase) || 'Perencanaan';
   const fromIdx = PHASE_ORDER.indexOf(fromPhase);
   const nextPhase = o.nextPhase || PHASE_ORDER[Math.min(fromIdx + 1, PHASE_ORDER.length - 1)];
   const toIdx = PHASE_ORDER.indexOf(nextPhase);
@@ -454,11 +454,11 @@ function engagementGate(audit, firm, opts) {
 
 /* EngagementGateSummary — ringkasan prasyarat + tautan "buka modul" untuk
    menyelesaikan blocker. Drop-in (firm board / dialog konfirmasi Fase 1). */
-function EngagementGateSummary({ nextPhase, moduleIds, compact }) {
+function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }) {
   const audit = useAudit();
   const firm = useFirm();
   const nav = useNav();
-  const g = engagementGate(audit, firm, { nextPhase, moduleIds });
+  const g = gate || engagementGate(audit, firm, { nextPhase, moduleIds });
   if (g.severity === 'none' || g.criteria.length === 0) {
     return <div className="tiny muted"><I.check size={11} /> Tidak ada prasyarat untuk transisi ke <strong>{g.nextPhase}</strong>.</div>;
   }
@@ -493,14 +493,83 @@ function EngagementGateSummary({ nextPhase, moduleIds, compact }) {
   );
 }
 
+/* usePhaseGate (Fase 1) — penegakan transisi fase. Bungkus `setEngagementPhase`:
+   - →Arsip (severity 'confirm'): SELALU minta konfirmasi (titik lock); bila ada
+     blocker → tombol override + jejak `logActivity({type:'gate-override'})`.
+   - →Finalisasi (severity 'warn'): dialog hanya bila ada blocker (peringatan).
+   - lainnya / terpenuhi tanpa lock: lanjут langsung.
+   Konsumen merender <PhaseGateDialog> dari state `pending`. */
+function usePhaseGate() {
+  const audit = useAudit();
+  const firm = useFirm();
+  const setEngagementPhase = (firm && firm.setEngagementPhase) || (() => {});
+  const logActivity = (audit && audit.logActivity) || (() => {});
+  const [pending, setPending] = useStateWPS(null);
+  const attempt = (engId, fromPhase, toPhase) => {
+    const g = engagementGate(audit, firm, { nextPhase: toPhase, fromPhase });
+    const needsDialog = g.severity === 'confirm' ? true : (g.severity === 'warn' && !g.allMet);
+    if (!needsDialog) { setEngagementPhase(engId, toPhase); return; }
+    setPending({ engId, fromPhase, toPhase, gate: g });
+  };
+  const confirm = () => {
+    if (!pending) return;
+    setEngagementPhase(pending.engId, pending.toPhase);
+    if (pending.gate.blockers.length) {
+      logActivity({ type: 'gate-override', module: 'engagement',
+        text: `Transisi ${pending.fromPhase}→${pending.toPhase} (${pending.engId}) menembus ${pending.gate.blockers.length} prasyarat (override).` });
+    }
+    setPending(null);
+  };
+  const cancel = () => setPending(null);
+  return { attempt, pending, confirm, cancel };
+}
+
+/* PhaseGateDialog — modal konfirmasi/peringatan transisi fase. */
+function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }) {
+  if (!gate) return null;
+  const isConfirm = gate.severity === 'confirm';
+  const blocked = gate.blockers.length > 0;
+  const accent = isConfirm ? 'var(--red)' : 'var(--amber)';
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onCancel}>
+      <div className="panel" style={{ width: 460, maxWidth: '94vw', padding: 0, overflow: 'hidden' }} onClick={ev => ev.stopPropagation()}>
+        <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', borderTop: `3px solid ${accent}` }}>
+          <div className="row ac gap8" style={{ fontWeight: 700, fontSize: 13.5 }}>
+            <span style={{ color: accent }}><I.alert size={15} /></span>
+            {isConfirm ? 'Konfirmasi pengarsipan engagement' : `Transisi ${fromPhase} → ${toPhase}`}
+          </div>
+          <div className="tiny muted" style={{ marginTop: 3 }}>
+            {isConfirm
+              ? (blocked
+                ? 'Mengarsipkan akan mengunci engagement (read-only). Prasyarat berikut BELUM terpenuhi:'
+                : 'Semua prasyarat terpenuhi. Mengarsipkan akan mengunci engagement (read-only).')
+              : 'Beberapa prasyarat belum terpenuhi. Anda tetap dapat melanjutkan:'}
+          </div>
+        </div>
+        <div style={{ padding: '12px 16px' }}>
+          <EngagementGateSummary gate={gate} compact />
+        </div>
+        <div className="row jb ac" style={{ padding: '11px 16px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+          <button className="btn sm" onClick={onCancel}>Batal</button>
+          <Btn sm variant="primary" style={{ background: accent, borderColor: accent }} onClick={onConfirm}>
+            {isConfirm
+              ? (blocked ? <><I.lock size={13} /> Tetap arsipkan (override)</> : <><I.lock size={13} /> Arsipkan &amp; kunci</>)
+              : <>Lanjutkan</>}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 Object.assign(window, {
   WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
-  PHASE_ORDER, engagementGate, EngagementGateSummary,
+  PHASE_ORDER, engagementGate, EngagementGateSummary, usePhaseGate, PhaseGateDialog,
 });
 
 export {
   WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
-  PHASE_ORDER, engagementGate, EngagementGateSummary,
+  PHASE_ORDER, engagementGate, EngagementGateSummary, usePhaseGate, PhaseGateDialog,
 };

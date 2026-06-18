@@ -8,6 +8,7 @@ import { KvBox } from './view_analytical.jsx';
 import { CRM360, CRMAktivitas, CRMPeluang, CRMSegmentasi } from './view_crm2.jsx';
 import { EngAnggaran, EngJadwal, EngPortofolio, EngStaffing } from './view_eng2.jsx';
 import { MSub } from './view_fpm_parts.jsx';
+import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
 
 /* ============================================================
    NeoSuite AMS — Client CRM + Engagement Management
@@ -269,7 +270,8 @@ function ClientForm({ form, onClose, onSave }) {
 /* ---------------- Engagement Management ---------------- */
 function EngagementMgmt() {
   const { fmt, rp } = window.AMS;
-  const { engagements, clients, activeEngagementId, setActiveEngagementId, setEngagementPhase, addEngagement } = useFirm();
+  const { engagements, clients, activeEngagementId, setActiveEngagementId, addEngagement } = useFirm();
+  const pg = usePhaseGate();
   const [dragId, setDragId] = useStateF(null);
   const [overPhase, setOverPhase] = useStateF(null);
   const [detailId, setDetailId] = useStateF(null);
@@ -322,7 +324,7 @@ function EngagementMgmt() {
                 <div key={ph}
                   onDragOver={(ev) => { ev.preventDefault(); if (overPhase !== ph) setOverPhase(ph); }}
                   onDragLeave={() => setOverPhase(p => p === ph ? null : p)}
-                  onDrop={(ev) => { ev.preventDefault(); if (dragId) setEngagementPhase(dragId, ph); setDragId(null); setOverPhase(null); }}
+                  onDrop={(ev) => { ev.preventDefault(); if (dragId) { const de = engagements.find(x => x.id === dragId); pg.attempt(dragId, de && de.phase, ph); } setDragId(null); setOverPhase(null); }}
                   style={{ borderRadius: 8, padding: 4, background: overPhase === ph ? 'var(--blue-050)' : 'transparent', outline: overPhase === ph ? '2px dashed var(--blue)' : 'none', minHeight: 80, transition: 'background .12s' }}>
                   <div className="row ac gap8" style={{ marginBottom: 8, padding: '0 4px' }}>
                     <span style={{ width: 9, height: 9, borderRadius: 3, background: phColor }} />
@@ -365,6 +367,7 @@ function EngagementMgmt() {
       </div>}
       {detail && <EngagementDetail e={detail} client={clients.find(c => c.id === detail.clientId)} onClose={() => setDetailId(null)} />}
       {showNew && <EngagementForm clients={clients} onClose={() => setShowNew(false)} onAdd={(e) => { addEngagement(e); setShowNew(false); }} />}
+      {pg.pending && <PhaseGateDialog gate={pg.pending.gate} fromPhase={pg.pending.fromPhase} toPhase={pg.pending.toPhase} onConfirm={pg.confirm} onCancel={pg.cancel} />}
     </>
   );
 }
@@ -372,7 +375,7 @@ function EngagementMgmt() {
 /* ---- Engagement detail drawer ---- */
 function EngagementDetail({ e, client, onClose }) {
   const { fmt } = window.AMS;
-  const { setEngagementPhase } = useFirm();
+  const pg = usePhaseGate();
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
   const burn = e.actualHrs / e.budgetHrs;
   const milestones = [
@@ -383,6 +386,7 @@ function EngagementDetail({ e, client, onClose }) {
   const phIdx = phases.indexOf(e.phase);
 
   return (
+    <>
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
       <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 440, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={ev => ev.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
@@ -401,7 +405,7 @@ function EngagementDetail({ e, client, onClose }) {
           {/* phase switcher */}
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Fase Engagement</div>
           <div className="seg" style={{ width: '100%', marginBottom: 16 }}>
-            {phases.map(p => <button key={p} className={e.phase === p ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} onClick={() => setEngagementPhase(e.id, p)}>{p}</button>)}
+            {phases.map(p => <button key={p} className={e.phase === p ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} onClick={() => pg.attempt(e.id, e.phase, p)}>{p}</button>)}
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
@@ -444,6 +448,8 @@ function EngagementDetail({ e, client, onClose }) {
         </div>
       </div>
     </div>
+    {pg.pending && <PhaseGateDialog gate={pg.pending.gate} fromPhase={pg.pending.fromPhase} toPhase={pg.pending.toPhase} onConfirm={pg.confirm} onCancel={pg.cancel} />}
+    </>
   );
 }
 
