@@ -32,7 +32,7 @@ const WP_MODULE_MAP = {
   psak72:  { ref: 'R',   requiredEvidence: ['Analisis 5-langkah pengakuan pendapatan', 'Sampel kontrak penjualan', 'Uji cut-off pendapatan'] },
   sad:     { ref: '810', requiredEvidence: ['Daftar salah saji (SAD)', 'Surat representasi manajemen'] },
   opinion: { ref: '900', requiredEvidence: ['Draf laporan auditor', 'Checklist pengungkapan LK'] },
-  calc:    { ref: '300', requiredEvidence: ['Kertas kerja perhitungan materialitas'] },
+  materiality: { ref: '300', requiredEvidence: ['Kertas kerja perhitungan materialitas'] },
   /* tanpa ref huruf → key = id modul (WP berlingkup modul) */
   psak1:   { ref: 'psak1',  requiredEvidence: ['Checklist penyajian & pengungkapan LK', 'Uji asumsi kelangsungan usaha'] },
   psak2:   { ref: 'psak2',  requiredEvidence: ['Rekonsiliasi arus kas (metode tidak langsung)', 'Klasifikasi operasi/investasi/pendanaan'] },
@@ -53,6 +53,8 @@ const WP_MODULE_MAP = {
   isak35:  { ref: 'isak35',  requiredEvidence: ['Laporan keuangan entitas nonlaba (ISAK 35)', 'Checklist klasifikasi aset neto'] },
   psak117: { ref: 'psak117', requiredEvidence: ['Laporan aktuaria kontrak asuransi', 'Kertas kerja valuasi GMM/PAA/VFA'] },
   syariah: { ref: 'syariah', requiredEvidence: ['Opini Dewan Pengawas Syariah', 'Kertas kerja pemurnian & dana kebajikan'] },
+  /* modul dokumentasi audit (SA 230) — kesimpulan kelengkapan & perakitan berkas */
+  sa230:   { ref: 'sa230',  requiredEvidence: ['Memo dokumentasi audit (SA 230)', 'Daftar simak perakitan & retensi berkas final'] },
   /* modul prosedur SA (seri 500 · bukti audit) */
   sa501:   { ref: 'sa501',  requiredEvidence: ['Observasi persediaan', 'Konfirmasi litigasi & klaim'] },
   sa520:   { ref: 'sa520',  requiredEvidence: ['Ekspektasi & ambang investigasi analitis', 'Investigasi varians signifikan'] },
