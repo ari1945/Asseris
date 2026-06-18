@@ -1,0 +1,29 @@
+{
+  "name": "neosuite-ams-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "NeoSuite AMS — W6 backend (tRPC + Prisma/SQLite). Server-side SSOT for engagement state; localStorage demotes to offline cache. Dev = SQLite; prod (W10) flips datasource to Postgres.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "seed": "tsx src/seed.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prisma:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:reset": "prisma db push --skip-generate && tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "@trpc/server": "^11.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prisma": "^6.2.1",
+    "tsx": "^4.19.2",
+    "typescript": "^6.0.3",
+    "vitest": "^2.1.8"
+  }
+}

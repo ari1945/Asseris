@@ -1,0 +1,131 @@
+// NeoSuite AMS — W6 data model (Fase 0).
+// Core entities (firm/user/client/engagement/WTB) seeded from migration/src/data.js,
+// + StateDoc: the versioned key/value store that replaces the ams.*/ams.v1.* localStorage
+// keys as the cross-browser SSOT. Numbers are Float (JS double — exact for the < 2^53
+// integers used here, so zero numeric drift vs the in-app constants).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Dev: SQLite (zero-ops, single file). Prod (W10): change to "postgresql" — no
+  // vendor-specific SQL is used, so the flip is a one-line datasource change.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Firm {
+  id          String       @id
+  name        String
+  short       String
+  license     String?
+  partners    Int          @default(0)
+  managers    Int          @default(0)
+  staff       Int          @default(0)
+  users       User[]
+  team        TeamMember[]
+  clients     Client[]
+  engagements Engagement[]
+}
+
+model User {
+  id       String  @id
+  firmId   String
+  firm     Firm    @relation(fields: [firmId], references: [id])
+  name     String
+  initials String?
+  role     String
+  email    String?
+  dataJson String // full original USER object (lossless envelope for the ~15 profile fields)
+}
+
+model TeamMember {
+  id     String @id @default(cuid())
+  firmId String
+  firm   Firm   @relation(fields: [firmId], references: [id])
+  name   String
+  role   String
+  util   Int    @default(0)
+}
+
+model Client {
+  id          String       @id
+  firmId      String
+  firm        Firm         @relation(fields: [firmId], references: [id])
+  name        String
+  industry    String?
+  tier        String?
+  risk        String?
+  npwp        String?
+  city        String?
+  listed      Boolean      @default(false)
+  since       Int?
+  partner     String?
+  fee         Float?
+  status      String?
+  engagements Engagement[]
+}
+
+model Engagement {
+  id          String   @id
+  firmId      String
+  firm        Firm     @relation(fields: [firmId], references: [id])
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  type        String?
+  fy          String?
+  standard    String?
+  status      String?
+  phase       String?
+  progress    Int      @default(0)
+  partner     String?
+  manager     String?
+  deadline    String?
+  budgetHrs   Int?
+  actualHrs   Int?
+  risk        String?
+  materiality Float?
+  wtb         WtbRow[]
+}
+
+// Working Trial Balance rows for an engagement. Mirrors the runtime object shape
+// window.AMS.WTB carries: { key, group, code, name, ly, unadj, aje, adj, lead } where
+// adj = unadj + aje (derived, recomputed on hydration — not stored). `key` is 'wtb'+ord,
+// also derivable from `ord`. Seeded in Fase 0; becomes the boot-hydration source that
+// frees canon from reading window.AMS.WTB at module-load (Fase 3).
+model WtbRow {
+  id           String     @id @default(cuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id])
+  ord          Int
+  group        String
+  code         String
+  name         String
+  ly           Float      @default(0)
+  unadj        Float      @default(0)
+  aje          Float      @default(0)
+  lead         String?
+
+  @@index([engagementId])
+}
+
+// The versioned SSOT for all mutable app state. One row per (scope, scopeId, key):
+//   scope='engagement' scopeId=ENG-…  key='aje' | 'wpState' | 'diagnostics.v1' | …
+//   scope='firm'       scopeId=FIRM-…  key='clients' | 'engagements'
+//   scope='user'       scopeId=USER-…  key='profile' | 'role' | prefs
+// `version` drives optimistic concurrency: writes pass a baseVersion and the server
+// does an atomic compare-and-swap (UPDATE … WHERE version = baseVersion).
+model StateDoc {
+  id        String   @id @default(cuid())
+  scope     String
+  scopeId   String
+  key       String
+  valueJson String
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@unique([scope, scopeId, key])
+  @@index([scope, scopeId])
+}
