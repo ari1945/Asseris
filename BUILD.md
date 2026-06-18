@@ -106,6 +106,32 @@ are `ams.v1.<scope>.<scopeId>.<key>` (legacy unscoped `ams.v1.<key>` is read onc
 a fallback). **Zero numeric regression** still gated by the canon Vitest net + live
 oracle (`materiality` OM 4260 / PM 3195 / CTT 213).
 
+## W7.5 — Per-engagement data isolation (`server/src/engagementAccess.ts`)
+
+> **W7.5 COMPLETE (Fase 0–1).** Closes W7's honest gap ("any authenticated role reads any
+> engagement"). A user may touch an engagement's **working data** (`bootstrap` + StateDoc
+> scope=`engagement` + WTB) only if they are a **member** (`EngagementMember`) OR their role has
+> **`ENGAGEMENT_VIEW_ALL`** (Partner + Manager oversight — W7.5 Q1). The firm-ops **roster** (engagement
+> names in pipeline/scheduler/profit) stays visible (Q2 = isolate working data, not the roster).
+
+- **Model:** `EngagementMember(engagementId, userId)` — the `Engagement.partner/manager` name strings
+  are NOT a membership source (they don't map to login users). Seeded: all 4 accounts → `ENG-2025-014`
+  (boot bootstraps it for everyone); Senior also → `ENG-2025-031` (so Junior→031 is FORBIDDEN, Senior→031
+  is allowed — the live isolation demo).
+- **Server enforcement:** `assertEngagementAccess(user, engId)` gates `bootstrap` and engagement-scoped
+  `state.get`/`state.set`; `engagement.list` is filtered to `accessibleEngagementIds` (oversight → all).
+- **Client:** `contexts.jsx` FirmProvider fetches the accessible set from `engagement.list`, exposes
+  `canAccessEngagement` + a **guarded** `setActiveEngagementId` (refuses inaccessible ids) and
+  auto-corrects a stale active engagement. The shell switcher + command palette only offer accessible
+  engagements. Degrades gracefully offline (server down → no UI restriction; server still enforces).
+- **Honest boundary:** isolates engagement *working data*, not the *existence* of engagements in
+  firm-ops views (Q2); no per-firm multi-tenancy; no membership-management UI (seed + endpoints only);
+  encryption-at-rest / retention / deploy = W10.
+
+> After editing `schema.prisma`: `npm run prisma:generate && npm run db:push && npm run seed`.
+> The seed now also clears `Session`/`AuthEvent` so a re-seed after anyone has logged in won't trip a
+> foreign-key violation.
+
 ## W8 — LLM proxy (`server/src/llm/`)
 
 > **W8 COMPLETE (Fase 0–2).** A server-side proxy is the only place real LLM calls happen:

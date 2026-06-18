@@ -249,6 +249,34 @@ function AppProviders({ me, onLogout, children }) {
   const [engagements, setEngagements] = useServerState('engagements', D.ENGAGEMENTS, 'firm', FIRM_SCOPE_ID);
   const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', DEFAULT_ENG_ID, 'user', uid);
 
+  /* ---- W7.5: per-engagement access set (server-filtered engagement.list) ----
+     null = unknown/offline → don't restrict the UI (server still enforces isolation;
+     this only shapes the switcher so users aren't offered engagements they can't load). */
+  const [accessibleEngIds, setAccessibleEngIds] = useState(null);
+  useEffect(() => {
+    let live = true;
+    api.engagement.list.query()
+      .then(rows => { if (live) setAccessibleEngIds(rows.map(r => r.id)); })
+      .catch(() => { if (live) setAccessibleEngIds(null); });
+    return () => { live = false; };
+  }, [uid]);
+  const canAccessEngagement = useCallback(
+    id => !accessibleEngIds || accessibleEngIds.includes(id),
+    [accessibleEngIds]
+  );
+  /* Guarded switcher — refuse to activate an engagement the user may not access. */
+  const selectEngagement = useCallback(id => {
+    if (accessibleEngIds && !accessibleEngIds.includes(id)) return;
+    setActiveEngagementId(id);
+  }, [accessibleEngIds, setActiveEngagementId]);
+  /* If the active engagement falls outside the accessible set (e.g. stale default for a
+     non-member), move to the first allowed one so the workspace never shows a dead engagement. */
+  useEffect(() => {
+    if (accessibleEngIds && accessibleEngIds.length && !accessibleEngIds.includes(activeEngagementId)) {
+      setActiveEngagementId(accessibleEngIds[0]);
+    }
+  }, [accessibleEngIds, activeEngagementId, setActiveEngagementId]);
+
   const PHASE_STATUS = { Perencanaan: 'Planning', Eksekusi: 'Fieldwork', Finalisasi: 'Review', Arsip: 'Completed' };
   const setEngagementPhase = useCallback((id, phase) => setEngagements(list => list.map(e =>
     e.id === id ? { ...e, phase, status: PHASE_STATUS[phase] || e.status,
@@ -277,10 +305,11 @@ function AppProviders({ me, onLogout, children }) {
 
   const firm = useMemo(() => ({
     clients, engagements, activeEngagement, activeClient,
-    activeEngagementId, setActiveEngagementId, clientById, engagementsForClient,
+    activeEngagementId, setActiveEngagementId: selectEngagement, clientById, engagementsForClient,
     addClient, updateClient, setEngagementPhase, addEngagement,
+    accessibleEngagementIds: accessibleEngIds, canAccessEngagement,
     locked: activeEngagement?.phase === 'Arsip' || activeEngagement?.status === 'Completed',
-  }), [clients, engagements, activeEngagement, activeClient, activeEngagementId, clientById, engagementsForClient, addClient, updateClient, setEngagementPhase, addEngagement]);
+  }), [clients, engagements, activeEngagement, activeClient, activeEngagementId, selectEngagement, clientById, engagementsForClient, addClient, updateClient, setEngagementPhase, addEngagement, accessibleEngIds, canAccessEngagement]);
 
   /* ---- Audit: documentation state for active engagement ---- */
   /* user-added AJEs carry structured `lines: [{code, name, debit, credit}]` */

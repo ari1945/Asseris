@@ -17,7 +17,7 @@ const { useState: useStateSH } = React;
 
 function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, onNavigate, route }) {
   const { user, firm } = useAuth();
-  const { activeClient, activeEngagement, engagements, clients, setActiveEngagementId } = useFirm();
+  const { activeClient, activeEngagement, engagements, clients, setActiveEngagementId, canAccessEngagement } = useFirm();
   const [open, setOpen] = useStateSH(false);
   const [notifOpen, setNotifOpen] = useStateSH(false);
   const [userOpen, setUserOpen] = useStateSH(false);
@@ -59,7 +59,9 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
                 <I.briefcase size={14} style={{ color: 'var(--blue)' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-3)' }}>Ganti Engagement Aktif</span>
               </div>
-              {engagements.map(e => {
+              {/* W7.5 — only engagements the user may access are switchable here (loading a
+                  forbidden one would 403 server-side). The firm-ops roster stays full elsewhere. */}
+              {engagements.filter(e => canAccessEngagement(e.id)).map(e => {
                 const c = clients.find(x => x.id === e.clientId);
                 const on = e.id === activeEngagement?.id;
                 return (
