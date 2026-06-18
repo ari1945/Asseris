@@ -33,6 +33,39 @@ npm run test       # vitest — canon "number engine" net (W4); add --coverage f
 > types and transforms JSX uniformly). Bare generics in `.ts` need a trailing
 > comma (`<T,>`) to avoid being parsed as JSX.
 
+## W6 — Backend & data layer (`server/`)
+
+Since W6 the engagement state SSOT is a backend, not localStorage. The
+`server/` package (Node + TS, **tRPC + Prisma/SQLite**) is separate from
+`migration/` and has its own `package.json`/`tsconfig`/tests.
+
+```powershell
+cd server
+npm install            # first time
+npm run prisma:generate
+npm run db:push        # create/sync dev.db (SQLite)
+npm run seed           # seed core entities + WTB from migration/src/data.js (byte-identical)
+npm run typecheck      # tsc --noEmit — MUST stay 0 (extends the W5 gate to server/)
+npm run test           # vitest — StateDoc compare-and-swap integration tests
+npm start              # tRPC server on http://localhost:5181 (localhost only — no auth until W7)
+```
+
+**Run the app WITH the backend** (from `migration/`):
+```powershell
+npm run dev:all        # concurrently: server (:5181) + Vite (:5180)
+```
+Vite proxies `/trpc` → `:5181` (prefix stripped). `npm run dev` alone still works —
+the persistence hook **degrades to cache-only** when the server is absent, so the
+app never breaks; you just lose cross-browser sync.
+
+**Persistence model** (`migration/src/contexts.jsx` + `api.js`): `useServerState`
+(and the public `useAmsPersist`) read the localStorage cache synchronously for
+instant paint, hydrate from the server, and debounce optimistic compare-and-swap
+writes. Keys live under `(scope, scopeId)` — `user`/`firm`/`engagement`. Cache keys
+are `ams.v1.<scope>.<scopeId>.<key>` (legacy unscoped `ams.v1.<key>` is read once as
+a fallback). **Zero numeric regression** still gated by the canon Vitest net + live
+oracle (`materiality` OM 4260 / PM 3195 / CTT 213).
+
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
   numeric I/O, highest value-per-test-line.

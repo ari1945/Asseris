@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { api, isConflict } from './api.js';
 
 /* ============================================================
    NeoSuite AMS — React Context providers
@@ -27,39 +28,124 @@ function notesForEngagement(notes, engId) {
   return notes.filter(n => n.engagementId === engId || n.engagementId == null);
 }
 
-/* persisted state hook — JSON-serialized to localStorage under ams.<key> */
-function usePersisted(key, initial) {
-  const sk = 'ams.v1.' + key;
-  const [val, setVal] = useState(() => {
-    try { const s = localStorage.getItem(sk); if (s != null) return JSON.parse(s); } catch (e) {}
-    return typeof initial === 'function' ? initial() : initial;
-  });
-  useEffect(() => { try { localStorage.setItem(sk, JSON.stringify(val)); } catch (e) {} }, [val]);
+/* ============================================================
+   W6 Fase 1 — server-backed persisted state.
+   The SSOT is now the backend (StateDoc, versioned). localStorage is a
+   cache: read synchronously for instant first paint, then reconciled from
+   the server. Writes update local state optimistically, write through the
+   cache, and debounce a compare-and-swap mutation. If the server is absent
+   the hook degrades to cache-only (errors swallowed) so the app never breaks.
+
+   Scope: each key lives under (scope, scopeId).
+     user       → this user      (profile / role / activeEng / prefs)
+     firm        → the firm        (clients / engagements / firm-wide registries)
+     engagement  → active engagement (aje / risks / wpState / review notes / …)
+   Single-firm/single-user demo, so the firm/user scopeIds are constants that
+   match the seed (FIRM-WHR / USER.employeeId). ============================================================ */
+const FIRM_SCOPE_ID = 'FIRM-WHR';
+function userScopeId() { try { return (window.AMS && window.AMS.USER && window.AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
+const DEFAULT_ENG_ID = 'ENG-2025-014';
+
+/* Public useAmsPersist (module state) defaults to firm scope — i.e. today's
+   "one global doc", now shared across browsers — so no module changes behavior.
+   Only keys that must DIVERGE per engagement are listed here. Keys that already
+   embed the engagement id in their string (e.g. opinionDoc.<engId>) stay firm. */
+const AMS_PERSIST_SCOPE = {
+  'diagnostics.v1': 'engagement',
+  'aiInsights.v1': 'engagement',
+};
+
+const SYNC_DEBOUNCE_MS = 400;
+
+function cacheRead(cacheKey, legacyKey, initial) {
+  try { const s = localStorage.getItem(cacheKey); if (s != null) return JSON.parse(s); } catch (e) {}
+  // one-time fallback to the pre-W6 unscoped key so existing local edits survive the upgrade
+  if (legacyKey) { try { const s = localStorage.getItem(legacyKey); if (s != null) return JSON.parse(s); } catch (e) {} }
+  return typeof initial === 'function' ? initial() : initial;
+}
+function cacheWrite(cacheKey, val) { try { localStorage.setItem(cacheKey, JSON.stringify(val)); } catch (e) {} }
+
+/* The engine. Returns [val, setVal] with the SAME contract as the old hook,
+   including functional updates (setVal(prev => next)), which the app uses widely. */
+function useServerState(key, initial, scope, scopeId) {
+  const cacheKey = 'ams.v1.' + scope + '.' + scopeId + '.' + key;
+  const legacyKey = 'ams.v1.' + key;
+  const [val, setValRaw] = React.useState(() => cacheRead(cacheKey, legacyKey, initial));
+  const versionRef = React.useRef(0);
+  const timerRef = React.useRef(null);
+  const targetRef = React.useRef(null);
+  targetRef.current = { scope, scopeId, key, cacheKey };
+
+  // Hydrate from the server on mount and whenever the scope target changes
+  // (e.g. switching the active engagement re-points engagement-scoped keys).
+  React.useEffect(() => {
+    let cancelled = false;
+    setValRaw(cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache
+    versionRef.current = 0;
+    api.state.get.query({ scope, scopeId, key }).then(res => {
+      if (cancelled) return;
+      versionRef.current = res.version;
+      if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
+    }).catch(() => { /* offline / no server: keep the cache */ });
+    return () => { cancelled = true; };
+  }, [scope, scopeId, key]);
+
+  const flush = React.useCallback((value) => {
+    const t = targetRef.current;
+    api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current, updatedBy: userScopeId() })
+      .then(res => { versionRef.current = res.version; })
+      .catch(err => {
+        // Lost an optimistic-concurrency race → adopt the server's value.
+        // (Fase 2 surfaces this as a conflict toast; here we silently reconcile.)
+        if (isConflict(err)) {
+          api.state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then(res => {
+            versionRef.current = res.version;
+            if (res.version > 0) { setValRaw(res.value); cacheWrite(t.cacheKey, res.value); }
+          }).catch(() => {});
+        }
+        /* other errors (offline): cache already holds the value; the next edit retries */
+      });
+  }, []);
+
+  const setVal = React.useCallback((next) => {
+    setValRaw(prev => {
+      const value = typeof next === 'function' ? next(prev) : next;
+      cacheWrite(targetRef.current.cacheKey, value);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => flush(value), SYNC_DEBOUNCE_MS);
+      return value;
+    });
+  }, [flush]);
+
   return [val, setVal];
 }
+
 function clearPersisted() {
   try { Object.keys(localStorage).filter(k => k.startsWith('ams.v1.') || k.startsWith('ams.')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
 }
-/* standalone persisted-state hook for modules outside the providers */
+
+/* standalone persisted-state hook for modules outside the providers.
+   Scope from the map (default firm); engagement-scoped keys read the active
+   engagement from FirmContext (null outside a provider → default engagement). */
 function useAmsPersist(key, initial) {
-  const sk = 'ams.v1.' + key;
-  const [val, setVal] = React.useState(() => {
-    try { const s = localStorage.getItem(sk); if (s != null) return JSON.parse(s); } catch (e) {}
-    return typeof initial === 'function' ? initial() : initial;
-  });
-  React.useEffect(() => { try { localStorage.setItem(sk, JSON.stringify(val)); } catch (e) {} }, [val]);
-  return [val, setVal];
+  const scope = AMS_PERSIST_SCOPE[key] || 'firm';
+  const firm = useFirm(); // always called (rules-of-hooks); null outside provider
+  const scopeId = scope === 'engagement'
+    ? ((firm && firm.activeEngagementId) || DEFAULT_ENG_ID)
+    : (scope === 'user' ? userScopeId() : FIRM_SCOPE_ID);
+  return useServerState(key, initial, scope, scopeId);
 }
 window.useAmsPersist = useAmsPersist;
 
 function AppProviders({ children }) {
   const D = window.AMS;
+  const uid = userScopeId();
 
   /* ---- Auth ---- */
   /* profile is the SINGLE SOURCE OF TRUTH for user identity (name, photo, credentials).
      Edited from Pengaturan › Profil & Akun; reflected everywhere (TopBar, sign-offs, menus). */
-  const [profile, setProfile] = usePersisted('profile', { ...D.USER });
-  const [role, setRole] = usePersisted('role', D.USER.role);
+  const [profile, setProfile] = useServerState('profile', { ...D.USER }, 'user', uid);
+  const [role, setRole] = useServerState('role', D.USER.role, 'user', uid);
   const updateProfile = useCallback((patch) => setProfile(p => {
     const merged = { ...D.USER, ...p, ...(typeof patch === 'function' ? patch(p) : patch) };
     return merged;
@@ -72,9 +158,9 @@ function AppProviders({ children }) {
   }), [profile, role]);
 
   /* ---- Firm: clients + engagements + active selection ---- */
-  const [clients, setClients] = usePersisted('clients', D.CLIENTS);
-  const [engagements, setEngagements] = usePersisted('engagements', D.ENGAGEMENTS);
-  const [activeEngagementId, setActiveEngagementId] = usePersisted('activeEng', 'ENG-2025-014');
+  const [clients, setClients] = useServerState('clients', D.CLIENTS, 'firm', FIRM_SCOPE_ID);
+  const [engagements, setEngagements] = useServerState('engagements', D.ENGAGEMENTS, 'firm', FIRM_SCOPE_ID);
+  const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', DEFAULT_ENG_ID, 'user', uid);
 
   const PHASE_STATUS = { Perencanaan: 'Planning', Eksekusi: 'Fieldwork', Finalisasi: 'Review', Arsip: 'Completed' };
   const setEngagementPhase = useCallback((id, phase) => setEngagements(list => list.map(e =>
@@ -111,15 +197,16 @@ function AppProviders({ children }) {
 
   /* ---- Audit: documentation state for active engagement ---- */
   /* user-added AJEs carry structured `lines: [{code, name, debit, credit}]` */
-  const [aje, setAje] = usePersisted('aje', D.AJE);
-  const [risks, setRisks] = usePersisted('risks', D.RISKS);
-  const [wtbOverrides, setWtbOverrides] = usePersisted('wtbOverrides', {});
-  const [wpState, setWpState] = usePersisted('wpState', {}); // per-WP tickmarks / signoff
-  const [reviewNotes, setReviewNotes] = usePersisted('reviewNotes', D.REVIEW_NOTES || []);
-  const [noteThreads, setNoteThreads] = usePersisted('noteThreads', {}); // noteId -> [reply,...] overlay (works for module & WP notes)
-  const [timeEntries, setTimeEntries] = usePersisted('timeEntries', D.TIME_ENTRIES || []);
-  const [taskState, setTaskState] = usePersisted('taskState', {}); // taskId -> done
-  const [logEntries, setLogEntries] = usePersisted('logEntries', []);
+  /* engagement-scoped: re-hydrate when the active engagement changes */
+  const [aje, setAje] = useServerState('aje', D.AJE, 'engagement', activeEngagementId);
+  const [risks, setRisks] = useServerState('risks', D.RISKS, 'engagement', activeEngagementId);
+  const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
+  const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
+  const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
+  const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
+  const [timeEntries, setTimeEntries] = useServerState('timeEntries', D.TIME_ENTRIES || [], 'engagement', activeEngagementId);
+  const [taskState, setTaskState] = useServerState('taskState', {}, 'engagement', activeEngagementId); // taskId -> done
+  const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId);
   const logActivity = useCallback((e) => setLogEntries(list => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
 
   const addReviewNote = useCallback((note) => setReviewNotes(list => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
