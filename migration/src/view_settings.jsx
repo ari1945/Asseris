@@ -810,6 +810,15 @@ function SecAI({ s, setGroup, flash }) {
   const baseUrls = ai.baseUrls || {};
   const [test, setTest] = useStateSet(null);
   const [showKey, setShowKey] = useStateSet(false);
+  // W8 — real proxy status from the server (key is server-held; this panel no longer simulates).
+  const [srv, setSrv] = useStateSet({ state: 'loading' });
+  useEffectSet(() => {
+    let live = true;
+    (window.amsLlmStatus ? window.amsLlmStatus() : Promise.resolve({ configured: false }))
+      .then(st => { if (live) setSrv({ state: 'ready', ...st }); })
+      .catch(() => { if (live) setSrv({ state: 'ready', configured: false }); });
+    return () => { live = false; };
+  }, []);
 
   const curKey = keys[active.id] || '';
   const curBase = baseUrls[active.id] || active.baseUrl || '';
@@ -818,14 +827,16 @@ function SecAI({ s, setGroup, flash }) {
   const setKey = (val) => { setGroup('ai', 'keys', { ...keys, [active.id]: val }); setTest(null); };
   const setBase = (val) => setGroup('ai', 'baseUrls', { ...baseUrls, [active.id]: val });
 
+  // W8 — "test" now re-reads the REAL server proxy status (no simulation, no client key check).
   const runTest = () => {
     setTest({ state: 'testing' });
-    setTimeout(() => {
-      if (!curKey.trim()) return setTest({ state: 'fail', msg: 'Kunci API belum diisi.' });
-      if (active.keyPrefix && !curKey.trim().startsWith(active.keyPrefix)) return setTest({ state: 'fail', msg: 'Format kunci tidak sesuai — awalan ‘' + active.keyPrefix + '’.' });
-      setTest({ state: 'ok', msg: active.browser === 'proxy' ? 'Konfigurasi valid · panggilan akan melalui proxy server.' : 'Konfigurasi valid · siap dipakai.' });
-      flash && flash('Koneksi ' + active.label + ' tersimulasi berhasil');
-    }, 850);
+    (window.amsLlmStatus ? window.amsLlmStatus() : Promise.resolve({ configured: false }))
+      .then(st => {
+        setSrv({ state: 'ready', ...st });
+        if (st.configured) setTest({ state: 'ok', msg: 'Proxy server aktif · ' + (st.provider || '') + ' · ' + (st.model || '') + '.' });
+        else setTest({ state: 'fail', msg: 'Proxy server belum dikonfigurasi (LLM_API_KEY belum di-set di server).' });
+      })
+      .catch(() => setTest({ state: 'fail', msg: 'Server tidak dapat dihubungi.' }));
   };
 
   const browserBadge = active.browser === 'proxy'
@@ -834,13 +845,24 @@ function SecAI({ s, setGroup, flash }) {
 
   return (
     <>
-      {/* prototipe banner */}
-      <div className="panel" style={{ padding: '11px 14px', display: 'flex', gap: 10, alignItems: 'flex-start', background: 'var(--blue-050)', borderColor: 'transparent' }}>
-        <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.sparkle size={16} /></span>
-        <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
-          Pilih penyedia model bahasa untuk AI Co-pilot & ekstraksi dokumen. <b>Di prototipe ini panggilan tidak dikirim ke API nyata</b> — pengaturan disimpan & status divalidasi secara simulatif. Untuk produksi, panggilan harus melalui <b>proxy server</b> (kunci di server, auth, rate-limit, redaksi PII).
-        </div>
-      </div>
+      {/* W8 — status proxy LLM NYATA dari server (bukan simulatif) */}
+      {(() => {
+        const up = srv.state === 'ready' && srv.configured;
+        const bg = up ? 'var(--green-bg)' : 'var(--amber-bg)';
+        const fg = up ? 'var(--green)' : 'var(--amber)';
+        return (
+          <div className="panel" style={{ padding: '11px 14px', display: 'flex', gap: 10, alignItems: 'flex-start', background: bg, borderColor: 'transparent' }}>
+            <span style={{ color: fg, flex: '0 0 auto', marginTop: 1 }}><I.shield size={16} /></span>
+            <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
+              {srv.state !== 'ready'
+                ? <>Memeriksa status proxy LLM server…</>
+                : up
+                  ? <><b>Proxy LLM aktif di server</b> · {srv.provider} · <span className="mono">{srv.model}</span>. Panggilan AI (narasi diagnostik) lewat proxy terotentikasi — <b>kunci tersimpan di server</b> (env), tak pernah di browser. Egress di-redaksi ke teks temuan saja, di-rate-limit & dicatat (jejak audit).</>
+                  : <><b>Proxy LLM belum dikonfigurasi</b> di server (<span className="mono">LLM_API_KEY</span> belum di-set). Fitur narasi AI nonaktif; diagnostik tetap berjalan <b>deterministik</b>. Lihat <span className="mono">BUILD.md</span> (W8).</>}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* provider grid */}
       <Panel noBody>
@@ -887,7 +909,7 @@ function SecAI({ s, setGroup, flash }) {
             <input className="input" type={showKey ? 'text' : 'password'} value={curKey} onChange={e => setKey(e.target.value)}
               placeholder={active.keyPlaceholder} autoComplete="off" spellCheck={false}
               style={{ width: '100%', height: 32, fontFamily: 'var(--mono)', fontSize: 12 }} />
-            <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}><I.lock size={11} style={{ verticalAlign: '-2px' }} /> {active.note}</div>
+            <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}><I.shield size={11} style={{ verticalAlign: '-2px', color: 'var(--blue)' }} /> <b>Proxy memakai kunci di server</b> (<span className="mono">LLM_API_KEY</span>) — kunci di sini hanya catatan konfigurasi klien dan <b>tidak dikirim</b> oleh proxy. {active.note}</div>
           </div>
 
           {/* base URL */}
@@ -898,7 +920,7 @@ function SecAI({ s, setGroup, flash }) {
           </div>
 
           {/* test */}
-          <SRow title="Uji koneksi" sub="Validasi format kunci & endpoint (simulatif di prototipe ini)." last>
+          <SRow title="Status proxy server" sub="Periksa apakah proxy LLM aktif di server (kunci, provider, model)." last>
             <div className="row ac gap8">
               {test && test.state !== 'testing' && (
                 <span className={'tiny llms-test ' + test.state} style={{ maxWidth: 280 }}>{test.state === 'ok' ? <I.checkCircle size={12} /> : <I.alert size={12} />} {test.msg}</span>

@@ -46,6 +46,40 @@ export function isConflict(err) {
 window.AMS_API = api;
 
 /* ============================================================
+   W8 — LLM proxy client. The real key lives on the server; these just call the
+   authenticated proxy. Both degrade gracefully: status falls back to "not configured"
+   if the server is absent, so the UI honestly shows deterministic-only.
+   ============================================================ */
+const SEV_OK = { high: 1, med: 1, low: 1 };
+
+/** Server LLM status (configured? which provider/model? may this role use it?). */
+export async function llmStatus() {
+  try {
+    return await api.llm.status.query();
+  } catch (e) {
+    return { configured: false, canUse: false, provider: null, model: null };
+  }
+}
+
+/** Narrate deterministic diagnostic findings via the server proxy. Client also slims the
+    payload to the allow-listed finding fields (defence in depth; the server re-redacts).
+    Returns { status:'ok', text, provider, model, usage } | { status:'not-configured' }. */
+export async function llmNarrateDiagnostics(findings) {
+  const slim = (findings || []).map(f => ({
+    id: String(f.id || ''),
+    detector: f.detector ? String(f.detector) : undefined,
+    sev: SEV_OK[f.sev] ? f.sev : 'low',
+    std: f.std ? String(f.std) : undefined,
+    title: String(f.title || ''),
+    detail: f.detail ? String(f.detail) : undefined,
+    suggestedProcedure: f.suggestedProcedure ? String(f.suggestedProcedure) : undefined,
+  }));
+  return api.llm.complete.mutate({ task: 'narrate-diagnostics', findings: slim });
+}
+
+Object.assign(window, { amsLlmStatus: llmStatus, amsLlmNarrateDiagnostics: llmNarrateDiagnostics });
+
+/* ============================================================
    W6 Fase 3 — hydrate window.AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the

@@ -15,7 +15,80 @@ import { Badge, Btn, Panel } from './ui.jsx';
    auditor "Tindak lanjuti / Abaikan + alasan"; keputusan persisten + jejak
    audit (pola sama AiInsightPanel). Mengimpor `diagnostics` memuat AMS_DIAG.
    ============================================================ */
-const { useMemo: useMemoDG, useState: useStateDG } = React;
+const { useMemo: useMemoDG, useState: useStateDG, useEffect: useEffectDG } = React;
+
+/* ============================================================
+   W8 — narasi LLM (opsional) di atas temuan DETERMINISTIK, lewat proxy server.
+   Kunci di server; egress di-redaksi ke teks temuan saja; di-rate-limit & diaudit.
+   Degradasi anggun: proxy tak terkonfigurasi → pesan jujur, panel deterministik tetap.
+   ============================================================ */
+let _llmStatusPromise = null;
+function llmStatusCached() {
+  if (!_llmStatusPromise) {
+    _llmStatusPromise = (window.amsLlmStatus ? window.amsLlmStatus() : Promise.resolve({ configured: false, canUse: false }))
+      .catch(() => ({ configured: false, canUse: false }));
+  }
+  return _llmStatusPromise;
+}
+
+function useLlmNarration(findings) {
+  const [phase, setPhase] = useStateDG('idle'); // idle | loading | done | notconfigured | error
+  const [text, setText] = useStateDG('');
+  const [meta, setMeta] = useStateDG(null);
+  const [status, setStatus] = useStateDG(null); // server status (configured/canUse/provider/model)
+  useEffectDG(() => { let live = true; llmStatusCached().then(st => { if (live) setStatus(st); }); return () => { live = false; }; }, []);
+  const run = async () => {
+    if (!findings.length || !window.amsLlmNarrateDiagnostics) return;
+    setPhase('loading'); setText(''); setMeta(null);
+    try {
+      const r = await window.amsLlmNarrateDiagnostics(findings);
+      if (!r || r.status === 'not-configured') { setPhase('notconfigured'); return; }
+      setText(r.text || ''); setMeta(r); setPhase('done');
+    } catch (e) { setPhase('error'); }
+  };
+  const reset = () => { setPhase('idle'); setText(''); setMeta(null); };
+  return { phase, text, meta, status, run, reset };
+}
+
+/* Blok narasi AI — hanya muncul bila peran boleh memakai LLM (status.canUse). */
+function DiagNarration({ findings }) {
+  const { phase, text, meta, status, run, reset } = useLlmNarration(findings);
+  if (!status || !status.canUse || !findings.length) return null;
+  const busy = phase === 'loading';
+  return (
+    <div className="panel" style={{ padding: '10px 12px', marginBottom: 10, background: 'var(--surface-2)', borderColor: 'var(--line-soft)' }}>
+      <div className="row ac jb" style={{ gap: 8 }}>
+        <div className="row ac gap6" style={{ minWidth: 0 }}>
+          <span style={{ color: 'var(--blue)' }}><I.sparkle size={14} /></span>
+          <span style={{ fontWeight: 700, fontSize: 12 }}>Narasi AI</span>
+          <span className="tiny muted">model bahasa — bukan deterministik</span>
+        </div>
+        {phase === 'done' || phase === 'notconfigured' || phase === 'error'
+          ? <button className="btn sm" onClick={reset}>Tutup</button>
+          : <Btn sm variant="primary" disabled={busy} onClick={run}>{busy ? <>Menyusun…</> : <><I.sparkle size={12} /> Jelaskan {findings.length} temuan</>}</Btn>}
+      </div>
+
+      {phase === 'done' && (
+        <div style={{ marginTop: 9 }}>
+          <div className="tiny" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.55, color: 'var(--ink-1)' }}>{text}</div>
+          <div className="tiny muted" style={{ marginTop: 8, paddingTop: 7, borderTop: '1px solid var(--line-soft)', lineHeight: 1.45 }}>
+            <I.alert size={10} style={{ verticalAlign: '-1px' }} /> Dihasilkan {meta && meta.provider ? meta.provider + ' · ' + meta.model : 'model bahasa'} dari teks temuan deterministik (ter-redaksi). <b>Verifikasi sebelum dipakai di kertas kerja</b> — narasi tak menggantikan temuan/keputusan auditor.
+          </div>
+        </div>
+      )}
+      {phase === 'notconfigured' && (
+        <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>
+          <I.shield size={11} style={{ verticalAlign: '-2px' }} /> Proxy LLM belum dikonfigurasi di server (<span className="mono">LLM_API_KEY</span>). Diagnostik tetap berjalan deterministik; aktifkan proxy untuk narasi (lihat <span className="mono">BUILD.md</span> W8).
+        </div>
+      )}
+      {phase === 'error' && (
+        <div className="tiny" style={{ marginTop: 8, color: 'var(--red)', lineHeight: 1.45 }}>
+          <I.alert size={11} style={{ verticalAlign: '-2px' }} /> Gagal menghubungi proxy LLM (mungkin batas laju terlampaui). Coba lagi nanti — diagnostik deterministik tak terpengaruh.
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* normalisasi temuan crossChecks (ai_insights) → bentuk DiagFinding */
 function crossChecksAsFindings(audit) {
@@ -142,6 +215,7 @@ function DiagnosticPanel({ area, title }) {
         </div>
         {done.length > 0 && <button className="btn sm" onClick={() => setShowDone(s => !s)}>{showDone ? 'Sembunyikan diputuskan' : `Tampilkan ${done.length} diputuskan`}</button>}
       </div>
+      {open.length > 0 && <DiagNarration findings={open} />}
       {findings.length === 0
         ? <div className="tiny muted" style={{ padding: '4px 0' }}><I.check size={12} /> Tidak ada temuan diagnostik{area ? ' untuk area ini' : ''}.</div>
         : list.length === 0

@@ -106,6 +106,49 @@ are `ams.v1.<scope>.<scopeId>.<key>` (legacy unscoped `ams.v1.<key>` is read onc
 a fallback). **Zero numeric regression** still gated by the canon Vitest net + live
 oracle (`materiality` OM 4260 / PM 3195 / CTT 213).
 
+## W8 — LLM proxy (`server/src/llm/`)
+
+> **W8 COMPLETE (Fase 0–2).** A server-side proxy is the only place real LLM calls happen:
+> the **API key lives in server env**, never the browser. The proxy is **auth + RBAC +
+> rate-limit + egress-redacted + audited**, and unblocks **P4 Fase 3** (LLM narration over
+> the *deterministic* diagnostic findings). Degrades gracefully: no key → `not-configured`,
+> UI stays deterministic-only.
+
+- **Nol-vendor:** plain `fetch` (Node ≥18), no SDK. Two adaptors (`providers.ts`):
+  Anthropic `/messages` + a generic OpenAI-compatible `/chat/completions` (covers
+  OpenAI/DeepSeek/Kimi). Gemini stays proxy-pending.
+- **Key custody:** server env only. `readLlmConfig()` returns null when unset (the
+  `not-configured` signal). The Settings → AI key field is now display-only ("dikelola server").
+- **Egress redaction (the confidentiality boundary):** the client may only send the
+  **deterministic finding text** (title/std/severity/detail/suggested procedure). zod strips
+  unknown keys; `redactFindings()` re-projects onto an allow-list; the **server owns the
+  prompt** (`buildNarrationPrompt`) so a caller can't widen what leaves the building. No raw
+  WTB rows, client names/NPWP, or extra context egress.
+- **RBAC:** new `CAP.LLM_USE` in the shared map (`migration/src/rbac.js`), granted to all 4
+  roles; the gate still denies by default (unknown roles → FORBIDDEN).
+- **Rate-limit + audit:** per-user fixed window (`ratelimit.ts`, default 20/h); append-only
+  `LlmEvent` records **usage, not content** (provider/model/finding-count/token-usage).
+- **Endpoints (`llm.*`, both `protectedProcedure`):** `status` → `{configured, canUse,
+  provider, model}` (drives the honest UI badge); `complete({task:'narrate-diagnostics',
+  findings})` → `{status:'ok', text, …}` | `{status:'not-configured'}`.
+- **Client:** `api.js` `llmStatus()`/`llmNarrateDiagnostics()`; `diagnostics_panel.jsx` has a
+  "Jelaskan N temuan" button → narration + disclaimer ("model bahasa — bukan deterministik;
+  verifikasi sebelum dipakai"); `view_settings.jsx` AI panel shows the real server status.
+
+**Configure a real provider** (env on the **server** process — `server/.env`, gitignored):
+```
+LLM_API_KEY=sk-…            # required; absence = not-configured
+LLM_PROVIDER=anthropic      # anthropic | openai | deepseek | kimi (default anthropic)
+LLM_MODEL=claude-sonnet-4-6 # optional override of the provider default
+LLM_BASE_URL=…              # optional; required only for an unknown OpenAI-compat endpoint
+```
+Restart the server (`npm run dev:all`). Without a key the app runs deterministic-only.
+
+> **Local verification without a paid key:** `.claude/w8-mock-llm.mjs` is a throwaway
+> OpenAI-compatible upstream; `.claude/w8-verify-proxy.mts` drives the real
+> env→config→redact→fetch chain against it (`LLM_PROVIDER=openai
+> LLM_BASE_URL=http://localhost:9999/v1 npx tsx .claude/w8-verify-proxy.mts`).
+
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
   numeric I/O, highest value-per-test-line.
