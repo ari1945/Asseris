@@ -1,3 +1,4 @@
+import './env'; // MUST be first — loads .env/.env.local before db/config read process.env.
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import { appRouter } from './router';
 import { createContext } from './context';

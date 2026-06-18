@@ -135,7 +135,10 @@ oracle (`materiality` OM 4260 / PM 3195 / CTT 213).
   "Jelaskan N temuan" button → narration + disclaimer ("model bahasa — bukan deterministik;
   verifikasi sebelum dipakai"); `view_settings.jsx` AI panel shows the real server status.
 
-**Configure a real provider** (env on the **server** process — `server/.env`, gitignored):
+**Configure a real provider.** Put the key in **`server/.env.local`** (gitignored — the tracked
+`server/.env` holds only `DATABASE_URL`, no secret). The server loads `.env` then `.env.local` at
+boot via `src/env.ts` (`process.loadEnvFile`, Node built-in — the runtime does NOT auto-load `.env`
+otherwise; only the Prisma CLI does):
 ```
 LLM_API_KEY=sk-…            # required; absence = not-configured
 LLM_PROVIDER=anthropic      # anthropic | openai | deepseek | kimi (default anthropic)
@@ -143,11 +146,13 @@ LLM_MODEL=claude-sonnet-4-6 # optional override of the provider default
 LLM_BASE_URL=…              # optional; required only for an unknown OpenAI-compat endpoint
 ```
 Restart the server (`npm run dev:all`). Without a key the app runs deterministic-only.
+**Real-proven:** the OpenAI-compat path is smoke-tested live against DeepSeek (`LLM_PROVIDER=deepseek`).
 
-> **Local verification without a paid key:** `.claude/w8-mock-llm.mjs` is a throwaway
-> OpenAI-compatible upstream; `.claude/w8-verify-proxy.mts` drives the real
-> env→config→redact→fetch chain against it (`LLM_PROVIDER=openai
-> LLM_BASE_URL=http://localhost:9999/v1 npx tsx .claude/w8-verify-proxy.mts`).
+> **Local verification:** `.claude/w8-verify-proxy.mts` drives the real env→config→redact→fetch
+> chain. Against a **real** provider: `node --env-file=.env.local --import tsx
+> ../.claude/w8-verify-proxy.mts` (from `server/`). Against a **mock** (no key): start
+> `.claude/w8-mock-llm.mjs` (:9999) and run with `LLM_PROVIDER=openai
+> LLM_BASE_URL=http://localhost:9999/v1`.
 
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
