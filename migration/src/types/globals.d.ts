@@ -48,6 +48,7 @@ declare global {
     AMS_FORENSIC: Record<string, unknown>;
     BENCHMARKS: Benchmark[];
     FSGEN: FsGen;
+    amsResetFigures?: () => void;
   }
 }
 

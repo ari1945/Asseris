@@ -23,6 +23,12 @@ COMPLAINTS.forEach(c => {
 });
 
 
+/* W6 Fase 3 — the core entities below (FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM)
+   are now the OFFLINE FALLBACK fixture. At boot, api.js · hydrateCoreFromApi
+   overwrites them on window.AMS with the DB-sourced copy (seeded byte-identical),
+   making the API the operative SSOT. They stay here as a synchronous load-time
+   source (some data_*.js read window.AMS.CLIENTS/WTB at module-load) and for the
+   no-server path. Remaining arrays are not-yet-modeled demo data (future waves). */
 window.AMS = {
   fmt, rp, FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, TEAM,
   engById, clientById, staffByName, engMeta, shortName,

@@ -16,7 +16,7 @@
    lalu dinormalkan ke juta saat dipakai PSAK 46).
    Tarif PPh Badan 22% (UU HPP No. 7/2021).
    ============================================================ */
-import { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG } from './canon_base';
+import { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures } from './canon_base';
 import { deferredTax, INV_MIX, INV_FG_AGING, INV_ITEMS, inventory, PPE_CLASSES, fixedAssets, REGISTER_SEED, REGISTER_MAP, assetRegister, REV_STREAMS, REV_CHANNELS, REV_GEO, REV_VC, REV_SSP_CONTRACT, REV_CONTRACT_BAL, revenue, INTAN_CLASSES, intangibles } from './canon_part1';
 import { RESTATE, psak25, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 } from './canon_part2';
 import { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65 } from './canon_part3';
@@ -40,6 +40,11 @@ window.AMS_CANON = {
   psak25, RESTATE,
   figuresFromWTB, WTB_MAP, FISCAL, FIG,
 };
+
+/* W6 Fase 3 — drop canon's lazy FIG/SRC memo after WTB re-hydration (boot).
+   Exposed as a standalone global, NOT on AMS_CANON, so the canon fingerprint
+   (regression gate) stays byte-identical to the W0 baseline. */
+window.amsResetFigures = resetFigures;
 
 /* [W3 split] ESM exports (dual-publish; window writes dipertahankan) */
 export const AMS_CANON = window.AMS_CANON;

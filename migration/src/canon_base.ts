@@ -115,34 +115,63 @@ import type { WTB, WtbAmountField, Figures, Fig } from './canon_types';
     fiscalTempMovement: 1860 + 2400 + 900 + 1640,  // movement beda temporer th berjalan = 6800
   };
 
-  /* ---------- FIG: saldo akhir kanonik tiap pos (Rp juta) ----------
-     Figur ber-sumber WTB ditarik saat load dari window.AMS.WTB; sisanya dari FISCAL.
+  /* ---------- FIG / SRC: saldo akhir kanonik tiap pos (Rp juta) ----------
+     W6 Fase 3 (W6·2) — dihitung LAZY (saat akses properti pertama), BUKAN saat
+     module-load. Sebelumnya `figuresFromWTB()` membaca window.AMS.WTB saat load,
+     mengikat canon ke WTB statis data.js. Kini boot menghidrasi window.AMS.WTB
+     dari API lebih dulu (lihat api.js · hydrateCoreFromApi); akses pertama lalu
+     membangun angka dari WTB ter-hidrasi → nol drift vs baseline W0.
+     Tetap berupa OBJEK (lewat Proxy memo) agar `FIG.x`, `Object.assign({}, FIG, …)`,
+     spread, dan `window.AMS_CANON.FIG` bekerja tanpa perubahan di pemanggil.
      Nama field lama dipertahankan agar konsumen (PSAK 46, ECL, Sewa) tetap kompatibel. */
-  const SRC = figuresFromWTB();
-  const FIG: Fig = {
-    // —— ditarik dari WTB (buku besar) ——
-    dbo:          SRC.dboBooked,        // 13.080 — WTB 2-2300 (nilai tercatat; dasar pajak 0)
-    ckpn:         SRC.ckpnBooked,       // 1.980  — WTB 1-1210 (saldo dibukukan klien)
-    ckpnAudited:  SRC.ckpnAudited,      // 2.600  — WTB 1-1210 setelah AJE PSAK 71
-    ppeCarry:     SRC.ppeNetCarry,      // nilai tercatat neto aset tetap per WTB
-    rouCarry:     SRC.rouCarry,         // 12.640 — WTB 1-2300
-    leaseLiabWTB: SRC.leaseLiab,        // 12.800 — WTB 2-1500 + 2-2200
-    dtaReported:  SRC.dtaReported,      // 4.980  — WTB 1-2500 (DTA per buku besar)
-    taxExpBooked: SRC.taxExpBooked,     // beban pajak dibukukan (WTB 5-5100)
-    // —— dasar pajak / rekonsiliasi fiskal (non-WTB) ——
-    ppeBase:      SRC.ppeNetCarry - FISCAL.ppeTaxBaseDelta, // dasar pajak aset tetap (tercatat − beda temporer)
-    ppeTempDiff:  FISCAL.ppeTaxBaseDelta,
-    provisi:      FISCAL.provisi,
-    taxLoss:      FISCAL.taxLoss,
-    ociRemeasure: FISCAL.ociRemeasure,
-    pbt:          FISCAL.pbt,
-    pkp:          FISCAL.pkp,
-    permAdd:      FISCAL.permAdd,
-    permLess:     FISCAL.permLess,
-    fiscalTempMovement: FISCAL.fiscalTempMovement,
-  };
+  let _src: Figures | null = null;
+  let _fig: Fig | null = null;
+  function buildFigures(): void {
+    const s = figuresFromWTB();
+    _src = s;
+    _fig = {
+      // —— ditarik dari WTB (buku besar) ——
+      dbo:          s.dboBooked,        // 13.080 — WTB 2-2300 (nilai tercatat; dasar pajak 0)
+      ckpn:         s.ckpnBooked,       // 1.980  — WTB 1-1210 (saldo dibukukan klien)
+      ckpnAudited:  s.ckpnAudited,      // 2.600  — WTB 1-1210 setelah AJE PSAK 71
+      ppeCarry:     s.ppeNetCarry,      // nilai tercatat neto aset tetap per WTB
+      rouCarry:     s.rouCarry,         // 12.640 — WTB 1-2300
+      leaseLiabWTB: s.leaseLiab,        // 12.800 — WTB 2-1500 + 2-2200
+      dtaReported:  s.dtaReported,      // 4.980  — WTB 1-2500 (DTA per buku besar)
+      taxExpBooked: s.taxExpBooked,     // beban pajak dibukukan (WTB 5-5100)
+      // —— dasar pajak / rekonsiliasi fiskal (non-WTB) ——
+      ppeBase:      s.ppeNetCarry - FISCAL.ppeTaxBaseDelta, // dasar pajak aset tetap (tercatat − beda temporer)
+      ppeTempDiff:  FISCAL.ppeTaxBaseDelta,
+      provisi:      FISCAL.provisi,
+      taxLoss:      FISCAL.taxLoss,
+      ociRemeasure: FISCAL.ociRemeasure,
+      pbt:          FISCAL.pbt,
+      pkp:          FISCAL.pkp,
+      permAdd:      FISCAL.permAdd,
+      permLess:     FISCAL.permLess,
+      fiscalTempMovement: FISCAL.fiscalTempMovement,
+    };
+  }
+  /* Buang memo agar akses berikutnya membangun ulang dari window.AMS.WTB terbaru.
+     Dipanggil boot setelah hidrasi WTB, & oleh test yang mengganti WTB. */
+  function resetFigures(): void { _src = null; _fig = null; }
+  /* Proxy memo: target kosong, semua trap delegasi ke objek yang dibangun lazy. */
+  function lazyFigures<T extends object>(pick: () => T): T {
+    return new Proxy({} as T, {
+      get: (_t, p) => (pick() as Record<PropertyKey, unknown>)[p],
+      has: (_t, p) => p in (pick() as object),
+      ownKeys: () => Reflect.ownKeys(pick() as object),
+      getOwnPropertyDescriptor: (_t, p) => {
+        const d = Object.getOwnPropertyDescriptor(pick() as object, p);
+        if (d) d.configurable = true; // invarian Proxy: target kosong → wajib configurable
+        return d;
+      },
+    });
+  }
+  const SRC: Figures = lazyFigures(() => { if (!_src) buildFigures(); return _src!; });
+  const FIG: Fig = lazyFigures(() => { if (!_fig) buildFigures(); return _fig!; });
 
   /* ---------- pajak tangguhan: saldo akhir per pos (ditarik PSAK 46) ----------
      `wtb` opsional → bila diberi, dbo & ckpn mengikuti WTB reaktif (AJE live). */
 
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG };
+export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures };

@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { hydrateCoreFromApi } from './api.js';
 import { AppProviders, NavContext, NavFromContext } from './contexts.jsx';
 import { Copilot } from './copilot.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
@@ -467,7 +468,27 @@ function Root() {
   return <AppProviders><App /></AppProviders>;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+/* W6 Fase 3 — boot gate: hydrate core entities (FIRM/USER/CLIENTS/ENGAGEMENTS/
+   WTB/TEAM) from the API into window.AMS BEFORE the first render, so canon's lazy
+   FIG/SRC build from the DB-sourced WTB. On failure (server down) we keep the
+   data.js fallback already on window.AMS and render anyway — offline still works. */
+const DEFAULT_ENG_ID = 'ENG-2025-014';
+const _rootEl = document.getElementById('root');
+const _root = ReactDOM.createRoot(_rootEl);
+
+async function amsBoot() {
+  try {
+    _rootEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;'
+      + 'height:100vh;font:14px system-ui,sans-serif;color:#8a93a2">Memuat NeoSuite AMS…</div>';
+  } catch (e) { /* non-fatal */ }
+  try {
+    await hydrateCoreFromApi(DEFAULT_ENG_ID);
+  } catch (e) {
+    /* offline / no server: window.AMS keeps the data.js fallback */
+  }
+  _root.render(<Root />);
+}
+amsBoot();
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
