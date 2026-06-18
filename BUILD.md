@@ -238,8 +238,36 @@ APP_SIGNING_KEY=<base64 PKCS8 Ed25519>   # W10.5 — signs export seals; unset =
 - **Before trusting it:** confirm the Prisma engine resolves on the image platform, set
   `APP_ENCRYPTION_KEY` + `POSTGRES_PASSWORD` + `COOKIE_SECURE=1`, and put a TLS terminator in front.
 
+**Deploy verification — offline pass (no Docker/Postgres on the dev box).** What was proven
+*statically* (the live container smoke still needs a Docker host — it is NOT yet run):
+- **Postgres flip is structurally valid.** `prisma migrate diff --from-empty --to-schema-datamodel`
+  on a `provider="postgresql"` copy emits clean DDL for **all 13 tables** (5 unique indexes, 10 FKs)
+  with **zero SQLite-only constructs** (no AUTOINCREMENT/BLOB/rowid). The `sed` flip is sound.
+- **Image hygiene OK.** Root `.dockerignore` excludes `**/node_modules`/`**/dist`/`**/*.db`/secrets,
+  so `COPY server ./server` can't clobber the `npm ci` modules with host binaries or leak state.
+  Dockerfile build-context paths resolve (`server` + `migration/src` co-located → `../../migration/src`).
+- **Footgun fixed (`tsx` + `prisma` were devDeps but are RUNTIME tools).** The container start command
+  is `prisma db push … && npm start`(=`tsx src/server.ts`) — both `prisma` (CLI) and `tsx` were in
+  `devDependencies`, so any `npm ci --omit=dev` hardening would have silently broken prod. Moved both
+  to `dependencies` (verified `npm ls --omit=dev` now resolves tsx/prisma/@prisma/client; server
+  typecheck 0 + 95 vitest green). `npm ci --omit=dev` is now safe (Dockerfile notes it as the slim path).
+- **Honest gaps:** (1) CI (`ci.yml`) exercises **sqlite only** — the Postgres path has no automated
+  proof; a `services: postgres` CI job (db push + seed against `postgres:16`) would close it.
+  (2) prod runs TS via `tsx` (transpile-on-run), not a compiled `dist/` — acceptable at this scale.
+
+**One-shot runbook (on a Docker-capable host) to finish the live smoke:**
+```
+# compose reads a .env BESIDE it (repo root); none is committed. Create one:
+printf 'POSTGRES_PASSWORD=%s\nAPP_ENCRYPTION_KEY=%s\nCOOKIE_SECURE=1\n' "<strong-pw>" "$(openssl rand -hex 32)" > .env
+docker compose up --build -d          # postgres:16 + server; compose runs `prisma db push` then start
+docker compose run --rm server npm run seed   # DESTRUCTIVE demo seed (4 role accounts)
+curl -fsS localhost:5181/healthz                # expect 200
+# then smoke via the app: login → bootstrap → edit (state CAS) → audit chain → export seal/verify
+```
+
 **Deferred to later:** SMTP (email alerts/password-reset); cross-device revoke; full ISQM
-retention/legal-hold workflow; OIDC; a real migration history; an actual cloud deploy.
+retention/legal-hold workflow; OIDC; a real migration history; an actual cloud deploy (the live
+container smoke above).
 
 ## W10.5 — Ekspor (PDF/XLSX) & segel nol-vendor
 

@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 WORKDIR /app
 
 # Install deps first so the layer caches on the manifests, not on every source edit.
+# Runtime tooling (tsx for `npm start`, prisma CLI for `db push`) lives in dependencies, so
+# `npm ci --omit=dev` is SAFE here and would slim the image (drops typescript/vitest/@types).
+# Kept as plain `npm ci` until a real build verifies the slim path end-to-end.
 COPY server/package.json server/package-lock.json ./server/
 RUN cd server && npm ci
 

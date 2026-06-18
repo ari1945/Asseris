@@ -19,6 +19,14 @@ migration/.eslint-report.json
 # archived originals (24 MB zip + duplicate PDFs + old inlined build)
 _archive/
 
+# secrets / env (NEVER commit — compose & server read these; W10 deploy .env carries
+# POSTGRES_PASSWORD + APP_ENCRYPTION_KEY). server/.env (sqlite DATABASE_URL only) is already
+# tracked from W6 and intentionally left as-is; these rules stop NEW secret files leaking.
+.env
+.env.*
+!.env.example
+server/.env.local
+
 # misc
 .thumbnail
 .DS_Store
