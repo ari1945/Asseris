@@ -773,15 +773,109 @@ function CRKunci({ ctx }) {
    TAB 6 — Meterai & PSrE (keabsahan TTE & e-Meterai · G17)
    AMS_CANON.legalSeal() — UU ITE jo. PP 71/2019 + UU 10/2020
    ============================================================ */
+/* ============================================================
+   W10.5 Fase 3 — verify the nol-vendor EXPORT seal (provenans NeoSuite).
+   Paste a seal id + content hash (or the artifact's QR payload `neosuite-seal:<id>;<hash>`) →
+   server recomputes the Ed25519 signature over the hash → status. This is the counterpart to the
+   QR/"Segel" sheet embedded by export_pdf.js / export_xlsx.js. It proves WHO + integrity — NOT
+   e-Meterai/PSrE (the legal register lives below this panel).
+   ============================================================ */
+const SEAL_VERDICT = {
+  ok:              { kind: 'green', icon: 'checkCircle', label: 'Terverifikasi', note: 'Tanda tangan sah & hash konten cocok — artefak otentik dan tak berubah sejak disegel.' },
+  'hash-mismatch': { kind: 'red',   icon: 'alert',       label: 'Hash tak cocok', note: 'Segel sah, tetapi hash konten yang ditempel berbeda — artefak telah diubah sejak disegel.' },
+  'bad-signature': { kind: 'red',   icon: 'alert',       label: 'Tanda tangan tak sah', note: 'Baris segel tidak ditandatangani oleh kunci aplikasi — kemungkinan dipalsukan.' },
+  'not-found':     { kind: 'amber', icon: 'alert',       label: 'Tak ditemukan', note: 'Tidak ada segel dengan ID tersebut di server.' },
+  'key-rotated':   { kind: 'amber', icon: 'alert',       label: 'Kunci berganti', note: 'Segel dibuat oleh kunci dev ephemeral yang sudah berganti pasca-restart — tak dapat diverifikasi (bukan indikasi tamper). Set APP_SIGNING_KEY agar stabil.' },
+  unavailable:     { kind: 'gray',  icon: 'alert',       label: 'Tak tersedia', note: 'Server verifikasi tak tersedia atau peran tanpa akses.' },
+};
+
+function CRVerifySeal() {
+  const [raw, setRaw] = useCR('');
+  const [hash, setHash] = useCR('');
+  const [busy, setBusy] = useCR(false);
+  const [res, setRes] = useCR(null); // { reason, valid, kind, scope, scopeId, signerRole, signedAt, pubKeyId } | { reason:'bad-input' }
+
+  // Accept either a bare seal id, or a `neosuite-seal:<id>;<hash>` QR payload (auto-splits the hash).
+  const parse = () => {
+    let id = raw.trim(); let h = hash.trim().toLowerCase();
+    const m = id.match(/^(?:neosuite-seal:)?\s*([^;\s]+)\s*;\s*([0-9a-fA-F]{64})\s*$/);
+    if (m) { id = m[1]; h = m[2].toLowerCase(); }
+    else { id = id.replace(/^neosuite-seal:/, '').replace(/;.*$/, '').trim(); }
+    return { id, h };
+  };
+
+  const onVerify = async () => {
+    if (busy) return;
+    const { id, h } = parse();
+    if (!id || !/^[0-9a-f]{64}$/.test(h)) { setRes({ reason: 'bad-input' }); return; }
+    setBusy(true);
+    try {
+      const v = await window.amsExportVerifySeal({ sealId: id, contentHash: h });
+      setRes(v || { reason: 'unavailable' });
+    } finally { setBusy(false); }
+  };
+
+  const verdict = res && res.reason !== 'bad-input' ? (SEAL_VERDICT[res.reason] || SEAL_VERDICT.unavailable) : null;
+  const inputStyle = { width: '100%', height: 30, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink)', fontFamily: 'var(--mono)', fontSize: 12 };
+
+  return (
+    <Panel noBody style={{ marginBottom: 12 }}>
+      <div className="panel-h"><span className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><I.shield size={14} /></span><h3 style={{ margin: 0 }}>Verifikasi Segel Ekspor (Provenans NeoSuite)</h3></span><div style={{ flex: 1 }} /><span className="tiny muted">Ed25519 · BUKAN e-Meterai</span></div>
+      <div style={{ padding: '12px 14px', display: 'grid', gap: 10 }}>
+        <div className="tiny muted" style={{ lineHeight: 1.5 }}>Tempel <b>Seal ID</b> + <b>Hash konten</b> dari artefak terekspor (footer PDF / sheet "Segel" XLSX), atau seluruh muatan QR <span className="mono">neosuite-seal:&lt;id&gt;;&lt;hash&gt;</span> ke kolom pertama.</div>
+        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div>
+            <div className="tiny upper muted" style={{ fontWeight: 700, marginBottom: 4 }}>Seal ID / muatan QR</div>
+            <input style={inputStyle} value={raw} onChange={e => setRaw(e.target.value)} placeholder="cmqk… atau neosuite-seal:cmqk…;<hash>" />
+          </div>
+          <div>
+            <div className="tiny upper muted" style={{ fontWeight: 700, marginBottom: 4 }}>Hash konten (SHA-256, 64 heks)</div>
+            <input style={inputStyle} value={hash} onChange={e => setHash(e.target.value)} placeholder="64 karakter heksadesimal" />
+          </div>
+        </div>
+        <div className="row gap8 ac">
+          <Btn sm variant="primary" onClick={onVerify} disabled={busy}><I.shield size={13} /> {busy ? 'Memverifikasi…' : 'Verifikasi Segel'}</Btn>
+          {(raw || hash || res) && <Btn sm onClick={() => { setRaw(''); setHash(''); setRes(null); }}>Bersihkan</Btn>}
+        </div>
+
+        {res && res.reason === 'bad-input' && (
+          <div className="panel" style={{ padding: '9px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span className="tiny" style={{ lineHeight: 1.5 }}>Masukkan Seal ID dan Hash konten 64-heksadesimal yang valid (atau tempel muatan QR lengkap).</span></div>
+          </div>
+        )}
+        {verdict && (
+          <div className="panel" style={{ padding: '11px 13px', background: `var(--${verdict.kind}-bg)`, borderColor: 'transparent' }}>
+            <div className="row ac gap8" style={{ marginBottom: res.signerRole ? 7 : 0 }}>
+              <span style={{ color: `var(--${verdict.kind})` }}>{React.createElement(I[verdict.icon] || I.shield, { size: 16 })}</span>
+              <Badge kind={verdict.kind}>{verdict.label}</Badge>
+              <span className="tiny" style={{ flex: 1, lineHeight: 1.45 }}>{verdict.note}</span>
+            </div>
+            {res.signerRole && (
+              <div className="row wrap gap10 tiny muted" style={{ paddingLeft: 24 }}>
+                {res.kind && <span>Jenis: <b style={{ color: 'var(--ink-2)' }}>{res.kind}</b></span>}
+                {res.scope && <span>Lingkup: <span className="mono">{res.scope}{res.scopeId ? '/' + res.scopeId : ''}</span></span>}
+                <span>Penandatangan: <b style={{ color: 'var(--ink-2)' }}>{res.signerRole}</b></span>
+                {res.signedAt && <span>Waktu: <span className="mono">{new Date(res.signedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC</span></span>}
+                {res.pubKeyId && <span>Key: <span className="mono">{res.pubKeyId}</span></span>}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
 function CRMeterai({ ctx }) {
   const { nav } = ctx;
   const L = (window.AMS_CANON && window.AMS_CANON.legalSeal) ? window.AMS_CANON.legalSeal() : null;
-  if (!L) return <Placeholder label="Modul keabsahan TTE belum tersedia" />;
+  if (!L) return <><CRVerifySeal /><Placeholder label="Modul keabsahan TTE belum tersedia" /></>;
   const s = L.summary;
   const BIND_KIND = { mengikat: 'green', menunggu: 'amber', lemah: 'red' };
 
   return (
     <>
+      <CRVerifySeal />
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.bound + '/' + s.total} label="Dokumen Mengikat Penuh" sub="TTE tersertifikasi + e-Meterai" accent={s.bound === s.total ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.certified + '/' + s.total} label="TTE Tersertifikasi (PSrE)" accent="var(--blue)" /></div></Panel>
