@@ -1,8 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { hydrateCoreFromApi } from './api.js';
+import { hydrateCoreFromApi, api, setAuthToken } from './api.js';
 import { AppProviders, NavContext, NavFromContext } from './contexts.jsx';
+import { LoginScreen } from './view_login.jsx';
 import { Copilot } from './copilot.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { MiniMap } from './minimap.jsx';
@@ -464,31 +465,57 @@ function App() {
   );
 }
 
-function Root() {
-  return <AppProviders><App /></AppProviders>;
-}
-
-/* W6 Fase 3 — boot gate: hydrate core entities (FIRM/USER/CLIENTS/ENGAGEMENTS/
-   WTB/TEAM) from the API into window.AMS BEFORE the first render, so canon's lazy
-   FIG/SRC build from the DB-sourced WTB. On failure (server down) we keep the
-   data.js fallback already on window.AMS and render anyway — offline still works. */
 const DEFAULT_ENG_ID = 'ENG-2025-014';
-const _rootEl = document.getElementById('root');
-const _root = ReactDOM.createRoot(_rootEl);
 
-async function amsBoot() {
-  try {
-    _rootEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;'
-      + 'height:100vh;font:14px system-ui,sans-serif;color:#8a93a2">Memuat NeoSuite AMS…</div>';
-  } catch (e) { /* non-fatal */ }
-  try {
-    await hydrateCoreFromApi(DEFAULT_ENG_ID);
-  } catch (e) {
-    /* offline / no server: window.AMS keeps the data.js fallback */
-  }
-  _root.render(<Root />);
+function BootSplash({ label }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh',
+      font: '14px system-ui,sans-serif', color: '#8a93a2' }}>{label}</div>
+  );
 }
-amsBoot();
+
+/* W7 Fase 2 — boot gate is now session-aware:
+     checking → ask the server who we are (auth.me)
+     login    → no/expired session → render <LoginScreen>
+     ready    → authenticated → hydrate core entities (W6 Fase 3) for THIS user, then mount
+   Hydration runs AFTER auth (bootstrap is a protectedProcedure) and BEFORE <App> renders, so
+   canon's lazy FIG/SRC still build from the DB WTB. A 401 mid-session (ams:auth-expired) drops
+   back to login. */
+function Root() {
+  const { useState: useStateRT, useEffect: useEffectRT, useCallback: useCallbackRT } = React;
+  const [phase, setPhase] = useStateRT('checking');
+  const [me, setMe] = useStateRT(null);
+
+  const enter = useCallbackRT(async (user) => {
+    setMe(user);
+    try { await hydrateCoreFromApi(DEFAULT_ENG_ID, user.id); } catch (e) { /* offline: data.js fallback */ }
+    setPhase('ready');
+  }, []);
+
+  const logout = useCallbackRT(() => {
+    api.auth.logout.mutate().catch(() => {});
+    setAuthToken(null);
+    setMe(null);
+    setPhase('login');
+  }, []);
+
+  useEffectRT(() => {
+    let cancelled = false;
+    api.auth.me.query()
+      .then(user => { if (!cancelled) { user ? enter(user) : setPhase('login'); } })
+      .catch(() => { if (!cancelled) setPhase('login'); });
+    const onExpired = () => { setAuthToken(null); setMe(null); setPhase('login'); };
+    window.addEventListener('ams:auth-expired', onExpired);
+    return () => { cancelled = true; window.removeEventListener('ams:auth-expired', onExpired); };
+  }, [enter]);
+
+  if (phase === 'checking') return <BootSplash label="Memeriksa sesi…" />;
+  if (phase === 'login') return <LoginScreen onLoggedIn={enter} />;
+  return <AppProviders me={me} onLogout={logout}><App /></AppProviders>;
+}
+
+const _rootEl = document.getElementById('root');
+ReactDOM.createRoot(_rootEl).render(<Root />);
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -12,6 +12,13 @@
       "runtimeExecutable": "pwsh",
       "runtimeArgs": ["-NoProfile", "-Command", "Set-Location migration; npm run dev -- --port 5180 --strictPort"],
       "port": 5180
+    },
+    {
+      "name": "dev-all",
+      "runtimeExecutable": "pwsh",
+      "runtimeArgs": ["-NoProfile", "-Command", "Set-Location migration; $env:PORT='5181'; npm run dev:all"],
+      "port": 5180,
+      "autoPort": false
     }
   ]
 }

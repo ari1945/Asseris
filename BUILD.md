@@ -52,9 +52,17 @@ npm start              # tRPC server on http://localhost:5181 (localhost only)
 
 ## W7 — Auth, sesi & RBAC (`server/src/auth/`)
 
-> **Fase 0 (here):** server-side auth — real login/sessions/TOTP/password + the auth audit
-> trail. No client wiring yet (Fase 2), no RBAC enforcement on the W6 endpoints yet (Fase 1):
-> `state.*`/`bootstrap`/`engagement.list` stay public so the current SPA keeps working.
+> **Fase 0–2 done.** Fase 0: server-side auth (login/sessions/TOTP/password + audit trail).
+> Fase 1: RBAC enforced — W6 endpoints are `protectedProcedure`; `state.set` is capability-gated
+> by `(scope,key)` via the shared map (`migration/src/rbac.js` → `server/src/rbac.ts`); `updatedBy`
+> comes from the session. Fase 2: client login — `api.js` sends a Bearer token (localStorage;
+> httpOnly-cookie hardening = W10) and broadcasts `ams:auth-expired` on 401; `app.jsx` `Root` is a
+> session gate (checking → `<LoginScreen>` → app); `contexts.jsx` `AuthContext` is real
+> (`login`/`logout`/`can`, role from session, act-as removed). **Fase 3 TODO:** wire `can()` to
+> action buttons, replace mock `SecKeamanan`/`SecAkses` with real ops.
+>
+> **Run it:** `cd migration; npm run dev:all` then open :5180 → login. Dev accounts below. If the
+> server grabbed the wrong port behind a port-injecting launcher, pin it: `$env:PORT='5181'`.
 
 - **Crypto = Node built-in only** (no `bcrypt`/`argon2`/`otpauth` deps): scrypt for password
   hashing (`auth/password.ts`), RFC 6238 HMAC-SHA1 for TOTP (`auth/totp.ts`). Keeps the W6

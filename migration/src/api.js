@@ -7,8 +7,33 @@
    ============================================================ */
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 
+/* ----- W7 Fase 2 — session token (Bearer transport) -----
+   Stored in localStorage so a reload keeps the session. (httpOnly-cookie hardening
+   is a W10 concern.) Every tRPC call attaches it; a 401 anywhere means the session
+   died → broadcast so the boot gate can fall back to the login screen. */
+const TOKEN_KEY = 'ams.auth.token';
+let authToken = null;
+try { authToken = localStorage.getItem(TOKEN_KEY); } catch (e) { /* private mode */ }
+
+export function setAuthToken(t) {
+  authToken = t || null;
+  try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+}
+export function getAuthToken() { return authToken; }
+
+function authFetch(input, init) {
+  return fetch(input, init).then(res => {
+    if (res.status === 401) { try { window.dispatchEvent(new CustomEvent('ams:auth-expired')); } catch (e) {} }
+    return res;
+  });
+}
+
 export const api = createTRPCClient({
-  links: [httpBatchLink({ url: '/trpc' })],
+  links: [httpBatchLink({
+    url: '/trpc',
+    fetch: authFetch,
+    headers() { return authToken ? { authorization: 'Bearer ' + authToken } : {}; },
+  })],
 });
 
 /* True when a mutation lost an optimistic-concurrency race (server returned 409). */
@@ -32,7 +57,7 @@ window.AMS_API = api;
    first FIG/SRC access). On any failure we keep the fallback and let the app run.
    WTB is seeded only for the active engagement (ENG-2025-014, == DEFAULT_ENG_ID),
    matching today's single-WTB reality; other engagements return [] → fallback. ============================================================ */
-export async function hydrateCoreFromApi(engagementId) {
+export async function hydrateCoreFromApi(engagementId, userId) {
   const AMS = window.AMS;
   if (!AMS) return false;
   const b = await api.bootstrap.query({ engagementId });
@@ -42,8 +67,11 @@ export async function hydrateCoreFromApi(engagementId) {
     AMS.FIRM = { ...AMS.FIRM, name: b.firm.name, short: b.firm.short, license: b.firm.license,
       partners: b.firm.partners, managers: b.firm.managers, staff: b.firm.staff };
   }
-  const u0 = Array.isArray(b.users) && b.users[0];
-  if (u0 && u0.dataJson) { try { AMS.USER = JSON.parse(u0.dataJson); } catch (e) { /* keep fallback */ } }
+  // W7 — AMS.USER reflects the AUTHENTICATED user (so userScopeId / TopBar / sign-offs are
+  // "who I logged in as"), falling back to users[0] when no id is given (pre-W7 behavior).
+  const users = Array.isArray(b.users) ? b.users : [];
+  const mine = (userId && users.find(u => u.id === userId)) || users[0];
+  if (mine && mine.dataJson) { try { AMS.USER = JSON.parse(mine.dataJson); } catch (e) { /* keep fallback */ } }
 
   if (Array.isArray(b.clients) && b.clients.length) {
     AMS.CLIENTS = b.clients.map(c => ({ id: c.id, name: c.name, industry: c.industry, tier: c.tier,

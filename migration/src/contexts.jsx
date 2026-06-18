@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { api, isConflict } from './api.js';
+import { can as rbacCan } from './rbac.js';
 
 /* ============================================================
    NeoSuite AMS — React Context providers
@@ -107,7 +108,7 @@ function useServerState(key, initial, scope, scopeId) {
 
   const flush = React.useCallback((value) => {
     const t = targetRef.current;
-    api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current, updatedBy: userScopeId() })
+    api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current })
       .then(res => { versionRef.current = res.version; })
       .catch(err => {
         // Lost an optimistic-concurrency race. Don't silently clobber EITHER side:
@@ -122,7 +123,7 @@ function useServerState(key, initial, scope, scopeId) {
               scope: t.scope, key: t.key, label: conflictLabel(t.key),
               adopt: () => { setValRaw(serverVal); cacheWrite(t.cacheKey, serverVal); },
               keepMine: () => {
-                api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current, updatedBy: userScopeId() })
+                api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current })
                   .then(r => { versionRef.current = r.version; cacheWrite(t.cacheKey, attempted); })
                   .catch(() => {});
               },
@@ -215,25 +216,33 @@ function ConflictToaster() {
   );
 }
 
-function AppProviders({ children }) {
+function AppProviders({ me, onLogout, children }) {
   const D = window.AMS;
-  const uid = userScopeId();
+  const uid = me.id; // authenticated user id (replaces the old window.AMS.USER guess)
 
-  /* ---- Auth ---- */
-  /* profile is the SINGLE SOURCE OF TRUTH for user identity (name, photo, credentials).
-     Edited from Pengaturan › Profil & Akun; reflected everywhere (TopBar, sign-offs, menus). */
+  /* ---- Auth (W7) ---- */
+  /* Identity & role now come from the authenticated SESSION (`me`), not editable client
+     state. `profile` keeps the extra editable fields (photo, phone, credentials), scoped to
+     this user; identity fields from `me` always win. */
   const [profile, setProfile] = useServerState('profile', { ...D.USER }, 'user', uid);
-  const [role, setRole] = useServerState('role', D.USER.role, 'user', uid);
   const updateProfile = useCallback((patch) => setProfile(p => {
     const merged = { ...D.USER, ...p, ...(typeof patch === 'function' ? patch(p) : patch) };
     return merged;
   }), [setProfile]);
+  /* capability check — same SSOT the server enforces with (rbac.js), so UI never diverges. */
+  const can = useCallback((cap) => rbacCan(me.role, cap), [me.role]);
+  /* act-as role switching is removed in W7 — role is whoever you logged in as. Kept as a
+     warning shim so any lingering caller (settings UI, until Fase 3) doesn't crash. */
+  const setRole = useCallback(() => {
+    console.warn('[W7] setRole is disabled — role is determined by the authenticated session.');
+  }, []);
   const auth = useMemo(() => ({
-    user: { ...D.USER, ...profile, role },
+    user: { ...D.USER, ...profile, id: me.id, name: me.name, initials: me.initials, email: me.email, role: me.role },
     profile: { ...D.USER, ...profile },
     setProfile, updateProfile,
-    firm: D.FIRM, signedIn: true, role, setRole,
-  }), [profile, role]);
+    firm: D.FIRM, signedIn: true, role: me.role, setRole, can,
+    logout: onLogout, twoFactorEnabled: !!me.totpEnabled,
+  }), [profile, me, can, setRole, onLogout]);
 
   /* ---- Firm: clients + engagements + active selection ---- */
   const [clients, setClients] = useServerState('clients', D.CLIENTS, 'firm', FIRM_SCOPE_ID);

@@ -135,7 +135,6 @@ function NotificationsPanel({ open, onClose, onNavigate, items, onMarkAll }) {
 function UserMenu({ open, onClose, user, onNavigate }) {
   const auth = useAuth();
   if (!open) return null;
-  const roles = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor'];
   const go = (id) => { onClose(); onNavigate && onNavigate(id); };
   const items = [
     { icon: 'users', label: 'Profil Saya', action: () => go('settings') },
@@ -144,7 +143,8 @@ function UserMenu({ open, onClose, user, onNavigate }) {
     { icon: 'settings', label: 'Pengaturan', action: () => go('settings') },
     { sep: true },
     { icon: 'sync', label: 'Reset Data Demo', action: () => { window.clearPersisted && window.clearPersisted(); location.reload(); } },
-    { icon: 'lock', label: 'Keluar', danger: true },
+    // W7 — real logout: revoke the session and return to the login screen.
+    { icon: 'lock', label: 'Keluar', danger: true, action: () => auth.logout && auth.logout() },
   ];
   return (
     <>
@@ -159,10 +159,9 @@ function UserMenu({ open, onClose, user, onNavigate }) {
         </div>
         <div style={{ padding: '8px 11px', borderBottom: '1px solid var(--line-soft)' }}>
           <div className="tiny muted upper" style={{ marginBottom: 5 }}>Peran Aktif (RBAC)</div>
-          <select className="select" style={{ width: '100%', height: 28 }} value={auth.role} onChange={e => auth.setRole(e.target.value)}>
-            {roles.map(r => <option key={r}>{r}</option>)}
-          </select>
-          <div className="tiny muted" style={{ marginTop: 4, lineHeight: 1.35 }}>Menentukan hak persetujuan & akses modul.</div>
+          {/* W7 — role is set by the authenticated session (no act-as switching). */}
+          <div className="row ac gap6"><span className="chip tiny" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}>{React.createElement(I.shield || I.panel, { size: 11 })} {auth.role}</span></div>
+          <div className="tiny muted" style={{ marginTop: 4, lineHeight: 1.35 }}>Ditentukan oleh sesi login Anda; menentukan hak persetujuan & akses modul.</div>
         </div>
         {items.map((it, i) => it.sep
           ? <div key={i} className="sepm" />
