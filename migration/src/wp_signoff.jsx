@@ -28,7 +28,9 @@ const WP_MODULE_MAP = {
   psak73:  { ref: 'F',   requiredEvidence: ['Daftar kontrak sewa', 'Kalkulasi ROU & liabilitas sewa'] },
   lease:   { ref: 'F',   requiredEvidence: ['Daftar kontrak sewa', 'Kalkulasi ROU & liabilitas sewa'] },
   psak24:  { ref: 'H',   requiredEvidence: ['Laporan aktuaria', 'Rekonsiliasi data karyawan'] },
-  revenue: { ref: 'R',   requiredEvidence: ['Analitis pendapatan', 'Sampel kontrak penjualan'] },
+  /* revenue recognition WP (ref 'R') disurfacek HANYA via psak72 — modul `revenue`
+     adalah halaman penagihan firma (FirmRevenue/WIP), bukan WP audit; dahulu keliru
+     dipetakan ke ref 'R' → kontaminasi silang wpState['R'] milik psak72 (dihapus Fase 3). */
   psak72:  { ref: 'R',   requiredEvidence: ['Analisis 5-langkah pengakuan pendapatan', 'Sampel kontrak penjualan', 'Uji cut-off pendapatan'] },
   sad:     { ref: '810', requiredEvidence: ['Daftar salah saji (SAD)', 'Surat representasi manajemen'] },
   opinion: { ref: '900', requiredEvidence: ['Draf laporan auditor', 'Checklist pengungkapan LK'] },
@@ -41,7 +43,9 @@ const WP_MODULE_MAP = {
   psak48:  { ref: 'psak48', requiredEvidence: ['Uji penurunan nilai (value-in-use/DCF)'] },
   psak22:  { ref: 'psak22', requiredEvidence: ['Alokasi harga akuisisi (PPA)', 'Laporan penilai (KJPP)'] },
   psak25:  { ref: 'psak25', requiredEvidence: ['Register estimasi & perubahan kebijakan'] },
-  psak57:  { ref: 'psak57', requiredEvidence: ['Register provisi & klaim', 'Surat penasihat hukum'] },
+  /* psak57 (provisi & kontinjensi) TIDAK punya view/route tersendiri — materinya
+     disurfacek di dalam view_psak48 (memakai canon.psak57). Entri orphan dihapus
+     Fase 3 agar tak jadi WP hantu yang tak pernah bisa diselesaikan di rekap. */
   psak58:  { ref: 'psak58', requiredEvidence: ['Penilaian disposal group', 'Resolusi divestasi'] },
   psak65:  { ref: 'psak65', requiredEvidence: ['Kertas kerja konsolidasi', 'Paket pelaporan komponen'] },
   psak66:  { ref: 'psak66', requiredEvidence: ['Perjanjian pengaturan bersama'] },
