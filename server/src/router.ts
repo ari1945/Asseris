@@ -17,6 +17,7 @@ import { complete } from './llm/providers';
 import { rateLimit } from './llm/ratelimit';
 import { logLlmEvent } from './llm/events';
 import { appendAudit, verifyAuditChain } from './audit/log';
+import { createSeal, verifySeal, isContentHash } from './export/seal';
 import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
@@ -300,6 +301,76 @@ export const appRouter = router({
       }
       return verifyAuditChain();
     }),
+  }),
+
+  // W10.5 — export seal + export-event logging. The bytes are generated client-side (Q1=A); the
+  // server only (a) signs a content hash into a verifiable provenance/integrity seal and (b)
+  // records every export to the W10 audit chain (action EXPORT/SEAL, metadata only — never
+  // content). Gated by CAP.EXPORT and, for engagement-scoped artifacts, W7.5 isolation. NOT a
+  // legal e-Meterai/PSrE signature (see export/seal.ts).
+  exporter: router({
+    // Seal an artifact: sign its canonical content hash, persist the seal, audit it. The client
+    // embeds {sealId, hash, QR} into the PDF/XLSX. Returns the seal record for embedding.
+    seal: protectedProcedure
+      .input(z.object({
+        kind: z.string().min(1).max(64),
+        contentHash: z.string().refine(isContentHash, 'expected sha256 hex'),
+        scope: scopeEnum.optional(),
+        scopeId: z.string().min(1).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.EXPORT)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.EXPORT}` });
+        }
+        if (input.scope === 'engagement' && input.scopeId) {
+          await assertEngagementAccess(ctx.user, input.scopeId);
+        }
+        const seal = await createSeal({
+          kind: input.kind, contentHash: input.contentHash,
+          scope: input.scope, scopeId: input.scopeId,
+          signerUserId: ctx.user.id, signerRole: ctx.user.role,
+        });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'SEAL',
+          scope: input.scope, scopeId: input.scopeId, key: input.kind,
+          detail: `seal=${seal.sealId}; hash=${input.contentHash.slice(0, 12)}…`,
+        });
+        return seal;
+      }),
+
+    // Verify a seal by id against a presented content hash. Read-only; any authenticated user
+    // may verify (verification is the point — provenance you can check). Not audited (a read).
+    verifySeal: protectedProcedure
+      .input(z.object({
+        sealId: z.string().min(1),
+        contentHash: z.string().refine(isContentHash, 'expected sha256 hex'),
+      }))
+      .query(async ({ input }) => verifySeal(input.sealId, input.contentHash)),
+
+    // Record an export that does NOT carry a seal (e.g. a plain XLSX register download), so the
+    // audit chain reflects every artifact that left the system. Metadata only — no content.
+    logEvent: protectedProcedure
+      .input(z.object({
+        kind: z.string().min(1).max(64),
+        format: z.enum(['pdf', 'xlsx', 'csv']),
+        scope: scopeEnum.optional(),
+        scopeId: z.string().min(1).optional(),
+        contentHash: z.string().refine(isContentHash, 'expected sha256 hex').optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.EXPORT)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.EXPORT}` });
+        }
+        if (input.scope === 'engagement' && input.scopeId) {
+          await assertEngagementAccess(ctx.user, input.scopeId);
+        }
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'EXPORT',
+          scope: input.scope, scopeId: input.scopeId, key: input.kind,
+          detail: `format=${input.format}${input.contentHash ? `; hash=${input.contentHash.slice(0, 12)}…` : ''}`,
+        });
+        return { ok: true };
+      }),
   }),
 
   // One round-trip boot payload: core entities + this engagement's WTB + its open state docs.

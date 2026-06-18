@@ -222,6 +222,7 @@ APP_ENCRYPTION_KEY=<32B hex or base64>   # encrypts totpSecret at rest
 COOKIE_SECURE=1                          # add Secure to the session cookie (prod behind TLS)
 ADMIN_IP_ALLOWLIST=127.0.0.1,10.0.0.0/8  # CSV of IPs/CIDRs allowed to log in
 SESSION_TTL_HOURS=8                      # session lifetime (existing)
+APP_SIGNING_KEY=<base64 PKCS8 Ed25519>   # W10.5 — signs export seals; unset = ephemeral dev key
 ```
 
 **Deploy (W10) — container + Postgres (UNTESTED FROM HERE).**
@@ -237,9 +238,33 @@ SESSION_TTL_HOURS=8                      # session lifetime (existing)
 - **Before trusting it:** confirm the Prisma engine resolves on the image platform, set
   `APP_ENCRYPTION_KEY` + `POSTGRES_PASSWORD` + `COOKIE_SECURE=1`, and put a TLS terminator in front.
 
-**Deferred to W10.5 / later:** real PDF/XLSX export + e-Meterai/e-Sign; SMTP (email
-alerts/password-reset); cross-device revoke; full ISQM retention/legal-hold workflow; OIDC; a
-real migration history; an actual cloud deploy.
+**Deferred to later:** SMTP (email alerts/password-reset); cross-device revoke; full ISQM
+retention/legal-hold workflow; OIDC; a real migration history; an actual cloud deploy.
+
+## W10.5 — Ekspor (PDF/XLSX) & segel nol-vendor
+
+Membuat ekspor menjadi artefak nyata + segel provenans. PRD: `PRD - W10.5 Ekspor (PDF-XLSX) &
+Segel Nol-Vendor.md`.
+
+**Fase 0 (server, SELESAI).** `CAP.EXPORT` (semua peran; ekspor jejak audit tetap `AUDIT_VIEW`).
+Router `exporter`:
+- `exporter.seal({kind, contentHash, scope?, scopeId?})` → tandatangani hash konten kanonik
+  (Ed25519, `crypto/signing.ts`), simpan `Seal`, audit `action=SEAL` (metadata-saja). Kembalikan
+  `{sealId, signature, pubKeyId, …}` untuk dibenamkan ke artefak.
+- `exporter.verifySeal({sealId, contentHash})` → recompute: `ok` | `not-found` | `hash-mismatch`
+  (artefak diubah) | `bad-signature` (baris dipalsukan) | `key-rotated` (kunci dev ganti pasca-restart).
+- `exporter.logEvent({kind, format, scope?, scopeId?, contentHash?})` → audit `action=EXPORT`
+  untuk ekspor tanpa-segel (mis. XLSX register).
+- Semua di-gate `CAP.EXPORT` + (scope=engagement) isolasi W7.5.
+
+**Signing key:** `APP_SIGNING_KEY` (base64 PKCS8 DER Ed25519 private). Tanpa env = keypair
+**ephemeral** per-proses (dev jalan end-to-end, tapi segel tak bertahan lintas-restart →
+`verifySeal` melaporkan `key-rotated`, BUKAN tamper). Set di prod agar `pubKeyId` stabil.
+
+**Batas jujur:** segel ini **BUKAN** e-Meterai (PERURI) / PSrE tersertifikasi (PrivyID/VIDA) —
+hanya provenans (siapa) + integritas (hash tak berubah). Disclaimer wajib di artefak & UI.
+
+**Deferred:** real e-Meterai/PSrE; pengiriman ekspor via email; paket-engagement (zip multi-artefak).
 
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure

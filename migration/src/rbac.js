@@ -25,9 +25,10 @@ export const CAP = {
   LLM_USE: 'llm.use', // W8 — panggil proxy LLM (narasi diagnostik). Bantuan baca, di-rate-limit & di-audit.
   ENGAGEMENT_VIEW_ALL: 'engagement.viewAll', // W7.5 — lihat/akses SEMUA engagement tanpa keanggotaan (oversight portofolio)
   AUDIT_VIEW: 'audit.view', // W10 — baca jejak audit server-side append-only (oversight kepatuhan/ISQM)
+  EXPORT: 'export.use', // W10.5 — hasilkan & segel artefak ekspor (deliverable/register). Baca-saja terhadap data yang sudah boleh dilihat; ekspor jejak audit tetap di-gate AUDIT_VIEW.
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT } = CAP;
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
@@ -37,12 +38,15 @@ const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGA
    unknown/future roles get FORBIDDEN.
    ENGAGEMENT_VIEW_ALL granted to Partner + Manager only (W7.5 Q1) — oversight portofolio;
    Senior/Junior dibatasi ke engagement tempat mereka anggota (per-engagement data isolation).
-   AUDIT_VIEW granted to Partner + Manager only (W10 D2) — baca jejak audit server-side (oversight). */
+   AUDIT_VIEW granted to Partner + Manager only (W10 D2) — baca jejak audit server-side (oversight).
+   EXPORT granted to ALL four roles (W10.5) — ekspor deliverable/register = tugas auditor normal atas
+   data yang sudah boleh dilihat; isolasi engagement (W7.5) tetap membatasi engagement mana yang bisa
+   diekspor, dan ekspor jejak audit tetap menuntut AUDIT_VIEW di jalurnya sendiri. */
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW],
-  'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW],
-  'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE],
-  'Junior Auditor': [WP_EDIT, LLM_USE],
+  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT],
+  'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT],
+  'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE, EXPORT],
+  'Junior Auditor': [WP_EDIT, LLM_USE, EXPORT],
 };
 
 /** True if `role` is granted `cap`. Unknown role/cap → false (deny by default). */

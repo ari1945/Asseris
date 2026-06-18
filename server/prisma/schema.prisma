@@ -148,6 +148,29 @@ model AuditLog {
   @@index([actorUserId])
 }
 
+// W10.5 — nol-vendor cryptographic seal over an export artifact. NOT a legal e-Meterai / PSrE
+// signature — it proves provenance (which authenticated user) + integrity (the content hash was
+// not altered), nothing about Indonesian stamp-duty law. `contentHash` is the client-computed
+// SHA-256 of the artifact's CANONICAL content payload (not the raw PDF/XLSX bytes — those vary
+// per render); `signature` is an Ed25519 signature over that hash by the server signing key
+// (env APP_SIGNING_KEY, or an ephemeral dev key). verifySeal looks a row up by id and re-checks
+// both the hash equality and the signature, so a verifier need not trust the embedded copy.
+model Seal {
+  id           String   @id @default(cuid()) // public sealId, embedded in the artifact
+  kind         String // opinion | fs | materiality | register:<name> | …
+  contentHash  String // SHA-256 hex of the canonical content payload
+  scope        String? // engagement | firm | user
+  scopeId      String?
+  signerUserId String
+  signerRole   String?
+  signedAt     DateTime @default(now())
+  pubKeyId     String // identifies the signing key (sha256 of the public key, truncated)
+  signature    String // base64 Ed25519 signature over contentHash
+
+  @@index([scope, scopeId])
+  @@index([signerUserId])
+}
+
 model TeamMember {
   id     String @id @default(cuid())
   firmId String
