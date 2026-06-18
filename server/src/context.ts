@@ -2,7 +2,7 @@
 // Transport: Authorization: Bearer <token> OR an ams_session cookie. The cookie path is
 // here so the Fase 2 client can use httpOnly cookies (the recommended transport) without a
 // server change; the header path keeps tests and curl simple.
-import type { IncomingMessage } from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolveSession } from './auth/session';
 import type { Context } from './trpc';
 
@@ -20,19 +20,22 @@ function readToken(req: IncomingMessage): string | null {
 /** Resolve a context from a raw token — shared by the HTTP adapter and tests. */
 export async function contextForToken(
   token: string | null,
-  meta: { ip?: string | null; userAgent?: string | null } = {},
+  meta: { ip?: string | null; userAgent?: string | null; setCookie?: (cookie: string) => void } = {},
 ): Promise<Context> {
   let user = null;
   if (token) {
     const r = await resolveSession(token);
     if (r) user = r.user;
   }
-  return { user, token: token ?? null, ip: meta.ip ?? null, userAgent: meta.userAgent ?? null };
+  return { user, token: token ?? null, ip: meta.ip ?? null, userAgent: meta.userAgent ?? null, setCookie: meta.setCookie };
 }
 
-export async function createContext(opts: { req: IncomingMessage }): Promise<Context> {
-  const { req } = opts;
+export async function createContext(opts: { req: IncomingMessage; res: ServerResponse }): Promise<Context> {
+  const { req, res } = opts;
   const ip = req.socket?.remoteAddress ?? null;
   const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null;
-  return contextForToken(readToken(req), { ip, userAgent });
+  // W10 — let resolvers set the httpOnly session cookie on the shared response. appendHeader
+  // preserves any cookie already queued on this (possibly batched) response.
+  const setCookie = (cookie: string) => { res.appendHeader('Set-Cookie', cookie); };
+  return contextForToken(readToken(req), { ip, userAgent, setCookie });
 }

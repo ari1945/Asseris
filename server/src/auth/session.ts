@@ -5,7 +5,7 @@
 import { randomBytes } from 'node:crypto';
 import { prisma } from '../db';
 
-const TTL_HOURS = Number(process.env.SESSION_TTL_HOURS ?? 8);
+export const TTL_HOURS = Number(process.env.SESSION_TTL_HOURS ?? 8);
 
 export function newToken(): string {
   return randomBytes(32).toString('base64url');

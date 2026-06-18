@@ -8,6 +8,9 @@ export interface Context {
   token: string | null;
   ip?: string | null;
   userAgent?: string | null;
+  // W10 — set a response cookie (httpOnly session). Present only on the real HTTP path; tests
+  // and the protectedProcedure ctx-narrowing omit it, so callers must treat it as optional.
+  setCookie?: (cookie: string) => void;
 }
 
 const t = initTRPC.context<Context>().create();

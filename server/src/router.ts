@@ -7,6 +7,7 @@ import { prisma } from './db';
 import { hashPassword, verifyPassword } from './auth/password';
 import { generateSecret, verifyTotp as checkTotp, otpauthUrl } from './auth/totp';
 import { createSession, revokeSession } from './auth/session';
+import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
 import { can, capForWrite, CAP } from './rbac';
 import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
@@ -16,6 +17,8 @@ import { complete } from './llm/providers';
 import { rateLimit } from './llm/ratelimit';
 import { logLlmEvent } from './llm/events';
 import { appendAudit, verifyAuditChain } from './audit/log';
+import { encryptSecret, decryptSecret } from './crypto/secretbox';
+import { assertIpAllowed } from './security/ipAllowlist';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -76,6 +79,9 @@ export const appRouter = router({
       .input(z.object({ email: z.string().email(), password: z.string().min(1), totp: z.string().optional() }))
       .mutation(async ({ input, ctx }) => {
         const meta = { ip: ctx.ip, userAgent: ctx.userAgent };
+        // W10 — optional IP allow-list (off unless ADMIN_IP_ALLOWLIST is set). Rejects an
+        // off-network login before credentials are even checked.
+        assertIpAllowed(ctx.ip);
         const user = await prisma.user.findUnique({ where: { email: input.email } });
         if (!user || !user.passwordHash) {
           await logAuthEvent('LOGIN_FAIL', { ...meta, detail: `unknown:${input.email}` });
@@ -97,7 +103,8 @@ export const appRouter = router({
           throw badCreds();
         }
         if (user.totpEnabled) {
-          if (!input.totp || !user.totpSecret || !checkTotp(user.totpSecret, input.totp)) {
+          const secret = user.totpSecret ? decryptSecret(user.totpSecret) : null;
+          if (!input.totp || !secret || !checkTotp(secret, input.totp)) {
             await logAuthEvent('LOGIN_FAIL', { ...meta, userId: user.id, detail: 'totp' });
             throw new TRPCError({ code: 'UNAUTHORIZED', message: 'totp-required' });
           }
@@ -109,6 +116,9 @@ export const appRouter = router({
         const session = await createSession(user.id, meta);
         await logAuthEvent('LOGIN', { ...meta, userId: user.id });
         await appendAudit({ actorUserId: user.id, actorRole: user.role, action: 'LOGIN' });
+        // W10 — issue the session as an httpOnly cookie (the client no longer persists the token
+        // in localStorage). The token is still returned in the body for tests/curl Bearer use.
+        ctx.setCookie?.(buildSessionCookie(session.token));
         return { token: session.token, user: publicUser(user) };
       }),
 
@@ -118,6 +128,7 @@ export const appRouter = router({
       if (ctx.token) await revokeSession(ctx.token);
       await logAuthEvent('LOGOUT', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
       await appendAudit({ actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'LOGOUT' });
+      ctx.setCookie?.(clearSessionCookie()); // W10 — drop the httpOnly cookie on logout
       return { ok: true };
     }),
 
@@ -136,7 +147,9 @@ export const appRouter = router({
     // Step 1 of TOTP enrolment: mint a secret (totpEnabled stays false until verifyTotp).
     enrollTotp: protectedProcedure.mutation(async ({ ctx }) => {
       const secret = generateSecret();
-      await prisma.user.update({ where: { id: ctx.user.id }, data: { totpSecret: secret, totpEnabled: false } });
+      // W10 — store the secret encrypted-at-rest; the otpauthUrl/secret returned here (once, to
+      // show the QR during enrolment) is the only time it leaves the server in the clear.
+      await prisma.user.update({ where: { id: ctx.user.id }, data: { totpSecret: encryptSecret(secret), totpEnabled: false } });
       await logAuthEvent('TOTP_ENROLL', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
       return { secret, otpauthUrl: otpauthUrl(secret, ctx.user.email ?? ctx.user.id) };
     }),
@@ -146,7 +159,8 @@ export const appRouter = router({
       .input(z.object({ token: z.string().min(6) }))
       .mutation(async ({ ctx, input }) => {
         const u = await prisma.user.findUnique({ where: { id: ctx.user.id } });
-        if (!u?.totpSecret || !checkTotp(u.totpSecret, input.token)) {
+        const secret = u?.totpSecret ? decryptSecret(u.totpSecret) : null;
+        if (!u || !secret || !checkTotp(secret, input.token)) {
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-totp' });
         }
         await prisma.user.update({ where: { id: u.id }, data: { totpEnabled: true } });

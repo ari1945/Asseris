@@ -7,22 +7,23 @@
    ============================================================ */
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 
-/* ----- W7 Fase 2 — session token (Bearer transport) -----
-   Stored in localStorage so a reload keeps the session. (httpOnly-cookie hardening
-   is a W10 concern.) Every tRPC call attaches it; a 401 anywhere means the session
-   died → broadcast so the boot gate can fall back to the login screen. */
-const TOKEN_KEY = 'ams.auth.token';
-let authToken = null;
-try { authToken = localStorage.getItem(TOKEN_KEY); } catch (e) { /* private mode */ }
+/* ----- W7 Fase 2 / W10 — session transport -----
+   W10 moved the session to an HttpOnly cookie set by the server on login: JavaScript can no
+   longer read the token, so an XSS can't steal it from localStorage. The token is NO LONGER
+   persisted client-side. We keep it in-memory for the current tab (sent as a Bearer header,
+   belt-and-suspenders), but a reload relies purely on the cookie (credentials:'include' →
+   browser replays it; auth.me restores the session). A 401 anywhere means the session died →
+   broadcast so the boot gate falls back to the login screen. */
+const LEGACY_TOKEN_KEY = 'ams.auth.token';
+try { localStorage.removeItem(LEGACY_TOKEN_KEY); } catch (e) { /* private mode — nothing to clean */ }
+let authToken = null; // in-memory only; intentionally not persisted (httpOnly cookie is the SSOT)
 
-export function setAuthToken(t) {
-  authToken = t || null;
-  try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch (e) {}
-}
+export function setAuthToken(t) { authToken = t || null; }
 export function getAuthToken() { return authToken; }
 
 function authFetch(input, init) {
-  return fetch(input, init).then(res => {
+  // credentials:'include' → the HttpOnly session cookie rides along (same-origin via Vite proxy).
+  return fetch(input, { ...(init || {}), credentials: 'include' }).then(res => {
     if (res.status === 401) { try { window.dispatchEvent(new CustomEvent('ams:auth-expired')); } catch (e) {} }
     return res;
   });
