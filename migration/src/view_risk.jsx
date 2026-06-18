@@ -6,6 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Stat } from './ui.jsx';
 import { MSub } from './view_fpm_parts.jsx';
 import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2.jsx';
+import { DiagnosticPanel } from './diagnostics_panel.jsx';
 
 /* ============================================================
    NeoSuite AMS — Risk Assessment (RoMM register + heatmap)
@@ -62,6 +63,7 @@ function RiskAssessment() {
       {mtab === 'respons' && <RiskRespons />}
       {mtab === 'register' && <div className="view-scroll">
         <div className="view-pad">
+          <div style={{ marginBottom: 12 }}><DiagnosticPanel area="risk" title="Diagnostik Risiko — Temuan Otomatis" /></div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.length} label="Total RoMM" /></div></Panel>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={sig} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>

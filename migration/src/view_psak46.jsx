@@ -4,6 +4,7 @@ import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
+import { DiagnosticPanel } from './diagnostics_panel.jsx';
 
 /* ============================================================
    NeoSuite AMS — PSAK 46 · Pajak Penghasilan (Income Taxes)
@@ -204,6 +205,7 @@ function PSAK46View() {
       } />
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
+          <DiagnosticPanel area="psak46" title="Diagnostik Pajak — Temuan Otomatis" />
 
           {/* summary */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>

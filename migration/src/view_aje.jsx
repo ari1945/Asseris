@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { AJEForm } from './view_execution.jsx';
+import { DiagnosticPanel } from './diagnostics_panel.jsx';
 
 /* ============================================================
    NeoSuite AMS — Adjusting & Reclassifying Journal Entries (deep)
@@ -119,6 +120,7 @@ function AJEView() {
       <div className="view-scroll">
         <div className="view-pad">
           {locked && <LockBanner />}
+          <div style={{ marginBottom: 12 }}><DiagnosticPanel area="aje" title="Diagnostik AJE — Temuan Otomatis" /></div>
 
           {/* KPI strip — always visible */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 12 }}>

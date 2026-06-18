@@ -4,6 +4,7 @@ import { AiInsightPanel } from './ai_insights.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
+import { DiagnosticPanel } from './diagnostics_panel.jsx';
 
 /* ============================================================
    NeoSuite AMS — Journal Entry Testing (SA 240 / JET Tool)
@@ -60,6 +61,7 @@ function JournalEntryTesting() {
       } />
       <div className="view-scroll">
         <div className="view-pad">
+          <div style={{ marginBottom: 12 }}><DiagnosticPanel area="jet" title="Diagnostik JET — Temuan Otomatis" /></div>
           {/* funnel */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
             {funnel.map((f, i) => (
