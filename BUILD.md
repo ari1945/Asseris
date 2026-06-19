@@ -427,6 +427,43 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
     (`typeof useNav==='function'?…`, `window.useAmsPersist`); dissolve as
     `window` is stripped (Phase 4), then → error.
 
+## Legacy track — window-namespace strip (per-namespace, gated)
+
+> Dissolving the buildless-era `window.<NS>` coupling (~930 reads) one **data
+> namespace** at a time. Each slice is structural-only (no behavior/number change)
+> and must pass all gates before commit. **KEEP the imperative bus**
+> (`__amsOpen*`/`amsApplyPrefs`/`compliancePct`/`__amsNav`) — that is runtime
+> plumbing, not a data namespace.
+
+**The repeatable recipe (proven on `PROC`, slice 1 — `2a212d4`):**
+1. **Owner data file** (`data_<ns>.js`): turn dual-publish
+   ```js
+   window.NS = {…}; })();
+   export const NS = window.NS;        // codemod footer
+   ```
+   into a pure ESM export — capture the IIFE, drop the window write:
+   ```js
+   const NS = (function () { … return {…}; })();
+   export { NS };
+   ```
+   The IIFE may still read **other** namespaces via `window.X` — those are out of
+   scope for this slice (leave them; they stay dual-published). Boot order in
+   `main.jsx` already loads dependencies first — **do not reorder imports.**
+2. **Consumer views/files:** add `import { NS } from './data_<ns>.js'`; rewrite
+   `window.NS` → `NS`. Update header comments that mention `window.NS`.
+3. **Gates, in order:** `npm run lint` (0) → `npm run typecheck` (0) →
+   `npm run build` (no resolution failure) → `npm run test` (59 green, canon
+   fingerprint identical) → `npm run dev:all` live render of the affected
+   module(s), **0 console error**.
+4. **Nol-residu:** `grep -rE "window\.NS" migration/src` → 0 in active code.
+5. If the namespace had a `globals.d.ts` entry, drop it once `tsc` stays 0.
+
+**Slice order (coarse, by blast radius — smallest first; per-slice sign-off for
+the big ones):** `PROC`✅(6) → `IMPORT`(12, but W9-wired — careful) →
+`FIRMFIN`(11) → `FAC`(13) → `FSGEN`(26) → `BO`(40, fans into many data files) →
+`LEGAL`(35) → `I`(41) → `AMS_FORENSIC`(10) → `AMS_CANON`(108) → `AMS`(632, the
+multi-session boss). Counts = `window.<NS>` reads measured 2026-06-19.
+
 ## How the freeze works (W3 history)
 - W1 made Vite the build SSOT; W3 Phase 1 completed the import graph
   (jsx-no-undef 444→44); **Phase 2 (here)** committed `src` as canonical and
