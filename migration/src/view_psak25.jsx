@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -92,7 +93,7 @@ function PSAK25View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const M = useMemoP25(() => (window.AMS_CANON ? window.AMS_CANON.psak25(wtb) : null), [wtb]);
+  const M = useMemoP25(() => (AMS_CANON ? AMS_CANON.psak25(wtb) : null), [wtb]);
 
   const [tab, setTab] = useStateP25(() => loader('ams.psak25.tab', 'klasifikasi'));
   const [proc, setProc] = useStateP25(() => loader('ams.psak25.proc', {}));

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -35,7 +36,7 @@ function prLoadLS(key, fb) {
 }
 function prData(firm) {
   const AMS = window.AMS || {};
-  const CANON = window.AMS_CANON || {};
+  const CANON = AMS_CANON || {};
   const eng = firm.activeEngagement || {};
   const client = firm.activeClient || {};
   const engId = eng.id || 'x';

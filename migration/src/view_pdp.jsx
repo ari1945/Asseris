@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -36,7 +37,7 @@ function PdpCard({ value, label, sub, accent }) {
 function PDPView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const P = useMemoPDP(() => window.AMS_CANON.pdp(), []);
+  const P = useMemoPDP(() => AMS_CANON.pdp(), []);
   const [tab, setTab] = useStatePDP(() => loader('ams.pdp.tab', 'ropa'));
   const [selRopa, setSelRopa] = useStatePDP(null);
   React.useEffect(() => { try { localStorage.setItem('ams.pdp.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);

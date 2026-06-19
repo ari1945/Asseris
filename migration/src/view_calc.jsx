@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -241,7 +242,7 @@ function ECLCalculator() {
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   /* SATU sumber: matriks bucket, gross & loss-rate efektif ditarik dari AMS_CANON.psak71(wtb).
      Tidak ada lagi angka hardcode — konsisten dengan modul PSAK 71 & tab Rekonsiliasi. */
-  const p71 = (window.AMS_CANON ? window.AMS_CANON.psak71(wtb) : null);
+  const p71 = (AMS_CANON ? AMS_CANON.psak71(wtb) : null);
   const [buckets, setBuckets] = useStateS(() => (p71 ? p71.buckets.map(b => ({
     id: b.id, label: b.label, stage: b.stage, gross: Math.round(b.gross) * 1e6, rate: +b.rate.toFixed(1),
   })) : []));
@@ -342,9 +343,9 @@ function ECLCalculator() {
                 <div onClick={() => nav('psak46', { from: 'ecl' })} className="row ac jb" style={{ marginTop: 10, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer' }}>
                   <div>
                     <div style={{ fontSize: 11.5, fontWeight: 600 }}>Dampak pajak tangguhan (PSAK 46)</div>
-                    <div className="tiny muted">CKPN Rp {fmt(window.AMS_CANON.FIG.ckpn)} jt × 22% — belum deductible fiskal</div>
+                    <div className="tiny muted">CKPN Rp {fmt(AMS_CANON.FIG.ckpn)} jt × 22% — belum deductible fiskal</div>
                   </div>
-                  <span className="mono" style={{ fontWeight: 700, color: 'var(--green)', whiteSpace: 'nowrap' }}>DTA Rp {fmt(Math.round(window.AMS_CANON.FIG.ckpn * window.AMS_CANON.RATE))} jt <I.arrowRight size={12} /></span>
+                  <span className="mono" style={{ fontWeight: 700, color: 'var(--green)', whiteSpace: 'nowrap' }}>DTA Rp {fmt(Math.round(AMS_CANON.FIG.ckpn * AMS_CANON.RATE))} jt <I.arrowRight size={12} /></span>
                 </div>
               </Panel>
             </div>

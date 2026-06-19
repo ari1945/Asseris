@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -128,7 +129,7 @@ function PSAK19View() {
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   const model = useMemoP19(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const it = useMemoP19(() => (window.AMS_CANON ? window.AMS_CANON.intangibles(wtb) : null), [wtb]);
+  const it = useMemoP19(() => (AMS_CANON ? AMS_CANON.intangibles(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP19(() => loader('ams.psak19.unit', 'jutaan'));
   const [measure, setMeasure] = useStateP19(() => loader('ams.psak19.measure', 'cost'));

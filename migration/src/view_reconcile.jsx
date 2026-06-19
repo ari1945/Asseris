@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Stat } from './ui.jsx';
@@ -100,7 +101,7 @@ function RCRow({ r, nav }) {
 function DFRekonsiliasi() {
   const nav = useNav();
   const { wtb } = useAudit();
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
 
   const R = useMemoRC(() => canon.reconcile(wtb), [wtb]);
   const rows = R.accounting;

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -103,7 +104,7 @@ function PSAK65View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const p65 = useMemoP65(() => canon.psak65(wtb), [wtb]);
 
   const [tab, setTab] = useStateP65(() => loader('ams.psak65.tab', 'kendali'));

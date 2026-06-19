@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -35,7 +36,7 @@ function SusCard({ value, label, sub, accent }) {
 function SustainabilityView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const S = useMemoSus(() => window.AMS_CANON.ojkSustain(), []);
+  const S = useMemoSus(() => AMS_CANON.ojkSustain(), []);
 
   const [tab, setTab] = useStateSus(() => loader('ams.sustain.tab', 'muatan'));
   const [done, setDone] = useStateSus(() => loader('ams.sustain.done', {}));

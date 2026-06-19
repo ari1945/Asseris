@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -113,8 +114,8 @@ function PSAK16View() {
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   const model = useMemoP16(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const fa = useMemoP16(() => (window.AMS_CANON ? window.AMS_CANON.fixedAssets(wtb) : null), [wtb]);
-  const reg = useMemoP16(() => (window.AMS_CANON ? window.AMS_CANON.assetRegister(wtb) : null), [wtb]);
+  const fa = useMemoP16(() => (AMS_CANON ? AMS_CANON.fixedAssets(wtb) : null), [wtb]);
+  const reg = useMemoP16(() => (AMS_CANON ? AMS_CANON.assetRegister(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP16(() => loader('ams.psak16.unit', 'jutaan'));
   const [measure, setMeasure] = useStateP16(() => loader('ams.psak16.measure', 'cost'));

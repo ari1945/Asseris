@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -42,7 +43,7 @@ function SegmentInfo() {
   const [tab, setTab] = useStateSG('ikhtisar');
 
   const D = useMemoSG(() => {
-    const rev = window.AMS_CANON.revenue(wtb);
+    const rev = AMS_CANON.revenue(wtb);
     const model = FSGEN.buildModel(wtb);
     const J = (n) => n / 1e6; // full → juta
     const totalRev = rev.revBooked;                  // juta

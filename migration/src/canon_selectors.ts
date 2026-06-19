@@ -4,7 +4,7 @@
    Lapisan tipis & ber-tipe di atas lapisan kanon. View (JSX)
    memanggil selektor ini agar tipe WTB/Figures/Fig/Materiality
    mengalir ke modul halaman tanpa mengubah angka — nilai identik
-   dengan window.AMS_CANON.* (sumber yang sama). Tujuan W5:
+   dengan AMS_CANON.* (sumber yang sama). Tujuan W5:
    "tipe WTB/FIG dipakai ≥3 view" dengan boundary yang type-checked.
    ============================================================ */
 import { figuresFromWTB, FIG } from './canon_base';

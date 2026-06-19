@@ -2,10 +2,11 @@
    W4 — Vitest setup for the canon "number engines".
    ------------------------------------------------------------
    The canon modules are buildless-era IIFE descendants: they read
-   `window.AMS.WTB` (the SSOT trial balance) and publish to
-   `window.AMS_CANON`. `canon_base.js` even computes SRC/FIG at LOAD
-   time from `window.AMS.WTB`, so the global must exist *before* canon
-   is imported.
+   `window.AMS.WTB` (the SSOT trial balance). `AMS_CANON` is now an ESM
+   export (legacy-track slice 10 stripped the `window.AMS_CANON` write);
+   the regression test imports it directly. canon still reads
+   `window.AMS.WTB` lazily at first FIG access, so the AMS global must
+   exist *before* those engines are called.
 
    NOTE: imports here are DYNAMIC on purpose. Static `import` is hoisted
    above the stub assignments below, so `data.js`'s `window.AMS = {…}`
@@ -33,5 +34,5 @@ globalThis.BENCHMARKS = [
 
 // 2) Load order matters: data → canon → forensic.
 await import('../data.js');           // sets window.AMS (incl. WTB)
-await import('../canon');          // sets window.AMS_CANON (reads window.AMS at load)
+await import('../canon');          // ESM AMS_CANON export (reads window.AMS lazily at call)
 await import('../forensic_canon'); // pure-ESM (AMS_FORENSIC export; no window write)

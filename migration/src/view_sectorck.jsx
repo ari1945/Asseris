@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -29,7 +30,7 @@ function SecCard({ value, label, sub, accent }) {
 function SectorChecklistView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const S = useMemoSec(() => window.AMS_CANON.ojkSector(), []);
+  const S = useMemoSec(() => AMS_CANON.ojkSector(), []);
 
   const [sec, setSec] = useStateSec(() => loader('ams.sectorck.sec', 'pembiayaan'));
   const [done, setDone] = useStateSec(() => loader('ams.sectorck.done', {}));

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SignoffDots } from './sa_canonical.jsx';
@@ -442,8 +443,8 @@ function D2Signifikan({ C }) {
 
   // materialitas — basis pertimbangan (AMS_CANON)
   const eng = (C.firm && C.firm.activeEngagement) || {};
-  const mat = (window.AMS_CANON && window.AMS_CANON.materiality)
-    ? window.AMS_CANON.materiality({ engMateriality: eng.materiality }) : null;
+  const mat = (AMS_CANON && AMS_CANON.materiality)
+    ? AMS_CANON.materiality({ engMateriality: eng.materiality }) : null;
 
   const judgments = [
     { area: 'Materialitas', ref: 'SA 320', mod: 'materiality', t: mat ? `Overall materiality Rp ${fmt(mat.omFull / 1e6, 0)} jt; performance Rp ${fmt(mat.pmFull / 1e6, 0)} jt` : 'Penetapan benchmark & materialitas kinerja', basis: 'Ditarik dari Materiality Workspace (kanonik)' },
@@ -799,8 +800,8 @@ function D2Keterkaitan({ C }) {
 
   // materialitas (basis pertimbangan) dari canon
   const eng = (C.firm && C.firm.activeEngagement) || {};
-  const mat = (window.AMS_CANON && window.AMS_CANON.materiality)
-    ? window.AMS_CANON.materiality({ engMateriality: eng.materiality }) : null;
+  const mat = (AMS_CANON && AMS_CANON.materiality)
+    ? AMS_CANON.materiality({ engMateriality: eng.materiality }) : null;
 
   const ready = agg.blocking === 0;
   const stamp = (ok, warn) => ok ? 'var(--green)' : (warn ? 'var(--amber)' : 'var(--blue)');

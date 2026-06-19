@@ -2,7 +2,7 @@
    NeoSuite AMS — PSAK 117 · Kontrak Asuransi (adopsi IFRS 17)
    ------------------------------------------------------------
    MESIN HITUNG / SUMBER KEBENARAN TUNGGAL untuk modul PSAK 117.
-   Mengaugmentasi window.AMS_CANON dengan psak117() — seluruh tab
+   Mengaugmentasi AMS_CANON (objek modul) dengan psak117() — seluruh tab
    & Kertas Kerja menarik angka dari SATU fungsi ini, tidak ada
    angka yang ditulis ulang antar tab.
 
@@ -24,6 +24,8 @@
 
    Semua nilai dalam Rp JUTA. Konsisten dgn fmt()/rp() id-ID.
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   'use strict';
   const R = Math.round;
@@ -223,11 +225,6 @@
     };
   }
 
-  window.AMS_CANON = window.AMS_CANON || {};
-  window.AMS_CANON.psak117 = psak117;
-  window.AMS_CANON.P117_PORTFOLIOS = PORTFOLIOS;
+  AMS_CANON.psak117 = psak117;
+  AMS_CANON.P117_PORTFOLIOS = PORTFOLIOS;
 })();
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;

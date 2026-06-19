@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -224,7 +225,7 @@ function PSAK117View() {
   const { fmt } = window.AMS;
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const p117 = useMemoP117(() => canon.psak117(), []);
 
   const [tab, setTab] = useStateP117(() => loader('ams.psak117.tab', 'model'));

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -97,7 +98,7 @@ function PSAK58View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const dg = useMemoP58(() => (window.AMS_CANON ? window.AMS_CANON.psak58(wtb) : null), [wtb]);
+  const dg = useMemoP58(() => (AMS_CANON ? AMS_CANON.psak58(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP58(() => loader('ams.psak58.unit', 'jutaan'));
   const [tab, setTab] = useStateP58(() => loader('ams.psak58.tab', 'ikhtisar'));

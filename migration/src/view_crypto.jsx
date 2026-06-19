@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -868,7 +869,7 @@ function CRVerifySeal() {
 
 function CRMeterai({ ctx }) {
   const { nav } = ctx;
-  const L = (window.AMS_CANON && window.AMS_CANON.legalSeal) ? window.AMS_CANON.legalSeal() : null;
+  const L = (AMS_CANON && AMS_CANON.legalSeal) ? AMS_CANON.legalSeal() : null;
   if (!L) return <><CRVerifySeal /><Placeholder label="Modul keabsahan TTE belum tersedia" /></>;
   const s = L.summary;
   const BIND_KIND = { mengikat: 'green', menunggu: 'amber', lemah: 'red' };

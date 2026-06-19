@@ -12,20 +12,11 @@ import type {
   WTB,
   AjeRow,
   Benchmark,
-  Figures,
-  Fig,
-  MaterialityOpts,
-  MaterialityResult,
 } from '../canon_types';
 
-/** Permukaan AMS_CANON yang dipakai view/konsumen (sebagian diketik,
- *  sisanya dibiarkan terbuka via index signature). */
-export interface AmsCanon {
-  figuresFromWTB(wtb?: WTB): Figures;
-  materiality(opts?: MaterialityOpts): MaterialityResult;
-  FIG: Fig;
-  [k: string]: unknown;
-}
+/* AMS_CANON kini objek modul ber-ESM (legacy-track slice 10 melucuti
+   `window.AMS_CANON`); tipe permukaannya di-infer dari canon.ts, tidak
+   lagi dideklarasikan sebagai kontrak window di sini. */
 
 /** Data master (window.AMS) — hanya pos yang dibaca canon diketik. */
 export interface AmsData {
@@ -37,7 +28,6 @@ export interface AmsData {
 declare global {
   interface Window {
     AMS: AmsData;
-    AMS_CANON: AmsCanon;
     BENCHMARKS: Benchmark[];
     amsResetFigures?: () => void;
   }

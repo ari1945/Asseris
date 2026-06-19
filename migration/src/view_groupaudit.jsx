@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAmsPersist, useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -74,7 +75,7 @@ const PKG_LABELS = Object.fromEntries(PKG_FIELDS.flatMap(g => g.items));
 
 /* default paket: dibangun dari seed kanonik + status awal realistis (campuran) */
 function gaDefaultPackages(wtb) {
-  const subs = (window.AMS_CANON && window.AMS_CANON.psak65) ? window.AMS_CANON.psak65(wtb, {}).subs : [];
+  const subs = (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, {}).subs : [];
   const seedStatus = { 'CP-02': 'Disetujui', 'CP-03': 'Direkonsiliasi', 'CP-04': 'Diterima', 'CP-05': 'Diterima' };
   const seedRecv = { 'CP-02': '08 Jan 2026', 'CP-03': '10 Jan 2026', 'CP-04': '12 Jan 2026', 'CP-05': '13 Jan 2026' };
   const o = {};
@@ -109,8 +110,8 @@ function GroupAudit() {
   const audit = useAudit();
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   const [packages, setPackages] = useAmsPersist('gaPackages', () => gaDefaultPackages(wtb));
-  const p65 = useMemoGA(() => (window.AMS_CANON && window.AMS_CANON.psak65) ? window.AMS_CANON.psak65(wtb, packages) : null, [wtb, packages]);
-  const seedSubs = useMemoGA(() => (window.AMS_CANON && window.AMS_CANON.psak65) ? window.AMS_CANON.psak65(wtb, {}).subs : [], [wtb]);
+  const p65 = useMemoGA(() => (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, packages) : null, [wtb, packages]);
+  const seedSubs = useMemoGA(() => (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, {}).subs : [], [wtb]);
   const [comps, setComps] = useAmsPersist('gaComps', () => GA_COMPONENTS);
   const [findings] = useAmsPersist('gaFindings', () => GA_FINDINGS);
   const [elimVerify, setElimVerify] = useAmsPersist('gaElimVerify', () => ({}));

@@ -1,7 +1,7 @@
 /* ============================================================
    NeoSuite AMS — OJK · Pasar Modal & Keberlanjutan (SSOT)
    ------------------------------------------------------------
-   Memperluas window.AMS_CANON dengan empat domain regulasi OJK
+   Memperluas AMS_CANON (objek modul) dengan empat domain regulasi OJK
    yang sebelumnya menjadi gap (Evaluasi Kepatuhan G13–G16):
 
      ojkSustain()    · Laporan Keberlanjutan POJK 51/2017 + RAKB
@@ -18,9 +18,10 @@
    Seluruh nilai rasio bersifat ilustratif lapangan; angka LK
    yang relevan tetap mengacu AMS_CANON figur kanonik.
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   'use strict';
-  if (!window.AMS_CANON) { window.AMS_CANON = {}; }
   const AMS = window.AMS || {};
   const CLIENTS = AMS.CLIENTS || [];
   const cli = (id) => CLIENTS.find(c => c.id === id) || { name: id, npwp: '—' };
@@ -284,9 +285,5 @@
     };
   }
 
-  Object.assign(window.AMS_CANON, { ojkSustain, ojkSector, ojkFiling, ojkAuditComm });
+  Object.assign(AMS_CANON, { ojkSustain, ojkSector, ojkFiling, ojkAuditComm });
 })();
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;

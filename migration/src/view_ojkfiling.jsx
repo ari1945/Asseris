@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -35,7 +36,7 @@ function filStatusMeta(st, late, atRisk) {
 
 function OJKFilingView() {
   const nav = useNav();
-  const F = useMemoFil(() => window.AMS_CANON.ojkFiling(), []);
+  const F = useMemoFil(() => AMS_CANON.ojkFiling(), []);
 
   return (
     <>

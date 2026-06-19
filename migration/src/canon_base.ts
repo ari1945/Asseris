@@ -122,7 +122,7 @@ import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
      dari API lebih dulu (lihat api.js · hydrateCoreFromApi); akses pertama lalu
      membangun angka dari WTB ter-hidrasi → nol drift vs baseline W0.
      Tetap berupa OBJEK (lewat Proxy memo) agar `FIG.x`, `Object.assign({}, FIG, …)`,
-     spread, dan `window.AMS_CANON.FIG` bekerja tanpa perubahan di pemanggil.
+     spread, dan `AMS_CANON.FIG` bekerja tanpa perubahan di pemanggil.
      Nama field lama dipertahankan agar konsumen (PSAK 46, ECL, Sewa) tetap kompatibel. */
   let _src: Figures | null = null;
   let _fig: Fig | null = null;

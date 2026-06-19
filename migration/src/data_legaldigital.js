@@ -1,7 +1,7 @@
 /* ============================================================
    NeoSuite AMS — Lintas-sektor: Legal-Digital & Pelindungan Data
    ------------------------------------------------------------
-   Memperluas window.AMS_CANON dengan dua domain yang sebelumnya
+   Memperluas AMS_CANON (objek modul) dengan dua domain yang sebelumnya
    menjadi gap (Evaluasi Kepatuhan G17 & G19):
 
      legalSeal()  · Keabsahan tanda tangan & meterai elektronik —
@@ -21,9 +21,10 @@
    Retensi data pribadi tetap mengacu kelas 'pmpj' di window.RETENTION
    (UU PDP — 5 thn pasca berakhirnya hubungan), tidak diduplikasi.
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   'use strict';
-  if (!window.AMS_CANON) { window.AMS_CANON = {}; }
   const AMS = () => window.AMS || {};
   const ASOF = '2026-03-09';
 
@@ -243,9 +244,5 @@
     return { asOf: ASOF, dpo, BASIS, ropa, basisDist, dsr, rights, incidents, principles, summary, legal };
   }
 
-  Object.assign(window.AMS_CANON, { legalSeal, pdp });
+  Object.assign(AMS_CANON, { legalSeal, pdp });
 })();
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;

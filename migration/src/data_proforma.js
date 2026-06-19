@@ -27,6 +27,8 @@
    informasi keuangan proforma konsolidasian yang menggambarkan
    dampak akuisisi + penghimpunan dana SEOLAH-OLAH telah terjadi.
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   if (!window.AMS) window.AMS = {};
 
@@ -114,7 +116,7 @@
   function proformaEngine(execArg) {
     const A = PF_3420;
     const fmt = (window.AMS && window.AMS.fmt) || ((n) => n);
-    const C = window.AMS_CANON;
+    const C = AMS_CANON;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
       try { exec = JSON.parse(localStorage.getItem('ams.v1.pf3420.exec') || 'null'); } catch (e) {}

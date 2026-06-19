@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -72,7 +73,7 @@ function SAKRoadmapView() {
   const nav = useNav();
   const firm = useFirm();
   const loader = window.loadLS || ((k, d) => d);
-  const H = useMemoSR(() => window.AMS_CANON.sakHorizon(), []);
+  const H = useMemoSR(() => AMS_CANON.sakHorizon(), []);
   const client = (firm && firm.activeClient) || { name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', listed: true };
 
   const [tab, setTab] = useStateSR(() => loader('ams.sakroadmap.tab', 'horizon'));

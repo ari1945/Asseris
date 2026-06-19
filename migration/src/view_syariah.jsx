@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -234,7 +235,7 @@ function SyariahView() {
   const { fmt } = window.AMS;
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const sy = useMemoSY(() => canon.syariah(), []);
 
   const [tab, setTab] = useStateSY(() => loader('ams.syariah.tab', 'penyajian'));

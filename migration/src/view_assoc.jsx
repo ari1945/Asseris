@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -32,7 +33,7 @@ function AssociatesEquity() {
   const [tab, setTab] = useStateAS('ikhtisar');
 
   const D = useMemoAS(() => {
-    const assoc = (window.AMS_CANON.GROUP_ASSOCIATES || []).find(a => a.id === 'AS-01') || { own: 30, carry: 8400, name: 'PT Mitra Sentosa Distribusi' };
+    const assoc = (AMS_CANON.GROUP_ASSOCIATES || []).find(a => a.id === 'AS-01') || { own: 30, carry: 8400, name: 'PT Mitra Sentosa Distribusi' };
     const own = assoc.own / 100;
     const close = ASSOC_RF.openCarry + ASSOC_RF.shareProfit + ASSOC_RF.shareOci - ASSOC_RF.dividend;
     const netAssets = ASSOC_SF.assets - ASSOC_SF.liab;

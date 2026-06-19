@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -71,7 +72,7 @@ function I35Nav({ items, active, onChange }) {
 function ISAK35View() {
   const { fmt } = window.AMS;
   const nav = useNav();
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const m = useMemoI35(() => canon.isak35(), []);
 
   const [tab, setTab] = window.useAmsPersist('isak35.tab', 'posisi');

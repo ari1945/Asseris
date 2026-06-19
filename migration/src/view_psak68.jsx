@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -113,7 +114,7 @@ function PSAK68View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const p68 = useMemoP68(() => canon.psak68(wtb), [wtb]);
 
   const [tab, setTab] = useStateP68(() => loader('ams.psak68.tab', 'hierarki'));

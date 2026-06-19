@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -13,8 +14,8 @@ import { SliderRow } from './view_materiality.jsx';
 const { useState: useStateL, useMemo: useMemoL } = React;
 
 /* sumber kebenaran data sewa & kalkulasi → app/canon.js (dipakai juga oleh PSAK 46) */
-const LEASES = window.AMS_CANON.LEASES;
-const leaseCalc = window.AMS_CANON.leaseCalc;
+const LEASES = AMS_CANON.LEASES;
+const leaseCalc = AMS_CANON.leaseCalc;
 
 function LeaseCalculator() {
   const { fmt } = window.AMS;
@@ -159,8 +160,8 @@ function LeaseCalculator() {
 
               {/* dasar pajak & beda temporer (jembatan ke PSAK 46) */}
               {(() => {
-                const tp = window.AMS_CANON.leasePortfolio();
-                const dtaJt = Math.round(tp.netJt * window.AMS_CANON.RATE);
+                const tp = AMS_CANON.leasePortfolio();
+                const dtaJt = Math.round(tp.netJt * AMS_CANON.RATE);
                 return (
                   <Panel noBody>
                     <div className="panel-h"><h3>Dasar Pajak & Beda Temporer</h3><span className="sub mono">PSAK 46 · per 31 Des 2025</span><div style={{ flex: 1 }} /><Btn sm onClick={() => nav('psak46', { from: 'psak73' })}><I.receipt size={13} /> Buka PSAK 46</Btn></div>

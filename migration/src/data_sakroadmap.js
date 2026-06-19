@@ -18,6 +18,8 @@
    1 Jan 2026 ke atas = "terbit, belum efektif" → wajib diungkap pada
    CALK FY2025 sesuai PSAK 25 ¶30–31 (sebelumnya PSAK 1 ¶30).
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   'use strict';
 
@@ -169,12 +171,7 @@
     };
   }
 
-  window.AMS_CANON = window.AMS_CANON || {};
-  window.AMS_CANON.sakHorizon = sakHorizon;
-  window.AMS_CANON.SAK_STANDARDS = STANDARDS;
-  window.AMS_CANON.SAK_ISAKS = ISAKS;
+  AMS_CANON.sakHorizon = sakHorizon;
+  AMS_CANON.SAK_STANDARDS = STANDARDS;
+  AMS_CANON.SAK_ISAKS = ISAKS;
 })();
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;

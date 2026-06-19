@@ -22,7 +22,11 @@ import { RESTATE, psak25, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORT
 import { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65 } from './canon_part3';
 import { JOINT_ARR, P66_DISCLOSURE, psak66, PPA_DEALS, P22_PROC, psak22, materiality } from './canon_part4';
 
-window.AMS_CANON = {
+/* [legacy-track slice 10] ESM-only canon: angka kanonik kini di-EXPORT sebagai
+   objek modul (bukan lagi window.AMS_CANON). Augmentasi domain (isak35/ojk/
+   syariah/psak117/sakroadmap/legaldigital) meng-`Object.assign` objek yang SAMA
+   via `import { AMS_CANON }` — instans tunggal, perilaku identik. */
+export const AMS_CANON = {
   RATE, ASOF, LEASES, leaseCalc, leasePortfolio, deferredTax, reconcile,
   materiality,
   psak22, PPA_DEALS, P22_PROC,
@@ -43,8 +47,6 @@ window.AMS_CANON = {
 
 /* W6 Fase 3 — drop canon's lazy FIG/SRC memo after WTB re-hydration (boot).
    Exposed as a standalone global, NOT on AMS_CANON, so the canon fingerprint
-   (regression gate) stays byte-identical to the W0 baseline. */
+   (regression gate) stays byte-identical to the W0 baseline. Imperative bus →
+   tetap di window (bukan namespace data). */
 window.amsResetFigures = resetFigures;
-
-/* [W3 split] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -99,7 +100,7 @@ function PSAK48View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const p48 = useMemoP48(() => canon.psak48(wtb), [wtb]);
   const p57 = useMemoP48(() => canon.psak57(wtb), [wtb]);
 

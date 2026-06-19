@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -344,7 +345,7 @@ function PSAK71View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const p71 = useMemoP71(() => canon.psak71(wtb), [wtb]);
   const dt = useMemoP71(() => canon.deferredTax(wtb), [wtb]);
   /* nilai wajar pos non-WTB (obligasi/forward/saham) DITARIK dari satu sumber: PSAK 68.

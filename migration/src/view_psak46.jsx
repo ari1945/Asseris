@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -154,7 +155,7 @@ function PSAK46View() {
   const score = Math.round((doneCount / procs.length) * 100);
 
   /* derive deferred tax per row + totals — ditarik dari AMS_CANON (satu sumber kebenaran) */
-  const canon = window.AMS_CANON;
+  const canon = AMS_CANON;
   const DT = useMemoP46(() => canon.deferredTax(), []);
   const tempRows = useMemoP46(() => DT.items.map(it => ({ ...it, ...P46_TEMP_META[it.id] })), [DT]);
   const dtaTotal = tempRows.filter(r => r.dt > 0).reduce((a, r) => a + r.dt, 0);

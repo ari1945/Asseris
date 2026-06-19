@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical.jsx';
@@ -40,7 +41,7 @@ const INV_PROC = [
    kontinjensi) dan nilai klaim tidak pernah berbeda antar modul. `prov` & `disc`
    diturunkan dari tingkat kemungkinan via pohon keputusan PSAK 57 (¶14/27/86). */
 function getLitCases() {
-  const C = window.AMS_CANON || {};
+  const C = AMS_CANON || {};
   const reg = C.PROV_REGISTER || [];
   const TREAT = C.P57_TREAT || {};
   return reg.filter(p => p.kind === 'litigation').map(p => {

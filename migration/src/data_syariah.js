@@ -2,7 +2,7 @@
    NeoSuite AMS — SAK Syariah · PSAK 101–112
    ------------------------------------------------------------
    MESIN HITUNG / SUMBER KEBENARAN TUNGGAL untuk modul Akuntansi
-   Syariah. Mengaugmentasi window.AMS_CANON dengan syariah() —
+   Syariah. Mengaugmentasi AMS_CANON (objek modul) dengan syariah() —
    seluruh tab & Kertas Kerja menarik angka dari SATU fungsi ini.
 
    Konteks perikatan: PT Bank Syariah Amanah Nusantara Tbk (Bank
@@ -24,6 +24,8 @@
 
    Semua nilai dalam Rp JUTA. Konsisten dgn fmt()/rp() id-ID.
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   'use strict';
   const R = Math.round;
@@ -227,11 +229,6 @@
     };
   }
 
-  window.AMS_CANON = window.AMS_CANON || {};
-  window.AMS_CANON.syariah = syariah;
-  window.AMS_CANON.SYARIAH_AKAD = AKAD;
+  AMS_CANON.syariah = syariah;
+  AMS_CANON.SYARIAH_AKAD = AKAD;
 })();
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;

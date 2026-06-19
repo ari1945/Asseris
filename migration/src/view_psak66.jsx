@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -78,7 +79,7 @@ function PSAK66View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const p66 = useMemoP66(() => (window.AMS_CANON ? window.AMS_CANON.psak66(wtb) : null), [wtb]);
+  const p66 = useMemoP66(() => (AMS_CANON ? AMS_CANON.psak66(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP66(() => loader('ams.psak66.unit', 'jutaan'));
   const [tab, setTab] = useStateP66(() => loader('ams.psak66.tab', 'ikhtisar'));

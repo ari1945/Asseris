@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -127,7 +128,7 @@ function PSAK24View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
   /* ditarik dari sumber kebenaran tunggal (WTB 2-2300 via AMS_CANON) — bukan hardcode */
-  const canon24 = window.AMS_CANON;
+  const canon24 = AMS_CANON;
   const dbo = canon24 ? canon24.FIG.dbo : 13080;
   const oci = canon24 ? canon24.FIG.ociRemeasure : 270;
   const plCost = 2100;

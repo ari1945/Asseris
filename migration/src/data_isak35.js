@@ -3,7 +3,7 @@
    Entitas Berorientasi Nonlaba  (menggantikan PSAK 45)
    ------------------------------------------------------------
    MESIN HITUNG / SUMBER KEBENARAN TUNGGAL untuk modul isak35.
-   Mengaugmentasi window.AMS_CANON dengan isak35() — seluruh tab,
+   Mengaugmentasi AMS_CANON (objek modul) dengan isak35() — seluruh tab,
    laporan & daftar-uji menarik angka dari SATU fungsi ini; tidak
    ada angka yang ditulis ulang antar tab.
 
@@ -24,6 +24,8 @@
    Semua nilai dalam Rupiah PENUH. Konsisten dgn fmt()/rp() id-ID.
    Konvensi tanda WTB: aset (+), liabilitas & aset neto (−).
    ============================================================ */
+import { AMS_CANON } from './canon';
+
 (function () {
   'use strict';
 
@@ -238,12 +240,7 @@
     };
   }
 
-  window.AMS_CANON = window.AMS_CANON || {};
-  window.AMS_CANON.isak35 = isak35;
-  window.AMS_CANON.ISAK35_TB = TB;
-  window.AMS_CANON.ISAK35_DISCLOSURES = DISCLOSURES;
+  AMS_CANON.isak35 = isak35;
+  AMS_CANON.ISAK35_TB = TB;
+  AMS_CANON.ISAK35_DISCLOSURES = DISCLOSURES;
 })();
-
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_CANON = window.AMS_CANON;
