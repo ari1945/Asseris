@@ -1,7 +1,10 @@
+/* [codemod] ESM imports */
+import { BO } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Pengadaan & Vendor: lapisan kanonik (SSOT)
    ------------------------------------------------------------
-   Master vendor (window.BO.VENDORS) adalah SATU-SATUNYA sumber
+   Master vendor (BO.VENDORS) adalah SATU-SATUNYA sumber
    data counterparty pengadaan. Lapisan ini TIDAK menyimpan angka
    kedua — ia MENURUNKAN setiap metrik dari pemilik datanya:
      · Belanja per kategori   ← Σ VENDORS.ytd            (bukan tabel terpisah)
@@ -17,7 +20,6 @@
    (Legal), AP/AR & Cockpit Operasi tanpa input ulang.
    ============================================================ */
 const PROC = (function () {
-  const BO = window.BO;
   const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
   const vById = (id) => (BO.VENDORS || []).find(v => v.id === id) || null;
   const vByName = (n) => (BO.VENDORS || []).find(v => v.name === n) || null;
@@ -241,6 +243,6 @@ const PROC = (function () {
 
 
 /* ESM export murni (legacy-track slice 1: namespace PROC di-strip dari window).
-   Catatan: IIFE masih membaca window.BO/LEGAL/FIRMOPS — namespace lain,
-   di luar scope slice ini (tetap dual-published). */
+   Catatan: BO kini named-import (slice BO); IIFE masih membaca window.LEGAL/FIRMOPS
+   — namespace lain, di luar scope slice ini (tetap dual-published). */
 export { PROC };

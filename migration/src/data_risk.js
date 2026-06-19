@@ -1,10 +1,11 @@
 /* [codemod] ESM imports */
+import { BO } from './data_backoffice.js';
 import { FAC } from './data_facilities.js';
 
 /* ============================================================
    NeoSuite AMS — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)
    ------------------------------------------------------------
-   window.BO.POLICIES / CLAIMS / RISK_REGISTER = sumber kebenaran
+   BO.POLICIES / CLAIMS / RISK_REGISTER = sumber kebenaran
    tunggal untuk pertanggungan & risiko entitas firma (ISQM 1).
    Lapisan ini TIDAK menyimpan angka kedua — ia MENURUNKAN tiap
    nilai dari pemiliknya & menjahit keterkaitan lintas-modul:
@@ -25,7 +26,6 @@ import { FAC } from './data_facilities.js';
    membuktikan tiap angka menutup terhadap modul pemiliknya.
    ============================================================ */
 (function () {
-  const BO = window.BO;
   const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
   const R = Math.round;
 

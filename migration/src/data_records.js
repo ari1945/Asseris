@@ -1,3 +1,6 @@
+/* [codemod] ESM imports */
+import { BO as BO_NS } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Retensi & Arsip: lapisan kanonik (SSOT)
    ------------------------------------------------------------
@@ -6,9 +9,9 @@
 
      · Dokumen (grain dokumen)   ← window.AMS.DMS_DOCS   (Document Mgmt)
      · Identitas perikatan/klien ← window.AMS.ENGAGEMENTS + CLIENTS
-     · Sengketa & litigasi       ← window.BO.DISPUTES / window.AMS (Legal)
-     · Klaim PII terkait hold    ← window.BO.CLAIMS
-     · PO pemusnahan             ← window.BO.PURCHASE_ORDERS  (Pengadaan)
+     · Sengketa & litigasi       ← BO.DISPUTES / window.AMS (Legal)
+     · Klaim PII terkait hold    ← BO.CLAIMS
+     · PO pemusnahan             ← BO.PURCHASE_ORDERS  (Pengadaan)
 
    PRINSIP:
    1. KEBIJAKAN RETENSI (RETENTION_CLASSES) adalah sumber tunggal masa
@@ -32,7 +35,7 @@
   const addYears = (d, y) => { const x = new Date(d); x.setFullYear(x.getFullYear() + y); return x.toISOString().slice(0, 10); };
   const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
   const A = () => window.AMS || {};
-  const BO = () => window.BO || {};
+  const BO = () => BO_NS || {};
 
   /* ============================================================
      1 · KEBIJAKAN RETENSI — kelas kanonik (sumber tunggal masa simpan)

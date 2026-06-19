@@ -1,9 +1,9 @@
 /* ============================================================
    NeoSuite AMS — Backoffice & Firm Mgmt: data
-   KAP Wijaya Hartono & Rekan (WHR). Plain JS → window.BO.
+   KAP Wijaya Hartono & Rekan (WHR). ESM export BO (window.BO dilucuti).
    Anchor "hari ini" = 2026-03-09 (selaras modul lain).
    ============================================================ */
-(function () {
+const BO = (function () {
   const today = new Date('2026-03-09');
   const daysTo = (d) => Math.round((new Date(d) - today) / 864e5);
 
@@ -265,7 +265,7 @@
     { nama: 'Kamar Dagang & Industri (Kadin)', tipe: 'Asosiasi bisnis', iuran: 12_000_000, exp: '2026-12-31', status: 'Aktif' },
   ];
 
-  window.BO = {
+  return {
     today, daysTo,
     VENDORS, PURCHASE_ORDERS, SPEND_BY_CAT, CAT_COLOR,
     REQUISITIONS, RECEIPTS, BILLS, PROC_BUDGET,
@@ -279,5 +279,5 @@
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const BO = window.BO;
+/* [codemod] ESM export (window.BO dilucuti — konsumen pakai named import) */
+export { BO };

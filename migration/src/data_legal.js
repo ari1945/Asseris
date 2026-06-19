@@ -1,13 +1,16 @@
+/* [codemod] ESM imports */
+import { BO } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Kontrak & Legal: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Registri kontrak firma TIDAK lagi di-hardcode. Setiap baris
    ditarik dari modul SUMBER KEBENARAN-nya:
      · Surat Perikatan  ← Engagement Mgmt + fee Klien (CRM)   [live, reaktif]
-     · Sewa Kantor      ← Pengadaan & Vendor / Fasilitas      (window.BO)
-     · Lisensi Software ← Aset & Fasilitas / Lisensi Software (window.BO)
-     · Polis Asuransi   ← Asuransi (PII) & Risiko             (window.BO)
-     · Layanan/MoU      ← Pengadaan & Vendor                  (window.BO)
+     · Sewa Kantor      ← Pengadaan & Vendor / Fasilitas      (BO)
+     · Lisensi Software ← Aset & Fasilitas / Lisensi Software (BO)
+     · Polis Asuransi   ← Asuransi (PII) & Risiko             (BO)
+     · Layanan/MoU      ← Pengadaan & Vendor                  (BO)
 
    Prinsip: nilai kontrak = nilai pada modul sumber. Satu perubahan
    fee di CRM / premi di Asuransi / biaya lisensi di Fasilitas
@@ -92,7 +95,6 @@
   /* ---------- builder registri terpadu (dipanggil dari React dgn firm ctx) ----------
      firm: { engagements, clients, clientById }  — sumber live & reaktif. */
   function buildRegister(firm) {
-    const BO = window.BO;
     const out = [];
 
     /* 1) Surat Perikatan — satu per engagement; nilai = fee Klien (CRM). */
@@ -171,7 +173,6 @@
        drift  → nilai berbeda (perlu sinkron)
        orphan → tak ada sumber (mis. klien tidak terdaftar) */
   function reconcileLegacy(firm) {
-    const BO = window.BO;
     const clients = firm.clients || [];
     const rows = (BO.CONTRACTS || []).map(k => {
       let src = null, srcValue = null;
@@ -201,7 +202,7 @@
   window.LEGAL = {
     moneyJt, SOURCE_META, CLAUSES, DISPUTE_LINKS,
     buildRegister, reconcileLegacy,
-    daysTo: (d) => window.BO.daysTo(d),
+    daysTo: (d) => BO.daysTo(d),
   };
 })();
 

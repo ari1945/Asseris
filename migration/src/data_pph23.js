@@ -1,3 +1,6 @@
+/* [codemod] ESM imports */
+import { BO as BO_NS } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — PPh Pasal 23 Firma: lapisan kanonik (SSOT)
    ------------------------------------------------------------
@@ -5,7 +8,7 @@
    pemotongan diturunkan dari transaksi sumber (pembayaran jasa
    ke vendor) yang MENUNJUK ke master vendor & faktur AP:
 
-     · Lawan transaksi & NPWP   ← window.BO.VENDORS  (master vendor — SSOT counterparty)
+     · Lawan transaksi & NPWP   ← BO.VENDORS  (master vendor — SSOT counterparty)
      · Faktur/komitmen jasa     ← FIRM_AP / PURCHASE_ORDERS (Pengadaan)
      · Pos kontrol Utang Pajak  ← FIRM_COA 2-200 (General Ledger)
      · Agregat PPh Pot/Put      ← dibaca balik oleh modul Pajak Firma (firmtax)
@@ -21,7 +24,7 @@
    ============================================================ */
 (function () {
   const A = () => window.AMS || {};
-  const BO = () => window.BO || {};
+  const BO = () => BO_NS || {};
   const R = Math.round;
   const REFDATE = new Date('2026-03-09');
 

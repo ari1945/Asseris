@@ -5,6 +5,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Panel } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BO } from './data_backoffice.js';
 
 /* ============================================================
    NeoSuite AMS — Backoffice & Firm Mgmt (2/3)
@@ -18,7 +19,7 @@ const { useState: useStateBO2 } = React;
    (modul mendalam dgn registri SSOT). Fungsi lama dinonaktifkan.
    ============================================================ */
 function FirmLegal_LEGACY_UNUSED() {
-  const B = window.BO;
+  const B = BO;
   const [tab, setTab] = useStateBO2('contracts');
   const [sel, setSel] = useStateBO2('LIT-03');
   const renewSoon = B.CONTRACTS.filter(c => B.daysTo(c.akhir) <= 120);

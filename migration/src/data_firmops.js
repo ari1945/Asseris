@@ -1,8 +1,11 @@
+/* [codemod] ESM imports */
+import { BO } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Operasi Firma (Backoffice): lapisan kanonik
    ------------------------------------------------------------
    Cockpit "Operasi Firma" TIDAK menyimpan angka sendiri. Seluruh
-   metrik diturunkan (derived) dari sub-ledger pemiliknya di window.BO
+   metrik diturunkan (derived) dari sub-ledger pemiliknya di BO
    dan dari registri kontrak SSOT (window.LEGAL):
      · Vendor & belanja      ← BO.VENDORS / BO.SPEND_BY_CAT  (master vendor)
      · Aset & penyusutan     ← BO.FIXED_ASSETS               (PSAK 16 sub-ledger)
@@ -34,13 +37,12 @@
   /* ---------- penyusutan tahunan aset tetap (PSAK 16, garis lurus) ----------
      run-rate = Σ (harga perolehan / umur manfaat) untuk aset yang masih dipakai. */
   function annualDepreciation() {
-    return Math.round(sum(window.BO.FIXED_ASSETS.filter(a => a.nbv > 0), a => a.cost / a.life));
+    return Math.round(sum(BO.FIXED_ASSETS.filter(a => a.nbv > 0), a => a.cost / a.life));
   }
 
   /* ---------- komposisi biaya operasi backoffice (run-rate, sumber sub-ledger) ----------
      Tiap baris: sumber modul + klasifikasi P&L (Overhead/Direct) + dasar (tahunan/YTD). */
   function operatingCosts() {
-    const BO = window.BO;
     const lease = BO.VENDORS.find(v => v.cat === 'Sewa & Fasilitas');
     const auditLic = BO.SOFTWARE_LICENSES.filter(l => /IDEA|TeamMate/.test(l.name));
     const genLic = BO.SOFTWARE_LICENSES.filter(l => !/IDEA|TeamMate/.test(l.name));
@@ -64,7 +66,6 @@
   /* ---------- rekonsiliasi belanja: kategori P&L ↔ master vendor ----------
      Membuktikan SPEND_BY_CAT menutup ke Σ vendor.ytd per kategori. */
   function spendReconciliation() {
-    const BO = window.BO;
     const byCat = {};
     BO.VENDORS.forEach(v => { byCat[v.cat] = (byCat[v.cat] || 0) + v.ytd; });
     // peta kategori belanja (P&L) → kategori vendor (master)
@@ -102,7 +103,6 @@
      SATU kalender menarik tenggat dari Procurement, Facilities, Records, Insurance,
      Travel, Licensing & Legal. firm dipakai untuk registri kontrak (SSOT). */
   function unifiedObligations(firm) {
-    const BO = window.BO;
     const out = [];
     const push = (o) => { if (o.due) out.push({ ...o, days: BO.daysTo(o.due) }); };
 

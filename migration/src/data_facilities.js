@@ -1,7 +1,10 @@
+/* [codemod] ESM imports */
+import { BO } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Aset & Fasilitas Kantor: lapisan kanonik (SSOT)
    ------------------------------------------------------------
-   Register aset fasilitas (window.BO.FIXED_ASSETS) = sub-ledger PSAK 16
+   Register aset fasilitas (BO.FIXED_ASSETS) = sub-ledger PSAK 16
    tunggal untuk aset kantor. Lapisan ini TIDAK menyimpan angka kedua —
    ia MENURUNKAN tiap nilai dari pemilik datanya dengan SATU mesin:
      · Penyusutan & NBV      ← mesin garis lurus PSAK 16 (ref 1 Mar 2026)
@@ -16,7 +19,6 @@
    fasilitas direkonsiliasi ke kontrol GL & dijembatani ke register ERP.
    ============================================================ */
 const FAC = (function () {
-  const BO = window.BO;
   const REF = new Date('2026-03-01');
   const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
   const R = Math.round;

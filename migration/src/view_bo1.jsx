@@ -4,6 +4,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
 import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BO } from './data_backoffice.js';
 
 /* ============================================================
    NeoSuite AMS — Backoffice & Firm Mgmt (1/3)
@@ -41,7 +42,7 @@ function BoStat({ value, label, accent }) {
    (window.Procurement). Blok ini dipertahankan sbg referensi, tak diekspor.
    ============================================================ */
 function ProcurementLegacy() {
-  const B = window.BO;
+  const B = BO;
   const [tab, setTab] = useStateBO1('vendor');
   const totalSpend = B.SPEND_BY_CAT.reduce((s, x) => s + x.v, 0);
   const pendingPO = B.PURCHASE_ORDERS.filter(p => p.status === 'Menunggu Approval');
@@ -160,7 +161,7 @@ function ProcurementLegacy() {
    (window.Facilities). Blok ini dipertahankan sbg referensi, tak diekspor.
    ============================================================ */
 function FacilitiesLegacy() {
-  const B = window.BO;
+  const B = BO;
   const [tab, setTab] = useStateBO1('register');
   const totCost = B.FIXED_ASSETS.reduce((s, a) => s + a.cost, 0);
   const totNbv = B.FIXED_ASSETS.reduce((s, a) => s + a.nbv, 0);
@@ -282,7 +283,7 @@ function FacilitiesLegacy() {
    sbg referensi, tak diekspor.
    ============================================================ */
 function RecordsRetentionLegacy() {
-  const B = window.BO;
+  const B = BO;
   const [tab, setTab] = useStateBO1('archive');
   const due = B.ARCHIVES.filter(a => a.status === 'Jatuh Tempo');
   const holds = B.LEGAL_HOLDS.filter(h => h.status === 'Aktif');

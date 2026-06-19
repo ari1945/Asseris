@@ -1,3 +1,6 @@
+/* [codemod] ESM imports */
+import { BO as BO_NS } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Perjalanan & Reimbursement: lapisan kanonik
    ------------------------------------------------------------
@@ -21,7 +24,7 @@
    ============================================================ */
 (function () {
   const A = () => window.AMS || {};
-  const BO = () => window.BO || {};
+  const BO = () => BO_NS || {};
   const round = (n) => Math.round(n);
 
   /* ---------- indeks kanonik ---------- */

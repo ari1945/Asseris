@@ -9,6 +9,7 @@ import { PDrawer } from './view_docparts.jsx';
 import { FacLeaseInsurance, FacLicenses, FacLineage, FacMaintenance, FacSpace } from './view_facilities2.jsx';
 import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
 import { FAC } from './data_facilities.js';
+import { BO } from './data_backoffice.js';
 
 /* ============================================================
    NeoSuite AMS — Aset & Fasilitas Kantor (DEEP) · 1/2
@@ -58,7 +59,7 @@ function Facilities() {
   const firm = useFirm();
   const nav = useNav();
   const FA = FAC;
-  const B = window.BO;
+  const B = BO;
   const [tab, setTab] = useStateFac('overview');
   const [sel, setSel] = useStateFac(null);
 
@@ -216,7 +217,7 @@ function FacRegister({ reg, sel, setSel }) {
 
 /* ---------- Drawer aset: skedul penyusutan + tautan SSOT ---------- */
 function FacAssetDrawer({ asset, onClose, nav }) {
-  const FA = FAC, B = window.BO;
+  const FA = FAC, B = BO;
   const a = FA.depreciate(asset);
   const vendor = a.vendorId ? ((B.VENDORS || []).find(v => v.id === a.vendorId) || null) : null;
   const policy = a.insured ? ((B.POLICIES || []).find(p => p.id === a.insured) || null) : null;

@@ -6,6 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Btn, Donut } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt } from './view_bo1.jsx';
 import { HBars, KV, LineChart, SectionTitle } from './view_fpm_parts.jsx';
+import { BO } from './data_backoffice.js';
 
 /* ============================================================
    NeoSuite AMS — Backoffice & Firm Mgmt (3/3)
@@ -37,7 +38,7 @@ function TrSrc({ module, children, title }) {
    ============================================================ */
 function FirmTravel() {
   const T = window.TRAVEL;
-  const B = window.BO;
+  const B = BO;
   const { fmt } = window.AMS;
   const [tab, setTab] = useStateBO3('ringkasan');
   const [openTrip, setOpenTrip] = useStateBO3(null);
@@ -355,7 +356,7 @@ function FirmTravel() {
    ============================================================ */
 function FirmLicensing() {
   const L = window.LICENSING;
-  const B = window.BO;
+  const B = BO;
   const { fmt } = window.AMS;
   const [tab, setTab] = useStateBO3('ringkasan');
   const [openAp, setOpenAp] = useStateBO3(null);

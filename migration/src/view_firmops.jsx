@@ -6,6 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel } from './ui.jsx';
 import { BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { FopsCalendar, FopsLineage, FopsVendorDrawer, FopsVendors } from './view_firmops2.jsx';
+import { BO } from './data_backoffice.js';
 import { SectionTitle } from './view_fpm_parts.jsx';
 
 /* ============================================================
@@ -50,7 +51,7 @@ function FirmOps() {
   const [vSel, setVSel] = useStateFops(null);
   const [calFilter, setCalFilter] = useStateFops('all');
 
-  const B = window.BO;
+  const B = BO;
   const F = window.FIRMOPS;
   const oc = useMemoFops(() => F.operatingCosts(), []);
   const obligations = useMemoFops(() => F.unifiedObligations(firm), [firm.engagements, firm.clients]);

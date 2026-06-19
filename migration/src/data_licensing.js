@@ -1,3 +1,6 @@
+/* [codemod] ESM imports */
+import { BO as BO_NS } from './data_backoffice.js';
+
 /* ============================================================
    NeoSuite AMS — Lisensi & Perizinan: lapisan kanonik
    ------------------------------------------------------------
@@ -17,7 +20,7 @@
    ============================================================ */
 (function () {
   const A = () => window.AMS || {};
-  const BO = () => window.BO || {};
+  const BO = () => BO_NS || {};
   const LS = (k, d) => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
 
   function staffById(id) { return (A().STAFF || []).find(s => s.id === id) || null; }
