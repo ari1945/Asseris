@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AiInsightPanel } from './ai_insights.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -18,7 +19,7 @@ const JET_CRITERIA = (AMS_FORENSIC && AMS_FORENSIC.JET_CRITERIA) || [];
 const JE_POP = (AMS_FORENSIC && AMS_FORENSIC.JOURNAL_POP) || [];
 
 function JournalEntryTesting() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [crit, setCrit] = useStateJ(JET_CRITERIA);
   const [selId, setSelId] = useStateJ('JV-24-08841');
   const [tested, setTested] = useStateJ({});

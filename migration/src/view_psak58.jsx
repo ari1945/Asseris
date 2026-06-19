@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -90,14 +91,14 @@ function MeasureRow({ label, v, sc, cite, sub, total, neg, memo }) {
 }
 
 function PSAK58View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const dg = useMemoP58(() => (AMS_CANON ? AMS_CANON.psak58(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP58(() => loader('ams.psak58.unit', 'jutaan'));
@@ -117,8 +118,8 @@ function PSAK58View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
-  const aje05 = ((window.AMS && window.AMS.AJE) || []).find(a => a.id === 'AJE-05');
-  const riskPPE = ((window.AMS && window.AMS.RISKS) || []).find(r => r.id === 'R-04');
+  const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
+  const riskPPE = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-04');
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };

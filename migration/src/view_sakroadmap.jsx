@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -69,7 +70,7 @@ function SRStdRow({ s, fmt, nav, dense }) {
 }
 
 function SAKRoadmapView() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const firm = useFirm();
   const loader = window.loadLS || ((k, d) => d);

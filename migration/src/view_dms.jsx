@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist } from './contexts.jsx';
 import { FileDropField, FileList, SecurePipeline } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
@@ -235,8 +236,8 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }) {
 }
 
 function DocManagement() {
-  const { fmt } = window.AMS;
-  const [docs, setDocs] = useAmsPersist('dms.v2', () => window.AMS.DMS_DOCS);
+  const { fmt } = AMS;
+  const [docs, setDocs] = useAmsPersist('dms.v2', () => AMS.DMS_DOCS);
   const [tab, setTab] = useDMS('all');
   const [q, setQ] = useDMS('');
   const [folder, setFolder] = useDMS('all');

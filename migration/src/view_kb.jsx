@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -10,9 +11,9 @@ import { Badge, Btn, Panel, Progress } from './ui.jsx';
    ------------------------------------------------------------
    Katalog DIBANGKITKAN dari registri standar kanonik
    (window.STANDARDS_REGISTRY) — sumber yang SAMA dengan Matriks
-   Kepatuhan. Konten editorial ditarik dari window.AMS.kbResolve,
-   template terkait dari window.AMS.kbTemplatesForStandard (live atas
-   window.AMS.TEMPLATES), progres kepatuhan dari window.compliancePct,
+   Kepatuhan. Konten editorial ditarik dari AMS.kbResolve,
+   template terkait dari AMS.kbTemplatesForStandard (live atas
+   AMS.TEMPLATES), progres kepatuhan dari window.compliancePct,
    rujukan-silang standar dari window.RELATED_SA, dan setiap kartu
    menaut ke modul fungsional kanonik via nav(). Tidak ada data
    artikel yang diduplikasi di sini.
@@ -40,7 +41,7 @@ const KB_FAMILIES = [
 ];
 
 function kbTypeKind(type) {
-  const fw = (window.AMS && window.AMS.KB_FRAMEWORK) || {};
+  const fw = (AMS && AMS.KB_FRAMEWORK) || {};
   return (fw[type] && fw[type].kind) || 'gray';
 }
 function kbIsStdPage(module) { return module && /^(sa|psak|spr|sjah|sakep|psak)\d|^(sa|psak|spr|sjah|sakep)/.test(module); }
@@ -51,7 +52,7 @@ function KnowledgeBase() {
   const [fam, setFam] = useStateKB('Semua');
   const [reading, setReading] = useStateKB(null);
 
-  const all = useMemoKB(() => (window.AMS && window.AMS.kbArticles ? window.AMS.kbArticles() : []), []);
+  const all = useMemoKB(() => (AMS && AMS.kbArticles ? AMS.kbArticles() : []), []);
   const qn = q.trim().toLowerCase();
 
   const filtered = all.filter(a => {
@@ -230,12 +231,12 @@ function ArticleReader({ code, onClose, onOpenCode }) {
   }, []);
   if (!reg) return null;
 
-  const c = window.AMS.kbResolve(reg);
+  const c = AMS.kbResolve(reg);
   const mi = (window.MODULE_INDEX || {})[reg.module] || null;
   const cov = KB_COV[reg.coverage] || KB_COV.module;
-  const fw = (window.AMS.KB_FRAMEWORK || {})[reg.type] || { label: reg.type, blurb: '' };
+  const fw = (AMS.KB_FRAMEWORK || {})[reg.type] || { label: reg.type, blurb: '' };
   const prog = (reg.coverage === 'checklist' && window.compliancePct) ? window.compliancePct(reg.module) : null;
-  const tpls = window.AMS.kbTemplatesForStandard(reg.code, reg.module) || [];
+  const tpls = AMS.kbTemplatesForStandard(reg.code, reg.module) || [];
 
   /* rujukan-silang standar: dari RELATED_SA[module] → cocokkan ke registri; fallback serumpun */
   const relatedRaw = (window.RELATED_SA || {})[reg.module] || [];
@@ -385,7 +386,7 @@ function ArticleReader({ code, onClose, onOpenCode }) {
 
         {/* footer */}
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>NeoSuite Knowledge Base · diindeks dari Registri Standar · {window.AMS.KB_UPDATED}</span>
+          <span className="muted" style={{ fontSize: 12 }}>NeoSuite Knowledge Base · diindeks dari Registri Standar · {AMS.KB_UPDATED}</span>
           <div className="row gap8"><Btn onClick={onClose}>Tutup</Btn><Btn variant="primary"><I.download size={14} /> Simpan PDF</Btn></div>
         </div>
       </div>

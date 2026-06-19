@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -20,7 +21,7 @@ import { FIRMFIN } from './data_firmfin.js';
 const { useState: useStateWipF, useMemo: useMemoWipF } = React;
 
 function WIPRealization() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const FF = FIRMFIN;
   const nav = useNav();
   const { engagements, clients } = useFirm();
@@ -173,7 +174,7 @@ function WIPRealization() {
 }
 
 function WipDetail({ r, onClose, onWriteDown, onReset }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const realColor = r.realization >= 100 ? 'var(--green)' : r.realization >= 92 ? 'var(--amber)' : 'var(--red)';
   const Line = ({ label, v, op, strong, accent }) => (

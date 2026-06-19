@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui.jsx';
@@ -16,7 +17,7 @@ const GOV_STAT = { 'Efektif': 'green', 'Perlu Perhatian': 'amber', 'Defisiensi':
 const PRV_STAT = { 'Memadai': 'green', 'Pemantauan': 'amber', 'Tidak Memadai': 'red' };
 
 function Governance() {
-  const A = window.AMS;
+  const A = AMS;
   const comps = A.QM_COMPONENTS, roles = A.QM_ROLES, providers = A.QM_PROVIDERS, culture = A.QM_CULTURE, ev = A.QM_EVAL;
   const [tab, setTab] = useGov('spm');
   const [sel, setSel] = useGov(null);
@@ -168,7 +169,7 @@ function Governance() {
 }
 
 function GovCompDetail({ c, onClose }) {
-  const A = window.AMS;
+  const A = AMS;
   const role = A.QM_ROLES.find(r => r.person.includes(c.owner)) || null;
   const scoreColor = c.score >= 85 ? 'var(--green)' : c.score >= 75 ? 'var(--amber)' : 'var(--red)';
   return (

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -38,7 +39,7 @@ const TABS = [
 ];
 
 function MaterialityCalc() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { activeEngagement, locked } = useFirm();
 
   const [tab, setTab] = window.useAmsPersist('mat.tab', 'det');
@@ -109,7 +110,7 @@ function MaterialityCalc() {
 
 /* ---------- Determination tab ---------- */
 function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, priorOM, rp, locked }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const toggleQ = (id) => setQuals(q => ({ ...q, [id]: !q[id] }));
 
@@ -222,7 +223,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
         <Panel title="Dampak ke Working Trial Balance">
           <div className="row jb ac">
             <span className="tiny muted">Akun melebihi Performance Materiality ({rp(pm)})</span>
-            <Badge kind="red">{window.AMS.WTB.filter(r => Math.abs(r.adj) > pm).length} akun</Badge>
+            <Badge kind="red">{AMS.WTB.filter(r => Math.abs(r.adj) > pm).length} akun</Badge>
           </div>
           <div className="divider" />
           <div className="row gap8">
@@ -249,7 +250,7 @@ function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disab
 }
 
 function Compare({ label, a }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>

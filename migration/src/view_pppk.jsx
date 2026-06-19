@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -19,7 +20,7 @@ const ROT_STAT = { 'Wajib Rotasi': 'red', 'Tahun Terakhir': 'amber', 'Tahun ke-6
 const opColor = (t) => /WTM|Tanpa Modif/.test(t) ? 'var(--green)' : /WDP|Pengecualian/.test(t) ? 'var(--amber)' : /Tidak/.test(t) ? 'var(--red)' : /Proses/.test(t) ? 'var(--ink-4)' : 'var(--blue)';
 
 function PPPKReport() {
-  const A = window.AMS, fmt = A.fmt;
+  const A = AMS, fmt = A.fmt;
   const nav = useNav();
   const R = A.PPPK_REPORT;
   const clients = A.PPPK_CLIENTS, ppl = A.PPPK_PPL, rotation = A.PPPK_ROTATION, history = A.PPPK_HISTORY;

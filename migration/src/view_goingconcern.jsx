@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Spark } from './ui.jsx';
@@ -42,7 +43,7 @@ const GC_INDICATORS = {
 };
 
 function GoingConcern() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [inds, setInds] = useStateGC(GC_INDICATORS);
   const [revShock, setRevShock] = useStateGC(0);      // % revenue decline
   const [costCut, setCostCut] = useStateGC(0);         // % opex reduction (mitigation)

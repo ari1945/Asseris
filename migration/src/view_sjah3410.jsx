@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -18,7 +19,7 @@ import { RowKv } from './view_calc.jsx';
    materialitas), serta bentuk simpulan keyakinan terbatas (negatif)
    + paragraf penekanan ketidakpastian inheren.
 
-   SUMBER KEBENARAN TUNGGAL: window.AMS.ghgEngine(exec). Seluruh angka
+   SUMBER KEBENARAN TUNGGAL: AMS.ghgEngine(exec). Seluruh angka
    emisi DIHITUNG dari aktivitas × faktor — tak ada hardcode. Status
    uji & prosedur disimpan di ams.v1.ghg3410.exec & dibaca lintas modul
    (Asurans Lain · Katalog SJAH 3000 · Portofolio Jasa · Matriks
@@ -27,11 +28,11 @@ import { RowKv } from './view_calc.jsx';
 const { useState: useS3410 } = React;
 
 function SJAH3410View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('ghg3410.exec', {});
   const [tab, setTab] = useS3410('anatomi');
-  const E = window.AMS.ghgEngine(exec);
+  const E = AMS.ghgEngine(exec);
   const A = E.meta;
 
   const toggle = (id, seed) => setExec(s => {
@@ -191,7 +192,7 @@ function GhgAnatomy({ E, A }) {
 
 /* ---------------- Tab: Batas & Inventarisasi Emisi ---------------- */
 function GhgInventory({ E, A, toggle }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const scopeColor = { 1: 'teal', 2: 'blue', 3: 'gray' };
   const groups = [
     { scope: 1, label: 'Scope 1 — Emisi Langsung', total: E.totals.scope1 },
@@ -319,7 +320,7 @@ function GhgInventory({ E, A, toggle }) {
 
 /* ---------------- Tab: Prosedur & Bukti ---------------- */
 function GhgProcedures({ E, toggle }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const M = E.misstatement;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
@@ -388,7 +389,7 @@ function GhgProcedures({ E, toggle }) {
 
 /* ---------------- Tab: Simpulan & Laporan ---------------- */
 function GhgReport({ E, A }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const C = E.conclusion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (

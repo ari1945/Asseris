@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
@@ -17,7 +18,7 @@ const DF2_STAT = { pass: { c: 'green', i: 'checkCircle', l: 'Lolos' }, warn: { c
 
 /* ---------------- Aturan Integritas ---------------- */
 function DFAturan() {
-  const RULES = window.AMS.INTEGRITY_RULES;
+  const RULES = AMS.INTEGRITY_RULES;
   const [cat, setCat] = useDF2('All');
   const cats = ['All', ...Array.from(new Set(RULES.map(r => r.cat)))];
   const rows = cat === 'All' ? RULES : RULES.filter(r => r.cat === cat);
@@ -150,7 +151,7 @@ function DFPropagasi() {
 function DFJejak() {
   const nav = useNav();
   const { logEntries } = useAudit();
-  const TRAIL = window.AMS.AUDIT_TRAIL;
+  const TRAIL = AMS.AUDIT_TRAIL;
   const [mod, setMod] = useDF2('All');
 
   /* merge live session log with seed trail */

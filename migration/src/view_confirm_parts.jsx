@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { Badge, Btn } from './ui.jsx';
 
@@ -91,7 +92,7 @@ function CfMeta({ icon, label, value, accent }) {
 
 /* ---- Reconciliation worksheet (reusable, shared state) ---- */
 function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const variance = (item.resp != null ? item.resp - item.amount : 0);
   const rows = recon[item.id] || [];
   const reconTotal = rows.reduce((s, r) => s + (+r.amount || 0), 0);

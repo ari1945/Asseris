@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
@@ -105,14 +106,14 @@ function RfMatrixRow({ label, hp, ak, net, sc, sub, total, memo }) {
 }
 
 function PSAK16View() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemoP16(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const fa = useMemoP16(() => (AMS_CANON ? AMS_CANON.fixedAssets(wtb) : null), [wtb]);
   const reg = useMemoP16(() => (AMS_CANON ? AMS_CANON.assetRegister(wtb) : null), [wtb]);
@@ -139,8 +140,8 @@ function PSAK16View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
-  const aje05 = ((window.AMS && window.AMS.AJE) || []).find(a => a.id === 'AJE-05');
-  const riskPPE = ((window.AMS && window.AMS.RISKS) || []).find(r => r.id === 'R-04');
+  const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
+  const riskPPE = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-04');
 
   // W10.5 Fase 2 — sealed XLSX "Kertas Kerja E": the PSAK 16 fixed-asset sub-ledger + the
   // sub-ledger↔GL control-total reconciliation, full-rupiah via rp() (SSOT = AMS_CANON.assetRegister).

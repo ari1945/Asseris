@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I, MODULES, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -72,7 +73,7 @@ function ReviewNotes() {
   const [draft, setDraft] = useStateWS2({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
 
   const wpRefs = window.WP_REFS || [];
-  const seedById = useMemoWS2(() => Object.fromEntries((window.AMS.REVIEW_NOTES || []).map(n => [n.id, n])), []);
+  const seedById = useMemoWS2(() => Object.fromEntries((AMS.REVIEW_NOTES || []).map(n => [n.id, n])), []);
 
   /* unified, enriched note list (module + WP), with merged seed metadata */
   const allNotes = useMemoWS2(() => {

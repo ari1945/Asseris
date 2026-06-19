@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -19,9 +20,9 @@ const LV_STAT = { 'Disetujui': 'green', 'Menunggu': 'amber', 'Ditolak': 'red' };
 const LV_TYPE_COLOR = { 'Cuti Tahunan': '#005085', 'Sakit': '#9a6a00', 'Cuti Menikah': '#5b3fa6', 'Cuti Melahirkan': '#0a6b73', 'Izin': '#647889' };
 
 function LeaveAttendance() {
-  const staff = window.AMS.STAFF;
-  const BAL = window.AMS.LEAVE_BALANCE;
-  const [reqs, setReqs] = useAmsPersist('leaveReqs', () => window.AMS.LEAVE_REQUESTS);
+  const staff = AMS.STAFF;
+  const BAL = AMS.LEAVE_BALANCE;
+  const [reqs, setReqs] = useAmsPersist('leaveReqs', () => AMS.LEAVE_REQUESTS);
   const [tab, setTab] = useHR('requests');
 
   const setStatus = (id, status) => setReqs(list => list.map(r => r.id === id ? { ...r, status } : r));
@@ -126,9 +127,9 @@ function LeaveAttendance() {
 const PERF_PHASES = ['Goal Setting', 'Self-Review', 'Manager Review', 'Kalibrasi'];
 
 function Performance() {
-  const { fmt } = window.AMS;
-  const staff = window.AMS.STAFF;
-  const C = window.AMS.PERF_CYCLE;
+  const { fmt } = AMS;
+  const staff = AMS.STAFF;
+  const C = AMS.PERF_CYCLE;
   const [sel, setSel] = useHR('EMP-021');
   const [pdata, setPdata] = useAmsPersist('perfPeople', () => C.people);
   const advance = (id) => setPdata(m => { const p = { ...m[id] }; if (!p.goalsSet) p.goalsSet = true; else if (!p.selfDone) p.selfDone = true; else if (!p.mgrDone) p.mgrDone = true; else p.calibrated = true; return { ...m, [id]: p }; });

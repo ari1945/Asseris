@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
@@ -19,7 +20,7 @@ function rScoreColor(v) { return v >= 15 ? '#b3261e' : v >= 10 ? '#d4641c' : v >
 function RiskKontrol() {
   const nav = useNav();
   const { risks } = useAudit();
-  const CTL = window.AMS.RISK_CONTROLS;
+  const CTL = AMS.RISK_CONTROLS;
 
   const eff = ['Efektif', 'Sebagian', 'Tidak Efektif'].map(e => ({ e, n: CTL.filter(c => c.effective === e).length }));
   const prev = CTL.filter(c => c.type === 'Preventive').length;
@@ -95,7 +96,7 @@ function RiskKontrol() {
 /* ---------------- Tren Risiko ---------------- */
 function RiskTren() {
   const { risks } = useAudit();
-  const T = window.AMS.RISK_TREND;
+  const T = AMS.RISK_TREND;
   const [selId, setSelId] = useRisk2('R-01');
   const sel = risks.find(r => r.id === selId) || risks[0];
   const series = T.series[selId] || T.series['R-01'];
@@ -222,7 +223,7 @@ function RiskRespons() {
                     <div style={{ width: 220, flex: '0 0 220px' }}>
                       <div className="tiny muted upper" style={{ marginBottom: 2 }}>Prosedur Tertaut</div>
                       {(() => {
-                        const procId = r.proc || ((window.AMS.RISKS || []).find(x => x.id === r.id) || {}).proc || 'workpapers';
+                        const procId = r.proc || ((AMS.RISKS || []).find(x => x.id === r.id) || {}).proc || 'workpapers';
                         const pm = (window.MODULE_INDEX || {})[procId] || { label: procId, icon: 'flask' };
                         const PI = I[pm.icon] || I.flask;
                         return (

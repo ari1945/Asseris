@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -60,20 +61,20 @@ const TRIG_2410 = [
 ];
 
 function SPR2410View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemo2410(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025', materiality: 4_250_000_000 };
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   /** @type {import('./canon_selectors').MaterialityResult} */
   const mat = materialityFor({ engMateriality: eng.materiality });
-  const risks = (audit && audit.risks) ? audit.risks : ((window.AMS && window.AMS.RISKS) || []);
+  const risks = (audit && audit.risks) ? audit.risks : ((AMS && AMS.RISKS) || []);
 
   const [tab, setTab] = useState2410(() => loader('ams.spr2410.tab', 'ikhtisar'));
   const [concl, setConcl] = useState2410(() => loader('ams.spr2410.concl', 0));

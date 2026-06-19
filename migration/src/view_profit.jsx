@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -22,7 +23,7 @@ const REALIZATION = {
 
 /* blended hourly rate from the engagement's actual staffing mix (SCHEDULE) × rate card */
 function blendedRate(engId) {
-  const sched = window.AMS.SCHEDULE || [];
+  const sched = AMS.SCHEDULE || [];
   let wsum = 0, hsum = 0;
   sched.forEach(m => m.alloc.filter(a => a.eng === engId).forEach(a => { const r = RATE_CARD[m.role] || RATE_CARD.Senior; wsum += a.hrs * r; hsum += a.hrs; }));
   if (hsum > 0) return { rate: wsum / hsum, source: 'staffing aktual' };
@@ -33,7 +34,7 @@ function blendedRate(engId) {
 
 /* Fee & hours DERIVED from canonical data; cost = actual hours × blended rate (hours × rate per grade). */
 function buildEngEcon(extraHoursByEng = {}) {
-  const { ENGAGEMENTS, CLIENTS } = window.AMS;
+  const { ENGAGEMENTS, CLIENTS } = AMS;
   return ENGAGEMENTS.map(e => {
     const c = CLIENTS.find(x => x.id === e.clientId) || {};
     const hours = e.actualHrs + (extraHoursByEng[e.id] || 0);
@@ -46,7 +47,7 @@ function buildEngEcon(extraHoursByEng = {}) {
 }
 
 function Profitability() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { timeEntries } = useAudit();
   const [view, setView] = useStatePRF('engagement');
@@ -54,7 +55,7 @@ function Profitability() {
 
   // logged timesheet hours flow into the active engagement's hours (ENG-2025-014)
   const loggedHours = (timeEntries || []).reduce((s, t) => s + (+t.hours || 0), 0);
-  const seedLogged = (window.AMS.TIME_ENTRIES || []).reduce((s, t) => s + (+t.hours || 0), 0);
+  const seedLogged = (AMS.TIME_ENTRIES || []).reduce((s, t) => s + (+t.hours || 0), 0);
   const extraHours = { 'ENG-2025-014': Math.max(0, loggedHours - seedLogged) };
 
   const rows = buildEngEcon(extraHours).map(e => {
@@ -199,7 +200,7 @@ function Profitability() {
 
 /* Leverage (staff pyramid) + WIP recovery / write-down analysis */
 function LeverageRecovery({ rows, fmt, marginColor }) {
-  const sched = window.AMS.SCHEDULE || [];
+  const sched = AMS.SCHEDULE || [];
   const GRADE_COST = { Partner: 2_500_000, Manager: 1_200_000, Senior: 700_000, Junior: 400_000 };
   const CHARGE_MULT = 2.4; // standard charge-out vs cost
   // hours by grade across firm

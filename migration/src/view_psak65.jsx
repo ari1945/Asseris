@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -96,14 +97,14 @@ function P65RowKv({ label, v, strong, accent }) {
 }
 
 function PSAK65View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const canon = AMS_CANON;
   const p65 = useMemoP65(() => canon.psak65(wtb), [wtb]);
 
@@ -332,7 +333,7 @@ function PSAK65View() {
                   <table className="dtbl" style={{ width: '100%' }}>
                     <thead><tr><th style={{ textAlign: 'left' }}>Entitas</th><th style={{ textAlign: 'right', width: 90 }}>Pendapatan</th><th style={{ textAlign: 'right', width: 80 }}>NPAT</th></tr></thead>
                     <tbody>
-                      <tr><td style={{ fontWeight: 600, fontSize: 12 }}>{client.name} <span className="tiny muted">(induk)</span></td><td className="mono" style={{ textAlign: 'right' }}>{fmt(p65.par && Math.round((-window.AMS.WTB.find(r=>r.code==='4-1100').adj)/1e6))}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(p65.npatParent)}</td></tr>
+                      <tr><td style={{ fontWeight: 600, fontSize: 12 }}>{client.name} <span className="tiny muted">(induk)</span></td><td className="mono" style={{ textAlign: 'right' }}>{fmt(p65.par && Math.round((-AMS.WTB.find(r=>r.code==='4-1100').adj)/1e6))}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(p65.npatParent)}</td></tr>
                       {p65.subs.map(s => (
                         <tr key={s.id}><td style={{ fontSize: 12 }}>{s.name}</td><td className="mono" style={{ textAlign: 'right' }}>{fmt(s.rev)}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(s.npat)}</td></tr>
                       ))}

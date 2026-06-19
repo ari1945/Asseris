@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Donut, Panel, Progress, Stat } from './ui.jsx';
@@ -18,8 +19,8 @@ const OB_CYCLE = { acceptance: 6, pmpj: 8, letter: 4, convert: 3 }; // mock SLA 
 
 /* ---------------- Analitik ---------------- */
 function OBAnalitik() {
-  const { fmt } = window.AMS;
-  const [prospects] = useAmsPersist('prospects', () => window.AMS.PROSPECTS);
+  const { fmt } = AMS;
+  const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
 
   const live = prospects.filter(p => !p.converted);
   const converted = prospects.filter(p => p.converted);
@@ -106,7 +107,7 @@ function OBAnalitik() {
 
 /* ---------------- Akseptasi (SA 220 / 300) ---------------- */
 function OBAcceptance() {
-  const [prospects] = useAmsPersist('prospects', () => window.AMS.PROSPECTS);
+  const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
   const [selId, setSelId] = useOB3(prospects[0].id);
   const sel = prospects.find(p => p.id === selId) || prospects[0];
   const factors = (sel.acceptance && sel.acceptance.factors) || [];
@@ -178,7 +179,7 @@ function OBAcceptance() {
 
 /* ---------------- PMPJ / APU-PPT (AML / KYC) ---------------- */
 function OBAml() {
-  const [prospects] = useAmsPersist('prospects', () => window.AMS.PROSPECTS);
+  const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
   const withPmpj = prospects.filter(p => p.pmpj);
   const [selId, setSelId] = useOB3((withPmpj[0] || prospects[0]).id);
   const sel = prospects.find(p => p.id === selId) || prospects[0];

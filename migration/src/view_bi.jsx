@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -43,13 +44,13 @@ function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, uni
 }
 
 function FirmBI() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const B = window.AMS.BI_DATA;
-  const CLIENTS = window.AMS.CLIENTS;
-  const PIPELINE = window.AMS.PIPELINE;
-  const FIRM_BUDGET = window.AMS.FIRM_BUDGET;
-  const EQR = window.AMS.EQR_REVIEWS;
+  const B = AMS.BI_DATA;
+  const CLIENTS = AMS.CLIENTS;
+  const PIPELINE = AMS.PIPELINE;
+  const FIRM_BUDGET = AMS.FIRM_BUDGET;
+  const EQR = AMS.EQR_REVIEWS;
   const [metric, setMetric] = useBI('rev');
 
   /* P&L roll-up */

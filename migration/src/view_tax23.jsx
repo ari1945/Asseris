@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -20,7 +21,7 @@ const T23_KIND_LABEL = { jasa: 'Jasa (2%)', modal: 'Penghasilan modal (15%)', se
 const t23Date = (s) => { if (!s) return '—'; const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y.slice(2); };
 
 function TaxPPh23() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const T = window.TAX23;
   const nav = useNav();
   const [tab, setTab] = useStateT23('ikhtisar');
@@ -267,7 +268,7 @@ function TaxPPh23() {
 
 /* ---------------- Tab: Lawan Transaksi ---------------- */
 function T23Counterparty({ opts, nav }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const groups = window.TAX23.byCounterparty(opts);
   const withNpwp = groups.filter(g => g.hasNpwp).length;
   const masterN = groups.filter(g => g.master).length;
@@ -304,12 +305,12 @@ function T23Counterparty({ opts, nav }) {
 
 /* ---------------- Tab: Rekonsiliasi & Lineage ---------------- */
 function T23Reconcile({ opts, nav }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const T = window.TAX23;
   const s = T.summary(opts);
   const tie = T.glTieOut(opts);
   const prov = T.provenance(opts);
-  const firmtaxAgg = (window.AMS.PPH_WITHHELD || []).find(p => p.jenis === 'PPh 23');
+  const firmtaxAgg = (AMS.PPH_WITHHELD || []).find(p => p.jenis === 'PPh 23');
 
   const flow = [
     { ic: 'cart', lbl: 'Master Vendor & AP', sub: 'BO.VENDORS · FIRM_AP', mod: 'procurement', color: 'var(--blue)' },
@@ -408,7 +409,7 @@ function T23Reconcile({ opts, nav }) {
 
 /* ---------------- Detail drawer ---------------- */
 function T23Detail({ r, onClose, nav, toggle }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 480, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
@@ -481,7 +482,7 @@ function T23Detail({ r, onClose, nav, toggle }) {
 
 /* ---------------- Form bukti potong baru ---------------- */
 function BuktiPotongForm({ onClose, onAdd, nextId }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const OBJ = window.TAX23.OBJECTS;
   const [party, setParty] = useStateT23('');
   const [npwp, setNpwp] = useStateT23('');

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { WpExtractions } from './ai_extract.jsx';
 import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -85,7 +86,7 @@ const WP_SEED_NOTES = {
 
 /* ============================================================ */
 function WorkingPapers() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb, wpState, risks } = useAudit();
   const { activeEngagement, activeClient, locked } = useFirm();
   const [filter, setFilter] = useStateWP('All');
@@ -289,7 +290,7 @@ function WorkingPapers() {
    WP drill-down — tabbed audit-file detail
    ============================================================ */
 function WPDrill({ it, onClose }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb, wpState, setWp, risks, aje } = useAudit();
   const { activeEngagement, activeClient, locked } = useFirm();
   const ref = it[0];

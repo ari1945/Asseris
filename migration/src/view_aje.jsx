@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
 import { CAP } from './rbac.js';
 import { I } from './icons.jsx';
@@ -97,7 +98,7 @@ function ajeLines(a) {
 }
 
 function AJEView() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const { aje, addAje, wtb } = useAudit();
   const { locked, activeEngagement, activeClient } = useFirm();
   const auth = useAuth();
@@ -205,7 +206,7 @@ function AjeKpi({ value, label, accent }) {
    TAB 1 — Register (enriched list + journal drill)
    ============================================================ */
 function AjeRegister({ model, locked }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { toggleAjeStatus } = useAudit();
   const nav = useNav();
   const [selId, setSelId] = useStateAJ(model[0] ? model[0].id : null);
@@ -339,7 +340,7 @@ function AjeDrill({ a, fmt, nav }) {
    TAB 2 — Dampak Laba & Neraca
    ============================================================ */
 function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtProposed }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const jt = (n) => fmt(n / 1e6, 0);
   const ifPosted = reportedPbt + pbtProposed;
@@ -566,7 +567,7 @@ function AjeApprovals({ model }) {
 }
 
 function ApprovalCard({ a }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const isPosted = a.status === 'Posted';
   const steps = [
     { role: 'Penyusun', who: a.preparer, on: a.proposedOn, done: true },

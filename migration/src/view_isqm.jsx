@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -37,12 +38,12 @@ const MON_SOURCE = {
 
 function SOQM() {
   const nav = useNav();
-  const [risks, setRisks] = useAmsPersist('soqmRisks', () => window.AMS.SOQM_RISKS);
-  const [complaints] = useAmsPersist('complaints.v2', () => window.AMS.COMPLAINTS);
-  const inspections = window.AMS.QM_INSPECTIONS;
-  const inspFindings = window.AMS.QM_INSP_FINDINGS;
-  const monActivities = window.AMS.QM_MON_ACTIVITIES;
-  const engMeta = window.AMS.engMeta || (() => null);
+  const [risks, setRisks] = useAmsPersist('soqmRisks', () => AMS.SOQM_RISKS);
+  const [complaints] = useAmsPersist('complaints.v2', () => AMS.COMPLAINTS);
+  const inspections = AMS.QM_INSPECTIONS;
+  const inspFindings = AMS.QM_INSP_FINDINGS;
+  const monActivities = AMS.QM_MON_ACTIVITIES;
+  const engMeta = AMS.engMeta || (() => null);
   const [tab, setTab] = useSOQM('register');
   const [sel, setSel] = useSOQM(null);
   const [openRca, setOpenRca] = useSOQM(null);
@@ -263,7 +264,7 @@ function RemediationTab({ deficiencies, nav }) {
       {deficiencies.length ? deficiencies.map(r => {
         const d = r.deficiency;
         const capacityTie = r.id === 'QR-02' && P;
-        const sevList = window.AMS.QM_INSP_FINDINGS.filter(f => (f.cause || '').toLowerCase().includes('senior') || (f.rca5 || []).some(w => w.toLowerCase().includes('sumber daya')));
+        const sevList = AMS.QM_INSP_FINDINGS.filter(f => (f.cause || '').toLowerCase().includes('senior') || (f.rca5 || []).some(w => w.toLowerCase().includes('sumber daya')));
         return (
           <div key={r.id} className="panel" style={{ padding: 14, borderLeft: '3px solid var(--' + (SEV_KIND[d.sev] || 'amber') + ')' }}>
             <div className="row jb ac" style={{ marginBottom: 8 }}>
@@ -320,7 +321,7 @@ function RemediationTab({ deficiencies, nav }) {
 }
 
 function RiskDetail({ r, nav, onClose }) {
-  const comp = (window.AMS.QM_COMPONENTS || []).find(c => c.name.includes(r.comp) || r.comp.includes(c.name.split(' ')[0]));
+  const comp = (AMS.QM_COMPONENTS || []).find(c => c.name.includes(r.comp) || r.comp.includes(c.name.split(' ')[0]));
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>

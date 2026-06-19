@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -56,7 +57,7 @@ const SO_ORGS = [
    tak pernah menyimpang dari perikatan auditor-jasa. ---- */
 (function syncSO01FromSocEngine() {
   try {
-    const uav = window.AMS && window.AMS.socEngine && window.AMS.socEngine().userAuditorView;
+    const uav = AMS && AMS.socEngine && AMS.socEngine().userAuditorView;
     if (!uav) return;
     const so = SO_ORGS.find(o => o.id === 'SO-01');
     if (!so) return;

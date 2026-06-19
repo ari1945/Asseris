@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
@@ -26,7 +27,7 @@ const SE_PROCEDURES = [
 ];
 
 function SubsequentEvents() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [events, setEvents] = useStateSE(SE_EVENTS);
   const [selId, setSelId] = useStateSE('SE-01');
   const [procs, setProcs] = useStateSE(SE_PROCEDURES);

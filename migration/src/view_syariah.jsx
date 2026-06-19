@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -80,7 +81,7 @@ function SYSourceUse({ title, sub, sumber, penggunaan, sumberLbl, pakaiLbl, sald
 }
 
 function sySignoffDefaults() {
-  const TEAM = (window.AMS && window.AMS.TEAM) || [];
+  const TEAM = (AMS && AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '13 Jan 2026' },
@@ -93,7 +94,7 @@ function sySignoffDefaults() {
    KERTAS KERJA S-1 — lembar kerja formal, siap-reviu & cetak.
    ============================================================ */
 function SYWorkPaper({ sy, fmt, rp, nav }) {
-  const FIRM = (window.AMS && window.AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
+  const FIRM = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'syariah', sySignoffDefaults());
   const cl = sy.client;
@@ -232,7 +233,7 @@ function SYWorkPaper({ sy, fmt, rp, nav }) {
 }
 
 function SyariahView() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const canon = AMS_CANON;

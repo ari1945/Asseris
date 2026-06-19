@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -78,14 +79,14 @@ function P22Kv({ label, v, strong, accent, indent }) {
 }
 
 function PSAK22View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const canon = AMS_CANON;
   const p22 = useMemoP22(() => canon.psak22(wtb), [wtb]);
 

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -85,14 +86,14 @@ function P25Card({ value, label, sub, accent }) {
 }
 
 function PSAK25View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const M = useMemoP25(() => (AMS_CANON ? AMS_CANON.psak25(wtb) : null), [wtb]);
 
   const [tab, setTab] = useStateP25(() => loader('ams.psak25.tab', 'klasifikasi'));

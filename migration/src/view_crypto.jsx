@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -15,11 +16,11 @@ import { amsExportXlsx } from './export_xlsx.js';
    SATU SUMBER KEBENARAN. Modul ini TIDAK meng-hardcode angka.
    Semua tarikan data berasal dari entitas kanonik yang sama yang
    dibaca modul-modul lain:
-     · Dokumen & integritas  → window.AMS.DMS_DOCS (Document Mgmt)
+     · Dokumen & integritas  → AMS.DMS_DOCS (Document Mgmt)
      · Bukti ter-hash        → window.amsEvidenceAll() (Evaluasi Bukti)
      · Hash SHA-256          → window.amsFakeHash (helper bersama DMS/Bukti)
-     · Aturan integritas     → window.AMS.INTEGRITY_RULES (Alur Data)
-     · Jejak audit hash-chain→ window.AMS.PLATFORM.buildAuditStream (Audit Trail)
+     · Aturan integritas     → AMS.INTEGRITY_RULES (Alur Data)
+     · Jejak audit hash-chain→ AMS.PLATFORM.buildAuditStream (Audit Trail)
      · Tanda tangan/e-sign   → entri SIGN pada arus jejak + pemilik DMS
    Konsekuensinya: satu perubahan di modul hulu (mis. unggah dokumen,
    posting AJE, legal hold) mengalir serempak ke seluruh kartu di sini.
@@ -35,7 +36,7 @@ function crShort(h) { return String(h || '').slice(0, 10) + '…'; }
 
 /* ---------- SSOT reader: register integritas dokumen dari DMS ---------- */
 function crCryptoDocs() {
-  const docs = (window.AMS && window.AMS.DMS_DOCS) || [];
+  const docs = (AMS && AMS.DMS_DOCS) || [];
   return docs.map(d => {
     const latest = (d.versions && d.versions[d.versions.length - 1]) || {};
     const sealed = d.assembly === 'complete' || d.legalHold;
@@ -95,9 +96,9 @@ function CryptoCompliance() {
 
   /* ---- SSOT compute ---- */
   const docs = useMCR(() => crCryptoDocs(), []);
-  const rules = (window.AMS && window.AMS.INTEGRITY_RULES) || [];
+  const rules = (AMS && AMS.INTEGRITY_RULES) || [];
   const evidence = (window.amsEvidenceAll ? window.amsEvidenceAll() : []);
-  const stream = useMCR(() => ((window.AMS.PLATFORM && window.AMS.PLATFORM.buildAuditStream(logEntries)) || []), [logEntries]);
+  const stream = useMCR(() => ((AMS.PLATFORM && AMS.PLATFORM.buildAuditStream(logEntries)) || []), [logEntries]);
 
   /* hash-chain atas arus kanonik (oldest→newest) — tamper-evident */
   const chain = useMCR(() => {
@@ -201,7 +202,7 @@ function CRPostur({ ctx }) {
   const KPIS = [
     { v: encCount + '/' + docs.length, l: 'Dokumen Terenkripsi', sub: 'AES-256-GCM at-rest', accent: 'var(--green)', ic: 'lock' },
     { v: sealedCount + '/' + docs.length, l: 'Berkas Tersegel (WORM)', sub: 'final-lock & legal hold', accent: 'var(--blue)', ic: 'shield' },
-    { v: window.AMS.fmt(hashedCount), l: 'Objek Ter-hash SHA-256', sub: 'kertas kerja + bukti', accent: 'var(--navy)', ic: 'fingerprint' },
+    { v: AMS.fmt(hashedCount), l: 'Objek Ter-hash SHA-256', sub: 'kertas kerja + bukti', accent: 'var(--navy)', ic: 'fingerprint' },
     { v: rulePass + '/' + rules.length, l: 'Aturan Integritas Lolos', sub: ruleWarn + ' peringatan · ' + ruleErr + ' gagal', accent: ruleErr ? 'var(--red)' : ruleWarn ? 'var(--amber)' : 'var(--green)', ic: 'sliders' },
   ];
 
@@ -491,7 +492,7 @@ function CRServerChain({ rows, verify, nav }) {
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={window.AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={writes} label="Penulisan Kertas Kerja" accent="var(--blue)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={logins} label="Autentikasi (LOGIN)" accent="var(--green)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
@@ -542,7 +543,7 @@ function CRRantai({ ctx }) {
         <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>Rantai server tak tersedia (proxy mati atau peran tanpa <span className="mono">AUDIT_VIEW</span>) — menampilkan <b>arus turunan lokal</b> dari log aktivitas. Bukan jejak append-only otoritatif.</div>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={window.AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter(e => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter(e => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>

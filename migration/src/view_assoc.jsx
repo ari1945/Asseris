@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -28,7 +29,7 @@ const ASSOC_RF = { cost: 7000, openCarry: 7650, shareProfit: 1100, shareOci: 0, 
 const ASSOC_SF = { assets: 38000, liab: 19500, revenue: 52000, profit: 3667 };
 
 function AssociatesEquity() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [tab, setTab] = useStateAS('ikhtisar');
 

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -48,7 +49,7 @@ function useDraggablePortlets(defaultOrder, storeKey) {
 }
 
 function FirmDashboard() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const { engagements, clients, setActiveEngagementId } = useFirm();
   const { team, activity, deadlines, risks } = useAudit();
 

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -88,7 +89,7 @@ function FirmOps() {
     records: { stat: recArchives + ' arsip', sub: recDue + ' jatuh tempo musnah', status: recHolds + ' legal hold', statusKind: recHolds ? 'red' : 'green' },
     legal: { stat: register.length + ' kontrak', sub: 'registri SSOT terpadu', status: openLit.length + ' perkara', statusKind: openLit.length ? 'amber' : 'green' },
     insurance: { stat: boM(B.POLICIES.find(p => p.id === 'POL-PII').limit, 0), sub: 'limit PII · ' + B.POLICIES.length + ' polis', status: polDue.length ? polDue.length + ' jatuh tempo' : 'tercakup', statusKind: polDue.length ? 'amber' : 'green' },
-    travel: { stat: 'Rp ' + window.AMS.fmt(F.sum(B.TRAVEL_TREND, t => t.v), 0) + ' jt', sub: 'biaya YTD · ' + travPend.length + ' pengajuan', status: overCap.length ? overCap.length + ' lewat plafon' : 'sesuai plafon', statusKind: overCap.length ? 'amber' : 'green' },
+    travel: { stat: 'Rp ' + AMS.fmt(F.sum(B.TRAVEL_TREND, t => t.v), 0) + ' jt', sub: 'biaya YTD · ' + travPend.length + ' pengajuan', status: overCap.length ? overCap.length + ' lewat plafon' : 'sesuai plafon', statusKind: overCap.length ? 'amber' : 'green' },
     licensing: { stat: B.AP_LICENSES.length + ' AP · ' + B.FIRM_LICENSES.length + ' izin', sub: licSoon.length + ' perpanjangan ≤120h', status: pplShort.length ? pplShort.length + ' PPL kurang' : 'patuh', statusKind: pplShort.length ? 'red' : 'green' },
   };
 
@@ -137,7 +138,7 @@ function FirmOps() {
                   <div className="row gap14" style={{ alignItems: 'center' }}>
                     <Donut size={120} thickness={17}
                       segments={oc.rows.map((r, i) => ({ label: r.label, value: r.amount, color: FOPS_PALETTE[i % FOPS_PALETTE.length] }))}
-                      center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{window.AMS.fmt(oc.total / 1e9, 1)}M</div><div className="tiny muted">total</div></>} />
+                      center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{AMS.fmt(oc.total / 1e9, 1)}M</div><div className="tiny muted">total</div></>} />
                     <div style={{ flex: 1 }}>
                       {oc.rows.map((r, i) => (
                         <div key={r.key} className="row jb ac" style={{ padding: '4px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => { setTab('opex'); }}>
@@ -204,7 +205,7 @@ function FirmOps() {
 
               <div className="panel" style={{ padding: '11px 13px', marginTop: 12 }}>
                 <div className="row ac gap8" style={{ marginBottom: 6 }}><I.coins size={14} style={{ color: 'var(--navy)' }} /><b style={{ fontSize: 12 }}>Kontribusi ke Laba Rugi KAP</b><div style={{ flex: 1 }} /><button className="btn sm" onClick={() => nav('firmfinance', { from: 'firmops' })}><I.arrowRight size={11} /> Firm Finance</button></div>
-                <div className="tiny muted" style={{ lineHeight: 1.55 }}>Komponen <b>Overhead</b> (Rp {window.AMS.fmt(oc.overheadAnnual / 1e6, 0)} jt/thn dasar tahunan) mengisi pos <b>“Beban overhead &amp; umum”</b>, dan <b>Beban Langsung</b> menambah <b>“Beban langsung staf &amp; pengiriman”</b> di Ikhtisar Laba Rugi KAP. Cockpit ini adalah sub-ledger; Firm Finance adalah buku besar ringkasannya.</div>
+                <div className="tiny muted" style={{ lineHeight: 1.55 }}>Komponen <b>Overhead</b> (Rp {AMS.fmt(oc.overheadAnnual / 1e6, 0)} jt/thn dasar tahunan) mengisi pos <b>“Beban overhead &amp; umum”</b>, dan <b>Beban Langsung</b> menambah <b>“Beban langsung staf &amp; pengiriman”</b> di Ikhtisar Laba Rugi KAP. Cockpit ini adalah sub-ledger; Firm Finance adalah buku besar ringkasannya.</div>
               </div>
             </div>
           )}

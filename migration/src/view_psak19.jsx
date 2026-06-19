@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
@@ -120,14 +121,14 @@ function RfRowP19({ label, hp, ak, net, sc, sub, total, memo }) {
 }
 
 function PSAK19View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemoP19(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const it = useMemoP19(() => (AMS_CANON ? AMS_CANON.intangibles(wtb) : null), [wtb]);
 

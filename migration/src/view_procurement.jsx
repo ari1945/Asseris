@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { PROC } from './data_procurement.js';
 import { I } from './icons.jsx';
@@ -153,7 +154,7 @@ function Procurement() {
                   <div className="row gap14" style={{ alignItems: 'center' }}>
                     <Donut size={128} thickness={18}
                       segments={spend.rows.map(r => ({ label: r.cat, value: r.v, color: r.c }))}
-                      center={<><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{window.AMS.fmt(spend.total / 1e9, 1)}M</div><div className="tiny muted">YTD</div></>} />
+                      center={<><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{AMS.fmt(spend.total / 1e9, 1)}M</div><div className="tiny muted">YTD</div></>} />
                     <div style={{ flex: 1 }}>
                       {spend.rows.slice(0, 6).map(r => (
                         <div key={r.cat} className="row jb ac" style={{ padding: '3px 0', borderBottom: '1px solid var(--line-soft)' }}>

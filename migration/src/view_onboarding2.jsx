@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { Badge, Btn } from './ui.jsx';
 import { OKv } from './view_onboarding.jsx';
@@ -132,8 +133,8 @@ function StepPMPJ({ p, onPatch }) {
    STEP 3 — Engagement Letter (SA 210)
    ============================================================ */
 function StepLetter({ p, onPatch }) {
-  const { fmt } = window.AMS;
-  const FIRM = window.AMS.FIRM;
+  const { fmt } = AMS;
+  const FIRM = AMS.FIRM;
   const L = p.letter;
   const setL = (patch) => onPatch(pr => ({ ...pr, letter: { ...pr.letter, ...patch } }));
   const today = new Date().toISOString().slice(0, 10);

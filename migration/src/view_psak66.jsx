@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -71,14 +72,14 @@ function DecisionStep({ n, q, par, ans, detail, terminal }) {
 }
 
 function PSAK66View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const p66 = useMemoP66(() => (AMS_CANON ? AMS_CANON.psak66(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP66(() => loader('ams.psak66.unit', 'jutaan'));
@@ -94,7 +95,7 @@ function PSAK66View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
-  const aje05 = ((window.AMS && window.AMS.AJE) || []).find(a => a.id === 'AJE-05');
+  const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
   const discList = disc || p66.disclosure;
   const toggleDisc = (id) => setDisc((discList).map(r => r.id === id ? { ...r, ok: !r.ok } : r));
   const discOk = discList.filter(d => d.ok).length;

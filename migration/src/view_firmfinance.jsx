@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -21,7 +22,7 @@ import { FIRMFIN } from './data_firmfin.js';
 const { useState: useStateFF, useMemo: useMemoFF } = React;
 
 function FirmFinance() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const FF = FIRMFIN;
   const nav = useNav();
   const { engagements, clients } = useFirm();
@@ -355,7 +356,7 @@ function SourceOfTruth({ D, jt, M, fmt, nav }) {
    kontrol GL 1-300. Angka identik dipakai Dashboard, WIP & Realisasi, dan cockpit
    Firm Finance — tidak ada perhitungan paralel di view ini. */
 function WIPValuation() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const FF = FIRMFIN;
   const nav = useNav();
   const { engagements, clients } = useFirm();
@@ -608,7 +609,7 @@ function WipValDetail({ r, jt, pc, realColor, marginColor, onClose, nav }) {
 }
 
 function ServiceLineDrill({ l, total, onClose }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const breakdownMap = {
     'Audit & Asurans': [['Audit LK Emiten', 0.46], ['Audit LK Non-emiten', 0.34], ['Reviu Interim', 0.12], ['Asurans Lain', 0.08]],
     'Perpajakan': [['Tax Compliance', 0.5], ['Tax Advisory', 0.32], ['Tax Dispute', 0.18]],

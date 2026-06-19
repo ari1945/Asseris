@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -126,7 +127,7 @@ const VERDICT_COLOR = { good: 'var(--green)', ok: 'var(--ink-2)', watch: 'var(--
    Main view
    ============================================================ */
 function AnalyticalReview() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb, risks } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
   const pm = Math.round(activeEngagement.materiality * 0.75);

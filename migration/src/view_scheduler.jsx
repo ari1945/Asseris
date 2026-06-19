@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -11,9 +12,9 @@ import { Avatar, Btn, Panel, Stat } from './ui.jsx';
 const { useState: useStateD3, useMemo: useMemoD3 } = React;
 
 function ResourceScheduler() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const [schedule, setSchedule] = useAmsPersist('schedule', () => window.AMS.SCHEDULE);
+  const [schedule, setSchedule] = useAmsPersist('schedule', () => AMS.SCHEDULE);
   const [sel, setSel] = useStateD3(null);
   const [showNew, setShowNew] = useStateD3(false);
   const addBooking = (b) => setSchedule(list => list.map(m => m.member === b.member ? { ...m, alloc: [...m.alloc, { eng: b.eng, client: b.client, hrs: +b.hrs, color: b.color }] } : m));
@@ -129,7 +130,7 @@ function ResourceScheduler() {
 }
 
 function BookingForm({ schedule, onClose, onAdd }) {
-  const engs = window.AMS.ENGAGEMENTS, cl = window.AMS.CLIENTS;
+  const engs = AMS.ENGAGEMENTS, cl = AMS.CLIENTS;
   const colors = ['#005085', '#1f7a4d', '#5b3fa6', '#0a6b73', '#9a6a00'];
   const [d, setD] = useStateD3({ member: schedule[0].member, eng: engs[0].id, hrs: 8 });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));

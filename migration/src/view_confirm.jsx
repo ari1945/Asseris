@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui.jsx';
@@ -16,7 +17,7 @@ const { useState: useStateCF } = React;
 /* ---------- enriched detail rail (Register tab) ---------- */
 function CfDetailPanel(props) {
   const { sel, recon, setRecon, altChecks, setAltChecks, relChecks, setRelChecks, onMarkReceived, onResolveRecon, onResolveAlt } = props;
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   if (!sel) return null;
   const variance = sel.resp != null ? sel.resp - sel.amount : 0;
   const outstanding = sel.status === 'Sent' || sel.status === 'No Reply';
@@ -118,7 +119,7 @@ function CfDetailPanel(props) {
 
 /* ---------- Tab 1 · Ringkasan ---------- */
 function CfOverview({ items, segs, rate, onJump }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const responded = items.filter(c => c.resp != null).length;
   const concluded = items.filter(c => c.status === 'Received').length;
   const discrepancies = items.filter(c => c.status === 'Discrepancy').length;
@@ -267,7 +268,7 @@ function CfOverview({ items, segs, rate, onJump }) {
 /* ---------- Tab 3 · Rekonsiliasi & Tindak Lanjut ---------- */
 function CfWorklist(props) {
   const { items, recon, setRecon, altChecks, setAltChecks, onResolveRecon, onResolveAlt, focusId } = props;
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const discs = items.filter(c => c.status === 'Discrepancy');
   const noReplies = items.filter(c => c.status === 'No Reply');
   const grossDiff = discs.reduce((s, c) => s + Math.abs(c.resp - c.amount), 0);
@@ -363,7 +364,7 @@ function CfWorklist(props) {
    Root — ConfirmationHub
    ============================================================ */
 function ConfirmationHub() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [items, setItems] = useStateCF(CONFIRMATIONS);
   const [tab, setTab] = useStateCF('overview');
   const [fType, setFType] = useStateCF('All');

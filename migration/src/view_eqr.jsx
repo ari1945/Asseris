@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -19,12 +20,12 @@ const EQR_STAT = { 'Belum Mulai': 'gray', 'Berjalan': 'amber', 'Selesai': 'green
    ============================================================ */
 function EQRWorkflow() {
   const nav = useNav();
-  const [reviews, setReviews] = useAmsPersist('eqrReviews.v2', () => window.AMS.EQR_REVIEWS);
+  const [reviews, setReviews] = useAmsPersist('eqrReviews.v2', () => AMS.EQR_REVIEWS);
   const [sel, setSel] = useEQR(reviews[0].id);
 
   const setReview = (id, fn) => setReviews(list => list.map(r => r.id === id ? fn(r) : r));
   const r = reviews.find(x => x.id === sel) || reviews[0];
-  const meta = (window.AMS.EQR_META || {})[r.id] || {};
+  const meta = (AMS.EQR_META || {})[r.id] || {};
   const doneN = r.checklist.filter(c => c.ok).length;
   const allChecked = doneN === r.checklist.length;
   const openFindings = r.findings.filter(f => f.status === 'Terbuka').length;

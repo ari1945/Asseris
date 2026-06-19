@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -15,7 +16,7 @@ const { useState: useStateS, useMemo: useMemoS } = React;
 const REL_FACTOR = { 90: 2.31, 95: 3.0, 99: 4.61 };
 
 function SamplingEngine() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { activeEngagement } = useFirm();
   const pm = Math.round(activeEngagement.materiality * 0.75);
 
@@ -236,10 +237,10 @@ function SamplingEngine() {
 
 /* ---------------- ECL Calculator (PSAK 71) ---------------- */
 function ECLCalculator() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const audit = useAudit();
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   /* SATU sumber: matriks bucket, gross & loss-rate efektif ditarik dari AMS_CANON.psak71(wtb).
      Tidak ada lagi angka hardcode — konsisten dengan modul PSAK 71 & tab Rekonsiliasi. */
   const p71 = (AMS_CANON ? AMS_CANON.psak71(wtb) : null);
@@ -358,7 +359,7 @@ function ECLCalculator() {
 
 /* ---- helpers ---- */
 function NumRow({ label, value, onChange, step, hint }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   return (
     <div className="field" style={{ marginBottom: 13 }}>
       <label>{label}</label>

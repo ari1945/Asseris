@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAuth, useFirm } from './contexts.jsx';
 import { I, MODULES } from './icons.jsx';
 import { Avatar } from './ui.jsx';
@@ -25,10 +26,10 @@ function CommandPalette({ onClose, onNavigate }) {
     clients.forEach(c => items.push({ kind: 'Klien', label: c.name, icon: 'users', action: () => onNavigate('crm'), hint: c.id + ' · ' + c.industry }));
     // W7.5 — only offer engagements the user may access as quick-switch targets.
     engagements.filter(e => canAccessEngagement(e.id)).forEach(e => { const c = clients.find(x => x.id === e.clientId); items.push({ kind: 'Engagement', label: e.id + ' · ' + (c?.name.replace('PT ', '') || ''), icon: 'briefcase', action: () => { setActiveEngagementId(e.id); onNavigate('engagement'); }, hint: e.fy + ' · ' + e.phase }); });
-    (window.AMS.WTB || []).forEach(r => items.push({ kind: 'Akun', label: r.code + ' · ' + r.name, icon: 'table', action: () => onNavigate('wtb'), hint: 'Working Trial Balance' }));
-    (window.AMS.STAFF || []).forEach(s => items.push({ kind: 'Staf', label: s.name, icon: 'users', action: () => onNavigate('hcm'), hint: s.role + ' · ' + s.cert }));
-    (window.AMS.INVOICES || []).forEach(v => items.push({ kind: 'Faktur', label: v.id + ' · ' + v.client.replace('PT ', ''), icon: 'receipt', action: () => onNavigate('billing'), hint: v.status + ' · Rp ' + Math.round(v.amount / 1e6) + ' jt' }));
-    (window.AMS.FIRM_AP || []).forEach(v => items.push({ kind: 'Vendor', label: v.vendor, icon: 'coins', action: () => onNavigate('apar'), hint: v.cat }));
+    (AMS.WTB || []).forEach(r => items.push({ kind: 'Akun', label: r.code + ' · ' + r.name, icon: 'table', action: () => onNavigate('wtb'), hint: 'Working Trial Balance' }));
+    (AMS.STAFF || []).forEach(s => items.push({ kind: 'Staf', label: s.name, icon: 'users', action: () => onNavigate('hcm'), hint: s.role + ' · ' + s.cert }));
+    (AMS.INVOICES || []).forEach(v => items.push({ kind: 'Faktur', label: v.id + ' · ' + v.client.replace('PT ', ''), icon: 'receipt', action: () => onNavigate('billing'), hint: v.status + ' · Rp ' + Math.round(v.amount / 1e6) + ' jt' }));
+    (AMS.FIRM_AP || []).forEach(v => items.push({ kind: 'Vendor', label: v.vendor, icon: 'coins', action: () => onNavigate('apar'), hint: v.cat }));
     return items;
   }, [clients, engagements, canAccessEngagement]);
 

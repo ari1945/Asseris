@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
@@ -22,7 +23,7 @@ function capCell(v, leave) {
 }
 
 function CapacityPlanning() {
-  const { fmt, CAPACITY } = window.AMS;
+  const { fmt, CAPACITY } = AMS;
   const { weeks, grades, staff, pipeline } = CAPACITY;
   const [grade, setGrade] = useStateCap('Semua');
   const [hover, setHover] = useStateCap(null);

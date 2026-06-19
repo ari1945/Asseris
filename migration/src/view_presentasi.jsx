@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -35,7 +36,6 @@ function prLoadLS(key, fb) {
   try { const s = localStorage.getItem('ams.v1.' + key); return s != null ? JSON.parse(s) : fb; } catch (e) { return fb; }
 }
 function prData(firm) {
-  const AMS = window.AMS || {};
   const CANON = AMS_CANON || {};
   const eng = firm.activeEngagement || {};
   const client = firm.activeClient || {};
@@ -81,7 +81,7 @@ function prData(firm) {
   return { AMS, eng, client, mat, risks, pbc, pbcBy, findings, finalSorted, finSummary, op, opType, kamCount, opFinal, reportDate, aje, ajePosted, ajeProposed, team };
 }
 
-const prRp = (n) => (window.AMS && window.AMS.rp) ? window.AMS.rp(n) : ('Rp ' + (n || 0).toLocaleString('id-ID'));
+const prRp = (n) => (AMS && AMS.rp) ? AMS.rp(n) : ('Rp ' + (n || 0).toLocaleString('id-ID'));
 const prDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return d; } };
 
 /* ============================================================

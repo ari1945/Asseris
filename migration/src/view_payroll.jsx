@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -35,11 +36,11 @@ function calcPayslip(p, R) {
 }
 
 function Payroll() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const R = window.AMS.PAYROLL_RATES;
-  const staff = window.AMS.STAFF;
-  const PR = window.AMS.PAYROLL;
+  const R = AMS.PAYROLL_RATES;
+  const staff = AMS.STAFF;
+  const PR = AMS.PAYROLL;
   const [sel, setSel] = usePR(null);
   const [run, setRun] = useAmsPersist('payrollRun', 'draft'); // draft | approved | paid
   const [thr, setThr] = usePR(false);
@@ -186,9 +187,9 @@ function Payroll() {
 }
 
 function PayslipDrawer({ r, R, onClose }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const s = r.slip;
-  const FIRM = window.AMS.FIRM;
+  const FIRM = AMS.FIRM;
   const Line = ({ label, v, sub, neg, bold, sign }) => (
     <div className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ fontSize: bold ? 12.5 : 12, fontWeight: bold ? 700 : 400, color: sub ? 'var(--ink-3)' : 'var(--ink)' }}>{label}</span>

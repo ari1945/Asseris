@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -56,7 +57,7 @@ const TYPE_KIND = { Factual: 'blue', Judgmental: 'purple', Projected: 'teal' };
 const FS = { pbt: 85_200_000_000, revenue: 331_900_000_000, assets: 316_558_000_000, equity: 160_456_000_000 };
 
 function SADLedger() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement } = useFirm();
   const [items, setItems] = useStateSD(SAD_SEED);

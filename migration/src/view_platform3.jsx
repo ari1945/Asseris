@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -13,7 +14,7 @@ import { KvBox } from './view_analytical.jsx';
 const { useState: useStateAT, useMemo: useMemoAT } = React;
 
 /* Seed sistem & jejak firma kanonik kini diturunkan dari
-   window.AMS.PLATFORM.buildAuditStream() (lihat data_platform.js) —
+   AMS.PLATFORM.buildAuditStream() (lihat data_platform.js) —
    satu sumber kebenaran, digabung dengan log aktivitas live. */
 
 const AT_ACT_COLOR = { LOGIN: 'gray', SIGN: 'purple', APPROVE: 'green', REJECT: 'red', UPLOAD: 'blue', SYNC: 'teal', EDIT: 'amber', SEND: 'blue', CREATE: 'blue', DELETE: 'red', EXPORT: 'purple' };
@@ -35,7 +36,7 @@ function AuditTrail() {
   const [selIdx, setSelIdx] = useStateAT(null);
 
   /* === SUMBER KEBENARAN: arus terpadu dari log live + jejak firma kanonik + seed sistem === */
-  const base = (window.AMS.PLATFORM && window.AMS.PLATFORM.buildAuditStream(logEntries)) || [];
+  const base = (AMS.PLATFORM && AMS.PLATFORM.buildAuditStream(logEntries)) || [];
   /* attach hash chain (oldest -> newest) */
   const all = useMemoAT(() => {
     const asc = [...base].slice().reverse();
@@ -76,7 +77,7 @@ function AuditTrail() {
       <div className="view-scroll"><div className="view-pad">
         {/* KPI + integrity */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={window.AMS.fmt(all.length)} label="Total Entri" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(all.length)} label="Total Entri" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.filter(a => a.ts.startsWith('2026-03-10') || a.ts.startsWith('2026-03-09')).length} label="Aktivitas 24 Jam" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(all.map(a => a.who)).size} label="Pengguna Unik" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: 'var(--green)' }}>Terverifikasi</div><div className="s-lbl">Integritas Hash-Chain</div></div></div></div></Panel>

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -70,7 +71,7 @@ const ASR_ENG = [
    socEngine (SJAH 3402) agar hal pokok & simpulan konsisten dengan modul penuh. */
 (function syncAsr081FromSocEngine() {
   try {
-    const eng = window.AMS && window.AMS.socEngine && window.AMS.socEngine();
+    const eng = AMS && AMS.socEngine && AMS.socEngine();
     if (!eng) return;
     const a = ASR_ENG.find(e => e.id === 'ASR-081');
     if (!a) return;
@@ -85,7 +86,7 @@ const ASR_ENG = [
    konsisten dengan modul penuh (mis. Scope 2 tak lagi berbeda antar modul). */
 (function syncAsr080FromGhgEngine() {
   try {
-    const eng = window.AMS && window.AMS.ghgEngine && window.AMS.ghgEngine();
+    const eng = AMS && AMS.ghgEngine && AMS.ghgEngine();
     if (!eng) return;
     const a = ASR_ENG.find(e => e.id === 'ASR-080');
     if (!a) return;

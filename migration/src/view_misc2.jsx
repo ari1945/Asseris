@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -14,7 +15,7 @@ const { useState: useStateM2 } = React;
 
 /* ---------------- Template Library ----------------
    Katalog & tata kelola dibangun di atas registri kanonik
-   window.AMS.TEMPLATES (lihat data_templates.js). Setiap template
+   AMS.TEMPLATES (lihat data_templates.js). Setiap template
    menaut ke modul yang memakainya + standar yang dipenuhinya. */
 const FMT_COLOR = { DOCX: '#2f5b9b', XLSX: '#1f7a4d', PDF: '#b3261e', PPTX: '#c2630f' };
 const TPL_PHASES = ['Perencanaan', 'Pelaksanaan', 'Pelaporan', 'Tata Kelola & Mutu', 'Pajak'];
@@ -35,13 +36,13 @@ function FmtBadge({ fmt, size = 38 }) {
 }
 
 function Templates() {
-  const T = window.AMS.TEMPLATES || [];
+  const T = AMS.TEMPLATES || [];
   const nav = useNav();
   const [q, setQ] = useStateM2('');
   const [phase, setPhase] = useStateM2('Semua');
   const [detail, setDetail] = useStateM2(null);
 
-  const dmsTpl = (window.AMS.DMS_DOCS || []).filter(d => d.type === 'Template').length;
+  const dmsTpl = (AMS.DMS_DOCS || []).filter(d => d.type === 'Template').length;
   const aktif = T.filter(t => t.status === 'Aktif').length;
   const draf = T.filter(t => t.status === 'Draf').length;
   const due = T.filter(t => t.reviewDue).length;
@@ -126,7 +127,7 @@ function Templates() {
           {/* Governance rail */}
           <div className="grid" style={{ gap: 12 }}>
             <Panel title="Tata Kelola Registri">
-              <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>Registri tunggal — modul lain menarik template terkait dari sumber yang sama (<span className="mono">window.AMS.TEMPLATES</span>).</div>
+              <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>Registri tunggal — modul lain menarik template terkait dari sumber yang sama (<span className="mono">AMS.TEMPLATES</span>).</div>
               {[['Aktif & disahkan', aktif, 'var(--green)'], ['Perlu reviu (jatuh tempo)', due, 'var(--amber)'], ['Draf / penyusunan', draf, 'var(--ink-4)']].map(([l, n, c]) => (
                 <div key={l} style={{ marginBottom: 8 }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}><span className="tiny" style={{ color: 'var(--ink-2)' }}>{l}</span><span className="mono tiny" style={{ fontWeight: 700 }}>{n}</span></div>
@@ -188,7 +189,7 @@ function TemplateDetail({ t, onClose }) {
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
   const ModIc = I[mod.icon] || I.panel;
   const st = TPL_STATUS[t.status] || TPL_STATUS['Aktif'];
-  const engObjs = (t.engs || []).map(id => (window.AMS.ENGAGEMENTS || []).find(e => e.id === id) || { id, client: '' });
+  const engObjs = (t.engs || []).map(id => (AMS.ENGAGEMENTS || []).find(e => e.id === id) || { id, client: '' });
   const activeEng = firm.activeEngagement;
   const go = (id) => { nav(id, { from: 'templates' }); onClose(); };
   const openSA = (s) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });

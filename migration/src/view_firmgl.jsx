@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -14,9 +15,9 @@ const { useState: useStateF1, useMemo: useMemoF1 } = React;
 
 /* ---------------- Firm General Ledger ---------------- */
 function FirmGL() {
-  const { fmt } = window.AMS;
-  const coa = window.AMS.FIRM_COA;
-  const [gl, setGl] = useAmsPersist('firmgl', () => window.AMS.FIRM_GL);
+  const { fmt } = AMS;
+  const coa = AMS.FIRM_COA;
+  const [gl, setGl] = useAmsPersist('firmgl', () => AMS.FIRM_GL);
   const [tab, setTab] = useStateF1('journal');
   const [form, setForm] = useStateF1(false);
   const [ledAcct, setLedAcct] = useStateF1('1-100');
@@ -258,7 +259,7 @@ function FirmGL() {
 }
 
 function FirmJVForm({ coa, onClose, onPost }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [desc, setDesc] = useStateF1('');
   const [dr, setDr] = useStateF1('');
   const [cr, setCr] = useStateF1('');
@@ -302,7 +303,7 @@ function agingBucket(daysOver) {
 }
 
 function AgingStrip({ items, getDue, getOut }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const REF = new Date('2026-03-09');
   const buckets = AGING_BUCKETS.map(b => ({ ...b, v: 0, n: 0 }));
   items.forEach(it => {
@@ -328,11 +329,11 @@ function AgingStrip({ items, getDue, getOut }) {
 }
 
 function FirmAPAR() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [tab, setTab] = useStateF1('ap');
-  const [ap, setAp] = useAmsPersist('firmap', () => window.AMS.FIRM_AP);
-  const ar = window.AMS.INVOICES;
+  const [ap, setAp] = useAmsPersist('firmap', () => AMS.FIRM_AP);
+  const ar = AMS.INVOICES;
   const REF = new Date('2026-03-09');
 
   const apOutstanding = ap.filter(x => x.status !== 'Paid').reduce((s, x) => s + (x.amount - x.paid), 0);

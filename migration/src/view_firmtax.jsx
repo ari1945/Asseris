@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -16,12 +17,12 @@ const { useState: useStateTX } = React;
 const TAX_STAT = { 'Lapor': 'green', 'Bayar': 'blue', 'Belum Lapor': 'amber', 'Draft': 'gray', 'Terlambat': 'red' };
 
 function FirmTax() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const navTX = useNav();
-  const EF = window.AMS.EFAKTUR;
-  const PPH = window.AMS.PPH_WITHHELD;
+  const EF = AMS.EFAKTUR;
+  const PPH = AMS.PPH_WITHHELD;
   const [tab, setTab] = useStateTX('kalender');
-  const [obs, setObs] = useAmsPersist('firmtax', () => window.AMS.TAX_OBLIGATIONS);
+  const [obs, setObs] = useAmsPersist('firmtax', () => AMS.TAX_OBLIGATIONS);
 
   const ppnOut = EF.filter(e => e.kind === 'Keluaran').reduce((s, e) => s + e.ppn, 0);
   const ppnIn = EF.filter(e => e.kind === 'Masukan').reduce((s, e) => s + e.ppn, 0);

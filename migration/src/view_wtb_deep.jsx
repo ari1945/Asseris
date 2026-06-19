@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Progress, Seg } from './ui.jsx';
@@ -93,7 +94,7 @@ function TrendBars({ py, cy, w = 46, h = 22 }) {
 
 /* ---------------- Command KPI band ---------------- */
 function WtbKpiBand({ summary, pm, onGotoReview }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const M = (v) => 'Rp ' + fmt(v / 1e9, 1) + ' M';
   const balanced = Math.abs(summary.neracaDiff) < 1e6;
   const reviewPct = summary.flaggedCount ? Math.round((summary.explained / summary.flaggedCount) * 100) : 100;
@@ -123,7 +124,7 @@ function WtbKpiBand({ summary, pm, onGotoReview }) {
 
 /* ---------------- Preliminary Analytical Review (SA 520) ---------------- */
 function WtbAnalytical({ pm, onOpenAccount }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb, setWtbOverrides, addReviewNote, aje } = useAudit();
   const nav = useNav();
   const [absJt, setAbsJt] = useStateWD(Math.round(pm / 1e6));
@@ -292,7 +293,7 @@ function WtbAnalytical({ pm, onOpenAccount }) {
 
 /* ---------------- FS Grouping & Reconciliation ---------------- */
 function WtbGrouping({ pm }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb } = useAudit();
   const nav = useNav();
   const summary = useMemoWD(() => computeWtbSummary(wtb, pm), [wtb, pm]);

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
@@ -13,8 +14,8 @@ import { BO } from './data_backoffice.js';
 const { useState: useStateBO1 } = React;
 
 /* shared money helpers */
-const boJt = (v) => 'Rp ' + window.AMS.fmt(v / 1e6, 0) + ' jt';
-const boM = (v, d = 1) => 'Rp ' + window.AMS.fmt(v / 1e9, d) + ' M';
+const boJt = (v) => 'Rp ' + AMS.fmt(v / 1e6, 0) + ' jt';
+const boM = (v, d = 1) => 'Rp ' + AMS.fmt(v / 1e9, d) + ' M';
 const boBadge = {
   Aktif: 'green', Disetujui: 'green', Lengkap: 'green', Berlaku: 'green', Patuh: 'green', Digunakan: 'green', Dibayar: 'green', Selesai: 'green', Reimbursed: 'green', Terkunci: 'green',
   'Menunggu Approval': 'amber', 'Perlu Reviu': 'amber', Evaluasi: 'amber', Draft: 'gray', Berjalan: 'amber', Perpanjangan: 'amber', 'Perlu Servis': 'amber', Terjadwal: 'blue', Diproses: 'blue', Mediasi: 'amber', 'Jatuh Tempo': 'amber', Dilaporkan: 'blue', 'Usul Hapus': 'amber', 'PPL Kurang': 'amber',

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -18,11 +19,11 @@ const GRADE_ORDER = ['Partner', 'Manager', 'Senior', 'Junior'];
 const GRADE_COLOR = { Partner: '#002C3F', Manager: '#005085', Senior: '#0a6b73', Junior: '#5b3fa6' };
 
 function HCM() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [extra, setExtra] = useAmsPersist('staffExtra', []);
-  const staff = [...extra, ...window.AMS.STAFF];
-  const [sel, setSel] = useStateE(window.AMS.STAFF[3].id);
+  const staff = [...extra, ...AMS.STAFF];
+  const [sel, setSel] = useStateE(AMS.STAFF[3].id);
   const [q, setQ] = useStateE('');
   const [grade, setGrade] = useStateE('All');
   const [showNew, setShowNew] = useStateE(false);
@@ -146,13 +147,13 @@ function StaffForm({ onClose, onAdd }) {
 
 /* ---------------- CPE/PPL Tracker ---------------- */
 function CPETracker() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const staff = window.AMS.STAFF, req = window.AMS.CPE_REQ;
+  const staff = AMS.STAFF, req = AMS.CPE_REQ;
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   const [sel, setSel] = useStateE('EMP-007');
   const [showNew, setShowNew] = useStateE(false);
-  const log = (() => { const m = {}; staff.forEach(s => { m[s.id] = [...(extraLog[s.id] || []), ...((window.AMS.CPE_LOG[s.id]) || [])]; }); return m; })();
+  const log = (() => { const m = {}; staff.forEach(s => { m[s.id] = [...(extraLog[s.id] || []), ...((AMS.CPE_LOG[s.id]) || [])]; }); return m; })();
   const addSkp = (id, rec) => setExtraLog(l => ({ ...l, [id]: [{ ...rec, date: '2026-03-09' }, ...(l[id] || [])] }));
 
   const summary = staff.map(s => {
@@ -266,7 +267,7 @@ function SkpForm({ staff, onClose, onAdd }) {
 /* ---------------- Independence & Rotation ---------------- */
 function Independence() {
   const nav = useNav();
-  const [data, setData] = useAmsPersist('independence', () => window.AMS.INDEPENDENCE);
+  const [data, setData] = useAmsPersist('independence', () => AMS.INDEPENDENCE);
   const declared = data.filter(d => d.declared).length;
   const conflicts = data.reduce((s, d) => s + d.conflicts, 0);
   const rotationDue = data.filter(d => d.tenure >= d.rotationLimit).length;

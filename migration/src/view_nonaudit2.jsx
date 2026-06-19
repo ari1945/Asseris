@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 
 /* ============================================================
@@ -13,8 +14,8 @@ const { useState: useNA2 } = React;
    Drawer Laporan Deliverable — render laporan sesuai standar
    ============================================================ */
 function NAReport({ kind, engId, onClose }) {
-  const { fmt } = window.AMS;
-  const FIRM = window.AMS.FIRM;
+  const { fmt } = AMS;
+  const FIRM = AMS.FIRM;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   const Paper = ({ title, std, children, signer }) => (
     <div className="doc-paper" style={{ background: '#fff', maxWidth: 640, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
@@ -30,7 +31,7 @@ function NAReport({ kind, engId, onClose }) {
 
   let body = null;
   if (kind === 'aup') {
-    const E = window.AMS.aupEngine();
+    const E = AMS.aupEngine();
     const A = E.meta;
     const procs = E.procedures;
     const doneProcs = procs.filter(p => p.done);
@@ -48,7 +49,7 @@ function NAReport({ kind, engId, onClose }) {
       </Paper>
     );
   } else if (kind === 'cmp') {
-    const C = window.AMS.COMPILATION_4410;
+    const C = AMS.COMPILATION_4410;
     body = (
       <Paper title="LAPORAN KOMPILASI AKUNTAN" std="SPSJL 4410" signer="Sari Dewanti, CPA">
         <p style={{ margin: '0 0 10px' }}>Kepada Manajemen {C.client}</p>
@@ -60,7 +61,7 @@ function NAReport({ kind, engId, onClose }) {
       </Paper>
     );
   } else if (kind === 'dd') {
-    const D = window.AMS.DUE_DILIGENCE;
+    const D = AMS.DUE_DILIGENCE;
     const reported = D.ebitdaBridge.find(b => b.type === 'base').v / 1e9;
     const normalized = D.normEbitda;
     const netDebt = D.netDebtBridge.reduce((s, x) => s + x.v, 0);
@@ -102,9 +103,9 @@ function NAReport({ kind, engId, onClose }) {
     );
   } else if (kind && kind.startsWith('asr:')) {
     const id = kind.slice(4);
-    const isPfi = window.AMS.pfiEngine && window.AMS.PFI_3400 && id === window.AMS.PFI_3400.id;
+    const isPfi = AMS.pfiEngine && AMS.PFI_3400 && id === AMS.PFI_3400.id;
     if (isPfi) {
-      const E = window.AMS.pfiEngine();
+      const E = AMS.pfiEngine();
       const A = E.meta;
       body = (
         <Paper title="LAPORAN PEMERIKSAAN INFORMASI KEUANGAN PROSPEKTIF" std={A.std + ' · ' + A.pfiType} signer={A.partner}>
@@ -131,8 +132,8 @@ function NAReport({ kind, engId, onClose }) {
         </div>
       );
     }
-    const e = window.AMS.ASSURANCE_ENG[id];
-    const m = window.AMS.NONAUDIT.find(x => x.id === id);
+    const e = AMS.ASSURANCE_ENG[id];
+    const m = AMS.NONAUDIT.find(x => x.id === id);
     const limited = !e.level.includes('Memadai');
     body = (
       <Paper title="LAPORAN ASURANS INDEPENDEN" std={e.std} signer={m.partner}>

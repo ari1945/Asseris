@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -38,8 +39,8 @@ const TB_WEEKLY = [ // 8 minggu terakhir, jam tercatat / minggu
   { wk: 'W5', h: 168 }, { wk: 'W6', h: 152 }, { wk: 'W7', h: 138 }, { wk: 'W8', h: 80 },
 ];
 
-const tbJt = (n) => 'Rp ' + window.AMS.fmt(Math.round(n / 1e6)) + ' jt';
-const tbM  = (n) => 'Rp ' + window.AMS.fmt(n / 1e9, 2) + ' M';
+const tbJt = (n) => 'Rp ' + AMS.fmt(Math.round(n / 1e6)) + ' jt';
+const tbM  = (n) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
 
 /* ----- shared derived model (reactive to live timesheet) ----- */
 function useTBModel(timeEntries, e) {
@@ -132,7 +133,7 @@ function TimeBudget() {
 
 /* =================== RINGKASAN =================== */
 function TBOverview({ m, e }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const burnPct = Math.round(m.burn * 100);
   const onTrack = m.burn <= e.progress / 100 + 0.05;
   const eacVar = m.budgetTotal - m.eacHrs; // + = di bawah anggaran
@@ -238,7 +239,7 @@ function EacRow({ label, v, strong, accent }) {
 
 /* =================== ANGGARAN PER FASE =================== */
 function TBPhase({ m }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const totB = m.phases.reduce((s, p) => s + p.budget, 0);
   const totA = m.phases.reduce((s, p) => s + p.actual, 0);
   const totEac = m.phases.reduce((s, p) => s + p.eac, 0);
@@ -303,7 +304,7 @@ function TBPhase({ m }) {
 
 /* role composition donut + legend */
 function TBRoleMix({ m }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const byRole = {};
   m.roster.forEach(r => { byRole[r.role] = (byRole[r.role] || 0) + r.actual; });
   const segs = Object.entries(byRole).map(([role, h]) => ({ value: h, color: TB_ROLE_COLOR[role], role, h }));
@@ -325,7 +326,7 @@ function TBRoleMix({ m }) {
 
 /* =================== TIMESHEET =================== */
 function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [form, setForm] = useTB({ member: 'Anindya Pramesti', phase: 'Eksekusi', task: '', hours: '' });
   const [fMember, setFMember] = useTB('all');
   const [fPhase, setFPhase] = useTB('all');
@@ -423,7 +424,7 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
 
 /* =================== TIM & UTILISASI =================== */
 function TBTeam({ m }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const maxA = Math.max(...m.roster.map(r => r.budget));
   return (
     <>
@@ -472,7 +473,7 @@ function TBTeam({ m }) {
 
 /* =================== EKONOMI =================== */
 function TBEconomics({ m, e }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const wd = m.fee - m.stdValueBudget; // + = write-up, - = write-down
   const marginPct = Math.round(m.marginCompletion / m.fee * 100);
   return (

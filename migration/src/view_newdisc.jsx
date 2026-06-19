@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -37,7 +38,7 @@ const SF = {
 };
 
 function NewDisclosures2024() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb } = useAudit();
   const nav = useNav();
   const [tab, setTab] = useStateND('pilar2');

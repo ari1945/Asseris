@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -19,15 +20,15 @@ const NA_ASR_KIND = (a) => a.includes('Tanpa') ? 'gray' : a.includes('Memadai') 
    Hub — Portofolio Jasa Non-Audit
    ============================================================ */
 function NonAuditPortfolio() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const aupE = window.AMS.aupEngine ? window.AMS.aupEngine() : null;
-  const pfiE = window.AMS.pfiEngine ? window.AMS.pfiEngine() : null;
-  const socE = window.AMS.socEngine ? window.AMS.socEngine() : null;
-  const ghgE = window.AMS.ghgEngine ? window.AMS.ghgEngine() : null;
-  const pfrE = window.AMS.proformaEngine ? window.AMS.proformaEngine() : null;
+  const aupE = AMS.aupEngine ? AMS.aupEngine() : null;
+  const pfiE = AMS.pfiEngine ? AMS.pfiEngine() : null;
+  const socE = AMS.socEngine ? AMS.socEngine() : null;
+  const ghgE = AMS.ghgEngine ? AMS.ghgEngine() : null;
+  const pfrE = AMS.proformaEngine ? AMS.proformaEngine() : null;
   /* progres perikatan AUP, PFI & SOC 3402 DITARIK dari engine (satu sumber), bukan hardcode */
-  const list = window.AMS.NONAUDIT.map(e => {
+  const list = AMS.NONAUDIT.map(e => {
     if (aupE && e.id === aupE.meta.id) return { ...e, progress: aupE.progress };
     if (pfiE && e.id === pfiE.meta.id) return { ...e, progress: pfiE.progress, route: 'sjah3400' };
     if (socE && e.id === socE.meta.id) return { ...e, progress: socE.progress, route: 'sjah3402' };
@@ -120,8 +121,8 @@ const REV_CONCL = {
 };
 
 function Review2400() {
-  const { fmt } = window.AMS;
-  const R = window.AMS.REVIEW_2400;
+  const { fmt } = AMS;
+  const R = AMS.REVIEW_2400;
   const [inq, setInq] = useAmsPersist('review2400inq', () => R.inquiries);
   const [concl, setConcl] = useAmsPersist('review2400concl', R.conclusion);
   const [tab, setTab] = useNA('plan');
@@ -152,7 +153,7 @@ function Review2400() {
           <div className="panel-h" style={{ padding: 0, background: 'var(--surface-2)' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
           {tab === 'plan' && (() => {
-            const P = window.AMS.REVIEW_2400_PLAN;
+            const P = AMS.REVIEW_2400_PLAN;
             return (
               <div style={{ padding: 16 }}>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>

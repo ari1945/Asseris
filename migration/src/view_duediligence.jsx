@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -9,7 +10,7 @@ import { NAReport } from './view_nonaudit2.jsx';
 /* ============================================================
    NeoSuite AMS — Financial Due Diligence (Advisory · Non-Asurans)
    Workspace mendalam yang menarik SELURUH angka dari satu sumber
-   kebenaran (window.AMS.DUE_DILIGENCE), yang field identitasnya
+   kebenaran (AMS.DUE_DILIGENCE), yang field identitasnya
    sendiri ditarik dari catatan kanonik CRM (OPP-105), Onboarding
    (PROS-06) & Registri Non-Audit (DD-2025-105). NAReport (laporan
    deliverable) tetap dari view_nonaudit2.jsx.
@@ -42,7 +43,7 @@ function ddDerive(D) {
 
 /* ---- mini horizontal bridge bar ---- */
 function DDBar({ label, value, max, color, strong }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   return (
     <div>
       <div className="row jb tiny" style={{ marginBottom: 3 }}>
@@ -60,8 +61,8 @@ function DDBar({ label, value, max, color, strong }) {
    Komponen utama
    ============================================================ */
 function DueDiligence() {
-  const { fmt } = window.AMS;
-  const D = window.AMS.DUE_DILIGENCE;
+  const { fmt } = AMS;
+  const D = AMS.DUE_DILIGENCE;
   const nav = useNav();
   const [tab, setTab] = window.useAmsPersist('dd.tab', 'ikhtisar');
   const [showReport, setShowReport] = useDD(false);

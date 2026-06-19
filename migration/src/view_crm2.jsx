@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat } from './ui.jsx';
@@ -16,11 +17,11 @@ const STAGE_COLOR = { Lead: '#9aa7b2', Qualified: '#5b3fa6', Proposal: '#0a6b73'
 
 /* ---------------- 360° Klien (single-client cockpit) ---------------- */
 function CRM360() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const nav = useNav();
   const { clients, engagementsForClient, setActiveEngagementId } = useFirm();
-  const C360 = window.AMS.CRM_360;
-  const META = window.AMS.ACTIVITY_META;
+  const C360 = AMS.CRM_360;
+  const META = AMS.ACTIVITY_META;
   const withData = clients.filter(c => C360[c.id]);
   const [selId, setSelId] = useCRM2((withData[0] || clients[0]).id);
   const sel = clients.find(c => c.id === selId) || clients[0];
@@ -136,8 +137,8 @@ function CRM360() {
 /* ---------------- Aktivitas & Interaksi (firm-wide feed) ---------------- */
 function CRMAktivitas() {
   const { clients } = useFirm();
-  const C360 = window.AMS.CRM_360;
-  const META = window.AMS.ACTIVITY_META;
+  const C360 = AMS.CRM_360;
+  const META = AMS.ACTIVITY_META;
   const [filter, setFilter] = useCRM2('all');
 
   const feed = [];
@@ -201,10 +202,10 @@ function CRMAktivitas() {
 
 /* ---------------- Peluang (cross-sell pipeline) ---------------- */
 function CRMPeluang() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { clients } = useFirm();
-  const C360 = window.AMS.CRM_360;
+  const C360 = AMS.CRM_360;
 
   const opps = [];
   clients.forEach(c => { (C360[c.id]?.opps || []).forEach(o => opps.push({ ...o, client: c.name.replace('PT ', ''), clientId: c.id })); });
@@ -258,9 +259,9 @@ function CRMPeluang() {
 
 /* ---------------- Segmentasi ---------------- */
 function CRMSegmentasi() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const { clients } = useFirm();
-  const C360 = window.AMS.CRM_360;
+  const C360 = AMS.CRM_360;
 
   const seg = (keyFn) => {
     const m = {};

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
@@ -14,10 +15,10 @@ const { useState: useBI2 } = React;
 
 /* ---------------- Pendapatan ---------------- */
 function BIPendapatan() {
-  const { fmt } = window.AMS;
-  const B = window.AMS.BI_DATA;
-  const IND = window.AMS.BI_INDUSTRY;
-  const FB = window.AMS.FIRM_BUDGET;
+  const { fmt } = AMS;
+  const B = AMS.BI_DATA;
+  const IND = AMS.BI_INDUSTRY;
+  const FB = AMS.FIRM_BUDGET;
   const totalInd = IND.reduce((s, x) => s + x.rev, 0);
 
   const actRev = FB.filter(b => b.type === 'rev').reduce((s, b) => s + b.actual, 0);
@@ -84,10 +85,10 @@ function BIPendapatan() {
 
 /* ---------------- Pipeline & Forecast ---------------- */
 function BIPipeline() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const PIPE = window.AMS.PIPELINE;
-  const WL = window.AMS.BI_WINLOSS;
+  const PIPE = AMS.PIPELINE;
+  const WL = AMS.BI_WINLOSS;
 
   const open = PIPE.filter(p => !['Won', 'Lost'].includes(p.stage));
   const gross = open.reduce((s, p) => s + p.value, 0);
@@ -168,11 +169,11 @@ function BIPipeline() {
 
 /* ---------------- Klien & Konsentrasi ---------------- */
 function BIKlien() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const CLIENTS = window.AMS.CLIENTS;
-  const C360 = window.AMS.CRM_360;
-  const RET = window.AMS.BI_RETENTION;
+  const CLIENTS = AMS.CLIENTS;
+  const C360 = AMS.CRM_360;
+  const RET = AMS.BI_RETENTION;
 
   const active = CLIENTS.filter(c => c.status === 'Active').slice().sort((a, b) => b.fee - a.fee);
   const tot = active.reduce((s, c) => s + c.fee, 0);
@@ -250,10 +251,10 @@ function BIKlien() {
 
 /* ---------------- Partner & Produktivitas ---------------- */
 function BIPartner() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const CLIENTS = window.AMS.CLIENTS;
-  const EQR = window.AMS.EQR_REVIEWS;
+  const CLIENTS = AMS.CLIENTS;
+  const EQR = AMS.EQR_REVIEWS;
   const UTIL = { 'Hartono Wijaya': 71, 'Rudi Gunawan': 68, 'Sari Dewanti': 74 };
   const REAL = { 'Hartono Wijaya': 89, 'Rudi Gunawan': 85, 'Sari Dewanti': 91 };
 

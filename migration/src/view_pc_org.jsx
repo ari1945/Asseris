@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -32,7 +33,7 @@ const ORG_TREE_CSS = `
 
 function OrgChart() {
   const nav = useNav();
-  const A = window.AMS;
+  const A = AMS;
   const staff = A.STAFF, ORG = A.ORG, GC = A.GRADE_COLOR_PC;
   const [view, setView] = usePCorg('chart');
   const [sel, setSel] = usePCorg('EMP-001');
@@ -174,7 +175,7 @@ function OrgChart() {
    Perencanaan Suksesi & Karier
    ============================================================ */
 function SuccessionPlanning() {
-  const A = window.AMS;
+  const A = AMS;
   const nav = useNav();
   const [tab, setTab] = usePCorg('map');
   const [sel, setSel] = usePCorg('SR-01');

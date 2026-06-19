@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -26,9 +27,9 @@ const CASH_SCENARIOS = {
 };
 
 function FirmTreasury() {
-  const { fmt } = window.AMS;
-  const B = window.AMS.FIRM_BUDGET;
-  const F = window.AMS.CASH_FORECAST;
+  const { fmt } = AMS;
+  const B = AMS.FIRM_BUDGET;
+  const F = AMS.CASH_FORECAST;
   const [tab, setTab] = useStateTR('budget');
   const [scenario, setScenario] = useStateTR('base');
   const [selLine, setSelLine] = useStateTR(null);
@@ -136,7 +137,7 @@ function FirmTreasury() {
 }
 
 function BudgetLineDrill({ b, onClose }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const isCost = b.type === 'cost';
   // synthesize quarterly phasing
   const wq = [0.22, 0.26, 0.25, 0.27];
@@ -189,11 +190,11 @@ function BudgetLineDrill({ b, onClose }) {
 const FX_BOOK = { IDR: 1, USD: 15_780, SGD: 11_640, EUR: 17_120 };
 
 function CashBank() {
-  const { fmt } = window.AMS;
-  const FX = window.AMS.FX_RATES;
-  const accts = window.AMS.BANK_ACCOUNTS;
+  const { fmt } = AMS;
+  const FX = AMS.FX_RATES;
+  const accts = AMS.BANK_ACCOUNTS;
   const [tab, setTab] = useStateTR('positions');
-  const R = window.AMS.BANK_RECON;
+  const R = AMS.BANK_RECON;
   const [lines, setLines] = useAmsPersist('bankrecon', () => R.lines);
 
   const idrOf = (a) => a.balance * FX[a.ccy];
@@ -305,7 +306,7 @@ function CashBank() {
                       <td><span className="chip tiny">{r.ccy}</span></td>
                       <td className="num">{CCY_SYMBOL[r.ccy]} {fmt(r.balance, 0)}</td>
                       <td className="num tiny muted">{fmt(r.bookRate, 0)}</td>
-                      <td className="num tiny">{fmt(window.AMS.FX_RATES[r.ccy], 0)}</td>
+                      <td className="num tiny">{fmt(AMS.FX_RATES[r.ccy], 0)}</td>
                       <td className="num muted">{fmt(r.bookIDR / 1e6, 0)} jt</td>
                       <td className="num">{fmt(r.mktIDR / 1e6, 0)} jt</td>
                       <td className="num" style={{ fontWeight: 600, color: r.gain >= 0 ? 'var(--green)' : 'var(--red)' }}>{r.gain >= 0 ? '+' : '−'}{fmt(Math.abs(r.gain) / 1e6, 0)} jt</td>
@@ -329,10 +330,10 @@ function CashBank() {
    Register Aset Tetap kantor (depreciation)
    ============================================================ */
 function FixedAssets() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const REF = new Date('2026-03-01');
   const [sel, setSel] = useStateTR(null);
-  const rows = window.AMS.FIXED_ASSETS.map(a => {
+  const rows = AMS.FIXED_ASSETS.map(a => {
     const start = new Date(a.acq);
     const monthsElapsed = Math.max(0, Math.min(a.life * 12, (REF.getFullYear() - start.getFullYear()) * 12 + (REF.getMonth() - start.getMonth())));
     const monthlyDep = a.cost / (a.life * 12);
@@ -419,7 +420,7 @@ function FixedAssets() {
 }
 
 function DepreciationSchedule({ a, onClose }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const startYear = new Date(a.acq).getFullYear();
   const annual = a.cost / a.life;
   const curYear = 2026;

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
@@ -100,14 +101,14 @@ function P72BridgeRow({ label, v, cite, sc, sub, total, vc, memo }) {
 }
 
 function PSAK72View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemoP72(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const rev = useMemoP72(() => (AMS_CANON ? AMS_CANON.revenue(wtb) : null), [wtb]);
 
@@ -130,7 +131,7 @@ function PSAK72View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
-  const riskRev = ((window.AMS && window.AMS.RISKS) || []).find(r => r.id === 'R-01');
+  const riskRev = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-01');
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };

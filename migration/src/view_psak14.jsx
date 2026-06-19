@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
@@ -84,14 +85,14 @@ function RFRow({ label, v, sc, sub, total, memo, neg }) {
 }
 
 function PSAK14View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemoP14(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const inv = useMemoP14(() => (AMS_CANON ? AMS_CANON.inventory(wtb) : null), [wtb]);
 
@@ -111,8 +112,8 @@ function PSAK14View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
-  const aje01 = ((window.AMS && window.AMS.AJE) || []).find(a => a.id === 'AJE-01');
-  const riskInv = ((window.AMS && window.AMS.RISKS) || []).find(r => r.id === 'R-02');
+  const aje01 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-01');
+  const riskInv = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-02');
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };

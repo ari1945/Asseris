@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -19,7 +20,7 @@ const WTB_TABS = [
 ];
 
 function WTBView() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const { wtb, ajeTotalPosted } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
   const nav = useNav();
@@ -202,7 +203,7 @@ function WTBView() {
 
 /* WTB account drill — synthetic sub-ledger transactions + lead schedule link */
 function WtbDrill({ row, onClose, nav }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { aje } = useAudit();
   const [dtab, setDtab] = useStateX('ledger');
   // deterministic synthetic transactions summing to the unadjusted balance
@@ -340,7 +341,7 @@ function WtbDrill({ row, onClose, nav }) {
 
 /* ---------------- AJE ---------------- */
 function AJEViewLegacy() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { aje, toggleAjeStatus, addAje, wtb } = useAudit();
   const { locked } = useFirm();
   const posted = aje.filter(a => a.status === 'Posted');
@@ -421,7 +422,7 @@ function AJEViewLegacy() {
 
 /* ---- AJE double-entry form (modal) ---- */
 function AJEForm({ accounts, onClose, onPost }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [desc, setDesc] = useStateX('');
   const [ref, setRef] = useStateX('');
   const [lines, setLines] = useStateX([

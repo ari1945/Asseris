@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -21,8 +22,8 @@ const PIPE_STAGES = [
 ];
 
 function SalesPipeline() {
-  const { fmt } = window.AMS;
-  const [opps, setOpps] = useAmsPersist('pipeline', () => window.AMS.PIPELINE);
+  const { fmt } = AMS;
+  const [opps, setOpps] = useAmsPersist('pipeline', () => AMS.PIPELINE);
   const [dragId, setDragId] = useStateD1(null);
   const [over, setOver] = useStateD1(null);
   const [detail, setDetail] = useStateD1(null);
@@ -98,7 +99,7 @@ function SalesPipeline() {
 }
 
 function OppForm({ onClose, onAdd }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [d, setD] = useStateD1({ name: '', service: 'Audit Laporan Keuangan', industry: '', value: 500000000, prob: 25, owner: 'Hartono Wijaya', close: '2026-06-30' });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim() && +d.value > 0;
@@ -134,10 +135,10 @@ function OppForm({ onClose, onAdd }) {
 }
 
 function OppDetail({ o, onClose, onMove }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const toOnboarding = () => {
-    const blank = window.AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
+    const blank = AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
     window.amsAddProspect({
       id: 'PROS-' + o.id.replace('OPP-', ''), name: o.name, industry: o.industry, city: 'Indonesia',
       listed: false, kind: 'Klien Baru', service: o.service, standard: o.service.includes('Review') ? 'SPR 2400' : o.service.includes('Due') ? 'SJAH 3000' : 'SA',
@@ -202,9 +203,9 @@ function OppDetail({ o, onClose, onMove }) {
 const INV_STATUS = { Paid: 'green', Partial: 'amber', Sent: 'blue', Overdue: 'red', Draft: 'gray' };
 
 function Billing() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
-  const [invoices, setInvoices] = useAmsPersist('invoices', () => window.AMS.INVOICES);
+  const [invoices, setInvoices] = useAmsPersist('invoices', () => AMS.INVOICES);
   const [filter, setFilter] = useStateD1('All');
   const [sel, setSel] = useStateD1(null);
 
@@ -290,8 +291,8 @@ function Billing() {
 }
 
 function InvForm({ onClose, onAdd }) {
-  const { fmt } = window.AMS;
-  const clients = window.AMS.CLIENTS;
+  const { fmt } = AMS;
+  const clients = AMS.CLIENTS;
   const [d, setD] = useStateD1({ clientId: clients[0].id, milestone: 'Termin 1 (50%)', amount: 500000000, due: '2026-04-15', eng: '' });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));
   const valid = +d.amount > 0;

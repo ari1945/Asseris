@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Progress, Stat } from './ui.jsx';
@@ -17,7 +18,7 @@ function riskScoreColor(v) { return v >= 15 ? '#b3261e' : v >= 10 ? '#d4641c' : 
 
 /* ---------------- Operasional ---------------- */
 function DashOperasional() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { engagements, clients, clientById } = useFirm();
   const { team, deadlines } = useAudit();
@@ -97,7 +98,7 @@ function DashOperasional() {
 
         <Panel title="Kapasitas Tim · 8 Minggu" sub="supply vs demand (jam)" actions={<Btn sm variant="ghost" onClick={() => nav('capacity')}><I.arrowRight size={13} /></Btn>}>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 12 }}>
-            {window.AMS.CAPACITY.grades.map(g => {
+            {AMS.CAPACITY.grades.map(g => {
               const supply = g.supply.reduce((s, v) => s + v, 0);
               const demand = g.demand.reduce((s, v) => s + v, 0);
               const ratio = Math.round(demand / supply * 100);
@@ -120,12 +121,12 @@ function DashOperasional() {
 
 /* ---------------- Finansial ---------------- */
 function DashFinansial() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { engagements } = useFirm();
   const W = FIRMFIN.wip({ engagements });
-  const B = window.AMS.BI_DATA;
-  const AGING = window.AMS.BI_AR_AGING;
+  const B = AMS.BI_DATA;
+  const AGING = AMS.BI_AR_AGING;
 
   const wipRows = W.register.map(r => ({ id: r.id, client: r.clientShort, wip: r.unbilled, recoverable: r.recoverable, billed: r.billed }));
   const totalWip = W.unbilledTotal;
@@ -185,8 +186,8 @@ function DashFinansial() {
 function DashMutu() {
   const nav = useNav();
   const { risks, reviewNotes } = useAudit();
-  const EQR = window.AMS.EQR_REVIEWS;
-  const IND = window.AMS.INDEPENDENCE;
+  const EQR = AMS.EQR_REVIEWS;
+  const IND = AMS.INDEPENDENCE;
 
   const sig = risks.filter(r => r.likelihood * r.impact >= 12).length;
   const fraud = risks.filter(r => r.fraud).length;

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -38,12 +39,12 @@ function FCStat({ value, unit, label, sub, accent }) {
 const FC_ACT = { O: { label: 'Operasi', kind: 'blue' }, I: { label: 'Investasi', kind: 'purple' }, F: { label: 'Pendanaan', kind: 'amber' } };
 
 function ForensicCashFlow() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const audit = useAudit();
   const firm = useFirm();
 
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemoFC(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const B = useMemoFC(() => (AMS_FORENSIC ? AMS_FORENSIC.buildCash(model, wtb) : null), [model, wtb]);
 

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -14,7 +15,7 @@ import { NoclarEthics, TaxTechEthics } from './view_ethics_parts.jsx';
 const { useState: usePCcon } = React;
 
 function EthicsDeclaration() {
-  const A = window.AMS, fmt = A.fmt;
+  const A = AMS, fmt = A.fmt;
   const nav = useNav();
   const [tab, setTab] = usePCcon('decl');
   const [decl, setDecl] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
@@ -133,7 +134,7 @@ const HC_SEV = { Ringan: 'green', Sedang: 'amber', Berat: 'red' };
 const HC_STAT = { Selesai: 'green', Investigasi: 'amber', Ditangani: 'blue', Terbuka: 'amber' };
 
 function HRCases() {
-  const A = window.AMS;
+  const A = AMS;
   const [sel, setSel] = usePCcon(null);
   const [filter, setFilter] = usePCcon('Semua');
   const cases = A.HR_CASES;

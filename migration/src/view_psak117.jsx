@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -49,7 +50,7 @@ function P117Kv({ label, v, strong, accent }) {
 }
 
 function p117WpSignoffDefaults() {
-  const TEAM = (window.AMS && window.AMS.TEAM) || [];
+  const TEAM = (AMS && AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '11 Jan 2026' },
@@ -63,7 +64,7 @@ function p117WpSignoffDefaults() {
    Setiap angka ditarik dari prop `p117` (= AMS_CANON.psak117()).
    ============================================================ */
 function P117WorkPaper({ p117, fmt, rp, nav }) {
-  const FIRM = (window.AMS && window.AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
+  const FIRM = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'psak117', p117WpSignoffDefaults());
   const cl = p117.client;
@@ -222,7 +223,7 @@ function P117WorkPaper({ p117, fmt, rp, nav }) {
 }
 
 function PSAK117View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const canon = AMS_CANON;

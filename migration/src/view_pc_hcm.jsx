@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui.jsx';
@@ -12,7 +13,7 @@ const { useState: usePChcm } = React;
 
 /* default profile when an employee has no enriched record */
 function profileOf(s) {
-  const A = window.AMS;
+  const A = AMS;
   const base = (A.STAFF_PROFILE || {})[s.id] || {};
   return {
     phone: base.phone || '0811-•••-' + s.id.slice(-3),
@@ -34,7 +35,7 @@ function profileOf(s) {
 }
 
 function Profile360Drawer({ s, onClose }) {
-  const A = window.AMS, fmt = A.fmt;
+  const A = AMS, fmt = A.fmt;
   const nav = useNav();
   const p = profileOf(s);
   const tenure = 2026 - s.joined;
@@ -180,7 +181,7 @@ function Profile360Drawer({ s, onClose }) {
 
 /* ---------------- HCM Analytics (demografi · headcount · attrition) ---------------- */
 function HCMAnalytics() {
-  const A = window.AMS;
+  const A = AMS;
   const D = A.HCM_ANALYTICS;
   const GC = A.GRADE_COLOR_PC;
   const totalHC = D.gradeMix.reduce((s, g) => s + g.n, 0);

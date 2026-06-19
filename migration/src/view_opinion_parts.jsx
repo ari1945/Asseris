@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useAuth, useFirm } from './contexts.jsx';
 import { CAP } from './rbac.js';
 import { I } from './icons.jsx';
@@ -87,7 +88,7 @@ function DocH({ children }) {
    TAB 1 — Opinion Determination Engine
    ============================================================ */
 function DeterminationPanel({ doc, patch }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { activeEngagement } = useFirm();
   const om = activeEngagement?.materiality || 4_250_000_000;
   const pm = Math.round(om * 0.75);
@@ -260,10 +261,10 @@ function Field({ label, children }) {
    auditor mendokumentasikan basis opini (SA 230) dengan atribusi.
    ============================================================ */
 function OpinionDecisionTree({ doc, patch }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const audit = useAudit();
   const { activeEngagement } = useFirm();
-  const USER = (window.AMS && window.AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+  const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
   const om = activeEngagement?.materiality || 4_250_000_000;
   const agg = aggUncorr(doc.method);
   const auto = classifyMis(agg, om);
@@ -368,7 +369,7 @@ function OpinionDecisionTree({ doc, patch }) {
    TAB 3 — KAM Workshop (SA 701) — linked to risk register
    ============================================================ */
 function KAMWorkshop({ doc, patch }) {
-  const risks = (window.AMS.RISKS || []).filter(r => r.inherent === 'Significant');
+  const risks = (AMS.RISKS || []).filter(r => r.inherent === 'Significant');
   const usedRisks = new Set(doc.kams.map(k => k.risk).filter(Boolean));
   const [open, setOpen] = useStateOP(doc.kams[0]?.id || null);
 

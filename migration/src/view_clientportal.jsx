@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useAudit, useFirm, useNav } from './contexts.jsx';
 import { FileDropField, FileList, SecurePipeline } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
@@ -16,7 +17,7 @@ import { OKv } from './view_onboarding.jsx';
 
    SUMBER KEBENARAN TUNGGAL (single source of truth):
    · Identitas perikatan & klien  → useFirm() (activeEngagement/activeClient)
-   · Roster tim peminta           → useAudit().team / window.AMS.TEAM
+   · Roster tim peminta           → useAudit().team / AMS.TEAM
    · Berkas diterima              → amsAttachEvidence → modul area + DMS
    · Tautan area audit / kertas kerja → MODULE_INDEX + openCanonicalWp (WP kanonik)
    · Setiap aksi dicatat ke jejak audit firma (useAudit().logActivity)
@@ -299,12 +300,12 @@ function ClientPortal() {
   const logActivity = audit.logActivity || (() => {});
   /* roster peminta dari sumber kebenaran tunggal (tim perikatan) */
   const staff = useMemoPBC(() => {
-    const team = (audit.team || window.AMS.TEAM || []).filter(t => !/Partner/.test(t.role)).map(t => t.name);
+    const team = (audit.team || AMS.TEAM || []).filter(t => !/Partner/.test(t.role)).map(t => t.name);
     return team.length ? team : ['Anindya Pramesti', 'Dimas Raharjo', 'Sinta Wulandari', 'Fajar Nugroho'];
   }, [audit.team]);
 
-  const [reqs, setReqs] = useAmsPersist('pbc.v2', () => window.AMS.PBC_REQUESTS);
-  const [msgs, setMsgs] = useAmsPersist('portalMsgs.v2', () => window.AMS.PORTAL_MSGS);
+  const [reqs, setReqs] = useAmsPersist('pbc.v2', () => AMS.PBC_REQUESTS);
+  const [msgs, setMsgs] = useAmsPersist('portalMsgs.v2', () => AMS.PORTAL_MSGS);
   const [tab, setTab] = usePBC('reqs');
   const [filter, setFilter] = usePBC('All');
   const [statusFilter, setStatusFilter] = usePBC('Semua');

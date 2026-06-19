@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { useEvidence } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
@@ -70,7 +71,7 @@ function AIIntakeLog() {
 }
 
 function DataFlow() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { clients, engagements, activeEngagement, activeEngagementId, setActiveEngagementId, clientById } = useFirm();
   const { wtb, risks, aje, team } = useAudit();

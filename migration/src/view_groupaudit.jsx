@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAmsPersist, useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -105,10 +106,10 @@ function gaRisk(r) { return r === 'High' ? 'var(--red)' : r === 'Medium' ? 'var(
 Object.assign(window, { GA_CONSOL_PROC, GA_CONSOL_UP, GA_CONSOL_DOWN, PKG_STATUS_KIND, PKG_FIELDS, PKG_NUM_KEYS }); // shared with view_groupaudit_parts.jsx (W2)
 
 function GroupAudit() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const audit = useAudit();
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const [packages, setPackages] = useAmsPersist('gaPackages', () => gaDefaultPackages(wtb));
   const p65 = useMemoGA(() => (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, packages) : null, [wtb, packages]);
   const seedSubs = useMemoGA(() => (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, {}).subs : [], [wtb]);

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -8,7 +9,7 @@ import { KvBox } from './view_analytical.jsx';
 
 /* ============================================================
    NeoSuite AMS — Firm Platform · Approvals (Bagian D-1)
-   Antrean DITURUNKAN LIVE dari sumber kanonik (window.AMS.PLATFORM):
+   Antrean DITURUNKAN LIVE dari sumber kanonik (AMS.PLATFORM):
      AJE (useAudit) · Faktur · Pipeline · Opini · Independensi · WIP
    Keputusan ditulis-balik ke SSOT — menyetujui AJE memposting jurnal
    ke Working Trial Balance. Nama klien/engagement tidak pernah drift.
@@ -68,7 +69,7 @@ function Approvals() {
 
   /* === SUMBER KEBENARAN: turunkan antrean live dari entitas kanonik === */
   const derived = useMemoPF(
-    () => window.AMS.PLATFORM.buildApprovals({ aje, engagements, clients }),
+    () => AMS.PLATFORM.buildApprovals({ aje, engagements, clients }),
     [aje, engagements, clients]);
   const items = useMemoPF(() => derived.map(d => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
@@ -130,7 +131,7 @@ function Approvals() {
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.filter(i => i.priority === 'high').length} label="Prioritas Tinggi" accent="var(--red)" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={breached.length} label="Lewat SLA" accent={breached.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.filter(i => i.status === 'approved').length} label="Disetujui" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + window.AMS.fmt(pending.reduce((s, i) => s + i.amount, 0) / 1e6, 0) + ' jt'} label="Nilai Menunggu" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + AMS.fmt(pending.reduce((s, i) => s + i.amount, 0) / 1e6, 0) + ' jt'} label="Nilai Menunggu" /></div></Panel>
         </div>
 
         {/* strip ketertelusuran SSOT — antrean diturunkan dari modul sumber */}
@@ -177,7 +178,7 @@ function Approvals() {
                         : <Badge kind={i.status === 'approved' ? 'green' : i.status === 'rejected' ? 'red' : 'amber'}>{i.status === 'approved' ? 'Disetujui' : i.status === 'rejected' ? 'Ditolak' : 'Revisi'}</Badge>}
                     </div>
                     <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3 }} className="truncate">{i.title}</div>
-                    <div className="tiny muted">{i.from} · {(i.client || '').replace('PT ', '')}{i.amount ? ' · Rp ' + window.AMS.fmt(i.amount / 1e6, 0) + ' jt' : ''}</div>
+                    <div className="tiny muted">{i.from} · {(i.client || '').replace('PT ', '')}{i.amount ? ' · Rp ' + AMS.fmt(i.amount / 1e6, 0) + ' jt' : ''}</div>
                     {isPend && <div className="row ac gap6" style={{ marginTop: 6 }}>
                       {i.chain.map((c, ci) => <span key={ci} title={c.role + ' · ' + c.name} style={{ flex: 1, height: 3, borderRadius: 2, background: c.status === 'approved' ? 'var(--green)' : c.status === 'current' ? 'var(--blue)' : c.status === 'rejected' ? 'var(--red)' : 'var(--line-strong)' }} />)}
                       <span className="tiny muted mono" style={{ flex: '0 0 auto' }}>{i.chain.filter(c => c.status === 'approved').length}/{i.chain.length}</span>
@@ -205,7 +206,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }) {
   const isPend = it.status === 'pending';
   const src = APPR_SRC[it.kind] || { route: it.sourceRoute, label: 'Modul sumber', icon: 'doc' };
   const SrcIc = I[src.icon] || I.doc;
-  const fmt = window.AMS.fmt;
+  const fmt = AMS.fmt;
 
   return (
     <Panel noBody>
@@ -321,7 +322,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }) {
 }
 
 function RoutingRulesModal({ onClose }) {
-  const RULES = (window.AMS.PLATFORM && window.AMS.PLATFORM.ROUTING_RULES) || [];
+  const RULES = (AMS.PLATFORM && AMS.PLATFORM.ROUTING_RULES) || [];
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 760, maxWidth: '94vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>

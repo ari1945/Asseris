@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -8,7 +9,7 @@ import { Btn, Panel, Progress, Seg, Stat } from './ui.jsx';
 /* ============================================================
    NeoSuite AMS — Jadwal & Lini Masa Audit (Practice Operations)
    Gantt aktivitas per-perikatan untuk diserahkan ke klien.
-   SSOT: fase & milestone ditarik dari window.AMS.DELIVERY;
+   SSOT: fase & milestone ditarik dari AMS.DELIVERY;
    "hari ini" dari DELIVERY_WINDOW.today. Aktivitas granular diperinci
    dari template di dalam jendela fase nyata; progres dihitung dari today.
    ============================================================ */
@@ -62,7 +63,7 @@ function ATL_pct(s, e, today, done) {
 }
 
 function AuditTimeline() {
-  const A = window.AMS;
+  const A = AMS;
   const { CLIENTS, ENGAGEMENTS, DELIVERY, DELIVERY_WINDOW, FIRM, fmt } = A;
   const today = DELIVERY_WINDOW.today;
   const firm = useFirm();

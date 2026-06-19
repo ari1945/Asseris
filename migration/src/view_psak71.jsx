@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -115,7 +116,7 @@ function P71RowKv({ label, v, strong, accent }) {
 
 /* ---- default penanda tangan kertas kerja (dipakai bila chain kanonik kosong) ---- */
 function p71WpSignoffDefaults() {
-  const TEAM = (window.AMS && window.AMS.TEAM) || [];
+  const TEAM = (AMS && AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '08 Jan 2026' },
@@ -131,7 +132,7 @@ function p71WpSignoffDefaults() {
    Rekonsiliasi & FS Generator. Tidak ada angka yang ditulis ulang.
    ============================================================ */
 function P71WorkPaper({ p71, client, eng, fmt, rp, nav }) {
-  const FIRM = (window.AMS && window.AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
+  const FIRM = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'psak71', p71WpSignoffDefaults());
   const r0 = (x) => Math.round(x);
@@ -337,14 +338,14 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }) {
 }
 
 function PSAK71View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const audit = useAudit();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
 
   /* ——— SUMBER KEBENARAN ——— */
-  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
+  const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const canon = AMS_CANON;
   const p71 = useMemoP71(() => canon.psak71(wtb), [wtb]);
   const dt = useMemoP71(() => canon.deferredTax(wtb), [wtb]);

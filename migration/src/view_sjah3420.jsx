@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -15,7 +16,7 @@ import { RowKv } from './view_calc.jsx';
    keuangan proforma telah DISUSUN DENGAN BENAR atas dasar yang
    dinyatakan & konsisten dgn kebijakan akuntansi penerbit.
 
-   SUMBER KEBENARAN TUNGGAL: window.AMS.proformaEngine(exec). Kolom
+   SUMBER KEBENARAN TUNGGAL: AMS.proformaEngine(exec). Kolom
    "tidak disesuaikan" ditarik LIVE dari AMS_CANON (psak65/revenue);
    metodologi penyesuaian selaras AMS_CANON.psak22 & tarif AMS_CANON.RATE.
    Status prosedur disimpan di ams.v1.pf3420.exec & dibaca lintas modul
@@ -24,11 +25,11 @@ import { RowKv } from './view_calc.jsx';
 const { useState: usePF } = React;
 
 function SJAH3420View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('pf3420.exec', {});
   const [tab, setTab] = usePF('anatomi');
-  const E = window.AMS.proformaEngine(exec);
+  const E = AMS.proformaEngine(exec);
   const A = E.meta;
 
   const toggle = (id, seed) => setExec(s => {
@@ -96,7 +97,7 @@ function SJAH3420View() {
 }
 
 /* helper format Rp juta + bertanda (parentheses untuk negatif) */
-function pfJ(n) { return window.AMS.fmt(Math.round(n), 0); }
+function pfJ(n) { return AMS.fmt(Math.round(n), 0); }
 function pfSgn(n) { return n === 0 ? '—' : (n < 0 ? '(' + pfJ(Math.abs(n)) + ')' : pfJ(n)); }
 
 /* ---------------- Tab: Anatomi & Penerimaan ---------------- */
@@ -388,8 +389,8 @@ function PfStatements({ E, A }) {
             <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginBottom: 12 }}>
               <KvBox label="Saham beredar — historis" v={pfJ(E.eps.existingShares) + ' jt lembar'} accent="var(--navy)" />
               <KvBox label="Saham beredar — proforma" v={pfJ(E.eps.pfShares) + ' jt lembar'} accent="var(--blue)" />
-              <KvBox label="EPS historis" v={'Rp ' + window.AMS.fmt(E.eps.histEPS, 1)} accent="var(--ink-2)" />
-              <KvBox label="EPS proforma" v={'Rp ' + window.AMS.fmt(E.eps.pfEPS, 1)} accent={E.eps.accretion >= 0 ? 'var(--green)' : 'var(--red)'} />
+              <KvBox label="EPS historis" v={'Rp ' + AMS.fmt(E.eps.histEPS, 1)} accent="var(--ink-2)" />
+              <KvBox label="EPS proforma" v={'Rp ' + AMS.fmt(E.eps.pfEPS, 1)} accent={E.eps.accretion >= 0 ? 'var(--green)' : 'var(--red)'} />
             </div>
             <div className="tiny muted upper" style={{ marginBottom: 5 }}>Perubahan EPS</div>
             <div style={{ position: 'relative', height: 12, borderRadius: 6, background: 'var(--surface-3)', overflow: 'hidden' }}>

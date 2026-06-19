@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useNav } from './contexts.jsx';
@@ -37,7 +38,7 @@ const SEG_LIAB_PORTION = 0.55;
 const SEG_MAJOR_CUSTOMER = 0.11; // satu pelanggan (Modern Trade) > 10% → ¶34
 
 function SegmentInfo() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb } = useAudit();
   const nav = useNav();
   const [tab, setTab] = useStateSG('ikhtisar');

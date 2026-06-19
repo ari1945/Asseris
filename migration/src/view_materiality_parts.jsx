@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui.jsx';
@@ -12,9 +13,9 @@ import { amsExportPdf } from './export_pdf.js';
    ============================================================ */
 const { useState: useStateMP, useMemo: useMemoMP } = React;
 
-const _FM = (n, d = 0) => window.AMS.fmt(n, d);
-const _RP = (n) => 'Rp ' + window.AMS.fmt(n);
-const _M = (n) => 'Rp ' + window.AMS.fmt(n / 1e6) + ' jt';
+const _FM = (n, d = 0) => AMS.fmt(n, d);
+const _RP = (n) => 'Rp ' + AMS.fmt(n);
+const _M = (n) => 'Rp ' + AMS.fmt(n / 1e6) + ' jt';
 
 /* Memo prose — single source shared by the on-screen preview AND the PDF export (W10.5), so the
    two can't drift. Section 1 is dynamic (interpolates the chosen benchmark/percentages). */

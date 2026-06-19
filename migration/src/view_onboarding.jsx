@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -54,7 +55,7 @@ const OB_GATE_COLOR = { done: 'var(--green)', progress: 'var(--amber)', reject: 
 window.amsAddProspect = function (p) {
   try {
     const k = 'ams.v1.prospects';
-    const cur = JSON.parse(localStorage.getItem(k) || 'null') || window.AMS.PROSPECTS;
+    const cur = JSON.parse(localStorage.getItem(k) || 'null') || AMS.PROSPECTS;
     if (cur.some(x => x.id === p.id || x.name === p.name)) return;
     localStorage.setItem(k, JSON.stringify([p, ...cur]));
   } catch (e) {}
@@ -91,8 +92,8 @@ function ScorePick({ value, onChange }) {
    HUB — onboarding board (4 gates) + KPIs
    ============================================================ */
 function ClientOnboarding() {
-  const { fmt } = window.AMS;
-  const [prospects, setProspects] = useAmsPersist('prospects', () => window.AMS.PROSPECTS);
+  const { fmt } = AMS;
+  const [prospects, setProspects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
   const [selId, setSelId] = useStateOB(null);
   const [showNew, setShowNew] = useStateOB(false);
   const [dragId, setDragId] = useStateOB(null);
@@ -194,7 +195,7 @@ function ClientOnboarding() {
    DRAWER — stepper rail + active step body
    ============================================================ */
 function OnboardingDrawer({ p, onClose, onPatch }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const g = obGates(p);
   const [step, setStep] = useStateOB(() => obStage(p));
 
@@ -345,7 +346,7 @@ function StepAcceptance({ p, onPatch }) {
    STEP 4 — Konversi ke Perikatan
    ============================================================ */
 function StepConvert({ p, onPatch, onClose, goStep }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { addClient, addEngagement, clientById } = useFirm();
   const g = obGates(p);
@@ -424,7 +425,7 @@ function StepConvert({ p, onPatch, onClose, goStep }) {
    New prospect form
    ============================================================ */
 function ProspectForm({ onClose, onAdd }) {
-  const blankFactors = window.AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
+  const blankFactors = AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
   const [d, setD] = useStateOB({ name: '', industry: '', city: '', kind: 'Klien Baru', service: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', fee: 600000000, materiality: 1500000000, npwp: '', fyEnd: '31 Desember 2025', deadline: '2026-04-30', budgetHrs: 900, listed: false });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim();

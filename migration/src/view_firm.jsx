@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -16,7 +17,7 @@ import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
 const { useState: useStateF } = React;
 
 function ClientCRM() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const { clients, engagementsForClient, setActiveEngagementId, addClient, updateClient } = useFirm();
   const [selId, setSelId] = useStateF(clients[0].id);
   const [q, setQ] = useStateF('');
@@ -219,7 +220,7 @@ function blankClient() {
 }
 
 function ClientForm({ form, onClose, onSave }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [d, setD] = useStateF(form.data);
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim() && d.city.trim();
@@ -269,7 +270,7 @@ function ClientForm({ form, onClose, onSave }) {
 
 /* ---------------- Engagement Management ---------------- */
 function EngagementMgmt() {
-  const { fmt, rp } = window.AMS;
+  const { fmt, rp } = AMS;
   const { engagements, clients, activeEngagementId, setActiveEngagementId, addEngagement } = useFirm();
   const pg = usePhaseGate();
   const [dragId, setDragId] = useStateF(null);
@@ -374,7 +375,7 @@ function EngagementMgmt() {
 
 /* ---- Engagement detail drawer ---- */
 function EngagementDetail({ e, client, onClose }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const pg = usePhaseGate();
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
   const burn = e.actualHrs / e.budgetHrs;

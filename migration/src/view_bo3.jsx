@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -16,8 +17,8 @@ import { BO } from './data_backoffice.js';
 const { useState: useStateBO3 } = React;
 
 /* money helpers (travel) */
-const trJt = (v, d = 1) => 'Rp ' + window.AMS.fmt(v / 1e6, d) + ' jt';
-const trRb = (v) => 'Rp ' + window.AMS.fmt(v / 1e3, 0) + ' rb';
+const trJt = (v, d = 1) => 'Rp ' + AMS.fmt(v / 1e6, d) + ' jt';
+const trRb = (v) => 'Rp ' + AMS.fmt(v / 1e3, 0) + ' rb';
 
 /* navigable SSOT chip → loncat ke modul pemilik data */
 function TrSrc({ module, children, title }) {
@@ -39,7 +40,7 @@ function TrSrc({ module, children, title }) {
 function FirmTravel() {
   const T = window.TRAVEL;
   const B = BO;
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [tab, setTab] = useStateBO3('ringkasan');
   const [openTrip, setOpenTrip] = useStateBO3(null);
   const [calc, setCalc] = useStateBO3({ grade: 'Senior', route: 'SUB', nights: 2, days: 3 });
@@ -357,7 +358,7 @@ function FirmTravel() {
 function FirmLicensing() {
   const L = window.LICENSING;
   const B = BO;
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [tab, setTab] = useStateBO3('ringkasan');
   const [openAp, setOpenAp] = useStateBO3(null);
   const [openFirm, setOpenFirm] = useStateBO3(null);
@@ -523,7 +524,7 @@ function FirmLicensing() {
                           <div style={{ padding: '13px 16px' }}>
                             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
                               <div>
-                                <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.05em', marginBottom: 7 }}>PPL / SKP {window.AMS.CPE_REQ.year} <TrSrc module="cpe" title="Buka CPE/PPL Tracker">← CPE Tracker</TrSrc></div>
+                                <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.05em', marginBottom: 7 }}>PPL / SKP {AMS.CPE_REQ.year} <TrSrc module="cpe" title="Buka CPE/PPL Tracker">← CPE Tracker</TrSrc></div>
                                 <div className="row gap12 ac" style={{ marginBottom: 9 }}>
                                   <Donut size={84} thickness={12} segments={[{ value: a.pplStructured, color: '#005085' }, { value: Math.max(0, a.ppl - a.pplStructured), color: '#0a6b73' }, { value: Math.max(0, a.pplReq - a.ppl), color: 'var(--surface-3)' }]} center={<><div className="mono" style={{ fontSize: 15, fontWeight: 800 }}>{a.ppl}</div><div className="tiny muted">SKP</div></>} />
                                   <div style={{ flex: 1, display: 'grid', gap: 5 }}>

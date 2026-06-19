@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -19,7 +20,7 @@ const DLV_fmtDate = (s) => DLV_d(s).toLocaleDateString('id-ID', { day: '2-digit'
 const DLV_daysTo = (s, today) => Math.round((DLV_d(s) - DLV_d(today)) / 864e5);
 
 function DeliveryMilestones() {
-  const { fmt, DELIVERY, DELIVERY_WINDOW, ENGAGEMENTS, CLIENTS } = window.AMS;
+  const { fmt, DELIVERY, DELIVERY_WINDOW, ENGAGEMENTS, CLIENTS } = AMS;
   const win = DELIVERY_WINDOW;
   const t0 = DLV_d(win.start).getTime(), t1 = DLV_d(win.end).getTime();
   const span = t1 - t0;
@@ -183,7 +184,7 @@ function DeliveryMilestones() {
 }
 
 function DeliveryDetail({ row, eng, client, today, onClose, onNav }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const burn = eng.budgetHrs ? Math.round(eng.actualHrs / eng.budgetHrs * 100) : 0;
   const overburn = burn > eng.progress + 12;
   return (

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { FileDropField } from './evidence.jsx';
 import { I } from './icons.jsx';
@@ -37,7 +38,7 @@ function AupDocRow({ d, onRemove }) {
 
 /* Kertas kerja rekomputasi bergaya spreadsheet — sel & formula yang menghasilkan temuan faktual */
 function AupWorksheet({ p }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const m = p.measure;
   if (!m) return null;
   const valDisp = (n) => m.money ? ('Rp ' + fmt(n, 0) + ' jt') : (fmt(n, m.dp) + m.unit);
@@ -88,7 +89,7 @@ function RelatedServices() {
 }
 
 function AUPPanel() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [exec, setExec] = useAmsPersist('aup4400.exec', () => ({}));
   const [custom, setCustom] = useAmsPersist('aup4400.custom', () => []);
   const [docs, setDocs] = useAmsPersist('aup4400.docs', () => ({}));
@@ -96,7 +97,7 @@ function AUPPanel() {
   const [tab, setTab] = useRS('procs');
   const [rpt, setRpt] = useRS(false);
 
-  const E = window.AMS.aupEngine(exec, custom);
+  const E = AMS.aupEngine(exec, custom);
   const A = E.meta;
   const toggle = (no) => setExec(m => ({ ...m, [no]: !(no in m ? m[no] : !!A.procedures.find(p => p.no === no)?.seedDone) }));
   const setDone = (no, v) => setExec(m => ({ ...m, [no]: v }));
@@ -337,7 +338,7 @@ function AUPPanel() {
               ))}
             </div>
             <div className="panel" style={{ marginTop: 12, padding: '10px 13px', background: 'var(--surface-2)', boxShadow: 'none', borderColor: 'transparent' }}>
-              <div className="tiny muted" style={{ lineHeight: 1.55 }}>Sumber kebenaran tunggal: <span className="mono">window.AMS.aupEngine()</span>. Status pelaksanaan disimpan terpisah dari definisi prosedur, sehingga seluruh konsumen di atas menampilkan angka yang identik tanpa duplikasi.</div>
+              <div className="tiny muted" style={{ lineHeight: 1.55 }}>Sumber kebenaran tunggal: <span className="mono">AMS.aupEngine()</span>. Status pelaksanaan disimpan terpisah dari definisi prosedur, sehingga seluruh konsumen di atas menampilkan angka yang identik tanpa duplikasi.</div>
             </div>
           </div>
         )}
@@ -366,8 +367,8 @@ function AUPPanel() {
 }
 
 function CompilationPanel() {
-  const { fmt } = window.AMS;
-  const C = window.AMS.COMPILATION_4410;
+  const { fmt } = AMS;
+  const C = AMS.COMPILATION_4410;
   const [rpt, setRpt] = useRS(false);
   const allCompiled = C.statements.every(s => s.compiled);
   const srcOk = C.sourceQuality.filter(s => s.ok).length;
@@ -432,18 +433,18 @@ function CompilationPanel() {
    Asurans Lain — SPA 3000 / 3402 / 3400
    ============================================================ */
 function OtherAssurance() {
-  const ENG = window.AMS.ASSURANCE_ENG;
+  const ENG = AMS.ASSURANCE_ENG;
   const ids = Object.keys(ENG);
-  const meta = window.AMS.NONAUDIT.reduce((m, e) => { m[e.id] = e; return m; }, {});
+  const meta = AMS.NONAUDIT.reduce((m, e) => { m[e.id] = e; return m; }, {});
   const [sel, setSel] = useRS(ids[0]);
   const [rpt, setRpt] = useRS(false);
   const nav = useNav();
   /* PFI-2025-090 ditarik LIVE dari pfiEngine (SUMBER KEBENARAN SJAH 3400);
      ASR-2025-081 ditarik LIVE dari socEngine (SUMBER KEBENARAN SJAH 3402). */
-  const isPfi = window.AMS.pfiEngine && window.AMS.PFI_3400 && sel === window.AMS.PFI_3400.id;
-  const isSoc = window.AMS.socEngine && window.AMS.SOC_3402 && sel === window.AMS.SOC_3402.id;
-  const isGhg = window.AMS.ghgEngine && window.AMS.GHG_3410 && sel === window.AMS.GHG_3410.id;
-  const e = isPfi ? window.AMS.pfiEngine().assuranceEntry : isSoc ? window.AMS.socEngine().assuranceEntry : isGhg ? window.AMS.ghgEngine().assuranceEntry : ENG[sel];
+  const isPfi = AMS.pfiEngine && AMS.PFI_3400 && sel === AMS.PFI_3400.id;
+  const isSoc = AMS.socEngine && AMS.SOC_3402 && sel === AMS.SOC_3402.id;
+  const isGhg = AMS.ghgEngine && AMS.GHG_3410 && sel === AMS.GHG_3410.id;
+  const e = isPfi ? AMS.pfiEngine().assuranceEntry : isSoc ? AMS.socEngine().assuranceEntry : isGhg ? AMS.ghgEngine().assuranceEntry : ENG[sel];
   const m = meta[sel];
   const doneN = e.matters.filter(x => x.ok).length;
 

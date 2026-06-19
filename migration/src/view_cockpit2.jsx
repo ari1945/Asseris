@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AiInsightPanel } from './ai_insights.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -125,7 +126,7 @@ function EVBar({ label, pct, tone, hint }) {
 
 /* ============================================================ */
 function EngagementCockpit() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement, activeClient } = useFirm();
   const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState } = useAudit();  // P5 Fase 2: catatan engagement aktif
@@ -492,7 +493,7 @@ function TabJalur({ D, e, nav, deadlines, activeClient }) {
    TAB · ANGGARAN & JAM — earned value + by phase + fee recovery
    ============================================================ */
 function TabAnggaran({ D, e }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const margin = D.fee ? (1 - D.stdBudgetCost / D.fee) * 100 : 0;
   const recovery = D.stdBudgetCost ? D.wipTot / (D.stdBudgetCost * (D.overall / 100) || 1) * 100 : 0;
   const variance = e.actualHrs - Math.round(e.budgetHrs * D.overall / 100);
@@ -586,7 +587,7 @@ function TabAnggaran({ D, e }) {
    TAB · TIM & BEBAN — roster, utilization, assignments
    ============================================================ */
 function TabTim({ D, nav }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const maxAct = Math.max(...D.members.map(m => m.act), 1);
   const totalAssign = (m) => m.wpPrep + m.wpRev + m.procPrep;
   return (

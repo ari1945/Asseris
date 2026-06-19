@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Spark } from './ui.jsx';
 
@@ -19,7 +20,7 @@ import { Badge, Btn, Panel, Spark } from './ui.jsx';
                           QM_INSPECTIONS + QM_INSP_FINDINGS + SOQM_RISKS
                           + COMPLAINTS + QM_EVAL master.
    Tidak ada angka yang dihardcode di sini — seluruhnya mengalir
-   dari window.AMS lewat resolver kanonik.
+   dari AMS lewat resolver kanonik.
    ============================================================ */
 const { useState: useStateID } = React;
 
@@ -77,7 +78,7 @@ function SoqmHeatmap({ risks, onPick }) {
    Tab: Tujuan Mutu — Komponen ISQM ↔ Tujuan ↔ Risiko (¶25–28)
    ============================================================ */
 function SoqmObjectives({ risks, nav, onPick }) {
-  const A = window.AMS;
+  const A = AMS;
   const comps = A.QM_COMPONENTS || [];
   /* indeks risiko per nama komponen */
   const byComp = {};
@@ -237,7 +238,7 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }) {
    Tab: Informasi & Komunikasi (¶33–37)
    ============================================================ */
 function SoqmInfoComm({ nav }) {
-  const A = window.AMS;
+  const A = AMS;
   const roles = A.QM_ROLES || [];
   const cmps = A.COMPLAINTS || [];
   const acts = A.QM_MON_ACTIVITIES || [];
@@ -341,7 +342,7 @@ function SoqmInfoComm({ nav }) {
    Tab: Evaluasi Tahunan SPM (¶53–¶54) — kesimpulan LIVE
    ============================================================ */
 function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }) {
-  const A = window.AMS;
+  const A = AMS;
   const master = A.QM_EVAL || {};
 
   /* mesin keputusan ¶54 — diturunkan dari live data */

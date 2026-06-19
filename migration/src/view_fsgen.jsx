@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -101,7 +102,7 @@ function buildFsBlocks(model, sc, comparative) {
 const { useState: useStateFS, useMemo: useMemoFS } = React;
 
 function FSGenerator() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb, ajeTotalPosted } = useAudit();
   const { activeClient, activeEngagement, locked } = useFirm();
   const nav = useNav();
@@ -454,7 +455,7 @@ function CALK({ model, activeClient, f0, disclosures }) {
     </div>
   );
 }
-function fmtPct(tax, pbt) { const { fmt } = window.AMS; return pbt ? fmt(tax / pbt * 100, 1) + '%' : '—'; }
+function fmtPct(tax, pbt) { const { fmt } = AMS; return pbt ? fmt(tax / pbt * 100, 1) + '%' : '—'; }
 
 Object.assign(window, { FSGenerator });
 

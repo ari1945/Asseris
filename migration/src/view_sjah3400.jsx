@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -15,7 +16,7 @@ import { RowKv } from './view_calc.jsx';
    bentuk simpulan dwi-bagian (keyakinan negatif atas asumsi +
    opini atas penyusunan) dengan paragraf peringatan WAJIB.
 
-   SUMBER KEBENARAN TUNGGAL: window.AMS.pfiEngine(exec). Seluruh
+   SUMBER KEBENARAN TUNGGAL: AMS.pfiEngine(exec). Seluruh
    angka & temuan ditarik dari engine — tak ada hardcode. Status
    pelaksanaan disimpan di ams.v1.pfi3400.exec & dibaca lintas
    modul (Asurans Lain · Portofolio Jasa · Matriks Kepatuhan).
@@ -23,11 +24,11 @@ import { RowKv } from './view_calc.jsx';
 const { useState: useS34 } = React;
 
 function SJAH3400View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('pfi3400.exec', {});
   const [tab, setTab] = useS34('penerimaan');
-  const E = window.AMS.pfiEngine(exec);
+  const E = AMS.pfiEngine(exec);
   const A = E.meta;
 
   const toggle = (no, seed) => setExec(s => {
@@ -194,7 +195,7 @@ function PfiAssumptions({ E }) {
 
 /* ---------------- Tab: Pemeriksaan & Bukti ---------------- */
 function PfiExamination({ E, toggle }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const D = E.derived, M = E.meta.model, P = E.periods;
   const jt = (v) => 'Rp ' + fmt(v) + ' jt';
   const rows = [

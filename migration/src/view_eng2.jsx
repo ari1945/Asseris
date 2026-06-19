@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
@@ -14,11 +15,11 @@ import { HBars } from './view_fpm_parts.jsx';
 const { useState: useEng2 } = React;
 
 const ENG_PHASE_COLOR = { Perencanaan: '#5b3fa6', Eksekusi: '#005085', Finalisasi: '#9a6a00', Arsip: '#1f7a4d' };
-const engDetail = (e) => window.AMS.ENG_DETAIL[e.id] || window.AMS.ENG_DETAIL._default(e);
+const engDetail = (e) => AMS.ENG_DETAIL[e.id] || AMS.ENG_DETAIL._default(e);
 
 /* ---------------- Portofolio (filterable table) ---------------- */
 function EngPortofolio() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { engagements, clients, clientById, setActiveEngagementId } = useFirm();
   const [phase, setPhase] = useEng2('All');
   const [risk, setRisk] = useEng2('All');
@@ -75,7 +76,7 @@ function EngPortofolio() {
 
 /* ---------------- Anggaran & Burn ---------------- */
 function EngAnggaran() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { engagements, clientById } = useFirm();
   const [selId, setSelId] = useEng2(engagements[0].id);
   const sel = engagements.find(e => e.id === selId) || engagements[0];
@@ -152,7 +153,7 @@ function EngAnggaran() {
 
 /* ---------------- Staffing ---------------- */
 function EngStaffing() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { engagements, clientById } = useFirm();
   const [selId, setSelId] = useEng2(engagements[0].id);
   const sel = engagements.find(e => e.id === selId) || engagements[0];
@@ -217,7 +218,7 @@ function EngStaffing() {
 
 /* ---------------- Jadwal (timeline / gantt) ---------------- */
 function EngJadwal() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { engagements, clientById } = useFirm();
   const [selId, setSelId] = useEng2(engagements[0].id);
   const sel = engagements.find(e => e.id === selId) || engagements[0];

@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -21,7 +22,7 @@ const RC_STAT = {
   err:  { kind: 'red',   icon: 'x',           label: 'Selisih' },
 };
 
-function rcJt(n) { return 'Rp ' + window.AMS.fmt(Math.round(n)) + ' jt'; }
+function rcJt(n) { return 'Rp ' + AMS.fmt(Math.round(n)) + ' jt'; }
 
 /* ---- node kecil untuk diagram lineage ---- */
 function RCNode({ icon, title, sub, accent, onClick }) {
@@ -112,9 +113,9 @@ function DFRekonsiliasi() {
   const dtaVar = Math.abs(R.dt.dtaVariance);
 
   /* ---- tie-out keuangan firma (fee perikatan aktif lintas-modul) ---- */
-  const fmt = window.AMS.fmt;
-  const pppk = (window.AMS.PPPK_CLIENTS || []).find(c => c.id === 'C-014');
-  const crm = (window.AMS.CRM_360 || {})['C-014'];
+  const fmt = AMS.fmt;
+  const pppk = (AMS.PPPK_CLIENTS || []).find(c => c.id === 'C-014');
+  const crm = (AMS.CRM_360 || {})['C-014'];
   const crmAudit = crm && crm.contracts ? crm.contracts.find(c => /Audit/.test(c.type)) : null;
   const feePppk = pppk ? pppk.fee : null;                         // Rp juta
   const feeCrm = crmAudit ? Math.round(crmAudit.value / 1e6) : null;

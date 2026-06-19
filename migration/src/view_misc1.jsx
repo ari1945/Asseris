@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -20,7 +21,7 @@ const smDefaultApproach = (r) => r.inherent === 'Significant' ? 'ext' : (r.likel
 
 /* ---------------- Strategy Memo (SA 300 workspace) ---------------- */
 function StrategyMemo() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { activeClient, activeEngagement } = useFirm();
   const { risks } = useAudit();
   const nav = useNav();
@@ -253,7 +254,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }) {
           <div style={{ padding: '11px 14px', background: 'var(--amber-bg)', borderRadius: 'var(--radius)' }}>
             <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--amber)' }}><I.scale size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Tautan ke Materialitas</span></div>
             <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
-              Performance Materiality <b className="mono">Rp {fmt(pm / 1e6, 0)} jt</b> menjadi ambang penentuan luas sampel & pemilihan item kunci. {window.AMS.WTB.filter(r => Math.abs(r.adj) > pm).length} akun WTB melampaui PM dan diperlakukan sebagai area fokus.
+              Performance Materiality <b className="mono">Rp {fmt(pm / 1e6, 0)} jt</b> menjadi ambang penentuan luas sampel & pemilihan item kunci. {AMS.WTB.filter(r => Math.abs(r.adj) > pm).length} akun WTB melampaui PM dan diperlakukan sebagai area fokus.
             </div>
           </div>
         </Panel>
@@ -282,7 +283,7 @@ function SmSchedule({ fmt, activeEngagement }) {
     { t: 'Draf opini & telaah pengendali mutu (EQR)', d: '22 Apr', done: false },
     { t: 'Penerbitan laporan auditor', d: deadline.replace(/ \d{4}/, ''), done: false },
   ];
-  const team = window.AMS.TEAM;
+  const team = AMS.TEAM;
   const used = activeEngagement.actualHrs, budget = activeEngagement.budgetHrs;
   const pct = Math.round(used / budget * 100);
   const experts = [

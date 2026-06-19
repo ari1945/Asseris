@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -38,7 +39,7 @@ function ImSrc({ module, children, title }) {
 function Integrations() {
   const { logActivity } = useAudit();
   const IM = IMPORT;
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const [mode, setMode] = useAmsPersist('importmode', () => 'konektor');
   const [list, setList] = useAmsPersist('integrations3', () => IM.connectorsSeed());
   const [selId, setSelId] = useStateIN(IM.CONNECTORS[0].id);
@@ -69,10 +70,10 @@ function Integrations() {
     setBusy(true);
     try {
       const r = await window.amsIntegrationSync('bank');
-      logActivity && logActivity({ who: (window.AMS.USER && window.AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
+      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
       setSrv(await loadServer());
     } catch (e) {
-      logActivity && logActivity({ who: (window.AMS.USER && window.AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
+      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
     } finally {
       setBusy(false);
     }
@@ -157,7 +158,7 @@ function Integrations() {
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{it.name}</div>
-                        <div className="tiny muted">{it.cat} · {it.status === 'connected' ? window.AMS.fmt(c.posted || 0) + ' baris → SSOT' : st.l}</div>
+                        <div className="tiny muted">{it.cat} · {it.status === 'connected' ? AMS.fmt(c.posted || 0) + ' baris → SSOT' : st.l}</div>
                       </div>
                       {it.status === 'error' && <I.alert size={15} style={{ color: 'var(--red)' }} />}
                     </div>
@@ -179,7 +180,7 @@ function Integrations() {
 
 /* ---------------- Antrean Impor: staging → validasi → posting ---------------- */
 function ImportQueue({ sum }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [open, setOpen] = useStateIN(null);
   const jobs = sum.jobs;
@@ -257,7 +258,7 @@ function ImportQueue({ sum }) {
 
 /* ---------------- Rekonsiliasi SSOT: posting == konsumsi ---------------- */
 function ImportRecon({ IM, sum }) {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const recon = IM.reconciliation();
   return (
@@ -304,7 +305,7 @@ function ImportRecon({ IM, sum }) {
 function IntegrationDetail({ it, onToggle }) {
   const [tab, setTab] = useStateIN('ringkasan');
   const nav = useNav();
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const IconC = I[it.icon] || I.panel;
   const st = INTEG_STATUS[it.status];
   const feeds = IMPORT.feeds(it.id);
@@ -449,14 +450,14 @@ function IntegrationDetail({ it, onToggle }) {
                     <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface-3)', color: 'var(--navy)', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}><MIc size={17} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label || f.label}</div>
-                      <div className="tiny muted">{window.AMS.fmt(f.n)} {f.unit}</div>
+                      <div className="tiny muted">{AMS.fmt(f.n)} {f.unit}</div>
                     </div>
-                    <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{window.AMS.fmt(f.n)}</span>
+                    <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{AMS.fmt(f.n)}</span>
                     <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
                   </button>
                 ); }) : <div className="tiny muted">Belum ada modul hilir terdaftar untuk konektor ini.</div>}
               </div>
-              {it.status === 'connected' && <div className="panel" style={{ padding: '9px 11px', marginTop: 12, boxShadow: 'none', background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="row ac gap8 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> Konsisten — {window.AMS.fmt(cdata.posted)} baris di-posting = {window.AMS.fmt(cdata.consumed)} dikonsumsi. Tanpa duplikasi.</div></div>}
+              {it.status === 'connected' && <div className="panel" style={{ padding: '9px 11px', marginTop: 12, boxShadow: 'none', background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="row ac gap8 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> Konsisten — {AMS.fmt(cdata.posted)} baris di-posting = {AMS.fmt(cdata.consumed)} dikonsumsi. Tanpa duplikasi.</div></div>}
             </>
           )}
         </>)}

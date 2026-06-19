@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAudit } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -52,7 +53,7 @@ const OB_OPINION_MATRIX = [
 
 /* ============================================================ */
 function OpeningBalance() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const { wtb } = useAudit();
   const [tab, setTab] = useStateOPN('konteks');
   const [engType, setEngType] = useStateOPN('lanjutan'); // 'lanjutan' | 'awal'

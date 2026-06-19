@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { Badge } from './ui.jsx';
 
@@ -18,9 +19,9 @@ import { Badge } from './ui.jsx';
    ============================================================ */
 const { useState: useISQMP } = React;
 
-/* —— Derivasi lintas-modul dari satu sumber (window.AMS) —— */
+/* —— Derivasi lintas-modul dari satu sumber (AMS) —— */
 function soqmPull() {
-  const A = window.AMS;
+  const A = AMS;
   const bare = (n) => (n || '').split(',')[0].trim();
   const engMeta = A.engMeta || (() => null);
 
@@ -92,7 +93,7 @@ function SoqmFlow({ active, onPick }) {
 
 /* —— Peta 8 komponen Sistem Pengelolaan Mutu (tarik QM_COMPONENTS) —— */
 function SoqmComponents({ risks, nav }) {
-  const comps = window.AMS.QM_COMPONENTS || [];
+  const comps = AMS.QM_COMPONENTS || [];
   const col = (s) => s >= 88 ? 'var(--green)' : s >= 80 ? 'var(--amber)' : 'var(--red)';
   /* hitung risiko mutu operasional yang terpetakan ke tiap komponen via nama */
   const mapName = (compName) => risks.filter(r => compName.includes(r.comp) || r.comp.includes(compName.split(' ')[0])).length;
@@ -138,7 +139,7 @@ function PullRow({ ok, input, ref_, source, sourceMod, value, nav, warn }) {
 
 /* —— Tab "Tarikan Data Lintas-Modul" —— */
 function SoqmLineage({ nav }) {
-  const A = window.AMS;
+  const A = AMS;
   const P = soqmPull();
   const bare = (n) => (n || '').split(',')[0].trim();
 

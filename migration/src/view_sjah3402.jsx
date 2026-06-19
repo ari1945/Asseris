@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -16,7 +17,7 @@ import { RowKv } from './view_calc.jsx';
    evaluasi deviasi, CUEC, serta opini tiga-bagian (deskripsi ·
    desain · efektivitas operasi).
 
-   SUMBER KEBENARAN TUNGGAL: window.AMS.socEngine(exec). Seluruh
+   SUMBER KEBENARAN TUNGGAL: AMS.socEngine(exec). Seluruh
    agregat & opini ditarik dari engine — tak ada hardcode. Status
    pengujian disimpan di ams.v1.soc3402.exec & dibaca lintas modul
    (Asurans Lain · Portofolio Jasa · Organisasi Jasa SA 402 ·
@@ -28,7 +29,7 @@ function SJAH3402View() {
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('soc3402.exec', {});
   const [tab, setTab] = useS42('anatomi');
-  const E = window.AMS.socEngine(exec);
+  const E = AMS.socEngine(exec);
   const A = E.meta;
 
   const toggle = (id, seed) => setExec(s => {

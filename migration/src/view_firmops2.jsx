@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { I } from './icons.jsx';
 import { BoBadge, boJt } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';
@@ -181,8 +182,8 @@ function FopsLineage({ oc, spendRecon, nbv, register, B, nav }) {
   const accumDep = grossCost - nbv;
 
   const recons = [
-    { id: 'r1', title: 'Belanja per kategori ↔ Master Vendor', ok: spendOk, a: 'Σ kategori belanja', av: spendTotal, b: 'Σ vendor.ytd', bv: spendMaster, note: spendOk ? 'Setiap kategori P&L menutup ke jumlah belanja vendor di master.' : 'Mayoritas kategori menutup ke master vendor; sisa Rp ' + window.AMS.fmt((spendTotal - spendMaster) / 1e6, 0) + ' jt pada “Lainnya” adalah belanja kecil tak-terkonsolidasi ke satu vendor — ditandai untuk ditinjau.', to: 'procurement' },
-    { id: 'r2', title: 'Register Aset (sub-ledger) ↔ Kontrol GL', ok: true, a: 'Σ NBV register', av: nbv, b: 'Aset Tetap Kantor (GL)', bv: nbv, note: 'Harga perolehan Rp ' + window.AMS.fmt(grossCost / 1e6, 0) + ' jt − akumulasi penyusutan Rp ' + window.AMS.fmt(accumDep / 1e6, 0) + ' jt = NBV. Sub-ledger menutup ke GL.', to: 'facilities' },
+    { id: 'r1', title: 'Belanja per kategori ↔ Master Vendor', ok: spendOk, a: 'Σ kategori belanja', av: spendTotal, b: 'Σ vendor.ytd', bv: spendMaster, note: spendOk ? 'Setiap kategori P&L menutup ke jumlah belanja vendor di master.' : 'Mayoritas kategori menutup ke master vendor; sisa Rp ' + AMS.fmt((spendTotal - spendMaster) / 1e6, 0) + ' jt pada “Lainnya” adalah belanja kecil tak-terkonsolidasi ke satu vendor — ditandai untuk ditinjau.', to: 'procurement' },
+    { id: 'r2', title: 'Register Aset (sub-ledger) ↔ Kontrol GL', ok: true, a: 'Σ NBV register', av: nbv, b: 'Aset Tetap Kantor (GL)', bv: nbv, note: 'Harga perolehan Rp ' + AMS.fmt(grossCost / 1e6, 0) + ' jt − akumulasi penyusutan Rp ' + AMS.fmt(accumDep / 1e6, 0) + ' jt = NBV. Sub-ledger menutup ke GL.', to: 'facilities' },
     { id: 'r3', title: 'Kontrak Legal ↔ Vendor & Sub-Ledger', ok: true, a: 'Kontrak terpetakan', av: register.length, b: 'tertaut ke sumber', bv: register.length, note: 'Seluruh kontrak (sewa, lisensi, polis, MoU) menarik nilainya dari master vendor / polis / lisensi yang sama.', to: 'legal', isCount: true },
   ];
 

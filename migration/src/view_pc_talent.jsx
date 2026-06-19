@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -15,7 +16,7 @@ const REQ_STAT = { 'Dibuka': 'blue', 'Persetujuan': 'amber', 'Terisi': 'green', 
 const PRIO_C = { Tinggi: 'var(--red)', Sedang: 'var(--amber)', Rendah: 'var(--green)' };
 
 function Recruitment() {
-  const A = window.AMS;
+  const A = AMS;
   const nav = useNav();
   const [tab, setTab] = usePCtal('reqs');
   const [cands, setCands] = useAmsPersist('pc.cands', () => A.CANDIDATES);
@@ -146,7 +147,7 @@ function lvlColor(actual, req) {
 }
 
 function Learning() {
-  const A = window.AMS;
+  const A = AMS;
   const [tab, setTab] = usePCtal('matrix');
   const [enroll, setEnroll] = useAmsPersist('pc.enroll', () => A.TRAINING_CATALOG.map(t => ({ id: t.id, enrolled: t.enrolled })));
   const staff = A.STAFF, COMP = A.COMPETENCIES, REQ = A.COMPETENCY_REQ, ACT = A.COMPETENCY_ACTUAL;

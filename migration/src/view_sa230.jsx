@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -430,7 +431,7 @@ function D2Tick({ ok }) {
    ============================================================ */
 function D2Signifikan({ C }) {
   const { rows, audit, nav } = C;
-  const fmt = window.AMS.fmt;
+  const fmt = AMS.fmt;
   const risks = (audit.risks || []).filter(r => r.inherent === 'Significant');
   const leadStatus = (wp) => {
     const lead = (wp || '').split('-')[0];
@@ -790,7 +791,7 @@ function D2Doc({ icon, t, d }) {
    ============================================================ */
 function D2Keterkaitan({ C }) {
   const { rows, agg, audit, nav } = C;
-  const fmt = window.AMS.fmt;
+  const fmt = AMS.fmt;
   const open = (id) => nav(id, { from: 'sa230' });
 
   // hal signifikan terdokumentasi (lead WP ada & ≥ in-review)

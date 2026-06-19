@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -132,7 +133,7 @@ function P46Card({ value, label, sub, accent }) {
 }
 
 function PSAK46View() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const firm = useFirm();
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);

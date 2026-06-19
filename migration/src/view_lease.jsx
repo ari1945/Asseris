@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
@@ -18,7 +19,7 @@ const LEASES = AMS_CANON.LEASES;
 const leaseCalc = AMS_CANON.leaseCalc;
 
 function LeaseCalculator() {
-  const { fmt } = window.AMS;
+  const { fmt } = AMS;
   const nav = useNav();
   const [selId, setSelId] = useStateL('LS-01');
   const [override, setOverride] = useStateL({});
