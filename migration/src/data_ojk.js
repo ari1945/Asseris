@@ -14,15 +14,15 @@
      ojkAuditComm()  · Komunikasi komite audit POJK 55/2015 jo.
                        POJK 13/2017 — di luar SA 260 (G16)
 
-   Identitas klien ditarik dari satu sumber: window.AMS.CLIENTS.
+   Identitas klien ditarik dari satu sumber: AMS.CLIENTS.
    Seluruh nilai rasio bersifat ilustratif lapangan; angka LK
    yang relevan tetap mengacu AMS_CANON figur kanonik.
    ============================================================ */
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 
 (function () {
   'use strict';
-  const AMS = window.AMS || {};
   const CLIENTS = AMS.CLIENTS || [];
   const cli = (id) => CLIENTS.find(c => c.id === id) || { name: id, npwp: '—' };
 

@@ -9,8 +9,9 @@
    Semua angka imbalan ditarik dari AMS.PPPK_CLIENTS (SSOT);
    modul TIDAK menyimpan salinan privat imbalan per klien.
    ============================================================ */
+import { AMS } from './data.js';
 (function () {
-  const A = window.AMS;
+  const A = AMS;
   const feeOf = (id) => { const c = (A.PPPK_CLIENTS || []).find(x => x.id === id); return c ? c.fee : 0; };
 
   /* ===========================================================
@@ -134,7 +135,7 @@
     { code: 'SA 220', title: 'Pengelolaan Mutu Audit Laporan Keuangan', ver: 'Revisi', eff: 'Periode ≥ 15 Des 2022', key: 'Selaras SPM 1/ISQM 1 · pendekatan manajemen kualitas perikatan · keterlibatan AP', module: 'soqm', current: true },
   ];
 
-  Object.assign(window.AMS, {
+  Object.assign(AMS, {
     FEE_DEPENDENCY, NAS_PROHIBITION, NAS_PREAPPROVAL, LONG_ASSOCIATION,
     NOCLAR_STAGES, NOCLAR_ETHICS, TAX_TECH_ETHICS, STD_VERSIONS,
   });

@@ -21,8 +21,9 @@
      IMPORT.reconciliation()  → tie-out impor ↔ konsumsi SSOT
      IMPORT.summary()         → KPI
    ============================================================ */
+import { AMS } from './data.js';
 const IMPORT = (function () {
-  const A = window.AMS;
+  const A = AMS;
   if (!A) return;
   const fmt = A.fmt || (n => String(n));
   const jt = (n) => 'Rp ' + fmt(Math.round((n || 0) / 1e6)) + ' jt';

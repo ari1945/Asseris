@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO as BO_NS } from './data_backoffice.js';
 
 /* ============================================================
@@ -23,7 +24,7 @@ import { BO as BO_NS } from './data_backoffice.js';
    Tanpa NPWP/NIK valid → tarif 100% lebih tinggi (UU PPh Ps. 23(1a)).
    ============================================================ */
 (function () {
-  const A = () => window.AMS || {};
+  const A = () => AMS || {};
   const BO = () => BO_NS || {};
   const R = Math.round;
   const REFDATE = new Date('2026-03-09');

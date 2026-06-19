@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO as BO_NS } from './data_backoffice.js';
 
 /* ============================================================
@@ -7,9 +8,9 @@ import { BO as BO_NS } from './data_backoffice.js';
    Modul "Retensi & Arsip" TIDAK menyimpan angka arsip sendiri.
    Seluruh register diturunkan (derived) dari sumber pemiliknya:
 
-     · Dokumen (grain dokumen)   ← window.AMS.DMS_DOCS   (Document Mgmt)
-     · Identitas perikatan/klien ← window.AMS.ENGAGEMENTS + CLIENTS
-     · Sengketa & litigasi       ← BO.DISPUTES / window.AMS (Legal)
+     · Dokumen (grain dokumen)   ← AMS.DMS_DOCS   (Document Mgmt)
+     · Identitas perikatan/klien ← AMS.ENGAGEMENTS + CLIENTS
+     · Sengketa & litigasi       ← BO.DISPUTES / AMS (Legal)
      · Klaim PII terkait hold    ← BO.CLAIMS
      · PO pemusnahan             ← BO.PURCHASE_ORDERS  (Pengadaan)
 
@@ -34,7 +35,7 @@ import { BO as BO_NS } from './data_backoffice.js';
   const yearsLeft = (d) => d ? (new Date(d) - today) / (365.25 * 864e5) : null;
   const addYears = (d, y) => { const x = new Date(d); x.setFullYear(x.getFullYear() + y); return x.toISOString().slice(0, 10); };
   const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
-  const A = () => window.AMS || {};
+  const A = () => AMS || {};
   const BO = () => BO_NS || {};
 
   /* ============================================================

@@ -16,6 +16,7 @@
    Status tinjauan dihitung relatif terhadap NOW (bukan di-hardcode):
    nextReview < NOW  →  "Perlu Reviu".
    ============================================================ */
+import { AMS } from './data.js';
 (function () {
   const NOW = new Date('2026-06-13');
 
@@ -146,10 +147,8 @@
   /* distinct daftar modul konsumen (untuk membangkitkan lineage dock) */
   const TEMPLATE_CONSUMERS = Array.from(new Set(TEMPLATES.map(t => t.module)));
 
-  window.AMS = window.AMS || {};
-  Object.assign(window.AMS, { TEMPLATES, TEMPLATES_BY_MODULE, templatesForModule, TEMPLATE_CONSUMERS });
+  Object.assign(AMS, { TEMPLATES, TEMPLATES_BY_MODULE, templatesForModule, TEMPLATE_CONSUMERS });
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS = window.AMS;
+/* [legacy slice 10a] AMS kini di-import dari ./data.js (owner data.js tetap dual-publish). */

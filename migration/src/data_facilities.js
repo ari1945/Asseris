@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO } from './data_backoffice.js';
 import { LEGAL } from './data_legal.js';
 
@@ -128,7 +129,7 @@ const FAC = (function () {
 
   /* ---------- register ERP (AMS.FIXED_ASSETS) untuk jembatan ---------- */
   function erpRegister() {
-    const list = (window.AMS && window.AMS.FIXED_ASSETS) || [];
+    const list = (AMS && AMS.FIXED_ASSETS) || [];
     const rows = list.map(depreciate);
     return { rows, totCost: sum(rows, r => r.cost), totNbv: sum(rows, r => r.nbv), n: rows.length };
   }
@@ -161,7 +162,7 @@ const FAC = (function () {
       {
         id: 'erp', title: 'Register Fasilitas ↔ Register ERP', ok: false, to: 'fixedassets', isCount: true,
         a: 'Register fasilitas (custody)', av: r.rows.length, b: 'Register ERP (akuntansi)', bv: erp.n,
-        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + window.AMS.fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + window.AMS.fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
+        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + AMS.fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + AMS.fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
       },
       {
         id: 'maint', title: 'Vendor Pemeliharaan ↔ Master Vendor', ok: mt.masterLinked > 0, to: 'procurement', isCount: true,

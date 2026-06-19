@@ -21,11 +21,12 @@
    Retensi data pribadi tetap mengacu kelas 'pmpj' di window.RETENTION
    (UU PDP — 5 thn pasca berakhirnya hubungan), tidak diduplikasi.
    ============================================================ */
+import { AMS as AMS_NS } from './data.js';
 import { AMS_CANON } from './canon';
 
 (function () {
   'use strict';
-  const AMS = () => window.AMS || {};
+  const AMS = () => AMS_NS || {};
   const ASOF = '2026-03-09';
 
   /* =========================================================

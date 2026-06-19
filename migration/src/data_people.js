@@ -1,11 +1,12 @@
 /* ============================================================
    NeoSuite AMS — People & Compliance: extended data
-   Augments window.AMS with data for the deepened HCM modules and
+   Augments AMS with data for the deepened HCM modules and
    six new modules (Org Chart · Succession · Recruitment ·
    Learning · Ethics/AML · HR Cases). Loaded AFTER data.js.
    ============================================================ */
+import { AMS } from './data.js';
 (function () {
-  const A = window.AMS;
+  const A = AMS;
 
   /* ---- Reporting lines + division for org chart ---- */
   const ORG = {

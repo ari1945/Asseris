@@ -1,8 +1,9 @@
 /* ============================================================
    NeoSuite AMS — Firm Practice Management · supplementary data
    New analytical dimensions for the deepened FPM modules. Plain
-   JS; merged into window.AMS (data.js builds the base object).
+   JS; merged into AMS (data.js builds the base object).
    ============================================================ */
+import { AMS } from './data.js';
 (function () {
   const B = 1_000_000_000, M = 1_000_000;
 
@@ -221,9 +222,8 @@
 
   /* ---- merge into AMS ---- */
   const add = { CRM_360, ACTIVITY_META, ENG_DETAIL, RISK_CONTROLS, RISK_TREND, BI_INDUSTRY, BI_AR_AGING, BI_WINLOSS, BI_RETENTION, INTEGRITY_RULES, AUDIT_TRAIL };
-  if (window.AMS) Object.assign(window.AMS, add); else window.AMS = add;
+  Object.assign(AMS, add);
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS = window.AMS;
+/* [legacy slice 10a] AMS kini di-import dari ./data.js (owner data.js tetap dual-publish). */

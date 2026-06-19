@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO } from './data_backoffice.js';
 import { FAC } from './data_facilities.js';
 import { LEGAL } from './data_legal.js';
@@ -201,7 +202,7 @@ import { LEGAL } from './data_legal.js';
     return out;
   }
 
-  function boMlocal(v) { return 'Rp ' + window.AMS.fmt(v / 1e9, 1) + ' M'; }
+  function boMlocal(v) { return 'Rp ' + AMS.fmt(v / 1e9, 1) + ' M'; }
 
   window.IRM = {
     scoreColor, scoreLabel, polShort, modMeta,

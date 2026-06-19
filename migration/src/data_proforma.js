@@ -19,7 +19,7 @@
    AMS_CANON.psak22 & tarif AMS_CANON.RATE — sehingga akuntansi
    kombinasi bisnis konsisten dengan modul PSAK 22. Satu perubahan
    AJE di WTB → kolom historis proforma ikut bergerak & tie-out tetap
-   menutup. Konsumsi via window.AMS.proformaEngine(exec).
+   menutup. Konsumsi via AMS.proformaEngine(exec).
 
    Skenario: PT Sentosa Makmur Tbk (penerbit Tbk) menerbitkan HMETD
    (Penawaran Umum Terbatas / rights issue) untuk mendanai AKUISISI
@@ -27,10 +27,10 @@
    informasi keuangan proforma konsolidasian yang menggambarkan
    dampak akuisisi + penghimpunan dana SEOLAH-OLAH telah terjadi.
    ============================================================ */
+import { AMS } from './data.js';
 import { AMS_CANON } from './canon';
 
 (function () {
-  if (!window.AMS) window.AMS = {};
 
   /* —— Input perikatan (engagement inputs). Angka HISTORIS tidak ada
        di sini — hanya ketentuan transaksi & figur target (auditan target,
@@ -115,7 +115,7 @@ import { AMS_CANON } from './canon';
        AMS_CANON; engine TIDAK menyimpan angka historis. ---- */
   function proformaEngine(execArg) {
     const A = PF_3420;
-    const fmt = (window.AMS && window.AMS.fmt) || ((n) => n);
+    const fmt = (AMS && AMS.fmt) || ((n) => n);
     const C = AMS_CANON;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
@@ -308,15 +308,15 @@ import { AMS_CANON } from './canon';
     };
   }
 
-  window.AMS.proformaEngine = proformaEngine;
-  window.AMS.PF_3420 = PF_3420;
+  AMS.proformaEngine = proformaEngine;
+  AMS.PF_3420 = PF_3420;
 
   /* —— Sambungkan ke ekosistem (SSOT satu arah) —— */
   try {
     /* Portofolio Jasa Non-Audit — tambah perikatan PFR-2025-091 (progres dari engine) */
-    if (Array.isArray(window.AMS.NONAUDIT) && !window.AMS.NONAUDIT.some(e => e.id === PF_3420.id)) {
+    if (Array.isArray(AMS.NONAUDIT) && !AMS.NONAUDIT.some(e => e.id === PF_3420.id)) {
       const eng = proformaEngine();
-      window.AMS.NONAUDIT.push({
+      AMS.NONAUDIT.push({
         id: PF_3420.id, client: PF_3420.issuer, cat: 'Asurans Lain', std: 'SJAH 3420',
         stdLabel: 'Asurans Penyusunan Informasi Keuangan Proforma (Prospektus)',
         assurance: 'Memadai (proper compilation)', partner: PF_3420.partner, manager: PF_3420.manager,
@@ -324,12 +324,11 @@ import { AMS_CANON } from './canon';
       });
     }
     /* Katalog Asurans Lain — hal pokok ditarik dari mesin proforma (bukan hardcode) */
-    if (window.AMS.ASSURANCE_ENG && !window.AMS.ASSURANCE_ENG[PF_3420.id]) {
-      window.AMS.ASSURANCE_ENG[PF_3420.id] = proformaEngine().assuranceEntry;
+    if (AMS.ASSURANCE_ENG && !AMS.ASSURANCE_ENG[PF_3420.id]) {
+      AMS.ASSURANCE_ENG[PF_3420.id] = proformaEngine().assuranceEntry;
     }
   } catch (e) {}
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS = window.AMS;
+/* [legacy slice 10a] AMS kini di-import dari ./data.js (owner data.js tetap dual-publish). */

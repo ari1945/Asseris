@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO as BO_NS } from './data_backoffice.js';
 
 /* ============================================================
@@ -19,7 +20,7 @@ import { BO as BO_NS } from './data_backoffice.js';
    ke BO.AP_LICENSES agar konsumen lama (FIRMOPS) menarik satu angka.
    ============================================================ */
 (function () {
-  const A = () => window.AMS || {};
+  const A = () => AMS || {};
   const BO = () => BO_NS || {};
   const LS = (k, d) => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
 

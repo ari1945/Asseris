@@ -7,7 +7,7 @@
    — registri YANG SAMA yang dipakai Matriks Kepatuhan. File ini hanya
    menambahkan LAPISAN EDITORIAL (ringkasan, isi, poin penerapan) yang
    dikunci pada `code` standar, lalu menyambungkannya secara LIVE ke:
-     · window.AMS.TEMPLATES        → template yang mengimplementasikan standar
+     · AMS.TEMPLATES        → template yang mengimplementasikan standar
      · window.compliancePct(mod)   → progres checklist kepatuhan (live)
      · window.MODULE_INDEX         → modul fungsional yang menjalankan standar
      · window.RELATED_SA           → rujukan-silang standar serumpun
@@ -17,6 +17,7 @@
    editorial khusus tetap memiliki artikel — dibangun dari metadata
    registri lewat buildFallback().
    ============================================================ */
+import { AMS } from './data.js';
 (function () {
   const KB_UPDATED = 'Juni 2026';
 
@@ -417,7 +418,7 @@
   /* ---------- template yang mengimplementasikan standar (tarikan LIVE) ----------
      match: salah satu entri t.sa.code == code, ATAU t.module == modul standar. */
   function templatesForStandard(code, moduleId) {
-    const T = (window.AMS && window.AMS.TEMPLATES) || [];
+    const T = (AMS && AMS.TEMPLATES) || [];
     const seen = {}, out = [];
     T.forEach(function (t) {
       const byStd = (t.sa || []).some(function (s) { return s.code === code; });
@@ -442,13 +443,11 @@
     });
   }
 
-  window.AMS = window.AMS || {};
-  Object.assign(window.AMS, {
+  Object.assign(AMS, {
     KB_CONTENT: KB_CONTENT, KB_FRAMEWORK: FRAMEWORK, KB_UPDATED: KB_UPDATED,
     kbResolve: resolve, kbArticles: articles, kbTemplatesForStandard: templatesForStandard,
   });
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS = window.AMS;
+/* [legacy slice 10a] AMS kini di-import dari ./data.js (owner data.js tetap dual-publish). */

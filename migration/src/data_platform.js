@@ -8,14 +8,15 @@
    menyimpang antar-modul.
 
    Konsumen:
-     window.AMS.PLATFORM.buildApprovals(ctx)   → antrean persetujuan
-     window.AMS.PLATFORM.INTEGRATION_FEEDS     → lineage konektor → modul
-     window.AMS.PLATFORM.feedCounts(id)        → hitung record LIVE
-     window.AMS.PLATFORM.buildAuditStream(log) → arus jejak audit terpadu
-     window.AMS.PLATFORM.ROUTING_RULES         → matriks otorisasi
+     AMS.PLATFORM.buildApprovals(ctx)   → antrean persetujuan
+     AMS.PLATFORM.INTEGRATION_FEEDS     → lineage konektor → modul
+     AMS.PLATFORM.feedCounts(id)        → hitung record LIVE
+     AMS.PLATFORM.buildAuditStream(log) → arus jejak audit terpadu
+     AMS.PLATFORM.ROUTING_RULES         → matriks otorisasi
    ============================================================ */
+import { AMS } from './data.js';
 (function () {
-  const A = window.AMS;
+  const A = AMS;
   if (!A) return;
 
   const NOW = '2026-03-10 09:00';
@@ -95,7 +96,7 @@
       });
     });
 
-    /* ---- 2. Faktur — sumber: window.AMS.INVOICES (billing) ---- */
+    /* ---- 2. Faktur — sumber: AMS.INVOICES (billing) ---- */
     invoices.forEach((v) => {
       const draft = v.status === 'Draft';
       const sentBig = v.status === 'Sent' && v.amount >= 5e8;
@@ -115,7 +116,7 @@
       });
     });
 
-    /* ---- 3. Penerimaan klien — sumber: window.AMS.PIPELINE ---- */
+    /* ---- 3. Penerimaan klien — sumber: AMS.PIPELINE ---- */
     pipeline.filter(p => ['Proposal', 'Negotiation', 'Won'].includes(p.stage)).forEach((p) => {
       const pending = p.stage !== 'Won';
       const pie = /Energi|Properti|Finance|Keuangan/i.test(p.industry);
@@ -152,7 +153,7 @@
       });
     });
 
-    /* ---- 5. Independensi & rotasi — sumber: window.AMS.INDEPENDENCE ---- */
+    /* ---- 5. Independensi & rotasi — sumber: AMS.INDEPENDENCE ---- */
     indep.forEach((d) => {
       const rotate = d.declared && d.tenure >= d.rotationLimit;
       const undeclared = !d.declared;
@@ -171,7 +172,7 @@
       });
     });
 
-    /* ---- 6. WIP write-off — sumber: window.AMS.WIP_ENG ---- */
+    /* ---- 6. WIP write-off — sumber: AMS.WIP_ENG ---- */
     wip.filter(w => w.writeDown >= 1e8).forEach((w) => {
       const e = engById(w.id);
       const cli = e ? cliById(e.clientId) : null;
@@ -246,7 +247,7 @@
   /* ============================================================
      buildAuditStream — arus jejak audit TERPADU dari tiga sumber
      kanonik: (1) log aktivitas live (useAudit().logEntries),
-     (2) jejak firma kanonik (window.AMS.AUDIT_TRAIL), (3) seed sistem
+     (2) jejak firma kanonik (AMS.AUDIT_TRAIL), (3) seed sistem
      terkurasi yang merujuk ID kanonik. Setiap baris membawa
      sourceModule → dapat di-navigasi ke modul asal.
      ============================================================ */

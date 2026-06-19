@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO } from './data_backoffice.js';
 
 /* ============================================================
@@ -19,7 +20,7 @@ import { BO } from './data_backoffice.js';
    DIREKONSILIASI terhadap SSOT untuk menandai drift & orphan.
    ============================================================ */
 const LEGAL = (function () {
-  const moneyJt = (v) => 'Rp ' + window.AMS.fmt(v / 1e6, 0) + ' jt';
+  const moneyJt = (v) => 'Rp ' + AMS.fmt(v / 1e6, 0) + ' jt';
 
   /* metadata sumber: kind → modul tujuan navigasi + label + ikon */
   const SOURCE_META = {

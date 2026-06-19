@@ -16,6 +16,7 @@
    menutup ke sana lewat item rekonsiliasi yang teridentifikasi. Satu
    perubahan di pemilik data otomatis mengalir ke seluruh modul firma.
    ============================================================ */
+import { AMS } from './data.js';
 const FIRMFIN = (function () {
   const REFDATE = new Date('2026-03-09');
   const BLENDED_RATE = 875_000;             // tarif blended cost/jam (biaya waktu)
@@ -119,7 +120,7 @@ const FIRMFIN = (function () {
     };
   }
 
-  const A = () => window.AMS || {};
+  const A = () => AMS || {};
   const coaOf = (ctx) => (ctx && ctx.coa) || A().FIRM_COA || [];
   const engOf = (ctx) => (ctx && ctx.engagements) || A().ENGAGEMENTS || [];
   const cliOf = (ctx) => (ctx && ctx.clients) || A().CLIENTS || [];

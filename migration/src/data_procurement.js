@@ -1,4 +1,5 @@
 /* [codemod] ESM imports */
+import { AMS } from './data.js';
 import { BO } from './data_backoffice.js';
 import { LEGAL } from './data_legal.js';
 
@@ -146,9 +147,9 @@ const PROC = (function () {
     'Asuransi PI': { module: 'insurance', label: 'Asuransi & Risiko', master: false },
   };
   function apBridge() {
-    const ap = (window.AMS && window.AMS.FIRM_AP) || [];
+    const ap = (AMS && AMS.FIRM_AP) || [];
     const open = ap.filter(x => x.status !== 'Paid');
-    const coa = ((window.AMS && window.AMS.FIRM_COA) || []).find(a => a.code === '2-100');
+    const coa = ((AMS && AMS.FIRM_COA) || []).find(a => a.code === '2-100');
     const control = coa ? Math.abs(coa.bal) : 0;
     const openTotal = sum(open, x => x.amount - x.paid);
     const bySrc = {};
@@ -207,7 +208,7 @@ const PROC = (function () {
         id: 'ap', title: 'Utang Usaha (AP) ↔ Kontrol GL 2-100',
         ok: ap.control >= ap.openTotal, to: 'apar',
         a: 'Σ AP terbuka', av: ap.openTotal, b: 'Kontrol GL Utang Usaha', bv: ap.control,
-        note: 'Faktur vendor (BILLS) mengalir ke AP/AR & GL. Selisih Rp ' + window.AMS.fmt(ap.accrual / 1e6, 0) + ' jt = beban akrual belum difaktur. Porsi dari master vendor: Rp ' + window.AMS.fmt(ap.procMaster / 1e6, 0) + ' jt.',
+        note: 'Faktur vendor (BILLS) mengalir ke AP/AR & GL. Selisih Rp ' + AMS.fmt(ap.accrual / 1e6, 0) + ' jt = beban akrual belum difaktur. Porsi dari master vendor: Rp ' + AMS.fmt(ap.procMaster / 1e6, 0) + ' jt.',
       },
     ];
   }
