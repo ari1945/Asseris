@@ -22,7 +22,7 @@ interface JournalEntry {
   party?: string; forensic?: string[]; rpId?: string; note?: string;
 }
 
-(function () {
+const AMS_FORENSIC = (function () {
   'use strict';
 
   /* ---- Kriteria risiko jurnal (SA 240 ¶32) — dipakai bersama JET ---- */
@@ -171,9 +171,9 @@ interface JournalEntry {
     };
   }
 
-  window.AMS_FORENSIC = { JET_CRITERIA, JOURNAL_POP, score, dmod, buildCash };
+  return { JET_CRITERIA, JOURNAL_POP, score, dmod, buildCash };
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_FORENSIC = window.AMS_FORENSIC;
+/* ESM export (window write dilucuti — legacy track slice 9) */
+export { AMS_FORENSIC };

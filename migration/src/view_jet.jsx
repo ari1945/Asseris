@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { AMS_FORENSIC } from './forensic_canon';
 
 /* ============================================================
    NeoSuite AMS — Journal Entry Testing (SA 240 / JET Tool)
@@ -12,9 +13,9 @@ import { DiagnosticPanel } from './diagnostics_panel.jsx';
 const { useState: useStateJ, useMemo: useMemoJ } = React;
 
 /* Kriteria & populasi jurnal ditarik dari sumber kanonik bersama
-   (window.AMS_FORENSIC) — populasi yang SAMA dipakai Forensic Cash Flow. */
-const JET_CRITERIA = (window.AMS_FORENSIC && window.AMS_FORENSIC.JET_CRITERIA) || [];
-const JE_POP = (window.AMS_FORENSIC && window.AMS_FORENSIC.JOURNAL_POP) || [];
+   (AMS_FORENSIC) — populasi yang SAMA dipakai Forensic Cash Flow. */
+const JET_CRITERIA = (AMS_FORENSIC && AMS_FORENSIC.JET_CRITERIA) || [];
+const JE_POP = (AMS_FORENSIC && AMS_FORENSIC.JOURNAL_POP) || [];
 
 function JournalEntryTesting() {
   const { fmt } = window.AMS;

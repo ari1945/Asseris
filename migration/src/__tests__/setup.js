@@ -34,4 +34,4 @@ globalThis.BENCHMARKS = [
 // 2) Load order matters: data → canon → forensic.
 await import('../data.js');           // sets window.AMS (incl. WTB)
 await import('../canon');          // sets window.AMS_CANON (reads window.AMS at load)
-await import('../forensic_canon'); // sets window.AMS_FORENSIC
+await import('../forensic_canon'); // pure-ESM (AMS_FORENSIC export; no window write)

@@ -38,7 +38,6 @@ declare global {
   interface Window {
     AMS: AmsData;
     AMS_CANON: AmsCanon;
-    AMS_FORENSIC: Record<string, unknown>;
     BENCHMARKS: Benchmark[];
     amsResetFigures?: () => void;
   }

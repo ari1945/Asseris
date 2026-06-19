@@ -6,6 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { AMS_FORENSIC } from './forensic_canon';
 
 /* ============================================================
    NeoSuite AMS — Forensic Cash Flow (analitik anomali kas)
@@ -44,7 +45,7 @@ function ForensicCashFlow() {
 
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
   const model = useMemoFC(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const B = useMemoFC(() => (window.AMS_FORENSIC ? window.AMS_FORENSIC.buildCash(model, wtb) : null), [model, wtb]);
+  const B = useMemoFC(() => (AMS_FORENSIC ? AMS_FORENSIC.buildCash(model, wtb) : null), [model, wtb]);
 
   const [unit, setUnit] = window.useAmsPersist('forensic.unit', 'M');
   const [onlyRisk, setOnlyRisk] = useStateFC(false);
