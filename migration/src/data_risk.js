@@ -1,3 +1,6 @@
+/* [codemod] ESM imports */
+import { FAC } from './data_facilities.js';
+
 /* ============================================================
    NeoSuite AMS — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)
    ------------------------------------------------------------
@@ -10,7 +13,7 @@
         → Beban premi      → FIRMOPS.operatingCosts (Cockpit Operasi)
         → Nilai kontrak    → LEGAL.buildRegister (OPS-POL-*)
      · Klaim PII          ← BO.CLAIMS  ↔  Litigasi LEGAL (BO.DISPUTES)
-     · Property All-Risk   ↔  Register Aset (window.FAC) — rasio cover
+     · Property All-Risk   ↔  Register Aset (FAC) — rasio cover
      · Risk register firma ← BO.RISK_REGISTER (inheren → residual)
         → mitigasi tertaut ke modul SSOT-nya (EQR, Independence,
           Integrations, Pipeline, PPPK, Succession)
@@ -41,7 +44,7 @@
 
   /* ---------- POLIS (enrich SSOT) ---------- */
   function policies() {
-    const reg = (window.FAC && window.FAC.register) ? window.FAC.register() : null;
+    const reg = (FAC && FAC.register) ? FAC.register() : null;
     const claims = BO.CLAIMS || [];
     const risks = BO.RISK_REGISTER || [];
     return (BO.POLICIES || []).map(p => {
@@ -135,7 +138,7 @@
   /* ---------- cover aset (Property All-Risk ↔ register Facilities) ---------- */
   function assetCoverage() {
     const pol = (BO.POLICIES || []).find(p => /Property/.test(p.jenis)) || null;
-    const reg = (window.FAC && window.FAC.register) ? window.FAC.register() : null;
+    const reg = (FAC && FAC.register) ? FAC.register() : null;
     if (!pol || !reg) return null;
     const insuredCost = sum(reg.rows.filter(a => a.insured), a => a.cost);
     return {

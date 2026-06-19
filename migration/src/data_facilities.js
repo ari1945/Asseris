@@ -15,7 +15,7 @@
    Prinsip: satu mesin penyusutan; NBV bukan angka yang diketik. Register
    fasilitas direkonsiliasi ke kontrol GL & dijembatani ke register ERP.
    ============================================================ */
-(function () {
+const FAC = (function () {
   const BO = window.BO;
   const REF = new Date('2026-03-01');
   const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
@@ -183,13 +183,12 @@
     };
   }
 
-  window.FAC = {
+  return {
     REF, depreciate, depRows, register, rollForward,
     maintenance, licenses, space, lease, insurance, capex,
     erpRegister, reconciliations, headline,
   };
 })();
 
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const FAC = window.FAC;
+/* [codemod] ESM export (window.FAC dilucuti — konsumen pakai named import) */
+export { FAC };

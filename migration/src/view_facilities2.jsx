@@ -9,7 +9,7 @@ import { KV, SectionTitle } from './view_fpm_parts.jsx';
    NeoSuite AMS — Aset & Fasilitas (DEEP) · 2/2
    Pemeliharaan & K3 · Lisensi & Langganan · Ruang & Okupansi ·
    Sewa & Asuransi · Sumber Kebenaran (rekonsiliasi + jembatan ERP).
-   Semua data dari window.FAC. LINEAGE.facilities memasang dock.
+   Semua data dari FAC (via props dari view_facilities). LINEAGE.facilities memasang dock.
    ============================================================ */
 const { useMemo: useMemoFac2 } = React;
 
