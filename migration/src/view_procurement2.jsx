@@ -7,6 +7,7 @@ import { BoBadge, boJt, boM } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';
 import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
 import { PROC_RISKC, procPct } from './view_procurement.jsx';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Pengadaan & Vendor (DEEP) · 2/2
@@ -348,7 +349,7 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
           {d.contracts.length ? d.contracts.map(c => (
             <button key={c.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--purple)' }} onClick={() => nav('legal', { from: 'procurement' })} title="Buka registri kontrak">
               <span className="lin-ic" style={{ color: 'var(--purple)' }}><I.gavel size={14} /></span>
-              <span className="lin-txt"><span className="lin-lbl">{c.type}</span><span className="lin-rel">{c.id} · {window.LEGAL.moneyJt(c.value)} · berakhir {c.end || '—'}</span></span>
+              <span className="lin-txt"><span className="lin-lbl">{c.type}</span><span className="lin-rel">{c.id} · {LEGAL.moneyJt(c.value)} · berakhir {c.end || '—'}</span></span>
               <span className="lin-go"><I.arrowRight size={12} /></span>
             </button>
           )) : <div className="tiny muted">Belum ada kontrak formal di registri Legal.</div>}

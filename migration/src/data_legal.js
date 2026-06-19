@@ -18,7 +18,7 @@ import { BO } from './data_backoffice.js';
    (BO.CONTRACTS) diperlakukan sebagai entri "legacy" dan
    DIREKONSILIASI terhadap SSOT untuk menandai drift & orphan.
    ============================================================ */
-(function () {
+const LEGAL = (function () {
   const moneyJt = (v) => 'Rp ' + window.AMS.fmt(v / 1e6, 0) + ' jt';
 
   /* metadata sumber: kind → modul tujuan navigasi + label + ikon */
@@ -199,7 +199,7 @@ import { BO } from './data_backoffice.js';
     return rows;
   }
 
-  window.LEGAL = {
+  return {
     moneyJt, SOURCE_META, CLAUSES, DISPUTE_LINKS,
     buildRegister, reconcileLegacy,
     daysTo: (d) => BO.daysTo(d),
@@ -207,5 +207,5 @@ import { BO } from './data_backoffice.js';
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const LEGAL = window.LEGAL;
+/* [codemod] ESM export (window.LEGAL dilucuti — konsumen pakai named import) */
+export { LEGAL };

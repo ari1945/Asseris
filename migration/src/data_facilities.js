@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import { BO } from './data_backoffice.js';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Aset & Fasilitas Kantor: lapisan kanonik (SSOT)
@@ -77,7 +78,7 @@ const FAC = (function () {
 
   /* ---------- lisensi & langganan (vendor master + Legal) ---------- */
   function licenses(firm) {
-    const reg = (window.LEGAL && firm) ? window.LEGAL.buildRegister(firm) : [];
+    const reg = (LEGAL && firm) ? LEGAL.buildRegister(firm) : [];
     return (BO.SOFTWARE_LICENSES || []).map(l => {
       const vendor = (BO.VENDORS || []).find(v => v.name === l.vendor) || null;
       const contract = reg.find(c => c.source && c.source.kind === 'license' && c.source.id === l.name) || null;
@@ -99,7 +100,7 @@ const FAC = (function () {
   /* ---------- sewa kantor (PSAK 73) — dari V-024 + Legal OPS-LEASE ---------- */
   function lease(firm) {
     const v = (BO.VENDORS || []).find(x => x.cat === 'Sewa & Fasilitas') || null;
-    const reg = (window.LEGAL && firm) ? window.LEGAL.buildRegister(firm) : [];
+    const reg = (LEGAL && firm) ? LEGAL.buildRegister(firm) : [];
     const contract = reg.find(c => c.id === 'OPS-LEASE') || null;
     return { vendor: v, contract, value: v ? v.ytd : 0, end: contract ? contract.end : null };
   }

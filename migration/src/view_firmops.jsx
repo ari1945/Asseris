@@ -7,6 +7,7 @@ import { Btn, Donut, Panel } from './ui.jsx';
 import { BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { FopsCalendar, FopsLineage, FopsVendorDrawer, FopsVendors } from './view_firmops2.jsx';
 import { BO } from './data_backoffice.js';
+import { LEGAL } from './data_legal.js';
 import { SectionTitle } from './view_fpm_parts.jsx';
 
 /* ============================================================
@@ -56,7 +57,7 @@ function FirmOps() {
   const oc = useMemoFops(() => F.operatingCosts(), []);
   const obligations = useMemoFops(() => F.unifiedObligations(firm), [firm.engagements, firm.clients]);
   const spendRecon = useMemoFops(() => F.spendReconciliation(), []);
-  const register = useMemoFops(() => (window.LEGAL ? window.LEGAL.buildRegister(firm) : []), [firm.engagements, firm.clients]);
+  const register = useMemoFops(() => (LEGAL ? LEGAL.buildRegister(firm) : []), [firm.engagements, firm.clients]);
 
   /* agregat ringkas */
   const nbv = F.sum(B.FIXED_ASSETS, a => a.nbv);

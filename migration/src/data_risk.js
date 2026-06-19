@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import { BO } from './data_backoffice.js';
 import { FAC } from './data_facilities.js';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)
@@ -128,8 +129,8 @@ import { FAC } from './data_facilities.js';
     }
     // Legal — nilai kontrak polis (OPS-POL-*)
     let legalPremi = null, legalRows = [];
-    if (window.LEGAL && firm) {
-      legalRows = window.LEGAL.buildRegister(firm).filter(c => c.category === 'Asuransi');
+    if (LEGAL && firm) {
+      legalRows = LEGAL.buildRegister(firm).filter(c => c.category === 'Asuransi');
       legalPremi = sum(legalRows, c => c.value);
     }
     return { totPremi, opsPremi, legalPremi, legalRows };

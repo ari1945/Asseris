@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import { BO } from './data_backoffice.js';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Pengadaan & Vendor: lapisan kanonik (SSOT)
@@ -11,7 +12,7 @@ import { BO } from './data_backoffice.js';
      · Komitmen (open PO)     ← PURCHASE_ORDERS (vendorId → master)
      · 3-way match            ← PURCHASE_ORDERS ↔ RECEIPTS(GRN) ↔ BILLS
      · Utang usaha (hilir)    ← BILLS → AP/AR firma (FIRM_AP) → GL 2-100
-     · Kontrak vendor         ← window.LEGAL.buildRegister (registri SSOT)
+     · Kontrak vendor         ← LEGAL.buildRegister (registri SSOT)
      · Lisensi & sewa         ← BO.SOFTWARE_LICENSES / kontrak sewa
      · Konsumsi lintas-modul  ← window.FIRMOPS.VENDOR_CONSUMERS
 
@@ -111,7 +112,7 @@ const PROC = (function () {
   function vendor360(vendorId, firm) {
     const v = vById(vendorId);
     if (!v) return null;
-    const register = (window.LEGAL && firm) ? window.LEGAL.buildRegister(firm) : [];
+    const register = (LEGAL && firm) ? LEGAL.buildRegister(firm) : [];
     const contracts = register.filter(c =>
       (c.source && c.source.kind === 'vendor' && c.source.id === v.id) ||
       c.party === v.name);
@@ -170,7 +171,7 @@ const PROC = (function () {
     const poLinked = po.filter(p => vById(p.vendorId));
     const twm = threeWayMatch();
     const matched = twm.filter(t => t.result === 'match');
-    const register = (window.LEGAL && firm) ? window.LEGAL.buildRegister(firm) : [];
+    const register = (LEGAL && firm) ? LEGAL.buildRegister(firm) : [];
     const vendorContracts = register.filter(c => c.source && (c.source.kind === 'vendor' || c.source.kind === 'license'));
     const vcMapped = vendorContracts.filter(c => c.source.kind === 'vendor'
       ? vById(c.source.id)
@@ -243,6 +244,6 @@ const PROC = (function () {
 
 
 /* ESM export murni (legacy-track slice 1: namespace PROC di-strip dari window).
-   Catatan: BO kini named-import (slice BO); IIFE masih membaca window.LEGAL/FIRMOPS
+   Catatan: BO & LEGAL kini named-import; IIFE masih membaca window.FIRMOPS
    — namespace lain, di luar scope slice ini (tetap dual-published). */
 export { PROC };

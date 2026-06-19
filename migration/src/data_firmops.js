@@ -1,12 +1,13 @@
 /* [codemod] ESM imports */
 import { BO } from './data_backoffice.js';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Operasi Firma (Backoffice): lapisan kanonik
    ------------------------------------------------------------
    Cockpit "Operasi Firma" TIDAK menyimpan angka sendiri. Seluruh
    metrik diturunkan (derived) dari sub-ledger pemiliknya di BO
-   dan dari registri kontrak SSOT (window.LEGAL):
+   dan dari registri kontrak SSOT (LEGAL):
      · Vendor & belanja      ← BO.VENDORS / BO.SPEND_BY_CAT  (master vendor)
      · Aset & penyusutan     ← BO.FIXED_ASSETS               (PSAK 16 sub-ledger)
      · Lisensi software      ← BO.SOFTWARE_LICENSES
@@ -14,7 +15,7 @@ import { BO } from './data_backoffice.js';
      · Keanggotaan & izin    ← BO.MEMBERSHIPS / BO.FIRM_LICENSES / BO.AP_LICENSES
      · Perjalanan            ← BO.TRIPS / BO.TRAVEL_TREND
      · Arsip & legal hold    ← BO.ARCHIVES / BO.LEGAL_HOLDS
-     · Kontrak               ← window.LEGAL.buildRegister(firm)
+     · Kontrak               ← LEGAL.buildRegister(firm)
 
    Prinsip: satu vendor = satu master; tiap biaya operasi menunjuk ke
    sub-ledger sumbernya; satu kalender kewajiban menarik tenggat dari
@@ -132,8 +133,8 @@ import { BO } from './data_backoffice.js';
       push({ module: 'travel', kind: 'Approval perjalanan', label: t.tujuan, ref: t.id, due: t.tgl, amount: t.est, owner: t.appr }));
 
     // kontrak (registri SSOT) — perpanjangan
-    if (window.LEGAL && firm) {
-      window.LEGAL.buildRegister(firm).filter(c => c.end && c.category !== 'Lisensi' && c.category !== 'Asuransi').forEach(c =>
+    if (LEGAL && firm) {
+      LEGAL.buildRegister(firm).filter(c => c.end && c.category !== 'Lisensi' && c.category !== 'Asuransi').forEach(c =>
         push({ module: 'legal', kind: 'Perpanjangan kontrak', label: c.party + ' · ' + c.type.replace(/ —.*/, ''), ref: c.id, due: c.end, amount: c.value, owner: c.owner }));
     }
 

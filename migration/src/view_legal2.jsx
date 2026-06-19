@@ -8,6 +8,7 @@ import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { KV, SectionTitle } from './view_fpm_parts.jsx';
 import { LGL_CAT, LglContractDrawer, LglSourceChip, ReconBadge } from './view_legal.jsx';
 import { BO } from './data_backoffice.js';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Kontrak & Legal Firma · komponen utama (tabs)
@@ -16,12 +17,12 @@ const { useState: useStateLgl2, useMemo: useMemoLgl2 } = React;
 
 /* ---------- timeline tenggat (dipakai Ikhtisar & tab Kewajiban) ---------- */
 function LglRenewalTimeline({ items, onSel }) {
-  const sorted = [...items].filter(c => c.end).sort((a, b) => window.LEGAL.daysTo(a.end) - window.LEGAL.daysTo(b.end));
+  const sorted = [...items].filter(c => c.end).sort((a, b) => LEGAL.daysTo(a.end) - LEGAL.daysTo(b.end));
   if (!sorted.length) return <div className="tiny muted" style={{ padding: 12 }}>Tidak ada kontrak dengan tenggat dalam jangkauan.</div>;
   return (
     <div style={{ display: 'grid', gap: 9 }}>
       {sorted.map(c => {
-        const d = window.LEGAL.daysTo(c.end);
+        const d = LEGAL.daysTo(c.end);
         const pct = Math.max(4, Math.min(100, 100 - (d / 180 * 100)));
         const col = d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--green)';
         const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
@@ -52,13 +53,13 @@ function FirmLegal() {
   const [selDispute, setSelDispute] = useStateLgl2('LIT-03');
   const [catFilter, setCatFilter] = useStateLgl2('all');
 
-  const register = useMemoLgl2(() => window.LEGAL.buildRegister(firm), [firm.engagements, firm.clients]);
-  const legacy = useMemoLgl2(() => window.LEGAL.reconcileLegacy(firm), [firm.clients]);
+  const register = useMemoLgl2(() => LEGAL.buildRegister(firm), [firm.engagements, firm.clients]);
+  const legacy = useMemoLgl2(() => LEGAL.reconcileLegacy(firm), [firm.clients]);
   const disputes = BO.DISPUTES;
   const selCase = disputes.find(d => d.id === selDispute);
 
   const totalValue = register.reduce((s, c) => s + c.value, 0);
-  const renewSoon = register.filter(c => c.end && window.LEGAL.daysTo(c.end) <= 120);
+  const renewSoon = register.filter(c => c.end && LEGAL.daysTo(c.end) <= 120);
   const openLit = disputes.filter(d => d.status !== 'Putusan');
   const exposure = openLit.reduce((s, d) => s + d.exposure, 0);
   const driftCount = legacy.filter(r => r.state !== 'ok').length;
@@ -177,7 +178,7 @@ function FirmLegal() {
                 <thead><tr><th>ID</th><th>Pihak / Counterparty</th><th>Kategori</th><th className="num">Nilai</th><th>Berakhir</th><th>Sumber Kebenaran</th><th>Status</th></tr></thead>
                 <tbody>
                   {filteredReg.map(c => {
-                    const d = c.end ? window.LEGAL.daysTo(c.end) : null;
+                    const d = c.end ? LEGAL.daysTo(c.end) : null;
                     const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
                     return (
                       <tr key={c.id} onClick={() => setSel(c)} style={{ cursor: 'pointer' }} className={sel && sel.id === c.id ? 'sel' : ''}>
@@ -277,7 +278,7 @@ function FirmLegal() {
                       </div>
                       <SectionTitle>Keterkaitan Lintas-Modul</SectionTitle>
                       <div style={{ display: 'grid', gap: 7 }}>
-                        {(window.LEGAL.DISPUTE_LINKS[selCase.id] || []).map((lk, i) => {
+                        {(LEGAL.DISPUTE_LINKS[selCase.id] || []).map((lk, i) => {
                           const Ic = window.I[lk.icon] || window.I.link2;
                           return (
                             <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--red)' }} onClick={() => nav(lk.module, { from: 'legal' })} title={'Buka ' + lk.label}>
@@ -334,7 +335,7 @@ function FirmLegal() {
                         <td className="num">{r.srcValue == null ? '—' : boJt(r.srcValue)}</td>
                         <td className="num" style={{ color: diff ? 'var(--red)' : 'var(--ink-3)', fontWeight: diff ? 700 : 400 }}>{diff == null ? '—' : diff === 0 ? '0' : (diff > 0 ? '+' : '') + boJt(diff).replace('Rp ', '')}</td>
                         <td><ReconBadge state={r.state} /></td>
-                        <td>{r.src ? <button className="btn sm" style={{ height: 22 }} onClick={() => nav(window.LEGAL.SOURCE_META[r.src.kind].module, { from: 'legal' })}><I.arrowRight size={11} /> Sumber</button> : <span className="tiny muted">tinjau</span>}</td>
+                        <td>{r.src ? <button className="btn sm" style={{ height: 22 }} onClick={() => nav(LEGAL.SOURCE_META[r.src.kind].module, { from: 'legal' })}><I.arrowRight size={11} /> Sumber</button> : <span className="tiny muted">tinjau</span>}</td>
                       </tr>
                     );
                   })}

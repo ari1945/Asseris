@@ -5,6 +5,7 @@ import { Btn } from './ui.jsx';
 import { BoBadge, boJt, boM } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';
 import { KV, SectionTitle } from './view_fpm_parts.jsx';
+import { LEGAL } from './data_legal.js';
 
 /* ============================================================
    NeoSuite AMS — Kontrak & Legal Firma (modul mendalam)
@@ -28,7 +29,7 @@ const lglDate = (d) => d || '—';
 
 /* chip sumber kebenaran (klik → navigasi ke modul sumber) */
 function LglSourceChip({ kind, id, onNav }) {
-  const meta = window.LEGAL.SOURCE_META[kind];
+  const meta = LEGAL.SOURCE_META[kind];
   if (!meta) return <span className="tiny muted">—</span>;
   const Ic = I[meta.icon] || I.link2;
   return (
@@ -60,7 +61,7 @@ function lglObligations(c) {
   } else if (c.category === 'Lisensi') {
     out.push({ jenis: 'Perpanjangan lisensi', due: c.end, val: c.value, note: (c.meta.used || 0) + '/' + (c.meta.seats || 0) + ' seat terpakai' });
   } else if (c.category === 'Asuransi') {
-    out.push({ jenis: 'Premi tahunan', due: c.end, val: c.value, note: 'Limit ' + window.LEGAL.moneyJt(c.meta.limit || 0).replace('Rp ', 'Rp ') });
+    out.push({ jenis: 'Premi tahunan', due: c.end, val: c.value, note: 'Limit ' + LEGAL.moneyJt(c.meta.limit || 0).replace('Rp ', 'Rp ') });
   } else {
     out.push({ jenis: 'Tinjauan MoU', due: c.end, val: null, note: 'Evaluasi layanan berkala' });
   }
@@ -75,8 +76,8 @@ function LglContractDrawer({ c, onClose, onNav }) {
   if (!c) return null;
   const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
   const Ic = I[cat.ic] || I.doc;
-  const d = window.LEGAL.daysTo(c.end);
-  const clauses = window.LEGAL.CLAUSES[c.category] || [];
+  const d = LEGAL.daysTo(c.end);
+  const clauses = LEGAL.CLAUSES[c.category] || [];
   const obligs = lglObligations(c);
   const okClause = clauses.filter(x => x.ok).length;
   return (
@@ -109,7 +110,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
           <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
             {c.category === 'Perikatan'
               ? <>Nilai <b>{boJt(c.value)}</b> = fee klien tercatat di <b>CRM</b> dan dikunci di <b>Engagement Mgmt</b>. Perubahan fee mengalir otomatis ke kontrak ini & ke Billing.</>
-              : <>Nilai <b>{boJt(c.value)}</b> ditarik langsung dari modul <b>{window.LEGAL.SOURCE_META[c.source.kind].label}</b>. Modul Kontrak tidak menyimpan salinan angka.</>}
+              : <>Nilai <b>{boJt(c.value)}</b> ditarik langsung dari modul <b>{LEGAL.SOURCE_META[c.source.kind].label}</b>. Modul Kontrak tidak menyimpan salinan angka.</>}
           </div>
         </div>
 
@@ -159,7 +160,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
 
         <div className="row gap8">
           <Btn sm variant="primary"><I.doc size={13} /> Buka Dokumen (DMS)</Btn>
-          <Btn sm onClick={() => onNav(window.LEGAL.SOURCE_META[c.source.kind].module, { from: 'legal' })}><I.arrowRight size={13} /> Ke Modul Sumber</Btn>
+          <Btn sm onClick={() => onNav(LEGAL.SOURCE_META[c.source.kind].module, { from: 'legal' })}><I.arrowRight size={13} /> Ke Modul Sumber</Btn>
         </div>
       </div>
     </PDrawer>
