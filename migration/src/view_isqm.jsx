@@ -15,7 +15,7 @@ import { OKv } from './view_onboarding.jsx';
    → remediasi & akar masalah · Register Keluhan & Tuduhan.
    ------------------------------------------------------------
    Tarikan data: seluruh nama klien/partner/PIE & angka pemantauan
-   DITURUNKAN dari satu sumber kebenaran (window.AMS: ENGAGEMENTS,
+   DITURUNKAN dari satu sumber kebenaran (AMS: ENGAGEMENTS,
    CLIENTS, STAFF, CAPACITY, INDEPENDENCE, PPPK, QM_*) via engMeta()
    & soqmPull() — tidak ada denormalisasi yang dapat menyimpang.
    Komponen berat dipisah ke view_isqm_parts.jsx.

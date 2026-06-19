@@ -14,7 +14,7 @@ import { Badge } from './ui.jsx';
                          setiap masukan pemantauan ke SATU sumber
                          kebenaran (ENGAGEMENTS/CLIENTS/STAFF/…),
                          lengkap dengan cek konsistensi & tautan modul.
-   · soqmPull()        — derivasi LIVE angka pemantauan dari window.AMS
+   · soqmPull()        — derivasi LIVE angka pemantauan dari AMS
    Semua angka di sini DITARIK, bukan di-hardcode.
    ============================================================ */
 const { useState: useISQMP } = React;
@@ -250,7 +250,7 @@ function SoqmLineage({ nav }) {
             {pulls.map((p, i) => <PullRow key={i} {...p} nav={nav} />)}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ marginTop: 6 }}>Klik nama sumber untuk membuka modul asal. Nilai dihitung ulang setiap render dari <span className="mono">window.AMS</span> — tidak ada angka yang dibekukan.</div>
+        <div className="tiny muted" style={{ marginTop: 6 }}>Klik nama sumber untuk membuka modul asal. Nilai dihitung ulang setiap render dari <span className="mono">AMS</span> — tidak ada angka yang dibekukan.</div>
       </div>
     </div>
   );

@@ -501,7 +501,7 @@ function Copilot({ open, onClose, route }) {
   const ctxText = [
     'Klien      : ' + (activeClient.name || activeClient.label || '—'),
     'Perikatan  : ' + (activeEng.id || activeEng.code || '—'),
-    'Materialitas: ' + (activeEng.materiality ? (window.AMS && AMS.rp ? AMS.rp(activeEng.materiality) : activeEng.materiality) : '—'),
+    'Materialitas: ' + (activeEng.materiality ? (AMS && AMS.rp ? AMS.rp(activeEng.materiality) : activeEng.materiality) : '—'),
     'Modul aktif: ' + moduleLabel + ' (' + (route || '—') + ')',
   ].join('\n');
 

@@ -7,7 +7,7 @@
    (PSAK 24, PSAK 71/ECL, PSAK 73) dan ke Buku Besar (WTB),
    bukan di-hardcode.
 
-   PRINSIP: Working Trial Balance (window.AMS.WTB / useAudit().wtb)
+   PRINSIP: Working Trial Balance (AMS.WTB / useAudit().wtb)
    adalah SUMBER KEBENARAN untuk saldo akun. Angka akuntansi di
    bawah ini DITARIK dari WTB by-code, sehingga satu perubahan AJE
    mengalir konsisten ke seluruh modul yang memakai AMS_CANON.

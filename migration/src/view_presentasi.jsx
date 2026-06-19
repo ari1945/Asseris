@@ -103,7 +103,7 @@ function PRKicker({ phase }) {
 function PRFoot({ data, n, total }) {
   return (
     <div className="pr-foot">
-      <span>{(window.AMS?.FIRM?.name) || 'KAP'}</span>
+      <span>{(AMS?.FIRM?.name) || 'KAP'}</span>
       <span className="pr-foot-mid">{data.client?.name} · {data.eng?.fy}</span>
       <span className="pr-foot-pg">{String(n).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
     </div>
@@ -127,8 +127,8 @@ function PRCover({ data }) {
     <PRSlide bg="var(--navy)">
       <div className="pr-cover">
         <div className="pr-cover-top">
-          <span className="pr-cover-firm">{(window.AMS?.FIRM?.name) || 'KAP'}</span>
-          <span className="pr-cover-lic">{(window.AMS?.FIRM?.license) || ''}</span>
+          <span className="pr-cover-firm">{(AMS?.FIRM?.name) || 'KAP'}</span>
+          <span className="pr-cover-lic">{(AMS?.FIRM?.license) || ''}</span>
         </div>
         <div className="pr-cover-mid">
           <div className="pr-cover-eyebrow">Presentasi Klien · Audit Laporan Keuangan {data.eng?.fy}</div>
@@ -463,7 +463,7 @@ function PRNext({ data, n, total }) {
         </div>
         <div className="pr-next-foot">
           <span>{data.eng?.partner} · Rekan Perikatan</span>
-          <span>{(window.AMS?.FIRM?.name)} · {(window.AMS?.FIRM?.license)}</span>
+          <span>{(AMS?.FIRM?.name)} · {(AMS?.FIRM?.license)}</span>
         </div>
       </div>
     </PRSlide>

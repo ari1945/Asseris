@@ -4,6 +4,7 @@ import { amsAttachEvidence } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { amsLLMConfig } from './llm_providers.js';
 import { Panel } from './ui.jsx';
+import { AMS } from './data.js';
 import { openCanonicalWp } from './view_wp.jsx';
 
 /* ============================================================
@@ -317,7 +318,7 @@ function ExtractReview({ rec, route, nav, onClose }) {
 
   const approve = () => {
     const fields = res.map(f => ({ key: f.key, label: f.label, kind: f.kind, value: f.value, source: f.source, conf: f.conf }));
-    const USER = (window.AMS && window.AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+    const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
     const rc = amsExtractAdd({
       file: rec.file, kind, docLabel: sc.docLabel, std: sc.std, module: sc.module,
       wpRef, wpTitle, summary: sc.summary, audit: sc.audit, fields,

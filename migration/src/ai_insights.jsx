@@ -3,6 +3,7 @@ import React from 'react';
 import { useAudit, useNav } from './contexts.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { PROGRAMME } from './view_cockpit.jsx';
+import { AMS } from './data.js';
 
 /* ============================================================
    NeoSuite AMS — AI Insights (Tier 2)
@@ -139,7 +140,7 @@ function useAiInsights(scope) {
   const audit = useAudit();
   const nav = useNav();
   const [decisions, setDecisions] = window.useAmsPersist('aiInsights.v1', () => ({}));
-  const USER = (window.AMS && window.AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+  const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
 
   const all = useMemoAI(() => amsCrossChecks({
     aje: audit.aje, risks: audit.risks, wtb: audit.wtb, workpapers: audit.workpapers,

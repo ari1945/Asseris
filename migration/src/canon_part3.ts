@@ -325,7 +325,7 @@ import type { WTB } from './canon_types';
      liabilitas + ekuitas) dan laba yang tie ke kontribusi NPAT.
 
      SATU SUMBER untuk lintas-modul:
-       · INDUK             → WTB (window.AMS.WTB / useAudit().wtb) — live AJE
+       · INDUK             → WTB (AMS.WTB / useAudit().wtb) — live AJE
        · Goodwill akuisisi → Σ goodwill per-anak = Rp 6.800 jt = AMS_CANON.GOODWILL
                              (dipakai PSAK 48 uji penurunan nilai UPK tahunan)
        · Struktur grup &   → GROUP_SUBS / INTERCO yang SAMA dipakai modul

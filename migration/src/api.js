@@ -6,6 +6,7 @@
    caller swallows network errors and falls back to the localStorage cache.
    ============================================================ */
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
+import { AMS } from './data.js';
 
 /* ----- W7 Fase 2 / W10 — session transport -----
    W10 moved the session to an HttpOnly cookie set by the server on login: JavaScript can no
@@ -172,19 +173,18 @@ Object.assign(window, {
 });
 
 /* ============================================================
-   W6 Fase 3 — hydrate window.AMS core entities from the API at boot.
+   W6 Fase 3 — hydrate AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the
-   offline FALLBACK (already on window.AMS when this runs). Schema is lossless
+   offline FALLBACK (already on the AMS singleton when this runs). Schema is lossless
    for all six (User via a dataJson envelope; the rest column-for-column), so the
    overwrite is zero numeric drift vs the W0 baseline.
 
-   MUST run BEFORE the first React render (canon reads window.AMS.WTB lazily on
+   MUST run BEFORE the first React render (canon reads AMS.WTB lazily on
    first FIG/SRC access). On any failure we keep the fallback and let the app run.
    WTB is seeded only for the active engagement (ENG-2025-014, == DEFAULT_ENG_ID),
    matching today's single-WTB reality; other engagements return [] → fallback. ============================================================ */
 export async function hydrateCoreFromApi(engagementId, userId) {
-  const AMS = window.AMS;
   if (!AMS) return false;
   const b = await api.bootstrap.query({ engagementId });
   if (!b) return false;

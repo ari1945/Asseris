@@ -2,6 +2,7 @@
 import React from 'react';
 import { api, isConflict } from './api.js';
 import { can as rbacCan } from './rbac.js';
+import { AMS } from './data.js';
 
 /* ============================================================
    NeoSuite AMS — React Context providers
@@ -44,7 +45,7 @@ function notesForEngagement(notes, engId) {
    Single-firm/single-user demo, so the firm/user scopeIds are constants that
    match the seed (FIRM-WHR / USER.employeeId). ============================================================ */
 const FIRM_SCOPE_ID = 'FIRM-WHR';
-function userScopeId() { try { return (window.AMS && window.AMS.USER && window.AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
+function userScopeId() { try { return (AMS && AMS.USER && AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
 const DEFAULT_ENG_ID = 'ENG-2025-014';
 
 /* Public useAmsPersist (module state) defaults to firm scope — i.e. today's
@@ -217,8 +218,8 @@ function ConflictToaster() {
 }
 
 function AppProviders({ me, onLogout, children }) {
-  const D = window.AMS;
-  const uid = me.id; // authenticated user id (replaces the old window.AMS.USER guess)
+  const D = AMS;
+  const uid = me.id; // authenticated user id (replaces the old AMS.USER guess)
 
   /* ---- Auth (W7) ---- */
   /* Identity & role now come from the authenticated SESSION (`me`), not editable client

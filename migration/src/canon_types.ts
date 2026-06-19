@@ -27,7 +27,7 @@ export interface WtbRow {
 
 export type WTB = WtbRow[];
 
-/** Jurnal penyesuaian audit (window.AMS.AJE) yang dirujuk canon. */
+/** Jurnal penyesuaian audit (AMS.AJE) yang dirujuk canon. */
 export interface AjeRow {
   id: string;
   amount: number;

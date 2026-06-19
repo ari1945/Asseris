@@ -5,6 +5,7 @@ import { useAudit, useNav } from './contexts.jsx';
 import { amsCrossChecks } from './ai_insights.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
+import { AMS } from './data.js';
 
 /* ============================================================
    NeoSuite AMS — Tax Audit Diagnostic · UI (P4 Fase 1-2)
@@ -121,7 +122,7 @@ function useDiagnostics(area) {
 function useDiagDecisions() {
   const audit = useAudit();
   const [decisions, setDecisions] = window.useAmsPersist('diagnostics.v1', () => ({}));
-  const USER = (window.AMS && window.AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+  const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
   const decide = (f, verdict, reason) => {
     const when = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     setDecisions(d => ({ ...d, [f.id]: { verdict, who: USER.name, role: USER.role, when, reason: reason || '' } }));

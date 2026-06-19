@@ -2,6 +2,7 @@
    NeoSuite AMS — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
+import { AMS } from './data.js';
 
   const RATE = 0.22;
   const ASOF = { y: 2025, m: 12 };           // 31 Des 2025
@@ -9,7 +10,7 @@ import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
   /* ---------- helper: tarik saldo akun dari WTB (by code) ---------- */
   const jt = (n: number) => Math.round((n || 0) / 1e6);                 // rupiah penuh → juta
   function wtbRow(wtb: WTB | undefined, code: string) {
-    const W = (wtb && wtb.length) ? wtb : ((window.AMS && window.AMS.WTB) || []);
+    const W = (wtb && wtb.length) ? wtb : ((AMS && AMS.WTB) || []);
     return W.find(r => r.code === code) || null;
   }
   function wtbVal(wtb: WTB | undefined, code: string, field: WtbAmountField) {
@@ -117,8 +118,8 @@ import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
 
   /* ---------- FIG / SRC: saldo akhir kanonik tiap pos (Rp juta) ----------
      W6 Fase 3 (W6·2) — dihitung LAZY (saat akses properti pertama), BUKAN saat
-     module-load. Sebelumnya `figuresFromWTB()` membaca window.AMS.WTB saat load,
-     mengikat canon ke WTB statis data.js. Kini boot menghidrasi window.AMS.WTB
+     module-load. Sebelumnya `figuresFromWTB()` membaca AMS.WTB saat load,
+     mengikat canon ke WTB statis data.js. Kini boot menghidrasi AMS.WTB
      dari API lebih dulu (lihat api.js · hydrateCoreFromApi); akses pertama lalu
      membangun angka dari WTB ter-hidrasi → nol drift vs baseline W0.
      Tetap berupa OBJEK (lewat Proxy memo) agar `FIG.x`, `Object.assign({}, FIG, …)`,
@@ -152,7 +153,7 @@ import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
       fiscalTempMovement: FISCAL.fiscalTempMovement,
     };
   }
-  /* Buang memo agar akses berikutnya membangun ulang dari window.AMS.WTB terbaru.
+  /* Buang memo agar akses berikutnya membangun ulang dari AMS.WTB terbaru.
      Dipanggil boot setelah hidrasi WTB, & oleh test yang mengganti WTB. */
   function resetFigures(): void { _src = null; _fig = null; }
   /* Proxy memo: target kosong, semua trap delegasi ke objek yang dibangun lazy. */

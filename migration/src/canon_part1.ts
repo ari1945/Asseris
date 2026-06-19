@@ -3,6 +3,7 @@
    ============================================================ */
 import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './canon_base';
 import type { WTB, AjeRow } from './canon_types';
+import { AMS } from './data.js';
 
   function deferredTax(wtb?: WTB) {
     const f = wtb ? (() => {
@@ -365,7 +366,7 @@ import type { WTB, AjeRow } from './canon_types';
     const revPY      = -jt(wtbVal(wtb, '4-1100', 'ly'));        // komparatif 2024 (audited)
 
     /* koreksi cut-off occurrence — ditarik dari AJE-03 (dr 4-1100), kunci tunggal */
-    const AJE = (window.AMS && window.AMS.AJE) || [];
+    const AJE = (AMS && AMS.AJE) || [];
     const aje03 = AJE.find(a => a.id === 'AJE-03') || null;
     const cutoffRev = aje03 ? Math.round(aje03.amount / 1e6) : 0;       // 1.850 jt
     const cutoffPosted = aje03 ? (aje03.status === 'Posted') : false;

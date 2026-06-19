@@ -4,15 +4,16 @@
    (LINEAGE sudah ada) dan SEBELUM related_modules.jsx.
    ============================================================ */
 import { LINEAGE } from './related_modules_data.js'; // ESM: mutate the shared object, not a window re-binding (fixes TDZ)
+import { AMS } from './data.js';
 
 
 /* ============================================================
    Template Library — lineage DIBANGKITKAN dari registri kanonik
-   (window.AMS.TEMPLATES). Hilir = modul yang memakai keluaran
+   (AMS.TEMPLATES). Hilir = modul yang memakai keluaran
    template; dibangun otomatis agar konsisten dengan sumber data.
    ============================================================ */
 (function buildTemplateLineage() {
-  const T = (window.AMS && window.AMS.TEMPLATES) || [];
+  const T = (AMS && AMS.TEMPLATES) || [];
   if (!T.length) return;
   const MI = window.MODULE_INDEX || {};
   /* kelompokkan per modul konsumen, hitung jumlah & contoh template */
