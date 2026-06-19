@@ -115,7 +115,7 @@ import { PFI_3400 } from './data_part2.js';
          pengguna menarik reportType/opini/deviasi/CUEC dari engine)
        · Katalog SJAH 3000 (view_sjah3000 · ASR-081 — hal pokok)
        · Matriks Kepatuhan (SJAH 3402)
-     Konsumsi via window.AMS.socEngine(exec).
+     Konsumsi via AMS.socEngine(exec).
      ============================================================ */
   const SOC_3402 = {
     id: 'ASR-2025-081', client: 'PT Payroll Solusi Indonesia',
@@ -298,7 +298,7 @@ import { PFI_3400 } from './data_part2.js';
        · Katalog SJAH 3000 (view_sjah3000 · ASR-080 — hal pokok)
        · Portofolio Jasa (view_nonaudit · progres dihitung engine)
        · Matriks Kepatuhan (SJAH 3410)
-     Konsumsi via window.AMS.ghgEngine(exec).
+     Konsumsi via AMS.ghgEngine(exec).
      ============================================================ */
   const GHG_3410 = {
     id: 'ASR-2025-080', client: 'PT Hijau Energi Terbarukan',

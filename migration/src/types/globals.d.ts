@@ -2,7 +2,8 @@
    NeoSuite AMS — ambient window contract (W5)
    ------------------------------------------------------------
    Sisa kontrak runtime-bus `window` yang masih dibaca lapisan
-   kanonik (data master, benchmark, generator LK, forensic).
+   kanonik (benchmark + reset-figures). Data master kini ESM
+   (`export const AMS` di data.js, dianotasi via AmsData di bawah).
    Diketik sebagai deklarasi global agar engine .ts hijau di
    `tsc --noEmit` tanpa menyeret seluruh app ke TypeScript.
    Penyempitan/penghapusan `window` adalah arc tersendiri
@@ -18,7 +19,9 @@ import type {
    `window.AMS_CANON`); tipe permukaannya di-infer dari canon.ts, tidak
    lagi dideklarasikan sebagai kontrak window di sini. */
 
-/** Data master (window.AMS) — hanya pos yang dibaca canon diketik. */
+/** Data master (ESM export `AMS` dari data.js) — hanya pos yang dibaca canon diketik.
+   Legacy-track slice 10z melucuti tulisan `window` untuk AMS; tipe ini kini menjadi anotasi
+   JSDoc `@type` pada `export const AMS` di data.js (lihat data.js). */
 export interface AmsData {
   WTB: WTB;
   AJE: AjeRow[];
@@ -27,7 +30,6 @@ export interface AmsData {
 
 declare global {
   interface Window {
-    AMS: AmsData;
     BENCHMARKS: Benchmark[];
     amsResetFigures?: () => void;
   }

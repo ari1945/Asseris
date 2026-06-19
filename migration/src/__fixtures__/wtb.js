@@ -6,7 +6,7 @@
    normalize to Rp juta via jt() = round(n / 1e6)).
 
    Used to prove the engines are PURE functions of the WTB they are
-   given — not just readers of the global window.AMS.WTB.
+   given — not just readers of the AMS.WTB singleton.
    ============================================================ */
 
 // field convention used by the engines: ly = prior year, unadj = client

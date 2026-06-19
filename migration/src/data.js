@@ -25,11 +25,12 @@ COMPLAINTS.forEach(c => {
 
 /* W6 Fase 3 — the core entities below (FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM)
    are now the OFFLINE FALLBACK fixture. At boot, api.js · hydrateCoreFromApi
-   overwrites them on window.AMS with the DB-sourced copy (seeded byte-identical),
+   overwrites them on the AMS singleton with the DB-sourced copy (seeded byte-identical),
    making the API the operative SSOT. They stay here as a synchronous load-time
-   source (some data_*.js read window.AMS.CLIENTS/WTB at module-load) and for the
+   source (some data_*.js read AMS.CLIENTS/WTB at module-load) and for the
    no-server path. Remaining arrays are not-yet-modeled demo data (future waves). */
-window.AMS = {
+/** @type {import('./types/globals').AmsData} */
+export const AMS = {
   fmt, rp, FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, TEAM,
   engById, clientById, staffByName, engMeta, shortName,
   DELIVERY, DELIVERY_WINDOW, WIP_ENG, WIP_AGING, CAPACITY,
@@ -47,6 +48,3 @@ window.AMS = {
   REVIEW_2400_PLAN, DUE_DILIGENCE, PFI_3400, pfiEngine, SOC_3402, socEngine,
   GHG_3410, ghgEngine,
 };
-
-/* [W3 split] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS = window.AMS;

@@ -312,7 +312,7 @@ import { fmt } from './data_base.js';
        · Laporan Temuan Faktual (view_nonaudit2 · NAReport)
        · Portofolio Jasa (view_nonaudit · progres dihitung engine)
        · Matriks Kepatuhan (SPA 4400)
-     Konsumsi via window.AMS.aupEngine(exec).
+     Konsumsi via AMS.aupEngine(exec).
      ============================================================ */
   const AUP_4400 = {
     id: 'AUP-2025-047',
@@ -462,7 +462,7 @@ import { fmt } from './data_base.js';
        · Laporan Asurans Prospektif (view_nonaudit2 · NAReport)
        · Portofolio Jasa (view_nonaudit · progres dihitung engine)
        · Matriks Kepatuhan (SJAH 3400)
-     Konsumsi via window.AMS.pfiEngine(exec).
+     Konsumsi via AMS.pfiEngine(exec).
      ============================================================ */
   const PFI_3400 = {
     id: 'PFI-2025-090', client: 'PT Mega Properti Sentosa',

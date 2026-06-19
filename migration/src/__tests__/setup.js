@@ -1,17 +1,16 @@
 /* ============================================================
    W4 — Vitest setup for the canon "number engines".
    ------------------------------------------------------------
-   The canon modules are buildless-era IIFE descendants: they read
-   `window.AMS.WTB` (the SSOT trial balance). `AMS_CANON` is now an ESM
-   export (legacy-track slice 10 stripped the `window.AMS_CANON` write);
-   the regression test imports it directly. canon still reads
-   `window.AMS.WTB` lazily at first FIG access, so the AMS global must
-   exist *before* those engines are called.
+   The canon modules read the trial balance from the `AMS` ESM singleton
+   (`export const AMS` di data.js). Both `AMS` and `AMS_CANON` are now plain
+   ESM exports (legacy-track slices 10/10z stripped the `AMS_CANON` then the
+   `AMS` window writes); the regression test imports `AMS_CANON` directly, and canon
+   reads `AMS.WTB` lazily at first FIG access via its own `import { AMS }`.
 
-   NOTE: imports here are DYNAMIC on purpose. Static `import` is hoisted
-   above the stub assignments below, so `data.js`'s `window.AMS = {…}`
-   would run before `window` exists and crash. Sequential awaits also
-   guarantee data.js (sets window.AMS) loads before canon.js (reads it).
+   NOTE: imports here are DYNAMIC on purpose so `globalThis.window` (and the
+   BENCHMARKS stub below) are set before any engine module evaluates.
+   Sequential awaits also keep data.js loading before canon.js. Neither
+   module touches `window` for AMS anymore — the data flows through ESM.
    ============================================================ */
 
 // 1) Minimal browser globals the engines touch (no jsdom dependency).
@@ -33,6 +32,6 @@ globalThis.BENCHMARKS = [
 ];
 
 // 2) Load order matters: data → canon → forensic.
-await import('../data.js');           // sets window.AMS (incl. WTB)
-await import('../canon');          // ESM AMS_CANON export (reads window.AMS lazily at call)
+await import('../data.js');           // evaluates the AMS ESM export (incl. WTB)
+await import('../canon');          // ESM AMS_CANON export (reads AMS via import, lazily at call)
 await import('../forensic_canon'); // pure-ESM (AMS_FORENSIC export; no window write)
