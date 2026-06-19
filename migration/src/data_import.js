@@ -16,12 +16,12 @@
    tujuan. Dengan begitu "baris di-posting" SELALU = "record dikonsumsi".
 
    Konsumen:
-     window.IMPORT.connectors()      → konektor diperkaya (job, posted, consumed)
-     window.IMPORT.jobs()            → antrean impor (staging→posting)
-     window.IMPORT.reconciliation()  → tie-out impor ↔ konsumsi SSOT
-     window.IMPORT.summary()         → KPI
+     IMPORT.connectors()      → konektor diperkaya (job, posted, consumed)
+     IMPORT.jobs()            → antrean impor (staging→posting)
+     IMPORT.reconciliation()  → tie-out impor ↔ konsumsi SSOT
+     IMPORT.summary()         → KPI
    ============================================================ */
-(function () {
+const IMPORT = (function () {
   const A = window.AMS;
   if (!A) return;
   const fmt = A.fmt || (n => String(n));
@@ -178,13 +178,12 @@
     { field: 'Otorisasi & gerbang posting', source: 'AMS.PLATFORM.ROUTING_RULES', module: 'approvals', label: 'Approvals' },
   ];
 
-  window.IMPORT = {
+  return {
     CONNECTORS, connById, connectors, connectorsSeed, jobs, jobsByConnector,
     reconciliation, summary, feeds, controlTotal, PROVENANCE,
     setServerData, serverBacked, // W9 — server read-model overlay
   };
 })();
 
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const IMPORT = window.IMPORT;
+/* [codemod] ESM export (window.IMPORT dilucuti — konsumen pakai named import) */
+export { IMPORT };

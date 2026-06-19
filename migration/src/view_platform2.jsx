@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
+import { IMPORT } from './data_import.js';
 
 /* ============================================================
    NeoSuite AMS — Firm Platform · Impor & Integrasi Data (Bagian D-2)
@@ -12,7 +13,7 @@ import { KvBox } from './view_analytical.jsx';
    Gerbang masuk data eksternal. Tiga mode: Konektor (master-detail),
    Antrean Impor (staging→validasi→posting), Rekonsiliasi SSOT
    (baris di-posting == record dikonsumsi modul hilir).
-   Seluruh angka diturunkan window.IMPORT dari sumber kanonik —
+   Seluruh angka diturunkan IMPORT dari sumber kanonik —
    tidak ada salinan terpisah.
    ============================================================ */
 const { useState: useStateIN, useEffect: useEffectIN } = React;
@@ -36,14 +37,14 @@ function ImSrc({ module, children, title }) {
 
 function Integrations() {
   const { logActivity } = useAudit();
-  const IM = window.IMPORT;
+  const IM = IMPORT;
   const { fmt } = window.AMS;
   const [mode, setMode] = useAmsPersist('importmode', () => 'konektor');
   const [list, setList] = useAmsPersist('integrations3', () => IM.connectorsSeed());
   const [selId, setSelId] = useStateIN(IM.CONNECTORS[0].id);
   const [catFilter, setCatFilter] = useStateIN('Semua');
   // W9 — server read-model: fetch the real reconciliation for the wired connector and push it
-  // into window.IMPORT so connectors()/reconciliation() below overlay live server figures. Null
+  // into IMPORT so connectors()/reconciliation() below overlay live server figures. Null
   // until fetched / when the server is down (→ simulated blueprint fallback). `srv` re-renders.
   const [srv, setSrv] = useStateIN(null);
   const [busy, setBusy] = useStateIN(false);
@@ -306,9 +307,9 @@ function IntegrationDetail({ it, onToggle }) {
   const { fmt } = window.AMS;
   const IconC = I[it.icon] || I.panel;
   const st = INTEG_STATUS[it.status];
-  const feeds = window.IMPORT.feeds(it.id);
-  const jobs = window.IMPORT.jobsByConnector(it.id);
-  const cdata = window.IMPORT.connectors().find(c => c.id === it.id) || { posted: 0, consumed: 0, tied: true };
+  const feeds = IMPORT.feeds(it.id);
+  const jobs = IMPORT.jobsByConnector(it.id);
+  const cdata = IMPORT.connectors().find(c => c.id === it.id) || { posted: 0, consumed: 0, tied: true };
   const tabs = [{ id: 'ringkasan', label: 'Ringkasan' }, { id: 'impor', label: 'Impor Terbaru', count: jobs.length || null }, { id: 'lineage', label: 'Sumber Kebenaran', count: feeds.length || null }, { id: 'aktivitas', label: 'Aktivitas Sinkron', count: it.syncs.length }, { id: 'mapping', label: 'Pemetaan Field', count: it.mapping.length }, { id: 'akses', label: 'Izin & Kredensial' }, { id: 'webhook', label: 'Webhook', count: it.webhooks.length }];
   const isOn = it.status === 'connected';
 
