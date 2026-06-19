@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -90,7 +91,7 @@ function PSAK14View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const model = useMemoP14(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
+  const model = useMemoP14(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const inv = useMemoP14(() => (window.AMS_CANON ? window.AMS_CANON.inventory(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP14(() => loader('ams.psak14.unit', 'jutaan'));

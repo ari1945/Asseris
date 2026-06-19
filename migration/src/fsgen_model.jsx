@@ -1,3 +1,6 @@
+/* [codemod] ESM imports */
+import { setFsgenBuilder } from './canon_base';
+
 /* ============================================================
    NeoSuite AMS — Financial Statement Generator · Model & Engine
    Pure derivation from the Working Trial Balance (adjusted balances):
@@ -7,9 +10,10 @@
    · Statement of Cash Flows — indirect, derived so it TIES to ΔCash
    · Cross-statement tie-out / diagnostics
    · PSAK disclosure checklist defaults
-   Exposed on window for the view + panel modules.
+   Diekspor sebagai ESM untuk view + panel; buildModel didaftarkan ke canon (DI seam)
+   agar canon_part3 bisa menyusun jembatan laba operasi-dihentikan tanpa impor view-model.
    ============================================================ */
-(function () {
+const FSGEN = (function () {
   /* ---- FS structure: caption -> contributing WTB codes (display order) ---- */
   const CA  = [
     { key: 'kas',     label: 'Kas dan setara kas',          codes: ['1-1100'], note: '4' },
@@ -237,9 +241,12 @@
     penuh:  { div: 1,   dp: 0, label: 'Rupiah penuh',  short: 'Rp' },
   };
 
-  window.FSGEN = { buildModel, buildTieOuts, DISCLOSURES, UNITS, SHARES };
+  return { buildModel, buildTieOuts, DISCLOSURES, UNITS, SHARES };
 })();
 
+/* [codemod] ESM export (window.FSGEN dilucuti — konsumen pakai named import) */
+export { FSGEN };
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const FSGEN = window.FSGEN;
+/* DI seam: daftarkan buildModel ke canon. Hanya jalan saat modul ini dimuat (app),
+   bukan di unit-test kanon headless → fsgenModel() tetap null di test (fingerprint stabil). */
+setFsgenBuilder(FSGEN.buildModel);

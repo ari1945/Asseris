@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -42,7 +43,7 @@ function SegmentInfo() {
 
   const D = useMemoSG(() => {
     const rev = window.AMS_CANON.revenue(wtb);
-    const model = window.FSGEN.buildModel(wtb);
+    const model = FSGEN.buildModel(wtb);
     const J = (n) => n / 1e6; // full → juta
     const totalRev = rev.revBooked;                  // juta
     const opProfit = J(model.is.opProfit.cy);

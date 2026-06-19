@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -67,7 +68,7 @@ function SPR2410View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const model = useMemo2410(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
+  const model = useMemo2410(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025', materiality: 4_250_000_000 };
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   /** @type {import('./canon_selectors').MaterialityResult} */

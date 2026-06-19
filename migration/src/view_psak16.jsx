@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -111,7 +112,7 @@ function PSAK16View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const model = useMemoP16(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
+  const model = useMemoP16(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const fa = useMemoP16(() => (window.AMS_CANON ? window.AMS_CANON.fixedAssets(wtb) : null), [wtb]);
   const reg = useMemoP16(() => (window.AMS_CANON ? window.AMS_CANON.assetRegister(wtb) : null), [wtb]);
 

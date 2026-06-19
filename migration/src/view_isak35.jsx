@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -87,7 +88,7 @@ function ISAK35View() {
     reviewed: i35Wp.reviewer ? { by: i35Wp.reviewer.by, date: i35Wp.reviewer.at } : null,
   };
 
-  const U = window.FSGEN.UNITS[unit];
+  const U = FSGEN.UNITS[unit];
   const sc = (n) => { if (n == null) return ''; const x = n / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
   const M = (n) => 'Rp ' + fmt(n / 1e9, 1) + ' M';
   const f0 = (n) => fmt(n / 1e6, 0);

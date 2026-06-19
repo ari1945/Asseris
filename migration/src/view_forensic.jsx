@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -42,7 +43,7 @@ function ForensicCashFlow() {
   const firm = useFirm();
 
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const model = useMemoFC(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
+  const model = useMemoFC(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const B = useMemoFC(() => (window.AMS_FORENSIC ? window.AMS_FORENSIC.buildCash(model, wtb) : null), [model, wtb]);
 
   const [unit, setUnit] = window.useAmsPersist('forensic.unit', 'M');

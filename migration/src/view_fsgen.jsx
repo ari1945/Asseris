@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -118,15 +119,15 @@ function FSGenerator() {
     prepared: fsWp.preparer ? { by: fsWp.preparer.by, date: fsWp.preparer.at } : null,
     reviewed: fsWp.reviewer ? { by: fsWp.reviewer.by, date: fsWp.reviewer.at } : null,
   };
-  const [disclosures, setDisclosures] = window.useAmsPersist('fsgen.disclosures', window.FSGEN.DISCLOSURES);
+  const [disclosures, setDisclosures] = window.useAmsPersist('fsgen.disclosures', FSGEN.DISCLOSURES);
   const [cfMethodPref, setCfMethodPref] = window.useAmsPersist('fsgen.cfMethod', 'auto');
   /* Emiten/entitas tercatat → OJK mewajibkan metode langsung; jika belum dipilih, ikuti status klien. */
   const cfMethod = cfMethodPref === 'auto' ? (activeClient?.listed ? 'direct' : 'indirect') : cfMethodPref;
 
-  const model = useMemoFS(() => window.FSGEN.buildModel(wtb), [wtb]);
-  const checks = useMemoFS(() => window.FSGEN.buildTieOuts(model, ajeTotalPosted), [model, ajeTotalPosted]);
+  const model = useMemoFS(() => FSGEN.buildModel(wtb), [wtb]);
+  const checks = useMemoFS(() => FSGEN.buildTieOuts(model, ajeTotalPosted), [model, ajeTotalPosted]);
 
-  const U = window.FSGEN.UNITS[unit];
+  const U = FSGEN.UNITS[unit];
   const sc = (n) => { const x = n / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
   const M = (n) => 'Rp ' + fmt(n / 1e9, 1) + ' M';
 

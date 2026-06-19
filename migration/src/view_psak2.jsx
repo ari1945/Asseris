@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -102,7 +103,7 @@ function PSAK2View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const model = useMemoP2(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
+  const model = useMemoP2(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const lease = useMemoP2(() => (window.AMS_CANON ? window.AMS_CANON.leasePortfolio() : null), []);
 
   const [method, setMethod] = useStateP2(() => loader('ams.psak2.method', 'indirect'));
@@ -127,7 +128,7 @@ function PSAK2View() {
   const dmod = (c) => -((cyc(c)) - (pyc(c)));            // tanda efek-kas (sama dgn FSGEN: -Δsaldo)
 
   const cf = model.cf;
-  const UN = (window.FSGEN.UNITS || {})[unit] || { div: 1e6, short: 'Rp jt' };
+  const UN = (FSGEN.UNITS || {})[unit] || { div: 1e6, short: 'Rp jt' };
   const div = UN.div;
   const sc = (v) => fmt(Math.round(v / div), 0);          // skala satuan penyajian
 

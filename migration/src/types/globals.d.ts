@@ -16,7 +16,6 @@ import type {
   Fig,
   MaterialityOpts,
   MaterialityResult,
-  FsModel,
 } from '../canon_types';
 
 /** Permukaan AMS_CANON yang dipakai view/konsumen (sebagian diketik,
@@ -35,19 +34,12 @@ export interface AmsData {
   [k: string]: unknown;
 }
 
-/** Generator Laporan Keuangan (window.FSGEN). */
-export interface FsGen {
-  buildModel(wtb?: WTB): FsModel;
-  [k: string]: unknown;
-}
-
 declare global {
   interface Window {
     AMS: AmsData;
     AMS_CANON: AmsCanon;
     AMS_FORENSIC: Record<string, unknown>;
     BENCHMARKS: Benchmark[];
-    FSGEN: FsGen;
     amsResetFigures?: () => void;
   }
 }

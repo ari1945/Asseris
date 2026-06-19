@@ -1,7 +1,7 @@
 /* ============================================================
    NeoSuite AMS — canon part3 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, RATE, figuresFromWTB, jt, wtbVal } from './canon_base';
+import { ASOF, RATE, figuresFromWTB, fsgenModel, jt, wtbVal } from './canon_base';
 import { assetRegister, deferredTax, fixedAssets, intangibles, inventory, revenue } from './canon_part1';
 import { GOODWILL, psak48, psak57, psak68, psak71 } from './canon_part2';
 import { psak66 } from './canon_part4';
@@ -65,8 +65,10 @@ import type { WTB } from './canon_types';
     const taxDisc     = R(pretaxDisc * RATE);                    // konsekuensi pajak (¶33b) — kredit bila rugi
     const postTaxDisc = pretaxDisc - taxDisc;                    // JUMLAH TUNGGAL disajikan (¶33a)
 
-    /* jembatan laba: total (FSGEN) = dilanjutkan + dihentikan (penyajian-ulang, total tetap) */
-    const model     = window.FSGEN ? window.FSGEN.buildModel(wtb) : null;
+    /* jembatan laba: total (FSGEN) = dilanjutkan + dihentikan (penyajian-ulang, total tetap).
+       fsgenModel() = null di headless/test (DI seam belum didaftarkan) — perilaku identik dgn
+       guard `window.FSGEN ?` sebelumnya; di app, fsgen_model mendaftarkan buildModel saat boot. */
+    const model     = fsgenModel(wtb);
     const netTotal  = model ? R(model.is.netIncome.cy / 1e6) : 0;
     const salesTot  = model ? R(model.is.sales.cy / 1e6) : 0;
     const contProfit = netTotal - postTaxDisc;                   // laba dari operasi dilanjutkan

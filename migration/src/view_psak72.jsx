@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { FSGEN } from './fsgen_model.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
@@ -106,7 +107,7 @@ function PSAK72View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((window.AMS && window.AMS.WTB) || []);
-  const model = useMemoP72(() => (window.FSGEN ? window.FSGEN.buildModel(wtb) : null), [wtb]);
+  const model = useMemoP72(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const rev = useMemoP72(() => (window.AMS_CANON ? window.AMS_CANON.revenue(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP72(() => loader('ams.psak72.unit', 'jutaan'));

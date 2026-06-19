@@ -1,7 +1,7 @@
 /* ============================================================
    NeoSuite AMS — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import type { WTB, WtbAmountField, Figures, Fig } from './canon_types';
+import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
 
   const RATE = 0.22;
   const ASOF = { y: 2025, m: 12 };           // 31 Des 2025
@@ -174,4 +174,12 @@ import type { WTB, WtbAmountField, Figures, Fig } from './canon_types';
   /* ---------- pajak tangguhan: saldo akhir per pos (ditarik PSAK 46) ----------
      `wtb` opsional → bila diberi, dbo & ckpn mengikuti WTB reaktif (AJE live). */
 
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures };
+  /* ---------- DI seam: generator LK (fsgen_model) mendaftarkan buildModel di sini saat boot app.
+     Di headless/test tidak ada yang mendaftar → fsgenModel() = null → jembatan LK kanon inert
+     (fingerprint regresi stabil). Menjaga kanon independen dari lapisan view-model — tanpa ini
+     canon harus mengimpor view-model (.jsx) dan membalik arah lapisan. ---------- */
+  let _fsgenBuildModel: ((wtb?: WTB) => FsModel) | null = null;
+  function setFsgenBuilder(fn: ((wtb?: WTB) => FsModel) | null): void { _fsgenBuildModel = fn; }
+  function fsgenModel(wtb?: WTB): FsModel | null { return _fsgenBuildModel ? _fsgenBuildModel(wtb) : null; }
+
+export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };
