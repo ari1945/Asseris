@@ -34,3 +34,37 @@ export async function loadAmsSeed(): Promise<AmsSeed> {
 
   return (g.window as { AMS: AmsSeed }).AMS;
 }
+
+// W9 — the connector blueprint the prototype simulated (window.IMPORT.CONNECTORS in
+// migration/src/data_import.js). connectorsSeed() returns the raw definition array WITHOUT
+// touching feedCounts/jobs, so it loads cleanly under the same window stub. We seed the server
+// Connector table from this so the SSOT is byte-faithful to what the UI already showed.
+export interface ConnectorSeed {
+  id: string;
+  name: string;
+  cat: string;
+  target: string;
+  desc?: string;
+  status: string;
+  icon?: string;
+  schedule?: string;
+  endpoint?: string;
+  auth?: string;
+  expiry?: string;
+  uptime?: number;
+  latency?: number;
+  vol?: number;
+  last?: string;
+  scopes?: string[];
+  mapping?: Array<[string, string]>;
+  webhooks?: Array<[string, boolean]>;
+  syncs?: unknown[];
+}
+
+export async function loadConnectorSeed(): Promise<ConnectorSeed[]> {
+  await loadAmsSeed(); // ensures the window stub + window.AMS (data_import.js reads window.AMS)
+  // @ts-ignore — migration ESM import-blueprint module is untyped JS.
+  await import('../../migration/src/data_import.js');
+  const g = globalThis as unknown as { window: { IMPORT?: { connectorsSeed: () => ConnectorSeed[] } } };
+  return g.window.IMPORT?.connectorsSeed() ?? [];
+}

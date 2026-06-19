@@ -180,6 +180,78 @@ model TeamMember {
   util   Int    @default(0)
 }
 
+// W9 — external data connector definition (SSOT). Seeded byte-faithfully from the client
+// blueprint window.IMPORT.CONNECTORS (migration/src/data_import.js), which was the prototype's
+// simulated source. W9 makes the server the source of truth: a connector here is the contract
+// (identity, target SSOT module, OAuth scopes, field mapping) that a provider adapter fulfils.
+// `wired` flips true once a real adapter (fixture or HTTP) drives it end-to-end; non-wired
+// connectors stay in the simulated/available state the prototype showed (offline fallback in the
+// read-model). Display-only fields (icon/uptime/latency/vol/expiry/webhooks/syncs/desc) ride in
+// metaJson — a lossless envelope, mirroring User.dataJson — so the read-model can reconstruct the
+// exact prototype card without bloating queryable columns.
+model Connector {
+  id          String  @id // 'coretax' | 'bank' | 'esign' | 'dms' | …
+  name        String
+  category    String // 'Perpajakan' | 'Keuangan' | 'Dokumen' | …
+  target      String // owner module id the data is POSTED into (the SSOT) — e.g. 'cashbank'
+  status      String // connected | available | error  (baseline/seed status)
+  auth        String? // 'OAuth 2.0 · mTLS' | 'API Key + HMAC' | …  (human label)
+  endpoint    String?
+  schedule    String?
+  scopesJson  String  @default("[]") // string[]  — OAuth scopes
+  mappingJson String  @default("[]") // [[sourceLabel, targetField], …]  — field map
+  metaJson    String  @default("{}") // lossless display envelope (icon/uptime/latency/vol/expiry/webhooks/syncs/desc/last)
+  wired       Boolean @default(false) // true once a real adapter drives this connector (Fase 1+)
+
+  jobs   SyncJob[]
+  tokens ConnectorToken[]
+}
+
+// W9 — one sync run. The job runner (Fase 1) appends a row per pull: pull → stage → validate →
+// control-total gate → idempotent post to the target SSOT → here. `rows/valid/rejected/posted`
+// make the import↔consumption tie-out checkable; `gatePassed` records whether the control total
+// matched the owner's figure (posting is blocked when it didn't). `cursor` carries the
+// idempotency / incremental-pull marker so a re-run posts zero duplicates.
+model SyncJob {
+  id           String    @id @default(cuid())
+  connectorId  String
+  connector    Connector @relation(fields: [connectorId], references: [id])
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  status       String // running | posted | staged | failed
+  mode         String    @default("auto") // auto | semi
+  dataset      String?
+  target       String? // target module id (mirror of Connector.target at run time)
+  unit         String?
+  rows         Int       @default(0)
+  valid        Int       @default(0)
+  rejected     Int       @default(0)
+  posted       Int       @default(0)
+  controlLabel String?
+  controlValue String?
+  gatePassed   Boolean   @default(false)
+  note         String?
+  cursor       String? // idempotency / incremental-pull marker
+
+  @@index([connectorId])
+  @@index([startedAt])
+}
+
+// W9 — a connector's stored credentials, encrypted at rest (crypto/secretbox, AES-256-GCM, the
+// same key as the TOTP secret). secretEnc holds encryptSecret(JSON.stringify({...tokens})); it is
+// NEVER returned to the client. With no APP_ENCRYPTION_KEY the box is a dev pass-through (still
+// never sent to the browser). The OAuth login/refresh flow is out of W9 Fase 1 scope — tokens are
+// provisioned via seed/env for the fixture adapter; the real-HTTP adapter consumes the same row.
+model ConnectorToken {
+  id          String    @id @default(cuid())
+  connectorId String    @unique
+  connector   Connector @relation(fields: [connectorId], references: [id])
+  kind        String    @default("oauth") // oauth | apikey | service
+  secretEnc   String // encrypted JSON token bundle — never leaves the server
+  expiresAt   DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
 model Client {
   id          String       @id
   firmId      String

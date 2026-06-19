@@ -1,5 +1,5 @@
 import { prisma } from './db';
-import { loadAmsSeed } from './seedData';
+import { loadAmsSeed, loadConnectorSeed } from './seedData';
 import { hashPassword } from './auth/password';
 
 const FIRM_ID = 'FIRM-WHR';
@@ -25,6 +25,9 @@ async function main() {
   // User, so they must be cleared before users (otherwise a re-seed after anyone has logged in
   // trips a foreign-key violation).
   await prisma.stateDoc.deleteMany();
+  await prisma.connectorToken.deleteMany();
+  await prisma.syncJob.deleteMany();
+  await prisma.connector.deleteMany();
   await prisma.engagementMember.deleteMany();
   await prisma.wtbRow.deleteMany();
   await prisma.engagement.deleteMany();
@@ -163,11 +166,44 @@ async function main() {
     await prisma.engagementMember.create({ data: m });
   }
 
+  // W9 — connectors, seeded byte-faithfully from the client blueprint (window.IMPORT.CONNECTORS).
+  // Definitions only (identity/target/scopes/mapping + lossless display envelope); no adapter is
+  // wired yet (wired=false). Fase 1 flips one connector's `wired` and drives it via a real adapter.
+  const CONNECTORS = await loadConnectorSeed();
+  for (const c of CONNECTORS) {
+    await prisma.connector.create({
+      data: {
+        id: c.id,
+        name: c.name,
+        category: c.cat,
+        target: c.target,
+        status: c.status,
+        auth: c.auth ?? null,
+        endpoint: c.endpoint ?? null,
+        schedule: c.schedule ?? null,
+        scopesJson: JSON.stringify(c.scopes ?? []),
+        mappingJson: JSON.stringify(c.mapping ?? []),
+        metaJson: JSON.stringify({
+          desc: c.desc ?? null,
+          icon: c.icon ?? null,
+          expiry: c.expiry ?? null,
+          uptime: c.uptime ?? 0,
+          latency: c.latency ?? 0,
+          vol: c.vol ?? 0,
+          last: c.last ?? null,
+          webhooks: c.webhooks ?? [],
+          syncs: c.syncs ?? [],
+        }),
+        wired: false,
+      },
+    });
+  }
+
   console.log(
     `Seeded: 1 firm, ${1 + EXTRA_USERS.length} users (1 per RBAC role, w/ dev passwords), ` +
       `${A.TEAM.length} team, ${A.CLIENTS.length} clients, ` +
       `${A.ENGAGEMENTS.length} engagements, ${A.WTB.length} WTB rows (${ACTIVE_ENG}), ` +
-      `${memberships.length} engagement memberships.`,
+      `${memberships.length} engagement memberships, ${CONNECTORS.length} connectors.`,
   );
 }
 

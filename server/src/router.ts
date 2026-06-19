@@ -21,6 +21,7 @@ import { createSeal, verifySeal, isContentHash } from './export/seal';
 import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
+import { listConnectors } from './integrations/config';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -262,6 +263,36 @@ export const appRouter = router({
         inc('llm_requests_total');
         return { status: 'ok' as const, text: result.text, provider: cfg.provider, model: cfg.model, usage: result.usage };
       }),
+  }),
+
+  // W9 — external data connectors. Fase 0 is read-only: the server owns connector definitions
+  // (seeded from the client blueprint) and exposes them as the SSOT the import UI reads. Viewing
+  // is gated by INTEGRATION_VIEW (all roles — transparency over consumed data); managing/syncing
+  // (INTEGRATION_MANAGE, Partner/Manager) lands in Fase 1 with the job runner.
+  integration: router({
+    // The connector registry — definitions, status, scopes, field mapping, display envelope.
+    // No secrets (ConnectorToken.secretEnc) ever cross this boundary.
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
+      }
+      return listConnectors();
+    }),
+
+    // Capability + rollup status for the integration cockpit. canManage drives whether the UI
+    // offers sync/connect actions (the server still enforces INTEGRATION_MANAGE on those in Fase 1).
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const canView = can(ctx.user.role, CAP.INTEGRATION_VIEW);
+      const connectors = canView ? await listConnectors() : [];
+      return {
+        canView,
+        canManage: can(ctx.user.role, CAP.INTEGRATION_MANAGE),
+        total: connectors.length,
+        connected: connectors.filter((c) => c.status === 'connected').length,
+        errored: connectors.filter((c) => c.status === 'error').length,
+        wired: connectors.filter((c) => c.wired).length,
+      };
+    }),
   }),
 
   // Reference list for pickers (client roster + engagement select). W7.5: filtered to the
