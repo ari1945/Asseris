@@ -5,6 +5,9 @@ import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
 import { loadConnectorSeed } from '../seedData';
 import { encryptSecret } from '../crypto/secretbox';
+import { runBankSync, reconcileBank } from '../integrations/sync';
+import { applyMapping } from '../integrations/mapping';
+import { pullBankStatementBroken } from '../integrations/providers/bankFixture';
 
 // Same injection trick as llm.test.ts — the integration gates read only ctx.user.{id,role}.
 function callerAs(role: string, id = `U-${role}`) {
@@ -56,6 +59,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: 'FIRM-WHR', key: 'bankFeed' } });
+  await prisma.syncJob.deleteMany();
   await prisma.connectorToken.deleteMany();
   await prisma.connector.deleteMany();
   await prisma.$disconnect();
@@ -106,10 +111,124 @@ describe('integration router (auth + RBAC + secret egress)', () => {
     expect(mgr.canManage).toBe(true);
     expect(mgr.total).toBe(2);
     expect(mgr.connected).toBe(1);
-    expect(mgr.wired).toBe(0);
+    expect(mgr.wired).toBe(0); // nothing synced yet (runs in the Fase 1 block below)
 
     const jr = await callerAs('Junior Auditor', 'U-jr2').integration.status();
     expect(jr.canView).toBe(true);
     expect(jr.canManage).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// W9 Fase 1 — the sync runner: pull → map → validate → control-total gate → idempotent post.
+const FIRM_BANK_STATE = { scope: 'firm', scopeId: 'FIRM-WHR', key: 'bankFeed' } as const;
+
+async function resetBankPipeline() {
+  await prisma.stateDoc.deleteMany({ where: FIRM_BANK_STATE });
+  await prisma.syncJob.deleteMany({ where: { connectorId: 'bank' } });
+}
+
+describe('field mapping engine', () => {
+  it('projects a raw record onto only its mapped target fields, dropping the rest', () => {
+    const mapping: Array<[string, string]> = [['Tgl Transaksi', 'value_date'], ['Nominal', 'amount']];
+    const raw = { value_date: '2026-03-10', amount: 500, account_no: 'X', smuggled: 'nope' };
+    const out = applyMapping(mapping, raw);
+    expect(out).toEqual({ value_date: '2026-03-10', amount: 500 });
+    expect(out).not.toHaveProperty('account_no'); // unmapped key dropped
+    expect(out).not.toHaveProperty('smuggled');
+  });
+});
+
+describe('bank sync runner (end-to-end against the fixture adapter)', () => {
+  it('pulls → maps → control-total gate passes → posts to the cashbank SSOT, tied', async () => {
+    await resetBankPipeline();
+    const r = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
+    expect(r.status).toBe('posted');
+    expect(r.gatePassed).toBe(true);
+    expect(r.rows).toBe(5);
+    expect(r.valid).toBe(5);
+    expect(r.rejected).toBe(0);
+    expect(r.posted).toBe(5);
+    expect(r.consumed).toBe(5);
+    expect(r.tied).toBe(true); // posted == consumed: SSOT holds exactly what we posted
+
+    // The data really landed in the firm-scoped StateDoc the cashbank module reads.
+    const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: FIRM_BANK_STATE } });
+    expect(doc).not.toBeNull();
+    const state = JSON.parse(doc!.valueJson) as { transactions: Record<string, unknown>; closingBalance: number };
+    expect(Object.keys(state.transactions)).toHaveLength(5);
+    expect(state.closingBalance).toBe(1_500_000);
+
+    // First successful post marks the connector wired.
+    const conn = await prisma.connector.findUnique({ where: { id: 'bank' } });
+    expect(conn?.wired).toBe(true);
+  });
+
+  it('is idempotent — re-running posts the same rows with zero duplication', async () => {
+    await resetBankPipeline();
+    const first = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
+    const second = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
+    expect(first.consumed).toBe(5);
+    expect(second.consumed).toBe(5); // NOT 10 — merged by natural key
+    expect(second.posted).toBe(5);
+    expect(second.tied).toBe(true);
+    const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: FIRM_BANK_STATE } });
+    const state = JSON.parse(doc!.valueJson) as { transactions: Record<string, unknown> };
+    expect(Object.keys(state.transactions)).toHaveLength(5);
+  });
+
+  it('control-total gate BLOCKS posting when the balance does not tie (staged, nothing posted)', async () => {
+    await resetBankPipeline();
+    const r = await runBankSync({ id: 'U-mgr', role: 'Audit Manager' }, pullBankStatementBroken);
+    expect(r.status).toBe('staged');
+    expect(r.gatePassed).toBe(false);
+    expect(r.posted).toBe(0);
+    expect(r.tied).toBe(false);
+    expect(r.note).toMatch(/gagal/i);
+    // The SSOT must be untouched — tainted data did not get in.
+    const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: FIRM_BANK_STATE } });
+    expect(doc).toBeNull();
+  });
+
+  it('reconcileBank reports the import↔consumption tie-out', async () => {
+    await resetBankPipeline();
+    await runBankSync({ id: 'U-mgr', role: 'Audit Manager' });
+    const recon = await reconcileBank();
+    expect(recon).toMatchObject({ connectorId: 'bank', target: 'cashbank', posted: 5, consumed: 5, tied: true, closingBalance: 1_500_000 });
+  });
+
+  it('appends a SYNC row to the audit chain (metadata only, no content)', async () => {
+    await resetBankPipeline();
+    await runBankSync({ id: 'U-audit-sync', role: 'Audit Manager' });
+    const ev = await prisma.auditLog.findFirst({ where: { action: 'SYNC', actorUserId: 'U-audit-sync' }, orderBy: { seq: 'desc' } });
+    expect(ev).not.toBeNull();
+    expect(ev?.scopeId).toBe('FIRM-WHR');
+    expect(ev?.key).toBe('bank');
+    expect(ev?.detail).toContain('posted=5');
+    expect(ev?.detail).toContain('gate=true');
+  });
+});
+
+describe('integration.sync router (RBAC + wiring)', () => {
+  it('manager (INTEGRATION_MANAGE) can trigger sync; junior is FORBIDDEN', async () => {
+    await resetBankPipeline();
+    await expect(callerAs('Junior Auditor', 'U-jr3').integration.sync({ connectorId: 'bank' })).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    const r = await callerAs('Audit Manager', 'U-mgr2').integration.sync({ connectorId: 'bank' });
+    expect(r.status).toBe('posted');
+    expect(r.tied).toBe(true);
+  });
+
+  it('an unwired connector id → BAD_REQUEST', async () => {
+    await expect(callerAs('Audit Manager', 'U-mgr3').integration.sync({ connectorId: 'coretax' })).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
+  it('jobs + reconcile are VIEW-gated and reflect runs', async () => {
+    await resetBankPipeline();
+    await callerAs('Audit Manager', 'U-mgr4').integration.sync({ connectorId: 'bank' });
+    const jobs = await callerAs('Junior Auditor', 'U-jr4').integration.jobs({ connectorId: 'bank' });
+    expect(jobs.length).toBeGreaterThanOrEqual(1);
+    expect(jobs[0].status).toBe('posted');
+    const recon = await callerAs('Junior Auditor', 'U-jr4').integration.reconcile();
+    expect(recon.bank.tied).toBe(true);
   });
 });

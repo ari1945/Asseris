@@ -22,6 +22,7 @@ import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
 import { listConnectors } from './integrations/config';
+import { runBankSync, reconcileBank, listJobs } from './integrations/sync';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -293,6 +294,41 @@ export const appRouter = router({
         wired: connectors.filter((c) => c.wired).length,
       };
     }),
+
+    // Sync-job history for the import queue (VIEW). Metadata only — no working-paper content.
+    jobs: protectedProcedure
+      .input(z.object({ connectorId: z.string().min(1).optional(), limit: z.number().int().min(1).max(200).default(50) }).optional())
+      .query(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
+        }
+        return listJobs(input?.connectorId, input?.limit ?? 50);
+      }),
+
+    // Import↔consumption tie-out for the wired connector(s) (VIEW): does the SSOT hold exactly
+    // what was posted? This is the "no separate copy / zero duplication" proof, server-computed.
+    reconcile: protectedProcedure.query(async ({ ctx }) => {
+      if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
+      }
+      return { bank: await reconcileBank() };
+    }),
+
+    // Trigger a sync (INTEGRATION_MANAGE — Partner/Manager). Runs the real pipeline: pull → map →
+    // validate → control-total gate → idempotent post to the SSOT → audit. Fase 1 wires 'bank'
+    // (→ cashbank) against the fixture adapter; other ids are not wired yet.
+    sync: protectedProcedure
+      .input(z.object({ connectorId: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.INTEGRATION_MANAGE)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_MANAGE}` });
+        }
+        if (input.connectorId !== 'bank') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
+        }
+        inc('integration_syncs_total');
+        return runBankSync({ id: ctx.user.id, role: ctx.user.role });
+      }),
   }),
 
   // Reference list for pickers (client roster + engagement select). W7.5: filtered to the

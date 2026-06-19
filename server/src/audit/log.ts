@@ -10,7 +10,7 @@ import { inc } from '../obs/log';
 // The chain root. The first row's prevHash is this; an empty DB verifies as ok.
 export const GENESIS_HASH = '0'.repeat(64);
 
-export type AuditAction = 'STATE_SET' | 'LOGIN' | 'LOGOUT' | 'LLM_NARRATE' | 'EXPORT' | 'SEAL';
+export type AuditAction = 'STATE_SET' | 'LOGIN' | 'LOGOUT' | 'LLM_NARRATE' | 'EXPORT' | 'SEAL' | 'SYNC';
 
 export interface AuditEntry {
   actorUserId?: string | null;
