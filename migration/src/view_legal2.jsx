@@ -279,7 +279,7 @@ function FirmLegal() {
                       <SectionTitle>Keterkaitan Lintas-Modul</SectionTitle>
                       <div style={{ display: 'grid', gap: 7 }}>
                         {(LEGAL.DISPUTE_LINKS[selCase.id] || []).map((lk, i) => {
-                          const Ic = window.I[lk.icon] || window.I.link2;
+                          const Ic = I[lk.icon] || I.link2;
                           return (
                             <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--red)' }} onClick={() => nav(lk.module, { from: 'legal' })} title={'Buka ' + lk.label}>
                               <span className="lin-ic" style={{ color: 'var(--red)' }}><Ic size={14} /></span>

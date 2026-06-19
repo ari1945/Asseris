@@ -20,7 +20,7 @@ const INS_RISK_LVL = ['', 'Sangat Rendah', 'Rendah', 'Sedang', 'Tinggi', 'Sangat
 
 /* chip navigasi lintas-modul (gaya lin-chip) */
 function InsChip({ icon, lbl, rel, color = 'var(--blue)', onClick }) {
-  const Ic = (window.I && (window.I[icon] || window.I.doc));
+  const Ic = (I && (I[icon] || I.doc));
   return (
     <button type="button" className="lin-chip" style={{ borderLeftColor: color }} onClick={onClick} title={rel ? rel + ' — buka ' + lbl : 'Buka ' + lbl}>
       <span className="lin-ic" style={{ color }}>{Ic ? <Ic size={14} /> : null}</span>
@@ -150,7 +150,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
             <div style={{ padding: 12, display: 'grid', gap: 7 }}>
               {alerts.slice(0, 5).map((a, i) => (
                 <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-                  <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(window.I[a.ic] || window.I.alert, { size: 15 })}</span>
+                  <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(I[a.ic] || I.alert, { size: 15 })}</span>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 260 }}>{a.t}</div>
                     <div className="tiny muted truncate" style={{ maxWidth: 260 }}>{a.s}</div>

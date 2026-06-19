@@ -260,7 +260,7 @@ function ProcLineage({ P, firm, nav }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {flows.map(f => (
               <button key={f.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--green)' }} onClick={() => nav(f.id, { from: 'procurement' })} title={'Buka ' + f.lbl}>
-                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement(window.I[f.ic] || window.I.doc, { size: 14 })}</span>
+                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement(I[f.ic] || I.doc, { size: 14 })}</span>
                 <span className="lin-txt"><span className="lin-lbl">{f.lbl}</span><span className="lin-rel">{f.rel}</span></span>
                 <span className="lin-go"><I.arrowRight size={12} /></span>
               </button>
@@ -281,7 +281,7 @@ function ProcLineage({ P, firm, nav }) {
                 <div className="row gap4" style={{ flexWrap: 'wrap' }}>
                   {cs.length ? cs.map((c, i) => {
                     const meta = SUB.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
-                    return <span key={i} className="chip tiny" title={c.why} style={{ borderColor: meta.c + '55', color: meta.c }}>{React.createElement(window.I[meta.icon] || window.I.doc, { size: 10 })} {meta.label.split(' ')[0]}</span>;
+                    return <span key={i} className="chip tiny" title={c.why} style={{ borderColor: meta.c + '55', color: meta.c }}>{React.createElement(I[meta.icon] || I.doc, { size: 10 })} {meta.label.split(' ')[0]}</span>;
                   }) : <span className="tiny muted">— hanya pengadaan</span>}
                 </div>
               </td>
@@ -401,7 +401,7 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
             const meta = SUB.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
             return (
               <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: meta.c }} onClick={() => nav(c.m, { from: 'procurement' })} title={'Buka ' + meta.label}>
-                <span className="lin-ic" style={{ color: meta.c }}>{React.createElement(window.I[meta.icon] || window.I.doc, { size: 14 })}</span>
+                <span className="lin-ic" style={{ color: meta.c }}>{React.createElement(I[meta.icon] || I.doc, { size: 14 })}</span>
                 <span className="lin-txt"><span className="lin-lbl">{meta.label}</span><span className="lin-rel">{c.why}</span></span>
                 <span className="lin-go"><I.arrowRight size={12} /></span>
               </button>

@@ -332,7 +332,7 @@ function ArticleReader({ code, onClose, onOpenCode }) {
               <div className="tiny muted upper" style={{ marginBottom: 8, fontWeight: 700 }}>Jalankan standar ini</div>
               <div className="row jb ac gap10 wrap">
                 <div className="row ac gap10" style={{ minWidth: 0 }}>
-                  <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{window.I[mi.icon] ? React.createElement(window.I[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
+                  <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{I[mi.icon] ? React.createElement(I[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
                   <div style={{ minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }}>{mi.label}</div><div className="muted" style={{ fontSize: 12 }}>{cov.note} · {mi.group}</div></div>
                 </div>
                 <div className="row gap8">

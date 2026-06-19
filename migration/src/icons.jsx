@@ -368,7 +368,9 @@ const RELATED_SA = {
   auditcomm:   [{ code: 'SA 260', title: 'Komunikasi dengan TCWG', phase: 'Pelaporan', view: 'sa260' }, { code: 'SA 265', title: 'Defisiensi Pengendalian Internal', phase: 'Pelaporan', view: 'sa265' }, { code: 'SA 701', title: 'Hal Audit Utama (KAM)', phase: 'Pelaporan', view: 'sa701' }],
 };
 
-Object.assign(window, { Icon, I, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, wsForModule, HIDDEN_GROUPS, RELATED_SA });
+/* I dilucuti dari window (legacy-track slice: konsumen pakai named import dari icons.jsx).
+   Sisa nama masih dual-published (namespace lain, di luar scope slice ini). */
+Object.assign(window, { Icon, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, wsForModule, HIDDEN_GROUPS, RELATED_SA });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -90,7 +90,7 @@ function PRSlide({ children, bg }) {
   return <div className="pr-slide" style={{ background: bg || '#fff' }}>{children}</div>;
 }
 function PRKicker({ phase }) {
-  const Ico = (window.I && window.I[phase.icon]) || (() => null);
+  const Ico = (I && I[phase.icon]) || (() => null);
   return (
     <div className="pr-kicker" style={{ color: phase.color }}>
       <span className="pr-kicker-ico" style={{ background: phase.color }}><Ico size={17} /></span>
@@ -154,7 +154,7 @@ function PRCover({ data }) {
   );
 }
 function PRSection({ phase, headline, points }) {
-  const Ico = (window.I && window.I[phase.icon]) || (() => null);
+  const Ico = (I && I[phase.icon]) || (() => null);
   return (
     <PRSlide bg="var(--navy)">
       <div className="pr-section">

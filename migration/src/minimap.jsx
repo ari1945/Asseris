@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { I } from './icons.jsx';
 
 /* ============================================================
    NeoSuite AMS — Peta Mini Keterhubungan ("Anda di sini")
@@ -264,7 +265,7 @@ function MiniMap({ open, route, onClose, onNavigate }) {
   if (!open) return null;
 
   const go = (id) => { if (id && id !== route) onNavigate(id, { from: route }); onClose(); };
-  const Ic = (key) => { const C = window.I && (window.I[key] || window.I.panel); return C ? <C size={14} /> : null; };
+  const Ic = (key) => { const C = I && (I[key] || I.panel); return C ? <C size={14} /> : null; };
   const st = MM_STATUS[status];
 
   const Chip = ({ c, side }) => (

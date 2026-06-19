@@ -250,7 +250,7 @@ function FacLineage({ FA, firm, nav }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {flows.map(f => (
               <button key={f.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--green)' }} onClick={() => nav(f.id, { from: 'facilities' })} title={'Buka ' + f.lbl}>
-                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement(window.I[f.ic] || window.I.doc, { size: 14 })}</span>
+                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement(I[f.ic] || I.doc, { size: 14 })}</span>
                 <span className="lin-txt"><span className="lin-lbl">{f.lbl}</span><span className="lin-rel">{f.rel}</span></span>
                 <span className="lin-go"><I.arrowRight size={12} /></span>
               </button>

@@ -89,7 +89,7 @@ function Templates() {
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: 10 }}>
                     {items.map(t => {
                       const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
-                      const ModIc = window.I[mod.icon] || window.I.panel;
+                      const ModIc = I[mod.icon] || I.panel;
                       const st = TPL_STATUS[t.status] || TPL_STATUS['Aktif'];
                       return (
                         <div key={t.id} className="panel" style={{ padding: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 9 }} onClick={() => setDetail(t)}>
@@ -186,7 +186,7 @@ function TemplateDetail({ t, onClose }) {
   const firm = useFirm();
   const [used, setUsed] = useStateM2(false);
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
-  const ModIc = window.I[mod.icon] || window.I.panel;
+  const ModIc = I[mod.icon] || I.panel;
   const st = TPL_STATUS[t.status] || TPL_STATUS['Aktif'];
   const engObjs = (t.engs || []).map(id => (window.AMS.ENGAGEMENTS || []).find(e => e.id === id) || { id, client: '' });
   const activeEng = firm.activeEngagement;

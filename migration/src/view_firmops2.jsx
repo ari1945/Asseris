@@ -51,7 +51,7 @@ function FopsCalendar({ obligations, calFilter, setCalFilter, nav }) {
               <div style={{ display: 'grid', gap: 7 }}>
                 {items.map((o, i) => {
                   const meta = F.SUBMODULES.find(s => s.id === o.module) || {};
-                  const Ic = window.I[meta.icon] || window.I.calendar;
+                  const Ic = I[meta.icon] || I.calendar;
                   return (
                     <div key={i} className="panel" style={{ padding: '9px 12px', cursor: 'pointer', borderLeft: '3px solid ' + col }} onClick={() => nav(o.module, { from: 'firmops' })}>
                       <div className="row ac gap10">
@@ -102,7 +102,7 @@ function FopsVendors({ B, vSel, setVSel, nav }) {
                   <div className="row gap4" style={{ flexWrap: 'wrap' }}>
                     {cons.map((c, i) => {
                       const meta = F.SUBMODULES.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
-                      const Ic = window.I[meta.icon] || window.I.doc;
+                      const Ic = I[meta.icon] || I.doc;
                       return <span key={i} className="chip tiny" title={c.why} style={{ borderColor: meta.c + '55', color: meta.c }}><Ic size={10} /> {meta.label.split(' ')[0]}</span>;
                     })}
                     {!cons.length && <span className="tiny muted">—</span>}
@@ -151,7 +151,7 @@ function FopsVendorDrawer({ v, onClose, nav }) {
         <div style={{ display: 'grid', gap: 7, marginBottom: 14 }}>
           {cons.length ? cons.map((c, i) => {
             const meta = F.SUBMODULES.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
-            const Ic = window.I[meta.icon] || window.I.doc;
+            const Ic = I[meta.icon] || I.doc;
             return (
               <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: meta.c }} onClick={() => nav(c.m, { from: 'firmops' })} title={'Buka ' + meta.label}>
                 <span className="lin-ic" style={{ color: meta.c }}><Ic size={14} /></span>
