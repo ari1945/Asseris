@@ -328,6 +328,60 @@ Bukti Segel" di drawer DMS **sengaja tak disentuh** (itu demo `amsFakeHash`, buk
 **W10.5 SELESAI (Fase 0–3).** **Deferred:** real e-Meterai/PSrE; pengiriman ekspor via email;
 paket-engagement (zip multi-artefak).
 
+## W9 — Konektor data / integrasi nyata (`server/src/integrations/`)
+
+Mengganti cetak-biru konektor **simulatif** (`migration/src/data_import.js`, digerakkan
+`feedCounts` statis) dengan **kerangka konektor sisi-server nyata**. Provider asli (Coretax/DJP,
+BCA/Mandiri OpenAPI, PrivyID, MS-Graph) **tak bisa dikreditensialkan dari sini** (butuh sertifikat
+PKP / mTLS / app-reg tenant), jadi — persis pola W8 — pipa dibuktikan terhadap **adapter fixture**,
+adapter HTTP-nyata = drop-in. PRD: `PRD - W9 Konektor Data (Integrasi Nyata).md` (Proceed. 1a/2a/3a).
+
+**Skema (Prisma):** `Connector` (seeded byte-faithful dari `window.IMPORT.CONNECTORS` via
+window-stub — identity/target/scopes/mapping + `metaJson` amplop tampilan lossless + `wired`),
+`SyncJob` (per-run tie-out: rows/valid/rejected/posted + `gatePassed` + `cursor` idempotensi),
+`ConnectorToken` (`secretEnc` terenkripsi via `crypto/secretbox`, tak pernah ke klien).
+
+**RBAC:** `CAP.INTEGRATION_VIEW` (semua peran — transparansi data yang dikonsumsi) ·
+`CAP.INTEGRATION_MANAGE` (Partner+Manager — picu sync/kelola koneksi = firm-ops sensitif).
+
+**Pipeline runner** (`integrations/sync.ts`, `runBankSync`): **pull → map (`mapping.ts`,
+projeksi field termapping saja) → validate → GERBANG TOTAL-KONTROL (saldo awal + Σ mutasi harus =
+saldo akhir; mismatch → `staged`, TAK diposting) → posting idempoten (merge by natural-key di
+StateDoc firm `bankFeed` via CAS) → SyncJob → audit `action=SYNC`**. `reconcileBank` buktikan
+tie-out `posted == consumed`. Provider di-inject: `defaultBankPull()` pilih HTTP bila env, else
+fixture.
+
+**Provider** (`integrations/providers/`): `bankFixture.ts` (rekening deterministik, varian sehat +
+sengaja-rusak utk uji gerbang) · `httpBank.ts` (`fetch`+Bearer, mTLS=seam drop-in, `not-configured`
+anggun bila `BANK_API_*` kosong).
+
+**Webhook** (`integrations/webhook.ts`): `integration.postWebhook` **publicProcedure** (provider
+POST tanpa sesi) ber-auth **HMAC-SHA256** atas body kanonik; event pemicu jalankan runner yang sama
+(actor `system:webhook`); `not-configured` bila `INTEGRATION_WEBHOOK_SECRET` kosong.
+
+**Router** `integration`: `list`/`status`/`jobs`/`reconcile` (VIEW) · `sync` (MANAGE) ·
+`postWebhook` (public+HMAC).
+
+**Klien read-model:** `api.js` `integrationStatus/list/jobs/reconcile/sync` (degradasi anggun null).
+`data_import.js` → `setServerData({recon})`; `connectors()`/`reconciliation()` **overlay** angka
+server nyata (posted/consumed/tied + `serverBacked`) utk konektor ter-wire, else base simulatif
+(fallback offline). `view_platform2.jsx`: tombol **"Sinkronkan Bank"** (MANAGE-gated) → sync nyata +
+badge "Bank Feed: server" + chip "live · server" di tab Rekonsiliasi.
+
+**New env vars (semua opsional; absen = fixture/feature-off):**
+```
+BANK_API_BASE_URL=https://openapi.bca.co.id/v2   # + BANK_API_TOKEN → pakai adapter HTTP (else fixture)
+BANK_API_TOKEN=…
+BANK_API_ACCOUNT=0182-99-0001                     # opsional query account
+INTEGRATION_WEBHOOK_SECRET=<hmac-secret>          # absen = webhook not-configured
+```
+
+**W9 SELESAI (Fase 0–3, konektor Bank Feed → cashbank).** Live-proven (Partner login): Sinkronkan →
+`wired` 0→1, reconcile posted=5/consumed=5/tied=true (closing 1.500.000), re-sync consumed tetap 5
+(idempoten), 0 console error. 116 server vitest + 59 migration vitest (canon fingerprint identik).
+**Deferred (W9·2+):** konektor ke-2..8 ter-wire; OAuth login-flow interaktif; scheduler cron;
+smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
+
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
   numeric I/O, highest value-per-test-line.
