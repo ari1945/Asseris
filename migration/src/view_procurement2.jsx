@@ -1,5 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { PROC } from './data_procurement.js';
 import { I } from './icons.jsx';
 import { MiniBars, Spark } from './ui.jsx';
 import { BoBadge, boJt, boM } from './view_bo1.jsx';
@@ -11,7 +12,7 @@ import { PROC_RISKC, procPct } from './view_procurement.jsx';
    NeoSuite AMS — Pengadaan & Vendor (DEEP) · 2/2
    Procure-to-Pay · Spend & Anggaran · Due Diligence/PMPJ ·
    Sumber Kebenaran (rekonsiliasi) · Vendor 360 drawer.
-   Semua data dari window.PROC (kanonik). LINEAGE.procurement
+   Semua data dari PROC (kanonik). LINEAGE.procurement
    memasang dock keterkaitan dua-arah modul.
    ============================================================ */
 const { useMemo: useMemoProc2 } = React;
@@ -293,7 +294,7 @@ function ProcLineage({ P, firm, nav }) {
 
 /* ====================== VENDOR 360 — DRAWER ====================== */
 function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
-  const d = useMemoProc2(() => window.PROC.vendor360(vendorId, firm), [vendorId, firm.engagements, firm.clients]);
+  const d = useMemoProc2(() => PROC.vendor360(vendorId, firm), [vendorId, firm.engagements, firm.clients]);
   const SUB = (window.FIRMOPS && window.FIRMOPS.SUBMODULES) || [];
   if (!d) return null;
   const v = d.v;

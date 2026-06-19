@@ -16,7 +16,7 @@
    di master mengalir konsisten ke Spend Analytics, Anggaran, Kontrak
    (Legal), AP/AR & Cockpit Operasi tanpa input ulang.
    ============================================================ */
-(function () {
+const PROC = (function () {
   const BO = window.BO;
   const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
   const vById = (id) => (BO.VENDORS || []).find(v => v.id === id) || null;
@@ -231,7 +231,7 @@
     };
   }
 
-  window.PROC = {
+  return {
     sum, vById, vByName, AP_SOURCE,
     spendByCategory, budgetVsActual, concentration,
     openPOValue, poSummary, procureToPay, threeWayMatch,
@@ -240,5 +240,7 @@
 })();
 
 
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const PROC = window.PROC;
+/* ESM export murni (legacy-track slice 1: namespace PROC di-strip dari window).
+   Catatan: IIFE masih membaca window.BO/LEGAL/FIRMOPS — namespace lain,
+   di luar scope slice ini (tetap dual-published). */
+export { PROC };

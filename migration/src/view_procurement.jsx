@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useFirm, useNav } from './contexts.jsx';
+import { PROC } from './data_procurement.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel } from './ui.jsx';
@@ -10,7 +11,7 @@ import { ProcDiligence, ProcLineage, ProcP2P, ProcSpend, ProcVendorDrawer } from
 /* ============================================================
    NeoSuite AMS — Pengadaan & Manajemen Vendor (DEEP) · 1/2
    Modul mendalam: master vendor = sumber tunggal counterparty.
-   Seluruh angka diturunkan dari window.PROC (lapisan kanonik):
+   Seluruh angka diturunkan dari PROC (lapisan kanonik):
    spend ← Σ vendor.ytd · komitmen ← PO(vendorId) · 3-way ← PO↔GRN↔Faktur
    · kontrak ← Legal SSOT · AP ← BILLS→GL. Cockpit tak menyimpan salinan.
    Reuse: boJt/boM/BoBadge/BoTabPanel/BoStat (view_bo1); KV/SectionTitle/
@@ -99,7 +100,7 @@ function ProcAlerts({ B, P, nav, setTab, setVSel }) {
 function Procurement() {
   const firm = useFirm();
   const nav = useNav();
-  const P = window.PROC;
+  const P = PROC;
   const B = window.BO;
   const [tab, setTab] = useStateProc('overview');
   const [vSel, setVSel] = useStateProc(null);
