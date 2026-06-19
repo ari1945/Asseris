@@ -15,7 +15,7 @@ import { KvBox } from './view_analytical.jsx';
    Seluruh angka diturunkan window.IMPORT dari sumber kanonik —
    tidak ada salinan terpisah.
    ============================================================ */
-const { useState: useStateIN } = React;
+const { useState: useStateIN, useEffect: useEffectIN } = React;
 
 const INTEG_STATUS = { connected: { k: 'green', l: 'Terhubung' }, available: { k: 'gray', l: 'Tersedia' }, error: { k: 'red', l: 'Error' } };
 const SYNC_STATE = { success: { k: 'green', l: 'Sukses' }, partial: { k: 'amber', l: 'Sebagian' }, failed: { k: 'red', l: 'Gagal' } };
@@ -42,6 +42,40 @@ function Integrations() {
   const [list, setList] = useAmsPersist('integrations3', () => IM.connectorsSeed());
   const [selId, setSelId] = useStateIN(IM.CONNECTORS[0].id);
   const [catFilter, setCatFilter] = useStateIN('Semua');
+  // W9 — server read-model: fetch the real reconciliation for the wired connector and push it
+  // into window.IMPORT so connectors()/reconciliation() below overlay live server figures. Null
+  // until fetched / when the server is down (→ simulated blueprint fallback). `srv` re-renders.
+  const [srv, setSrv] = useStateIN(null);
+  const [busy, setBusy] = useStateIN(false);
+
+  async function loadServer() {
+    const [status, recon] = await Promise.all([
+      window.amsIntegrationStatus ? window.amsIntegrationStatus() : null,
+      window.amsIntegrationReconcile ? window.amsIntegrationReconcile() : null,
+    ]);
+    if (IM.setServerData) IM.setServerData({ recon });
+    return { status, recon };
+  }
+
+  useEffectIN(() => {
+    let live = true;
+    loadServer().then(s => { if (live) setSrv(s); });
+    return () => { live = false; };
+  }, []);
+
+  const onSyncBank = async () => {
+    if (busy || !window.amsIntegrationSync) return;
+    setBusy(true);
+    try {
+      const r = await window.amsIntegrationSync('bank');
+      logActivity && logActivity({ who: (window.AMS.USER && window.AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
+      setSrv(await loadServer());
+    } catch (e) {
+      logActivity && logActivity({ who: (window.AMS.USER && window.AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const sum = IM.summary();
   const connected = list.filter(i => i.status === 'connected').length;
@@ -65,7 +99,7 @@ function Integrations() {
 
   return (
     <>
-      <SubBar moduleId="integrations" right={<div className="row gap8 ac"><Badge kind="green">{connected} terhubung</Badge>{errors > 0 && <Badge kind="red">{errors} error</Badge>}<Btn sm><I.sync size={13} /> Sinkron Semua</Btn><Btn sm variant="primary"><I.plus size={13} /> Konektor</Btn></div>} />
+      <SubBar moduleId="integrations" right={<div className="row gap8 ac"><Badge kind="green">{connected} terhubung</Badge>{errors > 0 && <Badge kind="red">{errors} error</Badge>}{srv && srv.recon && srv.recon.bank && srv.recon.bank.tied && <Badge kind="green">Bank Feed: server · tie-out 0</Badge>}{srv && srv.status && srv.status.canManage && <Btn sm variant="primary" onClick={onSyncBank} disabled={busy}><I.sync size={13} /> {busy ? 'Menyinkron…' : 'Sinkronkan Bank'}</Btn>}<Btn sm><I.sync size={13} /> Sinkron Semua</Btn><Btn sm variant="primary"><I.plus size={13} /> Konektor</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
 
         {/* provenance banner */}
@@ -236,7 +270,7 @@ function ImportRecon({ IM, sum }) {
             return (
               <div key={r.id} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', border: '1px solid var(--line)' }}>
                 <div className="row ac jb" style={{ marginBottom: 10 }}>
-                  <span className="row ac gap8"><span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--surface-3)', color: 'var(--navy)', display: 'grid', placeItems: 'center' }}><IconC size={16} /></span><span style={{ fontWeight: 700, fontSize: 13 }}>{r.name}</span></span>
+                  <span className="row ac gap8"><span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--surface-3)', color: 'var(--navy)', display: 'grid', placeItems: 'center' }}><IconC size={16} /></span><span style={{ fontWeight: 700, fontSize: 13 }}>{r.name}</span>{r.serverBacked && <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green)', fontWeight: 700 }}><I.checkCircle size={9} /> live · server</span>}</span>
                   {r.status === 'error' ? <Badge kind="red">Impor gagal</Badge> : r.tied ? <span className="row ac gap4" style={{ color: 'var(--green)', fontWeight: 700, fontSize: 12 }}><I.checkCircle size={14} /> Menutup (selisih 0)</span> : <Badge kind="amber">Selisih {fmt(Math.abs(r.posted - r.consumed))}</Badge>}
                 </div>
                 <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>

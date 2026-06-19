@@ -133,6 +133,45 @@ export async function exportLogEvent({ kind, format, scope, scopeId, contentHash
 Object.assign(window, { amsExportSeal: exportSeal, amsExportVerifySeal: exportVerifySeal, amsExportLogEvent: exportLogEvent });
 
 /* ============================================================
+   W9 — data connectors. The server owns connector definitions + the sync pipeline
+   (pull→map→control-total gate→idempotent post→reconcile); these are the browser's
+   read-model + sync trigger. Queries degrade gracefully (null when the server is
+   absent or the role lacks INTEGRATION_VIEW) so the Integrasi tab falls back to the
+   simulated blueprint; sync() throws so the UI can surface a real failure.
+   ============================================================ */
+
+/** Capability + rollup status (canView/canManage/total/connected/errored/wired), or null. */
+export async function integrationStatus() {
+  try { return await api.integration.status.query(); } catch (e) { return null; }
+}
+
+/** The server connector registry (no secrets), or null when unavailable/forbidden. */
+export async function integrationList() {
+  try { return await api.integration.list.query(); } catch (e) { return null; }
+}
+
+/** Sync-job history (optionally per connector), or null. */
+export async function integrationJobs(connectorId) {
+  try { return await api.integration.jobs.query(connectorId ? { connectorId } : undefined); } catch (e) { return null; }
+}
+
+/** Import↔consumption tie-out per wired connector → { bank:{posted,consumed,tied,…} }, or null. */
+export async function integrationReconcile() {
+  try { return await api.integration.reconcile.query(); } catch (e) { return null; }
+}
+
+/** Trigger a sync — server enforces INTEGRATION_MANAGE. Throws on failure (caller toasts). */
+export async function integrationSync(connectorId) {
+  return api.integration.sync.mutate({ connectorId });
+}
+
+Object.assign(window, {
+  amsIntegrationStatus: integrationStatus, amsIntegrationList: integrationList,
+  amsIntegrationJobs: integrationJobs, amsIntegrationReconcile: integrationReconcile,
+  amsIntegrationSync: integrationSync,
+});
+
+/* ============================================================
    W6 Fase 3 — hydrate window.AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the

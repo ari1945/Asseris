@@ -78,6 +78,19 @@
 
   function feeds(id) { return (A.PLATFORM && A.PLATFORM.feedCounts(id)) || []; }
 
+  /* ---------- W9: server read-model overlay ----------
+     The prototype computed everything below from the static feedCounts (simulated). W9 makes the
+     SERVER the source of truth for the WIRED connector(s): the Integrasi view fetches the server
+     reconciliation (window.AMS_API.integration.reconcile) and pushes it here via setServerData.
+     When present, connectors()/reconciliation() overlay the real posted/consumed/tied figures for
+     that connector (and flag it serverBacked). When the server is absent (offline / forbidden /
+     pre-boot), _serverRecon stays null and the simulated blueprint is the fallback — degradasi
+     anggun, persis pola W6. */
+  let _serverRecon = null; // shape: { bank: { posted, consumed, tied, closingBalance }, … }
+  function setServerData(d) { _serverRecon = (d && d.recon) || null; }
+  function serverReconFor(id) { return (_serverRecon && _serverRecon[id]) || null; }
+  function serverBacked(id) { return serverReconFor(id) != null; }
+
   /* ---------- antrean impor (jobs) DITURUNKAN dari feedCounts ----------
      Untuk tiap konektor terhubung, tiap umpan hilir menjadi satu job
      impor yang DI-POSTING; rows = jumlah LIVE yang dibaca modul tujuan,
@@ -123,7 +136,11 @@
       const failed = js.filter(j => j.status === 'failed').length;
       const rejected = sum(js, j => j.rejected);
       const consumed = sum(f, x => x.n);
-      return { ...c, feeds: f, jobs: js, jobCount: js.length, posted, staged, failed, rejected, consumed, tied: posted === consumed && !failed };
+      const base = { ...c, feeds: f, jobs: js, jobCount: js.length, posted, staged, failed, rejected, consumed, tied: posted === consumed && !failed };
+      // W9 — overlay real server figures for the wired connector (else keep the simulated base).
+      const sv = serverReconFor(c.id);
+      if (sv) return { ...base, posted: sv.posted, consumed: sv.consumed, tied: sv.tied, serverBacked: true, status: 'connected', wired: true };
+      return base;
     });
   }
   function connectorsSeed() { return CONNECTORS; }
@@ -135,7 +152,7 @@
     return connectors().filter(c => c.status === 'connected' || c.status === 'error').map(c => ({
       id: c.id, name: c.name, icon: c.icon, status: c.status,
       posted: c.posted, consumed: c.consumed, staged: c.staged, rejected: c.rejected, failed: c.failed,
-      feeds: c.feeds, control: controlTotal(c.id), tied: c.tied,
+      feeds: c.feeds, control: controlTotal(c.id), tied: c.tied, serverBacked: !!c.serverBacked,
     }));
   }
 
@@ -164,6 +181,7 @@
   window.IMPORT = {
     CONNECTORS, connById, connectors, connectorsSeed, jobs, jobsByConnector,
     reconciliation, summary, feeds, controlTotal, PROVENANCE,
+    setServerData, serverBacked, // W9 — server read-model overlay
   };
 })();
 
