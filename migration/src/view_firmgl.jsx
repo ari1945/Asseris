@@ -5,6 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
+import { FIRMFIN } from './data_firmfin.js';
 
 /* ============================================================
    NeoSuite AMS — Firm General Ledger + AP/AR (Package F)
@@ -342,7 +343,7 @@ function FirmAPAR() {
   const payAp = (id) => setAp(list => list.map(x => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
 
   // DSO / DPO (approx): outstanding / annualized revenue|cost × 365 — basis kanonik (FIRMFIN)
-  const FFp = (window.FIRMFIN && window.FIRMFIN.pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
+  const FFp = (FIRMFIN && FIRMFIN.pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
   const annualRev = FFp.revenue, annualPurch = FFp.totalExpense - FFp.salary;
   const dso = Math.round(arOutstanding / annualRev * 365);
   const dpo = Math.round(apOutstanding / annualPurch * 365);

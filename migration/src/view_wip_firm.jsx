@@ -5,13 +5,14 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
+import { FIRMFIN } from './data_firmfin.js';
 
 /* ============================================================
    NeoSuite AMS — WIP & Realisasi (Practice Operations · D+)
    Ekonomi perikatan: nilai standar, WIP belum tertagih,
    write-down, realisasi & margin. Firma-wide.
    ------------------------------------------------------------
-   SUMBER KEBENARAN: window.FIRMFIN.wip(ctx) — identik dengan WIP
+   SUMBER KEBENARAN: FIRMFIN.wip(ctx) — identik dengan WIP
    Valuation (route wip), Dashboard & cockpit Firm Finance. View ini
    hanya menambah overlay write-down manual (persisted) di atas
    sub-buku kanonik; tidak ada perhitungan WIP paralel.
@@ -20,7 +21,7 @@ const { useState: useStateWipF, useMemo: useMemoWipF } = React;
 
 function WIPRealization() {
   const { fmt } = window.AMS;
-  const FF = window.FIRMFIN;
+  const FF = FIRMFIN;
   const nav = useNav();
   const { engagements, clients } = useFirm();
   const [view, setView] = useStateWipF('Perikatan');

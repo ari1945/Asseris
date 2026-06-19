@@ -7,12 +7,13 @@ import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
 import { RowKv } from './view_calc.jsx';
 import { SliderRow } from './view_materiality.jsx';
+import { FIRMFIN } from './data_firmfin.js';
 
 /* ============================================================
    NeoSuite AMS — Firm Finance · Cockpit Keuangan Firma
    ------------------------------------------------------------
    Cockpit ini TIDAK menyimpan angka sendiri. Seluruh figur ditarik
-   dari window.FIRMFIN (lapisan kanonik) yang menurunkan tiap nilai
+   dari FIRMFIN (lapisan kanonik) yang menurunkan tiap nilai
    dari pemilik datanya: FIRM_COA (buku besar), INVOICES, FIRM_AP,
    ENGAGEMENTS/CLIENTS, BANK_ACCOUNTS, FIRM_BUDGET. Tab "Sumber
    Kebenaran" membuktikan tiap headline menutup ke akun kontrol GL.
@@ -21,7 +22,7 @@ const { useState: useStateFF, useMemo: useMemoFF } = React;
 
 function FirmFinance() {
   const { fmt } = window.AMS;
-  const FF = window.FIRMFIN;
+  const FF = FIRMFIN;
   const nav = useNav();
   const { engagements, clients } = useFirm();
   const [tab, setTab] = useStateFF('ikhtisar');
@@ -349,13 +350,13 @@ function SourceOfTruth({ D, jt, M, fmt, nav }) {
 }
 
 /* ---------------- WIP Valuation (route 'wip') — modul valuasi mendalam ----------------
-   SUMBER KEBENARAN TUNGGAL: window.FIRMFIN.wip(ctx, provFactor) yang menurunkan
+   SUMBER KEBENARAN TUNGGAL: FIRMFIN.wip(ctx, provFactor) yang menurunkan
    seluruh figur dari sub-buku WIP_ENG × ENGAGEMENTS × CLIENTS dan menutup ke
    kontrol GL 1-300. Angka identik dipakai Dashboard, WIP & Realisasi, dan cockpit
    Firm Finance — tidak ada perhitungan paralel di view ini. */
 function WIPValuation() {
   const { fmt } = window.AMS;
-  const FF = window.FIRMFIN;
+  const FF = FIRMFIN;
   const nav = useNav();
   const { engagements, clients } = useFirm();
   const [tab, setTab] = useStateFF('valuasi');

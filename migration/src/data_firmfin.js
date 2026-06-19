@@ -16,7 +16,7 @@
    menutup ke sana lewat item rekonsiliasi yang teridentifikasi. Satu
    perubahan di pemilik data otomatis mengalir ke seluruh modul firma.
    ============================================================ */
-(function () {
+const FIRMFIN = (function () {
   const REFDATE = new Date('2026-03-09');
   const BLENDED_RATE = 875_000;             // tarif blended cost/jam (biaya waktu)
   const STD_RATE = 1_250_000;               // tarif standar charge-out/jam (nilai standar WIP)
@@ -328,13 +328,12 @@
     ];
   }
 
-  window.FIRMFIN = {
+  return {
     REFDATE, BLENDED_RATE, STD_RATE, WIP_PROV_MATRIX, SERVICE_MIX,
     pl, balanceSheet, serviceLines, partners, arAging, ap, wip, cash, budget,
     kpis, reconciliations, provenance,
   };
 })();
 
-
-/* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const FIRMFIN = window.FIRMFIN;
+/* [codemod] ESM export (window.FIRMFIN dilucuti — konsumen pakai named import) */
+export { FIRMFIN };
