@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
@@ -8,6 +8,28 @@ import { encryptSecret } from '../crypto/secretbox';
 import { runBankSync, reconcileBank } from '../integrations/sync';
 import { applyMapping } from '../integrations/mapping';
 import { pullBankStatementBroken } from '../integrations/providers/bankFixture';
+import { readBankHttpConfig, makeHttpBankPull } from '../integrations/providers/httpBank';
+import { handleWebhook, signWebhook, canonicalBody, webhookSecret } from '../integrations/webhook';
+
+const ENV_KEYS = ['BANK_API_BASE_URL', 'BANK_API_TOKEN', 'BANK_API_ACCOUNT', 'INTEGRATION_WEBHOOK_SECRET'] as const;
+function clearEnv() {
+  for (const k of ENV_KEYS) delete process.env[k];
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  clearEnv();
+});
+
+// A fetch double recording the outgoing request and returning a canned bank response.
+function mockFetch(body: unknown, ok = true, status = 200) {
+  const calls: { url: string; init: RequestInit }[] = [];
+  const fn = vi.fn(async (url: string, init: RequestInit) => {
+    calls.push({ url, init });
+    return { ok, status, json: async () => body, text: async () => JSON.stringify(body) } as Response;
+  });
+  return { fn: fn as unknown as typeof fetch, calls };
+}
 
 // Same injection trick as llm.test.ts — the integration gates read only ctx.user.{id,role}.
 function callerAs(role: string, id = `U-${role}`) {
@@ -230,5 +252,77 @@ describe('integration.sync router (RBAC + wiring)', () => {
     expect(jobs[0].status).toBe('posted');
     const recon = await callerAs('Junior Auditor', 'U-jr4').integration.reconcile();
     expect(recon.bank.tied).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// W9 Fase 2 — HTTP adapter (drop-in for the fixture) + webhook receiver.
+describe('http bank adapter (shape proven against a mock fetch, no credentials)', () => {
+  it('readBankHttpConfig is null until base URL + token are set', () => {
+    expect(readBankHttpConfig({} as NodeJS.ProcessEnv)).toBeNull();
+    expect(readBankHttpConfig({ BANK_API_BASE_URL: 'https://openapi.bca.co.id/v2' } as NodeJS.ProcessEnv)).toBeNull();
+    const cfg = readBankHttpConfig({ BANK_API_BASE_URL: 'https://openapi.bca.co.id/v2', BANK_API_TOKEN: 'tok' } as NodeJS.ProcessEnv);
+    expect(cfg).toMatchObject({ baseUrl: 'https://openapi.bca.co.id/v2', token: 'tok' });
+  });
+
+  it('makeHttpBankPull GETs /statements with Bearer and parses opening/closing/raw', async () => {
+    const m = mockFetch({
+      opening_balance: 1_000_000,
+      closing_balance: 1_500_000,
+      transactions: [{ txn_id: 'X1', value_date: '2026-03-10', amount: 500_000 }],
+    });
+    const pull = makeHttpBankPull({ baseUrl: 'https://api.bank/v2', token: 'secret-bank-tok' }, m.fn);
+    const statement = await pull();
+    expect(statement.openingBalance).toBe(1_000_000);
+    expect(statement.closingBalance).toBe(1_500_000);
+    expect(statement.raw).toHaveLength(1);
+    expect(m.calls[0].url).toBe('https://api.bank/v2/statements');
+    expect((m.calls[0].init.headers as Record<string, string>).authorization).toBe('Bearer secret-bank-tok');
+  });
+});
+
+describe('webhook receiver (HMAC-authenticated, triggers the same gated sync)', () => {
+  it('webhookSecret/handleWebhook degrade gracefully when no secret is configured', async () => {
+    clearEnv();
+    expect(webhookSecret()).toBeNull();
+    const r = await handleWebhook({ connectorId: 'bank', event: 'transaction.posted' });
+    expect(r).toEqual({ status: 'not-configured' });
+  });
+
+  it('rejects a missing or wrong signature with UNAUTHORIZED', async () => {
+    process.env.INTEGRATION_WEBHOOK_SECRET = 'whsec';
+    await expect(handleWebhook({ connectorId: 'bank', event: 'transaction.posted' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    await expect(handleWebhook({ connectorId: 'bank', event: 'transaction.posted', signature: 'deadbeef' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+
+  it('valid signature + a sync-triggering event runs the gated/idempotent sync', async () => {
+    await resetBankPipeline();
+    process.env.INTEGRATION_WEBHOOK_SECRET = 'whsec';
+    const input = { connectorId: 'bank', event: 'transaction.posted' as const };
+    const signature = signWebhook('whsec', canonicalBody(input));
+    const r = await handleWebhook({ ...input, signature });
+    expect(r.status).toBe('ok');
+    expect(r.status === 'ok' && r.synced).toBe(true);
+    expect(r.status === 'ok' && r.job?.tied).toBe(true);
+    // It went through the real runner — a system-actor SYNC row is in the audit chain.
+    const ev = await prisma.auditLog.findFirst({ where: { action: 'SYNC', actorUserId: 'system:webhook' }, orderBy: { seq: 'desc' } });
+    expect(ev).not.toBeNull();
+  });
+
+  it('valid signature + a non-triggering event is acknowledged without syncing', async () => {
+    process.env.INTEGRATION_WEBHOOK_SECRET = 'whsec';
+    const input = { connectorId: 'bank', event: 'balance.threshold' as const };
+    const signature = signWebhook('whsec', canonicalBody(input));
+    const r = await handleWebhook({ ...input, signature });
+    expect(r).toMatchObject({ status: 'ok', synced: false });
+  });
+
+  it('router.postWebhook is public (no session) and honors the signature', async () => {
+    await resetBankPipeline();
+    process.env.INTEGRATION_WEBHOOK_SECRET = 'whsec';
+    const input = { connectorId: 'bank', event: 'transaction.posted' as const };
+    const signature = signWebhook('whsec', canonicalBody(input));
+    const r = await anon.integration.postWebhook({ ...input, signature });
+    expect(r.status === 'ok' && r.synced).toBe(true);
   });
 });

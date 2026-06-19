@@ -23,6 +23,7 @@ import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
 import { listConnectors } from './integrations/config';
 import { runBankSync, reconcileBank, listJobs } from './integrations/sync';
+import { handleWebhook } from './integrations/webhook';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -329,6 +330,19 @@ export const appRouter = router({
         inc('integration_syncs_total');
         return runBankSync({ id: ctx.user.id, role: ctx.user.role });
       }),
+
+    // Inbound provider webhook (NO session — providers don't have one). Authenticated by an
+    // HMAC signature over the canonical body (secret in env). A recognized event triggers the
+    // same gated/idempotent/audited sync the manual path uses; unknown events are acknowledged.
+    // Graceful not-configured when INTEGRATION_WEBHOOK_SECRET is unset.
+    postWebhook: publicProcedure
+      .input(z.object({
+        connectorId: z.string().min(1),
+        event: z.string().min(1),
+        payload: z.unknown().optional(),
+        signature: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => handleWebhook(input)),
   }),
 
   // Reference list for pickers (client roster + engagement select). W7.5: filtered to the

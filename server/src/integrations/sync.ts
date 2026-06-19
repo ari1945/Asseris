@@ -11,6 +11,7 @@ import { appendAudit } from '../audit/log';
 import { getConnector } from './config';
 import { applyMapping } from './mapping';
 import { pullBankStatement, type BankPullFn } from './providers/bankFixture';
+import { readBankHttpConfig, makeHttpBankPull } from './providers/httpBank';
 
 const FIRM_SCOPE = 'firm';
 const FIRM_ID = 'FIRM-WHR';
@@ -91,12 +92,20 @@ async function mergeBankState(rows: Array<{ txnId: string } & BankTxn>, opening:
   throw new Error('bankFeed CAS contention — exceeded retries');
 }
 
+/** Choose the real HTTP adapter when bank env is configured, else the fixture. Evaluated per call
+ *  so flipping env takes effect immediately; in dev/test (no BANK_API_*) this is the fixture. */
+export function defaultBankPull(): BankPullFn {
+  const cfg = readBankHttpConfig();
+  return cfg ? makeHttpBankPull(cfg) : pullBankStatement;
+}
+
 /**
- * Run a Bank Feed sync. The provider is injected (defaults to the fixture); a test can pass a
- * broken statement to prove the control-total gate blocks posting. `actor` is the authenticated
- * caller (the router enforces INTEGRATION_MANAGE before we get here) and is recorded in the audit.
+ * Run a Bank Feed sync. The provider is injected (defaults to HTTP-when-configured, else fixture);
+ * a test can pass a broken statement to prove the control-total gate blocks posting. `actor` is the
+ * authenticated caller (the router enforces INTEGRATION_MANAGE before we get here), recorded in the
+ * audit.
  */
-export async function runBankSync(actor: { id: string; role: string }, pull: BankPullFn = pullBankStatement): Promise<SyncSummary> {
+export async function runBankSync(actor: { id: string; role: string }, pull: BankPullFn = defaultBankPull()): Promise<SyncSummary> {
   const conn = await getConnector('bank');
   if (!conn) throw new Error('connector-not-found:bank');
 
