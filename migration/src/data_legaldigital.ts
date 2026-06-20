@@ -26,7 +26,7 @@ import { AMS_CANON } from './canon';
 
 (function () {
   'use strict';
-  const AMS = () => AMS_NS || {};
+  const AMS = (): any => AMS_NS || {};
   const ASOF = '2026-03-09';
 
   /* =========================================================
@@ -170,7 +170,7 @@ import { AMS_CANON } from './canon';
     ].map(d => {
       const recv = new Date(d.received);
       const due = new Date(recv); due.setDate(due.getDate() + RESP_SLA);
-      const dueDays = Math.round((due - new Date(ASOF)) / 864e5);
+      const dueDays = Math.round((due.getTime() - new Date(ASOF).getTime()) / 864e5);
       const ackDue = new Date(recv); ackDue.setDate(ackDue.getDate() + 3);  // 3×24 jam konfirmasi
       return { ...d, dueDate: due.toISOString().slice(0, 10), dueDays,
         ackDue: ackDue.toISOString().slice(0, 10),
@@ -205,7 +205,7 @@ import { AMS_CANON } from './canon';
       const det = new Date(i.detected.replace(' ', 'T'));
       const deadline = new Date(det.getTime() + NOTIF_HRS * 3600e3);
       const breach = i.affected > 0;
-      const notifAuthHrs = i.notifAuthorityAt ? (new Date(i.notifAuthorityAt.replace(' ', 'T')) - det) / 3600e3 : null;
+      const notifAuthHrs = i.notifAuthorityAt ? (new Date(i.notifAuthorityAt.replace(' ', 'T')).getTime() - det.getTime()) / 3600e3 : null;
       const withinDeadline = !breach ? true : (notifAuthHrs != null && notifAuthHrs <= NOTIF_HRS);
       return { ...i, breach, deadline: deadline.toISOString().slice(0, 16).replace('T', ' '),
         notifAuthHrs: notifAuthHrs != null ? Math.round(notifAuthHrs) : null, withinDeadline };

@@ -418,7 +418,7 @@ import { AMS } from './data.js';
   /* ---------- template yang mengimplementasikan standar (tarikan LIVE) ----------
      match: salah satu entri t.sa.code == code, ATAU t.module == modul standar. */
   function templatesForStandard(code, moduleId) {
-    const T = (AMS && AMS.TEMPLATES) || [];
+    const T = (AMS && (AMS as any).TEMPLATES) || [];
     const seen = {}, out = [];
     T.forEach(function (t) {
       const byStd = (t.sa || []).some(function (s) { return s.code === code; });

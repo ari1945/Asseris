@@ -23,7 +23,7 @@ import { AMS_CANON } from './canon';
 
 (function () {
   'use strict';
-  const CLIENTS = AMS.CLIENTS || [];
+  const CLIENTS = (AMS as any).CLIENTS || [];
   const cli = (id) => CLIENTS.find(c => c.id === id) || { name: id, npwp: '—' };
 
   /* =========================================================
@@ -201,7 +201,7 @@ import { AMS_CANON } from './canon';
        - Penyampaian elektronik: SPRINT OJK + IDXnet BEI.
        Tanggal acuan "hari ini" untuk pelacak: 17 Jun 2026. */
     const TODAY = new Date('2026-06-17');
-    const dday = (d) => Math.round((new Date(d) - TODAY) / 86400000);
+    const dday = (d) => Math.round((new Date(d).getTime() - TODAY.getTime()) / 86400000);
 
     const obligations = [
       { kind: 'LK Tahunan Auditan', basis: 'POJK 14/2022 Ps. 7', due: '2026-03-31', channels: 'SPRINT · IDXnet', win: 'akhir bulan ke-3' },

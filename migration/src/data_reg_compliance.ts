@@ -11,7 +11,7 @@
    ============================================================ */
 import { AMS } from './data.js';
 (function () {
-  const A = AMS;
+  const A: any = AMS;
   const feeOf = (id) => { const c = (A.PPPK_CLIENTS || []).find(x => x.id === id); return c ? c.fee : 0; };
 
   /* ===========================================================
@@ -34,7 +34,7 @@ import { AMS } from './data.js';
     ],
   };
   /* perkaya tiap baris dengan persentase & status pengamanan (turunan, bukan hardcode) */
-  FEE_DEPENDENCY.rows = FEE_DEPENDENCY.clients.map(c => {
+  (FEE_DEPENDENCY as any).rows = FEE_DEPENDENCY.clients.map(c => {
     const curFee = feeOf(c.id) + (c.related || 0);
     const curPct = +(curFee / FEE_DEPENDENCY.firmRevCur * 100).toFixed(1);
     const priorPct = +((c.priorFee + (c.related || 0)) / FEE_DEPENDENCY.firmRevPrior * 100).toFixed(1);

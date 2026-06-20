@@ -154,7 +154,7 @@ import { AMS_CANON } from './canon';
      TB & aktivitas, lalu menghitung tie-out lintas-laporan.
      ============================================================ */
   function isak35() {
-    const by = {}; TB.forEach(r => { by[r.grp] = by[r.grp] || []; by[r.grp].push(r); });
+    const by: any = {}; TB.forEach(r => { by[r.grp] = by[r.grp] || []; by[r.grp].push(r); });
     const flip = (rows, neg) => rows.map(r => ({ ...r, cy: neg ? -r.cy : r.cy, py: neg ? -r.py : r.py }));
     const sum = (rows, k) => rows.reduce((a, r) => a + r[k], 0);
 
@@ -240,7 +240,7 @@ import { AMS_CANON } from './canon';
     };
   }
 
-  AMS_CANON.isak35 = isak35;
-  AMS_CANON.ISAK35_TB = TB;
-  AMS_CANON.ISAK35_DISCLOSURES = DISCLOSURES;
+  (AMS_CANON as any).isak35 = isak35;
+  (AMS_CANON as any).ISAK35_TB = TB;
+  (AMS_CANON as any).ISAK35_DISCLOSURES = DISCLOSURES;
 })();

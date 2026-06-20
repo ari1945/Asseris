@@ -171,7 +171,7 @@ import { AMS_CANON } from './canon';
     };
   }
 
-  AMS_CANON.sakHorizon = sakHorizon;
-  AMS_CANON.SAK_STANDARDS = STANDARDS;
-  AMS_CANON.SAK_ISAKS = ISAKS;
+  (AMS_CANON as any).sakHorizon = sakHorizon;
+  (AMS_CANON as any).SAK_STANDARDS = STANDARDS;
+  (AMS_CANON as any).SAK_ISAKS = ISAKS;
 })();

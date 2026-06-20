@@ -31,12 +31,12 @@ import { BO as BO_NS } from './data_backoffice.js';
    ============================================================ */
 (function () {
   const today = new Date('2026-03-09');
-  const daysTo = (d) => d ? Math.round((new Date(d) - today) / 864e5) : null;
-  const yearsLeft = (d) => d ? (new Date(d) - today) / (365.25 * 864e5) : null;
+  const daysTo = (d) => d ? Math.round((new Date(d).getTime() - today.getTime()) / 864e5) : null;
+  const yearsLeft = (d) => d ? (new Date(d).getTime() - today.getTime()) / (365.25 * 864e5) : null;
   const addYears = (d, y) => { const x = new Date(d); x.setFullYear(x.getFullYear() + y); return x.toISOString().slice(0, 10); };
   const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
-  const A = () => AMS || {};
-  const BO = () => BO_NS || {};
+  const A = (): any => AMS || {};
+  const BO = (): any => BO_NS || {};
 
   /* ============================================================
      1 · KEBIJAKAN RETENSI — kelas kanonik (sumber tunggal masa simpan)

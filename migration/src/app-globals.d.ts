@@ -21,5 +21,15 @@ declare global {
     /** Lisensi & langganan (data_licensing) — file masih dual-publish
      *  (`window.LICENSING = …`), belum di-strip. Window-strip-2 candidate. */
     LICENSING: any;
+    /* W11 slice 2 — namespace residual yang dibaca/ditulis lapisan data 0-importer.
+       Semua kandidat window-strip-2; `any` di tier app relaks. */
+    RETENTION: any;
+    MODULE_INDEX: any;
+    TRAVEL: any;
+    TAX: any;
+    STANDARDS_REGISTRY: any;
+    IRM: any;
+    RELATED_SA: any;
+    TAX23: any;
   }
 }

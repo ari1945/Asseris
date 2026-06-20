@@ -236,7 +236,7 @@ import { AMS } from './data.js';
   const SANCTION_LADDER = ['Teguran Lisan', 'SP-1 (Tertulis)', 'SP-2', 'SP-3 / Skorsing', 'PHK'];
 
   /* ---- shared lookups for People & Compliance views ---- */
-  const byId = (id) => A.STAFF.find(s => s.id === id) || { id, name: id, role: '', grade: 'Junior', cert: '' };
+  const byId = (id) => (A as any).STAFF.find(s => s.id === id) || { id, name: id, role: '', grade: 'Junior', cert: '' };
   const GRADE_COLOR_PC = { Partner: '#002C3F', Manager: '#005085', Senior: '#0a6b73', Junior: '#5b3fa6' };
   const READY_COLOR = { 'Siap sekarang': 'var(--green)', 'Siap 1–2 th': 'var(--blue)', 'Siap 2–3 th': 'var(--amber)' };
 

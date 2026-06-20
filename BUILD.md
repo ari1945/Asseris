@@ -446,7 +446,13 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
 4. `tsc -p tsconfig.app.json --noEmit` → perbaiki error (semua **type-only**, nol-runtime):
    - **arity param opsional** — `f(list)` dipanggil `f()` → `f(list?)`; `mk(…,opts)` → `(…,opts?)`.
    - **`unknown` dari index-sig AmsData** (AMS hanya tipe sempit WTB/AJE sampai slice AMS) →
-     cast titik-akses `(AMS as any).X`, atau wrapper `const A = (): any => AMS || {}`.
+     cast titik-akses `(AMS as any).X`, atau cast var-akar sekali: `const A: any = AMS`
+     (paling hemat — satu edit melumpuhkan puluhan error di satu file), atau wrapper
+     `const A = (): any => AMS || {}`.
+   - **augmentasi AMS_CANON** (file `isak35`/`syariah`/`sakroadmap`/`psak117` menambah metode
+     ke objek kanon) → cast LHS: `(AMS_CANON as any).foo = …`.
+   - **`Object.values(dyn).sort/map`** atas akumulator dinamis → ketik param callback `:any`
+     (`.sort((a: any, b: any) => …)`).
    - **`Date − Date`** → `a.getTime() - b.getTime()` (ekuivalen runtime).
    - **baca/tulis `window.<NS>` residual** → deklarasikan di `src/app-globals.d.ts`
      (peta kopling sisa untuk window-strip-2; terpisah dari `types/globals.d.ts` kanon).
@@ -461,7 +467,7 @@ terkecil dulu).** ✅=selesai. Banyak file 0-importer = IIFE yang meng-augment
 | # | Modul | Importer | Status |
 |---|---|---|---|
 | — | `data_licensing` ✅ · `data_proforma` ✅ | 0 | **W11 F1** (pilot; dual-publish & IIFE-augment) |
-| — | `data_firmops` `data_fpm` `data_isak35` `data_knowledge` `data_legaldigital` `data_ojk` `data_people` `data_platform` `data_pph23` `data_psak117` `data_records` `data_reg_compliance` `data_risk` `data_sakroadmap` `data_syariah` `data_templates` `data_travel` | 0 | backlog |
+| ✅ | `data_firmops` `data_fpm` `data_isak35` `data_knowledge` `data_legaldigital` `data_ojk` `data_people` `data_platform` `data_pph23` `data_psak117` `data_records` `data_reg_compliance` `data_risk` `data_sakroadmap` `data_syariah` `data_templates` `data_travel` | 0 | **W11 slice 2** (17 files; 102 errors → 0) |
 | — | `data_import` (W9-wired — hati2) `data_part3` `data_part4` | 1 | backlog |
 | ✅ | `data_facilities` | 2 | **W11 F1** (pilot; ESM-export leaf) |
 | — | `data_part1` `data_procurement` | 2 | backlog |

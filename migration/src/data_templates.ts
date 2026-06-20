@@ -134,7 +134,7 @@ import { AMS } from './data.js';
   ];
 
   /* status tinjauan turunan (live) — overdue bila nextReview < NOW */
-  TEMPLATES.forEach(t => { t.reviewDue = new Date(t.nextReview) < NOW; });
+  TEMPLATES.forEach((t: any) => { t.reviewDue = new Date(t.nextReview) < NOW; });
 
   /* reverse-index: modul → template yang memberinya keluaran.
      Dipakai modul lain untuk menarik "template terkait" dari sumber yang sama. */

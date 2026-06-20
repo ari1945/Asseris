@@ -202,7 +202,7 @@ import { LEGAL } from './data_legal.js';
     return out;
   }
 
-  function boMlocal(v) { return 'Rp ' + AMS.fmt(v / 1e9, 1) + ' M'; }
+  function boMlocal(v) { return 'Rp ' + (AMS as any).fmt(v / 1e9, 1) + ' M'; }
 
   window.IRM = {
     scoreColor, scoreLabel, polShort, modMeta,

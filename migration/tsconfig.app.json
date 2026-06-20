@@ -25,7 +25,24 @@
     "src/app-globals.d.ts",
     "src/data_facilities.ts",
     "src/data_proforma.ts",
-    "src/data_licensing.ts"
+    "src/data_licensing.ts",
+    "src/data_firmops.ts",
+    "src/data_fpm.ts",
+    "src/data_isak35.ts",
+    "src/data_knowledge.ts",
+    "src/data_legaldigital.ts",
+    "src/data_ojk.ts",
+    "src/data_people.ts",
+    "src/data_platform.ts",
+    "src/data_pph23.ts",
+    "src/data_psak117.ts",
+    "src/data_records.ts",
+    "src/data_reg_compliance.ts",
+    "src/data_risk.ts",
+    "src/data_sakroadmap.ts",
+    "src/data_syariah.ts",
+    "src/data_templates.ts",
+    "src/data_travel.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

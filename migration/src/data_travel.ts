@@ -24,8 +24,8 @@ import { BO as BO_NS } from './data_backoffice.js';
    SATU angka yang sama. Satu sumber, satu lineage.
    ============================================================ */
 (function () {
-  const A = () => AMS || {};
-  const BO = () => BO_NS || {};
+  const A = (): any => AMS || {};
+  const BO = (): any => BO_NS || {};
   const round = (n) => Math.round(n);
 
   /* ---------- indeks kanonik ---------- */
@@ -115,7 +115,7 @@ import { BO as BO_NS } from './data_backoffice.js';
       if (!r.eng || !map[r.eng]) return;
       map[r.eng].klaim = (map[r.eng].klaim || 0) + r.klaim;
     });
-    return Object.values(map).sort((a, b) => b.est - a.est);
+    return Object.values(map).sort((a: any, b: any) => b.est - a.est);
   }
 
   /* ---------- rekonsiliasi GL: sub-ledger ↔ tren ↔ Operasi Firma ↔ FIRM_COA ----------

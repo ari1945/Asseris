@@ -16,7 +16,7 @@
    ============================================================ */
 import { AMS } from './data.js';
 (function () {
-  const A = AMS;
+  const A: any = AMS;
   if (!A) return;
 
   const NOW = '2026-03-10 09:00';

@@ -110,7 +110,7 @@ import { AMS } from './data.js';
     },
   };
   /* default detail generator for engagements without bespoke data */
-  ENG_DETAIL._default = function (e) {
+  (ENG_DETAIL as any)._default = function (e) {
     const f = e.budgetHrs;
     return {
       wbs: [

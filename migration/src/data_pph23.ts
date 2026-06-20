@@ -24,8 +24,8 @@ import { BO as BO_NS } from './data_backoffice.js';
    Tanpa NPWP/NIK valid → tarif 100% lebih tinggi (UU PPh Ps. 23(1a)).
    ============================================================ */
 (function () {
-  const A = () => AMS || {};
-  const BO = () => BO_NS || {};
+  const A = (): any => AMS || {};
+  const BO = (): any => BO_NS || {};
   const R = Math.round;
   const REFDATE = new Date('2026-03-09');
 
@@ -166,8 +166,8 @@ import { BO as BO_NS } from './data_backoffice.js';
         disetor: rs.filter(r => r.deposited).reduce((s, r) => s + r.pph, 0),
         setorDue: setor.toISOString().slice(0, 10),
         laporDue: lapor.toISOString().slice(0, 10),
-        setorDays: Math.round((setor - REFDATE) / 864e5),
-        laporDays: Math.round((lapor - REFDATE) / 864e5),
+        setorDays: Math.round((setor.getTime() - REFDATE.getTime()) / 864e5),
+        laporDays: Math.round((lapor.getTime() - REFDATE.getTime()) / 864e5),
         status,
       };
     });
@@ -182,7 +182,7 @@ import { BO as BO_NS } from './data_backoffice.js';
       const g = (m[key] = m[key] || { key, name: r.name, vendorId: r.vendorId, master: r.master, npwp: r.npwp, hasNpwp: r.hasNpwp, isOP: r.isOP, cat: r.cat, dpp: 0, pph: 0, n: 0, objs: new Set() });
       g.dpp += r.dpp; g.pph += r.pph; g.n += 1; g.objs.add(r.obj);
     });
-    return Object.values(m).map(g => ({ ...g, objs: [...g.objs] })).sort((a, b) => b.pph - a.pph);
+    return Object.values(m).map((g: any) => ({ ...g, objs: [...g.objs] })).sort((a: any, b: any) => b.pph - a.pph);
   }
 
   /* ---------- tie-out ke pos kontrol GL 2-200 Utang Pajak ---------- */

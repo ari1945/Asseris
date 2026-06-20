@@ -229,6 +229,6 @@ import { AMS_CANON } from './canon';
     };
   }
 
-  AMS_CANON.syariah = syariah;
-  AMS_CANON.SYARIAH_AKAD = AKAD;
+  (AMS_CANON as any).syariah = syariah;
+  (AMS_CANON as any).SYARIAH_AKAD = AKAD;
 })();
