@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data.js';
 import { useFirm, useNav } from './contexts.jsx';
-import { PROC } from './data_procurement.js';
+import { PROC } from './data_procurement';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel } from './ui.jsx';

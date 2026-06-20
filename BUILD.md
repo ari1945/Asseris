@@ -468,14 +468,26 @@ terkecil dulu).** ✅=selesai. Banyak file 0-importer = IIFE yang meng-augment
 |---|---|---|---|
 | — | `data_licensing` ✅ · `data_proforma` ✅ | 0 | **W11 F1** (pilot; dual-publish & IIFE-augment) |
 | ✅ | `data_firmops` `data_fpm` `data_isak35` `data_knowledge` `data_legaldigital` `data_ojk` `data_people` `data_platform` `data_pph23` `data_psak117` `data_records` `data_reg_compliance` `data_risk` `data_sakroadmap` `data_syariah` `data_templates` `data_travel` | 0 | **W11 slice 2** (17 files; 102 errors → 0) |
-| — | `data_import` (W9-wired — hati2) `data_part3` `data_part4` | 1 | backlog |
+| ✅ | `data_import` (W9-wired) `data_part3`🔒 `data_part4`🔒 | 1 | **W11 slice 3** (`58e422c`; trio. part3/4 canon-reachable = FULL strict, 43 errs→0) |
 | ✅ | `data_facilities` | 2 | **W11 F1** (pilot; ESM-export leaf) |
-| — | `data_part1` `data_procurement` | 2 | backlog |
-| — | `data_base` `data_part2` | 3 | backlog |
+| — | `data_part1`🔒 `data_procurement` | 2 | backlog |
+| — | `data_base`🔒 `data_part2`🔒 | 3 | backlog |
 | — | `data_firmfin` | 4 | backlog |
 | — | `data_legal` | 8 | backlog |
 | — | `data_backoffice` | 16 | backlog |
-| — | `data` (AMS — **the boss**) | 147 | **terakhir** (di luar beachhead) |
+| — | `data` (AMS — **the boss**)🔒 | 147 | **terakhir** (di luar beachhead) |
+
+> **🔒 = canon-reachable ⇒ FULL strict (bukan app-tier relaks).** Temuan slice 3:
+> `tsconfig.json` (kanon, full strict) menarik tiap `.ts` di graf impornya. Graf:
+> `canon_base`/`canon_part1` → `import './data.js'` → `data.js` meng-import **5 file**:
+> `data_base` · `data_part1` · `data_part2` · `data_part3` · `data_part4` (`part2`→`base`).
+> Ke-5 itu + `data.js`(boss) **WAJIB lolos `strict:true`** (param `:any` eksplisit, `!`
+> pada seed `.find()`, dst) — beda dari slice-2 (17 IIFE yang **hanya** `main.jsx`
+> me-load → tak masuk graf kanon → app-tier relaks cukup). `checkJs:false` membuat
+> `data.js` sendiri tak dicek, tapi `.ts` yang di-import-nya **tetap** dicek strict.
+> **Bukan-🔒** (`data_import`, `data_procurement`, `data_firmfin`, `data_legal`,
+> `data_backoffice`) meng-import **dari** `data.js` tapi tak di-import oleh `data.js`/kanon
+> → app-tier relaks saja. Cek cepat: `npm run typecheck` (jalankan **kedua** tier).
 
 > Setelah lapisan data: arc terpisah untuk **view `.jsx → .tsx`** (W12+), pola sama,
 > `include` tumbuh dengan `src/view_*.tsx`.

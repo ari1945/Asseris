@@ -80,7 +80,7 @@
     ['Beban', '5-3100', 'Beban Umum & Administrasi', 31_990_000_000, 36_720_000_000, 980_000_000, 'U'],
     ['Beban', '5-4100', 'Beban Keuangan', 7_220_000_000, 8_910_000_000, 0, 'V'],
     ['Beban', '5-5100', 'Beban Pajak Penghasilan', 9_180_000_000, 11_240_000_000, 470_000_000, 'W'],
-  ].map((r, i) => ({
+  ].map((r: any[], i) => ({
     key: 'wtb' + i, group: r[0], code: r[1], name: r[2],
     ly: r[3], unadj: r[4], aje: r[5], adj: r[4] + r[5], lead: r[6],
   }));
@@ -321,7 +321,7 @@
 
   /* ---- Front-office: Client & Engagement Onboarding pipeline ---- */
   /* Each prospect carries 4 gates: acceptance · pmpj · letter · convert. */
-  const ACC_FACTORS = (over = {}) => [
+  const ACC_FACTORS = (over: any = {}) => [
     { k: 'Integritas & Reputasi Manajemen', w: 25, s: 3, note: '', ...over[0] },
     { k: 'Independensi & Konflik Kepentingan', w: 20, s: 3, note: '', ...over[1] },
     { k: 'Kompetensi, Waktu & Kapasitas Tim', w: 20, s: 3, note: '', ...over[2] },

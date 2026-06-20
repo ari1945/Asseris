@@ -27,7 +27,7 @@ import './data_syariah';
 import './data_platform';
 import './data_firmfin.js';
 import './data_pph23';
-import './data_procurement.js';
+import './data_procurement';
 import './data_facilities';
 import './data_records';
 import './data_risk';

@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
-import { AMS } from './data.js';
+import { AMS as AMS_ } from './data.js';
 import { BO } from './data_backoffice.js';
 import { LEGAL } from './data_legal.js';
+const AMS: any = AMS_;
 
 /* ============================================================
    NeoSuite AMS — Pengadaan & Vendor: lapisan kanonik (SSOT)
@@ -152,15 +153,15 @@ const PROC = (function () {
     const coa = ((AMS && AMS.FIRM_COA) || []).find(a => a.code === '2-100');
     const control = coa ? Math.abs(coa.bal) : 0;
     const openTotal = sum(open, x => x.amount - x.paid);
-    const bySrc = {};
+    const bySrc: any = {};
     open.forEach(x => {
       const s = AP_SOURCE[x.cat] || { module: 'procurement', label: 'Pengadaan (non-master)', master: false };
       const k = s.label;
       bySrc[k] = bySrc[k] || { label: s.label, module: s.module, master: s.master, v: 0, n: 0 };
       bySrc[k].v += (x.amount - x.paid); bySrc[k].n += 1;
     });
-    const sources = Object.values(bySrc).sort((a, b) => b.v - a.v);
-    const procMaster = sum(sources.filter(s => s.module === 'procurement' && s.master), s => s.v);
+    const sources = Object.values(bySrc).sort((a: any, b: any) => b.v - a.v);
+    const procMaster = sum(sources.filter((s: any) => s.module === 'procurement' && s.master), (s: any) => s.v);
     return { open, openTotal, control, accrual: control - openTotal, sources, procMaster };
   }
 
