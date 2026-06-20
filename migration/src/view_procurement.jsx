@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { useFirm, useNav } from './contexts.jsx';
 import { PROC } from './data_procurement';
 import { I } from './icons.jsx';

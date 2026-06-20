@@ -16,7 +16,7 @@
    Status tinjauan dihitung relatif terhadap NOW (bukan di-hardcode):
    nextReview < NOW  →  "Perlu Reviu".
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 (function () {
   const NOW = new Date('2026-06-13');
 

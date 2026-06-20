@@ -3,7 +3,7 @@
    New analytical dimensions for the deepened FPM modules. Plain
    JS; merged into AMS (data.js builds the base object).
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 (function () {
   const B = 1_000_000_000, M = 1_000_000;
 

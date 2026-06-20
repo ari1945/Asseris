@@ -5,7 +5,7 @@ import './styles_chrome.css';
 import './styles_ai.css';
 import './styles_work.css';
 import './styles_modules.css';
-import './data.js';
+import './data';
 import './data_people';
 import './data_fpm';
 import './data_backoffice';

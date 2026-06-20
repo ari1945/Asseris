@@ -3,7 +3,7 @@ import React from 'react';
 import { ExtractReview } from './ai_extract.jsx';
 import { AiInsightPanel } from './ai_insights.jsx';
 import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { amsAttachEvidence } from './evidence.jsx';
 import { I, MODULE_INDEX, RELATED_SA } from './icons.jsx';
 import { amsLLMConfig } from './llm_providers.js';

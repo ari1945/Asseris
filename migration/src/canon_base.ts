@@ -2,7 +2,7 @@
    NeoSuite AMS — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
-import { AMS } from './data.js';
+import { AMS } from './data';
 
   const RATE = 0.22;
   const ASOF = { y: 2025, m: 12 };           // 31 Des 2025

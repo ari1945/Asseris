@@ -4,7 +4,7 @@ import { amsAttachEvidence } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { amsLLMConfig } from './llm_providers.js';
 import { Panel } from './ui.jsx';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { openCanonicalWp } from './view_wp.jsx';
 
 /* ============================================================

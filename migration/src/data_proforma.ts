@@ -27,7 +27,7 @@
    informasi keuangan proforma konsolidasian yang menggambarkan
    dampak akuisisi + penghimpunan dana SEOLAH-OLAH telah terjadi.
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { AMS_CANON } from './canon';
 
 (function () {

@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts.jsx';
 import { FileDropField } from './evidence.jsx';
 import { I } from './icons.jsx';

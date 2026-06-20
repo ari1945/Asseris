@@ -3,7 +3,7 @@
    ============================================================ */
 import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './canon_base';
 import type { WTB, AjeRow } from './canon_types';
-import { AMS } from './data.js';
+import { AMS } from './data';
 
   function deferredTax(wtb?: WTB) {
     const f = wtb ? (() => {

@@ -4,7 +4,7 @@
    six new modules (Org Chart · Succession · Recruitment ·
    Learning · Ethics/AML · HR Cases). Loaded AFTER data.js.
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 (function () {
   const A = AMS;
 

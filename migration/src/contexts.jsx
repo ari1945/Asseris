@@ -2,7 +2,7 @@
 import React from 'react';
 import { api, isConflict } from './api.js';
 import { can as rbacCan } from './rbac.js';
-import { AMS } from './data.js';
+import { AMS } from './data';
 
 /* ============================================================
    NeoSuite AMS — React Context providers

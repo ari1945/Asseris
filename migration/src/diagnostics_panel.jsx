@@ -5,7 +5,7 @@ import { useAudit, useNav } from './contexts.jsx';
 import { amsCrossChecks } from './ai_insights.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { AMS } from './data.js';
+import { AMS } from './data';
 
 /* ============================================================
    NeoSuite AMS — Tax Audit Diagnostic · UI (P4 Fase 1-2)

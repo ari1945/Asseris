@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model.jsx';
 import { useNav } from './contexts.jsx';

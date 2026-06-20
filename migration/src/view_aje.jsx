@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
 import { CAP } from './rbac.js';
 import { I } from './icons.jsx';

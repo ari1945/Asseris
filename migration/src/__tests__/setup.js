@@ -32,6 +32,6 @@ globalThis.BENCHMARKS = [
 ];
 
 // 2) Load order matters: data → canon → forensic.
-await import('../data.js');           // evaluates the AMS ESM export (incl. WTB)
+await import('../data');           // evaluates the AMS ESM export (incl. WTB)
 await import('../canon');          // ESM AMS_CANON export (reads AMS via import, lazily at call)
 await import('../forensic_canon'); // pure-ESM (AMS_FORENSIC export; no window write)

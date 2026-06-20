@@ -18,7 +18,7 @@
    Seluruh nilai rasio bersifat ilustratif lapangan; angka LK
    yang relevan tetap mengacu AMS_CANON figur kanonik.
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { AMS_CANON } from './canon';
 
 (function () {

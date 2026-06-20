@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { useAmsPersist } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Donut, Panel, Progress, Stat } from './ui.jsx';

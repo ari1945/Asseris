@@ -6,7 +6,7 @@
    caller swallows network errors and falls back to the localStorage cache.
    ============================================================ */
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
-import { AMS } from './data.js';
+import { AMS } from './data';
 
 /* ----- W7 Fase 2 / W10 — session transport -----
    W10 moved the session to an HttpOnly cookie set by the server on login: JavaScript can no

@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { AiInsightPanel } from './ai_insights.jsx';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';

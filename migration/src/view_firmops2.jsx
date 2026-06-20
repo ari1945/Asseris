@@ -1,5 +1,5 @@
 /* [codemod] ESM imports */
-import { AMS } from './data.js';
+import { AMS } from './data';
 import { I } from './icons.jsx';
 import { BoBadge, boJt } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';

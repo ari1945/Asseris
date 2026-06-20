@@ -4,7 +4,7 @@
    (LINEAGE sudah ada) dan SEBELUM related_modules.jsx.
    ============================================================ */
 import { LINEAGE } from './related_modules_data.js'; // ESM: mutate the shared object, not a window re-binding (fixes TDZ)
-import { AMS } from './data.js';
+import { AMS } from './data';
 
 
 /* ============================================================

@@ -9,7 +9,7 @@
    Semua angka imbalan ditarik dari AMS.PPPK_CLIENTS (SSOT);
    modul TIDAK menyimpan salinan privat imbalan per klien.
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 (function () {
   const A: any = AMS;
   const feeOf = (id) => { const c = (A.PPPK_CLIENTS || []).find(x => x.id === id); return c ? c.fee : 0; };

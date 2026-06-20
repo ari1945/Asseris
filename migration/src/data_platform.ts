@@ -14,7 +14,7 @@
      AMS.PLATFORM.buildAuditStream(log) → arus jejak audit terpadu
      AMS.PLATFORM.ROUTING_RULES         → matriks otorisasi
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 (function () {
   const A: any = AMS;
   if (!A) return;

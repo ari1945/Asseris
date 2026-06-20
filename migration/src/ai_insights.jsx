@@ -3,7 +3,7 @@ import React from 'react';
 import { useAudit, useNav } from './contexts.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { PROGRAMME } from './view_cockpit.jsx';
-import { AMS } from './data.js';
+import { AMS } from './data';
 
 /* ============================================================
    NeoSuite AMS — AI Insights (Tier 2)

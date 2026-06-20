@@ -17,7 +17,7 @@
    editorial khusus tetap memiliki artikel — dibangun dari metadata
    registri lewat buildFallback().
    ============================================================ */
-import { AMS } from './data.js';
+import { AMS } from './data';
 (function () {
   const KB_UPDATED = 'Juni 2026';
 
