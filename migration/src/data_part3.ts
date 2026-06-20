@@ -1,8 +1,8 @@
 /* ============================================================
    NeoSuite AMS — data part3 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
-import { fmt } from './data_base.js';
-import { PFI_3400 } from './data_part2.js';
+import { fmt } from './data_base';
+import { PFI_3400 } from './data_part2';
 
   function pfiEngine(execArg?: any) {
     const A = PFI_3400, M = A.model, n = M.rev.length;

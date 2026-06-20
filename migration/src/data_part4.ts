@@ -2,7 +2,7 @@
    NeoSuite AMS — data part4 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { CLIENTS, ENGAGEMENTS, PIPELINE, PROSPECTS, STAFF } from './data_part1';
-import { NONAUDIT } from './data_part2.js';
+import { NONAUDIT } from './data_part2';
 
   const DD_OPP  = PIPELINE.find(o => o.id === 'OPP-105')!;
   const DD_PROS = PROSPECTS.find(p => p.id === 'PROS-06')!;

@@ -47,7 +47,9 @@
     "src/data_part4.ts",
     "src/data_import.ts",
     "src/data_part1.ts",
-    "src/data_procurement.ts"
+    "src/data_procurement.ts",
+    "src/data_base.ts",
+    "src/data_part2.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

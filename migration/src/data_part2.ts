@@ -1,7 +1,7 @@
 /* ============================================================
    NeoSuite AMS — data part2 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
-import { fmt } from './data_base.js';
+import { fmt } from './data_base';
 
   const FX_RATES = { IDR: 1, USD: 16_250, SGD: 12_050, EUR: 17_600 };
 
@@ -389,9 +389,9 @@ import { fmt } from './data_base.js';
   /* ---- Engine AUP: hitung temuan faktual & status dari measure (pure) ----
      exec: peta { [no]: bool } status pelaksanaan (override seedDone).
      Jika exec tak diberi → dibaca dari localStorage; custom procs dari localStorage. */
-  function aupNarrate(m, pass) {
+  function aupNarrate(m: any, pass: any) {
     if (!m) return '';
-    const f = (v) => fmt(v, m.dp || 0);
+    const f = (v: any) => fmt(v, m.dp || 0);
     if (m.count) {
       const ok = m.of - m.computed;
       return ok + ' dari ' + m.of + ' angsuran tepat waktu; ' + m.computed + ' keterlambatan — persyaratan ' + m.requirement + ' ' + (pass ? 'terpenuhi' : 'TIDAK terpenuhi') + '.';
@@ -401,12 +401,12 @@ import { fmt } from './data_base.js';
     const gapTxt = m.money ? ('Rp ' + f(gap) + ' jt') : (f(gap) + m.unit);
     return m.label + ' hasil rekomputasi ' + cv + '; persyaratan ' + m.requirement + ' — ' + (pass ? 'terpenuhi' : 'TIDAK terpenuhi (selisih ' + gapTxt + ')') + '.';
   }
-  function aupEvalMeasure(m) {
+  function aupEvalMeasure(m: any) {
     if (!m) return { pass: true, finding: '' };
     const pass = m.op === 'lte' ? (m.computed <= m.threshold) : (m.op === 'gte' ? (m.computed >= m.threshold) : true);
     return { pass, finding: aupNarrate(m, pass) };
   }
-  function aupEngine(execArg, customArg) {
+  function aupEngine(execArg: any, customArg: any) {
     const A = AUP_4400;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
@@ -423,7 +423,7 @@ import { fmt } from './data_base.js';
       const done = (exec && Object.prototype.hasOwnProperty.call(exec, p.no)) ? !!exec[p.no] : !!p.seedDone;
       return { ...p, finding: ev.finding, pass: ev.pass, exception: !ev.pass, done };
     });
-    const customP = (custom || []).map(c => ({ ...c, custom: true, pass: !c.exception }));
+    const customP = (custom || []).map((c: any) => ({ ...c, custom: true, pass: !c.exception }));
     const procedures = [...seeded, ...customP];
     const total = procedures.length;
     const done = procedures.filter(p => p.done).length;
