@@ -422,8 +422,8 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
 
 > Memperluas TS dari kanon ke **lapisan app**, dimulai dari **lapisan data**
 > (`data*.js → .ts`). PRD: `PRD - W11 Perluasan TypeScript — Lapisan Data.md`
-> (Proceed: data-first / tier-relaks / beachhead). **Fase 0–1 SELESAI** (pilot:
-> `data_facilities` · `data_proforma` · `data_licensing`).
+> (Proceed: data-first / tier-relaks / beachhead). **LAPISAN DATA SELESAI** (Fase 0–1
+> pilot + slice 2–8 + boss `data.js`→`.ts` `be996c2`). Berikut: view `.jsx→.tsx` (W12+).
 
 **Dua tier, terpisah:**
 - **Kanon** (`tsconfig.json`) — **full `strict`**, tak tersentuh W11.
@@ -475,10 +475,26 @@ terkecil dulu).** ✅=selesai. Banyak file 0-importer = IIFE yang meng-augment
 | ✅ | `data_firmfin` | 4 | **W11 slice 6** (`8f05e8f`; `A():any` + Date.getTime + Object.values casts) |
 | ✅ | `data_legal` | 8 | **W11 slice 7** (`40f0777`; 1 err — `(AMS as any).fmt`) |
 | ✅ | `data_backoffice` | 16 | **W11 slice 8** (`bd10439`; `BO:any` stops sibling-.ts ripple — see note 2) |
-| — | `data` (AMS — **the boss**)🔒 | 147 | **terakhir** (di luar beachhead) — SISA SATU |
+| ✅ | `data` (AMS — **the boss**)🔒 | 149 | **W11 boss** (`be996c2`; `import type {AmsData}` + anotasi eksplisit — see note 3) |
 
-> **⇒ Lapisan data SELESAI kecuali `data.js` (boss).** Semua `data_*.{js}` → `.ts`;
-> hanya `data.js` (root AMS, 147 importer, 🔒) tersisa, sengaja terakhir.
+> **⇒ Lapisan data SELESAI — semua `data*.js` → `.ts`.** Boss `data.js` (root AMS,
+> 149 importer, 🔒) terkonversi terakhir. Tak ada `src/data*.js` tersisa. Arc berikut:
+> view `.jsx → .tsx` (W12+).
+
+> **Note 3 — boss `data.js` & JSDoc-yang-berhenti-dihormati (temuan W11 boss).**
+> Saat `data.js` (.js, `checkJs:false`) jadi `data.ts`, JSDoc `/** @type
+> {import('./types/globals').AmsData} */` pada `export const AMS` **berhenti
+> dihormati**. Efek ganda: (1) AMS jadi tipe **literal konkret** (bukan `AmsData`) →
+> augmenter `AMS.proformaEngine = …` (data_proforma dkk) error TS2339; (2) JSDoc
+> `import('./types/globals')` tadinya **mem-load ambient kanon** ke app program
+> (deklarasi `Window.BENCHMARKS`/`amsResetFigures`), kini tak → file kanon yang
+> ditarik transitif app graph (via `import {AMS_CANON} from './canon'`) error
+> window-undefined. **Satu fix menutup keduanya:** ganti JSDoc → `import type
+> { AmsData } from './types/globals'` **nyata** + `export const AMS: AmsData = {…}`.
+> Anotasi nyata dihormati di kedua tier; import nyata menarik ambient kanon ke app
+> program; index-sig `[k:string]: unknown` pada `AmsData` menyerap semua augmentasi
+> AMS. Pelajaran: di `.ts`, **jangan andalkan JSDoc `@type` lintas-tier** — pakai
+> konstruk TS asli. (Plus 4 cast `:any` pada forEach seed-normalisasi & `CLIENTS.find`.)
 
 > **🔒 = canon-reachable ⇒ FULL strict (bukan app-tier relaks).** Temuan slice 3:
 > `tsconfig.json` (kanon, full strict) menarik tiap `.ts` di graf impornya. Graf:
