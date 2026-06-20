@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Btn, Donut } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt } from './view_bo1.jsx';
 import { HBars, KV, LineChart, SectionTitle } from './view_fpm_parts.jsx';
-import { BO } from './data_backoffice.js';
+import { BO } from './data_backoffice';
 
 /* ============================================================
    NeoSuite AMS — Backoffice & Firm Mgmt (3/3)

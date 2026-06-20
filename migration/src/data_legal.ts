@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { AMS } from './data.js';
-import { BO } from './data_backoffice.js';
+import { BO } from './data_backoffice';
 
 /* ============================================================
    NeoSuite AMS — Kontrak & Legal: lapisan kanonik (SSOT)

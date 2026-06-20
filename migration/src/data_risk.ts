@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { AMS } from './data.js';
-import { BO } from './data_backoffice.js';
+import { BO } from './data_backoffice';
 import { FAC } from './data_facilities';
 import { LEGAL } from './data_legal';
 

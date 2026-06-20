@@ -1,5 +1,5 @@
 /* [codemod] ESM imports */
-import { BO } from './data_backoffice.js';
+import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
 
 /* ============================================================

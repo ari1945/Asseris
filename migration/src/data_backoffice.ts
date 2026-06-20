@@ -3,9 +3,9 @@
    KAP Wijaya Hartono & Rekan (WHR). ESM export BO (window.BO dilucuti).
    Anchor "hari ini" = 2026-03-09 (selaras modul lain).
    ============================================================ */
-const BO = (function () {
+const BO: any = (function () {
   const today = new Date('2026-03-09');
-  const daysTo = (d) => Math.round((new Date(d) - today) / 864e5);
+  const daysTo = (d: any) => Math.round((new Date(d).getTime() - today.getTime()) / 864e5);
 
   /* ---------------- Pengadaan & Vendor (MASTER — sumber tunggal counterparty) ----------------
      Setiap vendor = satu record kanonik: identitas (NPWP/rekening), termin,

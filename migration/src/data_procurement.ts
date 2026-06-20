@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { AMS as AMS_ } from './data.js';
-import { BO } from './data_backoffice.js';
+import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
 const AMS: any = AMS_;
 

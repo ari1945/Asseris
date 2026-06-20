@@ -51,7 +51,8 @@
     "src/data_base.ts",
     "src/data_part2.ts",
     "src/data_firmfin.ts",
-    "src/data_legal.ts"
+    "src/data_legal.ts",
+    "src/data_backoffice.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

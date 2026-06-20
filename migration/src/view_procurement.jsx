@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { ProcDiligence, ProcLineage, ProcP2P, ProcSpend, ProcVendorDrawer } from './view_procurement2.jsx';
-import { BO } from './data_backoffice.js';
+import { BO } from './data_backoffice';
 
 /* ============================================================
    NeoSuite AMS — Pengadaan & Manajemen Vendor (DEEP) · 1/2

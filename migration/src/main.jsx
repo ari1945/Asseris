@@ -8,7 +8,7 @@ import './styles_modules.css';
 import './data.js';
 import './data_people';
 import './data_fpm';
-import './data_backoffice.js';
+import './data_backoffice';
 import './data_legal';
 import './data_firmops';
 import './data_travel';

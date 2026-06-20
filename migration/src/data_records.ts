@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { AMS } from './data.js';
-import { BO as BO_NS } from './data_backoffice.js';
+import { BO as BO_NS } from './data_backoffice';
 
 /* ============================================================
    NeoSuite AMS — Retensi & Arsip: lapisan kanonik (SSOT)
