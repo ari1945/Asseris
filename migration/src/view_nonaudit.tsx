@@ -22,13 +22,13 @@ const NA_ASR_KIND = (a) => a.includes('Tanpa') ? 'gray' : a.includes('Memadai') 
 function NonAuditPortfolio() {
   const { fmt } = AMS;
   const nav = useNav();
-  const aupE = AMS.aupEngine ? AMS.aupEngine() : null;
-  const pfiE = AMS.pfiEngine ? AMS.pfiEngine() : null;
-  const socE = AMS.socEngine ? AMS.socEngine() : null;
-  const ghgE = AMS.ghgEngine ? AMS.ghgEngine() : null;
-  const pfrE = AMS.proformaEngine ? AMS.proformaEngine() : null;
+  const aupE = AMS.aupEngine ? (AMS as any).aupEngine() : null;
+  const pfiE = AMS.pfiEngine ? (AMS as any).pfiEngine() : null;
+  const socE = AMS.socEngine ? (AMS as any).socEngine() : null;
+  const ghgE = AMS.ghgEngine ? (AMS as any).ghgEngine() : null;
+  const pfrE = AMS.proformaEngine ? (AMS as any).proformaEngine() : null;
   /* progres perikatan AUP, PFI & SOC 3402 DITARIK dari engine (satu sumber), bukan hardcode */
-  const list = AMS.NONAUDIT.map(e => {
+  const list = (AMS.NONAUDIT as any[]).map(e => {
     if (aupE && e.id === aupE.meta.id) return { ...e, progress: aupE.progress };
     if (pfiE && e.id === pfiE.meta.id) return { ...e, progress: pfiE.progress, route: 'sjah3400' };
     if (socE && e.id === socE.meta.id) return { ...e, progress: socE.progress, route: 'sjah3402' };
@@ -122,7 +122,7 @@ const REV_CONCL = {
 
 function Review2400() {
   const { fmt } = AMS;
-  const R = AMS.REVIEW_2400;
+  const R: any = AMS.REVIEW_2400;
   const [inq, setInq] = useAmsPersist('review2400inq', () => R.inquiries);
   const [concl, setConcl] = useAmsPersist('review2400concl', R.conclusion);
   const [tab, setTab] = useNA('plan');
@@ -153,7 +153,7 @@ function Review2400() {
           <div className="panel-h" style={{ padding: 0, background: 'var(--surface-2)' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
           {tab === 'plan' && (() => {
-            const P = AMS.REVIEW_2400_PLAN;
+            const P: any = AMS.REVIEW_2400_PLAN;
             return (
               <div style={{ padding: 16 }}>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>

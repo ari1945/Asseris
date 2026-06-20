@@ -44,7 +44,7 @@ const DEFAULT_EXPL = {
 const grpKind = (g) => g.startsWith('Aset') ? 'aset' : g.startsWith('Liabilitas') ? 'liab' : g === 'Ekuitas' ? 'ekuitas' : g === 'Pendapatan' ? 'pendapatan' : 'beban';
 
 /* Shared WTB summary + analytical flags */
-function computeWtbSummary(wtb, pm, opts) {
+function computeWtbSummary(wtb, pm, opts?) {
   const absThr = (opts && opts.absThr != null) ? opts.absThr : pm;        // Rupiah
   const pctThr = (opts && opts.pctThr != null) ? opts.pctThr : 20;        // %
   let totAset = 0, liabMag = 0, ekuMag = 0, revMag = 0, beban = 0, overPm = 0;
@@ -80,7 +80,7 @@ window.computeWtbSummary = computeWtbSummary;
 window.DEFAULT_EXPL = DEFAULT_EXPL;
 
 /* mini two-bar PY→CY trend */
-function TrendBars({ py, cy, w = 46, h = 22 }) {
+function TrendBars({ py, cy, w = 46, h = 22 }: any) {
   const max = Math.max(Math.abs(py), Math.abs(cy)) || 1;
   const bh = (v) => Math.max(2, (Math.abs(v) / max) * (h - 2));
   const up = Math.abs(cy) >= Math.abs(py);
@@ -93,13 +93,13 @@ function TrendBars({ py, cy, w = 46, h = 22 }) {
 }
 
 /* ---------------- Command KPI band ---------------- */
-function WtbKpiBand({ summary, pm, onGotoReview }) {
+function WtbKpiBand({ summary, pm, onGotoReview }: any) {
   const { fmt } = AMS;
   const M = (v) => 'Rp ' + fmt(v / 1e9, 1) + ' M';
   const balanced = Math.abs(summary.neracaDiff) < 1e6;
   const reviewPct = summary.flaggedCount ? Math.round((summary.explained / summary.flaggedCount) * 100) : 100;
 
-  const Tile = ({ label, value, sub, accent, children, onClick }) => (
+  const Tile = ({ label, value, sub, accent, children, onClick }: any) => (
     <div className="panel" style={{ padding: '11px 13px', display: 'flex', flexDirection: 'column', gap: 3, cursor: onClick ? 'pointer' : 'default', position: 'relative' }} onClick={onClick}>
       <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em' }}>{label}</div>
       <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -123,7 +123,7 @@ function WtbKpiBand({ summary, pm, onGotoReview }) {
 }
 
 /* ---------------- Preliminary Analytical Review (SA 520) ---------------- */
-function WtbAnalytical({ pm, onOpenAccount }) {
+function WtbAnalytical({ pm, onOpenAccount }: any) {
   const { fmt } = AMS;
   const { wtb, setWtbOverrides, addReviewNote, aje } = useAudit();
   const nav = useNav();
@@ -292,7 +292,7 @@ function WtbAnalytical({ pm, onOpenAccount }) {
 }
 
 /* ---------------- FS Grouping & Reconciliation ---------------- */
-function WtbGrouping({ pm }) {
+function WtbGrouping({ pm }: any) {
   const { fmt } = AMS;
   const { wtb } = useAudit();
   const nav = useNav();
@@ -317,7 +317,7 @@ function WtbGrouping({ pm }) {
   });
   const balanced = Math.abs(summary.neracaDiff) < 1e6;
 
-  const ReconRow = ({ label, value, accent, strong, top, plain }) => (
+  const ReconRow = ({ label, value, accent, strong, top, plain }: any) => (
     <div className="row ac jb" style={{ padding: '7px 0', borderTop: top ? '2px solid var(--line-strong)' : '1px solid var(--line-soft)' }}>
       <span style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--navy)' : 'var(--ink-2)', fontSize: strong ? 13 : 12.5 }}>{label}</span>
       <span className="mono" style={{ fontWeight: strong ? 700 : 600, color: accent || 'var(--ink)', fontSize: strong ? 14 : 12.5 }}>{plain ? value : 'Rp ' + value + ' M'}</span>

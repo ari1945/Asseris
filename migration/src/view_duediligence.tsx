@@ -42,7 +42,7 @@ function ddDerive(D) {
 }
 
 /* ---- mini horizontal bridge bar ---- */
-function DDBar({ label, value, max, color, strong }) {
+function DDBar({ label, value, max, color, strong }: any) {
   const { fmt } = AMS;
   return (
     <div>
@@ -62,7 +62,7 @@ function DDBar({ label, value, max, color, strong }) {
    ============================================================ */
 function DueDiligence() {
   const { fmt } = AMS;
-  const D = AMS.DUE_DILIGENCE;
+  const D: any = AMS.DUE_DILIGENCE;
   const nav = useNav();
   const [tab, setTab] = window.useAmsPersist('dd.tab', 'ikhtisar');
   const [showReport, setShowReport] = useDD(false);

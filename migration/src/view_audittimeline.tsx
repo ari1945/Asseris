@@ -63,7 +63,7 @@ function ATL_pct(s, e, today, done) {
 }
 
 function AuditTimeline() {
-  const A = AMS;
+  const A: any = AMS;
   const { CLIENTS, ENGAGEMENTS, DELIVERY, DELIVERY_WINDOW, FIRM, fmt } = A;
   const today = DELIVERY_WINDOW.today;
   const firm = useFirm();
@@ -240,7 +240,7 @@ function AuditTimeline() {
   );
 }
 
-function ATL_Kv({ label, v, accent }) {
+function ATL_Kv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
       <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
@@ -250,7 +250,7 @@ function ATL_Kv({ label, v, accent }) {
 }
 
 /* ---- chart: kolom label + timeline ---- */
-function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }) {
+function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: any) {
   const LBLW = mode === 'klien' ? 188 : 250;
   const ROW = 30, HEAD = 28;
   const [hov, setHov] = useStateATL(null);

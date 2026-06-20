@@ -77,7 +77,7 @@ const P65_DOWNSTREAM = [
 const SCOPE_KIND_P65 = { Full: 'blue', Specific: 'purple', Analytical: 'gray' };
 const ELIM_KIND_P65 = { Diverifikasi: 'green', Selisih: 'red', Review: 'amber' };
 
-function P65Card({ value, label, sub, accent }) {
+function P65Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -87,7 +87,7 @@ function P65Card({ value, label, sub, accent }) {
   );
 }
 
-function P65RowKv({ label, v, strong, accent }) {
+function P65RowKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>

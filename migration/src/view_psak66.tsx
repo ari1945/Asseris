@@ -41,7 +41,7 @@ const P66_ASSERT = [
   { asr: 'Kelengkapan — Komitmen', proc: 'Telaah komitmen & liabilitas kontinjensi pengaturan bersama (PSAK 67 ¶23)', sa: 'SA 501', wp: 'G-3d', state: 'warn' },
 ];
 
-function JaCard({ value, unit, label, sub, accent }) {
+function JaCard({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
@@ -55,7 +55,7 @@ function JaCard({ value, unit, label, sub, accent }) {
 }
 
 /* baris pohon keputusan klasifikasi (¶17 · Gambar 1) */
-function DecisionStep({ n, q, par, ans, detail, terminal }) {
+function DecisionStep({ n, q, par, ans, detail, terminal }: any) {
   return (
     <div className="row gap10" style={{ alignItems: 'flex-start', padding: '9px 0', borderTop: n > 1 ? '1px solid var(--line-soft)' : 0 }}>
       <span className="mono" style={{ flex: '0 0 22px', width: 22, height: 22, borderRadius: 6, background: terminal ? 'var(--navy)' : 'var(--blue-050)', color: terminal ? '#fff' : 'var(--navy)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>{n}</span>

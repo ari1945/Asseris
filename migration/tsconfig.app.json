@@ -96,7 +96,26 @@
     "src/view_settings.tsx",
     "src/view_forensic.tsx",
     "src/view_diagnostics.tsx",
-    "src/view_mytasks_parts.tsx"
+    "src/view_mytasks_parts.tsx",
+
+    "src/view_psak65.tsx",
+    "src/view_psak66.tsx",
+    "src/view_psak68.tsx",
+    "src/view_psak71.tsx",
+    "src/view_psak117.tsx",
+    "src/view_isak35.tsx",
+    "src/view_syariah.tsx",
+    "src/view_sakroadmap.tsx",
+    "src/view_sectorck.tsx",
+    "src/view_sustain.tsx",
+    "src/view_nonaudit.tsx",
+    "src/view_ojkfiling.tsx",
+    "src/view_duediligence.tsx",
+    "src/view_auditcomm.tsx",
+    "src/view_audittimeline.tsx",
+    "src/view_pc_hcm.tsx",
+    "src/view_pc_talent.tsx",
+    "src/view_wtb_deep.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

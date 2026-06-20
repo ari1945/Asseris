@@ -95,7 +95,7 @@ const P71_STAGE_META = {
   3: { color: '#b3261e', kind: 'red',   lbl: 'Stage 3', sub: 'Credit-impaired · lifetime' },
 };
 
-function P71Card({ value, label, sub, accent }) {
+function P71Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -105,7 +105,7 @@ function P71Card({ value, label, sub, accent }) {
   );
 }
 
-function P71RowKv({ label, v, strong, accent }) {
+function P71RowKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
@@ -116,7 +116,7 @@ function P71RowKv({ label, v, strong, accent }) {
 
 /* ---- default penanda tangan kertas kerja (dipakai bila chain kanonik kosong) ---- */
 function p71WpSignoffDefaults() {
-  const TEAM = (AMS && AMS.TEAM) || [];
+  const TEAM: any = (AMS && AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '08 Jan 2026' },
@@ -131,12 +131,12 @@ function p71WpSignoffDefaults() {
    sehingga IDENTIK dengan tab analisis, Kalkulator ECL, PSAK 46/2/68,
    Rekonsiliasi & FS Generator. Tidak ada angka yang ditulis ulang.
    ============================================================ */
-function P71WorkPaper({ p71, client, eng, fmt, rp, nav }) {
-  const FIRM = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
+function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
+  const FIRM: any = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'psak71', p71WpSignoffDefaults());
   const r0 = (x) => Math.round(x);
-  const Sect = ({ n, title, sub, children }) => (
+  const Sect = ({ n, title, sub, children }: any) => (
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
         <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
@@ -146,13 +146,13 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }) {
       {children}
     </div>
   );
-  const Meta = ({ k, v, mono }) => (
+  const Meta = ({ k, v, mono }: any) => (
     <div style={{ display: 'grid', gap: 1 }}>
       <span className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700 }}>{k}</span>
       <span className={mono ? 'mono' : ''} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{v}</span>
     </div>
   );
-  const Sign = ({ lbl, p, accent }) => (
+  const Sign = ({ lbl, p, accent }: any) => (
     <div style={{ flex: 1, borderTop: '2px solid ' + (accent || 'var(--navy)'), paddingTop: 8 }}>
       <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
@@ -353,7 +353,7 @@ function PSAK71View() {
      Tidak ada lagi angka FV ganda yang di-hardcode di modul ini. */
   const p68 = useMemoP71(() => canon.psak68(wtb), [wtb]);
   const fvById = useMemoP71(() => Object.fromEntries(p68.items.filter(i => i.p71id).map(i => [i.p71id, i])), [p68]);
-  const wadj = (code) => { const r = wtb.find(x => x.code === code); return r ? Math.round(r.adj / 1e6) : 0; };
+  const wadj = (code: any) => { const r = wtb.find(x => x.code === code); return r ? Math.round(r.adj / 1e6) : 0; };
 
   const [tab, setTab] = useStateP71(() => loader('ams.psak71.tab', 'klasifikasi'));
   const [done, setDone] = useStateP71(() => loader('ams.psak71.done', {}));
@@ -442,7 +442,7 @@ function PSAK71View() {
                             <tr style={{ background: 'var(--surface-2)' }}><td colSpan={5} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>{side === 'aset' ? 'Aset Keuangan' : 'Liabilitas Keuangan'}</td></tr>
                             {P71_CLASSIFY.filter(r => r.side === side).map(r => {
                               const fvSrc = fvById[r.id];
-                              const carry = r.codes && r.codes.length ? Math.abs(r.codes.reduce((a, c) => a + wadj(c), 0)) : (fvSrc ? fvSrc.fv : r.approx);
+                              const carry = r.codes && r.codes.length ? Math.abs((r.codes as any[]).reduce((a, c) => a + wadj(c), 0)) : (fvSrc ? fvSrc.fv : r.approx);
                               return (
                                 <tr key={r.id} onClick={r.link ? () => nav(r.link, { from: 'psak71' }) : undefined} style={{ cursor: r.link ? 'pointer' : 'default', background: r.focus ? 'var(--blue-050)' : undefined }}>
                                   <td>

@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts.jsx';
-import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm.jsx';
+import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
 
 /* ============================================================
    NeoSuite AMS — HCM + CPE/PPL Tracker + Independence (Package E)

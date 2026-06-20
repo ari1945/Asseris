@@ -36,7 +36,7 @@ const I35_TITLES = {
   calk: 'CATATAN ATAS LAPORAN KEUANGAN',
 };
 
-function I35KpiTile({ label, value, sub, accent, onClick, children }) {
+function I35KpiTile({ label, value, sub, accent, onClick, children }: any) {
   return (
     <div className="panel" style={{ padding: '11px 13px', display: 'flex', flexDirection: 'column', gap: 3, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
       <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em' }}>{label}</div>
@@ -48,7 +48,7 @@ function I35KpiTile({ label, value, sub, accent, onClick, children }) {
 }
 
 /* ---- navigator laporan (rail kiri) ---- */
-function I35Nav({ items, active, onChange }) {
+function I35Nav({ items, active, onChange }: any) {
   return (
     <Panel noBody>
       <div className="panel-h"><h3>Set Laporan</h3><span className="sub mono">ISAK 35</span></div>
@@ -74,7 +74,7 @@ function ISAK35View() {
   const { fmt } = AMS;
   const nav = useNav();
   const canon = AMS_CANON;
-  const m = useMemoI35(() => canon.isak35(), []);
+  const m = useMemoI35(() => (canon as any).isak35(), []);
 
   const [tab, setTab] = window.useAmsPersist('isak35.tab', 'posisi');
   const [unit, setUnit] = window.useAmsPersist('isak35.unit', 'jutaan');
@@ -121,7 +121,7 @@ function ISAK35View() {
     total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12.5 },
   }[lvl]);
 
-  const R = ({ label, cy, py, lvl = 'line', note, indent }) => {
+  const R = ({ label, cy, py, lvl = 'line', note, indent }: any) => {
     const st = styleFor(lvl);
     return (
       <tr style={st}>
@@ -329,7 +329,7 @@ function i35ExpenseByNature(expense) {
 }
 
 /* ---- Laporan Perubahan Aset Neto (kolom rollforward) ---- */
-function I35EquityStatement({ m, sc }) {
+function I35EquityStatement({ m, sc }: any) {
   const e = m.equityRoll;
   const rows = [
     { l: 'Saldo per 1 Januari 2025', un: e.un.open, re: e.re.open, strong: true },
@@ -363,10 +363,10 @@ function I35EquityStatement({ m, sc }) {
 }
 
 /* ---- CALK ---- */
-function I35Calk({ m, f0, disc }) {
+function I35Calk({ m, f0, disc }: any) {
   const e = m.entity;
   const get = (grp, code) => m.bs[grp].find(l => l.code === code);
-  const note = (no, title, body, std) => (
+  const note = (no, title, body, std?) => (
     <div style={{ marginBottom: 13 }}>
       <div className="row ac gap8" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
@@ -397,7 +397,7 @@ function I35Calk({ m, f0, disc }) {
 }
 
 /* ---- panel: validasi tie-out ---- */
-function I35Validation({ checks, sc, unitLabel }) {
+function I35Validation({ checks, sc, unitLabel }: any) {
   return (
     <div style={{ padding: 12, display: 'grid', gap: 8 }}>
       <div className="tiny muted" style={{ lineHeight: 1.5 }}>Rekonsiliasi lintas-laporan ISAK 35. Toleransi Rp 1 juta. Satuan: {unitLabel}.</div>
@@ -424,7 +424,7 @@ function I35Validation({ checks, sc, unitLabel }) {
 }
 
 /* ---- panel: daftar-uji pengungkapan ---- */
-function I35Disclosure({ disc, setDisc }) {
+function I35Disclosure({ disc, setDisc }: any) {
   const toggle = (id) => setDisc(list => list.map(d => d.id === id ? { ...d, done: !d.done } : d));
   const done = disc.filter(d => d.done).length;
   return (
@@ -449,7 +449,7 @@ function I35Disclosure({ disc, setDisc }) {
 }
 
 /* ---- panel: prosedur audit ---- */
-function I35Audit({ proc, done, setDone, nav }) {
+function I35Audit({ proc, done, setDone, nav }: any) {
   const toggle = (i) => setDone(d => ({ ...d, [i]: !d[i] }));
   const n = proc.filter((_, i) => done[i]).length;
   return (
@@ -475,9 +475,9 @@ function I35Audit({ proc, done, setDone, nav }) {
 }
 
 /* ---- rail: sign-off (kanonik wpState['isak35']) ---- */
-function I35Signoff({ moduleId }) {
+function I35Signoff({ moduleId }: any) {
   const s = useWpSignoff(moduleId || 'isak35');
-  const Row = ({ slot, label, signed, canSign }) => (
+  const Row = ({ slot, label, signed, canSign }: any) => (
     <button onClick={() => signed ? s.unsign(slot) : (canSign && s.sign(slot))} disabled={!signed && !canSign}
       className="row ac gap8" style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1px solid ' + (signed ? 'var(--green)' : 'var(--line)'), background: signed ? 'var(--green-bg)' : 'var(--surface)', cursor: (signed || canSign) ? 'pointer' : 'not-allowed', textAlign: 'left', opacity: (signed || canSign) ? 1 : 0.6 }}>
       <span style={{ color: signed ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto' }}>{signed ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>

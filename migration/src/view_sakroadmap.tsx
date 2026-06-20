@@ -32,7 +32,7 @@ const SR_REL = {
   tidak:   { lbl: 'N/A', kind: 'muted' },
 };
 
-function SRStat({ value, label, sub, accent }) {
+function SRStat({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -43,7 +43,7 @@ function SRStat({ value, label, sub, accent }) {
 }
 
 /* —— baris standar (dipakai di Horizon & Eksposur Draf) —— */
-function SRStdRow({ s, fmt, nav, dense }) {
+function SRStdRow({ s, fmt, nav, dense }: any) {
   const st = SR_STATUS[s.status];
   return (
     <div style={{ padding: dense ? '9px 14px' : '11px 14px', borderBottom: '1px solid var(--line-soft)' }}>
@@ -74,7 +74,7 @@ function SAKRoadmapView() {
   const nav = useNav();
   const firm = useFirm();
   const loader = window.loadLS || ((k, d) => d);
-  const H = useMemoSR(() => AMS_CANON.sakHorizon(), []);
+  const H = useMemoSR(() => (AMS_CANON as any).sakHorizon(), []);
   const client = (firm && firm.activeClient) || { name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', listed: true };
 
   const [tab, setTab] = useStateSR(() => loader('ams.sakroadmap.tab', 'horizon'));

@@ -17,7 +17,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
    ============================================================ */
 const { useState: useStateFil, useMemo: useMemoFil } = React;
 
-function FilCard({ value, label, sub, accent }) {
+function FilCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -36,7 +36,7 @@ function filStatusMeta(st, late, atRisk) {
 
 function OJKFilingView() {
   const nav = useNav();
-  const F = useMemoFil(() => AMS_CANON.ojkFiling(), []);
+  const F = useMemoFil(() => (AMS_CANON as any).ojkFiling(), []);
 
   return (
     <>

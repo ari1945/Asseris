@@ -593,6 +593,14 @@ ditambal `:any` per-view. **Fix infra do-once:**
   cuma sumbernya.
 - **Metode AMS ad-hoc** (`AMS.kbArticles()`/`kbResolve`/dst) tak di `AmsData` → `(AMS as any).m()`
   per-situs (terlalu banyak utk dienum global). **Method/`Date` aritmetika:** `+date - +ref`.
+- **Augmentasi runtime `AMS_CANON.X()`** (batch 3; mis. `ojkAuditComm`/`isak35`/`syariah`/`psak117`/
+  `ojkFiling`/`sakHorizon`/`ojkSector`/`ojkSustain`) — metode kanon yg ditambah data_*.js via
+  `Object.assign`, TAK ada di tipe strict `canon.ts` → `(AMS_CANON as any).X()` per-situs. **⚠ Jangan
+  blind replace_all** — nama metode muncul juga di **prosa JSX** (`<span>AMS_CANON.ojkFiling()</span>`);
+  anchor pada konteks kode `=> AMS_CANON\.X\(\)` / `=> canon\.X\(\)` (alias `canon`=AMS_CANON di sebagian view).
+- **`Array<string>.reduce(cb, 0)` overload-pick** (psak71 `r.codes:string[]`): TS pilih overload
+  homogen `init:string` → `0` ditolak. Fix: cast **array**-nya `(arr as any[]).reduce(...)`, bukan
+  param callback/akumulator (anotasi `a:number` malah picu konflik overload-2).
 
 **Slice-list view (urut #importer-bernama, excl. side-effect `main.jsx`; terkecil dulu).**
 ✅=selesai. Distribusi terukur: 2×0-imp · 154×1-imp (umumnya route `app.jsx`) · 9×2 · 2×3 ·
@@ -603,7 +611,8 @@ lalu penyedia 7/9/12/22/29/48.
 | ✅ | `view_subsequent` (leaf murni) · `view_sad` (canon_selectors+hooks) · `view_timebudget` (handler-berat) | 1 | **W12 Fase 0** (pilot/beachhead; infra ui.d.ts + fmt/rp + view_calc.d.ts; 192→0; live-proven Partner) |
 | ✅ | **Batch 1 (18, lintas-WS, pure-leaf):** `psak1` `psak2` `psak22` `psak46` `sa200` `sa230` `sa580` `sa701` `hrops`(leave+performance) `payroll` `capacity` `disclosure` `compmatrix` `aje` `jet` `reconcile`(via `dataflow`) `evidence` `kb` | 1 | **W12 Fase 1 batch 1** (144→0; +infra do-once: `shell.d.ts` shim SubBar/TopBar/Sidebar/SettingsMenu, globals.d.ts +runtime-bus `compliancePct(→any)`/`__amsOpenSA`/`loadLS`/`useAmsPersist`/`STD_IFRS_ALIAS`/`WP_REFS`/`deriveWpStatus`/`collectWpNotes`/`openCanonicalWp`/`SignoffDots`/`amsPrintDoc`; 19 route live-proven Partner 0 err) |
 | ✅ | **Batch 2 (18+1, lintas-WS):** `psak19` `psak24` `psak25` `psak16` `psak14` `psak48` `psak58` `sa705` `sa710` `opinion` `eqr` `framework` `isqm_deep`(via `isqm`/route `soqm`) `mytasks`(route `tasks`) `scheduler` `settings` `forensic` `diagnostics`(route `diagnostic`) **+`mytasks_parts`** (rode induk, D2) | 1 | **W12 Fase 1 batch 2** (149→0; +infra do-once: `diagnostics_panel.d.ts` shim (DiagnosticPanel/useDiagnostics/…), globals.d.ts +bus `Spark`/`RP_TXN`/`RP_PARTIES`/`LINEAGE`/`AMSOpinion`/`__amsSetSidebar`/`amsApplyPrefs`/`AMS_LLM`/`amsLlmStatus`, **`canon_types.AjeRow` +`desc?`** (narasi psak14/16/58, canon-tier additif), `(api as any).auth.*` cast (tRPC sub-router); 19 route live-proven Partner 0 err incl deep paths isqm_deep tabs/mytasks_parts/settings security+LLM+perm) |
-| ⬜ | ~115 view 1-importer sisa | 1 | **W12 Fase 1** (batch ~15–25/slice) |
+| ✅ | **Batch 3 (18, lintas-WS):** `psak65` `psak66` `psak68` `psak71` `psak117` `isak35` `syariah` `sakroadmap` `sectorck` `sustain` `nonaudit` `ojkfiling` `duediligence` `auditcomm` `audittimeline` `pc_hcm`(via `people`/route `hcm`) `pc_talent`(route `recruitment`+`learning`) `wtb_deep`(via `execution`/route `wtb`) | 1 | **W12 Fase 1 batch 3** (169→0; +infra `globals.d.ts` +`DEFAULT_EXPL`/`computeWtbSummary` (self-publish wtb_deep); pola dominan **`A:any` sumber data AMS** (duediligence/pc_talent/pc_hcm/nonaudit/audittimeline) + **`(AMS_CANON as any).X()`** augmentasi-runtime kanon (8 OJK/syariah view, cast via konteks `=>` agar prosa JSX aman) + `(AMS as any).engine()` + `r.codes as any[]` reduce-overload; 20 route live-proven Partner 0 err incl deep wtb/hcm/pc_talent) |
+| ⬜ | ~97 view 1-importer sisa | 1 | **W12 Fase 1** (batch ~15–25/slice) |
 | ⬜ | `view_bo2` `view_opinion_parts` | 0 | Fase 1 (hanya side-effect main.jsx) |
 | ⬜ | 9 view 2-importer · `view_cockpit`/`view_materiality` (3) | 2–3 | **W12 Fase 2** |
 | ⬜ | `view_docparts`(7) `view_onboarding`(9) `view_bo1`(12) `view_calc`(22) `view_fpm_parts`(29) `view_analytical`(48) | 7–48 | **W12 Fase 2** (penyedia-bersama, TERAKHIR; hapus shim `.d.ts`-nya saat konversi) |

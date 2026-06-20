@@ -30,7 +30,7 @@ const P117_MODEL_META = {
   VFA: { kind: 'purple', color: '#5b3fa6' },
 };
 
-function P117Card({ value, label, sub, accent }) {
+function P117Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -40,7 +40,7 @@ function P117Card({ value, label, sub, accent }) {
   );
 }
 
-function P117Kv({ label, v, strong, accent }) {
+function P117Kv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
@@ -50,7 +50,7 @@ function P117Kv({ label, v, strong, accent }) {
 }
 
 function p117WpSignoffDefaults() {
-  const TEAM = (AMS && AMS.TEAM) || [];
+  const TEAM: any = (AMS && AMS.TEAM) || [];
   const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '11 Jan 2026' },
@@ -63,12 +63,12 @@ function p117WpSignoffDefaults() {
    KERTAS KERJA A-1 — lembar kerja formal, siap-reviu & cetak.
    Setiap angka ditarik dari prop `p117` (= AMS_CANON.psak117()).
    ============================================================ */
-function P117WorkPaper({ p117, fmt, rp, nav }) {
-  const FIRM = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
+function P117WorkPaper({ p117, fmt, rp, nav }: any) {
+  const FIRM: any = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'psak117', p117WpSignoffDefaults());
   const cl = p117.client;
-  const Sect = ({ n, title, sub, children }) => (
+  const Sect = ({ n, title, sub, children }: any) => (
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
         <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
@@ -78,13 +78,13 @@ function P117WorkPaper({ p117, fmt, rp, nav }) {
       {children}
     </div>
   );
-  const Meta = ({ k, v, mono }) => (
+  const Meta = ({ k, v, mono }: any) => (
     <div style={{ display: 'grid', gap: 1 }}>
       <span className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700 }}>{k}</span>
       <span className={mono ? 'mono' : ''} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{v}</span>
     </div>
   );
-  const Sign = ({ lbl, p, accent }) => (
+  const Sign = ({ lbl, p, accent }: any) => (
     <div style={{ flex: 1, borderTop: '2px solid ' + (accent || 'var(--navy)'), paddingTop: 8 }}>
       <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
@@ -227,7 +227,7 @@ function PSAK117View() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
   const canon = AMS_CANON;
-  const p117 = useMemoP117(() => canon.psak117(), []);
+  const p117 = useMemoP117(() => (canon as any).psak117(), []);
 
   const [tab, setTab] = useStateP117(() => loader('ams.psak117.tab', 'model'));
   const [done, setDone] = useStateP117(() => loader('ams.psak117.done', {}));

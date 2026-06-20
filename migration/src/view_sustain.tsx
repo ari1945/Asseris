@@ -23,7 +23,7 @@ const SUS_ISSB_META = {
   belum:    { kind: 'red',   lbl: 'Belum', color: '#b3261e' },
 };
 
-function SusCard({ value, label, sub, accent }) {
+function SusCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -36,7 +36,7 @@ function SusCard({ value, label, sub, accent }) {
 function SustainabilityView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const S = useMemoSus(() => AMS_CANON.ojkSustain(), []);
+  const S = useMemoSus(() => (AMS_CANON as any).ojkSustain(), []);
 
   const [tab, setTab] = useStateSus(() => loader('ams.sustain.tab', 'muatan'));
   const [done, setDone] = useStateSus(() => loader('ams.sustain.done', {}));

@@ -13,7 +13,7 @@ const { useState: usePChcm } = React;
 
 /* default profile when an employee has no enriched record */
 function profileOf(s) {
-  const A = AMS;
+  const A: any = AMS;
   const base = (A.STAFF_PROFILE || {})[s.id] || {};
   return {
     phone: base.phone || '0811-•••-' + s.id.slice(-3),
@@ -34,8 +34,8 @@ function profileOf(s) {
   };
 }
 
-function Profile360Drawer({ s, onClose }) {
-  const A = AMS, fmt = A.fmt;
+function Profile360Drawer({ s, onClose }: any) {
+  const A: any = AMS, fmt = A.fmt;
   const nav = useNav();
   const p = profileOf(s);
   const tenure = 2026 - s.joined;
@@ -49,13 +49,13 @@ function Profile360Drawer({ s, onClose }) {
   const ethics = (A.ETHICS_DECL || {})[s.id];
   const GC = A.GRADE_COLOR_PC;
 
-  const Section = ({ title, children, action }) => (
+  const Section = ({ title, children, action }: any) => (
     <div style={{ marginBottom: 16 }}>
       <div className="row ac jb" style={{ marginBottom: 8 }}><div className="tiny muted upper">{title}</div>{action}</div>
       {children}
     </div>
   );
-  const Kv = ({ l, v, accent }) => (
+  const Kv = ({ l, v, accent }: any) => (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{l}</div>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
@@ -181,13 +181,13 @@ function Profile360Drawer({ s, onClose }) {
 
 /* ---------------- HCM Analytics (demografi · headcount · attrition) ---------------- */
 function HCMAnalytics() {
-  const A = AMS;
+  const A: any = AMS;
   const D = A.HCM_ANALYTICS;
   const GC = A.GRADE_COLOR_PC;
   const totalHC = D.gradeMix.reduce((s, g) => s + g.n, 0);
   const maxTrend = Math.max(...D.headcountTrend.map(t => t.total));
 
-  const Bar = ({ rows, max, color }) => (
+  const Bar = ({ rows, max, color }: any) => (
     <div style={{ display: 'grid', gap: 7 }}>
       {rows.map((r, i) => (
         <div key={i} className="row ac gap8">

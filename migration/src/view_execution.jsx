@@ -5,7 +5,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui.jsx';
-import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep.jsx';
+import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================

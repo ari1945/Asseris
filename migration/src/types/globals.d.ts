@@ -64,6 +64,9 @@ declare global {
     amsApplyPrefs?: (s: any) => any;
     AMS_LLM?: any;
     amsLlmStatus?: (...args: any[]) => any;
+    /* Self-publish view_wtb_deep (WTB deep-dive helper + default penjelasan). */
+    DEFAULT_EXPL?: any;
+    computeWtbSummary?: (...args: any[]) => any;
   }
 }
 
