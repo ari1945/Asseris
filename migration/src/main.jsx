@@ -25,7 +25,7 @@ import './data_isak35';
 import './data_sakroadmap';
 import './data_syariah';
 import './data_platform';
-import './data_firmfin.js';
+import './data_firmfin';
 import './data_pph23';
 import './data_procurement';
 import './data_facilities';

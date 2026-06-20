@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
 import { RowKv } from './view_calc.jsx';
 import { SliderRow } from './view_materiality.jsx';
-import { FIRMFIN } from './data_firmfin.js';
+import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
    NeoSuite AMS — Firm Finance · Cockpit Keuangan Firma

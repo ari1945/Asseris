@@ -5,7 +5,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Progress, Stat } from './ui.jsx';
 import { HBars, LineChart, StackBar } from './view_fpm_parts.jsx';
-import { FIRMFIN } from './data_firmfin.js';
+import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
    NeoSuite AMS — Firm Dashboard · extra tabs

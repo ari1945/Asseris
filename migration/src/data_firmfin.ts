@@ -34,7 +34,7 @@ const FIRMFIN = (function () {
      margin, aging berbasis umur, penyisihan matriks & roll-forward. Dikonsumsi oleh
      WIP Valuation (route wip), WIP & Realisasi (wipreal), Dashboard & cockpit Firm Finance.
      `provFactor` (opsional) menstres tarif matriks untuk uji sensitivitas kebijakan. */
-  function wip(ctx, provFactor) {
+  function wip(ctx, provFactor?) {
     const F = (provFactor == null ? 1 : provFactor);
     const engs = engOf(ctx), clients = cliOf(ctx);
     const SEED = A().WIP_ENG || [];
@@ -120,7 +120,7 @@ const FIRMFIN = (function () {
     };
   }
 
-  const A = () => AMS || {};
+  const A = (): any => AMS || {};
   const coaOf = (ctx) => (ctx && ctx.coa) || A().FIRM_COA || [];
   const engOf = (ctx) => (ctx && ctx.engagements) || A().ENGAGEMENTS || [];
   const cliOf = (ctx) => (ctx && ctx.clients) || A().CLIENTS || [];
@@ -203,7 +203,7 @@ const FIRMFIN = (function () {
       m[partner].clients += 1;
       m[partner].hours += (e.actualHrs || 0);
     });
-    const rows = Object.values(m).map(p => ({ ...p, util: utilOf(p.name) })).sort((a, b) => b.portfolio - a.portfolio);
+    const rows = Object.values(m).map((p: any) => ({ ...p, util: utilOf(p.name) })).sort((a: any, b: any) => b.portfolio - a.portfolio);
     return { rows, total: sumf(rows, p => p.portfolio) };
   }
 
@@ -215,10 +215,10 @@ const FIRMFIN = (function () {
       { k: 'b30', l: '1–30 hari', c: '#5b3fa6', lo: 0, hi: 30 },
       { k: 'b60', l: '31–60 hari', c: '#9a6a00', lo: 30, hi: 60 },
       { k: 'b90', l: '> 60 hari', c: '#b3261e', lo: 60, hi: 1e9 },
-    ].map(b => ({ ...b, v: 0, n: 0 }));
+    ].map((b: any) => ({ ...b, v: 0, n: 0 }));
     inv.forEach(i => {
       const out = i.amount - i.paid; if (out <= 0) return;
-      const d = Math.round((REFDATE - new Date(i.due)) / 864e5);
+      const d = Math.round((REFDATE.getTime() - new Date(i.due).getTime()) / 864e5);
       const b = buckets.find(x => d > x.lo && d <= x.hi) || buckets[0];
       b.v += out; b.n += 1;
     });
@@ -236,10 +236,10 @@ const FIRMFIN = (function () {
     const open = sumf(openItems, x => x.amount - x.paid);
     const overdue = sumf(list.filter(x => x.status === 'Overdue'), x => x.amount - x.paid);
     const control = -acct(coaOf(ctx), '2-100').bal;
-    const byCat = {};
+    const byCat: any = {};
     openItems.forEach(x => { byCat[x.cat] = (byCat[x.cat] || 0) + (x.amount - x.paid); });
     return { open, overdue, control, reconciling: control - open, count: openItems.length,
-      byCat: Object.entries(byCat).map(([cat, v]) => ({ cat, v })).sort((a, b) => b.v - a.v) };
+      byCat: Object.entries(byCat).map(([cat, v]) => ({ cat, v })).sort((a: any, b: any) => b.v - a.v) };
   }
 
 

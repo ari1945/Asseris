@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
-import { FIRMFIN } from './data_firmfin.js';
+import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
    NeoSuite AMS — Firm General Ledger + AP/AR (Package F)
