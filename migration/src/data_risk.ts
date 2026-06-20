@@ -2,7 +2,7 @@
 import { AMS } from './data.js';
 import { BO } from './data_backoffice.js';
 import { FAC } from './data_facilities';
-import { LEGAL } from './data_legal.js';
+import { LEGAL } from './data_legal';
 
 /* ============================================================
    NeoSuite AMS — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)

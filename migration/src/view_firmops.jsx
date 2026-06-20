@@ -8,7 +8,7 @@ import { Btn, Donut, Panel } from './ui.jsx';
 import { BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { FopsCalendar, FopsLineage, FopsVendorDrawer, FopsVendors } from './view_firmops2.jsx';
 import { BO } from './data_backoffice.js';
-import { LEGAL } from './data_legal.js';
+import { LEGAL } from './data_legal';
 import { SectionTitle } from './view_fpm_parts.jsx';
 
 /* ============================================================

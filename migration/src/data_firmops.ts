@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { BO } from './data_backoffice.js';
-import { LEGAL } from './data_legal.js';
+import { LEGAL } from './data_legal';
 
 /* ============================================================
    NeoSuite AMS — Operasi Firma (Backoffice): lapisan kanonik

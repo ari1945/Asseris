@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import { AMS } from './data.js';
 import { BO } from './data_backoffice.js';
-import { LEGAL } from './data_legal.js';
+import { LEGAL } from './data_legal';
 
 /* ============================================================
    NeoSuite AMS — Aset & Fasilitas Kantor: lapisan kanonik (SSOT)

@@ -7,7 +7,7 @@ import { BoBadge, boJt, boM } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';
 import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
 import { PROC_RISKC, procPct } from './view_procurement.jsx';
-import { LEGAL } from './data_legal.js';
+import { LEGAL } from './data_legal';
 
 /* ============================================================
    NeoSuite AMS — Pengadaan & Vendor (DEEP) · 2/2
