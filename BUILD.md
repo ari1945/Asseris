@@ -470,12 +470,15 @@ terkecil dulu).** ✅=selesai. Banyak file 0-importer = IIFE yang meng-augment
 | ✅ | `data_firmops` `data_fpm` `data_isak35` `data_knowledge` `data_legaldigital` `data_ojk` `data_people` `data_platform` `data_pph23` `data_psak117` `data_records` `data_reg_compliance` `data_risk` `data_sakroadmap` `data_syariah` `data_templates` `data_travel` | 0 | **W11 slice 2** (17 files; 102 errors → 0) |
 | ✅ | `data_import` (W9-wired) `data_part3`🔒 `data_part4`🔒 | 1 | **W11 slice 3** (`58e422c`; trio. part3/4 canon-reachable = FULL strict, 43 errs→0) |
 | ✅ | `data_facilities` | 2 | **W11 F1** (pilot; ESM-export leaf) |
-| — | `data_part1`🔒 `data_procurement` | 2 | backlog |
-| — | `data_base`🔒 `data_part2`🔒 | 3 | backlog |
-| — | `data_firmfin` | 4 | backlog |
-| — | `data_legal` | 8 | backlog |
-| — | `data_backoffice` | 16 | backlog |
-| — | `data` (AMS — **the boss**)🔒 | 147 | **terakhir** (di luar beachhead) |
+| ✅ | `data_part1`🔒 `data_procurement` | 2 | **W11 slice 4** (`f8eb4d4`; part1 strict) |
+| ✅ | `data_base`🔒 `data_part2`🔒 | 3 | **W11 slice 5** (`77506dc`; fmt/rp + aup engines) |
+| ✅ | `data_firmfin` | 4 | **W11 slice 6** (`8f05e8f`; `A():any` + Date.getTime + Object.values casts) |
+| ✅ | `data_legal` | 8 | **W11 slice 7** (`40f0777`; 1 err — `(AMS as any).fmt`) |
+| ✅ | `data_backoffice` | 16 | **W11 slice 8** (`bd10439`; `BO:any` stops sibling-.ts ripple — see note 2) |
+| — | `data` (AMS — **the boss**)🔒 | 147 | **terakhir** (di luar beachhead) — SISA SATU |
+
+> **⇒ Lapisan data SELESAI kecuali `data.js` (boss).** Semua `data_*.{js}` → `.ts`;
+> hanya `data.js` (root AMS, 147 importer, 🔒) tersisa, sengaja terakhir.
 
 > **🔒 = canon-reachable ⇒ FULL strict (bukan app-tier relaks).** Temuan slice 3:
 > `tsconfig.json` (kanon, full strict) menarik tiap `.ts` di graf impornya. Graf:
@@ -488,6 +491,17 @@ terkecil dulu).** ✅=selesai. Banyak file 0-importer = IIFE yang meng-augment
 > **Bukan-🔒** (`data_import`, `data_procurement`, `data_firmfin`, `data_legal`,
 > `data_backoffice`) meng-import **dari** `data.js` tapi tak di-import oleh `data.js`/kanon
 > → app-tier relaks saja. Cek cepat: `npm run typecheck` (jalankan **kedua** tier).
+
+> **Note 2 — riak tipe konkret antar-`.ts` data file (temuan slice 8).** Mengubah
+> data-file **leaf** yang di-import file `.ts` data lain (yang ADA di `include`) membuat
+> ekspornya bertipe konkret (bukan `any`), lalu memunculkan error akses-properti di
+> konsumen tsb. `data_backoffice` (BO) di-import 9 sibling `.ts` (firmops/facilities/
+> legal/licensing/pph23/procurement/records/risk/travel) → tipe baris BO yang ter-infer
+> bikin `BO.x.ap/.ppl/.tujuan` "tak ada". **Solusi:** ketik ekspor namespace `const BO: any`
+> di hulu (sesuai semangat relaks). `firmfin`/`legal` TAK beriak karena konsumennya `.jsx`
+> view (di luar set type-check `include`). Pelajaran utk boss `data.js`: AMS sudah typed
+> `AmsData` via JSDoc; konversi `.ts`-nya akan paparkan riak ke **semua** `.ts` data —
+> rencanakan AMS export `any`/`AmsData`-luwes.
 
 > Setelah lapisan data: arc terpisah untuk **view `.jsx → .tsx`** (W12+), pola sama,
 > `include` tumbuh dengan `src/view_*.tsx`.
