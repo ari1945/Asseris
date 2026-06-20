@@ -14,7 +14,7 @@ import './data_firmops';
 import './data_travel';
 import './data_licensing';
 import './data_reg_compliance';
-import './data_import.js';
+import './data_import';
 import './data_templates';
 import './data_knowledge';
 import './canon';

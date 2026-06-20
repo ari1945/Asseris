@@ -4,9 +4,9 @@
 import { CLIENTS, ENGAGEMENTS, PIPELINE, PROSPECTS, STAFF } from './data_part1.js';
 import { NONAUDIT } from './data_part2.js';
 
-  const DD_OPP  = PIPELINE.find(o => o.id === 'OPP-105');
-  const DD_PROS = PROSPECTS.find(p => p.id === 'PROS-06');
-  const DD_REG  = NONAUDIT.find(n => n.id === 'DD-2025-105');
+  const DD_OPP  = PIPELINE.find(o => o.id === 'OPP-105')!;
+  const DD_PROS = PROSPECTS.find(p => p.id === 'PROS-06')!;
+  const DD_REG  = NONAUDIT.find(n => n.id === 'DD-2025-105')!;
 
   const DD_EBITDA_BRIDGE = [
     { k: 'EBITDA dilaporkan', v: 84_000_000_000, type: 'base' },
@@ -16,7 +16,7 @@ import { NONAUDIT } from './data_part2.js';
     { k: '(−) Penyesuaian sewa pihak berelasi ke harga pasar', v: -1_800_000_000, type: 'less' },
     { k: 'EBITDA ternormalisasi', v: 82_200_000_000, type: 'total' },
   ];
-  const DD_NORM_EBITDA = DD_EBITDA_BRIDGE.find(b => b.type === 'total').v / 1e9; // 82,2 miliar
+  const DD_NORM_EBITDA = DD_EBITDA_BRIDGE.find(b => b.type === 'total')!.v / 1e9; // 82,2 miliar
 
   const DUE_DILIGENCE = {
     /* ---- identitas ditarik dari satu sumber kebenaran ---- */
@@ -427,16 +427,16 @@ import { NONAUDIT } from './data_part2.js';
      ============================================================ */
   const _engIndex = Object.fromEntries(ENGAGEMENTS.map(e => [e.id, e]));
   const _cliIndex = Object.fromEntries(CLIENTS.map(c => [c.id, c]));
-  const engById = (id) => _engIndex[id] || null;
-  const clientById = (id) => _cliIndex[id] || null;
-  const shortName = (n) => (n || '').replace(/^PT\s+/, '').replace(/\s+Tbk$/, '').trim();
-  const bareName = (n) => (n || '').split(',')[0].trim();           // "Rudi Gunawan, CPA" → "Rudi Gunawan"
-  const staffByName = (n) => STAFF.find(s => s.name === bareName(n)) || null;
-  const industryTag = (ind) => (ind || '').split(/[·&\/]/)[0].trim().toLowerCase();
-  function engMeta(engId) {
+  const engById = (id: any) => _engIndex[id] || null;
+  const clientById = (id: any) => _cliIndex[id] || null;
+  const shortName = (n: any) => (n || '').replace(/^PT\s+/, '').replace(/\s+Tbk$/, '').trim();
+  const bareName = (n: any) => (n || '').split(',')[0].trim();           // "Rudi Gunawan, CPA" → "Rudi Gunawan"
+  const staffByName = (n: any) => STAFF.find(s => s.name === bareName(n)) || null;
+  const industryTag = (ind: any) => (ind || '').split(/[·&\/]/)[0].trim().toLowerCase();
+  function engMeta(engId: any) {
     const e = engById(engId);
     if (!e) return null;
-    const c = clientById(e.clientId) || {};
+    const c: any = clientById(e.clientId) || {};
     return {
       engId: e.id, eng: e, clientId: e.clientId,
       client: c.name || '—', shortClient: shortName(c.name),

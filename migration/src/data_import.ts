@@ -23,7 +23,7 @@
    ============================================================ */
 import { AMS } from './data.js';
 const IMPORT = (function () {
-  const A = AMS;
+  const A: any = AMS;
   if (!A) return;
   const fmt = A.fmt || (n => String(n));
   const jt = (n) => 'Rp ' + fmt(Math.round((n || 0) / 1e6)) + ' jt';
@@ -120,7 +120,7 @@ const IMPORT = (function () {
       });
     });
     EXCEPTIONS.forEach(e => {
-      const c = connById(e.conn) || {};
+      const c: any = connById(e.conn) || {};
       out.push({ id: 'IMP-' + e.conn.toUpperCase().slice(0, 3) + '-' + (seq++), connName: c.name, targetLabel: e.dataset, control: controlTotal(e.conn), gate: e.status === 'posted', ...e });
     });
     return out.sort((a, b) => (a.ts < b.ts ? 1 : -1));
@@ -150,7 +150,7 @@ const IMPORT = (function () {
      Membuktikan: baris di-posting tiap konektor = record yang dibaca
      modul-modul hilir. Selisih 0 = tidak ada salinan terpisah. */
   function reconciliation() {
-    return connectors().filter(c => c.status === 'connected' || c.status === 'error').map(c => ({
+    return connectors().filter(c => c.status === 'connected' || c.status === 'error').map((c: any) => ({
       id: c.id, name: c.name, icon: c.icon, status: c.status,
       posted: c.posted, consumed: c.consumed, staged: c.staged, rejected: c.rejected, failed: c.failed,
       feeds: c.feeds, control: controlTotal(c.id), tied: c.tied, serverBacked: !!c.serverBacked,

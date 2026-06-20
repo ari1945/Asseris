@@ -42,7 +42,10 @@
     "src/data_sakroadmap.ts",
     "src/data_syariah.ts",
     "src/data_templates.ts",
-    "src/data_travel.ts"
+    "src/data_travel.ts",
+    "src/data_part3.ts",
+    "src/data_part4.ts",
+    "src/data_import.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

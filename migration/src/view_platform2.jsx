@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
-import { IMPORT } from './data_import.js';
+import { IMPORT } from './data_import';
 
 /* ============================================================
    NeoSuite AMS — Firm Platform · Impor & Integrasi Data (Bagian D-2)

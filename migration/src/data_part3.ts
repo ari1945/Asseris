@@ -4,7 +4,7 @@
 import { fmt } from './data_base.js';
 import { PFI_3400 } from './data_part2.js';
 
-  function pfiEngine(execArg) {
+  function pfiEngine(execArg?: any) {
     const A = PFI_3400, M = A.model, n = M.rev.length;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
@@ -32,8 +32,8 @@ import { PFI_3400 } from './data_part2.js';
     const reasonableAll = bestA.every(a => a.reasonable) && hypoA.every(a => a.reasonable);
     const hyposDisclosed = hypoA.every(a => a.disclosed);
     /* ---- evaluasi per prosedur (pass + narasi temuan) ---- */
-    const pct1 = (x) => (x * 100).toFixed(1).replace('.', ',');
-    const evalProc = (p) => {
+    const pct1 = (x: any) => (x * 100).toFixed(1).replace('.', ',');
+    const evalProc = (p: any) => {
       switch (p.id) {
         case 'occ': return { pass: occOk,
           finding: 'Asumsi hunian ' + occ.value + '% berada dalam band pasar ' + occ.lo + '–' + occ.hi + '% (acuan pasar ' + occ.market + '%) — ' + (occOk ? 'wajar.' : 'DI LUAR band — perlu pertimbangan.') };
@@ -66,7 +66,7 @@ import { PFI_3400 } from './data_part2.js';
     const assumpProcs = procedures.filter(p => ['occ', 'cagr', 'hypo'].includes(p.id));
     const assumpReviewed = assumpProcs.every(p => p.done);
     const assumpReasonable = assumpReviewed && assumpProcs.every(p => p.pass) && reasonableAll;
-    const presentationDone = procedures.find(p => p.id === 'presentation').done;
+    const presentationDone = procedures.find(p => p.id === 'presentation')!.done;
     const canConclude = complete && exceptions === 0;
     /* bentuk simpulan SJAH 3400: keyakinan NEGATIF atas asumsi +
        opini POSITIF atas penyusunan/penyajian + paragraf peringatan WAJIB. */
@@ -193,20 +193,20 @@ import { PFI_3400 } from './data_part2.js';
   /* ---- Engine SJAH 3402: hitung efektivitas, deviasi, opini (pure) ----
      exec: peta { [controlId]: bool } status pelaksanaan uji (override seedDone);
      bila tak diberi → dibaca dari localStorage. */
-  function socEngine(execArg) {
+  function socEngine(execArg?: any) {
     const A = SOC_3402;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
       try { exec = JSON.parse(localStorage.getItem('ams.v1.soc3402.exec') || 'null'); } catch (e) {}
     }
     exec = exec || {};
-    const isDone = (c) => Object.prototype.hasOwnProperty.call(exec, c.id) ? !!exec[c.id] : !!c.seedDone;
+    const isDone = (c: any) => Object.prototype.hasOwnProperty.call(exec, c.id) ? !!exec[c.id] : !!c.seedDone;
     /* deviasi yang dilaporkan sebagai PENGECUALIAN: ada deviasi DAN tidak
        dievaluasi sebagai terisolasi+remediasi dengan tujuan tetap tercapai. */
-    const isReportedException = (c) => c.dev > 0 && !(c.eval && c.eval.isolated && c.eval.remediated && c.eval.objectiveAchieved);
+    const isReportedException = (c: any) => c.dev > 0 && !(c.eval && c.eval.isolated && c.eval.remediated && c.eval.objectiveAchieved);
     /* kontrol beroperasi efektif bila tanpa deviasi, atau deviasi terevaluasi
        tidak menghalangi tercapainya tujuan pengendalian. */
-    const ctrlEffective = (c) => c.dev === 0 || (c.eval && c.eval.objectiveAchieved);
+    const ctrlEffective = (c: any) => c.dev === 0 || (c.eval && c.eval.objectiveAchieved);
     const objectives = A.objectives.map(o => {
       const controls = o.controls.map(c => ({
         ...c, tested: isDone(c), effective: ctrlEffective(c),
@@ -249,7 +249,7 @@ import { PFI_3400 } from './data_part2.js';
         : 'Tidak ada deviasi yang menghalangi tercapainya tujuan pengendalian.',
     };
     /* hal pokok (matters) — satu baris per tujuan pengendalian */
-    const natFmt = (cs) => Array.from(new Set(cs.flatMap(c => c.nature))).join(' · ');
+    const natFmt = (cs: any) => Array.from(new Set(cs.flatMap((c: any) => c.nature))).join(' · ');
     const matters = objectives.map(o => ({
       m: o.name, ref: o.id, claim: o.total + ' kontrol',
       proc: 'Uji desain & efektivitas operasi (' + natFmt(o.controls) + ')',
@@ -370,15 +370,15 @@ import { PFI_3400 } from './data_part2.js';
   /* ---- Engine SJAH 3410: hitung emisi, materialitas, salah saji, simpulan (pure) ----
      exec: peta { [id]: bool } status uji sumber & pelaksanaan prosedur (override
      seedDone); bila tak diberi → dibaca dari localStorage. */
-  function ghgEngine(execArg) {
+  function ghgEngine(execArg?: any) {
     const A = GHG_3410;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
       try { exec = JSON.parse(localStorage.getItem('ams.v1.ghg3410.exec') || 'null'); } catch (e) {}
     }
     exec = exec || {};
-    const isDone = (id, seed) => Object.prototype.hasOwnProperty.call(exec, id) ? !!exec[id] : !!seed;
-    const r1 = (n) => Math.round(n * 10) / 10;
+    const isDone = (id: any, seed: any) => Object.prototype.hasOwnProperty.call(exec, id) ? !!exec[id] : !!seed;
+    const r1 = (n: any) => Math.round(n * 10) / 10;
     /* setiap sumber: emisi terhitung = aktivitas × faktor ÷ 1000 (kg→ton) */
     const sources = A.sources.map(s => {
       const computed = r1(s.act.v * s.ef.v / 1000);
@@ -387,8 +387,8 @@ import { PFI_3400 } from './data_part2.js';
     });
     const inScope = sources.filter(s => !s.informational);   // Scope 1 & 2 — terasurans
     const info = sources.filter(s => s.informational);        // Scope 3 — informasional
-    const sumC = (arr) => r1(arr.reduce((t, s) => t + s.computed, 0));
-    const sumR = (arr) => r1(arr.reduce((t, s) => t + s.reported, 0));
+    const sumC = (arr: any) => r1(arr.reduce((t: any, s: any) => t + s.computed, 0));
+    const sumR = (arr: any) => r1(arr.reduce((t: any, s: any) => t + s.reported, 0));
     const s1 = inScope.filter(s => s.scope === 1), s2 = inScope.filter(s => s.scope === 2);
     const scope1 = sumC(s1), scope2 = sumC(s2), scope3 = sumC(info);
     const assured = r1(scope1 + scope2);
