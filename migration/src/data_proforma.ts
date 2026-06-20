@@ -113,9 +113,9 @@ import { AMS_CANON } from './canon';
        pelaksanaan prosedur (override seedDone); bila tak diberi → dibaca dari
        localStorage ams.v1.pf3420.exec. Seluruh kolom HISTORIS ditarik dari
        AMS_CANON; engine TIDAK menyimpan angka historis. ---- */
-  function proformaEngine(execArg) {
+  function proformaEngine(execArg?) {
     const A = PF_3420;
-    const fmt = (AMS && AMS.fmt) || ((n) => n);
+    const fmt: any = (AMS && AMS.fmt) || ((n) => n);
     const C = AMS_CANON;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
@@ -188,7 +188,7 @@ import { AMS_CANON } from './canon';
     const acqCosts = D.acqCosts;
 
     /* ====== LAPORAN POSISI KEUANGAN PROFORMA (kolom: hist · acq · fin) ====== */
-    const mk = (label, hist, acq, fin, opts) => {
+    const mk = (label, hist, acq, fin, opts?) => {
       const pf = hist + acq + fin;
       return Object.assign({ label, hist, acq, fin, pf }, opts || {});
     };

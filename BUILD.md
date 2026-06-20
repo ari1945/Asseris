@@ -418,6 +418,71 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
   `.js/.jsx`); `tsc` is the stronger check there (catches undefined refs + duplicate
   keys + types). Views stay `.jsx` and consume canon types via `canon_selectors`.
 
+## W11 — Perluasan TypeScript ke lapisan app (data → view)
+
+> Memperluas TS dari kanon ke **lapisan app**, dimulai dari **lapisan data**
+> (`data*.js → .ts`). PRD: `PRD - W11 Perluasan TypeScript — Lapisan Data.md`
+> (Proceed: data-first / tier-relaks / beachhead). **Fase 0–1 SELESAI** (pilot:
+> `data_facilities` · `data_proforma` · `data_licensing`).
+
+**Dua tier, terpisah:**
+- **Kanon** (`tsconfig.json`) — **full `strict`**, tak tersentuh W11.
+- **App** (`tsconfig.app.json`) — **relaks** (`strict:false`, `noImplicitAny:false`,
+  `strictNullChecks:false`, `checkJs:false`, `allowJs:true`), di-**ratchet** belakangan.
+  `include` = **daftar eksplisit** file app yang sudah dikonversi (tumbuh per slice;
+  bukan glob — agar ledakan error terkendali). `npm run typecheck` menjalankan **keduanya**
+  (`tsc --noEmit && tsc -p tsconfig.app.json --noEmit`), keduanya WAJIB 0.
+
+**Temuan resolver (penentu resep):** Vite/Rollup **TIDAK** me-resolve specifier
+`./x.js` ke file `x.ts` (`build` gagal "Could not resolve"). Tapi **extensionless**
+`./x` **resolve** ke `.ts` — persis konvensi kanon W5 (`import './canon'`). ⇒ konversi
+**bukan rename-saja**: tiap importer harus ditulis ulang ke extensionless.
+
+**Resep per slice (analog window-strip — terkecil dulu):**
+1. `git mv src/data_<x>.js src/data_<x>.ts`.
+2. Tulis ulang SEMUA importer specifier `./data_<x>.js` → `./data_<x>` (extensionless).
+   Sertakan side-effect import di `main.jsx`. (`grep -rn "data_<x>\.js" src/`.)
+3. Tambah `src/data_<x>.ts` ke `include` `tsconfig.app.json`.
+4. `tsc -p tsconfig.app.json --noEmit` → perbaiki error (semua **type-only**, nol-runtime):
+   - **arity param opsional** — `f(list)` dipanggil `f()` → `f(list?)`; `mk(…,opts)` → `(…,opts?)`.
+   - **`unknown` dari index-sig AmsData** (AMS hanya tipe sempit WTB/AJE sampai slice AMS) →
+     cast titik-akses `(AMS as any).X`, atau wrapper `const A = (): any => AMS || {}`.
+   - **`Date − Date`** → `a.getTime() - b.getTime()` (ekuivalen runtime).
+   - **baca/tulis `window.<NS>` residual** → deklarasikan di `src/app-globals.d.ts`
+     (peta kopling sisa untuk window-strip-2; terpisah dari `types/globals.d.ts` kanon).
+5. Gate berurutan: `lint`(0) → `typecheck`(0, dua-tier) → `build`(no-resolve-fail) →
+   `test`(59 + fingerprint identik) → `dev:all` render modul terdampak **0 console error**.
+6. Commit `w11(sliceN): data <x>.js → .ts (struktural; angka identik)`.
+
+**Slice-list lapisan data (urut by #importer bernama, excl. side-effect `main.jsx`;
+terkecil dulu).** ✅=selesai. Banyak file 0-importer = IIFE yang meng-augment
+`AMS`/`window` (hanya `main.jsx` yang me-load); biaya = 1 rewrite specifier + casts.
+
+| # | Modul | Importer | Status |
+|---|---|---|---|
+| — | `data_licensing` ✅ · `data_proforma` ✅ | 0 | **W11 F1** (pilot; dual-publish & IIFE-augment) |
+| — | `data_firmops` `data_fpm` `data_isak35` `data_knowledge` `data_legaldigital` `data_ojk` `data_people` `data_platform` `data_pph23` `data_psak117` `data_records` `data_reg_compliance` `data_risk` `data_sakroadmap` `data_syariah` `data_templates` `data_travel` | 0 | backlog |
+| — | `data_import` (W9-wired — hati2) `data_part3` `data_part4` | 1 | backlog |
+| ✅ | `data_facilities` | 2 | **W11 F1** (pilot; ESM-export leaf) |
+| — | `data_part1` `data_procurement` | 2 | backlog |
+| — | `data_base` `data_part2` | 3 | backlog |
+| — | `data_firmfin` | 4 | backlog |
+| — | `data_legal` | 8 | backlog |
+| — | `data_backoffice` | 16 | backlog |
+| — | `data` (AMS — **the boss**) | 147 | **terakhir** (di luar beachhead) |
+
+> Setelah lapisan data: arc terpisah untuk **view `.jsx → .tsx`** (W12+), pola sama,
+> `include` tumbuh dengan `src/view_*.tsx`.
+
+**Catatan — side-fix regresi seed (`server/src/seedData.ts`).** Saat verifikasi W11,
+`npm run seed` gagal (`Cannot read properties of undefined (reading 'FIRM')`) — **regresi
+pra-ada dari window-strip 10z** (`9d14ad8` melucuti tulisan `window.AMS` di `data.js`,
+tapi `loadAmsSeed()` masih baca `g.window.AMS`). **Dua fungsi** kena pola sama: `loadAmsSeed`
+(window.AMS) + `loadConnectorSeed` (window.IMPORT — strip `e627004`, bikin uji `connector seed
+blueprint` RED: 0 < 8). Diperbaiki keduanya: ambil **ekspor ESM** (`mod.AMS`/`mod.IMPORT`), tetap
+isi stub window agar pembaca hilir (`data_import.js` baca window.AMS) jalan. 116 server vitest hijau.
+BUKAN bagian konversi TS — perbaikan korektif terpisah yang membuka jalur seed/login.
+
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.
 - **WARN (W3 remaining worklist, 207):**

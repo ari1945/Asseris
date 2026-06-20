@@ -34,7 +34,7 @@ const FAC = (function () {
     const nbv = a.cost - accDep;
     return { ...a, months, monthly, accDep, nbv, pct: months / (a.life * 12), annualDep: R(monthly * 12), fullyDep: months >= a.life * 12 };
   }
-  function depRows(list) { return (list || BO.FIXED_ASSETS || []).map(depreciate); }
+  function depRows(list?) { return (list || BO.FIXED_ASSETS || []).map(depreciate); }
 
   /* ---------- register & total ---------- */
   function register() {
@@ -46,7 +46,7 @@ const FAC = (function () {
     const byCat = Object.values(rows.reduce((m, r) => {
       (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 });
       m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n += r.qty || 1; return m;
-    }, {})).sort((a, b) => b.cost - a.cost);
+    }, {})).sort((a: any, b: any) => b.cost - a.cost);
     return { rows, totCost, totAcc, totNbv, totAnnual, byCat };
   }
 
@@ -129,7 +129,7 @@ const FAC = (function () {
 
   /* ---------- register ERP (AMS.FIXED_ASSETS) untuk jembatan ---------- */
   function erpRegister() {
-    const list = (AMS && AMS.FIXED_ASSETS) || [];
+    const list = (AMS && (AMS as any).FIXED_ASSETS) || [];
     const rows = list.map(depreciate);
     return { rows, totCost: sum(rows, r => r.cost), totNbv: sum(rows, r => r.nbv), n: rows.length };
   }
@@ -162,7 +162,7 @@ const FAC = (function () {
       {
         id: 'erp', title: 'Register Fasilitas ↔ Register ERP', ok: false, to: 'fixedassets', isCount: true,
         a: 'Register fasilitas (custody)', av: r.rows.length, b: 'Register ERP (akuntansi)', bv: erp.n,
-        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + AMS.fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + AMS.fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
+        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + (AMS as any).fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + (AMS as any).fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
       },
       {
         id: 'maint', title: 'Vendor Pemeliharaan ↔ Master Vendor', ok: mt.masterLinked > 0, to: 'procurement', isCount: true,

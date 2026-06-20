@@ -20,8 +20,8 @@ import { BO as BO_NS } from './data_backoffice.js';
    ke BO.AP_LICENSES agar konsumen lama (FIRMOPS) menarik satu angka.
    ============================================================ */
 (function () {
-  const A = () => AMS || {};
-  const BO = () => BO_NS || {};
+  const A = (): any => AMS || {};
+  const BO = (): any => BO_NS || {};
   const LS = (k, d) => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
 
   function staffById(id) { return (A().STAFF || []).find(s => s.id === id) || null; }
@@ -31,7 +31,7 @@ import { BO as BO_NS } from './data_backoffice.js';
   function yearFrac() {
     const ref = BO().today ? new Date(BO().today) : new Date('2026-03-09');
     const start = new Date(ref.getFullYear(), 0, 1);
-    return Math.min(1, Math.max(0.02, (ref - start) / (365 * 864e5)));
+    return Math.min(1, Math.max(0.02, (ref.getTime() - start.getTime()) / (365 * 864e5)));
   }
 
   /* ---------- PPL/SKP per pegawai — SUMBER: CPE_LOG (+ entri user terpersist) ----------

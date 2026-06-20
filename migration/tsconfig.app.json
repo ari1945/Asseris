@@ -1,0 +1,31 @@
+{
+  "//": "NeoSuite AMS — W11 APP tier (lapisan data .ts, lalu view .tsx). RELAKS & di-ratchet: strict OFF awalnya, dikencangkan per slice. Kanon tetap FULL strict di tsconfig.json (terpisah). include = daftar eksplisit file app yang sudah dikonversi (tumbuh per slice) agar ledakan error terkendali. Lihat 'PRD - W11' & BUILD.md.",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "include": [
+    "src/app-globals.d.ts",
+    "src/data_facilities.ts",
+    "src/data_proforma.ts",
+    "src/data_licensing.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
