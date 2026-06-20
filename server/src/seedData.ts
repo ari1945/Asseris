@@ -30,9 +30,13 @@ export async function loadAmsSeed(): Promise<AmsSeed> {
   }
 
   // @ts-ignore — migration ESM data module is untyped JS (frozen-ish canonical source).
-  await import('../../migration/src/data.js');
-
-  return (g.window as { AMS: AmsSeed }).AMS;
+  const mod = (await import('../../migration/src/data.js')) as { AMS?: AmsSeed };
+  // Window-strip slice 10z dropped data.js's `window.AMS = …` side-effect (it is now a pure
+  // `export const AMS`). Prefer the ESM export; keep the window stub populated so downstream
+  // window.AMS readers under the same stub (e.g. data_import.js in loadConnectorSeed) still work.
+  const ams = (mod.AMS ?? (g.window as { AMS?: AmsSeed }).AMS) as AmsSeed;
+  (g.window as { AMS?: AmsSeed }).AMS = ams;
+  return ams;
 }
 
 // W9 — the connector blueprint the prototype simulated (window.IMPORT.CONNECTORS in
@@ -64,7 +68,10 @@ export interface ConnectorSeed {
 export async function loadConnectorSeed(): Promise<ConnectorSeed[]> {
   await loadAmsSeed(); // ensures the window stub + window.AMS (data_import.js reads window.AMS)
   // @ts-ignore — migration ESM import-blueprint module is untyped JS.
-  await import('../../migration/src/data_import.js');
+  const mod = (await import('../../migration/src/data_import.js')) as { IMPORT?: { connectorsSeed: () => ConnectorSeed[] } };
   const g = globalThis as unknown as { window: { IMPORT?: { connectorsSeed: () => ConnectorSeed[] } } };
-  return g.window.IMPORT?.connectorsSeed() ?? [];
+  // Window-strip dropped data_import.js's `window.IMPORT = …` (ESM `export { IMPORT }` now);
+  // prefer the export, fall back to the window stub for safety. Same fix as loadAmsSeed above.
+  const IMPORT = mod.IMPORT ?? g.window.IMPORT;
+  return IMPORT?.connectorsSeed() ?? [];
 }
