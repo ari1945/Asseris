@@ -531,6 +531,70 @@ blueprint` RED: 0 < 8). Diperbaiki keduanya: ambil **ekspor ESM** (`mod.AMS`/`mo
 isi stub window agar pembaca hilir (`data_import.js` baca window.AMS) jalan. 116 server vitest hijau.
 BUKAN bagian konversi TS — perbaikan korektif terpisah yang membuka jalur seed/login.
 
+## W12 — Perluasan TypeScript ke lapisan view (`view_*.jsx → .tsx`)
+
+> Lanjutan W11 (lapisan data SELESAI). PRD: `PRD - W12 Perluasan TypeScript — Lapisan
+> View (.tsx).md`. Keputusan terkunci (D1–D4): **urut by #importer terkecil-dulu** ·
+> `_parts` by importer-count (erat-kopel boleh ride induk) · **ratchet strict = sub-fase
+> terminal** (W13+, BUKAN di tengah arc) · **scope = 173 view saja** (16 fondasi
+> `ui`/`shell`/`app`/… = W13+). View **bukan canon-reachable** ⇒ semua slice **app-tier
+> relaks** (tak ada 🔒). Tier & resolver identik W11; ekstensi `.tsx`, `jsx:"react-jsx"`
+> sudah ada di kedua tsconfig.
+
+**Resep per slice (identik W11, ekstensi `.tsx`):**
+1. `git mv src/view_<x>.jsx src/view_<x>.tsx`.
+2. Tulis-ulang SEMUA importer specifier `./view_<x>.jsx` → `./view_<x>` (extensionless):
+   side-effect `main.jsx` + named-import `app.jsx` + sibling view (`grep -rn "view_<x>"`).
+   **CATATAN:** hanya rewrite specifier yang menunjuk file YANG DIKONVERSI. Import fondasi
+   `./ui.jsx`/`./icons.jsx`/`./shell.jsx`/`./contexts.jsx` **tetap** (fondasi belum dikonversi).
+3. Tambah `src/view_<x>.tsx` ke `include` `tsconfig.app.json`.
+4. `tsc -p tsconfig.app.json --noEmit` → perbaiki error (type-only, nol-runtime — lihat pola).
+5. Gate: `lint`(0) → `typecheck`(0 dua-tier) → `build` → `test`(59 + fingerprint) →
+   `dev:all` render modul terdampak **0 console err** (Partner).
+6. Commit `w12(sliceN): view_<x> .jsx → .tsx (struktural; angka identik)`.
+
+**⭐ INFRA Fase 0 (sekali, untungkan semua 173 view) — temuan penentu:** konversi naif
+per-view menyemburkan **~64 error/view, ~85% dari komponen FONDASI tak-berketik** (`Panel`/
+`Btn`/`Badge`/`Stat`/`Avatar` di `ui.jsx`): TS meng-infer prop sebagai **required** karena
+destructuring tanpa default → tiap `<Panel noBody>` "missing sub/actions". Tak viable
+ditambal `:any` per-view. **Fix infra do-once:**
+- **`src/ui.d.ts`** — shim longgar (`type AnyComp = (props:any)=>any;` tiap ekspor ui).
+  **Spike membuktikan: sibling `.d.ts` DIHORMATI walau importer pakai `./ui.jsx` eksplisit**
+  (basename match ui.d.ts↔ui.jsx) → **TAK perlu** rewrite specifier fondasi. 192→60 error.
+  Bridge sementara: **HAPUS saat `ui.jsx → ui.tsx` (W13)**, tipe asli ambil alih.
+- **`AmsData.fmt`/`rp`** (`types/globals.d.ts`) — sebelumnya `[k]:unknown` ⇒ `AMS.fmt(...)`
+  "not callable". Ditambah `fmt:(n,decimals?)=>string`/`rp:(n)=>string`. 60→19. (Canon-tier
+  tetap 0 — fmt/rp memang ada di literal AMS.) `I` (icons) & `SubBar` (shell) ter-infer
+  **baik** dari literal/signature → **tak perlu** shim.
+- **Shim penyedia-komponen-bersama** (`view_calc.d.ts` dst.) — view penyedia (`view_calc`
+  Kv/RowKv 22-imp · `view_analytical` KvBox 48 · `view_docparts`/`bo1`/`onboarding`/`fpm_parts`)
+  dikonversi **terakhir** (Fase 2); sampai itu konsumen `.tsx` tarik tipe longgar dari
+  `<provider>.d.ts` sibling (`export const RowKv: AnyComp;`). **HAPUS tiap shim saat
+  provider-nya → .tsx.** Dibuat **on-demand** saat leaf pertama meng-konsumsi provider.
+
+**Sisa error per-view (minoritas, type-only):**
+- **Komponen lokal** (sub-komponen di file view, mis. `KpiCard`/`TBBar`/`EacRow`) prop
+  required ter-infer → `function K({a,b}: any)` pada param destructure (hanya yang di-flag tsc).
+- **`Object.entries(dyn)`/aritmetika `unknown`** → ketik akumulator `const x: any = {}` +
+  param callback `([k,v]: [string, any])`.
+- **JSDoc `@type {import(...)}` BERHENTI dihormati di `.tsx`** (= GOTCHA 3 boss W11) → hapus
+  (inferensi fungsi sudah memberi tipe) atau ganti anotasi TS asli.
+
+**Slice-list view (urut #importer-bernama, excl. side-effect `main.jsx`; terkecil dulu).**
+✅=selesai. Distribusi terukur: 2×0-imp · 154×1-imp (umumnya route `app.jsx`) · 9×2 · 2×3 ·
+lalu penyedia 7/9/12/22/29/48.
+
+| # | Modul | Importer | Status |
+|---|---|---|---|
+| ✅ | `view_subsequent` (leaf murni) · `view_sad` (canon_selectors+hooks) · `view_timebudget` (handler-berat) | 1 | **W12 Fase 0** (pilot/beachhead; infra ui.d.ts + fmt/rp + view_calc.d.ts; 192→0; live-proven Partner) |
+| ⬜ | ~151 view 1-importer sisa | 1 | **W12 Fase 1** (batch ~15–25/slice) |
+| ⬜ | `view_bo2` `view_opinion_parts` | 0 | Fase 1 (hanya side-effect main.jsx) |
+| ⬜ | 9 view 2-importer · `view_cockpit`/`view_materiality` (3) | 2–3 | **W12 Fase 2** |
+| ⬜ | `view_docparts`(7) `view_onboarding`(9) `view_bo1`(12) `view_calc`(22) `view_fpm_parts`(29) `view_analytical`(48) | 7–48 | **W12 Fase 2** (penyedia-bersama, TERAKHIR; hapus shim `.d.ts`-nya saat konversi) |
+
+> **Ratchet strict (D3): sub-fase terminal W13+**, setelah view + fondasi `.jsx` semua
+> `.tsx`, agar program app berbalik strict sekaligus tanpa re-error file yang sudah jadi.
+
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.
 - **WARN (W3 remaining worklist, 207):**

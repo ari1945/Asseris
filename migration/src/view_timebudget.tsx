@@ -82,7 +82,7 @@ function useTBModel(timeEntries, e) {
 }
 
 /* small horizontal budget/actual bar */
-function TBBar({ budget, actual, pct, max }) {
+function TBBar({ budget, actual, pct, max }: any) {
   const over = actual > budget;
   const bw = (budget / max) * 100, aw = (actual / max) * 100;
   return (
@@ -228,7 +228,7 @@ function TBOverview({ m, e }) {
     </>
   );
 }
-function EacRow({ label, v, strong, accent }) {
+function EacRow({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac" style={{ fontSize: strong ? 13 : 12 }}>
       <span style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--ink)' : 'var(--ink-2)' }}>{label}</span>
@@ -305,9 +305,9 @@ function TBPhase({ m }) {
 /* role composition donut + legend */
 function TBRoleMix({ m }) {
   const { fmt } = AMS;
-  const byRole = {};
+  const byRole: any = {};
   m.roster.forEach(r => { byRole[r.role] = (byRole[r.role] || 0) + r.actual; });
-  const segs = Object.entries(byRole).map(([role, h]) => ({ value: h, color: TB_ROLE_COLOR[role], role, h }));
+  const segs = Object.entries(byRole).map(([role, h]: [string, any]) => ({ value: h, color: TB_ROLE_COLOR[role], role, h }));
   const tot = segs.reduce((s, x) => s + x.value, 0);
   return (
     <div className="row gap8 ac" style={{ alignItems: 'center', gap: 18 }}>

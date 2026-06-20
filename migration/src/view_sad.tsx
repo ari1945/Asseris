@@ -67,7 +67,6 @@ function SADLedger() {
 
   /* materialitas: SATU sumber dari SA 320 (Materiality Workspace) — PM%/CTT% & override
      yang sama dipakai PSAK 14 dkk., bukan lagi hardcode 75%/5%. */
-  /** @type {import('./canon_selectors').MaterialityResult} */
   const _mat = materialityFor({ engMateriality: activeEngagement.materiality });
   const om = (_mat && _mat.omFull != null) ? _mat.omFull : activeEngagement.materiality;
   const pm = (_mat && _mat.pmFull != null) ? _mat.pmFull : Math.round(om * 0.75);
@@ -152,7 +151,7 @@ function SADLedger() {
 }
 
 /* ---------- KPI card ---------- */
-function KpiCard({ value, label, accent }) {
+function KpiCard({ value, label, accent }: any) {
   return <Panel><div style={{ padding: '11px 14px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
 }
 
