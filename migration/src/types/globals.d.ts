@@ -51,6 +51,19 @@ declare global {
     openCanonicalWp?: (nav: any, ref: string) => void;
     SignoffDots?: any;
     amsPrintDoc?: any;
+    /* Bus tambahan (W12 batch 2) — semua dual-publish nyata: ui.jsx (Spark),
+       view_related (RP_*), related_modules_data (LINEAGE), view_opinion_parts
+       (AMSOpinion), app.jsx (__amsSetSidebar), view_settings (amsApplyPrefs),
+       llm_providers/api.js (AMS_LLM/amsLlmStatus). */
+    Spark?: any;
+    RP_TXN?: any;
+    RP_PARTIES?: any;
+    LINEAGE?: any;
+    AMSOpinion?: any;
+    __amsSetSidebar?: (...args: any[]) => any;
+    amsApplyPrefs?: (s: any) => any;
+    AMS_LLM?: any;
+    amsLlmStatus?: (...args: any[]) => any;
   }
 }
 

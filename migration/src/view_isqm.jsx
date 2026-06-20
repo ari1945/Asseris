@@ -5,7 +5,7 @@ import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
-import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep.jsx';
+import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
 import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts.jsx';
 import { OKv } from './view_onboarding.jsx';
 

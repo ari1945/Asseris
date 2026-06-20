@@ -32,6 +32,8 @@ export interface AjeRow {
   id: string;
   amount: number;
   status?: string;
+  /** Deskripsi/memo jurnal — dipakai narasi view (psak14/16/58). */
+  desc?: string;
 }
 
 /* ---------- figur akuntansi entitas ditarik dari WTB (Rp juta) ---------- */

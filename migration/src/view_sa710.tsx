@@ -204,7 +204,7 @@ function F710Procedures() {
 }
 
 /* ---------------- Tab: Situasi Khusus ---------------- */
-function F710Special({ client }) {
+function F710Special({ client }: any) {
   const cases = [
     { ic: 'group', k: 'blue', t: 'Periode lalu diaudit auditor pendahulu (¶13)', active: true,
       d: 'Bila tidak dilarang hukum, auditor dapat menyatakan dalam paragraf Hal Lain bahwa angka koresponding diaudit auditor pendahulu — jenis opini, alasan modifikasi (bila ada), & tanggalnya.',
@@ -244,7 +244,7 @@ function F710Special({ client }) {
 }
 
 /* ---------------- Tab: Dampak pada Laporan ---------------- */
-function F710Impact({ client }) {
+function F710Impact({ client }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>

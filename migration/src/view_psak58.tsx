@@ -58,7 +58,7 @@ const P58_DISCLOSURE = [
   { id: 'd33c', ref: '¶33(c)', t: 'Arus kas neto operasi/investasi/pendanaan operasi dihentikan', ok: true },
 ];
 
-function Dg58Card({ value, unit, label, sub, accent }) {
+function Dg58Card({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
@@ -72,7 +72,7 @@ function Dg58Card({ value, unit, label, sub, accent }) {
 }
 
 /* baris waterfall pengukuran (¶15) */
-function MeasureRow({ label, v, sc, cite, sub, total, neg, memo }) {
+function MeasureRow({ label, v, sc, cite, sub, total, neg, memo }: any) {
   const strong = sub || total;
   return (
     <tr style={{
@@ -119,7 +119,7 @@ function PSAK58View() {
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
-  const riskPPE = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-04');
+  const riskPPE = (((AMS && AMS.RISKS) || []) as any[]).find(r => r.id === 'R-04');
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };

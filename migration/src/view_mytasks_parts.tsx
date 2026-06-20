@@ -82,7 +82,7 @@ function useMyTasks() {
       const m = meta[base.id] || {};
       const status = m.status || base.defaultStatus || 'todo';
       const due = base.dueDate ? new Date(base.dueDate + 'T00:00:00') : mtAddDays(MT_TODAY, base.dueOffset != null ? base.dueOffset : 7);
-      const dayDiff = Math.round((mtStartOfDay(due) - mtStartOfDay(MT_TODAY)) / MT_DAY);
+      const dayDiff = Math.round((+mtStartOfDay(due) - +mtStartOfDay(MT_TODAY)) / MT_DAY);
       const sub = m.sub || base.sub || [];
       const subDone = sub.filter(s => s.done).length;
       const done = status === 'done';
@@ -120,7 +120,7 @@ function mtDueLabel(t) {
 }
 
 /* status checkbox: click to cycle done/undone (long-list quick toggle) */
-function TaskCheck({ status, onClick, size = 18 }) {
+function TaskCheck({ status, onClick, size = 18 }: any) {
   return (
     <button className={'mt-check ' + status} onClick={(e) => { e.stopPropagation(); onClick(); }} title="Tandai selesai"
       style={{ width: size, height: size }}>
@@ -130,7 +130,7 @@ function TaskCheck({ status, onClick, size = 18 }) {
 }
 
 /* compact list row (master) */
-function TaskRow({ t, selected, onSelect, mt }) {
+function TaskRow({ t, selected, onSelect, mt }: any) {
   const IconC = I[MT_SRC_ICON[t.src]] || I.flag;
   return (
     <div className={`mt-row p-${t.priority} ${selected ? 'sel' : ''} ${t.done ? 'is-done' : ''}`} onClick={() => onSelect(t.id)}>
@@ -157,7 +157,7 @@ function TaskRow({ t, selected, onSelect, mt }) {
 }
 
 /* add-personal-task inline form */
-function AddTaskForm({ mt, onClose }) {
+function AddTaskForm({ mt, onClose }: any) {
   const [d, setD] = useStateMT({ label: '', priority: 'medium', dueDate: mtAddDays(MT_TODAY, 2).toISOString().slice(0, 10), route: 'cockpit', est: '2' });
   const modules = MODULES.flatMap(g => g.items).filter(m => m.deep);
   const submit = () => {

@@ -157,7 +157,7 @@ function F705Decider() {
 /* ---------------- Tab: Matriks Modifikasi ---------------- */
 function F705Matrix() {
   const cell = (nature, perv) => opinionFor(nature, perv);
-  const Cell = ({ o }) => (
+  const Cell = ({ o }: any) => (
     <td style={{ padding: 0 }}>
       <div style={{ margin: 6, padding: '12px 10px', borderRadius: 8, background: `var(--${o.color}-bg)`, border: `1px solid var(--${o.color})`, textAlign: 'center' }}>
         <div className="mono" style={{ fontWeight: 800, fontSize: 16, color: `var(--${o.color})` }}>{o.short}</div>
@@ -221,7 +221,7 @@ function F705Matrix() {
 }
 
 /* ---------------- Tab: Basis & Rumusan ---------------- */
-function F705Wording({ client }) {
+function F705Wording({ client }: any) {
   const [view, setView] = useState705('wdp');
   const samples = {
     wdp: { h: 'Wajar Dengan Pengecualian', op: `Menurut opini kami, kecuali untuk dampak hal yang diuraikan dalam paragraf Basis untuk Opini Wajar Dengan Pengecualian, laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} ...`, basis: 'Persediaan disajikan pada laporan posisi keuangan sebesar Rp X. Manajemen tidak menyatakan persediaan pada nilai yang lebih rendah antara biaya perolehan dan nilai realisasi neto, melainkan hanya pada biaya perolehan ... Catatan akuntansi entitas menunjukkan bahwa seandainya manajemen menyatakan persediaan pada ..., maka ...', color: 'amber' },
@@ -270,7 +270,7 @@ function F705Wording({ client }) {
 }
 
 /* ---------------- Tab: Penekanan & Hal Lain (SA 706) ---------------- */
-function F705Eom({ client }) {
+function F705Eom({ client }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>

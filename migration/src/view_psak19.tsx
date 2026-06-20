@@ -82,7 +82,7 @@ const P19_DISCLOSURE = [
   { id: 'q124',  ref: '¶124',    t: 'Pengungkapan model revaluasi (bila diterapkan — butuh pasar aktif ¶78)', ok: true, na: true },
 ];
 
-function ItCard({ value, unit, label, sub, accent }) {
+function ItCard({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
@@ -96,9 +96,9 @@ function ItCard({ value, unit, label, sub, accent }) {
 }
 
 /* baris matriks roll-forward (¶118e): Harga Perolehan | Akum. Amortisasi | Neto */
-function RfRowP19({ label, hp, ak, net, sc, sub, total, memo }) {
+function RfRowP19({ label, hp, ak, net, sc, sub, total, memo }: any) {
   const strong = sub || total;
-  const cell = (v, contra) => (
+  const cell = (v: any, contra?: any) => (
     <td className="mono" style={{
       textAlign: 'right', padding: total ? '9px 8px' : '6px 8px', whiteSpace: 'nowrap',
       fontSize: total ? 12.5 : 12, fontWeight: strong ? 700 : 500,

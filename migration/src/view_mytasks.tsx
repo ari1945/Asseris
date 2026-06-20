@@ -4,7 +4,7 @@ import { useNav } from './contexts.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
-import { AddTaskForm, MT_BUCKETS, MT_PRIO_K, MT_PRIO_ORDER, MT_SRC_ICON, TaskRow, mtDueLabel, useMyTasks } from './view_mytasks_parts.jsx';
+import { AddTaskForm, MT_BUCKETS, MT_PRIO_K, MT_PRIO_ORDER, MT_SRC_ICON, TaskRow, mtDueLabel, useMyTasks } from './view_mytasks_parts';
 
 /* ============================================================
    NeoSuite AMS — My Tasks workspace (main):
@@ -13,7 +13,7 @@ import { AddTaskForm, MT_BUCKETS, MT_PRIO_K, MT_PRIO_ORDER, MT_SRC_ICON, TaskRow
 const { useState: useStateMTV, useMemo: useMemoMTV } = React;
 
 /* ---------------- Task detail panel ---------------- */
-function TaskDetail({ t, mt, nav }) {
+function TaskDetail({ t, mt, nav }: any) {
   const [newSub, setNewSub] = useStateMTV('');
   if (!t) {
     return (
@@ -115,7 +115,7 @@ function TaskDetail({ t, mt, nav }) {
 }
 
 /* ---------------- Kanban card ---------------- */
-function BoardCard({ t, mt, onSelect, onDragStart, onDragEnd, dragging }) {
+function BoardCard({ t, mt, onSelect, onDragStart, onDragEnd, dragging }: any) {
   const IconC = I[MT_SRC_ICON[t.src]] || I.flag;
   return (
     <div className={`mt-card p-${t.priority} ${dragging ? 'dragging' : ''}`} draggable

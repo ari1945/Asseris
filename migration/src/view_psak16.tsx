@@ -67,7 +67,7 @@ const P16_DISCLOSURE = [
   { id: 'q77',  ref: '¶77',    t: 'Pengungkapan revaluasi (jika model revaluasi diterapkan)', ok: true, na: true },
 ];
 
-function FaCard({ value, unit, label, sub, accent }) {
+function FaCard({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
@@ -81,9 +81,9 @@ function FaCard({ value, unit, label, sub, accent }) {
 }
 
 /* baris matriks roll-forward (¶73e): Harga Perolehan | Akum. Penyusutan | Neto */
-function RfMatrixRow({ label, hp, ak, net, sc, sub, total, memo }) {
+function RfMatrixRow({ label, hp, ak, net, sc, sub, total, memo }: any) {
   const strong = sub || total;
-  const cell = (v, contra) => (
+  const cell = (v: any, contra?: any) => (
     <td className="mono" style={{
       textAlign: 'right', padding: total ? '9px 8px' : '6px 8px', whiteSpace: 'nowrap',
       fontSize: total ? 12.5 : 12, fontWeight: strong ? 700 : 500,
@@ -141,7 +141,7 @@ function PSAK16View() {
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
-  const riskPPE = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-04');
+  const riskPPE = (((AMS && AMS.RISKS) || []) as any[]).find(r => r.id === 'R-04');
 
   // W10.5 Fase 2 — sealed XLSX "Kertas Kerja E": the PSAK 16 fixed-asset sub-ledger + the
   // sub-ledger↔GL control-total reconciliation, full-rupiah via rp() (SSOT = AMS_CANON.assetRegister).

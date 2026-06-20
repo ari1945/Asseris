@@ -23,7 +23,7 @@ import { AMS_FORENSIC } from './forensic_canon';
    ============================================================ */
 const { useState: useStateFC, useMemo: useMemoFC } = React;
 
-function FCStat({ value, unit, label, sub, accent }) {
+function FCStat({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>

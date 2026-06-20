@@ -96,7 +96,7 @@ function ResourceScheduler() {
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
           <Panel title="Engagement (legenda)">
             <div style={{ display: 'grid', gap: 7 }}>
-              {Object.entries(engColors).map(([eng, v]) => {
+              {Object.entries(engColors).map(([eng, v]: [any, any]) => {
                 const hrs = schedule.reduce((s, m) => s + m.alloc.filter(a => a.eng === eng).reduce((a, x) => a + x.hrs, 0), 0);
                 return (
                   <div key={eng} className="row ac jb" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
@@ -129,8 +129,8 @@ function ResourceScheduler() {
   );
 }
 
-function BookingForm({ schedule, onClose, onAdd }) {
-  const engs = AMS.ENGAGEMENTS, cl = AMS.CLIENTS;
+function BookingForm({ schedule, onClose, onAdd }: any) {
+  const engs: any = AMS.ENGAGEMENTS, cl: any = AMS.CLIENTS;
   const colors = ['#005085', '#1f7a4d', '#5b3fa6', '#0a6b73', '#9a6a00'];
   const [d, setD] = useStateD3({ member: schedule[0].member, eng: engs[0].id, hrs: 8 });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));

@@ -76,7 +76,27 @@
     "src/view_jet.tsx",
     "src/view_reconcile.tsx",
     "src/view_evidence.tsx",
-    "src/view_kb.tsx"
+    "src/view_kb.tsx",
+
+    "src/view_psak19.tsx",
+    "src/view_psak24.tsx",
+    "src/view_psak25.tsx",
+    "src/view_psak16.tsx",
+    "src/view_psak14.tsx",
+    "src/view_psak48.tsx",
+    "src/view_psak58.tsx",
+    "src/view_sa705.tsx",
+    "src/view_sa710.tsx",
+    "src/view_opinion.tsx",
+    "src/view_eqr.tsx",
+    "src/view_framework.tsx",
+    "src/view_isqm_deep.tsx",
+    "src/view_mytasks.tsx",
+    "src/view_scheduler.tsx",
+    "src/view_settings.tsx",
+    "src/view_forensic.tsx",
+    "src/view_diagnostics.tsx",
+    "src/view_mytasks_parts.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

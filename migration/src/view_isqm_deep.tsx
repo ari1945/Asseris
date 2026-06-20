@@ -27,7 +27,7 @@ const { useState: useStateID } = React;
 /* ============================================================
    Heat map L×D 5×5 — visualisasi seluruh risiko mutu
    ============================================================ */
-function SoqmHeatmap({ risks, onPick }) {
+function SoqmHeatmap({ risks, onPick }: any) {
   const cells = [];
   for (let imp = 5; imp >= 1; imp--) {
     for (let lik = 1; lik <= 5; lik++) {
@@ -77,8 +77,8 @@ function SoqmHeatmap({ risks, onPick }) {
 /* ============================================================
    Tab: Tujuan Mutu — Komponen ISQM ↔ Tujuan ↔ Risiko (¶25–28)
    ============================================================ */
-function SoqmObjectives({ risks, nav, onPick }) {
-  const A = AMS;
+function SoqmObjectives({ risks, nav, onPick }: any) {
+  const A: any = AMS;
   const comps = A.QM_COMPONENTS || [];
   /* indeks risiko per nama komponen */
   const byComp = {};
@@ -165,7 +165,7 @@ function SoqmObjectives({ risks, nav, onPick }) {
   );
 }
 
-function D2KPI({ label, v, sub, accent }) {
+function D2KPI({ label, v, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '10px 13px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
@@ -179,7 +179,7 @@ function D2KPI({ label, v, sub, accent }) {
    Penilaian keparahan & pervasivitas defisiensi (¶41)
    Dipanggil dari dalam RemediationTab — DERIVE dari live data.
    ============================================================ */
-function SoqmSeverity({ deficiencies, P, complaints, inspFindings }) {
+function SoqmSeverity({ deficiencies, P, complaints, inspFindings }: any) {
   /* turunkan keparahan & pervasivitas dari sumber kebenaran */
   const rate = (r) => {
     const d = r.deficiency || {};
@@ -237,8 +237,8 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }) {
 /* ============================================================
    Tab: Informasi & Komunikasi (¶33–37)
    ============================================================ */
-function SoqmInfoComm({ nav }) {
-  const A = AMS;
+function SoqmInfoComm({ nav }: any) {
+  const A: any = AMS;
   const roles = A.QM_ROLES || [];
   const cmps = A.COMPLAINTS || [];
   const acts = A.QM_MON_ACTIVITIES || [];
@@ -341,8 +341,8 @@ function SoqmInfoComm({ nav }) {
 /* ============================================================
    Tab: Evaluasi Tahunan SPM (¶53–¶54) — kesimpulan LIVE
    ============================================================ */
-function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }) {
-  const A = AMS;
+function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: any) {
+  const A: any = AMS;
   const master = A.QM_EVAL || {};
 
   /* mesin keputusan ¶54 — diturunkan dari live data */
@@ -497,7 +497,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }) {
   );
 }
 
-function D2KV({ label, v }) {
+function D2KV({ label, v }: any) {
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
@@ -505,7 +505,7 @@ function D2KV({ label, v }) {
     </div>
   );
 }
-function D2Action({ ok, t, v }) {
+function D2Action({ ok, t, v }: any) {
   return (
     <div className="row jb ac">
       <span className="row ac gap8" style={{ minWidth: 0 }}>

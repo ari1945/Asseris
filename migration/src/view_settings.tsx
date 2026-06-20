@@ -25,7 +25,7 @@ function amsApplyPrefs(s) {
   const root = document.documentElement;
   ['--blue', '--blue-600', '--blue-400'].forEach(v => root.style.removeProperty(v));
   const acc = SETTINGS_ACCENTS[s.accent];
-  if (acc && acc.vars) Object.entries(acc.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+  if (acc && acc.vars) Object.entries(acc.vars).forEach(([k, v]: [string, any]) => root.style.setProperty(k, v));
   document.body.classList.toggle('reduce-motion', !!s.reduceMotion);
 }
 window.amsApplyPrefs = amsApplyPrefs;
@@ -42,7 +42,7 @@ const SETTINGS_DEFAULTS = {
 };
 
 /* ---- shared controls ---- */
-function SetToggle({ on, set, disabled }) {
+function SetToggle({ on, set, disabled }: any) {
   return (
     <span onClick={() => !disabled && set(!on)} role="switch" aria-checked={on}
       style={{ width: 38, height: 21, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: disabled ? 'not-allowed' : 'pointer', flex: '0 0 38px', opacity: disabled ? 0.5 : 1 }}>
@@ -50,7 +50,7 @@ function SetToggle({ on, set, disabled }) {
     </span>
   );
 }
-function SRow({ title, sub, children, last }) {
+function SRow({ title, sub, children, last }: any) {
   return (
     <div className="row ac jb" style={{ padding: '12px 14px', borderBottom: last ? 0 : '1px solid var(--line-soft)', gap: 16 }}>
       <div style={{ minWidth: 0 }}>
@@ -61,7 +61,7 @@ function SRow({ title, sub, children, last }) {
     </div>
   );
 }
-const SSelect = ({ value, onChange, options, w = 200 }) => (
+const SSelect = ({ value, onChange, options, w = 200 }: any) => (
   <select className="select" value={value} onChange={e => onChange(e.target.value)} style={{ width: w, height: 30 }}>
     {options.map(o => <option key={o}>{o}</option>)}
   </select>
@@ -167,7 +167,7 @@ function SettingsView() {
 }
 
 /* ---------------- Tampilan ---------------- */
-function SecTampilan({ s, setTop }) {
+function SecTampilan({ s, setTop }: any) {
   const [dark, setDark] = useStateSet(() => localStorage.getItem('ams.dark') === '1');
   const [dense, setDense] = useStateSet(() => localStorage.getItem('ams.dense') === '1');
   const [collapsed, setCollapsed] = useStateSet(() => localStorage.getItem('ams.sidebarCollapsed') === '1');
@@ -221,7 +221,7 @@ function SecTampilan({ s, setTop }) {
 }
 
 /* ---------------- Navigasi & Sidebar (sidebar adaptif) ---------------- */
-function SecNavigasi({ s, setGroup }) {
+function SecNavigasi({ s, setGroup }: any) {
   const n = s.nav;
   const set = (k, v) => setGroup('nav', k, v);
   const off = !n.adaptive;
@@ -278,7 +278,7 @@ function SecNavigasi({ s, setGroup }) {
 
 /* ---------------- Profil & Akun ---------------- */
 /* Hoisted out of SecProfil so inputs don't lose focus on every keystroke (stable identity). */
-function ProfileField({ label, val, onChange, type = 'text', readOnly, hint, mono }) {
+function ProfileField({ label, val, onChange, type = 'text', readOnly, hint, mono }: any) {
   return (
     <div className="field">
       <label>{label}</label>
@@ -304,11 +304,11 @@ function readAvatarFile(file, max, cb) {
       try { cb(cv.toDataURL('image/jpeg', 0.85)); } catch (err) { cb(e.target.result); }
     };
     img.onerror = () => cb(e.target.result);
-    img.src = e.target.result;
+    img.src = e.target.result as string;
   };
   reader.readAsDataURL(file);
 }
-function CredRow({ icon, label, value, mono }) {
+function CredRow({ icon, label, value, mono }: any) {
   return (
     <div className="row ac gap10" style={{ padding: '10px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ width: 28, height: 28, borderRadius: 7, flex: '0 0 28px', display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}>{React.createElement(I[icon] || I.panel, { size: 14 })}</span>
@@ -317,7 +317,7 @@ function CredRow({ icon, label, value, mono }) {
     </div>
   );
 }
-function SecProfil({ auth, flash }) {
+function SecProfil({ auth, flash }: any) {
   const u = auth.user;
   const up = auth.updateProfile;
   const fileRef = React.useRef(null);
@@ -436,7 +436,7 @@ function SecProfil({ auth, flash }) {
 }
 
 /* ---------------- Notifikasi ---------------- */
-function SecNotif({ s, setGroup }) {
+function SecNotif({ s, setGroup }: any) {
   const n = s.notif;
   const cats = [
     ['reviewNotes', 'Catatan Review', 'Saat ada catatan baru atau ditugaskan ke Anda'],
@@ -497,7 +497,7 @@ function fmtWhen(ts) {
   catch (e) { return String(ts); }
 }
 
-function SecKeamanan({ s, setGroup, flash }) {
+function SecKeamanan({ s, setGroup, flash }: any) {
   const auth = useAuth();
   const sec = s.security;
 
@@ -515,20 +515,20 @@ function SecKeamanan({ s, setGroup, flash }) {
   const [events, setEvents] = useStateSet([]);
 
   const refresh = React.useCallback(() => {
-    api.auth.sessions.query().then(setSessions).catch(() => {});
-    api.auth.events.query().then(setEvents).catch(() => {});
+    (api as any).auth.sessions.query().then(setSessions).catch(() => {});
+    (api as any).auth.events.query().then(setEvents).catch(() => {});
   }, []);
   useEffectSet(() => { refresh(); }, [refresh]);
 
   async function startEnroll() {
     setBusy2fa(true);
-    try { setEnroll(await api.auth.enrollTotp.mutate()); }
+    try { setEnroll(await (api as any).auth.enrollTotp.mutate()); }
     catch (e) { flash('Gagal memulai 2FA'); }
     finally { setBusy2fa(false); }
   }
   async function confirmEnroll() {
     setBusy2fa(true);
-    try { await api.auth.verifyTotp.mutate({ token: otp.trim() }); setTotpOn(true); setEnroll(null); setOtp(''); flash('2FA diaktifkan'); refresh(); }
+    try { await (api as any).auth.verifyTotp.mutate({ token: otp.trim() }); setTotpOn(true); setEnroll(null); setOtp(''); flash('2FA diaktifkan'); refresh(); }
     catch (e) { flash('Kode 2FA salah'); }
     finally { setBusy2fa(false); }
   }
@@ -537,12 +537,12 @@ function SecKeamanan({ s, setGroup, flash }) {
     if (pw.n1.length < 12) { setPwErr('Sandi baru minimal 12 karakter.'); return; }
     if (pw.n1 !== pw.n2) { setPwErr('Konfirmasi sandi tidak cocok.'); return; }
     setPwBusy(true);
-    try { await api.auth.changePassword.mutate({ oldPassword: pw.old, newPassword: pw.n1 }); setPw({ old: '', n1: '', n2: '' }); flash('Kata sandi diperbarui'); refresh(); }
+    try { await (api as any).auth.changePassword.mutate({ oldPassword: pw.old, newPassword: pw.n1 }); setPw({ old: '', n1: '', n2: '' }); flash('Kata sandi diperbarui'); refresh(); }
     catch (e) { setPwErr('Sandi saat ini salah.'); }
     finally { setPwBusy(false); }
   }
   async function revokeOthers() {
-    try { const r = await api.auth.revokeOtherSessions.mutate(); flash(r.revoked ? (r.revoked + ' sesi lain dikeluarkan') : 'Tidak ada sesi lain'); refresh(); }
+    try { const r = await (api as any).auth.revokeOtherSessions.mutate(); flash(r.revoked ? (r.revoked + ' sesi lain dikeluarkan') : 'Tidak ada sesi lain'); refresh(); }
     catch (e) {}
   }
 
@@ -629,7 +629,7 @@ function SecKeamanan({ s, setGroup, flash }) {
 }
 
 /* ---------------- Firma & Standar ---------------- */
-function SecFirma({ s, setGroup, firm, isPartner }) {
+function SecFirma({ s, setGroup, firm, isPartner }: any) {
   const f = s.firm;
   return (
     <>
@@ -680,7 +680,7 @@ function SecFirma({ s, setGroup, firm, isPartner }) {
 }
 
 /* ---------------- Lokalisasi ---------------- */
-function SecLokalisasi({ s, setGroup }) {
+function SecLokalisasi({ s, setGroup }: any) {
   const l = s.locale;
   return (
     <Panel noBody>
@@ -708,7 +708,7 @@ function SecLokalisasi({ s, setGroup }) {
 }
 
 /* ---------------- Integrasi ---------------- */
-function SecIntegrasi({ nav }) {
+function SecIntegrasi({ nav }: any) {
   const conns = [
     { icon: 'report', name: 'e-Faktur & Coretax DJP', desc: 'Sinkronisasi faktur pajak & status SPT.', status: 'Terhubung', kind: 'green' },
     { icon: 'coins', name: 'Bank Feed (BCA, Mandiri)', desc: 'Tarik mutasi rekening untuk rekonsiliasi.', status: 'Terhubung', kind: 'green' },
@@ -749,7 +749,7 @@ const PERM_MATRIX = [
   ['Keuangan Firma (ERP)', ['edit', 'view', 'none', 'none']],
   ['Pengaturan Firma & RBAC', ['edit', 'none', 'none', 'none']],
 ];
-function SecAkses({ auth }) {
+function SecAkses({ auth }: any) {
   const roles = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor'];
   const ri = roles.indexOf(auth.role);
   const cap = ROLE_CAPS[auth.role] || ROLE_CAPS['Audit Manager'];
@@ -784,7 +784,7 @@ function SecAkses({ auth }) {
             {roles.map((r, i) => <th key={r} style={{ textAlign: 'center', background: i === ri ? 'var(--blue-100)' : undefined, color: i === ri ? 'var(--blue)' : undefined }}>{r.replace('Engagement ', '').replace('Audit ', '').replace(' Auditor', '')}</th>)}
           </tr></thead>
           <tbody>
-            {PERM_MATRIX.map(([cap2, vals]) => (
+            {PERM_MATRIX.map(([cap2, vals]: [any, any]) => (
               <tr key={cap2}>
                 <td style={{ fontWeight: 600 }}>{cap2}</td>
                 {vals.map((v, i) => <td key={i} style={{ textAlign: 'center', background: i === ri ? 'var(--blue-050)' : undefined }}>{cell(v)}</td>)}
@@ -802,7 +802,7 @@ function SecAkses({ auth }) {
 
 /* ---------------- AI & LLM ---------------- */
 const AI_TEMPS = ['Presisi (faktual)', 'Standar', 'Kreatif'];
-function SecAI({ s, setGroup, flash }) {
+function SecAI({ s, setGroup, flash }: any) {
   const ai = s.ai || {};
   const PROVIDERS = (window.AMS_LLM && window.AMS_LLM.PROVIDERS) || [];
   const active = PROVIDERS.find(p => p.id === ai.provider) || PROVIDERS[0] || {};

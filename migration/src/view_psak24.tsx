@@ -93,7 +93,7 @@ const P24_CK = [
   { reason: 'Pekerja meninggal dunia', up: '2,00×', upmk: '1×', uph: '✓', extra: '', flag: 'green' },
 ];
 
-function P24Card({ value, label, sub, accent }) {
+function P24Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>

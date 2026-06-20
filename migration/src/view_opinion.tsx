@@ -63,7 +63,7 @@ function buildOpinionBlocks(doc, client, O) {
   const o = O.OPINIONS[doc.type];
   const modified = doc.type !== 'unmodified';
   const showKam = doc.opts.kam && doc.type !== 'disclaimer';
-  const blocks = [
+  const blocks: any[] = [
     { type: 'para', text: `Kepada Yth. Para Pemegang Saham, Dewan Komisaris, dan Direksi — ${client}` },
     { type: 'heading', text: 'Opini' + (modified ? ' ' + o.title : '') },
     { type: 'para', text: OP_TXT.intro(client) },
@@ -166,7 +166,7 @@ function AuditOpinionGen() {
 }
 
 /* progress strip across the 4 stages */
-function OpinionFlowBar({ doc, O }) {
+function OpinionFlowBar({ doc, O }: any) {
   const rec = O.recommendOpinion({
     misSev: doc.misOverride === 'auto' ? O.classifyMis(O.aggUncorr(doc.method), 4_250_000_000).sev : doc.misOverride,
     scope: doc.scope, gc: doc.gcStatus,
@@ -196,7 +196,7 @@ function OpinionFlowBar({ doc, O }) {
 /* ============================================================
    TAB 2 — Report Builder + live document preview
    ============================================================ */
-function ReportBuilder({ doc, patch, client, O }) {
+function ReportBuilder({ doc, patch, client, O }: any) {
   const { activeClient } = useFirm();
   const o = O.OPINIONS[doc.type];
   const modified = doc.type !== 'unmodified';
@@ -214,7 +214,7 @@ function ReportBuilder({ doc, patch, client, O }) {
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Jenis Opini" sub="SA 705">
           <div style={{ display: 'grid', gap: 7 }}>
-            {Object.entries(O.OPINIONS).map(([k, v]) => (
+            {Object.entries(O.OPINIONS).map(([k, v]: [any, any]) => (
               <label key={k} className="row ac gap8" style={{ padding: '8px 10px', borderRadius: 7, cursor: 'pointer', border: '1px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line)'), background: doc.type === k ? 'var(--blue-050)' : '#fff' }} onClick={() => patch({ type: k })}>
                 <span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{doc.type === k && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue)' }} />}</span>
                 <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }}>{v.title}</span>
@@ -265,7 +265,7 @@ function ReportBuilder({ doc, patch, client, O }) {
           <div className="grid" style={{ gap: 9 }}>
             <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Rekan penandatangan</div>
               <select className="select" style={{ width: '100%' }} value={doc.signer} onChange={e => patch({ signer: e.target.value })}>
-                {Object.entries(O.SIGNERS).map(([k, s]) => <option key={k} value={k}>{s.name} ({s.reg})</option>)}
+                {Object.entries(O.SIGNERS).map(([k, s]: [any, any]) => <option key={k} value={k}>{s.name} ({s.reg})</option>)}
               </select></div>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
               <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Tanggal laporan</div>

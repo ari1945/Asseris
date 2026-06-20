@@ -75,7 +75,7 @@ const P25_DISC = [
   { id: 'd7', ref: '¶30',  t: 'PSAK terbit namun belum berlaku efektif (dampak diketahui/diestimasi)' },
 ];
 
-function P25Card({ value, label, sub, accent }) {
+function P25Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>

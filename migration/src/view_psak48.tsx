@@ -73,7 +73,7 @@ const P48_DOWNSTREAM = [
   { id: 'sad',    ic: 'scale',   lbl: 'SAD Ledger (SA 450)',         rel: 'Selisih estimasi terpulihkan / provisi → akumulasi salah saji' },
 ];
 
-function P48Card({ value, label, sub, accent }) {
+function P48Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -83,7 +83,7 @@ function P48Card({ value, label, sub, accent }) {
   );
 }
 
-function P48Kv({ label, v, strong, accent }) {
+function P48Kv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>

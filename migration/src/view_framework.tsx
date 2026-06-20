@@ -105,7 +105,7 @@ const FW_STD_LINKS = [
 /* ============================================================
    sub-komponen kecil
    ============================================================ */
-function FWStat({ value, label, sub, accent }) {
+function FWStat({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div style={{ fontSize: 20, fontWeight: 800, color: accent || 'var(--navy)', lineHeight: 1.05, letterSpacing: '-.01em' }}>{value}</div>
@@ -115,7 +115,7 @@ function FWStat({ value, label, sub, accent }) {
   );
 }
 
-function FWChip({ fw, sm }) {
+function FWChip({ fw, sm }: any) {
   const m = FW_META[fw];
   return (
     <span style={{
@@ -129,7 +129,7 @@ function FWChip({ fw, sm }) {
 }
 
 /* toggle baris ya/tidak */
-function FWToggle({ label, hint, value, onChange, yes = 'Ya', no = 'Tidak' }) {
+function FWToggle({ label, hint, value, onChange, yes = 'Ya', no = 'Tidak' }: any) {
   return (
     <div className="row jb ac" style={{ gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div style={{ minWidth: 0 }}>
@@ -145,7 +145,7 @@ function FWToggle({ label, hint, value, onChange, yes = 'Ya', no = 'Tidak' }) {
 }
 
 /* slider ukuran usaha dengan penanda ambang */
-function FWSlider({ label, value, onChange, max, ceil, unit }) {
+function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
   const pct = Math.min(100, (value / max) * 100);
   const ceilPct = Math.min(100, (ceil / max) * 100);
   const over = value > ceil;
@@ -169,7 +169,7 @@ function FWSlider({ label, value, onChange, max, ceil, unit }) {
 /* ============================================================
    POHON KEPUTUSAN — visual, menyala mengikuti jalur kandidat
    ============================================================ */
-function FWGateNode({ n, q, active, dim, accent }) {
+function FWGateNode({ n, q, active, dim, accent }: any) {
   return (
     <div style={{
       border: '1.5px solid ' + (active ? (accent || 'var(--navy)') : 'var(--line)'),
@@ -185,7 +185,7 @@ function FWGateNode({ n, q, active, dim, accent }) {
   );
 }
 
-function FWBranch({ label, taken, dim, accent }) {
+function FWBranch({ label, taken, dim, accent }: any) {
   return (
     <div className="row ac gap8" style={{ paddingLeft: 14, opacity: dim ? .4 : 1, transition: '.15s' }}>
       <span style={{ width: 18, height: 1.5, background: taken ? accent : 'var(--line-strong)' }} />
@@ -198,7 +198,7 @@ function FWBranch({ label, taken, dim, accent }) {
   );
 }
 
-function FWTree({ result }) {
+function FWTree({ result }: any) {
   const g = result.gate, b = result.branch;
   const A = { 1: '#005085', 2: '#0a6b73', 3: '#5b3fa6' };
   return (
