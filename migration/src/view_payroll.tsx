@@ -38,8 +38,8 @@ function calcPayslip(p, R) {
 function Payroll() {
   const { fmt } = AMS;
   const nav = useNav();
-  const R = AMS.PAYROLL_RATES;
-  const staff = AMS.STAFF;
+  const R: any = AMS.PAYROLL_RATES;
+  const staff: any = AMS.STAFF;
   const PR = AMS.PAYROLL;
   const [sel, setSel] = usePR(null);
   const [run, setRun] = useAmsPersist('payrollRun', 'draft'); // draft | approved | paid
@@ -61,11 +61,11 @@ function Payroll() {
   const person = sel ? rows.find(r => r.id === sel) : null;
   const PR_TABS = [{ id: 'gaji', label: 'Daftar Gaji' }, { id: 'bpjs', label: 'Ringkasan BPJS' }, { id: 'jurnal', label: 'Jurnal Penggajian' }, { id: 'buktipotong', label: 'Bukti Potong 1721' }];
   /* employer + employee BPJS aggregates */
-  const bpjs = rows.reduce((a, r) => ({
+  const bpjs: any = rows.reduce((a, r) => ({
     eKes: a.eKes + r.slip.eKes, eJht: a.eJht + r.slip.eJht, eJp: a.eJp + r.slip.eJp, eJkk: a.eJkk + r.slip.eJkk, eJkm: a.eJkm + r.slip.eJkm,
     dKes: a.dKes + r.slip.dKes, dJht: a.dJht + r.slip.dJht, dJp: a.dJp + r.slip.dJp,
   }), { eKes: 0, eJht: 0, eJp: 0, eJkk: 0, eJkm: 0, dKes: 0, dJht: 0, dJp: 0 });
-  const bpjsTotal = Object.values(bpjs).reduce((a, b) => a + b, 0);
+  const bpjsTotal = (Object.values(bpjs) as number[]).reduce((a, b) => a + b, 0);
   /* payroll journal */
   const journal = [
     { ac: '5-100 Beban Gaji & Tunjangan', dr: tot.gross, cr: 0 },
@@ -186,11 +186,11 @@ function Payroll() {
   );
 }
 
-function PayslipDrawer({ r, R, onClose }) {
+function PayslipDrawer({ r, R, onClose }: any) {
   const { fmt } = AMS;
   const s = r.slip;
-  const FIRM = AMS.FIRM;
-  const Line = ({ label, v, sub, neg, bold, sign }) => (
+  const FIRM: any = AMS.FIRM;
+  const Line = ({ label, v, sub, neg, bold, sign }: any) => (
     <div className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ fontSize: bold ? 12.5 : 12, fontWeight: bold ? 700 : 400, color: sub ? 'var(--ink-3)' : 'var(--ink)' }}>{label}</span>
       <span className="mono" style={{ fontSize: bold ? 13 : 12, fontWeight: bold ? 700 : 500, color: neg ? 'var(--red)' : bold ? 'var(--navy)' : 'var(--ink)' }}>{sign === false ? '' : neg ? '− ' : ''}Rp {fmt(v, 0)}</span>

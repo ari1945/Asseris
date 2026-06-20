@@ -197,7 +197,7 @@ function EvidenceEvaluation() {
 }
 
 /* ---------------- Tab 1: Strategi & Ringkasan ---------------- */
-function EvStrategy({ items, verdict, avgScore, coverage }) {
+function EvStrategy({ items, verdict, avgScore, coverage }: any) {
   const principles = [
     { ic: 'scale', t: 'Kecukupan (Sufficiency)', d: 'Ukuran kuantitas bukti. Dipengaruhi penilaian risiko salah saji & kualitas bukti — makin tinggi risiko, makin banyak bukti dibutuhkan.', ref: '¶5(e), ¶A4' },
     { ic: 'target', t: 'Ketepatan (Appropriateness)', d: 'Ukuran kualitas bukti: relevansi terhadap asersi & keandalan sumber. Bukti yang lebih tepat mengurangi kuantitas yang diperlukan.', ref: '¶5(b), ¶A5' },
@@ -281,7 +281,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }) {
 }
 
 /* ---------------- Tab 2: Matriks Kecukupan & Ketepatan ---------------- */
-function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }) {
+function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -367,7 +367,7 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }) {
 
       <Panel title="Hierarki Keandalan Sumber" sub="SA 500 ¶A31">
         <div style={{ display: 'grid', gap: 0 }}>
-          {EV_HIERARCHY.map(([t, r], i) => (
+          {EV_HIERARCHY.map(([t, r]: any, i) => (
             <div key={i} className="row gap8 ac" style={{ padding: '9px 0', borderBottom: i < EV_HIERARCHY.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <div style={{ display: 'flex', gap: 2, flex: '0 0 auto' }}>
                 {[1, 2, 3, 4, 5].map(n => <span key={n} style={{ width: 6, height: 14, borderRadius: 1, background: n <= r ? (r >= 4 ? 'var(--green)' : r >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-3)' }} />)}
@@ -384,7 +384,7 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }) {
 }
 
 /* ---------------- Tab 3: Cakupan Asersi (heatmap) ---------------- */
-function EvAssertions({ items, cycleAsr, coverage, covered, relevant }) {
+function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
@@ -448,11 +448,11 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }) {
 }
 
 /* ---------------- Tab 4: Prosedur & Keandalan ---------------- */
-function EvProcedures({ items }) {
+function EvProcedures({ items }: any) {
   /* count procedure usage across areas */
-  const usage = {};
+  const usage: any = {};
   items.forEach(i => i.procs.forEach(p => { usage[p] = (usage[p] || 0) + 1; }));
-  const maxUse = Math.max(1, ...Object.values(usage));
+  const maxUse = Math.max(1, ...(Object.values(usage) as number[]));
   const inquiryAreas = items.filter(i => i.procs.includes('inquiry'));
 
   return (
@@ -496,7 +496,7 @@ function EvProcedures({ items }) {
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Hierarki Keandalan Sumber" sub="¶A31">
           <div style={{ display: 'grid', gap: 0 }}>
-            {EV_HIERARCHY.map(([t, r], i) => (
+            {EV_HIERARCHY.map(([t, r]: any, i) => (
               <div key={i} className="row gap8 ac" style={{ padding: '8px 0', borderBottom: i < EV_HIERARCHY.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <div style={{ display: 'flex', gap: 2 }}>{[1, 2, 3, 4, 5].map(n => <span key={n} style={{ width: 5, height: 13, borderRadius: 1, background: n <= r ? (r >= 4 ? 'var(--green)' : r >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-3)' }} />)}</div>
                 <span style={{ fontSize: 11, lineHeight: 1.3 }}>{t}</span>
@@ -575,7 +575,7 @@ function EvInformation() {
 }
 
 /* ---------------- Tab 6: Konsistensi Bukti ---------------- */
-function EvConsistency({ openContra }) {
+function EvConsistency({ openContra }: any) {
   const STATE_KIND = { 'Konsisten': 'green', 'Saling Menguatkan': 'green', 'Kontradiksi': 'red' };
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -614,7 +614,7 @@ function EvConsistency({ openContra }) {
 }
 
 /* ---------------- Tab 7: Kesimpulan & Sign-off ---------------- */
-function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }) {
+function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: any) {
   const partner = firm?.activeEngagement?.partner || 'Hartono Wijaya, CPA';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>

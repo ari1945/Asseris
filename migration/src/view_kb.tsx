@@ -52,7 +52,7 @@ function KnowledgeBase() {
   const [fam, setFam] = useStateKB('Semua');
   const [reading, setReading] = useStateKB(null);
 
-  const all = useMemoKB(() => (AMS && AMS.kbArticles ? AMS.kbArticles() : []), []);
+  const all = useMemoKB(() => (AMS && AMS.kbArticles ? (AMS as any).kbArticles() : []), []);
   const qn = q.trim().toLowerCase();
 
   const filtered = all.filter(a => {
@@ -187,7 +187,7 @@ function KnowledgeBase() {
 }
 
 /* ---------- kartu artikel ---------- */
-function KBCard({ a, onOpen }) {
+function KBCard({ a, onOpen }: any) {
   const mi = (window.MODULE_INDEX || {})[a.module] || null;
   const cov = KB_COV[a.coverage] || KB_COV.module;
   const prog = (a.coverage === 'checklist' && window.compliancePct) ? window.compliancePct(a.module) : null;
@@ -221,7 +221,7 @@ function KBCard({ a, onOpen }) {
 }
 
 /* ---------- pembaca artikel (mendalam, tarikan lintas-modul) ---------- */
-function ArticleReader({ code, onClose, onOpenCode }) {
+function ArticleReader({ code, onClose, onOpenCode }: any) {
   const nav = useNav();
   const reg = (window.STANDARDS_REGISTRY || []).find(r => r.code === code);
   React.useEffect(() => {
@@ -231,12 +231,12 @@ function ArticleReader({ code, onClose, onOpenCode }) {
   }, []);
   if (!reg) return null;
 
-  const c = AMS.kbResolve(reg);
+  const c = (AMS as any).kbResolve(reg);
   const mi = (window.MODULE_INDEX || {})[reg.module] || null;
   const cov = KB_COV[reg.coverage] || KB_COV.module;
   const fw = (AMS.KB_FRAMEWORK || {})[reg.type] || { label: reg.type, blurb: '' };
   const prog = (reg.coverage === 'checklist' && window.compliancePct) ? window.compliancePct(reg.module) : null;
-  const tpls = AMS.kbTemplatesForStandard(reg.code, reg.module) || [];
+  const tpls = (AMS as any).kbTemplatesForStandard(reg.code, reg.module) || [];
 
   /* rujukan-silang standar: dari RELATED_SA[module] → cocokkan ke registri; fallback serumpun */
   const relatedRaw = (window.RELATED_SA || {})[reg.module] || [];
@@ -263,7 +263,7 @@ function ArticleReader({ code, onClose, onOpenCode }) {
     else if (window.__amsOpenSA) { onClose(); window.__amsOpenSA({ code: r.code, title: r.title, view: r.view, phase: reg.phase, fromModule: 'kb' }); }
   };
 
-  const Src = ({ ic, lbl, val, onClick, accent }) => (
+  const Src = ({ ic, lbl, val, onClick, accent }: any) => (
     <button onClick={onClick} disabled={!onClick} style={{ display: 'grid', gap: 3, textAlign: 'left', padding: '10px 13px', border: '1px solid var(--line)', borderRadius: 9, background: 'var(--surface-2)', cursor: onClick ? 'pointer' : 'default', opacity: onClick ? 1 : .85, flex: 1, minWidth: 130 }}>
       <span className="muted row ac gap5" style={{ fontWeight: 600, fontSize: 11.5 }}>{ic}{lbl}</span>
       <span style={{ fontSize: 14, fontWeight: 700, color: accent || 'var(--ink)' }}>{val}</span>

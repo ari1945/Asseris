@@ -24,7 +24,7 @@ function capCell(v, leave) {
 
 function CapacityPlanning() {
   const { fmt, CAPACITY } = AMS;
-  const { weeks, grades, staff, pipeline } = CAPACITY;
+  const { weeks, grades, staff, pipeline } = CAPACITY as any;
   const [grade, setGrade] = useStateCap('Semua');
   const [hover, setHover] = useStateCap(null);
 

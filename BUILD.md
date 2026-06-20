@@ -579,6 +579,20 @@ ditambal `:any` per-view. **Fix infra do-once:**
   param callback `([k,v]: [string, any])`.
 - **JSDoc `@type {import(...)}` BERHENTI dihormati di `.tsx`** (= GOTCHA 3 boss W11) → hapus
   (inferensi fungsi sudah memberi tipe) atau ganti anotasi TS asli.
+- **Baca `window.<bus>` (BARU, muncul Fase 1; pilot 3 tak kena):** view membaca runtime-bus
+  imperatif (`compliancePct`/`__amsOpenSA`/`loadLS`/`useAmsPersist`/`STD_IFRS_ALIAS`/`WP_REFS`/
+  `deriveWpStatus`/`collectWpNotes`/`openCanonicalWp`/`SignoffDots`/`amsPrintDoc`). Fix **do-once
+  di `types/globals.d.ts`** (`interface Window`, opsional, longgar) — bus ini sengaja dipertahankan
+  (CLAUDE §4 + memory window-strip), jadi mengetiknya jujur & tahan-lama; **jangan** sebar
+  `(window as any)`. ⚠ `compliancePct` me-return objek ber-`.pct`, BUKAN number → ketik `=> any`.
+- **`SubBar`/`shell.*` prop required** saat dipanggil parsial (mis. `<SubBar moduleId="x" />`
+  tanpa `right`): pilot 3 tak kena krn selalu kirim semua prop. Fix do-once **`src/shell.d.ts`**
+  (shim AnyComp, pola `ui.d.ts`); HAPUS saat `shell.jsx → .tsx` (W13).
+- **`Object.entries`/`Object.values(x:any)`** sering balik `[string, unknown][]`/`unknown[]` di
+  tier ini → anotasi param callback (`(a:any,b:any)`) atau cast hasil (`as number[]`), bukan
+  cuma sumbernya.
+- **Metode AMS ad-hoc** (`AMS.kbArticles()`/`kbResolve`/dst) tak di `AmsData` → `(AMS as any).m()`
+  per-situs (terlalu banyak utk dienum global). **Method/`Date` aritmetika:** `+date - +ref`.
 
 **Slice-list view (urut #importer-bernama, excl. side-effect `main.jsx`; terkecil dulu).**
 ✅=selesai. Distribusi terukur: 2×0-imp · 154×1-imp (umumnya route `app.jsx`) · 9×2 · 2×3 ·
@@ -587,7 +601,8 @@ lalu penyedia 7/9/12/22/29/48.
 | # | Modul | Importer | Status |
 |---|---|---|---|
 | ✅ | `view_subsequent` (leaf murni) · `view_sad` (canon_selectors+hooks) · `view_timebudget` (handler-berat) | 1 | **W12 Fase 0** (pilot/beachhead; infra ui.d.ts + fmt/rp + view_calc.d.ts; 192→0; live-proven Partner) |
-| ⬜ | ~151 view 1-importer sisa | 1 | **W12 Fase 1** (batch ~15–25/slice) |
+| ✅ | **Batch 1 (18, lintas-WS, pure-leaf):** `psak1` `psak2` `psak22` `psak46` `sa200` `sa230` `sa580` `sa701` `hrops`(leave+performance) `payroll` `capacity` `disclosure` `compmatrix` `aje` `jet` `reconcile`(via `dataflow`) `evidence` `kb` | 1 | **W12 Fase 1 batch 1** (144→0; +infra do-once: `shell.d.ts` shim SubBar/TopBar/Sidebar/SettingsMenu, globals.d.ts +runtime-bus `compliancePct(→any)`/`__amsOpenSA`/`loadLS`/`useAmsPersist`/`STD_IFRS_ALIAS`/`WP_REFS`/`deriveWpStatus`/`collectWpNotes`/`openCanonicalWp`/`SignoffDots`/`amsPrintDoc`; 19 route live-proven Partner 0 err) |
+| ⬜ | ~133 view 1-importer sisa | 1 | **W12 Fase 1** (batch ~15–25/slice) |
 | ⬜ | `view_bo2` `view_opinion_parts` | 0 | Fase 1 (hanya side-effect main.jsx) |
 | ⬜ | 9 view 2-importer · `view_cockpit`/`view_materiality` (3) | 2–3 | **W12 Fase 2** |
 | ⬜ | `view_docparts`(7) `view_onboarding`(9) `view_bo1`(12) `view_calc`(22) `view_fpm_parts`(29) `view_analytical`(48) | 7–48 | **W12 Fase 2** (penyedia-bersama, TERAKHIR; hapus shim `.d.ts`-nya saat konversi) |

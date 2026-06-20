@@ -20,9 +20,9 @@ const LV_STAT = { 'Disetujui': 'green', 'Menunggu': 'amber', 'Ditolak': 'red' };
 const LV_TYPE_COLOR = { 'Cuti Tahunan': '#005085', 'Sakit': '#9a6a00', 'Cuti Menikah': '#5b3fa6', 'Cuti Melahirkan': '#0a6b73', 'Izin': '#647889' };
 
 function LeaveAttendance() {
-  const staff = AMS.STAFF;
-  const BAL = AMS.LEAVE_BALANCE;
-  const [reqs, setReqs] = useAmsPersist('leaveReqs', () => AMS.LEAVE_REQUESTS);
+  const staff: any = AMS.STAFF;
+  const BAL: any = AMS.LEAVE_BALANCE;
+  const [reqs, setReqs] = useAmsPersist('leaveReqs', () => AMS.LEAVE_REQUESTS) as any;
   const [tab, setTab] = useHR('requests');
 
   const setStatus = (id, status) => setReqs(list => list.map(r => r.id === id ? { ...r, status } : r));
@@ -128,8 +128,8 @@ const PERF_PHASES = ['Goal Setting', 'Self-Review', 'Manager Review', 'Kalibrasi
 
 function Performance() {
   const { fmt } = AMS;
-  const staff = AMS.STAFF;
-  const C = AMS.PERF_CYCLE;
+  const staff: any = AMS.STAFF;
+  const C: any = AMS.PERF_CYCLE;
   const [sel, setSel] = useHR('EMP-021');
   const [pdata, setPdata] = useAmsPersist('perfPeople', () => C.people);
   const advance = (id) => setPdata(m => { const p = { ...m[id] }; if (!p.goalsSet) p.goalsSet = true; else if (!p.selfDone) p.selfDone = true; else if (!p.mgrDone) p.mgrDone = true; else p.calibrated = true; return { ...m, [id]: p }; });
@@ -256,7 +256,7 @@ function Performance() {
   );
 }
 
-function RowKvBox({ label, v, accent }) {
+function RowKvBox({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>

@@ -61,7 +61,7 @@ const P2_DISCLOSURE = [
   { id: 'q48', ref: '¶48', t: 'Saldo kas signifikan yang tidak tersedia untuk grup diungkapkan', ok: false },
 ];
 
-function P2Card({ value, unit, label, sub, accent }) {
+function P2Card({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
@@ -75,7 +75,7 @@ function P2Card({ value, unit, label, sub, accent }) {
 }
 
 /* baris laporan arus kas */
-function CFRow({ label, v, sc, head, sub, total, memo, note }) {
+function CFRow({ label, v, sc, head, sub, total, memo, note }: any) {
   if (head) {
     return <div style={{ padding: '8px 0 2px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', color: 'var(--ink-4)' }}>{label}</div>;
   }

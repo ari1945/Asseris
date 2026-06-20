@@ -36,6 +36,21 @@ declare global {
   interface Window {
     BENCHMARKS: Benchmark[];
     amsResetFigures?: () => void;
+    /* Imperative runtime-bus + legacy persist/data globals yang sengaja
+       dipertahankan (lihat CLAUDE.md §4 & memory neosuite-ams-window-strip).
+       Diketik longgar (do-once) agar konsumen view .tsx tak perlu cast. */
+    compliancePct?: (stdId: string) => any;
+    __amsOpenSA?: (data: any) => void;
+    loadLS?: (key: string, dflt?: any) => any;
+    useAmsPersist?: (key: string, init?: any) => any;
+    STD_IFRS_ALIAS?: Record<string, any>;
+    /* Helper kertas-kerja kanonik (dual-publish dari view_wp.jsx/sa_canonical.jsx/ui.jsx). */
+    WP_REFS?: any;
+    deriveWpStatus?: (ref: string, audit?: any, firm?: any) => any;
+    collectWpNotes?: (...args: any[]) => any;
+    openCanonicalWp?: (nav: any, ref: string) => void;
+    SignoffDots?: any;
+    amsPrintDoc?: any;
   }
 }
 

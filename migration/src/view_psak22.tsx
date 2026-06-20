@@ -59,7 +59,7 @@ const P22_DOWNSTREAM = [
 const FVA_KIND = { customer: 'blue', brand: 'purple', tech: 'green', ppe: 'amber' };
 const FVA_LBL = { customer: 'Hub. pelanggan', brand: 'Merek dagang', tech: 'Teknologi/lisensi', ppe: 'Step-up aset tetap' };
 
-function P22Card({ value, label, sub, accent }) {
+function P22Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -69,7 +69,7 @@ function P22Card({ value, label, sub, accent }) {
   );
 }
 
-function P22Kv({ label, v, strong, accent, indent }) {
+function P22Kv({ label, v, strong, accent, indent }: any) {
   return (
     <div className="row jb ac">
       <span style={{ fontSize: 12, color: 'var(--ink-2)', paddingLeft: indent ? 12 : 0 }}>{label}</span>

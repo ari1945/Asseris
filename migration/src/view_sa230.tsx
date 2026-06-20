@@ -154,7 +154,7 @@ function SA230View() {
   );
 }
 
-function D2Hero({ label, value, accent }) {
+function D2Hero({ label, value, accent }: any) {
   return (
     <div>
       <div className="tiny muted upper">{label}</div>
@@ -166,7 +166,7 @@ function D2Hero({ label, value, accent }) {
 /* ============================================================
    TAB 1 — Ikhtisar Dokumentasi (Uji Auditor Berpengalaman ¶8)
    ============================================================ */
-function D2Ikhtisar({ C }) {
+function D2Ikhtisar({ C }: any) {
   const { agg, nav } = C;
   const ready = agg.blocking === 0;
   // tiga kriteria ¶8, masing-masing bersumber dari WP kanonik
@@ -257,7 +257,7 @@ function D2Ikhtisar({ C }) {
   );
 }
 
-function D2Criterion({ para, title, sub, pct, detail }) {
+function D2Criterion({ para, title, sub, pct, detail }: any) {
   const color = pct >= 90 ? 'var(--green)' : pct >= 60 ? 'var(--blue)' : 'var(--amber)';
   return (
     <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none', borderColor: 'var(--line)' }}>
@@ -274,7 +274,7 @@ function D2Criterion({ para, title, sub, pct, detail }) {
   );
 }
 
-function D2Gate({ ok, label, v }) {
+function D2Gate({ ok, label, v }: any) {
   return (
     <div className="row jb ac">
       <span className="row ac gap8" style={{ minWidth: 0 }}>
@@ -286,14 +286,14 @@ function D2Gate({ ok, label, v }) {
   );
 }
 
-function D2SectionBars({ rows }) {
+function D2SectionBars({ rows }: any) {
   // kelompokkan menurut seksi WP
   const groups = {};
   rows.forEach(r => { (groups[r.section] = groups[r.section] || []).push(r); });
   const entries = Object.entries(groups);
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      {entries.map(([sec, list]) => {
+      {entries.map(([sec, list]: [any, any]) => {
         const sumSat = list.reduce((a, r) => a + r.sat, 0);
         const pct = Math.round(sumSat / (list.length * 5) * 100);
         const color = pct >= 90 ? 'var(--green)' : pct >= 55 ? 'var(--blue)' : 'var(--amber)';
@@ -314,7 +314,7 @@ function D2SectionBars({ rows }) {
 /* ============================================================
    TAB 2 — Atribut Dokumentasi (¶8–¶9)  — MATRIKS INTI
    ============================================================ */
-function D2Atribut({ C }) {
+function D2Atribut({ C }: any) {
   const { rows, agg, nav } = C;
   const [filter, setFilter] = useStateD2('all');
   const open = (ref) => { if (window.openCanonicalWp) window.openCanonicalWp(nav, ref); else nav('workpapers'); };
@@ -420,7 +420,7 @@ function D2Atribut({ C }) {
   );
 }
 
-function D2Tick({ ok }) {
+function D2Tick({ ok }: any) {
   return ok
     ? <span style={{ color: 'var(--green)', display: 'inline-flex' }}><I.check size={15} /></span>
     : <span style={{ color: 'var(--ink-4)', fontWeight: 700 }}>—</span>;
@@ -429,7 +429,7 @@ function D2Tick({ ok }) {
 /* ============================================================
    TAB 3 — Hal Signifikan & Pertimbangan Profesional (¶8c, ¶10)
    ============================================================ */
-function D2Signifikan({ C }) {
+function D2Signifikan({ C }: any) {
   const { rows, audit, nav } = C;
   const fmt = AMS.fmt;
   const risks = (audit.risks || []).filter(r => r.inherent === 'Significant');
@@ -541,7 +541,7 @@ function D2Signifikan({ C }) {
 /* ============================================================
    TAB 4 — Penyimpangan & Inkonsistensi (¶11–¶13)
    ============================================================ */
-function D2Penyimpangan({ C }) {
+function D2Penyimpangan({ C }: any) {
   const { rows, nav } = C;
   const excRows = rows.filter(r => r.exc > 0);
 
@@ -620,7 +620,7 @@ function D2Penyimpangan({ C }) {
   );
 }
 
-function D2DepTable({ items, onOpen }) {
+function D2DepTable({ items, onOpen }: any) {
   return (
     <div style={{ display: 'grid', gap: 8 }}>
       {items.map(it => (
@@ -639,7 +639,7 @@ function D2DepTable({ items, onOpen }) {
   );
 }
 
-function D2Empty({ text, ok }) {
+function D2Empty({ text, ok }: any) {
   return (
     <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none', background: ok ? 'var(--green-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
       <div className="row gap8" style={{ alignItems: 'flex-start' }}>
@@ -653,13 +653,13 @@ function D2Empty({ text, ok }) {
 /* ============================================================
    TAB 5 — Perakitan Berkas Final & Retensi (¶14–¶16)
    ============================================================ */
-function D2Perakitan({ C }) {
+function D2Perakitan({ C }: any) {
   const { agg, nav } = C;
   const reportDate = D2_REPORT_DATE;
   const assemblyDue = d2addDays(reportDate, D2_ASSEMBLY_DAYS);
   const retentionUntil = d2addYears(reportDate, D2_RETENTION_YEARS);
-  const daysToReport = Math.round((reportDate - D2_REF) / 864e5);
-  const daysToAssembly = Math.round((assemblyDue - D2_REF) / 864e5);
+  const daysToReport = Math.round((+reportDate - +D2_REF) / 864e5);
+  const daysToAssembly = Math.round((+assemblyDue - +D2_REF) / 864e5);
   const preReport = daysToReport > 0;
   // kelengkapan berkas = % atribut dokumentasi (SSOT)
   const filePct = agg.docPct;
@@ -743,7 +743,7 @@ function D2Perakitan({ C }) {
   );
 }
 
-function D2Timeline({ points }) {
+function D2Timeline({ points }: any) {
   return (
     <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
       <div style={{ position: 'absolute', left: 28, right: 28, top: 9, height: 2, background: 'var(--line-strong)' }} />
@@ -759,7 +759,7 @@ function D2Timeline({ points }) {
   );
 }
 
-function D2Mini({ label, value, accent }) {
+function D2Mini({ label, value, accent }: any) {
   return (
     <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
@@ -768,11 +768,11 @@ function D2Mini({ label, value, accent }) {
   );
 }
 
-function D2KV({ label, v }) {
+function D2KV({ label, v }: any) {
   return <div className="row jb ac"><span className="tiny muted">{label}</span><span className="mono tiny" style={{ fontWeight: 700 }}>{v}</span></div>;
 }
 
-function D2Doc({ icon, t, d }) {
+function D2Doc({ icon, t, d }: any) {
   const DIcon = I[icon] || I.book;
   return (
     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
@@ -789,7 +789,7 @@ function D2Doc({ icon, t, d }) {
    kelengkapan, dasar telaah mutu & opini. Status tiap tautan
    ditarik dari sumber kanonik yang sama (tanpa salinan privat).
    ============================================================ */
-function D2Keterkaitan({ C }) {
+function D2Keterkaitan({ C }: any) {
   const { rows, agg, audit, nav } = C;
   const fmt = AMS.fmt;
   const open = (id) => nav(id, { from: 'sa230' });
@@ -937,7 +937,7 @@ function D2Keterkaitan({ C }) {
   );
 }
 
-function D2LinkCard({ m, dir, onOpen }) {
+function D2LinkCard({ m, dir, onOpen }: any) {
   const Ic = I[m.ic] || I.doc;
   return (
     <button type="button" className="d2link" onClick={() => onOpen(m.id)} title={'Buka ' + m.lbl}

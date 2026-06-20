@@ -57,7 +57,26 @@
 
     "src/view_subsequent.tsx",
     "src/view_sad.tsx",
-    "src/view_timebudget.tsx"
+    "src/view_timebudget.tsx",
+
+    "src/view_psak1.tsx",
+    "src/view_psak2.tsx",
+    "src/view_psak22.tsx",
+    "src/view_psak46.tsx",
+    "src/view_sa200.tsx",
+    "src/view_sa230.tsx",
+    "src/view_sa580.tsx",
+    "src/view_sa701.tsx",
+    "src/view_hrops.tsx",
+    "src/view_payroll.tsx",
+    "src/view_capacity.tsx",
+    "src/view_disclosure.tsx",
+    "src/view_compmatrix.tsx",
+    "src/view_aje.tsx",
+    "src/view_jet.tsx",
+    "src/view_reconcile.tsx",
+    "src/view_evidence.tsx",
+    "src/view_kb.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

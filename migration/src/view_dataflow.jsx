@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Panel, Stat } from './ui.jsx';
 import { DFAturan, DFJejak, DFPropagasi } from './view_dataflow2.jsx';
 import { MSub } from './view_fpm_parts.jsx';
-import { DFRekonsiliasi } from './view_reconcile.jsx';
+import { DFRekonsiliasi } from './view_reconcile';
 
 /* ============================================================
    NeoSuite AMS — Alur Data & Integritas (Klien → Perikatan → Kerja)

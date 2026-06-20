@@ -36,10 +36,10 @@ function JournalEntryTesting() {
   const sel = scored.find(j => j.id === selId) || flagged[0];
 
   // user stratification
-  const byUser = {};
+  const byUser: any = {};
   JE_POP.forEach(j => { byUser[j.user] = (byUser[j.user] || 0) + 1; });
-  const userStrat = Object.entries(byUser).sort((a, b) => b[1] - a[1]);
-  const maxUser = Math.max(...userStrat.map(u => u[1]));
+  const userStrat: any[] = Object.entries(byUser).sort((a: any, b: any) => b[1] - a[1]);
+  const maxUser = Math.max(...userStrat.map((u: any) => u[1]));
 
   const totalJE = 18452, manualJE = 1240;
   const exceptions = Object.values(tested).filter(v => v === 'exception').length;

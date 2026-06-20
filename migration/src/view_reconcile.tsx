@@ -25,7 +25,7 @@ const RC_STAT = {
 function rcJt(n) { return 'Rp ' + AMS.fmt(Math.round(n)) + ' jt'; }
 
 /* ---- node kecil untuk diagram lineage ---- */
-function RCNode({ icon, title, sub, accent, onClick }) {
+function RCNode({ icon, title, sub, accent, onClick }: any) {
   return (
     <div onClick={onClick} className="panel" style={{ padding: '9px 11px', minWidth: 0, flex: '1 1 0', cursor: onClick ? 'pointer' : 'default', borderTop: '3px solid ' + accent }}>
       <div className="row ac gap8" style={{ marginBottom: 1 }}>
@@ -41,7 +41,7 @@ function RCArrow() {
 }
 
 /* ---- satu baris rekonsiliasi (sumber → konsumen) ---- */
-function RCRow({ r, nav }) {
+function RCRow({ r, nav }: any) {
   const st = RC_STAT[r.status];
   const tol = 1;
   return (
@@ -114,7 +114,7 @@ function DFRekonsiliasi() {
 
   /* ---- tie-out keuangan firma (fee perikatan aktif lintas-modul) ---- */
   const fmt = AMS.fmt;
-  const pppk = (AMS.PPPK_CLIENTS || []).find(c => c.id === 'C-014');
+  const pppk = ((AMS.PPPK_CLIENTS as any[]) || []).find(c => c.id === 'C-014');
   const crm = (AMS.CRM_360 || {})['C-014'];
   const crmAudit = crm && crm.contracts ? crm.contracts.find(c => /Audit/.test(c.type)) : null;
   const feePppk = pppk ? pppk.fee : null;                         // Rp juta

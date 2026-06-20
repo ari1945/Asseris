@@ -76,7 +76,7 @@ function buildAjeModel(aje) {
 }
 
 /* ---------- small helpers ---------- */
-function AjeKv({ label, v, strong, accent }) {
+function AjeKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span className="tiny muted">{label}</span>
@@ -198,14 +198,14 @@ function AJEView() {
   );
 }
 
-function AjeKpi({ value, label, accent }) {
+function AjeKpi({ value, label, accent }: any) {
   return <Panel><div style={{ padding: '11px 14px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
 }
 
 /* ============================================================
    TAB 1 — Register (enriched list + journal drill)
    ============================================================ */
-function AjeRegister({ model, locked }) {
+function AjeRegister({ model, locked }: any) {
   const { fmt } = AMS;
   const { toggleAjeStatus } = useAudit();
   const nav = useNav();
@@ -275,7 +275,7 @@ function AjeRegister({ model, locked }) {
   );
 }
 
-function AjeDrill({ a, fmt, nav }) {
+function AjeDrill({ a, fmt, nav }: any) {
   const lines = a.lines || [
     { code: a.dr.split(' ')[0], name: a.dr.split(' ').slice(1).join(' ') || a.dr, debit: a.amount, credit: 0 },
     { code: a.cr.split(' ')[0], name: a.cr.split(' ').slice(1).join(' ') || a.cr, debit: 0, credit: a.amount },
@@ -339,7 +339,7 @@ function AjeDrill({ a, fmt, nav }) {
 /* ============================================================
    TAB 2 — Dampak Laba & Neraca
    ============================================================ */
-function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtProposed }) {
+function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtProposed }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const jt = (n) => fmt(n / 1e6, 0);
@@ -450,7 +450,7 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
   );
 }
 
-function FsRow({ label, unadj, posted, proposed, jt, bold }) {
+function FsRow({ label, unadj, posted, proposed, jt, bold }: any) {
   const reported = unadj + posted;
   const ifPosted = reported + proposed;
   return (
@@ -466,7 +466,7 @@ function FsRow({ label, unadj, posted, proposed, jt, bold }) {
 }
 
 /* waterfall: totals anchored to baseline, steps float between cumulatives */
-function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }) {
+function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) {
   const steps = [];
   steps.push({ label: 'Unadjusted', kind: 'total', value: unadj });
   let cum = unadj;
@@ -511,7 +511,7 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }) {
 /* ============================================================
    TAB 3 — Persetujuan & Jejak Audit
    ============================================================ */
-function AjeApprovals({ model }) {
+function AjeApprovals({ model }: any) {
   const proposed = model.filter(a => a.status === 'Proposed');
   const posted = model.filter(a => a.status === 'Posted');
 
@@ -566,7 +566,7 @@ function AjeApprovals({ model }) {
   );
 }
 
-function ApprovalCard({ a }) {
+function ApprovalCard({ a }: any) {
   const { fmt } = AMS;
   const isPosted = a.status === 'Posted';
   const steps = [
@@ -588,7 +588,7 @@ function ApprovalCard({ a }) {
   );
 }
 
-function WorkflowTrack({ steps }) {
+function WorkflowTrack({ steps }: any) {
   return (
     <div className="row" style={{ alignItems: 'flex-start' }}>
       {steps.map((s, i) => {

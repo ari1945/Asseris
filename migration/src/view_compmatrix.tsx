@@ -137,7 +137,7 @@ const COV_META = {
 
 const COLS = '108px minmax(200px,1fr) 64px 150px 150px 84px';
 
-function MxCard({ value, label, accent, sub }) {
+function MxCard({ value, label, accent, sub }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</div>
