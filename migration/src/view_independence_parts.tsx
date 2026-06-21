@@ -6,7 +6,7 @@ import { Avatar, Badge, Panel } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Independensi: dimensi etika di luar rotasi (G6)
+   Asseris — Independensi: dimensi etika di luar rotasi (G6)
    Tab tambahan untuk modul Independence:
      · Ketergantungan Imbalan (IESBA 410)
      · Pra-Persetujuan NAS (IESBA 600-series)

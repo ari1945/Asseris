@@ -10,7 +10,7 @@ import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Mutu & Regulasi: SOQM Operasional (ISQM 1)
+   Asseris — Mutu & Regulasi: SOQM Operasional (ISQM 1)
    Tujuan mutu → risiko mutu → respons → pemantauan → defisiensi
    → remediasi & akar masalah · Register Keluhan & Tuduhan.
    ------------------------------------------------------------

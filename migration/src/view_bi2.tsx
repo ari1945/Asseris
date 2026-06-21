@@ -7,7 +7,7 @@ import { Avatar, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
 import { Funnel, HBars, LineChart } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — BI & Konsolidasi · extra tabs
+   Asseris — BI & Konsolidasi · extra tabs
    Pendapatan · Pipeline & Forecast · Klien & Konsentrasi ·
    Partner & Produktivitas. (Ikhtisar stays in view_bi.jsx.)
    ============================================================ */

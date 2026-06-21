@@ -3,7 +3,7 @@ import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Lisensi & Perizinan: lapisan kanonik
+   Asseris — Lisensi & Perizinan: lapisan kanonik
    ------------------------------------------------------------
    Modul Lisensi TIDAK menulis nama AP, jumlah SKP/PPL, atau status
    rotasi sebagai angka lepas. Semua DITURUNKAN dari pemiliknya:

@@ -6,7 +6,7 @@ import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Internal Control (ICFR)
+   Asseris — Internal Control (ICFR)
    Tabs: Ringkasan & COSO · Risk-Control Matrix · ITGC · Evaluasi Defisiensi
    Refs: SA 315 (pemahaman) · SA 330 (uji kontrol) · SA 265 (komunikasi defisiensi)
    ============================================================ */

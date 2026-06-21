@@ -8,7 +8,7 @@ import { KV, SectionTitle } from './view_fpm_parts';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
-   NeoSuite AMS — Kontrak & Legal Firma (modul mendalam)
+   Asseris — Kontrak & Legal Firma (modul mendalam)
    Registri kontrak TERPADU yang ditarik dari satu sumber kebenaran
    (Engagement/CRM · Vendor · Lisensi · Asuransi) + rekonsiliasi
    lineage, kewajiban/tenggat, dan sengketa lintas-modul.

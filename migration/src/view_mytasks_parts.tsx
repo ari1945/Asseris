@@ -5,7 +5,7 @@ import { I, MODULES } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — My Tasks workspace (parts):
+   Asseris — My Tasks workspace (parts):
    data hook, task row, detail panel, kanban card, add-form
    ============================================================ */
 const { useState: useStateMT, useMemo: useMemoMT, useRef: useRefMT } = React;

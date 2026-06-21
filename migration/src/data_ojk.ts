@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — OJK · Pasar Modal & Keberlanjutan (SSOT)
+   Asseris — OJK · Pasar Modal & Keberlanjutan (SSOT)
    ------------------------------------------------------------
    Memperluas AMS_CANON (objek modul) dengan empat domain regulasi OJK
    yang sebelumnya menjadi gap (Evaluasi Kepatuhan G13–G16):

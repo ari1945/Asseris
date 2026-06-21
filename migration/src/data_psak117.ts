@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — PSAK 117 · Kontrak Asuransi (adopsi IFRS 17)
+   Asseris — PSAK 117 · Kontrak Asuransi (adopsi IFRS 17)
    ------------------------------------------------------------
    MESIN HITUNG / SUMBER KEBENARAN TUNGGAL untuk modul PSAK 117.
    Mengaugmentasi AMS_CANON (objek modul) dengan psak117() — seluruh tab

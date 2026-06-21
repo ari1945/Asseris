@@ -11,7 +11,7 @@ import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
-   NeoSuite AMS — Kontrak & Legal Firma · komponen utama (tabs)
+   Asseris — Kontrak & Legal Firma · komponen utama (tabs)
    ============================================================ */
 const { useState: useStateLgl2, useMemo: useMemoLgl2 } = React;
 

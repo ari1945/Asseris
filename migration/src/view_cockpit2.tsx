@@ -10,7 +10,7 @@ import { PROGRAMME } from './view_cockpit';
 import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Engagement Cockpit (DEEP)
+   Asseris — Engagement Cockpit (DEEP)
    Engagement command center for the active engagement.
    Overrides window.EngagementCockpit (loaded after view_cockpit.jsx).
    ============================================================ */

@@ -8,7 +8,7 @@ import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Backoffice & Firm Mgmt (1/3)
+   Asseris — Backoffice & Firm Mgmt (1/3)
    Pengadaan & Vendor · Aset & Fasilitas Kantor · Retensi & Arsip
    ============================================================ */
 const { useState: useStateBO1 } = React;

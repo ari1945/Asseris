@@ -8,7 +8,7 @@ import { Avatar } from './ui.jsx';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
 /* ============================================================
-   NeoSuite AMS — App shell: TopBar + Sidebar
+   Asseris — App shell: TopBar + Sidebar
    ============================================================ */
 
 // Own per-file hook alias (golden-rule #1) — previously borrowed ui.jsx's
@@ -28,8 +28,8 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
   return (
     <header className="topbar">
       <div className="brand">
-        <div className="brand-mark">N</div>
-        <div className="brand-name">NeoSuite AMS<small>AUDIT ENTERPRISE</small></div>
+        <div className="brand-mark">A</div>
+        <div className="brand-name">Asseris<small>AUDIT ENTERPRISE</small></div>
       </div>
 
       <div className="global-search" onClick={onOpenPalette} style={{ cursor: 'pointer' }}>

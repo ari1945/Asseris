@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Sales Pipeline + Billing & Invoicing (Package D)
+   Asseris — Sales Pipeline + Billing & Invoicing (Package D)
    ============================================================ */
 const { useState: useStateD1, useMemo: useMemoD1 } = React;
 

@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Template Library (single source of truth)
+   Asseris — Template Library (single source of truth)
    ------------------------------------------------------------
    Satu registri kanonik untuk seluruh template & kertas kerja
    firma. Ditarik oleh:

@@ -10,7 +10,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
 import { P72_ContractBal, P72_FiveStep, P72_SspTable } from './view_psak72_parts';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 72 · Pendapatan dari Kontrak dengan Pelanggan
+   Asseris — PSAK 72 · Pendapatan dari Kontrak dengan Pelanggan
    Kertas kerja penyusunan & audit Pendapatan yang DITARIK PENUH dari
    satu sumber kebenaran:
      · Working Trial Balance (useAudit().wtb) — akun 4-1100 (Penjualan

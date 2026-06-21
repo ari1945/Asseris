@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 250 / 260 / 265
+   Asseris — SA 250 / 260 / 265
    SA 250 · Hukum & Regulasi (NOCLAR)
    SA 260 · Komunikasi dengan Pihak Tata Kelola (TCWG)
    SA 265 · Defisiensi Pengendalian Internal

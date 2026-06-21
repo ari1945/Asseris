@@ -3,7 +3,7 @@ import React from 'react';
 import { I } from './icons.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Firm Practice Management · shared parts
+   Asseris — Firm Practice Management · shared parts
    Module sub-navigation + analytics chart helpers reused by the
    deepened FPM modules (Dashboard, BI, CRM, Engagement, Risk,
    Onboarding, Data Flow).

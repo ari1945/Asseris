@@ -1,4 +1,4 @@
-# NeoSuite AMS — Onboarding Agen (sekali-baca, langsung produktif)
+# Asseris — Onboarding Agen (sekali-baca, langsung produktif)
 
 > **⚠️ STATUS ARSITEKTUR (sejak W3 Phase 2):** aplikasi kini **ESM-only**.
 > Sumber kebenaran = **`migration/` (Vite + ESM)**; edit di **`migration/src/*`**

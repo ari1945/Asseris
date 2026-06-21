@@ -5,7 +5,7 @@ import { Badge, Btn, MiniBars, Panel, Seg, Spark } from './ui.jsx';
 import { KvBox, VERDICT_COLOR, benchVerdict } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Analytical Review (SA 520) · part 2
+   Asseris — Analytical Review (SA 520) · part 2
    Deep tabs: Ratio analysis · Trend & Common-Size ·
    Substantive expectation modeling · Monthly disaggregation
    ============================================================ */

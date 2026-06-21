@@ -7,7 +7,7 @@ import { I } from './icons.jsx';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Pengaturan (full settings workspace)
+   Asseris — Pengaturan (full settings workspace)
    Tampilan · Profil · Notifikasi · Keamanan · Firma & Standar
    · Lokalisasi · Integrasi · Peran & Akses
    ============================================================ */
@@ -455,7 +455,7 @@ function SecNotif({ s, setGroup }: any) {
         <SRow title="Dalam Aplikasi" sub="Lonceng notifikasi & panel aktivitas.">
           <SetToggle on={n.app} set={v => setGroup('notif', 'app', v)} />
         </SRow>
-        <SRow title="Push (Mobile)" sub="Notifikasi dorong ke aplikasi seluler NeoSuite." last>
+        <SRow title="Push (Mobile)" sub="Notifikasi dorong ke aplikasi seluler Asseris." last>
           <SetToggle on={n.push} set={v => setGroup('notif', 'push', v)} />
         </SRow>
       </Panel>

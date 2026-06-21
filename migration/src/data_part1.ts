@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — data part1 (seed + engine) (W3 split dari data.js; perilaku identik).
+   Asseris — data part1 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
   const FIRM = {
     name: 'KAP Wijaya Hartono & Rekan',

@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Firm Finance (ERP): Treasury, Cash & Bank, Assets
+   Asseris — Firm Finance (ERP): Treasury, Cash & Bank, Assets
    Anggaran & Forecast · Arus Kas · Rekonsiliasi Bank (multi-ccy) ·
    Register Aset Tetap kantor.
    ============================================================ */

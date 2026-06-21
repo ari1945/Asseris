@@ -51,8 +51,8 @@ export function LoginScreen({ onLoggedIn }: any) {
   return (
     <div style={wrap}>
       <form style={card} onSubmit={submit}>
-        <div style={logo}>N</div>
-        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2 }}>NeoSuite AMS</div>
+        <div style={logo}>A</div>
+        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2 }}>Asseris</div>
         <div style={{ fontSize: 12.5, color: 'var(--ink-2, #5a6675)', marginBottom: 22 }}>Audit Management System — masuk untuk melanjutkan</div>
 
         {err && <div style={errBox} role="alert">{err}</div>}

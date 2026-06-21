@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — HCM: Cuti & Kehadiran  ·  Siklus Kinerja
+   Asseris — HCM: Cuti & Kehadiran  ·  Siklus Kinerja
    Saldo cuti · pengajuan & persetujuan · siapa sedang cuti ·
    goal → self → manager → kalibrasi 9-box.
    ============================================================ */

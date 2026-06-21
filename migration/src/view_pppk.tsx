@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Pelaporan PPPK (P2PK Kemenkeu)
+   Asseris — Pelaporan PPPK (P2PK Kemenkeu)
    Laporan Tahunan KAP: kelengkapan · register klien & jasa ·
    rekap opini · realisasi PPL · rotasi AP emiten · riwayat & inspeksi.
    Dasar: PMK 154/PMK.01/2017 jo. PMK 186/PMK.01/2021 · UU 5/2011.

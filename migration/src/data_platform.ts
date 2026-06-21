@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Firm Platform · Lapisan Sumber Kebenaran (SSOT)
+   Asseris — Firm Platform · Lapisan Sumber Kebenaran (SSOT)
    ------------------------------------------------------------
    Satu tempat yang MENURUNKAN seluruh umpan modul Firm Platform
    (Approvals · Integrations · Audit Trail) dari entitas kanonik
@@ -196,7 +196,7 @@ import { AMS } from './data';
   }
 
   /* ============================================================
-     INTEGRATION_FEEDS — lineage konektor eksternal → modul NeoSuite
+     INTEGRATION_FEEDS — lineage konektor eksternal → modul Asseris
      yang MENGONSUMSI datanya. count(ctx) menghitung record LIVE dari
      entitas kanonik yang sama, sehingga "record tersinkron" pada
      konektor = jumlah yang benar-benar dibaca modul hilir.

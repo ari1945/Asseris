@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Firm Practice Management · supplementary data
+   Asseris — Firm Practice Management · supplementary data
    New analytical dimensions for the deepened FPM modules. Plain
    JS; merged into AMS (data.js builds the base object).
    ============================================================ */

@@ -1,4 +1,4 @@
-# NeoSuite AMS — Build & Workflow (ESM-only, W3 Phase 2)
+# Asseris — Build & Workflow (ESM-only, W3 Phase 2)
 
 > **The app is now ESM-only.** `migration/` (Vite + ESM) is the **canonical
 > application**; `migration/src/*` is **hand-maintained source** (committed, no

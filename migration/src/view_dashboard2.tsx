@@ -8,7 +8,7 @@ import { HBars, LineChart, StackBar } from './view_fpm_parts';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
-   NeoSuite AMS — Firm Dashboard · extra tabs
+   Asseris — Firm Dashboard · extra tabs
    Operasional · Finansial · Mutu & Risiko (the Ringkasan tab
    stays in view_dashboard.jsx as the draggable portlet board).
    ============================================================ */

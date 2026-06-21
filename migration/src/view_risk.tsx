@@ -11,7 +11,7 @@ import { DiagnosticPanel } from './diagnostics_panel.jsx';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
-   NeoSuite AMS — Risk Assessment (RoMM register + heatmap)
+   Asseris — Risk Assessment (RoMM register + heatmap)
    ============================================================ */
 const { useState: useStateR } = React;
 

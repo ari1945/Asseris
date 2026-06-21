@@ -3,7 +3,7 @@ import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
-   NeoSuite AMS — Operasi Firma (Backoffice): lapisan kanonik
+   Asseris — Operasi Firma (Backoffice): lapisan kanonik
    ------------------------------------------------------------
    Cockpit "Operasi Firma" TIDAK menyimpan angka sendiri. Seluruh
    metrik diturunkan (derived) dari sub-ledger pemiliknya di BO

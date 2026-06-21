@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Icon set (stroke SVG) + module registry
+   Asseris — Icon set (stroke SVG) + module registry
    ============================================================ */
 
 const Icon = ({ d, size = 16, fill = false, sw = 1.7, style, children }) => (

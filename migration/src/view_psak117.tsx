@@ -9,7 +9,7 @@ import { Badge, Btn, Donut, Panel } from './ui.jsx';
 import { wpSignersFor } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 117 · Kontrak Asuransi (adopsi IFRS 17)
+   Asseris — PSAK 117 · Kontrak Asuransi (adopsi IFRS 17)
    ------------------------------------------------------------
    Kertas kerja penyusunan & audit kontrak asuransi yang DITARIK
    PENUH dari satu sumber kebenaran: AMS_CANON.psak117().

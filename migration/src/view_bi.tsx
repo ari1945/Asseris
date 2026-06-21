@@ -9,7 +9,7 @@ import { BIKlien, BIPartner, BIPendapatan, BIPipeline } from './view_bi2';
 import { MSub } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — BI Firma Terkonsolidasi (executive analytics)
+   Asseris — BI Firma Terkonsolidasi (executive analytics)
    Menyatukan data lintas modul: P&L konsolidasi, pendapatan per
    lini jasa, forecast pipeline tertimbang, konsentrasi klien,
    tren realisasi & utilisasi, scorecard partner.

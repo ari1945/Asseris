@@ -149,7 +149,7 @@ import { ReviewNotes } from './view_workspace';
 import { WorkingPapers } from './view_wp';
 
 /* ============================================================
-   NeoSuite AMS — Main app + router
+   Asseris — Main app + router
    ============================================================ */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 

@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — ISAK 35 · Penyajian Laporan Keuangan
+   Asseris — ISAK 35 · Penyajian Laporan Keuangan
    Entitas Berorientasi Nonlaba  (menggantikan PSAK 45)
    ------------------------------------------------------------
    MESIN HITUNG / SUMBER KEBENARAN TUNGGAL untuk modul isak35.

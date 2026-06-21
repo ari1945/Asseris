@@ -3,7 +3,7 @@ import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Perjalanan & Reimbursement: lapisan kanonik
+   Asseris — Perjalanan & Reimbursement: lapisan kanonik
    ------------------------------------------------------------
    Modul Perjalanan TIDAK menyimpan nama, grade, klien, atau plafon
    sebagai angka lepas. Semua DITURUNKAN dari sumber kebenarannya:

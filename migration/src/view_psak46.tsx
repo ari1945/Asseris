@@ -9,7 +9,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 46 · Pajak Penghasilan (Income Taxes)
+   Asseris — PSAK 46 · Pajak Penghasilan (Income Taxes)
    Kertas kerja akuntansi & audit atas pajak kini dan pajak tangguhan
    (PSAK 46 jo. IAS 12). Mencakup:
    • Rekonsiliasi fiskal: laba komersial → koreksi permanen/temporer → PKP → pajak kini

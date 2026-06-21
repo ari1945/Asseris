@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — data part4 (seed + engine) (W3 split dari data.js; perilaku identik).
+   Asseris — data part4 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { CLIENTS, ENGAGEMENTS, PIPELINE, PROSPECTS, STAFF } from './data_part1';
 import { NONAUDIT } from './data_part2';
@@ -164,7 +164,7 @@ import { NONAUDIT } from './data_part2';
   const QM_PROVIDERS = [
     { name: 'Jaringan Afiliasi Global (AGN-Asia)', type: 'Jaringan', reliance: 'Metodologi & inspeksi lintas-batas', evaluated: '2025-11', status: 'Memadai', note: 'Evaluasi kelayakan jaringan tahunan; akses metodologi & pelatihan.' },
     { name: 'Metodologi Audit WHR v4.2', type: 'Sumber Daya Intelektual', reliance: 'Kerangka kerja & template perikatan', evaluated: '2026-01', status: 'Memadai', note: 'Diperbarui selaras SA & ISQM terkini; di-review komite teknis.' },
-    { name: 'Platform NeoSuite AMS', type: 'Teknologi', reliance: 'Eksekusi, dokumentasi, & pemantauan mutu', evaluated: '2026-02', status: 'Memadai', note: 'Kendali akses, jejak audit & retensi kertas kerja teruji.' },
+    { name: 'Platform Asseris', type: 'Teknologi', reliance: 'Eksekusi, dokumentasi, & pemantauan mutu', evaluated: '2026-02', status: 'Memadai', note: 'Kendali akses, jejak audit & retensi kertas kerja teruji.' },
     { name: 'Pakar Penilai (KJPP Mitra)', type: 'Penyedia Jasa Eksternal', reliance: 'Penilaian nilai wajar aset spesifik', evaluated: '2025-12', status: 'Memadai', note: 'Kompetensi, objektivitas & kapabilitas dievaluasi per SA 620.' },
     { name: 'Penyedia Konfirmasi Digital', type: 'Penyedia Jasa Eksternal', reliance: 'Konfirmasi eksternal terstandar', evaluated: '2025-09', status: 'Pemantauan', note: 'Kontrol keamanan penyedia ditinjau ulang setelah pembaruan sistem.' },
   ];

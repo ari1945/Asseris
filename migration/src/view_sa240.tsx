@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 240 · Tanggung Jawab Auditor atas Kecurangan
+   Asseris — SA 240 · Tanggung Jawab Auditor atas Kecurangan
    Deep workpaper: penilaian risiko fraud, segitiga fraud,
    register risiko, asumsi risiko (pendapatan & override
    manajemen), respons & JET, serta komunikasi.

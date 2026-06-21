@@ -10,7 +10,7 @@ import { DiagnosticPanel } from './diagnostics_panel.jsx';
 import { AMS_FORENSIC } from './forensic_canon';
 
 /* ============================================================
-   NeoSuite AMS — Forensic Cash Flow (analitik anomali kas)
+   Asseris — Forensic Cash Flow (analitik anomali kas)
    ------------------------------------------------------------
    DITARIK PENUH dari satu sumber kebenaran:
      · Working Trial Balance (useAudit().wtb) — saldo akun

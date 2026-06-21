@@ -7,7 +7,7 @@ import { Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
 import { AddTaskForm, MT_BUCKETS, MT_PRIO_K, MT_PRIO_ORDER, MT_SRC_ICON, TaskRow, mtDueLabel, useMyTasks } from './view_mytasks_parts';
 
 /* ============================================================
-   NeoSuite AMS — My Tasks workspace (main):
+   Asseris — My Tasks workspace (main):
    KPI strip · toolbar · List (master-detail) · Board · Focus
    ============================================================ */
 const { useState: useStateMTV, useMemo: useMemoMTV } = React;

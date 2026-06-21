@@ -9,7 +9,7 @@ import { Badge, Btn } from './ui.jsx';
 import { ML_FINDINGS_SEED } from './view_final3';
 
 /* ============================================================
-   NeoSuite AMS — Mode Presentasi Klien
+   Asseris — Mode Presentasi Klien
    Alur slide tiga fase rapat dengan klien:
      01 · Rapat Pembukaan (kickoff)
      02 · Penyampaian Temuan

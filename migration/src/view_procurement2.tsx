@@ -10,7 +10,7 @@ import { PROC_RISKC, procPct } from './view_procurement';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
-   NeoSuite AMS — Pengadaan & Vendor (DEEP) · 2/2
+   Asseris — Pengadaan & Vendor (DEEP) · 2/2
    Procure-to-Pay · Spend & Anggaran · Due Diligence/PMPJ ·
    Sumber Kebenaran (rekonsiliasi) · Vendor 360 drawer.
    Semua data dari PROC (kanonik). LINEAGE.procurement

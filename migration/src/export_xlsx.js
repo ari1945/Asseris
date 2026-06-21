@@ -91,12 +91,12 @@ export async function amsExportXlsx(model) {
 
   // ---- "Segel" metadata sheet (provenance footer, XLSX equivalent of the PDF seal block) ----
   const sealRows = [
-    ['NeoSuite AMS — Ekspor Register'],
+    ['Asseris — Ekspor Register'],
     ['Judul', model.title || ''],
     ['Firma', model.firm || ''],
     ...(model.meta || []).map((m) => ['', String(m)]),
     [],
-    [seal ? 'TERSEGEL · Provenans NeoSuite' : 'TIDAK TERSEGEL'],
+    [seal ? 'TERSEGEL · Provenans Asseris' : 'TIDAK TERSEGEL'],
   ];
   if (seal) {
     sealRows.push(['Seal ID', seal.sealId]);

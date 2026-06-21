@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { I } from './icons.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Jasa Non-Audit (lanjutan)
+   Asseris — Jasa Non-Audit (lanjutan)
    Laporan deliverable SPAP (AUP 4400 · Kompilasi 4410 · Asurans
    3000/3402/3400) + workspace Financial Due Diligence.
    ============================================================ */

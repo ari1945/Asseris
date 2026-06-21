@@ -8,7 +8,7 @@ import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Asuransi (PII) & Manajemen Risiko (DEEP)
+   Asseris — Asuransi (PII) & Manajemen Risiko (DEEP)
    Mesin kanonik: window.IRM (SSOT) — Polis, Klaim, Risk Register,
    Peta Risiko (inheren→residual) & Sumber Kebenaran (rekonsiliasi
    lintas-modul). Reuse: boJt/boM/BoBadge/BoTabPanel/BoStat (view_bo1);

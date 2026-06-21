@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — People & Compliance: extended data
+   Asseris — People & Compliance: extended data
    Augments AMS with data for the deepened HCM modules and
    six new modules (Org Chart · Succession · Recruitment ·
    Learning · Ethics/AML · HR Cases). Loaded AFTER data.js.

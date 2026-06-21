@@ -9,7 +9,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Investasi pada Entitas Asosiasi (PSAK 15 / IAS 28 → PSAK 228)
+   Asseris — Investasi pada Entitas Asosiasi (PSAK 15 / IAS 28 → PSAK 228)
    Metode ekuitas (¶10). Sumber nilai tercatat: AMS_CANON.GROUP_ASSOCIATES
    AS-01 (PT Mitra Sentosa Distribusi, 30%) — angka yang SAMA dipakai
    PSAK 65 di luar batas konsolidasi. Roll-forward menutup ke carry.

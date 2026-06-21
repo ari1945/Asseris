@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 1 · Penyajian Laporan Keuangan
+   Asseris — PSAK 1 · Penyajian Laporan Keuangan
    Kertas kerja kepatuhan penyajian & pengungkapan:
    komponen LK lengkap (¶10), karakteristik umum (¶15–46),
    item baris minimum (¶54 / ¶82), klasifikasi lancar (¶60–76),

@@ -11,7 +11,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
 import { NRVWorkingPaper } from './view_psak14_nrv';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 14 · Persediaan (Inventories)
+   Asseris — PSAK 14 · Persediaan (Inventories)
    Kertas kerja penyusunan & audit Persediaan yang DITARIK PENUH
    dari satu sumber kebenaran:
      · Working Trial Balance (useAudit().wtb) — saldo akun 1-1300 & 5-1100

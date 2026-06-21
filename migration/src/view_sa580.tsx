@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SA 580 · Representasi Tertulis
+   Asseris — SA 580 · Representasi Tertulis
    Deep workpaper: daftar representasi wajib & spesifik (peta
    ke SA lain), draf surat representasi, serta evaluasi
    keandalan, kontradiksi bukti, & dampak pada opini.

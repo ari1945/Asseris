@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — selektor kanon ber-tipe (W5)
+   Asseris — selektor kanon ber-tipe (W5)
    ------------------------------------------------------------
    Lapisan tipis & ber-tipe di atas lapisan kanon. View (JSX)
    memanggil selektor ini agar tipe WTB/Figures/Fig/Materiality

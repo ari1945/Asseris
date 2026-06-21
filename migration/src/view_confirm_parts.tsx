@@ -5,7 +5,7 @@ import { I } from './icons.jsx';
 import { Badge, Btn } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Confirmation Hub · data & reusable parts
+   Asseris — Confirmation Hub · data & reusable parts
    (loaded before view_confirm.jsx)
    ============================================================ */
 const { useState: useStateCFP } = React;

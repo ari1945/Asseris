@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Firm Finance (ERP): Pendapatan & Penagihan
+   Asseris — Firm Finance (ERP): Pendapatan & Penagihan
    WIP → Billing → Pengakuan Pendapatan (PSAK 72) · e-Faktur output ·
    Nota Kredit · Dunning / penagihan piutang.
    ============================================================ */

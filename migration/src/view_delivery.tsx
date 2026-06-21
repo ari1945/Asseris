@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Delivery & Milestones (Practice Operations · D+)
+   Asseris — Delivery & Milestones (Practice Operations · D+)
    Gantt fase perikatan + pelacakan milestone & deadline.
    ============================================================ */
 const { useState: useStateDlv, useMemo: useMemoDlv } = React;

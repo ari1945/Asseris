@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Progress } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Knowledge Base (modul mendalam)
+   Asseris — Knowledge Base (modul mendalam)
    ------------------------------------------------------------
    Katalog DIBANGKITKAN dari registri standar kanonik
    (window.STANDARDS_REGISTRY) — sumber yang SAMA dengan Matriks
@@ -82,7 +82,7 @@ function KnowledgeBase() {
           <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '20px 22px' }}>
             <div className="row jb ac wrap" style={{ gap: 12 }}>
               <div style={{ minWidth: 280, flex: 1 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan NeoSuite</div>
+                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan Asseris</div>
                 <div style={{ fontSize: 12.5, color: '#bcd6e4', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
               </div>
               <div className="row gap14" style={{ flexShrink: 0 }}>
@@ -386,7 +386,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
 
         {/* footer */}
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>NeoSuite Knowledge Base · diindeks dari Registri Standar · {AMS.KB_UPDATED}</span>
+          <span className="muted" style={{ fontSize: 12 }}>Asseris Knowledge Base · diindeks dari Registri Standar · {AMS.KB_UPDATED}</span>
           <div className="row gap8"><Btn onClick={onClose}>Tutup</Btn><Btn variant="primary"><I.download size={14} /> Simpan PDF</Btn></div>
         </div>
       </div>

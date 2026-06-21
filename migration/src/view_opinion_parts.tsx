@@ -8,7 +8,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Audit Opinion Generator · Engine & Panels
+   Asseris — Audit Opinion Generator · Engine & Panels
    (SA 700 / 705 / 701 / 706 / 570 / 710 / 720 · ISQM 2 / SA 220)
    Shared constants, opinion-determination engine, KAM workshop,
    review & sign-off. Loaded BEFORE view_opinion.jsx.

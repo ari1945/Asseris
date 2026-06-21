@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Roadmap SAK & Pelacak ISAK  (menutup Gap G5)
+   Asseris — Roadmap SAK & Pelacak ISAK  (menutup Gap G5)
    ------------------------------------------------------------
    SUMBER KEBENARAN TUNGGAL untuk horizon Standar Akuntansi Keuangan:
    AMS_CANON.sakHorizon() — seluruh tab & kertas kerja menarik angka

@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Pengungkapan Baru 2024
+   Asseris — Pengungkapan Baru 2024
    Tiga pengungkapan yang menonjol pada LK efektif 2024:
      · Pilar Dua OECD — pajak tambahan global (amandemen PSAK 46/212)
      · Dampak Perubahan Iklim (Lampiran C) — pengaruh ke estimasi

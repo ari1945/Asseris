@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 540 · Audit atas Estimasi Akuntansi
+   Asseris — SA 540 · Audit atas Estimasi Akuntansi
    Deep workpaper: inventaris estimasi & ketidakpastian,
    penilaian risiko bawaan (kompleksitas/subjektivitas/
    ketidakpastian), respons (uji proses manajemen & rentang

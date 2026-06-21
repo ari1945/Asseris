@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Engagement Cockpit + Audit Programme (Package B)
+   Asseris — Engagement Cockpit + Audit Programme (Package B)
    ============================================================ */
 const { useState: useStateWS, useMemo: useMemoWS } = React;
 

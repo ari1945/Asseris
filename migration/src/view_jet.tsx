@@ -9,7 +9,7 @@ import { DiagnosticPanel } from './diagnostics_panel.jsx';
 import { AMS_FORENSIC } from './forensic_canon';
 
 /* ============================================================
-   NeoSuite AMS — Journal Entry Testing (SA 240 / JET Tool)
+   Asseris — Journal Entry Testing (SA 240 / JET Tool)
    ============================================================ */
 const { useState: useStateJ, useMemo: useMemoJ } = React;
 

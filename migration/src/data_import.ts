@@ -1,7 +1,7 @@
 /* ============================================================
-   NeoSuite AMS — Impor & Integrasi Data: lapisan kanonik (SSOT)
+   Asseris — Impor & Integrasi Data: lapisan kanonik (SSOT)
    ------------------------------------------------------------
-   Modul Impor adalah GERBANG MASUK data eksternal ke NeoSuite.
+   Modul Impor adalah GERBANG MASUK data eksternal ke Asseris.
    Ia tidak menyimpan salinan terpisah: tiap berkas yang diimpor
    di-staging, divalidasi, lalu DI-POSTING ke modul PEMILIK datanya
    (sumber kebenaran). Modul hilir membaca record yang sama — tidak

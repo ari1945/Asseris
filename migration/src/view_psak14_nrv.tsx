@@ -5,7 +5,7 @@ import { I } from './icons.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 14 · Kertas Kerja NRV per-SKU (WP C-2)
+   Asseris — PSAK 14 · Kertas Kerja NRV per-SKU (WP C-2)
    Pengujian nilai realisasi neto tingkat item, DITARIK PENUH dari
    AMS_CANON.inventory(wtb).items — subtotal per klasifikasi menutup
    PERSIS ke pengukuran kanonik (mix) & saldo neto WTB 1-1300.

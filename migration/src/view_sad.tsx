@@ -9,7 +9,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Evidence Evaluation · SAD Ledger (SA 450)
+   Asseris — Evidence Evaluation · SAD Ledger (SA 450)
    Summary of Audit Differences — akumulasi, evaluasi agregat,
    pertimbangan kualitatif, komunikasi & disposisi.
    ============================================================ */

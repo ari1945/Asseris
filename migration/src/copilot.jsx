@@ -9,7 +9,7 @@ import { I, MODULE_INDEX, RELATED_SA } from './icons.jsx';
 import { amsLLMConfig } from './llm_providers.js';
 
 /* ============================================================
-   NeoSuite AMS — AI Co-pilot (rekonstruksi)
+   Asseris — AI Co-pilot (rekonstruksi)
    Satu file mandiri yang menyediakan:
      1. window.classifyDoc(name, opts, idx) — mesin klasifikasi
         dokumen (dipakai evidence.jsx, view_dms.jsx, view_clientportal.jsx)
@@ -538,7 +538,7 @@ function Copilot({ open, onClose, route }) {
     try {
       let answer;
       if (window.claude && typeof window.claude.complete === 'function') {
-        const sys = 'Anda adalah AI Co-pilot dalam aplikasi audit firma akuntan publik Indonesia (NeoSuite AMS). Jawab ringkas dalam Bahasa Indonesia, berbasis Standar Audit (SA) & PSAK. Keluaran bersifat asistif untuk pertimbangan auditor — jangan menyatakan keputusan final. Gunakan markdown ringkas (judul ##, daftar, tabel bila relevan).';
+        const sys = 'Anda adalah AI Co-pilot dalam aplikasi audit firma akuntan publik Indonesia (Asseris). Jawab ringkas dalam Bahasa Indonesia, berbasis Standar Audit (SA) & PSAK. Keluaran bersifat asistif untuk pertimbangan auditor — jangan menyatakan keputusan final. Gunakan markdown ringkas (judul ##, daftar, tabel bila relevan).';
         const ctx = share ? ('\n\nKonteks perikatan:\n' + ctxText) : '';
         answer = await window.claude.complete(sys + ctx + '\n\nPertanyaan auditor:\n' + q);
         if (!answer || !String(answer).trim()) answer = demoReply(q);

@@ -11,7 +11,7 @@ import { SliderRow } from './view_materiality';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
-   NeoSuite AMS — Firm Finance · Cockpit Keuangan Firma
+   Asseris — Firm Finance · Cockpit Keuangan Firma
    ------------------------------------------------------------
    Cockpit ini TIDAK menyimpan angka sendiri. Seluruh figur ditarik
    dari FIRMFIN (lapisan kanonik) yang menurunkan tiap nilai

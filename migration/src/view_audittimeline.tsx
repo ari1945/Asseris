@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Panel, Progress, Seg, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Jadwal & Lini Masa Audit (Practice Operations)
+   Asseris — Jadwal & Lini Masa Audit (Practice Operations)
    Gantt aktivitas per-perikatan untuk diserahkan ke klien.
    SSOT: fase & milestone ditarik dari AMS.DELIVERY;
    "hari ini" dari DELIVERY_WINDOW.today. Aktivitas granular diperinci

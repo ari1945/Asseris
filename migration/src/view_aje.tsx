@@ -11,7 +11,7 @@ import { DiagnosticPanel } from './diagnostics_panel.jsx';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
-   NeoSuite AMS — Adjusting & Reclassifying Journal Entries (deep)
+   Asseris — Adjusting & Reclassifying Journal Entries (deep)
    Register · Dampak Laba/Neraca · Persetujuan & Jejak Audit
    Overrides the lightweight AJEView from view_execution.jsx.
    ============================================================ */

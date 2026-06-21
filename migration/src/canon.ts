@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Canonical figures (single source of truth)
+   Asseris — Canonical figures (single source of truth)
    ------------------------------------------------------------
    Satu lapisan angka kanonik yang ditarik oleh banyak kertas
    kerja agar konsisten lintas-modul. Tujuannya: setiap angka

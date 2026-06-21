@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
-   NeoSuite AMS — WIP & Realisasi (Practice Operations · D+)
+   Asseris — WIP & Realisasi (Practice Operations · D+)
    Ekonomi perikatan: nilai standar, WIP belum tertagih,
    write-down, realisasi & margin. Firma-wide.
    ------------------------------------------------------------

@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 48/57 · Penurunan Nilai Aset & Provisi
+   Asseris — PSAK 48/57 · Penurunan Nilai Aset & Provisi
    ------------------------------------------------------------
    Dua standar berpasangan dalam satu modul:
      · PSAK 48 (IAS 36) — Penurunan Nilai Aset

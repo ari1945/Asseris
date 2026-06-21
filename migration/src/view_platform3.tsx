@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Firm Platform · Audit Trail (Bagian D-3)
+   Asseris — Firm Platform · Audit Trail (Bagian D-3)
    Filter lanjutan · grafik aktivitas · drawer detail entri · hash-chain (tamper-evident)
    ============================================================ */
 const { useState: useStateAT, useMemo: useMemoAT } = React;

@@ -6,7 +6,7 @@ import { Badge, Btn, Donut, Panel } from './ui.jsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Shared Compliance Checklist (SA & PSAK)
+   Asseris — Shared Compliance Checklist (SA & PSAK)
    ============================================================ */
 const { useState: useStateCO, useMemo: useMemoCO } = React;
 

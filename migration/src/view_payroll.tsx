@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — HCM: Payroll (Penggajian)
+   Asseris — HCM: Payroll (Penggajian)
    PPh 21 (metode TER · PMK 168/2023) · BPJS Kesehatan &
    Ketenagakerjaan · THR · slip gaji · jurnal penggajian.
    ============================================================ */

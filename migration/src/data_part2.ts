@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — data part2 (seed + engine) (W3 split dari data.js; perilaku identik).
+   Asseris — data part2 (seed + engine) (W3 split dari data.js; perilaku identik).
    ============================================================ */
 import { fmt } from './data_base';
 

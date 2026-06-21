@@ -9,7 +9,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SA 230 · Dokumentasi Audit
+   Asseris — SA 230 · Dokumentasi Audit
    ------------------------------------------------------------
    Halaman standar MENDALAM untuk SA 230. SELURUH angka & status
    ditarik dari SUMBER KEBENARAN TUNGGAL:

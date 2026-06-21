@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Opening Balance / Saldo Awal (SA 510)
+   Asseris — Opening Balance / Saldo Awal (SA 510)
    Deep workpaper: konteks perikatan, penelusuran saldo awal,
    prosedur spesifik, konsistensi kebijakan, dampak opini.
    ============================================================ */

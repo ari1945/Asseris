@@ -9,7 +9,7 @@ import { Badge, Btn, Donut, Panel } from './ui.jsx';
 import { wpSignersFor } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 71 · Instrumen Keuangan (IFRS 9)
+   Asseris — PSAK 71 · Instrumen Keuangan (IFRS 9)
    ------------------------------------------------------------
    Kertas kerja penyusunan & audit instrumen keuangan yang DITARIK
    PENUH dari satu sumber kebenaran:

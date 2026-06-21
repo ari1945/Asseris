@@ -3,7 +3,7 @@ import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Retensi & Arsip: lapisan kanonik (SSOT)
+   Asseris — Retensi & Arsip: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Modul "Retensi & Arsip" TIDAK menyimpan angka arsip sendiri.
    Seluruh register diturunkan (derived) dari sumber pemiliknya:

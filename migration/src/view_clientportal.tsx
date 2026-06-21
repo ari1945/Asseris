@@ -10,7 +10,7 @@ import { PEVT, PField, PModal, PThread, PTimeline, PVerList, pNowTime } from './
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Portal Klien / PBC (Prepared By Client)
+   Asseris — Portal Klien / PBC (Prepared By Client)
    Master–detail: daftar permintaan → detail (riwayat versi berkas,
    komentar berulir, jejak audit). Modal tambah permintaan, pengingat
    massal, tampilan sisi-klien, dan kanal pesan aman.

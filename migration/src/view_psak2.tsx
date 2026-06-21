@@ -9,7 +9,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 2 · Laporan Arus Kas
+   Asseris — PSAK 2 · Laporan Arus Kas
    Kertas kerja penyusunan & kepatuhan Laporan Arus Kas yang
    DITARIK PENUH dari satu sumber kebenaran:
      · Working Trial Balance (useAudit().wtb) — saldo akun

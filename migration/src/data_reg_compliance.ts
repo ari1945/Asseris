@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Presisi Regulatori (lapisan tambahan)
+   Asseris — Presisi Regulatori (lapisan tambahan)
    Menutup gap evaluasi kepatuhan SAK·SPAP·P2PK·OJK:
      G6  Independensi etika di luar rotasi — ketergantungan
          imbalan · pra-persetujuan NAS · asosiasi jangka panjang

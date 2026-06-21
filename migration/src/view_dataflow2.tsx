@@ -7,7 +7,7 @@ import { Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
 import { HBars } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Alur Data & Integritas · extra tabs
+   Asseris — Alur Data & Integritas · extra tabs
    Aturan Integritas · Propagasi Master Data · Jejak Audit.
    (Lineage chain stays in view_dataflow.jsx.)
    ============================================================ */

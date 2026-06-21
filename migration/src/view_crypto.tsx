@@ -11,7 +11,7 @@ import { RowKv } from './view_calc';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
-   NeoSuite AMS — Compliance & Kriptografi (mendalam)
+   Asseris — Compliance & Kriptografi (mendalam)
    ------------------------------------------------------------
    SATU SUMBER KEBENARAN. Modul ini TIDAK meng-hardcode angka.
    Semua tarikan data berasal dari entitas kanonik yang sama yang
@@ -519,7 +519,7 @@ function CRServerChain({ rows, verify, nav }: any) {
             ))}
           </tbody>
         </table>
-        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server NeoSuite AMS</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (ISQM 1). Menampilkan hingga 100 entri terbaru.</div>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.55 }}>Sumber: <b>server Asseris</b> (model <span className="mono">AuditLog</span>). Setara modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('audittrail', { from: 'crypto' })}>Audit Trail</span>. Retensi 10 tahun (ISQM 1). Menampilkan hingga 100 entri terbaru.</div>
       </Panel>
     </>
   );
@@ -776,7 +776,7 @@ function CRKunci({ ctx }: any) {
    AMS_CANON.legalSeal() — UU ITE jo. PP 71/2019 + UU 10/2020
    ============================================================ */
 /* ============================================================
-   W10.5 Fase 3 — verify the nol-vendor EXPORT seal (provenans NeoSuite).
+   W10.5 Fase 3 — verify the nol-vendor EXPORT seal (provenans Asseris).
    Paste a seal id + content hash (or the artifact's QR payload `neosuite-seal:<id>;<hash>`) →
    server recomputes the Ed25519 signature over the hash → status. This is the counterpart to the
    QR/"Segel" sheet embedded by export_pdf.js / export_xlsx.js. It proves WHO + integrity — NOT
@@ -822,7 +822,7 @@ function CRVerifySeal() {
 
   return (
     <Panel noBody style={{ marginBottom: 12 }}>
-      <div className="panel-h"><span className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><I.shield size={14} /></span><h3 style={{ margin: 0 }}>Verifikasi Segel Ekspor (Provenans NeoSuite)</h3></span><div style={{ flex: 1 }} /><span className="tiny muted">Ed25519 · BUKAN e-Meterai</span></div>
+      <div className="panel-h"><span className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><I.shield size={14} /></span><h3 style={{ margin: 0 }}>Verifikasi Segel Ekspor (Provenans Asseris)</h3></span><div style={{ flex: 1 }} /><span className="tiny muted">Ed25519 · BUKAN e-Meterai</span></div>
       <div style={{ padding: '12px 14px', display: 'grid', gap: 10 }}>
         <div className="tiny muted" style={{ lineHeight: 1.5 }}>Tempel <b>Seal ID</b> + <b>Hash konten</b> dari artefak terekspor (footer PDF / sheet "Segel" XLSX), atau seluruh muatan QR <span className="mono">neosuite-seal:&lt;id&gt;;&lt;hash&gt;</span> ke kolom pertama.</div>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>

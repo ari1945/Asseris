@@ -12,7 +12,7 @@ import { FAC } from './data_facilities';
 import { BO } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Aset & Fasilitas Kantor (DEEP) · 1/2
+   Asseris — Aset & Fasilitas Kantor (DEEP) · 1/2
    Register aset = sub-ledger PSAK 16 tunggal. Semua angka diturunkan
    dari FAC (mesin penyusutan kanonik): NBV ← garis lurus ·
    pemeliharaan ← vendor master · lisensi ← vendor+Legal · sewa ← Legal ·

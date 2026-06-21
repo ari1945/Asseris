@@ -1,5 +1,5 @@
 {
-  "//": "NeoSuite AMS — W11 APP tier (lapisan data .ts, lalu view .tsx). RELAKS & di-ratchet: strict OFF awalnya, dikencangkan per slice. Kanon tetap FULL strict di tsconfig.json (terpisah). include = daftar eksplisit file app yang sudah dikonversi (tumbuh per slice) agar ledakan error terkendali. Lihat 'PRD - W11' & BUILD.md.",
+  "//": "Asseris — W11 APP tier (lapisan data .ts, lalu view .tsx). RELAKS & di-ratchet: strict OFF awalnya, dikencangkan per slice. Kanon tetap FULL strict di tsconfig.json (terpisah). include = daftar eksplisit file app yang sudah dikonversi (tumbuh per slice) agar ledakan error terkendali. Lihat 'PRD - W11' & BUILD.md.",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",

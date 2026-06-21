@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Sampling Engine (SA 530) + ECL Calculator (PSAK 71)
+   Asseris — Sampling Engine (SA 530) + ECL Calculator (PSAK 71)
    ============================================================ */
 const { useState: useStateS, useMemo: useMemoS } = React;
 

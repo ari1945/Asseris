@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Btn, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Resource Scheduler (Package D)
+   Asseris — Resource Scheduler (Package D)
    ============================================================ */
 const { useState: useStateD3, useMemo: useMemoD3 } = React;
 

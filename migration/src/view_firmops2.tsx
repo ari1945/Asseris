@@ -6,7 +6,7 @@ import { PDrawer } from './view_docparts';
 import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Cockpit Operasi Firma · tab lanjutan
+   Asseris — Cockpit Operasi Firma · tab lanjutan
    Kalender Kewajiban Terpadu · Vendor & Konsumsi · Lineage & Rekonsiliasi
    ============================================================ */
 

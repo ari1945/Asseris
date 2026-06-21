@@ -4,7 +4,7 @@ import { I, MODULE_INDEX } from './icons.jsx';
 import { Badge, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Lapisan Referensi + Status SA (Sumber Tunggal)
+   Asseris — Lapisan Referensi + Status SA (Sumber Tunggal)
    ------------------------------------------------------------
    Halaman SA 5xx adalah lapisan RUJUKAN (pedagogi standar, statis)
    + STATUS yang dibaca langsung dari kertas kerja kanonik

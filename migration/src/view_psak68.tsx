@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 68 · Pengukuran Nilai Wajar (IFRS 13)
+   Asseris — PSAK 68 · Pengukuran Nilai Wajar (IFRS 13)
    ------------------------------------------------------------
    Kertas kerja pengukuran & audit nilai wajar. PSAK 68 adalah
    standar "BAGAIMANA mengukur" — ia tidak memiliki saldo sendiri,

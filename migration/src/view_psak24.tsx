@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 24 · Imbalan Kerja (Employee Benefits)
+   Asseris — PSAK 24 · Imbalan Kerja (Employee Benefits)
    Kertas kerja penyajian LK & prosedur audit atas liabilitas
    imbalan pasti (imbalan pasca-kerja). Mencakup:
    • Peta penyajian: Posisi Keuangan / Laba Rugi / OCI (PSAK 24 jo. PSAK 1)

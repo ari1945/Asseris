@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Jasa Non-Audit (SPAP): Portofolio + Reviu SPR 2400
+   Asseris — Jasa Non-Audit (SPAP): Portofolio + Reviu SPR 2400
    Taksonomi SPAP: Asurans (Reviu 2400, Asurans lain 3000/3402/3400)
    & Jasa Terkait/Selain Asurans (AUP 4400, Kompilasi 4410).
    ============================================================ */

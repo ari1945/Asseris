@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Firm Finance (ERP): Pajak Firma
+   Asseris — Firm Finance (ERP): Pajak Firma
    PPN / e-Faktur · PPh 21/23/4(2) · SPT Tahunan Badan ·
    kalender kewajiban perpajakan KAP itu sendiri.
    ============================================================ */

@@ -3,7 +3,7 @@ import { AMS } from './data';
 import { BO } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Kontrak & Legal: lapisan kanonik (SSOT)
+   Asseris — Kontrak & Legal: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Registri kontrak firma TIDAK lagi di-hardcode. Setiap baris
    ditarik dari modul SUMBER KEBENARAN-nya:

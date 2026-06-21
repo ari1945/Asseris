@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — canon public type surface (W5)
+   Asseris — canon public type surface (W5)
    ------------------------------------------------------------
    Tipe inti yang paling bernilai untuk lapisan angka kanonik:
    WTB (buku besar), Figures (figur akuntansi ditarik dari WTB),

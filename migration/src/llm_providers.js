@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Registry Provider LLM (FASE 1 · plain JS IIFE)
+   Asseris — Registry Provider LLM (FASE 1 · plain JS IIFE)
    Sumber tunggal daftar provider model bahasa + pembaca konfigurasi
    yang tersimpan di Pengaturan › AI & LLM (ams.v1.settings → .ai).
 

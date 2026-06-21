@@ -5,7 +5,7 @@ import { LEGAL } from './data_legal';
 const AMS: any = AMS_;
 
 /* ============================================================
-   NeoSuite AMS — Pengadaan & Vendor: lapisan kanonik (SSOT)
+   Asseris — Pengadaan & Vendor: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Master vendor (BO.VENDORS) adalah SATU-SATUNYA sumber
    data counterparty pengadaan. Lapisan ini TIDAK menyimpan angka

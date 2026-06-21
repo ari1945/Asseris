@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Progress, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 520 · Prosedur Analitis
+   Asseris — SA 520 · Prosedur Analitis
    Deep workpaper: prosedur analitis substantif (pengembangan
    ekspektasi, ambang selisih, investigasi), keandalan data &
    disagregasi, serta prosedur analitis mendekati akhir audit.

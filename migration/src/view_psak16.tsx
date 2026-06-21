@@ -11,7 +11,7 @@ import { AssetRegisterTable, ImportMappingPanel, SubLedgerRecon } from './view_p
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 16 · Aset Tetap (Property, Plant & Equipment)
+   Asseris — PSAK 16 · Aset Tetap (Property, Plant & Equipment)
    Kertas kerja penyusunan & audit Aset Tetap yang DITARIK PENUH dari
    satu sumber kebenaran:
      · Working Trial Balance (useAudit().wtb) — akun 1-2100 (Harga

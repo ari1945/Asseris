@@ -3,7 +3,7 @@ import React from 'react';
 import { I } from './icons.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Peta Mini Keterhubungan ("Anda di sini")
+   Asseris — Peta Mini Keterhubungan ("Anda di sini")
    ------------------------------------------------------------
    Lapisan orientasi yang SELALU hadir & dapat dipanggil dari mana
    saja (tombol TopBar, pil "Anda di sini" tetap, ⌘/Ctrl+M).

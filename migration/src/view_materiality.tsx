@@ -8,7 +8,7 @@ import { Badge, Btn, LockBanner, Panel, Tabs } from './ui.jsx';
 import { MatComponent, MatImpact, MatMemo, MatRevision, MatSpecific } from './view_materiality_parts';
 
 /* ============================================================
-   NeoSuite AMS — Materiality Workspace (SA 320 · SA 450 · SA 600)
+   Asseris — Materiality Workspace (SA 320 · SA 450 · SA 600)
    Tabbed: Penentuan · Spesifik · Komponen · Dampak & SAD · Revisi · Memo
    Heavy tab panels live in view_materiality_parts.jsx
    ============================================================ */

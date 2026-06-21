@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Laporan Keberlanjutan (POJK 51/2017) + ISSB
+   Asseris — Laporan Keberlanjutan (POJK 51/2017) + ISSB
    ------------------------------------------------------------
    Jejak kepatuhan Laporan Keberlanjutan wajib (muatan minimum
    POJK 51/POJK.03/2017) di sisi klien, status RAKB per entitas,

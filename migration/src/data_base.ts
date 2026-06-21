@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — data base (helper fmt/rp) (W3 split dari data.js; perilaku identik).
+   Asseris — data base (helper fmt/rp) (W3 split dari data.js; perilaku identik).
    ============================================================ */
   const fmt = (n: any, d = 0) =>
     (n < 0 ? '(' : '') +

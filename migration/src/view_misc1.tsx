@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Strategy Memo (SA 300), Working Papers index, Governance
+   Asseris — Strategy Memo (SA 300), Working Papers index, Governance
    ============================================================ */
 const { useState: useStateMS, useMemo: useMemoMS } = React;
 
@@ -442,7 +442,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }) 
             Partner: {activeEngagement.partner} · Manajer: {activeEngagement.manager} · Anggaran {fmt(activeEngagement.budgetHrs)} jam. Tenggat fieldwork & pelaporan: {new Date(activeEngagement.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}.
           </Sec>
           <div style={{ marginTop: 26, paddingTop: 12, borderTop: '1px solid #e0e4e8', fontSize: 11, color: '#7a8893' }}>
-            Disiapkan oleh {activeEngagement.manager} · Disetujui oleh {activeEngagement.partner.split(',')[0]} · NeoSuite AMS
+            Disiapkan oleh {activeEngagement.manager} · Disetujui oleh {activeEngagement.partner.split(',')[0]} · Asseris
           </div>
         </div>
       </div>

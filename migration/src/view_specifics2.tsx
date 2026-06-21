@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Core Specifics: Internal Audit (610), Use of Expert (620),
+   Asseris — Core Specifics: Internal Audit (610), Use of Expert (620),
    Service Org (402), Opening Balance (510)
    ============================================================ */
 const { useState: useStateSP2, useMemo: useMemoSP2 } = React;

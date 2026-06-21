@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "NeoSuite AMS — CANONICAL app (Vite + ESM). src/ is hand-maintained source (W3). Buildless app/ + NeoSuite AMS.html at repo root are a FROZEN reference only.",
+  "description": "Asseris — CANONICAL app (Vite + ESM). src/ is hand-maintained source (W3). Buildless app/ + NeoSuite AMS.html at repo root are a FROZEN reference only.",
   "scripts": {
     "_codemod_RETIRED": "node codemod.mjs — DO NOT RUN: src/ is canonical now; this would overwrite hand edits. Kept for reference only.",
     "dev": "vite",

@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — HCM deepening: 360° Profile drawer + Analytics
+   Asseris — HCM deepening: 360° Profile drawer + Analytics
    (consumed by HCM in view_people.jsx)
    ============================================================ */
 const { useState: usePChcm } = React;

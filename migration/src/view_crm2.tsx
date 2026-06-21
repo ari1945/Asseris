@@ -7,7 +7,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat } from './ui.jsx'
 import { FGauge, Funnel, HBars } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Client CRM · extra tabs
+   Asseris — Client CRM · extra tabs
    360° Klien · Aktivitas & Interaksi · Peluang (cross-sell) ·
    Segmentasi. (Direktori stays in view_firm.jsx.)
    ============================================================ */

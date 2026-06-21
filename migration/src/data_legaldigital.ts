@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Lintas-sektor: Legal-Digital & Pelindungan Data
+   Asseris — Lintas-sektor: Legal-Digital & Pelindungan Data
    ------------------------------------------------------------
    Memperluas AMS_CANON (objek modul) dengan dua domain yang sebelumnya
    menjadi gap (Evaluasi Kepatuhan G17 & G19):

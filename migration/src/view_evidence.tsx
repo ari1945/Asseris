@@ -7,7 +7,7 @@ import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
 import { EvDirection, EvDossier, EvSelection } from './view_evidence2';
 
 /* ============================================================
-   NeoSuite AMS — Evidence Evaluation (SA 500 · Bukti Audit)
+   Asseris — Evidence Evaluation (SA 500 · Bukti Audit)
    Deep workpaper: strategi & ringkasan, matriks kecukupan &
    ketepatan, cakupan asersi (heatmap), prosedur & keandalan
    sumber, keandalan informasi (IPE) & pakar, konsistensi/

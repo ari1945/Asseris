@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Komunikasi Komite Audit (POJK 55/2015)
+   Asseris — Komunikasi Komite Audit (POJK 55/2015)
    ------------------------------------------------------------
    Dimensi komunikasi auditor–komite audit DI LUAR SA 260: tugas
    komite audit per POJK 55/POJK.04/2015 (pedoman kerja) & POJK

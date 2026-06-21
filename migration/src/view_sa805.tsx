@@ -8,7 +8,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SA 805 · Audit LK Tunggal & Elemen Tertentu
+   Asseris — SA 805 · Audit LK Tunggal & Elemen Tertentu
    Pertimbangan khusus: audit atas satu laporan keuangan
    tunggal atau atas suatu elemen, akun, atau pos tertentu
    dari laporan keuangan. Registri perikatan, keberterimaan

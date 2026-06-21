@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Sample data
+   Asseris — Sample data
    KAP Wijaya Hartono & Rekan  ·  fictional Indonesian firm
    ============================================================ */
 import type { AmsData } from './types/globals';

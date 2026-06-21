@@ -11,7 +11,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SPR 2410 · Reviu atas Informasi Keuangan Interim
+   Asseris — SPR 2410 · Reviu atas Informasi Keuangan Interim
    yang Dilaksanakan oleh Auditor Independen Entitas
    ------------------------------------------------------------
    Metodologi mendalam: ciri pembeda SPR 2410 (auditor memakai

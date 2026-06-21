@@ -11,7 +11,7 @@ import { MSub } from './view_fpm_parts';
 import { DFRekonsiliasi } from './view_reconcile';
 
 /* ============================================================
-   NeoSuite AMS — Alur Data & Integritas (Klien → Perikatan → Kerja)
+   Asseris — Alur Data & Integritas (Klien → Perikatan → Kerja)
    Memvisualkan lineage data master ke engagement dan menjalankan
    cek integritas referensial & konsistensi lintas modul.
    ============================================================ */

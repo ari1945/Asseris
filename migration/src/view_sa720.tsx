@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 720 · Tanggung Jawab Auditor atas
+   Asseris — SA 720 · Tanggung Jawab Auditor atas
    Informasi Lain
    Deep workpaper: lingkup informasi lain (laporan tahunan),
    telaah inkonsistensi material vs LK & pengetahuan auditor,

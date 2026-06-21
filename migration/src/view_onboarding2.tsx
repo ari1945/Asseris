@@ -6,7 +6,7 @@ import { Badge, Btn } from './ui.jsx';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Onboarding steps 2 & 3
+   Asseris — Onboarding steps 2 & 3
    PMPJ / APU-PPT (KYC)  ·  Engagement Letter (SA 210)
    ============================================================ */
 const { useState: useStateOB2 } = React;

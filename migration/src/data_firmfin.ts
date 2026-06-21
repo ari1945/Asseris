@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Firm Finance: lapisan kanonik (SSOT)
+   Asseris — Firm Finance: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Firm Finance TIDAK menyimpan angkanya sendiri. Tiap figur ditarik
    dari pemilik datanya — satu sumber kebenaran, satu lineage:

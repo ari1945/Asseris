@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { amsExportPdf } from './export_pdf.js';
 
 /* ============================================================
-   NeoSuite AMS — Audit Opinion Generator
+   Asseris — Audit Opinion Generator
    Four-stage flow: Penentuan → Penyusun → KAM → Reviu & TTD
    (SA 700 / 705 / 701 / 706 / 570 / 710 / 720)
    ============================================================ */

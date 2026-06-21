@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Capacity Planning (Practice Operations · D+)
+   Asseris — Capacity Planning (Practice Operations · D+)
    Proyeksi pasokan vs kebutuhan 8 minggu + heatmap per orang.
    ============================================================ */
 const { useState: useStateCap, useMemo: useMemoCap } = React;

@@ -5,7 +5,7 @@ import { I } from './icons.jsx';
 import { Badge } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SOQM Operasional (ISQM 1) · Komponen Pendalaman
+   Asseris — SOQM Operasional (ISQM 1) · Komponen Pendalaman
    ------------------------------------------------------------
    Bagian-bagian berat dari modul SOQM dipisah ke sini:
    · SoqmFlow          — daur hidup ISQM 1 ¶25–34 sebagai pita alur

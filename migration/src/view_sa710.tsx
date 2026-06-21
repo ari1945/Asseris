@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SA 710 · Informasi Komparatif —
+   Asseris — SA 710 · Informasi Komparatif —
    Angka Koresponding & Laporan Keuangan Komparatif
    Deep workpaper: jenis & persyaratan, prosedur audit atas
    komparatif, situasi khusus (auditor pendahulu, salah saji

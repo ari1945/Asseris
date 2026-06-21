@@ -3,7 +3,7 @@ import { I } from './icons.jsx';
 import { Badge, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 72 · Komponen pendukung (dipakai view_psak72.jsx)
+   Asseris — PSAK 72 · Komponen pendukung (dipakai view_psak72.jsx)
    Presentasional saja (tanpa state) — menerima `rev` (AMS_CANON.revenue),
    `sc` (skala penyajian), `fmt`, `nav`. Semua angka ditarik dari mesin
    kanonik yang sama dipakai FS Generator & PSAK 71 — tidak ada angka baru.

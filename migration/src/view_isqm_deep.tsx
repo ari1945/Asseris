@@ -5,7 +5,7 @@ import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Spark } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SOQM Operasional (ISQM 1) · Pendalaman Modul
+   Asseris — SOQM Operasional (ISQM 1) · Pendalaman Modul
    ------------------------------------------------------------
    Lapisan baru yang memperkaya SOQM agar mencakup:
    · SoqmObjectives    — Tujuan Mutu per komponen (¶25–28),

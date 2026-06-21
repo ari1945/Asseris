@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Daftar-Uji Pengungkapan (Disclosure Checklist Engine)
+   Asseris — Daftar-Uji Pengungkapan (Disclosure Checklist Engine)
    Mewujudkan wawasan "rujukan margin LK sebagai daftar-uji": tiap
    persyaratan pengungkapan ditambatkan ke rujukan paragraf bernomor
    selaras-IFRS (mis. 201p54, 115p105, 116p47) dan ditautkan ke modul

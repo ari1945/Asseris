@@ -10,7 +10,7 @@ import { NAReport } from './view_nonaudit2';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Jasa Terkait (SPSJL 4400/4410) & Asurans Lain (SPA)
+   Asseris — Jasa Terkait (SPSJL 4400/4410) & Asurans Lain (SPA)
    AUP (temuan faktual, tanpa asurans) · Kompilasi (tanpa asurans) ·
    Asurans lain SPA 3000/3402/3400.
    ============================================================ */

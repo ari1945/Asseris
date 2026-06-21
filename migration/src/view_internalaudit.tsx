@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Penggunaan Pekerjaan Audit Internal (SA 610)
+   Asseris — Penggunaan Pekerjaan Audit Internal (SA 610)
    Deep workpaper: konteks & strategi, evaluasi fungsi IA,
    penggunaan pekerjaan, reperformansi, bantuan langsung (direct
    assistance), kesimpulan & dampak terhadap audit.

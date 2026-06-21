@@ -5,7 +5,7 @@ import { Badge, Donut, Panel, Progress, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 500 · Bukti Audit (Pendalaman)
+   Asseris — SA 500 · Bukti Audit (Pendalaman)
    Tiga tab tambahan untuk modul Evaluasi Bukti:
    1. Seleksi Item Uji      (SA 500 ¶10 · A52–A56)
    2. Relevansi & Arah Uji  (SA 500 ¶A27–A30)

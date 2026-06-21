@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — canon part3 (engine + seed) (W3 split dari canon.js; perilaku identik).
+   Asseris — canon part3 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import { ASOF, RATE, figuresFromWTB, fsgenModel, jt, wtbVal } from './canon_base';
 import { assetRegister, deferredTax, fixedAssets, intangibles, inventory, revenue } from './canon_part1';

@@ -6,7 +6,7 @@ import { BoBadge, boJt, boM } from './view_bo1';
 import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Aset & Fasilitas (DEEP) · 2/2
+   Asseris — Aset & Fasilitas (DEEP) · 2/2
    Pemeliharaan & K3 · Lisensi & Langganan · Ruang & Okupansi ·
    Sewa & Asuransi · Sumber Kebenaran (rekonsiliasi + jembatan ERP).
    Semua data dari FAC (via props dari view_facilities). LINEAGE.facilities memasang dock.

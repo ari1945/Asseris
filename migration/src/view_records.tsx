@@ -9,7 +9,7 @@ import { PDrawer } from './view_docparts';
 import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Retensi & Arsip (modul mendalam · SA 230 / SPM 1 / ISQM)
+   Asseris — Retensi & Arsip (modul mendalam · SA 230 / SPM 1 / ISQM)
    ------------------------------------------------------------
    UI murni penyaji. Seluruh angka ditarik dari window.RETENTION
    (lapisan kanonik) yang sendirinya menderivasi dari DMS_DOCS,

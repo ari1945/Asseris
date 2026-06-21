@@ -8,7 +8,7 @@ import { Avatar, Btn, Panel, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Partner & Engagement Profitability (Package F)
+   Asseris — Partner & Engagement Profitability (Package F)
    ============================================================ */
 const { useState: useStatePRF, useMemo: useMemoPRF } = React;
 

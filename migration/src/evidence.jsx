@@ -4,7 +4,7 @@ import { useNav } from './contexts.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Evidence Intake (lintas-modul)
+   Asseris — Evidence Intake (lintas-modul)
    Satu mekanisme unggah-&-klasifikasi yang tersedia di SETIAP
    modul lewat SubBar global. Bukti disimpan per modul, memakai
    mesin klasifikasi yang sama dengan AI Co-pilot.

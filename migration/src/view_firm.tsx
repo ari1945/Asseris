@@ -12,7 +12,7 @@ import { MSub } from './view_fpm_parts';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Client CRM + Engagement Management
+   Asseris — Client CRM + Engagement Management
    ============================================================ */
 const { useState: useStateF } = React;
 

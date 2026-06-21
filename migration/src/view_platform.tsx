@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Firm Platform · Approvals (Bagian D-1)
+   Asseris — Firm Platform · Approvals (Bagian D-1)
    Antrean DITURUNKAN LIVE dari sumber kanonik (AMS.PLATFORM):
      AJE (useAudit) · Faktur · Pipeline · Opini · Independensi · WIP
    Keputusan ditulis-balik ke SSOT — menyetujui AJE memposting jurnal

@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Roadmap SAK & Pelacak ISAK  (modul: sakroadmap)
+   Asseris — Roadmap SAK & Pelacak ISAK  (modul: sakroadmap)
    ------------------------------------------------------------
    Menutup Gap G5: sistem tak lagi sekadar memotret standar yang
    berlaku — ia mengantisipasi perubahan (horizon "terbit, belum

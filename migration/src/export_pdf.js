@@ -13,7 +13,7 @@
 import { exportSeal, exportLogEvent } from './api.js';
 
 export const SEAL_DISCLAIMER =
-  'Segel provenans NeoSuite (Ed25519) — membuktikan pembuat & integritas konten. ' +
+  'Segel provenans Asseris (Ed25519) — membuktikan pembuat & integritas konten. ' +
   'BUKAN e-Meterai/PERURI atau tanda tangan elektronik tersertifikasi (PSrE). Tanpa kekuatan bea meterai.';
 
 // Lazy-load the heavy libs once. Kept out of the boot bundle (dynamic import → its own chunk).
@@ -169,7 +169,7 @@ export async function amsExportPdf(model) {
 
   const tx = MARGIN; let ty = fy + 4;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
-  doc.text(seal ? 'TERSEGEL · Provenans NeoSuite' : 'TIDAK TERSEGEL', tx, ty); ty += 13;
+  doc.text(seal ? 'TERSEGEL · Provenans Asseris' : 'TIDAK TERSEGEL', tx, ty); ty += 13;
   doc.setFont('courier', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...MUTED);
   if (seal) {
     doc.text(`Seal: ${seal.sealId}`, tx, ty); ty += 10;

@@ -12,7 +12,7 @@ import { LEGAL } from './data_legal';
 import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Cockpit Operasi Firma (Backoffice & Firm Mgmt)
+   Asseris — Cockpit Operasi Firma (Backoffice & Firm Mgmt)
    Pusat kendali operasional firma: kesehatan sub-modul, komposisi
    biaya operasi (sumber sub-ledger), kalender kewajiban terpadu,
    konsumsi vendor, & rekonsiliasi lintas-modul.

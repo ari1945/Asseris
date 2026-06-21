@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SA 701 · Pengomunikasian Hal Audit Utama (KAM)
+   Asseris — SA 701 · Pengomunikasian Hal Audit Utama (KAM)
    Deep workpaper: corong penentuan KAM, register KAM (mengapa
    & bagaimana ditangani + rujukan LK), draf bagian KAM dalam
    laporan auditor, serta keterkaitan risiko & komunikasi TCWG.

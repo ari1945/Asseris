@@ -8,7 +8,7 @@ import { Funnel } from './view_fpm_parts';
 import { obAccScore, obAccVerdict, obStage } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Client Onboarding · extra tabs
+   Asseris — Client Onboarding · extra tabs
    Analitik · Akseptasi (SA 220/300) · PMPJ / APU-PPT (AML/KYC).
    (4-gate board stays in view_onboarding.jsx; reuses obStage,
    obGates, obAccScore, obAccVerdict, OB_STAGES globals.)

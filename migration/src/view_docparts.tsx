@@ -4,7 +4,7 @@ import { I } from './icons.jsx';
 import { Badge, Btn } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Shared parts for Portal Klien & DMS
+   Asseris — Shared parts for Portal Klien & DMS
    PModal · PField · PTimeline · PThread · PVerRow · PSeg helpers
    ============================================================ */
 const { useState: usePartsState, useEffect: usePartsEffect, useRef: usePartsRef } = React;

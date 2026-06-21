@@ -4,7 +4,7 @@ import { I } from './icons.jsx';
 import { Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 16 · Komponen Register Aset Tetap (sub-ledger)
+   Asseris — PSAK 16 · Komponen Register Aset Tetap (sub-ledger)
    Dipakai oleh view_psak16.jsx. Menampilkan:
      · AssetRegisterTable — buku besar pembantu aset tetap (data yang
        di-impor dari register-aset-tetap.xlsx) + footing total

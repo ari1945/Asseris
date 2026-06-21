@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — SAK Syariah · PSAK 101–112
+   Asseris — SAK Syariah · PSAK 101–112
    ------------------------------------------------------------
    MESIN HITUNG / SUMBER KEBENARAN TUNGGAL untuk modul Akuntansi
    Syariah. Mengaugmentasi AMS_CANON (objek modul) dengan syariah() —

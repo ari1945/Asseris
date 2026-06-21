@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Progress, Seg } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — WTB Deep modules
+   Asseris — WTB Deep modules
    · Command KPI band
    · Preliminary Analytical Review (SA 520)
    · FS Grouping & Reconciliation (ties to FS Generator)

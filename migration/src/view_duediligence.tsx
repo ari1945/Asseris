@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { NAReport } from './view_nonaudit2';
 
 /* ============================================================
-   NeoSuite AMS — Financial Due Diligence (Advisory · Non-Asurans)
+   Asseris — Financial Due Diligence (Advisory · Non-Asurans)
    Workspace mendalam yang menarik SELURUH angka dari satu sumber
    kebenaran (AMS.DUE_DILIGENCE), yang field identitasnya
    sendiri ditarik dari catatan kanonik CRM (OPP-105), Onboarding

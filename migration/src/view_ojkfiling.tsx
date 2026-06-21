@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Batas Waktu & Penyampaian Elektronik OJK/BEI
+   Asseris — Batas Waktu & Penyampaian Elektronik OJK/BEI
    ------------------------------------------------------------
    Pelacak batas waktu regulatori penyampaian LK auditan & Laporan
    Tahunan emiten ke OJK (SPRINT) dan BEI (IDXnet), berikut status

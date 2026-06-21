@@ -5,7 +5,7 @@ import { Badge, Btn, Panel, Seg } from './ui.jsx';
 import { useWpSignoff } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — FS Generator · Workspace panels
+   Asseris — FS Generator · Workspace panels
    Left rail (statement nav · presentation · sign-off) and
    right dock (validation/tie-out · account mapping · disclosure checklist).
    ============================================================ */

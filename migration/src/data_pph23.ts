@@ -3,7 +3,7 @@ import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — PPh Pasal 23 Firma: lapisan kanonik (SSOT)
+   Asseris — PPh Pasal 23 Firma: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Modul "Pajak PPh 23" TIDAK menyimpan angka ganda. Register
    pemotongan diturunkan dari transaksi sumber (pembayaran jasa

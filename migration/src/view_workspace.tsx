@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Seg } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Review Notes (review-clearance workspace)
+   Asseris — Review Notes (review-clearance workspace)
    Threaded notes · type taxonomy · open→responded→cleared
    workflow · aging & SLA · clearance-readiness gate (ISA 230 /
    ISQM 1) · grouping · master–detail conversation

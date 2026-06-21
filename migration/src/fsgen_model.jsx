@@ -2,7 +2,7 @@
 import { setFsgenBuilder } from './canon_base';
 
 /* ============================================================
-   NeoSuite AMS — Financial Statement Generator · Model & Engine
+   Asseris — Financial Statement Generator · Model & Engine
    Pure derivation from the Working Trial Balance (adjusted balances):
    · Statement of Financial Position (Neraca)
    · Statement of Profit or Loss & OCI (Laba Rugi)

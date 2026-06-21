@@ -10,7 +10,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Informasi Segmen (PSAK 5 / IFRS 8 → PSAK 108)
+   Asseris — Informasi Segmen (PSAK 5 / IFRS 8 → PSAK 108)
    Segmen operasi diturunkan dari disagregasi pendapatan kanonik
    (AMS_CANON.revenue) dan ditutup ke total LK (FS Generator):
      · Σ pendapatan segmen = pendapatan konsolidasian

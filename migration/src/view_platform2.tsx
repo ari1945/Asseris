@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { IMPORT } from './data_import';
 
 /* ============================================================
-   NeoSuite AMS — Firm Platform · Impor & Integrasi Data (Bagian D-2)
+   Asseris — Firm Platform · Impor & Integrasi Data (Bagian D-2)
    ------------------------------------------------------------
    Gerbang masuk data eksternal. Tiga mode: Konektor (master-detail),
    Antrean Impor (staging→validasi→posting), Rekonsiliasi SSOT
@@ -397,9 +397,9 @@ function IntegrationDetail({ it, onToggle }: any) {
           )}
           {tab === 'mapping' && (
             <>
-              <div className="tiny muted" style={{ marginBottom: 10 }}>Pemetaan field dari sistem eksternal ke skema NeoSuite. Transformasi diterapkan saat ingest sebelum posting.</div>
+              <div className="tiny muted" style={{ marginBottom: 10 }}>Pemetaan field dari sistem eksternal ke skema Asseris. Transformasi diterapkan saat ingest sebelum posting.</div>
               <table className="dtbl">
-                <thead><tr><th>Field Sumber ({it.name.split(' ')[0]})</th><th style={{ width: 30 }}></th><th>Field NeoSuite</th></tr></thead>
+                <thead><tr><th>Field Sumber ({it.name.split(' ')[0]})</th><th style={{ width: 30 }}></th><th>Field Asseris</th></tr></thead>
                 <tbody>
                   {it.mapping.map((m, i) => (
                     <tr key={i}><td style={{ fontWeight: 600 }}>{m[0]}</td><td><I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} /></td><td className="mono tiny" style={{ color: 'var(--blue)' }}>{m[1]}</td></tr>
@@ -429,7 +429,7 @@ function IntegrationDetail({ it, onToggle }: any) {
           )}
           {tab === 'webhook' && (
             <>
-              <div className="tiny muted" style={{ marginBottom: 10 }}>Event yang memicu impor atau aksi otomatis di NeoSuite.</div>
+              <div className="tiny muted" style={{ marginBottom: 10 }}>Event yang memicu impor atau aksi otomatis di Asseris.</div>
               <div style={{ display: 'grid', gap: 8 }}>
                 {it.webhooks.map((w, i) => (
                   <div key={i} className="panel row ac jb" style={{ padding: '9px 12px', boxShadow: 'none' }}>

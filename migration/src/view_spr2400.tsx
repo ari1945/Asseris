@@ -8,7 +8,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SPR 2400 · Perikatan Reviu atas LK Historis
+   Asseris — SPR 2400 · Perikatan Reviu atas LK Historis
    Deep methodology: kontinum keyakinan (audit vs reviu vs
    kompilasi), desain prosedur inquiry & analitis, pemicu
    prosedur tambahan, materialitas & kecukupan bukti, serta

@@ -4,7 +4,7 @@ import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
-   NeoSuite AMS — Aset & Fasilitas Kantor: lapisan kanonik (SSOT)
+   Asseris — Aset & Fasilitas Kantor: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    Register aset fasilitas (BO.FIXED_ASSETS) = sub-ledger PSAK 16
    tunggal untuk aset kantor. Lapisan ini TIDAK menyimpan angka kedua —

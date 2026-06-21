@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Placeholder, Seg, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Working Papers (audit file workspace)
+   Asseris — Working Papers (audit file workspace)
    Deep build: file status · index · tabbed lead schedule,
    procedures, cross-refs, review notes, sign-off & audit trail
    ============================================================ */

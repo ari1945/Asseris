@@ -10,7 +10,7 @@ import { HBars, KV, LineChart, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Backoffice & Firm Mgmt (3/3)
+   Asseris — Backoffice & Firm Mgmt (3/3)
    Perjalanan Dinas & Reimbursement · Lisensi & Perizinan
    Reuses: boJt, boM, BoBadge, BoTabPanel, BoStat (view_bo1)
    ============================================================ */

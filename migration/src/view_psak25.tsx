@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 25 · Kebijakan Akuntansi, Perubahan
+   Asseris — PSAK 25 · Kebijakan Akuntansi, Perubahan
    Estimasi Akuntansi & Kesalahan (IAS 8)
    ------------------------------------------------------------
    Modul "meta": tidak punya satu saldo tunggal — ia MENARIK estimasi

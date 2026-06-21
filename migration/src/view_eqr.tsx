@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — EQR Workflow (ISQM 2)  ·  Pelaporan PPPK
+   Asseris — EQR Workflow (ISQM 2)  ·  Pelaporan PPPK
    Engagement Quality Review sebagai gerbang wajib penerbitan
    opini · Laporan Tahunan KAP ke P2PK/PPPK Kemenkeu.
    ============================================================ */

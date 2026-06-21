@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Time & Budget (expanded module)
+   Asseris — Time & Budget (expanded module)
    Tabs: Ringkasan · Anggaran per Fase · Timesheet · Tim & Utilisasi · Ekonomi
    ============================================================ */
 const { useState: useTB, useMemo: useTBMemo } = React;

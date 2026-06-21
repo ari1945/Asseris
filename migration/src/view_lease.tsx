@@ -10,7 +10,7 @@ import { Kv } from './view_calc';
 import { SliderRow } from './view_materiality';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 73 Lease Calculator (ROU + liability)
+   Asseris — PSAK 73 Lease Calculator (ROU + liability)
    ============================================================ */
 const { useState: useStateL, useMemo: useMemoL } = React;
 

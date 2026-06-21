@@ -7,7 +7,7 @@ import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Rekonsiliasi Angka Lintas-Modul (tie-out)
+   Asseris — Rekonsiliasi Angka Lintas-Modul (tie-out)
    ------------------------------------------------------------
    Tab di modul Alur Data. Menjadikan Working Trial Balance (buku
    besar) sebagai SATU sumber kebenaran, lalu mencocokkan angka

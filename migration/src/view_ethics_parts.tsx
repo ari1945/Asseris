@@ -7,7 +7,7 @@ import { Badge, Panel, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Etika: NOCLAR profesi · Etika Pajak & Teknologi ·
+   Asseris — Etika: NOCLAR profesi · Etika Pajak & Teknologi ·
    Strip Kemutakhiran Versi Standar (G7 · G9 · G8)
    Dipakai oleh view_pc_conduct.jsx (ethics) & view_groupaudit.jsx.
    ============================================================ */

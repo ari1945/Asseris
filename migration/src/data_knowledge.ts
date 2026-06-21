@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Knowledge Base (lapisan editorial + penyambung)
+   Asseris — Knowledge Base (lapisan editorial + penyambung)
    ------------------------------------------------------------
    PRINSIP SUMBER KEBENARAN:
    Knowledge Base TIDAK menyimpan daftar artikel sendiri. Katalognya
@@ -400,7 +400,7 @@ import { AMS } from './data';
     ] : [
       S('Tujuan & ruang lingkup', reg.code + ' menetapkan tujuan auditor dan ruang lingkup penerapannya. Prosedur dirancang proporsional terhadap risiko kesalahan penyajian material yang relevan.'),
       S('Prosedur utama', 'Auditor merancang & melaksanakan prosedur untuk memperoleh bukti yang cukup dan tepat, dengan mempertahankan skeptisisme profesional dan mendokumentasikan pertimbangan signifikan.'),
-      S('Pelaksanaan di NeoSuite', modLbl ? ('Standar ini dijalankan melalui modul ' + modLbl + '; status ketertelusuran & kepatuhannya terpusat di Matriks Kepatuhan.') : 'Status keberlakuan & ketertelusuran standar ini dikelola di Matriks Kepatuhan.'),
+      S('Pelaksanaan di Asseris', modLbl ? ('Standar ini dijalankan melalui modul ' + modLbl + '; status ketertelusuran & kepatuhannya terpusat di Matriks Kepatuhan.') : 'Status keberlakuan & ketertelusuran standar ini dikelola di Matriks Kepatuhan.'),
     ];
     const points = isPSAK
       ? ['Pahami kriteria pengakuan & pengukuran', 'Terapkan kebijakan secara konsisten', 'Lengkapi pengungkapan yang disyaratkan', 'Telusuri angka ke buku besar (WTB)']

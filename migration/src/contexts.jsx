@@ -5,7 +5,7 @@ import { can as rbacCan } from './rbac.js';
 import { AMS } from './data';
 
 /* ============================================================
-   NeoSuite AMS — React Context providers
+   Asseris — React Context providers
    AuthContext · FirmContext · AuditContext
    ============================================================ */
 const { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } = React;

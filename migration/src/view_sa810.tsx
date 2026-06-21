@@ -8,7 +8,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SA 810 · Perikatan Pelaporan atas Ringkasan LK
+   Asseris — SA 810 · Perikatan Pelaporan atas Ringkasan LK
    Perikatan untuk melaporkan ringkasan laporan keuangan yang
    diturunkan dari LK auditan. Registri & kriteria yang
    diterapkan, prosedur (¶8), dampak opini atas LK auditan

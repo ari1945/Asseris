@@ -9,7 +9,7 @@ import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_de
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================
-   NeoSuite AMS — Working Trial Balance (WTB) + AJE
+   Asseris — Working Trial Balance (WTB) + AJE
    ============================================================ */
 const { useState: useStateX, useMemo: useMemoX } = React;
 

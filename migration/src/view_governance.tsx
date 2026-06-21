@@ -7,7 +7,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui.jsx';
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Governance (SPM / ISQM 1)
+   Asseris — Governance (SPM / ISQM 1)
    Tata kelola mutu firma: 8 komponen SPM · akuntabilitas peran ·
    sumber daya & penyedia · budaya mutu · simpulan evaluasi tahunan.
    ============================================================ */

@@ -6,7 +6,7 @@ import { KvBox } from './view_analytical';
 import { GA_CONSOL_DOWN, GA_CONSOL_PROC, GA_CONSOL_UP, PKG_FIELDS, PKG_NUM_KEYS, PKG_STATUS_KIND } from './view_groupaudit';
 
 /* ============================================================
-   NeoSuite AMS — Group Audit (bagian): GAPackages · GAConsol · GAElimReview
+   Asseris — Group Audit (bagian): GAPackages · GAConsol · GAElimReview
    Dipecah dari view_groupaudit.jsx (W2). Dimuat SEBELUM view_groupaudit.jsx.
    Konstanta bersama (GA_CONSOL_*, PKG_*) tetap di file utama & dipublikasikan
    ke window agar tetap satu sumber; komponen di sini diekspor balik ke window.

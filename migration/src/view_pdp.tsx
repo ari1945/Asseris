@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Pelindungan Data Pribadi (UU 27/2022 · PDP)
+   Asseris — Pelindungan Data Pribadi (UU 27/2022 · PDP)
    ------------------------------------------------------------
    Operasionalisasi UU PDP di luar retensi (Evaluasi Kepatuhan G19):
      · RoPA — registri aktivitas pemrosesan + dasar pemrosesan/persetujuan

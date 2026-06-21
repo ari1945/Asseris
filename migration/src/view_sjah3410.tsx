@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SJAH 3410 · Perikatan Asurans atas Laporan Emisi
+   Asseris — SJAH 3410 · Perikatan Asurans atas Laporan Emisi
    Gas Rumah Kaca (selaras ISAE 3410 · GHG Protocol · ISO 14064-1).
    Deep methodology: anatomi & penerimaan (keyakinan terbatas vs
    memadai · batas organisasi kendali operasional · Scope 1/2/3 ·

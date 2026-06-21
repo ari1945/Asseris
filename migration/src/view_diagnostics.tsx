@@ -6,7 +6,7 @@ import { Panel, Stat } from './ui.jsx';
 import { DiagnosticPanel, useDiagnostics } from './diagnostics_panel.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Tax Audit Diagnostic (view agregat · P4 Fase 1)
+   Asseris — Tax Audit Diagnostic (view agregat · P4 Fase 1)
    Ringkasan + seluruh temuan dari mesin DETERMINISTIK amsDiagnostics.
    ============================================================ */
 function TaxAuditDiagnostic() {

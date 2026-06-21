@@ -9,7 +9,7 @@ import { Badge, Btn, Donut, Panel } from './ui.jsx';
 import { wpSignersFor } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SAK Syariah · PSAK 101–112
+   Asseris — SAK Syariah · PSAK 101–112
    ------------------------------------------------------------
    Kertas kerja penyusunan & audit entitas syariah, DITARIK PENUH
    dari satu sumber kebenaran: AMS_CANON.syariah().

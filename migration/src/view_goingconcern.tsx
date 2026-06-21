@@ -7,7 +7,7 @@ import { Badge, Btn, Panel, Spark } from './ui.jsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Going Concern (SA 570)
+   Asseris — Going Concern (SA 570)
    ============================================================ */
 const { useState: useStateGC, useMemo: useMemoGC } = React;
 

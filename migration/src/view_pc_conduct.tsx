@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
 
 /* ============================================================
-   NeoSuite AMS — People & Compliance (NEW)
+   Asseris — People & Compliance (NEW)
    Kode Etik & Deklarasi Tahunan (AML/PMPJ)  ·  Sanksi & Disiplin
    ============================================================ */
 const { useState: usePCcon } = React;

@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 66 · Pengaturan Bersama (Joint Arrangements)
+   Asseris — PSAK 66 · Pengaturan Bersama (Joint Arrangements)
    Kertas kerja klasifikasi & audit pengaturan bersama yang DITARIK
    PENUH dari satu sumber kebenaran — TIDAK ada angka di-hardcode:
      · AMS_CANON.psak66(wtb) — mesin yang menarik:

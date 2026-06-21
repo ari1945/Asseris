@@ -9,7 +9,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 19 · Aset Takberwujud (Intangible Assets)
+   Asseris — PSAK 19 · Aset Takberwujud (Intangible Assets)
    Kertas kerja penyusunan & audit Aset Takberwujud yang DITARIK PENUH
    dari satu sumber kebenaran:
      · Working Trial Balance (useAudit().wtb) — akun 1-2400 (Harga

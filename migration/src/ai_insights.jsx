@@ -6,7 +6,7 @@ import { PROGRAMME } from './view_cockpit';
 import { AMS } from './data';
 
 /* ============================================================
-   NeoSuite AMS — AI Insights (Tier 2)
+   Asseris — AI Insights (Tier 2)
    Membawa AI keluar dari panel chat & menanamkannya di modul kerja.
 
    Inti: amsCrossChecks() — mesin DETERMINISTIK yang MENGKORELASIKAN

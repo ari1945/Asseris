@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Related-modules data (lanjutan): template-lineage,
+   Asseris — Related-modules data (lanjutan): template-lineage,
    entri lineage tambahan & peta SA. Dimuat SETELAH related_modules_data.js
    (LINEAGE sudah ada) dan SEBELUM related_modules.jsx.
    ============================================================ */

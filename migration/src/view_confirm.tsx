@@ -8,7 +8,7 @@ import { KvBox } from './view_analytical';
 import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWorksheet, CfReliability, CfTrack, STATUS_KIND } from './view_confirm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Confirmation Hub (Pusat Konfirmasi Pihak Ketiga)
+   Asseris — Confirmation Hub (Pusat Konfirmasi Pihak Ketiga)
    Tabs: Ringkasan · Daftar Konfirmasi · Rekonsiliasi & Tindak Lanjut
    (constants + reusable parts live in view_confirm_parts.jsx)
    ============================================================ */

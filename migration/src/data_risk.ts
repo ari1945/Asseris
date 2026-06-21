@@ -5,7 +5,7 @@ import { FAC } from './data_facilities';
 import { LEGAL } from './data_legal';
 
 /* ============================================================
-   NeoSuite AMS — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)
+   Asseris — Asuransi (PII) & Risiko: lapisan kanonik (SSOT)
    ------------------------------------------------------------
    BO.POLICIES / CLAIMS / RISK_REGISTER = sumber kebenaran
    tunggal untuk pertanggungan & risiko entitas firma (ISQM 1).

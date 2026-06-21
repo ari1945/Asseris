@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — People & Compliance (NEW)
+   Asseris — People & Compliance (NEW)
    Rekrutmen & Onboarding Staf  ·  Pelatihan & Kompetensi
    ============================================================ */
 const { useState: usePCtal } = React;

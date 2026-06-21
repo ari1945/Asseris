@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================
-   NeoSuite AMS — Firm General Ledger + AP/AR (Package F)
+   Asseris — Firm General Ledger + AP/AR (Package F)
    ============================================================ */
 const { useState: useStateF1, useMemo: useMemoF1 } = React;
 

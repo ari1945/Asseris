@@ -8,7 +8,7 @@ import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — Modul Pajak PPh Pasal 23 (Firm Backoffice)
+   Asseris — Modul Pajak PPh Pasal 23 (Firm Backoffice)
    Register pemotongan, Bukti Potong Unifikasi (Coretax DJP), SPT
    Masa, kepatuhan NPWP/NIK & rekonsiliasi ke GL — semuanya
    DITURUNKAN dari lapisan kanonik window.TAX23 (SSOT). Tidak ada angka ganda.

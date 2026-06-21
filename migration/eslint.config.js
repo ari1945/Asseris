@@ -1,4 +1,4 @@
-// NeoSuite AMS — ESLint flat config (W1).
+// Asseris — ESLint flat config (W1).
 // Purpose: an agent-callable quality gate over the ESM target (migration/src).
 // `no-undef` + `react/jsx-no-undef` are the regression net for the window→ESM
 // migration (W3): any symbol not yet wired by the codemod shows up here.

@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Subsequent Events (SA 560 / PSAK 8)
+   Asseris — Subsequent Events (SA 560 / PSAK 8)
    ============================================================ */
 const { useState: useStateSE } = React;
 

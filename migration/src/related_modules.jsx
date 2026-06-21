@@ -6,7 +6,7 @@ import { LINEAGE } from './related_modules_data.js';
 import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2.js';
 
 /* ============================================================
-   NeoSuite AMS — Related-modules dock & SA linkback (komponen).
+   Asseris — Related-modules dock & SA linkback (komponen).
    Data graf (LINEAGE) & peta SA dipindah ke related_modules_data.js (W2),
    dimuat SEBELUM berkas ini; komponen membacanya via global/window.
    ============================================================ */

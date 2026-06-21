@@ -10,7 +10,7 @@ import { PDrawer, PEVT, PField, PModal, PVerList, pNowTime } from './view_docpar
 import { OKv } from './view_onboarding';
 
 /* ============================================================
-   NeoSuite AMS — Document Management & Retensi (DMS natif)
+   Asseris — Document Management & Retensi (DMS natif)
    Navigasi folder per engagement · tabel dokumen · drawer detail
    (riwayat versi + bandingkan versi, log akses, tautan WP, retensi).
    Versioning · klasifikasi · retensi 10 thn · legal hold · SA 230.

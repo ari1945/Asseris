@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — ambient window contract, APP tier (W11)
+   Asseris — ambient window contract, APP tier (W11)
    ------------------------------------------------------------
    Saat lapisan DATA dikonversi .js → .ts (PRD W11), tiap baca/tulis
    `window.<NS>` yang TERSISA harus dideklarasikan di sini agar file

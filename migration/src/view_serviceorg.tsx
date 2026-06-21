@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Service Organization / Organisasi Jasa (SA 402)
+   Asseris — Service Organization / Organisasi Jasa (SA 402)
    Deep workpaper: pemetaan dampak, register laporan asurans (Type 1/2),
    evaluasi auditor jasa, CUEC, subservice & pengecualian, kesimpulan.
    ============================================================ */

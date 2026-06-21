@@ -8,7 +8,7 @@ import { EngagementDetail } from './view_firm';
 import { HBars } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Engagement Management · extra tabs
+   Asseris — Engagement Management · extra tabs
    Portofolio · Anggaran & Burn · Staffing · Jadwal.
    (Papan / Kanban stays in view_firm.jsx.)
    ============================================================ */

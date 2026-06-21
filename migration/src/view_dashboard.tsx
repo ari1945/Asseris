@@ -9,7 +9,7 @@ import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';
 import { MSub } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Firm Dashboard (draggable portlets)
+   Asseris — Firm Dashboard (draggable portlets)
    ============================================================ */
 const { useState: useStateD, useRef: useRefD, useEffect: useEffectD } = React;
 

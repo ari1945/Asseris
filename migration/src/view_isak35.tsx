@@ -10,7 +10,7 @@ import { Btn, Panel, Tabs } from './ui.jsx';
 import { useWpSignoff } from './wp_signoff.jsx';
 
 /* ============================================================
-   NeoSuite AMS — ISAK 35 · Entitas Berorientasi Nonlaba
+   Asseris — ISAK 35 · Entitas Berorientasi Nonlaba
    Kertas kerja penyajian & audit laporan keuangan nonlaba yang
    DITARIK PENUH dari satu sumber kebenaran: AMS_CANON.isak35().
    Workspace: navigator laporan · kontrol penyajian · dokumen langsung
@@ -282,7 +282,7 @@ function ISAK35View() {
                 {tab === 'posisi' && !m.bs.balanced && <div style={{ marginTop: 14, color: '#b3261e', fontSize: 11, fontWeight: 600 }}>⚠ Posisi keuangan tidak seimbang — periksa pemetaan akun.</div>}
 
                 <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid #e0e4e8', color: '#7a8893', fontSize: 10.5, lineHeight: 1.5 }}>
-                  Catatan atas laporan keuangan merupakan bagian yang tidak terpisahkan dari laporan keuangan ini. Disusun sesuai ISAK 35 — Penyajian Laporan Keuangan Entitas Berorientasi Nonlaba; angka diturunkan dari saldo buku besar setelah penyesuaian audit (NeoSuite AMS).
+                  Catatan atas laporan keuangan merupakan bagian yang tidak terpisahkan dari laporan keuangan ini. Disusun sesuai ISAK 35 — Penyajian Laporan Keuangan Entitas Berorientasi Nonlaba; angka diturunkan dari saldo buku besar setelah penyesuaian audit (Asseris).
                   {allSigned && <span> · Disusun {signoff.prepared.by} ({signoff.prepared.date}); direviu {signoff.reviewed.by} ({signoff.reviewed.date}).</span>}
                 </div>
               </div>

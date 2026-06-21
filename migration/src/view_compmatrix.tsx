@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Progress } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Matriks Kepatuhan (Standards Register / Index)
+   Asseris — Matriks Kepatuhan (Standards Register / Index)
    Satu sumber kebenaran: tiap SA/PSAK dipetakan ke checklist,
    modul fungsional, atau ditandai belum tercakup (gap).
    ============================================================ */

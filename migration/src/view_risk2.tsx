@@ -7,7 +7,7 @@ import { Badge, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
 import { HBars, LineChart } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Risk Assessment · extra tabs
+   Asseris — Risk Assessment · extra tabs
    Peta Kontrol · Tren Risiko · Respons & Prosedur.
    (Register + heatmap stays in view_risk.jsx.)
    ============================================================ */

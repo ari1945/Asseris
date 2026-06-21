@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SJAH 3420 · Asurans atas Penyusunan Informasi
+   Asseris — SJAH 3420 · Asurans atas Penyusunan Informasi
    Keuangan Proforma (Prospektus) — selaras ISAE 3420.
 
    Akuntan pelapor menyatakan keyakinan MEMADAI atas apakah informasi

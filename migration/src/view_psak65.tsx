@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 65 · Laporan Keuangan Konsolidasian (IFRS 10)
+   Asseris — PSAK 65 · Laporan Keuangan Konsolidasian (IFRS 10)
    ------------------------------------------------------------
    Kertas kerja penyusunan & audit konsolidasi yang DITARIK PENUH
    dari satu sumber kebenaran:

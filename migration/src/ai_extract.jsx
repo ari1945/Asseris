@@ -8,7 +8,7 @@ import { AMS } from './data';
 import { openCanonicalWp } from './view_wp';
 
 /* ============================================================
-   NeoSuite AMS — Ekstraksi Isi Dokumen (FASE 3 · Babel JSX)
+   Asseris — Ekstraksi Isi Dokumen (FASE 3 · Babel JSX)
    Membaca isi dokumen (teks nyata yang ditempel/diunggah, atau
    konten contoh per jenis), mengekstrak field terstruktur sesuai
    SKEMA standar (kontrak PSAK 72, sewa PSAK 73, konfirmasi SA 505,

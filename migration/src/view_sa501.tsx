@@ -9,7 +9,7 @@ import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 501 · Bukti Audit: Pertimbangan Spesifik
+   Asseris — SA 501 · Bukti Audit: Pertimbangan Spesifik
    atas Unsur Pilihan (Persediaan · Litigasi & Klaim · Segmen)
    Deep workpaper: kehadiran perhitungan fisik, prosedur
    observasi, komunikasi penasihat hukum, register perkara,

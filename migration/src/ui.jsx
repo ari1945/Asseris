@@ -3,7 +3,7 @@ import React from 'react';
 import { I, MODULE_INDEX } from './icons.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Shared UI primitives
+   Asseris — Shared UI primitives
    ============================================================ */
 const { useState: useStateUI } = React;
 

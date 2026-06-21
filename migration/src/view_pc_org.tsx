@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — People & Compliance (NEW)
+   Asseris — People & Compliance (NEW)
    Struktur Organisasi (Org Chart)  ·  Perencanaan Suksesi & Karier
    ============================================================ */
 const { useState: usePCorg } = React;

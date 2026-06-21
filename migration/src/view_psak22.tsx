@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 22 · Kombinasi Bisnis (IFRS 3)
+   Asseris — PSAK 22 · Kombinasi Bisnis (IFRS 3)
    ------------------------------------------------------------
    Kertas kerja akuntansi & audit AKUISISI yang DITARIK dari satu
    sumber kebenaran:

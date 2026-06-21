@@ -8,7 +8,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
 import { AMS } from './data';
 
 /* ============================================================
-   NeoSuite AMS — Tax Audit Diagnostic · UI (P4 Fase 1-2)
+   Asseris — Tax Audit Diagnostic · UI (P4 Fase 1-2)
    Penyajian temuan dari mesin DETERMINISTIK `amsDiagnostics` (bukan LLM),
    digabung dengan korelasi lintas-modul `amsCrossChecks` (via extraFindings).
    <DiagnosticPanel area> — embeddable per-modul (filter drillView/modul);

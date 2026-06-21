@@ -8,7 +8,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — PSAK 58 · Aset Tidak Lancar Dimiliki untuk Dijual
+   Asseris — PSAK 58 · Aset Tidak Lancar Dimiliki untuk Dijual
    & Operasi yang Dihentikan (IFRS 5)
    Kertas kerja yang DITARIK PENUH dari satu sumber kebenaran yang
    sama dipakai modul lain — tidak ada angka di-input ulang:

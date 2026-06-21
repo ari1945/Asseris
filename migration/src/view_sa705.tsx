@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SA 705 & 706 · Modifikasi Opini & Paragraf
+   Asseris — SA 705 & 706 · Modifikasi Opini & Paragraf
    Penekanan Suatu Hal / Hal Lain
    Deep workpaper: alat penentu jenis opini (interaktif),
    matriks sifat × pervasif, basis modifikasi & rumusan opini,

@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Tax Audit Diagnostic engine (P4 · SSOT)
+   Asseris — Tax Audit Diagnostic engine (P4 · SSOT)
    ------------------------------------------------------------
    Mesin diagnostik DETERMINISTIK (aturan + statistik) di atas
    AMS_CANON / AMS_FORENSIC. BUKAN LLM — semua temuan dihitung dari

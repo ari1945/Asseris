@@ -11,7 +11,7 @@ import { ProcDiligence, ProcLineage, ProcP2P, ProcSpend, ProcVendorDrawer } from
 import { BO } from './data_backoffice';
 
 /* ============================================================
-   NeoSuite AMS — Pengadaan & Manajemen Vendor (DEEP) · 1/2
+   Asseris — Pengadaan & Manajemen Vendor (DEEP) · 1/2
    Modul mendalam: master vendor = sumber tunggal counterparty.
    Seluruh angka diturunkan dari PROC (lapisan kanonik):
    spend ← Σ vendor.ytd · komitmen ← PO(vendorId) · 3-way ← PO↔GRN↔Faktur

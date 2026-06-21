@@ -6,7 +6,7 @@ import { I, MODULES } from './icons.jsx';
 import { Avatar } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Command Palette (⌘K) + Notifications + User menu
+   Asseris — Command Palette (⌘K) + Notifications + User menu
    ============================================================ */
 const { useState: useStatePAL, useMemo: useMemoPAL, useEffect: useEffectPAL, useRef: useRefPAL } = React;
 

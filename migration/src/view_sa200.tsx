@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Progress, Tabs } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — SA 200 · Tujuan Keseluruhan Auditor Independen
+   Asseris — SA 200 · Tujuan Keseluruhan Auditor Independen
    Deep workpaper: tujuan & premis, skeptisisme & pertimbangan
    profesional, model risiko audit, keyakinan memadai &
    keterbatasan bawaan, serta etika & independensi.

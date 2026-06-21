@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SJAH 3000 · Perikatan Asurans selain Audit/Reviu
+   Asseris — SJAH 3000 · Perikatan Asurans selain Audit/Reviu
    (selaras ISAE/SPA 3000). Deep methodology: lima elemen
    perikatan asurans, asersi-berbasis vs langsung, registri hal
    pokok & keberterimaan kriteria, bukti/materialitas, serta

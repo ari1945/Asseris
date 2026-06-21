@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
-   NeoSuite AMS — Properti Investasi (PSAK 13 / IAS 40 → PSAK 240)
+   Asseris — Properti Investasi (PSAK 13 / IAS 40 → PSAK 240)
    Model nilai wajar (¶33). Roll-forward menutup: saldo awal +
    penambahan + keuntungan nilai wajar − pelepasan = saldo akhir.
    Nilai wajar Level 3 (KJPP/MAPPI) dengan input takteramati.

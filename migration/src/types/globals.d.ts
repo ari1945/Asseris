@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — ambient window contract (W5)
+   Asseris — ambient window contract (W5)
    ------------------------------------------------------------
    Sisa kontrak runtime-bus `window` yang masih dibaca lapisan
    kanonik (benchmark + reset-figures). Data master kini ESM

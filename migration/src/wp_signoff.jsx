@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Lapisan Kertas Kerja: Sign-off + Bukti (P2)
+   Asseris — Lapisan Kertas Kerja: Sign-off + Bukti (P2)
    ------------------------------------------------------------
    Komponen BERSAMA yang menjadikan modul "kertas kerja auditable":
    tanda tangan preparer→reviewer (2-tingkat, lock LUNAK) + tautan

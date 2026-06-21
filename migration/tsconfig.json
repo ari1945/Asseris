@@ -1,5 +1,5 @@
 {
-  "//": "NeoSuite AMS — W5 TypeScript. Scope: lapisan kanonik (number engines). FULL strict (strictNullChecks ON sejak ramp W5). Lihat BUILD.md.",
+  "//": "Asseris — W5 TypeScript. Scope: lapisan kanonik (number engines). FULL strict (strictNullChecks ON sejak ramp W5). Lihat BUILD.md.",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",

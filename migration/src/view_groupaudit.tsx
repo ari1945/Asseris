@@ -11,7 +11,7 @@ import { StdVersionStrip } from './view_ethics_parts';
 import { GAConsol, GAElimReview, GAPackages } from './view_groupaudit_parts';
 
 /* ============================================================
-   NeoSuite AMS — Group Audit (SA 600 / ISA 600 Revised)
+   Asseris — Group Audit (SA 600 / ISA 600 Revised)
    Lifecycle penuh audit grup:
    Struktur & Lingkup → Group Instructions → Evaluasi Auditor
    Komponen → Konsolidasi & Eliminasi → Temuan & Kesimpulan

@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Forensic & Journal canonical source (SSOT)
+   Asseris — Forensic & Journal canonical source (SSOT)
    ------------------------------------------------------------
    SATU populasi jurnal buku besar dipakai bersama oleh:
      · Journal Entry Testing (SA 240 / JET)   — window.JournalEntryTesting

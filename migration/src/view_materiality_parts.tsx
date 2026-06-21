@@ -7,7 +7,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui.jsx';
 import { amsExportPdf } from './export_pdf.js';
 
 /* ============================================================
-   NeoSuite AMS — Materiality (SA 320 / SA 450) — heavy tab panels
+   Asseris — Materiality (SA 320 / SA 450) — heavy tab panels
    Specific · Component (group) · Impact & SAD · Revision · Memo
    Consumed by MaterialityCalc in view_materiality.jsx
    ============================================================ */

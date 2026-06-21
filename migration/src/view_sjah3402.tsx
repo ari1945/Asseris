@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SJAH 3402 · Laporan Asurans atas Pengendalian
+   Asseris — SJAH 3402 · Laporan Asurans atas Pengendalian
    Organisasi Jasa (selaras ISAE 3402 / SOC 1). Deep methodology:
    anatomi perikatan (Type 1 vs Type 2 · langsung + asersi · tiga
    pihak · inclusive/carve-out), matriks tujuan pengendalian →

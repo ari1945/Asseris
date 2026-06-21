@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Stat } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — Related Parties (SA 550)
+   Asseris — Related Parties (SA 550)
    ============================================================ */
 const { useState: useStateRP } = React;
 

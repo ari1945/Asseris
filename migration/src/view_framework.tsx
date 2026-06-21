@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Penentu Kerangka Pelaporan Berjenjang
+   Asseris — Penentu Kerangka Pelaporan Berjenjang
    (SAK / SAK EP / SAK EMKM)
    ------------------------------------------------------------
    Alat keputusan di gerbang akseptasi/onboarding yang menetapkan

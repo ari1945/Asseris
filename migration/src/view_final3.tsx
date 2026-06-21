@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Management Letter (SA 265/260)
+   Asseris — Management Letter (SA 265/260)
    Workflow: Draft → Diskusi Klien → Keputusan (Final ML / Tuntas)
    Surat akhir hanya memuat temuan ber-status 'final'.
    ============================================================ */

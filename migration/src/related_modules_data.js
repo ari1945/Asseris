@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Keterkaitan Modul (lineage dua arah)
+   Asseris — Keterkaitan Modul (lineage dua arah)
    Replikasi pola "Modul Terkait" PSAK ke modul tulang-punggung audit.
    Dirender global (app.jsx) sebagai dock bawah halaman; hanya muncul
    untuk modul yang terdaftar di LINEAGE. Navigasi memakai nav(id,{from})

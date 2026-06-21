@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Daftar-Uji Audit Spesifik-Sektor Jasa Keuangan
+   Asseris — Daftar-Uji Audit Spesifik-Sektor Jasa Keuangan
    ------------------------------------------------------------
    Profil regulatori & daftar-uji audit per sektor jasa keuangan:
    bank (kualitas aset/CKPN, KPMM, BMPK), asuransi (RBC, interaksi

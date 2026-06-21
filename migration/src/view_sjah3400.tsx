@@ -9,7 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SJAH 3400 · Pemeriksaan Informasi Keuangan
+   Asseris — SJAH 3400 · Pemeriksaan Informasi Keuangan
    Prospektif (PFI) — selaras ISAE/SPA 3400. Deep methodology:
    penerimaan & anatomi (prakiraan vs proyeksi), asumsi terbaik vs
    hipotetis, pemeriksaan & bukti (model direkomputasi), serta

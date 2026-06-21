@@ -8,7 +8,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 
 /* ============================================================
-   NeoSuite AMS — SA 800 · Audit LK Kerangka Bertujuan Khusus
+   Asseris — SA 800 · Audit LK Kerangka Bertujuan Khusus
    Deep workpaper: registri perikatan basis-khusus, penilaian
    keberterimaan kerangka, penentuan pengguna & tujuan,
    pertimbangan audit, serta pelaporan dengan paragraf

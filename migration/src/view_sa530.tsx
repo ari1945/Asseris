@@ -8,7 +8,7 @@ import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
-   NeoSuite AMS — SA 530 · Sampling Audit
+   Asseris — SA 530 · Sampling Audit
    Deep workpaper: desain & populasi, kalkulator ukuran sampel
    (MUS interaktif), metode seleksi, serta evaluasi hasil &
    proyeksi salah saji ke populasi.

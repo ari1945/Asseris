@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — Backoffice & Firm Mgmt: data
+   Asseris — Backoffice & Firm Mgmt: data
    KAP Wijaya Hartono & Rekan (WHR). ESM export BO (window.BO dilucuti).
    Anchor "hari ini" = 2026-03-09 (selaras modul lain).
    ============================================================ */

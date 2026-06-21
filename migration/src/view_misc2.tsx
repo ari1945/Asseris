@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Panel, Stat } from './ui.jsx';
 
 /* ============================================================
-   NeoSuite AMS — Template Library, Knowledge Base
+   Asseris — Template Library, Knowledge Base
    (Modul Pajak PPh 23 telah dipindah ke view_tax23.jsx —
     modul mendalam dengan register kanonik window.TAX23.)
    ============================================================ */

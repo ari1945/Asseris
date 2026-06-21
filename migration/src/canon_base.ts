@@ -1,5 +1,5 @@
 /* ============================================================
-   NeoSuite AMS — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
+   Asseris — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
 import { AMS } from './data';

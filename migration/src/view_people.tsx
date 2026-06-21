@@ -10,7 +10,7 @@ import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
 
 /* ============================================================
-   NeoSuite AMS — HCM + CPE/PPL Tracker + Independence (Package E)
+   Asseris — HCM + CPE/PPL Tracker + Independence (Package E)
    ============================================================ */
 const { useState: useStateE, useMemo: useMemoE } = React;
 

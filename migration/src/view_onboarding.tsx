@@ -10,7 +10,7 @@ import { StepLetter, StepPMPJ } from './view_onboarding2';
 import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
 
 /* ============================================================
-   NeoSuite AMS — Front-office: Client & Engagement Onboarding
+   Asseris — Front-office: Client & Engagement Onboarding
    Gerbang: Akseptasi & Keberlanjutan · PMPJ/APU-PPT · Engagement
    Letter · Konversi ke Perikatan. (Hub + Akseptasi + Konversi)
    ============================================================ */

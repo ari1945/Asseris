@@ -8,7 +8,7 @@ import { Badge, Btn, Panel } from './ui.jsx';
 import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab } from './view_analytical2';
 
 /* ============================================================
-   NeoSuite AMS — Analytical Review (SA 520)
+   Asseris — Analytical Review (SA 520)
    Deep analytical procedures workspace:
    Ringkasan · Rasio · Fluktuasi · Tren & Common-Size ·
    Uji Ekspektasi Substantif · Disagregasi Bulanan
