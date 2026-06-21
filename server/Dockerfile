@@ -21,6 +21,10 @@ COPY server/package.json server/package-lock.json ./server/
 RUN cd server && npm ci
 
 # Source for BOTH packages (node_modules/*.db excluded via .dockerignore).
+# MUST copy migration/package.json too — migration/src/*.js uses ESM (export const),
+# and without "type":"module" in package.json, tsx treats them as CommonJS → crashes
+# the runtime with "does not provide an export named ...". See also W10 debug notes.
+COPY migration/package.json ./migration/package.json
 COPY migration/src ./migration/src
 COPY server ./server
 WORKDIR /app/server

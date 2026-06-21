@@ -225,7 +225,7 @@ SESSION_TTL_HOURS=8                      # session lifetime (existing)
 APP_SIGNING_KEY=<base64 PKCS8 Ed25519>   # W10.5 — signs export seals; unset = ephemeral dev key
 ```
 
-**Deploy (W10) — container + Postgres (UNTESTED FROM HERE).**
+**Deploy (W10) — container + Postgres (LIVE-PROVEN on W11).**
 - `server/Dockerfile` (build context = **repo root** — the server imports `migration/src`),
   `docker-compose.yml` (app + `postgres:16`), `.github/workflows/ci.yml` (server typecheck+tests;
   migration lint+typecheck+tests+build).
@@ -238,8 +238,8 @@ APP_SIGNING_KEY=<base64 PKCS8 Ed25519>   # W10.5 — signs export seals; unset =
 - **Before trusting it:** confirm the Prisma engine resolves on the image platform, set
   `APP_ENCRYPTION_KEY` + `POSTGRES_PASSWORD` + `COOKIE_SECURE=1`, and put a TLS terminator in front.
 
-**Deploy verification — offline pass (no Docker/Postgres on the dev box).** What was proven
-*statically* (the live container smoke still needs a Docker host — it is NOT yet run):
+**Deploy verification — offline pass (no Docker/Postgres on the original dev box).** What was proven
+*statically* (every item below was later confirmed by the live smoke — see "Live container smoke" further down):
 - **Postgres flip is structurally valid.** `prisma migrate diff --from-empty --to-schema-datamodel`
   on a `provider="postgresql"` copy emits clean DDL for **all 13 tables** (5 unique indexes, 10 FKs)
   with **zero SQLite-only constructs** (no AUTOINCREMENT/BLOB/rowid). The `sed` flip is sound.
@@ -251,11 +251,38 @@ APP_SIGNING_KEY=<base64 PKCS8 Ed25519>   # W10.5 — signs export seals; unset =
   `devDependencies`, so any `npm ci --omit=dev` hardening would have silently broken prod. Moved both
   to `dependencies` (verified `npm ls --omit=dev` now resolves tsx/prisma/@prisma/client; server
   typecheck 0 + 95 vitest green). `npm ci --omit=dev` is now safe (Dockerfile notes it as the slim path).
+- **Footgun fixed (migration/package.json was NOT in the Docker image).** Dockerfile only copied
+  `migration/src/` but omitted `migration/package.json`. Since `migration/src/rbac.js` and other shared
+  `.js` files use `export const` (ESM syntax), Node.js/tsx needs `"type":"module"` from the nearest
+  `package.json` to interpret them as ESM. Without it, `tsx` treats them as CommonJS → `SyntaxError:
+  does not provide an export named 'CAP'` at boot. Fixed by adding `COPY migration/package.json
+  ./migration/package.json` in the Dockerfile before `COPY migration/src`. (Live-proven: the fix
+  resolved the boot crash; `curl /healthz` now returns 200.)
 - **Honest gaps:** (1) CI (`ci.yml`) exercises **sqlite only** — the Postgres path has no automated
   proof; a `services: postgres` CI job (db push + seed against `postgres:16`) would close it.
   (2) prod runs TS via `tsx` (transpile-on-run), not a compiled `dist/` — acceptable at this scale.
 
-**One-shot runbook (on a Docker-capable host) to finish the live smoke:**
+**Live container smoke — DONE (2026-06-21, Docker Desktop / WSL2 backend).** The full chain is now
+run end-to-end on a real Docker host, no longer just static:
+- **build + up:** `docker compose up --build` → `auditsystem-db-1` (postgres:16) + `auditsystem-server-1`
+  both report **healthy**; `prisma db push` applied the sed-flipped Postgres schema cleanly on boot.
+- **healthz:** `curl localhost:5181/healthz` → `200 {"status":"ok","db":"up",...}` (server ↔ Postgres
+  connected); `/metrics` renders Prometheus text.
+- **seed (the W11 regression surface):** `docker compose run --rm server npm run seed` →
+  `Seeded: 1 firm, 4 users, 6 team, 8 clients, 7 engagements, 28 WTB rows (ENG-2025-014),
+  5 engagement memberships, 8 connectors.` This **proves `tsx` resolves the `.js` import specifiers
+  to the W11-renamed `.ts` files** at runtime in the container — `seedData.ts` imports
+  `migration/src/data.js` → `data.ts` and `data_import.js` → `data_import.ts` (the only `.js→.ts`
+  surface; the boot path only touches `rbac.js`, still `.js`). No code change was needed.
+- **login (auth ↔ seeded Postgres):** `POST /auth.login` as the seeded Partner
+  (`hartono.w@whr-cpa.id`) → `200` with a session token + user `WHR-EP-0001`, **no `passwordHash`
+  leaked**. Confirms the server reads seeded users from Postgres, verifies the scrypt hash, and issues
+  a session — the full `build → up → db push → seed → login` chain is green.
+- **Note:** the compose stack serves **API + DB only** (`:5181` + Postgres); the SPA UI is not served
+  by compose, so UI-level smoke (bootstrap/CAS/audit-chain/export) is exercised separately via the
+  Vite dev app pointed at `:5181` (see the dev runbook above), not the container.
+
+**One-shot runbook (on a Docker-capable host) — executed 2026-06-21:**
 ```
 # compose reads a .env BESIDE it (repo root); none is committed. Create one:
 printf 'POSTGRES_PASSWORD=%s\nAPP_ENCRYPTION_KEY=%s\nCOOKIE_SECURE=1\n' "<strong-pw>" "$(openssl rand -hex 32)" > .env

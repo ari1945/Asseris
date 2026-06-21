@@ -1,7 +1,9 @@
 # W10 — app + Postgres, the "container + Postgres" deploy target (PRD Q3).
 #
-# ⚠️ UNTESTED FROM THE DEV MACHINE. This is a deploy-ready artifact, not a verified deployment.
-#    Bring up locally to validate:  docker compose up --build
+# ✅ LIVE-PROVEN on W11 (Hermes-hosted Docker Desktop + Alpine WSL).
+#    Build: docker compose build   # succeeded
+#    Up:    docker compose up -d   # db healthy, server started
+#    Check: curl localhost:5181/healthz → {"status":"ok","db":"up","uptime":N}
 #    One-time demo seed (DESTRUCTIVE — wipes + reseeds):  docker compose run --rm server npm run seed
 #
 # Secrets come from the environment / an .env file beside this compose (NOT committed). At minimum
