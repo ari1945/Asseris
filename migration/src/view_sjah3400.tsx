@@ -28,7 +28,7 @@ function SJAH3400View() {
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('pfi3400.exec', {});
   const [tab, setTab] = useS34('penerimaan');
-  const E = AMS.pfiEngine(exec);
+  const E = (AMS as any).pfiEngine(exec);
   const A = E.meta;
 
   const toggle = (no, seed) => setExec(s => {

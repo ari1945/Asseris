@@ -36,13 +36,13 @@ function FmtBadge({ fmt, size = 38 }) {
 }
 
 function Templates() {
-  const T = AMS.TEMPLATES || [];
+  const T: any[] = (AMS as any).TEMPLATES || [];
   const nav = useNav();
   const [q, setQ] = useStateM2('');
   const [phase, setPhase] = useStateM2('Semua');
   const [detail, setDetail] = useStateM2(null);
 
-  const dmsTpl = (AMS.DMS_DOCS || []).filter(d => d.type === 'Template').length;
+  const dmsTpl = ((AMS as any).DMS_DOCS || []).filter((d: any) => d.type === 'Template').length;
   const aktif = T.filter(t => t.status === 'Aktif').length;
   const draf = T.filter(t => t.status === 'Draf').length;
   const due = T.filter(t => t.reviewDue).length;
@@ -128,7 +128,7 @@ function Templates() {
           <div className="grid" style={{ gap: 12 }}>
             <Panel title="Tata Kelola Registri">
               <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>Registri tunggal — modul lain menarik template terkait dari sumber yang sama (<span className="mono">AMS.TEMPLATES</span>).</div>
-              {[['Aktif & disahkan', aktif, 'var(--green)'], ['Perlu reviu (jatuh tempo)', due, 'var(--amber)'], ['Draf / penyusunan', draf, 'var(--ink-4)']].map(([l, n, c]) => (
+              {[['Aktif & disahkan', aktif, 'var(--green)'], ['Perlu reviu (jatuh tempo)', due, 'var(--amber)'], ['Draf / penyusunan', draf, 'var(--ink-4)']].map(([l, n, c]: any[]) => (
                 <div key={l} style={{ marginBottom: 8 }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}><span className="tiny" style={{ color: 'var(--ink-2)' }}>{l}</span><span className="mono tiny" style={{ fontWeight: 700 }}>{n}</span></div>
                   <div style={{ height: 5, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: (T.length ? n / T.length * 100 : 0) + '%', height: '100%', background: c }} /></div>
@@ -189,7 +189,7 @@ function TemplateDetail({ t, onClose }) {
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
   const ModIc = I[mod.icon] || I.panel;
   const st = TPL_STATUS[t.status] || TPL_STATUS['Aktif'];
-  const engObjs = (t.engs || []).map(id => (AMS.ENGAGEMENTS || []).find(e => e.id === id) || { id, client: '' });
+  const engObjs = (t.engs || []).map((id: any) => ((AMS as any).ENGAGEMENTS || []).find((e: any) => e.id === id) || { id, client: '' });
   const activeEng = firm.activeEngagement;
   const go = (id) => { nav(id, { from: 'templates' }); onClose(); };
   const openSA = (s) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });

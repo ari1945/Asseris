@@ -32,7 +32,7 @@ function SJAH3410View() {
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('ghg3410.exec', {});
   const [tab, setTab] = useS3410('anatomi');
-  const E = AMS.ghgEngine(exec);
+  const E = (AMS as any).ghgEngine(exec);
   const A = E.meta;
 
   const toggle = (id, seed) => setExec(s => {

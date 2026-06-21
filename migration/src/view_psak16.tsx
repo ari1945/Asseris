@@ -7,7 +7,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { AssetRegisterTable, ImportMappingPanel, SubLedgerRecon } from './view_psak16_register.jsx';
+import { AssetRegisterTable, ImportMappingPanel, SubLedgerRecon } from './view_psak16_register';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================

@@ -25,7 +25,7 @@ const JOB_STATE = { posted: { k: 'green', l: 'Di-posting', ic: 'checkCircle' }, 
 const MODE_LABEL = { auto: 'Otomatis', semi: 'Semi-otomatis', manual: 'Manual' };
 
 /* chip sumber → loncat ke modul pemilik data */
-function ImSrc({ module, children, title }) {
+function ImSrc({ module, children, title }: any) {
   const nav = useNav();
   return (
     <button type="button" className="chip tiny" title={title || ('Buka ' + module)}
@@ -52,8 +52,8 @@ function Integrations() {
 
   async function loadServer() {
     const [status, recon] = await Promise.all([
-      window.amsIntegrationStatus ? window.amsIntegrationStatus() : null,
-      window.amsIntegrationReconcile ? window.amsIntegrationReconcile() : null,
+      (window as any).amsIntegrationStatus ? (window as any).amsIntegrationStatus() : null,
+      (window as any).amsIntegrationReconcile ? (window as any).amsIntegrationReconcile() : null,
     ]);
     if (IM.setServerData) IM.setServerData({ recon });
     return { status, recon };
@@ -66,14 +66,14 @@ function Integrations() {
   }, []);
 
   const onSyncBank = async () => {
-    if (busy || !window.amsIntegrationSync) return;
+    if (busy || !(window as any).amsIntegrationSync) return;
     setBusy(true);
     try {
-      const r = await window.amsIntegrationSync('bank');
-      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
+      const r = await (window as any).amsIntegrationSync('bank');
+      logActivity && logActivity({ who: ((AMS as any).USER && (AMS as any).USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
       setSrv(await loadServer());
     } catch (e) {
-      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
+      logActivity && logActivity({ who: ((AMS as any).USER && (AMS as any).USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
     } finally {
       setBusy(false);
     }
@@ -148,7 +148,7 @@ function Integrations() {
                 {shown.map(it => {
                   const IconC = I[it.icon] || I.panel;
                   const st = INTEG_STATUS[it.status];
-                  const c = sum.connectors.find(x => x.id === it.id) || {};
+                  const c: any = sum.connectors.find((x: any) => x.id === it.id) || {};
                   return (
                     <div key={it.id} onClick={() => setSelId(it.id)} className="row ac gap10"
                       style={{ padding: '11px 13px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer', background: it.id === sel.id ? 'var(--blue-050)' : 'transparent', borderLeft: '3px solid ' + (it.id === sel.id ? 'var(--blue)' : 'transparent') }}>
@@ -179,7 +179,7 @@ function Integrations() {
 }
 
 /* ---------------- Antrean Impor: staging → validasi → posting ---------------- */
-function ImportQueue({ sum }) {
+function ImportQueue({ sum }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const [open, setOpen] = useStateIN(null);
@@ -257,7 +257,7 @@ function ImportQueue({ sum }) {
 }
 
 /* ---------------- Rekonsiliasi SSOT: posting == konsumsi ---------------- */
-function ImportRecon({ IM, sum }) {
+function ImportRecon({ IM, sum }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const recon = IM.reconciliation();
@@ -302,7 +302,7 @@ function ImportRecon({ IM, sum }) {
   );
 }
 
-function IntegrationDetail({ it, onToggle }) {
+function IntegrationDetail({ it, onToggle }: any) {
   const [tab, setTab] = useStateIN('ringkasan');
   const nav = useNav();
   const { fmt } = AMS;
@@ -349,7 +349,7 @@ function IntegrationDetail({ it, onToggle }) {
                 <KvBox label="Jadwal Sinkron" v={it.schedule} />
                 <KvBox label="Sinkron Terakhir" v={it.last} />
                 <KvBox label="Metode Otentikasi" v={it.auth} />
-                <KvBox label="Kadaluarsa Kredensial" v={it.expiry} accent={it.expiry !== '—' && new Date(it.expiry) - new Date('2026-03-10') < 90 * 864e5 ? 'var(--amber)' : undefined} />
+                <KvBox label="Kadaluarsa Kredensial" v={it.expiry} accent={it.expiry !== '—' && +new Date(it.expiry) - +new Date("2026-03-10") < 90 * 864e5 ? 'var(--amber)' : undefined} />
               </div>
               <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                 <div className="tiny muted upper" style={{ marginBottom: 3 }}>Endpoint</div>
@@ -418,7 +418,7 @@ function IntegrationDetail({ it, onToggle }) {
               <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kredensial</div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '9px 14px', marginBottom: 14 }}>
                 <KvBox label="Metode" v={it.auth} />
-                <KvBox label="Kadaluarsa" v={it.expiry} accent={it.expiry !== '—' && new Date(it.expiry) - new Date('2026-03-10') < 90 * 864e5 ? 'var(--amber)' : undefined} />
+                <KvBox label="Kadaluarsa" v={it.expiry} accent={it.expiry !== '—' && +new Date(it.expiry) - +new Date("2026-03-10") < 90 * 864e5 ? 'var(--amber)' : undefined} />
               </div>
               <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none', marginBottom: 14 }}>
                 <div className="tiny muted upper" style={{ marginBottom: 4 }}>API Key</div>

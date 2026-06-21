@@ -85,8 +85,8 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
     { id: 'sample', label: 'Dalam sampel', n: tot.nSample },
   ];
 
-  const Th = ({ children, l }) => <th style={{ fontWeight: 600, padding: '7px 8px', textAlign: l ? 'left' : 'right', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--surface-2)', zIndex: 1 }}>{children}</th>;
-  const Num = ({ v, c, b, dim }) => <td className="mono" style={{ textAlign: 'right', padding: '7px 8px', whiteSpace: 'nowrap', color: dim ? 'var(--ink-4)' : c, fontWeight: b ? 700 : 500 }}>{v}</td>;
+  const Th = ({ children, l }: any) => <th style={{ fontWeight: 600, padding: '7px 8px', textAlign: l ? 'left' : 'right', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--surface-2)', zIndex: 1 }}>{children}</th>;
+  const Num = ({ v, c, b, dim }: any) => <td className="mono" style={{ textAlign: 'right', padding: '7px 8px', whiteSpace: 'nowrap', color: dim ? 'var(--ink-4)' : c, fontWeight: b ? 700 : 500 }}>{v}</td>;
 
   return (
     <Panel noBody>

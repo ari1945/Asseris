@@ -60,7 +60,7 @@ function WIPRealization() {
       m[p].std += r.std; m[p].recoverable += r.recoverable; m[p].billed += r.billed;
       m[p].wip += Math.max(0, r.wip); m[p].cost += r.cost; m[p].n += 1;
     });
-    return Object.values(m).map(x => ({ ...x, realization: x.std ? x.recoverable / x.std * 100 : 0, margin: x.recoverable ? (x.recoverable - x.cost) / x.recoverable * 100 : 0 }));
+    return Object.values(m).map((x: any) => ({ ...x, realization: x.std ? x.recoverable / x.std * 100 : 0, margin: x.recoverable ? (x.recoverable - x.cost) / x.recoverable * 100 : 0 }));
   }, [rows]);
 
   const aging = W.aging;
@@ -177,7 +177,7 @@ function WipDetail({ r, onClose, onWriteDown, onReset }) {
   const { fmt } = AMS;
   const nav = useNav();
   const realColor = r.realization >= 100 ? 'var(--green)' : r.realization >= 92 ? 'var(--amber)' : 'var(--red)';
-  const Line = ({ label, v, op, strong, accent }) => (
+  const Line = ({ label, v, op, strong, accent }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="tiny" style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--ink)' : 'var(--ink-2)' }}>{op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 5 }}>{op}</span>}{label}</span>
       <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + fmt(Math.abs(v) / 1e6, 0) + ' jt' + (v < 0 ? ')' : '')}</span>

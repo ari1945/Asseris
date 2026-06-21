@@ -8,7 +8,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { materialityFor } from './canon_selectors';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { NRVWorkingPaper } from './view_psak14_nrv.jsx';
+import { NRVWorkingPaper } from './view_psak14_nrv';
 
 /* ============================================================
    NeoSuite AMS — PSAK 14 · Persediaan (Inventories)

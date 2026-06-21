@@ -29,7 +29,7 @@ function SJAH3420View() {
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('pf3420.exec', {});
   const [tab, setTab] = usePF('anatomi');
-  const E = AMS.proformaEngine(exec);
+  const E = (AMS as any).proformaEngine(exec);
   const A = E.meta;
 
   const toggle = (id, seed) => setExec(s => {

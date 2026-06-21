@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Stat } from './ui.jsx';
 import { MSub } from './view_fpm_parts.jsx';
-import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2.jsx';
+import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
 import { amsExportXlsx } from './export_xlsx.js';
 

@@ -138,8 +138,8 @@ function OppDetail({ o, onClose, onMove }) {
   const { fmt } = AMS;
   const nav = useNav();
   const toOnboarding = () => {
-    const blank = AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
-    window.amsAddProspect({
+    const blank = (AMS as any).PROSPECTS[1].acceptance.factors.map((f: any) => ({ ...f, s: 3, note: '' }));
+    (window as any).amsAddProspect({
       id: 'PROS-' + o.id.replace('OPP-', ''), name: o.name, industry: o.industry, city: 'Indonesia',
       listed: false, kind: 'Klien Baru', service: o.service, standard: o.service.includes('Review') ? 'SPR 2400' : o.service.includes('Due') ? 'SJAH 3000' : 'SA',
       partner: o.owner.includes(',') ? o.owner : o.owner + ', CPA', manager: 'Bayu Saputra',
@@ -292,7 +292,7 @@ function Billing() {
 
 function InvForm({ onClose, onAdd }) {
   const { fmt } = AMS;
-  const clients = AMS.CLIENTS;
+  const clients: any = AMS.CLIENTS;
   const [d, setD] = useStateD1({ clientId: clients[0].id, milestone: 'Termin 1 (50%)', amount: 500000000, due: '2026-04-15', eng: '' });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));
   const valid = +d.amount > 0;

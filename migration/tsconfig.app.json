@@ -176,7 +176,25 @@
     "src/view_firmrevenue.tsx",
     "src/view_firmtax.tsx",
     "src/view_firmtreasury.tsx",
-    "src/view_opinion_parts.tsx"
+    "src/view_opinion_parts.tsx",
+    "src/view_misc1.tsx",
+    "src/view_misc2.tsx",
+    "src/view_pc_org.tsx",
+    "src/view_pipeline.tsx",
+    "src/view_platform.tsx",
+    "src/view_platform2.tsx",
+    "src/view_platform3.tsx",
+    "src/view_related.tsx",
+    "src/view_sjah3400.tsx",
+    "src/view_sjah3402.tsx",
+    "src/view_sjah3410.tsx",
+    "src/view_sjah3420.tsx",
+    "src/view_wip_firm.tsx",
+    "src/view_workspace.tsx",
+    "src/view_evidence2.tsx",
+    "src/view_psak14_nrv.tsx",
+    "src/view_psak16_register.tsx",
+    "src/view_risk2.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -36,7 +36,7 @@ function AuditTrail() {
   const [selIdx, setSelIdx] = useStateAT(null);
 
   /* === SUMBER KEBENARAN: arus terpadu dari log live + jejak firma kanonik + seed sistem === */
-  const base = (AMS.PLATFORM && AMS.PLATFORM.buildAuditStream(logEntries)) || [];
+  const base = ((AMS as any).PLATFORM && (AMS as any).PLATFORM.buildAuditStream(logEntries)) || [];
   /* attach hash chain (oldest -> newest) */
   const all = useMemoAT(() => {
     const asc = [...base].slice().reverse();
@@ -64,9 +64,9 @@ function AuditTrail() {
     return Object.entries(m).sort((a, b) => a[0] < b[0] ? -1 : 1);
   }, [all]);
   const actCounts = useMemoAT(() => {
-    const m = {};
-    all.forEach(a => { m[a.action] = (m[a.action] || 0) + 1; });
-    return Object.entries(m).sort((a, b) => b[1] - a[1]);
+    const m: any = {};
+    all.forEach((a: any) => { m[a.action] = (m[a.action] || 0) + 1; });
+    return Object.entries(m).sort((a: any, b: any) => b[1] - a[1]);
   }, [all]);
 
   const sel = selIdx != null ? filtered[selIdx] : null;

@@ -29,7 +29,7 @@ function SJAH3402View() {
   const nav = useNav();
   const [exec, setExec] = window.useAmsPersist('soc3402.exec', {});
   const [tab, setTab] = useS42('anatomi');
-  const E = AMS.socEngine(exec);
+  const E = (AMS as any).socEngine(exec);
   const A = E.meta;
 
   const toggle = (id, seed) => setExec(s => {

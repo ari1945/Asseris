@@ -4,7 +4,7 @@ import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
-import { EvDirection, EvDossier, EvSelection } from './view_evidence2.jsx';
+import { EvDirection, EvDossier, EvSelection } from './view_evidence2';
 
 /* ============================================================
    NeoSuite AMS — Evidence Evaluation (SA 500 · Bukti Audit)

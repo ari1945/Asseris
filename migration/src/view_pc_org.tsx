@@ -33,7 +33,7 @@ const ORG_TREE_CSS = `
 
 function OrgChart() {
   const nav = useNav();
-  const A = AMS;
+  const A: any = AMS;
   const staff = A.STAFF, ORG = A.ORG, GC = A.GRADE_COLOR_PC;
   const [view, setView] = usePCorg('chart');
   const [sel, setSel] = usePCorg('EMP-001');
@@ -44,7 +44,7 @@ function OrgChart() {
   const person = staff.find(s => s.id === sel) || staff[0];
   const mgr = (ORG[sel] || {}).reports ? A.byId(ORG[sel].reports) : null;
 
-  const Node = ({ s }) => {
+  const Node = ({ s }: any) => {
     const kids = childrenOf(s.id);
     return (
       <li>
@@ -175,7 +175,7 @@ function OrgChart() {
    Perencanaan Suksesi & Karier
    ============================================================ */
 function SuccessionPlanning() {
-  const A = AMS;
+  const A: any = AMS;
   const nav = useNav();
   const [tab, setTab] = usePCorg('map');
   const [sel, setSel] = usePCorg('SR-01');

@@ -18,7 +18,7 @@ const { useState: useStateWS2, useMemo: useMemoWS2 } = React;
 const RN_TODAY = new Date(2026, 2, 9); // 09 Mar 2026
 const RN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const RN_fmtDate = (iso) => { if (!iso) return '—'; const d = new Date(iso); return `${d.getDate()} ${RN_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
-const RN_days = (iso, ref = RN_TODAY) => { if (!iso) return null; return Math.round((ref - new Date(iso)) / 86400000); };
+const RN_days = (iso, ref = RN_TODAY) => { if (!iso) return null; return Math.round((+ref - +new Date(iso)) / 86400000); };
 
 /* ---- note-type taxonomy ---- */
 const RN_TYPES = {
@@ -73,7 +73,7 @@ function ReviewNotes() {
   const [draft, setDraft] = useStateWS2({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
 
   const wpRefs = window.WP_REFS || [];
-  const seedById = useMemoWS2(() => Object.fromEntries((AMS.REVIEW_NOTES || []).map(n => [n.id, n])), []);
+  const seedById = useMemoWS2(() => Object.fromEntries(((AMS as any).REVIEW_NOTES || []).map((n: any) => [n.id, n])), []);
 
   /* unified, enriched note list (module + WP), with merged seed metadata */
   const allNotes = useMemoWS2(() => {
@@ -368,7 +368,7 @@ function RN_ClearanceCard({ M, aging }) {
 }
 
 /* ---- list row ---- */
-function RN_Row({ n, active, onClick }) {
+function RN_Row({ n, active, onClick }: any) {
   const t = RN_TYPES[n.type] || RN_TYPES.review;
   const ph = RN_PHASE_META[n._phase];
   const resolved = n.status === 'resolved';

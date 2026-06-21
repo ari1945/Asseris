@@ -22,7 +22,7 @@ const PF_STAMP = '10 Mar 09:00';
 /* hours-until helper -> {h, overdue, label, pct} relative to a 48h window */
 function slaInfo(dueStr) {
   const due = new Date(String(dueStr).replace(' ', 'T'));
-  const diffH = (due - PF_NOW) / 3.6e6;
+  const diffH = (+due - +PF_NOW) / 3.6e6;
   const overdue = diffH < 0;
   const abs = Math.abs(diffH);
   const unit = abs >= 24 ? Math.round(abs / 24) + ' hari' : Math.round(abs) + ' jam';
@@ -69,7 +69,7 @@ function Approvals() {
 
   /* === SUMBER KEBENARAN: turunkan antrean live dari entitas kanonik === */
   const derived = useMemoPF(
-    () => AMS.PLATFORM.buildApprovals({ aje, engagements, clients }),
+    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients }),
     [aje, engagements, clients]);
   const items = useMemoPF(() => derived.map(d => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
@@ -199,7 +199,7 @@ function Approvals() {
   );
 }
 
-function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }) {
+function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any) {
   const [note, setNote] = useStatePF('');
   const [comment, setComment] = useStatePF('');
   const sla = slaInfo(it.due);
@@ -322,7 +322,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }) {
 }
 
 function RoutingRulesModal({ onClose }) {
-  const RULES = (AMS.PLATFORM && AMS.PLATFORM.ROUTING_RULES) || [];
+  const RULES: any[] = ((AMS as any).PLATFORM && (AMS as any).PLATFORM.ROUTING_RULES) || [];
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 760, maxWidth: '94vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>

@@ -283,7 +283,7 @@ function SmSchedule({ fmt, activeEngagement }) {
     { t: 'Draf opini & telaah pengendali mutu (EQR)', d: '22 Apr', done: false },
     { t: 'Penerbitan laporan auditor', d: deadline.replace(/ \d{4}/, ''), done: false },
   ];
-  const team = AMS.TEAM;
+  const team: any = AMS.TEAM;
   const used = activeEngagement.actualHrs, budget = activeEngagement.budgetHrs;
   const pct = Math.round(used / budget * 100);
   const experts = [
