@@ -234,7 +234,11 @@
     "src/view_bo1.tsx",
     "src/view_calc.tsx",
     "src/view_fpm_parts.tsx",
-    "src/view_analytical.tsx"
+    "src/view_analytical.tsx",
+
+    "src/sa_canonical.tsx",
+    "src/related_modules.tsx",
+    "src/minimap.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

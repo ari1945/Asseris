@@ -268,7 +268,7 @@ function MiniMap({ open, route, onClose, onNavigate }) {
   const Ic = (key) => { const C = I && (I[key] || I.panel); return C ? <C size={14} /> : null; };
   const st = MM_STATUS[status];
 
-  const Chip = ({ c, side }) => (
+  const Chip = ({ c, side }: any) => (
     <button type="button" className="mm-chip"
       ref={el => { chipRefs.current[side + '-' + c.id] = el; }}
       title={(c.rel ? c.rel + ' — ' : '') + 'buka ' + c.lbl}

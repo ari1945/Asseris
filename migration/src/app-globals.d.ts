@@ -31,5 +31,12 @@ declare global {
     IRM: any;
     RELATED_SA: any;
     TAX23: any;
+    /* W13 Fase 0 — registry navigasi & graf modul dibaca lewat window oleh
+       fondasi minimap/related_modules (icons.jsx mengekspornya + dual-publish).
+       Window-strip-2 candidate; `any` di tier app relaks. */
+    GROUP_WS: any;
+    WORKSPACES: any;
+    HIDDEN_GROUPS: any;
+    MODULES: any;
   }
 }

@@ -40,7 +40,7 @@ import './ui.jsx';
 import './evidence.jsx';
 import './related_modules_data.js';
 import './related_modules_data2.js';
-import './related_modules.jsx';
+import './related_modules';
 import './view_fpm_parts';
 import './shell.jsx';
 import './view_palette';
@@ -164,7 +164,7 @@ import './view_sa2comm';
 import './view_opening';
 import './view_misc1';
 import './view_wp';
-import './sa_canonical.jsx';
+import './sa_canonical';
 import './wp_signoff.jsx';   // P2: lapisan sign-off + bukti bersama (butuh view_wp/evidence/contexts)
 import './view_settings';
 import './view_isqm_parts';
@@ -219,5 +219,5 @@ import './view_platform';
 import './view_platform2';
 import './view_platform3';
 import './view_presentasi';
-import './minimap.jsx';
+import './minimap';
 import './app.jsx';   // memanggil ReactDOM.createRoot(...).render

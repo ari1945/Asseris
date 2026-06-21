@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
-import { SignoffDots } from './sa_canonical.jsx';
+import { SignoffDots } from './sa_canonical';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 

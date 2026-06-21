@@ -17,7 +17,7 @@ function ModuleLineage({ moduleId }) {
   const [open, setOpen] = React.useState(true);
   if (!L) return null;
 
-  const Chip = ({ m, color }) => {
+  const Chip = ({ m, color }: any) => {
     const Ic = (I && (I[m.ic] || I.doc));
     return (
       <button type="button" className="lin-chip" title={m.rel + ' — buka ' + m.lbl}
@@ -92,7 +92,7 @@ function StandardLinkback({ moduleId }) {
     else nav('compmatrix', { from: moduleId });
   };
 
-  const ProcChip = ({ p }) => {
+  const ProcChip = ({ p }: any) => {
     const m = (window.MODULE_INDEX || {})[p.module] || { label: p.module, icon: 'doc' };
     const Ic = I && (I[m.icon] || I.doc);
     return (
@@ -104,7 +104,7 @@ function StandardLinkback({ moduleId }) {
       </button>
     );
   };
-  const SibChip = ({ s }) => {
+  const SibChip = ({ s }: any) => {
     const Ic = I && (I[s.icon] || I.doc);
     return (
       <button type="button" className="lin-chip sib" title={'Buka ' + s.label}
@@ -114,7 +114,7 @@ function StandardLinkback({ moduleId }) {
       </button>
     );
   };
-  const StdChip = ({ r }) => {
+  const StdChip = ({ r }: any) => {
     const Ic = I && I.shield;
     return (
       <button type="button" className="lin-chip" title={r.code + ' · ' + r.title + (r.view ? ' — buka rujukan standar' : ' — lihat di Matriks Kepatuhan')}

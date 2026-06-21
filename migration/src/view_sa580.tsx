@@ -2,7 +2,7 @@
 import React from 'react';
 import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
-import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical.jsx';
+import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 
