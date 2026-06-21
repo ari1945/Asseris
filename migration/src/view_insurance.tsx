@@ -19,7 +19,7 @@ const { useState: useStateIns } = React;
 const INS_RISK_LVL = ['', 'Sangat Rendah', 'Rendah', 'Sedang', 'Tinggi', 'Sangat Tinggi'];
 
 /* chip navigasi lintas-modul (gaya lin-chip) */
-function InsChip({ icon, lbl, rel, color = 'var(--blue)', onClick }) {
+function InsChip({ icon, lbl, rel, color = 'var(--blue)', onClick }: any) {
   const Ic = (I && (I[icon] || I.doc));
   return (
     <button type="button" className="lin-chip" style={{ borderLeftColor: color }} onClick={onClick} title={rel ? rel + ' — buka ' + lbl : 'Buka ' + lbl}>

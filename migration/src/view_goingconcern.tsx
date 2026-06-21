@@ -20,7 +20,7 @@ const GC_RATIOS = [
   { id: 'wc',  label: 'Modal Kerja',        value: 57.1, py: 64.8, unit: ' M', good: v => v > 0, warn: v => v > 0, trend: [78, 71, 64.8, 60.5, 57.1], hint: 'Aset Lancar − Liab. Jk. Pendek (Rp M)' },
 ];
 
-const GC_INDICATORS = {
+const GC_INDICATORS: any = {
   Keuangan: [
     { id: 'k1', label: 'Posisi liabilitas lancar bersih (net current liability)', on: false },
     { id: 'k2', label: 'Arus kas operasi negatif', on: false },
@@ -72,7 +72,7 @@ function GoingConcern() {
   const breach = projection.find(r => r.bal < 0);
   const minBar = Math.max(...projection.map(r => Math.abs(r.bal)), 5);
 
-  const triggered = Object.values(inds).flat().filter(i => i.on).length;
+  const triggered = Object.values(inds).flat().filter((i: any) => i.on).length;
   const ratioFlags = GC_RATIOS.filter(r => !r.good(r.value)).length;
   const score = triggered * 2 + ratioFlags;
   const level = score >= 8 ? { l: 'Material Uncertainty', k: 'red', txt: 'Terdapat ketidakpastian material atas kelangsungan usaha. Pertimbangkan paragraf "Material Uncertainty Related to Going Concern" pada laporan auditor (SA 570 ¶22).' }
@@ -107,8 +107,8 @@ function GoingConcern() {
               </div>
               <div style={{ padding: '13px 18px', borderLeft: '1px solid var(--line)', textAlign: 'center', display: 'grid', placeItems: 'center' }}>
                 <div className="tiny muted upper">Altman Z-Score</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: z > 2.99 ? 'var(--green)' : z > 1.8 ? 'var(--amber)' : 'var(--red)' }}>{z}</div>
-                <div className="tiny muted">{z > 2.99 ? 'Safe zone' : z > 1.8 ? 'Grey zone' : 'Distress'}</div>
+                <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: (+z) > 2.99 ? 'var(--green)' : (+z) > 1.8 ? 'var(--amber)' : 'var(--red)' }}>{z}</div>
+                <div className="tiny muted">{(+z) > 2.99 ? 'Safe zone' : (+z) > 1.8 ? 'Grey zone' : 'Distress'}</div>
               </div>
             </div>
           </Panel>
@@ -192,7 +192,7 @@ function GoingConcern() {
           {/* indicators checklist */}
           <Panel title="Daftar Indikator (SA 570 ¶A3)" sub="Aktifkan indikator yang teridentifikasi — penilaian otomatis menyesuaikan">
             <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 0 }}>
-              {Object.entries(inds).map(([cat, items], ci) => (
+              {Object.entries(inds).map(([cat, items]: [string, any], ci: number) => (
                 <div key={cat} style={{ padding: '4px 14px 10px', borderLeft: ci ? '1px solid var(--line-soft)' : 0 }}>
                   <div className="upper tiny" style={{ fontWeight: 700, color: 'var(--blue)', margin: '8px 0 6px' }}>{cat}</div>
                   {items.map(it => (

@@ -41,7 +41,7 @@ const INV_PROC = [
    kontinjensi) dan nilai klaim tidak pernah berbeda antar modul. `prov` & `disc`
    diturunkan dari tingkat kemungkinan via pohon keputusan PSAK 57 (¶14/27/86). */
 function getLitCases() {
-  const C = AMS_CANON || {};
+  const C: any = AMS_CANON || {};
   const reg = C.PROV_REGISTER || [];
   const TREAT = C.P57_TREAT || {};
   return reg.filter(p => p.kind === 'litigation').map(p => {

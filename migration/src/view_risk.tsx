@@ -196,7 +196,7 @@ function RiskAssessment() {
                         <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.arrowRight size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{sel.response}</span></div>
                       </div>
                       <div className="row gap8" style={{ marginTop: 12 }}>
-                        <Btn sm variant="primary" onClick={() => nav(sel.proc || ((AMS.RISKS || []).find(x => x.id === sel.id) || {}).proc || 'workpapers', { from: 'risk' })}><I.flask size={14} /> Buka Prosedur Respons</Btn>
+                        <Btn sm variant="primary" onClick={() => nav(sel.proc || (((AMS.RISKS as any[]) || []).find(x => x.id === sel.id) || {}).proc || 'workpapers', { from: 'risk' })}><I.flask size={14} /> Buka Prosedur Respons</Btn>
                         <Btn sm onClick={() => nav('workpapers', { from: 'risk' })}><I.layers size={14} /> Kertas Kerja ({sel.wp})</Btn>
                       </div>
                     </div>

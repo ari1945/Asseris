@@ -273,7 +273,7 @@ function F810Proc({ sel }) {
   );
 }
 
-function NavRow810({ to, label, ic: Ic }) {
+function NavRow810({ to, label, ic: Ic }: any) {
   const nav = useNav();
   return (
     <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>

@@ -15,7 +15,7 @@ import { KvBox } from './view_analytical.jsx';
 const { useState: useStateSO } = React;
 
 /* ---- service organizations register ---- */
-const SO_ORGS = [
+const SO_ORGS: any[] = [
   {
     id: 'SO-01', name: 'PT Payroll Solusi Indonesia', svc: 'Pemrosesan Penggajian (outsourced payroll)',
     reportType: 'Type 2', std: 'ISAE 3402', period: 'Jan – Des 2025', coverage: 'full',
@@ -57,7 +57,7 @@ const SO_ORGS = [
    tak pernah menyimpang dari perikatan auditor-jasa. ---- */
 (function syncSO01FromSocEngine() {
   try {
-    const uav = AMS && AMS.socEngine && AMS.socEngine().userAuditorView;
+    const uav = AMS && (AMS as any).socEngine && (AMS as any).socEngine().userAuditorView;
     if (!uav) return;
     const so = SO_ORGS.find(o => o.id === 'SO-01');
     if (!so) return;

@@ -17,7 +17,7 @@ const GOV_STAT = { 'Efektif': 'green', 'Perlu Perhatian': 'amber', 'Defisiensi':
 const PRV_STAT = { 'Memadai': 'green', 'Pemantauan': 'amber', 'Tidak Memadai': 'red' };
 
 function Governance() {
-  const A = AMS;
+  const A: any = AMS;
   const comps = A.QM_COMPONENTS, roles = A.QM_ROLES, providers = A.QM_PROVIDERS, culture = A.QM_CULTURE, ev = A.QM_EVAL;
   const [tab, setTab] = useGov('spm');
   const [sel, setSel] = useGov(null);
@@ -169,7 +169,7 @@ function Governance() {
 }
 
 function GovCompDetail({ c, onClose }) {
-  const A = AMS;
+  const A: any = AMS;
   const role = A.QM_ROLES.find(r => r.person.includes(c.owner)) || null;
   const scoreColor = c.score >= 85 ? 'var(--green)' : c.score >= 75 ? 'var(--amber)' : 'var(--red)';
   return (

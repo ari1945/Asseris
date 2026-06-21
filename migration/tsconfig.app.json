@@ -115,7 +115,25 @@
     "src/view_audittimeline.tsx",
     "src/view_pc_hcm.tsx",
     "src/view_pc_talent.tsx",
-    "src/view_wtb_deep.tsx"
+    "src/view_wtb_deep.tsx",
+    "src/view_risk.tsx",
+    "src/view_lease.tsx",
+    "src/view_goingconcern.tsx",
+    "src/view_icfr.tsx",
+    "src/view_governance.tsx",
+    "src/view_internalaudit.tsx",
+    "src/view_insurance.tsx",
+    "src/view_invprop.tsx",
+    "src/view_sa240.tsx",
+    "src/view_sa501.tsx",
+    "src/view_sa520.tsx",
+    "src/view_sa530.tsx",
+    "src/view_sa540.tsx",
+    "src/view_sa720.tsx",
+    "src/view_sa800.tsx",
+    "src/view_sa805.tsx",
+    "src/view_sa810.tsx",
+    "src/view_serviceorg.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }
