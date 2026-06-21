@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { ExtractReview } from './ai_extract.jsx';
+import { ExtractReview } from './ai_extract';
 import { AiInsightPanel } from './ai_insights.jsx';
 import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
 import { AMS } from './data';
@@ -145,7 +145,7 @@ function CpMarkdown({ text }) {
    ------------------------------------------------------------ */
 const cpExtIcon = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : (/\.(png|jpg|jpeg|gif|webp)$/i.test(n || '') ? 'panel' : 'doc');
 
-function CpIntakeCard({ rec, onAttach, onExtract, route }) {
+function CpIntakeCard({ rec, onAttach, onExtract, route }: any) {
   const [done, setDone] = useStateCP(null); /* id modul tujuan setelah dilampirkan */
   const dest = (typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[rec.dest]) || { label: rec.dest };
   const FI = I[cpExtIcon(rec.file)] || I.doc;
@@ -373,7 +373,7 @@ function CpGate({ gate, onDecide }) {
    4c · POHON KEPUTUSAN OPINI — SA 705
    Matriks ¶7-10: sumber (salah saji / pembatasan bukti) × pervasif.
    ------------------------------------------------------------ */
-function CpOpinionTree({ nav, onClose }) {
+function CpOpinionTree({ nav, onClose }: any) {
   const [source, setSource] = useStateCP(null);      /* 'none' | 'mis' | 'scope' */
   const [pervasive, setPervasive] = useStateCP(null); /* false | true */
   const [recorded, setRecorded] = useStateCP(false);
@@ -527,7 +527,7 @@ function Copilot({ open, onClose, route }) {
     return '## Mode demo\n' + provLine + '\n\nUntuk *"' + q.slice(0, 120) + '"*, langkah yang lazim:\n\n- Tetapkan asersi & risiko relevan (SA 315).\n- Rancang prosedur responsif dan tautkan bukti (SA 330/500).\n- Dokumentasikan kesimpulan di kertas kerja (SA 230).' + relLine + '\n\n> Atur provider & kunci di **Pengaturan › AI & LLM**.';
   };
 
-  const send = async (raw) => {
+  const send = async (raw?: any) => {
     const q = (raw != null ? raw : input).trim();
     if (!q || busy) return;
     setInput('');
@@ -567,7 +567,7 @@ function Copilot({ open, onClose, route }) {
     return rec;
   };
   const addFiles = (fl) => {
-    const arr = Array.from(fl || []).filter(Boolean);
+    const arr: any[] = Array.from(fl || []).filter(Boolean);
     if (!arr.length) return;
     const recs = arr.map((f, i) => applyLearn(classifyDoc(f.name || f, {}, i)));
     setMsgs(prev => [...prev, { role: 'user', kind: 'files', files: arr.map(f => f.name || String(f)) }]);

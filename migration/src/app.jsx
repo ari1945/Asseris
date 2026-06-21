@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { hydrateCoreFromApi, api, setAuthToken } from './api.js';
 import { AppProviders, NavContext, NavFromContext } from './contexts.jsx';
 import { LoginScreen } from './view_login';
-import { Copilot } from './copilot.jsx';
+import { Copilot } from './copilot';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { MiniMap } from './minimap';
 import { ModuleLineage, StandardLinkback } from './related_modules';

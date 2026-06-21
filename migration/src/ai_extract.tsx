@@ -265,7 +265,7 @@ function ExSourceBadge({ source, conf }) {
 }
 
 /* satu baris field — dapat disunting auditor */
-function ExFieldRow({ f, onEdit, readOnly }) {
+function ExFieldRow({ f, onEdit, readOnly }: any) {
   const multi = f.kind === 'multiline';
   if (readOnly) {
     return (
@@ -292,7 +292,7 @@ function ExFieldRow({ f, onEdit, readOnly }) {
    5 · PANEL REVIEW EKSTRAKSI (dipakai di Co-pilot)
    rec: { file, std, type, dest, _text? }
    ------------------------------------------------------------ */
-function ExtractReview({ rec, route, nav, onClose }) {
+function ExtractReview({ rec, route, nav, onClose }: any) {
   const kind = exKindFor(rec);
   const sc = EX_SCHEMAS[kind] || EX_SCHEMAS.generic;
   const wpRefsAll = (typeof window !== 'undefined' && window.WP_REFS) || [{ ref: sc.wpRef, title: sc.summary }];
@@ -318,7 +318,7 @@ function ExtractReview({ rec, route, nav, onClose }) {
 
   const approve = () => {
     const fields = res.map(f => ({ key: f.key, label: f.label, kind: f.kind, value: f.value, source: f.source, conf: f.conf }));
-    const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+    const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
     const rc = amsExtractAdd({
       file: rec.file, kind, docLabel: sc.docLabel, std: sc.std, module: sc.module,
       wpRef, wpTitle, summary: sc.summary, audit: sc.audit, fields,

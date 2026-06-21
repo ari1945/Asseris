@@ -238,7 +238,11 @@
 
     "src/sa_canonical.tsx",
     "src/related_modules.tsx",
-    "src/minimap.tsx"
+    "src/minimap.tsx",
+
+    "src/copilot.tsx",
+    "src/ai_extract.tsx",
+    "src/fsgen_model.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

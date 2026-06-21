@@ -38,5 +38,8 @@ declare global {
     WORKSPACES: any;
     HIDDEN_GROUPS: any;
     MODULES: any;
+    /* W13 Fase 1 — jembatan LLM opsional in-browser (copilot mengecek
+       `window.claude?.complete`); fallback demoReply bila absen. */
+    claude: any;
   }
 }
