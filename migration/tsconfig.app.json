@@ -194,7 +194,31 @@
     "src/view_evidence2.tsx",
     "src/view_psak14_nrv.tsx",
     "src/view_psak16_register.tsx",
-    "src/view_risk2.tsx"
+    "src/view_risk2.tsx",
+
+    "src/view_pc_conduct.tsx",
+    "src/view_presentasi.tsx",
+    "src/view_relatedsvc.tsx",
+    "src/view_spr2410.tsx",
+    "src/view_fsgen.tsx",
+    "src/view_fsgen_panels.tsx",
+    "src/view_isqm.tsx",
+    "src/view_isqm_parts.tsx",
+    "src/view_legal2.tsx",
+    "src/view_legal.tsx",
+    "src/view_people.tsx",
+    "src/view_independence_parts.tsx",
+    "src/view_analytical2.tsx",
+    "src/view_crm2.tsx",
+    "src/view_eng2.tsx",
+    "src/view_onboarding2.tsx",
+    "src/view_onboarding3.tsx",
+    "src/view_procurement2.tsx",
+    "src/view_groupaudit_parts.tsx",
+    "src/view_materiality_parts.tsx",
+    "src/view_ethics_parts.tsx",
+    "src/view_final3.tsx",
+    "src/view_nonaudit2.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

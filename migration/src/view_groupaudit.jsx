@@ -7,8 +7,8 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
-import { StdVersionStrip } from './view_ethics_parts.jsx';
-import { GAConsol, GAElimReview, GAPackages } from './view_groupaudit_parts.jsx';
+import { StdVersionStrip } from './view_ethics_parts';
+import { GAConsol, GAElimReview, GAPackages } from './view_groupaudit_parts';
 
 /* ============================================================
    NeoSuite AMS — Group Audit (SA 600 / ISA 600 Revised)

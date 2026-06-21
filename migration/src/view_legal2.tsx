@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel, Stat } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { KV, SectionTitle } from './view_fpm_parts.jsx';
-import { LGL_CAT, LglContractDrawer, LglSourceChip, ReconBadge } from './view_legal.jsx';
+import { LGL_CAT, LglContractDrawer, LglSourceChip, ReconBadge } from './view_legal';
 import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
 

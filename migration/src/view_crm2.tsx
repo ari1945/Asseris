@@ -17,11 +17,11 @@ const STAGE_COLOR = { Lead: '#9aa7b2', Qualified: '#5b3fa6', Proposal: '#0a6b73'
 
 /* ---------------- 360° Klien (single-client cockpit) ---------------- */
 function CRM360() {
-  const { fmt, rp } = AMS;
+  const { fmt, rp }: any = AMS;
   const nav = useNav();
   const { clients, engagementsForClient, setActiveEngagementId } = useFirm();
-  const C360 = AMS.CRM_360;
-  const META = AMS.ACTIVITY_META;
+  const C360: any = AMS.CRM_360;
+  const META: any = AMS.ACTIVITY_META;
   const withData = clients.filter(c => C360[c.id]);
   const [selId, setSelId] = useCRM2((withData[0] || clients[0]).id);
   const sel = clients.find(c => c.id === selId) || clients[0];
@@ -137,8 +137,8 @@ function CRM360() {
 /* ---------------- Aktivitas & Interaksi (firm-wide feed) ---------------- */
 function CRMAktivitas() {
   const { clients } = useFirm();
-  const C360 = AMS.CRM_360;
-  const META = AMS.ACTIVITY_META;
+  const C360: any = AMS.CRM_360;
+  const META: any = AMS.ACTIVITY_META;
   const [filter, setFilter] = useCRM2('all');
 
   const feed = [];
@@ -147,7 +147,7 @@ function CRMAktivitas() {
   const shown = filter === 'all' ? feed : feed.filter(f => f.type === filter);
 
   const counts = Object.keys(META).map(k => ({ k, n: feed.filter(f => f.type === k).length }));
-  const byWho = Object.values(feed.reduce((m, f) => { m[f.who] = m[f.who] || { who: f.who, n: 0 }; m[f.who].n++; return m; }, {})).sort((a, b) => b.n - a.n);
+  const byWho = (Object.values(feed.reduce((m, f) => { m[f.who] = m[f.who] || { who: f.who, n: 0 }; m[f.who].n++; return m; }, {})) as any[]).sort((a, b) => b.n - a.n);
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -259,14 +259,14 @@ function CRMPeluang() {
 
 /* ---------------- Segmentasi ---------------- */
 function CRMSegmentasi() {
-  const { fmt, rp } = AMS;
+  const { fmt, rp }: any = AMS;
   const { clients } = useFirm();
-  const C360 = AMS.CRM_360;
+  const C360: any = AMS.CRM_360;
 
   const seg = (keyFn) => {
     const m = {};
     clients.forEach(c => { const k = keyFn(c); if (!m[k]) m[k] = { k, n: 0, fee: 0 }; m[k].n++; m[k].fee += c.fee; });
-    return Object.values(m).sort((a, b) => b.fee - a.fee);
+    return (Object.values(m) as any[]).sort((a, b) => b.fee - a.fee);
   };
   const byIndustry = seg(c => c.industry.split(' · ')[0]);
   const byTier = seg(c => c.tier);

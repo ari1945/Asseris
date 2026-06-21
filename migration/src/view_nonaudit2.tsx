@@ -13,11 +13,11 @@ const { useState: useNA2 } = React;
 /* ============================================================
    Drawer Laporan Deliverable — render laporan sesuai standar
    ============================================================ */
-function NAReport({ kind, engId, onClose }) {
+function NAReport({ kind, engId, onClose }: any) {
   const { fmt } = AMS;
-  const FIRM = AMS.FIRM;
+  const FIRM: any = AMS.FIRM;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-  const Paper = ({ title, std, children, signer }) => (
+  const Paper = ({ title, std, children, signer }: any) => (
     <div className="doc-paper" style={{ background: '#fff', maxWidth: 640, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
       <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 16, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>
         <div><div style={{ fontWeight: 800, fontSize: 14, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>{FIRM.license}</div></div>
@@ -31,10 +31,10 @@ function NAReport({ kind, engId, onClose }) {
 
   let body = null;
   if (kind === 'aup') {
-    const E = AMS.aupEngine();
+    const E = (AMS as any).aupEngine();
     const A = E.meta;
     const procs = E.procedures;
-    const doneProcs = procs.filter(p => p.done);
+    const doneProcs = procs.filter((p: any) => p.done);
     body = (
       <Paper title="LAPORAN TEMUAN FAKTUAL" std="SPSJL 4400" signer={A.id.includes('047') ? 'Rudi Gunawan, CPA' : 'Akuntan Publik'}>
         <p style={{ margin: '0 0 10px' }}>Kepada {A.requester}</p>
@@ -49,7 +49,7 @@ function NAReport({ kind, engId, onClose }) {
       </Paper>
     );
   } else if (kind === 'cmp') {
-    const C = AMS.COMPILATION_4410;
+    const C: any = AMS.COMPILATION_4410;
     body = (
       <Paper title="LAPORAN KOMPILASI AKUNTAN" std="SPSJL 4410" signer="Sari Dewanti, CPA">
         <p style={{ margin: '0 0 10px' }}>Kepada Manajemen {C.client}</p>
@@ -61,10 +61,10 @@ function NAReport({ kind, engId, onClose }) {
       </Paper>
     );
   } else if (kind === 'dd') {
-    const D = AMS.DUE_DILIGENCE;
-    const reported = D.ebitdaBridge.find(b => b.type === 'base').v / 1e9;
+    const D: any = AMS.DUE_DILIGENCE;
+    const reported = D.ebitdaBridge.find((b: any) => b.type === 'base').v / 1e9;
     const normalized = D.normEbitda;
-    const netDebt = D.netDebtBridge.reduce((s, x) => s + x.v, 0);
+    const netDebt = D.netDebtBridge.reduce((s: any, x: any) => s + x.v, 0);
     const ev = normalized * D.valuation.multiple;
     const nwcAdj = D.nwcCompletion - D.nwcPeg;
     const equity100 = ev - netDebt + nwcAdj;
@@ -85,7 +85,7 @@ function NAReport({ kind, engId, onClose }) {
               ['(' + (nwcAdj < 0 ? '−' : '+') + ') Penyesuaian modal kerja vs peg', nwcAdj, false],
               ['Equity Value (100%)', equity100, true],
               ['Indikasi harga ' + D.stakePct + '% saham', equityStake, true],
-            ].map((r, i) => (
+            ].map((r: any, i: number) => (
               <tr key={i} style={{ borderTop: '1px solid #e0e5ea' }}>
                 <td style={{ padding: '4px 0', fontWeight: r[2] ? 700 : 400 }}>{r[0]}</td>
                 <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: r[2] ? 700 : 400, fontVariantNumeric: 'tabular-nums' }}>Rp {fmt1(Math.abs(r[1]))} M</td>
@@ -103,9 +103,9 @@ function NAReport({ kind, engId, onClose }) {
     );
   } else if (kind && kind.startsWith('asr:')) {
     const id = kind.slice(4);
-    const isPfi = AMS.pfiEngine && AMS.PFI_3400 && id === AMS.PFI_3400.id;
+    const isPfi = AMS.pfiEngine && AMS.PFI_3400 && id === (AMS.PFI_3400 as any).id;
     if (isPfi) {
-      const E = AMS.pfiEngine();
+      const E = (AMS as any).pfiEngine();
       const A = E.meta;
       body = (
         <Paper title="LAPORAN PEMERIKSAAN INFORMASI KEUANGAN PROSPEKTIF" std={A.std + ' · ' + A.pfiType} signer={A.partner}>
@@ -132,8 +132,8 @@ function NAReport({ kind, engId, onClose }) {
         </div>
       );
     }
-    const e = AMS.ASSURANCE_ENG[id];
-    const m = AMS.NONAUDIT.find(x => x.id === id);
+    const e: any = (AMS as any).ASSURANCE_ENG[id];
+    const m: any = (AMS as any).NONAUDIT.find((x: any) => x.id === id);
     const limited = !e.level.includes('Memadai');
     body = (
       <Paper title="LAPORAN ASURANS INDEPENDEN" std={e.std} signer={m.partner}>

@@ -5,7 +5,7 @@ import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Tabs } from './ui.jsx';
-import { MatComponent, MatImpact, MatMemo, MatRevision, MatSpecific } from './view_materiality_parts.jsx';
+import { MatComponent, MatImpact, MatMemo, MatRevision, MatSpecific } from './view_materiality_parts';
 
 /* ============================================================
    NeoSuite AMS — Materiality Workspace (SA 320 · SA 450 · SA 600)

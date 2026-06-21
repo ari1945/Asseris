@@ -40,7 +40,7 @@ function OBAnalitik() {
   const gateColor = { acceptance: '#5b3fa6', pmpj: '#0a6b73', letter: '#005085', convert: '#1f7a4d' };
   const funnel = order.map((g, i) => ({ label: gateLabels[g], value: reached[i], disp: reached[i] + ' prospek', n: reached[i], color: gateColor[g] }));
 
-  const bySource = Object.values(prospects.reduce((m, p) => { const k = p.source || '—'; m[k] = m[k] || { k, n: 0, fee: 0 }; m[k].n++; m[k].fee += p.fee; return m; }, {})).sort((a, b) => b.fee - a.fee);
+  const bySource = (Object.values(prospects.reduce((m: any, p: any) => { const k = p.source || '—'; m[k] = m[k] || { k, n: 0, fee: 0 }; m[k].n++; m[k].fee += p.fee; return m; }, {})) as any[]).sort((a: any, b: any) => b.fee - a.fee);
   const byKind = ['Klien Baru', 'Keberlanjutan'].map(k => ({ k, n: prospects.filter(p => p.kind === k).length }));
 
   return (

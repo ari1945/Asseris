@@ -6,8 +6,8 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Progress, Stat } from './ui.jsx';
 import { MSub } from './view_fpm_parts.jsx';
-import { StepLetter, StepPMPJ } from './view_onboarding2.jsx';
-import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3.jsx';
+import { StepLetter, StepPMPJ } from './view_onboarding2';
+import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
 
 /* ============================================================
    NeoSuite AMS — Front-office: Client & Engagement Onboarding

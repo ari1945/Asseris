@@ -17,7 +17,7 @@ const { useState: useStateEP } = React;
    G7 · ALUR NOCLAR PROFESI (Kode Etik §360) — terpisah SA 250
    =========================================================== */
 function NoclarEthics() {
-  const A = AMS, nav = useNav();
+  const A: any = AMS, nav = useNav();
   const list = A.NOCLAR_ETHICS, STAGES = A.NOCLAR_STAGES;
   const [sel, setSel] = useStateEP(list[0].id);
   const cur = list.find(r => r.id === sel);
@@ -101,7 +101,7 @@ function NoclarEthics() {
    G9 · ETIKA JASA PAJAK & TEKNOLOGI (IESBA terbaru)
    =========================================================== */
 function TaxTechEthics() {
-  const A = AMS, T = A.TAX_TECH_ETHICS;
+  const A: any = AMS, T = A.TAX_TECH_ETHICS;
   const stKind = (s) => s === 'Patuh' ? 'green' : s === 'Perlu Tinjau' ? 'amber' : 'gray';
   const Block = ({ title, icon, items, sub }) => (
     <Panel noBody>
@@ -138,7 +138,7 @@ function TaxTechEthics() {
    G8 · STRIP KEMUTAKHIRAN VERSI STANDAR (SA 315/540/600/220)
    =========================================================== */
 function StdVersionStrip({ highlight }) {
-  const A = AMS, list = A.STD_VERSIONS || [];
+  const A: any = AMS, list = A.STD_VERSIONS || [];
   const nav = useNav();
   return (
     <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, boxShadow: 'none', background: 'var(--surface-2)', borderColor: 'var(--line)' }}>

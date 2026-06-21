@@ -6,7 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, LockBanner, Panel, Tabs } from './ui.jsx';
-import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels.jsx';
+import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels';
 import { useWpSignoff } from './wp_signoff.jsx';
 import { amsExportPdf } from './export_pdf.js';
 
@@ -188,9 +188,9 @@ function FSGenerator() {
     subtotal: { fontWeight: 700, borderTop: '1px solid #cdd5dc' },
     total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12.5 },
   }[lvl]);
-  const numCell = (v, py) => v == null ? '' : sc(v);
+  const numCell = (v, py?) => v == null ? '' : sc(v);
 
-  const R = ({ label, cy, py, lvl = 'line', note, pickKey, indent }) => {
+  const R = ({ label, cy, py, lvl = 'line', note, pickKey, indent }: any) => {
     const st = styleFor(lvl);
     const isActive = pickKey && activeKey === pickKey;
     return (
@@ -373,7 +373,7 @@ function FSGenerator() {
 function yoy(o, fmt) { const d = (o.cy - o.py) / Math.abs(o.py || 1) * 100; return (d >= 0 ? '+' : '') + fmt(d, 1) + '%'; }
 
 /* ---- KPI tile ---- */
-function KpiTile({ label, value, sub, accent, onClick, children }) {
+function KpiTile({ label, value, sub, accent, onClick, children }: any) {
   return (
     <div className="panel" style={{ padding: '11px 13px', display: 'flex', flexDirection: 'column', gap: 3, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
       <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em' }}>{label}</div>
@@ -385,7 +385,7 @@ function KpiTile({ label, value, sub, accent, onClick, children }) {
 }
 
 /* ---- Statement of changes in equity (column rollforward) ---- */
-function EquityStatement({ model, sc }) {
+function EquityStatement({ model, sc }: any) {
   const e = model.eqr;
   const rows = [
     { l: 'Saldo per 1 Januari 2025', modal: e.beginModal, re: e.beginRE, strong: true },
@@ -424,7 +424,7 @@ function EquityStatement({ model, sc }) {
 /* ---- Notes to the financial statements (CALK) ---- */
 function CALK({ model, activeClient, f0, disclosures }) {
   const arNet = model.bs.ca.find(l => l.key === 'piutang');
-  const note = (no, title, body, psak) => (
+  const note = (no, title, body, psak?) => (
     <div style={{ marginBottom: 13 }}>
       <div className="row ac gap8" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>

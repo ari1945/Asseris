@@ -502,7 +502,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
     }
   };
 
-  const Row = ({ label, value, strong }) => (
+  const Row = ({ label, value, strong }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{label}</span>
       <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5 }}>{value}</span>
@@ -590,7 +590,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
   );
 }
 
-function Line({ label, val, sub }) {
+function Line({ label, val, sub }: any) {
   return (
     <div className="row jb ac" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span><div style={{ fontSize: 12, fontWeight: 600 }}>{label}</div>{sub && <div className="tiny muted">{sub}</div>}</span>
@@ -598,7 +598,7 @@ function Line({ label, val, sub }) {
     </div>
   );
 }
-function SecTitle({ n, t, mt }) {
+function SecTitle({ n, t, mt }: any) {
   return (
     <div className="row ac gap8" style={{ marginTop: mt ? 16 : 0, marginBottom: 6 }}>
       <span style={{ width: 20, height: 20, borderRadius: 5, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, fontFamily: 'var(--mono)' }}>{n}</span>

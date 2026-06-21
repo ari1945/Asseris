@@ -134,7 +134,7 @@ function StepPMPJ({ p, onPatch }) {
    ============================================================ */
 function StepLetter({ p, onPatch }) {
   const { fmt } = AMS;
-  const FIRM = AMS.FIRM;
+  const FIRM: any = AMS.FIRM;
   const L = p.letter;
   const setL = (patch) => onPatch(pr => ({ ...pr, letter: { ...pr.letter, ...patch } }));
   const today = new Date().toISOString().slice(0, 10);

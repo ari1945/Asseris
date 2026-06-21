@@ -17,7 +17,7 @@ const { useState: useStateIP } = React;
 
 /* ---- Ketergantungan Imbalan ---- */
 function FeeDependencyTab() {
-  const A = AMS, fmt = A.fmt;
+  const A: any = AMS, fmt = A.fmt;
   const F = A.FEE_DEPENDENCY;
   const rows = F.rows;
   const triggers = rows.filter(r => r.trigger);
@@ -64,7 +64,7 @@ function FeeDependencyTab() {
 
 /* ---- Pra-Persetujuan Jasa Selain Asurans (NAS) ---- */
 function NASPreApprovalTab() {
-  const A = AMS;
+  const A: any = AMS;
   const list = A.NAS_PREAPPROVAL, prohib = A.NAS_PROHIBITION;
   const [sel, setSel] = useStateIP(null);
   const rejected = list.filter(n => n.status === 'Ditolak').length;
@@ -135,7 +135,7 @@ function NASPreApprovalTab() {
 
 /* ---- Asosiasi Jangka Panjang ---- */
 function LongAssociationTab() {
-  const A = AMS;
+  const A: any = AMS;
   const list = A.LONG_ASSOCIATION;
   const flagCol = { over: 'var(--red)', due: 'var(--amber)', warn: 'var(--amber)', ok: 'var(--green)' };
   const flagLbl = { over: 'Melebihi batas', due: 'Rotasi tahun depan', warn: 'Tinjau', ok: 'Dalam batas' };

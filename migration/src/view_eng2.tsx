@@ -15,7 +15,7 @@ import { HBars } from './view_fpm_parts.jsx';
 const { useState: useEng2 } = React;
 
 const ENG_PHASE_COLOR = { Perencanaan: '#5b3fa6', Eksekusi: '#005085', Finalisasi: '#9a6a00', Arsip: '#1f7a4d' };
-const engDetail = (e) => AMS.ENG_DETAIL[e.id] || AMS.ENG_DETAIL._default(e);
+const engDetail = (e) => (AMS as any).ENG_DETAIL[e.id] || (AMS as any).ENG_DETAIL._default(e);
 
 /* ---------------- Portofolio (filterable table) ---------------- */
 function EngPortofolio() {
@@ -168,7 +168,7 @@ function EngStaffing() {
       people[key].hrs += s.hrs; people[key].engs++;
     });
   });
-  const roster = Object.values(people).sort((a, b) => b.hrs - a.hrs);
+  const roster = (Object.values(people) as any[]).sort((a, b) => b.hrs - a.hrs);
   const maxHrs = Math.max(...roster.map(p => p.hrs), 1);
   const roleColor = { Partner: '#013a52', Manager: '#005085', Senior: '#0a6b73', Staff: '#5b8aa6' };
 
@@ -231,7 +231,7 @@ function EngJadwal() {
   const todayPos = pos(today);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu'];
 
-  const sorted = engagements.slice().sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+  const sorted = engagements.slice().sort((a, b) => +new Date(a.deadline) - +new Date(b.deadline));
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
   const phIdx = phases.indexOf(sel.phase);
   const milestones = [
@@ -255,7 +255,7 @@ function EngJadwal() {
               const c = clientById(e.clientId);
               const dl = pos(e.deadline);
               const start = Math.max(0, dl - (e.budgetHrs / 2200 * 60)); // notional duration from budget
-              const days = Math.round((new Date(e.deadline) - today) / 86400000);
+              const days = Math.round((+new Date(e.deadline) - +today) / 86400000);
               return (
                 <div key={e.id} className="row ac" onClick={() => setSelId(e.id)} style={{ cursor: 'pointer', background: e.id === selId ? 'var(--blue-050)' : 'transparent', borderRadius: 6, padding: '2px 0' }}>
                   <div style={{ width: 170, flex: '0 0 170px', minWidth: 0, paddingLeft: 4 }}>
@@ -295,9 +295,9 @@ function EngJadwal() {
 
         <Panel title="Beban Tenggat (30 hari)" sub="perikatan jatuh tempo terdekat">
           <div style={{ padding: 14, display: 'grid', gap: 8 }}>
-            {sorted.filter(e => { const d = Math.round((new Date(e.deadline) - today) / 86400000); return d >= 0 && d <= 90; }).slice(0, 6).map(e => {
+            {sorted.filter(e => { const d = Math.round((+new Date(e.deadline) - +today) / 86400000); return d >= 0 && d <= 90; }).slice(0, 6).map(e => {
               const c = clientById(e.clientId);
-              const days = Math.round((new Date(e.deadline) - today) / 86400000);
+              const days = Math.round((+new Date(e.deadline) - +today) / 86400000);
               return (
                 <div key={e.id} className="row ac gap10" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)' }}>
                   <div style={{ width: 40, textAlign: 'center', flex: '0 0 40px' }}><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: days < 14 ? 'var(--red)' : days < 30 ? 'var(--amber)' : 'var(--navy)' }}>{days}</div><div className="tiny muted">hari</div></div>

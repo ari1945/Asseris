@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
-import { NoclarEthics, TaxTechEthics } from './view_ethics_parts.jsx';
+import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
 
 /* ============================================================
    NeoSuite AMS — People & Compliance (NEW)
@@ -15,7 +15,7 @@ import { NoclarEthics, TaxTechEthics } from './view_ethics_parts.jsx';
 const { useState: usePCcon } = React;
 
 function EthicsDeclaration() {
-  const A = AMS, fmt = A.fmt;
+  const A: any = AMS, fmt = A.fmt;
   const nav = useNav();
   const [tab, setTab] = usePCcon('decl');
   const [decl, setDecl] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
@@ -134,7 +134,7 @@ const HC_SEV = { Ringan: 'green', Sedang: 'amber', Berat: 'red' };
 const HC_STAT = { Selesai: 'green', Investigasi: 'amber', Ditangani: 'blue', Terbuka: 'amber' };
 
 function HRCases() {
-  const A = AMS;
+  const A: any = AMS;
   const [sel, setSel] = usePCcon(null);
   const [filter, setFilter] = usePCcon('Semua');
   const cases = A.HR_CASES;

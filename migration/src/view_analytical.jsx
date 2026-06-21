@@ -5,7 +5,7 @@ import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab } from './view_analytical2.jsx';
+import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab } from './view_analytical2';
 
 /* ============================================================
    NeoSuite AMS — Analytical Review (SA 520)

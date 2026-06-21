@@ -6,7 +6,7 @@ import { FileDropField } from './evidence.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Tabs } from './ui.jsx';
-import { NAReport } from './view_nonaudit2.jsx';
+import { NAReport } from './view_nonaudit2';
 import { OKv } from './view_onboarding.jsx';
 
 /* ============================================================
@@ -19,7 +19,7 @@ const { useState: useRS } = React;
 /* ---- AUP: dokumen & kertas kerja (spreadsheet) sumber ---- */
 const AUP_DOC_ICON = (kind) => /(xls|csv|sheet)/i.test(kind || '') ? 'table' : (/(png|jpg|jpeg|gif|img)/i.test(kind || '') ? 'panel' : 'doc');
 
-function AupDocRow({ d, onRemove }) {
+function AupDocRow({ d, onRemove }: any) {
   const FI = I[AUP_DOC_ICON(d.kind)] || I.doc;
   const pending = d.status === 'pending';
   return (
@@ -97,7 +97,7 @@ function AUPPanel() {
   const [tab, setTab] = useRS('procs');
   const [rpt, setRpt] = useRS(false);
 
-  const E = AMS.aupEngine(exec, custom);
+  const E = (AMS as any).aupEngine(exec, custom);
   const A = E.meta;
   const toggle = (no) => setExec(m => ({ ...m, [no]: !(no in m ? m[no] : !!A.procedures.find(p => p.no === no)?.seedDone) }));
   const setDone = (no, v) => setExec(m => ({ ...m, [no]: v }));
@@ -368,10 +368,10 @@ function AUPPanel() {
 
 function CompilationPanel() {
   const { fmt } = AMS;
-  const C = AMS.COMPILATION_4410;
+  const C: any = AMS.COMPILATION_4410;
   const [rpt, setRpt] = useRS(false);
-  const allCompiled = C.statements.every(s => s.compiled);
-  const srcOk = C.sourceQuality.filter(s => s.ok).length;
+  const allCompiled = C.statements.every((s: any) => s.compiled);
+  const srcOk = C.sourceQuality.filter((s: any) => s.ok).length;
   const figures = [
     ['Total Aset', 4_850_000_000], ['Total Liabilitas', 1_920_000_000], ['Total Ekuitas', 2_930_000_000],
     ['Pendapatan', 6_240_000_000], ['Laba Bersih', 540_000_000],
@@ -397,7 +397,7 @@ function CompilationPanel() {
           <div className="divider" />
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Ikhtisar Angka Terkompilasi</div>
           <div style={{ display: 'grid', gap: 0 }}>
-            {figures.map(([k, v], i) => (
+            {figures.map(([k, v]: any, i: number) => (
               <div key={k} className="row jb ac" style={{ padding: '5px 0', borderBottom: i < figures.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span className="tiny" style={{ fontWeight: i >= 3 ? 600 : 400 }}>{k}</span>
                 <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(v / 1e6, 0)} jt</span>
@@ -433,18 +433,18 @@ function CompilationPanel() {
    Asurans Lain — SPA 3000 / 3402 / 3400
    ============================================================ */
 function OtherAssurance() {
-  const ENG = AMS.ASSURANCE_ENG;
+  const ENG: any = AMS.ASSURANCE_ENG;
   const ids = Object.keys(ENG);
-  const meta = AMS.NONAUDIT.reduce((m, e) => { m[e.id] = e; return m; }, {});
+  const meta = (AMS as any).NONAUDIT.reduce((m: any, e: any) => { m[e.id] = e; return m; }, {});
   const [sel, setSel] = useRS(ids[0]);
   const [rpt, setRpt] = useRS(false);
   const nav = useNav();
   /* PFI-2025-090 ditarik LIVE dari pfiEngine (SUMBER KEBENARAN SJAH 3400);
      ASR-2025-081 ditarik LIVE dari socEngine (SUMBER KEBENARAN SJAH 3402). */
-  const isPfi = AMS.pfiEngine && AMS.PFI_3400 && sel === AMS.PFI_3400.id;
-  const isSoc = AMS.socEngine && AMS.SOC_3402 && sel === AMS.SOC_3402.id;
-  const isGhg = AMS.ghgEngine && AMS.GHG_3410 && sel === AMS.GHG_3410.id;
-  const e = isPfi ? AMS.pfiEngine().assuranceEntry : isSoc ? AMS.socEngine().assuranceEntry : isGhg ? AMS.ghgEngine().assuranceEntry : ENG[sel];
+  const isPfi = AMS.pfiEngine && AMS.PFI_3400 && sel === (AMS.PFI_3400 as any).id;
+  const isSoc = AMS.socEngine && AMS.SOC_3402 && sel === (AMS.SOC_3402 as any).id;
+  const isGhg = AMS.ghgEngine && AMS.GHG_3410 && sel === (AMS.GHG_3410 as any).id;
+  const e = isPfi ? (AMS as any).pfiEngine().assuranceEntry : isSoc ? (AMS as any).socEngine().assuranceEntry : isGhg ? (AMS as any).ghgEngine().assuranceEntry : ENG[sel];
   const m = meta[sel];
   const doneN = e.matters.filter(x => x.ok).length;
 

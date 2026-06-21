@@ -165,7 +165,7 @@ const idDate = (s) => {
 const today = () => new Date().toISOString().slice(0, 10);
 
 /* ---------------- Finding body (six-section block) ---------------- */
-function MLFinding({ f, editing, setField, idx, total }) {
+function MLFinding({ f, editing, setField, idx, total }: any) {
   return (
     <div>
       {(typeof idx === 'number') && (

@@ -21,7 +21,7 @@ const { useState: useISQMP } = React;
 
 /* —— Derivasi lintas-modul dari satu sumber (AMS) —— */
 function soqmPull() {
-  const A = AMS;
+  const A: any = AMS;
   const bare = (n) => (n || '').split(',')[0].trim();
   const engMeta = A.engMeta || (() => null);
 
@@ -93,7 +93,7 @@ function SoqmFlow({ active, onPick }) {
 
 /* —— Peta 8 komponen Sistem Pengelolaan Mutu (tarik QM_COMPONENTS) —— */
 function SoqmComponents({ risks, nav }) {
-  const comps = AMS.QM_COMPONENTS || [];
+  const comps = (AMS as any).QM_COMPONENTS || [];
   const col = (s) => s >= 88 ? 'var(--green)' : s >= 80 ? 'var(--amber)' : 'var(--red)';
   /* hitung risiko mutu operasional yang terpetakan ke tiap komponen via nama */
   const mapName = (compName) => risks.filter(r => compName.includes(r.comp) || r.comp.includes(compName.split(' ')[0])).length;
@@ -120,7 +120,7 @@ function SoqmComponents({ risks, nav }) {
 }
 
 /* —— Kartu rekonsiliasi satu masukan pemantauan ke sumbernya —— */
-function PullRow({ ok, input, ref_, source, sourceMod, value, nav, warn }) {
+function PullRow({ ok, input, ref_, source, sourceMod, value, nav, warn }: any) {
   const Ic = I && (I.arrowRight);
   return (
     <tr>
@@ -139,7 +139,7 @@ function PullRow({ ok, input, ref_, source, sourceMod, value, nav, warn }) {
 
 /* —— Tab "Tarikan Data Lintas-Modul" —— */
 function SoqmLineage({ nav }) {
-  const A = AMS;
+  const A: any = AMS;
   const P = soqmPull();
   const bare = (n) => (n || '').split(',')[0].trim();
 

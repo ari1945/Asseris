@@ -31,12 +31,12 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
   const resetSeed = (id) => { const s = seedSubs.find(x => x.id === id); if (!s) return; const f = {}; PKG_NUM_KEYS.forEach(k => f[k] = s[k]); setPkg(id, f); };
   const resetAll = () => setPackages(m => { const n = {}; seedSubs.forEach(s => { const f = { status: (m[s.id] && m[s.id].status) || 'Diterima', received: (m[s.id] && m[s.id].received) || null }; PKG_NUM_KEYS.forEach(k => f[k] = s[k]); n[s.id] = f; }); return n; });
   const approveBalanced = () => setPackages(m => { const n = { ...m }; p65.subs.forEach(s => { if (s.balanced) n[s.id] = { ...n[s.id], status: 'Disetujui', received: (n[s.id] && n[s.id].received) || todayStr() }; }); return n; });
-  const fillTemplate = (id) => { const pk = packages[id] || {}; const t = {}; PKG_NUM_KEYS.forEach(k => t[k] = pk[k]); t.status = pk.status; setImpId(id); setImpText(JSON.stringify(t, null, 2)); setImpErr(''); };
+  const fillTemplate = (id) => { const pk: any = packages[id] || {}; const t: any = {}; PKG_NUM_KEYS.forEach(k => t[k] = pk[k]); t.status = pk.status; setImpId(id); setImpText(JSON.stringify(t, null, 2)); setImpErr(''); };
   const applyImport = (id) => {
     try {
       const obj = JSON.parse(impText);
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('bukan objek paket');
-      const patch = {};
+      const patch: any = {};
       PKG_NUM_KEYS.forEach(k => { if (typeof obj[k] === 'number' && isFinite(obj[k])) patch[k] = obj[k]; });
       if (typeof obj.status === 'string' && PKG_STATUS_KIND[obj.status]) patch.status = obj.status;
       if (typeof obj.received === 'string') patch.received = obj.received;

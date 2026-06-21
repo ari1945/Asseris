@@ -6,7 +6,7 @@ import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn } from './ui.jsx';
-import { ML_FINDINGS_SEED } from './view_final3.jsx';
+import { ML_FINDINGS_SEED } from './view_final3';
 
 /* ============================================================
    NeoSuite AMS — Mode Presentasi Klien
@@ -36,7 +36,7 @@ function prLoadLS(key, fb) {
   try { const s = localStorage.getItem('ams.v1.' + key); return s != null ? JSON.parse(s) : fb; } catch (e) { return fb; }
 }
 function prData(firm) {
-  const CANON = AMS_CANON || {};
+  const CANON: any = AMS_CANON || {};
   const eng = firm.activeEngagement || {};
   const client = firm.activeClient || {};
   const engId = eng.id || 'x';
@@ -44,8 +44,8 @@ function prData(firm) {
   let mat = {};
   try { mat = CANON.materiality ? CANON.materiality({ engMateriality: eng.materiality }) : {}; } catch (e) { mat = {}; }
 
-  const risks = (AMS.RISKS || []).filter(r => r.inherent === 'Significant');
-  const pbc = (AMS.PBC_REQUESTS || []).filter(p => !eng.id || p.eng === eng.id);
+  const risks = ((AMS as any).RISKS || []).filter(r => r.inherent === 'Significant');
+  const pbc = ((AMS as any).PBC_REQUESTS || []).filter(p => !eng.id || p.eng === eng.id);
   const pbcBy = pbc.reduce((m, p) => { m[p.status] = (m[p.status] || 0) + 1; return m; }, {});
 
   const seed = (typeof ML_FINDINGS_SEED !== 'undefined') ? ML_FINDINGS_SEED : [];
@@ -76,7 +76,7 @@ function prData(firm) {
   const ajePosted = aje.filter(a => a.status === 'Posted');
   const ajeProposed = aje.filter(a => a.status !== 'Posted');
 
-  const team = (AMS.TEAM || []).slice(0, 6);
+  const team = ((AMS as any).TEAM || []).slice(0, 6);
 
   return { AMS, eng, client, mat, risks, pbc, pbcBy, findings, finalSorted, finSummary, op, opType, kamCount, opFinal, reportDate, aje, ajePosted, ajeProposed, team };
 }
@@ -87,7 +87,7 @@ const prDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { d
 /* ============================================================
    PRIMITIF SLIDE
    ============================================================ */
-function PRSlide({ children, bg }) {
+function PRSlide({ children, bg }: any) {
   return <div className="pr-slide" style={{ background: bg || '#fff' }}>{children}</div>;
 }
 function PRKicker({ phase }) {
@@ -103,13 +103,13 @@ function PRKicker({ phase }) {
 function PRFoot({ data, n, total }) {
   return (
     <div className="pr-foot">
-      <span>{(AMS?.FIRM?.name) || 'KAP'}</span>
+      <span>{((AMS as any)?.FIRM?.name) || 'KAP'}</span>
       <span className="pr-foot-mid">{data.client?.name} · {data.eng?.fy}</span>
       <span className="pr-foot-pg">{String(n).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
     </div>
   );
 }
-function PRStat({ label, value, sub, color }) {
+function PRStat({ label, value, sub, color }: any) {
   return (
     <div className="pr-stat">
       <div className="pr-stat-v" style={{ color: color || 'var(--navy)' }}>{value}</div>
@@ -127,8 +127,8 @@ function PRCover({ data }) {
     <PRSlide bg="var(--navy)">
       <div className="pr-cover">
         <div className="pr-cover-top">
-          <span className="pr-cover-firm">{(AMS?.FIRM?.name) || 'KAP'}</span>
-          <span className="pr-cover-lic">{(AMS?.FIRM?.license) || ''}</span>
+          <span className="pr-cover-firm">{((AMS as any)?.FIRM?.name) || 'KAP'}</span>
+          <span className="pr-cover-lic">{((AMS as any)?.FIRM?.license) || ''}</span>
         </div>
         <div className="pr-cover-mid">
           <div className="pr-cover-eyebrow">Presentasi Klien · Audit Laporan Keuangan {data.eng?.fy}</div>
@@ -463,7 +463,7 @@ function PRNext({ data, n, total }) {
         </div>
         <div className="pr-next-foot">
           <span>{data.eng?.partner} · Rekan Perikatan</span>
-          <span>{(AMS?.FIRM?.name)} · {(AMS?.FIRM?.license)}</span>
+          <span>{((AMS as any)?.FIRM?.name)} · {((AMS as any)?.FIRM?.license)}</span>
         </div>
       </div>
     </PRSlide>

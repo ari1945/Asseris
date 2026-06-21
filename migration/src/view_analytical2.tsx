@@ -127,11 +127,11 @@ function TrendCommonSizeTab({ der, fmt }) {
           </tr></thead>
           <tbody>
             {groups.map(g => {
-              const gl = lines.filter(l => l.group === g);
+              const gl = lines.filter((l: any) => l.group === g);
               return (
                 <React.Fragment key={g}>
                   <tr className="group-row"><td colSpan={6}>{g}</td></tr>
-                  {gl.map(l => {
+                  {gl.map((l: any) => {
                     const isContra = l.y[2] < 0;
                     if (mode === 'horizontal') {
                       const idx = l.y[0] !== 0 ? (l.y[2] / l.y[0]) * 100 : null;
@@ -183,7 +183,7 @@ function TrendCommonSizeTab({ der, fmt }) {
 /* ============================================================
    TAB · Substantive analytical procedures (expectation modeling)
    ============================================================ */
-function ExpResult({ expectation, recorded, threshold, fmt, label }) {
+function ExpResult({ expectation, recorded, threshold, fmt, label }: any) {
   const diff = recorded - expectation;
   const pct = expectation ? (diff / expectation) * 100 : 0;
   const within = Math.abs(diff) <= threshold;
@@ -208,7 +208,7 @@ function ExpResult({ expectation, recorded, threshold, fmt, label }) {
   );
 }
 
-function NumDriver({ label, suffix, value, onChange, w = 92 }) {
+function NumDriver({ label, suffix, value, onChange, w = 92 }: any) {
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 3 }}>{label}</div>

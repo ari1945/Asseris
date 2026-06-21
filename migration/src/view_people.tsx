@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
-import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts.jsx';
+import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
 
 /* ============================================================
@@ -22,7 +22,7 @@ function HCM() {
   const { fmt } = AMS;
   const nav = useNav();
   const [extra, setExtra] = useAmsPersist('staffExtra', []);
-  const staff = [...extra, ...AMS.STAFF];
+  const staff = [...extra, ...(AMS as any).STAFF];
   const [sel, setSel] = useStateE(AMS.STAFF[3].id);
   const [q, setQ] = useStateE('');
   const [grade, setGrade] = useStateE('All');
@@ -149,7 +149,7 @@ function StaffForm({ onClose, onAdd }) {
 function CPETracker() {
   const { fmt } = AMS;
   const nav = useNav();
-  const staff = AMS.STAFF, req = AMS.CPE_REQ;
+  const staff: any = AMS.STAFF, req: any = AMS.CPE_REQ;
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   const [sel, setSel] = useStateE('EMP-007');
   const [showNew, setShowNew] = useStateE(false);

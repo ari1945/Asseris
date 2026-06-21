@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
-import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts.jsx';
+import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
 import { OKv } from './view_onboarding.jsx';
 
 /* ============================================================
@@ -38,12 +38,12 @@ const MON_SOURCE = {
 
 function SOQM() {
   const nav = useNav();
-  const [risks, setRisks] = useAmsPersist('soqmRisks', () => AMS.SOQM_RISKS);
-  const [complaints] = useAmsPersist('complaints.v2', () => AMS.COMPLAINTS);
-  const inspections = AMS.QM_INSPECTIONS;
-  const inspFindings = AMS.QM_INSP_FINDINGS;
-  const monActivities = AMS.QM_MON_ACTIVITIES;
-  const engMeta = AMS.engMeta || (() => null);
+  const [risks, setRisks]: any = useAmsPersist('soqmRisks', () => AMS.SOQM_RISKS);
+  const [complaints]: any = useAmsPersist('complaints.v2', () => AMS.COMPLAINTS);
+  const inspections: any = AMS.QM_INSPECTIONS;
+  const inspFindings: any = AMS.QM_INSP_FINDINGS;
+  const monActivities: any = AMS.QM_MON_ACTIVITIES;
+  const engMeta: any = AMS.engMeta || (() => null);
   const [tab, setTab] = useSOQM('register');
   const [sel, setSel] = useSOQM(null);
   const [openRca, setOpenRca] = useSOQM(null);
@@ -216,7 +216,7 @@ function SOQM() {
           {tab === 'remediation' && (
             <div>
               <div style={{ padding: 14, borderBottom: '1px solid var(--line-soft)' }}>
-                <SoqmSeverity deficiencies={deficiencies} P={window.soqmPull ? window.soqmPull() : { overloaded: [], rotationDue: [] }} complaints={complaints} inspFindings={inspFindings} />
+                <SoqmSeverity deficiencies={deficiencies} P={(window as any).soqmPull ? (window as any).soqmPull() : { overloaded: [], rotationDue: [] }} complaints={complaints} inspFindings={inspFindings} />
               </div>
               <RemediationTab deficiencies={deficiencies} nav={nav} />
             </div>
@@ -258,13 +258,13 @@ function SOQM() {
 
 /* —— Tab Defisiensi & Remediasi: QR-02 tertaut LIVE ke Capacity Planning —— */
 function RemediationTab({ deficiencies, nav }) {
-  const P = window.soqmPull ? window.soqmPull() : null;
+  const P = (window as any).soqmPull ? (window as any).soqmPull() : null;
   return (
     <div style={{ padding: 14, display: 'grid', gap: 12 }}>
       {deficiencies.length ? deficiencies.map(r => {
         const d = r.deficiency;
         const capacityTie = r.id === 'QR-02' && P;
-        const sevList = AMS.QM_INSP_FINDINGS.filter(f => (f.cause || '').toLowerCase().includes('senior') || (f.rca5 || []).some(w => w.toLowerCase().includes('sumber daya')));
+        const sevList = (AMS as any).QM_INSP_FINDINGS.filter(f => (f.cause || '').toLowerCase().includes('senior') || (f.rca5 || []).some(w => w.toLowerCase().includes('sumber daya')));
         return (
           <div key={r.id} className="panel" style={{ padding: 14, borderLeft: '3px solid var(--' + (SEV_KIND[d.sev] || 'amber') + ')' }}>
             <div className="row jb ac" style={{ marginBottom: 8 }}>
@@ -321,7 +321,7 @@ function RemediationTab({ deficiencies, nav }) {
 }
 
 function RiskDetail({ r, nav, onClose }) {
-  const comp = (AMS.QM_COMPONENTS || []).find(c => c.name.includes(r.comp) || r.comp.includes(c.name.split(' ')[0]));
+  const comp = ((AMS as any).QM_COMPONENTS || []).find(c => c.name.includes(r.comp) || r.comp.includes(c.name.split(' ')[0]));
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
