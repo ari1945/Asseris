@@ -25,9 +25,9 @@ import { AMS } from './data';
 const IMPORT = (function () {
   const A: any = AMS;
   if (!A) return;
-  const fmt = A.fmt || (n => String(n));
-  const jt = (n) => 'Rp ' + fmt(Math.round((n || 0) / 1e6)) + ' jt';
-  const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
+  const fmt = A.fmt || ((n: any) => String(n));
+  const jt = (n: any) => 'Rp ' + fmt(Math.round((n || 0) / 1e6)) + ' jt';
+  const sum = (arr: any, f: any) => arr.reduce((s: any, x: any) => s + f(x), 0);
 
   /* ---------- konektor kanonik (SSOT definisi konektor) ----------
      target = modul PEMILIK utama (sumber kebenaran tujuan posting). */
@@ -61,23 +61,23 @@ const IMPORT = (function () {
       webhooks: [['entity.changed', true]] },
     { id: 'payroll', name: 'Payroll & HRIS', cat: 'SDM', target: 'payroll', desc: 'Sinkronisasi data karyawan, gaji & utilisasi.', status: 'available', last: '—', icon: 'users', uptime: 0, latency: 0, vol: 0, schedule: '—', endpoint: 'internal.whr-cpa.id/hris', auth: 'Service Account', expiry: '—', scopes: ['employee.read', 'payroll.read'], mapping: [], syncs: [], webhooks: [] },
   ];
-  const connById = (id) => CONNECTORS.find(c => c.id === id) || null;
+  const connById = (id: any) => CONNECTORS.find(c => c.id === id) || null;
 
   /* ---------- total kontrol kanonik (live) per konektor ----------
      Gerbang posting: berkas hanya boleh di-posting bila total kontrol
      (mis. Σ PPN, saldo bank) cocok dengan angka pemilik datanya. */
-  function controlTotal(id) {
+  function controlTotal(id: any) {
     try {
-      if (id === 'coretax') { const v = sum((A.EFAKTUR || []).filter(e => e.kind === 'Keluaran'), e => e.ppn); return { label: 'Σ PPN Keluaran (e-Faktur)', value: jt(v), owner: 'firmtax' }; }
-      if (id === 'bank') { const v = (A.BANK_RECON || {}).bankBalance || sum((A.BANK_ACCOUNTS || []), a => a.balance); return { label: 'Saldo bank per rekening koran', value: jt(v), owner: 'cashbank' }; }
-      if (id === 'esign') { const v = (A.ENGAGEMENTS || []).filter(e => e.phase === 'Finalisasi' || e.status === 'Completed').length; return { label: 'Sertifikat ↔ laporan final', value: v + ' dok', owner: 'opinion' }; }
+      if (id === 'coretax') { const v = sum((A.EFAKTUR || []).filter((e: any) => e.kind === 'Keluaran'), (e: any) => e.ppn); return { label: 'Σ PPN Keluaran (e-Faktur)', value: jt(v), owner: 'firmtax' }; }
+      if (id === 'bank') { const v = (A.BANK_RECON || {}).bankBalance || sum((A.BANK_ACCOUNTS || []), (a: any) => a.balance); return { label: 'Saldo bank per rekening koran', value: jt(v), owner: 'cashbank' }; }
+      if (id === 'esign') { const v = (A.ENGAGEMENTS || []).filter((e: any) => e.phase === 'Finalisasi' || e.status === 'Completed').length; return { label: 'Sertifikat ↔ laporan final', value: v + ' dok', owner: 'opinion' }; }
       if (id === 'dms') { const v = (A.WORKPAPERS || []).length; return { label: 'Indeks WP ↔ arsip', value: v + ' WP', owner: 'workpapers' }; }
       if (id === 'ahu') { const v = (A.CLIENTS || []).length; return { label: 'Entitas terverifikasi', value: v + ' entitas', owner: 'onboarding' }; }
     } catch (e) { /* noop */ }
     return { label: '—', value: '—', owner: null };
   }
 
-  function feeds(id) { return (A.PLATFORM && A.PLATFORM.feedCounts(id)) || []; }
+  function feeds(id: any) { return (A.PLATFORM && A.PLATFORM.feedCounts(id)) || []; }
 
   /* ---------- W9: server read-model overlay ----------
      The prototype computed everything below from the static feedCounts (simulated). W9 makes the
@@ -87,10 +87,10 @@ const IMPORT = (function () {
      that connector (and flag it serverBacked). When the server is absent (offline / forbidden /
      pre-boot), _serverRecon stays null and the simulated blueprint is the fallback — degradasi
      anggun, persis pola W6. */
-  let _serverRecon = null; // shape: { bank: { posted, consumed, tied, closingBalance }, … }
-  function setServerData(d) { _serverRecon = (d && d.recon) || null; }
-  function serverReconFor(id) { return (_serverRecon && _serverRecon[id]) || null; }
-  function serverBacked(id) { return serverReconFor(id) != null; }
+  let _serverRecon: any = null; // shape: { bank: { posted, consumed, tied, closingBalance }, … }
+  function setServerData(d: any) { _serverRecon = (d && d.recon) || null; }
+  function serverReconFor(id: any) { return (_serverRecon && _serverRecon[id]) || null; }
+  function serverBacked(id: any) { return serverReconFor(id) != null; }
 
   /* ---------- antrean impor (jobs) DITURUNKAN dari feedCounts ----------
      Untuk tiap konektor terhubung, tiap umpan hilir menjadi satu job
@@ -105,16 +105,16 @@ const IMPORT = (function () {
   const MODE_BY_CONN = { coretax: 'auto', bank: 'auto', esign: 'auto', dms: 'auto' };
 
   function jobs() {
-    const out = [];
+    const out: any[] = [];
     let seq = 1200;
     CONNECTORS.filter(c => c.status === 'connected').forEach(c => {
-      feeds(c.id).forEach((f, i) => {
+      feeds(c.id).forEach((f: any, i: any) => {
         const ts = (c.syncs[0] && c.syncs[0][0]) || A.PLATFORM.NOW;
         out.push({
           id: 'IMP-' + c.id.toUpperCase().slice(0, 3) + '-' + (seq++),
           conn: c.id, connName: c.name, dataset: f.label, target: f.module, targetLabel: f.label,
           unit: f.unit, rows: f.n, valid: f.n, rejected: 0,
-          status: 'posted', mode: MODE_BY_CONN[c.id] || 'auto', ts, by: 'Integration Engine',
+          status: 'posted', mode: (MODE_BY_CONN as any)[c.id] || 'auto', ts, by: 'Integration Engine',
           control: controlTotal(c.id), gate: true,
         });
       });
@@ -125,18 +125,18 @@ const IMPORT = (function () {
     });
     return out.sort((a, b) => (a.ts < b.ts ? 1 : -1));
   }
-  function jobsByConnector(id) { return jobs().filter(j => j.conn === id); }
+  function jobsByConnector(id: any) { return jobs().filter((j: any) => j.conn === id); }
 
   /* ---------- konektor diperkaya ---------- */
   function connectors() {
     return CONNECTORS.map(c => {
       const js = jobsByConnector(c.id);
       const f = feeds(c.id);
-      const posted = sum(js.filter(j => j.status === 'posted'), j => j.valid);
-      const staged = sum(js.filter(j => j.status === 'staged'), j => j.rows);
-      const failed = js.filter(j => j.status === 'failed').length;
-      const rejected = sum(js, j => j.rejected);
-      const consumed = sum(f, x => x.n);
+      const posted = sum(js.filter((j: any) => j.status === 'posted'), (j: any) => j.valid);
+      const staged = sum(js.filter((j: any) => j.status === 'staged'), (j: any) => j.rows);
+      const failed = js.filter((j: any) => j.status === 'failed').length;
+      const rejected = sum(js, (j: any) => j.rejected);
+      const consumed = sum(f, (x: any) => x.n);
       const base = { ...c, feeds: f, jobs: js, jobCount: js.length, posted, staged, failed, rejected, consumed, tied: posted === consumed && !failed };
       // W9 — overlay real server figures for the wired connector (else keep the simulated base).
       const sv = serverReconFor(c.id);
@@ -162,12 +162,12 @@ const IMPORT = (function () {
     const connected = cs.filter(c => c.status === 'connected');
     const errored = cs.filter(c => c.status === 'error');
     const js = jobs();
-    const postedRows = sum(js.filter(j => j.status === 'posted'), j => j.valid);
-    const stagedRows = sum(js.filter(j => j.status === 'staged'), j => j.rows);
-    const failedJobs = js.filter(j => j.status === 'failed');
-    const consumed = sum(connected, c => c.consumed);
-    const allTied = connected.every(c => c.tied);
-    return { connectors: cs, connected, errored, jobs: js, postedRows, stagedRows, failedJobs, consumed, allTied, rejected: sum(js, j => j.rejected) };
+    const postedRows = sum(js.filter((j: any) => j.status === 'posted'), (j: any) => j.valid);
+    const stagedRows = sum(js.filter((j: any) => j.status === 'staged'), (j: any) => j.rows);
+    const failedJobs = js.filter((j: any) => j.status === 'failed');
+    const consumed = sum(connected, (c: any) => c.consumed);
+    const allTied = connected.every((c: any) => c.tied);
+    return { connectors: cs, connected, errored, jobs: js, postedRows, stagedRows, failedJobs, consumed, allTied, rejected: sum(js, (j: any) => j.rejected) };
   }
 
   const PROVENANCE = [
