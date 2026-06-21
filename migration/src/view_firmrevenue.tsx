@@ -18,7 +18,7 @@ const { useState: useStateRV } = React;
 function FirmRevenue() {
   const { fmt } = AMS;
   const { engagements, clients } = useFirm();
-  const invoices = AMS.INVOICES;
+  const invoices: any = AMS.INVOICES;
   const [tab, setTab] = useStateRV('recognition');
   const [sel, setSel] = useStateRV(null);
   const REF = new Date('2026-03-09');
@@ -44,14 +44,14 @@ function FirmRevenue() {
 
   /* Dunning — overdue / due invoices */
   const dun = invoices.filter(i => i.status !== 'Paid' && i.status !== 'Draft').map(i => {
-    const daysOver = Math.round((REF - new Date(i.due)) / 864e5);
+    const daysOver = Math.round((+REF - +new Date(i.due)) / 864e5);
     const outstanding = i.amount - i.paid;
     const level = daysOver > 30 ? 3 : daysOver > 15 ? 2 : daysOver > 0 ? 1 : 0;
     return { ...i, daysOver, outstanding, level };
   }).filter(i => i.outstanding > 0).sort((a, b) => b.daysOver - a.daysOver);
   const overdueTotal = dun.filter(d => d.level > 0).reduce((s, d) => s + d.outstanding, 0);
 
-  const CN = AMS.CREDIT_NOTES;
+  const CN: any = AMS.CREDIT_NOTES;
   const DUN_LEVEL = { 0: { k: 'gray', l: 'Belum jatuh tempo' }, 1: { k: 'blue', l: 'Pengingat 1' }, 2: { k: 'amber', l: 'Pengingat 2' }, 3: { k: 'red', l: 'Eskalasi' } };
 
   const tabs = [
@@ -205,7 +205,7 @@ function FirmRevenue() {
 }
 
 /* Drill panel: single-engagement recognition schedule */
-function RecognitionDrill({ r, onClose }) {
+function RecognitionDrill({ r, onClose }: any) {
   const { fmt } = AMS;
   const net = r.asset - r.liab;
   // synthesize a cumulative recognition S-curve scaled to current %

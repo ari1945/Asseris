@@ -6,7 +6,7 @@ import { useEvidence } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Panel, Stat } from './ui.jsx';
-import { DFAturan, DFJejak, DFPropagasi } from './view_dataflow2.jsx';
+import { DFAturan, DFJejak, DFPropagasi } from './view_dataflow2';
 import { MSub } from './view_fpm_parts.jsx';
 import { DFRekonsiliasi } from './view_reconcile';
 
@@ -24,7 +24,7 @@ const DF_ICON = { ok: 'checkCircle', warn: 'alert', err: 'x' };
 function AIIntakeLog() {
   const nav = useNav();
   const log = useEvidence(null);
-  const openCopilot = () => { if (window.__amsOpenCopilot) window.__amsOpenCopilot(); };
+  const openCopilot = () => { if ((window as any).__amsOpenCopilot) (window as any).__amsOpenCopilot(); };
   const fileExtIc = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : 'doc';
 
   return (
@@ -125,7 +125,7 @@ function DataFlow() {
     { id: 'jejak', label: 'Jejak Audit', icon: 'clock' },
   ];
 
-  const Stage = ({ n, title, icon, sub, checks, accent }) => (
+  const Stage = ({ n, title, icon, sub, checks, accent }: any) => (
     <div className="panel" style={{ flex: 1, minWidth: 0, padding: 0, overflow: 'hidden', borderTop: '3px solid ' + accent }}>
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)' }}>
         <div className="row ac gap8" style={{ marginBottom: 2 }}>

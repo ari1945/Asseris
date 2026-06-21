@@ -19,8 +19,8 @@ const TAX_STAT = { 'Lapor': 'green', 'Bayar': 'blue', 'Belum Lapor': 'amber', 'D
 function FirmTax() {
   const { fmt } = AMS;
   const navTX = useNav();
-  const EF = AMS.EFAKTUR;
-  const PPH = AMS.PPH_WITHHELD;
+  const EF: any = AMS.EFAKTUR;
+  const PPH: any = AMS.PPH_WITHHELD;
   const [tab, setTab] = useStateTX('kalender');
   const [obs, setObs] = useAmsPersist('firmtax', () => AMS.TAX_OBLIGATIONS);
 
@@ -86,7 +86,7 @@ function FirmTax() {
               <thead><tr><th>Jenis Pajak</th><th>Masa</th><th>Jatuh Tempo</th><th className="num">Jumlah</th><th>Status</th><th></th></tr></thead>
               <tbody>
                 {obs.map((o, i) => {
-                  const days = Math.round((new Date(o.due) - new Date('2026-03-09')) / 864e5);
+                  const days = Math.round((+new Date(o.due) - +new Date('2026-03-09')) / 864e5);
                   return (
                     <tr key={i}>
                       <td style={{ fontWeight: 600 }}>{o.jenis}</td>
@@ -200,7 +200,7 @@ function FirmTax() {
                         ['PPh Badan terutang (22%)', 1_267_200_000, false],
                         ['Kredit pajak (PPh 25 + 23)', -1_152_000_000, false],
                         ['PPh Pasal 29 — Kurang Bayar', 115_200_000, true],
-                      ].map(([l, v, bold]) => (
+                      ].map(([l, v, bold]: any[]) => (
                         <tr key={l} style={{ fontWeight: bold ? 700 : 400, background: bold ? 'var(--surface-2)' : 'transparent' }}>
                           <td style={{ padding: '7px 9px', borderBottom: '1px solid var(--line-soft)' }}>{l}</td>
                           <td className="num" style={{ padding: '7px 9px', borderBottom: '1px solid var(--line-soft)', color: v < 0 ? 'var(--green)' : 'inherit' }}>{v < 0 ? '(' + fmt(-v / 1e6, 0) + ')' : fmt(v / 1e6, 0)}</td>

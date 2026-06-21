@@ -5,7 +5,7 @@ import { useAudit, useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Portlet, Progress, Spark, Stat } from './ui.jsx';
-import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2.jsx';
+import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';
 import { MSub } from './view_fpm_parts.jsx';
 
 /* ============================================================

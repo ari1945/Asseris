@@ -21,7 +21,7 @@ const trJt = (v, d = 1) => 'Rp ' + AMS.fmt(v / 1e6, d) + ' jt';
 const trRb = (v) => 'Rp ' + AMS.fmt(v / 1e3, 0) + ' rb';
 
 /* navigable SSOT chip → loncat ke modul pemilik data */
-function TrSrc({ module, children, title }) {
+function TrSrc({ module, children, title }: any) {
   const nav = useNav();
   return (
     <button type="button" className="chip tiny" title={title || ('Buka ' + module)}
@@ -74,7 +74,7 @@ function FirmTravel() {
             <span className="tiny muted">tidak ada angka lepas · semua diturunkan</span>
           </div>
           <div className="row gap6 ac" style={{ flexWrap: 'wrap' }}>
-            {T.PROVENANCE.map(p => (
+            {T.PROVENANCE.map((p: any) => (
               <TrSrc key={p.field} module={p.module} title={p.field + ' ← ' + p.source}>
                 <span style={{ fontWeight: 600 }}>{p.field}</span>
                 <span className="muted" style={{ marginLeft: 3 }}>← {p.label}</span>
@@ -98,7 +98,7 @@ function FirmTravel() {
               <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 16, alignItems: 'start' }}>
                 <div>
                   <SectionTitle right={<span className="mono tiny muted">{alloc.length} perikatan</span>}>Alokasi Biaya Perjalanan per Perikatan</SectionTitle>
-                  <HBars rows={alloc.map(a => ({
+                  <HBars rows={alloc.map((a: any) => ({
                     label: a.client.replace(/^PT /, ''),
                     value: a.est,
                     color: a.partner && a.partner.includes('Hartono') ? 'var(--blue)' : a.partner && a.partner.includes('Rudi') ? 'var(--purple)' : 'var(--teal)',
@@ -150,7 +150,7 @@ function FirmTravel() {
             <table className="dtbl">
               <thead><tr><th></th><th>ID</th><th>Pegawai</th><th>Perikatan / Klien</th><th>Lokasi</th><th>Tanggal</th><th className="num">Hari</th><th className="num">Plafon</th><th className="num">Estimasi</th><th>Status</th></tr></thead>
               <tbody>
-                {trips.map(t => {
+                {trips.map((t: any) => {
                   const open = openTrip === t.id;
                   const e = t.entitlement;
                   return (
@@ -214,7 +214,7 @@ function FirmTravel() {
               <table className="dtbl">
                 <thead><tr><th>ID</th><th>Pegawai</th><th>Trip / Klien</th><th>Rincian</th><th className="num">Klaim</th><th className="num">Plafon</th><th className="num">PPh 21</th><th>Status</th></tr></thead>
                 <tbody>
-                  {reimb.map(r => (
+                  {reimb.map((r: any) => (
                     <tr key={r.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                       <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{r.staff}</div><div className="tiny muted">{r.grade}</div></td>
@@ -248,7 +248,7 @@ function FirmTravel() {
                   <table className="dtbl" style={{ border: '1px solid var(--line)', borderRadius: 8, overflow: 'hidden' }}>
                     <thead><tr><th>Grade</th><th className="num">Hotel/malam</th><th className="num">Per Diem/hari</th><th>Transport</th></tr></thead>
                     <tbody>
-                      {B.PER_DIEM.map(p => (
+                      {B.PER_DIEM.map((p: any) => (
                         <tr key={p.grade}>
                           <td style={{ fontWeight: 600 }}>{p.grade}</td>
                           <td className="num">{trRb(p.hotel)}</td>
@@ -262,7 +262,7 @@ function FirmTravel() {
                   <table className="dtbl" style={{ border: '1px solid var(--line)', borderRadius: 8, overflow: 'hidden' }}>
                     <thead><tr><th>Rute</th><th className="num">Tarif dasar</th><th></th></tr></thead>
                     <tbody>
-                      {B.ROUTES.map(r => (
+                      {B.ROUTES.map((r: any) => (
                         <tr key={r.code}>
                           <td className="tiny" style={{ fontWeight: 600 }}>{r.label}</td>
                           <td className="num mono tiny">{trRb(r.fare)}</td>
@@ -277,9 +277,9 @@ function FirmTravel() {
                   <div className="panel" style={{ padding: '13px 14px' }}>
                     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 11 }}>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Grade</span>
-                        <select className="select" value={calc.grade} onChange={e => setCalc({ ...calc, grade: e.target.value })}>{B.PER_DIEM.map(p => <option key={p.key}>{p.key}</option>)}</select></label>
+                        <select className="select" value={calc.grade} onChange={e => setCalc({ ...calc, grade: e.target.value })}>{B.PER_DIEM.map((p: any) => <option key={p.key}>{p.key}</option>)}</select></label>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Rute</span>
-                        <select className="select" value={calc.route} onChange={e => setCalc({ ...calc, route: e.target.value })}>{B.ROUTES.map(r => <option key={r.code} value={r.code}>{r.label}</option>)}</select></label>
+                        <select className="select" value={calc.route} onChange={e => setCalc({ ...calc, route: e.target.value })}>{B.ROUTES.map((r: any) => <option key={r.code} value={r.code}>{r.label}</option>)}</select></label>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Hari</span>
                         <input className="input" type="number" min={1} value={calc.days} onChange={e => setCalc({ ...calc, days: Math.max(1, +e.target.value || 1) })} /></label>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Malam</span>
@@ -311,7 +311,7 @@ function FirmTravel() {
               <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 16, alignItems: 'start' }}>
                 <div>
                   <SectionTitle right={<span className="mono tiny muted">Rp jt / bulan</span>}>Tren Biaya Perjalanan</SectionTitle>
-                  <LineChart labels={B.TRAVEL_TREND.map(t => t.m)} series={[{ name: 'Biaya', color: 'var(--blue)', data: B.TRAVEL_TREND.map(t => t.v), fill: true }]} height={170} />
+                  <LineChart labels={B.TRAVEL_TREND.map((t: any) => t.m)} series={[{ name: 'Biaya', color: 'var(--blue)', data: B.TRAVEL_TREND.map((t: any) => t.v), fill: true }]} height={170} />
                   <SectionTitle>Rekonsiliasi Sub-ledger → Buku Besar</SectionTitle>
                   <table className="dtbl" style={{ border: '1px solid var(--line)', borderRadius: 8, overflow: 'hidden' }}>
                     <thead><tr><th>Lapisan</th><th>Sumber</th><th className="num">Nilai</th></tr></thead>
@@ -391,7 +391,7 @@ function FirmLicensing() {
             <span className="tiny muted">PPL, rotasi & identitas AP diturunkan</span>
           </div>
           <div className="row gap6 ac" style={{ flexWrap: 'wrap' }}>
-            {L.PROVENANCE.map(p => (
+            {L.PROVENANCE.map((p: any) => (
               <TrSrc key={p.field} module={p.module} title={p.field + ' ← ' + p.source}>
                 <span style={{ fontWeight: 600 }}>{p.field}</span>
                 <span className="muted" style={{ marginLeft: 3 }}>← {p.label}</span>
@@ -417,7 +417,7 @@ function FirmLicensing() {
                   <SectionTitle right={<span className="mono tiny muted">{sum.emiten.length} perikatan emiten</span>}>Cakupan Registrasi OJK (STTD Emiten)</SectionTitle>
                   <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>Registrasi OJK firma wajib untuk audit entitas tercatat. Daftar berikut ditarik dari <TrSrc module="cockpit">Engagement</TrSrc> — perikatan untuk klien <b>listed</b> (CRM).</div>
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {sum.emiten.map(e => (
+                    {sum.emiten.map((e: any) => (
                       <div key={e.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row jb ac">
                           <span className="tiny" style={{ fontWeight: 600 }}>{e.client.replace(/^PT /, '')}</span>
@@ -454,7 +454,7 @@ function FirmLicensing() {
             <table className="dtbl">
               <thead><tr><th></th><th>ID</th><th>Izin / Registrasi</th><th>Nomor</th><th>Otoritas</th><th>Terbit</th><th>Berakhir</th><th>Status</th></tr></thead>
               <tbody>
-                {fl.map(l => {
+                {fl.map((l: any) => {
                   const hasDetail = l.coverage || l.linkMember;
                   const open = openFirm === l.id;
                   return (
@@ -476,7 +476,7 @@ function FirmLicensing() {
                               <>
                                 <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.05em', marginBottom: 7 }}>Ketergantungan — {l.coverage.label}</div>
                                 <div className="row gap6 ac" style={{ flexWrap: 'wrap', marginBottom: l.linkMember ? 12 : 0 }}>
-                                  {l.coverage.items.map(e => (
+                                  {l.coverage.items.map((e: any) => (
                                     <TrSrc key={e.id} module="cockpit" title={'Buka ' + e.id}><span style={{ fontWeight: 600 }}>{e.client.replace(/^PT /, '')}</span><span className="muted mono" style={{ marginLeft: 4 }}>{e.id}</span></TrSrc>
                                   ))}
                                 </div>
@@ -502,7 +502,7 @@ function FirmLicensing() {
             <table className="dtbl">
               <thead><tr><th></th><th>Akuntan Publik</th><th>No. Izin</th><th>Berakhir</th><th className="num">PPL (SKP)</th><th>Status PPL</th><th>Rotasi</th><th>Status</th></tr></thead>
               <tbody>
-                {ap.map(a => {
+                {ap.map((a: any) => {
                   const open = openAp === a.izin;
                   const pplPct = Math.min(100, Math.round(a.ppl / a.pplReq * 100));
                   const rotCol = a.rotState === 'due' ? 'var(--red)' : a.rotState === 'warn' ? 'var(--amber)' : 'var(--green)';
@@ -524,7 +524,7 @@ function FirmLicensing() {
                           <div style={{ padding: '13px 16px' }}>
                             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
                               <div>
-                                <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.05em', marginBottom: 7 }}>PPL / SKP {AMS.CPE_REQ.year} <TrSrc module="cpe" title="Buka CPE/PPL Tracker">← CPE Tracker</TrSrc></div>
+                                <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.05em', marginBottom: 7 }}>PPL / SKP {(AMS as any).CPE_REQ.year} <TrSrc module="cpe" title="Buka CPE/PPL Tracker">← CPE Tracker</TrSrc></div>
                                 <div className="row gap12 ac" style={{ marginBottom: 9 }}>
                                   <Donut size={84} thickness={12} segments={[{ value: a.pplStructured, color: '#005085' }, { value: Math.max(0, a.ppl - a.pplStructured), color: '#0a6b73' }, { value: Math.max(0, a.pplReq - a.ppl), color: 'var(--surface-3)' }]} center={<><div className="mono" style={{ fontSize: 15, fontWeight: 800 }}>{a.ppl}</div><div className="tiny muted">SKP</div></>} />
                                   <div style={{ flex: 1, display: 'grid', gap: 5 }}>

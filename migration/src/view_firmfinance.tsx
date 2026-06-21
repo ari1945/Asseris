@@ -84,7 +84,7 @@ function FirmFinance() {
 }
 
 /* ---------------- Tab: Ikhtisar ---------------- */
-function Overview({ D, jt, M, fmt, setDrill }) {
+function Overview({ D, jt, M, fmt, setDrill }: any) {
   const p = D.pl, svc = D.svc;
   const plRows = [
     ['Pendapatan jasa', p.revenue, false, 'rev'],
@@ -143,7 +143,7 @@ function Overview({ D, jt, M, fmt, setDrill }) {
 }
 
 /* ---------------- Tab: Profitabilitas ---------------- */
-function ProfitTab({ D, jt, M, fmt, nav, setDrill }) {
+function ProfitTab({ D, jt, M, fmt, nav, setDrill }: any) {
   const partners = D.partners.rows, total = D.partners.total;
   const maxP = Math.max(...partners.map(p => p.portfolio), 1);
   const p = D.pl;
@@ -209,7 +209,7 @@ function ProfitTab({ D, jt, M, fmt, nav, setDrill }) {
 }
 
 /* ---------------- Tab: Modal Kerja & Likuiditas ---------------- */
-function WorkingCapital({ D, jt, M, fmt, nav }) {
+function WorkingCapital({ D, jt, M, fmt, nav }: any) {
   const ar = D.ar, ap = D.ap, wip = D.wip, k = D.kpis;
   return (
     <>
@@ -273,7 +273,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }) {
 }
 
 /* ---------------- Tab: Sumber Kebenaran (lineage + rekonsiliasi) ---------------- */
-function SourceOfTruth({ D, jt, M, fmt, nav }) {
+function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
   const STAT = {
     tied: { k: 'green', l: 'Tertaut' },
     bridged: { k: 'blue', l: 'Terjembatani' },
@@ -566,8 +566,8 @@ function WIPValuation() {
 }
 
 /* panel detail valuasi per-perikatan — waterfall rekonsiliasi WIP */
-function WipValDetail({ r, jt, pc, realColor, marginColor, onClose, nav }) {
-  const Line = ({ label, v, op, strong, accent }) => (
+function WipValDetail({ r, jt, pc, realColor, marginColor, onClose, nav }: any) {
+  const Line = ({ label, v, op, strong, accent }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="tiny" style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--ink)' : 'var(--ink-2)' }}>{op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 5 }}>{op}</span>}{label}</span>
       <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(v)) + ' jt' + (v < 0 ? ')' : '')}</span>
@@ -608,7 +608,7 @@ function WipValDetail({ r, jt, pc, realColor, marginColor, onClose, nav }) {
   );
 }
 
-function ServiceLineDrill({ l, total, onClose }) {
+function ServiceLineDrill({ l, total, onClose }: any) {
   const { fmt } = AMS;
   const breakdownMap = {
     'Audit & Asurans': [['Audit LK Emiten', 0.46], ['Audit LK Non-emiten', 0.34], ['Reviu Interim', 0.12], ['Asurans Lain', 0.08]],

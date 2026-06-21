@@ -6,7 +6,7 @@ import { SubBar } from './shell.jsx';
 import { Btn, Panel } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
 import { PDrawer } from './view_docparts.jsx';
-import { FacLeaseInsurance, FacLicenses, FacLineage, FacMaintenance, FacSpace } from './view_facilities2.jsx';
+import { FacLeaseInsurance, FacLicenses, FacLineage, FacMaintenance, FacSpace } from './view_facilities2';
 import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
 import { FAC } from './data_facilities';
 import { BO } from './data_backoffice';

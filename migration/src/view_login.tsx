@@ -9,7 +9,7 @@ import { api, setAuthToken } from './api.js';
 
 const { useState: useStateLG } = React;
 
-export function LoginScreen({ onLoggedIn }) {
+export function LoginScreen({ onLoggedIn }: any) {
   const [email, setEmail] = useStateLG('');
   const [password, setPassword] = useStateLG('');
   const [totp, setTotp] = useStateLG('');
@@ -22,7 +22,7 @@ export function LoginScreen({ onLoggedIn }) {
     if (busy) return;
     setErr(''); setBusy(true);
     try {
-      const r = await api.auth.login.mutate({ email: email.trim(), password, totp: totp.trim() || undefined });
+      const r = await (api as any).auth.login.mutate({ email: email.trim(), password, totp: totp.trim() || undefined });
       setAuthToken(r.token);
       onLoggedIn(r.user);
     } catch (ex) {
@@ -79,4 +79,4 @@ export function LoginScreen({ onLoggedIn }) {
   );
 }
 
-window.LoginScreen = LoginScreen;
+(window as any).LoginScreen = LoginScreen;

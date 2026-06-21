@@ -153,7 +153,30 @@
     "src/view_tax23.tsx",
     "src/view_sjah3000.tsx",
     "src/view_spr2400.tsx",
-    "src/view_firmgl.tsx"
+    "src/view_firmgl.tsx",
+
+    "src/view_login.tsx",
+    "src/view_bi.tsx",
+    "src/view_bi2.tsx",
+    "src/view_bo2.tsx",
+    "src/view_bo3.tsx",
+    "src/view_clientportal.tsx",
+    "src/view_cockpit2.tsx",
+    "src/view_compliance.tsx",
+    "src/view_crypto.tsx",
+    "src/view_dashboard.tsx",
+    "src/view_dashboard2.tsx",
+    "src/view_dataflow.tsx",
+    "src/view_dataflow2.tsx",
+    "src/view_facilities.tsx",
+    "src/view_facilities2.tsx",
+    "src/view_firmfinance.tsx",
+    "src/view_firmops.tsx",
+    "src/view_firmops2.tsx",
+    "src/view_firmrevenue.tsx",
+    "src/view_firmtax.tsx",
+    "src/view_firmtreasury.tsx",
+    "src/view_opinion_parts.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

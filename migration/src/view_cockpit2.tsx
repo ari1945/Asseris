@@ -79,7 +79,7 @@ const TONE = { green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)', 
 const TONE_BG = { green: 'var(--green-bg)', amber: 'var(--amber-bg)', red: 'var(--red-bg)', blue: 'var(--blue-050)', gray: 'var(--surface-2)' };
 
 /* ---------- small building blocks ---------- */
-function Gauge({ pct, size = 54, stroke = 7, tone }) {
+function Gauge({ pct, size = 54, stroke = 7, tone }: any) {
   const r = (size - stroke) / 2, c = 2 * Math.PI * r;
   return (
     <div style={{ position: 'relative', width: size, height: size, flex: `0 0 ${size}px` }}>
@@ -94,7 +94,7 @@ function Gauge({ pct, size = 54, stroke = 7, tone }) {
   );
 }
 
-function SignalCard({ icon, label, tone, value, read, onClick }) {
+function SignalCard({ icon, label, tone, value, read, onClick }: any) {
   const IconC = I[icon] || I.pulse;
   return (
     <button onClick={onClick} className="ckp-signal" style={{ borderLeft: `3px solid ${TONE[tone]}`, cursor: onClick ? 'pointer' : 'default' }}>
@@ -110,7 +110,7 @@ function SignalCard({ icon, label, tone, value, read, onClick }) {
   );
 }
 
-function EVBar({ label, pct, tone, hint }) {
+function EVBar({ label, pct, tone, hint }: any) {
   return (
     <div style={{ marginBottom: 12 }}>
       <div className="row jb ac" style={{ marginBottom: 5 }}>
@@ -134,38 +134,38 @@ function EngagementCockpit() {
   const [tab, setTab] = useStateCkp('ringkasan');
 
   const D = useMemoCkp(() => {
-    const allMods = CKP_PHASES.flatMap(p => p.modules);
+    const allMods = CKP_PHASES.flatMap((p: any) => p.modules);
     const overall = e.progress != null ? e.progress : Math.round(allMods.reduce((s, m) => s + m.pct, 0) / allMods.length);
     const phasePct = (p) => Math.round(p.modules.reduce((s, m) => s + m.pct, 0) / p.modules.length);
 
     const dl = new Date(e.deadline);
-    const totalDays = Math.max(1, (dl - CKP_START) / 86400000);
-    const elapsedPct = Math.min(100, Math.max(0, (CKP_TODAY - CKP_START) / 86400000 / totalDays * 100));
-    const daysLeft = Math.round((dl - CKP_TODAY) / 86400000);
+    const totalDays = Math.max(1, (+dl - +CKP_START) / 86400000);
+    const elapsedPct = Math.min(100, Math.max(0, (+CKP_TODAY - +CKP_START) / 86400000 / totalDays * 100));
+    const daysLeft = Math.round((+dl - +CKP_TODAY) / 86400000);
     const burnPct = e.budgetHrs ? e.actualHrs / e.budgetHrs * 100 : 0;
 
     /* review notes (engagement scope) */
-    const openNotes = reviewNotesActive.filter(n => n.status === 'open');
-    const highOpen = openNotes.filter(n => n.priority === 'high');
+    const openNotes = reviewNotesActive.filter((n: any) => n.status === 'open');
+    const highOpen = openNotes.filter((n: any) => n.priority === 'high');
     /* AJE */
-    const proposedAje = aje.filter(a => a.status === 'Proposed');
+    const proposedAje = aje.filter((a: any) => a.status === 'Proposed');
     const proposedAmt = proposedAje.reduce((s, a) => s + a.amount, 0);
     /* WP */
-    const wpReviewed = workpapers.filter(w => w.status === 'Reviewed').length;
-    const wpNoReviewer = workpapers.filter(w => w.reviewer === '—');
+    const wpReviewed = workpapers.filter((w: any) => w.status === 'Reviewed').length;
+    const wpNoReviewer = workpapers.filter((w: any) => w.reviewer === '—');
     /* WP kanonik (SSOT wpState) — SUMBER TUNGGAL gerbang kelengkapan,
        sama dgn firm-board gate (engagementGate) & WpCompletenessRecap.
        Mengganti hitungan demo `workpapers` utk kriteria gate (Fase 2 P5). */
     const wpRecap = wpCompletenessFor({ wpState }, Object.keys(WP_MODULE_MAP));
     /* risks */
-    const sigRisks = risks.filter(r => r.inherent === 'Significant');
-    const fraudRisks = risks.filter(r => r.fraud);
+    const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
+    const fraudRisks = risks.filter((r: any) => r.fraud);
     /* programme (cross-file; guarded) */
     const PRG = (typeof PROGRAMME !== 'undefined' && Array.isArray(PROGRAMME)) ? PROGRAMME : [];
-    const procs = PRG.flatMap(r => r.procs || []);
+    const procs = PRG.flatMap((r: any) => r.procs || []);
     const excTot = procs.reduce((s, p) => s + (p.exc || 0), 0);
-    const sigAreas = PRG.filter(r => r.sig);
-    const sigCovered = sigAreas.filter(r => r.procs.some(p => p.status === 'done')).length;
+    const sigAreas = PRG.filter((r: any) => r.sig);
+    const sigCovered = sigAreas.filter((r: any) => r.procs.some((p: any) => p.status === 'done')).length;
 
     /* health tones */
     const schedTone = overall >= elapsedPct - 4 ? 'green' : overall >= elapsedPct - 14 ? 'amber' : 'red';
@@ -178,14 +178,14 @@ function EngagementCockpit() {
 
     const toneScore = { green: 0, amber: 1, red: 2, blue: 0, gray: 0 };
     const tones = [schedTone, budgetTone, qualTone, riskTone, docTone];
-    const worst = Math.max(...tones.map(t => toneScore[t]));
+    const worst = Math.max(...tones.map((t: any) => toneScore[t]));
     const verdict = worst >= 2 ? { tone: 'red', l: 'Perlu Tindakan' } : worst >= 1 ? { tone: 'amber', l: 'Perlu Perhatian' } : { tone: 'green', l: 'Sehat / On-track' };
 
     /* phase hours model (data-driven from phase progress) */
-    const phaseRows = CKP_PHASES.map(p => ({ phase: p.phase, color: p.color, pct: phasePct(p), bud: Math.round(p.weight * e.budgetHrs), })).concat([{ phase: 'Review & Arsip', color: '#7a7f87', pct: 0, bud: Math.round(CKP_ARCHIVE_W * e.budgetHrs) }]);
-    let actRaw = phaseRows.map(r => r.bud * (r.pct / 100));
+    const phaseRows = CKP_PHASES.map((p: any) => ({ phase: p.phase, color: p.color, pct: phasePct(p), bud: Math.round(p.weight * e.budgetHrs), })).concat([{ phase: 'Review & Arsip', color: '#7a7f87', pct: 0, bud: Math.round(CKP_ARCHIVE_W * e.budgetHrs) }]);
+    let actRaw = phaseRows.map((r: any) => r.bud * (r.pct / 100));
     const rawSum = actRaw.reduce((s, x) => s + x, 0) || 1;
-    phaseRows.forEach((r, i) => { r.act = Math.round(actRaw[i] / rawSum * e.actualHrs); });
+    phaseRows.forEach((r: any, i: any) => { r.act = Math.round(actRaw[i] / rawSum * e.actualHrs); });
 
     /* per-member effort + assignments */
     const fn = (full) => (full || '').split(' ')[0];
@@ -194,10 +194,10 @@ function EngagementCockpit() {
       const bud = Math.round(w * e.budgetHrs), act = Math.round(w * e.actualHrs);
       const grade = gradeOf(m.role), rate = rateFor(m.role);
       const first = fn(m.name);
-      const wpPrep = workpapers.filter(x => fn(x.preparer) === first).length;
-      const wpRev = workpapers.filter(x => fn(x.reviewer) === first).length;
-      const procPrep = procs.filter(x => fn(x.prep) === first).length;
-      const procRev = procs.filter(x => fn(x.rev) === first).length;
+      const wpPrep = workpapers.filter((x: any) => fn(x.preparer) === first).length;
+      const wpRev = workpapers.filter((x: any) => fn(x.reviewer) === first).length;
+      const procPrep = procs.filter((x: any) => fn(x.prep) === first).length;
+      const procRev = procs.filter((x: any) => fn(x.rev) === first).length;
       return { ...m, grade, rate, bud, act, wpPrep, wpRev, procPrep, procRev, wip: act * rate };
     });
     const wipTot = members.reduce((s, m) => s + m.wip, 0);
@@ -306,14 +306,14 @@ function EngagementCockpit() {
 /* ============================================================
    TAB · RINGKASAN — phase pipeline + needs attention + activity
    ============================================================ */
-function TabRingkasan({ D, e, nav, activity, setTab }) {
+function TabRingkasan({ D, e, nav, activity, setTab }: any) {
   /* assemble prioritized action items */
   const items = [];
   if (D.daysLeft <= 25) items.push({ tone: D.daysLeft < 14 ? 'red' : 'amber', icon: 'calendar', t: `Tenggat fieldwork ${D.daysLeft} hari lagi`, sub: `Target ${idDate(e.deadline)} · ${D.overall}% selesai`, route: 'programme' });
   if (D.proposedAje.length) items.push({ tone: 'amber', icon: 'ledger', t: `${D.proposedAje.length} AJE menunggu posting`, sub: `Nilai usulan ${rpM(D.proposedAmt)} — perlu persetujuan partner`, route: 'aje' });
   if (D.excTot) items.push({ tone: D.excTot > 2 ? 'red' : 'amber', icon: 'alert', t: `${D.excTot} pengecualian terbuka pada prosedur`, sub: 'Evaluasi dampak terhadap salah saji & materialitas', route: 'programme' });
-  D.highOpen.slice(0, 2).forEach(n => items.push({ tone: 'red', icon: 'check', t: `Review note: ${n.moduleLabel}`, sub: n.text, route: n.module }));
-  if (D.wpNoReviewer.length) items.push({ tone: 'amber', icon: 'flask', t: `${D.wpNoReviewer.length} kertas kerja belum di-review`, sub: D.wpNoReviewer.map(w => w.ref + ' ' + w.title).join(' · '), route: 'workpapers' });
+  D.highOpen.slice(0, 2).forEach((n: any) => items.push({ tone: 'red', icon: 'check', t: `Review note: ${n.moduleLabel}`, sub: n.text, route: n.module }));
+  if (D.wpNoReviewer.length) items.push({ tone: 'amber', icon: 'flask', t: `${D.wpNoReviewer.length} kertas kerja belum di-review`, sub: D.wpNoReviewer.map((w: any) => w.ref + ' ' + w.title).join(' · '), route: 'workpapers' });
   if (D.sigCovered < D.sigAreas.length) items.push({ tone: 'amber', icon: 'shield', t: `${D.sigAreas.length - D.sigCovered} risiko signifikan belum tuntas diuji`, sub: 'Pastikan setiap RoMM signifikan memiliki prosedur selesai', route: 'risk' });
 
   const actIcon = { upload: 'upload', check: 'check', sync: 'sync', flag: 'flag', send: 'send' };
@@ -324,7 +324,7 @@ function TabRingkasan({ D, e, nav, activity, setTab }) {
       <Panel noBody>
         <div className="panel-h"><h3>Pipeline Fase Audit</h3><span className="sub">roll-up penyelesaian modul per fase · klik modul untuk membuka</span></div>
         <div className="ckp-phases">
-          {CKP_PHASES.map(p => {
+          {CKP_PHASES.map((p: any) => {
             const pp = D.phasePct(p);
             const isActive = p.phase === e.phase || (e.phase === 'Eksekusi' && p.phase === 'Specifics');
             return (
@@ -337,7 +337,7 @@ function TabRingkasan({ D, e, nav, activity, setTab }) {
                   <span className="mono tiny" style={{ fontWeight: 700, color: ckpBar(pp) }}>{pp}%</span>
                 </div>
                 <div style={{ padding: '8px 10px' }}>
-                  {p.modules.map(m => (
+                  {p.modules.map((m: any) => (
                     <div key={m.id} onClick={() => nav(m.id)} className="ckp-modrow">
                       <div className="row jb ac" style={{ marginBottom: 4 }}>
                         <span style={{ fontSize: 11.5, fontWeight: 600 }} className="truncate">{m.label}</span>
@@ -406,27 +406,27 @@ function TabRingkasan({ D, e, nav, activity, setTab }) {
    ============================================================ */
 const MS_TONE = { done: 'green', active: 'blue', risk: 'amber', upcoming: 'gray' };
 const MS_LABEL = { done: 'Selesai', active: 'Berjalan', risk: 'Berisiko', upcoming: 'Akan datang' };
-function TabJalur({ D, e, nav, deadlines, activeClient }) {
+function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
   const dl = new Date(e.deadline);
-  const span = Math.max(1, (new Date(CKP_MILESTONES[CKP_MILESTONES.length - 1].date) - CKP_START) / 86400000);
-  const posOf = (d) => Math.min(100, Math.max(0, (new Date(d) - CKP_START) / 86400000 / span * 100));
+  const span = Math.max(1, (+new Date(CKP_MILESTONES[CKP_MILESTONES.length - 1].date) - +CKP_START) / 86400000);
+  const posOf = (d) => Math.min(100, Math.max(0, (+new Date(d) - +CKP_START) / 86400000 / span * 100));
   const todayPos = posOf(CKP_TODAY.toISOString().slice(0, 10));
   const cname = activeClient?.name?.replace('PT ', '') || '';
-  const engDeadlines = deadlines.filter(d => cname && d.client.includes(cname.split(' ')[0]));
-  const others = deadlines.filter(d => !engDeadlines.includes(d));
+  const engDeadlines = deadlines.filter((d: any) => cname && d.client.includes(cname.split(' ')[0]));
+  const others = deadlines.filter((d: any) => !engDeadlines.includes(d));
   const shown = [...engDeadlines, ...others].slice(0, 4);
 
   return (
     <div className="grid" style={{ gap: 12 }}>
       {/* horizontal rail */}
       <Panel noBody>
-        <div className="panel-h"><h3>Jalur Kritis Engagement</h3><span className="sub">{CKP_MILESTONES.filter(m => m.status === 'done').length}/{CKP_MILESTONES.length} milestone selesai · hari ini {idDate(CKP_TODAY.toISOString())}</span></div>
+        <div className="panel-h"><h3>Jalur Kritis Engagement</h3><span className="sub">{CKP_MILESTONES.filter((m: any) => m.status === 'done').length}/{CKP_MILESTONES.length} milestone selesai · hari ini {idDate(CKP_TODAY.toISOString())}</span></div>
         <div style={{ padding: '26px 22px 16px' }}>
           <div className="ckp-rail">
             <div className="ckp-rail-line" />
             <div className="ckp-rail-fill" style={{ width: todayPos + '%' }} />
             <div className="ckp-today" style={{ left: todayPos + '%' }}><span>HARI INI</span></div>
-            {CKP_MILESTONES.map(m => (
+            {CKP_MILESTONES.map((m: any) => (
               <div key={m.n} className="ckp-node" style={{ left: posOf(m.date) + '%' }} title={m.name}>
                 <span className="ckp-dot" style={{ background: TONE[MS_TONE[m.status]], boxShadow: m.status === 'active' ? `0 0 0 4px ${TONE_BG.blue}` : 'none' }}>{m.status === 'done' ? '✓' : m.n}</span>
               </div>
@@ -440,7 +440,7 @@ function TabJalur({ D, e, nav, deadlines, activeClient }) {
         <Panel noBody>
           <div className="panel-h"><h3>Milestone & Sign-off</h3></div>
           <div style={{ padding: '6px 6px 10px' }}>
-            {CKP_MILESTONES.map(m => {
+            {CKP_MILESTONES.map((m: any) => {
               const tone = MS_TONE[m.status];
               const overdue = m.status !== 'done' && new Date(m.date) < CKP_TODAY;
               return (
@@ -492,7 +492,7 @@ function TabJalur({ D, e, nav, deadlines, activeClient }) {
 /* ============================================================
    TAB · ANGGARAN & JAM — earned value + by phase + fee recovery
    ============================================================ */
-function TabAnggaran({ D, e }) {
+function TabAnggaran({ D, e }: any) {
   const { fmt } = AMS;
   const margin = D.fee ? (1 - D.stdBudgetCost / D.fee) * 100 : 0;
   const recovery = D.stdBudgetCost ? D.wipTot / (D.stdBudgetCost * (D.overall / 100) || 1) * 100 : 0;
@@ -507,7 +507,7 @@ function TabAnggaran({ D, e }) {
           <div style={{ padding: '14px 16px' }}>
             <EVBar label="Waktu berjalan" pct={D.elapsedPct} tone="gray" hint={`${D.daysLeft} hari tersisa`} />
             <EVBar label="Anggaran jam terpakai" pct={D.burnPct} tone={D.budgetTone} hint={`${fmt(e.actualHrs)}/${fmt(e.budgetHrs)} jam`} />
-            <EVBar label="Pekerjaan selesai" pct={D.overall} tone={D.schedTone} hint={`${CKP_MILESTONES.filter(m => m.status === 'done').length} milestone`} />
+            <EVBar label="Pekerjaan selesai" pct={D.overall} tone={D.schedTone} hint={`${CKP_MILESTONES.filter((m: any) => m.status === 'done').length} milestone`} />
             <div className="ckp-info" style={{ marginTop: 4 }}>
               {variance > 0
                 ? <span><b>{fmt(variance)} jam</b> di atas yang seharusnya untuk progres {D.overall}% — efisiensi perlu dipantau.</span>
@@ -557,7 +557,7 @@ function TabAnggaran({ D, e }) {
             <th className="num" style={{ width: 70 }}>Selesai</th>
           </tr></thead>
           <tbody>
-            {D.phaseRows.map(r => {
+            {D.phaseRows.map((r: any) => {
               const used = r.bud ? r.act / r.bud * 100 : 0;
               const over = r.act > r.bud;
               return (
@@ -586,16 +586,16 @@ function TabAnggaran({ D, e }) {
 /* ============================================================
    TAB · TIM & BEBAN — roster, utilization, assignments
    ============================================================ */
-function TabTim({ D, nav }) {
+function TabTim({ D, nav }: any) {
   const { fmt } = AMS;
-  const maxAct = Math.max(...D.members.map(m => m.act), 1);
+  const maxAct = Math.max(...D.members.map((m: any) => m.act), 1);
   const totalAssign = (m) => m.wpPrep + m.wpRev + m.procPrep;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Tim Engagement</h3><span className="sub">{D.members.length} anggota · jam aktual & penugasan</span></div>
         <div style={{ padding: '6px 6px 10px' }}>
-          {D.members.map(m => {
+          {D.members.map((m: any) => {
             const over = m.act > m.bud;
             return (
               <div key={m.name} className="ckp-member">
@@ -651,12 +651,12 @@ function TabTim({ D, nav }) {
 /* ============================================================
    TAB · RISIKO & KUALITAS — risk coverage, notes board, readiness gate
    ============================================================ */
-function TabRisiko({ D, e, nav }) {
+function TabRisiko({ D, e, nav }: any) {
   const PRG = (typeof PROGRAMME !== 'undefined' && Array.isArray(PROGRAMME)) ? PROGRAMME : [];
-  const sigData = D.sigRisks.map(r => {
-    const area = PRG.find(p => p.area && (p.area.includes(r.area) || r.area.includes(p.area.split(' ')[0])));
+  const sigData = D.sigRisks.map((r: any) => {
+    const area = PRG.find((p: any) => p.area && (p.area.includes(r.area) || r.area.includes(p.area.split(' ')[0])));
     const procs = area ? area.procs : [];
-    const dn = procs.filter(p => p.status === 'done').length;
+    const dn = procs.filter((p: any) => p.status === 'done').length;
     const exc = procs.reduce((s, p) => s + (p.exc || 0), 0);
     return { ...r, total: procs.length, done: dn, exc };
   });
@@ -672,8 +672,8 @@ function TabRisiko({ D, e, nav }) {
     { l: 'Telaah peristiwa kemudian (subsequent)', ok: false, sub: 'Subsequent Events 30% — dalam proses' },
     { l: 'Konfirmasi independensi tim lengkap', ok: true, sub: 'Partner & manager terdeklarasi' },
   ];
-  const ready = gate.filter(g => g.ok).length;
-  const notesByPr = { high: D.openNotes.filter(n => n.priority === 'high'), medium: D.openNotes.filter(n => n.priority === 'medium'), low: D.openNotes.filter(n => n.priority === 'low') };
+  const ready = gate.filter((g: any) => g.ok).length;
+  const notesByPr = { high: D.openNotes.filter((n: any) => n.priority === 'high'), medium: D.openNotes.filter((n: any) => n.priority === 'medium'), low: D.openNotes.filter((n: any) => n.priority === 'low') };
   const prTone = { high: 'red', medium: 'amber', low: 'gray' };
   const prLabel = { high: 'Prioritas Tinggi', medium: 'Sedang', low: 'Rendah' };
 
@@ -684,7 +684,7 @@ function TabRisiko({ D, e, nav }) {
         <Panel noBody>
           <div className="panel-h"><h3>Cakupan Risiko Signifikan (RoMM)</h3><span className="sub">{D.sigCovered}/{D.sigAreas.length} tuntas · {D.fraudRisks.length} risiko kecurangan</span></div>
           <div style={{ padding: '6px 6px 10px' }}>
-            {sigData.map(r => {
+            {sigData.map((r: any) => {
               const full = r.total > 0 && r.done === r.total;
               const tone = full ? 'green' : r.done > 0 ? 'amber' : 'red';
               return (
@@ -743,14 +743,14 @@ function TabRisiko({ D, e, nav }) {
       <Panel noBody>
         <div className="panel-h"><h3>Papan Catatan Review</h3><span className="sub">{D.openNotes.length} terbuka</span></div>
         <div className="ckp-notes">
-          {['high', 'medium', 'low'].map(pr => (
+          {['high', 'medium', 'low'].map((pr: any) => (
             <div key={pr} className="ckp-notecol">
               <div className="ckp-notecol-h" style={{ color: TONE[prTone[pr]] }}>
                 <span style={{ width: 8, height: 8, borderRadius: 50, background: TONE[prTone[pr]] }} />
                 {prLabel[pr]} <span className="muted" style={{ fontWeight: 500 }}>· {notesByPr[pr].length}</span>
               </div>
               {notesByPr[pr].length === 0 && <div className="tiny muted" style={{ padding: '10px 4px' }}>Tidak ada.</div>}
-              {notesByPr[pr].map(n => (
+              {notesByPr[pr].map((n: any) => (
                 <div key={n.id} className="ckp-note" onClick={() => nav(n.module)}>
                   <div className="tiny" style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--ink-1)', marginBottom: 6 }}>{n.text}</div>
                   <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>

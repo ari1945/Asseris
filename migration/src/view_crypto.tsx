@@ -17,8 +17,8 @@ import { amsExportXlsx } from './export_xlsx.js';
    Semua tarikan data berasal dari entitas kanonik yang sama yang
    dibaca modul-modul lain:
      · Dokumen & integritas  → AMS.DMS_DOCS (Document Mgmt)
-     · Bukti ter-hash        → window.amsEvidenceAll() (Evaluasi Bukti)
-     · Hash SHA-256          → window.amsFakeHash (helper bersama DMS/Bukti)
+     · Bukti ter-hash        → (window as any).amsEvidenceAll() (Evaluasi Bukti)
+     · Hash SHA-256          → (window as any).amsFakeHash (helper bersama DMS/Bukti)
      · Aturan integritas     → AMS.INTEGRITY_RULES (Alur Data)
      · Jejak audit hash-chain→ AMS.PLATFORM.buildAuditStream (Audit Trail)
      · Tanda tangan/e-sign   → entri SIGN pada arus jejak + pemilik DMS
@@ -29,19 +29,19 @@ const { useState: useCR, useMemo: useMCR, useEffect: useECR } = React;
 
 /* hash-chain pendek (tamper-evident) — diturunkan dari SHA-256 helper bersama */
 function crChain(seed) {
-  const h = (window.amsFakeHash ? window.amsFakeHash(seed) : String(seed));
+  const h = ((window as any).amsFakeHash ? (window as any).amsFakeHash(seed) : String(seed));
   return h.slice(0, 16);
 }
 function crShort(h) { return String(h || '').slice(0, 10) + '…'; }
 
 /* ---------- SSOT reader: register integritas dokumen dari DMS ---------- */
 function crCryptoDocs() {
-  const docs = (AMS && AMS.DMS_DOCS) || [];
-  return docs.map(d => {
+  const docs: any[] = ((AMS as any).DMS_DOCS) || [];
+  return docs.map((d: any) => {
     const latest = (d.versions && d.versions[d.versions.length - 1]) || {};
     const sealed = d.assembly === 'complete' || d.legalHold;
     const seedBase = d.id + '|v' + d.ver + '|' + (latest.sizeMB || d.sizeMB);
-    const sha = d.sha256 || (window.amsFakeHash ? window.amsFakeHash(seedBase) : seedBase);
+    const sha = d.sha256 || ((window as any).amsFakeHash ? (window as any).amsFakeHash(seedBase) : seedBase);
     const wormLabel = d.legalHold ? 'Legal Hold' : d.assembly === 'complete' ? 'WORM Terkunci'
       : d.assembly === 'n/a' ? 'Terkendali' : 'Berversi';
     return { ...d, latest, sealed, seedBase, sha, wormLabel, signer: d.owner };
@@ -87,18 +87,18 @@ function CryptoCompliance() {
   useECR(() => {
     let alive = true;
     (async () => {
-      const rows = window.amsAuditList ? await window.amsAuditList(100) : null;
-      const v = window.amsAuditVerify ? await window.amsAuditVerify() : null;
+      const rows = (window as any).amsAuditList ? await (window as any).amsAuditList(100) : null;
+      const v = (window as any).amsAuditVerify ? await (window as any).amsAuditVerify() : null;
       if (alive) { setSrvChain(rows); setSrvVerify(v); }
     })();
     return () => { alive = false; };
   }, []);
 
   /* ---- SSOT compute ---- */
-  const docs = useMCR(() => crCryptoDocs(), []);
-  const rules = (AMS && AMS.INTEGRITY_RULES) || [];
-  const evidence = (window.amsEvidenceAll ? window.amsEvidenceAll() : []);
-  const stream = useMCR(() => ((AMS.PLATFORM && AMS.PLATFORM.buildAuditStream(logEntries)) || []), [logEntries]);
+  const docs: any[] = useMCR(() => crCryptoDocs(), []);
+  const rules: any[] = ((AMS as any).INTEGRITY_RULES) || [];
+  const evidence = ((window as any).amsEvidenceAll ? (window as any).amsEvidenceAll() : []);
+  const stream = useMCR(() => (((AMS as any).PLATFORM && (AMS as any).PLATFORM.buildAuditStream(logEntries)) || []), [logEntries]);
 
   /* hash-chain atas arus kanonik (oldest→newest) — tamper-evident */
   const chain = useMCR(() => {
@@ -113,23 +113,23 @@ function CryptoCompliance() {
   }, [stream]);
 
   /* verifikasi integritas dokumen (sealed hash vs hash konten live) */
-  const docInteg = docs.map(d => {
+  const docInteg = docs.map((d: any) => {
     const liveHash = (tamperId === d.id)
-      ? (window.amsFakeHash ? window.amsFakeHash(d.seedBase + '|MODIFIED') : d.seedBase + 'x')
+      ? ((window as any).amsFakeHash ? (window as any).amsFakeHash(d.seedBase + '|MODIFIED') : d.seedBase + 'x')
       : d.sha;
     return { ...d, liveHash, valid: liveHash === d.sha };
   });
-  const anomali = docInteg.filter(d => !d.valid);
+  const anomali = docInteg.filter((d: any) => !d.valid);
 
   /* sertifikat e-sign diturunkan dari penandatangan nyata (pemilik DMS + entri SIGN) */
   const certs = useMCR(() => crBuildCerts(docs, stream), [docs, stream]);
 
   /* posture rollups (semua dari SSOT) */
   const encCount = docs.length;            // seluruh dokumen DMS terenkripsi AES-256
-  const sealedCount = docs.filter(d => d.sealed).length;
+  const sealedCount = docs.filter((d: any) => d.sealed).length;
   const hashedCount = docs.length + evidence.length;
-  const rulePass = rules.filter(r => r.status === 'pass').length;
-  const signCount = stream.filter(e => e.action === 'SIGN').length + certs.reduce((a, c) => a + c.signed, 0);
+  const rulePass = rules.filter((r: any) => r.status === 'pass').length;
+  const signCount = stream.filter((e: any) => e.action === 'SIGN').length + certs.reduce((a, c) => a + c.signed, 0);
 
   const TABS = [
     { id: 'postur', label: 'Postur Keamanan', ic: 'shield' },
@@ -158,7 +158,7 @@ function CryptoCompliance() {
       <div className="view-scroll"><div className="view-pad">
         {/* tab strip */}
         <div className="row gap6 ac" style={{ marginBottom: 14, flexWrap: 'wrap' }}>
-          {TABS.map(t => {
+          {TABS.map((t: any) => {
             const on = tab === t.id; const TIc = I[t.ic] || I.panel;
             return (
               <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap6" style={{
@@ -189,15 +189,15 @@ function CryptoCompliance() {
 /* ============================================================
    TAB 1 — Postur Keamanan
    ============================================================ */
-function CRPostur({ ctx }) {
+function CRPostur({ ctx }: any) {
   const { docs, encCount, sealedCount, hashedCount, rules, rulePass, anomali, chain, stream, nav, setTab, verifiedAt } = ctx;
-  const ruleWarn = rules.filter(r => r.status === 'warn').length;
-  const ruleErr = rules.filter(r => r.status === 'err').length;
-  const recent = stream.filter(e => ['SIGN', 'UPLOAD', 'LOGIN', 'APPROVE', 'SYNC', 'EXPORT'].includes(e.action)).slice(0, 6);
+  const ruleWarn = rules.filter((r: any) => r.status === 'warn').length;
+  const ruleErr = rules.filter((r: any) => r.status === 'err').length;
+  const recent = stream.filter((e: any) => ['SIGN', 'UPLOAD', 'LOGIN', 'APPROVE', 'SYNC', 'EXPORT'].includes(e.action)).slice(0, 6);
 
   const families = crControlFamilies(ctx);
   const totalCtrl = families.reduce((a, f) => a + f.controls.length, 0);
-  const okCtrl = families.reduce((a, f) => a + f.controls.filter(c => c.status === 'Aktif').length, 0);
+  const okCtrl = families.reduce((a, f) => a + f.controls.filter((c: any) => c.status === 'Aktif').length, 0);
 
   const KPIS = [
     { v: encCount + '/' + docs.length, l: 'Dokumen Terenkripsi', sub: 'AES-256-GCM at-rest', accent: 'var(--green)', ic: 'lock' },
@@ -242,9 +242,9 @@ function CRPostur({ ctx }) {
         <Panel noBody>
           <div className="panel-h"><h3>Postur Kontrol per Keluarga</h3><div style={{ flex: 1 }} /><span className="tiny muted">{okCtrl}/{totalCtrl} kontrol aktif</span></div>
           <div style={{ padding: '14px 16px', display: 'grid', gap: 13 }}>
-            {families.map(f => {
-              const ok = f.controls.filter(c => c.status === 'Aktif').length;
-              const part = f.controls.filter(c => c.status === 'Parsial').length;
+            {families.map((f: any) => {
+              const ok = f.controls.filter((c: any) => c.status === 'Aktif').length;
+              const part = f.controls.filter((c: any) => c.status === 'Parsial').length;
               const pct = Math.round(ok / f.controls.length * 100);
               const FIc = I[f.ic] || I.shield;
               return (
@@ -299,9 +299,9 @@ function CRPostur({ ctx }) {
 /* ============================================================
    TAB 2 — Integritas Dokumen
    ============================================================ */
-function CRDokumen({ ctx }) {
+function CRDokumen({ ctx }: any) {
   const { docInteg, anomali, tamperId, setTamperId, setSelDoc, encCount, sealedCount, evidence } = ctx;
-  const sealedDoc = docInteg.find(d => d.sealed) || docInteg[0];
+  const sealedDoc = docInteg.find((d: any) => d.sealed) || docInteg[0];
 
   return (
     <>
@@ -311,7 +311,7 @@ function CRDokumen({ ctx }) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 78 }}>Ref</th><th>Dokumen</th><th>Klasifikasi</th><th>Hash SHA-256</th><th>Penandatangan</th><th>Segel</th><th style={{ width: 90 }}>Integritas</th></tr></thead>
             <tbody>
-              {docInteg.map(d => (
+              {docInteg.map((d: any) => (
                 <tr key={d.id} onClick={() => setSelDoc(d)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                   <td className="truncate" style={{ maxWidth: 190 }}>{d.name}<div className="tiny muted">{d.eng} · v{d.ver}</div></td>
@@ -364,7 +364,7 @@ function CRDokumen({ ctx }) {
 }
 
 /* doc drawer — silsilah versi + log akses + segel */
-function CRDocDrawer({ d, onClose, nav }) {
+function CRDocDrawer({ d, onClose, nav }: any) {
   const versions = (d.versions || []).slice().reverse();
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
@@ -405,7 +405,7 @@ function CRDocDrawer({ d, onClose, nav }) {
           <div className="tiny muted upper" style={{ marginBottom: 8 }}>Silsilah Versi &amp; Hash</div>
           <div style={{ display: 'grid', gap: 0, marginBottom: 14 }}>
             {versions.map((v, i) => {
-              const vh = window.amsFakeHash ? window.amsFakeHash(d.id + '|v' + v.ver + '|' + v.sizeMB) : String(v.ver);
+              const vh = (window as any).amsFakeHash ? (window as any).amsFakeHash(d.id + '|v' + v.ver + '|' + v.sizeMB) : String(v.ver);
               return (
                 <div key={i} className="row gap10" style={{ padding: '9px 0', borderBottom: i < versions.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span className="mono tiny" style={{ flex: '0 0 30px', fontWeight: 700, color: 'var(--blue)' }}>v{v.ver}</span>
@@ -453,15 +453,15 @@ function CRDocDrawer({ d, onClose, nav }) {
    ============================================================ */
 /* W10 — the authoritative, server-side append-only chain. Rendered when the proxy is reachable
    AND the role holds AUDIT_VIEW; otherwise CRRantai degrades to the derived demo stream. */
-function CRServerChain({ rows, verify, nav }) {
+function CRServerChain({ rows, verify, nav }: any) {
   const SRV_ACT_COLOR = { LOGIN: 'green', LOGOUT: 'gray', STATE_SET: 'blue', LLM_NARRATE: 'purple' };
   const SRV_ACT_LABEL = { LOGIN: 'LOGIN', LOGOUT: 'LOGOUT', STATE_SET: 'WRITE', LLM_NARRATE: 'LLM' };
   const [exporting, setExporting] = useCR(false);
   const ok = verify ? verify.ok : true;
   const fmtTs = (ts) => { try { return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch (e) { return String(ts); } }
   const target = (e) => e.scope ? (e.scope + (e.scopeId ? '/' + e.scopeId : '') + (e.key ? ' · ' + e.key : '')) : '—';
-  const writes = rows.filter(e => e.action === 'STATE_SET').length;
-  const logins = rows.filter(e => e.action === 'LOGIN').length;
+  const writes = rows.filter((e: any) => e.action === 'STATE_SET').length;
+  const logins = rows.filter((e: any) => e.action === 'LOGIN').length;
 
   // W10.5 Fase 2 — sealed XLSX export of the REAL server audit chain. Only reachable when rows
   // loaded (server returns them solely to roles holding AUDIT_VIEW), so the button is itself
@@ -470,7 +470,7 @@ function CRServerChain({ rows, verify, nav }) {
     if (exporting || !rows.length) return;
     setExporting(true);
     try {
-      const xrows = rows.map(e => [String(e.seq).padStart(3, '0'), fmtTs(e.ts), e.actorRole || '—', e.actorUserId || '—',
+      const xrows = rows.map((e: any) => [String(e.seq).padStart(3, '0'), fmtTs(e.ts), e.actorRole || '—', e.actorUserId || '—',
         SRV_ACT_LABEL[e.action] || e.action, target(e), e.detail || '', String(e.prevHash).slice(0, 16), String(e.hash).slice(0, 16)]);
       await amsExportXlsx({
         kind: 'audit-trail', scope: 'firm',
@@ -525,7 +525,7 @@ function CRServerChain({ rows, verify, nav }) {
   );
 }
 
-function CRRantai({ ctx }) {
+function CRRantai({ ctx }: any) {
   const { chain, nav, srvChain, srvVerify } = ctx;
   const [act, setAct] = useCR('Kripto'); // declared before any early return (rules of hooks)
   // W10 — prefer the real server chain. srvChain===null means "not loaded/unavailable".
@@ -533,9 +533,9 @@ function CRRantai({ ctx }) {
 
   const cryptoActs = ['SIGN', 'UPLOAD', 'LOGIN', 'APPROVE', 'EXPORT', 'SYNC'];
   const filtered = act === 'Semua' ? chain : act === 'Kripto'
-    ? chain.filter(e => cryptoActs.includes(e.action))
-    : chain.filter(e => e.action === act);
-  const broken = chain.some(e => e.broken); // selalu utuh pada arus kanonik
+    ? chain.filter((e: any) => cryptoActs.includes(e.action))
+    : chain.filter((e: any) => e.action === act);
+  const broken = chain.some((e: any) => e.broken); // selalu utuh pada arus kanonik
 
   return (
     <>
@@ -544,8 +544,8 @@ function CRRantai({ ctx }) {
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter(e => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter(e => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter((e: any) => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter((e: any) => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
       </div>
 
@@ -577,12 +577,12 @@ function CRRantai({ ctx }) {
    ============================================================ */
 function crControlFamilies(ctx) {
   const { docs, rules, stream, evidence, chain } = ctx;
-  const ruleOf = (id) => rules.find(r => r.id === id) || {};
+  const ruleOf = (id) => rules.find((r: any) => r.id === id) || {};
   const ruleStatus = (id) => { const r = ruleOf(id); return r.status === 'pass' ? 'Aktif' : r.status === 'warn' ? 'Parsial' : r.status === 'err' ? 'Gagal' : 'Aktif'; };
-  const mfaLogins = stream.filter(e => e.action === 'LOGIN' && /MFA/i.test(e.detail || '')).length;
-  const signs = stream.filter(e => e.action === 'SIGN').length;
-  const sealed = docs.filter(d => d.sealed).length;
-  const holds = docs.filter(d => d.legalHold).length;
+  const mfaLogins = stream.filter((e: any) => e.action === 'LOGIN' && /MFA/i.test(e.detail || '')).length;
+  const signs = stream.filter((e: any) => e.action === 'SIGN').length;
+  const sealed = docs.filter((d: any) => d.sealed).length;
+  const holds = docs.filter((d: any) => d.legalHold).length;
 
   return [
     { id: 'crypto', name: 'Kriptografi & Enkripsi', std: 'ISO 27001 A.10 · ISQM 1', ic: 'lock', controls: [
@@ -617,13 +617,13 @@ function crControlFamilies(ctx) {
   ];
 }
 
-function CRKontrol({ ctx }) {
+function CRKontrol({ ctx }: any) {
   const { nav } = ctx;
   const families = crControlFamilies(ctx);
-  const all = families.flatMap(f => f.controls);
-  const ok = all.filter(c => c.status === 'Aktif').length;
-  const part = all.filter(c => c.status === 'Parsial').length;
-  const fail = all.filter(c => c.status === 'Gagal').length;
+  const all = families.flatMap((f: any) => f.controls);
+  const ok = all.filter((c: any) => c.status === 'Aktif').length;
+  const part = all.filter((c: any) => c.status === 'Parsial').length;
+  const fail = all.filter((c: any) => c.status === 'Gagal').length;
   const SK = { 'Aktif': 'green', 'Parsial': 'amber', 'Gagal': 'red' };
 
   return (
@@ -636,7 +636,7 @@ function CRKontrol({ ctx }) {
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
-        {families.map(f => {
+        {families.map((f: any) => {
           const FIc = I[f.ic] || I.shield;
           return (
             <Panel key={f.id} noBody>
@@ -670,12 +670,12 @@ function CRKontrol({ ctx }) {
 function crBuildCerts(docs, stream) {
   /* penandatangan nyata = pemilik DMS (manusia) + penandatangan entri SIGN */
   const signers = {};
-  docs.forEach(d => { if (d.owner && /\s/.test(d.owner) && d.owner !== 'KAP' && d.owner !== 'Tim Metodologi') signers[d.owner] = (signers[d.owner] || 0) + 1; });
-  stream.filter(e => e.action === 'SIGN').forEach(e => { if (e.who) signers[e.who] = (signers[e.who] || 0) + 1; });
+  docs.forEach((d: any) => { if (d.owner && /\s/.test(d.owner) && d.owner !== 'KAP' && d.owner !== 'Tim Metodologi') signers[d.owner] = (signers[d.owner] || 0) + 1; });
+  stream.filter((e: any) => e.action === 'SIGN').forEach((e: any) => { if (e.who) signers[e.who] = (signers[e.who] || 0) + 1; });
   const roleOf = { 'Hartono Wijaya': 'Engagement Partner', 'Rudi Gunawan': 'Quality Partner', 'Anindya Pramesti': 'Audit Manager', 'Sari Dewanti': 'Audit Manager', 'Dimas Raharjo': 'Senior Auditor' };
   const names = Object.keys(signers);
   return names.map((n, i) => {
-    const serial = (window.amsFakeHash ? window.amsFakeHash('cert|' + n) : n).slice(0, 12).toUpperCase();
+    const serial = ((window as any).amsFakeHash ? (window as any).amsFakeHash('cert|' + n) : n).slice(0, 12).toUpperCase();
     return {
       cn: n, role: roleOf[n] || 'Auditor', signed: signers[n],
       serial: 'PRIVY-' + serial.slice(0, 4) + '-' + serial.slice(4, 8),
@@ -685,7 +685,7 @@ function crBuildCerts(docs, stream) {
   });
 }
 
-function CRKunci({ ctx }) {
+function CRKunci({ ctx }: any) {
   const { docs, evidence, certs, signCount, chain } = ctx;
   const algos = crAlgorithms(docs, evidence.length, signCount, chain.length);
   const ROTATION = [
@@ -702,7 +702,7 @@ function CRKunci({ ctx }) {
         <Panel noBody>
           <div className="panel-h"><h3>Registri Algoritma Kriptografi</h3><div style={{ flex: 1 }} /><span className="tiny muted">{algos.length} algoritma aktif</span></div>
           <div>
-            {algos.map(a => {
+            {algos.map((a: any) => {
               const AIc = I[a.ic] || I.key;
               return (
                 <div key={a.id} className="row gap12 ac" style={{ padding: '12px 14px', borderBottom: '1px solid var(--line-soft)' }}>
@@ -812,7 +812,7 @@ function CRVerifySeal() {
     if (!id || !/^[0-9a-f]{64}$/.test(h)) { setRes({ reason: 'bad-input' }); return; }
     setBusy(true);
     try {
-      const v = await window.amsExportVerifySeal({ sealId: id, contentHash: h });
+      const v = await (window as any).amsExportVerifySeal({ sealId: id, contentHash: h });
       setRes(v || { reason: 'unavailable' });
     } finally { setBusy(false); }
   };
@@ -868,9 +868,9 @@ function CRVerifySeal() {
   );
 }
 
-function CRMeterai({ ctx }) {
+function CRMeterai({ ctx }: any) {
   const { nav } = ctx;
-  const L = (AMS_CANON && AMS_CANON.legalSeal) ? AMS_CANON.legalSeal() : null;
+  const L = ((AMS_CANON as any) && (AMS_CANON as any).legalSeal) ? (AMS_CANON as any).legalSeal() : null;
   if (!L) return <><CRVerifySeal /><Placeholder label="Modul keabsahan TTE belum tersedia" /></>;
   const s = L.summary;
   const BIND_KIND = { mengikat: 'green', menunggu: 'amber', lemah: 'red' };
@@ -900,7 +900,7 @@ function CRMeterai({ ctx }) {
           <table className="dtbl">
             <thead><tr><th>Dokumen</th><th>TTE / PSrE</th><th>e-Meterai</th><th style={{ width: 120 }}>Keabsahan</th></tr></thead>
             <tbody>
-              {L.docs.map(d => (
+              {L.docs.map((d: any) => (
                 <tr key={d.id}>
                   <td style={{ maxWidth: 220 }}><div className="truncate" style={{ fontWeight: 600 }}>{d.name}</div><div className="tiny muted">{d.client} · {d.docType}</div></td>
                   <td className="tiny">

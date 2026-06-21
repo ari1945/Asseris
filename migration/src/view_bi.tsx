@@ -5,7 +5,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
-import { BIKlien, BIPartner, BIPendapatan, BIPipeline } from './view_bi2.jsx';
+import { BIKlien, BIPartner, BIPendapatan, BIPipeline } from './view_bi2';
 import { MSub } from './view_fpm_parts.jsx';
 
 /* ============================================================
@@ -19,7 +19,7 @@ const { useState: useBI } = React;
 const BI_PARTNER_UTIL = { 'Hartono Wijaya': 71, 'Rudi Gunawan': 68, 'Sari Dewanti': 74 };
 
 /* mini multi-series bar+line chart */
-function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, unit }) {
+function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, unit }: any) {
   const bmax = barMax || Math.max(...bars) * 1.15;
   return (
     <div>
@@ -46,33 +46,33 @@ function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, uni
 function FirmBI() {
   const { fmt } = AMS;
   const nav = useNav();
-  const B = AMS.BI_DATA;
-  const CLIENTS = AMS.CLIENTS;
-  const PIPELINE = AMS.PIPELINE;
-  const FIRM_BUDGET = AMS.FIRM_BUDGET;
-  const EQR = AMS.EQR_REVIEWS;
+  const B: any = AMS.BI_DATA;
+  const CLIENTS: any = AMS.CLIENTS;
+  const PIPELINE: any = AMS.PIPELINE;
+  const FIRM_BUDGET: any = AMS.FIRM_BUDGET;
+  const EQR: any = AMS.EQR_REVIEWS;
   const [metric, setMetric] = useBI('rev');
 
   /* P&L roll-up */
-  const actRev = FIRM_BUDGET.filter(b => b.type === 'rev').reduce((s, b) => s + b.actual, 0);
-  const actCost = FIRM_BUDGET.filter(b => b.type === 'cost').reduce((s, b) => s + b.actual, 0);
+  const actRev = FIRM_BUDGET.filter((b: any) => b.type === 'rev').reduce((s, b) => s + b.actual, 0);
+  const actCost = FIRM_BUDGET.filter((b: any) => b.type === 'cost').reduce((s, b) => s + b.actual, 0);
   const profit = actRev - actCost;
   const marginPct = profit / actRev * 100;
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
   /* weighted pipeline */
-  const openPipe = PIPELINE.filter(p => !['Won', 'Lost'].includes(p.stage));
+  const openPipe = PIPELINE.filter((p: any) => !['Won', 'Lost'].includes(p.stage));
   const gross = openPipe.reduce((s, p) => s + p.value, 0);
   const weighted = openPipe.reduce((s, p) => s + p.value * p.prob / 100, 0);
   const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
-  const byStage = stages.map(st => {
-    const items = openPipe.filter(p => p.stage === st);
+  const byStage = stages.map((st: any) => {
+    const items = openPipe.filter((p: any) => p.stage === st);
     return { st, gross: items.reduce((s, p) => s + p.value, 0), wt: items.reduce((s, p) => s + p.value * p.prob / 100, 0), n: items.length };
   });
-  const maxStage = Math.max(...byStage.map(s => s.gross), 1);
+  const maxStage = Math.max(...byStage.map((s: any) => s.gross), 1);
 
   /* client concentration */
-  const active = CLIENTS.filter(c => c.status === 'Active').slice().sort((a, b) => b.fee - a.fee);
+  const active = CLIENTS.filter((c: any) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
   const totClientFee = active.reduce((s, c) => s + c.fee, 0);
   const top1 = active[0].fee / totClientFee * 100;
   const top3 = active.slice(0, 3).reduce((s, c) => s + c.fee, 0) / totClientFee * 100;
@@ -84,8 +84,8 @@ function FirmBI() {
     if (!m[p]) m[p] = { p, fee: 0, n: 0 };
     m[p].fee += c.fee; m[p].n++;
     return m;
-  }, {})).sort((a, b) => b.fee - a.fee);
-  const maxPartnerFee = Math.max(...partners.map(p => p.fee));
+  }, {} as any)).sort((a: any, b: any) => b.fee - a.fee);
+  const maxPartnerFee = Math.max(...partners.map((p: any) => p.fee));
 
   const revMax = Math.max(...B.monthlyRev) * 1.15;
   const metrics = { rev: { bars: B.monthlyRev, color: '#005085', label: 'Pendapatan diakui (Rp jt)', max: revMax }, margin: { bars: B.monthlyMargin, color: '#1f7a4d', label: 'Margin (%)', max: 50 }, util: { bars: B.monthlyUtil, color: '#0a6b73', label: 'Utilisasi tim (%)', max: 100 } };
@@ -134,10 +134,10 @@ function FirmBI() {
             <div className="panel-h"><h3>Pendapatan per Lini Jasa</h3></div>
             <div style={{ padding: 14 }}>
               <div className="row gap12 ac" style={{ marginBottom: 14 }}>
-                <Donut segments={B.revenueByService.map(s => ({ value: s.amount, color: s.color }))} size={104} thickness={15}
+                <Donut segments={B.revenueByService.map((s: any) => ({ value: s.amount, color: s.color }))} size={104} thickness={15}
                   center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{fmt(B.fyRevenue / 1e9, 1)}M</div><div className="tiny muted">total</div></>} />
                 <div style={{ flex: 1, display: 'grid', gap: 5 }}>
-                  {B.revenueByService.map(s => (
+                  {B.revenueByService.map((s: any) => (
                     <div key={s.svc} className="row jb ac">
                       <span className="row ac gap6" style={{ minWidth: 0 }}><span style={{ width: 9, height: 9, borderRadius: 2, background: s.color, flex: '0 0 9px' }} /><span className="tiny truncate" style={{ fontWeight: 600 }}>{s.svc}</span></span>
                       <span className="mono tiny" style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{(s.amount / B.fyRevenue * 100).toFixed(0)}%</span>
@@ -164,7 +164,7 @@ function FirmBI() {
                 <div style={{ textAlign: 'right' }}><div className="tiny muted">Tertimbang prob.</div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(weighted / 1e6, 0)} jt</div></div>
               </div>
               <div style={{ display: 'grid', gap: 9 }}>
-                {byStage.map(s => (
+                {byStage.map((s: any) => (
                   <div key={s.st}>
                     <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{s.st} <span className="muted">({s.n})</span></span><span className="mono">{fmt(s.wt / 1e6, 0)} jt</span></div>
                     <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)', position: 'relative' }}>
@@ -201,9 +201,9 @@ function FirmBI() {
           <Panel noBody>
             <div className="panel-h"><h3>Scorecard Partner</h3></div>
             <div style={{ padding: 14, display: 'grid', gap: 12 }}>
-              {partners.map(p => {
+              {partners.map((p: any) => {
                 const util = BI_PARTNER_UTIL[p.p] || 70;
-                const eqrN = EQR.filter(e => e.partner === p.p).length;
+                const eqrN = EQR.filter((e: any) => e.partner === p.p).length;
                 return (
                   <div key={p.p}>
                     <div className="row ac gap8" style={{ marginBottom: 5 }}>

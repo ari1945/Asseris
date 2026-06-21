@@ -54,17 +54,17 @@ const wpLive = (wp, audit, firm) => {
   if (!wp || typeof window.deriveWpStatus !== 'function') return null;
   try { return window.deriveWpStatus(wp, audit || {}, firm || {}); } catch (e) { return null; }
 };
-const wpMetaFor = (wp) => (window.WP_META || {})[wp] || {};
+const wpMetaFor = (wp) => ((window as any).WP_META || {})[wp] || {};
 
 const fmtDS = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '—';
 
-function AddRequestModal({ onClose, onAdd, nextNo, staff, engId, clientName }) {
+function AddRequestModal({ onClose, onAdd, nextNo, staff, engId, clientName }: any) {
   const [f, setF] = usePBC({ item: '', cat: 'Kas & Bank', requestedBy: staff[0] || 'Anindya Pramesti', due: '2026-03-20', priority: 'Sedang', desc: '' });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const valid = f.item.trim().length > 3;
   const lk = PBC_LINK[f.cat] || {};
   const mod = (MODULE_INDEX[lk.module] || {}).label || lk.module;
-  const wpTitle = ((window.WP_META || {})[lk.wp] || {}).title;
+  const wpTitle = (((window as any).WP_META || {})[lk.wp] || {}).title;
   const engShort = engId.replace('ENG-', '');
   return (
     <PModal icon="plus" title="Tambah Permintaan Dokumen (PBC)" sub={engId + ' · ' + clientName + ' · PBC-' + engShort.slice(-3) + '-' + String(nextNo).padStart(2, '0')} onClose={onClose} width={560}
@@ -83,14 +83,14 @@ function AddRequestModal({ onClose, onAdd, nextNo, staff, engId, clientName }) {
 }
 
 /* ---- Dock keterkaitan satu item: area audit · WP kanonik · DMS · asersi ---- */
-function ReqLinkage({ r }) {
+function ReqLinkage({ r }: any) {
   const nav = useNav();
   const audit = useAudit();
   const firm = useFirm();
   const lk = linkFor(r);
   const mod = MODULE_INDEX[lk.module] || { label: lk.module, icon: 'panel' };
   const ModIc = I[mod.icon] || I.panel;
-  const evCount = (window.amsEvidenceCount && lk.module) ? window.amsEvidenceCount(lk.module) : 0;
+  const evCount = ((window as any).amsEvidenceCount && lk.module) ? (window as any).amsEvidenceCount(lk.module) : 0;
   const archived = r.versions && r.versions.length > 0;
   const wp = wpLive(lk.wp, audit, firm);
   const meta = wpMetaFor(lk.wp);
@@ -138,7 +138,7 @@ function ReqLinkage({ r }) {
   );
 }
 
-function ReqDetail({ r, persona, onUpload, onReview, onRevise, onRemind, onComment }) {
+function ReqDetail({ r, persona, onUpload, onReview, onRevise, onRemind, onComment }: any) {
   const late = r.status === 'Terlambat';
   const pending = r.status === 'Diminta' || r.status === 'Terlambat';
   const IconC = I[PBC_CATICON[r.cat]] || I.doc;
@@ -209,10 +209,10 @@ function ReqDetail({ r, persona, onUpload, onReview, onRevise, onRemind, onComme
 }
 
 /* ---- Modal unggah berkas aman (PBC) ---- */
-function PBCUploadModal({ req, persona, onClose, onConfirm }) {
+function PBCUploadModal({ req, persona, onClose, onConfirm }: any) {
   const [files, setFiles] = usePBC([]);
   const ok = files.filter(m => m.ok);
-  const cls = ok[0] && window.classifyDoc ? window.classifyDoc(ok[0].name, {}, 0) : null;
+  const cls = ok[0] && (window as any).classifyDoc ? (window as any).classifyDoc(ok[0].name, {}, 0) : null;
   const isClient = persona === 'client';
   return (
     <PModal icon="upload" title={isClient ? 'Unggah Berkas' : 'Simulasi Unggah Klien'} sub={req.id + ' · ' + req.item} onClose={onClose} width={540}
@@ -226,7 +226,7 @@ function PBCUploadModal({ req, persona, onClose, onConfirm }) {
 }
 
 /* ---- Tab Kesiapan Area Audit: REKONSILIASI lintas-modul dari satu sumber kebenaran ---- */
-function CoveragePanel({ reqs, today }) {
+function CoveragePanel({ reqs, today }: any) {
   const nav = useNav();
   const audit = useAudit();
   const firm = useFirm();
@@ -249,7 +249,7 @@ function CoveragePanel({ reqs, today }) {
           const ready = got === items.length;
           const wp = wpLive(lk.wp, audit, firm);
           const meta = wpMetaFor(lk.wp);
-          const evCount = (window.amsEvidenceCount && lk.module) ? window.amsEvidenceCount(lk.module) : 0;
+          const evCount = ((window as any).amsEvidenceCount && lk.module) ? (window as any).amsEvidenceCount(lk.module) : 0;
           const wpPct = wp ? Math.round(wp.done / wp.total * 100) : 0;
           const wpReviewed = wp && wp.status === 'Reviewed';
           return (
@@ -330,9 +330,9 @@ function ClientPortal() {
   const openUpload = (id) => setUploadReq(reqs.find(r => r.id === id) || null);
   const doUpload = (id, metas) => {
     const meta = metas[0];
-    const cls = window.classifyDoc ? window.classifyDoc(meta.name, {}, 0) : null;
+    const cls = (window as any).classifyDoc ? (window as any).classifyDoc(meta.name, {}, 0) : null;
     const reqObj = reqs.find(r => r.id === id);
-    const lk = reqObj ? linkFor(reqObj) : {};
+    const lk: any = reqObj ? linkFor(reqObj) : {};
     const dest = (cls && cls.dest) || lk.module;
     patch(id, r => {
       const nextVer = (r.versions[r.versions.length - 1]?.ver || 0) + 1;
@@ -343,8 +343,8 @@ function ClientPortal() {
       nr = pushEvent(nr, ['receive', 'Sistem', pNowTime(), 'Terarsip ke DMS (AES-256, Rahasia)' + (dest ? ' · tertaut ' + ((MODULE_INDEX[dest] || {}).label || 'modul') + ' · WP ' + lk.wp : '')]);
       return nr;
     });
-    if (window.amsAttachEvidence && dest) window.amsAttachEvidence(dest, { file: meta.name, type: 'PBC · ' + ((cls && cls.type) || (reqObj && reqObj.cat) || 'Dokumen'), std: (cls && cls.std) || lk.assertion, classified: dest, sha256: meta.sha256, scan: 'clean' });
-    if (window.amsAttachEvidence) window.amsAttachEvidence('dms', { file: meta.name, type: 'Arsip DMS · PBC (Rahasia)', std: 'Rahasia', classified: 'dms', sha256: meta.sha256, scan: 'clean' });
+    if ((window as any).amsAttachEvidence && dest) (window as any).amsAttachEvidence(dest, { file: meta.name, type: 'PBC · ' + ((cls && cls.type) || (reqObj && reqObj.cat) || 'Dokumen'), std: (cls && cls.std) || lk.assertion, classified: dest, sha256: meta.sha256, scan: 'clean' });
+    if ((window as any).amsAttachEvidence) (window as any).amsAttachEvidence('dms', { file: meta.name, type: 'Arsip DMS · PBC (Rahasia)', std: 'Rahasia', classified: 'dms', sha256: meta.sha256, scan: 'clean' });
     logActivity({ who: 'Portal Klien', what: 'menerima "' + meta.name + '" (' + id + ') → ' + ((MODULE_INDEX[dest] || {}).label || 'DMS') + ' · WP ' + lk.wp, mod: 'clientportal', icon: 'upload' });
     setUploadReq(null);
   };

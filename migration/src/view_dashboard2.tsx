@@ -23,10 +23,10 @@ function DashOperasional() {
   const { engagements, clients, clientById } = useFirm();
   const { team, deadlines } = useAudit();
 
-  const active = engagements.filter(e => e.status !== 'Completed');
-  const critical = deadlines.filter(d => d.days <= 14).length;
+  const active = engagements.filter((e: any) => e.status !== 'Completed');
+  const critical = deadlines.filter((d: any) => d.days <= 14).length;
   const avgBurn = Math.round(engagements.reduce((s, e) => s + e.actualHrs / e.budgetHrs, 0) / engagements.length * 100);
-  const overUtil = team.filter(t => t.util > 90).length;
+  const overUtil = team.filter((t: any) => t.util > 90).length;
 
   /* workload per partner */
   const byPartner = Object.values(engagements.reduce((m, e) => {
@@ -34,7 +34,7 @@ function DashOperasional() {
     if (!m[p]) m[p] = { p, n: 0, hrs: 0, budget: 0 };
     m[p].n++; m[p].hrs += e.actualHrs; m[p].budget += e.budgetHrs;
     return m;
-  }, {})).sort((a, b) => b.hrs - a.hrs);
+  }, {} as any)).sort((a: any, b: any) => b.hrs - a.hrs);
 
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
   const phColor = { Perencanaan: '#5b3fa6', Eksekusi: '#005085', Finalisasi: '#9a6a00', Arsip: '#1f7a4d' };
@@ -51,14 +51,14 @@ function DashOperasional() {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel title="Beban Kerja per Partner" sub="jam aktual vs anggaran">
           <div style={{ padding: '12px 14px' }}>
-            <HBars rows={byPartner.map(p => ({ label: p.p, value: p.hrs, right: fmt(p.hrs) + ' / ' + fmt(p.budget) + 'h', sub: p.n + ' perikatan · burn ' + Math.round(p.hrs / p.budget * 100) + '%', color: p.hrs / p.budget > 0.9 ? 'var(--amber)' : 'var(--blue)' }))} />
+            <HBars rows={byPartner.map((p: any) => ({ label: p.p, value: p.hrs, right: fmt(p.hrs) + ' / ' + fmt(p.budget) + 'h', sub: p.n + ' perikatan · burn ' + Math.round(p.hrs / p.budget * 100) + '%', color: p.hrs / p.budget > 0.9 ? 'var(--amber)' : 'var(--blue)' }))} />
           </div>
         </Panel>
 
         <Panel title="Bottleneck per Fase" sub="distribusi & progres rata-rata">
           <div style={{ padding: '12px 14px', display: 'grid', gap: 10 }}>
-            {phases.map(ph => {
-              const col = engagements.filter(e => e.phase === ph);
+            {phases.map((ph: any) => {
+              const col = engagements.filter((e: any) => e.phase === ph);
               const avg = col.length ? Math.round(col.reduce((s, e) => s + e.progress, 0) / col.length) : 0;
               return (
                 <div key={ph} className="row ac gap10">
@@ -98,7 +98,7 @@ function DashOperasional() {
 
         <Panel title="Kapasitas Tim · 8 Minggu" sub="supply vs demand (jam)" actions={<Btn sm variant="ghost" onClick={() => nav('capacity')}><I.arrowRight size={13} /></Btn>}>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 12 }}>
-            {AMS.CAPACITY.grades.map(g => {
+            {(AMS as any).CAPACITY.grades.map((g: any) => {
               const supply = g.supply.reduce((s, v) => s + v, 0);
               const demand = g.demand.reduce((s, v) => s + v, 0);
               const ratio = Math.round(demand / supply * 100);
@@ -125,10 +125,10 @@ function DashFinansial() {
   const nav = useNav();
   const { engagements } = useFirm();
   const W = FIRMFIN.wip({ engagements });
-  const B = AMS.BI_DATA;
-  const AGING = AMS.BI_AR_AGING;
+  const B: any = AMS.BI_DATA;
+  const AGING: any = AMS.BI_AR_AGING;
 
-  const wipRows = W.register.map(r => ({ id: r.id, client: r.clientShort, wip: r.unbilled, recoverable: r.recoverable, billed: r.billed }));
+  const wipRows = W.register.map((r: any) => ({ id: r.id, client: r.clientShort, wip: r.unbilled, recoverable: r.recoverable, billed: r.billed }));
   const totalWip = W.unbilledTotal;
   const totalAr = AGING.reduce((s, a) => s + a.amount, 0);
 
@@ -150,8 +150,8 @@ function DashFinansial() {
 
         <Panel title="Umur Piutang (AR Aging)" sub={'total Rp ' + fmt(totalAr / 1e9, 2) + ' M'}>
           <div style={{ padding: '12px 14px' }}>
-            <div style={{ marginBottom: 12 }}><StackBar parts={AGING.map(a => ({ value: a.amount, color: a.color, label: a.bucket }))} height={11} /></div>
-            <HBars rows={AGING.map(a => ({ label: a.bucket, value: a.amount, right: 'Rp ' + fmt(a.amount / 1e6, 0) + ' jt', color: a.color, pct: a.amount / totalAr * 100 }))} />
+            <div style={{ marginBottom: 12 }}><StackBar parts={AGING.map((a: any) => ({ value: a.amount, color: a.color, label: a.bucket }))} height={11} /></div>
+            <HBars rows={AGING.map((a: any) => ({ label: a.bucket, value: a.amount, right: 'Rp ' + fmt(a.amount / 1e6, 0) + ' jt', color: a.color, pct: a.amount / totalAr * 100 }))} />
             <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 12 }}>
               <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}><I.clock size={11} /> Rp {fmt(AGING[3].amount / 1e6, 0)} jt jatuh tempo &gt; 90 hari — eskalasi penagihan.</div>
             </div>
@@ -164,7 +164,7 @@ function DashFinansial() {
         <table className="dtbl">
           <thead><tr><th>Engagement</th><th>Klien</th><th className="num">Recoverable</th><th className="num">Tertagih</th><th className="num">WIP</th><th style={{ width: 140 }}>Porsi WIP</th></tr></thead>
           <tbody>
-            {wipRows.map(r => (
+            {wipRows.map((r: any) => (
               <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => nav('wip')}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                 <td className="truncate" style={{ maxWidth: 200 }}>{r.client}</td>
@@ -186,17 +186,17 @@ function DashFinansial() {
 function DashMutu() {
   const nav = useNav();
   const { risks, reviewNotes } = useAudit();
-  const EQR = AMS.EQR_REVIEWS;
-  const IND = AMS.INDEPENDENCE;
+  const EQR: any = AMS.EQR_REVIEWS;
+  const IND: any = AMS.INDEPENDENCE;
 
-  const sig = risks.filter(r => r.likelihood * r.impact >= 12).length;
-  const fraud = risks.filter(r => r.fraud).length;
-  const openNotes = reviewNotes.filter(n => n.status !== 'resolved');
-  const eqrActive = EQR.filter(e => e.status !== 'Selesai').length;
-  const declaredPct = Math.round(IND.filter(i => i.declared).length / IND.length * 100);
-  const rotationWarn = IND.filter(i => i.tenure >= i.rotationLimit).length;
+  const sig = risks.filter((r: any) => r.likelihood * r.impact >= 12).length;
+  const fraud = risks.filter((r: any) => r.fraud).length;
+  const openNotes = reviewNotes.filter((n: any) => n.status !== 'resolved');
+  const eqrActive = EQR.filter((e: any) => e.status !== 'Selesai').length;
+  const declaredPct = Math.round(IND.filter((i: any) => i.declared).length / IND.length * 100);
+  const rotationWarn = IND.filter((i: any) => i.tenure >= i.rotationLimit).length;
 
-  const cellRisks = (impact, likelihood) => risks.filter(r => r.impact === impact && r.likelihood === likelihood);
+  const cellRisks = (impact, likelihood) => risks.filter((r: any) => r.impact === impact && r.likelihood === likelihood);
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -211,7 +211,7 @@ function DashMutu() {
         <Panel title="Heatmap Risiko Firma" sub="Dampak × Kemungkinan" actions={<Btn sm variant="ghost" onClick={() => nav('risk')}><I.arrowRight size={13} /></Btn>}>
           <div style={{ padding: '14px 14px 10px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4 }}>
-              {[5, 4, 3, 2, 1].map(lk => [1, 2, 3, 4, 5].map(im => {
+              {[5, 4, 3, 2, 1].map((lk: any) => [1, 2, 3, 4, 5].map((im: any) => {
                 const rs = cellRisks(im, lk); const sc = lk * im;
                 return <div key={lk + '-' + im} onClick={() => rs[0] && nav('risk')} style={{ aspectRatio: '1', borderRadius: 5, background: riskScoreColor(sc), opacity: rs.length ? 1 : 0.2, display: 'grid', placeItems: 'center', cursor: rs.length ? 'pointer' : 'default' }}>
                   {rs.length > 0 && <span style={{ color: '#fff', fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 700 }}>{rs.length}</span>}
@@ -228,7 +228,7 @@ function DashMutu() {
           <table className="dtbl">
             <thead><tr><th>Engagement</th><th>Partner</th><th>Reviewer</th><th>Jenis</th><th>Tahap</th><th style={{ width: 90 }}>Status</th></tr></thead>
             <tbody>
-              {EQR.map(e => (
+              {EQR.map((e: any) => (
                 <tr key={e.id} style={{ cursor: 'pointer' }} onClick={() => nav('eqr')}>
                   <td className="mono tiny" style={{ fontWeight: 700 }}>{e.eng}</td>
                   <td className="tiny truncate" style={{ maxWidth: 110 }}>{e.partner}</td>
@@ -248,7 +248,7 @@ function DashMutu() {
           <div className="panel-h"><h3>Catatan Reviu Terbuka</h3><div style={{ flex: 1 }} /><span className="chip tiny">{openNotes.length}</span></div>
           <div style={{ maxHeight: 280, overflow: 'auto' }}>
             {openNotes.length === 0 && <div className="muted tiny" style={{ padding: 14 }}>Tidak ada catatan reviu terbuka.</div>}
-            {openNotes.map(n => (
+            {openNotes.map((n: any) => (
               <div key={n.id} className="row gap10" style={{ padding: '10px 14px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => nav(n.module)}>
                 <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}>{React.createElement(I[{ review: 'search2', coaching: 'sparkle', eqr: 'checkCircle', query: 'help' }[n.type] || 'doc'], { size: 14 })}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -265,7 +265,7 @@ function DashMutu() {
           <table className="dtbl">
             <thead><tr><th>Partner</th><th>Klien Rotasi</th><th className="num">Tenure</th><th style={{ width: 96 }}>Status</th></tr></thead>
             <tbody>
-              {IND.filter(i => i.rotationClient).map(i => {
+              {IND.filter((i: any) => i.rotationClient).map((i: any) => {
                 const warn = i.tenure >= i.rotationLimit;
                 return (
                   <tr key={i.id}>

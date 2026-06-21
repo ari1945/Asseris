@@ -44,10 +44,10 @@ const TYPE_KIND = { Factual: 'blue', Judgmental: 'purple', Projected: 'teal' };
 /* aggregate uncorrected effect under rollover (current-year) or
    iron-curtain (cumulative incl. prior-year) method */
 function aggUncorr(method) {
-  const inScope = method === 'ironcurtain' ? UNCORR : UNCORR.filter(m => m.origin === 'current');
+  const inScope = method === 'ironcurtain' ? UNCORR : UNCORR.filter((m: any) => m.origin === 'current');
   const pbt = inScope.reduce((s, m) => s + Math.abs(m.pbt), 0);
   const na = inScope.reduce((s, m) => s + Math.abs(m.na), 0);
-  const quals = [...new Set(inScope.flatMap(m => m.qual))];
+  const quals = [...new Set(inScope.flatMap((m: any) => m.qual))];
   return { pbt, na, quals, count: inScope.length };
 }
 
@@ -80,14 +80,14 @@ function recommendOpinion({ misSev, scope, gc }) {
 const kindVar = (k) => k === 'green' ? 'var(--green)' : k === 'amber' ? 'var(--amber)' : k === 'red' ? 'var(--red)' : 'var(--blue)';
 const kindBg = (k) => k === 'green' ? 'var(--green-bg)' : k === 'amber' ? 'var(--amber-bg)' : k === 'red' ? 'var(--red-bg)' : 'var(--blue-100)';
 
-function DocH({ children }) {
+function DocH({ children }: any) {
   return <div style={{ fontWeight: 800, fontSize: 12.5, margin: '0 0 6px' }}>{children}</div>;
 }
 
 /* ============================================================
    TAB 1 — Opinion Determination Engine
    ============================================================ */
-function DeterminationPanel({ doc, patch }) {
+function DeterminationPanel({ doc, patch }: any) {
   const { fmt } = AMS;
   const { activeEngagement } = useFirm();
   const om = activeEngagement?.materiality || 4_250_000_000;
@@ -134,11 +134,11 @@ function DeterminationPanel({ doc, patch }) {
               <th>Jenis</th><th style={{ textAlign: 'right' }}>Efek Laba</th><th style={{ textAlign: 'right' }}>Efek Aset Neto</th>
             </tr></thead>
             <tbody>
-              {(doc.method === 'ironcurtain' ? UNCORR : UNCORR.filter(m => m.origin === 'current')).map(m => (
+              {(doc.method === 'ironcurtain' ? UNCORR : UNCORR.filter((m: any) => m.origin === 'current')).map((m: any) => (
                 <tr key={m.id}>
                   <td className="mono tiny" style={{ fontWeight: 700 }}>{m.id}</td>
                   <td style={{ maxWidth: 230 }}><div style={{ fontSize: 12 }}>{m.desc}</div>
-                    {m.qual.length > 0 && <div className="row gap6" style={{ flexWrap: 'wrap', marginTop: 3 }}>{m.qual.map(q => <span key={q} className="tiny" style={{ color: 'var(--red)', fontWeight: 600 }}>● {QUAL_LABEL[q]}</span>)}</div>}
+                    {m.qual.length > 0 && <div className="row gap6" style={{ flexWrap: 'wrap', marginTop: 3 }}>{m.qual.map((q: any) => <span key={q} className="tiny" style={{ color: 'var(--red)', fontWeight: 600 }}>● {QUAL_LABEL[q]}</span>)}</div>}
                   </td>
                   <td style={{ textAlign: 'center' }}><Badge kind={TYPE_KIND[m.type]}>{m.type}</Badge></td>
                   <td className="mono" style={{ textAlign: 'right', color: m.pbt ? 'var(--red)' : 'var(--ink-3)' }}>{m.pbt ? rp(m.pbt) : '—'}</td>
@@ -241,7 +241,7 @@ function DeterminationPanel({ doc, patch }) {
   );
 }
 
-function ThreshCard({ label, v, accent }) {
+function ThreshCard({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
       <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
@@ -250,7 +250,7 @@ function ThreshCard({ label, v, accent }) {
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, children }: any) {
   return <div><div className="tiny muted upper" style={{ marginBottom: 5 }}>{label}</div>{children}</div>;
 }
 
@@ -260,11 +260,11 @@ function Field({ label, children }) {
    Sistem hanya menerapkan logika SA 705 atas pertimbangan auditor;
    auditor mendokumentasikan basis opini (SA 230) dengan atribusi.
    ============================================================ */
-function OpinionDecisionTree({ doc, patch }) {
+function OpinionDecisionTree({ doc, patch }: any) {
   const { fmt } = AMS;
   const audit = useAudit();
   const { activeEngagement } = useFirm();
-  const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+  const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
   const om = activeEngagement?.materiality || 4_250_000_000;
   const agg = aggUncorr(doc.method);
   const auto = classifyMis(agg, om);
@@ -282,7 +282,7 @@ function OpinionDecisionTree({ doc, patch }) {
       q: 'Apakah terdapat salah saji material yang tidak dikoreksi?',
       a: misSev === 'none' ? 'Tidak material' : misSev === 'material' ? 'Material, tidak pervasif' : 'Material & pervasif',
       tone: misSev === 'none' ? 'green' : misSev === 'pervasive' ? 'red' : 'amber',
-      input: `Agregat SAD ${rp(Math.max(agg.pbt, agg.na))} = ${fmt(auto.ratio * 100, 0)}% materialitas keseluruhan${agg.quals.length ? '; faktor kualitatif: ' + agg.quals.map(q => QUAL_LABEL[q]).join(', ') : ''}.`,
+      input: `Agregat SAD ${rp(Math.max(agg.pbt, agg.na))} = ${fmt(auto.ratio * 100, 0)}% materialitas keseluruhan${agg.quals.length ? '; faktor kualitatif: ' + agg.quals.map((q: any) => QUAL_LABEL[q]).join(', ') : ''}.`,
       sa: 'SA 450 · 705.7–8', ref: 'sad',
     },
     {
@@ -368,15 +368,15 @@ function OpinionDecisionTree({ doc, patch }) {
 /* ============================================================
    TAB 3 — KAM Workshop (SA 701) — linked to risk register
    ============================================================ */
-function KAMWorkshop({ doc, patch }) {
-  const risks = (AMS.RISKS || []).filter(r => r.inherent === 'Significant');
-  const usedRisks = new Set(doc.kams.map(k => k.risk).filter(Boolean));
+function KAMWorkshop({ doc, patch }: any) {
+  const risks = ((AMS as any).RISKS || []).filter((r: any) => r.inherent === 'Significant');
+  const usedRisks = new Set(doc.kams.map((k: any) => k.risk).filter(Boolean));
   const [open, setOpen] = useStateOP(doc.kams[0]?.id || null);
 
   const setKams = (fn) => patch({ kams: fn(doc.kams) });
-  const update = (id, p) => setKams(ks => ks.map(k => k.id === id ? { ...k, ...p } : k));
-  const remove = (id) => setKams(ks => ks.filter(k => k.id !== id));
-  const move = (id, dir) => setKams(ks => { const i = ks.indexOf(ks.find(k => k.id === id)); const j = i + dir; if (j < 0 || j >= ks.length) return ks; const n = [...ks]; [n[i], n[j]] = [n[j], n[i]]; return n; });
+  const update = (id, p) => setKams(ks => ks.map((k: any) => k.id === id ? { ...k, ...p } : k));
+  const remove = (id) => setKams(ks => ks.filter((k: any) => k.id !== id));
+  const move = (id, dir) => setKams(ks => { const i = ks.indexOf(ks.find((k: any) => k.id === id)); const j = i + dir; if (j < 0 || j >= ks.length) return ks; const n = [...ks]; [n[i], n[j]] = [n[j], n[i]]; return n; });
   const promote = (r) => {
     const id = 'k' + Date.now();
     setKams(ks => [...ks, { id, risk: r.id, title: r.area, why: `Risiko signifikan ${r.id}: ${r.desc} (asersi: ${r.assertion}).`, how: 'Uraikan prosedur audit yang dirancang untuk menanggapi risiko ini.', wpRef: '' }]);
@@ -389,7 +389,7 @@ function KAMWorkshop({ doc, patch }) {
       <Panel title="Kandidat dari Register Risiko" sub="Risiko signifikan — SA 701.9">
         <div className="tiny muted" style={{ marginBottom: 9, lineHeight: 1.55 }}>Hal audit utama dipilih dari hal-hal yang dikomunikasikan kepada TCWG, dengan fokus pada area berisiko signifikan & pertimbangan auditor tertinggi.</div>
         <div style={{ display: 'grid', gap: 7 }}>
-          {risks.map(r => {
+          {risks.map((r: any) => {
             const used = usedRisks.has(r.id);
             return (
               <div key={r.id} className="panel" style={{ padding: '8px 10px', borderColor: used ? 'var(--green)' : 'var(--line)', background: used ? 'var(--green-bg)' : '#fff' }}>
@@ -449,7 +449,7 @@ const REVIEW_CHAIN = [
   { role: 'eqr', label: 'Reviu Pengendalian Mutu (EQR)', who: 'Rudi Gunawan, CPA', sub: 'Engagement Quality Reviewer', std: 'ISQM 2 · SA 220.36' },
 ];
 
-function OpinionSignoff({ doc, patch }) {
+function OpinionSignoff({ doc, patch }: any) {
   const { activeEngagement, activeClient } = useFirm();
   const { wpState, setWp } = useAudit();   // mirror sign-off opini ke SSOT wpState['900']
   const auth = useAuth();
@@ -481,23 +481,23 @@ function OpinionSignoff({ doc, patch }) {
     { id: 'tcwg', label: 'Komunikasi TCWG diselesaikan (SA 260)' },
   ];
   const tickManual = (id) => patch({ checklist: { ...doc.checklist, [id]: !doc.checklist[id] } });
-  const autoDone = autoChecks.every(c => c.ok || c.na);
-  const manualDone = manualChecks.every(c => doc.checklist[c.id]);
+  const autoDone = autoChecks.every((c: any) => c.ok || c.na);
+  const manualDone = manualChecks.every((c: any) => doc.checklist[c.id]);
 
   const sign = (role) => {
     const next = doc.signoff[role] ? null : { date: today };
     patch({ signoff: { ...doc.signoff, [role]: next } });
     /* mirror ke chain kanonik wpState['900']: manager→reviewer, partner→partner, eqr→eqr */
     const slot = role === 'manager' ? 'reviewer' : role;
-    const who = (REVIEW_CHAIN.find(r => r.role === role) || {}).who || role;
+    const who = (REVIEW_CHAIN.find((r: any) => r.role === role) || {}).who || role;
     const curChain = { ...(((wpState || {})['900'] || {}).chain || {}) };
     if (next) { curChain[slot] = { by: who, at: today }; if (!curChain.preparer) curChain.preparer = { by: 'Generator Laporan', at: today }; }
     else delete curChain[slot];
-    const wpPatch = { chain: curChain };
+    const wpPatch: any = { chain: curChain };
     if (slot === 'reviewer') { wpPatch.status = next ? 'Reviewed' : 'In Review'; wpPatch.reviewer = next ? who : null; wpPatch.signedAt = next ? today : null; }
     setWp('900', wpPatch);
   };
-  const chainComplete = REVIEW_CHAIN.every(r => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
+  const chainComplete = REVIEW_CHAIN.every((r: any) => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
   const canFinalize = autoDone && manualDone && chainComplete && !doc.finalized && canApprove;
 
   const finalize = () => { patch({ finalized: true, finalizedDate: today }); setWp('900', { status: 'Reviewed' }); };
@@ -508,7 +508,7 @@ function OpinionSignoff({ doc, patch }) {
         <Panel title="Kelengkapan Laporan" sub="Elemen wajib — SA 700.21–49">
           <div className="tiny muted upper" style={{ marginBottom: 7 }}>Otomatis dari penyusun laporan</div>
           <div style={{ display: 'grid', gap: 1 }}>
-            {autoChecks.map(c => (
+            {autoChecks.map((c: any) => (
               <div key={c.id} className="row ac gap8" style={{ padding: '6px 2px', borderBottom: '1px solid var(--line-soft)' }}>
                 <span style={{ color: c.na ? 'var(--ink-3)' : c.ok ? 'var(--green)' : 'var(--amber)' }}>
                   {c.na ? <I.x size={14} /> : c.ok ? <I.checkCircle size={15} /> : <I.alert size={14} />}
@@ -520,7 +520,7 @@ function OpinionSignoff({ doc, patch }) {
           </div>
           <div className="tiny muted upper" style={{ margin: '12px 0 7px' }}>Konfirmasi manual auditor</div>
           <div style={{ display: 'grid', gap: 1 }}>
-            {manualChecks.map(c => (
+            {manualChecks.map((c: any) => (
               <label key={c.id} className="row ac gap8" style={{ padding: '6px 2px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => tickManual(c.id)}>
                 <span style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid ' + (doc.checklist[c.id] ? 'var(--green)' : 'var(--line-strong)'), background: doc.checklist[c.id] ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center', color: '#fff', flex: '0 0 16px' }}>{doc.checklist[c.id] && <I.check size={11} />}</span>
                 <span style={{ flex: 1, fontSize: 12, fontWeight: 500 }}>{c.label}</span>
@@ -598,7 +598,7 @@ function OpinionSignoff({ doc, patch }) {
   );
 }
 
-function Pill({ ok, label }) {
+function Pill({ ok, label }: any) {
   return <span className="chip tiny" style={{ background: ok ? 'var(--green-bg)' : 'var(--surface-3)', color: ok ? 'var(--green)' : 'var(--ink-3)' }}>{ok ? <I.check size={11} /> : <I.clock size={11} />} {label}</span>;
 }
 

@@ -28,34 +28,34 @@ const CASH_SCENARIOS = {
 
 function FirmTreasury() {
   const { fmt } = AMS;
-  const B = AMS.FIRM_BUDGET;
-  const F = AMS.CASH_FORECAST;
+  const B: any = AMS.FIRM_BUDGET;
+  const F: any = AMS.CASH_FORECAST;
   const [tab, setTab] = useStateTR('budget');
   const [scenario, setScenario] = useStateTR('base');
   const [selLine, setSelLine] = useStateTR(null);
 
-  const rev = B.filter(b => b.type === 'rev');
-  const cost = B.filter(b => b.type === 'cost');
+  const rev = B.filter((b: any) => b.type === 'rev');
+  const cost = B.filter((b: any) => b.type === 'cost');
   const sum = (arr, k) => arr.reduce((s, x) => s + x[k], 0);
   const budRev = sum(rev, 'budget'), actRev = sum(rev, 'actual');
   const budCost = sum(cost, 'budget'), actCost = sum(cost, 'actual');
   const budProfit = budRev - budCost, actProfit = actRev - actCost;
 
   const sc = CASH_SCENARIOS[scenario];
-  const fc = F.map(r => {
+  const fc = F.map((r: any) => {
     const inflow = Math.round(r.inflow * sc.inF), outflow = Math.round(r.outflow * sc.outF);
     return { ...r, inflow, outflow, net: inflow - outflow };
   });
   // rebuild running closing under scenario
   let prev = null;
   fc.forEach((r, i) => { r.open = i === 0 ? F[0].open : prev; r.close = r.open + r.net; prev = r.close; });
-  const minClose = Math.min(...fc.map(r => r.close));
+  const minClose = Math.min(...fc.map((r: any) => r.close));
   const avgOut = fc.reduce((s, r) => s + r.outflow, 0) / fc.length;
   const runway = (fc[0].open / avgOut); // months of cover at current cash vs avg burn
   const netGen = fc.reduce((s, r) => s + r.net, 0);
 
   const tabs = [{ id: 'budget', label: 'Anggaran vs Aktual' }, { id: 'cash', label: 'Forecast Arus Kas' }];
-  const VarCell = ({ b, a, cost }) => {
+  const VarCell = ({ b, a, cost }: any) => {
     const v = a - b; const adverse = cost ? v > 0 : v < 0;
     return <span className="mono" style={{ color: Math.abs(v) < 1e6 ? 'var(--ink-3)' : adverse ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(v) / 1e6, 0)}</span>;
   };
@@ -81,12 +81,12 @@ function FirmTreasury() {
                   <thead><tr><th>Pos Anggaran (P&L)</th><th className="num">Anggaran</th><th className="num">Aktual</th><th className="num">Varians</th><th style={{ width: 160 }}>Realisasi</th></tr></thead>
                   <tbody>
                     <tr className="group-row"><td colSpan={5}>Pendapatan</td></tr>
-                    {rev.map(b => (
+                    {rev.map((b: any) => (
                       <tr key={b.line} className={selLine === b.line ? 'sel' : ''} onClick={() => setSelLine(selLine === b.line ? null : b.line)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 600 }}>{b.line}</td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} /></td>
                         <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, b.actual / b.budget * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green)' }} /></div><span className="tiny mono" style={{ width: 32 }}>{(b.actual / b.budget * 100).toFixed(0)}%</span></div></td></tr>
                     ))}
                     <tr className="group-row"><td colSpan={5}>Beban</td></tr>
-                    {cost.map(b => (
+                    {cost.map((b: any) => (
                       <tr key={b.line} className={selLine === b.line ? 'sel' : ''} onClick={() => setSelLine(selLine === b.line ? null : b.line)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 600 }}>{b.line}</td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} cost /></td>
                         <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, b.actual / b.budget * 100) + '%', height: '100%', borderRadius: 3, background: b.actual > b.budget ? 'var(--red)' : 'var(--amber)' }} /></div><span className="tiny mono" style={{ width: 32 }}>{(b.actual / b.budget * 100).toFixed(0)}%</span></div></td></tr>
                     ))}
@@ -95,7 +95,7 @@ function FirmTreasury() {
                 </table>
                 <div className="tiny muted" style={{ padding: '8px 12px' }}>Klik pos anggaran untuk melihat fasing triwulanan & pendorong varians · Rp jt</div>
               </div>
-              {selLine && <BudgetLineDrill b={B.find(x => x.line === selLine)} onClose={() => setSelLine(null)} />}
+              {selLine && <BudgetLineDrill b={B.find((x: any) => x.line === selLine)} onClose={() => setSelLine(null)} />}
             </div>
           )}
 
@@ -106,8 +106,8 @@ function FirmTreasury() {
                 <span className="tiny" style={{ color: netGen >= 0 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>Arus kas bersih 6 bln: {netGen >= 0 ? '+' : '−'}Rp {fmt(Math.abs(netGen) / 1e3, 1)} M</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, height: 160, padding: '0 8px 8px', borderBottom: '1px solid var(--line)', marginBottom: 12 }}>
-                {fc.map(r => {
-                  const max = Math.max(...fc.map(x => x.close)) * 1.1;
+                {fc.map((r: any) => {
+                  const max = Math.max(...fc.map((x: any) => x.close)) * 1.1;
                   return (
                     <div key={r.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                       <span className="mono tiny" style={{ fontWeight: 700, color: r.close < 7000 ? 'var(--amber)' : 'var(--navy)' }}>{fmt(r.close / 1e3, 1)}M</span>
@@ -122,7 +122,7 @@ function FirmTreasury() {
               <table className="dtbl">
                 <thead><tr><th>Bulan</th><th className="num">Saldo Awal</th><th className="num">Arus Masuk</th><th className="num">Arus Keluar</th><th className="num">Arus Bersih</th><th className="num">Saldo Akhir</th></tr></thead>
                 <tbody>
-                  {fc.map(r => (
+                  {fc.map((r: any) => (
                     <tr key={r.m}><td style={{ fontWeight: 600 }}>{r.m} 2026</td><td className="num muted">{fmt(r.open, 0)}</td><td className="num" style={{ color: 'var(--green)' }}>+{fmt(r.inflow, 0)}</td><td className="num" style={{ color: 'var(--red)' }}>({fmt(r.outflow, 0)})</td><td className="num" style={{ fontWeight: 600, color: r.net >= 0 ? 'var(--green)' : 'var(--red)' }}>{r.net >= 0 ? '+' : '−'}{fmt(Math.abs(r.net), 0)}</td><td className="num" style={{ fontWeight: 700, color: r.close < 7000 ? 'var(--amber)' : 'inherit' }}>{fmt(r.close, 0)}</td></tr>
                   ))}
                 </tbody>
@@ -136,7 +136,7 @@ function FirmTreasury() {
   );
 }
 
-function BudgetLineDrill({ b, onClose }) {
+function BudgetLineDrill({ b, onClose }: any) {
   const { fmt } = AMS;
   const isCost = b.type === 'cost';
   // synthesize quarterly phasing
@@ -165,14 +165,14 @@ function BudgetLineDrill({ b, onClose }) {
         <table className="dtbl" style={{ marginBottom: 14 }}>
           <thead><tr><th>Kuartal</th><th className="num">Anggaran</th><th className="num">Aktual</th><th className="num">Var</th></tr></thead>
           <tbody>
-            {quarters.map(q => {
+            {quarters.map((q: any) => {
               const v = q.act - q.bud; const adv = isCost ? v > 0 : v < 0;
               return <tr key={q.q}><td style={{ fontWeight: 600 }}>{q.q} 2025</td><td className="num">{fmt(q.bud / 1e6, 0)}</td><td className="num">{fmt(q.act / 1e6, 0)}</td><td className="num mono" style={{ color: adv ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(v) / 1e6, 0)}</td></tr>;
             })}
           </tbody>
         </table>
         <div className="tiny muted upper" style={{ marginBottom: 8 }}>Pendorong Varians</div>
-        {drivers.map(([d, w]) => (
+        {drivers.map(([d, w]: [string, any]) => (
           <div key={d} style={{ marginBottom: 8 }}>
             <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{d}</span><span className="mono" style={{ fontWeight: 700 }}>{(w * 100).toFixed(0)}%</span></div>
             <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (w * 100) + '%', height: '100%', borderRadius: 3, background: adverse ? 'var(--red)' : 'var(--green)' }} /></div>
@@ -191,24 +191,24 @@ const FX_BOOK = { IDR: 1, USD: 15_780, SGD: 11_640, EUR: 17_120 };
 
 function CashBank() {
   const { fmt } = AMS;
-  const FX = AMS.FX_RATES;
-  const accts = AMS.BANK_ACCOUNTS;
+  const FX: any = AMS.FX_RATES;
+  const accts: any = AMS.BANK_ACCOUNTS;
   const [tab, setTab] = useStateTR('positions');
-  const R = AMS.BANK_RECON;
+  const R: any = AMS.BANK_RECON;
   const [lines, setLines] = useAmsPersist('bankrecon', () => R.lines);
 
   const idrOf = (a) => a.balance * FX[a.ccy];
   const totalIDR = accts.reduce((s, a) => s + idrOf(a), 0);
 
-  const toggleMatch = (id) => setLines(list => list.map(l => l.id === id ? { ...l, matched: !l.matched } : l));
-  const unrec = lines.filter(l => !l.matched);
-  const adjustedBook = R.bookBalance + lines.filter(l => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').reduce((s, l) => s + l.amount, 0);
-  const adjustedBank = R.bankBalance + lines.filter(l => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).reduce((s, l) => s + l.amount, 0);
+  const toggleMatch = (id) => setLines(list => list.map((l: any) => l.id === id ? { ...l, matched: !l.matched } : l));
+  const unrec = lines.filter((l: any) => !l.matched);
+  const adjustedBook = R.bookBalance + lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').reduce((s, l) => s + l.amount, 0);
+  const adjustedBank = R.bankBalance + lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).reduce((s, l) => s + l.amount, 0);
   const reconciled = Math.abs(adjustedBank - adjustedBook) < 1e6;
 
   // FX revaluation
-  const valas = accts.filter(a => a.ccy !== 'IDR');
-  const reval = valas.map(a => {
+  const valas = accts.filter((a: any) => a.ccy !== 'IDR');
+  const reval = valas.map((a: any) => {
     const bookIDR = a.balance * FX_BOOK[a.ccy];
     const mktIDR = a.balance * FX[a.ccy];
     return { ...a, bookIDR, mktIDR, gain: mktIDR - bookIDR, bookRate: FX_BOOK[a.ccy] };
@@ -235,7 +235,7 @@ function CashBank() {
             <table className="dtbl">
               <thead><tr><th>Rekening</th><th>No.</th><th>Mata Uang</th><th className="num">Saldo</th><th className="num">Kurs</th><th className="num">Ekuivalen IDR</th><th style={{ width: 90 }}>Porsi</th></tr></thead>
               <tbody>
-                {accts.map(a => (
+                {accts.map((a: any) => (
                   <tr key={a.id}>
                     <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
                     <td className="mono tiny muted">{a.no}</td>
@@ -254,21 +254,21 @@ function CashBank() {
           {tab === 'recon' && (
             <div style={{ padding: 14 }}>
               <div className="row jb ac" style={{ marginBottom: 12 }}>
-                <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {accts.find(a => a.id === R.account).name} ({R.account})</div><div className="tiny muted">Periode {R.period} · klik baris untuk tandai cocok/belum</div></div>
+                <div><div style={{ fontWeight: 700, fontSize: 13 }}>Rekonsiliasi — {accts.find((a: any) => a.id === R.account).name} ({R.account})</div><div className="tiny muted">Periode {R.period} · klik baris untuk tandai cocok/belum</div></div>
                 <span className={'badge b-' + (reconciled ? 'green' : 'amber')} style={{ padding: '3px 10px' }}>{reconciled ? <><I.check size={12} /> Seimbang</> : 'Selisih Rp ' + fmt(Math.abs(adjustedBank - adjustedBook) / 1e6, 0) + ' jt'}</span>
               </div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                 <div className="panel" style={{ padding: 12 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Saldo per Bank</div>
                   <RowKv label="Saldo rekening koran" v={'Rp ' + fmt(R.bankBalance / 1e6, 0) + ' jt'} />
-                  {lines.filter(l => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).map(l => <RowKv key={l.id} label={(l.ref === 'outstanding' ? '− Cek beredar' : '+ Setoran transit')} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 0) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
+                  {lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).map((l: any) => <RowKv key={l.id} label={(l.ref === 'outstanding' ? '− Cek beredar' : '+ Setoran transit')} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, 0) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
                   <div className="divider" />
                   <RowKv label="Saldo bank disesuaikan" v={'Rp ' + fmt(adjustedBank / 1e6, 0) + ' jt'} strong />
                 </div>
                 <div className="panel" style={{ padding: 12 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Saldo per Buku (GL)</div>
                   <RowKv label="Saldo buku besar" v={'Rp ' + fmt(R.bookBalance / 1e6, 0) + ' jt'} />
-                  {lines.filter(l => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').map(l => <RowKv key={l.id} label={(l.amount < 0 ? '− ' : '+ ') + l.desc.slice(0, 22)} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, l.amount < 1e7 ? 1 : 0) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
+                  {lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').map((l: any) => <RowKv key={l.id} label={(l.amount < 0 ? '− ' : '+ ') + l.desc.slice(0, 22)} v={(l.amount < 0 ? '(' : '') + fmt(Math.abs(l.amount) / 1e6, l.amount < 1e7 ? 1 : 0) + (l.amount < 0 ? ')' : '') + ' jt'} />)}
                   <div className="divider" />
                   <RowKv label="Saldo buku disesuaikan" v={'Rp ' + fmt(adjustedBook / 1e6, 0) + ' jt'} strong />
                 </div>
@@ -276,7 +276,7 @@ function CashBank() {
               <table className="dtbl">
                 <thead><tr><th>Tanggal</th><th>Keterangan (rekening koran)</th><th className="num">Jumlah</th><th>Ref. GL</th><th>Status</th></tr></thead>
                 <tbody>
-                  {lines.map(l => (
+                  {lines.map((l: any) => (
                     <tr key={l.id} onClick={() => toggleMatch(l.id)} style={{ cursor: 'pointer' }}>
                       <td className="mono tiny muted">{new Date(l.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td>{l.desc}</td>
@@ -300,7 +300,7 @@ function CashBank() {
               <table className="dtbl">
                 <thead><tr><th>Rekening</th><th>Mata Uang</th><th className="num">Saldo Valas</th><th className="num">Kurs Perolehan</th><th className="num">Kurs Kini</th><th className="num">Nilai Tercatat</th><th className="num">Nilai Pasar</th><th className="num">Selisih Kurs</th></tr></thead>
                 <tbody>
-                  {reval.map(r => (
+                  {reval.map((r: any) => (
                     <tr key={r.id}>
                       <td style={{ fontWeight: 600 }}>{r.name} <span className="tiny muted">· {r.bank}</span></td>
                       <td><span className="chip tiny">{r.ccy}</span></td>
@@ -333,7 +333,7 @@ function FixedAssets() {
   const { fmt } = AMS;
   const REF = new Date('2026-03-01');
   const [sel, setSel] = useStateTR(null);
-  const rows = AMS.FIXED_ASSETS.map(a => {
+  const rows = (AMS as any).FIXED_ASSETS.map((a: any) => {
     const start = new Date(a.acq);
     const monthsElapsed = Math.max(0, Math.min(a.life * 12, (REF.getFullYear() - start.getFullYear()) * 12 + (REF.getMonth() - start.getMonth())));
     const monthlyDep = a.cost / (a.life * 12);
@@ -348,9 +348,9 @@ function FixedAssets() {
   const totAnnual = rows.reduce((s, r) => s + (r.fullyDep ? 0 : r.annualDep), 0);
 
   // category summary
-  const cats = Object.values(rows.reduce((m, r) => { (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 }); m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n++; return m; }, {})).sort((a, b) => b.cost - a.cost);
+  const cats = Object.values(rows.reduce((m, r) => { (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 }); m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n++; return m; }, {} as any)).sort((a: any, b: any) => b.cost - a.cost);
 
-  const selRow = sel ? rows.find(r => r.id === sel) : null;
+  const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
   return (
     <>
@@ -375,7 +375,7 @@ function FixedAssets() {
             </div>
           </Panel>
           <Panel title="Ringkasan per Kategori">
-            {cats.map(c => (
+            {cats.map((c: any) => (
               <div key={c.cat} style={{ marginBottom: 10 }}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><span style={{ fontWeight: 600 }}>{c.cat}</span><span className="muted">· {c.n}</span></span><span className="mono" style={{ fontWeight: 700 }}>NBV {fmt(c.nbv / 1e6, 0)} jt</span></div>
                 <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', background: 'var(--surface-3)' }}>
@@ -395,7 +395,7 @@ function FixedAssets() {
               <table className="dtbl">
                 <thead><tr><th>Kode</th><th>Aset</th><th>Kategori</th><th>Perolehan</th><th className="num">Perolehan</th><th className="num">Ak. Penyusutan</th><th className="num">Nilai Buku</th><th style={{ width: 120 }}>Umur Terpakai</th></tr></thead>
                 <tbody>
-                  {rows.map(r => (
+                  {rows.map((r: any) => (
                     <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id === sel ? null : r.id)} style={{ cursor: 'pointer' }}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                       <td style={{ fontWeight: 600 }} className="truncate">{r.name}</td>
@@ -419,7 +419,7 @@ function FixedAssets() {
   );
 }
 
-function DepreciationSchedule({ a, onClose }) {
+function DepreciationSchedule({ a, onClose }: any) {
   const { fmt } = AMS;
   const startYear = new Date(a.acq).getFullYear();
   const annual = a.cost / a.life;
@@ -447,7 +447,7 @@ function DepreciationSchedule({ a, onClose }) {
         <table className="dtbl">
           <thead><tr><th>Tahun</th><th className="num">Penyusutan</th><th className="num">Akumulasi</th><th className="num">Nilai Buku</th></tr></thead>
           <tbody>
-            {sched.map(s => (
+            {sched.map((s: any) => (
               <tr key={s.yr} style={{ background: s.current ? 'var(--blue-050)' : 'transparent', fontWeight: s.current ? 700 : 400 }}>
                 <td style={{ fontWeight: 600 }}>{s.yr}{s.current && <span className="tiny" style={{ color: 'var(--blue)' }}> · kini</span>}</td>
                 <td className="num">{fmt(s.dep / 1e6, 0)}</td>
