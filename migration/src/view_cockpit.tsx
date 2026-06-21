@@ -365,7 +365,7 @@ function AuditProgramme() {
             <Panel noBody>
               <div className="panel-h"><h3>Beban Jam per Penanggung Jawab</h3></div>
               <div style={{ padding: '6px 14px 12px' }}>
-                {Object.entries(allProcs.reduce((m, p) => { (m[p.prep] = m[p.prep] || { bud: 0, act: 0, n: 0 }); m[p.prep].bud += p.bud; m[p.prep].act += p.act; m[p.prep].n++; return m; }, {})).sort((a, b) => b[1].bud - a[1].bud).map(([name, v]) => {
+                {(Object.entries(allProcs.reduce((m, p) => { (m[p.prep] = m[p.prep] || { bud: 0, act: 0, n: 0 }); m[p.prep].bud += p.bud; m[p.prep].act += p.act; m[p.prep].n++; return m; }, {})) as [string, any][]).sort((a, b) => b[1].bud - a[1].bud).map(([name, v]) => {
                   const over = v.act > v.bud;
                   return (
                     <div key={name} style={{ padding: '9px 0', borderBottom: '1px solid var(--line)' }}>

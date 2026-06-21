@@ -218,7 +218,16 @@
     "src/view_materiality_parts.tsx",
     "src/view_ethics_parts.tsx",
     "src/view_final3.tsx",
-    "src/view_nonaudit2.tsx"
+    "src/view_nonaudit2.tsx",
+
+    "src/view_execution.tsx",
+    "src/view_wp.tsx",
+    "src/view_palette.tsx",
+    "src/view_cockpit.tsx",
+    "src/view_firm.tsx",
+    "src/view_procurement.tsx",
+    "src/view_groupaudit.tsx",
+    "src/view_materiality.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

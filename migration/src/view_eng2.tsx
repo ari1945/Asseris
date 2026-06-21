@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
-import { EngagementDetail } from './view_firm.jsx';
+import { EngagementDetail } from './view_firm';
 import { HBars } from './view_fpm_parts.jsx';
 
 /* ============================================================

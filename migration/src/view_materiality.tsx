@@ -236,7 +236,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
   );
 }
 
-function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disabled }) {
+function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disabled }: any) {
   return (
     <div style={{ marginBottom: 15 }}>
       <div className="row jb ac" style={{ marginBottom: 5 }}>
@@ -259,7 +259,7 @@ function Compare({ label, a }) {
   );
 }
 
-function RailChip({ label, value, strong, align, last }) {
+function RailChip({ label, value, strong, align, last }: any) {
   return (
     <div style={{ padding: '7px 16px 7px 0', marginRight: last ? 0 : 16, borderRight: last ? 'none' : '1px solid var(--line)', textAlign: align || 'left' }}>
       <div className="tiny muted upper" style={{ fontSize: 9.5, letterSpacing: '.06em' }}>{label}</div>

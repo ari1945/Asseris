@@ -5,7 +5,7 @@ import { EvidenceControl } from './evidence.jsx';
 import { WpSubBarControl } from './wp_signoff.jsx';
 import { GROUP_WS, I, MODULES, MODULE_INDEX, WORKSPACES } from './icons.jsx';
 import { Avatar } from './ui.jsx';
-import { NotificationsPanel, UserMenu } from './view_palette.jsx';
+import { NotificationsPanel, UserMenu } from './view_palette';
 
 /* ============================================================
    NeoSuite AMS — App shell: TopBar + Sidebar

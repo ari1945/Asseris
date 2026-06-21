@@ -7,7 +7,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
 import { Kv } from './view_calc.jsx';
-import { SliderRow } from './view_materiality.jsx';
+import { SliderRow } from './view_materiality';
 
 /* ============================================================
    NeoSuite AMS — PSAK 73 Lease Calculator (ROU + liability)

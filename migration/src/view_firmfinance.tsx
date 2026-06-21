@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
 import { RowKv } from './view_calc.jsx';
-import { SliderRow } from './view_materiality.jsx';
+import { SliderRow } from './view_materiality';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================

@@ -6,7 +6,7 @@ import { CAP } from './rbac.js';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui.jsx';
-import { AJEForm } from './view_execution.jsx';
+import { AJEForm } from './view_execution';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';
 import { amsExportXlsx } from './export_xlsx.js';
 

@@ -128,8 +128,8 @@ function WorkingPapers() {
   const total = all.length;
   const wsum = cnt['Reviewed'] * 1 + cnt['In Review'] * 0.7 + cnt['In Progress'] * 0.4;
   const completeness = Math.round((wsum / total) * 100);
-  const openNotesTotal = Object.values(metrics).reduce((a, x) => a + x.openNotes, 0);
-  const excTotal = Object.values(metrics).reduce((a, x) => a + x.exc, 0);
+  const openNotesTotal = Object.values(metrics).reduce((a, x: any) => a + x.openNotes, 0);
+  const excTotal = Object.values(metrics).reduce((a, x: any) => a + x.exc, 0);
 
   const om = activeEngagement.materiality, pm = Math.round(om * 0.75), triv = Math.round(om * 0.05);
   const covBadge = (bal) => {
@@ -634,7 +634,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
   const canSign = (idx) => !locked && !levels[idx].signed && (idx === 0 || !!levels[idx - 1].signed);
   const sign = (idx) => {
     const lvl = levels[idx];
-    const patch = { chain: { ...chain, [lvl.key]: { by: lvl.who, at: today } } };
+    const patch: any = { chain: { ...chain, [lvl.key]: { by: lvl.who, at: today } } };
     if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = lvl.who; patch.signedAt = today; }
     if (lvl.key === 'preparer' && (status === 'Not Started' || status === 'In Progress')) patch.status = 'In Review';
     setWp(ref_, patch);
@@ -642,7 +642,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
   const unsign = (idx) => {
     const lvl = levels[idx];
     const nc = { ...chain }; delete nc[lvl.key];
-    const patch = { chain: nc };
+    const patch: any = { chain: nc };
     if (lvl.key === 'reviewer') { patch.status = 'In Review'; patch.reviewer = null; patch.signedAt = null; }
     setWp(ref_, patch);
   };
@@ -732,7 +732,7 @@ function collectWpNotes(wpState) {
   wpState = wpState || {};
   const rows = [];
   Object.entries(WP_SEED_NOTES).forEach(([ref, notes]) => notes.forEach(n => rows.push({ ...n, wpRef: ref })));
-  Object.entries(wpState).forEach(([ref, s]) => (s.notes || []).forEach(n => rows.push({ ...n, wpRef: ref })));
+  Object.entries(wpState).forEach(([ref, s]: [string, any]) => (s.notes || []).forEach(n => rows.push({ ...n, wpRef: ref })));
   return rows.map(n => {
     const ov = (wpState[n.wpRef] || {}).noteStatus || {};
     return { ...n, status: ov[n.id] || n.status, wp: true, wpRef: n.wpRef, wpTitle: WP_TITLE[n.wpRef] || n.wpRef, module: 'workpapers', moduleLabel: 'WP ' + n.wpRef + ' · ' + (WP_TITLE[n.wpRef] || '') };

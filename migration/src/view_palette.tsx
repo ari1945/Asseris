@@ -27,9 +27,9 @@ function CommandPalette({ onClose, onNavigate }) {
     // W7.5 — only offer engagements the user may access as quick-switch targets.
     engagements.filter(e => canAccessEngagement(e.id)).forEach(e => { const c = clients.find(x => x.id === e.clientId); items.push({ kind: 'Engagement', label: e.id + ' · ' + (c?.name.replace('PT ', '') || ''), icon: 'briefcase', action: () => { setActiveEngagementId(e.id); onNavigate('engagement'); }, hint: e.fy + ' · ' + e.phase }); });
     (AMS.WTB || []).forEach(r => items.push({ kind: 'Akun', label: r.code + ' · ' + r.name, icon: 'table', action: () => onNavigate('wtb'), hint: 'Working Trial Balance' }));
-    (AMS.STAFF || []).forEach(s => items.push({ kind: 'Staf', label: s.name, icon: 'users', action: () => onNavigate('hcm'), hint: s.role + ' · ' + s.cert }));
-    (AMS.INVOICES || []).forEach(v => items.push({ kind: 'Faktur', label: v.id + ' · ' + v.client.replace('PT ', ''), icon: 'receipt', action: () => onNavigate('billing'), hint: v.status + ' · Rp ' + Math.round(v.amount / 1e6) + ' jt' }));
-    (AMS.FIRM_AP || []).forEach(v => items.push({ kind: 'Vendor', label: v.vendor, icon: 'coins', action: () => onNavigate('apar'), hint: v.cat }));
+    ((AMS as any).STAFF || []).forEach(s => items.push({ kind: 'Staf', label: s.name, icon: 'users', action: () => onNavigate('hcm'), hint: s.role + ' · ' + s.cert }));
+    ((AMS as any).INVOICES || []).forEach(v => items.push({ kind: 'Faktur', label: v.id + ' · ' + v.client.replace('PT ', ''), icon: 'receipt', action: () => onNavigate('billing'), hint: v.status + ' · Rp ' + Math.round(v.amount / 1e6) + ' jt' }));
+    ((AMS as any).FIRM_AP || []).forEach(v => items.push({ kind: 'Vendor', label: v.vendor, icon: 'coins', action: () => onNavigate('apar'), hint: v.cat }));
     return items;
   }, [clients, engagements, canAccessEngagement]);
 

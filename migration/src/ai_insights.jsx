@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAudit, useNav } from './contexts.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
-import { PROGRAMME } from './view_cockpit.jsx';
+import { PROGRAMME } from './view_cockpit';
 import { AMS } from './data';
 
 /* ============================================================

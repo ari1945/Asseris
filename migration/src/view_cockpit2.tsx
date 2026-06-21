@@ -6,7 +6,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui.jsx';
-import { PROGRAMME } from './view_cockpit.jsx';
+import { PROGRAMME } from './view_cockpit';
 import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff.jsx';
 
 /* ============================================================

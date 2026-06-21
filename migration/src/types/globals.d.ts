@@ -28,9 +28,10 @@ export interface AmsData {
   /** Format angka lokal id-ID (mis. `fmt(1850, 0)` → "1.850"). Helper universal dipakai ~semua view. */
   fmt: (n: number, decimals?: number) => string;
   /** Format rupiah lokal id-ID (mis. `rp(1.85e9)` → "Rp 1.850.000.000", negatif dlm kurung). */
-  rp: (n: number) => string;
+  rp: (n: number, decimals?: number) => string;
   [k: string]: unknown;
 }
+
 
 declare global {
   interface Window {
@@ -43,6 +44,7 @@ declare global {
     __amsOpenSA?: (data: any) => void;
     loadLS?: (key: string, dflt?: any) => any;
     useAmsPersist?: (key: string, init?: any) => any;
+    clearPersisted?: () => void;
     STD_IFRS_ALIAS?: Record<string, any>;
     /* Helper kertas-kerja kanonik (dual-publish dari view_wp.jsx/sa_canonical.jsx/ui.jsx). */
     WP_REFS?: any;

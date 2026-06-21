@@ -26,7 +26,7 @@ const PROC_RISKC = { Rendah: 'var(--green)', Sedang: 'var(--amber)', Tinggi: 'va
 const procPct = (x) => Math.round(x * 100) + '%';
 
 /* skor bar mini (0–100) */
-function ScoreBar({ pct, color }) {
+function ScoreBar({ pct, color }: any) {
   const c = color || (pct >= 95 ? 'var(--green)' : pct >= 85 ? 'var(--blue)' : 'var(--amber)');
   return (
     <div className="row ac gap6" style={{ minWidth: 90 }}>

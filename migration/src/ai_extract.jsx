@@ -5,7 +5,7 @@ import { I, MODULE_INDEX } from './icons.jsx';
 import { amsLLMConfig } from './llm_providers.js';
 import { Panel } from './ui.jsx';
 import { AMS } from './data';
-import { openCanonicalWp } from './view_wp.jsx';
+import { openCanonicalWp } from './view_wp';
 
 /* ============================================================
    NeoSuite AMS — Ekstraksi Isi Dokumen (FASE 3 · Babel JSX)
