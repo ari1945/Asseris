@@ -20,7 +20,7 @@ const ROT_STAT = { 'Wajib Rotasi': 'red', 'Tahun Terakhir': 'amber', 'Tahun ke-6
 const opColor = (t) => /WTM|Tanpa Modif/.test(t) ? 'var(--green)' : /WDP|Pengecualian/.test(t) ? 'var(--amber)' : /Tidak/.test(t) ? 'var(--red)' : /Proses/.test(t) ? 'var(--ink-4)' : 'var(--blue)';
 
 function PPPKReport() {
-  const A = AMS, fmt = A.fmt;
+  const A: any = AMS, fmt = A.fmt;
   const nav = useNav();
   const R = A.PPPK_REPORT;
   const clients = A.PPPK_CLIENTS, ppl = A.PPPK_PPL, rotation = A.PPPK_ROTATION, history = A.PPPK_HISTORY;
@@ -28,7 +28,7 @@ function PPPKReport() {
 
   const totalOpinions = R.opinions.reduce((s, o) => s + o.n, 0);
   const ready = R.sections.filter(s => s.status === 'Lengkap').length;
-  const daysLeft = Math.round((new Date(R.dueDate) - new Date('2026-03-09')) / 864e5);
+  const daysLeft = Math.round((+new Date(R.dueDate) - +new Date("2026-03-09")) / 864e5);
   const rotationDue = rotation.filter(r => r.status === 'Wajib Rotasi').length;
   const pplOk = ppl.filter(p => p.total >= p.req && p.structured >= p.reqStr).length;
   const totalFee = clients.reduce((s, c) => s + c.fee, 0);

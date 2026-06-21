@@ -70,7 +70,7 @@ const cfAltList = (t) => CF_ALT_PROCS[t] || CF_ALT_PROCS.default;
 const cfReconPresets = (t) => CF_RECON_PRESETS[t] || CF_RECON_PRESETS.default;
 
 /* ---- small presentational helpers ---- */
-function CfTrack({ pct, color = 'var(--blue)', h = 8 }) {
+function CfTrack({ pct, color = 'var(--blue)', h = 8 }: any) {
   return (
     <div style={{ height: h, borderRadius: 6, background: 'var(--surface-3)', overflow: 'hidden' }}>
       <span style={{ display: 'block', height: '100%', width: Math.max(2, Math.min(100, pct)) + '%', background: color, borderRadius: 6, transition: 'width .3s' }} />
@@ -78,7 +78,7 @@ function CfTrack({ pct, color = 'var(--blue)', h = 8 }) {
   );
 }
 
-function CfMeta({ icon, label, value, accent }) {
+function CfMeta({ icon, label, value, accent }: any) {
   return (
     <div className="row ac gap8" style={{ minWidth: 0 }}>
       <span style={{ color: 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{React.createElement(I[icon], { size: 14 })}</span>
@@ -91,7 +91,7 @@ function CfMeta({ icon, label, value, accent }) {
 }
 
 /* ---- Reconciliation worksheet (reusable, shared state) ---- */
-function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }) {
+function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }: any) {
   const { fmt } = AMS;
   const variance = (item.resp != null ? item.resp - item.amount : 0);
   const rows = recon[item.id] || [];
@@ -153,7 +153,7 @@ function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }) {
 }
 
 /* ---- Alternative procedures (reusable, shared state) ---- */
-function CfAltProcedures({ item, checks, setChecks, onResolve }) {
+function CfAltProcedures({ item, checks, setChecks, onResolve }: any) {
   const list = cfAltList(item.type);
   const state = checks[item.id] || list.map(() => false);
   const done = state.filter(Boolean).length;
@@ -186,7 +186,7 @@ function CfAltProcedures({ item, checks, setChecks, onResolve }) {
 }
 
 /* ---- Reliability validation (SA 505 ¶10-11) ---- */
-function CfReliability({ item, checks, setChecks }) {
+function CfReliability({ item, checks, setChecks }: any) {
   const def = item.validated ? CF_RELIABILITY.map(() => true) : CF_RELIABILITY.map((_, i) => i < 2);
   const state = checks[item.id] || def;
   const done = state.filter(Boolean).length;

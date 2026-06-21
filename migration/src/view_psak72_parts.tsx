@@ -51,7 +51,7 @@ const P72_STEP5_POINT = [
   { k: '¶38(e)', t: 'Pelanggan telah menerima aset', ok: true },
 ];
 
-function P72StepHead({ n, title, cite, accent }) {
+function P72StepHead({ n, title, cite, accent }: any) {
   return (
     <div className="row ac gap10" style={{ marginBottom: 9 }}>
       <span className="mono" style={{ flex: '0 0 26px', width: 26, height: 26, borderRadius: 8, display: 'grid', placeItems: 'center', background: accent || 'var(--navy)', color: '#fff', fontWeight: 700, fontSize: 13 }}>{n}</span>
@@ -63,7 +63,7 @@ function P72StepHead({ n, title, cite, accent }) {
   );
 }
 
-function P72CritRow({ k, t, ok, last }) {
+function P72CritRow({ k, t, ok, last }: any) {
   return (
     <div className="row gap9" style={{ padding: '7px 0', alignItems: 'flex-start', borderTop: '1px solid var(--line-soft)' }}>
       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, display: 'grid', placeItems: 'center', background: ok ? 'var(--green)' : '#fff', border: '1.5px solid ' + (ok ? 'var(--green)' : 'var(--line-strong)') }}>
@@ -155,7 +155,7 @@ function P72_FiveStep({ rev, sc, fmt }) {
 }
 
 /* ===== Alokasi SSP (¶73-80) ===== */
-function P72_SspTable({ rev, sc, fmt, embedded }) {
+function P72_SspTable({ rev, sc, fmt, embedded }: any) {
   const c = rev.contract;
   const table = (
     <div style={{ overflowX: 'auto' }}>

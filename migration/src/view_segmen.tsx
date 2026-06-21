@@ -54,7 +54,7 @@ function SegmentInfo() {
     const byId = {}; rev.streams.forEach(s => { byId[s.id] = s; });
 
     let segRevSum = 0, segResSum = 0, segAssetSum = 0, segLiabSum = 0;
-    const segs = SEG_MAP.map(sm => {
+    const segs: any[] = SEG_MAP.map(sm => {
       const revenue = sm.streams.reduce((a, id) => a + ((byId[id] || {}).amount || 0), 0);
       const result = Math.round(revenue * sm.margin);
       segRevSum += revenue; segResSum += result;

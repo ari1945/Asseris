@@ -71,7 +71,7 @@ const ASR_ENG = [
    socEngine (SJAH 3402) agar hal pokok & simpulan konsisten dengan modul penuh. */
 (function syncAsr081FromSocEngine() {
   try {
-    const eng = AMS && AMS.socEngine && AMS.socEngine();
+    const eng = AMS && (AMS as any).socEngine && (AMS as any).socEngine();
     if (!eng) return;
     const a = ASR_ENG.find(e => e.id === 'ASR-081');
     if (!a) return;
@@ -86,7 +86,7 @@ const ASR_ENG = [
    konsisten dengan modul penuh (mis. Scope 2 tak lagi berbeda antar modul). */
 (function syncAsr080FromGhgEngine() {
   try {
-    const eng = AMS && AMS.ghgEngine && AMS.ghgEngine();
+    const eng = AMS && (AMS as any).ghgEngine && (AMS as any).ghgEngine();
     if (!eng) return;
     const a = ASR_ENG.find(e => e.id === 'ASR-080');
     if (!a) return;

@@ -7,7 +7,7 @@ import { useAudit, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { P72_ContractBal, P72_FiveStep, P72_SspTable } from './view_psak72_parts.jsx';
+import { P72_ContractBal, P72_FiveStep, P72_SspTable } from './view_psak72_parts';
 
 /* ============================================================
    NeoSuite AMS — PSAK 72 · Pendapatan dari Kontrak dengan Pelanggan
@@ -66,7 +66,7 @@ const P72_DISCLOSURE = [
   { id: 'q91',  ref: '¶91',  t: 'Biaya perolehan & pemenuhan kontrak yang dikapitalisasi', ok: true, na: true },
 ];
 
-function RevCard({ value, unit, label, sub, accent }) {
+function RevCard({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
@@ -79,7 +79,7 @@ function RevCard({ value, unit, label, sub, accent }) {
   );
 }
 
-function P72BridgeRow({ label, v, cite, sc, sub, total, vc, memo }) {
+function P72BridgeRow({ label, v, cite, sc, sub, total, vc, memo }: any) {
   const strong = sub || total;
   return (
     <tr style={{
@@ -131,7 +131,7 @@ function PSAK72View() {
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
-  const riskRev = ((AMS && AMS.RISKS) || []).find(r => r.id === 'R-01');
+  const riskRev = (((AMS && AMS.RISKS) as any[]) || []).find(r => r.id === 'R-01');
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };

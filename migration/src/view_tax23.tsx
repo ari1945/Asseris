@@ -310,7 +310,7 @@ function T23Reconcile({ opts, nav }) {
   const s = T.summary(opts);
   const tie = T.glTieOut(opts);
   const prov = T.provenance(opts);
-  const firmtaxAgg = (AMS.PPH_WITHHELD || []).find(p => p.jenis === 'PPh 23');
+  const firmtaxAgg = ((AMS.PPH_WITHHELD as any[]) || []).find(p => p.jenis === 'PPh 23');
 
   const flow = [
     { ic: 'cart', lbl: 'Master Vendor & AP', sub: 'BO.VENDORS · FIRM_AP', mod: 'procurement', color: 'var(--blue)' },

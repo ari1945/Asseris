@@ -15,7 +15,7 @@ import { RowKv } from './view_calc.jsx';
      · RoPA — registri aktivitas pemrosesan + dasar pemrosesan/persetujuan
      · Hak Subjek Data (DSR) — akses, perbaikan, penghapusan, dll.
      · Notifikasi insiden kebocoran ≤ 3×24 jam (Ps. 46)
-   Semua data ditarik dari satu sumber AMS_CANON.pdp(); retensi data
+   Semua data ditarik dari satu sumber (AMS_CANON as any).pdp(); retensi data
    pribadi tetap mengacu kelas 'pmpj' di modul Retensi & Arsip.
    ============================================================ */
 const { useState: useStatePDP, useMemo: useMemoPDP } = React;
@@ -37,7 +37,7 @@ function PdpCard({ value, label, sub, accent }) {
 function PDPView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const P = useMemoPDP(() => AMS_CANON.pdp(), []);
+  const P = useMemoPDP(() => (AMS_CANON as any).pdp(), []);
   const [tab, setTab] = useStatePDP(() => loader('ams.pdp.tab', 'ropa'));
   const [selRopa, setSelRopa] = useStatePDP(null);
   React.useEffect(() => { try { localStorage.setItem('ams.pdp.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
@@ -73,7 +73,7 @@ function PDPView() {
             <div className="seg" style={{ width: 'fit-content', flexWrap: 'wrap' }}>
               {TABS.map(t => <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>{t.label}{t.count ? ' · ' + t.count : ''}</button>)}
             </div>
-            <span className="tiny muted">Satu sumber: <span className="mono">AMS_CANON.pdp()</span></span>
+            <span className="tiny muted">Satu sumber: <span className="mono">(AMS_CANON as any).pdp()</span></span>
           </div>
 
           {/* ===== TAB · RoPA ===== */}
@@ -257,7 +257,7 @@ function PDPView() {
           )}
 
           <div className="tiny muted" style={{ padding: '0 2px 4px', lineHeight: 1.5 }}>
-            Modul mengoperasionalkan UU 27/2022 (PDP) di sisi data klien & firma — di luar retensi yang sudah ada: registri aktivitas pemrosesan (RoPA) berikut dasar pemrosesan/persetujuan, pemenuhan hak subjek data, dan alur notifikasi kebocoran ≤ 3×24 jam ke subjek & Lembaga PDP. Masa simpan tetap merujuk kelas retensi <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('records', { from: 'pdp' })}>Retensi &amp; Arsip</span>; keamanan teknis di <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('crypto', { from: 'pdp' })}>Compliance &amp; Kriptografi</span>. Angka ditarik dari satu sumber <span className="mono">AMS_CANON.pdp()</span>.
+            Modul mengoperasionalkan UU 27/2022 (PDP) di sisi data klien & firma — di luar retensi yang sudah ada: registri aktivitas pemrosesan (RoPA) berikut dasar pemrosesan/persetujuan, pemenuhan hak subjek data, dan alur notifikasi kebocoran ≤ 3×24 jam ke subjek & Lembaga PDP. Masa simpan tetap merujuk kelas retensi <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('records', { from: 'pdp' })}>Retensi &amp; Arsip</span>; keamanan teknis di <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('crypto', { from: 'pdp' })}>Compliance &amp; Kriptografi</span>. Angka ditarik dari satu sumber <span className="mono">(AMS_CANON as any).pdp()</span>.
           </div>
         </div>
       </div>

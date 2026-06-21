@@ -5,7 +5,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical.jsx';
-import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWorksheet, CfReliability, CfTrack, STATUS_KIND } from './view_confirm_parts.jsx';
+import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWorksheet, CfReliability, CfTrack, STATUS_KIND } from './view_confirm_parts';
 
 /* ============================================================
    NeoSuite AMS — Confirmation Hub (Pusat Konfirmasi Pihak Ketiga)
@@ -118,7 +118,7 @@ function CfDetailPanel(props) {
 }
 
 /* ---------- Tab 1 · Ringkasan ---------- */
-function CfOverview({ items, segs, rate, onJump }) {
+function CfOverview({ items, segs, rate, onJump }: any) {
   const { fmt } = AMS;
   const responded = items.filter(c => c.resp != null).length;
   const concluded = items.filter(c => c.status === 'Received').length;

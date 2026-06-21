@@ -16,8 +16,8 @@ const { useState: useStateF1, useMemo: useMemoF1 } = React;
 /* ---------------- Firm General Ledger ---------------- */
 function FirmGL() {
   const { fmt } = AMS;
-  const coa = AMS.FIRM_COA;
-  const [gl, setGl] = useAmsPersist('firmgl', () => AMS.FIRM_GL);
+  const coa: any = AMS.FIRM_COA;
+  const [gl, setGl] = useAmsPersist('firmgl', () => AMS.FIRM_GL) as any;
   const [tab, setTab] = useStateF1('journal');
   const [form, setForm] = useStateF1(false);
   const [ledAcct, setLedAcct] = useStateF1('1-100');
@@ -41,7 +41,7 @@ function FirmGL() {
   const ledger = useMemoF1(() => {
     const acct = coa.find(a => a.code === ledAcct) || coa[0];
     const posts = posted.filter(j => j.dr === acct.code || j.cr === acct.code)
-      .slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+      .slice().sort((a, b) => +new Date(a.date) - +new Date(b.date));
     let movement = 0;
     const lines = posts.map(j => {
       const dr = j.dr === acct.code ? j.amount : 0;
@@ -236,7 +236,7 @@ function FirmGL() {
 
           {tab === 'coa' && (
             <div style={{ padding: 12 }}>
-              {Object.entries(tbByType).map(([type, accts]) => (
+              {Object.entries(tbByType).map(([type, accts]: [string, any]) => (
                 <div key={type} style={{ marginBottom: 14 }}>
                   <div className="upper tiny" style={{ fontWeight: 700, color: 'var(--blue)', marginBottom: 6 }}>{type}</div>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 8 }}>
@@ -308,7 +308,7 @@ function AgingStrip({ items, getDue, getOut }) {
   const buckets = AGING_BUCKETS.map(b => ({ ...b, v: 0, n: 0 }));
   items.forEach(it => {
     const out = getOut(it); if (out <= 0) return;
-    const dOver = Math.round((REF - new Date(getDue(it))) / 864e5);
+    const dOver = Math.round((+REF - +new Date(getDue(it))) / 864e5);
     const b = buckets.find(x => dOver > x.lo && dOver <= x.hi) || buckets[0];
     b.v += out; b.n += 1;
   });
@@ -333,7 +333,7 @@ function FirmAPAR() {
   const nav = useNav();
   const [tab, setTab] = useStateF1('ap');
   const [ap, setAp] = useAmsPersist('firmap', () => AMS.FIRM_AP);
-  const ar = AMS.INVOICES;
+  const ar: any = AMS.INVOICES;
   const REF = new Date('2026-03-09');
 
   const apOutstanding = ap.filter(x => x.status !== 'Paid').reduce((s, x) => s + (x.amount - x.paid), 0);
@@ -344,7 +344,7 @@ function FirmAPAR() {
   const payAp = (id) => setAp(list => list.map(x => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
 
   // DSO / DPO (approx): outstanding / annualized revenue|cost × 365 — basis kanonik (FIRMFIN)
-  const FFp = (FIRMFIN && FIRMFIN.pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
+  const FFp = (FIRMFIN && (FIRMFIN as any).pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
   const annualRev = FFp.revenue, annualPurch = FFp.totalExpense - FFp.salary;
   const dso = Math.round(arOutstanding / annualRev * 365);
   const dpo = Math.round(apOutstanding / annualPurch * 365);
@@ -358,8 +358,8 @@ function FirmAPAR() {
 
   const tabs = [{ id: 'ap', label: 'Utang (AP)', count: ap.filter(x => x.status !== 'Paid').length }, { id: 'ar', label: 'Piutang (AR)', count: ar.filter(x => x.status !== 'Paid' && x.status !== 'Draft').length }];
 
-  const apRows = ap.map(x => ({ ...x, out: x.amount - x.paid, dOver: Math.round((REF - new Date(x.due)) / 864e5) }));
-  const arRows = ar.filter(x => x.status !== 'Draft').map(x => ({ ...x, out: x.amount - x.paid, dOver: Math.round((REF - new Date(x.due)) / 864e5) }));
+  const apRows = ap.map(x => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
+  const arRows = ar.filter(x => x.status !== 'Draft').map(x => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
 
   return (
     <>
@@ -437,7 +437,7 @@ function FirmAPAR() {
                 {Object.values(arRows.filter(x => x.out > 0).reduce((m, x) => {
                   const k = x.client.replace('PT ', '');
                   (m[k] = m[k] || { k, v: 0 }).v += x.out; return m;
-                }, {})).sort((a, b) => b.v - a.v).map((c, i) => {
+                }, {} as any)).sort((a: any, b: any) => b.v - a.v).map((c: any, i: number) => {
                   const mx = arOutstanding || 1;
                   return (
                     <div key={c.k} style={{ marginBottom: 9 }}>

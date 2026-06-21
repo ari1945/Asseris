@@ -30,18 +30,18 @@ const DMS_ENGS = [
   { id: 'ENG-2021-008', client: 'PT Bumi Hijau Lestari' },
 ];
 const REF = new Date('2026-03-09');
-const dDate = (d, opt) => d ? new Date(d).toLocaleDateString('id-ID', opt || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const dDate = (d: any, opt?: any) => d ? new Date(d).toLocaleDateString('id-ID', opt || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 function retentionInfo(d) {
   if (!d.archivedOn) return null;
   const until = new Date(d.archivedOn); until.setFullYear(until.getFullYear() + d.retentionYears);
-  const yrsLeft = (until - REF) / (365.25 * 864e5);
+  const yrsLeft = (+until - +REF) / (365.25 * 864e5);
   return { until, yrsLeft, expired: yrsLeft <= 0, pct: Math.max(0, Math.min(100, (1 - yrsLeft / d.retentionYears) * 100)) };
 }
 function assemblyInfo(d) {
   if (!d.opinionDate || d.assembly === 'complete') return null;
   const deadline = new Date(d.opinionDate); deadline.setDate(deadline.getDate() + 60);
-  const daysLeft = Math.round((deadline - REF) / 864e5);
+  const daysLeft = Math.round((+deadline - +REF) / 864e5);
   return { deadline, daysLeft };
 }
 
@@ -61,7 +61,7 @@ function UploadModal({ onClose, onAdd }) {
     const first = metas.find(m => m.ok) || metas[0];
     if (first && !f.name) set('name', first.name.replace(/\.[a-z0-9]+$/i, ''));
   };
-  const cls = okFiles[0] && window.classifyDoc ? window.classifyDoc(okFiles[0].name, {}, 0) : null;
+  const cls = okFiles[0] && (window as any).classifyDoc ? (window as any).classifyDoc(okFiles[0].name, {}, 0) : null;
   return (
     <PModal icon="upload" title="Unggah Dokumen ke DMS" sub="Terenkripsi AES-256 · klasifikasi & retensi otomatis sesuai ISQM" onClose={onClose} width={560}
       footer={<><Btn onClick={onClose}>Batal</Btn><Btn variant="primary" disabled={!valid} onClick={() => valid && onAdd({ ...f, files: okFiles })}><I.upload size={14} /> Unggah & Arsipkan</Btn></>}>
@@ -152,7 +152,7 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }) {
         {/* Keamanan & integritas */}
         {(() => {
           const locked = d.assembly === 'complete' || d.legalHold;
-          const hash = d.sha256 || (window.amsFakeHash ? window.amsFakeHash(d.id + d.name) : '—');
+          const hash = d.sha256 || ((window as any).amsFakeHash ? (window as any).amsFakeHash(d.id + d.name) : '—');
           const SecRow = ({ ic, label, value, ok = true }) => (
             <div className="row ac gap8" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
               <span style={{ color: ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 16px' }}>{React.createElement(I[ic] || I.circle, { size: 14 })}</span>
@@ -250,14 +250,14 @@ function DocManagement() {
   const addDoc = (f) => {
     const id = 'DOC-' + String(700 + Math.floor(Math.random() * 299)).padStart(4, '0');
     const engObj = DMS_ENGS.find(e => e.id === f.eng);
-    const meta = (f.files && f.files[0]) || window.amsFileMeta({ name: f.name + '.pdf' });
+    const meta = (f.files && f.files[0]) || (window as any).amsFileMeta({ name: f.name + '.pdf' });
     const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: '2026-03-09', sizeMB: meta.sizeMB, retentionYears: f.retentionYears, archivedOn: '2026-03-09', legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
       sha256: meta.sha256, scan: 'clean', enc: 'AES-256', uploadedVia: 'DMS',
       versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: '2026-03-09', sizeMB: meta.sizeMB, sha256: meta.sha256, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
       access: [['Anindya Pramesti', 'edit', pNowTime()], ['Sistem', 'scan', pNowTime()]],
       linkedWP: f.linkedWP ? f.linkedWP.split(',').map(s => s.trim()).filter(Boolean) : [] };
     setDocs(list => [nd, ...list]); setShowUpload(false); setSelId(id);
-    if (window.amsAttachEvidence) window.amsAttachEvidence(DMS_TYPE_MODULE[f.type] || 'dms', { file: meta.name, type: 'Dokumen DMS · ' + f.type, std: f.classification, classified: 'dms', sha256: meta.sha256, scan: 'clean' });
+    if ((window as any).amsAttachEvidence) (window as any).amsAttachEvidence(DMS_TYPE_MODULE[f.type] || 'dms', { file: meta.name, type: 'Dokumen DMS · ' + f.type, std: f.classification, classified: 'dms', sha256: meta.sha256, scan: 'clean' });
   };
 
   const onHold = docs.filter(d => d.legalHold);
@@ -269,7 +269,7 @@ function DocManagement() {
   const folders = useMemoDMS(() => {
     const map = {};
     docs.forEach(d => { (map[d.eng] = map[d.eng] || { eng: d.eng, client: d.client, count: 0 }).count++; });
-    return Object.values(map).sort((a, b) => b.eng.localeCompare(a.eng));
+    return (Object.values(map) as any[]).sort((a: any, b: any) => b.eng.localeCompare(a.eng));
   }, [docs]);
 
   const tabs = [

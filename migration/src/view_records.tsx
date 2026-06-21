@@ -18,7 +18,7 @@ import { KV, SectionTitle } from './view_fpm_parts.jsx';
 const { useState: useStateRR, useMemo: useMemoRR } = React;
 
 /* ---- format helpers ---- */
-const rrDID = (d, o) => d ? new Date(d).toLocaleDateString('id-ID', o || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const rrDID = (d: any, o?: any) => d ? new Date(d).toLocaleDateString('id-ID', o || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const rrSize = (mb) => mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : Math.round(mb) + ' MB';
 const ARK_KIND = { 'Terkunci': 'green', 'Perakitan': 'amber', 'Jatuh Tempo': 'amber', 'Legal Hold': 'red' };
 function ArkBadge({ s }) {

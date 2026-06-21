@@ -163,7 +163,7 @@ function NewDisclosures2024() {
                   ].map((r, i) => (
                     <div key={i} className="row jb ac" style={{ padding: '8px 10px', borderBottom: '1px solid var(--line-soft)' }}>
                       <span style={{ fontSize: 12.5 }}>{r[0]}</span>
-                      <span className="mono" style={{ fontWeight: 600 }}>{fmt(r[1], 0)}</span>
+                      <span className="mono" style={{ fontWeight: 600 }}>{fmt(r[1] as any, 0)}</span>
                     </div>
                   ))}
                 </div>

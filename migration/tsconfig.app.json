@@ -133,7 +133,27 @@
     "src/view_sa800.tsx",
     "src/view_sa805.tsx",
     "src/view_sa810.tsx",
-    "src/view_serviceorg.tsx"
+    "src/view_serviceorg.tsx",
+    "src/view_assoc.tsx",
+    "src/view_confirm.tsx",
+    "src/view_confirm_parts.tsx",
+    "src/view_delivery.tsx",
+    "src/view_dms.tsx",
+    "src/view_newdisc.tsx",
+    "src/view_opening.tsx",
+    "src/view_pdp.tsx",
+    "src/view_pppk.tsx",
+    "src/view_profit.tsx",
+    "src/view_psak72.tsx",
+    "src/view_psak72_parts.tsx",
+    "src/view_records.tsx",
+    "src/view_sa2comm.tsx",
+    "src/view_segmen.tsx",
+    "src/view_specifics2.tsx",
+    "src/view_tax23.tsx",
+    "src/view_sjah3000.tsx",
+    "src/view_spr2400.tsx",
+    "src/view_firmgl.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -17,10 +17,10 @@ const DLV_PHASE_COLOR = { Perencanaan: 'var(--purple)', Eksekusi: 'var(--blue)',
 const DLV_MS_COLOR = { done: 'var(--green)', due: 'var(--amber)', upcoming: 'var(--ink-4)' };
 const DLV_d = (s) => new Date(s + 'T00:00:00');
 const DLV_fmtDate = (s) => DLV_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-const DLV_daysTo = (s, today) => Math.round((DLV_d(s) - DLV_d(today)) / 864e5);
+const DLV_daysTo = (s, today) => Math.round((+DLV_d(s) - +DLV_d(today)) / 864e5);
 
 function DeliveryMilestones() {
-  const { fmt, DELIVERY, DELIVERY_WINDOW, ENGAGEMENTS, CLIENTS } = AMS;
+  const { fmt, DELIVERY, DELIVERY_WINDOW, ENGAGEMENTS, CLIENTS } = AMS as any;
   const win = DELIVERY_WINDOW;
   const t0 = DLV_d(win.start).getTime(), t1 = DLV_d(win.end).getTime();
   const span = t1 - t0;
@@ -57,7 +57,7 @@ function DeliveryMilestones() {
   const shown = filter === 'Semua' ? rows : filter === 'Aktif' ? rows.filter(r => r.e.status !== 'Completed') : rows.filter(r => DLV_daysTo(r.e.deadline, today) <= 14 && r.e.progress < 85 && r.e.status !== 'Completed');
 
   const upcoming = allMs.filter(m => m.status !== 'done')
-    .sort((a, b) => DLV_d(a.date) - DLV_d(b.date)).slice(0, 7);
+    .sort((a, b) => +DLV_d(a.date) - +DLV_d(b.date)).slice(0, 7);
 
   const selRow = sel ? rows.find(r => r.id === sel) : null;
 
