@@ -1,0 +1,80 @@
+# W10.1 — deploy-smoke: the gate the sqlite-only CI lacked. Builds the container image from
+# server/Dockerfile and boots the FULL compose stack (server + postgres:16), then asserts the
+# deploy chain `db push → healthz → seed → login`. This is the only job that actually exercises
+# the Docker artifact + the Postgres path + the migration `.js→.ts` seed surface, so it catches
+# the class of footgun that slipped past static review and the sqlite tests (e.g. the missing
+# `COPY migration/package.json` that crashed boot — found 2026-06-21). See BUILD.md §W10.
+#
+# Separate workflow (not a job in ci.yml) so the `paths:` filter scopes to deploy-relevant files
+# only — a docs-only commit doesn't pay the ~3-4 min image build. ci.yml stays untouched.
+name: deploy-smoke
+
+# NOTE: paths list is duplicated on purpose — GitHub Actions does not reliably expand YAML
+# anchors/aliases, so keep these two blocks in sync by hand.
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'server/**'
+      - 'migration/**'
+      - 'docker-compose.yml'
+      - '.dockerignore'
+      - '.github/workflows/deploy-smoke.yml'
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'migration/**'
+      - 'docker-compose.yml'
+      - '.dockerignore'
+      - '.github/workflows/deploy-smoke.yml'
+
+jobs:
+  deploy-smoke:
+    name: docker build + postgres boot + healthz/seed/login
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-smoke-pw   # ephemeral CI DB, dropped via `down -v` every run
+      COOKIE_SECURE: "0"               # HTTP on the runner
+    steps:
+      - uses: actions/checkout@v4
+
+      # totpSecret-at-rest key (AES-256-GCM). Generated per-run; never persisted.
+      - name: generate APP_ENCRYPTION_KEY
+        run: echo "APP_ENCRYPTION_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      # Builds server/Dockerfile (catches COPY/dep/ESM footguns) and starts db + server.
+      # compose's start command runs `prisma db push` against postgres:16, then `npm start`.
+      - name: build image + up stack
+        run: docker compose up --build -d
+
+      # Server boot = wait for db healthy → db push → tsx start. Poll up to ~120s.
+      - name: wait for healthz
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS localhost:5181/healthz; then echo; echo "healthz up after $((i*3))s"; exit 0; fi
+            sleep 3
+          done
+          echo "healthz never came up within ~120s"; exit 1
+
+      # The W11 regression surface: seedData.ts imports migration/src/data.js → data.ts and
+      # data_import.js → data_import.ts. A green seed proves tsx resolves `.js→.ts` in-container
+      # AND that the Postgres write path works. (Dev creds; DB is ephemeral.)
+      - name: seed (proves tsx .js→.ts + Postgres writes)
+        run: docker compose run --rm server npm run seed
+
+      # Full chain: server reads seeded Postgres, verifies the scrypt hash, issues a session.
+      - name: assert healthz db:up + login returns a token
+        run: |
+          curl -fsS localhost:5181/healthz | grep -q '"db":"up"'
+          curl -fsS -X POST 'localhost:5181/auth.login?batch=1' \
+            -H 'content-type: application/json' \
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
+            | grep -q '"token"'
+
+      - name: dump compose logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: teardown (always — ephemeral CI DB)
+        if: always()
+        run: docker compose down -v

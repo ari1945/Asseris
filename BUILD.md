@@ -258,8 +258,12 @@ APP_SIGNING_KEY=<base64 PKCS8 Ed25519>   # W10.5 — signs export seals; unset =
   does not provide an export named 'CAP'` at boot. Fixed by adding `COPY migration/package.json
   ./migration/package.json` in the Dockerfile before `COPY migration/src`. (Live-proven: the fix
   resolved the boot crash; `curl /healthz` now returns 200.)
-- **Honest gaps:** (1) CI (`ci.yml`) exercises **sqlite only** — the Postgres path has no automated
-  proof; a `services: postgres` CI job (db push + seed against `postgres:16`) would close it.
+- **Honest gaps:** (1) ~~CI exercises sqlite only~~ — **addressed (W10.1):** `.github/workflows/
+  deploy-smoke.yml` builds the image from `server/Dockerfile`, boots the compose stack against
+  `postgres:16`, then asserts `db push → healthz → seed → login` (paths-filtered to deploy files).
+  Its command chain is **locally validated** (each step run by hand 2026-06-21), but it has **not yet
+  run on GitHub Actions** — the repo has **no remote**, so neither `ci.yml` nor `deploy-smoke.yml` has
+  ever executed on Actions. They are ready artifacts that activate when the repo gains a GitHub home.
   (2) prod runs TS via `tsx` (transpile-on-run), not a compiled `dist/` — acceptable at this scale.
 
 **Live container smoke — DONE (2026-06-21, Docker Desktop / WSL2 backend).** The full chain is now
