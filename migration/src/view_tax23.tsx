@@ -5,7 +5,7 @@ import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
-import { RowKv } from './view_calc.jsx';
+import { RowKv } from './view_calc';
 
 /* ============================================================
    NeoSuite AMS — Modul Pajak PPh Pasal 23 (Firm Backoffice)

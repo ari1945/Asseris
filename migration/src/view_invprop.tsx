@@ -5,7 +5,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
-import { SectionTitle } from './view_fpm_parts.jsx';
+import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Properti Investasi (PSAK 13 / IAS 40 → PSAK 240)

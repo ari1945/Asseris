@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
-import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
+import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
 
 /* ============================================================
@@ -22,10 +22,10 @@ const boBadge = {
   Ditolak: 'red', Diblokir: 'red', Terlambat: 'red', 'Legal Hold': 'red', Ditahan: 'red', Tinggi: 'red', 'Gagal — pajak': 'red',
   Putusan: 'gray', Dicabut: 'gray', Sedang: 'amber', Rendah: 'green',
 };
-const BoBadge = ({ s }) => <span className={'badge b-' + (boBadge[s] || 'gray')}>{s}</span>;
+const BoBadge = ({ s }: any) => <span className={'badge b-' + (boBadge[s] || 'gray')}>{s}</span>;
 
 /* tabbed panel scaffold */
-function BoTabPanel({ tabs, tab, setTab, children }) {
+function BoTabPanel({ tabs, tab, setTab, children }: any) {
   return (
     <Panel noBody>
       <div className="panel-h" style={{ padding: 0, background: 'var(--surface-2)' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
@@ -33,7 +33,7 @@ function BoTabPanel({ tabs, tab, setTab, children }) {
     </Panel>
   );
 }
-function BoStat({ value, label, accent }) {
+function BoStat({ value, label, accent }: any) {
   return <Panel><div style={{ padding: '11px 14px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
 }
 

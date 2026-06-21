@@ -4,7 +4,7 @@ import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — Penggunaan Pekerjaan Audit Internal (SA 610)

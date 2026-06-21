@@ -5,7 +5,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — People & Compliance (NEW)

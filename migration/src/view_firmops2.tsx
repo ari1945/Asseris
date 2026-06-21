@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import { AMS } from './data';
 import { I } from './icons.jsx';
-import { BoBadge, boJt } from './view_bo1.jsx';
-import { PDrawer } from './view_docparts.jsx';
-import { KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BoBadge, boJt } from './view_bo1';
+import { PDrawer } from './view_docparts';
+import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Cockpit Operasi Firma · tab lanjutan

@@ -5,8 +5,8 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
-import { RowKv } from './view_calc.jsx';
+import { KvBox } from './view_analytical';
+import { RowKv } from './view_calc';
 
 /* ============================================================
    NeoSuite AMS — Pelindungan Data Pribadi (UU 27/2022 · PDP)

@@ -5,7 +5,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
-import { OKv } from './view_onboarding.jsx';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Pelaporan PPPK (P2PK Kemenkeu)

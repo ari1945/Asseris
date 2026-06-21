@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWorksheet, CfReliability, CfTrack, STATUS_KIND } from './view_confirm_parts';
 
 /* ============================================================

@@ -4,8 +4,8 @@ import { AMS } from './data';
 import { useAmsPersist } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Donut, Panel, Progress, Stat } from './ui.jsx';
-import { Funnel } from './view_fpm_parts.jsx';
-import { obAccScore, obAccVerdict, obStage } from './view_onboarding.jsx';
+import { Funnel } from './view_fpm_parts';
+import { obAccScore, obAccVerdict, obStage } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Client Onboarding · extra tabs

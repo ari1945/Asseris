@@ -5,7 +5,7 @@ import { useAmsPersist, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
 
 /* ============================================================

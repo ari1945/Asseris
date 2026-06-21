@@ -2,8 +2,8 @@
 import React from 'react';
 import { I } from './icons.jsx';
 import { Panel } from './ui.jsx';
-import { BoBadge, boJt, boM } from './view_bo1.jsx';
-import { KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BoBadge, boJt, boM } from './view_bo1';
+import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Aset & Fasilitas (DEEP) · 2/2

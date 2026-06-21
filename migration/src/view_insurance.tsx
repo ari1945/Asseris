@@ -4,8 +4,8 @@ import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
-import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
-import { KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
+import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Asuransi (PII) & Manajemen Risiko (DEEP)

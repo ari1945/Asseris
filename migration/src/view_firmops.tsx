@@ -5,11 +5,11 @@ import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel } from './ui.jsx';
-import { BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
+import { BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { FopsCalendar, FopsLineage, FopsVendorDrawer, FopsVendors } from './view_firmops2';
 import { BO } from './data_backoffice';
 import { LEGAL } from './data_legal';
-import { SectionTitle } from './view_fpm_parts.jsx';
+import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Cockpit Operasi Firma (Backoffice & Firm Mgmt)

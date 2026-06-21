@@ -7,7 +7,7 @@ import { I, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Panel, Stat } from './ui.jsx';
 import { DFAturan, DFJejak, DFPropagasi } from './view_dataflow2';
-import { MSub } from './view_fpm_parts.jsx';
+import { MSub } from './view_fpm_parts';
 import { DFRekonsiliasi } from './view_reconcile';
 
 /* ============================================================

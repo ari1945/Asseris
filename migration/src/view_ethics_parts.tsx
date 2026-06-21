@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Panel, Stat } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — Etika: NOCLAR profesi · Etika Pajak & Teknologi ·

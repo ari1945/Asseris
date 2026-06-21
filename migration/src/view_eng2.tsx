@@ -5,7 +5,7 @@ import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
 import { EngagementDetail } from './view_firm';
-import { HBars } from './view_fpm_parts.jsx';
+import { HBars } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Engagement Management · extra tabs

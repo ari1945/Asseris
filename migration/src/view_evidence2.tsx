@@ -2,7 +2,7 @@
 import React from 'react';
 import { I } from './icons.jsx';
 import { Badge, Donut, Panel, Progress, Seg, Stat } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — SA 500 · Bukti Audit (Pendalaman)

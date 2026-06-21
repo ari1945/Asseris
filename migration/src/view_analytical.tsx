@@ -57,7 +57,7 @@ function arDerive(wtb, pm) {
     debt: ['2-1200', '2-2100', '2-2200', '2-1500'], cash: ['1-1100'],
   };
   /* agg[name] = [y23,y24,y25]; assets +, liab/eq/rev stored negative → abs where needed */
-  const A = {};
+  const A: any = {};
   const triple = fn => [0, 1, 2].map(fn);
   A.sales = triple(i => -v('4-1100', i));
   A.cogs = triple(i => v('5-1100', i));
@@ -179,7 +179,7 @@ function AnalyticalReview() {
 /* ============================================================
    TAB · Ringkasan (overview, SA 520 stage tracker, risk signals)
    ============================================================ */
-function ARSummary({ der, pm, ct, risks, eng, client, fmt }) {
+function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
   const [memo, setMemo] = window.useAmsPersist('ar.memo.' + eng.id, '');
   /* "unexpected" fluctuation = material AND unusual %  → genuine exceptions to investigate */
   const rows = der.flux.map(r => ({ ...r, flagged: Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
@@ -293,7 +293,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }) {
 /* ============================================================
    TAB · Fluktuasi (the classic flux table + expectation modeling)
    ============================================================ */
-function FluxTab({ der, pm, fmt }) {
+function FluxTab({ der, pm, fmt }: any) {
   const [thr, setThr] = useStateAR(15);
   const [flaggedOnly, setFlaggedOnly] = useStateAR(false);
   const [state, setState] = useStateAR(FLUX_SEED);
@@ -402,7 +402,7 @@ function FluxTab({ der, pm, fmt }) {
   );
 }
 
-function KvBox({ label, v, accent }) {
+function KvBox({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 1 }}>{label}</div>

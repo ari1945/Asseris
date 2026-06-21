@@ -6,8 +6,8 @@ import { FileDropField, FileList, SecurePipeline } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
-import { PDrawer, PEVT, PField, PModal, PVerList, pNowTime } from './view_docparts.jsx';
-import { OKv } from './view_onboarding.jsx';
+import { PDrawer, PEVT, PField, PModal, PVerList, pNowTime } from './view_docparts';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Document Management & Retensi (DMS natif)

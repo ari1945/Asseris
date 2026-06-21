@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
-import { HBars, LineChart } from './view_fpm_parts.jsx';
+import { HBars, LineChart } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Risk Assessment · extra tabs

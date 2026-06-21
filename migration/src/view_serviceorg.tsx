@@ -5,7 +5,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — Service Organization / Organisasi Jasa (SA 402)

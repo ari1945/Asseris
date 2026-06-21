@@ -6,7 +6,7 @@ import { useAmsPersist, useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 import { StdVersionStrip } from './view_ethics_parts';
 import { GAConsol, GAElimReview, GAPackages } from './view_groupaudit_parts';
 

@@ -6,7 +6,7 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
-import { SectionTitle } from './view_fpm_parts.jsx';
+import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Investasi pada Entitas Asosiasi (PSAK 15 / IAS 28 → PSAK 228)

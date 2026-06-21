@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { materialityFor } from './canon_selectors';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
-import { RowKv } from './view_calc.jsx';
+import { RowKv } from './view_calc';
 
 /* ============================================================
    NeoSuite AMS — Evidence Evaluation · SAD Ledger (SA 450)

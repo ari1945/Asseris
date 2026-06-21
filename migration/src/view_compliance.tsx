@@ -3,7 +3,7 @@ import React from 'react';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel } from './ui.jsx';
-import { RowKv } from './view_calc.jsx';
+import { RowKv } from './view_calc';
 
 /* ============================================================
    NeoSuite AMS — Shared Compliance Checklist (SA & PSAK)

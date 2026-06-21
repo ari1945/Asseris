@@ -6,8 +6,8 @@ import { FileDropField, FileList, SecurePipeline } from './evidence.jsx';
 import { I, MODULE_INDEX } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui.jsx';
-import { PEVT, PField, PModal, PThread, PTimeline, PVerList, pNowTime } from './view_docparts.jsx';
-import { OKv } from './view_onboarding.jsx';
+import { PEVT, PField, PModal, PThread, PTimeline, PVerList, pNowTime } from './view_docparts';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Portal Klien / PBC (Prepared By Client)

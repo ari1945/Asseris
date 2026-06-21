@@ -11,7 +11,7 @@ import { I } from './icons.jsx';
 const { useState: useFPM } = React;
 
 /* In-view sub-application tab strip (sits under the SubBar). */
-function MSub({ tabs, active, onChange, right }) {
+function MSub({ tabs, active, onChange, right }: any) {
   return (
     <div className="msub">
       {tabs.map(t => (
@@ -27,7 +27,7 @@ function MSub({ tabs, active, onChange, right }) {
 }
 
 /* Small labelled key/value box (KvBox is not globally exported). */
-function KV({ label, v, accent, sub }) {
+function KV({ label, v, accent, sub }: any) {
   return (
     <div className="panel" style={{ padding: '8px 11px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div>
@@ -38,7 +38,7 @@ function KV({ label, v, accent, sub }) {
 }
 
 /* Section label inside a panel body. */
-function SectionTitle({ children, right }) {
+function SectionTitle({ children, right }: any) {
   return (
     <div className="row ac jb" style={{ margin: '2px 0 9px' }}>
       <span className="tiny muted upper" style={{ letterSpacing: '.06em', fontWeight: 700 }}>{children}</span>
@@ -48,7 +48,7 @@ function SectionTitle({ children, right }) {
 }
 
 /* Horizontal bar list. rows: [{label, value, pct, color, sub, right}] */
-function HBars({ rows, max, fmtVal }) {
+function HBars({ rows, max, fmtVal }: any) {
   const m = max || Math.max(...rows.map(r => r.value), 1);
   return (
     <div style={{ display: 'grid', gap: 9 }}>
@@ -67,7 +67,7 @@ function HBars({ rows, max, fmtVal }) {
 }
 
 /* Vertical funnel. stages: [{label, value, color, n}] */
-function Funnel({ stages }) {
+function Funnel({ stages }: any) {
   const max = Math.max(...stages.map(s => s.value), 1);
   return (
     <div style={{ display: 'grid', gap: 6 }}>
@@ -96,7 +96,7 @@ function Funnel({ stages }) {
 }
 
 /* Semicircle gauge. */
-function FGauge({ value, max = 100, label, color = 'var(--blue)', size = 116, suffix = '' }) {
+function FGauge({ value, max = 100, label, color = 'var(--blue)', size = 116, suffix = '' }: any) {
   const pct = Math.max(0, Math.min(1, value / max));
   const r = size / 2 - 9;
   const circ = Math.PI * r;
@@ -114,7 +114,7 @@ function FGauge({ value, max = 100, label, color = 'var(--blue)', size = 116, su
 }
 
 /* Multi-series line chart with light axis + grid. series: [{name,color,data[]}] */
-function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }) {
+function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }: any) {
   const W = 100, H = 100;
   const max = yMax || Math.max(...series.flatMap(s => s.data)) * 1.12 || 1;
   const n = labels.length;
@@ -159,14 +159,14 @@ function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }) {
 }
 
 /* Small pill for trends / deltas. */
-function Delta({ v, suffix = '%', invert }) {
+function Delta({ v, suffix = '%', invert }: any) {
   const up = v >= 0;
   const good = invert ? !up : up;
   return <span className="mono tiny" style={{ fontWeight: 700, color: good ? 'var(--green)' : 'var(--red)' }}>{up ? '▲' : '▼'} {Math.abs(v)}{suffix}</span>;
 }
 
 /* Horizontal stacked bar (composition). parts: [{value,color,label}] */
-function StackBar({ parts, height = 9 }) {
+function StackBar({ parts, height = 9 }: any) {
   const total = parts.reduce((s, p) => s + p.value, 0) || 1;
   return (
     <div style={{ display: 'flex', height, borderRadius: 5, overflow: 'hidden', background: 'var(--surface-3)' }}>

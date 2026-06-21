@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui.jsx';
-import { OKv } from './view_onboarding.jsx';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Governance (SPM / ISQM 1)

@@ -6,8 +6,8 @@ import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Placeholder, Progress, Seg, Stat } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
-import { RowKv } from './view_calc.jsx';
+import { KvBox } from './view_analytical';
+import { RowKv } from './view_calc';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================

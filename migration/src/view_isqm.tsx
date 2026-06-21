@@ -7,7 +7,7 @@ import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
 import { SoqmAnnualEval, SoqmHeatmap, SoqmInfoComm, SoqmObjectives, SoqmSeverity } from './view_isqm_deep';
 import { SoqmComponents, SoqmFlow, SoqmLineage } from './view_isqm_parts';
-import { OKv } from './view_onboarding.jsx';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Mutu & Regulasi: SOQM Operasional (ISQM 1)

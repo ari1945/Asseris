@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat } from './ui.jsx';
-import { FGauge, Funnel, HBars } from './view_fpm_parts.jsx';
+import { FGauge, Funnel, HBars } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Client CRM · extra tabs

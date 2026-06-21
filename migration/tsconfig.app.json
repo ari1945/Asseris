@@ -227,7 +227,14 @@
     "src/view_firm.tsx",
     "src/view_procurement.tsx",
     "src/view_groupaudit.tsx",
-    "src/view_materiality.tsx"
+    "src/view_materiality.tsx",
+
+    "src/view_docparts.tsx",
+    "src/view_onboarding.tsx",
+    "src/view_bo1.tsx",
+    "src/view_calc.tsx",
+    "src/view_fpm_parts.tsx",
+    "src/view_analytical.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

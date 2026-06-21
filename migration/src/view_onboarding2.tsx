@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { I } from './icons.jsx';
 import { Badge, Btn } from './ui.jsx';
-import { OKv } from './view_onboarding.jsx';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Onboarding steps 2 & 3

@@ -5,7 +5,7 @@ import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Progress, Stat } from './ui.jsx';
-import { MSub } from './view_fpm_parts.jsx';
+import { MSub } from './view_fpm_parts';
 import { StepLetter, StepPMPJ } from './view_onboarding2';
 import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
 
@@ -52,7 +52,7 @@ function obStage(p) {
 const OB_GATE_COLOR = { done: 'var(--green)', progress: 'var(--amber)', reject: 'var(--red)', todo: 'var(--line-strong)' };
 
 /* append a prospect to persisted onboarding list (used by Pipeline handoff) */
-window.amsAddProspect = function (p) {
+(window as any).amsAddProspect = function (p) {
   try {
     const k = 'ams.v1.prospects';
     const cur = JSON.parse(localStorage.getItem(k) || 'null') || AMS.PROSPECTS;
@@ -62,7 +62,7 @@ window.amsAddProspect = function (p) {
 };
 
 /* small key/value box (self-contained) */
-function OKv({ label, v, accent }) {
+function OKv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
@@ -72,7 +72,7 @@ function OKv({ label, v, accent }) {
 }
 
 /* 1–5 score picker */
-function ScorePick({ value, onChange }) {
+function ScorePick({ value, onChange }: any) {
   return (
     <div className="row" style={{ gap: 4 }}>
       {[1, 2, 3, 4, 5].map(n => (
@@ -194,7 +194,7 @@ function ClientOnboarding() {
 /* ============================================================
    DRAWER — stepper rail + active step body
    ============================================================ */
-function OnboardingDrawer({ p, onClose, onPatch }) {
+function OnboardingDrawer({ p, onClose, onPatch }: any) {
   const { fmt } = AMS;
   const g = obGates(p);
   const [step, setStep] = useStateOB(() => obStage(p));
@@ -264,7 +264,7 @@ function OnboardingDrawer({ p, onClose, onPatch }) {
 /* ============================================================
    STEP 1 — Akseptasi & Keberlanjutan (SA 220 / ISQM 1)
    ============================================================ */
-function StepAcceptance({ p, onPatch }) {
+function StepAcceptance({ p, onPatch }: any) {
   const a = p.acceptance;
   const score = obAccScore(p);
   const verdict = obAccVerdict(score);
@@ -345,7 +345,7 @@ function StepAcceptance({ p, onPatch }) {
 /* ============================================================
    STEP 4 — Konversi ke Perikatan
    ============================================================ */
-function StepConvert({ p, onPatch, onClose, goStep }) {
+function StepConvert({ p, onPatch, onClose, goStep }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const { addClient, addEngagement, clientById } = useFirm();
@@ -424,7 +424,7 @@ function StepConvert({ p, onPatch, onClose, goStep }) {
 /* ============================================================
    New prospect form
    ============================================================ */
-function ProspectForm({ onClose, onAdd }) {
+function ProspectForm({ onClose, onAdd }: any) {
   const blankFactors = AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
   const [d, setD] = useStateOB({ name: '', industry: '', city: '', kind: 'Klien Baru', service: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', fee: 600000000, materiality: 1500000000, npwp: '', fyEnd: '31 Desember 2025', deadline: '2026-04-30', budgetHrs: 900, listed: false });
   const set = (k, v) => setD(s => ({ ...s, [k]: v }));
@@ -478,4 +478,4 @@ Object.assign(window, { ClientOnboarding, OnboardingDrawer, StepAcceptance, Step
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { ClientOnboarding, OB_STAGES, OKv, OnboardingDrawer, ProspectForm, ScorePick, StepAcceptance, StepConvert, obAccScore, obAccVerdict, obGates, obStage };
-export const amsAddProspect = window.amsAddProspect;
+export const amsAddProspect = (window as any).amsAddProspect;

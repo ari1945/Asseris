@@ -4,9 +4,9 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Donut, Panel, Tabs } from './ui.jsx';
-import { BoStat } from './view_bo1.jsx';
-import { PDrawer } from './view_docparts.jsx';
-import { KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BoStat } from './view_bo1';
+import { PDrawer } from './view_docparts';
+import { KV, SectionTitle } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Retensi & Arsip (modul mendalam · SA 230 / SPM 1 / ISQM)

@@ -5,7 +5,7 @@ import { useAmsPersist, useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 
 /* ============================================================

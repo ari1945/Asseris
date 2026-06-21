@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useAudit, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
-import { HBars } from './view_fpm_parts.jsx';
+import { HBars } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — Alur Data & Integritas · extra tabs

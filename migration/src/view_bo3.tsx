@@ -5,8 +5,8 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Btn, Donut } from './ui.jsx';
-import { BoBadge, BoStat, BoTabPanel, boJt } from './view_bo1.jsx';
-import { HBars, KV, LineChart, SectionTitle } from './view_fpm_parts.jsx';
+import { BoBadge, BoStat, BoTabPanel, boJt } from './view_bo1';
+import { HBars, KV, LineChart, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
 
 /* ============================================================

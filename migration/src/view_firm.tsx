@@ -5,10 +5,10 @@ import { useFirm } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 import { CRM360, CRMAktivitas, CRMPeluang, CRMSegmentasi } from './view_crm2';
 import { EngAnggaran, EngJadwal, EngPortofolio, EngStaffing } from './view_eng2';
-import { MSub } from './view_fpm_parts.jsx';
+import { MSub } from './view_fpm_parts';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
 
 /* ============================================================

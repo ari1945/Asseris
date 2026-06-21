@@ -7,8 +7,8 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { materialityFor } from './canon_selectors';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
-import { RowKv } from './view_calc.jsx';
+import { KvBox } from './view_analytical';
+import { RowKv } from './view_calc';
 
 /* ============================================================
    NeoSuite AMS — SPR 2410 · Reviu atas Informasi Keuangan Interim

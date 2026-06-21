@@ -7,7 +7,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Tabs } from './ui.jsx';
 import { NAReport } from './view_nonaudit2';
-import { OKv } from './view_onboarding.jsx';
+import { OKv } from './view_onboarding';
 
 /* ============================================================
    NeoSuite AMS — Jasa Terkait (SPSJL 4400/4410) & Asurans Lain (SPA)

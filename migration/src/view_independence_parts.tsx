@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { I } from './icons.jsx';
 import { Avatar, Badge, Panel } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — Independensi: dimensi etika di luar rotasi (G6)

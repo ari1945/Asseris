@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { Avatar, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
-import { Funnel, HBars, LineChart } from './view_fpm_parts.jsx';
+import { Funnel, HBars, LineChart } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — BI & Konsolidasi · extra tabs

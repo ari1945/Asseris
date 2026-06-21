@@ -5,7 +5,7 @@ import { useAmsPersist, useAudit, useAuth, useFirm, useNav } from './contexts.js
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 
 /* ============================================================
    NeoSuite AMS — Firm Platform · Approvals (Bagian D-1)

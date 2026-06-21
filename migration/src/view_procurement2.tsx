@@ -3,9 +3,9 @@ import React from 'react';
 import { PROC } from './data_procurement';
 import { I } from './icons.jsx';
 import { MiniBars, Spark } from './ui.jsx';
-import { BoBadge, boJt, boM } from './view_bo1.jsx';
-import { PDrawer } from './view_docparts.jsx';
-import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
+import { BoBadge, boJt, boM } from './view_bo1';
+import { PDrawer } from './view_docparts';
+import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { PROC_RISKC, procPct } from './view_procurement';
 import { LEGAL } from './data_legal';
 

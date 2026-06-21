@@ -4,10 +4,10 @@ import { useFirm, useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Btn, Panel } from './ui.jsx';
-import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1.jsx';
-import { PDrawer } from './view_docparts.jsx';
+import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
+import { PDrawer } from './view_docparts';
 import { FacLeaseInsurance, FacLicenses, FacLineage, FacMaintenance, FacSpace } from './view_facilities2';
-import { HBars, KV, SectionTitle } from './view_fpm_parts.jsx';
+import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { FAC } from './data_facilities';
 import { BO } from './data_backoffice';
 

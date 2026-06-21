@@ -2,7 +2,7 @@
 import React from 'react';
 import { I } from './icons.jsx';
 import { Badge, Btn, Panel, Progress } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
+import { KvBox } from './view_analytical';
 import { GA_CONSOL_DOWN, GA_CONSOL_PROC, GA_CONSOL_UP, PKG_FIELDS, PKG_NUM_KEYS, PKG_STATUS_KIND } from './view_groupaudit';
 
 /* ============================================================

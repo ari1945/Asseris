@@ -5,8 +5,8 @@ import { useNav } from './contexts.jsx';
 import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
-import { KvBox } from './view_analytical.jsx';
-import { RowKv } from './view_calc.jsx';
+import { KvBox } from './view_analytical';
+import { RowKv } from './view_calc';
 
 /* ============================================================
    NeoSuite AMS — SJAH 3000 · Perikatan Asurans selain Audit/Reviu

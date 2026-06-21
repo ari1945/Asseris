@@ -10,7 +10,7 @@ import { Badge, Btn } from './ui.jsx';
 const { useState: usePartsState, useEffect: usePartsEffect, useRef: usePartsRef } = React;
 
 /* Centered modal overlay (Escape to close, click backdrop to close) */
-function PModal({ title, sub, icon = 'doc', onClose, children, footer, width = 520 }) {
+function PModal({ title, sub, icon = 'doc', onClose, children, footer, width = 520 }: any) {
   usePartsEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -36,7 +36,7 @@ function PModal({ title, sub, icon = 'doc', onClose, children, footer, width = 5
 }
 
 /* Labeled form field */
-function PField({ label, children, hint, span }) {
+function PField({ label, children, hint, span }: any) {
   return (
     <div className="field" style={span ? { gridColumn: '1 / -1' } : null}>
       <label>{label}</label>
@@ -47,7 +47,7 @@ function PField({ label, children, hint, span }) {
 }
 
 /* Right slide-in detail drawer (reuses sa-drawer animation) */
-function PDrawer({ open, onClose, width = 560, children }) {
+function PDrawer({ open, onClose, width = 560, children }: any) {
   usePartsEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -79,7 +79,7 @@ const PEVT = {
   lock:     { ic: 'lock',     c: 'var(--red)' },
   print:    { ic: 'doc',      c: 'var(--ink-4)' },
 };
-function PTimeline({ events }) {
+function PTimeline({ events }: any) {
   if (!events || !events.length) return <div className="tiny muted" style={{ padding: '8px 2px' }}>Belum ada aktivitas.</div>;
   return (
     <div className="ptl">
@@ -101,7 +101,7 @@ function PTimeline({ events }) {
 }
 
 /* Version history list — versions: [{ver, file, by, side, date, sizeMB, note}] */
-function PVerList({ versions, fileFallback, onCompare, compareSel = [] }) {
+function PVerList({ versions, fileFallback, onCompare, compareSel = [] }: any) {
   if (!versions || !versions.length) return <div className="tiny muted" style={{ padding: '8px 2px' }}>Belum ada berkas diunggah.</div>;
   return (
     <div style={{ display: 'grid', gap: 8 }}>
@@ -131,7 +131,7 @@ function PVerList({ versions, fileFallback, onCompare, compareSel = [] }) {
 }
 
 /* Threaded comments + composer. msgs: [{by, side, text, time}] */
-function PThread({ msgs, onSend, placeholder = 'Tulis komentar…', selfSide = 'firm', height = 240, compact }) {
+function PThread({ msgs, onSend, placeholder = 'Tulis komentar…', selfSide = 'firm', height = 240, compact }: any) {
   const [draft, setDraft] = usePartsState('');
   const boxRef = usePartsRef(null);
   usePartsEffect(() => { if (boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight; }, [msgs && msgs.length]);

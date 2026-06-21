@@ -6,7 +6,7 @@ import { I } from './icons.jsx';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
 import { BIKlien, BIPartner, BIPendapatan, BIPipeline } from './view_bi2';
-import { MSub } from './view_fpm_parts.jsx';
+import { MSub } from './view_fpm_parts';
 
 /* ============================================================
    NeoSuite AMS — BI Firma Terkonsolidasi (executive analytics)
