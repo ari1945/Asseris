@@ -45,7 +45,7 @@ function notesForEngagement(notes, engId) {
    Single-firm/single-user demo, so the firm/user scopeIds are constants that
    match the seed (FIRM-WHR / USER.employeeId). ============================================================ */
 const FIRM_SCOPE_ID = 'FIRM-WHR';
-function userScopeId() { try { return (AMS && AMS.USER && AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
+function userScopeId() { try { return (AMS && (AMS as any).USER && (AMS as any).USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
 const DEFAULT_ENG_ID = 'ENG-2025-014';
 
 /* Public useAmsPersist (module state) defaults to firm scope — i.e. today's
@@ -99,7 +99,7 @@ function useServerState(key, initial, scope, scopeId) {
     let cancelled = false;
     setValRaw(cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache
     versionRef.current = 0;
-    api.state.get.query({ scope, scopeId, key }).then(res => {
+    (api as any).state.get.query({ scope, scopeId, key }).then(res => {
       if (cancelled) return;
       versionRef.current = res.version;
       if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
@@ -109,7 +109,7 @@ function useServerState(key, initial, scope, scopeId) {
 
   const flush = React.useCallback((value) => {
     const t = targetRef.current;
-    api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current })
+    (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current })
       .then(res => { versionRef.current = res.version; })
       .catch(err => {
         // Lost an optimistic-concurrency race. Don't silently clobber EITHER side:
@@ -117,14 +117,14 @@ function useServerState(key, initial, scope, scopeId) {
         // surface a conflict toast that lets the user adopt latest or overwrite.
         if (isConflict(err)) {
           const attempted = value;
-          api.state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then(res => {
+          (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then(res => {
             versionRef.current = res.version;
             const serverVal = res.version > 0 ? res.value : value;
             emitConflict({
               scope: t.scope, key: t.key, label: conflictLabel(t.key),
               adopt: () => { setValRaw(serverVal); cacheWrite(t.cacheKey, serverVal); },
               keepMine: () => {
-                api.state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current })
+                (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current })
                   .then(r => { versionRef.current = r.version; cacheWrite(t.cacheKey, attempted); })
                   .catch(() => {});
               },
@@ -218,7 +218,7 @@ function ConflictToaster() {
 }
 
 function AppProviders({ me, onLogout, children }) {
-  const D = AMS;
+  const D: any = AMS;
   const uid = me.id; // authenticated user id (replaces the old AMS.USER guess)
 
   /* ---- Auth (W7) ---- */
@@ -256,7 +256,7 @@ function AppProviders({ me, onLogout, children }) {
   const [accessibleEngIds, setAccessibleEngIds] = useState(null);
   useEffect(() => {
     let live = true;
-    api.engagement.list.query()
+    (api as any).engagement.list.query()
       .then(rows => { if (live) setAccessibleEngIds(rows.map(r => r.id)); })
       .catch(() => { if (live) setAccessibleEngIds(null); });
     return () => { live = false; };

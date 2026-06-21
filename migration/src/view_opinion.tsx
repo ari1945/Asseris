@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAmsPersist, useFirm } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAmsPersist, useFirm } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Tabs } from './ui.jsx';
 import { amsExportPdf } from './export_pdf.js';

@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useNav } from './contexts';
+import { I } from './icons';
 import { Badge, Btn, Panel, Stat } from './ui.jsx';
 
 /* ============================================================

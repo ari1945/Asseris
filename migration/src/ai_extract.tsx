@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { amsAttachEvidence } from './evidence.jsx';
-import { I, MODULE_INDEX } from './icons.jsx';
+import { I, MODULE_INDEX } from './icons';
 import { amsLLMConfig } from './llm_providers.js';
 import { Panel } from './ui.jsx';
 import { AMS } from './data';

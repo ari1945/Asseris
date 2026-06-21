@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { I, MODULE_INDEX } from './icons.jsx';
+import { I, MODULE_INDEX } from './icons';
 
 /* ============================================================
    Asseris — Shared UI primitives

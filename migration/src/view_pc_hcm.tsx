@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useNav } from './contexts';
+import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui.jsx';
 
 /* ============================================================

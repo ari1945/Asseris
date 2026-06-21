@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useNav } from './contexts';
+import { I } from './icons';
 import { Badge, Btn, Donut, Panel, Progress, Stat } from './ui.jsx';
 import { HBars, LineChart } from './view_fpm_parts';
 

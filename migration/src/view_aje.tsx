@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
+import { useAudit, useAuth, useFirm, useNav } from './contexts';
 import { CAP } from './rbac.js';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { AJEForm } from './view_execution';

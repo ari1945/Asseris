@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AiInsightPanel } from './ai_insights.jsx';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { DiagnosticPanel } from './diagnostics_panel.jsx';

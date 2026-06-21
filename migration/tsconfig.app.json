@@ -242,7 +242,13 @@
 
     "src/copilot.tsx",
     "src/ai_extract.tsx",
-    "src/fsgen_model.tsx"
+    "src/fsgen_model.tsx",
+
+    "src/shims-css.d.ts",
+    "src/icons.tsx",
+    "src/contexts.tsx",
+    "src/app.tsx",
+    "src/main.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

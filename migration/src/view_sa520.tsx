@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useFirm } from './contexts';
+import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Progress, Tabs } from './ui.jsx';

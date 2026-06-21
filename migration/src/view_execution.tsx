@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useFirm, useNav } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui.jsx';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep';

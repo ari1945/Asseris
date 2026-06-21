@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';

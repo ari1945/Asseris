@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { Badge, Btn, Panel, Seg } from './ui.jsx';
 import { useWpSignoff } from './wp_signoff.jsx';
 

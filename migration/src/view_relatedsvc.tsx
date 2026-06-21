@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts.jsx';
+import { useAmsPersist, useNav } from './contexts';
 import { FileDropField } from './evidence.jsx';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Panel, Seg, Tabs } from './ui.jsx';
 import { NAReport } from './view_nonaudit2';

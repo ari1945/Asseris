@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { amsDiagnostics, DIAG_SEV } from './diagnostics';
-import { useAudit, useNav } from './contexts.jsx';
+import { useAudit, useNav } from './contexts';
 import { amsCrossChecks } from './ai_insights.jsx';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { Badge, Btn, Panel } from './ui.jsx';
 import { AMS } from './data';
 

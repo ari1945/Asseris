@@ -12,8 +12,8 @@
    Bukti memakai store evidence global (per-modul) yg sudah ada.
    ============================================================ */
 import React from 'react';
-import { useAudit, useAuth, useFirm, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { I } from './icons';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui.jsx';
 import { amsEvidenceCount } from './evidence.jsx';
 

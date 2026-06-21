@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
-import { useAudit, useFirm, useNav } from './contexts.jsx';
-import { I, MODULE_INDEX } from './icons.jsx';
+import { useAudit, useFirm, useNav } from './contexts';
+import { I, MODULE_INDEX } from './icons';
 import { Badge, Panel, Stat } from './ui.jsx';
 
 /* ============================================================

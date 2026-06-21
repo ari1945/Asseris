@@ -1,5 +1,5 @@
 /* [codemod] ESM imports */
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { Badge, Panel } from './ui.jsx';
 
 /* ============================================================

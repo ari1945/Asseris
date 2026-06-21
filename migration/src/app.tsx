@@ -2,10 +2,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { hydrateCoreFromApi, api, setAuthToken } from './api.js';
-import { AppProviders, NavContext, NavFromContext } from './contexts.jsx';
+import { AppProviders, NavContext, NavFromContext } from './contexts';
 import { LoginScreen } from './view_login';
 import { Copilot } from './copilot';
-import { I, MODULE_INDEX } from './icons.jsx';
+import { I, MODULE_INDEX } from './icons';
 import { MiniMap } from './minimap';
 import { ModuleLineage, StandardLinkback } from './related_modules';
 import { Sidebar, SubBar, TopBar } from './shell.jsx';
@@ -153,7 +153,11 @@ import { WorkingPapers } from './view_wp';
    ============================================================ */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
-class ViewErrorBoundary extends React.Component {
+/* React di-resolve dari JS tanpa @types → `React.Component` ter-infer parsial
+   (tanpa state/props/setState). Tier app relaks: pakai basis ber-tipe `any`
+   agar boundary kelas tak menabrak TS2339; perilaku runtime identik. */
+const ReactComponentBase: any = React.Component;
+class ViewErrorBoundary extends ReactComponentBase {
   constructor(p) { super(p); this.state = { err: null }; }
   static getDerivedStateFromError(err) { return { err }; }
   componentDidUpdate(prev) { if (prev.routeKey !== this.props.routeKey && this.state.err) this.setState({ err: null }); }
@@ -493,7 +497,7 @@ function Root() {
   }, []);
 
   const logout = useCallbackRT(() => {
-    api.auth.logout.mutate().catch(() => {});
+    (api as any).auth.logout.mutate().catch(() => {});
     setAuthToken(null);
     setMe(null);
     setPhase('login');
@@ -501,7 +505,7 @@ function Root() {
 
   useEffectRT(() => {
     let cancelled = false;
-    api.auth.me.query()
+    (api as any).auth.me.query()
       .then(user => { if (!cancelled) { user ? enter(user) : setPhase('login'); } })
       .catch(() => { if (!cancelled) setPhase('login'); });
     const onExpired = () => { setAuthToken(null); setMe(null); setPhase('login'); };

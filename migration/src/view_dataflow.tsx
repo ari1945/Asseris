@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts.jsx';
+import { useAudit, useFirm, useNav } from './contexts';
 import { useEvidence } from './evidence.jsx';
-import { I, MODULE_INDEX } from './icons.jsx';
+import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell.jsx';
 import { Btn, Panel, Stat } from './ui.jsx';
 import { DFAturan, DFJejak, DFPropagasi } from './view_dataflow2';

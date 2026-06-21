@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { AiInsightPanel } from './ai_insights.jsx';
-import { useAudit, useFirm, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useFirm, useNav } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui.jsx';
 import { PROGRAMME } from './view_cockpit';

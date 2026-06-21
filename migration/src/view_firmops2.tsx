@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { AMS } from './data';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { BoBadge, boJt } from './view_bo1';
 import { PDrawer } from './view_docparts';
 import { KV, SectionTitle } from './view_fpm_parts';

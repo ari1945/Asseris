@@ -2,8 +2,8 @@
 import React from 'react';
 import { api } from './api.js';
 import { CAP } from './rbac.js';
-import { useAuth, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAuth, useNav } from './contexts';
+import { I } from './icons';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
 
 /* ============================================================

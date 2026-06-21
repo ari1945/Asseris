@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAmsPersist, useAudit, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAmsPersist, useAudit, useNav } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Badge, Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
 import { KvBox } from './view_analytical';

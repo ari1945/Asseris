@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAudit, useFirm } from './contexts.jsx';
-import { I, MODULES } from './icons.jsx';
+import { useAudit, useFirm } from './contexts';
+import { I, MODULES } from './icons';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================

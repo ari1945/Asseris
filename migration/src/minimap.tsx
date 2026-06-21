@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { I } from './icons.jsx';
+import { I } from './icons';
 
 /* ============================================================
    Asseris — Peta Mini Keterhubungan ("Anda di sini")

@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts.jsx';
-import { I, MODULE_INDEX } from './icons.jsx';
+import { useNav } from './contexts';
+import { I, MODULE_INDEX } from './icons';
 
 /* ============================================================
    Asseris — Evidence Intake (lintas-modul)

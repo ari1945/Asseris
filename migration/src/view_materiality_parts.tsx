@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useFirm, useNav } from './contexts';
+import { I } from './icons';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui.jsx';
 import { amsExportPdf } from './export_pdf.js';
 

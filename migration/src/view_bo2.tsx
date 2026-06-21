@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Btn, Panel } from './ui.jsx';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';

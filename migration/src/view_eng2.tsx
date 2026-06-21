@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useFirm } from './contexts';
+import { I } from './icons';
 import { Avatar, Badge, Panel, Progress, Seg, Stat } from './ui.jsx';
 import { EngagementDetail } from './view_firm';
 import { HBars } from './view_fpm_parts';

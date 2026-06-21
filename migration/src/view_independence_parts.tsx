@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { Avatar, Badge, Panel } from './ui.jsx';
 import { KvBox } from './view_analytical';
 

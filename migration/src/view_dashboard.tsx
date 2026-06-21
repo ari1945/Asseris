@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useFirm } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, Portlet, Progress, Spark, Stat } from './ui.jsx';
 import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';

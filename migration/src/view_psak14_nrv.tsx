@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAmsPersist } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAmsPersist } from './contexts';
+import { I } from './icons';
 import { Badge, Btn, Panel } from './ui.jsx';
 
 /* ============================================================

@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { I } from './icons.jsx';
+import { I } from './icons';
 import { Badge, Btn } from './ui.jsx';
 
 /* ============================================================

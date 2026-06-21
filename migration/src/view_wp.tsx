@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
-import { useAudit, useFirm } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useFirm } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Placeholder, Seg, Stat, Tabs } from './ui.jsx';
 
@@ -688,7 +688,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
         <div style={{ display: 'grid', gap: 0 }}>
           {trail.map((e, i) => (
             <div key={i} className="row gap8" style={{ padding: '8px 0', borderBottom: i < trail.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start' }}>
-              <span style={{ color: e.col, marginTop: 1, flex: '0 0 auto' }}>{React.createElement(I[e.ic] || I.dot, { size: 14 })}</span>
+              <span style={{ color: e.col, marginTop: 1, flex: '0 0 auto' }}>{React.createElement(I[e.ic] || (I as any).dot, { size: 14 })}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{e.what}</div>
                 <div className="tiny muted">{e.who} · {e.at}</div>

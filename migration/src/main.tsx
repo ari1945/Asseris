@@ -34,8 +34,8 @@ import './data_risk';
 import './data_ojk';
 import './data_legaldigital';
 import './llm_providers.js';
-import './icons.jsx';
-import './contexts.jsx';
+import './icons';
+import './contexts';
 import './ui.jsx';
 import './evidence.jsx';
 import './related_modules_data.js';
@@ -220,4 +220,4 @@ import './view_platform2';
 import './view_platform3';
 import './view_presentasi';
 import './minimap';
-import './app.jsx';   // memanggil ReactDOM.createRoot(...).render
+import './app';   // memanggil ReactDOM.createRoot(...).render

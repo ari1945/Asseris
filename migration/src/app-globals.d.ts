@@ -41,5 +41,12 @@ declare global {
     /* W13 Fase 1 — jembatan LLM opsional in-browser (copilot mengecek
        `window.claude?.complete`); fallback demoReply bila absen. */
     claude: any;
+    /* W13 Fase 2 — bus imperatif & registry dibaca/ditulis oleh router app.tsx.
+       COMPLIANCE_CONFIG = peta modul→checklist (view_compliance, dual-publish);
+       __amsOpenCopilot/__amsOpenMiniMap = pemicu drawer global (didaftarkan App,
+       dipanggil shell/palette). Window-strip-2 candidate; `any` di tier app relaks. */
+    COMPLIANCE_CONFIG: any;
+    __amsOpenCopilot: any;
+    __amsOpenMiniMap: any;
   }
 }

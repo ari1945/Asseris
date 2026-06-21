@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts.jsx';
-import { I } from './icons.jsx';
+import { useAudit, useFirm, useNav } from './contexts';
+import { I } from './icons';
 import { SubBar } from './shell.jsx';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui.jsx';
 
