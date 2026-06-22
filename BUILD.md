@@ -757,6 +757,69 @@ setara ⇒ perilaku runtime identik.** Infra `.js→.ts` murni anotasi.
 **Backlog W15:** (a) **`:any`-reduction** — bangun interface model AMS nyata (`AMS`/`WTB`/`AJE`/`RISKS`/…,
 paritas-kanon) menggantikan ~7.000 `:any` W13 → menaikkan nilai jaring-tipe (SNC kini menangkap
 sedikit krn saturasi `:any`); (b) **test `.js → .ts`** (`*.test.js`/`__fixtures__`/`setup.js`).
+
+## W15 — Model data AMS bertipe + reduksi `:any` (boundary) + ratchet + test `.ts` — **SELESAI**
+
+> Lanjutan W14. PRD: `PRD - W15 Model Data AMS Bertipe & Reduksi any.md`.
+> **D1 = "Model + boundary"** (interface koleksi AMS bernilai-tinggi + hapus cast canon-boundary;
+> **ekor `:any` lapisan-view leaf DITINGGAL** — bukan full-sweep ke 0) · D2 = ratchet ESLint
+> `no-explicit-any` · D3 = test `.js→.ts` ikut.
+> **Temuan terukur:** baseline `:any` = **6013** (basis-baris) / **8160** (basis-violasi ESLint).
+> Permukaan tipe SUDAH ADA (`canon_types`/`canon_selectors`); gap = `AmsData` hanya ketik
+> WTB/AJE/fmt/rp, ~75 koleksi lain `[k:string]:unknown`.
+
+**Fase 0 — Fondasi model (`95c4420`).** Berkas BARU `src/ams_types.ts` = 14 interface koleksi
+bernilai-tinggi (FIRM/USER/CLIENTS/ENGAGEMENTS/RISKS/TEAM/WORKPAPERS/ACTIVITY/DEADLINES/REVIEW_NOTES/
+TIME_ENTRIES/PIPELINE/INVOICES/STAFF) + reuse WTB/AJE dari canon_types; di-wire ke `AmsData`
+(`types/globals.d.ts`), index signature `[k:string]:unknown` DIPERTAHANKAN utk ekor (~60 koleksi tak
+perlu diketik sekaligus). **Type-only: 0 err, 0 call-site change, delta nol by-design** — `data.ts`
+assign STRUKTURAL (extra-prop OK, hanya missing-required yg error; field enum-ish diketik `string`
+bukan union literal → cascade terkendali).
+
+**Fase 1 — Bersihkan cast boundary (`bc999c6`).** `(AMS_CANON as any)` **20→0**, `(AMS as any)` 62→42.
+- **AMS_CANON:** interface `CanonAugmentations` (canon_types) + **SATU typed-cast** di canon.ts
+  (`const AMS_CANON_BASE={…}; export const AMS_CANON: typeof AMS_CANON_BASE & CanonAugmentations =
+  AMS_CANON_BASE as …`). Permukaan calc kanon TETAP presisi; 16 member augmentasi domain (isak35/
+  psak117/ojk×4/legalSeal/pdp = factory `() => any`; 6 data = `any`) NON-OPSIONAL (augmenter selalu
+  jalan load-modul pra-render — pola useAmsPersist W14). Ganti 20 cast tersebar di 4 augmenter +
+  7 view. Pemodelan tipe-balikan factory DITUNDA (deep-typing leaf-view = ekor Non-Scope).
+- **AMS:** drop cast member kini ber-tipe (USER/fmt/RISKS/STAFF/TEAM/REVIEW_NOTES/INVOICES/CLIENTS/
+  ENGAGEMENTS) via perl presisi. Sisa **42** `(AMS as any)` = koleksi ekor di luar model-14
+  (socEngine/PLATFORM/QM_*/…) = remainder kategorikal (di-surface ratchet Fase 3).
+- **Type-net tangkap 1 bug nyata:** `data_ojk` `cli()` fallback `{name,npwp}` kurang `industry` →
+  konsumen baca `.industry` (sudah ber-guard `||''`) → fix fallback `+industry:''`.
+
+**Fase 2 — Propagasi tipe ke pembaca koleksi (`474319d`).** Drop `:any` callback param yg meng-iterasi
+koleksi model-14 ber-tipe → row type mengalir (`CLIENTS.find((cl))`→ClientRow; bi/bi2 sumber
+`const CLIENTS/PIPELINE = AMS.X`; psak117/71/syariah `(TEAM.find()||{}).name`→`?.name`). `:any`
+5994→5985. **Temuan scope:** jangkauan propagasi TERBATAS — mayoritas iterasi koleksi lewat sumber
+`as any` / fallback `|| {}` yg cascade ke hilir; situs cascade-prone/tail-mixed (delivery/profit/
+audittimeline/people) SENGAJA dibiarkan `:any` (ekor Non-Scope D1). Idiom `find()||{}` = peluang
+tindak-lanjut, bukan scope W15. **Nilai W15 ada di model (F0) + boundary (F1), bukan volume reduksi.**
+
+**Fase 3 — Ratchet ESLint `no-explicit-any` (`7416d4f`).** ESLint kini melint `.ts(x)` (sebelumnya
+hanya `.js/.jsx`) via blok flat-config parser `typescript-eslint` (sintaktik, tanpa
+`parserOptions.project` → cepat). Rule severity **`error`** (meniru gerbang W13 noImplicitAny); 8160
+`:any` yg ADA di-**grandfather** lewat baseline `eslint-suppressions.json` (per-file count), `:any`
+BARU = error → `npm run lint` gagal CI/pre-commit. Output tetap bersih (ter-suppress tak dicetak) →
+gerbang `no-undef`/hooks lama tetap terbaca. **Severity `error` WAJIB** — fitur suppressions ESLint
+hanya berlaku utk error (warn → file kosong). +devDep `typescript-eslint` (lint-time, nol dampak
+runtime/bundle) + skrip `lint:any-baseline` (regen+prune saat sengaja menurunkan `:any`).
+
+**Fase 4 — Test-tier `.js → .ts` (`df8a839`) ⇒ W15 SELESAI.** 8 `*.test.js` + `__fixtures__/wtb.js` +
+`__tests__/setup.js` → `.ts` ⇒ **NOL `.js`/`.jsx` di src** (migrasi TS tuntas). vitest.config
+include/setupFiles/coverage → `.ts`; snapshot canon_regression rename-mengikut, **diff byte-identik**.
+tsconfig **EXCLUDE test-tier** (`*.test.ts`+`__tests__`+`__fixtures__`) dari gate strict — kode uji,
+bukan permukaan-tipe produksi; `setup.ts` sengaja memalsukan env browser di node (global stub) → tak
+layak full-strict. Tetap dijalankan vitest/esbuild & di-lint ESLint (konversi-dari-JS = 0 `:any` →
+ratchet bersih).
+
+**Gate tiap fase (hijau):** migration `lint`/`typecheck`/`test` 59/`build` + fingerprint kanon
+**identik** + (fase sentuh-UI) live Partner 0 console err (F1: pdp/crypto+Meterai[legalSeal]/
+auditcomm/ojkfiling; F2: bi/psak117). **Semua perubahan runtime no-op** (cast-erasure + boolean/`?.`
+setara + fallback-key + rename). Net `:any` 6013→**5985** (basis-baris) — kecil by-design (D1); nilai
+nyata = model bertipe + boundary bersih + ratchet anti-regresi.
+
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.
 - **WARN (W3 remaining worklist, 207):**
