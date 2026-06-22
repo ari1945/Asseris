@@ -76,6 +76,24 @@ export async function sealText(text: string): Promise<SealBlock> {
   }
 }
 
+/** Kunci publik lokal (hex) bila keypair sudah dibangkitkan — utk dibandingkan inspektur. */
+export function localPublicKeyHex(): string | null {
+  try {
+    const raw = localStorage.getItem(KEY_STORE);
+    return raw ? (JSON.parse(raw).pubHex || null) : null;
+  } catch (e) { return null; }
+}
+
+/** Verifikasi signature-only: apakah `signature` sah atas `contentHash` oleh `publicKey`.
+   Dipakai panel Verifikasi Segel (inspektur PPPK menempel field dari sheet Segel ekspor). */
+export async function verifySignatureHex(contentHash: string, signatureHex: string, publicKeyHex: string): Promise<boolean> {
+  try {
+    if (!contentHash || !signatureHex || !publicKeyHex) return false;
+    const pub = await crypto.subtle.importKey('raw', hex2buf(publicKeyHex) as any, { name: 'Ed25519' } as any, true, ['verify']);
+    return await crypto.subtle.verify({ name: 'Ed25519' } as any, pub, hex2buf(signatureHex) as any, new TextEncoder().encode(contentHash) as any);
+  } catch (e) { return false; }
+}
+
 /** Verifikasi: hash cocok + (bila Ed25519) tandatangan sah atas hash. */
 export async function verifySealText(text: string, seal: SealBlock): Promise<boolean> {
   const h = await sha256Hex(text);

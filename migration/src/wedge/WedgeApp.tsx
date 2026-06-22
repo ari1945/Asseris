@@ -15,6 +15,7 @@ import { JET_FLAG_LABELS } from './derive_flags';
 import { usePersist } from './use_persist';
 import { exportWpXlsx, exportWpPdf, canonicalText } from './export_wp';
 import { verifySealText } from './seal';
+import { VerifySealPanel } from './VerifySealPanel';
 
 const { useState: useStateW, useMemo: useMemoW, useCallback: useCallbackW } = React;
 
@@ -246,10 +247,12 @@ export function WedgeApp() {
       )}
 
       {!report && status !== 'loading' && (
-        <div style={{ ...card, padding: 28, textAlign: 'center', color: 'var(--ink-2, #6b7280)', fontSize: 13 }}>
+        <div style={{ ...card, padding: 28, textAlign: 'center', color: 'var(--ink-2, #6b7280)', fontSize: 13, marginBottom: 20 }}>
           Unggah workbook TB+GL atau klik <strong>Muat data contoh</strong> untuk menjalankan diagnostik.
         </div>
       )}
+
+      <VerifySealPanel />
     </div>
   );
 }
