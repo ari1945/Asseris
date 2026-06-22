@@ -44,6 +44,23 @@ describe('mapTbAoa', () => {
     expect(rows.length).toBe(2);
     expect(rows[0].unadj).toBe(5_000_000);
     expect(rows[1].unadj).toBe(-5_000_000);
+    // tanpa kolom penyesuaian/saldo-adj → adj = unadj
+    expect(rows[0].adj).toBe(5_000_000);
+  });
+  it('kolom penyesuaian (mutasi) → adj = unadj + mutasi', () => {
+    const { rows } = mapTbAoa([
+      ['Kode', 'Nama', 'Saldo', 'Penyesuaian'],
+      ['1-1200', 'Piutang', '12.300.000.000', '(3.500.000.000)'],
+    ]);
+    expect(rows[0].unadj).toBe(12_300_000_000);
+    expect(rows[0].adj).toBe(8_800_000_000);
+  });
+  it('kolom saldo adj (saldo akhir) dipakai langsung bila tak ada mutasi', () => {
+    const { rows } = mapTbAoa([
+      ['Kode', 'Nama', 'Saldo', 'Saldo Adj'],
+      ['1-1200', 'Piutang', '12.300.000.000', '8.800.000.000'],
+    ]);
+    expect(rows[0].adj).toBe(8_800_000_000);
   });
 });
 

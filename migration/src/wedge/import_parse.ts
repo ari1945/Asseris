@@ -98,7 +98,13 @@ export function mapGlAoa(aoa: any[][]): { rows: RawGlRow[]; warnings: string[] }
   return { rows, warnings };
 }
 
-/* —— TB: aoa → RawTbRow[] (PURE) —— */
+/* —— TB: aoa → RawTbRow[] (PURE) ——
+   Kolom penyesuaian audit dapat diberikan dalam DUA bentuk (eksklusif):
+     · MUTASI  (kolom "penyesuaian/aje/koreksi/adj") → saldo adjusted = unadj + mutasi
+     · SALDO    (kolom "saldo adj/saldo akhir/adjusted") → langsung = saldo akhir
+   Bila mutasi ada, ia menang (cara auditor mem-posting jurnal koreksi).
+   Bila keduanya absen, adj = unadj. Field hasil (`RawTbRow.adj`) selalu = SALDO
+   adjusted → konsumen hilir (wedge_detectors §4 SA 450) tak berubah. */
 export function mapTbAoa(aoa: any[][]): { rows: RawTbRow[]; warnings: string[] } {
   const warnings: string[] = [];
   if (!aoa || aoa.length < 2) return { rows: [], warnings: ['Sheet TB kosong / tanpa baris data.'] };
@@ -107,7 +113,8 @@ export function mapTbAoa(aoa: any[][]): { rows: RawTbRow[]; warnings: string[] }
     code: findCol(header, ['kode', 'kodeakun', 'code', 'account', 'akun']),
     name: findCol(header, ['nama', 'name', 'namaakun', 'description', 'keterangan']),
     unadj: findCol(header, ['saldo', 'saldounadj', 'unadj', 'unadjusted', 'saldoawal', 'balance']),
-    adj: findCol(header, ['saldoadj', 'adj', 'adjusted', 'saldoakhir']),
+    mut: findCol(header, ['penyesuaian', 'aje', 'koreksi', 'adj', 'adjustment', 'mutasi']),
+    bal: findCol(header, ['saldoadj', 'saldoadjusted', 'adjusted', 'saldoakhir']),
     ly: findCol(header, ['saldoly', 'ly', 'lastyear', 'tahunlalu', 'priorbalance']),
   };
   if (ci.code < 0 || ci.unadj < 0) {
@@ -119,11 +126,14 @@ export function mapTbAoa(aoa: any[][]): { rows: RawTbRow[]; warnings: string[] }
     const row = aoa[r];
     if (!row || row.every(c => c == null || c === '')) continue;
     const unadj = toNum(row[ci.unadj]);
+    const adj = ci.mut >= 0 ? unadj + toNum(row[ci.mut])
+      : ci.bal >= 0 ? toNum(row[ci.bal])
+        : unadj;
     rows.push({
       code: String(row[ci.code] ?? ''),
       name: ci.name >= 0 ? String(row[ci.name] ?? '') : '',
       unadj,
-      adj: ci.adj >= 0 ? toNum(row[ci.adj]) : unadj,
+      adj,
       ly: ci.ly >= 0 ? toNum(row[ci.ly]) : 0,
     });
   }

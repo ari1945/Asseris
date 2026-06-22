@@ -45,32 +45,34 @@ function sampleGlAoa(): any[][] {
   return rows;
 }
 
-/* —— TB contoh: seimbang (Σ saldo bertanda = 0) + Saldo LY (utk SA 520 analitik) —— */
+/* —— TB contoh: seimbang (Σ saldo bertanda = 0) + Penyesuaian + Saldo LY (SA 520 analitik) —— */
 function sampleTbAoa(): any[][] {
-  const rows: any[][] = [['Kode', 'Nama', 'Saldo', 'Saldo LY']];
-  // [kode, nama, unadj, ly]. Dirancang memicu beberapa outlier WTB:
+  const rows: any[][] = [['Kode', 'Nama', 'Saldo', 'Penyesuaian', 'Saldo LY']];
+  // [kode, nama, unadj, penyesuaian(mutasi), ly]. Dirancang memicu beberapa outlier WTB:
   //  · 4-1100 Pendapatan: swing -78.5M→-45M (≈74%) = fluktuasi SA 520
   //  · 2-1300 Beban akrual: -3.1M (LY +3.5M) = pembalikan tanda
-  const tb: [string, string, number, number][] = [
-    ['1-1100', 'Kas dan setara kas', 18_500_000_000, 17_900_000_000],
-    ['1-1200', 'Piutang usaha', 12_300_000_000, 11_800_000_000],
-    ['1-1300', 'Persediaan', 9_800_000_000, 9_400_000_000],
-    ['1-2100', 'Aset tetap (neto)', 24_400_000_000, 25_100_000_000],
-    ['2-1100', 'Utang usaha', -8_700_000_000, -8_300_000_000],
-    ['2-1300', 'Beban akrual', -3_100_000_000, 3_500_000_000],
-    ['2-2100', 'Utang bank jangka panjang', -15_000_000_000, -16_000_000_000],
-    ['3-1100', 'Modal saham', -20_000_000_000, -20_000_000_000],
-    ['3-3100', 'Saldo laba', -18_200_000_000, -17_000_000_000],
-    ['4-1100', 'Pendapatan', -78_500_000_000, -45_000_000_000],
-    ['5-1100', 'Beban pokok', 41_000_000_000, 39_000_000_000],
-    ['5-2100', 'Beban operasi', 17_300_000_000, 16_500_000_000],
-    ['5-3100', 'Beban umum & administrasi', 11_900_000_000, 11_400_000_000],
-    ['6-1300', 'Beban akrual lain', 3_100_000_000, 2_900_000_000],
-    ['6-1900', 'Beban lain-lain', 2_700_000_000, 2_500_000_000],
+  //  · Penyesuaian berpasangan -3.5M / +3.5M (top-up CKPN piutang) = penyesuaian
+  //    audit material (SA 450); mutasi net nol → tak mengganggu gerbang control-total.
+  const tb: [string, string, number, number, number][] = [
+    ['1-1100', 'Kas dan setara kas', 18_500_000_000, 0, 17_900_000_000],
+    ['1-1200', 'Piutang usaha', 12_300_000_000, -3_500_000_000, 11_800_000_000],
+    ['1-1300', 'Persediaan', 9_800_000_000, 0, 9_400_000_000],
+    ['1-2100', 'Aset tetap (neto)', 24_400_000_000, 0, 25_100_000_000],
+    ['2-1100', 'Utang usaha', -8_700_000_000, 0, -8_300_000_000],
+    ['2-1300', 'Beban akrual', -3_100_000_000, 0, 3_500_000_000],
+    ['2-2100', 'Utang bank jangka panjang', -15_000_000_000, 0, -16_000_000_000],
+    ['3-1100', 'Modal saham', -20_000_000_000, 0, -20_000_000_000],
+    ['3-3100', 'Saldo laba', -18_200_000_000, 0, -17_000_000_000],
+    ['4-1100', 'Pendapatan', -78_500_000_000, 0, -45_000_000_000],
+    ['5-1100', 'Beban pokok', 41_000_000_000, 0, 39_000_000_000],
+    ['5-2100', 'Beban operasi', 17_300_000_000, 0, 16_500_000_000],
+    ['5-3100', 'Beban umum & administrasi', 11_900_000_000, 3_500_000_000, 11_400_000_000],
+    ['6-1300', 'Beban akrual lain', 3_100_000_000, 0, 2_900_000_000],
+    ['6-1900', 'Beban lain-lain', 2_700_000_000, 0, 2_500_000_000],
   ];
   const sum = tb.reduce((s, r) => s + r[2], 0);
-  if (sum !== 0) tb.push(['8-9999', 'Selisih pembulatan (penyeimbang)', -sum, 0]);
-  for (const [code, name, bal, ly] of tb) rows.push([code, name, bal, ly]);
+  if (sum !== 0) tb.push(['8-9999', 'Selisih pembulatan (penyeimbang)', -sum, 0, 0]);
+  for (const [code, name, bal, adj, ly] of tb) rows.push([code, name, bal, adj, ly]);
   return rows;
 }
 

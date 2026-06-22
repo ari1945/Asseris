@@ -28,6 +28,25 @@ const card: any = { background: '#fff', border: '1px solid var(--line, #e3e7ee)'
 const rpJt = (n: number) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const nowStamp = () => new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+/* FISKAL (book-tax SA 520) — field form (Rp JUTA, sesuai konvensi canon). */
+const FISKAL_FIELDS: [string, string][] = [
+  ['pbt', 'Laba sebelum pajak (PBT)'],
+  ['permAdd', 'Beda tetap positif'],
+  ['permLess', 'Beda tetap negatif'],
+  ['taxExpBooked', 'Beban pajak dibukukan'],
+  ['dtaReported', 'Aset pajak tangguhan'],
+  ['taxLoss', 'Rugi fiskal'],
+];
+/** Saring nilai form → FiskalInput numerik (buang field kosong → undefined, bukan 0). */
+function cleanFiskal(f: any): any {
+  const out: any = {};
+  for (const [k] of FISKAL_FIELDS) {
+    const v = f && f[k];
+    if (v !== '' && v != null && !isNaN(Number(v))) out[k] = Number(v);
+  }
+  return out;
+}
+
 function SevBadge({ sev }: any) {
   const t = TONE[sev];
   return (
@@ -93,6 +112,8 @@ function GateBanner({ ct }: any) {
 export function WedgeApp() {
   const [review, setReview] = usePersist('wedge.v1.review', null);   // { ts, findings, report, decisions, auditTrail }
   const [auditor, setAuditor] = usePersist('wedge.v1.auditor', 'Auditor');
+  const [fiskalForm, setFiskalForm] = usePersist('wedge.v1.fiskal', {});   // { pbt, permAdd, … } string|number
+  const [parsed, setParsed] = useStateW(null);      // ParsedImport terakhir (efemeral; utk hitung-ulang FISKAL)
   const [status, setStatus] = useStateW('idle');
   const [errMsg, setErrMsg] = useStateW('');
   const [seal, setSeal] = useStateW(null);          // { seal, verified, fmt }
@@ -106,21 +127,47 @@ export function WedgeApp() {
     setStatus('loading'); setErrMsg('');
     Promise.resolve()
       .then(() => parseImportWorkbook(data))
-      .then((parsed: any) => {
-        const ct = controlTotals(parsed);
-        const built = buildDiagCtx(parsed);
+      .then((p: any) => {
+        setParsed(p);
+        // Sheet FISKAL (bila ada nilai) mengisi awal form → dipakai sebagai fig efektif.
+        const sheetHasFiskal = p.fiskal && Object.keys(p.fiskal).length > 0;
+        const eff = sheetHasFiskal ? { ...fiskalForm, ...p.fiskal } : fiskalForm;
+        if (sheetHasFiskal) setFiskalForm(eff);
+        const effective = { ...p, fiskal: cleanFiskal(eff) };
+        const ct = controlTotals(effective);
+        const built = buildDiagCtx(effective);
         const all = amsDiagnostics(built.ctx);
         setReview({
           ts: nowStamp(),
           findings: all,
-          report: { ct, warnings: parsed.warnings, flagTally: built.flagTally, journalCount: built.journalCount, tbCount: parsed.tb.length },
+          report: { ct, warnings: p.warnings, flagTally: built.flagTally, journalCount: built.journalCount, tbCount: p.tb.length },
           decisions: {},
-          auditTrail: [{ when: nowStamp(), who: auditor, what: `Impor ${parsed.gl.length} baris GL + ${parsed.tb.length} baris TB → ${all.length} temuan` }],
+          auditTrail: [{ when: nowStamp(), who: auditor, what: `Impor ${p.gl.length} baris GL + ${p.tb.length} baris TB → ${all.length} temuan${sheetHasFiskal ? ' (FISKAL dari sheet)' : ''}` }],
         });
         setStatus('done');
       })
       .catch((e: any) => { console.error('[wedge] impor gagal', e); setErrMsg(String(e && e.message || e)); setStatus('error'); });
-  }, [auditor, setReview]);
+  }, [auditor, setReview, fiskalForm, setFiskalForm]);
+
+  // Hitung ulang diagnostik dgn FISKAL (form) tanpa impor ulang berkas (butuh `parsed` di memori).
+  const rerunFiskal = useCallbackW(() => {
+    if (!parsed) return;
+    const effective = { ...parsed, fiskal: cleanFiskal(fiskalForm) };
+    const ct = controlTotals(effective);
+    const built = buildDiagCtx(effective);
+    const all = amsDiagnostics(built.ctx);
+    setReview((rv: any) => {
+      const trail = ((rv && rv.auditTrail) || []).slice();
+      trail.push({ when: nowStamp(), who: auditor, what: `Hitung ulang diagnostik dgn FISKAL (form) → ${all.length} temuan` });
+      return {
+        ts: nowStamp(),
+        findings: all,
+        report: { ct, warnings: parsed.warnings, flagTally: built.flagTally, journalCount: built.journalCount, tbCount: parsed.tb.length },
+        decisions: {},
+        auditTrail: trail,
+      };
+    });
+  }, [parsed, fiskalForm, auditor, setReview]);
 
   const onFile = useCallbackW((e: any) => {
     const f = e.target.files && e.target.files[0];
@@ -186,7 +233,32 @@ export function WedgeApp() {
           </label>
         </div>
         <div style={{ fontSize: 11, color: 'var(--ink-2, #9aa3b2)', marginTop: 8 }}>
-          Template: workbook .xlsx dengan sheet <strong>TB</strong> (kode·nama·saldo), <strong>GL</strong> (id·tanggal·jam·user·debit·kredit·nilai·deskripsi), opsional <strong>FISKAL</strong>.
+          Template: workbook .xlsx dengan sheet <strong>TB</strong> (kode·nama·saldo·<em>penyesuaian</em>·saldo LY), <strong>GL</strong> (id·tanggal·jam·user·debit·kredit·nilai·deskripsi), opsional <strong>FISKAL</strong> (atau isi via form di bawah). Kolom <em>penyesuaian</em> = mutasi koreksi audit (saldo adjusted = saldo + penyesuaian).
+        </div>
+      </div>
+
+      <div style={{ ...card, padding: '16px 18px', marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Input FISKAL — analitik book-tax (SA 520)</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-2, #9aa3b2)', marginBottom: 12 }}>
+          Semua nilai dalam <strong>Rp juta</strong>. Terisi otomatis bila workbook memuat sheet FISKAL; sunting lalu klik <strong>Jalankan ulang diagnostik</strong>. Field kosong diabaikan.
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+          {FISKAL_FIELDS.map(([k, label]: any) => (
+            <label key={k} style={{ fontSize: 12, color: 'var(--ink-2, #4b5563)' }}>
+              {label}
+              <input type="number" inputMode="decimal" value={(fiskalForm as any)[k] ?? ''}
+                onChange={(e: any) => setFiskalForm({ ...fiskalForm, [k]: e.target.value })}
+                placeholder="—"
+                style={{ width: '100%', marginTop: 4, fontSize: 13, padding: '6px 9px', border: '1px solid var(--line, #e3e7ee)', borderRadius: 6, boxSizing: 'border-box' }} />
+            </label>
+          ))}
+        </div>
+        <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button onClick={rerunFiskal} disabled={!parsed}
+            style={{ background: parsed ? 'var(--blue, #2a63d6)' : 'var(--surface-3, #eef1f5)', color: parsed ? '#fff' : 'var(--ink-3, #9aa3b2)', border: 0, borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: parsed ? 'pointer' : 'not-allowed' }}>
+            Jalankan ulang diagnostik
+          </button>
+          {!parsed && <span style={{ fontSize: 11, color: 'var(--ink-2, #9aa3b2)' }}>Impor TB+GL dulu untuk mengaktifkan.</span>}
         </div>
       </div>
 
