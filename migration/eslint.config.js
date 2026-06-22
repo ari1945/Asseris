@@ -6,6 +6,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
 
 export default [
   { ignores: ['dist/**', 'node_modules/**'] },
@@ -64,6 +65,54 @@ export default [
       'react/no-unescaped-entities': 'off',
       'react/display-name': 'off',
       'react/jsx-key': 'off',
+    },
+  },
+  // --- W15: TypeScript tier — :any regrowth ratchet (D2) ---
+  // ESLint tak melint .ts(x) sampai W15 (tsc yang menjaganya). Blok ini menambah
+  // SATU rule berarti: `no-explicit-any` sbg ratchet KERAS — meniru gerbang W13
+  // (noImplicitAny): `:any` yg ADA di-grandfather lewat baseline `eslint-suppressions.json`
+  // (codemod W13 yg menyiramnya), `:any` BARU = error → gagal CI/pre-commit. Output
+  // tetap bersih (yg ter-suppress tak dicetak), jadi gerbang no-undef/hooks lama tetap
+  // terbaca. Severity 'error' WAJIB — fitur suppressions ESLint hanya berlaku utk error.
+  // Regenerasi baseline saat sengaja menurunkan :any: `npm run lint:any-baseline`.
+  // Parser TS sintaktik saja (tanpa parserOptions.project → cepat; rule ini tak butuh
+  // info-tipe). tsc full-strict tetap pemilik kebenaran tipe; rule core yg misfire off.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser,
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: { ...globals.browser, React: 'readonly', ReactDOM: 'readonly' },
+    },
+    plugins: { '@typescript-eslint': tseslint.plugin, react, 'react-hooks': reactHooks },
+    settings: { react: { version: '18.3' } },
+    rules: {
+      // the W15 ratchet (error; existing grandfathered via eslint-suppressions.json)
+      '@typescript-eslint/no-explicit-any': 'error',
+      // hooks correctness tetap berlaku utk .tsx
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'off',
+      // tsc (full strict) pemilik kebenaran ini utk .ts(x); rule core misfire → off
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+      'no-redeclare': 'off',
+      'no-dupe-class-members': 'off',
+      'no-empty': 'off',
+      'no-cond-assign': 'off',
+      'no-control-regex': 'off',
+      'no-prototype-builtins': 'off',
+      'no-fallthrough': 'off',
+      'no-useless-escape': 'off',
+      'no-misleading-character-class': 'off',
+      'no-irregular-whitespace': 'off',
+      'react/no-unknown-property': 'off',
+      'react/prop-types': 'off',
+      'react/no-unescaped-entities': 'off',
+      'react/display-name': 'off',
+      'react/jsx-key': 'off',
+      'react/jsx-no-undef': 'off',
     },
   },
 ];

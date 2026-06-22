@@ -1,0 +1,1152 @@
+{
+  "src/ai_extract.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 53
+    }
+  },
+  "src/ai_insights.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 49
+    }
+  },
+  "src/api.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "src/app-globals.d.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 26
+    }
+  },
+  "src/app.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    }
+  },
+  "src/canon_types.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 16
+    }
+  },
+  "src/contexts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 104
+    }
+  },
+  "src/copilot.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 89
+    }
+  },
+  "src/data.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/data_backoffice.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/data_base.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/data_facilities.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 51
+    }
+  },
+  "src/data_firmfin.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 110
+    }
+  },
+  "src/data_firmops.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 46
+    }
+  },
+  "src/data_fpm.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/data_import.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 41
+    }
+  },
+  "src/data_isak35.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/data_knowledge.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "src/data_legal.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 18
+    }
+  },
+  "src/data_legaldigital.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/data_licensing.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
+  "src/data_ojk.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/data_part1.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "src/data_part2.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "src/data_part3.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 20
+    }
+  },
+  "src/data_part4.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/data_people.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "src/data_platform.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 41
+    }
+  },
+  "src/data_pph23.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "src/data_procurement.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 79
+    }
+  },
+  "src/data_proforma.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/data_psak117.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "src/data_records.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 45
+    }
+  },
+  "src/data_reg_compliance.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "src/data_risk.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 55
+    }
+  },
+  "src/data_sakroadmap.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/data_syariah.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 16
+    }
+  },
+  "src/data_templates.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "src/data_travel.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 47
+    }
+  },
+  "src/diagnostics_panel.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 26
+    }
+  },
+  "src/evidence.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 46
+    }
+  },
+  "src/export_pdf.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/export_xlsx.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "src/fsgen_model.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 33
+    }
+  },
+  "src/icons.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 73
+    }
+  },
+  "src/jsx-intrinsics.d.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/llm_providers.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/minimap.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 41
+    }
+  },
+  "src/rbac.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "src/related_modules.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    }
+  },
+  "src/related_modules_data.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/related_modules_data2.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 10
+    }
+  },
+  "src/sa_canonical.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 20
+    }
+  },
+  "src/shell.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 43
+    }
+  },
+  "src/types/globals.d.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 31
+    }
+  },
+  "src/ui.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 38
+    }
+  },
+  "src/view_aje.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 71
+    }
+  },
+  "src/view_analytical.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 103
+    }
+  },
+  "src/view_analytical2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 43
+    }
+  },
+  "src/view_assoc.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/view_auditcomm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 14
+    }
+  },
+  "src/view_audittimeline.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 55
+    }
+  },
+  "src/view_bi.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 51
+    }
+  },
+  "src/view_bi2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 70
+    }
+  },
+  "src/view_bo1.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 39
+    }
+  },
+  "src/view_bo2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/view_bo3.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 46
+    }
+  },
+  "src/view_calc.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 45
+    }
+  },
+  "src/view_capacity.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 47
+    }
+  },
+  "src/view_clientportal.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 129
+    }
+  },
+  "src/view_cockpit.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 59
+    }
+  },
+  "src/view_cockpit2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 106
+    }
+  },
+  "src/view_compliance.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 32
+    }
+  },
+  "src/view_compmatrix.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 24
+    }
+  },
+  "src/view_confirm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 68
+    }
+  },
+  "src/view_confirm_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 29
+    }
+  },
+  "src/view_crm2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 56
+    }
+  },
+  "src/view_crypto.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 131
+    }
+  },
+  "src/view_dashboard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
+  "src/view_dashboard2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 53
+    }
+  },
+  "src/view_dataflow.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 25
+    }
+  },
+  "src/view_dataflow2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 32
+    }
+  },
+  "src/view_delivery.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 45
+    }
+  },
+  "src/view_diagnostics.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "src/view_disclosure.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 14
+    }
+  },
+  "src/view_dms.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 93
+    }
+  },
+  "src/view_docparts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 18
+    }
+  },
+  "src/view_duediligence.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 48
+    }
+  },
+  "src/view_eng2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 47
+    }
+  },
+  "src/view_eqr.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 28
+    }
+  },
+  "src/view_ethics_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 18
+    }
+  },
+  "src/view_evidence.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 45
+    }
+  },
+  "src/view_evidence2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    }
+  },
+  "src/view_execution.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 79
+    }
+  },
+  "src/view_facilities.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "src/view_facilities2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/view_final3.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 61
+    }
+  },
+  "src/view_firm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 58
+    }
+  },
+  "src/view_firmfinance.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 43
+    }
+  },
+  "src/view_firmgl.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 100
+    }
+  },
+  "src/view_firmops.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 34
+    }
+  },
+  "src/view_firmops2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_firmrevenue.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_firmtax.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 29
+    }
+  },
+  "src/view_firmtreasury.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 85
+    }
+  },
+  "src/view_forensic.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 33
+    }
+  },
+  "src/view_fpm_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 36
+    }
+  },
+  "src/view_framework.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
+  "src/view_fsgen.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 65
+    }
+  },
+  "src/view_fsgen_panels.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    }
+  },
+  "src/view_goingconcern.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
+  "src/view_governance.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 24
+    }
+  },
+  "src/view_groupaudit.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 47
+    }
+  },
+  "src/view_groupaudit_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 60
+    }
+  },
+  "src/view_hrops.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 45
+    }
+  },
+  "src/view_icfr.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 62
+    }
+  },
+  "src/view_independence_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 19
+    }
+  },
+  "src/view_insurance.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 37
+    }
+  },
+  "src/view_internalaudit.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/view_invprop.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/view_isak35.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 66
+    }
+  },
+  "src/view_isqm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 58
+    }
+  },
+  "src/view_isqm_deep.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 63
+    }
+  },
+  "src/view_isqm_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 31
+    }
+  },
+  "src/view_jet.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 16
+    }
+  },
+  "src/view_kb.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 44
+    }
+  },
+  "src/view_lease.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 19
+    }
+  },
+  "src/view_legal.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 16
+    }
+  },
+  "src/view_legal2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 41
+    }
+  },
+  "src/view_login.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/view_materiality.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 10
+    }
+  },
+  "src/view_materiality_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 60
+    }
+  },
+  "src/view_misc1.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 24
+    }
+  },
+  "src/view_misc2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 28
+    }
+  },
+  "src/view_mytasks.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 62
+    }
+  },
+  "src/view_mytasks_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 58
+    }
+  },
+  "src/view_newdisc.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/view_nonaudit.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_nonaudit2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 24
+    }
+  },
+  "src/view_ojkfiling.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "src/view_onboarding.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 74
+    }
+  },
+  "src/view_onboarding2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 40
+    }
+  },
+  "src/view_onboarding3.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 41
+    }
+  },
+  "src/view_opening.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "src/view_opinion.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 34
+    }
+  },
+  "src/view_opinion_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 73
+    }
+  },
+  "src/view_palette.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 28
+    }
+  },
+  "src/view_payroll.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 25
+    }
+  },
+  "src/view_pc_conduct.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 38
+    }
+  },
+  "src/view_pc_hcm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 33
+    }
+  },
+  "src/view_pc_org.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_pc_talent.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 53
+    }
+  },
+  "src/view_pdp.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 21
+    }
+  },
+  "src/view_people.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 68
+    }
+  },
+  "src/view_pipeline.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 81
+    }
+  },
+  "src/view_platform.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 59
+    }
+  },
+  "src/view_platform2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 51
+    }
+  },
+  "src/view_platform3.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
+  "src/view_pppk.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 21
+    }
+  },
+  "src/view_presentasi.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 122
+    }
+  },
+  "src/view_procurement.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 25
+    }
+  },
+  "src/view_procurement2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 43
+    }
+  },
+  "src/view_profit.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 51
+    }
+  },
+  "src/view_psak1.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 39
+    }
+  },
+  "src/view_psak117.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 50
+    }
+  },
+  "src/view_psak14.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 26
+    }
+  },
+  "src/view_psak14_nrv.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 49
+    }
+  },
+  "src/view_psak16.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 39
+    }
+  },
+  "src/view_psak16_register.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/view_psak19.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 43
+    }
+  },
+  "src/view_psak2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 31
+    }
+  },
+  "src/view_psak22.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_psak24.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "src/view_psak25.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "src/view_psak46.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    }
+  },
+  "src/view_psak48.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 18
+    }
+  },
+  "src/view_psak58.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 28
+    }
+  },
+  "src/view_psak65.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 28
+    }
+  },
+  "src/view_psak66.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 23
+    }
+  },
+  "src/view_psak68.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_psak71.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 44
+    }
+  },
+  "src/view_psak72.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 33
+    }
+  },
+  "src/view_psak72_parts.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/view_reconcile.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/view_records.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 31
+    }
+  },
+  "src/view_related.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "src/view_relatedsvc.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 76
+    }
+  },
+  "src/view_risk.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "src/view_risk2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/view_sa200.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/view_sa230.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 90
+    }
+  },
+  "src/view_sa240.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "src/view_sa2comm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "src/view_sa501.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "src/view_sa520.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "src/view_sa530.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 10
+    }
+  },
+  "src/view_sa540.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/view_sa580.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/view_sa701.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/view_sa705.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/view_sa710.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "src/view_sa720.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/view_sa800.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "src/view_sa805.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "src/view_sa810.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "src/view_sad.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 42
+    }
+  },
+  "src/view_sakroadmap.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 39
+    }
+  },
+  "src/view_scheduler.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 66
+    }
+  },
+  "src/view_sectorck.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "src/view_segmen.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "src/view_serviceorg.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 16
+    }
+  },
+  "src/view_settings.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 123
+    }
+  },
+  "src/view_sjah3000.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "src/view_sjah3400.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 19
+    }
+  },
+  "src/view_sjah3402.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 23
+    }
+  },
+  "src/view_sjah3410.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 20
+    }
+  },
+  "src/view_sjah3420.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
+  "src/view_specifics2.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 43
+    }
+  },
+  "src/view_spr2400.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/view_spr2410.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 24
+    }
+  },
+  "src/view_subsequent.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "src/view_sustain.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 16
+    }
+  },
+  "src/view_syariah.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 46
+    }
+  },
+  "src/view_tax23.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 53
+    }
+  },
+  "src/view_timebudget.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 65
+    }
+  },
+  "src/view_wip_firm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 38
+    }
+  },
+  "src/view_workspace.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 99
+    }
+  },
+  "src/view_wp.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 104
+    }
+  },
+  "src/view_wtb_deep.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 36
+    }
+  },
+  "src/wp_signoff.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 49
+    }
+  }
+}
