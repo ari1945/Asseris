@@ -8,7 +8,7 @@
    ============================================================ */
 import React from 'react';
 import { amsDiagnostics, DIAG_SEV } from '../diagnostics';
-import { parseImportWorkbook, controlTotals } from './import_parse';
+import { parseImportWorkbook, controlTotals, type FiskalInput } from './import_parse';
 import { buildDiagCtx } from './build_ctx';
 import { buildSampleWorkbook } from './sample_workbook';
 import { JET_FLAG_LABELS } from './derive_flags';
@@ -29,7 +29,7 @@ const rpJt = (n: number) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const nowStamp = () => new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 /* FISKAL (book-tax SA 520) — field form (Rp JUTA, sesuai konvensi canon). */
-const FISKAL_FIELDS: [string, string][] = [
+const FISKAL_FIELDS: [keyof FiskalInput, string][] = [
   ['pbt', 'Laba sebelum pajak (PBT)'],
   ['permAdd', 'Beda tetap positif'],
   ['permLess', 'Beda tetap negatif'],
@@ -37,11 +37,12 @@ const FISKAL_FIELDS: [string, string][] = [
   ['dtaReported', 'Aset pajak tangguhan'],
   ['taxLoss', 'Rugi fiskal'],
 ];
+type FiskalForm = Partial<Record<keyof FiskalInput, string | number>>;
 /** Saring nilai form → FiskalInput numerik (buang field kosong → undefined, bukan 0). */
-function cleanFiskal(f: any): any {
-  const out: any = {};
+function cleanFiskal(f: FiskalForm): FiskalInput {
+  const out: FiskalInput = {};
   for (const [k] of FISKAL_FIELDS) {
-    const v = f && f[k];
+    const v = f[k];
     if (v !== '' && v != null && !isNaN(Number(v))) out[k] = Number(v);
   }
   return out;
@@ -156,18 +157,16 @@ export function WedgeApp() {
     const ct = controlTotals(effective);
     const built = buildDiagCtx(effective);
     const all = amsDiagnostics(built.ctx);
-    setReview((rv: any) => {
-      const trail = ((rv && rv.auditTrail) || []).slice();
-      trail.push({ when: nowStamp(), who: auditor, what: `Hitung ulang diagnostik dgn FISKAL (form) → ${all.length} temuan` });
-      return {
-        ts: nowStamp(),
-        findings: all,
-        report: { ct, warnings: parsed.warnings, flagTally: built.flagTally, journalCount: built.journalCount, tbCount: parsed.tb.length },
-        decisions: {},
-        auditTrail: trail,
-      };
+    const trail = ((review && review.auditTrail) || []).slice();
+    trail.push({ when: nowStamp(), who: auditor, what: `Hitung ulang diagnostik dgn FISKAL (form) → ${all.length} temuan` });
+    setReview({
+      ts: nowStamp(),
+      findings: all,
+      report: { ct, warnings: parsed.warnings, flagTally: built.flagTally, journalCount: built.journalCount, tbCount: parsed.tb.length },
+      decisions: {},
+      auditTrail: trail,
     });
-  }, [parsed, fiskalForm, auditor, setReview]);
+  }, [parsed, fiskalForm, auditor, review, setReview]);
 
   const onFile = useCallbackW((e: any) => {
     const f = e.target.files && e.target.files[0];
@@ -243,11 +242,11 @@ export function WedgeApp() {
           Semua nilai dalam <strong>Rp juta</strong>. Terisi otomatis bila workbook memuat sheet FISKAL; sunting lalu klik <strong>Jalankan ulang diagnostik</strong>. Field kosong diabaikan.
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-          {FISKAL_FIELDS.map(([k, label]: any) => (
+          {FISKAL_FIELDS.map(([k, label]) => (
             <label key={k} style={{ fontSize: 12, color: 'var(--ink-2, #4b5563)' }}>
               {label}
-              <input type="number" inputMode="decimal" value={(fiskalForm as any)[k] ?? ''}
-                onChange={(e: any) => setFiskalForm({ ...fiskalForm, [k]: e.target.value })}
+              <input type="number" inputMode="decimal" value={fiskalForm[k] ?? ''}
+                onChange={(e: { target: { value: string } }) => setFiskalForm({ ...fiskalForm, [k]: e.target.value })}
                 placeholder="—"
                 style={{ width: '100%', marginTop: 4, fontSize: 13, padding: '6px 9px', border: '1px solid var(--line, #e3e7ee)', borderRadius: 6, boxSizing: 'border-box' }} />
             </label>
