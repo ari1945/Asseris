@@ -8,11 +8,11 @@
    ============================================================ */
 import React from 'react';
 import { amsDiagnostics, DIAG_SEV } from '../diagnostics';
-import { parseImportWorkbook, controlTotals, type FiskalInput } from './import_parse';
+import { parseImportWorkbook, controlTotals, type FiskalInput, type ParsedImport } from './import_parse';
 import { buildDiagCtx } from './build_ctx';
 import { buildSampleWorkbook } from './sample_workbook';
 import { JET_FLAG_LABELS } from './derive_flags';
-import { usePersist } from './use_persist';
+import { usePersist, loadLocal } from './use_persist';
 import { exportWpXlsx, exportWpPdf, canonicalText } from './export_wp';
 import { verifySealText } from './seal';
 import { VerifySealPanel } from './VerifySealPanel';
@@ -46,6 +46,19 @@ function cleanFiskal(f: FiskalForm): FiskalInput {
     if (v !== '' && v != null && !isNaN(Number(v))) out[k] = Number(v);
   }
   return out;
+}
+
+/* Persist `parsed` agar "Jalankan ulang" bertahan lintas-reload. Size-guard: GL
+   ribuan baris bisa lampaui kuota localStorage → jangan persist (review/temuan
+   diprioritaskan); reload tanpa parsed → tombol nonaktif + catatan impor ulang. */
+const PARSED_PERSIST_KEY = 'wedge.v1.parsed';
+const PARSED_PERSIST_LIMIT = 2_000_000;   // ~2MB serialized
+function persistParsed(p: ParsedImport | null): void {
+  try {
+    const s = p ? JSON.stringify(p) : '';
+    if (p && s.length <= PARSED_PERSIST_LIMIT) localStorage.setItem(PARSED_PERSIST_KEY, s);
+    else localStorage.removeItem(PARSED_PERSIST_KEY);
+  } catch { /* kuota/serialisasi — abaikan, degradasi mulus */ }
 }
 
 function SevBadge({ sev }: any) {
@@ -114,7 +127,7 @@ export function WedgeApp() {
   const [review, setReview] = usePersist('wedge.v1.review', null);   // { ts, findings, report, decisions, auditTrail }
   const [auditor, setAuditor] = usePersist('wedge.v1.auditor', 'Auditor');
   const [fiskalForm, setFiskalForm] = usePersist('wedge.v1.fiskal', {});   // { pbt, permAdd, … } string|number
-  const [parsed, setParsed] = useStateW(null);      // ParsedImport terakhir (efemeral; utk hitung-ulang FISKAL)
+  const [parsed, setParsed] = useStateW(() => loadLocal(PARSED_PERSIST_KEY, null));  // ParsedImport terakhir (dipersist size-guarded; utk hitung-ulang FISKAL)
   const [status, setStatus] = useStateW('idle');
   const [errMsg, setErrMsg] = useStateW('');
   const [seal, setSeal] = useStateW(null);          // { seal, verified, fmt }
@@ -130,6 +143,7 @@ export function WedgeApp() {
       .then(() => parseImportWorkbook(data))
       .then((p: any) => {
         setParsed(p);
+        persistParsed(p);
         // Sheet FISKAL (bila ada nilai) mengisi awal form → dipakai sebagai fig efektif.
         const sheetHasFiskal = p.fiskal && Object.keys(p.fiskal).length > 0;
         const eff = sheetHasFiskal ? { ...fiskalForm, ...p.fiskal } : fiskalForm;
@@ -257,7 +271,7 @@ export function WedgeApp() {
             style={{ background: parsed ? 'var(--blue, #2a63d6)' : 'var(--surface-3, #eef1f5)', color: parsed ? '#fff' : 'var(--ink-3, #9aa3b2)', border: 0, borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: parsed ? 'pointer' : 'not-allowed' }}>
             Jalankan ulang diagnostik
           </button>
-          {!parsed && <span style={{ fontSize: 11, color: 'var(--ink-2, #9aa3b2)' }}>Impor TB+GL dulu untuk mengaktifkan.</span>}
+          {!parsed && <span style={{ fontSize: 11, color: 'var(--ink-2, #9aa3b2)' }}>{review ? 'Data sesi lampau tak tersimpan penuh (dataset besar) — impor ulang untuk hitung ulang.' : 'Impor TB+GL dulu untuk mengaktifkan.'}</span>}
         </div>
       </div>
 
