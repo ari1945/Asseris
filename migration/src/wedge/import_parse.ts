@@ -70,6 +70,7 @@ export function mapGlAoa(aoa: any[][]): { rows: RawGlRow[]; warnings: string[] }
     cr: findCol(header, ['kredit', 'akunkredit', 'cr', 'akuncr']),
     amount: findCol(header, ['nilai', 'amount', 'jumlah', 'nominal', 'value']),
     desc: findCol(header, ['deskripsi', 'keterangan', 'description', 'memo', 'narasi']),
+    party: findCol(header, ['pihakberelasi', 'party', 'lawantransaksi', 'counterparty', 'rekanan', 'vendor']),
   };
   if (ci.date < 0 || ci.amount < 0) {
     warnings.push('Sheet GL: kolom wajib "tanggal" dan/atau "nilai" tak ditemukan.');
@@ -91,6 +92,7 @@ export function mapGlAoa(aoa: any[][]): { rows: RawGlRow[]; warnings: string[] }
       drAccount: ci.dr >= 0 ? String(row[ci.dr] ?? '') : '',
       crAccount: ci.cr >= 0 ? String(row[ci.cr] ?? '') : '',
       desc: ci.desc >= 0 ? String(row[ci.desc] ?? '') : '',
+      party: ci.party >= 0 ? String(row[ci.party] ?? '') : '',
     });
   }
   return { rows, warnings };
