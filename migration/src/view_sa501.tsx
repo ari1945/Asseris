@@ -44,7 +44,7 @@ function getLitCases() {
   const C: any = AMS_CANON || {};
   const reg = C.PROV_REGISTER || [];
   const TREAT = C.P57_TREAT || {};
-  return reg.filter(p => p.kind === 'litigation').map(p => {
+  return reg.filter((p: any) => p.kind === 'litigation').map((p: any) => {
     const t = TREAT[p.likely] || {};
     return { ...p, prov: t.treat === 'provision' ? p.estimate : 0, disc: t.disc || 'Diungkap (kontinjensi)' };
   });
@@ -58,7 +58,7 @@ function SA501View() {
   const [tab, setTab] = useState501('ringkasan');
 
   const invTotal = INV_LOCATIONS.reduce((s, l) => s + l.val, 0);
-  const litExposure = LIT_CASES.reduce((s, c) => s + c.claim, 0);
+  const litExposure = LIT_CASES.reduce((s: any, c: any) => s + c.claim, 0);
 
   const tabs = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -114,7 +114,7 @@ function SA501View() {
 }
 
 /* ---------------- Tab: Ringkasan ---------------- */
-function F501Overview({ invTotal, litExposure }) {
+function F501Overview({ invTotal, litExposure }: any) {
   const areas = [
     { ic: 'layers', k: 'blue', t: 'Persediaan (¶4–8)', sub: 'Bila persediaan material — hadiri perhitungan fisik & laksanakan prosedur atas catatan akhir.', m1: ['Nilai tercatat', invTotal.toLocaleString('id-ID') + ' jt'], m2: ['Lokasi dihadiri', '3 dari 5'], status: 'Berlangsung', sk: 'blue' },
     { ic: 'gavel', k: 'amber', t: 'Litigasi & Klaim (¶9–12)', sub: 'Rancang prosedur untuk identifikasi litigasi/klaim yang dapat menimbulkan risiko salah saji material.', m1: ['Eksposur klaim', litExposure.toLocaleString('id-ID') + ' jt'], m2: ['Surat hukum dibalas', '3 dari 4'], status: '1 menunggu balasan', sk: 'amber' },
@@ -127,7 +127,7 @@ function F501Overview({ invTotal, litExposure }) {
           <div className="panel-h"><h3>Tiga Area Bukti Spesifik SA 501</h3><div style={{ flex: 1 }} /><Badge kind="blue">Ruang Lingkup</Badge></div>
           <div style={{ padding: '6px 14px 14px' }}>
             {areas.map((a, i) => {
-              const Ic = I[a.ic];
+              const Ic = (I as any)[a.ic];
               return (
                 <div key={i} className="row gap12" style={{ padding: '13px 0', alignItems: 'flex-start', borderBottom: i < areas.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 38px', width: 38, height: 38, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${a.k}-bg)`, color: `var(--${a.k})` }}><Ic size={19} /></span>
@@ -150,7 +150,7 @@ function F501Overview({ invTotal, litExposure }) {
         <Panel title="Keterkaitan Standar">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['SA 500 · Bukti Audit', 'doc'], ['SA 540 · Estimasi (penyisihan persediaan)', 'target'], ['SA 505 · Konfirmasi Eksternal (konsinyasi)', 'mail'], ['SA 230 · Dokumentasi Audit', 'layers']].map((r, i) => {
-              const Lic = I[r[1]];
+              const Lic = (I as any)[r[1]];
               return (
                 <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
                   <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Lic size={14} /></span>{r[0]}</span>
@@ -167,7 +167,7 @@ function F501Overview({ invTotal, litExposure }) {
 }
 
 /* ---------------- Tab: Persediaan ---------------- */
-function F501Inventory({ invTotal }) {
+function F501Inventory({ invTotal }: any) {
   const [selId, setSelId] = useState501('GBJ-01');
   const sel = INV_LOCATIONS.find(l => l.id === selId);
   const attended = INV_LOCATIONS.filter(l => l.attend);
@@ -252,8 +252,8 @@ function F501Inventory({ invTotal }) {
 /* ---------------- Tab: Litigasi & Klaim ---------------- */
 function F501Litigation() {
   const [selId, setSelId] = useState501('LIT-01');
-  const sel = LIT_CASES.find(c => c.id === selId);
-  const likKind = l => l === 'Besar Kemungkinan' ? 'red' : l === 'Mungkin' ? 'amber' : 'gray';
+  const sel = LIT_CASES.find((c: any) => c.id === selId);
+  const likKind = (l: any) => l === 'Besar Kemungkinan' ? 'red' : l === 'Mungkin' ? 'amber' : 'gray';
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
@@ -262,7 +262,7 @@ function F501Litigation() {
           <table className="dtbl">
             <thead><tr><th style={{ width: 56 }}>Ref</th><th>Perkara</th><th className="num">Klaim</th><th className="num">Provisi</th><th style={{ width: 120 }}>Kemungkinan</th></tr></thead>
             <tbody>
-              {LIT_CASES.map(c => (
+              {LIT_CASES.map((c: any) => (
                 <tr key={c.id} className={c.id === selId ? 'sel' : ''} onClick={() => setSelId(c.id)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
                   <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>{c.party}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{c.nature} · {c.counsel}</div></td>

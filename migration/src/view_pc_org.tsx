@@ -38,10 +38,10 @@ function OrgChart() {
   const [view, setView] = usePCorg('chart');
   const [sel, setSel] = usePCorg('EMP-001');
 
-  const childrenOf = (id) => staff.filter(s => (ORG[s.id] || {}).reports === id);
-  const directReports = (id) => childrenOf(id).length;
-  const spanAll = (id) => { let n = 0; const walk = (x) => childrenOf(x).forEach(c => { n++; walk(c.id); }); walk(id); return n; };
-  const person = staff.find(s => s.id === sel) || staff[0];
+  const childrenOf = (id: any) => staff.filter((s: any) => (ORG[s.id] || {}).reports === id);
+  const directReports = (id: any) => childrenOf(id).length;
+  const spanAll = (id: any) => { let n = 0; const walk = (x: any) => childrenOf(x).forEach((c: any) => { n++; walk(c.id); }); walk(id); return n; };
+  const person = staff.find((s: any) => s.id === sel) || staff[0];
   const mgr = (ORG[sel] || {}).reports ? A.byId(ORG[sel].reports) : null;
 
   const Node = ({ s }: any) => {
@@ -55,14 +55,14 @@ function OrgChart() {
           <span className="badge" style={{ background: GC[s.grade] + '1a', color: GC[s.grade], fontSize: 9.5, padding: '0 6px' }}>{s.grade}</span>
           {kids.length > 0 && <span className="tiny" style={{ color: 'var(--ink-4)' }}>{kids.length} bawahan langsung</span>}
         </span>
-        {kids.length > 0 && <ul>{kids.map(k => <Node key={k.id} s={k} />)}</ul>}
+        {kids.length > 0 && <ul>{kids.map((k: any) => <Node key={k.id} s={k} />)}</ul>}
       </li>
     );
   };
 
   const depts = Object.keys(A.DEPT_HEAD);
   const deptRows = depts.map(d => {
-    const members = staff.filter(s => (ORG[s.id] || {}).dept === d);
+    const members = staff.filter((s: any) => (ORG[s.id] || {}).dept === d);
     const head = A.byId(A.DEPT_HEAD[d]);
     return { d, members, head };
   });
@@ -88,7 +88,7 @@ function OrgChart() {
             {view === 'chart' && (
               <div style={{ padding: '22px 14px', overflowX: 'auto' }}>
                 <style>{ORG_TREE_CSS}</style>
-                <div className="org-tree"><ul>{staff.filter(s => !(ORG[s.id] || {}).reports).map(r => <Node key={r.id} s={r} />)}</ul></div>
+                <div className="org-tree"><ul>{staff.filter((s: any) => !(ORG[s.id] || {}).reports).map((r: any) => <Node key={r.id} s={r} />)}</ul></div>
               </div>
             )}
 
@@ -101,7 +101,7 @@ function OrgChart() {
                       <Badge kind="blue">{members.length} anggota</Badge>
                     </div>
                     <div style={{ padding: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {members.map(m => (
+                      {members.map((m: any) => (
                         <div key={m.id} className="row ac gap8" onClick={() => setSel(m.id)} style={{ cursor: 'pointer', border: '1px solid var(--line-soft)', borderRadius: 8, padding: '6px 10px', minWidth: 190 }}>
                           <Avatar name={m.name} size={26} />
                           <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{m.name}</div><div className="tiny muted">{m.role}</div></div>
@@ -117,7 +117,7 @@ function OrgChart() {
               <table className="dtbl">
                 <thead><tr><th>Manajer / Atasan</th><th>Jenjang</th><th className="num">Bawahan Langsung</th><th className="num">Total Bawahan</th><th style={{ width: 150 }}>Beban Supervisi</th></tr></thead>
                 <tbody>
-                  {staff.filter(s => directReports(s.id) > 0).sort((a, b) => spanAll(b.id) - spanAll(a.id)).map(s => {
+                  {staff.filter((s: any) => directReports(s.id) > 0).sort((a: any, b: any) => spanAll(b.id) - spanAll(a.id)).map((s: any) => {
                     const dr = directReports(s.id), sp = spanAll(s.id);
                     const col = dr > 4 ? 'var(--amber)' : 'var(--green)';
                     return (
@@ -181,11 +181,11 @@ function SuccessionPlanning() {
   const [sel, setSel] = usePCorg('SR-01');
   const ROLES = A.SUCCESSION_ROLES, LADDER = A.CAREER_LADDER, IDP = A.IDP, RC = A.READY_COLOR;
 
-  const role = ROLES.find(r => r.id === sel) || ROLES[0];
+  const role = ROLES.find((r: any) => r.id === sel) || ROLES[0];
   const inc = A.byId(role.incumbent);
-  const readyNow = ROLES.filter(r => r.successors.some(s => s.readiness === 'Siap sekarang')).length;
-  const atRisk = ROLES.filter(r => r.riskOfLoss !== 'Rendah').length;
-  const noReady = ROLES.filter(r => !r.successors.length).length;
+  const readyNow = ROLES.filter((r: any) => r.successors.some((s: any) => s.readiness === 'Siap sekarang')).length;
+  const atRisk = ROLES.filter((r: any) => r.riskOfLoss !== 'Rendah').length;
+  const noReady = ROLES.filter((r: any) => !r.successors.length).length;
   const RISK_C = { Rendah: 'var(--green)', Sedang: 'var(--amber)', Tinggi: 'var(--red)' };
 
   const tabs = [{ id: 'map', label: 'Peta Suksesi' }, { id: 'ladder', label: 'Jenjang Karier' }, { id: 'idp', label: 'Rencana Pengembangan' }];
@@ -209,9 +209,9 @@ function SuccessionPlanning() {
               <table className="dtbl" style={{ borderRight: '1px solid var(--line)' }}>
                 <thead><tr><th>Peran Kunci</th><th>Pemangku</th><th>Risiko</th><th className="num">Penerus</th></tr></thead>
                 <tbody>
-                  {ROLES.map(r => {
+                  {ROLES.map((r: any) => {
                     const ic = A.byId(r.incumbent);
-                    const hasReady = r.successors.some(s => s.readiness === 'Siap sekarang');
+                    const hasReady = r.successors.some((s: any) => s.readiness === 'Siap sekarang');
                     return (
                       <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }}>
                         <td><div style={{ fontWeight: 600, fontSize: 12.5 }}>{r.role}</div><div className="tiny muted">{r.critical} · dampak {r.vacancyImpact.toLowerCase()}</div></td>
@@ -233,11 +233,11 @@ function SuccessionPlanning() {
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
                   <KvBox label="Kritikalitas" v={role.critical} />
-                  <KvBox label="Risiko Kehilangan" v={role.riskOfLoss} accent={RISK_C[role.riskOfLoss]} />
+                  <KvBox label="Risiko Kehilangan" v={role.riskOfLoss} accent={(RISK_C as any)[role.riskOfLoss]} />
                 </div>
                 <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kandidat Penerus ({role.successors.length})</div>
                 <div style={{ display: 'grid', gap: 9 }}>
-                  {role.successors.length ? role.successors.map((s, i) => {
+                  {role.successors.length ? role.successors.map((s: any, i: any) => {
                     const p = A.byId(s.id);
                     return (
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
@@ -258,7 +258,7 @@ function SuccessionPlanning() {
           {tab === 'ladder' && (
             <div style={{ padding: 16 }}>
               <div className="row" style={{ gap: 12, alignItems: 'stretch', overflowX: 'auto' }}>
-                {LADDER.map((l, i) => (
+                {LADDER.map((l: any, i: any) => (
                   <React.Fragment key={l.grade}>
                     <div className="panel" style={{ padding: 0, boxShadow: 'none', minWidth: 230, flex: 1 }}>
                       <div style={{ padding: '10px 13px', background: A.GRADE_COLOR_PC[l.grade], color: '#fff', borderRadius: '4px 4px 0 0' }}>
@@ -268,7 +268,7 @@ function SuccessionPlanning() {
                       <div style={{ padding: 12 }}>
                         <div className="tiny muted upper" style={{ marginBottom: 6 }}>Kriteria Promosi</div>
                         <div style={{ display: 'grid', gap: 6 }}>
-                          {l.criteria.map((c, j) => <div key={j} className="row ac gap6 tiny"><I.check size={12} style={{ color: 'var(--green)', flex: '0 0 auto' }} /><span style={{ lineHeight: 1.35 }}>{c}</span></div>)}
+                          {l.criteria.map((c: any, j: any) => <div key={j} className="row ac gap6 tiny"><I.check size={12} style={{ color: 'var(--green)', flex: '0 0 auto' }} /><span style={{ lineHeight: 1.35 }}>{c}</span></div>)}
                         </div>
                       </div>
                     </div>
@@ -292,7 +292,7 @@ function SuccessionPlanning() {
                     </div>
                     <table className="dtbl">
                       <tbody>
-                        {plan.actions.map((a, i) => (
+                        {plan.actions.map((a: any, i: any) => (
                           <tr key={i}>
                             <td style={{ fontWeight: 500 }}>{a.a}</td>
                             <td style={{ width: 110 }}><Badge kind={a.s === 'Selesai' ? 'green' : a.s === 'Berjalan' ? 'amber' : 'gray'}>{a.s}</Badge></td>

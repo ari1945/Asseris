@@ -25,8 +25,8 @@ const FOPS_CLS = { Overhead: { c: '#5b3fa6', lbl: 'Overhead & Umum' }, Direct: {
 const FOPS_PALETTE = ['#013a52', '#005085', '#0a6b73', '#2f7bb0', '#5b3fa6', '#9a6a00', '#1f7a4d', '#b3261e'];
 
 /* kartu kesehatan sub-modul (klik → buka modul mendalam) */
-function FopsModuleCard({ m, stat, sub, status, statusKind, onNav }) {
-  const Ic = I[m.icon] || I.building;
+function FopsModuleCard({ m, stat, sub, status, statusKind, onNav }: any) {
+  const Ic = (I as any)[m.icon] || I.building;
   return (
     <button type="button" className="panel fops-card" onClick={() => onNav(m.id, { from: 'firmops' })}
       style={{ padding: '12px 13px', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 7, border: '1px solid var(--line)', background: 'var(--surface-1)' }}>
@@ -61,35 +61,35 @@ function FirmOps() {
   const register = useMemoFops(() => (LEGAL ? LEGAL.buildRegister(firm) : []), [firm.engagements, firm.clients]);
 
   /* agregat ringkas */
-  const nbv = F.sum(B.FIXED_ASSETS, a => a.nbv);
-  const spendYtd = F.sum(B.SPEND_BY_CAT, s => s.v);
-  const dueSoon = obligations.filter(o => o.days <= 90);
-  const overdue = obligations.filter(o => o.days < 0);
+  const nbv = F.sum(B.FIXED_ASSETS, (a: any) => a.nbv);
+  const spendYtd = F.sum(B.SPEND_BY_CAT, (s: any) => s.v);
+  const dueSoon = obligations.filter((o: any) => o.days <= 90);
+  const overdue = obligations.filter((o: any) => o.days < 0);
 
   /* kesehatan tiap sub-modul (derived) */
-  const pendingPO = B.PURCHASE_ORDERS.filter(p => p.status === 'Menunggu Approval');
-  const maintLate = B.MAINTENANCE.filter(m => m.status === 'Terlambat');
-  const archDue = B.ARCHIVES.filter(a => a.status === 'Jatuh Tempo');
-  const holds = B.LEGAL_HOLDS.filter(h => h.status === 'Aktif');
+  const pendingPO = B.PURCHASE_ORDERS.filter((p: any) => p.status === 'Menunggu Approval');
+  const maintLate = B.MAINTENANCE.filter((m: any) => m.status === 'Terlambat');
+  const archDue = B.ARCHIVES.filter((a: any) => a.status === 'Jatuh Tempo');
+  const holds = B.LEGAL_HOLDS.filter((h: any) => h.status === 'Aktif');
   /* Retensi & Arsip — DITARIK dari lapisan kanonik (SSOT) bila tersedia. */
   const RET = window.RETENTION ? window.RETENTION.metrics() : null;
   const recArchives = RET ? RET.total : B.ARCHIVES.length;
   const recDue = RET ? RET.due : archDue.length;
   const recHolds = RET ? RET.holds : holds.length;
-  const openLit = B.DISPUTES.filter(d => d.status !== 'Putusan');
-  const polDue = B.POLICIES.filter(p => B.daysTo(p.akhir) <= 60);
-  const travPend = B.TRIPS.filter(t => t.status === 'Menunggu Approval');
-  const overCap = B.REIMBURSEMENTS.filter(r => r.klaim > r.plafon);
+  const openLit = B.DISPUTES.filter((d: any) => d.status !== 'Putusan');
+  const polDue = B.POLICIES.filter((p: any) => B.daysTo(p.akhir) <= 60);
+  const travPend = B.TRIPS.filter((t: any) => t.status === 'Menunggu Approval');
+  const overCap = B.REIMBURSEMENTS.filter((r: any) => r.klaim > r.plafon);
   const licSoon = [...B.FIRM_LICENSES, ...B.MEMBERSHIPS].filter(x => x.exp && B.daysTo(x.exp) <= 120);
-  const pplShort = B.AP_LICENSES.filter(a => a.ppl < a.pplReq);
+  const pplShort = B.AP_LICENSES.filter((a: any) => a.ppl < a.pplReq);
 
   const health = {
-    procurement: { stat: boM(spendYtd, 1), sub: 'belanja YTD · ' + B.VENDORS.filter(v => v.status === 'Aktif').length + ' vendor aktif', status: pendingPO.length + ' PO pending', statusKind: pendingPO.length ? 'amber' : 'green' },
-    facilities: { stat: boM(nbv, 1), sub: 'NBV aset · okupansi ' + Math.round(F.sum(B.SPACE, f => f.occ) / F.sum(B.SPACE, f => f.seats) * 100) + '%', status: maintLate.length ? maintLate.length + ' maint telat' : 'terjaga', statusKind: maintLate.length ? 'red' : 'green' },
+    procurement: { stat: boM(spendYtd, 1), sub: 'belanja YTD · ' + B.VENDORS.filter((v: any) => v.status === 'Aktif').length + ' vendor aktif', status: pendingPO.length + ' PO pending', statusKind: pendingPO.length ? 'amber' : 'green' },
+    facilities: { stat: boM(nbv, 1), sub: 'NBV aset · okupansi ' + Math.round(F.sum(B.SPACE, (f: any) => f.occ) / F.sum(B.SPACE, (f: any) => f.seats) * 100) + '%', status: maintLate.length ? maintLate.length + ' maint telat' : 'terjaga', statusKind: maintLate.length ? 'red' : 'green' },
     records: { stat: recArchives + ' arsip', sub: recDue + ' jatuh tempo musnah', status: recHolds + ' legal hold', statusKind: recHolds ? 'red' : 'green' },
     legal: { stat: register.length + ' kontrak', sub: 'registri SSOT terpadu', status: openLit.length + ' perkara', statusKind: openLit.length ? 'amber' : 'green' },
-    insurance: { stat: boM(B.POLICIES.find(p => p.id === 'POL-PII').limit, 0), sub: 'limit PII · ' + B.POLICIES.length + ' polis', status: polDue.length ? polDue.length + ' jatuh tempo' : 'tercakup', statusKind: polDue.length ? 'amber' : 'green' },
-    travel: { stat: 'Rp ' + AMS.fmt(F.sum(B.TRAVEL_TREND, t => t.v), 0) + ' jt', sub: 'biaya YTD · ' + travPend.length + ' pengajuan', status: overCap.length ? overCap.length + ' lewat plafon' : 'sesuai plafon', statusKind: overCap.length ? 'amber' : 'green' },
+    insurance: { stat: boM(B.POLICIES.find((p: any) => p.id === 'POL-PII').limit, 0), sub: 'limit PII · ' + B.POLICIES.length + ' polis', status: polDue.length ? polDue.length + ' jatuh tempo' : 'tercakup', statusKind: polDue.length ? 'amber' : 'green' },
+    travel: { stat: 'Rp ' + AMS.fmt(F.sum(B.TRAVEL_TREND, (t: any) => t.v), 0) + ' jt', sub: 'biaya YTD · ' + travPend.length + ' pengajuan', status: overCap.length ? overCap.length + ' lewat plafon' : 'sesuai plafon', statusKind: overCap.length ? 'amber' : 'green' },
     licensing: { stat: B.AP_LICENSES.length + ' AP · ' + B.FIRM_LICENSES.length + ' izin', sub: licSoon.length + ' perpanjangan ≤120h', status: pplShort.length ? pplShort.length + ' PPL kurang' : 'patuh', statusKind: pplShort.length ? 'red' : 'green' },
   };
 
@@ -126,7 +126,7 @@ function FirmOps() {
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <SectionTitle right={<span className="tiny muted">klik kartu untuk membuka modul mendalam</span>}>Kesehatan Sub-Modul Operasi</SectionTitle>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
-                {F.SUBMODULES.map(m => <FopsModuleCard key={m.id} m={m} {...health[m.id]} onNav={nav} />)}
+                {F.SUBMODULES.map((m: any) => <FopsModuleCard key={m.id} m={m} {...(health as any)[m.id]} onNav={nav} />)}
                 <div className="panel" style={{ padding: '12px 13px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
                   <div className="row ac gap8"><I.link2 size={14} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 11.5 }}>Satu sumber kebenaran</b></div>
                   <div className="tiny muted" style={{ lineHeight: 1.45 }}>Tiap angka ditarik dari sub-ledger pemiliknya. Cockpit tidak menyimpan salinan.</div>
@@ -137,10 +137,10 @@ function FirmOps() {
                 <Panel title="Komposisi Beban Operasi" sub="run-rate · sumber sub-ledger">
                   <div className="row gap14" style={{ alignItems: 'center' }}>
                     <Donut size={120} thickness={17}
-                      segments={oc.rows.map((r, i) => ({ label: r.label, value: r.amount, color: FOPS_PALETTE[i % FOPS_PALETTE.length] }))}
+                      segments={oc.rows.map((r: any, i: any) => ({ label: r.label, value: r.amount, color: FOPS_PALETTE[i % FOPS_PALETTE.length] }))}
                       center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{AMS.fmt(oc.total / 1e9, 1)}M</div><div className="tiny muted">total</div></>} />
                     <div style={{ flex: 1 }}>
-                      {oc.rows.map((r, i) => (
+                      {oc.rows.map((r: any, i: any) => (
                         <div key={r.key} className="row jb ac" style={{ padding: '4px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => { setTab('opex'); }}>
                           <span className="row ac gap8" style={{ minWidth: 0 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: FOPS_PALETTE[i % FOPS_PALETTE.length], flex: '0 0 8px' }} /><span className="tiny truncate" style={{ fontWeight: 600, maxWidth: 168 }}>{r.label}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700, flex: '0 0 auto' }}>{boJt(r.amount)}</span>
@@ -152,9 +152,9 @@ function FirmOps() {
 
                 <Panel title="Kewajiban Terdekat" sub={dueSoon.length + ' item ≤90 hari · lintas modul'}>
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {obligations.slice(0, 7).map((o, i) => {
-                      const meta = F.SUBMODULES.find(s => s.id === o.module) || {};
-                      const Ic = I[meta.icon] || I.calendar;
+                    {obligations.slice(0, 7).map((o: any, i: any) => {
+                      const meta = F.SUBMODULES.find((s: any) => s.id === o.module) || {};
+                      const Ic = (I as any)[meta.icon] || I.calendar;
                       const col = F.SEV_COLOR[F.sev(o.days)];
                       return (
                         <div key={i} className="row ac gap8" style={{ padding: '6px 8px', borderRadius: 7, border: '1px solid var(--line)', cursor: 'pointer' }} onClick={() => nav(o.module, { from: 'firmops' })}>
@@ -186,10 +186,10 @@ function FirmOps() {
               <table className="dtbl">
                 <thead><tr><th>Komponen Biaya</th><th>Klasifikasi</th><th>Dasar</th><th>Sumber (Sub-Ledger)</th><th className="num">Nilai (run-rate)</th><th></th></tr></thead>
                 <tbody>
-                  {oc.rows.map(r => (
+                  {oc.rows.map((r: any) => (
                     <tr key={r.key}>
                       <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{r.label}</div><div className="tiny muted" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.3 }}>{r.detail}</div></td>
-                      <td><span className="badge" style={{ textTransform: 'none', background: FOPS_CLS[r.cls].c + '1a', color: FOPS_CLS[r.cls].c }}>{FOPS_CLS[r.cls].lbl}</span></td>
+                      <td><span className="badge" style={{ textTransform: 'none', background: (FOPS_CLS as any)[r.cls].c + '1a', color: (FOPS_CLS as any)[r.cls].c }}>{(FOPS_CLS as any)[r.cls].lbl}</span></td>
                       <td className="tiny"><span className={'badge ' + (r.basis === 'tahunan' ? 'b-blue' : 'b-gray')} style={{ textTransform: 'none' }}>{r.basis === 'tahunan' ? 'Tahunan' : 'YTD'}</span></td>
                       <td className="tiny muted">{r.src}</td>
                       <td className="num" style={{ fontWeight: 600 }}>{boJt(r.amount)}</td>

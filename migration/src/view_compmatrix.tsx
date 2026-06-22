@@ -159,8 +159,8 @@ function ComplianceMatrix() {
   const [newNum, setNewNum] = useStateMX(() => loader('ams.std.newnum', false));
   React.useEffect(() => { try { localStorage.setItem('ams.std.newnum', JSON.stringify(newNum)); } catch (e) {} }, [newNum]);
 
-  const isApplicable = (code) => appl[code] !== false;
-  const toggleAppl = (code) => setAppl(a => ({ ...a, [code]: a[code] === false ? true : false }));
+  const isApplicable = (code: any) => appl[code] !== false;
+  const toggleAppl = (code: any) => setAppl((a: any) => ({ ...a, [code]: a[code] === false ? true : false }));
 
   const types = ['Semua', 'SA', 'PSAK', 'SAK', 'SPR', 'SJAH', 'SPM', 'SPA', 'KEPAP'];
   const covs = [['Semua', 'Semua'], ['checklist', 'Checklist'], ['module', 'Modul'], ['gap', 'Belum']];
@@ -169,7 +169,7 @@ function ComplianceMatrix() {
     if (type !== 'Semua' && r.type !== type) return false;
     if (cov !== 'Semua' && r.coverage !== cov) return false;
     if (hideNA && !isApplicable(r.code)) return false;
-    if (q) { const a = IFRS_ALIAS[r.code]; const s = (r.code + ' ' + r.title + (a ? ' ' + a.code + ' ' + a.base : '')).toLowerCase(); if (!s.includes(q.toLowerCase())) return false; }
+    if (q) { const a = (IFRS_ALIAS as any)[r.code]; const s = (r.code + ' ' + r.title + (a ? ' ' + a.code + ' ' + a.base : '')).toLowerCase(); if (!s.includes(q.toLowerCase())) return false; }
     return true;
   }), [type, cov, hideNA, q, appl]);
 
@@ -182,9 +182,9 @@ function ComplianceMatrix() {
   const avgPct = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
 
   // group visible rows by phase
-  const byPhase = PHASE_ORDER.map(ph => ({ phase: ph, items: rows.filter(r => r.phase === ph) })).filter(g => g.items.length);
+  const byPhase = PHASE_ORDER.map(ph => ({ phase: ph, items: rows.filter((r: any) => r.phase === ph) })).filter(g => g.items.length);
 
-  const chip = (active, onClick, label, key) => (
+  const chip = (active: any, onClick: any, label: any, key: any) => (
     <button key={key} onClick={onClick} className="chip" style={{ cursor: 'pointer', border: '1px solid ' + (active ? 'var(--blue)' : 'var(--line-strong)'), background: active ? 'var(--blue)' : '#fff', color: active ? '#fff' : 'var(--ink-2)', fontWeight: active ? 700 : 600, height: 26 }}>{label}</button>
   );
 
@@ -212,15 +212,15 @@ function ComplianceMatrix() {
             <div className="row ac gap10" style={{ flexWrap: 'wrap' }}>
               <div className="row ac" style={{ flex: '1 1 240px', minWidth: 220, border: '1px solid var(--line-strong)', borderRadius: 8, padding: '0 10px', height: 34, gap: 8 }}>
                 <I.search2 size={15} style={{ color: 'var(--ink-4)' }} />
-                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nomor atau judul standar…" style={{ border: 'none', outline: 'none', flex: 1, fontSize: 13, background: 'transparent' }} />
+                <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari nomor atau judul standar…" style={{ border: 'none', outline: 'none', flex: 1, fontSize: 13, background: 'transparent' }} />
                 {q && <button className="p-act" onClick={() => setQ('')} title="Bersihkan"><I.x size={14} /></button>}
               </div>
               <label className="row ac gap6 tiny" style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600, color: 'var(--ink-2)' }}>
-                <input type="checkbox" checked={hideNA} onChange={e => setHideNA(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--blue)' }} />
+                <input type="checkbox" checked={hideNA} onChange={(e: any) => setHideNA(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--blue)' }} />
                 Sembunyikan N/A
               </label>
               <label className="row ac gap6 tiny" style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600, color: 'var(--ink-2)' }} title="Tampilkan penomoran PSAK selaras-IFRS (efektif 2024) sebagai nomor utama">
-                <input type="checkbox" checked={newNum} onChange={e => setNewNum(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--blue)' }} />
+                <input type="checkbox" checked={newNum} onChange={(e: any) => setNewNum(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--blue)' }} />
                 Penomoran selaras-IFRS
               </label>
             </div>
@@ -250,27 +250,27 @@ function ComplianceMatrix() {
                   <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{g.phase}</span>
                   <span className="tiny muted">{g.items.length}</span>
                 </div>
-                {g.items.map(r => {
-                  const cm = COV_META[r.coverage];
-                  const al = IFRS_ALIAS[r.code];
+                {g.items.map((r: any) => {
+                  const cm = (COV_META as any)[r.coverage];
+                  const al = (IFRS_ALIAS as any)[r.code];
                   const na = !isApplicable(r.code);
                   const navigable = r.coverage !== 'gap' && r.module;
                   const prog = r.coverage === 'checklist' && window.compliancePct ? window.compliancePct(r.module) : null;
                   return (
                     <div key={r.code} onClick={() => navigable && nav(r.module, { from: 'compmatrix' })}
                       style={{ display: 'grid', gridTemplateColumns: COLS, gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--line-soft)', alignItems: 'center', cursor: navigable ? 'pointer' : 'default', opacity: na ? 0.5 : 1 }}
-                      onMouseEnter={e => { if (navigable) e.currentTarget.style.background = 'var(--blue-050)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                      onMouseEnter={(e: any) => { if (navigable) e.currentTarget.style.background = 'var(--blue-050)'; }}
+                      onMouseLeave={(e: any) => { e.currentTarget.style.background = 'transparent'; }}>
                       <div style={{ minWidth: 0 }}>
                         <div className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{newNum && al ? al.code : r.code}</div>
                         {al && <div className="mono" style={{ fontSize: 9.5, color: 'var(--ink-4)', marginTop: 2, whiteSpace: 'nowrap' }}>{newNum ? ('lama ' + r.code) : ('\u2261 ' + al.code)}</div>}
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{r.title}</div>
-                        {r.coverage === 'module' && <div className="tiny muted">→ {(MODULE_INDEX[r.module] || {}).label || r.module}</div>}
+                        {r.coverage === 'module' && <div className="tiny muted">→ {((MODULE_INDEX as any)[r.module] || {}).label || r.module}</div>}
                         {r.coverage === 'gap' && <div className="tiny" style={{ color: 'var(--amber)' }}>Kandidat untuk ditambahkan</div>}
                       </div>
-                      <span><Badge kind={STD_TYPE_KIND[r.type] || 'gray'}>{r.type}</Badge></span>
+                      <span><Badge kind={(STD_TYPE_KIND as any)[r.type] || 'gray'}>{r.type}</Badge></span>
                       <span><Badge kind={cm.kind}>{cm.label}</Badge></span>
                       <div>
                         {prog ? (
@@ -284,7 +284,7 @@ function ComplianceMatrix() {
                           <span className="tiny" style={{ color: 'var(--ink-4)' }}>—</span>
                         )}
                       </div>
-                      <button onClick={e => { e.stopPropagation(); toggleAppl(r.code); }} title="Tandai keberlakuan untuk engagement aktif"
+                      <button onClick={(e: any) => { e.stopPropagation(); toggleAppl(r.code); }} title="Tandai keberlakuan untuk engagement aktif"
                         className="chip" style={{ cursor: 'pointer', height: 22, fontWeight: 700, border: '1px solid ' + (na ? 'var(--line-strong)' : 'var(--green)'), background: na ? 'var(--surface-3)' : 'var(--green-bg)', color: na ? 'var(--ink-4)' : 'var(--green)' }}>
                         {na ? 'N/A' : 'Berlaku'}
                       </button>
@@ -308,7 +308,7 @@ Object.assign(window, { STANDARDS_REGISTRY, ComplianceMatrix });
 
 /* module -> alias selaras-IFRS, untuk chip di header modul (SubBar) */
 const MODULE_IFRS = {};
-STANDARDS_REGISTRY.forEach(r => { const a = IFRS_ALIAS[r.code]; if (a && r.module && !MODULE_IFRS[r.module]) MODULE_IFRS[r.module] = { ...a, legacy: r.code }; });
+STANDARDS_REGISTRY.forEach(r => { const a = (IFRS_ALIAS as any)[r.code]; if (a && r.module && !(MODULE_IFRS as any)[r.module]) (MODULE_IFRS as any)[r.module] = { ...a, legacy: r.code }; });
 Object.assign(window, { STD_IFRS_ALIAS: IFRS_ALIAS, MODULE_IFRS });
 
 

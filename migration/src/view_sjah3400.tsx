@@ -31,7 +31,7 @@ function SJAH3400View() {
   const E = (AMS as any).pfiEngine(exec);
   const A = E.meta;
 
-  const toggle = (no, seed) => setExec(s => {
+  const toggle = (no: any, seed: any) => setExec((s: any) => {
     const cur = Object.prototype.hasOwnProperty.call(s, no) ? s[no] : seed;
     return { ...s, [no]: !cur };
   });
@@ -92,8 +92,8 @@ function SJAH3400View() {
 }
 
 /* ---------------- Tab: Penerimaan & Anatomi ---------------- */
-function PfiAcceptance({ E, A }) {
-  const acc = A.terms.filter(t => t.ok).length;
+function PfiAcceptance({ E, A }: any) {
+  const acc = A.terms.filter((t: any) => t.ok).length;
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
@@ -121,7 +121,7 @@ function PfiAcceptance({ E, A }) {
         <Panel noBody>
           <div className="panel-h"><h3>Penerimaan Perikatan (¶10–12)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: acc === A.terms.length ? 'var(--green)' : 'var(--amber)' }}>{acc}/{A.terms.length}</span></div>
           <div style={{ padding: 12, display: 'grid', gap: 7 }}>
-            {A.terms.map((t, i) => (
+            {A.terms.map((t: any, i: any) => (
               <div key={i} className="row gap8" style={{ alignItems: 'flex-start', fontSize: 12 }}>
                 <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{t.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
                 <span style={{ lineHeight: 1.45 }}>{t.k}</span>
@@ -155,7 +155,7 @@ function PfiAcceptance({ E, A }) {
 }
 
 /* ---------------- Tab: Asumsi & Kewajaran ---------------- */
-function PfiAssumptions({ E }) {
+function PfiAssumptions({ E }: any) {
   const KIND = { best: ['Terbaik (best-estimate)', 'teal'], hypo: ['Hipotetis (andaikan)', 'purple'] };
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
@@ -164,11 +164,11 @@ function PfiAssumptions({ E }) {
         <table className="dtbl">
           <thead><tr><th style={{ width: 44 }}>Ref</th><th>Asumsi</th><th style={{ width: 150 }}>Jenis</th><th>Dasar / Bukti</th><th style={{ width: 90 }}>Penilaian</th></tr></thead>
           <tbody>
-            {E.assumptions.map(a => (
+            {E.assumptions.map((a: any) => (
               <tr key={a.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
                 <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>{a.k}</td>
-                <td><Badge kind={KIND[a.kind][1]}>{KIND[a.kind][0]}</Badge></td>
+                <td><Badge kind={(KIND as any)[a.kind][1]}>{(KIND as any)[a.kind][0]}</Badge></td>
                 <td className="tiny muted" style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>{a.basis}{a.kind === 'hypo' && <span style={{ color: a.disclosed ? 'var(--green)' : 'var(--amber)', fontWeight: 600 }}> · {a.disclosed ? 'diungkap' : 'belum diungkap'}</span>}</td>
                 <td><Badge kind={a.reasonable ? 'green' : 'amber'}>{a.reasonable ? 'Wajar' : 'Perhatian'}</Badge></td>
               </tr>
@@ -194,10 +194,10 @@ function PfiAssumptions({ E }) {
 }
 
 /* ---------------- Tab: Pemeriksaan & Bukti ---------------- */
-function PfiExamination({ E, toggle }) {
+function PfiExamination({ E, toggle }: any) {
   const { fmt } = AMS;
   const D = E.derived, M = E.meta.model, P = E.periods;
-  const jt = (v) => 'Rp ' + fmt(v) + ' jt';
+  const jt = (v: any) => 'Rp ' + fmt(v) + ' jt';
   const rows = [
     ['Pendapatan', M.rev, false],
     ['Beban operasional', M.opex, false],
@@ -213,12 +213,12 @@ function PfiExamination({ E, toggle }) {
         <Panel noBody>
           <div className="panel-h"><h3>Rekomputasi Model Proyeksi (¶19)</h3><div style={{ flex: 1 }} /><Badge kind={D.ebitdaTie ? 'green' : 'red'}>{D.ebitdaTie ? 'Aritmetika cocok' : 'Selisih'}</Badge></div>
           <table className="dtbl">
-            <thead><tr><th>Baris (Rp jt)</th>{P.map(p => <th key={p} className="num">{p}</th>)}</tr></thead>
+            <thead><tr><th>Baris (Rp jt)</th>{P.map((p: any) => <th key={p} className="num">{p}</th>)}</tr></thead>
             <tbody>
               {rows.map((r, i) => (
                 <tr key={i} style={{ background: r[2] ? 'var(--surface-2)' : 'transparent' }}>
                   <td style={{ fontWeight: r[2] ? 700 : 500 }}>{r[0]}</td>
-                  {r[1].map((v, j) => <td key={j} className="num mono" style={{ fontWeight: r[2] ? 700 : 400, color: r[2] ? 'var(--ink)' : 'var(--ink-2)' }}>{fmt(v)}</td>)}
+                  {r[1].map((v: any, j: any) => <td key={j} className="num mono" style={{ fontWeight: r[2] ? 700 : 400, color: r[2] ? 'var(--ink)' : 'var(--ink-2)' }}>{fmt(v)}</td>)}
                 </tr>
               ))}
             </tbody>
@@ -251,7 +251,7 @@ function PfiExamination({ E, toggle }) {
         <table className="dtbl">
           <thead><tr><th style={{ width: 48 }}>Ref</th><th style={{ width: '22%' }}>Prosedur</th><th>Temuan (dihitung)</th><th style={{ width: 96 }}>Hasil</th><th style={{ width: 96 }}>Status</th></tr></thead>
           <tbody>
-            {E.procedures.map(p => (
+            {E.procedures.map((p: any) => (
               <tr key={p.no}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.ref}</td>
                 <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35, verticalAlign: 'top' }}>{p.short}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{p.proc}</div></td>
@@ -276,7 +276,7 @@ function PfiExamination({ E, toggle }) {
 }
 
 /* ---------------- Tab: Simpulan & Laporan ---------------- */
-function PfiReport({ E, A }) {
+function PfiReport({ E, A }: any) {
   const C = E.conclusion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (

@@ -141,17 +141,17 @@ function SA800View() {
 }
 
 /* ---- helper: ikon tipe kerangka ---- */
-function spfColor(t) { const m = SPF_TYPES.find(x => x.k === t); return m ? m.color : 'gray'; }
+function spfColor(t: any) { const m = SPF_TYPES.find(x => x.k === t); return m ? m.color : 'gray'; }
 
 /* ---------------- Tab: Registri & Kerangka ---------------- */
-function F800Registri({ selId, setSelId, sel }) {
+function F800Registri({ selId, setSelId, sel }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
         <div className="panel-h"><h3>Tipe Kerangka Bertujuan Khusus (¶6–7)</h3><div style={{ flex: 1 }} /><Badge kind="blue">4 basis</Badge></div>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
           {SPF_TYPES.map((d, i) => {
-            const Ic = I[d.ic];
+            const Ic = (I as any)[d.ic];
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={18} /></span>
@@ -213,15 +213,15 @@ function F800Registri({ selId, setSelId, sel }) {
 }
 
 /* ---------------- Tab: Keberterimaan & Pengguna ---------------- */
-function F800Accept({ sel }) {
+function F800Accept({ sel }: any) {
   if (!sel) return null;
-  const done = sel.accept.filter(a => a[1]).length;
+  const done = sel.accept.filter((a: any) => a[1]).length;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Penilaian Keberterimaan Kerangka (¶8)</h3><div style={{ flex: 1 }} /><Badge kind={done === sel.accept.length ? 'green' : 'amber'}>{done}/{sel.accept.length} terpenuhi</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
-          {sel.accept.map((a, i) => (
+          {sel.accept.map((a: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < sel.accept.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: a[1] ? 'var(--green)' : 'var(--amber)' }}>{a[1] ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
               <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{a[0]}</div>
@@ -264,7 +264,7 @@ function F800Accept({ sel }) {
 }
 
 /* ---------------- Tab: Pertimbangan Audit ---------------- */
-function F800Consider({ sel }) {
+function F800Consider({ sel }: any) {
   const items = [
     { t: 'Terapkan seluruh SA yang relevan (200–700)', ref: '¶11', d: 'SA 800 melengkapi, bukan menggantikan; semua SA relevan tetap berlaku dalam audit kerangka khusus.', ic: 'layers' },
     { t: 'Pahami tujuan kerangka & adaptasi prosedur', ref: '¶13', d: 'Interpretasi SA disesuaikan dengan konteks kerangka bertujuan khusus.', ic: 'target' },
@@ -278,7 +278,7 @@ function F800Consider({ sel }) {
         <div className="panel-h"><h3>Pertimbangan Audit Khusus (¶11–14)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{sel ? sel.client : ''}</span></div>
         <div style={{ padding: '6px 14px 14px' }}>
           {items.map((a, i) => {
-            const Ic = I[a.ic];
+            const Ic = (I as any)[a.ic];
             return (
               <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><Ic size={16} /></span>
@@ -296,7 +296,7 @@ function F800Consider({ sel }) {
         <Panel title="Tautan Modul Audit">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['materiality', 'Materiality', 'scale'], ['evidence', 'Evidence Evaluation', 'search2'], ['opinion', 'Audit Opinion Generator', 'gavel']].map((r, i) => {
-              const Ic = I[r[2]];
+              const Ic = (I as any)[r[2]];
               return <NavRow800 key={i} to={r[0]} label={r[1]} ic={Ic} />;
             })}
           </div>
@@ -331,7 +331,7 @@ function NavRow800({ to, label, ic: Ic }: any) {
 }
 
 /* ---------------- Tab: Pelaporan & Penekanan ---------------- */
-function F800Report({ sel }) {
+function F800Report({ sel }: any) {
   if (!sel) return null;
   const compliance = sel.type === 'Basis Regulatori' || sel.type === 'Basis Kontraktual';
   const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Tidak Wajar';

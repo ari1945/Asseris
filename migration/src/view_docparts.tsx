@@ -12,14 +12,14 @@ const { useState: usePartsState, useEffect: usePartsEffect, useRef: usePartsRef 
 /* Centered modal overlay (Escape to close, click backdrop to close) */
 function PModal({ title, sub, icon = 'doc', onClose, children, footer, width = 520 }: any) {
   usePartsEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: any) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
-  const IconC = I[icon] || I.doc;
+  const IconC = (I as any)[icon] || I.doc;
   return (
     <div className="pmodal-backdrop" onMouseDown={onClose}>
-      <div className="pmodal" style={{ width: 'min(' + width + 'px, 94vw)' }} onMouseDown={e => e.stopPropagation()}>
+      <div className="pmodal" style={{ width: 'min(' + width + 'px, 94vw)' }} onMouseDown={(e: any) => e.stopPropagation()}>
         <div className="pmodal-h">
           <span className="pmodal-ico"><IconC size={17} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -50,7 +50,7 @@ function PField({ label, children, hint, span }: any) {
 function PDrawer({ open, onClose, width = 560, children }: any) {
   usePartsEffect(() => {
     if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: any) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
@@ -83,9 +83,9 @@ function PTimeline({ events }: any) {
   if (!events || !events.length) return <div className="tiny muted" style={{ padding: '8px 2px' }}>Belum ada aktivitas.</div>;
   return (
     <div className="ptl">
-      {events.map((e, i) => {
-        const meta = PEVT[e[0]] || { ic: 'circle', c: 'var(--ink-4)' };
-        const IconC = I[meta.ic] || I.circle;
+      {events.map((e: any, i: any) => {
+        const meta = (PEVT as any)[e[0]] || { ic: 'circle', c: 'var(--ink-4)' };
+        const IconC = (I as any)[meta.ic] || I.circle;
         return (
           <div key={i} className="ptl-row">
             <div className="ptl-mark" style={{ color: meta.c, borderColor: meta.c }}><IconC size={11} /></div>
@@ -140,7 +140,7 @@ function PThread({ msgs, onSend, placeholder = 'Tulis komentar…', selfSide = '
     <div className="pthread">
       <div className="pthread-msgs" ref={boxRef} style={{ maxHeight: height }}>
         {(!msgs || !msgs.length) && <div className="tiny muted" style={{ textAlign: 'center', padding: 16 }}>Belum ada komentar pada item ini.</div>}
-        {(msgs || []).map((m, i) => {
+        {(msgs || []).map((m: any, i: any) => {
           const self = m.side === selfSide;
           return (
             <div key={i} style={{ alignSelf: self ? 'flex-end' : 'flex-start', maxWidth: '88%' }}>
@@ -151,7 +151,7 @@ function PThread({ msgs, onSend, placeholder = 'Tulis komentar…', selfSide = '
         })}
       </div>
       <div className="pthread-input">
-        <input className="input" value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder={placeholder} style={{ flex: 1, height: compact ? 30 : 32 }} />
+        <input className="input" value={draft} onChange={(e: any) => setDraft(e.target.value)} onKeyDown={(e: any) => e.key === 'Enter' && send()} placeholder={placeholder} style={{ flex: 1, height: compact ? 30 : 32 }} />
         <Btn sm variant="primary" onClick={send}><I.send size={13} /></Btn>
       </div>
     </div>

@@ -14,7 +14,7 @@ import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
 const { useState: usePR } = React;
 
 /* compute one employee's payslip */
-function calcPayslip(p, R) {
+function calcPayslip(p: any, R: any) {
   const base = p.gross + p.allowance;                     // penghasilan bruto
   const kesBase = Math.min(p.gross, R.kesCap);
   const jpBase = Math.min(p.gross, R.jpCap);
@@ -46,22 +46,22 @@ function Payroll() {
   const [thr, setThr] = usePR(false);
   const [tab, setTab] = usePR('gaji');
 
-  const rows = staff.filter(s => PR[s.id]).map(s => {
-    const p = PR[s.id];
+  const rows = staff.filter((s: any) => (PR as any)[s.id]).map((s: any) => {
+    const p = (PR as any)[s.id];
     const slip = calcPayslip(p, R);
     return { ...s, p, slip, thr: thr ? p.gross + p.allowance : 0 };
   });
-  const tot = rows.reduce((a, r) => ({
+  const tot = rows.reduce((a: any, r: any) => ({
     gross: a.gross + r.slip.base, pph: a.pph + r.slip.pph,
     bpjsEmp: a.bpjsEmp + r.slip.dKes + r.slip.dJht + r.slip.dJp,
     net: a.net + r.slip.net + r.thr, employer: a.employer + r.slip.employerCost + r.thr,
   }), { gross: 0, pph: 0, bpjsEmp: 0, net: 0, employer: 0 });
 
   const STAT = { draft: { k: 'gray', l: 'Draft' }, approved: { k: 'blue', l: 'Disetujui' }, paid: { k: 'green', l: 'Dibayar' } };
-  const person = sel ? rows.find(r => r.id === sel) : null;
+  const person = sel ? rows.find((r: any) => r.id === sel) : null;
   const PR_TABS = [{ id: 'gaji', label: 'Daftar Gaji' }, { id: 'bpjs', label: 'Ringkasan BPJS' }, { id: 'jurnal', label: 'Jurnal Penggajian' }, { id: 'buktipotong', label: 'Bukti Potong 1721' }];
   /* employer + employee BPJS aggregates */
-  const bpjs: any = rows.reduce((a, r) => ({
+  const bpjs: any = rows.reduce((a: any, r: any) => ({
     eKes: a.eKes + r.slip.eKes, eJht: a.eJht + r.slip.eJht, eJp: a.eJp + r.slip.eJp, eJkk: a.eJkk + r.slip.eJkk, eJkm: a.eJkm + r.slip.eJkm,
     dKes: a.dKes + r.slip.dKes, dJht: a.dJht + r.slip.dJht, dJp: a.dJp + r.slip.dJp,
   }), { eKes: 0, eJht: 0, eJp: 0, eJkk: 0, eJkm: 0, dKes: 0, dJht: 0, dJp: 0 });
@@ -80,7 +80,7 @@ function Payroll() {
     <>
       <SubBar moduleId="payroll" right={<div className="row gap8 ac">
         <label className="row ac gap6 tiny" style={{ cursor: 'pointer' }}><span onClick={() => setThr(!thr)} style={{ width: 32, height: 18, borderRadius: 10, background: thr ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: thr ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff' }} /></span> Sertakan THR</label>
-        <Badge kind={STAT[run].k}>{STAT[run].l}</Badge>
+        <Badge kind={(STAT as any)[run].k}>{(STAT as any)[run].l}</Badge>
         {run === 'draft' && <Btn sm variant="primary" onClick={() => setRun('approved')}><I.check size={13} /> Setujui Payroll</Btn>}
         {run === 'approved' && <Btn sm variant="primary" onClick={() => setRun('paid')}><I.coins size={13} /> Proses Pembayaran</Btn>}
         {run === 'paid' && <Btn sm onClick={() => setRun('draft')}><I.sync size={13} /> Periode Baru</Btn>}
@@ -103,7 +103,7 @@ function Payroll() {
           <table className="dtbl">
             <thead><tr><th>Karyawan</th><th>PTKP</th><th className="num">Bruto</th><th className="num">BPJS (kary.)</th><th className="num">PPh 21</th>{thr && <th className="num">THR</th>}<th className="num">Take-Home</th><th></th></tr></thead>
             <tbody>
-              {rows.map(r => (
+              {rows.map((r: any) => (
                 <tr key={r.id} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }} className={r.id === sel ? 'sel' : ''}>
                   <td><div className="row ac gap8"><Avatar name={r.name} size={26} /><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600 }}>{r.name}</div><div className="tiny muted">{r.role}</div></div></div></td>
                   <td><span className="chip tiny">{r.p.ptkp}</span></td>
@@ -116,7 +116,7 @@ function Payroll() {
                 </tr>
               ))}
             </tbody>
-            <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(tot.gross / 1e6, 0)} jt</td><td className="num">{fmt(tot.bpjsEmp / 1e6, 1)} jt</td><td className="num">{fmt(tot.pph / 1e6, 1)} jt</td>{thr && <td className="num">{fmt(rows.reduce((a, r) => a + r.thr, 0) / 1e6, 0)} jt</td>}<td className="num">{fmt(tot.net / 1e6, 0)} jt</td><td></td></tr></tfoot>
+            <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(tot.gross / 1e6, 0)} jt</td><td className="num">{fmt(tot.bpjsEmp / 1e6, 1)} jt</td><td className="num">{fmt(tot.pph / 1e6, 1)} jt</td>{thr && <td className="num">{fmt(rows.reduce((a: any, r: any) => a + r.thr, 0) / 1e6, 0)} jt</td>}<td className="num">{fmt(tot.net / 1e6, 0)} jt</td><td></td></tr></tfoot>
           </table>
           </>)}
 
@@ -124,7 +124,7 @@ function Payroll() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th className="num">Kes (1%/4%)</th><th className="num">JHT (2%/3,7%)</th><th className="num">JP (1%/2%)</th><th className="num">JKK+JKM</th><th className="num">Total Iuran</th></tr></thead>
               <tbody>
-                {rows.map(r => {
+                {rows.map((r: any) => {
                   const s = r.slip; const kes = s.dKes + s.eKes, jht = s.dJht + s.eJht, jp = s.dJp + s.eJp, jkkm = s.eJkk + s.eJkm;
                   return (
                     <tr key={r.id}>
@@ -162,7 +162,7 @@ function Payroll() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th>NPWP / PTKP</th><th className="num">PPh 21 (bln)</th><th className="num">Estimasi Tahunan</th><th>Form</th><th>Status</th></tr></thead>
               <tbody>
-                {rows.map(r => (
+                {rows.map((r: any) => (
                   <tr key={r.id}>
                     <td><div className="row ac gap8"><Avatar name={r.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{r.name}</span></div></td>
                     <td><span className="chip tiny">{r.p.ptkp}</span></td>
@@ -198,7 +198,7 @@ function PayslipDrawer({ r, R, onClose }: any) {
   );
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={r.name} size={42} />
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{r.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.role} · {r.id} · PTKP {r.p.ptkp}</div></div>

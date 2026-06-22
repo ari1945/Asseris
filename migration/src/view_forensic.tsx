@@ -57,29 +57,29 @@ function ForensicCashFlow() {
   }
 
   const U = unit === 'M' ? { div: 1e9, dp: 1, s: 'M' } : { div: 1e6, dp: 0, s: 'jt' };
-  const sc = (v) => { const x = v / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
+  const sc = (v: any) => { const x = v / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
   const cf = B.cf;
 
-  const rows = (onlyRisk ? B.flagged : B.cashPop.slice().sort((a, b) => b.fscore - a.fscore || b.amount - a.amount));
-  const selTx = B.cashPop.find(f => f.id === sel) || rows[0];
+  const rows = (onlyRisk ? B.flagged : B.cashPop.slice().sort((a: any, b: any) => b.fscore - a.fscore || b.amount - a.amount));
+  const selTx = B.cashPop.find((f: any) => f.id === sel) || rows[0];
 
   const rpTxn = window.RP_TXN || [];
-  const rpById = {}; (window.RP_PARTIES || []).forEach(p => { rpById[p.id] = p; });
-  const rpExposed = rpTxn.filter(t => !t.arm || !t.disclosed);
-  const rpTotal = rpTxn.reduce((s, t) => s + t.amount, 0);
+  const rpById = {}; (window.RP_PARTIES || []).forEach((p: any) => { (rpById as any)[p.id] = p; });
+  const rpExposed = rpTxn.filter((t: any) => !t.arm || !t.disclosed);
+  const rpTotal = rpTxn.reduce((s: any, t: any) => s + t.amount, 0);
 
   /* waterfall geometry — stage cumulatif dari model.cf */
   let cum = 0;
-  const bars = B.waterfall.map(w => {
+  const bars = B.waterfall.map((w: any) => {
     if (w.type === 'base' || w.type === 'total') { const b = { ...w, start: 0, end: w.value }; cum = w.value; return b; }
     const start = cum; cum += w.value; return { ...w, start: Math.min(start, cum), end: Math.max(start, cum) };
   });
-  const maxBar = Math.max(...bars.map(b => Math.max(b.end, Math.abs(b.value)))) * 1.08;
+  const maxBar = Math.max(...bars.map((b: any) => Math.max(b.end, Math.abs(b.value)))) * 1.08;
   const H = 150;
   const maxFlow = Math.max(B.totalIn, B.totalOut);
 
   /* tie-out lintas-laporan */
-  const pyc = (c) => (B.by[c] ? B.by[c].ly : 0);
+  const pyc = (c: any) => (B.by[c] ? B.by[c].ly : 0);
   const T = 1e6;
   const tieRows = [
     { id: 't1', label: 'Saldo akhir menutup ke kas neraca', std: 'PSAK 2 ¶45', a: cf.cashClose, b: cf.cashBS, note: 'Kas awal + Σ aktivitas = Kas & setara kas (WTB 1-1100).' },
@@ -136,7 +136,7 @@ function ForensicCashFlow() {
               <Panel noBody>
                 <div className="panel-h"><h3>Waterfall Arus Kas FY2025</h3><span className="sub mono">dalam {U.s} Rupiah</span><div style={{ flex: 1 }} /><span className="tiny muted">ditarik dari FS Generator · model.cf</span></div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 18, height: H + 50, padding: '14px 18px 0' }}>
-                  {bars.map((b, i) => {
+                  {bars.map((b: any, i: any) => {
                     const barH = Math.abs(b.end - b.start) / maxBar * H;
                     const bottom = b.start / maxBar * H;
                     const color = b.type === 'base' ? '#024661' : b.type === 'total' ? '#005085' : b.type === 'in' ? '#1f7a4d' : '#b3261e';
@@ -157,18 +157,18 @@ function ForensicCashFlow() {
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0 }}>
                   <div style={{ padding: '12px 14px', borderRight: '1px solid var(--line-soft)' }}>
                     <div className="row jb ac" style={{ marginBottom: 8 }}><span className="tiny muted upper">Arus Masuk</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--green)' }}>{sc(B.totalIn)}</span></div>
-                    {B.inflows.map((f, i) => (
+                    {B.inflows.map((f: any, i: any) => (
                       <div key={i} style={{ marginBottom: 9 }}>
-                        <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6" style={{ minWidth: 0 }}><Badge kind={FC_ACT[f.act].kind}>{f.act}</Badge><span className="truncate">{f.label}</span></span><span className="mono" style={{ fontWeight: 600 }}>{sc(f.v)}</span></div>
+                        <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6" style={{ minWidth: 0 }}><Badge kind={(FC_ACT as any)[f.act].kind}>{f.act}</Badge><span className="truncate">{f.label}</span></span><span className="mono" style={{ fontWeight: 600 }}>{sc(f.v)}</span></div>
                         <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (f.v / maxFlow * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--green)' }} /></div>
                       </div>
                     ))}
                   </div>
                   <div style={{ padding: '12px 14px' }}>
                     <div className="row jb ac" style={{ marginBottom: 8 }}><span className="tiny muted upper">Arus Keluar</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--red)' }}>{sc(B.totalOut)}</span></div>
-                    {B.outflows.map((f, i) => (
+                    {B.outflows.map((f: any, i: any) => (
                       <div key={i} style={{ marginBottom: 9 }}>
-                        <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6" style={{ minWidth: 0 }}><Badge kind={FC_ACT[f.act].kind}>{f.act}</Badge><span className="truncate">{f.label}</span></span><span className="mono" style={{ fontWeight: 600 }}>{sc(f.v)}</span></div>
+                        <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6" style={{ minWidth: 0 }}><Badge kind={(FC_ACT as any)[f.act].kind}>{f.act}</Badge><span className="truncate">{f.label}</span></span><span className="mono" style={{ fontWeight: 600 }}>{sc(f.v)}</span></div>
                         <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (f.v / maxFlow * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--red)' }} /></div>
                       </div>
                     ))}
@@ -183,7 +183,7 @@ function ForensicCashFlow() {
               <Panel noBody>
                 <div className="panel-h"><h3>Transaksi Kas Anomali</h3>
                   <div style={{ flex: 1 }} />
-                  <label className="row ac gap6 tiny muted" style={{ cursor: 'pointer' }} onClick={() => setOnlyRisk(o => !o)}>
+                  <label className="row ac gap6 tiny muted" style={{ cursor: 'pointer' }} onClick={() => setOnlyRisk((o: any) => !o)}>
                     <span style={{ width: 30, height: 17, borderRadius: 9, background: onlyRisk ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
                       <span style={{ position: 'absolute', top: 2, left: onlyRisk ? 15 : 2, width: 13, height: 13, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
                     </span>
@@ -194,7 +194,7 @@ function ForensicCashFlow() {
                 <table className="dtbl">
                   <thead><tr><th>No. Jurnal</th><th>Transaksi</th><th style={{ width: 64 }}>Arah</th><th className="num">Nilai (Rp)</th><th className="num" style={{ width: 50 }}>Skor</th></tr></thead>
                   <tbody>
-                    {rows.map(f => (
+                    {rows.map((f: any) => (
                       <tr key={f.id} className={f.id === selTx.id ? 'sel' : ''} onClick={() => setSel(f.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.id}</td>
                         <td style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3, fontSize: 11.5 }}>
@@ -234,13 +234,13 @@ function ForensicCashFlow() {
                       <div>
                         <div className="tiny muted upper" style={{ marginBottom: 6 }}>Indikator Forensik</div>
                         <div className="row wrap gap6" style={{ marginBottom: 12 }}>
-                          {selTx.forensic.length ? selTx.forensic.map(fl => <span key={fl} className="badge b-red" style={{ textTransform: 'none', letterSpacing: 0 }}><I.flag size={11} /> {fl}</span>) : <span className="tiny muted">Tidak ada indikator — pola normal.</span>}
+                          {selTx.forensic.length ? selTx.forensic.map((fl: any) => <span key={fl} className="badge b-red" style={{ textTransform: 'none', letterSpacing: 0 }}><I.flag size={11} /> {fl}</span>) : <span className="tiny muted">Tidak ada indikator — pola normal.</span>}
                         </div>
-                        {selTx.rpId && rpById[selTx.rpId] && (
+                        {selTx.rpId && (rpById as any)[selTx.rpId] && (
                           <div className="panel" style={{ padding: '8px 10px', marginBottom: 12, background: 'var(--surface-2)', borderColor: 'var(--line)' }}>
                             <div className="tiny muted upper" style={{ marginBottom: 3 }}>Pihak Berelasi · PSAK 7</div>
-                            <div style={{ fontSize: 12, fontWeight: 600 }}>{rpById[selTx.rpId].name}</div>
-                            <div className="tiny muted">{rpById[selTx.rpId].rel} · {rpById[selTx.rpId].nature}</div>
+                            <div style={{ fontSize: 12, fontWeight: 600 }}>{(rpById as any)[selTx.rpId].name}</div>
+                            <div className="tiny muted">{(rpById as any)[selTx.rpId].rel} · {(rpById as any)[selTx.rpId].nature}</div>
                           </div>
                         )}
                         <div className="row wrap gap8">
@@ -291,7 +291,7 @@ function ForensicCashFlow() {
                   <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--amber)' }}>{rpExposed.length}</div><div className="tiny muted">non-arm's / belum diungkap</div></div>
                 </div>
                 <div>
-                  {rpExposed.map((t, i) => (
+                  {rpExposed.map((t: any, i: any) => (
                     <button key={t.id} onClick={() => nav('related', { from: 'forensic' })} className="row ac gap8" style={{ width: '100%', textAlign: 'left', padding: '8px 13px', background: 'none', border: 0, borderBottom: i < rpExposed.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: 'pointer' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{t.party}</div>
@@ -312,11 +312,11 @@ function ForensicCashFlow() {
                 <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
                 <div style={{ padding: 6 }}>
                   {lineage.map((r, i) => {
-                    const IconC = I[r.icon] || I.doc;
+                    const IconC = (I as any)[r.icon] || I.doc;
                     return (
                       <button key={i} onClick={() => nav(r.route, { from: 'forensic' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+                        onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+                        onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>

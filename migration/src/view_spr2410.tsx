@@ -86,10 +86,10 @@ function SPR2410View() {
   }
 
   /* ——— derivasi interim dari dataset audited (Rp juta) ——— */
-  const jt = (v) => v / 1e6;
+  const jt = (v: any) => v / 1e6;
   const A = model.is;                                   // angka audited (penuh)
   const etr = A.pbt.cy ? A.tax.cy / A.pbt.cy : 0.22;    // tarif efektif audited
-  const ratio = (cy, py) => (py ? cy / py : 1);
+  const ratio = (cy: any, py: any) => (py ? cy / py : 1);
 
   // komparatif interim 9 bln 2024 = audited FY2024 (.py) × musiman  → anchored ke komparatif audited
   const py9 = {
@@ -106,7 +106,7 @@ function SPR2410View() {
     sales: exp9.sales * DEV_2410.sales, cogs: exp9.cogs * DEV_2410.cogs,
     sell: exp9.sell * DEV_2410.sell, admin: exp9.admin * DEV_2410.admin, fin: exp9.fin * DEV_2410.fin,
   };
-  const derive = (s) => {
+  const derive = (s: any) => {
     const gross = s.sales - s.cogs;
     const op = gross - s.sell - s.admin;
     const pbt = op - s.fin;
@@ -154,9 +154,9 @@ function SPR2410View() {
     { k: 'Rekonsiliasi angka lintas-modul', src: 'Alur Data', route: 'dataflow', icon: 'link2' },
   ];
 
-  const sigRisks = risks.filter(r => r.inherent === 'Significant');
-  const sc = (v) => fmt(Math.round(v), 0);
-  const pc = (v) => (v >= 0 ? '+' : '−') + Math.abs(v * 100).toFixed(1) + '%';
+  const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
+  const sc = (v: any) => fmt(Math.round(v), 0);
+  const pc = (v: any) => (v >= 0 ? '+' : '−') + Math.abs(v * 100).toFixed(1) + '%';
 
   const tabs = [
     { id: 'ikhtisar', label: 'Ikhtisar & Kerangka' },
@@ -213,7 +213,7 @@ function SPR2410View() {
 }
 
 /* ============ TAB 1 · Ikhtisar & Kerangka ============ */
-function Tab2410Overview({ sigRisks, risks, nav }) {
+function Tab2410Overview({ sigRisks, risks, nav }: any) {
   const continuum = [
     { k: 'Audit Tahunan (SA)', pct: 95, color: 'blue', d: 'Keyakinan memadai · opini positif' },
     { k: 'Reviu Interim (SPR 2410)', pct: 60, color: 'teal', d: 'Keyakinan terbatas · simpulan negatif', here: true },
@@ -282,7 +282,7 @@ function Tab2410Overview({ sigRisks, risks, nav }) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 40 }}>ID</th><th>Area · Risiko Signifikan</th><th style={{ width: 96 }}>Asersi</th><th style={{ width: 90 }}>Fokus Interim</th></tr></thead>
             <tbody>
-              {sigRisks.map((r, i) => (
+              {sigRisks.map((r: any, i: any) => (
                 <tr key={i}>
                   <td className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.id}</td>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.35 }}><b>{r.area}</b><span className="tiny muted" style={{ display: 'block', fontWeight: 400 }}>{r.desc}</span></td>
@@ -299,8 +299,8 @@ function Tab2410Overview({ sigRisks, risks, nav }) {
 }
 
 /* ============ TAB 2 · Prosedur Reviu Interim ============ */
-function Tab2410Proc({ nav }) {
-  const tk = (t) => t === 'Analitis' ? 'purple' : t === 'Lainnya' ? 'gray' : 'teal';
+function Tab2410Proc({ nav }: any) {
+  const tk = (t: any) => t === 'Analitis' ? 'purple' : t === 'Lainnya' ? 'gray' : 'teal';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -353,7 +353,7 @@ function Tab2410Proc({ nav }) {
 }
 
 /* ============ TAB 3 · Prosedur Analitis & Konsistensi ============ */
-function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM, mat, openTie, lineage, sc, pc, nav }) {
+function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM, mat, openTie, lineage, sc, pc, nav }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       {/* ikhtisar interim */}
@@ -378,7 +378,7 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
             <th style={{ width: 96 }}>Status</th>
           </tr></thead>
           <tbody>
-            {aRows.map((r, i) => {
+            {aRows.map((r: any, i: any) => {
               const strong = ['Laba kotor', 'Laba usaha', 'Laba sebelum pajak', 'Laba bersih interim'].includes(r.k);
               return (
                 <tr key={i} style={{ background: r.flag ? 'var(--amber-bg, #fdf6e3)' : strong ? 'var(--blue-050)' : 'transparent' }}>
@@ -398,7 +398,7 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
             <span style={{ color: flagged.length ? 'var(--amber)' : 'var(--green)', flex: '0 0 auto' }}>{flagged.length ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
             <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
               {flagged.length
-                ? <>Fluktuasi <b>{flagged.map(f => f.k.toLowerCase()).join(', ')}</b> melampaui ekspektasi &gt; PM. Memicu <b>inquiry tambahan (¶22)</b> — perhatikan keterkaitan dengan risiko pengakuan pendapatan dini (R-01) yang teridentifikasi pada audit tahunan. Dokumentasikan penjelasan manajemen & bukti pendukung sebelum menyimpulkan.</>
+                ? <>Fluktuasi <b>{flagged.map((f: any) => f.k.toLowerCase()).join(', ')}</b> melampaui ekspektasi &gt; PM. Memicu <b>inquiry tambahan (¶22)</b> — perhatikan keterkaitan dengan risiko pengakuan pendapatan dini (R-01) yang teridentifikasi pada audit tahunan. Dokumentasikan penjelasan manajemen & bukti pendukung sebelum menyimpulkan.</>
                 : <>Seluruh fluktuasi dalam batas ekspektasi (≤ PM). Tidak ada indikasi salah saji material dari prosedur analitis.</>}
             </span>
           </div>
@@ -408,11 +408,11 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
       <div className="grid" style={{ gridTemplateColumns: '1.1fr 0.9fr', gap: 12, alignItems: 'start' }}>
         {/* konsistensi / tie-out single source */}
         <Panel noBody>
-          <div className="panel-h"><h3>Konsistensi Sumber Kebenaran — Tie-out</h3><div style={{ flex: 1 }} /><Badge kind="green">{openTie.filter(r => r.ok).length}/{openTie.length} menutup</Badge></div>
+          <div className="panel-h"><h3>Konsistensi Sumber Kebenaran — Tie-out</h3><div style={{ flex: 1 }} /><Badge kind="green">{openTie.filter((r: any) => r.ok).length}/{openTie.length} menutup</Badge></div>
           <table className="dtbl">
             <thead><tr><th>Tie-out (Rp jt)</th><th style={{ textAlign: 'right', width: 92 }}>Interim</th><th style={{ textAlign: 'right', width: 92 }}>Sumber</th><th style={{ width: 56 }}>Status</th></tr></thead>
             <tbody>
-              {openTie.map((r, i) => (
+              {openTie.map((r: any, i: any) => (
                 <tr key={i}>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.35 }}>{r.k}<button onClick={() => nav(r.route, { from: 'spr2410' })} className="tiny" style={{ display: 'block', border: 'none', background: 'none', color: 'var(--blue)', fontWeight: 600, cursor: 'pointer', padding: '2px 0 0', font: 'inherit', textAlign: 'left' }}>{r.src} ↗</button></td>
                   <td className="mono" style={{ textAlign: 'right' }}>{sc(r.a)}</td>
@@ -434,8 +434,8 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
         <Panel noBody>
           <div className="panel-h"><h3>Garis Keturunan Data</h3></div>
           <div style={{ padding: '8px 12px 12px', display: 'grid', gap: 6 }}>
-            {lineage.map((l, i) => {
-              const IconC = I[l.icon] || I.link2;
+            {lineage.map((l: any, i: any) => {
+              const IconC = (I as any)[l.icon] || I.link2;
               return (
                 <div key={i} onClick={() => nav(l.route, { from: 'spr2410' })} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
                   <span className="row ac gap8" style={{ minWidth: 0 }}><span style={{ color: 'var(--teal)', flex: '0 0 auto' }}><IconC size={14} /></span><span style={{ minWidth: 0 }}><span style={{ fontWeight: 600, display: 'block' }}>{l.k}</span><span className="tiny muted">{l.src}</span></span></span>
@@ -451,7 +451,7 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
 }
 
 /* ============ TAB 4 · Materialitas & Salah Saji ============ */
-function Tab2410Materiality({ mat, interimPM, interimOM, act, sc, nav }) {
+function Tab2410Materiality({ mat, interimPM, interimOM, act, sc, nav }: any) {
   // contoh akumulasi salah saji teridentifikasi dari prosedur interim (Rp juta)
   const miss = [
     { id: 'M-1', d: 'Pendapatan diakui sebelum penyerahan (cut-off interim)', kind: 'Faktual', amt: 1180, src: 'Inquiry + analitis' },
@@ -529,7 +529,7 @@ const CONCL_2410 = [
   { k: 'red', l: 'Merugikan (Adverse)', ref: '¶47', d: 'Salah saji material & pervasif — informasi interim tidak disusun secara wajar.' },
   { k: 'gray', l: 'Tidak Menyatakan Simpulan', ref: '¶48', d: 'Pembatasan lingkup material & pervasif; bukti tidak cukup untuk menyimpulkan.' },
 ];
-function Tab2410Concl({ concl, setConcl, flagged, client, eng, sc }) {
+function Tab2410Concl({ concl, setConcl, flagged, client, eng, sc }: any) {
   const c = CONCL_2410[concl];
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   const text = concl === 0

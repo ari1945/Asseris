@@ -20,13 +20,13 @@ import { AMS } from './data';
   if (!A) return;
 
   const NOW = '2026-03-10 09:00';
-  const fmt = A.fmt || (n => String(n));
-  const jt = (n) => 'Rp ' + fmt(Math.round((n || 0) / 1e6)) + ' jt';
+  const fmt = A.fmt || ((n: any) => String(n));
+  const jt = (n: any) => 'Rp ' + fmt(Math.round((n || 0) / 1e6)) + ' jt';
 
   /* resolver kanonik — satu jalan ke master data */
-  const engById = (id) => (A.ENGAGEMENTS || []).find(e => e.id === id) || null;
-  const cliById = (id) => (A.CLIENTS || []).find(c => c.id === id) || null;
-  const short = A.shortName || (s => (s || '').replace(/^PT\s+/, ''));
+  const engById = (id: any) => (A.ENGAGEMENTS || []).find((e: any) => e.id === id) || null;
+  const cliById = (id: any) => (A.CLIENTS || []).find((c: any) => c.id === id) || null;
+  const short = A.shortName || ((s: any) => (s || '').replace(/^PT\s+/, ''));
 
   /* peran tetap firma (ISQM) — diisi dari penugasan kanonik bila ada */
   const MANAGING = 'Hartono Wijaya, CPA';
@@ -46,8 +46,8 @@ import { AMS } from './data';
   ];
 
   /* bangun rantai: steps = [[role,name,ts?,note?]], doneTo = jumlah langkah selesai */
-  function chain(steps, doneTo) {
-    return steps.map((s, i) => ({
+  function chain(steps: any, doneTo: any) {
+    return steps.map((s: any, i: any) => ({
       role: s[0], name: s[1],
       status: i < doneTo ? 'approved' : i === doneTo ? 'current' : 'pending',
       ts: i < doneTo ? (s[2] || NOW) : null,
@@ -61,7 +61,7 @@ import { AMS } from './data';
      Tiap item membawa sourceModule + sourceId → dapat ditelusuri balik
      dan tidak pernah out-of-sync dengan modul sumbernya.
      ============================================================ */
-  function buildApprovals(ctx) {
+  function buildApprovals(ctx: any) {
     ctx = ctx || {};
     const aje = ctx.aje || A.AJE || [];
     const invoices = ctx.invoices || A.INVOICES || [];
@@ -69,17 +69,17 @@ import { AMS } from './data';
     const engs = ctx.engagements || A.ENGAGEMENTS || [];
     const indep = ctx.independence || A.INDEPENDENCE || [];
     const wip = ctx.wip || A.WIP_ENG || [];
-    const out = [];
+    const out: any[] = [];
 
     /* ---- 1. AJE — sumber: useAudit().aje (ledger penyesuaian) ---- */
     const engA = engById('ENG-2025-014');
     const cliA = engA ? cliById(engA.clientId) : null;
-    aje.forEach((a) => {
+    aje.forEach((a: any) => {
       const posted = a.status === 'Posted';
       const hi = a.amount >= 2e9, mid = a.amount >= 5e8;
       const ref = a.ref || (a.lines ? 'JE' : a.id);
-      const drCode = a.dr ? a.dr.split(' ')[0] : (a.lines || []).filter(l => (+l.debit || 0) > 0).map(l => l.code)[0] || 'DR';
-      const crCode = a.cr ? a.cr.split(' ')[0] : (a.lines || []).filter(l => (+l.credit || 0) > 0).map(l => l.code)[0] || 'CR';
+      const drCode = a.dr ? a.dr.split(' ')[0] : (a.lines || []).filter((l: any) => (+l.debit || 0) > 0).map((l: any) => l.code)[0] || 'DR';
+      const crCode = a.cr ? a.cr.split(' ')[0] : (a.lines || []).filter((l: any) => (+l.credit || 0) > 0).map((l: any) => l.code)[0] || 'CR';
       const steps = [['Penyusun', PREPARER, '2026-03-09 16:40', 'AJE diajukan dari kertas kerja ' + ref + '.'],
         ['Audit Manager', engA.manager], ['Engagement Partner', engA.partner]];
       if (hi) steps.push(['EQR Reviewer', EQR_REV]);
@@ -97,7 +97,7 @@ import { AMS } from './data';
     });
 
     /* ---- 2. Faktur — sumber: AMS.INVOICES (billing) ---- */
-    invoices.forEach((v) => {
+    invoices.forEach((v: any) => {
       const draft = v.status === 'Draft';
       const sentBig = v.status === 'Sent' && v.amount >= 5e8;
       const pending = draft || sentBig;
@@ -117,7 +117,7 @@ import { AMS } from './data';
     });
 
     /* ---- 3. Penerimaan klien — sumber: AMS.PIPELINE ---- */
-    pipeline.filter(p => ['Proposal', 'Negotiation', 'Won'].includes(p.stage)).forEach((p) => {
+    pipeline.filter((p: any) => ['Proposal', 'Negotiation', 'Won'].includes(p.stage)).forEach((p: any) => {
       const pending = p.stage !== 'Won';
       const pie = /Energi|Properti|Finance|Keuangan/i.test(p.industry);
       const steps = [['Risk & CDD', 'Sistem PMPJ', '2026-03-08 09:45', 'Skrining PEP & sanksi: bersih.'],
@@ -135,7 +135,7 @@ import { AMS } from './data';
     });
 
     /* ---- 4. Penerbitan opini — sumber: engagements fase Finalisasi ---- */
-    engs.filter(e => e.phase === 'Finalisasi' || e.status === 'Review').forEach((e) => {
+    engs.filter((e: any) => e.phase === 'Finalisasi' || e.status === 'Review').forEach((e: any) => {
       const cli = cliById(e.clientId);
       const pie = cli && cli.listed;
       const steps = [['Audit Manager', e.manager, '2026-03-09 08:05', 'Draft opini & SAD final dilampirkan.'],
@@ -154,7 +154,7 @@ import { AMS } from './data';
     });
 
     /* ---- 5. Independensi & rotasi — sumber: AMS.INDEPENDENCE ---- */
-    indep.forEach((d) => {
+    indep.forEach((d: any) => {
       const rotate = d.declared && d.tenure >= d.rotationLimit;
       const undeclared = !d.declared;
       if (!rotate && !undeclared) return;
@@ -173,7 +173,7 @@ import { AMS } from './data';
     });
 
     /* ---- 6. WIP write-off — sumber: AMS.WIP_ENG ---- */
-    wip.filter(w => w.writeDown >= 1e8).forEach((w) => {
+    wip.filter((w: any) => w.writeDown >= 1e8).forEach((w: any) => {
       const e = engById(w.id);
       const cli = e ? cliById(e.clientId) : null;
       const steps = [['Audit Manager', e ? e.manager : 'Anindya Pramesti'], ['Managing Partner', MANAGING]];
@@ -192,7 +192,7 @@ import { AMS } from './data';
     const rank = { high: 0, medium: 1, low: 2 };
     return out.sort((x, y) =>
       (x.status === 'pending' ? 0 : 1) - (y.status === 'pending' ? 0 : 1) ||
-      (rank[x.priority] - rank[y.priority]));
+      ((rank as any)[x.priority] - (rank as any)[y.priority]));
   }
 
   /* ============================================================
@@ -213,8 +213,8 @@ import { AMS } from './data';
       { module: 'treasury', label: 'Anggaran & Arus Kas', count: () => (A.CASH_FORECAST || []).length, unit: 'proyeksi arus kas' },
     ],
     esign: [
-      { module: 'opinion', label: 'Audit Opinion', count: () => (A.ENGAGEMENTS || []).filter(e => e.phase === 'Finalisasi' || e.status === 'Completed').length, unit: 'laporan ditandatangani' },
-      { module: 'workpapers', label: 'Working Papers', count: () => (A.WORKPAPERS || []).filter(w => w.status === 'Reviewed').length, unit: 'WP final tertandatangan' },
+      { module: 'opinion', label: 'Audit Opinion', count: () => (A.ENGAGEMENTS || []).filter((e: any) => e.phase === 'Finalisasi' || e.status === 'Completed').length, unit: 'laporan ditandatangani' },
+      { module: 'workpapers', label: 'Working Papers', count: () => (A.WORKPAPERS || []).filter((w: any) => w.status === 'Reviewed').length, unit: 'WP final tertandatangan' },
       { module: 'pppk', label: 'Pelaporan PPPK', count: () => (A.PPPK_CLIENTS || []).length, unit: 'laporan regulator' },
     ],
     dms: [
@@ -224,15 +224,15 @@ import { AMS } from './data';
     ],
     ahu: [
       { module: 'onboarding', label: 'Onboarding & PMPJ', count: () => (A.CLIENTS || []).length, unit: 'entitas terverifikasi' },
-      { module: 'crm', label: 'Client CRM', count: () => (A.CLIENTS || []).filter(c => c.listed).length, unit: 'badan hukum tercatat' },
+      { module: 'crm', label: 'Client CRM', count: () => (A.CLIENTS || []).filter((c: any) => c.listed).length, unit: 'badan hukum tercatat' },
     ],
     payroll: [
       { module: 'payroll', label: 'Payroll & PPh 21', count: () => (A.PAYROLL || []).length, unit: 'slip gaji' },
       { module: 'hcm', label: 'Human Capital', count: () => (A.STAFF || []).length, unit: 'master karyawan' },
     ],
     idx: [
-      { module: 'crm', label: 'Client CRM', count: () => (A.CLIENTS || []).filter(c => c.listed).length, unit: 'emiten tercatat' },
-      { module: 'independence', label: 'Independensi', count: () => (A.INDEPENDENCE || []).filter(d => d.listed).length, unit: 'cek kepemilikan' },
+      { module: 'crm', label: 'Client CRM', count: () => (A.CLIENTS || []).filter((c: any) => c.listed).length, unit: 'emiten tercatat' },
+      { module: 'independence', label: 'Independensi', count: () => (A.INDEPENDENCE || []).filter((d: any) => d.listed).length, unit: 'cek kepemilikan' },
     ],
     emeterai: [
       { module: 'opinion', label: 'Audit Opinion', count: () => 0, unit: 'dokumen bermeterai' },
@@ -240,8 +240,8 @@ import { AMS } from './data';
     ],
   };
 
-  function feedCounts(id) {
-    return (INTEGRATION_FEEDS[id] || []).map(f => ({ module: f.module, label: f.label, unit: f.unit, n: (() => { try { return f.count(); } catch (e) { return 0; } })() }));
+  function feedCounts(id: any) {
+    return ((INTEGRATION_FEEDS as any)[id] || []).map((f: any) => ({ module: f.module, label: f.label, unit: f.unit, n: (() => { try { return f.count(); } catch (e) { return 0; } })() }));
   }
 
   /* ============================================================
@@ -267,18 +267,18 @@ import { AMS } from './data';
 
   /* peta modul kanonik (dari data_fpm.AUDIT_TRAIL) → bentuk seragam */
   function canonRows() {
-    return (A.AUDIT_TRAIL || []).map(r => ({
+    return (A.AUDIT_TRAIL || []).map((r: any) => ({
       ts: r.ts, who: r.user, role: r.user === 'Sistem' ? 'Integration Engine' : 'Sesi Tercatat',
-      action: ({ 'Mengubah skor risiko': 'EDIT', 'Propagasi materialitas': 'SYNC', 'Menyetujui AJE': 'APPROVE', 'Menambah konektor': 'SYNC' }[r.action]) || 'EDIT',
+      action: (({ 'Mengubah skor risiko': 'EDIT', 'Propagasi materialitas': 'SYNC', 'Menyetujui AJE': 'APPROVE', 'Menambah konektor': 'SYNC' } as any)[r.action]) || 'EDIT',
       module: (window.MODULE_INDEX && window.MODULE_INDEX[r.module] || {}).label || r.module,
       sourceModule: r.module, target: r.entity, detail: r.action + ' · ' + r.entity,
       ip: r.user === 'Sistem' ? '10.0.4.12' : '103.28.14.20', device: r.user === 'Sistem' ? 'Service' : 'Chrome · macOS', sess: r.user === 'Sistem' ? 'svc' : 'sesi',
     }));
   }
 
-  function buildAuditStream(logEntries) {
+  function buildAuditStream(logEntries: any) {
     const MI = window.MODULE_INDEX || {};
-    const live = (logEntries || []).map(e => ({
+    const live = (logEntries || []).map((e: any) => ({
       ts: e.ts || NOW, who: e.who || 'Sistem', role: 'Sesi Aktif',
       action: e.action || (e.icon ? String(e.icon).toUpperCase() : 'EDIT'),
       module: (MI[e.mod] && MI[e.mod].label) || 'Approvals', sourceModule: e.mod || 'approvals',

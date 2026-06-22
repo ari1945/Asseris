@@ -32,11 +32,11 @@ function SubsequentEvents() {
   const [selId, setSelId] = useStateSE('SE-01');
   const [procs, setProcs] = useStateSE(SE_PROCEDURES);
 
-  const sel = events.find(e => e.id === selId);
-  const adjusting = events.filter(e => e.type === 'adjusting').length;
-  const setType = (id, type) => setEvents(list => list.map(e => e.id === id ? { ...e, type } : e));
-  const toggleProc = (i) => setProcs(ps => ps.map((p, idx) => idx === i ? { ...p, done: !p.done } : p));
-  const procDone = procs.filter(p => p.done).length;
+  const sel = events.find((e: any) => e.id === selId);
+  const adjusting = events.filter((e: any) => e.type === 'adjusting').length;
+  const setType = (id: any, type: any) => setEvents((list: any) => list.map((e: any) => e.id === id ? { ...e, type } : e));
+  const toggleProc = (i: any) => setProcs((ps: any) => ps.map((p: any, idx: any) => idx === i ? { ...p, done: !p.done } : p));
+  const procDone = procs.filter((p: any) => p.done).length;
   const periodDays = 73; // 31 Dec 2025 -> 14 Mar 2026
 
   return (
@@ -64,7 +64,7 @@ function SubsequentEvents() {
                 <div style={{ position: 'absolute', left: 0, top: 22, textAlign: 'left' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--navy)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--navy)' }} /><div className="tiny mono" style={{ marginTop: 8, color: 'var(--navy)', fontWeight: 700 }}>31 Des</div></div>
                 <div style={{ position: 'absolute', right: 0, top: 22, textAlign: 'right' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--navy)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--navy)', marginLeft: 'auto' }} /><div className="tiny mono" style={{ marginTop: 8, color: 'var(--navy)', fontWeight: 700 }}>14 Mar</div></div>
                 {/* events */}
-                {events.map(e => {
+                {events.map((e: any) => {
                   const pct = (e.day / periodDays) * 96 + 2;
                   const isSel = e.id === selId;
                   return (
@@ -89,7 +89,7 @@ function SubsequentEvents() {
                 <table className="dtbl">
                   <thead><tr><th>ID</th><th>Tanggal</th><th>Peristiwa</th><th className="num">Dampak (Rp)</th><th style={{ width: 130 }}>Klasifikasi</th></tr></thead>
                   <tbody>
-                    {events.map(e => (
+                    {events.map((e: any) => (
                       <tr key={e.id} className={e.id === selId ? 'sel' : ''} onClick={() => setSelId(e.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</td>
                         <td className="mono tiny">{new Date(e.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
@@ -129,7 +129,7 @@ function SubsequentEvents() {
 
             <Panel title="Prosedur Audit (SA 560)" sub={procDone + '/' + procs.length}>
               <div style={{ display: 'grid', gap: 0 }}>
-                {procs.map((p, i) => (
+                {procs.map((p: any, i: any) => (
                   <label key={i} className="row gap8" style={{ padding: '8px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < procs.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleProc(i)}>
                     <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (p.done ? 'var(--green)' : 'var(--line-strong)'), background: p.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{p.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
                     <span style={{ fontSize: 11.5, lineHeight: 1.4, color: p.done ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</span>

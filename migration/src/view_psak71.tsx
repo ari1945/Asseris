@@ -34,13 +34,13 @@ const { useState: useStateP71, useMemo: useMemoP71 } = React;
 const P71_CLASSIFY = [
   { id: 'cash',   side: 'aset', inst: 'Kas & setara kas',                 codes: ['1-1100'], bm: 'Dimiliki untuk menagih', sppi: true,  cls: 'Biaya perolehan diamortisasi', ecl: 'Umum · 12-bulan', note: 'Risiko kredit rendah → ECL imaterial' },
   { id: 'ar',     side: 'aset', inst: 'Piutang usaha — pihak ketiga',     codes: ['1-1200', '1-1210'], bm: 'Dimiliki untuk menagih', sppi: true, cls: 'Biaya perolehan diamortisasi', ecl: 'Disederhanakan · lifetime', note: 'Matriks provisi · fokus audit (R-03)', focus: true },
-  { id: 'dep',    side: 'aset', inst: 'Deposito berjangka',               codes: [], approx: 6800, bm: 'Dimiliki untuk menagih', sppi: true, cls: 'Biaya perolehan diamortisasi', ecl: 'Umum · 12-bulan', note: 'Bank counterparty rating tinggi' },
+  { id: 'dep',    side: 'aset', inst: 'Deposito berjangka',               codes: ([] as any[]), approx: 6800, bm: 'Dimiliki untuk menagih', sppi: true, cls: 'Biaya perolehan diamortisasi', ecl: 'Umum · 12-bulan', note: 'Bank counterparty rating tinggi' },
   { id: 'bond',   side: 'aset', inst: 'Obligasi pemerintah (SUN)',        codes: [], approx: 4200, bm: 'Menagih & menjual', sppi: true,  cls: 'FVOCI', ecl: 'Umum · 12-bulan', note: 'Untung/rugi belum direalisasi → OCI' },
-  { id: 'fwd',    side: 'aset', inst: 'Kontrak forward valas (lindung nilai)', codes: [], approx: 6400, bm: 'Lainnya (derivatif)', sppi: false, cls: 'FVTPL', ecl: '—', note: 'Lindung nilai arus kas · valuasi Pakar (IFRS 13)', link: 'expert' },
+  { id: 'fwd',    side: 'aset', inst: 'Kontrak forward valas (lindung nilai)', codes: ([] as any[]), approx: 6400, bm: 'Lainnya (derivatif)', sppi: false, cls: 'FVTPL', ecl: '—', note: 'Lindung nilai arus kas · valuasi Pakar (IFRS 13)', link: 'expert' },
   { id: 'equity', side: 'aset', inst: 'Penyertaan saham non-pengendali',  codes: [], approx: 2100, bm: 'Lainnya', sppi: false, cls: 'FVOCI (elektif)', ecl: '—', note: 'Pilihan tak-dapat-dibatalkan (¶5.7.5)' },
   { id: 'ap',     side: 'liabilitas', inst: 'Utang usaha',                codes: ['2-1100'], bm: '—', sppi: null, cls: 'Biaya perolehan diamortisasi', ecl: '—', note: 'Tanpa komponen pendanaan signifikan' },
   { id: 'bank',   side: 'liabilitas', inst: 'Utang bank (pendek & panjang)', codes: ['2-1200', '2-2100'], bm: '—', sppi: null, cls: 'Biaya perolehan diamortisasi', ecl: '—', note: 'Diukur dgn suku bunga efektif' },
-  { id: 'lease',  side: 'liabilitas', inst: 'Liabilitas sewa',            codes: ['2-1500', '2-2200'], bm: '—', sppi: null, cls: 'Di luar lingkup (PSAK 73)', ecl: '—', note: 'Diatur PSAK 73 · Sewa', link: 'psak73' },
+  { id: 'lease',  side: 'liabilitas', inst: 'Liabilitas sewa',            codes: ['2-1500', '2-2200'], bm: '—', sppi: (null as any), cls: 'Di luar lingkup (PSAK 73)', ecl: '—', note: 'Diatur PSAK 73 · Sewa', link: 'psak73' },
 ];
 
 /* ---- uji SPPI atas piutang usaha (¶4.1.2) ---- */
@@ -117,7 +117,7 @@ function P71RowKv({ label, v, strong, accent }: any) {
 /* ---- default penanda tangan kertas kerja (dipakai bila chain kanonik kosong) ---- */
 function p71WpSignoffDefaults() {
   const TEAM: any = (AMS && AMS.TEAM) || [];
-  const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
+  const find = (kw: any) => (TEAM.find((t: any) => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '08 Jan 2026' },
     reviewer: { by: find('Manager'), role: 'Manajer Audit',  at: '14 Jan 2026' },
@@ -135,7 +135,7 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
   const FIRM: any = (AMS && AMS.FIRM) || { name: 'KAP Wijaya Hartono & Rekan', license: '' };
   const audit = useAudit();
   const so = wpSignersFor(audit, 'psak71', p71WpSignoffDefaults());
-  const r0 = (x) => Math.round(x);
+  const r0 = (x: any) => Math.round(x);
   const Sect = ({ n, title, sub, children }: any) => (
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
@@ -227,8 +227,8 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
             <th style={{ textAlign: 'right', width: 88 }}>ECL</th>
           </tr></thead>
           <tbody>
-            {p71.buckets.map(b => {
-              const sm = P71_STAGE_META[b.stage];
+            {p71.buckets.map((b: any) => {
+              const sm = (P71_STAGE_META as any)[b.stage];
               return (
                 <tr key={b.id}>
                   <td style={{ fontWeight: 600 }}>{b.label}{b.sicr && <span className="mono tiny" style={{ color: 'var(--amber)', marginLeft: 6 }}>SICR</span>}</td>
@@ -352,20 +352,20 @@ function PSAK71View() {
   /* nilai wajar pos non-WTB (obligasi/forward/saham) DITARIK dari satu sumber: PSAK 68.
      Tidak ada lagi angka FV ganda yang di-hardcode di modul ini. */
   const p68 = useMemoP71(() => canon.psak68(wtb), [wtb]);
-  const fvById = useMemoP71(() => Object.fromEntries(p68.items.filter(i => i.p71id).map(i => [i.p71id, i])), [p68]);
-  const wadj = (code: any) => { const r = wtb.find(x => x.code === code); return r ? Math.round(r.adj / 1e6) : 0; };
+  const fvById = useMemoP71(() => Object.fromEntries(p68.items.filter((i: any) => i.p71id).map((i: any) => [i.p71id, i])), [p68]);
+  const wadj = (code: any) => { const r = wtb.find((x: any) => x.code === code); return r ? Math.round(r.adj / 1e6) : 0; };
 
   const [tab, setTab] = useStateP71(() => loader('ams.psak71.tab', 'klasifikasi'));
   const [done, setDone] = useStateP71(() => loader('ams.psak71.done', {}));
   /* bobot skenario interaktif (what-if) — diseed dari canon, dinormalkan saat dipakai */
-  const [probs, setProbs] = useStateP71(() => loader('ams.psak71.probs', null) || Object.fromEntries(p71.scenarios.map(s => [s.id, s.prob])));
+  const [probs, setProbs] = useStateP71(() => loader('ams.psak71.probs', null) || Object.fromEntries(p71.scenarios.map((s: any) => [s.id, s.prob])));
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak71.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak71.done', JSON.stringify(done)); } catch (e) {} }, [done]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak71.probs', JSON.stringify(probs)); } catch (e) {} }, [probs]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = P71_PROC.filter((p, i) => done[p.ref + i]).length;
   const score = Math.round(doneCount / P71_PROC.length * 100);
 
@@ -373,11 +373,11 @@ function PSAK71View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
   /* what-if overlay live (tab forward-looking) */
-  const probSum = p71.scenarios.reduce((a, s) => a + (probs[s.id] || 0), 0) || 1;
-  const liveOverlay = p71.scenarios.reduce((a, s) => a + (probs[s.id] || 0) / probSum * s.mult, 0);
-  const liveEcl = p71.buckets.reduce((a, b) => a + b.baseEcl, 0) * liveOverlay;
+  const probSum = p71.scenarios.reduce((a: any, s: any) => a + (probs[s.id] || 0), 0) || 1;
+  const liveOverlay = p71.scenarios.reduce((a: any, s: any) => a + (probs[s.id] || 0) / probSum * s.mult, 0);
+  const liveEcl = p71.buckets.reduce((a: any, b: any) => a + b.baseEcl, 0) * liveOverlay;
 
-  const stageSegs = p71.stages.map(s => ({ label: P71_STAGE_META[s.stage].lbl, value: s.ecl, color: P71_STAGE_META[s.stage].color }));
+  const stageSegs = p71.stages.map((s: any) => ({ label: (P71_STAGE_META as any)[s.stage].lbl, value: s.ecl, color: (P71_STAGE_META as any)[s.stage].color }));
 
   const TABS = [
     { id: 'klasifikasi', label: 'Klasifikasi & SPPI' },
@@ -518,8 +518,8 @@ function PSAK71View() {
                       <th style={{ textAlign: 'right', width: 92 }}>ECL (Rp jt)</th>
                     </tr></thead>
                     <tbody>
-                      {p71.buckets.map(b => {
-                        const sm = P71_STAGE_META[b.stage];
+                      {p71.buckets.map((b: any) => {
+                        const sm = (P71_STAGE_META as any)[b.stage];
                         return (
                           <tr key={b.id}>
                             <td style={{ fontWeight: 600 }}>{b.label}{b.sicr && <span className="mono tiny" style={{ color: 'var(--amber)', marginLeft: 6 }}>SICR</span>}</td>
@@ -552,8 +552,8 @@ function PSAK71View() {
                     <Donut segments={stageSegs} size={104} thickness={15}
                       center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(p71.eclModel / 1))}</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1 }}>
-                      {p71.stages.map(s => {
-                        const sm = P71_STAGE_META[s.stage];
+                      {p71.stages.map((s: any) => {
+                        const sm = (P71_STAGE_META as any)[s.stage];
                         return (
                           <div key={s.stage} style={{ padding: '4px 0' }}>
                             <div className="row jb ac">
@@ -589,9 +589,9 @@ function PSAK71View() {
             <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
-                  <div className="panel-h"><h3>Overlay Makroekonomi Forward-Looking</h3><span className="sub mono">¶5.5.17 · skenario berbobot probabilitas</span><div style={{ flex: 1 }} /><Btn sm onClick={() => setProbs(Object.fromEntries(p71.scenarios.map(s => [s.id, s.prob])))}><I.sync size={12} /> Reset</Btn></div>
+                  <div className="panel-h"><h3>Overlay Makroekonomi Forward-Looking</h3><span className="sub mono">¶5.5.17 · skenario berbobot probabilitas</span><div style={{ flex: 1 }} /><Btn sm onClick={() => setProbs(Object.fromEntries(p71.scenarios.map((s: any) => [s.id, s.prob])))}><I.sync size={12} /> Reset</Btn></div>
                   <div style={{ padding: '6px 14px 12px' }}>
-                    {p71.scenarios.map(s => {
+                    {p71.scenarios.map((s: any) => {
                       const w = (probs[s.id] || 0) / probSum;
                       return (
                         <div key={s.id} style={{ padding: '9px 0', borderBottom: '1px solid var(--line-soft)' }}>
@@ -603,7 +603,7 @@ function PSAK71View() {
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>mult ×{s.mult.toFixed(2)}</span>
                           </div>
                           <div className="row ac gap10">
-                            <input type="range" min="0" max="1" step="0.01" value={probs[s.id] || 0} onChange={e => setProbs(p => ({ ...p, [s.id]: +e.target.value }))} style={{ flex: 1, accentColor: 'var(--blue)' }} />
+                            <input type="range" min="0" max="1" step="0.01" value={probs[s.id] || 0} onChange={(e: any) => setProbs((p: any) => ({ ...p, [s.id]: +e.target.value }))} style={{ flex: 1, accentColor: 'var(--blue)' }} />
                             <span className="mono" style={{ width: 52, textAlign: 'right', fontWeight: 700, fontSize: 12.5 }}>{(w * 100).toFixed(0)}%</span>
                           </div>
                         </div>
@@ -655,7 +655,7 @@ function PSAK71View() {
 
                 <Panel title="Data Historis Loss Rate" sub="write-off & recovery (sub-ledger)">
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {p71.history.map((r, i) => (
+                    {p71.history.map((r: any, i: any) => (
                       <div key={i} className="row ac jb" style={{ padding: '3px 0' }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{r.y}{r.current && <span className="tiny" style={{ color: 'var(--blue)', fontWeight: 600, marginLeft: 5 }}>berjalan</span>}</span>
                         <span className="tiny muted">write-off <b style={{ color: 'var(--ink)' }}>{fmt(r.writeOff)}</b> · recovery <b style={{ color: 'var(--ink)' }}>{fmt(r.recovery)}</b></span>
@@ -778,7 +778,7 @@ function PSAK71View() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber data</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {P71_UPSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P71_UPSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak71' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -788,7 +788,7 @@ function PSAK71View() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {P71_DOWNSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P71_DOWNSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak71' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

@@ -22,11 +22,11 @@ import { LEGAL } from './data_legal';
    ============================================================ */
 const FAC = (function () {
   const REF = new Date('2026-03-01');
-  const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
+  const sum = (a: any, f: any) => a.reduce((s: any, x: any) => s + f(x), 0);
   const R = Math.round;
 
   /* ---------- mesin penyusutan garis lurus (PSAK 16) ---------- */
-  function depreciate(a) {
+  function depreciate(a: any) {
     const start = new Date(a.acq);
     const months = Math.max(0, Math.min(a.life * 12, (REF.getFullYear() - start.getFullYear()) * 12 + (REF.getMonth() - start.getMonth())));
     const monthly = a.cost / (a.life * 12);
@@ -34,16 +34,16 @@ const FAC = (function () {
     const nbv = a.cost - accDep;
     return { ...a, months, monthly, accDep, nbv, pct: months / (a.life * 12), annualDep: R(monthly * 12), fullyDep: months >= a.life * 12 };
   }
-  function depRows(list?) { return (list || BO.FIXED_ASSETS || []).map(depreciate); }
+  function depRows(list?: any) { return (list || BO.FIXED_ASSETS || []).map(depreciate); }
 
   /* ---------- register & total ---------- */
   function register() {
     const rows = depRows();
-    const totCost = sum(rows, r => r.cost);
-    const totAcc = sum(rows, r => r.accDep);
-    const totNbv = sum(rows, r => r.nbv);
-    const totAnnual = sum(rows.filter(r => !r.fullyDep), r => r.annualDep);
-    const byCat = Object.values(rows.reduce((m, r) => {
+    const totCost = sum(rows, (r: any) => r.cost);
+    const totAcc = sum(rows, (r: any) => r.accDep);
+    const totNbv = sum(rows, (r: any) => r.nbv);
+    const totAnnual = sum(rows.filter((r: any) => !r.fullyDep), (r: any) => r.annualDep);
+    const byCat = Object.values(rows.reduce((m: any, r: any) => {
       (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 });
       m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n += r.qty || 1; return m;
     }, {})).sort((a: any, b: any) => b.cost - a.cost);
@@ -53,8 +53,8 @@ const FAC = (function () {
   /* ---------- roll-forward NBV (12 bln ke ref) ---------- */
   function rollForward() {
     const r = register();
-    const capex = sum(depRows().filter(a => new Date(a.acq) >= new Date('2025-03-01')), a => a.cost);
-    const disposalNbv = sum(BO.DISPOSALS || [], d => d.nbv);
+    const capex = sum(depRows().filter((a: any) => new Date(a.acq) >= new Date('2025-03-01')), (a: any) => a.cost);
+    const disposalNbv = sum(BO.DISPOSALS || [], (d: any) => d.nbv);
     const depreciation = r.totAnnual;
     const closing = r.totNbv;
     const opening = closing - capex + depreciation + disposalNbv;
@@ -63,44 +63,44 @@ const FAC = (function () {
 
   /* ---------- pemeliharaan & K3 (kalender) ---------- */
   function maintenance() {
-    const rows = (BO.MAINTENANCE || []).map(m => ({
+    const rows = (BO.MAINTENANCE || []).map((m: any) => ({
       ...m, days: BO.daysTo(m.due), k3: /K3/.test(m.type),
-      vendor: m.vendorId ? (BO.VENDORS.find(v => v.id === m.vendorId) || null) : null,
-    })).sort((a, b) => a.days - b.days);
+      vendor: m.vendorId ? (BO.VENDORS.find((v: any) => v.id === m.vendorId) || null) : null,
+    })).sort((a: any, b: any) => a.days - b.days);
     return {
       rows,
-      overdue: rows.filter(m => m.status === 'Terlambat' || m.days < 0).length,
-      dueSoon: rows.filter(m => m.days >= 0 && m.days <= 14).length,
-      k3: rows.filter(m => m.k3).length,
-      cost: sum(rows, m => m.cost),
-      masterLinked: rows.filter(m => m.vendorId).length,
+      overdue: rows.filter((m: any) => m.status === 'Terlambat' || m.days < 0).length,
+      dueSoon: rows.filter((m: any) => m.days >= 0 && m.days <= 14).length,
+      k3: rows.filter((m: any) => m.k3).length,
+      cost: sum(rows, (m: any) => m.cost),
+      masterLinked: rows.filter((m: any) => m.vendorId).length,
     };
   }
 
   /* ---------- lisensi & langganan (vendor master + Legal) ---------- */
-  function licenses(firm) {
+  function licenses(firm: any) {
     const reg = (LEGAL && firm) ? LEGAL.buildRegister(firm) : [];
-    return (BO.SOFTWARE_LICENSES || []).map(l => {
-      const vendor = (BO.VENDORS || []).find(v => v.name === l.vendor) || null;
+    return (BO.SOFTWARE_LICENSES || []).map((l: any) => {
+      const vendor = (BO.VENDORS || []).find((v: any) => v.name === l.vendor) || null;
       const contract = reg.find(c => c.source && c.source.kind === 'license' && c.source.id === l.name) || null;
       return {
         ...l, util: R(l.used / l.seats * 100), days: BO.daysTo(l.exp),
         vendor, vendorId: vendor ? vendor.id : null, contract,
         renew: l.status === 'Perpanjangan' || BO.daysTo(l.exp) <= 90,
       };
-    }).sort((a, b) => a.days - b.days);
+    }).sort((a: any, b: any) => a.days - b.days);
   }
 
   /* ---------- ruang & okupansi ---------- */
   function space() {
-    const rows = (BO.SPACE || []).map(f => ({ ...f, util: R(f.occ / f.seats * 100) }));
-    const seats = sum(rows, f => f.seats), occ = sum(rows, f => f.occ), area = sum(rows, f => f.area);
+    const rows = (BO.SPACE || []).map((f: any) => ({ ...f, util: R(f.occ / f.seats * 100) }));
+    const seats = sum(rows, (f: any) => f.seats), occ = sum(rows, (f: any) => f.occ), area = sum(rows, (f: any) => f.area);
     return { rows, seats, occ, area, util: seats ? R(occ / seats * 100) : 0 };
   }
 
   /* ---------- sewa kantor (PSAK 73) — dari V-024 + Legal OPS-LEASE ---------- */
-  function lease(firm) {
-    const v = (BO.VENDORS || []).find(x => x.cat === 'Sewa & Fasilitas') || null;
+  function lease(firm: any) {
+    const v = (BO.VENDORS || []).find((x: any) => x.cat === 'Sewa & Fasilitas') || null;
     const reg = (LEGAL && firm) ? LEGAL.buildRegister(firm) : [];
     const contract = reg.find(c => c.id === 'OPS-LEASE') || null;
     return { vendor: v, contract, value: v ? v.ytd : 0, end: contract ? contract.end : null };
@@ -108,14 +108,14 @@ const FAC = (function () {
 
   /* ---------- asuransi aset (Property All-Risk) ---------- */
   function insurance() {
-    const pol = (BO.POLICIES || []).find(p => /Property/.test(p.jenis)) || null;
+    const pol = (BO.POLICIES || []).find((p: any) => /Property/.test(p.jenis)) || null;
     const r = register();
-    const insuredCost = sum(r.rows.filter(a => a.insured), a => a.cost);
+    const insuredCost = sum(r.rows.filter((a: any) => a.insured), (a: any) => a.cost);
     return {
       policy: pol, limit: pol ? pol.limit : 0, premi: pol ? pol.premi : 0,
       totCost: r.totCost, insuredCost, totNbv: r.totNbv,
       coverRatio: pol && r.totCost ? pol.limit / r.totCost : 0,
-      insuredCount: r.rows.filter(a => a.insured).length, total: r.rows.length,
+      insuredCount: r.rows.filter((a: any) => a.insured).length, total: r.rows.length,
     };
   }
 
@@ -123,25 +123,25 @@ const FAC = (function () {
   function capex() {
     const assetCats = ['Sewa & Fasilitas', 'TI & SaaS'];
     const kw = /kursi|scanner|server|laptop|furnitur|aset|perangkat|proyektor|kendaraan|renovasi/i;
-    return (BO.REQUISITIONS || []).filter(r => assetCats.includes(r.budgetCat) && kw.test(r.desc))
-      .map(r => ({ ...r, capCat: /kursi|furnitur/i.test(r.desc) ? 'Furnitur' : /scanner|server|laptop|perangkat/i.test(r.desc) ? 'Perangkat TI' : r.budgetCat }));
+    return (BO.REQUISITIONS || []).filter((r: any) => assetCats.includes(r.budgetCat) && kw.test(r.desc))
+      .map((r: any) => ({ ...r, capCat: /kursi|furnitur/i.test(r.desc) ? 'Furnitur' : /scanner|server|laptop|perangkat/i.test(r.desc) ? 'Perangkat TI' : r.budgetCat }));
   }
 
   /* ---------- register ERP (AMS.FIXED_ASSETS) untuk jembatan ---------- */
   function erpRegister() {
     const list = (AMS && (AMS as any).FIXED_ASSETS) || [];
     const rows = list.map(depreciate);
-    return { rows, totCost: sum(rows, r => r.cost), totNbv: sum(rows, r => r.nbv), n: rows.length };
+    return { rows, totCost: sum(rows, (r: any) => r.cost), totNbv: sum(rows, (r: any) => r.nbv), n: rows.length };
   }
 
   /* ---------- rekonsiliasi sub-ledger → kontrol + jembatan lintas-modul ---------- */
-  function reconciliations(firm) {
+  function reconciliations(firm: any) {
     const r = register();
     const erp = erpRegister();
     const mt = maintenance();
     const lic = licenses(firm);
     const annualOps = (window.FIRMOPS && window.FIRMOPS.annualDepreciation) ? window.FIRMOPS.annualDepreciation() : r.totAnnual;
-    const licMapped = lic.filter(l => l.vendorId).length;
+    const licMapped = lic.filter((l: any) => l.vendorId).length;
 
     return [
       {
@@ -178,11 +178,11 @@ const FAC = (function () {
   }
 
   /* ---------- KPI ringkas ---------- */
-  function headline(firm) {
+  function headline(firm: any) {
     const r = register(), mt = maintenance(), sp = space(), lic = licenses(firm);
     return {
       totCost: r.totCost, totNbv: r.totNbv, annualDep: r.totAnnual,
-      maintOverdue: mt.overdue, licRenew: lic.filter(l => l.renew).length,
+      maintOverdue: mt.overdue, licRenew: lic.filter((l: any) => l.renew).length,
       occupancy: sp.util, assetCount: r.rows.length,
     };
   }

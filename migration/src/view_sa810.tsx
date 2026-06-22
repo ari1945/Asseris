@@ -145,19 +145,19 @@ function SA810View() {
 }
 
 /* ---- helper warna ---- */
-function rinColor(t) { const m = RIN_FORMS.find(x => x.k === t); return m ? m.color : 'gray'; }
-function sumKind(o) { return o.startsWith('Tidak Wajar') ? 'red' : o.includes('*') ? 'amber' : 'green'; }
-function auditKind(o) { return o.startsWith('WTM') ? 'green' : o.startsWith('WDP') ? 'amber' : 'red'; }
+function rinColor(t: any) { const m = RIN_FORMS.find(x => x.k === t); return m ? m.color : 'gray'; }
+function sumKind(o: any) { return o.startsWith('Tidak Wajar') ? 'red' : o.includes('*') ? 'amber' : 'green'; }
+function auditKind(o: any) { return o.startsWith('WTM') ? 'green' : o.startsWith('WDP') ? 'amber' : 'red'; }
 
 /* ---------------- Tab: Registri & Kriteria ---------------- */
-function F810Registri({ selId, setSelId, sel }) {
+function F810Registri({ selId, setSelId, sel }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
         <div className="panel-h"><h3>Bentuk Opini & Kriteria yang Diterapkan (¶9)</h3><div style={{ flex: 1 }} /><Badge kind="blue">2 bentuk + kriteria</Badge></div>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
           {RIN_FORMS.map((d, i) => {
-            const Ic = I[d.ic];
+            const Ic = (I as any)[d.ic];
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={18} /></span>
@@ -220,15 +220,15 @@ function F810Registri({ selId, setSelId, sel }) {
 }
 
 /* ---------------- Tab: Prosedur (¶8) ---------------- */
-function F810Proc({ sel }) {
+function F810Proc({ sel }: any) {
   if (!sel) return null;
-  const done = sel.procedures.filter(p => p[1]).length;
+  const done = sel.procedures.filter((p: any) => p[1]).length;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Prosedur Evaluasi Ringkasan LK (¶8)</h3><div style={{ flex: 1 }} /><Badge kind={done === sel.procedures.length ? 'green' : 'amber'}>{done}/{sel.procedures.length} selesai</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
-          {sel.procedures.map((a, i) => (
+          {sel.procedures.map((a: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < sel.procedures.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: a[1] ? 'var(--green)' : 'var(--red)' }}>{a[1] ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
               <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{a[0]}</div>
@@ -263,7 +263,7 @@ function F810Proc({ sel }) {
         <Panel title="Tautan Modul">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['fsgen', 'Financial Statement Gen.', 'report'], ['opinion', 'Audit Opinion Generator', 'gavel'], ['sa705', 'SA 705/706 · Modifikasi', 'doc']].map((r, i) => {
-              const Ic = I[r[2]];
+              const Ic = (I as any)[r[2]];
               return <NavRow810 key={i} to={r[0]} label={r[1]} ic={Ic} />;
             })}
           </div>
@@ -284,7 +284,7 @@ function NavRow810({ to, label, ic: Ic }: any) {
 }
 
 /* ---------------- Tab: Dampak Opini LK Auditan ---------------- */
-function F810Impact({ sel }) {
+function F810Impact({ sel }: any) {
   if (!sel) return null;
   const modified = sel.auditOpinion.startsWith('WDP') || sel.auditOpinion.startsWith('TW') || sel.auditOpinion.startsWith('TMP');
   const rules = [
@@ -358,7 +358,7 @@ function F810Impact({ sel }) {
 }
 
 /* ---------------- Tab: Pelaporan & Opini ---------------- */
-function F810Report({ sel }) {
+function F810Report({ sel }: any) {
   if (!sel) return null;
   const adverse = sel.summaryOpinion.startsWith('Tidak Wajar');
   const modified = sel.auditOpinion.startsWith('WDP') || sel.auditOpinion.startsWith('TW') || sel.auditOpinion.startsWith('TMP');

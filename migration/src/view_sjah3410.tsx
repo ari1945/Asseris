@@ -35,7 +35,7 @@ function SJAH3410View() {
   const E = (AMS as any).ghgEngine(exec);
   const A = E.meta;
 
-  const toggle = (id, seed) => setExec(s => {
+  const toggle = (id: any, seed: any) => setExec((s: any) => {
     const cur = Object.prototype.hasOwnProperty.call(s, id) ? s[id] : seed;
     return { ...s, [id]: !cur };
   });
@@ -98,8 +98,8 @@ function SJAH3410View() {
 }
 
 /* ---------------- Tab: Anatomi & Penerimaan ---------------- */
-function GhgAnatomy({ E, A }) {
-  const acc = A.terms.filter(t => t.ok).length;
+function GhgAnatomy({ E, A }: any) {
+  const acc = A.terms.filter((t: any) => t.ok).length;
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
@@ -132,7 +132,7 @@ function GhgAnatomy({ E, A }) {
               ['building', 'blue', 'Pihak Bertanggung Jawab', A.responsibleParty + '.'],
               ['users', 'purple', 'Pengguna yang Dituju', A.intendedUsers],
             ].map((r, i) => {
-              const Ic = I[r[0]];
+              const Ic = (I as any)[r[0]];
               return (
                 <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
                   <span style={{ width: 32, height: 32, borderRadius: 8, flex: '0 0 32px', display: 'grid', placeItems: 'center', background: `var(--${r[1]}-bg)`, color: `var(--${r[1]})` }}><Ic size={16} /></span>
@@ -178,7 +178,7 @@ function GhgAnatomy({ E, A }) {
       <Panel noBody>
         <div className="panel-h"><h3>Penerimaan Perikatan (¶13–18)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: acc === A.terms.length ? 'var(--green)' : 'var(--amber)' }}>{acc}/{A.terms.length}</span></div>
         <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px 24px' }}>
-          {A.terms.map((t, i) => (
+          {A.terms.map((t: any, i: any) => (
             <div key={i} className="row gap8" style={{ alignItems: 'flex-start', fontSize: 12 }}>
               <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{t.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
               <span style={{ lineHeight: 1.45 }}>{t.k}</span>
@@ -191,7 +191,7 @@ function GhgAnatomy({ E, A }) {
 }
 
 /* ---------------- Tab: Batas & Inventarisasi Emisi ---------------- */
-function GhgInventory({ E, A, toggle }) {
+function GhgInventory({ E, A, toggle }: any) {
   const { fmt } = AMS;
   const scopeColor = { 1: 'teal', 2: 'blue', 3: 'gray' };
   const groups = [
@@ -207,7 +207,7 @@ function GhgInventory({ E, A, toggle }) {
           <table className="dtbl">
             <thead><tr><th>Entitas / Fasilitas</th><th style={{ width: 130 }}>Pendekatan</th><th style={{ width: 92 }}>Status</th></tr></thead>
             <tbody>
-              {A.entities.map((e, i) => (
+              {A.entities.map((e: any, i: any) => (
                 <tr key={i}>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.35 }}><span style={{ fontWeight: 600 }}>{e.name}</span><div className="tiny muted" style={{ marginTop: 1 }}>{e.note}</div></td>
                   <td className="tiny">{e.approach}</td>
@@ -264,17 +264,17 @@ function GhgInventory({ E, A, toggle }) {
           </tr></thead>
           <tbody>
             {groups.map(g => {
-              const rows = E.sources.filter(s => s.scope === g.scope);
+              const rows = E.sources.filter((s: any) => s.scope === g.scope);
               if (!rows.length) return null;
               return (
                 <React.Fragment key={g.scope}>
                   <tr style={{ background: 'var(--surface-2)' }}>
-                    <td className="mono tiny" style={{ fontWeight: 700, color: `var(--${scopeColor[g.scope]})` }}>S{g.scope}</td>
+                    <td className="mono tiny" style={{ fontWeight: 700, color: `var(--${(scopeColor as any)[g.scope]})` }}>S{g.scope}</td>
                     <td colSpan={3} style={{ fontWeight: 700, fontSize: 11.5 }}>{g.label}</td>
                     <td className="num mono" style={{ fontWeight: 700 }}>{fmt(g.total, 1)}</td>
                     <td colSpan={3} className="tiny muted">{g.scope === 3 ? 'tidak diagregasi ke total terasurans' : 'tCO₂e'}</td>
                   </tr>
-                  {rows.map(s => (
+                  {rows.map((s: any) => (
                     <tr key={s.id} style={{ opacity: s.informational ? 0.72 : 1 }}>
                       <td className="mono tiny muted" style={{ fontWeight: 700, verticalAlign: 'top' }}>{s.id}</td>
                       <td style={{ whiteSpace: 'normal', lineHeight: 1.3, verticalAlign: 'top' }}><span style={{ fontWeight: 600 }}>{s.src}</span><div className="tiny muted" style={{ marginTop: 1 }}>{s.cat} · {s.facility}</div></td>
@@ -303,7 +303,7 @@ function GhgInventory({ E, A, toggle }) {
         <table className="dtbl">
           <thead><tr><th>Bahan Bakar / Sumber</th><th className="num" style={{ width: 120 }}>Faktor</th><th style={{ width: 130 }}>Satuan</th><th>Rujukan Otoritatif</th></tr></thead>
           <tbody>
-            {A.factors.map((f, i) => (
+            {A.factors.map((f: any, i: any) => (
               <tr key={i}>
                 <td style={{ fontWeight: 600 }}>{f.fuel}</td>
                 <td className="num mono" style={{ fontWeight: 700, color: 'var(--teal)' }}>{fmt(f.v, f.v < 10 ? 2 : 0)}</td>
@@ -319,7 +319,7 @@ function GhgInventory({ E, A, toggle }) {
 }
 
 /* ---------------- Tab: Prosedur & Bukti ---------------- */
-function GhgProcedures({ E, toggle }) {
+function GhgProcedures({ E, toggle }: any) {
   const { fmt } = AMS;
   const M = E.misstatement;
   return (
@@ -330,7 +330,7 @@ function GhgProcedures({ E, toggle }) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 48 }}>Ref</th><th>Prosedur (sifat terbatas)</th><th style={{ width: 96 }}>Status</th></tr></thead>
             <tbody>
-              {E.procedures.map(p => (
+              {E.procedures.map((p: any) => (
                 <tr key={p.id}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top' }}>{p.ref}</td>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.35, verticalAlign: 'top' }}><span style={{ fontWeight: 600 }}>{p.short}</span><div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{p.proc}</div></td>
@@ -388,7 +388,7 @@ function GhgProcedures({ E, toggle }) {
 }
 
 /* ---------------- Tab: Simpulan & Laporan ---------------- */
-function GhgReport({ E, A }) {
+function GhgReport({ E, A }: any) {
   const { fmt } = AMS;
   const C = E.conclusion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });

@@ -26,17 +26,17 @@ import { BO as BO_NS } from './data_backoffice';
 (function () {
   const A = (): any => AMS || {};
   const BO = (): any => BO_NS || {};
-  const round = (n) => Math.round(n);
+  const round = (n: any) => Math.round(n);
 
   /* ---------- indeks kanonik ---------- */
-  function staffById(id) { return (A().STAFF || []).find(s => s.id === id) || null; }
-  function engById(id) { return (A().ENGAGEMENTS || []).find(e => e.id === id) || null; }
-  function clientById(id) { return (A().CLIENTS || []).find(c => c.id === id) || null; }
-  function policyOf(grade) { return (BO().PER_DIEM || []).find(p => p.key === grade) || (BO().PER_DIEM || [])[2] || {}; }
-  function routeOf(code) { return (BO().ROUTES || []).find(r => r.code === code) || { code, label: code, fare: 0, intl: false }; }
+  function staffById(id: any) { return (A().STAFF || []).find((s: any) => s.id === id) || null; }
+  function engById(id: any) { return (A().ENGAGEMENTS || []).find((e: any) => e.id === id) || null; }
+  function clientById(id: any) { return (A().CLIENTS || []).find((c: any) => c.id === id) || null; }
+  function policyOf(grade: any) { return (BO().PER_DIEM || []).find((p: any) => p.key === grade) || (BO().PER_DIEM || [])[2] || {}; }
+  function routeOf(code: any) { return (BO().ROUTES || []).find((r: any) => r.code === code) || { code, label: code, fare: 0, intl: false }; }
 
   /* perikatan → klien (master) → kota & partner */
-  function engInfo(engId) {
+  function engInfo(engId: any) {
     const e = engById(engId);
     if (!e) return { id: engId, client: '—', city: '—', partner: '—', manager: '—' };
     const c = clientById(e.clientId) || {};
@@ -44,7 +44,7 @@ import { BO as BO_NS } from './data_backoffice';
   }
 
   /* ---------- entitlement (plafon) dari kebijakan ---------- */
-  function entitlement(grade, route, nights, days) {
+  function entitlement(grade: any, route: any, nights: any, days: any) {
     const pol = policyOf(grade);
     const r = routeOf(route);
     const transport = round(r.fare * (pol.classMult || 1));
@@ -55,7 +55,7 @@ import { BO as BO_NS } from './data_backoffice';
 
   /* ---------- perjalanan diperkaya (join staff + eng + entitlement) ---------- */
   function trips() {
-    return (BO().TRIPS || []).map(t => {
+    return (BO().TRIPS || []).map((t: any) => {
       const s = staffById(t.emp) || {};
       const grade = s.grade || 'Senior';
       const eng = engInfo(t.eng);
@@ -71,11 +71,11 @@ import { BO as BO_NS } from './data_backoffice';
       };
     });
   }
-  function tripById(id) { return trips().find(t => t.id === id) || null; }
+  function tripById(id: any) { return trips().find((t: any) => t.id === id) || null; }
 
   /* ---------- reimbursement diperkaya (klaim vs plafon + PPh 21) ---------- */
   function reimbursements() {
-    return (BO().REIMBURSEMENTS || []).map(r => {
+    return (BO().REIMBURSEMENTS || []).map((r: any) => {
       const s = staffById(r.emp) || {};
       const ln = r.lines || {};
       const klaim = (ln.transport || 0) + (ln.hotel || 0) + (ln.perdiem || 0) + (ln.other || 0);
@@ -93,7 +93,7 @@ import { BO as BO_NS } from './data_backoffice';
       };
     });
   }
-  function lineLabel(ln) {
+  function lineLabel(ln: any) {
     const parts = [];
     if (ln.transport) parts.push('Transport');
     if (ln.hotel) parts.push('Hotel');
@@ -105,15 +105,15 @@ import { BO as BO_NS } from './data_backoffice';
   /* ---------- alokasi biaya per perikatan (→ Time & Budget / Profitability) ---------- */
   function byEngagement() {
     const map = {};
-    trips().forEach(t => {
+    trips().forEach((t: any) => {
       const k = t.eng;
-      const m = (map[k] = map[k] || { eng: t.eng, client: t.client, city: t.city, partner: t.partner, trips: 0, est: 0, plafon: 0 });
+      const m = ((map as any)[k] = (map as any)[k] || { eng: t.eng, client: t.client, city: t.city, partner: t.partner, trips: 0, est: 0, plafon: 0 });
       m.trips += 1; m.est += t.est; m.plafon += t.plafon;
     });
     // klaim aktual yang sudah masuk sub-ledger, dipetakan ke perikatannya
-    reimbursements().forEach(r => {
-      if (!r.eng || !map[r.eng]) return;
-      map[r.eng].klaim = (map[r.eng].klaim || 0) + r.klaim;
+    reimbursements().forEach((r: any) => {
+      if (!r.eng || !(map as any)[r.eng]) return;
+      (map as any)[r.eng].klaim = ((map as any)[r.eng].klaim || 0) + r.klaim;
     });
     return Object.values(map).sort((a: any, b: any) => b.est - a.est);
   }
@@ -121,13 +121,13 @@ import { BO as BO_NS } from './data_backoffice';
   /* ---------- rekonsiliasi GL: sub-ledger ↔ tren ↔ Operasi Firma ↔ FIRM_COA ----------
      Membuktikan biaya perjalanan menutup ke akun kontrol firma (satu angka). */
   function glReconciliation() {
-    const trendYtd = (BO().TRAVEL_TREND || []).reduce((s, m) => s + m.v, 0) * 1e6;   // Rp (jt → Rp)
+    const trendYtd = (BO().TRAVEL_TREND || []).reduce((s: any, m: any) => s + m.v, 0) * 1e6;   // Rp (jt → Rp)
     let firmopsRow = null;
     try {
       const oc = window.FIRMOPS && window.FIRMOPS.operatingCosts && window.FIRMOPS.operatingCosts();
-      firmopsRow = oc && oc.rows.find(x => x.key === 'travel');
+      firmopsRow = oc && oc.rows.find((x: any) => x.key === 'travel');
     } catch (e) { /* noop */ }
-    const coa = (A().FIRM_COA || []).find(a => a.code === '5-200');   // Beban Overhead Kantor (induk beban operasi)
+    const coa = (A().FIRM_COA || []).find((a: any) => a.code === '5-200');   // Beban Overhead Kantor (induk beban operasi)
     return {
       rows: [
         { label: 'Sub-ledger Perjalanan — tren biaya (6 bln, BO.TRAVEL_TREND)', value: trendYtd, src: 'BO.TRAVEL_TREND', owner: 'travel' },
@@ -142,13 +142,13 @@ import { BO as BO_NS } from './data_backoffice';
   /* ---------- ringkasan KPI ---------- */
   function summary() {
     const tr = trips(), rb = reimbursements();
-    const pending = tr.filter(t => t.status === 'Menunggu Approval');
-    const ytd = (BO().TRAVEL_TREND || []).reduce((s, m) => s + m.v, 0);   // dalam jt
-    const inProcess = rb.filter(r => r.status === 'Diproses' || r.status === 'Ditahan');
-    const overCap = rb.filter(r => r.over);
-    const pphTot = rb.reduce((s, r) => s + r.pph21, 0);
-    const intl = tr.filter(t => t.entitlement.intl);
-    const offPolicy = tr.filter(t => !t.withinPolicy);
+    const pending = tr.filter((t: any) => t.status === 'Menunggu Approval');
+    const ytd = (BO().TRAVEL_TREND || []).reduce((s: any, m: any) => s + m.v, 0);   // dalam jt
+    const inProcess = rb.filter((r: any) => r.status === 'Diproses' || r.status === 'Ditahan');
+    const overCap = rb.filter((r: any) => r.over);
+    const pphTot = rb.reduce((s: any, r: any) => s + r.pph21, 0);
+    const intl = tr.filter((t: any) => t.entitlement.intl);
+    const offPolicy = tr.filter((t: any) => !t.withinPolicy);
     return { trips: tr, reimbursements: rb, pending, inProcess, overCap, ytdJt: ytd, pphTot, intl, offPolicy };
   }
 
@@ -168,8 +168,8 @@ import { BO as BO_NS } from './data_backoffice';
      turunan kanonik, bukan teks lepas. */
   (function attachDerived() {
     const enriched = trips();
-    (BO().TRIPS || []).forEach(raw => {
-      const e = enriched.find(x => x.id === raw.id);
+    (BO().TRIPS || []).forEach((raw: any) => {
+      const e = enriched.find((x: any) => x.id === raw.id);
       if (e) { raw.tujuan = e.tujuan; raw.staff = e.staff; raw.grade = e.grade; raw.plafon = e.plafon; }
     });
   })();

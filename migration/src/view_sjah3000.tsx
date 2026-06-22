@@ -75,7 +75,7 @@ const ASR_ENG = [
     if (!eng) return;
     const a = ASR_ENG.find(e => e.id === 'ASR-081');
     if (!a) return;
-    a.matters = eng.matters.map(x => [x.m, x.claim, x.proc]);
+    a.matters = eng.matters.map((x: any) => [x.m, x.claim, x.proc]);
     a.level = eng.assuranceEntry.level;
     a.concl = eng.opinion.operating;
   } catch (e) {}
@@ -91,7 +91,7 @@ const ASR_ENG = [
     const a = ASR_ENG.find(e => e.id === 'ASR-080');
     if (!a) return;
     a.std = eng.meta.std;
-    a.matters = eng.matters.map(x => [x.m, x.claim, x.proc]);
+    a.matters = eng.matters.map((x: any) => [x.m, x.claim, x.proc]);
     a.level = eng.assuranceEntry.level;
     a.concl = eng.conclusion.negativeAssurance;
   } catch (e) {}
@@ -165,7 +165,7 @@ function F3000Anatomy() {
         <div className="panel-h"><h3>Lima Elemen Perikatan Asurans (¶24)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Kerangka asurans</Badge></div>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 0 }}>
           {ASR_ELEMENTS.map((d, i) => {
-            const Ic = I[d.ic];
+            const Ic = (I as any)[d.ic];
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 4 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 9 }}><Ic size={17} /></span>
@@ -226,7 +226,7 @@ function F3000Anatomy() {
 }
 
 /* ---------------- Tab: Hal Pokok & Kriteria ---------------- */
-function F3000Subject({ selId, setSelId, sel }) {
+function F3000Subject({ selId, setSelId, sel }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -258,7 +258,7 @@ function F3000Subject({ selId, setSelId, sel }) {
 
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Keberterimaan Kriteria (¶24)</div>
             <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
-              {sel.suit.map((s, i) => (
+              {sel.suit.map((s: any, i: any) => (
                 <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '5px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                   <span>{s[0]}</span>
                   {s[1] ? <Badge kind="green">Memenuhi</Badge> : <Badge kind="amber">Perhatian</Badge>}
@@ -267,7 +267,7 @@ function F3000Subject({ selId, setSelId, sel }) {
             </div>
 
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Hal Pokok & Prosedur Pengukuran</div>
-            {sel.matters.map((m, i) => (
+            {sel.matters.map((m: any, i: any) => (
               <div key={i} style={{ padding: '8px 0', borderBottom: i < sel.matters.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <div className="row jb ac"><span style={{ fontSize: 11.5, fontWeight: 600 }}>{m[0]}</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)' }}>{m[1]}</span></div>
                 <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.4 }}>{m[2]}</div>
@@ -281,7 +281,7 @@ function F3000Subject({ selId, setSelId, sel }) {
 }
 
 /* ---------------- Tab: Bukti & Materialitas ---------------- */
-function F3000Evidence({ sel }) {
+function F3000Evidence({ sel }: any) {
   if (!sel) return null;
   const limited = sel.level === 'Terbatas';
   return (
@@ -341,7 +341,7 @@ function F3000Evidence({ sel }) {
   );
 }
 
-function NavRow3000({ to, label }) {
+function NavRow3000({ to, label }: any) {
   const nav = useNav();
   return (
     <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>
@@ -352,7 +352,7 @@ function NavRow3000({ to, label }) {
 }
 
 /* ---------------- Tab: Simpulan Asurans ---------------- */
-function F3000Report({ sel }) {
+function F3000Report({ sel }: any) {
   if (!sel) return null;
   const limited = sel.level === 'Terbatas';
   return (

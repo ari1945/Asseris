@@ -131,8 +131,8 @@ function PSAK16View() {
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.impair', JSON.stringify(impair)); } catch (e) {} }, [impair]);
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
-  const toggleImpair = (id) => setImpair(list => list.map(r => r.id === id ? { ...r, flag: !r.flag } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleImpair = (id: any) => setImpair((list: any) => list.map((r: any) => r.id === id ? { ...r, flag: !r.flag } : r));
 
   if (!model || !fa) {
     return <><SubBar moduleId="psak16" /><div className="view-pad"><Panel title="PSAK 16"><div className="tiny muted">Mesin FS Generator / kanonik belum dimuat.</div></Panel></div></>;
@@ -149,8 +149,8 @@ function PSAK16View() {
     if (exporting || !reg) return;
     setExporting(true);
     try {
-      const assetRows = reg.rows.map(r => [r.tag, r.name + (r.fullyDep ? ' (tersusut penuh)' : ''), r.classLabel, r.acqYear, r.life ? r.life + ' th' : '—', rp(r.cost), r.accum ? rp(-r.accum) : '—', rp(r.nbv)]);
-      const reconRows = reg.recon.map(r => [r.label, r.code, rp(r.sub), rp(r.gl), r.ok ? '0' : rp(r.diff), r.ok ? 'Menutup' : 'Selisih']);
+      const assetRows = reg.rows.map((r: any) => [r.tag, r.name + (r.fullyDep ? ' (tersusut penuh)' : ''), r.classLabel, r.acqYear, r.life ? r.life + ' th' : '—', rp(r.cost), r.accum ? rp(-r.accum) : '—', rp(r.nbv)]);
+      const reconRows = reg.recon.map((r: any) => [r.label, r.code, rp(r.sub), rp(r.gl), r.ok ? '0' : rp(r.diff), r.ok ? 'Menutup' : 'Selisih']);
       await amsExportXlsx({
         kind: 'fixed-asset-register', scope: 'engagement', scopeId: eng?.id,
         fileName: `Register Aset Tetap (KK-E) - ${client?.name || 'Klien'}.xlsx`,
@@ -176,7 +176,7 @@ function PSAK16View() {
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
-  const sc = (vJuta) => fmt(Math.round(vJuta * UN.mult), 0);
+  const sc = (vJuta: any) => fmt(Math.round(vJuta * UN.mult), 0);
 
   /* ——— rekonsiliasi nilai tercatat (¶73e) ——— */
   const closeUnauditedNet = fa.grossClose - fa.accumClient;
@@ -191,16 +191,16 @@ function PSAK16View() {
   ];
 
   /* ——— tie-out lintas-laporan (semua ditarik live, dalam Rp juta) ——— */
-  const M = (full) => full / 1e6;
-  const asetBS = model.bs.nca.find(l => l.key === 'asettetap');
+  const M = (full: any) => full / 1e6;
+  const asetBS = model.bs.nca.find((l: any) => l.key === 'asettetap');
   const tieRows = [
     { id: 't1', label: 'Roll-forward menutup ke saldo neraca', std: '¶73(e)', a: fa.netClose, b: M(asetBS.cy), note: 'Awal + penambahan − pelepasan − penyusutan ± AJE = Aset tetap neto (WTB 1-2100 + 1-2110 adjusted).' },
-    { id: 't2', label: 'Harga perolehan = WTB 1-2100', std: '¶73(d)', a: fa.grossClose, b: M((wtb.find(r => r.code === '1-2100') || {}).adj || 0), note: 'Jumlah tercatat bruto menutup ke buku besar harga perolehan.' },
-    { id: 't3', label: 'Akumulasi penyusutan = WTB 1-2110', std: '¶73(d)', a: -fa.accumAudit, b: M((wtb.find(r => r.code === '1-2110') || {}).adj || 0), note: 'Akumulasi penyusutan (kontra-aset) menutup ke buku besar 1-2110 adjusted.' },
+    { id: 't2', label: 'Harga perolehan = WTB 1-2100', std: '¶73(d)', a: fa.grossClose, b: M((wtb.find((r: any) => r.code === '1-2100') || {}).adj || 0), note: 'Jumlah tercatat bruto menutup ke buku besar harga perolehan.' },
+    { id: 't3', label: 'Akumulasi penyusutan = WTB 1-2110', std: '¶73(d)', a: -fa.accumAudit, b: M((wtb.find((r: any) => r.code === '1-2110') || {}).adj || 0), note: 'Akumulasi penyusutan (kontra-aset) menutup ke buku besar 1-2110 adjusted.' },
     { id: 't4', label: 'Penyusutan = add-back Arus Kas (PSAK 2)', std: 'PSAK 2', a: fa.deprAudited, b: M(model.meta.depreciation), note: 'Beban penyusutan audited = kenaikan akumulasi penyusutan (add-back non-kas).' },
     { id: 't5', label: 'Belanja modal neto = arus kas investasi', std: 'PSAK 2', a: fa.capexNet, b: M(-model.meta.capex), note: 'Mutasi neto harga perolehan = perolehan aset tetap pada Arus Kas Investasi.' },
-    { id: 't6', label: 'Saldo awal = komparatif WTB 2024', std: '¶73(d)', a: fa.netOpen, b: M(((wtb.find(r => r.code === '1-2100') || {}).ly || 0) + ((wtb.find(r => r.code === '1-2110') || {}).ly || 0)), note: 'Nilai tercatat neto awal = saldo audited periode lalu (kolom komparatif WTB).' },
-    { id: 't7', label: 'Koreksi penyusutan terposting = AJE-05', std: 'SA 450', a: fa.ajeDepr, b: -M((wtb.find(r => r.code === '1-2110') || {}).aje || 0), note: 'AJE-05 (' + (aje05 ? aje05.status : '—') + ') Rp ' + fmt(Math.abs(fa.ajeDepr)) + ' jt tercermin pada saldo adjusted.' },
+    { id: 't6', label: 'Saldo awal = komparatif WTB 2024', std: '¶73(d)', a: fa.netOpen, b: M(((wtb.find((r: any) => r.code === '1-2100') || {}).ly || 0) + ((wtb.find((r: any) => r.code === '1-2110') || {}).ly || 0)), note: 'Nilai tercatat neto awal = saldo audited periode lalu (kolom komparatif WTB).' },
+    { id: 't7', label: 'Koreksi penyusutan terposting = AJE-05', std: 'SA 450', a: fa.ajeDepr, b: -M((wtb.find((r: any) => r.code === '1-2110') || {}).aje || 0), note: 'AJE-05 (' + (aje05 ? aje05.status : '—') + ') Rp ' + fmt(Math.abs(fa.ajeDepr)) + ' jt tercermin pada saldo adjusted.' },
   ].map(r => ({ ...r, diff: r.a - r.b, ok: Math.abs(r.a - r.b) < 1.5 }));
   const tiePass = tieRows.filter(r => r.ok).length;
 
@@ -217,8 +217,8 @@ function PSAK16View() {
     { k: 'Inspeksi fisik aset tetap', src: 'SA 501 · WP E-1', route: 'sa501', icon: 'search2' },
   ];
 
-  const discOk = disc.filter(d => d.ok).length;
-  const impFlags = impair.filter(m => m.flag).length;
+  const discOk = disc.filter((d: any) => d.ok).length;
+  const impFlags = impair.filter((m: any) => m.flag).length;
   const depTol = 0.10;                                 // toleransi 10% atas ekspektasi penyusutan
   const depWithin = Math.abs(fa.depVarPct) <= depTol;
   const STATE = { ok: { I: 'checkCircle', c: 'var(--green)' }, warn: { I: 'alert', c: 'var(--amber)' } };
@@ -275,7 +275,7 @@ function PSAK16View() {
             </tr>
           </thead>
           <tbody>
-            {fa.classes.map((c, i) => (
+            {fa.classes.map((c: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px', fontWeight: 600 }}>{c.label}{c.note && <span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>{c.note}</span>}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(c.gross)}</td>
@@ -315,7 +315,7 @@ function PSAK16View() {
             </tr>
           </thead>
           <tbody>
-            {fa.classes.map((c, i) => (
+            {fa.classes.map((c: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px', fontWeight: 600 }}>{c.label}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{c.life ? sc(c.base) : '—'}</td>
@@ -326,7 +326,7 @@ function PSAK16View() {
             ))}
             <tr style={{ borderTop: '1.5px solid var(--navy)', fontWeight: 700 }}>
               <td style={{ padding: '8px 4px' }}>Penyusutan harapan (ekspektasi independen)</td>
-              <td className="mono" style={{ textAlign: 'right', padding: '8px 4px' }}>{sc(fa.classes.reduce((a, c) => a + c.base, 0))}</td>
+              <td className="mono" style={{ textAlign: 'right', padding: '8px 4px' }}>{sc(fa.classes.reduce((a: any, c: any) => a + c.base, 0))}</td>
               <td style={{ padding: '8px 4px' }}></td>
               <td className="mono" style={{ textAlign: 'right', padding: '8px 4px', color: 'var(--blue)' }}>{sc(fa.expectedDep)}</td>
               <td style={{ padding: '8px 4px' }}></td>
@@ -386,7 +386,7 @@ function PSAK16View() {
     <Panel noBody>
       <div className="panel-h"><h3>Indikasi Penurunan Nilai</h3><span className="sub mono">¶63→PSAK 48</span><div style={{ flex: 1 }} /><span className="tiny muted">{impFlags} indikasi</span></div>
       <div>
-        {impair.map((m, i) => (
+        {impair.map((m: any, i: any) => (
           <label key={m.id} className="row gap9" style={{ padding: '7px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < impair.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleImpair(m.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (m.flag ? 'var(--amber)' : 'var(--line)'), background: m.flag ? 'var(--amber)' : '#fff', display: 'grid', placeItems: 'center' }}>{m.flag && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span style={{ fontSize: 11.5, lineHeight: 1.35, color: m.flag ? 'var(--ink)' : 'var(--ink-2)', fontWeight: m.flag ? 600 : 400 }}>{m.t}<span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>· {m.src}</span></span>
@@ -405,7 +405,7 @@ function PSAK16View() {
       <div className="panel-h"><h3>Asersi & Prosedur Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 501 · SA 540</span></div>
       <div>
         {P16_ASSERT.map((r, i) => {
-          const st = STATE[r.state];
+          const st = (STATE as any)[r.state];
           return (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P16_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
@@ -458,11 +458,11 @@ function PSAK16View() {
       <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
       <div style={{ padding: 6 }}>
         {lineage.map((r, i) => {
-          const IconC = I[r.icon] || I.doc;
+          const IconC = (I as any)[r.icon] || I.doc;
           return (
             <button key={i} onClick={() => nav(r.route, { from: 'psak16' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -510,7 +510,7 @@ function PSAK16View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengungkapan PSAK 16</h3><span className="sub mono">¶73–79</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
       <div>
-        {disc.map((d, i) => (
+        {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{d.ref}</span>
@@ -551,7 +551,7 @@ function PSAK16View() {
     { id: 'penyusutan',   label: 'Penyusutan & Pengukuran', icon: 'scale',  badge: fmt(fa.depVarPct * 100, 1) + '%', bad: !depWithin },
     { id: 'pelepasan',    label: 'Pelepasan & Penurunan',   icon: 'alert',  badge: impFlags ? String(impFlags) : null, bad: false },
     { id: 'register',     label: 'Register & Impor',        icon: 'ledger', badge: reg ? String(reg.count) : null, bad: reg && !reg.reconciled },
-    { id: 'pengungkapan', label: 'Pengungkapan & Sumber',   icon: 'doc',    badge: discOk + '/' + disc.length, bad: discOk < disc.filter(d => !d.na).length },
+    { id: 'pengungkapan', label: 'Pengungkapan & Sumber',   icon: 'doc',    badge: discOk + '/' + disc.length, bad: discOk < disc.filter((d: any) => !d.na).length },
   ];
 
   return (
@@ -585,7 +585,7 @@ function PSAK16View() {
           {/* tab bar */}
           <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--line)', overflowX: 'auto', flexWrap: 'nowrap' }}>
             {TABS.map(t => {
-              const IconT = I[t.icon] || I.doc;
+              const IconT = (I as any)[t.icon] || I.doc;
               const on = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{

@@ -36,12 +36,12 @@ function SamplingEngine() {
     { doc: 'INV-24-1622', party: 'CV Berkah Jaya', book: 760_000_000, sig: false, audited: 760_000_000, tested: false },
     { doc: 'INV-24-0288', party: 'PT Aneka Pangan', book: 540_000_000, sig: false, audited: 540_000_000, tested: false },
   ]);
-  const setItem = (i, patch) => setEvalItems(list => list.map((it, idx) => idx === i ? { ...it, ...patch } : it));
-  const found = evalItems.filter(it => it.tested).reduce((s, it) => s + (it.book - (+it.audited || 0)), 0);
-  const testedCount = evalItems.filter(it => it.tested).length;
-  const misstatedCount = evalItems.filter(it => it.tested && it.book !== (+it.audited || 0)).length;
+  const setItem = (i: any, patch: any) => setEvalItems((list: any) => list.map((it: any, idx: any) => idx === i ? { ...it, ...patch } : it));
+  const found = evalItems.filter((it: any) => it.tested).reduce((s: any, it: any) => s + (it.book - (+it.audited || 0)), 0);
+  const testedCount = evalItems.filter((it: any) => it.tested).length;
+  const misstatedCount = evalItems.filter((it: any) => it.tested && it.book !== (+it.audited || 0)).length;
 
-  const rf = REL_FACTOR[conf];
+  const rf = (REL_FACTOR as any)[conf];
   const si = Math.max(1, Math.round((tm - em * 1.6) / rf));         // sampling interval
   const n = Math.max(1, Math.ceil(bv / si));
   const basicPrecision = Math.round(rf * si);
@@ -49,7 +49,7 @@ function SamplingEngine() {
   const uml = basicPrecision + projected;
   const pass = uml < tm;
 
-  const rp = (x) => 'Rp ' + fmt(x);
+  const rp = (x: any) => 'Rp ' + fmt(x);
 
   /* generated population (deterministic) representing the AR sub-ledger */
   const population = useMemoS(() => {
@@ -64,7 +64,7 @@ function SamplingEngine() {
       return { idx: i, doc: 'INV-24-' + String(1000 + i * 17 % 9000).padStart(4, '0'), party: parties[i % parties.length], amount, from, to: cum };
     });
   }, [bv]);
-  const popTotal = population.reduce((s, p) => s + p.amount, 0);
+  const popTotal = population.reduce((s: any, p: any) => s + p.amount, 0);
 
   const [seedStart, setSeedStart] = useStateS(0.37);
   const [selectedIdx, setSelectedIdx] = useStateS(null);
@@ -78,12 +78,12 @@ function SamplingEngine() {
     const startUnit = seedStart * si;
     const hits = new Set();
     for (let u = startUnit; u < popTotal; u += si) {
-      const item = population.find(p => u >= p.from && u < p.to);
+      const item = population.find((p: any) => u >= p.from && u < p.to);
       if (item) hits.add(item.idx);
     }
     // items ≥ SI are individually significant (always selected)
-    population.forEach(p => { if (p.amount >= si) hits.add(p.idx); });
-    const idxArr = Array.from(hits).sort((a: any, b: any) => a - b);
+    population.forEach((p: any) => { if (p.amount >= si) hits.add(p.idx); });
+    const idxArr: any[] = Array.from(hits).sort((a: any, b: any) => a - b);
     setSelectedIdx(idxArr);
     setEvalItems(idxArr.map(i => { const p = population[i]; return { doc: p.doc, party: p.party, book: p.amount, sig: p.amount >= si, audited: p.amount, tested: false }; }));
   };
@@ -151,7 +151,7 @@ function SamplingEngine() {
             <div className="row jb ac" style={{ marginBottom: 10 }}>
               <div className="row ac gap8">
                 <span className="tiny muted">Titik mulai acak (× SI):</span>
-                <input type="range" min="0" max="0.99" step="0.01" value={seedStart} onChange={e => setSeedStart(+e.target.value)} style={{ width: 120, accentColor: 'var(--blue)' }} />
+                <input type="range" min="0" max="0.99" step="0.01" value={seedStart} onChange={(e: any) => setSeedStart(+e.target.value)} style={{ width: 120, accentColor: 'var(--blue)' }} />
                 <span className="mono tiny" style={{ fontWeight: 700 }}>{seedStart.toFixed(2)}</span>
               </div>
               <div className="tiny muted">Interval seleksi (SI) = <b className="mono">{rp(si)}</b> · {selection ? selection.length + ' item terpilih' : 'klik "Jalankan Seleksi"'}</div>
@@ -159,7 +159,7 @@ function SamplingEngine() {
             {/* monetary axis with interval marks + hits */}
             <div style={{ position: 'relative', height: 54, marginBottom: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: 24, height: 8, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden', display: 'flex' }}>
-                {population.map(p => {
+                {population.map((p: any) => {
                   const w = p.amount / popTotal * 100;
                   const isSel = selection && selection.includes(p.idx);
                   return <div key={p.idx} title={p.party + ': ' + rp(p.amount)} style={{ width: w + '%', height: '100%', background: isSel ? (p.amount >= si ? 'var(--purple)' : 'var(--blue)') : 'transparent', borderRight: '1px solid var(--surface)', opacity: isSel ? 1 : 0.25 }} />;
@@ -187,7 +187,7 @@ function SamplingEngine() {
               <table className="dtbl">
                 <thead><tr><th style={{ width: 30 }}></th><th>Dokumen</th><th className="num">Per Buku</th><th className="num" style={{ width: 130 }}>Nilai Audit</th><th className="num" style={{ width: 90 }}>Selisih</th></tr></thead>
                 <tbody>
-                  {evalItems.map((it, i) => {
+                  {evalItems.map((it: any, i: any) => {
                     const ms = it.book - (+it.audited || 0);
                     return (
                       <tr key={i} style={{ opacity: it.tested ? 1 : 0.55 }}>
@@ -195,7 +195,7 @@ function SamplingEngine() {
                         <td><div style={{ fontWeight: 600 }} className="mono tiny">{it.doc}</div><div className="tiny muted truncate" style={{ maxWidth: 150 }}>{it.party} {it.sig && <span className="badge b-purple" style={{ fontSize: 8, padding: '0 4px' }}>≥SI</span>}</div></td>
                         <td className="num">{fmt(it.book / 1e6, 0)}</td>
                         <td className="num">
-                          {it.tested ? <input type="number" value={it.audited} onChange={e => setItem(i, { audited: +e.target.value })} className="input mono" style={{ width: 110, height: 24, textAlign: 'right', padding: '0 6px' }} /> : <span className="muted tiny">belum diuji</span>}
+                          {it.tested ? <input type="number" value={it.audited} onChange={(e: any) => setItem(i, { audited: +e.target.value })} className="input mono" style={{ width: 110, height: 24, textAlign: 'right', padding: '0 6px' }} /> : <span className="muted tiny">belum diuji</span>}
                         </td>
                         <td className="num" style={{ fontWeight: 600, color: ms !== 0 && it.tested ? 'var(--red)' : 'var(--ink-3)' }}>{it.tested ? fmt(ms / 1e6, 1) : '—'}</td>
                       </tr>
@@ -249,21 +249,21 @@ function ECLCalculator() {
   })) : []));
   const booked = (p71 ? p71.ckpnBooked : 1980) * 1e6; // WTB 1-1210 (satu sumber)
 
-  const setRate = (id, rate) => setBuckets(bs => bs.map(b => b.id === id ? { ...b, rate: Math.max(0, Math.min(100, rate)) } : b));
+  const setRate = (id: any, rate: any) => setBuckets((bs: any) => bs.map((b: any) => b.id === id ? { ...b, rate: Math.max(0, Math.min(100, rate)) } : b));
 
-  const withEcl = buckets.map(b => ({ ...b, ecl: Math.round(b.gross * b.rate / 100) }));
-  const totalGross = withEcl.reduce((s, b) => s + b.gross, 0);
-  const totalEcl = withEcl.reduce((s, b) => s + b.ecl, 0);
+  const withEcl = buckets.map((b: any) => ({ ...b, ecl: Math.round(b.gross * b.rate / 100) }));
+  const totalGross = withEcl.reduce((s: any, b: any) => s + b.gross, 0);
+  const totalEcl = withEcl.reduce((s: any, b: any) => s + b.ecl, 0);
   const diff = totalEcl - booked;
 
-  const stageSum = (st) => withEcl.filter(b => b.stage === st).reduce((s, b) => s + b.ecl, 0);
+  const stageSum = (st: any) => withEcl.filter((b: any) => b.stage === st).reduce((s: any, b: any) => s + b.ecl, 0);
   const segs = [
     { label: 'Stage 1', value: stageSum(1), color: '#1f7a4d' },
     { label: 'Stage 2', value: stageSum(2), color: '#c79a1e' },
     { label: 'Stage 3', value: stageSum(3), color: '#b3261e' },
   ];
   const stageColor = { 1: 'green', 2: 'amber', 3: 'red' };
-  const rp = (x) => 'Rp ' + fmt(x);
+  const rp = (x: any) => 'Rp ' + fmt(x);
 
   return (
     <>
@@ -292,13 +292,13 @@ function ECLCalculator() {
                   <th>Bucket Umur</th><th>Stage</th><th className="num">Eksposur Bruto</th><th className="num" style={{ width: 130 }}>Loss Rate (%)</th><th className="num">ECL (Rp)</th>
                 </tr></thead>
                 <tbody>
-                  {withEcl.map(b => (
+                  {withEcl.map((b: any) => (
                     <tr key={b.id}>
                       <td style={{ fontWeight: 600 }}>{b.label}</td>
-                      <td><Badge kind={stageColor[b.stage]}>Stage {b.stage}</Badge></td>
+                      <td><Badge kind={(stageColor as any)[b.stage]}>Stage {b.stage}</Badge></td>
                       <td className="num">{fmt(b.gross)}</td>
                       <td className="num">
-                        <input type="number" value={b.rate} step="0.5" onChange={e => setRate(b.id, +e.target.value)}
+                        <input type="number" value={b.rate} step="0.5" onChange={(e: any) => setRate(b.id, +e.target.value)}
                           className="input mono" style={{ width: 80, height: 24, textAlign: 'right', padding: '0 7px' }} />
                       </td>
                       <td className="num" style={{ fontWeight: 700, color: 'var(--blue)' }}>{fmt(b.ecl)}</td>
@@ -364,7 +364,7 @@ function NumRow({ label, value, onChange, step, hint }: any) {
     <div className="field" style={{ marginBottom: 13 }}>
       <label>{label}</label>
       <div className="row ac gap8">
-        <input type="number" value={value} step={step} onChange={e => onChange(Math.max(0, +e.target.value))}
+        <input type="number" value={value} step={step} onChange={(e: any) => onChange(Math.max(0, +e.target.value))}
           className="input mono" style={{ flex: 1, textAlign: 'right' }} />
         <button className="btn sm icon" onClick={() => onChange(value + step)}><I.plus size={13} /></button>
       </div>

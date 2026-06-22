@@ -25,8 +25,8 @@ function JournalEntryTesting() {
   const [tested, setTested] = useStateJ({});
   const [minAmt, setMinAmt] = useStateJ(0);
 
-  const active = crit.filter(c => c.on).map(c => c.id);
-  const toggleCrit = (id) => setCrit(cs => cs.map(c => c.id === id ? { ...c, on: !c.on } : c));
+  const active = crit.filter((c: any) => c.on).map((c: any) => c.id);
+  const toggleCrit = (id: any) => setCrit((cs: any) => cs.map((c: any) => c.id === id ? { ...c, on: !c.on } : c));
 
   const scored = JE_POP.map(je => {
     const hit = je.flags.filter(f => active.includes(f));
@@ -43,7 +43,7 @@ function JournalEntryTesting() {
 
   const totalJE = 18452, manualJE = 1240;
   const exceptions = Object.values(tested).filter(v => v === 'exception').length;
-  const critLabel = (id) => JET_CRITERIA.find(c => c.id === id)?.label || id;
+  const critLabel = (id: any) => JET_CRITERIA.find(c => c.id === id)?.label || id;
 
   const funnel = [
     { l: 'Total Jurnal', v: totalJE, c: '#024661' },
@@ -84,7 +84,7 @@ function JournalEntryTesting() {
             <div className="grid" style={{ gap: 12 }}>
               <Panel title="Kriteria Risiko" sub={active.length + ' aktif'}>
                 <div style={{ padding: '2px 0' }}>
-                  {crit.map(c => (
+                  {crit.map((c: any) => (
                     <label key={c.id} className="row gap8" style={{ padding: '8px 2px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: '1px solid var(--line-soft)' }} onClick={() => toggleCrit(c.id)}>
                       <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: c.on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s', marginTop: 1 }}>
                         <span style={{ position: 'absolute', top: 2, left: c.on ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
@@ -95,7 +95,7 @@ function JournalEntryTesting() {
                 </div>
                 <div className="divider" />
                 <div className="row jb ac" style={{ marginBottom: 5 }}><span style={{ fontSize: 11.5, fontWeight: 600 }}>Ambang nilai minimum</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(minAmt / 1e6, 0)} jt</span></div>
-                <input type="range" min="0" max="2000000000" step="50000000" value={minAmt} onChange={e => setMinAmt(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+                <input type="range" min="0" max="2000000000" step="50000000" value={minAmt} onChange={(e: any) => setMinAmt(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
               </Panel>
               <Panel title="Stratifikasi per User" sub="frekuensi posting">
                 <div style={{ display: 'grid', gap: 7 }}>
@@ -168,8 +168,8 @@ function JournalEntryTesting() {
                         </div>
                         <div className="tiny muted upper" style={{ marginBottom: 6 }}>Konklusi Pengujian</div>
                         <div className="row gap8">
-                          <Btn sm variant="primary" onClick={() => setTested(t => ({ ...t, [sel.id]: 'clear' }))}><I.check size={14} /> Tandai Clear</Btn>
-                          <Btn sm onClick={() => setTested(t => ({ ...t, [sel.id]: 'exception' }))} style={{ color: 'var(--red)', borderColor: 'var(--red)' }}><I.alert size={14} /> Eksepsi</Btn>
+                          <Btn sm variant="primary" onClick={() => setTested((t: any) => ({ ...t, [sel.id]: 'clear' }))}><I.check size={14} /> Tandai Clear</Btn>
+                          <Btn sm onClick={() => setTested((t: any) => ({ ...t, [sel.id]: 'exception' }))} style={{ color: 'var(--red)', borderColor: 'var(--red)' }}><I.alert size={14} /> Eksepsi</Btn>
                         </div>
                       </div>
                     </div>

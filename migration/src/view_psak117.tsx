@@ -51,7 +51,7 @@ function P117Kv({ label, v, strong, accent }: any) {
 
 function p117WpSignoffDefaults() {
   const TEAM: any = (AMS && AMS.TEAM) || [];
-  const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
+  const find = (kw: any) => (TEAM.find((t: any) => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '11 Jan 2026' },
     reviewer: { by: find('Manager'), role: 'Manajer Audit',  at: '17 Jan 2026' },
@@ -136,10 +136,10 @@ function P117WorkPaper({ p117, fmt, rp, nav }: any) {
             <th style={{ textAlign: 'right', width: 96 }}>LRC</th>
           </tr></thead>
           <tbody>
-            {p117.ports.map(p => (
+            {p117.ports.map((p: any) => (
               <tr key={p.id}>
                 <td style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</td>
-                <td style={{ textAlign: 'center' }}><Badge kind={P117_MODEL_META[p.model].kind}>{p.model}</Badge></td>
+                <td style={{ textAlign: 'center' }}><Badge kind={(P117_MODEL_META as any)[p.model].kind}>{p.model}</Badge></td>
                 <td className="mono" style={{ textAlign: 'right' }}>{fmt(p.fcf)}</td>
                 <td className="mono" style={{ textAlign: 'right' }}>{p.ra ? fmt(p.ra) : '—'}</td>
                 <td className="mono" style={{ textAlign: 'right' }}>{p.csm != null ? fmt(p.csm) : <span className="muted">n/a</span>}</td>
@@ -174,7 +174,7 @@ function P117WorkPaper({ p117, fmt, rp, nav }: any) {
       <Sect n="3" title="Mutasi Marjin Jasa Kontraktual (CSM)" sub="¶44 · roll-forward">
         <table className="dtbl" style={{ width: '100%' }}>
           <tbody>
-            {p117.csmRoll.map((r, i) => (
+            {p117.csmRoll.map((r: any, i: any) => (
               <tr key={i} style={{ background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
                 <td style={{ fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)', fontSize: 12 }}>{r.t}</td>
                 <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : (r.tot ? 'var(--navy)' : 'var(--green)') }}>{r.v < 0 ? '(' + fmt(-r.v) + ')' : (r.tot ? '' : '+') + fmt(r.v)}</td>
@@ -234,9 +234,9 @@ function PSAK117View() {
   React.useEffect(() => { try { localStorage.setItem('ams.psak117.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak117.done', JSON.stringify(done)); } catch (e) {} }, [done]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
-  const doneCount = p117.proc.filter((p, i) => done[p.ref + i]).length;
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
+  const doneCount = p117.proc.filter((p: any, i: any) => done[p.ref + i]).length;
   const score = Math.round(doneCount / p117.proc.length * 100);
 
   const liabSegs = [
@@ -300,13 +300,13 @@ function PSAK117View() {
                         <th style={{ textAlign: 'right', width: 96 }}>LRC</th>
                       </tr></thead>
                       <tbody>
-                        {p117.ports.map(p => (
+                        {p117.ports.map((p: any) => (
                           <tr key={p.id}>
                             <td>
                               <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{p.name}</div>
                               <div className="tiny muted" style={{ lineHeight: 1.4 }}>{p.note}</div>
                             </td>
-                            <td style={{ textAlign: 'center' }}><Badge kind={P117_MODEL_META[p.model].kind}>{p.model}</Badge></td>
+                            <td style={{ textAlign: 'center' }}><Badge kind={(P117_MODEL_META as any)[p.model].kind}>{p.model}</Badge></td>
                             <td className="tiny" style={{ color: 'var(--ink-2)' }}>{p.dur}<div className="tiny muted">{p.onset}</div></td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(p.lrc)}</td>
                           </tr>
@@ -322,10 +322,10 @@ function PSAK117View() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Kriteria Eligibilitas Model</h3><span className="sub mono">pohon keputusan PSAK 117</span></div>
                   <div style={{ padding: '4px 14px 12px', display: 'grid', gap: 0 }}>
-                    {p117.modelMix.map((m, i) => (
+                    {p117.modelMix.map((m: any, i: any) => (
                       <div key={m.model} style={{ padding: '11px 0', borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
                         <div className="row ac gap8" style={{ marginBottom: 4 }}>
-                          <Badge kind={P117_MODEL_META[m.model].kind}>{m.model}</Badge>
+                          <Badge kind={(P117_MODEL_META as any)[m.model].kind}>{m.model}</Badge>
                           <span style={{ fontSize: 12.5, fontWeight: 700 }}>{m.label}</span>
                           <span className="tiny muted">{m.sub}</span>
                           <span style={{ flex: 1 }} />
@@ -341,12 +341,12 @@ function PSAK117View() {
               <div className="grid" style={{ gap: 12 }}>
                 <Panel title="Komposisi LRC per Model" sub="bauran model pengukuran">
                   <div className="row gap12 ac">
-                    <Donut segments={p117.modelMix.map(m => ({ label: m.model, value: m.lrc, color: P117_MODEL_META[m.model].color }))} size={104} thickness={15}
+                    <Donut segments={p117.modelMix.map((m: any) => ({ label: m.model, value: m.lrc, color: (P117_MODEL_META as any)[m.model].color }))} size={104} thickness={15}
                       center={<><div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(p117.lrcTotal / 1000))}rb</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1 }}>
-                      {p117.modelMix.map(m => (
+                      {p117.modelMix.map((m: any) => (
                         <div key={m.model} className="row jb ac" style={{ padding: '4px 0' }}>
-                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: P117_MODEL_META[m.model].color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{m.model}</span></span>
+                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: (P117_MODEL_META as any)[m.model].color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{m.model}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(m.lrc)} jt</span>
                         </div>
                       ))}
@@ -356,7 +356,7 @@ function PSAK117View() {
 
                 <Panel title="PSAK 117 vs PSAK 62 (lama)" sub="perubahan kunci">
                   <div style={{ display: 'grid', gap: 0 }}>
-                    {p117.key.map((a, i) => (
+                    {p117.key.map((a: any, i: any) => (
                       <div key={i} style={{ padding: '8px 0', borderBottom: i < p117.key.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
                         <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{a.note}</div>
@@ -383,7 +383,7 @@ function PSAK117View() {
                       <th style={{ textAlign: 'right', width: 96 }}>LRC</th>
                     </tr></thead>
                     <tbody>
-                      {p117.ports.map(p => (
+                      {p117.ports.map((p: any) => (
                         <tr key={p.id}>
                           <td style={{ fontWeight: 600, fontSize: 12 }}>{p.name}{p.lc ? <span className="mono tiny" style={{ color: 'var(--red)', marginLeft: 6 }}>LC {fmt(p.lc)}</span> : null}</td>
                           <td className="mono" style={{ textAlign: 'right' }}>{fmt(p.fcf)}</td>
@@ -445,7 +445,7 @@ function PSAK117View() {
               <Panel noBody>
                 <div className="panel-h"><h3>Mutasi Marjin Jasa Kontraktual (CSM)</h3><span className="sub mono">¶44 · roll-forward</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                 <div>
-                  {p117.csmRoll.map((r, i) => (
+                  {p117.csmRoll.map((r: any, i: any) => (
                     <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
                       <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                       {!r.tot && r.kind ? <Badge kind={r.kind}>{r.k === 'new' ? 'baru' : r.k === 'accr' ? 'akresi' : r.k === 'chg' ? 'estimasi' : 'release'}</Badge> : <span style={{ width: 54 }} />}
@@ -462,7 +462,7 @@ function PSAK117View() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Mutasi Penyesuaian Risiko (RA)</h3><span className="sub mono">risiko non-keuangan</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                   <div>
-                    {p117.raRoll.map((r, i) => (
+                    {p117.raRoll.map((r: any, i: any) => (
                       <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
                         <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         <div className="mono" style={{ width: 76, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tot ? 'var(--navy)' : 'var(--green)' }}>{r.v < 0 ? '(' + fmt(-r.v) + ')' : (r.tot ? '' : '+') + fmt(r.v)}</div>
@@ -476,7 +476,7 @@ function PSAK117View() {
 
                 <Panel title="Unit Perlindungan — Dasar Pelepasan CSM" sub="¶B119 · coverage units">
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {p117.cuPorts.map(p => {
+                    {p117.cuPorts.map((p: any) => {
                       const w = p.cu / p117.cuSum;
                       return (
                         <div key={p.id}>
@@ -484,12 +484,12 @@ function PSAK117View() {
                             <span style={{ fontSize: 12, fontWeight: 600 }}>{p.name.split(' (')[0]}</span>
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{(w * 100).toFixed(0)}%</span>
                           </div>
-                          <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (w * 100) + '%', background: P117_MODEL_META[p.model].color, borderRadius: 4 }} /></div>
+                          <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (w * 100) + '%', background: (P117_MODEL_META as any)[p.model].color, borderRadius: 4 }} /></div>
                         </div>
                       );
                     })}
                   </div>
-                  <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>Unit perlindungan mencerminkan kuantitas jasa & durasi tersisa per kelompok. Bobot ini menentukan porsi CSM <b>{fmt(Math.abs(p117.csmRoll.find(r => r.k === 'rel').v))} jt</b> yang dilepas ke laba rugi periode berjalan.</div>
+                  <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>Unit perlindungan mencerminkan kuantitas jasa & durasi tersisa per kelompok. Bobot ini menentukan porsi CSM <b>{fmt(Math.abs(p117.csmRoll.find((r: any) => r.k === 'rel').v))} jt</b> yang dilepas ke laba rugi periode berjalan.</div>
                 </Panel>
               </div>
             </div>
@@ -508,12 +508,12 @@ function PSAK117View() {
                       <th style={{ textAlign: 'left', width: 200 }}>Pendekatan Transisi</th>
                     </tr></thead>
                     <tbody>
-                      {p117.ports.map(p => {
+                      {p117.ports.map((p: any) => {
                         const tr = p117.transition[p.transition];
                         return (
                           <tr key={p.id}>
                             <td style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</td>
-                            <td style={{ textAlign: 'center' }}><Badge kind={P117_MODEL_META[p.model].kind}>{p.model}</Badge></td>
+                            <td style={{ textAlign: 'center' }}><Badge kind={(P117_MODEL_META as any)[p.model].kind}>{p.model}</Badge></td>
                             <td>
                               <div className="row ac gap6"><Badge kind={tr.short === 'FRA' ? 'green' : tr.short === 'MRA' ? 'amber' : 'purple'}>{tr.short}</Badge><span className="tiny" style={{ fontWeight: 600 }}>{tr.label}</span></div>
                               <div className="tiny muted mono">{tr.ref}</div>
@@ -532,7 +532,7 @@ function PSAK117View() {
               <div className="grid" style={{ gap: 12 }}>
                 {Object.keys(p117.transition).map(key => {
                   const tr = p117.transition[key];
-                  const n = p117.ports.filter(p => p.transition === key).length;
+                  const n = p117.ports.filter((p: any) => p.transition === key).length;
                   return (
                     <Panel key={key} title={tr.label} sub={tr.short + ' · ' + tr.ref}>
                       <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.55 }}>{tr.desc}</div>
@@ -553,7 +553,7 @@ function PSAK117View() {
               <Panel noBody>
                 <div className="panel-h"><h3>Hasil Jasa & Keuangan Asuransi</h3><span className="sub mono">¶80–86 · L/R</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                 <div>
-                  {p117.pnl.map((r, i) => (
+                  {p117.pnl.map((r: any, i: any) => (
                     <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
                       <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                       <div className="mono" style={{ width: 82, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tot ? 'var(--navy)' : 'var(--green)' }}>{r.v < 0 ? '(' + fmt(-r.v) + ')' : fmt(r.v)}</div>
@@ -575,7 +575,7 @@ function PSAK117View() {
                       <th style={{ textAlign: 'right', width: 84 }}>Δ Ekuitas</th>
                     </tr></thead>
                     <tbody>
-                      {p117.sens.map((s, i) => (
+                      {p117.sens.map((s: any, i: any) => (
                         <tr key={i}>
                           <td>
                             <div style={{ fontSize: 12, fontWeight: 600 }}>{s.driver}</div>
@@ -605,7 +605,7 @@ function PSAK117View() {
                   <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Valuasi kontrak asuransi adalah <b>estimasi akuntansi berketidakpastian tinggi</b> (R-A1). Prosedur menguji metodologi model, asumsi aktuaria, kurva diskonto, penyesuaian risiko, gulir CSM & pekerjaan Aktuaris.</div>
                 </div>
                 <div>
-                  {p117.proc.map((p, i) => {
+                  {p117.proc.map((p: any, i: any) => {
                     const key = p.ref + i;
                     const isOn = !!done[key];
                     return (
@@ -649,7 +649,7 @@ function PSAK117View() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber data</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {p117.upstream.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {p117.upstream.map((m: any) => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak117' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -659,7 +659,7 @@ function PSAK117View() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {p117.downstream.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {p117.downstream.map((m: any) => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak117' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

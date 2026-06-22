@@ -17,8 +17,8 @@ const { useState: useStateWS2, useMemo: useMemoWS2 } = React;
 /* ---- reference "today" for the active engagement (aligns with WP sign-offs) ---- */
 const RN_TODAY = new Date(2026, 2, 9); // 09 Mar 2026
 const RN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-const RN_fmtDate = (iso) => { if (!iso) return '—'; const d = new Date(iso); return `${d.getDate()} ${RN_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
-const RN_days = (iso, ref = RN_TODAY) => { if (!iso) return null; return Math.round((+ref - +new Date(iso)) / 86400000); };
+const RN_fmtDate = (iso: any) => { if (!iso) return '—'; const d = new Date(iso); return `${d.getDate()} ${RN_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+const RN_days = (iso: any, ref = RN_TODAY) => { if (!iso) return null; return Math.round((+ref - +new Date(iso)) / 86400000); };
 
 /* ---- note-type taxonomy ---- */
 const RN_TYPES = {
@@ -40,14 +40,14 @@ const RN_ROLE = {
   'Fajar Nugroho': 'Junior Auditor', 'Fajar N.': 'Junior Auditor',
   'Rina Kusuma': 'Junior Auditor', 'Rina K.': 'Junior Auditor',
 };
-const RN_roleOf = (n) => RN_ROLE[n] || 'Tim Audit';
+const RN_roleOf = (n: any) => (RN_ROLE as any)[n] || 'Tim Audit';
 const RN_ME = 'Anindya P.'; // current user (Audit Manager)
 const RN_ASSIGNEES = ['Dimas R.', 'Sinta W.', 'Fajar N.', 'Rina K.', 'Anindya P.'];
 
 /* phase of a note from status + whether the preparer has responded */
-function RN_phase(n, thread) {
+function RN_phase(n: any, thread: any) {
   if (n.status === 'resolved') return 'cleared';
-  return thread.some(m => m.kind === 'response') ? 'responded' : 'open';
+  return thread.some((m: any) => m.kind === 'response') ? 'responded' : 'open';
 }
 const RN_PHASE_META = {
   open:      { label: 'Terbuka',      kind: 'amber', dot: 'var(--amber)' },
@@ -77,15 +77,15 @@ function ReviewNotes() {
 
   /* unified, enriched note list (module + WP), with merged seed metadata */
   const allNotes = useMemoWS2(() => {
-    const moduleNotes = reviewNotesActive.map(n => ({ type: 'review', thread: [], ...(seedById[n.id] || {}), ...n, wp: false }));
-    const wpNotes = (window.collectWpNotes ? window.collectWpNotes(wpState) : []).map(n => ({ type: 'review', thread: [], ...n }));
+    const moduleNotes = reviewNotesActive.map((n: any) => ({ type: 'review', thread: [], ...(seedById[n.id] || {}), ...n, wp: false }));
+    const wpNotes = (window.collectWpNotes ? window.collectWpNotes(wpState) : []).map((n: any) => ({ type: 'review', thread: [], ...n }));
     return [...moduleNotes, ...wpNotes];
   }, [reviewNotesActive, wpState, seedById]);
 
-  const threadOf = (n) => [...(n.thread || []), ...((noteThreads || {})[n.id] || [])];
+  const threadOf = (n: any) => [...(n.thread || []), ...((noteThreads || {})[n.id] || [])];
 
   /* annotate each note with derived fields */
-  const notes = useMemoWS2(() => allNotes.map(n => {
+  const notes = useMemoWS2(() => allNotes.map((n: any) => {
     const thread = threadOf(n);
     const phase = RN_phase(n, thread);
     const due = n.due || null;
@@ -97,41 +97,41 @@ function ReviewNotes() {
   /* filtering */
   const filtered = useMemoWS2(() => {
     let l = notes;
-    if (statusF === 'open') l = l.filter(n => n.status === 'open');
-    else if (statusF === 'resolved') l = l.filter(n => n.status === 'resolved');
-    if (typeF !== 'all') l = l.filter(n => n.type === typeF);
-    if (sourceF === 'module') l = l.filter(n => !n.wp);
-    else if (sourceF === 'wp') l = l.filter(n => n.wp);
-    if (assigneeF !== 'all') l = l.filter(n => n.to === assigneeF);
-    if (q.trim()) { const s = q.toLowerCase(); l = l.filter(n => (n.text + ' ' + n.author + ' ' + n.to + ' ' + (n.moduleLabel || '') + ' ' + (n.ref || '')).toLowerCase().includes(s)); }
+    if (statusF === 'open') l = l.filter((n: any) => n.status === 'open');
+    else if (statusF === 'resolved') l = l.filter((n: any) => n.status === 'resolved');
+    if (typeF !== 'all') l = l.filter((n: any) => n.type === typeF);
+    if (sourceF === 'module') l = l.filter((n: any) => !n.wp);
+    else if (sourceF === 'wp') l = l.filter((n: any) => n.wp);
+    if (assigneeF !== 'all') l = l.filter((n: any) => n.to === assigneeF);
+    if (q.trim()) { const s = q.toLowerCase(); l = l.filter((n: any) => (n.text + ' ' + n.author + ' ' + n.to + ' ' + (n.moduleLabel || '') + ' ' + (n.ref || '')).toLowerCase().includes(s)); }
     /* sort: open first, then high priority, then most overdue */
     return [...l].sort((a, b) =>
       (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) ||
-      RN_PRIO_ORDER[a.priority] - RN_PRIO_ORDER[b.priority] ||
+      (RN_PRIO_ORDER as any)[a.priority] - (RN_PRIO_ORDER as any)[b.priority] ||
       (b._overdue - a._overdue) ||
       ((a._dueIn ?? 999) - (b._dueIn ?? 999)));
   }, [notes, statusF, typeF, sourceF, assigneeF, q]);
 
   /* selection */
-  const selected = useMemoWS2(() => filtered.find(n => (n.wp ? 'wp-' : 'm-') + n.id === selId) || notes.find(n => (n.wp ? 'wp-' : 'm-') + n.id === selId) || filtered[0] || null, [filtered, notes, selId]);
+  const selected = useMemoWS2(() => filtered.find((n: any) => (n.wp ? 'wp-' : 'm-') + n.id === selId) || notes.find((n: any) => (n.wp ? 'wp-' : 'm-') + n.id === selId) || filtered[0] || null, [filtered, notes, selId]);
   const selKey = selected ? (selected.wp ? 'wp-' : 'm-') + selected.id : null;
   React.useEffect(() => { if (selected && selId !== selKey) setSelId(selKey); }, [selKey]);
 
   /* portfolio metrics (clearance gate) — coaching notes excluded from mandatory clearance */
   const M = useMemoWS2(() => {
-    const open = notes.filter(n => n.status === 'open');
-    const mustClear = notes.filter(n => n.type !== 'coaching'); // review/eqr/query require formal clearance
-    const clearedMust = mustClear.filter(n => n.status === 'resolved');
-    const blocking = open.filter(n => n.type !== 'coaching');
+    const open = notes.filter((n: any) => n.status === 'open');
+    const mustClear = notes.filter((n: any) => n.type !== 'coaching'); // review/eqr/query require formal clearance
+    const clearedMust = mustClear.filter((n: any) => n.status === 'resolved');
+    const blocking = open.filter((n: any) => n.type !== 'coaching');
     return {
       total: notes.length,
       open: open.length,
-      responded: open.filter(n => n._phase === 'responded').length,
-      awaiting: open.filter(n => n._phase === 'open').length,
-      high: open.filter(n => n.priority === 'high').length,
-      overdue: open.filter(n => n._overdue).length,
-      wp: notes.filter(n => n.wp && n.status === 'open').length,
-      eqrOpen: open.filter(n => n.type === 'eqr').length,
+      responded: open.filter((n: any) => n._phase === 'responded').length,
+      awaiting: open.filter((n: any) => n._phase === 'open').length,
+      high: open.filter((n: any) => n.priority === 'high').length,
+      overdue: open.filter((n: any) => n._overdue).length,
+      wp: notes.filter((n: any) => n.wp && n.status === 'open').length,
+      eqrOpen: open.filter((n: any) => n.type === 'eqr').length,
       clearedPct: mustClear.length ? Math.round(clearedMust.length / mustClear.length * 100) : 100,
       mustClear: mustClear.length, clearedMust: clearedMust.length, blocking: blocking.length,
     };
@@ -140,24 +140,24 @@ function ReviewNotes() {
   /* aging buckets over OPEN notes */
   const aging = useMemoWS2(() => {
     const b = [{ k: '0–2 hari', n: 0, c: 'var(--green)' }, { k: '3–5 hari', n: 0, c: 'var(--amber)' }, { k: '6–10 hari', n: 0, c: '#c97a16' }, { k: '>10 hari', n: 0, c: 'var(--red)' }];
-    notes.filter(n => n.status === 'open').forEach(n => { const a = n._age ?? 0; if (a <= 2) b[0].n++; else if (a <= 5) b[1].n++; else if (a <= 10) b[2].n++; else b[3].n++; });
+    notes.filter((n: any) => n.status === 'open').forEach((n: any) => { const a = n._age ?? 0; if (a <= 2) b[0].n++; else if (a <= 5) b[1].n++; else if (a <= 10) b[2].n++; else b[3].n++; });
     return b;
   }, [notes]);
 
   /* grouping for the list */
   const groups = useMemoWS2(() => {
     if (groupBy === 'none') return [{ key: '', label: '', items: filtered }];
-    const keyFn = {
-      reviewer: n => n.author, assignee: n => n.to, module: n => n.moduleLabel,
-      type: n => RN_TYPES[n.type]?.label || n.type, priority: n => RN_PRIO[n.priority]?.label || n.priority,
-    }[groupBy];
+    const keyFn = ({
+      reviewer: (n: any) => n.author, assignee: (n: any) => n.to, module: (n: any) => n.moduleLabel,
+      type: (n: any) => (RN_TYPES as any)[n.type]?.label || n.type, priority: (n: any) => (RN_PRIO as any)[n.priority]?.label || n.priority,
+    } as any)[groupBy];
     const map = new Map();
-    filtered.forEach(n => { const k = keyFn(n); if (!map.has(k)) map.set(k, []); map.get(k).push(n); });
+    filtered.forEach((n: any) => { const k = keyFn(n); if (!map.has(k)) map.set(k, []); map.get(k).push(n); });
     return [...map.entries()].map(([label, items]) => ({ key: label, label, items }));
   }, [filtered, groupBy]);
 
   /* ---- actions ---- */
-  const toggleClear = (n, withMsg) => {
+  const toggleClear = (n: any, withMsg: any) => {
     if (n.type === 'coaching' && n.status === 'open') { /* coaching: just mark acknowledged */ }
     if (n.wp) {
       const ns = (wpState[n.wpRef] || {}).noteStatus || {};
@@ -165,17 +165,17 @@ function ReviewNotes() {
     } else resolveReviewNote(n.id);
     if (withMsg) addNoteReply(n.id, withMsg);
   };
-  const clearNote = (n) => toggleClear(n, { author: RN_ME, kind: 'clear', text: 'Catatan ditelaah & dikliring.' });
-  const reopenNote = (n) => toggleClear(n, { author: RN_ME, kind: 'comment', text: 'Catatan dibuka kembali untuk tindak lanjut.' });
+  const clearNote = (n: any) => toggleClear(n, { author: RN_ME, kind: 'clear', text: 'Catatan ditelaah & dikliring.' });
+  const reopenNote = (n: any) => toggleClear(n, { author: RN_ME, kind: 'comment', text: 'Catatan dibuka kembali untuk tindak lanjut.' });
 
-  const postComposer = (n) => {
+  const postComposer = (n: any) => {
     const t = composer.trim(); if (!t) return;
     const kind = n.to === RN_ME ? 'response' : 'comment';
     addNoteReply(n.id, { author: RN_ME, kind, text: t });
     setComposer('');
   };
 
-  const openSource = (n) => {
+  const openSource = (n: any) => {
     if (n.wp) { try { localStorage.setItem('ams.wpOpen', n.wpRef); } catch (e) {} nav('workpapers'); }
     else nav(n.module);
   };
@@ -186,7 +186,7 @@ function ReviewNotes() {
       const note = { id: 'wn-' + Date.now(), author: 'Anindya P.', to: draft.to, text: draft.text.trim(), type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, status: 'open', created: 'baru saja', raised: '2026-03-09' };
       setWp(draft.wpRef, { notes: [...((wpState[draft.wpRef] || {}).notes || []), note] });
     } else {
-      const m = MODULE_INDEX[draft.module];
+      const m = (MODULE_INDEX as any)[draft.module];
       addReviewNote({ text: draft.text.trim(), module: draft.module, to: draft.to, type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, moduleLabel: m?.label || draft.module, raised: '2026-03-09' });
     }
     setDraft({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
@@ -200,7 +200,7 @@ function ReviewNotes() {
           {M.blocking > 0
             ? <Badge kind="amber" dot>{M.blocking} perlu kliring</Badge>
             : <Badge kind="green" dot>Siap diarsipkan</Badge>}
-          <Btn sm variant="primary" onClick={() => setShowForm(s => !s)}><I.plus size={14} /> Catatan Baru</Btn>
+          <Btn sm variant="primary" onClick={() => setShowForm((s: any) => !s)}><I.plus size={14} /> Catatan Baru</Btn>
         </div>
       } />
 
@@ -229,21 +229,21 @@ function ReviewNotes() {
               <div style={{ padding: 14, display: 'grid', gap: 10 }}>
                 <div className="row gap6" style={{ flexWrap: 'wrap' }}>
                   {Object.entries(RN_TYPES).map(([k, t]) => (
-                    <button key={k} className="chip x" onClick={() => setDraft(d => ({ ...d, type: k }))}
+                    <button key={k} className="chip x" onClick={() => setDraft((d: any) => ({ ...d, type: k }))}
                       style={{ height: 26, background: draft.type === k ? `var(--${t.kind}-bg, var(--blue-100))` : 'var(--surface-3)', color: draft.type === k ? `var(--${t.kind})` : 'var(--ink-3)', border: draft.type === k ? `1px solid var(--${t.kind})` : '1px solid transparent', fontWeight: 700 }}>
-                      {React.createElement(I[t.icon] || I.flag, { size: 12 })} {t.label}
+                      {React.createElement((I as any)[t.icon] || I.flag, { size: 12 })} {t.label}
                     </button>
                   ))}
                 </div>
-                <textarea className="input" value={draft.text} onChange={e => setDraft(d => ({ ...d, text: e.target.value }))} placeholder="Tulis catatan review / coaching / query…" style={{ height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
+                <textarea className="input" value={draft.text} onChange={(e: any) => setDraft((d: any) => ({ ...d, text: e.target.value }))} placeholder="Tulis catatan review / coaching / query…" style={{ height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
                 <div className="grid" style={{ gridTemplateColumns: draft.module === 'workpapers' ? '1.3fr 1.4fr 1fr 1fr 1fr' : '1.4fr 1fr 1fr 1fr', gap: 10 }}>
-                  <div className="field"><label>Modul</label><select className="select" value={draft.module} onChange={e => setDraft(d => ({ ...d, module: e.target.value }))}>{MODULES.flatMap(g => g.items).filter(m => m.deep).map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></div>
-                  {draft.module === 'workpapers' && <div className="field"><label>Kertas Kerja</label><select className="select" value={draft.wpRef} onChange={e => setDraft(d => ({ ...d, wpRef: e.target.value }))}>{wpRefs.map(w => <option key={w.ref} value={w.ref}>{w.ref} · {w.title}</option>)}</select></div>}
-                  <div className="field"><label>Ditujukan ke</label><select className="select" value={draft.to} onChange={e => setDraft(d => ({ ...d, to: e.target.value }))}>{['Dimas R.', 'Anindya P.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
-                  <div className="field"><label>Prioritas</label><select className="select" value={draft.priority} onChange={e => setDraft(d => ({ ...d, priority: e.target.value }))}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{RN_PRIO[p].label}</option>)}</select></div>
-                  <div className="field"><label>Jatuh Tempo</label><input type="date" className="input" value={draft.due} onChange={e => setDraft(d => ({ ...d, due: e.target.value }))} /></div>
+                  <div className="field"><label>Modul</label><select className="select" value={draft.module} onChange={(e: any) => setDraft((d: any) => ({ ...d, module: e.target.value }))}>{MODULES.flatMap(g => g.items).filter(m => m.deep).map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></div>
+                  {draft.module === 'workpapers' && <div className="field"><label>Kertas Kerja</label><select className="select" value={draft.wpRef} onChange={(e: any) => setDraft((d: any) => ({ ...d, wpRef: e.target.value }))}>{wpRefs.map((w: any) => <option key={w.ref} value={w.ref}>{w.ref} · {w.title}</option>)}</select></div>}
+                  <div className="field"><label>Ditujukan ke</label><select className="select" value={draft.to} onChange={(e: any) => setDraft((d: any) => ({ ...d, to: e.target.value }))}>{['Dimas R.', 'Anindya P.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
+                  <div className="field"><label>Prioritas</label><select className="select" value={draft.priority} onChange={(e: any) => setDraft((d: any) => ({ ...d, priority: e.target.value }))}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{(RN_PRIO as any)[p].label}</option>)}</select></div>
+                  <div className="field"><label>Jatuh Tempo</label><input type="date" className="input" value={draft.due} onChange={(e: any) => setDraft((d: any) => ({ ...d, due: e.target.value }))} /></div>
                 </div>
-                <input className="input" value={draft.ref} onChange={e => setDraft(d => ({ ...d, ref: e.target.value }))} placeholder="Referensi silang (opsional) — mis. WP B-3, AJE-01, R-01" />
+                <input className="input" value={draft.ref} onChange={(e: any) => setDraft((d: any) => ({ ...d, ref: e.target.value }))} placeholder="Referensi silang (opsional) — mis. WP B-3, AJE-01, R-01" />
                 <div className="row je gap8"><Btn sm onClick={() => setShowForm(false)}>Batal</Btn><Btn sm variant="primary" onClick={submitNew}><I.check size={13} /> Simpan Catatan</Btn></div>
               </div>
             </Panel>
@@ -254,7 +254,7 @@ function ReviewNotes() {
         <div className="row ac gap8" style={{ padding: '12px 14px 10px', flexWrap: 'wrap', flex: '0 0 auto' }}>
           <div style={{ position: 'relative', width: 230 }}>
             <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-4)' }}><I.search2 size={14} /></span>
-            <input className="input" value={q} onChange={e => setQ(e.target.value)} placeholder="Cari catatan, orang, referensi…" style={{ width: '100%', paddingLeft: 28 }} />
+            <input className="input" value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari catatan, orang, referensi…" style={{ width: '100%', paddingLeft: 28 }} />
           </div>
           <Seg options={[{ value: 'open', label: 'Terbuka' }, { value: 'resolved', label: 'Dikliring' }, { value: 'all', label: 'Semua' }]} value={statusF} onChange={setStatusF} />
           <div className="row gap6 ac" style={{ flexWrap: 'wrap' }}>
@@ -262,22 +262,22 @@ function ReviewNotes() {
             {Object.entries(RN_TYPES).map(([k, t]) => (
               <button key={k} className="chip x" onClick={() => setTypeF(typeF === k ? 'all' : k)}
                 style={{ background: typeF === k ? `var(--${t.kind}-bg, var(--blue-100))` : 'var(--surface-3)', color: typeF === k ? `var(--${t.kind})` : 'var(--ink-3)', fontWeight: 700, border: typeF === k ? `1px solid var(--${t.kind})` : '1px solid transparent' }}>
-                {React.createElement(I[t.icon] || I.flag, { size: 11 })} {t.short}
+                {React.createElement((I as any)[t.icon] || I.flag, { size: 11 })} {t.short}
               </button>
             ))}
           </div>
           <div style={{ flex: 1 }} />
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <label style={{ textTransform: 'none', letterSpacing: 0 }}>Sumber</label>
-            <select className="select" value={sourceF} onChange={e => setSourceF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option><option value="module">Modul</option><option value="wp">Kertas Kerja</option></select>
+            <select className="select" value={sourceF} onChange={(e: any) => setSourceF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option><option value="module">Modul</option><option value="wp">Kertas Kerja</option></select>
           </div>
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <label style={{ textTransform: 'none', letterSpacing: 0 }}>Penerima</label>
-            <select className="select" value={assigneeF} onChange={e => setAssigneeF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
+            <select className="select" value={assigneeF} onChange={(e: any) => setAssigneeF(e.target.value)} style={{ width: 120 }}><option value="all">Semua</option>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
           </div>
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <label style={{ textTransform: 'none', letterSpacing: 0 }}>Kelompok</label>
-            <select className="select" value={groupBy} onChange={e => setGroupBy(e.target.value)} style={{ width: 130 }}><option value="none">Tidak ada</option><option value="reviewer">Reviewer</option><option value="assignee">Penerima</option><option value="module">Modul</option><option value="type">Tipe</option><option value="priority">Prioritas</option></select>
+            <select className="select" value={groupBy} onChange={(e: any) => setGroupBy(e.target.value)} style={{ width: 130 }}><option value="none">Tidak ada</option><option value="reviewer">Reviewer</option><option value="assignee">Penerima</option><option value="module">Modul</option><option value="type">Tipe</option><option value="priority">Prioritas</option></select>
           </div>
         </div>
 
@@ -287,10 +287,10 @@ function ReviewNotes() {
           <div className="panel" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
             <div className="panel-h" style={{ flex: '0 0 auto' }}><h3>Daftar Catatan</h3><div style={{ flex: 1 }} /><span className="tiny muted">{filtered.length} ditampilkan</span></div>
             <div style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1 }}>
-              {groups.map(g => (
+              {groups.map((g: any) => (
                 <div key={g.key || 'all'}>
                   {g.label && <div className="row ac jb" style={{ padding: '7px 12px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line-soft)', position: 'sticky', top: 0, zIndex: 1 }}><span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{g.label}</span><span className="tiny muted">{g.items.length}</span></div>}
-                  {g.items.map(n => <RN_Row key={(n.wp ? 'wp-' : 'm-') + n.id} n={n} active={selected && n.id === selected.id && n.wp === selected.wp} onClick={() => setSelId((n.wp ? 'wp-' : 'm-') + n.id)} />)}
+                  {g.items.map((n: any) => <RN_Row key={(n.wp ? 'wp-' : 'm-') + n.id} n={n} active={selected && n.id === selected.id && n.wp === selected.wp} onClick={() => setSelId((n.wp ? 'wp-' : 'm-') + n.id)} />)}
                 </div>
               ))}
               {!filtered.length && <div className="muted tiny" style={{ padding: 36, textAlign: 'center' }}>Tidak ada catatan yang cocok dengan filter.</div>}
@@ -314,10 +314,10 @@ function ReviewNotes() {
 }
 
 /* ---- compact KPI tile ---- */
-function RN_Stat({ icon, val, lbl, sub, c }) {
+function RN_Stat({ icon, val, lbl, sub, c }: any) {
   return (
     <div className="panel" style={{ padding: '11px 13px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-      <span style={{ width: 30, height: 30, borderRadius: 8, flex: '0 0 30px', display: 'grid', placeItems: 'center', background: 'var(--surface-3)', color: c }}>{React.createElement(I[icon] || I.doc, { size: 16 })}</span>
+      <span style={{ width: 30, height: 30, borderRadius: 8, flex: '0 0 30px', display: 'grid', placeItems: 'center', background: 'var(--surface-3)', color: c }}>{React.createElement((I as any)[icon] || I.doc, { size: 16 })}</span>
       <div style={{ minWidth: 0 }}>
         <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)', lineHeight: 1 }}>{val}</div>
         <div className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)', marginTop: 3 }}>{lbl}</div>
@@ -328,9 +328,9 @@ function RN_Stat({ icon, val, lbl, sub, c }) {
 }
 
 /* ---- clearance-readiness gate (ISA 230 / ISQM 1) ---- */
-function RN_ClearanceCard({ M, aging }) {
+function RN_ClearanceCard({ M, aging }: any) {
   const ready = M.blocking === 0;
-  const maxA = Math.max(1, ...aging.map(b => b.n));
+  const maxA = Math.max(1, ...aging.map((b: any) => b.n));
   return (
     <div className="panel" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10, background: ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderBottom: '1px solid var(--line-soft)' }}>
@@ -349,7 +349,7 @@ function RN_ClearanceCard({ M, aging }) {
         <div>
           <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)', marginBottom: 5 }}>Umur catatan terbuka</div>
           <div style={{ display: 'grid', gap: 4 }}>
-            {aging.map(b => (
+            {aging.map((b: any) => (
               <div key={b.k} className="row ac gap8">
                 <span className="tiny muted" style={{ width: 64, flex: '0 0 64px' }}>{b.k}</span>
                 <div style={{ flex: 1, height: 9, background: 'var(--surface-3)', borderRadius: 5, overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (b.n / maxA * 100) + '%', background: b.c, borderRadius: 5 }} /></div>
@@ -369,13 +369,13 @@ function RN_ClearanceCard({ M, aging }) {
 
 /* ---- list row ---- */
 function RN_Row({ n, active, onClick }: any) {
-  const t = RN_TYPES[n.type] || RN_TYPES.review;
-  const ph = RN_PHASE_META[n._phase];
+  const t = (RN_TYPES as any)[n.type] || RN_TYPES.review;
+  const ph = (RN_PHASE_META as any)[n._phase];
   const resolved = n.status === 'resolved';
   return (
     <button onClick={onClick} style={{ width: '100%', textAlign: 'left', display: 'block', padding: '10px 12px', border: 0, borderBottom: '1px solid var(--line-soft)', borderLeft: active ? '3px solid var(--blue)' : '3px solid transparent', background: active ? 'var(--blue-050)' : 'transparent', cursor: 'pointer', opacity: resolved && !active ? 0.72 : 1 }}>
       <div className="row ac gap6" style={{ marginBottom: 5 }}>
-        <span title={t.label} style={{ color: `var(--${t.kind})`, display: 'inline-flex' }}>{React.createElement(I[t.icon] || I.flag, { size: 13 })}</span>
+        <span title={t.label} style={{ color: `var(--${t.kind})`, display: 'inline-flex' }}>{React.createElement((I as any)[t.icon] || I.flag, { size: 13 })}</span>
         <Badge kind={ph.kind} dot>{ph.label}</Badge>
         {n.priority === 'high' && <Badge kind="red">{RN_PRIO.high.label}</Badge>}
         <div style={{ flex: 1 }} />
@@ -397,9 +397,9 @@ function RN_Row({ n, active, onClick }: any) {
 }
 
 /* ---- detail / conversation pane ---- */
-function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer, clearNote, reopenNote, openSource, updateReviewNote }) {
-  const t = RN_TYPES[n.type] || RN_TYPES.review;
-  const ph = RN_PHASE_META[phase];
+function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer, clearNote, reopenNote, openSource, updateReviewNote }: any) {
+  const t = (RN_TYPES as any)[n.type] || RN_TYPES.review;
+  const ph = (RN_PHASE_META as any)[phase];
   const resolved = n.status === 'resolved';
   const dueDays = n.due ? RN_days(n.due) : null;
   const editable = !n.wp; // module notes carry editable meta
@@ -418,9 +418,9 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
       {/* header */}
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)', flex: '0 0 auto' }}>
         <div className="row ac gap8" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
-          <span className="chip" style={{ background: `var(--${t.kind}-bg, var(--blue-100))`, color: `var(--${t.kind})`, fontWeight: 700 }}>{React.createElement(I[t.icon] || I.flag, { size: 12 })} {t.label}</span>
+          <span className="chip" style={{ background: `var(--${t.kind}-bg, var(--blue-100))`, color: `var(--${t.kind})`, fontWeight: 700 }}>{React.createElement((I as any)[t.icon] || I.flag, { size: 12 })} {t.label}</span>
           <Badge kind={ph.kind} dot>{ph.label}</Badge>
-          <Badge kind={RN_PRIO[n.priority].k}>Prioritas {RN_PRIO[n.priority].label}</Badge>
+          <Badge kind={(RN_PRIO as any)[n.priority].k}>Prioritas {(RN_PRIO as any)[n.priority].label}</Badge>
           {n._overdue && <Badge kind="red"><I.clock size={11} /> Lewat {n._dueIn != null ? -n._dueIn : ''} hari</Badge>}
           <div style={{ flex: 1 }} />
           <span className="mono tiny muted">{n.id}</span>
@@ -435,7 +435,7 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
       <div style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, padding: '14px', background: 'var(--surface-2)' }}>
         <div style={{ display: 'grid', gap: 12, maxWidth: 720 }}>
           {msgs.map((m, i) => {
-            const km = KIND_META[m.kind] || KIND_META.comment;
+            const km = (KIND_META as any)[m.kind] || KIND_META.comment;
             const mine = m.author === RN_ME;
             return (
               <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
@@ -465,7 +465,7 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
           <div className="row ac gap8 tiny muted" style={{ justifyContent: 'center', padding: 6 }}><I.lock size={13} /> Engagement diarsipkan — catatan read-only.</div>
         ) : (
           <>
-            <textarea className="input" value={composer} onChange={e => setComposer(e.target.value)} placeholder={n.to === RN_ME ? 'Tulis tanggapan Anda sebagai preparer…' : 'Tambahkan komentar pada catatan ini…'} style={{ width: '100%', height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 8 }} />
+            <textarea className="input" value={composer} onChange={(e: any) => setComposer(e.target.value)} placeholder={n.to === RN_ME ? 'Tulis tanggapan Anda sebagai preparer…' : 'Tambahkan komentar pada catatan ini…'} style={{ width: '100%', height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 8 }} />
             <div className="row ac gap8">
               <span className="tiny muted">{n.to === RN_ME ? 'Anda penerima — kirim sebagai tanggapan' : 'Kirim sebagai komentar'}</span>
               <div style={{ flex: 1 }} />
@@ -483,16 +483,16 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
           {editable && !firm.locked ? (
             <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <label style={{ textTransform: 'none', letterSpacing: 0 }}>Penerima</label>
-              <select className="select" value={n.to} onChange={e => updateReviewNote(n.id, { to: e.target.value })} style={{ height: 24, width: 110 }}>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
+              <select className="select" value={n.to} onChange={(e: any) => updateReviewNote(n.id, { to: e.target.value })} style={{ height: 24, width: 110 }}>{RN_ASSIGNEES.map(p => <option key={p}>{p}</option>)}</select>
             </div>
           ) : <RN_Meta label="Ditujukan ke" value={n.to} />}
           <span className="vdivider" style={{ height: 26 }} />
           {editable && !firm.locked ? (
             <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <label style={{ textTransform: 'none', letterSpacing: 0 }}>Prioritas</label>
-              <select className="select" value={n.priority} onChange={e => updateReviewNote(n.id, { priority: e.target.value })} style={{ height: 24, width: 100 }}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{RN_PRIO[p].label}</option>)}</select>
+              <select className="select" value={n.priority} onChange={(e: any) => updateReviewNote(n.id, { priority: e.target.value })} style={{ height: 24, width: 100 }}>{Object.keys(RN_PRIO).map(p => <option key={p} value={p}>{(RN_PRIO as any)[p].label}</option>)}</select>
             </div>
-          ) : <RN_Meta label="Prioritas" value={RN_PRIO[n.priority].label} />}
+          ) : <RN_Meta label="Prioritas" value={(RN_PRIO as any)[n.priority].label} />}
           <span className="vdivider" style={{ height: 26 }} />
           <RN_Meta label="Jatuh tempo" value={<span style={{ color: n._overdue ? 'var(--red)' : 'var(--ink)', fontWeight: 600 }}>{RN_fmtDate(n.due)}{dueDays != null && !resolved && <span className="tiny muted" style={{ marginLeft: 4 }}>{dueDays > 0 ? `(${dueDays}h lewat)` : `(${-dueDays}h lagi)`}</span>}</span>} />
           <span className="vdivider" style={{ height: 26 }} />
@@ -502,7 +502,7 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
     </>
   );
 }
-function RN_Meta({ label, value }) {
+function RN_Meta({ label, value }: any) {
   return (
     <div style={{ minWidth: 0 }}>
       <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-4)', fontSize: 9.5, marginBottom: 2 }}>{label}</div>

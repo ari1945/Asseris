@@ -114,7 +114,7 @@ function PSAK2View() {
   useEffectP2(() => { try { localStorage.setItem('ams.psak2.method', JSON.stringify(method)); } catch (e) {} }, [method]);
   useEffectP2(() => { try { localStorage.setItem('ams.psak2.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP2(() => { try { localStorage.setItem('ams.psak2.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
   if (!model) {
     return <><SubBar moduleId="psak2" /><div className="view-pad"><Panel title="PSAK 2"><div className="tiny muted">Mesin FS Generator belum dimuat.</div></Panel></div></>;
@@ -124,15 +124,15 @@ function PSAK2View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
   /* ——— helper saldo akun dari WTB yang sama ——— */
-  const by = {}; wtb.forEach(r => { by[r.code] = r; });
-  const cyc = (c) => (by[c] ? by[c].adj : 0);
-  const pyc = (c) => (by[c] ? by[c].ly : 0);
-  const dmod = (c) => -((cyc(c)) - (pyc(c)));            // tanda efek-kas (sama dgn FSGEN: -Δsaldo)
+  const by = {}; wtb.forEach((r: any) => { (by as any)[r.code] = r; });
+  const cyc = (c: any) => ((by as any)[c] ? (by as any)[c].adj : 0);
+  const pyc = (c: any) => ((by as any)[c] ? (by as any)[c].ly : 0);
+  const dmod = (c: any) => -((cyc(c)) - (pyc(c)));            // tanda efek-kas (sama dgn FSGEN: -Δsaldo)
 
   const cf = model.cf;
-  const UN = (FSGEN.UNITS || {})[unit] || { div: 1e6, short: 'Rp jt' };
+  const UN = ((FSGEN.UNITS || {}) as any)[unit] || { div: 1e6, short: 'Rp jt' };
   const div = UN.div;
-  const sc = (v) => fmt(Math.round(v / div), 0);          // skala satuan penyajian
+  const sc = (v: any) => fmt(Math.round(v / div), 0);          // skala satuan penyajian
 
   /* ——— metode LANGSUNG (¶18a) — direkonstruksi dari WTB & tie ke CFO tidak langsung ——— */
   const S = model.is.sales.cy, COGS = model.is.cogs.cy, SELL = model.is.sell.cy, ADMIN = model.is.admin.cy, FIN = model.is.finCost.cy, TAX = model.is.tax.cy;
@@ -157,7 +157,7 @@ function PSAK2View() {
   /* ——— rekonsiliasi liabilitas dari aktivitas pendanaan (¶44A) ——— */
   const leaseClose = -(cyc('2-1500') + cyc('2-2200'));     // saldo liabilitas sewa (positif), rupiah penuh
   const leaseOpen = -(pyc('2-1500') + pyc('2-2200'));
-  const newLease = lease ? lease.perLease.reduce((a, x) => a + x.pv, 0) : (leaseClose - leaseOpen); // pengakuan non-kas
+  const newLease = lease ? lease.perLease.reduce((a: any, x: any) => a + x.pv, 0) : (leaseClose - leaseOpen); // pengakuan non-kas
   const leaseCash = (leaseClose - leaseOpen) - newLease;   // arus kas pokok (negatif = pembayaran)
   const netDebt = [
     { k: 'Utang bank jangka pendek', open: -pyc('2-1200'), cash: dmod('2-1200'), noncash: 0, code: '2-1200' },
@@ -212,7 +212,7 @@ function PSAK2View() {
     return { ...r, v };
   });
 
-  const discOk = disc.filter(d => d.ok).length;
+  const discOk = disc.filter((d: any) => d.ok).length;
   const headCfo = method === 'indirect' ? cf.cfoTotal : cfoDirect;
   const netUp = cf.netChange >= 0;
 
@@ -259,18 +259,18 @@ function PSAK2View() {
                 </div>
                 <div style={{ padding: '6px 16px 14px' }}>
                   {method === 'indirect'
-                    ? cf.cfo.map((l, i) => <CFRow key={i} {...l} sc={sc} />)
+                    ? cf.cfo.map((l: any, i: any) => <CFRow key={i} {...l} sc={sc} />)
                     : directRows.map((l, i) => <CFRow key={i} {...l} sc={sc} />)}
                   <CFRow label="Kas neto dari aktivitas operasi" v={headCfo} sc={sc} total />
 
                   <div style={{ height: 6 }} />
                   <CFRow head label="Arus kas dari aktivitas investasi" />
-                  {cf.cfi.map((l, i) => <CFRow key={i} {...l} sc={sc} />)}
+                  {cf.cfi.map((l: any, i: any) => <CFRow key={i} {...l} sc={sc} />)}
                   <CFRow label="Kas neto digunakan untuk aktivitas investasi" v={cf.cfiTotal} sc={sc} total />
 
                   <div style={{ height: 6 }} />
                   <CFRow head label="Arus kas dari aktivitas pendanaan" />
-                  {cf.cff.map((l, i) => <CFRow key={i} {...l} sc={sc} />)}
+                  {cf.cff.map((l: any, i: any) => <CFRow key={i} {...l} sc={sc} />)}
                   <CFRow label="Kas neto dari aktivitas pendanaan" v={cf.cffTotal} sc={sc} total />
 
                   <div style={{ height: 10 }} />
@@ -297,7 +297,7 @@ function PSAK2View() {
                 <div className="panel-h"><h3>Klasifikasi Aktivitas</h3><span className="sub mono">¶13–17</span><div style={{ flex: 1 }} /><span className="tiny muted">pergerakan akun → arus kas</span></div>
                 <div>
                   {classRows.map((r, i) => {
-                    const meta = P2_ACT[r.act];
+                    const meta = (P2_ACT as any)[r.act];
                     return (
                       <div key={i} className="row ac gap10" style={{ padding: '8px 14px', borderBottom: i < classRows.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <Badge kind={meta.kind}>{meta.label}</Badge>
@@ -421,11 +421,11 @@ function PSAK2View() {
                 <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
                 <div style={{ padding: 6 }}>
                   {lineage.map((r, i) => {
-                    const IconC = I[r.icon] || I.doc;
+                    const IconC = (I as any)[r.icon] || I.doc;
                     return (
                       <button key={i} onClick={() => nav(r.route, { from: 'psak2' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+                        onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+                        onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -463,7 +463,7 @@ function PSAK2View() {
               <Panel noBody>
                 <div className="panel-h"><h3>Pengungkapan PSAK 2</h3><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
                 <div>
-                  {disc.map((d, i) => (
+                  {disc.map((d: any, i: any) => (
                     <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(d.id)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.ok ? 'var(--green)' : 'var(--amber)'), background: d.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 46, flex: '0 0 46px', marginTop: 1 }}>{d.ref}</span>

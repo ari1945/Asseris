@@ -23,17 +23,17 @@ const OB_STAGES = [
   { id: 'letter',     label: 'Engagement Letter',          short: 'Letter',    color: '#005085' },
   { id: 'convert',    label: 'Konversi ke Perikatan',      short: 'Konversi',  color: '#1f7a4d' },
 ];
-function obAccScore(p) {
+function obAccScore(p: any) {
   const f = (p.acceptance && p.acceptance.factors) || [];
-  const tw = f.reduce((s, x) => s + x.w, 0) || 1;
-  return f.reduce((s, x) => s + x.s * x.w, 0) / tw;
+  const tw = f.reduce((s: any, x: any) => s + x.w, 0) || 1;
+  return f.reduce((s: any, x: any) => s + x.s * x.w, 0) / tw;
 }
-function obAccVerdict(score) {
+function obAccVerdict(score: any) {
   return score >= 4 ? { k: 'green', l: 'Terima' }
     : score >= 3 ? { k: 'amber', l: 'Terima dengan Syarat' }
     : { k: 'red', l: 'Tolak' };
 }
-function obGates(p) {
+function obGates(p: any) {
   return {
     acceptance: p.acceptance && p.acceptance.approved ? (p.acceptance.decision === 'Tolak' ? 'reject' : 'done') : 'todo',
     pmpj: p.pmpj && p.pmpj.verified ? 'done' : 'todo',
@@ -41,7 +41,7 @@ function obGates(p) {
     convert: p.converted ? 'done' : 'todo',
   };
 }
-function obStage(p) {
+function obStage(p: any) {
   const g = obGates(p);
   if (p.converted) return 'convert';
   if (g.acceptance !== 'done') return 'acceptance';
@@ -52,11 +52,11 @@ function obStage(p) {
 const OB_GATE_COLOR = { done: 'var(--green)', progress: 'var(--amber)', reject: 'var(--red)', todo: 'var(--line-strong)' };
 
 /* append a prospect to persisted onboarding list (used by Pipeline handoff) */
-(window as any).amsAddProspect = function (p) {
+(window as any).amsAddProspect = function (p: any) {
   try {
     const k = 'ams.v1.prospects';
     const cur = JSON.parse(localStorage.getItem(k) || 'null') || AMS.PROSPECTS;
-    if (cur.some(x => x.id === p.id || x.name === p.name)) return;
+    if (cur.some((x: any) => x.id === p.id || x.name === p.name)) return;
     localStorage.setItem(k, JSON.stringify([p, ...cur]));
   } catch (e) {}
 };
@@ -99,16 +99,16 @@ function ClientOnboarding() {
   const [dragId, setDragId] = useStateOB(null);
   const [over, setOver] = useStateOB(null);
 
-  const patchProspect = (id, fn) => setProspects(list => list.map(p => p.id === id ? fn(p) : p));
-  const addProspect = (p) => setProspects(list => [p, ...list]);
-  const sel = selId ? prospects.find(p => p.id === selId) : null;
+  const patchProspect = (id: any, fn: any) => setProspects((list: any) => list.map((p: any) => p.id === id ? fn(p) : p));
+  const addProspect = (p: any) => setProspects((list: any) => [p, ...list]);
+  const sel = selId ? prospects.find((p: any) => p.id === selId) : null;
 
-  const live = prospects.filter(p => !p.converted);
+  const live = prospects.filter((p: any) => !p.converted);
   const kpis = [
     { v: live.length, l: 'Dalam Onboarding' },
-    { v: prospects.filter(p => obStage(p) === 'acceptance' && !p.converted).length, l: 'Menunggu Akseptasi', a: 'var(--purple)' },
-    { v: prospects.filter(p => p.pmpj && !p.pmpj.verified).length, l: 'PMPJ / EDD Tertunda', a: 'var(--amber)' },
-    { v: prospects.filter(p => obStage(p) === 'convert' && !p.converted).length, l: 'Siap Dikonversi', a: 'var(--green)' },
+    { v: prospects.filter((p: any) => obStage(p) === 'acceptance' && !p.converted).length, l: 'Menunggu Akseptasi', a: 'var(--purple)' },
+    { v: prospects.filter((p: any) => p.pmpj && !p.pmpj.verified).length, l: 'PMPJ / EDD Tertunda', a: 'var(--amber)' },
+    { v: prospects.filter((p: any) => obStage(p) === 'convert' && !p.converted).length, l: 'Siap Dikonversi', a: 'var(--green)' },
   ];
 
   const [mtab, setMtab] = useStateOB(() => localStorage.getItem('ams.ob.tab') || 'papan');
@@ -140,12 +140,12 @@ function ClientOnboarding() {
         {/* 4-gate board */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10, alignItems: 'start' }}>
           {OB_STAGES.map(st => {
-            const col = prospects.filter(p => obStage(p) === st.id);
+            const col = prospects.filter((p: any) => obStage(p) === st.id);
             return (
               <div key={st.id}
-                onDragOver={(e) => { e.preventDefault(); if (over !== st.id) setOver(st.id); }}
-                onDragLeave={() => setOver(o => o === st.id ? null : o)}
-                onDrop={(e) => { e.preventDefault(); setDragId(null); setOver(null); }}
+                onDragOver={(e: any) => { e.preventDefault(); if (over !== st.id) setOver(st.id); }}
+                onDragLeave={() => setOver((o: any) => o === st.id ? null : o)}
+                onDrop={(e: any) => { e.preventDefault(); setDragId(null); setOver(null); }}
                 style={{ borderRadius: 8, padding: 5, minHeight: 140, background: over === st.id ? 'var(--blue-050)' : 'transparent' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
@@ -153,9 +153,9 @@ function ClientOnboarding() {
                   <span className="chip tiny">{col.length}</span>
                 </div>
                 <div className="grid" style={{ gap: 8 }}>
-                  {col.map(p => {
+                  {col.map((p: any) => {
                     const g = obGates(p);
-                    const pep = p.pmpj && p.pmpj.ubo && p.pmpj.ubo.some(u => u.pep);
+                    const pep = p.pmpj && p.pmpj.ubo && p.pmpj.ubo.some((u: any) => u.pep);
                     return (
                       <div key={p.id} className="panel" onClick={() => setSelId(p.id)}
                         style={{ padding: 10, cursor: 'pointer', borderTop: '3px solid ' + st.color, opacity: p.converted ? .72 : 1 }}>
@@ -170,7 +170,7 @@ function ClientOnboarding() {
                           <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(p.fee / 1e6, 0)} jt</span>
                           <div className="row" style={{ gap: 3 }} title="Status gerbang: Akseptasi · PMPJ · Letter · Konversi">
                             {['acceptance', 'pmpj', 'letter', 'convert'].map(k => (
-                              <span key={k} style={{ width: 7, height: 7, borderRadius: '50%', background: OB_GATE_COLOR[g[k]] }} />
+                              <span key={k} style={{ width: 7, height: 7, borderRadius: '50%', background: (OB_GATE_COLOR as any)[(g as any)[k]] }} />
                             ))}
                           </div>
                         </div>
@@ -185,8 +185,8 @@ function ClientOnboarding() {
         </div>
       </div></div>}
 
-      {sel && <OnboardingDrawer p={sel} onClose={() => setSelId(null)} onPatch={(fn) => patchProspect(sel.id, fn)} />}
-      {showNew && <ProspectForm onClose={() => setShowNew(false)} onAdd={(p) => { addProspect(p); setShowNew(false); setSelId(p.id); }} />}
+      {sel && <OnboardingDrawer p={sel} onClose={() => setSelId(null)} onPatch={(fn: any) => patchProspect(sel.id, fn)} />}
+      {showNew && <ProspectForm onClose={() => setShowNew(false)} onAdd={(p: any) => { addProspect(p); setShowNew(false); setSelId(p.id); }} />}
     </>
   );
 }
@@ -199,12 +199,12 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
   const g = obGates(p);
   const [step, setStep] = useStateOB(() => obStage(p));
 
-  const stepStatus = (id) => p.converted && id === 'convert' ? 'done' : g[id];
+  const stepStatus = (id: any) => p.converted && id === 'convert' ? 'done' : (g as any)[id];
   const stageColor = (OB_STAGES.find(s => s.id === step) || {}).color;
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 18 }} onClick={onClose}>
-      <div className="panel" style={{ width: 1080, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 1080, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={(e: any) => e.stopPropagation()}>
         {/* header */}
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <span style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700, flex: '0 0 42px' }}>{p.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
@@ -268,8 +268,8 @@ function StepAcceptance({ p, onPatch }: any) {
   const a = p.acceptance;
   const score = obAccScore(p);
   const verdict = obAccVerdict(score);
-  const setFactor = (i, patch) => onPatch(pr => ({ ...pr, acceptance: { ...pr.acceptance, factors: pr.acceptance.factors.map((f, j) => j === i ? { ...f, ...patch } : f) } }));
-  const setAcc = (patch) => onPatch(pr => ({ ...pr, acceptance: { ...pr.acceptance, ...patch } }));
+  const setFactor = (i: any, patch: any) => onPatch((pr: any) => ({ ...pr, acceptance: { ...pr.acceptance, factors: pr.acceptance.factors.map((f: any, j: any) => j === i ? { ...f, ...patch } : f) } }));
+  const setAcc = (patch: any) => onPatch((pr: any) => ({ ...pr, acceptance: { ...pr.acceptance, ...patch } }));
 
   return (
     <div>
@@ -288,15 +288,15 @@ function StepAcceptance({ p, onPatch }: any) {
       <div className="grid" style={{ gridTemplateColumns: '1.7fr 1fr', gap: 14, alignItems: 'start', marginTop: 12 }}>
         {/* factor matrix */}
         <div style={{ display: 'grid', gap: 9 }}>
-          {a.factors.map((f, i) => (
+          {a.factors.map((f: any, i: any) => (
             <div key={i} className="panel" style={{ padding: 12 }}>
               <div className="row jb ac" style={{ marginBottom: 7 }}>
                 <span style={{ fontSize: 12.5, fontWeight: 600 }}>{f.k}</span>
                 <span className="chip tiny" title="Bobot">{f.w}%</span>
               </div>
               <div className="row jb ac" style={{ gap: 12 }}>
-                <input className="input" value={f.note} onChange={e => setFactor(i, { note: e.target.value })} placeholder="Dasar penilaian / pertimbangan…" style={{ flex: 1 }} disabled={a.approved} />
-                <ScorePick value={f.s} onChange={a.approved ? () => {} : (v => setFactor(i, { s: v }))} />
+                <input className="input" value={f.note} onChange={(e: any) => setFactor(i, { note: e.target.value })} placeholder="Dasar penilaian / pertimbangan…" style={{ flex: 1 }} disabled={a.approved} />
+                <ScorePick value={f.s} onChange={a.approved ? () => {} : ((v: any) => setFactor(i, { s: v }))} />
               </div>
             </div>
           ))}
@@ -314,13 +314,13 @@ function StepAcceptance({ p, onPatch }: any) {
 
           <div className="panel" style={{ padding: 14, display: 'grid', gap: 10 }}>
             <div className="field"><label>Keputusan Partner</label>
-              <select className="select" value={a.decision || verdict.l} disabled={a.approved} onChange={e => setAcc({ decision: e.target.value })}>
+              <select className="select" value={a.decision || verdict.l} disabled={a.approved} onChange={(e: any) => setAcc({ decision: e.target.value })}>
                 {['Terima', 'Terima dengan Syarat', 'Tolak'].map(d => <option key={d}>{d}</option>)}
               </select>
             </div>
             {(a.decision === 'Terima dengan Syarat' || (!a.decision && verdict.l === 'Terima dengan Syarat')) && (
               <div className="field"><label>Safeguard / Syarat</label>
-                <textarea className="input" value={a.safeguard} disabled={a.approved} onChange={e => setAcc({ safeguard: e.target.value })} placeholder="mis. tambahkan spesialis industri; EDD pemilik manfaat…" style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} />
+                <textarea className="input" value={a.safeguard} disabled={a.approved} onChange={(e: any) => setAcc({ safeguard: e.target.value })} placeholder="mis. tambahkan spesialis industri; EDD pemilik manfaat…" style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} />
               </div>
             )}
             {a.approved ? (
@@ -365,7 +365,7 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
       addClient({ id: clientId, name: p.name, industry: p.industry, tier: p.listed ? 'Tier 1' : 'Tier 2', risk: p.pmpj.riskRating === 'Tinggi' ? 'High' : p.pmpj.riskRating === 'Rendah' ? 'Low' : 'Medium', npwp: p.npwp, city: p.city, listed: !!p.listed, since: 2026, partner: p.partner, fee: p.fee, status: 'Active' });
     }
     addEngagement({ clientId, type: p.service.includes('Review') ? 'Review (SPR 2400)' : p.service.includes('Due') ? 'Agreed-Upon Procedures' : 'Audit Laporan Keuangan', standard: p.standard, partner: p.partner, manager: p.manager, deadline: p.deadline, budgetHrs: p.budgetHrs, materiality: p.materiality, risk: p.pmpj.riskRating === 'Tinggi' ? 'High' : p.pmpj.riskRating === 'Rendah' ? 'Low' : 'Medium' });
-    onPatch(pr => ({ ...pr, converted: true }));
+    onPatch((pr: any) => ({ ...pr, converted: true }));
   };
 
   if (p.converted) {
@@ -425,9 +425,9 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
    New prospect form
    ============================================================ */
 function ProspectForm({ onClose, onAdd }: any) {
-  const blankFactors = AMS.PROSPECTS[1].acceptance.factors.map(f => ({ ...f, s: 3, note: '' }));
+  const blankFactors = (AMS.PROSPECTS as any)[1].acceptance.factors.map((f: any) => ({ ...f, s: 3, note: '' }));
   const [d, setD] = useStateOB({ name: '', industry: '', city: '', kind: 'Klien Baru', service: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', fee: 600000000, materiality: 1500000000, npwp: '', fyEnd: '31 Desember 2025', deadline: '2026-04-30', budgetHrs: 900, listed: false });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim();
   const submit = () => onAdd({
     id: 'PROS-' + Date.now().toString().slice(-4), ...d, source: 'Manual',
@@ -437,32 +437,32 @@ function ProspectForm({ onClose, onAdd }: any) {
   });
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 92, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={e => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
+          <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={e => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
-            <div className="field"><label>Domisili</label><input className="input" value={d.city} onChange={e => set('city', e.target.value)} placeholder="Jakarta" /></div>
+            <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
+            <div className="field"><label>Domisili</label><input className="input" value={d.city} onChange={(e: any) => set('city', e.target.value)} placeholder="Jakarta" /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Tipe</label><select className="select" value={d.kind} onChange={e => set('kind', e.target.value)}>{['Klien Baru', 'Keberlanjutan'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Jenis Jasa</label><select className="select" value={d.service} onChange={e => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Audit LK + Jasa Pajak', 'Due Diligence'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Standar</label><select className="select" value={d.standard} onChange={e => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Tipe</label><select className="select" value={d.kind} onChange={(e: any) => set('kind', e.target.value)}>{['Klien Baru', 'Keberlanjutan'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Jenis Jasa</label><select className="select" value={d.service} onChange={(e: any) => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Audit LK + Jasa Pajak', 'Due Diligence'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Standar</label><select className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Partner</label><select className="select" value={d.partner} onChange={e => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Manajer</label><select className="select" value={d.manager} onChange={e => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Partner</label><select className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Manajer</label><select className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Imbalan (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={e => set('fee', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Anggaran Jam</label><input className="input mono" type="number" value={d.budgetHrs} onChange={e => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={e => set('deadline', e.target.value)} /></div>
+            <div className="field"><label>Imbalan (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Anggaran Jam</label><input className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
           </div>
-          <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={e => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
+          <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>

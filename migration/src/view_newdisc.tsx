@@ -17,7 +17,7 @@ import { SectionTitle } from './view_fpm_parts';
 const { useState: useStateND, useMemo: useMemoND } = React;
 
 /* link kecil ke modul sumber (TrSrc tidak global) */
-function Src({ module, children }) {
+function Src({ module, children }: any) {
   const nav = useNav();
   return <b onClick={() => nav(module)} style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>{children}</b>;
 }
@@ -51,7 +51,7 @@ function NewDisclosures2024() {
     const topUp = lowTax.reduce((a, j) => a + Math.round(j.profit * (P2_MIN_RATE - j.etr) / 100), 0);
     return { etrGroup, lowTax, topUp };
   }, [wtb]);
-  const J = (n) => 'Rp ' + fmt(n, 0) + ' jt';
+  const J = (n: any) => 'Rp ' + fmt(n, 0) + ' jt';
 
   const TABS = [{ id: 'pilar2', label: 'Pilar Dua (Top-up Tax)' }, { id: 'iklim', label: 'Perubahan Iklim' }, { id: 'supplier', label: 'Pendanaan Pemasok' }];
 

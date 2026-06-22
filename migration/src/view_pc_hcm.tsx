@@ -12,7 +12,7 @@ import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 const { useState: usePChcm } = React;
 
 /* default profile when an employee has no enriched record */
-function profileOf(s) {
+function profileOf(s: any) {
   const A: any = AMS;
   const base = (A.STAFF_PROFILE || {})[s.id] || {};
   return {
@@ -28,7 +28,7 @@ function profileOf(s) {
     bpjsKes: base.bpjsKes || 'Aktif',
     bpjsTk: base.bpjsTk || 'Aktif',
     emergency: base.emergency || { name: '—', rel: '—', phone: '—' },
-    skills: base.skills || (A.COMPETENCY_ACTUAL[s.id] ? A.COMPETENCIES.map(c => [c.name, A.COMPETENCY_ACTUAL[s.id][c.id] || 2]) : [['Pengujian Substantif', 3], ['Kertas Kerja', 3], ['Komunikasi', 3]]),
+    skills: base.skills || (A.COMPETENCY_ACTUAL[s.id] ? A.COMPETENCIES.map((c: any) => [c.name, A.COMPETENCY_ACTUAL[s.id][c.id] || 2]) : [['Pengujian Substantif', 3], ['Kertas Kerja', 3], ['Komunikasi', 3]]),
     docs: base.docs || [['Sertifikat ' + (s.cert || 'CA'), 'Valid'], ['KTP & NPWP', 'Lengkap'], ['Kontrak Kerja', 'Aktif']],
     timeline: base.timeline || [[String(s.joined), 'Bergabung sebagai ' + s.role]],
   };
@@ -43,9 +43,9 @@ function Profile360Drawer({ s, onClose }: any) {
   const lv = (A.LEAVE_BALANCE || {})[s.id];
   const lvTotal = lv ? lv.ent + lv.carry : 12;
   const lvLeft = lv ? lvTotal - lv.used : 12;
-  const cpe = ((A.CPE_LOG || {})[s.id] || []).reduce((a, r) => a + r.skp, 0);
+  const cpe = ((A.CPE_LOG || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
   const perf = (A.PERF_CYCLE.people || {})[s.id];
-  const indep = (A.INDEPENDENCE || []).find(d => d.id === s.id);
+  const indep = (A.INDEPENDENCE || []).find((d: any) => d.id === s.id);
   const ethics = (A.ETHICS_DECL || {})[s.id];
   const GC = A.GRADE_COLOR_PC;
 
@@ -64,7 +64,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 540, maxWidth: '96vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 540, maxWidth: '96vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 13, flex: '0 0 auto' }}>
           <Avatar name={s.name} size={50} />
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -101,7 +101,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Keahlian & Kompetensi" action={<button className="btn sm" style={{ height: 22 }} onClick={() => { onClose(); nav('learning'); }}><I.arrowRight size={11} /> Matriks</button>}>
             <div style={{ display: 'grid', gap: 7 }}>
-              {p.skills.slice(0, 6).map(([l, v], i) => (
+              {p.skills.slice(0, 6).map(([l, v]: any, i: any) => (
                 <div key={i}>
                   <div className="row jb tiny" style={{ marginBottom: 2 }}><span>{l}</span><span className="mono" style={{ fontWeight: 700 }}>{v}/5</span></div>
                   <div style={{ height: 5, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (v / 5 * 100) + '%', height: '100%', borderRadius: 3, background: v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--blue)' : 'var(--amber)' }} /></div>
@@ -139,7 +139,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Dokumen & Sertifikasi">
             <div style={{ display: 'grid', gap: 6 }}>
-              {p.docs.map(([l, st], i) => (
+              {p.docs.map(([l, st]: any, i: any) => (
                 <div key={i} className="row ac jb" style={{ padding: '7px 11px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
                   <span className="row ac gap8 tiny" style={{ fontWeight: 500 }}><I.doc size={13} style={{ color: 'var(--ink-4)' }} />{l}</span>
                   <span className="chip tiny">{st}</span>
@@ -150,7 +150,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Linimasa Karier">
             <div style={{ display: 'grid', gap: 0 }}>
-              {p.timeline.map((t, i) => (
+              {p.timeline.map((t: any, i: any) => (
                 <div key={i} className="row gap8" style={{ paddingBottom: i < p.timeline.length - 1 ? 12 : 0 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto' }}>
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue)', marginTop: 3 }} />
@@ -184,12 +184,12 @@ function HCMAnalytics() {
   const A: any = AMS;
   const D = A.HCM_ANALYTICS;
   const GC = A.GRADE_COLOR_PC;
-  const totalHC = D.gradeMix.reduce((s, g) => s + g.n, 0);
-  const maxTrend = Math.max(...D.headcountTrend.map(t => t.total));
+  const totalHC = D.gradeMix.reduce((s: any, g: any) => s + g.n, 0);
+  const maxTrend = Math.max(...D.headcountTrend.map((t: any) => t.total));
 
   const Bar = ({ rows, max, color }: any) => (
     <div style={{ display: 'grid', gap: 7 }}>
-      {rows.map((r, i) => (
+      {rows.map((r: any, i: any) => (
         <div key={i} className="row ac gap8">
           <span className="tiny" style={{ width: 76, flex: '0 0 76px', textAlign: 'right', color: 'var(--ink-2)' }}>{r.k || r.g}</span>
           <div style={{ flex: 1, height: 16, borderRadius: 4, background: 'var(--surface-3)', position: 'relative' }}><div style={{ width: (r.n != null ? r.n / max * 100 : r.rate) + '%', height: '100%', borderRadius: 4, background: typeof color === 'function' ? color(r) : color }} /></div>
@@ -213,7 +213,7 @@ function HCMAnalytics() {
           <div className="panel-h"><h3>Tren Headcount & Pergerakan</h3><div style={{ flex: 1 }} /><span className="tiny muted">8 kuartal · hire vs exit</span></div>
           <div style={{ padding: 16 }}>
             <div className="row" style={{ gap: 10, alignItems: 'flex-end', height: 160 }}>
-              {D.headcountTrend.map((t, i) => (
+              {D.headcountTrend.map((t: any, i: any) => (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 3 }}>
                     <div title={'Hire ' + t.hires} style={{ width: 9, height: (t.hires / 8 * 100) + '%', minHeight: 4, background: 'var(--green)', borderRadius: '2px 2px 0 0' }} />
@@ -235,9 +235,9 @@ function HCMAnalytics() {
         <Panel noBody>
           <div className="panel-h"><h3>Komposisi Jenjang</h3></div>
           <div style={{ padding: 16, display: 'flex', gap: 14, alignItems: 'center' }}>
-            <Donut size={120} thickness={18} segments={D.gradeMix.map(g => ({ value: g.n, color: GC[g.g] }))} center={<><div className="mono" style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>{totalHC}</div><div className="tiny muted">SDM</div></>} />
+            <Donut size={120} thickness={18} segments={D.gradeMix.map((g: any) => ({ value: g.n, color: GC[g.g] }))} center={<><div className="mono" style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>{totalHC}</div><div className="tiny muted">SDM</div></>} />
             <div style={{ flex: 1, display: 'grid', gap: 8 }}>
-              {D.gradeMix.map(g => (
+              {D.gradeMix.map((g: any) => (
                 <div key={g.g} className="row ac jb">
                   <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: 2, background: GC[g.g] }} />{g.g}</span>
                   <span className="mono tiny" style={{ fontWeight: 700 }}>{g.n} <span className="muted">({Math.round(g.n / totalHC * 100)}%)</span></span>
@@ -251,26 +251,26 @@ function HCMAnalytics() {
       <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Attrition per Jenjang</h3><div style={{ flex: 1 }} /><span className="tiny muted">12 bulan</span></div>
-          <div style={{ padding: 16 }}><Bar rows={D.attritionByGrade} max={30} color={(r) => r.rate >= 20 ? 'var(--red)' : r.rate >= 12 ? 'var(--amber)' : 'var(--green)'} /></div>
+          <div style={{ padding: 16 }}><Bar rows={D.attritionByGrade} max={30} color={(r: any) => r.rate >= 20 ? 'var(--red)' : r.rate >= 12 ? 'var(--amber)' : 'var(--green)'} /></div>
         </Panel>
         <Panel noBody>
           <div className="panel-h"><h3>Sertifikasi Profesi</h3></div>
-          <div style={{ padding: 16 }}><Bar rows={D.certMix} max={Math.max(...D.certMix.map(c => c.n))} color="var(--navy)" /></div>
+          <div style={{ padding: 16 }}><Bar rows={D.certMix} max={Math.max(...D.certMix.map((c: any) => c.n))} color="var(--navy)" /></div>
         </Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Gender</h3></div>
-          <div style={{ padding: 16 }}><Bar rows={D.genderMix} max={Math.max(...D.genderMix.map(c => c.n))} color="#005085" /></div>
+          <div style={{ padding: 16 }}><Bar rows={D.genderMix} max={Math.max(...D.genderMix.map((c: any) => c.n))} color="#005085" /></div>
         </Panel>
         <Panel noBody>
           <div className="panel-h"><h3>Masa Kerja</h3></div>
-          <div style={{ padding: 16 }}><Bar rows={D.tenureMix} max={Math.max(...D.tenureMix.map(c => c.n))} color="#0a6b73" /></div>
+          <div style={{ padding: 16 }}><Bar rows={D.tenureMix} max={Math.max(...D.tenureMix.map((c: any) => c.n))} color="#0a6b73" /></div>
         </Panel>
         <Panel noBody>
           <div className="panel-h"><h3>Usia</h3></div>
-          <div style={{ padding: 16 }}><Bar rows={D.ageMix} max={Math.max(...D.ageMix.map(c => c.n))} color="#5b3fa6" /></div>
+          <div style={{ padding: 16 }}><Bar rows={D.ageMix} max={Math.max(...D.ageMix.map((c: any) => c.n))} color="#5b3fa6" /></div>
         </Panel>
       </div>
     </div>

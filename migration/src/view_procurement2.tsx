@@ -27,11 +27,11 @@ const MATCH_META = {
 };
 
 /* ====================== PROCURE-TO-PAY ====================== */
-function ProcP2P({ B, P, nav }) {
+function ProcP2P({ B, P, nav }: any) {
   const REQS = B.REQUISITIONS || [];
   const POS = B.PURCHASE_ORDERS || [];
   const twm = useMemoProc2(() => P.threeWayMatch(), []);
-  const exceptions = twm.filter(t => t.result !== 'match');
+  const exceptions = twm.filter((t: any) => t.result !== 'match');
 
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
@@ -44,7 +44,7 @@ function ProcP2P({ B, P, nav }) {
       <table className="dtbl" style={{ marginBottom: 16 }}>
         <thead><tr><th>No. PR</th><th>Departemen</th><th>Deskripsi</th><th>Peminta</th><th>Kategori Anggaran</th><th className="num">Estimasi</th><th>PO</th><th>Status</th></tr></thead>
         <tbody>
-          {REQS.map(r => (
+          {REQS.map((r: any) => (
             <tr key={r.id}>
               <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
               <td className="tiny" style={{ fontWeight: 600 }}>{r.dept}</td>
@@ -64,7 +64,7 @@ function ProcP2P({ B, P, nav }) {
       <table className="dtbl" style={{ marginBottom: 16 }}>
         <thead><tr><th>No. PO</th><th>Vendor (master)</th><th>Deskripsi</th><th>Dept.</th><th className="num">Nilai</th><th>Butuh</th><th>Otorisasi</th><th>Tahap</th></tr></thead>
         <tbody>
-          {POS.map(p => {
+          {POS.map((p: any) => {
             const v = P.vById(p.vendorId);
             const d = B.daysTo(p.need);
             return (
@@ -76,7 +76,7 @@ function ProcP2P({ B, P, nav }) {
                 <td className="num">{boJt(p.amount)}</td>
                 <td className="tiny mono" style={{ color: d < 5 ? 'var(--red)' : 'var(--ink-2)' }}>{p.need}<span className="muted"> · {d}h</span></td>
                 <td className="tiny">{p.appr}</td>
-                <td><span className={'badge b-' + (P2P_STAGE_BADGE[p.stage] || 'gray')} style={{ textTransform: 'none' }}>{p.stage}</span></td>
+                <td><span className={'badge b-' + ((P2P_STAGE_BADGE as any)[p.stage] || 'gray')} style={{ textTransform: 'none' }}>{p.stage}</span></td>
               </tr>
             );
           })}
@@ -88,8 +88,8 @@ function ProcP2P({ B, P, nav }) {
       <table className="dtbl">
         <thead><tr><th>Faktur</th><th>Vendor</th><th>PO</th><th className="num">PO</th><th className="num">GRN</th><th className="num">Faktur</th><th className="num">Selisih</th><th>Hasil</th></tr></thead>
         <tbody>
-          {twm.map(t => {
-            const m = MATCH_META[t.result];
+          {twm.map((t: any) => {
+            const m = (MATCH_META as any)[t.result];
             return (
               <tr key={t.bill.id} style={{ background: t.result === 'match' ? undefined : 'var(--amber-bg)' }}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{t.bill.id}</td>
@@ -111,7 +111,7 @@ function ProcP2P({ B, P, nav }) {
 }
 
 /* ====================== SPEND & ANGGARAN ====================== */
-function ProcSpend({ B, P, conc }) {
+function ProcSpend({ B, P, conc }: any) {
   const bva = useMemoProc2(() => P.budgetVsActual(), []);
   const spend = P.spendByCategory();
   return (
@@ -119,12 +119,12 @@ function ProcSpend({ B, P, conc }) {
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 14, alignItems: 'start', marginBottom: 16 }}>
         <div>
           <SectionTitle right={<span className="mono tiny muted">{boM(spend.total, 1)} aktual</span>}>Belanja per Kategori <span className="tiny muted">(Σ vendor.ytd)</span></SectionTitle>
-          <HBars rows={spend.rows.map(c => ({ label: c.cat, value: c.v, color: c.c, right: boJt(c.v) }))} />
+          <HBars rows={spend.rows.map((c: any) => ({ label: c.cat, value: c.v, color: c.c, right: boJt(c.v) }))} />
         </div>
         <div>
           <SectionTitle>Konsentrasi Vendor</SectionTitle>
           <div className="panel" style={{ padding: '11px 13px' }}>
-            {conc.vendors.slice(0, 6).map(v => (
+            {conc.vendors.slice(0, 6).map((v: any) => (
               <div key={v.id} className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
                 <span className="tiny truncate" style={{ fontWeight: 600, maxWidth: 170 }}>{v.name.replace('PT ', '').replace('CV ', '')}</span>
                 <span className="row ac gap8">
@@ -142,7 +142,7 @@ function ProcSpend({ B, P, conc }) {
       <table className="dtbl">
         <thead><tr><th>Kategori</th><th className="num">Anggaran</th><th className="num">Aktual (YTD)</th><th>Serapan</th><th className="num">Sisa</th><th>Status</th></tr></thead>
         <tbody>
-          {bva.rows.map(r => (
+          {bva.rows.map((r: any) => (
             <tr key={r.cat} style={{ background: r.over ? 'var(--amber-bg)' : undefined }}>
               <td><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: r.color }} /><span style={{ fontWeight: 600, fontSize: 11.5 }}>{r.cat}</span></span></td>
               <td className="num">{boJt(r.budget)}</td>
@@ -160,10 +160,10 @@ function ProcSpend({ B, P, conc }) {
 }
 
 /* ====================== DUE DILIGENCE / PMPJ ====================== */
-function ProcDiligence({ B, setVSel, nav }) {
+function ProcDiligence({ B, setVSel, nav }: any) {
   const order = { 'Lengkap': 0, 'Berjalan': 1, 'Perlu Reviu': 2, 'Gagal — pajak': 3 };
-  const rows = B.VENDORS.slice().sort((a, b) => (order[b.diligence] || 0) - (order[a.diligence] || 0));
-  const stat = { lengkap: B.VENDORS.filter(v => v.diligence === 'Lengkap').length, perlu: B.VENDORS.filter(v => v.diligence === 'Perlu Reviu' || v.diligence === 'Berjalan').length, gagal: B.VENDORS.filter(v => v.diligence.includes('Gagal')).length };
+  const rows = B.VENDORS.slice().sort((a: any, b: any) => ((order as any)[b.diligence] || 0) - ((order as any)[a.diligence] || 0));
+  const stat = { lengkap: B.VENDORS.filter((v: any) => v.diligence === 'Lengkap').length, perlu: B.VENDORS.filter((v: any) => v.diligence === 'Perlu Reviu' || v.diligence === 'Berjalan').length, gagal: B.VENDORS.filter((v: any) => v.diligence.includes('Gagal')).length };
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
@@ -179,14 +179,14 @@ function ProcDiligence({ B, setVSel, nav }) {
       <table className="dtbl">
         <thead><tr><th>Vendor</th><th>PIC</th><th>Termin</th><th>Onboard</th><th>Rekening</th><th>Risiko</th><th>Status PMPJ</th><th></th></tr></thead>
         <tbody>
-          {rows.map(v => (
+          {rows.map((v: any) => (
             <tr key={v.id} style={{ background: v.diligence.includes('Gagal') ? 'var(--red-bg)' : undefined }}>
               <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.id} · {v.npwp}</div></td>
               <td className="tiny">{v.pic}</td>
               <td className="tiny mono">{v.terms}</td>
               <td className="tiny mono muted">{v.onboard}</td>
               <td className="tiny mono muted">{v.bank}</td>
-              <td><span className="badge" style={{ textTransform: 'none', background: PROC_RISKC[v.risk] + '1a', color: PROC_RISKC[v.risk] }}>{v.risk}</span></td>
+              <td><span className="badge" style={{ textTransform: 'none', background: (PROC_RISKC as any)[v.risk] + '1a', color: (PROC_RISKC as any)[v.risk] }}>{v.risk}</span></td>
               <td><BoBadge s={v.diligence} /></td>
               <td><button className="btn sm" style={{ height: 22 }} onClick={() => setVSel(v)} title="Vendor 360"><I.arrowRight size={11} /></button></td>
             </tr>
@@ -198,7 +198,7 @@ function ProcDiligence({ B, setVSel, nav }) {
 }
 
 /* ====================== SUMBER KEBENARAN (rekonsiliasi) ====================== */
-function ProcLineage({ P, firm, nav }) {
+function ProcLineage({ P, firm, nav }: any) {
   const recons = useMemoProc2(() => P.reconciliations(firm), [firm.engagements, firm.clients]);
   const ap = useMemoProc2(() => P.apBridge(), []);
   const cons = useMemoProc2(() => P.crossModuleConsumption(), []);
@@ -218,7 +218,7 @@ function ProcLineage({ P, firm, nav }) {
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <SectionTitle>Rekonsiliasi Sub-Ledger → Kontrol</SectionTitle>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 18 }}>
-        {recons.map(r => (
+        {recons.map((r: any) => (
           <div key={r.id} className="panel" style={{ padding: '12px 13px', borderTop: '3px solid ' + (r.ok ? 'var(--green)' : 'var(--amber)') }}>
             <div className="row ac gap8" style={{ marginBottom: 8 }}>
               {r.ok ? <span className="badge b-green" style={{ textTransform: 'none' }}>✓ Menutup</span> : <span className="badge b-amber" style={{ textTransform: 'none' }}>≠ Perlu reviu</span>}
@@ -238,7 +238,7 @@ function ProcLineage({ P, firm, nav }) {
         <table className="dtbl">
           <thead><tr><th>Sumber</th><th className="num">Item</th><th className="num">Nilai Terbuka</th><th>Master?</th></tr></thead>
           <tbody>
-            {ap.sources.map((s, i) => (
+            {ap.sources.map((s: any, i: any) => (
               <tr key={i}>
                 <td style={{ fontWeight: 600, fontSize: 11.5 }}>{s.label}</td>
                 <td className="num tiny">{s.n}</td>
@@ -260,7 +260,7 @@ function ProcLineage({ P, firm, nav }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {flows.map(f => (
               <button key={f.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--green)' }} onClick={() => nav(f.id, { from: 'procurement' })} title={'Buka ' + f.lbl}>
-                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement(I[f.ic] || I.doc, { size: 14 })}</span>
+                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement((I as any)[f.ic] || I.doc, { size: 14 })}</span>
                 <span className="lin-txt"><span className="lin-lbl">{f.lbl}</span><span className="lin-rel">{f.rel}</span></span>
                 <span className="lin-go"><I.arrowRight size={12} /></span>
               </button>
@@ -273,15 +273,15 @@ function ProcLineage({ P, firm, nav }) {
       <table className="dtbl">
         <thead><tr><th>Vendor (master)</th><th className="num">Belanja YTD</th><th>Dikonsumsi oleh modul</th></tr></thead>
         <tbody>
-          {cons.map(({ v, cons: cs }) => (
+          {cons.map(({ v, cons: cs }: any) => (
             <tr key={v.id}>
               <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{v.id}</span><span style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</span></div></td>
               <td className="num">{boJt(v.ytd)}</td>
               <td>
                 <div className="row gap4" style={{ flexWrap: 'wrap' }}>
-                  {cs.length ? cs.map((c, i) => {
-                    const meta = SUB.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
-                    return <span key={i} className="chip tiny" title={c.why} style={{ borderColor: meta.c + '55', color: meta.c }}>{React.createElement(I[meta.icon] || I.doc, { size: 10 })} {meta.label.split(' ')[0]}</span>;
+                  {cs.length ? cs.map((c: any, i: any) => {
+                    const meta = SUB.find((s: any) => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
+                    return <span key={i} className="chip tiny" title={c.why} style={{ borderColor: meta.c + '55', color: meta.c }}>{React.createElement((I as any)[meta.icon] || I.doc, { size: 10 })} {meta.label.split(' ')[0]}</span>;
                   }) : <span className="tiny muted">— hanya pengadaan</span>}
                 </div>
               </td>
@@ -294,7 +294,7 @@ function ProcLineage({ P, firm, nav }) {
 }
 
 /* ====================== VENDOR 360 — DRAWER ====================== */
-function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
+function ProcVendorDrawer({ vendorId, firm, onClose, nav }: any) {
   const d = useMemoProc2(() => PROC.vendor360(vendorId, firm), [vendorId, firm.engagements, firm.clients]);
   const SUB = (window.FIRMOPS && window.FIRMOPS.SUBMODULES) || [];
   if (!d) return null;
@@ -337,7 +337,7 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
           <KV label="On-time delivery" v={v.otp + '%'} accent={v.otp >= 95 ? 'var(--green)' : v.otp >= 85 ? 'var(--amber)' : 'var(--red)'} />
           <KV label="Kualitas" v={v.qual.toFixed(1) + ' / 5'} accent={v.qual >= 4 ? 'var(--green)' : 'var(--amber)'} />
           <KV label="Rating keseluruhan" v={v.rating.toFixed(1) + ' / 5'} />
-          <KV label="Risiko / sengketa" v={v.risk + (v.disp ? ' · ' + v.disp + ' sengketa' : '')} accent={PROC_RISKC[v.risk]} />
+          <KV label="Risiko / sengketa" v={v.risk + (v.disp ? ' · ' + v.disp + ' sengketa' : '')} accent={(PROC_RISKC as any)[v.risk]} />
         </div>
         <div className="panel" style={{ padding: '7px 10px', marginBottom: 14, boxShadow: 'none' }}>
           <div className="tiny muted upper" style={{ marginBottom: 4 }}>Tren belanja (6 bln · jt)</div>
@@ -346,7 +346,7 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
 
         <SectionTitle right={<span className="mono tiny muted">{d.contracts.length}</span>}>Kontrak Tertaut <span className="tiny muted">(Legal SSOT)</span></SectionTitle>
         <div style={{ display: 'grid', gap: 6, marginBottom: 14 }}>
-          {d.contracts.length ? d.contracts.map(c => (
+          {d.contracts.length ? d.contracts.map((c: any) => (
             <button key={c.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--purple)' }} onClick={() => nav('legal', { from: 'procurement' })} title="Buka registri kontrak">
               <span className="lin-ic" style={{ color: 'var(--purple)' }}><I.gavel size={14} /></span>
               <span className="lin-txt"><span className="lin-lbl">{c.type}</span><span className="lin-rel">{c.id} · {LEGAL.moneyJt(c.value)} · berakhir {c.end || '—'}</span></span>
@@ -364,10 +364,10 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
             </div>
             {d.pos.length > 0 && (
               <div style={{ display: 'grid', gap: 5, marginBottom: 14 }}>
-                {d.pos.map(p => (
+                {d.pos.map((p: any) => (
                   <div key={p.id} className="row ac jb" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)' }}>
                     <div className="row ac gap6" style={{ minWidth: 0 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.id}</span><span className="tiny truncate" style={{ maxWidth: 230 }}>{p.desc}</span></div>
-                    <span className="row ac gap6" style={{ flex: '0 0 auto' }}><span className="mono tiny" style={{ fontWeight: 700 }}>{boJt(p.amount)}</span><span className={'badge b-' + (P2P_STAGE_BADGE[p.stage] || 'gray')} style={{ textTransform: 'none' }}>{p.stage}</span></span>
+                    <span className="row ac gap6" style={{ flex: '0 0 auto' }}><span className="mono tiny" style={{ fontWeight: 700 }}>{boJt(p.amount)}</span><span className={'badge b-' + ((P2P_STAGE_BADGE as any)[p.stage] || 'gray')} style={{ textTransform: 'none' }}>{p.stage}</span></span>
                   </div>
                 ))}
               </div>
@@ -379,13 +379,13 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
           <>
             <SectionTitle>Lisensi & Pemeliharaan <span className="tiny muted">(Fasilitas)</span></SectionTitle>
             <div style={{ display: 'grid', gap: 5, marginBottom: 14 }}>
-              {d.licenses.map(l => (
+              {d.licenses.map((l: any) => (
                 <div key={l.name} className="row ac jb" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)' }}>
                   <span className="tiny truncate" style={{ fontWeight: 600, maxWidth: 260 }}>{l.name}</span>
                   <span className="mono tiny muted">{l.used}/{l.seats} seat · {boJt(l.cost)}</span>
                 </div>
               ))}
-              {d.maintenance.map(m => (
+              {d.maintenance.map((m: any) => (
                 <div key={m.id} className="row ac jb" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)' }}>
                   <span className="tiny truncate" style={{ fontWeight: 600, maxWidth: 260 }}>{m.asset} · {m.type}</span>
                   <span className="mono tiny muted">{m.due} · {boJt(m.cost)}</span>
@@ -397,11 +397,11 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }) {
 
         <SectionTitle right={<span className="mono tiny muted">{d.consumers.length} modul</span>}>Dikonsumsi oleh Modul</SectionTitle>
         <div style={{ display: 'grid', gap: 6 }}>
-          {d.consumers.length ? d.consumers.map((c, i) => {
-            const meta = SUB.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
+          {d.consumers.length ? d.consumers.map((c: any, i: any) => {
+            const meta = SUB.find((s: any) => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
             return (
               <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: meta.c }} onClick={() => nav(c.m, { from: 'procurement' })} title={'Buka ' + meta.label}>
-                <span className="lin-ic" style={{ color: meta.c }}>{React.createElement(I[meta.icon] || I.doc, { size: 14 })}</span>
+                <span className="lin-ic" style={{ color: meta.c }}>{React.createElement((I as any)[meta.icon] || I.doc, { size: 14 })}</span>
                 <span className="lin-txt"><span className="lin-lbl">{meta.label}</span><span className="lin-rel">{c.why}</span></span>
                 <span className="lin-go"><I.arrowRight size={12} /></span>
               </button>

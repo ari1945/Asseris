@@ -109,8 +109,8 @@ function PSAK58View() {
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.crit', JSON.stringify(crit)); } catch (e) {} }, [crit]);
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  const toggleCrit = (id) => setCrit(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleCrit = (id: any) => setCrit((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
   if (!dg) {
     return <><SubBar moduleId="psak58" /><div className="view-pad"><Panel title="PSAK 58"><div className="tiny muted">Mesin kanonik belum dimuat.</div></Panel></div></>;
@@ -123,12 +123,12 @@ function PSAK58View() {
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
-  const sc = (vJuta) => fmt(Math.round(vJuta * UN.mult), 0);
+  const sc = (vJuta: any) => fmt(Math.round(vJuta * UN.mult), 0);
 
-  const critMet = crit.filter(c => c.ok).length;
+  const critMet = crit.filter((c: any) => c.ok).length;
   const highlyProbable = critMet === crit.length;
-  const discOk = disc.filter(d => d.ok).length;
-  const discReq = disc.filter(d => !d.na).length;
+  const discOk = disc.filter((d: any) => d.ok).length;
+  const discReq = disc.filter((d: any) => !d.na).length;
 
   /* ——— tie-out lintas-laporan (Rp juta) ——— */
   const tieRows = [
@@ -162,7 +162,7 @@ function PSAK58View() {
     <Panel noBody>
       <div className="panel-h"><h3>Kriteria Klasifikasi — "Highly Probable"</h3><span className="sub mono">¶7–9 · ¶32</span><div style={{ flex: 1 }} /><Badge kind={highlyProbable ? 'green' : 'amber'}>{critMet}/{crit.length}</Badge></div>
       <div>
-        {crit.map((c, i) => (
+        {crit.map((c: any, i: any) => (
           <label key={c.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < crit.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleCrit(c.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)'), background: c.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{c.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 34, flex: '0 0 34px', marginTop: 1 }}>{c.ref}</span>
@@ -196,7 +196,7 @@ function PSAK58View() {
             </tr>
           </thead>
           <tbody>
-            {dg.members.map((m, i) => (
+            {dg.members.map((m: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px' }}>
                   <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{m.tag}</span>
@@ -292,7 +292,7 @@ function PSAK58View() {
             </tr>
           </thead>
           <tbody>
-            {dg.members.filter(m => m.depreciable).map((m, i) => (
+            {dg.members.filter((m: any) => m.depreciable).map((m: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px' }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{m.tag}</span> <span style={{ fontSize: 11.5 }}>{m.name}</span></td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(m.annual)}</td>
@@ -307,7 +307,7 @@ function PSAK58View() {
           </tbody>
         </table>
         <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>
-          Sejak diklasifikasi dimiliki untuk dijual, aset <b>tidak disusutkan</b> (¶25). Penyusutan tahunan ditarik dari Register Aset Tetap (PSAK 16) — beban Rp {sc(dg.deprCeased)} {UN.short} untuk {dg.monthsCeased} bulan terakhir tidak dibebankan. Tanah ({dg.members.filter(m => !m.depreciable).map(m => m.tag).join(', ')}) memang tidak disusutkan.
+          Sejak diklasifikasi dimiliki untuk dijual, aset <b>tidak disusutkan</b> (¶25). Penyusutan tahunan ditarik dari Register Aset Tetap (PSAK 16) — beban Rp {sc(dg.deprCeased)} {UN.short} untuk {dg.monthsCeased} bulan terakhir tidak dibebankan. Tanah ({dg.members.filter((m: any) => !m.depreciable).map((m: any) => m.tag).join(', ')}) memang tidak disusutkan.
         </div>
       </div>
     </Panel>
@@ -419,11 +419,11 @@ function PSAK58View() {
       <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
       <div style={{ padding: 6 }}>
         {lineage.map((r, i) => {
-          const IconC = I[r.icon] || I.doc;
+          const IconC = (I as any)[r.icon] || I.doc;
           return (
             <button key={i} onClick={() => nav(r.route, { from: 'psak58' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -445,7 +445,7 @@ function PSAK58View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengungkapan PSAK 58</h3><span className="sub mono">¶38 · ¶41 · ¶33</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
       <div>
-        {disc.map((d, i) => (
+        {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{d.ref}</span>
@@ -498,7 +498,7 @@ function PSAK58View() {
           {/* tab bar */}
           <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--line)', overflowX: 'auto', flexWrap: 'nowrap' }}>
             {TABS.map(t => {
-              const IconT = I[t.icon] || I.doc;
+              const IconT = (I as any)[t.icon] || I.doc;
               const on = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{

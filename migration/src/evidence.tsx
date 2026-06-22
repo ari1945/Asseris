@@ -12,27 +12,27 @@ import { I, MODULE_INDEX } from './icons';
 const EV_KEY = 'ams.v1.evidence';
 
 function amsEvRead() { try { return JSON.parse(localStorage.getItem(EV_KEY) || '{}') || {}; } catch (e) { return {}; } }
-function amsEvWrite(o) {
+function amsEvWrite(o: any) {
   try { localStorage.setItem(EV_KEY, JSON.stringify(o)); } catch (e) {}
   try { window.dispatchEvent(new CustomEvent('ams-evidence')); } catch (e) {}
   try { window.dispatchEvent(new CustomEvent('ams-intake')); } catch (e) {} /* legacy listener */
 }
-function amsEvidenceFor(mid) { return amsEvRead()[mid] || []; }
+function amsEvidenceFor(mid: any) { return amsEvRead()[mid] || []; }
 function amsEvidenceAll() {
-  const o = amsEvRead(); const out = [];
-  Object.keys(o).forEach(m => (o[m] || []).forEach(d => out.push({ ...d, module: m })));
+  const o = amsEvRead(); const out: any[] = [];
+  Object.keys(o).forEach(m => (o[m] || []).forEach((d: any) => out.push({ ...d, module: m })));
   return out.sort((a, b) => (a.when < b.when ? 1 : -1));
 }
-function amsEvidenceCount(mid) { return (amsEvRead()[mid] || []).length; }
-function amsAttachEvidence(mid, meta) {
+function amsEvidenceCount(mid: any) { return (amsEvRead()[mid] || []).length; }
+function amsAttachEvidence(mid: any, meta: any) {
   if (!mid) mid = 'evidence';
   const o = amsEvRead(); const list = o[mid] ? o[mid].slice() : [];
   const rec = { uid: 'ev-' + Date.now() + '-' + Math.round(Math.random() * 1e4), when: new Date().toISOString().slice(0, 16).replace('T', ' '), ...meta };
   list.unshift(rec); o[mid] = list.slice(0, 200); amsEvWrite(o);
   return rec;
 }
-function amsRemoveEvidence(mid, uid) {
-  const o = amsEvRead(); if (o[mid]) { o[mid] = o[mid].filter(d => d.uid !== uid); amsEvWrite(o); }
+function amsRemoveEvidence(mid: any, uid: any) {
+  const o = amsEvRead(); if (o[mid]) { o[mid] = o[mid].filter((d: any) => d.uid !== uid); amsEvWrite(o); }
 }
 
 /* migrate legacy flat intake log (ditulis versi awal) → store per modul */
@@ -41,12 +41,12 @@ function amsRemoveEvidence(mid, uid) {
     const o = amsEvRead();
     if (Object.keys(o).length === 0) {
       const old = JSON.parse(localStorage.getItem('ams.v1.intake') || '[]');
-      if (old.length) old.slice().reverse().forEach(d => amsAttachEvidence(d.dest || 'evidence', { file: d.file, type: d.type, std: d.std, classified: d.dest, when: d.when }));
+      if (old.length) old.slice().reverse().forEach((d: any) => amsAttachEvidence(d.dest || 'evidence', { file: d.file, type: d.type, std: d.std, classified: d.dest, when: d.when }));
     }
   } catch (e) {}
 })();
 
-function useEvidence(mid) {
+function useEvidence(mid: any) {
   const get = () => (mid ? amsEvidenceFor(mid) : amsEvidenceAll());
   const [v, setV] = React.useState(get);
   React.useEffect(() => {
@@ -59,33 +59,33 @@ function useEvidence(mid) {
   return v;
 }
 
-const evExtIcon = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : (/\.(png|jpg|jpeg|gif|webp)$/i.test(n || '') ? 'panel' : 'doc');
+const evExtIcon = (n: any) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : (/\.(png|jpg|jpeg|gif|webp)$/i.test(n || '') ? 'panel' : 'doc');
 
 /* ---- Kontrol Bukti global: tombol di SubBar tiap modul ---- */
 function EvidenceControl({ moduleId }: any) {
   const nav = useNav();
   const list = useEvidence(moduleId);
-  const meta = (typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[moduleId]) || { label: moduleId };
+  const meta = (typeof MODULE_INDEX !== 'undefined' && (MODULE_INDEX as any)[moduleId]) || { label: moduleId };
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState([]);
   const [drag, setDrag] = React.useState(false);
   const fileRef = React.useRef(null);
 
-  const addFiles = (fl) => {
+  const addFiles = (fl: any) => {
     const arr = Array.from(fl || []).filter(Boolean);
     if (!arr.length) return;
     const res = arr.map((f: any, i) => window.classifyDoc(f.name, {}, i));
-    setPending(p => [...res, ...p]);
+    setPending((p: any) => [...res, ...p]);
     setOpen(true);
   };
-  const attach = (r, mid) => {
+  const attach = (r: any, mid: any) => {
     amsAttachEvidence(mid, { file: r.file, type: r.type, std: r.std, classified: r.dest });
-    setPending(p => p.filter(x => x.uid !== r.uid));
+    setPending((p: any) => p.filter((x: any) => x.uid !== r.uid));
   };
 
   return (
     <div style={{ position: 'relative' }}>
-      <button className="subbar-ev" onClick={() => setOpen(o => !o)} title={'Lampirkan & lihat bukti — ' + (meta.label || moduleId)}>
+      <button className="subbar-ev" onClick={() => setOpen((o: any) => !o)} title={'Lampirkan & lihat bukti — ' + (meta.label || moduleId)}>
         <I.upload size={13} /> Bukti{list.length > 0 && <span className="subbar-ev-c">{list.length}</span>}
       </button>
       {open && (
@@ -103,18 +103,18 @@ function EvidenceControl({ moduleId }: any) {
 
             <div className={'ev-drop' + (drag ? ' on' : '')}
               onClick={() => fileRef.current && fileRef.current.click()}
-              onDragEnter={e => { e.preventDefault(); setDrag(true); }}
-              onDragOver={e => { e.preventDefault(); }}
-              onDragLeave={e => { e.preventDefault(); setDrag(false); }}
-              onDrop={e => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer && e.dataTransfer.files); }}>
+              onDragEnter={(e: any) => { e.preventDefault(); setDrag(true); }}
+              onDragOver={(e: any) => { e.preventDefault(); }}
+              onDragLeave={(e: any) => { e.preventDefault(); setDrag(false); }}
+              onDrop={(e: any) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer && e.dataTransfer.files); }}>
               <I.upload size={18} />
               <div style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4 }}>Tarik / klik untuk unggah bukti</div>
               <div className="tiny muted">AI mengklasifikasi & melampirkan ke <b>{meta.label || moduleId}</b></div>
-              <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={e => { addFiles(e.target.files); e.target.value = ''; }} />
+              <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={(e: any) => { addFiles(e.target.files); e.target.value = ''; }} />
             </div>
 
-            {pending.map(r => {
-              const sug = MODULE_INDEX[r.dest] || { label: r.dest };
+            {pending.map((r: any) => {
+              const sug = (MODULE_INDEX as any)[r.dest] || { label: r.dest };
               const sameMod = r.dest === moduleId;
               const FI = I[evExtIcon(r.file)] || I.doc;
               return (
@@ -136,9 +136,9 @@ function EvidenceControl({ moduleId }: any) {
 
             <div style={{ padding: '4px 0 6px' }}>
               {list.length === 0 && pending.length === 0 && <div className="ev-empty">Belum ada bukti di modul ini.</div>}
-              {list.map(d => {
+              {list.map((d: any) => {
                 const FI = I[evExtIcon(d.file)] || I.doc;
-                const cl = d.classified && d.classified !== moduleId ? (MODULE_INDEX[d.classified] || {}).label : null;
+                const cl = d.classified && d.classified !== moduleId ? ((MODULE_INDEX as any)[d.classified] || {}).label : null;
                 return (
                   <div key={d.uid} className="ev-row">
                     <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 24px' }}><FI size={12} /></span>
@@ -176,7 +176,7 @@ const EV_ALLOW = ['pdf', 'xlsx', 'xls', 'csv', 'docx', 'doc', 'png', 'jpg', 'jpe
 const EV_MAX_MB = 25;
 
 /* hash heksadesimal deterministik 64-char (tampilan integritas SHA-256) */
-function amsFakeHash(seed) {
+function amsFakeHash(seed: any) {
   let h = 2166136261 >>> 0;
   const s = String(seed || '') + '|neosuite-sha256';
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
@@ -185,7 +185,7 @@ function amsFakeHash(seed) {
   return out.slice(0, 64);
 }
 
-function amsFileMeta(f) {
+function amsFileMeta(f: any) {
   const name = (f && f.name) || String(f || 'berkas');
   const ext = (name.split('.').pop() || '').toLowerCase();
   const ok = EV_ALLOW.includes(ext);
@@ -198,7 +198,7 @@ function amsFileMeta(f) {
 function FileDropField({ multiple = true, onFiles, hint, compact }: any) {
   const ref = React.useRef(null);
   const [drag, setDrag] = React.useState(false);
-  const handle = (fl) => {
+  const handle = (fl: any) => {
     const arr = Array.from(fl || []).filter(Boolean);
     if (!arr.length) return;
     onFiles(arr.map(amsFileMeta));
@@ -206,15 +206,15 @@ function FileDropField({ multiple = true, onFiles, hint, compact }: any) {
   return (
     <div className={'filedrop' + (drag ? ' on' : '') + (compact ? ' sm' : '')}
       onClick={() => ref.current && ref.current.click()}
-      onDragEnter={e => { e.preventDefault(); setDrag(true); }}
-      onDragOver={e => e.preventDefault()}
-      onDragLeave={e => { e.preventDefault(); setDrag(false); }}
-      onDrop={e => { e.preventDefault(); setDrag(false); handle(e.dataTransfer && e.dataTransfer.files); }}>
+      onDragEnter={(e: any) => { e.preventDefault(); setDrag(true); }}
+      onDragOver={(e: any) => e.preventDefault()}
+      onDragLeave={(e: any) => { e.preventDefault(); setDrag(false); }}
+      onDrop={(e: any) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer && e.dataTransfer.files); }}>
       <span className="filedrop-ic"><I.upload size={compact ? 16 : 20} /></span>
       <div style={{ fontSize: compact ? 12 : 12.5, fontWeight: 700 }}>Tarik berkas atau klik untuk memilih</div>
       <div className="tiny muted">{hint || 'PDF · XLSX · DOCX · CSV · PNG/JPG · maks ' + EV_MAX_MB + ' MB'}</div>
       <input ref={ref} type="file" multiple={multiple} style={{ display: 'none' }}
-        onChange={e => { handle(e.target.files); e.target.value = ''; }} />
+        onChange={(e: any) => { handle(e.target.files); e.target.value = ''; }} />
     </div>
   );
 }
@@ -224,7 +224,7 @@ function FileList({ files, onRemove }: any) {
   if (!files || !files.length) return null;
   return (
     <div className="upl-files">
-      {files.map((m, i) => {
+      {files.map((m: any, i: any) => {
         const FI = I[evExtIcon(m.name)] || I.doc;
         return (
           <div key={i} className={'upl-file' + (m.ok ? '' : ' bad')}>
@@ -259,7 +259,7 @@ function SecurePipeline({ title = 'Kontrol keamanan saat unggah' }: any) {
       <div className="secpipe-h"><I.shield size={12} /> {title}</div>
       {steps.map(([ic, l], i) => (
         <div key={i} className="secpipe-row">
-          <span className="secpipe-ic">{React.createElement(I[ic] || I.circle, { size: 11 })}</span>
+          <span className="secpipe-ic">{React.createElement((I as any)[ic] || I.circle, { size: 11 })}</span>
           <span className="tiny" style={{ flex: 1 }}>{l}</span>
           <span style={{ color: 'var(--green)' }}><I.check size={12} /></span>
         </div>

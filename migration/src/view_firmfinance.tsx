@@ -37,8 +37,8 @@ function FirmFinance() {
     kpis: FF.kpis(ctx), recon: FF.reconciliations(ctx), prov: FF.provenance(ctx),
   }), [ctx]);
 
-  const jt = (v) => fmt(v / 1e6, 0);
-  const M = (v, d = 1) => fmt(v / 1e9, d);
+  const jt = (v: any) => fmt(v / 1e6, 0);
+  const M = (v: any, d = 1) => fmt(v / 1e9, d);
   const k = D.kpis;
 
   const tabs = [
@@ -98,10 +98,10 @@ function Overview({ D, jt, M, fmt, setDrill }: any) {
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel title="Pendapatan per Lini Jasa" sub="alokasi atas pendapatan Buku Besar · FY2025">
           <div className="row gap12" style={{ alignItems: 'center' }}>
-            <Donut segments={svc.rows.map(l => ({ label: l.line, value: l.rev, color: l.color }))} size={120} thickness={17}
+            <Donut segments={svc.rows.map((l: any) => ({ label: l.line, value: l.rev, color: l.color }))} size={120} thickness={17}
               center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>{M(svc.total)}M</div><div className="tiny muted">total</div></>} />
             <div style={{ flex: 1 }}>
-              {svc.rows.map(l => (
+              {svc.rows.map((l: any) => (
                 <div key={l.line} className="row jb ac" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => setDrill(l)}>
                   <span className="row ac gap8"><span style={{ width: 10, height: 10, borderRadius: 3, background: l.color }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{l.line}</span></span>
                   <div className="row ac gap10" style={{ gap: 12 }}>
@@ -145,7 +145,7 @@ function Overview({ D, jt, M, fmt, setDrill }: any) {
 /* ---------------- Tab: Profitabilitas ---------------- */
 function ProfitTab({ D, jt, M, fmt, nav, setDrill }: any) {
   const partners = D.partners.rows, total = D.partners.total;
-  const maxP = Math.max(...partners.map(p => p.portfolio), 1);
+  const maxP = Math.max(...partners.map((p: any) => p.portfolio), 1);
   const p = D.pl;
   return (
     <>
@@ -155,7 +155,7 @@ function ProfitTab({ D, jt, M, fmt, nav, setDrill }: any) {
           <table className="dtbl">
             <thead><tr><th>Partner</th><th className="num">Portofolio Fee</th><th className="num">Klien</th><th className="num">Jam</th><th className="num">Utilisasi</th><th style={{ width: 110 }}>Porsi</th></tr></thead>
             <tbody>
-              {partners.map(pt => (
+              {partners.map((pt: any) => (
                 <tr key={pt.name}>
                   <td><div className="row ac gap8"><Avatar name={pt.name} size={24} /><span style={{ fontWeight: 600 }}>{pt.name}</span></div></td>
                   <td className="num" style={{ fontWeight: 600 }}>Rp {jt(pt.portfolio)} jt</td>
@@ -172,7 +172,7 @@ function ProfitTab({ D, jt, M, fmt, nav, setDrill }: any) {
         </Panel>
 
         <Panel title="Komposisi Beban" sub="sumber: akun beban GL">
-          {p.accounts.map(a => (
+          {p.accounts.map((a: any) => (
             <div key={a.code} style={{ marginBottom: 9 }}>
               <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><span className="mono muted">{a.code}</span><span>{a.name}</span></span><span className="mono" style={{ fontWeight: 700 }}>{jt(a.bal)} · {(a.bal / p.totalExpense * 100).toFixed(0)}%</span></div>
               <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (a.bal / p.totalExpense * 100) + '%', height: '100%', borderRadius: 4, background: a.code === '5-100' ? 'var(--navy)' : 'var(--blue)' }} /></div>
@@ -191,7 +191,7 @@ function ProfitTab({ D, jt, M, fmt, nav, setDrill }: any) {
         <table className="dtbl">
           <thead><tr><th>Lini Jasa</th><th className="num">Pendapatan</th><th className="num">Porsi</th><th className="num">Pertumbuhan YoY</th><th style={{ width: 160 }}></th></tr></thead>
           <tbody>
-            {D.svc.rows.map(l => (
+            {D.svc.rows.map((l: any) => (
               <tr key={l.line} onClick={() => setDrill(l)} style={{ cursor: 'pointer' }}>
                 <td><span className="row ac gap8"><span style={{ width: 10, height: 10, borderRadius: 3, background: l.color }} /><span style={{ fontWeight: 600 }}>{l.line}</span></span></td>
                 <td className="num" style={{ fontWeight: 600 }}>{jt(l.rev)}</td>
@@ -223,9 +223,9 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel title="Aging Piutang Usaha" sub={'sumber: faktur (Billing) · Rp ' + jt(ar.open) + ' jt terbuka'} actions={<button className="btn sm" style={{ height: 22 }} onClick={() => nav('apar', { from: 'firmfinance' })}><I.coins size={11} /> AR</button>}>
           <div style={{ display: 'flex', height: 14, borderRadius: 7, overflow: 'hidden', marginBottom: 12 }}>
-            {ar.buckets.map(b => b.v > 0 && <div key={b.k} title={b.l} style={{ width: (b.pct * 100) + '%', background: b.c }} />)}
+            {ar.buckets.map((b: any) => b.v > 0 && <div key={b.k} title={b.l} style={{ width: (b.pct * 100) + '%', background: b.c }} />)}
           </div>
-          {ar.buckets.map(b => (
+          {ar.buckets.map((b: any) => (
             <div key={b.k} className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
               <span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: b.c }} /><span style={{ fontSize: 12 }}>{b.l}</span><span className="tiny muted">· {b.n}</span></span>
               <span className="row ac" style={{ gap: 12 }}><span className="mono" style={{ fontWeight: 600 }}>Rp {jt(b.v)} jt</span><span className="tiny muted" style={{ width: 36, textAlign: 'right' }}>{(b.pct * 100).toFixed(0)}%</span></span>
@@ -235,7 +235,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
         </Panel>
 
         <Panel title="Utang Usaha per Kategori" sub={'sumber: FIRM_AP · Rp ' + jt(ap.open) + ' jt terbuka'} actions={<button className="btn sm" style={{ height: 22 }} onClick={() => nav('apar', { from: 'firmfinance' })}><I.coins size={11} /> AP</button>}>
-          {ap.byCat.map(c => {
+          {ap.byCat.map((c: any) => {
             const mx = ap.byCat[0].v || 1;
             return (
               <div key={c.cat} style={{ marginBottom: 9 }}>
@@ -253,7 +253,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
         <table className="dtbl">
           <thead><tr><th>Engagement</th><th>Klien</th><th className="num">Jam</th><th className="num">Nilai WIP</th><th className="num">Ditagih</th><th className="num">Belum Ditagih</th></tr></thead>
           <tbody>
-            {wip.register.map(r => (
+            {wip.register.map((r: any) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                 <td className="truncate" style={{ maxWidth: 150 }}>{(r.client || '').replace('PT ', '')}</td>
@@ -279,7 +279,7 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
     bridged: { k: 'blue', l: 'Terjembatani' },
     open: { k: 'amber', l: 'Dalam rekonsiliasi' },
   };
-  const cashRecon = D.recon.find(r => r.key === 'cash');
+  const cashRecon = D.recon.find((r: any) => r.key === 'cash');
   return (
     <>
       <div className="panel" style={{ padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)', marginBottom: 14 }}>
@@ -292,7 +292,7 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
       <table className="dtbl" style={{ marginBottom: 18 }}>
         <thead><tr><th>Figur Headline</th><th className="num">Nilai (Rp jt)</th><th>Modul Pemilik</th><th>Sumber Data</th><th>Status</th></tr></thead>
         <tbody>
-          {D.prov.map(p => (
+          {D.prov.map((p: any) => (
             <tr key={p.label} onClick={() => nav(p.owner, { from: 'firmfinance' })} style={{ cursor: 'pointer' }}>
               <td style={{ fontWeight: 600 }}>{p.label}</td>
               <td className="num" style={{ fontWeight: 600 }}>{jt(p.value)}</td>
@@ -309,8 +309,8 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
       <table className="dtbl">
         <thead><tr><th>Akun Kontrol</th><th className="num">Saldo GL</th><th className="num">Sub-Buku</th><th className="num">Item Rekonsiliasi</th><th>Keterangan</th><th>Status</th></tr></thead>
         <tbody>
-          {D.recon.map(r => {
-            const st = STAT[r.status] || STAT.open;
+          {D.recon.map((r: any) => {
+            const st = (STAT as any)[r.status] || STAT.open;
             return (
               <tr key={r.key} onClick={() => nav(r.owner, { from: 'firmfinance' })} style={{ cursor: 'pointer' }}>
                 <td><div style={{ fontWeight: 600 }}>{r.label}</div><div className="mono tiny muted">GL {r.glCode} · {r.ownerLabel}</div></td>
@@ -334,7 +334,7 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
       <table className="dtbl">
         <thead><tr><th>Pos (P&L)</th><th>Akun GL</th><th className="num">Aktual (Budget)</th><th className="num">Saldo GL</th><th>Status</th></tr></thead>
         <tbody>
-          {D.budget.tie.map(b => (
+          {D.budget.tie.map((b: any) => (
             <tr key={b.line}>
               <td style={{ fontWeight: 600 }}>{b.line}</td>
               <td className="mono tiny muted">{b.acct}</td>
@@ -367,13 +367,13 @@ function WIPValuation() {
   const ctx = useMemoFF(() => ({ engagements, clients }), [engagements, clients]);
   const W = useMemoFF(() => FF.wip(ctx, provFactor), [ctx, provFactor]);
 
-  const jt = (v) => fmt(v / 1e6, 0);
-  const M = (v, d = 2) => fmt(v / 1e9, d);
-  const pc = (v, d = 0) => fmt(v * 100, d) + '%';
-  const realColor = (v) => v >= 1 ? 'var(--green)' : v >= 0.92 ? 'var(--amber)' : 'var(--red)';
-  const marginColor = (v) => v >= 0.38 ? 'var(--green)' : v >= 0.30 ? 'var(--amber)' : 'var(--red)';
-  const selRow = sel ? W.registerAll.find(r => r.id === sel) : null;
-  const agingMax = Math.max(...W.aging.map(a => a.value), 1);
+  const jt = (v: any) => fmt(v / 1e6, 0);
+  const M = (v: any, d = 2) => fmt(v / 1e9, d);
+  const pc = (v: any, d = 0) => fmt(v * 100, d) + '%';
+  const realColor = (v: any) => v >= 1 ? 'var(--green)' : v >= 0.92 ? 'var(--amber)' : 'var(--red)';
+  const marginColor = (v: any) => v >= 0.38 ? 'var(--green)' : v >= 0.30 ? 'var(--amber)' : 'var(--red)';
+  const selRow = sel ? W.registerAll.find((r: any) => r.id === sel) : null;
+  const agingMax = Math.max(...W.aging.map((a: any) => a.value), 1);
 
   const tabs = [
     { id: 'valuasi', label: 'Valuasi Perikatan' },
@@ -416,7 +416,7 @@ function WIPValuation() {
                       <th>Perikatan</th><th>Partner</th><th className="num">Nilai Standar</th><th className="num">Penyesuaian</th><th className="num">Recoverable</th><th className="num">Difakturkan</th><th className="num">WIP</th><th>Umur</th><th className="num">Realisasi</th><th className="num">Margin</th>
                     </tr></thead>
                     <tbody>
-                      {W.registerAll.map(r => {
+                      {W.registerAll.map((r: any) => {
                         const adj = r.writeUp - r.writeDown;
                         return (
                           <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id === sel ? null : r.id)} style={{ cursor: 'pointer' }}>
@@ -464,7 +464,7 @@ function WIPValuation() {
                   <table className="dtbl">
                     <thead><tr><th>Umur belum tertagih</th><th className="num">Saldo WIP</th><th className="num">Perikatan</th><th style={{ width: 150 }}>Komposisi</th><th className="num">Tarif</th><th className="num">Penyisihan</th></tr></thead>
                     <tbody>
-                      {W.aging.map(a => (
+                      {W.aging.map((a: any) => (
                         <tr key={a.key}>
                           <td style={{ fontWeight: 600, color: a.key === 'b90p' ? 'var(--red)' : a.key === 'b90' ? 'var(--amber)' : 'var(--ink)' }}>{a.bucket}</td>
                           <td className="num" style={{ fontWeight: 600 }}>{jt(a.value)}</td>
@@ -484,7 +484,7 @@ function WIPValuation() {
 
                 <div className="grid" style={{ gap: 12 }}>
                   <Panel title="Kebijakan Penyisihan" sub="stres tarif matriks">
-                    <div className="row gap8 ac" style={{ marginBottom: 12 }}><Seg options={presets.map(p => p.k)} value={activePreset === 'Custom' ? presets[0].k : activePreset} onChange={(k) => setProvFactor((presets.find(p => p.k === k) || { f: 1 }).f)} /></div>
+                    <div className="row gap8 ac" style={{ marginBottom: 12 }}><Seg options={presets.map(p => p.k)} value={activePreset === 'Custom' ? presets[0].k : activePreset} onChange={(k: any) => setProvFactor((presets.find(p => p.k === k) || { f: 1 }).f)} /></div>
                     <SliderRow label="Faktor kebijakan penyisihan" value={provFactor} min={0.5} max={2.5} step={0.1} suffix="×" onChange={setProvFactor} hint="Mengalikan tarif tiap bucket umur" />
                     <div className="divider" />
                     <div style={{ display: 'grid', gap: 7 }}>
@@ -513,7 +513,7 @@ function WIPValuation() {
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
                 <Panel title="Mutasi WIP Belum Ditagih (roll-forward)" sub="sub-buku perikatan material">
                   <div>
-                    {W.movement.map(m => (
+                    {W.movement.map((m: any) => (
                       <div key={m.k} className="row jb ac" style={{ padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
                         <span style={{ fontSize: 12.5, fontWeight: m.strong ? 700 : 500, color: m.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{m.op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 6 }}>{m.op}</span>}{m.label}</span>
                         <span className="mono" style={{ fontWeight: m.strong ? 800 : 600, fontSize: 13, color: m.accent === 'green' ? 'var(--green)' : m.accent === 'red' ? 'var(--red)' : m.strong ? 'var(--navy)' : 'var(--ink)' }}>{(m.value < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(m.value)) + ' jt' + (m.value < 0 ? ')' : '')}</span>
@@ -526,7 +526,7 @@ function WIPValuation() {
                 <div className="grid" style={{ gap: 12 }}>
                   <Panel title="Rekonsiliasi ke Kontrol GL 1-300" sub="bukti satu sumber kebenaran">
                     <div>
-                      {W.bridge.map((b, i) => (
+                      {W.bridge.map((b: any, i: any) => (
                         <div key={i} className="row jb ac" style={{ padding: '8px 0', borderBottom: i < W.bridge.length - 1 ? '1px solid var(--line-soft)' : 'none', background: b.control ? 'var(--blue-050)' : 'transparent', margin: b.control ? '4px -6px 0' : 0, paddingLeft: b.control ? 6 : 0, paddingRight: b.control ? 6 : 0, borderRadius: b.control ? 4 : 0 }}>
                           <span style={{ fontSize: 12, fontWeight: b.strong ? 700 : 500, color: b.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{b.control ? '= ' : (b.strong ? '' : '+ ')}{b.label}</span>
                           <span className="mono" style={{ fontWeight: b.strong ? 800 : 600, fontSize: 12.5, color: b.control ? 'var(--blue)' : 'var(--ink)' }}>Rp {jt(b.value)} jt</span>
@@ -549,7 +549,7 @@ function WIPValuation() {
                         { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan & WIP' },
                         { id: 'firmfinance', ic: 'coins', lbl: 'Firm Finance' },
                       ].map(x => {
-                        const Ic = I[x.ic] || I.link2;
+                        const Ic = (I as any)[x.ic] || I.link2;
                         return <button key={x.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--blue)', flex: '1 1 45%' }} onClick={() => nav(x.id, { from: 'wip' })}><span className="lin-ic" style={{ color: 'var(--blue)' }}><Ic size={14} /></span><span className="lin-txt"><span className="lin-lbl">{x.lbl}</span></span><span className="lin-go"><I.arrowRight size={12} /></span></button>;
                       })}
                     </div>
@@ -616,10 +616,10 @@ function ServiceLineDrill({ l, total, onClose }: any) {
     'Advisory': [['Transaction Advisory', 0.4], ['Risk & Internal Audit', 0.3], ['Valuation', 0.18], ['IT Advisory', 0.12]],
     'Reviu & AUP': [['Agreed-Upon Procedures', 0.55], ['Reviu Terbatas', 0.45]],
   };
-  const items = (breakdownMap[l.line] || [['Lainnya', 1]]).map(([n, p]) => ({ n, v: Math.round(l.rev * p) }));
+  const items = ((breakdownMap as any)[l.line] || [['Lainnya', 1]]).map(([n, p]: any) => ({ n, v: Math.round(l.rev * p) }));
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 480, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 480, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: l.color, color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{l.line}</div><div className="tiny" style={{ opacity: .85 }}>Rincian pendapatan · {(l.rev / total * 100).toFixed(0)}% dari total KAP</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -632,7 +632,7 @@ function ServiceLineDrill({ l, total, onClose }: any) {
           <table className="dtbl">
             <thead><tr><th>Sub-Lini Jasa</th><th className="num">Pendapatan</th><th className="num" style={{ width: 60 }}>Porsi</th></tr></thead>
             <tbody>
-              {items.map((it, i) => (
+              {items.map((it: any, i: any) => (
                 <tr key={i}>
                   <td style={{ fontWeight: 600 }}>{it.n}</td>
                   <td className="num">{fmt(it.v / 1e6, 0)} jt</td>

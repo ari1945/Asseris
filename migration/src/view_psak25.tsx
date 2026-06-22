@@ -114,10 +114,10 @@ function PSAK25View() {
   const procDone = P25_PROC.filter(p => proc[p.id]).length;
   const score = Math.round((procDone / P25_PROC.length) * 100);
   const discDone = P25_DISC.filter(d => disc[d.id]).length;
-  const toggleProc = (id) => setProc(m => ({ ...m, [id]: !m[id] }));
-  const toggleDisc = (id) => setDisc(m => ({ ...m, [id]: !m[id] }));
+  const toggleProc = (id: any) => setProc((m: any) => ({ ...m, [id]: !m[id] }));
+  const toggleDisc = (id: any) => setDisc((m: any) => ({ ...m, [id]: !m[id] }));
 
-  const fmtJt = (v) => (v < 0 ? '(' + fmt(Math.abs(Math.round(v))) + ')' : fmt(Math.round(v)));
+  const fmtJt = (v: any) => (v < 0 ? '(' + fmt(Math.abs(Math.round(v))) + ')' : fmt(Math.round(v)));
 
   const TABS = [
     { id: 'klasifikasi', label: 'Klasifikasi' },
@@ -165,7 +165,7 @@ function PSAK25View() {
                   </div>
                   <div style={{ padding: 14, display: 'grid', gap: 10 }}>
                     {P25_TREE.map((node, i) => {
-                      const c = P25_CAT[node.cat];
+                      const c = (P25_CAT as any)[node.cat];
                       return (
                         <div key={i} className="panel" style={{ padding: 0, overflow: 'hidden', borderLeft: '3px solid ' + c.color }}>
                           <div className="row ac gap10" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line-soft)' }}>
@@ -199,8 +199,8 @@ function PSAK25View() {
                         </tr>
                       </thead>
                       <tbody>
-                        {M.changes.map((r) => {
-                          const c = P25_CAT[r.cat];
+                        {M.changes.map((r: any) => {
+                          const c = (P25_CAT as any)[r.cat];
                           return (
                             <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => r.module && nav(r.module, { from: 'psak25' })}>
                               <td>
@@ -246,7 +246,7 @@ function PSAK25View() {
                         </tr>
                       </thead>
                       <tbody>
-                        {M.estimates.map((e) => {
+                        {M.estimates.map((e: any) => {
                           const delta = e.carryCy - e.carryPy;
                           return (
                             <tr key={e.id} style={{ cursor: 'pointer' }} onClick={() => nav(e.module, { from: 'psak25' })}>
@@ -345,7 +345,7 @@ function PSAK25View() {
                         </tr>
                       </thead>
                       <tbody>
-                        {rt.impact.map((r) => (
+                        {rt.impact.map((r: any) => (
                           <tr key={r.id} style={{ background: r.bold ? 'var(--surface-2)' : 'transparent' }}>
                             <td style={{ fontSize: 12.3, fontWeight: r.bold ? 700 : 500, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{r.label}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(Math.round(r.rep))}</td>
@@ -437,7 +437,7 @@ function PSAK25View() {
               <Panel title="Komposisi Katalog" sub="berdasar klasifikasi">
                 <div style={{ display: 'grid', gap: 7 }}>
                   {Object.keys(P25_CAT).map((k) => {
-                    const c = P25_CAT[k];
+                    const c = (P25_CAT as any)[k];
                     const n = M.counts[k] || 0;
                     const pct = M.changes.length ? Math.round(n / M.changes.length * 100) : 0;
                     return (
@@ -484,7 +484,7 @@ function PSAK25View() {
                     ['fsgen', 'report', 'Financial Statement Generator'],
                     ['compmatrix', 'table', 'Matriks Kepatuhan'],
                   ].map(([id, ic, lbl]) => {
-                    const IconC = I[ic] || I.doc;
+                    const IconC = (I as any)[ic] || I.doc;
                     return (
                       <button key={id} onClick={() => nav(id, { from: 'psak25' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>

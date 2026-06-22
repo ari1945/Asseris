@@ -24,10 +24,10 @@ const TPL_STATUS = {
   'Draf': { k: 'gray', dot: 'var(--ink-4)' },
   'Perlu Reviu': { k: 'amber', dot: 'var(--amber)' },
 };
-const tplDateID = (s) => { const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y.slice(2); };
+const tplDateID = (s: any) => { const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y.slice(2); };
 
-function FmtBadge({ fmt, size = 38 }) {
-  const c = FMT_COLOR[fmt] || 'var(--ink-3)';
+function FmtBadge({ fmt, size = 38 }: any) {
+  const c = (FMT_COLOR as any)[fmt] || 'var(--ink-3)';
   return (
     <div style={{ width: size, height: size * 1.21, borderRadius: 5, background: c + '18', color: c, display: 'grid', placeItems: 'center', flex: '0 0 ' + size + 'px', position: 'relative' }}>
       <I.doc size={size * 0.53} /><span style={{ position: 'absolute', bottom: size * 0.08, fontSize: size * 0.185, fontWeight: 800, letterSpacing: '.02em' }}>{fmt}</span>
@@ -49,8 +49,8 @@ function Templates() {
   const instans = T.reduce((s, t) => s + t.engs.length, 0);
   const topUsed = [...T].sort((a, b) => b.dl - a.dl).slice(0, 5);
 
-  const matches = (t) => (phase === 'Semua' || t.phase === phase) &&
-    (q === '' || (t.name + ' ' + t.id + ' ' + t.cat + ' ' + t.sa.map(s => s.code).join(' ')).toLowerCase().includes(q.toLowerCase()));
+  const matches = (t: any) => (phase === 'Semua' || t.phase === phase) &&
+    (q === '' || (t.name + ' ' + t.id + ' ' + t.cat + ' ' + t.sa.map((s: any) => s.code).join(' ')).toLowerCase().includes(q.toLowerCase()));
   const shown = T.filter(matches);
   const phasesToShow = TPL_PHASES.filter(p => shown.some(t => t.phase === p));
 
@@ -74,7 +74,7 @@ function Templates() {
                 ))}
               </div>
               <div className="global-search" style={{ background: 'var(--surface)', border: '1px solid var(--line)', height: 30, maxWidth: 240 }}>
-                <I.search2 size={14} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari template / standar…" value={q} onChange={e => setQ(e.target.value)} />
+                <I.search2 size={14} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari template / standar…" value={q} onChange={(e: any) => setQ(e.target.value)} />
               </div>
             </div>
 
@@ -90,8 +90,8 @@ function Templates() {
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: 10 }}>
                     {items.map(t => {
                       const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
-                      const ModIc = I[mod.icon] || I.panel;
-                      const st = TPL_STATUS[t.status] || TPL_STATUS['Aktif'];
+                      const ModIc = (I as any)[mod.icon] || I.panel;
+                      const st = (TPL_STATUS as any)[t.status] || TPL_STATUS['Aktif'];
                       return (
                         <div key={t.id} className="panel" style={{ padding: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 9 }} onClick={() => setDetail(t)}>
                           <div className="row gap10 ac">
@@ -108,7 +108,7 @@ function Templates() {
                             <span title={t.status} style={{ width: 8, height: 8, borderRadius: 8, background: st.dot, flex: '0 0 8px' }} />
                           </div>
                           <div className="row ac gap6 wrap">
-                            {t.sa.map(s => <span key={s.code} className="chip tiny" style={{ height: 18, background: 'var(--navy-050,var(--surface-3))', color: 'var(--navy)', borderColor: 'transparent' }}>{s.code}</span>)}
+                            {t.sa.map((s: any) => <span key={s.code} className="chip tiny" style={{ height: 18, background: 'var(--navy-050,var(--surface-3))', color: 'var(--navy)', borderColor: 'transparent' }}>{s.code}</span>)}
                           </div>
                           <div className="row jb ac" style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 8, marginTop: 'auto' }}>
                             <span className="row ac gap5 tiny" style={{ color: 'var(--blue)', fontWeight: 600 }}><ModIc size={12} /> {mod.label}</span>
@@ -149,7 +149,7 @@ function Templates() {
                   <div key={t.id} className="row gap8 ac" style={{ padding: '8px 0', borderBottom: i < topUsed.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: 'pointer' }} onClick={() => setDetail(t)}>
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)', flex: '0 0 16px' }}>{i + 1}</span>
                     <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }} className="truncate">{t.name}</div><div className="tiny muted">{t.dl} unduhan</div></div>
-                    <span className="chip tiny" style={{ height: 17, color: FMT_COLOR[t.fmt], borderColor: 'transparent', background: FMT_COLOR[t.fmt] + '14' }}>{t.fmt}</span>
+                    <span className="chip tiny" style={{ height: 17, color: (FMT_COLOR as any)[t.fmt], borderColor: 'transparent', background: (FMT_COLOR as any)[t.fmt] + '14' }}>{t.fmt}</span>
                   </div>
                 ))}
               </div>
@@ -162,7 +162,7 @@ function Templates() {
   );
 }
 
-function TplDocPreview({ t }) {
+function TplDocPreview({ t }: any) {
   const isXls = t.fmt === 'XLSX';
   return (
     <div style={{ background: '#fff', minHeight: 360, boxShadow: 'var(--shadow)', padding: isXls ? 0 : '34px 38px' }}>
@@ -182,25 +182,25 @@ function TplDocPreview({ t }) {
   );
 }
 
-function TemplateDetail({ t, onClose }) {
+function TemplateDetail({ t, onClose }: any) {
   const nav = useNav();
   const firm = useFirm();
   const [used, setUsed] = useStateM2(false);
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
-  const ModIc = I[mod.icon] || I.panel;
-  const st = TPL_STATUS[t.status] || TPL_STATUS['Aktif'];
+  const ModIc = (I as any)[mod.icon] || I.panel;
+  const st = (TPL_STATUS as any)[t.status] || TPL_STATUS['Aktif'];
   const engObjs = (t.engs || []).map((id: any) => ((AMS as any).ENGAGEMENTS || []).find((e: any) => e.id === id) || { id, client: '' });
   const activeEng = firm.activeEngagement;
-  const go = (id) => { nav(id, { from: 'templates' }); onClose(); };
-  const openSA = (s) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });
+  const go = (id: any) => { nav(id, { from: 'templates' }); onClose(); };
+  const openSA = (s: any) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });
 
-  const Kv = ({ label, children }) => (
+  const Kv = ({ label, children }: any) => (
     <div><div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div><div style={{ fontSize: 14, fontWeight: 600 }}>{children}</div></div>
   );
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 24 }} onClick={onClose}>
-      <div className="panel" style={{ width: 1060, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 1060, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 40, height: 48, borderRadius: 5, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', position: 'relative', flex: '0 0 40px' }}><I.doc size={21} /><span style={{ position: 'absolute', bottom: 3, fontSize: 7.5, fontWeight: 800 }}>{t.fmt}</span></span>
           <div style={{ flex: 1 }}>
@@ -241,7 +241,7 @@ function TemplateDetail({ t, onClose }) {
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Standar dipenuhi</div>
               <div className="row gap6 wrap">
-                {t.sa.map(s => (
+                {t.sa.map((s: any) => (
                   <button key={s.code} type="button" className="sa-rel-chip" title={s.code + (s.view ? ' — buka rujukan' : ' — lihat di Matriks Kepatuhan')} onClick={() => openSA(s)}>{s.code}</button>
                 ))}
               </div>
@@ -256,7 +256,7 @@ function TemplateDetail({ t, onClose }) {
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Dipakai di engagement · {engObjs.length}</div>
               <div className="grid" style={{ gap: 5 }}>
-                {engObjs.length ? engObjs.map(e => (
+                {engObjs.length ? engObjs.map((e: any) => (
                   <div key={e.id} className="row jb ac" style={{ fontSize: 12.5, padding: '7px 10px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{e.id}</span>
                     <span className="truncate muted" style={{ maxWidth: 150 }}>{(e.client || '').replace('PT ', '')}</span>

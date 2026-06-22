@@ -17,7 +17,7 @@ import { OKv } from './view_onboarding';
 const { useState: useRS } = React;
 
 /* ---- AUP: dokumen & kertas kerja (spreadsheet) sumber ---- */
-const AUP_DOC_ICON = (kind) => /(xls|csv|sheet)/i.test(kind || '') ? 'table' : (/(png|jpg|jpeg|gif|img)/i.test(kind || '') ? 'panel' : 'doc');
+const AUP_DOC_ICON = (kind: any) => /(xls|csv|sheet)/i.test(kind || '') ? 'table' : (/(png|jpg|jpeg|gif|img)/i.test(kind || '') ? 'panel' : 'doc');
 
 function AupDocRow({ d, onRemove }: any) {
   const FI = I[AUP_DOC_ICON(d.kind)] || I.doc;
@@ -37,11 +37,11 @@ function AupDocRow({ d, onRemove }: any) {
 }
 
 /* Kertas kerja rekomputasi bergaya spreadsheet — sel & formula yang menghasilkan temuan faktual */
-function AupWorksheet({ p }) {
+function AupWorksheet({ p }: any) {
   const { fmt } = AMS;
   const m = p.measure;
   if (!m) return null;
-  const valDisp = (n) => m.money ? ('Rp ' + fmt(n, 0) + ' jt') : (fmt(n, m.dp) + m.unit);
+  const valDisp = (n: any) => m.money ? ('Rp ' + fmt(n, 0) + ' jt') : (fmt(n, m.dp) + m.unit);
   const compDisp = m.count ? (m.computed + ' keterlambatan') : valDisp(m.computed);
   const threshDisp = m.count ? m.requirement : valDisp(m.threshold);
   const th = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', padding: '4px 8px', border: '1px solid var(--line-strong)', fontSize: 10.5 };
@@ -49,7 +49,7 @@ function AupWorksheet({ p }) {
   const ca = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 11.5 };
   const cb = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 11.5, textAlign: 'right', fontWeight: 600 };
   let r = 0;
-  const inputRows = m.inputs.map((inp) => { r += 1; return { n: r, a: inp.k, b: inp.v }; });
+  const inputRows = m.inputs.map((inp: any) => { r += 1; return { n: r, a: inp.k, b: inp.v }; });
   const calcN = ++r, threshN = m.count ? null : ++r, statN = ++r;
   return (
     <div style={{ border: '1px solid var(--line-strong)', borderRadius: 8, overflow: 'hidden' }}>
@@ -61,7 +61,7 @@ function AupWorksheet({ p }) {
       <table className="mono" style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
         <thead><tr><th style={rn}></th><th style={th}>A · Keterangan</th><th style={{ ...th, width: 150 }}>B · Nilai</th></tr></thead>
         <tbody>
-          {inputRows.map(row => (
+          {inputRows.map((row: any) => (
             <tr key={row.n}><td style={rn}>{row.n}</td><td style={ca}>{row.a}</td><td style={cb}>{row.b}</td></tr>
           ))}
           <tr><td style={rn}>{calcN}</td><td style={{ ...ca, background: 'var(--blue-050)', fontWeight: 700 }}>{m.label} <span style={{ color: 'var(--blue)' }}>{m.formula}</span></td><td style={{ ...cb, background: 'var(--blue-050)', color: 'var(--navy)' }}>{compDisp}</td></tr>
@@ -80,7 +80,7 @@ function RelatedServices() {
   const [view, setView] = useRS('aup');
   return (
     <>
-      <SubBar moduleId="relatedsvc" right={<div className="row gap8 ac"><Badge kind="purple">SPSJL · Tanpa Asurans</Badge><Seg options={['AUP 4400', 'Kompilasi 4410']} value={view === 'aup' ? 'AUP 4400' : 'Kompilasi 4410'} onChange={v => setView(v.includes('AUP') ? 'aup' : 'cmp')} /></div>} />
+      <SubBar moduleId="relatedsvc" right={<div className="row gap8 ac"><Badge kind="purple">SPSJL · Tanpa Asurans</Badge><Seg options={['AUP 4400', 'Kompilasi 4410']} value={view === 'aup' ? 'AUP 4400' : 'Kompilasi 4410'} onChange={(v: any) => setView(v.includes('AUP') ? 'aup' : 'cmp')} /></div>} />
       <div className="view-scroll"><div className="view-pad">
         {view === 'aup' ? <AUPPanel /> : <CompilationPanel />}
       </div></div>
@@ -91,7 +91,7 @@ function RelatedServices() {
 function AUPPanel() {
   const { fmt } = AMS;
   const [exec, setExec] = useAmsPersist('aup4400.exec', () => ({}));
-  const [custom, setCustom] = useAmsPersist('aup4400.custom', () => []);
+  const [custom, setCustom] = useAmsPersist('aup4400.custom', (): any[] => []);
   const [docs, setDocs] = useAmsPersist('aup4400.docs', () => ({}));
   const [selNo, setSelNo] = useRS(1);
   const [tab, setTab] = useRS('procs');
@@ -99,15 +99,15 @@ function AUPPanel() {
 
   const E = (AMS as any).aupEngine(exec, custom);
   const A = E.meta;
-  const toggle = (no) => setExec(m => ({ ...m, [no]: !(no in m ? m[no] : !!A.procedures.find(p => p.no === no)?.seedDone) }));
-  const setDone = (no, v) => setExec(m => ({ ...m, [no]: v }));
-  const nextNo = Math.max(0, ...E.procedures.map(p => p.no)) + 1;
-  const addProc = () => setCustom(list => [...list, { no: nextNo, clause: 'Tambahan', proc: '', finding: '', done: false, exception: false }]);
-  const editCustom = (no, k, v) => setCustom(list => list.map(p => p.no === no ? { ...p, [k]: v } : p));
-  const delCustom = (no) => setCustom(list => list.filter(p => p.no !== no));
+  const toggle = (no: any) => setExec((m: any) => ({ ...m, [no]: !(no in m ? m[no] : !!A.procedures.find((p: any) => p.no === no)?.seedDone) }));
+  const setDone = (no: any, v: any) => setExec((m: any) => ({ ...m, [no]: v }));
+  const nextNo = Math.max(0, ...E.procedures.map((p: any) => p.no)) + 1;
+  const addProc = () => setCustom((list: any) => [...list, { no: nextNo, clause: 'Tambahan', proc: '', finding: '', done: false, exception: false }]);
+  const editCustom = (no: any, k: any, v: any) => setCustom((list: any) => list.map((p: any) => p.no === no ? { ...p, [k]: v } : p));
+  const delCustom = (no: any) => setCustom((list: any) => list.filter((p: any) => p.no !== no));
 
-  const termsOk = A.terms.filter(t => t.ok).length;
-  const docPending = E.procedures.reduce((s, p) => s + ((p.docs || []).filter(d => d.status === 'pending').length), 0);
+  const termsOk = A.terms.filter((t: any) => t.ok).length;
+  const docPending = E.procedures.reduce((s: any, p: any) => s + ((p.docs || []).filter((d: any) => d.status === 'pending').length), 0);
   const tabs = [
     { id: 'terms', label: 'Persyaratan Perikatan', count: A.terms.length - termsOk || null },
     { id: 'procs', label: 'Prosedur & Temuan Faktual', count: E.total - E.done || null },
@@ -160,7 +160,7 @@ function AUPPanel() {
               <div>
                 <div className="tiny muted upper" style={{ marginBottom: 8 }}>Daftar Periksa Persyaratan (SPSJL 4400)</div>
                 <div style={{ display: 'grid', gap: 7 }}>
-                  {A.terms.map((t, i) => (
+                  {A.terms.map((t: any, i: any) => (
                     <div key={i} className="row ac gap8" style={{ padding: '9px 11px', borderRadius: 6, background: 'var(--surface-2)' }}>
                       <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{t.ok ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
                       <span className="tiny" style={{ fontWeight: 500, lineHeight: 1.45 }}>{t.k}</span>
@@ -187,13 +187,13 @@ function AUPPanel() {
             <table className="dtbl">
               <thead><tr><th style={{ width: 32 }}></th><th className="num" style={{ width: 34 }}>No.</th><th>Klausul</th><th>Prosedur Disepakati</th><th>Temuan Faktual (dihitung)</th><th style={{ width: 110 }}>Hasil</th></tr></thead>
               <tbody>
-                {E.procedures.map(p => (
+                {E.procedures.map((p: any) => (
                   <tr key={p.no}>
                     <td><span onClick={() => p.custom ? editCustom(p.no, 'done', !p.done) : toggle(p.no)} style={{ cursor: 'pointer', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center', background: p.done ? 'var(--green)' : 'var(--surface-3)', color: '#fff' }}>{p.done && <I.check size={11} />}</span></td>
                     <td className="num mono" style={{ fontWeight: 700 }}>{p.no}</td>
                     <td className="tiny muted" style={{ verticalAlign: 'top', whiteSpace: 'nowrap' }}>{p.custom ? <span className="chip tiny">Tambahan</span> : p.clause}</td>
                     <td className="tiny" style={{ width: '34%', whiteSpace: 'normal', verticalAlign: 'top' }}>
-                      {p.custom ? <input className="input" value={p.proc} onChange={e => editCustom(p.no, 'proc', e.target.value)} placeholder="Prosedur yang disepakati…" style={{ width: '100%', height: 26 }} /> : (
+                      {p.custom ? <input className="input" value={p.proc} onChange={(e: any) => editCustom(p.no, 'proc', e.target.value)} placeholder="Prosedur yang disepakati…" style={{ width: '100%', height: 26 }} /> : (
                         <>
                           <div>{p.proc}</div>
                           {p.measure && <div className="tiny muted mono" style={{ marginTop: 3 }}>{p.measure.recompute} · ambang {p.measure.requirement}</div>}
@@ -201,7 +201,7 @@ function AUPPanel() {
                       )}
                     </td>
                     <td className="tiny" style={{ width: '32%', whiteSpace: 'normal', verticalAlign: 'top' }}>
-                      {p.custom ? <input className="input" value={p.finding} onChange={e => editCustom(p.no, 'finding', e.target.value)} placeholder="Temuan faktual…" style={{ width: '100%', height: 26 }} /> : (p.done ? <span style={{ color: p.exception ? 'var(--red)' : 'var(--ink-2)' }}>{p.finding}</span> : <span style={{ fontStyle: 'italic', color: 'var(--ink-4)' }}>Belum dikerjakan</span>)}
+                      {p.custom ? <input className="input" value={p.finding} onChange={(e: any) => editCustom(p.no, 'finding', e.target.value)} placeholder="Temuan faktual…" style={{ width: '100%', height: 26 }} /> : (p.done ? <span style={{ color: p.exception ? 'var(--red)' : 'var(--ink-2)' }}>{p.finding}</span> : <span style={{ fontStyle: 'italic', color: 'var(--ink-4)' }}>Belum dikerjakan</span>)}
                     </td>
                     <td style={{ verticalAlign: 'top' }}>
                       {!p.done ? <Badge kind="gray">Pending</Badge> : p.custom ? (
@@ -219,7 +219,7 @@ function AUPPanel() {
 
         {/* ---- Register Pengecualian ---- */}
         {tab === 'exc' && (() => {
-          const exc = E.procedures.filter(p => p.done && p.exception);
+          const exc = E.procedures.filter((p: any) => p.done && p.exception);
           return (
             <div style={{ padding: 16 }}>
               {exc.length === 0 ? (
@@ -231,7 +231,7 @@ function AUPPanel() {
                 <>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>{exc.length} pengecualian — wajib dilaporkan apa adanya sebagai temuan faktual</div>
                   <div style={{ display: 'grid', gap: 10 }}>
-                    {exc.map(p => (
+                    {exc.map((p: any) => (
                       <div key={p.no} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid var(--red)' }}>
                         <div className="row jb ac" style={{ marginBottom: 6 }}>
                           <span className="row ac gap8"><Badge kind="red">Pengecualian</Badge><span className="mono tiny muted">Prosedur {p.no} · {p.clause}</span></span>
@@ -252,20 +252,20 @@ function AUPPanel() {
 
         {/* ---- Data & Dokumen (wadah dokumen + spreadsheet per prosedur) ---- */}
         {tab === 'data' && (() => {
-          const sel = E.procedures.find(p => p.no === selNo) || E.procedures[0];
+          const sel = E.procedures.find((p: any) => p.no === selNo) || E.procedures[0];
           if (!sel) return null;
           const seedDocs = sel.docs || [];
           const uploaded = docs[sel.no] || [];
-          const onFiles = (metas) => setDocs(d => ({ ...d, [sel.no]: [...(d[sel.no] || []), ...metas.filter(mm => mm.ok).map(mm => ({ name: mm.name, kind: mm.ext, src: 'Unggahan KAP', status: 'received', sha: mm.sha256, sizeMB: mm.sizeMB }))] }));
-          const rmUpload = (i) => setDocs(d => ({ ...d, [sel.no]: (d[sel.no] || []).filter((_, j) => j !== i) }));
+          const onFiles = (metas: any) => setDocs((d: any) => ({ ...d, [sel.no]: [...(d[sel.no] || []), ...metas.filter((mm: any) => mm.ok).map((mm: any) => ({ name: mm.name, kind: mm.ext, src: 'Unggahan KAP', status: 'received', sha: mm.sha256, sizeMB: mm.sizeMB }))] }));
+          const rmUpload = (i: any) => setDocs((d: any) => ({ ...d, [sel.no]: (d[sel.no] || []).filter((_: any, j: any) => j !== i) }));
           return (
             <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', minHeight: 400 }}>
               {/* rail prosedur */}
               <div style={{ borderRight: '1px solid var(--line-soft)' }}>
                 <div className="tiny muted upper" style={{ padding: '10px 12px 6px' }}>Prosedur</div>
-                {E.procedures.map(p => {
+                {E.procedures.map((p: any) => {
                   const dc = (p.docs || []).length + (docs[p.no] || []).length;
-                  const pend = (p.docs || []).filter(x => x.status === 'pending').length;
+                  const pend = (p.docs || []).filter((x: any) => x.status === 'pending').length;
                   return (
                     <div key={p.no} onClick={() => setSelNo(p.no)} style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (p.no === sel.no ? 'var(--blue)' : 'transparent'), background: p.no === sel.no ? 'var(--blue-050)' : 'transparent' }}>
                       <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700 }}>Prosedur {p.no}</span><span className="chip tiny">{dc}</span></div>
@@ -285,8 +285,8 @@ function AUPPanel() {
                 <div className="tiny muted upper" style={{ marginBottom: 6 }}>Dokumen & Spreadsheet Sumber</div>
                 <div style={{ display: 'grid', gap: 6, marginBottom: 10 }}>
                   {seedDocs.length === 0 && uploaded.length === 0 && <div className="ev-empty">Belum ada dokumen untuk prosedur ini.</div>}
-                  {seedDocs.map((d, i) => <AupDocRow key={'s' + i} d={d} />)}
-                  {uploaded.map((d, i) => <AupDocRow key={'u' + i} d={d} onRemove={() => rmUpload(i)} />)}
+                  {seedDocs.map((d: any, i: any) => <AupDocRow key={'s' + i} d={d} />)}
+                  {uploaded.map((d: any, i: any) => <AupDocRow key={'u' + i} d={d} onRemove={() => rmUpload(i)} />)}
                 </div>
                 {typeof FileDropField !== 'undefined'
                   ? <FileDropField compact hint={'PDF · XLSX · CSV · DOCX — lampirkan ke Prosedur ' + sel.no} onFiles={onFiles} />
@@ -311,8 +311,8 @@ function AUPPanel() {
             <table className="dtbl">
               <thead><tr><th className="num" style={{ width: 34 }}>No.</th><th>Input Sumber</th><th className="num">Nilai</th><th>Dokumen Sumber</th></tr></thead>
               <tbody>
-                {E.procedures.filter(p => p.measure).map(p => (
-                  p.measure.inputs.map((inp, j) => (
+                {E.procedures.filter((p: any) => p.measure).map((p: any) => (
+                  p.measure.inputs.map((inp: any, j: any) => (
                     <tr key={p.no + '-' + j}>
                       {j === 0 && <td className="num mono" rowSpan={p.measure.inputs.length} style={{ fontWeight: 700, verticalAlign: 'top' }}>{p.no}</td>}
                       <td className="tiny">{inp.k}</td>
@@ -387,7 +387,7 @@ function CompilationPanel() {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Informasi Keuangan yang Dikompilasi">
           <div style={{ display: 'grid', gap: 8 }}>
-            {C.statements.map((s, i) => (
+            {C.statements.map((s: any, i: any) => (
               <div key={i} className="row ac jb" style={{ padding: '9px 11px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span className="row ac gap8"><span style={{ color: s.compiled ? 'var(--green)' : 'var(--ink-4)' }}>{s.compiled ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{s.name}</span></span>
                 <Badge kind={s.compiled ? 'green' : 'amber'}>{s.compiled ? 'Selesai' : 'Proses'}</Badge>
@@ -409,7 +409,7 @@ function CompilationPanel() {
         <div style={{ display: 'grid', gap: 12 }}>
           <Panel title="Kelengkapan Data Sumber dari Manajemen">
             <div style={{ display: 'grid', gap: 7 }}>
-              {C.sourceQuality.map((s, i) => (
+              {C.sourceQuality.map((s: any, i: any) => (
                 <div key={i} className="row ac jb" style={{ padding: '6px 0', borderBottom: i < C.sourceQuality.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ fontSize: 12 }}>{s.k}</span>
                   <Badge kind={s.ok ? 'green' : 'amber'}>{s.ok ? 'Diterima' : 'Menunggu'}</Badge>
@@ -446,7 +446,7 @@ function OtherAssurance() {
   const isGhg = AMS.ghgEngine && AMS.GHG_3410 && sel === (AMS.GHG_3410 as any).id;
   const e = isPfi ? (AMS as any).pfiEngine().assuranceEntry : isSoc ? (AMS as any).socEngine().assuranceEntry : isGhg ? (AMS as any).ghgEngine().assuranceEntry : ENG[sel];
   const m = meta[sel];
-  const doneN = e.matters.filter(x => x.ok).length;
+  const doneN = e.matters.filter((x: any) => x.ok).length;
 
   return (
     <>
@@ -480,7 +480,7 @@ function OtherAssurance() {
               <table className="dtbl">
                 <thead><tr><th style={{ width: '20%' }}>Hal Pokok</th><th style={{ width: '15%' }}>Asersi Manajemen</th><th style={{ width: '30%' }}>Prosedur Asurans</th><th style={{ width: '23%' }}>Simpulan</th><th style={{ width: '12%' }}>Status</th></tr></thead>
                 <tbody>
-                  {e.matters.map((x, i) => (
+                  {e.matters.map((x: any, i: any) => (
                     <tr key={i}>
                       <td style={{ fontWeight: 600, whiteSpace: 'normal', verticalAlign: 'top' }}>{x.m}</td>
                       <td className="mono tiny" style={{ whiteSpace: 'normal', verticalAlign: 'top' }}>{x.claim}</td>

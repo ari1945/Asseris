@@ -15,13 +15,13 @@ import { amsExportXlsx } from './export_xlsx.js';
    ============================================================ */
 const { useState: useStateR } = React;
 
-function scoreColor(v) {
+function scoreColor(v: any) {
   if (v >= 15) return '#b3261e';
   if (v >= 10) return '#d4641c';
   if (v >= 5)  return '#c79a1e';
   return '#1f7a4d';
 }
-function scoreLabel(v) {
+function scoreLabel(v: any) {
   if (v >= 15) return 'Significant';
   if (v >= 10) return 'Elevated';
   if (v >= 5)  return 'Moderate';
@@ -35,14 +35,14 @@ function RiskAssessment() {
   const [selId, setSelId] = useStateR(risks[0].id);
   const [hoverCell, setHoverCell] = useStateR(null);
   const [exporting, setExporting] = useStateR(false);
-  const sel = risks.find(r => r.id === selId);
+  const sel = risks.find((r: any) => r.id === selId);
 
   // W10.5 Fase 2 — sealed XLSX risk register (RoMM). No currency: L/I/score are integers.
   const onExportXlsx = async () => {
     if (exporting) return;
     setExporting(true);
     try {
-      const rows = risks.map(r => {
+      const rows = risks.map((r: any) => {
         const sc = r.likelihood * r.impact;
         return [r.id, r.area, r.assertion, r.assertionLvl ? 'Level Asersi' : 'Level LK', r.desc, r.likelihood, r.impact, sc, scoreLabel(sc), r.fraud ? 'Ya' : '—', r.response, r.owner, r.wp];
       });
@@ -65,10 +65,10 @@ function RiskAssessment() {
   };
 
   // build 5x5 occupancy
-  const cellRisks = (impact, likelihood) => risks.filter(r => r.impact === impact && r.likelihood === likelihood);
+  const cellRisks = (impact: any, likelihood: any) => risks.filter((r: any) => r.impact === impact && r.likelihood === likelihood);
 
-  const sig = risks.filter(r => r.likelihood * r.impact >= 12).length;
-  const fraud = risks.filter(r => r.fraud).length;
+  const sig = risks.filter((r: any) => r.likelihood * r.impact >= 12).length;
+  const fraud = risks.filter((r: any) => r.fraud).length;
 
   const [mtab, setMtab] = useStateR(() => localStorage.getItem('ams.risk.tab') || 'register');
   React.useEffect(() => { try { localStorage.setItem('ams.risk.tab', mtab); } catch (e) {} }, [mtab]);
@@ -99,7 +99,7 @@ function RiskAssessment() {
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.length} label="Total RoMM" /></div></Panel>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={sig} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={fraud} label="Fraud Risk (SA 240)" accent="var(--amber)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter(r => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
+            <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
@@ -153,7 +153,7 @@ function RiskAssessment() {
                     <th className="num" style={{ width: 50 }}>Skor</th><th style={{ width: 100 }}>Tingkat</th><th style={{ width: 44 }}>WP</th>
                   </tr></thead>
                   <tbody>
-                    {risks.map(r => {
+                    {risks.map((r: any) => {
                       const sc = r.likelihood * r.impact;
                       return (
                         <tr key={r.id} className={r.id === selId ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
@@ -208,7 +208,7 @@ function RiskAssessment() {
                             <span style={{ fontSize: 12, fontWeight: 600 }}>{lbl}</span>
                             <span className="mono" style={{ fontWeight: 700 }}>{sel[key]}/5</span>
                           </div>
-                          <input type="range" min="1" max="5" value={sel[key]} onChange={e => updateRisk(sel.id, { [key]: +e.target.value })} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+                          <input type="range" min="1" max="5" value={sel[key]} onChange={(e: any) => updateRisk(sel.id, { [key]: +e.target.value })} style={{ width: '100%', accentColor: 'var(--blue)' }} />
                         </div>
                       ))}
                       <div className="divider" />

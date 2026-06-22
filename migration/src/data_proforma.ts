@@ -113,23 +113,23 @@ import { AMS_CANON } from './canon';
        pelaksanaan prosedur (override seedDone); bila tak diberi → dibaca dari
        localStorage ams.v1.pf3420.exec. Seluruh kolom HISTORIS ditarik dari
        AMS_CANON; engine TIDAK menyimpan angka historis. ---- */
-  function proformaEngine(execArg?) {
+  function proformaEngine(execArg?: any) {
     const A = PF_3420;
-    const fmt: any = (AMS && AMS.fmt) || ((n) => n);
+    const fmt: any = (AMS && AMS.fmt) || ((n: any) => n);
     const C = AMS_CANON;
     let exec = execArg;
     if (!exec && typeof localStorage !== 'undefined') {
       try { exec = JSON.parse(localStorage.getItem('ams.v1.pf3420.exec') || 'null'); } catch (e) {}
     }
     exec = exec || {};
-    const isDone = (id, seed) => Object.prototype.hasOwnProperty.call(exec, id) ? !!exec[id] : !!seed;
+    const isDone = (id: any, seed: any) => Object.prototype.hasOwnProperty.call(exec, id) ? !!exec[id] : !!seed;
     const R = Math.round;
 
     /* ====== KOLOM HISTORIS — ditarik LIVE dari AMS_CANON (SSOT) ====== */
     const RATE = C ? C.RATE : 0.22;
     const k65 = C ? C.psak65() : null;
     const rev = C ? C.revenue() : null;
-    const wsCap = (cap) => (k65 ? (k65.ws.find(r => r.cap === cap) || { konsol: 0 }).konsol : 0);
+    const wsCap = (cap: any) => (k65 ? (k65.ws.find(r => r.cap === cap) || { konsol: 0 }).konsol : 0);
 
     /* Pendapatan konsolidasian = induk auditan + Σ anak − eliminasi antar-pr. (ELM-01) */
     const intercoSales = k65 ? ((k65.interco.find(e => e.id === 'ELM-01') || {}).amount || 0) : 0;
@@ -188,7 +188,7 @@ import { AMS_CANON } from './canon';
     const acqCosts = D.acqCosts;
 
     /* ====== LAPORAN POSISI KEUANGAN PROFORMA (kolom: hist · acq · fin) ====== */
-    const mk = (label, hist, acq, fin, opts?) => {
+    const mk = (label: any, hist: any, acq: any, fin: any, opts?: any) => {
       const pf = hist + acq + fin;
       return Object.assign({ label, hist, acq, fin, pf }, opts || {});
     };
@@ -207,7 +207,7 @@ import { AMS_CANON } from './canon';
       mk('Ekuitas — atribusi pemilik entitas induk', baseOwnersEq, -acqCosts, netProceeds),
       mk('Kepentingan nonpengendali (NCI)', baseNCI, nciAcq, 0, { nci: true }),
     ];
-    const sumCol = (arr, col) => arr.reduce((a, r) => a + r[col], 0);
+    const sumCol = (arr: any, col: any) => arr.reduce((a: any, r: any) => a + r[col], 0);
     const bsTot = {
       aset:    { hist: sumCol(bsAssets, 'hist'), acq: sumCol(bsAssets, 'acq'), fin: sumCol(bsAssets, 'fin'), pf: sumCol(bsAssets, 'pf') },
       liab:    { hist: sumCol(bsLiab, 'hist'),   acq: sumCol(bsLiab, 'acq'),   fin: sumCol(bsLiab, 'fin'),   pf: sumCol(bsLiab, 'pf') },
@@ -324,8 +324,8 @@ import { AMS_CANON } from './canon';
       });
     }
     /* Katalog Asurans Lain — hal pokok ditarik dari mesin proforma (bukan hardcode) */
-    if (AMS.ASSURANCE_ENG && !AMS.ASSURANCE_ENG[PF_3420.id]) {
-      AMS.ASSURANCE_ENG[PF_3420.id] = proformaEngine().assuranceEntry;
+    if (AMS.ASSURANCE_ENG && !(AMS.ASSURANCE_ENG as any)[PF_3420.id]) {
+      (AMS.ASSURANCE_ENG as any)[PF_3420.id] = proformaEngine().assuranceEntry;
     }
   } catch (e) {}
 })();

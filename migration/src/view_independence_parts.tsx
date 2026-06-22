@@ -20,8 +20,8 @@ function FeeDependencyTab() {
   const A: any = AMS, fmt = A.fmt;
   const F = A.FEE_DEPENDENCY;
   const rows = F.rows;
-  const triggers = rows.filter(r => r.trigger);
-  const barCol = (r) => r.trigger ? 'var(--red)' : r.overCur ? 'var(--amber)' : 'var(--green)';
+  const triggers = rows.filter((r: any) => r.trigger);
+  const barCol = (r: any) => r.trigger ? 'var(--red)' : r.overCur ? 'var(--amber)' : 'var(--green)';
 
   return (
     <div style={{ padding: 14 }}>
@@ -30,13 +30,13 @@ function FeeDependencyTab() {
       </p>
       {triggers.length > 0 && (
         <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
-          <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={16} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{triggers.length} klien PIE melampaui ambang {F.threshold}% dua tahun berturut: <b>{triggers.map(t => t.name.replace('PT ', '')).join(', ')}</b> — wajib pengamanan & komunikasi TCWG (IESBA 410).</span></div>
+          <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={16} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{triggers.length} klien PIE melampaui ambang {F.threshold}% dua tahun berturut: <b>{triggers.map((t: any) => t.name.replace('PT ', '')).join(', ')}</b> — wajib pengamanan & komunikasi TCWG (IESBA 410).</span></div>
         </div>
       )}
       <table className="dtbl">
         <thead><tr><th>Klien</th><th>PIE</th><th className="num">Imbalan TA</th><th style={{ width: 150 }}>% Imbalan Firma (2 thn)</th><th>Status</th><th>Pengamanan</th></tr></thead>
         <tbody>
-          {rows.map(r => (
+          {rows.map((r: any) => (
             <tr key={r.id}>
               <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.name.replace('PT ', '')}{r.sektorJK && <span className="badge b-teal" style={{ fontSize: 8, padding: '0 4px', marginLeft: 5 }}>JK</span>}</td>
               <td>{r.pie ? <Badge kind="red">PIE</Badge> : <span className="tiny muted">Non-PIE</span>}</td>
@@ -67,10 +67,10 @@ function NASPreApprovalTab() {
   const A: any = AMS;
   const list = A.NAS_PREAPPROVAL, prohib = A.NAS_PROHIBITION;
   const [sel, setSel] = useStateIP(null);
-  const rejected = list.filter(n => n.status === 'Ditolak').length;
-  const pending = list.filter(n => n.status === 'Menunggu').length;
-  const srCol = (s) => s === 'Tinggi' ? 'var(--red)' : s === 'Sedang' ? 'var(--amber)' : 'var(--green)';
-  const stKind = (s) => s === 'Disetujui' ? 'green' : s === 'Ditolak' ? 'red' : 'amber';
+  const rejected = list.filter((n: any) => n.status === 'Ditolak').length;
+  const pending = list.filter((n: any) => n.status === 'Menunggu').length;
+  const srCol = (s: any) => s === 'Tinggi' ? 'var(--red)' : s === 'Sedang' ? 'var(--amber)' : 'var(--green)';
+  const stKind = (s: any) => s === 'Disetujui' ? 'green' : s === 'Ditolak' ? 'red' : 'amber';
 
   return (
     <div style={{ padding: 14 }}>
@@ -83,7 +83,7 @@ function NASPreApprovalTab() {
           <table className="dtbl">
             <thead><tr><th>Ref</th><th>Klien / Jasa</th><th>PIE</th><th>Telaah-Pribadi</th><th>Keputusan</th></tr></thead>
             <tbody>
-              {list.map(n => (
+              {list.map((n: any) => (
                 <tr key={n.id} className={n.id === (sel && sel.id) ? 'sel' : ''} onClick={() => setSel(n)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{n.id}</td>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.35 }}><span style={{ fontWeight: 600, fontSize: 12 }}>{n.client.replace('PT ', '')}</span><div className="tiny muted">{n.svc}</div></td>
@@ -118,7 +118,7 @@ function NASPreApprovalTab() {
           <Panel noBody>
             <div className="panel-h"><h3>Daftar Larangan NAS (PIE)</h3></div>
             <div style={{ padding: 10, display: 'grid', gap: 6 }}>
-              {prohib.map(p => (
+              {prohib.map((p: any) => (
                 <div key={p.ref} className="row ac gap8" style={{ padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
                   <span className="badge b-gray tiny mono" style={{ flex: '0 0 auto' }}>{p.ref}</span>
                   <span className="tiny" style={{ lineHeight: 1.35 }}>{p.svc}</span>
@@ -147,14 +147,14 @@ function LongAssociationTab() {
       <table className="dtbl">
         <thead><tr><th>Personel</th><th>Peran</th><th>Klien</th><th className="num">Masa Asosiasi</th><th>Rezim</th><th>Tindakan / Pengamanan</th></tr></thead>
         <tbody>
-          {list.map((m, i) => (
+          {list.map((m: any, i: any) => (
             <tr key={i}>
               <td><div className="row ac gap8"><Avatar name={m.name} size={24} /><span style={{ fontWeight: 600 }}>{m.name}</span></div></td>
               <td className="tiny">{m.role}</td>
               <td className="tiny">{m.client.replace('PT ', '')}</td>
-              <td className="num"><span className="mono" style={{ fontWeight: 700, color: flagCol[m.flag] }}>{m.years} th</span></td>
+              <td className="num"><span className="mono" style={{ fontWeight: 700, color: (flagCol as any)[m.flag] }}>{m.years} th</span></td>
               <td className="tiny muted">{m.regime}</td>
-              <td style={{ whiteSpace: 'normal', lineHeight: 1.4 }}><div className="row ac gap6" style={{ marginBottom: 2 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: flagCol[m.flag] }} /><span className="tiny" style={{ fontWeight: 600, color: flagCol[m.flag] }}>{flagLbl[m.flag]}</span></div><span className="tiny muted">{m.action}</span></td>
+              <td style={{ whiteSpace: 'normal', lineHeight: 1.4 }}><div className="row ac gap6" style={{ marginBottom: 2 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: (flagCol as any)[m.flag] }} /><span className="tiny" style={{ fontWeight: 600, color: (flagCol as any)[m.flag] }}>{(flagLbl as any)[m.flag]}</span></div><span className="tiny muted">{m.action}</span></td>
             </tr>
           ))}
         </tbody>

@@ -29,7 +29,7 @@ const KB_COV = {
 const KB_LEVEL = { Pengantar: 'green', Inti: 'blue', Lanjutan: 'amber' };
 
 /* keluarga kerangka untuk filter */
-function kbFamily(type) {
+function kbFamily(type: any) {
   if (type === 'SA') return 'SA';
   if (type === 'PSAK' || type === 'SAK') return 'PSAK';
   if (type === 'SPM' || type === 'KEPAP') return 'Mutu';
@@ -40,11 +40,11 @@ const KB_FAMILIES = [
   ['Lain', 'Perikatan Lain'], ['Mutu', 'Mutu & Etika'],
 ];
 
-function kbTypeKind(type) {
+function kbTypeKind(type: any) {
   const fw = (AMS && AMS.KB_FRAMEWORK) || {};
-  return (fw[type] && fw[type].kind) || 'gray';
+  return ((fw as any)[type] && (fw as any)[type].kind) || 'gray';
 }
-function kbIsStdPage(module) { return module && /^(sa|psak|spr|sjah|sakep|psak)\d|^(sa|psak|spr|sjah|sakep)/.test(module); }
+function kbIsStdPage(module: any) { return module && /^(sa|psak|spr|sjah|sakep|psak)\d|^(sa|psak|spr|sjah|sakep)/.test(module); }
 
 function KnowledgeBase() {
   const nav = useNav();
@@ -55,7 +55,7 @@ function KnowledgeBase() {
   const all = useMemoKB(() => (AMS && AMS.kbArticles ? (AMS as any).kbArticles() : []), []);
   const qn = q.trim().toLowerCase();
 
-  const filtered = all.filter(a => {
+  const filtered = all.filter((a: any) => {
     if (fam !== 'Semua' && kbFamily(a.type) !== fam) return false;
     if (qn) {
       const hay = (a.code + ' ' + a.title + ' ' + a.type + ' ' + (a.tags || []).join(' ')).toLowerCase();
@@ -64,10 +64,10 @@ function KnowledgeBase() {
     return true;
   });
 
-  const byPhase = KB_PHASES.map(ph => ({ phase: ph, items: filtered.filter(a => a.phase === ph) })).filter(g => g.items.length);
-  const popular = all.filter(a => a.hot);
-  const authored = all.filter(a => !a.fallback).length;
-  const checklistN = all.filter(a => a.coverage === 'checklist').length;
+  const byPhase = KB_PHASES.map(ph => ({ phase: ph, items: filtered.filter((a: any) => a.phase === ph) })).filter(g => g.items.length);
+  const popular = all.filter((a: any) => a.hot);
+  const authored = all.filter((a: any) => !a.fallback).length;
+  const checklistN = all.filter((a: any) => a.coverage === 'checklist').length;
 
   return (
     <>
@@ -86,7 +86,7 @@ function KnowledgeBase() {
                 <div style={{ fontSize: 12.5, color: '#bcd6e4', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
               </div>
               <div className="row gap14" style={{ flexShrink: 0 }}>
-                {[['SA', all.filter(a => a.type === 'SA').length], ['PSAK', all.filter(a => kbFamily(a.type) === 'PSAK').length], ['Editorial', authored]].map(([l, n]) => (
+                {[['SA', all.filter((a: any) => a.type === 'SA').length], ['PSAK', all.filter((a: any) => kbFamily(a.type) === 'PSAK').length], ['Editorial', authored]].map(([l, n]) => (
                   <div key={l} style={{ textAlign: 'right' }}>
                     <div className="mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{n}</div>
                     <div className="tiny" style={{ color: '#9fc2d4' }}>{l}</div>
@@ -95,7 +95,7 @@ function KnowledgeBase() {
               </div>
             </div>
             <div className="global-search" style={{ background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.2)', maxWidth: 520, height: 36, marginTop: 14 }}>
-              <I.search2 size={15} /><input placeholder="Cari nomor standar, judul, atau topik (mis. ECL, materialitas, KAM)…" value={q} onChange={e => setQ(e.target.value)} />
+              <I.search2 size={15} /><input placeholder="Cari nomor standar, judul, atau topik (mis. ECL, materialitas, KAM)…" value={q} onChange={(e: any) => setQ(e.target.value)} />
               {q && <button className="p-act" onClick={() => setQ('')} style={{ color: '#fff' }}><I.x size={14} /></button>}
             </div>
           </div>
@@ -124,7 +124,7 @@ function KnowledgeBase() {
                   <div style={{ flex: 1, height: 1, background: 'var(--line-soft)' }} />
                 </div>
                 <div className="grid" style={{ gap: 8 }}>
-                  {g.items.map(a => <KBCard key={a.code} a={a} onOpen={() => setReading(a.code)} />)}
+                  {g.items.map((a: any) => <KBCard key={a.code} a={a} onOpen={() => setReading(a.code)} />)}
                 </div>
               </div>
             ))}
@@ -134,7 +134,7 @@ function KnowledgeBase() {
           <div style={{ display: 'grid', gap: 12, position: 'sticky', top: 8 }}>
             <Panel title="Paling dirujuk">
               <div style={{ display: 'grid', gap: 0 }}>
-                {popular.map((a, i) => (
+                {popular.map((a: any, i: any) => (
                   <div key={a.code} className="row gap8 ac" style={{ padding: '8px 0', borderBottom: i < popular.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: 'pointer' }} onClick={() => setReading(a.code)}>
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)', flex: '0 0 20px', fontSize: 12 }}>{i + 1}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -149,7 +149,7 @@ function KnowledgeBase() {
             <Panel title="Cakupan standar">
               <div style={{ display: 'grid', gap: 8 }}>
                 {Object.keys(KB_COV).map(k => {
-                  const m = KB_COV[k]; const n = all.filter(a => a.coverage === k).length;
+                  const m = (KB_COV as any)[k]; const n = all.filter((a: any) => a.coverage === k).length;
                   return (
                     <div key={k} className="row ac jb" style={{ fontSize: 12 }}>
                       <span className="row ac gap6"><Badge kind={m.kind}>{m.label}</Badge></span>
@@ -189,7 +189,7 @@ function KnowledgeBase() {
 /* ---------- kartu artikel ---------- */
 function KBCard({ a, onOpen }: any) {
   const mi = (window.MODULE_INDEX || {})[a.module] || null;
-  const cov = KB_COV[a.coverage] || KB_COV.module;
+  const cov = (KB_COV as any)[a.coverage] || KB_COV.module;
   const prog = (a.coverage === 'checklist' && window.compliancePct) ? window.compliancePct(a.module) : null;
   return (
     <div className="panel kb-card" onClick={onOpen}>
@@ -206,7 +206,7 @@ function KBCard({ a, onOpen }: any) {
           <Badge kind={cov.kind}>{cov.label}</Badge>
           {mi && a.coverage !== 'gap' && <span>→ {mi.label}</span>}
           <span>· {a.read} mnt</span>
-          <span className="row ac gap4">· <span style={{ width: 6, height: 6, borderRadius: 6, background: 'var(--' + (KB_LEVEL[a.level] || 'gray') + ')' }} /> {a.level}</span>
+          <span className="row ac gap4">· <span style={{ width: 6, height: 6, borderRadius: 6, background: 'var(--' + ((KB_LEVEL as any)[a.level] || 'gray') + ')' }} /> {a.level}</span>
         </div>
       </div>
       <div style={{ display: 'grid', gap: 6, justifyItems: 'end', flex: '0 0 auto' }}>
@@ -223,9 +223,9 @@ function KBCard({ a, onOpen }: any) {
 /* ---------- pembaca artikel (mendalam, tarikan lintas-modul) ---------- */
 function ArticleReader({ code, onClose, onOpenCode }: any) {
   const nav = useNav();
-  const reg = (window.STANDARDS_REGISTRY || []).find(r => r.code === code);
+  const reg = (window.STANDARDS_REGISTRY || []).find((r: any) => r.code === code);
   React.useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: any) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
@@ -233,8 +233,8 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
 
   const c = (AMS as any).kbResolve(reg);
   const mi = (window.MODULE_INDEX || {})[reg.module] || null;
-  const cov = KB_COV[reg.coverage] || KB_COV.module;
-  const fw = (AMS.KB_FRAMEWORK || {})[reg.type] || { label: reg.type, blurb: '' };
+  const cov = (KB_COV as any)[reg.coverage] || KB_COV.module;
+  const fw = ((AMS.KB_FRAMEWORK || {}) as any)[reg.type] || { label: reg.type, blurb: '' };
   const prog = (reg.coverage === 'checklist' && window.compliancePct) ? window.compliancePct(reg.module) : null;
   const tpls = (AMS as any).kbTemplatesForStandard(reg.code, reg.module) || [];
 
@@ -242,14 +242,14 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   const relatedRaw = (window.RELATED_SA || {})[reg.module] || [];
   const REG = window.STANDARDS_REGISTRY || [];
   const seen = { [reg.code]: 1 };
-  let related = [];
-  relatedRaw.forEach(r => {
+  let related: any[] = [];
+  relatedRaw.forEach((r: any) => {
     if (seen[r.code]) return; seen[r.code] = 1;
-    const row = REG.find(x => x.code === r.code);
+    const row = REG.find((x: any) => x.code === r.code);
     related.push({ code: r.code, title: r.title || (row && row.title) || r.code, view: r.view, inReg: !!row });
   });
   if (related.length < 3) {
-    REG.filter(x => x.phase === reg.phase && x.type === reg.type && !seen[x.code]).slice(0, 4 - related.length).forEach(x => {
+    REG.filter((x: any) => x.phase === reg.phase && x.type === reg.type && !seen[x.code]).slice(0, 4 - related.length).forEach((x: any) => {
       seen[x.code] = 1; related.push({ code: x.code, title: x.title, inReg: true });
     });
   }
@@ -258,7 +258,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   const previewStd = () => {
     if (window.__amsOpenSA) window.__amsOpenSA({ code: reg.code, title: reg.title, view: kbIsStdPage(reg.module) ? reg.module : undefined, phase: reg.phase, fromModule: 'kb' });
   };
-  const openRelated = (r) => {
+  const openRelated = (r: any) => {
     if (r.inReg) { onOpenCode(r.code); }
     else if (window.__amsOpenSA) { onClose(); window.__amsOpenSA({ code: r.code, title: r.title, view: r.view, phase: reg.phase, fromModule: 'kb' }); }
   };
@@ -272,7 +272,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.42)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 24 }} onClick={onClose}>
-      <div className="panel" style={{ width: 940, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 940, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         {/* header */}
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', flex: '0 0 48px' }}><I.book size={24} /></span>
@@ -305,7 +305,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           </div>
 
           {/* isi */}
-          {(c.sections || []).map((s, i) => (
+          {(c.sections || []).map((s: any, i: any) => (
             <div key={i} style={{ marginBottom: 18 }}>
               <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 7 }}>{s.h}</div>
               <p style={{ margin: 0, textAlign: 'left', textWrap: 'pretty', color: 'var(--ink-2)' }}>{s.p}</p>
@@ -317,7 +317,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
             <div className="panel" style={{ padding: '12px 15px', marginBottom: 16 }}>
               <div className="tiny muted upper" style={{ marginBottom: 9, fontWeight: 700, fontSize: 11 }}>Poin penerapan utama</div>
               <div style={{ display: 'grid', gap: 9 }}>
-                {c.points.map((t, i) => (
+                {c.points.map((t: any, i: any) => (
                   <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
                     <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 2 }}><I.checkCircle size={17} /></span>
                     <span style={{ fontSize: 14.5, lineHeight: 1.55 }}>{t}</span>
@@ -333,7 +333,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
               <div className="tiny muted upper" style={{ marginBottom: 8, fontWeight: 700 }}>Jalankan standar ini</div>
               <div className="row jb ac gap10 wrap">
                 <div className="row ac gap10" style={{ minWidth: 0 }}>
-                  <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{I[mi.icon] ? React.createElement(I[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
+                  <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{(I as any)[mi.icon] ? React.createElement((I as any)[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
                   <div style={{ minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }}>{mi.label}</div><div className="muted" style={{ fontSize: 12 }}>{cov.note} · {mi.group}</div></div>
                 </div>
                 <div className="row gap8">
@@ -357,7 +357,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
             <div style={{ marginBottom: 14 }}>
               <div className="tiny muted upper" style={{ marginBottom: 8, fontWeight: 700 }}>Template terkait · {tpls.length}</div>
               <div style={{ display: 'grid', gap: 6 }}>
-                {tpls.slice(0, 5).map(t => (
+                {tpls.slice(0, 5).map((t: any) => (
                   <button key={t.id} className="kb-readlink" onClick={() => { onClose(); nav('templates', { from: 'kb' }); }}>
                     <span className="mono tiny" style={{ fontWeight: 700, color: '#fff', background: 'var(--navy)', padding: '2px 6px', borderRadius: 4, flex: '0 0 auto' }}>{t.fmt}</span>
                     <span style={{ flex: 1, minWidth: 0 }}><span style={{ fontSize: 13.5, fontWeight: 600 }}>{t.name}</span><span className="tiny muted" style={{ display: 'block' }}>v{t.ver} · {t.status}{t.reviewDue ? ' · perlu reviu' : ''}</span></span>

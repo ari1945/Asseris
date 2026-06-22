@@ -12,12 +12,12 @@ import { RowKv } from './view_calc';
 const { useState: useStateGC, useMemo: useMemoGC } = React;
 
 const GC_RATIOS = [
-  { id: 'cr',  label: 'Current Ratio',     value: 1.60, py: 1.82, unit: 'x',  good: v => v >= 1.2, warn: v => v >= 1.0, trend: [2.1, 1.95, 1.82, 1.71, 1.60], hint: 'Aset Lancar ÷ Liabilitas Jk. Pendek' },
-  { id: 'qr',  label: 'Quick Ratio',       value: 0.79, py: 0.95, unit: 'x',  good: v => v >= 1.0, warn: v => v >= 0.7, trend: [1.1, 1.02, 0.95, 0.86, 0.79], hint: '(Aset Lancar − Persediaan) ÷ Liab. Jk. Pendek' },
-  { id: 'der', label: 'Debt-to-Equity',    value: 0.97, py: 0.88, unit: 'x',  good: v => v <= 1.0, warn: v => v <= 1.5, trend: [0.74, 0.81, 0.88, 0.92, 0.97], hint: 'Total Liabilitas ÷ Total Ekuitas', invert: true },
-  { id: 'icr', label: 'Interest Coverage', value: 3.96, py: 4.80, unit: 'x',  good: v => v >= 3, warn: v => v >= 1.5, trend: [6.1, 5.4, 4.8, 4.3, 3.96], hint: 'EBIT ÷ Beban Bunga' },
-  { id: 'ocf', label: 'Arus Kas Operasi',  value: 18.2, py: 22.4, unit: ' M', good: v => v > 0, warn: v => v > -5, trend: [28, 25, 22.4, 20.1, 18.2], hint: 'Arus kas dari aktivitas operasi (Rp M)' },
-  { id: 'wc',  label: 'Modal Kerja',        value: 57.1, py: 64.8, unit: ' M', good: v => v > 0, warn: v => v > 0, trend: [78, 71, 64.8, 60.5, 57.1], hint: 'Aset Lancar − Liab. Jk. Pendek (Rp M)' },
+  { id: 'cr',  label: 'Current Ratio',     value: 1.60, py: 1.82, unit: 'x',  good: (v: any) => v >= 1.2, warn: (v: any) => v >= 1.0, trend: [2.1, 1.95, 1.82, 1.71, 1.60], hint: 'Aset Lancar ÷ Liabilitas Jk. Pendek' },
+  { id: 'qr',  label: 'Quick Ratio',       value: 0.79, py: 0.95, unit: 'x',  good: (v: any) => v >= 1.0, warn: (v: any) => v >= 0.7, trend: [1.1, 1.02, 0.95, 0.86, 0.79], hint: '(Aset Lancar − Persediaan) ÷ Liab. Jk. Pendek' },
+  { id: 'der', label: 'Debt-to-Equity',    value: 0.97, py: 0.88, unit: 'x',  good: (v: any) => v <= 1.0, warn: (v: any) => v <= 1.5, trend: [0.74, 0.81, 0.88, 0.92, 0.97], hint: 'Total Liabilitas ÷ Total Ekuitas', invert: true },
+  { id: 'icr', label: 'Interest Coverage', value: 3.96, py: 4.80, unit: 'x',  good: (v: any) => v >= 3, warn: (v: any) => v >= 1.5, trend: [6.1, 5.4, 4.8, 4.3, 3.96], hint: 'EBIT ÷ Beban Bunga' },
+  { id: 'ocf', label: 'Arus Kas Operasi',  value: 18.2, py: 22.4, unit: ' M', good: (v: any) => v > 0, warn: (v: any) => v > -5, trend: [28, 25, 22.4, 20.1, 18.2], hint: 'Arus kas dari aktivitas operasi (Rp M)' },
+  { id: 'wc',  label: 'Modal Kerja',        value: 57.1, py: 64.8, unit: ' M', good: (v: any) => v > 0, warn: (v: any) => v > 0, trend: [78, 71, 64.8, 60.5, 57.1], hint: 'Aset Lancar − Liab. Jk. Pendek (Rp M)' },
 ];
 
 const GC_INDICATORS: any = {
@@ -48,7 +48,7 @@ function GoingConcern() {
   const [revShock, setRevShock] = useStateGC(0);      // % revenue decline
   const [costCut, setCostCut] = useStateGC(0);         // % opex reduction (mitigation)
   const [financing, setFinancing] = useStateGC(true);  // refinancing available
-  const toggle = (cat, id) => setInds(s => ({ ...s, [cat]: s[cat].map(i => i.id === id ? { ...i, on: !i.on } : i) }));
+  const toggle = (cat: any, id: any) => setInds((s: any) => ({ ...s, [cat]: s[cat].map((i: any) => i.id === id ? { ...i, on: !i.on } : i) }));
 
   /* 12-month cash projection (Rp miliar) */
   const projection = useMemoGC(() => {
@@ -68,9 +68,9 @@ function GoingConcern() {
     return rows;
   }, [revShock, costCut, financing]);
 
-  const minBal = Math.min(...projection.map(r => r.bal));
-  const breach = projection.find(r => r.bal < 0);
-  const minBar = Math.max(...projection.map(r => Math.abs(r.bal)), 5);
+  const minBal = Math.min(...projection.map((r: any) => r.bal));
+  const breach = projection.find((r: any) => r.bal < 0);
+  const minBar = Math.max(...projection.map((r: any) => Math.abs(r.bal)), 5);
 
   const triggered = Object.values(inds).flat().filter((i: any) => i.on).length;
   const ratioFlags = GC_RATIOS.filter(r => !r.good(r.value)).length;
@@ -146,14 +146,14 @@ function GoingConcern() {
             <Panel title="Stress Test" sub="Skenario 12 bulan ke depan">
               <div style={{ marginBottom: 14 }}>
                 <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Penurunan Pendapatan</span><span className="mono" style={{ fontWeight: 700, color: revShock > 0 ? 'var(--red)' : 'var(--ink)' }}>−{revShock}%</span></div>
-                <input type="range" min="0" max="40" value={revShock} onChange={e => setRevShock(+e.target.value)} style={{ width: '100%', accentColor: 'var(--red)' }} />
+                <input type="range" min="0" max="40" value={revShock} onChange={(e: any) => setRevShock(+e.target.value)} style={{ width: '100%', accentColor: 'var(--red)' }} />
               </div>
               <div style={{ marginBottom: 14 }}>
                 <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Efisiensi Biaya (mitigasi)</span><span className="mono" style={{ fontWeight: 700, color: costCut > 0 ? 'var(--green)' : 'var(--ink)' }}>−{costCut}%</span></div>
-                <input type="range" min="0" max="25" value={costCut} onChange={e => setCostCut(+e.target.value)} style={{ width: '100%', accentColor: 'var(--green)' }} />
+                <input type="range" min="0" max="25" value={costCut} onChange={(e: any) => setCostCut(+e.target.value)} style={{ width: '100%', accentColor: 'var(--green)' }} />
               </div>
               <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12, marginBottom: 12 }}>
-                <span onClick={() => setFinancing(f => !f)} style={{ width: 36, height: 20, borderRadius: 11, background: financing ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s', flex: '0 0 36px' }}><span style={{ position: 'absolute', top: 2, left: financing ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} /></span>
+                <span onClick={() => setFinancing((f: any) => !f)} style={{ width: 36, height: 20, borderRadius: 11, background: financing ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s', flex: '0 0 36px' }}><span style={{ position: 'absolute', top: 2, left: financing ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} /></span>
                 Refinancing utang tersedia (Jun & Des)
               </label>
               <div className="divider" />
@@ -171,7 +171,7 @@ function GoingConcern() {
             <Panel title="Proyeksi Arus Kas 12 Bulan" sub="dalam miliar Rupiah">
               {/* bar chart of ending balance */}
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 120, padding: '14px 0 4px', borderBottom: '1px solid var(--line)' }}>
-                {projection.map((r, i) => {
+                {projection.map((r: any, i: any) => {
                   const h = Math.abs(r.bal) / minBar * 95;
                   const neg = r.bal < 0;
                   return (
@@ -183,7 +183,7 @@ function GoingConcern() {
                 })}
               </div>
               <div style={{ display: 'flex', gap: 5, marginTop: 3 }}>
-                {projection.map((r, i) => <div key={i} style={{ flex: 1, textAlign: 'center' }} className="tiny muted">{r.m}</div>)}
+                {projection.map((r: any, i: any) => <div key={i} style={{ flex: 1, textAlign: 'center' }} className="tiny muted">{r.m}</div>)}
               </div>
               <div className="tiny muted" style={{ marginTop: 8 }}>Saldo kas akhir bulan proyeksi · jatuh tempo utang bullet Rp 8 M pada Jun & Des {financing ? '(di-refinancing)' : '(tanpa refinancing)'}.</div>
             </Panel>
@@ -195,7 +195,7 @@ function GoingConcern() {
               {Object.entries(inds).map(([cat, items]: [string, any], ci: number) => (
                 <div key={cat} style={{ padding: '4px 14px 10px', borderLeft: ci ? '1px solid var(--line-soft)' : 0 }}>
                   <div className="upper tiny" style={{ fontWeight: 700, color: 'var(--blue)', margin: '8px 0 6px' }}>{cat}</div>
-                  {items.map(it => (
+                  {items.map((it: any) => (
                     <label key={it.id} className="row gap8" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: '1px solid var(--line-soft)' }}>
                       <span onClick={() => toggle(cat, it.id)} style={{ flex: '0 0 17px', width: 17, height: 17, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (it.on ? 'var(--red)' : 'var(--line-strong)'), background: it.on ? 'var(--red)' : '#fff', display: 'grid', placeItems: 'center' }}>
                         {it.on && <I.check size={12} style={{ color: '#fff' }} />}

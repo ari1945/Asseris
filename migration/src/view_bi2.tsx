@@ -19,10 +19,10 @@ function BIPendapatan() {
   const B: any = AMS.BI_DATA;
   const IND: any = AMS.BI_INDUSTRY;
   const FB: any = AMS.FIRM_BUDGET;
-  const totalInd = IND.reduce((s, x) => s + x.rev, 0);
+  const totalInd = IND.reduce((s: any, x: any) => s + x.rev, 0);
 
-  const actRev = FB.filter((b: any) => b.type === 'rev').reduce((s, b) => s + b.actual, 0);
-  const actCost = FB.filter((b: any) => b.type === 'cost').reduce((s, b) => s + b.actual, 0);
+  const actRev = FB.filter((b: any) => b.type === 'rev').reduce((s: any, b: any) => s + b.actual, 0);
+  const actCost = FB.filter((b: any) => b.type === 'cost').reduce((s: any, b: any) => s + b.actual, 0);
   const profit = actRev - actCost;
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
@@ -91,17 +91,17 @@ function BIPipeline() {
   const WL: any = AMS.BI_WINLOSS;
 
   const open = PIPE.filter((p: any) => !['Won', 'Lost'].includes(p.stage));
-  const gross = open.reduce((s, p) => s + p.value, 0);
-  const weighted = open.reduce((s, p) => s + p.value * p.prob / 100, 0);
+  const gross = open.reduce((s: any, p: any) => s + p.value, 0);
+  const weighted = open.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0);
   const avgDeal = Math.round(gross / (open.length || 1));
   const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
   const stColor = { Lead: '#9aa7b2', Qualified: '#5b3fa6', Proposal: '#0a6b73', Negotiation: '#005085' };
   const funnel = stages.map((st: any) => {
     const items = open.filter((p: any) => p.stage === st);
-    const g = items.reduce((s, p) => s + p.value, 0);
-    return { label: st, value: g, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: stColor[st] };
+    const g = items.reduce((s: any, p: any) => s + p.value, 0);
+    return { label: st, value: g, disp: 'Rp ' + fmt(g / 1e6, 0) + ' jt', n: items.length, color: (stColor as any)[st] };
   });
-  const byPartner = Object.values(open.reduce((m, p) => {
+  const byPartner = Object.values(open.reduce((m: any, p: any) => {
     if (!m[p.owner]) m[p.owner] = { owner: p.owner, gross: 0, wt: 0, n: 0 };
     m[p.owner].gross += p.value; m[p.owner].wt += p.value * p.prob / 100; m[p.owner].n++;
     return m;
@@ -176,10 +176,10 @@ function BIKlien() {
   const RET: any = AMS.BI_RETENTION;
 
   const active = CLIENTS.filter((c: any) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
-  const tot = active.reduce((s, c) => s + c.fee, 0);
+  const tot = active.reduce((s: any, c: any) => s + c.fee, 0);
   const top1 = active[0].fee / tot * 100;
-  const top3 = active.slice(0, 3).reduce((s, c) => s + c.fee, 0) / tot * 100;
-  const hhi = Math.round(active.reduce((s, c) => s + Math.pow(c.fee / tot * 100, 2), 0));
+  const top3 = active.slice(0, 3).reduce((s: any, c: any) => s + c.fee, 0) / tot * 100;
+  const hhi = Math.round(active.reduce((s: any, c: any) => s + Math.pow(c.fee / tot * 100, 2), 0));
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -193,7 +193,7 @@ function BIKlien() {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel title="Konsentrasi Klien" sub="porsi fee tahunan" actions={<span className="chip tiny" title="Herfindahl-Hirschman Index">HHI {hhi}</span>}>
           <div style={{ padding: 14 }}>
-            <HBars rows={active.map((c, i) => ({ label: c.name.replace('PT ', ''), value: c.fee, right: (c.fee / tot * 100).toFixed(0) + '%', color: i === 0 ? 'var(--amber)' : 'var(--navy)', sub: c.industry.split(' · ')[0] }))} />
+            <HBars rows={active.map((c: any, i: any) => ({ label: c.name.replace('PT ', ''), value: c.fee, right: (c.fee / tot * 100).toFixed(0) + '%', color: i === 0 ? 'var(--amber)' : 'var(--navy)', sub: c.industry.split(' · ')[0] }))} />
             <div className="panel" style={{ padding: '9px 11px', background: top1 > 25 ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent', marginTop: 12 }}>
               <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}><I.alert size={11} /> {top1 > 25 ? 'Klien terbesar ' + top1.toFixed(0) + '% — di atas ambang 25%. Pantau independensi (imbalan) & ketergantungan.' : 'Konsentrasi dalam batas sehat.'}</div>
             </div>
@@ -258,7 +258,7 @@ function BIPartner() {
   const UTIL = { 'Hartono Wijaya': 71, 'Rudi Gunawan': 68, 'Sari Dewanti': 74 };
   const REAL = { 'Hartono Wijaya': 89, 'Rudi Gunawan': 85, 'Sari Dewanti': 91 };
 
-  const partners = Object.values(CLIENTS.reduce((m, c) => {
+  const partners = Object.values(CLIENTS.reduce((m: any, c: any) => {
     const p = c.partner.split(',')[0];
     if (!m[p]) m[p] = { p, fee: 0, n: 0, listed: 0 };
     m[p].fee += c.fee; m[p].n++; if (c.listed) m[p].listed++;
@@ -287,10 +287,10 @@ function BIPartner() {
             {partners.map((p: any) => (
               <div key={p.p}>
                 <div className="row ac gap8" style={{ marginBottom: 6 }}><Avatar name={p.p} size={26} /><span style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>{p.p}</span></div>
-                <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="muted">Utilisasi</span><span className="mono" style={{ fontWeight: 700 }}>{UTIL[p.p] || 70}%</span></div>
-                <Progress value={UTIL[p.p] || 70} color="#0a6b73" />
-                <div className="row jb tiny" style={{ margin: '5px 0 2px' }}><span className="muted">Realisasi</span><span className="mono" style={{ fontWeight: 700 }}>{REAL[p.p] || 85}%</span></div>
-                <Progress value={REAL[p.p] || 85} color="var(--green)" />
+                <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="muted">Utilisasi</span><span className="mono" style={{ fontWeight: 700 }}>{(UTIL as any)[p.p] || 70}%</span></div>
+                <Progress value={(UTIL as any)[p.p] || 70} color="#0a6b73" />
+                <div className="row jb tiny" style={{ margin: '5px 0 2px' }}><span className="muted">Realisasi</span><span className="mono" style={{ fontWeight: 700 }}>{(REAL as any)[p.p] || 85}%</span></div>
+                <Progress value={(REAL as any)[p.p] || 85} color="var(--green)" />
               </div>
             ))}
           </div>
@@ -309,8 +309,8 @@ function BIPartner() {
                 <td className="num">{p.listed}</td>
                 <td className="num" style={{ fontWeight: 700 }}>Rp {fmt(p.fee / 1e9, 2)} M</td>
                 <td className="num">{EQR.filter((e: any) => e.partner === p.p).length}</td>
-                <td className="num" style={{ color: (UTIL[p.p] || 70) > 75 ? 'var(--amber)' : 'inherit' }}>{UTIL[p.p] || 70}</td>
-                <td className="num" style={{ color: 'var(--green)' }}>{REAL[p.p] || 85}</td>
+                <td className="num" style={{ color: ((UTIL as any)[p.p] || 70) > 75 ? 'var(--amber)' : 'inherit' }}>{(UTIL as any)[p.p] || 70}</td>
+                <td className="num" style={{ color: 'var(--green)' }}>{(REAL as any)[p.p] || 85}</td>
               </tr>
             ))}
           </tbody>

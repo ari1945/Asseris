@@ -24,7 +24,7 @@ import { AMS_CANON } from './canon';
 (function () {
   'use strict';
   const CLIENTS = (AMS as any).CLIENTS || [];
-  const cli = (id) => CLIENTS.find(c => c.id === id) || { name: id, npwp: '—' };
+  const cli = (id: any) => CLIENTS.find((c: any) => c.id === id) || { name: id, npwp: '—' };
 
   /* =========================================================
      G13 · LAPORAN KEBERLANJUTAN — POJK 51/POJK.03/2017
@@ -201,7 +201,7 @@ import { AMS_CANON } from './canon';
        - Penyampaian elektronik: SPRINT OJK + IDXnet BEI.
        Tanggal acuan "hari ini" untuk pelacak: 17 Jun 2026. */
     const TODAY = new Date('2026-06-17');
-    const dday = (d) => Math.round((new Date(d).getTime() - TODAY.getTime()) / 86400000);
+    const dday = (d: any) => Math.round((new Date(d).getTime() - TODAY.getTime()) / 86400000);
 
     const obligations = [
       { kind: 'LK Tahunan Auditan', basis: 'POJK 14/2022 Ps. 7', due: '2026-03-31', channels: 'SPRINT · IDXnet', win: 'akhir bulan ke-3' },
@@ -213,8 +213,8 @@ import { AMS_CANON } from './canon';
     const seed = [
       { id: 'C-014', lkAud: { st: 'Disampaikan', on: '2026-03-21', rcpt: 'SPRINT/2026/03/014-778', late: false }, ar: { st: 'Disampaikan', on: '2026-04-18', rcpt: 'IDX/AR/2026/0418-014', late: false } },
       { id: 'C-040', lkAud: { st: 'Disampaikan', on: '2026-03-30', rcpt: 'SPRINT/2026/03/040-902', late: false }, ar: { st: 'Disampaikan', on: '2026-04-29', rcpt: 'IDX/AR/2026/0429-040', late: false } },
-      { id: 'C-031', lkAud: { st: 'Disampaikan', on: '2026-04-03', rcpt: 'SPRINT/2026/04/031-115', late: true, lateDays: 3 }, ar: { st: 'Tertunda', on: null, rcpt: null, late: false } },
-      { id: 'C-063', lkAud: { st: 'Proses EQR', on: null, rcpt: null, late: false, atRisk: true }, ar: { st: 'Belum mulai', on: null, rcpt: null, late: false } },
+      { id: 'C-031', lkAud: { st: 'Disampaikan', on: '2026-04-03', rcpt: 'SPRINT/2026/04/031-115', late: true, lateDays: 3 }, ar: { st: 'Tertunda', on: (null as any), rcpt: (null as any), late: false } },
+      { id: 'C-063', lkAud: { st: 'Proses EQR', on: (null as any), rcpt: (null as any), late: false, atRisk: true }, ar: { st: 'Belum mulai', on: (null as any), rcpt: (null as any), late: false } },
     ];
     const entities = seed.map(s => {
       const c = cli(s.id);

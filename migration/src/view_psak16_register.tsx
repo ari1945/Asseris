@@ -16,7 +16,7 @@ import { Panel } from './ui';
 const { useState: useStateP16R } = React;
 
 /* ——— Register aset tetap (sub-ledger) ——— */
-function AssetRegisterTable({ reg, sc, fmt }) {
+function AssetRegisterTable({ reg, sc, fmt }: any) {
   return (
     <Panel noBody>
       <div className="panel-h">
@@ -40,7 +40,7 @@ function AssetRegisterTable({ reg, sc, fmt }) {
             </tr>
           </thead>
           <tbody>
-            {reg.rows.map((r, i) => (
+            {reg.rows.map((r: any, i: any) => (
               <tr key={r.tag} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td className="mono" style={{ padding: '6px 4px', fontWeight: 600, color: 'var(--navy)' }}>{r.tag}</td>
                 <td style={{ padding: '6px 4px' }}>{r.name}{r.fullyDep && <span className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginLeft: 5 }}>tersusut penuh</span>}</td>
@@ -66,7 +66,7 @@ function AssetRegisterTable({ reg, sc, fmt }) {
 }
 
 /* ——— Rekonsiliasi sub-ledger ↔ GL (akun kontrol) ——— */
-function SubLedgerRecon({ reg, sc, nav }) {
+function SubLedgerRecon({ reg, sc, nav }: any) {
   return (
     <Panel noBody>
       <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
@@ -87,7 +87,7 @@ function SubLedgerRecon({ reg, sc, nav }) {
             </tr>
           </thead>
           <tbody>
-            {reg.recon.map(r => (
+            {reg.recon.map((r: any) => (
               <tr key={r.id} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 2px' }}><span style={{ fontWeight: 600 }}>{r.label}</span> <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>{r.code}</span></td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 2px' }}>{sc(r.sub)}</td>
@@ -108,9 +108,9 @@ function SubLedgerRecon({ reg, sc, nav }) {
 }
 
 /* ——— Mekanisme impor Excel: pemetaan, validasi, otomasi ——— */
-function ImportMappingPanel({ reg, fmt, nav }) {
+function ImportMappingPanel({ reg, fmt, nav }: any) {
   const [mode, setMode] = useStateP16R(() => (window.loadLS ? window.loadLS('ams.psak16.importmode', 'auto') : 'auto'));
-  const setM = (m) => { setMode(m); try { localStorage.setItem('ams.psak16.importmode', JSON.stringify(m)); } catch (e) {} };
+  const setM = (m: any) => { setMode(m); try { localStorage.setItem('ams.psak16.importmode', JSON.stringify(m)); } catch (e) {} };
 
   const checks = [
     { t: 'Header kolom cocok dengan template tersimpan', ok: true, n: '8/8 kolom' },
@@ -152,10 +152,10 @@ function ImportMappingPanel({ reg, fmt, nav }) {
           <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 6 }}>Tingkat Otomasi</div>
           <div className="seg" style={{ width: '100%' }}>
             {Object.keys(MODES).map(k => (
-              <button key={k} className={mode === k ? 'on' : ''} onClick={() => setM(k)} style={{ flex: 1 }}>{MODES[k].t}</button>
+              <button key={k} className={mode === k ? 'on' : ''} onClick={() => setM(k)} style={{ flex: 1 }}>{(MODES as any)[k].t}</button>
             ))}
           </div>
-          <div className="tiny" style={{ marginTop: 7, lineHeight: 1.5, color: 'var(--ink-2)' }}>{MODES[mode].d}</div>
+          <div className="tiny" style={{ marginTop: 7, lineHeight: 1.5, color: 'var(--ink-2)' }}>{(MODES as any)[mode].d}</div>
         </div>
 
         {/* pemetaan kolom */}
@@ -173,7 +173,7 @@ function ImportMappingPanel({ reg, fmt, nav }) {
                 </tr>
               </thead>
               <tbody>
-                {reg.map.map((m, i) => (
+                {reg.map.map((m: any, i: any) => (
                   <tr key={m.col} style={{ borderTop: '1px solid var(--line-soft)' }}>
                     <td className="mono" style={{ padding: '6px 6px', color: 'var(--ink-4)' }}>{m.col}</td>
                     <td style={{ padding: '6px 6px' }}>{m.xls}{m.key && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 600, marginLeft: 5 }}>kunci</span>}{m.ctrl && <span className="mono tiny" style={{ color: 'var(--blue)', marginLeft: 5 }}>→{m.ctrl}</span>}</td>

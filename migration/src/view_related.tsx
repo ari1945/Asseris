@@ -45,22 +45,22 @@ function RelatedParties() {
   const [procs, setProcs] = useStateRP(RP_PROCEDURES);
   const [selTxn, setSelTxn] = useStateRP('T-04');
 
-  const filtered = selParty === 'All' ? txns : txns.filter(t => t.party === selParty);
-  const tx = txns.find(t => t.id === selTxn) || filtered[0];
+  const filtered = selParty === 'All' ? txns : txns.filter((t: any) => t.party === selParty);
+  const tx = txns.find((t: any) => t.id === selTxn) || filtered[0];
 
-  const totalRPT = txns.reduce((s, t) => s + t.amount, 0);
-  const undisclosed = txns.filter(t => !t.disclosed).length;
-  const nonArm = txns.filter(t => !t.arm).length;
+  const totalRPT = txns.reduce((s: any, t: any) => s + t.amount, 0);
+  const undisclosed = txns.filter((t: any) => !t.disclosed).length;
+  const nonArm = txns.filter((t: any) => !t.arm).length;
 
-  const toggleDisclosed = (id) => setTxns(list => list.map(t => t.id === id ? { ...t, disclosed: !t.disclosed } : t));
-  const setTxn = (id, patch) => setTxns(list => list.map(t => t.id === id ? { ...t, ...patch } : t));
-  const advanceConf = (id) => setTxns(list => list.map(t => {
+  const toggleDisclosed = (id: any) => setTxns((list: any) => list.map((t: any) => t.id === id ? { ...t, disclosed: !t.disclosed } : t));
+  const setTxn = (id: any, patch: any) => setTxns((list: any) => list.map((t: any) => t.id === id ? { ...t, ...patch } : t));
+  const advanceConf = (id: any) => setTxns((list: any) => list.map((t: any) => {
     if (t.id !== id) return t;
-    const next = { undefined: 'Terkirim', 'Terkirim': 'Diterima' }[t.conf] || 'Terkirim';
+    const next = ({ undefined: 'Terkirim', 'Terkirim': 'Diterima' } as any)[t.conf] || 'Terkirim';
     return { ...t, conf: next, confResp: next === 'Diterima' ? t.amount : t.confResp };
   }));
-  const toggleProc = (i) => setProcs(ps => ps.map((p, idx) => idx === i ? { ...p, done: !p.done } : p));
-  const procDone = procs.filter(p => p.done).length;
+  const toggleProc = (i: any) => setProcs((ps: any) => ps.map((p: any, idx: any) => idx === i ? { ...p, done: !p.done } : p));
+  const procDone = procs.filter((p: any) => p.done).length;
 
   return (
     <>
@@ -96,7 +96,7 @@ function RelatedParties() {
               </Panel>
               <Panel title="Prosedur Kelengkapan" sub={procDone + '/' + procs.length}>
                 <div style={{ display: 'grid', gap: 0 }}>
-                  {procs.map((p, i) => (
+                  {procs.map((p: any, i: any) => (
                     <label key={i} className="row gap8" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < procs.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleProc(i)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (p.done ? 'var(--green)' : 'var(--line-strong)'), background: p.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{p.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
                       <span style={{ fontSize: 11.5, lineHeight: 1.4, color: p.done ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</span>
@@ -115,14 +115,14 @@ function RelatedParties() {
                     <th>ID</th><th>Pihak</th><th>Jenis Transaksi</th><th className="num">Nilai (Rp)</th><th>Arm's-Length</th><th style={{ width: 110 }}>Pengungkapan</th>
                   </tr></thead>
                   <tbody>
-                    {filtered.map(t => (
+                    {filtered.map((t: any) => (
                       <tr key={t.id} className={t.id === selTxn ? 'sel' : ''} onClick={() => setSelTxn(t.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{t.id}</td>
                         <td className="truncate" style={{ maxWidth: 150, fontWeight: 600 }}>{t.party}</td>
                         <td className="tiny">{t.type}</td>
                         <td className="num">{fmt(t.amount / 1e6, 0)} jt</td>
                         <td>{t.arm ? <Badge kind="green">Wajar</Badge> : <Badge kind="amber">Non-Wajar</Badge>}</td>
-                        <td><span onClick={(e) => { e.stopPropagation(); toggleDisclosed(t.id); }} style={{ cursor: 'pointer' }}>{t.disclosed ? <Badge kind="green">Diungkapkan</Badge> : <Badge kind="red">Belum</Badge>}</span></td>
+                        <td><span onClick={(e: any) => { e.stopPropagation(); toggleDisclosed(t.id); }} style={{ cursor: 'pointer' }}>{t.disclosed ? <Badge kind="green">Diungkapkan</Badge> : <Badge kind="red">Belum</Badge>}</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -156,7 +156,7 @@ function RelatedParties() {
                             <>
                               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                                 <div><div className="tiny muted upper" style={{ marginBottom: 2 }}>Nilai Tercatat</div><div className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{fmt(tx.amount / 1e6, 0)} jt</div></div>
-                                <div><div className="tiny muted upper" style={{ marginBottom: 2 }}>Harga Pasar Wajar</div><input type="number" value={market} onChange={e => setTxn(tx.id, { market: +e.target.value })} className="input mono" style={{ width: '100%', height: 26, textAlign: 'right', padding: '0 7px' }} /></div>
+                                <div><div className="tiny muted upper" style={{ marginBottom: 2 }}>Harga Pasar Wajar</div><input type="number" value={market} onChange={(e: any) => setTxn(tx.id, { market: +e.target.value })} className="input mono" style={{ width: '100%', height: 26, textAlign: 'right', padding: '0 7px' }} /></div>
                               </div>
                               <div className="row jb ac" style={{ padding: '6px 0', borderTop: '1px solid var(--line)' }}>
                                 <span className="tiny" style={{ fontWeight: 700 }}>Selisih harga (potensi koreksi)</span>

@@ -31,10 +31,10 @@ import { BO as BO_NS } from './data_backoffice';
    ============================================================ */
 (function () {
   const today = new Date('2026-03-09');
-  const daysTo = (d) => d ? Math.round((new Date(d).getTime() - today.getTime()) / 864e5) : null;
-  const yearsLeft = (d) => d ? (new Date(d).getTime() - today.getTime()) / (365.25 * 864e5) : null;
-  const addYears = (d, y) => { const x = new Date(d); x.setFullYear(x.getFullYear() + y); return x.toISOString().slice(0, 10); };
-  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+  const daysTo = (d: any) => d ? Math.round((new Date(d).getTime() - today.getTime()) / 864e5) : null;
+  const yearsLeft = (d: any) => d ? (new Date(d).getTime() - today.getTime()) / (365.25 * 864e5) : null;
+  const addYears = (d: any, y: any) => { const x = new Date(d); x.setFullYear(x.getFullYear() + y); return x.toISOString().slice(0, 10); };
+  const addDays = (d: any, n: any) => { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
   const A = (): any => AMS || {};
   const BO = (): any => BO_NS || {};
 
@@ -50,12 +50,12 @@ import { BO as BO_NS } from './data_backoffice';
     { id: 'pmpj',      jenis: 'Data Pribadi / PMPJ (APU-PPT)',         dasar: 'POJK & UU PDP — 5 thn pasca berakhirnya hubungan',   years: 5,  format: 'Elektronik terenkripsi',          types: [],               note: 'Tunduk UU PDP — minimisasi & pemusnahan tepat waktu wajib.' },
     { id: 'template',  jenis: 'Template & Metodologi Internal',        dasar: 'Kebijakan firma',                                    years: 3,  format: 'Elektronik',                     types: ['Template'],     note: 'Diganti versi; versi lama disimpan 3 tahun.' },
   ];
-  const classById = (id) => RETENTION_CLASSES.find(c => c.id === id) || RETENTION_CLASSES[0];
-  const classForType = (type) => RETENTION_CLASSES.find(c => c.types.includes(type)) || classById('kk-audit');
+  const classById = (id: any) => RETENTION_CLASSES.find(c => c.id === id) || RETENTION_CLASSES[0];
+  const classForType = (type: any) => RETENTION_CLASSES.find(c => c.types.includes(type)) || classById('kk-audit');
   /* masa simpan dokumen DMS DITARIK dari kelas — dipakai DMS & evaluasi bukti */
-  const retentionYearsForType = (type) => classForType(type).years;
+  const retentionYearsForType = (type: any) => classForType(type).years;
   /* kelas berkas (kotak) per perikatan — audit & reviu → berkas asurans 7 thn */
-  const classForEngagement = (engId) => {
+  const classForEngagement = (engId: any) => {
     const e = (A().engById && A().engById(engId)) || null;
     if (e && /Review|Reviu|SPR/.test(e.type + ' ' + e.standard)) return classById('asurans');
     return classById('kk-audit');
@@ -76,14 +76,14 @@ import { BO as BO_NS } from './data_backoffice';
       status: 'Aktif', disputeId: null, claimId: null, scope: 'Surat perikatan & memo EQR (dok. DMS) + berkas perikatan ENG-2025-063' },
     { id: 'LH-01', engId: 'ENG-2022-019', subject: 'PT Surya Niaga', fy: 2022, since: '2024-11-03', by: 'Managing Partner',
       reason: 'Permintaan keterangan regulator (OJK). Hold dicabut setelah pemeriksaan selesai tanpa tindak lanjut.',
-      status: 'Dicabut', releasedOn: '2025-08-20', disputeId: null, claimId: null, scope: 'Berkas perikatan ENG-2022-019' },
+      status: 'Dicabut', releasedOn: '2025-08-20', disputeId: (null as any), claimId: (null as any), scope: 'Berkas perikatan ENG-2022-019' },
   ];
   const activeHolds = () => HOLDS.filter(h => h.status === 'Aktif');
-  const holdForEng = (engId) => activeHolds().find(h => h.engId === engId) || null;
+  const holdForEng = (engId: any) => activeHolds().find(h => h.engId === engId) || null;
   /* dokumen DMS yang ditahan = seluruh dokumen pada perikatan yang sedang di-hold */
   const heldDocs = () => {
     const held = new Set(activeHolds().map(h => h.engId));
-    return (A().DMS_DOCS || []).filter(d => held.has(d.eng));
+    return (A().DMS_DOCS || []).filter((d: any) => held.has(d.eng));
   };
 
   /* ============================================================
@@ -102,31 +102,31 @@ import { BO as BO_NS } from './data_backoffice';
   /* PO pemusnahan (Pengadaan) → perikatan yang dimusnahkan. SSOT PO = BO. */
   const DISPOSAL_PO = { 'ENG-2018-014': 'PO-2026-054' };
 
-  const clientFor = (engId, fallback) => {
+  const clientFor = (engId: any, fallback: any) => {
     const e = A().engById && A().engById(engId);
     if (e) { const c = A().clientById && A().clientById(e.clientId); if (c) return c.name; }
     return fallback || '—';
   };
-  const fyLabel = (engId, fallbackYear) => {
+  const fyLabel = (engId: any, fallbackYear: any) => {
     const e = A().engById && A().engById(engId);
     return e ? e.fy : ('FY' + fallbackYear);
   };
 
   /* Susun satu kotak arsip dari kumpulan dokumen DMS sebuah perikatan. */
-  function boxFromDocs(engId, docs) {
+  function boxFromDocs(engId: any, docs: any) {
     const cls = classForEngagement(engId);
-    const sizeMB = docs.reduce((s, d) => s + (d.sizeMB || 0), 0);
-    const allArchived = docs.every(d => d.archivedOn);
-    const archivedOn = allArchived ? docs.map(d => d.archivedOn).sort().slice(-1)[0] : null;
-    const assembling = docs.some(d => d.assembly === 'in-progress' || d.assembly === 'pending');
-    const reportDate = docs.map(d => d.opinionDate).filter(Boolean).sort()[0] || (archivedOn ? archivedOn : null);
+    const sizeMB = docs.reduce((s: any, d: any) => s + (d.sizeMB || 0), 0);
+    const allArchived = docs.every((d: any) => d.archivedOn);
+    const archivedOn = allArchived ? docs.map((d: any) => d.archivedOn).sort().slice(-1)[0] : null;
+    const assembling = docs.some((d: any) => d.assembly === 'in-progress' || d.assembly === 'pending');
+    const reportDate = docs.map((d: any) => d.opinionDate).filter(Boolean).sort()[0] || (archivedOn ? archivedOn : null);
     return finalizeBox({
       engId, client: clientFor(engId, docs[0] && docs[0].client), fy: fyLabel(engId, ''),
       classId: cls.id, sizeMB, docCount: docs.length, archivedOn, reportDate, assembling,
-      source: 'DMS', docIds: docs.map(d => d.id),
+      source: 'DMS', docIds: docs.map((d: any) => d.id),
     });
   }
-  function boxFromLegacy(b) {
+  function boxFromLegacy(b: any) {
     const cls = classForEngagement(b.engId);
     return finalizeBox({
       engId: b.engId, client: clientFor(b.engId, b.client), fy: b.fy ? ('FY' + b.fy) : fyLabel(b.engId, ''),
@@ -135,7 +135,7 @@ import { BO as BO_NS } from './data_backoffice';
     });
   }
   /* Hitung status siklus-hidup, masa simpan & jalur disposal sebuah kotak. */
-  function finalizeBox(box) {
+  function finalizeBox(box: any) {
     const cls = classById(box.classId);
     const hold = holdForEng(box.engId);
     const retentionUntil = box.archivedOn ? addYears(box.archivedOn, cls.years) : null;
@@ -151,23 +151,23 @@ import { BO as BO_NS } from './data_backoffice';
       id, retentionYears: cls.years, retentionUntil, assembleBy, yearsLeft: yLeft,
       hold, status,
       expiringSoon: status === 'Terkunci' && yLeft != null && yLeft < 1,
-      disposalPO: DISPOSAL_PO[box.engId] || null,
+      disposalPO: (DISPOSAL_PO as any)[box.engId] || null,
     });
   }
 
   /* Daftar kotak arsip terpadu (DMS-derived + legacy), urut terbaru. */
   function archiveBoxes() {
-    const docs = (A().DMS_DOCS || []).filter(d => d.eng && d.eng !== '—');
+    const docs = (A().DMS_DOCS || []).filter((d: any) => d.eng && d.eng !== '—');
     const byEng = {};
-    docs.forEach(d => { (byEng[d.eng] = byEng[d.eng] || []).push(d); });
-    const out = Object.keys(byEng).map(engId => boxFromDocs(engId, byEng[engId]));
+    docs.forEach((d: any) => { ((byEng as any)[d.eng] = (byEng as any)[d.eng] || []).push(d); });
+    const out = Object.keys(byEng).map(engId => boxFromDocs(engId, (byEng as any)[engId]));
     LEGACY_BOXES.forEach(b => out.push(boxFromLegacy(b)));
     out.sort((a, b) => String(b.archivedOn || b.assembleBy || '9999').localeCompare(String(a.archivedOn || a.assembleBy || '9999')));
     return out;
   }
 
   /* Dokumen DMS milik sebuah perikatan (untuk drawer drill-down). */
-  const docsForEng = (engId) => (A().DMS_DOCS || []).filter(d => d.eng === engId);
+  const docsForEng = (engId: any) => (A().DMS_DOCS || []).filter((d: any) => d.eng === engId);
 
   /* ============================================================
      4 · Siklus hidup, antrean disposal, & metrik
@@ -176,7 +176,7 @@ import { BO as BO_NS } from './data_backoffice';
     const boxes = archiveBoxes();
     const engs = A().ENGAGEMENTS || [];
     const boxEngIds = new Set(boxes.map(b => b.engId));
-    const aktif = engs.filter(e => e.status !== 'Completed' && !boxEngIds.has(e.id)).length;
+    const aktif = engs.filter((e: any) => e.status !== 'Completed' && !boxEngIds.has(e.id)).length;
     return [
       { id: 'aktif',     label: 'Perikatan Aktif',        sub: 'berkas dalam pengerjaan', count: aktif, color: '#5b3fa6', icon: 'briefcase' },
       { id: 'perakitan', label: 'Perakitan SA 230',       sub: '≤ 60 hari pasca laporan', count: boxes.filter(b => b.status === 'Perakitan').length, color: '#9a6a00', icon: 'layers' },
@@ -209,8 +209,8 @@ import { BO as BO_NS } from './data_backoffice';
     return HOLDS.map(h => {
       const box = boxes.find(b => b.engId === h.engId) || null;
       const dmsHeld = docsForEng(h.engId);
-      const disp = h.disputeId ? (BO().DISPUTES || []).find(d => d.id === h.disputeId) : null;
-      const claim = h.claimId ? (BO().CLAIMS || []).find(c => c.id === h.claimId) : null;
+      const disp = h.disputeId ? (BO().DISPUTES || []).find((d: any) => d.id === h.disputeId) : null;
+      const claim = h.claimId ? (BO().CLAIMS || []).find((c: any) => c.id === h.claimId) : null;
       return { ...h, box, dmsHeldCount: dmsHeld.length, dmsHeld, dispute: disp, claim };
     });
   }
@@ -240,7 +240,7 @@ import { BO as BO_NS } from './data_backoffice';
     const m = metrics();
     /* R1 — ukuran kotak DMS ↔ Σ ukuran dokumen DMS (harus menutup) */
     const dmsBoxSize = boxes.filter(b => b.source === 'DMS').reduce((s, b) => s + b.sizeMB, 0);
-    const dmsDocSize = (A().DMS_DOCS || []).filter(d => d.eng && d.eng !== '—').reduce((s, d) => s + (d.sizeMB || 0), 0);
+    const dmsDocSize = (A().DMS_DOCS || []).filter((d: any) => d.eng && d.eng !== '—').reduce((s: any, d: any) => s + (d.sizeMB || 0), 0);
     /* R2 — legal hold aktif ↔ dokumen DMS ditahan + sengketa litigasi */
     const activeH = activeHolds().length;
     const heldDocCount = heldDocs().length;

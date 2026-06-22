@@ -103,8 +103,8 @@ function InternalAudit() {
   const [tab, setTab] = useStateIA('konteks');
   const [factors, setFactors] = useStateIA(IA_FACTORS_SEED);
 
-  const setV = (id, v) => setFactors(fs => fs.map(f => f.id === id ? { ...f, v } : f));
-  const avg = factors.reduce((s, f) => s + f.v, 0) / factors.length;
+  const setV = (id: any, v: any) => setFactors((fs: any) => fs.map((f: any) => f.id === id ? { ...f, v } : f));
+  const avg = factors.reduce((s: any, f: any) => s + f.v, 0) / factors.length;
   const verdict = avg >= 3.5
     ? { k: 'green', label: 'Dapat Diandalkan', t: 'Fungsi audit internal memenuhi ketiga faktor SA 610 ¶16. Pekerjaan dapat digunakan dengan reperformansi atas sebagian, kecuali area pertimbangan signifikan.' }
     : avg >= 2.5
@@ -194,7 +194,7 @@ function IAContext() {
                 { ic: 'layers', t: 'Nature & Extent (¶17–20)', d: 'Menentukan area & seberapa banyak pekerjaan IA digunakan.' },
                 { ic: 'flask', t: 'Reperformansi (¶24)', d: 'Auditor melaksanakan kembali sebagian pekerjaan IA yang digunakan.' },
               ].map((c, i) => {
-                const Ic = I[c.ic];
+                const Ic = (I as any)[c.ic];
                 return (
                   <div key={i} className="panel" style={{ padding: '11px 12px', boxShadow: 'none' }}>
                     <span style={{ color: 'var(--blue)' }}><Ic size={18} /></span>
@@ -257,13 +257,13 @@ function IAContext() {
 }
 
 /* ---------------- Tab: Evaluasi Fungsi IA ---------------- */
-function IAEvaluation({ factors, setV, avg, verdict }) {
+function IAEvaluation({ factors, setV, avg, verdict }: any) {
   const [selId, setSelId] = useStateIA('obj');
-  const sel = factors.find(f => f.id === selId);
+  const sel = factors.find((f: any) => f.id === selId);
   return (
     <div className="grid" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
       <Panel title="Tiga Faktor Evaluasi" sub="SA 610 ¶16 · skala 1–5">
-        {factors.map(f => (
+        {factors.map((f: any) => (
           <div key={f.id} onClick={() => setSelId(f.id)}
             style={{ marginBottom: 12, padding: '10px 11px', borderRadius: 8, cursor: 'pointer',
               border: '1px solid ' + (f.id === selId ? 'var(--blue)' : 'var(--line-soft)'),
@@ -272,7 +272,7 @@ function IAEvaluation({ factors, setV, avg, verdict }) {
               <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}>{f.k}<span className="mono tiny muted">{f.ref}</span></span>
               <span className="mono" style={{ fontWeight: 700, color: f.v >= 4 ? 'var(--green)' : f.v >= 3 ? 'var(--amber)' : 'var(--red)' }}>{f.v}/5</span>
             </div>
-            <input type="range" min="1" max="5" value={f.v} onClick={e => e.stopPropagation()} onChange={e => setV(f.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="1" max="5" value={f.v} onClick={(e: any) => e.stopPropagation()} onChange={(e: any) => setV(f.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
             <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{f.note}</div>
           </div>
         ))}
@@ -298,7 +298,7 @@ function IAEvaluation({ factors, setV, avg, verdict }) {
           <table className="dtbl">
             <thead><tr><th>Sub-kriteria Penilaian</th><th style={{ width: 130 }}>Status</th></tr></thead>
             <tbody>
-              {sel.subs.map((s, i) => (
+              {sel.subs.map((s: any, i: any) => (
                 <tr key={i}>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>
                     {s.t}
@@ -331,8 +331,8 @@ function IAEvaluation({ factors, setV, avg, verdict }) {
 function IAUsage() {
   const [selId, setSelId] = useStateIA('U1');
   const sel = IA_USE_AREAS.find(a => a.id === selId);
-  const judgKind = j => j === 'Tinggi' ? 'red' : j === 'Sedang' ? 'amber' : 'green';
-  const natKind = n => n.startsWith('Tidak') ? 'gray' : n.startsWith('Bantuan') ? 'purple' : 'blue';
+  const judgKind = (j: any) => j === 'Tinggi' ? 'red' : j === 'Sedang' ? 'amber' : 'green';
+  const natKind = (n: any) => n.startsWith('Tidak') ? 'gray' : n.startsWith('Bantuan') ? 'purple' : 'blue';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -506,7 +506,7 @@ function IADirect() {
 }
 
 /* ---------------- Tab: Kesimpulan & Dampak ---------------- */
-function IAConclusion({ verdict }) {
+function IAConclusion({ verdict }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>

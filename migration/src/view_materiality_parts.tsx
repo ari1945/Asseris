@@ -13,13 +13,13 @@ import { amsExportPdf } from './export_pdf.js';
    ============================================================ */
 const { useState: useStateMP, useMemo: useMemoMP } = React;
 
-const _FM = (n, d = 0) => AMS.fmt(n, d);
-const _RP = (n) => 'Rp ' + AMS.fmt(n);
-const _M = (n) => 'Rp ' + AMS.fmt(n / 1e6) + ' jt';
+const _FM = (n: any, d = 0) => AMS.fmt(n, d);
+const _RP = (n: any) => 'Rp ' + AMS.fmt(n);
+const _M = (n: any) => 'Rp ' + AMS.fmt(n / 1e6) + ' jt';
 
 /* Memo prose — single source shared by the on-screen preview AND the PDF export (W10.5), so the
    two can't drift. Section 1 is dynamic (interpolates the chosen benchmark/percentages). */
-const MAT_MEMO_SEC1 = (bench, pct, om) =>
+const MAT_MEMO_SEC1 = (bench: any, pct: any, om: any) =>
   `Benchmark utama adalah ${bench.label} sebesar ${_RP(bench.value)} (${bench.note}). Persentase ${pct}% diterapkan (kisaran lazim ${bench.lo}–${bench.hi}%), menghasilkan Materialitas Keseluruhan ${_RP(om)}.`;
 const MAT_MEMO_SEC2 =
   'Materialitas spesifik ditetapkan lebih rendah untuk remunerasi manajemen kunci, transaksi pihak berelasi, dan pengungkapan segmen (lihat tab terkait). Untuk audit grup, materialitas dialokasikan ke tiap komponen sesuai SA 600.';
@@ -27,13 +27,13 @@ const MAT_MEMO_SEC3 =
   'Materialitas dinilai memadai untuk merancang sifat, saat, dan luas prosedur audit. Salah saji agregat yang belum dikoreksi dievaluasi terhadap OM pada penyelesaian audit (SA 450).';
 
 /* compact money editor — value held in Rupiah, edited in juta */
-function MoneyJuta({ value, onChange, step = 50, w = 96, locked }) {
+function MoneyJuta({ value, onChange, step = 50, w = 96, locked }: any) {
   if (locked) return <span className="mono" style={{ fontWeight: 700 }}>{_FM(value)}</span>;
   return (
     <span className="row ac gap6" style={{ justifyContent: 'flex-end' }}>
       <input type="number" className="input" min="0" step={step}
         value={Math.round(value / 1e6)}
-        onChange={e => onChange(Math.max(0, (+e.target.value || 0) * 1e6))}
+        onChange={(e: any) => onChange(Math.max(0, (+e.target.value || 0) * 1e6))}
         style={{ height: 24, width: w, textAlign: 'right', fontFamily: 'var(--mono)', fontWeight: 700, padding: '0 7px' }} />
       <span className="tiny muted">jt</span>
     </span>
@@ -50,12 +50,12 @@ const DEFAULT_SPECIFICS = [
   { id: 'SM-4', area: 'Kewajiban Kontinjensi & Komitmen', basis: 'Litigasi & jaminan; berpotensi memengaruhi keputusan', value: 900_000_000, wp: 'L-4', status: 'Usulan' },
 ];
 
-function MatSpecific({ om, pmPct, locked }) {
+function MatSpecific({ om, pmPct, locked }: any) {
   const [rows, setRows] = window.useAmsPersist('mat.specifics', DEFAULT_SPECIFICS);
-  const set = (id, patch) => setRows(list => list.map(r => r.id === id ? { ...r, ...patch } : r));
-  const addRow = () => setRows(list => [...list, { id: 'SM-' + (list.length + 1), area: 'Area / kelas baru', basis: 'Dasar pertimbangan…', value: 800_000_000, wp: '—', status: 'Usulan' }]);
-  const del = (id) => setRows(list => list.filter(r => r.id !== id));
-  const overOM = rows.filter(r => r.value >= om).length;
+  const set = (id: any, patch: any) => setRows((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
+  const addRow = () => setRows((list: any) => [...list, { id: 'SM-' + (list.length + 1), area: 'Area / kelas baru', basis: 'Dasar pertimbangan…', value: 800_000_000, wp: '—', status: 'Usulan' }]);
+  const del = (id: any) => setRows((list: any) => list.filter((r: any) => r.id !== id));
+  const overOM = rows.filter((r: any) => r.value >= om).length;
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
@@ -77,14 +77,14 @@ function MatSpecific({ om, pmPct, locked }) {
             {!locked && <th style={{ width: 30 }}></th>}
           </tr></thead>
           <tbody>
-            {rows.map(r => (
+            {rows.map((r: any) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                 <td style={{ whiteSpace: 'normal', padding: '6px 9px' }}>
                   <div style={{ fontWeight: 600 }}>{r.area}</div>
                   <div className="tiny muted" style={{ lineHeight: 1.35 }}>{r.basis}</div>
                 </td>
-                <td className="num"><MoneyJuta value={r.value} onChange={v => set(r.id, { value: v })} locked={locked} /></td>
+                <td className="num"><MoneyJuta value={r.value} onChange={(v: any) => set(r.id, { value: v })} locked={locked} /></td>
                 <td className="num mono muted">{_FM(Math.round(r.value * pmPct / 100))}</td>
                 <td><span className="chip tiny" style={{ height: 18, padding: '0 6px', fontFamily: 'var(--mono)' }}>{r.wp}</span></td>
                 <td><Badge kind={r.status === 'Disetujui' ? 'green' : 'amber'}>{r.status}</Badge></td>
@@ -132,12 +132,12 @@ const DEFAULT_COMPONENTS = [
   { id: 'K-4', name: 'PT Sentosa Properti Indah', role: 'Anak — Properti', sig: false, scope: 'Prosedur spesifik', contrib: 6, cm: 1_200_000_000 },
 ];
 
-function MatComponent({ om, locked }) {
+function MatComponent({ om, locked }: any) {
   const [rows, setRows] = window.useAmsPersist('mat.components', DEFAULT_COMPONENTS);
-  const set = (id, patch) => setRows(list => list.map(r => r.id === id ? { ...r, ...patch } : r));
-  const sumCM = rows.reduce((s, r) => s + r.cm, 0);
-  const coverage = rows.filter(r => r.scope === 'Audit penuh').reduce((s, r) => s + r.contrib, 0);
-  const overGroup = rows.filter(r => r.cm > om).length;
+  const set = (id: any, patch: any) => setRows((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
+  const sumCM = rows.reduce((s: any, r: any) => s + r.cm, 0);
+  const coverage = rows.filter((r: any) => r.scope === 'Audit penuh').reduce((s: any, r: any) => s + r.contrib, 0);
+  const overGroup = rows.filter((r: any) => r.cm > om).length;
   const ctThreshold = Math.round(om * 0.05);
 
   return (
@@ -158,7 +158,7 @@ function MatComponent({ om, locked }) {
             <th className="num" style={{ width: 132 }}>Mat. Komponen</th>
           </tr></thead>
           <tbody>
-            {rows.map(r => (
+            {rows.map((r: any) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                 <td style={{ whiteSpace: 'normal', padding: '6px 9px' }}>
@@ -168,7 +168,7 @@ function MatComponent({ om, locked }) {
                 <td><Badge kind={r.scope === 'Audit penuh' ? 'blue' : 'gray'}>{r.scope}</Badge></td>
                 <td className="num mono">{r.contrib}%</td>
                 <td className="num">
-                  <MoneyJuta value={r.cm} onChange={v => set(r.id, { cm: v })} locked={locked} />
+                  <MoneyJuta value={r.cm} onChange={(v: any) => set(r.id, { cm: v })} locked={locked} />
                   {r.cm > om && <div className="tiny" style={{ color: 'var(--red)', fontWeight: 600 }}>melebihi OM grup</div>}
                 </td>
               </tr>
@@ -219,22 +219,22 @@ const SEEDED_UNCORR = [
   { id: 'U-S2', ref: 'H-2', desc: 'Selisih asumsi tingkat diskonto imbalan kerja', type: 'Penilaian', pbt: -240_000_000 },
 ];
 
-function MatImpact({ om, pm, ctt, locked }) {
+function MatImpact({ om, pm, ctt, locked }: any) {
   const nav = useNav();
   const { wtb, aje } = useAudit();
 
   const identified = useMemoMP(() =>
-    wtb.filter(r => Math.abs(r.aje) >= ctt).sort((a, b) => Math.abs(b.aje) - Math.abs(a.aje)), [wtb, ctt]);
-  const overPM = identified.filter(r => Math.abs(r.aje) > pm).length;
+    wtb.filter((r: any) => Math.abs(r.aje) >= ctt).sort((a: any, b: any) => Math.abs(b.aje) - Math.abs(a.aje)), [wtb, ctt]);
+  const overPM = identified.filter((r: any) => Math.abs(r.aje) > pm).length;
 
   const uncorrected = useMemoMP(() => {
-    const fromAje = aje.filter(a => a.status !== 'Posted').map(a => ({
-      id: a.id, ref: a.ref, desc: a.desc, type: SAD_TYPE[a.id] || 'Faktual', pbt: -Math.abs(a.amount),
+    const fromAje = aje.filter((a: any) => a.status !== 'Posted').map((a: any) => ({
+      id: a.id, ref: a.ref, desc: a.desc, type: (SAD_TYPE as any)[a.id] || 'Faktual', pbt: -Math.abs(a.amount),
     }));
     return [...fromAje, ...SEEDED_UNCORR];
   }, [aje]);
 
-  const aggPbt = uncorrected.reduce((s, u) => s + u.pbt, 0);
+  const aggPbt = uncorrected.reduce((s: any, u: any) => s + u.pbt, 0);
   const afterTax = Math.round(aggPbt * 0.78);
   const matGross = Math.abs(aggPbt);
   const isMaterial = matGross > om;
@@ -261,7 +261,7 @@ function MatImpact({ om, pm, ctt, locked }) {
             <th style={{ width: 110 }}>Tingkat</th>
           </tr></thead>
           <tbody>
-            {identified.map(r => {
+            {identified.map((r: any) => {
               const mag = Math.abs(r.aje);
               const ratio = mag / pm * 100;
               const lvl = mag > pm ? 'red' : mag > pm * 0.5 ? 'amber' : 'green';
@@ -301,11 +301,11 @@ function MatImpact({ om, pm, ctt, locked }) {
               <th className="num" style={{ width: 150 }}>Dampak ke Laba Sblm Pajak</th>
             </tr></thead>
             <tbody>
-              {uncorrected.map(u => (
+              {uncorrected.map((u: any) => (
                 <tr key={u.id}>
                   <td className="mono tiny" style={{ fontWeight: 700 }}>{u.ref}</td>
                   <td style={{ whiteSpace: 'normal', padding: '6px 9px' }}>{u.desc}</td>
-                  <td><Badge kind={TYPE_KIND[u.type]}>{u.type}</Badge></td>
+                  <td><Badge kind={(TYPE_KIND as any)[u.type]}>{u.type}</Badge></td>
                   <td className="num mono" style={{ color: u.pbt < 0 ? 'var(--red)' : 'var(--green)' }}>{_FM(u.pbt)}</td>
                 </tr>
               ))}
@@ -363,13 +363,13 @@ const DEFAULT_REVISIONS = [
   { id: 'V2', date: '2026-01-22', phase: 'Interim', from: 3_900_000_000, to: 4_250_000_000, basis: 'PBT interim teraudit naik ke Rp 85,0 M; benchmark disesuaikan', by: 'Anindya P.', appr: 'Hartono W.' },
 ];
 
-function MatRevision({ om, applied, locked }) {
+function MatRevision({ om, applied, locked }: any) {
   const [revs, setRevs] = window.useAmsPersist('mat.revisions', DEFAULT_REVISIONS);
   const last = revs[revs.length - 1];
   const proposed = om !== last.to;
-  const trend = [...revs.map(r => r.to), om].map(v => v / 1e9);
+  const trend = [...revs.map((r: any) => r.to), om].map(v => v / 1e9);
 
-  const commit = () => setRevs(list => [...list, {
+  const commit = () => setRevs((list: any) => [...list, {
     id: 'V' + (list.length + 1), date: new Date().toISOString().slice(0, 10), phase: 'Eksekusi',
     from: last.to, to: om, basis: 'Penyesuaian saat eksekusi — lihat memo materialitas', by: 'Anindya P.', appr: 'Menunggu',
   }]);
@@ -384,7 +384,7 @@ function MatRevision({ om, applied, locked }) {
           {proposed && !locked && <Btn sm variant="primary" onClick={commit}><I.plus size={13} /> Catat Revisi ({_M(om)})</Btn>}
         </div>
         <div style={{ padding: '16px 18px' }}>
-          {revs.map((r, i) => {
+          {revs.map((r: any, i: any) => {
             const up = r.to > r.from;
             const delta = r.from ? ((r.to - r.from) / r.from * 100) : null;
             return (
@@ -450,14 +450,14 @@ function MatRevision({ om, applied, locked }) {
 /* ============================================================
    TAB 6 — Memo & Persetujuan (SA 230)
    ============================================================ */
-function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, locked }) {
+function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, locked }: any) {
   const { activeEngagement, activeClient } = useFirm();
   const [sign, setSign] = window.useAmsPersist('mat.memo.signoff', {
     preparer: { name: 'Anindya Pramesti', role: 'Audit Manager', at: '2026-02-18 09:40' },
     manager: null, partner: null,
   });
   const now = () => new Date().toISOString().slice(0, 16).replace('T', ' ');
-  const doSign = (key, name, role) => setSign(s => ({ ...s, [key]: s[key] ? null : { name, role, at: now() } }));
+  const doSign = (key: any, name: any, role: any) => setSign((s: any) => ({ ...s, [key]: s[key] ? null : { name, role, at: now() } }));
   const fullySigned = sign.preparer && sign.manager && sign.partner;
   const diff = Math.abs(om - applied) / applied;
   const [exporting, setExporting] = useStateMP(false);
@@ -508,7 +508,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
       <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5 }}>{value}</span>
     </div>
   );
-  const SignBox = ({ k, title }) => {
+  const SignBox = ({ k, title }: any) => {
     const s = sign[k];
     return (
       <div className="panel" style={{ padding: '11px 13px', background: s ? 'var(--green-bg)' : 'var(--surface-2)', borderColor: s ? 'transparent' : 'var(--line)' }}>

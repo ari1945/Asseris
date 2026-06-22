@@ -76,7 +76,7 @@ function P72CritRow({ k, t, ok, last }: any) {
 }
 
 /* ===== Model 5 Langkah (¶9-45) ===== */
-function P72_FiveStep({ rev, sc, fmt }) {
+function P72_FiveStep({ rev, sc, fmt }: any) {
   const tone = { ink: 'var(--ink)', blue: 'var(--blue)', amber: 'var(--amber)', muted: 'var(--ink-4)' };
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -110,7 +110,7 @@ function P72_FiveStep({ rev, sc, fmt }) {
           {P72_STEP3.map((r, i) => (
             <div key={i} className="row ac jb gap9" style={{ padding: '7px 0', borderTop: '1px solid var(--line-soft)' }}>
               <span style={{ fontSize: 12, color: 'var(--ink-2)', flex: 1 }}>{r.t}<span className="mono tiny" style={{ color: 'var(--ink-4)', marginLeft: 6 }}>{r.ref}</span></span>
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: tone[r.tone] }}>{r.st}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: (tone as any)[r.tone] }}>{r.st}</span>
             </div>
           ))}
         </div>
@@ -173,7 +173,7 @@ function P72_SspTable({ rev, sc, fmt, embedded }: any) {
           </tr>
         </thead>
         <tbody>
-          {rev.pobs.map((p, i) => (
+          {rev.pobs.map((p: any, i: any) => (
             <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
               <td style={{ padding: '7px 4px', fontWeight: 600 }}>{p.label}</td>
               <td className="mono" style={{ textAlign: 'right', padding: '7px 4px', color: 'var(--ink-4)' }}>{sc(p.ssp)}</td>
@@ -206,7 +206,7 @@ function P72_SspTable({ rev, sc, fmt, embedded }: any) {
 }
 
 /* ===== Roll-forward saldo kontrak (¶105, ¶116) ===== */
-function P72_ContractBal({ rev, sc, nav }) {
+function P72_ContractBal({ rev, sc, nav }: any) {
   const b = rev.balances;
   const cards = [
     { id: 'recv', label: 'Piutang usaha (hak tanpa syarat)', ref: 'WTB 1-1200', open: b.recvOpen, close: b.recvClose, accent: 'var(--navy)',

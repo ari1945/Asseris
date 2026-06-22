@@ -25,17 +25,17 @@ function LeaveAttendance() {
   const [reqs, setReqs] = useAmsPersist('leaveReqs', () => AMS.LEAVE_REQUESTS) as any;
   const [tab, setTab] = useHR('requests');
 
-  const setStatus = (id, status) => setReqs(list => list.map(r => r.id === id ? { ...r, status } : r));
-  const pending = reqs.filter(r => r.status === 'Menunggu');
-  const onLeaveToday = reqs.filter(r => r.status === 'Disetujui' && new Date(r.from) <= new Date('2026-03-09') && new Date(r.to) >= new Date('2026-03-09'));
-  const totalEnt = staff.reduce((s, p) => s + (BAL[p.id] ? BAL[p.id].ent + BAL[p.id].carry : 0), 0);
-  const totalUsed = staff.reduce((s, p) => s + (BAL[p.id] ? BAL[p.id].used : 0), 0);
+  const setStatus = (id: any, status: any) => setReqs((list: any) => list.map((r: any) => r.id === id ? { ...r, status } : r));
+  const pending = reqs.filter((r: any) => r.status === 'Menunggu');
+  const onLeaveToday = reqs.filter((r: any) => r.status === 'Disetujui' && new Date(r.from) <= new Date('2026-03-09') && new Date(r.to) >= new Date('2026-03-09'));
+  const totalEnt = staff.reduce((s: any, p: any) => s + (BAL[p.id] ? BAL[p.id].ent + BAL[p.id].carry : 0), 0);
+  const totalUsed = staff.reduce((s: any, p: any) => s + (BAL[p.id] ? BAL[p.id].used : 0), 0);
 
   const tabs = [{ id: 'requests', label: 'Pengajuan Cuti', count: pending.length }, { id: 'balance', label: 'Saldo Cuti' }, { id: 'calendar', label: 'Kalender Kehadiran' }];
 
   /* simple 14-day strip for calendar (Mar 2026) */
   const days = Array.from({ length: 21 }, (_, i) => new Date(2026, 2, 3 + i));
-  const onLeave = (emp, d) => reqs.some(r => r.emp === emp && r.status !== 'Ditolak' && new Date(r.from) <= d && new Date(r.to) >= d);
+  const onLeave = (emp: any, d: any) => reqs.some((r: any) => r.emp === emp && r.status !== 'Ditolak' && new Date(r.from) <= d && new Date(r.to) >= d);
 
   return (
     <>
@@ -55,18 +55,18 @@ function LeaveAttendance() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Karyawan</th><th>Jenis</th><th>Periode</th><th className="num">Hari</th><th>Alasan</th><th>Penyetuju</th><th>Status / Aksi</th></tr></thead>
               <tbody>
-                {reqs.map(r => (
+                {reqs.map((r: any) => (
                   <tr key={r.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                     <td style={{ fontWeight: 600 }}>{r.name}</td>
-                    <td><span className="badge" style={{ background: LV_TYPE_COLOR[r.type] + '1a', color: LV_TYPE_COLOR[r.type] }}>{r.type}</span></td>
+                    <td><span className="badge" style={{ background: (LV_TYPE_COLOR as any)[r.type] + '1a', color: (LV_TYPE_COLOR as any)[r.type] }}>{r.type}</span></td>
                     <td className="tiny">{new Date(r.from).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} – {new Date(r.to).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                     <td className="num mono">{r.days}</td>
                     <td className="tiny muted truncate" style={{ maxWidth: 140 }}>{r.reason}</td>
                     <td className="tiny muted">{r.approver}</td>
                     <td>{r.status === 'Menunggu'
                       ? <div className="row gap6"><button className="btn sm" style={{ height: 22, color: 'var(--green)' }} onClick={() => setStatus(r.id, 'Disetujui')}><I.check size={12} /> Setujui</button><button className="btn sm" style={{ height: 22 }} onClick={() => setStatus(r.id, 'Ditolak')}><I.x size={12} /></button></div>
-                      : <Badge kind={LV_STAT[r.status]}>{r.status}</Badge>}</td>
+                      : <Badge kind={(LV_STAT as any)[r.status]}>{r.status}</Badge>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -77,7 +77,7 @@ function LeaveAttendance() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th>Jabatan</th><th className="num">Kuota</th><th className="num">Saldo Lalu</th><th className="num">Terpakai</th><th className="num">Sisa</th><th style={{ width: 150 }}>Pemakaian</th></tr></thead>
               <tbody>
-                {staff.filter(s => BAL[s.id]).map(s => {
+                {staff.filter((s: any) => BAL[s.id]).map((s: any) => {
                   const b = BAL[s.id]; const total = b.ent + b.carry; const left = total - b.used;
                   return (
                     <tr key={s.id}>
@@ -100,7 +100,7 @@ function LeaveAttendance() {
               <table className="dtbl" style={{ minWidth: 760 }}>
                 <thead><tr><th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)' }}>Karyawan</th>{days.map((d, i) => <th key={i} className="num" style={{ minWidth: 26, padding: '6px 3px', color: d.getDay() === 0 || d.getDay() === 6 ? 'var(--ink-4)' : 'inherit' }}>{d.getDate()}</th>)}</tr></thead>
                 <tbody>
-                  {staff.map(s => (
+                  {staff.map((s: any) => (
                     <tr key={s.id}>
                       <td style={{ position: 'sticky', left: 0, background: 'var(--surface)', fontWeight: 600 }}><div className="row ac gap6"><Avatar name={s.name} size={20} /><span className="tiny truncate" style={{ maxWidth: 110 }}>{s.name}</span></div></td>
                       {days.map((d, i) => {
@@ -132,19 +132,19 @@ function Performance() {
   const C: any = AMS.PERF_CYCLE;
   const [sel, setSel] = useHR('EMP-021');
   const [pdata, setPdata] = useAmsPersist('perfPeople', () => C.people);
-  const advance = (id) => setPdata(m => { const p = { ...m[id] }; if (!p.goalsSet) p.goalsSet = true; else if (!p.selfDone) p.selfDone = true; else if (!p.mgrDone) p.mgrDone = true; else p.calibrated = true; return { ...m, [id]: p }; });
+  const advance = (id: any) => setPdata((m: any) => { const p = { ...m[id] }; if (!p.goalsSet) p.goalsSet = true; else if (!p.selfDone) p.selfDone = true; else if (!p.mgrDone) p.mgrDone = true; else p.calibrated = true; return { ...m, [id]: p }; });
 
-  const people = staff.filter(s => pdata[s.id]).map(s => ({ ...s, ...pdata[s.id] }));
-  const phaseIdx = (p) => p.calibrated ? 4 : p.mgrDone ? 3 : p.selfDone ? 2 : p.goalsSet ? 1 : 0;
-  const calibrated = people.filter(p => p.calibrated).length;
-  const pendingMgr = people.filter(p => p.selfDone && !p.mgrDone).length;
-  const avgPerf = (people.reduce((s, p) => s + p.perf, 0) / people.length);
-  const person = people.find(p => p.id === sel) || people[0];
+  const people = staff.filter((s: any) => pdata[s.id]).map((s: any) => ({ ...s, ...pdata[s.id] }));
+  const phaseIdx = (p: any) => p.calibrated ? 4 : p.mgrDone ? 3 : p.selfDone ? 2 : p.goalsSet ? 1 : 0;
+  const calibrated = people.filter((p: any) => p.calibrated).length;
+  const pendingMgr = people.filter((p: any) => p.selfDone && !p.mgrDone).length;
+  const avgPerf = (people.reduce((s: any, p: any) => s + p.perf, 0) / people.length);
+  const person = people.find((p: any) => p.id === sel) || people[0];
   const goals = C.goals[person.id];
 
   /* 9-box: x = perf (1-5 → low/mid/high), y = potential */
-  const band = (v) => v >= 4.3 ? 2 : v >= 3.6 ? 1 : 0;
-  const boxColor = (px, py) => {
+  const band = (v: any) => v >= 4.3 ? 2 : v >= 3.6 ? 1 : 0;
+  const boxColor = (px: any, py: any) => {
     const sum = px + py;
     return sum >= 3 ? 'var(--green-bg)' : sum >= 2 ? 'var(--blue-050)' : sum >= 1 ? 'var(--amber-bg)' : 'var(--red-bg)';
   };
@@ -157,7 +157,7 @@ function Performance() {
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={calibrated + ' / ' + people.length} label="Terkalibrasi" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={pendingMgr} label="Menunggu Reviu Manajer" accent="var(--amber)" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgPerf.toFixed(2)} label="Rata-rata Skor Kinerja" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={people.filter(p => p.promote && p.promote !== '—').length} label="Kandidat Promosi" accent="var(--purple)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={people.filter((p: any) => p.promote && p.promote !== '—').length} label="Kandidat Promosi" accent="var(--purple)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1.35fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -167,7 +167,7 @@ function Performance() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th style={{ width: 180 }}>Tahapan</th><th className="num">Skor</th><th>Penempatan</th></tr></thead>
               <tbody>
-                {people.map(p => {
+                {people.map((p: any) => {
                   const pi = phaseIdx(p);
                   return (
                     <tr key={p.id} className={p.id === sel ? 'sel' : ''} onClick={() => setSel(p.id)} style={{ cursor: 'pointer' }}>
@@ -194,10 +194,10 @@ function Performance() {
                 <div style={{ flex: 1 }}>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,52px)', gap: 4 }}>
                     {[2, 1, 0].map(py => [0, 1, 2].map(px => {
-                      const here = people.filter(p => band(p.perf) === px && band(p.pot) === py);
+                      const here = people.filter((p: any) => band(p.perf) === px && band(p.pot) === py);
                       return (
                         <div key={py + '-' + px} style={{ background: boxColor(px, py), borderRadius: 6, padding: 4, display: 'flex', flexWrap: 'wrap', gap: 3, alignContent: 'flex-start', border: '1px solid var(--line-soft)' }}>
-                          {here.map(p => <span key={p.id} onClick={() => setSel(p.id)} title={p.name} style={{ cursor: 'pointer', outline: p.id === sel ? '2px solid var(--navy)' : 'none', borderRadius: '50%' }}><Avatar name={p.name} size={22} /></span>)}
+                          {here.map((p: any) => <span key={p.id} onClick={() => setSel(p.id)} title={p.name} style={{ cursor: 'pointer', outline: p.id === sel ? '2px solid var(--navy)' : 'none', borderRadius: '50%' }}><Avatar name={p.name} size={22} /></span>)}
                         </div>
                       );
                     }))}
@@ -227,7 +227,7 @@ function Performance() {
                 <>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Sasaran & KPI ({C.cycle})</div>
                   <div style={{ display: 'grid', gap: 9, marginBottom: 14 }}>
-                    {goals.map((g, i) => (
+                    {goals.map((g: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row jb ac" style={{ marginBottom: 5 }}><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{g.kpi}</span><span className="chip tiny">{g.weight}%</span></div>
                         <div className="row jb ac">

@@ -31,7 +31,7 @@ function SoqmHeatmap({ risks, onPick }: any) {
   const cells = [];
   for (let imp = 5; imp >= 1; imp--) {
     for (let lik = 1; lik <= 5; lik++) {
-      const here = risks.filter(r => r.lik === lik && r.imp === imp);
+      const here = risks.filter((r: any) => r.lik === lik && r.imp === imp);
       const s = lik * imp;
       const bg = s >= 15 ? 'var(--red)' : s >= 9 ? 'var(--amber)' : s >= 4 ? 'var(--blue)' : 'var(--green)';
       const tint = s >= 15 ? '#fee2e2' : s >= 9 ? '#fef3c7' : s >= 4 ? '#dbeafe' : '#d1fae5';
@@ -50,7 +50,7 @@ function SoqmHeatmap({ risks, onPick }: any) {
             style={{ background: c.here.length ? c.tint : 'transparent', borderColor: c.here.length ? c.bg : 'var(--line-soft)' }}
             onClick={() => c.here.length === 1 && onPick && onPick(c.here[0].id)}
             disabled={c.here.length === 0}
-            title={c.here.length ? c.here.map(r => r.id + ' · ' + r.risk).join('\n') : ('L=' + c.lik + ' D=' + c.imp)}
+            title={c.here.length ? c.here.map((r: any) => r.id + ' · ' + r.risk).join('\n') : ('L=' + c.lik + ' D=' + c.imp)}
           >
             {c.here.length > 0 && (
               <span className="soqm-heat-bubble" style={{ background: c.bg }}>
@@ -82,16 +82,16 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
   const comps = A.QM_COMPONENTS || [];
   /* indeks risiko per nama komponen */
   const byComp = {};
-  risks.forEach(r => { (byComp[r.comp] = byComp[r.comp] || []).push(r); });
+  risks.forEach((r: any) => { ((byComp as any)[r.comp] = (byComp as any)[r.comp] || []).push(r); });
 
-  const matched = (c) => {
+  const matched = (c: any) => {
     const k = c.name.split(' ')[0];
-    return risks.filter(r => r.comp.includes(k) || c.name.includes(r.comp.split(' ')[0]));
+    return risks.filter((r: any) => r.comp.includes(k) || c.name.includes(r.comp.split(' ')[0]));
   };
 
   const total = risks.length;
   const withObj = risks.length;            // semua risiko punya objective
-  const compsCovered = comps.filter(c => matched(c).length > 0).length;
+  const compsCovered = comps.filter((c: any) => matched(c).length > 0).length;
   const compRate = Math.round(compsCovered / (comps.length || 1) * 100);
 
   return (
@@ -109,16 +109,16 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
         <D2KPI label="Komponen SPM" v={comps.length} sub={compsCovered + ' memiliki risiko terdaftar'} />
         <D2KPI label="Tujuan Mutu Tertulis" v={withObj} sub={total + ' total risiko ditautkan'} />
         <D2KPI label="Cakupan Komponen" v={compRate + '%'} accent={compRate >= 85 ? 'var(--green)' : 'var(--amber)'} sub="rasio komponen yang punya risiko & respons" />
-        <D2KPI label="Respons Efektif" v={risks.filter(r => r.monitor === 'Efektif').length + '/' + total} accent="var(--green)" sub="dari aktivitas pemantauan" />
+        <D2KPI label="Respons Efektif" v={risks.filter((r: any) => r.monitor === 'Efektif').length + '/' + total} accent="var(--green)" sub="dari aktivitas pemantauan" />
       </div>
 
       <Panel noBody>
         <div className="panel-h"><h3>Tujuan Mutu per Komponen SPM</h3><div style={{ flex: 1 }} /><button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Governance (komponen kanonik)</button></div>
         <div style={{ padding: 14, display: 'grid', gap: 10 }}>
-          {comps.map(c => {
+          {comps.map((c: any) => {
             const cRisks = matched(c);
-            const monEff = cRisks.filter(r => r.monitor === 'Efektif').length;
-            const defs = cRisks.filter(r => r.deficiency).length;
+            const monEff = cRisks.filter((r: any) => r.monitor === 'Efektif').length;
+            const defs = cRisks.filter((r: any) => r.deficiency).length;
             const eff = cRisks.length ? Math.round(monEff / cRisks.length * 100) : 100;
             const color = eff >= 85 ? 'var(--green)' : eff >= 60 ? 'var(--amber)' : 'var(--red)';
             return (
@@ -137,7 +137,7 @@ function SoqmObjectives({ risks, nav, onPick }: any) {
                 <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 8, fontStyle: 'italic' }}>{c.desc}</div>
                 {cRisks.length > 0 ? (
                   <div className="soqm-obj-list">
-                    {cRisks.map(r => (
+                    {cRisks.map((r: any) => (
                       <button key={r.id} type="button" className="soqm-obj-row" onClick={() => onPick && onPick(r.id)}>
                         <span className="soqm-obj-id mono">{r.id}</span>
                         <span className="soqm-obj-chain">
@@ -181,14 +181,14 @@ function D2KPI({ label, v, sub, accent }: any) {
    ============================================================ */
 function SoqmSeverity({ deficiencies, P, complaints, inspFindings }: any) {
   /* turunkan keparahan & pervasivitas dari sumber kebenaran */
-  const rate = (r) => {
+  const rate = (r: any) => {
     const d = r.deficiency || {};
     // pervasif = pengaruh ke lebih dari satu komponen / lintas-perikatan
     const pervasive =
       (r.id === 'QR-02' && P.overloaded.length >= 2) ||  // sumber daya menyentuh multi-perikatan
       (r.id === 'QR-04' && P.rotationDue.length >= 1) || // etika lintas klien
       d.sev === 'Tinggi';
-    const tied = inspFindings.filter(f => (f.rca5 || []).some(w => w.toLowerCase().includes(r.comp.split(' ')[0].toLowerCase())) || (f.cause || '').toLowerCase().includes(r.comp.split(' ')[0].toLowerCase()));
+    const tied = inspFindings.filter((f: any) => (f.rca5 || []).some((w: any) => w.toLowerCase().includes(r.comp.split(' ')[0].toLowerCase())) || (f.cause || '').toLowerCase().includes(r.comp.split(' ')[0].toLowerCase()));
     return { pervasive, tied: tied.length, sev: d.sev || 'Sedang' };
   };
 
@@ -210,7 +210,7 @@ function SoqmSeverity({ deficiencies, P, complaints, inspFindings }: any) {
           <th style={{ width: 130 }}>Implikasi pada SPM</th>
         </tr></thead>
         <tbody>
-          {deficiencies.map(r => {
+          {deficiencies.map((r: any) => {
             const v = rate(r);
             return (
               <tr key={r.id}>
@@ -251,15 +251,15 @@ function SoqmInfoComm({ nav }: any) {
       flows: [
         { lbl: 'Pelaporan defisiensi & near-miss', src: 'Workspace (Review Notes)', mod: 'workspace', n: '—' },
         { lbl: 'Konsultasi & permintaan bantuan teknis', src: 'Workspace · Pelaksanaan Perikatan', mod: 'consultation', n: '—' },
-        { lbl: 'Keluhan & tuduhan (whistleblowing)', src: 'COMPLAINTS', mod: 'soqm', n: cmps.filter(c => c.source && c.source.toLowerCase().includes('internal')).length + ' aktif' },
+        { lbl: 'Keluhan & tuduhan (whistleblowing)', src: 'COMPLAINTS', mod: 'soqm', n: cmps.filter((c: any) => c.source && c.source.toLowerCase().includes('internal')).length + ' aktif' },
       ],
     },
     {
       dir: 'Turun (Pimpinan → Personel)', icon: 'megaphone', clr: 'var(--navy)', ref: '¶33–34',
       flows: [
-        { lbl: 'Memo mutu & tone-at-the-top', src: 'DMS · Komunikasi Mutu', mod: 'dms', n: culture.find(k => k.k && k.k.includes('Komunikasi'))?.v || '—' },
+        { lbl: 'Memo mutu & tone-at-the-top', src: 'DMS · Komunikasi Mutu', mod: 'dms', n: culture.find((k: any) => k.k && k.k.includes('Komunikasi'))?.v || '—' },
         { lbl: 'Pembaruan kebijakan & metodologi', src: 'Knowledge Base', mod: 'kb', n: 'Berkala' },
-        { lbl: 'Coaching & evaluasi kinerja mutu', src: 'PERF_CYCLE', mod: 'hr', n: culture.find(k => k.k && k.k.includes('Bobot mutu'))?.v || '—' },
+        { lbl: 'Coaching & evaluasi kinerja mutu', src: 'PERF_CYCLE', mod: 'hr', n: culture.find((k: any) => k.k && k.k.includes('Bobot mutu'))?.v || '—' },
       ],
     },
     {
@@ -275,7 +275,7 @@ function SoqmInfoComm({ nav }: any) {
       flows: [
         { lbl: 'Komunikasi mutu ke TCWG / Komite Audit', src: 'SA 260 / SA 265', mod: 'mgmtletter', n: 'Per perikatan' },
         { lbl: 'Pelaporan kepada PPPK (regulator)', src: 'PPPK Report', mod: 'pppk', n: 'Tahunan' },
-        { lbl: 'Jaringan & afiliasi global (inspection feedback)', src: 'QM_PROVIDERS', mod: 'governance', n: (A.QM_PROVIDERS || []).filter(p => p.type === 'Jaringan').length + ' jaringan' },
+        { lbl: 'Jaringan & afiliasi global (inspection feedback)', src: 'QM_PROVIDERS', mod: 'governance', n: (A.QM_PROVIDERS || []).filter((p: any) => p.type === 'Jaringan').length + ' jaringan' },
       ],
     },
   ];
@@ -293,7 +293,7 @@ function SoqmInfoComm({ nav }: any) {
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
         {channels.map((ch, i) => {
-          const Ic = I && (I[ch.icon] || I.mail);
+          const Ic = I && ((I as any)[ch.icon] || I.mail);
           return (
             <Panel key={i} noBody>
               <div className="panel-h">
@@ -322,7 +322,7 @@ function SoqmInfoComm({ nav }: any) {
       {/* Akuntabilitas komunikasi — QM_ROLES SSOT */}
       <Panel title="Akuntabilitas Komunikasi Mutu" sub="ISQM 1 ¶20 — peran pimpinan ditarik dari QM_ROLES (Governance)">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
-          {roles.map((r, i) => (
+          {roles.map((r: any, i: any) => (
             <div key={i} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}>
                 <span style={{ fontSize: 12.5, fontWeight: 700 }}>{r.role}</span>
@@ -346,11 +346,11 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   const master = A.QM_EVAL || {};
 
   /* mesin keputusan ¶54 — diturunkan dari live data */
-  const defs = risks.filter(r => r.deficiency);
-  const defsPervasive = defs.filter(r => (r.deficiency.sev === 'Tinggi') || (r.id === 'QR-02') || (r.id === 'QR-04'));
-  const defsHighOpen = defs.filter(r => r.deficiency.sev === 'Tinggi' && r.deficiency.status !== 'Selesai');
-  const inspBad = inspections.filter(i => i.grade === 'Tidak Memuaskan');
-  const cmpInvest = complaints.filter(c => c.status === 'Investigasi' && c.severity === 'Tinggi');
+  const defs = risks.filter((r: any) => r.deficiency);
+  const defsPervasive = defs.filter((r: any) => (r.deficiency.sev === 'Tinggi') || (r.id === 'QR-02') || (r.id === 'QR-04'));
+  const defsHighOpen = defs.filter((r: any) => r.deficiency.sev === 'Tinggi' && r.deficiency.status !== 'Selesai');
+  const inspBad = inspections.filter((i: any) => i.grade === 'Tidak Memuaskan');
+  const cmpInvest = complaints.filter((c: any) => c.status === 'Investigasi' && c.severity === 'Tinggi');
 
   let conclusion = 'reasonable';
   let label = 'Efektif';
@@ -370,22 +370,22 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   }
 
   const factors = [
-    { ok: defs.length === 0, t: 'Tidak ada defisiensi terbuka', v: defs.length + ' defisiensi', detail: defs.map(d => d.id).join(' · ') || 'Nihil' },
-    { ok: defsHighOpen.length === 0, t: 'Tidak ada defisiensi keparahan Tinggi terbuka', v: defsHighOpen.length, detail: defsHighOpen.map(d => d.id).join(' · ') || 'Nihil' },
-    { ok: defsPervasive.length === 0, t: 'Tidak ada defisiensi pervasif', v: defsPervasive.length, detail: defsPervasive.map(d => d.id).join(' · ') || 'Nihil' },
-    { ok: inspBad.length === 0, t: 'Tidak ada inspeksi "Tidak Memuaskan"', v: inspBad.length, detail: inspBad.map(i => i.id).join(' · ') || 'Nihil' },
-    { ok: cmpInvest.length === 0, t: 'Tidak ada tuduhan tingkat tinggi dalam investigasi', v: cmpInvest.length, detail: cmpInvest.map(c => c.id).join(' · ') || 'Nihil' },
-    { ok: risks.filter(r => r.monitor === 'Belum Diuji').length === 0, t: 'Seluruh respons mutu telah dipantau', v: risks.filter(r => r.monitor === 'Belum Diuji').length + ' belum diuji', detail: risks.filter(r => r.monitor === 'Belum Diuji').map(r => r.id).join(' · ') || 'Nihil' },
+    { ok: defs.length === 0, t: 'Tidak ada defisiensi terbuka', v: defs.length + ' defisiensi', detail: defs.map((d: any) => d.id).join(' · ') || 'Nihil' },
+    { ok: defsHighOpen.length === 0, t: 'Tidak ada defisiensi keparahan Tinggi terbuka', v: defsHighOpen.length, detail: defsHighOpen.map((d: any) => d.id).join(' · ') || 'Nihil' },
+    { ok: defsPervasive.length === 0, t: 'Tidak ada defisiensi pervasif', v: defsPervasive.length, detail: defsPervasive.map((d: any) => d.id).join(' · ') || 'Nihil' },
+    { ok: inspBad.length === 0, t: 'Tidak ada inspeksi "Tidak Memuaskan"', v: inspBad.length, detail: inspBad.map((i: any) => i.id).join(' · ') || 'Nihil' },
+    { ok: cmpInvest.length === 0, t: 'Tidak ada tuduhan tingkat tinggi dalam investigasi', v: cmpInvest.length, detail: cmpInvest.map((c: any) => c.id).join(' · ') || 'Nihil' },
+    { ok: risks.filter((r: any) => r.monitor === 'Belum Diuji').length === 0, t: 'Seluruh respons mutu telah dipantau', v: risks.filter((r: any) => r.monitor === 'Belum Diuji').length + ' belum diuji', detail: risks.filter((r: any) => r.monitor === 'Belum Diuji').map((r: any) => r.id).join(' · ') || 'Nihil' },
   ];
   const factorOk = factors.filter(f => f.ok).length;
 
   const inspSumm = {
     total: inspections.length,
-    done: inspections.filter(i => i.grade !== 'Dijadwalkan').length,
-    findings: inspections.reduce((a, i) => a + i.findings, 0),
-    sevHigh: inspFindings.filter(f => f.sev === 'Tinggi').length,
-    sevMid: inspFindings.filter(f => f.sev === 'Sedang').length,
-    sevLow: inspFindings.filter(f => f.sev === 'Rendah').length,
+    done: inspections.filter((i: any) => i.grade !== 'Dijadwalkan').length,
+    findings: inspections.reduce((a: any, i: any) => a + i.findings, 0),
+    sevHigh: inspFindings.filter((f: any) => f.sev === 'Tinggi').length,
+    sevMid: inspFindings.filter((f: any) => f.sev === 'Sedang').length,
+    sevLow: inspFindings.filter((f: any) => f.sev === 'Rendah').length,
   };
 
   return (
@@ -433,7 +433,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
             <button type="button" className="soqm-basis" onClick={() => nav('soqm', { from: 'soqm' })}>
               <span className="tiny upper muted">Risiko Mutu &amp; Respons</span>
-              <span style={{ fontSize: 12 }}>{risks.length} risiko · {risks.filter(r => r.monitor === 'Efektif').length} efektif · {defs.length} defisiensi</span>
+              <span style={{ fontSize: 12 }}>{risks.length} risiko · {risks.filter((r: any) => r.monitor === 'Efektif').length} efektif · {defs.length} defisiensi</span>
               <span className="tiny mono" style={{ color: 'var(--blue)' }}>SOQM_RISKS</span>
             </button>
             <button type="button" className="soqm-basis" onClick={() => nav('soqm', { from: 'soqm' })}>
@@ -443,12 +443,12 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
             </button>
             <button type="button" className="soqm-basis" onClick={() => nav('eqr', { from: 'soqm' })}>
               <span className="tiny upper muted">EQR — Mutu Perikatan</span>
-              <span style={{ fontSize: 12 }}>{(A.EQR_REVIEWS || []).length} reviu · {(A.EQR_REVIEWS || []).filter(r => r.cleared).length} cleared</span>
+              <span style={{ fontSize: 12 }}>{(A.EQR_REVIEWS || []).length} reviu · {(A.EQR_REVIEWS || []).filter((r: any) => r.cleared).length} cleared</span>
               <span className="tiny mono" style={{ color: 'var(--blue)' }}>EQR_REVIEWS</span>
             </button>
             <button type="button" className="soqm-basis" onClick={() => nav('soqm', { from: 'soqm' })}>
               <span className="tiny upper muted">Keluhan &amp; Tuduhan</span>
-              <span style={{ fontSize: 12 }}>{complaints.length} register · {complaints.filter(c => c.type === 'Tuduhan').length} tuduhan · {complaints.filter(c => c.status === 'Selesai').length} selesai</span>
+              <span style={{ fontSize: 12 }}>{complaints.length} register · {complaints.filter((c: any) => c.type === 'Tuduhan').length} tuduhan · {complaints.filter((c: any) => c.status === 'Selesai').length} selesai</span>
               <span className="tiny mono" style={{ color: 'var(--blue)' }}>COMPLAINTS</span>
             </button>
           </div>
@@ -456,7 +456,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
             <div style={{ marginTop: 10 }}>
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Basis Tertulis Evaluator</div>
               <ul className="soqm-basis-ul">
-                {master.basis.map((b, i) => <li key={i} className="tiny" style={{ lineHeight: 1.5 }}>{b}</li>)}
+                {master.basis.map((b: any, i: any) => <li key={i} className="tiny" style={{ lineHeight: 1.5 }}>{b}</li>)}
               </ul>
             </div>
           )}
@@ -468,7 +468,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
         <Panel noBody>
           <div className="panel-h"><h3>Tindakan Pasca-Evaluasi</h3></div>
           <div style={{ padding: '10px 14px', display: 'grid', gap: 8 }}>
-            <D2Action ok={defs.length === 0} t="Lanjutkan remediasi defisiensi terdaftar" v={defs.filter(d => d.deficiency.status !== 'Selesai').length + ' aktif'} />
+            <D2Action ok={defs.length === 0} t="Lanjutkan remediasi defisiensi terdaftar" v={defs.filter((d: any) => d.deficiency.status !== 'Selesai').length + ' aktif'} />
             <D2Action ok={inspBad.length === 0} t="Eskalasi inspeksi tidak memuaskan" v={inspBad.length + ' kasus'} />
             <D2Action ok={true} t="Komunikasikan hasil ke seluruh personel" v="Memo & town hall" />
             <D2Action ok={true} t="Laporkan ke PPPK & TCWG terkait" v="Sesuai jadwal" />
@@ -481,7 +481,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
 
         <Panel title="Tren Skor Komponen SPM" sub="dari Governance (QM_COMPONENTS · trend)">
           <div className="grid" style={{ gap: 6 }}>
-            {(A.QM_COMPONENTS || []).map(c => (
+            {(A.QM_COMPONENTS || []).map((c: any) => (
               <div key={c.id}>
                 <div className="row jb ac" style={{ marginBottom: 2 }}>
                   <span className="tiny" style={{ fontWeight: 600 }}>{c.id} · {c.name}</span>

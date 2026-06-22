@@ -23,7 +23,7 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
   const [userOpen, setUserOpen] = useStateSH(false);
   const [settingsOpen, setSettingsOpen] = useStateSH(false);
   const [notifs, setNotifs] = useStateSH(() => window.NOTIFS || []);
-  const unread = notifs.filter(n => n.unread).length;
+  const unread = notifs.filter((n: any) => n.unread).length;
 
   return (
     <header className="topbar">
@@ -41,7 +41,7 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
       <div className="top-spacer" />
 
       <div style={{ position: 'relative' }}>
-        <div className="top-ctx" onClick={() => setOpen(o => !o)} style={{ cursor: 'pointer' }}>
+        <div className="top-ctx" onClick={() => setOpen((o: any) => !o)} style={{ cursor: 'pointer' }}>
           <div className="ctx-item">
             <span className="ctx-label">Klien Aktif</span>
             <span className="ctx-value">{activeClient?.name?.replace('PT ', '').slice(0, 22) || '—'}</span>
@@ -61,8 +61,8 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
               </div>
               {/* W7.5 — only engagements the user may access are switchable here (loading a
                   forbidden one would 403 server-side). The firm-ops roster stays full elsewhere. */}
-              {engagements.filter(e => canAccessEngagement(e.id)).map(e => {
-                const c = clients.find(x => x.id === e.clientId);
+              {engagements.filter((e: any) => canAccessEngagement(e.id)).map((e: any) => {
+                const c = clients.find((x: any) => x.id === e.clientId);
                 const on = e.id === activeEngagement?.id;
                 return (
                   <div key={e.id} onClick={() => { setActiveEngagementId(e.id); setOpen(false); }}
@@ -85,16 +85,16 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
       <button className="top-btn" title="Peta mini keterhubungan — di mana saya sekarang (⌘M)" onClick={onOpenMiniMap}><I.group size={18} /></button>
       <button className="top-btn" title="AI Co-pilot" onClick={onOpenCopilot}><I.sparkle size={18} /></button>
       <div style={{ position: 'relative' }}>
-        <button className="top-btn" title="Notifikasi" onClick={() => setNotifOpen(o => !o)}><I.bell size={18} />{unread > 0 && <span className="dot" />}</button>
-        <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} onNavigate={onNavigate} items={notifs} onMarkAll={() => setNotifs(ns => ns.map(n => ({ ...n, unread: false })))} />
+        <button className="top-btn" title="Notifikasi" onClick={() => setNotifOpen((o: any) => !o)}><I.bell size={18} />{unread > 0 && <span className="dot" />}</button>
+        <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} onNavigate={onNavigate} items={notifs} onMarkAll={() => setNotifs((ns: any) => ns.map((n: any) => ({ ...n, unread: false })))} />
       </div>
       <div style={{ position: 'relative' }}>
-        <button className="top-btn" title="Tampilan" onClick={() => setSettingsOpen(o => !o)}><I.settings size={18} /></button>
+        <button className="top-btn" title="Tampilan" onClick={() => setSettingsOpen((o: any) => !o)}><I.settings size={18} /></button>
         <SettingsMenu open={settingsOpen} onClose={() => setSettingsOpen(false)} onNavigate={onNavigate} />
       </div>
 
       <div style={{ position: 'relative' }}>
-        <div className="user-chip" onClick={() => setUserOpen(o => !o)} style={{ cursor: 'pointer' }}>
+        <div className="user-chip" onClick={() => setUserOpen((o: any) => !o)} style={{ cursor: 'pointer' }}>
           <Avatar name={user.name} size={24} photo={user.photo} />
           <div>
             <div className="u-name">{user.name.split(' ')[0]} {user.name.split(' ')[1]?.[0]}.</div>
@@ -127,7 +127,7 @@ function readSideRecent() {
 
 function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   const [closedGroups, setClosedGroups] = useStateSH({});
-  const toggleGroup = (g) => setClosedGroups(s => ({ ...s, [g]: !s[g] }));
+  const toggleGroup = (g: any) => setClosedGroups((s: any) => ({ ...s, [g]: !s[g] }));
   const firmCtx = useFirm();
   const [ws, setWs] = useStateSH(() => {
     try { const s = localStorage.getItem('ams.ws'); if (s && WORKSPACES.some(w => w.id === s)) return s; } catch (e) {}
@@ -142,28 +142,28 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   /* re-read prefs/recent when Pengaturan changes them or navigation happens */
   const [, bumpNav] = useStateSH(0);
   React.useEffect(() => {
-    const bump = () => bumpNav(t => t + 1);
+    const bump = () => bumpNav((t: any) => t + 1);
     window.addEventListener('ams:navprefs', bump);
     window.addEventListener('ams:recent', bump);
     return () => { window.removeEventListener('ams:navprefs', bump); window.removeEventListener('ams:recent', bump); };
   }, []);
 
   const HIDDEN = window.HIDDEN_GROUPS || [];
-  const groups = MODULES.filter(g => !HIDDEN.includes(g.group) && (GROUP_WS[g.group] || 'firm') === ws);
+  const groups = MODULES.filter(g => !HIDDEN.includes(g.group) && ((GROUP_WS as any)[g.group] || 'firm') === ws);
 
   /* ---- adaptive computation (engagement workspace only, expanded only) ---- */
   const navPrefs = readSideNavPrefs();
   const adaptiveOn = navPrefs.adaptive && ws === 'engagement' && !collapsed;
   const engPhase = (firmCtx && firmCtx.activeEngagement) ? firmCtx.activeEngagement.phase : 'Perencanaan';
-  const curKey = (navPrefs.source === 'manual') ? (SIDE_ENG_PHASE[navPrefs.manualPhase] || 'plan') : (SIDE_ENG_PHASE[engPhase] || 'plan');
-  const curRank = SIDE_PHASE_RANK[curKey];
-  const relevant = SIDE_RELEVANT[curKey] || [curKey];
-  const phaseLabel = SIDE_PHASE_LABEL[curKey] || 'PERENCANAAN';
+  const curKey = (navPrefs.source === 'manual') ? ((SIDE_ENG_PHASE as any)[navPrefs.manualPhase] || 'plan') : ((SIDE_ENG_PHASE as any)[engPhase] || 'plan');
+  const curRank = (SIDE_PHASE_RANK as any)[curKey];
+  const relevant = (SIDE_RELEVANT as any)[curKey] || [curKey];
+  const phaseLabel = (SIDE_PHASE_LABEL as any)[curKey] || 'PERENCANAAN';
   const engProgress = (firmCtx && firmCtx.activeEngagement) ? firmCtx.activeEngagement.progress : null;
   const resumeItems = (adaptiveOn && navPrefs.resumeCard)
-    ? readSideRecent().filter(id => { const g = (MODULE_INDEX[id] || {}).group; return g && GROUP_WS[g] === 'engagement' && (MODULE_INDEX[id] || {}).deep; }).slice(0, navPrefs.resumeCount).map(id => MODULE_INDEX[id]).filter(Boolean)
+    ? readSideRecent().filter(id => { const g = ((MODULE_INDEX as any)[id] || {}).group; return g && (GROUP_WS as any)[g] === 'engagement' && ((MODULE_INDEX as any)[id] || {}).deep; }).slice(0, navPrefs.resumeCount).map(id => (MODULE_INDEX as any)[id]).filter(Boolean)
     : [];
-  const focusObj = MODULES.find(g => g.group === SIDE_PRIMARY_GROUP[curKey]);
+  const focusObj = MODULES.find(g => g.group === (SIDE_PRIMARY_GROUP as any)[curKey]);
   const focusItems = (adaptiveOn && navPrefs.focusGroup && focusObj) ? focusObj.items : [];
 
   return (
@@ -171,7 +171,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
       {/* workspace switcher */}
       <div className="ws-switch" style={{ padding: collapsed ? '8px 6px' : '8px', borderBottom: '1px solid var(--line)', display: 'flex', flexDirection: collapsed ? 'column' : 'row', gap: 4 }}>
         {WORKSPACES.map(w => {
-          const IconW = I[w.icon] || I.panel;
+          const IconW = (I as any)[w.icon] || I.panel;
           const on = ws === w.id;
           return (
             <button key={w.id} onClick={() => setWs(w.id)} title={w.label + ' — ' + w.desc}
@@ -188,7 +188,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
           <div className="side-resume">
             <div className="side-pin-h"><I.clock size={11} /><span>Lanjutkan</span><span className="gr"></span><span className="mu">terakhir dibuka</span></div>
             {resumeItems.map((m, i) => {
-              const IconR = I[m.icon] || I.panel;
+              const IconR = (I as any)[m.icon] || I.panel;
               return (
                 <div key={m.id} className={'side-resume-item' + (i === 0 ? ' lead' : '')} onClick={() => onNavigate(m.id)}>
                   <span className="ic"><IconR size={14} /></span>
@@ -205,7 +205,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
             <div className="side-focus-h"><span className="ft">Fokus Fase</span><span className="fb">{phaseLabel}</span>{engProgress != null && <span className="fp">{engProgress}%</span>}</div>
             <div className="side-focus">
               {focusItems.map(m => {
-                const IconF = I[m.icon] || I.panel;
+                const IconF = (I as any)[m.icon] || I.panel;
                 return (
                   <div key={'f-' + m.id} className={'side-item' + (active === m.id ? ' active' : '')} onClick={() => onNavigate(m.id)}>
                     <span className="ico"><IconF size={16} /></span>
@@ -222,7 +222,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         )}
 
         {groups.map(group => {
-          const gp = SIDE_GROUP_PHASE[group.group];
+          const gp = (SIDE_GROUP_PHASE as any)[group.group];
           if (adaptiveOn && navPrefs.mode === 'ringkas' && gp && !relevant.includes(gp)) return null;
           const isClosed = closedGroups[group.group];
           return (
@@ -234,9 +234,9 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
                 </div>
               )}
               {!isClosed && group.items.map(m => {
-                const IconC = I[m.icon] || I.panel;
+                const IconC = (I as any)[m.icon] || I.panel;
                 const isRelevant = adaptiveOn && gp && relevant.includes(gp);
-                const isDone = adaptiveOn && navPrefs.markDone && gp && SIDE_PHASE_RANK[gp] < curRank;
+                const isDone = adaptiveOn && navPrefs.markDone && gp && (SIDE_PHASE_RANK as any)[gp] < curRank;
                 const isDim = adaptiveOn && navPrefs.mode === 'sorot' && gp && !relevant.includes(gp);
                 let cls = 'side-item';
                 if (active === m.id) cls += ' active';
@@ -265,7 +265,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         {!collapsed && (
           <span className="mn">
             <span className="k">Anda di sini</span>
-            <span className="l">{(MODULE_INDEX[active] || {}).label || active}</span>
+            <span className="l">{((MODULE_INDEX as any)[active] || {}).label || active}</span>
           </span>
         )}
         {!collapsed && <span className="ar"><I.arrowRight size={14} /></span>}
@@ -283,11 +283,11 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
 /* Breadcrumb / view toolbar */
 const FIRMWIDE_GROUPS = ['Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Firm Platform', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'Portal & Dokumen', 'Backoffice & Firm Mgmt', 'Knowledge'];
 function SubBar({ moduleId, right }: any) {
-  const m = MODULE_INDEX[moduleId] || { label: moduleId, group: '' };
+  const m = (MODULE_INDEX as any)[moduleId] || { label: moduleId, group: '' };
   const firm = useFirm();
   const nav = useNav();
   const navFrom = useNavFrom();
-  const fromMeta = navFrom && navFrom !== moduleId ? (MODULE_INDEX[navFrom] || { label: navFrom }) : null;
+  const fromMeta = navFrom && navFrom !== moduleId ? ((MODULE_INDEX as any)[navFrom] || { label: navFrom }) : null;
   const firmWide = FIRMWIDE_GROUPS.includes(m.group) || ['dashboard'].includes(moduleId);
   const scoped = !firmWide && m.group !== '';
   const saRefs = (window.RELATED_SA || {})[moduleId] || [];
@@ -298,8 +298,8 @@ function SubBar({ moduleId, right }: any) {
         <button type="button" className="subbar-back" title={'Kembali ke ' + fromMeta.label}
           onClick={() => nav(navFrom)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 26, padding: '0 10px 0 7px', marginRight: 10, border: '1px solid var(--line-strong)', borderRadius: 7, background: 'var(--surface-2)', color: 'var(--ink-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue)'; e.currentTarget.style.color = 'var(--blue)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.color = 'var(--ink-2)'; }}>
+          onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue)'; e.currentTarget.style.color = 'var(--blue)'; }}
+          onMouseLeave={(e: any) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.color = 'var(--ink-2)'; }}>
           <I.arrowLeft size={14} /> {fromMeta.label}
         </button>
       )}
@@ -327,7 +327,7 @@ function SubBar({ moduleId, right }: any) {
       {saRefs.length > 0 && (
         <span className="sa-rel" title="Standar Audit yang dipenuhi oleh prosedur ini">
           <span className="sa-rel-lbl"><I.shield size={11} /> Standar Terkait</span>
-          {saRefs.map(r => (
+          {saRefs.map((r: any) => (
             <button key={r.code} type="button" className="sa-rel-chip"
               title={r.code + ' · ' + r.title + (r.view ? ' — buka rujukan' : ' — lihat di Matriks Kepatuhan')}
               onClick={() => window.__amsOpenSA && window.__amsOpenSA({ ...r, fromModule: moduleId })}>
@@ -351,10 +351,10 @@ function SettingsMenu({ open, onClose, onNavigate }: any) {
   React.useEffect(() => { document.body.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
   React.useEffect(() => { document.body.classList.toggle('dense', dense); localStorage.setItem('ams.dense', dense ? '1' : '0'); }, [dense]);
   if (!open) return null;
-  const Row = ({ label, sub, on, set, icon }) => (
+  const Row = ({ label, sub, on, set, icon }: any) => (
     <div className="row ac jb" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line-soft)' }}>
-      <span className="row ac gap8">{React.createElement(I[icon], { size: 16, style: { color: 'var(--ink-3)' } })}<span><div style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</div><div className="tiny muted">{sub}</div></span></span>
-      <span onClick={() => set(v => !v)} style={{ width: 38, height: 21, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flex: '0 0 38px', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: on ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
+      <span className="row ac gap8">{React.createElement((I as any)[icon], { size: 16, style: { color: 'var(--ink-3)' } })}<span><div style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</div><div className="tiny muted">{sub}</div></span></span>
+      <span onClick={() => set((v: any) => !v)} style={{ width: 38, height: 21, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flex: '0 0 38px', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: on ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
     </div>
   );
   return (

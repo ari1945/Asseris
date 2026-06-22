@@ -14,34 +14,34 @@ import { amsExportPdf } from './export_pdf.js';
    shared `model` via the caller's `sc()` scaler (same source as the on-screen statements → zero
    numeric drift); only the statement scaffolding/labels are restated here. Mirrors the document
    in FSGenerator's preview — keep the two in step. */
-function buildFsBlocks(model, sc, comparative) {
-  const num = (n) => (n == null ? '' : sc(n));
+function buildFsBlocks(model: any, sc: any, comparative: any) {
+  const num = (n: any) => (n == null ? '' : sc(n));
   const head = comparative ? ['', '2025', '2024'] : ['', '2025'];
   const colStyles = comparative
     ? { 1: { halign: 'right', font: 'courier' }, 2: { halign: 'right', font: 'courier' } }
     : { 1: { halign: 'right', font: 'courier' } };
-  const mk = (rows) => {
-    const bold = [];
-    const body = rows.map((r, i) => { if (r.b) bold.push(i); return comparative ? [r.l, num(r.cy), num(r.py)] : [r.l, num(r.cy)]; });
+  const mk = (rows: any) => {
+    const bold: any[] = [];
+    const body = rows.map((r: any, i: any) => { if (r.b) bold.push(i); return comparative ? [r.l, num(r.cy), num(r.py)] : [r.l, num(r.cy)]; });
     return { type: 'table', head, body, boldRows: bold, columnStyles: colStyles };
   };
   const bs = model.bs, is = model.is, e = model.eqr, cf = model.cf;
   const neraca = [
     { l: 'ASET', b: 1 }, { l: 'Aset Lancar', b: 1 },
-    ...bs.ca.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    ...bs.ca.map((x: any) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
     { l: 'Total Aset Lancar', cy: bs.totalCA.cy, py: bs.totalCA.py, b: 1 },
     { l: 'Aset Tidak Lancar', b: 1 },
-    ...bs.nca.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    ...bs.nca.map((x: any) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
     { l: 'Total Aset Tidak Lancar', cy: bs.totalNCA.cy, py: bs.totalNCA.py, b: 1 },
     { l: 'TOTAL ASET', cy: bs.totalAssets.cy, py: bs.totalAssets.py, b: 1 },
     { l: 'LIABILITAS DAN EKUITAS', b: 1 }, { l: 'Liabilitas Jangka Pendek', b: 1 },
-    ...bs.cl.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    ...bs.cl.map((x: any) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
     { l: 'Total Liabilitas Jangka Pendek', cy: bs.totalCL.cy, py: bs.totalCL.py, b: 1 },
     { l: 'Liabilitas Jangka Panjang', b: 1 },
-    ...bs.ncl.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    ...bs.ncl.map((x: any) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
     { l: 'Total Liabilitas Jangka Panjang', cy: bs.totalNCL.cy, py: bs.totalNCL.py, b: 1 },
     { l: 'Ekuitas', b: 1 },
-    ...bs.eq.map((x) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
+    ...bs.eq.map((x: any) => ({ l: '   ' + x.label, cy: x.cy, py: x.py })),
     { l: 'Total Ekuitas', cy: bs.totalEq.cy, py: bs.totalEq.py, b: 1 },
     { l: 'TOTAL LIABILITAS DAN EKUITAS', cy: bs.totalLE.cy, py: bs.totalLE.py, b: 1 },
   ];
@@ -66,19 +66,19 @@ function buildFsBlocks(model, sc, comparative) {
     { l: 'Dividen tunai', m: 0, re: 0 },
     { l: 'Saldo per 31 Desember 2025', m: e.endModal, re: e.endRE, b: 1 },
   ];
-  const eqBold = [];
+  const eqBold: any[] = [];
   const eqBody = eqRows.map((r, i) => { if (r.b) eqBold.push(i); return [r.l, num(r.m), num(r.re), num(r.m + r.re)]; });
   const ekuitas = { type: 'table', head: ['', 'Modal Saham', 'Saldo Laba', 'Total Ekuitas'], body: eqBody, boldRows: eqBold,
     columnStyles: { 1: { halign: 'right', font: 'courier' }, 2: { halign: 'right', font: 'courier' }, 3: { halign: 'right', font: 'courier' } } };
   const ak = [
     { l: 'ARUS KAS DARI AKTIVITAS OPERASI', b: 1 },
-    ...cf.cfo.map((x) => (x.head ? { l: x.label, b: 1 } : { l: '   ' + x.label, cy: x.v })),
+    ...cf.cfo.map((x: any) => (x.head ? { l: x.label, b: 1 } : { l: '   ' + x.label, cy: x.v })),
     { l: 'Kas Neto dari Aktivitas Operasi', cy: cf.cfoTotal, b: 1 },
     { l: 'ARUS KAS DARI AKTIVITAS INVESTASI', b: 1 },
-    ...cf.cfi.map((x) => ({ l: '   ' + x.label, cy: x.v })),
+    ...cf.cfi.map((x: any) => ({ l: '   ' + x.label, cy: x.v })),
     { l: 'Kas Neto untuk Aktivitas Investasi', cy: cf.cfiTotal, b: 1 },
     { l: 'ARUS KAS DARI AKTIVITAS PENDANAAN', b: 1 },
-    ...cf.cff.map((x) => ({ l: '   ' + x.label, cy: x.v })),
+    ...cf.cff.map((x: any) => ({ l: '   ' + x.label, cy: x.v })),
     { l: 'Kas Neto dari Aktivitas Pendanaan', cy: cf.cffTotal, b: 1 },
     { l: 'KENAIKAN KAS DAN SETARA KAS — NETO', cy: cf.netChange, b: 1 },
     { l: 'Kas dan setara kas awal tahun', cy: cf.cashOpen },
@@ -128,16 +128,16 @@ function FSGenerator() {
   const model = useMemoFS(() => FSGEN.buildModel(wtb), [wtb]);
   const checks = useMemoFS(() => FSGEN.buildTieOuts(model, ajeTotalPosted), [model, ajeTotalPosted]);
 
-  const U = FSGEN.UNITS[unit];
-  const sc = (n) => { const x = n / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
-  const M = (n) => 'Rp ' + fmt(n / 1e9, 1) + ' M';
+  const U = (FSGEN.UNITS as any)[unit];
+  const sc = (n: any) => { const x = n / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
+  const M = (n: any) => 'Rp ' + fmt(n / 1e9, 1) + ' M';
 
-  const passed = checks.filter(c => c.ok).length;
-  const discDone = disclosures.filter(d => d.done).length;
+  const passed = checks.filter((c: any) => c.ok).length;
+  const discDone = disclosures.filter((d: any) => d.done).length;
   const discPct = Math.round((discDone / disclosures.length) * 100);
   const allSigned = signoff.prepared && signoff.reviewed;
 
-  const pickLine = (key) => { setActiveKey(key); setDock('mapping'); };
+  const pickLine = (key: any) => { setActiveKey(key); setDock('mapping'); };
 
   // W10.5 — sealed "Laporan Keuangan" PDF: all four primary statements from the shared model.
   const onExportPdf = async () => {
@@ -176,19 +176,19 @@ function FSGenerator() {
     { id: 'calk',    label: 'Catatan (CALK)', tag: 'L5', status: discPct === 100 ? 'ok' : 'warn', statusLabel: discPct + '% lengkap' },
   ];
 
-  const title = { neraca: 'LAPORAN POSISI KEUANGAN', labarugi: 'LAPORAN LABA RUGI DAN PENGHASILAN KOMPREHENSIF LAIN', ekuitas: 'LAPORAN PERUBAHAN EKUITAS', aruskas: 'LAPORAN ARUS KAS', calk: 'CATATAN ATAS LAPORAN KEUANGAN' }[tab];
+  const title = ({ neraca: 'LAPORAN POSISI KEUANGAN', labarugi: 'LAPORAN LABA RUGI DAN PENGHASILAN KOMPREHENSIF LAIN', ekuitas: 'LAPORAN PERUBAHAN EKUITAS', aruskas: 'LAPORAN ARUS KAS', calk: 'CATATAN ATAS LAPORAN KEUANGAN' } as any)[tab];
   const periodTxt = tab === 'neraca' ? 'Per 31 Desember 2025' : 'Untuk tahun yang berakhir 31 Desember 2025';
 
   /* ---- shared document row ---- */
   const colCount = comparative ? 3 : 2;
-  const styleFor = (lvl) => ({
+  const styleFor = (lvl: any) => (({
     section:  { fontWeight: 800, fontSize: 12.5, paddingTop: 14, color: '#0c2430' },
     sub:      { fontWeight: 700, fontSize: 12, paddingTop: 8, color: '#28414e' },
     line:     { fontWeight: 400 },
     subtotal: { fontWeight: 700, borderTop: '1px solid #cdd5dc' },
     total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12.5 },
-  }[lvl]);
-  const numCell = (v, py?) => v == null ? '' : sc(v);
+  } as any)[lvl]);
+  const numCell = (v: any, py?: any) => v == null ? '' : sc(v);
 
   const R = ({ label, cy, py, lvl = 'line', note, pickKey, indent }: any) => {
     const st = styleFor(lvl);
@@ -206,7 +206,7 @@ function FSGenerator() {
     );
   };
 
-  const f0 = (n) => fmt(n / 1e6, 0); // CALK narrative always in jutaan
+  const f0 = (n: any) => fmt(n / 1e6, 0); // CALK narrative always in jutaan
 
   return (
     <>
@@ -265,21 +265,21 @@ function FSGenerator() {
                       {tab === 'neraca' && <>
                         <R label="ASET" lvl="section" />
                         <R label="Aset Lancar" lvl="sub" />
-                        {model.bs.ca.map(l => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
+                        {model.bs.ca.map((l: any) => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
                         <R label="Total Aset Lancar" cy={model.bs.totalCA.cy} py={model.bs.totalCA.py} lvl="subtotal" />
                         <R label="Aset Tidak Lancar" lvl="sub" />
-                        {model.bs.nca.map(l => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
+                        {model.bs.nca.map((l: any) => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
                         <R label="Total Aset Tidak Lancar" cy={model.bs.totalNCA.cy} py={model.bs.totalNCA.py} lvl="subtotal" />
                         <R label="TOTAL ASET" cy={model.bs.totalAssets.cy} py={model.bs.totalAssets.py} lvl="total" />
                         <R label="LIABILITAS DAN EKUITAS" lvl="section" />
                         <R label="Liabilitas Jangka Pendek" lvl="sub" />
-                        {model.bs.cl.map(l => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
+                        {model.bs.cl.map((l: any) => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
                         <R label="Total Liabilitas Jangka Pendek" cy={model.bs.totalCL.cy} py={model.bs.totalCL.py} lvl="subtotal" />
                         <R label="Liabilitas Jangka Panjang" lvl="sub" />
-                        {model.bs.ncl.map(l => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
+                        {model.bs.ncl.map((l: any) => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
                         <R label="Total Liabilitas Jangka Panjang" cy={model.bs.totalNCL.cy} py={model.bs.totalNCL.py} lvl="subtotal" />
                         <R label="Ekuitas" lvl="sub" />
-                        {model.bs.eq.map(l => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
+                        {model.bs.eq.map((l: any) => <R key={l.key} label={l.label} cy={l.cy} py={l.py} note={l.note} pickKey={l.key} />)}
                         <R label="Total Ekuitas" cy={model.bs.totalEq.cy} py={model.bs.totalEq.py} lvl="subtotal" />
                         <R label="TOTAL LIABILITAS DAN EKUITAS" cy={model.bs.totalLE.cy} py={model.bs.totalLE.py} lvl="total" />
                       </>}
@@ -309,18 +309,18 @@ function FSGenerator() {
                       {tab === 'aruskas' && <>
                         <R label="ARUS KAS DARI AKTIVITAS OPERASI" lvl="section" />
                         {cfMethod === 'direct'
-                          ? model.cf.cfoDirect.map((l, i) => l.sub
+                          ? model.cf.cfoDirect.map((l: any, i: any) => l.sub
                               ? <R key={'d' + i} label={l.label} cy={l.v} lvl="subtotal" />
                               : <R key={'d' + i} label={l.label} cy={l.v} indent />)
-                          : model.cf.cfo.map((l, i) => l.head
+                          : model.cf.cfo.map((l: any, i: any) => l.head
                               ? <R key={i} label={l.label} lvl="sub" />
                               : <R key={i} label={l.label} cy={l.v} py={null} indent={!/Laba tahun/.test(l.label)} />)}
                         <R label="Kas Neto dari Aktivitas Operasi" cy={cfMethod === 'direct' ? model.cf.cfoDirectTotal : model.cf.cfoTotal} lvl="subtotal" />
                         <R label="ARUS KAS DARI AKTIVITAS INVESTASI" lvl="section" />
-                        {model.cf.cfi.map((l, i) => <R key={'i' + i} label={l.label} cy={l.v} note={l.memo ? '8' : ''} />)}
+                        {model.cf.cfi.map((l: any, i: any) => <R key={'i' + i} label={l.label} cy={l.v} note={l.memo ? '8' : ''} />)}
                         <R label="Kas Neto untuk Aktivitas Investasi" cy={model.cf.cfiTotal} lvl="subtotal" />
                         <R label="ARUS KAS DARI AKTIVITAS PENDANAAN" lvl="section" />
-                        {model.cf.cff.map((l, i) => <R key={'f' + i} label={l.label} cy={l.v} note={l.memo ? '8' : ''} />)}
+                        {model.cf.cff.map((l: any, i: any) => <R key={'f' + i} label={l.label} cy={l.v} note={l.memo ? '8' : ''} />)}
                         <R label="Kas Neto dari Aktivitas Pendanaan" cy={model.cf.cffTotal} lvl="subtotal" />
                         <R label="KENAIKAN KAS DAN SETARA KAS — NETO" cy={model.cf.netChange} lvl="subtotal" />
                         <R label="Kas dan setara kas awal tahun" cy={model.cf.cashOpen} />
@@ -370,7 +370,7 @@ function FSGenerator() {
   );
 }
 
-function yoy(o, fmt) { const d = (o.cy - o.py) / Math.abs(o.py || 1) * 100; return (d >= 0 ? '+' : '') + fmt(d, 1) + '%'; }
+function yoy(o: any, fmt: any) { const d = (o.cy - o.py) / Math.abs(o.py || 1) * 100; return (d >= 0 ? '+' : '') + fmt(d, 1) + '%'; }
 
 /* ---- KPI tile ---- */
 function KpiTile({ label, value, sub, accent, onClick, children }: any) {
@@ -394,7 +394,7 @@ function EquityStatement({ model, sc }: any) {
     { l: 'Dividen tunai', modal: 0, re: 0 },
     { l: 'Saldo per 31 Desember 2025', modal: e.endModal, re: e.endRE, total: true },
   ];
-  const cell = (v, bold) => <td className="num" style={{ padding: '5px 0', fontFamily: 'var(--mono)', fontWeight: bold ? 800 : 500 }}>{sc(v)}</td>;
+  const cell = (v: any, bold: any) => <td className="num" style={{ padding: '5px 0', fontFamily: 'var(--mono)', fontWeight: bold ? 800 : 500 }}>{sc(v)}</td>;
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
       <thead>
@@ -422,9 +422,9 @@ function EquityStatement({ model, sc }: any) {
 }
 
 /* ---- Notes to the financial statements (CALK) ---- */
-function CALK({ model, activeClient, f0, disclosures }) {
-  const arNet = model.bs.ca.find(l => l.key === 'piutang');
-  const note = (no, title, body, psak?) => (
+function CALK({ model, activeClient, f0, disclosures }: any) {
+  const arNet = model.bs.ca.find((l: any) => l.key === 'piutang');
+  const note = (no: any, title: any, body: any, psak?: any) => (
     <div style={{ marginBottom: 13 }}>
       <div className="row ac gap8" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
@@ -433,19 +433,19 @@ function CALK({ model, activeClient, f0, disclosures }) {
       <div style={{ fontSize: 11.5, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
     </div>
   );
-  const done = disclosures.filter(d => d.done).length;
+  const done = disclosures.filter((d: any) => d.done).length;
   return (
     <div>
       {note('1', 'Umum', `${activeClient?.name} ("Perusahaan") bergerak di bidang ${(activeClient?.industry || '').toLowerCase()}, berkedudukan di ${activeClient?.city}. Laporan keuangan disusun sesuai Standar Akuntansi Keuangan (SAK) di Indonesia${activeClient?.listed ? '; Perusahaan merupakan emiten yang tercatat di Bursa Efek Indonesia' : ''}.`)}
       {note('2', 'Dasar Penyusunan', 'Laporan keuangan disusun atas dasar akrual dan konsep biaya historis, kecuali instrumen keuangan tertentu yang diukur pada nilai wajar. Mata uang penyajian dan fungsional adalah Rupiah.', 'PSAK 1')}
       {note('3', 'Ikhtisar Kebijakan Akuntansi Signifikan', 'Pengakuan pendapatan mengikuti PSAK 72 (pengalihan pengendalian), instrumen keuangan & penurunan nilai mengikuti PSAK 71 (expected credit loss), sewa mengikuti PSAK 73, dan imbalan kerja mengikuti PSAK 24.', 'PSAK 1')}
-      {note('4', 'Kas dan Setara Kas', `Terdiri atas kas, bank, dan deposito jatuh tempo ≤ 3 bulan. Saldo per 31 Desember 2025 sebesar Rp ${f0(model.bs.ca.find(l => l.key === 'kas').cy)} juta (2024: Rp ${f0(model.bs.ca.find(l => l.key === 'kas').py)} juta).`)}
+      {note('4', 'Kas dan Setara Kas', `Terdiri atas kas, bank, dan deposito jatuh tempo ≤ 3 bulan. Saldo per 31 Desember 2025 sebesar Rp ${f0(model.bs.ca.find((l: any) => l.key === 'kas').cy)} juta (2024: Rp ${f0(model.bs.ca.find((l: any) => l.key === 'kas').py)} juta).`)}
       {note('5', 'Piutang Usaha — Neto', `Disajikan neto setelah cadangan kerugian kredit ekspektasian (ECL). Piutang usaha neto Rp ${f0(arNet.cy)} juta (2024: Rp ${f0(arNet.py)} juta). Penambahan cadangan dibukukan melalui AJE berdasarkan model ECL per-tingkat (staging).`, 'PSAK 71')}
-      {note('6', 'Persediaan', `Diukur pada nilai terendah antara biaya perolehan dan nilai realisasi neto (NRV). Saldo Rp ${f0(model.bs.ca.find(l => l.key === 'persed').cy)} juta. Penyesuaian pisah batas dibukukan via AJE.`, 'PSAK 14')}
-      {note('7', 'Aset Tetap — Neto', `Nilai tercatat neto Rp ${f0(model.bs.nca.find(l => l.key === 'asettetap').cy)} juta. Penyusutan periode berjalan Rp ${f0(model.meta.depreciation)} juta dengan metode garis lurus; belanja modal Rp ${f0(model.meta.capex)} juta atas mesin produksi.`, 'PSAK 16')}
-      {note('8', 'Sewa (PSAK 73)', `Perusahaan menerapkan PSAK 73 atas kontrak sewa gudang & kendaraan. Aset hak-guna diakui Rp ${f0(model.bs.nca.find(l => l.key === 'rou').cy)} juta dengan liabilitas sewa terkait, disusutkan garis lurus selama masa sewa. Pengakuan awal merupakan transaksi non-kas.`, 'PSAK 73')}
-      {note('12', 'Perpajakan', `Beban pajak penghasilan Rp ${f0(model.is.tax.cy)} juta; tarif pajak efektif ${fmtPct(model.is.tax.cy, model.is.pbt.cy)}. Aset pajak tangguhan Rp ${f0(model.bs.nca.find(l => l.key === 'pjktangguh').cy)} juta berasal dari perbedaan temporer penyusutan & cadangan ECL.`, 'PSAK 46')}
-      {note('13', 'Liabilitas Imbalan Kerja', `Liabilitas imbalan pasca-kerja Rp ${f0(model.bs.ncl.find(l => l.key === 'imbalan').cy)} juta dihitung aktuaris independen. Pengukuran kembali (remeasurement) diakui pada penghasilan komprehensif lain.`, 'PSAK 24')}
+      {note('6', 'Persediaan', `Diukur pada nilai terendah antara biaya perolehan dan nilai realisasi neto (NRV). Saldo Rp ${f0(model.bs.ca.find((l: any) => l.key === 'persed').cy)} juta. Penyesuaian pisah batas dibukukan via AJE.`, 'PSAK 14')}
+      {note('7', 'Aset Tetap — Neto', `Nilai tercatat neto Rp ${f0(model.bs.nca.find((l: any) => l.key === 'asettetap').cy)} juta. Penyusutan periode berjalan Rp ${f0(model.meta.depreciation)} juta dengan metode garis lurus; belanja modal Rp ${f0(model.meta.capex)} juta atas mesin produksi.`, 'PSAK 16')}
+      {note('8', 'Sewa (PSAK 73)', `Perusahaan menerapkan PSAK 73 atas kontrak sewa gudang & kendaraan. Aset hak-guna diakui Rp ${f0(model.bs.nca.find((l: any) => l.key === 'rou').cy)} juta dengan liabilitas sewa terkait, disusutkan garis lurus selama masa sewa. Pengakuan awal merupakan transaksi non-kas.`, 'PSAK 73')}
+      {note('12', 'Perpajakan', `Beban pajak penghasilan Rp ${f0(model.is.tax.cy)} juta; tarif pajak efektif ${fmtPct(model.is.tax.cy, model.is.pbt.cy)}. Aset pajak tangguhan Rp ${f0(model.bs.nca.find((l: any) => l.key === 'pjktangguh').cy)} juta berasal dari perbedaan temporer penyusutan & cadangan ECL.`, 'PSAK 46')}
+      {note('13', 'Liabilitas Imbalan Kerja', `Liabilitas imbalan pasca-kerja Rp ${f0(model.bs.ncl.find((l: any) => l.key === 'imbalan').cy)} juta dihitung aktuaris independen. Pengukuran kembali (remeasurement) diakui pada penghasilan komprehensif lain.`, 'PSAK 24')}
       {note('15', 'Pendapatan', `Penjualan bersih FY2025 Rp ${f0(model.is.sales.cy)} juta (2024: Rp ${f0(model.is.sales.py)} juta). Pendapatan diakui pada saat pengendalian barang beralih ke pelanggan.`, 'PSAK 72')}
       {note('17', 'Peristiwa Setelah Periode Pelaporan', 'Tidak terdapat peristiwa penyesuai material setelah tanggal pelaporan selain yang telah diungkapkan (lihat modul Subsequent Events).', 'PSAK 8')}
       <div className="row ac jb" style={{ marginTop: 8, padding: '8px 11px', background: '#f3f6f9', borderRadius: 6 }}>
@@ -455,7 +455,7 @@ function CALK({ model, activeClient, f0, disclosures }) {
     </div>
   );
 }
-function fmtPct(tax, pbt) { const { fmt } = AMS; return pbt ? fmt(tax / pbt * 100, 1) + '%' : '—'; }
+function fmtPct(tax: any, pbt: any) { const { fmt } = AMS; return pbt ? fmt(tax / pbt * 100, 1) + '%' : '—'; }
 
 Object.assign(window, { FSGenerator });
 

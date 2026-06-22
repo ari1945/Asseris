@@ -78,14 +78,14 @@ const PROGRAMME = [
   ]},
 ];
 
-function NatTag({ nat }) {
-  const n = PRG_NATURE[nat] || { l: nat, c: '#7a7f87' };
+function NatTag({ nat }: any) {
+  const n = (PRG_NATURE as any)[nat] || { l: nat, c: '#7a7f87' };
   return <span className="row ac gap6" style={{ fontSize: 11 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: n.c, flex: '0 0 7px' }} />{n.l}</span>;
 }
-function AsrChips({ asr }) {
+function AsrChips({ asr }: any) {
   return (
     <span className="row ac gap4">
-      {asr.map(a => {
+      {asr.map((a: any) => {
         const m = PRG_ASSERT.find(x => x.c === a);
         return <span key={a} title={m ? m.full : a} className="chip tiny" style={{ height: 17, padding: '0 5px', fontFamily: 'var(--mono)', fontSize: 9.5, fontWeight: 700 }}>{m ? m.l : a}</span>;
       })}
@@ -101,23 +101,23 @@ function AuditProgramme() {
   const [selId, setSelId] = useStateWS('P-01');
   const [q, setQ] = useStateWS('');
 
-  const cycle = (pid) => setProg(list => list.map(r => ({ ...r, procs: r.procs.map(p => p.id !== pid ? p : { ...p, status: PRG_ORDER[(PRG_ORDER.indexOf(p.status) + 1) % PRG_ORDER.length] }) })));
-  const setStatus = (pid, s) => setProg(list => list.map(r => ({ ...r, procs: r.procs.map(p => p.id !== pid ? p : { ...p, status: s }) })));
+  const cycle = (pid: any) => setProg((list: any) => list.map((r: any) => ({ ...r, procs: r.procs.map((p: any) => p.id !== pid ? p : { ...p, status: PRG_ORDER[(PRG_ORDER.indexOf(p.status) + 1) % PRG_ORDER.length] }) })));
+  const setStatus = (pid: any, s: any) => setProg((list: any) => list.map((r: any) => ({ ...r, procs: r.procs.map((p: any) => p.id !== pid ? p : { ...p, status: s }) })));
 
-  const allProcs = prog.flatMap(r => r.procs);
-  const sel = allProcs.find(p => p.id === selId);
-  const selRisk = prog.find(r => r.procs.some(p => p.id === selId));
-  const done = allProcs.filter(p => p.status === 'done').length;
+  const allProcs = prog.flatMap((r: any) => r.procs);
+  const sel = allProcs.find((p: any) => p.id === selId);
+  const selRisk = prog.find((r: any) => r.procs.some((p: any) => p.id === selId));
+  const done = allProcs.filter((p: any) => p.status === 'done').length;
   const pct = Math.round(done / allProcs.length * 100);
-  const budTot = allProcs.reduce((s, p) => s + p.bud, 0);
-  const actTot = allProcs.reduce((s, p) => s + p.act, 0);
-  const excTot = allProcs.reduce((s, p) => s + p.exc, 0);
-  const sigRisks = prog.filter(r => r.sig);
-  const sigCovered = sigRisks.filter(r => r.procs.some(p => p.status === 'done')).length;
+  const budTot = allProcs.reduce((s: any, p: any) => s + p.bud, 0);
+  const actTot = allProcs.reduce((s: any, p: any) => s + p.act, 0);
+  const excTot = allProcs.reduce((s: any, p: any) => s + p.exc, 0);
+  const sigRisks = prog.filter((r: any) => r.sig);
+  const sigCovered = sigRisks.filter((r: any) => r.procs.some((p: any) => p.status === 'done')).length;
 
-  const matchProc = (p) => (statusFilter === 'all' || p.status === statusFilter) && (!q || (p.t + p.id + p.wp + p.prep).toLowerCase().includes(q.toLowerCase()));
-  const filtered = prog.map(r => ({ ...r, procs: r.procs.filter(matchProc) })).filter(r => r.procs.length);
-  const visibleCount = filtered.flatMap(r => r.procs).length;
+  const matchProc = (p: any) => (statusFilter === 'all' || p.status === statusFilter) && (!q || (p.t + p.id + p.wp + p.prep).toLowerCase().includes(q.toLowerCase()));
+  const filtered = prog.map((r: any) => ({ ...r, procs: r.procs.filter(matchProc) })).filter((r: any) => r.procs.length);
+  const visibleCount = filtered.flatMap((r: any) => r.procs).length;
 
   return (
     <>
@@ -153,7 +153,7 @@ function AuditProgramme() {
               <Seg options={[{ value: 'all', label: 'Semua' }, { value: 'notstarted', label: 'Belum' }, { value: 'progress', label: 'Berjalan' }, { value: 'review', label: 'Direviu' }, { value: 'done', label: 'Selesai' }]} value={statusFilter} onChange={setStatusFilter} />
               <div className="row ac gap6" style={{ flex: '1 1 200px', maxWidth: 320, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 7, padding: '0 10px', height: 30 }}>
                 <I.search2 size={14} style={{ color: 'var(--ink-3)' }} />
-                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari prosedur, WP, preparer…" style={{ border: 0, outline: 'none', background: 'transparent', fontSize: 12, width: '100%', color: 'var(--ink-1)' }} />
+                <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari prosedur, WP, preparer…" style={{ border: 0, outline: 'none', background: 'transparent', fontSize: 12, width: '100%', color: 'var(--ink-1)' }} />
               </div>
               <div style={{ flex: 1 }} />
               <span className="tiny muted">{visibleCount} dari {allProcs.length} prosedur</span>
@@ -173,7 +173,7 @@ function AuditProgramme() {
                   <th style={{ width: 104 }}>Status</th>
                 </tr></thead>
                 <tbody>
-                  {filtered.map(r => (
+                  {filtered.map((r: any) => (
                     <React.Fragment key={r.riskId}>
                       <tr className="group-row">
                         <td className="mono tiny" style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => nav('risk')}>{r.riskId}</td>
@@ -186,7 +186,7 @@ function AuditProgramme() {
                           </span>
                         </td>
                       </tr>
-                      {r.procs.map(p => {
+                      {r.procs.map((p: any) => {
                         const over = p.act > p.bud;
                         return (
                           <tr key={p.id} className={p.id === selId ? 'sel' : ''} style={{ cursor: 'pointer' }} onClick={() => setSelId(p.id)}>
@@ -200,10 +200,10 @@ function AuditProgramme() {
                             <td><NatTag nat={p.nat} /></td>
                             <td><AsrChips asr={p.asr} /></td>
                             <td className="tiny muted">{p.timing}</td>
-                            <td><span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)', cursor: 'pointer' }} onClick={e => { e.stopPropagation(); nav('workpapers'); }}>{p.wp}</span></td>
+                            <td><span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)', cursor: 'pointer' }} onClick={(e: any) => { e.stopPropagation(); nav('workpapers'); }}>{p.wp}</span></td>
                             <td><span className="row ac gap6"><Avatar name={p.prep} size={20} /><span className="tiny truncate" style={{ maxWidth: 78 }}>{p.prep.split(' ')[0]}</span></span></td>
                             <td className="num mono tiny" style={{ color: over ? 'var(--red)' : 'var(--ink-2)', fontWeight: 600 }}>{p.act}/{p.bud}</td>
-                            <td><span onClick={e => { e.stopPropagation(); cycle(p.id); }} style={{ cursor: 'pointer' }} title="Klik untuk ubah status"><Badge kind={PRG_STATUS[p.status].k}>{PRG_STATUS[p.status].l}</Badge></span></td>
+                            <td><span onClick={(e: any) => { e.stopPropagation(); cycle(p.id); }} style={{ cursor: 'pointer' }} title="Klik untuk ubah status"><Badge kind={(PRG_STATUS as any)[p.status].k}>{(PRG_STATUS as any)[p.status].l}</Badge></span></td>
                           </tr>
                         );
                       })}
@@ -224,7 +224,7 @@ function AuditProgramme() {
                   <span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)' }}>{sel.sa}</span>
                   <div style={{ flex: 1 }} />
                   {sel.exc > 0 && <Badge kind="red">{sel.exc} pengecualian</Badge>}
-                  <Badge kind={PRG_STATUS[sel.status].k}>{PRG_STATUS[sel.status].l}</Badge>
+                  <Badge kind={(PRG_STATUS as any)[sel.status].k}>{(PRG_STATUS as any)[sel.status].l}</Badge>
                 </div>
                 <div style={{ padding: 14 }}>
                   <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 18, alignItems: 'start' }}>
@@ -233,7 +233,7 @@ function AuditProgramme() {
                       <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.55, fontWeight: 600 }}>{sel.t}</p>
 
                       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                        {[['Sifat', PRG_NATURE[sel.nat].l], ['Saat', sel.timing], ['Luas / Sampel', sel.extent], ['Asersi', null], ['Standar', sel.sa], ['Kertas Kerja', sel.wp]].map(([lbl, v], i) => (
+                        {[['Sifat', (PRG_NATURE as any)[sel.nat].l], ['Saat', sel.timing], ['Luas / Sampel', sel.extent], ['Asersi', null], ['Standar', sel.sa], ['Kertas Kerja', sel.wp]].map(([lbl, v], i) => (
                           <div key={i}>
                             <div className="tiny muted upper" style={{ marginBottom: 3 }}>{lbl}</div>
                             {lbl === 'Asersi' ? <AsrChips asr={sel.asr} />
@@ -288,7 +288,7 @@ function AuditProgramme() {
                       <div className="tiny muted upper" style={{ marginBottom: 6 }}>Ubah Status</div>
                       <div className="row gap6 wrap">
                         {PRG_ORDER.map(s => (
-                          <button key={s} onClick={() => setStatus(sel.id, s)} className={'seg-pill' + (sel.status === s ? ' on' : '')}>{PRG_STATUS[s].l}</button>
+                          <button key={s} onClick={() => setStatus(sel.id, s)} className={'seg-pill' + (sel.status === s ? ' on' : '')}>{(PRG_STATUS as any)[s].l}</button>
                         ))}
                       </div>
                     </div>
@@ -312,8 +312,8 @@ function AuditProgramme() {
                   <th className="num" style={{ width: 56 }}>Total</th>
                 </tr></thead>
                 <tbody>
-                  {prog.map(r => {
-                    const counts = PRG_ASSERT.map(a => r.procs.filter(p => p.asr.includes(a.c)).length);
+                  {prog.map((r: any) => {
+                    const counts = PRG_ASSERT.map(a => r.procs.filter((p: any) => p.asr.includes(a.c)).length);
                     return (
                       <tr key={r.riskId}>
                         <td className="mono tiny" style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => nav('risk')}>{r.riskId}</td>
@@ -330,10 +330,10 @@ function AuditProgramme() {
                   <tr className="group-row">
                     <td colSpan={2} style={{ fontWeight: 700 }}>Total prosedur per asersi</td>
                     {PRG_ASSERT.map(a => {
-                      const n = allProcs.filter(p => p.asr.includes(a.c)).length;
+                      const n = allProcs.filter((p: any) => p.asr.includes(a.c)).length;
                       return <td key={a.c} className="num mono" style={{ fontWeight: 700 }}>{n}</td>;
                     })}
-                    <td className="num mono" style={{ fontWeight: 700 }}>{allProcs.reduce((s, p) => s + p.asr.length, 0)}</td>
+                    <td className="num mono" style={{ fontWeight: 700 }}>{allProcs.reduce((s: any, p: any) => s + p.asr.length, 0)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -341,8 +341,8 @@ function AuditProgramme() {
             <div style={{ marginTop: 12 }}>
               <Panel title="Cakupan Risiko Signifikan" sub="setiap RoMM signifikan harus memiliki prosedur yang merespons">
                 <div style={{ padding: '6px 14px 14px' }}>
-                  {sigRisks.map(r => {
-                    const tot = r.procs.length, dn = r.procs.filter(p => p.status === 'done').length;
+                  {sigRisks.map((r: any) => {
+                    const tot = r.procs.length, dn = r.procs.filter((p: any) => p.status === 'done').length;
                     const full = dn === tot;
                     return (
                       <div key={r.riskId} className="row ac gap10" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
@@ -365,7 +365,7 @@ function AuditProgramme() {
             <Panel noBody>
               <div className="panel-h"><h3>Beban Jam per Penanggung Jawab</h3></div>
               <div style={{ padding: '6px 14px 12px' }}>
-                {(Object.entries(allProcs.reduce((m, p) => { (m[p.prep] = m[p.prep] || { bud: 0, act: 0, n: 0 }); m[p.prep].bud += p.bud; m[p.prep].act += p.act; m[p.prep].n++; return m; }, {})) as [string, any][]).sort((a, b) => b[1].bud - a[1].bud).map(([name, v]) => {
+                {(Object.entries(allProcs.reduce((m: any, p: any) => { (m[p.prep] = m[p.prep] || { bud: 0, act: 0, n: 0 }); m[p.prep].bud += p.bud; m[p.prep].act += p.act; m[p.prep].n++; return m; }, {})) as [string, any][]).sort((a, b) => b[1].bud - a[1].bud).map(([name, v]) => {
                   const over = v.act > v.bud;
                   return (
                     <div key={name} style={{ padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
@@ -383,10 +383,10 @@ function AuditProgramme() {
               <div className="panel-h"><h3>Prosedur per Sifat</h3></div>
               <div style={{ padding: '6px 14px 12px' }}>
                 {Object.entries(PRG_NATURE).map(([k, n]) => {
-                  const ps = allProcs.filter(p => p.nat === k);
+                  const ps = allProcs.filter((p: any) => p.nat === k);
                   if (!ps.length) return null;
-                  const hrs = ps.reduce((s, p) => s + p.act, 0);
-                  const dn = ps.filter(p => p.status === 'done').length;
+                  const hrs = ps.reduce((s: any, p: any) => s + p.act, 0);
+                  const dn = ps.filter((p: any) => p.status === 'done').length;
                   return (
                     <div key={k} className="row ac gap10" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
                       <span style={{ width: 9, height: 9, borderRadius: 2, background: n.c, flex: '0 0 9px' }} />
@@ -398,12 +398,12 @@ function AuditProgramme() {
                 })}
                 <div className="divider" />
                 <div className="row ac gap10">
-                  <Donut size={88} thickness={13} segments={PRG_ORDER.map(s => ({ value: allProcs.filter(p => p.status === s).length, color: ({ done: 'var(--green)', progress: 'var(--amber)', review: 'var(--blue)', notstarted: '#c7ccd2' })[s] }))} center={<div><div className="mono" style={{ fontSize: 19, fontWeight: 700 }}>{pct}%</div><div className="tiny muted">tuntas</div></div>} />
+                  <Donut size={88} thickness={13} segments={PRG_ORDER.map(s => ({ value: allProcs.filter((p: any) => p.status === s).length, color: ({ done: 'var(--green)', progress: 'var(--amber)', review: 'var(--blue)', notstarted: '#c7ccd2' })[s] }))} center={<div><div className="mono" style={{ fontSize: 19, fontWeight: 700 }}>{pct}%</div><div className="tiny muted">tuntas</div></div>} />
                   <div style={{ flex: 1 }}>
                     {PRG_ORDER.slice().reverse().map(s => (
                       <div key={s} className="row jb ac" style={{ padding: '3px 0' }}>
-                        <span className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: ({ done: 'var(--green)', progress: 'var(--amber)', review: 'var(--blue)', notstarted: '#c7ccd2' })[s] }} />{PRG_STATUS[s].l}</span>
-                        <span className="mono tiny" style={{ fontWeight: 700 }}>{allProcs.filter(p => p.status === s).length}</span>
+                        <span className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: ({ done: 'var(--green)', progress: 'var(--amber)', review: 'var(--blue)', notstarted: '#c7ccd2' })[s] }} />{(PRG_STATUS as any)[s].l}</span>
+                        <span className="mono tiny" style={{ fontWeight: 700 }}>{allProcs.filter((p: any) => p.status === s).length}</span>
                       </div>
                     ))}
                   </div>

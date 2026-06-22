@@ -27,24 +27,24 @@ const DEFAULT_DOC_O = {
   kams: DEFAULT_KAMS_O,
   scope: 'sufficient', misOverride: 'auto', gcStatus: 'none', method: 'rollover',
   reportDate: '2026-03-14', dualDate: '', signer: 'partner1',
-  signoff: { manager: null, partner: null, eqr: null }, checklist: {},
-  opinionBasis: '', opinionDecision: null,
+  signoff: { manager: (null as any), partner: (null as any), eqr: (null as any) }, checklist: {},
+  opinionBasis: '', opinionDecision: (null as any),
   finalized: false, finalizedDate: '',
 };
 
 /* W10.5 — opinion report prose, SINGLE-SOURCED so the on-screen preview (ReportBuilder) and the
    sealed PDF export (buildOpinionBlocks) can't drift. The four opinion paragraphs vary by type;
    the rest is standard SA 700 boilerplate. */
-const OPINION_PARA_O = (type, basisTitle, client) => ({
+const OPINION_PARA_O = (type: any, basisTitle: any, client: any) => (({
   unmodified: `Menurut opini kami, laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
   qualified: `Menurut opini kami, kecuali untuk dampak hal yang dijelaskan dalam paragraf "${basisTitle}", laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
   adverse: `Menurut opini kami, karena signifikannya hal yang dijelaskan dalam paragraf "${basisTitle}", laporan keuangan terlampir tidak menyajikan secara wajar posisi keuangan ${client} tanggal 31 Desember 2025, serta kinerja keuangan dan arus kasnya untuk tahun yang berakhir pada tanggal tersebut, sesuai dengan Standar Akuntansi Keuangan di Indonesia.`,
   disclaimer: `Kami tidak menyatakan suatu opini atas laporan keuangan ${client} terlampir. Karena signifikannya hal yang dijelaskan dalam paragraf "${basisTitle}", kami tidak dapat memperoleh bukti audit yang cukup dan tepat untuk menyediakan suatu basis bagi opini audit atas laporan keuangan tersebut.`,
-}[type]);
+} as any)[type]);
 
 const OP_TXT = {
-  intro: (client) => `Kami telah mengaudit laporan keuangan ${client} (“Perusahaan”), yang terdiri dari laporan posisi keuangan tanggal 31 Desember 2025, serta laporan laba rugi, perubahan ekuitas, dan arus kas untuk tahun yang berakhir pada tanggal tersebut, dan suatu ikhtisar kebijakan akuntansi signifikan.`,
-  basisStd: (modified) => `Kami melaksanakan audit kami berdasarkan Standar Audit (“SA”) yang ditetapkan oleh Institut Akuntan Publik Indonesia. Tanggung jawab kami menurut standar tersebut diuraikan lebih lanjut dalam paragraf Tanggung Jawab Auditor. Kami independen terhadap Perusahaan sesuai dengan ketentuan etika yang relevan, dan kami yakin bahwa bukti audit yang telah kami peroleh adalah cukup dan tepat untuk menyediakan suatu basis bagi opini ${modified ? '' : 'audit'} kami.`,
+  intro: (client: any) => `Kami telah mengaudit laporan keuangan ${client} (“Perusahaan”), yang terdiri dari laporan posisi keuangan tanggal 31 Desember 2025, serta laporan laba rugi, perubahan ekuitas, dan arus kas untuk tahun yang berakhir pada tanggal tersebut, dan suatu ikhtisar kebijakan akuntansi signifikan.`,
+  basisStd: (modified: any) => `Kami melaksanakan audit kami berdasarkan Standar Audit (“SA”) yang ditetapkan oleh Institut Akuntan Publik Indonesia. Tanggung jawab kami menurut standar tersebut diuraikan lebih lanjut dalam paragraf Tanggung Jawab Auditor. Kami independen terhadap Perusahaan sesuai dengan ketentuan etika yang relevan, dan kami yakin bahwa bukti audit yang telah kami peroleh adalah cukup dan tepat untuk menyediakan suatu basis bagi opini ${modified ? '' : 'audit'} kami.`,
   gc: 'Kami mengarahkan perhatian pada Catatan atas laporan keuangan yang menjelaskan adanya ketidakpastian material yang dapat menyebabkan keraguan signifikan atas kemampuan Perusahaan untuk mempertahankan kelangsungan usahanya. Opini kami tidak dimodifikasi sehubungan dengan hal tersebut.',
   eom: 'Kami mengarahkan perhatian pada Catatan atas laporan keuangan mengenai penerapan PSAK 73 “Sewa” yang pertama kali diterapkan pada tahun berjalan. Opini kami tidak dimodifikasi sehubungan dengan hal tersebut.',
   kamIntro: 'Hal audit utama adalah hal-hal yang, menurut pertimbangan profesional kami, merupakan hal yang paling signifikan dalam audit kami atas laporan keuangan periode kini. Hal-hal tersebut ditangani dalam konteks audit kami atas laporan keuangan secara keseluruhan, dan kami tidak menyatakan opini terpisah atas hal-hal tersebut.',
@@ -53,13 +53,13 @@ const OP_TXT = {
   mgmtResp: 'Manajemen bertanggung jawab atas penyusunan dan penyajian wajar laporan keuangan sesuai dengan Standar Akuntansi Keuangan di Indonesia, dan atas pengendalian internal yang dipandang perlu untuk memungkinkan penyusunan laporan keuangan yang bebas dari kesalahan penyajian material.',
   auditorResp: 'Tujuan kami adalah untuk memperoleh keyakinan memadai tentang apakah laporan keuangan secara keseluruhan bebas dari kesalahan penyajian material, baik yang disebabkan oleh kecurangan maupun kesalahan, dan untuk menerbitkan laporan auditor yang mencakup opini kami. Keyakinan memadai merupakan keyakinan tingkat tinggi, namun bukan merupakan jaminan bahwa audit yang dilaksanakan berdasarkan SA akan selalu mendeteksi kesalahan penyajian material yang ada.',
   legalReg: 'Sebagaimana diwajibkan oleh peraturan perundang-undangan, kami melaporkan bahwa pembukuan dan catatan yang diwajibkan telah diselenggarakan secara memadai sesuai dengan ketentuan yang berlaku.',
-  comparative: (client, mode) => mode === 'corresponding'
+  comparative: (client: any, mode: any) => mode === 'corresponding'
     ? `Audit atas laporan keuangan ${client} untuk tahun yang berakhir 31 Desember 2024 (angka koresponding) dilaksanakan oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`
     : `Laporan keuangan komparatif ${client} untuk tahun yang berakhir 31 Desember 2024 telah diaudit oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`,
 };
 
 /* Ordered body blocks for the sealed PDF — mirrors ReportBuilder's preview, same prose source. */
-function buildOpinionBlocks(doc, client, O) {
+function buildOpinionBlocks(doc: any, client: any, O: any) {
   const o = O.OPINIONS[doc.type];
   const modified = doc.type !== 'unmodified';
   const showKam = doc.opts.kam && doc.type !== 'disclaimer';
@@ -76,7 +76,7 @@ function buildOpinionBlocks(doc, client, O) {
   if (doc.opts.eom) blocks.push({ type: 'heading', text: 'Penekanan Suatu Hal' }, { type: 'para', text: OP_TXT.eom });
   if (showKam) {
     blocks.push({ type: 'heading', text: 'Hal-Hal Audit Utama' }, { type: 'para', text: OP_TXT.kamIntro });
-    doc.kams.forEach((k, i) => {
+    doc.kams.forEach((k: any, i: any) => {
       blocks.push({ type: 'para', text: `${i + 1}. ${k.title}` });
       if (k.why) blocks.push({ type: 'para', text: k.why });
       if (k.how) blocks.push({ type: 'para', text: `Penanganan audit — ${k.how}` });
@@ -103,7 +103,7 @@ function AuditOpinionGen() {
   const O = window.AMSOpinion;
   const engId = activeEngagement?.id || 'x';
   const [doc, setDoc] = useAmsPersist('opinionDoc.' + engId, () => DEFAULT_DOC_O);
-  const patch = (p) => setDoc(d => ({ ...d, ...p }));
+  const patch = (p: any) => setDoc((d: any) => ({ ...d, ...p }));
   const [tab, setTab] = useStateO('determine');
   const [exporting, setExporting] = useStateO(false);
 
@@ -200,7 +200,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
   const { activeClient } = useFirm();
   const o = O.OPINIONS[doc.type];
   const modified = doc.type !== 'unmodified';
-  const toggle = (k) => patch({ opts: { ...doc.opts, [k]: !doc.opts[k] } });
+  const toggle = (k: any) => patch({ opts: { ...doc.opts, [k]: !doc.opts[k] } });
   const signer = O.SIGNERS[doc.signer] || O.SIGNERS.partner1;
   const showKam = doc.opts.kam && doc.type !== 'disclaimer';
 
@@ -226,7 +226,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
 
         {modified && (
           <Panel title="Basis Modifikasi" sub="Uraian hal yang mendasari">
-            <textarea value={doc.basisText} onChange={e => patch({ basisText: e.target.value })} className="input" style={{ width: '100%', height: 110, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
+            <textarea value={doc.basisText} onChange={(e: any) => patch({ basisText: e.target.value })} className="input" style={{ width: '100%', height: 110, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
           </Panel>
         )}
 
@@ -264,14 +264,14 @@ function ReportBuilder({ doc, patch, client, O }: any) {
         <Panel title="Penandatangan & Tanggal">
           <div className="grid" style={{ gap: 9 }}>
             <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Rekan penandatangan</div>
-              <select className="select" style={{ width: '100%' }} value={doc.signer} onChange={e => patch({ signer: e.target.value })}>
+              <select className="select" style={{ width: '100%' }} value={doc.signer} onChange={(e: any) => patch({ signer: e.target.value })}>
                 {Object.entries(O.SIGNERS).map(([k, s]: [any, any]) => <option key={k} value={k}>{s.name} ({s.reg})</option>)}
               </select></div>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
               <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Tanggal laporan</div>
-                <input type="date" className="input" style={{ width: '100%' }} value={doc.reportDate} onChange={e => patch({ reportDate: e.target.value })} /></div>
+                <input type="date" className="input" style={{ width: '100%' }} value={doc.reportDate} onChange={(e: any) => patch({ reportDate: e.target.value })} /></div>
               <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Dual dating</div>
-                <input type="date" className="input" style={{ width: '100%' }} value={doc.dualDate} onChange={e => patch({ dualDate: e.target.value })} /></div>
+                <input type="date" className="input" style={{ width: '100%' }} value={doc.dualDate} onChange={(e: any) => patch({ dualDate: e.target.value })} /></div>
             </div>
             <div className="tiny muted">Dual dating (SA 560) hanya untuk peristiwa kemudian spesifik setelah tanggal laporan.</div>
           </div>
@@ -319,7 +319,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
             {showKam && <>
               <DocH>Hal-Hal Audit Utama</DocH>
               <p style={{ margin: '0 0 12px', textAlign: 'justify' }}>{OP_TXT.kamIntro}</p>
-              {doc.kams.map((k, i) => (
+              {doc.kams.map((k: any, i: any) => (
                 <div key={k.id} style={{ margin: '0 0 14px' }}>
                   <p style={{ margin: '0 0 4px', fontWeight: 700 }}>{i + 1}. {k.title}</p>
                   {k.why && <p style={{ margin: '0 0 4px', textAlign: 'justify' }}>{k.why}</p>}
@@ -366,7 +366,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
   );
 }
 
-function fmtDateID(s) {
+function fmtDateID(s: any) {
   if (!s) return '—';
   const M = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   const [y, m, d] = s.split('-');

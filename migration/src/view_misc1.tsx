@@ -17,7 +17,7 @@ const SM_APPROACHES = [
   { id: 'ctrl', short: 'Pengendalian + Sub.', label: 'Andalkan pengendalian + substantif',  color: 'var(--teal)' },
   { id: 'ext',  short: 'Substantif Diperluas', label: 'Substantif diperluas (risiko sig.)',  color: 'var(--red)' },
 ];
-const smDefaultApproach = (r) => r.inherent === 'Significant' ? 'ext' : (r.likelihood * r.impact >= 9 ? 'ctrl' : 'sub');
+const smDefaultApproach = (r: any) => r.inherent === 'Significant' ? 'ext' : (r.likelihood * r.impact >= 9 ? 'ctrl' : 'sub');
 
 /* ---------------- Strategy Memo (SA 300 workspace) ---------------- */
 function StrategyMemo() {
@@ -26,8 +26,8 @@ function StrategyMemo() {
   const { risks } = useAudit();
   const nav = useNav();
   const om = activeEngagement.materiality, pm = Math.round(om * 0.75), ctt = Math.round(om * 0.05);
-  const sigRisks = risks.filter(r => r.inherent === 'Significant');
-  const fraudRisks = risks.filter(r => r.fraud);
+  const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
+  const fraudRisks = risks.filter((r: any) => r.fraud);
 
   const [tab, setTab] = window.useAmsPersist('strategyTab.' + activeEngagement.id, 'strategi');
 
@@ -65,7 +65,7 @@ function StrategyMemo() {
 }
 
 /* ---- Tab 1 · Overall strategy (SA 300 — scope · timing · direction) ---- */
-function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, fraudRisks, om, pm, ctt, nav, setTab }) {
+function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, fraudRisks, om, pm, ctt, nav, setTab }: any) {
   const deadline = new Date(activeEngagement.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   const pillars = [
     { icon: 'briefcase', tone: 'var(--blue)', title: 'Karakteristik Perikatan', sub: 'Ruang lingkup',
@@ -106,7 +106,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
         {pillars.map(p => (
           <Panel key={p.title} noBody>
             <div style={{ padding: '13px 15px', borderBottom: '1px solid var(--line-soft)', display: 'flex', alignItems: 'center', gap: 11 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'color-mix(in srgb,' + p.tone + ' 13%, transparent)', color: p.tone, display: 'grid', placeItems: 'center', flex: '0 0 36px' }}>{React.createElement(I[p.icon], { size: 19 })}</div>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'color-mix(in srgb,' + p.tone + ' 13%, transparent)', color: p.tone, display: 'grid', placeItems: 'center', flex: '0 0 36px' }}>{React.createElement((I as any)[p.icon], { size: 19 })}</div>
               <div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>{p.title}</div>
                 <div className="tiny upper muted" style={{ marginTop: 1 }}>{p.sub}</div>
@@ -130,7 +130,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Faktor Signifikan yang Mengarahkan Upaya Tim" sub="SA 300.8 — penentuan area fokus & alokasi sumber daya">
           <div style={{ display: 'grid', gap: 0 }}>
-            {sigRisks.map((r, i) => (
+            {sigRisks.map((r: any, i: any) => (
               <div key={r.id} className="row ac jb" style={{ padding: '10px 0', borderBottom: i < sigRisks.length - 1 ? '1px solid var(--line-soft)' : 0, gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
                   <div className="row ac gap8" style={{ marginBottom: 2 }}>
@@ -183,11 +183,11 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
 }
 
 /* ---- Tab 2 · Audit approach by area (editable response per RoMM) ---- */
-function SmApproach({ fmt, risks, pm, activeEngagement, nav }) {
+function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
   const [over, setOver] = window.useAmsPersist('strategyApproach.' + activeEngagement.id, {});
-  const planFor = (r) => over[r.id] || smDefaultApproach(r);
-  const counts = SM_APPROACHES.map(a => ({ ...a, n: risks.filter(r => planFor(r) === a.id).length }));
-  const relyControls = risks.filter(r => planFor(r) === 'ctrl').length;
+  const planFor = (r: any) => over[r.id] || smDefaultApproach(r);
+  const counts = SM_APPROACHES.map(a => ({ ...a, n: risks.filter((r: any) => planFor(r) === a.id).length }));
+  const relyControls = risks.filter((r: any) => planFor(r) === 'ctrl').length;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -212,7 +212,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }) {
             </tr>
           </thead>
           <tbody>
-            {risks.map(r => {
+            {risks.map((r: any) => {
               const plan = planFor(r);
               return (
                 <tr key={r.id}>
@@ -225,7 +225,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }) {
                   <td>
                     <div className="seg" role="group">
                       {SM_APPROACHES.map(a => (
-                        <button key={a.id} className={plan === a.id ? 'on' : ''} onClick={() => setOver(s => ({ ...s, [r.id]: a.id }))} title={a.label}>{a.short}</button>
+                        <button key={a.id} className={plan === a.id ? 'on' : ''} onClick={() => setOver((s: any) => ({ ...s, [r.id]: a.id }))} title={a.label}>{a.short}</button>
                       ))}
                     </div>
                   </td>
@@ -264,7 +264,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }) {
 }
 
 /* ---- Tab 3 · Schedule, team & resources ---- */
-function SmSchedule({ fmt, activeEngagement }) {
+function SmSchedule({ fmt, activeEngagement }: any) {
   const phaseOrder = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
   const curIdx = Math.max(0, phaseOrder.indexOf(activeEngagement.phase));
   const phases = [
@@ -305,7 +305,7 @@ function SmSchedule({ fmt, activeEngagement }) {
               <div key={p.label} style={{ position: 'relative' }}>
                 <div style={{ height: 4, borderRadius: 4, background: c, marginBottom: 9 }} />
                 <div className="row ac gap8" style={{ marginBottom: 3 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, background: 'color-mix(in srgb,' + c + ' 15%, transparent)', color: c, display: 'grid', placeItems: 'center', flex: '0 0 24px' }}>{React.createElement(I[p.icon], { size: 13 })}</span>
+                  <span style={{ width: 24, height: 24, borderRadius: 7, background: 'color-mix(in srgb,' + c + ' 15%, transparent)', color: c, display: 'grid', placeItems: 'center', flex: '0 0 24px' }}>{React.createElement((I as any)[p.icon], { size: 13 })}</span>
                   <span style={{ fontSize: 12, fontWeight: 700 }}>{p.label}</span>
                 </div>
                 <div className="tiny muted mono">{p.range}</div>
@@ -348,7 +348,7 @@ function SmSchedule({ fmt, activeEngagement }) {
             <div style={{ display: 'grid', gap: 0 }}>
               {experts.map((e, i) => (
                 <div key={i} className="row ac jb" style={{ padding: '8px 0', borderBottom: i < experts.length - 1 ? '1px solid var(--line-soft)' : 0, gap: 10 }}>
-                  <span className="row ac gap8" style={{ minWidth: 0 }}><span style={{ color: 'var(--blue)' }}>{React.createElement(I[e.icon], { size: 15 })}</span><span style={{ fontSize: 12 }}>{e.t}</span></span>
+                  <span className="row ac gap8" style={{ minWidth: 0 }}><span style={{ color: 'var(--blue)' }}>{React.createElement((I as any)[e.icon], { size: 15 })}</span><span style={{ fontSize: 12 }}>{e.t}</span></span>
                   <Badge kind={e.kind === 'Eksternal' ? 'purple' : 'gray'}>{e.kind}</Badge>
                 </div>
               ))}
@@ -362,7 +362,7 @@ function SmSchedule({ fmt, activeEngagement }) {
         <table className="dtbl">
           <thead><tr><th>Anggota</th><th>Peran</th><th style={{ width: 200 }}>Utilisasi</th><th className="num">Beban</th></tr></thead>
           <tbody>
-            {team.map(m => (
+            {team.map((m: any) => (
               <tr key={m.name}>
                 <td><span className="row ac gap8"><Avatar name={m.name} size={24} /><span style={{ fontWeight: 600 }}>{m.name}</span></span></td>
                 <td className="muted">{m.role}</td>
@@ -380,11 +380,11 @@ function SmSchedule({ fmt, activeEngagement }) {
 }
 
 /* ---- Tab 4 · Memo document (editable, exportable to PDF) ---- */
-function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }) {
+function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }: any) {
   const [editing, setEditing] = useStateMS(false);
   const [edits, setEdits] = useStateMS({});
 
-  const Sec = ({ n, title, id, children }) => {
+  const Sec = ({ n, title, id, children }: any) => {
     const saved = edits[id];
     return (
       <div style={{ marginBottom: 18 }}>
@@ -392,7 +392,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }) 
         <div
           contentEditable={editing}
           suppressContentEditableWarning
-          onBlur={editing ? (e => setEdits(s => ({ ...s, [id]: e.currentTarget.innerHTML }))) : undefined}
+          onBlur={editing ? ((e: any) => setEdits((s: any) => ({ ...s, [id]: e.currentTarget.innerHTML }))) : undefined}
           style={{ fontSize: 12, lineHeight: 1.65, color: '#283b46', outline: editing ? '1px dashed #9fc0d2' : 'none', borderRadius: 4, padding: editing ? '4px 6px' : 0, background: editing ? '#f6fafc' : 'transparent', cursor: editing ? 'text' : 'default' }}
           {...(saved != null ? { dangerouslySetInnerHTML: { __html: saved } } : {})}
         >{saved != null ? undefined : children}</div>
@@ -404,7 +404,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }) 
     <Panel noBody>
       <div className="row ac jb" style={{ padding: '8px 12px', borderBottom: '1px solid var(--line)' }}>
         <span className="tiny muted">Dokumen final — diekspor ke berkas kertas kerja</span>
-        <Btn sm onClick={() => setEditing(e => !e)} variant={editing ? 'primary' : ''}>{editing ? <><I.check size={13} /> Selesai Edit</> : <><I.doc size={13} /> Edit Teks</>}</Btn>
+        <Btn sm onClick={() => setEditing((e: any) => !e)} variant={editing ? 'primary' : ''}>{editing ? <><I.check size={13} /> Selesai Edit</> : <><I.doc size={13} /> Edit Teks</>}</Btn>
       </div>
       {editing && <div style={{ background: 'var(--blue-050)', borderBottom: '1px solid var(--blue-100)', padding: '7px 14px', fontSize: 11.5, color: 'var(--blue)', fontWeight: 600 }}><I.doc size={12} style={{ verticalAlign: 'middle' }} /> Mode edit aktif — klik paragraf mana pun untuk mengubah teks. Perubahan tersimpan saat Anda klik di luar paragraf.</div>}
       <div style={{ background: '#e7eaef', padding: 18 }}>
@@ -432,7 +432,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }) 
           </Sec>
           <Sec n="4" id="s4" title="Risiko Signifikan yang Teridentifikasi">
             <ul style={{ margin: '4px 0', paddingLeft: 18 }}>
-              {sigRisks.map(r => <li key={r.id} style={{ marginBottom: 4 }}><b>{r.area}</b> — {r.desc}{r.fraud ? ' (risiko kecurangan, SA 240)' : ''}.</li>)}
+              {sigRisks.map((r: any) => <li key={r.id} style={{ marginBottom: 4 }}><b>{r.area}</b> — {r.desc}{r.fraud ? ' (risiko kecurangan, SA 240)' : ''}.</li>)}
             </ul>
           </Sec>
           <Sec n="5" id="s5" title="Pendekatan & Strategi Audit">

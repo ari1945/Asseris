@@ -95,12 +95,12 @@ const LEGAL = (function () {
 
   /* ---------- builder registri terpadu (dipanggil dari React dgn firm ctx) ----------
      firm: { engagements, clients, clientById }  — sumber live & reaktif. */
-  function buildRegister(firm) {
+  function buildRegister(firm: any) {
     const out = [];
 
     /* 1) Surat Perikatan — satu per engagement; nilai = fee Klien (CRM). */
-    (firm.engagements || []).forEach(e => {
-      const c = firm.clientById ? firm.clientById(e.clientId) : (firm.clients || []).find(x => x.id === e.clientId);
+    (firm.engagements || []).forEach((e: any) => {
+      const c = firm.clientById ? firm.clientById(e.clientId) : (firm.clients || []).find((x: any) => x.id === e.clientId);
       if (!c) return;
       out.push({
         id: 'EL-' + e.id.slice(-3),
@@ -112,14 +112,14 @@ const LEGAL = (function () {
         end: e.deadline,
         renewal: 'Per perikatan',
         owner: e.partner,
-        status: ENG_CONTRACT_STATUS[e.phase] || 'Aktif',
+        status: (ENG_CONTRACT_STATUS as any)[e.phase] || 'Aktif',
         source: { kind: 'engagement', id: e.id, feeKind: 'crm', feeId: c.id },
         meta: { standard: e.standard, manager: e.manager, fy: e.fy, progress: e.progress, clientId: c.id, engId: e.id },
       });
     });
 
     /* 2) Sewa Kantor — dari vendor "Sewa & Fasilitas" (nilai = belanja tahunan). */
-    const lease = (BO.VENDORS || []).find(v => v.cat === 'Sewa & Fasilitas');
+    const lease = (BO.VENDORS || []).find((v: any) => v.cat === 'Sewa & Fasilitas');
     if (lease) {
       out.push({
         id: 'OPS-LEASE', party: lease.name, type: 'Sewa Kantor (3 lantai)', category: 'Sewa',
@@ -130,7 +130,7 @@ const LEGAL = (function () {
     }
 
     /* 3) Lisensi Software — satu kontrak per lisensi (nilai = biaya tahunan). */
-    (BO.SOFTWARE_LICENSES || []).forEach((l, i) => {
+    (BO.SOFTWARE_LICENSES || []).forEach((l: any, i: any) => {
       out.push({
         id: 'OPS-LIC-' + String(i + 1).padStart(2, '0'),
         party: l.vendor, type: 'Lisensi — ' + l.name, category: 'Lisensi',
@@ -143,7 +143,7 @@ const LEGAL = (function () {
     });
 
     /* 4) Polis Asuransi — sebagai kontrak (nilai = premi tahunan). */
-    (BO.POLICIES || []).forEach(p => {
+    (BO.POLICIES || []).forEach((p: any) => {
       out.push({
         id: 'OPS-' + p.id, party: p.insurer, type: 'Polis — ' + p.jenis, category: 'Asuransi',
         value: p.premi, start: p.mulai, end: p.akhir, renewal: 'Manual', owner: 'Risk & Legal',
@@ -154,7 +154,7 @@ const LEGAL = (function () {
     });
 
     /* 5) MoU / Layanan vendor — perjalanan dinas (nilai 0; payung MoU). */
-    const travel = (BO.VENDORS || []).find(v => v.cat === 'Perjalanan Dinas');
+    const travel = (BO.VENDORS || []).find((v: any) => v.cat === 'Perjalanan Dinas');
     if (travel) {
       out.push({
         id: 'OPS-MOU', party: travel.name, type: 'MoU Layanan Perjalanan', category: 'Layanan',
@@ -173,24 +173,24 @@ const LEGAL = (function () {
        ok     → nilai legacy = nilai sumber
        drift  → nilai berbeda (perlu sinkron)
        orphan → tak ada sumber (mis. klien tidak terdaftar) */
-  function reconcileLegacy(firm) {
+  function reconcileLegacy(firm: any) {
     const clients = firm.clients || [];
-    const rows = (BO.CONTRACTS || []).map(k => {
+    const rows = (BO.CONTRACTS || []).map((k: any) => {
       let src = null, srcValue = null;
       if (k.jenis === 'Surat Perikatan Audit') {
-        const c = clients.find(x => x.name === k.pihak);
+        const c = clients.find((x: any) => x.name === k.pihak);
         if (c) { src = { kind: 'crm', id: c.id }; srcValue = c.fee; }
       } else if (k.jenis === 'Sewa Kantor') {
-        const v = (BO.VENDORS || []).find(v => v.name === k.pihak);
+        const v = (BO.VENDORS || []).find((v: any) => v.name === k.pihak);
         if (v) { src = { kind: 'vendor', id: v.id }; srcValue = v.ytd; }
       } else if (k.jenis === 'Lisensi Software') {
-        const l = (BO.SOFTWARE_LICENSES || []).find(l => l.vendor === k.pihak);
+        const l = (BO.SOFTWARE_LICENSES || []).find((l: any) => l.vendor === k.pihak);
         if (l) { src = { kind: 'license', id: l.name }; srcValue = l.cost; }
       } else if (k.jenis === 'Polis PII') {
-        const p = (BO.POLICIES || []).find(p => p.id === 'POL-PII');
+        const p = (BO.POLICIES || []).find((p: any) => p.id === 'POL-PII');
         if (p) { src = { kind: 'policy', id: p.id }; srcValue = p.premi; }
       } else if (k.jenis === 'MoU Layanan') {
-        const v = (BO.VENDORS || []).find(v => v.cat === 'Perjalanan Dinas');
+        const v = (BO.VENDORS || []).find((v: any) => v.cat === 'Perjalanan Dinas');
         if (v) { src = { kind: 'vendor', id: v.id }; srcValue = 0; }
       }
       let state = 'orphan';
@@ -203,7 +203,7 @@ const LEGAL = (function () {
   return {
     moneyJt, SOURCE_META, CLAUSES, DISPUTE_LINKS,
     buildRegister, reconcileLegacy,
-    daysTo: (d) => BO.daysTo(d),
+    daysTo: (d: any) => BO.daysTo(d),
   };
 })();
 

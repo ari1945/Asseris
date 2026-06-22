@@ -242,21 +242,21 @@ const STD_META = {
 };
 
 /* localStorage helpers shared with the Compliance Matrix */
-function loadLS(k, d) { try { const s = localStorage.getItem(k); return s ? JSON.parse(s) : d; } catch (e) { return d; } }
-function compliancePct(stdId) {
-  const cfg = COMPLIANCE_CONFIG[stdId]; if (!cfg) return null;
+function loadLS(k: any, d: any) { try { const s = localStorage.getItem(k); return s ? JSON.parse(s) : d; } catch (e) { return d; } }
+function compliancePct(stdId: any) {
+  const cfg = (COMPLIANCE_CONFIG as any)[stdId]; if (!cfg) return null;
   const status = loadLS('ams.comp.' + stdId + '.status', {});
   const counts = { done: 0, na: 0, pending: 0 }; let total = 0;
-  cfg.sections.forEach((s, si) => s.items.forEach((it, ii) => { total++; const st = status[si + '-' + ii] || 'pending'; counts[st] = (counts[st] || 0) + 1; }));
+  cfg.sections.forEach((s: any, si: any) => s.items.forEach((it: any, ii: any) => { total++; const st = status[si + '-' + ii] || 'pending'; (counts as any)[st] = ((counts as any)[st] || 0) + 1; }));
   const applicable = total - counts.na;
   return { total, done: counts.done, na: counts.na, pending: counts.pending, pct: applicable ? Math.round(counts.done / applicable * 100) : 100 };
 }
 
-function ComplianceView({ stdId }) {
-  const m = MODULE_INDEX[stdId] || { label: stdId };
-  const cfg = COMPLIANCE_CONFIG[stdId];
+function ComplianceView({ stdId }: any) {
+  const m = (MODULE_INDEX as any)[stdId] || { label: stdId };
+  const cfg = (COMPLIANCE_CONFIG as any)[stdId];
   // flatten items with stable ids
-  const flat = useMemoCO(() => cfg.sections.flatMap((s, si) => s.items.map((it, ii) => ({ sid: si, id: si + '-' + ii, text: it[0], ref: it[1] }))), [stdId]);
+  const flat = useMemoCO(() => cfg.sections.flatMap((s: any, si: any) => s.items.map((it: any, ii: any) => ({ sid: si, id: si + '-' + ii, text: it[0], ref: it[1] }))), [stdId]);
   const [status, setStatus] = useStateCO(() => loadLS('ams.comp.' + stdId + '.status', {}));
   const [openNote, setOpenNote] = useStateCO(null);
   const [notes, setNotes] = useStateCO(() => loadLS('ams.comp.' + stdId + '.notes', {}));
@@ -264,16 +264,16 @@ function ComplianceView({ stdId }) {
   React.useEffect(() => { try { localStorage.setItem('ams.comp.' + stdId + '.status', JSON.stringify(status)); } catch (e) {} }, [status, stdId]);
   React.useEffect(() => { try { localStorage.setItem('ams.comp.' + stdId + '.notes', JSON.stringify(notes)); } catch (e) {} }, [notes, stdId]);
 
-  const cycle = (id) => setStatus(s => { const cur = s[id] || 'pending'; const next = cur === 'pending' ? 'done' : cur === 'done' ? 'na' : 'pending'; return { ...s, [id]: next }; });
-  const markAllDone = () => setStatus(() => { const s = {}; flat.forEach(it => { s[it.id] = 'done'; }); return s; });
+  const cycle = (id: any) => setStatus((s: any) => { const cur = s[id] || 'pending'; const next = cur === 'pending' ? 'done' : cur === 'done' ? 'na' : 'pending'; return { ...s, [id]: next }; });
+  const markAllDone = () => setStatus(() => { const s = {}; flat.forEach((it: any) => { (s as any)[it.id] = 'done'; }); return s; });
   const resetAll = () => { setStatus({}); setNotes({}); };
-  const aiSuggest = () => setNotes(n => { const out = { ...n }; flat.forEach(it => { if (!out[it.id]) out[it.id] = 'Diuji — lihat WP terkait; tidak ada eksepsi teridentifikasi.'; }); return out; });
-  const counts = flat.reduce((a, it) => { const st = status[it.id] || 'pending'; a[st] = (a[st] || 0) + 1; return a; }, {});
+  const aiSuggest = () => setNotes((n: any) => { const out = { ...n }; flat.forEach((it: any) => { if (!out[it.id]) out[it.id] = 'Diuji — lihat WP terkait; tidak ada eksepsi teridentifikasi.'; }); return out; });
+  const counts = flat.reduce((a: any, it: any) => { const st = status[it.id] || 'pending'; a[st] = (a[st] || 0) + 1; return a; }, {});
   const applicable = flat.length - (counts.na || 0);
   const done = counts.done || 0;
   const pct = applicable ? Math.round(done / applicable * 100) : 100;
 
-  const meta = STD_META[stdId] || {};
+  const meta = (STD_META as any)[stdId] || {};
   const stLabel = m.label;
 
   return (
@@ -323,11 +323,11 @@ function ComplianceView({ stdId }) {
 
             {/* checklist */}
             <div className="grid" style={{ gap: 12 }}>
-              {cfg.sections.map((sec, si) => (
+              {cfg.sections.map((sec: any, si: any) => (
                 <Panel key={si} noBody>
                   <div className="panel-h"><h3>{sec.name}</h3><div style={{ flex: 1 }} /><span className="tiny muted">{sec.items.length} prosedur</span></div>
                   <div>
-                    {flat.filter(it => it.sid === si).map(it => {
+                    {flat.filter((it: any) => it.sid === si).map((it: any) => {
                       const st = status[it.id] || 'pending';
                       return (
                         <div key={it.id} style={{ borderBottom: '1px solid var(--line-soft)' }}>
@@ -345,7 +345,7 @@ function ComplianceView({ stdId }) {
                           </div>
                           {openNote === it.id && (
                             <div style={{ padding: '0 12px 10px 42px' }}>
-                              <input className="input" style={{ width: '100%' }} placeholder="Tambah catatan / referensi WP…" value={notes[it.id] || ''} onChange={e => setNotes(n => ({ ...n, [it.id]: e.target.value }))} />
+                              <input className="input" style={{ width: '100%' }} placeholder="Tambah catatan / referensi WP…" value={notes[it.id] || ''} onChange={(e: any) => setNotes((n: any) => ({ ...n, [it.id]: e.target.value }))} />
                             </div>
                           )}
                         </div>

@@ -11,14 +11,14 @@ import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2.
    dimuat SEBELUM berkas ini; komponen membacanya via global/window.
    ============================================================ */
 
-function ModuleLineage({ moduleId }) {
+function ModuleLineage({ moduleId }: any) {
   const L = (typeof LINEAGE !== 'undefined' ? LINEAGE : window.LINEAGE || {})[moduleId];
   const nav = useNav();
   const [open, setOpen] = React.useState(true);
   if (!L) return null;
 
   const Chip = ({ m, color }: any) => {
-    const Ic = (I && (I[m.ic] || I.doc));
+    const Ic = (I && ((I as any)[m.ic] || I.doc));
     return (
       <button type="button" className="lin-chip" title={m.rel + ' — buka ' + m.lbl}
         onClick={() => nav(m.id, { from: moduleId })} style={{ borderLeftColor: color }}>
@@ -31,7 +31,7 @@ function ModuleLineage({ moduleId }) {
 
   return (
     <div className={'lineage-dock' + (open ? '' : ' collapsed')}>
-      <button type="button" className="lin-head" onClick={() => setOpen(o => !o)} title={open ? 'Sembunyikan' : 'Tampilkan keterkaitan'}>
+      <button type="button" className="lin-head" onClick={() => setOpen((o: any) => !o)} title={open ? 'Sembunyikan' : 'Tampilkan keterkaitan'}>
         {I ? <I.link2 size={14} /> : null}
         <span className="lin-h-t">Keterkaitan Modul</span>
         <span className="lin-h-s">{L.std}</span>
@@ -42,11 +42,11 @@ function ModuleLineage({ moduleId }) {
         <div className="lin-body">
           <div className="lin-col">
             <span className="lin-col-h up">↑ Hulu · sumber masukan</span>
-            <div className="lin-chips">{L.up.map(m => <Chip key={'u' + m.id} m={m} color="var(--blue)" />)}</div>
+            <div className="lin-chips">{L.up.map((m: any) => <Chip key={'u' + m.id} m={m} color="var(--blue)" />)}</div>
           </div>
           <div className="lin-col">
             <span className="lin-col-h down">↓ Hilir · pengguna keluaran</span>
-            <div className="lin-chips">{L.down.map(m => <Chip key={'d' + m.id} m={m} color="var(--green)" />)}</div>
+            <div className="lin-chips">{L.down.map((m: any) => <Chip key={'d' + m.id} m={m} color="var(--green)" />)}</div>
           </div>
         </div>
       )}
@@ -54,7 +54,7 @@ function ModuleLineage({ moduleId }) {
   );
 }
 
-function StandardLinkback({ moduleId }) {
+function StandardLinkback({ moduleId }: any) {
   const meta = (window.MODULE_INDEX || {})[moduleId];
   const nav = useNav();
   /* default COLLAPSE — bar keterkaitan standar tampil terlipat di semua modul */
@@ -85,16 +85,16 @@ function StandardLinkback({ moduleId }) {
 
   /* Label di kepala bar (terlihat saat collapse): kode/uraian standar. */
   const stdLabel = isSAPage ? meta.label
-    : (linIsStd ? linStd : (saRefs.length ? saRefs.map(r => r.code).join(' · ') : meta.label));
+    : (linIsStd ? linStd : (saRefs.length ? saRefs.map((r: any) => r.code).join(' · ') : meta.label));
 
-  const openSA = (r) => {
+  const openSA = (r: any) => {
     if (window.__amsOpenSA) window.__amsOpenSA({ ...r, fromModule: moduleId });
     else nav('compmatrix', { from: moduleId });
   };
 
   const ProcChip = ({ p }: any) => {
     const m = (window.MODULE_INDEX || {})[p.module] || { label: p.module, icon: 'doc' };
-    const Ic = I && (I[m.icon] || I.doc);
+    const Ic = I && ((I as any)[m.icon] || I.doc);
     return (
       <button type="button" className="lin-chip" title={p.note + ' — buka ' + m.label}
         onClick={() => nav(p.module, { from: moduleId })} style={{ borderLeftColor: 'var(--navy)' }}>
@@ -105,7 +105,7 @@ function StandardLinkback({ moduleId }) {
     );
   };
   const SibChip = ({ s }: any) => {
-    const Ic = I && (I[s.icon] || I.doc);
+    const Ic = I && ((I as any)[s.icon] || I.doc);
     return (
       <button type="button" className="lin-chip sib" title={'Buka ' + s.label}
         onClick={() => nav(s.id, { from: moduleId })} style={{ borderLeftColor: 'var(--teal)' }}>
@@ -127,7 +127,7 @@ function StandardLinkback({ moduleId }) {
   };
 
   const Header = (
-    <button type="button" className="lin-head" onClick={() => setOpen(o => !o)} title={open ? 'Sembunyikan' : 'Tampilkan keterkaitan standar'}>
+    <button type="button" className="lin-head" onClick={() => setOpen((o: any) => !o)} title={open ? 'Sembunyikan' : 'Tampilkan keterkaitan standar'}>
       {I ? <I.shield size={14} /> : null}
       <span className="lin-h-t">Keterkaitan Standar</span>
       <span className="lin-h-s">{stdLabel}</span>
@@ -138,9 +138,9 @@ function StandardLinkback({ moduleId }) {
 
   /* ---- (a) Halaman SA: telusur balik prosedur yang memenuhinya + standar serumpun ---- */
   if (isSAPage) {
-    const fulfilled = SA_REVERSE[moduleId] || SA_FULFILLED_BY[moduleId] || [];
-    const grp = (window.MODULES || []).find(g => g.group === meta.group);
-    const siblings = grp ? grp.items.filter(i => i.id !== moduleId) : [];
+    const fulfilled = (SA_REVERSE as any)[moduleId] || (SA_FULFILLED_BY as any)[moduleId] || [];
+    const grp = (window.MODULES || []).find((g: any) => g.group === meta.group);
+    const siblings = grp ? grp.items.filter((i: any) => i.id !== moduleId) : [];
     return (
       <div className={'lineage-dock sa' + (open ? '' : ' collapsed')}>
         {Header}
@@ -149,7 +149,7 @@ function StandardLinkback({ moduleId }) {
             <div className="lin-col">
               <span className="lin-col-h proc">↳ Dipenuhi oleh prosedur{fulfilled.length ? ' · ' + fulfilled.length : ''}</span>
               <div className="lin-chips">
-                {fulfilled.length ? fulfilled.map(p => <ProcChip key={p.module} p={p} />)
+                {fulfilled.length ? fulfilled.map((p: any) => <ProcChip key={p.module} p={p} />)
                   : <span className="lin-empty">Belum ada prosedur yang dipetakan — lihat Matriks Kepatuhan.</span>}
               </div>
             </div>
@@ -159,7 +159,7 @@ function StandardLinkback({ moduleId }) {
                 <button type="button" className="lin-cta" onClick={() => nav('compmatrix', { from: moduleId })}>
                   {I ? <I.table size={13} /> : null} Lihat di Matriks Kepatuhan
                 </button>
-                {siblings.map(s => <SibChip key={s.id} s={s} />)}
+                {siblings.map((s: any) => <SibChip key={s.id} s={s} />)}
               </div>
             </div>
           </div>
@@ -176,7 +176,7 @@ function StandardLinkback({ moduleId }) {
         <div className="lin-body">
           <div className="lin-col">
             <span className="lin-col-h proc">↳ Menerapkan / merujuk standar · {stdRefs.length}</span>
-            <div className="lin-chips">{stdRefs.map(r => <StdChip key={r.code} r={r} />)}</div>
+            <div className="lin-chips">{stdRefs.map((r: any) => <StdChip key={r.code} r={r} />)}</div>
           </div>
           <div className="lin-col">
             <span className="lin-col-h sib">Ketertelusuran kepatuhan</span>

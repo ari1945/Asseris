@@ -23,23 +23,23 @@ import { BO } from './data_backoffice';
 const { useState: useStateFac, useMemo: useMemoFac } = React;
 
 const FAC_STATUSC = { Digunakan: 'var(--green)', 'Perlu Servis': 'var(--amber)', 'Usul Hapus': 'var(--red)' };
-const facPct = (x) => Math.round(x) + '%';
+const facPct = (x: any) => Math.round(x) + '%';
 
 /* alert ringkas (diturunkan lintas-modul) */
-function FacAlerts({ B, FA, firm, nav, setTab, setSel }) {
+function FacAlerts({ B, FA, firm, nav, setTab, setSel }: any) {
   const mt = FA.maintenance();
   const lic = FA.licenses(firm);
-  const disp = (B.DISPOSALS || []).filter(d => d.status === 'Menunggu Approval');
-  const items = [];
-  mt.rows.filter(m => m.status === 'Terlambat' || m.days < 0).forEach(m => items.push({ tone: 'red', ic: 'alert', t: 'Pemeliharaan terlambat — ' + m.asset, s: m.type + ' · ' + m.vendor + ' · jatuh tempo ' + m.due, go: () => setTab('maint') }));
-  mt.rows.filter(m => m.k3 && m.days >= 0 && m.days <= 30).forEach(m => items.push({ tone: 'amber', ic: 'shield', t: 'Inspeksi K3 mendekat — ' + m.asset, s: m.vendor + ' · ' + m.days + ' hari', go: () => setTab('maint') }));
-  lic.filter(l => l.renew).forEach(l => items.push({ tone: 'amber', ic: 'key', t: 'Lisensi perlu perpanjangan — ' + l.name, s: 'Berakhir ' + l.exp + ' · ' + (l.days < 0 ? 'lewat' : l.days + ' hari'), go: () => setTab('license') }));
-  disp.forEach(d => items.push({ tone: 'amber', ic: 'trash', t: 'Usul pelepasan aset — ' + d.asset, s: d.method + ' · perlu persetujuan ' + d.appr, go: () => setTab('register') }));
+  const disp = (B.DISPOSALS || []).filter((d: any) => d.status === 'Menunggu Approval');
+  const items: any[] = [];
+  mt.rows.filter((m: any) => m.status === 'Terlambat' || m.days < 0).forEach((m: any) => items.push({ tone: 'red', ic: 'alert', t: 'Pemeliharaan terlambat — ' + m.asset, s: m.type + ' · ' + m.vendor + ' · jatuh tempo ' + m.due, go: () => setTab('maint') }));
+  mt.rows.filter((m: any) => m.k3 && m.days >= 0 && m.days <= 30).forEach((m: any) => items.push({ tone: 'amber', ic: 'shield', t: 'Inspeksi K3 mendekat — ' + m.asset, s: m.vendor + ' · ' + m.days + ' hari', go: () => setTab('maint') }));
+  lic.filter((l: any) => l.renew).forEach((l: any) => items.push({ tone: 'amber', ic: 'key', t: 'Lisensi perlu perpanjangan — ' + l.name, s: 'Berakhir ' + l.exp + ' · ' + (l.days < 0 ? 'lewat' : l.days + ' hari'), go: () => setTab('license') }));
+  disp.forEach((d: any) => items.push({ tone: 'amber', ic: 'trash', t: 'Usul pelepasan aset — ' + d.asset, s: d.method + ' · perlu persetujuan ' + d.appr, go: () => setTab('register') }));
   return (
     <div style={{ display: 'grid', gap: 7 }}>
       {items.slice(0, 7).map((a, i) => (
         <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-          <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(I[a.ic] || I.alert, { size: 15 })}</span>
+          <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement((I as any)[a.ic] || I.alert, { size: 15 })}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 300 }}>{a.t}</div>
             <div className="tiny muted truncate" style={{ maxWidth: 300 }}>{a.s}</div>
@@ -126,7 +126,7 @@ function Facilities() {
                   </div>
                   <div style={{ height: 12 }} />
                   <SectionTitle right={<span className="mono tiny muted">NBV per kategori</span>}>Komposisi Aset</SectionTitle>
-                  <HBars rows={reg.byCat.map((c, i) => ({ label: c.cat, value: c.nbv, color: FAC_PALETTE[i % FAC_PALETTE.length], right: boJt(c.nbv) }))} />
+                  <HBars rows={reg.byCat.map((c: any, i: any) => ({ label: c.cat, value: c.nbv, color: FAC_PALETTE[i % FAC_PALETTE.length], right: boJt(c.nbv) }))} />
                 </Panel>
 
                 <div style={{ display: 'grid', gap: 14 }}>
@@ -162,11 +162,11 @@ function Facilities() {
 const FAC_PALETTE = ['#013a52', '#005085', '#0a6b73', '#2f7bb0', '#5b3fa6', '#9a6a00', '#1f7a4d'];
 
 /* mini kalender pemeliharaan untuk overview */
-function FacMaintMini({ FA, nav, setTab }) {
+function FacMaintMini({ FA, nav, setTab }: any) {
   const mt = FA.maintenance();
   return (
     <div style={{ display: 'grid', gap: 7 }}>
-      {mt.rows.slice(0, 5).map(m => {
+      {mt.rows.slice(0, 5).map((m: any) => {
         const col = m.days < 0 ? 'var(--red)' : m.days <= 14 ? 'var(--amber)' : 'var(--green)';
         return (
           <div key={m.id} className="row ac gap8" style={{ padding: '6px 8px', borderRadius: 7, border: '1px solid var(--line)', cursor: 'pointer' }} onClick={() => setTab('maint')}>
@@ -184,7 +184,7 @@ function FacMaintMini({ FA, nav, setTab }) {
 }
 
 /* ---------- Register Aset (sub-ledger PSAK 16) ---------- */
-function FacRegister({ reg, sel, setSel }) {
+function FacRegister({ reg, sel, setSel }: any) {
   return (
     <div>
       <div className="panel" style={{ padding: '10px 13px', margin: '12px 14px 0', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
@@ -195,7 +195,7 @@ function FacRegister({ reg, sel, setSel }) {
           <th>Kode</th><th>Aset</th><th>Kategori</th><th className="num">Qty</th><th className="num">Perolehan</th><th className="num">Ak. Penyusutan</th><th className="num">NBV</th><th style={{ width: 120 }}>Umur Terpakai</th><th>Status</th>
         </tr></thead>
         <tbody>
-          {reg.rows.map(a => (
+          {reg.rows.map((a: any) => (
             <tr key={a.id} onClick={() => setSel(a)} style={{ cursor: 'pointer' }} className={sel && sel.id === a.id ? 'sel' : ''}>
               <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
               <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{a.name}</div><div className="tiny muted mono">{new Date(a.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })} · {a.life}th · {a.loc}</div></td>
@@ -205,7 +205,7 @@ function FacRegister({ reg, sel, setSel }) {
               <td className="num muted">{boJt(a.accDep)}</td>
               <td className="num" style={{ fontWeight: 600, color: a.fullyDep ? 'var(--ink-4)' : 'inherit' }}>{a.nbv === 0 ? '—' : boJt(a.nbv)}</td>
               <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: facPct(a.pct * 100) + '', height: '100%', borderRadius: 3, background: a.fullyDep ? 'var(--ink-4)' : 'var(--blue)' }} /></div><span className="tiny mono" style={{ width: 30 }}>{facPct(a.pct * 100)}</span></div></td>
-              <td><span className="badge" style={{ textTransform: 'none', background: (FAC_STATUSC[a.status] || '#888') + '1a', color: FAC_STATUSC[a.status] || '#888' }}>{a.status}</span></td>
+              <td><span className="badge" style={{ textTransform: 'none', background: ((FAC_STATUSC as any)[a.status] || '#888') + '1a', color: (FAC_STATUSC as any)[a.status] || '#888' }}>{a.status}</span></td>
             </tr>
           ))}
         </tbody>
@@ -216,12 +216,12 @@ function FacRegister({ reg, sel, setSel }) {
 }
 
 /* ---------- Drawer aset: skedul penyusutan + tautan SSOT ---------- */
-function FacAssetDrawer({ asset, onClose, nav }) {
+function FacAssetDrawer({ asset, onClose, nav }: any) {
   const FA = FAC, B = BO;
   const a = FA.depreciate(asset);
-  const vendor = a.vendorId ? ((B.VENDORS || []).find(v => v.id === a.vendorId) || null) : null;
-  const policy = a.insured ? ((B.POLICIES || []).find(p => p.id === a.insured) || null) : null;
-  const maint = (B.MAINTENANCE || []).filter(m => m.assetId === a.id);
+  const vendor = a.vendorId ? ((B.VENDORS || []).find((v: any) => v.id === a.vendorId) || null) : null;
+  const policy = a.insured ? ((B.POLICIES || []).find((p: any) => p.id === a.insured) || null) : null;
+  const maint = (B.MAINTENANCE || []).filter((m: any) => m.assetId === a.id);
   const startYear = new Date(a.acq).getFullYear();
   const annual = a.cost / a.life;
   let acc = 0;
@@ -236,7 +236,7 @@ function FacAssetDrawer({ asset, onClose, nav }) {
           <div className="row ac gap8" style={{ marginTop: 4 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</span>
             <span className="badge b-gray" style={{ textTransform: 'none' }}>{a.cat}</span>
-            <span className="badge" style={{ textTransform: 'none', background: (FAC_STATUSC[a.status] || '#888') + '1a', color: FAC_STATUSC[a.status] || '#888' }}>{a.status}</span>
+            <span className="badge" style={{ textTransform: 'none', background: ((FAC_STATUSC as any)[a.status] || '#888') + '1a', color: (FAC_STATUSC as any)[a.status] || '#888' }}>{a.status}</span>
           </div>
         </div>
       </div>
@@ -295,7 +295,7 @@ function FacAssetDrawer({ asset, onClose, nav }) {
           <>
             <SectionTitle right={<span className="tiny muted">{maint.length}</span>}>Riwayat & Jadwal Pemeliharaan</SectionTitle>
             <div style={{ display: 'grid', gap: 5 }}>
-              {maint.map(m => (
+              {maint.map((m: any) => (
                 <div key={m.id} className="row ac jb" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)' }}>
                   <span className="tiny" style={{ fontWeight: 600 }}>{m.type} · {m.vendor}</span>
                   <span className="row ac gap6"><span className="mono tiny muted">{m.due} · {boJt(m.cost)}</span><BoBadge s={m.status} /></span>

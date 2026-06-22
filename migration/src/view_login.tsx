@@ -17,7 +17,7 @@ export function LoginScreen({ onLoggedIn }: any) {
   const [err, setErr] = useStateLG('');
   const [busy, setBusy] = useStateLG(false);
 
-  async function submit(e) {
+  async function submit(e: any) {
     e.preventDefault();
     if (busy) return;
     setErr(''); setBusy(true);
@@ -59,17 +59,17 @@ export function LoginScreen({ onLoggedIn }: any) {
 
         <label style={label} htmlFor="lg-email">Email</label>
         <input id="lg-email" style={input} type="email" autoComplete="username" autoFocus required
-          value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@whr-cpa.id" />
+          value={email} onChange={(e: any) => setEmail(e.target.value)} placeholder="nama@whr-cpa.id" />
 
         <label style={label} htmlFor="lg-pw">Kata Sandi</label>
         <input id="lg-pw" style={input} type="password" autoComplete="current-password" required
-          value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
+          value={password} onChange={(e: any) => setPassword(e.target.value)} placeholder="••••••••" />
 
         {needTotp && (
           <>
             <label style={label} htmlFor="lg-totp">Kode Autentikasi (2FA)</label>
             <input id="lg-totp" style={{ ...input, letterSpacing: 4, fontFamily: 'JetBrains Mono, monospace' }} inputMode="numeric"
-              autoComplete="one-time-code" maxLength={6} value={totp} onChange={e => setTotp(e.target.value.replace(/\D/g, ''))} placeholder="123456" />
+              autoComplete="one-time-code" maxLength={6} value={totp} onChange={(e: any) => setTotp(e.target.value.replace(/\D/g, ''))} placeholder="123456" />
           </>
         )}
 

@@ -14,7 +14,7 @@ import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 const { useState: useNA } = React;
 
 const NA_CAT_COLOR = { 'Reviu': '#0a6b73', 'Jasa Terkait': '#5b3fa6', 'Asurans Lain': '#005085', 'Advisory': '#9a6a00' };
-const NA_ASR_KIND = (a) => a.includes('Tanpa') ? 'gray' : a.includes('Memadai') ? 'green' : 'blue';
+const NA_ASR_KIND = (a: any) => a.includes('Tanpa') ? 'gray' : a.includes('Memadai') ? 'green' : 'blue';
 
 /* ============================================================
    Hub — Portofolio Jasa Non-Audit
@@ -77,7 +77,7 @@ function NonAuditPortfolio() {
                 <tr key={e.id} onClick={() => nav(e.route)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</td>
                   <td style={{ fontWeight: 600 }} className="truncate">{e.client.replace('PT ', '')}</td>
-                  <td><span className="badge" style={{ background: NA_CAT_COLOR[e.cat] + '1a', color: NA_CAT_COLOR[e.cat] }}>{e.stdLabel}</span></td>
+                  <td><span className="badge" style={{ background: (NA_CAT_COLOR as any)[e.cat] + '1a', color: (NA_CAT_COLOR as any)[e.cat] }}>{e.stdLabel}</span></td>
                   <td><span className="chip tiny">{e.std}</span></td>
                   <td><Badge kind={NA_ASR_KIND(e.assurance)}>{e.assurance}</Badge></td>
                   <td className="tiny">{e.partner.split(',')[0]}</td>
@@ -127,12 +127,12 @@ function Review2400() {
   const [concl, setConcl] = useAmsPersist('review2400concl', R.conclusion);
   const [tab, setTab] = useNA('plan');
 
-  const toggleInq = (i) => setInq(list => list.map((x, j) => j === i ? { ...x, done: !x.done } : x));
-  const setResp = (i, v) => setInq(list => list.map((x, j) => j === i ? { ...x, resp: v } : x));
-  const flagged = R.analytics.filter(a => a.varied).length;
-  const inqDone = inq.filter(x => x.done).length;
+  const toggleInq = (i: any) => setInq((list: any) => list.map((x: any, j: any) => j === i ? { ...x, done: !x.done } : x));
+  const setResp = (i: any, v: any) => setInq((list: any) => list.map((x: any, j: any) => j === i ? { ...x, resp: v } : x));
+  const flagged = R.analytics.filter((a: any) => a.varied).length;
+  const inqDone = inq.filter((x: any) => x.done).length;
   const ready = inqDone === inq.length;
-  const c = REV_CONCL[concl];
+  const c = (REV_CONCL as any)[concl];
 
   const tabs = [{ id: 'plan', label: 'Perencanaan' }, { id: 'analytics', label: 'Prosedur Analitis', count: flagged }, { id: 'inquiry', label: 'Inquiry Manajemen', count: inq.length - inqDone }, { id: 'report', label: 'Simpulan & Laporan' }];
 
@@ -165,7 +165,7 @@ function Review2400() {
                 <table className="dtbl">
                   <thead><tr><th>Area</th><th>Tingkat Risiko</th><th>Pertimbangan & Pendekatan</th></tr></thead>
                   <tbody>
-                    {P.focus.map((f, i) => (
+                    {P.focus.map((f: any, i: any) => (
                       <tr key={i}>
                         <td style={{ fontWeight: 600 }}>{f.area}</td>
                         <td><Badge kind={f.risk === 'Tinggi' ? 'red' : f.risk === 'Sedang' ? 'amber' : 'gray'}>{f.risk}</Badge></td>
@@ -183,7 +183,7 @@ function Review2400() {
             <table className="dtbl">
               <thead><tr><th>Metrik / Rasio</th><th className="num">Tahun Lalu</th><th className="num">Tahun Ini</th><th>Status</th><th>Tindak Lanjut Inquiry</th></tr></thead>
               <tbody>
-                {R.analytics.map((a, i) => (
+                {R.analytics.map((a: any, i: any) => (
                   <tr key={i}>
                     <td style={{ fontWeight: 600 }}>{a.metric}</td>
                     <td className="num mono muted">{a.py}</td>
@@ -198,12 +198,12 @@ function Review2400() {
 
           {tab === 'inquiry' && (
             <div style={{ padding: 12, display: 'grid', gap: 8 }}>
-              {inq.map((x, i) => (
+              {inq.map((x: any, i: any) => (
                 <div key={i} className="panel" style={{ padding: 12, boxShadow: 'none', borderLeft: '3px solid ' + (x.done ? 'var(--green)' : 'var(--line-strong)') }}>
                   <div className="row jb ac" style={{ marginBottom: 6 }}>
                     <span className="row ac gap8"><span onClick={() => toggleInq(i)} style={{ cursor: 'pointer', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center', background: x.done ? 'var(--green)' : 'var(--surface-3)', color: '#fff', flex: '0 0 18px' }}>{x.done && <I.check size={11} />}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{x.q}</span></span>
                   </div>
-                  <input className="input" value={x.resp} onChange={e => setResp(i, e.target.value)} placeholder="Catat respons manajemen / hasil prosedur analitis…" style={{ width: '100%' }} />
+                  <input className="input" value={x.resp} onChange={(e: any) => setResp(i, e.target.value)} placeholder="Catat respons manajemen / hasil prosedur analitis…" style={{ width: '100%' }} />
                 </div>
               ))}
             </div>
@@ -216,8 +216,8 @@ function Review2400() {
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Bentuk Simpulan Reviu</div>
                   <div style={{ display: 'grid', gap: 7 }}>
                     {Object.keys(REV_CONCL).map(k => (
-                      <div key={k} onClick={() => setConcl(k)} className="panel" style={{ padding: '10px 12px', cursor: 'pointer', boxShadow: 'none', borderColor: concl === k ? 'var(--' + REV_CONCL[k].k + ')' : 'var(--line)', borderWidth: concl === k ? 2 : 1, background: concl === k ? 'var(--' + REV_CONCL[k].k + '-bg)' : 'transparent' }}>
-                        <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--' + REV_CONCL[k].k + ')', background: concl === k ? 'var(--' + REV_CONCL[k].k + ')' : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{REV_CONCL[k].l}</span></div>
+                      <div key={k} onClick={() => setConcl(k)} className="panel" style={{ padding: '10px 12px', cursor: 'pointer', boxShadow: 'none', borderColor: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + ')' : 'var(--line)', borderWidth: concl === k ? 2 : 1, background: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + '-bg)' : 'transparent' }}>
+                        <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--' + (REV_CONCL as any)[k].k + ')', background: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + ')' : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{(REV_CONCL as any)[k].l}</span></div>
                       </div>
                     ))}
                   </div>

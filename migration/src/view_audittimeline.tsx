@@ -17,13 +17,13 @@ const { useState: useStateATL, useMemo: useMemoATL } = React;
 
 const ATL_PHASE_COLOR = { Perencanaan: '#005085', Eksekusi: '#5b3fa6', Finalisasi: '#1f7a4d' };
 const ATL_MS_COLOR = { done: '#1f7a4d', due: '#9a6a00', upcoming: '#61717c' };
-const ATL_d = (s) => new Date(s + 'T00:00:00');
-const ATL_ms = (s) => ATL_d(s).getTime();
-const ATL_fmt = (s) => ATL_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-const ATL_fmtY = (s) => ATL_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-const ATL_daysTo = (s, today) => Math.round((ATL_ms(s) - ATL_ms(today)) / 864e5);
-const ATL_iso = (t) => new Date(t).toISOString().slice(0, 10);
-const ATL_tint = (hex, a) => { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; };
+const ATL_d = (s: any) => new Date(s + 'T00:00:00');
+const ATL_ms = (s: any) => ATL_d(s).getTime();
+const ATL_fmt = (s: any) => ATL_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+const ATL_fmtY = (s: any) => ATL_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+const ATL_daysTo = (s: any, today: any) => Math.round((ATL_ms(s) - ATL_ms(today)) / 864e5);
+const ATL_iso = (t: any) => new Date(t).toISOString().slice(0, 10);
+const ATL_tint = (hex: any, a: any) => { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; };
 
 /* template aktivitas per fase — fraksi [a,b] di dalam jendela fase nyata.
    mod = modul/prosedur terkait yang dibuka saat baris diklik. */
@@ -54,8 +54,8 @@ const ATL_TASKS = {
   ],
 };
 
-function ATL_lerp(ph, f) { return ATL_iso(ATL_ms(ph.start) + f * (ATL_ms(ph.end) - ATL_ms(ph.start))); }
-function ATL_pct(s, e, today, done) {
+function ATL_lerp(ph: any, f: any) { return ATL_iso(ATL_ms(ph.start) + f * (ATL_ms(ph.end) - ATL_ms(ph.start))); }
+function ATL_pct(s: any, e: any, today: any, done: any) {
   if (done) return 100;
   const t = ATL_ms(today), a = ATL_ms(s), b = ATL_ms(e);
   if (t <= a) return 0; if (t >= b) return 100;
@@ -70,21 +70,21 @@ function AuditTimeline() {
   const nav = useNav();
 
   // perikatan yang punya rencana pengiriman
-  const planned = DELIVERY.map(d => d.id);
+  const planned = DELIVERY.map((d: any) => d.id);
   const defaultEng = (firm && firm.activeEngagementId && planned.includes(firm.activeEngagementId))
     ? firm.activeEngagementId : planned[0];
   const [engId, setEngId] = useStateATL(defaultEng);
   const [mode, setMode] = useStateATL('internal');
 
-  const eng = ENGAGEMENTS.find(e => e.id === engId) || {};
-  const client = CLIENTS.find(c => c.id === eng.clientId) || {};
-  const plan = DELIVERY.find(d => d.id === engId) || { phases: [], milestones: [] };
+  const eng = ENGAGEMENTS.find((e: any) => e.id === engId) || {};
+  const client = CLIENTS.find((c: any) => c.id === eng.clientId) || {};
+  const plan = DELIVERY.find((d: any) => d.id === engId) || { phases: [], milestones: [] };
   const done = eng.status === 'Completed' || eng.phase === 'Arsip';
 
   // expand template → aktivitas di dalam jendela fase nyata
-  const groups = useMemoATL(() => plan.phases.map(ph => {
-    const tpl = ATL_TASKS[ph.name] || [];
-    const tasks = tpl.map(t => {
+  const groups = useMemoATL(() => plan.phases.map((ph: any) => {
+    const tpl = (ATL_TASKS as any)[ph.name] || [];
+    const tasks = tpl.map((t: any) => {
       const s = ATL_lerp(ph, t.a), e = ATL_lerp(ph, t.b);
       return { ...t, s, e, pct: ATL_pct(s, e, today, done) };
     });
@@ -92,12 +92,12 @@ function AuditTimeline() {
   }), [engId, mode]);
 
   // jendela waktu = rentang fase + milestone (+ padding)
-  const allDates = [];
-  plan.phases.forEach(p => { allDates.push(ATL_ms(p.start), ATL_ms(p.end)); });
-  plan.milestones.forEach(m => allDates.push(ATL_ms(m.date)));
+  const allDates: any[] = [];
+  plan.phases.forEach((p: any) => { allDates.push(ATL_ms(p.start), ATL_ms(p.end)); });
+  plan.milestones.forEach((m: any) => allDates.push(ATL_ms(m.date)));
   const pad = 4 * 864e5;
   const t0 = Math.min(...allDates) - pad, t1 = Math.max(...allDates) + pad;
-  const frac = (s) => ((ATL_ms(s) - t0) / (t1 - t0)) * 100;
+  const frac = (s: any) => ((ATL_ms(s) - t0) / (t1 - t0)) * 100;
 
   const months = useMemoATL(() => {
     const out = []; const d = new Date(t0); d.setDate(1);
@@ -110,18 +110,18 @@ function AuditTimeline() {
 
   // KPI
   const phEnd = plan.phases.length ? plan.phases[plan.phases.length - 1].end : null;
-  const signMs = plan.milestones.find(m => /sign|opini/i.test(m.label));
+  const signMs = plan.milestones.find((m: any) => /sign|opini/i.test(m.label));
   const target = signMs ? signMs.date : eng.deadline;
   const durWk = plan.phases.length ? Math.round((ATL_ms(phEnd) - ATL_ms(plan.phases[0].start)) / 864e5 / 7) : 0;
-  const dueSoon = plan.milestones.filter(m => m.status !== 'done' && ATL_daysTo(m.date, today) >= 0 && ATL_daysTo(m.date, today) <= 14).length;
+  const dueSoon = plan.milestones.filter((m: any) => m.status !== 'done' && ATL_daysTo(m.date, today) >= 0 && ATL_daysTo(m.date, today) <= 14).length;
   const burn = eng.budgetHrs ? Math.round((eng.actualHrs || 0) / eng.budgetHrs * 100) : 0;
   const firmName = (FIRM && FIRM.name) || 'Kantor Akuntan Publik';
 
   const engSelect = (
-    <select value={engId} onChange={e => setEngId(e.target.value)}
+    <select value={engId} onChange={(e: any) => setEngId(e.target.value)}
       style={{ height: 28, borderRadius: 4, border: '1px solid var(--line-strong)', background: 'var(--surface)', color: 'var(--ink)', fontSize: 12, fontWeight: 600, padding: '0 8px', maxWidth: 260 }}>
-      {planned.map(id => {
-        const e2 = ENGAGEMENTS.find(x => x.id === id) || {}; const c2 = CLIENTS.find(x => x.id === e2.clientId) || {};
+      {planned.map((id: any) => {
+        const e2 = ENGAGEMENTS.find((x: any) => x.id === id) || {}; const c2 = CLIENTS.find((x: any) => x.id === e2.clientId) || {};
         return <option key={id} value={id}>{(c2.name || id)} · {id}</option>;
       })}
     </select>
@@ -179,7 +179,7 @@ function AuditTimeline() {
         {/* GANTT */}
         <Panel noBody style={{ marginBottom: 12, overflow: 'hidden' }}>
           <div style={{ display: 'flex', overflowX: 'auto' }}>
-            <ATL_Chart mode={mode} groups={groups} plan={plan} months={months} frac={frac} today={today} done={done} onOpen={(id) => id && nav(id, { from: 'audittimeline' })} />
+            <ATL_Chart mode={mode} groups={groups} plan={plan} months={months} frac={frac} today={today} done={done} onOpen={(id: any) => id && nav(id, { from: 'audittimeline' })} />
           </div>
         </Panel>
 
@@ -187,12 +187,12 @@ function AuditTimeline() {
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
           <Panel title="Milestone Kunci" sub={mode === 'klien' ? 'tanggal penyerahan' : 'status pelaksanaan'}>
             <div style={{ display: 'grid', gap: 0 }}>
-              {plan.milestones.map((m, i) => {
+              {plan.milestones.map((m: any, i: any) => {
                 const dl = ATL_daysTo(m.date, today);
                 return (
                   <div key={i} className="row ac jb" style={{ padding: '8px 0', borderBottom: i < plan.milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span className="row ac gap8" style={{ minWidth: 0 }}>
-                      <span style={{ width: 11, height: 11, background: ATL_MS_COLOR[m.status], transform: 'rotate(45deg)', borderRadius: 2, flex: '0 0 11px' }} />
+                      <span style={{ width: 11, height: 11, background: (ATL_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, flex: '0 0 11px' }} />
                       <span className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label}</span>
                     </span>
                     <span style={{ textAlign: 'right' }}>
@@ -256,11 +256,11 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
   const [hov, setHov] = useStateATL(null);
 
   // bangun daftar baris seragam (label + lane) agar sejajar
-  const rows = [];
+  const rows: any[] = [];
   if (mode === 'klien') {
-    groups.forEach(g => rows.push({ type: 'phase', g }));
+    groups.forEach((g: any) => rows.push({ type: 'phase', g }));
   } else {
-    groups.forEach(g => { rows.push({ type: 'phase', g }); g.tasks.forEach(t => rows.push({ type: 'task', t, ph: g.ph })); });
+    groups.forEach((g: any) => { rows.push({ type: 'phase', g }); g.tasks.forEach((t: any) => rows.push({ type: 'task', t, ph: g.ph })); });
   }
   const totalH = HEAD + rows.length * ROW;
   const phaseRowH = mode === 'klien' ? 34 : ROW;
@@ -272,7 +272,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         <div style={{ height: HEAD, borderBottom: '1px solid var(--line)' }} />
         {rows.map((r, i) => {
           if (r.type === 'phase') {
-            const c = ATL_PHASE_COLOR[r.g.ph.name];
+            const c = (ATL_PHASE_COLOR as any)[r.g.ph.name];
             return (
               <div key={i} style={{ height: mode === 'klien' ? phaseRowH : ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', borderBottom: '1px solid var(--line-soft)', background: mode === 'klien' ? 'var(--surface)' : 'var(--surface-3)' }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: c, flex: '0 0 10px' }} />
@@ -284,7 +284,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
             <div key={i} onClick={() => onOpen && onOpen(r.t.mod)} onMouseEnter={() => setHov(r.t.ref)} onMouseLeave={() => setHov(null)}
               title={'Buka modul terkait — ' + r.t.n}
               style={{ height: ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px 0 24px', borderBottom: '1px solid var(--line-soft)', position: 'relative', cursor: 'pointer', background: hov === r.t.ref ? 'var(--blue-050)' : 'transparent' }}>
-              <span style={{ position: 'absolute', left: 14, width: 6, height: 6, borderRadius: '50%', background: ATL_tint(ATL_PHASE_COLOR[r.ph.name], 1) }} />
+              <span style={{ position: 'absolute', left: 14, width: 6, height: 6, borderRadius: '50%', background: ATL_tint((ATL_PHASE_COLOR as any)[r.ph.name], 1) }} />
               <span className="truncate" style={{ fontSize: 11.5, color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-2)', fontWeight: hov === r.t.ref ? 600 : 400, flex: 1 }}>{r.t.n}</span>
               <span className="mono tiny" style={{ color: 'var(--ink-4)', fontSize: 9.5 }}>{r.t.ref}</span>
               <I.arrowRight size={12} style={{ color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-4)', opacity: hov === r.t.ref ? 1 : .4, flex: '0 0 auto' }} />
@@ -297,14 +297,14 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
       <div style={{ flex: 1, position: 'relative', minWidth: 360 }}>
         {/* month header */}
         <div style={{ height: HEAD, borderBottom: '1px solid var(--line)', position: 'relative' }}>
-          {months.map((m, i) => (
+          {months.map((m: any, i: any) => (
             <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 8, fontSize: 9.5, letterSpacing: '.03em', borderLeft: '1px solid var(--line)', paddingLeft: 4, height: 18 }}>{m.label}</span>
           ))}
         </div>
 
         {/* gridlines + today (overlay) */}
         <div style={{ position: 'absolute', top: HEAD, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
-          {months.map((m, i) => <span key={i} style={{ position: 'absolute', left: m.pos + '%', top: 0, bottom: 0, width: 1, background: 'var(--line-soft)' }} />)}
+          {months.map((m: any, i: any) => <span key={i} style={{ position: 'absolute', left: m.pos + '%', top: 0, bottom: 0, width: 1, background: 'var(--line-soft)' }} />)}
           <span style={{ position: 'absolute', left: frac(today) + '%', top: 0, bottom: 0, width: 0, borderLeft: '2px dashed var(--red)', zIndex: 4 }} />
           <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
         </div>
@@ -312,7 +312,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         {/* lanes */}
         {rows.map((r, i) => {
           if (r.type === 'phase') {
-            const c = ATL_PHASE_COLOR[r.g.ph.name];
+            const c = (ATL_PHASE_COLOR as any)[r.g.ph.name];
             const s = r.g.ph.start, e = r.g.ph.end;
             const isKlien = mode === 'klien';
             return (
@@ -322,14 +322,14 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
                   {isKlien && (frac(e) - frac(s)) > 14 && <span style={{ color: '#fff', fontSize: 9.5, fontWeight: 600, padding: '0 8px', whiteSpace: 'nowrap', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{ATL_fmt(s)} – {ATL_fmt(e)}</span>}
                 </div>
                 {/* milestones di lane fase (mode klien) — yang jatuh di rentang fase */}
-                {isKlien && plan.milestones.filter(m => ATL_ms(m.date) >= ATL_ms(s) - 3 * 864e5 && ATL_ms(m.date) <= ATL_ms(e) + 3 * 864e5).map((m, mi) => (
-                  <span key={mi} title={m.label + ' · ' + ATL_fmt(m.date)} style={{ position: 'absolute', top: 9, left: 'calc(' + frac(m.date) + '% - 7px)', width: 14, height: 14, background: ATL_MS_COLOR[m.status], transform: 'rotate(45deg)', borderRadius: 2, border: '2px solid var(--surface)', zIndex: 3 }} />
+                {isKlien && plan.milestones.filter((m: any) => ATL_ms(m.date) >= ATL_ms(s) - 3 * 864e5 && ATL_ms(m.date) <= ATL_ms(e) + 3 * 864e5).map((m: any, mi: any) => (
+                  <span key={mi} title={m.label + ' · ' + ATL_fmt(m.date)} style={{ position: 'absolute', top: 9, left: 'calc(' + frac(m.date) + '% - 7px)', width: 14, height: 14, background: (ATL_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, border: '2px solid var(--surface)', zIndex: 3 }} />
                 ))}
               </div>
             );
           }
           // task lane
-          const L = frac(r.t.s), W = Math.max(0.8, frac(r.t.e) - frac(r.t.s)), c = ATL_PHASE_COLOR[r.ph.name];
+          const L = frac(r.t.s), W = Math.max(0.8, frac(r.t.e) - frac(r.t.s)), c = (ATL_PHASE_COLOR as any)[r.ph.name];
           const active = hov === r.t.ref;
           return (
             <div key={i} onClick={() => onOpen && onOpen(r.t.mod)} onMouseEnter={() => setHov(r.t.ref)} onMouseLeave={() => setHov(null)}

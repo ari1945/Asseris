@@ -88,7 +88,7 @@ function SA580View() {
 }
 
 /* ---------------- Tab: Daftar Representasi ---------------- */
-function F580List({ got }) {
+function F580List({ got }: any) {
   const [selId, setSelId] = useState580('R-06');
   const sel = REP_ITEMS.find(r => r.id === selId);
   const wajib = REP_ITEMS.filter(r => r.cat === 'Wajib').length;
@@ -156,7 +156,7 @@ function F580List({ got }) {
 }
 
 /* ---------------- Tab: Surat Representasi (dokumen) ---------------- */
-function F580Letter({ client }) {
+function F580Letter({ client }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -243,7 +243,7 @@ function F580Reliability() {
           <div className="panel-h"><h3>Evaluasi Keandalan Representasi (¶18–20)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: '6px 14px 14px' }}>
             {scenarios.map((s, i) => {
-              const Ic = I[s.ic];
+              const Ic = (I as any)[s.ic];
               return (
                 <div key={i} className="row gap12" style={{ padding: '12px 0', alignItems: 'flex-start', borderBottom: i < scenarios.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 34px', width: 34, height: 34, borderRadius: 8, display: 'grid', placeItems: 'center', background: `var(--${s.k}-bg)`, color: `var(--${s.k})` }}><Ic size={17} /></span>

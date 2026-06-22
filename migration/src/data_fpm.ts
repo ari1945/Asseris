@@ -56,7 +56,7 @@ import { AMS } from './data';
       ] },
     'C-058': { csat: 4.3, nps: 50, health: 79, sentiment: 'Netral', tenure: 8, dso: 44, billedYtd: 580 * M, outstanding: 0, lastContact: '2026-02-20', partnerRel: 'Rudi Gunawan',
       contracts: [{ id: 'CTR-058-A', type: 'Engagement Letter · Audit LK', value: 580 * M, start: '2025-12-15', end: '2026-02-28', status: 'Selesai', renewal: 'Tahunan' }],
-      opps: [],
+      opps: ([] as any[]),
       activities: [
         { d: '2026-02-20', type: 'doc', who: 'Citra H.', note: 'Laporan audit diterbitkan (WTP) & arsip' },
         { d: '2026-02-12', type: 'meeting', who: 'Rudi G.', note: 'Closing meeting & management letter' },
@@ -110,7 +110,7 @@ import { AMS } from './data';
     },
   };
   /* default detail generator for engagements without bespoke data */
-  (ENG_DETAIL as any)._default = function (e) {
+  (ENG_DETAIL as any)._default = function (e: any) {
     const f = e.budgetHrs;
     return {
       wbs: [

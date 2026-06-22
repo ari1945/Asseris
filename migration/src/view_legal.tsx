@@ -25,16 +25,16 @@ const LGL_CAT = {
   Asuransi:  { c: '#9a6a00', ic: 'umbrella',  lbl: 'Asuransi' },
   Layanan:   { c: '#2f7bb0', ic: 'cart',      lbl: 'Layanan / MoU' },
 };
-const lglDate = (d) => d || '—';
+const lglDate = (d: any) => d || '—';
 
 /* chip sumber kebenaran (klik → navigasi ke modul sumber) */
-function LglSourceChip({ kind, id, onNav }) {
-  const meta = LEGAL.SOURCE_META[kind];
+function LglSourceChip({ kind, id, onNav }: any) {
+  const meta = (LEGAL.SOURCE_META as any)[kind];
   if (!meta) return <span className="tiny muted">—</span>;
-  const Ic = I[meta.icon] || I.link2;
+  const Ic = (I as any)[meta.icon] || I.link2;
   return (
     <button type="button" className="chip tiny" title={'Sumber: ' + meta.label + ' · ' + id + ' — buka modul'}
-      onClick={(e) => { e.stopPropagation(); onNav(meta.module, { from: 'legal' }); }}
+      onClick={(e: any) => { e.stopPropagation(); onNav(meta.module, { from: 'legal' }); }}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', borderColor: 'var(--line)' }}>
       <Ic size={11} /><span style={{ fontWeight: 600 }}>{meta.label}</span>
       <span className="mono muted" style={{ fontSize: 10 }}>{id}</span>
@@ -43,14 +43,14 @@ function LglSourceChip({ kind, id, onNav }) {
 }
 
 /* badge status rekonsiliasi */
-function ReconBadge({ state }) {
+function ReconBadge({ state }: any) {
   if (state === 'ok') return <span className="badge b-green" style={{ textTransform: 'none' }}>✓ Konsisten</span>;
   if (state === 'drift') return <span className="badge b-amber" style={{ textTransform: 'none' }}>≠ Selisih</span>;
   return <span className="badge b-red" style={{ textTransform: 'none' }}>⚠ Orphan</span>;
 }
 
 /* ---------- obligasi turunan per kontrak (pembayaran/tenggat/deliverable) ---------- */
-function lglObligations(c) {
+function lglObligations(c: any) {
   const out = [];
   if (c.category === 'Perikatan') {
     out.push({ jenis: 'Penerbitan laporan auditor', due: c.end, val: null, note: 'Tenggat pelaporan perikatan' });
@@ -72,14 +72,14 @@ function lglObligations(c) {
    Drawer detail kontrak — fakta kunci, lineage sumber, klausul,
    kewajiban, dokumen tertaut.
    ============================================================ */
-function LglContractDrawer({ c, onClose, onNav }) {
+function LglContractDrawer({ c, onClose, onNav }: any) {
   if (!c) return null;
-  const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
-  const Ic = I[cat.ic] || I.doc;
+  const cat = (LGL_CAT as any)[c.category] || LGL_CAT.Layanan;
+  const Ic = (I as any)[cat.ic] || I.doc;
   const d = LEGAL.daysTo(c.end);
-  const clauses = LEGAL.CLAUSES[c.category] || [];
+  const clauses = (LEGAL.CLAUSES as any)[c.category] || [];
   const obligs = lglObligations(c);
-  const okClause = clauses.filter(x => x.ok).length;
+  const okClause = clauses.filter((x: any) => x.ok).length;
   return (
     <PDrawer open={!!c} onClose={onClose} width={600}>
       <div className="pdrawer-h">
@@ -110,7 +110,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
           <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
             {c.category === 'Perikatan'
               ? <>Nilai <b>{boJt(c.value)}</b> = fee klien tercatat di <b>CRM</b> dan dikunci di <b>Engagement Mgmt</b>. Perubahan fee mengalir otomatis ke kontrak ini & ke Billing.</>
-              : <>Nilai <b>{boJt(c.value)}</b> ditarik langsung dari modul <b>{LEGAL.SOURCE_META[c.source.kind].label}</b>. Modul Kontrak tidak menyimpan salinan angka.</>}
+              : <>Nilai <b>{boJt(c.value)}</b> ditarik langsung dari modul <b>{(LEGAL.SOURCE_META as any)[c.source.kind].label}</b>. Modul Kontrak tidak menyimpan salinan angka.</>}
           </div>
         </div>
 
@@ -132,7 +132,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
         {/* klausul */}
         <SectionTitle right={<span className="mono tiny muted">{okClause}/{clauses.length} klausul</span>}>Klausul & Kepatuhan</SectionTitle>
         <div style={{ display: 'grid', gap: 6, marginBottom: 14 }}>
-          {clauses.map((cl, i) => (
+          {clauses.map((cl: any, i: any) => (
             <div key={i} className="row ac gap8" style={{ fontSize: 12 }}>
               <span style={{ width: 16, height: 16, borderRadius: 4, display: 'grid', placeItems: 'center', flex: '0 0 16px', background: cl.ok ? 'var(--green-bg)' : 'var(--amber-bg)', color: cl.ok ? 'var(--green)' : 'var(--amber)' }}>
                 {cl.ok ? <I.check size={11} /> : <I.alert size={11} />}
@@ -160,7 +160,7 @@ function LglContractDrawer({ c, onClose, onNav }) {
 
         <div className="row gap8">
           <Btn sm variant="primary"><I.doc size={13} /> Buka Dokumen (DMS)</Btn>
-          <Btn sm onClick={() => onNav(LEGAL.SOURCE_META[c.source.kind].module, { from: 'legal' })}><I.arrowRight size={13} /> Ke Modul Sumber</Btn>
+          <Btn sm onClick={() => onNav((LEGAL.SOURCE_META as any)[c.source.kind].module, { from: 'legal' })}><I.arrowRight size={13} /> Ke Modul Sumber</Btn>
         </div>
       </div>
     </PDrawer>

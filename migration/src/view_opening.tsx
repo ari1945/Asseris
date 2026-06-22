@@ -119,7 +119,7 @@ function OpeningBalance() {
 }
 
 /* ---------------- Tab: Konteks & Strategi ---------------- */
-function OBContext({ engType, predecessor }) {
+function OBContext({ engType, predecessor }: any) {
   const initialSteps = [
     'Peroleh izin klien untuk berkomunikasi & mengakses KKP auditor pendahulu',
     'Telaah KKP auditor pendahulu atas saldo akun signifikan & area pertimbangan',
@@ -143,7 +143,7 @@ function OBContext({ engType, predecessor }) {
                 { ic: 'scale', t: 'Konsistensi Kebijakan', d: 'Kebijakan akuntansi diterapkan konsisten antar-periode.' },
                 { ic: 'shield', t: 'Dampak ke Opini', d: 'Evaluasi apakah temuan memodifikasi opini periode kini.' },
               ].map((c, i) => {
-                const Ic = I[c.ic];
+                const Ic = (I as any)[c.ic];
                 return (
                   <div key={i} className="panel" style={{ padding: '11px 12px', boxShadow: 'none' }}>
                     <span style={{ color: 'var(--blue)' }}><Ic size={18} /></span>
@@ -227,10 +227,10 @@ function OBContext({ engType, predecessor }) {
 }
 
 /* ---------------- Tab: Penelusuran Saldo ---------------- */
-function OBTrace({ wtb, fmt }) {
-  const rows = wtb.filter(r => OB_SOFP_GROUPS.includes(r.group));
+function OBTrace({ wtb, fmt }: any) {
+  const rows = wtb.filter((r: any) => OB_SOFP_GROUPS.includes(r.group));
   let totClose = 0, totOpen = 0, totDiff = 0;
-  const grouped = OB_SOFP_GROUPS.map(g => ({ g, items: rows.filter(r => r.group === g) })).filter(x => x.items.length);
+  const grouped = OB_SOFP_GROUPS.map(g => ({ g, items: rows.filter((r: any) => r.group === g) })).filter(x => x.items.length);
   let matched = 0, transition = 0;
 
   return (
@@ -250,10 +250,10 @@ function OBTrace({ wtb, fmt }) {
           {grouped.map(({ g, items }) => (
             <React.Fragment key={g}>
               <tr className="group-row"><td colSpan={7}>{g}</td></tr>
-              {items.map(r => {
-                const isT = OB_TRANSITION[r.code] != null;
+              {items.map((r: any) => {
+                const isT = (OB_TRANSITION as any)[r.code] != null;
                 const priorClose = isT ? 0 : r.ly;
-                const opening = isT ? OB_TRANSITION[r.code] : r.ly;
+                const opening = isT ? (OB_TRANSITION as any)[r.code] : r.ly;
                 const diff = opening - priorClose;
                 totClose += priorClose; totOpen += opening; totDiff += diff;
                 if (isT) transition++; else matched++;
@@ -291,7 +291,7 @@ function OBTrace({ wtb, fmt }) {
 }
 
 /* ---------------- Tab: Prosedur Spesifik ---------------- */
-function OBProcedures({ fmt }) {
+function OBProcedures({ fmt }: any) {
   const [selId, setSelId] = useStateOPN('C');
   const sel = OB_SPECIFIC.find(s => s.id === selId);
   return (

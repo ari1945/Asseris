@@ -22,27 +22,27 @@ const REALIZATION = {
 };
 
 /* blended hourly rate from the engagement's actual staffing mix (SCHEDULE) × rate card */
-function blendedRate(engId) {
+function blendedRate(engId: any) {
   const sched: any = AMS.SCHEDULE || [];
   let wsum = 0, hsum = 0;
-  sched.forEach(m => m.alloc.filter(a => a.eng === engId).forEach(a => { const r = RATE_CARD[m.role] || RATE_CARD.Senior; wsum += a.hrs * r; hsum += a.hrs; }));
+  sched.forEach((m: any) => m.alloc.filter((a: any) => a.eng === engId).forEach((a: any) => { const r = (RATE_CARD as any)[m.role] || RATE_CARD.Senior; wsum += a.hrs * r; hsum += a.hrs; }));
   if (hsum > 0) return { rate: wsum / hsum, source: 'staffing aktual' };
   // fallback: default grade mix
-  const rate = Object.entries(DEFAULT_MIX).reduce((s, [g, p]) => s + p * RATE_CARD[g], 0);
+  const rate = Object.entries(DEFAULT_MIX).reduce((s, [g, p]) => s + p * (RATE_CARD as any)[g], 0);
   return { rate, source: 'mix standar' };
 }
 
 /* Fee & hours DERIVED from canonical data; cost = actual hours × blended rate (hours × rate per grade). */
 function buildEngEcon(extraHoursByEng = {}) {
   const { ENGAGEMENTS, CLIENTS } = AMS as any;
-  return ENGAGEMENTS.map(e => {
-    const c = CLIENTS.find(x => x.id === e.clientId) || {};
-    const hours = e.actualHrs + (extraHoursByEng[e.id] || 0);
+  return ENGAGEMENTS.map((e: any) => {
+    const c = CLIENTS.find((x: any) => x.id === e.clientId) || {};
+    const hours = e.actualHrs + ((extraHoursByEng as any)[e.id] || 0);
     const br = blendedRate(e.id);
     const stdCost = Math.round(hours * br.rate);
     return { id: e.id, client: (c.name || '').replace(' Tbk', ''), partner: e.partner.split(',')[0],
       fee: c.fee || 0, hours, budgetHrs: e.budgetHrs, stdCost, blendedRate: br.rate, costSource: br.source,
-      realized: REALIZATION[e.id] || 0.9 };
+      realized: (REALIZATION as any)[e.id] || 0.9 };
   });
 }
 
@@ -54,11 +54,11 @@ function Profitability() {
   const [sel, setSel] = useStatePRF(null);
 
   // logged timesheet hours flow into the active engagement's hours (ENG-2025-014)
-  const loggedHours = (timeEntries || []).reduce((s, t) => s + (+t.hours || 0), 0);
+  const loggedHours = (timeEntries || []).reduce((s: any, t: any) => s + (+t.hours || 0), 0);
   const seedLogged = ((AMS.TIME_ENTRIES as any[]) || []).reduce((s, t) => s + (+t.hours || 0), 0);
   const extraHours = { 'ENG-2025-014': Math.max(0, loggedHours - seedLogged) };
 
-  const rows = buildEngEcon(extraHours).map(e => {
+  const rows = buildEngEcon(extraHours).map((e: any) => {
     const billed = e.fee * e.realized;             // realized fee
     const margin = billed - e.stdCost;
     const marginPct = margin / billed * 100;
@@ -67,25 +67,25 @@ function Profitability() {
     return { ...e, billed, margin, marginPct, effRate, recovery };
   });
 
-  const totFee = rows.reduce((s, r) => s + r.fee, 0);
-  const totBilled = rows.reduce((s, r) => s + r.billed, 0);
-  const totMargin = rows.reduce((s, r) => s + r.margin, 0);
+  const totFee = rows.reduce((s: any, r: any) => s + r.fee, 0);
+  const totBilled = rows.reduce((s: any, r: any) => s + r.billed, 0);
+  const totMargin = rows.reduce((s: any, r: any) => s + r.margin, 0);
   const avgMargin = totMargin / totBilled * 100;
-  const avgReal = rows.reduce((s, r) => s + r.realized, 0) / rows.length * 100;
+  const avgReal = rows.reduce((s: any, r: any) => s + r.realized, 0) / rows.length * 100;
 
   // by partner
   const partners = useMemoPRF(() => {
     const m: any = {};
-    rows.forEach(r => {
+    rows.forEach((r: any) => {
       if (!m[r.partner]) m[r.partner] = { partner: r.partner, fee: 0, billed: 0, margin: 0, count: 0, hours: 0 };
       m[r.partner].fee += r.fee; m[r.partner].billed += r.billed; m[r.partner].margin += r.margin; m[r.partner].count++; m[r.partner].hours += r.hours;
     });
     return (Object.values(m) as any[]).map((p: any) => ({ ...p, marginPct: p.margin / p.billed * 100 })).sort((a, b) => b.margin - a.margin);
   }, []);
-  const maxPartnerMargin = Math.max(...partners.map(p => p.margin));
+  const maxPartnerMargin = Math.max(...partners.map((p: any) => p.margin));
 
-  const marginColor = (p) => p >= 45 ? 'var(--green)' : p >= 30 ? 'var(--blue)' : p >= 15 ? 'var(--amber)' : 'var(--red)';
-  const selRow = sel ? rows.find(r => r.id === sel) : null;
+  const marginColor = (p: any) => p >= 45 ? 'var(--green)' : p >= 30 ? 'var(--blue)' : p >= 15 ? 'var(--amber)' : 'var(--red)';
+  const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
   return (
     <>
@@ -110,7 +110,7 @@ function Profitability() {
               <table className="dtbl">
                 <thead><tr><th>Engagement</th><th>Partner</th><th className="num">Fee</th><th className="num">Realisasi</th><th className="num">Biaya</th><th className="num">Margin</th><th className="num" style={{ width: 110 }}>Margin %</th></tr></thead>
                 <tbody>
-                  {rows.map(r => (
+                  {rows.map((r: any) => (
                     <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }}>
                       <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.client.replace('PT ', '')}</div><div className="mono tiny muted">{r.id}</div></td>
                       <td className="tiny muted truncate" style={{ maxWidth: 90 }}>{r.partner.split(' ')[0]}</td>
@@ -127,7 +127,7 @@ function Profitability() {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totFee / 1e6, 0)}</td><td></td><td className="num">{fmt(rows.reduce((s, r) => s + r.stdCost, 0) / 1e6, 0)}</td><td className="num">{fmt(totMargin / 1e6, 0)}</td><td className="num">{avgMargin.toFixed(0)}%</td></tr></tfoot>
+                <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totFee / 1e6, 0)}</td><td></td><td className="num">{fmt(rows.reduce((s: any, r: any) => s + r.stdCost, 0) / 1e6, 0)}</td><td className="num">{fmt(totMargin / 1e6, 0)}</td><td className="num">{avgMargin.toFixed(0)}%</td></tr></tfoot>
               </table>
             </Panel>
 
@@ -169,7 +169,7 @@ function Profitability() {
           <Panel noBody>
             <div className="panel-h"><h3>Profitabilitas per Partner</h3><div style={{ flex: 1 }} /><span className="tiny muted">kontribusi margin ke firma</span></div>
             <div style={{ padding: '8px 14px 14px' }}>
-              {partners.map(p => (
+              {partners.map((p: any) => (
                 <div key={p.partner} style={{ padding: '11px 0', borderBottom: '1px solid var(--line-soft)' }}>
                   <div className="row ac gap10">
                     <Avatar name={p.partner} size={34} />
@@ -199,26 +199,26 @@ function Profitability() {
 }
 
 /* Leverage (staff pyramid) + WIP recovery / write-down analysis */
-function LeverageRecovery({ rows, fmt, marginColor }) {
+function LeverageRecovery({ rows, fmt, marginColor }: any) {
   const sched: any = AMS.SCHEDULE || [];
   const GRADE_COST = { Partner: 2_500_000, Manager: 1_200_000, Senior: 700_000, Junior: 400_000 };
   const CHARGE_MULT = 2.4; // standard charge-out vs cost
   // hours by grade across firm
   const byGrade = { Partner: 0, Manager: 0, Senior: 0, Junior: 0 };
-  sched.forEach(m => { const g = GRADE_COST[m.role] ? m.role : 'Senior'; m.alloc.forEach(a => { byGrade[g] = (byGrade[g] || 0) + a.hrs; }); });
+  sched.forEach((m: any) => { const g = (GRADE_COST as any)[m.role] ? m.role : 'Senior'; m.alloc.forEach((a: any) => { (byGrade as any)[g] = ((byGrade as any)[g] || 0) + a.hrs; }); });
   const totalH = Object.values(byGrade).reduce((s, h) => s + h, 0) || 1;
-  const pyramid = ['Partner', 'Manager', 'Senior', 'Junior'].map(g => ({ g, h: byGrade[g] || 0, pct: (byGrade[g] || 0) / totalH }));
+  const pyramid = ['Partner', 'Manager', 'Senior', 'Junior'].map(g => ({ g, h: (byGrade as any)[g] || 0, pct: ((byGrade as any)[g] || 0) / totalH }));
   const leverage = (byGrade.Senior + byGrade.Junior) / Math.max(1, byGrade.Partner + byGrade.Manager);
 
   // recovery / write-down per engagement: WIP charge-out vs realized fee
-  const rec = rows.map(r => {
+  const rec = rows.map((r: any) => {
     const wipCharge = Math.round(r.hours * r.blendedRate * CHARGE_MULT);
     const recovery = r.billed / wipCharge;
     const writedown = wipCharge - r.billed; // positive = write-down
     return { ...r, wipCharge, recovery, writedown };
   });
-  const totWip = rec.reduce((s, r) => s + r.wipCharge, 0);
-  const totBilled = rec.reduce((s, r) => s + r.billed, 0);
+  const totWip = rec.reduce((s: any, r: any) => s + r.wipCharge, 0);
+  const totBilled = rec.reduce((s: any, r: any) => s + r.billed, 0);
   const totWd = totWip - totBilled;
   const avgRecovery = totBilled / totWip;
   const GRADE_C = { Partner: '#013a52', Manager: '#005085', Senior: '#0a6b8a', Junior: '#5b9bb5' };
@@ -231,7 +231,7 @@ function LeverageRecovery({ rows, fmt, marginColor }) {
             {pyramid.map(p => (
               <div key={p.g}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{p.g}</span><span className="mono" style={{ fontWeight: 700 }}>{fmt(p.h)} jam · {(p.pct * 100).toFixed(0)}%</span></div>
-                <div style={{ height: 14, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (p.pct * 100) + '%', height: '100%', borderRadius: 4, background: GRADE_C[p.g] }} /></div>
+                <div style={{ height: 14, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (p.pct * 100) + '%', height: '100%', borderRadius: 4, background: (GRADE_C as any)[p.g] }} /></div>
               </div>
             ))}
           </div>
@@ -252,7 +252,7 @@ function LeverageRecovery({ rows, fmt, marginColor }) {
         <table className="dtbl">
           <thead><tr><th>Engagement</th><th>Partner</th><th className="num">Jam</th><th className="num">WIP Charge-out</th><th className="num">Fee Realisasi</th><th className="num">Write-up/(down)</th><th className="num" style={{ width: 110 }}>Recovery</th></tr></thead>
           <tbody>
-            {rec.map(r => (
+            {rec.map((r: any) => (
               <tr key={r.id}>
                 <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.client.replace('PT ', '')}</div><div className="mono tiny muted">{r.id}</div></td>
                 <td className="tiny muted truncate" style={{ maxWidth: 90 }}>{r.partner.split(' ')[0]}</td>

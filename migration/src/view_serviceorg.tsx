@@ -96,7 +96,7 @@ const SO_CUEC = {
     { c: 'Otorisasi instruksi transaksi efek sebelum dikirim ke kustodian', owner: 'Treasury Manager', freq: 'Per transaksi', tested: true, result: 'Efektif' },
     { c: 'Review independen atas pernyataan rekening kustodian', owner: 'Finance Controller', freq: 'Bulanan', tested: true, result: 'Efektif' },
   ],
-  'SO-04': [],
+  'SO-04': ([] as any[]),
 };
 
 /* ---- control exceptions (from service auditor reports) ---- */
@@ -191,7 +191,7 @@ function ServiceOrg() {
 
 /* ---------------- Tab: Konteks & Peta Dampak ---------------- */
 function SOImpact() {
-  const sigBadge = (s) => s === 'Tinggi' ? 'red' : s === 'Moderat' ? 'amber' : 'gray';
+  const sigBadge = (s: any) => s === 'Tinggi' ? 'red' : s === 'Moderat' ? 'amber' : 'gray';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -210,7 +210,7 @@ function SOImpact() {
                 { ic: 'shield', t: 'Bukti atas Kontrol', d: 'Type 1 (desain) vs Type 2 (desain + efektivitas operasi).' },
                 { ic: 'scale', t: 'Respons & Opini', d: 'CUEC, prosedur tambahan, dan dampak pembatasan lingkup.' },
               ].map((c, i) => {
-                const Ic = I[c.ic];
+                const Ic = (I as any)[c.ic];
                 return (
                   <div key={i} className="panel" style={{ padding: '11px 12px', boxShadow: 'none' }}>
                     <span style={{ color: 'var(--blue)' }}><Ic size={18} /></span>
@@ -276,7 +276,7 @@ function SOImpact() {
               { ic: 'mail', t: 'Inquiry manajemen & user dept.' },
               { ic: 'search2', t: 'Walkthrough alur transaksi end-to-end' },
             ].map((r, i) => {
-              const Ic = I[r.ic];
+              const Ic = (I as any)[r.ic];
               return (
                 <div key={i} className="row ac gap8" style={{ fontSize: 12, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                   <span style={{ color: 'var(--blue)' }}><Ic size={14} /></span>{r.t}
@@ -344,7 +344,7 @@ function SORegister() {
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Cakupan Periode</div>
               <SOCoverageBar coverage={sel.coverage} />
               <div style={{ marginTop: 6 }}>
-                <Badge kind={covMap[sel.coverage].kind}>{covMap[sel.coverage].label}</Badge>
+                <Badge kind={(covMap as any)[sel.coverage].kind}>{(covMap as any)[sel.coverage].label}</Badge>
               </div>
               {sel.coverage === 'gap' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Laporan berakhir 30 Jun 2025 — gap Jul–Des 2025 terhadap tanggal neraca. Diperlukan prosedur roll-forward (inquiry perubahan kontrol, bridge letter, uji langsung).</span></div></div>}
               {sel.coverage === 'design' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Type 1 hanya menyatakan kesesuaian desain pada satu tanggal — tidak memberi bukti efektivitas operasi. Uji efektivitas dilakukan langsung atau ganti dengan substantif.</span></div></div>}
@@ -374,15 +374,15 @@ function SORegister() {
   );
 }
 
-function SOCoverageBar({ coverage }) {
+function SOCoverageBar({ coverage }: any) {
   /* 12-month strip: filled = covered by service auditor report */
   const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-  const fill = {
+  const fill = ({
     full: months.map(() => true),
     gap: [false, false, false, false, false, false, true, true, true, true, true, true].map(v => !v ? true : false), // Jul24-Jun25 → Jan-Jun covered, Jul-Dec gap (relative to audit year)
     design: months.map((_, i) => i === 11),
     none: months.map(() => false),
-  }[coverage];
+  } as any)[coverage];
   return (
     <div className="row gap6 ac" style={{ marginTop: 4 }}>
       {months.map((m, i) => (
@@ -400,9 +400,9 @@ function SOCuec() {
   const orgsWithCuec = SO_ORGS.filter(o => o.cuec > 0);
   const [selId, setSelId] = useStateSO('SO-02');
   const sel = SO_ORGS.find(o => o.id === selId);
-  const rows = SO_CUEC[selId] || [];
-  const tested = rows.filter(r => r.tested).length;
-  const issues = rows.filter(r => r.result !== 'Efektif' && r.tested).length;
+  const rows = (SO_CUEC as any)[selId] || [];
+  const tested = rows.filter((r: any) => r.tested).length;
+  const issues = rows.filter((r: any) => r.result !== 'Efektif' && r.tested).length;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -425,7 +425,7 @@ function SOCuec() {
             <th style={{ width: 110 }}>Frekuensi</th><th style={{ width: 140 }}>Hasil Uji</th>
           </tr></thead>
           <tbody>
-            {rows.map((r, i) => (
+            {rows.map((r: any, i: any) => (
               <tr key={i}>
                 <td className="mono tiny muted">{String(i + 1).padStart(2, '0')}</td>
                 <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontWeight: 500 }}>{r.c}</td>

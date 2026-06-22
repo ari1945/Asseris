@@ -131,7 +131,7 @@ import { PFI_3400 } from './data_part2';
     responsibleParty: 'Manajemen PT Payroll Solusi Indonesia',
     independence: 'KAP independen terhadap organisasi jasa sesuai Kode Etik IAPI; status diungkap dalam laporan.',
     /* Penanganan subservice — Inclusive (tidak ada sub-pemroses signifikan yang di-carve-out) */
-    subservice: { method: 'Inclusive', name: null, note: 'Tidak terdapat organisasi subservice signifikan; seluruh kontrol relevan tercakup metode inclusive.' },
+    subservice: { method: 'Inclusive', name: (null as any), note: 'Tidak terdapat organisasi subservice signifikan; seluruh kontrol relevan tercakup metode inclusive.' },
     /* Akun/asersi entitas pengguna yang terpengaruh (untuk pemetaan SA 402) */
     userImpact: { areas: 'Beban Gaji · Utang Gaji · PPh 21 · BPJS', assertions: 'Akurasi · Kelengkapan · Pisah Batas' },
     /* Persyaratan penerimaan perikatan — ISAE/SJAH 3402 ¶13–17 */

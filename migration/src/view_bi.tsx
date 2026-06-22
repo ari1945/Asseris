@@ -24,7 +24,7 @@ function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, uni
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 150, position: 'relative', padding: '14px 0 0' }}>
-        {bars.map((v, i) => (
+        {bars.map((v: any, i: any) => (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end', position: 'relative' }}>
             {line && <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: `calc(${(line[i] / (lineMax || 100)) * 100}% + 2px)`, width: 6, height: 6, borderRadius: '50%', background: lineColor, zIndex: 2 }} title={line[i] + (unit || '%')} />}
             <div style={{ width: '70%', maxWidth: 30, height: (v / bmax * 100) + '%', background: barColor, borderRadius: '3px 3px 0 0', minHeight: 2 }} title={v} />
@@ -35,7 +35,7 @@ function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, uni
         {line && (
           <svg style={{ position: 'absolute', inset: '14px 0 18px', width: '100%', height: 'calc(100% - 32px)', pointerEvents: 'none', overflow: 'visible' }} preserveAspectRatio="none" viewBox="0 0 100 100">
             <polyline fill="none" stroke={lineColor} strokeWidth="1" vectorEffect="non-scaling-stroke" opacity="0.5"
-              points={line.map((v, i) => `${(i + 0.5) / line.length * 100},${100 - (v / (lineMax || 100)) * 100}`).join(' ')} />
+              points={line.map((v: any, i: any) => `${(i + 0.5) / line.length * 100},${100 - (v / (lineMax || 100)) * 100}`).join(' ')} />
           </svg>
         )}
       </div>
@@ -54,32 +54,32 @@ function FirmBI() {
   const [metric, setMetric] = useBI('rev');
 
   /* P&L roll-up */
-  const actRev = FIRM_BUDGET.filter((b: any) => b.type === 'rev').reduce((s, b) => s + b.actual, 0);
-  const actCost = FIRM_BUDGET.filter((b: any) => b.type === 'cost').reduce((s, b) => s + b.actual, 0);
+  const actRev = FIRM_BUDGET.filter((b: any) => b.type === 'rev').reduce((s: any, b: any) => s + b.actual, 0);
+  const actCost = FIRM_BUDGET.filter((b: any) => b.type === 'cost').reduce((s: any, b: any) => s + b.actual, 0);
   const profit = actRev - actCost;
   const marginPct = profit / actRev * 100;
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
   /* weighted pipeline */
   const openPipe = PIPELINE.filter((p: any) => !['Won', 'Lost'].includes(p.stage));
-  const gross = openPipe.reduce((s, p) => s + p.value, 0);
-  const weighted = openPipe.reduce((s, p) => s + p.value * p.prob / 100, 0);
+  const gross = openPipe.reduce((s: any, p: any) => s + p.value, 0);
+  const weighted = openPipe.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0);
   const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
   const byStage = stages.map((st: any) => {
     const items = openPipe.filter((p: any) => p.stage === st);
-    return { st, gross: items.reduce((s, p) => s + p.value, 0), wt: items.reduce((s, p) => s + p.value * p.prob / 100, 0), n: items.length };
+    return { st, gross: items.reduce((s: any, p: any) => s + p.value, 0), wt: items.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0), n: items.length };
   });
   const maxStage = Math.max(...byStage.map((s: any) => s.gross), 1);
 
   /* client concentration */
   const active = CLIENTS.filter((c: any) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
-  const totClientFee = active.reduce((s, c) => s + c.fee, 0);
+  const totClientFee = active.reduce((s: any, c: any) => s + c.fee, 0);
   const top1 = active[0].fee / totClientFee * 100;
-  const top3 = active.slice(0, 3).reduce((s, c) => s + c.fee, 0) / totClientFee * 100;
-  const hhi = Math.round(active.reduce((s, c) => s + Math.pow(c.fee / totClientFee * 100, 2), 0));
+  const top3 = active.slice(0, 3).reduce((s: any, c: any) => s + c.fee, 0) / totClientFee * 100;
+  const hhi = Math.round(active.reduce((s: any, c: any) => s + Math.pow(c.fee / totClientFee * 100, 2), 0));
 
   /* partner book */
-  const partners = Object.values(CLIENTS.reduce((m, c) => {
+  const partners = Object.values(CLIENTS.reduce((m: any, c: any) => {
     const p = c.partner.split(',')[0];
     if (!m[p]) m[p] = { p, fee: 0, n: 0 };
     m[p].fee += c.fee; m[p].n++;
@@ -89,7 +89,7 @@ function FirmBI() {
 
   const revMax = Math.max(...B.monthlyRev) * 1.15;
   const metrics = { rev: { bars: B.monthlyRev, color: '#005085', label: 'Pendapatan diakui (Rp jt)', max: revMax }, margin: { bars: B.monthlyMargin, color: '#1f7a4d', label: 'Margin (%)', max: 50 }, util: { bars: B.monthlyUtil, color: '#0a6b73', label: 'Utilisasi tim (%)', max: 100 } };
-  const m = metrics[metric];
+  const m = (metrics as any)[metric];
 
   const [tab, setTab] = useBI(() => localStorage.getItem('ams.bi.tab') || 'ikhtisar');
   React.useEffect(() => { try { localStorage.setItem('ams.bi.tab', tab); } catch (e) {} }, [tab]);
@@ -126,7 +126,7 @@ function FirmBI() {
             <div style={{ padding: '8px 16px 16px' }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny muted">{m.label}</span>{metric === 'rev' && <span className="tiny" style={{ color: 'var(--amber)' }}>━ Target Rp {fmt(B.targetRevenue / 1e9, 0)} M/thn</span>}</div>
               <BIChart months={B.months} bars={m.bars} barColor={m.color} barMax={m.max} />
-              <div className="row jb tiny muted" style={{ marginTop: 6 }}><span>Mar 2025</span><span>{metric === 'rev' ? 'rata-rata Rp ' + fmt(m.bars.reduce((s, v) => s + v, 0) / 12, 0) + ' jt/bln' : 'rata-rata ' + (m.bars.reduce((s, v) => s + v, 0) / 12).toFixed(0) + '%'}</span><span>Feb 2026</span></div>
+              <div className="row jb tiny muted" style={{ marginTop: 6 }}><span>Mar 2025</span><span>{metric === 'rev' ? 'rata-rata Rp ' + fmt(m.bars.reduce((s: any, v: any) => s + v, 0) / 12, 0) + ' jt/bln' : 'rata-rata ' + (m.bars.reduce((s: any, v: any) => s + v, 0) / 12).toFixed(0) + '%'}</span><span>Feb 2026</span></div>
             </div>
           </Panel>
 
@@ -184,7 +184,7 @@ function FirmBI() {
             <div className="panel-h"><h3>Konsentrasi Klien</h3><div style={{ flex: 1 }} /><span className="chip tiny" title="Herfindahl-Hirschman Index">HHI {hhi}</span></div>
             <div style={{ padding: 14 }}>
               <div style={{ display: 'grid', gap: 7, marginBottom: 12 }}>
-                {active.slice(0, 6).map((c, i) => (
+                {active.slice(0, 6).map((c: any, i: any) => (
                   <div key={c.id}>
                     <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="truncate" style={{ maxWidth: 150, fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 8, padding: '0 4px', marginLeft: 4 }}>IDX</span>}</span><span className="mono" style={{ fontWeight: 700 }}>{(c.fee / totClientFee * 100).toFixed(0)}%</span></div>
                     <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (c.fee / active[0].fee * 100) + '%', height: '100%', borderRadius: 3, background: i === 0 ? 'var(--amber)' : 'var(--navy)' }} /></div>
@@ -202,7 +202,7 @@ function FirmBI() {
             <div className="panel-h"><h3>Scorecard Partner</h3></div>
             <div style={{ padding: 14, display: 'grid', gap: 12 }}>
               {partners.map((p: any) => {
-                const util = BI_PARTNER_UTIL[p.p] || 70;
+                const util = (BI_PARTNER_UTIL as any)[p.p] || 70;
                 const eqrN = EQR.filter((e: any) => e.partner === p.p).length;
                 return (
                   <div key={p.p}>

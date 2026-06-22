@@ -102,7 +102,7 @@ function P68RowKv({ label, v, strong, accent }: any) {
 }
 
 function P68LevelChip({ level }: any) {
-  const m = P68_LEVEL[level];
+  const m = (P68_LEVEL as any)[level];
   return <Badge kind={m.kind}>{m.lbl}</Badge>;
 }
 
@@ -126,15 +126,15 @@ function PSAK68View() {
   React.useEffect(() => { try { localStorage.setItem('ams.psak68.done', JSON.stringify(done)); } catch (e) {} }, [done]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak68.focus', JSON.stringify(focus)); } catch (e) {} }, [focus]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = P68_PROC.filter((p, i) => done[p.ref + i]).length;
   const score = Math.round(doneCount / P68_PROC.length * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
-  const levelSegs = p68.byLevel.map(L => ({ label: P68_LEVEL[L.level].lbl, value: L.amt, color: P68_LEVEL[L.level].color }));
+  const levelSegs = p68.byLevel.map((L: any) => ({ label: (P68_LEVEL as any)[L.level].lbl, value: L.amt, color: (P68_LEVEL as any)[L.level].color }));
 
   const TABS = [
     { id: 'hierarki', label: 'Hierarki & Inventaris' },
@@ -202,7 +202,7 @@ function PSAK68View() {
                         <th style={{ textAlign: 'right', width: 92 }}>Nilai Wajar</th>
                       </tr></thead>
                       <tbody>
-                        {p68.items.map(it => (
+                        {p68.items.map((it: any) => (
                           <tr key={it.id} onClick={() => setFocus(focus === it.id ? null : it.id)} style={{ cursor: 'pointer', background: focus === it.id ? 'var(--blue-050)' : undefined }}>
                             <td>
                               <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>
@@ -211,7 +211,7 @@ function PSAK68View() {
                               </div>
                               <div className="tiny muted" style={{ lineHeight: 1.4 }}><span className="mono" style={{ color: 'var(--ink-3)', fontWeight: 600 }}>{it.std}</span> · {it.note}</div>
                             </td>
-                            <td className="tiny" style={{ color: 'var(--ink-2)' }}>{P68_APPROACH[it.approach].lbl.replace('Pendekatan ', '')}</td>
+                            <td className="tiny" style={{ color: 'var(--ink-2)' }}>{(P68_APPROACH as any)[it.approach].lbl.replace('Pendekatan ', '')}</td>
                             <td style={{ textAlign: 'center' }}><P68LevelChip level={it.level} /></td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(it.fv)}</td>
                           </tr>
@@ -233,18 +233,18 @@ function PSAK68View() {
                 {focus && (() => {
                   const it = p68.get(focus);
                   return (
-                    <Panel title={'Detail Pengukuran — ' + it.label} sub={it.std + ' · ' + P68_APPROACH[it.approach].lbl}>
+                    <Panel title={'Detail Pengukuran — ' + it.label} sub={it.std + ' · ' + (P68_APPROACH as any)[it.approach].lbl}>
                       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         <div className="grid" style={{ gap: 7 }}>
                           <P68RowKv label="Nilai wajar" v={rp(it.fv) + ' jt'} strong />
                           <P68RowKv label="Klasifikasi" v={it.cls} />
-                          <P68RowKv label="Level hierarki" v={P68_LEVEL[it.level].lbl} accent={P68_LEVEL[it.level].color} />
+                          <P68RowKv label="Level hierarki" v={(P68_LEVEL as any)[it.level].lbl} accent={(P68_LEVEL as any)[it.level].color} />
                           <P68RowKv label="Teknik valuasi" v={''} />
                           <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.4, marginTop: -4 }}>{it.technique}</div>
                         </div>
                         <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'var(--line)' }}>
                           <div className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', marginBottom: 6 }}>Input valuasi (¶93d)</div>
-                          {it.inputs.map((inp, i) => (
+                          {it.inputs.map((inp: any, i: any) => (
                             <div key={i} className="row ac jb" style={{ padding: '4px 0', borderBottom: i < it.inputs.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                               <span className="tiny" style={{ flex: 1, lineHeight: 1.3 }}>{inp.k}{inp.range && <span className="muted"> · {inp.range}</span>}</span>
                               <Badge kind={inp.obs ? 'green' : 'red'}>{inp.obs ? 'teramati' : 'tak teramati'}</Badge>
@@ -264,8 +264,8 @@ function PSAK68View() {
                     <Donut segments={levelSegs} size={104} thickness={15}
                       center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{fmt(p68.total)}</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1 }}>
-                      {p68.byLevel.map(L => {
-                        const m = P68_LEVEL[L.level];
+                      {p68.byLevel.map((L: any) => {
+                        const m = (P68_LEVEL as any)[L.level];
                         return (
                           <div key={L.level} style={{ padding: '4px 0' }}>
                             <div className="row jb ac">
@@ -307,9 +307,9 @@ function PSAK68View() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Teknik Valuasi & Input per Pos</h3><span className="sub mono">¶61-66 · ¶93d</span></div>
                   <div style={{ display: 'grid', gap: 0 }}>
-                    {p68.items.map((it, idx) => {
-                      const ap = P68_APPROACH[it.approach];
-                      const ApIc = I[ap.ic] || I.target;
+                    {p68.items.map((it: any, idx: any) => {
+                      const ap = (P68_APPROACH as any)[it.approach];
+                      const ApIc = (I as any)[ap.ic] || I.target;
                       return (
                         <div key={it.id} style={{ padding: '11px 14px', borderBottom: idx < p68.items.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                           <div className="row ac jb" style={{ marginBottom: 6 }}>
@@ -323,7 +323,7 @@ function PSAK68View() {
                             <div className="row ac gap6" style={{ flex: '0 0 auto' }}><P68LevelChip level={it.level} /><span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{fmt(it.fv)}</span></div>
                           </div>
                           <div className="row" style={{ flexWrap: 'wrap', gap: 6, paddingLeft: 23 }}>
-                            {it.inputs.map((inp, i) => (
+                            {it.inputs.map((inp: any, i: any) => (
                               <span key={i} className="tiny" style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid var(--line)', background: inp.obs ? 'var(--green-bg)' : 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: inp.obs ? 'var(--green)' : 'var(--red)' }} />
                                 {inp.k}{inp.val ? <b style={{ marginLeft: 3 }}>{inp.val}</b> : null}{inp.range && <span className="muted"> ({inp.range})</span>}
@@ -345,9 +345,9 @@ function PSAK68View() {
                 <Panel title="Tiga Pendekatan Valuasi" sub="¶61-66">
                   <div style={{ display: 'grid', gap: 9 }}>
                     {['pasar', 'penghasilan', 'biaya'].map(k => {
-                      const ap = P68_APPROACH[k];
-                      const ApIc = I[ap.ic] || I.target;
-                      const used = p68.items.filter(it => it.approach.indexOf(k) >= 0);
+                      const ap = (P68_APPROACH as any)[k];
+                      const ApIc = (I as any)[ap.ic] || I.target;
+                      const used = p68.items.filter((it: any) => it.approach.indexOf(k) >= 0);
                       return (
                         <div key={k} className="panel" style={{ padding: '9px 11px', borderColor: 'var(--line)' }}>
                           <div className="row ac gap8" style={{ marginBottom: 4 }}>
@@ -416,7 +416,7 @@ function PSAK68View() {
                         <th style={{ textAlign: 'right', width: 64 }}>Turun NW</th>
                       </tr></thead>
                       <tbody>
-                        {p68.sens.map((s, i) => (
+                        {p68.sens.map((s: any, i: any) => (
                           <tr key={i}>
                             <td style={{ fontSize: 11.5, lineHeight: 1.3 }}>{s.label}<div className="tiny muted mono">{s.shock}</div></td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--green)' }}>+{fmt(s.fav)}</td>
@@ -440,7 +440,7 @@ function PSAK68View() {
 
                 <Panel title="Pos Level 3" sub="wajib pengungkapan diperluas">
                   <div style={{ display: 'grid', gap: 8 }}>
-                    {p68.l3.map(it => (
+                    {p68.l3.map((it: any) => (
                       <div key={it.id} className="row ac jb" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
                         <div style={{ minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.25 }}>{it.label}</div><div className="tiny muted">{it.technique}</div></div>
                         <span className="mono" style={{ fontWeight: 700, flex: '0 0 auto' }}>{fmt(it.fv)}</span>
@@ -469,7 +469,7 @@ function PSAK68View() {
                         <th style={{ textAlign: 'right', width: 84 }}>Total</th>
                       </tr></thead>
                       <tbody>
-                        {p68.items.map(it => (
+                        {p68.items.map((it: any) => (
                           <tr key={it.id}>
                             <td style={{ fontSize: 12, fontWeight: 600 }}>{it.label}<div className="tiny muted mono">{it.std}</div></td>
                             <td className="mono" style={{ textAlign: 'right' }}>{it.level === 1 ? fmt(it.fv) : <span className="muted">—</span>}</td>
@@ -588,7 +588,7 @@ function PSAK68View() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Konsistensi dengan PSAK 71</h3><span className="sub mono">pos FVOCI/FVTPL</span><div style={{ flex: 1 }} /><Btn sm onClick={() => nav('psak71', { from: 'psak68' })}><I.arrowRight size={12} /> Buka PSAK 71</Btn></div>
                   <div style={{ padding: 14, display: 'grid', gap: 8 }}>
-                    {p68.finItems.map(it => (
+                    {p68.finItems.map((it: any) => (
                       <div key={it.id} className="row ac jb">
                         <span className="row ac gap6" style={{ fontSize: 12 }}><P68LevelChip level={it.level} /><span>{it.label}</span></span>
                         <span className="mono" style={{ fontWeight: 700 }}>{fmt(it.fv)} jt</span>
@@ -607,7 +607,7 @@ function PSAK68View() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber nilai wajar</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {P68_UPSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P68_UPSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak68' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -617,7 +617,7 @@ function PSAK68View() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {P68_DOWNSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P68_DOWNSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak68' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

@@ -22,15 +22,15 @@ function OBAnalitik() {
   const { fmt } = AMS;
   const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
 
-  const live = prospects.filter(p => !p.converted);
-  const converted = prospects.filter(p => p.converted);
+  const live = prospects.filter((p: any) => !p.converted);
+  const converted = prospects.filter((p: any) => p.converted);
   const convRate = Math.round(converted.length / prospects.length * 100);
-  const totalFee = live.reduce((s, p) => s + p.fee, 0);
+  const totalFee = live.reduce((s: any, p: any) => s + p.fee, 0);
 
   /* funnel: prospects that have cleared each gate */
   const order = ['acceptance', 'pmpj', 'letter', 'convert'];
   const reached = order.map((g, i) => {
-    const n = prospects.filter(p => {
+    const n = prospects.filter((p: any) => {
       const idx = order.indexOf(obStage(p));
       return p.converted || idx > i || (idx === i);
     }).length;
@@ -38,10 +38,10 @@ function OBAnalitik() {
   });
   const gateLabels = { acceptance: 'Akseptasi', pmpj: 'PMPJ / KYC', letter: 'Engagement Letter', convert: 'Konversi' };
   const gateColor = { acceptance: '#5b3fa6', pmpj: '#0a6b73', letter: '#005085', convert: '#1f7a4d' };
-  const funnel = order.map((g, i) => ({ label: gateLabels[g], value: reached[i], disp: reached[i] + ' prospek', n: reached[i], color: gateColor[g] }));
+  const funnel = order.map((g, i) => ({ label: (gateLabels as any)[g], value: reached[i], disp: reached[i] + ' prospek', n: reached[i], color: (gateColor as any)[g] }));
 
   const bySource = (Object.values(prospects.reduce((m: any, p: any) => { const k = p.source || '—'; m[k] = m[k] || { k, n: 0, fee: 0 }; m[k].n++; m[k].fee += p.fee; return m; }, {})) as any[]).sort((a: any, b: any) => b.fee - a.fee);
-  const byKind = ['Klien Baru', 'Keberlanjutan'].map(k => ({ k, n: prospects.filter(p => p.kind === k).length }));
+  const byKind = ['Klien Baru', 'Keberlanjutan'].map(k => ({ k, n: prospects.filter((p: any) => p.kind === k).length }));
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -60,8 +60,8 @@ function OBAnalitik() {
           <div style={{ padding: 14, display: 'grid', gap: 11 }}>
             {order.map(g => (
               <div key={g}>
-                <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: gateColor[g] }} /><span style={{ fontWeight: 600 }}>{gateLabels[g]}</span></span><span className="mono" style={{ fontWeight: 700 }}>{OB_CYCLE[g]} hari</span></div>
-                <Progress value={OB_CYCLE[g] / 21 * 100} color={gateColor[g]} />
+                <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: (gateColor as any)[g] }} /><span style={{ fontWeight: 600 }}>{(gateLabels as any)[g]}</span></span><span className="mono" style={{ fontWeight: 700 }}>{(OB_CYCLE as any)[g]} hari</span></div>
+                <Progress value={(OB_CYCLE as any)[g] / 21 * 100} color={(gateColor as any)[g]} />
               </div>
             ))}
             <div className="tiny muted" style={{ lineHeight: 1.5, marginTop: 2 }}>Siklus penuh dari prospek ke perikatan ditargetkan {Object.values(OB_CYCLE).reduce((s, v) => s + v, 0)} hari kerja, dengan PMPJ/EDD sebagai gerbang terpanjang.</div>
@@ -109,15 +109,15 @@ function OBAnalitik() {
 function OBAcceptance() {
   const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
   const [selId, setSelId] = useOB3(prospects[0].id);
-  const sel = prospects.find(p => p.id === selId) || prospects[0];
+  const sel = prospects.find((p: any) => p.id === selId) || prospects[0];
   const factors = (sel.acceptance && sel.acceptance.factors) || [];
   const score = obAccScore(sel);
   const verdict = obAccVerdict(score);
 
-  const approved = prospects.filter(p => p.acceptance && p.acceptance.approved).length;
-  const pending = prospects.filter(p => p.acceptance && !p.acceptance.approved).length;
-  const conditional = prospects.filter(p => (p.acceptance && p.acceptance.decision || '').includes('Syarat')).length;
-  const avgScore = (prospects.reduce((s, p) => s + obAccScore(p), 0) / prospects.length).toFixed(1);
+  const approved = prospects.filter((p: any) => p.acceptance && p.acceptance.approved).length;
+  const pending = prospects.filter((p: any) => p.acceptance && !p.acceptance.approved).length;
+  const conditional = prospects.filter((p: any) => (p.acceptance && p.acceptance.decision || '').includes('Syarat')).length;
+  const avgScore = (prospects.reduce((s: any, p: any) => s + obAccScore(p), 0) / prospects.length).toFixed(1);
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -134,7 +134,7 @@ function OBAcceptance() {
           <table className="dtbl">
             <thead><tr><th>Prospek</th><th className="num">Skor</th><th>Keputusan</th><th>Approver</th><th className="num">Tanggal</th></tr></thead>
             <tbody>
-              {prospects.map(p => {
+              {prospects.map((p: any) => {
                 const sc = obAccScore(p);
                 const v = obAccVerdict(sc);
                 return (
@@ -158,7 +158,7 @@ function OBAcceptance() {
           </div>
           <div style={{ padding: 14 }}>
             <div className="row jb ac" style={{ marginBottom: 10 }}><span className="tiny muted upper">Putusan</span><Badge kind={verdict.k}>{verdict.l}</Badge></div>
-            {factors.map((f, i) => (
+            {factors.map((f: any, i: any) => (
               <div key={i} style={{ marginBottom: 9 }}>
                 <div className="row jb tiny" style={{ marginBottom: 2 }}><span style={{ fontWeight: 600 }}>{f.k} <span className="muted">({f.w}%)</span></span><span className="mono" style={{ fontWeight: 700, color: f.s >= 4 ? 'var(--green)' : f.s >= 3 ? 'var(--amber)' : 'var(--red)' }}>{f.s}/5</span></div>
                 <div style={{ display: 'flex', gap: 3 }}>{[1, 2, 3, 4, 5].map(n => <div key={n} style={{ flex: 1, height: 5, borderRadius: 2, background: n <= f.s ? (f.s >= 4 ? 'var(--green)' : f.s >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-3)' }} />)}</div>
@@ -180,15 +180,15 @@ function OBAcceptance() {
 /* ---------------- PMPJ / APU-PPT (AML / KYC) ---------------- */
 function OBAml() {
   const [prospects] = useAmsPersist('prospects', () => AMS.PROSPECTS);
-  const withPmpj = prospects.filter(p => p.pmpj);
+  const withPmpj = prospects.filter((p: any) => p.pmpj);
   const [selId, setSelId] = useOB3((withPmpj[0] || prospects[0]).id);
-  const sel = prospects.find(p => p.id === selId) || prospects[0];
+  const sel = prospects.find((p: any) => p.id === selId) || prospects[0];
   const pmpj = sel.pmpj || {};
 
-  const verified = withPmpj.filter(p => p.pmpj.verified).length;
-  const edd = withPmpj.filter(p => (p.pmpj.cddLevel || '').includes('EDD')).length;
-  const pepCount = withPmpj.filter(p => (p.pmpj.ubo || []).some(u => u.pep)).length;
-  const strCount = withPmpj.filter(p => p.pmpj.str).length;
+  const verified = withPmpj.filter((p: any) => p.pmpj.verified).length;
+  const edd = withPmpj.filter((p: any) => (p.pmpj.cddLevel || '').includes('EDD')).length;
+  const pepCount = withPmpj.filter((p: any) => (p.pmpj.ubo || []).some((u: any) => u.pep)).length;
+  const strCount = withPmpj.filter((p: any) => p.pmpj.str).length;
   const riskColor = { 'Tinggi': 'red', 'Sedang': 'amber', 'Rendah': 'green' };
 
   return (
@@ -206,12 +206,12 @@ function OBAml() {
           <table className="dtbl">
             <thead><tr><th>Prospek</th><th>Risiko</th><th>Tingkat CDD</th><th className="num">UBO</th><th>PEP</th><th>Status</th></tr></thead>
             <tbody>
-              {withPmpj.map(p => {
-                const pep = (p.pmpj.ubo || []).some(u => u.pep);
+              {withPmpj.map((p: any) => {
+                const pep = (p.pmpj.ubo || []).some((u: any) => u.pep);
                 return (
                   <tr key={p.id} className={p.id === selId ? 'sel' : ''} style={{ cursor: 'pointer' }} onClick={() => setSelId(p.id)}>
                     <td className="truncate" style={{ maxWidth: 160, fontWeight: 600 }}>{p.name.replace('PT ', '')}</td>
-                    <td><Badge kind={riskColor[p.pmpj.riskRating] || 'gray'}>{p.pmpj.riskRating}</Badge></td>
+                    <td><Badge kind={(riskColor as any)[p.pmpj.riskRating] || 'gray'}>{p.pmpj.riskRating}</Badge></td>
                     <td className="tiny">{p.pmpj.cddLevel}</td>
                     <td className="num">{(p.pmpj.ubo || []).length}</td>
                     <td>{pep ? <span className="badge b-red" style={{ fontSize: 9 }}>PEP</span> : <span className="badge b-green" style={{ fontSize: 9 }}>Bersih</span>}</td>
@@ -226,7 +226,7 @@ function OBAml() {
         <div className="grid" style={{ gap: 12 }}>
           <Panel title={'Pemilik Manfaat (UBO) · ' + sel.name.replace('PT ', '')} sub={pmpj.purpose}>
             <div style={{ padding: 12, display: 'grid', gap: 8 }}>
-              {(pmpj.ubo || []).map((u, i) => (
+              {(pmpj.ubo || []).map((u: any, i: any) => (
                 <div key={i} className="row ac gap10" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)' }}>
                   <Avatar name={u.name} size={28} />
                   <div style={{ flex: 1, minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{u.name}</span>{u.pep && <span className="badge b-red" style={{ fontSize: 8.5 }}>PEP</span>}</div><div className="tiny muted">{u.role} · {u.idType} {u.idNo}</div></div>
@@ -239,7 +239,7 @@ function OBAml() {
 
           <Panel title="Penyaringan Daftar (Screening)" sub="PEP · DTTOT · Sanksi">
             <div style={{ padding: 12, display: 'grid', gap: 7 }}>
-              {(pmpj.screening || []).map((s, i) => (
+              {(pmpj.screening || []).map((s: any, i: any) => (
                 <div key={i} className="row ac gap8" style={{ padding: '7px 9px', borderRadius: 7, background: s.hit ? 'var(--red-bg)' : 'var(--surface-2)' }}>
                   <span style={{ color: s.hit ? 'var(--red)' : 'var(--green)', flex: '0 0 16px' }}>{React.createElement(s.hit ? I.alert : I.checkCircle, { size: 15 })}</span>
                   <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{s.name}</div><div className="tiny muted">{s.list}</div></div>

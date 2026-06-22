@@ -112,7 +112,7 @@ function S250Framework() {
 function S250Register() {
   const [selId, setSelId] = useStateSC('NC-01');
   const sel = NOCLAR_REGISTER.find(r => r.id === selId);
-  const sevKind = s => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const sevKind = (s: any) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -305,8 +305,8 @@ function S260Parties() {
   );
 }
 
-function S260Matrix({ done }) {
-  const stKind = s => s === 'Selesai' ? 'green' : s === 'Berlangsung' ? 'blue' : s === 'Tidak ada' ? 'gray' : 'amber';
+function S260Matrix({ done }: any) {
+  const stKind = (s: any) => s === 'Selesai' ? 'green' : s === 'Berlangsung' ? 'blue' : s === 'Tidak ada' ? 'gray' : 'amber';
   return (
     <Panel noBody>
       <div className="panel-h"><h3>Matriks Komunikasi TCWG (¶14–17)</h3><div style={{ flex: 1 }} /><Badge kind="green">{done} selesai</Badge></div>
@@ -332,7 +332,7 @@ function S260Matrix({ done }) {
 }
 
 function S260Findings() {
-  const sevKind = s => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const sevKind = (s: any) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -501,7 +501,7 @@ function S265Indicators() {
   );
 }
 
-function S265Comms({ sig }) {
+function S265Comms({ sig }: any) {
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>

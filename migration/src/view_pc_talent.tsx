@@ -23,17 +23,17 @@ function Recruitment() {
   const [hires, setHires] = useAmsPersist('pc.onboard', () => A.ONBOARDING_HIRES);
   const STAGES = A.CAND_STAGES;
 
-  const openReqs = A.REQUISITIONS.filter(r => r.status === 'Dibuka').length;
-  const totalApp = A.REQUISITIONS.reduce((s, r) => s + r.applicants, 0);
-  const offers = cands.filter(c => c.stage === 'Penawaran').length;
+  const openReqs = A.REQUISITIONS.filter((r: any) => r.status === 'Dibuka').length;
+  const totalApp = A.REQUISITIONS.reduce((s: any, r: any) => s + r.applicants, 0);
+  const offers = cands.filter((c: any) => c.stage === 'Penawaran').length;
   const avgFill = A.HCM_ANALYTICS.timeToFill;
 
-  const advance = (id, dir) => setCands(list => list.map(c => {
+  const advance = (id: any, dir: any) => setCands((list: any) => list.map((c: any) => {
     if (c.id !== id) return c;
     const i = STAGES.indexOf(c.stage) + dir;
     return { ...c, stage: STAGES[Math.max(0, Math.min(STAGES.length - 1, i))] };
   }));
-  const toggleTask = (hid, ti) => setHires(list => list.map(h => h.id === hid ? { ...h, tasks: h.tasks.map((t, i) => i === ti ? { ...t, done: !t.done } : t), progress: Math.round(h.tasks.filter((t, i) => (i === ti ? !t.done : t.done)).length / h.tasks.length * 100) } : h));
+  const toggleTask = (hid: any, ti: any) => setHires((list: any) => list.map((h: any) => h.id === hid ? { ...h, tasks: h.tasks.map((t: any, i: any) => i === ti ? { ...t, done: !t.done } : t), progress: Math.round(h.tasks.filter((t: any, i: any) => (i === ti ? !t.done : t.done)).length / h.tasks.length * 100) } : h));
 
   const STAGE_C = { 'Pelamar': '#647889', 'Penyaringan': '#5b3fa6', 'Wawancara': '#005085', 'Penawaran': '#9a6a00', 'Diterima': '#0a6b73' };
   const tabs = [{ id: 'reqs', label: 'Requisisi', count: A.REQUISITIONS.length }, { id: 'pipeline', label: 'Pipeline Kandidat', count: cands.length }, { id: 'onboard', label: 'Onboarding', count: hires.length }];
@@ -56,16 +56,16 @@ function Recruitment() {
             <table className="dtbl">
               <thead><tr><th>ID / Posisi</th><th>Divisi</th><th>Hiring Mgr</th><th className="num">Kuota</th><th className="num">Pelamar</th><th>Prioritas</th><th>Target</th><th>Status</th></tr></thead>
               <tbody>
-                {A.REQUISITIONS.map(r => (
+                {A.REQUISITIONS.map((r: any) => (
                   <tr key={r.id}>
                     <td><div style={{ fontWeight: 600 }}>{r.title}</div><div className="tiny muted mono">{r.id} · {r.reason}</div></td>
                     <td className="tiny">{r.dept}</td>
                     <td><div className="row ac gap6"><Avatar name={A.byId(r.hiringMgr).name} size={22} /><span className="tiny truncate" style={{ maxWidth: 80 }}>{A.byId(r.hiringMgr).name.split(' ')[0]}</span></div></td>
                     <td className="num mono">{r.filled}/{r.count}</td>
                     <td className="num mono" style={{ fontWeight: 700 }}>{r.applicants}</td>
-                    <td><span className="row ac gap4 tiny" style={{ color: PRIO_C[r.priority], fontWeight: 600 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor' }} />{r.priority}</span></td>
+                    <td><span className="row ac gap4 tiny" style={{ color: (PRIO_C as any)[r.priority], fontWeight: 600 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor' }} />{r.priority}</span></td>
                     <td className="tiny muted">{new Date(r.target).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
-                    <td><Badge kind={REQ_STAT[r.status]}>{r.status}</Badge></td>
+                    <td><Badge kind={(REQ_STAT as any)[r.status]}>{r.status}</Badge></td>
                   </tr>
                 ))}
               </tbody>
@@ -75,17 +75,17 @@ function Recruitment() {
           {tab === 'pipeline' && (
             <div style={{ padding: 14, overflowX: 'auto' }}>
               <div className="row" style={{ gap: 10, alignItems: 'flex-start', minWidth: 880 }}>
-                {STAGES.map(st => {
-                  const col = cands.filter(c => c.stage === st);
+                {STAGES.map((st: any) => {
+                  const col = cands.filter((c: any) => c.stage === st);
                   return (
                     <div key={st} style={{ flex: 1, minWidth: 165 }}>
                       <div className="row ac jb" style={{ marginBottom: 8 }}>
-                        <span className="row ac gap6 tiny" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.03em', color: STAGE_C[st] }}><span style={{ width: 8, height: 8, borderRadius: 2, background: STAGE_C[st] }} />{st}</span>
+                        <span className="row ac gap6 tiny" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.03em', color: (STAGE_C as any)[st] }}><span style={{ width: 8, height: 8, borderRadius: 2, background: (STAGE_C as any)[st] }} />{st}</span>
                         <span className="tiny muted">{col.length}</span>
                       </div>
                       <div style={{ display: 'grid', gap: 8 }}>
-                        {col.map(c => (
-                          <div key={c.id} className="panel" style={{ padding: '9px 10px', boxShadow: 'none', borderLeft: '3px solid ' + STAGE_C[st] }}>
+                        {col.map((c: any) => (
+                          <div key={c.id} className="panel" style={{ padding: '9px 10px', boxShadow: 'none', borderLeft: '3px solid ' + (STAGE_C as any)[st] }}>
                             <div className="row ac gap8" style={{ marginBottom: 5 }}>
                               <Avatar name={c.name} size={24} />
                               <div style={{ minWidth: 0, flex: 1 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{c.name}</div><div className="tiny muted">{c.cert} · {c.exp}</div></div>
@@ -111,14 +111,14 @@ function Recruitment() {
 
           {tab === 'onboard' && (
             <div style={{ padding: 14, display: 'grid', gap: 12 }}>
-              {hires.map(h => (
+              {hires.map((h: any) => (
                 <div key={h.id} className="panel" style={{ padding: 0, boxShadow: 'none' }}>
                   <div className="row ac jb" style={{ padding: '10px 13px', borderBottom: '1px solid var(--line)' }}>
                     <div className="row ac gap8"><Avatar name={h.name} size={30} /><div><div style={{ fontWeight: 700, fontSize: 13 }}>{h.name}</div><div className="tiny muted">{h.role} · mulai {new Date(h.start).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} · buddy {A.byId(h.buddy).name.split(' ')[0]}</div></div></div>
                     <div className="row ac gap8" style={{ minWidth: 160 }}><div style={{ flex: 1, height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: h.progress + '%', height: '100%', borderRadius: 4, background: h.progress === 100 ? 'var(--green)' : 'var(--blue)' }} /></div><span className="mono tiny" style={{ fontWeight: 700 }}>{h.progress}%</span></div>
                   </div>
                   <div style={{ padding: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                    {h.tasks.map((t, i) => (
+                    {h.tasks.map((t: any, i: any) => (
                       <div key={i} className="row ac gap8" onClick={() => toggleTask(h.id, i)} style={{ cursor: 'pointer', padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line-soft)', background: t.done ? 'var(--green-bg)' : 'transparent' }}>
                         <span style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid ' + (t.done ? 'var(--green)' : 'var(--line-strong)'), background: t.done ? 'var(--green)' : 'transparent', display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{t.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
                         <div style={{ minWidth: 0, flex: 1 }}><div className="tiny truncate" style={{ fontWeight: 500, textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--ink-3)' : 'var(--ink)' }}>{t.t}</div></div>
@@ -140,7 +140,7 @@ function Recruitment() {
    Pelatihan & Kompetensi (Learning & Competency)
    ============================================================ */
 const LVL = [1, 2, 3, 4, 5];
-function lvlColor(actual, req) {
+function lvlColor(actual: any, req: any) {
   if (actual >= req) return { bg: 'var(--green-bg)', fg: 'var(--green)' };
   if (actual === req - 1) return { bg: 'var(--amber-bg)', fg: 'var(--amber)' };
   return { bg: 'var(--red-bg)', fg: 'var(--red)' };
@@ -149,17 +149,17 @@ function lvlColor(actual, req) {
 function Learning() {
   const A: any = AMS;
   const [tab, setTab] = usePCtal('matrix');
-  const [enroll, setEnroll] = useAmsPersist('pc.enroll', () => A.TRAINING_CATALOG.map(t => ({ id: t.id, enrolled: t.enrolled })));
+  const [enroll, setEnroll] = useAmsPersist('pc.enroll', () => A.TRAINING_CATALOG.map((t: any) => ({ id: t.id, enrolled: t.enrolled })));
   const staff = A.STAFF, COMP = A.COMPETENCIES, REQ = A.COMPETENCY_REQ, ACT = A.COMPETENCY_ACTUAL;
 
-  const actualOf = (s, cid) => (ACT[s.id] || {})[cid] ?? Math.max(1, (REQ[s.grade][cid] || 2) - 1);
-  const gapCount = staff.reduce((n, s) => n + COMP.filter(c => actualOf(s, c.id) < REQ[s.grade][c.id]).length, 0);
+  const actualOf = (s: any, cid: any) => (ACT[s.id] || {})[cid] ?? Math.max(1, (REQ[s.grade][cid] || 2) - 1);
+  const gapCount = staff.reduce((n: any, s: any) => n + COMP.filter((c: any) => actualOf(s, c.id) < REQ[s.grade][c.id]).length, 0);
   const totalCells = staff.length * COMP.length;
   const coverage = Math.round((totalCells - gapCount) / totalCells * 100);
-  const upcoming = A.TRAINING_CATALOG.filter(t => new Date(t.date) >= new Date('2026-03-09')).length;
-  const seatsLeft = A.TRAINING_CATALOG.reduce((s, t) => s + (t.seats - (enroll.find(e => e.id === t.id) || {}).enrolled), 0);
+  const upcoming = A.TRAINING_CATALOG.filter((t: any) => new Date(t.date) >= new Date('2026-03-09')).length;
+  const seatsLeft = A.TRAINING_CATALOG.reduce((s: any, t: any) => s + (t.seats - (enroll.find((e: any) => e.id === t.id) || {}).enrolled), 0);
 
-  const doEnroll = (id) => setEnroll(list => list.map(e => e.id === id ? { ...e, enrolled: Math.min(A.TRAINING_CATALOG.find(t => t.id === id).seats, e.enrolled + 1) } : e));
+  const doEnroll = (id: any) => setEnroll((list: any) => list.map((e: any) => e.id === id ? { ...e, enrolled: Math.min(A.TRAINING_CATALOG.find((t: any) => t.id === id).seats, e.enrolled + 1) } : e));
   const tabs = [{ id: 'matrix', label: 'Matriks Kompetensi' }, { id: 'catalog', label: 'Katalog Pelatihan', count: A.TRAINING_CATALOG.length }];
 
   return (
@@ -179,14 +179,14 @@ function Learning() {
           {tab === 'matrix' && (
             <div style={{ padding: 14, overflowX: 'auto' }}>
               <table className="dtbl" style={{ minWidth: 820 }}>
-                <thead><tr><th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)', minWidth: 160 }}>Karyawan</th>{COMP.map(c => <th key={c.id} className="num" style={{ minWidth: 78, fontSize: 10, verticalAlign: 'bottom' }}>{c.name}</th>)}<th className="num">Gap</th></tr></thead>
+                <thead><tr><th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)', minWidth: 160 }}>Karyawan</th>{COMP.map((c: any) => <th key={c.id} className="num" style={{ minWidth: 78, fontSize: 10, verticalAlign: 'bottom' }}>{c.name}</th>)}<th className="num">Gap</th></tr></thead>
                 <tbody>
-                  {staff.map(s => {
-                    const gaps = COMP.filter(c => actualOf(s, c.id) < REQ[s.grade][c.id]).length;
+                  {staff.map((s: any) => {
+                    const gaps = COMP.filter((c: any) => actualOf(s, c.id) < REQ[s.grade][c.id]).length;
                     return (
                       <tr key={s.id}>
                         <td style={{ position: 'sticky', left: 0, background: 'var(--surface)' }}><div className="row ac gap8"><Avatar name={s.name} size={22} /><div style={{ minWidth: 0 }}><div className="truncate tiny" style={{ fontWeight: 600 }}>{s.name}</div><div className="tiny muted">{s.grade}</div></div></div></td>
-                        {COMP.map(c => {
+                        {COMP.map((c: any) => {
                           const a = actualOf(s, c.id), r = REQ[s.grade][c.id], col = lvlColor(a, r);
                           return <td key={c.id} className="num" style={{ textAlign: 'center' }}><span title={c.name + ': ' + a + '/' + r} style={{ display: 'inline-block', minWidth: 34, padding: '3px 0', borderRadius: 5, background: col.bg, color: col.fg, fontWeight: 700, fontSize: 11 }} className="mono">{a}<span style={{ opacity: .5 }}>/{r}</span></span></td>;
                         })}
@@ -209,10 +209,10 @@ function Learning() {
             <table className="dtbl">
               <thead><tr><th>Program</th><th>Penyelenggara</th><th>Jenis</th><th className="num">SKP</th><th>Jadwal</th><th style={{ width: 130 }}>Kuota</th><th></th></tr></thead>
               <tbody>
-                {A.TRAINING_CATALOG.map(t => {
-                  const en = (enroll.find(e => e.id === t.id) || {}).enrolled;
+                {A.TRAINING_CATALOG.map((t: any) => {
+                  const en = (enroll.find((e: any) => e.id === t.id) || {}).enrolled;
                   const full = en >= t.seats;
-                  const comp = COMP.find(c => c.id === t.comp);
+                  const comp = COMP.find((c: any) => c.id === t.comp);
                   return (
                     <tr key={t.id}>
                       <td><div style={{ fontWeight: 600 }}>{t.title}</div><div className="tiny muted">{comp ? comp.name : ''} · {t.fmt} · {t.hours} jam</div></td>

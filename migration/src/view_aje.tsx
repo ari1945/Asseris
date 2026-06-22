@@ -40,27 +40,27 @@ const KIND_KIND = { adjusting: 'blue', reclass: 'teal' };
 
 /* derive signed PBT effect from structured lines: P&L accounts (4-/5-) only,
    profit += credit − debit (revenue credit ↑profit; expense credit ↑profit) */
-function ajeDerivePbt(a) {
+function ajeDerivePbt(a: any) {
   if (!Array.isArray(a.lines)) return 0;
-  return a.lines.reduce((s, l) => {
+  return a.lines.reduce((s: any, l: any) => {
     const c = String(l.code || '');
     if (c[0] === '4' || c[0] === '5') return s + ((+l.credit || 0) - (+l.debit || 0));
     return s;
   }, 0);
 }
-function ajeDeriveKind(a) {
+function ajeDeriveKind(a: any) {
   if (!Array.isArray(a.lines)) return 'adjusting';
-  return a.lines.some(l => { const c = String(l.code || '')[0]; return c === '4' || c === '5'; }) ? 'adjusting' : 'reclass';
+  return a.lines.some((l: any) => { const c = String(l.code || '')[0]; return c === '4' || c === '5'; }) ? 'adjusting' : 'reclass';
 }
 /* current-asset effect (codes 1-1xxx) from structured lines */
-function ajeCurAssetEffect(a) {
+function ajeCurAssetEffect(a: any) {
   if (!Array.isArray(a.lines)) return 0;
-  return a.lines.reduce((s, l) => String(l.code || '').startsWith('1-1') ? s + ((+l.debit || 0) - (+l.credit || 0)) : s, 0);
+  return a.lines.reduce((s: any, l: any) => String(l.code || '').startsWith('1-1') ? s + ((+l.debit || 0) - (+l.credit || 0)) : s, 0);
 }
 
-function buildAjeModel(aje) {
-  return aje.map(a => {
-    const m = AJE_META[a.id] || {};
+function buildAjeModel(aje: any) {
+  return aje.map((a: any) => {
+    const m = (AJE_META as any)[a.id] || {};
     return {
       ...a,
       kind: m.kind || ajeDeriveKind(a),
@@ -84,13 +84,13 @@ function AjeKv({ label, v, strong, accent }: any) {
     </div>
   );
 }
-const signColor = (n) => n < 0 ? 'var(--red)' : n > 0 ? 'var(--green)' : 'var(--ink-4)';
+const signColor = (n: any) => n < 0 ? 'var(--red)' : n > 0 ? 'var(--green)' : 'var(--ink-4)';
 
 /* ============================================================
    SHELL — tabbed AJE module
    ============================================================ */
 /* derive structured journal lines for a single AJE (mirror of AjeDrill's fallback) */
-function ajeLines(a) {
+function ajeLines(a: any) {
   return a.lines || [
     { code: a.dr.split(' ')[0], name: a.dr.split(' ').slice(1).join(' ') || a.dr, debit: a.amount, credit: 0 },
     { code: a.cr.split(' ')[0], name: a.cr.split(' ').slice(1).join(' ') || a.cr, debit: 0, credit: a.amount },
@@ -111,22 +111,22 @@ function AJEView() {
   const [showForm, setShowForm] = useStateAJ(false);
 
   const model = useMemoAJ(() => buildAjeModel(aje), [aje]);
-  const posted = model.filter(a => a.status === 'Posted');
-  const proposed = model.filter(a => a.status === 'Proposed');
-  const reclass = model.filter(a => a.kind === 'reclass');
-  const pbtPosted = posted.reduce((s, a) => s + a.pbt, 0);
-  const pbtProposed = proposed.reduce((s, a) => s + a.pbt, 0);
+  const posted = model.filter((a: any) => a.status === 'Posted');
+  const proposed = model.filter((a: any) => a.status === 'Proposed');
+  const reclass = model.filter((a: any) => a.kind === 'reclass');
+  const pbtPosted = posted.reduce((s: any, a: any) => s + a.pbt, 0);
+  const pbtProposed = proposed.reduce((s: any, a: any) => s + a.pbt, 0);
   const reportedPbt = AJE_PBT_UNADJ + pbtPosted;
-  const accounts = wtb.map(r => ({ code: r.code, name: r.name }));
+  const accounts = wtb.map((r: any) => ({ code: r.code, name: r.name }));
 
   // W10.5 Fase 2 — sealed XLSX register: AJE list + every journal line, full-rupiah via rp().
   const onExportXlsx = async () => {
     if (exporting) return;
     setExporting(true);
     try {
-      const regRows = model.map(a => [a.id, a.desc, KIND_LABEL[a.kind] || a.kind, a.mis || '—', a.cycle, a.std, a.ref, a.status, rp(a.amount), a.pbt === 0 ? '—' : rp(a.pbt)]);
-      const lineRows = [];
-      model.forEach(a => ajeLines(a).forEach(l => lineRows.push([a.id, l.code, l.name, +l.debit ? rp(+l.debit) : '', +l.credit ? rp(+l.credit) : ''])));
+      const regRows = model.map((a: any) => [a.id, a.desc, (KIND_LABEL as any)[a.kind] || a.kind, a.mis || '—', a.cycle, a.std, a.ref, a.status, rp(a.amount), a.pbt === 0 ? '—' : rp(a.pbt)]);
+      const lineRows: any[] = [];
+      model.forEach((a: any) => ajeLines(a).forEach((l: any) => lineRows.push([a.id, l.code, l.name, +l.debit ? rp(+l.debit) : '', +l.credit ? rp(+l.credit) : ''])));
       await amsExportXlsx({
         kind: 'aje-register', scope: 'engagement', scopeId: activeEngagement?.id,
         fileName: `Register AJE - ${activeClient?.name || 'Klien'}.xlsx`,
@@ -193,7 +193,7 @@ function AJEView() {
           {tab === 'approvals' && <AjeApprovals model={model} />}
         </div>
       </div>
-      {showForm && <AJEForm accounts={accounts} onClose={() => setShowForm(false)} onPost={(entry) => { addAje(entry); setShowForm(false); }} />}
+      {showForm && <AJEForm accounts={accounts} onClose={() => setShowForm(false)} onPost={(entry: any) => { addAje(entry); setShowForm(false); }} />}
     </>
   );
 }
@@ -212,8 +212,8 @@ function AjeRegister({ model, locked }: any) {
   const [selId, setSelId] = useStateAJ(model[0] ? model[0].id : null);
   const [filt, setFilt] = useStateAJ('all');
 
-  const rows = model.filter(a => filt === 'all' || (filt === 'posted' && a.status === 'Posted') || (filt === 'proposed' && a.status === 'Proposed') || (filt === 'reclass' && a.kind === 'reclass'));
-  const sel = model.find(a => a.id === selId) || null;
+  const rows = model.filter((a: any) => filt === 'all' || (filt === 'posted' && a.status === 'Posted') || (filt === 'proposed' && a.status === 'Proposed') || (filt === 'reclass' && a.kind === 'reclass'));
+  const sel = model.find((a: any) => a.id === selId) || null;
 
   return (
     <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 12, alignItems: 'start' }}>
@@ -234,7 +234,7 @@ function AjeRegister({ model, locked }: any) {
             <th style={{ width: 92 }}>Status</th>
           </tr></thead>
           <tbody>
-            {rows.map(a => (
+            {rows.map((a: any) => (
               <tr key={a.id} onClick={() => setSelId(a.id)} className={selId === a.id ? 'sel' : ''} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 7 }}>
                   {a.id}{a.fraud && <span title="Terkait kecurangan (SA 240)" style={{ marginLeft: 3, color: 'var(--red)' }}>⚑</span>}
@@ -243,14 +243,14 @@ function AjeRegister({ model, locked }: any) {
                   {a.desc}
                   <div className="tiny muted" style={{ marginTop: 2 }}>{a.cycle} · <span className="mono">WP {a.ref}</span> · {a.std}</div>
                 </td>
-                <td style={{ verticalAlign: 'top', paddingTop: 6 }}><Badge kind={KIND_KIND[a.kind]}>{KIND_LABEL[a.kind]}</Badge></td>
+                <td style={{ verticalAlign: 'top', paddingTop: 6 }}><Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge></td>
                 <td style={{ verticalAlign: 'top', paddingTop: 7 }} className="tiny mono">
-                  {a.mis ? <span title="Tertaut ke SAD" style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); nav('sad'); }}>{a.mis}</span> : <span className="muted">—</span>}
+                  {a.mis ? <span title="Tertaut ke SAD" style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={(e: any) => { e.stopPropagation(); nav('sad'); }}>{a.mis}</span> : <span className="muted">—</span>}
                 </td>
                 <td className="num" style={{ fontWeight: 600, verticalAlign: 'top', paddingTop: 6 }}>{fmt(a.amount)}</td>
                 <td className="num" style={{ verticalAlign: 'top', paddingTop: 6, color: signColor(a.pbt) }}>{a.pbt === 0 ? '—' : fmt(a.pbt / 1e6, 0)}</td>
                 <td style={{ verticalAlign: 'top', paddingTop: 5 }}>
-                  <span onClick={(e) => { e.stopPropagation(); if (!locked) toggleAjeStatus(a.id); }} style={{ cursor: locked ? 'default' : 'pointer' }} title={locked ? '' : 'Klik untuk toggle status'}>
+                  <span onClick={(e: any) => { e.stopPropagation(); if (!locked) toggleAjeStatus(a.id); }} style={{ cursor: locked ? 'default' : 'pointer' }} title={locked ? '' : 'Klik untuk toggle status'}>
                     <Badge>{a.status}</Badge>
                   </span>
                 </td>
@@ -280,8 +280,8 @@ function AjeDrill({ a, fmt, nav }: any) {
     { code: a.dr.split(' ')[0], name: a.dr.split(' ').slice(1).join(' ') || a.dr, debit: a.amount, credit: 0 },
     { code: a.cr.split(' ')[0], name: a.cr.split(' ').slice(1).join(' ') || a.cr, debit: 0, credit: a.amount },
   ];
-  const td = lines.reduce((s, l) => s + (+l.debit || 0), 0);
-  const tc = lines.reduce((s, l) => s + (+l.credit || 0), 0);
+  const td = lines.reduce((s: any, l: any) => s + (+l.debit || 0), 0);
+  const tc = lines.reduce((s: any, l: any) => s + (+l.credit || 0), 0);
   const tax = a.taxEffect ? Math.round(Math.abs(a.pbt) * AJE_TAX) : 0;
   const netInc = a.pbt + (a.pbt < 0 ? tax : -tax); // after-tax profit effect
 
@@ -291,7 +291,7 @@ function AjeDrill({ a, fmt, nav }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
           <div className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700, fontSize: 14 }}>{a.id}</span>
-            <Badge kind={KIND_KIND[a.kind]}>{KIND_LABEL[a.kind]}</Badge>
+            <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
             <div style={{ flex: 1 }} />
             <Badge>{a.status}</Badge>
           </div>
@@ -301,7 +301,7 @@ function AjeDrill({ a, fmt, nav }: any) {
         <table className="dtbl">
           <thead><tr><th>Akun</th><th className="num" style={{ width: 80 }}>Debit (jt)</th><th className="num" style={{ width: 80 }}>Kredit (jt)</th></tr></thead>
           <tbody>
-            {lines.map((l, i) => (
+            {lines.map((l: any, i: any) => (
               <tr key={i}>
                 <td style={{ lineHeight: 1.25 }}><span className="mono tiny muted">{l.code}</span><div className="tiny" style={{ maxWidth: 150, whiteSpace: 'normal' }}>{l.name}</div></td>
                 <td className="num">{+l.debit ? fmt(+l.debit / 1e6, 1) : '—'}</td>
@@ -342,7 +342,7 @@ function AjeDrill({ a, fmt, nav }: any) {
 function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtProposed }: any) {
   const { fmt } = AMS;
   const nav = useNav();
-  const jt = (n) => fmt(n / 1e6, 0);
+  const jt = (n: any) => fmt(n / 1e6, 0);
   const ifPosted = reportedPbt + pbtProposed;
 
   // deferred/current tax on total adjustment (posted + proposed)
@@ -351,7 +351,7 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
   const netInc = totalPbt - tax;
 
   // liquidity / covenant — proposed entries' effect on current assets
-  const curEffProposed = proposed.reduce((s, a) => s + (a.curEff || 0), 0);
+  const curEffProposed = proposed.reduce((s: any, a: any) => s + (a.curEff || 0), 0);
   const ratioNow = AJE_FS.curAssets / AJE_FS.curLiab;
   const ratioAfter = (AJE_FS.curAssets + curEffProposed) / AJE_FS.curLiab;
 
@@ -467,13 +467,13 @@ function FsRow({ label, unadj, posted, proposed, jt, bold }: any) {
 
 /* waterfall: totals anchored to baseline, steps float between cumulatives */
 function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) {
-  const steps = [];
+  const steps: any[] = [];
   steps.push({ label: 'Unadjusted', kind: 'total', value: unadj });
   let cum = unadj;
-  posted.forEach(a => { steps.push({ label: a.id, kind: 'posted', from: cum, to: cum + a.pbt, delta: a.pbt }); cum += a.pbt; });
+  posted.forEach((a: any) => { steps.push({ label: a.id, kind: 'posted', from: cum, to: cum + a.pbt, delta: a.pbt }); cum += a.pbt; });
   steps.push({ label: 'Dilaporkan', kind: 'subtotal', value: reported });
   cum = reported;
-  proposed.forEach(a => { steps.push({ label: a.id, kind: 'proposed', from: cum, to: cum + a.pbt, delta: a.pbt }); cum += a.pbt; });
+  proposed.forEach((a: any) => { steps.push({ label: a.id, kind: 'proposed', from: cum, to: cum + a.pbt, delta: a.pbt }); cum += a.pbt; });
   steps.push({ label: 'Jika Disetujui', kind: 'final', value: ifPosted });
 
   const vals = steps.flatMap(s => s.value != null ? [s.value] : [s.from, s.to]);
@@ -481,7 +481,7 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) 
   const pad = (hi - lo) * 0.35 || 1;
   const max = hi + pad, min = lo - pad;
   const H = 188;
-  const y = (v) => H - ((v - min) / (max - min)) * H;
+  const y = (v: any) => H - ((v - min) / (max - min)) * H;
   const colorOf = { total: 'var(--navy)', subtotal: 'var(--blue)', final: 'var(--navy)' };
 
   return (
@@ -491,7 +491,7 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) 
         const top = isTotal ? y(s.value) : y(Math.max(s.from, s.to));
         const bot = isTotal ? H : y(Math.min(s.from, s.to));
         const h = Math.max(3, bot - top);
-        const col = isTotal ? colorOf[s.kind] : (s.kind === 'proposed' ? 'var(--amber)' : (s.delta < 0 ? 'var(--blue-400)' : 'var(--green)'));
+        const col = isTotal ? (colorOf as any)[s.kind] : (s.kind === 'proposed' ? 'var(--amber)' : (s.delta < 0 ? 'var(--blue-400)' : 'var(--green)'));
         return (
           <div key={i} style={{ flex: 1, position: 'relative', height: H }}>
             <div style={{ position: 'absolute', left: '14%', right: '14%', top, height: h, background: col, borderRadius: 3, transition: 'all .25s' }} />
@@ -512,17 +512,17 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) 
    TAB 3 — Persetujuan & Jejak Audit
    ============================================================ */
 function AjeApprovals({ model }: any) {
-  const proposed = model.filter(a => a.status === 'Proposed');
-  const posted = model.filter(a => a.status === 'Posted');
+  const proposed = model.filter((a: any) => a.status === 'Proposed');
+  const posted = model.filter((a: any) => a.status === 'Posted');
 
   // build chronological trail from metadata
-  const trail = [];
-  model.forEach(a => {
+  const trail: any[] = [];
+  model.forEach((a: any) => {
     if (a.proposedOn) trail.push({ on: a.proposedOn, id: a.id, who: a.preparer, act: 'menyiapkan usulan jurnal', icon: 'ledger', tone: 'blue' });
     if (a.reviewedOn) trail.push({ on: a.reviewedOn, id: a.id, who: a.reviewer, act: 'mereviu & menyetujui (manajer)', icon: 'check', tone: 'green' });
     if (a.postedOn) trail.push({ on: a.postedOn, id: a.id, who: a.partner, act: 'menyetujui & memposting ke WTB', icon: 'lock', tone: 'navy' });
   });
-  const ord = (d) => { const m = { 'Mei': 5, 'Jun': 6 }; const p = String(d).split(' '); return (m[p[1]] || 0) * 100 + (+p[0] || 0); };
+  const ord = (d: any) => { const m = { 'Mei': 5, 'Jun': 6 }; const p = String(d).split(' '); return ((m as any)[p[1]] || 0) * 100 + (+p[0] || 0); };
   trail.sort((a, b) => ord(b.on) - ord(a.on));
 
   return (
@@ -551,7 +551,7 @@ function AjeApprovals({ model }: any) {
             {trail.map((t, i) => (
               <div key={i} className="row gap10" style={{ padding: '8px 0', borderBottom: i < trail.length - 1 ? '1px solid var(--line-soft)' : 'none', alignItems: 'flex-start' }}>
                 <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 7, background: `var(--${t.tone === 'navy' ? 'surface-3' : t.tone + '-bg'})`, color: `var(--${t.tone === 'navy' ? 'navy' : t.tone})`, display: 'grid', placeItems: 'center', marginTop: 1 }}>
-                  {React.createElement(I[t.icon] || I.ledger, { size: 13 })}
+                  {React.createElement((I as any)[t.icon] || I.ledger, { size: 13 })}
                 </span>
                 <div style={{ flex: 1 }}>
                   <div className="tiny" style={{ lineHeight: 1.4 }}><b>{t.who}</b> {t.act} <span className="mono" style={{ color: 'var(--blue)' }}>{t.id}</span></div>
@@ -578,7 +578,7 @@ function ApprovalCard({ a }: any) {
     <div style={{ padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
       <div className="row ac gap8" style={{ marginBottom: 9 }}>
         <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</span>
-        <Badge kind={KIND_KIND[a.kind]}>{KIND_LABEL[a.kind]}</Badge>
+        <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
         <span className="tiny" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.desc}</span>
         <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(a.amount)}</span>
         <Badge>{a.status}</Badge>
@@ -591,7 +591,7 @@ function ApprovalCard({ a }: any) {
 function WorkflowTrack({ steps }: any) {
   return (
     <div className="row" style={{ alignItems: 'flex-start' }}>
-      {steps.map((s, i) => {
+      {steps.map((s: any, i: any) => {
         const pending = !s.done;
         return (
           <React.Fragment key={i}>

@@ -216,7 +216,7 @@ import { NONAUDIT } from './data_part2';
         { stage: 'Penutupan EQR (gerbang opini)', date: '—', status: 'Belum Mulai' },
       ],
       consults: [{ t: 'Konsultasi PSAK 72 — pengakuan pendapatan kontrak properti', with: 'Komite Teknis', status: 'Terbuka' }],
-      diff: null,
+      diff: (null as any),
     },
     'EQR-014': {
       coolingOff: 'Terpenuhi — reviewer baru ditunjuk, bebas keterlibatan', coolingOk: true,
@@ -230,8 +230,8 @@ import { NONAUDIT } from './data_part2';
         { stage: 'Reviu opini & laporan', date: '—', status: 'Belum Mulai' },
         { stage: 'Penutupan EQR (gerbang opini)', date: '—', status: 'Belum Mulai' },
       ],
-      consults: [],
-      diff: null,
+      consults: ([] as any[]),
+      diff: (null as any),
     },
     'EQR-040': {
       coolingOff: 'Terpenuhi — reviewer tidak terlibat perikatan & bukan partner perikatan', coolingOk: true,

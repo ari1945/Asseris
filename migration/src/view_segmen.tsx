@@ -21,7 +21,7 @@ import { SectionTitle } from './view_fpm_parts';
 const { useState: useStateSG, useMemo: useMemoSG } = React;
 
 /* link kecil ke modul sumber (TrSrc tidak global) */
-function Src({ module, children }) {
+function Src({ module, children }: any) {
   const nav = useNav();
   return <b onClick={() => nav(module)} style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>{children}</b>;
 }
@@ -46,16 +46,16 @@ function SegmentInfo() {
   const D = useMemoSG(() => {
     const rev = AMS_CANON.revenue(wtb);
     const model = FSGEN.buildModel(wtb);
-    const J = (n) => n / 1e6; // full → juta
+    const J = (n: any) => n / 1e6; // full → juta
     const totalRev = rev.revBooked;                  // juta
     const opProfit = J(model.is.opProfit.cy);
     const totalAssets = J(model.bs.totalAssets.cy);
     const totalLiab = J(model.bs.totalLiab.cy);
-    const byId = {}; rev.streams.forEach(s => { byId[s.id] = s; });
+    const byId = {}; rev.streams.forEach(s => { (byId as any)[s.id] = s; });
 
     let segRevSum = 0, segResSum = 0, segAssetSum = 0, segLiabSum = 0;
     const segs: any[] = SEG_MAP.map(sm => {
-      const revenue = sm.streams.reduce((a, id) => a + ((byId[id] || {}).amount || 0), 0);
+      const revenue = sm.streams.reduce((a, id) => a + (((byId as any)[id] || {}).amount || 0), 0);
       const result = Math.round(revenue * sm.margin);
       segRevSum += revenue; segResSum += result;
       return { ...sm, revenue, result };
@@ -77,7 +77,7 @@ function SegmentInfo() {
       majorCust: Math.round(totalRev * SEG_MAJOR_CUSTOMER) };
   }, [wtb]);
 
-  const J = (n) => 'Rp ' + fmt(n, 0) + ' jt';
+  const J = (n: any) => 'Rp ' + fmt(n, 0) + ' jt';
   const tie = [
     { k: 'Σ pendapatan segmen = pendapatan konsolidasian', a: D.segRevSum, b: Math.round(D.totalRev), ref: 'PSAK 5 ¶28(a)', route: 'psak72' },
     { k: 'Σ hasil segmen + tak-teralokasi = laba usaha', a: D.segResSum + D.unallocResult, b: Math.round(D.opProfit), ref: 'PSAK 5 ¶28(b)', route: 'fsgen' },
@@ -86,7 +86,7 @@ function SegmentInfo() {
   const tiePass = tie.filter(t => t.ok).length;
 
   const TABS = [{ id: 'ikhtisar', label: 'Ikhtisar Segmen' }, { id: 'geo', label: 'Geografis & Pelanggan' }, { id: 'recon', label: 'Rekonsiliasi' }];
-  const maxRev = Math.max(...D.segs.map(s => s.revenue), 1);
+  const maxRev = Math.max(...D.segs.map((s: any) => s.revenue), 1);
 
   return (
     <>
@@ -126,7 +126,7 @@ function SegmentInfo() {
                     <th style={{ textAlign: 'right', padding: '8px 6px' }}>Liabilitas</th>
                   </tr></thead>
                   <tbody>
-                    {D.segs.map(s => (
+                    {D.segs.map((s: any) => (
                       <tr key={s.id} style={{ borderBottom: '1px solid var(--line-soft)' }}>
                         <td style={{ padding: '8px 6px' }}>
                           <div className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: s.color, flex: '0 0 9px' }} /><b>{s.label}</b></div>
@@ -167,7 +167,7 @@ function SegmentInfo() {
                   <div>
                     <SectionTitle right={<span className="tiny muted">PSAK 5 ¶33</span>}>Pendapatan per Wilayah Geografis</SectionTitle>
                     <div style={{ display: 'grid', gap: 9 }}>
-                      {D.geo.map(g => (
+                      {D.geo.map((g: any) => (
                         <div key={g.id}>
                           <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{g.label}</span><span className="mono">{fmt(g.amount, 0)} jt · {fmt(g.pct * 100, 0)}%</span></div>
                           <div style={{ height: 6, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (g.pct * 100) + '%', background: g.id === 'dom' ? '#005085' : '#0a6b73' }} /></div>

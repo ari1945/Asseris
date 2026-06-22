@@ -17,8 +17,8 @@ import { BO } from './data_backoffice';
 const { useState: useStateBO3 } = React;
 
 /* money helpers (travel) */
-const trJt = (v, d = 1) => 'Rp ' + AMS.fmt(v / 1e6, d) + ' jt';
-const trRb = (v) => 'Rp ' + AMS.fmt(v / 1e3, 0) + ' rb';
+const trJt = (v: any, d = 1) => 'Rp ' + AMS.fmt(v / 1e6, d) + ' jt';
+const trRb = (v: any) => 'Rp ' + AMS.fmt(v / 1e3, 0) + ' rb';
 
 /* navigable SSOT chip → loncat ke modul pemilik data */
 function TrSrc({ module, children, title }: any) {
@@ -59,8 +59,8 @@ function FirmTravel() {
     { id: 'analytics', label: 'Analitik & GL' },
   ];
 
-  const claimTot = reimb.reduce((s, r) => s + r.klaim, 0);
-  const plafonTot = reimb.reduce((s, r) => s + r.plafon, 0);
+  const claimTot = reimb.reduce((s: any, r: any) => s + r.klaim, 0);
+  const plafonTot = reimb.reduce((s: any, r: any) => s + r.plafon, 0);
 
   return (
     <>
@@ -112,7 +112,7 @@ function FirmTravel() {
                 <div>
                   <SectionTitle>Rekonsiliasi ke Buku Besar</SectionTitle>
                   <div style={{ display: 'grid', gap: 8 }}>
-                    {recon.rows.map((r, i) => (
+                    {recon.rows.map((r: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row jb ac">
                           <span className="tiny" style={{ fontWeight: 600, maxWidth: 210, lineHeight: 1.3 }}>{r.label}</span>
@@ -227,7 +227,7 @@ function FirmTravel() {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={4}>Total</td><td className="num">{trJt(claimTot)}</td><td className="num">{trJt(plafonTot)}</td><td className="num">{trRb(reimb.reduce((s, r) => s + r.pph21, 0))}</td><td></td></tr></tfoot>
+                <tfoot><tr><td colSpan={4}>Total</td><td className="num">{trJt(claimTot)}</td><td className="num">{trJt(plafonTot)}</td><td className="num">{trRb(reimb.reduce((s: any, r: any) => s + r.pph21, 0))}</td><td></td></tr></tfoot>
               </table>
               {sum.overCap.length > 0 && (
                 <div className="view-pad" style={{ paddingTop: 0 }}>
@@ -277,13 +277,13 @@ function FirmTravel() {
                   <div className="panel" style={{ padding: '13px 14px' }}>
                     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 11 }}>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Grade</span>
-                        <select className="select" value={calc.grade} onChange={e => setCalc({ ...calc, grade: e.target.value })}>{B.PER_DIEM.map((p: any) => <option key={p.key}>{p.key}</option>)}</select></label>
+                        <select className="select" value={calc.grade} onChange={(e: any) => setCalc({ ...calc, grade: e.target.value })}>{B.PER_DIEM.map((p: any) => <option key={p.key}>{p.key}</option>)}</select></label>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Rute</span>
-                        <select className="select" value={calc.route} onChange={e => setCalc({ ...calc, route: e.target.value })}>{B.ROUTES.map((r: any) => <option key={r.code} value={r.code}>{r.label}</option>)}</select></label>
+                        <select className="select" value={calc.route} onChange={(e: any) => setCalc({ ...calc, route: e.target.value })}>{B.ROUTES.map((r: any) => <option key={r.code} value={r.code}>{r.label}</option>)}</select></label>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Hari</span>
-                        <input className="input" type="number" min={1} value={calc.days} onChange={e => setCalc({ ...calc, days: Math.max(1, +e.target.value || 1) })} /></label>
+                        <input className="input" type="number" min={1} value={calc.days} onChange={(e: any) => setCalc({ ...calc, days: Math.max(1, +e.target.value || 1) })} /></label>
                       <label className="tiny" style={{ display: 'grid', gap: 3 }}><span className="muted" style={{ fontWeight: 600 }}>Malam</span>
-                        <input className="input" type="number" min={0} value={calc.nights} onChange={e => setCalc({ ...calc, nights: Math.max(0, +e.target.value || 0) })} /></label>
+                        <input className="input" type="number" min={0} value={calc.nights} onChange={(e: any) => setCalc({ ...calc, nights: Math.max(0, +e.target.value || 0) })} /></label>
                     </div>
                     {(() => {
                       const e = T.entitlement(calc.grade, calc.route, calc.nights, calc.days);
@@ -316,7 +316,7 @@ function FirmTravel() {
                   <table className="dtbl" style={{ border: '1px solid var(--line)', borderRadius: 8, overflow: 'hidden' }}>
                     <thead><tr><th>Lapisan</th><th>Sumber</th><th className="num">Nilai</th></tr></thead>
                     <tbody>
-                      {recon.rows.map((r, i) => (
+                      {recon.rows.map((r: any, i: any) => (
                         <tr key={i}>
                           <td className="tiny" style={{ fontWeight: 600, maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.3 }}>{r.label}</td>
                           <td><TrSrc module={r.owner}><span className="mono" style={{ fontSize: 9.5 }}>{r.src}</span></TrSrc></td>
@@ -331,7 +331,7 @@ function FirmTravel() {
                   <SectionTitle>Sorotan</SectionTitle>
                   <KV label="Bulan Tertinggi" v="Feb · Rp 184 jt" sub="puncak fieldwork tutup buku" />
                   <div style={{ height: 8 }} />
-                  <KV label="Rata-rata / Perjalanan" v={trJt(trips.reduce((s, t) => s + t.est, 0) / trips.length)} sub={trips.length + ' perjalanan tercatat'} />
+                  <KV label="Rata-rata / Perjalanan" v={trJt(trips.reduce((s: any, t: any) => s + t.est, 0) / trips.length)} sub={trips.length + ' perjalanan tercatat'} />
                   <div style={{ height: 8 }} />
                   <KV label="Perjalanan Internasional" v={sum.intl.length + ' (Singapura)'} accent="var(--purple)" sub="group audit komponen — SA 600" />
                   <div style={{ height: 8 }} />
@@ -376,7 +376,7 @@ function FirmLicensing() {
     { id: 'calendar', label: 'Kalender Perpanjangan', count: cal120.length },
   ];
 
-  const sevCol = (d) => d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--ink-2)';
+  const sevCol = (d: any) => d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--ink-2)';
   const kindCol = { 'Izin Firma': 'var(--blue)', 'Izin AP': 'var(--purple)', 'Keanggotaan': 'var(--teal)' };
 
   return (
@@ -430,10 +430,10 @@ function FirmLicensing() {
                 <div>
                   <SectionTitle>Perpanjangan Terdekat</SectionTitle>
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {cal120.slice(0, 5).map((x, i) => (
+                    {cal120.slice(0, 5).map((x: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row jb ac" style={{ marginBottom: 5 }}>
-                          <span className="row ac gap6"><span className="badge" style={{ background: 'transparent', color: kindCol[x.kind], border: '1px solid currentColor', fontSize: 9.5 }}>{x.kind}</span><span className="tiny" style={{ fontWeight: 600, maxWidth: 150, lineHeight: 1.25 }}>{x.label}</span></span>
+                          <span className="row ac gap6"><span className="badge" style={{ background: 'transparent', color: (kindCol as any)[x.kind], border: '1px solid currentColor', fontSize: 9.5 }}>{x.kind}</span><span className="tiny" style={{ fontWeight: 600, maxWidth: 150, lineHeight: 1.25 }}>{x.label}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700, color: sevCol(x.days) }}>{x.days}h</span>
                         </div>
                         <div className="row jb tiny muted"><span className="mono">{x.exp}</span><span>{x.otoritas}</span></div>
@@ -534,7 +534,7 @@ function FirmLicensing() {
                                   </div>
                                 </div>
                                 <div style={{ display: 'grid', gap: 0 }}>
-                                  {a.recs.slice(0, 4).map((r, i) => (
+                                  {a.recs.slice(0, 4).map((r: any, i: any) => (
                                     <div key={i} className="row ac jb" style={{ padding: '5px 0', borderBottom: i < Math.min(4, a.recs.length) - 1 ? '1px solid var(--line-soft)' : 0 }}>
                                       <span className="tiny truncate" style={{ maxWidth: 200 }}>{r.t}</span><span className="mono tiny" style={{ fontWeight: 700 }}>{r.skp} SKP</span>
                                     </div>
@@ -571,7 +571,7 @@ function FirmLicensing() {
               <table className="dtbl">
                 <thead><tr><th>Keanggotaan / Afiliasi</th><th>Tipe</th><th className="num">Iuran/thn</th><th>Berakhir</th><th>Status</th></tr></thead>
                 <tbody>
-                  {mb.map((m, i) => (
+                  {mb.map((m: any, i: any) => (
                     <tr key={i}>
                       <td style={{ fontWeight: 600, fontSize: 11.5 }}>{m.nama}</td>
                       <td className="tiny">{m.tipe}</td>
@@ -597,13 +597,13 @@ function FirmLicensing() {
               <SectionTitle right={<span className="mono tiny muted">{cal120.length} item ≤120 hari · terpadu</span>}>Jatuh Tempo Perpanjangan (Izin Firma · AP · Keanggotaan)</SectionTitle>
               <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>Satu kalender menarik tenggat dari semua sub-registri — konsisten dengan kalender kewajiban terpadu di <TrSrc module="firmops">Cockpit Operasi Firma</TrSrc>.</div>
               <div style={{ display: 'grid', gap: 10 }}>
-                {cal120.map((x, i) => {
+                {cal120.map((x: any, i: any) => {
                   const pct = Math.max(4, Math.min(100, 100 - (x.days / 120 * 100)));
                   const col = x.days < 30 ? 'var(--red)' : 'var(--amber)';
                   return (
                     <div key={i} className="panel" style={{ padding: '11px 13px' }}>
                       <div className="row jb ac" style={{ marginBottom: 6 }}>
-                        <span className="row ac gap8"><span className="badge" style={{ background: 'transparent', color: kindCol[x.kind], border: '1px solid currentColor', fontSize: 9.5 }}>{x.kind}</span><span style={{ fontWeight: 600, fontSize: 12.5 }}>{x.label}</span></span>
+                        <span className="row ac gap8"><span className="badge" style={{ background: 'transparent', color: (kindCol as any)[x.kind], border: '1px solid currentColor', fontSize: 9.5 }}>{x.kind}</span><span style={{ fontWeight: 600, fontSize: 12.5 }}>{x.label}</span></span>
                         <span className="mono tiny" style={{ fontWeight: 700, color: col }}>{x.days} hari lagi</span>
                       </div>
                       <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: pct + '%', height: '100%', borderRadius: 4, background: col }} /></div>

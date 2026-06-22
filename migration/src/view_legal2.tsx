@@ -16,7 +16,7 @@ import { LEGAL } from './data_legal';
 const { useState: useStateLgl2, useMemo: useMemoLgl2 } = React;
 
 /* ---------- timeline tenggat (dipakai Ikhtisar & tab Kewajiban) ---------- */
-function LglRenewalTimeline({ items, onSel }) {
+function LglRenewalTimeline({ items, onSel }: any) {
   const sorted = [...items].filter(c => c.end).sort((a, b) => LEGAL.daysTo(a.end) - LEGAL.daysTo(b.end));
   if (!sorted.length) return <div className="tiny muted" style={{ padding: 12 }}>Tidak ada kontrak dengan tenggat dalam jangkauan.</div>;
   return (
@@ -25,7 +25,7 @@ function LglRenewalTimeline({ items, onSel }) {
         const d = LEGAL.daysTo(c.end);
         const pct = Math.max(4, Math.min(100, 100 - (d / 180 * 100)));
         const col = d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--green)';
-        const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
+        const cat = (LGL_CAT as any)[c.category] || LGL_CAT.Layanan;
         return (
           <div key={c.id} className="panel" style={{ padding: '10px 12px', cursor: 'pointer' }} onClick={() => onSel && onSel(c)}>
             <div className="row jb ac" style={{ marginBottom: 6 }}>
@@ -56,25 +56,25 @@ function FirmLegal() {
   const register = useMemoLgl2(() => LEGAL.buildRegister(firm), [firm.engagements, firm.clients]);
   const legacy = useMemoLgl2(() => LEGAL.reconcileLegacy(firm), [firm.clients]);
   const disputes = BO.DISPUTES;
-  const selCase = disputes.find(d => d.id === selDispute);
+  const selCase = disputes.find((d: any) => d.id === selDispute);
 
-  const totalValue = register.reduce((s, c) => s + c.value, 0);
-  const renewSoon = register.filter(c => c.end && LEGAL.daysTo(c.end) <= 120);
-  const openLit = disputes.filter(d => d.status !== 'Putusan');
-  const exposure = openLit.reduce((s, d) => s + d.exposure, 0);
-  const driftCount = legacy.filter(r => r.state !== 'ok').length;
-  const okCount = legacy.filter(r => r.state === 'ok').length;
+  const totalValue = register.reduce((s: any, c: any) => s + c.value, 0);
+  const renewSoon = register.filter((c: any) => c.end && LEGAL.daysTo(c.end) <= 120);
+  const openLit = disputes.filter((d: any) => d.status !== 'Putusan');
+  const exposure = openLit.reduce((s: any, d: any) => s + d.exposure, 0);
+  const driftCount = legacy.filter((r: any) => r.state !== 'ok').length;
+  const okCount = legacy.filter((r: any) => r.state === 'ok').length;
 
   /* komposisi per kategori */
   const byCat = useMemoLgl2(() => {
     const m = {};
-    register.forEach(c => { (m[c.category] = m[c.category] || { n: 0, v: 0 }); m[c.category].n++; m[c.category].v += c.value; });
-    return Object.keys(m).map(k => ({ cat: k, ...m[k], color: (LGL_CAT[k] || {}).c }));
+    register.forEach((c: any) => { ((m as any)[c.category] = (m as any)[c.category] || { n: 0, v: 0 }); (m as any)[c.category].n++; (m as any)[c.category].v += c.value; });
+    return Object.keys(m).map(k => ({ cat: k, ...(m as any)[k], color: ((LGL_CAT as any)[k] || {}).c }));
   }, [register]);
 
-  const engLetters = register.filter(c => c.category === 'Perikatan');
-  const engTotal = engLetters.reduce((s, c) => s + c.value, 0);
-  const filteredReg = catFilter === 'all' ? register : register.filter(c => c.category === catFilter);
+  const engLetters = register.filter((c: any) => c.category === 'Perikatan');
+  const engTotal = engLetters.reduce((s: any, c: any) => s + c.value, 0);
+  const filteredReg = catFilter === 'all' ? register : register.filter((c: any) => c.category === catFilter);
 
   const tabs = [
     { id: 'overview', label: 'Ikhtisar' },
@@ -111,12 +111,12 @@ function FirmLegal() {
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
                 <Panel title="Komposisi Portofolio Kontrak" sub="berdasarkan kategori sumber">
                   <div className="row gap14" style={{ alignItems: 'center' }}>
-                    <Donut segments={byCat.map(x => ({ label: x.cat, value: Math.max(x.v, 1), color: x.color }))} size={118} thickness={17}
+                    <Donut segments={byCat.map((x: any) => ({ label: x.cat, value: Math.max(x.v, 1), color: x.color }))} size={118} thickness={17}
                       center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{register.length}</div><div className="tiny muted">kontrak</div></>} />
                     <div style={{ flex: 1 }}>
-                      {byCat.map(x => (
+                      {byCat.map((x: any) => (
                         <div key={x.cat} className="row jb ac" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                          <span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: x.color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{(LGL_CAT[x.cat] || {}).lbl || x.cat}</span><span className="tiny muted">· {x.n}</span></span>
+                          <span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: x.color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{((LGL_CAT as any)[x.cat] || {}).lbl || x.cat}</span><span className="tiny muted">· {x.n}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{x.v === 0 ? '—' : boJt(x.v)}</span>
                         </div>
                       ))}
@@ -147,7 +147,7 @@ function FirmLegal() {
                 </Panel>
                 <Panel title="Eksposur Litigasi" sub={openLit.length + ' perkara aktif'}>
                   <div style={{ display: 'grid', gap: 9 }}>
-                    {disputes.map(d => (
+                    {disputes.map((d: any) => (
                       <div key={d.id} className="row jb ac" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', cursor: 'pointer' }} onClick={() => { setSelDispute(d.id); setTab('dispute'); }}>
                         <div style={{ minWidth: 0 }}>
                           <div className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</span><BoBadge s={d.status} /></div>
@@ -169,17 +169,17 @@ function FirmLegal() {
                 <span className="tiny muted" style={{ fontWeight: 600 }}>Filter:</span>
                 <button className={'chip tiny' + (catFilter === 'all' ? ' on' : '')} onClick={() => setCatFilter('all')} style={{ cursor: 'pointer', background: catFilter === 'all' ? 'var(--navy)' : undefined, color: catFilter === 'all' ? '#fff' : undefined }}>Semua · {register.length}</button>
                 {Object.keys(LGL_CAT).map(k => {
-                  const n = register.filter(c => c.category === k).length;
+                  const n = register.filter((c: any) => c.category === k).length;
                   if (!n) return null;
-                  return <button key={k} className="chip tiny" onClick={() => setCatFilter(k)} style={{ cursor: 'pointer', background: catFilter === k ? LGL_CAT[k].c : undefined, color: catFilter === k ? '#fff' : undefined }}>{LGL_CAT[k].lbl} · {n}</button>;
+                  return <button key={k} className="chip tiny" onClick={() => setCatFilter(k)} style={{ cursor: 'pointer', background: catFilter === k ? (LGL_CAT as any)[k].c : undefined, color: catFilter === k ? '#fff' : undefined }}>{(LGL_CAT as any)[k].lbl} · {n}</button>;
                 })}
               </div>
               <table className="dtbl">
                 <thead><tr><th>ID</th><th>Pihak / Counterparty</th><th>Kategori</th><th className="num">Nilai</th><th>Berakhir</th><th>Sumber Kebenaran</th><th>Status</th></tr></thead>
                 <tbody>
-                  {filteredReg.map(c => {
+                  {filteredReg.map((c: any) => {
                     const d = c.end ? LEGAL.daysTo(c.end) : null;
-                    const cat = LGL_CAT[c.category] || LGL_CAT.Layanan;
+                    const cat = (LGL_CAT as any)[c.category] || LGL_CAT.Layanan;
                     return (
                       <tr key={c.id} onClick={() => setSel(c)} style={{ cursor: 'pointer' }} className={sel && sel.id === c.id ? 'sel' : ''}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: cat.c }}>{c.id}</td>
@@ -207,7 +207,7 @@ function FirmLegal() {
               <table className="dtbl">
                 <thead><tr><th>ID</th><th>Klien</th><th>Jenis Perikatan</th><th>Standar</th><th className="num">Nilai (fee)</th><th>Partner</th><th>Status</th><th>Tautan</th></tr></thead>
                 <tbody>
-                  {engLetters.map(c => (
+                  {engLetters.map((c: any) => (
                     <tr key={c.id}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
                       <td style={{ fontWeight: 600, fontSize: 11.5, cursor: 'pointer' }} onClick={() => setSel(c)}>{c.party}</td>
@@ -249,7 +249,7 @@ function FirmLegal() {
                 <table className="dtbl" style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--line)' }}>
                   <thead><tr><th>ID</th><th>Lawan / Perkara</th><th className="num">Eksposur</th><th>Risiko</th><th>Status</th></tr></thead>
                   <tbody>
-                    {disputes.map(d => (
+                    {disputes.map((d: any) => (
                       <tr key={d.id} className={d.id === selDispute ? 'sel' : ''} onClick={() => setSelDispute(d.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                         <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{d.lawan}</div><div className="tiny muted truncate" style={{ maxWidth: 220 }}>{d.perkara}</div></td>
@@ -278,8 +278,8 @@ function FirmLegal() {
                       </div>
                       <SectionTitle>Keterkaitan Lintas-Modul</SectionTitle>
                       <div style={{ display: 'grid', gap: 7 }}>
-                        {(LEGAL.DISPUTE_LINKS[selCase.id] || []).map((lk, i) => {
-                          const Ic = I[lk.icon] || I.link2;
+                        {((LEGAL.DISPUTE_LINKS as any)[selCase.id] || []).map((lk: any, i: any) => {
+                          const Ic = (I as any)[lk.icon] || I.link2;
                           return (
                             <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--red)' }} onClick={() => nav(lk.module, { from: 'legal' })} title={'Buka ' + lk.label}>
                               <span className="lin-ic" style={{ color: 'var(--red)' }}><Ic size={14} /></span>
@@ -303,10 +303,10 @@ function FirmLegal() {
               <table className="dtbl" style={{ marginBottom: 18 }}>
                 <thead><tr><th>Kontrak</th><th>Kategori</th><th className="num">Nilai (ditarik)</th><th>Modul Sumber</th><th>Status</th></tr></thead>
                 <tbody>
-                  {register.map(c => (
+                  {register.map((c: any) => (
                     <tr key={c.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{c.id}<div className="tiny muted" style={{ fontWeight: 400 }}>{c.party}</div></td>
-                      <td className="tiny">{(LGL_CAT[c.category] || {}).lbl}</td>
+                      <td className="tiny">{((LGL_CAT as any)[c.category] || {}).lbl}</td>
                       <td className="num">{c.value === 0 ? '—' : boJt(c.value)}</td>
                       <td><LglSourceChip kind={c.source.kind} id={c.source.id} onNav={nav} /></td>
                       <td><span className="badge b-green" style={{ textTransform: 'none' }}>✓ Tertaut</span></td>
@@ -324,7 +324,7 @@ function FirmLegal() {
               <table className="dtbl">
                 <thead><tr><th>Legacy</th><th>Pihak</th><th>Jenis</th><th className="num">Tercatat</th><th className="num">Sumber (SSOT)</th><th className="num">Selisih</th><th>Status</th><th></th></tr></thead>
                 <tbody>
-                  {legacy.map(r => {
+                  {legacy.map((r: any) => {
                     const diff = r.srcValue == null ? null : r.recorded - r.srcValue;
                     return (
                       <tr key={r.id} style={{ background: r.state === 'ok' ? undefined : r.state === 'drift' ? 'var(--amber-bg)' : 'var(--red-bg)' }}>
@@ -335,7 +335,7 @@ function FirmLegal() {
                         <td className="num">{r.srcValue == null ? '—' : boJt(r.srcValue)}</td>
                         <td className="num" style={{ color: diff ? 'var(--red)' : 'var(--ink-3)', fontWeight: diff ? 700 : 400 }}>{diff == null ? '—' : diff === 0 ? '0' : (diff > 0 ? '+' : '') + boJt(diff).replace('Rp ', '')}</td>
                         <td><ReconBadge state={r.state} /></td>
-                        <td>{r.src ? <button className="btn sm" style={{ height: 22 }} onClick={() => nav(LEGAL.SOURCE_META[r.src.kind].module, { from: 'legal' })}><I.arrowRight size={11} /> Sumber</button> : <span className="tiny muted">tinjau</span>}</td>
+                        <td>{r.src ? <button className="btn sm" style={{ height: 22 }} onClick={() => nav((LEGAL.SOURCE_META as any)[r.src.kind].module, { from: 'legal' })}><I.arrowRight size={11} /> Sumber</button> : <span className="tiny muted">tinjau</span>}</td>
                       </tr>
                     );
                   })}

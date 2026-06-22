@@ -44,7 +44,7 @@ function SA520View() {
     const flag = Math.abs(pct) > thr;
     return { ...r, diff, pct, flag };
   }), [thr]);
-  const flagged = rows.filter(r => r.flag).length;
+  const flagged = rows.filter((r: any) => r.flag).length;
 
   return (
     <>
@@ -92,23 +92,23 @@ function SA520View() {
 }
 
 /* ---------------- Tab: Analitis Substantif ---------------- */
-function F520Substantive({ rows, thr, setThr, flagged }) {
+function F520Substantive({ rows, thr, setThr, flagged }: any) {
   const [selId, setSelId] = useState520('AP-03');
-  const sel = rows.find(r => r.id === selId);
+  const sel = rows.find((r: any) => r.id === selId);
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
         <div className="panel-h"><h3>Pengembangan Ekspektasi & Ambang Selisih</h3><div style={{ flex: 1 }} />
           <div className="row ac gap10">
             <span className="tiny muted">Ambang yang dapat diterima</span>
-            <input type="range" min="1" max="5" step="0.5" value={thr} onChange={e => setThr(parseFloat(e.target.value))} style={{ width: 130, accentColor: 'var(--blue)' }} />
+            <input type="range" min="1" max="5" step="0.5" value={thr} onChange={(e: any) => setThr(parseFloat(e.target.value))} style={{ width: 130, accentColor: 'var(--blue)' }} />
             <span className="mono" style={{ fontWeight: 700, fontSize: 13, color: 'var(--blue)', minWidth: 42 }}>{thr.toFixed(1)}%</span>
           </div>
         </div>
         <table className="dtbl">
           <thead><tr><th style={{ width: 54 }}>Ref</th><th>Akun</th><th className="num">Ekspektasi</th><th className="num">Tercatat</th><th className="num">Selisih</th><th className="num">%</th><th style={{ width: 96 }}>Status</th></tr></thead>
           <tbody>
-            {rows.map(r => (
+            {rows.map((r: any) => (
               <tr key={r.id} className={r.id === selId ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                 <td style={{ fontWeight: 600 }}>{r.acct}<div className="tiny muted" style={{ fontWeight: 400 }}>{r.assertion}</div></td>

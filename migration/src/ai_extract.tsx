@@ -28,15 +28,15 @@ const { useState: useStateEX, useEffect: useEffectEX, useMemo: useMemoEX } = Rea
    1 · UTILITAS PARSING (deterministik, dari teks nyata)
    ------------------------------------------------------------ */
 const EX_MONTHS = 'Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember';
-const exUniq = (a) => a.filter((v, i) => v && a.indexOf(v) === i);
-const exClamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+const exUniq = (a: any) => a.filter((v: any, i: any) => v && a.indexOf(v) === i);
+const exClamp = (n: any, lo: any, hi: any) => Math.max(lo, Math.min(hi, n));
 
-function exLines(t) {
-  const out = [];
+function exLines(t: any) {
+  const out: any[] = [];
   String(t || '').split(/[\n\r]+/).forEach(l => l.split(/(?:\.\s+|;\s+|•\s*)/).forEach(s => { const v = s.trim(); if (v) out.push(v); }));
   return out;
 }
-function exDates(t) {
+function exDates(t: any) {
   const out = []; let m;
   const re = new RegExp('\\b(\\d{1,2})\\s+(' + EX_MONTHS + ')\\s+(\\d{4})\\b', 'gi');
   while ((m = re.exec(t))) out.push(m[0]);
@@ -44,24 +44,24 @@ function exDates(t) {
   while ((m = re2.exec(t))) out.push(m[0]);
   return exUniq(out);
 }
-function exAmounts(t) {
+function exAmounts(t: any) {
   const out = []; let m;
   const re = /Rp\.?\s?\d[\d.,]*(?:\s?(?:miliar|milyar|juta|ribu|jt|rb))?/gi;
   while ((m = re.exec(t))) out.push(m[0].replace(/\s+/g, ' ').trim());
   return exUniq(out);
 }
-function exParties(t) {
+function exParties(t: any) {
   const out = []; let m;
   const re = /\b(?:PT|CV|UD|Perum|Persero|Koperasi|Yayasan)\.?\s+[A-Z][\wÀ-ÿ&.\-]*(?:\s+[A-Z][\wÀ-ÿ&.\-]*){0,4}/g;
   while ((m = re.exec(t))) out.push(m[0].replace(/\s+/g, ' ').split(/\.\s/)[0].trim());
   return exUniq(out);
 }
-function exPercents(t) {
+function exPercents(t: any) {
   const out = []; let m; const re = /\b\d{1,3}(?:[.,]\d+)?\s?%/g;
   while ((m = re.exec(t))) out.push(m[0].replace(/\s+/g, ''));
   return exUniq(out);
 }
-function exKwLine(t, kws) {
+function exKwLine(t: any, kws: any) {
   const lines = exLines(t);
   for (const kw of kws) {
     for (const ln of lines) {
@@ -75,7 +75,7 @@ function exKwLine(t, kws) {
   }
   return null;
 }
-function exRunGet(text, f) {
+function exRunGet(text: any, f: any) {
   const t = String(text || '');
   let v = null;
   if (f.get === 'parties') { const p = exParties(t); v = p.length ? p.slice(0, 4).join(' · ') : null; }
@@ -187,7 +187,7 @@ const EX_SCHEMAS = {
 };
 
 /* peta std/dest → kind skema */
-function exKindFor(rec) {
+function exKindFor(rec: any) {
   const std = (rec && rec.std) || '';
   const type = ((rec && rec.type) || '').toLowerCase();
   if (/PSAK\s*73/i.test(std) || /sewa|lease/.test(type)) return 'lease';
@@ -200,12 +200,12 @@ function exKindFor(rec) {
 }
 
 /* mesin ekstraksi: text (atau contoh) → field terstruktur */
-function amsExtract(text, kind) {
-  const sc = EX_SCHEMAS[kind] || EX_SCHEMAS.generic;
+function amsExtract(text: any, kind: any) {
+  const sc = (EX_SCHEMAS as any)[kind] || EX_SCHEMAS.generic;
   const t = String(text || '').trim();
   const useSample = t.length < 30;
   const src = useSample ? sc.sample : t;
-  const fields = sc.fields.map((f, i) => {
+  const fields = sc.fields.map((f: any, i: any) => {
     let value = exRunGet(src, f);
     let source = useSample ? 'sample' : 'extracted';
     let conf = useSample ? 70 : exClamp(80 + ((src.length + i) % 16), 70, 97);
@@ -221,11 +221,11 @@ function amsExtract(text, kind) {
    ------------------------------------------------------------ */
 const EX_KEY = 'ams.v1.extractions';
 function exRead() { try { return JSON.parse(localStorage.getItem(EX_KEY) || '[]'); } catch (e) { return []; } }
-function exWrite(a) { try { localStorage.setItem(EX_KEY, JSON.stringify(a)); } catch (e) {} try { window.dispatchEvent(new CustomEvent('ams-extract')); } catch (e) {} }
+function exWrite(a: any) { try { localStorage.setItem(EX_KEY, JSON.stringify(a)); } catch (e) {} try { window.dispatchEvent(new CustomEvent('ams-extract')); } catch (e) {} }
 function amsExtractAll() { return exRead(); }
-function amsExtractForWp(ref) { return exRead().filter(r => r.wpRef === ref); }
-function amsExtractRemove(uid) { exWrite(exRead().filter(r => r.uid !== uid)); }
-function amsExtractAdd(rec) {
+function amsExtractForWp(ref: any) { return exRead().filter((r: any) => r.wpRef === ref); }
+function amsExtractRemove(uid: any) { exWrite(exRead().filter((r: any) => r.uid !== uid)); }
+function amsExtractAdd(rec: any) {
   const list = exRead();
   const full = Object.assign({ uid: 'ext-' + Date.now() + '-' + Math.round(Math.random() * 1e4), ts: exNowStamp() }, rec);
   exWrite([full, ...list]);
@@ -239,7 +239,7 @@ function exNowStamp() {
   try { return new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
   catch (e) { return new Date().toISOString(); }
 }
-function useExtractions(ref) {
+function useExtractions(ref: any) {
   const get = () => (ref ? amsExtractForWp(ref) : amsExtractAll());
   const [v, setV] = useStateEX(get);
   useEffectEX(() => {
@@ -259,8 +259,8 @@ const EX_SRC = {
   sample: { label: 'Contoh', cls: 'sample' },
   manual: { label: 'Disunting', cls: 'manual' },
 };
-function ExSourceBadge({ source, conf }) {
-  const s = EX_SRC[source] || EX_SRC.extracted;
+function ExSourceBadge({ source, conf }: any) {
+  const s = (EX_SRC as any)[source] || EX_SRC.extracted;
   return <span className={'exr-src ' + s.cls}>{s.label}{conf != null && source !== 'manual' ? ' · ' + conf + '%' : ''}</span>;
 }
 
@@ -282,8 +282,8 @@ function ExFieldRow({ f, onEdit, readOnly }: any) {
         <ExSourceBadge source={f.source} conf={f.conf} />
       </div>
       {multi
-        ? <textarea className="exr-input" rows={2} value={f.value} onChange={e => onEdit(f.key, e.target.value)} />
-        : <input className="exr-input" value={f.value} onChange={e => onEdit(f.key, e.target.value)} />}
+        ? <textarea className="exr-input" rows={2} value={f.value} onChange={(e: any) => onEdit(f.key, e.target.value)} />
+        : <input className="exr-input" value={f.value} onChange={(e: any) => onEdit(f.key, e.target.value)} />}
     </div>
   );
 }
@@ -303,7 +303,7 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
   const [saved, setSaved] = useStateEX(null);     /* record tersimpan */
   const llm = (typeof amsLLMConfig === 'function') ? amsLLMConfig() : null;
 
-  const run = (useSample) => {
+  const run = (useSample: any) => {
     setBusy(true);
     const input = useSample ? '' : text;
     setTimeout(() => {
@@ -312,12 +312,12 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
       setBusy(false);
     }, 520);
   };
-  const edit = (key, val) => setRes(prev => prev.map(f => f.key === key ? { ...f, value: val, source: 'manual' } : f));
+  const edit = (key: any, val: any) => setRes((prev: any) => prev.map((f: any) => f.key === key ? { ...f, value: val, source: 'manual' } : f));
 
-  const wpTitle = (wpRefsAll.find(w => w.ref === wpRef) || {}).title || sc.summary;
+  const wpTitle = (wpRefsAll.find((w: any) => w.ref === wpRef) || {}).title || sc.summary;
 
   const approve = () => {
-    const fields = res.map(f => ({ key: f.key, label: f.label, kind: f.kind, value: f.value, source: f.source, conf: f.conf }));
+    const fields = res.map((f: any) => ({ key: f.key, label: f.label, kind: f.kind, value: f.value, source: f.source, conf: f.conf }));
     const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
     const rc = amsExtractAdd({
       file: rec.file, kind, docLabel: sc.docLabel, std: sc.std, module: sc.module,
@@ -340,7 +340,7 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
           </div>
           <div className="exr-done-act">
             <button className="exr-btn primary" onClick={() => { if (typeof openCanonicalWp === 'function') openCanonicalWp(nav, wpRef); else nav('workpapers'); onClose && onClose(); }}><I.layers size={13} /> Buka Kertas Kerja {wpRef}</button>
-            <button className="exr-btn ghost" onClick={() => { nav(sc.module, { from: 'copilot' }); onClose && onClose(); }}>Buka modul {(MODULE_INDEX[sc.module] || {}).label || sc.module}</button>
+            <button className="exr-btn ghost" onClick={() => { nav(sc.module, { from: 'copilot' }); onClose && onClose(); }}>Buka modul {((MODULE_INDEX as any)[sc.module] || {}).label || sc.module}</button>
           </div>
         </div>
       </div>
@@ -351,7 +351,7 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
     <div className="msg ai wide">
       <div className="exr-card">
         <div className="exr-head">
-          <span className="exr-ic">{React.createElement(I[sc.icon] || I.doc, { size: 15 })}</span>
+          <span className="exr-ic">{React.createElement((I as any)[sc.icon] || I.doc, { size: 15 })}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="exr-file">{rec.file}</div>
             <div className="exr-sub">{sc.docLabel} · <span className="exr-std">{sc.std}</span></div>
@@ -362,7 +362,7 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
         {!res && (
           <>
             <div className="exr-lead"><I.sparkle size={12} /> Tempel isi dokumen untuk diekstrak, atau gunakan konten contoh.</div>
-            <textarea className="exr-paste" rows={4} value={text} onChange={e => setText(e.target.value)} placeholder={'Tempel teks ' + sc.docLabel.toLowerCase() + ' di sini…'} />
+            <textarea className="exr-paste" rows={4} value={text} onChange={(e: any) => setText(e.target.value)} placeholder={'Tempel teks ' + sc.docLabel.toLowerCase() + ' di sini…'} />
             <div className="exr-actions">
               <button className="exr-btn primary" disabled={busy} onClick={() => run(false)}>{busy ? 'Mengekstrak…' : <><I.sparkle size={13} /> Ekstrak isi</>}</button>
               <button className="exr-btn ghost" disabled={busy} onClick={() => { setText(sc.sample); run(true); }}>Gunakan contoh</button>
@@ -374,13 +374,13 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
           <>
             <div className="exr-fieldlead"><I.check size={12} /> {sc.summary} <span className="tiny muted">· tinjau & sunting sebelum disetujui</span></div>
             <div className="exr-fields">
-              {res.map(f => <ExFieldRow key={f.key} f={f} onEdit={edit} />)}
+              {res.map((f: any) => <ExFieldRow key={f.key} f={f} onEdit={edit} />)}
             </div>
 
             <div className="exr-route">
               <span className="tiny muted">Dokumentasikan ke Kertas Kerja</span>
-              <select className="exr-select" value={wpRef} onChange={e => setWpRef(e.target.value)}>
-                {wpRefsAll.map(w => <option key={w.ref} value={w.ref}>{w.ref} — {w.title}</option>)}
+              <select className="exr-select" value={wpRef} onChange={(e: any) => setWpRef(e.target.value)}>
+                {wpRefsAll.map((w: any) => <option key={w.ref} value={w.ref}>{w.ref} — {w.title}</option>)}
               </select>
             </div>
             <div className="exr-auditnote"><I.target size={11} /> {sc.audit}</div>
@@ -404,7 +404,7 @@ function ExtractReview({ rec, route, nav, onClose }: any) {
    6 · PANEL DI KERTAS KERJA — daftar ekstraksi terdokumentasi
    dipakai di view_wp.jsx (XrefTab)
    ------------------------------------------------------------ */
-function WpExtractions({ wpRef }) {
+function WpExtractions({ wpRef }: any) {
   const list = useExtractions(wpRef);
   const [open, setOpen] = useStateEX({});
   if (!list.length) return null;
@@ -416,11 +416,11 @@ function WpExtractions({ wpRef }) {
         <span className="tiny muted">{list.length} dokumen · disetujui auditor</span>
       </div>
       <div>
-        {list.map(r => {
+        {list.map((r: any) => {
           const isOpen = open[r.uid];
           return (
             <div key={r.uid} style={{ borderBottom: '1px solid var(--line-soft)' }}>
-              <div className="row ac gap10" style={{ padding: '9px 14px', cursor: 'pointer' }} onClick={() => setOpen(o => ({ ...o, [r.uid]: !o[r.uid] }))}>
+              <div className="row ac gap10" style={{ padding: '9px 14px', cursor: 'pointer' }} onClick={() => setOpen((o: any) => ({ ...o, [r.uid]: !o[r.uid] }))}>
                 <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.sparkle size={15} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{r.file}</div>
@@ -432,7 +432,7 @@ function WpExtractions({ wpRef }) {
               {isOpen && (
                 <div style={{ padding: '4px 14px 14px 54px' }}>
                   <div className="exr-fields ro">
-                    {r.fields.map(f => <ExFieldRow key={f.key} f={f} readOnly />)}
+                    {r.fields.map((f: any) => <ExFieldRow key={f.key} f={f} readOnly />)}
                   </div>
                   <div className="exr-trace" style={{ marginTop: 8 }}><I.lock size={10} /> Sumber: {r.basis} · model {r.provider} · disetujui {r.ts} · SA 230</div>
                 </div>

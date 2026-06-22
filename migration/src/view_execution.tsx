@@ -39,11 +39,11 @@ function WTBView() {
     if (exporting) return;
     setExporting(true);
     try {
-      const rows = wtb.map((r) => {
+      const rows = wtb.map((r: any) => {
         const yoy = r.ly !== 0 ? ((r.adj - r.ly) / Math.abs(r.ly)) * 100 : 0;
         return [r.code, r.name, r.group, r.lead, rp(r.ly), rp(r.unadj), r.aje ? rp(r.aje) : '—', rp(r.adj), fmt(yoy, 1) + '%'];
       });
-      const t = wtb.reduce((a, r) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
+      const t = wtb.reduce((a: any, r: any) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
       await amsExportXlsx({
         kind: 'wtb-register', scope: 'engagement', scopeId: activeEngagement?.id,
         fileName: `Working Trial Balance - ${activeClient?.name || 'Klien'}.xlsx`,
@@ -67,22 +67,22 @@ function WTBView() {
 
   // group rows
   const groups = useMemoX(() => {
-    const order = [];
+    const order: any[] = [];
     const map = {};
-    wtb.filter(r => q === '' || r.name.toLowerCase().includes(q.toLowerCase()) || r.code.includes(q)).forEach(r => {
-      if (!map[r.group]) { map[r.group] = []; order.push(r.group); }
-      map[r.group].push(r);
+    wtb.filter((r: any) => q === '' || r.name.toLowerCase().includes(q.toLowerCase()) || r.code.includes(q)).forEach((r: any) => {
+      if (!(map as any)[r.group]) { (map as any)[r.group] = []; order.push(r.group); }
+      (map as any)[r.group].push(r);
     });
-    return order.map(g => ({ name: g, rows: map[g] }));
+    return order.map(g => ({ name: g, rows: (map as any)[g] }));
   }, [wtb, q]);
 
   const totals = useMemoX(() => {
     const t = { ly: 0, unadj: 0, aje: 0, adj: 0 };
-    wtb.forEach(r => { t.ly += r.ly; t.unadj += r.unadj; t.aje += r.aje; t.adj += r.adj; });
+    wtb.forEach((r: any) => { t.ly += r.ly; t.unadj += r.unadj; t.aje += r.aje; t.adj += r.adj; });
     return t;
   }, [wtb]);
 
-  const num = (n) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
+  const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
 
   return (
     <>
@@ -100,7 +100,7 @@ function WTBView() {
           <div className="tabs" style={{ marginBottom: 12 }}>
             {WTB_TABS.map(t => <button key={t.id} className={'tab ' + (tab === t.id ? 'on' : '')} onClick={() => setTab(t.id)}>{t.label}{t.id === 'review' && summary.followup ? <span className="badge b-amber" style={{ marginLeft: 7, padding: '0 6px' }}>{summary.followup}</span> : null}</button>)}
           </div>
-          {tab === 'review' && <WtbAnalytical pm={pm} onOpenAccount={(r) => setDrill(r)} />}
+          {tab === 'review' && <WtbAnalytical pm={pm} onOpenAccount={(r: any) => setDrill(r)} />}
           {tab === 'group' && <WtbGrouping pm={pm} />}
           {tab === 'tb' && (<>
           {/* toolbar */}
@@ -108,7 +108,7 @@ function WTBView() {
             <div className="row ac gap8">
               <div className="global-search" style={{ background: 'var(--surface)', border: '1px solid var(--line)', height: 28, maxWidth: 240 }}>
                 <I.search2 size={14} style={{ color: 'var(--ink-4)' }} />
-                <input style={{ color: 'var(--ink)' }} placeholder="Cari akun / kode…" value={q} onChange={e => setQ(e.target.value)} />
+                <input style={{ color: 'var(--ink)' }} placeholder="Cari akun / kode…" value={q} onChange={(e: any) => setQ(e.target.value)} />
               </div>
               <span className="chip"><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} /> Balanced</span>
             </div>
@@ -134,12 +134,12 @@ function WTBView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {groups.map(g => {
-                    const gt = g.rows.reduce((a, r) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
+                  {groups.map((g: any) => {
+                    const gt = g.rows.reduce((a: any, r: any) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
                     const isCol = collapsed[g.name];
                     return (
                       <React.Fragment key={g.name}>
-                        <tr className="group-row" onClick={() => setCollapsed(c => ({ ...c, [g.name]: !c[g.name] }))} style={{ cursor: 'pointer' }}>
+                        <tr className="group-row" onClick={() => setCollapsed((c: any) => ({ ...c, [g.name]: !c[g.name] }))} style={{ cursor: 'pointer' }}>
                           <td colSpan={3}><span className="row ac gap6"><I.chevDown size={12} style={{ transform: isCol ? 'rotate(-90deg)' : 'none' }} />{g.name}</span></td>
                           <td className="num">{num(gt.ly)}</td>
                           <td className="num">{num(gt.unadj)}</td>
@@ -147,7 +147,7 @@ function WTBView() {
                           {showAdj && <td className="num">{num(gt.adj)}</td>}
                           <td className="num"></td>
                         </tr>
-                        {!isCol && g.rows.map(r => {
+                        {!isCol && g.rows.map((r: any) => {
                           const base = showAdj ? r.adj : r.unadj;
                           const yoy = r.ly !== 0 ? ((base - r.ly) / Math.abs(r.ly)) * 100 : 0;
                           const matFlag = Math.abs(base) > pm;
@@ -202,7 +202,7 @@ function WTBView() {
 }
 
 /* WTB account drill — synthetic sub-ledger transactions + lead schedule link */
-function WtbDrill({ row, onClose, nav }) {
+function WtbDrill({ row, onClose, nav }: any) {
   const { fmt } = AMS;
   const { aje } = useAudit();
   const [dtab, setDtab] = useStateX('ledger');
@@ -210,8 +210,8 @@ function WtbDrill({ row, onClose, nav }) {
   const txns = useMemoX(() => {
     const target = row.unadj;
     const n = 7;
-    const seed = row.code.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
-    const rnd = (i) => { const x = Math.sin(seed + i * 13.7) * 10000; return x - Math.floor(x); };
+    const seed = row.code.split('').reduce((s: any, c: any) => s + c.charCodeAt(0), 0);
+    const rnd = (i: any) => { const x = Math.sin(seed + i * 13.7) * 10000; return x - Math.floor(x); };
     const parties = ['PT Ritel Maju', 'PT Distribusi Andal', 'CV Sumber Rejeki', 'PT Niaga Sentosa', 'PT Mitra Dagang', 'CV Berkah Jaya', 'PT Aneka Pangan', 'PT Karya Utama'];
     const raw = Array.from({ length: n }, (_, i) => 0.4 + rnd(i) * 1.2);
     const sum = raw.reduce((a, b) => a + b, 0);
@@ -224,10 +224,10 @@ function WtbDrill({ row, onClose, nav }) {
       return { id: 'TXN-' + row.code.replace('-', '') + '-' + String(i + 1).padStart(3, '0'), date: `2025-12-${String(d).padStart(2, '0')}`, party: parties[(seed + i) % parties.length], ref: 'DOC-' + Math.floor(rnd(i + 7) * 9000 + 1000), amount: amt };
     });
   }, [row.code]);
-  const total = txns.reduce((s, t) => s + t.amount, 0);
-  const num = (n) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
-  const relAje = aje.filter(a => Array.isArray(a.lines)
-    ? a.lines.some(l => l.code === row.code)
+  const total = txns.reduce((s: any, t: any) => s + t.amount, 0);
+  const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
+  const relAje = aje.filter((a: any) => Array.isArray(a.lines)
+    ? a.lines.some((l: any) => l.code === row.code)
     : ((a.dr && a.dr.split(' ')[0] === row.code) || (a.cr && a.cr.split(' ')[0] === row.code)));
   const delta = row.adj - row.ly;
   const pct = row.ly !== 0 ? (delta / Math.abs(row.ly)) * 100 : null;
@@ -240,7 +240,7 @@ function WtbDrill({ row, onClose, nav }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 720, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 720, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
@@ -264,7 +264,7 @@ function WtbDrill({ row, onClose, nav }) {
           <table className="dtbl">
             <thead><tr><th>ID Transaksi</th><th>Tanggal</th><th>Pihak</th><th>Dokumen</th><th className="num">Jumlah</th></tr></thead>
             <tbody>
-              {txns.map(t => (
+              {txns.map((t: any) => (
                 <tr key={t.id}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{t.id}</td>
                   <td className="mono tiny muted">{new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
@@ -313,7 +313,7 @@ function WtbDrill({ row, onClose, nav }) {
                 : <table className="dtbl">
                     <thead><tr><th>No.</th><th>Deskripsi</th><th style={{ width: 50 }}>WP</th><th className="num" style={{ width: 120 }}>Jumlah</th><th style={{ width: 96 }}>Status</th></tr></thead>
                     <tbody>
-                      {relAje.map(a => (
+                      {relAje.map((a: any) => (
                         <tr key={a.id}>
                           <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
                           <td>{a.desc}</td>
@@ -344,13 +344,13 @@ function AJEViewLegacy() {
   const { fmt } = AMS;
   const { aje, toggleAjeStatus, addAje, wtb } = useAudit();
   const { locked } = useFirm();
-  const posted = aje.filter(a => a.status === 'Posted');
-  const proposed = aje.filter(a => a.status === 'Proposed');
-  const netPosted = posted.reduce((s, a) => s + a.amount, 0);
+  const posted = aje.filter((a: any) => a.status === 'Posted');
+  const proposed = aje.filter((a: any) => a.status === 'Proposed');
+  const netPosted = posted.reduce((s: any, a: any) => s + a.amount, 0);
   const [showForm, setShowForm] = useStateX(false);
   const [selId, setSelId] = useStateX(null);
 
-  const accounts = wtb.map(r => ({ code: r.code, name: r.name }));
+  const accounts = wtb.map((r: any) => ({ code: r.code, name: r.name }));
 
   return (
     <>
@@ -373,15 +373,15 @@ function AJEViewLegacy() {
                 <th>Debit</th><th>Kredit</th><th className="num" style={{ width: 130 }}>Jumlah (Rp)</th><th style={{ width: 100 }}>Status</th>
               </tr></thead>
               <tbody>
-                {aje.map(a => (
+                {aje.map((a: any) => (
                   <tr key={a.id} onClick={() => setSelId(selId === a.id ? null : a.id)} style={{ cursor: 'pointer' }} className={selId === a.id ? 'sel' : ''}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}{a.lines && <span title="Diposting ke WTB" style={{ marginLeft: 4, color: 'var(--green)' }}>●</span>}</td>
                     <td>{a.desc}</td>
                     <td><span className="chip tiny" style={{ height: 18, padding: '0 6px', fontFamily: 'var(--mono)' }}>{a.ref}</span></td>
-                    <td className="tiny mono muted">{a.lines ? a.lines.filter(l => +l.debit).map(l => l.code).join(', ') : a.dr}</td>
-                    <td className="tiny mono muted">{a.lines ? a.lines.filter(l => +l.credit).map(l => l.code).join(', ') : a.cr}</td>
+                    <td className="tiny mono muted">{a.lines ? a.lines.filter((l: any) => +l.debit).map((l: any) => l.code).join(', ') : a.dr}</td>
+                    <td className="tiny mono muted">{a.lines ? a.lines.filter((l: any) => +l.credit).map((l: any) => l.code).join(', ') : a.cr}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(a.amount)}</td>
-                    <td><span onClick={(e) => { e.stopPropagation(); if (!locked) toggleAjeStatus(a.id); }} style={{ cursor: locked ? 'default' : 'pointer' }}><Badge>{a.status}</Badge></span></td>
+                    <td><span onClick={(e: any) => { e.stopPropagation(); if (!locked) toggleAjeStatus(a.id); }} style={{ cursor: locked ? 'default' : 'pointer' }}><Badge>{a.status}</Badge></span></td>
                   </tr>
                 ))}
               </tbody>
@@ -389,12 +389,12 @@ function AJEViewLegacy() {
           </Panel>
 
           {selId && (() => {
-            const a = aje.find(x => x.id === selId);
+            const a = aje.find((x: any) => x.id === selId);
             const lines = a.lines || [
               { code: a.dr.split(' ')[0], name: a.dr, debit: a.amount, credit: 0 },
               { code: a.cr.split(' ')[0], name: a.cr, debit: 0, credit: a.amount },
             ];
-            const td = lines.reduce((s, l) => s + (+l.debit || 0), 0), tc = lines.reduce((s, l) => s + (+l.credit || 0), 0);
+            const td = lines.reduce((s: any, l: any) => s + (+l.debit || 0), 0), tc = lines.reduce((s: any, l: any) => s + (+l.credit || 0), 0);
             return (
               <Panel className="" noBody style={{ marginTop: 12 }}>
                 <div style={{ background: 'var(--surface-2)', padding: '10px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
@@ -404,7 +404,7 @@ function AJEViewLegacy() {
                 <table className="dtbl">
                   <thead><tr><th>Kode</th><th>Akun</th><th className="num">Debit</th><th className="num">Kredit</th></tr></thead>
                   <tbody>
-                    {lines.map((l, i) => (
+                    {lines.map((l: any, i: any) => (
                       <tr key={i}><td className="mono tiny">{l.code}</td><td>{l.name}</td><td className="num">{+l.debit ? fmt(+l.debit) : '—'}</td><td className="num">{+l.credit ? fmt(+l.credit) : '—'}</td></tr>
                     ))}
                   </tbody>
@@ -415,13 +415,13 @@ function AJEViewLegacy() {
           })()}
         </div>
       </div>
-      {showForm && <AJEForm accounts={accounts} onClose={() => setShowForm(false)} onPost={(entry) => { addAje(entry); setShowForm(false); }} />}
+      {showForm && <AJEForm accounts={accounts} onClose={() => setShowForm(false)} onPost={(entry: any) => { addAje(entry); setShowForm(false); }} />}
     </>
   );
 }
 
 /* ---- AJE double-entry form (modal) ---- */
-function AJEForm({ accounts, onClose, onPost }) {
+function AJEForm({ accounts, onClose, onPost }: any) {
   const { fmt } = AMS;
   const [desc, setDesc] = useStateX('');
   const [ref, setRef] = useStateX('');
@@ -430,29 +430,29 @@ function AJEForm({ accounts, onClose, onPost }) {
     { code: '', debit: '', credit: '' },
   ]);
 
-  const setLine = (i, patch) => setLines(ls => ls.map((l, idx) => idx === i ? { ...l, ...patch } : l));
-  const addLine = () => setLines(ls => [...ls, { code: '', debit: '', credit: '' }]);
-  const removeLine = (i) => setLines(ls => ls.length > 2 ? ls.filter((_, idx) => idx !== i) : ls);
+  const setLine = (i: any, patch: any) => setLines((ls: any) => ls.map((l: any, idx: any) => idx === i ? { ...l, ...patch } : l));
+  const addLine = () => setLines((ls: any) => [...ls, { code: '', debit: '', credit: '' }]);
+  const removeLine = (i: any) => setLines((ls: any) => ls.length > 2 ? ls.filter((_: any, idx: any) => idx !== i) : ls);
 
-  const td = lines.reduce((s, l) => s + (+l.debit || 0), 0);
-  const tc = lines.reduce((s, l) => s + (+l.credit || 0), 0);
+  const td = lines.reduce((s: any, l: any) => s + (+l.debit || 0), 0);
+  const tc = lines.reduce((s: any, l: any) => s + (+l.credit || 0), 0);
   const balanced = td > 0 && td === tc;
-  const allCoded = lines.every(l => !l.code || accounts.find(a => a.code === l.code));
-  const filledLines = lines.filter(l => l.code && ((+l.debit || 0) + (+l.credit || 0)) > 0);
+  const allCoded = lines.every((l: any) => !l.code || accounts.find((a: any) => a.code === l.code));
+  const filledLines = lines.filter((l: any) => l.code && ((+l.debit || 0) + (+l.credit || 0)) > 0);
   const valid = balanced && desc.trim() && filledLines.length >= 2;
 
   const post = () => {
     const entry = {
       desc: desc.trim(), ref: ref.trim() || 'JE',
       amount: Math.max(td, tc),
-      lines: filledLines.map(l => ({ code: l.code, name: accounts.find(a => a.code === l.code)?.name || l.code, debit: +l.debit || 0, credit: +l.credit || 0 })),
+      lines: filledLines.map((l: any) => ({ code: l.code, name: accounts.find((a: any) => a.code === l.code)?.name || l.code, debit: +l.debit || 0, credit: +l.credit || 0 })),
     };
     onPost(entry);
   };
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 680, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 680, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} />
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Posting langsung ke Working Trial Balance · ENG-2025-014</div></div>
@@ -460,24 +460,24 @@ function AJEForm({ accounts, onClose, onPost }) {
         </div>
         <div style={{ padding: 16, overflow: 'auto' }}>
           <div className="grid" style={{ gridTemplateColumns: '1fr 130px', gap: 10, marginBottom: 14 }}>
-            <div className="field"><label>Deskripsi Penyesuaian</label><input className="input" value={desc} onChange={e => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
-            <div className="field"><label>Ref. WP</label><input className="input mono" value={ref} onChange={e => setRef(e.target.value)} placeholder="D-4" /></div>
+            <div className="field"><label>Deskripsi Penyesuaian</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
+            <div className="field"><label>Ref. WP</label><input className="input mono" value={ref} onChange={(e: any) => setRef(e.target.value)} placeholder="D-4" /></div>
           </div>
 
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Baris Jurnal</div>
           <table className="dtbl" style={{ marginBottom: 8 }}>
             <thead><tr><th>Akun</th><th className="num" style={{ width: 140 }}>Debit</th><th className="num" style={{ width: 140 }}>Kredit</th><th style={{ width: 34 }}></th></tr></thead>
             <tbody>
-              {lines.map((l, i) => (
+              {lines.map((l: any, i: any) => (
                 <tr key={i}>
                   <td style={{ padding: '3px 6px' }}>
-                    <select className="select" style={{ width: '100%', height: 26 }} value={l.code} onChange={e => setLine(i, { code: e.target.value })}>
+                    <select className="select" style={{ width: '100%', height: 26 }} value={l.code} onChange={(e: any) => setLine(i, { code: e.target.value })}>
                       <option value="">— pilih akun —</option>
-                      {accounts.map(a => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}
+                      {accounts.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}
                     </select>
                   </td>
-                  <td style={{ padding: '3px 6px' }}><input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={l.debit} onChange={e => setLine(i, { debit: e.target.value, credit: e.target.value ? '' : l.credit })} placeholder="0" /></td>
-                  <td style={{ padding: '3px 6px' }}><input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={l.credit} onChange={e => setLine(i, { credit: e.target.value, debit: e.target.value ? '' : l.debit })} placeholder="0" /></td>
+                  <td style={{ padding: '3px 6px' }}><input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={l.debit} onChange={(e: any) => setLine(i, { debit: e.target.value, credit: e.target.value ? '' : l.credit })} placeholder="0" /></td>
+                  <td style={{ padding: '3px 6px' }}><input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={l.credit} onChange={(e: any) => setLine(i, { credit: e.target.value, debit: e.target.value ? '' : l.debit })} placeholder="0" /></td>
                   <td style={{ padding: '3px 6px' }}><button className="btn sm icon" onClick={() => removeLine(i)} disabled={lines.length <= 2} style={{ opacity: lines.length <= 2 ? .3 : 1 }}><I.x size={13} /></button></td>
                 </tr>
               ))}

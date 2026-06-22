@@ -23,7 +23,7 @@ const { useMemo: useMemoDG, useState: useStateDG, useEffect: useEffectDG } = Rea
    Kunci di server; egress di-redaksi ke teks temuan saja; di-rate-limit & diaudit.
    Degradasi anggun: proxy tak terkonfigurasi → pesan jujur, panel deterministik tetap.
    ============================================================ */
-let _llmStatusPromise = null;
+let _llmStatusPromise: any = null;
 function llmStatusCached() {
   if (!_llmStatusPromise) {
     _llmStatusPromise = (window.amsLlmStatus ? window.amsLlmStatus() : Promise.resolve({ configured: false, canUse: false }))
@@ -32,12 +32,12 @@ function llmStatusCached() {
   return _llmStatusPromise;
 }
 
-function useLlmNarration(findings) {
+function useLlmNarration(findings: any) {
   const [phase, setPhase] = useStateDG('idle'); // idle | loading | done | notconfigured | error
   const [text, setText] = useStateDG('');
   const [meta, setMeta] = useStateDG(null);
   const [status, setStatus] = useStateDG(null); // server status (configured/canUse/provider/model)
-  useEffectDG(() => { let live = true; llmStatusCached().then(st => { if (live) setStatus(st); }); return () => { live = false; }; }, []);
+  useEffectDG(() => { let live = true; llmStatusCached().then((st: any) => { if (live) setStatus(st); }); return () => { live = false; }; }, []);
   const run = async () => {
     if (!findings.length || !window.amsLlmNarrateDiagnostics) return;
     setPhase('loading'); setText(''); setMeta(null);
@@ -92,8 +92,8 @@ function DiagNarration({ findings }: any) {
 }
 
 /* normalisasi temuan crossChecks (ai_insights) → bentuk DiagFinding */
-function crossChecksAsFindings(audit) {
-  let cc = [];
+function crossChecksAsFindings(audit: any) {
+  let cc: any[] = [];
   try {
     cc = amsCrossChecks({
       aje: audit.aje, risks: audit.risks, wtb: audit.wtb, workpapers: audit.workpapers,
@@ -108,10 +108,10 @@ function crossChecksAsFindings(audit) {
 }
 
 /* hook bersama: jalankan mesin + crossChecks atas data live, filter per-area */
-function useDiagnostics(area?) {
+function useDiagnostics(area?: any) {
   const audit = useAudit();
   return useMemoDG(() => {
-    let all = [];
+    let all: any[] = [];
     try { all = amsDiagnostics({ aje: audit.aje, extraFindings: crossChecksAsFindings(audit) }); } catch (e) { all = []; }
     if (!area) return all;
     return all.filter(f => f.drillView === area || (f.modules || []).includes(area));
@@ -123,9 +123,9 @@ function useDiagDecisions() {
   const audit = useAudit();
   const [decisions, setDecisions] = window.useAmsPersist('diagnostics.v1', () => ({}));
   const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
-  const decide = (f, verdict, reason) => {
+  const decide = (f: any, verdict: any, reason: any) => {
     const when = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    setDecisions(d => ({ ...d, [f.id]: { verdict, who: USER.name, role: USER.role, when, reason: reason || '' } }));
+    setDecisions((d: any) => ({ ...d, [f.id]: { verdict, who: USER.name, role: USER.role, when, reason: reason || '' } }));
     if (audit.logActivity) audit.logActivity({
       who: USER.name,
       what: `${verdict === 'follow' ? 'menindaklanjuti' : 'menutup (abaikan)'} temuan diagnostik — ${f.title}${reason ? ' · ' + reason : ''}`,
@@ -135,21 +135,21 @@ function useDiagDecisions() {
   return { decisions, decide };
 }
 
-function diagSevCount(findings) {
+function diagSevCount(findings: any) {
   const c = { high: 0, med: 0, low: 0 };
-  findings.forEach(f => { if (c[f.sev] != null) c[f.sev]++; });
+  findings.forEach((f: any) => { if ((c as any)[f.sev] != null) (c as any)[f.sev]++; });
   return c;
 }
 
 function DiagFindingCard({ f, decision, onDecide, nav }: any) {
   const [mode, setMode] = useStateDG(null);
   const [reason, setReason] = useStateDG('');
-  const tone = (DIAG_SEV[f.sev] || DIAG_SEV.low).tone;
+  const tone = ((DIAG_SEV as any)[f.sev] || DIAG_SEV.low).tone;
   return (
     <div className="panel" style={{ padding: '11px 13px', borderLeft: `3px solid var(--${tone})`, opacity: decision ? 0.78 : 1 }}>
       <div className="row ac jb" style={{ gap: 8, marginBottom: 4 }}>
         <div className="row ac gap8" style={{ minWidth: 0 }}>
-          <Badge kind={tone} dot>{(DIAG_SEV[f.sev] || DIAG_SEV.low).label}</Badge>
+          <Badge kind={tone} dot>{((DIAG_SEV as any)[f.sev] || DIAG_SEV.low).label}</Badge>
           <span style={{ fontWeight: 700, fontSize: 12.5 }}>{f.title}</span>
         </div>
         <span className="tiny mono muted" style={{ flex: '0 0 auto' }}>{f.std}</span>
@@ -180,7 +180,7 @@ function DiagFindingCard({ f, decision, onDecide, nav }: any) {
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 6 }}>
-              <textarea className="input" rows={2} value={reason} onChange={e => setReason(e.target.value)}
+              <textarea className="input" rows={2} value={reason} onChange={(e: any) => setReason(e.target.value)}
                 placeholder="Alasan diabaikan / pertimbangan auditor (wajib dicatat)…"
                 style={{ width: '100%', padding: 8, fontFamily: 'var(--ui)', lineHeight: 1.4, resize: 'vertical' }} />
               <div className="row ac gap6">
@@ -201,8 +201,8 @@ function DiagnosticPanel({ area, title }: any) {
   const findings = useDiagnostics(area);
   const { decisions, decide } = useDiagDecisions();
   const [showDone, setShowDone] = useStateDG(false);
-  const open = findings.filter(f => !decisions[f.id]);
-  const done = findings.filter(f => decisions[f.id]);
+  const open = findings.filter((f: any) => !decisions[f.id]);
+  const done = findings.filter((f: any) => decisions[f.id]);
   const c = diagSevCount(open);   // badge = sebaran severity temuan TERBUKA (selaras "N terbuka")
   const list = showDone ? findings : open;
   return (
@@ -214,14 +214,14 @@ function DiagnosticPanel({ area, title }: any) {
           <Badge kind="amber">{c.med} Sedang</Badge>
           <Badge kind="blue">{c.low} Rendah</Badge>
         </div>
-        {done.length > 0 && <button className="btn sm" onClick={() => setShowDone(s => !s)}>{showDone ? 'Sembunyikan diputuskan' : `Tampilkan ${done.length} diputuskan`}</button>}
+        {done.length > 0 && <button className="btn sm" onClick={() => setShowDone((s: any) => !s)}>{showDone ? 'Sembunyikan diputuskan' : `Tampilkan ${done.length} diputuskan`}</button>}
       </div>
       {open.length > 0 && <DiagNarration findings={open} />}
       {findings.length === 0
         ? <div className="tiny muted" style={{ padding: '4px 0' }}><I.check size={12} /> Tidak ada temuan diagnostik{area ? ' untuk area ini' : ''}.</div>
         : list.length === 0
           ? <div className="tiny muted" style={{ padding: '4px 0' }}><I.checkCircle size={13} /> Semua temuan telah diputuskan auditor.</div>
-          : <div style={{ display: 'grid', gap: 9 }}>{list.map(f => <DiagFindingCard key={f.id} f={f} decision={decisions[f.id]} onDecide={decide} nav={nav} />)}</div>}
+          : <div style={{ display: 'grid', gap: 9 }}>{list.map((f: any) => <DiagFindingCard key={f.id} f={f} decision={decisions[f.id]} onDecide={decide} nav={nav} />)}</div>}
       <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>
         <I.lock size={10} /> Temuan dihitung dari data kanonik · tiap keputusan tercatat untuk reviu mutu (ISQM 1).
       </div>

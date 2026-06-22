@@ -121,7 +121,7 @@ function PSAK24View() {
   const procs = avail ? P24_PROC_AVAIL : P24_PROC_NONE;
   const doneMap = avail ? doneA : doneN;
   const setDone = avail ? setDoneA : setDoneN;
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = procs.filter(p => doneMap[p.id]).length;
   const score = Math.round((doneCount / procs.length) * 100);
 
@@ -198,7 +198,7 @@ function PSAK24View() {
                 <div className="panel-h"><h3>Rekonsiliasi Liabilitas Imbalan Pasti</h3><span className="sub mono">roll-forward · ¶140–141</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                 <div>
                   {P24_RECON.map((r, i) => {
-                    const b = P24_BUCKET[r.bucket];
+                    const b = (P24_BUCKET as any)[r.bucket];
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P24_RECON.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
@@ -384,7 +384,7 @@ function PSAK24View() {
                     ['sad', 'scale', 'SAD Ledger · Evaluasi Salah Saji'],
                     ['compmatrix', 'table', 'Matriks Kepatuhan'],
                   ].map(([id, ic, lbl]) => {
-                    const IconC = I[ic] || I.doc;
+                    const IconC = (I as any)[ic] || I.doc;
                     return (
                       <button key={id} onClick={() => nav(id, { from: 'psak24' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>

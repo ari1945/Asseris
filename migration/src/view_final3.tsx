@@ -157,7 +157,7 @@ const ML_SECTIONS = [
   ['5', 'Rekomendasi', 'rec'],
   ['6', 'Tanggapan Manajemen', 'resp'],
 ];
-const idDate = (s) => {
+const idDate = (s: any) => {
   if (!s) return '—';
   try { return new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
   catch (e) { return s; }
@@ -173,7 +173,7 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
       )}
       <div className="row jb ac" style={{ marginBottom: 6, gap: 10 }}>
         <span style={{ fontWeight: 800, fontSize: 13.5, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
-        <Badge kind={ML_SEV_KIND[f.sev]}>{f.sev}</Badge>
+        <Badge kind={(ML_SEV_KIND as any)[f.sev]}>{f.sev}</Badge>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 10.5, color: '#6a7a85', marginBottom: 16, paddingBottom: 13, borderBottom: '1px dashed #e0e4e8' }}>
         {[['Area', f.area], ['Acuan', f.ref], ['Penanggung Jawab', f.pic], ['Target Tindak Lanjut', f.target]].map(([l, v]) => (
@@ -192,7 +192,7 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
               <div
                 contentEditable={editing}
                 suppressContentEditableWarning
-                onBlur={editing ? (e => setField(f.id, key, e.currentTarget.textContent)) : undefined}
+                onBlur={editing ? ((e: any) => setField(f.id, key, e.currentTarget.textContent)) : undefined}
                 style={{ fontSize: 12, lineHeight: 1.62, color: isResp ? '#2a3a44' : '#16242c', outline: editing ? '1px dashed #9fc0d2' : 'none', borderRadius: 4, padding: editing ? '4px 7px' : 0, background: editing ? '#fffef5' : 'transparent', cursor: editing ? 'text' : 'default' }}
               >{f[key]}</div>
             </div>
@@ -204,13 +204,13 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
 }
 
 /* ---------------- Discussion thread ---------------- */
-function MLDiscussionThread({ items, onAdd }) {
+function MLDiscussionThread({ items, onAdd }: any) {
   const [draft, setDraft] = useStateF3('');
   const [role, setRole] = useStateF3('auditor');
   return (
     <div>
       <div style={{ display: 'grid', gap: 10, paddingBottom: 4 }}>
-        {(items || []).map((m, i) => {
+        {(items || []).map((m: any, i: any) => {
           const isAud = m.role === 'auditor';
           const isDecision = /KEPUTUSAN/i.test(m.note);
           return (
@@ -235,7 +235,7 @@ function MLDiscussionThread({ items, onAdd }) {
           <span style={{ flex: 1 }} />
           <Seg options={[{ value: 'auditor', label: 'Auditor' }, { value: 'client', label: 'Klien' }]} value={role} onChange={setRole} />
         </div>
-        <textarea className="input" value={draft} onChange={e => setDraft(e.target.value)} placeholder="Catatan diskusi, kesepakatan, atau tanggapan tertulis…" style={{ width: '100%', minHeight: 60, padding: 9, resize: 'vertical', borderRadius: 6 }} />
+        <textarea className="input" value={draft} onChange={(e: any) => setDraft(e.target.value)} placeholder="Catatan diskusi, kesepakatan, atau tanggapan tertulis…" style={{ width: '100%', minHeight: 60, padding: 9, resize: 'vertical', borderRadius: 6 }} />
         <div className="row jb ac" style={{ marginTop: 7 }}>
           <span className="tiny muted">Catatan akan terstempel waktu &amp; pengguna aktif.</span>
           <Btn sm variant="primary" onClick={() => { if (!draft.trim()) return; onAdd({ d: today(), who: role === 'auditor' ? 'Linda Wijaya' : 'Wakil Klien', role, org: role === 'auditor' ? 'Manager Audit' : 'Klien', note: draft.trim() }); setDraft(''); }}><I.send size={13} /> Catat</Btn>
@@ -246,7 +246,7 @@ function MLDiscussionThread({ items, onAdd }) {
 }
 
 /* ---------------- Decision panel ---------------- */
-function MLDecisionPanel({ f, onDecide, onReopen }) {
+function MLDecisionPanel({ f, onDecide, onReopen }: any) {
   const [note, setNote] = useStateF3('');
   const decided = f.stage === 'final' || f.stage === 'tuntas';
   return (
@@ -254,7 +254,7 @@ function MLDecisionPanel({ f, onDecide, onReopen }) {
       {decided ? (
         <div style={{ padding: '4px 2px' }}>
           <div className="row ac gap8" style={{ marginBottom: 8 }}>
-            <Badge kind={ML_STAGE[f.stage].kind}>{f.stage === 'final' ? <><I.check size={11} /> Masuk Final ML</> : <><I.x size={11} /> Tuntas — Dikeluarkan</>}</Badge>
+            <Badge kind={(ML_STAGE as any)[f.stage].kind}>{f.stage === 'final' ? <><I.check size={11} /> Masuk Final ML</> : <><I.x size={11} /> Tuntas — Dikeluarkan</>}</Badge>
           </div>
           <div style={{ display: 'grid', gap: 5, fontSize: 11.5, marginBottom: 10 }}>
             <div><span className="tiny muted upper">Tanggal &nbsp;</span><b>{idDate(f.decisionDate)}</b></div>
@@ -268,7 +268,7 @@ function MLDecisionPanel({ f, onDecide, onReopen }) {
           <div className="tiny muted" style={{ marginBottom: 9, lineHeight: 1.5 }}>
             Pilih keputusan setelah diskusi selesai. <b>Tuntas</b> berarti temuan diselesaikan saat diskusi dan <b>tidak akan dicantumkan</b> pada surat akhir.
           </div>
-          <textarea className="input" value={note} onChange={e => setNote(e.target.value)} placeholder="Alasan keputusan (wajib dicatat untuk jejak audit)…" style={{ width: '100%', minHeight: 64, padding: 9, resize: 'vertical', borderRadius: 6, marginBottom: 8 }} />
+          <textarea className="input" value={note} onChange={(e: any) => setNote(e.target.value)} placeholder="Alasan keputusan (wajib dicatat untuk jejak audit)…" style={{ width: '100%', minHeight: 64, padding: 9, resize: 'vertical', borderRadius: 6, marginBottom: 8 }} />
           <div style={{ display: 'grid', gap: 6 }}>
             <button className="btn primary" style={{ width: '100%', justifyContent: 'center' }} disabled={!note.trim()} onClick={() => onDecide('final', note.trim())}>
               <I.check size={14} /> Masuk Final ML
@@ -285,8 +285,8 @@ function MLDecisionPanel({ f, onDecide, onReopen }) {
 }
 
 /* ---------------- Findings list (sidebar) ---------------- */
-function MLFindingList({ findings, selId, onSel, filter, onFilter }) {
-  const filtered = useMemoF3(() => filter === 'all' ? findings : findings.filter(f => f.stage === filter), [findings, filter]);
+function MLFindingList({ findings, selId, onSel, filter, onFilter }: any) {
+  const filtered = useMemoF3(() => filter === 'all' ? findings : findings.filter((f: any) => f.stage === filter), [findings, filter]);
   return (
     <Panel title="Daftar Temuan" sub={`${findings.length} total`}>
       <div className="row gap6 ac wrap" style={{ padding: '0 0 8px', marginBottom: 4 }}>
@@ -295,16 +295,16 @@ function MLFindingList({ findings, selId, onSel, filter, onFilter }) {
         ))}
       </div>
       <div style={{ display: 'grid', gap: 2 }}>
-        {filtered.map(f => (
+        {filtered.map((f: any) => (
           <div key={f.id} onClick={() => onSel(f.id)} style={{ padding: '9px 10px', borderRadius: 7, cursor: 'pointer', background: f.id === selId ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (f.id === selId ? 'var(--blue)' : 'transparent') }}>
             <div className="row jb ac" style={{ marginBottom: 3 }}>
               <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.id}</span>
-              <Badge kind={ML_SEV_KIND[f.sev]}>{f.sev}</Badge>
+              <Badge kind={(ML_SEV_KIND as any)[f.sev]}>{f.sev}</Badge>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, marginBottom: 4 }}>{f.title}</div>
             <div className="row jb ac">
               <span className="tiny muted">{f.area}</span>
-              <Badge kind={ML_STAGE[f.stage].kind}>{ML_STAGE[f.stage].label}</Badge>
+              <Badge kind={(ML_STAGE as any)[f.stage].kind}>{(ML_STAGE as any)[f.stage].label}</Badge>
             </div>
           </div>
         ))}
@@ -315,42 +315,42 @@ function MLFindingList({ findings, selId, onSel, filter, onFilter }) {
 }
 
 /* ---------------- Workflow view: discussion + decision ---------------- */
-function MLWorkflowFull(props) {
+function MLWorkflowFull(props: any) {
   const { findings, discussions, selId, setSelId, setField, addDiscussion, setStage, filter, setFilter, editing, setEditing } = props;
   const [innerTab, setInnerTab] = useStateF3('detail');
-  const sel = findings.find(f => f.id === selId);
+  const sel = findings.find((f: any) => f.id === selId);
   return (
     <div className="grid" style={{ gridTemplateColumns: '300px 1fr 320px', gap: 12, alignItems: 'start' }}>
-      <MLFindingList findings={findings} selId={selId} onSel={(id) => { setSelId(id); }} filter={filter} onFilter={setFilter} />
+      <MLFindingList findings={findings} selId={selId} onSel={(id: any) => { setSelId(id); }} filter={filter} onFilter={setFilter} />
 
       {sel ? (
         <Panel noBody>
           <div className="panel-h">
             <h3>{sel.id} · <span style={{ fontWeight: 500, color: 'var(--ink-2)' }}>{sel.title}</span></h3>
             <div style={{ flex: 1 }} />
-            <Badge kind={ML_STAGE[sel.stage].kind}>{ML_STAGE[sel.stage].label}</Badge>
-            <Btn sm onClick={() => setEditing(e => !e)} variant={editing ? 'primary' : ''}>{editing ? <><I.check size={12} /> Selesai</> : <><I.doc size={12} /> Edit Teks</>}</Btn>
+            <Badge kind={(ML_STAGE as any)[sel.stage].kind}>{(ML_STAGE as any)[sel.stage].label}</Badge>
+            <Btn sm onClick={() => setEditing((e: any) => !e)} variant={editing ? 'primary' : ''}>{editing ? <><I.check size={12} /> Selesai</> : <><I.doc size={12} /> Edit Teks</>}</Btn>
           </div>
           <div style={{ borderBottom: '1px solid var(--line)', padding: '0 14px', display: 'flex', gap: 0 }}>
             {[['detail', 'Detail 6-Unsur', 'doc'], ['diskusi', `Diskusi Klien (${(discussions[selId] || []).length})`, 'mail']].map(([id, label, ic]) => (
               <button key={id} className={'tab' + (innerTab === id ? ' on' : '')} onClick={() => setInnerTab(id)}>
-                <span className="row ac gap6">{I[ic] && React.createElement(I[ic], { size: 12 })} {label}</span>
+                <span className="row ac gap6">{(I as any)[ic] && React.createElement((I as any)[ic], { size: 12 })} {label}</span>
               </button>
             ))}
           </div>
           <div style={{ padding: '16px 20px 20px', maxHeight: 'calc(100vh - 280px)', overflow: 'auto' }}>
             {innerTab === 'detail' && <MLFinding f={sel} editing={editing} setField={setField} />}
-            {innerTab === 'diskusi' && <MLDiscussionThread items={discussions[selId]} onAdd={(m) => addDiscussion(selId, m)} />}
+            {innerTab === 'diskusi' && <MLDiscussionThread items={discussions[selId]} onAdd={(m: any) => addDiscussion(selId, m)} />}
           </div>
         </Panel>
       ) : <Panel><div className="muted" style={{ padding: 18 }}>Pilih temuan dari daftar di kiri.</div></Panel>}
 
       {sel && (
         <div style={{ display: 'grid', gap: 12 }}>
-          <MLDecisionPanel f={sel} onDecide={(stage, note) => setStage(sel.id, stage, note)} onReopen={() => setStage(sel.id, 'diskusi', '')} />
+          <MLDecisionPanel f={sel} onDecide={(stage: any, note: any) => setStage(sel.id, stage, note)} onReopen={() => setStage(sel.id, 'diskusi', '')} />
           <Panel title="Klasifikasi (SA 265)">
             <div style={{ display: 'grid', gap: 7, fontSize: 11.5, padding: '2px 0' }}>
-              <div className="row jb ac"><span className="muted">Severitas</span><Badge kind={ML_SEV_KIND[sel.sev]}>{sel.sev}</Badge></div>
+              <div className="row jb ac"><span className="muted">Severitas</span><Badge kind={(ML_SEV_KIND as any)[sel.sev]}>{sel.sev}</Badge></div>
               <div className="row jb ac"><span className="muted">Area</span><b>{sel.area}</b></div>
               <div className="row jb ac"><span className="muted">Acuan</span><b className="mono tiny">{sel.ref}</b></div>
               <div className="row jb ac"><span className="muted">PIC Klien</span><b>{sel.pic}</b></div>
@@ -371,9 +371,9 @@ function MLWorkflowFull(props) {
 }
 
 /* ---------------- Letter preview ---------------- */
-function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing, setField, allFindings }) {
-  const visible = viewMode === 'final' ? findings.filter(f => f.stage === 'final') : findings.filter(f => f.stage !== 'tuntas');
-  const excluded = allFindings.filter(f => f.stage === 'tuntas');
+function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing, setField, allFindings }: any) {
+  const visible = viewMode === 'final' ? findings.filter((f: any) => f.stage === 'final') : findings.filter((f: any) => f.stage !== 'tuntas');
+  const excluded = allFindings.filter((f: any) => f.stage === 'tuntas');
   return (
     <div style={{ background: '#e7eaef', padding: 18 }}>
       <div className="doc-paper" style={{ background: '#fff', maxWidth: 760, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c', lineHeight: 1.6 }}>
@@ -409,7 +409,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
         <div style={{ background: '#f7f9fb', border: '1px solid #e0e7ee', borderRadius: 8, padding: '12px 16px', margin: '14px 0 20px' }}>
           <div style={{ fontSize: 10.5, color: '#005085', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 7 }}>Daftar Pokok Temuan</div>
           <ol style={{ margin: 0, paddingLeft: 20, fontSize: 11.5, lineHeight: 1.7 }}>
-            {visible.map(f => (
+            {visible.map((f: any) => (
               <li key={f.id} style={{ marginBottom: 2 }}>
                 <b style={{ color: '#0c2430' }}>{f.title}</b> <span style={{ color: '#7a8893' }}>— {f.sev} · {f.area}</span>
               </li>
@@ -418,7 +418,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
           </ol>
         </div>
 
-        {visible.map((f, i) => (
+        {visible.map((f: any, i: any) => (
           <div key={f.id} style={{ borderTop: '1px solid #e0e4e8', paddingTop: 18, marginTop: i ? 22 : 0 }}>
             <MLFinding f={f} editing={editing} setField={setField} idx={i} total={visible.length} />
           </div>
@@ -428,7 +428,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
           <div style={{ marginTop: 26, paddingTop: 16, borderTop: '1px dashed #c0cad3' }}>
             <div style={{ fontSize: 10.5, color: '#1f7a4d', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 9 }}>Tuntas Saat Diskusi — Tidak Dicantumkan pada Surat Akhir</div>
             <div style={{ display: 'grid', gap: 8 }}>
-              {excluded.map(f => (
+              {excluded.map((f: any) => (
                 <div key={f.id} style={{ padding: '10px 12px', background: '#f3f9f5', border: '1px solid #cfe6d8', borderRadius: 6 }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}>
                     <b style={{ fontSize: 12, color: '#0c2430' }}>{f.id} · {f.title}</b>
@@ -456,14 +456,14 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
 }
 
 /* ---------------- Stat strip ---------------- */
-function MLStatStrip({ findings }) {
+function MLStatStrip({ findings }: any) {
   const c = {
     total: findings.length,
-    draft: findings.filter(f => f.stage === 'draft').length,
-    diskusi: findings.filter(f => f.stage === 'diskusi').length,
-    final: findings.filter(f => f.stage === 'final').length,
-    tuntas: findings.filter(f => f.stage === 'tuntas').length,
-    sig: findings.filter(f => f.sev === 'Significant' && f.stage === 'final').length,
+    draft: findings.filter((f: any) => f.stage === 'draft').length,
+    diskusi: findings.filter((f: any) => f.stage === 'diskusi').length,
+    final: findings.filter((f: any) => f.stage === 'final').length,
+    tuntas: findings.filter((f: any) => f.stage === 'tuntas').length,
+    sig: findings.filter((f: any) => f.sev === 'Significant' && f.stage === 'final').length,
   };
   return (
     <Panel noBody>
@@ -500,9 +500,9 @@ function ManagementLetter() {
   const [editing, setEditing] = useStateF3(false);
   const [previewMode, setPreviewMode] = useStateF3('final');
 
-  const setField = (id, k, v) => setFindings(list => list.map(f => f.id === id ? { ...f, [k]: v } : f));
-  const setStage = (id, stage, note) => {
-    setFindings(list => list.map(f => f.id === id ? {
+  const setField = (id: any, k: any, v: any) => setFindings((list: any) => list.map((f: any) => f.id === id ? { ...f, [k]: v } : f));
+  const setStage = (id: any, stage: any, note: any) => {
+    setFindings((list: any) => list.map((f: any) => f.id === id ? {
       ...f,
       stage,
       decisionDate: stage === 'diskusi' ? '' : today(),
@@ -514,13 +514,13 @@ function ManagementLetter() {
         d: today(), who: 'Linda Wijaya', role: 'auditor', org: 'Manager Audit',
         note: 'KEPUTUSAN: ' + (stage === 'final' ? 'Masuk Final ML' : 'Tuntas — dikeluarkan dari surat akhir') + '. ' + note,
       };
-      setDiscussions(prev => ({ ...prev, [id]: [...(prev[id] || []), stamp] }));
+      setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), stamp] }));
     }
   };
-  const addDiscussion = (id, m) => setDiscussions(prev => ({ ...prev, [id]: [...(prev[id] || []), m] }));
+  const addDiscussion = (id: any, m: any) => setDiscussions((prev: any) => ({ ...prev, [id]: [...(prev[id] || []), m] }));
 
-  const finalCount = findings.filter(f => f.stage === 'final').length;
-  const pendingCount = findings.filter(f => f.stage === 'diskusi' || f.stage === 'draft').length;
+  const finalCount = findings.filter((f: any) => f.stage === 'final').length;
+  const pendingCount = findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length;
 
   return (
     <>
@@ -541,7 +541,7 @@ function ManagementLetter() {
             ['preview', 'Pratinjau Surat', 'doc', finalCount],
           ].map(([id, label, ic, count]) => (
             <button key={id} className={'msub-tab' + (tab === id ? ' on' : '')} onClick={() => setTab(id)}>
-              <span className="row ac gap6">{I[ic] && React.createElement(I[ic], { size: 13 })} {label}</span>
+              <span className="row ac gap6">{(I as any)[ic] && React.createElement((I as any)[ic], { size: 13 })} {label}</span>
               {count > 0 && <span className="mscount">{count}</span>}
             </button>
           ))}

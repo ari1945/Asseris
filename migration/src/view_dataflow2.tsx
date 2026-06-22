@@ -55,13 +55,13 @@ function DFAturan() {
             <thead><tr><th>ID</th><th>Aturan</th><th>Kategori</th><th>Severitas</th><th>Cakupan</th><th>Status</th><th>Detail</th></tr></thead>
             <tbody>
               {rows.map((r: any) => {
-                const st = DF2_STAT[r.status];
+                const st = (DF2_STAT as any)[r.status];
                 return (
                   <tr key={r.id}>
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                     <td style={{ fontWeight: 600, maxWidth: 240 }} className="truncate">{r.rule}</td>
                     <td className="tiny muted">{r.cat}</td>
-                    <td><span className="badge" style={{ background: DF2_SEV[r.severity], color: '#fff', fontSize: 9 }}>{r.severity}</span></td>
+                    <td><span className="badge" style={{ background: (DF2_SEV as any)[r.severity], color: '#fff', fontSize: 9 }}>{r.severity}</span></td>
                     <td className="tiny">{r.scope}</td>
                     <td><Badge kind={st.c}>{st.l}</Badge></td>
                     <td className="tiny muted truncate" style={{ maxWidth: 180 }}>{r.detail}</td>
@@ -115,7 +115,7 @@ function DFPropagasi() {
           <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8, flex: 1 }}>
             {modules.map((m: any) => (
               <div key={m.id} onClick={() => nav(m.id)} className="panel" style={{ padding: '10px 12px', boxShadow: 'none', cursor: 'pointer' }}>
-                <div className="row ac gap8"><span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}>{React.createElement(I[m.icon] || I.panel, { size: 15 })}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{m.label}</span></div>
+                <div className="row ac gap8"><span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}>{React.createElement((I as any)[m.icon] || I.panel, { size: 15 })}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{m.label}</span></div>
               </div>
             ))}
           </div>
@@ -133,7 +133,7 @@ function DFPropagasi() {
                   <td style={{ fontWeight: 600 }}>{f}</td>
                   {modules.map((m: any) => (
                     <td key={m.id} className="num" style={{ textAlign: 'center' }}>
-                      {M[f].includes(m.id) ? <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue)', display: 'inline-block' }} /> : <span className="muted">·</span>}
+                      {(M as any)[f].includes(m.id) ? <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue)', display: 'inline-block' }} /> : <span className="muted">·</span>}
                     </td>
                   ))}
                 </tr>
@@ -178,7 +178,7 @@ function DFJejak() {
           <div style={{ maxHeight: 480, overflow: 'auto' }}>
             {rows.map((t, i) => (
               <div key={i} className="row gap10" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line-soft)' }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: (modColor[t.module] || '#5b8aa6'), color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.pulse size={14} /></span>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: ((modColor as any)[t.module] || '#5b8aa6'), color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.pulse size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5 }}><b>{t.user}</b> — {t.action}</div>
                   <div className="tiny muted">{t.entity}</div>

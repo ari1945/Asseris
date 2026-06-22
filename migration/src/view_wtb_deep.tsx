@@ -41,14 +41,14 @@ const DEFAULT_EXPL = {
   '5-5100': 'Sejalan kenaikan laba sebelum pajak; rekonsiliasi fiskal & tarif efektif di-review (WP W).',
 };
 
-const grpKind = (g) => g.startsWith('Aset') ? 'aset' : g.startsWith('Liabilitas') ? 'liab' : g === 'Ekuitas' ? 'ekuitas' : g === 'Pendapatan' ? 'pendapatan' : 'beban';
+const grpKind = (g: any) => g.startsWith('Aset') ? 'aset' : g.startsWith('Liabilitas') ? 'liab' : g === 'Ekuitas' ? 'ekuitas' : g === 'Pendapatan' ? 'pendapatan' : 'beban';
 
 /* Shared WTB summary + analytical flags */
-function computeWtbSummary(wtb, pm, opts?) {
+function computeWtbSummary(wtb: any, pm: any, opts?: any) {
   const absThr = (opts && opts.absThr != null) ? opts.absThr : pm;        // Rupiah
   const pctThr = (opts && opts.pctThr != null) ? opts.pctThr : 20;        // %
   let totAset = 0, liabMag = 0, ekuMag = 0, revMag = 0, beban = 0, overPm = 0;
-  const rows = wtb.map(r => {
+  const rows = wtb.map((r: any) => {
     const k = grpKind(r.group);
     if (k === 'aset') totAset += r.adj;
     else if (k === 'liab') liabMag += -r.adj;
@@ -60,13 +60,13 @@ function computeWtbSummary(wtb, pm, opts?) {
     const isNew = r.ly === 0;
     const pct = isNew ? (delta !== 0 ? Infinity : 0) : (delta / Math.abs(r.ly)) * 100;
     const flagged = Math.abs(delta) >= absThr || Math.abs(pct) >= pctThr;
-    const noteText = (r.note != null && r.note !== '') ? r.note : (DEFAULT_EXPL[r.code] || '');
+    const noteText = (r.note != null && r.note !== '') ? r.note : ((DEFAULT_EXPL as any)[r.code] || '');
     const status = r.revStatus || (noteText ? 'explained' : 'followup');
     return { ...r, kind: k, delta, pct, isNew, flagged, noteText, status };
   });
   const laba = revMag - beban;
-  const flagged = rows.filter(r => r.flagged);
-  const explained = flagged.filter(r => r.status === 'explained').length;
+  const flagged = rows.filter((r: any) => r.flagged);
+  const explained = flagged.filter((r: any) => r.status === 'explained').length;
   const followup = flagged.length - explained;
   return {
     rows, totAset, liabMag, ekuMag, revMag, beban, laba,
@@ -82,7 +82,7 @@ window.DEFAULT_EXPL = DEFAULT_EXPL;
 /* mini two-bar PY→CY trend */
 function TrendBars({ py, cy, w = 46, h = 22 }: any) {
   const max = Math.max(Math.abs(py), Math.abs(cy)) || 1;
-  const bh = (v) => Math.max(2, (Math.abs(v) / max) * (h - 2));
+  const bh = (v: any) => Math.max(2, (Math.abs(v) / max) * (h - 2));
   const up = Math.abs(cy) >= Math.abs(py);
   return (
     <svg width={w} height={h} style={{ display: 'block' }}>
@@ -95,7 +95,7 @@ function TrendBars({ py, cy, w = 46, h = 22 }: any) {
 /* ---------------- Command KPI band ---------------- */
 function WtbKpiBand({ summary, pm, onGotoReview }: any) {
   const { fmt } = AMS;
-  const M = (v) => 'Rp ' + fmt(v / 1e9, 1) + ' M';
+  const M = (v: any) => 'Rp ' + fmt(v / 1e9, 1) + ' M';
   const balanced = Math.abs(summary.neracaDiff) < 1e6;
   const reviewPct = summary.flaggedCount ? Math.round((summary.explained / summary.flaggedCount) * 100) : 100;
 
@@ -134,20 +134,20 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
   const [draft, setDraft] = useStateWD('');
 
   const summary = useMemoWD(() => computeWtbSummary(wtb, pm, { absThr: absJt * 1e6, pctThr: pct }), [wtb, pm, absJt, pct]);
-  const list = scope === 'sig' ? summary.rows.filter(r => r.flagged) : summary.rows;
-  const sel = summary.rows.find(r => r.key === selKey) || null;
+  const list = scope === 'sig' ? summary.rows.filter((r: any) => r.flagged) : summary.rows;
+  const sel = summary.rows.find((r: any) => r.key === selKey) || null;
 
   React.useEffect(() => { setDraft(sel ? sel.noteText : ''); }, [selKey]);
 
-  const num = (n) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
-  const pctStr = (r) => r.isNew ? 'baru' : (r.pct > 0 ? '+' : '') + fmt(r.pct, 1) + '%';
+  const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
+  const pctStr = (r: any) => r.isNew ? 'baru' : (r.pct > 0 ? '+' : '') + fmt(r.pct, 1) + '%';
 
-  const save = (status) => {
+  const save = (status: any) => {
     if (!sel) return;
-    setWtbOverrides(o => ({ ...o, [sel.key]: { ...(o[sel.key] || {}), note: draft, revStatus: status } }));
+    setWtbOverrides((o: any) => ({ ...o, [sel.key]: { ...(o[sel.key] || {}), note: draft, revStatus: status } }));
   };
-  const relAje = (code) => aje.filter(a => Array.isArray(a.lines)
-    ? a.lines.some(l => l.code === code)
+  const relAje = (code: any) => aje.filter((a: any) => Array.isArray(a.lines)
+    ? a.lines.some((l: any) => l.code === code)
     : ((a.dr && a.dr.split(' ')[0] === code) || (a.cr && a.cr.split(' ')[0] === code)));
 
   return (
@@ -158,13 +158,13 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
           <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Ambang Fluktuasi</span>
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <span className="tiny muted">≥ Rp</span>
-            <input className="input mono" style={{ width: 86, height: 26, textAlign: 'right' }} type="number" value={absJt} onChange={e => setAbsJt(Math.max(0, +e.target.value || 0))} />
+            <input className="input mono" style={{ width: 86, height: 26, textAlign: 'right' }} type="number" value={absJt} onChange={(e: any) => setAbsJt(Math.max(0, +e.target.value || 0))} />
             <span className="tiny muted">jt</span>
           </div>
           <span className="tiny muted">atau</span>
           <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <span className="tiny muted">≥</span>
-            <input className="input mono" style={{ width: 56, height: 26, textAlign: 'right' }} type="number" value={pct} onChange={e => setPct(Math.max(0, +e.target.value || 0))} />
+            <input className="input mono" style={{ width: 56, height: 26, textAlign: 'right' }} type="number" value={pct} onChange={(e: any) => setPct(Math.max(0, +e.target.value || 0))} />
             <span className="tiny muted">%</span>
           </div>
           <button className="btn sm" onClick={() => { setAbsJt(Math.round(pm / 1e6)); setPct(20); }}><I.sync size={12} /> Reset ke PM</button>
@@ -196,7 +196,7 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                 <th style={{ width: 130 }}>Status</th>
               </tr></thead>
               <tbody>
-                {list.map(r => (
+                {list.map((r: any) => (
                   <tr key={r.key} onClick={() => setSelKey(r.key)} className={selKey === r.key ? 'sel' : ''} style={{ cursor: 'pointer' }}>
                     <td><div style={{ fontWeight: 600 }}>{r.name}</div><div className="mono tiny muted">{r.code}</div></td>
                     <td><span className="chip tiny" style={{ height: 18, padding: '0 6px', fontFamily: 'var(--mono)' }}>{r.lead}</span></td>
@@ -256,7 +256,7 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                 {rel.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <div className="tiny muted upper" style={{ marginBottom: 4 }}>AJE menyentuh akun ini</div>
-                    {rel.map(a => (
+                    {rel.map((a: any) => (
                       <div key={a.id} className="row ac jb" style={{ padding: '4px 8px', border: '1px solid var(--line)', borderRadius: 5, marginBottom: 4 }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</span>
                         <span className="tiny truncate" style={{ flex: 1, margin: '0 8px', color: 'var(--ink-2)' }}>{a.desc}</span>
@@ -268,10 +268,10 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
 
                 <div className="field" style={{ marginBottom: 10 }}>
                   <label>Penjelasan auditor</label>
-                  <textarea value={draft} onChange={e => setDraft(e.target.value)} rows={4}
+                  <textarea value={draft} onChange={(e: any) => setDraft(e.target.value)} rows={4}
                     placeholder="Jelaskan penyebab fluktuasi & prosedur yang dijalankan…"
                     style={{ width: '100%', border: '1px solid var(--line-strong)', borderRadius: 5, padding: '7px 9px', fontSize: 12, fontFamily: 'var(--ui)', resize: 'vertical', outline: 'none', color: 'var(--ink)' }} />
-                  {!sel.note && DEFAULT_EXPL[sel.code] && <span className="tiny muted" style={{ marginTop: 3 }}>Saran sistem dimuat — sunting bila perlu.</span>}
+                  {!sel.note && (DEFAULT_EXPL as any)[sel.code] && <span className="tiny muted" style={{ marginTop: 3 }}>Saran sistem dimuat — sunting bila perlu.</span>}
                 </div>
 
                 <div className="row gap8" style={{ marginBottom: 8 }}>
@@ -298,7 +298,7 @@ function WtbGrouping({ pm }: any) {
   const nav = useNav();
   const summary = useMemoWD(() => computeWtbSummary(wtb, pm), [wtb, pm]);
 
-  const M = (v) => fmt(v / 1e9, 1);
+  const M = (v: any) => fmt(v / 1e9, 1);
   // captions in display order with statement mapping
   const CAPS = [
     { g: 'Aset Lancar', stmt: 'Neraca', side: 'Aset' },
@@ -310,9 +310,9 @@ function WtbGrouping({ pm }: any) {
     { g: 'Beban', stmt: 'Laba Rugi', side: 'Laba Rugi' },
   ];
   const caps = CAPS.map(c => {
-    const rows = summary.rows.filter(r => r.group === c.g);
-    const total = rows.reduce((a, r) => a + r.adj, 0);
-    const leads = [...new Set(rows.map(r => r.lead))];
+    const rows = summary.rows.filter((r: any) => r.group === c.g);
+    const total = rows.reduce((a: any, r: any) => a + r.adj, 0);
+    const leads = [...new Set(rows.map((r: any) => r.lead))];
     return { ...c, rows, total, mag: Math.abs(total), n: rows.length, leads };
   });
   const balanced = Math.abs(summary.neracaDiff) < 1e6;

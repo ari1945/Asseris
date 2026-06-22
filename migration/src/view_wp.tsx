@@ -52,10 +52,10 @@ const WP_PROCS = {
   '820': [['Prosedur peristiwa kemudian s.d. tanggal laporan (SA 560)', 'Subsequent'], ['Telaah notulen, kontrak & kejadian pasca neraca', 'Subsequent'], ['Evaluasi peristiwa penyesuai vs pengungkap', 'Penyajian']],
   '900': [['Susun draf opini sesuai temuan (SA 700/705)', 'Pelaporan'], ['Finalisasi Hal Audit Utama / KAM (SA 701)', 'Pelaporan'], ['Telaah kelengkapan LK & checklist pengungkapan', 'Penyajian']],
 };
-const procsFor = (ref) => WP_PROCS[ref] || [['Lakukan prosedur substantif atas saldo', 'Substantif'], ['Cocokkan ke buku besar & dokumen sumber', 'Kelengkapan'], ['Dokumentasikan kesimpulan', 'Kesimpulan']];
+const procsFor = (ref: any) => (WP_PROCS as any)[ref] || [['Lakukan prosedur substantif atas saldo', 'Substantif'], ['Cocokkan ke buku besar & dokumen sumber', 'Kelengkapan'], ['Dokumentasikan kesimpulan', 'Kesimpulan']];
 const PROC_EXC_SEED = { B: [5], C: [2] };
-const defaultProcState = (ref, status, i, total) => {
-  if ((PROC_EXC_SEED[ref] || []).includes(i)) return 'Pengecualian';
+const defaultProcState = (ref: any, status: any, i: any, total: any) => {
+  if (((PROC_EXC_SEED as any)[ref] || []).includes(i)) return 'Pengecualian';
   if (status === 'Reviewed') return 'Selesai';
   if (status === 'In Review') return i < total - 1 ? 'Selesai' : 'Belum';
   if (status === 'In Progress') return i < Math.ceil(total / 2) ? 'Selesai' : 'Belum';
@@ -71,7 +71,7 @@ const WP_ATTACH = {
   F: [['daftar-kontrak-sewa.xlsx', 'XLSX', 'Sinta W.', 48], ['kalkulasi-rou-psak73.xlsx', 'XLSX', 'Sinta W.', 120]],
   R: [['analitis-pendapatan.xlsx', 'XLSX', 'Dimas R.', 88], ['sampel-kontrak-penjualan.pdf', 'PDF', 'Dimas R.', 612]],
 };
-const attachFor = (ref) => WP_ATTACH[ref] || [['lead-schedule.xlsx', 'XLSX', 'Tim Audit', 60]];
+const attachFor = (ref: any) => (WP_ATTACH as any)[ref] || [['lead-schedule.xlsx', 'XLSX', 'Tim Audit', 60]];
 
 /* ---- Seed review notes pinned to specific WPs ---- */
 const WP_SEED_NOTES = {
@@ -99,8 +99,8 @@ function WorkingPapers() {
   }, []);
 
   const all = WP_INDEX.flatMap(s => s.items);
-  const statusOf = (it) => (wpState[it[0]] && wpState[it[0]].status) || it[4];
-  const balanceOf = (ref) => { const rows = wtb.filter(r => r.lead === ref); return rows.length ? rows.reduce((a, r) => a + r.adj, 0) : null; };
+  const statusOf = (it: any) => (wpState[it[0]] && wpState[it[0]].status) || it[4];
+  const balanceOf = (ref: any) => { const rows = wtb.filter((r: any) => r.lead === ref); return rows.length ? rows.reduce((a: any, r: any) => a + r.adj, 0) : null; };
 
   /* per-WP derived metrics */
   const metrics = useMemoWP(() => {
@@ -110,21 +110,21 @@ function WorkingPapers() {
       const defs = procsFor(ref);
       const saved = (wpState[ref] && wpState[ref].procs) || {};
       let done = 0, exc = 0;
-      defs.forEach((_, i) => {
+      defs.forEach((_: any, i: any) => {
         const s = saved['p' + i] != null ? saved['p' + i] : defaultProcState(ref, st, i, defs.length);
         if (s === 'Selesai') done++; if (s === 'Pengecualian') exc++;
       });
-      const base = WP_SEED_NOTES[ref] || [];
+      const base = (WP_SEED_NOTES as any)[ref] || [];
       const added = (wpState[ref] && wpState[ref].notes) || [];
       const ov = (wpState[ref] && wpState[ref].noteStatus) || {};
-      const openNotes = base.concat(added).filter(n => (ov[n.id] || n.status) === 'open').length;
-      m[ref] = { done, total: defs.length, exc, openNotes, risk: risks.filter(r => (r.wp || '').split('-')[0] === ref).length };
+      const openNotes = base.concat(added).filter((n: any) => (ov[n.id] || n.status) === 'open').length;
+      (m as any)[ref] = { done, total: defs.length, exc, openNotes, risk: risks.filter((r: any) => (r.wp || '').split('-')[0] === ref).length };
     });
     return m;
   }, [wpState, risks]);
 
   const cnt = { Reviewed: 0, 'In Review': 0, 'In Progress': 0, 'Not Started': 0 };
-  all.forEach(it => { cnt[statusOf(it)] = (cnt[statusOf(it)] || 0) + 1; });
+  all.forEach(it => { (cnt as any)[statusOf(it)] = ((cnt as any)[statusOf(it)] || 0) + 1; });
   const total = all.length;
   const wsum = cnt['Reviewed'] * 1 + cnt['In Review'] * 0.7 + cnt['In Progress'] * 0.4;
   const completeness = Math.round((wsum / total) * 100);
@@ -132,7 +132,7 @@ function WorkingPapers() {
   const excTotal = Object.values(metrics).reduce((a, x: any) => a + x.exc, 0);
 
   const om = activeEngagement.materiality, pm = Math.round(om * 0.75), triv = Math.round(om * 0.05);
-  const covBadge = (bal) => {
+  const covBadge = (bal: any) => {
     if (bal == null) return null;
     const a = Math.abs(bal);
     if (a >= pm) return <Badge kind="teal">≥ PM</Badge>;
@@ -148,7 +148,7 @@ function WorkingPapers() {
   ];
 
   const openItem = openRef ? all.find(i => i[0] === openRef) : null;
-  const matchQ = (it) => !q || it[1].toLowerCase().includes(q.toLowerCase()) || it[0].toLowerCase().includes(q.toLowerCase());
+  const matchQ = (it: any) => !q || it[1].toLowerCase().includes(q.toLowerCase()) || it[0].toLowerCase().includes(q.toLowerCase());
 
   return (
     <>
@@ -156,7 +156,7 @@ function WorkingPapers() {
         <div className="row gap8 ac">
           <div className="row ac" style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 8, color: 'var(--ink-4)', pointerEvents: 'none' }}><I.search2 size={13} /></span>
-            <input className="input" value={q} onChange={e => setQ(e.target.value)} placeholder="Cari ref / judul…" style={{ width: 150, paddingLeft: 26, height: 26 }} />
+            <input className="input" value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari ref / judul…" style={{ width: 150, paddingLeft: 26, height: 26 }} />
           </div>
           <Seg options={['All', 'Reviewed', 'In Review', 'In Progress', 'Not Started']} value={filter} onChange={setFilter} />
           <Btn sm variant="primary" disabled={locked}><I.plus size={14} /> WP Baru</Btn>
@@ -289,7 +289,7 @@ function WorkingPapers() {
 /* ============================================================
    WP drill-down — tabbed audit-file detail
    ============================================================ */
-function WPDrill({ it, onClose }) {
+function WPDrill({ it, onClose }: any) {
   const { fmt } = AMS;
   const { wtb, wpState, setWp, risks, aje } = useAudit();
   const { activeEngagement, activeClient, locked } = useFirm();
@@ -299,26 +299,26 @@ function WPDrill({ it, onClose }) {
   const defs = procsFor(ref);
   const [tab, setTab] = useStateWP('lead');
 
-  const leadRows = wtb.filter(r => r.lead === ref);
+  const leadRows = wtb.filter((r: any) => r.lead === ref);
   const hasLead = leadRows.length > 0;
-  const bal = hasLead ? leadRows.reduce((a, r) => a + r.adj, 0) : null;
+  const bal = hasLead ? leadRows.reduce((a: any, r: any) => a + r.adj, 0) : null;
   const om = activeEngagement.materiality, pm = Math.round(om * 0.75), triv = Math.round(om * 0.05);
 
   /* notes */
-  const baseNotes = WP_SEED_NOTES[ref] || [];
+  const baseNotes = (WP_SEED_NOTES as any)[ref] || [];
   const addedNotes = st.notes || [];
   const noteStatus = st.noteStatus || {};
   const allNotes = baseNotes.concat(addedNotes);
-  const effNoteStatus = (n) => noteStatus[n.id] || n.status;
-  const openNotes = allNotes.filter(n => effNoteStatus(n) === 'open').length;
+  const effNoteStatus = (n: any) => noteStatus[n.id] || n.status;
+  const openNotes = allNotes.filter((n: any) => effNoteStatus(n) === 'open').length;
 
   /* procs done count */
-  const procState = (i) => (st.procs && st.procs['p' + i] != null) ? st.procs['p' + i] : defaultProcState(ref, status, i, defs.length);
-  const doneCount = defs.reduce((a, _, i) => a + (procState(i) === 'Selesai' ? 1 : 0), 0);
-  const excCount = defs.reduce((a, _, i) => a + (procState(i) === 'Pengecualian' ? 1 : 0), 0);
+  const procState = (i: any) => (st.procs && st.procs['p' + i] != null) ? st.procs['p' + i] : defaultProcState(ref, status, i, defs.length);
+  const doneCount = defs.reduce((a: any, _: any, i: any) => a + (procState(i) === 'Selesai' ? 1 : 0), 0);
+  const excCount = defs.reduce((a: any, _: any, i: any) => a + (procState(i) === 'Pengecualian' ? 1 : 0), 0);
 
-  const relRisks = risks.filter(r => (r.wp || '').split('-')[0] === ref);
-  const relAje = aje.filter(a => (a.ref || '').split('-')[0] === ref);
+  const relRisks = risks.filter((r: any) => (r.wp || '').split('-')[0] === ref);
+  const relAje = aje.filter((a: any) => (a.ref || '').split('-')[0] === ref);
 
   const tabs = [
     { id: 'lead', label: 'Lead Schedule' },
@@ -332,7 +332,7 @@ function WPDrill({ it, onClose }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 1000, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 1000, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={(e: any) => e.stopPropagation()}>
         {/* header */}
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16 }}>{ref}</span>
@@ -370,11 +370,11 @@ function WPDrill({ it, onClose }) {
 }
 
 /* ---- Lead schedule tab ---- */
-function LeadTab({ ref_, it, leadRows, hasLead, bal, covLabel, st, setWp, locked, fmt }) {
+function LeadTab({ ref_, it, leadRows, hasLead, bal, covLabel, st, setWp, locked, fmt }: any) {
   const ticks = st.ticks || {};
-  const tot = leadRows.reduce((a, r) => ({ ly: a.ly + r.ly, adj: a.adj + r.adj }), { ly: 0, adj: 0 });
-  const num = (n) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
-  const cycleTick = (code) => {
+  const tot = leadRows.reduce((a: any, r: any) => ({ ly: a.ly + r.ly, adj: a.adj + r.adj }), { ly: 0, adj: 0 });
+  const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
+  const cycleTick = (code: any) => {
     if (locked) return;
     const cur = ticks[code];
     const idx = cur == null ? 0 : (TICKMARKS.findIndex(t => t.sym === cur) + 1);
@@ -396,7 +396,7 @@ function LeadTab({ ref_, it, leadRows, hasLead, bal, covLabel, st, setWp, locked
           <table className="dtbl">
             <thead><tr><th style={{ width: 70 }}>Kode</th><th>Akun</th><th className="num" style={{ width: 100 }}>TA Lalu</th><th className="num" style={{ width: 100 }}>Adjusted</th><th className="num" style={{ width: 90 }}>Δ</th><th style={{ width: 56, textAlign: 'center' }}>Tick</th></tr></thead>
             <tbody>
-              {leadRows.map(r => {
+              {leadRows.map((r: any) => {
                 const d = r.adj - r.ly;
                 return (
                   <tr key={r.code}>
@@ -437,16 +437,16 @@ function LeadTab({ ref_, it, leadRows, hasLead, bal, covLabel, st, setWp, locked
 /* ---- Procedures tab ---- */
 const PROC_FLOW = { Belum: 'Selesai', Selesai: 'Pengecualian', Pengecualian: 'N/A', 'N/A': 'Belum' };
 const PROC_STYLE = {
-  Belum: { bg: 'var(--surface-3)', fg: 'var(--ink-3)', ic: null },
+  Belum: { bg: 'var(--surface-3)', fg: 'var(--ink-3)', ic: (null as any) },
   Selesai: { bg: 'var(--green-bg)', fg: 'var(--green)', ic: 'check' },
   Pengecualian: { bg: 'var(--red-bg)', fg: 'var(--red)', ic: 'alert' },
-  'N/A': { bg: 'var(--surface-3)', fg: 'var(--ink-4)', ic: null },
+  'N/A': { bg: 'var(--surface-3)', fg: 'var(--ink-4)', ic: (null as any) },
 };
-function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCount }) {
-  const cycle = (i) => {
+function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCount }: any) {
+  const cycle = (i: any) => {
     if (locked) return;
     const cur = procState(i);
-    setWp(ref_, { procs: { ...(st.procs || {}), ['p' + i]: PROC_FLOW[cur] } });
+    setWp(ref_, { procs: { ...(st.procs || {}), ['p' + i]: (PROC_FLOW as any)[cur] } });
   };
   const pct = Math.round(doneCount / defs.length * 100);
   return (
@@ -459,8 +459,8 @@ function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCoun
         </span>
       </div>
       <div>
-        {defs.map(([text, assertion], i) => {
-          const s = procState(i), stl = PROC_STYLE[s];
+        {defs.map(([text, assertion]: any, i: any) => {
+          const s = procState(i), stl = (PROC_STYLE as any)[s];
           return (
             <div key={i} className="row gap10" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line-soft)', alignItems: 'flex-start' }}>
               <span className="mono tiny muted" style={{ flex: '0 0 28px', paddingTop: 2 }}>P{i + 1}</span>
@@ -470,7 +470,7 @@ function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCoun
               </div>
               <button onClick={() => cycle(i)} disabled={locked} title="Klik untuk ubah status"
                 style={{ flex: '0 0 auto', height: 24, padding: '0 10px', borderRadius: 12, border: 'none', cursor: locked ? 'not-allowed' : 'pointer', background: stl.bg, color: stl.fg, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                {stl.ic && React.createElement(I[stl.ic], { size: 12 })}{s}
+                {stl.ic && React.createElement((I as any)[stl.ic], { size: 12 })}{s}
               </button>
             </div>
           );
@@ -484,9 +484,9 @@ function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCoun
 }
 
 /* ---- Cross-reference tab ---- */
-function XrefTab({ ref_, relRisks, relAje, fmt }) {
+function XrefTab({ ref_, relRisks, relAje, fmt }: any) {
   const atts = attachFor(ref_);
-  const fileIcon = (t) => t === 'PDF' ? 'report' : t === 'XLSX' ? 'table' : 'doc';
+  const fileIcon = (t: any) => t === 'PDF' ? 'report' : t === 'XLSX' ? 'table' : 'doc';
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       {/* risks */}
@@ -496,7 +496,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt }) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 48 }}>ID</th><th>Risiko</th><th style={{ width: 110 }}>Asersi</th><th style={{ width: 100 }}>Inheren</th><th style={{ width: 80 }}>WP Ref</th></tr></thead>
             <tbody>
-              {relRisks.map(r => (
+              {relRisks.map((r: any) => (
                 <tr key={r.id}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                   <td><span className="row ac gap6">{r.fraud && <span title="Risiko kecurangan (SA 240)" style={{ color: 'var(--red)', display: 'inline-flex' }}><I.alert size={12} /></span>}<span style={{ fontWeight: 600 }}>{r.area}</span> <span className="muted tiny truncate" style={{ maxWidth: 280 }}>— {r.desc}</span></span></td>
@@ -517,7 +517,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt }) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 70 }}>ID</th><th>Deskripsi</th><th style={{ width: 80 }}>Ref WP</th><th className="num" style={{ width: 120 }}>Nilai (Rp)</th><th style={{ width: 90 }}>Status</th></tr></thead>
             <tbody>
-              {relAje.map(a => (
+              {relAje.map((a: any) => (
                 <tr key={a.id}>
                   <td className="mono tiny" style={{ fontWeight: 700 }}>{a.id}</td>
                   <td style={{ fontWeight: 600 }} className="truncate">{a.desc}</td>
@@ -535,7 +535,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt }) {
       <Panel noBody>
         <div className="panel-h"><h3 style={{ whiteSpace: 'nowrap' }}>Lampiran & Bukti</h3><div style={{ flex: 1 }} /><Btn sm><I.plus size={13} /> Unggah</Btn></div>
         <div>
-          {atts.map(([name, type, by, kb], i) => (
+          {atts.map(([name, type, by, kb]: any, i: any) => (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)' }}>
               <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}>{React.createElement(I[fileIcon(type)], { size: 15 })}</span>
               <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{name}</div><div className="tiny muted">Diunggah oleh {by} · {kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB'}</div></div>
@@ -553,7 +553,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt }) {
 }
 
 /* ---- Review notes tab ---- */
-function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }) {
+function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }: any) {
   const [draft, setDraft] = useStateWP('');
   const [to, setTo] = useStateWP('Dimas R.');
   const [prio, setPrio] = useStateWP('medium');
@@ -566,20 +566,20 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }) {
     setWp(ref_, { notes: [...(st.notes || []), note] });
     setDraft('');
   };
-  const toggle = (n) => {
+  const toggle = (n: any) => {
     const cur = effNoteStatus(n);
     setWp(ref_, { noteStatus: { ...(st.noteStatus || {}), [n.id]: cur === 'open' ? 'resolved' : 'open' } });
   };
 
   return (
     <Panel noBody>
-      <div className="panel-h"><h3>Catatan Review</h3><div style={{ flex: 1 }} /><span className="tiny muted">{allNotes.filter(n => effNoteStatus(n) === 'open').length} terbuka · {allNotes.length} total</span></div>
+      <div className="panel-h"><h3>Catatan Review</h3><div style={{ flex: 1 }} /><span className="tiny muted">{allNotes.filter((n: any) => effNoteStatus(n) === 'open').length} terbuka · {allNotes.length} total</span></div>
       {!locked && (
         <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)' }}>
-          <textarea className="input" value={draft} onChange={e => setDraft(e.target.value)} placeholder="Tulis catatan review / coaching untuk WP ini…" style={{ height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', width: '100%', marginBottom: 8 }} />
+          <textarea className="input" value={draft} onChange={(e: any) => setDraft(e.target.value)} placeholder="Tulis catatan review / coaching untuk WP ini…" style={{ height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', width: '100%', marginBottom: 8 }} />
           <div className="row ac gap8">
-            <div className="field"><label>Ditujukan ke</label><select className="select" value={to} onChange={e => setTo(e.target.value)}>{['Dimas R.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
-            <div className="field"><label>Prioritas</label><select className="select" value={prio} onChange={e => setPrio(e.target.value)}>{['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+            <div className="field"><label>Ditujukan ke</label><select className="select" value={to} onChange={(e: any) => setTo(e.target.value)}>{['Dimas R.', 'Sinta W.', 'Fajar N.', 'Rina K.'].map(p => <option key={p}>{p}</option>)}</select></div>
+            <div className="field"><label>Prioritas</label><select className="select" value={prio} onChange={(e: any) => setPrio(e.target.value)}>{['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
             <div style={{ flex: 1 }} />
             <Btn sm variant="primary" onClick={add}><I.plus size={13} /> Tambah Catatan</Btn>
           </div>
@@ -595,7 +595,7 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }) {
                 <div className="row ac gap8" style={{ marginBottom: 3 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 700 }}>{n.author}</span>
                   <span className="tiny muted">→ {n.to}</span>
-                  <Badge kind={prioK[n.priority]}>{n.priority}</Badge>
+                  <Badge kind={(prioK as any)[n.priority]}>{n.priority}</Badge>
                   <div style={{ flex: 1 }} />
                   <span className="tiny muted">{n.created}</span>
                 </div>
@@ -614,7 +614,7 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }) {
 }
 
 /* ---- Sign-off & audit trail tab ---- */
-function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
+function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) {
   const today = '09 Mar 2026';
   const chain = st.chain || {};
   /* derive defaults */
@@ -631,15 +631,15 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
   ];
   if (eqrReq) levels.push({ key: 'eqr', role: 'EQR (Penelaah Mutu)', who: 'Sari Dewanti', desc: 'Telaah pengendalian mutu perikatan (PIE)', signed: eqr });
 
-  const canSign = (idx) => !locked && !levels[idx].signed && (idx === 0 || !!levels[idx - 1].signed);
-  const sign = (idx) => {
+  const canSign = (idx: any) => !locked && !levels[idx].signed && (idx === 0 || !!levels[idx - 1].signed);
+  const sign = (idx: any) => {
     const lvl = levels[idx];
     const patch: any = { chain: { ...chain, [lvl.key]: { by: lvl.who, at: today } } };
     if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = lvl.who; patch.signedAt = today; }
     if (lvl.key === 'preparer' && (status === 'Not Started' || status === 'In Progress')) patch.status = 'In Review';
     setWp(ref_, patch);
   };
-  const unsign = (idx) => {
+  const unsign = (idx: any) => {
     const lvl = levels[idx];
     const nc = { ...chain }; delete nc[lvl.key];
     const patch: any = { chain: nc };
@@ -650,7 +650,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
   /* audit trail */
   const trail = [];
   levels.forEach(l => { if (l.signed) trail.push({ at: l.signed.at, who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' }); });
-  (st.log || []).forEach(e => trail.push(e));
+  (st.log || []).forEach((e: any) => trail.push(e));
   trail.push({ at: '05 Mar 2026', who: it[2], what: 'Kertas kerja dibuat & prosedur diunggah', ic: 'doc', col: 'var(--blue)' });
   trail.push({ at: '04 Mar 2026', who: 'Sistem', what: 'WP dibuat dari template metodologi v4.2', ic: 'layers', col: 'var(--ink-3)' });
 
@@ -688,7 +688,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
         <div style={{ display: 'grid', gap: 0 }}>
           {trail.map((e, i) => (
             <div key={i} className="row gap8" style={{ padding: '8px 0', borderBottom: i < trail.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start' }}>
-              <span style={{ color: e.col, marginTop: 1, flex: '0 0 auto' }}>{React.createElement(I[e.ic] || (I as any).dot, { size: 14 })}</span>
+              <span style={{ color: e.col, marginTop: 1, flex: '0 0 auto' }}>{React.createElement((I as any)[e.ic] || (I as any).dot, { size: 14 })}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{e.what}</div>
                 <div className="tiny muted">{e.who} · {e.at}</div>
@@ -702,7 +702,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }) {
 }
 
 /* ---- Footer (persistent quick sign-off) ---- */
-function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }) {
+function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }: any) {
   const reviewer = st.reviewer || (status === 'Reviewed' ? it[3] : null);
   const quickSign = () => setWp(ref_, { status: 'Reviewed', reviewer: 'Anindya P.', signedAt: '09 Mar 2026', chain: { ...(st.chain || {}), preparer: (st.chain && st.chain.preparer) || { by: it[2], at: '05 Mar 2026' }, reviewer: { by: 'Anindya P.', at: '09 Mar 2026' } } });
   const reopen = () => { const nc = { ...(st.chain || {}) }; delete nc.reviewer; delete nc.partner; delete nc.eqr; setWp(ref_, { status: 'In Review', reviewer: null, signedAt: null, chain: nc }); };
@@ -726,16 +726,16 @@ function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }
 
 /* ---- Shared helpers: expose WP-pinned notes to global Review Notes & My Tasks ---- */
 const WP_TITLE = {};
-WP_INDEX.forEach(s => s.items.forEach(it => { WP_TITLE[it[0]] = it[1]; }));
+WP_INDEX.forEach(s => s.items.forEach(it => { (WP_TITLE as any)[it[0]] = it[1]; }));
 const WP_REFS = WP_INDEX.flatMap(s => s.items.map(it => ({ ref: it[0], title: it[1] })));
-function collectWpNotes(wpState) {
+function collectWpNotes(wpState: any) {
   wpState = wpState || {};
-  const rows = [];
+  const rows: any[] = [];
   Object.entries(WP_SEED_NOTES).forEach(([ref, notes]) => notes.forEach(n => rows.push({ ...n, wpRef: ref })));
-  Object.entries(wpState).forEach(([ref, s]: [string, any]) => (s.notes || []).forEach(n => rows.push({ ...n, wpRef: ref })));
+  Object.entries(wpState).forEach(([ref, s]: [string, any]) => (s.notes || []).forEach((n: any) => rows.push({ ...n, wpRef: ref })));
   return rows.map(n => {
     const ov = (wpState[n.wpRef] || {}).noteStatus || {};
-    return { ...n, status: ov[n.id] || n.status, wp: true, wpRef: n.wpRef, wpTitle: WP_TITLE[n.wpRef] || n.wpRef, module: 'workpapers', moduleLabel: 'WP ' + n.wpRef + ' · ' + (WP_TITLE[n.wpRef] || '') };
+    return { ...n, status: ov[n.id] || n.status, wp: true, wpRef: n.wpRef, wpTitle: (WP_TITLE as any)[n.wpRef] || n.wpRef, module: 'workpapers', moduleLabel: 'WP ' + n.wpRef + ' · ' + ((WP_TITLE as any)[n.wpRef] || '') };
   });
 }
 
@@ -744,13 +744,13 @@ function collectWpNotes(wpState) {
    metrics + sign-off logic used by the WP index & WPDrill above, so SA 5xx
    pages never keep a private copy of engagement status — they read this. */
 const WP_META = {};
-WP_INDEX.forEach(s => s.items.forEach(it => { WP_META[it[0]] = { title: it[1], preparer: it[2], reviewer: it[3], statusDefault: it[4], section: s.sec }; }));
+WP_INDEX.forEach(s => s.items.forEach(it => { (WP_META as any)[it[0]] = { title: it[1], preparer: it[2], reviewer: it[3], statusDefault: it[4], section: s.sec }; }));
 
-function deriveWpStatus(ref, audit, firm) {
+function deriveWpStatus(ref: any, audit: any, firm: any) {
   const wpState = (audit && audit.wpState) || {};
   const wtb = (audit && audit.wtb) || [];
   const risks = (audit && audit.risks) || [];
-  const meta = WP_META[ref] || { title: ref, preparer: '—', reviewer: '—', statusDefault: 'Not Started', section: '' };
+  const meta = (WP_META as any)[ref] || { title: ref, preparer: '—', reviewer: '—', statusDefault: 'Not Started', section: '' };
   const st = wpState[ref] || {};
   const status = st.status || meta.statusDefault;
 
@@ -758,20 +758,20 @@ function deriveWpStatus(ref, audit, firm) {
   const defs = procsFor(ref);
   const saved = st.procs || {};
   let done = 0, exc = 0;
-  defs.forEach((_, i) => {
+  defs.forEach((_: any, i: any) => {
     const s = saved['p' + i] != null ? saved['p' + i] : defaultProcState(ref, status, i, defs.length);
     if (s === 'Selesai') done++; else if (s === 'Pengecualian') exc++;
   });
 
   /* open review notes — seed + user-added, honoring status overrides */
-  const base = WP_SEED_NOTES[ref] || [];
+  const base = (WP_SEED_NOTES as any)[ref] || [];
   const added = st.notes || [];
   const ov = st.noteStatus || {};
-  const openNotes = base.concat(added).filter(n => (ov[n.id] || n.status) === 'open').length;
+  const openNotes = base.concat(added).filter((n: any) => (ov[n.id] || n.status) === 'open').length;
 
   /* coverage vs materiality — balance from the canonical WTB lead rows */
-  const leadRows = wtb.filter(r => r.lead === ref);
-  const bal = leadRows.length ? leadRows.reduce((a, r) => a + r.adj, 0) : null;
+  const leadRows = wtb.filter((r: any) => r.lead === ref);
+  const bal = leadRows.length ? leadRows.reduce((a: any, r: any) => a + r.adj, 0) : null;
   const om = (firm && firm.activeEngagement && firm.activeEngagement.materiality) || 0;
   const pm = Math.round(om * 0.75), triv = Math.round(om * 0.05);
   let coverage = null;
@@ -792,12 +792,12 @@ function deriveWpStatus(ref, audit, firm) {
   if (listed) signoff.push({ key: 'eqr', role: 'EQR', signed: eqr });
   const signedCount = signoff.filter(l => l.signed).length;
 
-  const relRisks = risks.filter(r => (r.wp || '').split('-')[0] === ref);
+  const relRisks = risks.filter((r: any) => (r.wp || '').split('-')[0] === ref);
   return { ref, title: meta.title, section: meta.section, status, done, total: defs.length, exc, openNotes, coverage, pm, triv, signoff, signedCount, fullySigned: signedCount === signoff.length, relRisks, hasLead: leadRows.length > 0 };
 }
 
 /* deep-link: open a specific WP in the canonical Working Papers module */
-function openCanonicalWp(navigate, ref) {
+function openCanonicalWp(navigate: any, ref: any) {
   try { localStorage.setItem('ams.wpOpen', ref); } catch (e) {}
   if (typeof navigate === 'function') navigate('workpapers');
 }

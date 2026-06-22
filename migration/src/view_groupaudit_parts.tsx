@@ -13,7 +13,7 @@ import { GA_CONSOL_DOWN, GA_CONSOL_PROC, GA_CONSOL_UP, PKG_FIELDS, PKG_NUM_KEYS,
    ============================================================ */
 const { useState: useStateGAP } = React;
 
-function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }) {
+function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }: any) {
   const [editId, setEditId] = useStateGAP(null);
   const [impId, setImpId] = useStateGAP(null);
   const [impText, setImpText] = useStateGAP('');
@@ -21,24 +21,24 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
   if (!p65) return <div style={{ padding: 24 }} className="muted">Memuat paket pelaporan (AMS_CANON.psak65)…</div>;
 
   const todayStr = () => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-  const setPkg = (id, patch) => setPackages(m => ({ ...m, [id]: { ...m[id], ...patch } }));
-  const setField = (id, k, val) => setPkg(id, { [k]: (val === '' ? 0 : Number(val)) });
-  const setStatus = (id, status) => setPackages(m => {
+  const setPkg = (id: any, patch: any) => setPackages((m: any) => ({ ...m, [id]: { ...m[id], ...patch } }));
+  const setField = (id: any, k: any, val: any) => setPkg(id, { [k]: (val === '' ? 0 : Number(val)) });
+  const setStatus = (id: any, status: any) => setPackages((m: any) => {
     const cur = m[id] || {};
     const received = cur.received || (status !== 'Ditolak' ? todayStr() : null);
     return { ...m, [id]: { ...cur, status, received } };
   });
-  const resetSeed = (id) => { const s = seedSubs.find(x => x.id === id); if (!s) return; const f = {}; PKG_NUM_KEYS.forEach(k => f[k] = s[k]); setPkg(id, f); };
-  const resetAll = () => setPackages(m => { const n = {}; seedSubs.forEach(s => { const f = { status: (m[s.id] && m[s.id].status) || 'Diterima', received: (m[s.id] && m[s.id].received) || null }; PKG_NUM_KEYS.forEach(k => f[k] = s[k]); n[s.id] = f; }); return n; });
-  const approveBalanced = () => setPackages(m => { const n = { ...m }; p65.subs.forEach(s => { if (s.balanced) n[s.id] = { ...n[s.id], status: 'Disetujui', received: (n[s.id] && n[s.id].received) || todayStr() }; }); return n; });
-  const fillTemplate = (id) => { const pk: any = packages[id] || {}; const t: any = {}; PKG_NUM_KEYS.forEach(k => t[k] = pk[k]); t.status = pk.status; setImpId(id); setImpText(JSON.stringify(t, null, 2)); setImpErr(''); };
-  const applyImport = (id) => {
+  const resetSeed = (id: any) => { const s = seedSubs.find((x: any) => x.id === id); if (!s) return; const f = {}; PKG_NUM_KEYS.forEach(k => (f as any)[k] = s[k]); setPkg(id, f); };
+  const resetAll = () => setPackages((m: any) => { const n = {}; seedSubs.forEach((s: any) => { const f = { status: (m[s.id] && m[s.id].status) || 'Diterima', received: (m[s.id] && m[s.id].received) || null }; PKG_NUM_KEYS.forEach(k => (f as any)[k] = s[k]); (n as any)[s.id] = f; }); return n; });
+  const approveBalanced = () => setPackages((m: any) => { const n = { ...m }; p65.subs.forEach((s: any) => { if (s.balanced) n[s.id] = { ...n[s.id], status: 'Disetujui', received: (n[s.id] && n[s.id].received) || todayStr() }; }); return n; });
+  const fillTemplate = (id: any) => { const pk: any = packages[id] || {}; const t: any = {}; PKG_NUM_KEYS.forEach(k => t[k] = pk[k]); t.status = pk.status; setImpId(id); setImpText(JSON.stringify(t, null, 2)); setImpErr(''); };
+  const applyImport = (id: any) => {
     try {
       const obj = JSON.parse(impText);
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('bukan objek paket');
       const patch: any = {};
       PKG_NUM_KEYS.forEach(k => { if (typeof obj[k] === 'number' && isFinite(obj[k])) patch[k] = obj[k]; });
-      if (typeof obj.status === 'string' && PKG_STATUS_KIND[obj.status]) patch.status = obj.status;
+      if (typeof obj.status === 'string' && (PKG_STATUS_KIND as any)[obj.status]) patch.status = obj.status;
       if (typeof obj.received === 'string') patch.received = obj.received;
       if (!Object.keys(patch).length) throw new Error('tidak ada field figur yang dikenali');
       setPkg(id, patch); setImpId(null); setImpText(''); setImpErr('');
@@ -49,7 +49,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
   const consolFinal = p65.pkgAllApproved && p65.pkgAllBalanced;
   const subs = p65.subs;
 
-  const StatusActions = ({ s }) => {
+  const StatusActions = ({ s }: any) => {
     const id = s.id, st = s.pkgStatus;
     if (st === 'Disetujui') return <Btn sm onClick={() => setStatus(id, 'Direkonsiliasi')}><I.x size={11} /> Buka kembali</Btn>;
     if (st === 'Ditolak') return <Btn sm variant="primary" onClick={() => setStatus(id, 'Diterima')}><I.upload size={11} /> Terima ulang</Btn>;
@@ -78,7 +78,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
         <KvBox label="Diterima — perlu reviu" v={(c.Diterima || 0) + (c.Seed || 0)} accent={(c.Diterima || 0) + (c.Seed || 0) ? 'var(--amber)' : 'var(--green)'} />
         <KvBox label="Direkonsiliasi" v={c.Direkonsiliasi || 0} accent="var(--blue)" />
         <KvBox label="Disetujui" v={(c.Disetujui || 0) + '/' + subs.length} accent={p65.pkgAllApproved ? 'var(--green)' : 'var(--amber)'} />
-        <KvBox label="Paket menutup (A=L+E)" v={p65.pkgAllBalanced ? 'Semua ✓' : (subs.filter(s => !s.balanced).length + ' tidak')} accent={p65.pkgAllBalanced ? 'var(--green)' : 'var(--red)'} />
+        <KvBox label="Paket menutup (A=L+E)" v={p65.pkgAllBalanced ? 'Semua ✓' : (subs.filter((s: any) => !s.balanced).length + ' tidak')} accent={p65.pkgAllBalanced ? 'var(--green)' : 'var(--red)'} />
       </div>
 
       {/* banner + aksi massal */}
@@ -103,7 +103,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
               <th className="num" style={{ width: 92 }}>Selisih A−(L+E)</th><th style={{ width: 116 }}>Status</th><th style={{ width: 172 }}></th>
             </tr></thead>
             <tbody>
-              {subs.map(s => {
+              {subs.map((s: any) => {
                 const pk = packages[s.id] || {};
                 const open = editId === s.id, imp = impId === s.id;
                 return (
@@ -121,7 +121,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
                       <td className="tiny">{pk.received || '—'}</td>
                       <td className="num mono">{fmt(s.assets)}</td>
                       <td className="num mono" style={{ fontWeight: 700, color: s.balanced ? 'var(--green)' : 'var(--red)' }}>{s.balanced ? '0 ✓' : fmt(s.internalBal)}</td>
-                      <td><Badge kind={PKG_STATUS_KIND[s.pkgStatus] || 'gray'}>{s.pkgStatus === 'Seed' ? 'Seed' : s.pkgStatus}</Badge></td>
+                      <td><Badge kind={(PKG_STATUS_KIND as any)[s.pkgStatus] || 'gray'}>{s.pkgStatus === 'Seed' ? 'Seed' : s.pkgStatus}</Badge></td>
                       <td>
                         <div className="row gap6 ac" style={{ justifyContent: 'flex-end' }}>
                           <Btn sm onClick={() => { setEditId(open ? null : s.id); setImpId(null); }}><I.chevDown size={12} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '.15s' }} /> {open ? 'Tutup' : 'Sunting'}</Btn>
@@ -146,7 +146,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
                                       {g.items.map(([k, lbl]) => (
                                         <label key={k} style={{ display: 'grid', gap: 2 }}>
                                           <span className="tiny muted">{lbl}</span>
-                                          <input type="number" value={pk[k] != null ? pk[k] : ''} onChange={e => setField(s.id, k, e.target.value)}
+                                          <input type="number" value={pk[k] != null ? pk[k] : ''} onChange={(e: any) => setField(s.id, k, e.target.value)}
                                             style={{ width: '100%', padding: '5px 7px', border: '1px solid var(--line)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--mono, monospace)', background: 'var(--surface)', color: 'var(--ink)' }} />
                                         </label>
                                       ))}
@@ -166,7 +166,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab })
                             <div>
                               <div className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', marginBottom: 6 }}>Impor paket (JSON) — {s.id}</div>
                               <div className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.5 }}>Tempel paket pelaporan komponen dalam format JSON (field figur: {PKG_NUM_KEYS.join(', ')}; opsional <span className="mono">status</span>, <span className="mono">received</span>). Field yang tidak dikenali diabaikan.</div>
-                              <textarea value={impText} onChange={e => { setImpText(e.target.value); setImpErr(''); }} spellCheck={false}
+                              <textarea value={impText} onChange={(e: any) => { setImpText(e.target.value); setImpErr(''); }} spellCheck={false}
                                 style={{ width: '100%', minHeight: 150, padding: 10, border: '1px solid var(--line)', borderRadius: 7, fontSize: 11.5, fontFamily: 'var(--mono, monospace)', lineHeight: 1.5, background: 'var(--surface)', color: 'var(--ink)', resize: 'vertical' }} />
                               {impErr && <div className="tiny" style={{ color: 'var(--red)', marginTop: 6, fontWeight: 600 }}><I.alert size={11} style={{ verticalAlign: 'middle' }} /> {impErr}</div>}
                               <div className="row gap8" style={{ marginTop: 8 }}>
@@ -232,10 +232,10 @@ const ELIM_STAT = { Diverifikasi: 'green', Selisih: 'red', Review: 'amber' };
 const ELIM_TYPE_KIND = { Pendapatan: 'blue', Laba: 'purple', Posisi: 'gray', OCI: 'amber' };
 const SEC_KEY_GA = { Aset: 'aset', Liabilitas: 'liab', Ekuitas: 'ekuitas' };
 
-function GAConsol({ p65, fmt, nav, gotoTab }) {
+function GAConsol({ p65, fmt, nav, gotoTab }: any) {
   if (!p65) return <div style={{ padding: 24 }} className="muted">Memuat model konsolidasi (AMS_CANON.psak65)…</div>;
-  const rp = x => 'Rp ' + fmt(Math.round(x));
-  const sgn = x => x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x));
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const sgn = (x: any) => x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x));
   const balanced = p65.balCheck === 0;
   const gwTie = p65.goodwillTotal === p65.goodwillTie;
   const base = p65.indukSeparate + p65.subsNpat; // basis % kontribusi laba entitas
@@ -279,7 +279,7 @@ function GAConsol({ p65, fmt, nav, gotoTab }) {
               {['Aset', 'Liabilitas', 'Ekuitas'].map(sec => (
                 <React.Fragment key={sec}>
                   <tr style={{ background: 'var(--surface-2)' }}><td colSpan={5} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>{sec}</td></tr>
-                  {p65.ws.filter(r => r.sec === sec).map(r => (
+                  {p65.ws.filter((r: any) => r.sec === sec).map((r: any) => (
                     <tr key={r.cap} style={{ background: r.gw ? 'var(--blue-050)' : r.nci ? 'var(--amber-bg)' : undefined }}>
                       <td><div className="row ac gap6" style={{ fontSize: 12, fontWeight: r.gw || r.nci ? 700 : 500 }}><span>{r.label}</span>{r.seed && <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>seed</span>}{r.gw && <Badge kind="blue">PSAK 22</Badge>}{r.nci && <Badge kind="amber">NCI</Badge>}</div></td>
                       <td className="num mono">{r.induk ? sgn(r.induk) : '—'}</td>
@@ -290,10 +290,10 @@ function GAConsol({ p65, fmt, nav, gotoTab }) {
                   ))}
                   <tr style={{ borderTop: '1.5px solid var(--line)' }}>
                     <td style={{ fontWeight: 700, color: 'var(--navy)' }}>Total {sec}</td>
-                    <td className="num mono" style={{ fontWeight: 700 }}>{sgn(p65.totals[SEC_KEY_GA[sec]].induk)}</td>
-                    <td className="num mono" style={{ fontWeight: 700 }}>{sgn(p65.totals[SEC_KEY_GA[sec]].anak)}</td>
-                    <td className="num mono" style={{ fontWeight: 700, color: 'var(--red)' }}>{sgn(p65.totals[SEC_KEY_GA[sec]].elim)}</td>
-                    <td className="num mono" style={{ fontWeight: 800, color: 'var(--navy)' }}>{sgn(p65.totals[SEC_KEY_GA[sec]].konsol)}</td>
+                    <td className="num mono" style={{ fontWeight: 700 }}>{sgn(p65.totals[(SEC_KEY_GA as any)[sec]].induk)}</td>
+                    <td className="num mono" style={{ fontWeight: 700 }}>{sgn(p65.totals[(SEC_KEY_GA as any)[sec]].anak)}</td>
+                    <td className="num mono" style={{ fontWeight: 700, color: 'var(--red)' }}>{sgn(p65.totals[(SEC_KEY_GA as any)[sec]].elim)}</td>
+                    <td className="num mono" style={{ fontWeight: 800, color: 'var(--navy)' }}>{sgn(p65.totals[(SEC_KEY_GA as any)[sec]].konsol)}</td>
                   </tr>
                 </React.Fragment>
               ))}
@@ -348,7 +348,7 @@ function GAConsol({ p65, fmt, nav, gotoTab }) {
               <td className="num mono">{fmt(p65.indukSeparate)}</td>
               <td className="num">{Math.round(p65.indukSeparate / base * 100)}%</td>
             </tr>
-            {p65.subs.map(s => (
+            {p65.subs.map((s: any) => (
               <tr key={s.id}>
                 <td><div style={{ fontWeight: 600, fontSize: 12 }}>{s.name}</div><div className="tiny muted">{s.role} · {s.country}</div></td>
                 <td className="tiny">{s.ccy}{s.ccy !== 'IDR' && <span className="muted"> @ {fmt(s.fx / 1e3, 2)}k</span>}</td>
@@ -385,13 +385,13 @@ function GAConsol({ p65, fmt, nav, gotoTab }) {
 }
 
 /* ===== TAB 5 (BARU) — REVIU ELIMINASI (SA 600) ================ */
-function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setProcDone }) {
+function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setProcDone }: any) {
   if (!p65) return <div style={{ padding: 24 }} className="muted">Memuat model konsolidasi (AMS_CANON.psak65)…</div>;
-  const rp = x => 'Rp ' + fmt(Math.round(x));
-  const stat = e => (elimVerify[e.id] || e.status === 'Diverifikasi') ? 'Diverifikasi' : e.status;
-  const toggleVerify = id => setElimVerify(m => ({ ...m, [id]: !m[id] }));
-  const verifiedCount = p65.interco.filter(e => stat(e) === 'Diverifikasi').length;
-  const elm03 = p65.interco.find(e => e.id === 'ELM-03') || { amount: 3200, diff: 180 };
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const stat = (e: any) => (elimVerify[e.id] || e.status === 'Diverifikasi') ? 'Diverifikasi' : e.status;
+  const toggleVerify = (id: any) => setElimVerify((m: any) => ({ ...m, [id]: !m[id] }));
+  const verifiedCount = p65.interco.filter((e: any) => stat(e) === 'Diverifikasi').length;
+  const elm03 = p65.interco.find((e: any) => e.id === 'ELM-03') || { amount: 3200, diff: 180 };
 
   /* rekonsiliasi saldo antar-perusahaan — total & selisih dari canon (ELM-03);
      rincian penyebab dinormalkan agar Σ = selisih kanonik. */
@@ -404,7 +404,7 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
 
   /* checklist prosedur */
   const procPct = Math.round(GA_CONSOL_PROC.filter((p, i) => procDone[p.ref + i]).length / GA_CONSOL_PROC.length * 100);
-  const toggleProc = (key) => setProcDone(m => ({ ...m, [key]: !m[key] }));
+  const toggleProc = (key: any) => setProcDone((m: any) => ({ ...m, [key]: !m[key] }));
 
   return (
     <div style={{ padding: 14, display: 'grid', gap: 12 }}>
@@ -423,8 +423,8 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
             <div className="panel-h"><h3>Eliminasi Investasi vs Ekuitas Anak</h3><span className="sub mono">metode akuisisi · PSAK 22 ¶32</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
             <table className="dtbl">
               <tbody>
-                <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Modal saham anak (100%)</td><td className="num mono" style={{ fontWeight: 700 }}>{fmt(p65.subs.reduce((a, s) => a + s.modal, 0))}</td><td style={{ width: 90 }}></td></tr>
-                <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Saldo laba pra-akuisisi anak</td><td className="num mono" style={{ fontWeight: 700 }}>{fmt(p65.subs.reduce((a, s) => a + s.rePre, 0))}</td><td></td></tr>
+                <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Modal saham anak (100%)</td><td className="num mono" style={{ fontWeight: 700 }}>{fmt(p65.subs.reduce((a: any, s: any) => a + s.modal, 0))}</td><td style={{ width: 90 }}></td></tr>
+                <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Saldo laba pra-akuisisi anak</td><td className="num mono" style={{ fontWeight: 700 }}>{fmt(p65.subs.reduce((a: any, s: any) => a + s.rePre, 0))}</td><td></td></tr>
                 <tr style={{ background: 'var(--blue-050)' }}><td style={{ fontSize: 12, fontWeight: 700 }}>Dr · Goodwill (selisih lebih)</td><td className="num mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{fmt(p65.goodwillTotal)}</td><td></td></tr>
                 <tr><td style={{ fontSize: 12, paddingLeft: 18 }}>Cr · Investasi pada entitas anak</td><td></td><td className="num mono" style={{ fontWeight: 700 }}>{fmt(p65.costTotal)}</td></tr>
                 <tr style={{ background: 'var(--amber-bg)' }}><td style={{ fontSize: 12, paddingLeft: 18, fontWeight: 700 }}>Cr · Kepentingan nonpengendali (akuisisi)</td><td></td><td className="num mono" style={{ fontWeight: 700, color: 'var(--amber)' }}>{fmt(p65.nciAcqTotal)}</td></tr>
@@ -439,7 +439,7 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
             <table className="dtbl">
               <thead><tr><th style={{ width: 60 }}>ID</th><th>Deskripsi & jurnal (Dr/Cr)</th><th style={{ width: 92 }}>Tipe</th><th className="num" style={{ width: 64 }}>Nilai</th><th style={{ width: 104 }}>Status</th><th style={{ width: 108 }}></th></tr></thead>
               <tbody>
-                {p65.interco.map(e => {
+                {p65.interco.map((e: any) => {
                   const st = stat(e);
                   return (
                     <tr key={e.id}>
@@ -448,9 +448,9 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
                         <div className="tiny" style={{ fontWeight: 600 }}>{e.desc}</div>
                         <div className="tiny muted">Dr {e.dr} · Cr {e.cr}{e.diff ? <span style={{ color: 'var(--red)' }}> · selisih Rp {fmt(e.diff)} jt belum direkonsiliasi</span> : ''}</div>
                       </td>
-                      <td><Badge kind={ELIM_TYPE_KIND[e.type] || 'gray'}>{e.type}</Badge></td>
+                      <td><Badge kind={(ELIM_TYPE_KIND as any)[e.type] || 'gray'}>{e.type}</Badge></td>
                       <td className="num mono">{fmt(e.amount)}</td>
-                      <td><Badge kind={ELIM_STAT[st]}>{st}</Badge></td>
+                      <td><Badge kind={(ELIM_STAT as any)[st]}>{st}</Badge></td>
                       <td>
                         {st === 'Diverifikasi'
                           ? <Btn sm onClick={() => toggleVerify(e.id)}><I.checkCircle size={12} /> Sign-off</Btn>
@@ -528,7 +528,7 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
             <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage</span></div>
             <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber data</span></div>
             <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-              {GA_CONSOL_UP.map(m => { const IconC = I[m.ic] || I.doc; return (
+              {GA_CONSOL_UP.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                 <button key={m.id} onClick={() => nav(m.id, { from: 'groupaudit' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                   <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}><div className="tiny" style={{ fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -538,7 +538,7 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
             </div>
             <div className="row ac gap6" style={{ padding: '4px 14px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
             <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-              {GA_CONSOL_DOWN.map(m => { const IconC = I[m.ic] || I.doc; return (
+              {GA_CONSOL_DOWN.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                 <button key={m.id} onClick={() => nav(m.id, { from: 'groupaudit' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                   <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}><div className="tiny" style={{ fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

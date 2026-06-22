@@ -28,16 +28,16 @@ function SalesPipeline() {
   const [over, setOver] = useStateD1(null);
   const [detail, setDetail] = useStateD1(null);
 
-  const active = opps.filter(o => o.stage !== 'Lost');
-  const weighted = active.filter(o => o.stage !== 'Won').reduce((s, o) => s + o.value * o.prob / 100, 0);
-  const won = opps.filter(o => o.stage === 'Won').reduce((s, o) => s + o.value, 0);
-  const openCount = opps.filter(o => !['Won', 'Lost'].includes(o.stage)).length;
-  const winRate = Math.round(opps.filter(o => o.stage === 'Won').length / (opps.filter(o => ['Won', 'Lost'].includes(o.stage)).length || 1) * 100);
+  const active = opps.filter((o: any) => o.stage !== 'Lost');
+  const weighted = active.filter((o: any) => o.stage !== 'Won').reduce((s: any, o: any) => s + o.value * o.prob / 100, 0);
+  const won = opps.filter((o: any) => o.stage === 'Won').reduce((s: any, o: any) => s + o.value, 0);
+  const openCount = opps.filter((o: any) => !['Won', 'Lost'].includes(o.stage)).length;
+  const winRate = Math.round(opps.filter((o: any) => o.stage === 'Won').length / (opps.filter((o: any) => ['Won', 'Lost'].includes(o.stage)).length || 1) * 100);
 
-  const move = (id, stage) => setOpps(list => list.map(o => o.id === id ? { ...o, stage, prob: stage === 'Won' ? 100 : stage === 'Lost' ? 0 : o.prob } : o));
-  const detailOpp = detail ? opps.find(o => o.id === detail) : null;
+  const move = (id: any, stage: any) => setOpps((list: any) => list.map((o: any) => o.id === id ? { ...o, stage, prob: stage === 'Won' ? 100 : stage === 'Lost' ? 0 : o.prob } : o));
+  const detailOpp = detail ? opps.find((o: any) => o.id === detail) : null;
   const [showNew, setShowNew] = useStateD1(false);
-  const addOpp = (o) => setOpps(list => [{ id: 'OPP-' + (108 + list.length), stage: 'Lead', ...o }, ...list]);
+  const addOpp = (o: any) => setOpps((list: any) => [{ id: 'OPP-' + (108 + list.length), stage: 'Lead', ...o }, ...list]);
 
   return (
     <>
@@ -57,13 +57,13 @@ function SalesPipeline() {
 
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10, alignItems: 'start' }}>
           {PIPE_STAGES.map(st => {
-            const col = opps.filter(o => o.stage === st.id);
-            const colVal = col.reduce((s, o) => s + o.value, 0);
+            const col = opps.filter((o: any) => o.stage === st.id);
+            const colVal = col.reduce((s: any, o: any) => s + o.value, 0);
             return (
               <div key={st.id}
-                onDragOver={(e) => { e.preventDefault(); if (over !== st.id) setOver(st.id); }}
-                onDragLeave={() => setOver(o => o === st.id ? null : o)}
-                onDrop={(e) => { e.preventDefault(); if (dragId) move(dragId, st.id); setDragId(null); setOver(null); }}
+                onDragOver={(e: any) => { e.preventDefault(); if (over !== st.id) setOver(st.id); }}
+                onDragLeave={() => setOver((o: any) => o === st.id ? null : o)}
+                onDrop={(e: any) => { e.preventDefault(); if (dragId) move(dragId, st.id); setDragId(null); setOver(null); }}
                 style={{ borderRadius: 8, padding: 5, minHeight: 120, background: over === st.id ? 'var(--blue-050)' : 'transparent', outline: over === st.id ? '2px dashed var(--blue)' : 'none' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
@@ -72,7 +72,7 @@ function SalesPipeline() {
                 </div>
                 <div className="tiny muted mono" style={{ padding: '0 3px 8px' }}>Rp {fmt(colVal / 1e6, 0)} jt</div>
                 <div className="grid" style={{ gap: 8 }}>
-                  {col.map(o => (
+                  {col.map((o: any) => (
                     <div key={o.id} className="panel" draggable
                       onDragStart={() => setDragId(o.id)} onDragEnd={() => { setDragId(null); setOver(null); }}
                       onClick={() => setDetail(o.id)}
@@ -93,36 +93,36 @@ function SalesPipeline() {
         </div>
       </div></div>
       {detailOpp && <OppDetail o={detailOpp} onClose={() => setDetail(null)} onMove={move} />}
-      {showNew && <OppForm onClose={() => setShowNew(false)} onAdd={(o) => { addOpp(o); setShowNew(false); }} />}
+      {showNew && <OppForm onClose={() => setShowNew(false)} onAdd={(o: any) => { addOpp(o); setShowNew(false); }} />}
     </>
   );
 }
 
-function OppForm({ onClose, onAdd }) {
+function OppForm({ onClose, onAdd }: any) {
   const { fmt } = AMS;
   const [d, setD] = useStateD1({ name: '', service: 'Audit Laporan Keuangan', industry: '', value: 500000000, prob: 25, owner: 'Hartono Wijaya', close: '2026-06-30' });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim() && +d.value > 0;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.trend size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Peluang Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke pipeline penjualan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Nama Calon Klien</label><input className="input" value={d.name} onChange={e => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
+          <div className="field"><label>Nama Calon Klien</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jasa</label><select className="select" value={d.service} onChange={e => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Due Diligence', 'Audit + Tax', 'Advisory'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={e => set('industry', e.target.value)} placeholder="Manufaktur" /></div>
+            <div className="field"><label>Jasa</label><select className="select" value={d.service} onChange={(e: any) => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Due Diligence', 'Audit + Tax', 'Advisory'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur" /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Nilai Estimasi (Rp)</label><input className="input mono" type="number" value={d.value} onChange={e => set('value', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Probabilitas (%)</label><input className="input mono" type="number" value={d.prob} onChange={e => set('prob', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Nilai Estimasi (Rp)</label><input className="input mono" type="number" value={d.value} onChange={(e: any) => set('value', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Probabilitas (%)</label><input className="input mono" type="number" value={d.prob} onChange={(e: any) => set('prob', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Owner</label><select className="select" value={d.owner} onChange={e => set('owner', e.target.value)}>{['Hartono Wijaya', 'Rudi Gunawan', 'Sari Dewanti', 'Bayu Saputra'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Target Close</label><input className="input" type="date" value={d.close} onChange={e => set('close', e.target.value)} /></div>
+            <div className="field"><label>Owner</label><select className="select" value={d.owner} onChange={(e: any) => set('owner', e.target.value)}>{['Hartono Wijaya', 'Rudi Gunawan', 'Sari Dewanti', 'Bayu Saputra'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Target Close</label><input className="input" type="date" value={d.close} onChange={(e: any) => set('close', e.target.value)} /></div>
           </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
@@ -134,7 +134,7 @@ function OppForm({ onClose, onAdd }) {
   );
 }
 
-function OppDetail({ o, onClose, onMove }) {
+function OppDetail({ o, onClose, onMove }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const toOnboarding = () => {
@@ -161,7 +161,7 @@ function OppDetail({ o, onClose, onMove }) {
   ];
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{o.id}</span><button className="top-btn" onClick={onClose}><I.x size={18} /></button></div>
           <div style={{ fontSize: 16, fontWeight: 700 }}>{o.name}</div>
@@ -209,17 +209,17 @@ function Billing() {
   const [filter, setFilter] = useStateD1('All');
   const [sel, setSel] = useStateD1(null);
 
-  const totalBilled = invoices.filter(i => i.status !== 'Draft').reduce((s, i) => s + i.amount, 0);
-  const collected = invoices.reduce((s, i) => s + i.paid, 0);
+  const totalBilled = invoices.filter((i: any) => i.status !== 'Draft').reduce((s: any, i: any) => s + i.amount, 0);
+  const collected = invoices.reduce((s: any, i: any) => s + i.paid, 0);
   const outstanding = totalBilled - collected;
-  const overdue = invoices.filter(i => i.status === 'Overdue').reduce((s, i) => s + (i.amount - i.paid), 0);
+  const overdue = invoices.filter((i: any) => i.status === 'Overdue').reduce((s: any, i: any) => s + (i.amount - i.paid), 0);
 
-  const shown = filter === 'All' ? invoices : invoices.filter(i => i.status === filter);
-  const markPaid = (id) => setInvoices(list => list.map(i => i.id === id ? { ...i, paid: i.amount, status: 'Paid' } : i));
-  const send = (id) => setInvoices(list => list.map(i => i.id === id ? { ...i, status: 'Sent' } : i));
-  const selInv = sel ? invoices.find(i => i.id === sel) : null;
+  const shown = filter === 'All' ? invoices : invoices.filter((i: any) => i.status === filter);
+  const markPaid = (id: any) => setInvoices((list: any) => list.map((i: any) => i.id === id ? { ...i, paid: i.amount, status: 'Paid' } : i));
+  const send = (id: any) => setInvoices((list: any) => list.map((i: any) => i.id === id ? { ...i, status: 'Sent' } : i));
+  const selInv = sel ? invoices.find((i: any) => i.id === sel) : null;
   const [showNew, setShowNew] = useStateD1(false);
-  const addInv = (inv) => setInvoices(list => [{ id: 'INV-2026-0' + (46 + list.length), issued: '2026-03-09', paid: 0, status: 'Draft', ...inv }, ...list]);
+  const addInv = (inv: any) => setInvoices((list: any) => [{ id: 'INV-2026-0' + (46 + list.length), issued: '2026-03-09', paid: 0, status: 'Draft', ...inv }, ...list]);
 
   return (
     <>
@@ -243,7 +243,7 @@ function Billing() {
             <table className="dtbl">
               <thead><tr><th>No. Faktur</th><th>Klien</th><th>Termin</th><th className="num">Nilai</th><th className="num">Dibayar</th><th>Jatuh Tempo</th><th>Status</th></tr></thead>
               <tbody>
-                {shown.map(i => (
+                {shown.map((i: any) => (
                   <tr key={i.id} className={i.id === sel ? 'sel' : ''} onClick={() => setSel(i.id)} style={{ cursor: 'pointer' }}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{i.id}</td>
                     <td className="truncate" style={{ maxWidth: 170, fontWeight: 600 }}>{i.client.replace('PT ', '')}</td>
@@ -251,18 +251,18 @@ function Billing() {
                     <td className="num">{fmt(i.amount / 1e6, 0)} jt</td>
                     <td className="num muted">{i.paid ? fmt(i.paid / 1e6, 0) + ' jt' : '—'}</td>
                     <td className="mono tiny" style={{ color: i.status === 'Overdue' ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(i.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
-                    <td><Badge kind={INV_STATUS[i.status]}>{i.status}</Badge></td>
+                    <td><Badge kind={(INV_STATUS as any)[i.status]}>{i.status}</Badge></td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot><tr><td colSpan={3}>TOTAL</td><td className="num">{fmt(shown.reduce((s, i) => s + i.amount, 0) / 1e6, 0)} jt</td><td className="num">{fmt(shown.reduce((s, i) => s + i.paid, 0) / 1e6, 0)} jt</td><td colSpan={2}></td></tr></tfoot>
+              <tfoot><tr><td colSpan={3}>TOTAL</td><td className="num">{fmt(shown.reduce((s: any, i: any) => s + i.amount, 0) / 1e6, 0)} jt</td><td className="num">{fmt(shown.reduce((s: any, i: any) => s + i.paid, 0) / 1e6, 0)} jt</td><td colSpan={2}></td></tr></tfoot>
             </table>
           </Panel>
 
           {selInv && (
             <Panel noBody>
               <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
-                <div className="row jb ac"><span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{selInv.id}</span><Badge kind={INV_STATUS[selInv.status]}>{selInv.status}</Badge></div>
+                <div className="row jb ac"><span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{selInv.id}</span><Badge kind={(INV_STATUS as any)[selInv.status]}>{selInv.status}</Badge></div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3 }}>{selInv.client}</div>
                 <div className="tiny muted mono">{selInv.eng} · {selInv.milestone}</div>
               </div>
@@ -285,34 +285,34 @@ function Billing() {
           )}
         </div>
       </div></div>
-      {showNew && <InvForm onClose={() => setShowNew(false)} onAdd={(i) => { addInv(i); setShowNew(false); }} />}
+      {showNew && <InvForm onClose={() => setShowNew(false)} onAdd={(i: any) => { addInv(i); setShowNew(false); }} />}
     </>
   );
 }
 
-function InvForm({ onClose, onAdd }) {
+function InvForm({ onClose, onAdd }: any) {
   const { fmt } = AMS;
   const clients: any = AMS.CLIENTS;
   const [d, setD] = useStateD1({ clientId: clients[0].id, milestone: 'Termin 1 (50%)', amount: 500000000, due: '2026-04-15', eng: '' });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = +d.amount > 0;
-  const submit = () => { const c = clients.find(x => x.id === d.clientId); onAdd({ clientId: d.clientId, client: c.name, eng: d.eng || '—', milestone: d.milestone, amount: +d.amount, due: d.due }); };
+  const submit = () => { const c = clients.find((x: any) => x.id === d.clientId); onAdd({ clientId: d.clientId, client: c.name, eng: d.eng || '—', milestone: d.milestone, amount: +d.amount, due: d.due }); };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Faktur Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Terbitkan tagihan ke klien (status awal Draft)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={e => set('clientId', e.target.value)}>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Termin</label><select className="select" value={d.milestone} onChange={e => set('milestone', e.target.value)}>{['Termin 1 (50%)', 'Termin 2 (30%)', 'Termin 3 (20%)', 'Final (100%)'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Engagement (opsional)</label><input className="input mono" value={d.eng} onChange={e => set('eng', e.target.value)} placeholder="ENG-2025-014" /></div>
+            <div className="field"><label>Termin</label><select className="select" value={d.milestone} onChange={(e: any) => set('milestone', e.target.value)}>{['Termin 1 (50%)', 'Termin 2 (30%)', 'Termin 3 (20%)', 'Final (100%)'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Engagement (opsional)</label><input className="input mono" value={d.eng} onChange={(e: any) => set('eng', e.target.value)} placeholder="ENG-2025-014" /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Nilai (Rp)</label><input className="input mono" type="number" value={d.amount} onChange={e => set('amount', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Jatuh Tempo</label><input className="input" type="date" value={d.due} onChange={e => set('due', e.target.value)} /></div>
+            <div className="field"><label>Nilai (Rp)</label><input className="input mono" type="number" value={d.amount} onChange={(e: any) => set('amount', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Jatuh Tempo</label><input className="input" type="date" value={d.due} onChange={(e: any) => set('due', e.target.value)} /></div>
           </div>
           <div className="tiny muted mono">Total: Rp {fmt(+d.amount || 0)}</div>
         </div>

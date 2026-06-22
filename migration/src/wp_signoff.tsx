@@ -81,12 +81,12 @@ const WP_SUBBAR_HIDE = { opinion: true };
 /* Taksonomi disposisi kesimpulan auditor (P1). Daftar tetap + rasional bebas. */
 const WP_DISPOSITIONS = ['Memadai', 'Perlu tindak lanjut', 'Eskalasi ke partner'];
 
-function wpKeyFor(moduleId) {
-  const m = WP_MODULE_MAP[moduleId];
+function wpKeyFor(moduleId: any) {
+  const m = (WP_MODULE_MAP as any)[moduleId];
   return (m && m.ref) || moduleId;
 }
-function requiredEvidenceFor(moduleId) {
-  const m = WP_MODULE_MAP[moduleId];
+function requiredEvidenceFor(moduleId: any) {
+  const m = (WP_MODULE_MAP as any)[moduleId];
   return (m && m.requiredEvidence) || [];
 }
 function wpToday() {
@@ -99,11 +99,11 @@ function wpToday() {
    default statis, agar lembar cetak tetap lengkap sebelum ditandatangani secara
    live. Begitu auditor sign-off via SubBar/register WP, blok cetak ikut nyata.
    Fungsi MURNI (bukan hook) — panggil dengan `audit` dari useAudit() di komponen. */
-function wpSignersFor(audit, moduleId, defaults) {
+function wpSignersFor(audit: any, moduleId: any, defaults: any) {
   const d = defaults || {};
   const ref = wpKeyFor(moduleId);
   const chain = ((audit && audit.wpState && audit.wpState[ref]) || {}).chain || {};
-  const merge = (slot, def) => {
+  const merge = (slot: any, def: any) => {
     const c = chain[slot];
     if (!c) return def || null;
     return { by: c.by, at: c.at, role: (def && def.role) || '' };
@@ -116,7 +116,7 @@ function wpSignersFor(audit, moduleId, defaults) {
 }
 
 /* ---- hook: state sign-off kanonik per modul ---- */
-function useWpSignoff(moduleId) {
+function useWpSignoff(moduleId: any) {
   const audit = useAudit();
   const auth = useAuth();
   const firm = useFirm();
@@ -128,7 +128,7 @@ function useWpSignoff(moduleId) {
   const locked = !!(firm && firm.locked);      // arsip/selesai engagement = read-only (sign-off lunak: boleh buka kembali selama belum diarsipkan)
   const status = chain.reviewer ? 'reviewed' : chain.preparer ? 'prepared' : 'draft';
 
-  const sign = (level) => {
+  const sign = (level: any) => {
     const at = wpToday();
     if (level === 'preparer') {
       setWp(ref, { chain: { ...chain, preparer: { by: me, at } }, status: st.status === 'Reviewed' ? st.status : 'In Review' });
@@ -136,7 +136,7 @@ function useWpSignoff(moduleId) {
       setWp(ref, { chain: { ...chain, preparer: chain.preparer || { by: me, at }, reviewer: { by: me, at } }, status: 'Reviewed', reviewer: me, signedAt: at });
     }
   };
-  const unsign = (level) => {
+  const unsign = (level: any) => {
     const nc = { ...chain };
     if (level === 'reviewer') {
       delete nc.reviewer;
@@ -148,7 +148,7 @@ function useWpSignoff(moduleId) {
   };
   /* ---- kesimpulan auditor (P1): persist ke wpState[ref].conclusion ---- */
   const conclusion = st.conclusion || null;
-  const saveConclusion = (text, disposition) =>
+  const saveConclusion = (text: any, disposition: any) =>
     setWp(ref, { conclusion: { text, disposition, by: me, at: wpToday() } });
 
   return { ref, me, chain, status, locked, sign, unsign,
@@ -157,7 +157,7 @@ function useWpSignoff(moduleId) {
 }
 
 /* ---- kelengkapan bukti (required vs attached) ---- */
-function useWpEvidence(moduleId) {
+function useWpEvidence(moduleId: any) {
   const req = requiredEvidenceFor(moduleId);
   const attached = (typeof amsEvidenceCount === 'function') ? amsEvidenceCount(moduleId) : 0;
   const level = req.length === 0 ? (attached > 0 ? 'ok' : 'none')
@@ -184,7 +184,7 @@ function WpStatusBadge({ moduleId }: any) {
 function WpSignoff({ moduleId }: any) {
   const { status, locked, sign, unsign, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
   const hasConclusion = !!(conclusion && conclusion.text);
-  const Line = ({ role, who, onSign, onUnsign, canSign }) => (
+  const Line = ({ role, who, onSign, onUnsign, canSign }: any) => (
     <div className="row ac gap8" style={{ padding: '7px 0' }}>
       <span style={{ width: 24, height: 24, borderRadius: '50%', flex: '0 0 24px', display: 'grid', placeItems: 'center',
         background: who ? 'var(--green-bg)' : 'var(--surface-3)', color: who ? 'var(--green)' : 'var(--ink-4)' }}>
@@ -225,7 +225,7 @@ function WpEvidenceLink({ moduleId }: any) {
       </div>
       {req.length > 0 ? (
         <ul style={{ margin: 0, paddingLeft: 16 }}>
-          {req.map((r, i) => (
+          {req.map((r: any, i: any) => (
             <li key={i} className="tiny" style={{ color: i < attached ? 'var(--ink-2)' : 'var(--ink-4)', padding: '1px 0' }}>
               {i < attached ? '✓ ' : '○ '}{r}
             </li>
@@ -247,16 +247,16 @@ function WpConclusion({ moduleId }: any) {
   const [text, setText] = useStateWPS(baseText);
   const [disp, setDisp] = useStateWPS(baseDisp);
   const dirty = text !== baseText || disp !== baseDisp;
-  const dispKind = (d) => d === 'Memadai' ? 'green' : d === 'Perlu tindak lanjut' ? 'amber' : 'red';
+  const dispKind = (d: any) => d === 'Memadai' ? 'green' : d === 'Perlu tindak lanjut' ? 'amber' : 'red';
   return (
     <div>
       <div className="field" style={{ marginBottom: 8 }}>
         <label className="tiny muted" style={{ fontWeight: 700 }}>Disposisi</label>
-        <select className="select" value={disp} onChange={e => setDisp(e.target.value)} disabled={locked}>
+        <select className="select" value={disp} onChange={(e: any) => setDisp(e.target.value)} disabled={locked}>
           {WP_DISPOSITIONS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       </div>
-      <textarea className="input" value={text} onChange={e => setText(e.target.value)} disabled={locked}
+      <textarea className="input" value={text} onChange={(e: any) => setText(e.target.value)} disabled={locked}
         placeholder="Dasar kesimpulan & pertimbangan profesional (SA 230)…"
         style={{ height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', width: '100%', marginBottom: 8 }} />
       <div className="row ac jb">
@@ -296,11 +296,11 @@ function WpPanel({ moduleId, title }: any) {
 function WpSubBarControl({ moduleId }: any) {
   const [open, setOpen] = useStateWPS(false);
   const s = useWpSignoff(moduleId);
-  if (!WP_MODULE_MAP[moduleId] || WP_SUBBAR_HIDE[moduleId]) return null;
+  if (!(WP_MODULE_MAP as any)[moduleId] || (WP_SUBBAR_HIDE as any)[moduleId]) return null;
   const dotKind = s.status === 'reviewed' ? 'var(--green)' : s.status === 'prepared' ? 'var(--blue)' : 'var(--ink-4)';
   return (
     <div style={{ position: 'relative' }}>
-      <button className="subbar-ev" onClick={() => setOpen(o => !o)} title="Sign-off & bukti kertas kerja">
+      <button className="subbar-ev" onClick={() => setOpen((o: any) => !o)} title="Sign-off & bukti kertas kerja">
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotKind, display: 'inline-block' }} />
         Kertas Kerja
       </button>
@@ -331,11 +331,11 @@ function WpSubBarControl({ moduleId }: any) {
 /* ---- Rekap kelengkapan per-engagement (Fase 4) ----
    Dedupe per ref kanonik: modul ber-alias (lease/psak73→F, revenue/psak72→R)
    berbagi WP yg sama → dihitung SEKALI, bukan ganda. */
-function wpCompletenessFor(audit, moduleIds) {
+function wpCompletenessFor(audit: any, moduleIds: any) {
   const wpState = (audit && audit.wpState) || {};
   const seen = new Set();
   let total = 0, signed = 0, withEvidence = 0, withConclusion = 0;
-  moduleIds.forEach(mid => {
+  moduleIds.forEach((mid: any) => {
     const ref = wpKeyFor(mid);
     if (seen.has(ref)) return;
     seen.add(ref);
@@ -361,7 +361,7 @@ function WpCompletenessRecap({ moduleIds }: any) {
   const audit = useAudit();
   const ids = moduleIds || Object.keys(WP_MODULE_MAP);
   const r = wpCompletenessFor(audit, ids);
-  const Row = ({ label, pct, count, total, color }) => (
+  const Row = ({ label, pct, count, total, color }: any) => (
     <div style={{ marginBottom: 9 }}>
       <div className="row jb ac" style={{ marginBottom: 4 }}>
         <span className="tiny" style={{ fontWeight: 600 }}>{label}</span>
@@ -393,7 +393,7 @@ const PHASE_ORDER = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
 
 /* baca status finalisasi opini dari SSOT persist (ams.v1.opinionDoc.<engId>).
    Murni-baca; fallback false bila berkas opini belum disentuh. */
-function opinionFinalized(firm) {
+function opinionFinalized(firm: any) {
   try {
     const engId = firm && firm.activeEngagementId;
     if (!engId) return false;
@@ -407,7 +407,7 @@ function opinionFinalized(firm) {
    Kriteria mengikuti spek disetujui (Q2): →Finalisasi butuh 0 catatan
    prioritas-tinggi terbuka; →Arsip butuh opini final + 100% WP ter-review
    + 0 catatan terbuka. Maju-mundur/sama-fase = bebas (severity 'none'). */
-function engagementGate(audit, firm, opts) {
+function engagementGate(audit: any, firm: any, opts: any) {
   const o = opts || {};
   const moduleIds = o.moduleIds || Object.keys(WP_MODULE_MAP);
   const fromPhase = o.fromPhase || (firm && firm.activeEngagement && firm.activeEngagement.phase) || 'Perencanaan';
@@ -422,11 +422,11 @@ function engagementGate(audit, firm, opts) {
 
   const recap = wpCompletenessFor(audit, moduleIds);
   const notes = (audit && (audit.reviewNotesActive || audit.reviewNotes)) || [];  // P5 Fase 2: engagement-scope
-  const openNotes = notes.filter(n => n.status === 'open');
-  const highOpen = openNotes.filter(n => n.priority === 'high');
+  const openNotes = notes.filter((n: any) => n.status === 'open');
+  const highOpen = openNotes.filter((n: any) => n.priority === 'high');
   const opFinal = opinionFinalized(firm);
 
-  let criteria = [];
+  let criteria: any[] = [];
   let severity = 'warn';
   if (nextPhase === 'Eksekusi') {
     severity = 'warn';
@@ -472,7 +472,7 @@ function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }: any) {
         </div>
       )}
       <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
-        {g.criteria.map(c => (
+        {g.criteria.map((c: any) => (
           <li key={c.key} className="row ac jb" style={{ gap: 8, padding: '4px 0' }}>
             <span className="row ac gap6" style={{ minWidth: 0 }}>
               <span style={{ color: c.met ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>
@@ -505,7 +505,7 @@ function usePhaseGate() {
   const setEngagementPhase = (firm && firm.setEngagementPhase) || (() => {});
   const logActivity = (audit && audit.logActivity) || (() => {});
   const [pending, setPending] = useStateWPS(null);
-  const attempt = (engId, fromPhase, toPhase) => {
+  const attempt = (engId: any, fromPhase: any, toPhase: any) => {
     const g = engagementGate(audit, firm, { nextPhase: toPhase, fromPhase });
     const needsDialog = g.severity === 'confirm' ? true : (g.severity === 'warn' && !g.allMet);
     if (!needsDialog) { setEngagementPhase(engId, toPhase); return; }
@@ -532,7 +532,7 @@ function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any)
   const accent = isConfirm ? 'var(--red)' : 'var(--amber)';
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onCancel}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', padding: 0, overflow: 'hidden' }} onClick={ev => ev.stopPropagation()}>
+      <div className="panel" style={{ width: 460, maxWidth: '94vw', padding: 0, overflow: 'hidden' }} onClick={(ev: any) => ev.stopPropagation()}>
         <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', borderTop: `3px solid ${accent}` }}>
           <div className="row ac gap8" style={{ fontWeight: 700, fontSize: 13.5 }}>
             <span style={{ color: accent }}><I.alert size={15} /></span>

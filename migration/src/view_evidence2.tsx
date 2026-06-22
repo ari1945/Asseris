@@ -13,9 +13,9 @@ import { KvBox } from './view_analytical';
    ============================================================ */
 const { useState: useStateE2 } = React;
 
-const ev2Rp = (n) => 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' M';
-const ev2TierColor = (t) => t >= 4 ? 'var(--green)' : t === 3 ? 'var(--amber)' : 'var(--red)';
-function Ev2Meter({ v, h = 13 }) {
+const ev2Rp = (n: any) => 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' M';
+const ev2TierColor = (t: any) => t >= 4 ? 'var(--green)' : t === 3 ? 'var(--amber)' : 'var(--red)';
+function Ev2Meter({ v, h = 13 }: any) {
   return <div style={{ display: 'flex', gap: 2 }}>{[1, 2, 3, 4, 5].map(n => <span key={n} style={{ width: 6, height: h, borderRadius: 1, background: n <= v ? ev2TierColor(v) : 'var(--surface-3)' }} />)}</div>;
 }
 
@@ -105,7 +105,7 @@ function EvSelection() {
   const [filter, setFilter] = useStateE2('all-f');
   const [selId, setSelId] = useStateE2('EV-B');
   const counts = { all: 0, specific: 0, sampling: 0 };
-  EV2_SEL.forEach(r => r.methods.forEach(m => counts[m]++));
+  EV2_SEL.forEach(r => r.methods.forEach(m => (counts as any)[m]++));
   const rows = EV2_SEL.filter(r => filter === 'all-f' || r.methods.includes(filter));
   const sel = EV2_SEL.find(r => r.id === selId);
   const selCov = sel ? Math.round(sel.selVal / sel.popVal * 100) : 0;
@@ -118,7 +118,7 @@ function EvSelection() {
             <div style={{ padding: '12px 14px', borderLeft: `3px solid var(--${m.color})` }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}>
                 <span style={{ fontWeight: 700, fontSize: 12.5 }}>{m.label}</span>
-                <Badge kind={m.color}>{counts[k]} area</Badge>
+                <Badge kind={m.color}>{(counts as any)[k]} area</Badge>
               </div>
               <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 6 }}>{m.desc}</div>
               <span className="mono tiny" style={{ color: `var(--${m.color})`, fontWeight: 700 }}>SA 500 {m.ref}</span>
@@ -141,7 +141,7 @@ function EvSelection() {
                 return (
                   <tr key={r.id} className={r.id === selId ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
                     <td><div style={{ fontWeight: 600 }}>{r.area}</div><div className="tiny muted mono">WP {r.wp}</div></td>
-                    <td><div className="row gap6" style={{ flexWrap: 'wrap' }}>{r.methods.map(m => <Badge key={m} kind={EV2_MEANS[m].color}>{EV2_MEANS[m].short}</Badge>)}</div></td>
+                    <td><div className="row gap6" style={{ flexWrap: 'wrap' }}>{r.methods.map(m => <Badge key={m} kind={(EV2_MEANS as any)[m].color}>{(EV2_MEANS as any)[m].short}</Badge>)}</div></td>
                     <td className="num"><span className="mono" style={{ fontWeight: 600 }}>{r.popUnit === 'penambahan' ? ev2Rp(r.popVal) : r.pop.toLocaleString('id-ID')}</span><div className="tiny muted">{r.popUnit !== 'penambahan' && ev2Rp(r.popVal)}{r.popUnit === 'penambahan' && 'penambahan TB'}</div></td>
                     <td className="num"><span className="mono" style={{ fontWeight: 600 }}>{r.sel}</span><div className="tiny muted">{ev2Rp(r.selVal)}</div></td>
                     <td>
@@ -173,7 +173,7 @@ function EvSelection() {
               <div style={{ padding: 14, display: 'grid', placeItems: 'center', gap: 10 }}>
                 <Donut size={108} thickness={15} segments={[{ value: selCov, color: selCov >= 80 ? 'var(--green)' : selCov >= 50 ? 'var(--amber)' : 'var(--blue)' }, { value: 100 - selCov, color: 'var(--surface-3)' }]}
                   center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 20 }}>{selCov}%</div><div className="tiny muted">nilai diuji</div></div>} />
-                <div className="row gap6" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>{sel.methods.map(m => <Badge key={m} kind={EV2_MEANS[m].color} dot>{EV2_MEANS[m].label}</Badge>)}</div>
+                <div className="row gap6" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>{sel.methods.map(m => <Badge key={m} kind={(EV2_MEANS as any)[m].color} dot>{(EV2_MEANS as any)[m].label}</Badge>)}</div>
               </div>
               <div style={{ padding: '0 14px 14px', display: 'grid', gap: 8 }}>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -200,7 +200,7 @@ function EvSelection() {
    ============================================================ */
 function EvDirection() {
   const [dir, setDir] = useStateE2('over');
-  const d = EV2_DIR[dir];
+  const d = (EV2_DIR as any)[dir];
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -228,7 +228,7 @@ function EvDirection() {
                 {(() => {
                   const left = { label: dir === 'over' ? 'Catatan' : 'Dokumen Sumber', sub: dir === 'over' ? 'Buku besar / saldo tercatat' : 'Faktur · pengiriman · pihak ketiga' };
                   const right = { label: dir === 'over' ? 'Dokumen Pendukung' : 'Catatan', sub: dir === 'over' ? 'Bukti validitas item' : 'Buku besar / saldo tercatat' };
-                  const box = (b, accent) => (
+                  const box = (b: any, accent: any) => (
                     <div style={{ flex: '1 1 0', minWidth: 0, padding: '12px 12px', borderRadius: 9, background: '#fff', border: `1.5px solid var(--${accent ? d.color : 'line'})`, textAlign: 'center' }}>
                       <div style={{ fontWeight: 700, fontSize: 12.5 }}>{b.label}</div>
                       <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.3 }}>{b.sub}</div>
@@ -315,10 +315,10 @@ function EvDirection() {
 function EvDossier() {
   const ids = Object.keys(EV2_DOSS);
   const [selId, setSelId] = useStateE2('EV-B');
-  const dos = EV2_DOSS[selId];
-  const tie = dos.items.filter(i => i.res === 'tie').length;
-  const exc = dos.items.filter(i => i.res === 'exc').length;
-  const na = dos.items.filter(i => i.res === 'na').length;
+  const dos = (EV2_DOSS as any)[selId];
+  const tie = dos.items.filter((i: any) => i.res === 'tie').length;
+  const exc = dos.items.filter((i: any) => i.res === 'exc').length;
+  const na = dos.items.filter((i: any) => i.res === 'na').length;
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '230px 1fr', gap: 12, alignItems: 'start' }}>
@@ -326,8 +326,8 @@ function EvDossier() {
         <div className="panel-h"><h3>Area</h3></div>
         <div style={{ padding: 6 }}>
           {ids.map(id => {
-            const d = EV2_DOSS[id];
-            const e = d.items.filter(i => i.res === 'exc').length;
+            const d = (EV2_DOSS as any)[id];
+            const e = d.items.filter((i: any) => i.res === 'exc').length;
             return (
               <button key={id} onClick={() => setSelId(id)} className="row jb ac" style={{ width: '100%', cursor: 'pointer', textAlign: 'left', padding: '9px 10px', borderRadius: 7, marginBottom: 2,
                 border: '1px solid ' + (id === selId ? 'var(--blue)' : 'transparent'), background: id === selId ? 'var(--blue-050)' : 'transparent' }}>
@@ -352,16 +352,16 @@ function EvDossier() {
           <table className="dtbl">
             <thead><tr><th style={{ width: 46 }}>Ref</th><th>Bukti & Prosedur</th><th style={{ width: 140 }}>Sumber</th><th style={{ width: 90 }}>Keandalan</th><th style={{ width: 96 }}>Asersi</th><th style={{ width: 110 }}>Tie-out</th></tr></thead>
             <tbody>
-              {dos.items.map(it => {
-                const r = EV2_RES[it.res];
-                const Ric = I[r.ic];
+              {dos.items.map((it: any) => {
+                const r = (EV2_RES as any)[it.res];
+                const Ric = (I as any)[r.ic];
                 return (
                   <tr key={it.ref}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{it.ref}</td>
                     <td><div style={{ fontWeight: 600 }}>{it.proc}</div><div className="tiny muted" style={{ whiteSpace: 'normal', maxWidth: 340, lineHeight: 1.4 }}>{it.desc}</div></td>
                     <td className="tiny muted">{it.src}</td>
                     <td><div className="row ac gap6"><Ev2Meter v={it.tier} /></div></td>
-                    <td><div className="row gap6" style={{ flexWrap: 'wrap' }}>{it.asr.map(a => <span key={a} className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', border: '1px solid var(--blue-100)', borderRadius: 4, padding: '1px 5px', background: 'var(--blue-050)' }}>{a}</span>)}</div></td>
+                    <td><div className="row gap6" style={{ flexWrap: 'wrap' }}>{it.asr.map((a: any) => <span key={a} className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', border: '1px solid var(--blue-100)', borderRadius: 4, padding: '1px 5px', background: 'var(--blue-050)' }}>{a}</span>)}</div></td>
                     <td><span className="row ac gap6"><span style={{ color: `var(--${r.k})` }}><Ric size={14} /></span><Badge kind={r.k}>{r.t}</Badge></span></td>
                   </tr>
                 );

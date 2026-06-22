@@ -16,7 +16,7 @@ const STATUS_MAP = {
   Archive: 'b-gray', Arsip: 'b-gray',
 };
 function Badge({ children, kind, dot }: any) {
-  const cls = kind ? ('b-' + kind) : (STATUS_MAP[children] || 'b-gray');
+  const cls = kind ? ('b-' + kind) : ((STATUS_MAP as any)[children] || 'b-gray');
   return <span className={'badge ' + cls}>{dot && <span className="bdot" style={{ background: 'currentColor' }} />}{children}</span>;
 }
 
@@ -41,7 +41,7 @@ function Portlet({ title, dot, actions, children, bodyPad = true, dragProps = {}
           {title}
         </span>
         {actions}
-        <button className="p-act" title="Collapse" onClick={() => setCollapsed(c => !c)}>
+        <button className="p-act" title="Collapse" onClick={() => setCollapsed((c: any) => !c)}>
           <I.chevDown size={15} style={{ transform: collapsed ? 'rotate(-90deg)' : 'none', transition: '.15s' }} />
         </button>
         <button className="p-act" title="Menu"><I.dots size={15} /></button>
@@ -86,7 +86,7 @@ function Progress({ value, color }: any) {
 }
 
 function Avatar({ name, size = 26, photo }: any) {
-  const initials = (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const initials = (name || '').split(' ').filter(Boolean).slice(0, 2).map((w: any) => w[0]).join('').toUpperCase();
   if (photo) {
     return <span className="avatar" title={name} style={{ width: size, height: size, backgroundImage: 'url(' + photo + ')', backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' }} />;
   }
@@ -96,7 +96,7 @@ function Avatar({ name, size = 26, photo }: any) {
 function Tabs({ tabs, active, onChange }: any) {
   return (
     <div className="tabs">
-      {tabs.map(t => (
+      {tabs.map((t: any) => (
         <button key={t.id} className={'tab ' + (active === t.id ? 'on' : '')} onClick={() => onChange(t.id)}>
           {t.label}{t.count != null && <span className="muted" style={{ marginLeft: 6, fontWeight: 500 }}>{t.count}</span>}
         </button>
@@ -108,7 +108,7 @@ function Tabs({ tabs, active, onChange }: any) {
 function Seg({ options, value, onChange }: any) {
   return (
     <div className="seg">
-      {options.map(o => (
+      {options.map((o: any) => (
         <button key={o.value ?? o} className={value === (o.value ?? o) ? 'on' : ''} onClick={() => onChange(o.value ?? o)}>
           {o.label ?? o}
         </button>
@@ -126,8 +126,8 @@ function Placeholder({ label, height = 120, style }: any) {
 function Spark({ data, width = 120, height = 34, color = '#005085', fill = true }: any) {
   const max = Math.max(...data), min = Math.min(...data);
   const rng = max - min || 1;
-  const pts = data.map((d, i) => [(i / (data.length - 1)) * width, height - ((d - min) / rng) * (height - 6) - 3]);
-  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const pts = data.map((d: any, i: any) => [(i / (data.length - 1)) * width, height - ((d - min) / rng) * (height - 6) - 3]);
+  const line = pts.map((p: any, i: any) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
   const area = line + ` L${width} ${height} L0 ${height} Z`;
   return (
     <svg width={width} height={height} style={{ display: 'block' }}>
@@ -143,7 +143,7 @@ function MiniBars({ data, width = 130, height = 38, color = '#005085' }: any) {
   const bw = width / data.length;
   return (
     <svg width={width} height={height} style={{ display: 'block' }}>
-      {data.map((d, i) => {
+      {data.map((d: any, i: any) => {
         const h = (d / max) * (height - 4);
         return <rect key={i} x={i * bw + 1.5} y={height - h} width={bw - 3} height={h} rx="1.5"
                      fill={color} opacity={i === data.length - 1 ? 1 : 0.42} />;
@@ -154,7 +154,7 @@ function MiniBars({ data, width = 130, height = 38, color = '#005085' }: any) {
 
 /* Donut */
 function Donut({ segments, size = 92, thickness = 13, center }: any) {
-  const total = segments.reduce((s, x) => s + x.value, 0) || 1;
+  const total = segments.reduce((s: any, x: any) => s + x.value, 0) || 1;
   const r = (size - thickness) / 2;
   const c = 2 * Math.PI * r;
   let offset = 0;
@@ -162,7 +162,7 @@ function Donut({ segments, size = 92, thickness = 13, center }: any) {
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e7ebef" strokeWidth={thickness} />
-        {segments.map((s, i) => {
+        {segments.map((s: any, i: any) => {
           const len = (s.value / total) * c;
           const el = <circle key={i} cx={size / 2} cy={size / 2} r={r} fill="none"
             stroke={s.color} strokeWidth={thickness} strokeDasharray={`${len} ${c - len}`}
@@ -181,12 +181,12 @@ function Menu({ trigger, items, align = 'left' }: any) {
   const [open, setOpen] = useStateUI(false);
   return (
     <div style={{ position: 'relative' }}>
-      <span onClick={() => setOpen(o => !o)}>{trigger}</span>
+      <span onClick={() => setOpen((o: any) => !o)}>{trigger}</span>
       {open && (
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 79 }} onClick={() => setOpen(false)} />
           <div className="dropmenu" style={{ top: '100%', marginTop: 4, [align]: 0 }}>
-            {items.map((it, i) => it.sep
+            {items.map((it: any, i: any) => it.sep
               ? <div key={i} className="sepm" />
               : <div key={i} className={'mi ' + (it.danger ? 'danger' : '')} onClick={() => { setOpen(false); it.onClick && it.onClick(); }}>
                   {it.icon}{it.label}
@@ -210,13 +210,13 @@ function LockBanner() {
 
 /* Empty/coming-soon stub for un-built modules */
 function StubView({ moduleId }: any) {
-  const m = MODULE_INDEX[moduleId] || { label: moduleId, icon: 'panel', group: '' };
-  const IconC = I[m.icon] || I.panel;
+  const m = (MODULE_INDEX as any)[moduleId] || { label: moduleId, icon: 'panel', group: '' };
+  const IconC = (I as any)[m.icon] || I.panel;
   const blueprints = {
     materiality: ['Overall Materiality', 'Performance Materiality', 'Clearly Trivial Threshold', 'Benchmark Selection'],
     sampling: ['Population Definition', 'Sample Size Calculator', 'Selection Method', 'Evaluation of Results'],
   };
-  const fields = blueprints[moduleId];
+  const fields = (blueprints as any)[moduleId];
   return (
     <div className="view-pad" style={{ minHeight: '100%' }}>
       <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
@@ -237,7 +237,7 @@ function StubView({ moduleId }: any) {
             kerja terstruktur untuk modul ini sedang dalam antrean build. Berikut kerangka komponen yang direncanakan:
           </p>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', marginBottom: 18 }}>
-            {(fields || ['Header & Konteks', 'Tabel Kertas Kerja', 'Panel Prosedur', 'Ringkasan & Kesimpulan']).map((f, i) => (
+            {(fields || ['Header & Konteks', 'Tabel Kertas Kerja', 'Panel Prosedur', 'Ringkasan & Kesimpulan']).map((f: any, i: any) => (
               <div key={i} className="panel" style={{ padding: 0 }}>
                 <div style={{ padding: '8px 11px', fontSize: 11, fontWeight: 700, color: 'var(--navy)', borderBottom: '1px solid var(--line)', textTransform: 'uppercase', letterSpacing: '.04em' }}>{f}</div>
                 <Placeholder label="komponen kerja" height={90} style={{ border: 0, borderRadius: 0 }} />

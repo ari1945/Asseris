@@ -18,7 +18,7 @@ const { useState: useStateT23 } = React;
 const T23_STAT = { 'Lapor': 'green', 'Disetor': 'blue', 'Terutang': 'amber', 'Draft': 'gray' };
 const T23_KIND_COLOR = { jasa: '#005085', modal: '#5b3fa6', sewa: '#0a6b73' };
 const T23_KIND_LABEL = { jasa: 'Jasa (2%)', modal: 'Penghasilan modal (15%)', sewa: 'Sewa harta (2%)' };
-const t23Date = (s) => { if (!s) return '—'; const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y.slice(2); };
+const t23Date = (s: any) => { if (!s) return '—'; const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y.slice(2); };
 
 function TaxPPh23() {
   const { fmt } = AMS;
@@ -39,21 +39,21 @@ function TaxPPh23() {
   const tie = T.glTieOut(opts);
   const rows = s.rows;
 
-  const toggleStatus = (id) => setOv(o => {
-    const cur = (rows.find(r => r.id === id) || {}).status;
+  const toggleStatus = (id: any) => setOv((o: any) => {
+    const cur = (rows.find((r: any) => r.id === id) || {}).status;
     const next = cur === 'Disetor' || cur === 'Lapor' ? 'Terutang' : 'Disetor';
     return { ...o, [id]: next };
   });
 
   /* objek mix per sifat penghasilan */
   const kindMix = ['jasa', 'sewa', 'modal'].map(k => ({
-    k, label: T23_KIND_LABEL[k], color: T23_KIND_COLOR[k],
-    value: rows.filter(r => r.kind === k).reduce((a, r) => a + r.pph, 0),
-    dpp: rows.filter(r => r.kind === k).reduce((a, r) => a + r.dpp, 0),
-    n: rows.filter(r => r.kind === k).length,
+    k, label: (T23_KIND_LABEL as any)[k], color: (T23_KIND_COLOR as any)[k],
+    value: rows.filter((r: any) => r.kind === k).reduce((a: any, r: any) => a + r.pph, 0),
+    dpp: rows.filter((r: any) => r.kind === k).reduce((a: any, r: any) => a + r.dpp, 0),
+    n: rows.filter((r: any) => r.kind === k).length,
   })).filter(x => x.value > 0);
 
-  const nextMasa = masas.find(m => m.status !== 'Lapor') || masas[masas.length - 1];
+  const nextMasa = masas.find((m: any) => m.status !== 'Lapor') || masas[masas.length - 1];
 
   const tabs = [
     { id: 'ikhtisar', label: 'Ikhtisar' },
@@ -63,7 +63,7 @@ function TaxPPh23() {
     { id: 'rekon', label: 'Rekonsiliasi & Lineage' },
   ];
 
-  const fRows = rows.filter(r =>
+  const fRows = rows.filter((r: any) =>
     (fMasa === 'Semua' || r.masa === fMasa) &&
     (fStat === 'Semua' || r.status === fStat) &&
     (q === '' || (r.name + ' ' + r.obj + ' ' + r.id).toLowerCase().includes(q.toLowerCase())));
@@ -102,8 +102,8 @@ function TaxPPh23() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 26, height: 150, padding: '0 6px 6px', borderBottom: '1px solid var(--line)' }}>
-                      {masas.map(m => {
-                        const mx = Math.max(...masas.map(x => x.pph)) * 1.18 || 1;
+                      {masas.map((m: any) => {
+                        const mx = Math.max(...masas.map((x: any) => x.pph)) * 1.18 || 1;
                         const ter = m.pph - m.disetor;
                         return (
                           <div key={m.masa} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, height: '100%', justifyContent: 'flex-end' }}>
@@ -112,7 +112,7 @@ function TaxPPh23() {
                               <div style={{ height: (m.pph ? m.disetor / m.pph * 100 : 0) + '%', background: 'linear-gradient(180deg,#27b277,#1f9d63)' }} />
                             </div>
                             <span className="tiny" style={{ fontWeight: 600 }}>{m.label.split(' ')[0]}</span>
-                            <Badge kind={T23_STAT[m.status] || 'gray'}>{m.status}</Badge>
+                            <Badge kind={(T23_STAT as any)[m.status] || 'gray'}>{m.status}</Badge>
                           </div>
                         );
                       })}
@@ -142,7 +142,7 @@ function TaxPPh23() {
                 <div style={{ display: 'grid', gap: 12 }}>
                   {nextMasa && (
                     <div className="panel" style={{ padding: 14, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-                      <div className="row jb ac" style={{ marginBottom: 6 }}><span className="tiny upper" style={{ fontWeight: 700, color: 'var(--amber)' }}>Tenggat Terdekat</span><Badge kind={T23_STAT[nextMasa.status]}>{nextMasa.status}</Badge></div>
+                      <div className="row jb ac" style={{ marginBottom: 6 }}><span className="tiny upper" style={{ fontWeight: 700, color: 'var(--amber)' }}>Tenggat Terdekat</span><Badge kind={(T23_STAT as any)[nextMasa.status]}>{nextMasa.status}</Badge></div>
                       <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>SPT Masa {nextMasa.label}</div>
                       <div style={{ display: 'grid', gap: 6 }}>
                         <RowKv label="Setor (tgl 10)" v={t23Date(nextMasa.setorDue) + (nextMasa.setorDays >= 0 ? ' · ' + nextMasa.setorDays + 'h' : ' · lewat')} strong />
@@ -192,13 +192,13 @@ function TaxPPh23() {
                   ))}
                 </div>
                 <div className="global-search" style={{ background: 'var(--surface)', border: '1px solid var(--line)', height: 30, maxWidth: 230 }}>
-                  <I.search2 size={14} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari lawan / objek / no…" value={q} onChange={e => setQ(e.target.value)} />
+                  <I.search2 size={14} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari lawan / objek / no…" value={q} onChange={(e: any) => setQ(e.target.value)} />
                 </div>
               </div>
               <table className="dtbl">
                 <thead><tr><th>No. Bukti / Coretax</th><th>Lawan Transaksi</th><th>Objek Pajak</th><th>Masa</th><th className="num">DPP</th><th className="num" style={{ width: 56 }}>Tarif</th><th className="num">PPh 23</th><th>Bukti Potong</th><th>Status</th></tr></thead>
                 <tbody>
-                  {fRows.map(r => (
+                  {fRows.map((r: any) => (
                     <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setSel(r)}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                       <td style={{ maxWidth: 200 }}>
@@ -211,11 +211,11 @@ function TaxPPh23() {
                       <td className="num"><span className="chip tiny" style={{ height: 18, color: r.surcharge ? 'var(--red)' : 'inherit', borderColor: r.surcharge ? 'var(--red)' : undefined }}>{r.effRate}%</span></td>
                       <td className="num" style={{ fontWeight: 700 }}>{fmt(r.pph / 1e6, 2)}</td>
                       <td>{r.bupotIssued ? <span className="row ac gap4" style={{ color: 'var(--green)', fontSize: 11 }}><I.checkCircle size={14} /> Terbit</span> : <Badge kind="gray">Draft</Badge>}</td>
-                      <td onClick={e => { e.stopPropagation(); toggleStatus(r.id); }}><span style={{ cursor: 'pointer' }} title="Klik untuk setor / batal setor"><Badge kind={T23_STAT[r.status]}>{r.status}</Badge></span></td>
+                      <td onClick={(e: any) => { e.stopPropagation(); toggleStatus(r.id); }}><span style={{ cursor: 'pointer' }} title="Klik untuk setor / batal setor"><Badge kind={(T23_STAT as any)[r.status]}>{r.status}</Badge></span></td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={4}>TOTAL · {fRows.length} bukti potong</td><td className="num">{fmt(fRows.reduce((a, r) => a + r.dpp, 0) / 1e6, 0)}</td><td></td><td className="num">{fmt(fRows.reduce((a, r) => a + r.pph, 0) / 1e6, 2)}</td><td colSpan={2}></td></tr></tfoot>
+                <tfoot><tr><td colSpan={4}>TOTAL · {fRows.length} bukti potong</td><td className="num">{fmt(fRows.reduce((a: any, r: any) => a + r.dpp, 0) / 1e6, 0)}</td><td></td><td className="num">{fmt(fRows.reduce((a: any, r: any) => a + r.pph, 0) / 1e6, 2)}</td><td colSpan={2}></td></tr></tfoot>
               </table>
             </>
           )}
@@ -224,14 +224,14 @@ function TaxPPh23() {
             <div style={{ padding: 14 }}>
               <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>Tiap Masa Pajak diringkas dari register kanonik menjadi satu <b>SPT Masa PPh Unifikasi</b>. Setor maks. tgl 10, lapor maks. tgl 20 bulan berikutnya.</div>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 12 }}>
-                {masas.map(m => {
+                {masas.map((m: any) => {
                   const pctDep = m.pph ? m.disetor / m.pph : 0;
                   const urgent = m.status !== 'Lapor' && m.laporDays <= 12;
                   return (
                     <div key={m.masa} className="panel" style={{ padding: 0, overflow: 'hidden' }}>
                       <div className="row jb ac" style={{ padding: '11px 13px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line-soft)' }}>
                         <div><div style={{ fontWeight: 700, fontSize: 13.5 }}>{m.label}</div><div className="tiny muted">{m.count} bukti potong · Unifikasi</div></div>
-                        <Badge kind={T23_STAT[m.status] || 'amber'}>{m.status}</Badge>
+                        <Badge kind={(T23_STAT as any)[m.status] || 'amber'}>{m.status}</Badge>
                       </div>
                       <div style={{ padding: 13, display: 'grid', gap: 7 }}>
                         <RowKv label="Total DPP" v={'Rp ' + fmt(m.dpp / 1e6, 0) + ' jt'} />
@@ -261,17 +261,17 @@ function TaxPPh23() {
       </div></div>
 
       {sel && <T23Detail r={sel} onClose={() => setSel(null)} nav={nav} toggle={toggleStatus} />}
-      {form && <BuktiPotongForm onClose={() => setForm(false)} nextId={'1.2-03.26-' + String(4615 + extra.length).padStart(7, '0')} onAdd={(r) => { setExtra(e => [...e, r]); setForm(false); }} />}
+      {form && <BuktiPotongForm onClose={() => setForm(false)} nextId={'1.2-03.26-' + String(4615 + extra.length).padStart(7, '0')} onAdd={(r: any) => { setExtra((e: any) => [...e, r]); setForm(false); }} />}
     </>
   );
 }
 
 /* ---------------- Tab: Lawan Transaksi ---------------- */
-function T23Counterparty({ opts, nav }) {
+function T23Counterparty({ opts, nav }: any) {
   const { fmt } = AMS;
   const groups = window.TAX23.byCounterparty(opts);
-  const withNpwp = groups.filter(g => g.hasNpwp).length;
-  const masterN = groups.filter(g => g.master).length;
+  const withNpwp = groups.filter((g: any) => g.hasNpwp).length;
+  const masterN = groups.filter((g: any) => g.master).length;
   return (
     <div style={{ padding: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
@@ -282,12 +282,12 @@ function T23Counterparty({ opts, nav }) {
       <table className="dtbl">
         <thead><tr><th>Lawan Transaksi</th><th>NPWP</th><th>Kategori</th><th>Objek</th><th className="num">Bupot</th><th className="num">DPP</th><th className="num">PPh 23</th><th></th></tr></thead>
         <tbody>
-          {groups.map(g => (
+          {groups.map((g: any) => (
             <tr key={g.key}>
               <td style={{ fontWeight: 600, maxWidth: 200 }} className="truncate">{g.name}{g.master && <span className="chip tiny" style={{ height: 16, marginLeft: 6, background: 'var(--navy-050,var(--surface-3))', color: 'var(--navy)', borderColor: 'transparent' }}>{g.vendorId}</span>}</td>
               <td className="mono tiny" style={{ color: g.hasNpwp ? 'var(--ink-3)' : 'var(--red)', fontWeight: g.hasNpwp ? 400 : 700 }}>{g.hasNpwp ? (g.isOP ? g.npwp + ' · NIK' : g.npwp) : 'TANPA NPWP'}</td>
               <td className="tiny muted">{g.cat}</td>
-              <td className="tiny"><div className="row gap4 wrap">{g.objs.slice(0, 2).map(o => <span key={o} className="chip tiny" style={{ height: 17 }}>{o.replace('Jasa ', '')}</span>)}{g.objs.length > 2 && <span className="tiny muted">+{g.objs.length - 2}</span>}</div></td>
+              <td className="tiny"><div className="row gap4 wrap">{g.objs.slice(0, 2).map((o: any) => <span key={o} className="chip tiny" style={{ height: 17 }}>{o.replace('Jasa ', '')}</span>)}{g.objs.length > 2 && <span className="tiny muted">+{g.objs.length - 2}</span>}</div></td>
               <td className="num">{g.n}</td>
               <td className="num">{fmt(g.dpp / 1e6, 0)}</td>
               <td className="num" style={{ fontWeight: 700 }}>{fmt(g.pph / 1e6, 2)}</td>
@@ -304,7 +304,7 @@ function T23Counterparty({ opts, nav }) {
 }
 
 /* ---------------- Tab: Rekonsiliasi & Lineage ---------------- */
-function T23Reconcile({ opts, nav }) {
+function T23Reconcile({ opts, nav }: any) {
   const { fmt } = AMS;
   const T = window.TAX23;
   const s = T.summary(opts);
@@ -328,7 +328,7 @@ function T23Reconcile({ opts, nav }) {
           {flow.map((f, i) => (
             <React.Fragment key={f.lbl}>
               <button className="panel" style={{ flex: 1, minWidth: 150, padding: '11px 12px', textAlign: 'left', cursor: 'pointer', borderLeft: '3px solid ' + f.color, boxShadow: 'none' }} onClick={() => nav(f.mod, { from: 'tax' })}>
-                <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: f.color }}>{React.createElement(I[f.ic], { size: 15 })}</span><span style={{ fontSize: 12.5, fontWeight: 700 }}>{f.lbl}</span></div>
+                <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: f.color }}>{React.createElement((I as any)[f.ic], { size: 15 })}</span><span style={{ fontSize: 12.5, fontWeight: 700 }}>{f.lbl}</span></div>
                 <div className="tiny muted">{f.sub}</div>
               </button>
               {i < flow.length - 1 && <span style={{ color: 'var(--ink-4)', padding: '0 6px' }}><I.arrowRight size={16} /></span>}
@@ -371,7 +371,7 @@ function T23Reconcile({ opts, nav }) {
       {/* provenance */}
       <Panel title="Provenance Tiap Figur" className="" >
         <div style={{ display: 'grid', gap: 0 }}>
-          {prov.map((p, i) => (
+          {prov.map((p: any, i: any) => (
             <div key={p.label} className="row jb ac" style={{ padding: '9px 0', borderBottom: i < prov.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{p.label}</span>{p.tied && <span style={{ color: 'var(--green)' }} title="Tertaut & tertutup"><I.checkCircle size={12} /></span>}</div>
@@ -392,7 +392,7 @@ function T23Reconcile({ opts, nav }) {
         <table className="dtbl">
           <thead><tr><th>Lawan Transaksi</th><th>Pembayaran</th><th>Alasan</th><th></th></tr></thead>
           <tbody>
-            {T.EXCLUSIONS.map((e, i) => (
+            {T.EXCLUSIONS.map((e: any, i: any) => (
               <tr key={i}>
                 <td style={{ fontWeight: 600 }}>{e.party}{e.vendorId && <span className="chip tiny" style={{ height: 16, marginLeft: 6, background: 'var(--surface-3)', borderColor: 'transparent' }}>{e.vendorId}</span>}</td>
                 <td className="tiny">{e.obj}</td>
@@ -408,11 +408,11 @@ function T23Reconcile({ opts, nav }) {
 }
 
 /* ---------------- Detail drawer ---------------- */
-function T23Detail({ r, onClose, nav, toggle }) {
+function T23Detail({ r, onClose, nav, toggle }: any) {
   const { fmt } = AMS;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 480, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 480, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <I.receipt size={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -424,7 +424,7 @@ function T23Detail({ r, onClose, nav, toggle }) {
         </div>
         <div style={{ padding: 18, overflowY: 'auto', flex: 1, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="panel" style={{ padding: 13, background: r.surcharge ? 'var(--red-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
-            <div className="row jb ac"><span className="tiny muted upper">PPh 23 Dipotong</span><Badge kind={T23_STAT[r.status]}>{r.status}</Badge></div>
+            <div className="row jb ac"><span className="tiny muted upper">PPh 23 Dipotong</span><Badge kind={(T23_STAT as any)[r.status]}>{r.status}</Badge></div>
             <div className="mono" style={{ fontSize: 26, fontWeight: 800, color: r.surcharge ? 'var(--red)' : 'var(--navy)' }}>Rp {fmt(r.pph)}</div>
             <div className="tiny muted">DPP Rp {fmt(r.dpp / 1e6, 0)} jt × {r.effRate}%{r.surcharge ? ' (tarif ganda — tanpa NPWP)' : ''}</div>
           </div>
@@ -481,7 +481,7 @@ function T23Detail({ r, onClose, nav, toggle }) {
 }
 
 /* ---------------- Form bukti potong baru ---------------- */
-function BuktiPotongForm({ onClose, onAdd, nextId }) {
+function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
   const { fmt } = AMS;
   const OBJ = window.TAX23.OBJECTS;
   const [party, setParty] = useStateT23('');
@@ -497,20 +497,20 @@ function BuktiPotongForm({ onClose, onAdd, nextId }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Bukti Potong PPh 23 Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>{nextId} · Bukti Potong Unifikasi (Coretax)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
-            <div className="field"><label>Lawan Transaksi</label><input className="input" value={party} onChange={e => setParty(e.target.value)} placeholder="PT / CV penerima penghasilan" /></div>
-            <div className="field"><label>Masa Pajak</label><select className="select" value={masa} onChange={e => setMasa(e.target.value)}>{['2026-01', '2026-02', '2026-03'].map(m => <option key={m} value={m}>{window.TAX23.MASA_LABEL[m]}</option>)}</select></div>
+            <div className="field"><label>Lawan Transaksi</label><input className="input" value={party} onChange={(e: any) => setParty(e.target.value)} placeholder="PT / CV penerima penghasilan" /></div>
+            <div className="field"><label>Masa Pajak</label><select className="select" value={masa} onChange={(e: any) => setMasa(e.target.value)}>{['2026-01', '2026-02', '2026-03'].map(m => <option key={m} value={m}>{window.TAX23.MASA_LABEL[m]}</option>)}</select></div>
           </div>
-          <div className="field"><label>NPWP / NIK <span className="tiny muted">— NIK 16 digit = NPWP OP (Coretax); kosongkan bila tidak ber-NPWP (tarif ×2)</span></label><input className="input mono" value={npwp} onChange={e => setNpwp(e.target.value)} placeholder="00.000.000.0-000" /></div>
+          <div className="field"><label>NPWP / NIK <span className="tiny muted">— NIK 16 digit = NPWP OP (Coretax); kosongkan bila tidak ber-NPWP (tarif ×2)</span></label><input className="input mono" value={npwp} onChange={(e: any) => setNpwp(e.target.value)} placeholder="00.000.000.0-000" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
-            <div className="field"><label>Objek Pajak</label><select className="select" value={obj} onChange={e => setObj(e.target.value)}>{Object.keys(OBJ).map(o => <option key={o}>{o}</option>)}</select></div>
-            <div className="field"><label>DPP (Rp)</label><input className="input mono" type="number" value={dpp} onChange={e => setDpp(+e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Objek Pajak</label><select className="select" value={obj} onChange={(e: any) => setObj(e.target.value)}>{Object.keys(OBJ).map(o => <option key={o}>{o}</option>)}</select></div>
+            <div className="field"><label>DPP (Rp)</label><input className="input mono" type="number" value={dpp} onChange={(e: any) => setDpp(+e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
           <div className="panel" style={{ padding: '11px 13px', background: hasNpwp ? 'var(--surface-2)' : 'var(--red-bg)', borderColor: 'transparent' }}>
             <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny muted">Tarif {rate}%{!hasNpwp ? ' × 2 (tanpa NPWP) = ' + effRate + '%' : ''} · {(OBJ[obj] || {}).art}</span><span className="mono tiny" style={{ fontWeight: 700, color: hasNpwp ? 'inherit' : 'var(--red)' }}>{effRate}%</span></div>

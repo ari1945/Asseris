@@ -78,8 +78,8 @@ const BO: any = (function () {
      untuk kompatibilitas; nilainya = Σ vendor.ytd per kategori → selalu rekonsiliasi. */
   const SPEND_BY_CAT = (function () {
     const by = {};
-    VENDORS.forEach(v => { by[v.cat] = (by[v.cat] || 0) + v.ytd; });
-    return Object.keys(by).sort((a, b) => by[b] - by[a]).map(cat => ({ cat, v: by[cat], c: CAT_COLOR[cat] || '#8a97a1' }));
+    VENDORS.forEach(v => { (by as any)[v.cat] = ((by as any)[v.cat] || 0) + v.ytd; });
+    return Object.keys(by).sort((a, b) => (by as any)[b] - (by as any)[a]).map(cat => ({ cat, v: (by as any)[cat], c: (CAT_COLOR as any)[cat] || '#8a97a1' }));
   })();
 
   /* ---------------- Aset & Fasilitas Kantor ----------------

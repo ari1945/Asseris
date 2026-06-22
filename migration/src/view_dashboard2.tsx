@@ -14,7 +14,7 @@ import { FIRMFIN } from './data_firmfin';
    ============================================================ */
 const { useState: useDash2 } = React;
 
-function riskScoreColor(v) { return v >= 15 ? '#b3261e' : v >= 10 ? '#d4641c' : v >= 5 ? '#c79a1e' : '#1f7a4d'; }
+function riskScoreColor(v: any) { return v >= 15 ? '#b3261e' : v >= 10 ? '#d4641c' : v >= 5 ? '#c79a1e' : '#1f7a4d'; }
 
 /* ---------------- Operasional ---------------- */
 function DashOperasional() {
@@ -25,11 +25,11 @@ function DashOperasional() {
 
   const active = engagements.filter((e: any) => e.status !== 'Completed');
   const critical = deadlines.filter((d: any) => d.days <= 14).length;
-  const avgBurn = Math.round(engagements.reduce((s, e) => s + e.actualHrs / e.budgetHrs, 0) / engagements.length * 100);
+  const avgBurn = Math.round(engagements.reduce((s: any, e: any) => s + e.actualHrs / e.budgetHrs, 0) / engagements.length * 100);
   const overUtil = team.filter((t: any) => t.util > 90).length;
 
   /* workload per partner */
-  const byPartner = Object.values(engagements.reduce((m, e) => {
+  const byPartner = Object.values(engagements.reduce((m: any, e: any) => {
     const p = e.partner.split(',')[0];
     if (!m[p]) m[p] = { p, n: 0, hrs: 0, budget: 0 };
     m[p].n++; m[p].hrs += e.actualHrs; m[p].budget += e.budgetHrs;
@@ -59,13 +59,13 @@ function DashOperasional() {
           <div style={{ padding: '12px 14px', display: 'grid', gap: 10 }}>
             {phases.map((ph: any) => {
               const col = engagements.filter((e: any) => e.phase === ph);
-              const avg = col.length ? Math.round(col.reduce((s, e) => s + e.progress, 0) / col.length) : 0;
+              const avg = col.length ? Math.round(col.reduce((s: any, e: any) => s + e.progress, 0) / col.length) : 0;
               return (
                 <div key={ph} className="row ac gap10">
-                  <span style={{ width: 9, height: 9, borderRadius: 3, background: phColor[ph], flex: '0 0 9px' }} />
+                  <span style={{ width: 9, height: 9, borderRadius: 3, background: (phColor as any)[ph], flex: '0 0 9px' }} />
                   <span style={{ width: 92, fontSize: 12, fontWeight: 600, flex: '0 0 92px' }}>{ph}</span>
                   <span className="chip tiny" style={{ flex: '0 0 auto' }}>{col.length}</span>
-                  <div style={{ flex: 1 }}><Progress value={avg} color={phColor[ph]} /></div>
+                  <div style={{ flex: 1 }}><Progress value={avg} color={(phColor as any)[ph]} /></div>
                   <span className="mono tiny" style={{ width: 34, textAlign: 'right', flex: '0 0 34px' }}>{avg}%</span>
                 </div>
               );
@@ -83,7 +83,7 @@ function DashOperasional() {
           <table className="dtbl">
             <thead><tr><th style={{ width: 50 }}>Hari</th><th>Tugas</th><th>Klien</th><th style={{ width: 90 }}>Tanggal</th><th style={{ width: 80 }}>Status</th></tr></thead>
             <tbody>
-              {deadlines.map((d, i) => (
+              {deadlines.map((d: any, i: any) => (
                 <tr key={i}>
                   <td className="num" style={{ fontWeight: 700, color: d.sev === 'red' ? 'var(--red)' : d.sev === 'amber' ? 'var(--amber)' : 'var(--navy)' }}>{d.days}h</td>
                   <td className="truncate" style={{ maxWidth: 180, fontWeight: 600 }}>{d.task}</td>
@@ -99,8 +99,8 @@ function DashOperasional() {
         <Panel title="Kapasitas Tim · 8 Minggu" sub="supply vs demand (jam)" actions={<Btn sm variant="ghost" onClick={() => nav('capacity')}><I.arrowRight size={13} /></Btn>}>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 12 }}>
             {(AMS as any).CAPACITY.grades.map((g: any) => {
-              const supply = g.supply.reduce((s, v) => s + v, 0);
-              const demand = g.demand.reduce((s, v) => s + v, 0);
+              const supply = g.supply.reduce((s: any, v: any) => s + v, 0);
+              const demand = g.demand.reduce((s: any, v: any) => s + v, 0);
               const ratio = Math.round(demand / supply * 100);
               return (
                 <div key={g.grade}>
@@ -130,7 +130,7 @@ function DashFinansial() {
 
   const wipRows = W.register.map((r: any) => ({ id: r.id, client: r.clientShort, wip: r.unbilled, recoverable: r.recoverable, billed: r.billed }));
   const totalWip = W.unbilledTotal;
-  const totalAr = AGING.reduce((s, a) => s + a.amount, 0);
+  const totalAr = AGING.reduce((s: any, a: any) => s + a.amount, 0);
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -196,7 +196,7 @@ function DashMutu() {
   const declaredPct = Math.round(IND.filter((i: any) => i.declared).length / IND.length * 100);
   const rotationWarn = IND.filter((i: any) => i.tenure >= i.rotationLimit).length;
 
-  const cellRisks = (impact, likelihood) => risks.filter((r: any) => r.impact === impact && r.likelihood === likelihood);
+  const cellRisks = (impact: any, likelihood: any) => risks.filter((r: any) => r.impact === impact && r.likelihood === likelihood);
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -250,7 +250,7 @@ function DashMutu() {
             {openNotes.length === 0 && <div className="muted tiny" style={{ padding: 14 }}>Tidak ada catatan reviu terbuka.</div>}
             {openNotes.map((n: any) => (
               <div key={n.id} className="row gap10" style={{ padding: '10px 14px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => nav(n.module)}>
-                <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}>{React.createElement(I[{ review: 'search2', coaching: 'sparkle', eqr: 'checkCircle', query: 'help' }[n.type] || 'doc'], { size: 14 })}</span>
+                <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}>{React.createElement((I as any)[({ review: 'search2', coaching: 'sparkle', eqr: 'checkCircle', query: 'help' } as any)[n.type] || 'doc'], { size: 14 })}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{n.id}</span><Badge>{n.moduleLabel}</Badge></div>
                   <div className="tiny" style={{ lineHeight: 1.4, marginTop: 2 }}>{(n.text || '').slice(0, 90)}{(n.text || '').length > 90 ? '…' : ''}</div>

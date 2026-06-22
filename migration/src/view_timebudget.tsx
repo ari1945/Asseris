@@ -39,25 +39,25 @@ const TB_WEEKLY = [ // 8 minggu terakhir, jam tercatat / minggu
   { wk: 'W5', h: 168 }, { wk: 'W6', h: 152 }, { wk: 'W7', h: 138 }, { wk: 'W8', h: 80 },
 ];
 
-const tbJt = (n) => 'Rp ' + AMS.fmt(Math.round(n / 1e6)) + ' jt';
-const tbM  = (n) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
+const tbJt = (n: any) => 'Rp ' + AMS.fmt(Math.round(n / 1e6)) + ' jt';
+const tbM  = (n: any) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
 
 /* ----- shared derived model (reactive to live timesheet) ----- */
-function useTBModel(timeEntries, e) {
+function useTBModel(timeEntries: any, e: any) {
   return useTBMemo(() => {
     const liveByMember = {}, liveByPhase = {};
-    timeEntries.forEach(t => {
-      liveByMember[t.member] = (liveByMember[t.member] || 0) + t.hours;
-      liveByPhase[t.phase] = (liveByPhase[t.phase] || 0) + t.hours;
+    timeEntries.forEach((t: any) => {
+      (liveByMember as any)[t.member] = ((liveByMember as any)[t.member] || 0) + t.hours;
+      (liveByPhase as any)[t.phase] = ((liveByPhase as any)[t.phase] || 0) + t.hours;
     });
     const roster = TB_ROSTER.map(r => {
-      const actual = r.base + (liveByMember[r.name] || 0);
-      const bill = TB_BILL[r.role], cost = TB_COST[r.role];
+      const actual = r.base + ((liveByMember as any)[r.name] || 0);
+      const bill = (TB_BILL as any)[r.role], cost = (TB_COST as any)[r.role];
       return { ...r, actual, bill, cost, billVal: actual * bill, costVal: actual * cost,
                variance: r.budget - actual, util: Math.round(actual / r.budget * 100) };
     });
     const phases = TB_PHASES.map(p => {
-      const actual = p.base + (liveByPhase[p.id] || 0);
+      const actual = p.base + ((liveByPhase as any)[p.id] || 0);
       const eac = p.pct > 0 ? actual / (p.pct / 100) : p.budget;
       return { ...p, actual, eac, variance: p.budget - actual };
     });
@@ -132,7 +132,7 @@ function TimeBudget() {
 }
 
 /* =================== RINGKASAN =================== */
-function TBOverview({ m, e }) {
+function TBOverview({ m, e }: any) {
   const { fmt } = AMS;
   const burnPct = Math.round(m.burn * 100);
   const onTrack = m.burn <= e.progress / 100 + 0.05;
@@ -187,8 +187,8 @@ function TBOverview({ m, e }) {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Anggaran vs Aktual per Fase">
           <div style={{ display: 'grid', gap: 11 }}>
-            {m.phases.map(p => {
-              const maxB = Math.max(...m.phases.map(x => Math.max(x.budget, x.actual)));
+            {m.phases.map((p: any) => {
+              const maxB = Math.max(...m.phases.map((x: any) => Math.max(x.budget, x.actual)));
               return (
                 <div key={p.id}>
                   <div className="row jb tiny" style={{ marginBottom: 4 }}>
@@ -238,11 +238,11 @@ function EacRow({ label, v, strong, accent }: any) {
 }
 
 /* =================== ANGGARAN PER FASE =================== */
-function TBPhase({ m }) {
+function TBPhase({ m }: any) {
   const { fmt } = AMS;
-  const totB = m.phases.reduce((s, p) => s + p.budget, 0);
-  const totA = m.phases.reduce((s, p) => s + p.actual, 0);
-  const totEac = m.phases.reduce((s, p) => s + p.eac, 0);
+  const totB = m.phases.reduce((s: any, p: any) => s + p.budget, 0);
+  const totA = m.phases.reduce((s: any, p: any) => s + p.actual, 0);
+  const totEac = m.phases.reduce((s: any, p: any) => s + p.eac, 0);
   return (
     <>
       <Panel noBody className="" >
@@ -250,7 +250,7 @@ function TBPhase({ m }) {
         <table className="dtbl">
           <thead><tr><th>Fase</th><th>Periode</th><th className="num">Anggaran</th><th className="num">Aktual</th><th className="num">% Selesai</th><th className="num">Proyeksi (EAC)</th><th className="num">Varians</th><th>Status</th></tr></thead>
           <tbody>
-            {m.phases.map(p => {
+            {m.phases.map((p: any) => {
               const eacVar = p.budget - p.eac;
               const st = p.pct >= 100 ? 'Selesai' : eacVar < -10 ? 'Over-budget' : p.pct > 0 ? 'Berjalan' : 'Belum mulai';
               const stKind = st === 'Selesai' ? 'green' : st === 'Over-budget' ? 'red' : st === 'Berjalan' ? 'blue' : 'gray';
@@ -275,7 +275,7 @@ function TBPhase({ m }) {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12, alignItems: 'start' }}>
         <Panel title="Timeline Fase" sub="Feb–Mar 2026">
           <div style={{ display: 'grid', gap: 10 }}>
-            {m.phases.map((p, i) => {
+            {m.phases.map((p: any, i: any) => {
               const seg = [[0, 18], [22, 25], [50, 8], [82, 4]][i]; // [leftStart%, span ticks≈]
               const left = [4, 30, 67, 86][i];
               const width = [24, 36, 16, 12][i];
@@ -303,11 +303,11 @@ function TBPhase({ m }) {
 }
 
 /* role composition donut + legend */
-function TBRoleMix({ m }) {
+function TBRoleMix({ m }: any) {
   const { fmt } = AMS;
   const byRole: any = {};
-  m.roster.forEach(r => { byRole[r.role] = (byRole[r.role] || 0) + r.actual; });
-  const segs = Object.entries(byRole).map(([role, h]: [string, any]) => ({ value: h, color: TB_ROLE_COLOR[role], role, h }));
+  m.roster.forEach((r: any) => { byRole[r.role] = (byRole[r.role] || 0) + r.actual; });
+  const segs = Object.entries(byRole).map(([role, h]: [string, any]) => ({ value: h, color: (TB_ROLE_COLOR as any)[role], role, h }));
   const tot = segs.reduce((s, x) => s + x.value, 0);
   return (
     <div className="row gap8 ac" style={{ alignItems: 'center', gap: 18 }}>
@@ -325,19 +325,19 @@ function TBRoleMix({ m }) {
 }
 
 /* =================== TIMESHEET =================== */
-function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
+function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
   const { fmt } = AMS;
   const [form, setForm] = useTB({ member: 'Anindya Pramesti', phase: 'Eksekusi', task: '', hours: '' });
   const [fMember, setFMember] = useTB('all');
   const [fPhase, setFPhase] = useTB('all');
 
-  const filtered = timeEntries.filter(t => (fMember === 'all' || t.member === fMember) && (fPhase === 'all' || t.phase === fPhase));
-  const totalLogged = filtered.reduce((s, t) => s + t.hours, 0);
+  const filtered = timeEntries.filter((t: any) => (fMember === 'all' || t.member === fMember) && (fPhase === 'all' || t.phase === fPhase));
+  const totalLogged = filtered.reduce((s: any, t: any) => s + t.hours, 0);
 
   const submit = () => {
     if (locked || !form.task.trim() || !(+form.hours > 0)) return;
     addTimeEntry({ member: form.member, phase: form.phase, task: form.task, hours: +form.hours, date: '2026-03-09' });
-    setForm(f => ({ ...f, task: '', hours: '' }));
+    setForm((f: any) => ({ ...f, task: '', hours: '' }));
   };
   const phaseOpts = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Pelaporan'];
 
@@ -347,21 +347,21 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
         <div className="panel-h">
           <h3>Catatan Waktu (Timesheet)</h3>
           <div style={{ flex: 1 }} />
-          <select className="select" value={fMember} onChange={ev => setFMember(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
+          <select className="select" value={fMember} onChange={(ev: any) => setFMember(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
             <option value="all">Semua anggota</option>
-            {team.map(t => <option key={t.name} value={t.name}>{t.name.split(',')[0]}</option>)}
+            {team.map((t: any) => <option key={t.name} value={t.name}>{t.name.split(',')[0]}</option>)}
           </select>
-          <select className="select" value={fPhase} onChange={ev => setFPhase(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
+          <select className="select" value={fPhase} onChange={(ev: any) => setFPhase(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
             <option value="all">Semua fase</option>
             {phaseOpts.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
         {!locked && (
           <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)', display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="field" style={{ flex: '1 1 120px' }}><label>Anggota</label><select className="select" value={form.member} onChange={ev => setForm(f => ({ ...f, member: ev.target.value }))}>{team.map(t => <option key={t.name}>{t.name}</option>)}</select></div>
-            <div className="field" style={{ flex: '0 0 110px' }}><label>Fase</label><select className="select" value={form.phase} onChange={ev => setForm(f => ({ ...f, phase: ev.target.value }))}>{phaseOpts.map(p => <option key={p}>{p}</option>)}</select></div>
-            <div className="field" style={{ flex: '2 1 160px' }}><label>Tugas</label><input className="input" value={form.task} onChange={ev => setForm(f => ({ ...f, task: ev.target.value }))} placeholder="Deskripsi pekerjaan" /></div>
-            <div className="field" style={{ flex: '0 0 64px' }}><label>Jam</label><input className="input mono" type="number" value={form.hours} onChange={ev => setForm(f => ({ ...f, hours: ev.target.value }))} style={{ textAlign: 'right' }} /></div>
+            <div className="field" style={{ flex: '1 1 120px' }}><label>Anggota</label><select className="select" value={form.member} onChange={(ev: any) => setForm((f: any) => ({ ...f, member: ev.target.value }))}>{team.map((t: any) => <option key={t.name}>{t.name}</option>)}</select></div>
+            <div className="field" style={{ flex: '0 0 110px' }}><label>Fase</label><select className="select" value={form.phase} onChange={(ev: any) => setForm((f: any) => ({ ...f, phase: ev.target.value }))}>{phaseOpts.map(p => <option key={p}>{p}</option>)}</select></div>
+            <div className="field" style={{ flex: '2 1 160px' }}><label>Tugas</label><input className="input" value={form.task} onChange={(ev: any) => setForm((f: any) => ({ ...f, task: ev.target.value }))} placeholder="Deskripsi pekerjaan" /></div>
+            <div className="field" style={{ flex: '0 0 64px' }}><label>Jam</label><input className="input mono" type="number" value={form.hours} onChange={(ev: any) => setForm((f: any) => ({ ...f, hours: ev.target.value }))} style={{ textAlign: 'right' }} /></div>
             <Btn sm variant="primary" onClick={submit}><I.plus size={13} /> Catat</Btn>
           </div>
         )}
@@ -369,9 +369,9 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
           <table className="dtbl">
             <thead><tr><th>Tanggal</th><th>Anggota</th><th>Tugas</th><th>Fase</th><th className="num">Jam</th><th className="num">Nilai (std)</th></tr></thead>
             <tbody>
-              {filtered.map(t => {
+              {filtered.map((t: any) => {
                 const r = TB_ROSTER.find(x => x.name === t.member);
-                const val = r ? t.hours * TB_BILL[r.role] : 0;
+                const val = r ? t.hours * (TB_BILL as any)[r.role] : 0;
                 return (
                   <tr key={t.id}>
                     <td className="mono tiny muted">{new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
@@ -393,12 +393,12 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
       <div style={{ display: 'grid', gap: 12 }}>
         <Panel title="Jam per Anggota">
           <div style={{ display: 'grid', gap: 9 }}>
-            {m.roster.slice().sort((a, b) => b.actual - a.actual).map(r => {
-              const max = Math.max(...m.roster.map(x => x.actual), 1);
+            {m.roster.slice().sort((a: any, b: any) => b.actual - a.actual).map((r: any) => {
+              const max = Math.max(...m.roster.map((x: any) => x.actual), 1);
               return (
                 <div key={r.name}>
                   <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><Avatar name={r.name} size={20} /><span style={{ fontWeight: 600 }}>{r.name.split(' ')[0]}</span></span><span className="mono" style={{ fontWeight: 700 }}>{fmt(r.actual, 1)}j</span></div>
-                  <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (r.actual / max * 100) + '%', height: '100%', borderRadius: 4, background: TB_ROLE_COLOR[r.role] }} /></div>
+                  <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (r.actual / max * 100) + '%', height: '100%', borderRadius: 4, background: (TB_ROLE_COLOR as any)[r.role] }} /></div>
                 </div>
               );
             })}
@@ -406,8 +406,8 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
         </Panel>
         <Panel title="Jam per Fase">
           <div style={{ display: 'grid', gap: 9 }}>
-            {m.phases.map(p => {
-              const max = Math.max(...m.phases.map(x => x.actual), 1);
+            {m.phases.map((p: any) => {
+              const max = Math.max(...m.phases.map((x: any) => x.actual), 1);
               return (
                 <div key={p.id}>
                   <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{p.label}</span><span className="mono muted">{fmt(p.actual, 0)}j</span></div>
@@ -423,9 +423,9 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }) {
 }
 
 /* =================== TIM & UTILISASI =================== */
-function TBTeam({ m }) {
+function TBTeam({ m }: any) {
   const { fmt } = AMS;
-  const maxA = Math.max(...m.roster.map(r => r.budget));
+  const maxA = Math.max(...m.roster.map((r: any) => r.budget));
   return (
     <>
       <Panel noBody>
@@ -433,10 +433,10 @@ function TBTeam({ m }) {
         <table className="dtbl">
           <thead><tr><th>Anggota</th><th>Peran</th><th className="num">Tarif/jam</th><th className="num">Anggaran</th><th className="num">Aktual</th><th className="num">Varians</th><th style={{ width: 150 }}>Anggaran vs Aktual</th><th className="num">Util.</th><th className="num">Nilai (std)</th></tr></thead>
           <tbody>
-            {m.roster.map(r => (
+            {m.roster.map((r: any) => (
               <tr key={r.name}>
                 <td><span className="row ac gap8"><Avatar name={r.name} size={22} /><span style={{ fontWeight: 600 }}>{r.name.split(',')[0]}</span></span></td>
-                <td><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: TB_ROLE_COLOR[r.role] }} /><span className="tiny">{r.role}</span></span></td>
+                <td><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: (TB_ROLE_COLOR as any)[r.role] }} /><span className="tiny">{r.role}</span></span></td>
                 <td className="num mono tiny">{tbJt(r.bill)}</td>
                 <td className="num mono">{fmt(r.budget)}</td>
                 <td className="num mono" style={{ fontWeight: 600 }}>{fmt(r.actual, 1)}</td>
@@ -454,7 +454,7 @@ function TBTeam({ m }) {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12, alignItems: 'start' }}>
         <Panel title="Utilisasi vs Anggaran">
           <div style={{ display: 'grid', gap: 11 }}>
-            {m.roster.map(r => (
+            {m.roster.map((r: any) => (
               <div key={r.name}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{r.name.split(' ')[0]}</span><span className="mono" style={{ color: r.util > 100 ? 'var(--red)' : 'var(--ink-2)', fontWeight: 700 }}>{r.util}%</span></div>
                 <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)', position: 'relative', overflow: 'hidden' }}>
@@ -472,7 +472,7 @@ function TBTeam({ m }) {
 }
 
 /* =================== EKONOMI =================== */
-function TBEconomics({ m, e }) {
+function TBEconomics({ m, e }: any) {
   const { fmt } = AMS;
   const wd = m.fee - m.stdValueBudget; // + = write-up, - = write-down
   const marginPct = Math.round(m.marginCompletion / m.fee * 100);

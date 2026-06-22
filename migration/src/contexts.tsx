@@ -25,7 +25,7 @@ const useNavFrom = () => useContext(NavFromContext);
 /* P5 Fase 2 — catatan review berlingkup-engagement. Selektor murni: catatan
    milik engagement `engId`; catatan legacy tanpa `engagementId` ikut tampil
    (tak ada yang hilang dari state lama). */
-function notesForEngagement(notes, engId) {
+function notesForEngagement(notes: any, engId: any) {
   if (!Array.isArray(notes)) return [];
   return notes.filter(n => n.engagementId === engId || n.engagementId == null);
 }
@@ -69,22 +69,22 @@ const CONFLICT_LABELS = {
   clients: 'Daftar Klien', engagements: 'Daftar Perikatan', activeEng: 'Perikatan Aktif',
   profile: 'Profil Pengguna', role: 'Peran',
 };
-function conflictLabel(key) { return CONFLICT_LABELS[key] || key; }
-function emitConflict(detail) {
+function conflictLabel(key: any) { return (CONFLICT_LABELS as any)[key] || key; }
+function emitConflict(detail: any) {
   try { window.dispatchEvent(new CustomEvent('ams:conflict', { detail })); } catch (e) {}
 }
 
-function cacheRead(cacheKey, legacyKey, initial) {
+function cacheRead(cacheKey: any, legacyKey: any, initial: any) {
   try { const s = localStorage.getItem(cacheKey); if (s != null) return JSON.parse(s); } catch (e) {}
   // one-time fallback to the pre-W6 unscoped key so existing local edits survive the upgrade
   if (legacyKey) { try { const s = localStorage.getItem(legacyKey); if (s != null) return JSON.parse(s); } catch (e) {} }
   return typeof initial === 'function' ? initial() : initial;
 }
-function cacheWrite(cacheKey, val) { try { localStorage.setItem(cacheKey, JSON.stringify(val)); } catch (e) {} }
+function cacheWrite(cacheKey: any, val: any) { try { localStorage.setItem(cacheKey, JSON.stringify(val)); } catch (e) {} }
 
 /* The engine. Returns [val, setVal] with the SAME contract as the old hook,
    including functional updates (setVal(prev => next)), which the app uses widely. */
-function useServerState(key, initial, scope, scopeId) {
+function useServerState(key: any, initial: any, scope: any, scopeId: any) {
   const cacheKey = 'ams.v1.' + scope + '.' + scopeId + '.' + key;
   const legacyKey = 'ams.v1.' + key;
   const [val, setValRaw] = React.useState(() => cacheRead(cacheKey, legacyKey, initial));
@@ -99,7 +99,7 @@ function useServerState(key, initial, scope, scopeId) {
     let cancelled = false;
     setValRaw(cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache
     versionRef.current = 0;
-    (api as any).state.get.query({ scope, scopeId, key }).then(res => {
+    (api as any).state.get.query({ scope, scopeId, key }).then((res: any) => {
       if (cancelled) return;
       versionRef.current = res.version;
       if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
@@ -107,17 +107,17 @@ function useServerState(key, initial, scope, scopeId) {
     return () => { cancelled = true; };
   }, [scope, scopeId, key]);
 
-  const flush = React.useCallback((value) => {
+  const flush = React.useCallback((value: any) => {
     const t = targetRef.current;
     (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current })
-      .then(res => { versionRef.current = res.version; })
-      .catch(err => {
+      .then((res: any) => { versionRef.current = res.version; })
+      .catch((err: any) => {
         // Lost an optimistic-concurrency race. Don't silently clobber EITHER side:
         // keep the user's local value, sync versionRef to the server's latest, and
         // surface a conflict toast that lets the user adopt latest or overwrite.
         if (isConflict(err)) {
           const attempted = value;
-          (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then(res => {
+          (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then((res: any) => {
             versionRef.current = res.version;
             const serverVal = res.version > 0 ? res.value : value;
             emitConflict({
@@ -125,7 +125,7 @@ function useServerState(key, initial, scope, scopeId) {
               adopt: () => { setValRaw(serverVal); cacheWrite(t.cacheKey, serverVal); },
               keepMine: () => {
                 (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current })
-                  .then(r => { versionRef.current = r.version; cacheWrite(t.cacheKey, attempted); })
+                  .then((r: any) => { versionRef.current = r.version; cacheWrite(t.cacheKey, attempted); })
                   .catch(() => {});
               },
             });
@@ -135,8 +135,8 @@ function useServerState(key, initial, scope, scopeId) {
       });
   }, []);
 
-  const setVal = React.useCallback((next) => {
-    setValRaw(prev => {
+  const setVal = React.useCallback((next: any) => {
+    setValRaw((prev: any) => {
       const value = typeof next === 'function' ? next(prev) : next;
       cacheWrite(targetRef.current.cacheKey, value);
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -155,8 +155,8 @@ function clearPersisted() {
 /* standalone persisted-state hook for modules outside the providers.
    Scope from the map (default firm); engagement-scoped keys read the active
    engagement from FirmContext (null outside a provider → default engagement). */
-function useAmsPersist(key, initial) {
-  const scope = AMS_PERSIST_SCOPE[key] || 'firm';
+function useAmsPersist(key: any, initial: any) {
+  const scope = (AMS_PERSIST_SCOPE as any)[key] || 'firm';
   const firm = useFirm(); // always called (rules-of-hooks); null outside provider
   const scopeId = scope === 'engagement'
     ? ((firm && firm.activeEngagementId) || DEFAULT_ENG_ID)
@@ -169,14 +169,14 @@ window.useAmsPersist = useAmsPersist;
    dedupes by (scope,key), auto-dismisses, offers adopt-latest / overwrite-mine. */
 function ConflictToaster() {
   const [items, setItems] = React.useState([]);
-  const dismiss = React.useCallback((id) => setItems(list => list.filter(t => t.id !== id)), []);
+  const dismiss = React.useCallback((id: any) => setItems((list: any) => list.filter((t: any) => t.id !== id)), []);
 
   React.useEffect(() => {
-    const onConflict = (ev) => {
+    const onConflict = (ev: any) => {
       const d = (ev && ev.detail) || {};
       const id = (d.scope || '') + ':' + (d.key || '') + ':' + (window.performance ? Math.round(performance.now()) : 0);
-      setItems(list => {
-        const rest = list.filter(t => !(t.key === d.key && t.scope === d.scope)); // one toast per target
+      setItems((list: any) => {
+        const rest = list.filter((t: any) => !(t.key === d.key && t.scope === d.scope)); // one toast per target
         return [...rest, { id, key: d.key, scope: d.scope, label: d.label || d.key, adopt: d.adopt, keepMine: d.keepMine }];
       });
     };
@@ -186,7 +186,7 @@ function ConflictToaster() {
 
   React.useEffect(() => {
     if (!items.length) return undefined;
-    const timers = items.map(t => setTimeout(() => dismiss(t.id), 14000));
+    const timers = items.map((t: any) => setTimeout(() => dismiss(t.id), 14000));
     return () => timers.forEach(clearTimeout);
   }, [items, dismiss]);
 
@@ -200,7 +200,7 @@ function ConflictToaster() {
   const x = { marginLeft: 'auto', cursor: 'pointer', border: 'none', background: 'none', color: 'var(--ink-2,#8a93a2)', fontSize: 16, lineHeight: 1 };
   return (
     <div style={wrap} role="status" aria-live="polite" data-testid="conflict-toaster">
-      {items.map(t => (
+      {items.map((t: any) => (
         <div key={t.id} style={card} data-conflict-key={t.key}>
           <div style={head}>
             <span>⚠︎ Konflik penyimpanan</span>
@@ -217,7 +217,7 @@ function ConflictToaster() {
   );
 }
 
-function AppProviders({ me, onLogout, children }) {
+function AppProviders({ me, onLogout, children }: any) {
   const D: any = AMS;
   const uid = me.id; // authenticated user id (replaces the old AMS.USER guess)
 
@@ -226,12 +226,12 @@ function AppProviders({ me, onLogout, children }) {
      state. `profile` keeps the extra editable fields (photo, phone, credentials), scoped to
      this user; identity fields from `me` always win. */
   const [profile, setProfile] = useServerState('profile', { ...D.USER }, 'user', uid);
-  const updateProfile = useCallback((patch) => setProfile(p => {
+  const updateProfile = useCallback((patch: any) => setProfile((p: any) => {
     const merged = { ...D.USER, ...p, ...(typeof patch === 'function' ? patch(p) : patch) };
     return merged;
   }), [setProfile]);
   /* capability check — same SSOT the server enforces with (rbac.js), so UI never diverges. */
-  const can = useCallback((cap) => rbacCan(me.role, cap), [me.role]);
+  const can = useCallback((cap: any) => rbacCan(me.role, cap), [me.role]);
   /* act-as role switching is removed in W7 — role is whoever you logged in as. Kept as a
      warning shim so any lingering caller (settings UI, until Fase 3) doesn't crash. */
   const setRole = useCallback(() => {
@@ -257,16 +257,16 @@ function AppProviders({ me, onLogout, children }) {
   useEffect(() => {
     let live = true;
     (api as any).engagement.list.query()
-      .then(rows => { if (live) setAccessibleEngIds(rows.map(r => r.id)); })
+      .then((rows: any) => { if (live) setAccessibleEngIds(rows.map((r: any) => r.id)); })
       .catch(() => { if (live) setAccessibleEngIds(null); });
     return () => { live = false; };
   }, [uid]);
   const canAccessEngagement = useCallback(
-    id => !accessibleEngIds || accessibleEngIds.includes(id),
+    (id: any) => !accessibleEngIds || accessibleEngIds.includes(id),
     [accessibleEngIds]
   );
   /* Guarded switcher — refuse to activate an engagement the user may not access. */
-  const selectEngagement = useCallback(id => {
+  const selectEngagement = useCallback((id: any) => {
     if (accessibleEngIds && !accessibleEngIds.includes(id)) return;
     setActiveEngagementId(id);
   }, [accessibleEngIds, setActiveEngagementId]);
@@ -279,29 +279,29 @@ function AppProviders({ me, onLogout, children }) {
   }, [accessibleEngIds, activeEngagementId, setActiveEngagementId]);
 
   const PHASE_STATUS = { Perencanaan: 'Planning', Eksekusi: 'Fieldwork', Finalisasi: 'Review', Arsip: 'Completed' };
-  const setEngagementPhase = useCallback((id, phase) => setEngagements(list => list.map(e =>
-    e.id === id ? { ...e, phase, status: PHASE_STATUS[phase] || e.status,
+  const setEngagementPhase = useCallback((id: any, phase: any) => setEngagements((list: any) => list.map((e: any) =>
+    e.id === id ? { ...e, phase, status: (PHASE_STATUS as any)[phase] || e.status,
       progress: phase === 'Arsip' ? 100 : phase === 'Finalisasi' ? Math.max(e.progress, 85) : e.progress } : e)), []);
 
-  const addClient = useCallback((c) => setClients(list => [{ ...c }, ...list]), []);
-  const updateClient = useCallback((id, patch) => setClients(list => list.map(c => c.id === id ? { ...c, ...patch } : c)), []);
-  const addEngagement = useCallback((e) => setEngagements(list => {
+  const addClient = useCallback((c: any) => setClients((list: any) => [{ ...c }, ...list]), []);
+  const updateClient = useCallback((id: any, patch: any) => setClients((list: any) => list.map((c: any) => c.id === id ? { ...c, ...patch } : c)), []);
+  const addEngagement = useCallback((e: any) => setEngagements((list: any) => {
     const n = list.length + 8;
     const id = 'ENG-2025-0' + String(n).padStart(2, '0');
     return [{ id, fy: 'FY2025', status: 'Planning', phase: 'Perencanaan', progress: 5, actualHrs: 0, ...e }, ...list];
   }), []);
 
   const activeEngagement = useMemo(
-    () => engagements.find(e => e.id === activeEngagementId),
+    () => engagements.find((e: any) => e.id === activeEngagementId),
     [engagements, activeEngagementId]
   );
   const activeClient = useMemo(
-    () => clients.find(c => c.id === activeEngagement?.clientId),
+    () => clients.find((c: any) => c.id === activeEngagement?.clientId),
     [clients, activeEngagement]
   );
-  const clientById = useCallback(id => clients.find(c => c.id === id), [clients]);
+  const clientById = useCallback((id: any) => clients.find((c: any) => c.id === id), [clients]);
   const engagementsForClient = useCallback(
-    id => engagements.filter(e => e.clientId === id), [engagements]
+    (id: any) => engagements.filter((e: any) => e.clientId === id), [engagements]
   );
 
   const firm = useMemo(() => ({
@@ -324,58 +324,58 @@ function AppProviders({ me, onLogout, children }) {
   const [timeEntries, setTimeEntries] = useServerState('timeEntries', D.TIME_ENTRIES || [], 'engagement', activeEngagementId);
   const [taskState, setTaskState] = useServerState('taskState', {}, 'engagement', activeEngagementId); // taskId -> done
   const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId);
-  const logActivity = useCallback((e) => setLogEntries(list => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
+  const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
 
-  const addReviewNote = useCallback((note) => setReviewNotes(list => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
-  const resolveReviewNote = useCallback((id) => setReviewNotes(list => list.map(n => n.id === id ? { ...n, status: n.status === 'open' ? 'resolved' : 'open' } : n)), []);
-  const updateReviewNote = useCallback((id, patch) => setReviewNotes(list => list.map(n => n.id === id ? { ...n, ...patch } : n)), []);
+  const addReviewNote = useCallback((note: any) => setReviewNotes((list: any) => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
+  const resolveReviewNote = useCallback((id: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, status: n.status === 'open' ? 'resolved' : 'open' } : n)), []);
+  const updateReviewNote = useCallback((id: any, patch: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, ...patch } : n)), []);
   /* append a reply/comment/clearance to ANY note's conversation (keyed overlay) */
-  const addNoteReply = useCallback((id, reply) => setNoteThreads(m => ({ ...m, [id]: [...(m[id] || []), { when: 'baru saja', ...reply }] })), []);
-  const addTimeEntry = useCallback((entry) => setTimeEntries(list => [{ id: 'T-' + Date.now(), ...entry }, ...list]), []);
-  const toggleTask = useCallback((id) => setTaskState(s => ({ ...s, [id]: !s[id] })), []);
+  const addNoteReply = useCallback((id: any, reply: any) => setNoteThreads((m: any) => ({ ...m, [id]: [...(m[id] || []), { when: 'baru saja', ...reply }] })), []);
+  const addTimeEntry = useCallback((entry: any) => setTimeEntries((list: any) => [{ id: 'T-' + Date.now(), ...entry }, ...list]), []);
+  const toggleTask = useCallback((id: any) => setTaskState((s: any) => ({ ...s, [id]: !s[id] })), []);
   /* P5 Fase 2 — catatan engagement aktif (turunan; konsumen berlingkup-engagement memakai ini) */
   const reviewNotesActive = useMemo(() => notesForEngagement(reviewNotes, activeEngagementId), [reviewNotes, activeEngagementId]);
 
   /* derive extra per-account adjustment from POSTED user AJEs (those with structured lines) */
   const userPostDeltas = useMemo(() => {
     const d = {};
-    aje.forEach(a => {
+    aje.forEach((a: any) => {
       if (a.status === 'Posted' && Array.isArray(a.lines)) {
-        a.lines.forEach(ln => { d[ln.code] = (d[ln.code] || 0) + ((+ln.debit || 0) - (+ln.credit || 0)); });
+        a.lines.forEach((ln: any) => { (d as any)[ln.code] = ((d as any)[ln.code] || 0) + ((+ln.debit || 0) - (+ln.credit || 0)); });
       }
     });
     return d;
   }, [aje]);
 
-  const wtb = useMemo(() => D.WTB.map(r => {
+  const wtb = useMemo(() => D.WTB.map((r: any) => {
     const extra = userPostDeltas[r.code] || 0;
     const o = wtbOverrides[r.key] || {};
     const ajeVal = (o.aje != null ? o.aje : r.aje) + extra;
     return { ...r, ...o, aje: ajeVal, adj: r.unadj + ajeVal };
   }), [wtbOverrides, userPostDeltas]);
 
-  const toggleAjeStatus = useCallback((id) => {
-    setAje(list => list.map(a => a.id === id
+  const toggleAjeStatus = useCallback((id: any) => {
+    setAje((list: any) => list.map((a: any) => a.id === id
       ? { ...a, status: a.status === 'Posted' ? 'Proposed' : 'Posted' } : a));
   }, []);
 
-  const addAje = useCallback((entry) => {
-    setAje(list => {
+  const addAje = useCallback((entry: any) => {
+    setAje((list: any) => {
       const n = list.length + 1;
       const id = 'AJE-' + String(n).padStart(2, '0');
       return [...list, { id, status: 'Posted', ...entry }];
     });
   }, []);
 
-  const updateRisk = useCallback((id, patch) => {
-    setRisks(list => list.map(r => r.id === id ? { ...r, ...patch } : r));
+  const updateRisk = useCallback((id: any, patch: any) => {
+    setRisks((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
   }, []);
 
-  const setWp = useCallback((ref, patch) => setWpState(s => ({ ...s, [ref]: { ...(s[ref] || {}), ...patch } })), []);
+  const setWp = useCallback((ref: any, patch: any) => setWpState((s: any) => ({ ...s, [ref]: { ...(s[ref] || {}), ...patch } })), []);
 
   // totals
   const ajeTotalPosted = useMemo(
-    () => aje.filter(a => a.status === 'Posted').reduce((s, a) => s + a.amount, 0), [aje]);
+    () => aje.filter((a: any) => a.status === 'Posted').reduce((s: any, a: any) => s + a.amount, 0), [aje]);
 
   const audit = useMemo(() => ({
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,

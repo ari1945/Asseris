@@ -24,7 +24,7 @@ const PDP_BASIS_KIND = { persetujuan: 'purple', kontrak: 'blue', hukum: 'navy', 
 const PDP_RISK_KIND = { 'Tinggi': 'red', 'Sedang': 'amber', 'Rendah': 'green' };
 const PDP_DSR_KIND = { 'Baru': 'blue', 'Diproses': 'amber', 'Selesai': 'green' };
 
-function PdpCard({ value, label, sub, accent }) {
+function PdpCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -84,13 +84,13 @@ function PDPView() {
                 <table className="dtbl">
                   <thead><tr><th>Aktivitas</th><th>Subjek Data</th><th>Dasar Pemrosesan</th><th>Retensi</th><th style={{ width: 70 }}>Risiko</th></tr></thead>
                   <tbody>
-                    {P.ropa.map(r => (
+                    {P.ropa.map((r: any) => (
                       <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setSelRopa(r)}>
                         <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.id}</span><span style={{ fontWeight: 600, fontSize: 12.5 }}>{r.activity}</span>{r.special && <span className="chip tiny" style={{ height: 16, color: 'var(--red)', borderColor: 'var(--red)' }}>spesifik</span>}</div><div className="tiny muted">{r.purpose}</div></td>
                         <td className="tiny" style={{ color: 'var(--ink-2)' }}>{r.subject}</td>
-                        <td><Badge kind={PDP_BASIS_KIND[r.basis] || 'gray'}>{r.basis}</Badge></td>
+                        <td><Badge kind={(PDP_BASIS_KIND as any)[r.basis] || 'gray'}>{r.basis}</Badge></td>
                         <td className="tiny muted">{r.crossBorder ? 'Lintas-negara' : 'Domestik'}</td>
-                        <td><Badge kind={PDP_RISK_KIND[r.risk]}>{r.risk}</Badge></td>
+                        <td><Badge kind={(PDP_RISK_KIND as any)[r.risk]}>{r.risk}</Badge></td>
                       </tr>
                     ))}
                   </tbody>
@@ -102,10 +102,10 @@ function PDPView() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Sebaran Dasar Pemrosesan</h3><span className="sub mono">Ps. 20</span></div>
                   <div style={{ padding: '12px 14px', display: 'grid', gap: 9 }}>
-                    {P.basisDist.map(b => (
+                    {P.basisDist.map((b: any) => (
                       <div key={b.key}>
                         <div className="row jb ac" style={{ marginBottom: 4 }}>
-                          <span className="row ac gap6"><Badge kind={PDP_BASIS_KIND[b.key] || 'gray'}>{b.key}</Badge></span>
+                          <span className="row ac gap6"><Badge kind={(PDP_BASIS_KIND as any)[b.key] || 'gray'}>{b.key}</Badge></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{b.n}</span>
                         </div>
                         <div className="tiny muted" style={{ lineHeight: 1.4 }}>{b.label}</div>
@@ -128,13 +128,13 @@ function PDPView() {
                 <table className="dtbl">
                   <thead><tr><th>Subjek</th><th>Jenis Permintaan</th><th>Diterima</th><th>Tenggat</th><th>Status</th></tr></thead>
                   <tbody>
-                    {P.dsr.map(d => (
+                    {P.dsr.map((d: any) => (
                       <tr key={d.id}>
                         <td><div style={{ fontWeight: 600, fontSize: 12.5 }}>{d.subject}</div><div className="tiny muted">{d.id} · {d.handler}</div></td>
                         <td className="tiny" style={{ fontWeight: 600, color: 'var(--ink-2)' }}>{d.type}</td>
                         <td className="tiny mono muted">{d.received}</td>
                         <td className="tiny mono" style={{ color: d.overdue ? 'var(--red)' : 'var(--ink-3)', fontWeight: d.overdue ? 700 : 400 }}>{d.open ? (d.dueDays >= 0 ? d.dueDays + 'h lagi' : 'lewat') : '✓'}</td>
-                        <td><Badge kind={PDP_DSR_KIND[d.status]}>{d.status}</Badge></td>
+                        <td><Badge kind={(PDP_DSR_KIND as any)[d.status]}>{d.status}</Badge></td>
                       </tr>
                     ))}
                   </tbody>
@@ -145,7 +145,7 @@ function PDPView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Katalog Hak Subjek Data</h3><span className="sub mono">Ps. 5–13</span></div>
                 <div>
-                  {P.rights.map((r, i) => (
+                  {P.rights.map((r: any, i: any) => (
                     <div key={r.ref} className="row ac gap9" style={{ padding: '8px 14px', borderBottom: i < P.rights.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><I.checkCircle size={15} /></span>
                       <span style={{ flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.35 }}>{r.t}</span>
@@ -170,7 +170,7 @@ function PDPView() {
                 </div>
               </div>
 
-              {P.incidents.map(i => (
+              {P.incidents.map((i: any) => (
                 <Panel key={i.id} noBody>
                   <div className="panel-h">
                     <span className="row ac gap8"><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{i.id}</span><h3 style={{ margin: 0 }}>{i.title}</h3></span>
@@ -214,7 +214,7 @@ function PDPView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Postur Kepatuhan — Prinsip Pelindungan (Ps. 16)</h3></div>
                 <div>
-                  {P.principles.map((p, i) => {
+                  {P.principles.map((p: any, i: any) => {
                     const SK = { 'Aktif': 'green', 'Parsial': 'amber', 'Gagal': 'red' };
                     return (
                       <div key={i} className="row ac gap10" style={{ padding: '11px 14px', borderBottom: i < P.principles.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -223,7 +223,7 @@ function PDPView() {
                           <div style={{ fontSize: 12.5, fontWeight: 600 }}>{p.k}</div>
                           <div className="tiny muted">{p.ev}{p.to && <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav(p.to, { from: 'pdp' })}> · buka modul ↗</span>}</div>
                         </div>
-                        <Badge kind={SK[p.status] || 'gray'}>{p.status}</Badge>
+                        <Badge kind={(SK as any)[p.status] || 'gray'}>{p.status}</Badge>
                       </div>
                     );
                   })}
@@ -244,7 +244,7 @@ function PDPView() {
                 </Panel>
                 <Panel title="Dasar Hukum" sub="kerangka regulasi">
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {P.legal.map((r, i) => (
+                    {P.legal.map((r: any, i: any) => (
                       <div key={i} style={{ paddingBottom: 7, borderBottom: i < P.legal.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <div className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{r.k}</div>
                         <div className="tiny muted" style={{ lineHeight: 1.4 }}>{r.v}</div>
@@ -268,10 +268,10 @@ function PDPView() {
 }
 
 /* ---------------- RoPA detail drawer ---------------- */
-function PDPRopaDrawer({ r, onClose, P, nav }) {
+function PDPRopaDrawer({ r, onClose, P, nav }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 460, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <I.shield size={20} />
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -283,7 +283,7 @@ function PDPRopaDrawer({ r, onClose, P, nav }) {
         </div>
         <div style={{ padding: 18, overflowY: 'auto', flex: 1, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="panel" style={{ padding: 13, background: 'var(--surface-2)', borderColor: 'transparent' }}>
-            <div className="row jb ac"><span className="tiny muted upper">Dasar Pemrosesan</span><Badge kind={PDP_BASIS_KIND[r.basis] || 'gray'}>{r.basis}</Badge></div>
+            <div className="row jb ac"><span className="tiny muted upper">Dasar Pemrosesan</span><Badge kind={(PDP_BASIS_KIND as any)[r.basis] || 'gray'}>{r.basis}</Badge></div>
             <div className="tiny" style={{ marginTop: 6, lineHeight: 1.5 }}>{P.BASIS[r.basis]}</div>
           </div>
           <div style={{ display: 'grid', gap: 7 }}>
@@ -296,7 +296,7 @@ function PDPRopaDrawer({ r, onClose, P, nav }) {
           </div>
           <div>
             <div className="tiny muted upper" style={{ marginBottom: 7 }}>Jenis data pribadi diproses</div>
-            <div className="row gap6 wrap">{r.data.map((d, i) => <span key={i} className="chip tiny">{d}</span>)}</div>
+            <div className="row gap6 wrap">{r.data.map((d: any, i: any) => <span key={i} className="chip tiny">{d}</span>)}</div>
           </div>
           <div className="panel" style={{ padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="tiny" style={{ lineHeight: 1.55 }}><I.archive size={11} /> Masa simpan mengikuti kelas retensi <b>{r.retClass}</b> di modul <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => { nav('records', { from: 'pdp' }); onClose(); }}>Retensi &amp; Arsip ↗</span>. Setelah retensi berakhir, data dimusnahkan (UU PDP Ps. 8 / Ps. 43).</div>

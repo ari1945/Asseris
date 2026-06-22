@@ -28,11 +28,11 @@ import { amsExportXlsx } from './export_xlsx.js';
 const { useState: useCR, useMemo: useMCR, useEffect: useECR } = React;
 
 /* hash-chain pendek (tamper-evident) — diturunkan dari SHA-256 helper bersama */
-function crChain(seed) {
+function crChain(seed: any) {
   const h = ((window as any).amsFakeHash ? (window as any).amsFakeHash(seed) : String(seed));
   return h.slice(0, 16);
 }
-function crShort(h) { return String(h || '').slice(0, 10) + '…'; }
+function crShort(h: any) { return String(h || '').slice(0, 10) + '…'; }
 
 /* ---------- SSOT reader: register integritas dokumen dari DMS ---------- */
 function crCryptoDocs() {
@@ -52,7 +52,7 @@ const CR_CLASS_KIND = { 'Rahasia': 'red', 'Internal': 'amber', 'Publik': 'green'
 const CR_ACT_COLOR = { LOGIN: 'gray', SIGN: 'purple', APPROVE: 'green', REJECT: 'red', UPLOAD: 'blue', SYNC: 'teal', EDIT: 'amber', SEND: 'blue', CREATE: 'blue', DELETE: 'red', EXPORT: 'purple' };
 
 /* algoritma kriptografi yang dipakai platform — cakupan ditarik dari data live */
-function crAlgorithms(docs, evCount, signCount, streamLen) {
+function crAlgorithms(docs: any, evCount: any, signCount: any, streamLen: any) {
   return [
     { id: 'sha256', name: 'SHA-256', cls: 'Hash / Integritas', use: 'Sidik jari kertas kerja & bukti audit',
       strength: '256-bit', scope: (docs.length + evCount) + ' objek ter-hash', status: 'Aktif', ic: 'fingerprint' },
@@ -129,7 +129,7 @@ function CryptoCompliance() {
   const sealedCount = docs.filter((d: any) => d.sealed).length;
   const hashedCount = docs.length + evidence.length;
   const rulePass = rules.filter((r: any) => r.status === 'pass').length;
-  const signCount = stream.filter((e: any) => e.action === 'SIGN').length + certs.reduce((a, c) => a + c.signed, 0);
+  const signCount = stream.filter((e: any) => e.action === 'SIGN').length + certs.reduce((a: any, c: any) => a + c.signed, 0);
 
   const TABS = [
     { id: 'postur', label: 'Postur Keamanan', ic: 'shield' },
@@ -159,7 +159,7 @@ function CryptoCompliance() {
         {/* tab strip */}
         <div className="row gap6 ac" style={{ marginBottom: 14, flexWrap: 'wrap' }}>
           {TABS.map((t: any) => {
-            const on = tab === t.id; const TIc = I[t.ic] || I.panel;
+            const on = tab === t.id; const TIc = (I as any)[t.ic] || I.panel;
             return (
               <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap6" style={{
                 padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, fontWeight: 600,
@@ -223,7 +223,7 @@ function CRPostur({ ctx }: any) {
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
         {KPIS.map((k, i) => {
-          const KIc = I[k.ic] || I.shield;
+          const KIc = (I as any)[k.ic] || I.shield;
           return (
             <Panel key={i}><div style={{ padding: '13px 15px' }}>
               <div className="row jb ac" style={{ marginBottom: 8 }}>
@@ -246,7 +246,7 @@ function CRPostur({ ctx }: any) {
               const ok = f.controls.filter((c: any) => c.status === 'Aktif').length;
               const part = f.controls.filter((c: any) => c.status === 'Parsial').length;
               const pct = Math.round(ok / f.controls.length * 100);
-              const FIc = I[f.ic] || I.shield;
+              const FIc = (I as any)[f.ic] || I.shield;
               return (
                 <div key={f.id}>
                   <div className="row jb ac" style={{ marginBottom: 5 }}>
@@ -281,9 +281,9 @@ function CRPostur({ ctx }: any) {
           <Panel noBody>
             <div className="panel-h"><h3>Peristiwa Kriptografis Terkini</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ cursor: 'pointer', color: 'var(--blue)' }} onClick={() => setTab('rantai')}>Lihat semua →</span></div>
             <div>
-              {recent.map((e, i) => (
+              {recent.map((e: any, i: any) => (
                 <div key={i} className="row gap10 ac" style={{ padding: '9px 14px', borderBottom: i < recent.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                  <Badge kind={CR_ACT_COLOR[e.action] || 'gray'}>{e.action}</Badge>
+                  <Badge kind={(CR_ACT_COLOR as any)[e.action] || 'gray'}>{e.action}</Badge>
                   <div style={{ flex: 1, minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{e.target}</div><div className="tiny muted truncate">{e.detail}</div></div>
                   <div className="tiny mono muted" style={{ flex: '0 0 auto' }}>{(e.ts || '').slice(5, 16)}</div>
                 </div>
@@ -315,7 +315,7 @@ function CRDokumen({ ctx }: any) {
                 <tr key={d.id} onClick={() => setSelDoc(d)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                   <td className="truncate" style={{ maxWidth: 190 }}>{d.name}<div className="tiny muted">{d.eng} · v{d.ver}</div></td>
-                  <td><Badge kind={CR_CLASS_KIND[d.classification] || 'gray'}>{d.classification}</Badge></td>
+                  <td><Badge kind={(CR_CLASS_KIND as any)[d.classification] || 'gray'}>{d.classification}</Badge></td>
                   <td className="mono tiny" style={{ color: d.valid ? 'var(--ink-4)' : 'var(--red)' }}>{crShort(d.liveHash)}</td>
                   <td className="tiny"><div className="row ac gap6"><Avatar name={d.signer} size={18} />{d.signer}</div></td>
                   <td>{d.legalHold ? <span className="chip tiny" style={{ color: 'var(--red)' }}><I.lock size={10} /> {d.wormLabel}</span> : <span className="chip tiny">{d.wormLabel}</span>}</td>
@@ -368,7 +368,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
   const versions = (d.versions || []).slice().reverse();
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 480, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 480, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{d.id} · v{d.ver}</span>
@@ -376,7 +376,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{d.name}</div>
           <div className="row ac gap6" style={{ marginTop: 8 }}>
-            <Badge kind={CR_CLASS_KIND[d.classification] || 'gray'}>{d.classification}</Badge>
+            <Badge kind={(CR_CLASS_KIND as any)[d.classification] || 'gray'}>{d.classification}</Badge>
             <Badge kind={d.valid ? 'green' : 'red'}>{d.valid ? 'Integritas valid' : 'Mismatch'}</Badge>
             {d.legalHold && <Badge kind="red" dot>Legal Hold</Badge>}
           </div>
@@ -404,7 +404,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
           {/* version lineage */}
           <div className="tiny muted upper" style={{ marginBottom: 8 }}>Silsilah Versi &amp; Hash</div>
           <div style={{ display: 'grid', gap: 0, marginBottom: 14 }}>
-            {versions.map((v, i) => {
+            {versions.map((v: any, i: any) => {
               const vh = (window as any).amsFakeHash ? (window as any).amsFakeHash(d.id + '|v' + v.ver + '|' + v.sizeMB) : String(v.ver);
               return (
                 <div key={i} className="row gap10" style={{ padding: '9px 0', borderBottom: i < versions.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -423,7 +423,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
           {/* access log */}
           <div className="tiny muted upper" style={{ marginBottom: 8 }}>Log Akses (append-only)</div>
           <div style={{ display: 'grid', gap: 0, marginBottom: 8 }}>
-            {(d.access || []).map((a, i) => (
+            {(d.access || []).map((a: any, i: any) => (
               <div key={i} className="row gap8 ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
                 <span className="chip tiny" style={{ height: 18, textTransform: 'uppercase' }}>{a[1]}</span>
                 <span className="tiny" style={{ flex: 1, fontWeight: 600 }}>{a[0]}</span>
@@ -435,7 +435,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
           {(d.linkedWP || []).length > 0 && (
             <>
               <div className="tiny muted upper" style={{ margin: '6px 0 8px' }}>Kertas Kerja Tertaut</div>
-              <div className="row gap6 wrap">{d.linkedWP.map((w, i) => <span key={i} className="chip tiny"><I.layers size={10} /> {w}</span>)}</div>
+              <div className="row gap6 wrap">{d.linkedWP.map((w: any, i: any) => <span key={i} className="chip tiny"><I.layers size={10} /> {w}</span>)}</div>
             </>
           )}
         </div>
@@ -458,8 +458,8 @@ function CRServerChain({ rows, verify, nav }: any) {
   const SRV_ACT_LABEL = { LOGIN: 'LOGIN', LOGOUT: 'LOGOUT', STATE_SET: 'WRITE', LLM_NARRATE: 'LLM' };
   const [exporting, setExporting] = useCR(false);
   const ok = verify ? verify.ok : true;
-  const fmtTs = (ts) => { try { return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch (e) { return String(ts); } }
-  const target = (e) => e.scope ? (e.scope + (e.scopeId ? '/' + e.scopeId : '') + (e.key ? ' · ' + e.key : '')) : '—';
+  const fmtTs = (ts: any) => { try { return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch (e) { return String(ts); } }
+  const target = (e: any) => e.scope ? (e.scope + (e.scopeId ? '/' + e.scopeId : '') + (e.key ? ' · ' + e.key : '')) : '—';
   const writes = rows.filter((e: any) => e.action === 'STATE_SET').length;
   const logins = rows.filter((e: any) => e.action === 'LOGIN').length;
 
@@ -471,7 +471,7 @@ function CRServerChain({ rows, verify, nav }: any) {
     setExporting(true);
     try {
       const xrows = rows.map((e: any) => [String(e.seq).padStart(3, '0'), fmtTs(e.ts), e.actorRole || '—', e.actorUserId || '—',
-        SRV_ACT_LABEL[e.action] || e.action, target(e), e.detail || '', String(e.prevHash).slice(0, 16), String(e.hash).slice(0, 16)]);
+        (SRV_ACT_LABEL as any)[e.action] || e.action, target(e), e.detail || '', String(e.prevHash).slice(0, 16), String(e.hash).slice(0, 16)]);
       await amsExportXlsx({
         kind: 'audit-trail', scope: 'firm',
         fileName: 'Jejak Audit Server (append-only).xlsx',
@@ -507,12 +507,12 @@ function CRServerChain({ rows, verify, nav }: any) {
         <table className="dtbl">
           <thead><tr><th style={{ width: 40 }}>#</th><th style={{ width: 150 }}>Waktu</th><th>Pelaku</th><th style={{ width: 78 }}>Aksi</th><th>Sasaran / Detail</th><th style={{ width: 96 }}>Prev → Hash</th></tr></thead>
           <tbody>
-            {rows.map((e) => (
+            {rows.map((e: any) => (
               <tr key={e.seq}>
                 <td className="mono tiny muted">{String(e.seq).padStart(3, '0')}</td>
                 <td className="mono tiny muted">{fmtTs(e.ts)}</td>
                 <td className="tiny"><div style={{ fontWeight: 600 }}>{e.actorRole || '—'}</div><div className="tiny mono muted truncate">{e.actorUserId || '—'}</div></td>
-                <td><Badge kind={SRV_ACT_COLOR[e.action] || 'gray'}>{SRV_ACT_LABEL[e.action] || e.action}</Badge></td>
+                <td><Badge kind={(SRV_ACT_COLOR as any)[e.action] || 'gray'}>{(SRV_ACT_LABEL as any)[e.action] || e.action}</Badge></td>
                 <td className="tiny" style={{ color: 'var(--ink-2)' }}><span className="mono">{target(e)}</span>{e.detail && <span className="muted"> — {e.detail}</span>}</td>
                 <td className="mono tiny" style={{ color: 'var(--ink-4)' }}><span style={{ color: 'var(--ink-4)' }}>{String(e.prevHash).slice(0, 6)}</span><span style={{ color: 'var(--blue)', fontWeight: 700 }}> ▸{String(e.hash).slice(0, 6)}</span></td>
               </tr>
@@ -554,12 +554,12 @@ function CRRantai({ ctx }: any) {
         <table className="dtbl">
           <thead><tr><th style={{ width: 40 }}>#</th><th style={{ width: 132 }}>Waktu</th><th>Pengguna</th><th style={{ width: 86 }}>Aksi</th><th>Detail</th><th style={{ width: 96 }}>Prev → Hash</th></tr></thead>
           <tbody>
-            {filtered.map((e, i) => (
+            {filtered.map((e: any, i: any) => (
               <tr key={i}>
                 <td className="mono tiny muted">{String(e.seq).padStart(3, '0')}</td>
                 <td className="mono tiny muted">{e.ts}</td>
                 <td><div className="row ac gap8"><Avatar name={e.who} size={20} /><div style={{ minWidth: 0 }}><div className="truncate tiny" style={{ fontWeight: 600 }}>{e.who}</div><div className="tiny muted">{e.role}</div></div></div></td>
-                <td><Badge kind={CR_ACT_COLOR[e.action] || 'gray'}>{e.action}</Badge></td>
+                <td><Badge kind={(CR_ACT_COLOR as any)[e.action] || 'gray'}>{e.action}</Badge></td>
                 <td className="tiny" style={{ color: 'var(--ink-2)' }}>{e.detail}{e.cert && <div className="tiny mono" style={{ color: 'var(--purple)' }}>cert: {e.cert}</div>}{e.hashFile && <div className="tiny mono muted">{e.hashFile}</div>}</td>
                 <td className="mono tiny" style={{ color: 'var(--ink-4)' }}><span style={{ color: 'var(--ink-4)' }}>{e.prevHash.slice(0, 6)}</span><span style={{ color: 'var(--blue)', fontWeight: 700 }}> ▸{e.hash.slice(0, 6)}</span></td>
               </tr>
@@ -575,10 +575,10 @@ function CRRantai({ ctx }: any) {
 /* ============================================================
    TAB 4 — Kontrol & Kepatuhan
    ============================================================ */
-function crControlFamilies(ctx) {
+function crControlFamilies(ctx: any) {
   const { docs, rules, stream, evidence, chain } = ctx;
-  const ruleOf = (id) => rules.find((r: any) => r.id === id) || {};
-  const ruleStatus = (id) => { const r = ruleOf(id); return r.status === 'pass' ? 'Aktif' : r.status === 'warn' ? 'Parsial' : r.status === 'err' ? 'Gagal' : 'Aktif'; };
+  const ruleOf = (id: any) => rules.find((r: any) => r.id === id) || {};
+  const ruleStatus = (id: any) => { const r = ruleOf(id); return r.status === 'pass' ? 'Aktif' : r.status === 'warn' ? 'Parsial' : r.status === 'err' ? 'Gagal' : 'Aktif'; };
   const mfaLogins = stream.filter((e: any) => e.action === 'LOGIN' && /MFA/i.test(e.detail || '')).length;
   const signs = stream.filter((e: any) => e.action === 'SIGN').length;
   const sealed = docs.filter((d: any) => d.sealed).length;
@@ -637,19 +637,19 @@ function CRKontrol({ ctx }: any) {
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         {families.map((f: any) => {
-          const FIc = I[f.ic] || I.shield;
+          const FIc = (I as any)[f.ic] || I.shield;
           return (
             <Panel key={f.id} noBody>
               <div className="panel-h"><span className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><FIc size={14} /></span><h3 style={{ margin: 0 }}>{f.name}</h3></span><div style={{ flex: 1 }} /><span className="tiny muted">{f.std}</span></div>
               <div>
-                {f.controls.map((c, i) => (
+                {f.controls.map((c: any, i: any) => (
                   <div key={i} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < f.controls.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span style={{ color: c.status === 'Aktif' ? 'var(--green)' : c.status === 'Parsial' ? 'var(--amber)' : 'var(--red)', flex: '0 0 auto' }}>{c.status === 'Aktif' ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{c.k}</div>
                       <div className="tiny muted" style={{ marginTop: 1 }}>{c.ev} · <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav(c.src, { from: 'crypto' })}>{c.srcLbl} ↗</span></div>
                     </div>
-                    <Badge kind={SK[c.status] || 'gray'}>{c.status}</Badge>
+                    <Badge kind={(SK as any)[c.status] || 'gray'}>{c.status}</Badge>
                   </div>
                 ))}
               </div>
@@ -667,17 +667,17 @@ function CRKontrol({ ctx }: any) {
 /* ============================================================
    TAB 5 — Kunci & Sertifikat
    ============================================================ */
-function crBuildCerts(docs, stream) {
+function crBuildCerts(docs: any, stream: any) {
   /* penandatangan nyata = pemilik DMS (manusia) + penandatangan entri SIGN */
   const signers = {};
-  docs.forEach((d: any) => { if (d.owner && /\s/.test(d.owner) && d.owner !== 'KAP' && d.owner !== 'Tim Metodologi') signers[d.owner] = (signers[d.owner] || 0) + 1; });
-  stream.filter((e: any) => e.action === 'SIGN').forEach((e: any) => { if (e.who) signers[e.who] = (signers[e.who] || 0) + 1; });
+  docs.forEach((d: any) => { if (d.owner && /\s/.test(d.owner) && d.owner !== 'KAP' && d.owner !== 'Tim Metodologi') (signers as any)[d.owner] = ((signers as any)[d.owner] || 0) + 1; });
+  stream.filter((e: any) => e.action === 'SIGN').forEach((e: any) => { if (e.who) (signers as any)[e.who] = ((signers as any)[e.who] || 0) + 1; });
   const roleOf = { 'Hartono Wijaya': 'Engagement Partner', 'Rudi Gunawan': 'Quality Partner', 'Anindya Pramesti': 'Audit Manager', 'Sari Dewanti': 'Audit Manager', 'Dimas Raharjo': 'Senior Auditor' };
   const names = Object.keys(signers);
   return names.map((n, i) => {
     const serial = ((window as any).amsFakeHash ? (window as any).amsFakeHash('cert|' + n) : n).slice(0, 12).toUpperCase();
     return {
-      cn: n, role: roleOf[n] || 'Auditor', signed: signers[n],
+      cn: n, role: (roleOf as any)[n] || 'Auditor', signed: (signers as any)[n],
       serial: 'PRIVY-' + serial.slice(0, 4) + '-' + serial.slice(4, 8),
       issuer: 'PrivyID CA (PSrE Kominfo)', algo: 'RSA-2048 / SHA-256',
       issued: '2026-01-05', expires: '2027-01-05', status: 'Berlaku',
@@ -703,7 +703,7 @@ function CRKunci({ ctx }: any) {
           <div className="panel-h"><h3>Registri Algoritma Kriptografi</h3><div style={{ flex: 1 }} /><span className="tiny muted">{algos.length} algoritma aktif</span></div>
           <div>
             {algos.map((a: any) => {
-              const AIc = I[a.ic] || I.key;
+              const AIc = (I as any)[a.ic] || I.key;
               return (
                 <div key={a.id} className="row gap12 ac" style={{ padding: '12px 14px', borderBottom: '1px solid var(--line-soft)' }}>
                   <span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 38px' }}><AIc size={19} /></span>
@@ -751,7 +751,7 @@ function CRKunci({ ctx }: any) {
         <table className="dtbl">
           <thead><tr><th>Pemegang</th><th>Peran</th><th>Serial</th><th>Algoritma</th><th>Penerbit</th><th>Berlaku s.d.</th><th className="num">Ditandatangani</th><th>Status</th></tr></thead>
           <tbody>
-            {certs.map((c, i) => (
+            {certs.map((c: any, i: any) => (
               <tr key={i}>
                 <td><div className="row ac gap8"><Avatar name={c.cn} size={22} /><span style={{ fontWeight: 600 }}>{c.cn}</span></div></td>
                 <td className="tiny muted">{c.role}</td>
@@ -817,7 +817,7 @@ function CRVerifySeal() {
     } finally { setBusy(false); }
   };
 
-  const verdict = res && res.reason !== 'bad-input' ? (SEAL_VERDICT[res.reason] || SEAL_VERDICT.unavailable) : null;
+  const verdict = res && res.reason !== 'bad-input' ? ((SEAL_VERDICT as any)[res.reason] || SEAL_VERDICT.unavailable) : null;
   const inputStyle = { width: '100%', height: 30, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink)', fontFamily: 'var(--mono)', fontSize: 12 };
 
   return (
@@ -828,11 +828,11 @@ function CRVerifySeal() {
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <div>
             <div className="tiny upper muted" style={{ fontWeight: 700, marginBottom: 4 }}>Seal ID / muatan QR</div>
-            <input style={inputStyle} value={raw} onChange={e => setRaw(e.target.value)} placeholder="cmqk… atau neosuite-seal:cmqk…;<hash>" />
+            <input style={inputStyle} value={raw} onChange={(e: any) => setRaw(e.target.value)} placeholder="cmqk… atau neosuite-seal:cmqk…;<hash>" />
           </div>
           <div>
             <div className="tiny upper muted" style={{ fontWeight: 700, marginBottom: 4 }}>Hash konten (SHA-256, 64 heks)</div>
-            <input style={inputStyle} value={hash} onChange={e => setHash(e.target.value)} placeholder="64 karakter heksadesimal" />
+            <input style={inputStyle} value={hash} onChange={(e: any) => setHash(e.target.value)} placeholder="64 karakter heksadesimal" />
           </div>
         </div>
         <div className="row gap8 ac">
@@ -848,7 +848,7 @@ function CRVerifySeal() {
         {verdict && (
           <div className="panel" style={{ padding: '11px 13px', background: `var(--${verdict.kind}-bg)`, borderColor: 'transparent' }}>
             <div className="row ac gap8" style={{ marginBottom: res.signerRole ? 7 : 0 }}>
-              <span style={{ color: `var(--${verdict.kind})` }}>{React.createElement(I[verdict.icon] || I.shield, { size: 16 })}</span>
+              <span style={{ color: `var(--${verdict.kind})` }}>{React.createElement((I as any)[verdict.icon] || I.shield, { size: 16 })}</span>
               <Badge kind={verdict.kind}>{verdict.label}</Badge>
               <span className="tiny" style={{ flex: 1, lineHeight: 1.45 }}>{verdict.note}</span>
             </div>
@@ -919,7 +919,7 @@ function CRMeterai({ ctx }: any) {
                         : <span style={{ color: 'var(--amber)', fontWeight: 600 }}>Belum dibubuhkan</span>}
                     {d.meterai.serial && <div className="mono tiny muted">{d.meterai.serial}</div>}
                   </td>
-                  <td><Badge kind={BIND_KIND[d.binding]}>{d.bindLabel}</Badge></td>
+                  <td><Badge kind={(BIND_KIND as any)[d.binding]}>{d.bindLabel}</Badge></td>
                 </tr>
               ))}
             </tbody>
@@ -931,7 +931,7 @@ function CRMeterai({ ctx }: any) {
           <Panel noBody>
             <div className="panel-h"><h3>Penyelenggara Tepercaya</h3><span className="sub">PSrE & e-Meterai</span></div>
             <div>
-              {L.providers.map((p, i) => (
+              {L.providers.map((p: any, i: any) => (
                 <div key={i} className="row gap10 ac" style={{ padding: '11px 14px', borderBottom: i < L.providers.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 32px' }}><I.shield size={16} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -947,13 +947,13 @@ function CRMeterai({ ctx }: any) {
           <Panel noBody>
             <div className="panel-h"><h3>Kontrol Keabsahan</h3></div>
             <div>
-              {L.controls.map((c, i) => {
+              {L.controls.map((c: any, i: any) => {
                 const SK = { 'Aktif': 'green', 'Parsial': 'amber', 'Gagal': 'red' };
                 return (
                   <div key={i} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < L.controls.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span style={{ color: c.status === 'Aktif' ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{c.status === 'Aktif' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
                     <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{c.k}</div><div className="tiny muted">{c.ev} · <span className="mono">{c.std}</span></div></div>
-                    <Badge kind={SK[c.status] || 'gray'}>{c.status}</Badge>
+                    <Badge kind={(SK as any)[c.status] || 'gray'}>{c.status}</Badge>
                   </div>
                 );
               })}

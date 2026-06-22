@@ -22,10 +22,10 @@ function FirmLegal_LEGACY_UNUSED() {
   const B = BO;
   const [tab, setTab] = useStateBO2('contracts');
   const [sel, setSel] = useStateBO2('LIT-03');
-  const renewSoon = B.CONTRACTS.filter(c => B.daysTo(c.akhir) <= 120);
-  const openLit = B.DISPUTES.filter(d => d.status !== 'Putusan');
-  const exposure = openLit.reduce((s, d) => s + d.exposure, 0);
-  const selCase = B.DISPUTES.find(d => d.id === sel);
+  const renewSoon = B.CONTRACTS.filter((c: any) => B.daysTo(c.akhir) <= 120);
+  const openLit = B.DISPUTES.filter((d: any) => d.status !== 'Putusan');
+  const exposure = openLit.reduce((s: any, d: any) => s + d.exposure, 0);
+  const selCase = B.DISPUTES.find((d: any) => d.id === sel);
   const tabs = [
     { id: 'contracts', label: 'Repositori Kontrak', count: B.CONTRACTS.length },
     { id: 'renewal', label: 'Perpanjangan', count: renewSoon.length },
@@ -47,7 +47,7 @@ function FirmLegal_LEGACY_UNUSED() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Pihak / Counterparty</th><th>Jenis</th><th className="num">Nilai</th><th>Berakhir</th><th>Renewal</th><th>Owner</th><th>Status</th></tr></thead>
               <tbody>
-                {B.CONTRACTS.map(c => {
+                {B.CONTRACTS.map((c: any) => {
                   const d = B.daysTo(c.akhir);
                   return (
                     <tr key={c.id}>
@@ -70,7 +70,7 @@ function FirmLegal_LEGACY_UNUSED() {
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <SectionTitle right={<span className="mono tiny muted">{renewSoon.length} kontrak</span>}>Garis Waktu Perpanjangan (≤120 hari)</SectionTitle>
               <div style={{ display: 'grid', gap: 10 }}>
-                {renewSoon.sort((a, b) => B.daysTo(a.akhir) - B.daysTo(b.akhir)).map(c => {
+                {renewSoon.sort((a: any, b: any) => B.daysTo(a.akhir) - B.daysTo(b.akhir)).map((c: any) => {
                   const d = B.daysTo(c.akhir);
                   const pct = Math.max(4, Math.min(100, 100 - (d / 120 * 100)));
                   const col = d < 30 ? 'var(--red)' : 'var(--amber)';
@@ -95,7 +95,7 @@ function FirmLegal_LEGACY_UNUSED() {
                 <table className="dtbl" style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--line)' }}>
                   <thead><tr><th>ID</th><th>Lawan / Perkara</th><th className="num">Eksposur</th><th>Risiko</th><th>Status</th></tr></thead>
                   <tbody>
-                    {B.DISPUTES.map(d => (
+                    {B.DISPUTES.map((d: any) => (
                       <tr key={d.id} className={d.id === sel ? 'sel' : ''} onClick={() => setSel(d.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                         <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{d.lawan}</div><div className="tiny muted truncate" style={{ maxWidth: 220 }}>{d.perkara}</div></td>
@@ -124,7 +124,7 @@ function FirmLegal_LEGACY_UNUSED() {
                       </div>
                       <div className="row gap8" style={{ marginTop: 12 }}>
                         <Btn sm variant="primary"><I.doc size={13} /> Berkas Perkara</Btn>
-                        {selCase.id === 'LIT-03' && <Btn sm onClick={() => window.__amsSetSidebar && null}><I.umbrella size={13} /> Tautkan ke Klaim PII</Btn>}
+                        {selCase.id === 'LIT-03' && <Btn sm onClick={(): any => window.__amsSetSidebar && null}><I.umbrella size={13} /> Tautkan ke Klaim PII</Btn>}
                       </div>
                     </div>
                   </Panel>

@@ -78,7 +78,7 @@ const P1_ST_FEAT = {
 };
 const P1_CYCLE = { ok: 'review', review: 'na', na: 'ok' };
 
-function P1Card({ value, label, sub, accent }) {
+function P1Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</div>
@@ -88,8 +88,8 @@ function P1Card({ value, label, sub, accent }) {
   );
 }
 
-function StatusPill({ meta }) {
-  const IconC = I[meta.icon] || I.check;
+function StatusPill({ meta }: any) {
+  const IconC = (I as any)[meta.icon] || I.check;
   return <Badge kind={meta.kind}><span className="row ac gap4" style={{ display: 'inline-flex' }}><IconC size={11} /> {meta.label}</span></Badge>;
 }
 
@@ -112,27 +112,27 @@ function PSAK1View() {
   React.useEffect(() => { try { localStorage.setItem('ams.psak1.lsofp', JSON.stringify(linesSofp)); } catch (e) {} }, [linesSofp]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak1.lpl', JSON.stringify(linesPl)); } catch (e) {} }, [linesPl]);
 
-  const cycle = (setter) => (id) => setter(list => list.map(r => r.id === id ? { ...r, st: P1_CYCLE[r.st] } : r));
+  const cycle = (setter: any) => (id: any) => setter((list: any) => list.map((r: any) => r.id === id ? { ...r, st: (P1_CYCLE as any)[r.st] } : r));
   const cycleComp = cycle(setComps);
   const cycleFeat = cycle(setFeats);
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
-  const toggleLine = (id) => (i) => id === 'sofp'
-    ? setLinesSofp(list => list.map((r, idx) => idx === i ? { ...r, on: !r.on } : r))
-    : setLinesPl(list => list.map((r, idx) => idx === i ? { ...r, on: !r.on } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleLine = (id: any) => (i: any) => id === 'sofp'
+    ? setLinesSofp((list: any) => list.map((r: any, idx: any) => idx === i ? { ...r, on: !r.on } : r))
+    : setLinesPl((list: any) => list.map((r: any, idx: any) => idx === i ? { ...r, on: !r.on } : r));
 
   /* metrics */
-  const compsAppl = comps.filter(c => c.st !== 'na');
-  const compsOk = comps.filter(c => c.st === 'ok').length;
-  const featsAppl = feats.filter(f => f.st !== 'na');
-  const featsOk = feats.filter(f => f.st === 'ok').length;
+  const compsAppl = comps.filter((c: any) => c.st !== 'na');
+  const compsOk = comps.filter((c: any) => c.st === 'ok').length;
+  const featsAppl = feats.filter((f: any) => f.st !== 'na');
+  const featsOk = feats.filter((f: any) => f.st === 'ok').length;
   const linesAll = [...linesSofp, ...linesPl];
   const linesOn = linesAll.filter(l => l.on).length;
-  const discOk = disc.filter(d => d.ok).length;
+  const discOk = disc.filter((d: any) => d.ok).length;
 
   const denom = compsAppl.length + featsAppl.length + disc.length;
   const numer = compsOk + featsOk + discOk;
   const score = denom ? Math.round((numer / denom) * 100) : 0;
-  const attention = comps.filter(c => c.st === 'review').length + feats.filter(f => f.st === 'review').length + disc.filter(d => !d.ok).length;
+  const attention = comps.filter((c: any) => c.st === 'review').length + feats.filter((f: any) => f.st === 'review').length + disc.filter((d: any) => !d.ok).length;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
@@ -183,8 +183,8 @@ function PSAK1View() {
               <Panel noBody>
                 <div className="panel-h"><h3>Komponen Laporan Keuangan Lengkap</h3><span className="sub mono">¶10</span><div style={{ flex: 1 }} /><span className="tiny muted">Klik status untuk mengubah</span></div>
                 <div>
-                  {comps.map((c, i) => {
-                    const meta = P1_ST_COMP[c.st];
+                  {comps.map((c: any, i: any) => {
+                    const meta = (P1_ST_COMP as any)[c.st];
                     return (
                       <div key={c.id} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < comps.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: c.st === 'na' ? 0.62 : 1 }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px' }}>{c.ref}</span>
@@ -201,10 +201,10 @@ function PSAK1View() {
 
               {/* karakteristik umum */}
               <Panel noBody>
-                <div className="panel-h"><h3>Karakteristik Umum Penyajian</h3><span className="sub mono">¶15–46</span><div style={{ flex: 1 }} /><span className="tiny muted">{featsOk} terpenuhi · {feats.filter(f => f.st === 'review').length} perhatian</span></div>
+                <div className="panel-h"><h3>Karakteristik Umum Penyajian</h3><span className="sub mono">¶15–46</span><div style={{ flex: 1 }} /><span className="tiny muted">{featsOk} terpenuhi · {feats.filter((f: any) => f.st === 'review').length} perhatian</span></div>
                 <div>
-                  {feats.map((f, i) => {
-                    const meta = P1_ST_FEAT[f.st];
+                  {feats.map((f: any, i: any) => {
+                    const meta = (P1_ST_FEAT as any)[f.st];
                     return (
                       <div key={f.id} className="row gap10" style={{ padding: '10px 14px', borderBottom: i < feats.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start', opacity: f.st === 'na' ? 0.62 : 1 }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{f.ref}</span>
@@ -229,10 +229,10 @@ function PSAK1View() {
                 </div>
                 <div style={{ padding: '8px 14px 4px' }} className="row ac jb">
                   <span className="tiny mono" style={{ color: 'var(--ink-3)' }}>{lineRefLabel}</span>
-                  <span className="tiny muted">{lines.filter(l => l.on).length}/{lines.length} disajikan terpisah</span>
+                  <span className="tiny muted">{lines.filter((l: any) => l.on).length}/{lines.length} disajikan terpisah</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, padding: '0 14px 12px' }}>
-                  {lines.map((l, i) => (
+                  {lines.map((l: any, i: any) => (
                     <label key={i} className="row gap8" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start' }} onClick={() => toggleLine(lineTab)(i)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (l.on ? 'var(--green)' : 'var(--line-strong)'), background: l.on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{l.on && <I.check size={11} style={{ color: '#fff' }} />}</span>
                       <span style={{ fontSize: 11.5, lineHeight: 1.4, color: l.on ? 'var(--ink)' : 'var(--ink-4)' }}>{l.t}</span>
@@ -248,7 +248,7 @@ function PSAK1View() {
               <Panel noBody>
                 <div className="panel-h"><h3>Pengungkapan Struktur & Kebijakan</h3><span className="sub mono">¶112–138</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
                 <div>
-                  {disc.map((d, i) => (
+                  {disc.map((d: any, i: any) => (
                     <label key={d.id} className="row gap10" style={{ padding: '9px 14px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(d.id)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.ok ? 'var(--green)' : 'var(--amber)'), background: d.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 60, flex: '0 0 60px', marginTop: 1 }}>{d.ref}</span>

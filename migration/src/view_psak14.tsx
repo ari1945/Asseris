@@ -104,7 +104,7 @@ function PSAK14View() {
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.formula', JSON.stringify(formula)); } catch (e) {} }, [formula]);
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
   if (!model || !inv) {
     return <><SubBar moduleId="psak14" /><div className="view-pad"><Panel title="PSAK 14"><div className="tiny muted">Mesin FS Generator / kanonik belum dimuat.</div></Panel></div></>;
@@ -117,7 +117,7 @@ function PSAK14View() {
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
-  const sc = (vJuta) => fmt(Math.round(vJuta * UN.mult), 0);
+  const sc = (vJuta: any) => fmt(Math.round(vJuta * UN.mult), 0);
 
   /* ——— roll-forward mutasi persediaan (¶34) ——— */
   const rf = [
@@ -135,14 +135,14 @@ function PSAK14View() {
   const agingWD = inv.fgReqWD;
 
   /* ——— tie-out lintas-laporan (semua ditarik live, dalam Rp juta) ——— */
-  const M = (full) => full / 1e6;
-  const persedBS = model.bs.ca.find(l => l.key === 'persed');
+  const M = (full: any) => full / 1e6;
+  const persedBS = model.bs.ca.find((l: any) => l.key === 'persed');
   const tieRows = [
-    { id: 't1', label: 'Roll-forward menutup ke saldo persediaan neraca', std: '¶34', a: inv.closeNet, b: M(model.bs.ca.find(l => l.key === 'persed').cy), note: 'Awal + pembelian − BPP + AJE = Persediaan (WTB 1-1300 adjusted).' },
+    { id: 't1', label: 'Roll-forward menutup ke saldo persediaan neraca', std: '¶34', a: inv.closeNet, b: M(model.bs.ca.find((l: any) => l.key === 'persed').cy), note: 'Awal + pembelian − BPP + AJE = Persediaan (WTB 1-1300 adjusted).' },
     { id: 't2', label: 'BPP audited = WTB 5-1100', std: '¶34', a: inv.cogsAdj, b: M(model.is.cogs.cy), note: 'Beban pokok penjualan audited menutup ke buku besar 5-1100.' },
     { id: 't3', label: 'Persediaan = pos Neraca FS Generator', std: 'PSAK 1', a: inv.closeNet, b: M(persedBS.cy), note: 'Nilai tercatat neto sama dengan pos Persediaan pada Laporan Posisi Keuangan.' },
-    { id: 't4', label: 'Saldo awal = komparatif WTB 2024', std: '¶36', a: inv.openingCost, b: M((wtb.find(r => r.code === '1-1300') || {}).ly || 0), note: 'Persediaan awal = saldo audited periode lalu (kolom komparatif WTB).' },
-    { id: 't5', label: 'Penyesuaian pisah batas terposting = AJE-01', std: 'SA 450', a: inv.ajeInv, b: M((wtb.find(r => r.code === '1-1300') || {}).aje || 0), note: 'AJE-01 (Posted) Rp ' + fmt(Math.abs(inv.ajeInv)) + ' jt tercermin pada saldo adjusted.' },
+    { id: 't4', label: 'Saldo awal = komparatif WTB 2024', std: '¶36', a: inv.openingCost, b: M((wtb.find((r: any) => r.code === '1-1300') || {}).ly || 0), note: 'Persediaan awal = saldo audited periode lalu (kolom komparatif WTB).' },
+    { id: 't5', label: 'Penyesuaian pisah batas terposting = AJE-01', std: 'SA 450', a: inv.ajeInv, b: M((wtb.find((r: any) => r.code === '1-1300') || {}).aje || 0), note: 'AJE-01 (Posted) Rp ' + fmt(Math.abs(inv.ajeInv)) + ' jt tercermin pada saldo adjusted.' },
     { id: 't6', label: 'Marjin kotor mengalir ke Laba Rugi', std: 'PSAK 1', a: inv.gm, b: M(model.is.gross.cy), note: 'Penjualan − BPP = laba bruto pada Laporan Laba Rugi.' },
   ].map(r => ({ ...r, diff: r.a - r.b, ok: Math.abs(r.a - r.b) < 1.5 }));
   const tiePass = tieRows.filter(r => r.ok).length;
@@ -160,7 +160,7 @@ function PSAK14View() {
     { k: 'Selisih NRV → akumulasi salah saji', src: 'SAD Ledger', route: 'sad', icon: 'scale' },
   ];
 
-  const discOk = disc.filter(d => d.ok).length;
+  const discOk = disc.filter((d: any) => d.ok).length;
   /* ——— materialitas: SATU sumber dari SA 320 (Materiality Workspace) ———
      membaca konfigurasi benchmark/PM%/CTT% & override yang sama dipakai modul
      Materialitas & SAD — bukan lagi hardcode 75%. */
@@ -212,7 +212,7 @@ function PSAK14View() {
             </tr>
           </thead>
           <tbody>
-            {inv.mix.map((r, i) => (
+            {inv.mix.map((r: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px', fontWeight: 600 }}>{r.label}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(r.cost)}</td>
@@ -251,7 +251,7 @@ function PSAK14View() {
             </tr>
           </thead>
           <tbody>
-            {inv.mix.map((r, i) => (
+            {inv.mix.map((r: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px', fontWeight: 600 }}>{r.label}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(r.cost)}</td>
@@ -283,7 +283,7 @@ function PSAK14View() {
   const agingPanel = (
     <Panel title="Umur Barang Jadi (Slow-moving)" sub="dasar taksiran NRV barang jadi">
       <div style={{ display: 'grid', gap: 0 }}>
-        {aging.map((b, i) => (
+        {aging.map((b: any, i: any) => (
           <div key={i} className="row ac jb" style={{ padding: '7px 0', borderBottom: i < aging.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.25 }}>{b.band}</div>
@@ -359,7 +359,7 @@ function PSAK14View() {
       <div className="panel-h"><h3>Asersi & Prosedur Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 501 · SA 540</span></div>
       <div>
         {P14_ASSERT.map((r, i) => {
-          const st = STATE[r.state];
+          const st = (STATE as any)[r.state];
           return (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P14_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
@@ -412,11 +412,11 @@ function PSAK14View() {
       <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
       <div style={{ padding: 6 }}>
         {lineage.map((r, i) => {
-          const IconC = I[r.icon] || I.doc;
+          const IconC = (I as any)[r.icon] || I.doc;
           return (
             <button key={i} onClick={() => nav(r.route, { from: 'psak14' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -438,7 +438,7 @@ function PSAK14View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengungkapan PSAK 14</h3><span className="sub mono">¶36–39</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
       <div>
-        {disc.map((d, i) => (
+        {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.ok ? 'var(--green)' : 'var(--amber)'), background: d.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{d.ref}</span>
@@ -487,7 +487,7 @@ function PSAK14View() {
           {/* tab bar */}
           <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--line)', overflowX: 'auto', flexWrap: 'nowrap' }}>
             {TABS.map(t => {
-              const IconT = I[t.icon] || I.doc;
+              const IconT = (I as any)[t.icon] || I.doc;
               const on = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{

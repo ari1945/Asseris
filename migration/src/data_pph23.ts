@@ -63,7 +63,7 @@ import { BO as BO_NS } from './data_backoffice';
     { id: '1.2-02.26-0004520', masa: '2026-02', tgl: '2026-02-18', vendorId: 'V-046', obj: 'Jasa perawatan/pemeliharaan', dpp: 67_800_000, status: 'Disetor', ntpn: '0312B2...11A', desc: 'Pemeliharaan perangkat & jaringan kantor' },
     { id: '1.2-02.26-0004521', masa: '2026-02', tgl: '2026-02-20', vendorId: 'V-037', obj: 'Jasa kebersihan & keamanan', dpp: 39_000_000, status: 'Disetor', ntpn: '0312B2...18C', desc: 'Keamanan & pemusnahan arsip terjadwal' },
     { id: '1.2-02.26-0004522', masa: '2026-02', tgl: '2026-02-24', vendorId: 'V-041', obj: 'Jasa katering & boga', dpp: 22_000_000, status: 'Disetor', ntpn: '0312B2...26E', desc: 'Konsumsi pelatihan internal & rapat mutu' },
-    { id: '1.2-02.26-0004523', masa: '2026-02', tgl: '2026-02-26', party: 'CV Cipta Kreatif Media', npwp: null, obj: 'Jasa periklanan & desain', dpp: 95_000_000, status: 'Disetor', ntpn: '0312B2...33F', apId: 'AP-0040', desc: 'Kampanye employer branding & materi promosi' },
+    { id: '1.2-02.26-0004523', masa: '2026-02', tgl: '2026-02-26', party: 'CV Cipta Kreatif Media', npwp: (null as any), obj: 'Jasa periklanan & desain', dpp: 95_000_000, status: 'Disetor', ntpn: '0312B2...33F', apId: 'AP-0040', desc: 'Kampanye employer branding & materi promosi' },
     { id: '1.2-02.26-0004524', masa: '2026-02', tgl: '2026-02-27', party: 'KJPP Surya Nilai & Rekan', npwp: '01.889.450.2-024', obj: 'Jasa penilai (KJPP)', dpp: 85_000_000, status: 'Terutang', desc: 'Penilaian aset tetap kantor (revaluasi)' },
 
     /* ----- Masa Maret 2026 — masa berjalan (terutang / draft) ----- */
@@ -89,11 +89,11 @@ import { BO as BO_NS } from './data_backoffice';
   /* ---------- resolusi lawan transaksi (master vendor → NPWP/NIK) ----------
      Coretax (2025): NPWP 16 digit; bagi Orang Pribadi NIK = NPWP. Digit
      identitas tanpa pemisah: 16 → NIK/NPWP-OP, 15 → NPWP badan (format lama). */
-  const idDigits = (s) => String(s || '').replace(/[.\-\s]/g, '');
-  const idKind = (s) => { if (!s) return null; return idDigits(s).length >= 16 ? 'NIK' : 'NPWP'; };
-  const fmtNik = (s) => { const d = idDigits(s); return d.length === 16 ? d.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4') : s; };
-  function resolveParty(t) {
-    const v = t.vendorId ? (BO().VENDORS || []).find(x => x.id === t.vendorId) : null;
+  const idDigits = (s: any) => String(s || '').replace(/[.\-\s]/g, '');
+  const idKind = (s: any) => { if (!s) return null; return idDigits(s).length >= 16 ? 'NIK' : 'NPWP'; };
+  const fmtNik = (s: any) => { const d = idDigits(s); return d.length === 16 ? d.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4') : s; };
+  function resolveParty(t: any) {
+    const v = t.vendorId ? (BO().VENDORS || []).find((x: any) => x.id === t.vendorId) : null;
     const npwp = v ? v.npwp : (t.npwp || null);
     const idType = idKind(npwp);                          // 'NIK' (OP) | 'NPWP' (badan) | null
     return {
@@ -110,11 +110,11 @@ import { BO as BO_NS } from './data_backoffice';
      opts = { extra: [...], ov: { <id>: <statusBaru> } }
      ov = override status interaktif (mis. Terutang → Disetor) yang
      mengalir konsisten ke seluruh turunan (SPT Masa, GL, agregat). */
-  function register(opts) {
+  function register(opts: any) {
     const { extra = [], ov = {} } = (opts || {});
     const all = extra.length ? [...TX, ...extra] : TX;
     return all.map(t => {
-      const obj = OBJECTS[t.obj] || { rate: 2, kind: 'jasa', art: '—' };
+      const obj = (OBJECTS as any)[t.obj] || { rate: 2, kind: 'jasa', art: '—' };
       const p = resolveParty(t);
       const status = ov[t.id] || t.status;
       const surcharge = !p.hasNpwp;                 // tanpa NPWP → 100% lebih tinggi
@@ -124,15 +124,15 @@ import { BO as BO_NS } from './data_backoffice';
       return {
         ...t, ...p, status, rate: obj.rate, effRate, kind: obj.kind, art: obj.art,
         pph, pphNormal, surcharge, extraCost: pph - pphNormal,
-        masaLabel: MASA_LABEL[t.masa] || t.masa,
+        masaLabel: (MASA_LABEL as any)[t.masa] || t.masa,
         deposited: status === 'Disetor' || status === 'Lapor',
         bupotIssued: status !== 'Draft',
       };
-    }).sort((a, b) => (b.masa.localeCompare(a.masa)) || (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) || (b.pph - a.pph));
+    }).sort((a, b) => (b.masa.localeCompare(a.masa)) || ((STATUS_ORDER as any)[a.status] - (STATUS_ORDER as any)[b.status]) || (b.pph - a.pph));
   }
 
   /* ---------- ringkas KPI (turunan) ---------- */
-  function summary(opts) {
+  function summary(opts: any) {
     const rows = register(opts);
     const totalDpp = rows.reduce((s, r) => s + r.dpp, 0);
     const totalPph = rows.reduce((s, r) => s + r.pph, 0);
@@ -147,7 +147,7 @@ import { BO as BO_NS } from './data_backoffice';
   }
 
   /* ---------- rekap per Masa Pajak (SPT Masa Unifikasi) ---------- */
-  function byMasa(opts) {
+  function byMasa(opts: any) {
     const rows = register(opts);
     const masas = [...new Set(rows.map(r => r.masa))].sort();
     return masas.map(m => {
@@ -160,7 +160,7 @@ import { BO as BO_NS } from './data_backoffice';
       const allDeposited = rs.every(r => r.deposited);
       const status = allFiled ? 'Lapor' : allDeposited ? 'Siap Lapor' : 'Belum Lapor';
       return {
-        masa: m, label: MASA_LABEL[m] || m, count: rs.length, rows: rs,
+        masa: m, label: (MASA_LABEL as any)[m] || m, count: rs.length, rows: rs,
         dpp: rs.reduce((s, r) => s + r.dpp, 0),
         pph: rs.reduce((s, r) => s + r.pph, 0),
         disetor: rs.filter(r => r.deposited).reduce((s, r) => s + r.pph, 0),
@@ -174,22 +174,22 @@ import { BO as BO_NS } from './data_backoffice';
   }
 
   /* ---------- per lawan transaksi (tutup ke master vendor) ---------- */
-  function byCounterparty(opts) {
+  function byCounterparty(opts: any) {
     const rows = register(opts);
     const m = {};
     rows.forEach(r => {
       const key = r.vendorId || r.name;
-      const g = (m[key] = m[key] || { key, name: r.name, vendorId: r.vendorId, master: r.master, npwp: r.npwp, hasNpwp: r.hasNpwp, isOP: r.isOP, cat: r.cat, dpp: 0, pph: 0, n: 0, objs: new Set() });
+      const g = ((m as any)[key] = (m as any)[key] || { key, name: r.name, vendorId: r.vendorId, master: r.master, npwp: r.npwp, hasNpwp: r.hasNpwp, isOP: r.isOP, cat: r.cat, dpp: 0, pph: 0, n: 0, objs: new Set() });
       g.dpp += r.dpp; g.pph += r.pph; g.n += 1; g.objs.add(r.obj);
     });
     return Object.values(m).map((g: any) => ({ ...g, objs: [...g.objs] })).sort((a: any, b: any) => b.pph - a.pph);
   }
 
   /* ---------- tie-out ke pos kontrol GL 2-200 Utang Pajak ---------- */
-  function glTieOut(opts) {
+  function glTieOut(opts: any) {
     const s = summary(opts);
     const coa = A().FIRM_COA || [];
-    const ctl = coa.find(a => a.code === '2-200') || { bal: -940_000_000, name: 'Utang Pajak' };
+    const ctl = coa.find((a: any) => a.code === '2-200') || { bal: -940_000_000, name: 'Utang Pajak' };
     const control = -ctl.bal;                                // saldo kredit → positif
     const pph23Terutang = s.terutang;                        // komponen PPh 23 belum disetor
     const lainnya = control - pph23Terutang;                 // PPh 21, PPh 4(2) & PPN — modul terkait
@@ -202,7 +202,7 @@ import { BO as BO_NS } from './data_backoffice';
   }
 
   /* ---------- provenance tiap figur (panel lineage) ---------- */
-  function provenance(opts) {
+  function provenance(opts: any) {
     const s = summary(opts);
     const master = register(opts).filter(r => r.master).length;
     return [
@@ -217,7 +217,7 @@ import { BO as BO_NS } from './data_backoffice';
   window.TAX23 = {
     REFDATE, OBJECTS, EXCLUSIONS, MASA_LABEL, STATUS_ORDER,
     register, summary, byMasa, byCounterparty, glTieOut, provenance,
-    objRate: (o) => (OBJECTS[o] || { rate: 2 }).rate,
+    objRate: (o: any) => ((OBJECTS as any)[o] || { rate: 2 }).rate,
   };
 })();
 

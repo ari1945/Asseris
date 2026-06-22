@@ -130,8 +130,8 @@ function InternalControl() {
   const [tab, setTab] = useStateIC('overview');
   const [data, setData] = useStateIC(IC_CYCLES);
 
-  const allControls = data.flatMap(c => c.controls);
-  const defCount = allControls.filter(c => c.design === 'Deficiency' || c.oper === 'Deficiency').length + 1; // +1 ITGC SoD
+  const allControls = data.flatMap((c: any) => c.controls);
+  const defCount = allControls.filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency').length + 1; // +1 ITGC SoD
 
   const tabs = [
     { id: 'overview', label: 'Ringkasan & COSO' },
@@ -165,13 +165,13 @@ function InternalControl() {
 /* ============================================================
    TAB 1 — Ringkasan & COSO entity-level controls
    ============================================================ */
-const cosoPF = (cy) => { // component-level present & functioning verdict
-  const part = cy.principles.filter(p => p.pf === 'Sebagian').length;
-  const no = cy.principles.filter(p => p.pf === 'Tidak').length;
+const cosoPF = (cy: any) => { // component-level present & functioning verdict
+  const part = cy.principles.filter((p: any) => p.pf === 'Sebagian').length;
+  const no = cy.principles.filter((p: any) => p.pf === 'Tidak').length;
   return no ? 'red' : part ? 'amber' : 'green';
 };
 
-function ICEntityLevel({ data }) {
+function ICEntityLevel({ data }: any) {
   const [selId, setSelId] = useStateIC('ce');
   const sel = COSO.find(c => c.id === selId);
 
@@ -179,7 +179,7 @@ function ICEntityLevel({ data }) {
   const full = allP.filter(p => p.pf === 'Ya').length;
   const part = allP.filter(p => p.pf === 'Sebagian').length;
 
-  const sigCycles = data.filter(c => c.sig).length;
+  const sigCycles = data.filter((c: any) => c.sig).length;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -200,7 +200,7 @@ function ICEntityLevel({ data }) {
               return (
                 <div key={cy.id} onClick={() => setSelId(cy.id)} style={{ padding: '10px 11px', borderRadius: 8, cursor: 'pointer', background: on ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (on ? 'var(--blue)' : 'var(--line-soft)') }}>
                   <div className="row ac gap8">
-                    <span style={{ width: 26, height: 26, borderRadius: 7, flex: '0 0 26px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{(I[cy.icon] || I.panel)({ size: 15 })}</span>
+                    <span style={{ width: 26, height: 26, borderRadius: 7, flex: '0 0 26px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{((I as any)[cy.icon] || I.panel)({ size: 15 })}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="row ac gap6"><span className="mono tiny muted" style={{ fontWeight: 700 }}>{cy.no}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{cy.name}</span></div>
                       <div className="tiny muted">{cy.principles.length} prinsip</div>
@@ -217,7 +217,7 @@ function ICEntityLevel({ data }) {
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
             <div style={{ background: 'var(--surface-2)', padding: '12px 16px', borderBottom: '1px solid var(--line)' }} className="row ac gap10">
-              <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--blue-100)', color: 'var(--blue)', flex: '0 0 34px' }}>{(I[sel.icon] || I.panel)({ size: 19 })}</span>
+              <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--blue-100)', color: 'var(--blue)', flex: '0 0 34px' }}>{((I as any)[sel.icon] || I.panel)({ size: 19 })}</span>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700 }}>{sel.no}. {sel.name}</div>
                 <div className="tiny muted">{sel.en}</div>
@@ -264,27 +264,27 @@ function ICEntityLevel({ data }) {
 /* ============================================================
    TAB 2 — Risk-Control Matrix + walkthrough + Test of Controls
    ============================================================ */
-function ICMatrix({ data, setData }) {
+function ICMatrix({ data, setData }: any) {
   const [cycleId, setCycleId] = useStateIC('rev');
   const [selCtrl, setSelCtrl] = useStateIC('R-03');
 
-  const cycle = data.find(c => c.id === cycleId);
-  const ctrl = cycle.controls.find(c => c.id === selCtrl) || cycle.controls[0];
+  const cycle = data.find((c: any) => c.id === cycleId);
+  const ctrl = cycle.controls.find((c: any) => c.id === selCtrl) || cycle.controls[0];
 
-  const allControls = data.flatMap(c => c.controls);
-  const deficiencies = allControls.filter(c => c.design === 'Deficiency' || c.oper === 'Deficiency').length;
-  const tested = allControls.filter(c => c.oper !== 'Not tested').length;
-  const effective = allControls.filter(c => c.oper === 'Effective').length;
+  const allControls = data.flatMap((c: any) => c.controls);
+  const deficiencies = allControls.filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency').length;
+  const tested = allControls.filter((c: any) => c.oper !== 'Not tested').length;
+  const effective = allControls.filter((c: any) => c.oper === 'Effective').length;
 
-  const setOper = (result) => setData(ds => ds.map(cy => cy.id !== cycleId ? cy : {
-    ...cy, controls: cy.controls.map(c => c.id === ctrl.id ? { ...c, oper: result, wt: true } : c)
+  const setOper = (result: any) => setData((ds: any) => ds.map((cy: any) => cy.id !== cycleId ? cy : {
+    ...cy, controls: cy.controls.map((c: any) => c.id === ctrl.id ? { ...c, oper: result, wt: true } : c)
   }));
 
-  const cycleEff = (cy) => {
-    const def = cy.controls.filter(c => c.design === 'Deficiency' || c.oper === 'Deficiency').length;
+  const cycleEff = (cy: any) => {
+    const def = cy.controls.filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency').length;
     return def === 0 ? 'green' : def === 1 ? 'amber' : 'red';
   };
-  const resultBadge = (v) => v === 'Effective' ? <Badge kind="green">{v}</Badge> : v === 'Deficiency' ? <Badge kind="red">{v}</Badge> : <Badge kind="gray">Not tested</Badge>;
+  const resultBadge = (v: any) => v === 'Effective' ? <Badge kind="green">{v}</Badge> : v === 'Deficiency' ? <Badge kind="red">{v}</Badge> : <Badge kind="gray">Not tested</Badge>;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -299,7 +299,7 @@ function ICMatrix({ data, setData }) {
         {/* cycles */}
         <Panel title="Siklus Bisnis">
           <div style={{ display: 'grid', gap: 2 }}>
-            {data.map(cy => (
+            {data.map((cy: any) => (
               <div key={cy.id} onClick={() => { setCycleId(cy.id); setSelCtrl(cy.controls[0].id); }} style={{ padding: '9px 10px', borderRadius: 7, cursor: 'pointer', background: cy.id === cycleId ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (cy.id === cycleId ? 'var(--blue)' : 'transparent') }}>
                 <div className="row jb ac">
                   <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600 }}>{cy.name}{cy.sig && <span className="badge b-red" style={{ fontSize: 8, padding: '0 4px' }}>SIG</span>}</span>
@@ -318,11 +318,11 @@ function ICMatrix({ data, setData }) {
             <table className="dtbl">
               <thead><tr>
                 <th style={{ width: 54 }}>ID</th><th>Deskripsi Kontrol</th><th style={{ width: 80 }}>Tipe</th><th style={{ width: 78 }}>Sifat</th>
-                {ASSERTIONS.map(a => <th key={a} className="num" style={{ width: 26 }} title={ASSERTION_FULL[a]}>{a}</th>)}
+                {ASSERTIONS.map(a => <th key={a} className="num" style={{ width: 26 }} title={(ASSERTION_FULL as any)[a]}>{a}</th>)}
                 <th style={{ width: 92 }}>Operasi</th>
               </tr></thead>
               <tbody>
-                {cycle.controls.map(c => (
+                {cycle.controls.map((c: any) => (
                   <tr key={c.id} className={c.id === ctrl.id ? 'sel' : ''} onClick={() => setSelCtrl(c.id)} style={{ cursor: 'pointer' }}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
                     <td className="truncate" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5 }}>{c.desc}</td>
@@ -344,11 +344,11 @@ function ICMatrix({ data, setData }) {
               <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{ctrl.id}</span>
               <Badge kind={ctrl.type === 'Preventive' ? 'blue' : 'purple'}>{ctrl.type === 'Preventive' ? 'Preventif' : 'Detektif'}</Badge>
               <span className="chip tiny">{ctrl.nature === 'Automated' ? 'Otomatis' : 'Manual'}</span>
-              {ctrl.itgc && <span className="chip tiny" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }} title="Bergantung pada ITGC"><I.lock size={10} /> ITGC: {ITGC_LABEL[ctrl.itgc]}</span>}
+              {ctrl.itgc && <span className="chip tiny" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }} title="Bergantung pada ITGC"><I.lock size={10} /> ITGC: {(ITGC_LABEL as any)[ctrl.itgc]}</span>}
               <span className="tiny muted">· {ctrl.freq}</span>
               <div style={{ flex: 1 }} />
               <span className="tiny muted">Asersi:</span>
-              {ctrl.asr.map(a => <span key={a} className="badge b-green" style={{ padding: '1px 6px' }} title={ASSERTION_FULL[a]}>{a}</span>)}
+              {ctrl.asr.map((a: any) => <span key={a} className="badge b-green" style={{ padding: '1px 6px' }} title={(ASSERTION_FULL as any)[a]}>{a}</span>)}
             </div>
             <div style={{ padding: 14 }}>
               <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 12 }}>{ctrl.desc}</div>
@@ -376,7 +376,7 @@ function ICMatrix({ data, setData }) {
                     </div>
                   )}
                   <div className="tiny muted upper" style={{ marginBottom: 6 }}>Test of Controls (Atribut · SA 330)</div>
-                  <TestOfControls ctrl={ctrl} onConclude={(result) => setOper(result)} />
+                  <TestOfControls ctrl={ctrl} onConclude={(result: any) => setOper(result)} />
                 </div>
               </div>
             </div>
@@ -390,8 +390,8 @@ function ICMatrix({ data, setData }) {
 /* Attribute Test of Controls — sample size by frequency, record deviations, conclude */
 const { useState: useStateTOC } = React;
 const TOC_SAMPLE = { 'Per transaksi': 25, 'Per jurnal': 25, 'Berkelanjutan': 25, 'Bulanan': 12, 'Kuartalan': 5, 'Per perubahan': 15, 'Per perikatan': 2 };
-function TestOfControls({ ctrl, onConclude }) {
-  const baseN = TOC_SAMPLE[ctrl.freq] || 25;
+function TestOfControls({ ctrl, onConclude }: any) {
+  const baseN = (TOC_SAMPLE as any)[ctrl.freq] || 25;
   const [n] = useStateTOC(baseN);
   const [tested, setTested] = useStateTOC(0);
   const [dev, setDev] = useStateTOC(0);
@@ -440,16 +440,16 @@ function TestOfControls({ ctrl, onConclude }) {
 /* ============================================================
    TAB 3 — ITGC (IT General Controls)
    ============================================================ */
-function ICITGC({ data }) {
+function ICITGC({ data }: any) {
   const [selId, setSelId] = useStateIC('access');
   const sel = ITGC.find(d => d.id === selId);
 
   // automated app controls that depend on each ITGC domain
-  const autoControls = data.flatMap(cy => cy.controls.filter(c => c.nature === 'Automated').map(c => ({ ...c, cycle: cy.name })));
-  const dependents = autoControls.filter(c => c.itgc === selId);
+  const autoControls = data.flatMap((cy: any) => cy.controls.filter((c: any) => c.nature === 'Automated').map((c: any) => ({ ...c, cycle: cy.name })));
+  const dependents = autoControls.filter((c: any) => c.itgc === selId);
   const effDomains = ITGC.filter(d => d.status === 'Effective').length;
 
-  const rBadge = (r) => r === 'Effective' ? <Badge kind="green">Efektif</Badge> : r === 'Deficiency' ? <Badge kind="red">Defisiensi</Badge> : <Badge kind="gray">Belum diuji</Badge>;
+  const rBadge = (r: any) => r === 'Effective' ? <Badge kind="green">Efektif</Badge> : r === 'Deficiency' ? <Badge kind="red">Defisiensi</Badge> : <Badge kind="gray">Belum diuji</Badge>;
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -480,7 +480,7 @@ function ICITGC({ data }) {
               return (
                 <div key={d.id} onClick={() => setSelId(d.id)} style={{ padding: '10px 11px', borderRadius: 8, cursor: 'pointer', background: on ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (on ? 'var(--blue)' : 'var(--line-soft)') }}>
                   <div className="row ac gap8">
-                    <span style={{ width: 26, height: 26, borderRadius: 7, flex: '0 0 26px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{(I[d.icon] || I.panel)({ size: 15 })}</span>
+                    <span style={{ width: 26, height: 26, borderRadius: 7, flex: '0 0 26px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{((I as any)[d.icon] || I.panel)({ size: 15 })}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 600 }}>{d.name}</div>
                       <div className="tiny muted">{d.controls.length} kontrol</div>
@@ -496,7 +496,7 @@ function ICITGC({ data }) {
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
             <div style={{ background: 'var(--surface-2)', padding: '12px 16px', borderBottom: '1px solid var(--line)' }} className="row ac gap10">
-              <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--blue-100)', color: 'var(--blue)', flex: '0 0 34px' }}>{(I[sel.icon] || I.panel)({ size: 19 })}</span>
+              <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--blue-100)', color: 'var(--blue)', flex: '0 0 34px' }}>{((I as any)[sel.icon] || I.panel)({ size: 19 })}</span>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700 }}>{sel.name}</div>
                 <div className="tiny muted">{sel.en} · {sel.sys}</div>
@@ -532,7 +532,7 @@ function ICITGC({ data }) {
               <table className="dtbl">
                 <thead><tr><th style={{ width: 54 }}>ID</th><th>Kontrol Aplikasi (Otomatis)</th><th>Siklus</th><th style={{ width: 140 }}>Keandalan</th></tr></thead>
                 <tbody>
-                  {dependents.map(c => {
+                  {dependents.map((c: any) => {
                     const reliable = sel.status === 'Effective';
                     return (
                       <tr key={c.id}>
@@ -559,7 +559,7 @@ function ICITGC({ data }) {
 const LEVELS = ['Defisiensi Pengendalian', 'Defisiensi Signifikan', 'Kelemahan Material'];
 const LEVEL_KIND = { 'Defisiensi Pengendalian': 'gray', 'Defisiensi Signifikan': 'amber', 'Kelemahan Material': 'red' };
 
-function classifyDef(mag, lik, comp) {
+function classifyDef(mag: any, lik: any, comp: any) {
   let lvl = (mag === 'Material' && lik === 'Wajar mungkin') ? 2 : (mag === 'Material' || lik === 'Wajar mungkin') ? 1 : 0;
   if (comp) lvl = Math.max(0, lvl - 1); // kontrol kompensasi efektif menurunkan severity
   return LEVELS[lvl];
@@ -578,29 +578,29 @@ const DEF_SEED = {
   'ITGC-SoD': { mag: 'Imaterial', lik: 'Wajar mungkin', comp: true, sad: 'SAD-05', cmp: 'Reviu detektif manual atas transaksi konflik role.' },
 };
 
-function ICDeficiency({ data }) {
+function ICDeficiency({ data }: any) {
   // collect deficiencies from matrix + ITGC SoD
-  const matrixDefs = data.flatMap(cy => cy.controls
-    .filter(c => c.design === 'Deficiency' || c.oper === 'Deficiency')
-    .map(c => ({ id: c.id, src: cy.name, desc: c.desc, kind: c.design === 'Deficiency' ? 'Rancangan' : 'Operasi' })));
+  const matrixDefs = data.flatMap((cy: any) => cy.controls
+    .filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency')
+    .map((c: any) => ({ id: c.id, src: cy.name, desc: c.desc, kind: c.design === 'Deficiency' ? 'Rancangan' : 'Operasi' })));
   const itgcDef = { id: 'ITGC-SoD', src: 'ITGC · Akses', desc: 'Segregation of Duties — kombinasi role konflik pada ERP (buat & setujui PO/pembayaran).', kind: 'Rancangan' };
   const defs = [...matrixDefs, itgcDef];
 
   const [assess, setAssess] = useStateIC(() => {
     const init = {};
-    defs.forEach(d => { init[d.id] = DEF_SEED[d.id] || { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: '—', cmp: '—' }; });
+    defs.forEach(d => { (init as any)[d.id] = (DEF_SEED as any)[d.id] || { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: '—', cmp: '—' }; });
     return init;
   });
   const [selId, setSelId] = useStateIC(defs[0]?.id);
 
-  const classOf = (id) => { const a = assess[id]; return classifyDef(a.mag, a.lik, a.comp); };
+  const classOf = (id: any) => { const a = assess[id]; return classifyDef(a.mag, a.lik, a.comp); };
   const counts = LEVELS.map(l => defs.filter(d => classOf(d.id) === l).length);
   const sel = defs.find(d => d.id === selId) || defs[0];
   const a = assess[sel.id];
   const cls = classifyDef(a.mag, a.lik, a.comp);
-  const comm = COMMS[cls];
+  const comm = (COMMS as any)[cls];
 
-  const setA = (patch) => setAssess(s => ({ ...s, [sel.id]: { ...s[sel.id], ...patch } }));
+  const setA = (patch: any) => setAssess((s: any) => ({ ...s, [sel.id]: { ...s[sel.id], ...patch } }));
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -608,7 +608,7 @@ function ICDeficiency({ data }) {
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={defs.length} label="Total Defisiensi" /></div></Panel>
         {LEVELS.map((l, i) => (
-          <Panel key={l}><div style={{ padding: '11px 14px' }}><Stat value={counts[i]} label={l} accent={`var(--${LEVEL_KIND[l] === 'gray' ? 'ink-3' : LEVEL_KIND[l]})`} /></div></Panel>
+          <Panel key={l}><div style={{ padding: '11px 14px' }}><Stat value={counts[i]} label={l} accent={`var(--${(LEVEL_KIND as any)[l] === 'gray' ? 'ink-3' : (LEVEL_KIND as any)[l]})`} /></div></Panel>
         ))}
       </div>
 
@@ -631,7 +631,7 @@ function ICDeficiency({ data }) {
                 <tr key={d.id} className={d.id === selId ? 'sel' : ''} onClick={() => setSelId(d.id)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                   <td><div style={{ fontSize: 12, fontWeight: 600 }}>{d.src}</div><div className="tiny muted truncate" style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3 }}>{d.desc}</div></td>
-                  <td><Badge kind={LEVEL_KIND[classOf(d.id)]}>{classOf(d.id)}</Badge></td>
+                  <td><Badge kind={(LEVEL_KIND as any)[classOf(d.id)]}>{classOf(d.id)}</Badge></td>
                 </tr>
               ))}
             </tbody>
@@ -645,7 +645,7 @@ function ICDeficiency({ data }) {
             <span className="tiny muted">{sel.src}</span>
             <span className="chip tiny">{sel.kind}</span>
             <div style={{ flex: 1 }} />
-            <Badge kind={LEVEL_KIND[cls]}>{cls}</Badge>
+            <Badge kind={(LEVEL_KIND as any)[cls]}>{cls}</Badge>
           </div>
           <div style={{ padding: 14 }}>
             <div style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 14, color: 'var(--ink-2)' }}>{sel.desc}</div>
@@ -653,11 +653,11 @@ function ICDeficiency({ data }) {
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
               <div>
                 <div className="tiny muted upper" style={{ marginBottom: 5 }}>Magnitudo (potensi salah saji)</div>
-                <Seg options={[{ value: 'Imaterial', label: 'Imaterial' }, { value: 'Material', label: 'Material' }]} value={a.mag} onChange={(v) => setA({ mag: v })} />
+                <Seg options={[{ value: 'Imaterial', label: 'Imaterial' }, { value: 'Material', label: 'Material' }]} value={a.mag} onChange={(v: any) => setA({ mag: v })} />
               </div>
               <div>
                 <div className="tiny muted upper" style={{ marginBottom: 5 }}>Kemungkinan terjadi</div>
-                <Seg options={[{ value: 'Remote', label: 'Remote' }, { value: 'Wajar mungkin', label: 'Wajar mungkin' }]} value={a.lik} onChange={(v) => setA({ lik: v })} />
+                <Seg options={[{ value: 'Remote', label: 'Remote' }, { value: 'Wajar mungkin', label: 'Wajar mungkin' }]} value={a.lik} onChange={(v: any) => setA({ lik: v })} />
               </div>
             </div>
 
@@ -670,7 +670,7 @@ function ICDeficiency({ data }) {
                   {['Imaterial', 'Material'].map(mag => {
                     const cellCls = classifyDef(mag, lik, a.comp);
                     const active = a.mag === mag && a.lik === lik;
-                    const kc = LEVEL_KIND[cellCls];
+                    const kc = (LEVEL_KIND as any)[cellCls];
                     const bg = kc === 'red' ? 'var(--red-bg)' : kc === 'amber' ? 'var(--amber-bg)' : 'var(--surface-2)';
                     const fg = kc === 'red' ? 'var(--red)' : kc === 'amber' ? 'var(--amber)' : 'var(--ink-3)';
                     return (
@@ -698,7 +698,7 @@ function ICDeficiency({ data }) {
             {/* communication + response */}
             <div className="panel" style={{ padding: '11px 13px', background: comm.kind === 'red' ? 'var(--red-bg)' : comm.kind === 'amber' ? 'var(--amber-bg)' : 'var(--blue-050)', borderColor: 'transparent' }}>
               <div className="row ac gap8" style={{ marginBottom: 8 }}>
-                <span style={{ color: `var(--${comm.kind})` }}>{(I[comm.icon] || I.mail)({ size: 16 })}</span>
+                <span style={{ color: `var(--${comm.kind})` }}>{((I as any)[comm.icon] || I.mail)({ size: 16 })}</span>
                 <span style={{ fontSize: 12.5, fontWeight: 700 }}>Komunikasi: {comm.who}</span>
                 <div style={{ flex: 1 }} />
                 <span className="chip tiny mono">{comm.ref}</span>

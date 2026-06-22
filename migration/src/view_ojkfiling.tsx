@@ -27,7 +27,7 @@ function FilCard({ value, label, sub, accent }: any) {
   );
 }
 
-function filStatusMeta(st, late, atRisk) {
+function filStatusMeta(st: any, late: any, atRisk: any) {
   if (st === 'Disampaikan') return { kind: late ? 'amber' : 'green', txt: late ? 'Disampaikan (terlambat)' : 'Disampaikan' };
   if (atRisk) return { kind: 'red', txt: st + ' · berisiko' };
   if (st === 'Tertunda' || st === 'Belum mulai') return { kind: 'gray', txt: st };
@@ -71,7 +71,7 @@ function OJKFilingView() {
                   <th style={{ textAlign: 'left', width: 140 }}>Kanal Elektronik</th>
                 </tr></thead>
                 <tbody>
-                  {F.obligations.map((o, i) => (
+                  {F.obligations.map((o: any, i: any) => (
                     <tr key={i}>
                       <td style={{ fontWeight: 600, fontSize: 12.5 }}>{o.kind}{o.interim && <span className="tiny muted" style={{ marginLeft: 6 }}>(interim)</span>}</td>
                       <td className="mono tiny" style={{ color: 'var(--ink-2)' }}>{o.basis}</td>
@@ -97,7 +97,7 @@ function OJKFilingView() {
                   <th style={{ textAlign: 'left', width: 230 }}>Laporan Tahunan (30 Apr)</th>
                 </tr></thead>
                 <tbody>
-                  {F.entities.map(e => {
+                  {F.entities.map((e: any) => {
                     const a = filStatusMeta(e.lkAud.st, e.lkAud.late, e.lkAud.atRisk);
                     const b = filStatusMeta(e.ar.st, e.ar.late, e.ar.atRisk);
                     return (

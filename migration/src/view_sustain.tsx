@@ -44,9 +44,9 @@ function SustainabilityView() {
   React.useEffect(() => { try { localStorage.setItem('ams.sustain.done', JSON.stringify(done)); } catch (e) {} }, [done]);
 
   // overlay persisted toggles onto canon defaults
-  const isDone = (it) => (done[it.ref] != null ? done[it.ref] : it.done);
-  const toggle = (ref) => setDone(m => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : S.content.find(c => c.ref === ref).done) }));
-  const reqItems = S.content.filter(c => !c.opt);
+  const isDone = (it: any) => (done[it.ref] != null ? done[it.ref] : it.done);
+  const toggle = (ref: any) => setDone((m: any) => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : S.content.find((c: any) => c.ref === ref).done) }));
+  const reqItems = S.content.filter((c: any) => !c.opt);
   const doneCount = reqItems.filter(isDone).length;
   const score = Math.round(doneCount / reqItems.length * 100);
 
@@ -90,7 +90,7 @@ function SustainabilityView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Muatan Minimum Laporan Keberlanjutan</h3><span className="sub mono">Lampiran II · SEOJK 16/2021</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{reqItems.length}</span></div>
                 <div>
-                  {S.content.map((c, i) => {
+                  {S.content.map((c: any, i: any) => {
                     const on = isDone(c);
                     return (
                       <label key={c.ref} className="row gap10" style={{ padding: '10px 14px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < S.content.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(c.ref)}>
@@ -158,7 +158,7 @@ function SustainabilityView() {
                       <th style={{ textAlign: 'center', width: 120 }}>Kesiapan ISSB</th>
                     </tr></thead>
                     <tbody>
-                      {S.entities.map(e => (
+                      {S.entities.map((e: any) => (
                         <tr key={e.id}>
                           <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{e.name}</div><div className="tiny muted">{e.phase}</div></td>
                           <td className="tiny" style={{ color: 'var(--ink-2)' }}>{e.sector}</td>
@@ -176,7 +176,7 @@ function SustainabilityView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Rencana Aksi Keuangan Berkelanjutan (RAKB)</h3><span className="sub mono">Ps. 8 POJK 51</span></div>
                 <div>
-                  {S.rakb.map((r, i) => (
+                  {S.rakb.map((r: any, i: any) => (
                     <div key={r.ref} className="row ac gap10" style={{ padding: '11px 14px', borderBottom: i < S.rakb.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)', width: 64, flex: '0 0 64px' }}>{r.ref}</span>
                       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.t}</div><div className="tiny muted">Target: {r.tgt}</div></div>
@@ -196,8 +196,8 @@ function SustainabilityView() {
                 <Panel noBody key={bi}>
                   <div className="panel-h"><h3>{blk.t}</h3><span className="sub mono">{blk.sub}</span></div>
                   <div>
-                    {blk.rows.map((r, i) => {
-                      const m = SUS_ISSB_META[r.state];
+                    {blk.rows.map((r: any, i: any) => {
+                      const m = (SUS_ISSB_META as any)[r.state];
                       return (
                         <div key={r.ref} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < blk.rows.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                           <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-4)', width: 44, flex: '0 0 44px' }}>{r.ref}</span>
@@ -224,7 +224,7 @@ function SustainabilityView() {
             <Panel noBody>
               <div className="panel-h"><h3>Jembatan ke Perikatan Asurans & Modul Terkait</h3><span className="sub mono">lineage data</span></div>
               <div style={{ display: 'grid', gap: 7, padding: '10px 12px 12px' }}>
-                {S.bridge.map(m => { const IconC = I[m.icon || 'link2'] || I.link2; return (
+                {S.bridge.map((m: any) => { const IconC = (I as any)[m.icon || 'link2'] || I.link2; return (
                   <button key={m.id} onClick={() => nav(m.id, { from: 'sustain' })} className="row ac gap9" style={{ padding: '10px 12px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--teal)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                     <span style={{ color: 'var(--teal)', flex: '0 0 auto' }}><IconC size={16} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.4 }}>{m.rel}</div></div>

@@ -41,7 +41,7 @@ function NAReport({ kind, engId, onClose }: any) {
         <p style={{ margin: '0 0 10px' }}>Kami telah melaksanakan prosedur yang disepakati sebagaimana tercantum di bawah, sehubungan dengan <b>{A.subject}</b> {A.client}. Perikatan ini dilaksanakan sesuai Standar Perikatan Jasa Terkait (SPSJL) 4400.</p>
         <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 5px' }}>Prosedur & Temuan Faktual</div>
         <ol style={{ margin: '0 0 10px', paddingLeft: 18 }}>
-          {doneProcs.map(p => <li key={p.no} style={{ marginBottom: 6 }}>{p.proc}<br /><span style={{ color: p.exception ? '#b3261e' : '#1f7a4d' }}><b>Temuan:</b> {p.finding}</span></li>)}
+          {doneProcs.map((p: any) => <li key={p.no} style={{ marginBottom: 6 }}>{p.proc}<br /><span style={{ color: p.exception ? '#b3261e' : '#1f7a4d' }}><b>Temuan:</b> {p.finding}</span></li>)}
         </ol>
         {E.exceptions > 0 && <p style={{ margin: '0 0 10px' }}><b>Ikhtisar pengecualian:</b> dari {doneProcs.length} prosedur yang dilaksanakan, terdapat <b>{E.exceptions} pengecualian</b> sebagaimana ditandai di atas.</p>}
         <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 5px' }}>Pernyataan</div>
@@ -69,7 +69,7 @@ function NAReport({ kind, engId, onClose }: any) {
     const nwcAdj = D.nwcCompletion - D.nwcPeg;
     const equity100 = ev - netDebt + nwcAdj;
     const equityStake = equity100 * D.stakePct / 100;
-    const fmt1 = (n) => fmt(n, 1);
+    const fmt1 = (n: any) => fmt(n, 1);
     body = (
       <Paper title="LAPORAN FINANCIAL DUE DILIGENCE" std="Advisory · Non-Asurans · Penggunaan Terbatas" signer={D.partner}>
         <p style={{ margin: '0 0 10px' }}>Kepada Manajemen & Dewan {D.client}</p>
@@ -95,7 +95,7 @@ function NAReport({ kind, engId, onClose }: any) {
         </table>
         <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 5px' }}>Red Flags & Implikasi terhadap Perjanjian (SPA)</div>
         <ul style={{ margin: '0 0 10px', paddingLeft: 18 }}>
-          {D.redFlags.map((f, i) => <li key={i} style={{ marginBottom: 5 }}><b>[{f.sev}]</b> {f.t}<br /><span style={{ color: '#1f5673' }}><b>Implikasi:</b> {f.spa}</span></li>)}
+          {D.redFlags.map((f: any, i: any) => <li key={i} style={{ marginBottom: 5 }}><b>[{f.sev}]</b> {f.t}<br /><span style={{ color: '#1f5673' }}><b>Implikasi:</b> {f.spa}</span></li>)}
         </ul>
         <div style={{ fontWeight: 700, color: '#0c2430', margin: '12px 0 5px' }}>Pernyataan</div>
         <p style={{ margin: 0 }}>Pekerjaan kami merupakan jasa advisory dan <b>bukan audit, reviu, atau perikatan asurans</b>; oleh karena itu kami <b>tidak menyatakan opini atau keyakinan</b>. Laporan ini disusun semata-mata untuk mendukung keputusan transaksi manajemen dan <b>tidak boleh didistribusikan</b> kepada pihak lain tanpa persetujuan tertulis kami.</p>
@@ -121,7 +121,7 @@ function NAReport({ kind, engId, onClose }: any) {
       );
       return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-          <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={ev => ev.stopPropagation()}>
+          <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
             <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
               <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
               <button className="top-btn" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={16} /></button>
@@ -151,7 +151,7 @@ function NAReport({ kind, engId, onClose }: any) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+      <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
           <button className="top-btn" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={16} /></button>

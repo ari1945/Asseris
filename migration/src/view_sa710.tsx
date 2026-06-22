@@ -88,7 +88,7 @@ function F710Type() {
       points: ['Lazim pada yurisdiksi tertentu / persyaratan regulator', 'Setiap periode dirujuk dalam opini', 'Auditor dapat menyatakan opini berbeda antar periode'],
     },
   };
-  const t = types[sel];
+  const t = (types as any)[sel];
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -114,7 +114,7 @@ function F710Type() {
           <div className="tiny muted upper" style={{ marginBottom: 4 }}>Implikasi pada Opini</div>
           <p style={{ margin: '0 0 14px', fontSize: 12.5, lineHeight: 1.55, fontWeight: 600 }}>{t.op}</p>
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Karakteristik</div>
-          {t.points.map((p, i) => (
+          {t.points.map((p: any, i: any) => (
             <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start', padding: '6px 0', borderBottom: i < t.points.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: t.color === 'gray' ? 'var(--ink-4)' : 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.check size={13} /></span><span style={{ lineHeight: 1.4 }}>{p}</span>
             </div>
@@ -188,7 +188,7 @@ function F710Procedures() {
         <Panel title="Tautan Modul">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['Opening Balance (SA 510)', 'clock'], ['Representasi Tertulis (SA 580)', 'doc'], ['Audit Opinion Generator', 'gavel']].map((r, i) => {
-              const Lic = I[r[1]];
+              const Lic = (I as any)[r[1]];
               return (
                 <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
                   <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Lic size={14} /></span>{r[0]}</span>
@@ -225,7 +225,7 @@ function F710Special({ client }: any) {
         <div className="panel-h"><h3>Situasi Khusus & Konsekuensinya (¶11–14)</h3><div style={{ flex: 1 }} /><Badge kind="blue">1 aktif</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
           {cases.map((c, i) => {
-            const Ic = I[c.ic];
+            const Ic = (I as any)[c.ic];
             return (
               <div key={i} className="row gap12" style={{ padding: '13px 0', alignItems: 'flex-start', borderBottom: i < cases.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: c.active ? 1 : 0.72 }}>
                 <span style={{ flex: '0 0 36px', width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${c.k}-bg)`, color: `var(--${c.k})` }}><Ic size={18} /></span>

@@ -10,7 +10,7 @@ import { AMS } from './data';
 
   /* ---- Reporting lines + division for org chart ---- */
   const ORG = {
-    'EMP-001': { reports: null,      dept: 'Kepemimpinan Firma' },
+    'EMP-001': { reports: (null as any),      dept: 'Kepemimpinan Firma' },
     'EMP-002': { reports: 'EMP-001', dept: 'Audit & Asurans' },
     'EMP-003': { reports: 'EMP-001', dept: 'Mutu, Etika & Non-Audit' },
     'EMP-007': { reports: 'EMP-001', dept: 'Mutu & Operasi Audit' },
@@ -236,7 +236,7 @@ import { AMS } from './data';
   const SANCTION_LADDER = ['Teguran Lisan', 'SP-1 (Tertulis)', 'SP-2', 'SP-3 / Skorsing', 'PHK'];
 
   /* ---- shared lookups for People & Compliance views ---- */
-  const byId = (id) => (A as any).STAFF.find(s => s.id === id) || { id, name: id, role: '', grade: 'Junior', cert: '' };
+  const byId = (id: any) => (A as any).STAFF.find((s: any) => s.id === id) || { id, name: id, role: '', grade: 'Junior', cert: '' };
   const GRADE_COLOR_PC = { Partner: '#002C3F', Manager: '#005085', Senior: '#0a6b73', Junior: '#5b3fa6' };
   const READY_COLOR = { 'Siap sekarang': 'var(--green)', 'Siap 1–2 th': 'var(--blue)', 'Siap 2–3 th': 'var(--amber)' };
 

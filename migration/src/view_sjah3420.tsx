@@ -32,7 +32,7 @@ function SJAH3420View() {
   const E = (AMS as any).proformaEngine(exec);
   const A = E.meta;
 
-  const toggle = (id, seed) => setExec(s => {
+  const toggle = (id: any, seed: any) => setExec((s: any) => {
     const cur = Object.prototype.hasOwnProperty.call(s, id) ? s[id] : seed;
     return { ...s, [id]: !cur };
   });
@@ -97,12 +97,12 @@ function SJAH3420View() {
 }
 
 /* helper format Rp juta + bertanda (parentheses untuk negatif) */
-function pfJ(n) { return AMS.fmt(Math.round(n), 0); }
-function pfSgn(n) { return n === 0 ? '—' : (n < 0 ? '(' + pfJ(Math.abs(n)) + ')' : pfJ(n)); }
+function pfJ(n: any) { return AMS.fmt(Math.round(n), 0); }
+function pfSgn(n: any) { return n === 0 ? '—' : (n < 0 ? '(' + pfJ(Math.abs(n)) + ')' : pfJ(n)); }
 
 /* ---------------- Tab: Anatomi & Penerimaan ---------------- */
-function PfAnatomy({ E, A }) {
-  const acc = A.terms.filter(t => t.ok).length;
+function PfAnatomy({ E, A }: any) {
+  const acc = A.terms.filter((t: any) => t.ok).length;
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
@@ -135,7 +135,7 @@ function PfAnatomy({ E, A }) {
               ['building', 'blue', 'Pihak Bertanggung Jawab', A.responsibleParty],
               ['users', 'teal', 'Pengguna yang Dituju', A.intendedUsers],
             ].map((r, i) => {
-              const Ic = I[r[0]];
+              const Ic = (I as any)[r[0]];
               return (
                 <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
                   <span style={{ width: 32, height: 32, borderRadius: 8, flex: '0 0 32px', display: 'grid', placeItems: 'center', background: `var(--${r[1]}-bg)`, color: `var(--${r[1]})` }}><Ic size={16} /></span>
@@ -208,7 +208,7 @@ function PfAnatomy({ E, A }) {
       <Panel noBody>
         <div className="panel-h"><h3>Penerimaan Perikatan (¶ prasyarat)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: acc === A.terms.length ? 'var(--green)' : 'var(--amber)' }}>{acc}/{A.terms.length}</span></div>
         <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px 24px' }}>
-          {A.terms.map((t, i) => (
+          {A.terms.map((t: any, i: any) => (
             <div key={i} className="row gap8" style={{ alignItems: 'flex-start', fontSize: 12 }}>
               <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{t.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
               <span style={{ lineHeight: 1.45 }}>{t.k}</span>
@@ -221,7 +221,7 @@ function PfAnatomy({ E, A }) {
 }
 
 /* ---------------- Tab: Sumber & Penyesuaian ---------------- */
-function PfSource({ E, A, toggle, nav }) {
+function PfSource({ E, A, toggle, nav }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       {/* tie-out SSOT */}
@@ -230,7 +230,7 @@ function PfSource({ E, A, toggle, nav }) {
         <table className="dtbl">
           <thead><tr><th>Pos Proforma (tidak disesuaikan)</th><th>Sumber Kanonik</th><th className="num" style={{ width: 130 }}>Nilai</th><th style={{ width: 96 }}>Status</th></tr></thead>
           <tbody>
-            {E.tieRows.map((r, i) => (
+            {E.tieRows.map((r: any, i: any) => (
               <tr key={i} style={r.hi ? { background: 'var(--surface-2)' } : null}>
                 <td style={{ whiteSpace: 'normal', lineHeight: 1.35, fontWeight: r.hi ? 700 : 600 }}>{r.pos}</td>
                 <td className="tiny muted mono" style={{ whiteSpace: 'normal', lineHeight: 1.35 }}>
@@ -307,7 +307,7 @@ function PfSource({ E, A, toggle, nav }) {
             <th style={{ width: 74 }}>Attrib.</th><th style={{ width: 84 }}>Supportable</th><th style={{ width: 74 }}>Sifat</th><th>Bukti pendukung</th>
           </tr></thead>
           <tbody>
-            {E.adjustments.map((a) => (
+            {E.adjustments.map((a: any) => (
               <tr key={a.id} style={a.excludedFromIS ? { background: 'var(--amber-bg)' } : null}>
                 <td style={{ whiteSpace: 'normal', lineHeight: 1.3 }}><span style={{ fontWeight: 600 }}>{a.label}</span><span className="mono tiny muted"> · {a.cite}</span></td>
                 <td className="tiny mono">{a.stmt}</td>
@@ -321,8 +321,8 @@ function PfSource({ E, A, toggle, nav }) {
           </tbody>
         </table>
         <div style={{ padding: 12 }}>
-          <button onClick={() => toggle('PF3', true)} className="chip" style={{ cursor: 'pointer', height: 26, fontWeight: 700, marginRight: 8, border: '1px solid ' + (E.procedures.find(p => p.id === 'PF3').done ? 'var(--green)' : 'var(--line-strong)'), background: E.procedures.find(p => p.id === 'PF3').done ? 'var(--green-bg)' : '#fff', color: E.procedures.find(p => p.id === 'PF3').done ? 'var(--green)' : 'var(--ink-3)' }}>PF3 · Directly attributable {E.procedures.find(p => p.id === 'PF3').done ? '✓' : ''}</button>
-          <button onClick={() => toggle('PF4', false)} className="chip" style={{ cursor: 'pointer', height: 26, fontWeight: 700, border: '1px solid ' + (E.procedures.find(p => p.id === 'PF4').done ? 'var(--green)' : 'var(--line-strong)'), background: E.procedures.find(p => p.id === 'PF4').done ? 'var(--green-bg)' : '#fff', color: E.procedures.find(p => p.id === 'PF4').done ? 'var(--green)' : 'var(--ink-3)' }}>PF4 · Factually supportable {E.procedures.find(p => p.id === 'PF4').done ? '✓' : ''}</button>
+          <button onClick={() => toggle('PF3', true)} className="chip" style={{ cursor: 'pointer', height: 26, fontWeight: 700, marginRight: 8, border: '1px solid ' + (E.procedures.find((p: any) => p.id === 'PF3').done ? 'var(--green)' : 'var(--line-strong)'), background: E.procedures.find((p: any) => p.id === 'PF3').done ? 'var(--green-bg)' : '#fff', color: E.procedures.find((p: any) => p.id === 'PF3').done ? 'var(--green)' : 'var(--ink-3)' }}>PF3 · Directly attributable {E.procedures.find((p: any) => p.id === 'PF3').done ? '✓' : ''}</button>
+          <button onClick={() => toggle('PF4', false)} className="chip" style={{ cursor: 'pointer', height: 26, fontWeight: 700, border: '1px solid ' + (E.procedures.find((p: any) => p.id === 'PF4').done ? 'var(--green)' : 'var(--line-strong)'), background: E.procedures.find((p: any) => p.id === 'PF4').done ? 'var(--green-bg)' : '#fff', color: E.procedures.find((p: any) => p.id === 'PF4').done ? 'var(--green)' : 'var(--ink-3)' }}>PF4 · Factually supportable {E.procedures.find((p: any) => p.id === 'PF4').done ? '✓' : ''}</button>
         </div>
       </Panel>
     </div>
@@ -330,7 +330,7 @@ function PfSource({ E, A, toggle, nav }) {
 }
 
 /* ---------------- Tab: Informasi Proforma (statements) ---------------- */
-function PfStmtTable({ title, rows, footer }) {
+function PfStmtTable({ title, rows, footer }: any) {
   return (
     <Panel noBody>
       <div className="panel-h"><h3>{title}</h3></div>
@@ -343,7 +343,7 @@ function PfStmtTable({ title, rows, footer }) {
           <th className="num" style={{ width: 120 }}>Proforma</th>
         </tr></thead>
         <tbody>
-          {rows.map((r, i) => (
+          {rows.map((r: any, i: any) => (
             <tr key={i} style={r.total || r.strong ? { background: 'var(--surface-2)' } : null}>
               <td style={{ whiteSpace: 'normal', lineHeight: 1.3, fontWeight: r.total || r.strong ? 700 : 500, paddingLeft: r.indent ? 22 : undefined, color: r.muted ? 'var(--ink-3)' : undefined }}>{r.label}{r.gw ? <span className="mono tiny muted"> · PSAK 22</span> : null}{r.nci ? <span className="mono tiny muted"> · ¶19a</span> : null}</td>
               <td className="num mono" style={{ fontWeight: r.total || r.strong ? 700 : 600 }}>{pfJ(r.hist)}</td>
@@ -359,7 +359,7 @@ function PfStmtTable({ title, rows, footer }) {
   );
 }
 
-function PfStatements({ E, A }) {
+function PfStatements({ E, A }: any) {
   const T = E.bs.tot;
   const bsRows = [
     ...E.bs.assets,
@@ -371,7 +371,7 @@ function PfStatements({ E, A }) {
   const isRows = [
     ...E.is.rows,
     { ...E.is.profit },
-    ...E.is.attrib.map(r => ({ ...r, indent: true, muted: true })),
+    ...E.is.attrib.map((r: any) => ({ ...r, indent: true, muted: true })),
   ];
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -418,7 +418,7 @@ function PfStatements({ E, A }) {
 }
 
 /* ---------------- Tab: Simpulan & Laporan ---------------- */
-function PfReport({ E, A }) {
+function PfReport({ E, A }: any) {
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   const C = E.conclusion;
   return (
@@ -427,7 +427,7 @@ function PfReport({ E, A }) {
         <Panel noBody>
           <div className="panel-h"><h3>Prosedur Asurans (¶)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700 }}>{E.counts.proceduresDone}/{E.counts.procedures}</span></div>
           <div style={{ padding: 10, display: 'grid', gap: 6 }}>
-            {E.procedures.map(p => (
+            {E.procedures.map((p: any) => (
               <div key={p.id} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span style={{ lineHeight: 1.3, paddingRight: 8 }}><span className="mono tiny muted" style={{ fontWeight: 700 }}>{p.ref}</span> {p.short}</span>
                 <Badge kind={p.done ? 'green' : 'amber'}>{p.done ? 'Selesai' : 'Tertunda'}</Badge>

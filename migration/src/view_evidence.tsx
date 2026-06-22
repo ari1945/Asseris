@@ -93,11 +93,11 @@ const EV_CONSIST = [
 const EV_RISK_COLOR = { 'Signifikan': 'red', 'Moderat': 'amber', 'Rendah': 'green' };
 
 /* score helpers */
-const evScore = (i) => (i.suff + i.approp) / 2;
-const evStatus = (sc) => sc >= 3.5 ? { k: 'green', t: 'Memadai' } : sc >= 3 ? { k: 'amber', t: 'Cukup' } : { k: 'red', t: 'Kurang' };
-const evRateColor = (v) => v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)';
+const evScore = (i: any) => (i.suff + i.approp) / 2;
+const evStatus = (sc: any) => sc >= 3.5 ? { k: 'green', t: 'Memadai' } : sc >= 3 ? { k: 'amber', t: 'Cukup' } : { k: 'red', t: 'Kurang' };
+const evRateColor = (v: any) => v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)';
 /* heatmap cell color by assertion strength 0-3 */
-const evCell = (v) => v === 0 ? { bg: 'var(--surface-3)', fg: 'var(--ink-4)', t: '·' }
+const evCell = (v: any) => v === 0 ? { bg: 'var(--surface-3)', fg: 'var(--ink-4)', t: '·' }
   : v === 1 ? { bg: 'var(--red-bg)', fg: 'var(--red)', t: '1' }
   : v === 2 ? { bg: 'var(--amber-bg)', fg: 'var(--amber)', t: '2' }
   : { bg: 'var(--green-bg)', fg: 'var(--green)', t: '3' };
@@ -110,15 +110,15 @@ function EvidenceEvaluation() {
   const [items, setItems] = useStateEV(EV_SEED);
   const [selId, setSelId] = useStateEV('EV-C');
 
-  const setVal = (id, key, v) => setItems(l => l.map(i => i.id === id ? { ...i, [key]: v } : i));
-  const cycleAsr = (id, a) => setItems(l => l.map(i => i.id === id ? { ...i, asr: { ...i.asr, [a]: (i.asr[a] + 1) % 4 } } : i));
+  const setVal = (id: any, key: any, v: any) => setItems((l: any) => l.map((i: any) => i.id === id ? { ...i, [key]: v } : i));
+  const cycleAsr = (id: any, a: any) => setItems((l: any) => l.map((i: any) => i.id === id ? { ...i, asr: { ...i.asr, [a]: (i.asr[a] + 1) % 4 } } : i));
 
   /* aggregate metrics */
-  const avgScore = items.reduce((s, i) => s + evScore(i), 0) / items.length;
-  const adequate = items.filter(i => evScore(i) >= 3.5).length;
-  const needWork = items.filter(i => evScore(i) < 3).length;
+  const avgScore = items.reduce((s: any, i: any) => s + evScore(i), 0) / items.length;
+  const adequate = items.filter((i: any) => evScore(i) >= 3.5).length;
+  const needWork = items.filter((i: any) => evScore(i) < 3).length;
   let relevant = 0, covered = 0;
-  items.forEach(i => EV_ASR.forEach(({ k }) => { if (i.asr[k] > 0) { relevant++; if (i.asr[k] >= 2) covered++; } }));
+  items.forEach((i: any) => EV_ASR.forEach(({ k }) => { if (i.asr[k] > 0) { relevant++; if (i.asr[k] >= 2) covered++; } }));
   const coverage = Math.round(covered / relevant * 100);
   const openContra = EV_CONSIST.filter(c => c.open).length;
 
@@ -141,7 +141,7 @@ function EvidenceEvaluation() {
     { id: 'kesimpulan',label: 'Kesimpulan & Sign-off' },
   ];
 
-  const sel = items.find(i => i.id === selId);
+  const sel = items.find((i: any) => i.id === selId);
 
   return (
     <>
@@ -218,7 +218,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
             </p>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {principles.map((p, i) => {
-                const IconC = I[p.ic] || I.layers;
+                const IconC = (I as any)[p.ic] || I.layers;
                 return (
                   <div key={i} className="panel" style={{ padding: '11px 12px', borderColor: 'var(--line)', display: 'flex', gap: 10 }}>
                     <div style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><IconC size={16} /></div>
@@ -236,13 +236,13 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
         <Panel noBody>
           <div className="panel-h"><h3>Status Bukti per Area</h3><div style={{ flex: 1 }} /><span className="tiny muted">skor = (kecukupan + ketepatan) / 2</span></div>
           <div style={{ padding: '6px 14px 12px' }}>
-            {items.map(i => {
+            {items.map((i: any) => {
               const sc = evScore(i); const st = evStatus(sc);
               return (
                 <div key={i.id} className="row ac gap8" style={{ padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
                   <span className="mono tiny muted" style={{ width: 30, flex: '0 0 30px' }}>{i.wp}</span>
                   <span style={{ width: 150, flex: '0 0 150px', fontWeight: 600, fontSize: 12 }}>{i.area}</span>
-                  <Badge kind={EV_RISK_COLOR[i.risk]}>{i.risk}</Badge>
+                  <Badge kind={(EV_RISK_COLOR as any)[i.risk]}>{i.risk}</Badge>
                   <div style={{ flex: 1, maxWidth: 240 }}><Progress value={sc / 5 * 100} color={`var(--${st.k})`} /></div>
                   <span className="mono" style={{ width: 30, textAlign: 'right', fontWeight: 700, color: `var(--${st.k})` }}>{sc.toFixed(1)}</span>
                   <span style={{ width: 78, textAlign: 'right' }}><Badge kind={st.k}>{st.t}</Badge></span>
@@ -296,12 +296,12 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
               <th style={{ width: 90 }}>Status</th>
             </tr></thead>
             <tbody>
-              {items.map(i => {
+              {items.map((i: any) => {
                 const sc = evScore(i); const st = evStatus(sc);
                 return (
                   <tr key={i.id} className={i.id === selId ? 'sel' : ''} onClick={() => setSelId(i.id)} style={{ cursor: 'pointer' }}>
                     <td><div style={{ fontWeight: 600 }}>{i.area}</div><div className="tiny muted mono">WP {i.wp}</div></td>
-                    <td><Badge kind={EV_RISK_COLOR[i.risk]}>{i.risk}</Badge></td>
+                    <td><Badge kind={(EV_RISK_COLOR as any)[i.risk]}>{i.risk}</Badge></td>
                     <td className="tiny muted truncate" style={{ maxWidth: 170 }}>{i.select}</td>
                     <td className="num"><span className="mono" style={{ fontWeight: 700, color: evRateColor(i.suff) }}>{i.suff}</span></td>
                     <td className="num"><span className="mono" style={{ fontWeight: 700, color: evRateColor(i.approp) }}>{i.approp}</span></td>
@@ -319,7 +319,7 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
             <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
               <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
               <span style={{ fontWeight: 700 }}>{sel.area}</span>
-              <Badge kind={EV_RISK_COLOR[sel.risk]}>{sel.risk}</Badge>
+              <Badge kind={(EV_RISK_COLOR as any)[sel.risk]}>{sel.risk}</Badge>
               <div style={{ flex: 1 }} />
               <span className="tiny muted">Sesuaikan penilaian, prosedur & cakupan asersi</span>
             </div>
@@ -329,12 +329,12 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
                   {[['Kecukupan — kuantitas bukti', 'suff'], ['Ketepatan — relevansi & keandalan', 'approp']].map(([lbl, key]) => (
                     <div key={key} style={{ marginBottom: 12 }}>
                       <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 600 }}>{lbl}</span><span className="mono" style={{ fontWeight: 700, color: evRateColor(sel[key]) }}>{sel[key]}/5</span></div>
-                      <input type="range" min="1" max="5" value={sel[key]} onChange={e => setVal(sel.id, key, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+                      <input type="range" min="1" max="5" value={sel[key]} onChange={(e: any) => setVal(sel.id, key, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
                     </div>
                   ))}
                   <div className="tiny muted upper" style={{ margin: '4px 0 6px' }}>Prosedur Diterapkan</div>
                   <div className="row wrap gap6">
-                    {sel.procs.map(p => {
+                    {sel.procs.map((p: any) => {
                       const pr = EV_PROC_MAP[p];
                       return <span key={p} className="chip tiny" title={pr.desc} style={{ height: 20 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: pr.rel >= 4 ? 'var(--green)' : pr.rel >= 3 ? 'var(--amber)' : 'var(--red)' }} />{pr.label}</span>;
                     })}
@@ -390,7 +390,7 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={coverage + '%'} label="Asersi Tercakup (kekuatan ≥ 2)" accent={coverage >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={covered + '/' + relevant} label="Sel Tercakup / Relevan" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.reduce((s, i) => s + EV_ASR.filter(({ k }) => i.asr[k] === 1).length, 0)} label="Asersi Bukti Lemah (gap)" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.reduce((s: any, i: any) => s + EV_ASR.filter(({ k }) => i.asr[k] === 1).length, 0)} label="Asersi Bukti Lemah (gap)" accent="var(--red)" /></div></Panel>
       </div>
 
       <Panel noBody>
@@ -407,7 +407,7 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
               </tr>
             </thead>
             <tbody>
-              {items.map(i => {
+              {items.map((i: any) => {
                 const rel = EV_ASR.filter(({ k }) => i.asr[k] > 0);
                 const avg = rel.length ? (rel.reduce((s, { k }) => s + i.asr[k], 0) / rel.length) : 0;
                 return (
@@ -451,9 +451,9 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
 function EvProcedures({ items }: any) {
   /* count procedure usage across areas */
   const usage: any = {};
-  items.forEach(i => i.procs.forEach(p => { usage[p] = (usage[p] || 0) + 1; }));
+  items.forEach((i: any) => i.procs.forEach((p: any) => { usage[p] = (usage[p] || 0) + 1; }));
   const maxUse = Math.max(1, ...(Object.values(usage) as number[]));
-  const inquiryAreas = items.filter(i => i.procs.includes('inquiry'));
+  const inquiryAreas = items.filter((i: any) => i.procs.includes('inquiry'));
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
@@ -487,7 +487,7 @@ function EvProcedures({ items }: any) {
         <div className="panel" style={{ padding: '11px 14px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row ac gap8" style={{ marginBottom: 4 }}><span style={{ color: 'var(--amber)' }}><I.alert size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Peringatan: permintaan keterangan tidak cukup sendiri (¶A2)</span></div>
           <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
-            Permintaan keterangan digunakan pada {inquiryAreas.length} area ({inquiryAreas.map(a => a.wp).join(', ')}). Pada area tersebut bukti
+            Permintaan keterangan digunakan pada {inquiryAreas.length} area ({inquiryAreas.map((a: any) => a.wp).join(', ')}). Pada area tersebut bukti
             harus dikuatkan prosedur korroboratif (inspeksi, konfirmasi, atau re-perform) — bukan diandalkan sebagai bukti tunggal.
           </div>
         </div>
@@ -602,7 +602,7 @@ function EvConsistency({ openContra }: any) {
                 <td style={{ fontWeight: 600 }}>{c.topic}</td>
                 <td className="tiny muted">{c.a}</td>
                 <td className="tiny muted">{c.b}</td>
-                <td><Badge kind={STATE_KIND[c.state]} dot>{c.state}</Badge></td>
+                <td><Badge kind={(STATE_KIND as any)[c.state]} dot>{c.state}</Badge></td>
                 <td className="tiny" style={{ whiteSpace: 'normal', maxWidth: 280, lineHeight: 1.4, color: c.open ? 'var(--red)' : 'var(--ink-2)' }}>{c.open && <b>[Terbuka] </b>}{c.res}</td>
               </tr>
             ))}
@@ -624,7 +624,7 @@ function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: 
           <table className="dtbl">
             <thead><tr><th>Area / WP</th><th className="num" style={{ width: 44 }}>Skor</th><th style={{ width: 90 }}>Asersi Lemah</th><th>Kesimpulan</th></tr></thead>
             <tbody>
-              {items.map(i => {
+              {items.map((i: any) => {
                 const sc = evScore(i); const st = evStatus(sc);
                 const weak = EV_ASR.filter(({ k }) => i.asr[k] === 1).map(({ k }) => k);
                 const ok = sc >= 3.5 && weak.length === 0;

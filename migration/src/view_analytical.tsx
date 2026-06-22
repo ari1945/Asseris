@@ -33,19 +33,19 @@ const HIST_FACTOR = {
 /* ============================================================
    Shared derivation: 3-year statements, aggregates, ratios, flux
    ============================================================ */
-function arDerive(wtb, pm) {
+function arDerive(wtb: any, pm: any) {
   const byCode = {};
-  wtb.forEach(r => { byCode[r.code] = r; });
+  wtb.forEach((r: any) => { (byCode as any)[r.code] = r; });
   /* y24 = prior audited (ly), y25 = current adjusted (adj), y23 = derived */
   const hist = {};
-  wtb.forEach(r => {
-    const f = HIST_FACTOR[r.group] ?? 0.88;
+  wtb.forEach((r: any) => {
+    const f = (HIST_FACTOR as any)[r.group] ?? 0.88;
     const y24 = r.ly, y25 = r.adj;
     const y23 = r.ly === 0 ? 0 : Math.round(r.ly * f);
-    hist[r.code] = { code: r.code, name: r.name, group: r.group, y: [y23, y24, y25] };
+    (hist as any)[r.code] = { code: r.code, name: r.name, group: r.group, y: [y23, y24, y25] };
   });
-  const v = (code, yi) => (hist[code] ? hist[code].y[yi] : 0);
-  const sumYi = (codes, yi) => codes.reduce((s, c) => s + v(c, yi), 0);
+  const v = (code: any, yi: any) => ((hist as any)[code] ? (hist as any)[code].y[yi] : 0);
+  const sumYi = (codes: any, yi: any) => codes.reduce((s: any, c: any) => s + v(c, yi), 0);
 
   const C = {
     ca: ['1-1100', '1-1200', '1-1210', '1-1300', '1-1400', '1-1500'],
@@ -58,54 +58,54 @@ function arDerive(wtb, pm) {
   };
   /* agg[name] = [y23,y24,y25]; assets +, liab/eq/rev stored negative → abs where needed */
   const A: any = {};
-  const triple = fn => [0, 1, 2].map(fn);
-  A.sales = triple(i => -v('4-1100', i));
-  A.cogs = triple(i => v('5-1100', i));
-  A.selling = triple(i => v('5-2100', i));
-  A.admin = triple(i => v('5-3100', i));
-  A.opex = triple(i => v('5-2100', i) + v('5-3100', i));
-  A.interest = triple(i => v('5-4100', i));
-  A.tax = triple(i => v('5-5100', i));
-  A.grossProfit = triple(i => A.sales[i] - A.cogs[i]);
-  A.ebit = triple(i => A.sales[i] - A.cogs[i] - A.opex[i]);
-  A.netIncome = triple(i => A.sales[i] - A.cogs[i] - A.opex[i] - A.interest[i] - A.tax[i]);
-  A.ca = triple(i => sumYi(C.ca, i));
-  A.nca = triple(i => sumYi(C.nca, i));
-  A.assets = triple(i => A.ca[i] + A.nca[i]);
-  A.cl = triple(i => Math.abs(sumYi(C.cl, i)));
-  A.ncl = triple(i => Math.abs(sumYi(C.ncl, i)));
-  A.equity = triple(i => Math.abs(sumYi(C.eq, i)));
-  A.inv = triple(i => sumYi(C.inv, i));
-  A.ar = triple(i => sumYi(C.ar, i));
-  A.ap = triple(i => Math.abs(sumYi(C.ap, i)));
-  A.debt = triple(i => Math.abs(sumYi(C.debt, i)));
+  const triple = (fn: any) => [0, 1, 2].map(fn);
+  A.sales = triple((i: any) => -v('4-1100', i));
+  A.cogs = triple((i: any) => v('5-1100', i));
+  A.selling = triple((i: any) => v('5-2100', i));
+  A.admin = triple((i: any) => v('5-3100', i));
+  A.opex = triple((i: any) => v('5-2100', i) + v('5-3100', i));
+  A.interest = triple((i: any) => v('5-4100', i));
+  A.tax = triple((i: any) => v('5-5100', i));
+  A.grossProfit = triple((i: any) => A.sales[i] - A.cogs[i]);
+  A.ebit = triple((i: any) => A.sales[i] - A.cogs[i] - A.opex[i]);
+  A.netIncome = triple((i: any) => A.sales[i] - A.cogs[i] - A.opex[i] - A.interest[i] - A.tax[i]);
+  A.ca = triple((i: any) => sumYi(C.ca, i));
+  A.nca = triple((i: any) => sumYi(C.nca, i));
+  A.assets = triple((i: any) => A.ca[i] + A.nca[i]);
+  A.cl = triple((i: any) => Math.abs(sumYi(C.cl, i)));
+  A.ncl = triple((i: any) => Math.abs(sumYi(C.ncl, i)));
+  A.equity = triple((i: any) => Math.abs(sumYi(C.eq, i)));
+  A.inv = triple((i: any) => sumYi(C.inv, i));
+  A.ar = triple((i: any) => sumYi(C.ar, i));
+  A.ap = triple((i: any) => Math.abs(sumYi(C.ap, i)));
+  A.debt = triple((i: any) => Math.abs(sumYi(C.debt, i)));
 
   /* ratios: each carries 3-year series + industry benchmark band */
-  const safe = (a, b) => (b ? a / b : 0);
-  const R = (key, label, cat, formula, unit, good, fn, bench) =>
+  const safe = (a: any, b: any) => (b ? a / b : 0);
+  const R = (key: any, label: any, cat: any, formula: any, unit: any, good: any, fn: any, bench: any) =>
     ({ key, label, cat, formula, unit, good, y: triple(fn), bench });
   const ratios = [
-    R('current', 'Current Ratio', 'Likuiditas', 'Aset Lancar ÷ Liabilitas Jk. Pendek', '×', 'high', i => safe(A.ca[i], A.cl[i]), { med: 1.85, lo: 1.40, hi: 2.30 }),
-    R('quick', 'Quick Ratio', 'Likuiditas', '(Aset Lancar − Persediaan) ÷ Liab. Jk. Pendek', '×', 'high', i => safe(A.ca[i] - A.inv[i], A.cl[i]), { med: 1.05, lo: 0.80, hi: 1.30 }),
-    R('ccc', 'Cash Conversion Cycle', 'Likuiditas', 'DIO + DSO − DPO', ' hr', 'low', i => safe(A.inv[i], A.cogs[i]) * 365 + safe(A.ar[i], A.sales[i]) * 365 - safe(A.ap[i], A.cogs[i]) * 365, { med: 86, lo: 60, hi: 110 }),
+    R('current', 'Current Ratio', 'Likuiditas', 'Aset Lancar ÷ Liabilitas Jk. Pendek', '×', 'high', (i: any) => safe(A.ca[i], A.cl[i]), { med: 1.85, lo: 1.40, hi: 2.30 }),
+    R('quick', 'Quick Ratio', 'Likuiditas', '(Aset Lancar − Persediaan) ÷ Liab. Jk. Pendek', '×', 'high', (i: any) => safe(A.ca[i] - A.inv[i], A.cl[i]), { med: 1.05, lo: 0.80, hi: 1.30 }),
+    R('ccc', 'Cash Conversion Cycle', 'Likuiditas', 'DIO + DSO − DPO', ' hr', 'low', (i: any) => safe(A.inv[i], A.cogs[i]) * 365 + safe(A.ar[i], A.sales[i]) * 365 - safe(A.ap[i], A.cogs[i]) * 365, { med: 86, lo: 60, hi: 110 }),
 
-    R('gm', 'Gross Margin', 'Profitabilitas', '(Penjualan − BPP) ÷ Penjualan', '%', 'high', i => safe(A.grossProfit[i], A.sales[i]) * 100, { med: 31, lo: 27, hi: 36 }),
-    R('om', 'Operating Margin', 'Profitabilitas', 'Laba Usaha ÷ Penjualan', '%', 'high', i => safe(A.ebit[i], A.sales[i]) * 100, { med: 14, lo: 10, hi: 18 }),
-    R('nm', 'Net Margin', 'Profitabilitas', 'Laba Bersih ÷ Penjualan', '%', 'high', i => safe(A.netIncome[i], A.sales[i]) * 100, { med: 9.5, lo: 6, hi: 13 }),
-    R('roe', 'Return on Equity', 'Profitabilitas', 'Laba Bersih ÷ Ekuitas', '%', 'high', i => safe(A.netIncome[i], A.equity[i]) * 100, { med: 14, lo: 9, hi: 19 }),
-    R('roa', 'Return on Assets', 'Profitabilitas', 'Laba Bersih ÷ Total Aset', '%', 'high', i => safe(A.netIncome[i], A.assets[i]) * 100, { med: 7.5, lo: 4.5, hi: 11 }),
+    R('gm', 'Gross Margin', 'Profitabilitas', '(Penjualan − BPP) ÷ Penjualan', '%', 'high', (i: any) => safe(A.grossProfit[i], A.sales[i]) * 100, { med: 31, lo: 27, hi: 36 }),
+    R('om', 'Operating Margin', 'Profitabilitas', 'Laba Usaha ÷ Penjualan', '%', 'high', (i: any) => safe(A.ebit[i], A.sales[i]) * 100, { med: 14, lo: 10, hi: 18 }),
+    R('nm', 'Net Margin', 'Profitabilitas', 'Laba Bersih ÷ Penjualan', '%', 'high', (i: any) => safe(A.netIncome[i], A.sales[i]) * 100, { med: 9.5, lo: 6, hi: 13 }),
+    R('roe', 'Return on Equity', 'Profitabilitas', 'Laba Bersih ÷ Ekuitas', '%', 'high', (i: any) => safe(A.netIncome[i], A.equity[i]) * 100, { med: 14, lo: 9, hi: 19 }),
+    R('roa', 'Return on Assets', 'Profitabilitas', 'Laba Bersih ÷ Total Aset', '%', 'high', (i: any) => safe(A.netIncome[i], A.assets[i]) * 100, { med: 7.5, lo: 4.5, hi: 11 }),
 
-    R('dio', 'Days Inventory (DIO)', 'Efisiensi', 'Persediaan ÷ BPP × 365', ' hr', 'low', i => safe(A.inv[i], A.cogs[i]) * 365, { med: 95, lo: 70, hi: 120 }),
-    R('dso', 'Days Sales (DSO)', 'Efisiensi', 'Piutang ÷ Penjualan × 365', ' hr', 'low', i => safe(A.ar[i], A.sales[i]) * 365, { med: 52, lo: 40, hi: 65 }),
-    R('dpo', 'Days Payable (DPO)', 'Efisiensi', 'Utang Usaha ÷ BPP × 365', ' hr', 'flat', i => safe(A.ap[i], A.cogs[i]) * 365, { med: 60, lo: 45, hi: 80 }),
-    R('ato', 'Asset Turnover', 'Efisiensi', 'Penjualan ÷ Total Aset', '×', 'high', i => safe(A.sales[i], A.assets[i]), { med: 1.10, lo: 0.85, hi: 1.40 }),
+    R('dio', 'Days Inventory (DIO)', 'Efisiensi', 'Persediaan ÷ BPP × 365', ' hr', 'low', (i: any) => safe(A.inv[i], A.cogs[i]) * 365, { med: 95, lo: 70, hi: 120 }),
+    R('dso', 'Days Sales (DSO)', 'Efisiensi', 'Piutang ÷ Penjualan × 365', ' hr', 'low', (i: any) => safe(A.ar[i], A.sales[i]) * 365, { med: 52, lo: 40, hi: 65 }),
+    R('dpo', 'Days Payable (DPO)', 'Efisiensi', 'Utang Usaha ÷ BPP × 365', ' hr', 'flat', (i: any) => safe(A.ap[i], A.cogs[i]) * 365, { med: 60, lo: 45, hi: 80 }),
+    R('ato', 'Asset Turnover', 'Efisiensi', 'Penjualan ÷ Total Aset', '×', 'high', (i: any) => safe(A.sales[i], A.assets[i]), { med: 1.10, lo: 0.85, hi: 1.40 }),
 
-    R('de', 'Debt-to-Equity', 'Solvabilitas', 'Utang Berbunga ÷ Ekuitas', '×', 'low', i => safe(A.debt[i], A.equity[i]), { med: 0.55, lo: 0.30, hi: 0.80 }),
-    R('icr', 'Interest Coverage', 'Solvabilitas', 'Laba Usaha ÷ Beban Keuangan', '×', 'high', i => safe(A.ebit[i], A.interest[i]), { med: 6.5, lo: 4.0, hi: 9.0 }),
+    R('de', 'Debt-to-Equity', 'Solvabilitas', 'Utang Berbunga ÷ Ekuitas', '×', 'low', (i: any) => safe(A.debt[i], A.equity[i]), { med: 0.55, lo: 0.30, hi: 0.80 }),
+    R('icr', 'Interest Coverage', 'Solvabilitas', 'Laba Usaha ÷ Beban Keuangan', '×', 'high', (i: any) => safe(A.ebit[i], A.interest[i]), { med: 6.5, lo: 4.0, hi: 9.0 }),
   ];
 
   /* flux (CY adj vs PY ly) */
-  const flux = wtb.map(r => {
+  const flux = wtb.map((r: any) => {
     const cy = r.adj, py = r.ly;
     const dAbs = cy - py;
     const dPct = py !== 0 ? (dAbs / Math.abs(py)) * 100 : 100;
@@ -116,7 +116,7 @@ function arDerive(wtb, pm) {
 }
 
 /* small helper: status vs benchmark band */
-function benchVerdict(val, b, good) {
+function benchVerdict(val: any, b: any, good: any) {
   if (val < b.lo) return good === 'low' ? 'good' : good === 'flat' ? 'watch' : 'bad';
   if (val > b.hi) return good === 'high' ? 'good' : good === 'flat' ? 'watch' : 'bad';
   return 'ok';
@@ -182,19 +182,19 @@ function AnalyticalReview() {
 function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
   const [memo, setMemo] = window.useAmsPersist('ar.memo.' + eng.id, '');
   /* "unexpected" fluctuation = material AND unusual %  → genuine exceptions to investigate */
-  const rows = der.flux.map(r => ({ ...r, flagged: Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
-  const flagged = rows.filter(r => r.flagged);
-  const explained = flagged.filter(r => FLUX_SEED[r.code]?.status === 'explained').length;
-  const unexplainedAmt = flagged.filter(r => FLUX_SEED[r.code]?.status !== 'explained').reduce((s, r) => s + Math.abs(r.dAbs), 0);
-  const adverseRatios = der.ratios.filter(r => benchVerdict(r.y[2], r.bench, r.good) === 'bad').length;
+  const rows = der.flux.map((r: any) => ({ ...r, flagged: Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
+  const flagged = rows.filter((r: any) => r.flagged);
+  const explained = flagged.filter((r: any) => (FLUX_SEED as any)[r.code]?.status === 'explained').length;
+  const unexplainedAmt = flagged.filter((r: any) => (FLUX_SEED as any)[r.code]?.status !== 'explained').reduce((s: any, r: any) => s + Math.abs(r.dAbs), 0);
+  const adverseRatios = der.ratios.filter((r: any) => benchVerdict(r.y[2], r.bench, r.good) === 'bad').length;
 
   /* link flagged accounts to RoMM register */
   const RISK_LINK = {
     '4-1100': 'R-01', '5-1100': 'R-01', '1-1300': 'R-02',
     '1-1200': 'R-03', '1-1210': 'R-03', '1-2300': 'R-06', '2-2200': 'R-06',
   };
-  const signals = flagged.map(r => ({ ...r, risk: risks.find(x => x.id === RISK_LINK[r.code]) }))
-    .filter(r => r.risk).slice(0, 8);
+  const signals = flagged.map((r: any) => ({ ...r, risk: risks.find((x: any) => x.id === (RISK_LINK as any)[r.code]) }))
+    .filter((r: any) => r.risk).slice(0, 8);
 
   const stages = [
     { k: 'Awal', sub: 'Perencanaan · SA 315', desc: 'Identifikasi area dengan fluktuasi tak terduga untuk menilai RoMM.', done: true },
@@ -252,7 +252,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
             <table className="dtbl">
               <thead><tr><th style={{ width: 70 }}>Kode</th><th>Akun</th><th className="num" style={{ width: 70 }}>Δ %</th><th style={{ width: 64 }}>Risiko</th><th>Asersi & Respons</th></tr></thead>
               <tbody>
-                {signals.map(s => (
+                {signals.map((s: any) => (
                   <tr key={s.code}>
                     <td className="mono tiny muted">{s.code}</td>
                     <td className="truncate" style={{ maxWidth: 150 }}>{s.name}</td>
@@ -275,7 +275,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
               <div className="row jb"><span className="tiny muted upper">Ambang Trivial (CT)</span><span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(ct / 1e6, 0)} jt</span></div>
             </div>
             <div className="tiny muted upper" style={{ marginBottom: 5 }}>Memo Konklusi Auditor</div>
-            <textarea value={memo} onChange={e => setMemo(e.target.value)} placeholder="Catat kesimpulan menyeluruh: apakah laporan keuangan konsisten dengan pemahaman auditor; selisih signifikan yang teridentifikasi telah diselidiki & didukung bukti…" className="input" style={{ width: '100%', height: 150, padding: 10, resize: 'vertical', lineHeight: 1.55, fontFamily: 'var(--ui)' }} />
+            <textarea value={memo} onChange={(e: any) => setMemo(e.target.value)} placeholder="Catat kesimpulan menyeluruh: apakah laporan keuangan konsisten dengan pemahaman auditor; selisih signifikan yang teridentifikasi telah diselidiki & didukung bukti…" className="input" style={{ width: '100%', height: 150, padding: 10, resize: 'vertical', lineHeight: 1.55, fontFamily: 'var(--ui)' }} />
             <div className="row gap6" style={{ marginTop: 10 }}>
               <Btn sm variant="primary"><I.check size={13} /> Tandatangani Konklusi</Btn>
               <Btn sm><I.sparkle size={13} /> Draf dengan AI</Btn>
@@ -299,15 +299,15 @@ function FluxTab({ der, pm, fmt }: any) {
   const [state, setState] = useStateAR(FLUX_SEED);
   const [selCode, setSelCode] = useStateAR('1-1300');
 
-  const rows = der.flux.map(r => ({ ...r, flagged: Math.abs(r.dAbs) > pm || Math.abs(r.dPct) > thr }));
-  const shown = flaggedOnly ? rows.filter(r => r.flagged) : rows;
-  const sel = rows.find(r => r.code === selCode) || rows[0];
-  const flaggedCount = rows.filter(r => r.flagged).length;
-  const explainedCount = rows.filter(r => r.flagged && state[r.code]?.status === 'explained').length;
+  const rows = der.flux.map((r: any) => ({ ...r, flagged: Math.abs(r.dAbs) > pm || Math.abs(r.dPct) > thr }));
+  const shown = flaggedOnly ? rows.filter((r: any) => r.flagged) : rows;
+  const sel = rows.find((r: any) => r.code === selCode) || rows[0];
+  const flaggedCount = rows.filter((r: any) => r.flagged).length;
+  const explainedCount = rows.filter((r: any) => r.flagged && state[r.code]?.status === 'explained').length;
 
-  const num = (n) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 0)}</span>;
-  const setStatus = (code, status) => setState(s => ({ ...s, [code]: { ...(s[code] || { note: '' }), status } }));
-  const setNote = (code, note) => setState(s => ({ ...s, [code]: { ...(s[code] || { status: 'pending' }), note } }));
+  const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 0)}</span>;
+  const setStatus = (code: any, status: any) => setState((s: any) => ({ ...s, [code]: { ...(s[code] || { note: '' }), status } }));
+  const setNote = (code: any, note: any) => setState((s: any) => ({ ...s, [code]: { ...(s[code] || { status: 'pending' }), note } }));
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
@@ -317,10 +317,10 @@ function FluxTab({ der, pm, fmt }: any) {
           <div style={{ flex: 1 }} />
           <div className="row ac gap8">
             <span className="tiny muted">Ambang</span>
-            <input type="range" min="5" max="50" value={thr} onChange={e => setThr(+e.target.value)} style={{ width: 90, accentColor: 'var(--blue)' }} />
+            <input type="range" min="5" max="50" value={thr} onChange={(e: any) => setThr(+e.target.value)} style={{ width: 90, accentColor: 'var(--blue)' }} />
             <span className="mono tiny" style={{ fontWeight: 700, width: 30 }}>{thr}%</span>
             <Badge kind="red">{flaggedCount} flagged</Badge>
-            <label className="row ac gap6" style={{ cursor: 'pointer' }} onClick={() => setFlaggedOnly(f => !f)}>
+            <label className="row ac gap6" style={{ cursor: 'pointer' }} onClick={() => setFlaggedOnly((f: any) => !f)}>
               <span style={{ width: 28, height: 16, borderRadius: 9, background: flaggedOnly ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', flex: '0 0 auto' }}>
                 <span style={{ position: 'absolute', top: 2, left: flaggedOnly ? 14 : 2, width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
               </span>
@@ -336,7 +336,7 @@ function FluxTab({ der, pm, fmt }: any) {
               <th className="num" style={{ width: 96 }}>Δ Abs</th><th className="num" style={{ width: 64 }}>Δ %</th><th style={{ width: 96 }}>Status</th>
             </tr></thead>
             <tbody>
-              {shown.map(r => {
+              {shown.map((r: any) => {
                 const st = state[r.code]?.status;
                 return (
                   <tr key={r.code} className={r.code === selCode ? 'sel' : ''} onClick={() => setSelCode(r.code)} style={{ cursor: 'pointer' }}>
@@ -371,10 +371,10 @@ function FluxTab({ der, pm, fmt }: any) {
             <div className="row jb ac" style={{ marginBottom: 5 }}>
               <span className="tiny muted upper">Ekspektasi Auditor</span>
               <div className="row ac gap4">
-                <input type="number" value={state[sel.code]?.exp ?? 8} onChange={e => setState(s => ({ ...s, [sel.code]: { ...(s[sel.code] || { status: 'pending', note: '' }), exp: +e.target.value } }))} className="input mono" style={{ width: 56, height: 24, textAlign: 'right', padding: '0 6px' }} />
+                <input type="number" value={state[sel.code]?.exp ?? 8} onChange={(e: any) => setState((s: any) => ({ ...s, [sel.code]: { ...(s[sel.code] || { status: 'pending', note: '' }), exp: +e.target.value } }))} className="input mono" style={{ width: 56, height: 24, textAlign: 'right', padding: '0 6px' }} />
                 <span className="tiny" style={{ fontWeight: 700 }}>%</span>
                 <span className="tiny muted">± </span>
-                <input type="number" value={state[sel.code]?.tol ?? 5} onChange={e => setState(s => ({ ...s, [sel.code]: { ...(s[sel.code] || { status: 'pending', note: '' }), tol: +e.target.value } }))} className="input mono" style={{ width: 46, height: 24, textAlign: 'right', padding: '0 6px' }} />
+                <input type="number" value={state[sel.code]?.tol ?? 5} onChange={(e: any) => setState((s: any) => ({ ...s, [sel.code]: { ...(s[sel.code] || { status: 'pending', note: '' }), tol: +e.target.value } }))} className="input mono" style={{ width: 46, height: 24, textAlign: 'right', padding: '0 6px' }} />
               </div>
             </div>
             {(() => {
@@ -389,7 +389,7 @@ function FluxTab({ der, pm, fmt }: any) {
             })()}
           </div>
           <div className="tiny muted upper" style={{ marginBottom: 5 }}>Penjelasan Manajemen / Auditor</div>
-          <textarea value={state[sel.code]?.note || ''} onChange={e => setNote(sel.code, e.target.value)} placeholder="Catat penjelasan dan bukti pendukung…" className="input" style={{ width: '100%', height: 92, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 12 }} />
+          <textarea value={state[sel.code]?.note || ''} onChange={(e: any) => setNote(sel.code, e.target.value)} placeholder="Catat penjelasan dan bukti pendukung…" className="input" style={{ width: '100%', height: 92, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 12 }} />
           <div className="tiny muted upper" style={{ marginBottom: 5 }}>Konklusi</div>
           <div className="row gap6">
             <Btn sm onClick={() => setStatus(sel.code, 'explained')} style={state[sel.code]?.status === 'explained' ? { background: 'var(--green)', color: '#fff', borderColor: 'var(--green)' } : {}}><I.check size={13} /> Explained</Btn>

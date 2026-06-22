@@ -22,10 +22,10 @@ function Governance() {
   const [tab, setTab] = useGov('spm');
   const [sel, setSel] = useGov(null);
 
-  const avg = Math.round(comps.reduce((s, c) => s + c.score, 0) / comps.length);
-  const effective = comps.filter(c => c.status === 'Efektif').length;
-  const openDefs = comps.reduce((s, c) => s + c.defs, 0);
-  const selComp = sel ? comps.find(c => c.id === sel) : null;
+  const avg = Math.round(comps.reduce((s: any, c: any) => s + c.score, 0) / comps.length);
+  const effective = comps.filter((c: any) => c.status === 'Efektif').length;
+  const openDefs = comps.reduce((s: any, c: any) => s + c.defs, 0);
+  const selComp = sel ? comps.find((c: any) => c.id === sel) : null;
 
   const tabs = [
     { id: 'spm', label: 'Komponen SPM', count: comps.length },
@@ -33,7 +33,7 @@ function Governance() {
     { id: 'resources', label: 'Sumber Daya & Penyedia', count: providers.length },
     { id: 'culture', label: 'Budaya Mutu & Evaluasi' },
   ];
-  const scoreColor = (s) => s >= 85 ? 'var(--green)' : s >= 75 ? 'var(--amber)' : 'var(--red)';
+  const scoreColor = (s: any) => s >= 85 ? 'var(--green)' : s >= 75 ? 'var(--amber)' : 'var(--red)';
 
   return (
     <>
@@ -64,7 +64,7 @@ function Governance() {
             <div style={{ padding: '14px 18px' }}>
               <div className="tiny muted upper" style={{ marginBottom: 7 }}>Dasar Simpulan</div>
               <div style={{ display: 'grid', gap: 6 }}>
-                {ev.basis.map((b, i) => (
+                {ev.basis.map((b: any, i: any) => (
                   <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
                     <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.check size={13} /></span>
                     <span className="tiny" style={{ lineHeight: 1.45 }}>{b}</span>
@@ -81,11 +81,11 @@ function Governance() {
           {tab === 'spm' && (
             <div style={{ padding: 12 }}>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {comps.map(c => (
+                {comps.map((c: any) => (
                   <div key={c.id} onClick={() => setSel(c.id)} className="panel" style={{ padding: '12px 14px', cursor: 'pointer', boxShadow: 'none', borderLeft: '3px solid ' + scoreColor(c.score) }}>
                     <div className="row jb ac" style={{ marginBottom: 4 }}>
                       <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span></div>
-                      <Badge kind={GOV_STAT[c.status]}>{c.status}</Badge>
+                      <Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge>
                     </div>
                     <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 9, minHeight: 30 }}>{c.desc}</div>
                     <div className="row jb ac">
@@ -110,7 +110,7 @@ function Governance() {
             <div style={{ padding: 14 }}>
               <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)', maxWidth: 720 }}>Pimpinan firma menetapkan akuntabilitas atas SPM sesuai ISQM 1 ¶20–22. Tanggung jawab <b>akhir</b> berada pada pimpinan tertinggi; tanggung jawab <b>operasional</b> serta kepemimpinan etika dan pemantauan ditugaskan secara spesifik.</p>
               <div style={{ display: 'grid', gap: 10 }}>
-                {roles.map((r, i) => (
+                {roles.map((r: any, i: any) => (
                   <div key={i} className="panel" style={{ padding: '13px 15px', boxShadow: 'none' }}>
                     <div className="grid" style={{ gridTemplateColumns: '1.1fr 1.2fr 2fr', gap: 14, alignItems: 'center' }}>
                       <div>
@@ -130,13 +130,13 @@ function Governance() {
             <table className="dtbl">
               <thead><tr><th>Sumber Daya / Penyedia</th><th>Jenis</th><th>Ketergantungan Firma</th><th>Dievaluasi</th><th>Status</th></tr></thead>
               <tbody>
-                {providers.map((p, i) => (
+                {providers.map((p: any, i: any) => (
                   <tr key={i}>
                     <td style={{ fontWeight: 600, fontSize: 12.5 }}>{p.name}<div className="tiny muted truncate" style={{ maxWidth: 300, fontWeight: 400 }}>{p.note}</div></td>
                     <td className="tiny">{p.type}</td>
                     <td className="tiny muted">{p.reliance}</td>
                     <td className="mono tiny muted">{p.evaluated}</td>
-                    <td><Badge kind={PRV_STAT[p.status]}>{p.status}</Badge></td>
+                    <td><Badge kind={(PRV_STAT as any)[p.status]}>{p.status}</Badge></td>
                   </tr>
                 ))}
               </tbody>
@@ -146,7 +146,7 @@ function Governance() {
           {tab === 'culture' && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14 }}>
-                {culture.map((k, i) => (
+                {culture.map((k: any, i: any) => (
                   <div key={i} className="panel" style={{ padding: '12px 13px', boxShadow: 'none' }}>
                     <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: 'var(--' + k.accent + ')' }}>{k.v}</div>
                     <div className="tiny" style={{ fontWeight: 600, margin: '2px 0 4px', lineHeight: 1.3 }}>{k.k}</div>
@@ -168,15 +168,15 @@ function Governance() {
   );
 }
 
-function GovCompDetail({ c, onClose }) {
+function GovCompDetail({ c, onClose }: any) {
   const A: any = AMS;
-  const role = A.QM_ROLES.find(r => r.person.includes(c.owner)) || null;
+  const role = A.QM_ROLES.find((r: any) => r.person.includes(c.owner)) || null;
   const scoreColor = c.score >= 85 ? 'var(--green)' : c.score >= 75 ? 'var(--amber)' : 'var(--red)';
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 440, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 440, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={GOV_STAT[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 14, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>ISQM 1 {c.ref}</div></div>
+          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 14, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>ISQM 1 {c.ref}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'grid', gap: 14, alignContent: 'start' }}>

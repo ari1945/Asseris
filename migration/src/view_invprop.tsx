@@ -40,7 +40,7 @@ function InvestmentProperty() {
     const noi = IP_PL.rental - IP_PL.directOpexRented;
     return { close, fvSum, noi, tie: close === fvSum };
   }, []);
-  const J = (n) => 'Rp ' + fmt(n, 0) + ' jt';
+  const J = (n: any) => 'Rp ' + fmt(n, 0) + ' jt';
 
   const TABS = [{ id: 'porto', label: 'Portofolio & Nilai Wajar' }, { id: 'roll', label: 'Roll-forward & Laba Rugi' }, { id: 'level', label: 'Hierarki & Sensitivitas' }, { id: 'audit', label: 'Prosedur Audit' }];
 

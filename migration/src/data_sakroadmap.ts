@@ -78,7 +78,7 @@ import { AMS_CANON } from './canon';
 
     /* —— Eksposur Draf / Agenda DSAK (belum disahkan) —— */
     { id: 's-ed1', code: 'ED DSAK', title: 'Kontrak Listrik Bergantung Sifat Lingkungan (PPA energi terbarukan)', ifrs: 'Amd. IFRS 9 & 7',
-      effYear: 2027, effective: 'Usulan 2027', impact: 'Rendah', rel: 'pantau', view: null, phase: 'ed',
+      effYear: 2027, effective: 'Usulan 2027', impact: 'Rendah', rel: 'pantau', view: (null as any), phase: 'ed',
       replaces: '—', tag: 'Eksposur Draf',
       note: 'Akuntansi kontrak pembelian listrik (PPA) energi terbarukan dengan karakteristik "pakai-atau-bayar". Pantau bila klien beralih ke sumber energi terbarukan kontraktual.' },
     { id: 's-ed2', code: 'Agenda DSAK', title: 'Adopsi pemutakhiran berkelanjutan IFRS (konvergensi 1-tahun)', ifrs: 'IASB pipeline',

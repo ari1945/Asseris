@@ -63,7 +63,7 @@ const CP_RULES = [
     extract: ['Ukuran & nilai populasi', 'Stratifikasi item kunci', 'Parameter risiko sampling'], alts: ['jet', 'analytical'] },
 ];
 
-function classifyDoc(name, opts, idx) {
+function classifyDoc(name: any, opts: any, idx: any) {
   const file = (name && name.name) ? name.name : String(name || 'dokumen');
   const i = (typeof idx === 'number') ? idx : 0;
   const uid = 'cls-' + Date.now() + '-' + i + '-' + Math.round(Math.random() * 1e4);
@@ -84,7 +84,7 @@ function classifyDoc(name, opts, idx) {
 /* ------------------------------------------------------------
    2 · RENDER MARKDOWN RINGAN (heading, hr, tabel, kode, tebal)
    ------------------------------------------------------------ */
-function cpInline(text, keyBase) {
+function cpInline(text: any, keyBase: any) {
   /* **tebal** dan `kode` inline */
   const parts = [];
   let rest = String(text); let k = 0;
@@ -100,7 +100,7 @@ function cpInline(text, keyBase) {
   return parts;
 }
 
-function CpMarkdown({ text }) {
+function CpMarkdown({ text }: any) {
   const lines = String(text || '').split('\n');
   const out = []; let i = 0; let key = 0; let guard = 0;
   while (i < lines.length) {
@@ -143,17 +143,17 @@ function CpMarkdown({ text }) {
 /* ------------------------------------------------------------
    3 · KARTU INTAKE — hasil klasifikasi satu berkas
    ------------------------------------------------------------ */
-const cpExtIcon = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : (/\.(png|jpg|jpeg|gif|webp)$/i.test(n || '') ? 'panel' : 'doc');
+const cpExtIcon = (n: any) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : (/\.(png|jpg|jpeg|gif|webp)$/i.test(n || '') ? 'panel' : 'doc');
 
 function CpIntakeCard({ rec, onAttach, onExtract, route }: any) {
   const [done, setDone] = useStateCP(null); /* id modul tujuan setelah dilampirkan */
-  const dest = (typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[rec.dest]) || { label: rec.dest };
+  const dest = (typeof MODULE_INDEX !== 'undefined' && (MODULE_INDEX as any)[rec.dest]) || { label: rec.dest };
   const FI = I[cpExtIcon(rec.file)] || I.doc;
   /* chip konteks: modul aktif sebagai tujuan alternatif bila relevan & belum tercakup */
-  const ctxMod = (route && typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[route] && route !== rec.dest && !(rec.alts || []).includes(route)) ? MODULE_INDEX[route] : null;
+  const ctxMod = (route && typeof MODULE_INDEX !== 'undefined' && (MODULE_INDEX as any)[route] && route !== rec.dest && !(rec.alts || []).includes(route)) ? (MODULE_INDEX as any)[route] : null;
 
   if (done) {
-    const dm = (MODULE_INDEX[done] || { label: done });
+    const dm = ((MODULE_INDEX as any)[done] || { label: done });
     return (
       <div className="intake-card">
         <div className="intake-done">
@@ -179,7 +179,7 @@ function CpIntakeCard({ rec, onAttach, onExtract, route }: any) {
 
       {rec.extract && rec.extract.length > 0 && (
         <div className="intake-extract">
-          {rec.extract.map((e, i) => (
+          {rec.extract.map((e: any, i: any) => (
             <div key={i} className="intake-erow"><span className="ek"><I.check size={12} /></span><span>{e}</span></div>
           ))}
         </div>
@@ -214,8 +214,8 @@ function CpIntakeCard({ rec, onAttach, onExtract, route }: any) {
       {rec.alts && rec.alts.length > 0 && (
         <div className="intake-alts">
           <span>Atau:</span>
-          {rec.alts.map(a => {
-            const am = (MODULE_INDEX[a] || { label: a });
+          {rec.alts.map((a: any) => {
+            const am = ((MODULE_INDEX as any)[a] || { label: a });
             return <button key={a} className="intake-alt" onClick={() => { onAttach({ ...rec, dest: a }, a, false, true); setDone(a); }}>{am.label}</button>;
           })}
         </div>
@@ -227,9 +227,9 @@ function CpIntakeCard({ rec, onAttach, onExtract, route }: any) {
 /* ------------------------------------------------------------
    4 · PANEL TATA KELOLA AI (ISQM 1)
    ------------------------------------------------------------ */
-function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }) {
+function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }: any) {
   const queries = log.length;
-  const withCtx = log.filter(l => l.ctx).length;
+  const withCtx = log.filter((l: any) => l.ctx).length;
   const pct = queries ? Math.round((withCtx / queries) * 100) : 0;
   const accAccepted = (acc && acc.accepted) || 0;
   const accCorrected = (acc && acc.corrected) || 0;
@@ -249,7 +249,7 @@ function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }) {
         </div>
 
         <label className="gov-toggle">
-          <input type="checkbox" checked={share} onChange={e => onShare(e.target.checked)} />
+          <input type="checkbox" checked={share} onChange={(e: any) => onShare(e.target.checked)} />
           <span>Bagikan konteks perikatan ke AI
             <span className="gov-sub">Klien, perikatan aktif, materialitas, dan modul saat ini disertakan agar jawaban lebih relevan. Matikan untuk pertanyaan umum/anonim.</span>
           </span>
@@ -295,7 +295,7 @@ function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }) {
             ? <div className="gov-txt">Belum ada kueri pada sesi ini.</div>
             : (
               <div className="gov-log">
-                {log.slice(0, 24).map((l, i) => (
+                {log.slice(0, 24).map((l: any, i: any) => (
                   <div key={i} className="gov-log-row">
                     <span className="gov-log-ts">{l.ts}</span>
                     <span className="gov-log-q">{l.q}</span>
@@ -322,7 +322,7 @@ const CP_GATE_DEF = {
 };
 const CP_GATE_INTRO = '## Evaluasi salah saji (SA 450)\nAgregat salah saji tidak dikoreksi mendekati ambang **materialitas pelaksanaan**. AI mengusulkan **mencatat AJE koreksi** lalu menilai dampaknya terhadap opini.\n\nKeputusan ini memerlukan **persetujuan auditor** — terima atau override di bawah.';
 
-function CpGate({ gate, onDecide }) {
+function CpGate({ gate, onDecide }: any) {
   const [mode, setMode] = useStateCP(null); /* null | 'override' */
   const [reason, setReason] = useStateCP('');
   const dec = gate.decision;
@@ -346,7 +346,7 @@ function CpGate({ gate, onDecide }) {
       <div className="ai-gate">
         <textarea className="ai-gate-input" rows={2} autoFocus
           placeholder="Alasan auditor meng-override usulan (wajib untuk dokumentasi SA 230)…"
-          value={reason} onChange={e => setReason(e.target.value)} />
+          value={reason} onChange={(e: any) => setReason(e.target.value)} />
         <div className="ai-gate-actions">
           <button className="ai-gate-cancel" onClick={() => { setMode(null); setReason(''); }}>Batal</button>
           <button className="ai-gate-confirm" disabled={!reason.trim()} onClick={() => onDecide({ type: 'ov', reason: reason.trim(), ts: cpNowHM() })}><I.check size={12} /> Rekam override</button>
@@ -393,12 +393,12 @@ function CpOpinionTree({ nav, onClose }: any) {
   })();
 
   const reset = () => { setSource(null); setPervasive(null); setRecorded(false); };
-  const optBtns = (opts) => (
+  const optBtns = (opts: any) => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '7px 0 2px' }}>
-      {opts.map(o => <button key={o.v} className="intake-alt" onClick={o.on}>{o.l}</button>)}
+      {opts.map((o: any) => <button key={o.v} className="intake-alt" onClick={o.on}>{o.l}</button>)}
     </div>
   );
-  const answeredPill = (label) => <div className="opdt-a" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.check size={12} /> {label}</div>;
+  const answeredPill = (label: any) => <div className="opdt-a" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.check size={12} /> {label}</div>;
 
   return (
     <div className="msg ai wide">
@@ -437,10 +437,10 @@ function CpOpinionTree({ nav, onClose }: any) {
 
         {outcome && (
           <div className="opdt-node">
-            <div className="opdt-rail"><div className="opdt-dot" style={{ background: col[outcome.kind] }}><I.gavel size={12} /></div></div>
+            <div className="opdt-rail"><div className="opdt-dot" style={{ background: (col as any)[outcome.kind] }}><I.gavel size={12} /></div></div>
             <div className="opdt-body">
-              <div className="opdt-outcome" style={{ borderColor: col[outcome.kind] }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: col[outcome.kind], display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>{outcome.title}<span className="opdt-sa">{outcome.sa}</span></div>
+              <div className="opdt-outcome" style={{ borderColor: (col as any)[outcome.kind] }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: (col as any)[outcome.kind], display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>{outcome.title}<span className="opdt-sa">{outcome.sa}</span></div>
                 <div className="opdt-basis">{outcome.basis}</div>
                 {recorded
                   ? <div className="opdt-recorded"><I.checkCircle size={14} /><div>Terekam sebagai usulan ke <b>Audit Opinion Generator</b>. Auditor wajib memfinalisasi & memperoleh persetujuan EQR.<div className="opdt-trace"><I.lock size={9} /> SA 230 · keterlusuran</div></div></div>
@@ -474,7 +474,7 @@ const CP_GREETING = {
   text: '## Selamat datang di AI Co-pilot\nSaya membantu menyusun memo, menelusuri standar (SA/PSAK), dan **mengklasifikasi dokumen** ke modul yang tepat.\n\nUnggah bukti lewat tombol di bawah, atau ajukan pertanyaan audit. Jawaban saya bersifat **asistif** — pertimbangan profesional tetap di tangan Anda.',
 };
 
-function Copilot({ open, onClose, route }) {
+function Copilot({ open, onClose, route }: any) {
   const nav = useNav();
   const firm = useFirm();
   const persist = useAmsPersist;
@@ -495,7 +495,7 @@ function Copilot({ open, onClose, route }) {
 
   const activeClient = firm.activeClient || {};
   const activeEng = firm.activeEngagement || {};
-  const moduleLabel = (typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[route] && MODULE_INDEX[route].label) || route || '—';
+  const moduleLabel = (typeof MODULE_INDEX !== 'undefined' && (MODULE_INDEX as any)[route] && (MODULE_INDEX as any)[route].label) || route || '—';
   const llm = (typeof amsLLMConfig === 'function') ? amsLLMConfig() : null;
 
   const ctxText = [
@@ -511,18 +511,18 @@ function Copilot({ open, onClose, route }) {
 
   /* ---- referensi kontekstual (deep-link ke standar) ---- */
   const refsFor = useCbCP(() => {
-    const rel = (typeof RELATED_SA !== 'undefined' && RELATED_SA[route]) || [];
-    return rel.slice(0, 3).map(r => ({ label: r.code, title: r.title, view: r.view }));
+    const rel = (typeof RELATED_SA !== 'undefined' && (RELATED_SA as any)[route]) || [];
+    return rel.slice(0, 3).map((r: any) => ({ label: r.code, title: r.title, view: r.view }));
   }, [route]);
 
-  const pushLog = (q) => {
+  const pushLog = (q: any) => {
     const ts = new Date().toTimeString().slice(0, 5);
-    setLog(prev => [{ ts, q: q.slice(0, 80), ctx: share }, ...prev].slice(0, 60));
+    setLog((prev: any) => [{ ts, q: q.slice(0, 80), ctx: share }, ...prev].slice(0, 60));
   };
 
-  const demoReply = (q) => {
-    const rel = (typeof RELATED_SA !== 'undefined' && RELATED_SA[route]) || [];
-    const relLine = rel.length ? '\n\n**Standar terkait modul ini:** ' + rel.map(r => r.code).join(' · ') : '';
+  const demoReply = (q: any) => {
+    const rel = (typeof RELATED_SA !== 'undefined' && (RELATED_SA as any)[route]) || [];
+    const relLine = rel.length ? '\n\n**Standar terkait modul ini:** ' + rel.map((r: any) => r.code).join(' · ') : '';
     const provLine = llm ? ('Provider aktif: **' + llm.providerLabel + ' · ' + llm.modelLabel + '** — ' + (llm.hasKey ? 'kunci tersimpan (jawaban templat di prototipe ini).' : 'belum ada kunci API.')) : 'Koneksi LLM tidak tersedia di lingkungan ini, jadi saya menjawab dari templat.';
     return '## Mode demo\n' + provLine + '\n\nUntuk *"' + q.slice(0, 120) + '"*, langkah yang lazim:\n\n- Tetapkan asersi & risiko relevan (SA 315).\n- Rancang prosedur responsif dan tautkan bukti (SA 330/500).\n- Dokumentasikan kesimpulan di kertas kerja (SA 230).' + relLine + '\n\n> Atur provider & kunci di **Pengaturan › AI & LLM**.';
   };
@@ -531,7 +531,7 @@ function Copilot({ open, onClose, route }) {
     const q = (raw != null ? raw : input).trim();
     if (!q || busy) return;
     setInput('');
-    setMsgs(prev => [...prev, { role: 'user', text: q }]);
+    setMsgs((prev: any) => [...prev, { role: 'user', text: q }]);
     pushLog(q);
     setBusy(true);
     const refs = refsFor();
@@ -546,80 +546,80 @@ function Copilot({ open, onClose, route }) {
         await new Promise(r => setTimeout(r, 650));
         answer = demoReply(q);
       }
-      setMsgs(prev => [...prev, { role: 'ai', text: String(answer), refs, prov: share }]);
+      setMsgs((prev: any) => [...prev, { role: 'ai', text: String(answer), refs, prov: share }]);
     } catch (e) {
-      setMsgs(prev => [...prev, { role: 'ai', text: demoReply(q), refs, prov: share }]);
+      setMsgs((prev: any) => [...prev, { role: 'ai', text: demoReply(q), refs, prov: share }]);
     } finally {
       setBusy(false);
     }
     const lc = q.toLowerCase();
-    if (/(opini|sa\s*705|modifikasi opini|jenis opini)/.test(lc)) setMsgs(prev => [...prev, { role: 'ai', kind: 'opdt' }]);
-    else if (/(salah saji|sa\s*450|agregat saji|evaluasi salah)/.test(lc)) setMsgs(prev => [...prev, { role: 'ai', text: CP_GATE_INTRO, gate: { ...CP_GATE_DEF } }]);
+    if (/(opini|sa\s*705|modifikasi opini|jenis opini)/.test(lc)) setMsgs((prev: any) => [...prev, { role: 'ai', kind: 'opdt' }]);
+    else if (/(salah saji|sa\s*450|agregat saji|evaluasi salah)/.test(lc)) setMsgs((prev: any) => [...prev, { role: 'ai', text: CP_GATE_INTRO, gate: { ...CP_GATE_DEF } }]);
   };
 
   /* ---- intake berkas (dengan pembelajaran adaptif) ---- */
-  const applyLearn = (rec) => {
+  const applyLearn = (rec: any) => {
     const pref = learn[rec.type];
-    if (pref && pref !== rec.dest && MODULE_INDEX[pref]) {
+    if (pref && pref !== rec.dest && (MODULE_INDEX as any)[pref]) {
       const alts = [rec.dest, ...(rec.alts || [])].filter((a, i, arr) => a !== pref && arr.indexOf(a) === i).slice(0, 3);
       return { ...rec, dest: pref, learned: true, alts };
     }
     return rec;
   };
-  const addFiles = (fl) => {
+  const addFiles = (fl: any) => {
     const arr: any[] = Array.from(fl || []).filter(Boolean);
     if (!arr.length) return;
     const recs = arr.map((f, i) => applyLearn(classifyDoc(f.name || f, {}, i)));
-    setMsgs(prev => [...prev, { role: 'user', kind: 'files', files: arr.map(f => f.name || String(f)) }]);
-    setIntake(prev => [...recs, ...prev]);
+    setMsgs((prev: any) => [...prev, { role: 'user', kind: 'files', files: arr.map(f => f.name || String(f)) }]);
+    setIntake((prev: any) => [...recs, ...prev]);
     /* baca teks nyata untuk berkas berbasis teks → prefill ekstraksi */
     recs.forEach((r, i) => {
       const fo = arr[i];
       if (fo && fo.name && /\.(txt|csv|md|json|html?|xml|tsv|log)$/i.test(fo.name) && typeof FileReader !== 'undefined') {
         try {
           const rd = new FileReader();
-          rd.onload = () => { const tx = String(rd.result || '').slice(0, 20000); setIntake(prev => prev.map(x => x.uid === r.uid ? { ...x, _text: tx } : x)); };
+          rd.onload = () => { const tx = String(rd.result || '').slice(0, 20000); setIntake((prev: any) => prev.map((x: any) => x.uid === r.uid ? { ...x, _text: tx } : x)); };
           rd.readAsText(fo);
         } catch (e) {}
       }
     });
   };
 
-  const onAttach = (rec, dest, openOnly, corrected) => {
+  const onAttach = (rec: any, dest: any, openOnly: any, corrected: any) => {
     if (!openOnly && typeof amsAttachEvidence === 'function') {
       amsAttachEvidence(dest, { file: rec.file, type: rec.type, std: rec.std, classified: dest });
     }
     if (!openOnly) {
-      setAcc(prev => ({ accepted: (prev.accepted || 0) + (corrected ? 0 : 1), corrected: (prev.corrected || 0) + (corrected ? 1 : 0) }));
-      if (corrected && rec.type) setLearn(prev => ({ ...prev, [rec.type]: dest }));
+      setAcc((prev: any) => ({ accepted: (prev.accepted || 0) + (corrected ? 0 : 1), corrected: (prev.corrected || 0) + (corrected ? 1 : 0) }));
+      if (corrected && rec.type) setLearn((prev: any) => ({ ...prev, [rec.type]: dest }));
     }
     if (openOnly) {
-      setIntake(prev => prev.filter(r => r.uid !== rec.uid));
+      setIntake((prev: any) => prev.filter((r: any) => r.uid !== rec.uid));
       nav(dest, { from: 'copilot' });
       onClose && onClose();
     }
   };
 
-  const decideGate = (i, d) => setMsgs(prev => prev.map((mm, idx) => idx === i ? { ...mm, gate: { ...mm.gate, decision: d } } : mm));
-  const launchOpinion = () => setMsgs(prev => [...prev, { role: 'ai', kind: 'opdt' }]);
-  const launchGate = () => setMsgs(prev => [...prev, { role: 'ai', text: CP_GATE_INTRO, gate: { ...CP_GATE_DEF } }]);
-  const onExtract = (rec) => {
+  const decideGate = (i: any, d: any) => setMsgs((prev: any) => prev.map((mm: any, idx: any) => idx === i ? { ...mm, gate: { ...mm.gate, decision: d } } : mm));
+  const launchOpinion = () => setMsgs((prev: any) => [...prev, { role: 'ai', kind: 'opdt' }]);
+  const launchGate = () => setMsgs((prev: any) => [...prev, { role: 'ai', text: CP_GATE_INTRO, gate: { ...CP_GATE_DEF } }]);
+  const onExtract = (rec: any) => {
     const clean = { file: rec.file, std: rec.std, type: rec.type, dest: rec.dest, _text: rec._text || '' };
-    setMsgs(prev => [...prev, { role: 'ai', kind: 'extract', rec: clean }]);
+    setMsgs((prev: any) => [...prev, { role: 'ai', kind: 'extract', rec: clean }]);
   };
-  const launchExtract = () => setMsgs(prev => [...prev, { role: 'ai', kind: 'extract', rec: { file: 'Kontrak Penjualan PLN.pdf', std: 'PSAK 72', type: 'Kontrak/Perjanjian', dest: 'psak72' } }]);
+  const launchExtract = () => setMsgs((prev: any) => [...prev, { role: 'ai', kind: 'extract', rec: { file: 'Kontrak Penjualan PLN.pdf', std: 'PSAK 72', type: 'Kontrak/Perjanjian', dest: 'psak72' } }]);
 
-  const openRef = (r) => {
+  const openRef = (r: any) => {
     if (r.view && window.__amsOpenSA) window.__amsOpenSA({ code: r.label, title: r.title, view: r.view });
     else if (window.__amsOpenSA) window.__amsOpenSA({ code: r.label, title: r.title });
   };
 
   return (
     <div className={'copilot' + (open ? ' open' : '')}
-      onDragEnter={e => { e.preventDefault(); setDrag(true); }}
-      onDragOver={e => e.preventDefault()}
-      onDragLeave={e => { e.preventDefault(); if (e.currentTarget === e.target) setDrag(false); }}
-      onDrop={e => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer && e.dataTransfer.files); }}>
+      onDragEnter={(e: any) => { e.preventDefault(); setDrag(true); }}
+      onDragOver={(e: any) => e.preventDefault()}
+      onDragLeave={(e: any) => { e.preventDefault(); if (e.currentTarget === e.target) setDrag(false); }}
+      onDrop={(e: any) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer && e.dataTransfer.files); }}>
 
       <div className="copilot-h">
         <span style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><I.sparkle size={16} /></span>
@@ -627,7 +627,7 @@ function Copilot({ open, onClose, route }) {
           <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 }}>AI Co-pilot</div>
           <div style={{ fontSize: 10.5, opacity: .8 }}>{share ? 'Konteks: ' + moduleLabel : 'Mode anonim'} · {llm ? llm.modelLabel : 'asistif'}</div>
         </div>
-        <button className="top-btn" title="Insight lintas-modul (kontradiksi)" style={{ color: '#fff', background: showIns ? 'rgba(255,255,255,.18)' : 'transparent', borderRadius: 7 }} onClick={() => setShowIns(v => !v)}><I.target size={17} /></button>
+        <button className="top-btn" title="Insight lintas-modul (kontradiksi)" style={{ color: '#fff', background: showIns ? 'rgba(255,255,255,.18)' : 'transparent', borderRadius: 7 }} onClick={() => setShowIns((v: any) => !v)}><I.target size={17} /></button>
         <button className="top-btn" title="Tata kelola AI (ISQM 1)" style={{ color: '#fff' }} onClick={() => setGov(true)}><I.shield size={17} /></button>
         <button className="top-btn" title="Tutup" style={{ color: '#fff' }} onClick={onClose}><I.x size={17} /></button>
       </div>
@@ -639,13 +639,13 @@ function Copilot({ open, onClose, route }) {
             <AiInsightPanel embedded title="Kontradiksi & sinyal lintas-modul" />
           </div>
         )}
-        {msgs.map((m, i) => {
+        {msgs.map((m: any, i: any) => {
           if (m.kind === 'opdt') return <CpOpinionTree key={i} nav={nav} onClose={onClose} />;
           if (m.kind === 'extract') return (typeof ExtractReview === 'function') ? <ExtractReview key={i} rec={m.rec} route={route} nav={nav} onClose={onClose} /> : null;
           if (m.kind === 'files') {
             return (
               <div key={i} className="msg user files-msg">
-                {m.files.map((f, fi) => {
+                {m.files.map((f: any, fi: any) => {
                   const FI = I[cpExtIcon(f)] || I.doc;
                   return <span key={fi} className="file-chip"><FI size={12} /><span className="fc-name">{f}</span></span>;
                 })}
@@ -660,12 +660,12 @@ function Copilot({ open, onClose, route }) {
                 {m.refs && m.refs.length > 0 && (
                   <div className="ai-refs">
                     <span className="ai-refs-lbl"><I.link2 size={11} /> Rujukan</span>
-                    {m.refs.map((r, ri) => (
+                    {m.refs.map((r: any, ri: any) => (
                       <button key={ri} className="ai-ref" title={r.title} onClick={() => openRef(r)}>{r.label}<I.arrowRight size={11} /></button>
                     ))}
                   </div>
                 )}
-                {m.gate && <CpGate gate={m.gate} onDecide={(d) => decideGate(i, d)} />}
+                {m.gate && <CpGate gate={m.gate} onDecide={(d: any) => decideGate(i, d)} />}
                 {m.prov && (
                   <div className="ai-prov"><I.checkCircle size={11} /> Tertaut konteks perikatan terverifikasi (AMS_CANON)</div>
                 )}
@@ -677,7 +677,7 @@ function Copilot({ open, onClose, route }) {
         {intake.length > 0 && (
           <div className="msg ai wide">
             <div className="intake-lead"><I.sparkle size={12} /> Klasifikasi dokumen</div>
-            {intake.map(rec => <CpIntakeCard key={rec.uid} rec={rec} onAttach={onAttach} onExtract={onExtract} route={route} />)}
+            {intake.map((rec: any) => <CpIntakeCard key={rec.uid} rec={rec} onAttach={onAttach} onExtract={onExtract} route={route} />)}
           </div>
         )}
 
@@ -706,13 +706,13 @@ function Copilot({ open, onClose, route }) {
       <div className="copilot-intake">
         <button className="intake-up" onClick={() => fileRef.current && fileRef.current.click()}><I.upload size={13} /> Unggah & klasifikasi</button>
         <span className="tiny muted">AI mengarahkan ke modul yang tepat</span>
-        <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={e => { addFiles(e.target.files); e.target.value = ''; }} />
+        <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={(e: any) => { addFiles(e.target.files); e.target.value = ''; }} />
       </div>
 
       <div className="copilot-input">
         <input value={input} placeholder="Tanya audit, standar, atau minta draf memo…"
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') send(); }} />
+          onChange={(e: any) => setInput(e.target.value)}
+          onKeyDown={(e: any) => { if (e.key === 'Enter') send(); }} />
         <button className="copilot-send" onClick={() => send()} disabled={busy} title="Kirim"><I.send size={15} /></button>
       </div>
 

@@ -185,21 +185,21 @@ const EXPERTS_SEED = [
 ];
 
 /* adequacy → badge kind */
-function adqKind(a) {
+function adqKind(a: any) {
   return a === 'Memadai' ? 'green' : a === 'Memadai dengan catatan' ? 'amber'
     : a === 'Dalam Proses' ? 'blue' : 'red';
 }
 /* background token (blue has no -bg var → use blue-050) */
-function adqBg(a) {
+function adqBg(a: any) {
   const k = adqKind(a);
   return k === 'blue' ? 'var(--blue-050)' : `var(--${k}-bg)`;
 }
-function statusKind(s) {
+function statusKind(s: any) {
   return s === 'Memadai' ? 'green' : s === 'Catatan' ? 'amber' : s === 'Proses' ? 'blue' : 'red';
 }
-function vColor(v) { return v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)'; }
+function vColor(v: any) { return v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)'; }
 
-function verdictForAvg(avg) {
+function verdictForAvg(avg: any) {
   return avg >= 4
     ? { k: 'green', label: 'Dapat Diandalkan', t: 'Kompetensi, kapabilitas & objektivitas pakar memadai (¶9). Pekerjaan pakar dapat digunakan sebagai bukti audit setelah evaluasi kecukupan (¶12).' }
     : avg >= 3
@@ -214,12 +214,12 @@ function UseOfExpert() {
   const [experts, setExperts] = useStateSP2(EXPERTS_SEED);
   const [selId, setSelId] = useStateSP2('EX-01');
   const [tab, setTab] = useStateSP2('konteks');
-  const sel = experts.find(e => e.id === selId);
+  const sel = experts.find((e: any) => e.id === selId);
 
-  const setV = (expId, fId, v) => setExperts(es => es.map(e => e.id === expId
-    ? { ...e, factors: e.factors.map(f => f.id === fId ? { ...f, v } : f) } : e));
+  const setV = (expId: any, fId: any, v: any) => setExperts((es: any) => es.map((e: any) => e.id === expId
+    ? { ...e, factors: e.factors.map((f: any) => f.id === fId ? { ...f, v } : f) } : e));
 
-  const avgOf = e => e.factors.reduce((s, f) => s + f.v, 0) / e.factors.length;
+  const avgOf = (e: any) => e.factors.reduce((s: any, f: any) => s + f.v, 0) / e.factors.length;
   const selAvg = sel ? avgOf(sel) : 0;
   const selVerdict = verdictForAvg(selAvg);
 
@@ -255,15 +255,15 @@ function UseOfExpert() {
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Pakar Terdaftar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{experts.length} pakar</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tipe</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{experts.filter(e => e.type === 'Pakar Auditor').length} auditor · {experts.filter(e => e.type === 'Pakar Manajemen').length} manajemen</div></div>
+            <div><div className="tiny muted upper">Tipe</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{experts.filter((e: any) => e.type === 'Pakar Auditor').length} auditor · {experts.filter((e: any) => e.type === 'Pakar Manajemen').length} manajemen</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Risiko Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{experts.filter(e => e.risk === 'Signifikan').length} area</div></div>
+            <div><div className="tiny muted upper">Risiko Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{experts.filter((e: any) => e.risk === 'Signifikan').length} area</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Status Evaluasi Pekerjaan</div>
               <div className="row gap6 ac" style={{ justifyContent: 'flex-end' }}>
-                <Badge kind="green">{experts.filter(e => e.workEval.adequacy.startsWith('Memadai')).length} memadai</Badge>
-                <Badge kind="blue">{experts.filter(e => e.workEval.adequacy === 'Dalam Proses').length} proses</Badge>
+                <Badge kind="green">{experts.filter((e: any) => e.workEval.adequacy.startsWith('Memadai')).length} memadai</Badge>
+                <Badge kind="blue">{experts.filter((e: any) => e.workEval.adequacy === 'Dalam Proses').length} proses</Badge>
               </div>
             </div>
           </div>
@@ -272,7 +272,7 @@ function UseOfExpert() {
         {/* expert selector strip (visible on expert-scoped tabs) */}
         {expTab && (
           <div className="grid" style={{ gridTemplateColumns: `repeat(${experts.length}, 1fr)`, gap: 10, marginBottom: 12 }}>
-            {experts.map(e => {
+            {experts.map((e: any) => {
               const a = avgOf(e); const on = e.id === selId;
               return (
                 <div key={e.id} onClick={() => setSelId(e.id)} className="panel" style={{
@@ -310,7 +310,7 @@ function UseOfExpert() {
 }
 
 /* ---------------- Tab: Konteks & Kebutuhan ---------------- */
-function ExpContext({ experts, avgOf }) {
+function ExpContext({ experts, avgOf }: any) {
   const decision = [
     { q: 'Apakah area memerlukan keahlian di luar bidang akuntansi & audit?', a: 'Ya — aktuaria, penilaian properti & valuasi derivatif memerlukan pakar.', ok: true },
     { q: 'Tersedia pakar dengan kompetensi, kapabilitas & objektivitas? (¶9)', a: 'Ya — dievaluasi per pakar (lihat tab Evaluasi Pakar).', ok: true },
@@ -336,7 +336,7 @@ function ExpContext({ experts, avgOf }) {
                 { ic: 'book', t: 'Pemahaman & Kesepakatan (¶10–11)', d: 'Bidang keahlian, lingkup, peran & kerahasiaan.' },
                 { ic: 'flask', t: 'Evaluasi Hasil (¶12)', d: 'Temuan, asumsi & metode, serta relevansi data sumber.' },
               ].map((c, i) => {
-                const Ic = I[c.ic];
+                const Ic = (I as any)[c.ic];
                 return (
                   <div key={i} className="panel" style={{ padding: '11px 12px', boxShadow: 'none' }}>
                     <span style={{ color: 'var(--blue)' }}><Ic size={18} /></span>
@@ -406,7 +406,7 @@ function ExpContext({ experts, avgOf }) {
         </Panel>
         <Panel title="Registrasi Pakar" sub={experts.length + ' pakar'}>
           <div style={{ display: 'grid', gap: 8 }}>
-            {experts.map(e => (
+            {experts.map((e: any) => (
               <div key={e.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                 <div className="row ac jb">
                   <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</span>
@@ -428,13 +428,13 @@ function ExpContext({ experts, avgOf }) {
 }
 
 /* ---------------- Tab: Evaluasi Pakar (¶9) ---------------- */
-function ExpEvaluation({ exp, setV, avg, verdict }) {
+function ExpEvaluation({ exp, setV, avg, verdict }: any) {
   const [selF, setSelF] = useStateSP2('comp');
-  const f = exp.factors.find(x => x.id === selF) || exp.factors[0];
+  const f = exp.factors.find((x: any) => x.id === selF) || exp.factors[0];
   return (
     <div className="grid" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
       <Panel title="Faktor Evaluasi Pakar" sub="SA 620 ¶9 · skala 1–5">
-        {exp.factors.map(fc => (
+        {exp.factors.map((fc: any) => (
           <div key={fc.id} onClick={() => setSelF(fc.id)}
             style={{ marginBottom: 12, padding: '10px 11px', borderRadius: 8, cursor: 'pointer',
               border: '1px solid ' + (fc.id === selF ? 'var(--blue)' : 'var(--line-soft)'),
@@ -443,7 +443,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }) {
               <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}>{fc.k}<span className="mono tiny muted">{fc.ref}</span></span>
               <span className="mono" style={{ fontWeight: 700, color: vColor(fc.v) }}>{fc.v}/5</span>
             </div>
-            <input type="range" min="1" max="5" value={fc.v} onClick={e => e.stopPropagation()} onChange={e => setV(exp.id, fc.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="1" max="5" value={fc.v} onClick={(e: any) => e.stopPropagation()} onChange={(e: any) => setV(exp.id, fc.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
             <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{fc.note}</div>
           </div>
         ))}
@@ -469,7 +469,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }) {
         <table className="dtbl">
           <thead><tr><th>Sub-kriteria Penilaian</th><th style={{ width: 130 }}>Status</th></tr></thead>
           <tbody>
-            {f.subs.map((s, i) => (
+            {f.subs.map((s: any, i: any) => (
               <tr key={i}>
                 <td style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>
                   {s.t}
@@ -499,7 +499,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }) {
 }
 
 /* ---------------- Tab: Lingkup & Kesepakatan (¶10–11) ---------------- */
-function ExpAgreement({ exp }) {
+function ExpAgreement({ exp }: any) {
   const u = exp.understanding;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
@@ -523,12 +523,12 @@ function ExpAgreement({ exp }) {
         </Panel>
 
         <Panel noBody>
-          <div className="panel-h"><h3>Kesepakatan dengan Pakar</h3><div style={{ flex: 1 }} /><Badge kind={exp.agreement.every(a => a.ok) ? 'green' : 'amber'}>{exp.agreement.filter(a => a.ok).length}/{exp.agreement.length} disepakati</Badge></div>
+          <div className="panel-h"><h3>Kesepakatan dengan Pakar</h3><div style={{ flex: 1 }} /><Badge kind={exp.agreement.every((a: any) => a.ok) ? 'green' : 'amber'}>{exp.agreement.filter((a: any) => a.ok).length}/{exp.agreement.length} disepakati</Badge></div>
           <div style={{ padding: '6px 14px 14px' }}>
             <p className="tiny muted" style={{ margin: '4px 0 10px', lineHeight: 1.45 }}>
               Hal-hal yang disepakati secara tertulis dengan pakar bila perlu (SA 620 ¶11):
             </p>
-            {exp.agreement.map((a, i) => (
+            {exp.agreement.map((a: any, i: any) => (
               <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < exp.agreement.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: a.ok ? 'var(--green)' : 'var(--amber)' }}>
                   {a.ok ? <I.checkCircle size={17} /> : <I.clock size={17} />}
@@ -580,14 +580,14 @@ function ExpAgreement({ exp }) {
 }
 
 /* ---------------- Tab: Evaluasi Hasil (¶12) ---------------- */
-function ExpWorkEval({ exp }) {
+function ExpWorkEval({ exp }: any) {
   const w = exp.workEval;
   const dims = [
     { id: 'findings', t: 'Relevansi & kewajaran temuan/simpulan', ref: '¶12(a)', d: w.findings },
     { id: 'methods', t: 'Asumsi & metode yang digunakan', ref: '¶12(b)', d: w.methods },
     { id: 'data', t: 'Relevansi, kelengkapan & akurasi data sumber', ref: '¶12(c)', d: w.data },
   ];
-  const assessKind = a => a === 'Wajar' ? 'green' : a === 'Ditantang' ? 'amber' : a === 'Proses' ? 'blue' : 'red';
+  const assessKind = (a: any) => a === 'Wajar' ? 'green' : a === 'Ditantang' ? 'amber' : a === 'Proses' ? 'blue' : 'red';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -614,7 +614,7 @@ function ExpWorkEval({ exp }) {
           <table className="dtbl">
             <thead><tr><th>Asumsi / Metode</th><th>Nilai Pakar</th><th>Tolok Ukur Auditor</th><th style={{ width: 110 }}>Penilaian</th></tr></thead>
             <tbody>
-              {w.assumptions.map((a, i) => (
+              {w.assumptions.map((a: any, i: any) => (
                 <tr key={i}>
                   <td style={{ fontWeight: 600 }}>{a.key}</td>
                   <td className="mono tiny">{a.expertVal}</td>
@@ -624,7 +624,7 @@ function ExpWorkEval({ exp }) {
               ))}
             </tbody>
           </table>
-          {w.assumptions.some(a => a.assess === 'Ditantang') && (
+          {w.assumptions.some((a: any) => a.assess === 'Ditantang') && (
             <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.flag size={15} /></span>
@@ -671,7 +671,7 @@ function ExpWorkEval({ exp }) {
 }
 
 /* ---------------- Tab: Kesimpulan & Pelaporan (¶14–15) ---------------- */
-function ExpConclusion({ experts, avgOf }) {
+function ExpConclusion({ experts, avgOf }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -680,7 +680,7 @@ function ExpConclusion({ experts, avgOf }) {
           <table className="dtbl">
             <thead><tr><th>Pakar</th><th>Akun</th><th className="num">Skor ¶9</th><th>Kecukupan ¶12</th><th style={{ width: 120 }}>Rujukan Laporan</th></tr></thead>
             <tbody>
-              {experts.map(e => (
+              {experts.map((e: any) => (
                 <tr key={e.id}>
                   <td><div style={{ fontWeight: 600 }} className="truncate">{e.name}</div><div className="tiny muted">{e.field}</div></td>
                   <td className="tiny">{e.account}<div className="tiny muted mono">{e.amount}</div></td>

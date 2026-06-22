@@ -17,7 +17,7 @@ const { useState: usePPPK } = React;
 
 const PPPK_SEC_STAT = { 'Lengkap': 'green', 'Perlu Perhatian': 'amber', 'Belum': 'red' };
 const ROT_STAT = { 'Wajib Rotasi': 'red', 'Tahun Terakhir': 'amber', 'Tahun ke-6': 'amber', 'Dalam Batas': 'green' };
-const opColor = (t) => /WTM|Tanpa Modif/.test(t) ? 'var(--green)' : /WDP|Pengecualian/.test(t) ? 'var(--amber)' : /Tidak/.test(t) ? 'var(--red)' : /Proses/.test(t) ? 'var(--ink-4)' : 'var(--blue)';
+const opColor = (t: any) => /WTM|Tanpa Modif/.test(t) ? 'var(--green)' : /WDP|Pengecualian/.test(t) ? 'var(--amber)' : /Tidak/.test(t) ? 'var(--red)' : /Proses/.test(t) ? 'var(--ink-4)' : 'var(--blue)';
 
 function PPPKReport() {
   const A: any = AMS, fmt = A.fmt;
@@ -26,12 +26,12 @@ function PPPKReport() {
   const clients = A.PPPK_CLIENTS, ppl = A.PPPK_PPL, rotation = A.PPPK_ROTATION, history = A.PPPK_HISTORY;
   const [tab, setTab] = usePPPK('ringkasan');
 
-  const totalOpinions = R.opinions.reduce((s, o) => s + o.n, 0);
-  const ready = R.sections.filter(s => s.status === 'Lengkap').length;
+  const totalOpinions = R.opinions.reduce((s: any, o: any) => s + o.n, 0);
+  const ready = R.sections.filter((s: any) => s.status === 'Lengkap').length;
   const daysLeft = Math.round((+new Date(R.dueDate) - +new Date("2026-03-09")) / 864e5);
-  const rotationDue = rotation.filter(r => r.status === 'Wajib Rotasi').length;
-  const pplOk = ppl.filter(p => p.total >= p.req && p.structured >= p.reqStr).length;
-  const totalFee = clients.reduce((s, c) => s + c.fee, 0);
+  const rotationDue = rotation.filter((r: any) => r.status === 'Wajib Rotasi').length;
+  const pplOk = ppl.filter((p: any) => p.total >= p.req && p.structured >= p.reqStr).length;
+  const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   const tabs = [
     { id: 'ringkasan', label: 'Ringkasan & Kelengkapan', count: ready + '/' + R.sections.length },
@@ -61,10 +61,10 @@ function PPPKReport() {
                 <div>
                   <div className="row jb ac" style={{ marginBottom: 8 }}><div className="tiny muted upper">Komponen Laporan Tahunan KAP {R.year}</div><span className="mono tiny" style={{ fontWeight: 700 }}>{ready}/{R.sections.length}</span></div>
                   <div className="panel" style={{ padding: 4, boxShadow: 'none' }}>
-                    {R.sections.map((s, i) => (
+                    {R.sections.map((s: any, i: any) => (
                       <div key={i} className="row ac jb" style={{ padding: '10px 12px', borderBottom: i < R.sections.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <span className="row ac gap10"><span style={{ width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: s.status === 'Lengkap' ? 'var(--green)' : s.status === 'Belum' ? 'var(--red)' : 'var(--amber)', color: '#fff' }}>{s.status === 'Lengkap' ? <I.check size={12} /> : i + 1}</span><span style={{ fontSize: 12.5, fontWeight: 500 }}>{s.t}</span></span>
-                        <Badge kind={PPPK_SEC_STAT[s.status]}>{s.status}</Badge>
+                        <Badge kind={(PPPK_SEC_STAT as any)[s.status]}>{s.status}</Badge>
                       </div>
                     ))}
                   </div>
@@ -77,7 +77,7 @@ function PPPKReport() {
                   <div>
                     <div className="tiny muted upper" style={{ marginBottom: 8 }}>Rekapitulasi Opini Diterbitkan</div>
                     <div className="panel" style={{ padding: '12px 14px', boxShadow: 'none', display: 'grid', gap: 9 }}>
-                      {R.opinions.map(o => (
+                      {R.opinions.map((o: any) => (
                         <div key={o.type}>
                           <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{o.type}</span><span className="mono" style={{ fontWeight: 700 }}>{o.n}</span></div>
                           <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (o.n / totalOpinions * 100) + '%', height: '100%', borderRadius: 3, background: opColor(o.type) }} /></div>
@@ -111,7 +111,7 @@ function PPPKReport() {
               <table className="dtbl">
                 <thead><tr><th>Klien</th><th>Jenis Jasa</th><th>Standar</th><th>AP Penanggung Jawab</th><th>Emiten</th><th>Opini</th><th className="num">Imbalan</th><th>Tgl Laporan</th></tr></thead>
                 <tbody>
-                  {clients.map(c => (
+                  {clients.map((c: any) => (
                     <tr key={c.id}>
                       <td style={{ fontWeight: 600, fontSize: 12.5 }}>{c.client.replace('PT ', '')}</td>
                       <td className="tiny">{c.service}</td>
@@ -132,7 +132,7 @@ function PPPKReport() {
             <div style={{ padding: 14 }}>
               <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)', maxWidth: 720 }}>Kewajiban PPL berkelanjutan: <b>40 SKP/tahun</b> dengan minimal <b>20 SKP terstruktur</b> (PMK 154/2017 jo. PMK 186/2021 & ketentuan IAPI). Realisasi seluruh AP & staf kunci dilaporkan dalam Laporan Tahunan KAP.</p>
               <div style={{ display: 'grid', gap: 8 }}>
-                {ppl.map((p, i) => {
+                {ppl.map((p: any, i: any) => {
                   const okTotal = p.total >= p.req, okStr = p.structured >= p.reqStr;
                   const ok = okTotal && okStr;
                   return (
@@ -165,14 +165,14 @@ function PPPKReport() {
               <table className="dtbl">
                 <thead><tr><th>Akuntan Publik</th><th>Klien Emiten</th><th>Sektor / Rezim</th><th className="num">Masa Jabatan</th><th className="num">Batas</th><th>Status</th><th>Rencana Tindak Lanjut</th></tr></thead>
                 <tbody>
-                  {rotation.map((r, i) => (
+                  {rotation.map((r: any, i: any) => (
                     <tr key={i}>
                       <td className="tiny" style={{ fontWeight: 600 }}>{r.ap}</td>
                       <td className="tiny">{r.client.replace('PT ', '')}</td>
                       <td className="tiny"><span className="row ac gap4">{r.sektorJK ? <span className="badge b-teal" style={{ fontSize: 8.5, padding: '1px 5px' }}>Jasa Keuangan</span> : <span className="badge b-gray" style={{ fontSize: 8.5, padding: '1px 5px' }}>PIE umum</span>}</span><div className="tiny muted mono" style={{ marginTop: 2 }}>{r.basis}</div></td>
                       <td className="num"><span className="mono" style={{ fontWeight: 700, color: r.tenure >= r.limit ? 'var(--red)' : r.tenure >= r.limit - 1 ? 'var(--amber)' : 'var(--ink)' }}>{r.tenure} thn</span></td>
                       <td className="num mono tiny muted">{r.limit} thn</td>
-                      <td><Badge kind={ROT_STAT[r.status]}>{r.status}</Badge></td>
+                      <td><Badge kind={(ROT_STAT as any)[r.status]}>{r.status}</Badge></td>
                       <td className="tiny muted">{r.next}</td>
                     </tr>
                   ))}
@@ -190,7 +190,7 @@ function PPPKReport() {
             <div style={{ padding: 14 }}>
               <div className="tiny muted upper" style={{ marginBottom: 10 }}>Riwayat Penyampaian Laporan Tahunan KAP</div>
               <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>
-                {history.map((h, i) => (
+                {history.map((h: any, i: any) => (
                   <div key={i} className="panel" style={{ padding: '12px 14px', boxShadow: 'none' }}>
                     <div className="row jb ac">
                       <div className="row ac gap10">

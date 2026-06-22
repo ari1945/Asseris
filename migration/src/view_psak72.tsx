@@ -122,8 +122,8 @@ function PSAK72View() {
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.dim', JSON.stringify(dim)); } catch (e) {} }, [dim]);
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.proc', JSON.stringify(proc)); } catch (e) {} }, [proc]);
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
-  const toggleProc = (id) => setProc(list => list.map(r => r.id === id ? { ...r, done: !r.done } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleProc = (id: any) => setProc((list: any) => list.map((r: any) => r.id === id ? { ...r, done: !r.done } : r));
 
   if (!model || !rev) {
     return <><SubBar moduleId="psak72" /><div className="view-pad"><Panel title="PSAK 72"><div className="tiny muted">Mesin FS Generator / kanonik belum dimuat.</div></Panel></div></>;
@@ -135,24 +135,24 @@ function PSAK72View() {
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
-  const sc = (vJuta) => fmt(Math.round(vJuta * UN.mult), 0);
+  const sc = (vJuta: any) => fmt(Math.round(vJuta * UN.mult), 0);
 
   /* ——— disagregasi aktif ——— */
   const DIMS = { lini: rev.streams, saluran: rev.channels, geografi: rev.geo };
-  const dimRows = DIMS[dim] || rev.streams;
-  const dimMax = Math.max(...dimRows.map(r => r.amount), 1);
+  const dimRows = (DIMS as any)[dim] || rev.streams;
+  const dimMax = Math.max(...dimRows.map((r: any) => r.amount), 1);
 
   /* ——— tie-out lintas-laporan (Rp juta) ——— */
-  const M = (full) => full / 1e6;
+  const M = (full: any) => full / 1e6;
   const tieRows = [
     { id: 't1', label: 'Pendapatan dibukukan = Laba Rugi FS Generator', std: '¶113', a: rev.revBooked, b: M(model.is.sales.cy), note: 'Pendapatan neto = pos Penjualan pada Laporan Laba Rugi (FS Generator).' },
-    { id: 't2', label: 'Pendapatan = WTB 4-1100 (adjusted)', std: '¶113', a: rev.revAdjWTB, b: -M((wtb.find(r => r.code === '4-1100') || {}).adj || 0), note: 'Pendapatan neto menutup ke buku besar Penjualan Bersih (kredit, dibalik positif).' },
+    { id: 't2', label: 'Pendapatan = WTB 4-1100 (adjusted)', std: '¶113', a: rev.revAdjWTB, b: -M((wtb.find((r: any) => r.code === '4-1100') || {}).adj || 0), note: 'Pendapatan neto menutup ke buku besar Penjualan Bersih (kredit, dibalik positif).' },
     { id: 't3', label: 'Σ disagregasi per lini = pendapatan dibukukan', std: '¶114', a: rev.streamsTot, b: rev.revBooked, note: 'Jumlah seluruh lini produk = total pendapatan (alokasi pengungkapan dinormalkan).' },
     { id: 't4', label: 'Σ alokasi SSP = harga transaksi kontrak', std: '¶76', a: rev.pobAlloc, b: rev.contract.price, note: 'Alokasi pro-rata ke kewajiban pelaksanaan menutup ke harga transaksi.' },
     { id: 't5', label: 'Jembatan harga transaksi menutup (bruto − variabel)', std: '¶47', a: rev.grossBilling - rev.vc.retur - rev.vc.rabat - rev.vc.diskonDini, b: rev.revBooked, note: 'Bruto dikurangi konsiderasi variabel & utang ke pelanggan = pendapatan neto.' },
-    { id: 't6', label: 'Pendapatan komparatif 2024 = WTB 4-1100 (ly)', std: '¶113', a: rev.revPY, b: -M((wtb.find(r => r.code === '4-1100') || {}).ly || 0), note: 'Pendapatan periode lalu = saldo audited komparatif (kolom ly WTB).' },
+    { id: 't6', label: 'Pendapatan komparatif 2024 = WTB 4-1100 (ly)', std: '¶113', a: rev.revPY, b: -M((wtb.find((r: any) => r.code === '4-1100') || {}).ly || 0), note: 'Pendapatan periode lalu = saldo audited komparatif (kolom ly WTB).' },
     { id: 't7', label: 'Koreksi cut-off = AJE-03 (occurrence)', std: 'SA 240', a: rev.cutoffRev, b: rev.aje03 ? M(rev.aje03.amount) : 0, note: 'Koreksi pengakuan dini (' + (rev.aje03 ? rev.aje03.status : '—') + ') Rp ' + fmt(rev.cutoffRev) + ' jt ditarik dari Buku Besar AJE.' },
-    { id: 't8', label: 'Piutang usaha (akhir) = WTB 1-1200 (adjusted)', std: '¶105', a: rev.balances.recvClose, b: M((wtb.find(r => r.code === '1-1200') || {}).adj || 0), note: 'Hak tanpa syarat atas imbalan menutup ke buku besar Piutang Usaha (PSAK 71).' },
+    { id: 't8', label: 'Piutang usaha (akhir) = WTB 1-1200 (adjusted)', std: '¶105', a: rev.balances.recvClose, b: M((wtb.find((r: any) => r.code === '1-1200') || {}).adj || 0), note: 'Hak tanpa syarat atas imbalan menutup ke buku besar Piutang Usaha (PSAK 71).' },
   ].map(r => ({ ...r, diff: r.a - r.b, ok: Math.abs(r.a - r.b) < 1.5 }));
   const tiePass = tieRows.filter(r => r.ok).length;
 
@@ -170,8 +170,8 @@ function PSAK72View() {
     { k: 'Sampling pengujian rinci', src: 'SA 530 · Sampling', route: 'sa530', icon: 'dice' },
   ];
 
-  const discOk = disc.filter(d => d.ok).length;
-  const procDone = proc.filter(p => p.done).length;
+  const discOk = disc.filter((d: any) => d.ok).length;
+  const procDone = proc.filter((p: any) => p.done).length;
   const pointPct = rev.pointTime / rev.revBooked;
   const STATE = { ok: { c: 'var(--green)' }, warn: { c: 'var(--amber)' } };
 
@@ -194,7 +194,7 @@ function PSAK72View() {
             </tr>
           </thead>
           <tbody>
-            {rev.bridge.map((r, i) => <P72BridgeRow key={i} {...r} sc={sc} />)}
+            {rev.bridge.map((r: any, i: any) => <P72BridgeRow key={i} {...r} sc={sc} />)}
           </tbody>
         </table>
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: rev.cutoffPosted ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
@@ -222,7 +222,7 @@ function PSAK72View() {
         </div>
       </div>
       <div style={{ padding: '8px 14px 12px', display: 'grid', gap: 8 }}>
-        {dimRows.map((r, i) => (
+        {dimRows.map((r: any, i: any) => (
           <div key={i} style={{ display: 'grid', gap: 3 }}>
             <div className="row ac jb">
               <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink-2)' }}>{r.label}{r.timing && <Badge kind={r.timing === 'over' ? 'blue' : 'gray'} >{r.timing === 'over' ? 'sepanjang' : 'titik'}</Badge>}</span>
@@ -309,7 +309,7 @@ function PSAK72View() {
     <Panel noBody>
       <div className="panel-h"><h3>Prosedur Respons (Cut-off & Occurrence)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{procDone}/{proc.length}</span></div>
       <div>
-        {proc.map((p, i) => (
+        {proc.map((p: any, i: any) => (
           <label key={p.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < proc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleProc(p.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (p.done ? 'var(--green)' : 'var(--line-strong)'), background: p.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{p.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span style={{ flex: 1, fontSize: 11.5, lineHeight: 1.4, color: p.done ? 'var(--ink-2)' : 'var(--ink)', fontWeight: p.done ? 400 : 600 }}>{p.t}</span>
@@ -326,7 +326,7 @@ function PSAK72View() {
       <div className="panel-h"><h3>Asersi & Prosedur Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 240 · SA 505 · SA 520</span></div>
       <div>
         {P72_ASSERT.map((r, i) => {
-          const st = STATE[r.state];
+          const st = (STATE as any)[r.state];
           return (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P72_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
@@ -351,7 +351,7 @@ function PSAK72View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengungkapan PSAK 72</h3><span className="sub mono">¶110-129</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
       <div>
-        {disc.map((d, i) => (
+        {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 46, flex: '0 0 46px', marginTop: 1 }}>{d.ref}</span>
@@ -368,11 +368,11 @@ function PSAK72View() {
       <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
       <div style={{ padding: 6 }}>
         {lineage.map((r, i) => {
-          const IconC = I[r.icon] || I.doc;
+          const IconC = (I as any)[r.icon] || I.doc;
           return (
             <button key={i} onClick={() => nav(r.route, { from: 'psak72' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -392,10 +392,10 @@ function PSAK72View() {
   /* ============ TABS ============ */
   const TABS = [
     { id: 'ikhtisar',     label: 'Ikhtisar & Disagregasi', icon: 'table',  badge: tiePass + '/' + tieRows.length, bad: tiePass !== tieRows.length },
-    { id: 'model5',       label: 'Model 5 Langkah',         icon: 'layers', badge: null },
+    { id: 'model5',       label: 'Model 5 Langkah',         icon: 'layers', badge: (null as any) },
     { id: 'saldokontrak', label: 'Saldo Kontrak',           icon: 'ledger', badge: null },
     { id: 'cutoff',       label: 'Cut-off & Pengakuan',     icon: 'flag',   badge: rev.cutoffPosted ? null : '1', bad: !rev.cutoffPosted },
-    { id: 'pengungkapan', label: 'Pengungkapan & Sumber',   icon: 'doc',    badge: discOk + '/' + disc.length, bad: discOk < disc.filter(d => !d.na).length },
+    { id: 'pengungkapan', label: 'Pengungkapan & Sumber',   icon: 'doc',    badge: discOk + '/' + disc.length, bad: discOk < disc.filter((d: any) => !d.na).length },
   ];
 
   return (
@@ -430,7 +430,7 @@ function PSAK72View() {
           {/* tab bar */}
           <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--line)', overflowX: 'auto', flexWrap: 'nowrap' }}>
             {TABS.map(t => {
-              const IconT = I[t.icon] || I.doc;
+              const IconT = (I as any)[t.icon] || I.doc;
               const on = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{

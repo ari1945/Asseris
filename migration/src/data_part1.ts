@@ -11,7 +11,7 @@
   const USER = {
     name: 'Anindya Pramesti', initials: 'AP', role: 'Audit Manager',
     title: 'Audit Manager', email: 'anindya.p@whr-cpa.id', phone: '+62 812-3456-7890',
-    photo: null,
+    photo: (null as any),
     employeeId: 'WHR-AM-0142',
     department: 'Jasa Asurans (Assurance)',
     office: 'Jakarta — Kantor Pusat',
@@ -358,7 +358,7 @@
           { name: 'Pelita Holdings Pte Ltd', list: 'OFAC / UN Consolidated List', hit: false, status: 'Bersih' },
         ],
       },
-      letter: { version: 0, status: 'draft', scope: 'Audit atas laporan keuangan FY2025 sesuai SA + jasa kepatuhan PPh Badan.', esign: [] },
+      letter: { version: 0, status: 'draft', scope: 'Audit atas laporan keuangan FY2025 sesuai SA + jasa kepatuhan PPh Badan.', esign: ([] as any[]) },
     },
     {
       id: 'PROS-02', name: 'PT Sari Boga Internasional', industry: 'Manufaktur · F&B', city: 'Tangerang, Banten',
@@ -414,7 +414,7 @@
           { name: 'PT Karya Beton Perkasa', list: 'Daftar Sanksi', hit: false, status: 'Bersih' },
         ],
       },
-      letter: { version: 1, status: 'draft', scope: 'Audit atas laporan keuangan FY2025 sesuai Standar Audit (SA).', esign: [] },
+      letter: { version: 1, status: 'draft', scope: 'Audit atas laporan keuangan FY2025 sesuai Standar Audit (SA).', esign: ([] as any[]) },
     },
     {
       id: 'PROS-04', name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', city: 'Bekasi, Jawa Barat',
@@ -443,7 +443,7 @@
           { name: 'Pengurus & Pemegang Saham >25%', list: 'PEP / DTTOT / OFAC', hit: false, status: 'Bersih (pembaruan tahunan)' },
         ],
       },
-      letter: { version: 0, status: 'draft', scope: 'Audit atas laporan keuangan FY2025 sesuai SA (perikatan keberlanjutan).', esign: [] },
+      letter: { version: 0, status: 'draft', scope: 'Audit atas laporan keuangan FY2025 sesuai SA (perikatan keberlanjutan).', esign: ([] as any[]) },
     },
     {
       id: 'PROS-05', name: 'PT Bahari Logistik Prima', industry: 'Transportasi & Logistik', city: 'Surabaya, Jawa Timur',

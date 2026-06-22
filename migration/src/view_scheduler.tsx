@@ -17,17 +17,17 @@ function ResourceScheduler() {
   const [schedule, setSchedule] = useAmsPersist('schedule', () => AMS.SCHEDULE);
   const [sel, setSel] = useStateD3(null);
   const [showNew, setShowNew] = useStateD3(false);
-  const addBooking = (b) => setSchedule(list => list.map(m => m.member === b.member ? { ...m, alloc: [...m.alloc, { eng: b.eng, client: b.client, hrs: +b.hrs, color: b.color }] } : m));
+  const addBooking = (b: any) => setSchedule((list: any) => list.map((m: any) => m.member === b.member ? { ...m, alloc: [...m.alloc, { eng: b.eng, client: b.client, hrs: +b.hrs, color: b.color }] } : m));
 
-  const totalCap = schedule.reduce((s, m) => s + m.capacity, 0);
-  const totalAlloc = schedule.reduce((s, m) => s + m.alloc.reduce((a, x) => a + x.hrs, 0), 0);
+  const totalCap = schedule.reduce((s: any, m: any) => s + m.capacity, 0);
+  const totalAlloc = schedule.reduce((s: any, m: any) => s + m.alloc.reduce((a: any, x: any) => a + x.hrs, 0), 0);
   const utilPct = Math.round(totalAlloc / totalCap * 100);
-  const overbooked = schedule.filter(m => m.alloc.reduce((a, x) => a + x.hrs, 0) > m.capacity).length;
-  const benchHrs = schedule.reduce((s, m) => s + Math.max(0, m.capacity - m.alloc.reduce((a, x) => a + x.hrs, 0)), 0);
+  const overbooked = schedule.filter((m: any) => m.alloc.reduce((a: any, x: any) => a + x.hrs, 0) > m.capacity).length;
+  const benchHrs = schedule.reduce((s: any, m: any) => s + Math.max(0, m.capacity - m.alloc.reduce((a: any, x: any) => a + x.hrs, 0)), 0);
 
   // distinct engagements for legend
   const engColors = {};
-  schedule.forEach(m => m.alloc.forEach(a => { engColors[a.eng] = { color: a.color, client: a.client }; }));
+  schedule.forEach((m: any) => m.alloc.forEach((a: any) => { (engColors as any)[a.eng] = { color: a.color, client: a.client }; }));
 
   return (
     <>
@@ -50,8 +50,8 @@ function ResourceScheduler() {
         <Panel noBody style={{ marginBottom: 12 }}>
           <div className="panel-h"><h3>Alokasi Sumber Daya — Mingguan</h3><div style={{ flex: 1 }} /><span className="tiny muted">jam/minggu vs kapasitas 40h · klik baris</span></div>
           <div style={{ padding: '6px 14px 12px' }}>
-            {schedule.map((m, mi) => {
-              const used = m.alloc.reduce((a, x) => a + x.hrs, 0);
+            {schedule.map((m: any, mi: any) => {
+              const used = m.alloc.reduce((a: any, x: any) => a + x.hrs, 0);
               const pct = used / m.capacity * 100;
               const over = used > m.capacity;
               return (
@@ -63,7 +63,7 @@ function ResourceScheduler() {
                     </div>
                     {/* stacked bar */}
                     <div style={{ flex: 1, height: 26, borderRadius: 5, background: 'var(--surface-3)', display: 'flex', overflow: 'hidden', position: 'relative' }}>
-                      {m.alloc.map((a, ai) => (
+                      {m.alloc.map((a: any, ai: any) => (
                         <div key={ai} title={a.client + ': ' + a.hrs + 'h'} style={{ width: (a.hrs / m.capacity * 100) + '%', background: a.color, display: 'grid', placeItems: 'center' }}>
                           {a.hrs / m.capacity > 0.12 && <span style={{ color: '#fff', fontSize: 9.5, fontWeight: 700, fontFamily: 'var(--mono)' }}>{a.hrs}h</span>}
                         </div>
@@ -78,10 +78,10 @@ function ResourceScheduler() {
                   </div>
                   {sel === mi && (
                     <div style={{ marginTop: 8, marginLeft: 190, display: 'grid', gap: 5 }}>
-                      {m.alloc.map((a, ai) => (
+                      {m.alloc.map((a: any, ai: any) => (
                         <div key={ai} className="row ac jb" style={{ background: 'var(--surface-2)', borderRadius: 6, padding: '5px 9px' }}>
                           <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: a.color }} /><span className="tiny" style={{ fontWeight: 600 }}>{a.client}</span><span className="tiny muted mono">{a.eng}</span></span>
-                          <span className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700 }}>{a.hrs}h</span><button className="btn sm" style={{ height: 20, padding: '0 7px' }} onClick={(e) => { e.stopPropagation(); nav('cockpit'); }}>↗</button></span>
+                          <span className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700 }}>{a.hrs}h</span><button className="btn sm" style={{ height: 20, padding: '0 7px' }} onClick={(e: any) => { e.stopPropagation(); nav('cockpit'); }}>↗</button></span>
                         </div>
                       ))}
                       {m.capacity - used > 0 && <div className="tiny muted" style={{ paddingLeft: 4 }}>Tersedia: <b>{m.capacity - used}h</b> — dapat dialokasikan ke engagement baru.</div>}
@@ -97,7 +97,7 @@ function ResourceScheduler() {
           <Panel title="Engagement (legenda)">
             <div style={{ display: 'grid', gap: 7 }}>
               {Object.entries(engColors).map(([eng, v]: [any, any]) => {
-                const hrs = schedule.reduce((s, m) => s + m.alloc.filter(a => a.eng === eng).reduce((a, x) => a + x.hrs, 0), 0);
+                const hrs = schedule.reduce((s: any, m: any) => s + m.alloc.filter((a: any) => a.eng === eng).reduce((a: any, x: any) => a + x.hrs, 0), 0);
                 return (
                   <div key={eng} className="row ac jb" style={{ padding: '5px 0', borderBottom: '1px solid var(--line-soft)' }}>
                     <span className="row ac gap8"><span style={{ width: 11, height: 11, borderRadius: 3, background: v.color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{v.client}</span><span className="tiny muted mono">{eng}</span></span>
@@ -109,22 +109,22 @@ function ResourceScheduler() {
           </Panel>
           <Panel title="Peringatan Kapasitas">
             <div style={{ display: 'grid', gap: 8 }}>
-              {schedule.filter(m => m.alloc.reduce((a, x) => a + x.hrs, 0) > m.capacity).map(m => (
+              {schedule.filter((m: any) => m.alloc.reduce((a: any, x: any) => a + x.hrs, 0) > m.capacity).map((m: any) => (
                 <div key={m.member} className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
-                  <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}><b>{m.member.split(',')[0]}</b> over-booked {m.alloc.reduce((a, x) => a + x.hrs, 0) - m.capacity}h — realokasi diperlukan.</span></div>
+                  <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}><b>{m.member.split(',')[0]}</b> over-booked {m.alloc.reduce((a: any, x: any) => a + x.hrs, 0) - m.capacity}h — realokasi diperlukan.</span></div>
                 </div>
               ))}
-              {schedule.filter(m => m.capacity - m.alloc.reduce((a, x) => a + x.hrs, 0) >= 15).map(m => (
+              {schedule.filter((m: any) => m.capacity - m.alloc.reduce((a: any, x: any) => a + x.hrs, 0) >= 15).map((m: any) => (
                 <div key={m.member} className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}><b>{m.member.split(',')[0]}</b> under-utilized ({m.capacity - m.alloc.reduce((a, x) => a + x.hrs, 0)}h tersedia) — alokasikan ke pipeline.</span></div>
+                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}><b>{m.member.split(',')[0]}</b> under-utilized ({m.capacity - m.alloc.reduce((a: any, x: any) => a + x.hrs, 0)}h tersedia) — alokasikan ke pipeline.</span></div>
                 </div>
               ))}
-              {!overbooked && schedule.every(m => m.capacity - m.alloc.reduce((a, x) => a + x.hrs, 0) < 15) && <div className="tiny muted" style={{ padding: 12, textAlign: 'center' }}>Alokasi seimbang — tidak ada peringatan kapasitas.</div>}
+              {!overbooked && schedule.every((m: any) => m.capacity - m.alloc.reduce((a: any, x: any) => a + x.hrs, 0) < 15) && <div className="tiny muted" style={{ padding: 12, textAlign: 'center' }}>Alokasi seimbang — tidak ada peringatan kapasitas.</div>}
             </div>
           </Panel>
         </div>
       </div></div>
-      {showNew && <BookingForm schedule={schedule} onClose={() => setShowNew(false)} onAdd={(b) => { addBooking(b); setShowNew(false); }} />}
+      {showNew && <BookingForm schedule={schedule} onClose={() => setShowNew(false)} onAdd={(b: any) => { addBooking(b); setShowNew(false); }} />}
     </>
   );
 }
@@ -133,23 +133,23 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
   const engs: any = AMS.ENGAGEMENTS, cl: any = AMS.CLIENTS;
   const colors = ['#005085', '#1f7a4d', '#5b3fa6', '#0a6b73', '#9a6a00'];
   const [d, setD] = useStateD3({ member: schedule[0].member, eng: engs[0].id, hrs: 8 });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = +d.hrs > 0;
   const submit = () => {
-    const e = engs.find(x => x.id === d.eng); const c = cl.find(x => x.id === e.clientId);
+    const e = engs.find((x: any) => x.id === d.eng); const c = cl.find((x: any) => x.id === e.clientId);
     onAdd({ member: d.member, eng: d.eng, client: (c?.name || '').replace('PT ', '').replace(' Tbk', ''), hrs: +d.hrs, color: colors[engs.indexOf(e) % colors.length] });
   };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.calendar size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Booking Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Alokasikan anggota ke engagement</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Anggota Tim</label><select className="select" value={d.member} onChange={e => set('member', e.target.value)}>{schedule.map(m => <option key={m.member} value={m.member}>{m.member} ({m.role})</option>)}</select></div>
-          <div className="field"><label>Engagement</label><select className="select" value={d.eng} onChange={e => set('eng', e.target.value)}>{engs.map(x => { const c = cl.find(y => y.id === x.clientId); return <option key={x.id} value={x.id}>{x.id} · {(c?.name || '').replace('PT ', '')}</option>; })}</select></div>
-          <div className="field"><label>Jam / Minggu</label><input className="input mono" type="number" value={d.hrs} onChange={e => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+          <div className="field"><label>Anggota Tim</label><select className="select" value={d.member} onChange={(e: any) => set('member', e.target.value)}>{schedule.map((m: any) => <option key={m.member} value={m.member}>{m.member} ({m.role})</option>)}</select></div>
+          <div className="field"><label>Engagement</label><select className="select" value={d.eng} onChange={(e: any) => set('eng', e.target.value)}>{engs.map((x: any) => { const c = cl.find((y: any) => y.id === x.clientId); return <option key={x.id} value={x.id}>{x.id} · {(c?.name || '').replace('PT ', '')}</option>; })}</select></div>
+          <div className="field"><label>Jam / Minggu</label><input className="input mono" type="number" value={d.hrs} onChange={(e: any) => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>

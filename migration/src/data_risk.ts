@@ -28,18 +28,18 @@ import { LEGAL } from './data_legal';
    membuktikan tiap angka menutup terhadap modul pemiliknya.
    ============================================================ */
 (function () {
-  const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
+  const sum = (a: any, f: any) => a.reduce((s: any, x: any) => s + f(x), 0);
   const R = Math.round;
 
   const POL_SHORT = { 'POL-PII': 'PII', 'POL-DNO': 'D&O', 'POL-CYB': 'Cyber', 'POL-PRP': 'Property' };
-  const polShort = (id) => POL_SHORT[id] || id;
+  const polShort = (id: any) => (POL_SHORT as any)[id] || id;
 
   /* skor → warna & label tingkat (selaras view risk engagement) */
-  function scoreColor(v) { return v >= 15 ? 'var(--red)' : v >= 8 ? 'var(--amber)' : v >= 4 ? '#9a6a00' : 'var(--green)'; }
-  function scoreLabel(v) { return v >= 15 ? 'Tinggi' : v >= 8 ? 'Sedang' : v >= 4 ? 'Rendah' : 'Sangat Rendah'; }
+  function scoreColor(v: any) { return v >= 15 ? 'var(--red)' : v >= 8 ? 'var(--amber)' : v >= 4 ? '#9a6a00' : 'var(--green)'; }
+  function scoreLabel(v: any) { return v >= 15 ? 'Tinggi' : v >= 8 ? 'Sedang' : v >= 4 ? 'Rendah' : 'Sangat Rendah'; }
 
   /* resolver modul (label + ikon) dari indeks navigasi */
-  function modMeta(id) {
+  function modMeta(id: any) {
     const mi = (window.MODULE_INDEX || {})[id] || {};
     return { id, label: mi.label || id, icon: mi.icon || 'doc' };
   }
@@ -49,18 +49,18 @@ import { LEGAL } from './data_legal';
     const reg = (FAC && FAC.register) ? FAC.register() : null;
     const claims = BO.CLAIMS || [];
     const risks = BO.RISK_REGISTER || [];
-    return (BO.POLICIES || []).map(p => {
+    return (BO.POLICIES || []).map((p: any) => {
       const days = BO.daysTo(p.akhir);
-      const cl = claims.filter(c => c.polisId === p.id);
-      const transferred = risks.filter(r => r.transferId === p.id);
+      const cl = claims.filter((c: any) => c.polisId === p.id);
+      const transferred = risks.filter((r: any) => r.transferId === p.id);
       const isProperty = /Property/.test(p.jenis);
       const coverRatio = isProperty && reg && reg.totCost ? p.limit / reg.totCost : null;
       return {
         ...p, days, claims: cl, claimCount: cl.length,
-        claimValue: sum(cl, c => c.nilai), recovered: sum(cl, c => c.recovered),
+        claimValue: sum(cl, (c: any) => c.nilai), recovered: sum(cl, (c: any) => c.recovered),
         transferred, isProperty, coverRatio,
         renew: days <= 60, expired: days < 0,
-        utilisation: p.limit ? sum(cl, c => c.nilai) / p.limit : 0,
+        utilisation: p.limit ? sum(cl, (c: any) => c.nilai) / p.limit : 0,
       };
     });
   }
@@ -68,9 +68,9 @@ import { LEGAL } from './data_legal';
   /* ---------- KLAIM (link polis + litigasi Legal) ---------- */
   function claims() {
     const disputes = BO.DISPUTES || [];
-    return (BO.CLAIMS || []).map(c => {
-      const pol = (BO.POLICIES || []).find(p => p.id === c.polisId) || null;
-      const lit = c.litId ? (disputes.find(d => d.id === c.litId) || null) : null;
+    return (BO.CLAIMS || []).map((c: any) => {
+      const pol = (BO.POLICIES || []).find((p: any) => p.id === c.polisId) || null;
+      const lit = c.litId ? (disputes.find((d: any) => d.id === c.litId) || null) : null;
       const net = Math.max(0, c.nilai - (pol ? pol.deductible : 0));
       return { ...c, policy: pol, litigation: lit, deductible: pol ? pol.deductible : 0, net, outstanding: c.status !== 'Dibayar' && c.status !== 'Ditolak' };
     });
@@ -78,11 +78,11 @@ import { LEGAL } from './data_legal';
 
   /* ---------- RISK REGISTER (inheren → residual + tautan modul) ---------- */
   function register() {
-    return (BO.RISK_REGISTER || []).map(r => {
+    return (BO.RISK_REGISTER || []).map((r: any) => {
       const inherent = r.il * r.ii;
       const residual = r.l * r.i;
       const reduction = inherent ? (inherent - residual) / inherent : 0;
-      const pol = r.transferId ? ((BO.POLICIES || []).find(p => p.id === r.transferId) || null) : null;
+      const pol = r.transferId ? ((BO.POLICIES || []).find((p: any) => p.id === r.transferId) || null) : null;
       return {
         ...r, inherent, residual, reduction,
         inhColor: scoreColor(inherent), resColor: scoreColor(residual),
@@ -90,14 +90,14 @@ import { LEGAL } from './data_legal';
         mod: modMeta(r.module), policy: pol,
         treatment: pol ? 'Transfer + Mitigasi' : reduction >= 0.4 ? 'Mitigasi' : 'Terima/Pantau',
       };
-    }).sort((a, b) => b.residual - a.residual);
+    }).sort((a: any, b: any) => b.residual - a.residual);
   }
 
   /* ---------- peta risiko (occupancy residual & inheren) ---------- */
-  function heatmap(mode) {
+  function heatmap(mode: any) {
     const rows = register();
-    const key = mode === 'inherent' ? (r => [r.il, r.ii]) : (r => [r.l, r.i]);
-    const cell = (l, i) => rows.filter(r => { const [rl, ri] = key(r); return rl === l && ri === i; });
+    const key = mode === 'inherent' ? ((r: any) => [r.il, r.ii]) : ((r: any) => [r.l, r.i]);
+    const cell = (l: any, i: any) => rows.filter((r: any) => { const [rl, ri] = key(r); return rl === l && ri === i; });
     return { rows, cell };
   }
 
@@ -105,47 +105,47 @@ import { LEGAL } from './data_legal';
   function headline() {
     const pol = policies();
     const reg = register();
-    const totPremi = sum(pol, p => p.premi);
-    const totLimit = sum(pol, p => p.limit);
-    const piiLimit = (pol.find(p => p.id === 'POL-PII') || {}).limit || 0;
+    const totPremi = sum(pol, (p: any) => p.premi);
+    const totLimit = sum(pol, (p: any) => p.limit);
+    const piiLimit = (pol.find((p: any) => p.id === 'POL-PII') || {}).limit || 0;
     return {
       totPremi, totLimit, piiLimit,
-      policyCount: pol.length, renewCount: pol.filter(p => p.renew).length,
-      openClaims: claims().filter(c => c.outstanding).length,
-      highRisk: reg.filter(r => r.residual >= 12).length,
-      highInherent: reg.filter(r => r.inherent >= 12).length,
-      transferred: reg.filter(r => r.policy).length,
-      avgReduction: reg.length ? sum(reg, r => r.reduction) / reg.length : 0,
+      policyCount: pol.length, renewCount: pol.filter((p: any) => p.renew).length,
+      openClaims: claims().filter((c: any) => c.outstanding).length,
+      highRisk: reg.filter((r: any) => r.residual >= 12).length,
+      highInherent: reg.filter((r: any) => r.inherent >= 12).length,
+      transferred: reg.filter((r: any) => r.policy).length,
+      avgReduction: reg.length ? sum(reg, (r: any) => r.reduction) / reg.length : 0,
     };
   }
 
   /* ---------- rantai premi: Asuransi → Cockpit Operasi → Legal ---------- */
-  function premiumChain(firm) {
-    const totPremi = sum(BO.POLICIES || [], p => p.premi);
+  function premiumChain(firm: any) {
+    const totPremi = sum(BO.POLICIES || [], (p: any) => p.premi);
     // Cockpit Operasi (FIRMOPS) — beban premi overhead
     let opsPremi = null;
     if (window.FIRMOPS && window.FIRMOPS.operatingCosts) {
-      const row = window.FIRMOPS.operatingCosts().rows.find(r => r.key === 'insurance');
+      const row = window.FIRMOPS.operatingCosts().rows.find((r: any) => r.key === 'insurance');
       opsPremi = row ? row.amount : null;
     }
     // Legal — nilai kontrak polis (OPS-POL-*)
-    let legalPremi = null, legalRows = [];
+    let legalPremi = null, legalRows: any[] = [];
     if (LEGAL && firm) {
       legalRows = LEGAL.buildRegister(firm).filter(c => c.category === 'Asuransi');
-      legalPremi = sum(legalRows, c => c.value);
+      legalPremi = sum(legalRows, (c: any) => c.value);
     }
     return { totPremi, opsPremi, legalPremi, legalRows };
   }
 
   /* ---------- cover aset (Property All-Risk ↔ register Facilities) ---------- */
   function assetCoverage() {
-    const pol = (BO.POLICIES || []).find(p => /Property/.test(p.jenis)) || null;
+    const pol = (BO.POLICIES || []).find((p: any) => /Property/.test(p.jenis)) || null;
     const reg = (FAC && FAC.register) ? FAC.register() : null;
     if (!pol || !reg) return null;
-    const insuredCost = sum(reg.rows.filter(a => a.insured), a => a.cost);
+    const insuredCost = sum(reg.rows.filter((a: any) => a.insured), (a: any) => a.cost);
     return {
       policy: pol, limit: pol.limit, totCost: reg.totCost, totNbv: reg.totNbv,
-      insuredCost, insuredCount: reg.rows.filter(a => a.insured).length, total: reg.rows.length,
+      insuredCost, insuredCount: reg.rows.filter((a: any) => a.insured).length, total: reg.rows.length,
       coverRatio: reg.totCost ? pol.limit / reg.totCost : 0,
       gap: Math.max(0, reg.totCost - pol.limit),
     };
@@ -153,19 +153,19 @@ import { LEGAL } from './data_legal';
 
   /* ---------- kalender perpanjangan polis ---------- */
   function renewals() {
-    return (BO.POLICIES || []).map(p => ({ ...p, days: BO.daysTo(p.akhir) }))
-      .sort((a, b) => a.days - b.days);
+    return (BO.POLICIES || []).map((p: any) => ({ ...p, days: BO.daysTo(p.akhir) }))
+      .sort((a: any, b: any) => a.days - b.days);
   }
 
   /* ---------- rekonsiliasi SSOT → kontrol & jembatan lintas-modul ---------- */
-  function reconciliations(firm) {
+  function reconciliations(firm: any) {
     const chain = premiumChain(firm);
     const cov = assetCoverage();
     const cl = claims();
     const reg = register();
-    const piiClaim = cl.find(c => c.polisId === 'POL-PII');
+    const piiClaim = cl.find((c: any) => c.polisId === 'POL-PII');
     const litExposure = piiClaim && piiClaim.litigation ? piiClaim.litigation.exposure : 0;
-    const transferredRisks = reg.filter(r => r.policy);
+    const transferredRisks = reg.filter((r: any) => r.policy);
 
     const out = [
       {
@@ -189,8 +189,8 @@ import { LEGAL } from './data_legal';
         note: 'Notifikasi klaim PII tertaut ke perkara litigasi yang sama di modul Legal. Eksposur perkara & nilai klaim menarik dari satu peristiwa — perubahan di satu sisi tampak di sisi lain.',
       },
       {
-        id: 'transfer', title: 'Risiko Ditransfer ↔ Polis', ok: transferredRisks.every(r => r.policy), to: 'insurance', isCount: true,
-        a: 'Risiko firma dengan transfer', av: transferredRisks.length, b: 'Polis penanggung tertaut', bv: new Set(transferredRisks.map(r => r.transferId)).size,
+        id: 'transfer', title: 'Risiko Ditransfer ↔ Polis', ok: transferredRisks.every((r: any) => r.policy), to: 'insurance', isCount: true,
+        a: 'Risiko firma dengan transfer', av: transferredRisks.length, b: 'Polis penanggung tertaut', bv: new Set(transferredRisks.map((r: any) => r.transferId)).size,
         note: 'Risiko FR-01 (litigasi)→PII, FR-02 (independensi)→D&O, FR-03 (siber)→Cyber. Tiap risiko menunjuk polis penanggungnya; limit & premi ditarik dari polis, bukan diketik di register.',
       },
       {
@@ -202,7 +202,7 @@ import { LEGAL } from './data_legal';
     return out;
   }
 
-  function boMlocal(v) { return 'Rp ' + (AMS as any).fmt(v / 1e9, 1) + ' M'; }
+  function boMlocal(v: any) { return 'Rp ' + (AMS as any).fmt(v / 1e9, 1) + ' M'; }
 
   window.IRM = {
     scoreColor, scoreLabel, polShort, modMeta,

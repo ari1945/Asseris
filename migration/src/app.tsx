@@ -158,9 +158,9 @@ const { useState: useStateApp, useEffect: useEffectApp } = React;
    agar boundary kelas tak menabrak TS2339; perilaku runtime identik. */
 const ReactComponentBase: any = React.Component;
 class ViewErrorBoundary extends ReactComponentBase {
-  constructor(p) { super(p); this.state = { err: null }; }
-  static getDerivedStateFromError(err) { return { err }; }
-  componentDidUpdate(prev) { if (prev.routeKey !== this.props.routeKey && this.state.err) this.setState({ err: null }); }
+  constructor(p: any) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(err: any) { return { err }; }
+  componentDidUpdate(prev: any) { if (prev.routeKey !== this.props.routeKey && this.state.err) this.setState({ err: null }); }
   render() {
     if (this.state.err) {
       return <div className="view-pad" style={{ padding: 24 }}>
@@ -174,7 +174,7 @@ class ViewErrorBoundary extends ReactComponentBase {
   }
 }
 
-function viewFor(moduleId) {
+function viewFor(moduleId: any) {
   switch (moduleId) {
     case 'dashboard':  return <FirmDashboard />;
     case 'bi':         return <FirmBI />;
@@ -335,7 +335,7 @@ function viewFor(moduleId) {
 }
 
 /* stub views get their own subbar */
-function StubViewWrap({ moduleId }) {
+function StubViewWrap({ moduleId }: any) {
   return (
     <>
       <SubBar moduleId={moduleId} right={<Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>} />
@@ -347,7 +347,7 @@ function StubViewWrap({ moduleId }) {
 /* ---- Drawer rujukan Standar (SA) — meluncur dari kanan ----
    Membuka halaman SA mendalam tanpa meninggalkan prosedur. Untuk standar
    tanpa halaman khusus, menampilkan kartu rujukan + tautan Matriks Kepatuhan. */
-function StandardRefCard({ data, onNavigate, onClose }) {
+function StandardRefCard({ data, onNavigate, onClose }: any) {
   return (
     <div className="view-pad">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -360,7 +360,7 @@ function StandardRefCard({ data, onNavigate, onClose }) {
       <div className="panel" style={{ padding: 14, marginBottom: 12 }}>
         <div className="tiny muted upper" style={{ marginBottom: 4 }}>Keterkaitan</div>
         <div style={{ fontSize: 13, lineHeight: 1.55 }}>
-          Prosedur <b>{(MODULE_INDEX[data.fromModule] || {}).label || data.fromModule}</b> dirancang untuk memenuhi persyaratan <b>{data.code} · {data.title}</b>{data.phase ? <> pada fase <b>{data.phase}</b></> : null}. Status pemenuhan & ketertelusuran terpusat di Matriks Kepatuhan.
+          Prosedur <b>{((MODULE_INDEX as any)[data.fromModule] || {}).label || data.fromModule}</b> dirancang untuk memenuhi persyaratan <b>{data.code} · {data.title}</b>{data.phase ? <> pada fase <b>{data.phase}</b></> : null}. Status pemenuhan & ketertelusuran terpusat di Matriks Kepatuhan.
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
@@ -370,11 +370,11 @@ function StandardRefCard({ data, onNavigate, onClose }) {
   );
 }
 
-function SARefDrawer({ data, onClose, onNavigate }) {
+function SARefDrawer({ data, onClose, onNavigate }: any) {
   const open = !!data;
   React.useEffect(() => {
     if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: any) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
@@ -409,10 +409,10 @@ function App() {
   const [saRef, setSaRef] = useStateApp(null);
   const [navFrom, setNavFrom] = useStateApp(null);
 
-  const navigate = React.useCallback((id, opts) => {
+  const navigate = React.useCallback((id: any, opts: any) => {
     setNavFrom(opts && opts.from ? opts.from : null);
     try {
-      if ((MODULE_INDEX[id] || {}).deep) {
+      if (((MODULE_INDEX as any)[id] || {}).deep) {
         const prev = JSON.parse(localStorage.getItem('ams.recent') || '[]');
         const next = [id, ...(Array.isArray(prev) ? prev : []).filter(x => x !== id)].slice(0, 8);
         localStorage.setItem('ams.recent', JSON.stringify(next));
@@ -434,9 +434,9 @@ function App() {
     try { const s = JSON.parse(localStorage.getItem('ams.v1.settings') || '{}'); window.amsApplyPrefs && window.amsApplyPrefs(s); } catch (e) {}
   }, []);
   useEffectApp(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette(p => !p); }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'm') { e.preventDefault(); setMiniMap(p => !p); }
+    const onKey = (e: any) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((p: any) => !p); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'm') { e.preventDefault(); setMiniMap((p: any) => !p); }
       if (e.key === 'Escape') setPalette(false);
     };
     window.addEventListener('keydown', onKey);
@@ -449,7 +449,7 @@ function App() {
       <div className="app">
         <TopBar route={route} onOpenCopilot={() => setCopilot(true)} onOpenPalette={() => setPalette(true)} onOpenMiniMap={() => setMiniMap(true)} onNavigate={navigate} />
         <div className="app-body">
-          <Sidebar active={route} onNavigate={navigate} collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+          <Sidebar active={route} onNavigate={navigate} collapsed={collapsed} onToggle={() => setCollapsed((c: any) => !c)} />
           <div className="main-col">
             <ViewErrorBoundary routeKey={route}>{viewFor(route)}</ViewErrorBoundary>
             <ModuleLineage moduleId={route} />
@@ -471,7 +471,7 @@ function App() {
 
 const DEFAULT_ENG_ID = 'ENG-2025-014';
 
-function BootSplash({ label }) {
+function BootSplash({ label }: any) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh',
       font: '14px system-ui,sans-serif', color: '#8a93a2' }}>{label}</div>
@@ -490,7 +490,7 @@ function Root() {
   const [phase, setPhase] = useStateRT('checking');
   const [me, setMe] = useStateRT(null);
 
-  const enter = useCallbackRT(async (user) => {
+  const enter = useCallbackRT(async (user: any) => {
     setMe(user);
     try { await hydrateCoreFromApi(DEFAULT_ENG_ID, user.id); } catch (e) { /* offline: data.js fallback */ }
     setPhase('ready');
@@ -506,7 +506,7 @@ function Root() {
   useEffectRT(() => {
     let cancelled = false;
     (api as any).auth.me.query()
-      .then(user => { if (!cancelled) { user ? enter(user) : setPhase('login'); } })
+      .then((user: any) => { if (!cancelled) { user ? enter(user) : setPhase('login'); } })
       .catch(() => { if (!cancelled) setPhase('login'); });
     const onExpired = () => { setAuthToken(null); setMe(null); setPhase('login'); };
     window.addEventListener('ams:auth-expired', onExpired);

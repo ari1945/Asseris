@@ -97,19 +97,19 @@ function PSAK66View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const aje05 = ((AMS && AMS.AJE) || []).find(a => a.id === 'AJE-05');
   const discList = disc || p66.disclosure;
-  const toggleDisc = (id) => setDisc((discList).map(r => r.id === id ? { ...r, ok: !r.ok } : r));
-  const discOk = discList.filter(d => d.ok).length;
-  const discReq = discList.filter(d => !d.na).length;
+  const toggleDisc = (id: any) => setDisc((discList).map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
+  const discOk = discList.filter((d: any) => d.ok).length;
+  const discReq = discList.filter((d: any) => !d.na).length;
 
   const { jv, jo, tieRows, tiePass } = p66;
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
-  const sc = (vJuta) => fmt(Math.round(vJuta * UN.mult), 0);
+  const sc = (vJuta: any) => fmt(Math.round(vJuta * UN.mult), 0);
   const STATE = { ok: { I: 'checkCircle', c: 'var(--green)' }, warn: { I: 'alert', c: 'var(--amber)' } };
 
   /* ============ PANEL: pohon keputusan klasifikasi (¶14-19) ============ */
-  const classifyPanel = (a) => {
+  const classifyPanel = (a: any) => {
     const isJv = a.classify === 'jv';
     return (
       <Panel noBody key={a.id}>
@@ -153,7 +153,7 @@ function PSAK66View() {
             </tr>
           </thead>
           <tbody>
-            {p66.arrangements.map((a, i) => (
+            {p66.arrangements.map((a: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '8px 4px', fontWeight: 600 }}>{a.name}<div className="tiny muted" style={{ fontWeight: 400, lineHeight: 1.35 }}>{a.decisionRule}</div></td>
                 <td style={{ textAlign: 'center', padding: '8px 4px' }}>{a.collective ? <span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> : '—'}</td>
@@ -292,7 +292,7 @@ function PSAK66View() {
             </tr>
           </thead>
           <tbody>
-            {jo.tagRows.map((r, i) => (
+            {jo.tagRows.map((r: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td className="mono" style={{ padding: '6px 6px', fontWeight: 600, color: 'var(--navy)' }}>{r.tag}</td>
                 <td style={{ padding: '6px 6px' }}>{r.name}</td>
@@ -333,7 +333,7 @@ function PSAK66View() {
       <div className="panel-h"><h3>Asersi & Prosedur Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 · SA 540</span></div>
       <div>
         {P66_ASSERT.map((r, i) => {
-          const st = STATE[r.state];
+          const st = (STATE as any)[r.state];
           return (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P66_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
@@ -361,7 +361,7 @@ function PSAK66View() {
         <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
       </div>
       <div style={{ padding: 9, display: 'grid', gap: 7 }}>
-        {tieRows.map(c => (
+        {tieRows.map((c: any) => (
           <div key={c.id} onClick={c.route ? () => nav(c.route, { from: 'psak66' }) : undefined} style={{ border: '1px solid var(--line)', borderRadius: 7, padding: '9px 10px', background: c.ok ? 'var(--surface)' : 'var(--amber-bg)', cursor: c.route ? 'pointer' : 'default' }}>
             <div className="row ac gap8" style={{ marginBottom: 5 }}>
               <span style={{ color: c.ok ? 'var(--green)' : 'var(--amber)', display: 'grid', placeItems: 'center' }}>{c.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
@@ -387,12 +387,12 @@ function PSAK66View() {
     <Panel noBody>
       <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
       <div style={{ padding: 6 }}>
-        {p66.lineage.map((r, i) => {
-          const IconC = I[r.icon] || I.doc;
+        {p66.lineage.map((r: any, i: any) => {
+          const IconC = (I as any)[r.icon] || I.doc;
           return (
             <button key={i} onClick={() => nav(r.route, { from: 'psak66' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -414,7 +414,7 @@ function PSAK66View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengungkapan PSAK 67</h3><span className="sub mono">IFRS 12</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{discList.length}</span></div>
       <div>
-        {discList.map((d, i) => (
+        {discList.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < discList.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 78, flex: '0 0 78px', marginTop: 1 }}>{d.ref}</span>
@@ -465,7 +465,7 @@ function PSAK66View() {
           {/* tab bar */}
           <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--line)', overflowX: 'auto', flexWrap: 'nowrap' }}>
             {TABS.map(t => {
-              const IconT = I[t.icon] || I.doc;
+              const IconT = (I as any)[t.icon] || I.doc;
               const on = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
@@ -484,7 +484,7 @@ function PSAK66View() {
           {/* ============ TAB: IKHTISAR & KLASIFIKASI ============ */}
           {tab === 'ikhtisar' && (
             <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
-              <div className="grid" style={{ gap: 12 }}>{p66.arrangements.map(a => classifyPanel(a))}</div>
+              <div className="grid" style={{ gap: 12 }}>{p66.arrangements.map((a: any) => classifyPanel(a))}</div>
               {tieoutPanel}
             </div>
           )}

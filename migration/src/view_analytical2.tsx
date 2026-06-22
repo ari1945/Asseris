@@ -12,11 +12,11 @@ import { KvBox, VERDICT_COLOR, benchVerdict } from './view_analytical';
 const { useState: useStateA2, useMemo: useMemoA2 } = React;
 
 /* ---------- benchmark gauge (band p25–p75 + median tick + actual marker) ---------- */
-function RatioGauge({ val, bench, good }) {
+function RatioGauge({ val, bench, good }: any) {
   const lo = Math.min(bench.lo, val), hi = Math.max(bench.hi, val);
   const pad = (hi - lo) * 0.18 || 1;
   const min = lo - pad, max = hi + pad, span = max - min || 1;
-  const pos = x => ((x - min) / span) * 100;
+  const pos = (x: any) => ((x - min) / span) * 100;
   const verdict = benchVerdict(val, bench, good);
   const mColor = VERDICT_COLOR[verdict];
   return (
@@ -37,18 +37,18 @@ function RatioGauge({ val, bench, good }) {
     </div>
   );
 }
-function fmtR(n) { return (Math.abs(n) >= 100 ? Math.round(n) : n.toFixed(1)).toLocaleString('id-ID'); }
+function fmtR(n: any) { return (Math.abs(n) >= 100 ? Math.round(n) : n.toFixed(1)).toLocaleString('id-ID'); }
 const VERDICT_LABEL = { good: 'Unggul', ok: 'Dalam Tolok Ukur', watch: 'Pantau', bad: 'Di Luar Tolok Ukur' };
 const VERDICT_BADGE = { good: 'green', ok: 'blue', watch: 'amber', bad: 'red' };
 
 /* ============================================================
    TAB · Ratio analysis (14 ratios, 3-yr trend, benchmark gauge)
    ============================================================ */
-function RatioAnalysisTab({ der, fmt }) {
+function RatioAnalysisTab({ der, fmt }: any) {
   const cats = ['Semua', 'Likuiditas', 'Profitabilitas', 'Efisiensi', 'Solvabilitas'];
   const [cat, setCat] = useStateA2('Semua');
-  const shown = der.ratios.filter(r => cat === 'Semua' || r.cat === cat);
-  const adverse = der.ratios.filter(r => benchVerdict(r.y[2], r.bench, r.good) === 'bad');
+  const shown = der.ratios.filter((r: any) => cat === 'Semua' || r.cat === cat);
+  const adverse = der.ratios.filter((r: any) => benchVerdict(r.y[2], r.bench, r.good) === 'bad');
 
   return (
     <>
@@ -61,12 +61,12 @@ function RatioAnalysisTab({ der, fmt }) {
         </div>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: 12 }}>
-        {shown.map(r => {
+        {shown.map((r: any) => {
           const cy = r.y[2], py = r.y[1];
           const delta = cy - py;
           const adv = r.good === 'low' ? delta > 0 : r.good === 'high' ? delta < 0 : Math.abs(delta) > (r.unit === '%' ? 1 : r.unit === ' hr' ? 5 : 0.1);
           const verdict = benchVerdict(cy, r.bench, r.good);
-          const fnum = x => (r.unit === ' hr' || Math.abs(x) >= 100 ? Math.round(x) : x.toFixed(r.unit === '×' ? 2 : 1));
+          const fnum = (x: any) => (r.unit === ' hr' || Math.abs(x) >= 100 ? Math.round(x) : x.toFixed(r.unit === '×' ? 2 : 1));
           return (
             <Panel key={r.key} noBody>
               <div style={{ padding: '11px 13px 13px' }}>
@@ -102,17 +102,17 @@ function RatioAnalysisTab({ der, fmt }) {
 /* ============================================================
    TAB · Trend & Common-Size analysis
    ============================================================ */
-function TrendCommonSizeTab({ der, fmt }) {
+function TrendCommonSizeTab({ der, fmt }: any) {
   const [mode, setMode] = useStateA2('horizontal');
   const groupsBS = ['Aset Lancar', 'Aset Tidak Lancar', 'Liabilitas Jk. Pendek', 'Liabilitas Jk. Panjang', 'Ekuitas'];
   const groupsPL = ['Pendapatan', 'Beban'];
   const lines = Object.values(der.hist);
-  const jt = n => fmt(n / 1e6, 0);
+  const jt = (n: any) => fmt(n / 1e6, 0);
 
-  const salesBase = der.A.sales.map(x => x); // for P&L common-size
-  const assetBase = der.A.assets.map(x => x); // for BS common-size
+  const salesBase = der.A.sales.map((x: any) => x); // for P&L common-size
+  const assetBase = der.A.assets.map((x: any) => x); // for BS common-size
 
-  function Section({ title, groups, base }) {
+  function Section({ title, groups, base }: any) {
     return (
       <Panel noBody style={{ marginBottom: 12 }}>
         <div className="panel-h"><h3>{title}</h3><div style={{ flex: 1 }} />
@@ -126,7 +126,7 @@ function TrendCommonSizeTab({ der, fmt }) {
               : <><th className="num" style={{ width: 90 }}>FY23 %</th><th className="num" style={{ width: 90 }}>FY24 %</th><th className="num" style={{ width: 90 }}>FY25 %</th><th className="num" style={{ width: 76 }}>Δ pp</th><th style={{ width: 110 }}>Komposisi FY25</th></>}
           </tr></thead>
           <tbody>
-            {groups.map(g => {
+            {groups.map((g: any) => {
               const gl = lines.filter((l: any) => l.group === g);
               return (
                 <React.Fragment key={g}>
@@ -146,7 +146,7 @@ function TrendCommonSizeTab({ der, fmt }) {
                         </tr>
                       );
                     }
-                    const pcts = l.y.map((x, i) => base[i] ? (Math.abs(x) / base[i]) * 100 : 0);
+                    const pcts = l.y.map((x: any, i: any) => base[i] ? (Math.abs(x) / base[i]) * 100 : 0);
                     const dpp = pcts[2] - pcts[0];
                     return (
                       <tr key={l.code}>
@@ -187,7 +187,7 @@ function ExpResult({ expectation, recorded, threshold, fmt, label }: any) {
   const diff = recorded - expectation;
   const pct = expectation ? (diff / expectation) * 100 : 0;
   const within = Math.abs(diff) <= threshold;
-  const jt = n => fmt(n, 0);
+  const jt = (n: any) => fmt(n, 0);
   return (
     <div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 9 }}>
@@ -213,16 +213,16 @@ function NumDriver({ label, suffix, value, onChange, w = 92 }: any) {
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 3 }}>{label}</div>
       <div className="row ac gap4">
-        <input type="number" value={value} onChange={e => onChange(+e.target.value)} className="input mono" style={{ width: w, height: 26, textAlign: 'right', padding: '0 7px' }} />
+        <input type="number" value={value} onChange={(e: any) => onChange(+e.target.value)} className="input mono" style={{ width: w, height: 26, textAlign: 'right', padding: '0 7px' }} />
         {suffix && <span className="tiny muted" style={{ fontWeight: 600 }}>{suffix}</span>}
       </div>
     </div>
   );
 }
 
-function SubstantiveTab({ der, pm, ct, fmt }) {
+function SubstantiveTab({ der, pm, ct, fmt }: any) {
   const pmJt = Math.round(pm / 1e6);
-  const jtv = arr => arr.map(x => x / 1e6);
+  const jtv = (arr: any) => arr.map((x: any) => x / 1e6);
 
   /* recorded (Rp jt) */
   const recInterest = der.A.interest[2] / 1e6;
@@ -244,9 +244,9 @@ function SubstantiveTab({ der, pm, ct, fmt }) {
   const [thrC, setThrC] = window.useAmsPersist('ar.sub.thrC', pmJt);
 
   const expInterest = avgDebt * rate / 100;
-  const expSales = ch.reduce((s, c) => s + c.vol * c.price, 0);
+  const expSales = ch.reduce((s: any, c: any) => s + c.vol * c.price, 0);
   const expCogs = recSales * ratio / 100;
-  const setChVal = (i, k, val) => setCh(arr => arr.map((c, j) => j === i ? { ...c, [k]: val } : c));
+  const setChVal = (i: any, k: any, val: any) => setCh((arr: any) => arr.map((c: any, j: any) => j === i ? { ...c, [k]: val } : c));
 
   return (
     <>
@@ -291,11 +291,11 @@ function SubstantiveTab({ der, pm, ct, fmt }) {
             <table className="dtbl" style={{ marginBottom: 12 }}>
               <thead><tr><th>Saluran Distribusi</th><th className="num" style={{ width: 150 }}>Volume ('000 unit)</th><th className="num" style={{ width: 150 }}>Harga Rata² (Rp '000)</th><th className="num" style={{ width: 140 }}>Ekspektasi (jt)</th></tr></thead>
               <tbody>
-                {ch.map((c, i) => (
+                {ch.map((c: any, i: any) => (
                   <tr key={i}>
                     <td>{c.n}</td>
-                    <td className="num"><input type="number" value={c.vol} onChange={e => setChVal(i, 'vol', +e.target.value)} className="input mono" style={{ width: 110, height: 24, textAlign: 'right', padding: '0 7px' }} /></td>
-                    <td className="num"><input type="number" step="0.1" value={c.price} onChange={e => setChVal(i, 'price', +e.target.value)} className="input mono" style={{ width: 90, height: 24, textAlign: 'right', padding: '0 7px' }} /></td>
+                    <td className="num"><input type="number" value={c.vol} onChange={(e: any) => setChVal(i, 'vol', +e.target.value)} className="input mono" style={{ width: 110, height: 24, textAlign: 'right', padding: '0 7px' }} /></td>
+                    <td className="num"><input type="number" step="0.1" value={c.price} onChange={(e: any) => setChVal(i, 'price', +e.target.value)} className="input mono" style={{ width: 90, height: 24, textAlign: 'right', padding: '0 7px' }} /></td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(Math.round(c.vol * c.price), 0)}</td>
                   </tr>
                 ))}
@@ -321,7 +321,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', '
 const MONTH_REV = [24800, 23900, 26400, 25100, 27800, 26900, 25600, 24200, 27300, 28600, 27900, 43400];
 const MONTH_COGS = [17360, 16730, 18480, 17570, 18000, 18830, 17920, 16940, 19110, 19000, 19530, 33010];
 
-function DisaggregationTab({ der, fmt }) {
+function DisaggregationTab({ der, fmt }: any) {
   const [metric, setMetric] = useStateA2('rev');
   const rev = MONTH_REV, cogs = MONTH_COGS;
   const gp = rev.map((r, i) => r - cogs[i]);
@@ -341,7 +341,7 @@ function DisaggregationTab({ der, fmt }) {
   const decZ = (rev[11] - revMean) / revSd;
   const decAbove = Math.round((rev[11] / revMean - 1) * 100);
 
-  const jt = n => fmt(n, 0);
+  const jt = (n: any) => fmt(n, 0);
 
   return (
     <>
@@ -411,12 +411,12 @@ function DisaggregationTab({ der, fmt }) {
 }
 
 /* combined bar + mean/band overlay */
-function DisaggChart({ series, z, mean, sd, max, isPct, jt }) {
+function DisaggChart({ series, z, mean, sd, max, isPct, jt }: any) {
   const W = 760, H = 190, padL = 8, padR = 8, padT = 10, padB = 22;
   const n = series.length;
   const bw = (W - padL - padR) / n;
   const top = max * 1.12;
-  const y = v => padT + (1 - v / top) * (H - padT - padB);
+  const y = (v: any) => padT + (1 - v / top) * (H - padT - padB);
   const bandHi = mean + 1.5 * sd, bandLo = Math.max(0, mean - 1.5 * sd);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block', overflow: 'visible' }}>
@@ -424,7 +424,7 @@ function DisaggChart({ series, z, mean, sd, max, isPct, jt }) {
       <rect x={padL} y={y(bandHi)} width={W - padL - padR} height={Math.max(0, y(bandLo) - y(bandHi))} fill="var(--blue-100)" opacity="0.5" />
       {/* mean line */}
       <line x1={padL} y1={y(mean)} x2={W - padR} y2={y(mean)} stroke="var(--blue-400)" strokeWidth="1.5" strokeDasharray="4 3" />
-      {series.map((v, i) => {
+      {series.map((v: any, i: any) => {
         const flag = Math.abs(z[i]) > 1.5;
         const h = (H - padT - padB) - (y(v) - padT);
         return (

@@ -140,7 +140,7 @@ function SA240View() {
 }
 
 /* ---------------- Tab: Penilaian Risiko ---------------- */
-function F240Risk({ client }) {
+function F240Risk({ client }: any) {
   const steps = [
     { ic: 'group', t: 'Diskusi Tim Perikatan (¶15)', d: 'Brainstorming kerentanan LK terhadap fraud — di mana & bagaimana LK dapat dicurangi, termasuk override manajemen.', tag: 'Selesai 06 Mar', ok: true },
     { ic: 'mail', t: 'Inquiry Manajemen & Pihak Lain (¶17–21)', d: 'Tanya manajemen, audit internal, TCWG & personel lain mengenai risiko, dugaan, & proses anti-fraud.', tag: '4 dari 5 selesai', ok: true },
@@ -155,7 +155,7 @@ function F240Risk({ client }) {
           <div className="panel-h"><h3>Proses Penilaian Risiko Kecurangan</h3><div style={{ flex: 1 }} /><Badge kind="blue">SA 240 · SA 315</Badge></div>
           <div style={{ padding: '6px 14px 14px' }}>
             {steps.map((s, i) => {
-              const Ic = I[s.ic];
+              const Ic = (I as any)[s.ic];
               return (
                 <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < steps.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 30px', width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}><Ic size={16} /></span>
@@ -224,9 +224,9 @@ function F240Risk({ client }) {
 /* ---------------- Tab: Segitiga Fraud ---------------- */
 function F240Triangle() {
   const [selId, setSelId] = useStateS240('pressure');
-  const sel = FRAUD_TRIANGLE[selId];
+  const sel = (FRAUD_TRIANGLE as any)[selId];
   const keys = Object.keys(FRAUD_TRIANGLE);
-  const sevKind = s => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const sevKind = (s: any) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -235,11 +235,11 @@ function F240Triangle() {
           {/* triangle diagram */}
           <div style={{ position: 'relative', width: '100%', maxWidth: 320, margin: '4px auto 14px', aspectRatio: '1.15 / 1' }}>
             {keys.map((k, i) => {
-              const t = FRAUD_TRIANGLE[k];
+              const t = (FRAUD_TRIANGLE as any)[k];
               const pos = i === 0 ? { top: 0, left: '50%', transform: 'translateX(-50%)' }
                 : i === 1 ? { bottom: 0, left: 0 } : { bottom: 0, right: 0 };
               const on = k === selId;
-              const Tic = I[t.icon];
+              const Tic = (I as any)[t.icon];
               return (
                 <button key={k} onClick={() => setSelId(k)} style={{
                   position: 'absolute', ...pos, width: 116, padding: '9px 8px', borderRadius: 10, cursor: 'pointer',
@@ -248,7 +248,7 @@ function F240Triangle() {
                   boxShadow: on ? '0 2px 10px rgba(0,0,0,.08)' : 'none' }}>
                   <span style={{ color: `var(--${t.color})` }}><Tic size={18} /></span>
                   <div style={{ fontWeight: 700, fontSize: 11.5, marginTop: 3, color: on ? `var(--${t.color})` : 'var(--ink)' }}>{t.k}</div>
-                  <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{t.factors.filter(f => f.on).length} aktif</div>
+                  <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{t.factors.filter((f: any) => f.on).length} aktif</div>
                 </button>
               );
             })}
@@ -265,12 +265,12 @@ function F240Triangle() {
 
       <Panel noBody>
         <div style={{ background: `var(--${sel.color}-bg)`, padding: '12px 14px', borderBottom: '1px solid var(--line)' }}>
-          <div className="row ac gap8">{(() => { const Sic = I[sel.icon]; return <span style={{ color: `var(--${sel.color})` }}><Sic size={18} /></span>; })()}<span className="mono tiny" style={{ fontWeight: 700, color: `var(--${sel.color})` }}>{sel.ref}</span></div>
+          <div className="row ac gap8">{(() => { const Sic = (I as any)[sel.icon]; return <span style={{ color: `var(--${sel.color})` }}><Sic size={18} /></span>; })()}<span className="mono tiny" style={{ fontWeight: 700, color: `var(--${sel.color})` }}>{sel.ref}</span></div>
           <div style={{ fontWeight: 700, fontSize: 14, marginTop: 4 }}>{sel.k}</div>
           <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 2, lineHeight: 1.4 }}>{sel.sub}</div>
         </div>
         <div style={{ padding: '6px 0' }}>
-          {sel.factors.map((f, i) => (
+          {sel.factors.map((f: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < sel.factors.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: f.on ? 1 : 0.5 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: f.on ? `var(--${sel.color})` : 'var(--ink-4)' }}>{f.on ? <I.checkCircle size={16} /> : <I.circle size={16} />}</span>
               <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{f.t}</div>
@@ -482,7 +482,7 @@ function F240Response() {
         <Panel title="Tautan Modul">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['Journal Entry Testing', 'flask'], ['Estimasi Akuntansi (SA 540)', 'target'], ['Pihak Berelasi (SA 550)', 'link2'], ['Representasi Tertulis (SA 580)', 'doc']].map((r, i) => {
-              const Lic = I[r[1]];
+              const Lic = (I as any)[r[1]];
               return (
               <button key={i} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer', background: 'transparent', width: '100%' }}>
                 <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Lic size={14} /></span>{r[0]}</span>
@@ -497,7 +497,7 @@ function F240Response() {
 }
 
 /* ---------------- Tab: Komunikasi ---------------- */
-function F240Comms({ client }) {
+function F240Comms({ client }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>

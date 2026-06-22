@@ -234,7 +234,7 @@ function F720Response() {
 }
 
 /* ---------------- Tab: Status & Komunikasi ---------------- */
-function F720Status({ client }) {
+function F720Status({ client }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>

@@ -36,23 +36,23 @@ function FirmTreasury() {
 
   const rev = B.filter((b: any) => b.type === 'rev');
   const cost = B.filter((b: any) => b.type === 'cost');
-  const sum = (arr, k) => arr.reduce((s, x) => s + x[k], 0);
+  const sum = (arr: any, k: any) => arr.reduce((s: any, x: any) => s + x[k], 0);
   const budRev = sum(rev, 'budget'), actRev = sum(rev, 'actual');
   const budCost = sum(cost, 'budget'), actCost = sum(cost, 'actual');
   const budProfit = budRev - budCost, actProfit = actRev - actCost;
 
-  const sc = CASH_SCENARIOS[scenario];
+  const sc = (CASH_SCENARIOS as any)[scenario];
   const fc = F.map((r: any) => {
     const inflow = Math.round(r.inflow * sc.inF), outflow = Math.round(r.outflow * sc.outF);
     return { ...r, inflow, outflow, net: inflow - outflow };
   });
   // rebuild running closing under scenario
-  let prev = null;
-  fc.forEach((r, i) => { r.open = i === 0 ? F[0].open : prev; r.close = r.open + r.net; prev = r.close; });
+  let prev: any = null;
+  fc.forEach((r: any, i: any) => { r.open = i === 0 ? F[0].open : prev; r.close = r.open + r.net; prev = r.close; });
   const minClose = Math.min(...fc.map((r: any) => r.close));
-  const avgOut = fc.reduce((s, r) => s + r.outflow, 0) / fc.length;
+  const avgOut = fc.reduce((s: any, r: any) => s + r.outflow, 0) / fc.length;
   const runway = (fc[0].open / avgOut); // months of cover at current cash vs avg burn
-  const netGen = fc.reduce((s, r) => s + r.net, 0);
+  const netGen = fc.reduce((s: any, r: any) => s + r.net, 0);
 
   const tabs = [{ id: 'budget', label: 'Anggaran vs Aktual' }, { id: 'cash', label: 'Forecast Arus Kas' }];
   const VarCell = ({ b, a, cost }: any) => {
@@ -197,23 +197,23 @@ function CashBank() {
   const R: any = AMS.BANK_RECON;
   const [lines, setLines] = useAmsPersist('bankrecon', () => R.lines);
 
-  const idrOf = (a) => a.balance * FX[a.ccy];
-  const totalIDR = accts.reduce((s, a) => s + idrOf(a), 0);
+  const idrOf = (a: any) => a.balance * FX[a.ccy];
+  const totalIDR = accts.reduce((s: any, a: any) => s + idrOf(a), 0);
 
-  const toggleMatch = (id) => setLines(list => list.map((l: any) => l.id === id ? { ...l, matched: !l.matched } : l));
+  const toggleMatch = (id: any) => setLines((list: any) => list.map((l: any) => l.id === id ? { ...l, matched: !l.matched } : l));
   const unrec = lines.filter((l: any) => !l.matched);
-  const adjustedBook = R.bookBalance + lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').reduce((s, l) => s + l.amount, 0);
-  const adjustedBank = R.bankBalance + lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).reduce((s, l) => s + l.amount, 0);
+  const adjustedBook = R.bookBalance + lines.filter((l: any) => !l.matched && l.ref !== 'outstanding' && l.ref !== 'transit').reduce((s: any, l: any) => s + l.amount, 0);
+  const adjustedBank = R.bankBalance + lines.filter((l: any) => !l.matched && (l.ref === 'outstanding' || l.ref === 'transit')).reduce((s: any, l: any) => s + l.amount, 0);
   const reconciled = Math.abs(adjustedBank - adjustedBook) < 1e6;
 
   // FX revaluation
   const valas = accts.filter((a: any) => a.ccy !== 'IDR');
   const reval = valas.map((a: any) => {
-    const bookIDR = a.balance * FX_BOOK[a.ccy];
+    const bookIDR = a.balance * (FX_BOOK as any)[a.ccy];
     const mktIDR = a.balance * FX[a.ccy];
-    return { ...a, bookIDR, mktIDR, gain: mktIDR - bookIDR, bookRate: FX_BOOK[a.ccy] };
+    return { ...a, bookIDR, mktIDR, gain: mktIDR - bookIDR, bookRate: (FX_BOOK as any)[a.ccy] };
   });
-  const totReval = reval.reduce((s, r) => s + r.gain, 0);
+  const totReval = reval.reduce((s: any, r: any) => s + r.gain, 0);
 
   const tabs = [{ id: 'positions', label: 'Posisi Kas & Bank' }, { id: 'recon', label: 'Rekonsiliasi Bank', count: unrec.length }, { id: 'fx', label: 'Revaluasi Valas', count: valas.length }];
 
@@ -240,7 +240,7 @@ function CashBank() {
                     <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
                     <td className="mono tiny muted">{a.no}</td>
                     <td><span className="chip tiny">{a.ccy}</span></td>
-                    <td className="num" style={{ fontWeight: 600 }}>{CCY_SYMBOL[a.ccy]} {fmt(a.balance, 0)}</td>
+                    <td className="num" style={{ fontWeight: 600 }}>{(CCY_SYMBOL as any)[a.ccy]} {fmt(a.balance, 0)}</td>
                     <td className="num tiny muted">{a.ccy === 'IDR' ? '—' : fmt(FX[a.ccy], 0)}</td>
                     <td className="num">{fmt(idrOf(a) / 1e6, 0)} jt</td>
                     <td><div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (idrOf(a) / totalIDR * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue)' }} /></div></td>
@@ -293,8 +293,8 @@ function CashBank() {
           {tab === 'fx' && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s, r) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs kini)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s, r) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs kini)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
                 <div className="panel" style={{ padding: 12, background: totReval >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt</div><div className="tiny muted">belum terealisasi</div></div>
               </div>
               <table className="dtbl">
@@ -304,9 +304,9 @@ function CashBank() {
                     <tr key={r.id}>
                       <td style={{ fontWeight: 600 }}>{r.name} <span className="tiny muted">· {r.bank}</span></td>
                       <td><span className="chip tiny">{r.ccy}</span></td>
-                      <td className="num">{CCY_SYMBOL[r.ccy]} {fmt(r.balance, 0)}</td>
+                      <td className="num">{(CCY_SYMBOL as any)[r.ccy]} {fmt(r.balance, 0)}</td>
                       <td className="num tiny muted">{fmt(r.bookRate, 0)}</td>
-                      <td className="num tiny">{fmt(AMS.FX_RATES[r.ccy], 0)}</td>
+                      <td className="num tiny">{fmt((AMS.FX_RATES as any)[r.ccy], 0)}</td>
                       <td className="num muted">{fmt(r.bookIDR / 1e6, 0)} jt</td>
                       <td className="num">{fmt(r.mktIDR / 1e6, 0)} jt</td>
                       <td className="num" style={{ fontWeight: 600, color: r.gain >= 0 ? 'var(--green)' : 'var(--red)' }}>{r.gain >= 0 ? '+' : '−'}{fmt(Math.abs(r.gain) / 1e6, 0)} jt</td>
@@ -342,13 +342,13 @@ function FixedAssets() {
     const pct = monthsElapsed / (a.life * 12);
     return { ...a, accDep, nbv, pct, monthlyDep, annualDep: Math.round(monthlyDep * 12), monthsElapsed, fullyDep: monthsElapsed >= a.life * 12 };
   });
-  const totCost = rows.reduce((s, r) => s + r.cost, 0);
-  const totAcc = rows.reduce((s, r) => s + r.accDep, 0);
-  const totNbv = rows.reduce((s, r) => s + r.nbv, 0);
-  const totAnnual = rows.reduce((s, r) => s + (r.fullyDep ? 0 : r.annualDep), 0);
+  const totCost = rows.reduce((s: any, r: any) => s + r.cost, 0);
+  const totAcc = rows.reduce((s: any, r: any) => s + r.accDep, 0);
+  const totNbv = rows.reduce((s: any, r: any) => s + r.nbv, 0);
+  const totAnnual = rows.reduce((s: any, r: any) => s + (r.fullyDep ? 0 : r.annualDep), 0);
 
   // category summary
-  const cats = Object.values(rows.reduce((m, r) => { (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 }); m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n++; return m; }, {} as any)).sort((a: any, b: any) => b.cost - a.cost);
+  const cats = Object.values(rows.reduce((m: any, r: any) => { (m[r.cat] = m[r.cat] || { cat: r.cat, cost: 0, nbv: 0, n: 0 }); m[r.cat].cost += r.cost; m[r.cat].nbv += r.nbv; m[r.cat].n++; return m; }, {} as any)).sort((a: any, b: any) => b.cost - a.cost);
 
   const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 

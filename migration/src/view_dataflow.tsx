@@ -25,7 +25,7 @@ function AIIntakeLog() {
   const nav = useNav();
   const log = useEvidence(null);
   const openCopilot = () => { if ((window as any).__amsOpenCopilot) (window as any).__amsOpenCopilot(); };
-  const fileExtIc = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : 'doc';
+  const fileExtIc = (n: any) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : 'doc';
 
   return (
     <Panel title="Bukti Masuk via AI Co-pilot" actions={
@@ -44,15 +44,15 @@ function AIIntakeLog() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {log.map((d, i) => {
-            const m = MODULE_INDEX[d.module] || { label: d.module, icon: 'panel' };
+          {log.map((d: any, i: any) => {
+            const m = (MODULE_INDEX as any)[d.module] || { label: d.module, icon: 'panel' };
             const FI = I[fileExtIc(d.file)] || I.doc;
-            const DI = I[m.icon] || I.panel;
+            const DI = (I as any)[m.icon] || I.panel;
             return (
               <div key={i} className="row ac gap8" onClick={() => nav(d.module)} title={'Buka ' + (m.label || d.module)}
                 style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--blue)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; }}>
+                onMouseEnter={(e: any) => { e.currentTarget.style.borderColor = 'var(--blue)'; }}
+                onMouseLeave={(e: any) => { e.currentTarget.style.borderColor = 'var(--line)'; }}>
                 <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><FI size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{d.file}</div>
@@ -80,11 +80,11 @@ function DataFlow() {
   const client = eng ? clientById(eng.clientId) : null;
 
   /* ---- working-data rollups (represent the active engagement) ---- */
-  const tbSum = wtb.reduce((s, r) => s + (r.adj || 0), 0);
-  const tbTotal = wtb.reduce((s, r) => s + Math.abs(r.adj || 0), 0) || 1;
+  const tbSum = wtb.reduce((s: any, r: any) => s + (r.adj || 0), 0);
+  const tbTotal = wtb.reduce((s: any, r: any) => s + Math.abs(r.adj || 0), 0) || 1;
   const tbBalanced = Math.abs(tbSum) / tbTotal < 0.005;
-  const significant = risks.filter(r => (r.likelihood * r.impact) >= 12).length;
-  const postedAje = aje.filter(a => a.status === 'Posted').length;
+  const significant = risks.filter((r: any) => (r.likelihood * r.impact) >= 12).length;
+  const postedAje = aje.filter((a: any) => a.status === 'Posted').length;
 
   /* ---- integrity checks per stage ---- */
   const stage1 = [ // Klien (master)
@@ -129,15 +129,15 @@ function DataFlow() {
     <div className="panel" style={{ flex: 1, minWidth: 0, padding: 0, overflow: 'hidden', borderTop: '3px solid ' + accent }}>
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)' }}>
         <div className="row ac gap8" style={{ marginBottom: 2 }}>
-          <span style={{ width: 26, height: 26, borderRadius: 7, background: accent, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}>{React.createElement(I[icon] || I.panel, { size: 15 })}</span>
+          <span style={{ width: 26, height: 26, borderRadius: 7, background: accent, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}>{React.createElement((I as any)[icon] || I.panel, { size: 15 })}</span>
           <div style={{ minWidth: 0 }}><div className="tiny muted upper" style={{ letterSpacing: '.05em' }}>Tahap {n}</div><div style={{ fontSize: 13, fontWeight: 700 }} className="truncate">{title}</div></div>
         </div>
         <div className="tiny muted truncate">{sub}</div>
       </div>
       <div style={{ padding: 8 }}>
-        {checks.map((c, i) => (
+        {checks.map((c: any, i: any) => (
           <div key={i} onClick={c.route ? () => nav(c.route) : undefined} className="row ac gap8" style={{ padding: '7px 8px', borderRadius: 6, cursor: c.route ? 'pointer' : 'default' }}>
-            <span style={{ color: 'var(--' + DF_KIND[c.s] + ')', flex: '0 0 16px' }}>{React.createElement(I[DF_ICON[c.s]] || I.panel, { size: 15 })}</span>
+            <span style={{ color: 'var(--' + (DF_KIND as any)[c.s] + ')', flex: '0 0 16px' }}>{React.createElement((I as any)[(DF_ICON as any)[c.s]] || I.panel, { size: 15 })}</span>
             <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, lineHeight: 1.3 }}>{c.k}</div><div className="tiny muted truncate">{c.d}</div></div>
             {c.route && <I.chevron size={12} style={{ color: 'var(--ink-4)', flex: '0 0 12px' }} />}
           </div>
@@ -151,8 +151,8 @@ function DataFlow() {
       <SubBar moduleId="dataflow" right={
         <div className="row gap8 ac">
           <span className="tiny muted">Sumber kebenaran tunggal</span>
-          <select className="select" value={activeEngagementId} onChange={e => setActiveEngagementId(e.target.value)} style={{ height: 28, maxWidth: 230 }}>
-            {engagements.map(e => { const c = clientById(e.clientId); return <option key={e.id} value={e.id}>{e.id} · {(c?.name || '').replace('PT ', '')}</option>; })}
+          <select className="select" value={activeEngagementId} onChange={(e: any) => setActiveEngagementId(e.target.value)} style={{ height: 28, maxWidth: 230 }}>
+            {engagements.map((e: any) => { const c = clientById(e.clientId); return <option key={e.id} value={e.id}>{e.id} · {(c?.name || '').replace('PT ', '')}</option>; })}
           </select>
         </div>
       } />
@@ -185,7 +185,7 @@ function DataFlow() {
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 7 }}>
               {[['Materiality', 'target', 'materiality'], ['Working Trial Balance', 'table', 'wtb'], ['Risk Assessment', 'shield', 'risk'], ['Profitability', 'coins', 'profitability'], ['Billing & Invoicing', 'receipt', 'billing'], ['Audit Opinion', 'gavel', 'opinion']].map(([l, ic, r]) => (
                 <div key={r} onClick={() => nav(r)} className="row ac gap8" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)', cursor: 'pointer' }}>
-                  <span style={{ color: 'var(--blue)' }}>{React.createElement(I[ic] || I.panel, { size: 14 })}</span>
+                  <span style={{ color: 'var(--blue)' }}>{React.createElement((I as any)[ic] || I.panel, { size: 14 })}</span>
                   <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{l}</span>
                   <I.chevron size={12} style={{ color: 'var(--ink-4)' }} />
                 </div>

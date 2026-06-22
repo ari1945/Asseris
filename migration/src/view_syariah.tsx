@@ -47,8 +47,8 @@ function SYKv({ label, v, strong, accent, indent }: any) {
 
 /* Laporan sumber & penggunaan — komponen tabel berbagi (zakat & kebajikan) */
 function SYSourceUse({ title, sub, sumber, penggunaan, sumberLbl, pakaiLbl, saldoAwal, fmt, renderRow }: any) {
-  const sumSrc = sumber.reduce((a, x) => a + x.v, 0);
-  const sumUse = penggunaan.reduce((a, x) => a + x.v, 0);
+  const sumSrc = sumber.reduce((a: any, x: any) => a + x.v, 0);
+  const sumUse = penggunaan.reduce((a: any, x: any) => a + x.v, 0);
   const kenaikan = sumSrc - sumUse;
   const saldo = saldoAwal + kenaikan;
   return (
@@ -57,7 +57,7 @@ function SYSourceUse({ title, sub, sumber, penggunaan, sumberLbl, pakaiLbl, sald
       <table className="dtbl" style={{ width: '100%' }}>
         <tbody>
           <tr style={{ background: 'var(--surface-2)' }}><td colSpan={2} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>{sumberLbl}</td></tr>
-          {sumber.map((s, i) => (
+          {sumber.map((s: any, i: any) => (
             <tr key={'s' + i}>
               <td style={{ fontSize: 12 }}>{renderRow ? renderRow(s) : s.k}</td>
               <td className="mono" style={{ textAlign: 'right' }}>{fmt(s.v)}</td>
@@ -65,7 +65,7 @@ function SYSourceUse({ title, sub, sumber, penggunaan, sumberLbl, pakaiLbl, sald
           ))}
           <tr><td style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 12 }}>Jumlah sumber</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(sumSrc)}</td></tr>
           <tr style={{ background: 'var(--surface-2)' }}><td colSpan={2} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>{pakaiLbl}</td></tr>
-          {penggunaan.map((p, i) => (
+          {penggunaan.map((p: any, i: any) => (
             <tr key={'p' + i}><td style={{ fontSize: 12 }}>{p.k}</td><td className="mono" style={{ textAlign: 'right' }}>({fmt(p.v)})</td></tr>
           ))}
           <tr><td style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 12 }}>Jumlah penggunaan</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>({fmt(sumUse)})</td></tr>
@@ -82,7 +82,7 @@ function SYSourceUse({ title, sub, sumber, penggunaan, sumberLbl, pakaiLbl, sald
 
 function sySignoffDefaults() {
   const TEAM: any = (AMS && AMS.TEAM) || [];
-  const find = (kw) => (TEAM.find(t => t.role.includes(kw)) || {}).name || '—';
+  const find = (kw: any) => (TEAM.find((t: any) => t.role.includes(kw)) || {}).name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '13 Jan 2026' },
     reviewer: { by: find('Manager'), role: 'Manajer Audit',  at: '18 Jan 2026' },
@@ -164,11 +164,11 @@ function SYWorkPaper({ sy, fmt, rp, nav }: any) {
             <th style={{ textAlign: 'right', width: 100 }}>Nilai Tercatat</th>
           </tr></thead>
           <tbody>
-            {sy.akad.map(a => (
+            {sy.akad.map((a: any) => (
               <tr key={a.id}>
                 <td style={{ fontWeight: 600, fontSize: 12 }}>{a.akad}</td>
                 <td className="mono tiny" style={{ textAlign: 'center', color: 'var(--ink-3)' }}>{a.psak}</td>
-                <td><Badge kind={SY_KEL_KIND[a.kel]}>{a.kel}</Badge></td>
+                <td><Badge kind={(SY_KEL_KIND as any)[a.kel]}>{a.kel}</Badge></td>
                 <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(a.pokok)}</td>
               </tr>
             ))}
@@ -244,9 +244,9 @@ function SyariahView() {
   React.useEffect(() => { try { localStorage.setItem('ams.syariah.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.syariah.done', JSON.stringify(done)); } catch (e) {} }, [done]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
-  const doneCount = sy.proc.filter((p, i) => done[p.ref + i]).length;
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
+  const doneCount = sy.proc.filter((p: any, i: any) => done[p.ref + i]).length;
   const score = Math.round(doneCount / sy.proc.length * 100);
 
   const TABS = [
@@ -297,7 +297,7 @@ function SyariahView() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Komponen Laporan Keuangan Syariah</h3><span className="sub mono">PSAK 101 ¶11</span></div>
                   <div style={{ padding: '6px 14px 12px', display: 'grid', gap: 0 }}>
-                    {sy.lkKhas.map((s, i) => (
+                    {sy.lkKhas.map((s: any, i: any) => (
                       <div key={s.id} className="row ac gap10" style={{ padding: '9px 0', borderBottom: i < sy.lkKhas.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <span style={{ color: s.khas ? 'var(--purple)' : 'var(--ink-4)', flex: '0 0 auto' }}><I.report size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -318,7 +318,7 @@ function SyariahView() {
                   <table className="dtbl" style={{ width: '100%' }}>
                     <thead><tr><th style={{ textAlign: 'left' }}>Sumber dana</th><th style={{ textAlign: 'center', width: 90 }}>Nisbah</th><th style={{ textAlign: 'right', width: 110 }}>Saldo</th></tr></thead>
                     <tbody>
-                      {sy.dst.map(d => (
+                      {sy.dst.map((d: any) => (
                         <tr key={d.id}><td style={{ fontWeight: 600, fontSize: 12 }}>{d.label}</td><td className="mono tiny" style={{ textAlign: 'center', color: 'var(--ink-2)' }}>{d.nisbah}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(d.amt)}</td></tr>
                       ))}
                     </tbody>
@@ -333,12 +333,12 @@ function SyariahView() {
               <div className="grid" style={{ gap: 12 }}>
                 <Panel title="Komposisi Pembiayaan per Kelompok Akad" sub="Rp juta">
                   <div className="row gap12 ac">
-                    <Donut segments={sy.byKel.map(k => ({ label: k.kel, value: k.amt, color: SY_KEL_COLOR[k.kel] }))} size={104} thickness={15}
+                    <Donut segments={sy.byKel.map((k: any) => ({ label: k.kel, value: k.amt, color: (SY_KEL_COLOR as any)[k.kel] }))} size={104} thickness={15}
                       center={<><div className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(sy.pembiayaanBruto / 1000))}rb</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1 }}>
-                      {sy.byKel.map(k => (
+                      {sy.byKel.map((k: any) => (
                         <div key={k.kel} className="row jb ac" style={{ padding: '4px 0' }}>
-                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: SY_KEL_COLOR[k.kel] }} /><span style={{ fontSize: 11.5, fontWeight: 600 }}>{k.kel}</span></span>
+                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: (SY_KEL_COLOR as any)[k.kel] }} /><span style={{ fontSize: 11.5, fontWeight: 600 }}>{k.kel}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(k.amt)}</span>
                         </div>
                       ))}
@@ -362,13 +362,13 @@ function SyariahView() {
           {/* ================= TAB · DAFTAR-UJI AKAD ================= */}
           {tab === 'akad' && (
             <div className="grid" style={{ gap: 12 }}>
-              {sy.akad.map(a => (
+              {sy.akad.map((a: any) => (
                 <Panel key={a.id} noBody>
                   <div className="panel-h">
                     <h3>{a.akad}</h3>
                     <span className="sub mono">{a.psak}</span>
                     <div style={{ flex: 1 }} />
-                    <Badge kind={SY_KEL_KIND[a.kel]}>{a.kel}</Badge>
+                    <Badge kind={(SY_KEL_KIND as any)[a.kel]}>{a.kel}</Badge>
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--navy)', marginLeft: 10 }}>{fmt(a.pokok)} jt</span>
                   </div>
                   <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0 }}>
@@ -419,7 +419,7 @@ function SyariahView() {
                 <table className="dtbl" style={{ width: '100%' }}>
                   <thead><tr><th style={{ textAlign: 'left' }}>Sumber dana kebajikan</th><th style={{ textAlign: 'center', width: 80 }}>Status</th><th style={{ textAlign: 'right', width: 80 }}>Nilai</th></tr></thead>
                   <tbody>
-                    {sy.kebajikan.sumber.map((s, i) => (
+                    {sy.kebajikan.sumber.map((s: any, i: any) => (
                       <tr key={i}>
                         <td style={{ fontSize: 12 }}>{s.k}</td>
                         <td style={{ textAlign: 'center' }}>{s.purif ? <Badge kind="amber">Pemurnian</Badge> : s.halal ? <Badge kind="green">Halal</Badge> : <Badge kind="teal">Non-pokok</Badge>}</td>
@@ -446,7 +446,7 @@ function SyariahView() {
               <div className="grid" style={{ gap: 12 }}>
                 <SYSourceUse title="Laporan Sumber & Penggunaan Dana Kebajikan" sub="PSAK 101 · Qardhul Hasan" sumberLbl="Sumber dana kebajikan" pakaiLbl="Penggunaan dana kebajikan"
                   sumber={sy.kebajikan.sumber} penggunaan={sy.kebajikan.penggunaan} saldoAwal={sy.kebajikan.saldoAwal} fmt={fmt}
-                  renderRow={(s) => <span>{s.k}{s.purif && <span className="mono tiny" style={{ color: 'var(--amber)', marginLeft: 6 }}>pemurnian</span>}</span>} />
+                  renderRow={(s: any) => <span>{s.k}{s.purif && <span className="mono tiny" style={{ color: 'var(--amber)', marginLeft: 6 }}>pemurnian</span>}</span>} />
                 <Panel title="Catatan PSAK 109" sub="zakat, infak & sedekah">
                   <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.6 }}>
                     Dana zakat & dana kebajikan dikelola <b>terpisah</b> dari aset operasional bank dan <b>bukan</b> bagian laba rugi. Zakat entitas dihitung atas dasar yang ditetapkan (mis. <i>net invested funds</i>) dan disalurkan kepada delapan golongan (asnaf) yang berhak.
@@ -465,7 +465,7 @@ function SyariahView() {
                   <table className="dtbl" style={{ width: '100%' }}>
                     <thead><tr><th style={{ textAlign: 'left' }}>Instrumen</th><th style={{ textAlign: 'center', width: 90 }}>Sisi</th><th style={{ textAlign: 'right', width: 100 }}>Nilai</th></tr></thead>
                     <tbody>
-                      {sy.sukuk.map(s => (
+                      {sy.sukuk.map((s: any) => (
                         <tr key={s.id}>
                           <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div><div className="tiny muted" style={{ lineHeight: 1.4 }}>{s.note}</div></td>
                           <td style={{ textAlign: 'center' }}><Badge kind={s.sisi === 'Aset' ? 'blue' : 'amber'}>{s.sisi}</Badge></td>
@@ -517,7 +517,7 @@ function SyariahView() {
                   <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Audit menguji <b>substansi akad</b>, penyajian Dana Syirkah Temporer, kelengkapan dana zakat & kebajikan, serta <b>pemurnian</b> pendapatan non-halal. Kepatuhan prinsip syariah dipertimbangkan via opini DPS (SA 250 & SA 620).</div>
                 </div>
                 <div>
-                  {sy.proc.map((p, i) => {
+                  {sy.proc.map((p: any, i: any) => {
                     const key = p.ref + i;
                     const isOn = !!done[key];
                     return (
@@ -546,7 +546,7 @@ function SyariahView() {
                   <div style={{ padding: 14 }}>
                     <div className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', marginBottom: 8 }}>Opini Dewan Pengawas Syariah</div>
                     <div style={{ display: 'grid', gap: 7 }}>
-                      {sy.dps.temuan.map((t, i) => (
+                      {sy.dps.temuan.map((t: any, i: any) => (
                         <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
                           <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', marginTop: 1, flex: '0 0 auto' }}>{t.ok ? <I.checkCircle size={14} /> : <I.alert size={14} />}</span>
                           <span style={{ fontSize: 11.5, lineHeight: 1.45, color: t.ok ? 'var(--ink-2)' : 'var(--ink)' }}>{t.t}</span>
@@ -563,7 +563,7 @@ function SyariahView() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber data</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {sy.upstream.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {sy.upstream.map((m: any) => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'syariah' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -573,7 +573,7 @@ function SyariahView() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {sy.downstream.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {sy.downstream.map((m: any) => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'syariah' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

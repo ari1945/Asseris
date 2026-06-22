@@ -22,10 +22,10 @@ const SA_WP_MAP = {
 };
 
 /* status WP → warna badge (selaras dengan modul Kertas Kerja) */
-function saStatusKind(s) {
+function saStatusKind(s: any) {
   return s === 'Reviewed' ? 'green' : s === 'In Review' ? 'blue' : s === 'In Progress' ? 'amber' : 'gray';
 }
-function saCoverageBadge(cov) {
+function saCoverageBadge(cov: any) {
   if (!cov) return <span className="muted tiny">—</span>;
   if (cov.level === 'full') return <Badge kind="teal">≥ PM</Badge>;
   if (cov.level === 'partial') return <Badge kind="blue">Parsial</Badge>;
@@ -33,14 +33,14 @@ function saCoverageBadge(cov) {
 }
 
 /* baca status kanonik untuk seluruh WP yang dipetakan ke sebuah standar */
-function useSACanon(stdId) {
+function useSACanon(stdId: any) {
   const audit = useAudit();
   const firm = useFirm();
   const navigate = useNav();
-  const map = SA_WP_MAP[stdId] || { refs: [], focus: '' };
+  const map = (SA_WP_MAP as any)[stdId] || { refs: [], focus: '' };
   const derive = window.deriveWpStatus;
-  const rows = (derive ? map.refs.map(r => derive(r, audit, firm)) : []).filter(Boolean);
-  const agg = rows.reduce((a, r) => ({
+  const rows = (derive ? map.refs.map((r: any) => derive(r, audit, firm)) : []).filter(Boolean);
+  const agg = rows.reduce((a: any, r: any) => ({
     done: a.done + r.done, total: a.total + r.total, exc: a.exc + r.exc,
     openNotes: a.openNotes + r.openNotes, fullySigned: a.fullySigned + (r.fullySigned ? 1 : 0),
     risks: a.risks + r.relRisks.length, covFull: a.covFull + (r.coverage && r.coverage.level === 'full' ? 1 : 0),
@@ -51,7 +51,7 @@ function useSACanon(stdId) {
 }
 
 /* deretan badge ringkas untuk SubBar — menggantikan badge status statis */
-function SACanonChips({ stdId }) {
+function SACanonChips({ stdId }: any) {
   const { rows, agg } = useSACanon(stdId);
   if (!rows.length) return null;
   const kind = agg.exc > 0 ? 'amber' : agg.openNotes > 0 ? 'amber' : agg.done === agg.total ? 'green' : 'blue';
@@ -65,10 +65,10 @@ function SACanonChips({ stdId }) {
 }
 
 /* rangkaian titik sign-off (preparer → reviewer → partner → EQR) */
-function SignoffDots({ signoff }) {
+function SignoffDots({ signoff }: any) {
   return (
     <span className="row ac" style={{ gap: 4 }}>
-      {signoff.map((l, i) => (
+      {signoff.map((l: any, i: any) => (
         <span key={l.key} title={`${l.role}${l.signed ? ' · ' + l.signed.by + ' (' + l.signed.at + ')' : ' · belum'}`}
           style={{ width: 16, height: 16, borderRadius: '50%', display: 'grid', placeItems: 'center', flex: '0 0 16px',
             background: l.signed ? 'var(--green-bg)' : 'var(--surface-3)', color: l.signed ? 'var(--green)' : 'var(--ink-4)',
@@ -81,10 +81,10 @@ function SignoffDots({ signoff }) {
 }
 
 /* Panel utama — lapisan referensi + status kanonik */
-function SACanonicalStatus({ stdId }) {
+function SACanonicalStatus({ stdId }: any) {
   const { rows, agg, map, navigate } = useSACanon(stdId);
-  const meta = (typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[stdId]) || { label: stdId };
-  const open = (ref) => { if (window.openCanonicalWp) window.openCanonicalWp(navigate, ref); };
+  const meta = (typeof MODULE_INDEX !== 'undefined' && (MODULE_INDEX as any)[stdId]) || { label: stdId };
+  const open = (ref: any) => { if (window.openCanonicalWp) window.openCanonicalWp(navigate, ref); };
 
   if (!rows.length) return null;
 
@@ -132,7 +132,7 @@ function SACanonicalStatus({ stdId }) {
           <th style={{ width: 92 }}></th>
         </tr></thead>
         <tbody>
-          {rows.map(r => {
+          {rows.map((r: any) => {
             const pct = r.total ? Math.round(r.done / r.total * 100) : 0;
             return (
               <tr key={r.ref} style={{ cursor: 'pointer' }} onClick={() => open(r.ref)}>
@@ -154,7 +154,7 @@ function SACanonicalStatus({ stdId }) {
                 <td>{saCoverageBadge(r.coverage)}</td>
                 <td style={{ textAlign: 'center' }}>{r.openNotes > 0 ? <Badge kind="amber">{r.openNotes}</Badge> : <span className="muted tiny">—</span>}</td>
                 <td><SignoffDots signoff={r.signoff} /></td>
-                <td><button className="btn sm" onClick={(e) => { e.stopPropagation(); open(r.ref); }}>Buka WP <I.arrowRight size={12} /></button></td>
+                <td><button className="btn sm" onClick={(e: any) => { e.stopPropagation(); open(r.ref); }}>Buka WP <I.arrowRight size={12} /></button></td>
               </tr>
             );
           })}
@@ -172,13 +172,13 @@ function SACanonicalStatus({ stdId }) {
 }
 
 /* Kartu Sign-off ringkas — menggantikan kartu sign-off statis di halaman SA */
-function SASignoffMini({ stdId }) {
+function SASignoffMini({ stdId }: any) {
   const { rows, navigate } = useSACanon(stdId);
-  const open = (ref) => { if (window.openCanonicalWp) window.openCanonicalWp(navigate, ref); };
+  const open = (ref: any) => { if (window.openCanonicalWp) window.openCanonicalWp(navigate, ref); };
   return (
     <Panel title="Sign-off (Kertas Kerja)" sub="Sumber tunggal — dari WP kanonik">
       <div style={{ display: 'grid', gap: 9 }}>
-        {rows.map((r, i) => (
+        {rows.map((r: any, i: any) => (
           <div key={r.ref} className="row jb ac" style={{ fontSize: 12, paddingBottom: 9, borderBottom: i < rows.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
             <div className="row ac gap8" style={{ minWidth: 0 }}>
               <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', flex: '0 0 auto' }}>{r.ref}</span>

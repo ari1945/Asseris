@@ -34,7 +34,7 @@ import { AMS } from './data';
   };
 
   /* tingkat: Pengantar | Inti | Lanjutan */
-  const S = (h, p) => ({ h: h, p: p });
+  const S = (h: any, p: any) => ({ h: h, p: p });
 
   /* ---------- LAPISAN EDITORIAL (dikunci pada `code` registri) ----------
      read = menit baca · level · hot = ditampilkan di "Paling dirujuk"
@@ -385,10 +385,10 @@ import { AMS } from './data';
   /* ---------- pembangun konten fallback dari metadata registri ----------
      Standar tanpa editorial khusus tetap punya artikel yang substantif:
      dibangun dari title, type, phase, & modul fungsional terkait. */
-  function buildFallback(reg) {
+  function buildFallback(reg: any) {
     const mi = (window.MODULE_INDEX || {})[reg.module] || null;
     const modLbl = mi ? mi.label : null;
-    const fw = FRAMEWORK[reg.type] || { label: reg.type };
+    const fw = (FRAMEWORK as any)[reg.type] || { label: reg.type };
     const isPSAK = reg.type === 'PSAK' || reg.type === 'SAK';
     const summary = isPSAK
       ? ('Pengaturan akuntansi atas ' + reg.title.toLowerCase() + ': pengakuan, pengukuran, penyajian, dan pengungkapan sesuai kerangka pelaporan yang berlaku.')
@@ -409,21 +409,21 @@ import { AMS } from './data';
   }
 
   /* gabungkan editorial + fallback untuk satu baris registri */
-  function resolve(reg) {
-    const c = KB_CONTENT[reg.code];
+  function resolve(reg: any) {
+    const c = (KB_CONTENT as any)[reg.code];
     if (c) return Object.assign({ fallback: false }, c);
     return buildFallback(reg);
   }
 
   /* ---------- template yang mengimplementasikan standar (tarikan LIVE) ----------
      match: salah satu entri t.sa.code == code, ATAU t.module == modul standar. */
-  function templatesForStandard(code, moduleId) {
+  function templatesForStandard(code: any, moduleId: any) {
     const T = (AMS && (AMS as any).TEMPLATES) || [];
-    const seen = {}, out = [];
-    T.forEach(function (t) {
-      const byStd = (t.sa || []).some(function (s) { return s.code === code; });
+    const seen = {}, out: any[] = [];
+    T.forEach(function (t: any) {
+      const byStd = (t.sa || []).some(function (s: any) { return s.code === code; });
       const byMod = moduleId && t.module === moduleId;
-      if ((byStd || byMod) && !seen[t.id]) { seen[t.id] = 1; out.push(t); }
+      if ((byStd || byMod) && !(seen as any)[t.id]) { (seen as any)[t.id] = 1; out.push(t); }
     });
     return out;
   }
@@ -432,7 +432,7 @@ import { AMS } from './data';
      Tidak ada daftar artikel independen — satu sumber kebenaran. */
   function articles() {
     const REG = window.STANDARDS_REGISTRY || [];
-    return REG.map(function (reg) {
+    return REG.map(function (reg: any) {
       const kb = resolve(reg);
       return {
         code: reg.code, title: reg.title, type: reg.type, phase: reg.phase,

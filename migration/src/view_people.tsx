@@ -23,13 +23,13 @@ function HCM() {
   const nav = useNav();
   const [extra, setExtra] = useAmsPersist('staffExtra', []);
   const staff = [...extra, ...(AMS as any).STAFF];
-  const [sel, setSel] = useStateE(AMS.STAFF[3].id);
+  const [sel, setSel] = useStateE((AMS.STAFF as any)[3].id);
   const [q, setQ] = useStateE('');
   const [grade, setGrade] = useStateE('All');
   const [showNew, setShowNew] = useStateE(false);
   const [mode, setMode] = useStateE('direktori');
   const [drawer, setDrawer] = useStateE(null);
-  const addStaff = (s) => { setExtra(list => [{ id: 'EMP-' + String(100 + list.length).padStart(3, '0'), engagements: 0, rating: 4.0, util: 0, status: 'Aktif', joined: 2026, ...s }, ...list]); };
+  const addStaff = (s: any) => { setExtra((list: any) => [{ id: 'EMP-' + String(100 + list.length).padStart(3, '0'), engagements: 0, rating: 4.0, util: 0, status: 'Aktif', joined: 2026, ...s }, ...list]); };
 
   const filtered = staff.filter(s => (grade === 'All' || s.grade === grade) && (q === '' || s.name.toLowerCase().includes(q.toLowerCase())));
   const person = staff.find(s => s.id === sel) || staff[0];
@@ -58,14 +58,14 @@ function HCM() {
 
         <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
           <Panel noBody>
-            <div className="panel-h"><h3>Direktori Karyawan</h3><div style={{ flex: 1 }} /><div className="global-search" style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', height: 26, maxWidth: 170 }}><I.search2 size={13} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari…" value={q} onChange={e => setQ(e.target.value)} /></div><Seg options={['All', ...GRADE_ORDER]} value={grade} onChange={setGrade} /></div>
+            <div className="panel-h"><h3>Direktori Karyawan</h3><div style={{ flex: 1 }} /><div className="global-search" style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', height: 26, maxWidth: 170 }}><I.search2 size={13} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari…" value={q} onChange={(e: any) => setQ(e.target.value)} /></div><Seg options={['All', ...GRADE_ORDER]} value={grade} onChange={setGrade} /></div>
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th>Jabatan</th><th>Sertifikasi</th><th className="num">Utilisasi</th><th className="num">Rating</th><th>Status</th></tr></thead>
               <tbody>
                 {filtered.map(s => (
                   <tr key={s.id} className={s.id === sel ? 'sel' : ''} onClick={() => setSel(s.id)} style={{ cursor: 'pointer' }}>
                     <td><div className="row ac gap8"><Avatar name={s.name} size={28} /><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600 }}>{s.name}</div><div className="tiny muted mono">{s.id}</div></div></div></td>
-                    <td><span className="badge" style={{ background: GRADE_COLOR[s.grade] + '1a', color: GRADE_COLOR[s.grade] }}>{s.grade}</span></td>
+                    <td><span className="badge" style={{ background: (GRADE_COLOR as any)[s.grade] + '1a', color: (GRADE_COLOR as any)[s.grade] }}>{s.grade}</span></td>
                     <td className="tiny muted">{s.cert}</td>
                     <td className="num"><span style={{ color: s.util > 92 ? 'var(--red)' : s.util > 85 ? 'var(--amber)' : 'var(--green)' }}>{s.util}%</span></td>
                     <td className="num mono">{s.rating.toFixed(1)}</td>
@@ -110,35 +110,35 @@ function HCM() {
         </div>
         </>)}
       </div></div>
-      {showNew && <StaffForm onClose={() => setShowNew(false)} onAdd={(s) => { addStaff(s); setShowNew(false); }} />}
+      {showNew && <StaffForm onClose={() => setShowNew(false)} onAdd={(s: any) => { addStaff(s); setShowNew(false); }} />}
       {drawer && <Profile360Drawer s={drawer} onClose={() => setDrawer(null)} />}
     </>
   );
 }
 
-function StaffForm({ onClose, onAdd }) {
+function StaffForm({ onClose, onAdd }: any) {
   const [d, setD] = useStateE({ name: '', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', email: '' });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim();
   const ROLE_BY_GRADE = { Partner: 'Engagement Partner', Manager: 'Audit Manager', Senior: 'Senior Auditor', Junior: 'Junior Auditor' };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Karyawan Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke direktori SDM</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Nama Lengkap</label><input className="input" value={d.name} onChange={e => set('name', e.target.value)} placeholder="Nama karyawan" /></div>
+          <div className="field"><label>Nama Lengkap</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="Nama karyawan" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jenjang</label><select className="select" value={d.grade} onChange={e => set('grade', e.target.value)}>{['Partner', 'Manager', 'Senior', 'Junior'].map(g => <option key={g}>{g}</option>)}</select></div>
-            <div className="field"><label>Sertifikasi</label><input className="input" value={d.cert} onChange={e => set('cert', e.target.value)} placeholder="CPA / CA / S.Ak" /></div>
+            <div className="field"><label>Jenjang</label><select className="select" value={d.grade} onChange={(e: any) => set('grade', e.target.value)}>{['Partner', 'Manager', 'Senior', 'Junior'].map(g => <option key={g}>{g}</option>)}</select></div>
+            <div className="field"><label>Sertifikasi</label><input className="input" value={d.cert} onChange={(e: any) => set('cert', e.target.value)} placeholder="CPA / CA / S.Ak" /></div>
           </div>
-          <div className="field"><label>Email</label><input className="input" value={d.email} onChange={e => set('email', e.target.value)} placeholder="nama@whr-cpa.id" /></div>
+          <div className="field"><label>Email</label><input className="input" value={d.email} onChange={(e: any) => set('email', e.target.value)} placeholder="nama@whr-cpa.id" /></div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd({ ...d, role: ROLE_BY_GRADE[d.grade] })}><I.check size={14} /> Tambah Karyawan</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd({ ...d, role: (ROLE_BY_GRADE as any)[d.grade] })}><I.check size={14} /> Tambah Karyawan</Btn>
         </div>
       </div>
     </div>
@@ -153,19 +153,19 @@ function CPETracker() {
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
   const [sel, setSel] = useStateE('EMP-007');
   const [showNew, setShowNew] = useStateE(false);
-  const log = (() => { const m = {}; staff.forEach(s => { m[s.id] = [...(extraLog[s.id] || []), ...((AMS.CPE_LOG[s.id]) || [])]; }); return m; })();
-  const addSkp = (id, rec) => setExtraLog(l => ({ ...l, [id]: [{ ...rec, date: '2026-03-09' }, ...(l[id] || [])] }));
+  const log = (() => { const m = {}; staff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(((AMS.CPE_LOG as any)[s.id]) || [])]; }); return m; })();
+  const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: '2026-03-09' }, ...(l[id] || [])] }));
 
-  const summary = staff.map(s => {
-    const recs = log[s.id] || [];
-    const structured = recs.filter(r => r.type === 'Terstruktur').reduce((a, r) => a + r.skp, 0);
-    const total = recs.reduce((a, r) => a + r.skp, 0);
+  const summary = staff.map((s: any) => {
+    const recs = (log as any)[s.id] || [];
+    const structured = recs.filter((r: any) => r.type === 'Terstruktur').reduce((a: any, r: any) => a + r.skp, 0);
+    const total = recs.reduce((a: any, r: any) => a + r.skp, 0);
     const compliant = total >= req.annual && structured >= req.structured;
     return { ...s, structured, total, compliant, recs };
   });
-  const compliantN = summary.filter(s => s.compliant).length;
-  const atRisk = summary.filter(s => !s.compliant && s.total < req.annual * 0.5).length;
-  const person = summary.find(s => s.id === sel) || summary[0];
+  const compliantN = summary.filter((s: any) => s.compliant).length;
+  const atRisk = summary.filter((s: any) => !s.compliant && s.total < req.annual * 0.5).length;
+  const person = summary.find((s: any) => s.id === sel) || summary[0];
 
   return (
     <>
@@ -184,7 +184,7 @@ function CPETracker() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th className="num">Terstruktur</th><th className="num">Total SKP</th><th style={{ width: 140 }}>Progress</th><th>Status</th></tr></thead>
               <tbody>
-                {summary.map(s => (
+                {summary.map((s: any) => (
                   <tr key={s.id} className={s.id === sel ? 'sel' : ''} onClick={() => setSel(s.id)} style={{ cursor: 'pointer' }}>
                     <td><div className="row ac gap8"><Avatar name={s.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{s.name}</span></div></td>
                     <td className="num mono" style={{ color: s.structured >= req.structured ? 'var(--green)' : 'var(--amber)' }}>{s.structured}/{req.structured}</td>
@@ -215,7 +215,7 @@ function CPETracker() {
               </div>
               <div className="tiny muted upper" style={{ marginBottom: 6 }}>Riwayat SKP {req.year}</div>
               <div style={{ display: 'grid', gap: 0 }}>
-                {person.recs.length ? person.recs.map((r, i) => (
+                {person.recs.length ? person.recs.map((r: any, i: any) => (
                   <div key={i} className="row ac jb" style={{ padding: '7px 0', borderBottom: i < person.recs.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <div style={{ minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{r.t}</div><div className="tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {r.type}</div></div>
                     <span className="mono" style={{ fontWeight: 700 }}>{r.skp} SKP</span>
@@ -231,28 +231,28 @@ function CPETracker() {
           </Panel>
         </div>
       </div></div>
-      {showNew && <SkpForm staff={staff} onClose={() => setShowNew(false)} onAdd={(id, rec) => { addSkp(id, rec); setShowNew(false); }} />}
+      {showNew && <SkpForm staff={staff} onClose={() => setShowNew(false)} onAdd={(id: any, rec: any) => { addSkp(id, rec); setShowNew(false); }} />}
     </>
   );
 }
 
-function SkpForm({ staff, onClose, onAdd }) {
+function SkpForm({ staff, onClose, onAdd }: any) {
   const [d, setD] = useStateE({ id: 'EMP-007', t: '', type: 'Terstruktur', skp: 4 });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.t.trim() && +d.skp > 0;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.book size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Catat SKP (PPL)</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah satuan kredit pendidikan profesional</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Karyawan</label><select className="select" value={d.id} onChange={e => set('id', e.target.value)}>{staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-          <div className="field"><label>Kegiatan / Pelatihan</label><input className="input" value={d.t} onChange={e => set('t', e.target.value)} placeholder="mis. Workshop SA Terkini IAPI" /></div>
+          <div className="field"><label>Karyawan</label><select className="select" value={d.id} onChange={(e: any) => set('id', e.target.value)}>{staff.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+          <div className="field"><label>Kegiatan / Pelatihan</label><input className="input" value={d.t} onChange={(e: any) => set('t', e.target.value)} placeholder="mis. Workshop SA Terkini IAPI" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jenis</label><select className="select" value={d.type} onChange={e => set('type', e.target.value)}>{['Terstruktur', 'Tidak Terstruktur'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>SKP</label><input className="input mono" type="number" value={d.skp} onChange={e => set('skp', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Jenis</label><select className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Terstruktur', 'Tidak Terstruktur'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>SKP</label><input className="input mono" type="number" value={d.skp} onChange={(e: any) => set('skp', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
@@ -268,14 +268,14 @@ function SkpForm({ staff, onClose, onAdd }) {
 function Independence() {
   const nav = useNav();
   const [data, setData] = useAmsPersist('independence', () => AMS.INDEPENDENCE);
-  const declared = data.filter(d => d.declared).length;
-  const conflicts = data.reduce((s, d) => s + d.conflicts, 0);
-  const rotationDue = data.filter(d => d.tenure >= d.rotationLimit).length;
-  const rotationWarn = data.filter(d => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
-  const toggle = (id) => setData(list => list.map(d => d.id === id ? { ...d, declared: !d.declared } : d));
+  const declared = data.filter((d: any) => d.declared).length;
+  const conflicts = data.reduce((s: any, d: any) => s + d.conflicts, 0);
+  const rotationDue = data.filter((d: any) => d.tenure >= d.rotationLimit).length;
+  const rotationWarn = data.filter((d: any) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
+  const toggle = (id: any) => setData((list: any) => list.map((d: any) => d.id === id ? { ...d, declared: !d.declared } : d));
   const [sel, setSel] = useStateE(null);
   const [appr, setAppr] = useAmsPersist('indepAppr', {});
-  const curr = sel ? data.find(d => d.id === sel) : null;
+  const curr = sel ? data.find((d: any) => d.id === sel) : null;
   const [itab, setItab] = useStateE('rotasi');
   const itabs = [{ id: 'rotasi', label: 'Deklarasi & Rotasi' }, { id: 'fee', label: 'Ketergantungan Imbalan' }, { id: 'nas', label: 'Pra-Persetujuan NAS' }, { id: 'longassoc', label: 'Asosiasi Jangka Panjang' }];
 
@@ -297,7 +297,7 @@ function Independence() {
 
         {rotationDue > 0 && (
           <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter(d => d.tenure >= d.rotationLimit).map(d => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find(d => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter((d: any) => d.tenure >= d.rotationLimit).map((d: any) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find((d: any) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
           </div>
         )}
 
@@ -306,7 +306,7 @@ function Independence() {
           <table className="dtbl">
             <thead><tr><th>Partner / Staf</th><th>Deklarasi Tahunan</th><th>Alur Persetujuan</th><th className="num">Konflik</th><th>Klien (rotasi)</th><th className="num" style={{ width: 130 }}>Masa Tugas</th></tr></thead>
             <tbody>
-              {data.map(d => {
+              {data.map((d: any) => {
                 const rotPct = d.tenure / d.rotationLimit * 100;
                 const rotCol = d.tenure >= d.rotationLimit ? 'var(--red)' : d.tenure >= d.rotationLimit - 1 ? 'var(--amber)' : 'var(--green)';
                 const lvl = appr[d.id] != null ? appr[d.id] : (d.declared ? 3 : 0);
@@ -314,7 +314,7 @@ function Independence() {
                 return (
                   <tr key={d.id} className={d.id === sel ? 'sel' : ''} onClick={() => setSel(d.id)} style={{ cursor: 'pointer' }}>
                     <td><div className="row ac gap8"><Avatar name={d.name} size={24} /><span style={{ fontWeight: 600 }}>{d.name}</span></div></td>
-                    <td><span onClick={(e) => { e.stopPropagation(); toggle(d.id); }} style={{ cursor: 'pointer' }}>{d.declared ? <Badge kind="green"><I.check size={10} /> Diterima</Badge> : <Badge kind="red">Belum</Badge>}</span></td>
+                    <td><span onClick={(e: any) => { e.stopPropagation(); toggle(d.id); }} style={{ cursor: 'pointer' }}>{d.declared ? <Badge kind="green"><I.check size={10} /> Diterima</Badge> : <Badge kind="red">Belum</Badge>}</span></td>
                     <td><div className="row ac gap4">{[1, 2, 3].map(i => <span key={i} title={STEPS[i]} style={{ width: 22, height: 5, borderRadius: 3, background: i <= lvl ? 'var(--green)' : 'var(--surface-3)' }} />)}<span className="tiny muted" style={{ marginLeft: 4 }}>{STEPS[lvl]}</span></div></td>
                     <td className="num">{d.conflicts ? <Badge kind="amber">{d.conflicts}</Badge> : <span className="muted">0</span>}</td>
                     <td className="tiny">{d.rotationClient === '—' ? <span className="muted">—</span> : <span className="row ac gap4">{d.rotationClient.replace('PT ', '')}{d.listed && <span className="badge b-blue" style={{ fontSize: 8, padding: '0 4px' }}>IDX</span>}</span>}</td>
@@ -335,7 +335,7 @@ function Independence() {
         <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Ambang rotasi AP terdiferensiasi per rezim: <b>5 tahun</b> berturut-turut untuk entitas kepentingan publik (PIE) umum (PP 20/2015 Ps. 11) dan <b>3 tahun</b> untuk entitas <b>sektor jasa keuangan</b> — bank, asuransi, pembiayaan (POJK 13/POJK.03/2017). Cooling-off minimal <b>2 tahun</b>; KAP tidak dibatasi. Dimensi etika lain (ketergantungan imbalan, pra-persetujuan NAS, asosiasi jangka panjang) dipantau pada tab terpisah.</div>
         </>)}
       </div></div>
-      {curr && <IndepDrawer d={curr} lvl={appr[curr.id] != null ? appr[curr.id] : (curr.declared ? 3 : 0)} onApprove={(n) => setAppr(a => ({ ...a, [curr.id]: n }))} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
+      {curr && <IndepDrawer d={curr} lvl={appr[curr.id] != null ? appr[curr.id] : (curr.declared ? 3 : 0)} onApprove={(n: any) => setAppr((a: any) => ({ ...a, [curr.id]: n }))} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
     </>
   );
 }
@@ -354,10 +354,10 @@ const INDEP_CHAIN = [
   { role: 'Persetujuan Ethics & Independence Partner', who: 'Sari Dewanti, CPA' },
 ];
 
-function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }) {
+function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={d.name} size={42} />
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · TA 2026</div></div>

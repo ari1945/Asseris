@@ -147,14 +147,14 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
 function mmBuildGraph() {
   const L = window.LINEAGE || {};
   const out = {}, inc = {};
-  const add = (s, t) => {
+  const add = (s: any, t: any) => {
     if (!s || !t || s === t) return;
-    (out[s] = out[s] || new Set()).add(t);
-    (inc[t] = inc[t] || new Set()).add(s);
+    ((out as any)[s] = (out as any)[s] || new Set()).add(t);
+    ((inc as any)[t] = (inc as any)[t] || new Set()).add(s);
   };
   Object.keys(L).forEach(m => {
-    (L[m].down || []).forEach(d => add(m, d.id));
-    (L[m].up || []).forEach(u => add(u.id, m));
+    (L[m].down || []).forEach((d: any) => add(m, d.id));
+    (L[m].up || []).forEach((u: any) => add(u.id, m));
   });
   return { out, inc };
 }
@@ -167,7 +167,7 @@ const MM_STATUS = {
   island:    { c: 'var(--red)',   bg: 'var(--red-bg)',    label: 'Belum tertaut',      help: 'Belum memiliki tautan ke modul lain dalam peta keterkaitan.' },
 };
 
-function MiniMap({ open, route, onClose, onNavigate }) {
+function MiniMap({ open, route, onClose, onNavigate }: any) {
   const graphRef = useRefMM(null);
   const nodeRef = useRefMM(null);
   const chipRefs = useRefMM({});
@@ -181,20 +181,20 @@ function MiniMap({ open, route, onClose, onNavigate }) {
   /* tetangga: utamakan LINEAGE (kaya + ada relasi), jika tidak ada turunkan dari adjacency */
   const neighbors = useMemoMM(() => {
     const L = (window.LINEAGE || {})[route];
-    const toChip = (id, rel) => {
+    const toChip = (id: any, rel: any) => {
       const m = MI[id] || { label: id, icon: 'panel' };
       return { id, ic: m.icon || 'panel', lbl: m.label, rel: rel || '' };
     };
     let up, down;
     if (L) {
-      up = (L.up || []).map(u => ({ id: u.id, ic: u.ic || (MI[u.id] || {}).icon || 'panel', lbl: u.lbl || (MI[u.id] || {}).label || u.id, rel: u.rel || '' }));
-      down = (L.down || []).map(d => ({ id: d.id, ic: d.ic || (MI[d.id] || {}).icon || 'panel', lbl: d.lbl || (MI[d.id] || {}).label || d.id, rel: d.rel || '' }));
+      up = (L.up || []).map((u: any) => ({ id: u.id, ic: u.ic || (MI[u.id] || {}).icon || 'panel', lbl: u.lbl || (MI[u.id] || {}).label || u.id, rel: u.rel || '' }));
+      down = (L.down || []).map((d: any) => ({ id: d.id, ic: d.ic || (MI[d.id] || {}).icon || 'panel', lbl: d.lbl || (MI[d.id] || {}).label || d.id, rel: d.rel || '' }));
     } else {
       up = [...(graph.inc[route] || [])].map(id => toChip(id, 'merujuk modul ini'));
       down = [...(graph.out[route] || [])].map(id => toChip(id, 'memakai keluaran modul ini'));
     }
     /* dedupe by id within each side */
-    const dd = arr => { const s = new Set(); return arr.filter(x => (s.has(x.id) ? false : s.add(x.id))); };
+    const dd = (arr: any) => { const s = new Set(); return arr.filter((x: any) => (s.has(x.id) ? false : s.add(x.id))); };
     return { up: dd(up), down: dd(down) };
   }, [route, open, graph]);
 
@@ -208,10 +208,10 @@ function MiniMap({ open, route, onClose, onNavigate }) {
   }, [neighbors]);
 
   const ws = (window.GROUP_WS || {})[meta.group];
-  const wsObj = (window.WORKSPACES || []).find(w => w.id === ws);
+  const wsObj = (window.WORKSPACES || []).find((w: any) => w.id === ws);
   const wsColor = ws === 'engagement' ? 'var(--blue)' : 'var(--navy)';
   const std = ((window.LINEAGE || {})[route] || {}).std
-    || (((window.RELATED_SA || {})[route] || []).map(r => r.code).join(' · '));
+    || (((window.RELATED_SA || {})[route] || []).map((r: any) => r.code).join(' · '));
 
   const MAX = 7;
   const huluShown = neighbors.up.slice(0, MAX);
@@ -225,19 +225,19 @@ function MiniMap({ open, route, onClose, onNavigate }) {
     const nr = n.getBoundingClientRect();
     const nLeft = { x: nr.left - gr.left, y: nr.top - gr.top + nr.height / 2 };
     const nRight = { x: nr.right - gr.left, y: nr.top - gr.top + nr.height / 2 };
-    const out = [];
-    const curve = (a, b) => {
+    const out: any[] = [];
+    const curve = (a: any, b: any) => {
       const mx = (a.x + b.x) / 2;
       return `M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`;
     };
-    huluShown.forEach(c => {
+    huluShown.forEach((c: any) => {
       const el = chipRefs.current['u-' + c.id];
       if (!el) return;
       const r = el.getBoundingClientRect();
       const a = { x: r.right - gr.left, y: r.top - gr.top + r.height / 2 };
       out.push({ d: curve(a, nLeft), cls: 'up', end: nLeft, start: a });
     });
-    hilirShown.forEach(c => {
+    hilirShown.forEach((c: any) => {
       const el = chipRefs.current['d-' + c.id];
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -257,20 +257,20 @@ function MiniMap({ open, route, onClose, onNavigate }) {
 
   useEffectMM(() => {
     if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: any) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
   if (!open) return null;
 
-  const go = (id) => { if (id && id !== route) onNavigate(id, { from: route }); onClose(); };
-  const Ic = (key) => { const C = I && (I[key] || I.panel); return C ? <C size={14} /> : null; };
-  const st = MM_STATUS[status];
+  const go = (id: any) => { if (id && id !== route) onNavigate(id, { from: route }); onClose(); };
+  const Ic = (key: any) => { const C = I && ((I as any)[key] || I.panel); return C ? <C size={14} /> : null; };
+  const st = (MM_STATUS as any)[status];
 
   const Chip = ({ c, side }: any) => (
     <button type="button" className="mm-chip"
-      ref={el => { chipRefs.current[side + '-' + c.id] = el; }}
+      ref={(el: any) => { chipRefs.current[side + '-' + c.id] = el; }}
       title={(c.rel ? c.rel + ' — ' : '') + 'buka ' + c.lbl}
       onClick={() => go(c.id)}>
       <span className="mm-c-ic" style={{ color: side === 'u' ? 'var(--blue)' : 'var(--green)' }}>{Ic(c.ic)}</span>
@@ -284,13 +284,13 @@ function MiniMap({ open, route, onClose, onNavigate }) {
   /* ---- peta global ringkas ---- */
   const HIDDEN = window.HIDDEN_GROUPS || [];
   const MODS = window.MODULES || [];
-  const wsCols = (window.WORKSPACES || []).map(w => ({
+  const wsCols = (window.WORKSPACES || []).map((w: any) => ({
     ws: w,
-    groups: MODS.filter(g => (window.GROUP_WS[g.group] || 'firm') === w.id && !HIDDEN.includes(g.group)),
-  })).filter(c => c.groups.length);
+    groups: MODS.filter((g: any) => (window.GROUP_WS[g.group] || 'firm') === w.id && !HIDDEN.includes(g.group)),
+  })).filter((c: any) => c.groups.length);
 
   return (
-    <div className="mm-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="mm-back" onMouseDown={(e: any) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="mm-card" role="dialog" aria-label="Peta Mini Keterhubungan">
         <div className="mm-head">
           <span className="mm-h-ic">{Ic('group')}</span>
@@ -318,7 +318,7 @@ function MiniMap({ open, route, onClose, onNavigate }) {
 
         <div className="mm-graph" ref={graphRef}>
           <svg className="mm-arcs">
-            {arcs.map((a, i) => (
+            {arcs.map((a: any, i: any) => (
               <g key={i}>
                 <path d={a.d} fill="none"
                   stroke={a.cls === 'up' ? 'var(--blue)' : 'var(--green)'}
@@ -330,7 +330,7 @@ function MiniMap({ open, route, onClose, onNavigate }) {
 
           <div className="mm-col up">
             <span className="mm-col-h">Memberi masukan <em>· hulu</em> <span className="mm-arrow">▸</span></span>
-            {huluShown.length ? huluShown.map(c => <Chip key={'u' + c.id} c={c} side="u" />)
+            {huluShown.length ? huluShown.map((c: any) => <Chip key={'u' + c.id} c={c} side="u" />)
               : <span className="mm-empty">Tidak ada modul yang memberi masukan.</span>}
             {neighbors.up.length > MAX && <span className="mm-more">+{neighbors.up.length - MAX} sumber lain</span>}
           </div>
@@ -344,7 +344,7 @@ function MiniMap({ open, route, onClose, onNavigate }) {
 
           <div className="mm-col down">
             <span className="mm-col-h"><span className="mm-arrow">▸</span> Memakai keluaran <em>· hilir</em></span>
-            {hilirShown.length ? hilirShown.map(c => <Chip key={'d' + c.id} c={c} side="d" />)
+            {hilirShown.length ? hilirShown.map((c: any) => <Chip key={'d' + c.id} c={c} side="d" />)
               : <span className="mm-empty">Tidak ada modul yang memakai keluaran.</span>}
             {neighbors.down.length > MAX && <span className="mm-more">+{neighbors.down.length - MAX} pengguna lain</span>}
           </div>
@@ -357,7 +357,7 @@ function MiniMap({ open, route, onClose, onNavigate }) {
         </div>
 
         <div className="mm-ov">
-          <div className="mm-ov-h" onClick={() => setOvOpen(o => !o)}>
+          <div className="mm-ov-h" onClick={() => setOvOpen((o: any) => !o)}>
             {Ic('layers')}
             <span className="mm-ov-t">Peta Global Ringkas</span>
             <span className="mm-ov-sub">— kotak biru tua menandai posisi Anda; klik titik mana pun untuk lompat</span>
@@ -366,19 +366,19 @@ function MiniMap({ open, route, onClose, onNavigate }) {
           </div>
           {ovOpen && (
             <div className="mm-ov-body">
-              {wsCols.map(({ ws: w, groups }) => (
+              {wsCols.map(({ ws: w, groups }: any) => (
                 <div key={w.id} className="mm-ws-col">
                   <div className="mm-ws-col-h">
                     <span className="mm-ws-dot" style={{ background: w.id === 'engagement' ? 'var(--blue)' : 'var(--navy)' }} />
                     {w.label}
                   </div>
-                  {groups.map(g => {
+                  {groups.map((g: any) => {
                     const curGroup = g.group === meta.group;
                     return (
                       <div key={g.group} className="mm-grp">
                         <div className={'mm-grp-n' + (curGroup ? ' cur' : '')}>{g.group}</div>
                         <div className="mm-dots">
-                          {g.items.map(it => {
+                          {g.items.map((it: any) => {
                             const cur = it.id === route;
                             return (
                               <button key={it.id} type="button"

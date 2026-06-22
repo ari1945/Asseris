@@ -43,7 +43,7 @@ const TYPE_KIND = { Factual: 'blue', Judgmental: 'purple', Projected: 'teal' };
 
 /* aggregate uncorrected effect under rollover (current-year) or
    iron-curtain (cumulative incl. prior-year) method */
-function aggUncorr(method) {
+function aggUncorr(method: any) {
   const inScope = method === 'ironcurtain' ? UNCORR : UNCORR.filter((m: any) => m.origin === 'current');
   const pbt = inScope.reduce((s, m) => s + Math.abs(m.pbt), 0);
   const na = inScope.reduce((s, m) => s + Math.abs(m.na), 0);
@@ -52,7 +52,7 @@ function aggUncorr(method) {
 }
 
 /* SA 450 → severity classification of misstatement */
-function classifyMis(agg, om) {
+function classifyMis(agg: any, om: any) {
   const ratio = Math.max(agg.pbt, agg.na) / om;
   const hasFraud = agg.quals.includes('fraud');
   if (ratio >= 2 || (hasFraud && ratio >= 1)) return { sev: 'pervasive', ratio, reason: ratio >= 2 ? 'Agregat ≥ 2× materialitas — tersebar luas.' : 'Indikasi kecurangan dengan dampak ≥ materialitas.' };
@@ -65,8 +65,8 @@ const SEV_MIS = { none: 0, material: 1, pervasive: 2 };
 const SEV_SCOPE = { sufficient: 0, limited: 1, pervasive: 2 };
 
 /* SA 705 decision logic → {opinion, driver, pervasive} */
-function recommendOpinion({ misSev, scope, gc }) {
-  const ms = SEV_MIS[misSev], ss = SEV_SCOPE[scope];
+function recommendOpinion({ misSev, scope, gc }: any) {
+  const ms = (SEV_MIS as any)[misSev], ss = (SEV_SCOPE as any)[scope];
   // going concern with inadequate disclosure = material misstatement
   const gcMis = gc === 'inadequate' ? 1 : 0;
   const effMis = Math.max(ms, gcMis);
@@ -77,8 +77,8 @@ function recommendOpinion({ misSev, scope, gc }) {
   return { opinion: 'unmodified', driver: null, pervasive: false };
 }
 
-const kindVar = (k) => k === 'green' ? 'var(--green)' : k === 'amber' ? 'var(--amber)' : k === 'red' ? 'var(--red)' : 'var(--blue)';
-const kindBg = (k) => k === 'green' ? 'var(--green-bg)' : k === 'amber' ? 'var(--amber-bg)' : k === 'red' ? 'var(--red-bg)' : 'var(--blue-100)';
+const kindVar = (k: any) => k === 'green' ? 'var(--green)' : k === 'amber' ? 'var(--amber)' : k === 'red' ? 'var(--red)' : 'var(--blue)';
+const kindBg = (k: any) => k === 'green' ? 'var(--green-bg)' : k === 'amber' ? 'var(--amber-bg)' : k === 'red' ? 'var(--red-bg)' : 'var(--blue-100)';
 
 function DocH({ children }: any) {
   return <div style={{ fontWeight: 800, fontSize: 12.5, margin: '0 0 6px' }}>{children}</div>;
@@ -97,13 +97,13 @@ function DeterminationPanel({ doc, patch }: any) {
   const auto = classifyMis(agg, om);
   const misSev = doc.misOverride === 'auto' ? auto.sev : doc.misOverride;
   const rec = recommendOpinion({ misSev, scope: doc.scope, gc: doc.gcStatus });
-  const recO = OPINIONS[rec.opinion];
+  const recO = (OPINIONS as any)[rec.opinion];
 
-  const rp = (n) => 'Rp ' + fmt(n / 1e9, 2) + ' M';
+  const rp = (n: any) => 'Rp ' + fmt(n / 1e9, 2) + ' M';
   const bind = Math.max(agg.pbt, agg.na);
 
   /* SA705 matrix cells */
-  const cell = (driver, perv) => {
+  const cell = (driver: any, perv: any) => {
     const op = driver === 'misstatement' ? (perv ? 'adverse' : 'qualified') : (perv ? 'disclaimer' : 'qualified');
     const active = rec.opinion !== 'unmodified' && rec.driver === driver && rec.pervasive === perv;
     const o = OPINIONS[op];
@@ -138,9 +138,9 @@ function DeterminationPanel({ doc, patch }: any) {
                 <tr key={m.id}>
                   <td className="mono tiny" style={{ fontWeight: 700 }}>{m.id}</td>
                   <td style={{ maxWidth: 230 }}><div style={{ fontSize: 12 }}>{m.desc}</div>
-                    {m.qual.length > 0 && <div className="row gap6" style={{ flexWrap: 'wrap', marginTop: 3 }}>{m.qual.map((q: any) => <span key={q} className="tiny" style={{ color: 'var(--red)', fontWeight: 600 }}>● {QUAL_LABEL[q]}</span>)}</div>}
+                    {m.qual.length > 0 && <div className="row gap6" style={{ flexWrap: 'wrap', marginTop: 3 }}>{m.qual.map((q: any) => <span key={q} className="tiny" style={{ color: 'var(--red)', fontWeight: 600 }}>● {(QUAL_LABEL as any)[q]}</span>)}</div>}
                   </td>
-                  <td style={{ textAlign: 'center' }}><Badge kind={TYPE_KIND[m.type]}>{m.type}</Badge></td>
+                  <td style={{ textAlign: 'center' }}><Badge kind={(TYPE_KIND as any)[m.type]}>{m.type}</Badge></td>
                   <td className="mono" style={{ textAlign: 'right', color: m.pbt ? 'var(--red)' : 'var(--ink-3)' }}>{m.pbt ? rp(m.pbt) : '—'}</td>
                   <td className="mono" style={{ textAlign: 'right', color: m.na ? 'var(--red)' : 'var(--ink-3)' }}>{m.na ? rp(m.na) : '—'}</td>
                 </tr>
@@ -190,7 +190,7 @@ function DeterminationPanel({ doc, patch }: any) {
                 <button key={v} className={doc.misOverride === v ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} onClick={() => patch({ misOverride: v })}>{l}</button>)}
             </div>
             <div className="panel" style={{ marginTop: 7, padding: '7px 9px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
-              <div className="tiny"><b>Auto:</b> {OPINIONS[recommendOpinion({ misSev: auto.sev, scope: 'sufficient', gc: 'none' }).opinion].short !== 'WTM' ? auto.sev.toUpperCase() : 'TIDAK MATERIAL'}</div>
+              <div className="tiny"><b>Auto:</b> {(OPINIONS as any)[recommendOpinion({ misSev: auto.sev, scope: 'sufficient', gc: 'none' }).opinion].short !== 'WTM' ? auto.sev.toUpperCase() : 'TIDAK MATERIAL'}</div>
               <div className="tiny muted" style={{ marginTop: 2 }}>{auto.reason}</div>
             </div>
           </Field>
@@ -207,12 +207,12 @@ function DeterminationPanel({ doc, patch }: any) {
               {[['none', 'Tdk Ada'], ['adequate', 'Layak'], ['mu', 'KU Material'], ['inadequate', 'Tdk Layak']].map(([v, l]) =>
                 <button key={v} className={doc.gcStatus === v ? 'on' : ''} style={{ flex: 1, fontSize: 10.5 }} onClick={() => patch({ gcStatus: v, opts: { ...doc.opts, gc: v === 'mu' } })}>{l}</button>)}
             </div>
-            <div className="tiny muted" style={{ marginTop: 6 }}>{{
+            <div className="tiny muted" style={{ marginTop: 6 }}>{({
               none: 'Tidak terdapat peristiwa/kondisi yang meragukan kelangsungan usaha.',
               adequate: 'Terdapat kondisi namun mitigasi memadai — tanpa paragraf khusus.',
               mu: 'Ketidakpastian material diungkapkan memadai → paragraf KU (opini tidak dimodifikasi).',
               inadequate: 'Pengungkapan tidak memadai → salah saji material (WDP/TW).',
-            }[doc.gcStatus]}</div>
+            } as any)[doc.gcStatus]}</div>
           </Field>
         </Panel>
 
@@ -270,19 +270,19 @@ function OpinionDecisionTree({ doc, patch }: any) {
   const auto = classifyMis(agg, om);
   const misSev = doc.misOverride === 'auto' ? auto.sev : doc.misOverride;
   const rec = recommendOpinion({ misSev, scope: doc.scope, gc: doc.gcStatus });
-  const recO = OPINIONS[rec.opinion];
-  const rp = (n) => 'Rp ' + fmt(n / 1e9, 2) + ' M';
+  const recO = (OPINIONS as any)[rec.opinion];
+  const rp = (n: any) => 'Rp ' + fmt(n / 1e9, 2) + ' M';
   const [basis, setBasis] = useStateOP(doc.opinionBasis || '');
 
-  const tnVar = (t) => t === 'green' ? 'var(--green)' : t === 'amber' ? 'var(--amber)' : 'var(--red)';
-  const tnBg = (t) => t === 'green' ? 'var(--green-bg)' : t === 'amber' ? 'var(--amber-bg)' : 'var(--red-bg)';
+  const tnVar = (t: any) => t === 'green' ? 'var(--green)' : t === 'amber' ? 'var(--amber)' : 'var(--red)';
+  const tnBg = (t: any) => t === 'green' ? 'var(--green-bg)' : t === 'amber' ? 'var(--amber-bg)' : 'var(--red-bg)';
 
   const nodes = [
     {
       q: 'Apakah terdapat salah saji material yang tidak dikoreksi?',
       a: misSev === 'none' ? 'Tidak material' : misSev === 'material' ? 'Material, tidak pervasif' : 'Material & pervasif',
       tone: misSev === 'none' ? 'green' : misSev === 'pervasive' ? 'red' : 'amber',
-      input: `Agregat SAD ${rp(Math.max(agg.pbt, agg.na))} = ${fmt(auto.ratio * 100, 0)}% materialitas keseluruhan${agg.quals.length ? '; faktor kualitatif: ' + agg.quals.map((q: any) => QUAL_LABEL[q]).join(', ') : ''}.`,
+      input: `Agregat SAD ${rp(Math.max(agg.pbt, agg.na))} = ${fmt(auto.ratio * 100, 0)}% materialitas keseluruhan${agg.quals.length ? '; faktor kualitatif: ' + agg.quals.map((q: any) => (QUAL_LABEL as any)[q]).join(', ') : ''}.`,
       sa: 'SA 450 · 705.7–8', ref: 'sad',
     },
     {
@@ -294,7 +294,7 @@ function OpinionDecisionTree({ doc, patch }: any) {
     },
     {
       q: 'Apakah kelangsungan usaha & pengungkapannya memadai?',
-      a: { none: 'Tidak ada indikasi', adequate: 'Memadai', mu: 'KU material — diungkapkan memadai', inadequate: 'Pengungkapan tidak memadai' }[doc.gcStatus],
+      a: ({ none: 'Tidak ada indikasi', adequate: 'Memadai', mu: 'KU material — diungkapkan memadai', inadequate: 'Pengungkapan tidak memadai' } as any)[doc.gcStatus],
       tone: doc.gcStatus === 'inadequate' ? 'red' : doc.gcStatus === 'mu' ? 'amber' : 'green',
       input: 'Penilaian SA 570 atas kondisi, rencana manajemen & kecukupan pengungkapan.',
       sa: 'SA 570', ref: 'goingconcern',
@@ -343,12 +343,12 @@ function OpinionDecisionTree({ doc, patch }: any) {
 
       <div className="opdt-basis">
         <div className="tiny muted upper" style={{ marginBottom: 5 }}>Basis untuk opini — didokumentasikan auditor (SA 230)</div>
-        <textarea className="input" value={basis} onChange={e => setBasis(e.target.value)} placeholder="Catat pertimbangan profesional yang mendasari opini: bagaimana agregat salah saji, kecukupan bukti, dan going concern dievaluasi terhadap materialitas…" style={{ width: '100%', height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
+        <textarea className="input" value={basis} onChange={(e: any) => setBasis(e.target.value)} placeholder="Catat pertimbangan profesional yang mendasari opini: bagaimana agregat salah saji, kecukupan bukti, dan going concern dievaluasi terhadap materialitas…" style={{ width: '100%', height: 70, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
         {recorded && !stale ? (
           <div className="opdt-recorded">
             <I.checkCircle size={14} />
             <div style={{ flex: 1 }}>
-              <div>Basis opini <b>{OPINIONS[recorded.opinion].short}</b> dicatat oleh <b>{recorded.who}</b> · {recorded.when}</div>
+              <div>Basis opini <b>{(OPINIONS as any)[recorded.opinion].short}</b> dicatat oleh <b>{recorded.who}</b> · {recorded.when}</div>
               <div className="opdt-trace"><I.lock size={9} /> tercatat ke jejak audit · dapat diperbarui bila pertimbangan berubah</div>
             </div>
             <Btn sm onClick={record}><I.sync size={12} /> Perbarui</Btn>
@@ -373,16 +373,16 @@ function KAMWorkshop({ doc, patch }: any) {
   const usedRisks = new Set(doc.kams.map((k: any) => k.risk).filter(Boolean));
   const [open, setOpen] = useStateOP(doc.kams[0]?.id || null);
 
-  const setKams = (fn) => patch({ kams: fn(doc.kams) });
-  const update = (id, p) => setKams(ks => ks.map((k: any) => k.id === id ? { ...k, ...p } : k));
-  const remove = (id) => setKams(ks => ks.filter((k: any) => k.id !== id));
-  const move = (id, dir) => setKams(ks => { const i = ks.indexOf(ks.find((k: any) => k.id === id)); const j = i + dir; if (j < 0 || j >= ks.length) return ks; const n = [...ks]; [n[i], n[j]] = [n[j], n[i]]; return n; });
-  const promote = (r) => {
+  const setKams = (fn: any) => patch({ kams: fn(doc.kams) });
+  const update = (id: any, p: any) => setKams((ks: any) => ks.map((k: any) => k.id === id ? { ...k, ...p } : k));
+  const remove = (id: any) => setKams((ks: any) => ks.filter((k: any) => k.id !== id));
+  const move = (id: any, dir: any) => setKams((ks: any) => { const i = ks.indexOf(ks.find((k: any) => k.id === id)); const j = i + dir; if (j < 0 || j >= ks.length) return ks; const n = [...ks]; [n[i], n[j]] = [n[j], n[i]]; return n; });
+  const promote = (r: any) => {
     const id = 'k' + Date.now();
-    setKams(ks => [...ks, { id, risk: r.id, title: r.area, why: `Risiko signifikan ${r.id}: ${r.desc} (asersi: ${r.assertion}).`, how: 'Uraikan prosedur audit yang dirancang untuk menanggapi risiko ini.', wpRef: '' }]);
+    setKams((ks: any) => [...ks, { id, risk: r.id, title: r.area, why: `Risiko signifikan ${r.id}: ${r.desc} (asersi: ${r.assertion}).`, how: 'Uraikan prosedur audit yang dirancang untuk menanggapi risiko ini.', wpRef: '' }]);
     setOpen(id);
   };
-  const addBlank = () => { const id = 'k' + Date.now(); setKams(ks => [...ks, { id, risk: null, title: 'Hal Audit Utama Baru', why: '', how: '', wpRef: '' }]); setOpen(id); };
+  const addBlank = () => { const id = 'k' + Date.now(); setKams((ks: any) => [...ks, { id, risk: null, title: 'Hal Audit Utama Baru', why: '', how: '', wpRef: '' }]); setOpen(id); };
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
@@ -409,7 +409,7 @@ function KAMWorkshop({ doc, patch }: any) {
         actions={<Btn sm onClick={addBlank}><I.plus size={13} /> KAM Manual</Btn>}>
         {doc.kams.length === 0 && <div className="tiny muted" style={{ padding: '18px 0', textAlign: 'center' }}>Belum ada KAM. Promosikan risiko signifikan dari kiri atau tambah manual.</div>}
         <div style={{ display: 'grid', gap: 9 }}>
-          {doc.kams.map((k, i) => (
+          {doc.kams.map((k: any, i: any) => (
             <div key={k.id} className="panel" style={{ padding: 0, overflow: 'hidden' }}>
               <div className="row ac gap8" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderBottom: open === k.id ? '1px solid var(--line)' : 0 }}>
                 <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{i + 1}</span>
@@ -423,13 +423,13 @@ function KAMWorkshop({ doc, patch }: any) {
               {open === k.id && (
                 <div style={{ padding: 11, display: 'grid', gap: 9 }}>
                   <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Judul KAM</div>
-                    <input className="input" style={{ width: '100%' }} value={k.title} onChange={e => update(k.id, { title: e.target.value })} /></div>
+                    <input className="input" style={{ width: '100%' }} value={k.title} onChange={(e: any) => update(k.id, { title: e.target.value })} /></div>
                   <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Mengapa merupakan hal yang paling signifikan</div>
-                    <textarea className="input" value={k.why} onChange={e => update(k.id, { why: e.target.value })} style={{ height: 64, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} /></div>
+                    <textarea className="input" value={k.why} onChange={(e: any) => update(k.id, { why: e.target.value })} style={{ height: 64, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} /></div>
                   <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Bagaimana hal tersebut ditangani dalam audit</div>
-                    <textarea className="input" value={k.how} onChange={e => update(k.id, { how: e.target.value })} style={{ height: 76, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} /></div>
+                    <textarea className="input" value={k.how} onChange={(e: any) => update(k.id, { how: e.target.value })} style={{ height: 76, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} /></div>
                   <div style={{ width: 220 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Referensi Kertas Kerja</div>
-                    <input className="input" style={{ width: '100%' }} placeholder="mis. C-300 · E-210" value={k.wpRef} onChange={e => update(k.id, { wpRef: e.target.value })} /></div>
+                    <input className="input" style={{ width: '100%' }} placeholder="mis. C-300 · E-210" value={k.wpRef} onChange={(e: any) => update(k.id, { wpRef: e.target.value })} /></div>
                 </div>
               )}
             </div>
@@ -456,7 +456,7 @@ function OpinionSignoff({ doc, patch }: any) {
   // W7 — issuing the auditor's opinion requires opinion.approve (Engagement Partner; server-enforced).
   const canApprove = !auth || typeof auth.can !== 'function' || auth.can(CAP.OPINION_APPROVE);
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
-  const o = OPINIONS[doc.type];
+  const o = (OPINIONS as any)[doc.type];
   const eqrRequired = !!activeClient?.listed;
   const today = '2026-03-14';
 
@@ -480,11 +480,11 @@ function OpinionSignoff({ doc, patch }: any) {
     { id: 'repdate', label: 'Surat representasi manajemen diterima' },
     { id: 'tcwg', label: 'Komunikasi TCWG diselesaikan (SA 260)' },
   ];
-  const tickManual = (id) => patch({ checklist: { ...doc.checklist, [id]: !doc.checklist[id] } });
+  const tickManual = (id: any) => patch({ checklist: { ...doc.checklist, [id]: !doc.checklist[id] } });
   const autoDone = autoChecks.every((c: any) => c.ok || c.na);
   const manualDone = manualChecks.every((c: any) => doc.checklist[c.id]);
 
-  const sign = (role) => {
+  const sign = (role: any) => {
     const next = doc.signoff[role] ? null : { date: today };
     patch({ signoff: { ...doc.signoff, [role]: next } });
     /* mirror ke chain kanonik wpState['900']: manager→reviewer, partner→partner, eqr→eqr */

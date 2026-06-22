@@ -189,7 +189,7 @@ function F701Register() {
 }
 
 /* ---------------- Tab: Penyajian Laporan ---------------- */
-function F701Report({ client }) {
+function F701Report({ client }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>

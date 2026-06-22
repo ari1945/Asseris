@@ -168,7 +168,7 @@ function F2400Continuum() {
 
 /* ---------------- Tab: Prosedur Reviu ---------------- */
 function F2400Proc() {
-  const tk = t => t === 'Analitis' ? 'purple' : 'teal';
+  const tk = (t: any) => t === 'Analitis' ? 'purple' : 'teal';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -214,7 +214,7 @@ function F2400Proc() {
   );
 }
 
-function NavRow2400({ to, label }) {
+function NavRow2400({ to, label }: any) {
   const nav = useNav();
   return (
     <div onClick={() => nav(to)} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7, cursor: 'pointer' }}>

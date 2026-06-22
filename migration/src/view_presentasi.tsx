@@ -32,10 +32,10 @@ const PR_PHASES = [
 const PR_SEV = { Significant: { l: 'Signifikan', c: 'var(--red)', bg: 'var(--red-bg)' }, Deficiency: { l: 'Defisiensi', c: 'var(--amber)', bg: 'var(--amber-bg)' }, Observation: { l: 'Observasi', c: 'var(--blue)', bg: 'var(--blue-100)' } };
 
 /* ---------- ambil data hidup ---------- */
-function prLoadLS(key, fb) {
+function prLoadLS(key: any, fb: any) {
   try { const s = localStorage.getItem('ams.v1.' + key); return s != null ? JSON.parse(s) : fb; } catch (e) { return fb; }
 }
-function prData(firm) {
+function prData(firm: any) {
   const CANON: any = AMS_CANON || {};
   const eng = firm.activeEngagement || {};
   const client = firm.activeClient || {};
@@ -44,25 +44,25 @@ function prData(firm) {
   let mat = {};
   try { mat = CANON.materiality ? CANON.materiality({ engMateriality: eng.materiality }) : {}; } catch (e) { mat = {}; }
 
-  const risks = ((AMS as any).RISKS || []).filter(r => r.inherent === 'Significant');
-  const pbc = ((AMS as any).PBC_REQUESTS || []).filter(p => !eng.id || p.eng === eng.id);
-  const pbcBy = pbc.reduce((m, p) => { m[p.status] = (m[p.status] || 0) + 1; return m; }, {});
+  const risks = ((AMS as any).RISKS || []).filter((r: any) => r.inherent === 'Significant');
+  const pbc = ((AMS as any).PBC_REQUESTS || []).filter((p: any) => !eng.id || p.eng === eng.id);
+  const pbcBy = pbc.reduce((m: any, p: any) => { m[p.status] = (m[p.status] || 0) + 1; return m; }, {});
 
   const seed = (typeof ML_FINDINGS_SEED !== 'undefined') ? ML_FINDINGS_SEED : [];
   const findings = prLoadLS('mgmtletter.findings.v2', seed) || seed;
-  const finalF = findings.filter(f => f.stage === 'final');
+  const finalF = findings.filter((f: any) => f.stage === 'final');
   const finSummary = {
     total: findings.length,
     final: finalF.length,
-    sig: finalF.filter(f => f.sev === 'Significant').length,
-    def: finalF.filter(f => f.sev === 'Deficiency').length,
-    obs: finalF.filter(f => f.sev === 'Observation').length,
-    tuntas: findings.filter(f => f.stage === 'tuntas').length,
-    diskusi: findings.filter(f => f.stage === 'diskusi' || f.stage === 'draft').length,
+    sig: finalF.filter((f: any) => f.sev === 'Significant').length,
+    def: finalF.filter((f: any) => f.sev === 'Deficiency').length,
+    obs: finalF.filter((f: any) => f.sev === 'Observation').length,
+    tuntas: findings.filter((f: any) => f.stage === 'tuntas').length,
+    diskusi: findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length,
   };
   /* urut keparahan: Significant → Deficiency → Observation */
   const sevRank = { Significant: 0, Deficiency: 1, Observation: 2 };
-  const finalSorted = [...finalF].sort((a, b) => (sevRank[a.sev] - sevRank[b.sev]));
+  const finalSorted = [...finalF].sort((a, b) => ((sevRank as any)[a.sev] - (sevRank as any)[b.sev]));
 
   const opDoc = prLoadLS('opinionDoc.' + engId, null);
   const opType = opDoc?.type || 'unmodified';
@@ -81,8 +81,8 @@ function prData(firm) {
   return { AMS, eng, client, mat, risks, pbc, pbcBy, findings, finalSorted, finSummary, op, opType, kamCount, opFinal, reportDate, aje, ajePosted, ajeProposed, team };
 }
 
-const prRp = (n) => (AMS && AMS.rp) ? AMS.rp(n) : ('Rp ' + (n || 0).toLocaleString('id-ID'));
-const prDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return d; } };
+const prRp = (n: any) => (AMS && AMS.rp) ? AMS.rp(n) : ('Rp ' + (n || 0).toLocaleString('id-ID'));
+const prDate = (d: any) => { try { return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return d; } };
 
 /* ============================================================
    PRIMITIF SLIDE
@@ -90,8 +90,8 @@ const prDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { d
 function PRSlide({ children, bg }: any) {
   return <div className="pr-slide" style={{ background: bg || '#fff' }}>{children}</div>;
 }
-function PRKicker({ phase }) {
-  const Ico = (I && I[phase.icon]) || (() => null);
+function PRKicker({ phase }: any) {
+  const Ico = (I && (I as any)[phase.icon]) || ((): any => null);
   return (
     <div className="pr-kicker" style={{ color: phase.color }}>
       <span className="pr-kicker-ico" style={{ background: phase.color }}><Ico size={17} /></span>
@@ -100,7 +100,7 @@ function PRKicker({ phase }) {
     </div>
   );
 }
-function PRFoot({ data, n, total }) {
+function PRFoot({ data, n, total }: any) {
   return (
     <div className="pr-foot">
       <span>{((AMS as any)?.FIRM?.name) || 'KAP'}</span>
@@ -122,7 +122,7 @@ function PRStat({ label, value, sub, color }: any) {
 /* ============================================================
    SLIDE: SAMPUL & PEMBATAS FASE
    ============================================================ */
-function PRCover({ data }) {
+function PRCover({ data }: any) {
   return (
     <PRSlide bg="var(--navy)">
       <div className="pr-cover">
@@ -154,8 +154,8 @@ function PRCover({ data }) {
     </PRSlide>
   );
 }
-function PRSection({ phase, headline, points }) {
-  const Ico = (I && I[phase.icon]) || (() => null);
+function PRSection({ phase, headline, points }: any) {
+  const Ico = (I && (I as any)[phase.icon]) || ((): any => null);
   return (
     <PRSlide bg="var(--navy)">
       <div className="pr-section">
@@ -164,7 +164,7 @@ function PRSection({ phase, headline, points }) {
           <div className="pr-section-tag"><span className="pr-section-ico" style={{ background: phase.color }}><Ico size={20} /></span>{phase.sub}</div>
           <h2 className="pr-section-h">{headline}</h2>
           <ul className="pr-section-list">
-            {points.map((p, i) => <li key={i}><span style={{ color: phase.color }}>—</span> {p}</li>)}
+            {points.map((p: any, i: any) => <li key={i}><span style={{ color: phase.color }}>—</span> {p}</li>)}
           </ul>
         </div>
       </div>
@@ -175,7 +175,7 @@ function PRSection({ phase, headline, points }) {
 /* ============================================================
    FASE 1 — RAPAT PEMBUKAAN
    ============================================================ */
-function PRScope({ data, n, total }) {
+function PRScope({ data, n, total }: any) {
   const ph = PR_PHASES[0], e = data.eng;
   const rows = [
     ['Entitas', data.client?.name], ['Jenis Perikatan', e?.type], ['Periode', e?.fy + ' · berakhir 31 Des 2025'],
@@ -197,9 +197,9 @@ function PRScope({ data, n, total }) {
           <div className="pr-card">
             <div className="pr-card-h">Tim Audit</div>
             <div className="pr-team">
-              {data.team.map((t, i) => (
+              {data.team.map((t: any, i: any) => (
                 <div key={i} className="pr-team-row">
-                  <span className="pr-ava">{t.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</span>
+                  <span className="pr-ava">{t.name.split(' ').map((w: any) => w[0]).slice(0, 2).join('')}</span>
                   <div><div className="pr-team-n">{t.name}</div><div className="pr-team-r">{t.role}</div></div>
                 </div>
               ))}
@@ -215,7 +215,7 @@ function PRScope({ data, n, total }) {
     </PRSlide>
   );
 }
-function PRMateriality({ data, n, total }) {
+function PRMateriality({ data, n, total }: any) {
   const ph = PR_PHASES[0], m = data.mat;
   return (
     <PRSlide>
@@ -251,7 +251,7 @@ function PRMateriality({ data, n, total }) {
     </PRSlide>
   );
 }
-function PRRisks({ data, n, total }) {
+function PRRisks({ data, n, total }: any) {
   const ph = PR_PHASES[0];
   return (
     <PRSlide>
@@ -260,7 +260,7 @@ function PRRisks({ data, n, total }) {
         <h2 className="pr-h">Area Berisiko Signifikan</h2>
         <p className="pr-lede">Kami memfokuskan upaya audit pada {data.risks.length} area berikut. Transparansi sejak awal membantu manajemen menyiapkan dukungan yang relevan.</p>
         <div className="pr-risk-grid">
-          {data.risks.slice(0, 4).map((r, i) => (
+          {data.risks.slice(0, 4).map((r: any, i: any) => (
             <div key={r.id} className="pr-risk">
               <div className="pr-risk-top">
                 <span className="pr-risk-area">{r.area}</span>
@@ -277,12 +277,12 @@ function PRRisks({ data, n, total }) {
     </PRSlide>
   );
 }
-function PRPbc({ data, n, total }) {
+function PRPbc({ data, n, total }: any) {
   const ph = PR_PHASES[0];
   const order = ['Diterima', 'Direviu', 'Diminta', 'Terlambat'];
   const labels = { Diterima: 'Diterima', Direviu: 'Direviu', Diminta: 'Menunggu', Terlambat: 'Terlambat' };
   const colors = { Diterima: 'var(--blue)', Direviu: 'var(--green)', Diminta: 'var(--ink-3)', Terlambat: 'var(--red)' };
-  const cats = [...new Set(data.pbc.map(p => p.cat))];
+  const cats = [...new Set(data.pbc.map((p: any) => p.cat))];
   return (
     <PRSlide>
       <div className="pr-pad">
@@ -290,7 +290,7 @@ function PRPbc({ data, n, total }) {
         <h2 className="pr-h">Kebutuhan Data Klien (PBC)</h2>
         <p className="pr-lede">Seluruh permintaan dokumen dikelola di <b>Portal Klien</b> — terlacak, aman, dan terhubung langsung ke kertas kerja. Status saat ini:</p>
         <div className="pr-stat-row">
-          {order.map(s => <PRStat key={s} label={labels[s]} value={data.pbcBy[s] || 0} color={colors[s]} />)}
+          {order.map(s => <PRStat key={s} label={(labels as any)[s]} value={data.pbcBy[s] || 0} color={(colors as any)[s]} />)}
           <PRStat label="Total Permintaan" value={data.pbc.length} color="var(--navy)" />
         </div>
         <div className="pr-card" style={{ marginTop: 26 }}>
@@ -311,7 +311,7 @@ function PRPbc({ data, n, total }) {
 /* ============================================================
    FASE 2 — PENYAMPAIAN TEMUAN
    ============================================================ */
-function PRFindingsSummary({ data, n, total }) {
+function PRFindingsSummary({ data, n, total }: any) {
   const ph = PR_PHASES[1], s = data.finSummary;
   return (
     <PRSlide>
@@ -338,9 +338,9 @@ function PRFindingsSummary({ data, n, total }) {
     </PRSlide>
   );
 }
-function PRFinding({ data, f, idx, count, n, total }) {
+function PRFinding({ data, f, idx, count, n, total }: any) {
   const ph = PR_PHASES[1];
-  const sev = PR_SEV[f.sev] || PR_SEV.Observation;
+  const sev = (PR_SEV as any)[f.sev] || PR_SEV.Observation;
   return (
     <PRSlide>
       <div className="pr-pad">
@@ -377,9 +377,9 @@ function PRFinding({ data, f, idx, count, n, total }) {
 /* ============================================================
    FASE 3 — HASIL AKHIR & OPINI
    ============================================================ */
-function PROpinion({ data, n, total }) {
+function PROpinion({ data, n, total }: any) {
   const ph = PR_PHASES[2];
-  const kindCol = { green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)' }[data.op.k] || 'var(--green)';
+  const kindCol = ({ green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)' } as any)[data.op.k] || 'var(--green)';
   return (
     <PRSlide>
       <div className="pr-pad">
@@ -406,7 +406,7 @@ function PROpinion({ data, n, total }) {
     </PRSlide>
   );
 }
-function PRAdjustments({ data, n, total }) {
+function PRAdjustments({ data, n, total }: any) {
   const ph = PR_PHASES[2];
   return (
     <PRSlide>
@@ -424,7 +424,7 @@ function PRAdjustments({ data, n, total }) {
           <table className="pr-table">
             <thead><tr><th>Ref</th><th>Uraian</th><th>Status</th><th className="pr-r">Nilai</th></tr></thead>
             <tbody>
-              {data.aje.map(a => (
+              {data.aje.map((a: any) => (
                 <tr key={a.id}>
                   <td className="pr-mono">{a.id}</td>
                   <td>{a.desc}</td>
@@ -440,7 +440,7 @@ function PRAdjustments({ data, n, total }) {
     </PRSlide>
   );
 }
-function PRNext({ data, n, total }) {
+function PRNext({ data, n, total }: any) {
   const ph = PR_PHASES[2];
   const steps = [
     ['Surat Representasi', 'Manajemen menandatangani surat representasi tertulis (SA 580) sebelum penerbitan laporan.'],
@@ -473,34 +473,34 @@ function PRNext({ data, n, total }) {
 /* ============================================================
    PEMBANGUN DAFTAR SLIDE
    ============================================================ */
-function prBuildSlides(data) {
-  const list = [];
-  const push = (key, phase, title, el) => list.push({ key, phase, title, el });
-  push('cover', null, 'Sampul', (n, t) => <PRCover data={data} />);
-  push('sec-p1', 'p1', 'Pembatas — Rapat Pembukaan', (n, t) => <PRSection phase={PR_PHASES[0]} headline="Menyepakati ruang lingkup, fokus risiko, dan kebutuhan data" points={['Ruang lingkup, periode, dan tim perikatan', 'Materialitas dan pendekatan berbasis risiko', 'Area berisiko signifikan yang menjadi fokus', 'Daftar kebutuhan dokumen klien (PBC)']} />);
-  push('scope', 'p1', 'Ruang Lingkup & Tim', (n, t) => <PRScope data={data} n={n} total={t} />);
-  push('materiality', 'p1', 'Materialitas & Pendekatan', (n, t) => <PRMateriality data={data} n={n} total={t} />);
-  push('risks', 'p1', 'Area Berisiko Signifikan', (n, t) => <PRRisks data={data} n={n} total={t} />);
-  push('pbc', 'p1', 'Kebutuhan Data (PBC)', (n, t) => <PRPbc data={data} n={n} total={t} />);
+function prBuildSlides(data: any) {
+  const list: any[] = [];
+  const push = (key: any, phase: any, title: any, el: any) => list.push({ key, phase, title, el });
+  push('cover', null, 'Sampul', (n: any, t: any) => <PRCover data={data} />);
+  push('sec-p1', 'p1', 'Pembatas — Rapat Pembukaan', (n: any, t: any) => <PRSection phase={PR_PHASES[0]} headline="Menyepakati ruang lingkup, fokus risiko, dan kebutuhan data" points={['Ruang lingkup, periode, dan tim perikatan', 'Materialitas dan pendekatan berbasis risiko', 'Area berisiko signifikan yang menjadi fokus', 'Daftar kebutuhan dokumen klien (PBC)']} />);
+  push('scope', 'p1', 'Ruang Lingkup & Tim', (n: any, t: any) => <PRScope data={data} n={n} total={t} />);
+  push('materiality', 'p1', 'Materialitas & Pendekatan', (n: any, t: any) => <PRMateriality data={data} n={n} total={t} />);
+  push('risks', 'p1', 'Area Berisiko Signifikan', (n: any, t: any) => <PRRisks data={data} n={n} total={t} />);
+  push('pbc', 'p1', 'Kebutuhan Data (PBC)', (n: any, t: any) => <PRPbc data={data} n={n} total={t} />);
 
-  push('sec-p2', 'p2', 'Pembatas — Penyampaian Temuan', (n, t) => <PRSection phase={PR_PHASES[1]} headline="Menyampaikan temuan secara terbuka dan terdokumentasi" points={['Ringkasan temuan menurut tingkat keparahan', 'Pembahasan rinci tiap temuan signifikan', 'Tanggapan dan rencana tindak lanjut manajemen']} />);
-  push('find-summary', 'p2', 'Ringkasan Temuan', (n, t) => <PRFindingsSummary data={data} n={n} total={t} />);
-  data.finalSorted.forEach((f, i) => push('find-' + f.id, 'p2', 'Temuan: ' + f.title, (n, t) => <PRFinding data={data} f={f} idx={prFindOrder(data, f.id)} count={prIncludedFindingCount(data)} n={n} total={t} />));
+  push('sec-p2', 'p2', 'Pembatas — Penyampaian Temuan', (n: any, t: any) => <PRSection phase={PR_PHASES[1]} headline="Menyampaikan temuan secara terbuka dan terdokumentasi" points={['Ringkasan temuan menurut tingkat keparahan', 'Pembahasan rinci tiap temuan signifikan', 'Tanggapan dan rencana tindak lanjut manajemen']} />);
+  push('find-summary', 'p2', 'Ringkasan Temuan', (n: any, t: any) => <PRFindingsSummary data={data} n={n} total={t} />);
+  data.finalSorted.forEach((f: any, i: any) => push('find-' + f.id, 'p2', 'Temuan: ' + f.title, (n: any, t: any) => <PRFinding data={data} f={f} idx={prFindOrder(data, f.id)} count={prIncludedFindingCount(data)} n={n} total={t} />));
 
-  push('sec-p3', 'p3', 'Pembatas — Hasil Akhir', (n, t) => <PRSection phase={PR_PHASES[2]} headline="Menyimpulkan hasil audit dan langkah finalisasi" points={['Opini audit dan dasarnya', 'Penyesuaian disepakati dan selisih audit', 'Langkah finalisasi dan tindak lanjut']} />);
-  push('opinion', 'p3', 'Opini Audit', (n, t) => <PROpinion data={data} n={n} total={t} />);
-  push('adjustments', 'p3', 'Penyesuaian & Selisih', (n, t) => <PRAdjustments data={data} n={n} total={t} />);
-  push('next', 'p3', 'Penutup & Langkah Selanjutnya', (n, t) => <PRNext data={data} n={n} total={t} />);
+  push('sec-p3', 'p3', 'Pembatas — Hasil Akhir', (n: any, t: any) => <PRSection phase={PR_PHASES[2]} headline="Menyimpulkan hasil audit dan langkah finalisasi" points={['Opini audit dan dasarnya', 'Penyesuaian disepakati dan selisih audit', 'Langkah finalisasi dan tindak lanjut']} />);
+  push('opinion', 'p3', 'Opini Audit', (n: any, t: any) => <PROpinion data={data} n={n} total={t} />);
+  push('adjustments', 'p3', 'Penyesuaian & Selisih', (n: any, t: any) => <PRAdjustments data={data} n={n} total={t} />);
+  push('next', 'p3', 'Penutup & Langkah Selanjutnya', (n: any, t: any) => <PRNext data={data} n={n} total={t} />);
   return list;
 }
 /* nomor & jumlah temuan disesuaikan dengan yang aktif (terpilih) — diisi runtime */
-let PR_ACTIVE_FINDINGS = null;
-function prFindOrder(data, id) {
-  const arr = PR_ACTIVE_FINDINGS || data.finalSorted.map(f => f.id);
+let PR_ACTIVE_FINDINGS: any = null;
+function prFindOrder(data: any, id: any) {
+  const arr = PR_ACTIVE_FINDINGS || data.finalSorted.map((f: any) => f.id);
   const i = arr.indexOf(id); return (i < 0 ? 0 : i) + 1;
 }
-function prIncludedFindingCount(data) {
-  return (PR_ACTIVE_FINDINGS || data.finalSorted.map(f => f.id)).length;
+function prIncludedFindingCount(data: any) {
+  return (PR_ACTIVE_FINDINGS || data.finalSorted.map((f: any) => f.id)).length;
 }
 
 /* ============================================================
@@ -513,11 +513,11 @@ function PresentasiKlien() {
   const allSlides = useMemoPR(() => prBuildSlides(data), [data]);
 
   const [included, setIncluded] = useStatePR(() => prLoadLS('presentasi.included', {}) || {});
-  const setInc = (next) => setIncluded(() => { try { localStorage.setItem('ams.v1.presentasi.included', JSON.stringify(next)); } catch (e) {} return next; });
-  const slides = useMemoPR(() => { const f = allSlides.filter(s => included[s.key] !== false); return f.length ? f : allSlides; }, [allSlides, included]);
+  const setInc = (next: any) => setIncluded(() => { try { localStorage.setItem('ams.v1.presentasi.included', JSON.stringify(next)); } catch (e) {} return next; });
+  const slides = useMemoPR(() => { const f = allSlides.filter((s: any) => included[s.key] !== false); return f.length ? f : allSlides; }, [allSlides, included]);
   const total = slides.length;
   /* penomoran & jumlah temuan mengikuti yang terpilih */
-  PR_ACTIVE_FINDINGS = slides.filter(s => s.key.indexOf('find-') === 0 && s.key !== 'find-summary').map(s => s.key.slice(5));
+  PR_ACTIVE_FINDINGS = slides.filter((s: any) => s.key.indexOf('find-') === 0 && s.key !== 'find-summary').map((s: any) => s.key.slice(5));
 
   const [idx, setIdx] = useStatePR(() => {
     const v = parseInt(prLoadLS('presentasi.idx', 0), 10); return isNaN(v) ? 0 : Math.max(0, Math.min(v, total - 1));
@@ -526,23 +526,23 @@ function PresentasiKlien() {
   const [cfg, setCfg] = useStatePR(false);
 
   /* jaga idx tetap valid saat jumlah slide berubah */
-  useEffectPR(() => { setIdx(i => Math.max(0, Math.min(i, total - 1))); }, [total]);
+  useEffectPR(() => { setIdx((i: any) => Math.max(0, Math.min(i, total - 1))); }, [total]);
 
   /* grup untuk panel "Susun" */
   const cfgGroups = useMemoPR(() => [
-    { id: 'intro', label: 'Pembuka', color: 'var(--navy)', items: allSlides.filter(s => s.phase === null) },
-    { id: 'p1', label: '01 · Rapat Pembukaan', color: PR_PHASES[0].color, items: allSlides.filter(s => s.phase === 'p1') },
-    { id: 'p2', label: '02 · Penyampaian Temuan', color: PR_PHASES[1].color, items: allSlides.filter(s => s.phase === 'p2') },
-    { id: 'p3', label: '03 · Pembahasan Hasil Akhir', color: PR_PHASES[2].color, items: allSlides.filter(s => s.phase === 'p3') },
+    { id: 'intro', label: 'Pembuka', color: 'var(--navy)', items: allSlides.filter((s: any) => s.phase === null) },
+    { id: 'p1', label: '01 · Rapat Pembukaan', color: PR_PHASES[0].color, items: allSlides.filter((s: any) => s.phase === 'p1') },
+    { id: 'p2', label: '02 · Penyampaian Temuan', color: PR_PHASES[1].color, items: allSlides.filter((s: any) => s.phase === 'p2') },
+    { id: 'p3', label: '03 · Pembahasan Hasil Akhir', color: PR_PHASES[2].color, items: allSlides.filter((s: any) => s.phase === 'p3') },
   ], [allSlides]);
-  const toggleKey = (k) => setInc(Object.assign({}, included, { [k]: included[k] === false ? true : false }));
-  const setGroupOn = (items, on) => { const next = Object.assign({}, included); items.forEach(it => { next[it.key] = on; }); setInc(next); };
-  const activeCount = allSlides.filter(s => included[s.key] !== false).length;
+  const toggleKey = (k: any) => setInc(Object.assign({}, included, { [k]: included[k] === false ? true : false }));
+  const setGroupOn = (items: any, on: any) => { const next = Object.assign({}, included); items.forEach((it: any) => { next[it.key] = on; }); setInc(next); };
+  const activeCount = allSlides.filter((s: any) => included[s.key] !== false).length;
   const frameRef = useRefPR(null);
   const [scale, setScale] = useStatePR(0.5);
 
-  const go = useCallbackPR((d) => setIdx(i => { const v = Math.max(0, Math.min(total - 1, i + d)); try { localStorage.setItem('ams.v1.presentasi.idx', JSON.stringify(v)); } catch (e) {} return v; }), [total]);
-  const jump = useCallbackPR((v) => setIdx(() => { const x = Math.max(0, Math.min(total - 1, v)); try { localStorage.setItem('ams.v1.presentasi.idx', JSON.stringify(x)); } catch (e) {} return x; }), [total]);
+  const go = useCallbackPR((d: any) => setIdx((i: any) => { const v = Math.max(0, Math.min(total - 1, i + d)); try { localStorage.setItem('ams.v1.presentasi.idx', JSON.stringify(v)); } catch (e) {} return v; }), [total]);
+  const jump = useCallbackPR((v: any) => setIdx(() => { const x = Math.max(0, Math.min(total - 1, v)); try { localStorage.setItem('ams.v1.presentasi.idx', JSON.stringify(x)); } catch (e) {} return x; }), [total]);
 
   /* re-scale slide to frame width */
   useEffectPR(() => {
@@ -559,12 +559,12 @@ function PresentasiKlien() {
 
   /* keyboard nav */
   useEffectPR(() => {
-    const onKey = (e) => {
+    const onKey = (e: any) => {
       if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
       if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
       else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
       else if (e.key === 'Escape' && fs) { setFs(false); }
-      else if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey) { setFs(v => !v); }
+      else if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey) { setFs((v: any) => !v); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -603,7 +603,7 @@ function PresentasiKlien() {
           <div className="pr-controls">
             <div className="pr-controls-l">
               {PR_PHASES.map(p => {
-                const first = slides.findIndex(s => s.phase === p.id);
+                const first = slides.findIndex((s: any) => s.phase === p.id);
                 const isActive = phase && phase.id === p.id;
                 return (
                   <button key={p.id} className={'pr-phasebtn' + (isActive ? ' is-active' : '')} style={isActive ? { borderColor: p.color, color: p.color } : null} disabled={first < 0} onClick={() => first >= 0 && jump(first)}>
@@ -619,7 +619,7 @@ function PresentasiKlien() {
             </div>
           </div>
           <div className="pr-dots">
-            {slides.map((s, i) => {
+            {slides.map((s: any, i: any) => {
               const c = s.phase ? (PR_PHASES.find(p => p.id === s.phase) || {}).color : 'var(--navy)';
               return <span key={i} role="button" className={'pr-dot' + (i === idx ? ' is-on' : '')} style={i === idx ? { background: c, borderColor: c } : null} onClick={() => jump(i)} title={'Slide ' + (i + 1)} />;
             })}
@@ -629,7 +629,7 @@ function PresentasiKlien() {
 
       {cfg && (
         <div className="pr-cfg-backdrop" onClick={() => setCfg(false)}>
-          <div className="pr-cfg" onClick={(e) => e.stopPropagation()}>
+          <div className="pr-cfg" onClick={(e: any) => e.stopPropagation()}>
             <div className="pr-cfg-head">
               <div>
                 <div className="pr-cfg-title">Susun Presentasi</div>
@@ -638,8 +638,8 @@ function PresentasiKlien() {
               <button className="pr-cfg-x" onClick={() => setCfg(false)}><I.x size={16} /></button>
             </div>
             <div className="pr-cfg-body">
-              {cfgGroups.map(g => {
-                const onCount = g.items.filter(it => included[it.key] !== false).length;
+              {cfgGroups.map((g: any) => {
+                const onCount = g.items.filter((it: any) => included[it.key] !== false).length;
                 const allOn = onCount === g.items.length;
                 return (
                   <div key={g.id} className="pr-cfg-group">
@@ -650,7 +650,7 @@ function PresentasiKlien() {
                       <button className="pr-cfg-gtoggle" onClick={() => setGroupOn(g.items, !allOn)}>{allOn ? 'Kosongkan' : 'Pilih semua'}</button>
                     </div>
                     <div className="pr-cfg-items">
-                      {g.items.map(it => {
+                      {g.items.map((it: any) => {
                         const on = included[it.key] !== false;
                         return (
                           <button key={it.key} className={'pr-cfg-item' + (on ? ' is-on' : '')} onClick={() => toggleKey(it.key)}>

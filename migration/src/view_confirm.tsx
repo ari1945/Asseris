@@ -15,7 +15,7 @@ import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWor
 const { useState: useStateCF } = React;
 
 /* ---------- enriched detail rail (Register tab) ---------- */
-function CfDetailPanel(props) {
+function CfDetailPanel(props: any) {
   const { sel, recon, setRecon, altChecks, setAltChecks, relChecks, setRelChecks, onMarkReceived, onResolveRecon, onResolveAlt } = props;
   const { fmt } = AMS;
   if (!sel) return null;
@@ -27,9 +27,9 @@ function CfDetailPanel(props) {
       <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '13px 15px' }}>
         <div className="row ac gap8" style={{ marginBottom: 4 }}>
           <span className="mono" style={{ fontWeight: 700 }}>{sel.id}</span>
-          <Badge kind={CONF_TYPES[sel.type].k}>{sel.type}</Badge>
+          <Badge kind={(CONF_TYPES as any)[sel.type].k}>{sel.type}</Badge>
           <div style={{ flex: 1 }} />
-          <Badge kind={STATUS_KIND[sel.status]}>{sel.status}</Badge>
+          <Badge kind={(STATUS_KIND as any)[sel.status]}>{sel.status}</Badge>
         </div>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{sel.party}</div>
         <div className="tiny" style={{ color: '#bcd6e4' }}>Dikirim {sel.sent} · jatuh tempo {sel.due} · {sel.days} hari berjalan</div>
@@ -120,11 +120,11 @@ function CfDetailPanel(props) {
 /* ---------- Tab 1 · Ringkasan ---------- */
 function CfOverview({ items, segs, rate, onJump }: any) {
   const { fmt } = AMS;
-  const responded = items.filter(c => c.resp != null).length;
-  const concluded = items.filter(c => c.status === 'Received').length;
-  const discrepancies = items.filter(c => c.status === 'Discrepancy').length;
-  const noReply = items.filter(c => c.status === 'No Reply').length;
-  const outstanding = items.filter(c => c.status === 'Sent' || c.status === 'No Reply').length;
+  const responded = items.filter((c: any) => c.resp != null).length;
+  const concluded = items.filter((c: any) => c.status === 'Received').length;
+  const discrepancies = items.filter((c: any) => c.status === 'Discrepancy').length;
+  const noReply = items.filter((c: any) => c.status === 'No Reply').length;
+  const outstanding = items.filter((c: any) => c.status === 'Sent' || c.status === 'No Reply').length;
   const total = items.length;
 
   // pipeline funnel
@@ -132,24 +132,24 @@ function CfOverview({ items, segs, rate, onJump }: any) {
     { l: 'Disiapkan', v: total, c: 'var(--ink-4)' },
     { l: 'Dikirim', v: total, c: 'var(--blue-400)' },
     { l: 'Direspons', v: responded, c: 'var(--blue)' },
-    { l: 'Tervalidasi', v: items.filter(c => c.resp != null && c.validated).length, c: 'var(--teal)' },
+    { l: 'Tervalidasi', v: items.filter((c: any) => c.resp != null && c.validated).length, c: 'var(--teal)' },
     { l: 'Disimpulkan', v: concluded, c: 'var(--green)' },
   ];
 
   // turnaround (received only) + aging (outstanding)
-  const respDays = items.filter(c => c.resp != null).map(c => c.days);
-  const avgDays = respDays.length ? Math.round(respDays.reduce((a, b) => a + b, 0) / respDays.length) : 0;
+  const respDays = items.filter((c: any) => c.resp != null).map((c: any) => c.days);
+  const avgDays = respDays.length ? Math.round(respDays.reduce((a: any, b: any) => a + b, 0) / respDays.length) : 0;
   const aging = [
-    { l: '0–15 hari', v: items.filter(c => c.resp == null && c.days <= 15).length, c: 'var(--green)' },
-    { l: '16–30 hari', v: items.filter(c => c.resp == null && c.days > 15 && c.days <= 30).length, c: 'var(--amber)' },
-    { l: '> 30 hari', v: items.filter(c => c.resp == null && c.days > 30).length, c: 'var(--red)' },
+    { l: '0–15 hari', v: items.filter((c: any) => c.resp == null && c.days <= 15).length, c: 'var(--green)' },
+    { l: '16–30 hari', v: items.filter((c: any) => c.resp == null && c.days > 15 && c.days <= 30).length, c: 'var(--amber)' },
+    { l: '> 30 hari', v: items.filter((c: any) => c.resp == null && c.days > 30).length, c: 'var(--red)' },
   ];
 
   // worklist
   const work = [
-    ...items.filter(c => c.status === 'Discrepancy').map(c => ({ c, kind: 'Diskrepansi', col: 'var(--red)', txt: 'Selisih ' + fmt((c.resp - c.amount) / 1e6, 1) + ' jt — perlu rekonsiliasi' })),
-    ...items.filter(c => c.status === 'No Reply').map(c => ({ c, kind: 'Tanpa Respons', col: 'var(--amber)', txt: c.days + ' hari — jalankan prosedur alternatif' })),
-    ...items.filter(c => c.status === 'Sent' && c.days > 25).map(c => ({ c, kind: 'Jatuh Tempo', col: 'var(--blue)', txt: c.days + ' hari — kirim pengingat' })),
+    ...items.filter((c: any) => c.status === 'Discrepancy').map((c: any) => ({ c, kind: 'Diskrepansi', col: 'var(--red)', txt: 'Selisih ' + fmt((c.resp - c.amount) / 1e6, 1) + ' jt — perlu rekonsiliasi' })),
+    ...items.filter((c: any) => c.status === 'No Reply').map((c: any) => ({ c, kind: 'Tanpa Respons', col: 'var(--amber)', txt: c.days + ' hari — jalankan prosedur alternatif' })),
+    ...items.filter((c: any) => c.status === 'Sent' && c.days > 25).map((c: any) => ({ c, kind: 'Jatuh Tempo', col: 'var(--blue)', txt: c.days + ' hari — kirim pengingat' })),
   ];
 
   return (
@@ -158,24 +158,24 @@ function CfOverview({ items, segs, rate, onJump }: any) {
       <Panel title="Analisis Cakupan Konfirmasi" sub="SA 505 — cakupan nilai per area laporan keuangan" actions={<Badge kind="blue">Per Nilai</Badge>}>
         <div style={{ padding: '4px 0' }}>
           {CF_AREA.map((a, idx) => {
-            const its = items.filter(c => c.type === a.type);
-            const conf = its.reduce((s, c) => s + c.amount, 0);
-            const resp = its.filter(c => c.resp != null).reduce((s, c) => s + c.amount, 0);
+            const its = items.filter((c: any) => c.type === a.type);
+            const conf = its.reduce((s: any, c: any) => s + c.amount, 0);
+            const resp = its.filter((c: any) => c.resp != null).reduce((s: any, c: any) => s + c.amount, 0);
             const cov = a.pop ? conf / a.pop * 100 : 0;
             const respPct = conf ? resp / conf * 100 : 0;
             return (
               <div key={a.type} style={{ padding: '10px 14px', borderTop: idx ? '1px solid var(--line-soft)' : 0 }}>
                 <div className="row jb ac" style={{ marginBottom: 6 }}>
                   <span className="row ac gap8">
-                    <span style={{ color: 'var(--' + CONF_TYPES[a.type].k.replace('blue', 'blue').replace('teal', 'teal').replace('purple', 'purple').replace('red', 'red') + ')' }}>{React.createElement(I[CONF_TYPES[a.type].icon], { size: 15 })}</span>
+                    <span style={{ color: 'var(--' + (CONF_TYPES as any)[a.type].k.replace('blue', 'blue').replace('teal', 'teal').replace('purple', 'purple').replace('red', 'red') + ')' }}>{React.createElement((I as any)[(CONF_TYPES as any)[a.type].icon], { size: 15 })}</span>
                     <span style={{ fontWeight: 600, fontSize: 12.5 }}>{a.caption}</span>
-                    <Badge kind={CONF_TYPES[a.type].k}>{its.length} konf.</Badge>
+                    <Badge kind={(CONF_TYPES as any)[a.type].k}>{its.length} konf.</Badge>
                   </span>
                   <span className="mono tiny muted">populasi Rp {fmt(a.pop / 1e6, 0)} jt</span>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 116px 116px', gap: 12, alignItems: 'center' }}>
                   <div>
-                    <CfTrack pct={cov} color={'var(--' + CONF_TYPES[a.type].k + ')'} />
+                    <CfTrack pct={cov} color={'var(--' + (CONF_TYPES as any)[a.type].k + ')'} />
                     <div className="tiny muted" style={{ marginTop: 4 }}>{a.note}</div>
                   </div>
                   <div>
@@ -266,16 +266,16 @@ function CfOverview({ items, segs, rate, onJump }: any) {
 }
 
 /* ---------- Tab 3 · Rekonsiliasi & Tindak Lanjut ---------- */
-function CfWorklist(props) {
+function CfWorklist(props: any) {
   const { items, recon, setRecon, altChecks, setAltChecks, onResolveRecon, onResolveAlt, focusId } = props;
   const { fmt } = AMS;
-  const discs = items.filter(c => c.status === 'Discrepancy');
-  const noReplies = items.filter(c => c.status === 'No Reply');
-  const grossDiff = discs.reduce((s, c) => s + Math.abs(c.resp - c.amount), 0);
+  const discs = items.filter((c: any) => c.status === 'Discrepancy');
+  const noReplies = items.filter((c: any) => c.status === 'No Reply');
+  const grossDiff = discs.reduce((s: any, c: any) => s + Math.abs(c.resp - c.amount), 0);
 
   // synthetic audit trail
-  const trail = [];
-  items.forEach(c => {
+  const trail: any[] = [];
+  items.forEach((c: any) => {
     trail.push({ t: c.sent, who: 'Sistem', ev: 'Konfirmasi ' + c.id + ' dikirim via ' + c.channel + ' ke ' + c.party.replace('PT ', ''), col: 'var(--blue-400)' });
     for (let i = 0; i < c.reminders; i++) trail.push({ t: c.sent, who: 'Dimas R.', ev: 'Pengingat ke-' + (i + 1) + ' — ' + c.id + ' (' + c.party.replace('PT ', '') + ')', col: 'var(--amber)' });
     if (c.resp != null) trail.push({ t: '+' + c.days + 'h', who: c.channel === 'e-Confirm' ? 'e-Confirm' : 'Dimas R.', ev: 'Respons ' + c.id + ' diterima' + (c.status === 'Discrepancy' ? ' — DISKREPANSI Rp ' + fmt(Math.abs(c.resp - c.amount) / 1e6, 0) + ' jt' : ' & divalidasi'), col: c.status === 'Discrepancy' ? 'var(--red)' : 'var(--green)' });
@@ -288,10 +288,10 @@ function CfWorklist(props) {
         <Panel title="Diskrepansi — Rekonsiliasi" sub={discs.length + ' butir · selisih bruto Rp ' + fmt(grossDiff / 1e6, 1) + ' jt'} actions={<Badge kind="red">{discs.length} terbuka</Badge>}>
           <div style={{ padding: discs.length ? 12 : 0, display: 'grid', gap: 12 }}>
             {discs.length === 0 && <div style={{ padding: 22, textAlign: 'center', color: 'var(--green)' }}><I.checkCircle size={20} /><div className="tiny" style={{ marginTop: 5, fontWeight: 600 }}>Seluruh diskrepansi terekonsiliasi</div></div>}
-            {discs.map(c => (
+            {discs.map((c: any) => (
               <div key={c.id} id={'wl-' + c.id} className="grid" style={{ gridTemplateColumns: '210px 1fr', gap: 12, alignItems: 'start', padding: focusId === c.id ? 8 : 0, background: focusId === c.id ? 'var(--blue-050)' : 'transparent', borderRadius: 6, outline: focusId === c.id ? '1px solid var(--blue-100)' : 'none' }}>
                 <div>
-                  <div className="row ac gap6" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><Badge kind={CONF_TYPES[c.type].k}>{c.type}</Badge></div>
+                  <div className="row ac gap6" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><Badge kind={(CONF_TYPES as any)[c.type].k}>{c.type}</Badge></div>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{c.party}</div>
                   <div className="tiny muted" style={{ marginTop: 2 }}>{c.contact.split(' · ')[0]}</div>
                   <div className="panel" style={{ marginTop: 8, padding: '7px 9px', boxShadow: 'none', background: 'var(--surface-2)' }}>
@@ -310,10 +310,10 @@ function CfWorklist(props) {
         <Panel title="Tanpa Respons — Prosedur Alternatif" sub={noReplies.length + ' butir memerlukan bukti alternatif'} actions={<Badge kind="amber">{noReplies.length} terbuka</Badge>}>
           <div style={{ padding: noReplies.length ? 12 : 0, display: 'grid', gap: 12 }}>
             {noReplies.length === 0 && <div style={{ padding: 22, textAlign: 'center', color: 'var(--green)' }}><I.checkCircle size={20} /><div className="tiny" style={{ marginTop: 5, fontWeight: 600 }}>Seluruh non-respons telah disimpulkan</div></div>}
-            {noReplies.map(c => (
+            {noReplies.map((c: any) => (
               <div key={c.id} id={'wl-' + c.id} className="grid" style={{ gridTemplateColumns: '210px 1fr', gap: 12, alignItems: 'start', padding: focusId === c.id ? 8 : 0, background: focusId === c.id ? 'var(--blue-050)' : 'transparent', borderRadius: 6, outline: focusId === c.id ? '1px solid var(--blue-100)' : 'none' }}>
                 <div>
-                  <div className="row ac gap6" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><Badge kind={CONF_TYPES[c.type].k}>{c.type}</Badge></div>
+                  <div className="row ac gap6" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><Badge kind={(CONF_TYPES as any)[c.type].k}>{c.type}</Badge></div>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{c.party}</div>
                   <div className="row ac gap6" style={{ marginTop: 6 }}>
                     <Badge kind="amber">{c.days} hari</Badge>
@@ -377,28 +377,28 @@ function ConfirmationHub() {
   const [altChecks, setAltChecks] = useStateCF({});
   const [relChecks, setRelChecks] = useStateCF({});
 
-  const filtered = items.filter(c => (fType === 'All' || c.type === fType) && (fStatus === 'All' || c.status === fStatus));
-  const sel = items.find(c => c.id === selId) || filtered[0];
+  const filtered = items.filter((c: any) => (fType === 'All' || c.type === fType) && (fStatus === 'All' || c.status === fStatus));
+  const sel = items.find((c: any) => c.id === selId) || filtered[0];
 
   const total = items.length;
-  const received = items.filter(c => c.status === 'Received' || c.status === 'Discrepancy').length;
-  const outstanding = items.filter(c => c.status === 'Sent' || c.status === 'No Reply').length;
-  const discrepancies = items.filter(c => c.status === 'Discrepancy').length;
-  const noReply = items.filter(c => c.status === 'No Reply').length;
+  const received = items.filter((c: any) => c.status === 'Received' || c.status === 'Discrepancy').length;
+  const outstanding = items.filter((c: any) => c.status === 'Sent' || c.status === 'No Reply').length;
+  const discrepancies = items.filter((c: any) => c.status === 'Discrepancy').length;
+  const noReply = items.filter((c: any) => c.status === 'No Reply').length;
   const rate = Math.round(received / total * 100);
 
   const segs = [
-    { label: 'Received', value: items.filter(c => c.status === 'Received').length, color: '#1f7a4d' },
+    { label: 'Received', value: items.filter((c: any) => c.status === 'Received').length, color: '#1f7a4d' },
     { label: 'Discrepancy', value: discrepancies, color: '#b3261e' },
-    { label: 'Sent', value: items.filter(c => c.status === 'Sent').length, color: '#005085' },
+    { label: 'Sent', value: items.filter((c: any) => c.status === 'Sent').length, color: '#005085' },
     { label: 'No Reply', value: noReply, color: '#c79a1e' },
   ];
 
-  const markReceived = (id) => setItems(list => list.map(c => c.id === id ? { ...c, status: 'Received', resp: c.amount, validated: true } : c));
-  const resolveRecon = (id) => setItems(list => list.map(c => c.id === id ? { ...c, status: 'Received' } : c));
-  const resolveAlt = (id) => setItems(list => list.map(c => c.id === id ? { ...c, status: 'Received' } : c));
+  const markReceived = (id: any) => setItems((list: any) => list.map((c: any) => c.id === id ? { ...c, status: 'Received', resp: c.amount, validated: true } : c));
+  const resolveRecon = (id: any) => setItems((list: any) => list.map((c: any) => c.id === id ? { ...c, status: 'Received' } : c));
+  const resolveAlt = (id: any) => setItems((list: any) => list.map((c: any) => c.id === id ? { ...c, status: 'Received' } : c));
 
-  const jump = (t, id) => { setTab(t); if (id) { setFocusId(id); setSelId(id); } };
+  const jump = (t: any, id: any) => { setTab(t); if (id) { setFocusId(id); setSelId(id); } };
 
   const tabs = [
     { id: 'overview', label: 'Ringkasan' },
@@ -434,7 +434,7 @@ function ConfirmationHub() {
           </div>
 
           {/* tabs */}
-          <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={(t) => { setTab(t); setFocusId(null); }} /></div>
+          <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={(t: any) => { setTab(t); setFocusId(null); }} /></div>
 
           {tab === 'overview' && <CfOverview items={items} segs={segs} rate={rate} onJump={jump} />}
 
@@ -459,20 +459,20 @@ function ConfirmationHub() {
                         <th className="num">Saldo Buku</th><th className="num">Respons</th><th className="num" style={{ width: 52 }}>Umur</th><th style={{ width: 108 }}>Status</th>
                       </tr></thead>
                       <tbody>
-                        {filtered.map(c => {
+                        {filtered.map((c: any) => {
                           const vr = c.resp != null ? c.resp - c.amount : null;
                           return (
                             <tr key={c.id} className={c.id === selId ? 'sel' : ''} onClick={() => setSelId(c.id)} style={{ cursor: 'pointer' }}>
                               <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
                               <td className="truncate" style={{ maxWidth: 190, fontWeight: 600 }}>{c.party}</td>
-                              <td><Badge kind={CONF_TYPES[c.type].k}>{c.type}</Badge></td>
+                              <td><Badge kind={(CONF_TYPES as any)[c.type].k}>{c.type}</Badge></td>
                               <td className="tiny" style={{ color: c.channel === 'e-Confirm' ? 'var(--green)' : 'var(--ink-3)', fontWeight: 600 }}>{c.method[0]} · {c.channel === 'e-Confirm' ? 'e-Conf' : c.channel}</td>
                               <td className="num">{c.amount ? fmt(c.amount / 1e6, 0) : '—'}</td>
                               <td className="num">{c.resp != null ? fmt(c.resp / 1e6, 0) : <span className="muted">pending</span>}</td>
                               <td className="num tiny" style={{ color: c.days > 30 && (c.status === 'Sent' || c.status === 'No Reply') ? 'var(--red)' : 'var(--ink-3)' }}>{c.days}h</td>
                               <td>
                                 <span className="row ac gap6">
-                                  <Badge kind={STATUS_KIND[c.status]}>{c.status}</Badge>
+                                  <Badge kind={(STATUS_KIND as any)[c.status]}>{c.status}</Badge>
                                   {vr != null && vr !== 0 && <span className="tiny mono" style={{ color: 'var(--red)' }} title="Selisih">Δ{fmt(vr / 1e6, 0)}</span>}
                                 </span>
                               </td>

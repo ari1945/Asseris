@@ -97,7 +97,7 @@ function SA540View() {
 function F540Register() {
   const [selId, setSelId] = useState540('E-01');
   const sel = EST_REG.find(e => e.id === selId);
-  const uncKind = u => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
+  const uncKind = (u: any) => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
   /* posisi titik manajemen dalam rentang auditor 0..100 */
   const pos = sel.hi > sel.lo ? Math.max(0, Math.min(100, ((sel.mgmt - sel.lo) / (sel.hi - sel.lo)) * 100)) : 50;
   return (
@@ -171,7 +171,7 @@ function F540Risk() {
         <div className="panel-h"><h3>Faktor Risiko Bawaan Estimasi (¶ Pendekatan SA 540 Revisi)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Spektrum risiko bawaan</Badge></div>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 0 }}>
           {drivers.map((d, i) => {
-            const Ic = I[d.ic];
+            const Ic = (I as any)[d.ic];
             return (
               <div key={i} style={{ padding: 16, borderRight: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 38, height: 38, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={19} /></span>

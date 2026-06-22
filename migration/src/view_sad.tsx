@@ -72,24 +72,24 @@ function SADLedger() {
   const pm = (_mat && _mat.pmFull != null) ? _mat.pmFull : Math.round(om * 0.75);
   const ctt = (_mat && _mat.cttFull != null) ? _mat.cttFull : Math.round(om * 0.05);
 
-  const cycleDisp = (id) => setItems(list => list.map(m => m.id === id
+  const cycleDisp = (id: any) => setItems((list: any) => list.map((m: any) => m.id === id
     ? { ...m, disp: DISP_CYCLE[(DISP_CYCLE.indexOf(m.disp) + 1) % DISP_CYCLE.length] } : m));
-  const toggleQual = (id) => setQuals(list => list.map(q => q.id === id ? { ...q, on: !q.on } : q));
+  const toggleQual = (id: any) => setQuals((list: any) => list.map((q: any) => q.id === id ? { ...q, on: !q.on } : q));
 
   const calc = useMemoSD(() => {
-    const uncorr = items.filter(m => m.disp === 'uncorrected');
-    const curUncorr = uncorr.filter(m => m.origin === 'current');
-    const rolloverNet = curUncorr.reduce((s, m) => s + m.pbt, 0);
-    const rolloverGross = curUncorr.reduce((s, m) => s + Math.abs(m.pbt), 0);
-    const ironNet = uncorr.reduce((s, m) => s + m.na, 0);          // termasuk carryover
-    const ironGross = uncorr.reduce((s, m) => s + Math.abs(m.na), 0);
+    const uncorr = items.filter((m: any) => m.disp === 'uncorrected');
+    const curUncorr = uncorr.filter((m: any) => m.origin === 'current');
+    const rolloverNet = curUncorr.reduce((s: any, m: any) => s + m.pbt, 0);
+    const rolloverGross = curUncorr.reduce((s: any, m: any) => s + Math.abs(m.pbt), 0);
+    const ironNet = uncorr.reduce((s: any, m: any) => s + m.na, 0);          // termasuk carryover
+    const ironGross = uncorr.reduce((s: any, m: any) => s + Math.abs(m.na), 0);
     return {
       uncorr, rolloverNet, rolloverGross, ironNet, ironGross,
-      corrected: items.filter(m => m.disp === 'corrected').length,
-      passed: items.filter(m => m.disp === 'passed').length,
-      factual: items.filter(m => m.type === 'Factual').length,
-      judgmental: items.filter(m => m.type === 'Judgmental').length,
-      projected: items.filter(m => m.type === 'Projected').length,
+      corrected: items.filter((m: any) => m.disp === 'corrected').length,
+      passed: items.filter((m: any) => m.disp === 'passed').length,
+      factual: items.filter((m: any) => m.type === 'Factual').length,
+      judgmental: items.filter((m: any) => m.type === 'Judgmental').length,
+      projected: items.filter((m: any) => m.type === 'Projected').length,
     };
   }, [items]);
 
@@ -98,7 +98,7 @@ function SADLedger() {
   const absNet = Math.abs(evalNet);
   const exceedsOM = absNet > om;
   const exceedsPM = absNet > pm;
-  const qualCount = quals.filter(q => q.on).length;
+  const qualCount = quals.filter((q: any) => q.on).length;
 
   const concl = exceedsOM
     ? { k: 'red', t: 'Agregat salah saji tidak dikoreksi MELEBIHI materialitas keseluruhan. Laporan keuangan mengandung salah saji material — pertimbangkan opini modifikasian (SA 705).' }
@@ -158,7 +158,7 @@ function KpiCard({ value, label, accent }: any) {
 /* ============================================================
    TAB 1 — Ikhtisar Salah Saji (akumulasi)
    ============================================================ */
-function TabLedger({ items, cycleDisp, calc, fmt, ctt }) {
+function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 268px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -174,7 +174,7 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }) {
             <th className="num">Efek Laba s/d Pajak</th><th className="num">Efek Aset Neto</th><th style={{ width: 110 }}>Disposisi</th>
           </tr></thead>
           <tbody>
-            {items.map(m => (
+            {items.map((m: any) => (
               <tr key={m.id} style={{ opacity: m.disp === 'corrected' ? 0.6 : m.disp === 'passed' ? 0.72 : 1 }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 6 }}>
                   {m.id}{m.origin === 'prior' && <div><Badge kind="gray">PY</Badge></div>}
@@ -184,14 +184,14 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }) {
                   <div className="tiny muted" style={{ marginTop: 2 }}>{m.fsli} · <span className="mono">→ {m.aje}</span></div>
                   {m.qual.length > 0 && <div className="row gap6 wrap" style={{ marginTop: 4 }}><span className="tiny" style={{ color: 'var(--amber)', fontWeight: 700 }}>⚑ Kualitatif</span></div>}
                 </td>
-                <td style={{ verticalAlign: 'top', paddingTop: 6 }}><Badge kind={TYPE_KIND[m.type]}>{m.type}</Badge></td>
+                <td style={{ verticalAlign: 'top', paddingTop: 6 }}><Badge kind={(TYPE_KIND as any)[m.type]}>{m.type}</Badge></td>
                 <td className="tiny muted" style={{ verticalAlign: 'top', paddingTop: 7 }}>{m.assertion}</td>
                 <td className="tiny muted" style={{ verticalAlign: 'top', paddingTop: 7 }}>{m.initiator}</td>
                 <td className="num" style={{ verticalAlign: 'top', paddingTop: 6, color: m.pbt < 0 ? 'var(--red)' : m.pbt > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{m.pbt === 0 ? '—' : fmt(m.pbt / 1e6, 0)}</td>
                 <td className="num" style={{ verticalAlign: 'top', paddingTop: 6, color: m.na < 0 ? 'var(--red)' : m.na > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{m.na === 0 ? '—' : fmt(m.na / 1e6, 0)}</td>
                 <td style={{ verticalAlign: 'top', paddingTop: 5 }}>
                   <span onClick={() => cycleDisp(m.id)} style={{ cursor: 'pointer' }} title="Klik untuk ubah disposisi">
-                    <Badge kind={DISP[m.disp].kind}>{DISP[m.disp].label}</Badge>
+                    <Badge kind={(DISP as any)[m.disp].kind}>{(DISP as any)[m.disp].label}</Badge>
                   </span>
                 </td>
               </tr>
@@ -201,7 +201,7 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }) {
             <tr>
               <td colSpan={5}>AGREGAT TIDAK DIKOREKSI — TAHUN BERJALAN (NETO)</td>
               <td className="num neg">{fmt(calc.rolloverNet / 1e6, 0)}</td>
-              <td className="num neg">{fmt(calc.uncorr.filter(m => m.origin === 'current').reduce((s, m) => s + m.na, 0) / 1e6, 0)}</td>
+              <td className="num neg">{fmt(calc.uncorr.filter((m: any) => m.origin === 'current').reduce((s: any, m: any) => s + m.na, 0) / 1e6, 0)}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -242,7 +242,7 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }) {
   );
 }
 
-function LegendRow({ color, label, v }) {
+function LegendRow({ color, label, v }: any) {
   return (
     <div className="row jb ac">
       <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: color }} /><span style={{ fontSize: 12 }}>{label}</span></span>
@@ -254,9 +254,9 @@ function LegendRow({ color, label, v }) {
 /* ============================================================
    TAB 2 — Evaluasi Agregat
    ============================================================ */
-function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav }) {
+function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav }: any) {
   const maxScale = Math.max(om * 1.12, absNet * 1.12, evalGross * 1.12);
-  const pctOf = (v) => (v / maxScale) * 100;
+  const pctOf = (v: any) => (v / maxScale) * 100;
   const barColor = exceedsOM ? 'var(--red)' : exceedsPM ? 'var(--amber)' : 'var(--green)';
 
   const afterPbt = FS.pbt + (method === 'rollover' ? calc.rolloverNet : 0);
@@ -348,7 +348,7 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
   );
 }
 
-function SubtotalRow({ label, base, eff, fmt }) {
+function SubtotalRow({ label, base, eff, fmt }: any) {
   const after = base + eff;
   const pct = base ? (eff / base * 100) : 0;
   return (
@@ -365,7 +365,7 @@ function SubtotalRow({ label, base, eff, fmt }) {
 /* ============================================================
    TAB 3 — Pertimbangan Kualitatif (SA 450.A21)
    ============================================================ */
-function TabQualitative({ quals, toggleQual, qualCount }) {
+function TabQualitative({ quals, toggleQual, qualCount }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -375,7 +375,7 @@ function TabQualitative({ quals, toggleQual, qualCount }) {
           <span className="tiny muted">SA 450.A21 · {qualCount} faktor relevan</span>
         </div>
         <div style={{ padding: 4 }}>
-          {quals.map(q => (
+          {quals.map((q: any) => (
             <div key={q.id} className="panel" style={{ margin: 8, padding: '10px 12px', boxShadow: 'none', borderColor: q.on ? 'var(--amber)' : 'var(--line)', background: q.on ? 'var(--amber-bg)' : '#fff' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span onClick={() => toggleQual(q.id)} style={{ cursor: 'pointer', flex: '0 0 18px', marginTop: 1 }}>
@@ -421,8 +421,8 @@ function TabQualitative({ quals, toggleQual, qualCount }) {
   );
 }
 
-function ActionRow({ icon, color, text }) {
-  const IconC = I[icon] || I.flag;
+function ActionRow({ icon, color, text }: any) {
+  const IconC = (I as any)[icon] || I.flag;
   return (
     <div className="row gap8 ac">
       <span style={{ color }}><IconC size={15} /></span>
@@ -434,7 +434,7 @@ function ActionRow({ icon, color, text }) {
 /* ============================================================
    TAB 4 — Komunikasi & Disposisi (SA 260 / SA 580)
    ============================================================ */
-function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount }) {
+function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount }: any) {
   const uncorr = calc.uncorr;
   const commLog = [
     { who: 'Manajemen (CFO)', date: '12 Mei 2026', kind: 'Permintaan Koreksi', status: 'Direspons', body: 'Daftar 8 salah saji teridentifikasi disampaikan; 4 dikoreksi melalui AJE-01/04/05.' },
@@ -453,7 +453,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
               <div key={i} className="panel" style={{ margin: 8, padding: '10px 12px', boxShadow: 'none' }}>
                 <div className="row jb ac" style={{ marginBottom: 4 }}>
                   <span className="row ac gap8"><Avatar name={c.who} size={22} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{c.who}</span><Badge kind="gray">{c.kind}</Badge></span>
-                  <span className="row ac gap8"><span className="tiny muted">{c.date}</span><Badge kind={statusKind[c.status]}>{c.status}</Badge></span>
+                  <span className="row ac gap8"><span className="tiny muted">{c.date}</span><Badge kind={(statusKind as any)[c.status]}>{c.status}</Badge></span>
                 </div>
                 <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>{c.body}</div>
               </div>
@@ -480,7 +480,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
           <table className="dtbl">
             <thead><tr><th>Ref</th><th>Akun</th><th className="num">Efek (jt)</th></tr></thead>
             <tbody>
-              {uncorr.map(m => (
+              {uncorr.map((m: any) => (
                 <tr key={m.id}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{m.id}</td>
                   <td className="tiny" style={{ whiteSpace: 'normal', lineHeight: 1.3 }}>{m.fsli}</td>

@@ -44,13 +44,13 @@ function SRStat({ value, label, sub, accent }: any) {
 
 /* —— baris standar (dipakai di Horizon & Eksposur Draf) —— */
 function SRStdRow({ s, fmt, nav, dense }: any) {
-  const st = SR_STATUS[s.status];
+  const st = (SR_STATUS as any)[s.status];
   return (
     <div style={{ padding: dense ? '9px 14px' : '11px 14px', borderBottom: '1px solid var(--line-soft)' }}>
       <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
         <span className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--navy)', flex: '0 0 auto' }}>{s.code}</span>
-        <Badge kind={SR_IMPACT[s.impact]}>{s.impact}</Badge>
-        {s.rel && <Badge kind={SR_REL[s.rel].kind === 'muted' ? undefined : SR_REL[s.rel].kind}>{SR_REL[s.rel].lbl}</Badge>}
+        <Badge kind={(SR_IMPACT as any)[s.impact]}>{s.impact}</Badge>
+        {s.rel && <Badge kind={(SR_REL as any)[s.rel].kind === 'muted' ? undefined : (SR_REL as any)[s.rel].kind}>{(SR_REL as any)[s.rel].lbl}</Badge>}
         <span style={{ flex: 1 }} />
         <span className="mono tiny" style={{ color: st.color, fontWeight: 700, flex: '0 0 auto' }}>{s.effective}</span>
       </div>
@@ -82,9 +82,9 @@ function SAKRoadmapView() {
   const [done, setDone] = useStateSR(() => loader('ams.sakroadmap.r207', {}));
   React.useEffect(() => { try { localStorage.setItem('ams.sakroadmap.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.sakroadmap.r207', JSON.stringify(done)); } catch (e) {} }, [done]);
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
 
-  const doneCount = H.readiness207.filter(r => done[r.id]).length;
+  const doneCount = H.readiness207.filter((r: any) => done[r.id]).length;
   const score = Math.round(doneCount / H.readiness207.length * 100);
 
   const TABS = [
@@ -94,7 +94,7 @@ function SAKRoadmapView() {
     { id: 'lengkap', label: 'Kelengkapan Kerangka' },
   ];
 
-  const isakShown = H.isaks.filter(i => {
+  const isakShown = H.isaks.filter((i: any) => {
     if (isakFilter === 'semua') return true;
     if (isakFilter === 'dicabut') return i.status === 'dicabut';
     return i.status === 'berlaku' && i.rel === isakFilter;
@@ -102,13 +102,13 @@ function SAKRoadmapView() {
   const ISAK_FILTERS = [
     { id: 'semua', label: 'Semua', n: H.isaks.length },
     { id: 'relevan', label: 'Relevan', n: H.counts.isakRelevan },
-    { id: 'pantau', label: 'Pantau', n: H.isakBerlaku.filter(i => i.rel === 'pantau').length },
-    { id: 'tidak', label: 'N/A', n: H.isakBerlaku.filter(i => i.rel === 'tidak').length },
+    { id: 'pantau', label: 'Pantau', n: H.isakBerlaku.filter((i: any) => i.rel === 'pantau').length },
+    { id: 'tidak', label: 'N/A', n: H.isakBerlaku.filter((i: any) => i.rel === 'tidak').length },
     { id: 'dicabut', label: 'Dicabut', n: H.counts.isakDicabut },
   ];
 
   /* timeline tahun → standar */
-  const yearItems = (y) => H.standards.filter(s => s.effYear === y);
+  const yearItems = (y: any) => H.standards.filter((s: any) => s.effYear === y);
 
   return (
     <>
@@ -151,14 +151,14 @@ function SAKRoadmapView() {
                     {/* now marker antara 2025|2026 */}
                     <div style={{ position: 'absolute', left: '50%', top: -2, bottom: 8, width: 2, background: 'var(--red)', opacity: .55 }} />
                     <div className="mono tiny" style={{ position: 'absolute', left: '50%', top: -14, transform: 'translateX(-50%)', color: 'var(--red)', fontWeight: 700, whiteSpace: 'nowrap' }}>◂ diterapkan · belum efektif ▸</div>
-                    {H.years.map(y => {
+                    {H.years.map((y: any) => {
                       const items = yearItems(y);
                       return (
                         <div key={y} style={{ borderLeft: '1px solid var(--line)', padding: '4px 8px 0', minHeight: 130 }}>
                           <div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)', marginBottom: 8 }}>{y}</div>
                           <div style={{ display: 'grid', gap: 6 }}>
-                            {items.map(s => {
-                              const st = SR_STATUS[s.status];
+                            {items.map((s: any) => {
+                              const st = (SR_STATUS as any)[s.status];
                               return (
                                 <div key={s.id} onClick={() => s.view && nav(s.view, { from: 'sakroadmap' })}
                                   title={s.title}
@@ -176,7 +176,7 @@ function SAKRoadmapView() {
                   </div>
                   <div className="row gap14 ac" style={{ marginTop: 14, flexWrap: 'wrap' }}>
                     {Object.keys(SR_STATUS).map(k => (
-                      <span key={k} className="row ac gap6"><span style={{ width: 11, height: 11, borderRadius: 3, background: SR_STATUS[k].bg, borderLeft: '3px solid ' + SR_STATUS[k].color }} /><span className="tiny" style={{ color: 'var(--ink-2)' }}>{SR_STATUS[k].lbl}</span></span>
+                      <span key={k} className="row ac gap6"><span style={{ width: 11, height: 11, borderRadius: 3, background: (SR_STATUS as any)[k].bg, borderLeft: '3px solid ' + (SR_STATUS as any)[k].color }} /><span className="tiny" style={{ color: 'var(--ink-2)' }}>{(SR_STATUS as any)[k].lbl}</span></span>
                     ))}
                   </div>
                 </div>
@@ -190,7 +190,7 @@ function SAKRoadmapView() {
                     <span style={{ color: 'var(--amber)', marginTop: 1, flex: '0 0 auto' }}><I.alert size={15} /></span>
                     <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Standar yang telah disahkan namun belum berlaku untuk FY2025 — <b>wajib</b> diungkap pada CALK beserta estimasi dampak penerapannya (PSAK 25 ¶30–31).</div>
                   </div>
-                  {H.horizon.map(s => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} />)}
+                  {H.horizon.map((s: any) => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} />)}
                 </Panel>
 
                 {/* right rail */}
@@ -223,13 +223,13 @@ function SAKRoadmapView() {
                   {/* sudah efektif compact */}
                   <Panel noBody>
                     <div className="panel-h"><h3>Sudah Efektif — FY2025</h3><Badge kind="green">{H.counts.efektif}</Badge></div>
-                    {H.efektif.map(s => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} dense />)}
+                    {H.efektif.map((s: any) => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} dense />)}
                   </Panel>
 
                   {/* eksposur draf */}
                   <Panel noBody>
                     <div className="panel-h"><h3>Eksposur Draf / Agenda DSAK</h3><Badge kind="purple">{H.counts.ed}</Badge></div>
-                    {H.ed.map(s => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} dense />)}
+                    {H.ed.map((s: any) => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} dense />)}
                   </Panel>
                 </div>
               </div>
@@ -255,8 +255,8 @@ function SAKRoadmapView() {
                       <th style={{ textAlign: 'center', width: 96 }}>Relevansi</th>
                     </tr></thead>
                     <tbody>
-                      {isakShown.map(i => {
-                        const rel = SR_REL[i.rel];
+                      {isakShown.map((i: any) => {
+                        const rel = (SR_REL as any)[i.rel];
                         const cut = i.status === 'dicabut';
                         return (
                           <tr key={i.code} onClick={() => i.view && nav(i.view, { from: 'sakroadmap' })} style={{ cursor: i.view ? 'pointer' : 'default' }}>
@@ -287,12 +287,12 @@ function SAKRoadmapView() {
                     <Donut size={104} thickness={15}
                       segments={[
                         { label: 'Relevan', value: H.counts.isakRelevan, color: '#1d6fb8' },
-                        { label: 'Pantau', value: H.isakBerlaku.filter(i => i.rel === 'pantau').length, color: '#9a6a00' },
-                        { label: 'N/A', value: H.isakBerlaku.filter(i => i.rel === 'tidak').length, color: '#c3cad2' },
+                        { label: 'Pantau', value: H.isakBerlaku.filter((i: any) => i.rel === 'pantau').length, color: '#9a6a00' },
+                        { label: 'N/A', value: H.isakBerlaku.filter((i: any) => i.rel === 'tidak').length, color: '#c3cad2' },
                       ]}
                       center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{H.counts.isakBerlaku}</div><div className="tiny muted">berlaku</div></>} />
                     <div style={{ flex: 1, display: 'grid', gap: 6 }}>
-                      {[['Relevan', H.counts.isakRelevan, '#1d6fb8'], ['Pantau', H.isakBerlaku.filter(i => i.rel === 'pantau').length, '#9a6a00'], ['N/A (terdok.)', H.isakBerlaku.filter(i => i.rel === 'tidak').length, '#c3cad2'], ['Dicabut', H.counts.isakDicabut, '#b3261e']].map((r, k) => (
+                      {[['Relevan', H.counts.isakRelevan, '#1d6fb8'], ['Pantau', H.isakBerlaku.filter((i: any) => i.rel === 'pantau').length, '#9a6a00'], ['N/A (terdok.)', H.isakBerlaku.filter((i: any) => i.rel === 'tidak').length, '#c3cad2'], ['Dicabut', H.counts.isakDicabut, '#b3261e']].map((r, k) => (
                         <div key={k} className="row jb ac"><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: r[2] }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{r[0]}</span></span><span className="mono tiny" style={{ fontWeight: 700 }}>{r[1]}</span></div>
                       ))}
                     </div>
@@ -320,7 +320,7 @@ function SAKRoadmapView() {
                   <div style={{ fontSize: 11.5, lineHeight: 1.5 }}><b>{client.name}</b> — {client.industry}. Entitas {client.listed ? 'terdaftar (Tbk)' : 'privat'} → penerapan PSAK 207 <b>wajib</b>. Persiapan dimulai dini agar komparatif FY2026 dapat disajikan ulang tepat waktu.</div>
                 </div>
                 <div>
-                  {H.readiness207.map((r, i) => {
+                  {H.readiness207.map((r: any, i: any) => {
                     const on = !!done[r.id];
                     return (
                       <label key={r.id} className="row gap10" style={{ padding: '10px 14px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < H.readiness207.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(r.id)}>
@@ -347,13 +347,13 @@ function SAKRoadmapView() {
                   <div style={{ padding: 14 }}>
                     <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 8 }}>Dampak per standar horizon</div>
                     <div style={{ display: 'grid', gap: 8 }}>
-                      {H.horizon.map(s => (
+                      {H.horizon.map((s: any) => (
                         <div key={s.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', background: 'var(--surface-2)' }}>
                           <div className="row ac gap6" style={{ marginBottom: 3 }}>
                             <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{s.code}</span>
-                            <Badge kind={SR_REL[s.rel].kind === 'muted' ? undefined : SR_REL[s.rel].kind}>{SR_REL[s.rel].lbl}</Badge>
+                            <Badge kind={(SR_REL as any)[s.rel].kind === 'muted' ? undefined : (SR_REL as any)[s.rel].kind}>{(SR_REL as any)[s.rel].lbl}</Badge>
                             <span style={{ flex: 1 }} />
-                            <Badge kind={SR_IMPACT[s.impact]}>{s.impact}</Badge>
+                            <Badge kind={(SR_IMPACT as any)[s.impact]}>{s.impact}</Badge>
                           </div>
                           <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.45 }}>{s.title}</div>
                         </div>
@@ -370,7 +370,7 @@ function SAKRoadmapView() {
                       { id: 'psak1', ic: 'report', lbl: 'PSAK 1 → 207 · Penyajian LK', rel: 'Pemetaan struktur L/R lama → kategori baru' },
                       { id: 'fsgen', ic: 'report', lbl: 'FS Generator', rel: 'Mutakhirkan template ke struktur PSAK 207' },
                       { id: 'psak71', ic: 'coins', lbl: 'PSAK 71 · Instrumen Keuangan', rel: 'Amandemen klasifikasi & pengukuran (efektif 2026)' },
-                    ].map(m => { const Ic = I[m.ic] || I.doc; return (
+                    ].map(m => { const Ic = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'sakroadmap' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><Ic size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -450,7 +450,7 @@ function SAKRoadmapView() {
                       { id: 'disclosure', ic: 'checkCircle', lbl: 'Daftar-Uji Pengungkapan' },
                       { id: 'compmatrix', ic: 'table', lbl: 'Matriks Kepatuhan' },
                       { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion Generator' },
-                    ].map(m => { const Ic = I[m.ic] || I.doc; return (
+                    ].map(m => { const Ic = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'sakroadmap' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--ink-3)', flex: '0 0 auto' }}><Ic size={15} /></span>
                         <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{m.lbl}</span>

@@ -15,24 +15,24 @@ const { useState: useStateDlv, useMemo: useMemoDlv } = React;
 
 const DLV_PHASE_COLOR = { Perencanaan: 'var(--purple)', Eksekusi: 'var(--blue)', Finalisasi: 'var(--teal)' };
 const DLV_MS_COLOR = { done: 'var(--green)', due: 'var(--amber)', upcoming: 'var(--ink-4)' };
-const DLV_d = (s) => new Date(s + 'T00:00:00');
-const DLV_fmtDate = (s) => DLV_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-const DLV_daysTo = (s, today) => Math.round((+DLV_d(s) - +DLV_d(today)) / 864e5);
+const DLV_d = (s: any) => new Date(s + 'T00:00:00');
+const DLV_fmtDate = (s: any) => DLV_d(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+const DLV_daysTo = (s: any, today: any) => Math.round((+DLV_d(s) - +DLV_d(today)) / 864e5);
 
 function DeliveryMilestones() {
   const { fmt, DELIVERY, DELIVERY_WINDOW, ENGAGEMENTS, CLIENTS } = AMS as any;
   const win = DELIVERY_WINDOW;
   const t0 = DLV_d(win.start).getTime(), t1 = DLV_d(win.end).getTime();
   const span = t1 - t0;
-  const frac = (s) => ((DLV_d(s).getTime() - t0) / span) * 100;
+  const frac = (s: any) => ((DLV_d(s).getTime() - t0) / span) * 100;
   const today = win.today;
   const nav = useNav();
 
   const [filter, setFilter] = useStateDlv('Semua');
   const [sel, setSel] = useStateDlv(null);
 
-  const engById = (id) => ENGAGEMENTS.find(e => e.id === id) || {};
-  const cliOf = (e) => CLIENTS.find(c => c.id === e.clientId) || {};
+  const engById = (id: any) => ENGAGEMENTS.find((e: any) => e.id === id) || {};
+  const cliOf = (e: any) => CLIENTS.find((c: any) => c.id === e.clientId) || {};
 
   // month gridlines
   const months = useMemoDlv(() => {
@@ -44,22 +44,22 @@ function DeliveryMilestones() {
     return out;
   }, []);
 
-  const rows = DELIVERY.map(p => ({ ...p, e: engById(p.id), c: cliOf(engById(p.id)) }))
-    .filter(r => r.e.status !== 'Completed' || filter === 'Semua' ? true : true);
+  const rows = DELIVERY.map((p: any) => ({ ...p, e: engById(p.id), c: cliOf(engById(p.id)) }))
+    .filter((r: any) => r.e.status !== 'Completed' || filter === 'Semua' ? true : true);
 
   // KPIs
-  const allMs = DELIVERY.flatMap(p => p.milestones.map(m => ({ ...m, eng: p.id })));
-  const active = DELIVERY.filter(p => engById(p.id).status !== 'Completed');
-  const dueSoon = allMs.filter(m => m.status !== 'done' && DLV_daysTo(m.date, today) >= 0 && DLV_daysTo(m.date, today) <= 7).length;
-  const atRisk = active.filter(p => { const e = engById(p.id); return DLV_daysTo(e.deadline, today) <= 14 && e.progress < 85; }).length;
-  const overdueMs = allMs.filter(m => m.status !== 'done' && DLV_daysTo(m.date, today) < 0).length;
+  const allMs = DELIVERY.flatMap((p: any) => p.milestones.map((m: any) => ({ ...m, eng: p.id })));
+  const active = DELIVERY.filter((p: any) => engById(p.id).status !== 'Completed');
+  const dueSoon = allMs.filter((m: any) => m.status !== 'done' && DLV_daysTo(m.date, today) >= 0 && DLV_daysTo(m.date, today) <= 7).length;
+  const atRisk = active.filter((p: any) => { const e = engById(p.id); return DLV_daysTo(e.deadline, today) <= 14 && e.progress < 85; }).length;
+  const overdueMs = allMs.filter((m: any) => m.status !== 'done' && DLV_daysTo(m.date, today) < 0).length;
 
-  const shown = filter === 'Semua' ? rows : filter === 'Aktif' ? rows.filter(r => r.e.status !== 'Completed') : rows.filter(r => DLV_daysTo(r.e.deadline, today) <= 14 && r.e.progress < 85 && r.e.status !== 'Completed');
+  const shown = filter === 'Semua' ? rows : filter === 'Aktif' ? rows.filter((r: any) => r.e.status !== 'Completed') : rows.filter((r: any) => DLV_daysTo(r.e.deadline, today) <= 14 && r.e.progress < 85 && r.e.status !== 'Completed');
 
-  const upcoming = allMs.filter(m => m.status !== 'done')
-    .sort((a, b) => +DLV_d(a.date) - +DLV_d(b.date)).slice(0, 7);
+  const upcoming = allMs.filter((m: any) => m.status !== 'done')
+    .sort((a: any, b: any) => +DLV_d(a.date) - +DLV_d(b.date)).slice(0, 7);
 
-  const selRow = sel ? rows.find(r => r.id === sel) : null;
+  const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
   return (
     <>
@@ -87,10 +87,10 @@ function DeliveryMilestones() {
           <div style={{ padding: '4px 14px 14px' }}>
             {/* month header */}
             <div style={{ position: 'relative', height: 18, marginLeft: 214, borderBottom: '1px solid var(--line)' }}>
-              {months.map((m, i) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 9.5, letterSpacing: '.04em' }}>{m.label}</span>)}
+              {months.map((m: any, i: any) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 9.5, letterSpacing: '.04em' }}>{m.label}</span>)}
               <span style={{ position: 'absolute', left: frac(today) + '%', top: -2, bottom: -2000, width: 2, background: 'var(--red)', opacity: .8, zIndex: 3 }} />
             </div>
-            {shown.map((r, ri) => {
+            {shown.map((r: any, ri: any) => {
               const used = r.e.budgetHrs ? Math.round(r.e.actualHrs / r.e.budgetHrs * 100) : 0;
               const dl = DLV_daysTo(r.e.deadline, today);
               return (
@@ -107,14 +107,14 @@ function DeliveryMilestones() {
                   </div>
                   <div style={{ flex: 1, position: 'relative', height: 30 }}>
                     {/* phase bars */}
-                    {r.phases.map((ph, pi) => (
+                    {r.phases.map((ph: any, pi: any) => (
                       <div key={pi} title={ph.name + ' · ' + DLV_fmtDate(ph.start) + '–' + DLV_fmtDate(ph.end)}
-                        style={{ position: 'absolute', top: 9, height: 12, left: frac(ph.start) + '%', width: Math.max(0.6, frac(ph.end) - frac(ph.start)) + '%', background: DLV_PHASE_COLOR[ph.name], borderRadius: 3, opacity: r.e.status === 'Completed' ? .42 : .9 }} />
+                        style={{ position: 'absolute', top: 9, height: 12, left: frac(ph.start) + '%', width: Math.max(0.6, frac(ph.end) - frac(ph.start)) + '%', background: (DLV_PHASE_COLOR as any)[ph.name], borderRadius: 3, opacity: r.e.status === 'Completed' ? .42 : .9 }} />
                     ))}
                     {/* milestone diamonds */}
-                    {r.milestones.map((m, mi) => (
+                    {r.milestones.map((m: any, mi: any) => (
                       <span key={mi} title={m.label + ' · ' + DLV_fmtDate(m.date)}
-                        style={{ position: 'absolute', top: 8, left: 'calc(' + frac(m.date) + '% - 6px)', width: 12, height: 12, background: DLV_MS_COLOR[m.status], transform: 'rotate(45deg)', borderRadius: 2, border: '1.5px solid var(--surface)', zIndex: 2 }} />
+                        style={{ position: 'absolute', top: 8, left: 'calc(' + frac(m.date) + '% - 6px)', width: 12, height: 12, background: (DLV_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, border: '1.5px solid var(--surface)', zIndex: 2 }} />
                     ))}
                     {/* today line */}
                     <span style={{ position: 'absolute', top: -7, bottom: -7, left: frac(today) + '%', width: 2, background: 'var(--red)', opacity: .55 }} />
@@ -131,12 +131,12 @@ function DeliveryMilestones() {
         <div className="grid" style={{ gridTemplateColumns: selRow ? '1fr 1fr 340px' : '1fr 1fr', gap: 12, alignItems: 'start' }}>
           <Panel title="Milestone Mendatang" sub="lintas perikatan">
             <div style={{ display: 'grid', gap: 0 }}>
-              {upcoming.map((m, i) => {
+              {upcoming.map((m: any, i: any) => {
                 const dl = DLV_daysTo(m.date, today);
                 return (
                   <div key={i} className="row ac jb" style={{ padding: '8px 0', borderBottom: i < upcoming.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span className="row ac gap8" style={{ minWidth: 0 }}>
-                      <span style={{ width: 10, height: 10, background: DLV_MS_COLOR[m.status], transform: 'rotate(45deg)', borderRadius: 2, flex: '0 0 10px' }} />
+                      <span style={{ width: 10, height: 10, background: (DLV_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, flex: '0 0 10px' }} />
                       <span style={{ minWidth: 0 }}>
                         <div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{m.label}</div>
                         <div className="tiny muted mono">{m.eng}</div>
@@ -154,7 +154,7 @@ function DeliveryMilestones() {
 
           <Panel title="Status Pengiriman" sub="risiko deadline">
             <div style={{ display: 'grid', gap: 8 }}>
-              {active.map(p => {
+              {active.map((p: any) => {
                 const e = engById(p.id), c = cliOf(e);
                 const dl = DLV_daysTo(e.deadline, today);
                 const burn = e.budgetHrs ? e.actualHrs / e.budgetHrs * 100 : 0;
@@ -183,7 +183,7 @@ function DeliveryMilestones() {
   );
 }
 
-function DeliveryDetail({ row, eng, client, today, onClose, onNav }) {
+function DeliveryDetail({ row, eng, client, today, onClose, onNav }: any) {
   const { fmt } = AMS;
   const burn = eng.budgetHrs ? Math.round(eng.actualHrs / eng.budgetHrs * 100) : 0;
   const overburn = burn > eng.progress + 12;
@@ -205,9 +205,9 @@ function DeliveryDetail({ row, eng, client, today, onClose, onNav }) {
 
         <div className="tiny muted upper" style={{ marginBottom: 7 }}>Fase</div>
         <div style={{ display: 'grid', gap: 6, marginBottom: 14 }}>
-          {row.phases.map((ph, i) => (
+          {row.phases.map((ph: any, i: any) => (
             <div key={i} className="row ac jb">
-              <span className="row ac gap7"><span style={{ width: 8, height: 8, borderRadius: 2, background: DLV_PHASE_COLOR[ph.name] }} /><span className="tiny" style={{ fontWeight: 600 }}>{ph.name}</span></span>
+              <span className="row ac gap7"><span style={{ width: 8, height: 8, borderRadius: 2, background: (DLV_PHASE_COLOR as any)[ph.name] }} /><span className="tiny" style={{ fontWeight: 600 }}>{ph.name}</span></span>
               <span className="tiny muted mono">{DLV_fmtDate(ph.start)} – {DLV_fmtDate(ph.end)}</span>
             </div>
           ))}
@@ -215,12 +215,12 @@ function DeliveryDetail({ row, eng, client, today, onClose, onNav }) {
 
         <div className="tiny muted upper" style={{ marginBottom: 7 }}>Milestone</div>
         <div style={{ display: 'grid', gap: 0, marginBottom: 14 }}>
-          {row.milestones.map((m, i) => {
+          {row.milestones.map((m: any, i: any) => {
             const dl = DLV_daysTo(m.date, today);
             return (
               <div key={i} className="row ac jb" style={{ padding: '6px 0', borderBottom: i < row.milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span className="row ac gap8">
-                  <span style={{ color: DLV_MS_COLOR[m.status] }}>{m.status === 'done' ? <I.checkCircle size={15} /> : m.status === 'due' ? <I.clock size={15} /> : <I.circle size={15} />}</span>
+                  <span style={{ color: (DLV_MS_COLOR as any)[m.status] }}>{m.status === 'done' ? <I.checkCircle size={15} /> : m.status === 'due' ? <I.clock size={15} /> : <I.circle size={15} />}</span>
                   <span className="tiny" style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'none' : 'none' }}>{m.label}</span>
                 </span>
                 <span className="mono tiny" style={{ color: m.status === 'done' ? 'var(--ink-4)' : dl < 0 ? 'var(--red)' : 'var(--ink-3)' }}>{DLV_fmtDate(m.date)}</span>

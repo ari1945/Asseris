@@ -13,7 +13,7 @@ import { MSub } from './view_fpm_parts';
    ============================================================ */
 const { useState: useStateD, useRef: useRefD, useEffect: useEffectD } = React;
 
-function useDraggablePortlets(defaultOrder, storeKey) {
+function useDraggablePortlets(defaultOrder: any, storeKey: any) {
   const [order, setOrder] = useStateD(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(storeKey) || 'null');
@@ -26,16 +26,16 @@ function useDraggablePortlets(defaultOrder, storeKey) {
   const dragId = useRefD(null);
   const [overId, setOverId] = useStateD(null);
 
-  const handlers = (id) => ({
+  const handlers = (id: any) => ({
     draggable: true,
-    onDragStart: (e) => { dragId.current = id; e.dataTransfer.effectAllowed = 'move'; },
-    onDragOver: (e) => { e.preventDefault(); if (overId !== id) setOverId(id); },
+    onDragStart: (e: any) => { dragId.current = id; e.dataTransfer.effectAllowed = 'move'; },
+    onDragOver: (e: any) => { e.preventDefault(); if (overId !== id) setOverId(id); },
     onDragEnd: () => { dragId.current = null; setOverId(null); },
-    onDrop: (e) => {
+    onDrop: (e: any) => {
       e.preventDefault();
       const from = dragId.current, to = id;
       if (from && to && from !== to) {
-        setOrder(o => {
+        setOrder((o: any) => {
           const arr = [...o];
           const fi = arr.indexOf(from), ti = arr.indexOf(to);
           arr.splice(fi, 1); arr.splice(ti, 0, from);
@@ -53,9 +53,9 @@ function FirmDashboard() {
   const { engagements, clients, setActiveEngagementId } = useFirm();
   const { team, activity, deadlines, risks } = useAudit();
 
-  const activeEng = engagements.filter(e => e.status !== 'Completed');
-  const totalWIP = engagements.reduce((s, e) => s + (e.budgetHrs - e.actualHrs > 0 ? 0 : 0) + e.actualHrs * 850000, 0);
-  const totalFee = clients.reduce((s, c) => s + c.fee, 0);
+  const activeEng = engagements.filter((e: any) => e.status !== 'Completed');
+  const totalWIP = engagements.reduce((s: any, e: any) => s + (e.budgetHrs - e.actualHrs > 0 ? 0 : 0) + e.actualHrs * 850000, 0);
+  const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   /* ---- portlet definitions ---- */
   const portlets = {
@@ -85,8 +85,8 @@ function FirmDashboard() {
             <th>Engagement</th><th>Klien</th><th>Fase</th><th>Progress</th><th>Partner</th><th className="r">Deadline</th>
           </tr></thead>
           <tbody>
-            {engagements.slice(0, 6).map(e => {
-              const c = clients.find(x => x.id === e.clientId);
+            {engagements.slice(0, 6).map((e: any) => {
+              const c = clients.find((x: any) => x.id === e.clientId);
               return (
                 <tr key={e.id} onClick={() => setActiveEngagementId(e.id)} style={{ cursor: 'pointer' }}>
                   <td className="mono" style={{ fontSize: 11.5 }}>{e.id}</td>
@@ -110,8 +110,8 @@ function FirmDashboard() {
 
     riskheat: () => {
       const heat = [[1,2,4,7,9],[1,3,5,8,10],[2,4,6,9,12],[3,6,9,12,15],[5,9,12,16,20]];
-      const colorFor = v => v >= 12 ? '#b3261e' : v >= 7 ? '#d98324' : v >= 4 ? '#caa53d' : '#1f7a4d';
-      const counts = { high: risks.filter(r => r.likelihood * r.impact >= 12).length, med: risks.filter(r => { const s = r.likelihood * r.impact; return s >= 6 && s < 12; }).length };
+      const colorFor = (v: any) => v >= 12 ? '#b3261e' : v >= 7 ? '#d98324' : v >= 4 ? '#caa53d' : '#1f7a4d';
+      const counts = { high: risks.filter((r: any) => r.likelihood * r.impact >= 12).length, med: risks.filter((r: any) => { const s = r.likelihood * r.impact; return s >= 6 && s < 12; }).length };
       return (
         <Portlet title="Risk Heatmap · Firm-wide" dot="#b3261e" dragProps={dragP('riskheat')}>
           <div className="row gap12" style={{ alignItems: 'center' }}>
@@ -133,7 +133,7 @@ function FirmDashboard() {
     deadlines: () => (
       <Portlet title="Deadline Mendatang" dot="#9a6a00" dragProps={dragP('deadlines')}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {deadlines.map((d, i) => (
+          {deadlines.map((d: any, i: any) => (
             <div key={i} className="row ac gap8" style={{ padding: '7px 0', borderBottom: i < deadlines.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <div style={{ width: 38, textAlign: 'center' }}>
                 <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: d.sev === 'red' ? 'var(--red)' : d.sev === 'amber' ? 'var(--amber)' : 'var(--navy)' }}>{d.days}</div>
@@ -153,7 +153,7 @@ function FirmDashboard() {
 
     phases: () => {
       const byPhase = { Perencanaan: 0, Eksekusi: 0, Finalisasi: 0, Arsip: 0 };
-      engagements.forEach(e => { byPhase[e.phase] = (byPhase[e.phase] || 0) + 1; });
+      engagements.forEach((e: any) => { (byPhase as any)[e.phase] = ((byPhase as any)[e.phase] || 0) + 1; });
       const segs = [
         { label: 'Perencanaan', value: byPhase.Perencanaan, color: '#5b3fa6' },
         { label: 'Eksekusi', value: byPhase.Eksekusi, color: '#005085' },
@@ -192,7 +192,7 @@ function FirmDashboard() {
     team: () => (
       <Portlet title="Utilisasi Tim" dot="#024661" dragProps={dragP('team')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-          {team.map(t => (
+          {team.map((t: any) => (
             <div key={t.name} className="row ac gap8">
               <Avatar name={t.name} size={26} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -208,8 +208,8 @@ function FirmDashboard() {
     activity: () => (
       <Portlet title="Aktivitas Terkini" dot="#2f7bb0" dragProps={dragP('activity')}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {activity.map((a, i) => {
-            const IconC = I[a.icon] || I.pulse;
+          {activity.map((a: any, i: any) => {
+            const IconC = (I as any)[a.icon] || I.pulse;
             return (
               <div key={i} className="row gap8" style={{ padding: '8px 0', borderBottom: i < activity.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}><IconC size={14} /></span>
@@ -227,7 +227,7 @@ function FirmDashboard() {
 
   const defaultOrder = ['kpi', 'engagements', 'phases', 'riskheat', 'deadlines', 'billing', 'team', 'activity'];
   const { order, handlers, overId, reset } = useDraggablePortlets(defaultOrder, 'ams.dash.order');
-  function dragP(id) {
+  function dragP(id: any) {
     const h = handlers(id);
     return { className: (overId === id ? 'drop-target ' : ''), gripProps: { draggable: true, onDragStart: h.onDragStart, onDragEnd: h.onDragEnd }, onDragOver: h.onDragOver, onDrop: h.onDrop };
   }
@@ -259,9 +259,9 @@ function FirmDashboard() {
         <div className="view-scroll">
           <div className="view-pad">
             <div className="grid" style={{ gridTemplateColumns: 'repeat(12,1fr)', gap: 12 }}>
-              {order.map(id => (
-                <div key={id} style={{ gridColumn: span[id] || 'span 4' }}>
-                  {portlets[id]()}
+              {order.map((id: any) => (
+                <div key={id} style={{ gridColumn: (span as any)[id] || 'span 4' }}>
+                  {(portlets as any)[id]()}
                 </div>
               ))}
             </div>

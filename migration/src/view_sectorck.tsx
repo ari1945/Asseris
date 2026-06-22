@@ -37,9 +37,9 @@ function SectorChecklistView() {
   React.useEffect(() => { try { localStorage.setItem('ams.sectorck.sec', JSON.stringify(sec)); } catch (e) {} }, [sec]);
   React.useEffect(() => { try { localStorage.setItem('ams.sectorck.done', JSON.stringify(done)); } catch (e) {} }, [done]);
 
-  const cur = S.sectors.find(s => s.id === sec) || S.sectors[0];
-  const isDone = (it) => (done[it.ref] != null ? done[it.ref] : it.done);
-  const toggle = (ref) => { const it = cur.checks.find(c => c.ref === ref); setDone(m => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : it.done) })); };
+  const cur = S.sectors.find((s: any) => s.id === sec) || S.sectors[0];
+  const isDone = (it: any) => (done[it.ref] != null ? done[it.ref] : it.done);
+  const toggle = (ref: any) => { const it = cur.checks.find((c: any) => c.ref === ref); setDone((m: any) => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : it.done) })); };
   const curDone = cur.checks.filter(isDone).length;
   const curPct = Math.round(curDone / cur.checks.length * 100);
 
@@ -65,10 +65,10 @@ function SectorChecklistView() {
 
           {/* sector picker */}
           <div className="row gap8" style={{ flexWrap: 'wrap' }}>
-            {S.sectors.map(s => {
-              const IconC = I[s.icon] || I.shield;
+            {S.sectors.map((s: any) => {
+              const IconC = (I as any)[s.icon] || I.shield;
               const on = s.id === sec;
-              const sd = s.checks.filter(c => (done[c.ref] != null ? done[c.ref] : c.done)).length;
+              const sd = s.checks.filter((c: any) => (done[c.ref] != null ? done[c.ref] : c.done)).length;
               return (
                 <button key={s.id} onClick={() => setSec(s.id)} className="row ac gap8" style={{ padding: '9px 13px', borderRadius: 9, cursor: 'pointer', textAlign: 'left',
                   border: '1px solid ' + (on ? s.accent : 'var(--line)'), background: on ? s.accent : 'var(--surface)', color: on ? '#fff' : 'var(--ink)', boxShadow: on ? 'var(--shadow)' : 'none' }}>
@@ -91,7 +91,7 @@ function SectorChecklistView() {
                 <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Entitas <b>{cur.clientName || cur.client}</b> tunduk pada ketentuan kehati-hatian & pelaporan OJK sektoral. Daftar-uji menambah prosedur khusus di atas program audit umum.</div>
               </div>
               <div>
-                {cur.checks.map((c, i) => {
+                {cur.checks.map((c: any, i: any) => {
                   const on = isDone(c);
                   return (
                     <div key={c.ref} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < cur.checks.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -110,7 +110,7 @@ function SectorChecklistView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Rasio & Indikator Kehati-hatian</h3><span className="sub mono">{cur.label}</span></div>
                 <div>
-                  {cur.ratios.map((r, i) => (
+                  {cur.ratios.map((r: any, i: any) => (
                     <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < cur.ratios.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.ok ? 'var(--green)' : 'var(--red)', flex: '0 0 auto' }} />
                       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{r.k}</div><div className="tiny muted">Ambang: {r.min}</div></div>
@@ -122,7 +122,7 @@ function SectorChecklistView() {
 
               <Panel title="Acuan Regulasi" sub="POJK · SEOJK · PSAK">
                 <div className="row gap6" style={{ flexWrap: 'wrap' }}>
-                  {cur.regs.map((r, i) => (
+                  {cur.regs.map((r: any, i: any) => (
                     <span key={i} className="mono" style={{ fontSize: 11, fontWeight: 600, padding: '5px 9px', borderRadius: 6, background: 'var(--surface-3)', color: 'var(--ink-2)', border: '1px solid var(--line-soft)' }}>{r}</span>
                   ))}
                 </div>

@@ -19,14 +19,14 @@ const { useState: useStateRR, useMemo: useMemoRR } = React;
 
 /* ---- format helpers ---- */
 const rrDID = (d: any, o?: any) => d ? new Date(d).toLocaleDateString('id-ID', o || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-const rrSize = (mb) => mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : Math.round(mb) + ' MB';
+const rrSize = (mb: any) => mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : Math.round(mb) + ' MB';
 const ARK_KIND = { 'Terkunci': 'green', 'Perakitan': 'amber', 'Jatuh Tempo': 'amber', 'Legal Hold': 'red' };
-function ArkBadge({ s }) {
-  return <span className={'badge b-' + (ARK_KIND[s] || 'gray')}>{s === 'Legal Hold' && <I.lock size={10} style={{ marginRight: 2 }} />}{s}</span>;
+function ArkBadge({ s }: any) {
+  return <span className={'badge b-' + ((ARK_KIND as any)[s] || 'gray')}>{s === 'Legal Hold' && <I.lock size={10} style={{ marginRight: 2 }} />}{s}</span>;
 }
 
 /* ---- retention timeline bar (archived → retentionUntil dengan penanda hari ini) ---- */
-function RetentionBar({ box }) {
+function RetentionBar({ box }: any) {
   const R = window.RETENTION;
   if (!box.archivedOn) {
     return <div className="tiny muted" style={{ padding: '6px 0' }}>Belum diarsipkan — masa retensi mulai saat berkas dikunci.</div>;
@@ -60,7 +60,7 @@ function RetentionBar({ box }) {
 /* ============================================================
    Drawer detail kotak arsip — drill-down dokumen DMS live
    ============================================================ */
-function ArchiveDrawer({ box, onClose, nav }) {
+function ArchiveDrawer({ box, onClose, nav }: any) {
   const R = window.RETENTION;
   if (!box) return null;
   const docs = R.docsForEng(box.engId);
@@ -124,7 +124,7 @@ function ArchiveDrawer({ box, onClose, nav }) {
           <table className="dtbl" style={{ marginBottom: 12 }}>
             <thead><tr><th>Dokumen</th><th>Jenis</th><th className="num">Ver</th><th className="num">Ukuran</th><th>Status</th></tr></thead>
             <tbody>
-              {docs.map(d => (
+              {docs.map((d: any) => (
                 <tr key={d.id} style={{ cursor: 'pointer' }} onClick={() => nav('dms', { from: 'records' })}>
                   <td style={{ fontWeight: 600, fontSize: 11 }} className="truncate">{d.name}<div className="tiny muted mono">{d.id}</div></td>
                   <td className="tiny">{d.type}</td>
@@ -154,12 +154,12 @@ function ArchiveDrawer({ box, onClose, nav }) {
 /* ============================================================
    Tab: Ikhtisar — funnel siklus hidup + sorotan
    ============================================================ */
-function RROverview({ boxes, nav, onPick }) {
+function RROverview({ boxes, nav, onPick }: any) {
   const R = window.RETENTION;
   const stages = R.lifecycle();
   const holds = R.activeHolds();
-  const due = boxes.filter(b => b.status === 'Jatuh Tempo');
-  const assembling = boxes.filter(b => b.status === 'Perakitan');
+  const due = boxes.filter((b: any) => b.status === 'Jatuh Tempo');
+  const assembling = boxes.filter((b: any) => b.status === 'Perakitan');
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="panel" style={{ padding: '11px 13px', marginBottom: 14, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
@@ -169,8 +169,8 @@ function RROverview({ boxes, nav, onPick }) {
       {/* Funnel siklus hidup */}
       <SectionTitle>Siklus Hidup Arsip Perikatan</SectionTitle>
       <div className="row ac" style={{ gap: 0, marginBottom: 18, flexWrap: 'wrap' }}>
-        {stages.map((s, i) => {
-          const Ic = I[s.icon] || I.archive;
+        {stages.map((s: any, i: any) => {
+          const Ic = (I as any)[s.icon] || I.archive;
           return (
             <React.Fragment key={s.id}>
               <div className="panel" style={{ padding: '12px 14px', flex: 1, minWidth: 150, borderTop: '3px solid ' + s.color }}>
@@ -191,8 +191,8 @@ function RROverview({ boxes, nav, onPick }) {
         {/* Legal hold + perakitan */}
         <div>
           <SectionTitle right={<button className="chip tiny" style={{ cursor: 'pointer' }} onClick={() => nav('legal', { from: 'records' })}><I.arrowRight size={10} /> Legal</button>}>Legal Hold Aktif</SectionTitle>
-          {holds.length ? holds.map(h => {
-            const box = boxes.find(b => b.engId === h.engId);
+          {holds.length ? holds.map((h: any) => {
+            const box = boxes.find((b: any) => b.engId === h.engId);
             return (
               <div key={h.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--red)', cursor: box ? 'pointer' : 'default' }} onClick={() => box && onPick(box)}>
                 <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{h.subject}</span><span className="mono tiny" style={{ color: 'var(--red)', fontWeight: 700 }}>{h.id}</span></div>
@@ -204,7 +204,7 @@ function RROverview({ boxes, nav, onPick }) {
 
           {assembling.length > 0 && <>
             <SectionTitle>Perakitan SA 230 Berjalan</SectionTitle>
-            {assembling.map(b => {
+            {assembling.map((b: any) => {
               const d = b.assembleBy ? R.daysTo(b.assembleBy) : null;
               return (
                 <div key={b.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--amber)', cursor: 'pointer' }} onClick={() => onPick(b)}>
@@ -219,7 +219,7 @@ function RROverview({ boxes, nav, onPick }) {
         {/* Jatuh tempo */}
         <div>
           <SectionTitle right={<button className="chip tiny" style={{ cursor: 'pointer' }} onClick={() => nav('procurement', { from: 'records' })}><I.arrowRight size={10} /> Pengadaan</button>}>Antrean Pemusnahan</SectionTitle>
-          {due.length ? due.map(b => (
+          {due.length ? due.map((b: any) => (
             <div key={b.id} className="panel" style={{ padding: '10px 12px', marginBottom: 8, borderLeft: '3px solid var(--blue)', cursor: 'pointer' }} onClick={() => onPick(b)}>
               <div className="row jb ac"><span className="tiny" style={{ fontWeight: 700 }}>{b.client}</span><span className="mono tiny muted">{b.fy}</span></div>
               <div className="row jb ac" style={{ marginTop: 3 }}>
@@ -233,9 +233,9 @@ function RROverview({ boxes, nav, onPick }) {
           <div className="row ac gap14">
             <Donut size={96} thickness={14} segments={(function () {
               const by = {};
-              boxes.forEach(b => { const j = R.classById(b.classId).jenis; by[j] = (by[j] || 0) + 1; });
+              boxes.forEach((b: any) => { const j = R.classById(b.classId).jenis; (by as any)[j] = ((by as any)[j] || 0) + 1; });
               const cols = ['#005085', '#1f7a4d', '#9a6a00', '#5b3fa6', '#0a6b73'];
-              return Object.keys(by).map((k, i) => ({ value: by[k], color: cols[i % cols.length] }));
+              return Object.keys(by).map((k, i) => ({ value: (by as any)[k], color: cols[i % cols.length] }));
             })()} center={<div><div className="mono" style={{ fontSize: 16, fontWeight: 800 }}>{boxes.length}</div><div className="tiny muted">kotak</div></div>} />
             <div style={{ flex: 1 }}>
               <KV label="Total arsip terkelola" v={boxes.length + ' kotak · ' + R.metrics().sizeGB.toFixed(1) + ' GB'} />
@@ -252,7 +252,7 @@ function RROverview({ boxes, nav, onPick }) {
 /* ============================================================
    Tab: Rekonsiliasi & Keterkaitan
    ============================================================ */
-function RRRecon({ nav }) {
+function RRRecon({ nav }: any) {
   const R = window.RETENTION;
   const recons = R.reconciliations();
   const links = [
@@ -267,7 +267,7 @@ function RRRecon({ nav }) {
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <SectionTitle>Rekonsiliasi Lintas-Modul (bukti satu sumber kebenaran)</SectionTitle>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 18 }}>
-        {recons.map(r => (
+        {recons.map((r: any) => (
           <div key={r.id} className="panel" style={{ padding: '12px 13px', borderTop: '3px solid ' + (r.ok ? 'var(--green)' : 'var(--amber)') }}>
             <div className="row ac gap8" style={{ marginBottom: 8 }}>
               {r.ok ? <span className="badge b-green" style={{ textTransform: 'none' }}>✓ Menutup</span> : <span className="badge b-amber" style={{ textTransform: 'none' }}>≠ Selisih</span>}
@@ -290,7 +290,7 @@ function RRRecon({ nav }) {
       </div>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {links.map(m => {
-          const Ic = I[m.ic] || I.doc;
+          const Ic = (I as any)[m.ic] || I.doc;
           return (
             <button key={m.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--blue)' }} onClick={() => nav(m.id, { from: 'records' })} title={'Buka ' + m.lbl}>
               <span className="lin-ic" style={{ color: 'var(--blue)' }}><Ic size={14} /></span>
@@ -316,8 +316,8 @@ function RecordsRetention() {
   const holds = useMemoRR(() => R.holdRegistry(), []);
   const queue = useMemoRR(() => R.disposalQueue(), []);
   const m = useMemoRR(() => R.metrics(), []);
-  const sel = boxes.find(b => b.id === selId) || null;
-  const onPick = (b) => setSelId(b.id);
+  const sel = boxes.find((b: any) => b.id === selId) || null;
+  const onPick = (b: any) => setSelId(b.id);
 
   const tabs = [
     { id: 'overview', label: 'Ikhtisar' },
@@ -348,7 +348,7 @@ function RecordsRetention() {
             <table className="dtbl">
               <thead><tr><th>Kotak</th><th>Perikatan / Klien</th><th>FY</th><th>Sumber</th><th className="num">Berkas</th><th className="num">Ukuran</th><th>Diarsip</th><th>Retensi s/d</th><th>Status</th></tr></thead>
               <tbody>
-                {boxes.map(b => (
+                {boxes.map((b: any) => (
                   <tr key={b.id} onClick={() => onPick(b)} style={{ cursor: 'pointer' }} className={b.id === selId ? 'sel' : ''}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{b.id}</td>
                     <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{b.client}</div><div className="tiny muted mono">{b.engId}</div></td>
@@ -373,7 +373,7 @@ function RecordsRetention() {
               <table className="dtbl">
                 <thead><tr><th>Kelas Dokumen</th><th>Dasar Hukum / Standar</th><th className="num">Retensi</th><th>Format</th><th>Catatan</th></tr></thead>
                 <tbody>
-                  {R.RETENTION_CLASSES.map(c => (
+                  {R.RETENTION_CLASSES.map((c: any) => (
                     <tr key={c.id}>
                       <td style={{ fontWeight: 600, fontSize: 11.5 }}>{c.jenis}{c.types.length ? <div className="tiny muted">DMS: {c.types.join(', ')}</div> : null}</td>
                       <td className="tiny muted">{c.dasar}</td>
@@ -393,7 +393,7 @@ function RecordsRetention() {
                 <div className="tiny muted" style={{ lineHeight: 1.5 }}><I.gavel size={12} style={{ verticalAlign: -2 }} /> <b>Registri legal hold</b> adalah sumber tunggal penangguhan disposal. Modul Legal (sengketa) & DMS (dokumen ditahan) menunjuk ke registri yang sama — tidak ada hold ganda atau yang terlewat.</div>
               </div>
               <div style={{ display: 'grid', gap: 10 }}>
-                {holds.map(h => (
+                {holds.map((h: any) => (
                   <div key={h.id} className="panel" style={{ padding: '12px 14px', borderLeft: '3px solid ' + (h.status === 'Aktif' ? 'var(--red)' : 'var(--ink-3)') }}>
                     <div className="row jb ac" style={{ marginBottom: 6 }}>
                       <div className="row ac gap8">
@@ -425,7 +425,7 @@ function RecordsRetention() {
               <table className="dtbl">
                 <thead><tr><th>Kotak</th><th>Perikatan / Klien</th><th>Retensi habis</th><th className="num">Ukuran</th><th>Legal hold?</th><th>Tahapan</th><th></th></tr></thead>
                 <tbody>
-                  {queue.map(b => (
+                  {queue.map((b: any) => (
                     <tr key={b.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{b.id}</td>
                       <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{b.client}</div><div className="tiny muted mono">{b.engId} · {b.fy}</div></td>

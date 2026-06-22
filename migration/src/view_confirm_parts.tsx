@@ -66,8 +66,8 @@ const CF_RELIABILITY = [
   'Ditandatangani / diotorisasi pejabat berwenang',
 ];
 
-const cfAltList = (t) => CF_ALT_PROCS[t] || CF_ALT_PROCS.default;
-const cfReconPresets = (t) => CF_RECON_PRESETS[t] || CF_RECON_PRESETS.default;
+const cfAltList = (t: any) => (CF_ALT_PROCS as any)[t] || CF_ALT_PROCS.default;
+const cfReconPresets = (t: any) => (CF_RECON_PRESETS as any)[t] || CF_RECON_PRESETS.default;
 
 /* ---- small presentational helpers ---- */
 function CfTrack({ pct, color = 'var(--blue)', h = 8 }: any) {
@@ -81,7 +81,7 @@ function CfTrack({ pct, color = 'var(--blue)', h = 8 }: any) {
 function CfMeta({ icon, label, value, accent }: any) {
   return (
     <div className="row ac gap8" style={{ minWidth: 0 }}>
-      <span style={{ color: 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{React.createElement(I[icon], { size: 14 })}</span>
+      <span style={{ color: 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{React.createElement((I as any)[icon], { size: 14 })}</span>
       <div style={{ minWidth: 0 }}>
         <div className="tiny muted upper" style={{ letterSpacing: '.05em' }}>{label}</div>
         <div className="truncate" style={{ fontSize: 12, fontWeight: 600, color: accent || 'var(--ink)' }}>{value}</div>
@@ -95,10 +95,10 @@ function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }: any) {
   const { fmt } = AMS;
   const variance = (item.resp != null ? item.resp - item.amount : 0);
   const rows = recon[item.id] || [];
-  const reconTotal = rows.reduce((s, r) => s + (+r.amount || 0), 0);
+  const reconTotal = rows.reduce((s: any, r: any) => s + (+r.amount || 0), 0);
   const unexplained = variance - reconTotal;
-  const add = (label) => setRecon(r => ({ ...r, [item.id]: [...(r[item.id] || []), { label, amount: unexplained }] }));
-  const remove = (i) => setRecon(r => ({ ...r, [item.id]: (r[item.id] || []).filter((_, idx) => idx !== i) }));
+  const add = (label: any) => setRecon((r: any) => ({ ...r, [item.id]: [...(r[item.id] || []), { label, amount: unexplained }] }));
+  const remove = (i: any) => setRecon((r: any) => ({ ...r, [item.id]: (r[item.id] || []).filter((_: any, idx: any) => idx !== i) }));
   const resolved = Math.abs(unexplained) < 1e6;
 
   return (
@@ -114,7 +114,7 @@ function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }: any) {
       </div>
       {rows.length > 0 && (
         <div style={{ display: 'grid', gap: 3, marginBottom: 7 }}>
-          {rows.map((r, i) => (
+          {rows.map((r: any, i: any) => (
             <div key={i} className="row jb ac tiny" style={{ background: '#fff', borderRadius: 4, padding: '3px 7px' }}>
               <span className="truncate" style={{ maxWidth: compact ? 180 : 230 }}>{r.label}</span>
               <span className="row ac gap6"><span className="mono">{fmt((+r.amount || 0) / 1e6, 1)}</span><button onClick={() => remove(i)} style={{ border: 0, background: 'transparent', color: 'var(--red)', cursor: 'pointer', padding: 0 }}><I.x size={11} /></button></span>
@@ -130,7 +130,7 @@ function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }: any) {
         <>
           <div className="tiny muted" style={{ marginBottom: 5 }}>Tambahkan item rekonsiliasi (mengisi sisa selisih):</div>
           <div className="row wrap gap6">
-            {cfReconPresets(item.type).map((lbl) => (
+            {cfReconPresets(item.type).map((lbl: any) => (
               <button key={lbl} className="chip x" style={{ cursor: 'pointer' }} onClick={() => add(lbl)}>+ {lbl}</button>
             ))}
           </div>
@@ -158,7 +158,7 @@ function CfAltProcedures({ item, checks, setChecks, onResolve }: any) {
   const state = checks[item.id] || list.map(() => false);
   const done = state.filter(Boolean).length;
   const all = done === list.length;
-  const toggle = (i) => setChecks(c => {
+  const toggle = (i: any) => setChecks((c: any) => {
     const cur = (c[item.id] || list.map(() => false)).slice();
     cur[i] = !cur[i];
     return { ...c, [item.id]: cur };
@@ -170,8 +170,8 @@ function CfAltProcedures({ item, checks, setChecks, onResolve }: any) {
         <span className="tiny" style={{ fontWeight: 700, color: 'var(--amber)' }}>{done}/{list.length} · SA 505 ¶12</span>
       </div>
       <div style={{ display: 'grid', gap: 6 }}>
-        {list.map((p, i) => (
-          <label key={i} className="row ac gap8" style={{ fontSize: 11.5, cursor: 'pointer', lineHeight: 1.35 }} onClick={(e) => { e.preventDefault(); toggle(i); }}>
+        {list.map((p: any, i: any) => (
+          <label key={i} className="row ac gap8" style={{ fontSize: 11.5, cursor: 'pointer', lineHeight: 1.35 }} onClick={(e: any) => { e.preventDefault(); toggle(i); }}>
             <span style={{ width: 15, height: 15, borderRadius: 3, border: '1.5px solid var(--amber)', background: state[i] ? 'var(--amber)' : 'transparent', display: 'grid', placeItems: 'center', flex: '0 0 15px' }}>{state[i] && <I.check size={10} style={{ color: '#fff' }} />}</span>
             <span style={{ textDecoration: state[i] ? 'line-through' : 'none', color: state[i] ? 'var(--ink-3)' : 'var(--ink)' }}>{p}</span>
           </label>
@@ -191,7 +191,7 @@ function CfReliability({ item, checks, setChecks }: any) {
   const state = checks[item.id] || def;
   const done = state.filter(Boolean).length;
   const all = done === CF_RELIABILITY.length;
-  const toggle = (i) => setChecks(c => {
+  const toggle = (i: any) => setChecks((c: any) => {
     const cur = (c[item.id] || def).slice();
     cur[i] = !cur[i];
     return { ...c, [item.id]: cur };
@@ -207,7 +207,7 @@ function CfReliability({ item, checks, setChecks }: any) {
       )}
       <div style={{ display: 'grid', gap: 5 }}>
         {CF_RELIABILITY.map((c, i) => (
-          <label key={i} className="row ac gap8" style={{ fontSize: 11, cursor: 'pointer', lineHeight: 1.3 }} onClick={(e) => { e.preventDefault(); toggle(i); }}>
+          <label key={i} className="row ac gap8" style={{ fontSize: 11, cursor: 'pointer', lineHeight: 1.3 }} onClick={(e: any) => { e.preventDefault(); toggle(i); }}>
             <span style={{ width: 14, height: 14, borderRadius: 3, border: '1.5px solid ' + (state[i] ? 'var(--green)' : 'var(--line-strong)'), background: state[i] ? 'var(--green)' : 'transparent', display: 'grid', placeItems: 'center', flex: '0 0 14px' }}>{state[i] && <I.check size={9} style={{ color: '#fff' }} />}</span>
             <span style={{ color: state[i] ? 'var(--ink-2)' : 'var(--ink-3)' }}>{c}</span>
           </label>

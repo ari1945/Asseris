@@ -23,7 +23,7 @@ const { useState: useStateProc, useMemo: useMemoProc } = React;
 
 /* warna risiko & util kecil */
 const PROC_RISKC = { Rendah: 'var(--green)', Sedang: 'var(--amber)', Tinggi: 'var(--red)' };
-const procPct = (x) => Math.round(x * 100) + '%';
+const procPct = (x: any) => Math.round(x * 100) + '%';
 
 /* skor bar mini (0–100) */
 function ScoreBar({ pct, color }: any) {
@@ -39,11 +39,11 @@ function ScoreBar({ pct, color }: any) {
 }
 
 /* funnel procure-to-pay — satu rantai status */
-function P2PFunnel({ stages, onJump }) {
-  const max = Math.max(...stages.map(s => s.val), 1);
+function P2PFunnel({ stages, onJump }: any) {
+  const max = Math.max(...stages.map((s: any) => s.val), 1);
   return (
     <div style={{ display: 'grid', gap: 7 }}>
-      {stages.map((s, i) => (
+      {stages.map((s: any, i: any) => (
         <button key={s.key} type="button" className="p2p-stage" onClick={() => onJump && onJump(s.key)}
           style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
           <span style={{ width: 22, height: 22, borderRadius: 6, flex: '0 0 22px', display: 'grid', placeItems: 'center', background: s.c + '1a', color: s.c, fontWeight: 800, fontSize: 11 }} className="mono">{s.n}</span>
@@ -63,27 +63,27 @@ function P2PFunnel({ stages, onJump }) {
 }
 
 /* daftar alert operasional (diturunkan) */
-function ProcAlerts({ B, P, nav, setTab, setVSel }) {
-  const blocked = B.VENDORS.filter(v => v.status === 'Diblokir');
-  const dilig = B.VENDORS.filter(v => v.diligence !== 'Lengkap' && v.status !== 'Diblokir');
-  const pendPO = B.PURCHASE_ORDERS.filter(p => p.status === 'Menunggu Approval');
+function ProcAlerts({ B, P, nav, setTab, setVSel }: any) {
+  const blocked = B.VENDORS.filter((v: any) => v.status === 'Diblokir');
+  const dilig = B.VENDORS.filter((v: any) => v.diligence !== 'Lengkap' && v.status !== 'Diblokir');
+  const pendPO = B.PURCHASE_ORDERS.filter((p: any) => p.status === 'Menunggu Approval');
   const bva = P.budgetVsActual();
-  const over = bva.rows.filter(r => r.over);
-  const twm = P.threeWayMatch().filter(t => t.result !== 'match');
+  const over = bva.rows.filter((r: any) => r.over);
+  const twm = P.threeWayMatch().filter((t: any) => t.result !== 'match');
 
   const items = [];
-  blocked.forEach(v => items.push({ tone: 'red', ic: 'lock', t: 'Vendor diblokir — ' + v.name, s: 'PMPJ gagal (pajak) · terkait sengketa Legal LIT-01', go: () => setVSel(v) }));
-  if (pendPO.length) items.push({ tone: 'amber', ic: 'clock', t: pendPO.length + ' PO menunggu approval', s: 'Nilai ' + boJt(pendPO.reduce((s, p) => s + p.amount, 0)) + ' · rantai otorisasi', go: () => setTab('p2p') });
-  twm.forEach(t => items.push({ tone: 'amber', ic: 'scale', t: '3-way match perlu reviu — ' + t.bill.id, s: t.result === 'variance' ? 'Selisih harga ' + boJt(Math.abs(t.variance)) : t.result === 'nopo' ? 'Faktur tanpa PO' : 'Menunggu GRN', go: () => setTab('p2p') }));
-  dilig.forEach(v => items.push({ tone: 'amber', ic: 'shield', t: 'PMPJ belum lengkap — ' + v.name, s: 'Status: ' + v.diligence, go: () => setVSel(v) }));
-  over.forEach(r => items.push({ tone: 'amber', ic: 'trend', t: 'Anggaran terlampaui — ' + r.cat, s: 'Aktual ' + boJt(r.actual) + ' vs anggaran ' + boJt(r.budget), go: () => setTab('spend') }));
+  blocked.forEach((v: any) => items.push({ tone: 'red', ic: 'lock', t: 'Vendor diblokir — ' + v.name, s: 'PMPJ gagal (pajak) · terkait sengketa Legal LIT-01', go: () => setVSel(v) }));
+  if (pendPO.length) items.push({ tone: 'amber', ic: 'clock', t: pendPO.length + ' PO menunggu approval', s: 'Nilai ' + boJt(pendPO.reduce((s: any, p: any) => s + p.amount, 0)) + ' · rantai otorisasi', go: () => setTab('p2p') });
+  twm.forEach((t: any) => items.push({ tone: 'amber', ic: 'scale', t: '3-way match perlu reviu — ' + t.bill.id, s: t.result === 'variance' ? 'Selisih harga ' + boJt(Math.abs(t.variance)) : t.result === 'nopo' ? 'Faktur tanpa PO' : 'Menunggu GRN', go: () => setTab('p2p') }));
+  dilig.forEach((v: any) => items.push({ tone: 'amber', ic: 'shield', t: 'PMPJ belum lengkap — ' + v.name, s: 'Status: ' + v.diligence, go: () => setVSel(v) }));
+  over.forEach((r: any) => items.push({ tone: 'amber', ic: 'trend', t: 'Anggaran terlampaui — ' + r.cat, s: 'Aktual ' + boJt(r.actual) + ' vs anggaran ' + boJt(r.budget), go: () => setTab('spend') }));
 
   return (
     <div style={{ display: 'grid', gap: 7 }}>
       {items.slice(0, 7).map((a, i) => (
         <button key={i} type="button" onClick={a.go}
           style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-          <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(I[a.ic] || I.alert, { size: 15 })}</span>
+          <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement((I as any)[a.ic] || I.alert, { size: 15 })}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 300 }}>{a.t}</div>
             <div className="tiny muted truncate" style={{ maxWidth: 300 }}>{a.s}</div>
@@ -153,10 +153,10 @@ function Procurement() {
                 <Panel title="Belanja per Kategori" sub={'diturunkan dari master · ' + boM(spend.total, 1) + ' total'} actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('spend')}><I.arrowRight size={11} /></button>}>
                   <div className="row gap14" style={{ alignItems: 'center' }}>
                     <Donut size={128} thickness={18}
-                      segments={spend.rows.map(r => ({ label: r.cat, value: r.v, color: r.c }))}
+                      segments={spend.rows.map((r: any) => ({ label: r.cat, value: r.v, color: r.c }))}
                       center={<><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{AMS.fmt(spend.total / 1e9, 1)}M</div><div className="tiny muted">YTD</div></>} />
                     <div style={{ flex: 1 }}>
-                      {spend.rows.slice(0, 6).map(r => (
+                      {spend.rows.slice(0, 6).map((r: any) => (
                         <div key={r.cat} className="row jb ac" style={{ padding: '3px 0', borderBottom: '1px solid var(--line-soft)' }}>
                           <span className="row ac gap8" style={{ minWidth: 0 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: r.c, flex: '0 0 8px' }} /><span className="tiny truncate" style={{ fontWeight: 600, maxWidth: 150 }}>{r.cat}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{boJt(r.v)}</span>
@@ -210,7 +210,7 @@ function Procurement() {
 }
 
 /* ---------- tabel Vendor 360 (master diperkaya) ---------- */
-function ProcVendorTable({ B, P, vSel, setVSel }) {
+function ProcVendorTable({ B, P, vSel, setVSel }: any) {
   const total = P.concentration().total;
   return (
     <div>
@@ -222,7 +222,7 @@ function ProcVendorTable({ B, P, vSel, setVSel }) {
           <th>ID</th><th>Vendor</th><th>Kategori</th><th className="num">Belanja YTD</th><th className="num">Share</th><th>Kinerja (SLA)</th><th>Risiko</th><th>PMPJ</th><th>Status</th>
         </tr></thead>
         <tbody>
-          {B.VENDORS.map(v => (
+          {B.VENDORS.map((v: any) => (
             <tr key={v.id} onClick={() => setVSel(v)} style={{ cursor: 'pointer' }} className={vSel && vSel.id === v.id ? 'sel' : ''}>
               <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v.id}</td>
               <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.npwp} · sejak {v.since}</div></td>
@@ -230,7 +230,7 @@ function ProcVendorTable({ B, P, vSel, setVSel }) {
               <td className="num">{boJt(v.ytd)}</td>
               <td className="num"><span className="mono tiny" style={{ fontWeight: 700, color: v.ytd / total > 0.25 ? 'var(--amber)' : 'var(--ink-2)' }}>{procPct(v.ytd / total)}</span></td>
               <td><ScoreBar pct={v.otp} /></td>
-              <td><span className="badge" style={{ textTransform: 'none', background: PROC_RISKC[v.risk] + '1a', color: PROC_RISKC[v.risk] }}>{v.risk}</span></td>
+              <td><span className="badge" style={{ textTransform: 'none', background: (PROC_RISKC as any)[v.risk] + '1a', color: (PROC_RISKC as any)[v.risk] }}>{v.risk}</span></td>
               <td><BoBadge s={v.diligence} /></td>
               <td><BoBadge s={v.status} /></td>
             </tr>

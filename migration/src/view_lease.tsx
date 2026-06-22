@@ -30,10 +30,10 @@ function LeaseCalculator() {
   const { pv, rows } = useMemoL(() => leaseCalc(cur.termMo, cur.pmt, cur.rate), [cur.termMo, cur.pmt, cur.rate]);
 
   const rouAmort = pv / cur.termMo; // straight line
-  const set = (k, v) => setOverride(o => ({ ...o, [selId]: { ...(o[selId] || {}), [k]: v } }));
+  const set = (k: any, v: any) => setOverride((o: any) => ({ ...o, [selId]: { ...(o[selId] || {}), [k]: v } }));
 
   // current vs non-current split (next 12 months principal)
-  const currentLiab = rows.slice(0, 12).reduce((s, x) => s + x.principal, 0);
+  const currentLiab = rows.slice(0, 12).reduce((s: any, x: any) => s + x.principal, 0);
   const nonCurrentLiab = pv - currentLiab;
 
   // all leases totals
@@ -45,16 +45,16 @@ function LeaseCalculator() {
 
   // schedule display (yearly summary or monthly)
   const display = useMemoL(() => {
-    if (!yearly) return rows.slice(0, 14).map(r => ({ ...r, label: 'Bln ' + r.m }));
+    if (!yearly) return rows.slice(0, 14).map((r: any) => ({ ...r, label: 'Bln ' + r.m }));
     const years = [];
     for (let y = 0; y * 12 < rows.length; y++) {
       const slice = rows.slice(y * 12, y * 12 + 12);
       years.push({
         label: 'Tahun ' + (y + 1),
         opening: slice[0].opening,
-        interest: slice.reduce((s, x) => s + x.interest, 0),
-        pmt: slice.reduce((s, x) => s + x.pmt, 0),
-        principal: slice.reduce((s, x) => s + x.principal, 0),
+        interest: slice.reduce((s: any, x: any) => s + x.interest, 0),
+        pmt: slice.reduce((s: any, x: any) => s + x.pmt, 0),
+        principal: slice.reduce((s: any, x: any) => s + x.principal, 0),
         closing: slice[slice.length - 1].closing,
       });
     }
@@ -78,7 +78,7 @@ function LeaseCalculator() {
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(allTotals.rou / 1e6, 0) + ' jt'} label="Total Aset Hak-Guna" accent="var(--blue)" /></div></Panel>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(allTotals.liab / 1e6, 0) + ' jt'} label="Total Liabilitas Sewa" /></div></Panel>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={LEASES.length} label="Kontrak Sewa Aktif" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(rows.reduce((s, x) => s + x.interest, 0) / 1e6, 0) + ' jt'} label="Total Beban Bunga (kontrak ini)" accent="var(--amber)" /></div></Panel>
+            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(rows.reduce((s: any, x: any) => s + x.interest, 0) / 1e6, 0) + ' jt'} label="Total Beban Bunga (kontrak ini)" accent="var(--amber)" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
@@ -101,13 +101,13 @@ function LeaseCalculator() {
               </Panel>
 
               <Panel title="Parameter Sewa" sub={cur.id}>
-                <SliderRow label="Jangka Waktu (bulan)" value={cur.termMo} min={12} max={120} step={6} suffix=" bln" onChange={v => set('termMo', v)} />
+                <SliderRow label="Jangka Waktu (bulan)" value={cur.termMo} min={12} max={120} step={6} suffix=" bln" onChange={(v: any) => set('termMo', v)} />
                 <div className="field" style={{ marginBottom: 14 }}>
                   <label>Pembayaran Bulanan</label>
-                  <input type="number" value={cur.pmt} step={5_000_000} onChange={e => set('pmt', +e.target.value)} className="input mono" style={{ textAlign: 'right' }} />
+                  <input type="number" value={cur.pmt} step={5_000_000} onChange={(e: any) => set('pmt', +e.target.value)} className="input mono" style={{ textAlign: 'right' }} />
                   <div className="tiny muted mono">Rp {fmt(cur.pmt)}</div>
                 </div>
-                <SliderRow label="Incremental Borrowing Rate" value={cur.rate} min={5} max={15} step={0.25} suffix="%" onChange={v => set('rate', v)} hint="Suku bunga pinjaman inkremental" />
+                <SliderRow label="Incremental Borrowing Rate" value={cur.rate} min={5} max={15} step={0.25} suffix="%" onChange={(v: any) => set('rate', v)} hint="Suku bunga pinjaman inkremental" />
               </Panel>
             </div>
 
@@ -144,7 +144,7 @@ function LeaseCalculator() {
                       <th>Periode</th><th className="num">Saldo Awal</th><th className="num">Bunga</th><th className="num">Pembayaran</th><th className="num">Pokok</th><th className="num">Saldo Akhir</th>
                     </tr></thead>
                     <tbody>
-                      {display.map((r, i) => (
+                      {display.map((r: any, i: any) => (
                         <tr key={i}>
                           <td style={{ fontWeight: 600 }}>{r.label}</td>
                           <td className="num">{fmt(r.opening)}</td>

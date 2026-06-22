@@ -24,32 +24,32 @@ function FirmRevenue() {
   const REF = new Date('2026-03-09');
 
   /* PSAK 72 — over-time recognition by stage of completion */
-  const sched = engagements.map(e => {
-    const c = clients.find(x => x.id === e.clientId);
+  const sched = engagements.map((e: any) => {
+    const c = clients.find((x: any) => x.id === e.clientId);
     const contract = c ? c.fee : e.materiality * 0.4;
     const pct = e.progress / 100;
     const recognized = Math.round(contract * pct);
-    const billed = invoices.filter(i => i.eng === e.id && i.status !== 'Draft').reduce((s, i) => s + i.amount, 0);
+    const billed = invoices.filter((i: any) => i.eng === e.id && i.status !== 'Draft').reduce((s: any, i: any) => s + i.amount, 0);
     const asset = Math.max(0, recognized - billed);   // contract asset (unbilled)
     const liab = Math.max(0, billed - recognized);    // contract liability (deferred)
     const method = e.type && e.type.includes('Audit') ? 'Over-time (input)' : 'Point-in-time';
     return { id: e.id, clientId: e.clientId, client: c ? c.name : '—', contract, pct, recognized, billed, asset, liab, method, partner: (e.partner || '').split(',')[0], hrs: e.actualHrs, budgetHrs: e.budgetHrs };
   });
-  const totContract = sched.reduce((s, r) => s + r.contract, 0);
-  const totRecognized = sched.reduce((s, r) => s + r.recognized, 0);
-  const totBilled = sched.reduce((s, r) => s + r.billed, 0);
-  const totAsset = sched.reduce((s, r) => s + r.asset, 0);
-  const totLiab = sched.reduce((s, r) => s + r.liab, 0);
+  const totContract = sched.reduce((s: any, r: any) => s + r.contract, 0);
+  const totRecognized = sched.reduce((s: any, r: any) => s + r.recognized, 0);
+  const totBilled = sched.reduce((s: any, r: any) => s + r.billed, 0);
+  const totAsset = sched.reduce((s: any, r: any) => s + r.asset, 0);
+  const totLiab = sched.reduce((s: any, r: any) => s + r.liab, 0);
   const backlog = totContract - totRecognized;
 
   /* Dunning — overdue / due invoices */
-  const dun = invoices.filter(i => i.status !== 'Paid' && i.status !== 'Draft').map(i => {
+  const dun = invoices.filter((i: any) => i.status !== 'Paid' && i.status !== 'Draft').map((i: any) => {
     const daysOver = Math.round((+REF - +new Date(i.due)) / 864e5);
     const outstanding = i.amount - i.paid;
     const level = daysOver > 30 ? 3 : daysOver > 15 ? 2 : daysOver > 0 ? 1 : 0;
     return { ...i, daysOver, outstanding, level };
-  }).filter(i => i.outstanding > 0).sort((a, b) => b.daysOver - a.daysOver);
-  const overdueTotal = dun.filter(d => d.level > 0).reduce((s, d) => s + d.outstanding, 0);
+  }).filter((i: any) => i.outstanding > 0).sort((a: any, b: any) => b.daysOver - a.daysOver);
+  const overdueTotal = dun.filter((d: any) => d.level > 0).reduce((s: any, d: any) => s + d.outstanding, 0);
 
   const CN: any = AMS.CREDIT_NOTES;
   const DUN_LEVEL = { 0: { k: 'gray', l: 'Belum jatuh tempo' }, 1: { k: 'blue', l: 'Pengingat 1' }, 2: { k: 'amber', l: 'Pengingat 2' }, 3: { k: 'red', l: 'Eskalasi' } };
@@ -57,11 +57,11 @@ function FirmRevenue() {
   const tabs = [
     { id: 'recognition', label: 'Pengakuan Pendapatan (PSAK 72)' },
     { id: 'rollfwd', label: 'Aset & Liabilitas Kontrak' },
-    { id: 'dunning', label: 'Dunning / Penagihan', count: dun.filter(d => d.level > 0).length },
+    { id: 'dunning', label: 'Dunning / Penagihan', count: dun.filter((d: any) => d.level > 0).length },
     { id: 'credit', label: 'Nota Kredit', count: CN.length },
   ];
 
-  const selRow = sel ? sched.find(r => r.id === sel) : null;
+  const selRow = sel ? sched.find((r: any) => r.id === sel) : null;
 
   return (
     <>
@@ -83,7 +83,7 @@ function FirmRevenue() {
                 <table className="dtbl">
                   <thead><tr><th>Engagement</th><th>Klien</th><th>Metode</th><th className="num">Nilai Kontrak</th><th className="num">% Selesai</th><th className="num">Diakui</th><th className="num">Ditagih</th><th className="num">Aset/(Liab) Kontrak</th></tr></thead>
                   <tbody>
-                    {sched.map(r => {
+                    {sched.map((r: any) => {
                       const net = r.asset - r.liab;
                       return (
                         <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id === sel ? null : r.id)} style={{ cursor: 'pointer' }}>
@@ -134,7 +134,7 @@ function FirmRevenue() {
                 <table className="dtbl">
                   <thead><tr><th>Engagement</th><th>Klien</th><th className="num">Diakui</th><th className="num">Ditagih</th><th className="num">Aset Kontrak</th><th className="num">Liab. Kontrak</th><th style={{ width: 150 }}>Diakui vs Ditagih</th></tr></thead>
                   <tbody>
-                    {sched.filter(r => r.asset > 0 || r.liab > 0).map(r => {
+                    {sched.filter((r: any) => r.asset > 0 || r.liab > 0).map((r: any) => {
                       const mx = Math.max(r.recognized, r.billed) || 1;
                       return (
                         <tr key={r.id}>
@@ -165,14 +165,14 @@ function FirmRevenue() {
             <table className="dtbl">
               <thead><tr><th>No. Faktur</th><th>Klien</th><th className="num">Outstanding</th><th>Jatuh Tempo</th><th className="num">Umur</th><th>Tingkat Pengingat</th><th></th></tr></thead>
               <tbody>
-                {dun.map(d => (
+                {dun.map((d: any) => (
                   <tr key={d.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
                     <td className="truncate" style={{ maxWidth: 170, fontWeight: 600 }}>{d.client.replace('PT ', '')}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(d.outstanding / 1e6, 0)} jt</td>
                     <td className="mono tiny" style={{ color: d.daysOver > 0 ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(d.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                     <td className="num tiny" style={{ color: d.daysOver > 30 ? 'var(--red)' : d.daysOver > 0 ? 'var(--amber)' : 'var(--ink-3)' }}>{d.daysOver > 0 ? d.daysOver + ' hr' : '—'}</td>
-                    <td><Badge kind={DUN_LEVEL[d.level].k}>{DUN_LEVEL[d.level].l}</Badge></td>
+                    <td><Badge kind={(DUN_LEVEL as any)[d.level].k}>{(DUN_LEVEL as any)[d.level].l}</Badge></td>
                     <td>{d.level > 0 && <button className="btn sm" style={{ height: 22 }}><I.mail size={11} /> Kirim Pengingat</button>}</td>
                   </tr>
                 ))}
@@ -184,7 +184,7 @@ function FirmRevenue() {
             <table className="dtbl">
               <thead><tr><th>No. Nota Kredit</th><th>Faktur Terkait</th><th>Klien</th><th>Alasan</th><th>Tanggal</th><th className="num">Nilai</th><th>Status</th></tr></thead>
               <tbody>
-                {CN.map(c => (
+                {CN.map((c: any) => (
                   <tr key={c.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
                     <td className="mono tiny muted">{c.inv}</td>

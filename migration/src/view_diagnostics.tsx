@@ -12,9 +12,9 @@ import { DiagnosticPanel, useDiagnostics } from './diagnostics_panel';
 function TaxAuditDiagnostic() {
   const findings = useDiagnostics();           // seluruh temuan (tanpa area)
   const c = { high: 0, med: 0, low: 0 };
-  findings.forEach(f => { if (c[f.sev] != null) c[f.sev]++; });
+  findings.forEach((f: any) => { if ((c as any)[f.sev] != null) (c as any)[f.sev]++; });
   const byDetector = {};
-  findings.forEach(f => { byDetector[f.detector] = (byDetector[f.detector] || 0) + 1; });
+  findings.forEach((f: any) => { (byDetector as any)[f.detector] = ((byDetector as any)[f.detector] || 0) + 1; });
 
   return (
     <>

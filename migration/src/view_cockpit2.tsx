@@ -66,15 +66,15 @@ const CKP_MILESTONES = [
 /* per-member effort weighting (aligned to TEAM order) */
 const CKP_TEAM_W = [0.071, 0.196, 0.261, 0.179, 0.152, 0.141];
 const CKP_RATE = { Partner: 1_500_000, Manager: 900_000, Senior: 600_000, Junior: 350_000 };
-const rateFor = (role) => /Partner/.test(role) ? CKP_RATE.Partner : /Manager/.test(role) ? CKP_RATE.Manager : /Senior/.test(role) ? CKP_RATE.Senior : CKP_RATE.Junior;
-const gradeOf = (role) => /Partner/.test(role) ? 'Partner' : /Manager/.test(role) ? 'Manager' : /Senior/.test(role) ? 'Senior' : 'Junior';
+const rateFor = (role: any) => /Partner/.test(role) ? CKP_RATE.Partner : /Manager/.test(role) ? CKP_RATE.Manager : /Senior/.test(role) ? CKP_RATE.Senior : CKP_RATE.Junior;
+const gradeOf = (role: any) => /Partner/.test(role) ? 'Partner' : /Manager/.test(role) ? 'Manager' : /Senior/.test(role) ? 'Senior' : 'Junior';
 
 const CKP_TODAY = new Date('2026-03-09');
 const CKP_START = new Date('2026-01-06');
 
-const idDate = (s) => new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });
-const rpM = (n) => 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
-const ckpBar = (p) => p >= 85 ? 'var(--green)' : p >= 50 ? 'var(--blue)' : p >= 25 ? 'var(--amber)' : 'var(--red)';
+const idDate = (s: any) => new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' });
+const rpM = (n: any) => 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
+const ckpBar = (p: any) => p >= 85 ? 'var(--green)' : p >= 50 ? 'var(--blue)' : p >= 25 ? 'var(--amber)' : 'var(--red)';
 const TONE = { green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)', blue: 'var(--blue)', gray: 'var(--ink-3)' };
 const TONE_BG = { green: 'var(--green-bg)', amber: 'var(--amber-bg)', red: 'var(--red-bg)', blue: 'var(--blue-050)', gray: 'var(--surface-2)' };
 
@@ -85,7 +85,7 @@ function Gauge({ pct, size = 54, stroke = 7, tone }: any) {
     <div style={{ position: 'relative', width: size, height: size, flex: `0 0 ${size}px` }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--surface-3)" strokeWidth={stroke} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={TONE[tone] || 'var(--blue)'} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${Math.min(100, pct) / 100 * c} ${c}`} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={(TONE as any)[tone] || 'var(--blue)'} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${Math.min(100, pct) / 100 * c} ${c}`} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
         <span className="mono" style={{ fontSize: size * 0.27, fontWeight: 700, color: 'var(--ink-1)' }}>{Math.round(pct)}<span style={{ fontSize: size * 0.16 }}>%</span></span>
@@ -95,14 +95,14 @@ function Gauge({ pct, size = 54, stroke = 7, tone }: any) {
 }
 
 function SignalCard({ icon, label, tone, value, read, onClick }: any) {
-  const IconC = I[icon] || I.pulse;
+  const IconC = (I as any)[icon] || I.pulse;
   return (
-    <button onClick={onClick} className="ckp-signal" style={{ borderLeft: `3px solid ${TONE[tone]}`, cursor: onClick ? 'pointer' : 'default' }}>
+    <button onClick={onClick} className="ckp-signal" style={{ borderLeft: `3px solid ${(TONE as any)[tone]}`, cursor: onClick ? 'pointer' : 'default' }}>
       <div className="row ac gap8" style={{ marginBottom: 7 }}>
-        <span style={{ width: 26, height: 26, borderRadius: 7, background: TONE_BG[tone], color: TONE[tone], display: 'grid', placeItems: 'center', flex: '0 0 26px' }}><IconC size={15} /></span>
+        <span style={{ width: 26, height: 26, borderRadius: 7, background: (TONE_BG as any)[tone], color: (TONE as any)[tone], display: 'grid', placeItems: 'center', flex: '0 0 26px' }}><IconC size={15} /></span>
         <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)', letterSpacing: '.05em' }}>{label}</span>
         <div style={{ flex: 1 }} />
-        <span style={{ width: 8, height: 8, borderRadius: 50, background: TONE[tone] }} />
+        <span style={{ width: 8, height: 8, borderRadius: 50, background: (TONE as any)[tone] }} />
       </div>
       <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink-1)', lineHeight: 1.1 }}>{value}</div>
       <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{read}</div>
@@ -115,10 +115,10 @@ function EVBar({ label, pct, tone, hint }: any) {
     <div style={{ marginBottom: 12 }}>
       <div className="row jb ac" style={{ marginBottom: 5 }}>
         <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
-        <span className="mono tiny" style={{ fontWeight: 700, color: TONE[tone] }}>{Math.round(pct)}% {hint && <span className="muted" style={{ fontWeight: 500 }}>· {hint}</span>}</span>
+        <span className="mono tiny" style={{ fontWeight: 700, color: (TONE as any)[tone] }}>{Math.round(pct)}% {hint && <span className="muted" style={{ fontWeight: 500 }}>· {hint}</span>}</span>
       </div>
       <div style={{ height: 9, borderRadius: 6, background: 'var(--surface-3)', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ width: Math.min(100, pct) + '%', height: '100%', borderRadius: 6, background: TONE[tone] }} />
+        <div style={{ width: Math.min(100, pct) + '%', height: '100%', borderRadius: 6, background: (TONE as any)[tone] }} />
       </div>
     </div>
   );
@@ -136,7 +136,7 @@ function EngagementCockpit() {
   const D = useMemoCkp(() => {
     const allMods = CKP_PHASES.flatMap((p: any) => p.modules);
     const overall = e.progress != null ? e.progress : Math.round(allMods.reduce((s, m) => s + m.pct, 0) / allMods.length);
-    const phasePct = (p) => Math.round(p.modules.reduce((s, m) => s + m.pct, 0) / p.modules.length);
+    const phasePct = (p: any) => Math.round(p.modules.reduce((s: any, m: any) => s + m.pct, 0) / p.modules.length);
 
     const dl = new Date(e.deadline);
     const totalDays = Math.max(1, (+dl - +CKP_START) / 86400000);
@@ -149,7 +149,7 @@ function EngagementCockpit() {
     const highOpen = openNotes.filter((n: any) => n.priority === 'high');
     /* AJE */
     const proposedAje = aje.filter((a: any) => a.status === 'Proposed');
-    const proposedAmt = proposedAje.reduce((s, a) => s + a.amount, 0);
+    const proposedAmt = proposedAje.reduce((s: any, a: any) => s + a.amount, 0);
     /* WP */
     const wpReviewed = workpapers.filter((w: any) => w.status === 'Reviewed').length;
     const wpNoReviewer = workpapers.filter((w: any) => w.reviewer === '—');
@@ -178,7 +178,7 @@ function EngagementCockpit() {
 
     const toneScore = { green: 0, amber: 1, red: 2, blue: 0, gray: 0 };
     const tones = [schedTone, budgetTone, qualTone, riskTone, docTone];
-    const worst = Math.max(...tones.map((t: any) => toneScore[t]));
+    const worst = Math.max(...tones.map((t: any) => (toneScore as any)[t]));
     const verdict = worst >= 2 ? { tone: 'red', l: 'Perlu Tindakan' } : worst >= 1 ? { tone: 'amber', l: 'Perlu Perhatian' } : { tone: 'green', l: 'Sehat / On-track' };
 
     /* phase hours model (data-driven from phase progress) */
@@ -188,8 +188,8 @@ function EngagementCockpit() {
     phaseRows.forEach((r: any, i: any) => { r.act = Math.round(actRaw[i] / rawSum * e.actualHrs); });
 
     /* per-member effort + assignments */
-    const fn = (full) => (full || '').split(' ')[0];
-    const members = team.map((m, i) => {
+    const fn = (full: any) => (full || '').split(' ')[0];
+    const members = team.map((m: any, i: any) => {
       const w = CKP_TEAM_W[i] != null ? CKP_TEAM_W[i] : 1 / team.length;
       const bud = Math.round(w * e.budgetHrs), act = Math.round(w * e.actualHrs);
       const grade = gradeOf(m.role), rate = rateFor(m.role);
@@ -200,8 +200,8 @@ function EngagementCockpit() {
       const procRev = procs.filter((x: any) => fn(x.rev) === first).length;
       return { ...m, grade, rate, bud, act, wpPrep, wpRev, procPrep, procRev, wip: act * rate };
     });
-    const wipTot = members.reduce((s, m) => s + m.wip, 0);
-    const stdBudgetCost = members.reduce((s, m) => s + m.bud * m.rate, 0);
+    const wipTot = members.reduce((s: any, m: any) => s + m.wip, 0);
+    const stdBudgetCost = members.reduce((s: any, m: any) => s + m.bud * m.rate, 0);
     const fee = activeClient?.fee || 0;
 
     return {
@@ -363,10 +363,10 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
           <div style={{ padding: '6px 8px 10px' }}>
             {items.length === 0 && <div className="muted tiny" style={{ padding: 18, textAlign: 'center' }}>Tidak ada item mendesak. 🎯</div>}
             {items.map((it, i) => {
-              const IconC = I[it.icon] || I.alert;
+              const IconC = (I as any)[it.icon] || I.alert;
               return (
                 <div key={i} className="ckp-attn" onClick={() => nav(it.route)}>
-                  <span className="ckp-attn-ic" style={{ background: TONE_BG[it.tone], color: TONE[it.tone] }}><IconC size={15} /></span>
+                  <span className="ckp-attn-ic" style={{ background: (TONE_BG as any)[it.tone], color: (TONE as any)[it.tone] }}><IconC size={15} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-1)' }}>{it.t}</div>
                     <div className="tiny muted" style={{ marginTop: 1, lineHeight: 1.4 }}>{it.sub}</div>
@@ -382,8 +382,8 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
         <Panel noBody>
           <div className="panel-h"><h3>Aktivitas Terkini</h3></div>
           <div style={{ padding: '4px 12px 10px' }}>
-            {activity.map((a, i) => {
-              const IconC = I[actIcon[a.icon] || 'pulse'] || I.pulse;
+            {activity.map((a: any, i: any) => {
+              const IconC = (I as any)[(actIcon as any)[a.icon] || 'pulse'] || I.pulse;
               return (
                 <div key={i} className="ckp-act">
                   <span className="ckp-act-ic"><IconC size={13} /></span>
@@ -409,7 +409,7 @@ const MS_LABEL = { done: 'Selesai', active: 'Berjalan', risk: 'Berisiko', upcomi
 function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
   const dl = new Date(e.deadline);
   const span = Math.max(1, (+new Date(CKP_MILESTONES[CKP_MILESTONES.length - 1].date) - +CKP_START) / 86400000);
-  const posOf = (d) => Math.min(100, Math.max(0, (+new Date(d) - +CKP_START) / 86400000 / span * 100));
+  const posOf = (d: any) => Math.min(100, Math.max(0, (+new Date(d) - +CKP_START) / 86400000 / span * 100));
   const todayPos = posOf(CKP_TODAY.toISOString().slice(0, 10));
   const cname = activeClient?.name?.replace('PT ', '') || '';
   const engDeadlines = deadlines.filter((d: any) => cname && d.client.includes(cname.split(' ')[0]));
@@ -428,7 +428,7 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
             <div className="ckp-today" style={{ left: todayPos + '%' }}><span>HARI INI</span></div>
             {CKP_MILESTONES.map((m: any) => (
               <div key={m.n} className="ckp-node" style={{ left: posOf(m.date) + '%' }} title={m.name}>
-                <span className="ckp-dot" style={{ background: TONE[MS_TONE[m.status]], boxShadow: m.status === 'active' ? `0 0 0 4px ${TONE_BG.blue}` : 'none' }}>{m.status === 'done' ? '✓' : m.n}</span>
+                <span className="ckp-dot" style={{ background: (TONE as any)[(MS_TONE as any)[m.status]], boxShadow: m.status === 'active' ? `0 0 0 4px ${TONE_BG.blue}` : 'none' }}>{m.status === 'done' ? '✓' : m.n}</span>
               </div>
             ))}
           </div>
@@ -441,11 +441,11 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
           <div className="panel-h"><h3>Milestone & Sign-off</h3></div>
           <div style={{ padding: '6px 6px 10px' }}>
             {CKP_MILESTONES.map((m: any) => {
-              const tone = MS_TONE[m.status];
+              const tone = (MS_TONE as any)[m.status];
               const overdue = m.status !== 'done' && new Date(m.date) < CKP_TODAY;
               return (
                 <div key={m.n} className="ckp-ms">
-                  <span className="ckp-ms-dot" style={{ background: TONE[tone] }}>{m.status === 'done' ? <I.check size={13} /> : m.n}</span>
+                  <span className="ckp-ms-dot" style={{ background: (TONE as any)[tone] }}>{m.status === 'done' ? <I.check size={13} /> : m.n}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 12.5, fontWeight: 700 }}>{m.name}</span>
@@ -456,7 +456,7 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
                   </div>
                   <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
                     <div className="mono tiny" style={{ fontWeight: 700 }}>{idDate(m.date)}</div>
-                    <Badge kind={tone === 'gray' ? 'gray' : tone}>{MS_LABEL[m.status]}</Badge>
+                    <Badge kind={tone === 'gray' ? 'gray' : tone}>{(MS_LABEL as any)[m.status]}</Badge>
                   </div>
                 </div>
               );
@@ -589,7 +589,7 @@ function TabAnggaran({ D, e }: any) {
 function TabTim({ D, nav }: any) {
   const { fmt } = AMS;
   const maxAct = Math.max(...D.members.map((m: any) => m.act), 1);
-  const totalAssign = (m) => m.wpPrep + m.wpRev + m.procPrep;
+  const totalAssign = (m: any) => m.wpPrep + m.wpRev + m.procPrep;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -623,10 +623,10 @@ function TabTim({ D, nav }: any) {
           <div className="panel-h"><h3>Distribusi Beban Jam</h3></div>
           <div style={{ padding: '10px 14px 14px' }} className="row ac gap12">
             <Donut size={104} thickness={15}
-              segments={D.members.map((m, i) => ({ value: m.act, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
-              center={<div><div className="mono" style={{ fontSize: 17, fontWeight: 700 }}>{fmt(D.members.reduce((s, m) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
+              segments={D.members.map((m: any, i: any) => ({ value: m.act, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
+              center={<div><div className="mono" style={{ fontSize: 17, fontWeight: 700 }}>{fmt(D.members.reduce((s: any, m: any) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
             <div style={{ flex: 1 }}>
-              {D.members.map((m, i) => (
+              {D.members.map((m: any, i: any) => (
                 <div key={m.name} className="row jb ac" style={{ padding: '3px 0' }}>
                   <span className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }} />{m.name.split(' ')[0]}</span>
                   <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(m.act)}j</span>
@@ -745,12 +745,12 @@ function TabRisiko({ D, e, nav }: any) {
         <div className="ckp-notes">
           {['high', 'medium', 'low'].map((pr: any) => (
             <div key={pr} className="ckp-notecol">
-              <div className="ckp-notecol-h" style={{ color: TONE[prTone[pr]] }}>
-                <span style={{ width: 8, height: 8, borderRadius: 50, background: TONE[prTone[pr]] }} />
-                {prLabel[pr]} <span className="muted" style={{ fontWeight: 500 }}>· {notesByPr[pr].length}</span>
+              <div className="ckp-notecol-h" style={{ color: (TONE as any)[(prTone as any)[pr]] }}>
+                <span style={{ width: 8, height: 8, borderRadius: 50, background: (TONE as any)[(prTone as any)[pr]] }} />
+                {(prLabel as any)[pr]} <span className="muted" style={{ fontWeight: 500 }}>· {(notesByPr as any)[pr].length}</span>
               </div>
-              {notesByPr[pr].length === 0 && <div className="tiny muted" style={{ padding: '10px 4px' }}>Tidak ada.</div>}
-              {notesByPr[pr].map((n: any) => (
+              {(notesByPr as any)[pr].length === 0 && <div className="tiny muted" style={{ padding: '10px 4px' }}>Tidak ada.</div>}
+              {(notesByPr as any)[pr].map((n: any) => (
                 <div key={n.id} className="ckp-note" onClick={() => nav(n.module)}>
                   <div className="tiny" style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--ink-1)', marginBottom: 6 }}>{n.text}</div>
                   <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>

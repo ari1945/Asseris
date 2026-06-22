@@ -145,7 +145,7 @@ import { AMS_CANON } from './canon';
         data: ['Identitas & NPWP/NIK', 'Rekening'], basis: 'kontrak', special: false,
         purpose: 'Pengadaan, pembayaran & pemotongan PPh 23.', recipients: 'Internal · DJP (Coretax)', retClass: 'pajak', crossBorder: false, risk: 'Rendah' },
     ];
-    const basisDist = Object.keys(BASIS).map(k => ({ key: k, label: BASIS[k], n: ropa.filter(r => r.basis === k).length })).filter(x => x.n);
+    const basisDist = Object.keys(BASIS).map(k => ({ key: k, label: (BASIS as any)[k], n: ropa.filter(r => r.basis === k).length })).filter(x => x.n);
     const consentN = ropa.filter(r => r.basis === 'persetujuan').length;
 
     /* Hak Subjek Data — permintaan masuk (DSR). SLA pemenuhan 3×24 jam atas

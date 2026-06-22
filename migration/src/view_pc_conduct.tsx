@@ -22,15 +22,15 @@ function EthicsDeclaration() {
   const [gifts, setGifts] = useAmsPersist('pc.gifts', () => A.GIFTS_REGISTER);
   const staff = A.STAFF, ITEMS = A.ETHICS_ITEMS;
 
-  const signed = staff.filter(s => (decl[s.id] || {}).signed).length;
-  const exceptions = staff.reduce((n, s) => n + ((decl[s.id] || {}).exceptions || 0), 0);
-  const giftsPending = gifts.filter(g => g.status === 'Menunggu').length;
-  const amlPending = A.AML_SCREENING.filter(a => a.result !== 'Bersih').length;
+  const signed = staff.filter((s: any) => (decl[s.id] || {}).signed).length;
+  const exceptions = staff.reduce((n: any, s: any) => n + ((decl[s.id] || {}).exceptions || 0), 0);
+  const giftsPending = gifts.filter((g: any) => g.status === 'Menunggu').length;
+  const amlPending = A.AML_SCREENING.filter((a: any) => a.result !== 'Bersih').length;
 
-  const sign = (id) => setDecl(d => ({ ...d, [id]: { ...d[id], signed: true, date: '2026-03-09', items: ITEMS.map((_, i) => (d[id].items[i] ? 1 : 1)) } }));
-  const decideGift = (id, status) => setGifts(list => list.map(g => g.id === id ? { ...g, status, action: status === 'Disetujui' ? 'Disetujui & dicatat' : g.action } : g));
+  const sign = (id: any) => setDecl((d: any) => ({ ...d, [id]: { ...d[id], signed: true, date: '2026-03-09', items: ITEMS.map((_: any, i: any) => (d[id].items[i] ? 1 : 1)) } }));
+  const decideGift = (id: any, status: any) => setGifts((list: any) => list.map((g: any) => g.id === id ? { ...g, status, action: status === 'Disetujui' ? 'Disetujui & dicatat' : g.action } : g));
 
-  const tabs = [{ id: 'decl', label: 'Deklarasi Tahunan', count: staff.length - signed || undefined }, { id: 'gifts', label: 'Register Gratifikasi', count: giftsPending || undefined }, { id: 'aml', label: 'Screening APU-PPT' }, { id: 'noclar', label: 'NOCLAR (§360)', count: A.NOCLAR_ETHICS.filter(r => r.stageIdx > 0 && r.stageIdx < A.NOCLAR_STAGES.length - 1).length || undefined }, { id: 'taxtech', label: 'Etika Pajak & Teknologi' }];
+  const tabs = [{ id: 'decl', label: 'Deklarasi Tahunan', count: staff.length - signed || undefined }, { id: 'gifts', label: 'Register Gratifikasi', count: giftsPending || undefined }, { id: 'aml', label: 'Screening APU-PPT' }, { id: 'noclar', label: 'NOCLAR (§360)', count: A.NOCLAR_ETHICS.filter((r: any) => r.stageIdx > 0 && r.stageIdx < A.NOCLAR_STAGES.length - 1).length || undefined }, { id: 'taxtech', label: 'Etika Pajak & Teknologi' }];
 
   return (
     <>
@@ -49,14 +49,14 @@ function EthicsDeclaration() {
           {tab === 'decl' && (
             <div style={{ overflowX: 'auto' }}>
               <table className="dtbl" style={{ minWidth: 880 }}>
-                <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it, i) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 9.5, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
+                <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it: any, i: any) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 9.5, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
                 <tbody>
-                  {staff.map(s => {
+                  {staff.map((s: any) => {
                     const d = decl[s.id] || { signed: false, items: ITEMS.map(() => 0) };
                     return (
                       <tr key={s.id}>
                         <td><div className="row ac gap8"><Avatar name={s.name} size={24} /><div style={{ minWidth: 0 }}><div className="truncate tiny" style={{ fontWeight: 600 }}>{s.name}</div><div className="tiny muted">{s.role}</div></div></div></td>
-                        {ITEMS.map((it, i) => {
+                        {ITEMS.map((it: any, i: any) => {
                           const ok = d.signed && d.items[i] === 1;
                           const ex = d.signed && d.items[i] === 0;
                           return <td key={i} className="num" style={{ textAlign: 'center' }}>{d.signed ? (ok ? <I.check size={14} style={{ color: 'var(--green)' }} /> : ex ? <span title={d.exNote} style={{ color: 'var(--amber)' }}><I.alert size={13} /></span> : '–') : <span className="muted">–</span>}</td>;
@@ -76,7 +76,7 @@ function EthicsDeclaration() {
             <table className="dtbl">
               <thead><tr><th>Tgl</th><th>Karyawan</th><th>Pihak Pemberi</th><th>Bentuk</th><th className="num">Nilai (Rp)</th><th>Tindakan</th><th>Status / Aksi</th></tr></thead>
               <tbody>
-                {gifts.map(g => {
+                {gifts.map((g: any) => {
                   const p = A.byId(g.staff);
                   const over = g.value >= 1_000_000;
                   return (
@@ -101,7 +101,7 @@ function EthicsDeclaration() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th>Pelatihan APU-PPT</th><th>Tgl Screening</th><th>DTTOT / Daftar Sanksi</th><th>Status PEP</th><th>Hasil</th></tr></thead>
               <tbody>
-                {A.AML_SCREENING.map(a => {
+                {A.AML_SCREENING.map((a: any) => {
                   const p = A.byId(a.id);
                   return (
                     <tr key={a.id}>
@@ -139,12 +139,12 @@ function HRCases() {
   const [filter, setFilter] = usePCcon('Semua');
   const cases = A.HR_CASES;
 
-  const open = cases.filter(c => c.status !== 'Selesai').length;
-  const invest = cases.filter(c => c.status === 'Investigasi').length;
-  const heavy = cases.filter(c => c.severity === 'Berat').length;
-  const closed = cases.filter(c => c.status === 'Selesai').length;
-  const shown = filter === 'Semua' ? cases : filter === 'Aktif' ? cases.filter(c => c.status !== 'Selesai') : cases.filter(c => c.status === 'Selesai');
-  const cur = sel ? cases.find(c => c.id === sel) : null;
+  const open = cases.filter((c: any) => c.status !== 'Selesai').length;
+  const invest = cases.filter((c: any) => c.status === 'Investigasi').length;
+  const heavy = cases.filter((c: any) => c.severity === 'Berat').length;
+  const closed = cases.filter((c: any) => c.status === 'Selesai').length;
+  const shown = filter === 'Semua' ? cases : filter === 'Aktif' ? cases.filter((c: any) => c.status !== 'Selesai') : cases.filter((c: any) => c.status === 'Selesai');
+  const cur = sel ? cases.find((c: any) => c.id === sel) : null;
 
   return (
     <>
@@ -163,16 +163,16 @@ function HRCases() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Karyawan</th><th>Kategori</th><th>Severitas</th><th>Kanal</th><th>Status</th></tr></thead>
               <tbody>
-                {shown.map(c => {
+                {shown.map((c: any) => {
                   const p = A.byId(c.staff);
                   return (
                     <tr key={c.id} className={c.id === sel ? 'sel' : ''} onClick={() => setSel(c.id)} style={{ cursor: 'pointer' }}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
                       <td><div className="row ac gap8"><Avatar name={p.name} size={24} /><span style={{ fontWeight: 600 }} className="truncate">{p.name}</span></div></td>
                       <td className="tiny">{c.cat}</td>
-                      <td><Badge kind={HC_SEV[c.severity]}>{c.severity}</Badge></td>
+                      <td><Badge kind={(HC_SEV as any)[c.severity]}>{c.severity}</Badge></td>
                       <td className="tiny muted">{c.channel}</td>
-                      <td><Badge kind={HC_STAT[c.status] || 'gray'}>{c.status}</Badge></td>
+                      <td><Badge kind={(HC_STAT as any)[c.status] || 'gray'}>{c.status}</Badge></td>
                     </tr>
                   );
                 })}
@@ -182,7 +182,7 @@ function HRCases() {
 
           {cur && (() => {
             const p = A.byId(cur.staff), owner = A.byId(cur.owner);
-            const sanctionIdx = A.SANCTION_LADDER.findIndex(x => cur.sanction.includes(x.split(' ')[0]));
+            const sanctionIdx = A.SANCTION_LADDER.findIndex((x: any) => cur.sanction.includes(x.split(' ')[0]));
             return (
               <Panel noBody>
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -203,14 +203,14 @@ function HRCases() {
                   </div>
                   <div className="tiny muted upper" style={{ marginBottom: 6 }}>Tangga Sanksi</div>
                   <div className="row" style={{ gap: 3, marginBottom: 4 }}>
-                    {A.SANCTION_LADDER.map((s, i) => (
+                    {A.SANCTION_LADDER.map((s: any, i: any) => (
                       <div key={i} title={s} style={{ flex: 1, height: 6, borderRadius: 3, background: i <= sanctionIdx && sanctionIdx >= 0 ? (i >= 3 ? 'var(--red)' : i >= 1 ? 'var(--amber)' : 'var(--blue)') : 'var(--surface-3)' }} />
                     ))}
                   </div>
                   <div className="tiny" style={{ marginBottom: 12, fontWeight: 600, color: sanctionIdx >= 3 ? 'var(--red)' : sanctionIdx >= 1 ? 'var(--amber)' : 'var(--ink-2)' }}>{cur.sanction}</div>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Linimasa Penanganan</div>
                   <div style={{ display: 'grid', gap: 0 }}>
-                    {cur.steps.map((st, i) => (
+                    {cur.steps.map((st: any, i: any) => (
                       <div key={i} className="row gap8" style={{ paddingBottom: i < cur.steps.length - 1 ? 12 : 0, position: 'relative' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto' }}>
                           <span style={{ width: 9, height: 9, borderRadius: '50%', background: i === cur.steps.length - 1 ? 'var(--blue)' : 'var(--green)', marginTop: 3 }} />

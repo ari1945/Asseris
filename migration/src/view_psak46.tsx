@@ -50,7 +50,7 @@ const P46_TEMP_META = {
   eb:  { pos: 'Liabilitas imbalan kerja',       ref: 'PSAK 24', src: 'psak24', srcLbl: 'PSAK 24 · Imbalan Kerja', note: 'DBO Rp 13.080 jt; dikurangkan saat dibayar (dasar pajak 0).' },
   ecl: { pos: 'Penyisihan CKPN piutang',        ref: 'PSAK 71', src: 'ecl',    srcLbl: 'Kalkulator ECL (PSAK 71)', note: 'Saldo CKPN Rp 1.980 jt belum dapat dikurangkan fiskal.' },
   lse: { pos: 'Liabilitas sewa neto (ROU)',     ref: 'PSAK 73', src: 'psak73', srcLbl: 'PSAK 73 · Sewa', note: 'Neto liabilitas sewa − aset hak-guna portofolio per 31 Des 2025.' },
-  prv: { pos: 'Provisi garansi & lainnya',      ref: 'PSAK 57', src: null,     srcLbl: null, note: 'Dikurangkan saat realisasi/terjadi.' },
+  prv: { pos: 'Provisi garansi & lainnya',      ref: 'PSAK 57', src: (null as any),     srcLbl: (null as any), note: 'Dikurangkan saat realisasi/terjadi.' },
   tlc: { pos: 'Rugi fiskal dapat dikompensasi', ref: '¶34',     src: 'tax',    srcLbl: 'Modul Pajak · PPh Badan', note: 'Atribut pajak entitas anak — pemulihan bergantung laba masa depan.' },
 };
 
@@ -122,7 +122,7 @@ const P46_HPP = [
   { k: 'Tarif pengukuran DT', v: '¶47', note: 'Pajak tangguhan diukur pada tarif yang berlaku / secara substantif berlaku saat pembalikan.' },
 ];
 
-function P46Card({ value, label, sub, accent }) {
+function P46Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
@@ -151,16 +151,16 @@ function PSAK46View() {
   const procs = supp ? P46_PROC_SUPP : P46_PROC_DOUBT;
   const doneMap = supp ? doneS : doneD;
   const setDone = supp ? setDoneS : setDoneD;
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = procs.filter(p => doneMap[p.id]).length;
   const score = Math.round((doneCount / procs.length) * 100);
 
   /* derive deferred tax per row + totals — ditarik dari AMS_CANON (satu sumber kebenaran) */
   const canon = AMS_CANON;
   const DT = useMemoP46(() => canon.deferredTax(), []);
-  const tempRows = useMemoP46(() => DT.items.map(it => ({ ...it, ...P46_TEMP_META[it.id] })), [DT]);
-  const dtaTotal = tempRows.filter(r => r.dt > 0).reduce((a, r) => a + r.dt, 0);
-  const dtlTotal = tempRows.filter(r => r.dt < 0).reduce((a, r) => a + r.dt, 0);
+  const tempRows = useMemoP46(() => DT.items.map((it: any) => ({ ...it, ...(P46_TEMP_META as any)[it.id] })), [DT]);
+  const dtaTotal = tempRows.filter((r: any) => r.dt > 0).reduce((a: any, r: any) => a + r.dt, 0);
+  const dtlTotal = tempRows.filter((r: any) => r.dt < 0).reduce((a: any, r: any) => a + r.dt, 0);
   const netDT = DT.closing;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
@@ -190,7 +190,7 @@ function PSAK46View() {
   ];
   /* peta penyajian — amount dari canon */
   const presentVals = { closing: DT.closing, currentTax: DT.currentTax, deferredNeg: -DT.deferredPL, oci: DT.oci };
-  const P46_PRESENT = P46_PRESENT_META.map(p => ({ ...p, amt: presentVals[p.key] }));
+  const P46_PRESENT = P46_PRESENT_META.map(p => ({ ...p, amt: (presentVals as any)[p.key] }));
 
   const presentFiltered = P46_PRESENT.filter(p => stmtTab === 'all' || p.stmt === stmtTab);
   const stmtBadge = { sofp: { k: 'teal', l: 'Posisi Keuangan' }, pl: { k: 'blue', l: 'Laba Rugi' }, oci: { k: 'purple', l: 'OCI' } };
@@ -227,7 +227,7 @@ function PSAK46View() {
                 <div className="panel-h"><h3>Rekonsiliasi Fiskal</h3><span className="sub mono">laba komersial → PKP</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                 <div>
                   {P46_FISCAL.map((r, i) => {
-                    const b = P46_FBUCKET[r.bucket];
+                    const b = (P46_FBUCKET as any)[r.bucket];
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_FISCAL.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
@@ -259,7 +259,7 @@ function PSAK46View() {
                       </tr>
                     </thead>
                     <tbody>
-                      {tempRows.map((r) => (
+                      {tempRows.map((r: any) => (
                         <tr key={r.id} onClick={r.src ? () => nav(r.src, { from: 'psak46' }) : undefined} style={{ cursor: r.src ? 'pointer' : 'default' }} title={r.src ? 'Buka ' + r.srcLbl : undefined}>
                           <td>
                             <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }} className="row ac gap6">
@@ -294,7 +294,7 @@ function PSAK46View() {
                 <div className="panel-h"><h3>Mutasi Pajak Tangguhan Neto</h3><span className="sub mono">roll-forward · L/R vs OCI</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                 <div>
                   {P46_MOVE.map((r, i) => {
-                    const b = P46_MBUCKET[r.bucket];
+                    const b = (P46_MBUCKET as any)[r.bucket];
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_MOVE.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
@@ -383,7 +383,7 @@ function PSAK46View() {
                     </thead>
                     <tbody>
                       {presentFiltered.map((r) => {
-                        const sb = stmtBadge[r.stmt];
+                        const sb = (stmtBadge as any)[r.stmt];
                         return (
                           <tr key={r.id}>
                             <td>
@@ -454,9 +454,9 @@ function PSAK46View() {
               {/* komponen pajak tangguhan */}
               <Panel title="Komponen Pajak Tangguhan Neto" sub="saldo akhir · Rp juta">
                 <div style={{ display: 'grid', gap: 9 }}>
-                  {tempRows.map((r) => {
+                  {tempRows.map((r: any) => {
                     const pos = r.dt > 0;
-                    const w = Math.min(50, Math.abs(r.dt) / Math.max.apply(null, tempRows.map(x => Math.abs(x.dt))) * 50);
+                    const w = Math.min(50, Math.abs(r.dt) / Math.max.apply(null, tempRows.map((x: any) => Math.abs(x.dt))) * 50);
                     return (
                       <div key={r.id}>
                         <div className="row ac jb" style={{ marginBottom: 3 }}>
@@ -525,7 +525,7 @@ function PSAK46View() {
                 </div>
                 <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
                   {P46_UPSTREAM.map((m) => {
-                    const IconC = I[m.ic] || I.doc;
+                    const IconC = (I as any)[m.ic] || I.doc;
                     return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak46' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
@@ -545,7 +545,7 @@ function PSAK46View() {
                 </div>
                 <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
                   {P46_DOWNSTREAM.map((m) => {
-                    const IconC = I[m.ic] || I.doc;
+                    const IconC = (I as any)[m.ic] || I.doc;
                     return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak46' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>

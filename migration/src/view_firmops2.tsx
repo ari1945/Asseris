@@ -11,17 +11,17 @@ import { KV, SectionTitle } from './view_fpm_parts';
    ============================================================ */
 
 /* ---------- KALENDER KEWAJIBAN TERPADU (agregasi semua sub-modul) ---------- */
-function FopsCalendar({ obligations, calFilter, setCalFilter, nav }) {
+function FopsCalendar({ obligations, calFilter, setCalFilter, nav }: any) {
   const F = window.FIRMOPS;
-  const list = calFilter === 'all' ? obligations : obligations.filter(o => o.module === calFilter);
+  const list = calFilter === 'all' ? obligations : obligations.filter((o: any) => o.module === calFilter);
   const buckets = [
-    { key: 'lewat', lbl: 'Lewat Tempo', test: d => d < 0 },
-    { key: 'kritis', lbl: '≤30 hari', test: d => d >= 0 && d < 30 },
-    { key: 'segera', lbl: '31–90 hari', test: d => d >= 30 && d < 90 },
-    { key: 'pantau', lbl: '> 90 hari', test: d => d >= 90 },
+    { key: 'lewat', lbl: 'Lewat Tempo', test: (d: any) => d < 0 },
+    { key: 'kritis', lbl: '≤30 hari', test: (d: any) => d >= 0 && d < 30 },
+    { key: 'segera', lbl: '31–90 hari', test: (d: any) => d >= 30 && d < 90 },
+    { key: 'pantau', lbl: '> 90 hari', test: (d: any) => d >= 90 },
   ];
   const modCount = {};
-  obligations.forEach(o => { modCount[o.module] = (modCount[o.module] || 0) + 1; });
+  obligations.forEach((o: any) => { (modCount as any)[o.module] = ((modCount as any)[o.module] || 0) + 1; });
 
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
@@ -31,14 +31,14 @@ function FopsCalendar({ obligations, calFilter, setCalFilter, nav }) {
 
       <div className="row ac gap8" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
         <button className="chip tiny" onClick={() => setCalFilter('all')} style={{ cursor: 'pointer', background: calFilter === 'all' ? 'var(--navy)' : undefined, color: calFilter === 'all' ? '#fff' : undefined }}>Semua · {obligations.length}</button>
-        {F.SUBMODULES.filter(m => modCount[m.id]).map(m => (
-          <button key={m.id} className="chip tiny" onClick={() => setCalFilter(m.id)} style={{ cursor: 'pointer', background: calFilter === m.id ? m.c : undefined, color: calFilter === m.id ? '#fff' : undefined }}>{m.label} · {modCount[m.id]}</button>
+        {F.SUBMODULES.filter((m: any) => (modCount as any)[m.id]).map((m: any) => (
+          <button key={m.id} className="chip tiny" onClick={() => setCalFilter(m.id)} style={{ cursor: 'pointer', background: calFilter === m.id ? m.c : undefined, color: calFilter === m.id ? '#fff' : undefined }}>{m.label} · {(modCount as any)[m.id]}</button>
         ))}
       </div>
 
       <div style={{ display: 'grid', gap: 16 }}>
         {buckets.map(bk => {
-          const items = list.filter(o => bk.test(o.days));
+          const items = list.filter((o: any) => bk.test(o.days));
           if (!items.length) return null;
           const col = F.SEV_COLOR[bk.key];
           return (
@@ -50,9 +50,9 @@ function FopsCalendar({ obligations, calFilter, setCalFilter, nav }) {
                 <div style={{ flex: 1, height: 1, background: 'var(--line-soft)' }} />
               </div>
               <div style={{ display: 'grid', gap: 7 }}>
-                {items.map((o, i) => {
-                  const meta = F.SUBMODULES.find(s => s.id === o.module) || {};
-                  const Ic = I[meta.icon] || I.calendar;
+                {items.map((o: any, i: any) => {
+                  const meta = F.SUBMODULES.find((s: any) => s.id === o.module) || {};
+                  const Ic = (I as any)[meta.icon] || I.calendar;
                   return (
                     <div key={i} className="panel" style={{ padding: '9px 12px', cursor: 'pointer', borderLeft: '3px solid ' + col }} onClick={() => nav(o.module, { from: 'firmops' })}>
                       <div className="row ac gap10">
@@ -80,7 +80,7 @@ function FopsCalendar({ obligations, calFilter, setCalFilter, nav }) {
 }
 
 /* ---------- VENDOR & KONSUMSI (master vendor = sumber tunggal) ---------- */
-function FopsVendors({ B, vSel, setVSel, nav }) {
+function FopsVendors({ B, vSel, setVSel, nav }: any) {
   const F = window.FIRMOPS;
   return (
     <div>
@@ -90,7 +90,7 @@ function FopsVendors({ B, vSel, setVSel, nav }) {
       <table className="dtbl">
         <thead><tr><th>ID</th><th>Vendor</th><th>Kategori</th><th className="num">Belanja YTD</th><th>PMPJ</th><th>Dikonsumsi oleh</th><th>Status</th></tr></thead>
         <tbody>
-          {B.VENDORS.map(v => {
+          {B.VENDORS.map((v: any) => {
             const cons = F.VENDOR_CONSUMERS[v.id] || [];
             return (
               <tr key={v.id} onClick={() => setVSel(v)} style={{ cursor: 'pointer' }} className={vSel && vSel.id === v.id ? 'sel' : ''}>
@@ -101,9 +101,9 @@ function FopsVendors({ B, vSel, setVSel, nav }) {
                 <td><BoBadge s={v.diligence} /></td>
                 <td>
                   <div className="row gap4" style={{ flexWrap: 'wrap' }}>
-                    {cons.map((c, i) => {
-                      const meta = F.SUBMODULES.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
-                      const Ic = I[meta.icon] || I.doc;
+                    {cons.map((c: any, i: any) => {
+                      const meta = F.SUBMODULES.find((s: any) => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
+                      const Ic = (I as any)[meta.icon] || I.doc;
                       return <span key={i} className="chip tiny" title={c.why} style={{ borderColor: meta.c + '55', color: meta.c }}><Ic size={10} /> {meta.label.split(' ')[0]}</span>;
                     })}
                     {!cons.length && <span className="tiny muted">—</span>}
@@ -119,7 +119,7 @@ function FopsVendors({ B, vSel, setVSel, nav }) {
   );
 }
 
-function FopsVendorDrawer({ v, onClose, nav }) {
+function FopsVendorDrawer({ v, onClose, nav }: any) {
   const F = window.FIRMOPS;
   const cons = F.VENDOR_CONSUMERS[v.id] || [];
   return (
@@ -150,9 +150,9 @@ function FopsVendorDrawer({ v, onClose, nav }) {
 
         <SectionTitle right={<span className="mono tiny muted">{cons.length} modul</span>}>Dikonsumsi oleh Modul</SectionTitle>
         <div style={{ display: 'grid', gap: 7, marginBottom: 14 }}>
-          {cons.length ? cons.map((c, i) => {
-            const meta = F.SUBMODULES.find(s => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
-            const Ic = I[meta.icon] || I.doc;
+          {cons.length ? cons.map((c: any, i: any) => {
+            const meta = F.SUBMODULES.find((s: any) => s.id === c.m) || { label: c.m, c: '#888', icon: 'doc' };
+            const Ic = (I as any)[meta.icon] || I.doc;
             return (
               <button key={i} type="button" className="lin-chip" style={{ borderLeftColor: meta.c }} onClick={() => nav(c.m, { from: 'firmops' })} title={'Buka ' + meta.label}>
                 <span className="lin-ic" style={{ color: meta.c }}><Ic size={14} /></span>
@@ -173,12 +173,12 @@ function FopsVendorDrawer({ v, onClose, nav }) {
 }
 
 /* ---------- LINEAGE & REKONSILIASI ---------- */
-function FopsLineage({ oc, spendRecon, nbv, register, B, nav }) {
+function FopsLineage({ oc, spendRecon, nbv, register, B, nav }: any) {
   const F = window.FIRMOPS;
-  const spendTotal = F.sum(spendRecon, s => s.recorded);
-  const spendMaster = F.sum(spendRecon, s => s.master);
-  const spendOk = spendRecon.every(s => s.ok);
-  const grossCost = F.sum(B.FIXED_ASSETS, a => a.cost);
+  const spendTotal = F.sum(spendRecon, (s: any) => s.recorded);
+  const spendMaster = F.sum(spendRecon, (s: any) => s.master);
+  const spendOk = spendRecon.every((s: any) => s.ok);
+  const grossCost = F.sum(B.FIXED_ASSETS, (a: any) => a.cost);
   const accumDep = grossCost - nbv;
 
   const recons = [
@@ -210,7 +210,7 @@ function FopsLineage({ oc, spendRecon, nbv, register, B, nav }) {
       <table className="dtbl" style={{ marginBottom: 18 }}>
         <thead><tr><th>Kategori Belanja (P&L)</th><th>Vendor Master</th><th className="num">Tercatat</th><th className="num">Master</th><th>Status</th></tr></thead>
         <tbody>
-          {spendRecon.map(s => (
+          {spendRecon.map((s: any) => (
             <tr key={s.cat} style={{ background: s.ok ? undefined : 'var(--amber-bg)' }}>
               <td style={{ fontWeight: 600, fontSize: 11.5 }}><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: s.color }} />{s.cat}</span></td>
               <td className="tiny muted">{s.cats.join(', ')}</td>

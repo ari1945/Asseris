@@ -178,37 +178,37 @@ import { AMS_CANON } from './canon';
      syariah() — agregator kanonik. Sumber tunggal untuk view.
      ============================================================ */
   function syariah() {
-    const sum = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
+    const sum = (arr: any, f: any) => arr.reduce((a: any, x: any) => a + f(x), 0);
 
     /* pembiayaan */
     const akad = AKAD.map(a => ({ ...a, neto: a.pokok - a.marjin }));
-    const pembiayaanBruto = sum(akad, a => a.pokok);
-    const marjinTangguhan = sum(akad, a => a.marjin);
+    const pembiayaanBruto = sum(akad, (a: any) => a.pokok);
+    const marjinTangguhan = sum(akad, (a: any) => a.marjin);
     const pembiayaanNeto = pembiayaanBruto - CKPN_PEMBIAYAAN;
     const byKel = ['Jual-beli', 'Jual-beli pesanan', 'Bagi hasil', 'Sewa'].map(k => ({
-      kel: k, amt: sum(akad.filter(a => a.kel === k), a => a.pokok),
+      kel: k, amt: sum(akad.filter(a => a.kel === k), (a: any) => a.pokok),
     })).filter(x => x.amt > 0);
 
     /* dana syirkah temporer */
-    const dstTotal = sum(DST, d => d.amt);
+    const dstTotal = sum(DST, (d: any) => d.amt);
 
     /* zakat */
-    const zakatSumber = sum(ZAKAT.sumber, x => x.v);
-    const zakatSalur = sum(ZAKAT.penyaluran, x => x.v);
+    const zakatSumber = sum(ZAKAT.sumber, (x: any) => x.v);
+    const zakatSalur = sum(ZAKAT.penyaluran, (x: any) => x.v);
     const zakatKenaikan = zakatSumber - zakatSalur;
     const zakatSaldo = ZAKAT.saldoAwal + zakatKenaikan;
 
     /* dana kebajikan */
-    const kebSumber = sum(KEBAJIKAN.sumber, x => x.v);
-    const kebPakai = sum(KEBAJIKAN.penggunaan, x => x.v);
+    const kebSumber = sum(KEBAJIKAN.sumber, (x: any) => x.v);
+    const kebPakai = sum(KEBAJIKAN.penggunaan, (x: any) => x.v);
     const kebKenaikan = kebSumber - kebPakai;
     const kebSaldo = KEBAJIKAN.saldoAwal + kebKenaikan;
-    const nonHalal = sum(KEBAJIKAN.sumber.filter(x => !x.halal), x => x.v);  // total pemurnian
-    const purif = sum(KEBAJIKAN.sumber.filter(x => x.purif), x => x.v);      // murni pendapatan non-halal
+    const nonHalal = sum(KEBAJIKAN.sumber.filter(x => !x.halal), (x: any) => x.v);  // total pemurnian
+    const purif = sum(KEBAJIKAN.sumber.filter(x => x.purif), (x: any) => x.v);      // murni pendapatan non-halal
 
     /* sukuk */
-    const sukukAset = sum(SUKUK.filter(s => s.sisi === 'Aset'), s => s.amt);
-    const sukukLiab = sum(SUKUK.filter(s => s.sisi === 'Liabilitas'), s => s.amt);
+    const sukukAset = sum(SUKUK.filter(s => s.sisi === 'Aset'), (s: any) => s.amt);
+    const sukukLiab = sum(SUKUK.filter(s => s.sisi === 'Liabilitas'), (s: any) => s.amt);
 
     /* DPS */
     const dpsOk = DPS.temuan.filter(t => t.ok).length;

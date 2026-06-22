@@ -25,12 +25,12 @@ function ClientCRM() {
   const [tab, setTab] = useStateF('profil');
   const [form, setForm] = useStateF(null); // {mode:'add'|'edit', data}
 
-  const filtered = clients.filter(c =>
+  const filtered = clients.filter((c: any) =>
     (riskFilter === 'All' || c.risk === riskFilter) &&
     (q === '' || c.name.toLowerCase().includes(q.toLowerCase()) || c.id.toLowerCase().includes(q.toLowerCase())));
-  const sel = clients.find(c => c.id === selId) || clients[0];
+  const sel = clients.find((c: any) => c.id === selId) || clients[0];
   const selEngs = engagementsForClient(sel.id);
-  const totalFee = clients.reduce((s, c) => s + c.fee, 0);
+  const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   // derived mock contacts + history per client
   const contacts = [
@@ -77,9 +77,9 @@ function ClientCRM() {
           {/* KPI strip */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
             <Panel className="row" ><div style={{ padding: '11px 14px' }}><Stat value={clients.length} label="Total Klien" delta="+1 QoQ" deltaDir="up" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter(c => c.status === 'Active').length} label="Klien Aktif" /></div></Panel>
+            <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter((c: any) => c.status === 'Active').length} label="Klien Aktif" /></div></Panel>
             <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalFee / 1e9, 1) + ' M'} label="Total Annual Fee" delta="+11%" deltaDir="up" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter(c => c.risk === 'High').length} label="Klien Risiko Tinggi" accent="var(--red)" /></div></Panel>
+            <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter((c: any) => c.risk === 'High').length} label="Klien Risiko Tinggi" accent="var(--red)" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '1.55fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -90,7 +90,7 @@ function ClientCRM() {
                 <div style={{ flex: 1 }} />
                 <div className="global-search" style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', height: 26, maxWidth: 200 }}>
                   <I.search2 size={13} style={{ color: 'var(--ink-4)' }} />
-                  <input style={{ color: 'var(--ink)' }} placeholder="Cari klien…" value={q} onChange={e => setQ(e.target.value)} />
+                  <input style={{ color: 'var(--ink)' }} placeholder="Cari klien…" value={q} onChange={(e: any) => setQ(e.target.value)} />
                 </div>
                 <Seg options={['All', 'High', 'Medium', 'Low']} value={riskFilter} onChange={setRiskFilter} />
               </div>
@@ -100,7 +100,7 @@ function ClientCRM() {
                     <th>Klien</th><th>Industri</th><th>Tier</th><th>Risiko</th><th className="r">Annual Fee</th><th>Status</th>
                   </tr></thead>
                   <tbody>
-                    {filtered.map(c => (
+                    {filtered.map((c: any) => (
                       <tr key={c.id} className={c.id === sel.id ? 'sel' : ''} onClick={() => { setSelId(c.id); setTab('profil'); }} style={{ cursor: 'pointer' }}>
                         <td>
                           <div className="row ac gap8">
@@ -174,7 +174,7 @@ function ClientCRM() {
                 {tab === 'riwayat' && (
                   <div style={{ display: 'grid', gap: 0 }}>
                     {history.map((h, i) => {
-                      const IconC = I[h.icon] || I.pulse;
+                      const IconC = (I as any)[h.icon] || I.pulse;
                       return (
                         <div key={i} className="row gap10" style={{ padding: '9px 0', borderBottom: i < history.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                           <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><IconC size={14} /></span>
@@ -190,7 +190,7 @@ function ClientCRM() {
                 {tab === 'engagement' && (
                   <div style={{ display: 'grid', gap: 0 }}>
                     {selEngs.length === 0 && <div className="muted tiny" style={{ padding: '12px 0' }}>Belum ada engagement untuk klien ini.</div>}
-                    {selEngs.map(e => (
+                    {selEngs.map((e: any) => (
                       <div key={e.id} className="row ac gap8" style={{ padding: '9px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => setActiveEngagementId(e.id)}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</span><Badge>{e.status}</Badge></div>
@@ -206,7 +206,7 @@ function ClientCRM() {
           </div>
         </div>
       </div>}
-      {form && <ClientForm form={form} onClose={() => setForm(null)} onSave={(data) => {
+      {form && <ClientForm form={form} onClose={() => setForm(null)} onSave={(data: any) => {
         if (form.mode === 'add') { addClient(data); setSelId(data.id); } else { updateClient(data.id, data); }
         setForm(null);
       }} />}
@@ -219,16 +219,16 @@ function blankClient() {
   return { id: 'C-' + n, name: '', industry: '', tier: 'Tier 2', risk: 'Medium', npwp: '', city: '', listed: false, since: 2026, partner: 'Hartono Wijaya, CPA', fee: 500000000, status: 'Proposal' };
 }
 
-function ClientForm({ form, onClose, onSave }) {
+function ClientForm({ form, onClose, onSave }: any) {
   const { fmt } = AMS;
   const [d, setD] = useStateF(form.data);
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim() && d.city.trim();
   const partners = ['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'];
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 560, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 560, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} />
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
@@ -236,23 +236,23 @@ function ClientForm({ form, onClose, onSave }) {
         </div>
         <div style={{ padding: 16, overflow: 'auto', display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-            <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={e => set('name', e.target.value)} placeholder="PT Contoh Sejahtera Tbk" /></div>
-            <div className="field"><label>ID Klien</label><input className="input mono" value={d.id} onChange={e => set('id', e.target.value)} /></div>
+            <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Contoh Sejahtera Tbk" /></div>
+            <div className="field"><label>ID Klien</label><input className="input mono" value={d.id} onChange={(e: any) => set('id', e.target.value)} /></div>
           </div>
-          <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={e => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
+          <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={e => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
-            <div className="field"><label>Domisili</label><input className="input" value={d.city} onChange={e => set('city', e.target.value)} placeholder="Jakarta Selatan" /></div>
+            <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
+            <div className="field"><label>Domisili</label><input className="input" value={d.city} onChange={(e: any) => set('city', e.target.value)} placeholder="Jakarta Selatan" /></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Tier</label><select className="select" value={d.tier} onChange={e => set('tier', e.target.value)}>{['Tier 1', 'Tier 2', 'Tier 3'].map(t => <option key={t}>{t}</option>)}</select></div>
-            <div className="field"><label>Risiko</label><select className="select" value={d.risk} onChange={e => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(t => <option key={t}>{t}</option>)}</select></div>
-            <div className="field"><label>Status</label><select className="select" value={d.status} onChange={e => set('status', e.target.value)}>{['Proposal', 'Active', 'Completed'].map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label>Tier</label><select className="select" value={d.tier} onChange={(e: any) => set('tier', e.target.value)}>{['Tier 1', 'Tier 2', 'Tier 3'].map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label>Risiko</label><select className="select" value={d.risk} onChange={(e: any) => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label>Status</label><select className="select" value={d.status} onChange={(e: any) => set('status', e.target.value)}>{['Proposal', 'Active', 'Completed'].map(t => <option key={t}>{t}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Partner Penanggung Jawab</label><select className="select" value={d.partner} onChange={e => set('partner', e.target.value)}>{partners.map(t => <option key={t}>{t}</option>)}</select></div>
-            <div className="field"><label>Annual Fee (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={e => set('fee', +e.target.value)} /></div>
-            <div className="field"><label>Klien Sejak</label><input className="input mono" type="number" value={d.since} onChange={e => set('since', +e.target.value)} /></div>
+            <div className="field"><label>Partner Penanggung Jawab</label><select className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{partners.map(t => <option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label>Annual Fee (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} /></div>
+            <div className="field"><label>Klien Sejak</label><input className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
           </div>
           <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12.5 }}>
             <span onClick={() => set('listed', !d.listed)} style={{ width: 36, height: 20, borderRadius: 11, background: d.listed ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: d.listed ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
@@ -279,7 +279,7 @@ function EngagementMgmt() {
   const [showNew, setShowNew] = useStateF(false);
 
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
-  const detail = detailId ? engagements.find(e => e.id === detailId) : null;
+  const detail = detailId ? engagements.find((e: any) => e.id === detailId) : null;
 
   const [mtab, setMtab] = useStateF(() => localStorage.getItem('ams.eng.tab') || 'papan');
   React.useEffect(() => { try { localStorage.setItem('ams.eng.tab', mtab); } catch (e) {} }, [mtab]);
@@ -310,22 +310,22 @@ function EngagementMgmt() {
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
             {[
               { v: engagements.length, l: 'Total Engagement' },
-              { v: engagements.filter(e => e.risk === 'High').length, l: 'Risiko Tinggi', a: 'var(--red)' },
-              { v: Math.round(engagements.reduce((s, e) => s + e.actualHrs, 0) / 1000) + 'k', l: 'Total Jam Aktual' },
-              { v: Math.round(engagements.reduce((s, e) => s + e.progress, 0) / engagements.length) + '%', l: 'Rata-rata Progress' },
+              { v: engagements.filter((e: any) => e.risk === 'High').length, l: 'Risiko Tinggi', a: 'var(--red)' },
+              { v: Math.round(engagements.reduce((s: any, e: any) => s + e.actualHrs, 0) / 1000) + 'k', l: 'Total Jam Aktual' },
+              { v: Math.round(engagements.reduce((s: any, e: any) => s + e.progress, 0) / engagements.length) + '%', l: 'Rata-rata Progress' },
             ].map((k, i) => <Panel key={i}><div style={{ padding: '11px 14px' }}><Stat value={k.v} label={k.l} accent={k.a} /></div></Panel>)}
           </div>
 
           {/* Kanban board by phase */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, alignItems: 'start' }}>
             {phases.map(ph => {
-              const col = engagements.filter(e => e.phase === ph);
+              const col = engagements.filter((e: any) => e.phase === ph);
               const phColor = { Perencanaan: '#5b3fa6', Eksekusi: '#005085', Finalisasi: '#9a6a00', Arsip: '#1f7a4d' }[ph];
               return (
                 <div key={ph}
-                  onDragOver={(ev) => { ev.preventDefault(); if (overPhase !== ph) setOverPhase(ph); }}
-                  onDragLeave={() => setOverPhase(p => p === ph ? null : p)}
-                  onDrop={(ev) => { ev.preventDefault(); if (dragId) { const de = engagements.find(x => x.id === dragId); pg.attempt(dragId, de && de.phase, ph); } setDragId(null); setOverPhase(null); }}
+                  onDragOver={(ev: any) => { ev.preventDefault(); if (overPhase !== ph) setOverPhase(ph); }}
+                  onDragLeave={() => setOverPhase((p: any) => p === ph ? null : p)}
+                  onDrop={(ev: any) => { ev.preventDefault(); if (dragId) { const de = engagements.find((x: any) => x.id === dragId); pg.attempt(dragId, de && de.phase, ph); } setDragId(null); setOverPhase(null); }}
                   style={{ borderRadius: 8, padding: 4, background: overPhase === ph ? 'var(--blue-050)' : 'transparent', outline: overPhase === ph ? '2px dashed var(--blue)' : 'none', minHeight: 80, transition: 'background .12s' }}>
                   <div className="row ac gap8" style={{ marginBottom: 8, padding: '0 4px' }}>
                     <span style={{ width: 9, height: 9, borderRadius: 3, background: phColor }} />
@@ -333,8 +333,8 @@ function EngagementMgmt() {
                     <span className="chip tiny">{col.length}</span>
                   </div>
                   <div className="grid" style={{ gap: 9 }}>
-                    {col.map(e => {
-                      const c = clients.find(x => x.id === e.clientId);
+                    {col.map((e: any) => {
+                      const c = clients.find((x: any) => x.id === e.clientId);
                       const over = e.actualHrs / e.budgetHrs;
                       return (
                         <div key={e.id} className="panel"
@@ -366,15 +366,15 @@ function EngagementMgmt() {
           </div>
         </div>
       </div>}
-      {detail && <EngagementDetail e={detail} client={clients.find(c => c.id === detail.clientId)} onClose={() => setDetailId(null)} />}
-      {showNew && <EngagementForm clients={clients} onClose={() => setShowNew(false)} onAdd={(e) => { addEngagement(e); setShowNew(false); }} />}
+      {detail && <EngagementDetail e={detail} client={clients.find((c: any) => c.id === detail.clientId)} onClose={() => setDetailId(null)} />}
+      {showNew && <EngagementForm clients={clients} onClose={() => setShowNew(false)} onAdd={(e: any) => { addEngagement(e); setShowNew(false); }} />}
       {pg.pending && <PhaseGateDialog gate={pg.pending.gate} fromPhase={pg.pending.fromPhase} toPhase={pg.pending.toPhase} onConfirm={pg.confirm} onCancel={pg.cancel} />}
     </>
   );
 }
 
 /* ---- Engagement detail drawer ---- */
-function EngagementDetail({ e, client, onClose }) {
+function EngagementDetail({ e, client, onClose }: any) {
   const { fmt } = AMS;
   const pg = usePhaseGate();
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
@@ -389,7 +389,7 @@ function EngagementDetail({ e, client, onClose }) {
   return (
     <>
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 440, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={ev => ev.stopPropagation()}>
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 440, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{e.id}</span>
@@ -454,31 +454,31 @@ function EngagementDetail({ e, client, onClose }) {
   );
 }
 
-function EngagementForm({ clients, onClose, onAdd }) {
+function EngagementForm({ clients, onClose, onAdd }: any) {
   const [d, setD] = useStateF({ clientId: clients[0].id, type: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-04-30', budgetHrs: 1200, materiality: 2000000000, risk: 'Medium' });
-  const set = (k, v) => setD(s => ({ ...s, [k]: v }));
+  const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.clientId && +d.budgetHrs > 0;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={e => set('clientId', e.target.value)}>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <div className="field"><label>Jenis Perikatan</label><select className="select" value={d.type} onChange={e => set('type', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Standar</label><select className="select" value={d.standard} onChange={e => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Jenis Perikatan</label><select className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Standar</label><select className="select" value={d.standard} onChange={(e: any) => set('standard', e.target.value)}>{['SA', 'SA + PSAK 71', 'SA + PSAK 73', 'SPR 2400', 'SJAH 3000'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Partner</label><select className="select" value={d.partner} onChange={e => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Manajer</label><select className="select" value={d.manager} onChange={e => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Partner</label><select className="select" value={d.partner} onChange={(e: any) => set('partner', e.target.value)}>{['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Manajer</label><select className="select" value={d.manager} onChange={(e: any) => set('manager', e.target.value)}>{['Anindya Pramesti', 'Bayu Saputra', 'Citra Halim'].map(s => <option key={s}>{s}</option>)}</select></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Anggaran Jam</label><input className="input mono" type="number" value={d.budgetHrs} onChange={e => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Risiko</label><select className="select" value={d.risk} onChange={e => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(s => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={e => set('deadline', e.target.value)} /></div>
+            <div className="field"><label>Anggaran Jam</label><input className="input mono" type="number" value={d.budgetHrs} onChange={(e: any) => set('budgetHrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Risiko</label><select className="select" value={d.risk} onChange={(e: any) => set('risk', e.target.value)}>{['Low', 'Medium', 'High'].map(s => <option key={s}>{s}</option>)}</select></div>
+            <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
           </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>

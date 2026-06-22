@@ -83,22 +83,22 @@ function DisclosureChecklist() {
   const [showDV, setShowDV] = useStateDC(true);
 
   const reqs = useMemoDC(() => DC_REQS.map((r, i) => ({ ...r, id: 'dc' + i, status: override['dc' + i] || r.status })), [override]);
-  const cycle = (id) => setOverride(o => { const cur = o[id] || (DC_REQS[+id.slice(2)] || {}).status || 'open'; const next = cur === 'done' ? 'open' : cur === 'open' ? 'na' : 'done'; return { ...o, [id]: next }; });
+  const cycle = (id: any) => setOverride((o: any) => { const cur = o[id] || (DC_REQS[+id.slice(2)] || {}).status || 'open'; const next = cur === 'done' ? 'open' : cur === 'open' ? 'na' : 'done'; return { ...o, [id]: next }; });
 
-  const visible = reqs.filter(r => (stmt === 'all' || r.stmt === stmt) && (showDV || !r.dv));
-  const applic = reqs.filter(r => r.status !== 'na');
-  const doneN = applic.filter(r => r.status === 'done').length;
+  const visible = reqs.filter((r: any) => (stmt === 'all' || r.stmt === stmt) && (showDV || !r.dv));
+  const applic = reqs.filter((r: any) => r.status !== 'na');
+  const doneN = applic.filter((r: any) => r.status === 'done').length;
   const pct = applic.length ? Math.round(doneN / applic.length * 100) : 100;
-  const openN = reqs.filter(r => r.status === 'open').length;
+  const openN = reqs.filter((r: any) => r.status === 'open').length;
 
   const perStmt = DC_STATEMENTS.map(s => {
-    const rs = reqs.filter(r => r.stmt === s.id && r.status !== 'na');
-    const d = rs.filter(r => r.status === 'done').length;
+    const rs = reqs.filter((r: any) => r.stmt === s.id && r.status !== 'na');
+    const d = rs.filter((r: any) => r.status === 'done').length;
     return { ...s, total: rs.length, done: d, pct: rs.length ? Math.round(d / rs.length * 100) : 100 };
   });
 
-  const aliasOf = (std) => (window.STD_IFRS_ALIAS || {})[std];
-  const grouped = DC_STATEMENTS.map(s => ({ ...s, items: visible.filter(r => r.stmt === s.id) })).filter(g => g.items.length);
+  const aliasOf = (std: any) => (window.STD_IFRS_ALIAS || {})[std];
+  const grouped = DC_STATEMENTS.map(s => ({ ...s, items: visible.filter((r: any) => r.stmt === s.id) })).filter(g => g.items.length);
 
   return (
     <>
@@ -140,7 +140,7 @@ function DisclosureChecklist() {
               ))}
             </div>
             <label className="row ac gap6 tiny" style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600, color: 'var(--ink-2)' }} title="Tampilkan pengungkapan sukarela (Disclose Voluntary)">
-              <input type="checkbox" checked={showDV} onChange={e => setShowDV(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--blue)' }} />
+              <input type="checkbox" checked={showDV} onChange={(e: any) => setShowDV(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--blue)' }} />
               Tampilkan DV (sukarela)
             </label>
           </div>
@@ -152,10 +152,10 @@ function DisclosureChecklist() {
                 <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{g.label}</span>
                 <span className="tiny muted">{g.items.length}</span>
               </div>
-              {g.items.map(r => {
-                const st = DC_STATUS[r.status];
+              {g.items.map((r: any) => {
+                const st = (DC_STATUS as any)[r.status];
                 const al = aliasOf(r.std);
-                const mod = r.module ? (MODULE_INDEX[r.module] || {}) : null;
+                const mod = r.module ? ((MODULE_INDEX as any)[r.module] || {}) : null;
                 return (
                   <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '78px 1fr 130px 96px', gap: 10, alignItems: 'center', padding: '9px 14px', borderBottom: '1px solid var(--line-soft)' }}>
                     <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: r.ref === 'DV' ? 'var(--purple)' : 'var(--navy)' }}>{r.ref}</span>

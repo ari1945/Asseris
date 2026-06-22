@@ -113,8 +113,8 @@ function PSAK48View() {
   React.useEffect(() => { try { localStorage.setItem('ams.psak48.done', JSON.stringify(done)); } catch (e) {} }, [done]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak48.selprov', JSON.stringify(selProv)); } catch (e) {} }, [selProv]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = P48_PROC.filter((p, i) => done[p.ref + i]).length;
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
@@ -128,7 +128,7 @@ function PSAK48View() {
     { id: 'audit', label: 'Audit · SA 540/501' },
   ];
 
-  const sel = p57.items.find(i => i.id === selProv) || p57.items[0];
+  const sel = p57.items.find((i: any) => i.id === selProv) || p57.items[0];
   const provSegs = [
     { label: 'Provisi diakui', value: p57.provisionTotal, color: '#b3261e' },
     { label: 'Kontinjensi', value: p57.contingentTotal, color: '#c79a1e' },
@@ -182,7 +182,7 @@ function PSAK48View() {
                         <th style={{ textAlign: 'right', width: 96 }}>Nilai Tercatat</th>
                       </tr></thead>
                       <tbody>
-                        {p48.parts.map(pt => (
+                        {p48.parts.map((pt: any) => (
                           <tr key={pt.id} onClick={() => pt.route !== 'psak48' && nav(pt.route, { from: 'psak48' })} style={{ cursor: pt.route !== 'psak48' ? 'pointer' : 'default' }}>
                             <td style={{ fontSize: 12.5, fontWeight: 600 }}>{pt.label}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{pt.code}</td>
@@ -222,7 +222,7 @@ function PSAK48View() {
                         <th style={{ textAlign: 'right' }}>Nilai Kini</th>
                       </tr></thead>
                       <tbody>
-                        {p48.viu.flows.map(f => (
+                        {p48.viu.flows.map((f: any) => (
                           <tr key={f.y}>
                             <td style={{ fontWeight: 600 }}>Tahun {f.y}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(Math.round(f.cf))}</td>
@@ -264,7 +264,7 @@ function PSAK48View() {
                 <Panel noBody>
                   <div className="panel-h"><h3>Asesmen Indikator</h3><span className="sub mono">¶12 · eksternal & internal</span></div>
                   <div style={{ display: 'grid', gap: 0 }}>
-                    {p48.indicators.map((ind, i) => (
+                    {p48.indicators.map((ind: any, i: any) => (
                       <div key={ind.id} className="row gap10" style={{ padding: '9px 14px', alignItems: 'flex-start', borderBottom: i < p48.indicators.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <span style={{ flex: '0 0 auto', marginTop: 1, color: ind.present ? 'var(--amber)' : 'var(--ink-4)' }}>{ind.present ? <I.alert size={15} /> : <span style={{ display: 'inline-block', width: 15, textAlign: 'center', fontWeight: 700 }}>–</span>}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -290,7 +290,7 @@ function PSAK48View() {
                         <th style={{ textAlign: 'right', width: 76 }}>Headroom</th>
                       </tr></thead>
                       <tbody>
-                        {p48.sens.map((sn, i) => (
+                        {p48.sens.map((sn: any, i: any) => (
                           <tr key={i}>
                             <td style={{ fontSize: 11.5, lineHeight: 1.3 }}>{sn.label}<div className="tiny muted mono">{sn.shock}</div></td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(sn.rec)}</td>
@@ -339,7 +339,7 @@ function PSAK48View() {
                         <th style={{ textAlign: 'left', width: 150 }}>Perlakuan</th>
                       </tr></thead>
                       <tbody>
-                        {p57.items.map(it => (
+                        {p57.items.map((it: any) => (
                           <tr key={it.id} className={it.id === selProv ? 'sel' : ''} onClick={() => setSelProv(it.id)} style={{ cursor: 'pointer' }}>
                             <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{it.id}</td>
                             <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.3 }}>{it.party}<div className="tiny muted" style={{ fontWeight: 400 }}>{it.nature} · {it.counsel}</div></td>
@@ -478,9 +478,9 @@ function PSAK48View() {
                       </tr></thead>
                       <tbody>
                         {[
-                          { pos: 'Aset tetap neto (komponen UPK)', src: 'PSAK 16 ← WTB 1-2100/2110', val: p48.parts.find(x => x.id === 'ppe').val, ok: true, hi: true },
-                          { pos: 'Takberwujud terbatas (komponen UPK)', src: 'PSAK 19 ← WTB 1-2400/2410', val: p48.parts.find(x => x.id === 'intanFin').val, ok: true, hi: true },
-                          { pos: 'Aset hak-guna ROU (komponen UPK)', src: 'PSAK 73 ← WTB 1-2300', val: p48.parts.find(x => x.id === 'rou').val, ok: true, hi: true },
+                          { pos: 'Aset tetap neto (komponen UPK)', src: 'PSAK 16 ← WTB 1-2100/2110', val: p48.parts.find((x: any) => x.id === 'ppe').val, ok: true, hi: true },
+                          { pos: 'Takberwujud terbatas (komponen UPK)', src: 'PSAK 19 ← WTB 1-2400/2410', val: p48.parts.find((x: any) => x.id === 'intanFin').val, ok: true, hi: true },
+                          { pos: 'Aset hak-guna ROU (komponen UPK)', src: 'PSAK 73 ← WTB 1-2300', val: p48.parts.find((x: any) => x.id === 'rou').val, ok: true, hi: true },
                           { pos: 'Nilai tercatat UPK (total)', src: 'AMS_CANON.psak48 · carry', val: p48.carry, ok: true },
                           { pos: 'Jumlah terpulihkan (nilai pakai)', src: 'psak48 · DCF value-in-use', val: p48.recoverable, ok: true },
                           { pos: 'Lisensi tak-terbatas — terpulihkan', src: 'PSAK 19 · indefCarry/recov', val: p48.license.recoverable, ok: true },
@@ -509,7 +509,7 @@ function PSAK48View() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber nilai tercatat</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {P48_UPSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P48_UPSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak48' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -519,7 +519,7 @@ function PSAK48View() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {P48_DOWNSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P48_DOWNSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak48' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

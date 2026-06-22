@@ -40,14 +40,14 @@ const FW_META = {
 const FW_ORDER = ['SAK', 'SAK EP', 'SAK EMKM'];
 
 /* ---- format Rupiah dalam miliar/triliun ---- */
-function fwRp(v) {
+function fwRp(v: any) {
   if (v >= 1e12) return 'Rp ' + (v / 1e12).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' T';
   if (v >= 1e9) return 'Rp ' + (v / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' M';
   return 'Rp ' + (v / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + ' jt';
 }
 
 /* ---- tingkat UMKM dari modal usaha (PP 7/2021) ---- */
-function fwUmkmTier(cap, sales) {
+function fwUmkmTier(cap: any, sales: any) {
   if (cap > FW_CAP_CEIL || sales > FW_SALES_CEIL) return 'Besar';
   if (cap > 5e9 || sales > 15e9) return 'Menengah';
   if (cap > 1e9 || sales > 2e9) return 'Kecil';
@@ -57,7 +57,7 @@ function fwUmkmTier(cap, sales) {
 /* ============================================================
    MESIN PENENTU — satu sumber kebenaran (dipakai kandidat & portofolio)
    ============================================================ */
-function fwDetermine(e) {
+function fwDetermine(e: any) {
   if (e.listed) return { fw: 'SAK', gate: 1, branch: 'pa', why: 'Tercatat / dalam proses pendaftaran di pasar modal — memiliki akuntabilitas publik (emiten/perusahaan publik).' };
   if (e.fiduciary) return { fw: 'SAK', gate: 1, branch: 'pa', why: 'Menguasai aset dalam kapasitas fidusia bagi sekelompok besar masyarakat sebagai salah satu usaha utamanya (lembaga jasa keuangan).' };
   const byCap = e.capital <= FW_CAP_CEIL;
@@ -116,7 +116,7 @@ function FWStat({ value, label, sub, accent }: any) {
 }
 
 function FWChip({ fw, sm }: any) {
-  const m = FW_META[fw];
+  const m = (FW_META as any)[fw];
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700,
@@ -157,7 +157,7 @@ function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
       </div>
       <div style={{ position: 'relative' }}>
         <input type="range" className="fw-range" min={0} max={max} step={max / 200} value={value}
-          onChange={e => onChange(Number(e.target.value))}
+          onChange={(e: any) => onChange(Number(e.target.value))}
           style={{ width: '100%', accentColor: over ? 'var(--amber)' : 'var(--teal)' }} />
         <div style={{ position: 'absolute', left: ceilPct + '%', top: -2, bottom: 14, width: 2, background: 'var(--red)', opacity: .7, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: ceilPct + '%', top: -16, transform: 'translateX(-50%)', fontSize: 9.5, fontWeight: 700, color: 'var(--red)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>batas UMKM {unit}</div>
@@ -233,19 +233,19 @@ function FrameworkView() {
 
   useEffectFW(() => { try { localStorage.setItem('ams.framework.cand', JSON.stringify(cand)); } catch (e) {} }, [cand]);
 
-  const set = (patch) => setCand(c => ({ ...c, ...patch }));
-  const loadEntity = (ent) => {
+  const set = (patch: any) => setCand((c: any) => ({ ...c, ...patch }));
+  const loadEntity = (ent: any) => {
     setPicked(ent.id);
     setCand({ ...ent });
   };
 
   const result = useMemoFW(() => fwDetermine(cand), [cand]);
-  const m = FW_META[result.fw];
+  const m = (FW_META as any)[result.fw];
   const umkmTier = fwUmkmTier(cand.capital, cand.sales);
 
   /* hitung sebaran portofolio (lewat fungsi penentu yang sama — SSOT) */
   const portfolio = useMemoFW(() => FW_PORTFOLIO.map(e => ({ ...e, ...fwDetermine(e), tier: fwUmkmTier(e.capital, e.sales) })), []);
-  const counts = FW_ORDER.map(k => ({ k, n: portfolio.filter(p => p.fw === k).length }));
+  const counts = FW_ORDER.map(k => ({ k, n: portfolio.filter((p: any) => p.fw === k).length }));
 
   return (
     <>
@@ -287,7 +287,7 @@ function FrameworkView() {
                   </div>
                   <div className="row jb ac" style={{ gap: 10 }}>
                     <div style={{ minWidth: 0 }}>
-                      <input value={cand.name} onChange={e => set({ name: e.target.value })}
+                      <input value={cand.name} onChange={(e: any) => set({ name: e.target.value })}
                         style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', border: 'none', borderBottom: '1px dashed var(--line-strong)', background: 'transparent', padding: '2px 0', width: '100%', outline: 'none' }} />
                       <div className="tiny muted" style={{ marginTop: 3 }}>{cand.sector} · {cand.eng}</div>
                     </div>
@@ -308,10 +308,10 @@ function FrameworkView() {
                   <p className="tiny muted" style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Bila salah satu terpenuhi, entitas <b>wajib</b> menggunakan SAK (PSAK berbasis IFRS).</p>
                   <FWToggle label="Terdaftar / dalam proses pendaftaran di pasar modal"
                     hint="Emiten / perusahaan publik — menerbitkan instrumen di pasar publik."
-                    value={cand.listed} onChange={v => set({ listed: v })} />
+                    value={cand.listed} onChange={(v: any) => set({ listed: v })} />
                   <FWToggle label="Menguasai aset dalam kapasitas fidusia (usaha utama)"
                     hint="Bank, asuransi, dana pensiun, sekuritas, multifinance, reksa dana."
-                    value={cand.fiduciary} onChange={v => set({ fiduciary: v })} />
+                    value={cand.fiduciary} onChange={(v: any) => set({ fiduciary: v })} />
                 </div>
               </Panel>
 
@@ -323,8 +323,8 @@ function FrameworkView() {
                     <span className="tiny muted">UU 20/2008 jo. PP 7/2021 · di luar tanah & bangunan</span>
                   </div>
                   <p className="tiny muted" style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Melebihi salah satu ambang → entitas <b>besar</b> → SAK EP. Di bawah keduanya → lanjut ke uji kompleksitas.</p>
-                  <FWSlider label="Penjualan tahunan" value={cand.sales} onChange={v => set({ sales: v })} max={120e9} ceil={FW_SALES_CEIL} unit="50 M" />
-                  <FWSlider label="Modal usaha (ekuitas usaha)" value={cand.capital} onChange={v => set({ capital: v })} max={20e9} ceil={FW_CAP_CEIL} unit="10 M" />
+                  <FWSlider label="Penjualan tahunan" value={cand.sales} onChange={(v: any) => set({ sales: v })} max={120e9} ceil={FW_SALES_CEIL} unit="50 M" />
+                  <FWSlider label="Modal usaha (ekuitas usaha)" value={cand.capital} onChange={(v: any) => set({ capital: v })} max={20e9} ceil={FW_CAP_CEIL} unit="10 M" />
                 </div>
               </Panel>
 
@@ -337,10 +337,10 @@ function FrameworkView() {
                   <p className="tiny muted" style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Entitas UMKM <b>boleh memilih</b> kerangka yang lebih tinggi. Bila ada kompleksitas atau pengguna canggih → SAK EP; jika tidak → SAK EMKM.</p>
                   <FWToggle label="Transaksi kompleks / pengguna LK canggih"
                     hint="Instrumen keuangan, sewa material, konsolidasi, kreditur bank besar, rencana go-public."
-                    value={cand.complex} onChange={v => set({ complex: v })} />
+                    value={cand.complex} onChange={(v: any) => set({ complex: v })} />
                   <FWToggle label="Entitas memilih naik ke SAK EP (sukarela)"
                     hint="Pilihan strategis demi komparabilitas / akses pendanaan."
-                    value={cand.elect} onChange={v => set({ elect: v })} />
+                    value={cand.elect} onChange={(v: any) => set({ elect: v })} />
                 </div>
               </Panel>
             </div>
@@ -375,7 +375,7 @@ function FrameworkView() {
                     { ic: 'report', k: 'Profil FS Generator', v: m.short },
                   ].map((r, i) => (
                     <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
-                      {(() => { const IcC = I[r.ic] || I.doc; return <span style={{ color: m.accent, flex: '0 0 auto', marginTop: 1 }}><IcC size={14} /></span>; })()}
+                      {(() => { const IcC = (I as any)[r.ic] || I.doc; return <span style={{ color: m.accent, flex: '0 0 auto', marginTop: 1 }}><IcC size={14} /></span>; })()}
                       <div style={{ minWidth: 0 }}>
                         <div className="tiny muted" style={{ fontWeight: 600 }}>{r.k}</div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{r.v}</div>
@@ -405,7 +405,7 @@ function FrameworkView() {
                   <tr>
                     <th style={{ minWidth: 170 }}>Dimensi</th>
                     {FW_ORDER.map(k => (
-                      <th key={k} style={{ color: FW_META[k].accent }}>{FW_META[k].label}</th>
+                      <th key={k} style={{ color: (FW_META as any)[k].accent }}>{(FW_META as any)[k].label}</th>
                     ))}
                   </tr>
                 </thead>
@@ -446,7 +446,7 @@ function FrameworkView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {portfolio.map(p => (
+                  {portfolio.map((p: any) => (
                     <tr key={p.id}>
                       <td style={{ fontWeight: 700, color: 'var(--ink)' }}>{p.name}<div className="tiny muted" style={{ fontWeight: 500 }}>{p.eng}</div></td>
                       <td>{p.sector}</td>
@@ -490,7 +490,7 @@ function FrameworkView() {
   );
 }
 
-function fwPickBtn(on) {
+function fwPickBtn(on: any) {
   return {
     fontSize: 11, fontWeight: 600, padding: '5px 9px', borderRadius: 7, cursor: 'pointer',
     border: '1px solid ' + (on ? 'var(--blue)' : 'var(--line)'),

@@ -101,7 +101,7 @@ function S200Objectives() {
           <div style={{ padding: 14 }}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {obj.map((o, i) => {
-                const Ic = I[o.ic];
+                const Ic = (I as any)[o.ic];
                 return (
                   <div key={i} className="panel" style={{ padding: '13px 14px', boxShadow: 'none' }}>
                     <div className="row jb ac"><span style={{ color: 'var(--blue)' }}><Ic size={20} /></span><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{o.ref}</span></div>
@@ -238,7 +238,7 @@ function S200RiskModel() {
   const drClamped = Math.min(100, (targetAR / (ir / 100 * cr / 100)));
   const drPct = Math.round(drClamped);
   const rmm = Math.round(ir / 100 * cr / 100 * 100);
-  const lvl = (v) => v >= 70 ? { k: 'red', t: 'Tinggi' } : v >= 40 ? { k: 'amber', t: 'Sedang' } : { k: 'green', t: 'Rendah' };
+  const lvl = (v: any) => v >= 70 ? { k: 'red', t: 'Tinggi' } : v >= 40 ? { k: 'amber', t: 'Sedang' } : { k: 'green', t: 'Rendah' };
   const drLvl = drPct <= 30 ? { k: 'red', t: 'Rendah — perluas substantif' } : drPct <= 60 ? { k: 'amber', t: 'Sedang' } : { k: 'green', t: 'Tinggi — substantif terbatas' };
 
   return (
@@ -266,7 +266,7 @@ function S200RiskModel() {
                     <span className="row ac gap8"><Badge kind={L.k}>{L.t}</Badge><span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{s.v}%</span></span>
                   </div>
                   <div className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.4 }}>{s.desc}</div>
-                  <input type="range" min="10" max="100" step="5" value={s.v} onChange={e => s.set(+e.target.value)} style={{ width: '100%', accentColor: L.k === 'red' ? 'var(--red)' : L.k === 'amber' ? 'var(--amber)' : 'var(--green)' }} />
+                  <input type="range" min="10" max="100" step="5" value={s.v} onChange={(e: any) => s.set(+e.target.value)} style={{ width: '100%', accentColor: L.k === 'red' ? 'var(--red)' : L.k === 'amber' ? 'var(--amber)' : 'var(--green)' }} />
                 </div>
               );
             })}

@@ -39,8 +39,8 @@ function AuditCommitteeView() {
   React.useEffect(() => { try { localStorage.setItem('ams.auditcomm.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.auditcomm.done', JSON.stringify(done)); } catch (e) {} }, [done]);
 
-  const isDone = (it) => (done[it.ref] != null ? done[it.ref] : it.done);
-  const toggle = (ref) => { const it = A.duties.find(d => d.ref === ref); setDone(m => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : it.done) })); };
+  const isDone = (it: any) => (done[it.ref] != null ? done[it.ref] : it.done);
+  const toggle = (ref: any) => { const it = A.duties.find((d: any) => d.ref === ref); setDone((m: any) => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : it.done) })); };
   const doneCount = A.duties.filter(isDone).length;
   const score = Math.round(doneCount / A.duties.length * 100);
 
@@ -87,7 +87,7 @@ function AuditCommitteeView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Daftar-Uji Tugas Komite Audit</h3><span className="sub mono">POJK 55/2015 Ps. 4</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{A.duties.length}</span></div>
                 <div>
-                  {A.duties.map((d, i) => {
+                  {A.duties.map((d: any, i: any) => {
                     const on = isDone(d);
                     return (
                       <div key={d.ref} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < A.duties.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -122,7 +122,7 @@ function AuditCommitteeView() {
                 </Panel>
                 <Panel title="Tautan Terkait" sub="lineage">
                   <div style={{ display: 'grid', gap: 6 }}>
-                    {A.bridge.map(m => { const IconC = I[m.icon || 'link2'] || I.link2; return (
+                    {A.bridge.map((m: any) => { const IconC = (I as any)[m.icon || 'link2'] || I.link2; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'auditcomm' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--purple)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--purple)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -140,11 +140,11 @@ function AuditCommitteeView() {
             <Panel noBody>
               <div className="panel-h"><h3>Risalah Rapat Auditor ↔ Komite Audit</h3><span className="sub mono">terpisah dari komunikasi TCWG (SA 260)</span></div>
               <div>
-                {A.meetings.map((m, i) => (
+                {A.meetings.map((m: any, i: any) => (
                   <div key={i} className="row gap12" style={{ padding: '12px 14px', alignItems: 'flex-start', borderBottom: i < A.meetings.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <div style={{ flex: '0 0 86px', width: 86 }}>
                       <div className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{m.date}</div>
-                      <Badge kind={AC_MEETING_KIND[m.kind] || 'gray'}>{m.kind}</Badge>
+                      <Badge kind={(AC_MEETING_KIND as any)[m.kind] || 'gray'}>{m.kind}</Badge>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45 }}>{m.topic}</div>
@@ -163,7 +163,7 @@ function AuditCommitteeView() {
               <Panel noBody>
                 <div className="panel-h"><h3>Komposisi Komite Audit</h3><span className="sub mono">POJK 55/2015 Ps. 4–10</span></div>
                 <div>
-                  {A.composition.map((c, i) => (
+                  {A.composition.map((c: any, i: any) => (
                     <div key={i} className="row ac gap10" style={{ padding: '11px 14px', borderBottom: i < A.composition.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <Avatar name={c.name} size={30} />
                       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</div><div className="tiny muted">{c.role}</div></div>

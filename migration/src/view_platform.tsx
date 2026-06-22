@@ -20,7 +20,7 @@ const PF_NOW = new Date('2026-03-10T09:00:00');
 const PF_STAMP = '10 Mar 09:00';
 
 /* hours-until helper -> {h, overdue, label, pct} relative to a 48h window */
-function slaInfo(dueStr) {
+function slaInfo(dueStr: any) {
   const due = new Date(String(dueStr).replace(' ', 'T'));
   const diffH = (+due - +PF_NOW) / 3.6e6;
   const overdue = diffH < 0;
@@ -41,14 +41,14 @@ const APPR_SRC = {
 };
 
 /* terapkan overlay keputusan pengguna di atas item kanonik terderivasi */
-function applyOverlay(d, ov) {
+function applyOverlay(d: any, ov: any) {
   if (!ov) return d;
   const step = ov.step != null ? ov.step : d.step;
   const status = ov.status || d.status;
   const decMap = {};
-  (ov.decisions || []).forEach(x => { decMap[x.idx] = x; });
-  const chain = d.chain.map((c, i) => {
-    const dec = decMap[i];
+  (ov.decisions || []).forEach((x: any) => { (decMap as any)[x.idx] = x; });
+  const chain = d.chain.map((c: any, i: any) => {
+    const dec = (decMap as any)[i];
     if (dec) return { ...c, status: 'approved', ts: dec.ts, name: dec.name, note: dec.note };
     if (status === 'rejected' && i === step) return { ...c, status: 'rejected', ts: ov.ts || d.step, name: ov.by, note: ov.note || 'Ditolak.' };
     return { ...c, status: i < step ? 'approved' : i === step ? (status === 'pending' ? 'current' : status) : 'pending' };
@@ -71,32 +71,32 @@ function Approvals() {
   const derived = useMemoPF(
     () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients }),
     [aje, engagements, clients]);
-  const items = useMemoPF(() => derived.map(d => applyOverlay(d, overlay[d.id])), [derived, overlay]);
+  const items = useMemoPF(() => derived.map((d: any) => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
   const canApprove = user.role.includes('Partner') || user.role.includes('Manager');
-  const pending = items.filter(i => i.status === 'pending');
-  const breached = pending.filter(i => slaInfo(i.due).overdue);
-  const kinds = ['Semua', ...Array.from(new Set(items.map(i => i.kind)))];
-  const shown = items.filter(i =>
+  const pending = items.filter((i: any) => i.status === 'pending');
+  const breached = pending.filter((i: any) => slaInfo(i.due).overdue);
+  const kinds = ['Semua', ...Array.from(new Set(items.map((i: any) => i.kind)))];
+  const shown = items.filter((i: any) =>
     (filter === 'all' || i.status === filter) &&
     (kindFilter === 'Semua' || i.kind === kindFilter));
-  const sel = items.find(i => i.id === selId) || shown[0] || items[0];
+  const sel = items.find((i: any) => i.id === selId) || shown[0] || items[0];
 
   /* sebaran sumber data → strip ketertelusuran SSOT */
   const bySource = useMemoPF(() => {
     const m = {};
-    derived.forEach(d => { const s = APPR_SRC[d.kind]; const k = d.kind; (m[k] = m[k] || { kind: k, route: s.route, icon: s.icon, label: s.label, n: 0, pend: 0 }); m[k].n++; if (d.status === 'pending') m[k].pend++; });
+    derived.forEach((d: any) => { const s = (APPR_SRC as any)[d.kind]; const k = d.kind; ((m as any)[k] = (m as any)[k] || { kind: k, route: s.route, icon: s.icon, label: s.label, n: 0, pend: 0 }); (m as any)[k].n++; if (d.status === 'pending') (m as any)[k].pend++; });
     return Object.values(m);
   }, [derived]);
 
-  const decide = (id, decision, note) => {
-    const it = items.find(x => x.id === id);
-    const d = derived.find(x => x.id === id);
+  const decide = (id: any, decision: any, note: any) => {
+    const it = items.find((x: any) => x.id === id);
+    const d = derived.find((x: any) => x.id === id);
     if (!it || !d) return;
     if (decision === 'approve') {
       const newStep = it.step + 1;
       const done = newStep >= it.chain.length;
-      setOverlay(o => {
+      setOverlay((o: any) => {
         const prev = o[id] || {};
         const decisions = [...(prev.decisions || []), { idx: it.step, name: user.name, ts: '2026-03-10 09:00', note: note || 'Disetujui.' }];
         const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note, kind: 'approve' }] : (prev.thread || []);
@@ -105,15 +105,15 @@ function Approvals() {
       /* === TULIS-BALIK SSOT: persetujuan final AJE memposting jurnal ke WTB === */
       if (done && d.writesBack && d.sourceModule === 'aje' && toggleAjeStatus) toggleAjeStatus(d.sourceId);
     } else if (decision === 'reject') {
-      setOverlay(o => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Ditolak.', kind: 'reject' }] } }));
+      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Ditolak.', kind: 'reject' }] } }));
     } else if (decision === 'revise') {
-      setOverlay(o => ({ ...o, [id]: { ...(o[id] || {}), status: 'revision', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Mohon revisi & ajukan ulang.', kind: 'revise' }] } }));
+      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'revision', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Mohon revisi & ajukan ulang.', kind: 'revise' }] } }));
     }
     logActivity && logActivity({ who: user.name, action: decision === 'approve' ? 'APPROVE' : decision === 'reject' ? 'REJECT' : 'EDIT', detail: `${it.kind} ${it.ref} — ${it.title.slice(0, 40)}` });
   };
 
-  const addComment = (id, text) => {
-    setOverlay(o => ({ ...o, [id]: { ...(o[id] || {}), thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text }] } }));
+  const addComment = (id: any, text: any) => {
+    setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text }] } }));
   };
 
   return (
@@ -128,10 +128,10 @@ function Approvals() {
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.filter(i => i.priority === 'high').length} label="Prioritas Tinggi" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.filter((i: any) => i.priority === 'high').length} label="Prioritas Tinggi" accent="var(--red)" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={breached.length} label="Lewat SLA" accent={breached.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.filter(i => i.status === 'approved').length} label="Disetujui" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + AMS.fmt(pending.reduce((s, i) => s + i.amount, 0) / 1e6, 0) + ' jt'} label="Nilai Menunggu" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.filter((i: any) => i.status === 'approved').length} label="Disetujui" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + AMS.fmt(pending.reduce((s: any, i: any) => s + i.amount, 0) / 1e6, 0) + ' jt'} label="Nilai Menunggu" /></div></Panel>
         </div>
 
         {/* strip ketertelusuran SSOT — antrean diturunkan dari modul sumber */}
@@ -142,7 +142,7 @@ function Approvals() {
             <span className="tiny muted">Antrean diturunkan langsung dari modul kanonik — klik untuk membuka sumbernya.</span>
           </div>
           <div className="row gap6" style={{ flexWrap: 'wrap' }}>
-            {bySource.map(s => { const Ic = I[s.icon] || I.doc; return (
+            {bySource.map((s: any) => { const Ic = (I as any)[s.icon] || I.doc; return (
               <button key={s.kind} className="lin-chip" style={{ borderLeftColor: 'var(--blue)', maxWidth: 230 }} onClick={() => nav(s.route, { from: 'approvals' })} title={'Buka ' + s.label}>
                 <span className="lin-ic" style={{ color: 'var(--blue)' }}><Ic size={14} /></span>
                 <span className="lin-txt"><span className="lin-lbl">{s.label}</span><span className="lin-rel">{s.n} item{s.pend ? ' · ' + s.pend + ' menunggu' : ' · selesai'}</span></span>
@@ -162,7 +162,7 @@ function Approvals() {
               {kinds.map(k => <button key={k} className="chip x" style={{ height: 24, background: kindFilter === k ? 'var(--blue)' : 'var(--surface-3)', color: kindFilter === k ? '#fff' : 'var(--ink-2)' }} onClick={() => setKindFilter(k)}>{k}</button>)}
             </div>
             <div style={{ maxHeight: 540, overflowY: 'auto', overflowX: 'hidden' }}>
-              {shown.map(i => {
+              {shown.map((i: any) => {
                 const sla = slaInfo(i.due);
                 const isPend = i.status === 'pending';
                 return (
@@ -170,7 +170,7 @@ function Approvals() {
                     style={{ padding: '11px 13px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer', background: i.id === sel.id ? 'var(--blue-050)' : 'transparent', borderLeft: '3px solid ' + (i.id === sel.id ? 'var(--blue)' : 'transparent') }}>
                     <div className="row ac gap8" style={{ marginBottom: 4 }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: i.priority === 'high' ? 'var(--red)' : i.priority === 'medium' ? 'var(--amber)' : 'var(--ink-4)', flex: '0 0 7px' }} />
-                      <Badge kind={APPR_KIND[i.kind]}>{i.kind}</Badge>
+                      <Badge kind={(APPR_KIND as any)[i.kind]}>{i.kind}</Badge>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{i.ref}</span>
                       <div style={{ flex: 1 }} />
                       {isPend
@@ -180,8 +180,8 @@ function Approvals() {
                     <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3 }} className="truncate">{i.title}</div>
                     <div className="tiny muted">{i.from} · {(i.client || '').replace('PT ', '')}{i.amount ? ' · Rp ' + AMS.fmt(i.amount / 1e6, 0) + ' jt' : ''}</div>
                     {isPend && <div className="row ac gap6" style={{ marginTop: 6 }}>
-                      {i.chain.map((c, ci) => <span key={ci} title={c.role + ' · ' + c.name} style={{ flex: 1, height: 3, borderRadius: 2, background: c.status === 'approved' ? 'var(--green)' : c.status === 'current' ? 'var(--blue)' : c.status === 'rejected' ? 'var(--red)' : 'var(--line-strong)' }} />)}
-                      <span className="tiny muted mono" style={{ flex: '0 0 auto' }}>{i.chain.filter(c => c.status === 'approved').length}/{i.chain.length}</span>
+                      {i.chain.map((c: any, ci: any) => <span key={ci} title={c.role + ' · ' + c.name} style={{ flex: 1, height: 3, borderRadius: 2, background: c.status === 'approved' ? 'var(--green)' : c.status === 'current' ? 'var(--blue)' : c.status === 'rejected' ? 'var(--red)' : 'var(--line-strong)' }} />)}
+                      <span className="tiny muted mono" style={{ flex: '0 0 auto' }}>{i.chain.filter((c: any) => c.status === 'approved').length}/{i.chain.length}</span>
                     </div>}
                   </div>
                 );
@@ -204,15 +204,15 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
   const [comment, setComment] = useStatePF('');
   const sla = slaInfo(it.due);
   const isPend = it.status === 'pending';
-  const src = APPR_SRC[it.kind] || { route: it.sourceRoute, label: 'Modul sumber', icon: 'doc' };
-  const SrcIc = I[src.icon] || I.doc;
+  const src = (APPR_SRC as any)[it.kind] || { route: it.sourceRoute, label: 'Modul sumber', icon: 'doc' };
+  const SrcIc = (I as any)[src.icon] || I.doc;
   const fmt = AMS.fmt;
 
   return (
     <Panel noBody>
       <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
         <div className="row ac gap8" style={{ marginBottom: 8 }}>
-          <Badge kind={APPR_KIND[it.kind]}>{it.kind}</Badge>
+          <Badge kind={(APPR_KIND as any)[it.kind]}>{it.kind}</Badge>
           <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{it.ref}</span>
           <div style={{ flex: 1 }} />
           {isPend
@@ -254,7 +254,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
         {/* approval chain */}
         <div className="tiny muted upper" style={{ marginBottom: 10, letterSpacing: '.05em' }}>Alur Persetujuan</div>
         <div style={{ position: 'relative', marginBottom: 16 }}>
-          {it.chain.map((c, i) => {
+          {it.chain.map((c: any, i: any) => {
             const last = i === it.chain.length - 1;
             const col = c.status === 'approved' ? 'var(--green)' : c.status === 'current' ? 'var(--blue)' : c.status === 'rejected' ? 'var(--red)' : 'var(--line-strong)';
             return (
@@ -283,7 +283,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
         {/* discussion */}
         <div className="tiny muted upper" style={{ marginBottom: 8, letterSpacing: '.05em' }}>Diskusi · {it.thread.length}</div>
         <div style={{ display: 'grid', gap: 9, marginBottom: 10 }}>
-          {it.thread.map((t, i) => (
+          {it.thread.map((t: any, i: any) => (
             <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
               <Avatar name={t.who} size={26} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -295,7 +295,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
           {!it.thread.length && <div className="tiny muted" style={{ padding: '4px 0' }}>Belum ada komentar.</div>}
         </div>
         <div className="row gap6">
-          <input className="input" style={{ flex: 1, height: 30 }} placeholder="Tulis komentar…" value={comment} onChange={e => setComment(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && comment.trim()) { onComment(it.id, comment.trim()); setComment(''); } }} />
+          <input className="input" style={{ flex: 1, height: 30 }} placeholder="Tulis komentar…" value={comment} onChange={(e: any) => setComment(e.target.value)} onKeyDown={(e: any) => { if (e.key === 'Enter' && comment.trim()) { onComment(it.id, comment.trim()); setComment(''); } }} />
           <Btn sm icon disabled={!comment.trim()} onClick={() => { if (comment.trim()) { onComment(it.id, comment.trim()); setComment(''); } }}><I.send size={14} /></Btn>
         </div>
       </div>
@@ -307,7 +307,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
             <div className="tiny muted row ac gap6"><I.lock size={13} /> Peran Anda tidak dapat mengambil keputusan pada item ini.</div>
           ) : (
             <>
-              <textarea className="input" style={{ width: '100%', height: 46, padding: '7px 9px', resize: 'none', marginBottom: 9, fontFamily: 'inherit' }} placeholder="Catatan keputusan (opsional, tercatat di jejak audit)…" value={note} onChange={e => setNote(e.target.value)} />
+              <textarea className="input" style={{ width: '100%', height: 46, padding: '7px 9px', resize: 'none', marginBottom: 9, fontFamily: 'inherit' }} placeholder="Catatan keputusan (opsional, tercatat di jejak audit)…" value={note} onChange={(e: any) => setNote(e.target.value)} />
               <div className="row gap8">
                 <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => { onDecide(it.id, 'approve', note.trim()); setNote(''); }}><I.check size={14} /> {it.step === it.chain.length - 1 ? 'Setujui & Finalkan' : 'Setujui Langkah Saya'}</Btn>
                 <Btn sm style={{ color: 'var(--amber)', borderColor: 'var(--amber)' }} onClick={() => { onDecide(it.id, 'revise', note.trim()); setNote(''); }}>Minta Revisi</Btn>
@@ -321,11 +321,11 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
   );
 }
 
-function RoutingRulesModal({ onClose }) {
+function RoutingRulesModal({ onClose }: any) {
   const RULES: any[] = ((AMS as any).PLATFORM && (AMS as any).PLATFORM.ROUTING_RULES) || [];
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 760, maxWidth: '94vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 760, maxWidth: '94vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.scale size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Aturan Routing Persetujuan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Matriks otorisasi berbasis jenis & nilai — sesuai kebijakan ISQM firma</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>

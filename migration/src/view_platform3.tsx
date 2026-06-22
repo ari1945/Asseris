@@ -20,7 +20,7 @@ const { useState: useStateAT, useMemo: useMemoAT } = React;
 const AT_ACT_COLOR = { LOGIN: 'gray', SIGN: 'purple', APPROVE: 'green', REJECT: 'red', UPLOAD: 'blue', SYNC: 'teal', EDIT: 'amber', SEND: 'blue', CREATE: 'blue', DELETE: 'red', EXPORT: 'purple' };
 
 /* deterministic pseudo-hash for the tamper-evident chain demo */
-function pseudoHash(str) {
+function pseudoHash(str: any) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
   const hex = (h >>> 0).toString(16).padStart(8, '0');
@@ -50,9 +50,9 @@ function AuditTrail() {
     return withHash.reverse();
   }, [logEntries]);
 
-  const users = ['All', ...Array.from(new Set(all.map(a => a.who)))];
-  const actions = ['All', ...Array.from(new Set(all.map(a => a.action)))];
-  const filtered = all.filter(a =>
+  const users = ['All', ...Array.from(new Set(all.map((a: any) => a.who)))];
+  const actions = ['All', ...Array.from(new Set(all.map((a: any) => a.action)))];
+  const filtered = all.filter((a: any) =>
     (actFilter === 'All' || a.action === actFilter) &&
     (userFilter === 'All' || a.who === userFilter) &&
     (q === '' || (a.who + a.detail + a.target + a.module).toLowerCase().includes(q.toLowerCase())));
@@ -60,7 +60,7 @@ function AuditTrail() {
   /* activity by day for the mini chart (last 5 days present in seed) */
   const byDay = useMemoAT(() => {
     const m = {};
-    all.forEach(a => { const d = a.ts.slice(5, 10); m[d] = (m[d] || 0) + 1; });
+    all.forEach((a: any) => { const d = a.ts.slice(5, 10); (m as any)[d] = ((m as any)[d] || 0) + 1; });
     return Object.entries(m).sort((a, b) => a[0] < b[0] ? -1 : 1);
   }, [all]);
   const actCounts = useMemoAT(() => {
@@ -78,8 +78,8 @@ function AuditTrail() {
         {/* KPI + integrity */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(all.length)} label="Total Entri" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.filter(a => a.ts.startsWith('2026-03-10') || a.ts.startsWith('2026-03-09')).length} label="Aktivitas 24 Jam" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(all.map(a => a.who)).size} label="Pengguna Unik" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.filter((a: any) => a.ts.startsWith('2026-03-10') || a.ts.startsWith('2026-03-09')).length} label="Aktivitas 24 Jam" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(all.map((a: any) => a.who)).size} label="Pengguna Unik" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: 'var(--green)' }}>Terverifikasi</div><div className="s-lbl">Integritas Hash-Chain</div></div></div></div></Panel>
         </div>
 
@@ -88,8 +88,8 @@ function AuditTrail() {
           <Panel noBody>
             <div className="panel-h"><h3>Aktivitas per Hari</h3><div style={{ flex: 1 }} /><span className="tiny muted">{byDay.length} hari terakhir</span></div>
             <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'flex-end', gap: 14, height: 120 }}>
-              {byDay.map(([d, n], i) => {
-                const max = Math.max(...byDay.map(x => x[1]));
+              {byDay.map(([d, n]: any, i: any) => {
+                const max = Math.max(...byDay.map((x: any) => x[1]));
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, justifyContent: 'flex-end', height: '100%' }}>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{n}</span>
@@ -103,11 +103,11 @@ function AuditTrail() {
           <Panel noBody>
             <div className="panel-h"><h3>Sebaran Aksi</h3></div>
             <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>
-              {actCounts.slice(0, 6).map(([a, n], i) => {
+              {actCounts.slice(0, 6).map(([a, n]: any, i: any) => {
                 const max = actCounts[0][1];
                 return (
                   <div key={i} className="row ac gap8">
-                    <Badge kind={AT_ACT_COLOR[a] || 'gray'}>{a}</Badge>
+                    <Badge kind={(AT_ACT_COLOR as any)[a] || 'gray'}>{a}</Badge>
                     <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (n / max) * 100 + '%', background: 'var(--blue)' }} /></div>
                     <span className="mono tiny" style={{ width: 18, textAlign: 'right', fontWeight: 700 }}>{n}</span>
                   </div>
@@ -120,11 +120,11 @@ function AuditTrail() {
         {/* filters */}
         <div className="row jb ac" style={{ marginBottom: 12, gap: 10, flexWrap: 'wrap' }}>
           <div className="global-search" style={{ background: 'var(--surface)', border: '1px solid var(--line)', height: 30, maxWidth: 300 }}>
-            <I.search2 size={14} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari pengguna, target, atau aktivitas…" value={q} onChange={e => setQ(e.target.value)} />
+            <I.search2 size={14} style={{ color: 'var(--ink-4)' }} /><input style={{ color: 'var(--ink)' }} placeholder="Cari pengguna, target, atau aktivitas…" value={q} onChange={(e: any) => setQ(e.target.value)} />
           </div>
           <div className="row gap8 ac">
-            <select className="select" style={{ height: 30, width: 'auto' }} value={userFilter} onChange={e => { setUserFilter(e.target.value); setSelIdx(null); }}>{users.map(u => <option key={u} value={u}>{u === 'All' ? 'Semua pengguna' : u}</option>)}</select>
-            <Seg options={actions.slice(0, 6)} value={actFilter} onChange={v => { setActFilter(v); setSelIdx(null); }} />
+            <select className="select" style={{ height: 30, width: 'auto' }} value={userFilter} onChange={(e: any) => { setUserFilter(e.target.value); setSelIdx(null); }}>{users.map(u => <option key={u} value={u}>{u === 'All' ? 'Semua pengguna' : u}</option>)}</select>
+            <Seg options={actions.slice(0, 6)} value={actFilter} onChange={(v: any) => { setActFilter(v); setSelIdx(null); }} />
           </div>
         </div>
 
@@ -133,12 +133,12 @@ function AuditTrail() {
           <table className="dtbl">
             <thead><tr><th style={{ width: 44 }}>#</th><th style={{ width: 140 }}>Waktu</th><th>Pengguna</th><th style={{ width: 96 }}>Aksi</th><th>Detail</th><th style={{ width: 130 }}>Modul</th><th style={{ width: 110 }}>Hash</th></tr></thead>
             <tbody>
-              {filtered.map((a, i) => (
+              {filtered.map((a: any, i: any) => (
                 <tr key={i} onClick={() => setSelIdx(i)} className={selIdx === i ? 'sel' : ''} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny muted">{String(a.seq).padStart(3, '0')}</td>
                   <td className="mono tiny muted">{a.ts}</td>
                   <td><div className="row ac gap8"><Avatar name={a.who} size={22} /><div style={{ minWidth: 0 }}><div style={{ fontWeight: 600, fontSize: 12 }} className="truncate">{a.who}</div><div className="tiny muted">{a.role}</div></div></div></td>
-                  <td><Badge kind={AT_ACT_COLOR[a.action] || 'gray'}>{a.action}</Badge></td>
+                  <td><Badge kind={(AT_ACT_COLOR as any)[a.action] || 'gray'}>{a.action}</Badge></td>
                   <td className="tiny" style={{ color: 'var(--ink-2)' }}>{a.detail}</td>
                   <td className="tiny muted">{a.module}</td>
                   <td className="mono tiny" style={{ color: 'var(--ink-4)' }}>{a.hash.slice(0, 8)}…</td>
@@ -154,17 +154,17 @@ function AuditTrail() {
   );
 }
 
-function AuditEntryDrawer({ e, onClose, nav }) {
+function AuditEntryDrawer({ e, onClose, nav }: any) {
   const meta = (window.MODULE_INDEX || {})[e.sourceModule];
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 460, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={ev => ev.stopPropagation()}>
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 460, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>ENTRI #{String(e.seq).padStart(3, '0')}</span>
             <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
           </div>
-          <div className="row ac gap8"><Badge kind={AT_ACT_COLOR[e.action] || 'gray'}>{e.action}</Badge><span style={{ fontSize: 15, fontWeight: 700 }}>{e.target}</span></div>
+          <div className="row ac gap8"><Badge kind={(AT_ACT_COLOR as any)[e.action] || 'gray'}>{e.action}</Badge><span style={{ fontSize: 15, fontWeight: 700 }}>{e.target}</span></div>
           <div className="tiny" style={{ color: '#bcd6e4', marginTop: 4 }}>{e.detail}</div>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>

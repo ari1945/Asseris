@@ -31,9 +31,9 @@ const D2_REPORT_DATE = new Date('2026-03-20');
 const D2_RETENTION_YEARS = 10;     // SPM 1 / kebijakan firma (Pengaturan)
 const D2_ASSEMBLY_DAYS = 60;       // SA 230 ¶A21
 
-const d2fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-const d2addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-const d2addYears = (d, n) => { const x = new Date(d); x.setFullYear(x.getFullYear() + n); return x; };
+const d2fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const d2addDays = (d: any, n: any) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const d2addYears = (d: any, n: any) => { const x = new Date(d); x.setFullYear(x.getFullYear() + n); return x; };
 
 /* ---- baca seluruh status WP kanonik sekali, untuk semua tab ---- */
 function useDocCanon() {
@@ -44,11 +44,11 @@ function useDocCanon() {
   const derive = window.deriveWpStatus;
 
   return useMemoD2(() => {
-    const rows = (derive ? refs.map(r => derive(r.ref, audit, firm)) : []).filter(Boolean);
-    const sig = (l) => (l ? l.signed : null);
-    const enriched = rows.map(r => {
-      const prep = sig(r.signoff.find(s => s.key === 'preparer'));
-      const rev = sig(r.signoff.find(s => s.key === 'reviewer'));
+    const rows = (derive ? refs.map((r: any) => derive(r.ref, audit, firm)) : []).filter(Boolean);
+    const sig = (l: any) => (l ? l.signed : null);
+    const enriched = rows.map((r: any) => {
+      const prep = sig(r.signoff.find((s: any) => s.key === 'preparer'));
+      const rev = sig(r.signoff.find((s: any) => s.key === 'reviewer'));
       // ¶9 atribut dokumentasi (5):
       const attr = {
         prepared: !!prep,                 // disiapkan oleh + tanggal
@@ -62,16 +62,16 @@ function useDocCanon() {
     });
 
     const total = enriched.length || 1;
-    const procDone = enriched.reduce((a, r) => a + r.done, 0);
-    const procTotal = enriched.reduce((a, r) => a + r.total, 0);
-    const openNotes = enriched.reduce((a, r) => a + r.openNotes, 0);
-    const exc = enriched.reduce((a, r) => a + r.exc, 0);
-    const reviewed = enriched.filter(r => r.status === 'Reviewed').length;
-    const fullySigned = enriched.filter(r => r.fullySigned).length;
-    const noReviewer = enriched.filter(r => !r.attr.reviewed);
-    const notStarted = enriched.filter(r => r.status === 'Not Started');
-    const withLead = enriched.filter(r => r.hasLead);
-    const sumSat = enriched.reduce((a, r) => a + r.sat, 0);
+    const procDone = enriched.reduce((a: any, r: any) => a + r.done, 0);
+    const procTotal = enriched.reduce((a: any, r: any) => a + r.total, 0);
+    const openNotes = enriched.reduce((a: any, r: any) => a + r.openNotes, 0);
+    const exc = enriched.reduce((a: any, r: any) => a + r.exc, 0);
+    const reviewed = enriched.filter((r: any) => r.status === 'Reviewed').length;
+    const fullySigned = enriched.filter((r: any) => r.fullySigned).length;
+    const noReviewer = enriched.filter((r: any) => !r.attr.reviewed);
+    const notStarted = enriched.filter((r: any) => r.status === 'Not Started');
+    const withLead = enriched.filter((r: any) => r.hasLead);
+    const sumSat = enriched.reduce((a: any, r: any) => a + r.sat, 0);
     const docPct = Math.round(sumSat / (enriched.length * 5 || 1) * 100);
 
     const agg = {
@@ -289,12 +289,12 @@ function D2Gate({ ok, label, v }: any) {
 function D2SectionBars({ rows }: any) {
   // kelompokkan menurut seksi WP
   const groups = {};
-  rows.forEach(r => { (groups[r.section] = groups[r.section] || []).push(r); });
+  rows.forEach((r: any) => { ((groups as any)[r.section] = (groups as any)[r.section] || []).push(r); });
   const entries = Object.entries(groups);
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {entries.map(([sec, list]: [any, any]) => {
-        const sumSat = list.reduce((a, r) => a + r.sat, 0);
+        const sumSat = list.reduce((a: any, r: any) => a + r.sat, 0);
         const pct = Math.round(sumSat / (list.length * 5) * 100);
         const color = pct >= 90 ? 'var(--green)' : pct >= 55 ? 'var(--blue)' : 'var(--amber)';
         return (
@@ -317,16 +317,16 @@ function D2SectionBars({ rows }: any) {
 function D2Atribut({ C }: any) {
   const { rows, agg, nav } = C;
   const [filter, setFilter] = useStateD2('all');
-  const open = (ref) => { if (window.openCanonicalWp) window.openCanonicalWp(nav, ref); else nav('workpapers'); };
+  const open = (ref: any) => { if (window.openCanonicalWp) window.openCanonicalWp(nav, ref); else nav('workpapers'); };
 
   const filters = [
     { id: 'all', label: 'Semua', n: rows.length },
-    { id: 'gap', label: 'Atribut Kurang', n: rows.filter(r => r.sat < 5).length },
+    { id: 'gap', label: 'Atribut Kurang', n: rows.filter((r: any) => r.sat < 5).length },
     { id: 'noreviewer', label: 'Tanpa Pereviu', n: agg.noReviewer.length },
-    { id: 'notes', label: 'Catatan Terbuka', n: rows.filter(r => r.openNotes > 0).length },
-    { id: 'exc', label: 'Pengecualian', n: rows.filter(r => r.exc > 0).length },
+    { id: 'notes', label: 'Catatan Terbuka', n: rows.filter((r: any) => r.openNotes > 0).length },
+    { id: 'exc', label: 'Pengecualian', n: rows.filter((r: any) => r.exc > 0).length },
   ];
-  const visible = rows.filter(r =>
+  const visible = rows.filter((r: any) =>
     filter === 'all' ? true :
     filter === 'gap' ? r.sat < 5 :
     filter === 'noreviewer' ? !r.attr.reviewed :
@@ -365,7 +365,7 @@ function D2Atribut({ C }: any) {
             <th style={{ width: 74 }}>Lengkap</th>
           </tr></thead>
           <tbody>
-            {visible.map(r => (
+            {visible.map((r: any) => (
               <tr key={r.ref} style={{ cursor: 'pointer' }} onClick={() => open(r.ref)}>
                 <td className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.ref}</td>
                 <td>
@@ -382,7 +382,7 @@ function D2Atribut({ C }: any) {
                       : <D2Tick ok={r.attr[a[0]]} />}
                   </td>
                 ))}
-                <td onClick={(e) => e.stopPropagation()}>{window.SignoffDots ? <SignoffDots signoff={r.signoff} /> : null}</td>
+                <td onClick={(e: any) => e.stopPropagation()}>{window.SignoffDots ? <SignoffDots signoff={r.signoff} /> : null}</td>
                 <td>
                   <div className="row ac gap6">
                     <div className="pbar" style={{ flex: 1 }}><span style={{ width: r.attrPct + '%', background: r.attrPct === 100 ? 'var(--green)' : r.attrPct >= 60 ? 'var(--blue)' : 'var(--amber)' }} /></div>
@@ -405,7 +405,7 @@ function D2Atribut({ C }: any) {
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
         {ATTR_DEFS.map(a => {
-          const ok = rows.filter(r => r.attr[a[0]]).length;
+          const ok = rows.filter((r: any) => r.attr[a[0]]).length;
           const pct = Math.round(ok / (rows.length || 1) * 100);
           return (
             <Panel key={a[0]}><div style={{ padding: '11px 13px' }}>
@@ -432,15 +432,15 @@ function D2Tick({ ok }: any) {
 function D2Signifikan({ C }: any) {
   const { rows, audit, nav } = C;
   const fmt = AMS.fmt;
-  const risks = (audit.risks || []).filter(r => r.inherent === 'Significant');
-  const leadStatus = (wp) => {
+  const risks = (audit.risks || []).filter((r: any) => r.inherent === 'Significant');
+  const leadStatus = (wp: any) => {
     const lead = (wp || '').split('-')[0];
-    const r = rows.find(x => x.ref === lead);
+    const r = rows.find((x: any) => x.ref === lead);
     return r ? r : null;
   };
   // catatan reviu (¶10 — diskusi hal signifikan)
-  const notes = (window.collectWpNotes ? window.collectWpNotes(audit.wpState || {}) : []).filter(n => n.status === 'open');
-  const excRows = rows.filter(r => r.exc > 0);
+  const notes = (window.collectWpNotes ? window.collectWpNotes(audit.wpState || {}) : []).filter((n: any) => n.status === 'open');
+  const excRows = rows.filter((r: any) => r.exc > 0);
 
   // materialitas — basis pertimbangan (AMS_CANON)
   const eng = (C.firm && C.firm.activeEngagement) || {};
@@ -462,7 +462,7 @@ function D2Signifikan({ C }: any) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 52 }}>Risiko</th><th>Hal Signifikan</th><th style={{ width: 86 }}>KK</th><th style={{ width: 104 }}>Status Doc.</th><th style={{ width: 64, textAlign: 'center' }}>Catatan</th></tr></thead>
             <tbody>
-              {risks.map(rk => {
+              {risks.map((rk: any) => {
                 const ls = leadStatus(rk.wp);
                 return (
                   <tr key={rk.id} style={{ cursor: ls ? 'pointer' : 'default' }} onClick={() => ls && window.openCanonicalWp && window.openCanonicalWp(nav, ls.ref)}>
@@ -510,17 +510,17 @@ function D2Signifikan({ C }: any) {
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Hal Signifikan Aktif</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{risks.length}</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 4 }}>{risks.filter(r => r.fraud).length} terkait kecurangan</div>
+            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 4 }}>{risks.filter((r: any) => r.fraud).length} terkait kecurangan</div>
           </div>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 7 }}>
             <div className="row jb ac"><span className="tiny">Catatan reviu terbuka (¶10)</span><span className="mono" style={{ fontWeight: 700, color: notes.length ? 'var(--amber)' : 'var(--green)' }}>{notes.length}</span></div>
-            <div className="row jb ac"><span className="tiny">Pengecualian terdokumentasi</span><span className="mono" style={{ fontWeight: 700, color: excRows.length ? 'var(--red)' : 'var(--green)' }}>{excRows.reduce((a, r) => a + r.exc, 0)}</span></div>
+            <div className="row jb ac"><span className="tiny">Pengecualian terdokumentasi</span><span className="mono" style={{ fontWeight: 700, color: excRows.length ? 'var(--red)' : 'var(--green)' }}>{excRows.reduce((a: any, r: any) => a + r.exc, 0)}</span></div>
           </div>
         </Panel>
 
         <Panel title="Diskusi Hal Signifikan (¶10)" sub="Catatan reviu terbuka — sumber tunggal">
           <div style={{ display: 'grid', gap: 8 }}>
-            {notes.slice(0, 6).map((n, i) => (
+            {notes.slice(0, 6).map((n: any, i: any) => (
               <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                 <div className="row jb ac" style={{ marginBottom: 3 }}>
                   <span className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{n.wpRef}</span><span className="tiny muted">{n.author} → {n.to}</span></span>
@@ -543,10 +543,10 @@ function D2Signifikan({ C }: any) {
    ============================================================ */
 function D2Penyimpangan({ C }: any) {
   const { rows, nav } = C;
-  const excRows = rows.filter(r => r.exc > 0);
+  const excRows = rows.filter((r: any) => r.exc > 0);
 
   // ¶11 — inkonsistensi: pengecualian prosedur yang perlu rekonsiliasi dengan kesimpulan
-  const inkonsistensi = excRows.map(r => ({
+  const inkonsistensi = excRows.map((r: any) => ({
     ref: r.ref, title: r.title,
     t: `${r.exc} pengecualian prosedur — wajib direkonsiliasi dengan kesimpulan akhir KK & dampaknya ke SAD (SA 450).`,
     status: r.openNotes > 0 ? 'Dalam Penanganan' : 'Terdokumentasi', kind: r.openNotes > 0 ? 'amber' : 'blue',
@@ -557,7 +557,7 @@ function D2Penyimpangan({ C }: any) {
       ref: '¶11', icon: 'link2', title: 'Inkonsistensi dengan Kesimpulan Akhir',
       desc: 'Bila informasi tidak konsisten dengan kesimpulan akhir mengenai hal signifikan, dokumentasikan bagaimana ketidaksesuaian itu ditangani.',
       body: inkonsistensi.length
-        ? <D2DepTable items={inkonsistensi} onOpen={(ref) => window.openCanonicalWp && window.openCanonicalWp(nav, ref)} />
+        ? <D2DepTable items={inkonsistensi} onOpen={(ref: any) => window.openCanonicalWp && window.openCanonicalWp(nav, ref)} />
         : <D2Empty text="Tidak ada bukti yang bertentangan dengan kesimpulan akhir. Seluruh pengecualian telah direkonsiliasi & ditindaklanjuti ke SAD Ledger." />,
     },
     {
@@ -576,7 +576,7 @@ function D2Penyimpangan({ C }: any) {
     <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         {cards.map(c => {
-          const CIcon = I[c.icon] || I.book;
+          const CIcon = (I as any)[c.icon] || I.book;
           return (
           <Panel key={c.ref} noBody>
             <div className="panel-h">
@@ -598,11 +598,11 @@ function D2Penyimpangan({ C }: any) {
           <div style={{ background: excRows.length ? 'linear-gradient(125deg,#013a52,#005085)' : 'linear-gradient(125deg,#0b5d3b,#127a4e)', color: '#fff', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Inkonsistensi Aktif</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{inkonsistensi.length}</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 4 }}>{excRows.reduce((a, r) => a + r.exc, 0)} pengecualian prosedur</div>
+            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 4 }}>{excRows.reduce((a: any, r: any) => a + r.exc, 0)} pengecualian prosedur</div>
           </div>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 8 }}>
             <D2Gate ok={true} label="Penyimpangan ketentuan SA" v="Nihil" />
-            <D2Gate ok={inkonsistensi.every(i => i.kind !== 'amber')} label="Inkonsistensi tertangani" v={inkonsistensi.filter(i => i.kind === 'amber').length === 0 ? 'Ya' : 'Sebagian'} />
+            <D2Gate ok={inkonsistensi.every((i: any) => i.kind !== 'amber')} label="Inkonsistensi tertangani" v={inkonsistensi.filter((i: any) => i.kind === 'amber').length === 0 ? 'Ya' : 'Sebagian'} />
             <D2Gate ok={true} label="Perubahan pasca-laporan" v="Belum berlaku" />
           </div>
           <div style={{ padding: '0 14px 14px' }}>
@@ -623,7 +623,7 @@ function D2Penyimpangan({ C }: any) {
 function D2DepTable({ items, onOpen }: any) {
   return (
     <div style={{ display: 'grid', gap: 8 }}>
-      {items.map(it => (
+      {items.map((it: any) => (
         <div key={it.ref} className="panel row jb ac" style={{ padding: '9px 11px', boxShadow: 'none', gap: 10, borderColor: it.kind === 'amber' ? 'var(--amber)' : 'var(--line)' }}>
           <div style={{ minWidth: 0 }}>
             <div className="row ac gap8" style={{ marginBottom: 2 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>KK {it.ref}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{it.title}</span></div>
@@ -747,7 +747,7 @@ function D2Timeline({ points }: any) {
   return (
     <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
       <div style={{ position: 'absolute', left: 28, right: 28, top: 9, height: 2, background: 'var(--line-strong)' }} />
-      {points.map((p, i) => (
+      {points.map((p: any, i: any) => (
         <div key={i} style={{ position: 'relative', textAlign: 'center', flex: 1 }}>
           <div style={{ width: 18, height: 18, borderRadius: '50%', background: `var(--${p.k})`, margin: '0 auto', border: '3px solid #fff', boxShadow: '0 0 0 1px var(--line-strong)' }} />
           <div className="tiny" style={{ fontWeight: 700, marginTop: 7 }}>{p.lbl}</div>
@@ -773,7 +773,7 @@ function D2KV({ label, v }: any) {
 }
 
 function D2Doc({ icon, t, d }: any) {
-  const DIcon = I[icon] || I.book;
+  const DIcon = (I as any)[icon] || I.book;
   return (
     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
       <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><DIcon size={14} /></span>
@@ -792,12 +792,12 @@ function D2Doc({ icon, t, d }: any) {
 function D2Keterkaitan({ C }: any) {
   const { rows, agg, audit, nav } = C;
   const fmt = AMS.fmt;
-  const open = (id) => nav(id, { from: 'sa230' });
+  const open = (id: any) => nav(id, { from: 'sa230' });
 
   // hal signifikan terdokumentasi (lead WP ada & ≥ in-review)
-  const sig = (audit.risks || []).filter(r => r.inherent === 'Significant');
-  const leadOf = (wp) => rows.find(x => x.ref === (wp || '').split('-')[0]);
-  const sigDoc = sig.filter(r => { const l = leadOf(r.wp); return l && l.status !== 'Not Started'; }).length;
+  const sig = (audit.risks || []).filter((r: any) => r.inherent === 'Significant');
+  const leadOf = (wp: any) => rows.find((x: any) => x.ref === (wp || '').split('-')[0]);
+  const sigDoc = sig.filter((r: any) => { const l = leadOf(r.wp); return l && l.status !== 'Not Started'; }).length;
 
   // materialitas (basis pertimbangan) dari canon
   const eng = (C.firm && C.firm.activeEngagement) || {};
@@ -805,7 +805,7 @@ function D2Keterkaitan({ C }: any) {
     ? AMS_CANON.materiality({ engMateriality: eng.materiality }) : null;
 
   const ready = agg.blocking === 0;
-  const stamp = (ok, warn) => ok ? 'var(--green)' : (warn ? 'var(--amber)' : 'var(--blue)');
+  const stamp = (ok: any, warn: any) => ok ? 'var(--green)' : (warn ? 'var(--amber)' : 'var(--blue)');
 
   const up = [
     { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', para: '¶8(a–b)',
@@ -919,7 +919,7 @@ function D2Keterkaitan({ C }: any) {
               { p: '¶14–16', t: 'Perakitan berkas final, retensi & perubahan', mid: 'dms', v: `${agg.docPct}%`, ok: ready },
             ].map((r, i) => {
               const m = (window.MODULE_INDEX || {})[r.mid] || { label: r.mid, icon: 'doc' };
-              const Ic = I[m.icon] || I.doc;
+              const Ic = (I as any)[m.icon] || I.doc;
               return (
                 <tr key={i} style={{ cursor: 'pointer' }} onClick={() => open(r.mid)}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.p}</td>
@@ -938,7 +938,7 @@ function D2Keterkaitan({ C }: any) {
 }
 
 function D2LinkCard({ m, dir, onOpen }: any) {
-  const Ic = I[m.ic] || I.doc;
+  const Ic = (I as any)[m.ic] || I.doc;
   return (
     <button type="button" className="d2link" onClick={() => onOpen(m.id)} title={'Buka ' + m.lbl}
       style={{ borderLeftColor: m.c }}>

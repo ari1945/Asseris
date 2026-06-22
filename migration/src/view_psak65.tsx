@@ -116,16 +116,16 @@ function PSAK65View() {
   React.useEffect(() => { try { localStorage.setItem('ams.psak65.done', JSON.stringify(done)); } catch (e) {} }, [done]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak65.elim', JSON.stringify(elimDone)); } catch (e) {} }, [elimDone]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const sgn = (x) => (x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x)));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const sgn = (x: any) => (x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x)));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = P65_PROC.filter((p, i) => done[p.ref + i]).length;
   const score = Math.round(doneCount / P65_PROC.length * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
-  const ctrlById = Object.fromEntries(p65.control.map(c => [c.id, c]));
+  const ctrlById = Object.fromEntries(p65.control.map((c: any) => [c.id, c]));
   const allEntities = [{ id: 'CP-01', name: client.name, role: 'Induk / Holding', own: 100 }, ...p65.subs];
 
   const TABS = [
@@ -193,11 +193,11 @@ function PSAK65View() {
                         <th style={{ textAlign: 'left', width: 150 }}>Kesimpulan</th>
                       </tr></thead>
                       <tbody>
-                        {p65.control.map(c => {
+                        {p65.control.map((c: any) => {
                           const isSub = c.id.startsWith('CP');
-                          const ent = isSub ? p65.subs.find(s => s.id === c.id) : p65.associates.find(a => a.id === c.id);
+                          const ent = isSub ? p65.subs.find((s: any) => s.id === c.id) : p65.associates.find((a: any) => a.id === c.id);
                           const nm = ent ? ent.name : c.id;
-                          const dot = (ok) => ok ? <span style={{ color: 'var(--green)' }}><I.check size={14} /></span> : <span style={{ color: 'var(--ink-4)' }}>—</span>;
+                          const dot = (ok: any) => ok ? <span style={{ color: 'var(--green)' }}><I.check size={14} /></span> : <span style={{ color: 'var(--ink-4)' }}>—</span>;
                           return (
                             <tr key={c.id} style={{ background: isSub ? undefined : 'var(--surface-2)' }}>
                               <td>
@@ -230,7 +230,7 @@ function PSAK65View() {
                       <th style={{ textAlign: 'right', width: 96 }}>Nilai Tercatat</th>
                     </tr></thead>
                     <tbody>
-                      {p65.associates.map(a => (
+                      {p65.associates.map((a: any) => (
                         <tr key={a.id}>
                           <td>
                             <div style={{ fontSize: 12.5, fontWeight: 600 }}>{a.name}</div>
@@ -299,11 +299,11 @@ function PSAK65View() {
                   </div>
                   {/* anak grid */}
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-                    {p65.subs.map(s => (
+                    {p65.subs.map((s: any) => (
                       <div key={s.id} className="panel" style={{ padding: '11px 12px', display: 'grid', gap: 7 }}>
                         <div className="row ac jb">
                           <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{s.id}</span>
-                          <Badge kind={SCOPE_KIND_P65[s.scope]}>{s.scope}</Badge>
+                          <Badge kind={(SCOPE_KIND_P65 as any)[s.scope]}>{s.scope}</Badge>
                         </div>
                         <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.25 }}>{s.name}</div>
                         <div className="tiny muted">{s.role} · {s.country}</div>
@@ -334,7 +334,7 @@ function PSAK65View() {
                     <thead><tr><th style={{ textAlign: 'left' }}>Entitas</th><th style={{ textAlign: 'right', width: 90 }}>Pendapatan</th><th style={{ textAlign: 'right', width: 80 }}>NPAT</th></tr></thead>
                     <tbody>
                       <tr><td style={{ fontWeight: 600, fontSize: 12 }}>{client.name} <span className="tiny muted">(induk)</span></td><td className="mono" style={{ textAlign: 'right' }}>{fmt(p65.par && Math.round((-AMS.WTB.find(r=>r.code==='4-1100').adj)/1e6))}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(p65.npatParent)}</td></tr>
-                      {p65.subs.map(s => (
+                      {p65.subs.map((s: any) => (
                         <tr key={s.id}><td style={{ fontSize: 12 }}>{s.name}</td><td className="mono" style={{ textAlign: 'right' }}>{fmt(s.rev)}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(s.npat)}</td></tr>
                       ))}
                     </tbody>
@@ -377,7 +377,7 @@ function PSAK65View() {
                       {['Aset', 'Liabilitas', 'Ekuitas'].map(sec => (
                         <React.Fragment key={sec}>
                           <tr style={{ background: 'var(--surface-2)' }}><td colSpan={5} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>{sec}</td></tr>
-                          {p65.ws.filter(r => r.sec === sec).map(r => (
+                          {p65.ws.filter((r: any) => r.sec === sec).map((r: any) => (
                             <tr key={r.cap} style={{ background: r.gw ? 'var(--blue-050)' : r.nci ? 'var(--amber-bg)' : undefined }}>
                               <td>
                                 <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: r.gw || r.nci ? 700 : 500 }}>
@@ -425,8 +425,8 @@ function PSAK65View() {
                   <div className="panel-h"><h3>Eliminasi Investasi vs Ekuitas Anak</h3><span className="sub mono">metode akuisisi · PSAK 22 ¶32</span></div>
                   <table className="dtbl" style={{ width: '100%' }}>
                     <tbody>
-                      <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Modal saham anak (100%)</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(p65.subs.reduce((a, s) => a + s.modal, 0))}</td><td></td></tr>
-                      <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Saldo laba pra-akuisisi anak</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(p65.subs.reduce((a, s) => a + s.rePre, 0))}</td><td></td></tr>
+                      <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Modal saham anak (100%)</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(p65.subs.reduce((a: any, s: any) => a + s.modal, 0))}</td><td></td></tr>
+                      <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Dr · Saldo laba pra-akuisisi anak</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(p65.subs.reduce((a: any, s: any) => a + s.rePre, 0))}</td><td></td></tr>
                       <tr style={{ background: 'var(--blue-050)' }}><td style={{ fontSize: 12, fontWeight: 700 }}>Dr · Goodwill (selisih lebih)</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--blue)' }}>{fmt(p65.goodwillTotal)}</td><td></td></tr>
                       <tr><td style={{ fontSize: 12, paddingLeft: 18 }}>Cr · Investasi pada entitas anak</td><td></td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(p65.costTotal)}</td></tr>
                       <tr style={{ background: 'var(--amber-bg)' }}><td style={{ fontSize: 12, paddingLeft: 18, fontWeight: 700 }}>Cr · Kepentingan nonpengendali (akuisisi)</td><td></td><td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--amber)' }}>{fmt(p65.nciAcqTotal)}</td></tr>
@@ -447,7 +447,7 @@ function PSAK65View() {
                       <th style={{ textAlign: 'center', width: 104 }}>Status</th>
                     </tr></thead>
                     <tbody>
-                      {p65.interco.map(e => (
+                      {p65.interco.map((e: any) => (
                         <tr key={e.id}>
                           <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</td>
                           <td>
@@ -455,7 +455,7 @@ function PSAK65View() {
                             <div className="tiny muted">Dr {e.dr} · Cr {e.cr}{e.diff ? <span style={{ color: 'var(--red)' }}> · selisih Rp {fmt(e.diff)} jt belum direkonsiliasi</span> : ''}</div>
                           </td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(e.amount)}</td>
-                          <td style={{ textAlign: 'center' }}><Badge kind={ELIM_KIND_P65[e.status]}>{e.status}</Badge></td>
+                          <td style={{ textAlign: 'center' }}><Badge kind={(ELIM_KIND_P65 as any)[e.status]}>{e.status}</Badge></td>
                         </tr>
                       ))}
                     </tbody>
@@ -519,7 +519,7 @@ function PSAK65View() {
                         <th style={{ textAlign: 'right', width: 84 }}>Goodwill</th>
                       </tr></thead>
                       <tbody>
-                        {p65.subs.map(s => (
+                        {p65.subs.map((s: any) => (
                           <tr key={s.id}>
                             <td style={{ fontSize: 12.5, fontWeight: 600 }}>{s.name}</td>
                             <td className="mono" style={{ textAlign: 'center' }}>{s.own}%</td>
@@ -591,7 +591,7 @@ function PSAK65View() {
                         <th style={{ textAlign: 'center', width: 60 }}>Status</th>
                       </tr></thead>
                       <tbody>
-                        {p65.recon.map((r, i) => (
+                        {p65.recon.map((r: any, i: any) => (
                           <tr key={i} style={{ background: r.hi ? 'var(--blue-050)' : undefined, cursor: r.route ? 'pointer' : 'default' }} onClick={r.route ? () => nav(r.route, { from: 'psak65' }) : undefined}>
                             <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.pos}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{r.src}{r.route && <I.arrowRight size={11} style={{ marginLeft: 4, verticalAlign: 'middle', color: 'var(--blue)' }} />}</td>
@@ -613,7 +613,7 @@ function PSAK65View() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber data</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {P65_UPSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P65_UPSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak65' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -623,7 +623,7 @@ function PSAK65View() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {P65_DOWNSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P65_DOWNSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak65' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>

@@ -24,26 +24,26 @@ function FirmTax() {
   const [tab, setTab] = useStateTX('kalender');
   const [obs, setObs] = useAmsPersist('firmtax', () => AMS.TAX_OBLIGATIONS);
 
-  const ppnOut = EF.filter(e => e.kind === 'Keluaran').reduce((s, e) => s + e.ppn, 0);
-  const ppnIn = EF.filter(e => e.kind === 'Masukan').reduce((s, e) => s + e.ppn, 0);
+  const ppnOut = EF.filter((e: any) => e.kind === 'Keluaran').reduce((s: any, e: any) => s + e.ppn, 0);
+  const ppnIn = EF.filter((e: any) => e.kind === 'Masukan').reduce((s: any, e: any) => s + e.ppn, 0);
   const ppnPayable = ppnOut - ppnIn;
-  const pphTotal = PPH.reduce((s, p) => s + p.tax, 0);
-  const cit = obs.find(o => o.jenis.includes('Badan'));
+  const pphTotal = PPH.reduce((s: any, p: any) => s + p.tax, 0);
+  const cit = obs.find((o: any) => o.jenis.includes('Badan'));
 
   /* PPh 23 ditarik dari modul kanonik (SSOT) — bukan angka kedua */
   const T23 = window.TAX23 ? window.TAX23.summary() : null;
   const goTax = () => navTX('tax', { from: 'firmtax' });
-  const PPHrows = PPH.map(p => (p.jenis === 'PPh 23' && T23)
+  const PPHrows = PPH.map((p: any) => (p.jenis === 'PPh 23' && T23)
     ? { ...p, basis: 'Jasa vendor — register PPh 23 (SSOT)', dpp: T23.totalDpp, tax: T23.totalPph, canon: true } : p);
   const ebupotFeb = [
-    ...(T23 ? window.TAX23.register().filter(r => r.masa === '2026-02')
-        .map(r => ({ no: r.id, jenis: 'PPh 23', pihak: r.name, dpp: r.dpp, rate: r.effRate + '%', tax: r.pph, canon: true })) : []),
+    ...(T23 ? window.TAX23.register().filter((r: any) => r.masa === '2026-02')
+        .map((r: any) => ({ no: r.id, jenis: 'PPh 23', pihak: r.name, dpp: r.dpp, rate: r.effRate + '%', tax: r.pph, canon: true })) : []),
     { no: '1.2-02.26-0001849', jenis: 'PPh 4(2)', pihak: 'PT Properti Graha Kantor', dpp: 480_000_000, rate: '10%', tax: 48_000_000 },
     { no: '1.1-02.26-0009921', jenis: 'PPh 21', pihak: '38 karyawan (kolektif)', dpp: 1_400_000_000, rate: 'TER', tax: 210_000_000 },
   ];
 
-  const markFiled = (i) => setObs(list => list.map((o, j) => j === i ? { ...o, status: 'Lapor' } : o));
-  const tabs = [{ id: 'kalender', label: 'Kalender Kewajiban', count: obs.filter(o => o.status === 'Belum Lapor' || o.status === 'Draft').length }, { id: 'ppn', label: 'PPN / e-Faktur (Coretax)' }, { id: 'pph', label: 'PPh Pot/Put' }, { id: 'spt', label: 'SPT Tahunan Badan' }, { id: 'deferred', label: 'Pajak Tangguhan' }];
+  const markFiled = (i: any) => setObs((list: any) => list.map((o: any, j: any) => j === i ? { ...o, status: 'Lapor' } : o));
+  const tabs = [{ id: 'kalender', label: 'Kalender Kewajiban', count: obs.filter((o: any) => o.status === 'Belum Lapor' || o.status === 'Draft').length }, { id: 'ppn', label: 'PPN / e-Faktur (Coretax)' }, { id: 'pph', label: 'PPh Pot/Put' }, { id: 'spt', label: 'SPT Tahunan Badan' }, { id: 'deferred', label: 'Pajak Tangguhan' }];
 
   /* 6-month PPN trend (Rp jt) — keluaran / masukan / kurang bayar */
   const ppnTrend = [
@@ -75,7 +75,7 @@ function FirmTax() {
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(ppnPayable / 1e6, 0) + ' jt'} label="PPN Kurang Bayar (Feb)" accent="var(--amber)" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(pphTotal / 1e6, 0) + ' jt'} label="PPh Dipotong/Disetor" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(cit.amount / 1e9, 2) + ' M'} label="Estimasi PPh Badan FY2025" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={obs.filter(o => o.status === 'Belum Lapor' || o.status === 'Draft').length} label="Kewajiban Belum Selesai" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={obs.filter((o: any) => o.status === 'Belum Lapor' || o.status === 'Draft').length} label="Kewajiban Belum Selesai" accent="var(--amber)" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -85,7 +85,7 @@ function FirmTax() {
             <table className="dtbl">
               <thead><tr><th>Jenis Pajak</th><th>Masa</th><th>Jatuh Tempo</th><th className="num">Jumlah</th><th>Status</th><th></th></tr></thead>
               <tbody>
-                {obs.map((o, i) => {
+                {obs.map((o: any, i: any) => {
                   const days = Math.round((+new Date(o.due) - +new Date('2026-03-09')) / 864e5);
                   return (
                     <tr key={i}>
@@ -93,7 +93,7 @@ function FirmTax() {
                       <td className="tiny muted">{o.period}</td>
                       <td className="mono tiny" style={{ color: days <= 7 ? 'var(--red)' : days <= 20 ? 'var(--amber)' : 'var(--ink-3)' }}>{new Date(o.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} {days >= 0 ? '· ' + days + 'h lagi' : '· lewat'}</td>
                       <td className="num">{fmt(o.amount / 1e6, 0)} jt</td>
-                      <td><Badge kind={TAX_STAT[o.status]}>{o.status}</Badge></td>
+                      <td><Badge kind={(TAX_STAT as any)[o.status]}>{o.status}</Badge></td>
                       <td>{(o.status === 'Belum Lapor' || o.status === 'Draft' || o.status === 'Bayar') && <button className="btn sm" style={{ height: 22 }} onClick={() => markFiled(i)}>Tandai Lapor</button>}</td>
                     </tr>
                   );
@@ -105,7 +105,7 @@ function FirmTax() {
           {tab === 'ppn' && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Keluaran</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(ppnOut / 1e6, 1)} jt</div><div className="tiny muted">{EF.filter(e => e.kind === 'Keluaran').length} faktur keluaran</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Keluaran</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(ppnOut / 1e6, 1)} jt</div><div className="tiny muted">{EF.filter((e: any) => e.kind === 'Keluaran').length} faktur keluaran</div></div>
                 <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Masukan</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--green)' }}>Rp {fmt(ppnIn / 1e6, 1)} jt</div><div className="tiny muted">dapat dikreditkan</div></div>
                 <div className="panel" style={{ padding: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">PPN Kurang Bayar</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--amber)' }}>Rp {fmt(ppnPayable / 1e6, 1)} jt</div><div className="tiny muted">setor maks. akhir bulan berikutnya</div></div>
               </div>
@@ -131,7 +131,7 @@ function FirmTax() {
               <table className="dtbl">
                 <thead><tr><th>No. Seri Faktur Pajak</th><th>Lawan Transaksi</th><th>Jenis</th><th className="num">DPP</th><th className="num">PPN 11%</th><th>Status e-Faktur</th></tr></thead>
                 <tbody>
-                  {EF.map(e => (
+                  {EF.map((e: any) => (
                     <tr key={e.no}>
                       <td className="mono tiny" style={{ color: 'var(--blue)' }}>{e.no}</td>
                       <td style={{ fontWeight: 600 }} className="truncate">{e.client.replace('PT ', '')}</td>
@@ -151,7 +151,7 @@ function FirmTax() {
               <table className="dtbl">
                 <thead><tr><th>Jenis PPh</th><th>Objek / Dasar</th><th className="num">Tarif</th><th className="num">DPP</th><th className="num">PPh Dipotong</th></tr></thead>
                 <tbody>
-                  {PPHrows.map(p => (
+                  {PPHrows.map((p: any) => (
                     <tr key={p.jenis} style={{ cursor: p.canon ? 'pointer' : 'default' }} onClick={p.canon ? goTax : undefined}>
                       <td style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.jenis}{p.canon && <span className="chip tiny" style={{ height: 16, marginLeft: 6, color: 'var(--green)', borderColor: 'transparent', background: 'var(--green-bg)' }} title="Ditarik dari modul Pajak PPh 23"><I.link2 size={10} /> SSOT</span>}</td>
                       <td>{p.basis}</td>
@@ -161,7 +161,7 @@ function FirmTax() {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr><td colSpan={4}>TOTAL PPh DIPOTONG/DISETOR</td><td className="num">{fmt(PPHrows.reduce((s, p) => s + p.tax, 0) / 1e6, 1)} jt</td></tr></tfoot>
+                <tfoot><tr><td colSpan={4}>TOTAL PPh DIPOTONG/DISETOR</td><td className="num">{fmt(PPHrows.reduce((s: any, p: any) => s + p.tax, 0) / 1e6, 1)} jt</td></tr></tfoot>
               </table>
               <div className="panel" style={{ marginTop: 12, padding: '10px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
                 <div className="tiny" style={{ lineHeight: 1.55 }}>Bukti Potong Unifikasi diterbitkan otomatis via <b>Coretax DJP</b> (menggantikan e-Bupot/e-Faktur lama sejak 2025). PPh 21 disetor maks. tgl 10 bulan berikutnya; PPh 23 & 4(2) menyertakan bukti potong ke lawan transaksi — identitas OP memakai NIK sebagai NPWP.</div>

@@ -57,8 +57,8 @@ function MaterialityCalc() {
   const applied = appliedOverride != null ? appliedOverride : activeEngagement.materiality;
   const priorOM = 3_900_000_000;
 
-  const rp = (n) => 'Rp ' + fmt(n);
-  const pickBench = (id) => { const b = BENCHMARKS.find(x => x.id === id); setBenchId(id); setPct(b.def); };
+  const rp = (n: any) => 'Rp ' + fmt(n);
+  const pickBench = (id: any) => { const b = BENCHMARKS.find(x => x.id === id); setBenchId(id); setPct(b.def); };
   const activeQuals = Object.keys(quals).filter(k => quals[k]).length;
   const onApply = () => setAppliedOverride(om);
 
@@ -109,10 +109,10 @@ function MaterialityCalc() {
 }
 
 /* ---------- Determination tab ---------- */
-function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, priorOM, rp, locked }) {
+function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, priorOM, rp, locked }: any) {
   const { fmt } = AMS;
   const nav = useNav();
-  const toggleQ = (id) => setQuals(q => ({ ...q, [id]: !q[id] }));
+  const toggleQ = (id: any) => setQuals((q: any) => ({ ...q, [id]: !q[id] }));
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1.15fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -243,13 +243,13 @@ function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disab
         <span style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</span>
         <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{value}{suffix}</span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={e => onChange(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)', opacity: disabled ? .5 : 1 }} />
+      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e: any) => onChange(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)', opacity: disabled ? .5 : 1 }} />
       {hint && <div className="tiny muted" style={{ marginTop: 2 }}>{hint}</div>}
     </div>
   );
 }
 
-function Compare({ label, a }) {
+function Compare({ label, a }: any) {
   const { fmt } = AMS;
   return (
     <div>

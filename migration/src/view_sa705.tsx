@@ -15,7 +15,7 @@ import { Badge, Btn, Panel, Seg, Tabs } from './ui';
 const { useState: useState705, useMemo: useMemo705 } = React;
 
 /* matriks keputusan opini */
-function opinionFor(nature, perv) {
+function opinionFor(nature: any, perv: any) {
   if (nature === 'none') return { key: 'wtp', label: 'Wajar Tanpa Modifikasi', short: 'WTP', color: 'green', ref: 'SA 700', desc: 'Laporan keuangan disajikan wajar dalam semua hal material — tidak ada modifikasi.' };
   if (nature === 'miss') return perv === 'perv'
     ? { key: 'adverse', label: 'Tidak Wajar (Adverse)', short: 'TW', color: 'red', ref: 'SA 705 ¶8', desc: 'Salah saji material dan pervasif terhadap laporan keuangan secara keseluruhan.' }
@@ -156,7 +156,7 @@ function F705Decider() {
 
 /* ---------------- Tab: Matriks Modifikasi ---------------- */
 function F705Matrix() {
-  const cell = (nature, perv) => opinionFor(nature, perv);
+  const cell = (nature: any, perv: any) => opinionFor(nature, perv);
   const Cell = ({ o }: any) => (
     <td style={{ padding: 0 }}>
       <div style={{ margin: 6, padding: '12px 10px', borderRadius: 8, background: `var(--${o.color}-bg)`, border: `1px solid var(--${o.color})`, textAlign: 'center' }}>
@@ -228,7 +228,7 @@ function F705Wording({ client }: any) {
     adverse: { h: 'Tidak Wajar', op: 'Menurut opini kami, karena signifikansi hal yang diuraikan dalam paragraf Basis untuk Opini Tidak Wajar, laporan keuangan terlampir tidak menyajikan secara wajar posisi keuangan ... sesuai dengan Standar Akuntansi Keuangan di Indonesia.', basis: 'Sebagaimana dijelaskan, entitas tidak mengonsolidasikan laporan keuangan entitas anak yang diakuisisi ... karena belum dapat menentukan nilai wajar ... Dampak terhadap laporan keuangan konsolidasian bersifat material dan pervasif.', color: 'red' },
     tmp: { h: 'Tidak Menyatakan Pendapat', op: 'Kami tidak menyatakan suatu opini atas laporan keuangan terlampir. Karena signifikansi hal yang diuraikan dalam paragraf Basis untuk Tidak Menyatakan Pendapat, kami tidak memperoleh bukti audit yang cukup dan tepat untuk menjadi basis opini audit ...', basis: 'Investasi entitas pada entitas asosiasi ... Kami tidak memperoleh akses ke informasi keuangan, manajemen, dan auditor entitas asosiasi tersebut. Akibatnya, kami tidak dapat menentukan apakah diperlukan penyesuaian ...', color: 'red' },
   };
-  const s = samples[view];
+  const s = (samples as any)[view];
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>

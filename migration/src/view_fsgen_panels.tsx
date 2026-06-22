@@ -12,14 +12,14 @@ import { useWpSignoff } from './wp_signoff';
 const { useMemo: useMemoFP } = React;
 
 /* ---------------- Left rail: statement navigator ---------------- */
-function FSStatementNav({ items, active, onChange }) {
+function FSStatementNav({ items, active, onChange }: any) {
   return (
     <Panel noBody className="">
       <div className="panel-h" style={{ padding: '8px 12px' }}>
         <h3 style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Komponen Laporan</h3>
       </div>
       <div style={{ padding: 5 }}>
-        {items.map(s => {
+        {items.map((s: any) => {
           const on = active === s.id;
           const col = s.status === 'ok' ? 'var(--green)' : s.status === 'warn' ? 'var(--amber)' : 'var(--red)';
           return (
@@ -39,7 +39,7 @@ function FSStatementNav({ items, active, onChange }) {
 }
 
 /* ---------------- Left rail: presentation controls ---------------- */
-function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, setRounding, cfMethod, setCfMethod, listed }) {
+function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, setRounding, cfMethod, setCfMethod, listed }: any) {
   return (
     <Panel noBody>
       <div className="panel-h" style={{ padding: '8px 12px' }}>
@@ -61,11 +61,11 @@ function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, 
         )}
         <div className="row ac jb">
           <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>Kolom komparatif 2024</span>
-          <Toggle on={comparative} set={() => setComparative(v => !v)} />
+          <Toggle on={comparative} set={() => setComparative((v: any) => !v)} />
         </div>
         <div className="row ac jb">
           <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>Pembulatan ke satuan</span>
-          <Toggle on={rounding} set={() => setRounding(v => !v)} />
+          <Toggle on={rounding} set={() => setRounding((v: any) => !v)} />
         </div>
         <div className="tiny muted" style={{ lineHeight: 1.5 }}>
           Mata uang penyajian <b style={{ color: 'var(--ink-2)' }}>Rupiah (IDR)</b>. Standar <b style={{ color: 'var(--ink-2)' }}>SAK · PSAK</b>. Periode <b style={{ color: 'var(--ink-2)' }}>FY2025</b>.
@@ -75,7 +75,7 @@ function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, 
   );
 }
 
-function Toggle({ on, set }) {
+function Toggle({ on, set }: any) {
   return (
     <span onClick={set} style={{ width: 36, height: 20, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flex: '0 0 36px', transition: '.15s' }}>
       <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
@@ -84,9 +84,9 @@ function Toggle({ on, set }) {
 }
 
 /* ---------------- Left rail: review sign-off (kanonik wpState['fsgen']) ---------------- */
-function FSSignoff({ moduleId }) {
+function FSSignoff({ moduleId }: any) {
   const s = useWpSignoff(moduleId || 'fsgen');
-  const Step = ({ signed, role, fallbackWho, canSign, onSign }) => (
+  const Step = ({ signed, role, fallbackWho, canSign, onSign }: any) => (
     <div className="row ac jb" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div>
         <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700 }}>{role}</div>
@@ -117,8 +117,8 @@ function FSSignoff({ moduleId }) {
 }
 
 /* ---------------- Right dock: tie-out / validation ---------------- */
-function FSValidationPanel({ checks, sc, unitShort }) {
-  const passed = checks.filter(c => c.ok).length;
+function FSValidationPanel({ checks, sc, unitShort }: any) {
+  const passed = checks.filter((c: any) => c.ok).length;
   return (
     <div>
       <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
@@ -132,7 +132,7 @@ function FSValidationPanel({ checks, sc, unitShort }) {
         </div>
       </div>
       <div style={{ padding: 9, display: 'flex', flexDirection: 'column', gap: 7 }}>
-        {checks.map(c => (
+        {checks.map((c: any) => (
           <div key={c.id} style={{ border: '1px solid var(--line)', borderRadius: 7, padding: '9px 10px', background: c.ok ? 'var(--surface)' : 'var(--amber-bg)' }}>
             <div className="row ac gap8" style={{ marginBottom: 5 }}>
               <span style={{ color: c.ok ? 'var(--green)' : 'var(--amber)', display: 'grid', placeItems: 'center' }}>
@@ -168,8 +168,8 @@ function FSValidationPanel({ checks, sc, unitShort }) {
 }
 
 /* ---------------- Right dock: account → FS mapping ---------------- */
-function FSMappingPanel({ model, wtb, sc, activeKey, onPick }) {
-  const byCode = useMemoFP(() => { const o = {}; wtb.forEach(r => o[r.code] = r); return o; }, [wtb]);
+function FSMappingPanel({ model, wtb, sc, activeKey, onPick }: any) {
+  const byCode = useMemoFP(() => { const o = {}; wtb.forEach((r: any) => (o as any)[r.code] = r); return o; }, [wtb]);
   const sections = [
     { t: 'Aset Lancar', lines: model.bs.ca },
     { t: 'Aset Tidak Lancar', lines: model.bs.nca },
@@ -187,7 +187,7 @@ function FSMappingPanel({ model, wtb, sc, activeKey, onPick }) {
         {sections.map(sec => (
           <div key={sec.t} style={{ marginBottom: 10 }}>
             <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-4)', letterSpacing: '.05em', padding: '2px 2px 6px' }}>{sec.t}</div>
-            {sec.lines.map(l => {
+            {sec.lines.map((l: any) => {
               const on = activeKey === l.key;
               return (
                 <div key={l.key} onClick={() => onPick && onPick(l.key)}
@@ -196,7 +196,7 @@ function FSMappingPanel({ model, wtb, sc, activeKey, onPick }) {
                     <span style={{ fontWeight: 600, fontSize: 12 }}>{l.label}</span>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{sc(l.cy)}</span>
                   </div>
-                  {l.codes.map(c => {
+                  {l.codes.map((c: any) => {
                     const r = byCode[c] || {};
                     return (
                       <div key={c} className="row ac jb" style={{ padding: '2px 0' }}>
@@ -222,10 +222,10 @@ function FSMappingPanel({ model, wtb, sc, activeKey, onPick }) {
 }
 
 /* ---------------- Right dock: PSAK disclosure checklist ---------------- */
-function FSDisclosurePanel({ disclosures, setDisclosures, locked }) {
-  const done = disclosures.filter(d => d.done).length;
+function FSDisclosurePanel({ disclosures, setDisclosures, locked }: any) {
+  const done = disclosures.filter((d: any) => d.done).length;
   const pct = Math.round((done / disclosures.length) * 100);
-  const toggle = (id) => !locked && setDisclosures(list => list.map(d => d.id === id ? { ...d, done: !d.done } : d));
+  const toggle = (id: any) => !locked && setDisclosures((list: any) => list.map((d: any) => d.id === id ? { ...d, done: !d.done } : d));
   return (
     <div>
       <div style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
@@ -242,7 +242,7 @@ function FSDisclosurePanel({ disclosures, setDisclosures, locked }) {
         <div className="pbar" style={{ marginTop: 8 }}><span style={{ width: pct + '%', background: pct === 100 ? 'var(--green)' : 'var(--amber)' }} /></div>
       </div>
       <div style={{ padding: 9, display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {disclosures.map(d => (
+        {disclosures.map((d: any) => (
           <div key={d.id} onClick={() => toggle(d.id)}
             style={{ display: 'flex', alignItems: 'flex-start', gap: 9, padding: '7px 9px', border: '1px solid var(--line)', borderRadius: 6, cursor: locked ? 'default' : 'pointer', background: d.done ? 'var(--green-bg)' : 'var(--surface)' }}>
             <span style={{ width: 16, height: 16, borderRadius: 4, flex: '0 0 16px', marginTop: 1, border: '1.5px solid ' + (d.done ? 'var(--green)' : 'var(--line-strong)'), background: d.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center', color: '#fff' }}>

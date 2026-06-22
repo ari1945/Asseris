@@ -176,20 +176,20 @@ import { AMS_CANON } from './canon';
       const lrc = p.fcf + p.ra + (p.csm || 0) + (p.lc || 0);
       return { ...p, lrc };
     });
-    const by = (m) => ports.filter(p => p.model === m);
-    const sum = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
+    const by = (m: any) => ports.filter(p => p.model === m);
+    const sum = (arr: any, f: any) => arr.reduce((a: any, x: any) => a + f(x), 0);
 
-    const lrcTotal = sum(ports, p => p.lrc);
-    const csmTotal = sum(ports, p => p.csm || 0);
-    const raLrc    = sum(ports, p => p.ra);
-    const fcfTotal = sum(ports, p => p.fcf);
-    const lcTotal  = sum(ports, p => p.lc || 0);
+    const lrcTotal = sum(ports, (p: any) => p.lrc);
+    const csmTotal = sum(ports, (p: any) => p.csm || 0);
+    const raLrc    = sum(ports, (p: any) => p.ra);
+    const fcfTotal = sum(ports, (p: any) => p.fcf);
+    const lcTotal  = sum(ports, (p: any) => p.lc || 0);
     const licTotal = LIC.total;
     const liabTotal = lrcTotal + licTotal;
 
     /* komposisi unit perlindungan (basis pelepasan CSM) — hanya GMM/VFA */
     const cuPorts = ports.filter(p => p.csm);
-    const cuSum = sum(cuPorts, p => p.cu) || 1;
+    const cuSum = sum(cuPorts, (p: any) => p.cu) || 1;
 
     /* roll-forward checks */
     const csmClose = CSM_ROLL.find(r => r.k === 'close').v;
@@ -205,7 +205,7 @@ import { AMS_CANON } from './canon';
     /* model count */
     const modelMix = ['GMM', 'PAA', 'VFA'].map(m => {
       const list = by(m);
-      return { model: m, n: list.length, lrc: sum(list, p => p.lrc), ...MODEL_TREE[m] };
+      return { model: m, n: list.length, lrc: sum(list, (p: any) => p.lrc), ...(MODEL_TREE as any)[m] };
     });
 
     return {

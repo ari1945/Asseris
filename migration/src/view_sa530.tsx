@@ -43,7 +43,7 @@ function SA530View() {
   const [em, setEm] = useState530(1200);      // ekspektasi salah saji
 
   const calc = useMemo530(() => {
-    const f = CONF_FACTORS[conf];
+    const f = (CONF_FACTORS as any)[conf];
     const basic = tm - em * f.ef;
     const n = basic > 0 ? Math.ceil((bv * f.rf) / basic) : 9999;
     const interval = Math.round(bv / n);
@@ -117,7 +117,7 @@ function F530Design() {
               { ic: 'layers', t: 'Stratifikasi', d: 'Saldo individual > materialitas kinerja diuji 100% (top stratum); sisanya jadi populasi sampling MUS.' },
               { ic: 'alert', t: 'Definisi penyimpangan (deviasi)', d: 'Selisih nilai tercatat vs nilai teraudit per item; pos nol/negatif & kredit ditangani terpisah.' },
             ].map((s, i) => {
-              const Ic = I[s.ic];
+              const Ic = (I as any)[s.ic];
               return (
                 <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 30px', width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}><Ic size={16} /></span>
@@ -173,8 +173,8 @@ function F530Design() {
 }
 
 /* ---------------- Tab: Kalkulator Ukuran Sampel ---------------- */
-function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc }) {
-  const Field = ({ label, hint, children }) => (
+function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc }: any) {
+  const Field = ({ label, hint, children }: any) => (
     <div style={{ marginBottom: 16 }}>
       <div className="row jb ac" style={{ marginBottom: 6 }}><span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span><span className="tiny muted">{hint}</span></div>
       {children}
@@ -186,16 +186,16 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc }) {
         <div className="panel-h"><h3>Kalkulator Ukuran Sampel — Monetary Unit Sampling</h3><div style={{ flex: 1 }} /><Badge kind="purple">PPS</Badge></div>
         <div style={{ padding: 18 }}>
           <Field label="Nilai populasi yang disampel (Rp jt)" hint={bv.toLocaleString('id-ID')}>
-            <input type="range" min="50000" max="400000" step="5000" value={bv} onChange={e => setBv(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="50000" max="400000" step="5000" value={bv} onChange={(e: any) => setBv(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
           </Field>
           <Field label="Tingkat keyakinan" hint={`risiko penerimaan keliru ${calc.risk}%`}>
             <Seg options={[{ value: 90, label: '90%' }, { value: 95, label: '95%' }, { value: 99, label: '99%' }]} value={conf} onChange={setConf} />
           </Field>
           <Field label="Salah saji yang dapat ditoleransi — TM (Rp jt)" hint={tm.toLocaleString('id-ID')}>
-            <input type="range" min="3000" max="14000" step="250" value={tm} onChange={e => setTm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="3000" max="14000" step="250" value={tm} onChange={(e: any) => setTm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
           </Field>
           <Field label="Ekspektasi salah saji — EM (Rp jt)" hint={em.toLocaleString('id-ID')}>
-            <input type="range" min="0" max="4000" step="100" value={em} onChange={e => setEm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="0" max="4000" step="100" value={em} onChange={(e: any) => setEm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
           </Field>
 
           <div className="panel" style={{ padding: '11px 13px', background: 'var(--surface-2)', borderColor: 'transparent', marginTop: 4 }}>
@@ -239,7 +239,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc }) {
 }
 
 /* ---------------- Tab: Metode Seleksi ---------------- */
-function F530Selection({ interval, n }) {
+function F530Selection({ interval, n }: any) {
   const methods = [
     { k: 'MUS / PPS', sel: true, d: 'Seleksi proporsional terhadap nilai (probability-proportional-to-size). Item bernilai lebih besar berpeluang lebih besar terpilih.', use: 'Dipakai — efektif untuk uji lebih saji & populasi condong.', tag: 'Dipilih' },
     { k: 'Acak (random)', sel: false, d: 'Setiap unit pengambilan punya peluang sama terpilih. Memerlukan penomoran populasi.', use: 'Alternatif bila fokus pada deviasi atribut, bukan nilai.', tag: 'Tersedia' },
@@ -280,7 +280,7 @@ function F530Selection({ interval, n }) {
 }
 
 /* ---------------- Tab: Evaluasi Hasil ---------------- */
-function F530Evaluation({ interval, tm }) {
+function F530Evaluation({ interval, tm }: any) {
   const rows = SAMPLE_FINDINGS.map(f => {
     const ms = f.bv - f.av;
     const taint = f.bv ? ms / f.bv : 0;
@@ -346,7 +346,7 @@ function F530Evaluation({ interval, tm }) {
           <Panel title="Tautan Modul">
             <div style={{ display: 'grid', gap: 7 }}>
               {[['SAD Ledger — catat salah saji', 'scale'], ['Confirmation Hub (SA 505)', 'mail'], ['Materiality — TM & MK', 'target']].map((r, i) => {
-                const Lic = I[r[1]];
+                const Lic = (I as any)[r[1]];
                 return (
                   <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '8px 10px', border: '1px solid var(--line-soft)', borderRadius: 7 }}>
                     <span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><Lic size={14} /></span>{r[0]}</span>

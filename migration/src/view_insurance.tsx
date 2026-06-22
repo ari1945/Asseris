@@ -20,7 +20,7 @@ const INS_RISK_LVL = ['', 'Sangat Rendah', 'Rendah', 'Sedang', 'Tinggi', 'Sangat
 
 /* chip navigasi lintas-modul (gaya lin-chip) */
 function InsChip({ icon, lbl, rel, color = 'var(--blue)', onClick }: any) {
-  const Ic = (I && (I[icon] || I.doc));
+  const Ic = (I && ((I as any)[icon] || I.doc));
   return (
     <button type="button" className="lin-chip" style={{ borderLeftColor: color }} onClick={onClick} title={rel ? rel + ' — buka ' + lbl : 'Buka ' + lbl}>
       <span className="lin-ic" style={{ color }}>{Ic ? <Ic size={14} /> : null}</span>
@@ -31,7 +31,7 @@ function InsChip({ icon, lbl, rel, color = 'var(--blue)', onClick }: any) {
 }
 
 /* kotak skor L×I berwarna */
-function ScoreBox({ v, color, size = 26 }) {
+function ScoreBox({ v, color, size = 26 }: any) {
   return <span style={{ display: 'inline-grid', placeItems: 'center', minWidth: size, height: size, padding: '0 5px', borderRadius: 6, fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 12, color: '#fff', background: color }}>{v}</span>;
 }
 
@@ -87,12 +87,12 @@ function FirmInsurance() {
 }
 
 /* ===================== IKHTISAR ===================== */
-function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
-  const maxLimit = Math.max(...pols.map(p => p.limit), 1);
-  const alerts = [];
-  pols.filter(p => p.renew).forEach(p => alerts.push({ tone: p.expired || p.days < 30 ? 'red' : 'amber', ic: 'umbrella', t: 'Polis perlu perpanjangan — ' + p.jenis, s: p.insurer + ' · berakhir ' + p.akhir + ' · ' + (p.days < 0 ? 'lewat ' + (-p.days) + 'h' : p.days + ' hari'), go: () => setTab('policies') }));
-  claims.filter(c => c.outstanding).forEach(c => alerts.push({ tone: 'amber', ic: 'alert', t: 'Klaim terbuka — ' + c.id, s: c.perihal, go: () => setTab('claims') }));
-  reg.filter(r => r.residual >= 12).forEach(r => alerts.push({ tone: 'red', ic: 'shield', t: 'Risiko tinggi — ' + r.id + ' (' + r.risk + ')', s: 'Residual ' + r.residual + ' · ' + r.treatment + ' · ' + r.owner, go: () => setTab('register') }));
+function InsOverview({ pols, claims, reg, hl, nav, setTab }: any) {
+  const maxLimit = Math.max(...pols.map((p: any) => p.limit), 1);
+  const alerts: any[] = [];
+  pols.filter((p: any) => p.renew).forEach((p: any) => alerts.push({ tone: p.expired || p.days < 30 ? 'red' : 'amber', ic: 'umbrella', t: 'Polis perlu perpanjangan — ' + p.jenis, s: p.insurer + ' · berakhir ' + p.akhir + ' · ' + (p.days < 0 ? 'lewat ' + (-p.days) + 'h' : p.days + ' hari'), go: () => setTab('policies') }));
+  claims.filter((c: any) => c.outstanding).forEach((c: any) => alerts.push({ tone: 'amber', ic: 'alert', t: 'Klaim terbuka — ' + c.id, s: c.perihal, go: () => setTab('claims') }));
+  reg.filter((r: any) => r.residual >= 12).forEach((r: any) => alerts.push({ tone: 'red', ic: 'shield', t: 'Risiko tinggi — ' + r.id + ' (' + r.risk + ')', s: 'Residual ' + r.residual + ' · ' + r.treatment + ' · ' + r.owner, go: () => setTab('register') }));
 
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
@@ -104,7 +104,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
       <div className="grid" style={{ gridTemplateColumns: '1.15fr 1fr', gap: 14, alignItems: 'start' }}>
         <Panel title="Struktur Pertanggungan" sub="limit & pemakaian · sumber: polis" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('policies')}><I.arrowRight size={11} /></button>}>
           <div style={{ display: 'grid', gap: 11 }}>
-            {pols.map(p => {
+            {pols.map((p: any) => {
               const pct = Math.max(3, p.limit / maxLimit * 100);
               const usePct = Math.min(100, p.utilisation * 100);
               return (
@@ -119,7 +119,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
                   </div>
                   <div className="row jb tiny muted" style={{ marginTop: 3 }}>
                     <span>Premi {boJt(p.premi)} · deductible {boJt(p.deductible)}</span>
-                    <span>{p.transferred.length ? 'transfer ' + p.transferred.map(r => r.id).join(', ') : p.isProperty ? 'aset kantor' : '—'}</span>
+                    <span>{p.transferred.length ? 'transfer ' + p.transferred.map((r: any) => r.id).join(', ') : p.isProperty ? 'aset kantor' : '—'}</span>
                   </div>
                 </div>
               );
@@ -133,7 +133,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
         <div className="grid" style={{ gap: 12 }}>
           <Panel title="Risiko Teratas" sub="residual · sumber: risk register firma" actions={<button className="btn sm" style={{ height: 22 }} onClick={() => setTab('register')}><I.arrowRight size={11} /></button>}>
             <div style={{ display: 'grid', gap: 8 }}>
-              {reg.slice(0, 4).map(r => (
+              {reg.slice(0, 4).map((r: any) => (
                 <div key={r.id} className="row ac gap8" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
                   <ScoreBox v={r.residual} color={r.resColor} />
                   <div style={{ minWidth: 0, flex: 1 }}>
@@ -150,7 +150,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
             <div style={{ padding: 12, display: 'grid', gap: 7 }}>
               {alerts.slice(0, 5).map((a, i) => (
                 <button key={i} type="button" onClick={a.go} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', borderLeft: '3px solid var(--' + a.tone + ')', background: 'var(--surface-1)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-                  <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement(I[a.ic] || I.alert, { size: 15 })}</span>
+                  <span style={{ color: 'var(--' + a.tone + ')', flex: '0 0 auto' }}>{React.createElement((I as any)[a.ic] || I.alert, { size: 15 })}</span>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="tiny truncate" style={{ fontWeight: 600, maxWidth: 260 }}>{a.t}</div>
                     <div className="tiny muted truncate" style={{ maxWidth: 260 }}>{a.s}</div>
@@ -168,16 +168,16 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }) {
 }
 
 /* ===================== POLIS (master-detail) ===================== */
-function InsPolicies({ pols, nav, setTab }) {
+function InsPolicies({ pols, nav, setTab }: any) {
   const [sel, setSel] = useStateIns(pols[0].id);
-  const p = pols.find(x => x.id === sel) || pols[0];
+  const p = pols.find((x: any) => x.id === sel) || pols[0];
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: '1.25fr 1fr', gap: 14, alignItems: 'start' }}>
         <table className="dtbl" style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--line)' }}>
           <thead><tr><th>Polis</th><th className="num">Limit</th><th className="num">Premi/thn</th><th>Berakhir</th><th>Status</th></tr></thead>
           <tbody>
-            {pols.map(x => (
+            {pols.map((x: any) => (
               <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)} style={{ cursor: 'pointer' }}>
                 <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{x.jenis}</div><div className="tiny muted mono">{x.id} · {x.insurer}</div></td>
                 <td className="num">{boM(x.limit, 0)}</td>
@@ -215,7 +215,7 @@ function InsPolicies({ pols, nav, setTab }) {
             {p.transferred.length > 0 && <>
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Menanggung risiko firma</div>
               <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
-                {p.transferred.map(r => <InsChip key={r.id} icon="shield" color="var(--green)" lbl={r.id + ' · ' + r.risk} rel={'residual ' + (r.l * r.i) + ' · ' + r.owner} onClick={() => setTab('register')} />)}
+                {p.transferred.map((r: any) => <InsChip key={r.id} icon="shield" color="var(--green)" lbl={r.id + ' · ' + r.risk} rel={'residual ' + (r.l * r.i) + ' · ' + r.owner} onClick={() => setTab('register')} />)}
               </div>
             </>}
 
@@ -227,7 +227,7 @@ function InsPolicies({ pols, nav, setTab }) {
             {p.claims.length > 0 && <>
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Klaim terhadap polis</div>
               <div style={{ display: 'grid', gap: 5, marginBottom: 12 }}>
-                {p.claims.map(c => (
+                {p.claims.map((c: any) => (
                   <button key={c.id} type="button" onClick={() => setTab('claims')} className="row jb ac" style={{ padding: '6px 9px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface-1)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
                     <span className="tiny"><span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span> · {c.status}</span>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{boJt(c.nilai)}</span>
@@ -248,16 +248,16 @@ function InsPolicies({ pols, nav, setTab }) {
 }
 
 /* ===================== KLAIM ===================== */
-function InsClaims({ claims, nav, setTab }) {
+function InsClaims({ claims, nav, setTab }: any) {
   const [sel, setSel] = useStateIns(claims[0].id);
-  const c = claims.find(x => x.id === sel) || claims[0];
+  const c = claims.find((x: any) => x.id === sel) || claims[0];
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 14, alignItems: 'start' }}>
         <table className="dtbl" style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--line)' }}>
           <thead><tr><th>ID</th><th>Polis</th><th>Perihal</th><th className="num">Nilai</th><th>Status</th></tr></thead>
           <tbody>
-            {claims.map(x => (
+            {claims.map((x: any) => (
               <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</td>
                 <td className="tiny" style={{ fontWeight: 600 }}>{x.polis}</td>
@@ -305,16 +305,16 @@ function InsClaims({ claims, nav, setTab }) {
 }
 
 /* ===================== RISK REGISTER (master-detail) ===================== */
-function InsRegister({ reg, nav, setTab }) {
+function InsRegister({ reg, nav, setTab }: any) {
   const [sel, setSel] = useStateIns(reg[0].id);
-  const r = reg.find(x => x.id === sel) || reg[0];
+  const r = reg.find((x: any) => x.id === sel) || reg[0];
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 14, alignItems: 'start' }}>
         <table className="dtbl" style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--line)' }}>
           <thead><tr><th>ID</th><th>Risiko / Kategori</th><th className="num">Inheren</th><th className="num">Residual</th><th>Perlakuan</th></tr></thead>
           <tbody>
-            {reg.map(x => (
+            {reg.map((x: any) => (
               <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{x.id}</td>
                 <td><div style={{ fontWeight: 600, fontSize: 11.5, maxWidth: 200, whiteSpace: 'normal', lineHeight: 1.3 }}>{x.risk}</div><div className="tiny muted">{x.kat}</div></td>
@@ -359,7 +359,7 @@ function InsRegister({ reg, nav, setTab }) {
 
             <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Kontrol mitigasi</div>
             <div style={{ display: 'grid', gap: 4, marginBottom: 12 }}>
-              {r.controls.map((k, i) => <div key={i} className="row ac gap6 tiny"><I.checkCircle size={13} style={{ color: 'var(--green)', flex: '0 0 auto' }} /><span>{k}</span></div>)}
+              {r.controls.map((k: any, i: any) => <div key={i} className="row ac gap6 tiny"><I.checkCircle size={13} style={{ color: 'var(--green)', flex: '0 0 auto' }} /><span>{k}</span></div>)}
             </div>
 
             <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Tertaut ke (SSOT)</div>
@@ -375,7 +375,7 @@ function InsRegister({ reg, nav, setTab }) {
 }
 
 /* ===================== PETA RISIKO (inheren ↔ residual) ===================== */
-function InsHeatmap({ IRM, reg }) {
+function InsHeatmap({ IRM, reg }: any) {
   const [mode, setMode] = useStateIns('residual');
   const hm = IRM.heatmap(mode);
   return (
@@ -399,8 +399,8 @@ function InsHeatmap({ IRM, reg }) {
                 const sc = l * i;
                 const here = hm.cell(l, i);
                 return (
-                  <div key={i} style={{ height: 54, borderRadius: 5, background: IRM.scoreColor(sc), opacity: here.length ? 1 : 0.16, display: 'grid', placeItems: 'center', color: '#fff', position: 'relative' }} title={here.map(h => h.id + ' ' + h.risk).join('\n')}>
-                    {here.length > 0 && <span className="mono tiny" style={{ fontWeight: 800 }}>{here.map(h => h.id.replace('FR-', '')).join(',')}</span>}
+                  <div key={i} style={{ height: 54, borderRadius: 5, background: IRM.scoreColor(sc), opacity: here.length ? 1 : 0.16, display: 'grid', placeItems: 'center', color: '#fff', position: 'relative' }} title={here.map((h: any) => h.id + ' ' + h.risk).join('\n')}>
+                    {here.length > 0 && <span className="mono tiny" style={{ fontWeight: 800 }}>{here.map((h: any) => h.id.replace('FR-', '')).join(',')}</span>}
                   </div>
                 );
               })}
@@ -416,7 +416,7 @@ function InsHeatmap({ IRM, reg }) {
           <div className="panel" style={{ padding: '10px 12px', marginTop: 10 }}>
             <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.55, marginBottom: 8 }}><I.shield size={13} style={{ verticalAlign: -2, color: 'var(--blue)' }} /> Pergerakan inheren → residual</div>
             <div style={{ display: 'grid', gap: 5 }}>
-              {reg.map(r => (
+              {reg.map((r: any) => (
                 <div key={r.id} className="row ac gap6 tiny">
                   <span className="mono" style={{ fontWeight: 700, width: 38 }}>{r.id}</span>
                   <ScoreBox v={r.inherent} color={r.inhColor} size={19} />
@@ -434,7 +434,7 @@ function InsHeatmap({ IRM, reg }) {
 }
 
 /* ===================== SUMBER KEBENARAN ===================== */
-function InsLineage({ IRM, firm, nav }) {
+function InsLineage({ IRM, firm, nav }: any) {
   const recons = IRM.reconciliations(firm);
   const chain = IRM.premiumChain(firm);
   const flows = [
@@ -445,12 +445,12 @@ function InsLineage({ IRM, firm, nav }) {
     { id: 'firmtax', ic: 'report', lbl: 'Pajak Firma', rel: 'Premi (overhead) → rekonsiliasi fiskal' },
     { id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', rel: 'FR-01 → EQR wajib (mitigasi mutu)' },
   ];
-  const fmtRecon = (r, v) => r.isCount ? v : (r.isRatio ? boM(v, 1) : boJt(v));
+  const fmtRecon = (r: any, v: any) => r.isCount ? v : (r.isRatio ? boM(v, 1) : boJt(v));
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <SectionTitle>Rekonsiliasi SSOT → Kontrol Lintas-Modul</SectionTitle>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 10, marginBottom: 18 }}>
-        {recons.map(r => (
+        {recons.map((r: any) => (
           <div key={r.id} className="panel" style={{ padding: '12px 13px', borderTop: '3px solid ' + (r.ok ? 'var(--green)' : 'var(--amber)') }}>
             <div className="row ac gap8" style={{ marginBottom: 8 }}>
               {r.ok ? <span className="badge b-green" style={{ textTransform: 'none' }}>✓ Menutup</span> : <span className="badge b-amber" style={{ textTransform: 'none' }}>≠ Perlu reviu</span>}

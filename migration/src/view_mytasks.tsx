@@ -26,10 +26,10 @@ function TaskDetail({ t, mt, nav }: any) {
       </Panel>
     );
   }
-  const IconC = I[MT_SRC_ICON[t.src]] || I.flag;
-  const mod = MODULE_INDEX[t.route];
-  const toggleSub = (sid) => mt.setSub(t.id, t.sub.map(s => s.id === sid ? { ...s, done: !s.done } : s));
-  const delSub = (sid) => mt.setSub(t.id, t.sub.filter(s => s.id !== sid));
+  const IconC = (I as any)[(MT_SRC_ICON as any)[t.src]] || I.flag;
+  const mod = (MODULE_INDEX as any)[t.route];
+  const toggleSub = (sid: any) => mt.setSub(t.id, t.sub.map((s: any) => s.id === sid ? { ...s, done: !s.done } : s));
+  const delSub = (sid: any) => mt.setSub(t.id, t.sub.filter((s: any) => s.id !== sid));
   const addSub = () => { if (!newSub.trim()) return; mt.setSub(t.id, [...t.sub, { id: 'x' + Date.now(), t: newSub.trim(), done: false }]); setNewSub(''); };
 
   return (
@@ -46,14 +46,14 @@ function TaskDetail({ t, mt, nav }: any) {
         {/* status */}
         <div className="mt-kv">
           <label>Status</label>
-          <Seg value={t.status} onChange={(v) => mt.setStatus(t.id, v)}
+          <Seg value={t.status} onChange={(v: any) => mt.setStatus(t.id, v)}
             options={[{ value: 'todo', label: 'Belum' }, { value: 'doing', label: 'Dikerjakan' }, { value: 'done', label: 'Selesai' }]} />
         </div>
 
         <div className="mt-meta-grid">
           <div className="mt-kv">
             <label>Prioritas</label>
-            <div className="row ac gap8"><Badge kind={MT_PRIO_K[t.priority]}>{t.priority}</Badge></div>
+            <div className="row ac gap8"><Badge kind={(MT_PRIO_K as any)[t.priority]}>{t.priority}</Badge></div>
           </div>
           <div className="mt-kv">
             <label>Jatuh Tempo</label>
@@ -79,7 +79,7 @@ function TaskDetail({ t, mt, nav }: any) {
           </div>
           {t.subTotal > 0 && <div className="mt-mini" style={{ height: 5, marginBottom: 8 }}><span style={{ width: Math.round(t.progress * 100) + '%', background: t.progress === 1 ? 'var(--green)' : 'var(--blue)' }} /></div>}
           <div>
-            {t.sub.map(s => (
+            {t.sub.map((s: any) => (
               <div key={s.id} className="mt-sub">
                 <button className={'mt-sub-box ' + (s.done ? 'on' : '')} onClick={() => toggleSub(s.id)}>{s.done && <I.check size={11} />}</button>
                 <span className={'mt-sub-text ' + (s.done ? 'done' : '')}>{s.t}</span>
@@ -89,7 +89,7 @@ function TaskDetail({ t, mt, nav }: any) {
           </div>
           <div className="row gap6" style={{ marginTop: 8 }}>
             <input className="input" style={{ flex: 1, height: 26, fontSize: 12 }} value={newSub} placeholder="Tambah langkah…"
-              onChange={e => setNewSub(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addSub(); }} />
+              onChange={(e: any) => setNewSub(e.target.value)} onKeyDown={(e: any) => { if (e.key === 'Enter') addSub(); }} />
             <Btn sm onClick={addSub}><I.plus size={13} /></Btn>
           </div>
         </div>
@@ -98,7 +98,7 @@ function TaskDetail({ t, mt, nav }: any) {
         <div className="mt-kv">
           <label>Catatan</label>
           <textarea className="input" value={t.note} placeholder="Tambah catatan pribadi…"
-            onChange={e => mt.setNote(t.id, e.target.value)}
+            onChange={(e: any) => mt.setNote(t.id, e.target.value)}
             style={{ height: 60, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
         </div>
 
@@ -116,10 +116,10 @@ function TaskDetail({ t, mt, nav }: any) {
 
 /* ---------------- Kanban card ---------------- */
 function BoardCard({ t, mt, onSelect, onDragStart, onDragEnd, dragging }: any) {
-  const IconC = I[MT_SRC_ICON[t.src]] || I.flag;
+  const IconC = (I as any)[(MT_SRC_ICON as any)[t.src]] || I.flag;
   return (
     <div className={`mt-card p-${t.priority} ${dragging ? 'dragging' : ''}`} draggable
-      onDragStart={(e) => onDragStart(e, t.id)} onDragEnd={onDragEnd} onClick={() => onSelect(t.id)}>
+      onDragStart={(e: any) => onDragStart(e, t.id)} onDragEnd={onDragEnd} onClick={() => onSelect(t.id)}>
       <div className="row ac gap6" style={{ marginBottom: 6 }}>
         <span className="mt-icobox" style={{ width: 20, height: 20, borderRadius: 5 }}><IconC size={11} /></span>
         <span className="tiny muted" style={{ fontWeight: 600 }}>{t.src}{t.wpRef ? ' · ' + t.wpRef : ''}</span>
@@ -134,7 +134,7 @@ function BoardCard({ t, mt, onSelect, onDragStart, onDragEnd, dragging }: any) {
         </div>
       )}
       <div className="mt-card-foot">
-        <Badge kind={MT_PRIO_K[t.priority]}>{t.priority}</Badge>
+        <Badge kind={(MT_PRIO_K as any)[t.priority]}>{t.priority}</Badge>
         <span className={'mt-due ' + (t.bucket === 'overdue' ? 'over' : t.bucket === 'today' ? 'today' : '')}><I.clock size={11} /> {mtDueLabel(t)}</span>
       </div>
     </div>
@@ -157,37 +157,37 @@ function MyTasks() {
   const sources = ['all', 'Review Note', 'Catatan WP', 'AJE', 'Working Paper', 'Deadline', 'Pribadi'];
   const filtered = useMemoMTV(() => {
     let list = mt.tasks;
-    if (source !== 'all') list = list.filter(t => t.src === source);
-    if (q.trim()) { const k = q.toLowerCase(); list = list.filter(t => t.label.toLowerCase().includes(k) || t.src.toLowerCase().includes(k)); }
+    if (source !== 'all') list = list.filter((t: any) => t.src === source);
+    if (q.trim()) { const k = q.toLowerCase(); list = list.filter((t: any) => t.label.toLowerCase().includes(k) || t.src.toLowerCase().includes(k)); }
     return list;
   }, [mt.tasks, source, q]);
 
-  const active = mt.tasks.filter(t => !t.done);
+  const active = mt.tasks.filter((t: any) => !t.done);
   const stats = {
     active: active.length,
-    overdue: active.filter(t => t.bucket === 'overdue').length,
-    today: active.filter(t => t.bucket === 'today').length,
-    doing: mt.tasks.filter(t => t.status === 'doing').length,
-    done: mt.tasks.filter(t => t.done).length,
-    estWeek: active.filter(t => ['overdue', 'today', 'tomorrow', 'week'].includes(t.bucket)).reduce((s, t) => s + (t.est || 0), 0),
+    overdue: active.filter((t: any) => t.bucket === 'overdue').length,
+    today: active.filter((t: any) => t.bucket === 'today').length,
+    doing: mt.tasks.filter((t: any) => t.status === 'doing').length,
+    done: mt.tasks.filter((t: any) => t.done).length,
+    estWeek: active.filter((t: any) => ['overdue', 'today', 'tomorrow', 'week'].includes(t.bucket)).reduce((s: any, t: any) => s + (t.est || 0), 0),
   };
   const total = mt.tasks.length || 1;
   const donePct = Math.round(stats.done / total * 100);
 
-  const selTask = mt.tasks.find(t => t.id === sel) || null;
+  const selTask = mt.tasks.find((t: any) => t.id === sel) || null;
 
   /* grouping for list */
   const groups = useMemoMTV(() => {
-    const sortFn = (a, b) => (a.done - b.done) || (a.dayDiff - b.dayDiff) || (MT_PRIO_ORDER[a.priority] - MT_PRIO_ORDER[b.priority]);
+    const sortFn = (a: any, b: any) => (a.done - b.done) || (a.dayDiff - b.dayDiff) || ((MT_PRIO_ORDER as any)[a.priority] - (MT_PRIO_ORDER as any)[b.priority]);
     if (groupBy === 'priority') {
       const prioAccent = { high: 'var(--red)', medium: 'var(--amber)', low: 'var(--ink-3)' };
-      return ['high', 'medium', 'low'].map(p => ({ key: p, label: p.toUpperCase(), accent: prioAccent[p], items: filtered.filter(t => t.priority === p && !t.done).sort(sortFn) }))
-        .concat([{ key: 'done', label: 'SELESAI', accent: 'var(--green)', items: filtered.filter(t => t.done) }]);
+      return ['high', 'medium', 'low'].map(p => ({ key: p, label: p.toUpperCase(), accent: (prioAccent as any)[p], items: filtered.filter((t: any) => t.priority === p && !t.done).sort(sortFn) }))
+        .concat([{ key: 'done', label: 'SELESAI', accent: 'var(--green)', items: filtered.filter((t: any) => t.done) }]);
     }
     if (groupBy === 'source') {
-      return sources.slice(1).map(s => ({ key: s, label: s, accent: 'var(--ink-2)', items: filtered.filter(t => t.src === s).sort(sortFn) }));
+      return sources.slice(1).map(s => ({ key: s, label: s, accent: 'var(--ink-2)', items: filtered.filter((t: any) => t.src === s).sort(sortFn) }));
     }
-    return MT_BUCKETS.map(b => ({ key: b.id, label: b.label, accent: b.accent, items: filtered.filter(t => t.bucket === b.id).sort(sortFn) }));
+    return MT_BUCKETS.map(b => ({ key: b.id, label: b.label, accent: b.accent, items: filtered.filter((t: any) => t.bucket === b.id).sort(sortFn) }));
   }, [filtered, groupBy]);
 
   /* board columns by status */
@@ -196,19 +196,19 @@ function MyTasks() {
     { id: 'doing', label: 'Sedang Dikerjakan', dot: 'var(--blue)' },
     { id: 'done', label: 'Selesai', dot: 'var(--green)' },
   ];
-  const onDrop = (e, status) => { e.preventDefault(); if (drag) mt.setStatus(drag, status); setDrag(null); setDropCol(null); };
+  const onDrop = (e: any, status: any) => { e.preventDefault(); if (drag) mt.setStatus(drag, status); setDrag(null); setDropCol(null); };
 
   /* focus = overdue + today + starred + doing, not done */
-  const focus = active.filter(t => ['overdue', 'today'].includes(t.bucket) || t.starred || t.status === 'doing')
-    .sort((a, b) => (b.starred - a.starred) || (a.dayDiff - b.dayDiff));
-  const focusEst = focus.reduce((s, t) => s + (t.est || 0), 0);
+  const focus = active.filter((t: any) => ['overdue', 'today'].includes(t.bucket) || t.starred || t.status === 'doing')
+    .sort((a: any, b: any) => (b.starred - a.starred) || (a.dayDiff - b.dayDiff));
+  const focusEst = focus.reduce((s: any, t: any) => s + (t.est || 0), 0);
 
   return (
     <>
       <SubBar moduleId="tasks" right={
         <div className="row gap8 ac">
           <Badge kind={stats.overdue ? 'red' : stats.active ? 'amber' : 'green'}>{stats.active} aktif</Badge>
-          <Btn sm variant="primary" onClick={() => setAdding(a => !a)}><I.plus size={14} /> Tugas Baru</Btn>
+          <Btn sm variant="primary" onClick={() => setAdding((a: any) => !a)}><I.plus size={14} /> Tugas Baru</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -243,8 +243,8 @@ function MyTasks() {
             ]} />
           )}
           <div style={{ flex: 1 }} />
-          <div className="mt-search"><I.search2 size={14} /><input value={q} placeholder="Cari tugas…" onChange={e => setQ(e.target.value)} />{q && <button className="mt-sub-del" onClick={() => setQ('')}><I.x size={13} /></button>}</div>
-          <select className="select" value={source} onChange={e => setSource(e.target.value)} style={{ flex: '0 0 auto' }}>
+          <div className="mt-search"><I.search2 size={14} /><input value={q} placeholder="Cari tugas…" onChange={(e: any) => setQ(e.target.value)} />{q && <button className="mt-sub-del" onClick={() => setQ('')}><I.x size={13} /></button>}</div>
+          <select className="select" value={source} onChange={(e: any) => setSource(e.target.value)} style={{ flex: '0 0 auto' }}>
             {sources.map(s => <option key={s} value={s}>{s === 'all' ? 'Semua Sumber' : s}</option>)}
           </select>
         </div>
@@ -253,10 +253,10 @@ function MyTasks() {
         {view === 'list' && (
           <div className="mt-split">
             <div>
-              {groups.filter(g => g.items.length).map(g => (
+              {groups.filter((g: any) => g.items.length).map((g: any) => (
                 <div key={g.key}>
                   <div className="mt-group-h"><span style={{ color: g.accent }}>{g.label}</span><span className="cnt">{g.items.length}</span><span className="ln" /></div>
-                  {g.items.map(t => <TaskRow key={t.id} t={t} selected={sel === t.id} onSelect={setSel} mt={mt} />)}
+                  {g.items.map((t: any) => <TaskRow key={t.id} t={t} selected={sel === t.id} onSelect={setSel} mt={mt} />)}
                 </div>
               ))}
               {!filtered.length && <div className="muted tiny" style={{ padding: 36, textAlign: 'center' }}><I.checkCircle size={26} style={{ color: 'var(--green)', display: 'block', margin: '0 auto 8px' }} />Tidak ada tugas yang cocok.</div>}
@@ -269,16 +269,16 @@ function MyTasks() {
         {view === 'board' && (
           <div className="mt-board">
             {cols.map(c => {
-              const items = filtered.filter(t => t.status === c.id).sort((a, b) => a.dayDiff - b.dayDiff);
+              const items = filtered.filter((t: any) => t.status === c.id).sort((a: any, b: any) => a.dayDiff - b.dayDiff);
               return (
                 <div key={c.id} className={'mt-col ' + (dropCol === c.id ? 'drop-on' : '')}
-                  onDragOver={e => { e.preventDefault(); setDropCol(c.id); }}
-                  onDragLeave={e => { if (e.currentTarget === e.target) setDropCol(null); }}
-                  onDrop={e => onDrop(e, c.id)}>
+                  onDragOver={(e: any) => { e.preventDefault(); setDropCol(c.id); }}
+                  onDragLeave={(e: any) => { if (e.currentTarget === e.target) setDropCol(null); }}
+                  onDrop={(e: any) => onDrop(e, c.id)}>
                   <div className="mt-col-h"><span className="dot" style={{ background: c.dot }} /><span className="ttl">{c.label}</span><span className="cnt">{items.length}</span></div>
                   <div className="mt-col-body">
-                    {items.map(t => <BoardCard key={t.id} t={t} mt={mt} onSelect={setSel} dragging={drag === t.id}
-                      onDragStart={(e, id) => { setDrag(id); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => { setDrag(null); setDropCol(null); }} />)}
+                    {items.map((t: any) => <BoardCard key={t.id} t={t} mt={mt} onSelect={setSel} dragging={drag === t.id}
+                      onDragStart={(e: any, id: any) => { setDrag(id); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => { setDrag(null); setDropCol(null); }} />)}
                     {!items.length && <div className="mt-col-empty">Tarik tugas ke sini</div>}
                   </div>
                 </div>
@@ -306,7 +306,7 @@ function MyTasks() {
                   </div>
                 </div>
                 <div style={{ padding: '11px 12px 5px' }}>
-                  {focus.map(t => <TaskRow key={t.id} t={t} selected={sel === t.id} onSelect={setSel} mt={mt} />)}
+                  {focus.map((t: any) => <TaskRow key={t.id} t={t} selected={sel === t.id} onSelect={setSel} mt={mt} />)}
                   {!focus.length && <div className="muted tiny" style={{ padding: 30, textAlign: 'center' }}><I.checkCircle size={26} style={{ color: 'var(--green)', display: 'block', margin: '0 auto 8px' }} />Tidak ada yang mendesak. Kerja bagus! 🎉</div>}
                 </div>
               </Panel>

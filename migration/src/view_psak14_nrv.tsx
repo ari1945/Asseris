@@ -20,45 +20,45 @@ const { useState: useStateNRV, useMemo: useMemoNRV } = React;
 const NRV_CLS_KIND = { rm: 'gray', wip: 'blue', fg: 'navy', spare: 'amber' };
 const NRV_CLS_SHORT = { rm: 'Bahan baku', wip: 'WIP', fg: 'Barang jadi', spare: 'Suku cadang' };
 
-function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
+function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
   const items = (inv && inv.items) || [];
   const persist = useAmsPersist;
 
   /* sampel default: seluruh item ber-selisih + 2 item sehat bernilai besar (cakupan) */
   const [sample, setSample] = persist('psak14.nrv.sample', () => {
     const o = {};
-    items.forEach(it => { if (it.shortfall > 0) o[it.code] = true; });
-    items.filter(i => i.shortfall <= 0).sort((a, b) => b.cost - a.cost).slice(0, 2).forEach(i => { o[i.code] = true; });
+    items.forEach((it: any) => { if (it.shortfall > 0) (o as any)[it.code] = true; });
+    items.filter((i: any) => i.shortfall <= 0).sort((a: any, b: any) => b.cost - a.cost).slice(0, 2).forEach((i: any) => { (o as any)[i.code] = true; });
     return o;
   });
   /* pengecualian: default mengikuti item ber-selisih, dapat ditimpa manual */
   const [exc, setExc] = persist('psak14.nrv.exc', () => {
-    const o = {}; items.forEach(it => { if (it.shortfall > 0) o[it.code] = true; }); return o;
+    const o = {}; items.forEach((it: any) => { if (it.shortfall > 0) (o as any)[it.code] = true; }); return o;
   });
   const [filter, setFilter] = persist('psak14.nrv.filter', 'all');
   const [q, setQ] = useStateNRV('');
 
-  const toggleSample = (code) => setSample(s => ({ ...s, [code]: !s[code] }));
-  const toggleExc = (code) => setExc(s => ({ ...s, [code]: !s[code] }));
+  const toggleSample = (code: any) => setSample((s: any) => ({ ...s, [code]: !s[code] }));
+  const toggleExc = (code: any) => setExc((s: any) => ({ ...s, [code]: !s[code] }));
 
   /* derivasi agregat (seluruh populasi) */
   const tot = useMemoNRV(() => {
-    const sum = (f) => items.reduce((a, x) => a + f(x), 0);
-    const cost = sum(x => x.cost), req = sum(x => x.reqWD), booked = sum(x => x.bookedWD);
-    const sampledCost = items.filter(i => sample[i.code]).reduce((a, x) => a + x.cost, 0);
+    const sum = (f: any) => items.reduce((a: any, x: any) => a + f(x), 0);
+    const cost = sum((x: any) => x.cost), req = sum((x: any) => x.reqWD), booked = sum((x: any) => x.bookedWD);
+    const sampledCost = items.filter((i: any) => sample[i.code]).reduce((a: any, x: any) => a + x.cost, 0);
     return {
-      cost, req, booked, carry: sum(x => x.carry), nrv: sum(x => x.nrv),
+      cost, req, booked, carry: sum((x: any) => x.carry), nrv: sum((x: any) => x.nrv),
       shortfall: req - booked, n: items.length,
-      nSample: items.filter(i => sample[i.code]).length,
-      nExc: items.filter(i => exc[i.code]).length,
+      nSample: items.filter((i: any) => sample[i.code]).length,
+      nExc: items.filter((i: any) => exc[i.code]).length,
       coverage: cost ? sampledCost / cost : 0,
-      excShortfall: items.filter(i => exc[i.code]).reduce((a, x) => a + x.shortfall, 0),
+      excShortfall: items.filter((i: any) => exc[i.code]).reduce((a: any, x: any) => a + x.shortfall, 0),
     };
   }, [items, sample, exc]);
 
   const shown = useMemoNRV(() => {
     const ql = q.trim().toLowerCase();
-    return items.filter(it => {
+    return items.filter((it: any) => {
       if (filter === 'issue' && !(it.shortfall > 0)) return false;
       if (filter === 'slow' && !(it.shortfall > 0 || it.age === 'b2' || it.age === 'b3')) return false;
       if (filter === 'sample' && !sample[it.code]) return false;
@@ -69,8 +69,8 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
 
   /* subtotal himpunan yang ditampilkan */
   const shownTot = useMemoNRV(() => {
-    const s = (f) => shown.reduce((a, x) => a + f(x), 0);
-    return { cost: s(x => x.cost), sell: s(x => x.sellPrice), nrv: s(x => x.nrv), req: s(x => x.reqWD), booked: s(x => x.bookedWD), shortfall: s(x => x.shortfall) };
+    const s = (f: any) => shown.reduce((a: any, x: any) => a + f(x), 0);
+    return { cost: s((x: any) => x.cost), sell: s((x: any) => x.sellPrice), nrv: s((x: any) => x.nrv), req: s((x: any) => x.reqWD), booked: s((x: any) => x.bookedWD), shortfall: s((x: any) => x.shortfall) };
   }, [shown]);
 
   const aboveCTT = ctt != null && tot.shortfall > ctt;
@@ -80,8 +80,8 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
 
   const FILTERS = [
     { id: 'all', label: 'Semua', n: items.length },
-    { id: 'issue', label: 'Ber-selisih', n: items.filter(i => i.shortfall > 0).length },
-    { id: 'slow', label: 'Slow & usang', n: items.filter(i => i.shortfall > 0 || i.age === 'b2' || i.age === 'b3').length },
+    { id: 'issue', label: 'Ber-selisih', n: items.filter((i: any) => i.shortfall > 0).length },
+    { id: 'slow', label: 'Slow & usang', n: items.filter((i: any) => i.shortfall > 0 || i.age === 'b2' || i.age === 'b3').length },
     { id: 'sample', label: 'Dalam sampel', n: tot.nSample },
   ];
 
@@ -122,7 +122,7 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
           {FILTERS.map(f => <button key={f.id} className={filter === f.id ? 'on' : ''} onClick={() => setFilter(f.id)}>{f.label} <span style={{ opacity: 0.6 }}>{f.n}</span></button>)}
         </div>
         <div style={{ flex: 1 }} />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari SKU / deskripsi…" style={{ fontSize: 11.5, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--line)', width: 190, fontFamily: 'inherit' }} />
+        <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari SKU / deskripsi…" style={{ fontSize: 11.5, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--line)', width: 190, fontFamily: 'inherit' }} />
       </div>
 
       {/* tabel item-level */}
@@ -147,7 +147,7 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
             </tr>
           </thead>
           <tbody>
-            {shown.map(it => {
+            {shown.map((it: any) => {
               const issue = it.shortfall > 0;
               const inSample = !!sample[it.code];
               const isExc = !!exc[it.code];
@@ -156,8 +156,8 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }) {
                   <td style={{ padding: '7px 8px', minWidth: 230 }}>
                     <div className="row ac gap6">
                       <span className="mono" style={{ fontWeight: 700, fontSize: 11 }}>{it.code}</span>
-                      <Badge kind={NRV_CLS_KIND[it.cls] || 'gray'}>{NRV_CLS_SHORT[it.cls]}</Badge>
-                      {it.age && <span className="tiny mono" style={{ color: it.age === 'b3' ? 'var(--red)' : it.age === 'b2' ? 'var(--amber)' : 'var(--ink-4)' }}>{({ b0: '0–90h', b1: '91–180h', b2: '181–365h', b3: '>365h' })[it.age]}</span>}
+                      <Badge kind={(NRV_CLS_KIND as any)[it.cls] || 'gray'}>{(NRV_CLS_SHORT as any)[it.cls]}</Badge>
+                      {it.age && <span className="tiny mono" style={{ color: it.age === 'b3' ? 'var(--red)' : it.age === 'b2' ? 'var(--amber)' : 'var(--ink-4)' }}>{(({ b0: '0–90h', b1: '91–180h', b2: '181–365h', b3: '>365h' }) as any)[it.age]}</span>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 1 }}>{it.label}</div>
                   </td>

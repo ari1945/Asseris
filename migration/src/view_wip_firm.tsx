@@ -33,7 +33,7 @@ function WIPRealization() {
   const W = useMemoWipF(() => FF.wip(ctx), [ctx]);
 
   /* overlay write-down manual di atas baris kanonik (semantik persen utk view ini) */
-  const rows = W.registerAll.map(b => {
+  const rows = W.registerAll.map((b: any) => {
     const extraWD = adj[b.id] || 0;
     const writeDown = b.writeDown + extraWD;
     const recoverable = b.std + b.writeUp - writeDown;
@@ -43,31 +43,31 @@ function WIPRealization() {
     return { ...b, writeDown, extraWD, recoverable, wip, realization, margin };
   });
 
-  const totWip = rows.reduce((s, r) => s + Math.max(0, r.wip), 0);
-  const totStd = rows.reduce((s, r) => s + r.std, 0);
-  const totRec = rows.reduce((s, r) => s + r.recoverable, 0);
-  const totCost = rows.reduce((s, r) => s + r.cost, 0);
-  const totWD = rows.reduce((s, r) => s + r.writeDown, 0);
+  const totWip = rows.reduce((s: any, r: any) => s + Math.max(0, r.wip), 0);
+  const totStd = rows.reduce((s: any, r: any) => s + r.std, 0);
+  const totRec = rows.reduce((s: any, r: any) => s + r.recoverable, 0);
+  const totCost = rows.reduce((s: any, r: any) => s + r.cost, 0);
+  const totWD = rows.reduce((s: any, r: any) => s + r.writeDown, 0);
   const avgReal = totStd ? totRec / totStd * 100 : 0;
   const avgMargin = totRec ? (totRec - totCost) / totRec * 100 : 0;
 
   // per-partner aggregation
   const partners = useMemoWipF(() => {
     const m = {};
-    rows.forEach(r => {
+    rows.forEach((r: any) => {
       const p = r.partner || '—';
-      m[p] = m[p] || { partner: p, std: 0, recoverable: 0, billed: 0, wip: 0, cost: 0, n: 0 };
-      m[p].std += r.std; m[p].recoverable += r.recoverable; m[p].billed += r.billed;
-      m[p].wip += Math.max(0, r.wip); m[p].cost += r.cost; m[p].n += 1;
+      (m as any)[p] = (m as any)[p] || { partner: p, std: 0, recoverable: 0, billed: 0, wip: 0, cost: 0, n: 0 };
+      (m as any)[p].std += r.std; (m as any)[p].recoverable += r.recoverable; (m as any)[p].billed += r.billed;
+      (m as any)[p].wip += Math.max(0, r.wip); (m as any)[p].cost += r.cost; (m as any)[p].n += 1;
     });
     return Object.values(m).map((x: any) => ({ ...x, realization: x.std ? x.recoverable / x.std * 100 : 0, margin: x.recoverable ? (x.recoverable - x.cost) / x.recoverable * 100 : 0 }));
   }, [rows]);
 
   const aging = W.aging;
-  const agingMax = Math.max(...aging.map(a => a.value), 1);
-  const overdueWip = aging.filter((_, i) => i >= 2).reduce((s, a) => s + a.value, 0);
-  const selRow = sel ? rows.find(r => r.id === sel) : null;
-  const realColor = (v) => v >= 100 ? 'var(--green)' : v >= 92 ? 'var(--amber)' : 'var(--red)';
+  const agingMax = Math.max(...aging.map((a: any) => a.value), 1);
+  const overdueWip = aging.filter((_: any, i: any) => i >= 2).reduce((s: any, a: any) => s + a.value, 0);
+  const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
+  const realColor = (v: any) => v >= 100 ? 'var(--green)' : v >= 92 ? 'var(--amber)' : 'var(--red)';
 
   return (
     <>
@@ -95,7 +95,7 @@ function WIPRealization() {
                 <table className="dtbl">
                   <thead><tr><th>Perikatan</th><th>Partner</th><th className="num">Nilai Standar</th><th className="num">Difakturkan</th><th className="num">Saldo WIP</th><th className="num">Write-down</th><th className="num">Realisasi</th><th className="num">Margin</th></tr></thead>
                   <tbody>
-                    {rows.map(r => (
+                    {rows.map((r: any) => (
                       <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id === sel ? null : r.id)} style={{ cursor: 'pointer' }}>
                         <td><div style={{ fontWeight: 600 }} className="truncate">{r.clientShort}</div><div className="tiny muted mono">{r.id}</div></td>
                         <td className="tiny muted">{(r.partner || '—').split(' ')[0]}</td>
@@ -108,13 +108,13 @@ function WIPRealization() {
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totStd / 1e6, 0)}</td><td className="num">{fmt(rows.reduce((s, r) => s + r.billed, 0) / 1e6, 0)}</td><td className="num">{fmt(totWip / 1e6, 0)}</td><td className="num">({fmt(totWD / 1e6, 0)})</td><td className="num">{fmt(avgReal, 0)}%</td><td className="num">{fmt(avgMargin, 0)}%</td></tr></tfoot>
+                  <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totStd / 1e6, 0)}</td><td className="num">{fmt(rows.reduce((s: any, r: any) => s + r.billed, 0) / 1e6, 0)}</td><td className="num">{fmt(totWip / 1e6, 0)}</td><td className="num">({fmt(totWD / 1e6, 0)})</td><td className="num">{fmt(avgReal, 0)}%</td><td className="num">{fmt(avgMargin, 0)}%</td></tr></tfoot>
                 </table>
               ) : (
                 <table className="dtbl">
                   <thead><tr><th>Partner</th><th className="num">Perikatan</th><th className="num">Nilai Standar</th><th className="num">Saldo WIP</th><th className="num">Realisasi</th><th className="num">Margin</th></tr></thead>
                   <tbody>
-                    {partners.map(p => (
+                    {partners.map((p: any) => (
                       <tr key={p.partner}>
                         <td className="row ac gap8" style={{ height: 'var(--row-h)' }}><Avatar name={p.partner} size={22} /><span style={{ fontWeight: 600 }}>{p.partner}</span></td>
                         <td className="num muted">{p.n}</td>
@@ -132,7 +132,7 @@ function WIPRealization() {
             <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start' }}>
               <Panel title="Umur WIP Belum Tertagih" sub="aging · sumber kanonik">
                 <div style={{ display: 'grid', gap: 10 }}>
-                  {aging.map((a, i) => (
+                  {aging.map((a: any, i: any) => (
                     <div key={i}>
                       <div className="row jb ac" style={{ marginBottom: 3 }}>
                         <span className="tiny" style={{ fontWeight: 600, color: i >= 2 ? 'var(--red)' : 'var(--ink-2)' }}>{a.bucket}</span>
@@ -165,15 +165,15 @@ function WIPRealization() {
           </div>
 
           {selRow && <WipDetail r={selRow} onClose={() => setSel(null)}
-            onWriteDown={() => setAdj(a => ({ ...a, [selRow.id]: (a[selRow.id] || 0) + 25_000_000 }))}
-            onReset={() => setAdj(a => { const n = { ...a }; delete n[selRow.id]; return n; })} />}
+            onWriteDown={() => setAdj((a: any) => ({ ...a, [selRow.id]: (a[selRow.id] || 0) + 25_000_000 }))}
+            onReset={() => setAdj((a: any) => { const n = { ...a }; delete n[selRow.id]; return n; })} />}
         </div>
       </div></div>
     </>
   );
 }
 
-function WipDetail({ r, onClose, onWriteDown, onReset }) {
+function WipDetail({ r, onClose, onWriteDown, onReset }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const realColor = r.realization >= 100 ? 'var(--green)' : r.realization >= 92 ? 'var(--amber)' : 'var(--red)';

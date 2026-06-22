@@ -23,27 +23,27 @@ function FirmGL() {
   const [ledAcct, setLedAcct] = useStateF1('1-100');
   const [stmt, setStmt] = useStateF1('pl');
 
-  const acctName = (c) => (coa.find(a => a.code === c) || {}).name || c;
-  const posted = gl.filter(j => j.posted);
-  const unposted = gl.filter(j => !j.posted).length;
+  const acctName = (c: any) => (coa.find((a: any) => a.code === c) || {}).name || c;
+  const posted = gl.filter((j: any) => j.posted);
+  const unposted = gl.filter((j: any) => !j.posted).length;
 
   // trial balance by type
   const tbByType = useMemoF1(() => {
     const groups = {};
-    coa.forEach(a => { if (!groups[a.type]) groups[a.type] = []; groups[a.type].push(a); });
+    coa.forEach((a: any) => { if (!(groups as any)[a.type]) (groups as any)[a.type] = []; (groups as any)[a.type].push(a); });
     return groups;
   }, [coa]);
-  const totalDr = coa.filter(a => a.bal > 0).reduce((s, a) => s + a.bal, 0);
-  const totalCr = -coa.filter(a => a.bal < 0).reduce((s, a) => s + a.bal, 0);
+  const totalDr = coa.filter((a: any) => a.bal > 0).reduce((s: any, a: any) => s + a.bal, 0);
+  const totalCr = -coa.filter((a: any) => a.bal < 0).reduce((s: any, a: any) => s + a.bal, 0);
   const balanced = Math.abs(totalDr - totalCr) < 1e6;
 
   // ---- account ledger (running balance) derived from posted journals ----
   const ledger = useMemoF1(() => {
-    const acct = coa.find(a => a.code === ledAcct) || coa[0];
-    const posts = posted.filter(j => j.dr === acct.code || j.cr === acct.code)
-      .slice().sort((a, b) => +new Date(a.date) - +new Date(b.date));
+    const acct = coa.find((a: any) => a.code === ledAcct) || coa[0];
+    const posts = posted.filter((j: any) => j.dr === acct.code || j.cr === acct.code)
+      .slice().sort((a: any, b: any) => +new Date(a.date) - +new Date(b.date));
     let movement = 0;
-    const lines = posts.map(j => {
+    const lines = posts.map((j: any) => {
       const dr = j.dr === acct.code ? j.amount : 0;
       const cr = j.cr === acct.code ? j.amount : 0;
       movement += dr - cr;
@@ -52,22 +52,22 @@ function FirmGL() {
     const closing = acct.bal;
     const opening = closing - movement;
     let run = opening;
-    const rows = lines.map(l => { run += l.dr2 - l.cr2; return { ...l, running: run }; });
-    return { acct, opening, closing, rows, totalDr: lines.reduce((s, l) => s + l.dr2, 0), totalCr: lines.reduce((s, l) => s + l.cr2, 0) };
+    const rows = lines.map((l: any) => { run += l.dr2 - l.cr2; return { ...l, running: run }; });
+    return { acct, opening, closing, rows, totalDr: lines.reduce((s: any, l: any) => s + l.dr2, 0), totalCr: lines.reduce((s: any, l: any) => s + l.cr2, 0) };
   }, [ledAcct, gl]);
-  const drCr = (v) => (v >= 0 ? fmt(Math.abs(v) / 1e6, 0) + ' D' : fmt(Math.abs(v) / 1e6, 0) + ' K');
+  const drCr = (v: any) => (v >= 0 ? fmt(Math.abs(v) / 1e6, 0) + ' D' : fmt(Math.abs(v) / 1e6, 0) + ' K');
 
   // ---- financial statements from COA ----
-  const byType = (t) => coa.filter(a => a.type === t);
-  const sumType = (t) => byType(t).reduce((s, a) => s + a.bal, 0);
+  const byType = (t: any) => coa.filter((a: any) => a.type === t);
+  const sumType = (t: any) => byType(t).reduce((s: any, a: any) => s + a.bal, 0);
   const revenue = -sumType('Pendapatan'), expense = sumType('Beban');
   const netProfit = revenue - expense;
   const totAset = sumType('Aset');
   const totLiab = -sumType('Liabilitas');
   const totEkuitas = -sumType('Ekuitas') + netProfit;
 
-  const togglePost = (id) => setGl(list => list.map(j => j.id === id ? { ...j, posted: !j.posted } : j));
-  const addJV = (entry) => setGl(list => [{ id: 'JV-0' + (313 + list.length), posted: true, date: '2026-03-09', ...entry }, ...list]);
+  const togglePost = (id: any) => setGl((list: any) => list.map((j: any) => j.id === id ? { ...j, posted: !j.posted } : j));
+  const addJV = (entry: any) => setGl((list: any) => [{ id: 'JV-0' + (313 + list.length), posted: true, date: '2026-03-09', ...entry }, ...list]);
 
   const tabs = [
     { id: 'journal', label: 'Jurnal Umum', count: gl.length },
@@ -100,7 +100,7 @@ function FirmGL() {
             <table className="dtbl">
               <thead><tr><th>No. Voucher</th><th>Tanggal</th><th>Keterangan</th><th>Debit</th><th>Kredit</th><th className="num">Jumlah</th><th>Status</th></tr></thead>
               <tbody>
-                {gl.map(j => (
+                {gl.map((j: any) => (
                   <tr key={j.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{j.id}</td>
                     <td className="mono tiny muted">{new Date(j.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
@@ -118,7 +118,7 @@ function FirmGL() {
           {tab === 'ledger' && (
             <div className="grid" style={{ gridTemplateColumns: '230px 1fr', gap: 0, alignItems: 'stretch' }}>
               <div style={{ borderRight: '1px solid var(--line)', padding: '8px 0', maxHeight: 460, overflow: 'auto' }}>
-                {coa.map(a => (
+                {coa.map((a: any) => (
                   <div key={a.code} onClick={() => setLedAcct(a.code)} className="row ac jb" style={{ padding: '7px 12px', cursor: 'pointer', background: a.code === ledAcct ? 'var(--blue-050)' : 'transparent', borderLeft: '3px solid ' + (a.code === ledAcct ? 'var(--blue)' : 'transparent') }}>
                     <div style={{ minWidth: 0 }}><div className="mono tiny muted">{a.code}</div><div className="truncate" style={{ fontSize: 12, fontWeight: a.code === ledAcct ? 700 : 500 }}>{a.name}</div></div>
                     <span className="mono tiny" style={{ color: a.bal < 0 ? 'var(--red)' : 'var(--ink-3)' }}>{fmt(Math.abs(a.bal) / 1e6, 0)}</span>
@@ -135,7 +135,7 @@ function FirmGL() {
                   <thead><tr><th>Tanggal</th><th>No. & Keterangan</th><th>Lawan Akun</th><th className="num">Debit</th><th className="num">Kredit</th><th className="num">Saldo Berjalan</th></tr></thead>
                   <tbody>
                     <tr style={{ background: 'var(--surface-2)' }}><td colSpan={5} style={{ fontWeight: 600, fontStyle: 'italic' }}>Saldo Awal Periode</td><td className="num mono" style={{ fontWeight: 700 }}>{drCr(ledger.opening)}</td></tr>
-                    {ledger.rows.map(r => (
+                    {ledger.rows.map((r: any) => (
                       <tr key={r.id}>
                         <td className="mono tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                         <td><div className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</div><div className="tiny truncate" style={{ maxWidth: 220 }}>{r.desc}</div></td>
@@ -157,7 +157,7 @@ function FirmGL() {
             <table className="dtbl">
               <thead><tr><th>Kode</th><th>Nama Akun</th><th>Tipe</th><th className="num">Debit</th><th className="num">Kredit</th></tr></thead>
               <tbody>
-                {coa.map(a => (
+                {coa.map((a: any) => (
                   <tr key={a.code} onClick={() => { setLedAcct(a.code); setTab('ledger'); }} style={{ cursor: 'pointer' }}>
                     <td className="mono tiny muted">{a.code}</td>
                     <td style={{ fontWeight: 600 }}>{a.name}</td>
@@ -181,7 +181,7 @@ function FirmGL() {
                       <tbody>
                         <tr style={{ fontWeight: 700, background: 'var(--surface-2)' }}><td style={{ padding: '7px 9px' }}>Pendapatan Jasa</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(revenue / 1e6, 0)}</td></tr>
                         <tr className="group-row"><td colSpan={2}>Beban Usaha</td></tr>
-                        {byType('Beban').map(a => (
+                        {byType('Beban').map((a: any) => (
                           <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px', color: 'var(--red)' }}>({fmt(a.bal / 1e6, 0)})</td></tr>
                         ))}
                         <tr style={{ fontWeight: 600 }}><td style={{ padding: '7px 9px' }}>Total Beban Usaha</td><td className="num" style={{ padding: '7px 9px', color: 'var(--red)' }}>({fmt(expense / 1e6, 0)})</td></tr>
@@ -193,7 +193,7 @@ function FirmGL() {
                     <KvBox label="Margin Operasi" v={(netProfit / revenue * 100).toFixed(1) + '%'} accent="var(--green)" />
                     <KvBox label="Cost-to-Income Ratio" v={(expense / revenue * 100).toFixed(1) + '%'} />
                     <Panel title="Komposisi Beban">
-                      {byType('Beban').map(a => (
+                      {byType('Beban').map((a: any) => (
                         <div key={a.code} style={{ marginBottom: 9 }}>
                           <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{a.name}</span><span className="mono" style={{ fontWeight: 700 }}>{(a.bal / expense * 100).toFixed(0)}%</span></div>
                           <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (a.bal / expense * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue)' }} /></div>
@@ -207,7 +207,7 @@ function FirmGL() {
                   <Panel title="Aset">
                     <table className="dtbl">
                       <tbody>
-                        {byType('Aset').map(a => <tr key={a.code}><td style={{ padding: '7px 9px' }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(a.bal / 1e6, 0)}</td></tr>)}
+                        {byType('Aset').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px' }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(a.bal / 1e6, 0)}</td></tr>)}
                         <tr style={{ fontWeight: 800, background: 'var(--surface-2)' }}><td style={{ padding: '9px' }}>TOTAL ASET</td><td className="num" style={{ padding: '9px' }}>{fmt(totAset / 1e6, 0)}</td></tr>
                       </tbody>
                     </table>
@@ -216,10 +216,10 @@ function FirmGL() {
                     <table className="dtbl">
                       <tbody>
                         <tr className="group-row"><td colSpan={2}>Liabilitas</td></tr>
-                        {byType('Liabilitas').map(a => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-a.bal / 1e6, 0)}</td></tr>)}
+                        {byType('Liabilitas').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-a.bal / 1e6, 0)}</td></tr>)}
                         <tr style={{ fontWeight: 600 }}><td style={{ padding: '7px 9px' }}>Total Liabilitas</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(totLiab / 1e6, 0)}</td></tr>
                         <tr className="group-row"><td colSpan={2}>Ekuitas</td></tr>
-                        {byType('Ekuitas').map(a => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-a.bal / 1e6, 0)}</td></tr>)}
+                        {byType('Ekuitas').map((a: any) => <tr key={a.code}><td style={{ padding: '7px 9px', paddingLeft: 20 }}>{a.name}</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(-a.bal / 1e6, 0)}</td></tr>)}
                         <tr><td style={{ padding: '7px 9px', paddingLeft: 20 }}>Laba Tahun Berjalan</td><td className="num" style={{ padding: '7px 9px', color: 'var(--green)' }}>{fmt(netProfit / 1e6, 0)}</td></tr>
                         <tr style={{ fontWeight: 600 }}><td style={{ padding: '7px 9px' }}>Total Ekuitas</td><td className="num" style={{ padding: '7px 9px' }}>{fmt(totEkuitas / 1e6, 0)}</td></tr>
                         <tr style={{ fontWeight: 800, background: 'var(--surface-2)' }}><td style={{ padding: '9px' }}>TOTAL LIABILITAS & EKUITAS</td><td className="num" style={{ padding: '9px' }}>{fmt((totLiab + totEkuitas) / 1e6, 0)}</td></tr>
@@ -240,7 +240,7 @@ function FirmGL() {
                 <div key={type} style={{ marginBottom: 14 }}>
                   <div className="upper tiny" style={{ fontWeight: 700, color: 'var(--blue)', marginBottom: 6 }}>{type}</div>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 8 }}>
-                    {accts.map(a => (
+                    {accts.map((a: any) => (
                       <div key={a.code} className="panel" onClick={() => { setLedAcct(a.code); setTab('ledger'); }} style={{ padding: '8px 11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div><div className="mono tiny muted">{a.code}</div><div style={{ fontSize: 12, fontWeight: 600 }}>{a.name}</div></div>
                         <div className="mono tiny" style={{ fontWeight: 700, color: a.bal < 0 ? 'var(--red)' : 'var(--ink)' }}>{fmt(Math.abs(a.bal) / 1e6, 0)} jt</div>
@@ -253,12 +253,12 @@ function FirmGL() {
           )}
         </Panel>
       </div></div>
-      {form && <FirmJVForm coa={coa} onClose={() => setForm(false)} onPost={(e) => { addJV(e); setForm(false); }} />}
+      {form && <FirmJVForm coa={coa} onClose={() => setForm(false)} onPost={(e: any) => { addJV(e); setForm(false); }} />}
     </>
   );
 }
 
-function FirmJVForm({ coa, onClose, onPost }) {
+function FirmJVForm({ coa, onClose, onPost }: any) {
   const { fmt } = AMS;
   const [desc, setDesc] = useStateF1('');
   const [dr, setDr] = useStateF1('');
@@ -267,18 +267,18 @@ function FirmJVForm({ coa, onClose, onPost }) {
   const valid = desc.trim() && dr && cr && dr !== cr && +amount > 0;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 520, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+      <div className="panel" style={{ width: 520, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Jurnal Umum Firma</div><div className="tiny" style={{ color: '#bcd6e4' }}>Double-entry · GL KAP</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-          <div className="field"><label>Keterangan</label><input className="input" value={desc} onChange={e => setDesc(e.target.value)} placeholder="mis. Pembayaran beban operasional" /></div>
+          <div className="field"><label>Keterangan</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Pembayaran beban operasional" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Akun Debit</label><select className="select" value={dr} onChange={e => setDr(e.target.value)}><option value="">— pilih —</option>{coa.map(a => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
-            <div className="field"><label>Akun Kredit</label><select className="select" value={cr} onChange={e => setCr(e.target.value)}><option value="">— pilih —</option>{coa.map(a => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
+            <div className="field"><label>Akun Debit</label><select className="select" value={dr} onChange={(e: any) => setDr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
+            <div className="field"><label>Akun Kredit</label><select className="select" value={cr} onChange={(e: any) => setCr(e.target.value)}><option value="">— pilih —</option>{coa.map((a: any) => <option key={a.code} value={a.code}>{a.code} · {a.name}</option>)}</select></div>
           </div>
-          <div className="field"><label>Jumlah (Rp)</label><input className="input mono" type="number" value={amount} onChange={e => setAmount(e.target.value)} style={{ textAlign: 'right' }} /></div>
+          <div className="field"><label>Jumlah (Rp)</label><input className="input mono" type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} style={{ textAlign: 'right' }} /></div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>
@@ -298,15 +298,15 @@ const AGING_BUCKETS = [
   { k: 'b90', l: '> 60 hari', c: '#b3261e', lo: 60, hi: 1e9 },
 ];
 
-function agingBucket(daysOver) {
+function agingBucket(daysOver: any) {
   return AGING_BUCKETS.find(b => daysOver > b.lo && daysOver <= b.hi) || AGING_BUCKETS[0];
 }
 
-function AgingStrip({ items, getDue, getOut }) {
+function AgingStrip({ items, getDue, getOut }: any) {
   const { fmt } = AMS;
   const REF = new Date('2026-03-09');
   const buckets = AGING_BUCKETS.map(b => ({ ...b, v: 0, n: 0 }));
-  items.forEach(it => {
+  items.forEach((it: any) => {
     const out = getOut(it); if (out <= 0) return;
     const dOver = Math.round((+REF - +new Date(getDue(it))) / 864e5);
     const b = buckets.find(x => dOver > x.lo && dOver <= x.hi) || buckets[0];
@@ -336,12 +336,12 @@ function FirmAPAR() {
   const ar: any = AMS.INVOICES;
   const REF = new Date('2026-03-09');
 
-  const apOutstanding = ap.filter(x => x.status !== 'Paid').reduce((s, x) => s + (x.amount - x.paid), 0);
-  const apOverdue = ap.filter(x => x.status === 'Overdue').reduce((s, x) => s + (x.amount - x.paid), 0);
-  const arOutstanding = ar.filter(x => x.status !== 'Paid' && x.status !== 'Draft').reduce((s, x) => s + (x.amount - x.paid), 0);
-  const arOverdue = ar.filter(x => x.status === 'Overdue').reduce((s, x) => s + (x.amount - x.paid), 0);
+  const apOutstanding = ap.filter((x: any) => x.status !== 'Paid').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
+  const apOverdue = ap.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
+  const arOutstanding = ar.filter((x: any) => x.status !== 'Paid' && x.status !== 'Draft').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
+  const arOverdue = ar.filter((x: any) => x.status === 'Overdue').reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
   const netPosition = arOutstanding - apOutstanding;
-  const payAp = (id) => setAp(list => list.map(x => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
+  const payAp = (id: any) => setAp((list: any) => list.map((x: any) => x.id === id ? { ...x, paid: x.amount, status: 'Paid' } : x));
 
   // DSO / DPO (approx): outstanding / annualized revenue|cost × 365 — basis kanonik (FIRMFIN)
   const FFp = (FIRMFIN && (FIRMFIN as any).pl()) || { revenue: 11_300_000_000, totalExpense: 8_500_000_000, salary: 5_420_000_000 };
@@ -352,14 +352,14 @@ function FirmAPAR() {
   // 30/60/90 payment requirement projection for AP
   const payReq = [30, 60, 90].map(d => {
     const lim = new Date(REF.getTime() + d * 864e5);
-    const v = ap.filter(x => x.status !== 'Paid' && new Date(x.due) <= lim).reduce((s, x) => s + (x.amount - x.paid), 0);
+    const v = ap.filter((x: any) => x.status !== 'Paid' && new Date(x.due) <= lim).reduce((s: any, x: any) => s + (x.amount - x.paid), 0);
     return { d, v };
   });
 
-  const tabs = [{ id: 'ap', label: 'Utang (AP)', count: ap.filter(x => x.status !== 'Paid').length }, { id: 'ar', label: 'Piutang (AR)', count: ar.filter(x => x.status !== 'Paid' && x.status !== 'Draft').length }];
+  const tabs = [{ id: 'ap', label: 'Utang (AP)', count: ap.filter((x: any) => x.status !== 'Paid').length }, { id: 'ar', label: 'Piutang (AR)', count: ar.filter((x: any) => x.status !== 'Paid' && x.status !== 'Draft').length }];
 
-  const apRows = ap.map(x => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
-  const arRows = ar.filter(x => x.status !== 'Draft').map(x => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
+  const apRows = ap.map((x: any) => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
+  const arRows = ar.filter((x: any) => x.status !== 'Draft').map((x: any) => ({ ...x, out: x.amount - x.paid, dOver: Math.round((+REF - +new Date(x.due)) / 864e5) }));
 
   return (
     <>
@@ -379,7 +379,7 @@ function FirmAPAR() {
               <table className="dtbl">
                 <thead><tr><th>No.</th><th>Vendor</th><th>Kategori</th><th className="num">Outstanding</th><th>Jatuh Tempo</th><th>Umur</th><th>Status</th><th></th></tr></thead>
                 <tbody>
-                  {apRows.map(x => (
+                  {apRows.map((x: any) => (
                     <tr key={x.id}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</td>
                       <td style={{ fontWeight: 600 }} className="truncate">{x.vendor}</td>
@@ -387,7 +387,7 @@ function FirmAPAR() {
                       <td className="num">{fmt(x.out / 1e6, 0)} jt</td>
                       <td className="mono tiny" style={{ color: x.status === 'Overdue' ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(x.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td className="tiny mono" style={{ color: x.dOver > 0 ? 'var(--red)' : 'var(--ink-4)' }}>{x.out > 0 ? (x.dOver > 0 ? x.dOver + 'h' : agingBucket(x.dOver).l.replace('Belum jatuh tempo', 'lancar')) : '—'}</td>
-                      <td><Badge kind={APAR_STATUS[x.status]}>{x.status}</Badge></td>
+                      <td><Badge kind={(APAR_STATUS as any)[x.status]}>{x.status}</Badge></td>
                       <td>{x.status !== 'Paid' && <button className="btn sm" style={{ height: 22 }} onClick={() => payAp(x.id)}>Bayar</button>}</td>
                     </tr>
                   ))}
@@ -398,7 +398,7 @@ function FirmAPAR() {
               <table className="dtbl">
                 <thead><tr><th>No. Faktur</th><th>Klien</th><th>Termin</th><th className="num">Outstanding</th><th>Jatuh Tempo</th><th>Umur</th><th>Status</th></tr></thead>
                 <tbody>
-                  {arRows.map(x => (
+                  {arRows.map((x: any) => (
                     <tr key={x.id} onClick={() => nav('billing')} style={{ cursor: 'pointer' }}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</td>
                       <td style={{ fontWeight: 600 }} className="truncate">{x.client.replace('PT ', '')}</td>
@@ -406,7 +406,7 @@ function FirmAPAR() {
                       <td className="num">{x.out > 0 ? fmt(x.out / 1e6, 0) + ' jt' : '—'}</td>
                       <td className="mono tiny" style={{ color: x.dOver > 0 && x.out > 0 ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(x.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                       <td className="tiny mono" style={{ color: x.dOver > 0 && x.out > 0 ? 'var(--red)' : 'var(--ink-4)' }}>{x.out > 0 ? (x.dOver > 0 ? x.dOver + 'h' : 'lancar') : '—'}</td>
-                      <td><Badge kind={APAR_STATUS[x.status]}>{x.status}</Badge></td>
+                      <td><Badge kind={(APAR_STATUS as any)[x.status]}>{x.status}</Badge></td>
                     </tr>
                   ))}
                 </tbody>
@@ -417,8 +417,8 @@ function FirmAPAR() {
 
           <div style={{ display: 'grid', gap: 12 }}>
             {tab === 'ap'
-              ? <AgingStrip items={ap} getDue={x => x.due} getOut={x => x.amount - x.paid} />
-              : <AgingStrip items={arRows} getDue={x => x.due} getOut={x => x.out} />}
+              ? <AgingStrip items={ap} getDue={(x: any) => x.due} getOut={(x: any) => x.amount - x.paid} />
+              : <AgingStrip items={arRows} getDue={(x: any) => x.due} getOut={(x: any) => x.out} />}
             {tab === 'ap' && (
               <Panel title="Kebutuhan Kas — Pembayaran Vendor" sub="proyeksi bergulir">
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -434,7 +434,7 @@ function FirmAPAR() {
             )}
             {tab === 'ar' && (
               <Panel title="Konsentrasi Piutang" sub="per klien">
-                {Object.values(arRows.filter(x => x.out > 0).reduce((m, x) => {
+                {Object.values(arRows.filter((x: any) => x.out > 0).reduce((m: any, x: any) => {
                   const k = x.client.replace('PT ', '');
                   (m[k] = m[k] || { k, v: 0 }).v += x.out; return m;
                 }, {} as any)).sort((a: any, b: any) => b.v - a.v).map((c: any, i: number) => {

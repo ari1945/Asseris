@@ -22,14 +22,14 @@ const RC_STAT = {
   err:  { kind: 'red',   icon: 'x',           label: 'Selisih' },
 };
 
-function rcJt(n) { return 'Rp ' + AMS.fmt(Math.round(n)) + ' jt'; }
+function rcJt(n: any) { return 'Rp ' + AMS.fmt(Math.round(n)) + ' jt'; }
 
 /* ---- node kecil untuk diagram lineage ---- */
 function RCNode({ icon, title, sub, accent, onClick }: any) {
   return (
     <div onClick={onClick} className="panel" style={{ padding: '9px 11px', minWidth: 0, flex: '1 1 0', cursor: onClick ? 'pointer' : 'default', borderTop: '3px solid ' + accent }}>
       <div className="row ac gap8" style={{ marginBottom: 1 }}>
-        <span style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px' }}>{React.createElement(I[icon] || I.panel, { size: 13 })}</span>
+        <span style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px' }}>{React.createElement((I as any)[icon] || I.panel, { size: 13 })}</span>
         <span style={{ fontSize: 12, fontWeight: 700 }} className="truncate">{title}</span>
       </div>
       <div className="tiny muted truncate">{sub}</div>
@@ -42,12 +42,12 @@ function RCArrow() {
 
 /* ---- satu baris rekonsiliasi (sumber → konsumen) ---- */
 function RCRow({ r, nav }: any) {
-  const st = RC_STAT[r.status];
+  const st = (RC_STAT as any)[r.status];
   const tol = 1;
   return (
     <div className="panel" style={{ padding: 0, overflow: 'hidden', marginBottom: 10, borderLeft: '3px solid var(--' + st.kind + ')' }}>
       <div className="row ac gap8" style={{ padding: '10px 13px', borderBottom: '1px solid var(--line-soft)' }}>
-        <span style={{ color: 'var(--' + st.kind + ')', flex: '0 0 16px' }}>{React.createElement(I[st.icon] || I.panel, { size: 16 })}</span>
+        <span style={{ color: 'var(--' + st.kind + ')', flex: '0 0 16px' }}>{React.createElement((I as any)[st.icon] || I.panel, { size: 16 })}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="row ac gap8"><span style={{ fontSize: 13, fontWeight: 700 }} className="truncate">{r.pos}</span><Badge kind="gray">{r.ref}</Badge></div>
         </div>
@@ -69,7 +69,7 @@ function RCRow({ r, nav }: any) {
 
         {/* konsumen */}
         <div style={{ display: 'grid', gap: 5, paddingLeft: 4 }}>
-          {r.consumers.map((c, i) => {
+          {r.consumers.map((c: any, i: any) => {
             const off = Math.abs(c.val - r.source) > tol;
             return (
               <div key={i} onClick={c.module ? () => nav(c.module) : undefined} className="row ac gap8" style={{ padding: '5px 8px', borderRadius: 6, cursor: c.module ? 'pointer' : 'default' }}>
@@ -85,7 +85,7 @@ function RCRow({ r, nav }: any) {
         {/* angka pendukung */}
         {r.extra && r.extra.length > 0 && (
           <div className="row" style={{ gap: 6, flexWrap: 'wrap', paddingLeft: 4 }}>
-            {r.extra.map((e, i) => (
+            {r.extra.map((e: any, i: any) => (
               <span key={i} className="row ac gap8" style={{ fontSize: 11, padding: '3px 8px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span className="muted">{e.label}</span><span className="mono" style={{ fontWeight: 700 }}>{rcJt(e.val)}</span>
               </span>
@@ -107,16 +107,16 @@ function DFRekonsiliasi() {
   const R = useMemoRC(() => canon.reconcile(wtb), [wtb]);
   const rows = R.accounting;
 
-  const ok = rows.filter(r => r.status === 'ok').length;
-  const warn = rows.filter(r => r.status === 'warn').length;
-  const err = rows.filter(r => r.status === 'err').length;
+  const ok = rows.filter((r: any) => r.status === 'ok').length;
+  const warn = rows.filter((r: any) => r.status === 'warn').length;
+  const err = rows.filter((r: any) => r.status === 'err').length;
   const dtaVar = Math.abs(R.dt.dtaVariance);
 
   /* ---- tie-out keuangan firma (fee perikatan aktif lintas-modul) ---- */
   const fmt = AMS.fmt;
   const pppk = ((AMS.PPPK_CLIENTS as any[]) || []).find(c => c.id === 'C-014');
-  const crm = (AMS.CRM_360 || {})['C-014'];
-  const crmAudit = crm && crm.contracts ? crm.contracts.find(c => /Audit/.test(c.type)) : null;
+  const crm = ((AMS.CRM_360 || {}) as any)['C-014'];
+  const crmAudit = crm && crm.contracts ? crm.contracts.find((c: any) => /Audit/.test(c.type)) : null;
   const feePppk = pppk ? pppk.fee : null;                         // Rp juta
   const feeCrm = crmAudit ? Math.round(crmAudit.value / 1e6) : null;
   const feeTie = feePppk != null && feeCrm != null && Math.abs(feePppk - feeCrm) <= 1;
@@ -159,7 +159,7 @@ function DFRekonsiliasi() {
         <h3 style={{ fontSize: 13, fontWeight: 700 }}>Rekonsiliasi Pos Akuntansi Entitas — PT Sentosa Makmur</h3>
         <Btn sm onClick={() => nav('wtb')}><I.table size={13} /> Buka WTB</Btn>
       </div>
-      {rows.map(r => <RCRow key={r.id} r={r} nav={nav} />)}
+      {rows.map((r: any) => <RCRow key={r.id} r={r} nav={nav} />)}
 
       {/* ---- tie-out keuangan firma ---- */}
       <div style={{ height: 6 }} />

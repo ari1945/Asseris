@@ -32,7 +32,7 @@ function SJAH3402View() {
   const E = (AMS as any).socEngine(exec);
   const A = E.meta;
 
-  const toggle = (id, seed) => setExec(s => {
+  const toggle = (id: any, seed: any) => setExec((s: any) => {
     const cur = Object.prototype.hasOwnProperty.call(s, id) ? s[id] : seed;
     return { ...s, [id]: !cur };
   });
@@ -95,8 +95,8 @@ function SJAH3402View() {
 }
 
 /* ---------------- Tab: Anatomi Perikatan ---------------- */
-function SocAnatomy({ E, A }) {
-  const acc = A.terms.filter(t => t.ok).length;
+function SocAnatomy({ E, A }: any) {
+  const acc = A.terms.filter((t: any) => t.ok).length;
   const nav = useNav();
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -130,7 +130,7 @@ function SocAnatomy({ E, A }) {
               ['building', 'teal', 'Organisasi Jasa (Pihak Bertanggung Jawab)', A.responsibleParty + ' — menyusun deskripsi sistem & asersi tertulis.'],
               ['users', 'purple', 'Pengguna yang Dituju', A.intendedUsers],
             ].map((r, i) => {
-              const Ic = I[r[0]];
+              const Ic = (I as any)[r[0]];
               return (
                 <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
                   <span style={{ width: 32, height: 32, borderRadius: 8, flex: '0 0 32px', display: 'grid', placeItems: 'center', background: `var(--${r[1]}-bg)`, color: `var(--${r[1]})` }}><Ic size={16} /></span>
@@ -178,7 +178,7 @@ function SocAnatomy({ E, A }) {
       <Panel noBody>
         <div className="panel-h"><h3>Penerimaan Perikatan (¶13–17)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: acc === A.terms.length ? 'var(--green)' : 'var(--amber)' }}>{acc}/{A.terms.length}</span></div>
         <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px 24px' }}>
-          {A.terms.map((t, i) => (
+          {A.terms.map((t: any, i: any) => (
             <div key={i} className="row gap8" style={{ alignItems: 'flex-start', fontSize: 12 }}>
               <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{t.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
               <span style={{ lineHeight: 1.45 }}>{t.k}</span>
@@ -191,7 +191,7 @@ function SocAnatomy({ E, A }) {
 }
 
 /* ---------------- Tab: Tujuan & Matriks Kontrol ---------------- */
-function SocMatrix({ E }) {
+function SocMatrix({ E }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
@@ -202,14 +202,14 @@ function SocMatrix({ E }) {
             <th style={{ width: 120 }}>Frekuensi</th><th style={{ width: 150 }}>Sifat Uji</th><th style={{ width: 82 }}>Desain</th>
           </tr></thead>
           <tbody>
-            {E.objectives.map(o => (
+            {E.objectives.map((o: any) => (
               <React.Fragment key={o.id}>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{o.id}</td>
                   <td colSpan={4} style={{ fontWeight: 700, fontSize: 12 }}>{o.name}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 1 }}>{o.desc}</div></td>
                   <td><Badge kind="green">Sesuai</Badge></td>
                 </tr>
-                {o.controls.map(c => (
+                {o.controls.map((c: any) => (
                   <tr key={c.id}>
                     <td className="mono tiny muted" style={{ fontWeight: 700 }}>{c.id}</td>
                     <td style={{ whiteSpace: 'normal', lineHeight: 1.35, fontWeight: 500 }}>{c.name}</td>
@@ -235,7 +235,7 @@ function SocMatrix({ E }) {
 }
 
 /* ---------------- Tab: Pengujian & Hasil ---------------- */
-function SocTesting({ E, toggle }) {
+function SocTesting({ E, toggle }: any) {
   const natColor = { 'Inspeksi': 'blue', 'Reperformance': 'purple', 'Observasi': 'teal', 'Inquiry': 'amber' };
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
@@ -248,18 +248,18 @@ function SocTesting({ E, toggle }) {
               <th style={{ width: 74 }}>Deviasi</th><th style={{ width: 96 }}>Hasil</th><th style={{ width: 88 }}>Status</th>
             </tr></thead>
             <tbody>
-              {E.objectives.map(o => (
+              {E.objectives.map((o: any) => (
                 <React.Fragment key={o.id}>
                   <tr style={{ background: 'var(--surface-2)' }}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{o.id}</td>
                     <td colSpan={3} style={{ fontWeight: 700, fontSize: 11.5 }}>{o.name}</td>
                     <td colSpan={2}>{!o.allTested ? <Badge kind="gray">Berjalan {o.tested}/{o.total}</Badge> : (o.achieved ? <Badge kind="green">Tujuan tercapai</Badge> : <Badge kind="red">Belum tercapai</Badge>)}</td>
                   </tr>
-                  {o.controls.map(c => (
+                  {o.controls.map((c: any) => (
                     <tr key={c.id}>
                       <td className="mono tiny muted" style={{ fontWeight: 700, verticalAlign: 'top' }}>{c.id}</td>
                       <td style={{ whiteSpace: 'normal', lineHeight: 1.35, verticalAlign: 'top' }}>{c.name}
-                        <div className="row gap6" style={{ marginTop: 3, flexWrap: 'wrap' }}>{c.nature.map(n => <span key={n} className="chip tiny" style={{ background: `var(--${natColor[n] || 'blue'}-bg)`, color: `var(--${natColor[n] || 'blue'})` }}>{n}</span>)}</div>
+                        <div className="row gap6" style={{ marginTop: 3, flexWrap: 'wrap' }}>{c.nature.map((n: any) => <span key={n} className="chip tiny" style={{ background: `var(--${(natColor as any)[n] || 'blue'}-bg)`, color: `var(--${(natColor as any)[n] || 'blue'})` }}>{n}</span>)}</div>
                       </td>
                       <td className="mono tiny" style={{ verticalAlign: 'top' }}>{c.sample} / {c.pop}</td>
                       <td className="mono tiny" style={{ verticalAlign: 'top', fontWeight: 700, color: c.dev > 0 ? 'var(--amber)' : 'var(--ink-3)' }}>{c.dev}</td>
@@ -277,7 +277,7 @@ function SocTesting({ E, toggle }) {
           </table>
         </Panel>
 
-        {E.controls.filter(c => c.deviationNoted).map(c => (
+        {E.controls.filter((c: any) => c.deviationNoted).map((c: any) => (
           <Panel key={c.id} noBody>
             <div className="panel-h"><h3>Evaluasi Deviasi — {c.id}</h3><div style={{ flex: 1 }} /><Badge kind={c.reportedException ? 'red' : 'green'}>{c.reportedException ? 'Pengecualian dilaporkan' : 'Tujuan tetap tercapai'}</Badge></div>
             <div style={{ padding: 14 }}>
@@ -308,7 +308,7 @@ function SocTesting({ E, toggle }) {
           <div style={{ padding: 12 }}>
             <p className="tiny muted" style={{ margin: '0 0 9px', lineHeight: 1.5 }}>Complementary User Entity Controls — diasumsikan beroperasi di entitas pengguna agar tujuan pengendalian tercapai. Satu sumber yang juga dirujuk modul SA 402.</p>
             <div style={{ display: 'grid', gap: 6 }}>
-              {E.cuec.map((c, i) => (
+              {E.cuec.map((c: any, i: any) => (
                 <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
                   <span className="mono tiny" style={{ flex: '0 0 22px', fontWeight: 700, color: 'var(--blue)' }}>{String(i + 1).padStart(2, '0')}</span>
                   <span style={{ lineHeight: 1.4 }}>{c}</span>
@@ -329,7 +329,7 @@ function SocTesting({ E, toggle }) {
 }
 
 /* ---------------- Tab: Opini & Laporan ---------------- */
-function SocReport({ E, A }) {
+function SocReport({ E, A }: any) {
   const O = E.opinion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (

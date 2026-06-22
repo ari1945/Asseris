@@ -15,7 +15,7 @@ import { HBars } from './view_fpm_parts';
 const { useState: useEng2 } = React;
 
 const ENG_PHASE_COLOR = { Perencanaan: '#5b3fa6', Eksekusi: '#005085', Finalisasi: '#9a6a00', Arsip: '#1f7a4d' };
-const engDetail = (e) => (AMS as any).ENG_DETAIL[e.id] || (AMS as any).ENG_DETAIL._default(e);
+const engDetail = (e: any) => (AMS as any).ENG_DETAIL[e.id] || (AMS as any).ENG_DETAIL._default(e);
 
 /* ---------------- Portofolio (filterable table) ---------------- */
 function EngPortofolio() {
@@ -25,16 +25,16 @@ function EngPortofolio() {
   const [risk, setRisk] = useEng2('All');
   const [detailId, setDetailId] = useEng2(null);
 
-  const rows = engagements.filter(e => (phase === 'All' || e.phase === phase) && (risk === 'All' || e.risk === risk));
-  const detail = detailId ? engagements.find(e => e.id === detailId) : null;
+  const rows = engagements.filter((e: any) => (phase === 'All' || e.phase === phase) && (risk === 'All' || e.risk === risk));
+  const detail = detailId ? engagements.find((e: any) => e.id === detailId) : null;
 
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.length} label="Total Engagement" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter(e => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter(e => e.actualHrs / e.budgetHrs > 0.95).length} label="Burn > 95%" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(engagements.reduce((s, e) => s + e.progress, 0) / engagements.length) + '%'} label="Rata-rata Progress" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter((e: any) => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter((e: any) => e.actualHrs / e.budgetHrs > 0.95).length} label="Burn > 95%" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(engagements.reduce((s: any, e: any) => s + e.progress, 0) / engagements.length) + '%'} label="Rata-rata Progress" /></div></Panel>
       </div>
 
       <Panel noBody>
@@ -49,7 +49,7 @@ function EngPortofolio() {
             <th>Partner</th><th className="num">Budget Burn</th><th>Risiko</th><th className="num">Deadline</th>
           </tr></thead>
           <tbody>
-            {rows.map(e => {
+            {rows.map((e: any) => {
               const c = clientById(e.clientId);
               const burn = e.actualHrs / e.budgetHrs;
               return (
@@ -57,7 +57,7 @@ function EngPortofolio() {
                   <td className="mono tiny" style={{ fontWeight: 700 }}>{e.id}</td>
                   <td className="truncate" style={{ maxWidth: 150 }}>{c?.name.replace('PT ', '')}</td>
                   <td className="tiny muted truncate" style={{ maxWidth: 130 }}>{e.type}</td>
-                  <td><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: ENG_PHASE_COLOR[e.phase] }} /><span className="tiny">{e.phase}</span></span></td>
+                  <td><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: (ENG_PHASE_COLOR as any)[e.phase] }} /><span className="tiny">{e.phase}</span></span></td>
                   <td><div className="row ac gap6"><Progress value={e.progress} /><span className="mono tiny" style={{ width: 26 }}>{e.progress}%</span></div></td>
                   <td className="tiny muted truncate" style={{ maxWidth: 110 }}>{e.partner.split(',')[0]}</td>
                   <td className="num" style={{ color: burn > 0.95 ? 'var(--red)' : burn > 0.85 ? 'var(--amber)' : 'inherit', fontWeight: 600 }}>{Math.round(burn * 100)}%</td>
@@ -69,7 +69,7 @@ function EngPortofolio() {
           </tbody>
         </table>
       </Panel>
-      {detail && <EngagementDetail e={detail} client={clients.find(c => c.id === detail.clientId)} onClose={() => setDetailId(null)} />}
+      {detail && <EngagementDetail e={detail} client={clients.find((c: any) => c.id === detail.clientId)} onClose={() => setDetailId(null)} />}
     </div></div>
   );
 }
@@ -79,12 +79,12 @@ function EngAnggaran() {
   const { fmt } = AMS;
   const { engagements, clientById } = useFirm();
   const [selId, setSelId] = useEng2(engagements[0].id);
-  const sel = engagements.find(e => e.id === selId) || engagements[0];
+  const sel = engagements.find((e: any) => e.id === selId) || engagements[0];
   const det = engDetail(sel);
 
-  const totalBudget = engagements.reduce((s, e) => s + e.budgetHrs, 0);
-  const totalActual = engagements.reduce((s, e) => s + e.actualHrs, 0);
-  const overBudget = engagements.filter(e => e.actualHrs > e.budgetHrs).length;
+  const totalBudget = engagements.reduce((s: any, e: any) => s + e.budgetHrs, 0);
+  const totalActual = engagements.reduce((s: any, e: any) => s + e.actualHrs, 0);
+  const overBudget = engagements.filter((e: any) => e.actualHrs > e.budgetHrs).length;
   const blendedRate = 720_000;
 
   return (
@@ -99,7 +99,7 @@ function EngAnggaran() {
       <Panel noBody className="mb12">
         <div className="panel-h"><h3>Anggaran vs Aktual per Engagement</h3></div>
         <div style={{ padding: 14, display: 'grid', gap: 11 }}>
-          {engagements.map(e => {
+          {engagements.map((e: any) => {
             const c = clientById(e.clientId);
             const burn = e.actualHrs / e.budgetHrs;
             return (
@@ -121,7 +121,7 @@ function EngAnggaran() {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title={'Rincian Anggaran per Fase · ' + sel.id} sub={clientById(sel.clientId)?.name.replace('PT ', '')}>
           <div style={{ padding: 14, display: 'grid', gap: 11 }}>
-            {det.budgetByPhase.map(p => {
+            {det.budgetByPhase.map((p: any) => {
               const b = p.actual / p.budget;
               return (
                 <div key={p.phase}>
@@ -137,7 +137,7 @@ function EngAnggaran() {
 
         <Panel title={'Tagihan Bertahap · ' + sel.id} sub="milestone billing">
           <div style={{ padding: 14, display: 'grid', gap: 9 }}>
-            {det.billing.map((b, i) => (
+            {det.billing.map((b: any, i: any) => (
               <div key={i} className="row ac gap10" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)' }}>
                 <span style={{ width: 30, height: 30, borderRadius: 8, background: b.status === 'Tertagih' ? 'var(--green)' : b.status === 'WIP' ? 'var(--amber)' : 'var(--surface-3)', color: b.status === 'Belum' ? 'var(--ink-3)' : '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px', fontWeight: 700, fontSize: 11 }} className="mono">{b.pct}%</span>
                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{b.milestone}</div><div className="tiny muted">{b.date}</div></div>
@@ -156,16 +156,16 @@ function EngStaffing() {
   const { fmt } = AMS;
   const { engagements, clientById } = useFirm();
   const [selId, setSelId] = useEng2(engagements[0].id);
-  const sel = engagements.find(e => e.id === selId) || engagements[0];
+  const sel = engagements.find((e: any) => e.id === selId) || engagements[0];
   const det = engDetail(sel);
 
   /* aggregate person allocation across all engagements */
   const people = {};
-  engagements.forEach(e => {
-    engDetail(e).staffing.forEach(s => {
+  engagements.forEach((e: any) => {
+    engDetail(e).staffing.forEach((s: any) => {
       const key = s.name;
-      if (!people[key]) people[key] = { name: s.name, role: s.role, hrs: 0, engs: 0 };
-      people[key].hrs += s.hrs; people[key].engs++;
+      if (!(people as any)[key]) (people as any)[key] = { name: s.name, role: s.role, hrs: 0, engs: 0 };
+      (people as any)[key].hrs += s.hrs; (people as any)[key].engs++;
     });
   });
   const roster = (Object.values(people) as any[]).sort((a, b) => b.hrs - a.hrs);
@@ -185,20 +185,20 @@ function EngStaffing() {
         <Panel noBody>
           <div className="panel-h"><h3>Beban Tim Lintas Engagement</h3></div>
           <div style={{ padding: 14 }}>
-            <HBars rows={roster.map(p => ({ label: p.name, value: p.hrs, right: fmt(p.hrs) + 'h', color: roleColor[p.role] || '#5b8aa6', sub: p.role + ' · ' + p.engs + ' engagement' }))} max={maxHrs} />
+            <HBars rows={roster.map(p => ({ label: p.name, value: p.hrs, right: fmt(p.hrs) + 'h', color: (roleColor as any)[p.role] || '#5b8aa6', sub: p.role + ' · ' + p.engs + ' engagement' }))} max={maxHrs} />
           </div>
         </Panel>
 
         <Panel noBody>
           <div className="panel-h"><h3>Komposisi Tim</h3><div style={{ flex: 1 }} />
-            <select className="select" value={selId} onChange={e => setSelId(e.target.value)} style={{ height: 26, maxWidth: 200 }}>
-              {engagements.map(e => <option key={e.id} value={e.id}>{e.id} · {clientById(e.clientId)?.name.replace('PT ', '')}</option>)}
+            <select className="select" value={selId} onChange={(e: any) => setSelId(e.target.value)} style={{ height: 26, maxWidth: 200 }}>
+              {engagements.map((e: any) => <option key={e.id} value={e.id}>{e.id} · {clientById(e.clientId)?.name.replace('PT ', '')}</option>)}
             </select>
           </div>
           <table className="dtbl">
             <thead><tr><th>Anggota</th><th>Peran</th><th className="num">Alokasi</th><th className="num">Jam</th><th className="num">Rate/jam</th></tr></thead>
             <tbody>
-              {det.staffing.map((s, i) => (
+              {det.staffing.map((s: any, i: any) => (
                 <tr key={i}>
                   <td><span className="row ac gap8"><Avatar name={s.name} size={24} />{s.name.split(',')[0]}</span></td>
                   <td><Badge kind={s.role === 'Partner' ? 'blue' : 'gray'}>{s.role}</Badge></td>
@@ -208,7 +208,7 @@ function EngStaffing() {
                 </tr>
               ))}
             </tbody>
-            <tfoot><tr><td colSpan="3">Total tim {sel.id}</td><td className="num">{fmt(det.staffing.reduce((s, x) => s + x.hrs, 0))}h</td><td></td></tr></tfoot>
+            <tfoot><tr><td colSpan="3">Total tim {sel.id}</td><td className="num">{fmt(det.staffing.reduce((s: any, x: any) => s + x.hrs, 0))}h</td><td></td></tr></tfoot>
           </table>
         </Panel>
       </div>
@@ -221,17 +221,17 @@ function EngJadwal() {
   const { fmt } = AMS;
   const { engagements, clientById } = useFirm();
   const [selId, setSelId] = useEng2(engagements[0].id);
-  const sel = engagements.find(e => e.id === selId) || engagements[0];
+  const sel = engagements.find((e: any) => e.id === selId) || engagements[0];
 
   const today = new Date('2026-03-05');
   const t0 = new Date('2026-01-01').getTime();
   const t1 = new Date('2026-08-31').getTime();
   const span = t1 - t0;
-  const pos = (d) => Math.max(0, Math.min(100, (new Date(d).getTime() - t0) / span * 100));
+  const pos = (d: any) => Math.max(0, Math.min(100, (new Date(d).getTime() - t0) / span * 100));
   const todayPos = pos(today);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu'];
 
-  const sorted = engagements.slice().sort((a, b) => +new Date(a.deadline) - +new Date(b.deadline));
+  const sorted = engagements.slice().sort((a: any, b: any) => +new Date(a.deadline) - +new Date(b.deadline));
   const phases = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
   const phIdx = phases.indexOf(sel.phase);
   const milestones = [
@@ -251,7 +251,7 @@ function EngJadwal() {
             <span style={{ position: 'absolute', left: todayPos + '%', top: -2, bottom: -200, width: 2, background: 'var(--red)', opacity: .5, zIndex: 1 }} />
           </div>
           <div style={{ display: 'grid', gap: 7, position: 'relative' }}>
-            {sorted.map(e => {
+            {sorted.map((e: any) => {
               const c = clientById(e.clientId);
               const dl = pos(e.deadline);
               const start = Math.max(0, dl - (e.budgetHrs / 2200 * 60)); // notional duration from budget
@@ -263,8 +263,8 @@ function EngJadwal() {
                     <div className="tiny muted mono">{e.id}</div>
                   </div>
                   <div style={{ flex: 1, position: 'relative', height: 24 }}>
-                    <div style={{ position: 'absolute', left: start + '%', width: Math.max(4, dl - start) + '%', top: 4, height: 16, borderRadius: 4, background: ENG_PHASE_COLOR[e.phase], opacity: .25 }} />
-                    <div style={{ position: 'absolute', left: start + '%', width: Math.max(4, (dl - start) * e.progress / 100) + '%', top: 4, height: 16, borderRadius: 4, background: ENG_PHASE_COLOR[e.phase], display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
+                    <div style={{ position: 'absolute', left: start + '%', width: Math.max(4, dl - start) + '%', top: 4, height: 16, borderRadius: 4, background: (ENG_PHASE_COLOR as any)[e.phase], opacity: .25 }} />
+                    <div style={{ position: 'absolute', left: start + '%', width: Math.max(4, (dl - start) * e.progress / 100) + '%', top: 4, height: 16, borderRadius: 4, background: (ENG_PHASE_COLOR as any)[e.phase], display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
                       <span className="mono" style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>{e.progress}%</span>
                     </div>
                     <span style={{ position: 'absolute', left: 'calc(' + dl + '% + 4px)', top: 5, fontSize: 9.5, fontWeight: 700, color: days < 14 ? 'var(--red)' : 'var(--ink-3)', whiteSpace: 'nowrap' }} className="mono">{new Date(e.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {days}h</span>
@@ -295,7 +295,7 @@ function EngJadwal() {
 
         <Panel title="Beban Tenggat (30 hari)" sub="perikatan jatuh tempo terdekat">
           <div style={{ padding: 14, display: 'grid', gap: 8 }}>
-            {sorted.filter(e => { const d = Math.round((+new Date(e.deadline) - +today) / 86400000); return d >= 0 && d <= 90; }).slice(0, 6).map(e => {
+            {sorted.filter((e: any) => { const d = Math.round((+new Date(e.deadline) - +today) / 86400000); return d >= 0 && d <= 90; }).slice(0, 6).map((e: any) => {
               const c = clientById(e.clientId);
               const days = Math.round((+new Date(e.deadline) - +today) / 86400000);
               return (
@@ -303,7 +303,7 @@ function EngJadwal() {
                   <div style={{ width: 40, textAlign: 'center', flex: '0 0 40px' }}><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: days < 14 ? 'var(--red)' : days < 30 ? 'var(--amber)' : 'var(--navy)' }}>{days}</div><div className="tiny muted">hari</div></div>
                   <div className="vdivider" style={{ height: 26 }} />
                   <div style={{ flex: 1, minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{c?.name.replace('PT ', '')}</div><div className="tiny muted">{e.type} · {e.phase}</div></div>
-                  <div style={{ width: 70 }}><Progress value={e.progress} color={ENG_PHASE_COLOR[e.phase]} /></div>
+                  <div style={{ width: 70 }}><Progress value={e.progress} color={(ENG_PHASE_COLOR as any)[e.phase]} /></div>
                 </div>
               );
             })}

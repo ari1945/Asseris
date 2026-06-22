@@ -115,7 +115,7 @@ import { AMS } from './data';
     /* ---------- Tata Kelola & Mutu ---------- */
     { id: 'TPL-QM-01', name: 'Audit Methodology Pack', fmt: 'DOCX', phase: 'Tata Kelola & Mutu', cat: 'Metodologi & ISQM',
       ver: '4.2', updated: '2026-01-02', steward: 'Tim Metodologi', status: 'Aktif', module: 'governance',
-      sa: [{ code: 'ISQM 1' }, { code: 'SA 220' }], dl: 92, engs: [], dmsDoc: 'DOC-0701',
+      sa: [{ code: 'ISQM 1' }, { code: 'SA 220' }], dl: 92, engs: ([] as any[]), dmsDoc: 'DOC-0701',
       nextReview: '2027-01-02', retention: 3, desc: 'Pack metodologi firma menyeluruh — selaras ISQM & SA 315 (revisi). Diarsipkan & dikendalikan di DMS.' },
     { id: 'TPL-QM-02', name: 'EQR Review Checklist', fmt: 'DOCX', phase: 'Tata Kelola & Mutu', cat: 'Metodologi & ISQM',
       ver: '3.2', updated: '2025-12-20', steward: 'Hartono Wijaya, CPA', status: 'Aktif', module: 'eqr',
@@ -140,9 +140,9 @@ import { AMS } from './data';
      Dipakai modul lain untuk menarik "template terkait" dari sumber yang sama. */
   const TEMPLATES_BY_MODULE = {};
   TEMPLATES.forEach(t => {
-    (TEMPLATES_BY_MODULE[t.module] = TEMPLATES_BY_MODULE[t.module] || []).push(t);
+    ((TEMPLATES_BY_MODULE as any)[t.module] = (TEMPLATES_BY_MODULE as any)[t.module] || []).push(t);
   });
-  const templatesForModule = (id) => TEMPLATES_BY_MODULE[id] || [];
+  const templatesForModule = (id: any) => (TEMPLATES_BY_MODULE as any)[id] || [];
 
   /* distinct daftar modul konsumen (untuk membangkitkan lineage dock) */
   const TEMPLATE_CONSUMERS = Array.from(new Set(TEMPLATES.map(t => t.module)));

@@ -14,7 +14,7 @@ import { HBars, LineChart } from './view_fpm_parts';
 const { useState: useRisk2 } = React;
 
 const EFF_COLOR = { 'Efektif': '#1f7a4d', 'Sebagian': '#caa53d', 'Tidak Efektif': '#b3261e' };
-function rScoreColor(v) { return v >= 15 ? '#b3261e' : v >= 10 ? '#d4641c' : v >= 5 ? '#c79a1e' : '#1f7a4d'; }
+function rScoreColor(v: any) { return v >= 15 ? '#b3261e' : v >= 10 ? '#d4641c' : v >= 5 ? '#c79a1e' : '#1f7a4d'; }
 
 /* ---------------- Peta Kontrol ---------------- */
 function RiskKontrol() {
@@ -22,11 +22,11 @@ function RiskKontrol() {
   const { risks } = useAudit();
   const CTL: any = AMS.RISK_CONTROLS;
 
-  const eff = ['Efektif', 'Sebagian', 'Tidak Efektif'].map(e => ({ e, n: CTL.filter(c => c.effective === e).length }));
-  const prev = CTL.filter(c => c.type === 'Preventive').length;
-  const det = CTL.filter(c => c.type === 'Detective').length;
-  const deficiencies = CTL.filter(c => c.dev);
-  const untested = CTL.filter(c => !c.tested).length;
+  const eff = ['Efektif', 'Sebagian', 'Tidak Efektif'].map(e => ({ e, n: CTL.filter((c: any) => c.effective === e).length }));
+  const prev = CTL.filter((c: any) => c.type === 'Preventive').length;
+  const det = CTL.filter((c: any) => c.type === 'Detective').length;
+  const deficiencies = CTL.filter((c: any) => c.dev);
+  const untested = CTL.filter((c: any) => !c.tested).length;
 
   return (
     <div className="view-scroll"><div className="view-pad">
@@ -40,12 +40,12 @@ function RiskKontrol() {
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel title="Efektivitas Kontrol">
           <div style={{ padding: 14 }} className="row gap12 ac">
-            <Donut segments={eff.map(x => ({ value: x.n, color: EFF_COLOR[x.e] }))} size={104} thickness={15}
+            <Donut segments={eff.map(x => ({ value: x.n, color: (EFF_COLOR as any)[x.e] }))} size={104} thickness={15}
               center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>{CTL.length}</div><div className="tiny muted">kontrol</div></>} />
             <div style={{ flex: 1 }}>
               {eff.map(x => (
                 <div key={x.e} className="row jb ac" style={{ padding: '4px 0' }}>
-                  <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: EFF_COLOR[x.e] }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{x.e}</span></span>
+                  <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: (EFF_COLOR as any)[x.e] }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{x.e}</span></span>
                   <span className="mono tiny" style={{ fontWeight: 700 }}>{x.n}</span>
                 </div>
               ))}
@@ -58,8 +58,8 @@ function RiskKontrol() {
 
         <Panel title="Defisiensi Pengendalian" sub="SA 265 · perlu komunikasi TCWG">
           <div style={{ padding: 14, display: 'grid', gap: 8 }}>
-            {deficiencies.map(c => (
-              <div key={c.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid ' + EFF_COLOR[c.effective] }}>
+            {deficiencies.map((c: any) => (
+              <div key={c.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid ' + (EFF_COLOR as any)[c.effective] }}>
                 <div className="row jb ac"><span className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</span></span><Badge kind={c.effective === 'Tidak Efektif' ? 'red' : 'amber'}>{c.effective}</Badge></div>
                 <div className="tiny muted" style={{ marginTop: 2 }}>{c.area} · {c.type} · pemilik {c.owner} · menutup {c.risks.join(', ')}</div>
               </div>
@@ -73,7 +73,7 @@ function RiskKontrol() {
         <table className="dtbl">
           <thead><tr><th>ID</th><th>Kontrol</th><th>Area</th><th>Jenis</th><th>Frekuensi</th><th>Pemilik</th><th>Otomasi</th><th>Efektivitas</th><th>Risiko</th></tr></thead>
           <tbody>
-            {CTL.map(c => (
+            {CTL.map((c: any) => (
               <tr key={c.id}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{c.id}</td>
                 <td style={{ fontWeight: 600, maxWidth: 200 }} className="truncate">{c.name}</td>
@@ -82,8 +82,8 @@ function RiskKontrol() {
                 <td className="tiny">{c.freq}</td>
                 <td className="tiny muted">{c.owner}</td>
                 <td>{c.auto ? <span className="badge b-green" style={{ fontSize: 8.5 }}>AUTO</span> : <span className="badge b-gray" style={{ fontSize: 8.5 }}>MANUAL</span>}</td>
-                <td><span className="badge" style={{ background: EFF_COLOR[c.effective], color: '#fff', fontSize: 9 }}>{c.effective}</span></td>
-                <td>{c.risks.map(r => <span key={r} className="chip tiny" style={{ marginRight: 3, cursor: 'pointer' }} onClick={() => nav('risk')}>{r}</span>)}</td>
+                <td><span className="badge" style={{ background: (EFF_COLOR as any)[c.effective], color: '#fff', fontSize: 9 }}>{c.effective}</span></td>
+                <td>{c.risks.map((r: any) => <span key={r} className="chip tiny" style={{ marginRight: 3, cursor: 'pointer' }} onClick={() => nav('risk')}>{r}</span>)}</td>
               </tr>
             ))}
           </tbody>
@@ -98,10 +98,10 @@ function RiskTren() {
   const { risks } = useAudit();
   const T: any = AMS.RISK_TREND;
   const [selId, setSelId] = useRisk2('R-01');
-  const sel = risks.find(r => r.id === selId) || risks[0];
+  const sel = risks.find((r: any) => r.id === selId) || risks[0];
   const series = T.series[selId] || T.series['R-01'];
 
-  const rows = risks.map(r => {
+  const rows = risks.map((r: any) => {
     const s = T.series[r.id] || [0, 0, 0, 0];
     return { id: r.id, area: r.area, inherent: s[0], residual: s[s.length - 1], reduction: s[0] - s[s.length - 1] };
   });
@@ -113,14 +113,14 @@ function RiskTren() {
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={T.firmAvg[0]} label="Rata-rata Inheren" accent="var(--red)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={T.firmAvg[T.firmAvg.length - 1]} label="Rata-rata Residual" accent="var(--amber)" /></div></Panel>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={'-' + (T.firmAvg[0] - T.firmAvg[T.firmAvg.length - 1]).toFixed(1)} label="Penurunan Risiko" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={rows.filter(r => r.residual >= 12).length} label="Residual Signifikan" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={rows.filter((r: any) => r.residual >= 12).length} label="Residual Signifikan" accent="var(--red)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Trajektori Risiko Residual</h3><div style={{ flex: 1 }} />
-            <select className="select" value={selId} onChange={e => setSelId(e.target.value)} style={{ height: 26, maxWidth: 200 }}>
-              {risks.map(r => <option key={r.id} value={r.id}>{r.id} · {r.area}</option>)}
+            <select className="select" value={selId} onChange={(e: any) => setSelId(e.target.value)} style={{ height: 26, maxWidth: 200 }}>
+              {risks.map((r: any) => <option key={r.id} value={r.id}>{r.id} · {r.area}</option>)}
             </select>
           </div>
           <div style={{ padding: '14px 16px' }}>
@@ -134,7 +134,7 @@ function RiskTren() {
 
         <Panel title="Jembatan Inheren → Residual" sub="penurunan per risiko">
           <div style={{ padding: 14, display: 'grid', gap: 9 }}>
-            {rows.sort((a, b) => b.residual - a.residual).map(r => (
+            {rows.sort((a: any, b: any) => b.residual - a.residual).map((r: any) => (
               <div key={r.id}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{r.id} · {r.area}</span><span className="mono"><span style={{ color: 'var(--ink-4)' }}>{r.inherent}</span> → <b style={{ color: rScoreColor(r.residual) }}>{r.residual}</b></span></div>
                 <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)', position: 'relative', overflow: 'hidden' }}>
@@ -153,7 +153,7 @@ function RiskTren() {
         <table className="dtbl">
           <thead><tr><th>Risiko</th><th>Area</th><th className="num">Skor Inheren</th><th className="num">Skor Residual</th><th className="num">Penurunan</th><th style={{ width: 160 }}>Efektivitas Mitigasi</th></tr></thead>
           <tbody>
-            {rows.map(r => (
+            {rows.map((r: any) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                 <td style={{ fontWeight: 600 }}>{r.area}</td>
@@ -176,18 +176,18 @@ function RiskRespons() {
   const { risks } = useAudit();
 
   const approaches = [
-    { k: 'Substantif diperluas', n: risks.filter(r => r.likelihood * r.impact >= 12).length, color: '#b3261e' },
-    { k: 'Uji pengendalian + substantif', n: risks.filter(r => { const s = r.likelihood * r.impact; return s >= 6 && s < 12; }).length, color: '#caa53d' },
-    { k: 'Prosedur analitis substantif', n: risks.filter(r => r.likelihood * r.impact < 6).length, color: '#1f7a4d' },
+    { k: 'Substantif diperluas', n: risks.filter((r: any) => r.likelihood * r.impact >= 12).length, color: '#b3261e' },
+    { k: 'Uji pengendalian + substantif', n: risks.filter((r: any) => { const s = r.likelihood * r.impact; return s >= 6 && s < 12; }).length, color: '#caa53d' },
+    { k: 'Prosedur analitis substantif', n: risks.filter((r: any) => r.likelihood * r.impact < 6).length, color: '#1f7a4d' },
   ];
 
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
         <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.length} label="Risiko dengan Respons" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter(r => r.fraud).length} label="Respons Fraud (SA 240)" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(risks.map(r => r.wp)).size} label="Prosedur Tertaut (WP)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter(r => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter((r: any) => r.fraud).length} label="Respons Fraud (SA 240)" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(risks.map((r: any) => r.wp)).size} label="Prosedur Tertaut (WP)" /></div></Panel>
+        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 2fr', gap: 12, alignItems: 'start' }}>
@@ -203,7 +203,7 @@ function RiskRespons() {
         <Panel noBody>
           <div className="panel-h"><h3>Matriks Respons Risiko</h3></div>
           <div style={{ maxHeight: 460, overflow: 'auto' }}>
-            {risks.map(r => {
+            {risks.map((r: any) => {
               const sc = r.likelihood * r.impact;
               return (
                 <div key={r.id} style={{ padding: '12px 14px', borderBottom: '1px solid var(--line-soft)' }}>
@@ -225,13 +225,13 @@ function RiskRespons() {
                       {(() => {
                         const procId = r.proc || (((AMS as any).RISKS || []).find((x: any) => x.id === r.id) || {}).proc || 'workpapers';
                         const pm = (window.MODULE_INDEX || {})[procId] || { label: procId, icon: 'flask' };
-                        const PI = I[pm.icon] || I.flask;
+                        const PI = (I as any)[pm.icon] || I.flask;
                         return (
                           <div style={{ display: 'grid', gap: 5 }}>
                             <button type="button" className="row ac gap7" onClick={() => nav(procId, { from: 'risk' })}
                               style={{ padding: '7px 9px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; e.currentTarget.style.borderLeftColor = 'var(--blue)'; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.borderLeftColor = 'var(--blue)'; }}>
+                              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; e.currentTarget.style.borderLeftColor = 'var(--blue)'; }}
+                              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.borderLeftColor = 'var(--blue)'; }}>
                               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><PI size={14} /></span>
                               <span style={{ flex: 1, fontSize: 11.5, fontWeight: 600 }}>{pm.label}</span>
                               <I.arrowRight size={12} style={{ color: 'var(--ink-4)' }} />

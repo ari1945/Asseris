@@ -23,16 +23,16 @@ function EQRWorkflow() {
   const [reviews, setReviews] = useAmsPersist('eqrReviews.v2', () => AMS.EQR_REVIEWS);
   const [sel, setSel] = useEQR(reviews[0].id);
 
-  const setReview = (id, fn) => setReviews(list => list.map(r => r.id === id ? fn(r) : r));
-  const r = reviews.find(x => x.id === sel) || reviews[0];
-  const meta = (AMS.EQR_META || {})[r.id] || {};
-  const doneN = r.checklist.filter(c => c.ok).length;
+  const setReview = (id: any, fn: any) => setReviews((list: any) => list.map((r: any) => r.id === id ? fn(r) : r));
+  const r = reviews.find((x: any) => x.id === sel) || reviews[0];
+  const meta = ((AMS.EQR_META || {}) as any)[r.id] || {};
+  const doneN = r.checklist.filter((c: any) => c.ok).length;
   const allChecked = doneN === r.checklist.length;
-  const openFindings = r.findings.filter(f => f.status === 'Terbuka').length;
+  const openFindings = r.findings.filter((f: any) => f.status === 'Terbuka').length;
   const canClear = allChecked && openFindings === 0 && !r.cleared;
 
-  const toggleCheck = (i) => setReview(r.id, pr => ({ ...pr, checklist: pr.checklist.map((c, j) => j === i ? { ...c, ok: !c.ok } : c), status: 'Berjalan' }));
-  const clearGate = () => setReview(r.id, pr => ({ ...pr, cleared: true, status: 'Selesai', clearedBy: pr.reviewer, clearedDate: new Date().toISOString().slice(0, 10) }));
+  const toggleCheck = (i: any) => setReview(r.id, (pr: any) => ({ ...pr, checklist: pr.checklist.map((c: any, j: any) => j === i ? { ...c, ok: !c.ok } : c), status: 'Berjalan' }));
+  const clearGate = () => setReview(r.id, (pr: any) => ({ ...pr, cleared: true, status: 'Selesai', clearedBy: pr.reviewer, clearedDate: new Date().toISOString().slice(0, 10) }));
 
   return (
     <>
@@ -40,9 +40,9 @@ function EQRWorkflow() {
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.length} label="EQR Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.filter(x => x.type.includes('PIE')).length} label="Wajib (PIE/Emiten)" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.filter(x => x.cleared).length + ' / ' + reviews.length} label="Gerbang Lolos" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.reduce((s, x) => s + x.findings.filter(f => f.status === 'Terbuka').length, 0)} label="Temuan Terbuka" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.filter((x: any) => x.type.includes('PIE')).length} label="Wajib (PIE/Emiten)" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.filter((x: any) => x.cleared).length + ' / ' + reviews.length} label="Gerbang Lolos" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.reduce((s: any, x: any) => s + x.findings.filter((f: any) => f.status === 'Terbuka').length, 0)} label="Temuan Terbuka" accent="var(--amber)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
@@ -50,9 +50,9 @@ function EQRWorkflow() {
           <Panel noBody>
             <div className="panel-h"><h3>Daftar EQR</h3></div>
             <div style={{ display: 'grid' }}>
-              {reviews.map(x => (
+              {reviews.map((x: any) => (
                 <div key={x.id} onClick={() => setSel(x.id)} style={{ padding: '11px 13px', cursor: 'pointer', borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (x.id === sel ? 'var(--blue)' : 'transparent'), background: x.id === sel ? 'var(--blue-050)' : 'transparent' }}>
-                  <div className="row jb ac" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</span><Badge kind={EQR_STAT[x.status]}>{x.status}</Badge></div>
+                  <div className="row jb ac" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</span><Badge kind={(EQR_STAT as any)[x.status]}>{x.status}</Badge></div>
                   <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{x.client.replace('PT ', '')}</div>
                   <div className="row jb ac" style={{ marginTop: 3 }}><span className="tiny muted">{x.reviewer.split(',')[0]}</span><span className="badge tiny" style={{ background: x.type.includes('PIE') ? 'var(--red-bg)' : 'var(--surface-3)', color: x.type.includes('PIE') ? 'var(--red)' : 'var(--ink-3)' }}>{x.type}</span></div>
                 </div>
@@ -87,7 +87,7 @@ function EQRWorkflow() {
                 <div style={{ marginBottom: 16 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 10 }}>Lini Masa Reviu Mutu Perikatan</div>
                   <div className="row" style={{ alignItems: 'flex-start' }}>
-                    {meta.timeline.map((s, i) => {
+                    {meta.timeline.map((s: any, i: any) => {
                       const col = s.status === 'Selesai' ? 'var(--green)' : s.status === 'Berjalan' ? 'var(--blue)' : 'var(--surface-3)';
                       return (
                         <div key={i} style={{ flex: 1, position: 'relative' }}>
@@ -105,7 +105,7 @@ function EQRWorkflow() {
 
               <div className="row jb ac" style={{ marginBottom: 10 }}><div className="tiny muted upper">Checklist Telaah Mutu Perikatan</div><span className="mono tiny" style={{ fontWeight: 700 }}>{doneN}/{r.checklist.length}</span></div>
               <div style={{ display: 'grid', gap: 6, marginBottom: 16 }}>
-                {r.checklist.map((c, i) => (
+                {r.checklist.map((c: any, i: any) => (
                   <div key={i} onClick={r.cleared ? undefined : () => toggleCheck(i)} className="panel" style={{ padding: '9px 12px', cursor: r.cleared ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: 'none' }}>
                     <span style={{ width: 20, height: 20, borderRadius: 5, display: 'grid', placeItems: 'center', background: c.ok ? 'var(--green)' : 'var(--surface-3)', color: '#fff', flex: '0 0 20px' }}>{c.ok && <I.check size={13} />}</span>
                     <span style={{ fontSize: 12.5, fontWeight: 500 }}>{c.k}</span>
@@ -116,7 +116,7 @@ function EQRWorkflow() {
               <div className="tiny muted upper" style={{ marginBottom: 8 }}>Temuan EQR</div>
               {r.findings.length ? (
                 <div style={{ display: 'grid', gap: 6, marginBottom: 16 }}>
-                  {r.findings.map((f, i) => (
+                  {r.findings.map((f: any, i: any) => (
                     <div key={i} className="panel" style={{ padding: '9px 12px', boxShadow: 'none', borderLeft: '3px solid var(--amber)' }}>
                       <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 600 }}>{f.t}</span><div className="row gap6 ac"><Badge kind="amber">{f.sev}</Badge><Badge kind={f.status === 'Terbuka' ? 'red' : 'green'}>{f.status}</Badge></div></div>
                     </div>
@@ -129,7 +129,7 @@ function EQRWorkflow() {
                 <div style={{ marginBottom: 16 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Konsultasi atas Hal Sulit / Kontroversial</div>
                   <div style={{ display: 'grid', gap: 6 }}>
-                    {meta.consults.map((c, i) => (
+                    {meta.consults.map((c: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '9px 12px', boxShadow: 'none', borderLeft: '3px solid var(--blue)' }}>
                         <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 600 }}>{c.t}</span><Badge kind={c.status === 'Selesai' ? 'green' : 'amber'}>{c.status}</Badge></div>
                         <div className="tiny muted" style={{ marginTop: 2 }}>Dikonsultasikan dengan {c.with}</div>

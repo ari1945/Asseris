@@ -98,14 +98,14 @@ function PSAK22View() {
   React.useEffect(() => { try { localStorage.setItem('ams.psak22.sel', JSON.stringify(sel)); } catch (e) {} }, [sel]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak22.done', JSON.stringify(done)); } catch (e) {} }, [done]);
 
-  const rp = (x) => 'Rp ' + fmt(Math.round(x));
-  const sgn = (x) => (x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x)));
-  const toggle = (id) => setDone(m => ({ ...m, [id]: !m[id] }));
-  const doneCount = p22.proc.filter((p, i) => done[p.ref + i]).length;
+  const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
+  const sgn = (x: any) => (x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x)));
+  const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
+  const doneCount = p22.proc.filter((p: any, i: any) => done[p.ref + i]).length;
   const score = Math.round(doneCount / p22.proc.length * 100);
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
-  const deal = p22.deals.find(d => d.id === sel) || p22.deals[0];
+  const deal = p22.deals.find((d: any) => d.id === sel) || p22.deals[0];
 
   const TABS = [
     { id: 'akuisisi', label: 'Identifikasi (¶3)' },
@@ -118,12 +118,12 @@ function PSAK22View() {
   ];
 
   /* goodwill bridge donut */
-  const gwSegs = p22.deals.map((d, i) => ({ label: d.acquiree, value: d.goodwill, color: ['var(--navy)', 'var(--blue)', 'var(--amber)', 'var(--green)'][i % 4] }));
+  const gwSegs = p22.deals.map((d: any, i: any) => ({ label: d.acquiree, value: d.goodwill, color: ['var(--navy)', 'var(--blue)', 'var(--amber)', 'var(--green)'][i % 4] }));
 
   /* deal selector pills */
   const DealPills = () => (
     <div className="row gap6 ac" style={{ flexWrap: 'wrap' }}>
-      {p22.deals.map(d => (
+      {p22.deals.map((d: any) => (
         <button key={d.id} onClick={() => setSel(d.id)} className="row ac gap6"
           style={{ padding: '6px 11px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
             border: '1px solid ' + (sel === d.id ? 'var(--navy)' : 'var(--line)'),
@@ -182,7 +182,7 @@ function PSAK22View() {
                         <th style={{ textAlign: 'left', width: 130 }}>Metode</th>
                       </tr></thead>
                       <tbody>
-                        {p22.deals.map(d => (
+                        {p22.deals.map((d: any) => (
                           <tr key={d.id} style={{ cursor: 'pointer', background: sel === d.id ? 'var(--blue-050)' : undefined }} onClick={() => setSel(d.id)}>
                             <td>
                               <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600 }}><span className="mono tiny" style={{ color: 'var(--blue)' }}>{d.id}</span><span>{d.acquiree}</span>{d.foreign && <Badge kind="gray">PSAK 10</Badge>}</div>
@@ -245,7 +245,7 @@ function PSAK22View() {
                   <div className="panel-h"><h3>Imbalan Dialihkan — {deal.acquiree}</h3><span className="sub mono">nilai wajar ¶37 · imbalan kontinjensi ¶39</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                   <table className="dtbl" style={{ width: '100%' }}>
                     <tbody>
-                      {deal.d.consid.map((c, i) => (
+                      {deal.d.consid.map((c: any, i: any) => (
                         <tr key={i}><td style={{ fontSize: 12.5, fontWeight: 500 }}>{c.k}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(c.v)}</td></tr>
                       ))}
                       {deal.contingent > 0 && (
@@ -304,10 +304,10 @@ function PSAK22View() {
                       <tbody>
                         <tr><td style={{ fontSize: 12.5, fontWeight: 600 }}>Nilai buku aset neto teridentifikasi</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(deal.bookNA)}</td></tr>
                         <tr><td colSpan={2} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', paddingTop: 8 }}>Penyesuaian nilai wajar (¶18 · B31-B33)</td></tr>
-                        {deal.d.fva.map((f, i) => (
+                        {deal.d.fva.map((f: any, i: any) => (
                           <tr key={i}>
                             <td style={{ paddingLeft: 18 }}>
-                              <div className="row ac gap6" style={{ fontSize: 12 }}><Badge kind={FVA_KIND[f.cls]}>{FVA_LBL[f.cls]}</Badge><span>{f.label}</span></div>
+                              <div className="row ac gap6" style={{ fontSize: 12 }}><Badge kind={(FVA_KIND as any)[f.cls]}>{(FVA_LBL as any)[f.cls]}</Badge><span>{f.label}</span></div>
                               {f.life && <div className="tiny muted" style={{ paddingLeft: 2 }}>umur manfaat {f.life} th → amortisasi PSAK 19</div>}
                             </td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 600, color: 'var(--green)' }}>+{fmt(f.amount)}</td>
@@ -372,7 +372,7 @@ function PSAK22View() {
                         <th style={{ textAlign: 'right', width: 76 }}>Goodwill</th>
                       </tr></thead>
                       <tbody>
-                        {p22.deals.map(d => (
+                        {p22.deals.map((d: any) => (
                           <tr key={d.id}>
                             <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{d.acquiree}</div><div className="tiny muted">{d.own}% · {d.acqDate}</div></td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(d.considTotal)}</td>
@@ -411,7 +411,7 @@ function PSAK22View() {
                         <th style={{ textAlign: 'right', width: 78 }}>Δ Goodwill</th>
                       </tr></thead>
                       <tbody>
-                        {p22.deals.map(d => (
+                        {p22.deals.map((d: any) => (
                           <tr key={d.id}>
                             <td style={{ fontSize: 12.5, fontWeight: 600 }}>{d.acquiree}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(d.nciAcqProp)}</td>
@@ -436,7 +436,7 @@ function PSAK22View() {
                     <Donut segments={gwSegs} size={104} thickness={15}
                       center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{fmt(p22.goodwillTotal)}</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1, display: 'grid', gap: 6 }}>
-                      {p22.deals.map((d, i) => (
+                      {p22.deals.map((d: any, i: any) => (
                         <div key={d.id} className="row jb ac">
                           <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: gwSegs[i].color }} /><span style={{ fontSize: 11.5 }}>{d.acquiree.replace('PT Sentosa ', '').replace('Sentosa ', '')}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(d.goodwill)}</span>
@@ -470,7 +470,7 @@ function PSAK22View() {
                       <th style={{ textAlign: 'left' }}>Catatan</th>
                     </tr></thead>
                     <tbody>
-                      {p22.deals.map(d => (
+                      {p22.deals.map((d: any) => (
                         <tr key={d.id}>
                           <td style={{ fontSize: 12.5, fontWeight: 600 }}>{d.acquiree}</td>
                           <td className="mono tiny" style={{ fontWeight: 600 }}>{d.acqDate}</td>
@@ -498,7 +498,7 @@ function PSAK22View() {
                         <th style={{ textAlign: 'right', width: 120 }}>Untung/(rugi) L/R</th>
                       </tr></thead>
                       <tbody>
-                        {p22.contingentItems.map(c => (
+                        {p22.contingentItems.map((c: any) => (
                           <tr key={c.id}>
                             <td style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(c.initial)}</td>
@@ -545,7 +545,7 @@ function PSAK22View() {
                         <th style={{ textAlign: 'center', width: 60 }}>Status</th>
                       </tr></thead>
                       <tbody>
-                        {p22.recon.map((r, i) => (
+                        {p22.recon.map((r: any, i: any) => (
                           <tr key={i} style={{ background: r.hi ? 'var(--blue-050)' : undefined, cursor: r.route ? 'pointer' : 'default' }} onClick={r.route ? () => nav(r.route, { from: 'psak22' }) : undefined}>
                             <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.pos}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{r.src}{r.route && <I.arrowRight size={11} style={{ marginLeft: 4, verticalAlign: 'middle', color: 'var(--blue)' }} />}</td>
@@ -567,7 +567,7 @@ function PSAK22View() {
                   <div className="panel-h"><h3>Keterkaitan Kertas Kerja</h3><span className="sub mono">lineage data</span></div>
                   <div className="row ac gap6" style={{ padding: '9px 14px 4px' }}><I.arrowRight size={13} style={{ color: 'var(--blue)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hulu — sumber data</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 10px' }}>
-                    {P22_UPSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P22_UPSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak22' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -577,7 +577,7 @@ function PSAK22View() {
                   </div>
                   <div className="row ac gap6" style={{ padding: '4px 14px 4px', borderTop: '1px solid var(--line-soft)' }}><I.arrowRight size={13} style={{ color: 'var(--green)' }} /><span className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)' }}>Hilir — pengguna angka</span></div>
                   <div style={{ display: 'grid', gap: 6, padding: '2px 12px 12px' }}>
-                    {P22_DOWNSTREAM.map(m => { const IconC = I[m.ic] || I.doc; return (
+                    {P22_DOWNSTREAM.map(m => { const IconC = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'psak22' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><IconC size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{m.rel}</div></div>
@@ -590,9 +590,9 @@ function PSAK22View() {
                   <div className="panel-h"><h3>Takberwujud Teridentifikasi PPA</h3><span className="sub mono">→ amortisasi PSAK 19</span></div>
                   <table className="dtbl" style={{ width: '100%' }}>
                     <tbody>
-                      {p22.intangibles.map((f, i) => (
+                      {p22.intangibles.map((f: any, i: any) => (
                         <tr key={i}>
-                          <td><div className="row ac gap6"><Badge kind={FVA_KIND[f.cls]}>{FVA_LBL[f.cls]}</Badge></div><div className="tiny muted" style={{ marginTop: 2 }}>{f.deal} · {f.life} th</div></td>
+                          <td><div className="row ac gap6"><Badge kind={(FVA_KIND as any)[f.cls]}>{(FVA_LBL as any)[f.cls]}</Badge></div><div className="tiny muted" style={{ marginTop: 2 }}>{f.deal} · {f.life} th</div></td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(f.amount)}</td>
                         </tr>
                       ))}
@@ -614,7 +614,7 @@ function PSAK22View() {
                 <div className="panel-h"><h3>Program Audit — Kombinasi Bisnis</h3><span className="sub mono">SA 540 · SA 600 · SA 500 (pakar)</span><div style={{ flex: 1 }} /><span className="tiny muted">{doneCount}/{p22.proc.length}</span></div>
                 <table className="dtbl" style={{ width: '100%' }}>
                   <tbody>
-                    {p22.proc.map((p, i) => {
+                    {p22.proc.map((p: any, i: any) => {
                       const id = p.ref + i; const ok = !!done[id];
                       return (
                         <tr key={id} style={{ cursor: 'pointer' }} onClick={() => toggle(id)}>

@@ -155,8 +155,8 @@ import { AMS_CANON } from './canon';
      ============================================================ */
   function isak35() {
     const by: any = {}; TB.forEach(r => { by[r.grp] = by[r.grp] || []; by[r.grp].push(r); });
-    const flip = (rows, neg) => rows.map(r => ({ ...r, cy: neg ? -r.cy : r.cy, py: neg ? -r.py : r.py }));
-    const sum = (rows, k) => rows.reduce((a, r) => a + r[k], 0);
+    const flip = (rows: any, neg: any) => rows.map((r: any) => ({ ...r, cy: neg ? -r.cy : r.cy, py: neg ? -r.py : r.py }));
+    const sum = (rows: any, k: any) => rows.reduce((a: any, r: any) => a + r[k], 0);
 
     const ca = flip(by.ca, false), nca = flip(by.nca, false);
     const cl = flip(by.cl, true), ncl = flip(by.ncl, true);
@@ -202,9 +202,9 @@ import { AMS_CANON } from './canon';
     const cfiTotal = CF.investing.reduce((a, l) => a + l.v, 0);
     const cffTotal = CF.financing.reduce((a, l) => a + l.v, 0);
     const netChange = cfoTotal + cfiTotal + cffTotal;
-    const cashOpen = by.ca.find(r => r.code === '1-1100').py;
+    const cashOpen = by.ca.find((r: any) => r.code === '1-1100').py;
     const cashClose = cashOpen + netChange;
-    const cashBS = by.ca.find(r => r.code === '1-1100').cy;
+    const cashBS = by.ca.find((r: any) => r.code === '1-1100').cy;
 
     /* ---- Perubahan Aset Neto (rollforward) ---- */
     const equityRoll = {
@@ -214,7 +214,7 @@ import { AMS_CANON } from './canon';
 
     /* ---- Tie-out lintas laporan ---- */
     const T = 1e6;
-    const chk = (id, label, ref, a, b, std, note) => ({ id, label, ref, std, note, a, b, diff: a - b, ok: Math.abs(a - b) < T });
+    const chk = (id: any, label: any, ref: any, a: any, b: any, std: any, note: any) => ({ id, label, ref, std, note, a, b, diff: a - b, ok: Math.abs(a - b) < T });
     const checks = [
       chk('bs', 'Posisi keuangan seimbang', 'Posisi Keuangan', totalAssets.cy, totalLNA.cy, 'PSAK 1', 'Total Aset = Total Liabilitas + Aset Neto'),
       chk('na', 'Perubahan aset neto mengalir ke saldo', 'Penghasilan → Aset Neto', changeNA.cy, totalNA.cy - totalNA.py, 'ISAK 35', 'Kenaikan aset neto = saldo akhir − saldo awal'),

@@ -47,22 +47,22 @@ const FSGEN = (function () {
 
   const SHARES = 600_000_000; // issued shares for EPS
 
-  function buildModel(wtb) {
+  function buildModel(wtb: any) {
     const by = {};
-    wtb.forEach(r => { by[r.code] = r; });
-    const cy = (c) => (by[c] ? by[c].adj : 0);
-    const py = (c) => (by[c] ? by[c].ly : 0);
-    const sumCY = (codes) => codes.reduce((a, c) => a + cy(c), 0);
-    const sumPY = (codes) => codes.reduce((a, c) => a + py(c), 0);
+    wtb.forEach((r: any) => { (by as any)[r.code] = r; });
+    const cy = (c: any) => ((by as any)[c] ? (by as any)[c].adj : 0);
+    const py = (c: any) => ((by as any)[c] ? (by as any)[c].ly : 0);
+    const sumCY = (codes: any) => codes.reduce((a: any, c: any) => a + cy(c), 0);
+    const sumPY = (codes: any) => codes.reduce((a: any, c: any) => a + py(c), 0);
 
     /* asset captions present natural (positive); liability/equity flipped positive */
-    const assetLine = (cap) => ({ ...cap, cy: sumCY(cap.codes), py: sumPY(cap.codes) });
-    const negLine   = (cap) => ({ ...cap, cy: -sumCY(cap.codes), py: -sumPY(cap.codes) });
+    const assetLine = (cap: any) => ({ ...cap, cy: sumCY(cap.codes), py: sumPY(cap.codes) });
+    const negLine   = (cap: any) => ({ ...cap, cy: -sumCY(cap.codes), py: -sumPY(cap.codes) });
 
     const ca = CA.map(assetLine),  nca = NCA.map(assetLine);
     const cl = CL.map(negLine),    ncl = NCL.map(negLine),  eq = EQ.map(negLine);
 
-    const tot = (lines, k) => lines.reduce((a, l) => a + l[k], 0);
+    const tot = (lines: any, k: any) => lines.reduce((a: any, l: any) => a + l[k], 0);
     const totalCA = { cy: tot(ca, 'cy'), py: tot(ca, 'py') };
     const totalNCA = { cy: tot(nca, 'cy'), py: tot(nca, 'py') };
     const totalAssets = { cy: totalCA.cy + totalNCA.cy, py: totalCA.py + totalNCA.py };
@@ -92,7 +92,7 @@ const FSGEN = (function () {
     const beginModal = -py('3-1100'), endModal = -cy('3-1100');
 
     /* ---- Cash flow (indirect) — every non-cash B/S movement classified so Σ = ΔCash ---- */
-    const d = (c) => cy(c) - py(c);                // stored-sign movement
+    const d = (c: any) => cy(c) - py(c);                // stored-sign movement
     const depreciation = -d('1-2110');             // ↑ accumulated depreciation (non-cash)
     const amortization = -d('1-2410');             // ↑ accumulated amortisation (non-cash, PSAK 19)
     const eclProv      = -d('1-1210');             // ↑ allowance (non-cash)
@@ -185,9 +185,9 @@ const FSGEN = (function () {
   }
 
   /* ---- Cross-statement tie-out / diagnostics ---- */
-  function buildTieOuts(m, ajeTotalPosted) {
+  function buildTieOuts(m: any, ajeTotalPosted: any) {
     const T = 1e6; // Rp 1 jt tolerance
-    const chk = (id, label, ref, a, b, std, note) => ({
+    const chk = (id: any, label: any, ref: any, a: any, b: any, std: any, note: any) => ({
       id, label, ref, std, note, a, b, diff: a - b, ok: Math.abs(a - b) < T,
     });
     return [
@@ -203,7 +203,7 @@ const FSGEN = (function () {
         m.meta.depreciation, m.meta.depreciation, 'PSAK 16',
         'Add-back penyusutan = kenaikan akumulasi penyusutan'),
       chk('ar', 'Piutang neto ↔ CALK 5', 'Posisi Keuangan → CALK',
-        m.bs.ca.find(l => l.key === 'piutang').cy, m.bs.ca.find(l => l.key === 'piutang').cy, 'PSAK 71',
+        m.bs.ca.find((l: any) => l.key === 'piutang').cy, m.bs.ca.find((l: any) => l.key === 'piutang').cy, 'PSAK 71',
         'Piutang bruto − cadangan ECL = nilai tercatat neto'),
       chk('pycomp', 'Komparatif 2024 seimbang', 'Posisi Keuangan',
         m.bs.totalAssets.py, m.bs.totalLE.py, 'PSAK 1',

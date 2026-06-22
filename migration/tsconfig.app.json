@@ -1,5 +1,5 @@
 {
-  "//": "Asseris — W11 APP tier (lapisan data .ts, lalu view .tsx). RELAKS & di-ratchet: strict OFF awalnya, dikencangkan per slice. Kanon tetap FULL strict di tsconfig.json (terpisah). include = daftar eksplisit file app yang sudah dikonversi (tumbuh per slice) agar ledakan error terkendali. Lihat 'PRD - W11' & BUILD.md.",
+  "//": "Asseris — W11 APP tier (lapisan data .ts, view .tsx, fondasi .tsx). RELAKS & di-ratchet: W13 Fase 4 menyalakan noImplicitAny:true (terminal). strictNullChecks DITUNDA W14. Kanon tetap FULL strict di tsconfig.json (terpisah). include = daftar eksplisit file app (tumbuh per slice). Lihat 'PRD - W13' & BUILD.md §W13.",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -7,7 +7,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
 
     "strict": false,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictNullChecks": false,
 
     "noEmit": true,
@@ -249,6 +249,7 @@
     "src/diagnostics_panel.tsx",
 
     "src/shims-css.d.ts",
+    "src/jsx-intrinsics.d.ts",
     "src/ui.tsx",
     "src/shell.tsx",
     "src/icons.tsx",

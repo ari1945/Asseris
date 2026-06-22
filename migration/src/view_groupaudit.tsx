@@ -75,15 +75,15 @@ const PKG_NUM_KEYS = PKG_FIELDS.flatMap(g => g.items.map(i => i[0]));
 const PKG_LABELS = Object.fromEntries(PKG_FIELDS.flatMap(g => g.items));
 
 /* default paket: dibangun dari seed kanonik + status awal realistis (campuran) */
-function gaDefaultPackages(wtb) {
+function gaDefaultPackages(wtb: any) {
   const subs = (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, {}).subs : [];
   const seedStatus = { 'CP-02': 'Disetujui', 'CP-03': 'Direkonsiliasi', 'CP-04': 'Diterima', 'CP-05': 'Diterima' };
   const seedRecv = { 'CP-02': '08 Jan 2026', 'CP-03': '10 Jan 2026', 'CP-04': '12 Jan 2026', 'CP-05': '13 Jan 2026' };
   const o = {};
   subs.forEach(s => {
-    const p = { status: seedStatus[s.id] || 'Diterima', received: seedRecv[s.id] || null };
-    PKG_NUM_KEYS.forEach(k => { p[k] = s[k]; });
-    o[s.id] = p;
+    const p = { status: (seedStatus as any)[s.id] || 'Diterima', received: (seedRecv as any)[s.id] || null };
+    PKG_NUM_KEYS.forEach(k => { (p as any)[k] = (s as any)[k]; });
+    (o as any)[s.id] = p;
   });
   return o;
 }
@@ -100,7 +100,7 @@ const STATUS_KIND_GA = { Reviewed: 'green', Reporting: 'blue', Instructions: 'am
 const INSTR_STEPS = ['Instruksi', 'Acknowledged', 'Interim', 'Reporting Pkg', 'Clearance'];
 const SEV_GA = { Signifikan: 'red', Sedang: 'amber', Trivial: 'gray' };
 
-function gaRisk(r) { return r === 'High' ? 'var(--red)' : r === 'Medium' ? 'var(--amber)' : 'var(--green)'; }
+function gaRisk(r: any) { return r === 'High' ? 'var(--red)' : r === 'Medium' ? 'var(--amber)' : 'var(--green)'; }
 
 /* ---------------------------------------------------------------- */
 Object.assign(window, { GA_CONSOL_PROC, GA_CONSOL_UP, GA_CONSOL_DOWN, PKG_STATUS_KIND, PKG_FIELDS, PKG_NUM_KEYS }); // shared with view_groupaudit_parts.jsx (W2)
@@ -119,23 +119,23 @@ function GroupAudit() {
   const [procDone, setProcDone] = useAmsPersist('gaConsolProc', () => ({}));
   const [tab, setTab] = useStateGA('scope');
   const [selId, setSelId] = useStateGA('CP-03');
-  const sel = comps.find(c => c.id === selId);
+  const sel = comps.find((c: any) => c.id === selId);
 
-  const covered = comps.filter(c => c.scope !== 'Analytical');
-  const revCoverage = covered.reduce((s, c) => s + c.revPct, 0);
-  const astCoverage = covered.reduce((s, c) => s + c.astPct, 0);
-  const compAuditors = new Set(comps.filter(c => c.kap).map(c => c.auditor)).size;
-  const kapComps = comps.filter(c => c.kap);
-  const pkgReceived = kapComps.filter(c => c.instr === 'Diterima').length;
-  const totalSad = findings.filter(f => f.status === 'Terbuka').reduce((s, f) => s + f.sad, 0);
-  const openFindings = findings.filter(f => f.status === 'Terbuka').length;
+  const covered = comps.filter((c: any) => c.scope !== 'Analytical');
+  const revCoverage = covered.reduce((s: any, c: any) => s + c.revPct, 0);
+  const astCoverage = covered.reduce((s: any, c: any) => s + c.astPct, 0);
+  const compAuditors = new Set(comps.filter((c: any) => c.kap).map((c: any) => c.auditor)).size;
+  const kapComps = comps.filter((c: any) => c.kap);
+  const pkgReceived = kapComps.filter((c: any) => c.instr === 'Diterima').length;
+  const totalSad = findings.filter((f: any) => f.status === 'Terbuka').reduce((s: any, f: any) => s + f.sad, 0);
+  const openFindings = findings.filter((f: any) => f.status === 'Terbuka').length;
   const interco = p65 ? p65.interco : [];
-  const openElim = interco.filter(e => !(elimVerify[e.id] || e.status === 'Diverifikasi')).length;
+  const openElim = interco.filter((e: any) => !(elimVerify[e.id] || e.status === 'Diverifikasi')).length;
   const pkgApproved = p65 ? p65.pkgApproved : 0;
   const pkgTotal = p65 ? p65.subs.length : 0;
 
-  const setScope = (id, scope) => setComps(list => list.map(c => c.id === id ? { ...c, scope, mat: scope === 'Analytical' ? 0 : (c.mat || Math.round(GROUP_MAT * 0.35)) } : c));
-  const setComp = (id, patch) => setComps(list => list.map(c => c.id === id ? { ...c, ...patch } : c));
+  const setScope = (id: any, scope: any) => setComps((list: any) => list.map((c: any) => c.id === id ? { ...c, scope, mat: scope === 'Analytical' ? 0 : (c.mat || Math.round(GROUP_MAT * 0.35)) } : c));
+  const setComp = (id: any, patch: any) => setComps((list: any) => list.map((c: any) => c.id === id ? { ...c, ...patch } : c));
 
   const tabs = [
     { id: 'scope', label: 'Struktur & Lingkup', count: comps.length },
@@ -190,21 +190,21 @@ function GroupAudit() {
 }
 
 /* ===== TAB 1 — STRUKTUR & LINGKUP ============================== */
-function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCoverage, astCoverage }) {
+function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCoverage, astCoverage }: any) {
   return (
     <div style={{ padding: 14 }}>
       <StdVersionStrip highlight="SA 600" />
       {/* group structure tree */}
       <div className="tiny muted upper" style={{ marginBottom: 8 }}>Struktur Grup — PT Sentosa Group (konsolidasian)</div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 8, marginBottom: 16 }}>
-        {comps.map(c => (
+        {comps.map((c: any) => (
           <div key={c.id} onClick={() => setSelId(c.id)}
             className="panel" style={{ padding: 0, cursor: 'pointer', overflow: 'hidden', outline: c.id === selId ? '2px solid var(--blue)' : 'none', outlineOffset: -1 }}>
             <div style={{ height: 4, background: gaRisk(c.risk) }} />
             <div style={{ padding: '9px 11px' }}>
               <div className="row ac jb" style={{ marginBottom: 6 }}>
                 <span style={{ width: 26, height: 26, borderRadius: 7, background: c.role.startsWith('Induk') ? 'var(--navy)' : 'var(--surface-3)', color: c.role.startsWith('Induk') ? '#fff' : 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 800 }}>{c.own}%</span>
-                <Badge kind={SCOPE_KIND[c.scope]}>{c.scope}</Badge>
+                <Badge kind={(SCOPE_KIND as any)[c.scope]}>{c.scope}</Badge>
               </div>
               <div style={{ fontWeight: 700, fontSize: 12, lineHeight: 1.25 }}>{c.name}</div>
               <div className="tiny muted" style={{ marginTop: 2 }}>{c.role}</div>
@@ -224,7 +224,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
               <th>Komponen</th><th className="num">% Pdpt</th><th className="num">% Aset</th><th>Signifikansi</th><th style={{ width: 100 }}>Lingkup</th><th className="num">Komp. Mat.</th><th style={{ width: 100 }}>Status</th>
             </tr></thead>
             <tbody>
-              {comps.map(c => (
+              {comps.map((c: any) => (
                 <tr key={c.id} className={c.id === selId ? 'sel' : ''} onClick={() => setSelId(c.id)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="row ac gap8">
@@ -235,9 +235,9 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
                   <td className="num">{c.revPct}%</td>
                   <td className="num">{c.astPct}%</td>
                   <td><span className="tiny" style={{ color: c.sig.includes('risiko') ? 'var(--red)' : c.sig.includes('ukuran') ? 'var(--blue)' : 'var(--ink-3)', fontWeight: 600 }}>{c.sig}</span></td>
-                  <td><Badge kind={SCOPE_KIND[c.scope]}>{c.scope}</Badge></td>
+                  <td><Badge kind={(SCOPE_KIND as any)[c.scope]}>{c.scope}</Badge></td>
                   <td className="num">{c.mat ? fmt(c.mat / 1e6, 0) + ' jt' : '—'}</td>
-                  <td><Badge kind={STATUS_KIND_GA[c.status]}>{c.status}</Badge></td>
+                  <td><Badge kind={(STATUS_KIND_GA as any)[c.status]}>{c.status}</Badge></td>
                 </tr>
               ))}
             </tbody>
@@ -263,7 +263,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
           {sel && (
             <Panel noBody>
               <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
-                <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={STATUS_KIND_GA[sel.status]}>{sel.status}</Badge></div>
+                <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={(STATUS_KIND_GA as any)[sel.status]}>{sel.status}</Badge></div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3 }}>{sel.name}</div>
               </div>
               <div style={{ padding: 14 }}>
@@ -298,8 +298,8 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
 /* ===== TAB 2 — GROUP INSTRUCTIONS ============================= */
 const INSTR_CONTENT = ['Lingkup & materialitas komponen', 'Risiko signifikan tingkat grup', 'Timeline & format reporting package', 'Konfirmasi independensi & etika', 'Daftar transaksi antar-perusahaan', 'Kebijakan akuntansi grup (PSAK)'];
 
-function GAInstr({ comps, setComp, fmt }) {
-  const advance = (c) => {
+function GAInstr({ comps, setComp, fmt }: any) {
+  const advance = (c: any) => {
     const next = Math.min(c.step + 1, INSTR_STEPS.length);
     const instr = next >= 4 ? 'Diterima' : 'Terkirim';
     const status = next >= 5 ? 'Reviewed' : next >= 4 ? 'Reporting' : 'Instructions';
@@ -307,13 +307,13 @@ function GAInstr({ comps, setComp, fmt }) {
   };
   return (
     <div style={{ padding: 14, display: 'grid', gap: 12 }}>
-      {comps.map(c => (
+      {comps.map((c: any) => (
         <div key={c.id} className="panel" style={{ padding: 14, borderLeft: '3px solid ' + (c.step >= 5 ? 'var(--green)' : c.step >= 4 ? 'var(--blue)' : 'var(--amber)') }}>
           <div className="row jb ac" style={{ marginBottom: 12 }}>
             <div className="row ac gap8">
               <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span>
               <span style={{ fontWeight: 700, fontSize: 13 }}>{c.name}</span>
-              <Badge kind={SCOPE_KIND[c.scope]}>{c.scope}</Badge>
+              <Badge kind={(SCOPE_KIND as any)[c.scope]}>{c.scope}</Badge>
               <span className="tiny muted">· {c.auditor} ({c.country})</span>
             </div>
             <Badge kind={c.instr === 'Diterima' ? 'green' : c.instr === 'Terkirim' ? 'blue' : 'gray'}>{c.instr === '—' ? 'Belum dikirim' : c.instr}</Badge>
@@ -362,15 +362,15 @@ function GAInstr({ comps, setComp, fmt }) {
 /* ===== TAB 3 — EVALUASI AUDITOR KOMPONEN ====================== */
 const EV_DIMS = [['Independensi & etika', 'evInd'], ['Kompetensi profesional', 'evComp'], ['Pemahaman regulasi lokal', 'evReg']];
 
-function GAAuditor({ comps, setComp }) {
-  const evColor = v => v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)';
+function GAAuditor({ comps, setComp }: any) {
+  const evColor = (v: any) => v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--amber)' : 'var(--red)';
   return (
     <div style={{ padding: 14 }}>
       <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>
         Evaluasi pemahaman tim grup atas auditor komponen (SA 600 ¶19–20): independensi, kompetensi profesional, dan pemahaman lingkungan regulasi. Tingkat keterlibatan tim grup ditentukan berdasarkan signifikansi komponen dan hasil evaluasi.
       </div>
       <div className="grid" style={{ gap: 12 }}>
-        {comps.map(c => {
+        {comps.map((c: any) => {
           const avg = ((c.evInd + c.evComp + c.evReg) / 3);
           const reliable = avg >= 3.5;
           return (
@@ -414,7 +414,7 @@ function GAAuditor({ comps, setComp }) {
 }
 
 /* ===== TAB 3.5 (BARU) — PAKET PELAPORAN KOMPONEN (IMPOR) ====== */
-function GAFindings({ findings, totalSad, fmt }) {
+function GAFindings({ findings, totalSad, fmt }: any) {
   const pct = Math.min(100, totalSad / GROUP_MAT * 100);
   const exceeds = totalSad > GROUP_MAT;
   return (
@@ -425,7 +425,7 @@ function GAFindings({ findings, totalSad, fmt }) {
           <table className="dtbl">
             <thead><tr><th style={{ width: 60 }}>ID</th><th>Komponen / Area</th><th style={{ width: 100 }}>Tingkat</th><th className="num">Dampak (SAD)</th><th style={{ width: 100 }}>Status</th></tr></thead>
             <tbody>
-              {findings.map(f => (
+              {findings.map((f: any) => (
                 <tr key={f.id}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.id}</td>
                   <td>
@@ -433,7 +433,7 @@ function GAFindings({ findings, totalSad, fmt }) {
                     <div className="tiny muted">{f.comp} · {f.auditor}</div>
                     <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 2, whiteSpace: 'normal' }}>{f.note}</div>
                   </td>
-                  <td><Badge kind={SEV_GA[f.sev]}>{f.sev}</Badge></td>
+                  <td><Badge kind={(SEV_GA as any)[f.sev]}>{f.sev}</Badge></td>
                   <td className="num mono" style={{ color: f.status === 'Terbuka' ? 'var(--red)' : 'var(--ink-3)' }}>{f.sad ? fmt(f.sad / 1e6, 0) + ' jt' : '—'}</td>
                   <td><Badge kind={f.status === 'Terbuka' ? 'red' : 'green'}>{f.status}</Badge></td>
                 </tr>

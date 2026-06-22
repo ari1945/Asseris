@@ -17,17 +17,17 @@ const { useState: useStateOB2 } = React;
 const PMPJ_RISK = ['Rendah', 'Sedang', 'Tinggi'];
 const CDD_BY_RISK = { Rendah: 'Sederhana', Sedang: 'Standar', Tinggi: 'Mendalam (EDD)' };
 
-function StepPMPJ({ p, onPatch }) {
+function StepPMPJ({ p, onPatch }: any) {
   const m = p.pmpj;
-  const setP = (patch) => onPatch(pr => ({ ...pr, pmpj: { ...pr.pmpj, ...patch } }));
-  const setUbo = (i, patch) => onPatch(pr => ({ ...pr, pmpj: { ...pr.pmpj, ubo: pr.pmpj.ubo.map((u, j) => j === i ? { ...u, ...patch } : u) } }));
-  const addUbo = () => onPatch(pr => ({ ...pr, pmpj: { ...pr.pmpj, ubo: [...pr.pmpj.ubo, { name: '', pct: 0, role: '', idType: 'KTP', idNo: '', pep: false }] } }));
-  const delUbo = (i) => onPatch(pr => ({ ...pr, pmpj: { ...pr.pmpj, ubo: pr.pmpj.ubo.filter((_, j) => j !== i) } }));
+  const setP = (patch: any) => onPatch((pr: any) => ({ ...pr, pmpj: { ...pr.pmpj, ...patch } }));
+  const setUbo = (i: any, patch: any) => onPatch((pr: any) => ({ ...pr, pmpj: { ...pr.pmpj, ubo: pr.pmpj.ubo.map((u: any, j: any) => j === i ? { ...u, ...patch } : u) } }));
+  const addUbo = () => onPatch((pr: any) => ({ ...pr, pmpj: { ...pr.pmpj, ubo: [...pr.pmpj.ubo, { name: '', pct: 0, role: '', idType: 'KTP', idNo: '', pep: false }] } }));
+  const delUbo = (i: any) => onPatch((pr: any) => ({ ...pr, pmpj: { ...pr.pmpj, ubo: pr.pmpj.ubo.filter((_: any, j: any) => j !== i) } }));
 
-  const anyPep = m.ubo.some(u => u.pep);
-  const anyHit = m.screening.some(s => s.hit);
-  const recCdd = anyPep ? 'Mendalam (EDD)' : CDD_BY_RISK[m.riskRating];
-  const uboTotal = m.ubo.reduce((s, u) => s + (+u.pct || 0), 0);
+  const anyPep = m.ubo.some((u: any) => u.pep);
+  const anyHit = m.screening.some((s: any) => s.hit);
+  const recCdd = anyPep ? 'Mendalam (EDD)' : (CDD_BY_RISK as any)[m.riskRating];
+  const uboTotal = m.ubo.reduce((s: any, u: any) => s + (+u.pct || 0), 0);
   const locked = m.verified;
 
   return (
@@ -43,12 +43,12 @@ function StepPMPJ({ p, onPatch }) {
         <div className="panel" style={{ padding: 12 }}>
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Penilaian Risiko APU-PPT</div>
           <div className="seg" style={{ width: '100%' }}>
-            {PMPJ_RISK.map(r => <button key={r} className={m.riskRating === r ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} disabled={locked} onClick={() => setP({ riskRating: r, cddLevel: anyPep ? 'Mendalam (EDD)' : CDD_BY_RISK[r] })}>{r}</button>)}
+            {PMPJ_RISK.map(r => <button key={r} className={m.riskRating === r ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} disabled={locked} onClick={() => setP({ riskRating: r, cddLevel: anyPep ? 'Mendalam (EDD)' : (CDD_BY_RISK as any)[r] })}>{r}</button>)}
           </div>
         </div>
         <div className="panel" style={{ padding: 12 }}>
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Tingkat CDD</div>
-          <select className="select" value={m.cddLevel} disabled={locked} onChange={e => setP({ cddLevel: e.target.value })} style={{ width: '100%' }}>
+          <select className="select" value={m.cddLevel} disabled={locked} onChange={(e: any) => setP({ cddLevel: e.target.value })} style={{ width: '100%' }}>
             {['Sederhana', 'Standar', 'Mendalam (EDD)'].map(c => <option key={c}>{c}</option>)}
           </select>
           {recCdd !== m.cddLevel && <div className="tiny" style={{ color: 'var(--amber)', marginTop: 5 }}>Disarankan: {recCdd}</div>}
@@ -63,7 +63,7 @@ function StepPMPJ({ p, onPatch }) {
       </div>
 
       <div className="field" style={{ marginBottom: 14 }}><label>Maksud & Tujuan Hubungan Usaha</label>
-        <input className="input" value={m.purpose} disabled={locked} onChange={e => setP({ purpose: e.target.value })} />
+        <input className="input" value={m.purpose} disabled={locked} onChange={(e: any) => setP({ purpose: e.target.value })} />
       </div>
 
       {/* Beneficial owners */}
@@ -75,11 +75,11 @@ function StepPMPJ({ p, onPatch }) {
         <table className="dtbl">
           <thead><tr><th>Nama</th><th>Peran</th><th className="num">%</th><th>Identitas</th><th>PEP</th>{!locked && <th></th>}</tr></thead>
           <tbody>
-            {m.ubo.map((u, i) => (
+            {m.ubo.map((u: any, i: any) => (
               <tr key={i}>
-                <td style={{ minWidth: 150 }}>{locked ? <span style={{ fontWeight: 600 }}>{u.name}</span> : <input className="input" value={u.name} onChange={e => setUbo(i, { name: e.target.value })} style={{ height: 24 }} placeholder="Nama" />}</td>
-                <td className="tiny muted" style={{ minWidth: 130 }}>{locked ? u.role : <input className="input" value={u.role} onChange={e => setUbo(i, { role: e.target.value })} style={{ height: 24 }} placeholder="Peran" />}</td>
-                <td className="num">{locked ? u.pct : <input className="input mono" type="number" value={u.pct} onChange={e => setUbo(i, { pct: +e.target.value })} style={{ height: 24, width: 56, textAlign: 'right' }} />}</td>
+                <td style={{ minWidth: 150 }}>{locked ? <span style={{ fontWeight: 600 }}>{u.name}</span> : <input className="input" value={u.name} onChange={(e: any) => setUbo(i, { name: e.target.value })} style={{ height: 24 }} placeholder="Nama" />}</td>
+                <td className="tiny muted" style={{ minWidth: 130 }}>{locked ? u.role : <input className="input" value={u.role} onChange={(e: any) => setUbo(i, { role: e.target.value })} style={{ height: 24 }} placeholder="Peran" />}</td>
+                <td className="num">{locked ? u.pct : <input className="input mono" type="number" value={u.pct} onChange={(e: any) => setUbo(i, { pct: +e.target.value })} style={{ height: 24, width: 56, textAlign: 'right' }} />}</td>
                 <td className="tiny"><span className="chip tiny">{u.idType}</span> <span className="mono" style={{ fontSize: 10.5 }}>{u.idNo}</span></td>
                 <td><span onClick={locked ? undefined : () => setUbo(i, { pep: !u.pep })} style={{ cursor: locked ? 'default' : 'pointer' }}><Badge kind={u.pep ? 'red' : 'gray'}>{u.pep ? 'PEP' : 'Bukan'}</Badge></span></td>
                 {!locked && <td><button className="btn sm icon" onClick={() => delUbo(i)}><I.x size={13} /></button></td>}
@@ -96,7 +96,7 @@ function StepPMPJ({ p, onPatch }) {
         <table className="dtbl">
           <thead><tr><th>Pihak</th><th>Daftar Diperiksa</th><th>Hasil</th><th>Tindak Lanjut</th></tr></thead>
           <tbody>
-            {m.screening.map((s, i) => (
+            {m.screening.map((s: any, i: any) => (
               <tr key={i}>
                 <td style={{ fontWeight: 600 }}>{s.name}</td>
                 <td className="tiny muted">{s.list}</td>
@@ -132,18 +132,18 @@ function StepPMPJ({ p, onPatch }) {
 /* ============================================================
    STEP 3 — Engagement Letter (SA 210)
    ============================================================ */
-function StepLetter({ p, onPatch }) {
+function StepLetter({ p, onPatch }: any) {
   const { fmt } = AMS;
   const FIRM: any = AMS.FIRM;
   const L = p.letter;
-  const setL = (patch) => onPatch(pr => ({ ...pr, letter: { ...pr.letter, ...patch } }));
+  const setL = (patch: any) => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter, ...patch } }));
   const today = new Date().toISOString().slice(0, 10);
-  const pushEvent = (t, who) => onPatch(pr => ({ ...pr, letter: { ...pr.letter, esign: [...(pr.letter.esign || []), { t, who, date: today }] } }));
+  const pushEvent = (t: any, who: any) => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter, esign: [...(pr.letter.esign || []), { t, who, date: today }] } }));
 
   const generate = () => setL({ version: (L.version || 0) + 1, status: 'draft', esign: [...(L.esign || []), { t: 'Surat dibuat / diperbarui (v' + ((L.version || 0) + 1) + ')', who: p.manager, date: today }] });
   const send = () => { setL({ status: 'sent' }); pushEvent('Dikirim untuk TTE tersertifikasi (PrivyID · PSrE Kominfo)', 'Sistem'); };
   const mkSerial = () => 'METERAI-1015-' + Math.random().toString(16).slice(2, 6).toUpperCase() + '-' + Math.random().toString(16).slice(2, 6).toUpperCase();
-  const sign = () => onPatch(pr => ({ ...pr, letter: { ...pr.letter,
+  const sign = () => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter,
     status: 'signed', signedBy: pr.name + ' (Direksi)', signedDate: today,
     psre: { provider: 'PrivyID', accred: 'PSrE Kominfo', algo: 'RSA-2048 / SHA-256', at: today },
     meterai: { serial: mkSerial(), denom: 10000, at: today, provider: 'Peruri' },
@@ -154,7 +154,7 @@ function StepLetter({ p, onPatch }) {
     ] } }));
 
   const STAT = { draft: { k: 'gray', l: 'Draft' }, sent: { k: 'blue', l: 'Menunggu Tanda Tangan' }, signed: { k: 'green', l: 'Ditandatangani' } };
-  const stt = STAT[L.status] || STAT.draft;
+  const stt = (STAT as any)[L.status] || STAT.draft;
   const responsibilities = [
     'Menyusun laporan keuangan sesuai Standar Akuntansi Keuangan yang berlaku di Indonesia;',
     'Merancang, menerapkan, dan memelihara pengendalian internal yang relevan;',
@@ -220,7 +220,7 @@ function StepLetter({ p, onPatch }) {
             <OKv label="Standar" v="SA 210" />
           </div>
           {L.status === 'draft' && L.version > 0 && (
-            <div className="field" style={{ marginTop: 10 }}><label>Ruang Lingkup</label><textarea className="input" value={L.scope} onChange={e => setL({ scope: e.target.value })} style={{ height: 64, padding: 8, lineHeight: 1.5, resize: 'vertical' }} /></div>
+            <div className="field" style={{ marginTop: 10 }}><label>Ruang Lingkup</label><textarea className="input" value={L.scope} onChange={(e: any) => setL({ scope: e.target.value })} style={{ height: 64, padding: 8, lineHeight: 1.5, resize: 'vertical' }} /></div>
           )}
           <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
             {L.version > 0 && L.status === 'draft' && <>
@@ -245,7 +245,7 @@ function StepLetter({ p, onPatch }) {
           <div className="tiny muted upper" style={{ marginBottom: 10 }}>Jejak Tanda Tangan & Meterai</div>
           {(L.esign && L.esign.length) ? (
             <div style={{ display: 'grid', gap: 0 }}>
-              {L.esign.map((e, i) => (
+              {L.esign.map((e: any, i: any) => (
                 <div key={i} className="row gap8" style={{ padding: '7px 0', borderBottom: i < L.esign.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 22px', width: 22, height: 22, borderRadius: '50%', background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><I.check size={12} /></span>
                   <div style={{ flex: 1 }}><div style={{ fontSize: 11.5, lineHeight: 1.4 }}>{e.t}</div><div className="tiny muted">{e.who} · {e.date}</div></div>

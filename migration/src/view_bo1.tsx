@@ -14,15 +14,15 @@ import { BO } from './data_backoffice';
 const { useState: useStateBO1 } = React;
 
 /* shared money helpers */
-const boJt = (v) => 'Rp ' + AMS.fmt(v / 1e6, 0) + ' jt';
-const boM = (v, d = 1) => 'Rp ' + AMS.fmt(v / 1e9, d) + ' M';
+const boJt = (v: any) => 'Rp ' + AMS.fmt(v / 1e6, 0) + ' jt';
+const boM = (v: any, d = 1) => 'Rp ' + AMS.fmt(v / 1e9, d) + ' M';
 const boBadge = {
   Aktif: 'green', Disetujui: 'green', Lengkap: 'green', Berlaku: 'green', Patuh: 'green', Digunakan: 'green', Dibayar: 'green', Selesai: 'green', Reimbursed: 'green', Terkunci: 'green',
   'Menunggu Approval': 'amber', 'Perlu Reviu': 'amber', Evaluasi: 'amber', Draft: 'gray', Berjalan: 'amber', Perpanjangan: 'amber', 'Perlu Servis': 'amber', Terjadwal: 'blue', Diproses: 'blue', Mediasi: 'amber', 'Jatuh Tempo': 'amber', Dilaporkan: 'blue', 'Usul Hapus': 'amber', 'PPL Kurang': 'amber',
   Ditolak: 'red', Diblokir: 'red', Terlambat: 'red', 'Legal Hold': 'red', Ditahan: 'red', Tinggi: 'red', 'Gagal — pajak': 'red',
   Putusan: 'gray', Dicabut: 'gray', Sedang: 'amber', Rendah: 'green',
 };
-const BoBadge = ({ s }: any) => <span className={'badge b-' + (boBadge[s] || 'gray')}>{s}</span>;
+const BoBadge = ({ s }: any) => <span className={'badge b-' + ((boBadge as any)[s] || 'gray')}>{s}</span>;
 
 /* tabbed panel scaffold */
 function BoTabPanel({ tabs, tab, setTab, children }: any) {
@@ -45,9 +45,9 @@ function BoStat({ value, label, accent }: any) {
 function ProcurementLegacy() {
   const B = BO;
   const [tab, setTab] = useStateBO1('vendor');
-  const totalSpend = B.SPEND_BY_CAT.reduce((s, x) => s + x.v, 0);
-  const pendingPO = B.PURCHASE_ORDERS.filter(p => p.status === 'Menunggu Approval');
-  const pendingVal = pendingPO.reduce((s, p) => s + p.amount, 0);
+  const totalSpend = B.SPEND_BY_CAT.reduce((s: any, x: any) => s + x.v, 0);
+  const pendingPO = B.PURCHASE_ORDERS.filter((p: any) => p.status === 'Menunggu Approval');
+  const pendingVal = pendingPO.reduce((s: any, p: any) => s + p.amount, 0);
   const tabs = [
     { id: 'vendor', label: 'Daftar Vendor', count: B.VENDORS.length },
     { id: 'po', label: 'Purchase Order', count: B.PURCHASE_ORDERS.length },
@@ -56,13 +56,13 @@ function ProcurementLegacy() {
   ];
   return (
     <>
-      <SubBar moduleId="procurement" right={<div className="row gap8 ac"><span className="chip tiny"><I.users size={11} /> {B.VENDORS.filter(v => v.status === 'Aktif').length} vendor aktif</span><Btn sm variant="primary"><I.plus size={13} /> Buat PO</Btn></div>} />
+      <SubBar moduleId="procurement" right={<div className="row gap8 ac"><span className="chip tiny"><I.users size={11} /> {B.VENDORS.filter((v: any) => v.status === 'Aktif').length} vendor aktif</span><Btn sm variant="primary"><I.plus size={13} /> Buat PO</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={boM(totalSpend, 1)} label="Belanja YTD" />
           <BoStat value={pendingPO.length} label="PO Menunggu Approval" accent="var(--amber)" />
           <BoStat value={boJt(pendingVal)} label="Nilai Pending" accent="var(--amber)" />
-          <BoStat value={B.VENDORS.filter(v => v.risk === 'Tinggi' || v.diligence !== 'Lengkap').length} label="Vendor Perlu Perhatian" accent="var(--red)" />
+          <BoStat value={B.VENDORS.filter((v: any) => v.risk === 'Tinggi' || v.diligence !== 'Lengkap').length} label="Vendor Perlu Perhatian" accent="var(--red)" />
         </div>
 
         <BoTabPanel tabs={tabs} tab={tab} setTab={setTab}>
@@ -70,7 +70,7 @@ function ProcurementLegacy() {
             <table className="dtbl zebra">
               <thead><tr><th>ID</th><th>Vendor</th><th>Kategori</th><th className="num">Belanja YTD</th><th className="num">Rating</th><th>Risiko</th><th>PMPJ</th><th>Status</th></tr></thead>
               <tbody>
-                {B.VENDORS.map(v => (
+                {B.VENDORS.map((v: any) => (
                   <tr key={v.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v.id}</td>
                     <td><div style={{ fontWeight: 600 }}>{v.name}</div><div className="tiny muted mono">{v.npwp} · sejak {v.since}</div></td>
@@ -90,7 +90,7 @@ function ProcurementLegacy() {
             <table className="dtbl">
               <thead><tr><th>No. PO</th><th>Vendor</th><th>Deskripsi</th><th>Dept.</th><th className="num">Nilai</th><th>Butuh</th><th>Approval</th><th>Status</th></tr></thead>
               <tbody>
-                {B.PURCHASE_ORDERS.map(p => {
+                {B.PURCHASE_ORDERS.map((p: any) => {
                   const d = B.daysTo(p.need);
                   return (
                     <tr key={p.id}>
@@ -114,12 +114,12 @@ function ProcurementLegacy() {
               <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 14, alignItems: 'start' }}>
                 <div>
                   <SectionTitle right={<span className="mono tiny muted">{boM(totalSpend, 1)} total</span>}>Belanja per Kategori</SectionTitle>
-                  <HBars rows={B.SPEND_BY_CAT.map(c => ({ label: c.cat, value: c.v, color: c.c, right: boJt(c.v) }))} />
+                  <HBars rows={B.SPEND_BY_CAT.map((c: any) => ({ label: c.cat, value: c.v, color: c.c, right: boJt(c.v) }))} />
                 </div>
                 <div>
                   <SectionTitle>Konsentrasi & Distribusi</SectionTitle>
                   <div className="row ac gap14" style={{ marginBottom: 12 }}>
-                    <Donut size={104} thickness={15} segments={B.SPEND_BY_CAT.map(c => ({ value: c.v, color: c.c }))} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 800 }}>{B.VENDORS.length}</div><div className="tiny muted">vendor</div></div>} />
+                    <Donut size={104} thickness={15} segments={B.SPEND_BY_CAT.map((c: any) => ({ value: c.v, color: c.c }))} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 800 }}>{B.VENDORS.length}</div><div className="tiny muted">vendor</div></div>} />
                     <div style={{ flex: 1 }}>
                       <KV label="Vendor Terbesar" v="Sewa Sentral Plaza" sub="33% dari total belanja" />
                       <div style={{ height: 8 }} />
@@ -138,7 +138,7 @@ function ProcurementLegacy() {
             <table className="dtbl">
               <thead><tr><th>Vendor</th><th>PIC</th><th>Termin</th><th>Status PMPJ</th><th>Catatan</th></tr></thead>
               <tbody>
-                {B.VENDORS.map(v => (
+                {B.VENDORS.map((v: any) => (
                   <tr key={v.id}>
                     <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.id}</div></td>
                     <td className="tiny">{v.pic}</td>
@@ -164,10 +164,10 @@ function ProcurementLegacy() {
 function FacilitiesLegacy() {
   const B = BO;
   const [tab, setTab] = useStateBO1('register');
-  const totCost = B.FIXED_ASSETS.reduce((s, a) => s + a.cost, 0);
-  const totNbv = B.FIXED_ASSETS.reduce((s, a) => s + a.nbv, 0);
-  const totSeats = B.SPACE.reduce((s, f) => s + f.seats, 0);
-  const totOcc = B.SPACE.reduce((s, f) => s + f.occ, 0);
+  const totCost = B.FIXED_ASSETS.reduce((s: any, a: any) => s + a.cost, 0);
+  const totNbv = B.FIXED_ASSETS.reduce((s: any, a: any) => s + a.nbv, 0);
+  const totSeats = B.SPACE.reduce((s: any, f: any) => s + f.seats, 0);
+  const totOcc = B.SPACE.reduce((s: any, f: any) => s + f.occ, 0);
   const tabs = [
     { id: 'register', label: 'Register Aset', count: B.FIXED_ASSETS.length },
     { id: 'maint', label: 'Pemeliharaan & K3', count: B.MAINTENANCE.length },
@@ -182,7 +182,7 @@ function FacilitiesLegacy() {
           <BoStat value={boM(totCost, 1)} label="Nilai Perolehan" />
           <BoStat value={boM(totNbv, 1)} label="Nilai Buku (NBV)" accent="var(--blue)" />
           <BoStat value={Math.round(totOcc / totSeats * 100) + '%'} label="Okupansi Ruang" accent="var(--green)" />
-          <BoStat value={B.MAINTENANCE.filter(m => m.status === 'Terlambat').length} label="Pemeliharaan Terlambat" accent="var(--red)" />
+          <BoStat value={B.MAINTENANCE.filter((m: any) => m.status === 'Terlambat').length} label="Pemeliharaan Terlambat" accent="var(--red)" />
         </div>
 
         <BoTabPanel tabs={tabs} tab={tab} setTab={setTab}>
@@ -190,7 +190,7 @@ function FacilitiesLegacy() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Aset</th><th>Kategori</th><th className="num">Qty</th><th className="num">Perolehan</th><th className="num">NBV</th><th>Lokasi</th><th>Status</th></tr></thead>
               <tbody>
-                {B.FIXED_ASSETS.map(a => (
+                {B.FIXED_ASSETS.map((a: any) => (
                   <tr key={a.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
                     <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{a.name}</div><div className="tiny muted mono">akuisisi {a.acq} · umur {a.life} thn</div></td>
@@ -211,7 +211,7 @@ function FacilitiesLegacy() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Aset</th><th>Jenis</th><th>Vendor</th><th>Jatuh Tempo</th><th className="num">Biaya</th><th>Status</th></tr></thead>
               <tbody>
-                {B.MAINTENANCE.map(m => {
+                {B.MAINTENANCE.map((m: any) => {
                   const d = B.daysTo(m.due);
                   return (
                     <tr key={m.id}>
@@ -233,7 +233,7 @@ function FacilitiesLegacy() {
             <table className="dtbl">
               <thead><tr><th>Software</th><th>Vendor</th><th className="num">Seat</th><th>Utilisasi</th><th>Berakhir</th><th className="num">Biaya/thn</th><th>Status</th></tr></thead>
               <tbody>
-                {B.SOFTWARE_LICENSES.map(l => {
+                {B.SOFTWARE_LICENSES.map((l: any) => {
                   const u = Math.round(l.used / l.seats * 100);
                   return (
                     <tr key={l.name}>
@@ -255,7 +255,7 @@ function FacilitiesLegacy() {
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <SectionTitle right={<span className="mono tiny muted">{totOcc}/{totSeats} kursi terisi</span>}>Okupansi per Lantai</SectionTitle>
               <div style={{ display: 'grid', gap: 12 }}>
-                {B.SPACE.map(f => {
+                {B.SPACE.map((f: any) => {
                   const u = Math.round(f.occ / f.seats * 100);
                   return (
                     <div key={f.floor} className="panel" style={{ padding: '11px 13px' }}>
@@ -286,8 +286,8 @@ function FacilitiesLegacy() {
 function RecordsRetentionLegacy() {
   const B = BO;
   const [tab, setTab] = useStateBO1('archive');
-  const due = B.ARCHIVES.filter(a => a.status === 'Jatuh Tempo');
-  const holds = B.LEGAL_HOLDS.filter(h => h.status === 'Aktif');
+  const due = B.ARCHIVES.filter((a: any) => a.status === 'Jatuh Tempo');
+  const holds = B.LEGAL_HOLDS.filter((h: any) => h.status === 'Aktif');
   const tabs = [
     { id: 'archive', label: 'Arsip Engagement', count: B.ARCHIVES.length },
     { id: 'policy', label: 'Kebijakan Retensi', count: B.RETENTION_POLICY.length },
@@ -300,7 +300,7 @@ function RecordsRetentionLegacy() {
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={B.ARCHIVES.length} label="Arsip Terkelola" />
-          <BoStat value={B.ARCHIVES.filter(a => a.status === 'Terkunci').length} label="Terkunci (read-only)" accent="var(--green)" />
+          <BoStat value={B.ARCHIVES.filter((a: any) => a.status === 'Terkunci').length} label="Terkunci (read-only)" accent="var(--green)" />
           <BoStat value={due.length} label="Jatuh Tempo Pemusnahan" accent="var(--amber)" />
           <BoStat value={holds.length} label="Legal Hold Aktif" accent="var(--red)" />
         </div>
@@ -310,7 +310,7 @@ function RecordsRetentionLegacy() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Engagement</th><th className="num">Thn</th><th>Diarsipkan</th><th>Musnah</th><th className="num">Ukuran</th><th>Status</th></tr></thead>
               <tbody>
-                {B.ARCHIVES.map(a => (
+                {B.ARCHIVES.map((a: any) => (
                   <tr key={a.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
                     <td style={{ fontWeight: 600, fontSize: 11.5 }}>{a.eng}</td>
@@ -329,7 +329,7 @@ function RecordsRetentionLegacy() {
             <table className="dtbl">
               <thead><tr><th>Jenis Dokumen</th><th>Dasar</th><th className="num">Retensi</th><th>Format</th><th>Catatan</th></tr></thead>
               <tbody>
-                {B.RETENTION_POLICY.map((p, i) => (
+                {B.RETENTION_POLICY.map((p: any, i: any) => (
                   <tr key={i}>
                     <td style={{ fontWeight: 600, fontSize: 11.5 }}>{p.jenis}</td>
                     <td className="tiny muted">{p.dasar}</td>
@@ -350,7 +350,7 @@ function RecordsRetentionLegacy() {
               <table className="dtbl">
                 <thead><tr><th>ID</th><th>Engagement</th><th>Jatuh Tempo</th><th>Legal Hold?</th><th></th></tr></thead>
                 <tbody>
-                  {due.map(a => (
+                  {due.map((a: any) => (
                     <tr key={a.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{a.id}</td>
                       <td style={{ fontWeight: 600, fontSize: 11.5 }}>{a.eng}</td>
@@ -368,7 +368,7 @@ function RecordsRetentionLegacy() {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Subjek</th><th>Alasan</th><th>Sejak</th><th>Diperintah</th><th>Status</th></tr></thead>
               <tbody>
-                {B.LEGAL_HOLDS.map(h => (
+                {B.LEGAL_HOLDS.map((h: any) => (
                   <tr key={h.id}>
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{h.id}</td>
                     <td style={{ fontWeight: 600, fontSize: 11.5 }}>{h.subjek}</td>

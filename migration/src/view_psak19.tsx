@@ -144,9 +144,9 @@ function PSAK19View() {
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.impair', JSON.stringify(impair)); } catch (e) {} }, [impair]);
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.crit', JSON.stringify(crit)); } catch (e) {} }, [crit]);
-  const toggleDisc = (id) => setDisc(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
-  const toggleImpair = (id) => setImpair(list => list.map(r => r.id === id ? { ...r, flag: !r.flag } : r));
-  const toggleCrit = (id) => setCrit(list => list.map(r => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
+  const toggleImpair = (id: any) => setImpair((list: any) => list.map((r: any) => r.id === id ? { ...r, flag: !r.flag } : r));
+  const toggleCrit = (id: any) => setCrit((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
   if (!model || !it) {
     return <><SubBar moduleId="psak19" /><div className="view-pad"><Panel title="PSAK 19"><div className="tiny muted">Mesin FS Generator / kanonik belum dimuat.</div></Panel></div></>;
@@ -157,8 +157,8 @@ function PSAK19View() {
 
   /* ——— skala penyajian (kanonik dalam Rp juta) ——— */
   const UN = unit === 'penuh' ? { mult: 1e6, short: 'Rp' } : { mult: 1, short: 'Rp jt' };
-  const sc = (vJuta) => fmt(Math.round(vJuta * UN.mult), 0);
-  const M = (full) => full / 1e6;
+  const sc = (vJuta: any) => fmt(Math.round(vJuta * UN.mult), 0);
+  const M = (full: any) => full / 1e6;
 
   /* ——— rekonsiliasi nilai tercatat (¶118e) ——— */
   const acqAdd = it.additions - it.devAdditionsYr;
@@ -174,15 +174,15 @@ function PSAK19View() {
   ];
 
   /* ——— tie-out lintas-laporan (semua ditarik live, dalam Rp juta) ——— */
-  const asetBS = model.bs.nca.find(l => l.key === 'takberwujud');
-  const ppeBS = model.bs.nca.find(l => l.key === 'asettetap');
+  const asetBS = model.bs.nca.find((l: any) => l.key === 'takberwujud');
+  const ppeBS = model.bs.nca.find((l: any) => l.key === 'asettetap');
   const tieRows = [
     { id: 't1', label: 'Roll-forward menutup ke saldo neraca', std: '¶118(e)', a: it.netClose, b: M(asetBS.cy), note: 'Awal + penambahan − amortisasi − penurunan nilai = Aset takberwujud neto (WTB 1-2400 + 1-2410 adjusted).' },
-    { id: 't2', label: 'Harga perolehan = WTB 1-2400', std: '¶118(c)', a: it.grossClose, b: M((wtb.find(r => r.code === '1-2400') || {}).adj || 0), note: 'Jumlah tercatat bruto menutup ke buku besar harga perolehan takberwujud.' },
-    { id: 't3', label: 'Akumulasi amortisasi = WTB 1-2410', std: '¶118(c)', a: -it.accumAudit, b: M((wtb.find(r => r.code === '1-2410') || {}).adj || 0), note: 'Akumulasi amortisasi (kontra-aset) menutup ke buku besar 1-2410 adjusted.' },
+    { id: 't2', label: 'Harga perolehan = WTB 1-2400', std: '¶118(c)', a: it.grossClose, b: M((wtb.find((r: any) => r.code === '1-2400') || {}).adj || 0), note: 'Jumlah tercatat bruto menutup ke buku besar harga perolehan takberwujud.' },
+    { id: 't3', label: 'Akumulasi amortisasi = WTB 1-2410', std: '¶118(c)', a: -it.accumAudit, b: M((wtb.find((r: any) => r.code === '1-2410') || {}).adj || 0), note: 'Akumulasi amortisasi (kontra-aset) menutup ke buku besar 1-2410 adjusted.' },
     { id: 't4', label: 'Amortisasi = add-back Arus Kas (PSAK 2)', std: 'PSAK 2', a: it.amortAudited, b: M(model.meta.amortization), note: 'Beban amortisasi audited = kenaikan akumulasi amortisasi (add-back non-kas, digabung penyusutan PSAK 16).' },
     { id: 't5', label: 'Penambahan & kapitalisasi = arus kas investasi', std: 'PSAK 2', a: it.additions, b: M(-model.meta.intanAdd), note: 'Mutasi neto harga perolehan = perolehan & kapitalisasi takberwujud pada Arus Kas Investasi.' },
-    { id: 't6', label: 'Saldo awal = komparatif WTB 2024', std: '¶118(c)', a: it.netOpen, b: M(((wtb.find(r => r.code === '1-2400') || {}).ly || 0) + ((wtb.find(r => r.code === '1-2410') || {}).ly || 0)), note: 'Nilai tercatat neto awal = saldo audited periode lalu (kolom komparatif WTB).' },
+    { id: 't6', label: 'Saldo awal = komparatif WTB 2024', std: '¶118(c)', a: it.netOpen, b: M(((wtb.find((r: any) => r.code === '1-2400') || {}).ly || 0) + ((wtb.find((r: any) => r.code === '1-2410') || {}).ly || 0)), note: 'Nilai tercatat neto awal = saldo audited periode lalu (kolom komparatif WTB).' },
   ].map(r => ({ ...r, diff: r.a - r.b, ok: Math.abs(r.a - r.b) < 1.5 }));
   const tiePass = tieRows.filter(r => r.ok).length;
 
@@ -198,10 +198,10 @@ function PSAK19View() {
     { k: 'Rekonsiliasi angka lintas-modul', src: 'Alur Data', route: 'dataflow', icon: 'link2' },
   ];
 
-  const discReq = disc.filter(d => !d.na);
-  const discOk = disc.filter(d => d.ok).length;
-  const impFlags = impair.filter(m => m.flag).length;
-  const critOk = crit.filter(c => c.ok).length;
+  const discReq = disc.filter((d: any) => !d.na);
+  const discOk = disc.filter((d: any) => d.ok).length;
+  const impFlags = impair.filter((m: any) => m.flag).length;
+  const critOk = crit.filter((c: any) => c.ok).length;
   const amTol = 0.10;
   const amWithin = Math.abs(it.amortVarPct) <= amTol;
   const STATEP19 = { ok: { I: 'checkCircle', c: 'var(--green)' }, warn: { I: 'alert', c: 'var(--amber)' } };
@@ -270,7 +270,7 @@ function PSAK19View() {
             </tr>
           </thead>
           <tbody>
-            {it.classes.map((c, i) => (
+            {it.classes.map((c: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px', fontWeight: 600 }}>{c.label}{c.note && <span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>{c.note}</span>}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(c.gross)}</td>
@@ -313,7 +313,7 @@ function PSAK19View() {
             </tr>
           </thead>
           <tbody>
-            {it.classes.map((c, i) => (
+            {it.classes.map((c: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px', fontWeight: 600 }}>{c.label}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{c.life ? sc(c.gross) : '—'}</td>
@@ -324,7 +324,7 @@ function PSAK19View() {
             ))}
             <tr style={{ borderTop: '1.5px solid var(--navy)', fontWeight: 700 }}>
               <td style={{ padding: '8px 4px' }}>Amortisasi harapan (ekspektasi independen)</td>
-              <td className="mono" style={{ textAlign: 'right', padding: '8px 4px' }}>{sc(it.classes.filter(c => c.life).reduce((a, c) => a + c.gross, 0))}</td>
+              <td className="mono" style={{ textAlign: 'right', padding: '8px 4px' }}>{sc(it.classes.filter((c: any) => c.life).reduce((a: any, c: any) => a + c.gross, 0))}</td>
               <td style={{ padding: '8px 4px' }}></td>
               <td className="mono" style={{ textAlign: 'right', padding: '8px 4px', color: 'var(--blue)' }}>{sc(it.expectedAmort)}</td>
               <td style={{ padding: '8px 4px' }}></td>
@@ -397,7 +397,7 @@ function PSAK19View() {
         </div>
         <div className="tiny muted" style={{ lineHeight: 1.5 }}>Kapitalisasi hanya bila <b>seluruh enam kriteria ¶57</b> terpenuhi sejak tanggal pemenuhan. Pengeluaran riset & pengeluaran sebelum kriteria terpenuhi <b>tidak dapat</b> dikapitalisasi balik (¶71).</div>
         <div style={{ display: 'grid', gap: 0, borderTop: '1px solid var(--line-soft)', marginTop: 2 }}>
-          {crit.map((c, i) => (
+          {crit.map((c: any, i: any) => (
             <label key={c.id} className="row gap9" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < crit.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleCrit(c.id)}>
               <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)'), background: c.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{c.ok ? <I.check size={11} style={{ color: '#fff' }} /> : <span className="mono" style={{ fontSize: 9, color: 'var(--amber)', fontWeight: 700 }}>{i + 1}</span>}</span>
               <span style={{ fontSize: 11.5, lineHeight: 1.35, color: c.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: c.ok ? 400 : 600 }}>{c.t}</span>
@@ -429,7 +429,7 @@ function PSAK19View() {
         </div>
       </div>
       <div>
-        {impair.map((m, i) => (
+        {impair.map((m: any, i: any) => (
           <label key={m.id} className="row gap9" style={{ padding: '7px 13px', cursor: m.src === 'wajib' ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < impair.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: m.src === 'wajib' ? 0.95 : 1 }} onClick={() => m.src !== 'wajib' && toggleImpair(m.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (m.flag ? (m.src === 'wajib' ? 'var(--purple)' : 'var(--amber)') : 'var(--line)'), background: m.flag ? (m.src === 'wajib' ? 'var(--purple)' : 'var(--amber)') : '#fff', display: 'grid', placeItems: 'center' }}>{m.flag && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span style={{ fontSize: 11.5, lineHeight: 1.35, color: m.flag ? 'var(--ink)' : 'var(--ink-2)', fontWeight: m.flag ? 600 : 400 }}>{m.t}<span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>· {m.src}</span></span>
@@ -448,7 +448,7 @@ function PSAK19View() {
       <div className="panel-h"><h3>Asersi & Prosedur Audit</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 · SA 540</span></div>
       <div>
         {P19_ASSERT.map((r, i) => {
-          const st = STATEP19[r.state];
+          const st = (STATEP19 as any)[r.state];
           return (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P19_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
@@ -501,11 +501,11 @@ function PSAK19View() {
       <div className="panel-h"><h3>Sumber Data (Lineage)</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik untuk telusuri</span></div>
       <div style={{ padding: 6 }}>
         {lineage.map((r, i) => {
-          const IconC = I[r.icon] || I.doc;
+          const IconC = (I as any)[r.icon] || I.doc;
           return (
             <button key={i} onClick={() => nav(r.route, { from: 'psak19' })} className="row ac gap9" style={{ width: '100%', textAlign: 'left', padding: '8px 9px', borderRadius: 7, border: '1px solid transparent', background: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
+              onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; }}
+              onMouseLeave={(e: any) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'transparent'; }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><IconC size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.k}</div>
@@ -527,7 +527,7 @@ function PSAK19View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengungkapan PSAK 19</h3><span className="sub mono">¶118–128</span><div style={{ flex: 1 }} /><span className="tiny muted">{discOk}/{disc.length}</span></div>
       <div>
-        {disc.map((d, i) => (
+        {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 58, flex: '0 0 58px', marginTop: 1 }}>{d.ref}</span>
@@ -577,7 +577,7 @@ function PSAK19View() {
           {/* tab bar */}
           <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--line)', overflowX: 'auto', flexWrap: 'nowrap' }}>
             {TABS.map(t => {
-              const IconT = I[t.icon] || I.doc;
+              const IconT = (I as any)[t.icon] || I.doc;
               const on = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{

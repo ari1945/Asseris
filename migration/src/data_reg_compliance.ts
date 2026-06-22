@@ -12,7 +12,7 @@
 import { AMS } from './data';
 (function () {
   const A: any = AMS;
-  const feeOf = (id) => { const c = (A.PPPK_CLIENTS || []).find(x => x.id === id); return c ? c.fee : 0; };
+  const feeOf = (id: any) => { const c = (A.PPPK_CLIENTS || []).find((x: any) => x.id === id); return c ? c.fee : 0; };
 
   /* ===========================================================
      G6a · KETERGANTUNGAN IMBALAN (Fee Dependency)

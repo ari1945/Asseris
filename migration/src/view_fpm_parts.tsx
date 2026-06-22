@@ -14,9 +14,9 @@ const { useState: useFPM } = React;
 function MSub({ tabs, active, onChange, right }: any) {
   return (
     <div className="msub">
-      {tabs.map(t => (
+      {tabs.map((t: any) => (
         <button key={t.id} className={'msub-tab ' + (active === t.id ? 'on' : '')} onClick={() => onChange(t.id)}>
-          {t.icon && React.createElement(I[t.icon] || I.panel, { size: 14 })}
+          {t.icon && React.createElement((I as any)[t.icon] || I.panel, { size: 14 })}
           {t.label}
           {t.count != null && <span className="mscount">{t.count}</span>}
         </button>
@@ -49,10 +49,10 @@ function SectionTitle({ children, right }: any) {
 
 /* Horizontal bar list. rows: [{label, value, pct, color, sub, right}] */
 function HBars({ rows, max, fmtVal }: any) {
-  const m = max || Math.max(...rows.map(r => r.value), 1);
+  const m = max || Math.max(...rows.map((r: any) => r.value), 1);
   return (
     <div style={{ display: 'grid', gap: 9 }}>
-      {rows.map((r, i) => (
+      {rows.map((r: any, i: any) => (
         <div key={i} className="hbar-row">
           <div className="row jb ac" style={{ gap: 8 }}>
             <span className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{r.label}</span>
@@ -68,10 +68,10 @@ function HBars({ rows, max, fmtVal }: any) {
 
 /* Vertical funnel. stages: [{label, value, color, n}] */
 function Funnel({ stages }: any) {
-  const max = Math.max(...stages.map(s => s.value), 1);
+  const max = Math.max(...stages.map((s: any) => s.value), 1);
   return (
     <div style={{ display: 'grid', gap: 6 }}>
-      {stages.map((s, i) => {
+      {stages.map((s: any, i: any) => {
         const w = Math.max(14, s.value / max * 100);
         const prev = i > 0 ? stages[i - 1].value : s.value;
         const conv = prev ? Math.round(s.value / prev * 100) : 100;
@@ -116,10 +116,10 @@ function FGauge({ value, max = 100, label, color = 'var(--blue)', size = 116, su
 /* Multi-series line chart with light axis + grid. series: [{name,color,data[]}] */
 function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }: any) {
   const W = 100, H = 100;
-  const max = yMax || Math.max(...series.flatMap(s => s.data)) * 1.12 || 1;
+  const max = yMax || Math.max(...series.flatMap((s: any) => s.data)) * 1.12 || 1;
   const n = labels.length;
-  const x = i => n <= 1 ? 0 : (i / (n - 1)) * W;
-  const y = v => H - (v / max) * H;
+  const x = (i: any) => n <= 1 ? 0 : (i / (n - 1)) * W;
+  const y = (v: any) => H - (v / max) * H;
   return (
     <div>
       <div style={{ position: 'relative', height }}>
@@ -127,27 +127,27 @@ function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }: any)
           {[0, 0.25, 0.5, 0.75, 1].map(g => (
             <line key={g} x1="0" x2={W} y1={H * g} y2={H * g} stroke="var(--line-soft)" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
           ))}
-          {series.map((s, si) => (
+          {series.map((s: any, si: any) => (
             <g key={si}>
-              {s.fill && <polygon fill={s.color} opacity="0.08" points={`0,${H} ` + s.data.map((v, i) => `${x(i)},${y(v)}`).join(' ') + ` ${W},${H}`} />}
+              {s.fill && <polygon fill={s.color} opacity="0.08" points={`0,${H} ` + s.data.map((v: any, i: any) => `${x(i)},${y(v)}`).join(' ') + ` ${W},${H}`} />}
               <polyline fill="none" stroke={s.color} strokeWidth="1.6" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round"
-                points={s.data.map((v, i) => `${x(i)},${y(v)}`).join(' ')} />
+                points={s.data.map((v: any, i: any) => `${x(i)},${y(v)}`).join(' ')} />
             </g>
           ))}
         </svg>
         {/* end-point dots via absolute overlay */}
-        {series.map((s, si) => {
+        {series.map((s: any, si: any) => {
           const last = s.data.length - 1;
           return <span key={si} style={{ position: 'absolute', left: 'calc(' + x(last) + '% - 3px)', top: 'calc(' + y(s.data[last]) + '% - 3px)', width: 6, height: 6, borderRadius: '50%', background: s.color, boxShadow: '0 0 0 2px var(--surface)' }} />;
         })}
       </div>
       <div className="row jb tiny muted" style={{ marginTop: 5 }}>
-        {labels.map((l, i) => (i === 0 || i === labels.length - 1 || (labels.length <= 8) || i % Math.ceil(labels.length / 6) === 0)
+        {labels.map((l: any, i: any) => (i === 0 || i === labels.length - 1 || (labels.length <= 8) || i % Math.ceil(labels.length / 6) === 0)
           ? <span key={i} style={{ fontSize: 9.5 }}>{l}</span> : <span key={i} />)}
       </div>
       {series.length > 1 && (
         <div className="row gap12 ac" style={{ marginTop: 6, flexWrap: 'wrap' }}>
-          {series.map((s, i) => (
+          {series.map((s: any, i: any) => (
             <span key={i} className="row ac gap6 tiny" style={{ fontWeight: 600 }}>
               <span style={{ width: 10, height: 3, borderRadius: 2, background: s.color }} />{s.name}
             </span>
@@ -167,10 +167,10 @@ function Delta({ v, suffix = '%', invert }: any) {
 
 /* Horizontal stacked bar (composition). parts: [{value,color,label}] */
 function StackBar({ parts, height = 9 }: any) {
-  const total = parts.reduce((s, p) => s + p.value, 0) || 1;
+  const total = parts.reduce((s: any, p: any) => s + p.value, 0) || 1;
   return (
     <div style={{ display: 'flex', height, borderRadius: 5, overflow: 'hidden', background: 'var(--surface-3)' }}>
-      {parts.map((p, i) => <div key={i} title={p.label} style={{ width: (p.value / total * 100) + '%', background: p.color }} />)}
+      {parts.map((p: any, i: any) => <div key={i} title={p.label} style={{ width: (p.value / total * 100) + '%', background: p.color }} />)}
     </div>
   );
 }

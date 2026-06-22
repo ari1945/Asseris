@@ -22,10 +22,10 @@ import { BO as BO_NS } from './data_backoffice';
 (function () {
   const A = (): any => AMS || {};
   const BO = (): any => BO_NS || {};
-  const LS = (k, d) => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
+  const LS = (k: any, d: any) => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
 
-  function staffById(id) { return (A().STAFF || []).find(s => s.id === id) || null; }
-  function indepById(id) { return (A().INDEPENDENCE || []).find(d => d.id === id) || null; }
+  function staffById(id: any) { return (A().STAFF || []).find((s: any) => s.id === id) || null; }
+  function indepById(id: any) { return (A().INDEPENDENCE || []).find((d: any) => d.id === id) || null; }
 
   /* fraksi tahun berjalan (untuk indikator laju PPL) */
   function yearFrac() {
@@ -36,7 +36,7 @@ import { BO as BO_NS } from './data_backoffice';
 
   /* ---------- PPL/SKP per pegawai — SUMBER: CPE_LOG (+ entri user terpersist) ----------
      IDENTIK dengan perhitungan CPETracker (view_people): base CPE_LOG + cpeExtra. */
-  function pplOf(empId) {
+  function pplOf(empId: any) {
     const base = (A().CPE_LOG && A().CPE_LOG[empId]) || [];
     const extra = (LS('cpeExtra', {})[empId]) || [];
     const recs = [...extra, ...base];
@@ -50,7 +50,7 @@ import { BO as BO_NS } from './data_backoffice';
     const req = A().CPE_REQ || { annual: 40, structured: 20, year: 2026 };
     const frac = yearFrac();
     const expectedYtd = Math.round(req.annual * frac);
-    return (BO().AP_LICENSES || []).map(a => {
+    return (BO().AP_LICENSES || []).map((a: any) => {
       const s = staffById(a.emp) || {};
       const ind = indepById(a.emp) || {};
       const ppl = pplOf(a.emp);
@@ -74,36 +74,36 @@ import { BO as BO_NS } from './data_backoffice';
   /* ---------- Izin Firma diperkaya (cakupan emiten OJK ← CLIENTS/ENGAGEMENTS) ---------- */
   function listedEngagements() {
     const cl = A().CLIENTS || [], eng = A().ENGAGEMENTS || [];
-    const listedIds = new Set(cl.filter(c => c.listed).map(c => c.id));
-    return eng.filter(e => listedIds.has(e.clientId)).map(e => {
-      const c = cl.find(x => x.id === e.clientId) || {};
+    const listedIds = new Set(cl.filter((c: any) => c.listed).map((c: any) => c.id));
+    return eng.filter((e: any) => listedIds.has(e.clientId)).map((e: any) => {
+      const c = cl.find((x: any) => x.id === e.clientId) || {};
       return { id: e.id, client: c.name, status: e.status };
     });
   }
   function firmLicenses() {
     const listed = listedEngagements();
     const memberships = BO().MEMBERSHIPS || [];
-    return (BO().FIRM_LICENSES || []).map(l => {
+    return (BO().FIRM_LICENSES || []).map((l: any) => {
       const days = l.exp ? BO().daysTo(l.exp) : null;
       let coverage = null, linkMember = null;
       if (/OJK/.test(l.otoritas) || /OJK/i.test(l.nama)) coverage = { kind: 'emiten', items: listed, label: listed.length + ' perikatan emiten bergantung pada registrasi ini' };
-      if (/IAPI/.test(l.nama) || /IAPI/.test(l.no)) { const m = memberships.find(x => /IAPI/.test(x.nama)); if (m) linkMember = m; }
+      if (/IAPI/.test(l.nama) || /IAPI/.test(l.no)) { const m = memberships.find((x: any) => /IAPI/.test(x.nama)); if (m) linkMember = m; }
       return { ...l, days, coverage, linkMember };
     });
   }
 
   /* ---------- Keanggotaan diperkaya (iuran → biaya operasi firma) ---------- */
   function memberships() {
-    return (BO().MEMBERSHIPS || []).map(m => ({ ...m, days: m.exp ? BO().daysTo(m.exp) : null }));
+    return (BO().MEMBERSHIPS || []).map((m: any) => ({ ...m, days: m.exp ? BO().daysTo(m.exp) : null }));
   }
-  function totalDues() { return (BO().MEMBERSHIPS || []).reduce((s, m) => s + m.iuran, 0); }
+  function totalDues() { return (BO().MEMBERSHIPS || []).reduce((s: any, m: any) => s + m.iuran, 0); }
 
   /* ---------- kalender perpanjangan terpadu (izin firma + AP + keanggotaan) ---------- */
-  function renewalCalendar(withinDays) {
-    const out = [];
-    firmLicenses().forEach(l => { if (l.exp) out.push({ kind: 'Izin Firma', label: l.nama, ref: l.no, exp: l.exp, days: l.days, otoritas: l.otoritas, amount: 0 }); });
-    apLicenses().forEach(a => out.push({ kind: 'Izin AP', label: a.name, ref: a.izin, exp: a.exp, days: BO().daysTo(a.exp), otoritas: a.reg, amount: 0 }));
-    memberships().forEach(m => { if (m.exp) out.push({ kind: 'Keanggotaan', label: m.nama, ref: m.tipe, exp: m.exp, days: m.days, otoritas: m.tipe, amount: m.iuran }); });
+  function renewalCalendar(withinDays: any) {
+    const out: any[] = [];
+    firmLicenses().forEach((l: any) => { if (l.exp) out.push({ kind: 'Izin Firma', label: l.nama, ref: l.no, exp: l.exp, days: l.days, otoritas: l.otoritas, amount: 0 }); });
+    apLicenses().forEach((a: any) => out.push({ kind: 'Izin AP', label: a.name, ref: a.izin, exp: a.exp, days: BO().daysTo(a.exp), otoritas: a.reg, amount: 0 }));
+    memberships().forEach((m: any) => { if (m.exp) out.push({ kind: 'Keanggotaan', label: m.nama, ref: m.tipe, exp: m.exp, days: m.days, otoritas: m.tipe, amount: m.iuran }); });
     out.sort((a, b) => a.days - b.days);
     return withinDays != null ? out.filter(x => x.days <= withinDays) : out;
   }
@@ -112,9 +112,9 @@ import { BO as BO_NS } from './data_backoffice';
   function summary() {
     const fl = firmLicenses(), ap = apLicenses(), mb = memberships();
     const expSoon = renewalCalendar(120);
-    const rotDue = ap.filter(a => a.rotState === 'due');
-    const rotWarn = ap.filter(a => a.rotState === 'warn');
-    const pplRisk = ap.filter(a => !a.onPace || !a.structOk);
+    const rotDue = ap.filter((a: any) => a.rotState === 'due');
+    const rotWarn = ap.filter((a: any) => a.rotState === 'warn');
+    const pplRisk = ap.filter((a: any) => !a.onPace || !a.structOk);
     return { firmLicenses: fl, ap, memberships: mb, expSoon, rotDue, rotWarn, pplRisk, totalDues: totalDues(), emiten: listedEngagements() };
   }
 
@@ -132,8 +132,8 @@ import { BO as BO_NS } from './data_backoffice';
      nilai turunan kanonik, bukan angka lepas. */
   (function attachDerived() {
     const enriched = apLicenses();
-    (BO().AP_LICENSES || []).forEach(raw => {
-      const e = enriched.find(x => x.izin === raw.izin);
+    (BO().AP_LICENSES || []).forEach((raw: any) => {
+      const e = enriched.find((x: any) => x.izin === raw.izin);
       if (e) { raw.ap = e.ap; raw.ppl = e.ppl; raw.pplReq = e.pplReq; raw.rotasi = e.rotState === 'due' ? 'Rotasi wajib (' + e.tenure + '/' + e.rotationLimit + ' th)' : e.rotationClient !== '—' ? 'Klien ' + e.rotationClient.replace(/^PT /, '') + ' (' + e.tenure + '/' + e.rotationLimit + ' th)' : 'Tidak ada emiten'; raw.status = e.status; }
     });
   })();

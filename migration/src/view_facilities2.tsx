@@ -14,12 +14,12 @@ import { KV, SectionTitle } from './view_fpm_parts';
 const { useMemo: useMemoFac2 } = React;
 
 /* ====================== PEMELIHARAAN & K3 ====================== */
-function FacMaintenance({ FA, nav }) {
+function FacMaintenance({ FA, nav }: any) {
   const mt = useMemoFac2(() => FA.maintenance(), []);
   const buckets = [
-    { key: 'late', lbl: 'Terlambat / lewat tempo', test: m => m.status === 'Terlambat' || m.days < 0, col: 'var(--red)' },
-    { key: 'soon', lbl: '≤ 14 hari', test: m => m.days >= 0 && m.days <= 14, col: 'var(--amber)' },
-    { key: 'sched', lbl: '> 14 hari', test: m => m.days > 14, col: 'var(--green)' },
+    { key: 'late', lbl: 'Terlambat / lewat tempo', test: (m: any) => m.status === 'Terlambat' || m.days < 0, col: 'var(--red)' },
+    { key: 'soon', lbl: '≤ 14 hari', test: (m: any) => m.days >= 0 && m.days <= 14, col: 'var(--amber)' },
+    { key: 'sched', lbl: '> 14 hari', test: (m: any) => m.days > 14, col: 'var(--green)' },
   ];
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
@@ -47,7 +47,7 @@ function FacMaintenance({ FA, nav }) {
             <table className="dtbl">
               <thead><tr><th>ID</th><th>Aset</th><th>Jenis</th><th>Vendor</th><th>Jatuh Tempo</th><th className="num">Biaya</th><th>Status</th></tr></thead>
               <tbody>
-                {items.map(m => (
+                {items.map((m: any) => (
                   <tr key={m.id}>
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{m.id}</td>
                     <td style={{ fontWeight: 600, fontSize: 11.5 }}>{m.asset}</td>
@@ -68,9 +68,9 @@ function FacMaintenance({ FA, nav }) {
 }
 
 /* ====================== LISENSI & LANGGANAN ====================== */
-function FacLicenses({ FA, firm, nav }) {
+function FacLicenses({ FA, firm, nav }: any) {
   const lic = useMemoFac2(() => FA.licenses(firm), [firm.engagements, firm.clients]);
-  const renew = lic.filter(l => l.renew);
+  const renew = lic.filter((l: any) => l.renew);
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="panel" style={{ padding: '10px 13px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
@@ -79,7 +79,7 @@ function FacLicenses({ FA, firm, nav }) {
       <table className="dtbl">
         <thead><tr><th>Software</th><th>Vendor (master)</th><th>Kontrak</th><th className="num">Seat</th><th>Utilisasi</th><th>Berakhir</th><th className="num">Biaya/thn</th><th>Status</th></tr></thead>
         <tbody>
-          {lic.map(l => (
+          {lic.map((l: any) => (
             <tr key={l.name} style={{ background: l.renew ? 'var(--amber-bg)' : undefined }}>
               <td style={{ fontWeight: 600, fontSize: 11.5 }}>{l.name}</td>
               <td className="tiny">{l.vendorId ? <span className="row ac gap6"><span className="mono" style={{ color: 'var(--blue)' }}>{l.vendorId}</span><span className="muted truncate" style={{ maxWidth: 120 }}>{l.vendor.name}</span></span> : <span className="muted">{l.vendor} <span className="chip tiny">reseller</span></span>}</td>
@@ -92,14 +92,14 @@ function FacLicenses({ FA, firm, nav }) {
             </tr>
           ))}
         </tbody>
-        <tfoot><tr><td colSpan={6}>TOTAL BIAYA LISENSI / THN</td><td className="num">{boJt(lic.reduce((s, l) => s + l.cost, 0))}</td><td></td></tr></tfoot>
+        <tfoot><tr><td colSpan={6}>TOTAL BIAYA LISENSI / THN</td><td className="num">{boJt(lic.reduce((s: any, l: any) => s + l.cost, 0))}</td><td></td></tr></tfoot>
       </table>
     </div>
   );
 }
 
 /* ====================== RUANG & OKUPANSI ====================== */
-function FacSpace({ FA }) {
+function FacSpace({ FA }: any) {
   const sp = useMemoFac2(() => FA.space(), []);
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
@@ -111,7 +111,7 @@ function FacSpace({ FA }) {
       </div>
       <SectionTitle right={<span className="mono tiny muted">{sp.occ}/{sp.seats} kursi terisi</span>}>Okupansi per Lantai <span className="tiny muted">(gedung sewa V-024)</span></SectionTitle>
       <div style={{ display: 'grid', gap: 12 }}>
-        {sp.rows.map(f => (
+        {sp.rows.map((f: any) => (
           <div key={f.floor} className="panel" style={{ padding: '11px 13px' }}>
             <div className="row jb ac" style={{ marginBottom: 6 }}>
               <span style={{ fontWeight: 600, fontSize: 12.5 }}>{f.floor}</span>
@@ -127,7 +127,7 @@ function FacSpace({ FA }) {
 }
 
 /* ====================== SEWA & ASURANSI ====================== */
-function FacLeaseInsurance({ FA, reg, firm, nav }) {
+function FacLeaseInsurance({ FA, reg, firm, nav }: any) {
   const lease = useMemoFac2(() => FA.lease(firm), [firm.engagements, firm.clients]);
   const ins = useMemoFac2(() => FA.insurance(), []);
   const cap = useMemoFac2(() => FA.capex(), []);
@@ -183,7 +183,7 @@ function FacLeaseInsurance({ FA, reg, firm, nav }) {
         <table className="dtbl">
           <thead><tr><th>No. PR</th><th>Departemen</th><th>Deskripsi</th><th>Kategori Kapitalisasi</th><th className="num">Estimasi</th><th>Status</th></tr></thead>
           <tbody>
-            {cap.map(r => (
+            {cap.map((r: any) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                 <td className="tiny" style={{ fontWeight: 600 }}>{r.dept}</td>
@@ -202,7 +202,7 @@ function FacLeaseInsurance({ FA, reg, firm, nav }) {
 }
 
 /* ====================== SUMBER KEBENARAN ====================== */
-function FacLineage({ FA, firm, nav }) {
+function FacLineage({ FA, firm, nav }: any) {
   const recons = useMemoFac2(() => FA.reconciliations(firm), [firm.engagements, firm.clients]);
   const reg = useMemoFac2(() => FA.register(), []);
   const erp = useMemoFac2(() => FA.erpRegister(), []);
@@ -218,7 +218,7 @@ function FacLineage({ FA, firm, nav }) {
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <SectionTitle>Rekonsiliasi Sub-Ledger → Kontrol</SectionTitle>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 18 }}>
-        {recons.map(r => (
+        {recons.map((r: any) => (
           <div key={r.id} className="panel" style={{ padding: '12px 13px', borderTop: '3px solid ' + (r.ok ? 'var(--green)' : 'var(--amber)') }}>
             <div className="row ac gap8" style={{ marginBottom: 8 }}>
               {r.ok ? <span className="badge b-green" style={{ textTransform: 'none' }}>✓ Menutup</span> : <span className="badge b-amber" style={{ textTransform: 'none' }}>≠ Perlu reviu</span>}
@@ -250,7 +250,7 @@ function FacLineage({ FA, firm, nav }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {flows.map(f => (
               <button key={f.id} type="button" className="lin-chip" style={{ borderLeftColor: 'var(--green)' }} onClick={() => nav(f.id, { from: 'facilities' })} title={'Buka ' + f.lbl}>
-                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement(I[f.ic] || I.doc, { size: 14 })}</span>
+                <span className="lin-ic" style={{ color: 'var(--green)' }}>{React.createElement((I as any)[f.ic] || I.doc, { size: 14 })}</span>
                 <span className="lin-txt"><span className="lin-lbl">{f.lbl}</span><span className="lin-rel">{f.rel}</span></span>
                 <span className="lin-go"><I.arrowRight size={12} /></span>
               </button>

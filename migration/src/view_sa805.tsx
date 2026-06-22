@@ -146,18 +146,18 @@ function SA805View() {
 }
 
 /* ---- helper warna ruang lingkup ---- */
-function speColor(t) { const m = SPE_SCOPE.find(x => x.k === t); return m ? m.color : 'gray'; }
-function opnKind(o) { return o === 'Wajar' ? 'green' : o === 'WDP' ? 'amber' : o === 'Terkendala' ? 'red' : 'gray'; }
+function speColor(t: any) { const m = SPE_SCOPE.find(x => x.k === t); return m ? m.color : 'gray'; }
+function opnKind(o: any) { return o === 'Wajar' ? 'green' : o === 'WDP' ? 'amber' : o === 'Terkendala' ? 'red' : 'gray'; }
 
 /* ---------------- Tab: Registri & Ruang Lingkup ---------------- */
-function F805Registri({ selId, setSelId, sel }) {
+function F805Registri({ selId, setSelId, sel }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
         <div className="panel-h"><h3>Ruang Lingkup Perikatan SA 805 (¶A1–A5)</h3><div style={{ flex: 1 }} /><Badge kind="blue">4 bentuk</Badge></div>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
           {SPE_SCOPE.map((d, i) => {
-            const Ic = I[d.ic];
+            const Ic = (I as any)[d.ic];
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={18} /></span>
@@ -220,15 +220,15 @@ function F805Registri({ selId, setSelId, sel }) {
 }
 
 /* ---------------- Tab: Keberterimaan & Materialitas ---------------- */
-function F805Accept({ sel }) {
+function F805Accept({ sel }: any) {
   if (!sel) return null;
-  const done = sel.accept.filter(a => a[1]).length;
+  const done = sel.accept.filter((a: any) => a[1]).length;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Penerimaan Perikatan & Keberterimaan Kerangka (¶6–9)</h3><div style={{ flex: 1 }} /><Badge kind={done === sel.accept.length ? 'green' : 'amber'}>{done}/{sel.accept.length} terpenuhi</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
-          {sel.accept.map((a, i) => (
+          {sel.accept.map((a: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < sel.accept.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: a[1] ? 'var(--green)' : 'var(--red)' }}>{a[1] ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
               <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{a[0]}</div>
@@ -265,7 +265,7 @@ function F805Accept({ sel }) {
 }
 
 /* ---------------- Tab: Keterkaitan Opini (¶15–16) ---------------- */
-function F805Link({ sel }) {
+function F805Link({ sel }: any) {
   if (!sel) return null;
   const adverse = sel.completeOpinion.startsWith('TMP') || sel.completeOpinion.startsWith('TW');
   return (
@@ -324,7 +324,7 @@ function F805Link({ sel }) {
         <Panel title="Tautan Modul">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['materiality', 'Materiality', 'scale'], ['opinion', 'Audit Opinion Generator', 'gavel'], ['sa705', 'SA 705/706 · Modifikasi', 'doc']].map((r, i) => {
-              const Ic = I[r[2]];
+              const Ic = (I as any)[r[2]];
               return <NavRow805 key={i} to={r[0]} label={r[1]} ic={Ic} />;
             })}
           </div>
@@ -345,7 +345,7 @@ function NavRow805({ to, label, ic: Ic }: any) {
 }
 
 /* ---------------- Tab: Pelaporan & Opini Terpisah ---------------- */
-function F805Report({ sel }) {
+function F805Report({ sel }: any) {
   if (!sel) return null;
   const constrained = sel.opinion === 'Terkendala';
   const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';

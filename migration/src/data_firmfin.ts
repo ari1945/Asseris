@@ -34,15 +34,15 @@ const FIRMFIN = (function () {
      margin, aging berbasis umur, penyisihan matriks & roll-forward. Dikonsumsi oleh
      WIP Valuation (route wip), WIP & Realisasi (wipreal), Dashboard & cockpit Firm Finance.
      `provFactor` (opsional) menstres tarif matriks untuk uji sensitivitas kebijakan. */
-  function wip(ctx, provFactor?) {
+  function wip(ctx: any, provFactor?: any) {
     const F = (provFactor == null ? 1 : provFactor);
     const engs = engOf(ctx), clients = cliOf(ctx);
     const SEED = A().WIP_ENG || [];
-    const eById = (id) => engs.find(e => e.id === id) || {};
-    const cById = (id) => clients.find(c => c.id === id) || {};
-    const bucketOf = (age) => WIP_PROV_MATRIX.find(b => age > b.lo && age <= b.hi) || WIP_PROV_MATRIX[WIP_PROV_MATRIX.length - 1];
+    const eById = (id: any) => engs.find((e: any) => e.id === id) || {};
+    const cById = (id: any) => clients.find((c: any) => c.id === id) || {};
+    const bucketOf = (age: any) => WIP_PROV_MATRIX.find(b => age > b.lo && age <= b.hi) || WIP_PROV_MATRIX[WIP_PROV_MATRIX.length - 1];
 
-    const registerAll = SEED.map(w => {
+    const registerAll = SEED.map((w: any) => {
       const e = eById(w.id), c = cById(e.clientId);
       const writeUp = w.writeUp || 0, writeDown = w.writeDown || 0;
       const recoverable = w.std + writeUp - writeDown;
@@ -60,32 +60,32 @@ const FIRMFIN = (function () {
         overBilled: unbilled < 0, atRisk: age > 90,
         hours: STD_RATE ? Math.round(w.std / STD_RATE) : 0, wipValue: w.std, // alias kompat
       };
-    }).sort((a, z) => z.unbilled - a.unbilled);
+    }).sort((a: any, z: any) => z.unbilled - a.unbilled);
 
-    const register = registerAll.filter(r => r.unbilled > 0);          // sub-buku aset (kompat)
-    const unbilledTotal = sumf(register, r => r.unbilled);
-    const deferredIncome = -sumf(registerAll.filter(r => r.unbilled < 0), r => r.unbilled);
-    const totStd = sumf(registerAll, r => r.std);
-    const totRecoverable = sumf(registerAll, r => r.recoverable);
-    const totBilled = sumf(registerAll, r => r.billed);
-    const totWriteUp = sumf(registerAll, r => r.writeUp);
-    const totWriteDown = sumf(registerAll, r => r.writeDown);
-    const totCost = sumf(registerAll, r => r.cost);
+    const register = registerAll.filter((r: any) => r.unbilled > 0);          // sub-buku aset (kompat)
+    const unbilledTotal = sumf(register, (r: any) => r.unbilled);
+    const deferredIncome = -sumf(registerAll.filter((r: any) => r.unbilled < 0), (r: any) => r.unbilled);
+    const totStd = sumf(registerAll, (r: any) => r.std);
+    const totRecoverable = sumf(registerAll, (r: any) => r.recoverable);
+    const totBilled = sumf(registerAll, (r: any) => r.billed);
+    const totWriteUp = sumf(registerAll, (r: any) => r.writeUp);
+    const totWriteDown = sumf(registerAll, (r: any) => r.writeDown);
+    const totCost = sumf(registerAll, (r: any) => r.cost);
     const avgRealization = totStd ? totRecoverable / totStd : 0;
     const avgMargin = totRecoverable ? (totRecoverable - totCost) / totRecoverable : 0;
     const grossWIP = totRecoverable;
 
     /* aging + penyisihan — diturunkan dari register (bukan angka lepas) */
     const aging = WIP_PROV_MATRIX.map(b => {
-      const rows = register.filter(r => r.bucketKey === b.key);
-      const value = sumf(rows, r => r.unbilled);
+      const rows = register.filter((r: any) => r.bucketKey === b.key);
+      const value = sumf(rows, (r: any) => r.unbilled);
       const rate = b.rate * F;
       return { key: b.key, bucket: b.bucket, baseRate: b.rate, rate, value, n: rows.length, provision: Math.round(value * rate) };
     });
-    const provisionTotal = sumf(aging, a => a.provision);
+    const provisionTotal = sumf(aging, (a: any) => a.provision);
     const netRecoverable = unbilledTotal - provisionTotal;
     const provisionPct = unbilledTotal ? provisionTotal / unbilledTotal : 0;
-    const atRiskWIP = sumf(register.filter(r => r.atRisk), r => r.unbilled);
+    const atRiskWIP = sumf(register.filter((r: any) => r.atRisk), (r: any) => r.unbilled);
 
     /* roll-forward sub-buku (opening sbg derivasi-plug agar SELALU menutup) */
     const additions = 10_400_000_000;
@@ -121,20 +121,20 @@ const FIRMFIN = (function () {
   }
 
   const A = (): any => AMS || {};
-  const coaOf = (ctx) => (ctx && ctx.coa) || A().FIRM_COA || [];
-  const engOf = (ctx) => (ctx && ctx.engagements) || A().ENGAGEMENTS || [];
-  const cliOf = (ctx) => (ctx && ctx.clients) || A().CLIENTS || [];
-  const invOf = (ctx) => (ctx && ctx.invoices) || A().INVOICES || [];
-  const acct = (coa, code) => coa.find(a => a.code === code) || { bal: 0, name: code, code };
-  const sumType = (coa, t) => coa.filter(a => a.type === t).reduce((s, a) => s + a.bal, 0);
-  const sumf = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
+  const coaOf = (ctx: any) => (ctx && ctx.coa) || A().FIRM_COA || [];
+  const engOf = (ctx: any) => (ctx && ctx.engagements) || A().ENGAGEMENTS || [];
+  const cliOf = (ctx: any) => (ctx && ctx.clients) || A().CLIENTS || [];
+  const invOf = (ctx: any) => (ctx && ctx.invoices) || A().INVOICES || [];
+  const acct = (coa: any, code: any) => coa.find((a: any) => a.code === code) || { bal: 0, name: code, code };
+  const sumType = (coa: any, t: any) => coa.filter((a: any) => a.type === t).reduce((s: any, a: any) => s + a.bal, 0);
+  const sumf = (arr: any, f: any) => arr.reduce((s: any, x: any) => s + f(x), 0);
 
   /* ---------- Laba Rugi firma (sumber: FIRM_COA) ---------- */
-  function pl(ctx) {
+  function pl(ctx: any) {
     const coa = coaOf(ctx);
     const revenue = -sumType(coa, 'Pendapatan');          // 4-100
-    const bebanAccts = coa.filter(a => a.type === 'Beban');
-    const totalExpense = sumf(bebanAccts, a => a.bal);     // Σ 5-xxx
+    const bebanAccts = coa.filter((a: any) => a.type === 'Beban');
+    const totalExpense = sumf(bebanAccts, (a: any) => a.bal);     // Σ 5-xxx
     const salary = acct(coa, '5-100').bal;                 // beban langsung pengiriman jasa
     const directCost = salary;
     const overheadTotal = totalExpense - directCost;
@@ -145,12 +145,12 @@ const FIRMFIN = (function () {
       grossProfit, grossMargin: revenue ? grossProfit / revenue : 0,
       opProfit, margin: revenue ? opProfit / revenue : 0,
       costToIncome: revenue ? totalExpense / revenue : 0,
-      accounts: bebanAccts.map(a => ({ code: a.code, name: a.name, bal: a.bal })),
+      accounts: bebanAccts.map((a: any) => ({ code: a.code, name: a.name, bal: a.bal })),
     };
   }
 
   /* ---------- Neraca firma (sumber: FIRM_COA) ---------- */
-  function balanceSheet(ctx) {
+  function balanceSheet(ctx: any) {
     const coa = coaOf(ctx);
     const netProfit = pl(ctx).opProfit;
     const totAset = sumType(coa, 'Aset');
@@ -159,9 +159,9 @@ const FIRMFIN = (function () {
     const ca = acct(coa, '1-100').bal + acct(coa, '1-200').bal + acct(coa, '1-300').bal;
     const cl = -(acct(coa, '2-100').bal + acct(coa, '2-200').bal + acct(coa, '2-300').bal);
     return {
-      assets: coa.filter(a => a.type === 'Aset').map(a => ({ ...a })),
-      liabilities: coa.filter(a => a.type === 'Liabilitas').map(a => ({ ...a, bal: -a.bal })),
-      equity: coa.filter(a => a.type === 'Ekuitas').map(a => ({ ...a, bal: -a.bal })),
+      assets: coa.filter((a: any) => a.type === 'Aset').map((a: any) => ({ ...a })),
+      liabilities: coa.filter((a: any) => a.type === 'Liabilitas').map((a: any) => ({ ...a, bal: -a.bal })),
+      equity: coa.filter((a: any) => a.type === 'Ekuitas').map((a: any) => ({ ...a, bal: -a.bal })),
       netProfit, totAset, totLiab, totEkuitas,
       balanced: Math.abs(totAset - (totLiab + totEkuitas)) < 1e6,
       currentAssets: ca, currentLiab: cl, workingCapital: ca - cl,
@@ -177,7 +177,7 @@ const FIRMFIN = (function () {
     { line: 'Advisory', pct: 0.2124, color: '#5b3fa6', growth: 21 },
     { line: 'Reviu & AUP', pct: 0.0796, color: '#9a6a00', growth: -4 },
   ];
-  function serviceLines(ctx) {
+  function serviceLines(ctx: any) {
     const revenue = pl(ctx).revenue;
     let acc = 0;
     const rows = SERVICE_MIX.map((m, i) => {
@@ -190,92 +190,92 @@ const FIRMFIN = (function () {
   }
 
   /* ---------- Kontribusi partner (sumber: ENGAGEMENTS + CLIENTS) ---------- */
-  function partners(ctx) {
+  function partners(ctx: any) {
     const engs = engOf(ctx), clients = cliOf(ctx), staff = A().STAFF || [];
-    const utilOf = (name) => { const s = staff.find(x => x.name === name); return s ? s.util : null; };
+    const utilOf = (name: any) => { const s = staff.find((x: any) => x.name === name); return s ? s.util : null; };
     const m = {};
-    engs.forEach(e => {
+    engs.forEach((e: any) => {
       const partner = (e.partner || '').split(',')[0].trim();
       if (!partner) return;
-      const c = clients.find(x => x.id === e.clientId) || {};
-      (m[partner] = m[partner] || { name: partner, portfolio: 0, clients: 0, hours: 0 });
-      m[partner].portfolio += (c.fee || 0);
-      m[partner].clients += 1;
-      m[partner].hours += (e.actualHrs || 0);
+      const c = clients.find((x: any) => x.id === e.clientId) || {};
+      ((m as any)[partner] = (m as any)[partner] || { name: partner, portfolio: 0, clients: 0, hours: 0 });
+      (m as any)[partner].portfolio += (c.fee || 0);
+      (m as any)[partner].clients += 1;
+      (m as any)[partner].hours += (e.actualHrs || 0);
     });
     const rows = Object.values(m).map((p: any) => ({ ...p, util: utilOf(p.name) })).sort((a: any, b: any) => b.portfolio - a.portfolio);
-    return { rows, total: sumf(rows, p => p.portfolio) };
+    return { rows, total: sumf(rows, (p: any) => p.portfolio) };
   }
 
   /* ---------- Aging piutang (sumber: INVOICES) → tutup ke kontrol 1-200 ---------- */
-  function arAging(ctx) {
-    const inv = invOf(ctx).filter(i => i.status !== 'Draft');
+  function arAging(ctx: any) {
+    const inv = invOf(ctx).filter((i: any) => i.status !== 'Draft');
     const buckets = [
       { k: 'current', l: 'Belum jatuh tempo', c: '#1f7a4d', lo: -1e9, hi: 0 },
       { k: 'b30', l: '1–30 hari', c: '#5b3fa6', lo: 0, hi: 30 },
       { k: 'b60', l: '31–60 hari', c: '#9a6a00', lo: 30, hi: 60 },
       { k: 'b90', l: '> 60 hari', c: '#b3261e', lo: 60, hi: 1e9 },
     ].map((b: any) => ({ ...b, v: 0, n: 0 }));
-    inv.forEach(i => {
+    inv.forEach((i: any) => {
       const out = i.amount - i.paid; if (out <= 0) return;
       const d = Math.round((REFDATE.getTime() - new Date(i.due).getTime()) / 864e5);
       const b = buckets.find(x => d > x.lo && d <= x.hi) || buckets[0];
       b.v += out; b.n += 1;
     });
-    const open = sumf(buckets, b => b.v);
-    const overdue = sumf(buckets.filter(b => b.k !== 'current'), b => b.v);
+    const open = sumf(buckets, (b: any) => b.v);
+    const overdue = sumf(buckets.filter(b => b.k !== 'current'), (b: any) => b.v);
     const control = acct(coaOf(ctx), '1-200').bal;
     buckets.forEach(b => b.pct = open ? b.v / open : 0);
     return { buckets, open, overdue, control, reconciling: control - open };
   }
 
   /* ---------- Utang usaha (sumber: FIRM_AP) → tutup ke kontrol 2-100 ---------- */
-  function ap(ctx) {
+  function ap(ctx: any) {
     const list = A().FIRM_AP || [];
-    const openItems = list.filter(x => x.status !== 'Paid');
-    const open = sumf(openItems, x => x.amount - x.paid);
-    const overdue = sumf(list.filter(x => x.status === 'Overdue'), x => x.amount - x.paid);
+    const openItems = list.filter((x: any) => x.status !== 'Paid');
+    const open = sumf(openItems, (x: any) => x.amount - x.paid);
+    const overdue = sumf(list.filter((x: any) => x.status === 'Overdue'), (x: any) => x.amount - x.paid);
     const control = -acct(coaOf(ctx), '2-100').bal;
     const byCat: any = {};
-    openItems.forEach(x => { byCat[x.cat] = (byCat[x.cat] || 0) + (x.amount - x.paid); });
+    openItems.forEach((x: any) => { byCat[x.cat] = (byCat[x.cat] || 0) + (x.amount - x.paid); });
     return { open, overdue, control, reconciling: control - open, count: openItems.length,
       byCat: Object.entries(byCat).map(([cat, v]) => ({ cat, v })).sort((a: any, b: any) => b.v - a.v) };
   }
 
 
   /* ---------- Kas & bank (sumber: BANK_ACCOUNTS + FX_RATES) ---------- */
-  function cash(ctx) {
+  function cash(ctx: any) {
     const accts = A().BANK_ACCOUNTS || [], fx = A().FX_RATES || { IDR: 1 };
-    const rows = accts.map(a => ({ ...a, idr: a.balance * (fx[a.ccy] || 1) }))
-      .sort((a, b) => b.idr - a.idr);
-    const totalIDR = sumf(rows, a => a.idr);
+    const rows = accts.map((a: any) => ({ ...a, idr: a.balance * (fx[a.ccy] || 1) }))
+      .sort((a: any, b: any) => b.idr - a.idr);
+    const totalIDR = sumf(rows, (a: any) => a.idr);
     const control = acct(coaOf(ctx), '1-100').bal;
     return { rows, totalIDR, control, diff: totalIDR - control };
   }
 
   /* ---------- Anggaran vs aktual (sumber: FIRM_BUDGET) + tie-out ke GL ---------- */
-  function budget(ctx) {
+  function budget(ctx: any) {
     const B = A().FIRM_BUDGET || [], coa = coaOf(ctx);
-    const rev = B.filter(b => b.type === 'rev'), cost = B.filter(b => b.type === 'cost');
-    const tie = B.map(b => {
+    const rev = B.filter((b: any) => b.type === 'rev'), cost = B.filter((b: any) => b.type === 'cost');
+    const tie = B.map((b: any) => {
       const ga = acct(coa, b.acct);
       const glVal = b.type === 'rev' ? -ga.bal : ga.bal;
       return { ...b, glVal, tied: Math.abs(glVal - b.actual) < 1e6 };
     });
-    const actRev = sumf(rev, b => b.actual), actCost = sumf(cost, b => b.actual);
-    const budRev = sumf(rev, b => b.budget), budCost = sumf(cost, b => b.budget);
+    const actRev = sumf(rev, (b: any) => b.actual), actCost = sumf(cost, (b: any) => b.actual);
+    const budRev = sumf(rev, (b: any) => b.budget), budCost = sumf(cost, (b: any) => b.budget);
     return {
-      lines: B, tie, allTied: tie.every(t => t.tied),
+      lines: B, tie, allTied: tie.every((t: any) => t.tied),
       actRev, actCost, actProfit: actRev - actCost,
       budRev, budCost, budProfit: budRev - budCost,
     };
   }
 
   /* ---------- KPI ringkas (semua diturunkan) ---------- */
-  function kpis(ctx) {
+  function kpis(ctx: any) {
     const p = pl(ctx), bs = balanceSheet(ctx), arr = arAging(ctx), apr = ap(ctx), w = wip(ctx), c = cash(ctx);
     const F = A().CASH_FORECAST || [];
-    const avgOutflow = F.length ? sumf(F, r => r.outflow) / F.length * 1e6 : p.totalExpense / 12;
+    const avgOutflow = F.length ? sumf(F, (r: any) => r.outflow) / F.length * 1e6 : p.totalExpense / 12;
     const cashRunwayBase = F.length ? F[0].open * 1e6 : c.control;
     const annualRevenue = p.revenue;
     const annualPurchases = p.totalExpense - p.salary;   // belanja non-staf
@@ -293,9 +293,9 @@ const FIRMFIN = (function () {
   }
 
   /* ---------- Peta Sumber Kebenaran (lineage + rekonsiliasi kontrol) ---------- */
-  function reconciliations(ctx) {
+  function reconciliations(ctx: any) {
     const c = cash(ctx), arr = arAging(ctx), w = wip(ctx), apr = ap(ctx);
-    const mk = (key, label, glCode, owner, ownerLabel, control, sub, subLabel, note) => {
+    const mk = (key: any, label: any, glCode: any, owner: any, ownerLabel: any, control: any, sub: any, subLabel: any, note: any) => {
       const recon = control - sub;
       return { key, label, glCode, owner, ownerLabel, control, sub, subLabel, recon,
         note, status: Math.abs(recon) < 1e6 ? 'tied' : (note ? 'bridged' : 'open') };
@@ -317,7 +317,7 @@ const FIRMFIN = (function () {
   }
 
   /* ---------- Provenance tiap figur headline (untuk panel lineage) ---------- */
-  function provenance(ctx) {
+  function provenance(ctx: any) {
     const p = pl(ctx), b = budget(ctx);
     return [
       { label: 'Pendapatan jasa', value: p.revenue, owner: 'firmgl', ownerLabel: 'General Ledger', source: 'FIRM_COA · akun 4-100', tied: true },

@@ -80,18 +80,18 @@ function Integrations() {
   };
 
   const sum = IM.summary();
-  const connected = list.filter(i => i.status === 'connected').length;
-  const errors = list.filter(i => i.status === 'error').length;
+  const connected = list.filter((i: any) => i.status === 'connected').length;
+  const errors = list.filter((i: any) => i.status === 'error').length;
 
-  const toggle = (id) => {
-    setList(items => items.map(i => i.id === id ? { ...i, status: i.status === 'connected' ? 'available' : 'connected', last: i.status === 'connected' ? '—' : 'baru saja' } : i));
-    const it = list.find(x => x.id === id);
+  const toggle = (id: any) => {
+    setList((items: any) => items.map((i: any) => i.id === id ? { ...i, status: i.status === 'connected' ? 'available' : 'connected', last: i.status === 'connected' ? '—' : 'baru saja' } : i));
+    const it = list.find((x: any) => x.id === id);
     logActivity && logActivity({ who: 'Anindya Pramesti', action: 'SYNC', detail: `Konektor ${it.name} ${it.status === 'connected' ? 'diputus' : 'dihubungkan'}` });
   };
 
-  const cats = ['Semua', ...Array.from(new Set(list.map(i => i.cat)))];
-  const shown = list.filter(i => catFilter === 'Semua' || i.cat === catFilter);
-  const sel = list.find(i => i.id === selId) || shown[0] || list[0];
+  const cats = ['Semua', ...Array.from(new Set(list.map((i: any) => i.cat)))];
+  const shown = list.filter((i: any) => catFilter === 'Semua' || i.cat === catFilter);
+  const sel = list.find((i: any) => i.id === selId) || shown[0] || list[0];
 
   const modes = [
     { id: 'konektor', label: 'Konektor', count: list.length },
@@ -145,9 +145,9 @@ function Integrations() {
                 {cats.map(c => <button key={c} className="chip x" style={{ height: 24, background: catFilter === c ? 'var(--blue)' : 'var(--surface-3)', color: catFilter === c ? '#fff' : 'var(--ink-2)' }} onClick={() => setCatFilter(c)}>{c}</button>)}
               </div>
               <div style={{ maxHeight: 560, overflow: 'auto' }}>
-                {shown.map(it => {
-                  const IconC = I[it.icon] || I.panel;
-                  const st = INTEG_STATUS[it.status];
+                {shown.map((it: any) => {
+                  const IconC = (I as any)[it.icon] || I.panel;
+                  const st = (INTEG_STATUS as any)[it.status];
                   const c: any = sum.connectors.find((x: any) => x.id === it.id) || {};
                   return (
                     <div key={it.id} onClick={() => setSelId(it.id)} className="row ac gap10"
@@ -190,9 +190,9 @@ function ImportQueue({ sum }: any) {
       <table className="dtbl">
         <thead><tr><th></th><th>ID Impor</th><th>Dataset</th><th>Konektor</th><th>Modul Tujuan (SSOT)</th><th className="r">Baris</th><th>Mode</th><th>Status</th></tr></thead>
         <tbody>
-          {jobs.map(j => {
-            const js = JOB_STATE[j.status];
-            const JIc = I[js.ic] || I.panel;
+          {jobs.map((j: any) => {
+            const js = (JOB_STATE as any)[j.status];
+            const JIc = (I as any)[js.ic] || I.panel;
             const isOpen = open === j.id;
             return (
               <React.Fragment key={j.id}>
@@ -201,9 +201,9 @@ function ImportQueue({ sum }: any) {
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{j.id}</td>
                   <td className="tiny" style={{ fontWeight: 600, maxWidth: 200, whiteSpace: 'normal', lineHeight: 1.3 }}>{j.dataset}</td>
                   <td className="tiny muted">{j.connName}</td>
-                  <td><button className="chip tiny" style={{ cursor: 'pointer', border: '1px solid var(--line-strong)', background: 'var(--surface-2)' }} onClick={(e) => { e.stopPropagation(); nav(j.target, { from: 'integrations' }); }}>{j.targetLabel} <I.arrowRight size={9} style={{ opacity: .6 }} /></button></td>
+                  <td><button className="chip tiny" style={{ cursor: 'pointer', border: '1px solid var(--line-strong)', background: 'var(--surface-2)' }} onClick={(e: any) => { e.stopPropagation(); nav(j.target, { from: 'integrations' }); }}>{j.targetLabel} <I.arrowRight size={9} style={{ opacity: .6 }} /></button></td>
                   <td className="num mono">{fmt(j.rows)}{j.rejected ? <span style={{ color: 'var(--red)' }}> −{j.rejected}</span> : null}</td>
-                  <td className="tiny">{MODE_LABEL[j.mode]}</td>
+                  <td className="tiny">{(MODE_LABEL as any)[j.mode]}</td>
                   <td><span className="row ac gap4"><JIc size={12} style={{ color: 'var(--' + js.k + ')' }} /><Badge kind={js.k}>{js.l}</Badge></span></td>
                 </tr>
                 {isOpen && (
@@ -237,7 +237,7 @@ function ImportQueue({ sum }: any) {
                           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
                             <KvBox label="Waktu impor" v={j.ts} />
                             <KvBox label="Diproses oleh" v={j.by} />
-                            <KvBox label="Mode pemetaan" v={MODE_LABEL[j.mode]} />
+                            <KvBox label="Mode pemetaan" v={(MODE_LABEL as any)[j.mode]} />
                             <KvBox label="Total kontrol" v={j.control.value} accent={j.gate ? 'var(--green)' : 'var(--amber)'} />
                           </div>
                           {j.note && <div className="panel" style={{ padding: '9px 11px', marginTop: 10, background: j.status === 'failed' ? 'var(--red-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5, color: j.status === 'failed' ? 'var(--red)' : 'var(--ink-2)' }}><I.alert size={12} style={{ verticalAlign: -2 }} /> {j.note}</div></div>}
@@ -267,8 +267,8 @@ function ImportRecon({ IM, sum }: any) {
       <div style={{ padding: '12px 14px' }}>
         <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>Tiap konektor: <b>baris yang di-posting</b> ke modul pemilik harus sama dengan <b>record yang dikonsumsi</b> modul-modul hilir. Selisih 0 membuktikan tidak ada salinan terpisah — satu sumber kebenaran.</div>
         <div style={{ display: 'grid', gap: 12 }}>
-          {recon.map(r => {
-            const IconC = I[r.icon] || I.panel;
+          {recon.map((r: any) => {
+            const IconC = (I as any)[r.icon] || I.panel;
             return (
               <div key={r.id} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', border: '1px solid var(--line)' }}>
                 <div className="row ac jb" style={{ marginBottom: 10 }}>
@@ -279,7 +279,7 @@ function ImportRecon({ IM, sum }: any) {
                   <div className="panel" style={{ padding: '8px 12px', boxShadow: 'none', minWidth: 120 }}><div className="tiny muted upper">Di-posting</div><div className="mono" style={{ fontSize: 17, fontWeight: 800, color: 'var(--blue)' }}>{fmt(r.posted)}</div></div>
                   <I.arrowRight size={16} style={{ color: 'var(--ink-4)' }} />
                   <div style={{ flex: 1, minWidth: 200, display: 'grid', gap: 5 }}>
-                    {r.feeds.map((f, i) => { const m = (window.MODULE_INDEX || {})[f.module] || { label: f.label, icon: 'panel' }; const MIc = I[m.icon] || I.panel; return (
+                    {r.feeds.map((f: any, i: any) => { const m = (window.MODULE_INDEX || {})[f.module] || { label: f.label, icon: 'panel' }; const MIc = (I as any)[m.icon] || I.panel; return (
                       <button key={i} className="row ac gap8" style={{ padding: '6px 9px', border: '1px solid var(--line-soft)', borderRadius: 7, background: 'var(--surface)', cursor: 'pointer', textAlign: 'left' }} onClick={() => nav(f.module, { from: 'integrations' })}>
                         <MIc size={14} style={{ color: 'var(--navy)' }} /><span className="tiny" style={{ flex: 1, fontWeight: 600 }}>{m.label || f.label}</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{fmt(f.n)}</span><span className="tiny muted">{f.unit}</span>
                       </button>
@@ -306,8 +306,8 @@ function IntegrationDetail({ it, onToggle }: any) {
   const [tab, setTab] = useStateIN('ringkasan');
   const nav = useNav();
   const { fmt } = AMS;
-  const IconC = I[it.icon] || I.panel;
-  const st = INTEG_STATUS[it.status];
+  const IconC = (I as any)[it.icon] || I.panel;
+  const st = (INTEG_STATUS as any)[it.status];
   const feeds = IMPORT.feeds(it.id);
   const jobs = IMPORT.jobsByConnector(it.id);
   const cdata = IMPORT.connectors().find(c => c.id === it.id) || { posted: 0, consumed: 0, tied: true };
@@ -365,7 +365,7 @@ function IntegrationDetail({ it, onToggle }: any) {
                 <table className="dtbl">
                   <thead><tr><th>ID</th><th>Dataset → Modul</th><th className="r">Baris</th><th>Total Kontrol</th><th>Status</th></tr></thead>
                   <tbody>
-                    {jobs.map(j => { const js = JOB_STATE[j.status]; return (
+                    {jobs.map(j => { const js = (JOB_STATE as any)[j.status]; return (
                       <tr key={j.id}>
                         <td className="mono tiny" style={{ fontWeight: 700 }}>{j.id}</td>
                         <td className="tiny"><div style={{ fontWeight: 600 }}>{j.dataset}</div><button className="tiny" style={{ color: 'var(--blue)', background: 'none', border: 0, padding: 0, cursor: 'pointer', fontWeight: 600 }} onClick={() => nav(j.target, { from: 'integrations' })}>→ {j.targetLabel}</button></td>
@@ -383,10 +383,10 @@ function IntegrationDetail({ it, onToggle }: any) {
             <table className="dtbl">
               <thead><tr><th>Waktu</th><th>Status</th><th className="r">Record</th><th className="r">Durasi</th><th>Catatan</th></tr></thead>
               <tbody>
-                {it.syncs.map((s, i) => (
+                {it.syncs.map((s: any, i: any) => (
                   <tr key={i}>
                     <td className="mono tiny muted">{s[0]}</td>
-                    <td><Badge kind={SYNC_STATE[s[1]].k}>{SYNC_STATE[s[1]].l}</Badge></td>
+                    <td><Badge kind={(SYNC_STATE as any)[s[1]].k}>{(SYNC_STATE as any)[s[1]].l}</Badge></td>
                     <td className="num">{s[2]}</td>
                     <td className="num">{s[3]} dtk</td>
                     <td className="tiny" style={{ color: s[4] ? 'var(--red)' : 'var(--ink-3)' }}>{s[4] || '—'}</td>
@@ -401,7 +401,7 @@ function IntegrationDetail({ it, onToggle }: any) {
               <table className="dtbl">
                 <thead><tr><th>Field Sumber ({it.name.split(' ')[0]})</th><th style={{ width: 30 }}></th><th>Field Asseris</th></tr></thead>
                 <tbody>
-                  {it.mapping.map((m, i) => (
+                  {it.mapping.map((m: any, i: any) => (
                     <tr key={i}><td style={{ fontWeight: 600 }}>{m[0]}</td><td><I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} /></td><td className="mono tiny" style={{ color: 'var(--blue)' }}>{m[1]}</td></tr>
                   ))}
                   {!it.mapping.length && <tr><td colSpan={3} className="tiny muted">Pemetaan ditentukan saat konektor dihubungkan.</td></tr>}
@@ -413,7 +413,7 @@ function IntegrationDetail({ it, onToggle }: any) {
             <>
               <div className="tiny muted upper" style={{ marginBottom: 8 }}>Cakupan Izin (Scopes)</div>
               <div className="row gap6" style={{ flexWrap: 'wrap', marginBottom: 16 }}>
-                {it.scopes.map((s, i) => <span key={i} className="chip mono tiny" style={{ height: 24 }}><I.lock size={11} /> {s}</span>)}
+                {it.scopes.map((s: any, i: any) => <span key={i} className="chip mono tiny" style={{ height: 24 }}><I.lock size={11} /> {s}</span>)}
               </div>
               <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kredensial</div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '9px 14px', marginBottom: 14 }}>
@@ -431,7 +431,7 @@ function IntegrationDetail({ it, onToggle }: any) {
             <>
               <div className="tiny muted" style={{ marginBottom: 10 }}>Event yang memicu impor atau aksi otomatis di Asseris.</div>
               <div style={{ display: 'grid', gap: 8 }}>
-                {it.webhooks.map((w, i) => (
+                {it.webhooks.map((w: any, i: any) => (
                   <div key={i} className="panel row ac jb" style={{ padding: '9px 12px', boxShadow: 'none' }}>
                     <div><span className="mono tiny" style={{ fontWeight: 700 }}>{w[0]}</span></div>
                     <span className="badge" style={{ background: w[1] ? 'var(--green-bg)' : 'var(--surface-3)', color: w[1] ? 'var(--green)' : 'var(--ink-4)' }}>{w[1] ? 'Aktif' : 'Nonaktif'}</span>
@@ -445,7 +445,7 @@ function IntegrationDetail({ it, onToggle }: any) {
             <>
               <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.5 }}>Data dari konektor ini menjadi <b>sumber kebenaran tunggal</b> bagi modul berikut. Hitungan diambil live dari record yang sama yang dibaca modul hilir — tidak ada salinan terpisah.</div>
               <div style={{ display: 'grid', gap: 9 }}>
-                {feeds.length ? feeds.map((f, i) => { const m = (window.MODULE_INDEX || {})[f.module] || { label: f.label, icon: 'panel' }; const MIc = I[m.icon] || I.panel; return (
+                {feeds.length ? feeds.map((f: any, i: any) => { const m = (window.MODULE_INDEX || {})[f.module] || { label: f.label, icon: 'panel' }; const MIc = (I as any)[m.icon] || I.panel; return (
                   <button key={i} className="panel row ac gap10" style={{ padding: '10px 12px', boxShadow: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', border: '1px solid var(--line)' }} onClick={() => nav(f.module, { from: 'integrations' })} title={'Buka ' + (m.label || f.label)}>
                     <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface-3)', color: 'var(--navy)', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}><MIc size={17} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>

@@ -23,11 +23,11 @@ const DD_PBC = { 'Diterima': 'green', 'Tertunda': 'amber', 'Terlambat': 'red' };
 const DD_LIKE = { 'Tinggi': 'red', 'Sedang': 'amber', 'Rendah': 'gray' };
 
 /* ---- helper: derive valuation from the single source ---- */
-function ddDerive(D) {
-  const reported = D.ebitdaBridge.find(b => b.type === 'base').v / 1e9;
+function ddDerive(D: any) {
+  const reported = D.ebitdaBridge.find((b: any) => b.type === 'base').v / 1e9;
   const normalized = D.normEbitda;
-  const netDebt = D.netDebtBridge.reduce((s, x) => s + x.v, 0);
-  const foundDebtLike = D.netDebtBridge.filter(x => x.found).reduce((s, x) => s + x.v, 0);
+  const netDebt = D.netDebtBridge.reduce((s: any, x: any) => s + x.v, 0);
+  const foundDebtLike = D.netDebtBridge.filter((x: any) => x.found).reduce((s: any, x: any) => s + x.v, 0);
   const nwcAdj = D.nwcCompletion - D.nwcPeg;                 // negatif = kurang dari peg
   const ev = normalized * D.valuation.multiple;
   const equity100 = ev - netDebt + nwcAdj;
@@ -68,10 +68,10 @@ function DueDiligence() {
   const [showReport, setShowReport] = useDD(false);
 
   const X = ddDerive(D);
-  const flags = D.workstreams.reduce((s, w) => s + w.flags, 0);
-  const doneN = D.workstreams.filter(w => w.status === 'Selesai').length;
+  const flags = D.workstreams.reduce((s: any, w: any) => s + w.flags, 0);
+  const doneN = D.workstreams.filter((w: any) => w.status === 'Selesai').length;
   const adjPct = (X.normalized - X.reported) / X.reported * 100;
-  const pbcOpen = D.pbc.filter(p => p.status !== 'Diterima').length;
+  const pbcOpen = D.pbc.filter((p: any) => p.status !== 'Diterima').length;
 
   const tabs = [
     { id: 'ikhtisar', label: 'Ikhtisar' },
@@ -117,7 +117,7 @@ function DueDiligence() {
             ].map(s => (
               <button key={s.src} type="button" onClick={() => nav(s.id, { from: 'duediligence' })}
                 style={{ textAlign: 'left', background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}>{I[s.ic] ? React.createElement(I[s.ic], { size: 14 }) : null}</span>
+                <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}>{(I as any)[s.ic] ? React.createElement((I as any)[s.ic], { size: 14 }) : null}</span>
                 <span style={{ minWidth: 0 }}>
                   <span className="tiny muted" style={{ display: 'block' }}>{s.lbl}</span>
                   <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{s.src}</span>
@@ -165,11 +165,11 @@ function DueDiligence() {
                 <div>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Progres Workstream</div>
                   <div style={{ display: 'grid', gap: 9 }}>
-                    {D.workstreams.map((w, i) => (
+                    {D.workstreams.map((w: any, i: any) => (
                       <div key={i}>
                         <div className="row jb ac" style={{ marginBottom: 3 }}>
                           <span style={{ fontSize: 12.5, fontWeight: 600 }}>{w.area}</span>
-                          <span className="row ac gap6"><span className="tiny muted">{w.lead.split(' ')[0]}</span><Badge kind={DD_STATUS[w.status]}>{w.status}</Badge></span>
+                          <span className="row ac gap6"><span className="tiny muted">{w.lead.split(' ')[0]}</span><Badge kind={(DD_STATUS as any)[w.status]}>{w.status}</Badge></span>
                         </div>
                         <div className="row ac gap8">
                           <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: w.pct + '%', height: '100%', borderRadius: 3, background: w.pct === 100 ? 'var(--green)' : 'var(--blue)' }} /></div>
@@ -189,15 +189,15 @@ function DueDiligence() {
 
           {/* ============ QUALITY OF EARNINGS ============ */}
           {tab === 'qoe' && (() => {
-            const bridgeMax = Math.max(...D.ebitdaBridge.map(b => Math.abs(b.v / 1e9)));
-            const revMax = Math.max(...D.qoeMonthly.map(m => m.rev));
+            const bridgeMax = Math.max(...D.ebitdaBridge.map((b: any) => Math.abs(b.v / 1e9)));
+            const revMax = Math.max(...D.qoeMonthly.map((m: any) => m.rev));
             return (
               <div style={{ padding: 16 }}>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
                   <div>
                     <div className="tiny muted upper" style={{ marginBottom: 8 }}>Normalisasi EBITDA (jembatan)</div>
                     <div style={{ display: 'grid', gap: 9 }}>
-                      {D.ebitdaBridge.map((b, i) => {
+                      {D.ebitdaBridge.map((b: any, i: any) => {
                         const v = b.v / 1e9;
                         const isTot = b.type === 'total' || b.type === 'base';
                         const col = b.type === 'add' ? 'var(--green)' : b.type === 'less' ? 'var(--red)' : 'var(--navy)';
@@ -209,7 +209,7 @@ function DueDiligence() {
                   <div>
                     <div className="tiny muted upper" style={{ marginBottom: 8 }}>Tren Bulanan TTM — Pendapatan & Margin EBITDA</div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 130, padding: '4px 0', borderBottom: '1px solid var(--line)' }}>
-                      {D.qoeMonthly.map((m, i) => (
+                      {D.qoeMonthly.map((m: any, i: any) => (
                         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }} title={m.m + ': Rp ' + m.rev + ' M · margin ' + m.mgn + '%'}>
                           <div style={{ width: '100%', maxWidth: 20, height: (m.rev / revMax * 96) + 'px', borderRadius: '3px 3px 0 0', background: 'var(--blue)', opacity: .85, position: 'relative' }}>
                             <span style={{ position: 'absolute', top: -3, left: '50%', transform: 'translate(-50%,-100%)', width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 0 2px #fff' }} />
@@ -231,7 +231,7 @@ function DueDiligence() {
                 </div>
                 <div className="tiny muted upper" style={{ margin: '18px 0 8px' }}>Konsentrasi Pelanggan (% pendapatan)</div>
                 <div style={{ display: 'grid', gap: 7 }}>
-                  {D.customers.map((c, i) => (
+                  {D.customers.map((c: any, i: any) => (
                     <div key={i} className="row ac gap10">
                       <span style={{ fontSize: 12.5, fontWeight: c.flag ? 700 : 500, width: 280, flex: '0 0 280px', color: c.flag ? 'var(--red)' : 'var(--ink)' }}>{c.flag && <I.alert size={12} style={{ verticalAlign: '-1px', marginRight: 4 }} />}{c.name}</span>
                       <div style={{ flex: 1, height: 14, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: c.pct + '%', height: '100%', borderRadius: 4, background: c.flag ? 'var(--red)' : 'var(--navy)', opacity: c.flag ? 1 : .65 }} /></div>
@@ -245,9 +245,9 @@ function DueDiligence() {
 
           {/* ============ NET DEBT & MODAL KERJA ============ */}
           {tab === 'netdebt' && (() => {
-            const ndMax = Math.max(...D.netDebtBridge.map(x => Math.abs(x.v)), X.netDebt);
+            const ndMax = Math.max(...D.netDebtBridge.map((x: any) => Math.abs(x.v)), X.netDebt);
             const nwcMax = Math.max(...D.nwcMonthly, D.nwcPeg);
-            const ndColor = (x) => x.kind === 'cash' ? 'var(--green)' : x.found ? 'var(--red)' : 'var(--amber)';
+            const ndColor = (x: any) => x.kind === 'cash' ? 'var(--green)' : x.found ? 'var(--red)' : 'var(--amber)';
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             return (
               <div style={{ padding: 16 }}>
@@ -255,7 +255,7 @@ function DueDiligence() {
                   <div>
                     <div className="tiny muted upper" style={{ marginBottom: 8 }}>Net Debt & Item Debt-like</div>
                     <div style={{ display: 'grid', gap: 9 }}>
-                      {D.netDebtBridge.map((x, i) => <DDBar key={i} label={x.k} value={x.v} max={ndMax} color={ndColor(x)} />)}
+                      {D.netDebtBridge.map((x: any, i: any) => <DDBar key={i} label={x.k} value={x.v} max={ndMax} color={ndColor(x)} />)}
                       <div style={{ borderTop: '1px solid var(--line)', paddingTop: 8 }}><DDBar label="Net debt total" value={X.netDebt} max={ndMax} color="var(--navy)" strong /></div>
                     </div>
                     <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
@@ -269,7 +269,7 @@ function DueDiligence() {
                       <div style={{ position: 'absolute', left: 0, right: 0, bottom: (D.nwcPeg / nwcMax * 122) + 'px', borderTop: '2px dashed var(--amber)', zIndex: 2 }}>
                         <span className="tiny mono" style={{ position: 'absolute', right: 0, top: -14, color: 'var(--amber)', fontWeight: 700 }}>Peg {fmt(D.nwcPeg, 0)} M</span>
                       </div>
-                      {D.nwcMonthly.map((v, i) => {
+                      {D.nwcMonthly.map((v: any, i: any) => {
                         const last = i === D.nwcMonthly.length - 1;
                         return (
                           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }} title={months[i] + ': Rp ' + v + ' M'}>
@@ -354,17 +354,17 @@ function DueDiligence() {
                   <table className="dtbl">
                     <thead><tr><th>Pos</th><th className="num">Eksposur</th><th>Likelihood</th><th>Status</th></tr></thead>
                     <tbody>
-                      {D.taxExposure.map((t, i) => (
+                      {D.taxExposure.map((t: any, i: any) => (
                         <tr key={i}>
                           <td style={{ fontWeight: 600, fontSize: 12.5 }}>{t.item}</td>
                           <td className="num mono" style={{ fontWeight: 700 }}>Rp {fmt(t.exposure, 1)} M</td>
-                          <td><Badge kind={DD_LIKE[t.likelihood]}>{t.likelihood}</Badge></td>
+                          <td><Badge kind={(DD_LIKE as any)[t.likelihood]}>{t.likelihood}</Badge></td>
                           <td className="tiny muted" style={{ whiteSpace: 'normal' }}>{t.status}</td>
                         </tr>
                       ))}
                       <tr style={{ background: 'var(--surface-2)' }}>
                         <td style={{ fontWeight: 700 }}>Total eksposur pajak</td>
-                        <td className="num mono" style={{ fontWeight: 700, color: 'var(--red)' }}>Rp {fmt(D.taxExposure.reduce((s, t) => s + t.exposure, 0), 1)} M</td>
+                        <td className="num mono" style={{ fontWeight: 700, color: 'var(--red)' }}>Rp {fmt(D.taxExposure.reduce((s: any, t: any) => s + t.exposure, 0), 1)} M</td>
                         <td colSpan={2} className="tiny muted">→ usulkan indemnity khusus + escrow</td>
                       </tr>
                     </tbody>
@@ -373,7 +373,7 @@ function DueDiligence() {
                 <div>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Komitmen & Kontinjensi</div>
                   <div style={{ display: 'grid', gap: 8 }}>
-                    {D.contingencies.map((c, i) => (
+                    {D.contingencies.map((c: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
                         <div className="row jb ac">
                           <span style={{ fontSize: 12.5, fontWeight: 600 }}>{c.item}</span>
@@ -396,10 +396,10 @@ function DueDiligence() {
             <div style={{ padding: 16 }}>
               <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>Setiap temuan dipetakan ke mekanisme dalam Sale & Purchase Agreement (SPA): penyesuaian harga, indemnity/escrow, warranty, atau condition precedent.</div>
               <div style={{ display: 'grid', gap: 10 }}>
-                {D.redFlags.map((f, i) => (
-                  <div key={i} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid var(--' + DD_SEV[f.sev] + ')' }}>
+                {D.redFlags.map((f: any, i: any) => (
+                  <div key={i} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid var(--' + (DD_SEV as any)[f.sev] + ')' }}>
                     <div className="row ac gap8" style={{ marginBottom: 6 }}>
-                      <Badge kind={DD_SEV[f.sev]}>{f.sev}</Badge>
+                      <Badge kind={(DD_SEV as any)[f.sev]}>{f.sev}</Badge>
                       <span className="chip tiny">{f.area}</span>
                       <div style={{ flex: 1 }} />
                       <span className="mono tiny muted">Kuantum: Rp {fmt(f.quantum, 1)} M</span>
@@ -420,20 +420,20 @@ function DueDiligence() {
             <div style={{ padding: 0 }}>
               <div className="row gap8" style={{ padding: '12px 16px 0' }}>
                 {['Diterima', 'Tertunda', 'Terlambat'].map(s => {
-                  const n = D.pbc.filter(p => p.status === s).length;
-                  return <div key={s} className="panel" style={{ padding: '8px 12px', flex: 1 }}><div className="row jb ac"><span className="tiny muted">{s}</span><span className="mono" style={{ fontWeight: 700, color: 'var(--' + DD_PBC[s] + ')' }}>{n}</span></div></div>;
+                  const n = D.pbc.filter((p: any) => p.status === s).length;
+                  return <div key={s} className="panel" style={{ padding: '8px 12px', flex: 1 }}><div className="row jb ac"><span className="tiny muted">{s}</span><span className="mono" style={{ fontWeight: 700, color: 'var(--' + (DD_PBC as any)[s] + ')' }}>{n}</span></div></div>;
                 })}
               </div>
               <table className="dtbl" style={{ marginTop: 8 }}>
                 <thead><tr><th>Ref</th><th>Item</th><th>Kategori</th><th>Penyedia</th><th>Status</th></tr></thead>
                 <tbody>
-                  {D.pbc.map((p, i) => (
+                  {D.pbc.map((p: any, i: any) => (
                     <tr key={i}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.ref}</td>
                       <td style={{ fontWeight: 600, fontSize: 12.5 }}>{p.item}</td>
                       <td><span className="chip tiny">{p.cat}</span></td>
                       <td className="tiny muted">{p.owner}</td>
-                      <td><Badge kind={DD_PBC[p.status]}>{p.status}</Badge></td>
+                      <td><Badge kind={(DD_PBC as any)[p.status]}>{p.status}</Badge></td>
                     </tr>
                   ))}
                 </tbody>

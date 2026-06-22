@@ -22,39 +22,39 @@ const { useState: useISQMP } = React;
 /* —— Derivasi lintas-modul dari satu sumber (AMS) —— */
 function soqmPull() {
   const A: any = AMS;
-  const bare = (n) => (n || '').split(',')[0].trim();
-  const engMeta = A.engMeta || (() => null);
+  const bare = (n: any) => (n || '').split(',')[0].trim();
+  const engMeta = A.engMeta || ((): any => null);
 
   /* QR-02 Sumber Daya · utilisasi senior dari Capacity Planning */
-  const seniors = (A.CAPACITY.staff || []).filter(s => s.grade === 'Senior');
-  const peak = (s) => Math.max.apply(null, s.forecast);
-  const overloaded = seniors.filter(s => peak(s) > 92);
+  const seniors = (A.CAPACITY.staff || []).filter((s: any) => s.grade === 'Senior');
+  const peak = (s: any) => Math.max.apply(null, s.forecast);
+  const overloaded = seniors.filter((s: any) => peak(s) > 92);
   const peakUtil = seniors.length ? Math.max.apply(null, seniors.map(peak)) : 0;
 
   /* QR-04 Etika & Independensi · rotasi AP dari register Independensi */
-  const rotationDue = (A.INDEPENDENCE || []).filter(i => i.tenure >= i.rotationLimit);
-  const undeclared = (A.INDEPENDENCE || []).filter(i => !i.declared);
+  const rotationDue = (A.INDEPENDENCE || []).filter((i: any) => i.tenure >= i.rotationLimit);
+  const undeclared = (A.INDEPENDENCE || []).filter((i: any) => !i.declared);
 
   /* Sumber Daya · realisasi PPL terstruktur dari PPPK */
-  const pplShort = (A.PPPK_PPL || []).filter(p => p.structured < p.reqStr);
+  const pplShort = (A.PPPK_PPL || []).filter((p: any) => p.structured < p.reqStr);
 
   /* Penyedia jasa eksternal & teknologi dari register penyedia */
-  const providerWatch = (A.QM_PROVIDERS || []).filter(p => p.status !== 'Memadai');
+  const providerWatch = (A.QM_PROVIDERS || []).filter((p: any) => p.status !== 'Memadai');
 
   /* EQR · gerbang opini PIE & uji independensi reviewer ≠ partner */
-  const eqr = (A.EQR_REVIEWS || []).map(r => {
+  const eqr = (A.EQR_REVIEWS || []).map((r: any) => {
     const m = engMeta(r.eng);
     return { ...r, _m: m, independent: m ? bare(r.reviewer) !== m.partner : true };
   });
-  const eqrConflict = eqr.filter(r => !r.independent);
-  const eqrPieOpen = eqr.filter(r => r.pie && !r.cleared);
+  const eqrConflict = eqr.filter((r: any) => !r.independent);
+  const eqrPieOpen = eqr.filter((r: any) => r.pie && !r.cleared);
 
   /* Inspeksi · seluruhnya tertaut ke engagement kanonik */
-  const insp = (A.QM_INSPECTIONS || []).map(i => ({ ...i, _m: engMeta(i.eng) }));
-  const inspOrphan = insp.filter(i => !i._m);
+  const insp = (A.QM_INSPECTIONS || []).map((i: any) => ({ ...i, _m: engMeta(i.eng) }));
+  const inspOrphan = insp.filter((i: any) => !i._m);
 
   /* Keluhan tertaut klien */
-  const cmpLinked = (A.COMPLAINTS || []).filter(c => c.clientId);
+  const cmpLinked = (A.COMPLAINTS || []).filter((c: any) => c.clientId);
 
   return {
     seniors, overloaded, peakUtil, rotationDue, undeclared, pplShort,
@@ -63,7 +63,7 @@ function soqmPull() {
 }
 
 /* —— Pita daur hidup pendekatan berbasis risiko ISQM 1 —— */
-function SoqmFlow({ active, onPick }) {
+function SoqmFlow({ active, onPick }: any) {
   const steps = [
     { id: 'register', ic: 'target', t: 'Tujuan Mutu', s: '¶25–28', d: 'Tetapkan tujuan mutu per komponen' },
     { id: 'register', ic: 'shield', t: 'Risiko Mutu', s: '¶25–27', d: 'Identifikasi & nilai (L×D)' },
@@ -75,7 +75,7 @@ function SoqmFlow({ active, onPick }) {
   return (
     <div className="soqm-flow">
       {steps.map((st, i) => {
-        const Ic = I && (I[st.ic] || I.doc);
+        const Ic = I && ((I as any)[st.ic] || I.doc);
         const on = st.id === active;
         return (
           <React.Fragment key={i}>
@@ -92,11 +92,11 @@ function SoqmFlow({ active, onPick }) {
 }
 
 /* —— Peta 8 komponen Sistem Pengelolaan Mutu (tarik QM_COMPONENTS) —— */
-function SoqmComponents({ risks, nav }) {
+function SoqmComponents({ risks, nav }: any) {
   const comps = (AMS as any).QM_COMPONENTS || [];
-  const col = (s) => s >= 88 ? 'var(--green)' : s >= 80 ? 'var(--amber)' : 'var(--red)';
+  const col = (s: any) => s >= 88 ? 'var(--green)' : s >= 80 ? 'var(--amber)' : 'var(--red)';
   /* hitung risiko mutu operasional yang terpetakan ke tiap komponen via nama */
-  const mapName = (compName) => risks.filter(r => compName.includes(r.comp) || r.comp.includes(compName.split(' ')[0])).length;
+  const mapName = (compName: any) => risks.filter((r: any) => compName.includes(r.comp) || r.comp.includes(compName.split(' ')[0])).length;
   return (
     <div>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
@@ -104,7 +104,7 @@ function SoqmComponents({ risks, nav }) {
         <button type="button" className="lin-cta" onClick={() => nav && nav('governance', { from: 'soqm' })}>{I ? <I.building size={12} /> : null} Buka Governance (SOQM)</button>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-        {comps.map(c => (
+        {comps.map((c: any) => (
           <div key={c.id} className="panel soqm-comp" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid ' + col(c.score) }}>
             <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{c.id}</span><span className="mono" style={{ fontSize: 13, fontWeight: 800, color: col(c.score) }}>{c.score}</span></div>
             <div className="tiny" style={{ fontWeight: 700, lineHeight: 1.3, margin: '3px 0' }}>{c.name}</div>
@@ -138,10 +138,10 @@ function PullRow({ ok, input, ref_, source, sourceMod, value, nav, warn }: any) 
 }
 
 /* —— Tab "Tarikan Data Lintas-Modul" —— */
-function SoqmLineage({ nav }) {
+function SoqmLineage({ nav }: any) {
   const A: any = AMS;
   const P = soqmPull();
-  const bare = (n) => (n || '').split(',')[0].trim();
+  const bare = (n: any) => (n || '').split(',')[0].trim();
 
   /* baris pemantauan → sumber kebenaran */
   const pulls = [
@@ -173,7 +173,7 @@ function SoqmLineage({ nav }) {
       ok: P.rotationDue.length === 0,
       input: 'Rotasi AP emiten (batas 7 thn)', ref_: 'Komponen Etika · QR-04',
       source: 'INDEPENDENCE · Register Rotasi', sourceMod: 'independence',
-      value: P.rotationDue.length ? P.rotationDue.map(r => bare(r.name)).join(', ') + ' wajib rotasi' : 'Seluruh AP dalam batas', warn: P.rotationDue.length > 0,
+      value: P.rotationDue.length ? P.rotationDue.map((r: any) => bare(r.name)).join(', ') + ' wajib rotasi' : 'Seluruh AP dalam batas', warn: P.rotationDue.length > 0,
     },
     {
       ok: P.pplShort.length === 0,
@@ -213,7 +213,7 @@ function SoqmLineage({ nav }) {
         <table className="dtbl soqm-tie">
           <thead><tr><th>Objek Mutu</th><th>Engagement</th><th>Klien (turunan)</th><th>Partner (turunan)</th><th>PIE</th><th>Tarikan</th></tr></thead>
           <tbody>
-            {P.insp.map(i => (
+            {P.insp.map((i: any) => (
               <tr key={i.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{i.id}<div className="tiny muted" style={{ fontWeight: 400 }}>Inspeksi</div></td>
                 <td className="mono tiny">{i.eng}</td>
@@ -223,7 +223,7 @@ function SoqmLineage({ nav }) {
                 <td><span style={{ color: i._m ? 'var(--green)' : 'var(--amber)' }}>{i._m ? (I ? <I.checkCircle size={14} /> : '✓') : (I ? <I.alert size={14} /> : '!')}</span></td>
               </tr>
             ))}
-            {P.eqr.map(r => (
+            {P.eqr.map((r: any) => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--purple)' }}>{r.id}<div className="tiny muted" style={{ fontWeight: 400 }}>EQR · {bare(r.reviewer)}</div></td>
                 <td className="mono tiny">{r.eng}</td>

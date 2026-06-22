@@ -188,7 +188,7 @@ import { fmt } from './data_base';
         { k: 'Independensi & etika perikatan', ok: true },
         { k: 'Konsultasi atas hal kompleks terdokumentasi', ok: true },
         { k: 'Kecukupan bukti atas area berisiko tinggi', ok: true },
-      ], findings: [], clearedBy: 'Hartono Wijaya, CPA', clearedDate: '2026-02-22' },
+      ], findings: ([] as any[]), clearedBy: 'Hartono Wijaya, CPA', clearedDate: '2026-02-22' },
   ];
   const PPPK_REPORT = {
     year: 2025, dueDate: '2026-04-30', status: 'Draft',
@@ -252,7 +252,7 @@ import { fmt } from './data_base';
     { id: 'DOC-0518', name: 'Laporan Auditor Independen — Mandiri Finance', eng: 'ENG-2025-047', client: 'PT Mandiri Sejahtera Finance', type: 'Laporan', ver: 2, classification: 'Rahasia', owner: 'Sari Dewanti', modified: '2026-02-22', sizeMB: 12, retentionYears: 10, archivedOn: '2026-02-25', legalHold: false, assembly: 'complete',
       versions: [{ ver: 1, by: 'Sari Dewanti', date: '2026-02-18', sizeMB: 11, note: 'Draf laporan untuk reviu partner.' }, { ver: 2, by: 'Sari Dewanti', date: '2026-02-22', sizeMB: 12, note: 'Final tertandatangani.' }],
       access: [['Sari Dewanti', 'view', '2026-02-22 14:20'], ['Rudi Gunawan', 'download', '2026-02-23 08:10']], linkedWP: ['R-700 Opini', 'R-100 Draf Laporan'] },
-    { id: 'DOC-0623', name: 'Kertas Kerja — Sentosa Makmur FY2025', eng: 'ENG-2025-014', client: 'PT Sentosa Makmur Tbk', type: 'Kertas Kerja', ver: 7, classification: 'Rahasia', owner: 'Anindya Pramesti', modified: '2026-03-08', sizeMB: 142, retentionYears: 10, archivedOn: null, legalHold: false, assembly: 'in-progress', opinionDate: '2026-03-20',
+    { id: 'DOC-0623', name: 'Kertas Kerja — Sentosa Makmur FY2025', eng: 'ENG-2025-014', client: 'PT Sentosa Makmur Tbk', type: 'Kertas Kerja', ver: 7, classification: 'Rahasia', owner: 'Anindya Pramesti', modified: '2026-03-08', sizeMB: 142, retentionYears: 10, archivedOn: (null as any), legalHold: false, assembly: 'in-progress', opinionDate: '2026-03-20',
       versions: [{ ver: 5, by: 'Dimas Raharjo', date: '2026-03-02', sizeMB: 128, note: 'Penyelesaian seksi piutang & kas.' }, { ver: 6, by: 'Fajar Nugroho', date: '2026-03-06', sizeMB: 137, note: 'Seksi aset tetap & persediaan.' }, { ver: 7, by: 'Anindya Pramesti', date: '2026-03-08', sizeMB: 142, note: 'Reviu manajer — catatan reviu ditambahkan.' }],
       access: [['Anindya Pramesti', 'edit', '2026-03-08 17:40'], ['Dimas Raharjo', 'edit', '2026-03-08 15:10'], ['Hartono Wijaya', 'view', '2026-03-07 10:00']], linkedWP: ['B-200 Aging Piutang', 'C-100 Kas & Bank', 'D-300 Aset Tetap'] },
     { id: 'DOC-0631', name: 'Surat Perikatan — Graha Properti', eng: 'ENG-2025-063', client: 'PT Graha Properti Nusantara', type: 'Surat Perikatan', ver: 1, classification: 'Internal', owner: 'Rudi Gunawan', modified: '2026-01-15', sizeMB: 1, retentionYears: 10, archivedOn: '2026-01-16', legalHold: true, assembly: 'complete', holdReason: 'Sengketa litigasi klien — tahan hingga putusan pengadilan.',

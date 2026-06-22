@@ -20,11 +20,11 @@ function NoclarEthics() {
   const A: any = AMS, nav = useNav();
   const list = A.NOCLAR_ETHICS, STAGES = A.NOCLAR_STAGES;
   const [sel, setSel] = useStateEP(list[0].id);
-  const cur = list.find(r => r.id === sel);
-  const sevKind = (s) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
-  const inProgress = list.filter(r => r.stageIdx > 0 && r.stageIdx < STAGES.length - 1).length;
-  const escalated = list.filter(r => r.stageIdx >= 3).length;
-  const discl = list.filter(r => /Wajib|Dipertimbangkan/.test(r.disclosure)).length;
+  const cur = list.find((r: any) => r.id === sel);
+  const sevKind = (s: any) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const inProgress = list.filter((r: any) => r.stageIdx > 0 && r.stageIdx < STAGES.length - 1).length;
+  const escalated = list.filter((r: any) => r.stageIdx >= 3).length;
+  const discl = list.filter((r: any) => /Wajib|Dipertimbangkan/.test(r.disclosure)).length;
 
   return (
     <div style={{ padding: 14 }}>
@@ -43,7 +43,7 @@ function NoclarEthics() {
           <table className="dtbl">
             <thead><tr><th style={{ width: 56 }}>Ref</th><th>Klien / Indikasi</th><th style={{ width: 78 }}>Severitas</th><th style={{ width: 120 }}>Tahap</th></tr></thead>
             <tbody>
-              {list.map(r => (
+              {list.map((r: any) => (
                 <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }}>
                   <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                   <td style={{ whiteSpace: 'normal', lineHeight: 1.35 }}><span style={{ fontWeight: 600, fontSize: 12 }}>{r.client.replace('PT ', '')}</span><div className="tiny muted">{r.issue}</div></td>
@@ -67,7 +67,7 @@ function NoclarEthics() {
               <div style={{ height: 10 }} />
               <div className="tiny muted upper" style={{ marginBottom: 10 }}>Alur Penanganan (§360)</div>
               <div style={{ display: 'grid', gap: 0 }}>
-                {STAGES.map((st, i) => {
+                {STAGES.map((st: any, i: any) => {
                   const done = i < cur.stageIdx, active = i === cur.stageIdx;
                   return (
                     <div key={i} className="row gap10" style={{ paddingBottom: i < STAGES.length - 1 ? 12 : 0 }}>
@@ -102,12 +102,12 @@ function NoclarEthics() {
    =========================================================== */
 function TaxTechEthics() {
   const A: any = AMS, T = A.TAX_TECH_ETHICS;
-  const stKind = (s) => s === 'Patuh' ? 'green' : s === 'Perlu Tinjau' ? 'amber' : 'gray';
-  const Block = ({ title, icon, items, sub }) => (
+  const stKind = (s: any) => s === 'Patuh' ? 'green' : s === 'Perlu Tinjau' ? 'amber' : 'gray';
+  const Block = ({ title, icon, items, sub }: any) => (
     <Panel noBody>
-      <div className="panel-h"><span className="row ac gap8"><span style={{ color: 'var(--blue)' }}>{icon}</span><h3 style={{ margin: 0 }}>{title}</h3></span><div style={{ flex: 1 }} /><Badge kind="amber">{items.filter(i => i.status === 'Perlu Tinjau').length} perlu tinjau</Badge></div>
+      <div className="panel-h"><span className="row ac gap8"><span style={{ color: 'var(--blue)' }}>{icon}</span><h3 style={{ margin: 0 }}>{title}</h3></span><div style={{ flex: 1 }} /><Badge kind="amber">{items.filter((i: any) => i.status === 'Perlu Tinjau').length} perlu tinjau</Badge></div>
       <div style={{ padding: 4 }}>
-        {items.map((it, i) => (
+        {items.map((it: any, i: any) => (
           <div key={i} className="row gap10" style={{ padding: '10px 12px', borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start' }}>
             <span style={{ flex: '0 0 auto', marginTop: 1, color: it.status === 'Patuh' ? 'var(--green)' : 'var(--amber)' }}>{it.status === 'Patuh' ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -137,7 +137,7 @@ function TaxTechEthics() {
 /* ===========================================================
    G8 · STRIP KEMUTAKHIRAN VERSI STANDAR (SA 315/540/600/220)
    =========================================================== */
-function StdVersionStrip({ highlight }) {
+function StdVersionStrip({ highlight }: any) {
   const A: any = AMS, list = A.STD_VERSIONS || [];
   const nav = useNav();
   return (
@@ -147,7 +147,7 @@ function StdVersionStrip({ highlight }) {
         <span className="tiny muted">stempel versi & tanggal efektif</span>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-        {list.map(s => {
+        {list.map((s: any) => {
           const hl = highlight && s.code === highlight;
           return (
             <div key={s.code} onClick={() => s.module && nav(s.module, { from: 'stdversion' })} title={s.key}

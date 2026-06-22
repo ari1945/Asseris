@@ -18,7 +18,7 @@ import { SectionTitle } from './view_fpm_parts';
 const { useState: useStateAS, useMemo: useMemoAS } = React;
 
 /* link kecil ke modul sumber (TrSrc tidak global) */
-function Src({ module, children }) {
+function Src({ module, children }: any) {
   const nav = useNav();
   return <b onClick={() => nav(module)} style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>{children}</b>;
 }
@@ -44,7 +44,7 @@ function AssociatesEquity() {
     const recoverable = Math.round(assoc.carry * 1.16);  // hasil uji penurunan nilai (PSAK 48)
     return { assoc, own, close, netAssets, shareNet, goodwillInCarry, shareProfitCheck, recoverable, carry: assoc.carry };
   }, []);
-  const J = (n) => 'Rp ' + fmt(n, 0) + ' jt';
+  const J = (n: any) => 'Rp ' + fmt(n, 0) + ' jt';
 
   const tie = [
     { k: 'Roll-forward ekuitas menutup ke nilai tercatat', a: D.close, b: D.carry, ref: 'PSAK 15 ¶10', route: null },
