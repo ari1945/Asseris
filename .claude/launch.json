@@ -19,6 +19,13 @@
       "runtimeArgs": ["-NoProfile", "-Command", "Set-Location migration; $env:PORT='5181'; npm run dev:all"],
       "port": 5180,
       "autoPort": false
+    },
+    {
+      "name": "wedge-dist",
+      "runtimeExecutable": "pwsh",
+      "runtimeArgs": ["-NoProfile", "-Command", "Set-Location migration; npm run preview -- --port 5190 --strictPort"],
+      "port": 5190,
+      "autoPort": false
     }
   ]
 }
