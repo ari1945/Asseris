@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, LockBanner, Panel, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, LockBanner, Panel, Tabs } from './ui';
 import { MatComponent, MatImpact, MatMemo, MatRevision, MatSpecific } from './view_materiality_parts';
 
 /* ============================================================

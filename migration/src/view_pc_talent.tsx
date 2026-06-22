@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
 
 /* ============================================================
    Asseris — People & Compliance (NEW)

@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Panel } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Panel } from './ui';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { KV, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';

@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Badge, Btn, MiniBars, Panel, Seg, Spark } from './ui.jsx';
+import { Badge, Btn, MiniBars, Panel, Seg, Spark } from './ui';
 import { KvBox, VERDICT_COLOR, benchVerdict } from './view_analytical';
 
 /* ============================================================

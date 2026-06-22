@@ -48,5 +48,21 @@ declare global {
     COMPLIANCE_CONFIG: any;
     __amsOpenCopilot: any;
     __amsOpenMiniMap: any;
+    /* W13 Fase 3 — dibaca shell.tsx (TopBar/Sidebar/SubBar): NOTIFS = umpan
+       notifikasi, wsForModule = pemetaan modul→workspace, MODULE_IFRS = penanda
+       modul ber-konteks IFRS. Window-strip-2 candidate; `any` di tier app relaks. */
+    NOTIFS: any;
+    wsForModule: any;
+    MODULE_IFRS: any;
+    /* W13 Fase 3 — bus dibaca modul lintas-sektor evidence/ai_insights/
+       diagnostics_panel: classifyDoc (klasifikasi unggahan bukti), PROGRAMME/
+       CONFIRMATIONS (umpan program audit & konfirmasi utk cross-check AI),
+       logAiUsage (audit pemakaian AI), amsLlmNarrateDiagnostics (proxy narasi
+       LLM P4). Window-strip-2 candidate; `any` di tier app relaks. */
+    classifyDoc: any;
+    PROGRAMME: any;
+    CONFIRMATIONS: any;
+    logAiUsage: any;
+    amsLlmNarrateDiagnostics: any;
   }
 }

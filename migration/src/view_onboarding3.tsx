@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Donut, Panel, Progress, Stat } from './ui.jsx';
+import { Avatar, Badge, Donut, Panel, Progress, Stat } from './ui';
 import { Funnel } from './view_fpm_parts';
 import { obAccScore, obAccVerdict, obStage } from './view_onboarding';
 

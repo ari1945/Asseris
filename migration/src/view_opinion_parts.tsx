@@ -4,8 +4,8 @@ import { AMS } from './data';
 import { useAudit, useAuth, useFirm } from './contexts';
 import { CAP } from './rbac.js';
 import { I } from './icons';
-import { Badge, Btn, Panel } from './ui.jsx';
-import { usePhaseGate, PhaseGateDialog } from './wp_signoff.jsx';
+import { Badge, Btn, Panel } from './ui';
+import { usePhaseGate, PhaseGateDialog } from './wp_signoff';
 
 /* ============================================================
    Asseris — Audit Opinion Generator · Engine & Panels

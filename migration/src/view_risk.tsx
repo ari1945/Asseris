@@ -3,11 +3,11 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Panel, Stat } from './ui';
 import { MSub } from './view_fpm_parts';
 import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2';
-import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { DiagnosticPanel } from './diagnostics_panel';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================

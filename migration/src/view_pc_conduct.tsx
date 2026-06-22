@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
 

@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Panel, Stat } from './ui.jsx';
-import { DiagnosticPanel, useDiagnostics } from './diagnostics_panel.jsx';
+import { SubBar } from './shell';
+import { Panel, Stat } from './ui';
+import { DiagnosticPanel, useDiagnostics } from './diagnostics_panel';
 
 /* ============================================================
    Asseris — Tax Audit Diagnostic (view agregat · P4 Fase 1)

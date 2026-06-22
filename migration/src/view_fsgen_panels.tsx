@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Badge, Btn, Panel, Seg } from './ui.jsx';
-import { useWpSignoff } from './wp_signoff.jsx';
+import { Badge, Btn, Panel, Seg } from './ui';
+import { useWpSignoff } from './wp_signoff';
 
 /* ============================================================
    Asseris — FS Generator · Workspace panels

@@ -5,9 +5,9 @@ import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Panel, Tabs } from './ui.jsx';
-import { useWpSignoff } from './wp_signoff.jsx';
+import { SubBar } from './shell';
+import { Btn, Panel, Tabs } from './ui';
+import { useWpSignoff } from './wp_signoff';
 
 /* ============================================================
    Asseris — ISAK 35 · Entitas Berorientasi Nonlaba

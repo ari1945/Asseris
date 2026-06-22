@@ -2,10 +2,10 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist } from './contexts';
-import { FileDropField, FileList, SecurePipeline } from './evidence.jsx';
+import { FileDropField, FileList, SecurePipeline } from './evidence';
 import { I, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { PDrawer, PEVT, PField, PModal, PVerList, pNowTime } from './view_docparts';
 import { OKv } from './view_onboarding';
 

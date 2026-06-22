@@ -4,9 +4,9 @@ import { AMS } from './data';
 import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
+import { SubBar } from './shell';
 import { materialityFor } from './canon_selectors';
-import { Badge, Btn, Panel, Tabs } from './ui.jsx';
+import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 

@@ -2,8 +2,8 @@
 import React from 'react';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Donut, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Donut, Panel, Stat } from './ui';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { KV, SectionTitle } from './view_fpm_parts';
 import { LGL_CAT, LglContractDrawer, LglSourceChip, ReconBadge } from './view_legal';

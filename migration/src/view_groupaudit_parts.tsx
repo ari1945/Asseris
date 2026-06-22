@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Badge, Btn, Panel, Progress } from './ui.jsx';
+import { Badge, Btn, Panel, Progress } from './ui';
 import { KvBox } from './view_analytical';
 import { GA_CONSOL_DOWN, GA_CONSOL_PROC, GA_CONSOL_UP, PKG_FIELDS, PKG_NUM_KEYS, PKG_STATUS_KIND } from './view_groupaudit';
 

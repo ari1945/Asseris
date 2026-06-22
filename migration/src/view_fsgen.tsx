@@ -4,10 +4,10 @@ import { AMS } from './data';
 import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, LockBanner, Panel, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, LockBanner, Panel, Tabs } from './ui';
 import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels';
-import { useWpSignoff } from './wp_signoff.jsx';
+import { useWpSignoff } from './wp_signoff';
 import { amsExportPdf } from './export_pdf.js';
 
 /* W10.5 — map the FSGEN model → PDF table blocks for the sealed export. NUMBERS come from the

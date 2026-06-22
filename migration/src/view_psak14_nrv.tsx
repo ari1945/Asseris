@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAmsPersist } from './contexts';
 import { I } from './icons';
-import { Badge, Btn, Panel } from './ui.jsx';
+import { Badge, Btn, Panel } from './ui';
 
 /* ============================================================
    Asseris — PSAK 14 · Kertas Kerja NRV per-SKU (WP C-2)

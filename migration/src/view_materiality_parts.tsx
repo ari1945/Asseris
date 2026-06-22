@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui.jsx';
+import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui';
 import { amsExportPdf } from './export_pdf.js';
 
 /* ============================================================

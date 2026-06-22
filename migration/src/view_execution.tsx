@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep';
 import { amsExportXlsx } from './export_xlsx.js';
 

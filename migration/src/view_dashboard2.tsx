@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { Badge, Btn, Panel, Progress, Stat } from './ui.jsx';
+import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { HBars, LineChart, StackBar } from './view_fpm_parts';
 import { FIRMFIN } from './data_firmfin';
 

@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat, Tabs } from './ui';
 
 /* ============================================================
    Asseris — Engagement Cockpit + Audit Programme (Package B)

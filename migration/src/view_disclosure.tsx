@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — Daftar-Uji Pengungkapan (Disclosure Checklist Engine)

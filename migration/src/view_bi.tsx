@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat } from './ui';
 import { BIKlien, BIPartner, BIPendapatan, BIPipeline } from './view_bi2';
 import { MSub } from './view_fpm_parts';
 

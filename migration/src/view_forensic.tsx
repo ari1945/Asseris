@@ -4,9 +4,9 @@ import { AMS } from './data';
 import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel } from './ui.jsx';
-import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel } from './ui';
+import { DiagnosticPanel } from './diagnostics_panel';
 import { AMS_FORENSIC } from './forensic_canon';
 
 /* ============================================================

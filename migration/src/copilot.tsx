@@ -1,10 +1,10 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { ExtractReview } from './ai_extract';
-import { AiInsightPanel } from './ai_insights.jsx';
+import { AiInsightPanel } from './ai_insights';
 import { useAmsPersist, useFirm, useNav } from './contexts';
 import { AMS } from './data';
-import { amsAttachEvidence } from './evidence.jsx';
+import { amsAttachEvidence } from './evidence';
 import { I, MODULE_INDEX, RELATED_SA } from './icons';
 import { amsLLMConfig } from './llm_providers.js';
 

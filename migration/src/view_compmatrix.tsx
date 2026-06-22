@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Progress } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Progress } from './ui';
 
 /* ============================================================
    Asseris — Matriks Kepatuhan (Standards Register / Index)

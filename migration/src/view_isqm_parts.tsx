@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { Badge } from './ui.jsx';
+import { Badge } from './ui';
 
 /* ============================================================
    Asseris — SOQM Operasional (ISQM 1) · Komponen Pendalaman

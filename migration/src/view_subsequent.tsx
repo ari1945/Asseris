@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel } from './ui';
 
 /* ============================================================
    Asseris — Subsequent Events (SA 560 / PSAK 8)

@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — Template Library, Knowledge Base

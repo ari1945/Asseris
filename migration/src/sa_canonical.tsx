@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import { useAudit, useFirm, useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
-import { Badge, Panel, Stat } from './ui.jsx';
+import { Badge, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — Lapisan Referensi + Status SA (Sumber Tunggal)

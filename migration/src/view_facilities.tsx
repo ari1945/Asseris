@@ -2,8 +2,8 @@
 import React from 'react';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Panel } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Panel } from './ui';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { PDrawer } from './view_docparts';
 import { FacLeaseInsurance, FacLicenses, FacLineage, FacMaintenance, FacSpace } from './view_facilities2';

@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Badge, Btn } from './ui.jsx';
+import { Badge, Btn } from './ui';
 
 /* ============================================================
    Asseris — Shared parts for Portal Klien & DMS

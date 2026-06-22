@@ -1,13 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { AiInsightPanel } from './ai_insights.jsx';
+import { AiInsightPanel } from './ai_insights';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
 import { PROGRAMME } from './view_cockpit';
-import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff.jsx';
+import { WpCompletenessRecap, wpCompletenessFor, WP_MODULE_MAP } from './wp_signoff';
 
 /* ============================================================
    Asseris — Engagement Cockpit (DEEP)

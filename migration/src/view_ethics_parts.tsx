@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { Badge, Panel, Stat } from './ui.jsx';
+import { Badge, Panel, Stat } from './ui';
 import { KvBox } from './view_analytical';
 
 /* ============================================================

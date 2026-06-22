@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I, MODULES, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Panel, Seg } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Panel, Seg } from './ui';
 
 /* ============================================================
    Asseris — Review Notes (review-clearance workspace)

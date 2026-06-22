@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel } from './ui';
 
 /* ============================================================
    Asseris — Penentu Kerangka Pelaporan Berjenjang

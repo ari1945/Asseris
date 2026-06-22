@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Panel } from './ui.jsx';
+import { Panel } from './ui';
 import { BoBadge, boJt, boM } from './view_bo1';
 import { KV, SectionTitle } from './view_fpm_parts';
 

@@ -14,8 +14,8 @@
 import React from 'react';
 import { useAudit, useAuth, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { Badge, Btn, Panel, Avatar, Progress } from './ui.jsx';
-import { amsEvidenceCount } from './evidence.jsx';
+import { Badge, Btn, Panel, Avatar, Progress } from './ui';
+import { amsEvidenceCount } from './evidence';
 
 const { useState: useStateWPS } = React;
 
@@ -166,7 +166,7 @@ function useWpEvidence(moduleId) {
 }
 
 /* ---- Lencana kelengkapan gabungan (sign-off + bukti) ---- */
-function WpStatusBadge({ moduleId }) {
+function WpStatusBadge({ moduleId }: any) {
   const s = useWpSignoff(moduleId);
   const e = useWpEvidence(moduleId);
   const soKind = s.status === 'reviewed' ? 'green' : s.status === 'prepared' ? 'blue' : 'gray';
@@ -181,7 +181,7 @@ function WpStatusBadge({ moduleId }) {
 }
 
 /* ---- Kartu sign-off 2-tingkat (preparer → reviewer), lock lunak ---- */
-function WpSignoff({ moduleId }) {
+function WpSignoff({ moduleId }: any) {
   const { status, locked, sign, unsign, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
   const hasConclusion = !!(conclusion && conclusion.text);
   const Line = ({ role, who, onSign, onUnsign, canSign }) => (
@@ -215,7 +215,7 @@ function WpSignoff({ moduleId }) {
 }
 
 /* ---- Tautan bukti: required vs attached + arahkan ke kontrol Bukti global (SubBar) ---- */
-function WpEvidenceLink({ moduleId }) {
+function WpEvidenceLink({ moduleId }: any) {
   const { req, attached, level } = useWpEvidence(moduleId);
   const kind = level === 'ok' ? 'teal' : level === 'partial' ? 'amber' : 'red';
   return (
@@ -240,7 +240,7 @@ function WpEvidenceLink({ moduleId }) {
 /* ---- Kesimpulan auditor (P1): editable + persist ke wpState[ref].conclusion ----
    Penilaian auditor (SA 230) — BERDAMPINGAN dengan verdict otomatis canon, bukan
    menggantikannya. Disposisi terstruktur + rasional bebas, lock LUNAK. */
-function WpConclusion({ moduleId }) {
+function WpConclusion({ moduleId }: any) {
   const { conclusion, saveConclusion, locked } = useWpSignoff(moduleId);
   const baseText = (conclusion && conclusion.text) || '';
   const baseDisp = (conclusion && conclusion.disposition) || WP_DISPOSITIONS[0];
@@ -271,7 +271,7 @@ function WpConclusion({ moduleId }) {
 }
 
 /* ---- Panel gabungan: drop-in untuk view modul ("kertas kerja auditable") ---- */
-function WpPanel({ moduleId, title }) {
+function WpPanel({ moduleId, title }: any) {
   return (
     <Panel title={title || 'Kertas Kerja — Sign-off, Bukti & Kesimpulan'}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -293,7 +293,7 @@ function WpPanel({ moduleId, title }) {
 
 /* ---- Kontrol SubBar global: "Kertas Kerja" (status + popover sign-off & bukti) ----
    Mirip EvidenceControl: tampil hanya untuk modul yang terpetakan di WP_MODULE_MAP. */
-function WpSubBarControl({ moduleId }) {
+function WpSubBarControl({ moduleId }: any) {
   const [open, setOpen] = useStateWPS(false);
   const s = useWpSignoff(moduleId);
   if (!WP_MODULE_MAP[moduleId] || WP_SUBBAR_HIDE[moduleId]) return null;
@@ -357,7 +357,7 @@ function wpCompletenessFor(audit, moduleIds) {
    Tiga bar: kertas kerja ter-review (sign-off reviewer) + berbukti lengkap +
    berkesimpulan (penilaian auditor SA 230). Sumber = wpState kanonik + store
    evidence; lingkup = semua modul auditable. */
-function WpCompletenessRecap({ moduleIds }) {
+function WpCompletenessRecap({ moduleIds }: any) {
   const audit = useAudit();
   const ids = moduleIds || Object.keys(WP_MODULE_MAP);
   const r = wpCompletenessFor(audit, ids);
@@ -454,7 +454,7 @@ function engagementGate(audit, firm, opts) {
 
 /* EngagementGateSummary — ringkasan prasyarat + tautan "buka modul" untuk
    menyelesaikan blocker. Drop-in (firm board / dialog konfirmasi Fase 1). */
-function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }) {
+function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }: any) {
   const audit = useAudit();
   const firm = useFirm();
   const nav = useNav();
@@ -525,7 +525,7 @@ function usePhaseGate() {
 }
 
 /* PhaseGateDialog — modal konfirmasi/peringatan transisi fase. */
-function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }) {
+function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any) {
   if (!gate) return null;
   const isConfirm = gate.severity === 'confirm';
   const blocked = gate.blockers.length > 0;

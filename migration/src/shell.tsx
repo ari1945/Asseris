@@ -1,10 +1,10 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { useAuth, useFirm, useNav, useNavFrom } from './contexts';
-import { EvidenceControl } from './evidence.jsx';
-import { WpSubBarControl } from './wp_signoff.jsx';
+import { EvidenceControl } from './evidence';
+import { WpSubBarControl } from './wp_signoff';
 import { GROUP_WS, I, MODULES, MODULE_INDEX, WORKSPACES } from './icons';
-import { Avatar } from './ui.jsx';
+import { Avatar } from './ui';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
 /* ============================================================
@@ -15,7 +15,7 @@ import { NotificationsPanel, UserMenu } from './view_palette';
 // useStateUI via global scope, which is invisible under ESM module scope.
 const { useState: useStateSH } = React;
 
-function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, onNavigate, route }) {
+function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, onNavigate, route }: any) {
   const { user, firm } = useAuth();
   const { activeClient, activeEngagement, engagements, clients, setActiveEngagementId, canAccessEngagement } = useFirm();
   const [open, setOpen] = useStateSH(false);
@@ -125,7 +125,7 @@ function readSideRecent() {
   catch (e) { return []; }
 }
 
-function Sidebar({ active, onNavigate, collapsed, onToggle }) {
+function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   const [closedGroups, setClosedGroups] = useStateSH({});
   const toggleGroup = (g) => setClosedGroups(s => ({ ...s, [g]: !s[g] }));
   const firmCtx = useFirm();
@@ -282,7 +282,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }) {
 
 /* Breadcrumb / view toolbar */
 const FIRMWIDE_GROUPS = ['Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Firm Platform', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'Portal & Dokumen', 'Backoffice & Firm Mgmt', 'Knowledge'];
-function SubBar({ moduleId, right }) {
+function SubBar({ moduleId, right }: any) {
   const m = MODULE_INDEX[moduleId] || { label: moduleId, group: '' };
   const firm = useFirm();
   const nav = useNav();
@@ -345,7 +345,7 @@ function SubBar({ moduleId, right }) {
 }
 
 /* Display settings: dark mode + density (persisted to localStorage + body class) */
-function SettingsMenu({ open, onClose, onNavigate }) {
+function SettingsMenu({ open, onClose, onNavigate }: any) {
   const [dark, setDark] = useStateSH(() => localStorage.getItem('ams.dark') === '1');
   const [dense, setDense] = useStateSH(() => localStorage.getItem('ams.dense') === '1');
   React.useEffect(() => { document.body.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);

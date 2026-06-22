@@ -15,12 +15,12 @@ const STATUS_MAP = {
   High: 'b-red', Significant: 'b-red', Overdue: 'b-red',
   Archive: 'b-gray', Arsip: 'b-gray',
 };
-function Badge({ children, kind, dot }) {
+function Badge({ children, kind, dot }: any) {
   const cls = kind ? ('b-' + kind) : (STATUS_MAP[children] || 'b-gray');
   return <span className={'badge ' + cls}>{dot && <span className="bdot" style={{ background: 'currentColor' }} />}{children}</span>;
 }
 
-function Btn({ children, variant = '', sm, icon, className = '', ...rest }) {
+function Btn({ children, variant = '', sm, icon, className = '', ...rest }: any) {
   return (
     <button className={`btn ${variant} ${sm ? 'sm' : ''} ${icon ? 'icon' : ''} ${className}`} {...rest}>
       {children}
@@ -29,7 +29,7 @@ function Btn({ children, variant = '', sm, icon, className = '', ...rest }) {
 }
 
 /* Portlet shell (drag handled by parent grid) */
-function Portlet({ title, dot, actions, children, bodyPad = true, dragProps = {}, className = '', flat }) {
+function Portlet({ title, dot, actions, children, bodyPad = true, dragProps = {}, className = '', flat }: any) {
   const [collapsed, setCollapsed] = useStateUI(false);
   const { gripProps = {}, className: dragCls = '', ...rootDrag } = dragProps;
   return (
@@ -51,7 +51,7 @@ function Portlet({ title, dot, actions, children, bodyPad = true, dragProps = {}
   );
 }
 
-function Panel({ title, sub, actions, children, className = '', noBody }) {
+function Panel({ title, sub, actions, children, className = '', noBody }: any) {
   return (
     <div className={'panel ' + className}>
       {(title || actions) && (
@@ -67,7 +67,7 @@ function Panel({ title, sub, actions, children, className = '', noBody }) {
   );
 }
 
-function Stat({ value, label, delta, deltaDir, accent }) {
+function Stat({ value, label, delta, deltaDir, accent }: any) {
   return (
     <div className="stat">
       <div className="s-val" style={accent ? { color: accent } : null}>{value}</div>
@@ -81,11 +81,11 @@ function Stat({ value, label, delta, deltaDir, accent }) {
   );
 }
 
-function Progress({ value, color }) {
+function Progress({ value, color }: any) {
   return <div className="pbar"><span style={{ width: Math.min(100, value) + '%', background: color || undefined }} /></div>;
 }
 
-function Avatar({ name, size = 26, photo }) {
+function Avatar({ name, size = 26, photo }: any) {
   const initials = (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
   if (photo) {
     return <span className="avatar" title={name} style={{ width: size, height: size, backgroundImage: 'url(' + photo + ')', backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' }} />;
@@ -93,7 +93,7 @@ function Avatar({ name, size = 26, photo }) {
   return <span className="avatar" style={{ width: size, height: size, fontSize: size * 0.4 }}>{initials}</span>;
 }
 
-function Tabs({ tabs, active, onChange }) {
+function Tabs({ tabs, active, onChange }: any) {
   return (
     <div className="tabs">
       {tabs.map(t => (
@@ -105,7 +105,7 @@ function Tabs({ tabs, active, onChange }) {
   );
 }
 
-function Seg({ options, value, onChange }) {
+function Seg({ options, value, onChange }: any) {
   return (
     <div className="seg">
       {options.map(o => (
@@ -118,12 +118,12 @@ function Seg({ options, value, onChange }) {
 }
 
 /* Placeholder block (striped) */
-function Placeholder({ label, height = 120, style }) {
+function Placeholder({ label, height = 120, style }: any) {
   return <div className="placeholder" style={{ height, ...style }}>{label}</div>;
 }
 
 /* Simple SVG sparkline / bar mini chart */
-function Spark({ data, width = 120, height = 34, color = '#005085', fill = true }) {
+function Spark({ data, width = 120, height = 34, color = '#005085', fill = true }: any) {
   const max = Math.max(...data), min = Math.min(...data);
   const rng = max - min || 1;
   const pts = data.map((d, i) => [(i / (data.length - 1)) * width, height - ((d - min) / rng) * (height - 6) - 3]);
@@ -138,7 +138,7 @@ function Spark({ data, width = 120, height = 34, color = '#005085', fill = true 
   );
 }
 
-function MiniBars({ data, width = 130, height = 38, color = '#005085' }) {
+function MiniBars({ data, width = 130, height = 38, color = '#005085' }: any) {
   const max = Math.max(...data) || 1;
   const bw = width / data.length;
   return (
@@ -153,7 +153,7 @@ function MiniBars({ data, width = 130, height = 38, color = '#005085' }) {
 }
 
 /* Donut */
-function Donut({ segments, size = 92, thickness = 13, center }) {
+function Donut({ segments, size = 92, thickness = 13, center }: any) {
   const total = segments.reduce((s, x) => s + x.value, 0) || 1;
   const r = (size - thickness) / 2;
   const c = 2 * Math.PI * r;
@@ -177,7 +177,7 @@ function Donut({ segments, size = 92, thickness = 13, center }) {
 }
 
 /* Lightweight dropdown menu */
-function Menu({ trigger, items, align = 'left' }) {
+function Menu({ trigger, items, align = 'left' }: any) {
   const [open, setOpen] = useStateUI(false);
   return (
     <div style={{ position: 'relative' }}>
@@ -209,7 +209,7 @@ function LockBanner() {
 }
 
 /* Empty/coming-soon stub for un-built modules */
-function StubView({ moduleId }) {
+function StubView({ moduleId }: any) {
   const m = MODULE_INDEX[moduleId] || { label: moduleId, icon: 'panel', group: '' };
   const IconC = I[m.icon] || I.panel;
   const blueprints = {

@@ -2,10 +2,10 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
-import { FileDropField } from './evidence.jsx';
+import { FileDropField } from './evidence';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Seg, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Seg, Tabs } from './ui';
 import { NAReport } from './view_nonaudit2';
 import { OKv } from './view_onboarding';
 

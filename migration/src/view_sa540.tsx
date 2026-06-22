@@ -3,8 +3,8 @@ import React from 'react';
 import { useFirm } from './contexts';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 
 /* ============================================================

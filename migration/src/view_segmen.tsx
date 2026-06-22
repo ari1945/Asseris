@@ -5,8 +5,8 @@ import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model';
 import { useAudit, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { SectionTitle } from './view_fpm_parts';
 
 /* ============================================================

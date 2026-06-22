@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import { I } from './icons';
-import { Badge, Panel } from './ui.jsx';
+import { Badge, Panel } from './ui';
 
 /* ============================================================
    Asseris — PSAK 72 · Komponen pendukung (dipakai view_psak72.jsx)

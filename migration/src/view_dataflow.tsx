@@ -2,10 +2,10 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
-import { useEvidence } from './evidence.jsx';
+import { useEvidence } from './evidence';
 import { I, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Panel, Stat } from './ui';
 import { DFAturan, DFJejak, DFPropagasi } from './view_dataflow2';
 import { MSub } from './view_fpm_parts';
 import { DFRekonsiliasi } from './view_reconcile';

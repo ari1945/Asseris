@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Donut, Portlet, Progress, Spark, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Donut, Portlet, Progress, Spark, Stat } from './ui';
 import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';
 import { MSub } from './view_fpm_parts';
 

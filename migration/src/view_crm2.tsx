@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat } from './ui.jsx';
+import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat } from './ui';
 import { FGauge, Funnel, HBars } from './view_fpm_parts';
 
 /* ============================================================

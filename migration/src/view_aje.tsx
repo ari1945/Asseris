@@ -4,10 +4,10 @@ import { AMS } from './data';
 import { useAudit, useAuth, useFirm, useNav } from './contexts';
 import { CAP } from './rbac.js';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui';
 import { AJEForm } from './view_execution';
-import { DiagnosticPanel } from './diagnostics_panel.jsx';
+import { DiagnosticPanel } from './diagnostics_panel';
 import { amsExportXlsx } from './export_xlsx.js';
 
 /* ============================================================

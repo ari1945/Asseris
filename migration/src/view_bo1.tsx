@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Donut, Panel, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Donut, Panel, Stat, Tabs } from './ui';
 import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
 

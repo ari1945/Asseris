@@ -48,7 +48,7 @@ function amsCrossChecks(ctx) {
   const confs = ctx.confirmations || [];
   const out = [];
 
-  const wtbVal = (code, field) => {
+  const wtbVal = (code, field?) => {
     const r = wtb.find(x => x.code === code) || {};
     return (field === 'ly' ? r.ly : (r.adj != null ? r.adj : r.unadj)) || 0;
   };
@@ -140,7 +140,7 @@ function useAiInsights(scope) {
   const audit = useAudit();
   const nav = useNav();
   const [decisions, setDecisions] = window.useAmsPersist('aiInsights.v1', () => ({}));
-  const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+  const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
 
   const all = useMemoAI(() => amsCrossChecks({
     aje: audit.aje, risks: audit.risks, wtb: audit.wtb, workpapers: audit.workpapers,
@@ -168,7 +168,7 @@ function useAiInsights(scope) {
 /* ------------------------------------------------------------
    KOMPONEN — panel + kartu temuan dengan gerbang keputusan
    ------------------------------------------------------------ */
-function AiInsChips({ refs, onOpen }) {
+function AiInsChips({ refs, onOpen }: any) {
   return (
     <div className="aiins-refs">
       <span className="aiins-refs-lbl"><I.link2 size={11} /> Sumber</span>
@@ -181,7 +181,7 @@ function AiInsChips({ refs, onOpen }) {
   );
 }
 
-function AiInsightCard({ ins, decision, onDecide, onOpen }) {
+function AiInsightCard({ ins, decision, onDecide, onOpen }: any) {
   const [mode, setMode] = React.useState(null);
   const [reason, setReason] = React.useState('');
   const sev = AI_SEV[ins.sev];
@@ -228,7 +228,7 @@ function AiInsightCard({ ins, decision, onDecide, onOpen }) {
   );
 }
 
-function AiInsightPanel({ scope, title, embedded }) {
+function AiInsightPanel({ scope, title, embedded }: any) {
   const { insights, decisions, decide, openCount } = useAiInsights(scope);
   const nav = useNav();
   const [showDone, setShowDone] = React.useState(false);

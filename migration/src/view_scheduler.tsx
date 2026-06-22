@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Btn, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Btn, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — Resource Scheduler (Package D)

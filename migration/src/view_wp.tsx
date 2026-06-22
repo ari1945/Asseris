@@ -4,8 +4,8 @@ import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
 import { useAudit, useFirm } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Placeholder, Seg, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
 
 /* ============================================================
    Asseris — Working Papers (audit file workspace)

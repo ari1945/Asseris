@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Btn, Donut, Panel, Stat } from './ui.jsx';
+import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — HCM deepening: 360° Profile drawer + Analytics

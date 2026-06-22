@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useNav } from './contexts';
 import { I } from './icons';
-import { Badge, Btn, Panel, Progress, Seg } from './ui.jsx';
+import { Badge, Btn, Panel, Progress, Seg } from './ui';
 
 /* ============================================================
    Asseris — WTB Deep modules

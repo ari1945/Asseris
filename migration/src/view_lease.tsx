@@ -4,8 +4,8 @@ import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Seg, Stat } from './ui';
 import { Kv } from './view_calc';
 import { SliderRow } from './view_materiality';
 

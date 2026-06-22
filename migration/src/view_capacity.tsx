@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
 
 /* ============================================================
    Asseris — Capacity Planning (Practice Operations · D+)

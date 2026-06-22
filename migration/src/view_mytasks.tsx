@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Donut, Panel, Seg, Stat } from './ui';
 import { AddTaskForm, MT_BUCKETS, MT_PRIO_K, MT_PRIO_ORDER, MT_SRC_ICON, TaskRow, mtDueLabel, useMyTasks } from './view_mytasks_parts';
 
 /* ============================================================

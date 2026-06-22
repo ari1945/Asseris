@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { amsAttachEvidence } from './evidence.jsx';
+import { amsAttachEvidence } from './evidence';
 import { I, MODULE_INDEX } from './icons';
 import { amsLLMConfig } from './llm_providers.js';
-import { Panel } from './ui.jsx';
+import { Panel } from './ui';
 import { AMS } from './data';
 import { openCanonicalWp } from './view_wp';
 

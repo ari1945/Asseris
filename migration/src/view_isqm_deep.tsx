@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { Badge, Btn, Panel, Spark } from './ui.jsx';
+import { Badge, Btn, Panel, Spark } from './ui';
 
 /* ============================================================
    Asseris — SOQM Operasional (ISQM 1) · Pendalaman Modul

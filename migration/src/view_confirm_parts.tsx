@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { Badge, Btn } from './ui.jsx';
+import { Badge, Btn } from './ui';
 
 /* ============================================================
    Asseris — Confirmation Hub · data & reusable parts

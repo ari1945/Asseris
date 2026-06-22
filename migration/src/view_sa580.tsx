@@ -3,8 +3,8 @@ import React from 'react';
 import { useFirm } from './contexts';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus, SASignoffMini } from './sa_canonical';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 
 /* ============================================================
    Asseris — SA 580 · Representasi Tertulis

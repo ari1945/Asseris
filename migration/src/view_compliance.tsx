@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I, MODULE_INDEX } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Donut, Panel } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Donut, Panel } from './ui';
 import { RowKv } from './view_calc';
 
 /* ============================================================

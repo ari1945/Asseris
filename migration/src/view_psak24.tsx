@@ -4,8 +4,8 @@ import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel } from './ui';
 
 /* ============================================================
    Asseris — PSAK 24 · Imbalan Kerja (Employee Benefits)

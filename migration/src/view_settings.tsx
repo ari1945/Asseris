@@ -4,7 +4,7 @@ import { api } from './api.js';
 import { CAP } from './rbac.js';
 import { useAuth, useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui.jsx';
+import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
 
 /* ============================================================
    Asseris — Pengaturan (full settings workspace)

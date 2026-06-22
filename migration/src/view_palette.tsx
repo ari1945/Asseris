@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAuth, useFirm } from './contexts';
 import { I, MODULES } from './icons';
-import { Avatar } from './ui.jsx';
+import { Avatar } from './ui';
 
 /* ============================================================
    Asseris — Command Palette (⌘K) + Notifications + User menu

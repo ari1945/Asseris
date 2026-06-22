@@ -62,7 +62,7 @@ function useEvidence(mid) {
 const evExtIcon = (n) => /\.(xlsx|xls|csv)$/i.test(n || '') ? 'table' : (/\.(png|jpg|jpeg|gif|webp)$/i.test(n || '') ? 'panel' : 'doc');
 
 /* ---- Kontrol Bukti global: tombol di SubBar tiap modul ---- */
-function EvidenceControl({ moduleId }) {
+function EvidenceControl({ moduleId }: any) {
   const nav = useNav();
   const list = useEvidence(moduleId);
   const meta = (typeof MODULE_INDEX !== 'undefined' && MODULE_INDEX[moduleId]) || { label: moduleId };
@@ -74,7 +74,7 @@ function EvidenceControl({ moduleId }) {
   const addFiles = (fl) => {
     const arr = Array.from(fl || []).filter(Boolean);
     if (!arr.length) return;
-    const res = arr.map((f, i) => window.classifyDoc(f.name, {}, i));
+    const res = arr.map((f: any, i) => window.classifyDoc(f.name, {}, i));
     setPending(p => [...res, ...p]);
     setOpen(true);
   };
@@ -195,7 +195,7 @@ function amsFileMeta(f) {
 }
 
 /* dropzone berkas nyata (input file + drag/drop + validasi jenis & ukuran) */
-function FileDropField({ multiple = true, onFiles, hint, compact }) {
+function FileDropField({ multiple = true, onFiles, hint, compact }: any) {
   const ref = React.useRef(null);
   const [drag, setDrag] = React.useState(false);
   const handle = (fl) => {
@@ -220,7 +220,7 @@ function FileDropField({ multiple = true, onFiles, hint, compact }) {
 }
 
 /* daftar berkas terpilih dengan status validasi & checksum */
-function FileList({ files, onRemove }) {
+function FileList({ files, onRemove }: any) {
   if (!files || !files.length) return null;
   return (
     <div className="upl-files">
@@ -246,7 +246,7 @@ function FileList({ files, onRemove }) {
 }
 
 /* panel asuransi keamanan — langkah-langkah yang ditegakkan saat unggah */
-function SecurePipeline({ title = 'Kontrol keamanan saat unggah' }) {
+function SecurePipeline({ title = 'Kontrol keamanan saat unggah' }: any) {
   const steps = [
     ['lock', 'Terenkripsi saat transit — TLS 1.3'],
     ['shield', 'Pindai malware otomatis — ClamAV'],

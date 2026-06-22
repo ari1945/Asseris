@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — EQR Workflow (ISQM 2)  ·  Pelaporan PPPK

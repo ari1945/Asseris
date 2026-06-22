@@ -2,8 +2,8 @@
 import React from 'react';
 import { useAmsPersist, useFirm } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Badge, Btn, Panel, Seg } from './ui.jsx';
+import { SubBar } from './shell';
+import { Badge, Btn, Panel, Seg } from './ui';
 
 /* ============================================================
    Asseris — Management Letter (SA 265/260)

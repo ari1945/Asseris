@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I } from './icons';
-import { Panel } from './ui.jsx';
+import { Panel } from './ui';
 
 /* ============================================================
    Asseris — PSAK 16 · Komponen Register Aset Tetap (sub-ledger)

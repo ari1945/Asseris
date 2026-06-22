@@ -2,8 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Badge, Btn, Donut, Panel, Spark, Stat, Tabs } from './ui';
 import { OKv } from './view_onboarding';
 
 /* ============================================================

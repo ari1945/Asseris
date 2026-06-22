@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { useAudit, useNav } from './contexts';
 import { I } from './icons';
-import { Badge, Btn, Panel, Stat } from './ui.jsx';
+import { Badge, Btn, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — Rekonsiliasi Angka Lintas-Modul (tie-out)

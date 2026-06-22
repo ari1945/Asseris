@@ -2,9 +2,9 @@
 import React from 'react';
 import { amsDiagnostics, DIAG_SEV } from './diagnostics';
 import { useAudit, useNav } from './contexts';
-import { amsCrossChecks } from './ai_insights.jsx';
+import { amsCrossChecks } from './ai_insights';
 import { I } from './icons';
-import { Badge, Btn, Panel } from './ui.jsx';
+import { Badge, Btn, Panel } from './ui';
 import { AMS } from './data';
 
 /* ============================================================
@@ -52,7 +52,7 @@ function useLlmNarration(findings) {
 }
 
 /* Blok narasi AI — hanya muncul bila peran boleh memakai LLM (status.canUse). */
-function DiagNarration({ findings }) {
+function DiagNarration({ findings }: any) {
   const { phase, text, meta, status, run, reset } = useLlmNarration(findings);
   if (!status || !status.canUse || !findings.length) return null;
   const busy = phase === 'loading';
@@ -108,7 +108,7 @@ function crossChecksAsFindings(audit) {
 }
 
 /* hook bersama: jalankan mesin + crossChecks atas data live, filter per-area */
-function useDiagnostics(area) {
+function useDiagnostics(area?) {
   const audit = useAudit();
   return useMemoDG(() => {
     let all = [];
@@ -122,7 +122,7 @@ function useDiagnostics(area) {
 function useDiagDecisions() {
   const audit = useAudit();
   const [decisions, setDecisions] = window.useAmsPersist('diagnostics.v1', () => ({}));
-  const USER = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
+  const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
   const decide = (f, verdict, reason) => {
     const when = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     setDecisions(d => ({ ...d, [f.id]: { verdict, who: USER.name, role: USER.role, when, reason: reason || '' } }));
@@ -141,7 +141,7 @@ function diagSevCount(findings) {
   return c;
 }
 
-function DiagFindingCard({ f, decision, onDecide, nav }) {
+function DiagFindingCard({ f, decision, onDecide, nav }: any) {
   const [mode, setMode] = useStateDG(null);
   const [reason, setReason] = useStateDG('');
   const tone = (DIAG_SEV[f.sev] || DIAG_SEV.low).tone;
@@ -196,7 +196,7 @@ function DiagFindingCard({ f, decision, onDecide, nav }) {
 }
 
 /* Panel embeddable. `area` = id host (filter); kosong = agregat. */
-function DiagnosticPanel({ area, title }) {
+function DiagnosticPanel({ area, title }: any) {
   const nav = useNav();
   const findings = useDiagnostics(area);
   const { decisions, decide } = useDiagDecisions();

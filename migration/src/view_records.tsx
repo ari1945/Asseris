@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Btn, Donut, Panel, Tabs } from './ui.jsx';
+import { SubBar } from './shell';
+import { Btn, Donut, Panel, Tabs } from './ui';
 import { BoStat } from './view_bo1';
 import { PDrawer } from './view_docparts';
 import { KV, SectionTitle } from './view_fpm_parts';

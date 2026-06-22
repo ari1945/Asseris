@@ -3,8 +3,8 @@ import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { SubBar } from './shell.jsx';
-import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui.jsx';
+import { SubBar } from './shell';
+import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { FIRMFIN } from './data_firmfin';
 

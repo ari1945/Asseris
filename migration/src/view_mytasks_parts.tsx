@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAudit, useFirm } from './contexts';
 import { I, MODULES } from './icons';
-import { Badge, Btn, Panel } from './ui.jsx';
+import { Badge, Btn, Panel } from './ui';
 
 /* ============================================================
    Asseris — My Tasks workspace (parts):
