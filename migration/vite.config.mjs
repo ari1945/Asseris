@@ -25,6 +25,13 @@ export default defineConfig({
     outDir: 'dist',
     // Selama migrasi window→ESM masih dual-publish, jangan terlalu agresif memangkas.
     sourcemap: true,
+    // Multi-entry: app penuh (index.html) + Wedge MVP lokal (wedge.html).
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        wedge: 'wedge.html',
+      },
+    },
   },
   esbuild: {
     loader: 'tsx',

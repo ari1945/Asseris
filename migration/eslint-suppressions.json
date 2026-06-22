@@ -1144,6 +1144,41 @@
       "count": 36
     }
   },
+  "src/wedge/WedgeApp.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 32
+    }
+  },
+  "src/wedge/export_wp.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 14
+    }
+  },
+  "src/wedge/import_parse.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/wedge/sample_workbook.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/wedge/sample_workbook.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/wedge/seal.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/wedge/use_persist.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
   "src/wp_signoff.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 49
