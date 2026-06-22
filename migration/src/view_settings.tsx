@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { api } from './api.js';
-import { CAP } from './rbac.js';
+import { api } from './api';
+import { CAP } from './rbac';
 import { useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';

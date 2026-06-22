@@ -9,7 +9,7 @@
 /* up   = Hulu   — modul SUMBER yang memberi masukan ke modul ini
    down = Hilir  — modul PENGGUNA keluaran/kesimpulan modul ini
    ic/lbl/rel mengikuti format kartu lineage PSAK. */
-const LINEAGE = {
+const LINEAGE: any = {
   syariah: {
     std: 'SAK Syariah · PSAK 101–112',
     up: [

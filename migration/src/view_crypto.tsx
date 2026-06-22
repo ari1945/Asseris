@@ -8,7 +8,7 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Placeholder, Progress, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
-import { amsExportXlsx } from './export_xlsx.js';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Compliance & Kriptografi (mendalam)

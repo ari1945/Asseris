@@ -2,13 +2,13 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAudit, useAuth, useFirm, useNav } from './contexts';
-import { CAP } from './rbac.js';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui';
 import { AJEForm } from './view_execution';
 import { DiagnosticPanel } from './diagnostics_panel';
-import { amsExportXlsx } from './export_xlsx.js';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Adjusting & Reclassifying Journal Entries (deep)

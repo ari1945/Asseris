@@ -8,7 +8,7 @@ import { SubBar } from './shell';
 import { Btn, LockBanner, Panel, Tabs } from './ui';
 import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels';
 import { useWpSignoff } from './wp_signoff';
-import { amsExportPdf } from './export_pdf.js';
+import { amsExportPdf } from './export_pdf';
 
 /* W10.5 — map the FSGEN model → PDF table blocks for the sealed export. NUMBERS come from the
    shared `model` via the caller's `sc()` scaler (same source as the on-screen statements → zero

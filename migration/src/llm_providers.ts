@@ -55,8 +55,8 @@
       note: 'API kompatibel-OpenAI. Dari browser kunci terekspos — gunakan proxy untuk produksi.',
     },
   ];
-  const BY_ID = {};
-  PROVIDERS.forEach(p => { BY_ID[p.id] = p; });
+  const BY_ID: any = {};
+  PROVIDERS.forEach((p: any) => { BY_ID[p.id] = p; });
 
   const DEFAULTS = { provider: 'anthropic', keys: {}, baseUrls: {}, share: true, temperature: 'standar' };
 
@@ -79,7 +79,7 @@
     };
   }
 
-  function maskKey(k) {
+  function maskKey(k: any) {
     k = (k || '').trim();
     if (!k) return '';
     if (k.length <= 8) return k[0] + '••••';
@@ -94,15 +94,15 @@
     return { ok: true, level: 'ready', label: 'Aktif', cfg: c };
   }
 
-  window.AMS_LLM = { PROVIDERS, BY_ID, DEFAULTS };
-  window.amsLLMConfig = amsLLMConfig;
-  window.amsLLMStatus = amsLLMStatus;
-  window.amsLLMMaskKey = maskKey;
+  (window as any).AMS_LLM = { PROVIDERS, BY_ID, DEFAULTS };
+  (window as any).amsLLMConfig = amsLLMConfig;
+  (window as any).amsLLMStatus = amsLLMStatus;
+  (window as any).amsLLMMaskKey = maskKey;
 })();
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export const AMS_LLM = window.AMS_LLM;
-export const amsLLMConfig = window.amsLLMConfig;
-export const amsLLMMaskKey = window.amsLLMMaskKey;
-export const amsLLMStatus = window.amsLLMStatus;
+export const AMS_LLM = (window as any).AMS_LLM;
+export const amsLLMConfig = (window as any).amsLLMConfig;
+export const amsLLMMaskKey = (window as any).amsLLMMaskKey;
+export const amsLLMStatus = (window as any).amsLLMStatus;

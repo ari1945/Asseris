@@ -21,3 +21,6 @@ declare module 'react';
 declare module 'react/jsx-runtime';
 declare module 'react-dom/client';
 declare module 'react-dom';
+
+// W14 Fase 0: `qrcode` (dipakai export_pdf.ts via dynamic import) tak punya @types.
+declare module 'qrcode';

@@ -255,7 +255,15 @@
     "src/icons.tsx",
     "src/contexts.tsx",
     "src/app.tsx",
-    "src/main.tsx"
+    "src/main.tsx",
+
+    "src/api.ts",
+    "src/rbac.ts",
+    "src/llm_providers.ts",
+    "src/export_pdf.ts",
+    "src/export_xlsx.ts",
+    "src/related_modules_data.ts",
+    "src/related_modules_data2.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

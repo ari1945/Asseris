@@ -6,7 +6,7 @@ import { useAmsPersist, useFirm, useNav } from './contexts';
 import { AMS } from './data';
 import { amsAttachEvidence } from './evidence';
 import { I, MODULE_INDEX, RELATED_SA } from './icons';
-import { amsLLMConfig } from './llm_providers.js';
+import { amsLLMConfig } from './llm_providers';
 
 /* ============================================================
    Asseris — AI Co-pilot (rekonstruksi)

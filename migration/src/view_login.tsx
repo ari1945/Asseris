@@ -5,7 +5,7 @@
    user up so the app hydrates and mounts. Self-contained — no app context deps.
    ============================================================ */
 import React from 'react';
-import { api, setAuthToken } from './api.js';
+import { api, setAuthToken } from './api';
 
 const { useState: useStateLG } = React;
 

@@ -56,8 +56,8 @@ const GRANTS = {
 };
 
 /** True if `role` is granted `cap`. Unknown role/cap → false (deny by default). */
-export function can(role, cap) {
-  const grants = GRANTS[role];
+export function can(role: any, cap: any) {
+  const grants = (GRANTS as any)[role];
   return Array.isArray(grants) && grants.includes(cap);
 }
 
@@ -66,7 +66,7 @@ export function can(role, cap) {
    the opinion sign-off living inside wpState — is the UI's job via can(), and a future
    finer endpoint). null = no capability needed beyond being authenticated (and, for the
    user scope, being the owner — enforced separately on the server). */
-export function capForWrite(scope, key) {
+export function capForWrite(scope: any, key: any) {
   if (scope === 'user') return null; // own profile/prefs — ownership checked server-side
   if (scope === 'firm') {
     return key === 'clients' || key === 'engagements' ? ENGAGEMENT_MANAGE : FIRM_ADMIN;

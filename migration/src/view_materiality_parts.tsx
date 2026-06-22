@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui';
-import { amsExportPdf } from './export_pdf.js';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — Materiality (SA 320 / SA 450) — heavy tab panels

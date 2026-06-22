@@ -14,10 +14,10 @@
    id-ID text identical to the screen (negatives in parentheses). This favours screen-fidelity over
    spreadsheet arithmetic, consistent with the Fase 1 PDF tables.
    ============================================================ */
-import { exportSeal, exportLogEvent } from './api.js';
-import { SEAL_DISCLAIMER } from './export_pdf.js';
+import { exportSeal, exportLogEvent } from './api';
+import { SEAL_DISCLAIMER } from './export_pdf';
 
-let _xlsx = null;
+let _xlsx: any = null;
 async function loadXlsx() {
   if (_xlsx) return _xlsx;
   const mod = await import('xlsx');
@@ -25,18 +25,18 @@ async function loadXlsx() {
   return _xlsx;
 }
 
-async function sha256Hex(str) {
+async function sha256Hex(str: any) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Deterministic JSON over the CONTENT-bearing fields only (sorted keys) — the seal must be
 // reproducible from the same source data, so we exclude anything render/seal-specific.
-function canonicalPayload(model) {
+function canonicalPayload(model: any) {
   const pick = {
     kind: model.kind,
     title: model.title,
-    sheets: (model.sheets || []).map((s) => ({
+    sheets: (model.sheets || []).map((s: any) => ({
       name: s.name || '',
       heading: s.heading || '',
       columns: s.columns || [],
@@ -52,7 +52,7 @@ function canonicalPayload(model) {
  * model: { kind, scope?, scopeId?, fileName, firm, title, meta:[…strings],
  *   sheets:[ { name, heading?, columns:[…labels], rows:[[…cells]], totals?:[…cells], colWidths?:[…wch] } ] }
  */
-export async function amsExportXlsx(model) {
+export async function amsExportXlsx(model: any) {
   const XLSX = await loadXlsx();
   const contentHash = await sha256Hex(canonicalPayload(model));
 
@@ -68,7 +68,7 @@ export async function amsExportXlsx(model) {
 
   const wb = XLSX.utils.book_new();
   const usedNames = new Set();
-  const safeName = (n) => {
+  const safeName = (n: any) => {
     // Excel sheet names: ≤31 chars, no []:*?/\
     let base = String(n || 'Sheet').replace(/[[\]:*?/\\]/g, ' ').trim().slice(0, 31) || 'Sheet';
     let name = base;
@@ -85,7 +85,7 @@ export async function amsExportXlsx(model) {
     for (const r of s.rows || []) aoa.push(r);
     if (s.totals && s.totals.length) aoa.push(s.totals);
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    if (s.colWidths) ws['!cols'] = s.colWidths.map((w) => ({ wch: w }));
+    if (s.colWidths) ws['!cols'] = s.colWidths.map((w: any) => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws, safeName(s.name));
   }
 
@@ -94,7 +94,7 @@ export async function amsExportXlsx(model) {
     ['Asseris — Ekspor Register'],
     ['Judul', model.title || ''],
     ['Firma', model.firm || ''],
-    ...(model.meta || []).map((m) => ['', String(m)]),
+    ...(model.meta || []).map((m: any) => ['', String(m)]),
     [],
     [seal ? 'TERSEGEL · Provenans Asseris' : 'TIDAK TERSEGEL'],
   ];

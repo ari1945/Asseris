@@ -4,7 +4,7 @@ import { useAmsPersist, useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
-import { amsExportPdf } from './export_pdf.js';
+import { amsExportPdf } from './export_pdf';
 
 /* ============================================================
    Asseris — Audit Opinion Generator

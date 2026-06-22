@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { hydrateCoreFromApi, api, setAuthToken } from './api.js';
+import { hydrateCoreFromApi, api, setAuthToken } from './api';
 import { AppProviders, NavContext, NavFromContext } from './contexts';
 import { LoginScreen } from './view_login';
 import { Copilot } from './copilot';

@@ -10,14 +10,14 @@
    legal stamp-duty weight. The hash covers the canonical content model below (not the rendered
    bytes); re-exporting from the same source data reproduces the same hash for verification.
    ============================================================ */
-import { exportSeal, exportLogEvent } from './api.js';
+import { exportSeal, exportLogEvent } from './api';
 
 export const SEAL_DISCLAIMER =
   'Segel provenans Asseris (Ed25519) — membuktikan pembuat & integritas konten. ' +
   'BUKAN e-Meterai/PERURI atau tanda tangan elektronik tersertifikasi (PSrE). Tanpa kekuatan bea meterai.';
 
 // Lazy-load the heavy libs once. Kept out of the boot bundle (dynamic import → its own chunk).
-let _libs = null;
+let _libs: any = null;
 async function loadLibs() {
   if (_libs) return _libs;
   const [jspdfMod, autoTableMod, qrMod] = await Promise.all([
@@ -33,26 +33,26 @@ async function loadLibs() {
   return _libs;
 }
 
-async function sha256Hex(str) {
+async function sha256Hex(str: any) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Deterministic JSON over the CONTENT-bearing fields only (sorted keys) — the seal must be
 // reproducible from the same source data, so we exclude anything render/seal-specific.
-function canonicalPayload(model) {
+function canonicalPayload(model: any) {
   const pick = {
     kind: model.kind,
     title: model.title,
     refNo: model.refNo || '',
     meta: model.meta || [],
-    blocks: (model.blocks || []).map((b) => ({
+    blocks: (model.blocks || []).map((b: any) => ({
       type: b.type,
       text: b.text || '',
       rows: b.rows || [],
       head: b.head || [],
       body: b.body || [],
-      signers: (b.signers || []).map((s) => ({ name: s.name || '', role: s.role || '', at: s.at || '' })),
+      signers: (b.signers || []).map((s: any) => ({ name: s.name || '', role: s.role || '', at: s.at || '' })),
     })),
   };
   return JSON.stringify(pick, Object.keys(pick).sort());
@@ -70,7 +70,7 @@ const LINE = [210, 216, 222];
  *   {type:'table', head:[…], body:[[…]]} | {type:'signature', signers:[{name,role,at}]}
  * ] }
  */
-export async function amsExportPdf(model) {
+export async function amsExportPdf(model: any) {
   const { jsPDF, autoTable, QR } = await loadLibs();
   const contentHash = await sha256Hex(canonicalPayload(model));
 
@@ -90,7 +90,7 @@ export async function amsExportPdf(model) {
   const contentW = pageW - MARGIN * 2;
   let y = MARGIN;
 
-  const ensure = (need) => { if (y + need > pageH - MARGIN) { doc.addPage(); y = MARGIN; } };
+  const ensure = (need: any) => { if (y + need > pageH - MARGIN) { doc.addPage(); y = MARGIN; } };
 
   // Firm header.
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...MUTED);
@@ -131,7 +131,7 @@ export async function amsExportPdf(model) {
         styles: { fontSize: 9, cellPadding: 4 },
         columnStyles: b.columnStyles || {},
         head: [b.head], body: b.body,
-        didParseCell: bold.size ? (data) => { if (data.section === 'body' && bold.has(data.row.index)) data.cell.styles.fontStyle = 'bold'; } : undefined,
+        didParseCell: bold.size ? (data: any) => { if (data.section === 'body' && bold.has(data.row.index)) data.cell.styles.fontStyle = 'bold'; } : undefined,
       });
       y = doc.lastAutoTable.finalY + 12;
     } else if (b.type === 'signature') {
@@ -139,7 +139,7 @@ export async function amsExportPdf(model) {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...NAVY);
       const cols = (b.signers || []).length || 1;
       const colW = contentW / cols;
-      (b.signers || []).forEach((s, i) => {
+      (b.signers || []).forEach((s: any, i: any) => {
         const x = MARGIN + i * colW; let sy = y;
         doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
         doc.text(String(s.label || '').toUpperCase(), x, sy); sy += 28;

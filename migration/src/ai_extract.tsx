@@ -2,7 +2,7 @@
 import React from 'react';
 import { amsAttachEvidence } from './evidence';
 import { I, MODULE_INDEX } from './icons';
-import { amsLLMConfig } from './llm_providers.js';
+import { amsLLMConfig } from './llm_providers';
 import { Panel } from './ui';
 import { AMS } from './data';
 import { openCanonicalWp } from './view_wp';

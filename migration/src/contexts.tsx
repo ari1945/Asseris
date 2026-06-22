@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { api, isConflict } from './api.js';
-import { can as rbacCan } from './rbac.js';
+import { api, isConflict } from './api';
+import { can as rbacCan } from './rbac';
 import { AMS } from './data';
 
 /* ============================================================

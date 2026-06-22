@@ -3,7 +3,7 @@
    entri lineage tambahan & peta SA. Dimuat SETELAH related_modules_data.js
    (LINEAGE sudah ada) dan SEBELUM related_modules.jsx.
    ============================================================ */
-import { LINEAGE } from './related_modules_data.js'; // ESM: mutate the shared object, not a window re-binding (fixes TDZ)
+import { LINEAGE } from './related_modules_data'; // ESM: mutate the shared object, not a window re-binding (fixes TDZ)
 import { AMS } from './data';
 
 
@@ -13,16 +13,16 @@ import { AMS } from './data';
    template; dibangun otomatis agar konsisten dengan sumber data.
    ============================================================ */
 (function buildTemplateLineage() {
-  const T = (AMS && AMS.TEMPLATES) || [];
+  const T: any = (AMS && AMS.TEMPLATES) || [];
   if (!T.length) return;
-  const MI = window.MODULE_INDEX || {};
+  const MI: any = window.MODULE_INDEX || {};
   /* kelompokkan per modul konsumen, hitung jumlah & contoh template */
-  const byMod = {};
-  T.forEach(t => {
+  const byMod: any = {};
+  T.forEach((t: any) => {
     const m = (byMod[t.module] = byMod[t.module] || { id: t.module, n: 0, dl: 0, sample: t.name, ic: (MI[t.module] || {}).icon || 'doc', lbl: (MI[t.module] || {}).label || t.module });
     m.n += 1; m.dl += t.dl; if (t.dl > 0 && t.name.length < m.sample.length) m.sample = t.name;
   });
-  const down = Object.values(byMod)
+  const down = (Object.values(byMod) as any[])
     .sort((a, b) => b.n - a.n || b.dl - a.dl)
     .slice(0, 8)
     .map(m => ({ id: m.id, ic: m.ic, lbl: m.lbl, rel: m.n > 1 ? m.n + ' template · mis. ' + m.sample : m.sample }));
@@ -450,13 +450,13 @@ const SA_GROUPS = new Set([
 ]);
 
 /* Reverse-index dari RELATED_SA (hanya entri yang punya `view` = id halaman SA) */
-const SA_REVERSE = {};
+const SA_REVERSE: any = {};
 (function () {
-  const RS = window.RELATED_SA || {};
-  Object.keys(RS).forEach(proc => (RS[proc] || []).forEach(r => {
+  const RS: any = window.RELATED_SA || {};
+  Object.keys(RS).forEach((proc: any) => (RS[proc] || []).forEach((r: any) => {
     if (!r.view) return;
     const arr = SA_REVERSE[r.view] = SA_REVERSE[r.view] || [];
-    if (!arr.some(x => x.module === proc)) arr.push({ module: proc, note: (r.title || r.code) + ' · ' + (r.phase || '') });
+    if (!arr.some((x: any) => x.module === proc)) arr.push({ module: proc, note: (r.title || r.code) + ' · ' + (r.phase || '') });
   }));
 })();
 

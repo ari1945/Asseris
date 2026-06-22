@@ -8,7 +8,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { AssetRegisterTable, ImportMappingPanel, SubLedgerRecon } from './view_psak16_register';
-import { amsExportXlsx } from './export_xlsx.js';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — PSAK 16 · Aset Tetap (Property, Plant & Equipment)

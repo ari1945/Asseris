@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAudit, useAuth, useFirm } from './contexts';
-import { CAP } from './rbac.js';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff';

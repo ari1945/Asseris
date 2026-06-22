@@ -8,7 +8,7 @@ import { Avatar, Badge, Btn, Panel, Stat } from './ui';
 import { MSub } from './view_fpm_parts';
 import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2';
 import { DiagnosticPanel } from './diagnostics_panel';
-import { amsExportXlsx } from './export_xlsx.js';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Risk Assessment (RoMM register + heatmap)

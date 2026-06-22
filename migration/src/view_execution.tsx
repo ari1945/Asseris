@@ -6,7 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep';
-import { amsExportXlsx } from './export_xlsx.js';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Working Trial Balance (WTB) + AJE

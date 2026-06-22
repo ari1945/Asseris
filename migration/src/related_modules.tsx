@@ -2,8 +2,8 @@
 import React from 'react';
 import { I } from './icons';
 import { useNav } from './contexts';
-import { LINEAGE } from './related_modules_data.js';
-import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2.js';
+import { LINEAGE } from './related_modules_data';
+import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2';
 
 /* ============================================================
    Asseris — Related-modules dock & SA linkback (komponen).
