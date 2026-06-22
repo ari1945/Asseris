@@ -300,11 +300,12 @@ function readAvatarFile(file: any, max: any, cb: any) {
       const w = Math.max(1, Math.round(img.width * scale));
       const h = Math.max(1, Math.round(img.height * scale));
       const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      try { cb(cv.toDataURL('image/jpeg', 0.85)); } catch (err) { cb(e.target.result); }
+      const ctx = cv.getContext('2d');
+      if (ctx) ctx.drawImage(img, 0, 0, w, h);
+      try { cb(cv.toDataURL('image/jpeg', 0.85)); } catch (err) { cb(reader.result); }
     };
-    img.onerror = () => cb(e.target.result);
-    img.src = e.target.result as string;
+    img.onerror = () => cb(reader.result);
+    img.src = reader.result as string;
   };
   reader.readAsDataURL(file);
 }
@@ -784,7 +785,7 @@ function SecAkses({ auth }: any) {
             {roles.map((r, i) => <th key={r} style={{ textAlign: 'center', background: i === ri ? 'var(--blue-100)' : undefined, color: i === ri ? 'var(--blue)' : undefined }}>{r.replace('Engagement ', '').replace('Audit ', '').replace(' Auditor', '')}</th>)}
           </tr></thead>
           <tbody>
-            {PERM_MATRIX.map(([cap2, vals]: [any, any]) => (
+            {(PERM_MATRIX as [any, any][]).map(([cap2, vals]: [any, any]) => (
               <tr key={cap2}>
                 <td style={{ fontWeight: 600 }}>{cap2}</td>
                 {vals.map((v: any, i: any) => <td key={i} style={{ textAlign: 'center', background: i === ri ? 'var(--blue-050)' : undefined }}>{cell(v)}</td>)}

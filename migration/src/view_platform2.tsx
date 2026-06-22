@@ -38,7 +38,7 @@ function ImSrc({ module, children, title }: any) {
 
 function Integrations() {
   const { logActivity } = useAudit();
-  const IM = IMPORT;
+  const IM = IMPORT!; // IMPORT-IIFE only returns undefined if AMS absent; AMS is always loaded before this view renders
   const { fmt } = AMS;
   const [mode, setMode] = useAmsPersist('importmode', () => 'konektor');
   const [list, setList] = useAmsPersist('integrations3', () => IM.connectorsSeed());
@@ -308,9 +308,10 @@ function IntegrationDetail({ it, onToggle }: any) {
   const { fmt } = AMS;
   const IconC = (I as any)[it.icon] || I.panel;
   const st = (INTEG_STATUS as any)[it.status];
-  const feeds = IMPORT.feeds(it.id);
-  const jobs = IMPORT.jobsByConnector(it.id);
-  const cdata = IMPORT.connectors().find(c => c.id === it.id) || { posted: 0, consumed: 0, tied: true };
+  const IM = IMPORT!; // IMPORT-IIFE only returns undefined if AMS absent; AMS is always loaded before this view renders
+  const feeds = IM.feeds(it.id);
+  const jobs = IM.jobsByConnector(it.id);
+  const cdata = IM.connectors().find(c => c.id === it.id) || { posted: 0, consumed: 0, tied: true };
   const tabs = [{ id: 'ringkasan', label: 'Ringkasan' }, { id: 'impor', label: 'Impor Terbaru', count: jobs.length || null }, { id: 'lineage', label: 'Sumber Kebenaran', count: feeds.length || null }, { id: 'aktivitas', label: 'Aktivitas Sinkron', count: it.syncs.length }, { id: 'mapping', label: 'Pemetaan Field', count: it.mapping.length }, { id: 'akses', label: 'Izin & Kredensial' }, { id: 'webhook', label: 'Webhook', count: it.webhooks.length }];
   const isOn = it.status === 'connected';
 

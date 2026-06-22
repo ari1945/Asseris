@@ -333,7 +333,7 @@ function PSAK65View() {
                   <table className="dtbl" style={{ width: '100%' }}>
                     <thead><tr><th style={{ textAlign: 'left' }}>Entitas</th><th style={{ textAlign: 'right', width: 90 }}>Pendapatan</th><th style={{ textAlign: 'right', width: 80 }}>NPAT</th></tr></thead>
                     <tbody>
-                      <tr><td style={{ fontWeight: 600, fontSize: 12 }}>{client.name} <span className="tiny muted">(induk)</span></td><td className="mono" style={{ textAlign: 'right' }}>{fmt(p65.par && Math.round((-AMS.WTB.find(r=>r.code==='4-1100').adj)/1e6))}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(p65.npatParent)}</td></tr>
+                      <tr><td style={{ fontWeight: 600, fontSize: 12 }}>{client.name} <span className="tiny muted">(induk)</span></td><td className="mono" style={{ textAlign: 'right' }}>{fmt(p65.par && Math.round((-(AMS.WTB.find(r=>r.code==='4-1100')?.adj ?? 0))/1e6))}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(p65.npatParent)}</td></tr>
                       {p65.subs.map((s: any) => (
                         <tr key={s.id}><td style={{ fontSize: 12 }}>{s.name}</td><td className="mono" style={{ textAlign: 'right' }}>{fmt(s.rev)}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(s.npat)}</td></tr>
                       ))}

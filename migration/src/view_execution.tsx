@@ -63,7 +63,7 @@ function WTBView() {
       setExporting(false);
     }
   };
-  const summary = useMemoX(() => window.computeWtbSummary(wtb, pm), [wtb, pm]);
+  const summary = useMemoX(() => window.computeWtbSummary?.(wtb, pm), [wtb, pm]);
 
   // group rows
   const groups = useMemoX(() => {

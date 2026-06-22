@@ -168,7 +168,7 @@ function UserMenu({ open, onClose, user, onNavigate }: any) {
         {items.map((it, i) => it.sep
           ? <div key={i} className="sepm" />
           : <div key={i} className={'mi ' + (it.danger ? 'danger' : '')} onClick={() => { onClose(); it.action && it.action(); }}>
-              {React.createElement((I as any)[it.icon] || I.panel, { size: 15 })}{it.label}
+              {React.createElement((I as any)[it.icon ?? ''] || I.panel, { size: 15 })}{it.label}
             </div>)}
       </div>
     </>

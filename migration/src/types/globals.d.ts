@@ -43,7 +43,9 @@ declare global {
     compliancePct?: (stdId: string) => any;
     __amsOpenSA?: (data: any) => void;
     loadLS?: (key: string, dflt?: any) => any;
-    useAmsPersist?: (key: string, init?: any) => any;
+    /* W14: non-opsional — selalu dipublikasi contexts.jsx saat load-modul,
+       sebelum view mana pun render (memutus banjir SNC TS18048/TS2722 di call-site). */
+    useAmsPersist: (key: string, init?: any) => any;
     clearPersisted?: () => void;
     STD_IFRS_ALIAS?: Record<string, any>;
     /* Helper kertas-kerja kanonik (dual-publish dari view_wp.jsx/sa_canonical.jsx/ui.jsx). */

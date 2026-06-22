@@ -173,7 +173,7 @@ const cosoPF = (cy: any) => { // component-level present & functioning verdict
 
 function ICEntityLevel({ data }: any) {
   const [selId, setSelId] = useStateIC('ce');
-  const sel = COSO.find(c => c.id === selId);
+  const sel = COSO.find(c => c.id === selId) || COSO[0];
 
   const allP = COSO.flatMap(c => c.principles);
   const full = allP.filter(p => p.pf === 'Ya').length;
@@ -442,7 +442,7 @@ function TestOfControls({ ctrl, onConclude }: any) {
    ============================================================ */
 function ICITGC({ data }: any) {
   const [selId, setSelId] = useStateIC('access');
-  const sel = ITGC.find(d => d.id === selId);
+  const sel = ITGC.find(d => d.id === selId) || ITGC[0];
 
   // automated app controls that depend on each ITGC domain
   const autoControls = data.flatMap((cy: any) => cy.controls.filter((c: any) => c.nature === 'Automated').map((c: any) => ({ ...c, cycle: cy.name })));

@@ -272,7 +272,7 @@ function PSAK14View() {
           </tbody>
         </table>
         <div onClick={() => nav('sad', { from: 'psak14' })} className="row ac jb" style={{ marginTop: 10, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--amber-bg)', cursor: 'pointer' }}>
-          <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Persediaan diukur pada <b>nilai terendah biaya & NRV</b> (¶9). Uji menunjukkan penurunan kurang dibukukan Rp <b>{fmt(inv.shortfallWD)} jt</b>{aboveCTT != null && <> — {aboveCTT ? <>di atas ambang jelas remeh (CTT Rp {fmt(ctt)} jt), <b>wajib diakumulasikan ke SAD</b></> : <>di bawah ambang jelas remeh (CTT Rp {fmt(ctt)} jt)</>}{abovePM ? <>; bahkan <b style={{ color: 'var(--red)' }}>melampaui PM Rp {fmt(pm)} jt</b></> : null}</>}. Rincian per-SKU pada kertas kerja di bawah.</span>
+          <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Persediaan diukur pada <b>nilai terendah biaya & NRV</b> (¶9). Uji menunjukkan penurunan kurang dibukukan Rp <b>{fmt(inv.shortfallWD)} jt</b>{aboveCTT != null && <> — {aboveCTT ? <>di atas ambang jelas remeh (CTT Rp {fmt(ctt ?? 0)} jt), <b>wajib diakumulasikan ke SAD</b></> : <>di bawah ambang jelas remeh (CTT Rp {fmt(ctt ?? 0)} jt)</>}{abovePM ? <>; bahkan <b style={{ color: 'var(--red)' }}>melampaui PM Rp {fmt(pm ?? 0)} jt</b></> : null}</>}. Rincian per-SKU pada kertas kerja di bawah.</span>
           <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--amber)', whiteSpace: 'nowrap', marginLeft: 8 }}>Usulkan ke SAD <I.arrowRight size={12} /></span>
         </div>
       </div>
@@ -428,7 +428,7 @@ function PSAK14View() {
         })}
       </div>
       <div className="tiny muted" style={{ padding: '0 12px 11px', lineHeight: 1.5 }}>
-        Tidak ada angka di-input ulang: persediaan & BPP ditarik dari WTB yang sama dipakai FS Generator. Perubahan AJE mengalir serempak ke modul ini. Ambang materialitas {pm != null && <>(<b className="mono">PM Rp {fmt(pm)} jt</b> · <b className="mono">CTT Rp {fmt(ctt)} jt</b>) </>}ditarik langsung dari modul Materialitas (SA 320){mat.applied ? ' — nilai terapan' : ''}.
+        Tidak ada angka di-input ulang: persediaan & BPP ditarik dari WTB yang sama dipakai FS Generator. Perubahan AJE mengalir serempak ke modul ini. Ambang materialitas {pm != null && <>(<b className="mono">PM Rp {fmt(pm ?? 0)} jt</b> · <b className="mono">CTT Rp {fmt(ctt ?? 0)} jt</b>) </>}ditarik langsung dari modul Materialitas (SA 320){mat.applied ? ' — nilai terapan' : ''}.
       </div>
     </Panel>
   );

@@ -99,7 +99,7 @@ function F540Register() {
   const sel = EST_REG.find(e => e.id === selId);
   const uncKind = (u: any) => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
   /* posisi titik manajemen dalam rentang auditor 0..100 */
-  const pos = sel.hi > sel.lo ? Math.max(0, Math.min(100, ((sel.mgmt - sel.lo) / (sel.hi - sel.lo)) * 100)) : 50;
+  const pos = sel && sel.hi > sel.lo ? Math.max(0, Math.min(100, ((sel.mgmt - sel.lo) / (sel.hi - sel.lo)) * 100)) : 50;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>

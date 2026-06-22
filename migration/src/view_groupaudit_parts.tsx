@@ -42,7 +42,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }:
       if (typeof obj.received === 'string') patch.received = obj.received;
       if (!Object.keys(patch).length) throw new Error('tidak ada field figur yang dikenali');
       setPkg(id, patch); setImpId(null); setImpText(''); setImpErr('');
-    } catch (e) { setImpErr('JSON tidak valid — ' + (e.message || 'parse error')); }
+    } catch (e) { setImpErr('JSON tidak valid — ' + ((e as any).message || 'parse error')); }
   };
 
   const c = p65.pkgCounts || {};

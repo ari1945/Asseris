@@ -29,7 +29,7 @@ function JournalEntryTesting() {
   const toggleCrit = (id: any) => setCrit((cs: any) => cs.map((c: any) => c.id === id ? { ...c, on: !c.on } : c));
 
   const scored = JE_POP.map(je => {
-    const hit = je.flags.filter(f => active.includes(f));
+    const hit = (je.flags || []).filter((f: any) => active.includes(f));
     return { ...je, hit, score: hit.length };
   });
   const flagged = scored.filter(j => j.score > 0 && j.amount >= minAmt).sort((a, b) => b.score - a.score);

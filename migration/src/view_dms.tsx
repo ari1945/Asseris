@@ -373,7 +373,7 @@ function DocManagement() {
                 <thead><tr><th>Dokumen</th><th>Diarsip</th><th className="num">Retensi</th><th>Kedaluwarsa</th><th style={{ width: 200 }}>Sisa Masa Retensi</th><th>Aksi</th></tr></thead>
                 <tbody>
                   {docs.filter((d: any) => d.archivedOn && byFolder(d)).map((d: any) => {
-                    const rr = retentionInfo(d);
+                    const rr = retentionInfo(d)!; // non-null: row only rendered when d.archivedOn (filter above), so retentionInfo never returns null here
                     return (
                       <tr key={d.id} onClick={() => setSelId(d.id)} style={{ cursor: 'pointer' }} className={d.id === selId ? 'sel' : ''}>
                         <td style={{ minWidth: 220, fontWeight: 600 }} className="truncate">{d.name}</td>

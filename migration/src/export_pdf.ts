@@ -80,7 +80,7 @@ export async function amsExportPdf(model: any) {
   let reason = 'ok';
   try {
     seal = await exportSeal({ kind: model.kind, contentHash, scope: model.scope, scopeId: model.scopeId });
-  } catch (e) {
+  } catch (e: any) {
     reason = (e && (e.data?.code || e.shape?.data?.code)) === 'FORBIDDEN' ? 'forbidden' : 'unavailable';
   }
 

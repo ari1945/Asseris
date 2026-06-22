@@ -345,7 +345,7 @@ function FSGenerator() {
 
                 <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid #e0e4e8', color: '#7a8893', fontSize: 10.5, lineHeight: 1.5 }}>
                   Catatan atas laporan keuangan merupakan bagian yang tidak terpisahkan dari laporan keuangan ini. Dihasilkan otomatis dari Working Trial Balance (saldo setelah penyesuaian audit) — Asseris.
-                  {allSigned && <span> · Disusun {signoff.prepared.by} ({signoff.prepared.date}); direviu {signoff.reviewed.by} ({signoff.reviewed.date}).</span>}
+                  {allSigned && <span> · Disusun {signoff.prepared?.by} ({signoff.prepared?.date}); direviu {signoff.reviewed?.by} ({signoff.reviewed?.date}).</span>}
                 </div>
               </div>
             </div>

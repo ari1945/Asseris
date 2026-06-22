@@ -58,7 +58,7 @@ function MaterialityCalc() {
   const priorOM = 3_900_000_000;
 
   const rp = (n: any) => 'Rp ' + fmt(n);
-  const pickBench = (id: any) => { const b = BENCHMARKS.find(x => x.id === id); setBenchId(id); setPct(b.def); };
+  const pickBench = (id: any) => { const b = BENCHMARKS.find((x: any) => x.id === id); setBenchId(id); if (b) setPct(b.def); };
   const activeQuals = Object.keys(quals).filter(k => quals[k]).length;
   const onApply = () => setAppliedOverride(om);
 
@@ -223,7 +223,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
         <Panel title="Dampak ke Working Trial Balance">
           <div className="row jb ac">
             <span className="tiny muted">Akun melebihi Performance Materiality ({rp(pm)})</span>
-            <Badge kind="red">{AMS.WTB.filter(r => Math.abs(r.adj) > pm).length} akun</Badge>
+            <Badge kind="red">{AMS.WTB.filter(r => Math.abs(r.adj ?? 0) > pm).length} akun</Badge>
           </div>
           <div className="divider" />
           <div className="row gap8">

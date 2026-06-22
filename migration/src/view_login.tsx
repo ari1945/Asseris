@@ -26,7 +26,7 @@ export function LoginScreen({ onLoggedIn }: any) {
       setAuthToken(r.token);
       onLoggedIn(r.user);
     } catch (ex) {
-      const msg = (ex && ex.message) || '';
+      const msg = (ex && (ex as any).message) || '';
       if (msg === 'totp-required') {
         // First time we learn 2FA is on: reveal the field. If it was already shown, the code was wrong.
         setErr(needTotp ? 'Kode autentikasi (2FA) salah. Coba lagi.' : 'Akun ini memakai 2FA — masukkan kode dari aplikasi authenticator.');

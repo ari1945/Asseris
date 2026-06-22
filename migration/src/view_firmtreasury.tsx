@@ -145,7 +145,7 @@ function BudgetLineDrill({ b, onClose }: any) {
   const quarters = ['Q1', 'Q2', 'Q3', 'Q4'].map((q, i) => ({ q, bud: Math.round(b.budget * wq[i]), act: Math.round(b.actual * wq[i] * (1 + (i - 1.5) * 0.02)) }));
   const variance = b.actual - b.budget;
   const adverse = isCost ? variance > 0 : variance < 0;
-  const drivers = isCost
+  const drivers: [string, number][] = isCost
     ? [['Kenaikan harga / inflasi', 0.45], ['Volume aktivitas', 0.35], ['Timing pengeluaran', 0.20]]
     : [['Volume perikatan', 0.55], ['Tarif & realisasi', 0.30], ['Bauran jasa', 0.15]];
   return (

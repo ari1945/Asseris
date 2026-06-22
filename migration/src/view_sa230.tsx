@@ -448,7 +448,7 @@ function D2Signifikan({ C }: any) {
     ? AMS_CANON.materiality({ engMateriality: eng.materiality }) : null;
 
   const judgments = [
-    { area: 'Materialitas', ref: 'SA 320', mod: 'materiality', t: mat ? `Overall materiality Rp ${fmt(mat.omFull / 1e6, 0)} jt; performance Rp ${fmt(mat.pmFull / 1e6, 0)} jt` : 'Penetapan benchmark & materialitas kinerja', basis: 'Ditarik dari Materiality Workspace (kanonik)' },
+    { area: 'Materialitas', ref: 'SA 320', mod: 'materiality', t: mat ? `Overall materiality Rp ${fmt((mat.omFull ?? 0) / 1e6, 0)} jt; performance Rp ${fmt((mat.pmFull ?? 0) / 1e6, 0)} jt` : 'Penetapan benchmark & materialitas kinerja', basis: 'Ditarik dari Materiality Workspace (kanonik)' },
     { area: 'Estimasi ECL (PSAK 71)', ref: 'SA 540', mod: 'ecl', t: 'Asumsi PD/LGD & overlay makro forward-looking dinilai dalam rentang yang dapat diterima', basis: 'Re-perform model · WP B' },
     { area: 'Pengakuan Pendapatan', ref: 'SA 240/315', mod: 'sa240', t: 'Asumsi risiko kecurangan pendapatan; cut-off diperluas atas indikasi channel stuffing', basis: 'Register risiko · WP R' },
     { area: 'Override Manajemen', ref: 'SA 240', mod: 'jet', t: 'Jurnal manual non-standar diuji berbasis kriteria risiko (JET)', basis: 'Journal Entry Testing' },
@@ -818,7 +818,7 @@ function D2Keterkaitan({ C }: any) {
       rel: 'Risiko signifikan menentukan apa yang wajib didokumentasikan & disimpulkan.' },
     { id: 'materiality', ic: 'target', lbl: 'Materiality', para: '¶8(c)',
       art: 'Basis pertimbangan profesional',
-      val: mat ? `OM Rp ${fmt(mat.omFull / 1e6, 0)} jt` : 'Ditetapkan', pct: 100, c: 'var(--green)',
+      val: mat ? `OM Rp ${fmt((mat.omFull ?? 0) / 1e6, 0)} jt` : 'Ditetapkan', pct: 100, c: 'var(--green)',
       rel: 'Ambang materialitas menjadi dasar kesimpulan & pertimbangan profesional.' },
     { id: 'reviewnotes', ic: 'mail', lbl: 'Review Notes', para: '¶9(c)/¶10',
       art: 'Diskusi hal signifikan & clearance',

@@ -192,14 +192,14 @@ import { AMS_CANON } from './canon';
     const cuSum = sum(cuPorts, (p: any) => p.cu) || 1;
 
     /* roll-forward checks */
-    const csmClose = CSM_ROLL.find(r => r.k === 'close').v;
+    const csmClose = CSM_ROLL.find(r => r.k === 'close')!.v;
     const csmTie = csmClose === csmTotal;            // tutup ke total CSM portofolio
     const raClose = RA_ROLL[RA_ROLL.length - 1].v;
     const raTie = raClose === (raLrc + LIC.ra);      // RA akhir = RA LRC + RA LIC
 
     /* P&L derivasi */
-    const serviceResult = PNL.find(r => r.t.startsWith('Hasil Jasa')).v;
-    const financeNet = PNL.find(r => r.t.startsWith('Hasil Keuangan')).v;
+    const serviceResult = PNL.find(r => r.t.startsWith('Hasil Jasa'))!.v;
+    const financeNet = PNL.find(r => r.t.startsWith('Hasil Keuangan'))!.v;
     const totalContribution = serviceResult + financeNet;
 
     /* model count */
