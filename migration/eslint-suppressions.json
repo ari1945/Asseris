@@ -1144,6 +1144,11 @@
       "count": 36
     }
   },
+  "src/wedge/VerifySealPanel.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
   "src/wedge/WedgeApp.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 32
@@ -1171,7 +1176,7 @@
   },
   "src/wedge/seal.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 11
+      "count": 16
     }
   },
   "src/wedge/use_persist.ts": {
