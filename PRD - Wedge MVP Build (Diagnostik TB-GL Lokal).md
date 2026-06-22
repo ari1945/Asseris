@@ -55,7 +55,7 @@ Kriteria terukur:
 - **D1 Packaging = static-local** (Vite `build` → folder; buka `file://`/serve lokal). Electron menyusul tanpa ubah inti.
 - **D2 Repo = branch `wedge-mvp`** di repo Asseris; entry HTML+main baru (`wedge.html` + `src/wedge/`), reuse modul kanon. Tak menyentuh `master`.
 - **D3 Template impor = 1 template Excel/CSV terdefinisi**, header tetap, validasi keras (tak ada parser universal).
-- **D4 Ekspor = reuse `export_xlsx`+`export_pdf`+seal** apa adanya.
+- **D4 Ekspor = reuse `export_xlsx`+`export_pdf`; seal OFFLINE Ed25519 (WebCrypto)** — KOREKSI 2026-06-22: seal W10.5 memanggil server (`./api`→`exportSeal`), melanggar offline. Wedge tandatangani hash konten in-browser via WebCrypto (kunci lokal). Segel kriptografis nyata, tanpa backend.
 - **D5 Narasi = template deterministik, LLM OFF.**
 
 ## 9. Proposed Approach (kontrak teknis)
