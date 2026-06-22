@@ -21,9 +21,13 @@ describe('buildSampleWorkbook → pipeline impor (round-trip xlsx)', () => {
 
     const built = buildDiagCtx(parsed);
     expect(built.flaggedHigh).toBeGreaterThanOrEqual(1);
+    expect(built.rptCount).toBeGreaterThanOrEqual(1);          // H1: pembayaran afiliasi berisiko
+    expect(built.wtbOutlierCount).toBeGreaterThanOrEqual(1);   // H2: outlier neraca saldo
 
     const findings = amsDiagnostics(built.ctx);
     expect(findings.find((f: any) => f.id === 'jet-concentration')).toBeTruthy();
     expect(findings.find((f: any) => f.id === 'bt-perm')).toBeTruthy();
+    expect(findings.find((f: any) => f.id === 'rpt-exposure')).toBeTruthy();          // SA 550 (H1)
+    expect(findings.find((f: any) => String(f.id).startsWith('wtb-'))).toBeTruthy();  // SA 520 (H2)
   });
 });

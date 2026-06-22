@@ -37,6 +37,7 @@ export interface RawGlRow {
   drAccount?: string;
   crAccount?: string;
   desc?: string;
+  party?: string;        // lawan transaksi / pihak berelasi (kolom opsional, utk SA 550)
 }
 
 export interface DeriveOpts {
