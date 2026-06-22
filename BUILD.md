@@ -456,14 +456,11 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
 > (Proceed: data-first / tier-relaks / beachhead). **LAPISAN DATA SELESAI** (Fase 0–1
 > pilot + slice 2–8 + boss `data.js`→`.ts` `be996c2`). Berikut: view `.jsx→.tsx` (W12+).
 
-**Dua tier, terpisah:**
-- **Kanon** (`tsconfig.json`) — **full `strict`**, tak tersentuh W11.
-- **App** (`tsconfig.app.json`) — semula **relaks**, kini **`noImplicitAny:true`** (ratchet
-  W13 Fase 4, `970ba7b`); masih `strict:false`/`strictNullChecks:false`/`checkJs:false`/
-  `allowJs:true` (SNC + full-strict = **W14**).
-  `include` = **daftar eksplisit** file app yang sudah dikonversi (tumbuh per slice;
-  bukan glob — agar ledakan error terkendali). `npm run typecheck` menjalankan **keduanya**
-  (`tsc --noEmit && tsc -p tsconfig.app.json --noEmit`), keduanya WAJIB 0.
+**Tier (HISTORIS → kini SATU config):** W11–W13 memakai **dua tier terpisah** — kanon
+(`tsconfig.json`, full-strict) + app (`tsconfig.app.json`, relaks lalu di-ratchet). **W14 Fase 2
+menyatukannya jadi SATU `tsconfig.json` full-strict** untuk seluruh `src` (kanon + data + view +
+fondasi + infra), `include` = **glob** `src/**/*.ts(x)`, `npm run typecheck` = **satu** `tsc --noEmit`.
+Penjelasan ratchet per-tier di bawah berlaku untuk sejarah W11–W13; keadaan akhir = full-strict tunggal.
 
 **Temuan resolver (penentu resep):** Vite/Rollup **TIDAK** me-resolve specifier
 `./x.js` ke file `x.ts` (`build` gagal "Could not resolve"). Tapi **extensionless**
@@ -716,6 +713,50 @@ arrow semua hilang di transpile). **Sisa W14:** `strictNullChecks` · paritas-ka
 satukan dua tsconfig · infra `.js → .ts` (`api`/`rbac`/`llm_providers`/`export_*`) · ganti
 sebagian `:any` dgn tipe model AMS nyata.
 
+## W14 — Strict penuh (app-tier), unifikasi `tsconfig` & infra `.js → .ts` — **SELESAI**
+
+> Lanjutan W13. PRD: `PRD - W14 Strict Penuh, Unifikasi tsconfig & Infra .js to .ts.md`.
+> D1 = full strict + unify + infra `.js→.ts` · D2 = **`:any`-reduction DITUNDA W15** · D3 = guard
+> nyata diutamakan (`!` hanya bila invarian terbukti, dihitung) · D4 = urut dependensi.
+> **Temuan terukur:** full strict app-tier = hanya **163 error** — murah JUSTRU karena saturasi
+> `:any` W13 meng-korslet aliran-null (pisau bermata dua: hardening murah tapi SNC menangkap
+> sedikit sampai `:any` dikurangi → W15).
+
+**Fase 0 — Infra `.js → .ts` (`bfa08f9`).** 7 berkas (`api`/`rbac`/`llm_providers`/`export_pdf`/
+`export_xlsx`/`related_modules_data`/`related_modules_data2`) → `.ts` di bawah noImplicitAny (SNC
+off), masuk himpunan-tercek sebelum flip strict. Resep W11/W12 (rename + rewrite specifier
+extensionless + include + perbaiki type-only). Kunci: `const api:any` (klien tRPC tanpa AppRouter
+lintas-paket) −40 TS2339; `const LINEAGE:any` (di-augmentasi ~20 key) −cascade kedua file;
+`(window as any)` bus; `Object.values(byMod) as any[]` (overload unknown[]); `declare module
+'qrcode'` (tanpa @types). **CROSS-PAKET:** `server/src/rbac.ts` impor `../../migration/src/rbac.js`
+→ extensionless `./rbac` (Bundler+tsx resolve `.ts`; rename `.js` memutus path lama) — server
+typecheck+test wajib (R6).
+
+**Fase 1 — Flip full `strict:true` (`a4c2c78`).** Hapus override `strictNullChecks:false`+`noImplicitAny`
+(strict mengaturnya). **167 error → 0:** (1) akar-tunggal `window.useAmsPersist` di
+`types/globals.d.ts` dijadikan **non-opsional** (selalu dipublikasi contexts saat load-modul) →
+−90 (45 TS18048 + 45 TS2722 di call-site); (2) 77 sisa null-flow (TS18048/18047/2532/2722/2345/
+2531/2538/2339/18046) di 21 file via **4 sub-agen paralel cluster-disjoint**, **D3 = guard nyata**
+(`?.`/`?? 0`/`?? '—'`/`|| []`/`if (!x) return`/`(e as any).message` utk catch unknown/anotasi tuple
+`([k,v]:[string,any])` utk TS2345 Object.entries). **`!` hanya 6 total**, semua ber-komentar
+invarian-terbukti (data_psak117 ×3 find atas literal statis · view_platform2 ×2 IMPORT boot-order
+AMS · view_dms ×1 filter-terjamin) — SC#4. Side-benefit: 2 bug laten pra-ada kini aman (psak65
+`WTB.find('4-1100')`→`?.adj ?? 0`; materiality `pickBench`→no-op).
+
+**Fase 2 — Unifikasi tsconfig (`da45a03`) ⇒ W14 SELESAI.** Gabung `tsconfig.json`+`tsconfig.app.json`
+→ **satu** `tsconfig.json` full-strict, `include` = **glob** `src/**/*.ts(x)` (bukan daftar eksplisit
+— menutup mode-gagal "lupa tambah file" W11). HAPUS `tsconfig.app.json`. `typecheck` → `tsc --noEmit`
+tunggal. R7 bersih (tak ada perkakas lain merujuknya: ESLint non-type-aware, Vite=esbuild, CI lewat
+script). Config-only ⇒ bundle byte-identik Fase 1.
+
+**Gate tiap fase (hijau):** migration `lint`/`typecheck`/`test` 59/`build` + server `typecheck`/`test`
+116 + fingerprint kanon **identik** + live Partner lintas-route 0 console err (F0: psak65/settings;
+F1: icfr/dms/integrations/settings/materiality/jet; F2: smoke dashboard). **Type-erasure + guard
+setara ⇒ perilaku runtime identik.** Infra `.js→.ts` murni anotasi.
+
+**Backlog W15:** (a) **`:any`-reduction** — bangun interface model AMS nyata (`AMS`/`WTB`/`AJE`/`RISKS`/…,
+paritas-kanon) menggantikan ~7.000 `:any` W13 → menaikkan nilai jaring-tipe (SNC kini menangkap
+sedikit krn saturasi `:any`); (b) **test `.js → .ts`** (`*.test.js`/`__fixtures__`/`setup.js`).
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.
 - **WARN (W3 remaining worklist, 207):**
