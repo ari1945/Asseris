@@ -14,6 +14,22 @@ import type {
   AjeRow,
   Benchmark,
 } from '../canon_types';
+import type {
+  FirmInfo,
+  UserInfo,
+  ClientRow,
+  EngagementRow,
+  RiskRow,
+  TeamMember,
+  WorkpaperRow,
+  ActivityItem,
+  DeadlineRow,
+  ReviewNote,
+  TimeEntry,
+  PipelineOpp,
+  InvoiceRow,
+  StaffRow,
+} from '../ams_types';
 
 /* AMS_CANON kini objek modul ber-ESM (legacy-track slice 10 melucuti
    `window.AMS_CANON`); tipe permukaannya di-infer dari canon.ts, tidak
@@ -23,12 +39,29 @@ import type {
    Legacy-track slice 10z melucuti tulisan `window` untuk AMS; tipe ini kini menjadi anotasi
    JSDoc `@type` pada `export const AMS` di data.js (lihat data.js). */
 export interface AmsData {
+  /* Entitas inti (core-6 + koleksi bernilai-tinggi) — W15 model nyata.
+     Sisa ~60 koleksi belum dimodelkan → lolos via index signature di bawah. */
+  FIRM: FirmInfo;
+  USER: UserInfo;
+  CLIENTS: ClientRow[];
+  ENGAGEMENTS: EngagementRow[];
   WTB: WTB;
   AJE: AjeRow[];
+  RISKS: RiskRow[];
+  TEAM: TeamMember[];
+  WORKPAPERS: WorkpaperRow[];
+  ACTIVITY: ActivityItem[];
+  DEADLINES: DeadlineRow[];
+  REVIEW_NOTES: ReviewNote[];
+  TIME_ENTRIES: TimeEntry[];
+  PIPELINE: PipelineOpp[];
+  INVOICES: InvoiceRow[];
+  STAFF: StaffRow[];
   /** Format angka lokal id-ID (mis. `fmt(1850, 0)` → "1.850"). Helper universal dipakai ~semua view. */
   fmt: (n: number, decimals?: number) => string;
   /** Format rupiah lokal id-ID (mis. `rp(1.85e9)` → "Rp 1.850.000.000", negatif dlm kurung). */
   rp: (n: number, decimals?: number) => string;
+  /** Ekor koleksi yang belum dimodelkan (W15+ akan mempersempit). */
   [k: string]: unknown;
 }
 
