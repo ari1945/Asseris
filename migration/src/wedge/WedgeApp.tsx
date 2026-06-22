@@ -13,6 +13,8 @@ import { buildDiagCtx } from './build_ctx';
 import { buildSampleWorkbook } from './sample_workbook';
 import { JET_FLAG_LABELS } from './derive_flags';
 import { usePersist } from './use_persist';
+import { exportWpXlsx, exportWpPdf, canonicalText } from './export_wp';
+import { verifySealText } from './seal';
 
 const { useState: useStateW, useMemo: useMemoW, useCallback: useCallbackW } = React;
 
@@ -92,6 +94,7 @@ export function WedgeApp() {
   const [auditor, setAuditor] = usePersist('wedge.v1.auditor', 'Auditor');
   const [status, setStatus] = useStateW('idle');
   const [errMsg, setErrMsg] = useStateW('');
+  const [seal, setSeal] = useStateW(null);          // { seal, verified, fmt }
 
   const findings: any[] = (review && review.findings) || [];
   const report: any = (review && review.report) || null;
@@ -143,6 +146,16 @@ export function WedgeApp() {
       return { ...rv, decisions, auditTrail: trail };
     });
   }, [auditor, setReview]);
+
+  const meta = useMemoW(() => ({ firm: 'KAP — Asseris Wedge (lokal)', auditor }), [auditor]);
+  const doExport = useCallbackW((fmt: any) => {
+    if (!review) return;
+    setSeal({ pending: true, fmt });
+    const fn = fmt === 'pdf' ? exportWpPdf : exportWpXlsx;
+    fn(review, meta)
+      .then((s: any) => verifySealText(canonicalText(review, meta), s).then((v: any) => setSeal({ seal: s, verified: v, fmt })))
+      .catch((e: any) => { console.error('[wedge] ekspor gagal', e); setSeal({ error: String(e), fmt }); });
+  }, [review, meta]);
 
   const counts = useMemoW(() => {
     const c: any = { high: 0, med: 0, low: 0 };
@@ -197,6 +210,19 @@ export function WedgeApp() {
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy, #16233a)' }}>{decidedCount}/{findings.length}</div>
               <div style={{ fontSize: 12, color: 'var(--ink-2, #6b7280)' }}>Diputuskan</div>
             </div>
+          </div>
+
+          <div style={{ ...card, padding: '12px 16px', marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <strong style={{ fontSize: 13 }}>Ekspor kertas kerja tersegel:</strong>
+            <button onClick={() => doExport('xlsx')} style={{ fontSize: 12, fontWeight: 600, background: 'var(--navy, #16233a)', color: '#fff', border: 0, borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}>Ekspor XLSX</button>
+            <button onClick={() => doExport('pdf')} style={{ fontSize: 12, fontWeight: 600, background: 'var(--navy, #16233a)', color: '#fff', border: 0, borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}>Ekspor PDF</button>
+            {seal && seal.pending && <span style={{ fontSize: 12, color: 'var(--ink-2, #6b7280)' }}>Menyegel…</span>}
+            {seal && seal.error && <span style={{ fontSize: 12, color: 'var(--red, #c0392b)' }}>Gagal: {seal.error}</span>}
+            {seal && seal.seal && (
+              <span style={{ fontSize: 12, color: seal.verified ? 'var(--green, #1e8e5a)' : 'var(--amber, #b9770e)' }}>
+                {seal.verified ? '✓ Tersegel & terverifikasi' : '⚠ verifikasi gagal'} · {seal.seal.alg}{seal.seal.degraded ? ' (hash-only)' : ''} · {String(seal.seal.contentHash).slice(0, 12)}…
+              </span>
+            )}
           </div>
 
           <h2 style={{ fontSize: 16, margin: '4px 0 12px' }}>{findings.length} temuan ter-peringkat · diimpor {review.ts}</h2>
