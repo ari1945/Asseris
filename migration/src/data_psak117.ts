@@ -225,6 +225,6 @@ import { AMS_CANON } from './canon';
     };
   }
 
-  (AMS_CANON as any).psak117 = psak117;
-  (AMS_CANON as any).P117_PORTFOLIOS = PORTFOLIOS;
+  AMS_CANON.psak117 = psak117;
+  AMS_CANON.P117_PORTFOLIOS = PORTFOLIOS;
 })();

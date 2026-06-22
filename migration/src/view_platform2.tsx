@@ -70,10 +70,10 @@ function Integrations() {
     setBusy(true);
     try {
       const r = await (window as any).amsIntegrationSync('bank');
-      logActivity && logActivity({ who: ((AMS as any).USER && (AMS as any).USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
+      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: `Bank Feed: ${r.status} · ${r.posted} baris → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
       setSrv(await loadServer());
     } catch (e) {
-      logActivity && logActivity({ who: ((AMS as any).USER && (AMS as any).USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
+      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: 'Bank Feed sync ditolak/gagal' });
     } finally {
       setBusy(false);
     }

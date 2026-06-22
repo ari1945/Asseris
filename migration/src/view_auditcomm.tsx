@@ -32,7 +32,7 @@ const AC_MEETING_KIND = { 'Pra-audit': 'blue', 'Interim': 'amber', 'Penyelesaian
 function AuditCommitteeView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const A = useMemoAc(() => (AMS_CANON as any).ojkAuditComm(), []);
+  const A = useMemoAc(() => AMS_CANON.ojkAuditComm(), []);
 
   const [tab, setTab] = useStateAc(() => loader('ams.auditcomm.tab', 'tugas'));
   const [done, setDone] = useStateAc(() => loader('ams.auditcomm.done', {}));

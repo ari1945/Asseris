@@ -223,7 +223,7 @@ function RiskRespons() {
                     <div style={{ width: 220, flex: '0 0 220px' }}>
                       <div className="tiny muted upper" style={{ marginBottom: 2 }}>Prosedur Tertaut</div>
                       {(() => {
-                        const procId = r.proc || (((AMS as any).RISKS || []).find((x: any) => x.id === r.id) || {}).proc || 'workpapers';
+                        const procId = r.proc || ((AMS.RISKS || []).find((x: any) => x.id === r.id) || {}).proc || 'workpapers';
                         const pm = (window.MODULE_INDEX || {})[procId] || { label: procId, icon: 'flask' };
                         const PI = (I as any)[pm.icon] || I.flask;
                         return (

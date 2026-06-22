@@ -369,7 +369,7 @@ function OpinionDecisionTree({ doc, patch }: any) {
    TAB 3 — KAM Workshop (SA 701) — linked to risk register
    ============================================================ */
 function KAMWorkshop({ doc, patch }: any) {
-  const risks = ((AMS as any).RISKS || []).filter((r: any) => r.inherent === 'Significant');
+  const risks = (AMS.RISKS || []).filter((r: any) => r.inherent === 'Significant');
   const usedRisks = new Set(doc.kams.map((k: any) => k.risk).filter(Boolean));
   const [open, setOpen] = useStateOP(doc.kams[0]?.id || null);
 

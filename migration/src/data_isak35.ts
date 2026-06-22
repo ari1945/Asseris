@@ -240,7 +240,7 @@ import { AMS_CANON } from './canon';
     };
   }
 
-  (AMS_CANON as any).isak35 = isak35;
-  (AMS_CANON as any).ISAK35_TB = TB;
-  (AMS_CANON as any).ISAK35_DISCLOSURES = DISCLOSURES;
+  AMS_CANON.isak35 = isak35;
+  AMS_CANON.ISAK35_TB = TB;
+  AMS_CANON.ISAK35_DISCLOSURES = DISCLOSURES;
 })();

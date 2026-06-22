@@ -36,7 +36,7 @@ function SusCard({ value, label, sub, accent }: any) {
 function SustainabilityView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const S = useMemoSus(() => (AMS_CANON as any).ojkSustain(), []);
+  const S = useMemoSus(() => AMS_CANON.ojkSustain(), []);
 
   const [tab, setTab] = useStateSus(() => loader('ams.sustain.tab', 'muatan'));
   const [done, setDone] = useStateSus(() => loader('ams.sustain.done', {}));

@@ -73,7 +73,7 @@ function ReviewNotes() {
   const [draft, setDraft] = useStateWS2({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
 
   const wpRefs = window.WP_REFS || [];
-  const seedById = useMemoWS2(() => Object.fromEntries(((AMS as any).REVIEW_NOTES || []).map((n: any) => [n.id, n])), []);
+  const seedById = useMemoWS2(() => Object.fromEntries((AMS.REVIEW_NOTES || []).map((n: any) => [n.id, n])), []);
 
   /* unified, enriched note list (module + WP), with merged seed metadata */
   const allNotes = useMemoWS2(() => {

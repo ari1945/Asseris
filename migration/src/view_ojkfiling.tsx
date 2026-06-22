@@ -36,7 +36,7 @@ function filStatusMeta(st: any, late: any, atRisk: any) {
 
 function OJKFilingView() {
   const nav = useNav();
-  const F = useMemoFil(() => (AMS_CANON as any).ojkFiling(), []);
+  const F = useMemoFil(() => AMS_CANON.ojkFiling(), []);
 
   return (
     <>

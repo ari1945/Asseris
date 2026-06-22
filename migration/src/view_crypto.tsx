@@ -870,7 +870,7 @@ function CRVerifySeal() {
 
 function CRMeterai({ ctx }: any) {
   const { nav } = ctx;
-  const L = ((AMS_CANON as any) && (AMS_CANON as any).legalSeal) ? (AMS_CANON as any).legalSeal() : null;
+  const L = AMS_CANON.legalSeal ? AMS_CANON.legalSeal() : null;
   if (!L) return <><CRVerifySeal /><Placeholder label="Modul keabsahan TTE belum tersedia" /></>;
   const s = L.summary;
   const BIND_KIND = { mengikat: 'green', menunggu: 'amber', lemah: 'red' };

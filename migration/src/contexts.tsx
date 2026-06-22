@@ -45,7 +45,7 @@ function notesForEngagement(notes: any, engId: any) {
    Single-firm/single-user demo, so the firm/user scopeIds are constants that
    match the seed (FIRM-WHR / USER.employeeId). ============================================================ */
 const FIRM_SCOPE_ID = 'FIRM-WHR';
-function userScopeId() { try { return (AMS && (AMS as any).USER && (AMS as any).USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
+function userScopeId() { try { return (AMS && AMS.USER && AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
 const DEFAULT_ENG_ID = 'ENG-2025-014';
 
 /* Public useAmsPersist (module state) defaults to firm scope — i.e. today's

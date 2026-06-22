@@ -22,7 +22,7 @@ function HCM() {
   const { fmt } = AMS;
   const nav = useNav();
   const [extra, setExtra] = useAmsPersist('staffExtra', []);
-  const staff = [...extra, ...(AMS as any).STAFF];
+  const staff = [...extra, ...AMS.STAFF];
   const [sel, setSel] = useStateE((AMS.STAFF as any)[3].id);
   const [q, setQ] = useStateE('');
   const [grade, setGrade] = useStateE('All');

@@ -74,7 +74,7 @@ function SAKRoadmapView() {
   const nav = useNav();
   const firm = useFirm();
   const loader = window.loadLS || ((k, d) => d);
-  const H = useMemoSR(() => (AMS_CANON as any).sakHorizon(), []);
+  const H = useMemoSR(() => AMS_CANON.sakHorizon(), []);
   const client = (firm && firm.activeClient) || { name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', listed: true };
 
   const [tab, setTab] = useStateSR(() => loader('ams.sakroadmap.tab', 'horizon'));

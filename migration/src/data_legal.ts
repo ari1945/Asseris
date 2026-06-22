@@ -20,7 +20,7 @@ import { BO } from './data_backoffice';
    DIREKONSILIASI terhadap SSOT untuk menandai drift & orphan.
    ============================================================ */
 const LEGAL = (function () {
-  const moneyJt = (v: any) => 'Rp ' + (AMS as any).fmt(v / 1e6, 0) + ' jt';
+  const moneyJt = (v: any) => 'Rp ' + AMS.fmt(v / 1e6, 0) + ' jt';
 
   /* metadata sumber: kind → modul tujuan navigasi + label + ikon */
   const SOURCE_META = {

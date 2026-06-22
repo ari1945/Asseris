@@ -30,7 +30,7 @@ function SecCard({ value, label, sub, accent }: any) {
 function SectorChecklistView() {
   const nav = useNav();
   const loader = window.loadLS || ((k, d) => d);
-  const S = useMemoSec(() => (AMS_CANON as any).ojkSector(), []);
+  const S = useMemoSec(() => AMS_CANON.ojkSector(), []);
 
   const [sec, setSec] = useStateSec(() => loader('ams.sectorck.sec', 'pembiayaan'));
   const [done, setDone] = useStateSec(() => loader('ams.sectorck.done', {}));

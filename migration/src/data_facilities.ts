@@ -162,7 +162,7 @@ const FAC = (function () {
       {
         id: 'erp', title: 'Register Fasilitas ↔ Register ERP', ok: false, to: 'fixedassets', isCount: true,
         a: 'Register fasilitas (custody)', av: r.rows.length, b: 'Register ERP (akuntansi)', bv: erp.n,
-        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + (AMS as any).fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + (AMS as any).fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
+        note: 'Dua register paralel — fasilitas (kustodian fisik, ' + AMS.fmt(r.totNbv / 1e6, 0) + ' jt NBV) vs ERP (' + AMS.fmt(erp.totNbv / 1e6, 0) + ' jt). Direkomendasikan konsolidasi ke satu master aset.',
       },
       {
         id: 'maint', title: 'Vendor Pemeliharaan ↔ Master Vendor', ok: mt.masterLinked > 0, to: 'procurement', isCount: true,

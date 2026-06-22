@@ -21,12 +21,13 @@ import { deferredTax, INV_MIX, INV_FG_AGING, INV_ITEMS, inventory, PPE_CLASSES, 
 import { RESTATE, psak25, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 } from './canon_part2';
 import { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65 } from './canon_part3';
 import { JOINT_ARR, P66_DISCLOSURE, psak66, PPA_DEALS, P22_PROC, psak22, materiality } from './canon_part4';
+import type { CanonAugmentations } from './canon_types';
 
 /* [legacy-track slice 10] ESM-only canon: angka kanonik kini di-EXPORT sebagai
    objek modul (bukan lagi window.AMS_CANON). Augmentasi domain (isak35/ojk/
    syariah/psak117/sakroadmap/legaldigital) meng-`Object.assign` objek yang SAMA
    via `import { AMS_CANON }` — instans tunggal, perilaku identik. */
-export const AMS_CANON = {
+const AMS_CANON_BASE = {
   RATE, ASOF, LEASES, leaseCalc, leasePortfolio, deferredTax, reconcile,
   materiality,
   psak22, PPA_DEALS, P22_PROC,
@@ -44,6 +45,12 @@ export const AMS_CANON = {
   psak25, RESTATE,
   figuresFromWTB, WTB_MAP, FISCAL, FIG,
 };
+
+/* W15: permukaan calc kanon tetap presisi (typeof base); member augmentasi domain
+   (isak35/psak117/ojk/legaldigital/…) dipasang via SATU typed-cast — instans tunggal,
+   ditulis runtime oleh data_*.ts. Menggantikan 20 `(AMS_CANON as any)` tersebar. */
+export const AMS_CANON: typeof AMS_CANON_BASE & CanonAugmentations =
+  AMS_CANON_BASE as typeof AMS_CANON_BASE & CanonAugmentations;
 
 /* W6 Fase 3 — drop canon's lazy FIG/SRC memo after WTB re-hydration (boot).
    Exposed as a standalone global, NOT on AMS_CANON, so the canon fingerprint

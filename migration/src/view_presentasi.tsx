@@ -44,7 +44,7 @@ function prData(firm: any) {
   let mat = {};
   try { mat = CANON.materiality ? CANON.materiality({ engMateriality: eng.materiality }) : {}; } catch (e) { mat = {}; }
 
-  const risks = ((AMS as any).RISKS || []).filter((r: any) => r.inherent === 'Significant');
+  const risks = (AMS.RISKS || []).filter((r: any) => r.inherent === 'Significant');
   const pbc = ((AMS as any).PBC_REQUESTS || []).filter((p: any) => !eng.id || p.eng === eng.id);
   const pbcBy = pbc.reduce((m: any, p: any) => { m[p.status] = (m[p.status] || 0) + 1; return m; }, {});
 
@@ -76,7 +76,7 @@ function prData(firm: any) {
   const ajePosted = aje.filter(a => a.status === 'Posted');
   const ajeProposed = aje.filter(a => a.status !== 'Posted');
 
-  const team = ((AMS as any).TEAM || []).slice(0, 6);
+  const team = (AMS.TEAM || []).slice(0, 6);
 
   return { AMS, eng, client, mat, risks, pbc, pbcBy, findings, finalSorted, finSummary, op, opType, kamCount, opFinal, reportDate, aje, ajePosted, ajeProposed, team };
 }

@@ -189,7 +189,7 @@ function TemplateDetail({ t, onClose }: any) {
   const mod = (window.MODULE_INDEX || {})[t.module] || { label: t.module, icon: 'panel' };
   const ModIc = (I as any)[mod.icon] || I.panel;
   const st = (TPL_STATUS as any)[t.status] || TPL_STATUS['Aktif'];
-  const engObjs = (t.engs || []).map((id: any) => ((AMS as any).ENGAGEMENTS || []).find((e: any) => e.id === id) || { id, client: '' });
+  const engObjs = (t.engs || []).map((id: any) => (AMS.ENGAGEMENTS || []).find((e: any) => e.id === id) || { id, client: '' });
   const activeEng = firm.activeEngagement;
   const go = (id: any) => { nav(id, { from: 'templates' }); onClose(); };
   const openSA = (s: any) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });

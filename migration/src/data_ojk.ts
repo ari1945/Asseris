@@ -23,8 +23,8 @@ import { AMS_CANON } from './canon';
 
 (function () {
   'use strict';
-  const CLIENTS = (AMS as any).CLIENTS || [];
-  const cli = (id: any) => CLIENTS.find((c: any) => c.id === id) || { name: id, npwp: '—' };
+  const CLIENTS = AMS.CLIENTS || [];
+  const cli = (id: any) => CLIENTS.find((c: any) => c.id === id) || { name: id, npwp: '—', industry: '' };
 
   /* =========================================================
      G13 · LAPORAN KEBERLANJUTAN — POJK 51/POJK.03/2017
