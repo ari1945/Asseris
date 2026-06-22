@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   RATE, ASOF, jt, WTB_MAP, figuresFromWTB, leaseCalc, leasePortfolio, FIG,
 } from './canon_base';
-import { FIXTURE_WTB, FIXTURE_FIGURES } from './__fixtures__/wtb.js';
+import { FIXTURE_WTB, FIXTURE_FIGURES } from './__fixtures__/wtb';
 
 describe('canon_base — konstanta & helper', () => {
   it('tarif PPh badan = 22% (UU HPP)', () => {

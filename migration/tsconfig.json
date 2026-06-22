@@ -21,5 +21,6 @@
     "types": []
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "dist"]
+  "//exclude": "W15: test-tier (.test.ts + __tests__ setup + __fixtures__) di-EXCLUDE dari gate strict — kode uji, bukan permukaan-tipe produksi; dijalankan vitest/esbuild & tetap di-lint ESLint (ratchet no-explicit-any). setup.ts sengaja memalsukan env browser di node (global stub) → tak layak full-strict.",
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/__tests__/**", "src/__fixtures__/**"]
 }

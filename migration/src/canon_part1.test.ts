@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   deferredTax, inventory, fixedAssets, revenue, intangibles,
 } from './canon_part1';
-import { FIXTURE_WTB } from './__fixtures__/wtb.js';
+import { FIXTURE_WTB } from './__fixtures__/wtb';
 
 describe('deferredTax() — PSAK 46 (patokan W0-BASELINE)', () => {
   const dt = deferredTax();
