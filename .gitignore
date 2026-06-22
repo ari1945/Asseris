@@ -8,6 +8,7 @@ app/compiled/
 app/vendor/
 NeoSuite AMS (prod).html
 migration/dist/
+migration/dist-wedge/
 migration/coverage/
 
 # NOTE (W3 Phase 2): migration/src/ + migration/index.html are now the
