@@ -29,5 +29,7 @@ describe('buildSampleWorkbook → pipeline impor (round-trip xlsx)', () => {
     expect(findings.find((f: any) => f.id === 'bt-perm')).toBeTruthy();
     expect(findings.find((f: any) => f.id === 'rpt-exposure')).toBeTruthy();          // SA 550 (H1)
     expect(findings.find((f: any) => String(f.id).startsWith('wtb-'))).toBeTruthy();  // SA 520 (H2)
+    // kolom Penyesuaian (mutasi -3.5M top-up CKPN) → penyesuaian audit material (SA 450)
+    expect(findings.find(f => String(f.id).startsWith('wtb-adj-'))).toBeTruthy();
   });
 });
