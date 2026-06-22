@@ -50,8 +50,8 @@ function P117Kv({ label, v, strong, accent }: any) {
 }
 
 function p117WpSignoffDefaults() {
-  const TEAM: any = (AMS && AMS.TEAM) || [];
-  const find = (kw: any) => (TEAM.find((t: any) => t.role.includes(kw)) || {}).name || '—';
+  const TEAM = (AMS && AMS.TEAM) || [];
+  const find = (kw: any) => TEAM.find((t) => t.role.includes(kw))?.name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '11 Jan 2026' },
     reviewer: { by: find('Manager'), role: 'Manajer Audit',  at: '17 Jan 2026' },

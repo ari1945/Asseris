@@ -81,8 +81,8 @@ function SYSourceUse({ title, sub, sumber, penggunaan, sumberLbl, pakaiLbl, sald
 }
 
 function sySignoffDefaults() {
-  const TEAM: any = (AMS && AMS.TEAM) || [];
-  const find = (kw: any) => (TEAM.find((t: any) => t.role.includes(kw)) || {}).name || '—';
+  const TEAM = (AMS && AMS.TEAM) || [];
+  const find = (kw: any) => TEAM.find((t) => t.role.includes(kw))?.name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '13 Jan 2026' },
     reviewer: { by: find('Manager'), role: 'Manajer Audit',  at: '18 Jan 2026' },

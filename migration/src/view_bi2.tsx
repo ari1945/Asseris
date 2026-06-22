@@ -171,11 +171,11 @@ function BIPipeline() {
 function BIKlien() {
   const { fmt } = AMS;
   const nav = useNav();
-  const CLIENTS: any = AMS.CLIENTS;
+  const CLIENTS = AMS.CLIENTS;
   const C360: any = AMS.CRM_360;
   const RET: any = AMS.BI_RETENTION;
 
-  const active = CLIENTS.filter((c: any) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
+  const active = CLIENTS.filter((c) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
   const tot = active.reduce((s: any, c: any) => s + c.fee, 0);
   const top1 = active[0].fee / tot * 100;
   const top3 = active.slice(0, 3).reduce((s: any, c: any) => s + c.fee, 0) / tot * 100;
@@ -253,12 +253,12 @@ function BIKlien() {
 function BIPartner() {
   const { fmt } = AMS;
   const nav = useNav();
-  const CLIENTS: any = AMS.CLIENTS;
+  const CLIENTS = AMS.CLIENTS;
   const EQR: any = AMS.EQR_REVIEWS;
   const UTIL = { 'Hartono Wijaya': 71, 'Rudi Gunawan': 68, 'Sari Dewanti': 74 };
   const REAL = { 'Hartono Wijaya': 89, 'Rudi Gunawan': 85, 'Sari Dewanti': 91 };
 
-  const partners = Object.values(CLIENTS.reduce((m: any, c: any) => {
+  const partners = Object.values(CLIENTS.reduce((m: any, c) => {
     const p = c.partner.split(',')[0];
     if (!m[p]) m[p] = { p, fee: 0, n: 0, listed: 0 };
     m[p].fee += c.fee; m[p].n++; if (c.listed) m[p].listed++;

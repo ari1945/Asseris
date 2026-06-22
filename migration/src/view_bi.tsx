@@ -47,8 +47,8 @@ function FirmBI() {
   const { fmt } = AMS;
   const nav = useNav();
   const B: any = AMS.BI_DATA;
-  const CLIENTS: any = AMS.CLIENTS;
-  const PIPELINE: any = AMS.PIPELINE;
+  const CLIENTS = AMS.CLIENTS;
+  const PIPELINE = AMS.PIPELINE;
   const FIRM_BUDGET: any = AMS.FIRM_BUDGET;
   const EQR: any = AMS.EQR_REVIEWS;
   const [metric, setMetric] = useBI('rev');
@@ -61,7 +61,7 @@ function FirmBI() {
   const yoy = (B.fyRevenue / B.prevYearRevenue - 1) * 100;
 
   /* weighted pipeline */
-  const openPipe = PIPELINE.filter((p: any) => !['Won', 'Lost'].includes(p.stage));
+  const openPipe = PIPELINE.filter((p) => !['Won', 'Lost'].includes(p.stage));
   const gross = openPipe.reduce((s: any, p: any) => s + p.value, 0);
   const weighted = openPipe.reduce((s: any, p: any) => s + p.value * p.prob / 100, 0);
   const stages = ['Lead', 'Qualified', 'Proposal', 'Negotiation'];
@@ -72,14 +72,14 @@ function FirmBI() {
   const maxStage = Math.max(...byStage.map((s: any) => s.gross), 1);
 
   /* client concentration */
-  const active = CLIENTS.filter((c: any) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
+  const active = CLIENTS.filter((c) => c.status === 'Active').slice().sort((a: any, b: any) => b.fee - a.fee);
   const totClientFee = active.reduce((s: any, c: any) => s + c.fee, 0);
   const top1 = active[0].fee / totClientFee * 100;
   const top3 = active.slice(0, 3).reduce((s: any, c: any) => s + c.fee, 0) / totClientFee * 100;
   const hhi = Math.round(active.reduce((s: any, c: any) => s + Math.pow(c.fee / totClientFee * 100, 2), 0));
 
   /* partner book */
-  const partners = Object.values(CLIENTS.reduce((m: any, c: any) => {
+  const partners = Object.values(CLIENTS.reduce((m: any, c) => {
     const p = c.partner.split(',')[0];
     if (!m[p]) m[p] = { p, fee: 0, n: 0 };
     m[p].fee += c.fee; m[p].n++;

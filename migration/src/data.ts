@@ -19,7 +19,7 @@ EQR_REVIEWS.forEach((r: any) => {
   if (m) { r.clientId = m.clientId; r.client = m.client; r.partner = m.partnerFull; r.pie = m.pie; r.type = m.pie ? 'Wajib (PIE)' : (r.type || 'Berbasis Risiko'); }
 });
 COMPLAINTS.forEach((c: any) => {
-  const hit = CLIENTS.find((cl: any) => { const t = shortName(cl.name).split(' ').slice(0, 2).join(' '); return t && ((c.source || '').includes(t) || (c.subject || '').includes(t)); });
+  const hit = CLIENTS.find((cl) => { const t = shortName(cl.name).split(' ').slice(0, 2).join(' '); return t && ((c.source || '').includes(t) || (c.subject || '').includes(t)); });
   if (hit) { c.clientId = hit.id; c.clientName = hit.name; }
 });
 

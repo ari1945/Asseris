@@ -116,8 +116,8 @@ function P71RowKv({ label, v, strong, accent }: any) {
 
 /* ---- default penanda tangan kertas kerja (dipakai bila chain kanonik kosong) ---- */
 function p71WpSignoffDefaults() {
-  const TEAM: any = (AMS && AMS.TEAM) || [];
-  const find = (kw: any) => (TEAM.find((t: any) => t.role.includes(kw)) || {}).name || '—';
+  const TEAM = (AMS && AMS.TEAM) || [];
+  const find = (kw: any) => TEAM.find((t) => t.role.includes(kw))?.name || '—';
   return {
     preparer: { by: find('Senior'),  role: 'Auditor Senior', at: '08 Jan 2026' },
     reviewer: { by: find('Manager'), role: 'Manajer Audit',  at: '14 Jan 2026' },
