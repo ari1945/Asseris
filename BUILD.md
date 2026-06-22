@@ -458,8 +458,9 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
 
 **Dua tier, terpisah:**
 - **Kanon** (`tsconfig.json`) — **full `strict`**, tak tersentuh W11.
-- **App** (`tsconfig.app.json`) — **relaks** (`strict:false`, `noImplicitAny:false`,
-  `strictNullChecks:false`, `checkJs:false`, `allowJs:true`), di-**ratchet** belakangan.
+- **App** (`tsconfig.app.json`) — semula **relaks**, kini **`noImplicitAny:true`** (ratchet
+  W13 Fase 4, `970ba7b`); masih `strict:false`/`strictNullChecks:false`/`checkJs:false`/
+  `allowJs:true` (SNC + full-strict = **W14**).
   `include` = **daftar eksplisit** file app yang sudah dikonversi (tumbuh per slice;
   bukan glob — agar ledakan error terkendali). `npm run typecheck` menjalankan **keduanya**
   (`tsc --noEmit && tsc -p tsconfig.app.json --noEmit`), keduanya WAJIB 0.
@@ -654,6 +655,66 @@ lalu penyedia 7/9/12/22/29/48.
 
 > **Ratchet strict (D3): sub-fase terminal W13+**, setelah view + fondasi `.jsx` semua
 > `.tsx`, agar program app berbalik strict sekaligus tanpa re-error file yang sudah jadi.
+
+## W13 — Fondasi TypeScript (`.jsx → .tsx`) & ratchet `noImplicitAny` — **SELESAI**
+
+> Lanjutan W11 (data) + W12 (view). PRD: `PRD - W13 Fondasi TypeScript & Ratchet
+> noImplicitAny.md`. D1 = **nol `.jsx`** (16 fondasi/lintas-sektor → `.tsx`, hapus 6 shim
+> `.d.ts`) · D3 = ratchet **bertahap** (`noImplicitAny:true` saja; `strictNullChecks` +
+> paritas-kanon + penyatuan tsconfig + infra-`.js` → **W14**) · D4 = urut blast-radius
+> menaik. Resep konversi identik W11/W12 (type-strip + rewire specifier extensionless +
+> hapus shim → tipe asli ambil alih). Tier & resolver identik.
+
+**Fase 0–3 (`.jsx → .tsx`, D1):** leaf bersih → no-shim fondasi → ber-shim (shockwave).
+`e9fd826` F0 (`sa_canonical`/`related_modules`/`minimap`) · `44d0742` F1 (`copilot`/
+`ai_extract`/`fsgen_model`) · `4a7f058` F2 (`icons`/`contexts`/`app`/`main` — no-shim;
+~185 importer specifier `.jsx`→extensionless via 1 perl) · `1f1555d` F3 (`ui`/`shell`/
+`evidence`/`wp_signoff`/`ai_insights`/`diagnostics_panel` — **HAPUS 6 shim**). ⇒ **0
+`migration/src/*.jsx`**. Pola F2/F3: React-class boundary `const B:any=React.Component;
+extends B` (tak ada @types/react) · CSS import shim `shims-css.d.ts` (braces, non-module) ·
+SHOCKWAVE hapus-shim dihindari dgn lever `:any` param destructure **PROAKTIF** saat
+konversi (perl `function X({…})`→`({…}: any)`). Sisa `.d.ts` ambient SAH: `app-globals.d.ts`
++ `types/globals.d.ts` + `shims-css.d.ts`.
+
+**Fase 4 — ratchet terminal (`970ba7b`):** flip `tsconfig.app.json` `noImplicitAny:false →
+true`. Ledakan **66.433 error → 0** lewat dua lever struktural:
+1. **Shim ambient `src/jsx-intrinsics.d.ts`** (di `include` tier-app) — **TANPA @types/react**
+   (sejalan keputusan W12/W13; React dipin CDN). Isi: `declare namespace JSX { interface
+   IntrinsicElements { [k]:any } … }` + `declare module 'react'/'react/jsx-runtime'/
+   'react-dom/client'/'react-dom'`. Menutup **58.487 TS7026** (elemen host JSX `<div>`/… tanpa
+   `JSX.IntrinsicElements`) + **371 TS7016** (impor React tak ber-deklarasi). **Permanen/
+   struktural** (padanan `shims-css.d.ts`), BUKAN penambal-fondasi yg dihapus.
+2. **Anotasi `:any` diagnostik-terpandu** atas **7.482 implicit-any NYATA** — codemod TS-API
+   sekali-pakai (lalu dibuang; tak di-commit), **bukan blanket sweep** ⇒ param ter-infer
+   kontekstual (tipe nyata) TAK tersentuh. Pemetaan kode→fix:
+   - **TS7006** param (5.585) & **TS7031** binding-destructure (856) → anotasi param
+     `(x: any)`. **Gotcha kritis:** param arrow tanpa kurung `r => …` TAK boleh ber-anotasi →
+     WAJIB jadi `(r: any) => …` (deteksi AST: arrow `getStart()` == param `getStart()` ⇒ tak
+     berkurung; cek "char sebelum param == `(`" **SALAH** — `(` itu milik `filter(` bukan param).
+   - **TS7053** index akses (1.009) → bungkus objek `(expr as any)[k]`.
+   - **TS7018** prop literal implicit-any (~70, multi-pass utk literal bersarang) → cast nilai
+     `(… as any)`/`(… as any[])`.
+   - **TS7034** var `any[]` (32) → anotasi deklarasi `: any[]`.
+   - **Sisa 16 semantik manual:** TS2339 `view_aje` (`const steps: any[] = []` — evolving-array
+     settle ke shape push-pertama ⇒ `.from/.to/.delta` hilang) · TS2538 `view_calc`
+     (`Array.from(Set)`→`unknown[]` ⇒ `const idxArr: any[]`) · TS7011 arrow return ke konteks
+     any (`|| (() => null)` → `((): any => null)`, `() => []` → `(): any[] => []`).
+
+**Rasio `:any` (SC#6 — dilaporkan jujur sbg UTANG W14, bukan disembunyikan):** slice Fase 4
+menambah **+5.940 anotasi `: any`** + **+1.068 cast `as any`** (~7.008 penanda any eksplisit).
+**Tinggi BY DESIGN** — tipe nyata menuntut paritas-model data AMS (paritas-kanon), yang
+eksplisit ditunda W13 → **W14**. Ini **bukan ratchet kosmetik**: hanya node yang `tsc` tandai
+yang diberi any; ribuan param ter-infer kontekstual tetap bertipe nyata. Nilai jaring tipe
+yang berarti datang dari W14 (strictNullChecks + model AMS), bukan dari memaksa anotasi palsu
+sekarang.
+
+**Gate Fase 4 (semua hijau):** migration `lint`/`typecheck` 2-tier (canon FULL strict + app
+`noImplicitAny`)/`test` 59/`build` + server `typecheck`/`test` 116 + fingerprint kanon
+**identik** (`canon_regression`) + live Partner (dashboard/aje/calc/presentasi/clientportal
+render, 0 console err). **Type-erasure murni** ⇒ JS emit identik (annotasi/`as any`/kurung
+arrow semua hilang di transpile). **Sisa W14:** `strictNullChecks` · paritas-kanon penuh ·
+satukan dua tsconfig · infra `.js → .ts` (`api`/`rbac`/`llm_providers`/`export_*`) · ganti
+sebagian `:any` dgn tipe model AMS nyata.
 
 ## ESLint gate (`migration/eslint.config.js`)
 - **ERROR (hard gate, green):** `no-undef`, `no-dupe-keys`.
