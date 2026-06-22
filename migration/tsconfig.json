@@ -1,5 +1,5 @@
 {
-  "//": "Asseris — W5 TypeScript. Scope: lapisan kanonik (number engines). FULL strict (strictNullChecks ON sejak ramp W5). Lihat BUILD.md.",
+  "//": "Asseris — TypeScript config TUNGGAL (disatukan W14 Fase 2; sebelumnya kanon + tsconfig.app terpisah). FULL strict utk SELURUH src (kanon + data + view + fondasi + infra). strictNullChecks ON sejak W5; app-tier mencapai strict penuh W14. include = glob (semua src ter-cek; tak ada lagi daftar eksplisit yg mudah terlupa). Lihat BUILD.md §W14.",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -20,17 +20,6 @@
     "resolveJsonModule": true,
     "types": []
   },
-  "include": [
-    "src/canon.ts",
-    "src/canon_base.ts",
-    "src/canon_part1.ts",
-    "src/canon_part2.ts",
-    "src/canon_part3.ts",
-    "src/canon_part4.ts",
-    "src/forensic_canon.ts",
-    "src/canon_types.ts",
-    "src/canon_selectors.ts",
-    "src/types/**/*.d.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
