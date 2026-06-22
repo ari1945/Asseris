@@ -179,8 +179,8 @@ async function loadXlsx(): Promise<any> {
   return _xlsx;
 }
 
-/** Baca workbook (ArrayBuffer) → { sheetName(lower): aoa }. */
-export async function readWorkbookAoa(data: ArrayBuffer): Promise<Record<string, any[][]>> {
+/** Baca workbook (ArrayBuffer/Uint8Array) → { sheetName(lower): aoa }. */
+export async function readWorkbookAoa(data: ArrayBuffer | Uint8Array): Promise<Record<string, any[][]>> {
   const XLSX = await loadXlsx();
   const wb = XLSX.read(data, { type: 'array', cellDates: false });
   const out: Record<string, any[][]> = {};
@@ -190,8 +190,8 @@ export async function readWorkbookAoa(data: ArrayBuffer): Promise<Record<string,
   return out;
 }
 
-/** Orkestrator: ArrayBuffer workbook → ParsedImport (sheet TB/GL/FISKAL). */
-export async function parseImportWorkbook(data: ArrayBuffer): Promise<ParsedImport> {
+/** Orkestrator: workbook (ArrayBuffer/Uint8Array) → ParsedImport (sheet TB/GL/FISKAL). */
+export async function parseImportWorkbook(data: ArrayBuffer | Uint8Array): Promise<ParsedImport> {
   const sheets = await readWorkbookAoa(data);
   const warnings: string[] = [];
   const glSheet = sheets['gl'] || sheets['jurnal'] || sheets['generalledger'];
