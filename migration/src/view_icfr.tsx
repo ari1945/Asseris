@@ -1,9 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — Internal Control (ICFR)
@@ -125,13 +129,29 @@ const ITGC = [
 ];
 const ITGC_LABEL = { access: 'Akses ke Program & Data', change: 'Manajemen Perubahan', dev: 'Pengembangan Program', ops: 'Operasi Komputer' };
 
+/* ---- model RCM ter-persist engagement-scoped (Fase 2/3) ---- */
+type ICControl = { id: string; desc: string; type: string; nature: string; freq: string; asr: string[]; wt: boolean; design: string; oper: string; itgc?: string };
+type ICCycle = { id: string; name: string; amt: string; sig: boolean; controls: ICControl[] };
+function icfrToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+
 /* ============================================================ */
 function InternalControl() {
+  const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
+  const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
   const [tab, setTab] = useStateIC('overview');
-  const [data, setData] = useStateIC(IC_CYCLES);
+  const [dataRaw, setData] = useAmsPersist('icfrMatrix.' + engId, () => IC_CYCLES);
+  const data: ICCycle[] = dataRaw || [];
 
-  const allControls = data.flatMap((c: any) => c.controls);
-  const defCount = allControls.filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency').length + 1; // +1 ITGC SoD
+  const allControls = data.flatMap(c => c.controls);
+  const defCount = allControls.filter(c => c.design === 'Deficiency' || c.oper === 'Deficiency').length + 1; // +1 ITGC SoD
 
   const tabs = [
     { id: 'overview', label: 'Ringkasan & COSO' },
@@ -140,22 +160,40 @@ function InternalControl() {
     { id: 'deficiency', label: 'Evaluasi Defisiensi', count: defCount },
   ];
 
+  const exportMatrix = () => {
+    const blocks: { type: string; text?: string; head?: string[]; body?: string[][] }[] = [];
+    data.forEach(cy => {
+      blocks.push({ type: 'heading', text: cy.name + ' · ' + cy.amt + (cy.sig ? ' (siklus signifikan)' : '') });
+      blocks.push({ type: 'table', head: ['ID', 'Kontrol', 'Tipe', 'Sifat', 'Rancangan', 'Operasi'],
+        body: cy.controls.map(c => [c.id, c.desc, c.type === 'Preventive' ? 'Preventif' : 'Detektif', c.nature === 'Automated' ? 'Otomatis' : 'Manual', c.design, c.oper]) });
+    });
+    const defs = data.flatMap(cy => cy.controls.filter(c => c.design === 'Deficiency' || c.oper === 'Deficiency').map(c => [c.id, cy.name, c.design === 'Deficiency' ? 'Rancangan' : 'Operasi', c.desc]));
+    blocks.push({ type: 'heading', text: 'Register Defisiensi Pengendalian (SA 265)' });
+    blocks.push({ type: 'table', head: ['Ref', 'Siklus', 'Jenis', 'Deskripsi'], body: defs.length ? defs : [['—', '—', '—', 'Tidak ada defisiensi.']] });
+    amsExportPdf({
+      kind: 'memo-icfr', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Risk-Control Matrix & Evaluasi Pengendalian Internal (SA 315/330/265)',
+      refNo: 'A-ICFR · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 315 (pemahaman) · SA 330 (uji kontrol) · SA 265 (defisiensi)', 'Dibuat: ' + icfrToday() + ' · ' + me],
+      blocks,
+    }).catch(() => {});
+  };
+
   return (
     <>
       <SubBar moduleId="icfr" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 315 · 330 · 265</Badge>
-          <Btn sm><I.download size={13} /> Export Matriks</Btn>
-          <Btn sm variant="primary"><I.plus size={14} /> Kontrol Baru</Btn>
+          <Btn sm onClick={exportMatrix}><I.download size={13} /> Export Matriks</Btn>
         </div>
       } />
       <div className="view-scroll">
         <div className="view-pad">
           <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
           {tab === 'overview' && <ICEntityLevel data={data} />}
-          {tab === 'matrix' && <ICMatrix data={data} setData={setData} />}
+          {tab === 'matrix' && <ICMatrix data={data} setData={setData} locked={locked} />}
           {tab === 'itgc' && <ICITGC data={data} />}
-          {tab === 'deficiency' && <ICDeficiency data={data} />}
+          {tab === 'deficiency' && <ICDeficiency data={data} me={me} locked={locked} engId={engId} />}
         </div>
       </div>
     </>
@@ -264,7 +302,7 @@ function ICEntityLevel({ data }: any) {
 /* ============================================================
    TAB 2 — Risk-Control Matrix + walkthrough + Test of Controls
    ============================================================ */
-function ICMatrix({ data, setData }: any) {
+function ICMatrix({ data, setData, locked }: any) {
   const [cycleId, setCycleId] = useStateIC('rev');
   const [selCtrl, setSelCtrl] = useStateIC('R-03');
 
@@ -376,7 +414,7 @@ function ICMatrix({ data, setData }: any) {
                     </div>
                   )}
                   <div className="tiny muted upper" style={{ marginBottom: 6 }}>Test of Controls (Atribut · SA 330)</div>
-                  <TestOfControls ctrl={ctrl} onConclude={(result: any) => setOper(result)} />
+                  <TestOfControls ctrl={ctrl} locked={locked} onConclude={(result: any) => setOper(result)} />
                 </div>
               </div>
             </div>
@@ -390,7 +428,7 @@ function ICMatrix({ data, setData }: any) {
 /* Attribute Test of Controls — sample size by frequency, record deviations, conclude */
 const { useState: useStateTOC } = React;
 const TOC_SAMPLE = { 'Per transaksi': 25, 'Per jurnal': 25, 'Berkelanjutan': 25, 'Bulanan': 12, 'Kuartalan': 5, 'Per perubahan': 15, 'Per perikatan': 2 };
-function TestOfControls({ ctrl, onConclude }: any) {
+function TestOfControls({ ctrl, onConclude, locked }: any) {
   const baseN = (TOC_SAMPLE as any)[ctrl.freq] || 25;
   const [n] = useStateTOC(baseN);
   const [tested, setTested] = useStateTOC(0);
@@ -415,7 +453,7 @@ function TestOfControls({ ctrl, onConclude }: any) {
         <KvBox label="Deviasi" v={dev} accent={dev ? 'var(--red)' : 'var(--green)'} />
       </div>
       {!done ? (
-        <Btn sm variant="primary" style={{ width: '100%' }} onClick={run}><I.flask size={13} /> Jalankan Pengujian ({n} item · frekuensi {ctrl.freq})</Btn>
+        <Btn sm variant="primary" style={{ width: '100%' }} disabled={locked} onClick={run}><I.flask size={13} /> Jalankan Pengujian ({n} item · frekuensi {ctrl.freq})</Btn>
       ) : (
         <>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 9 }}>
@@ -428,8 +466,8 @@ function TestOfControls({ ctrl, onConclude }: any) {
             </div>
           </div>
           <div className="row gap6">
-            <Btn sm onClick={run}><I.sync size={13} /> Ulang</Btn>
-            <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => onConclude(effective ? 'Effective' : 'Deficiency')}><I.check size={13} /> Simpulkan: {effective ? 'Efektif' : 'Defisiensi'}</Btn>
+            <Btn sm disabled={locked} onClick={run}><I.sync size={13} /> Ulang</Btn>
+            <Btn sm variant="primary" style={{ flex: 1 }} disabled={locked} onClick={() => onConclude(effective ? 'Effective' : 'Deficiency')}><I.check size={13} /> Simpulkan: {effective ? 'Efektif' : 'Defisiensi'}</Btn>
           </div>
         </>
       )}
@@ -578,7 +616,8 @@ const DEF_SEED = {
   'ITGC-SoD': { mag: 'Imaterial', lik: 'Wajar mungkin', comp: true, sad: 'SAD-05', cmp: 'Reviu detektif manual atas transaksi konflik role.' },
 };
 
-function ICDeficiency({ data }: any) {
+const DEFAULT_DEF_A = { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: '—', cmp: '—' };
+function ICDeficiency({ data, locked, engId }: any) {
   // collect deficiencies from matrix + ITGC SoD
   const matrixDefs = data.flatMap((cy: any) => cy.controls
     .filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency')
@@ -586,21 +625,21 @@ function ICDeficiency({ data }: any) {
   const itgcDef = { id: 'ITGC-SoD', src: 'ITGC · Akses', desc: 'Segregation of Duties — kombinasi role konflik pada ERP (buat & setujui PO/pembayaran).', kind: 'Rancangan' };
   const defs = [...matrixDefs, itgcDef];
 
-  const [assess, setAssess] = useStateIC(() => {
+  const [assess, setAssess] = useAmsPersist('icfrDef.' + engId, () => {
     const init = {};
-    defs.forEach(d => { (init as any)[d.id] = (DEF_SEED as any)[d.id] || { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: '—', cmp: '—' }; });
+    defs.forEach(d => { (init as any)[d.id] = (DEF_SEED as any)[d.id] || { ...DEFAULT_DEF_A }; });
     return init;
   });
   const [selId, setSelId] = useStateIC(defs[0]?.id);
 
-  const classOf = (id: any) => { const a = assess[id]; return classifyDef(a.mag, a.lik, a.comp); };
+  const classOf = (id: any) => { const a = assess[id] || DEFAULT_DEF_A; return classifyDef(a.mag, a.lik, a.comp); };
   const counts = LEVELS.map(l => defs.filter(d => classOf(d.id) === l).length);
   const sel = defs.find(d => d.id === selId) || defs[0];
-  const a = assess[sel.id];
+  const a = (assess[sel.id]) || DEFAULT_DEF_A;
   const cls = classifyDef(a.mag, a.lik, a.comp);
   const comm = (COMMS as any)[cls];
 
-  const setA = (patch: any) => setAssess((s: any) => ({ ...s, [sel.id]: { ...s[sel.id], ...patch } }));
+  const setA = (patch: any) => { if (locked) return; setAssess((s: any) => ({ ...s, [sel.id]: { ...(s[sel.id] || DEFAULT_DEF_A), ...patch } })); };
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -712,6 +751,8 @@ function ICDeficiency({ data }: any) {
           </div>
         </Panel>
       </div>
+
+      <WpPanel moduleId="icfr" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 315/330/265)" />
     </div>
   );
 }
