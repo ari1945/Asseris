@@ -82,6 +82,10 @@ const WP_MODULE_MAP = {
   /* SA 620 — penggunaan pekerjaan pakar auditor. Register pakar engagement-scoped
      (persist di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
   expert:       { ref: 'expert',       requiredEvidence: ['Laporan/kertas kerja pakar & dasar simpulan', 'Evaluasi kompetensi, kapabilitas & objektivitas pakar (SA 620 ¶9)', 'Evaluasi kecukupan pekerjaan pakar untuk tujuan audit (¶12)'] },
+  /* SA 260/265 — komunikasi TCWG & defisiensi pengendalian. Register engagement-
+     scoped (persist di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
+  sa260:        { ref: 'sa260',        requiredEvidence: ['Laporan/komunikasi tertulis kepada TCWG (SA 260 ¶16)', 'Risalah/notulen komunikasi dua arah dengan TCWG', 'Matriks hal wajib dikomunikasikan (¶14–17)'] },
+  sa265:        { ref: 'sa265',        requiredEvidence: ['Surat komunikasi defisiensi signifikan kepada TCWG (SA 265 ¶9)', 'Register defisiensi & klasifikasi (signifikan/biasa)', 'Komunikasi defisiensi lain kepada manajemen (¶10)'] },
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
