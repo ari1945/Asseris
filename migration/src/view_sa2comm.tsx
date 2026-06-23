@@ -1,6 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
@@ -26,37 +28,103 @@ const NOCLAR_CATS = {
     examples: ['Izin usaha & lingkungan (AMDAL)', 'Ketenagakerjaan & K3', 'Anti-monopoli & perlindungan data', 'Anti-pencucian uang (APU/PPT)'] },
 };
 
-const NOCLAR_REGISTER = [
+/* ---- model NOCLAR ter-persist engagement-scoped (Fase 2/3) ---- */
+type NoclarItem = { id: string; area: string; cat: 'direct' | 'indirect'; desc: string; fsImpact: string; status: string; sev: string; by?: string; at?: string };
+type ReportTier = { id: string; to: string; cond: string; ref: string; status: string; by?: string; at?: string };
+type NoclarState = { items: NoclarItem[]; report: ReportTier[] };
+/* tipe struktural minimal untuk event input/select/textarea — hindari explicit-any (ratchet) */
+type Ev = { target: { value: string } };
+
+const NOCLAR_STATUS = ['Investigasi', 'Dievaluasi', 'Dipantau', 'Selesai'];
+const NOCLAR_SEV = ['Tinggi', 'Sedang', 'Rendah'];
+const REPORT_STATUS = ['Dilakukan', 'Berlangsung', 'Dijadwalkan', 'Tidak diperlukan', 'Tidak berlaku'];
+
+const NOCLAR_ITEMS_SEED: NoclarItem[] = [
   { id: 'NC-01', area: 'Perpajakan', cat: 'direct', desc: 'Koreksi PPN masukan yang dikreditkan atas faktur tidak lengkap — potensi kurang bayar & sanksi.', fsImpact: 'Material — provisi pajak', status: 'Dievaluasi', sev: 'Tinggi' },
   { id: 'NC-02', area: 'Lingkungan', cat: 'indirect', desc: 'Perpanjangan izin pengolahan limbah (IPLC) cabang Bekasi terlambat 2 bulan.', fsImpact: 'Tidak material langsung; risiko sanksi/penghentian', status: 'Dipantau', sev: 'Sedang' },
   { id: 'NC-03', area: 'Ketenagakerjaan', cat: 'indirect', desc: 'Tunggakan iuran BPJS Ketenagakerjaan 1 bulan — telah dilunasi pasca-periode.', fsImpact: 'Tidak material', status: 'Selesai', sev: 'Rendah' },
   { id: 'NC-04', area: 'Perizinan', cat: 'indirect', desc: 'Indikasi transaksi tanpa kontrak baku pada 1 segmen — dugaan, perlu klarifikasi hukum.', fsImpact: 'Dalam evaluasi', status: 'Investigasi', sev: 'Sedang' },
 ];
 
+const NOCLAR_REPORT_SEED: ReportTier[] = [
+  { id: 'RT-mgmt', to: 'Manajemen', cond: 'Ketidakpatuhan selain yang jelas tidak signifikan', ref: '¶22', status: 'Dilakukan' },
+  { id: 'RT-tcwg', to: 'Pihak Tata Kelola (TCWG)', cond: 'Bila melibatkan manajemen, atau disengaja & material', ref: '¶23', status: 'Dijadwalkan' },
+  { id: 'RT-auth', to: 'Otoritas / Regulator', cond: 'Bila diwajibkan hukum (dapat mengalahkan kerahasiaan)', ref: '¶28–29', status: 'Tidak berlaku' },
+  { id: 'RT-rep', to: 'Laporan Auditor', cond: 'Bila ketidakpatuhan berdampak material & tidak tercermin memadai', ref: '¶26', status: 'Tidak diperlukan' },
+];
+
+const NOCLAR_SEED = { items: NOCLAR_ITEMS_SEED, report: NOCLAR_REPORT_SEED };
+
+function nocToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+function nextNcId(items: NoclarItem[]) {
+  const n = items.reduce((mx, it) => { const m = /NC-(\d+)/.exec(it.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'NC-' + String(n + 1).padStart(2, '0');
+}
+
 function SA250View() {
   const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
+  const [data, setData] = useAmsPersist('noclar.' + engId, () => NOCLAR_SEED);
+  const items: NoclarItem[] = (data && data.items) || [];
+  const report: ReportTier[] = (data && data.report) || [];
+  const setItems = (fn: (l: NoclarItem[]) => NoclarItem[]) => setData((d: NoclarState) => ({ ...d, items: fn((d && d.items) || []) }));
+  const setReport = (fn: (l: ReportTier[]) => ReportTier[]) => setData((d: NoclarState) => ({ ...d, report: fn((d && d.report) || []) }));
+
+  const followUp = items.filter(r => r.status === 'Investigasi' || r.status === 'Dievaluasi').length;
+  const directMaterial = items.filter(r => r.cat === 'direct' && /^material/i.test(r.fsImpact || '')).length;
+
   const [tab, setTab] = useStateSC('kerangka');
   const tabs = [{ id: 'kerangka', label: 'Kerangka & Kategori' }, { id: 'register', label: 'Register Ketidakpatuhan' }, { id: 'pelaporan', label: 'Respons & Pelaporan' }];
+
+  const exportMemo = () => {
+    const sevRank: Record<string, number> = { Tinggi: 0, Sedang: 1, Rendah: 2 };
+    const rows = [...items].sort((a, b) => (sevRank[a.sev] ?? 9) - (sevRank[b.sev] ?? 9))
+      .map(r => [r.id, r.area, r.cat === 'direct' ? 'Langsung' : 'Operasi', r.sev, r.status, r.desc]);
+    const repRows = report.map(r => [r.to, r.ref, r.status, r.by ? r.by + ' · ' + (r.at || '') : '—']);
+    amsExportPdf({
+      kind: 'memo-noclar', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM && (AMS.FIRM as { name?: string }).name) || 'KAP', title: 'Memo Pertimbangan Hukum & Regulasi (NOCLAR — SA 250)',
+      refNo: 'L-250 · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 250 — Pertimbangan atas Peraturan Perundang-undangan dalam Audit', 'Dibuat: ' + nocToday() + ' · ' + me],
+      blocks: [
+        { type: 'heading', text: 'Register Ketidakpatuhan Teridentifikasi' },
+        { type: 'table', head: ['Ref', 'Area', 'Kategori', 'Severitas', 'Status', 'Uraian'],
+          body: rows.length ? rows : [['—', '—', '—', '—', '—', 'Tidak ada ketidakpatuhan tercatat.']],
+          columnStyles: { 0: { cellWidth: 38 }, 5: { cellWidth: 170 } } },
+        { type: 'heading', text: 'Jenjang Pelaporan (SA 250 ¶22–29)' },
+        { type: 'table', head: ['Penerima', 'Ref', 'Status', 'Jejak'], body: repRows },
+        { type: 'para', text: 'Tanggung jawab mencegah & mendeteksi ketidakpatuhan ada pada manajemen & pihak tata kelola. Auditor memperoleh bukti audit cukup & tepat atas kepatuhan terhadap ketentuan yang berdampak langsung & material pada LK, serta melaksanakan prosedur terbatas atas ketentuan lain (SA 250 ¶13–14).' },
+      ],
+    }).catch(() => {});
+  };
+
   return (
     <>
-      <SubBar moduleId="sa250" right={<div className="row gap8 ac"><Badge kind="amber" dot>{NOCLAR_REGISTER.filter(r => r.status === 'Investigasi' || r.status === 'Dievaluasi').length} dalam tindak lanjut</Badge><Btn sm><I.download size={13} /> Memo NOCLAR</Btn><Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn></div>} />
+      <SubBar moduleId="sa250" right={<div className="row gap8 ac"><Badge kind="amber" dot>{followUp} dalam tindak lanjut</Badge><Btn sm onClick={exportMemo}><I.download size={13} /> Memo NOCLAR</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <Panel noBody style={{ marginBottom: 12 }}>
           <div style={{ padding: '13px 16px', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ minWidth: 210 }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 250</div><div style={{ fontWeight: 700, fontSize: 13 }}>Hukum & Regulasi (NOCLAR)</div><div className="tiny muted">{client} · ENG-2025-014</div></div>
+            <div style={{ minWidth: 210 }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 250</div><div style={{ fontWeight: 700, fontSize: 13 }}>Hukum & Regulasi (NOCLAR)</div><div className="tiny muted">{client} · {engLabel}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ketidakpatuhan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{NOCLAR_REGISTER.length} teridentifikasi</div></div>
+            <div><div className="tiny muted upper">Ketidakpatuhan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{items.length} teridentifikasi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Dampak Langsung LK</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>1 material</div></div>
+            <div><div className="tiny muted upper">Dampak Langsung LK</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: directMaterial ? 'var(--red)' : 'var(--ink-3)' }}>{directMaterial} material</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Tanggung Jawab Utama</div><Badge kind="blue">Kepatuhan = Manajemen</Badge></div>
           </div>
         </Panel>
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
         {tab === 'kerangka' && <S250Framework />}
-        {tab === 'register' && <S250Register />}
-        {tab === 'pelaporan' && <S250Reporting />}
+        {tab === 'register' && <S250Register items={items} setItems={setItems} me={me} locked={locked} />}
+        {tab === 'pelaporan' && <S250Reporting report={report} setReport={setReport} me={me} locked={locked} />}
       </div></div>
     </>
   );
@@ -109,38 +177,72 @@ function S250Framework() {
   );
 }
 
-function S250Register() {
-  const [selId, setSelId] = useStateSC('NC-01');
-  const sel = NOCLAR_REGISTER.find(r => r.id === selId);
-  const sevKind = (s: any) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+function S250Register({ items, setItems, me, locked }: { items: NoclarItem[]; setItems: (fn: (l: NoclarItem[]) => NoclarItem[]) => void; me: string; locked: boolean }) {
+  const list: NoclarItem[] = items || [];
+  const [selId, setSelId] = useStateSC(list[0]?.id || null);
+  const sel = list.find((r: NoclarItem) => r.id === selId) || list[0] || null;
+  const sevKind = (s: string) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const stKind = (s: string) => s === 'Selesai' ? 'green' : s === 'Investigasi' ? 'red' : 'amber';
+
+  const patch = (id: string, p: Partial<NoclarItem>) =>
+    setItems((l: NoclarItem[]) => l.map(it => it.id === id ? { ...it, ...p, by: me, at: nocToday() } : it));
+  const addItem = () => {
+    const id = nextNcId(list);
+    setItems((l: NoclarItem[]) => [{ id, area: 'Ketidakpatuhan baru', cat: 'indirect', desc: '', fsImpact: 'Dalam evaluasi', status: 'Investigasi', sev: 'Sedang', by: me, at: nocToday() } as NoclarItem, ...l]);
+    setSelId(id);
+  };
+  const delItem = (id: string) => { setItems((l: NoclarItem[]) => l.filter(it => it.id !== id)); setSelId(null); };
+
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Register Ketidakpatuhan</h3><div style={{ flex: 1 }} /><span className="tiny muted">{NOCLAR_REGISTER.length} pos</span></div>
+        <div className="panel-h"><h3>Register Ketidakpatuhan</h3><div style={{ flex: 1 }} />
+          <span className="tiny muted" style={{ marginRight: 8 }}>{list.length} pos</span>
+          {!locked && <Btn sm onClick={addItem}><I.plus size={12} /> Tambah</Btn>}
+        </div>
         <table className="dtbl">
           <thead><tr><th style={{ width: 56 }}>Ref</th><th>Area / Uraian</th><th style={{ width: 92 }}>Kategori</th><th style={{ width: 84 }}>Status</th></tr></thead>
           <tbody>
-            {NOCLAR_REGISTER.map(r => (
-              <tr key={r.id} className={r.id === selId ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
+            {list.map((r: NoclarItem) => (
+              <tr key={r.id} className={r.id === (sel && sel.id) ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                 <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>{r.area}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 1 }}>{r.desc}</div></td>
                 <td><Badge kind={r.cat === 'direct' ? 'red' : 'amber'}>{r.cat === 'direct' ? 'Langsung' : 'Operasi'}</Badge></td>
-                <td><Badge kind={r.status === 'Selesai' ? 'green' : r.status === 'Investigasi' ? 'red' : 'amber'}>{r.status}</Badge></td>
+                <td><Badge kind={stKind(r.status)}>{r.status}</Badge></td>
               </tr>
             ))}
+            {!list.length && <tr><td colSpan={4} className="tiny muted" style={{ textAlign: 'center', padding: 18 }}>Belum ada ketidakpatuhan tercatat. {!locked && 'Klik "Tambah" untuk mulai.'}</td></tr>}
           </tbody>
         </table>
       </Panel>
       {sel && (
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
-            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sevKind(sel.sev)}>{sel.sev}</Badge><Badge kind={sel.cat === 'direct' ? 'red' : 'amber'}>{sel.cat === 'direct' ? 'Dampak Langsung' : 'Fundamental Operasi'}</Badge></div>
-            <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>{sel.area}</div>
+            <div className="row ac jb">
+              <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sevKind(sel.sev)}>{sel.sev}</Badge><Badge kind={sel.cat === 'direct' ? 'red' : 'amber'}>{sel.cat === 'direct' ? 'Dampak Langsung' : 'Fundamental Operasi'}</Badge></div>
+              {!locked && <button className="btn sm icon" title="Hapus pos" onClick={() => delItem(sel.id)}><I.x size={13} /></button>}
+            </div>
           </div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.desc}</p>
-            <KvBox label="Dampak terhadap LK" v={sel.fsImpact} accent={sel.fsImpact.startsWith('Material') ? 'var(--red)' : 'var(--ink-3)'} />
-            <div style={{ height: 10 }} />
+            {locked ? (
+              <>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>{sel.area}</div>
+                <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.desc}</p>
+                <KvBox label="Dampak terhadap LK" v={sel.fsImpact} accent={/^material/i.test(sel.fsImpact || '') ? 'var(--red)' : 'var(--ink-3)'} />
+              </>
+            ) : (
+              <div style={{ display: 'grid', gap: 9 }}>
+                <div className="field"><label>Area</label><input className="input" value={sel.area} onChange={(e: Ev) => patch(sel.id, { area: e.target.value })} /></div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+                  <div className="field"><label>Kategori</label><select className="select" value={sel.cat} onChange={(e: Ev) => patch(sel.id, { cat: e.target.value as NoclarItem['cat'] })}><option value="direct">Dampak Langsung (¶6a)</option><option value="indirect">Fundamental Operasi (¶6b)</option></select></div>
+                  <div className="field"><label>Severitas</label><select className="select" value={sel.sev} onChange={(e: Ev) => patch(sel.id, { sev: e.target.value })}>{NOCLAR_SEV.map(s => <option key={s}>{s}</option>)}</select></div>
+                </div>
+                <div className="field"><label>Uraian</label><textarea className="input" value={sel.desc} onChange={(e: Ev) => patch(sel.id, { desc: e.target.value })} style={{ height: 58, padding: 8, lineHeight: 1.5, resize: 'vertical' }} placeholder="Uraian ketidakpatuhan & dasar identifikasi…" /></div>
+                <div className="field"><label>Dampak terhadap LK</label><input className="input" value={sel.fsImpact} onChange={(e: Ev) => patch(sel.id, { fsImpact: e.target.value })} placeholder="mis. Material — provisi pajak" /></div>
+                <div className="field"><label>Status</label><select className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{NOCLAR_STATUS.map(s => <option key={s}>{s}</option>)}</select></div>
+              </div>
+            )}
+            <div style={{ height: 12 }} />
             <div className="tiny muted upper" style={{ marginBottom: 5 }}>Respons Audit</div>
             {[
               'Evaluasi dampak terhadap jumlah & pengungkapan LK',
@@ -151,6 +253,7 @@ function S250Register() {
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span><span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
             ))}
+            {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
           </div>
         </Panel>
       )}
@@ -158,42 +261,46 @@ function S250Register() {
   );
 }
 
-function S250Reporting() {
+function S250Reporting({ report, setReport, me, locked }: { report: ReportTier[]; setReport: (fn: (l: ReportTier[]) => ReportTier[]) => void; me: string; locked: boolean }) {
+  const tiers: ReportTier[] = report || [];
+  const repKind = (s: string) => s === 'Dilakukan' ? 'green' : s === 'Berlangsung' ? 'blue' : s === 'Dijadwalkan' ? 'amber' : 'gray';
+  const setStatus = (id: string, status: string) =>
+    setReport((l: ReportTier[]) => l.map(r => r.id === id ? { ...r, status, by: me, at: nocToday() } : r));
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Jenjang Pelaporan Ketidakpatuhan</h3><div style={{ flex: 1 }} /></div>
+        <div className="panel-h"><h3>Jenjang Pelaporan Ketidakpatuhan</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 250 ¶22–29</span></div>
         <table className="dtbl">
-          <thead><tr><th>Penerima</th><th>Kondisi</th><th style={{ width: 64 }}>Ref</th><th style={{ width: 120 }}>Status</th></tr></thead>
+          <thead><tr><th>Penerima</th><th>Kondisi</th><th style={{ width: 56 }}>Ref</th><th style={{ width: 150 }}>Status</th><th style={{ width: 120 }}>Jejak</th></tr></thead>
           <tbody>
-            {[
-              { to: 'Manajemen', cond: 'Ketidakpatuhan selain yang jelas tidak signifikan', ref: '¶22', st: 'Dilakukan', k: 'green' },
-              { to: 'Pihak Tata Kelola (TCWG)', cond: 'Bila melibatkan manajemen, atau disengaja & material', ref: '¶23', st: 'Dijadwalkan', k: 'blue' },
-              { to: 'Otoritas / Regulator', cond: 'Bila diwajibkan hukum (dapat mengalahkan kerahasiaan)', ref: '¶28–29', st: 'Tidak berlaku', k: 'gray' },
-              { to: 'Laporan Auditor', cond: 'Bila ketidakpatuhan berdampak material & tidak tercermin memadai', ref: '¶26', st: 'Tidak diperlukan', k: 'gray' },
-            ].map((r, i) => (
-              <tr key={i}>
+            {tiers.map((r: ReportTier) => (
+              <tr key={r.id}>
                 <td style={{ fontWeight: 600 }}>{r.to}</td>
                 <td className="tiny" style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>{r.cond}</td>
                 <td className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.ref}</td>
-                <td><Badge kind={r.k}>{r.st}</Badge></td>
+                <td>
+                  {locked
+                    ? <Badge kind={repKind(r.status)}>{r.status}</Badge>
+                    : <select className="select" value={r.status} onChange={(e: Ev) => setStatus(r.id, e.target.value)} style={{ height: 28, fontSize: 11.5 }}>{REPORT_STATUS.map(s => <option key={s}>{s}</option>)}</select>}
+                </td>
+                <td className="tiny muted">{r.by ? <span title={r.by + ' · ' + (r.at || '')}><I.check size={10} /> {r.at}</span> : '—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-          <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Tanggung jawab mencegah & mendeteksi ketidakpatuhan ada pada <b>manajemen & TCWG</b>. Auditor bukan penegak hukum; tujuannya memperoleh bukti & merespons ketidakpatuhan yang teridentifikasi.</span></div>
+          <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Tanggung jawab mencegah & mendeteksi ketidakpatuhan ada pada <b>manajemen & TCWG</b>. Auditor bukan penegak hukum; tujuannya memperoleh bukti & merespons ketidakpatuhan yang teridentifikasi. Kesimpulan auditor atas kecukupan respons dicatat via <b>Kertas Kerja</b> (bilah atas).</span></div>
         </div>
       </Panel>
       <div className="grid" style={{ gap: 12 }}>
-        <Panel title="Dampak terhadap Opini">
+        <Panel title="Pertimbangan Dampak terhadap Opini">
           <div style={{ display: 'grid', gap: 7 }}>
             {[
-              { t: 'Ketidakpatuhan langsung tercermin memadai dalam LK', ok: true },
-              { t: 'Provisi pajak (NC-01) dievaluasi & cukup', ok: true },
-              { t: 'NC-04 selesai diinvestigasi', ok: false },
-            ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}><span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{r.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span><span style={{ lineHeight: 1.4 }}>{r.t}</span></div>
+              'Ketidakpatuhan dengan dampak langsung tercermin memadai dalam LK (¶13)',
+              'Kecukupan provisi/pengungkapan atas sanksi & kewajiban dievaluasi',
+              'Seluruh item register berstatus terselesaikan/terpantau sebelum opini',
+            ].map((t, i) => (
+              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={14} /></span><span style={{ lineHeight: 1.4 }}>{t}</span></div>
             ))}
           </div>
         </Panel>
