@@ -5,7 +5,7 @@ import { useAudit, useAuth, useFirm } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
-import { usePhaseGate, PhaseGateDialog } from './wp_signoff';
+import { usePhaseGate, PhaseGateDialog, eqrStatusFor } from './wp_signoff';
 
 /* ============================================================
    Asseris — Audit Opinion Generator · Engine & Panels
@@ -458,6 +458,12 @@ function OpinionSignoff({ doc, patch }: any) {
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
   const o = (OPINIONS as any)[doc.type];
   const eqrRequired = !!activeClient?.listed;
+  /* Q-02 (ISQM 2): ikat penerbitan opini ke penyelesaian EQR SUBSTANTIF di modul
+     EQR (review.cleared), bukan sekadar centang `eqr` di rantai tanda tangan.
+     Berlaku bila klien PIE (wajib) ATAU ada review EQR utk engagement ini. */
+  const eqrGate = eqrStatusFor(activeEngagement?.id);
+  const eqrEnforced = eqrRequired || eqrGate.applicable;
+  const eqrSubstantiveDone = !eqrEnforced || eqrGate.cleared;
   const today = '2026-03-14';
 
   /* SA 700 required-element completeness — auto + manual */
@@ -498,7 +504,7 @@ function OpinionSignoff({ doc, patch }: any) {
     setWp('900', wpPatch);
   };
   const chainComplete = REVIEW_CHAIN.every((r: any) => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
-  const canFinalize = autoDone && manualDone && chainComplete && !doc.finalized && canApprove;
+  const canFinalize = autoDone && manualDone && chainComplete && eqrSubstantiveDone && !doc.finalized && canApprove;
 
   const finalize = () => { patch({ finalized: true, finalizedDate: today }); setWp('900', { status: 'Reviewed' }); };
 
@@ -575,7 +581,11 @@ function OpinionSignoff({ doc, patch }: any) {
               <Pill ok={autoDone} label="Kelengkapan" />
               <Pill ok={manualDone} label="Konfirmasi manual" />
               <Pill ok={chainComplete} label="Tanda tangan" />
+              {eqrEnforced && <Pill ok={eqrGate.cleared} label="EQR (modul) lolos" />}
             </div>
+            {!doc.finalized && eqrEnforced && !eqrGate.cleared && (
+              <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.shield size={12} /> Penelaahan Mutu Perikatan (EQR) belum lolos gerbang di modul EQR — wajib selesai sebelum opini diterbitkan (ISQM 2 ¶19–36).</div>
+            )}
             {!doc.finalized && !canApprove && (
               <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> Hanya Engagement Partner yang dapat menerbitkan opini (ditegakkan di server).</div>
             )}
