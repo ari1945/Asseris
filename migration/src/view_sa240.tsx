@@ -1,10 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — SA 240 · Tanggung Jawab Auditor atas Kecurangan
@@ -76,13 +79,51 @@ const FRAUD_COMMS = [
   { to: 'Regulator / Otoritas', ref: '¶43 · A65–67', when: 'Bila diwajibkan', what: 'Pelaporan ke pihak di luar entitas bila diharuskan hukum/regulasi (mengalahkan kewajiban kerahasiaan).', status: 'Tidak berlaku periode ini' },
 ];
 
+/* ---- model fraud ter-persist engagement-scoped (SA-08/substantif) ---- */
+type FraudRisk = { id: string; risk: string; type: string; assertion: string; acct: string; sig: boolean; presumed: boolean; lvl: string; response: string; status: string; by?: string; at?: string };
+type TriFactor = { t: string; sev: string; on: boolean };
+type TriCat = { k: string; ref: string; color: string; icon: string; sub: string; factors: TriFactor[] };
+type Triangle = Record<string, TriCat>;
+type OverrideProc = { t: string; ref: string; wp: string; done: boolean };
+type FraudState = { register: FraudRisk[]; triangle: Triangle; overrideProc: OverrideProc[] };
+/* tipe struktural minimal event input — hindari explicit-any (ratchet) */
+type Ev = { target: { value: string } };
+
+const FRAUD_TYPES = ['Pelaporan Keuangan Curang', 'Penyalahgunaan Aset'];
+const FRAUD_LVL = ['Signifikan', 'Moderat', 'Rendah'];
+const FRAUD_STATUS = ['Direncanakan', 'Berlangsung', 'Selesai'];
+
+const FRAUD_SEED: FraudState = { register: FRAUD_REGISTER, triangle: FRAUD_TRIANGLE, overrideProc: OVERRIDE_PROC };
+
+function fraudToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+function nextFrId(list: FraudRisk[]) {
+  const n = list.reduce((mx, r) => { const m = /FR-(\d+)/.exec(r.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'FR-' + String(n + 1).padStart(2, '0');
+}
+
 /* ============================================================ */
 function SA240View() {
   const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const [tab, setTab] = useStateS240('risiko');
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
+  const [fraud, setFraud] = useAmsPersist('fraud.' + engId, () => FRAUD_SEED);
+  const register: FraudRisk[] = (fraud && fraud.register) || [];
+  const triangle: Triangle = (fraud && fraud.triangle) || FRAUD_SEED.triangle;
+  const overrideProc: OverrideProc[] = (fraud && fraud.overrideProc) || [];
+  const setRegister = (fn: (l: FraudRisk[]) => FraudRisk[]) => setFraud((s: FraudState) => ({ ...s, register: fn((s && s.register) || []) }));
+  const setTriangle = (fn: (t: Triangle) => Triangle) => setFraud((s: FraudState) => ({ ...s, triangle: fn(s.triangle) }));
+  const setOverride = (fn: (l: OverrideProc[]) => OverrideProc[]) => setFraud((s: FraudState) => ({ ...s, overrideProc: fn((s && s.overrideProc) || []) }));
 
-  const sigCount = FRAUD_REGISTER.filter(r => r.sig).length;
+  const [tab, setTab] = useStateS240('risiko');
+  const sigCount = register.filter(r => r.sig).length;
+  const presumedCount = register.filter(r => r.presumed).length;
   const tabs = [
     { id: 'risiko', label: 'Penilaian Risiko' },
     { id: 'segitiga', label: 'Segitiga Fraud' },
@@ -92,13 +133,32 @@ function SA240View() {
     { id: 'komunikasi', label: 'Komunikasi' },
   ];
 
+  const exportMemo = () => {
+    const regRows = register.map(r => [r.id, r.risk, r.type === 'Penyalahgunaan Aset' ? 'Aset' : 'Pelaporan', r.lvl, r.presumed ? 'Presumsi' : '—', r.status]);
+    const triRows = Object.values(triangle).flatMap(cat => cat.factors.filter(f => f.on).map(f => [cat.k, f.t, f.sev]));
+    const ovRows = overrideProc.map(p => [p.ref, p.t, p.wp, p.done ? 'Selesai' : 'Belum']);
+    amsExportPdf({
+      kind: 'memo-fraud', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Penilaian Risiko Kecurangan (SA 240)',
+      refNo: 'F-240 · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 240 — Tanggung Jawab Auditor atas Kecurangan', 'Dibuat: ' + fraudToday() + ' · ' + me],
+      blocks: [
+        { type: 'heading', text: 'Register Risiko Kecurangan' },
+        { type: 'table', head: ['Ref', 'Risiko', 'Jenis', 'Tingkat', 'Presumsi', 'Status'], body: regRows.length ? regRows : [['—', '—', '—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 190 } } },
+        { type: 'heading', text: 'Faktor Risiko Fraud Teridentifikasi (Segitiga, ¶24)' },
+        { type: 'table', head: ['Kategori', 'Faktor', 'Severitas'], body: triRows.length ? triRows : [['—', 'Tidak ada faktor aktif.', '—']], columnStyles: { 1: { cellWidth: 240 } } },
+        { type: 'heading', text: 'Prosedur Wajib atas Risiko Override Manajemen (¶32)' },
+        { type: 'table', head: ['Ref', 'Prosedur', 'WP', 'Status'], body: ovRows },
+      ],
+    }).catch(() => {});
+  };
+
   return (
     <>
       <SubBar moduleId="sa240" right={
         <div className="row gap8 ac">
-          <Badge kind="red" dot>2 Risiko Signifikan Wajib</Badge>
-          <Btn sm><I.download size={13} /> Memo Risiko Fraud</Btn>
-          <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
+          <Badge kind="red" dot>{presumedCount} Risiko Presumsi Wajib</Badge>
+          <Btn sm onClick={exportMemo}><I.download size={13} /> Memo Risiko Fraud</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -109,12 +169,12 @@ function SA240View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 240</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Tanggung Jawab atas Kecurangan</div>
-              <div className="tiny muted">{client} · ENG-2025-014</div>
+              <div className="tiny muted">{client} · {engLabel}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Risiko Fraud Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{FRAUD_REGISTER.length} risiko · {sigCount} signifikan</div></div>
+            <div><div className="tiny muted upper">Risiko Fraud Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{register.length} risiko · {sigCount} signifikan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Risiko Wajib (Presumsi)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>Pendapatan · Override</div></div>
+            <div><div className="tiny muted upper">Risiko Wajib (Presumsi)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{presumedCount} presumsi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Brainstorming Tim</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>06 Mar · 5 peserta</div></div>
             <div style={{ flex: 1 }} />
@@ -128,9 +188,9 @@ function SA240View() {
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
         {tab === 'risiko' && <F240Risk client={client} />}
-        {tab === 'segitiga' && <F240Triangle />}
-        {tab === 'register' && <F240Register />}
-        {tab === 'asumsi' && <F240Assumptions />}
+        {tab === 'segitiga' && <F240Triangle triangle={triangle} setTriangle={setTriangle} locked={locked} />}
+        {tab === 'register' && <F240Register register={register} setRegister={setRegister} me={me} locked={locked} />}
+        {tab === 'asumsi' && <F240Assumptions overrideProc={overrideProc} setOverride={setOverride} locked={locked} />}
         {tab === 'respons' && <F240Response />}
         {tab === 'komunikasi' && <F240Comms client={client} />}
 
@@ -222,11 +282,12 @@ function F240Risk({ client }: any) {
 }
 
 /* ---------------- Tab: Segitiga Fraud ---------------- */
-function F240Triangle() {
+function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; setTriangle: (fn: (t: Triangle) => Triangle) => void; locked: boolean }) {
   const [selId, setSelId] = useStateS240('pressure');
-  const sel = (FRAUD_TRIANGLE as any)[selId];
-  const keys = Object.keys(FRAUD_TRIANGLE);
-  const sevKind = (s: any) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const sel = triangle[selId];
+  const keys = Object.keys(triangle);
+  const sevKind = (s: string) => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'gray';
+  const toggleFactor = (cat: string, idx: number) => { if (locked) return; setTriangle(t => ({ ...t, [cat]: { ...t[cat], factors: t[cat].factors.map((f, i) => i === idx ? { ...f, on: !f.on } : f) } })); };
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -235,7 +296,7 @@ function F240Triangle() {
           {/* triangle diagram */}
           <div style={{ position: 'relative', width: '100%', maxWidth: 320, margin: '4px auto 14px', aspectRatio: '1.15 / 1' }}>
             {keys.map((k, i) => {
-              const t = (FRAUD_TRIANGLE as any)[k];
+              const t = triangle[k];
               const pos = i === 0 ? { top: 0, left: '50%', transform: 'translateX(-50%)' }
                 : i === 1 ? { bottom: 0, left: 0 } : { bottom: 0, right: 0 };
               const on = k === selId;
@@ -248,7 +309,7 @@ function F240Triangle() {
                   boxShadow: on ? '0 2px 10px rgba(0,0,0,.08)' : 'none' }}>
                   <span style={{ color: `var(--${t.color})` }}><Tic size={18} /></span>
                   <div style={{ fontWeight: 700, fontSize: 11.5, marginTop: 3, color: on ? `var(--${t.color})` : 'var(--ink)' }}>{t.k}</div>
-                  <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{t.factors.filter((f: any) => f.on).length} aktif</div>
+                  <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{t.factors.filter(f => f.on).length} aktif</div>
                 </button>
               );
             })}
@@ -270,14 +331,15 @@ function F240Triangle() {
           <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 2, lineHeight: 1.4 }}>{sel.sub}</div>
         </div>
         <div style={{ padding: '6px 0' }}>
-          {sel.factors.map((f: any, i: any) => (
-            <div key={i} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < sel.factors.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: f.on ? 1 : 0.5 }}>
+          {sel.factors.map((f, i) => (
+            <div key={i} onClick={() => toggleFactor(selId, i)} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < sel.factors.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: f.on ? 1 : 0.5, cursor: locked ? 'default' : 'pointer' }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: f.on ? `var(--${sel.color})` : 'var(--ink-4)' }}>{f.on ? <I.checkCircle size={16} /> : <I.circle size={16} />}</span>
               <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{f.t}</div>
               <Badge kind={sevKind(f.sev)}>{f.sev}</Badge>
             </div>
           ))}
         </div>
+        <div className="tiny muted" style={{ padding: '0 14px 4px' }}>{locked ? 'Engagement diarsipkan — read-only.' : 'Klik faktor untuk menandai teridentifikasi/tidak (tersimpan).'}</div>
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: `var(--${sel.color})`, flex: '0 0 auto' }}><I.flag size={15} /></span>
@@ -290,18 +352,25 @@ function F240Triangle() {
 }
 
 /* ---------------- Tab: Register Risiko ---------------- */
-function F240Register() {
+function F240Register({ register, setRegister, me, locked }: { register: FraudRisk[]; setRegister: (fn: (l: FraudRisk[]) => FraudRisk[]) => void; me: string; locked: boolean }) {
   const [selId, setSelId] = useStateS240('FR-01');
-  const sel = FRAUD_REGISTER.find(r => r.id === selId);
+  const sel = register.find(r => r.id === selId) || register[0] || null;
+  const patch = (id: string, p: Partial<FraudRisk>) => setRegister(l => l.map(r => r.id === id ? { ...r, ...p, by: me, at: fraudToday() } : r));
+  const add = () => {
+    const id = nextFrId(register);
+    setRegister(l => [...l, { id, risk: 'Risiko kecurangan baru', type: 'Pelaporan Keuangan Curang', assertion: '', acct: '', sig: false, presumed: false, lvl: 'Moderat', response: '', status: 'Direncanakan', by: me, at: fraudToday() }]);
+    setSelId(id);
+  };
+  const del = (id: string) => { setRegister(l => l.filter(r => r.id !== id)); setSelId(null); };
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Register Risiko Kecurangan</h3><div style={{ flex: 1 }} /><span className="tiny muted">{FRAUD_REGISTER.length} risiko · {FRAUD_REGISTER.filter(r => r.presumed).length} presumsi wajib</span></div>
+        <div className="panel-h"><h3>Register Risiko Kecurangan</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ marginRight: 8 }}>{register.length} risiko · {register.filter(r => r.presumed).length} presumsi</span>{!locked && <Btn sm onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>
         <table className="dtbl">
           <thead><tr><th style={{ width: 56 }}>Ref</th><th>Risiko Kecurangan</th><th>Jenis</th><th style={{ width: 92 }}>Tingkat</th></tr></thead>
           <tbody>
-            {FRAUD_REGISTER.map(r => (
-              <tr key={r.id} className={r.id === selId ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
+            {register.map(r => (
+              <tr key={r.id} className={r.id === (sel && sel.id) ? 'sel' : ''} onClick={() => setSelId(r.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
                 <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>{r.risk}
                   <div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{r.acct} · {r.assertion}{r.presumed && <span style={{ color: 'var(--red)', fontWeight: 600 }}> · presumsi ¶26/¶31</span>}</div>
@@ -310,30 +379,56 @@ function F240Register() {
                 <td><Badge kind={r.lvl === 'Signifikan' ? 'red' : 'amber'}>{r.lvl}</Badge></td>
               </tr>
             ))}
+            {!register.length && <tr><td colSpan={4} className="tiny muted" style={{ textAlign: 'center', padding: 18 }}>Belum ada risiko fraud tercatat.</td></tr>}
           </tbody>
         </table>
       </Panel>
       {sel && (
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
-            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.lvl === 'Signifikan' ? 'red' : 'amber'}>{sel.lvl}</Badge>{sel.presumed && <Badge kind="red">Presumsi Wajib</Badge>}</div>
-            <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4, lineHeight: 1.35 }}>{sel.risk}</div>
+            <div className="row ac jb">
+              <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.lvl === 'Signifikan' ? 'red' : 'amber'}>{sel.lvl}</Badge>{sel.presumed && <Badge kind="red">Presumsi Wajib</Badge>}</div>
+              {!locked && <button className="btn sm icon" title="Hapus" onClick={() => del(sel.id)}><I.x size={13} /></button>}
+            </div>
           </div>
           <div style={{ padding: 14 }}>
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-              <KvBox label="Akun Terdampak" v={sel.acct} />
-              <KvBox label="Asersi" v={sel.assertion} />
-              <KvBox label="Jenis Fraud" v={sel.type} />
-              <KvBox label="Status" v={sel.status} accent={sel.status === 'Berlangsung' ? 'var(--blue)' : 'var(--ink-3)'} />
-            </div>
-            <div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Audit yang Direncanakan</div>
-            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.response}</p>
+            {locked ? (
+              <>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, lineHeight: 1.35 }}>{sel.risk}</div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                  <KvBox label="Akun Terdampak" v={sel.acct} />
+                  <KvBox label="Asersi" v={sel.assertion} />
+                  <KvBox label="Jenis Fraud" v={sel.type} />
+                  <KvBox label="Status" v={sel.status} accent={sel.status === 'Berlangsung' ? 'var(--blue)' : 'var(--ink-3)'} />
+                </div>
+                <div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Audit</div>
+                <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.response}</p>
+              </>
+            ) : (
+              <div style={{ display: 'grid', gap: 9 }}>
+                <div className="field"><label>Risiko Kecurangan</label><textarea className="input" value={sel.risk} onChange={(e: Ev) => patch(sel.id, { risk: e.target.value })} style={{ height: 46, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+                  <div className="field"><label>Jenis</label><select className="select" value={sel.type} onChange={(e: Ev) => patch(sel.id, { type: e.target.value })}>{FRAUD_TYPES.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div className="field"><label>Tingkat</label><select className="select" value={sel.lvl} onChange={(e: Ev) => patch(sel.id, { lvl: e.target.value })}>{FRAUD_LVL.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div className="field"><label>Akun Terdampak</label><input className="input" value={sel.acct} onChange={(e: Ev) => patch(sel.id, { acct: e.target.value })} /></div>
+                  <div className="field"><label>Asersi</label><input className="input" value={sel.assertion} onChange={(e: Ev) => patch(sel.id, { assertion: e.target.value })} /></div>
+                </div>
+                <div className="field"><label>Respons Audit yang Direncanakan</label><textarea className="input" value={sel.response} onChange={(e: Ev) => patch(sel.id, { response: e.target.value })} style={{ height: 58, padding: 8, lineHeight: 1.4, resize: 'vertical' }} /></div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+                  <div className="field"><label>Status</label><select className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{FRAUD_STATUS.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div className="row ac gap10" style={{ paddingTop: 18 }}>
+                    <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 11.5 }}><input type="checkbox" checked={sel.sig} onChange={() => patch(sel.id, { sig: !sel.sig })} /> Signifikan</label>
+                    <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 11.5 }}><input type="checkbox" checked={sel.presumed} onChange={() => patch(sel.id, { presumed: !sel.presumed })} /> Presumsi wajib</label>
+                  </div>
+                </div>
+              </div>
+            )}
             {sel.sig && (
-              <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 12 }}>
+              <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginTop: 12 }}>
                 <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Risiko signifikan — wajib respons spesifik & pengujian substantif; tidak boleh hanya mengandalkan kontrol (¶30).</span></div>
               </div>
             )}
-            <Btn sm variant="primary" style={{ width: '100%' }}><I.arrowRight size={14} /> Buka Respons Terkait</Btn>
+            {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
           </div>
         </Panel>
       )}
@@ -342,7 +437,8 @@ function F240Register() {
 }
 
 /* ---------------- Tab: Asumsi Risiko ---------------- */
-function F240Assumptions() {
+function F240Assumptions({ overrideProc, setOverride, locked }: { overrideProc: OverrideProc[]; setOverride: (fn: (l: OverrideProc[]) => OverrideProc[]) => void; locked: boolean }) {
+  const toggleDone = (idx: number) => { if (locked) return; setOverride(l => l.map((p, i) => i === idx ? { ...p, done: !p.done } : p)); };
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -382,8 +478,8 @@ function F240Assumptions() {
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Prosedur Wajib (¶32)</div>
-            {OVERRIDE_PROC.map((p, i) => (
-              <div key={i} className="row gap10" style={{ padding: '9px 0', alignItems: 'flex-start', borderBottom: i < OVERRIDE_PROC.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+            {overrideProc.map((p, i) => (
+              <div key={i} onClick={() => toggleDone(i)} className="row gap10" style={{ padding: '9px 0', alignItems: 'flex-start', borderBottom: i < overrideProc.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: locked ? 'default' : 'pointer' }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: p.done ? 'var(--green)' : 'var(--amber)' }}>{p.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12, lineHeight: 1.4 }}>{p.t}</div>
@@ -391,7 +487,7 @@ function F240Assumptions() {
                 </div>
               </div>
             ))}
-            <Btn sm variant="primary" style={{ width: '100%', marginTop: 12 }}><I.flask size={14} /> Buka Journal Entry Testing</Btn>
+            <div className="tiny muted" style={{ marginTop: 8 }}>{locked ? 'Read-only (arsip).' : 'Klik prosedur untuk tandai selesai (tersimpan).'}</div>
           </div>
         </Panel>
       </div>
@@ -545,20 +641,7 @@ function F240Comms({ client }: any) {
             <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 11.5, fontWeight: 600 }}>2 eksepsi JET dalam investigasi — simpulan opini menunggu penyelesaian.</span></div>
           </div>
         </Panel>
-        <Panel title="Sign-off">
-          <div style={{ display: 'grid', gap: 9 }}>
-            {[
-              { role: 'Disiapkan', who: 'Putri Maharani', when: '08 Mar', done: true },
-              { role: 'Direview', who: 'Anindya Pramesti', when: '—', done: false },
-              { role: 'Disetujui Partner', who: 'Hartono Wijaya', when: '—', done: false },
-            ].map((s, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, paddingBottom: 8, borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
-                <div><div className="tiny muted upper">{s.role}</div><div style={{ fontWeight: 600 }}>{s.who}</div></div>
-                {s.done ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> {s.when}</span> : <Badge kind="amber">Menunggu</Badge>}
-              </div>
-            ))}
-          </div>
-        </Panel>
+        <WpPanel moduleId="sa240" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 240/230)" />
       </div>
     </div>
   );
