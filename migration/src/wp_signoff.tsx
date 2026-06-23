@@ -86,6 +86,9 @@ const WP_MODULE_MAP = {
      scoped (persist di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
   sa260:        { ref: 'sa260',        requiredEvidence: ['Laporan/komunikasi tertulis kepada TCWG (SA 260 ¶16)', 'Risalah/notulen komunikasi dua arah dengan TCWG', 'Matriks hal wajib dikomunikasikan (¶14–17)'] },
   sa265:        { ref: 'sa265',        requiredEvidence: ['Surat komunikasi defisiensi signifikan kepada TCWG (SA 265 ¶9)', 'Register defisiensi & klasifikasi (signifikan/biasa)', 'Komunikasi defisiensi lain kepada manajemen (¶10)'] },
+  /* SA 402 — organisasi jasa. Register organisasi jasa engagement-scoped (persist
+     di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
+  serviceorg:   { ref: 'serviceorg',   requiredEvidence: ['Laporan auditor jasa (Type 1/2 · ISAE 3402/SOC 1)', 'Evaluasi auditor jasa & matriks CUEC', 'Prosedur atas pengecualian/gap/tanpa-laporan (SA 402)'] },
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
