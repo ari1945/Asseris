@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
@@ -267,6 +267,8 @@ function SkpForm({ staff, onClose, onAdd }: any) {
 /* ---------------- Independence & Rotation ---------------- */
 function Independence() {
   const nav = useNav();
+  const auth = useAuth();
+  const me: string = (auth && auth.user && auth.user.name) || 'Auditor';
   const [data, setData] = useAmsPersist('independence', () => AMS.INDEPENDENCE);
   const declared = data.filter((d: any) => d.declared).length;
   const conflicts = data.reduce((s: any, d: any) => s + d.conflicts, 0);
@@ -274,7 +276,28 @@ function Independence() {
   const rotationWarn = data.filter((d: any) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
   const toggle = (id: any) => setData((list: any) => list.map((d: any) => d.id === id ? { ...d, declared: !d.declared } : d));
   const [sel, setSel] = useStateE(null);
+  /* indepAppr: per-orang jejak persetujuan. Bentuk lama = number (level saja);
+     bentuk baru = { level, steps:[{by,at}], period } agar AUDITABLE (siapa &
+     kapan tiap lapis: self → reviu manajer etika → persetujuan partner). */
   const [appr, setAppr] = useAmsPersist('indepAppr', {});
+  const indepToday = (() => { try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return ''; } })();
+  const lvlOf = (d: { id: string; declared: boolean }): number => {
+    const a = (appr as Record<string, unknown>)[d.id];
+    if (a == null) return d.declared ? 3 : 0;
+    return typeof a === 'number' ? a : (((a as { level?: number }).level) ?? 0);
+  };
+  const recOf = (id: string): { level: number; steps: Array<{ by: string; at: string } | undefined>; period: string } => {
+    const a = (appr as Record<string, unknown>)[id];
+    if (a && typeof a === 'object') return a as { level: number; steps: Array<{ by: string; at: string } | undefined>; period: string };
+    return { level: typeof a === 'number' ? a : 0, steps: [], period: INDEP_PERIOD };
+  };
+  const setApprove = (id: string, n: number) => setAppr((a: Record<string, unknown>) => {
+    const cur = a[id] as { steps?: Array<{ by: string; at: string } | undefined> } | number | undefined;
+    if (n === 0) return { ...a, [id]: { level: 0, steps: [], period: INDEP_PERIOD } };
+    const steps = (cur && typeof cur === 'object' && Array.isArray(cur.steps)) ? cur.steps.slice() : [];
+    steps[n - 1] = { by: me, at: indepToday };
+    return { ...a, [id]: { level: n, steps, period: INDEP_PERIOD } };
+  });
   const curr = sel ? data.find((d: any) => d.id === sel) : null;
   const [itab, setItab] = useStateE('rotasi');
   const itabs = [{ id: 'rotasi', label: 'Deklarasi & Rotasi' }, { id: 'fee', label: 'Ketergantungan Imbalan' }, { id: 'nas', label: 'Pra-Persetujuan NAS' }, { id: 'longassoc', label: 'Asosiasi Jangka Panjang' }];
@@ -309,7 +332,7 @@ function Independence() {
               {data.map((d: any) => {
                 const rotPct = d.tenure / d.rotationLimit * 100;
                 const rotCol = d.tenure >= d.rotationLimit ? 'var(--red)' : d.tenure >= d.rotationLimit - 1 ? 'var(--amber)' : 'var(--green)';
-                const lvl = appr[d.id] != null ? appr[d.id] : (d.declared ? 3 : 0);
+                const lvl = lvlOf(d);
                 const STEPS = ['Belum', 'Diajukan', 'Direviu', 'Disetujui'];
                 return (
                   <tr key={d.id} className={d.id === sel ? 'sel' : ''} onClick={() => setSel(d.id)} style={{ cursor: 'pointer' }}>
@@ -335,11 +358,14 @@ function Independence() {
         <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Ambang rotasi AP terdiferensiasi per rezim: <b>5 tahun</b> berturut-turut untuk entitas kepentingan publik (PIE) umum (PP 20/2015 Ps. 11) dan <b>3 tahun</b> untuk entitas <b>sektor jasa keuangan</b> — bank, asuransi, pembiayaan (POJK 13/POJK.03/2017). Cooling-off minimal <b>2 tahun</b>; KAP tidak dibatasi. Dimensi etika lain (ketergantungan imbalan, pra-persetujuan NAS, asosiasi jangka panjang) dipantau pada tab terpisah.</div>
         </>)}
       </div></div>
-      {curr && <IndepDrawer d={curr} lvl={appr[curr.id] != null ? appr[curr.id] : (curr.declared ? 3 : 0)} onApprove={(n: any) => setAppr((a: any) => ({ ...a, [curr.id]: n }))} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
+      {curr && <IndepDrawer d={curr} lvl={lvlOf(curr)} rec={recOf(curr.id)} period={INDEP_PERIOD} onApprove={(n: any) => setApprove(curr.id, n)} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
     </>
   );
 }
 
+/* Periode deklarasi independensi berjalan (tahun audit). Sumber tunggal label
+   periode untuk register & drawer; jejak persetujuan distempel periode ini. */
+const INDEP_PERIOD = 'TA 2026';
 const INDEP_Q = [
   'Tidak memiliki kepentingan keuangan langsung/tidak langsung yang material pada klien.',
   'Tidak ada hubungan keluarga dekat pada posisi kunci di klien.',
@@ -354,13 +380,15 @@ const INDEP_CHAIN = [
   { role: 'Persetujuan Ethics & Independence Partner', who: 'Sari Dewanti, CPA' },
 ];
 
-function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }: any) {
+function IndepDrawer({ d, lvl, rec, period, onApprove, onDeclare, onClose }: any) {
+  const steps = (rec && rec.steps) || [];
+  const per = period || INDEP_PERIOD;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={d.name} size={42} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · TA 2026</div></div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · {per}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
@@ -399,13 +427,13 @@ function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }: any) {
                         <I.check size={12} /> {i === 0 ? 'Tandatangani & Ajukan' : i === 1 ? 'Reviu & Teruskan' : 'Setujui Final'}
                       </Btn>
                     )}
-                    {done && <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, marginTop: 2 }}>✓ Selesai</div>}
+                    {done && <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, marginTop: 2 }}>✓ {steps[i] ? steps[i].by + ' · ' + steps[i].at : 'Selesai'}</div>}
                   </div>
                 </div>
               );
             })}
           </div>
-          {lvl >= 3 && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh & terarsip untuk TA 2026.</div></div>}
+          {lvl >= 3 && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh & terarsip untuk {per}.</div></div>}
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
           {lvl > 0 && <Btn style={{ flex: 1 }} onClick={() => onApprove(0)}><I.sync size={13} /> Reset</Btn>}
