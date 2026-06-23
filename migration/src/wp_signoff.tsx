@@ -79,6 +79,9 @@ const WP_MODULE_MAP = {
      engagement-scoped + keputusan jenjang pelaporan dipersist di view; lapisan
      ini menambah sign-off + bukti + kesimpulan SA 230 via SubBar global. */
   sa250:        { ref: 'sa250',        requiredEvidence: ['Memo pertimbangan hukum & regulasi (NOCLAR, SA 250)', 'Notulen diskusi manajemen/penasihat hukum atas ketidakpatuhan', 'Representasi tertulis ketidakpatuhan (SA 250 ¶16)'] },
+  /* SA 620 — penggunaan pekerjaan pakar auditor. Register pakar engagement-scoped
+     (persist di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
+  expert:       { ref: 'expert',       requiredEvidence: ['Laporan/kertas kerja pakar & dasar simpulan', 'Evaluasi kompetensi, kapabilitas & objektivitas pakar (SA 620 ¶9)', 'Evaluasi kecukupan pekerjaan pakar untuk tujuan audit (¶12)'] },
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },

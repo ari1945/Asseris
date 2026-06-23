@@ -1,10 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { AMS } from './data';
+import { useAmsPersist, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — Core Specifics: Internal Audit (610), Use of Expert (620),
@@ -184,6 +187,42 @@ const EXPERTS_SEED = [
   },
 ];
 
+/* ---- model pakar ter-persist engagement-scoped (Fase 2/3) ---- */
+type ExpSub = { t: string; ok: boolean; note?: string };
+type ExpFactor = { id: string; k: string; ref: string; v: number; note?: string; subs: ExpSub[] };
+type ExpEvalDim = { status: string; note: string };
+type ExpAssumption = { key: string; expertVal: string; benchmark: string; assess: string };
+type ExpWorkEvalT = { findings: ExpEvalDim; methods: ExpEvalDim; data: ExpEvalDim; adequacy: string; assumptions: ExpAssumption[] };
+type ExpertRow = {
+  id: string; name: string; firm: string; field: string; type: string;
+  account: string; amount: string; assertion: string; frf: string; risk: string; wp: string;
+  factors: ExpFactor[];
+  understanding: { nature: string; standards: string; methods: string; data: string };
+  agreement: { dim: string; ref: string; ok: boolean }[];
+  workEval: ExpWorkEvalT;
+  conclusion?: { text: string; by: string; at: string };
+};
+
+function nextExId(list: ExpertRow[]) {
+  const n = list.reduce((mx, e) => { const m = /EX-(\d+)/.exec(e.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'EX-' + String(n + 1).padStart(2, '0');
+}
+function blankExpert(id: string): ExpertRow {
+  const mkF = (fid: string, k: string, ref: string): ExpFactor => ({ id: fid, k, ref, v: 3, note: '', subs: [] });
+  return {
+    id, name: 'Pakar baru', firm: '', field: 'Bidang keahlian', type: 'Pakar Manajemen',
+    account: '', amount: '', assertion: '', frf: '', risk: 'Moderat', wp: '',
+    factors: [mkF('comp', 'Kompetensi', '¶A14–A20'), mkF('cap', 'Kapabilitas', '¶A14–A20'), mkF('obj', 'Objektivitas', '¶A21–A22')],
+    understanding: { nature: '', standards: '', methods: '', data: '' },
+    agreement: [],
+    workEval: { findings: { status: 'Proses', note: '' }, methods: { status: 'Proses', note: '' }, data: { status: 'Proses', note: '' }, adequacy: 'Dalam Proses', assumptions: [] },
+  };
+}
+function expToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+
 /* adequacy → badge kind */
 function adqKind(a: any) {
   return a === 'Memadai' ? 'green' : a === 'Memadai dengan catatan' ? 'amber'
@@ -211,7 +250,10 @@ function verdictForAvg(avg: any) {
 function UseOfExpert() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const [experts, setExperts] = useStateSP2(EXPERTS_SEED);
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
+  const [experts, setExperts] = useAmsPersist('experts.' + engId, () => EXPERTS_SEED);
   const [selId, setSelId] = useStateSP2('EX-01');
   const [tab, setTab] = useStateSP2('konteks');
   const sel = experts.find((e: any) => e.id === selId);
@@ -222,6 +264,29 @@ function UseOfExpert() {
   const avgOf = (e: any) => e.factors.reduce((s: any, f: any) => s + f.v, 0) / e.factors.length;
   const selAvg = sel ? avgOf(sel) : 0;
   const selVerdict = verdictForAvg(selAvg);
+
+  const addExpert = () => {
+    const id = nextExId(experts);
+    setExperts([blankExpert(id), ...experts]);
+    setSelId(id);
+    setTab('evaluasi');
+  };
+  const exportMemo = () => {
+    const exps: ExpertRow[] = experts;
+    const rows = exps.map(e => [e.id, e.type.replace('Pakar ', ''), e.field, e.account || '—', e.amount || '—', avgOf(e).toFixed(1) + '/5', (e.workEval && e.workEval.adequacy) || '—']);
+    amsExportPdf({
+      kind: 'memo-expert', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string })?.name || 'KAP', title: 'Memo Penggunaan Pekerjaan Pakar (SA 620)',
+      refNo: 'A-620 · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 620 — Penggunaan Pekerjaan Pakar Auditor', 'Dibuat: ' + expToday()],
+      blocks: [
+        { type: 'heading', text: 'Register Pakar & Evaluasi' },
+        { type: 'table', head: ['Ref', 'Tipe', 'Bidang', 'Akun', 'Nilai', 'Skor ¶9', 'Kecukupan ¶12'],
+          body: rows.length ? rows : [['—', '—', '—', '—', '—', '—', '—']], columnStyles: { 2: { cellWidth: 110 } } },
+        { type: 'para', text: 'Auditor mengevaluasi kompetensi, kapabilitas & objektivitas pakar (¶9), menyepakati lingkup pekerjaan (¶11), serta mengevaluasi kecukupan pekerjaan pakar untuk tujuan audit (¶12). Tanggung jawab auditor atas opini tidak berkurang oleh penggunaan pekerjaan pakar (¶14–15).' },
+      ],
+    }).catch(() => {});
+  };
 
   const tabs = [
     { id: 'konteks', label: 'Konteks & Kebutuhan' },
@@ -238,8 +303,8 @@ function UseOfExpert() {
       <SubBar moduleId="expert" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 620</Badge>
-          <Btn sm><I.download size={13} /> Memo Penggunaan Pakar</Btn>
-          <Btn sm variant="primary"><I.plus size={14} /> Tambah Pakar</Btn>
+          <Btn sm onClick={exportMemo}><I.download size={13} /> Memo Penggunaan Pakar</Btn>
+          {!locked && <Btn sm variant="primary" onClick={addExpert}><I.plus size={14} /> Tambah Pakar</Btn>}
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -672,6 +737,11 @@ function ExpWorkEval({ exp }: any) {
 
 /* ---------------- Tab: Kesimpulan & Pelaporan (¶14–15) ---------------- */
 function ExpConclusion({ experts, avgOf }: any) {
+  const exps: ExpertRow[] = experts;
+  const total = exps.length;
+  const inProcess = exps.filter(e => (e.workEval && e.workEval.adequacy) === 'Dalam Proses');
+  const adequate = exps.filter(e => /^memadai/i.test((e.workEval && e.workEval.adequacy) || ''));
+  const mgmtCount = exps.filter(e => e.type === 'Pakar Manajemen').length;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -703,16 +773,21 @@ function ExpConclusion({ experts, avgOf }: any) {
           </div>
         </Panel>
 
-        <Panel title="Kesimpulan Auditor (SA 620)">
+        <Panel title="Ringkasan Penggunaan Pakar (SA 620)">
           <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.6 }}>
-            Auditor menggunakan pekerjaan <b>{experts.length} pakar</b> atas area yang memerlukan keahlian khusus.
-            Kompetensi & kapabilitas seluruh pakar dinilai <b>memadai</b>; objektivitas <b>pakar manajemen</b> diimbangi
-            dengan pengujian independen atas asumsi & data sumber. Pekerjaan pakar atas imbalan kerja & properti dinilai
-            <b> memadai</b> (dengan catatan asumsi gaji yang ditantang), sementara valuasi derivatif <b>masih dalam proses</b>
-            evaluasi. <b>Tanggung jawab auditor atas opini tidak berkurang</b> oleh penggunaan pekerjaan pakar.
+            Auditor menggunakan pekerjaan <b>{total} pakar</b> atas area yang memerlukan keahlian khusus.
+            {' '}<b>{adequate.length}</b> dinilai kecukupannya <b>memadai</b> (¶12);
+            {mgmtCount > 0 && <> objektivitas <b>{mgmtCount} pakar manajemen</b> diimbangi pengujian independen atas asumsi & data sumber;</>}
+            {' '}<b>tanggung jawab auditor atas opini tidak berkurang</b> oleh penggunaan pekerjaan pakar.
+            {' '}Kesimpulan auditor (SA 230) & rantai sign-off direkam di panel <b>Kertas Kerja</b> di samping.
           </p>
-          <div className="panel" style={{ padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={16} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>1 evaluasi pakar masih berjalan (EX-03) — selesaikan sebelum penandatanganan opini.</span></div>
+          <div className="panel" style={{ padding: '10px 12px', background: inProcess.length ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
+            <div className="row ac gap8">
+              <span style={{ color: inProcess.length ? 'var(--amber)' : 'var(--green)' }}>{inProcess.length ? <I.clock size={16} /> : <I.checkCircle size={16} />}</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>{inProcess.length
+                ? inProcess.length + ' evaluasi pakar masih berjalan (' + inProcess.map(e => e.id).join(', ') + ') — selesaikan sebelum penandatanganan opini.'
+                : 'Seluruh evaluasi pakar telah selesai.'}</span>
+            </div>
           </div>
         </Panel>
       </div>
@@ -733,20 +808,7 @@ function ExpConclusion({ experts, avgOf }: any) {
             ))}
           </div>
         </Panel>
-        <Panel title="Sign-off">
-          <div style={{ display: 'grid', gap: 9 }}>
-            {[
-              { role: 'Disiapkan', who: 'Dimas Raharjo', when: '06 Mar', done: true },
-              { role: 'Direview', who: 'Anindya Pramesti', when: '08 Mar', done: true },
-              { role: 'Disetujui Partner', who: 'Hartono Wijaya', when: '—', done: false },
-            ].map((s, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 12, paddingBottom: 8, borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
-                <div><div className="tiny muted upper">{s.role}</div><div style={{ fontWeight: 600 }}>{s.who}</div></div>
-                {s.done ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> {s.when}</span> : <Badge kind="amber">Menunggu</Badge>}
-              </div>
-            ))}
-          </div>
-        </Panel>
+        <WpPanel moduleId="expert" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan" />
       </div>
     </div>
   );
