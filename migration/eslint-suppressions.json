@@ -1046,7 +1046,7 @@
   },
   "src/view_serviceorg.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 16
+      "count": 11
     }
   },
   "src/view_settings.tsx": {
