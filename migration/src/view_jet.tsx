@@ -1,49 +1,82 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
 import { AiInsightPanel } from './ai_insights';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { AMS_FORENSIC } from './forensic_canon';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — Journal Entry Testing (SA 240 / JET Tool)
+   Pengujian jurnal terikat populasi forensik kanonik (AMS_FORENSIC):
+   kriteria risiko, ambang, dan disposisi uji per-jurnal di-persist
+   engagement-scoped; sign-off & kesimpulan via WpPanel (SA 230).
    ============================================================ */
-const { useState: useStateJ, useMemo: useMemoJ } = React;
+const { useState: useStateJ } = React;
 
 /* Kriteria & populasi jurnal ditarik dari sumber kanonik bersama
    (AMS_FORENSIC) — populasi yang SAMA dipakai Forensic Cash Flow. */
 const JET_CRITERIA = (AMS_FORENSIC && AMS_FORENSIC.JET_CRITERIA) || [];
 const JE_POP = (AMS_FORENSIC && AMS_FORENSIC.JOURNAL_POP) || [];
 
+/* ---- model JET ter-persist engagement-scoped (SA 240 ¶32) ---- */
+type JetStatus = 'clear' | 'exception';
+type JetTest = { status: JetStatus; note?: string; by?: string; at?: string };
+type JetState = { activeCrit: string[]; minAmt: number; tested: Record<string, JetTest> };
+/* tipe struktural minimal event input — hindari explicit-any (ratchet) */
+type Ev = { target: { value: string } };
+
+const JET_SEED: JetState = {
+  activeCrit: JET_CRITERIA.filter(c => c.on).map(c => c.id),
+  minAmt: 0,
+  tested: {},
+};
+
+function jetToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+
 function JournalEntryTesting() {
   const { fmt } = AMS;
-  const [crit, setCrit] = useStateJ(JET_CRITERIA);
+  const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
+  const locked = !!(firm && firm.locked);
+
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'jet.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [jet, setJet] = useAmsPersist('jet.v1', () => JET_SEED);
+  const active: string[] = (jet && jet.activeCrit) || [];
+  const minAmt: number = (jet && typeof jet.minAmt === 'number') ? jet.minAmt : 0;
+  const tested: Record<string, JetTest> = (jet && jet.tested) || {};
+
   const [selId, setSelId] = useStateJ('JV-24-08841');
-  const [tested, setTested] = useStateJ({});
-  const [minAmt, setMinAmt] = useStateJ(0);
 
-  const active = crit.filter((c: any) => c.on).map((c: any) => c.id);
-  const toggleCrit = (id: any) => setCrit((cs: any) => cs.map((c: any) => c.id === id ? { ...c, on: !c.on } : c));
+  const crit = JET_CRITERIA.map(c => ({ ...c, on: active.includes(c.id) }));
+  const toggleCrit = (id: string) => { if (locked) return; setJet((s: JetState) => { const has = (s.activeCrit || []).includes(id); return { ...s, activeCrit: has ? s.activeCrit.filter(x => x !== id) : [...s.activeCrit, id] }; }); };
+  const setMinAmt = (v: number) => { if (locked) return; setJet((s: JetState) => ({ ...s, minAmt: v })); };
+  const setTest = (id: string, status: JetStatus) => { if (locked) return; setJet((s: JetState) => ({ ...s, tested: { ...s.tested, [id]: { ...(s.tested[id] || {}), status, by: me, at: jetToday() } } })); };
+  const setNote = (id: string, note: string) => { if (locked) return; setJet((s: JetState) => ({ ...s, tested: { ...s.tested, [id]: { ...(s.tested[id] || { status: 'exception' as JetStatus }), note, by: me, at: jetToday() } } })); };
 
-  const scored = JE_POP.map(je => {
-    const hit = (je.flags || []).filter((f: any) => active.includes(f));
-    return { ...je, hit, score: hit.length };
-  });
+  /* skoring kriteria via canon bersama (SSOT) — populasi & kriteria SAMA dgn Forensic */
+  const scored = AMS_FORENSIC.score(JE_POP, active);
   const flagged = scored.filter(j => j.score > 0 && j.amount >= minAmt).sort((a, b) => b.score - a.score);
   const sel = scored.find(j => j.id === selId) || flagged[0];
 
   // user stratification
-  const byUser: any = {};
+  const byUser: Record<string, number> = {};
   JE_POP.forEach(j => { byUser[j.user] = (byUser[j.user] || 0) + 1; });
-  const userStrat: any[] = Object.entries(byUser).sort((a: any, b: any) => b[1] - a[1]);
-  const maxUser = Math.max(...userStrat.map((u: any) => u[1]));
+  const userStrat = Object.entries(byUser).sort((a, b) => b[1] - a[1]);
+  const maxUser = Math.max(...userStrat.map(u => u[1]));
 
   const totalJE = 18452, manualJE = 1240;
-  const exceptions = Object.values(tested).filter(v => v === 'exception').length;
-  const critLabel = (id: any) => JET_CRITERIA.find(c => c.id === id)?.label || id;
+  const exceptions = Object.values(tested).filter(t => t && t.status === 'exception').length;
+  const critLabel = (id: string) => JET_CRITERIA.find(c => c.id === id)?.label || id;
 
   const funnel = [
     { l: 'Total Jurnal', v: totalJE, c: '#024661' },
@@ -57,8 +90,9 @@ function JournalEntryTesting() {
       <SubBar moduleId="jet" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 240 · ¶32</Badge>
-          <Btn sm><I.upload size={13} /> Import GL</Btn>
-          <Btn sm variant="primary"><I.flask size={14} /> Jalankan Pengujian</Btn>
+          {locked && <Badge kind="gray">Terkunci</Badge>}
+          <Btn sm disabled={locked}><I.upload size={13} /> Import GL</Btn>
+          <Btn sm variant="primary" disabled={locked}><I.flask size={14} /> Jalankan Pengujian</Btn>
         </div>
       } />
       <div className="view-scroll">
@@ -95,7 +129,7 @@ function JournalEntryTesting() {
                 </div>
                 <div className="divider" />
                 <div className="row jb ac" style={{ marginBottom: 5 }}><span style={{ fontSize: 11.5, fontWeight: 600 }}>Ambang nilai minimum</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(minAmt / 1e6, 0)} jt</span></div>
-                <input type="range" min="0" max="2000000000" step="50000000" value={minAmt} onChange={(e: any) => setMinAmt(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+                <input type="range" min="0" max="2000000000" step="50000000" value={minAmt} disabled={locked} onChange={(e: Ev) => setMinAmt(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
               </Panel>
               <Panel title="Stratifikasi per User" sub="frekuensi posting">
                 <div style={{ display: 'grid', gap: 7 }}>
@@ -129,8 +163,8 @@ function JournalEntryTesting() {
                           <span style={{ display: 'inline-grid', placeItems: 'center', width: 22, height: 22, borderRadius: 5, fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 11, color: '#fff', background: j.score >= 4 ? 'var(--red)' : j.score >= 2 ? 'var(--amber)' : 'var(--green)' }}>{j.score}</span>
                         </td>
                         <td>
-                          {tested[j.id] === 'clear' ? <Badge kind="green">Clear</Badge>
-                            : tested[j.id] === 'exception' ? <Badge kind="red">Eksepsi</Badge>
+                          {tested[j.id]?.status === 'clear' ? <Badge kind="green">Clear</Badge>
+                            : tested[j.id]?.status === 'exception' ? <Badge kind="red">Eksepsi</Badge>
                             : <Badge kind="gray">Belum diuji</Badge>}
                         </td>
                       </tr>
@@ -168,15 +202,26 @@ function JournalEntryTesting() {
                         </div>
                         <div className="tiny muted upper" style={{ marginBottom: 6 }}>Konklusi Pengujian</div>
                         <div className="row gap8">
-                          <Btn sm variant="primary" onClick={() => setTested((t: any) => ({ ...t, [sel.id]: 'clear' }))}><I.check size={14} /> Tandai Clear</Btn>
-                          <Btn sm onClick={() => setTested((t: any) => ({ ...t, [sel.id]: 'exception' }))} style={{ color: 'var(--red)', borderColor: 'var(--red)' }}><I.alert size={14} /> Eksepsi</Btn>
+                          <Btn sm variant={tested[sel.id]?.status === 'clear' ? 'primary' : undefined} disabled={locked} onClick={() => setTest(sel.id, 'clear')}><I.check size={14} /> Tandai Clear</Btn>
+                          <Btn sm disabled={locked} onClick={() => setTest(sel.id, 'exception')} style={{ color: 'var(--red)', borderColor: 'var(--red)', background: tested[sel.id]?.status === 'exception' ? 'var(--red-bg)' : undefined }}><I.alert size={14} /> Eksepsi</Btn>
                         </div>
+                        {tested[sel.id]?.status === 'exception' && (
+                          <div style={{ marginTop: 10 }}>
+                            <div className="tiny muted upper" style={{ marginBottom: 5 }}>Tindak Lanjut Jurnal Anomali</div>
+                            <textarea className="input" rows={2} disabled={locked} value={tested[sel.id]?.note || ''} placeholder="Sifat & sebab penyimpangan, dokumen pendukung, dampak ke SAD / area lain…" onChange={(e: Ev) => setNote(sel.id, e.target.value)} style={{ width: '100%', resize: 'vertical', fontSize: 11.5, lineHeight: 1.45 }} />
+                          </div>
+                        )}
+                        {tested[sel.id]?.at && <div className="tiny muted" style={{ marginTop: 8 }}>Disimpan oleh <b>{tested[sel.id]?.by}</b> · {tested[sel.id]?.at}</div>}
                       </div>
                     </div>
                   </div>
                 </Panel>
               )}
             </div>
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <WpPanel moduleId="jet" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 240 / JET · SA 230)" />
           </div>
         </div>
       </div>
