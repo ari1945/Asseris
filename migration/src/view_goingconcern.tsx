@@ -1,15 +1,18 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Spark } from './ui';
 import { RowKv } from './view_calc';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — Going Concern (SA 570)
    ============================================================ */
-const { useState: useStateGC, useMemo: useMemoGC } = React;
+const { useMemo: useMemoGC } = React;
 
 const GC_RATIOS = [
   { id: 'cr',  label: 'Current Ratio',     value: 1.60, py: 1.82, unit: 'x',  good: (v: any) => v >= 1.2, warn: (v: any) => v >= 1.0, trend: [2.1, 1.95, 1.82, 1.71, 1.60], hint: 'Aset Lancar ÷ Liabilitas Jk. Pendek' },
@@ -20,7 +23,7 @@ const GC_RATIOS = [
   { id: 'wc',  label: 'Modal Kerja',        value: 57.1, py: 64.8, unit: ' M', good: (v: any) => v > 0, warn: (v: any) => v > 0, trend: [78, 71, 64.8, 60.5, 57.1], hint: 'Aset Lancar − Liab. Jk. Pendek (Rp M)' },
 ];
 
-const GC_INDICATORS: any = {
+const GC_INDICATORS: GCIndicators = {
   Keuangan: [
     { id: 'k1', label: 'Posisi liabilitas lancar bersih (net current liability)', on: false },
     { id: 'k2', label: 'Arus kas operasi negatif', on: false },
@@ -42,39 +45,103 @@ const GC_INDICATORS: any = {
   ],
 };
 
+/* ---- model going concern substantif ter-persist engagement-scoped (SA-08) ---- */
+type GCIndicator = { id: string; label: string; on: boolean };
+type GCIndicators = Record<string, GCIndicator[]>;
+type DebtMaturity = { month: number; amount: number };
+type GCAssumptions = { openingCash: number; baseInflow: number; baseOutflow: number; debtMonths: DebtMaturity[] };
+type GCScenario = { revShock: number; costCut: number; financing: boolean };
+type Covenant = { id: string; name: string; metric: string; threshold: number; actual: number; dir: '≥' | '≤'; by?: string; at?: string };
+type Mitigation = { id: string; plan: string; type: string; feasibility: string; evidence: boolean; note: string; by?: string; at?: string };
+type GCState = { assumptions: GCAssumptions; scenario: GCScenario; indicators: GCIndicators; covenants: Covenant[]; mitigations: Mitigation[] };
+/* tipe struktural minimal event input — hindari explicit-any (ratchet) */
+type Ev = { target: { value: string } };
+
+const MITI_FEAS = ['Tinggi', 'Sedang', 'Rendah'];
+
+const GC_COVENANTS_SEED: Covenant[] = [
+  { id: 'CV-01', name: 'Debt Service Coverage Ratio', metric: 'DSCR', threshold: 1.20, actual: 1.34, dir: '≥' },
+  { id: 'CV-02', name: 'Maksimum Debt-to-EBITDA', metric: 'Debt/EBITDA', threshold: 3.50, actual: 3.62, dir: '≤' },
+  { id: 'CV-03', name: 'Minimum Current Ratio (bank covenant)', metric: 'Current Ratio', threshold: 1.25, actual: 1.60, dir: '≥' },
+];
+
+const GC_MITIGATIONS_SEED: Mitigation[] = [
+  { id: 'MT-01', plan: 'Refinancing fasilitas jatuh tempo Jun & Des (term sheet bank)', type: 'Pendanaan', feasibility: 'Tinggi', evidence: true, note: 'Term sheet indikatif diterima; due diligence bank berjalan.' },
+  { id: 'MT-02', plan: 'Program efisiensi biaya operasi 8% (opex)', type: 'Operasional', feasibility: 'Sedang', evidence: false, note: 'Rencana manajemen; realisasi penghematan belum terbukti.' },
+  { id: 'MT-03', plan: 'Divestasi aset non-inti untuk likuiditas', type: 'Aset', feasibility: 'Rendah', evidence: false, note: 'Masih kajian; belum ada komitmen pembeli.' },
+];
+
+const GC_SEED: GCState = {
+  assumptions: { openingCash: 21.9, baseInflow: 28.5, baseOutflow: 26.8, debtMonths: [{ month: 5, amount: 8.0 }, { month: 11, amount: 8.0 }] },
+  scenario: { revShock: 0, costCut: 0, financing: true },
+  indicators: GC_INDICATORS,
+  covenants: GC_COVENANTS_SEED,
+  mitigations: GC_MITIGATIONS_SEED,
+};
+
+function gcToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+function nextCovId(list: Covenant[]) {
+  const n = list.reduce((mx, c) => { const m = /CV-(\d+)/.exec(c.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'CV-' + String(n + 1).padStart(2, '0');
+}
+function nextMitiId(list: Mitigation[]) {
+  const n = list.reduce((mx, c) => { const m = /MT-(\d+)/.exec(c.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'MT-' + String(n + 1).padStart(2, '0');
+}
+function covBreached(c: Covenant) { return c.dir === '≥' ? c.actual < c.threshold : c.actual > c.threshold; }
+
 function GoingConcern() {
   const { fmt } = AMS;
-  const [inds, setInds] = useStateGC(GC_INDICATORS);
-  const [revShock, setRevShock] = useStateGC(0);      // % revenue decline
-  const [costCut, setCostCut] = useStateGC(0);         // % opex reduction (mitigation)
-  const [financing, setFinancing] = useStateGC(true);  // refinancing available
-  const toggle = (cat: any, id: any) => setInds((s: any) => ({ ...s, [cat]: s[cat].map((i: any) => i.id === id ? { ...i, on: !i.on } : i) }));
+  const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
+  const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
+  const [gc, setGc] = useAmsPersist('goingconcern.' + engId, () => GC_SEED);
+  const assumptions: GCAssumptions = (gc && gc.assumptions) || GC_SEED.assumptions;
+  const scenario: GCScenario = (gc && gc.scenario) || GC_SEED.scenario;
+  const inds: GCIndicators = (gc && gc.indicators) || GC_SEED.indicators;
+  const covenants: Covenant[] = (gc && gc.covenants) || [];
+  const mitigations: Mitigation[] = (gc && gc.mitigations) || [];
+  const { revShock, costCut, financing } = scenario;
 
-  /* 12-month cash projection (Rp miliar) */
+  const setScenario = (patch: Partial<GCScenario>) => { if (locked) return; setGc((s: GCState) => ({ ...s, scenario: { ...s.scenario, ...patch } })); };
+  const setAssumption = (patch: Partial<GCAssumptions>) => { if (locked) return; setGc((s: GCState) => ({ ...s, assumptions: { ...s.assumptions, ...patch } })); };
+  const setDebt = (i: number, patch: Partial<DebtMaturity>) => { if (locked) return; setGc((s: GCState) => ({ ...s, assumptions: { ...s.assumptions, debtMonths: s.assumptions.debtMonths.map((d, j) => j === i ? { ...d, ...patch } : d) } })); };
+  const toggle = (cat: string, id: string) => { if (locked) return; setGc((s: GCState) => ({ ...s, indicators: { ...s.indicators, [cat]: s.indicators[cat].map(it => it.id === id ? { ...it, on: !it.on } : it) } })); };
+  const setCovenants = (fn: (l: Covenant[]) => Covenant[]) => setGc((s: GCState) => ({ ...s, covenants: fn(s.covenants || []) }));
+  const setMitigations = (fn: (l: Mitigation[]) => Mitigation[]) => setGc((s: GCState) => ({ ...s, mitigations: fn(s.mitigations || []) }));
+
+  /* 12-month cash projection dari asumsi yang dapat diedit & tersimpan */
   const projection = useMemoGC(() => {
-    let bal = 21.9; // opening cash
-    const baseInflow = 28.5, baseOutflow = 26.8; // monthly avg
+    let bal = assumptions.openingCash;
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
     const rows = [];
     for (let i = 0; i < 12; i++) {
-      const inflow = baseInflow * (1 - revShock / 100);
-      const outflow = baseOutflow * (1 - costCut / 100);
-      // debt maturity bullet in Jun & Dec
-      const debt = (i === 5 || i === 11) ? (financing ? 0 : 8.0) : 0;
+      const inflow = assumptions.baseInflow * (1 - revShock / 100);
+      const outflow = assumptions.baseOutflow * (1 - costCut / 100);
+      const dm = assumptions.debtMonths.find(d => d.month === i);
+      const debt = dm ? (financing ? 0 : dm.amount) : 0;
       const net = inflow - outflow - debt;
       bal += net;
       rows.push({ m: months[i], inflow, outflow, debt, net, bal });
     }
     return rows;
-  }, [revShock, costCut, financing]);
+  }, [assumptions, revShock, costCut, financing]);
 
   const minBal = Math.min(...projection.map((r: any) => r.bal));
   const breach = projection.find((r: any) => r.bal < 0);
   const minBar = Math.max(...projection.map((r: any) => Math.abs(r.bal)), 5);
 
-  const triggered = Object.values(inds).flat().filter((i: any) => i.on).length;
+  const covBreaches = covenants.filter(covBreached).length;
+  const triggered = Object.values(inds).flat().filter((i) => i.on).length;
   const ratioFlags = GC_RATIOS.filter(r => !r.good(r.value)).length;
-  const score = triggered * 2 + ratioFlags;
+  const score = triggered * 2 + ratioFlags + covBreaches * 2;
   const level = score >= 8 ? { l: 'Material Uncertainty', k: 'red', txt: 'Terdapat ketidakpastian material atas kelangsungan usaha. Pertimbangkan paragraf "Material Uncertainty Related to Going Concern" pada laporan auditor (SA 570 ¶22).' }
     : score >= 4 ? { l: 'Elevated', k: 'amber', txt: 'Terdapat indikasi yang perlu dievaluasi lebih lanjut beserta rencana mitigasi manajemen. Dokumentasikan kesimpulan dan pengaruhnya terhadap opini.' }
     : { l: 'Low Risk', k: 'green', txt: 'Tidak terdapat ketidakpastian material. Penggunaan dasar kelangsungan usaha oleh manajemen dinilai tepat — opini standar (unmodified).' };
@@ -82,13 +149,33 @@ function GoingConcern() {
   // Altman Z proxy
   const z = (1.2 * 0.18 + 1.4 * 0.31 + 3.3 * 0.11 + 0.6 * 1.03 + 1.0 * 1.05).toFixed(2);
 
+  const exportMemo = () => {
+    const projRows = projection.map((r: any) => [r.m, r.inflow.toFixed(1), r.outflow.toFixed(1), r.debt ? r.debt.toFixed(1) : '—', r.bal.toFixed(1)]);
+    const covRows = covenants.map(c => [c.id, c.name, c.dir + ' ' + c.threshold.toFixed(2), c.actual.toFixed(2), covBreached(c) ? 'LANGGAR' : 'Patuh']);
+    const mitiRows = mitigations.map(m => [m.id, m.plan, m.type, m.feasibility, m.evidence ? 'Ya' : 'Belum']);
+    amsExportPdf({
+      kind: 'memo-goingconcern', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Penilaian Kelangsungan Usaha (SA 570)',
+      refNo: 'A-570 · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 570 — Going Concern · Penilaian: ' + level.l, 'Kas terendah 12 bln: Rp ' + minBal.toFixed(1) + ' M' + (breach ? ' · defisit ' + breach.m : ''), 'Dibuat: ' + gcToday() + ' · ' + me],
+      blocks: [
+        { type: 'para', text: level.txt },
+        { type: 'heading', text: 'Proyeksi Arus Kas 12 Bulan (Rp miliar)' },
+        { type: 'table', head: ['Bulan', 'Masuk', 'Keluar', 'Utang JT', 'Saldo'], body: projRows },
+        { type: 'heading', text: 'Uji Kepatuhan Covenant' },
+        { type: 'table', head: ['Ref', 'Covenant', 'Ambang', 'Aktual', 'Status'], body: covRows.length ? covRows : [['—', '—', '—', '—', '—']] },
+        { type: 'heading', text: 'Evaluasi Rencana Mitigasi Manajemen (SA 570 ¶16)' },
+        { type: 'table', head: ['Ref', 'Rencana', 'Jenis', 'Kelayakan', 'Berbukti'], body: mitiRows.length ? mitiRows : [['—', '—', '—', '—', '—']] },
+      ],
+    }).catch(() => {});
+  };
+
   return (
     <>
       <SubBar moduleId="goingconcern" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 570</Badge>
-          <Btn sm><I.download size={13} /> Memo Going Concern</Btn>
-          <Btn sm variant="primary"><I.check size={14} /> Simpulkan</Btn>
+          <Btn sm onClick={exportMemo}><I.download size={13} /> Memo Going Concern</Btn>
         </div>
       } />
       <div className="view-scroll">
@@ -101,7 +188,7 @@ function GoingConcern() {
                 <div className="row ac gap8" style={{ marginBottom: 4 }}>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>Penilaian Kelangsungan Usaha</span>
                   <Badge kind={level.k}>{level.l}</Badge>
-                  <span className="tiny muted">· {triggered} indikator aktif · {ratioFlags} rasio di bawah ambang</span>
+                  <span className="tiny muted">· {triggered} indikator aktif · {ratioFlags} rasio di bawah ambang{covBreaches ? ` · ${covBreaches} covenant dilanggar` : ''}</span>
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: 880 }}>{level.txt}</div>
               </div>
@@ -143,18 +230,35 @@ function GoingConcern() {
 
           {/* cash flow projection + stress test */}
           <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, marginBottom: 12, alignItems: 'start' }}>
-            <Panel title="Stress Test" sub="Skenario 12 bulan ke depan">
+            <Panel title="Asumsi & Stress Test" sub="Input klien · skenario 12 bulan">
+              <div className="tiny muted upper" style={{ marginBottom: 6 }}>Asumsi Proyeksi Arus Kas (Rp M)</div>
+              <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <div className="field"><label>Kas awal</label><input className="input mono" type="number" step="0.1" value={assumptions.openingCash} disabled={locked} onChange={(e: Ev) => setAssumption({ openingCash: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
+                <div className="field"><label>Arus masuk/bln</label><input className="input mono" type="number" step="0.1" value={assumptions.baseInflow} disabled={locked} onChange={(e: Ev) => setAssumption({ baseInflow: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
+                <div className="field"><label>Arus keluar/bln</label><input className="input mono" type="number" step="0.1" value={assumptions.baseOutflow} disabled={locked} onChange={(e: Ev) => setAssumption({ baseOutflow: +e.target.value })} style={{ height: 28, textAlign: 'right' }} /></div>
+                <div className="field"><label>Utang JT (Rp M)</label>
+                  <div style={{ display: 'grid', gap: 4 }}>
+                    {assumptions.debtMonths.map((d, i) => (
+                      <div key={i} className="row ac gap6">
+                        <span className="tiny muted" style={{ width: 30 }}>{['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'][d.month]}</span>
+                        <input className="input mono" type="number" step="0.1" value={d.amount} disabled={locked} onChange={(e: Ev) => setDebt(i, { amount: +e.target.value })} style={{ height: 26, textAlign: 'right', flex: 1 }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="divider" />
               <div style={{ marginBottom: 14 }}>
                 <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Penurunan Pendapatan</span><span className="mono" style={{ fontWeight: 700, color: revShock > 0 ? 'var(--red)' : 'var(--ink)' }}>−{revShock}%</span></div>
-                <input type="range" min="0" max="40" value={revShock} onChange={(e: any) => setRevShock(+e.target.value)} style={{ width: '100%', accentColor: 'var(--red)' }} />
+                <input type="range" min="0" max="40" value={revShock} disabled={locked} onChange={(e: Ev) => setScenario({ revShock: +e.target.value })} style={{ width: '100%', accentColor: 'var(--red)' }} />
               </div>
               <div style={{ marginBottom: 14 }}>
                 <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Efisiensi Biaya (mitigasi)</span><span className="mono" style={{ fontWeight: 700, color: costCut > 0 ? 'var(--green)' : 'var(--ink)' }}>−{costCut}%</span></div>
-                <input type="range" min="0" max="25" value={costCut} onChange={(e: any) => setCostCut(+e.target.value)} style={{ width: '100%', accentColor: 'var(--green)' }} />
+                <input type="range" min="0" max="25" value={costCut} disabled={locked} onChange={(e: Ev) => setScenario({ costCut: +e.target.value })} style={{ width: '100%', accentColor: 'var(--green)' }} />
               </div>
               <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12, marginBottom: 12 }}>
-                <span onClick={() => setFinancing((f: any) => !f)} style={{ width: 36, height: 20, borderRadius: 11, background: financing ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s', flex: '0 0 36px' }}><span style={{ position: 'absolute', top: 2, left: financing ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} /></span>
-                Refinancing utang tersedia (Jun & Des)
+                <span onClick={() => setScenario({ financing: !financing })} style={{ width: 36, height: 20, borderRadius: 11, background: financing ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s', flex: '0 0 36px' }}><span style={{ position: 'absolute', top: 2, left: financing ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} /></span>
+                Refinancing utang tersedia
               </label>
               <div className="divider" />
               <div style={{ display: 'grid', gap: 6 }}>
@@ -185,7 +289,7 @@ function GoingConcern() {
               <div style={{ display: 'flex', gap: 5, marginTop: 3 }}>
                 {projection.map((r: any, i: any) => <div key={i} style={{ flex: 1, textAlign: 'center' }} className="tiny muted">{r.m}</div>)}
               </div>
-              <div className="tiny muted" style={{ marginTop: 8 }}>Saldo kas akhir bulan proyeksi · jatuh tempo utang bullet Rp 8 M pada Jun & Des {financing ? '(di-refinancing)' : '(tanpa refinancing)'}.</div>
+              <div className="tiny muted" style={{ marginTop: 8 }}>Saldo kas akhir bulan proyeksi · {assumptions.debtMonths.length} jatuh tempo utang (Rp {fmt(assumptions.debtMonths.reduce((s, d) => s + d.amount, 0))} M total) {financing ? '— di-refinancing' : '— tanpa refinancing'}.</div>
             </Panel>
           </div>
 
@@ -207,9 +311,104 @@ function GoingConcern() {
               ))}
             </div>
           </Panel>
+
+          <GCCovenants covenants={covenants} setCovenants={setCovenants} me={me} locked={locked} />
+          <GCMitigations mitigations={mitigations} setMitigations={setMitigations} me={me} locked={locked} />
+
+          <div style={{ marginTop: 12 }}><WpPanel moduleId="goingconcern" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 570/230)" /></div>
         </div>
       </div>
     </>
+  );
+}
+
+/* ---------------- Register Covenant (SA 570 / SA-08) ---------------- */
+function GCCovenants({ covenants, setCovenants, me, locked }: { covenants: Covenant[]; setCovenants: (fn: (l: Covenant[]) => Covenant[]) => void; me: string; locked: boolean }) {
+  const patch = (id: string, p: Partial<Covenant>) => setCovenants(l => l.map(c => c.id === id ? { ...c, ...p, by: me, at: gcToday() } : c));
+  const add = () => { const id = nextCovId(covenants); setCovenants(l => [...l, { id, name: 'Covenant baru', metric: '', threshold: 0, actual: 0, dir: '≥', by: me, at: gcToday() }]); };
+  const del = (id: string) => setCovenants(l => l.filter(c => c.id !== id));
+  const breaches = covenants.filter(covBreached).length;
+  return (
+    <div style={{ marginTop: 12 }}>
+    <Panel title="Uji Kepatuhan Covenant" sub={`${covenants.length} covenant · ${breaches} dilanggar`} actions={!locked && <Btn sm onClick={add}><I.plus size={12} /> Tambah</Btn>}>
+      <table className="dtbl">
+        <thead><tr><th style={{ width: 56 }}>Ref</th><th>Covenant</th><th style={{ width: 120 }}>Metrik</th><th style={{ width: 130 }}>Ambang</th><th style={{ width: 110 }}>Aktual</th><th style={{ width: 96 }}>Status</th>{!locked && <th style={{ width: 30 }}></th>}</tr></thead>
+        <tbody>
+          {covenants.map(c => {
+            const br = covBreached(c);
+            const headroom = c.dir === '≥' ? c.actual - c.threshold : c.threshold - c.actual;
+            return (
+              <tr key={c.id}>
+                <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
+                <td>{locked ? <span style={{ fontWeight: 600 }}>{c.name}</span> : <input className="input" value={c.name} onChange={(e: Ev) => patch(c.id, { name: e.target.value })} style={{ height: 26 }} />}</td>
+                <td>{locked ? <span className="tiny">{c.metric}</span> : <input className="input" value={c.metric} onChange={(e: Ev) => patch(c.id, { metric: e.target.value })} style={{ height: 26 }} />}</td>
+                <td>
+                  <div className="row ac gap4">
+                    {locked ? <span className="mono tiny">{c.dir} {c.threshold.toFixed(2)}</span> : <>
+                      <select className="select" value={c.dir} onChange={(e: Ev) => patch(c.id, { dir: e.target.value as Covenant['dir'] })} style={{ height: 26, width: 48 }}><option>≥</option><option>≤</option></select>
+                      <input className="input mono" type="number" step="0.01" value={c.threshold} onChange={(e: Ev) => patch(c.id, { threshold: +e.target.value })} style={{ height: 26, width: 64, textAlign: 'right' }} />
+                    </>}
+                  </div>
+                </td>
+                <td>{locked ? <span className="mono tiny">{c.actual.toFixed(2)}</span> : <input className="input mono" type="number" step="0.01" value={c.actual} onChange={(e: Ev) => patch(c.id, { actual: +e.target.value })} style={{ height: 26, width: 76, textAlign: 'right' }} />}</td>
+                <td><Badge kind={br ? 'red' : headroom < Math.abs(c.threshold) * 0.05 ? 'amber' : 'green'}>{br ? 'Langgar' : headroom < Math.abs(c.threshold) * 0.05 ? 'Pantau' : 'Patuh'}</Badge></td>
+                {!locked && <td><button className="btn sm icon" title="Hapus" onClick={() => del(c.id)}><I.x size={12} /></button></td>}
+              </tr>
+            );
+          })}
+          {!covenants.length && <tr><td colSpan={locked ? 6 : 7} className="tiny muted" style={{ textAlign: 'center', padding: 16 }}>Belum ada covenant tercatat.</td></tr>}
+        </tbody>
+      </table>
+      <div className="tiny muted" style={{ padding: '8px 12px', lineHeight: 1.45 }}>Pelanggaran covenant dapat mempercepat jatuh tempo utang (cross-default) & memperkuat indikasi ketidakpastian material (SA 570 ¶A3). Pelanggaran menambah bobot penilaian otomatis.</div>
+    </Panel>
+    </div>
+  );
+}
+
+/* ---------------- Evaluasi Rencana Mitigasi Manajemen (SA 570 ¶16) ---------------- */
+function GCMitigations({ mitigations, setMitigations, me, locked }: { mitigations: Mitigation[]; setMitigations: (fn: (l: Mitigation[]) => Mitigation[]) => void; me: string; locked: boolean }) {
+  const patch = (id: string, p: Partial<Mitigation>) => setMitigations(l => l.map(m => m.id === id ? { ...m, ...p, by: me, at: gcToday() } : m));
+  const add = () => { const id = nextMitiId(mitigations); setMitigations(l => [...l, { id, plan: 'Rencana mitigasi baru', type: 'Operasional', feasibility: 'Sedang', evidence: false, note: '', by: me, at: gcToday() }]); };
+  const del = (id: string) => setMitigations(l => l.filter(m => m.id !== id));
+  const feasKind = (f: string) => f === 'Tinggi' ? 'green' : f === 'Sedang' ? 'amber' : 'red';
+  const credible = mitigations.filter(m => m.feasibility === 'Tinggi' && m.evidence).length;
+  return (
+    <div style={{ marginTop: 12 }}>
+    <Panel title="Evaluasi Rencana Mitigasi Manajemen (SA 570 ¶16)" sub={`${credible}/${mitigations.length} layak & berbukti`} actions={!locked && <Btn sm onClick={add}><I.plus size={12} /> Tambah</Btn>}>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {mitigations.map(m => (
+          <div key={m.id} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
+            <div className="row ac jb" style={{ marginBottom: 6 }}>
+              <span className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{m.id}</span>
+                {locked ? <Badge kind="gray">{m.type}</Badge> : <select className="select" value={m.type} onChange={(e: Ev) => patch(m.id, { type: e.target.value })} style={{ height: 26 }}>{['Pendanaan', 'Operasional', 'Aset', 'Restrukturisasi', 'Lainnya'].map(t => <option key={t}>{t}</option>)}</select>}
+              </span>
+              <span className="row ac gap6">
+                <Badge kind={feasKind(m.feasibility)}>Kelayakan {m.feasibility}</Badge>
+                <Badge kind={m.evidence ? 'green' : 'gray'}>{m.evidence ? 'Berbukti' : 'Belum berbukti'}</Badge>
+                {!locked && <button className="btn sm icon" title="Hapus" onClick={() => del(m.id)}><I.x size={12} /></button>}
+              </span>
+            </div>
+            {locked
+              ? <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4 }}>{m.plan}</div>
+              : <input className="input" value={m.plan} onChange={(e: Ev) => patch(m.id, { plan: e.target.value })} placeholder="Rencana manajemen…" style={{ marginBottom: 6 }} />}
+            <div className="row ac gap8" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+              {!locked && <>
+                <span className="tiny muted">Kelayakan:</span>
+                <select className="select" value={m.feasibility} onChange={(e: Ev) => patch(m.id, { feasibility: e.target.value })} style={{ height: 26, width: 96 }}>{MITI_FEAS.map(f => <option key={f}>{f}</option>)}</select>
+                <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 11.5 }}><input type="checkbox" checked={m.evidence} onChange={() => patch(m.id, { evidence: !m.evidence })} /> Bukti diperoleh</label>
+              </>}
+              {locked
+                ? (m.note && <span className="tiny muted">{m.note}</span>)
+                : <input className="input" value={m.note} onChange={(e: Ev) => patch(m.id, { note: e.target.value })} placeholder="Dasar penilaian kelayakan & bukti…" style={{ flex: 1, minWidth: 180, height: 26 }} />}
+            </div>
+            {m.by && <div className="tiny muted" style={{ marginTop: 6 }}><I.check size={10} /> {m.by} · {m.at}</div>}
+          </div>
+        ))}
+        {!mitigations.length && <div className="tiny muted" style={{ textAlign: 'center', padding: 16 }}>Belum ada rencana mitigasi tercatat.</div>}
+      </div>
+      <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.45 }}>SA 570 ¶16: auditor mengevaluasi <b>kelayakan</b> rencana manajemen & apakah didukung <b>bukti memadai</b>. Rencana yang tak layak/tak berbukti tak meniadakan ketidakpastian material.</div>
+    </Panel>
+    </div>
   );
 }
 
