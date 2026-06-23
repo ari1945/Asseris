@@ -1,11 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — SA 530 · Sampling Audit
@@ -15,35 +18,64 @@ import { KvBox } from './view_analytical';
    ============================================================ */
 const { useState: useState530, useMemo: useMemo530 } = React;
 
+/* ---- model sampling ter-persist engagement-scoped (SA 530) ---- */
+type ConfFactor = { rf: number; ef: number; risk: number };
+type SamplingParams = { bv: number; conf: number; tm: number; em: number };
+type SampleFinding = { id: string; bv: number; av: number; type: string; by?: string; at?: string };
+type SamplingState = { params: SamplingParams; findings: SampleFinding[] };
+/* tipe struktural minimal event input — hindari explicit-any (ratchet) */
+type Ev = { target: { value: string } };
+
 /* Faktor keandalan (Poisson, 0 salah saji) & faktor ekspansi */
-const CONF_FACTORS = {
+const CONF_FACTORS: Record<number, ConfFactor> = {
   90: { rf: 2.31, ef: 1.5, risk: 10 },
   95: { rf: 3.00, ef: 1.6, risk: 5 },
   99: { rf: 4.61, ef: 1.9, risk: 1 },
 };
 
 /* Salah saji ditemukan dalam sampel (Rp jt) */
-const SAMPLE_FINDINGS = [
+const SAMPLE_FINDINGS: SampleFinding[] = [
   { id: 'S-018', bv: 1240, av: 1180, type: 'Lebih saji nilai faktur' },
   { id: 'S-047', bv: 880, av: 812, type: 'Pisah-batas — barang belum dikirim' },
   { id: 'S-103', bv: 1560, av: 1560, type: 'Tidak ada salah saji' },
   { id: 'S-129', bv: 430, av: 388, type: 'Diskon belum dibukukan' },
 ];
 
+const SAMPLING_SEED: SamplingState = { params: { bv: 245000, conf: 95, tm: 7000, em: 1200 }, findings: SAMPLE_FINDINGS };
+
+function smpToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+function nextSmpId(list: SampleFinding[]) {
+  const n = list.reduce((mx, f) => { const m = /S-(\d+)/.exec(f.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'S-' + String(n + 1).padStart(3, '0');
+}
+
 /* ============================================================ */
 function SA530View() {
   const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
   const [tab, setTab] = useState530('kalkulator');
 
-  /* state kalkulator (lifted agar terlihat di evaluasi) */
-  const [bv, setBv] = useState530(245000);   // nilai populasi (jt)
-  const [conf, setConf] = useState530(95);
-  const [tm, setTm] = useState530(7000);      // salah saji yang dapat ditoleransi
-  const [em, setEm] = useState530(1200);      // ekspektasi salah saji
+  const [smp, setSmp] = useAmsPersist('sampling.' + engId, () => SAMPLING_SEED);
+  const params: SamplingParams = (smp && smp.params) || SAMPLING_SEED.params;
+  const findings: SampleFinding[] = (smp && smp.findings) || [];
+  const { bv, conf, tm, em } = params;
+  const setParam = (patch: Partial<SamplingParams>) => { if (locked) return; setSmp((s: SamplingState) => ({ ...s, params: { ...s.params, ...patch } })); };
+  const setFindings = (fn: (l: SampleFinding[]) => SampleFinding[]) => setSmp((s: SamplingState) => ({ ...s, findings: fn((s && s.findings) || []) }));
+  const setBv = (v: number) => setParam({ bv: v });
+  const setConf = (v: number) => setParam({ conf: v });
+  const setTm = (v: number) => setParam({ tm: v });
+  const setEm = (v: number) => setParam({ em: v });
 
   const calc = useMemo530(() => {
-    const f = (CONF_FACTORS as any)[conf];
+    const f = CONF_FACTORS[conf] || CONF_FACTORS[95];
     const basic = tm - em * f.ef;
     const n = basic > 0 ? Math.ceil((bv * f.rf) / basic) : 9999;
     const interval = Math.round(bv / n);
@@ -57,13 +89,31 @@ function SA530View() {
     { id: 'evaluasi', label: 'Evaluasi Hasil' },
   ];
 
+  const exportMemo = () => {
+    const projOf = (f: SampleFinding) => { const ms = f.bv - f.av; const taint = f.bv ? ms / f.bv : 0; return Math.round(taint * calc.interval); };
+    const findRows = findings.map(f => { const ms = f.bv - f.av; return [f.id, f.type, f.bv.toLocaleString('id-ID'), f.av.toLocaleString('id-ID'), ms ? ms.toLocaleString('id-ID') : '—', projOf(f) ? projOf(f).toLocaleString('id-ID') : '—']; });
+    const totalProj = findings.reduce((s, f) => s + projOf(f), 0);
+    amsExportPdf({
+      kind: 'memo-sampling', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Kertas Kerja Sampling Audit (SA 530)',
+      refNo: 'S-530 · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 530 — Sampling Audit · Metode MUS (PPS)', 'Dibuat: ' + smpToday() + ' · ' + me],
+      blocks: [
+        { type: 'heading', text: 'Penentuan Ukuran Sampel' },
+        { type: 'kv', rows: [['Nilai populasi disampel (jt)', bv.toLocaleString('id-ID')], ['Tingkat keyakinan', conf + '% (risiko ' + calc.risk + '%)'], ['Salah saji ditoleransi TM (jt)', tm.toLocaleString('id-ID')], ['Ekspektasi salah saji EM (jt)', em.toLocaleString('id-ID')], ['Ukuran sampel', calc.basic > 0 ? calc.n + ' item' : 'tak terdefinisi'], ['Interval sampling (jt)', calc.basic > 0 ? calc.interval.toLocaleString('id-ID') : '—']] },
+        { type: 'heading', text: 'Evaluasi Salah Saji & Proyeksi ke Populasi (¶13–14)' },
+        { type: 'table', head: ['Ref', 'Sifat', 'Tercatat', 'Teraudit', 'Salah Saji', 'Proyeksi'], body: findRows.length ? findRows : [['—', '—', '—', '—', '—', '—']] },
+        { type: 'para', text: 'Proyeksi salah saji total Rp ' + totalProj.toLocaleString('id-ID') + ' jt ' + (totalProj < tm ? 'di bawah' : 'melampaui') + ' salah saji yang ditoleransi (TM Rp ' + tm.toLocaleString('id-ID') + ' jt). ' + (totalProj < tm ? 'Ditambah pertimbangan risiko sampling, populasi dapat diterima; salah saji aktual dicatat ke SAD.' : 'Pertimbangkan perluasan sampel atau prosedur alternatif.') },
+      ],
+    }).catch(() => {});
+  };
+
   return (
     <>
       <SubBar moduleId="sa530" right={
         <div className="row gap8 ac">
           <SACanonChips stdId="sa530" />
-          <Btn sm><I.download size={13} /> Kertas Kerja Sampling</Btn>
-          <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
+          <Btn sm onClick={exportMemo}><I.download size={13} /> Kertas Kerja Sampling</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -94,9 +144,9 @@ function SA530View() {
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
         {tab === 'desain' && <F530Design />}
-        {tab === 'kalkulator' && <F530Calc bv={bv} setBv={setBv} conf={conf} setConf={setConf} tm={tm} setTm={setTm} em={em} setEm={setEm} calc={calc} />}
+        {tab === 'kalkulator' && <F530Calc bv={bv} setBv={setBv} conf={conf} setConf={setConf} tm={tm} setTm={setTm} em={em} setEm={setEm} calc={calc} locked={locked} />}
         {tab === 'seleksi' && <F530Selection interval={calc.interval} n={calc.n} />}
-        {tab === 'evaluasi' && <F530Evaluation interval={calc.interval} tm={tm} />}
+        {tab === 'evaluasi' && <F530Evaluation interval={calc.interval} tm={tm} findings={findings} setFindings={setFindings} me={me} locked={locked} />}
 
       </div></div>
     </>
@@ -173,7 +223,7 @@ function F530Design() {
 }
 
 /* ---------------- Tab: Kalkulator Ukuran Sampel ---------------- */
-function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc }: any) {
+function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked }: any) {
   const Field = ({ label, hint, children }: any) => (
     <div style={{ marginBottom: 16 }}>
       <div className="row jb ac" style={{ marginBottom: 6 }}><span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span><span className="tiny muted">{hint}</span></div>
@@ -186,16 +236,16 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc }: any)
         <div className="panel-h"><h3>Kalkulator Ukuran Sampel — Monetary Unit Sampling</h3><div style={{ flex: 1 }} /><Badge kind="purple">PPS</Badge></div>
         <div style={{ padding: 18 }}>
           <Field label="Nilai populasi yang disampel (Rp jt)" hint={bv.toLocaleString('id-ID')}>
-            <input type="range" min="50000" max="400000" step="5000" value={bv} onChange={(e: any) => setBv(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="50000" max="400000" step="5000" value={bv} disabled={locked} onChange={(e: Ev) => setBv(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
           </Field>
           <Field label="Tingkat keyakinan" hint={`risiko penerimaan keliru ${calc.risk}%`}>
             <Seg options={[{ value: 90, label: '90%' }, { value: 95, label: '95%' }, { value: 99, label: '99%' }]} value={conf} onChange={setConf} />
           </Field>
           <Field label="Salah saji yang dapat ditoleransi — TM (Rp jt)" hint={tm.toLocaleString('id-ID')}>
-            <input type="range" min="3000" max="14000" step="250" value={tm} onChange={(e: any) => setTm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="3000" max="14000" step="250" value={tm} disabled={locked} onChange={(e: Ev) => setTm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
           </Field>
           <Field label="Ekspektasi salah saji — EM (Rp jt)" hint={em.toLocaleString('id-ID')}>
-            <input type="range" min="0" max="4000" step="100" value={em} onChange={(e: any) => setEm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            <input type="range" min="0" max="4000" step="100" value={em} disabled={locked} onChange={(e: Ev) => setEm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
           </Field>
 
           <div className="panel" style={{ padding: '11px 13px', background: 'var(--surface-2)', borderColor: 'transparent', marginTop: 4 }}>
@@ -280,8 +330,8 @@ function F530Selection({ interval, n }: any) {
 }
 
 /* ---------------- Tab: Evaluasi Hasil ---------------- */
-function F530Evaluation({ interval, tm }: any) {
-  const rows = SAMPLE_FINDINGS.map(f => {
+function F530Evaluation({ interval, tm, findings, setFindings, me, locked }: any) {
+  const rows = (findings as SampleFinding[]).map(f => {
     const ms = f.bv - f.av;
     const taint = f.bv ? ms / f.bv : 0;
     const proj = Math.round(taint * interval);
@@ -290,27 +340,32 @@ function F530Evaluation({ interval, tm }: any) {
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
   const exceptions = rows.filter(r => r.ms !== 0).length;
   const within = totalProj < tm;
+  const patch = (id: string, p: Partial<SampleFinding>) => setFindings((l: SampleFinding[]) => l.map(f => f.id === id ? { ...f, ...p, by: me, at: smpToday() } : f));
+  const add = () => setFindings((l: SampleFinding[]) => [...l, { id: nextSmpId(l), bv: 0, av: 0, type: 'Salah saji baru', by: me, at: smpToday() }]);
+  const del = (id: string) => setFindings((l: SampleFinding[]) => l.filter(f => f.id !== id));
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Proyeksi Salah Saji ke Populasi (¶13–14)</h3><div style={{ flex: 1 }} /><Badge kind={exceptions ? 'amber' : 'green'}>{exceptions} salah saji ditemukan</Badge></div>
+        <div className="panel-h"><h3>Proyeksi Salah Saji ke Populasi (¶13–14)</h3><div style={{ flex: 1 }} /><Badge kind={exceptions ? 'amber' : 'green'}>{exceptions} salah saji ditemukan</Badge>{!locked && <Btn sm style={{ marginLeft: 8 }} onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>
         <table className="dtbl">
-          <thead><tr><th style={{ width: 60 }}>Ref</th><th>Sifat</th><th className="num">Tercatat</th><th className="num">Teraudit</th><th className="num">Salah Saji</th><th className="num">Tainting</th><th className="num">Proyeksi</th></tr></thead>
+          <thead><tr><th style={{ width: 60 }}>Ref</th><th>Sifat</th><th className="num" style={{ width: 110 }}>Tercatat</th><th className="num" style={{ width: 110 }}>Teraudit</th><th className="num">Salah Saji</th><th className="num">Tainting</th><th className="num">Proyeksi</th>{!locked && <th style={{ width: 30 }}></th>}</tr></thead>
           <tbody>
             {rows.map(r => (
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</td>
-                <td style={{ fontWeight: 600, whiteSpace: 'normal' }}>{r.type}</td>
-                <td className="num mono">{r.bv.toLocaleString('id-ID')}</td>
-                <td className="num mono">{r.av.toLocaleString('id-ID')}</td>
+                <td style={{ fontWeight: 600, whiteSpace: 'normal' }}>{locked ? r.type : <input className="input" value={r.type} onChange={(e: Ev) => patch(r.id, { type: e.target.value })} style={{ height: 26 }} />}</td>
+                <td className="num mono">{locked ? r.bv.toLocaleString('id-ID') : <input className="input mono" type="number" value={r.bv} onChange={(e: Ev) => patch(r.id, { bv: +e.target.value })} style={{ height: 26, width: 96, textAlign: 'right' }} />}</td>
+                <td className="num mono">{locked ? r.av.toLocaleString('id-ID') : <input className="input mono" type="number" value={r.av} onChange={(e: Ev) => patch(r.id, { av: +e.target.value })} style={{ height: 26, width: 96, textAlign: 'right' }} />}</td>
                 <td className="num mono" style={{ color: r.ms ? 'var(--amber)' : 'var(--ink-4)' }}>{r.ms ? r.ms.toLocaleString('id-ID') : '—'}</td>
                 <td className="num mono tiny">{(r.taint * 100).toFixed(1)}%</td>
                 <td className="num mono" style={{ fontWeight: 700, color: r.proj ? 'var(--red)' : 'var(--ink-4)' }}>{r.proj ? r.proj.toLocaleString('id-ID') : '—'}</td>
+                {!locked && <td><button className="btn sm icon" title="Hapus" onClick={() => del(r.id)}><I.x size={12} /></button></td>}
               </tr>
             ))}
             <tr style={{ fontWeight: 700, background: 'var(--surface-2)' }}>
-              <td colSpan="6">Proyeksi salah saji total (untuk item &lt; interval)</td>
+              <td colSpan={locked ? 6 : 6}>Proyeksi salah saji total (untuk item &lt; interval)</td>
               <td className="num mono" style={{ color: 'var(--red)' }}>{totalProj.toLocaleString('id-ID')}</td>
+              {!locked && <td></td>}
             </tr>
           </tbody>
         </table>
@@ -358,6 +413,8 @@ function F530Evaluation({ interval, tm }: any) {
           </Panel>
         </div>
       </div>
+
+      <WpPanel moduleId="sa530" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 530/230)" />
     </div>
   );
 }
