@@ -1,11 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { AMS } from './data';
+import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { WpPanel } from './wp_signoff';
 
 /* ============================================================
    Asseris — SA 540 · Audit atas Estimasi Akuntansi
@@ -17,7 +20,7 @@ import { KvBox } from './view_analytical';
 const { useState: useState540, useMemo: useMemo540 } = React;
 
 /* ---- Inventaris estimasi (Rp jt) ---- */
-const EST_REG = [
+const EST_REG: Estimate[] = [
   { id: 'E-01', name: 'CKPN Piutang (ECL · PSAK 71)', acct: 'Cadangan Kerugian', mgmt: 4870, lo: 4600, hi: 6300, unc: 'Tinggi', risk: 'Signifikan', method: 'Model ECL forward-looking; PD × LGD × EAD per staging', assump: ['Probabilitas gagal bayar (PD) per kelompok umur', 'Loss given default (LGD) berbasis recovery historis', 'Overlay makroekonomi (PDB, suku bunga)'], approach: 'Rentang independen', note: 'Titik manajemen di batas bawah rentang auditor — indikasi understatement (lihat Bias).' },
   { id: 'E-02', name: 'Penyisihan Persediaan Usang', acct: 'Penyisihan Persediaan', mgmt: 2240, lo: 2050, hi: 2600, unc: 'Sedang', risk: 'Signifikan', method: 'Analisis umur & perputaran SKU; net realizable value', assump: ['Klasifikasi lambat-bergerak (> 180 hari)', 'Estimasi nilai jual bersih SKU usang', 'Rencana likuidasi/diskon manajemen'], approach: 'Uji proses manajemen', note: 'Dalam rentang; konsisten dengan temuan hitung fisik SA 501 (GBJ-03).' },
   { id: 'E-03', name: 'Provisi Garansi Produk', acct: 'Provisi', mgmt: 1080, lo: 980, hi: 1240, unc: 'Sedang', risk: 'Non-signifikan', method: 'Tingkat klaim historis × penjualan bergaransi', assump: ['Rasio klaim historis 36 bulan', 'Periode garansi rata-rata', 'Tren kualitas produk'], approach: 'Uji proses manajemen', note: 'Telaah retrospektif menunjukkan estimasi PY akurat (selisih −6%).' },
@@ -26,20 +29,59 @@ const EST_REG = [
 ];
 
 /* ---- Indikator bias manajemen (¶32) ---- */
-const BIAS_ROWS = [
-  { t: 'Perubahan estimasi/asumsi yang menggeser laba ke arah menguntungkan', est: 'CKPN Piutang', flag: 'amber', d: 'Titik di batas bawah rentang; overlay makro dikurangi vs PY.' },
-  { t: 'Telaah retrospektif — selisih estimasi PY vs realisasi', est: 'CKPN Piutang', flag: 'amber', d: 'CKPN PY understated 42% terhadap realisasi (rujuk SA 240).' },
-  { t: 'Seleksi titik dalam rentang tanpa dasar netral', est: 'Goodwill', flag: 'amber', d: 'WACC di batas bawah kisaran wajar — menaikkan value-in-use.' },
-  { t: 'Konsistensi metode & asumsi antar periode', est: 'Imbalan Kerja', flag: 'green', d: 'Metode & sumber asumsi aktuaria konsisten dengan PY.' },
+const BIAS_ROWS: BiasRow[] = [
+  { id: 'B-01', t: 'Perubahan estimasi/asumsi yang menggeser laba ke arah menguntungkan', est: 'CKPN Piutang', flag: 'amber', d: 'Titik di batas bawah rentang; overlay makro dikurangi vs PY.' },
+  { id: 'B-02', t: 'Telaah retrospektif — selisih estimasi PY vs realisasi', est: 'CKPN Piutang', flag: 'amber', d: 'CKPN PY understated 42% terhadap realisasi (rujuk SA 240).' },
+  { id: 'B-03', t: 'Seleksi titik dalam rentang tanpa dasar netral', est: 'Goodwill', flag: 'amber', d: 'WACC di batas bawah kisaran wajar — menaikkan value-in-use.' },
+  { id: 'B-04', t: 'Konsistensi metode & asumsi antar periode', est: 'Imbalan Kerja', flag: 'green', d: 'Metode & sumber asumsi aktuaria konsisten dengan PY.' },
 ];
+
+/* ---- model estimasi ter-persist engagement-scoped (SA 540 revisi) ---- */
+type Estimate = { id: string; name: string; acct: string; mgmt: number; lo: number; hi: number; unc: string; risk: string; method: string; assump: string[]; approach: string; note: string; by?: string; at?: string };
+type BiasRow = { id: string; t: string; est: string; flag: string; d: string; by?: string; at?: string };
+type EstState = { register: Estimate[]; bias: BiasRow[] };
+/* tipe struktural minimal event input — hindari explicit-any (ratchet) */
+type Ev = { target: { value: string } };
+
+const EST_UNC = ['Tinggi', 'Sedang', 'Rendah'];
+const EST_RISK = ['Signifikan', 'Non-signifikan'];
+const EST_APPROACH = ['Uji proses manajemen', 'Rentang independen', 'Gunakan pakar (SA 620)', 'Uji peristiwa kemudian'];
+const BIAS_FLAG = ['amber', 'green'];
+
+const EST_SEED: EstState = { register: EST_REG, bias: BIAS_ROWS };
+
+function estToday() {
+  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+function nextEId(list: Estimate[]) {
+  const n = list.reduce((mx, e) => { const m = /E-(\d+)/.exec(e.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'E-' + String(n + 1).padStart(2, '0');
+}
+function nextBId(list: BiasRow[]) {
+  const n = list.reduce((mx, b) => { const m = /B-(\d+)/.exec(b.id || ''); return m ? Math.max(mx, +m[1]) : mx; }, 0);
+  return 'B-' + String(n + 1).padStart(2, '0');
+}
 
 /* ============================================================ */
 function SA540View() {
   const firm = useFirm();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const [tab, setTab] = useState540('inventaris');
+  const engId = firm?.activeEngagement?.id || 'default';
+  const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
+  const locked = !!(firm && firm.locked);
+  const [est, setEst] = useAmsPersist('estimates.' + engId, () => EST_SEED);
+  const register: Estimate[] = (est && est.register) || [];
+  const bias: BiasRow[] = (est && est.bias) || [];
+  const setRegister = (fn: (l: Estimate[]) => Estimate[]) => setEst((s: EstState) => ({ ...s, register: fn((s && s.register) || []) }));
+  const setBias = (fn: (l: BiasRow[]) => BiasRow[]) => setEst((s: EstState) => ({ ...s, bias: fn((s && s.bias) || []) }));
 
-  const sig = EST_REG.filter(e => e.risk === 'Signifikan').length;
+  const [tab, setTab] = useState540('inventaris');
+  const sig = register.filter(e => e.risk === 'Signifikan').length;
+  const uncHi = register.filter(e => e.unc === 'Tinggi').length;
+  const biasFlags = bias.filter(b => b.flag !== 'green').length;
   const tabs = [
     { id: 'inventaris', label: 'Inventaris Estimasi' },
     { id: 'risiko', label: 'Risiko & Ketidakpastian' },
@@ -47,13 +89,29 @@ function SA540View() {
     { id: 'bias', label: 'Bias & Pengungkapan' },
   ];
 
+  const exportMemo = () => {
+    const regRows = register.map(e => [e.id, e.name, e.mgmt.toLocaleString('id-ID'), e.lo.toLocaleString('id-ID') + '–' + e.hi.toLocaleString('id-ID'), e.unc, e.risk]);
+    const biasRows = bias.map(b => [b.id, b.t, b.est, b.flag === 'green' ? 'Wajar' : 'Perhatian']);
+    amsExportPdf({
+      kind: 'memo-estimasi', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Memo Audit atas Estimasi Akuntansi (SA 540)',
+      refNo: 'E-540 · ' + engLabel,
+      meta: [client + ' · ' + engLabel, 'SA 540 (Revisi) — Estimasi Akuntansi & Pengungkapan', 'Dibuat: ' + estToday() + ' · ' + me],
+      blocks: [
+        { type: 'heading', text: 'Inventaris Estimasi (Rp jt)' },
+        { type: 'table', head: ['Ref', 'Estimasi', 'Titik Mgmt', 'Rentang Auditor', 'Ketidakpastian', 'Risiko'], body: regRows.length ? regRows : [['—', '—', '—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 150 } } },
+        { type: 'heading', text: 'Indikator Kemungkinan Bias Manajemen (¶32)' },
+        { type: 'table', head: ['Ref', 'Indikator', 'Estimasi', 'Status'], body: biasRows.length ? biasRows : [['—', '—', '—', '—']], columnStyles: { 1: { cellWidth: 220 } } },
+      ],
+    }).catch(() => {});
+  };
+
   return (
     <>
       <SubBar moduleId="sa540" right={
         <div className="row gap8 ac">
           <SACanonChips stdId="sa540" />
-          <Btn sm><I.download size={13} /> Memo Estimasi</Btn>
-          <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
+          <Btn sm onClick={exportMemo}><I.download size={13} /> Memo Estimasi</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -63,14 +121,14 @@ function SA540View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 540 (Revisi)</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Estimasi Akuntansi & Pengungkapan</div>
-              <div className="tiny muted">{client} · ENG-2025-014</div>
+              <div className="tiny muted">{client} · {engLabel}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Estimasi Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{EST_REG.length} · {sig} signifikan</div></div>
+            <div><div className="tiny muted upper">Estimasi Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{register.length} · {sig} signifikan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ketidakpastian Tinggi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{EST_REG.filter(e => e.unc === 'Tinggi').length} estimasi</div></div>
+            <div><div className="tiny muted upper">Ketidakpastian Tinggi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{uncHi} estimasi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Indikasi Bias</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>2 perhatian</div></div>
+            <div><div className="tiny muted upper">Indikasi Bias</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>{biasFlags} perhatian</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Sikap Auditor</div>
@@ -83,10 +141,10 @@ function SA540View() {
 
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'inventaris' && <F540Register />}
+        {tab === 'inventaris' && <F540Register register={register} setRegister={setRegister} me={me} locked={locked} />}
         {tab === 'risiko' && <F540Risk />}
         {tab === 'respons' && <F540Response />}
-        {tab === 'bias' && <F540Bias />}
+        {tab === 'bias' && <F540Bias bias={bias} setBias={setBias} me={me} locked={locked} />}
 
       </div></div>
     </>
@@ -94,21 +152,27 @@ function SA540View() {
 }
 
 /* ---------------- Tab: Inventaris Estimasi ---------------- */
-function F540Register() {
+function F540Register({ register, setRegister, me, locked }: { register: Estimate[]; setRegister: (fn: (l: Estimate[]) => Estimate[]) => void; me: string; locked: boolean }) {
   const [selId, setSelId] = useState540('E-01');
-  const sel = EST_REG.find(e => e.id === selId);
-  const uncKind = (u: any) => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
-  /* posisi titik manajemen dalam rentang auditor 0..100 */
+  const sel = register.find(e => e.id === selId) || register[0] || null;
+  const uncKind = (u: string) => u === 'Tinggi' ? 'red' : u === 'Sedang' ? 'amber' : 'green';
   const pos = sel && sel.hi > sel.lo ? Math.max(0, Math.min(100, ((sel.mgmt - sel.lo) / (sel.hi - sel.lo)) * 100)) : 50;
+  const patch = (id: string, p: Partial<Estimate>) => setRegister(l => l.map(e => e.id === id ? { ...e, ...p, by: me, at: estToday() } : e));
+  const add = () => {
+    const id = nextEId(register);
+    setRegister(l => [...l, { id, name: 'Estimasi baru', acct: '', mgmt: 0, lo: 0, hi: 0, unc: 'Sedang', risk: 'Non-signifikan', method: '', assump: [], approach: 'Uji proses manajemen', note: '', by: me, at: estToday() }]);
+    setSelId(id);
+  };
+  const del = (id: string) => { setRegister(l => l.filter(e => e.id !== id)); setSelId(null); };
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Inventaris Estimasi Akuntansi</h3><div style={{ flex: 1 }} /><span className="tiny muted">{EST_REG.length} estimasi</span></div>
+        <div className="panel-h"><h3>Inventaris Estimasi Akuntansi</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ marginRight: 8 }}>{register.length} estimasi</span>{!locked && <Btn sm onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>
         <table className="dtbl">
           <thead><tr><th style={{ width: 50 }}>Ref</th><th>Estimasi</th><th className="num">Titik Mgmt</th><th style={{ width: 88 }}>Ketidakpastian</th><th style={{ width: 96 }}>Risiko</th></tr></thead>
           <tbody>
-            {EST_REG.map(e => (
-              <tr key={e.id} className={e.id === selId ? 'sel' : ''} onClick={() => setSelId(e.id)} style={{ cursor: 'pointer' }}>
+            {register.map(e => (
+              <tr key={e.id} className={e.id === (sel && sel.id) ? 'sel' : ''} onClick={() => setSelId(e.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</td>
                 <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>{e.name}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{e.acct}</div></td>
                 <td className="num mono">{e.mgmt.toLocaleString('id-ID')}</td>
@@ -116,6 +180,7 @@ function F540Register() {
                 <td><Badge kind={e.risk === 'Signifikan' ? 'red' : 'gray'}>{e.risk === 'Signifikan' ? 'Signifikan' : 'Non-sig.'}</Badge></td>
               </tr>
             ))}
+            {!register.length && <tr><td colSpan={5} className="tiny muted" style={{ textAlign: 'center', padding: 18 }}>Belum ada estimasi tercatat.</td></tr>}
           </tbody>
         </table>
       </Panel>
@@ -123,12 +188,35 @@ function F540Register() {
       {sel && (
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
-            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={uncKind(sel.unc)}>Ketidakpastian {sel.unc}</Badge>{sel.risk === 'Signifikan' && <Badge kind="red">Signifikan</Badge>}</div>
-            <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4, lineHeight: 1.35 }}>{sel.name}</div>
+            <div className="row ac jb">
+              <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={uncKind(sel.unc)}>Ketidakpastian {sel.unc}</Badge>{sel.risk === 'Signifikan' && <Badge kind="red">Signifikan</Badge>}</div>
+              {!locked && <button className="btn sm icon" title="Hapus" onClick={() => del(sel.id)}><I.x size={13} /></button>}
+            </div>
+            {locked && <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4, lineHeight: 1.35 }}>{sel.name}</div>}
           </div>
           <div style={{ padding: 14 }}>
+            {!locked && (
+              <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+                <div className="field"><label>Estimasi</label><input className="input" value={sel.name} onChange={(e: Ev) => patch(sel.id, { name: e.target.value })} /></div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div className="field"><label>Akun</label><input className="input" value={sel.acct} onChange={(e: Ev) => patch(sel.id, { acct: e.target.value })} /></div>
+                  <div className="field"><label>Pendekatan</label><select className="select" value={sel.approach} onChange={(e: Ev) => patch(sel.id, { approach: e.target.value })}>{EST_APPROACH.map(a => <option key={a}>{a}</option>)}</select></div>
+                </div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  <div className="field"><label>Titik Mgmt</label><input className="input mono" type="number" value={sel.mgmt} onChange={(e: Ev) => patch(sel.id, { mgmt: +e.target.value })} style={{ textAlign: 'right' }} /></div>
+                  <div className="field"><label>Batas Bawah</label><input className="input mono" type="number" value={sel.lo} onChange={(e: Ev) => patch(sel.id, { lo: +e.target.value })} style={{ textAlign: 'right' }} /></div>
+                  <div className="field"><label>Batas Atas</label><input className="input mono" type="number" value={sel.hi} onChange={(e: Ev) => patch(sel.id, { hi: +e.target.value })} style={{ textAlign: 'right' }} /></div>
+                </div>
+                <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div className="field"><label>Ketidakpastian</label><select className="select" value={sel.unc} onChange={(e: Ev) => patch(sel.id, { unc: e.target.value })}>{EST_UNC.map(u => <option key={u}>{u}</option>)}</select></div>
+                  <div className="field"><label>Risiko</label><select className="select" value={sel.risk} onChange={(e: Ev) => patch(sel.id, { risk: e.target.value })}>{EST_RISK.map(r => <option key={r}>{r}</option>)}</select></div>
+                </div>
+              </div>
+            )}
+
             <div className="tiny muted upper" style={{ marginBottom: 4 }}>Metode Pengukuran</div>
-            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.method}</p>
+            {locked ? <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.method}</p>
+              : <textarea className="input" value={sel.method} onChange={(e: Ev) => patch(sel.id, { method: e.target.value })} style={{ height: 44, padding: 8, lineHeight: 1.4, resize: 'vertical', marginBottom: 12 }} />}
 
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Titik Manajemen vs Rentang Auditor (Rp jt)</div>
             <div style={{ position: 'relative', height: 30, marginBottom: 4 }}>
@@ -139,18 +227,20 @@ function F540Register() {
             </div>
             <div className="row jb tiny mono muted" style={{ marginBottom: 12 }}><span>{sel.lo.toLocaleString('id-ID')}</span><span>rentang independen auditor</span><span>{sel.hi.toLocaleString('id-ID')}</span></div>
 
-            <div className="tiny muted upper" style={{ marginBottom: 5 }}>Asumsi Signifikan</div>
-            {sel.assump.map((a, i) => (
+            <div className="tiny muted upper" style={{ marginBottom: 5 }}>Asumsi Signifikan {!locked && <span className="muted" style={{ textTransform: 'none' }}>(satu per baris)</span>}</div>
+            {locked ? sel.assump.map((a, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start', padding: '6px 0', borderBottom: i < sel.assump.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span><span style={{ lineHeight: 1.4 }}>{a}</span>
               </div>
-            ))}
-            <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent', marginTop: 12 }}>
-              <div className="row gap8" style={{ alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span>
-                <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{sel.note}</span>
+            )) : <textarea className="input" value={sel.assump.join('\n')} onChange={(e: Ev) => patch(sel.id, { assump: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} style={{ height: 64, padding: 8, lineHeight: 1.5, resize: 'vertical' }} placeholder="Asumsi signifikan, satu per baris…" />}
+
+            <div className="tiny muted upper" style={{ margin: '12px 0 5px' }}>Catatan Auditor</div>
+            {locked ? (
+              <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
+                <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{sel.note}</span></div>
               </div>
-            </div>
+            ) : <textarea className="input" value={sel.note} onChange={(e: Ev) => patch(sel.id, { note: e.target.value })} style={{ height: 50, padding: 8, lineHeight: 1.45, resize: 'vertical' }} placeholder="Catatan/kesimpulan atas estimasi…" />}
+            {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
           </div>
         </Panel>
       )}
@@ -292,22 +382,35 @@ function F540Response() {
 }
 
 /* ---------------- Tab: Bias & Pengungkapan ---------------- */
-function F540Bias() {
+function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn: (l: BiasRow[]) => BiasRow[]) => void; me: string; locked: boolean }) {
+  const patch = (id: string, p: Partial<BiasRow>) => setBias(l => l.map(b => b.id === id ? { ...b, ...p, by: me, at: estToday() } : b));
+  const add = () => { const id = nextBId(bias); setBias(l => [...l, { id, t: 'Indikator bias baru', est: '', flag: 'amber', d: '', by: me, at: estToday() }]); };
+  const del = (id: string) => setBias(l => l.filter(b => b.id !== id));
+  const perhatian = bias.filter(b => b.flag !== 'green').length;
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Indikator Kemungkinan Bias Manajemen (¶32)</h3><div style={{ flex: 1 }} /><Badge kind="amber">2 perhatian</Badge></div>
+          <div className="panel-h"><h3>Indikator Kemungkinan Bias Manajemen (¶32)</h3><div style={{ flex: 1 }} /><Badge kind="amber">{perhatian} perhatian</Badge>{!locked && <Btn sm style={{ marginLeft: 8 }} onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>
           <table className="dtbl">
-            <thead><tr><th>Indikator</th><th style={{ width: 130 }}>Estimasi</th><th style={{ width: 86 }}>Status</th></tr></thead>
+            <thead><tr><th>Indikator</th><th style={{ width: 150 }}>Estimasi</th><th style={{ width: 120 }}>Status</th>{!locked && <th style={{ width: 30 }}></th>}</tr></thead>
             <tbody>
-              {BIAS_ROWS.map((b, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>{b.t}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{b.d}</div></td>
-                  <td className="tiny">{b.est}</td>
-                  <td>{b.flag === 'green' ? <Badge kind="green">Wajar</Badge> : <Badge kind="amber">Perhatian</Badge>}</td>
+              {bias.map(b => (
+                <tr key={b.id}>
+                  <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                    {locked ? <>{b.t}<div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{b.d}</div></>
+                      : <div style={{ display: 'grid', gap: 4 }}>
+                          <textarea className="input" value={b.t} onChange={(e: Ev) => patch(b.id, { t: e.target.value })} style={{ height: 34, padding: 6, lineHeight: 1.3, resize: 'vertical', fontWeight: 600 }} />
+                          <input className="input" value={b.d} onChange={(e: Ev) => patch(b.id, { d: e.target.value })} placeholder="Detail/dasar…" style={{ height: 26, fontWeight: 400 }} />
+                        </div>}
+                  </td>
+                  <td className="tiny">{locked ? b.est : <input className="input" value={b.est} onChange={(e: Ev) => patch(b.id, { est: e.target.value })} style={{ height: 26 }} />}</td>
+                  <td>{locked ? (b.flag === 'green' ? <Badge kind="green">Wajar</Badge> : <Badge kind="amber">Perhatian</Badge>)
+                    : <select className="select" value={b.flag} onChange={(e: Ev) => patch(b.id, { flag: e.target.value })} style={{ height: 28, fontSize: 11.5 }}>{BIAS_FLAG.map(f => <option key={f} value={f}>{f === 'green' ? 'Wajar' : 'Perhatian'}</option>)}</select>}</td>
+                  {!locked && <td><button className="btn sm icon" title="Hapus" onClick={() => del(b.id)}><I.x size={12} /></button></td>}
                 </tr>
               ))}
+              {!bias.length && <tr><td colSpan={locked ? 3 : 4} className="tiny muted" style={{ textAlign: 'center', padding: 16 }}>Belum ada indikator bias.</td></tr>}
             </tbody>
           </table>
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
@@ -334,6 +437,8 @@ function F540Bias() {
             ))}
           </div>
         </Panel>
+
+        <WpPanel moduleId="sa540" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 540/230)" />
       </div>
 
       <div className="grid" style={{ gap: 12 }}>
