@@ -21,6 +21,7 @@ import { deferredTax, INV_MIX, INV_FG_AGING, INV_ITEMS, inventory, PPE_CLASSES, 
 import { RESTATE, psak25, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 } from './canon_part2';
 import { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65 } from './canon_part3';
 import { JOINT_ARR, P66_DISCLOSURE, psak66, PPA_DEALS, P22_PROC, psak22, materiality } from './canon_part4';
+import { goingConcern } from './canon_part5';
 import type { CanonAugmentations } from './canon_types';
 
 /* [legacy-track slice 10] ESM-only canon: angka kanonik kini di-EXPORT sebagai
@@ -31,6 +32,7 @@ const AMS_CANON_BASE = {
   RATE, ASOF, LEASES, leaseCalc, leasePortfolio, deferredTax, reconcile,
   materiality,
   psak22, PPA_DEALS, P22_PROC,
+  goingConcern,
   psak65, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO,
   psak66, JOINT_ARR, P66_DISCLOSURE,
   inventory, INV_MIX, INV_FG_AGING, INV_ITEMS,

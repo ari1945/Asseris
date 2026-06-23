@@ -9,7 +9,8 @@
    ============================================================ */
 import { figuresFromWTB, FIG } from './canon_base';
 import { materiality } from './canon_part4';
-import type { WTB, Figures, Fig, MaterialityOpts, MaterialityResult } from './canon_types';
+import { goingConcern } from './canon_part5';
+import type { WTB, Figures, Fig, MaterialityOpts, MaterialityResult, GoingConcernResult } from './canon_types';
 
 /** Figur akuntansi entitas (Rp juta) yang ditarik dari WTB. `wtb` opsional:
  *  bila diberi (mis. useAudit().wtb yang reaktif) → angka mengikuti AJE live. */
@@ -27,4 +28,10 @@ export function materialityFor(opts?: MaterialityOpts): MaterialityResult {
   return materiality(opts);
 }
 
-export type { WTB, Figures, Fig, MaterialityResult };
+/** Sinyal going concern SA 570 (rasio solvabilitas + Altman Z) dari WTB. `wtb`
+ *  opsional: bila diberi (useAudit().wtb reaktif) → angka mengikuti AJE live. */
+export function goingConcernFor(wtb?: WTB): GoingConcernResult {
+  return goingConcern(wtb);
+}
+
+export type { WTB, Figures, Fig, MaterialityResult, GoingConcernResult };

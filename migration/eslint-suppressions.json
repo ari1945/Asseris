@@ -551,7 +551,7 @@
   },
   "src/view_goingconcern.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 22
+      "count": 10
     }
   },
   "src/view_governance.tsx": {
