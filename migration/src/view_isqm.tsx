@@ -70,7 +70,7 @@ function SOQM() {
 
   return (
     <>
-      <SubBar moduleId="soqm" right={<div className="row gap8 ac"><Badge kind="blue">ISQM 1 · SOQM</Badge><Btn sm><I.download size={13} /> Evaluasi SOQM Tahunan</Btn></div>} />
+      <SubBar moduleId="soqm" right={<div className="row gap8 ac"><Badge kind="blue">ISQM 1 · SOQM</Badge><Btn sm variant={tab === 'evaluation' ? 'primary' : ''} onClick={() => setTab('evaluation')}><I.shield size={13} /> Evaluasi SOQM Tahunan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={soqmScore + '%'} label="Respons Mutu Efektif" accent={soqmScore >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>

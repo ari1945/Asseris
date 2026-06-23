@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAuth, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
@@ -267,6 +267,8 @@ function SkpForm({ staff, onClose, onAdd }: any) {
 /* ---------------- Independence & Rotation ---------------- */
 function Independence() {
   const nav = useNav();
+  const auth = useAuth();
+  const me: string = (auth && auth.user && auth.user.name) || 'Auditor';
   const [data, setData] = useAmsPersist('independence', () => AMS.INDEPENDENCE);
   const declared = data.filter((d: any) => d.declared).length;
   const conflicts = data.reduce((s: any, d: any) => s + d.conflicts, 0);
@@ -274,7 +276,42 @@ function Independence() {
   const rotationWarn = data.filter((d: any) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
   const toggle = (id: any) => setData((list: any) => list.map((d: any) => d.id === id ? { ...d, declared: !d.declared } : d));
   const [sel, setSel] = useStateE(null);
+  /* indepAppr: per-orang jejak persetujuan. Bentuk lama = number (level saja);
+     bentuk baru = { level, steps:[{by,at}], period } agar AUDITABLE (siapa &
+     kapan tiap lapis: self → reviu manajer etika → persetujuan partner). */
   const [appr, setAppr] = useAmsPersist('indepAppr', {});
+  const indepToday = (() => { try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return ''; } })();
+  const lvlOf = (d: { id: string; declared: boolean }): number => {
+    const a = (appr as Record<string, unknown>)[d.id];
+    if (a == null) return d.declared ? 3 : 0;
+    return typeof a === 'number' ? a : (((a as { level?: number }).level) ?? 0);
+  };
+  const recOf = (id: string): { level: number; steps: Array<{ by: string; at: string } | undefined>; period: string } => {
+    const a = (appr as Record<string, unknown>)[id];
+    if (a && typeof a === 'object') return a as { level: number; steps: Array<{ by: string; at: string } | undefined>; period: string };
+    return { level: typeof a === 'number' ? a : 0, steps: [], period: INDEP_PERIOD };
+  };
+  const setApprove = (id: string, n: number) => setAppr((a: Record<string, unknown>) => {
+    const cur = a[id] as { steps?: Array<{ by: string; at: string } | undefined> } | number | undefined;
+    if (n === 0) return { ...a, [id]: { level: 0, steps: [], period: INDEP_PERIOD } };
+    const steps = (cur && typeof cur === 'object' && Array.isArray(cur.steps)) ? cur.steps.slice() : [];
+    steps[n - 1] = { by: me, at: indepToday };
+    return { ...a, [id]: { level: n, steps, period: INDEP_PERIOD } };
+  });
+  /* Q-03b — register ancaman & pengamanan (editable + jejak mitigasi). */
+  const [threats, setThreats] = useAmsPersist('indepThreats', () => seedIndepThreats(AMS.INDEPENDENCE as Array<{ id: string; conflicts: number; finInterest: string }>));
+  const addThreat = (personId: string) => setThreats((list: Array<{ id: string }>) => [...list, {
+    id: 'TH-' + personId + '-' + (list.length + 1), personId, type: THREAT_TYPES[0], desc: '',
+    severity: 'Sedang', safeguard: '', status: 'Terbuka', by: '', at: '',
+  }]);
+  const updateThreat = (id: string, patch: Record<string, string>) =>
+    setThreats((list: Array<{ id: string }>) => list.map((t) => t.id === id ? { ...t, ...patch } : t));
+  const signThreat = (id: string) =>
+    setThreats((list: Array<{ id: string }>) => list.map((t) => t.id === id ? { ...t, status: 'Dimitigasi', by: me, at: indepToday } : t));
+  /* Q-03c — pengakuan rotasi & cooling-off + tindak lanjut. */
+  const [rotAck, setRotAck] = useAmsPersist('indepRotAck', {});
+  const ackRotation = (id: string, action: string) =>
+    setRotAck((m: Record<string, unknown>) => ({ ...m, [id]: { acknowledged: true, action, by: me, at: indepToday } }));
   const curr = sel ? data.find((d: any) => d.id === sel) : null;
   const [itab, setItab] = useStateE('rotasi');
   const itabs = [{ id: 'rotasi', label: 'Deklarasi & Rotasi' }, { id: 'fee', label: 'Ketergantungan Imbalan' }, { id: 'nas', label: 'Pra-Persetujuan NAS' }, { id: 'longassoc', label: 'Asosiasi Jangka Panjang' }];
@@ -309,7 +346,7 @@ function Independence() {
               {data.map((d: any) => {
                 const rotPct = d.tenure / d.rotationLimit * 100;
                 const rotCol = d.tenure >= d.rotationLimit ? 'var(--red)' : d.tenure >= d.rotationLimit - 1 ? 'var(--amber)' : 'var(--green)';
-                const lvl = appr[d.id] != null ? appr[d.id] : (d.declared ? 3 : 0);
+                const lvl = lvlOf(d);
                 const STEPS = ['Belum', 'Diajukan', 'Direviu', 'Disetujui'];
                 return (
                   <tr key={d.id} className={d.id === sel ? 'sel' : ''} onClick={() => setSel(d.id)} style={{ cursor: 'pointer' }}>
@@ -335,11 +372,31 @@ function Independence() {
         <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Ambang rotasi AP terdiferensiasi per rezim: <b>5 tahun</b> berturut-turut untuk entitas kepentingan publik (PIE) umum (PP 20/2015 Ps. 11) dan <b>3 tahun</b> untuk entitas <b>sektor jasa keuangan</b> — bank, asuransi, pembiayaan (POJK 13/POJK.03/2017). Cooling-off minimal <b>2 tahun</b>; KAP tidak dibatasi. Dimensi etika lain (ketergantungan imbalan, pra-persetujuan NAS, asosiasi jangka panjang) dipantau pada tab terpisah.</div>
         </>)}
       </div></div>
-      {curr && <IndepDrawer d={curr} lvl={appr[curr.id] != null ? appr[curr.id] : (curr.declared ? 3 : 0)} onApprove={(n: any) => setAppr((a: any) => ({ ...a, [curr.id]: n }))} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
+      {curr && <IndepDrawer d={curr} lvl={lvlOf(curr)} rec={recOf(curr.id)} period={INDEP_PERIOD}
+        threats={(threats as IndepThreat[]).filter((t) => t.personId === curr.id)}
+        onAddThreat={() => addThreat(curr.id)} onUpdateThreat={updateThreat} onSignThreat={signThreat}
+        rotAck={(rotAck as Record<string, RotAck>)[curr.id]} onAckRotation={(action: string) => ackRotation(curr.id, action)}
+        onApprove={(n: number) => setApprove(curr.id, n)} onDeclare={() => toggle(curr.id)} onClose={() => setSel(null)} />}
     </>
   );
 }
 
+/* Periode deklarasi independensi berjalan (tahun audit). Sumber tunggal label
+   periode untuk register & drawer; jejak persetujuan distempel periode ini. */
+const INDEP_PERIOD = 'TA 2026';
+/* Kategori ancaman independensi (IESBA 120) + tingkat keparahan. */
+const THREAT_TYPES = ['Kepentingan pribadi', 'Telaah pribadi', 'Advokasi', 'Kedekatan', 'Intimidasi'];
+const THREAT_SEV = ['Tinggi', 'Sedang', 'Rendah'];
+type IndepThreat = { id: string; personId: string; type: string; desc: string; severity: string; safeguard: string; status: string; by: string; at: string };
+type RotAck = { acknowledged?: boolean; action?: string; by?: string; at?: string };
+const sevVar = (s: string): string => s === 'Tinggi' ? 'red' : s === 'Sedang' ? 'amber' : 'green';
+/* Seed register ancaman/pengamanan dari konflik terdeklarasi (INDEPENDENCE). */
+const seedIndepThreats = (rows: Array<{ id: string; conflicts: number; finInterest: string }>) =>
+  rows.filter(r => r.conflicts > 0).map(r => ({
+    id: 'TH-' + r.id, personId: r.id, type: 'Kedekatan', desc: r.finInterest,
+    severity: 'Sedang', safeguard: 'Pengamanan diterapkan & didokumentasikan (telaah independen).',
+    status: 'Dimitigasi', by: '', at: '',
+  }));
 const INDEP_Q = [
   'Tidak memiliki kepentingan keuangan langsung/tidak langsung yang material pada klien.',
   'Tidak ada hubungan keluarga dekat pada posisi kunci di klien.',
@@ -354,13 +411,18 @@ const INDEP_CHAIN = [
   { role: 'Persetujuan Ethics & Independence Partner', who: 'Sari Dewanti, CPA' },
 ];
 
-function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }: any) {
+function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat, onSignThreat, rotAck, onAckRotation, onApprove, onDeclare, onClose }: any) {
+  const steps = (rec && rec.steps) || [];
+  const per = period || INDEP_PERIOD;
+  const tlist: IndepThreat[] = threats || [];
+  const rotRelevant = d.rotationClient !== '—' && d.tenure >= d.rotationLimit - 1;
+  const [rotDraft, setRotDraft] = useStateE('');
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={d.name} size={42} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · TA 2026</div></div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · {per}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
@@ -374,11 +436,52 @@ function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }: any) {
             ))}
           </div>
 
-          {d.conflicts > 0 && (
-            <div className="panel" style={{ padding: '9px 12px', marginBottom: 18, background: 'var(--amber-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
-              <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}><I.alert size={12} /> Konflik dilaporkan: {d.finInterest}. Pengamanan (safeguard) telah diterapkan & didokumentasikan.</div>
+          {/* Q-03b — Register ancaman & pengamanan (IESBA 120): editable + jejak mitigasi */}
+          <div className="row jb ac" style={{ marginBottom: 8 }}>
+            <span className="tiny muted upper">Ancaman & Pengamanan (IESBA 120)</span>
+            <button className="btn sm" onClick={onAddThreat}><I.plus size={12} /> Tambah</button>
+          </div>
+          <div style={{ display: 'grid', gap: 8, marginBottom: 18 }}>
+            {tlist.length === 0 && <div className="tiny muted">Tidak ada ancaman tercatat untuk personel ini.</div>}
+            {tlist.map((t) => (
+              <div key={t.id} className="panel" style={{ padding: '10px 12px', boxShadow: 'none', borderLeft: '3px solid var(--' + sevVar(t.severity) + ')' }}>
+                <div className="row gap6" style={{ marginBottom: 6 }}>
+                  <select className="select" value={t.type} onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { type: e.target.value })} style={{ flex: 1 }}>
+                    {THREAT_TYPES.map(x => <option key={x} value={x}>{x}</option>)}
+                  </select>
+                  <select className="select" value={t.severity} onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { severity: e.target.value })} style={{ width: 104 }}>
+                    {THREAT_SEV.map(x => <option key={x} value={x}>{x}</option>)}
+                  </select>
+                </div>
+                <input className="input" value={t.desc} placeholder="Uraian ancaman" onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { desc: e.target.value })} style={{ width: '100%', marginBottom: 6 }} />
+                <textarea className="input" value={t.safeguard} placeholder="Pengamanan yang diterapkan" onChange={(e: { target: { value: string } }) => onUpdateThreat(t.id, { safeguard: e.target.value })} style={{ width: '100%', height: 44, resize: 'vertical', marginBottom: 6 }} />
+                <div className="row jb ac">
+                  {t.status === 'Dimitigasi'
+                    ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Dimitigasi{t.by ? ' · ' + t.by + ' · ' + t.at : ''}</span>
+                    : <Badge kind="amber">Terbuka</Badge>}
+                  {t.status === 'Dimitigasi'
+                    ? <button className="btn sm" onClick={() => onUpdateThreat(t.id, { status: 'Terbuka', by: '', at: '' })}><I.sync size={11} /> Buka</button>
+                    : <Btn sm variant={t.safeguard.trim() ? 'primary' : ''} disabled={!t.safeguard.trim()} onClick={() => onSignThreat(t.id)}><I.check size={12} /> Tandai dimitigasi</Btn>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Q-03c — Pengakuan rotasi & cooling-off + tindak lanjut */}
+          {rotRelevant && (<>
+            <div className="tiny muted upper" style={{ marginBottom: 8 }}>Rotasi &amp; Cooling-off (PP 20/2015 · POJK 13/2017)</div>
+            <div className="panel" style={{ padding: '10px 12px', marginBottom: 18, boxShadow: 'none', background: d.tenure >= d.rotationLimit ? 'var(--red-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+              <div className="tiny" style={{ fontWeight: 600, marginBottom: 6, lineHeight: 1.45 }}>
+                {d.tenure}/{d.rotationLimit} th pada {d.rotationClient.replace('PT ', '')}{d.listed ? ' (IDX)' : ''} · cooling-off {d.cooloff} th — {d.tenure >= d.rotationLimit ? 'WAJIB ROTASI.' : 'tahun terakhir sebelum batas.'}
+              </div>
+              {rotAck && rotAck.acknowledged
+                ? <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={11} /> Diakui: {rotAck.by} · {rotAck.at}{rotAck.action ? ' — ' + rotAck.action : ''}</div>
+                : (<>
+                  <textarea className="input" value={rotDraft} onChange={(e: { target: { value: string } }) => setRotDraft(e.target.value)} placeholder="Tindak lanjut (mis. tunjuk partner pengganti FY2026)" style={{ width: '100%', height: 40, resize: 'vertical', marginBottom: 6 }} />
+                  <Btn sm variant={rotDraft.trim() ? 'primary' : ''} disabled={!rotDraft.trim()} onClick={() => onAckRotation(rotDraft.trim())}><I.check size={12} /> Akui &amp; catat tindak lanjut</Btn>
+                </>)}
             </div>
-          )}
+          </>)}
 
           <div className="tiny muted upper" style={{ marginBottom: 10 }}>Alur Persetujuan Bertingkat</div>
           <div style={{ display: 'grid', gap: 0 }}>
@@ -399,13 +502,13 @@ function IndepDrawer({ d, lvl, onApprove, onDeclare, onClose }: any) {
                         <I.check size={12} /> {i === 0 ? 'Tandatangani & Ajukan' : i === 1 ? 'Reviu & Teruskan' : 'Setujui Final'}
                       </Btn>
                     )}
-                    {done && <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, marginTop: 2 }}>✓ Selesai</div>}
+                    {done && <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, marginTop: 2 }}>✓ {steps[i] ? steps[i].by + ' · ' + steps[i].at : 'Selesai'}</div>}
                   </div>
                 </div>
               );
             })}
           </div>
-          {lvl >= 3 && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh & terarsip untuk TA 2026.</div></div>}
+          {lvl >= 3 && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh & terarsip untuk {per}.</div></div>}
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
           {lvl > 0 && <Btn style={{ flex: 1 }} onClick={() => onApprove(0)}><I.sync size={13} /> Reset</Btn>}

@@ -3,6 +3,12 @@ import React from 'react';
 import { AMS } from './data';
 import { I } from './icons';
 import { Badge, Btn, Panel, Spark } from './ui';
+import { CAP } from './rbac';
+import { FirmAttestCard, useFirmAttest } from './firm_attest';
+
+/* Otoritas atestasi evaluasi tahunan SOQM: individu yang ditugaskan tanggung
+   jawab akhir SOQM (ISQM 1 ¶20) = Managing/Engagement Partner (CAP.FIRM_ADMIN). */
+const SOQM_LEADER_ROLES = [{ id: 'leader', label: 'Pimpinan SOQM — tanggung jawab akhir (ISQM 1 ¶20)', cap: CAP.FIRM_ADMIN }];
 
 /* ============================================================
    Asseris — SOQM Operasional (ISQM 1) · Pendalaman Modul
@@ -344,6 +350,12 @@ function SoqmInfoComm({ nav }: any) {
 function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: any) {
   const A: any = AMS;
   const master = A.QM_EVAL || {};
+  const period: string = master.period || 'Tahun Berjalan';
+  const attestKey = 'soqmAnnualEval.' + period;
+  /* baca atestasi tersimpan (SSOT) utk hero KV — sinkron dgn FirmAttestCard
+     yang merender editor (pola sama wp_signoff: dua hook, satu store). */
+  const attest = useFirmAttest(attestKey, period);
+  const leaderSign = attest.state.chain.leader;
 
   /* mesin keputusan ¶54 — diturunkan dari live data */
   const defs = risks.filter((r: any) => r.deficiency);
@@ -396,7 +408,10 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '18px 20px' }}>
             <div className="row jb ac" style={{ marginBottom: 5 }}>
               <span className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Evaluasi Tahunan Sistem Pengelolaan Mutu (ISQM 1 ¶53–¶54)</span>
-              <span className="mono tiny" style={{ color: '#9fc0d2' }}>{master.period || '—'}</span>
+              <span className="row ac gap8">
+                <Badge kind={leaderSign ? 'green' : 'amber'}>{leaderSign ? 'Diatestasi' : 'Menunggu atestasi'}</Badge>
+                <span className="mono tiny" style={{ color: '#9fc0d2' }}>{period}</span>
+              </span>
             </div>
             <div className="row ac gap12" style={{ marginBottom: 8 }}>
               <span style={{ display: 'inline-flex', width: 12, height: 12, borderRadius: '50%', background: color, boxShadow: '0 0 0 4px rgba(255,255,255,.15)' }} />
@@ -407,11 +422,22 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
           </div>
           <div style={{ padding: '12px 18px', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
             <D2KV label="Penyusun" v={master.by || '—'} />
-            <D2KV label="Disetujui" v={master.approvedBy || '—'} />
-            <D2KV label="Tanggal Evaluasi" v={master.date || '—'} />
-            <D2KV label="Cakupan Periode" v={master.period || '—'} />
+            <D2KV label="Disetujui (Pimpinan SOQM)" v={leaderSign ? leaderSign.by : (master.approvedBy || 'Belum ditandatangani')} />
+            <D2KV label="Tanggal Atestasi" v={leaderSign ? leaderSign.at : (master.date || '—')} />
+            <D2KV label="Cakupan Periode" v={period} />
           </div>
         </Panel>
+
+        {/* Atestasi pimpinan SOQM (ISQM 1 ¶53) — kesimpulan tertulis + sign-off
+            tersimpan (SSOT firmAttest), berdampingan dgn rekomendasi mesin ¶54. */}
+        <FirmAttestCard
+          attestKey={attestKey}
+          period={period}
+          roles={SOQM_LEADER_ROLES}
+          title="Kesimpulan & Atestasi Pimpinan SOQM (¶53)"
+          engineLabel={label}
+          placeholder="Kesimpulan pimpinan atas efektivitas SPM & dasar pertimbangan (ISQM 1 ¶53)…"
+        />
 
         {/* faktor keputusan ¶54 */}
         <Panel noBody>

@@ -66,6 +66,15 @@ const WP_MODULE_MAP = {
   sa540:   { ref: 'sa540',  requiredEvidence: ['Evaluasi estimasi akuntansi'] },
   sa580:   { ref: 'sa580',  requiredEvidence: ['Surat representasi tertulis manajemen'] },
   spr2410: { ref: 'spr2410', requiredEvidence: ['Kertas kerja prosedur reviu interim'] },
+  /* prosedur SA substantif yg sebelumnya TAK terpetakan → kini auditable
+     (sign-off + bukti + kesimpulan SA 230 via SubBar global). Menutup sisi
+     generik temuan S-01/SA-04/SA-08/SA-09/SA-10/SA-11. Data domain spesifik
+     (mis. proyeksi arus kas, register konfirmasi) = track terpisah. */
+  sa240:        { ref: 'sa240',        requiredEvidence: ['Notulen diskusi tim (brainstorming fraud, SA 240 ¶15)', 'Register risiko fraud & respons audit', 'Pengujian presumsi pengakuan pendapatan & jurnal anomali (JET)'] },
+  goingconcern: { ref: 'goingconcern', requiredEvidence: ['Proyeksi arus kas & uji sensitivitas', 'Analisis kepatuhan covenant', 'Evaluasi rencana mitigasi manajemen (SA 570 ¶16)'] },
+  subsequent:   { ref: 'subsequent',   requiredEvidence: ['Prosedur peristiwa kemudian s.d. tanggal laporan (SA 560 ¶6)', 'Risalah/notulen setelah tanggal neraca', 'Pertimbangan dual dating'] },
+  related:      { ref: 'related',      requiredEvidence: ['Daftar pihak berelasi & sifat hubungan', 'Pengujian transaksi pihak berelasi (SA 550 ¶22)', 'Evaluasi kecukupan pengungkapan'] },
+  confirm:      { ref: 'confirm',      requiredEvidence: ['Register konfirmasi (terkirim/dijawab)', 'Rekonsiliasi selisih jawaban', 'Prosedur alternatif untuk non-jawaban (SA 505 ¶12)'] },
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
@@ -403,6 +412,31 @@ function opinionFinalized(firm: any) {
   return false;
 }
 
+/* eqrStatusFor (Q-02) — status gerbang Penelaahan Mutu Perikatan (EQR, ISQM 2)
+   untuk satu engagement, dibaca dari SSOT persist (ams.v1.eqrReviews.v2). Murni-
+   baca; pola sama dgn opinionFinalized. `applicable`=true bila ADA review EQR
+   utk engagement tsb (gerbang relevan); `cleared`=true bila SEMUA review-nya
+   lolos gerbang (checklist tuntas + tak ada temuan terbuka). Mengikat penerbitan
+   opini & pengarsipan ke penyelesaian EQR substantif — bukan sekadar centang. */
+type EqrReview = { eng?: string; cleared?: boolean };
+function eqrReviewsLS(): EqrReview[] {
+  try {
+    const raw = localStorage.getItem('ams.v1.eqrReviews.v2');
+    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) return d as EqrReview[]; }
+  } catch (e) { /* localStorage/JSON gagal → pakai seed */ }
+  try {
+    const w = window as unknown as { AMS?: { EQR_REVIEWS?: EqrReview[] } };
+    return (w.AMS && w.AMS.EQR_REVIEWS) || [];
+  } catch (e) { return []; }
+}
+function eqrStatusFor(engId: string | null | undefined) {
+  if (!engId) return { applicable: false, cleared: true, count: 0, clearedCount: 0 };
+  const list = eqrReviewsLS().filter((r) => !!r && r.eng === engId);
+  if (!list.length) return { applicable: false, cleared: true, count: 0, clearedCount: 0 };
+  const clearedCount = list.filter((r) => !!r.cleared).length;
+  return { applicable: true, cleared: clearedCount === list.length, count: list.length, clearedCount };
+}
+
 /* engagementGate — daftar prasyarat transisi ke fase berikutnya.
    Kriteria mengikuti spek disetujui (Q2): →Finalisasi butuh 0 catatan
    prioritas-tinggi terbuka; →Arsip butuh opini final + 100% WP ter-review
@@ -447,6 +481,13 @@ function engagementGate(audit: any, firm: any, opts: any) {
       { key: 'noOpenNotes', label: 'Seluruh catatan review terselesaikan',
         met: openNotes.length === 0, detail: `${openNotes.length} catatan terbuka`, view: 'cockpit' },
     ];
+    /* Q-02 (ISQM 2): bila engagement punya review EQR, ia WAJIB lolos gerbang
+       sebelum arsip — defense-in-depth atas penegakan di penerbitan opini. */
+    const eqr = eqrStatusFor(firm && firm.activeEngagementId);
+    if (eqr.applicable) {
+      criteria.push({ key: 'eqrCleared', label: 'Penelaahan mutu perikatan (EQR) lolos gerbang (ISQM 2)',
+        met: eqr.cleared, detail: `${eqr.clearedCount}/${eqr.count} EQR lolos gerbang`, view: 'eqr' });
+    }
   }
   const blockers = criteria.filter(c => !c.met);
   return { fromPhase, nextPhase, severity, criteria, blockers, allMet: blockers.length === 0 };
@@ -571,5 +612,5 @@ Object.assign(window, {
 export {
   WP_MODULE_MAP, WP_DISPOSITIONS, wpKeyFor, requiredEvidenceFor, wpSignersFor,
   useWpSignoff, useWpEvidence, WpStatusBadge, WpSignoff, WpEvidenceLink, WpConclusion, WpPanel, WpSubBarControl, wpCompletenessFor, WpCompletenessRecap,
-  PHASE_ORDER, engagementGate, EngagementGateSummary, usePhaseGate, PhaseGateDialog,
+  PHASE_ORDER, engagementGate, EngagementGateSummary, usePhaseGate, PhaseGateDialog, eqrStatusFor,
 };
