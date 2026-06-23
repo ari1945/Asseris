@@ -89,6 +89,9 @@ const WP_MODULE_MAP = {
   /* SA 402 — organisasi jasa. Register organisasi jasa engagement-scoped (persist
      di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
   serviceorg:   { ref: 'serviceorg',   requiredEvidence: ['Laporan auditor jasa (Type 1/2 · ISAE 3402/SOC 1)', 'Evaluasi auditor jasa & matriks CUEC', 'Prosedur atas pengecualian/gap/tanpa-laporan (SA 402)'] },
+  /* SA 315/330/265 — pengendalian internal (ICFR). RCM & evaluasi defisiensi
+     engagement-scoped (persist di view); lapisan ini menambah sign-off + bukti + kesimpulan SA 230. */
+  icfr:         { ref: 'icfr',         requiredEvidence: ['Risk-control matrix & walkthrough (SA 315)', 'Kertas kerja Test of Controls (SA 330)', 'Register & evaluasi defisiensi + komunikasi (SA 265)'] },
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
