@@ -75,6 +75,10 @@ const WP_MODULE_MAP = {
   subsequent:   { ref: 'subsequent',   requiredEvidence: ['Prosedur peristiwa kemudian s.d. tanggal laporan (SA 560 ¶6)', 'Risalah/notulen setelah tanggal neraca', 'Pertimbangan dual dating'] },
   related:      { ref: 'related',      requiredEvidence: ['Daftar pihak berelasi & sifat hubungan', 'Pengujian transaksi pihak berelasi (SA 550 ¶22)', 'Evaluasi kecukupan pengungkapan'] },
   confirm:      { ref: 'confirm',      requiredEvidence: ['Register konfirmasi (terkirim/dijawab)', 'Rekonsiliasi selisih jawaban', 'Prosedur alternatif untuk non-jawaban (SA 505 ¶12)'] },
+  /* SA 250 — pertimbangan hukum & regulasi (NOCLAR). Register ketidakpatuhan
+     engagement-scoped + keputusan jenjang pelaporan dipersist di view; lapisan
+     ini menambah sign-off + bukti + kesimpulan SA 230 via SubBar global. */
+  sa250:        { ref: 'sa250',        requiredEvidence: ['Memo pertimbangan hukum & regulasi (NOCLAR, SA 250)', 'Notulen diskusi manajemen/penasihat hukum atas ketidakpatuhan', 'Representasi tertulis ketidakpatuhan (SA 250 ¶16)'] },
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
