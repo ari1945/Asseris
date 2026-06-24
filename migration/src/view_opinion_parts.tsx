@@ -455,6 +455,12 @@ function OpinionSignoff({ doc, patch }: any) {
   const auth = useAuth();
   // W7 — issuing the auditor's opinion requires opinion.approve (Engagement Partner; server-enforced).
   const canApprove = !auth || typeof auth.can !== 'function' || auth.can(CAP.OPINION_APPROVE);
+  /* Otoritas tanda tangan PER-SLOT reviu berjenjang (SoD): tiap slot terikat kapabilitas perannya —
+     Manajer→SIGNOFF_REVIEWER (Partner+Manager), Rekan Perikatan→OPINION_APPROVE (Partner),
+     EQR→EQR_REVIEW (Partner). Menutup celah: Junior/Senior tak boleh menandatangani slot manapun;
+     Manager tak boleh menandatangani slot Partner/EQR. Penegakan server = fase lanjut. */
+  const SLOT_CAP: Record<string, string> = { manager: CAP.SIGNOFF_REVIEWER, partner: CAP.OPINION_APPROVE, eqr: CAP.EQR_REVIEW };
+  const canSignSlot = (role: string) => !auth || typeof auth.can !== 'function' || auth.can(SLOT_CAP[role]);
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
   const o = (OPINIONS as any)[doc.type];
   const eqrRequired = !!activeClient?.listed;
@@ -557,8 +563,9 @@ function OpinionSignoff({ doc, patch }: any) {
                   </div>
                   <div className="row ac jb" style={{ marginTop: 8 }}>
                     {done ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}>Ditandatangani · {done.date}</span>
-                      : <span className="tiny muted">{prevDone ? 'Menunggu tanda tangan' : 'Menunggu reviu sebelumnya'}</span>}
-                    <Btn sm variant={done ? '' : 'primary'} disabled={!prevDone && !done} onClick={() => sign(r.role)}>
+                      : <span className="tiny muted">{!prevDone ? 'Menunggu reviu sebelumnya' : canSignSlot(r.role) ? 'Menunggu tanda tangan' : 'Menunggu otoritas berwenang'}</span>}
+                    <Btn sm variant={done ? '' : 'primary'} disabled={done ? !canSignSlot(r.role) : (!prevDone || !canSignSlot(r.role))} onClick={() => sign(r.role)}
+                      title={!canSignSlot(r.role) ? 'Hanya otoritas yang berwenang dapat menandatangani slot ini' : undefined}>
                       {done ? 'Batalkan' : <><I.check size={12} /> Tandatangani</>}
                     </Btn>
                   </div>
