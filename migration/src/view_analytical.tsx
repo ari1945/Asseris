@@ -180,7 +180,9 @@ function AnalyticalReview() {
    TAB · Ringkasan (overview, SA 520 stage tracker, risk signals)
    ============================================================ */
 function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
-  const [memo, setMemo] = window.useAmsPersist('ar.memo.' + eng.id, '');
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'arMemo.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [memo, setMemo] = window.useAmsPersist('arMemo.v1', '');
   /* "unexpected" fluctuation = material AND unusual %  → genuine exceptions to investigate */
   const rows = der.flux.map((r: any) => ({ ...r, flagged: Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
   const flagged = rows.filter((r: any) => r.flagged);

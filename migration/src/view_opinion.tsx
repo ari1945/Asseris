@@ -101,8 +101,9 @@ function buildOpinionBlocks(doc: any, client: any, O: any) {
 function AuditOpinionGen() {
   const { activeClient, activeEngagement } = useFirm();
   const O = window.AMSOpinion;
-  const engId = activeEngagement?.id || 'x';
-  const [doc, setDoc] = useAmsPersist('opinionDoc.' + engId, () => DEFAULT_DOC_O);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'opinionDoc.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [doc, setDoc] = useAmsPersist('opinionDoc.v1', () => DEFAULT_DOC_O);
   const patch = (p: any) => setDoc((d: any) => ({ ...d, ...p }));
   const [tab, setTab] = useStateO('determine');
   const [exporting, setExporting] = useStateO(false);

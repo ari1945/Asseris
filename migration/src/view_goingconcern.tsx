@@ -163,7 +163,9 @@ function GoingConcern() {
   const wtb = audit?.wtb;
   const canon: GoingConcernResult = useMemoGC(() => goingConcernFor(wtb), [wtb]);
 
-  const [gc, setGc] = useAmsPersist('goingconcern.' + engId, () => GC_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'goingconcern.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [gc, setGc] = useAmsPersist('goingconcern.v1', () => GC_SEED);
   const assumptions: GCAssumptions = (gc && gc.assumptions) || GC_SEED.assumptions;
   const inds: GCIndicators = (gc && gc.indicators) || GC_SEED.indicators;
   const covenants: Covenant[] = (gc && gc.covenants) || [];

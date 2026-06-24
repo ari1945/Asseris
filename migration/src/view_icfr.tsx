@@ -147,7 +147,9 @@ function InternalControl() {
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useStateIC('overview');
-  const [dataRaw, setData] = useAmsPersist('icfrMatrix.' + engId, () => IC_CYCLES);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'icfrMatrix.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [dataRaw, setData] = useAmsPersist('icfrMatrix.v1', () => IC_CYCLES);
   const data: ICCycle[] = dataRaw || [];
 
   const allControls = data.flatMap(c => c.controls);
@@ -193,7 +195,7 @@ function InternalControl() {
           {tab === 'overview' && <ICEntityLevel data={data} />}
           {tab === 'matrix' && <ICMatrix data={data} setData={setData} locked={locked} />}
           {tab === 'itgc' && <ICITGC data={data} />}
-          {tab === 'deficiency' && <ICDeficiency data={data} me={me} locked={locked} engId={engId} />}
+          {tab === 'deficiency' && <ICDeficiency data={data} me={me} locked={locked} />}
         </div>
       </div>
     </>
@@ -617,7 +619,7 @@ const DEF_SEED = {
 };
 
 const DEFAULT_DEF_A = { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: '—', cmp: '—' };
-function ICDeficiency({ data, locked, engId }: any) {
+function ICDeficiency({ data, locked }: any) {
   // collect deficiencies from matrix + ITGC SoD
   const matrixDefs = data.flatMap((cy: any) => cy.controls
     .filter((c: any) => c.design === 'Deficiency' || c.oper === 'Deficiency')
@@ -625,7 +627,9 @@ function ICDeficiency({ data, locked, engId }: any) {
   const itgcDef = { id: 'ITGC-SoD', src: 'ITGC · Akses', desc: 'Segregation of Duties — kombinasi role konflik pada ERP (buat & setujui PO/pembayaran).', kind: 'Rancangan' };
   const defs = [...matrixDefs, itgcDef];
 
-  const [assess, setAssess] = useAmsPersist('icfrDef.' + engId, () => {
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'icfrDef.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [assess, setAssess] = useAmsPersist('icfrDef.v1', () => {
     const init = {};
     defs.forEach(d => { (init as any)[d.id] = (DEF_SEED as any)[d.id] || { ...DEFAULT_DEF_A }; });
     return init;

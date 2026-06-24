@@ -18,7 +18,7 @@ import { ML_FINDINGS_SEED } from './view_final3';
      · useFirm()  → klien & perikatan aktif
      · AMS_CANON.materiality / AMS.RISKS / AMS.PBC_REQUESTS / AMS.AJE
      · localStorage 'mgmtletter.findings.v2' (atau seed ML)
-     · localStorage 'opinionDoc.<eng>' + AMSOpinion.OPINIONS
+     · localStorage 'engagement.<eng>.opinionDoc.v1' + AMSOpinion.OPINIONS
    Skala slide tetap 1280×720 → di-scale agar pas di layar (embed & layar penuh).
    ============================================================ */
 const { useState: useStatePR, useEffect: useEffectPR, useMemo: useMemoPR, useRef: useRefPR, useCallback: useCallbackPR } = React;
@@ -64,7 +64,9 @@ function prData(firm: any) {
   const sevRank = { Significant: 0, Deficiency: 1, Observation: 2 };
   const finalSorted = [...finalF].sort((a, b) => ((sevRank as any)[a.sev] - (sevRank as any)[b.sev]));
 
-  const opDoc = prLoadLS('opinionDoc.' + engId, null);
+  /* opinionDoc kini statis 'opinionDoc.v1' scope engagement → cacheKey W6
+     'ams.v1.engagement.<engId>.opinionDoc.v1' (prLoadLS menambah prefix 'ams.v1.'). */
+  const opDoc = prLoadLS('engagement.' + engId + '.opinionDoc.v1', null);
   const opType = opDoc?.type || 'unmodified';
   const OPN = (window.AMSOpinion && window.AMSOpinion.OPINIONS) || {};
   const op = OPN[opType] || { title: 'Wajar Tanpa Modifikasian', short: 'WTM', k: 'green' };
