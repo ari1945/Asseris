@@ -113,7 +113,9 @@ function SA240View() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [fraud, setFraud] = useAmsPersist('fraud.' + engId, () => FRAUD_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'fraud.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [fraud, setFraud] = useAmsPersist('fraud.v1', () => FRAUD_SEED);
   const register: FraudRisk[] = (fraud && fraud.register) || [];
   const triangle: Triangle = (fraud && fraud.triangle) || FRAUD_SEED.triangle;
   const overrideProc: OverrideProc[] = (fraud && fraud.overrideProc) || [];

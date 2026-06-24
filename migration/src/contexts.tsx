@@ -56,6 +56,9 @@ const AMS_PERSIST_SCOPE = {
   'diagnostics.v1': 'engagement',
   'aiInsights.v1': 'engagement',
   'jet.v1': 'engagement',
+  'sampling.v1': 'engagement',
+  'estimates.v1': 'engagement',
+  'fraud.v1': 'engagement',
 };
 
 const SYNC_DEBOUNCE_MS = 400;
