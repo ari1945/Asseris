@@ -59,6 +59,26 @@ const AMS_PERSIST_SCOPE = {
   'sampling.v1': 'engagement',
   'estimates.v1': 'engagement',
   'fraud.v1': 'engagement',
+  /* Migrasi pola firm-scope laten (task lanjutan dari fraud.v1/sampling.v1):
+     modul ini dulu menyandikan engId ke dalam string key (mis. 'goingconcern.'+engId)
+     → tak cocok entri mana pun → default 'firm' → capForWrite('firm',key)=FIRM_ADMIN →
+     hanya Engagement Partner bisa tulis; Manager/Senior/Junior ditolak server diam-diam.
+     Key statis '<x>.v1' + scope engagement → isolasi dibawa scopeId (perikatan aktif),
+     bukan mangling string; capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
+  'icfrMatrix.v1': 'engagement',
+  'icfrDef.v1': 'engagement',
+  'goingconcern.v1': 'engagement',
+  'opinionDoc.v1': 'engagement',
+  'noclar.v1': 'engagement',
+  'tcwg.v1': 'engagement',
+  'deficiencies.v1': 'engagement',
+  'serviceorgs.v1': 'engagement',
+  'experts.v1': 'engagement',
+  /* Lanjutan migrasi yg sama untuk situs yg memakai ekspresi engId berbeda
+     (eng.id / activeEngagement.id, bukan literal `engId`) → tak tertangkap grep awal. */
+  'strategyTab.v1': 'engagement',
+  'strategyApproach.v1': 'engagement',
+  'arMemo.v1': 'engagement',
 };
 
 const SYNC_DEBOUNCE_MS = 400;

@@ -253,7 +253,9 @@ function UseOfExpert() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [experts, setExperts] = useAmsPersist('experts.' + engId, () => EXPERTS_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'experts.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [experts, setExperts] = useAmsPersist('experts.v1', () => EXPERTS_SEED);
   const [selId, setSelId] = useStateSP2('EX-01');
   const [tab, setTab] = useStateSP2('konteks');
   const sel = experts.find((e: any) => e.id === selId);

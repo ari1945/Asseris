@@ -73,7 +73,9 @@ function SA250View() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [data, setData] = useAmsPersist('noclar.' + engId, () => NOCLAR_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'noclar.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [data, setData] = useAmsPersist('noclar.v1', () => NOCLAR_SEED);
   const items: NoclarItem[] = (data && data.items) || [];
   const report: ReportTier[] = (data && data.report) || [];
   const setItems = (fn: (l: NoclarItem[]) => NoclarItem[]) => setData((d: NoclarState) => ({ ...d, items: fn((d && d.items) || []) }));
@@ -365,7 +367,9 @@ function SA260View() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [data, setData] = useAmsPersist('tcwg.' + engId, () => TCWG_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'tcwg.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [data, setData] = useAmsPersist('tcwg.v1', () => TCWG_SEED);
   const matrix: TcwgMatrixRow[] = (data && data.matrix) || [];
   const findings: TcwgFinding[] = (data && data.findings) || [];
   const setMatrix = (fn: (l: TcwgMatrixRow[]) => TcwgMatrixRow[]) => setData((d: TcwgState) => ({ ...d, matrix: fn((d && d.matrix) || []) }));
@@ -569,7 +573,9 @@ function SA265View() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [defs, setDefs] = useAmsPersist('deficiencies.' + engId, () => DEFICIENCIES_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'deficiencies.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [defs, setDefs] = useAmsPersist('deficiencies.v1', () => DEFICIENCIES_SEED);
   const list: Deficiency[] = defs || [];
   const sig = list.filter(d => d.sig).length;
 

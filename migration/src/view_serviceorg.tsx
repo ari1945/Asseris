@@ -169,7 +169,9 @@ function ServiceOrg() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [stored, setStored] = useAmsPersist('serviceorgs.' + engId, () => SO_ORGS_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'serviceorgs.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [stored, setStored] = useAmsPersist('serviceorgs.v1', () => SO_ORGS_SEED);
   const orgs: ServiceOrgRow[] = applySocSync((stored as ServiceOrgRow[]) || []);
   const setOrgs = (fn: (l: ServiceOrgRow[]) => ServiceOrgRow[]) => setStored((l: ServiceOrgRow[]) => fn(l || []));
 

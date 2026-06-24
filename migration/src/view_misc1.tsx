@@ -29,7 +29,9 @@ function StrategyMemo() {
   const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
   const fraudRisks = risks.filter((r: any) => r.fraud);
 
-  const [tab, setTab] = window.useAmsPersist('strategyTab.' + activeEngagement.id, 'strategi');
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'strategyTab.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [tab, setTab] = window.useAmsPersist('strategyTab.v1', 'strategi');
 
   const right = (
     <div className="row gap8 ac">
@@ -184,7 +186,9 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
 
 /* ---- Tab 2 · Audit approach by area (editable response per RoMM) ---- */
 function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
-  const [over, setOver] = window.useAmsPersist('strategyApproach.' + activeEngagement.id, {});
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'strategyApproach.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [over, setOver] = window.useAmsPersist('strategyApproach.v1', {});
   const planFor = (r: any) => over[r.id] || smDefaultApproach(r);
   const counts = SM_APPROACHES.map(a => ({ ...a, n: risks.filter((r: any) => planFor(r) === a.id).length }));
   const relyControls = risks.filter((r: any) => planFor(r) === 'ctrl').length;
