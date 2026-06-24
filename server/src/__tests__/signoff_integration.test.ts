@@ -17,11 +17,16 @@ const SIG = { by: 'Tester', at: '2026-03-14' };
 const scope = 'engagement' as const;
 const scopeId = 'TEST-ENG-SIGNOFF';
 const key = 'wpState';
+const firmScopeId = 'FIRM-TEST-SIGNOFF';
 
 describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
-  beforeAll(async () => { await prisma.stateDoc.deleteMany({ where: { scope, scopeId } }); });
+  beforeAll(async () => {
+    await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: firmScopeId, key: 'prospects' } });
+  });
   afterAll(async () => {
     await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
+    await prisma.stateDoc.deleteMany({ where: { scope: 'firm', scopeId: firmScopeId, key: 'prospects' } });
     await prisma.$disconnect();
   });
 
@@ -44,6 +49,29 @@ describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
   it('Partner BOLEH menambah slot Partner — jalur sah', async () => {
     const r = await partner.state.set({ scope, scopeId, key, baseVersion: 1,
       value: { B: { chain: { preparer: SIG, reviewer: SIG, partner: SIG } } } });
+    expect(r.version).toBe(2);
+  });
+
+  // Q5 — akseptasi (firm prospects): intake = ENGAGEMENT_MANAGE (Manager boleh), tapi
+  // PERSETUJUAN = FIRM_ADMIN (Partner-only). Diuji lewat jalur tRPC nyata.
+  const fp = { scope: 'firm' as const, scopeId: firmScopeId, key: 'prospects' };
+  const prospect = (approved: boolean) => [{ id: 'PR-1', acceptance: { approved }, letter: { status: 'draft' } }];
+
+  it('Manager BOLEH intake prospek (akseptasi belum disetujui)', async () => {
+    const r = await manager.state.set({ ...fp, baseVersion: 0, value: prospect(false) });
+    expect(r.version).toBe(1);
+  });
+
+  it('Manager DITOLAK menyetujui akseptasi (butuh FIRM_ADMIN)', async () => {
+    await expect(
+      manager.state.set({ ...fp, baseVersion: 1, value: prospect(true) }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'requires:firm.admin' });
+    const got = await partner.state.get(fp);
+    expect(got.version).toBe(1);
+  });
+
+  it('Partner BOLEH menyetujui akseptasi', async () => {
+    const r = await partner.state.set({ ...fp, baseVersion: 1, value: prospect(true) });
     expect(r.version).toBe(2);
   });
 });

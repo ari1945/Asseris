@@ -507,7 +507,7 @@ export const appRouter = router({
         // dokumen (WP_EDIT); guard ini menuntut kapabilitas peran yang tepat untuk tiap
         // tanda tangan/kliring di dalam dok, dengan mem-diff nilai tersimpan vs masuk.
         let signoffChanges: SignoffChange[] = [];
-        if (scope === 'engagement' && SIGNOFF_KEYS.has(key)) {
+        if (SIGNOFF_KEYS.has(key)) {
           const prevDoc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
           const prevValue = prevDoc ? (JSON.parse(prevDoc.valueJson) as unknown) : null;
           signoffChanges = guardSignoffWrite(ctx.user.role, key, prevValue, input.value);

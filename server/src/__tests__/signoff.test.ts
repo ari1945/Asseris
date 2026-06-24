@@ -77,6 +77,32 @@ describe('guardSignoffWrite — reviewNotes kliring', () => {
   });
 });
 
+describe('guardSignoffWrite — prospects (akseptasi & penerbitan surat = FIRM_ADMIN)', () => {
+  const base = { id: 'PR-1', acceptance: { approved: false }, letter: { status: 'draft' } };
+  it('menyetujui akseptasi (approved false→true) butuh FIRM_ADMIN — Manager ditolak', () => {
+    const next = [{ ...base, acceptance: { approved: true } }];
+    expect(() => guardSignoffWrite(MANAGER, 'prospects', [base], next)).toThrow(/requires:firm\.admin/);
+    expect(() => guardSignoffWrite(PARTNER, 'prospects', [base], next)).not.toThrow();
+  });
+  it('membuka kembali akseptasi (true→false) juga butuh FIRM_ADMIN', () => {
+    const approved = [{ ...base, acceptance: { approved: true } }];
+    const reopened = [{ ...base, acceptance: { approved: false } }];
+    expect(() => guardSignoffWrite(MANAGER, 'prospects', approved, reopened)).toThrow(/firm\.admin/);
+  });
+  it('menerbitkan surat (status draft→sent/signed) butuh FIRM_ADMIN — Manager ditolak', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'prospects', [base], [{ ...base, letter: { status: 'sent' } }])).toThrow(/firm\.admin/);
+    expect(() => guardSignoffWrite(MANAGER, 'prospects', [base], [{ ...base, letter: { status: 'signed' } }])).toThrow(/firm\.admin/);
+    expect(() => guardSignoffWrite(PARTNER, 'prospects', [base], [{ ...base, letter: { status: 'sent' } }])).not.toThrow();
+  });
+  it('INTAKE tidak di-gate: tambah prospek baru (approved:false, surat draft) — Manager boleh', () => {
+    expect(guardSignoffWrite(MANAGER, 'prospects', [], [base])).toEqual([]);
+  });
+  it('data-entry tidak di-gate: ubah faktor PMPJ / draft surat (status tetap) — Manager boleh', () => {
+    const edited = [{ ...base, acceptance: { approved: false, decision: 'Terima' }, letter: { status: 'draft', version: 2 } }];
+    expect(guardSignoffWrite(MANAGER, 'prospects', [base], edited)).toEqual([]);
+  });
+});
+
 describe('guardSignoffWrite — non-sensitif / no-op', () => {
   it('key tak dikenal → tanpa requirement', () => {
     expect(guardSignoffWrite(JUNIOR, 'risks', { a: 1 }, { a: 2 })).toEqual([]);

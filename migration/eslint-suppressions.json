@@ -726,7 +726,7 @@
   },
   "src/view_opinion_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 73
+      "count": 72
     }
   },
   "src/view_palette.tsx": {

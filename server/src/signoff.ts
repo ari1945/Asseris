@@ -42,8 +42,13 @@ const OPINION_SLOT_CAP: Record<string, string> = {
   eqr: CAP.EQR_REVIEW,
 };
 
-/* Key engagement yang membawa aksi otoritatif intra-dokumen. */
-export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes']);
+/* Key yang membawa aksi otoritatif intra-dokumen (engagement: wpState/opinionDoc/reviewNotes;
+   firm: prospects → keputusan akseptasi & penerbitan surat perikatan). Nama key unik antar-scope
+   (tak ada tabrakan), jadi guard di-dispatch by key. */
+export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 'prospects']);
+
+/* Status surat perikatan yang berarti DITERBITKAN (vs intake/draft). */
+const LETTER_ISSUED = new Set(['sent', 'signed']);
 
 /**
  * Tegakkan otoritas per-slot atas sebuah tulisan StateDoc.
@@ -83,6 +88,25 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
       if (p[id] && p[id].status !== n[id].status) {
         need(CAP.SIGNOFF_REVIEWER, `note:${id}:${p[id].status}->${n[id].status}`);
       }
+    }
+  } else if (key === 'prospects') {
+    // Q5 — keputusan AKSEPTASI & PENERBITAN surat perikatan = Partner-only (FIRM_ADMIN).
+    // Intake/data-entry (tambah prospek, PMPJ, faktor, draft surat) = ENGAGEMENT_MANAGE,
+    // sudah di-gate capForWrite → JANGAN over-gate di sini.
+    const idx = (v: unknown): Record<string, any> => {
+      const m: Record<string, any> = {};
+      if (Array.isArray(v)) for (const x of v) if (x && x.id != null) m[String(x.id)] = x;
+      return m;
+    };
+    const p = idx(prev), n = idx(next);
+    for (const id of Object.keys(n)) {
+      const a = p[id] || {}, b = n[id];
+      const aApproved = !!(a.acceptance && a.acceptance.approved);
+      const bApproved = !!(b.acceptance && b.acceptance.approved);
+      if (aApproved !== bApproved) need(CAP.FIRM_ADMIN, `acceptance:${id}:${aApproved}->${bApproved}`);
+      const aL = (a.letter && a.letter.status) || '';
+      const bL = (b.letter && b.letter.status) || '';
+      if (aL !== bL && LETTER_ISSUED.has(bL)) need(CAP.FIRM_ADMIN, `letter:${id}->${bL}`);
     }
   }
   return changes;
