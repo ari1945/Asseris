@@ -10,6 +10,7 @@ import { createSession, revokeSession } from './auth/session';
 import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
 import { can, capForWrite, CAP } from './rbac';
+import { guardSignoffWrite, SIGNOFF_KEYS, type SignoffChange } from './signoff';
 import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
 import { redactFindings, buildNarrationPrompt } from './llm/redact';
@@ -502,6 +503,17 @@ export const appRouter = router({
         // W7 capability gate (may your role write this key?).
         if (scope === 'engagement') await assertEngagementAccess(ctx.user, scopeId);
         assertCanWrite(ctx.user, scope, scopeId, key);
+        // Fase 2 — penegakan sign-off per-slot (intra-dokumen). capForWrite hanya gate
+        // dokumen (WP_EDIT); guard ini menuntut kapabilitas peran yang tepat untuk tiap
+        // tanda tangan/kliring di dalam dok, dengan mem-diff nilai tersimpan vs masuk.
+        let signoffChanges: SignoffChange[] = [];
+        if (scope === 'engagement' && SIGNOFF_KEYS.has(key)) {
+          const prevDoc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
+          const prevValue = prevDoc ? (JSON.parse(prevDoc.valueJson) as unknown) : null;
+          signoffChanges = guardSignoffWrite(ctx.user.role, key, prevValue, input.value);
+        }
+        // Metadata-saja (slot+cap, BUKAN isi WP) untuk jejak audit reviu mutu.
+        const signoffDetail = signoffChanges.length ? ' signoff[' + signoffChanges.map((c) => c.what).join(',') + ']' : '';
         const valueJson = JSON.stringify(input.value ?? null);
         const updatedBy = ctx.user.id;
 
@@ -512,7 +524,7 @@ export const appRouter = router({
             });
             await appendAudit({
               actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-              scope, scopeId, key, detail: 'v0->v1',
+              scope, scopeId, key, detail: 'v0->v1' + signoffDetail,
             });
             return { version: created.version };
           } catch (e) {
@@ -535,7 +547,7 @@ export const appRouter = router({
         }
         await appendAudit({
           actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-          scope, scopeId, key, detail: `v${baseVersion}->v${baseVersion + 1}`,
+          scope, scopeId, key, detail: `v${baseVersion}->v${baseVersion + 1}` + signoffDetail,
         });
         return { version: baseVersion + 1 };
       }),
