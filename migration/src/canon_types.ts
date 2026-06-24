@@ -75,6 +75,55 @@ export interface Fig {
   fiscalTempMovement: number;
 }
 
+/* ---------- SA 570 · Going concern (rasio solvabilitas + Altman Z) ----------
+   Diturunkan PENUH dari WTB (single source of truth). Semua agregat dalam
+   Rp juta; rasio unitless. Dihitung untuk dua periode (kolom `adj` = audited
+   tahun berjalan, `ly` = komparatif tahun lalu) agar tren nyata, bukan fiktif. */
+export interface GcAggregates {
+  /* agregat neraca/laba-rugi (Rp juta) */
+  currentAssets: number;
+  currentLiab: number;
+  inventory: number;
+  totalAssets: number;
+  totalLiab: number;
+  equity: number;
+  retainedEarnings: number;
+  sales: number;
+  ebit: number;
+  interest: number;
+  netIncome: number;
+  workingCapital: number;
+  /* rasio (unitless kecuali OCF & modal kerja = Rp juta) */
+  currentRatio: number;
+  quickRatio: number;
+  der: number;
+  interestCoverage: number;
+  /** arus kas operasi — metode tak langsung dari mutasi WTB (Rp juta); null bila tak terhitung (mis. tanpa komparatif) */
+  operatingCashFlow: number | null;
+}
+
+/** Altman Z-Score (varian asli; X4 = nilai buku ekuitas/total liabilitas — proksi pasar tak tersedia di WTB). */
+export interface AltmanZ {
+  x1: number; // modal kerja / total aset
+  x2: number; // saldo laba / total aset
+  x3: number; // EBIT / total aset
+  x4: number; // ekuitas (nilai buku) / total liabilitas
+  x5: number; // penjualan / total aset
+  z: number;
+  zone: 'safe' | 'grey' | 'distress';
+}
+
+export interface GoingConcernResult {
+  /** tahun berjalan (kolom WTB `adj`, audited) */
+  cy: GcAggregates;
+  /** komparatif tahun lalu (kolom WTB `ly`) */
+  py: GcAggregates;
+  /** Altman Z tahun berjalan */
+  altman: AltmanZ;
+  /** Altman Z tahun lalu */
+  altmanPy: AltmanZ;
+}
+
 /* ---------- Augmentasi domain canon (W15) ----------
    Modul data domain (data_isak35/psak117/sakroadmap/syariah/ojk/legaldigital)
    meng-`Object.assign` member tambahan ke instans `AMS_CANON` yang sama. TS tak

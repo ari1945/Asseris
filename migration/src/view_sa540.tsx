@@ -72,7 +72,9 @@ function SA540View() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [est, setEst] = useAmsPersist('estimates.' + engId, () => EST_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'estimates.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [est, setEst] = useAmsPersist('estimates.v1', () => EST_SEED);
   const register: Estimate[] = (est && est.register) || [];
   const bias: BiasRow[] = (est && est.bias) || [];
   const setRegister = (fn: (l: Estimate[]) => Estimate[]) => setEst((s: EstState) => ({ ...s, register: fn((s && s.register) || []) }));

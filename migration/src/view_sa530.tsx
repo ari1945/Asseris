@@ -63,7 +63,9 @@ function SA530View() {
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useState530('kalkulator');
 
-  const [smp, setSmp] = useAmsPersist('sampling.' + engId, () => SAMPLING_SEED);
+  /* engagement-scoped (AMS_PERSIST_SCOPE: 'sampling.v1' → engagement) — isolasi W7.5
+     & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
+  const [smp, setSmp] = useAmsPersist('sampling.v1', () => SAMPLING_SEED);
   const params: SamplingParams = (smp && smp.params) || SAMPLING_SEED.params;
   const findings: SampleFinding[] = (smp && smp.findings) || [];
   const { bv, conf, tm, em } = params;
