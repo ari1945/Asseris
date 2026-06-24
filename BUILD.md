@@ -433,6 +433,34 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
   functions of the trial balance they're handed.
 - **Coverage gate:** `npm run test -- --coverage` → v8, ≥80% lines/stmts/funcs on
   canon (currently ~99% lines / 100% funcs / 77% branches).
+- **RBAC matrix net:** `src/rbac.test.ts` memaku matriks kapabilitas `rbac.ts`
+  (SSOT yang dikonsumsi UI **dan** server). Melindungi penegakan **sign-off berbasis
+  peran** (lihat invarian di bawah) dari regresi — mis. bila SIGNOFF_REVIEWER/
+  OPINION_APPROVE/EQR_REVIEW tak sengaja diberikan ke peran lebih rendah, uji gagal.
+
+## Sign-off berbasis peran (segregation of duties) — INVARIAN
+
+> PRD: `PRD - Penegakan Sign-off Berbasis Peran (Dua-Lapis).md` (Fase 0+1 SELESAI;
+> Fase 2 server PENDING). Konteks lengkap di memory `asseris-opinion-signoff-sod-defect`.
+
+Aksi **otoritatif intra-dokumen** WAJIB di-gate ke **peran**, bukan urutan/kelengkapan.
+Setiap tombol sign/approve/kliring mengikuti pola `firm_attest.tsx` (`allowed = can(role.cap)`):
+
+| Aksi | Kapabilitas | Boleh |
+|---|---|---|
+| Sign-off **Reviewer** kertas kerja (`wp_signoff.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
+| **Preparer** kertas kerja | `WP_EDIT` | semua auditor |
+| Slot opini **Reviu Manajer** (`view_opinion_parts.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
+| Slot opini **Rekan Perikatan** | `OPINION_APPROVE` | Partner |
+| Slot opini **EQR** | `EQR_REVIEW` | Partner |
+| **Kliring/buka** catatan reviu (`view_workspace.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
+| **Penerbitan** opini (finalisasi) | `OPINION_APPROVE` | Partner |
+
+**Catatan jujur:** `capForWrite` (rbac.ts) masih granular per-DOKUMEN — sign-off hidup di
+`wpState`/`opinionDoc.v1`/`reviewNotes` yang hanya butuh `WP_EDIT` (semua peran). Jadi
+penegakan saat ini = **lapis UI**; request termodifikasi masih lolos di server sampai
+**Fase 2** (mutasi terdedikasi / validator per-slot). JANGAN tambah sign-off baru tanpa
+gate `can()` peran-spesifik.
 
 ## TypeScript gate (W5 — `migration/tsconfig.json`)
 - **Scope:** the canon "number engines" only — `canon.ts`, `canon_base.ts`,
