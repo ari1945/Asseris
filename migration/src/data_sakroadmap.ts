@@ -7,8 +7,8 @@
 
    Sistem sebelumnya hanya MEMOTRET standar yang berlaku; modul ini
    mengantisipasi perubahan:
-     • Roadmap "terbit, belum efektif" (PSAK 25 ¶30–31) — PSAK 207
-       (adopsi IFRS 18), PSAK 208 (entitas anak tanpa akuntabilitas
+     • Roadmap "terbit, belum efektif" (PSAK 25 ¶30–31) — PSAK 118
+       (adopsi IFRS 18), adopsi IFRS 19 (entitas anak tanpa akuntabilitas
        publik / pengungkapan tereduksi), amandemen instrumen keuangan.
      • Registri ISAK terlacak terpisah dari PSAK induk (ISAK 16, 30,
        34, 36, dll.) — agar audit-trail kelengkapan kerangka utuh.
@@ -139,11 +139,11 @@ export function psakRenumber(oldCode: string): PsakRenumberRow | null {
       note: 'Cara menilai keterukaran valuta & estimasi kurs spot saat tak dapat ditukar. Dampak rendah; valuta transaksi klien dapat ditukar.' },
 
     /* —— Terbit, belum efektif (PSAK 25 ¶30–31) — horizon —— */
-    { id: 's-207', code: 'PSAK 207', title: 'Penyajian & Pengungkapan dalam Laporan Keuangan', ifrs: 'IFRS 18',
+    { id: 's-207', code: 'PSAK 118', title: 'Penyajian & Pengungkapan dalam Laporan Keuangan', ifrs: 'IFRS 18',
       effYear: 2027, effective: '1 Jan 2027', impact: 'Tinggi', rel: 'wajib', view: 'psak1',
-      replaces: 'menggantikan PSAK 1', tag: 'Standar baru',
+      replaces: 'menggantikan PSAK 201 (d/h PSAK 1)', tag: 'Standar baru',
       note: 'Restrukturisasi laporan laba rugi ke kategori Operasi / Investasi / Pendanaan, subtotal baku (laba operasi & laba sebelum pendanaan-pajak), pengungkapan Ukuran Kinerja yang Ditentukan Manajemen (MPM/non-GAAP), serta prinsip agregasi/disagregasi. Berlaku retrospektif — komparatif FY2026 harus disajikan ulang. Klien Tbk: WAJIB.' },
-    { id: 's-208', code: 'PSAK 208', title: 'Entitas Anak Tanpa Akuntabilitas Publik: Pengungkapan', ifrs: 'IFRS 19',
+    { id: 's-208', code: 'Adopsi IFRS 19', title: 'Entitas Anak Tanpa Akuntabilitas Publik: Pengungkapan', ifrs: 'IFRS 19',
       effYear: 2027, effective: '1 Jan 2027', impact: 'Sedang', rel: 'tidak', view: null,
       replaces: '—', tag: 'Standar baru',
       note: 'Opsi pengungkapan tereduksi bagi entitas anak yang memenuhi syarat (induk menerapkan SAK & menyusun LK konsolidasian tersedia publik) sambil tetap memakai pengakuan & pengukuran SAK penuh. Klien aktif adalah induk terdaftar → tidak memenuhi syarat; relevan untuk entitas anak dalam grup konsolidasi.' },
@@ -205,7 +205,7 @@ export function psakRenumber(oldCode: string): PsakRenumberRow | null {
       note: 'Apakah hak atas tanah dicatat sebagai aset tetap (PSAK 16) atau sewa (PSAK 73). Relevan: penentuan klasifikasi HGB tanah pabrik.' },
   ];
 
-  /* ---- Kesiapan PSAK 207 (IFRS 18) untuk perikatan aktif (default) ---- */
+  /* ---- Kesiapan PSAK 118 (IFRS 18) untuk perikatan aktif (default) ---- */
   const READINESS_207 = [
     { id: 'r1', t: 'Identifikasi pos pendapatan/beban ke kategori Operasi, Investasi & Pendanaan' },
     { id: 'r2', t: 'Petakan subtotal baku baru: "Laba Operasi" & "Laba sebelum pendanaan & pajak"' },
@@ -213,7 +213,7 @@ export function psakRenumber(oldCode: string): PsakRenumberRow | null {
     { id: 'r4', t: 'Rancang pengungkapan rekonsiliasi MPM ke subtotal SAK + dampak pajak/NCI' },
     { id: 'r5', t: 'Terapkan prinsip agregasi/disagregasi — uraikan pos "lain-lain" yang material' },
     { id: 'r6', t: 'Susun ulang komparatif FY2026 secara retrospektif untuk sajian FY2027' },
-    { id: 'r7', t: 'Mutakhirkan pemetaan FS Generator & template CALK ke struktur PSAK 207' },
+    { id: 'r7', t: 'Mutakhirkan pemetaan FS Generator & template CALK ke struktur PSAK 118' },
     { id: 'r8', t: 'Diskusikan dampak penyajian dengan TCWG (SA 260) sebelum periode transisi' },
   ];
 

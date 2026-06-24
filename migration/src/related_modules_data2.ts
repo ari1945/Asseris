@@ -135,7 +135,7 @@ Object.assign(LINEAGE, {
     ],
     down: [
       { id: 'disclosure', ic: 'checkCircle', lbl: 'Daftar-Uji Pengungkapan', rel: 'Standar terbit belum efektif → baris pengungkapan (PSAK 25 ¶30)' },
-      { id: 'psak1', ic: 'report', lbl: 'PSAK 1 → 207 · Penyajian LK', rel: 'Pemetaan struktur L/R ke kategori PSAK 207' },
+      { id: 'psak1', ic: 'report', lbl: 'PSAK 1 → 201 · Penyajian LK', rel: 'Pemetaan struktur L/R ke kategori PSAK 118 (IFRS 18)' },
       { id: 'fsgen', ic: 'report', lbl: 'Financial Statement', rel: 'Template LK dimutakhirkan ke struktur standar baru' },
       { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'Kelengkapan kerangka pelaporan → perumusan opini (SA 700)' },
     ],
