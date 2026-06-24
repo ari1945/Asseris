@@ -8,6 +8,7 @@ import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { SA530_POPULATION, scalePopulation, selectMus, type PopItem, type SelectedItem } from './sampling_select';
 import { WpPanel } from './wp_signoff';
 
 /* ============================================================
@@ -22,7 +23,9 @@ const { useState: useState530, useMemo: useMemo530 } = React;
 type ConfFactor = { rf: number; ef: number; risk: number };
 type SamplingParams = { bv: number; conf: number; tm: number; em: number };
 type SampleFinding = { id: string; bv: number; av: number; type: string; by?: string; at?: string };
-type SamplingState = { params: SamplingParams; findings: SampleFinding[] };
+/* desain & stratifikasi (¶6–7) + titik-mulai acak generator (fraksi 0–1 dari interval) */
+type SamplingDesign = { topThreshold: number; rationale: string; by?: string; at?: string };
+type SamplingState = { params: SamplingParams; findings: SampleFinding[]; design: SamplingDesign; seedFrac: number };
 /* tipe struktural minimal event input — hindari explicit-any (ratchet) */
 type Ev = { target: { value: string } };
 
@@ -41,7 +44,8 @@ const SAMPLE_FINDINGS: SampleFinding[] = [
   { id: 'S-129', bv: 430, av: 388, type: 'Diskon belum dibukukan' },
 ];
 
-const SAMPLING_SEED: SamplingState = { params: { bv: 245000, conf: 95, tm: 7000, em: 1200 }, findings: SAMPLE_FINDINGS };
+const DESIGN_SEED: SamplingDesign = { topThreshold: 7000, rationale: 'Saldo individual ≥ ambang diuji 100% (signifikan secara individual); sisanya menjadi populasi sampling MUS. Pos nol/kredit ditelaah terpisah.' };
+const SAMPLING_SEED: SamplingState = { params: { bv: 245000, conf: 95, tm: 7000, em: 1200 }, findings: SAMPLE_FINDINGS, design: DESIGN_SEED, seedFrac: 0.5 };
 
 function smpToday() {
   try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
@@ -68,9 +72,14 @@ function SA530View() {
   const [smp, setSmp] = useAmsPersist('sampling.v1', () => SAMPLING_SEED);
   const params: SamplingParams = (smp && smp.params) || SAMPLING_SEED.params;
   const findings: SampleFinding[] = (smp && smp.findings) || [];
+  /* backward-compat: state lama tak punya design/seedFrac → default seed */
+  const design: SamplingDesign = (smp && smp.design) || DESIGN_SEED;
+  const seedFrac: number = (smp && typeof smp.seedFrac === 'number') ? smp.seedFrac : 0.5;
   const { bv, conf, tm, em } = params;
   const setParam = (patch: Partial<SamplingParams>) => { if (locked) return; setSmp((s: SamplingState) => ({ ...s, params: { ...s.params, ...patch } })); };
   const setFindings = (fn: (l: SampleFinding[]) => SampleFinding[]) => setSmp((s: SamplingState) => ({ ...s, findings: fn((s && s.findings) || []) }));
+  const setDesign = (patch: Partial<SamplingDesign>) => { if (locked) return; setSmp((s: SamplingState) => ({ ...s, design: { ...((s && s.design) || DESIGN_SEED), ...patch, by: me, at: smpToday() } })); };
+  const setSeedFrac = (v: number) => { if (locked) return; setSmp((s: SamplingState) => ({ ...s, seedFrac: v })); };
   const setBv = (v: number) => setParam({ bv: v });
   const setConf = (v: number) => setParam({ conf: v });
   const setTm = (v: number) => setParam({ tm: v });
@@ -128,7 +137,7 @@ function SA530View() {
               <div className="tiny muted">{client} · Piutang Usaha · ENG-2025-014</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Populasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{bv.toLocaleString('id-ID')} · 4.182 item</div></div>
+            <div><div className="tiny muted upper">Populasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{bv.toLocaleString('id-ID')} · {SA530_POPULATION.length} item ilustratif</div></div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Ukuran Sampel</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{calc.n} item</div></div>
             <div className="vdivider" style={{ height: 38 }} />
@@ -145,9 +154,9 @@ function SA530View() {
 
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'desain' && <F530Design />}
+        {tab === 'desain' && <F530Design bv={bv} design={design} setDesign={setDesign} locked={locked} />}
         {tab === 'kalkulator' && <F530Calc bv={bv} setBv={setBv} conf={conf} setConf={setConf} tm={tm} setTm={setTm} em={em} setEm={setEm} calc={calc} locked={locked} />}
-        {tab === 'seleksi' && <F530Selection interval={calc.interval} n={calc.n} />}
+        {tab === 'seleksi' && <F530Selection interval={calc.interval} bv={bv} seedFrac={seedFrac} setSeedFrac={setSeedFrac} locked={locked} />}
         {tab === 'evaluasi' && <F530Evaluation interval={calc.interval} tm={tm} findings={findings} setFindings={setFindings} me={me} locked={locked} />}
 
       </div></div>
@@ -156,41 +165,40 @@ function SA530View() {
 }
 
 /* ---------------- Tab: Desain & Populasi ---------------- */
-function F530Design() {
+function F530Design({ bv, design, setDesign, locked }: { bv: number; design: SamplingDesign; setDesign: (p: Partial<SamplingDesign>) => void; locked: boolean }) {
+  const pop = scalePopulation(SA530_POPULATION, bv);
+  const sum = (l: PopItem[]) => l.reduce((s, p) => s + p.bv, 0);
+  const top = pop.filter(p => p.bv >= design.topThreshold);
+  const samp = pop.filter(p => p.bv < design.topThreshold);
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Desain Sampel (¶6–7)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Keberadaan & Keakuratan</Badge></div>
-          <div style={{ padding: '6px 14px 14px' }}>
-            {[
-              { ic: 'target', t: 'Tujuan prosedur audit', d: 'Memperoleh bukti atas keberadaan & keakuratan saldo piutang usaha melalui konfirmasi/vouching.' },
-              { ic: 'table', t: 'Karakteristik populasi', d: 'Saldo piutang 4.182 pelanggan; nilai Rp 245 M; sebaran condong — beberapa saldo besar dominan.' },
-              { ic: 'layers', t: 'Stratifikasi', d: 'Saldo individual > materialitas kinerja diuji 100% (top stratum); sisanya jadi populasi sampling MUS.' },
-              { ic: 'alert', t: 'Definisi penyimpangan (deviasi)', d: 'Selisih nilai tercatat vs nilai teraudit per item; pos nol/negatif & kredit ditangani terpisah.' },
-            ].map((s, i) => {
-              const Ic = (I as any)[s.ic];
-              return (
-                <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
-                  <span style={{ flex: '0 0 30px', width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}><Ic size={16} /></span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700 }}>{s.t}</div>
-                    <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 3 }}>{s.d}</div>
-                  </div>
-                </div>
-              );
-            })}
+          <div style={{ padding: 14, display: 'grid', gap: 12 }}>
+            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <KvBox label="Karakteristik populasi" v={`${SA530_POPULATION.length} item ilustratif · condong`} />
+              <KvBox label="Nilai populasi (jt)" v={bv.toLocaleString('id-ID')} accent="var(--blue)" />
+            </div>
+            <div>
+              <div className="row jb ac" style={{ marginBottom: 6 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Ambang stratifikasi — saldo individual signifikan (Rp jt)</span><span className="tiny muted">≥ ambang diuji 100%</span></div>
+              <input className="input mono" type="number" value={design.topThreshold} disabled={locked} onChange={(e: Ev) => setDesign({ topThreshold: Math.max(0, +e.target.value) })} style={{ height: 30, width: 160, textAlign: 'right' }} />
+            </div>
+            <div>
+              <div className="row jb ac" style={{ marginBottom: 6 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Rasional desain & definisi penyimpangan</span>{design.by && <span className="tiny muted">{design.by} · {design.at}</span>}</div>
+              <textarea className="input" value={design.rationale} disabled={locked} onChange={(e: Ev) => setDesign({ rationale: e.target.value })} style={{ width: '100%', minHeight: 64, resize: 'vertical', lineHeight: 1.45 }} />
+            </div>
           </div>
         </Panel>
 
         <Panel noBody>
-          <div className="panel-h"><h3>Stratifikasi Populasi</h3><div style={{ flex: 1 }} /><span className="tiny muted">Top stratum diuji penuh</span></div>
+          <div className="panel-h"><h3>Stratifikasi Populasi</h3><div style={{ flex: 1 }} /><span className="tiny muted">Diturunkan dari ambang · top stratum diuji penuh</span></div>
           <table className="dtbl">
             <thead><tr><th>Stratum</th><th className="num">Item</th><th className="num">Nilai (jt)</th><th style={{ width: 130 }}>Pendekatan</th></tr></thead>
             <tbody>
-              <tr><td style={{ fontWeight: 600 }}>Saldo &gt; MK (individual signifikan)</td><td className="num mono">37</td><td className="num mono">96.400</td><td><Badge kind="purple">Uji 100%</Badge></td></tr>
-              <tr><td style={{ fontWeight: 600 }}>Saldo dalam populasi sampling</td><td className="num mono">4.118</td><td className="num mono">245.000</td><td><Badge kind="blue">MUS</Badge></td></tr>
-              <tr><td style={{ fontWeight: 600 }}>Saldo nol / kredit (anomali)</td><td className="num mono">27</td><td className="num mono">(2.300)</td><td><Badge kind="amber">Telaah khusus</Badge></td></tr>
+              <tr><td style={{ fontWeight: 600 }}>Saldo ≥ ambang (individual signifikan)</td><td className="num mono">{top.length}</td><td className="num mono">{sum(top).toLocaleString('id-ID')}</td><td><Badge kind="purple">Uji 100%</Badge></td></tr>
+              <tr><td style={{ fontWeight: 600 }}>Saldo dalam populasi sampling</td><td className="num mono">{samp.length}</td><td className="num mono">{sum(samp).toLocaleString('id-ID')}</td><td><Badge kind="blue">MUS</Badge></td></tr>
+              <tr style={{ fontWeight: 700, background: 'var(--surface-2)' }}><td>Total populasi</td><td className="num mono">{pop.length}</td><td className="num mono">{sum(pop).toLocaleString('id-ID')}</td><td></td></tr>
             </tbody>
           </table>
         </Panel>
@@ -291,9 +299,14 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
 }
 
 /* ---------------- Tab: Metode Seleksi ---------------- */
-function F530Selection({ interval, n }: any) {
+function F530Selection({ interval, bv, seedFrac, setSeedFrac, locked }: { interval: number; bv: number; seedFrac: number; setSeedFrac: (v: number) => void; locked: boolean }) {
+  const seedStart = Math.max(1, Math.round(seedFrac * interval));
+  const selected: SelectedItem[] = useMemo530(() => selectMus(scalePopulation(SA530_POPULATION, bv), interval, seedStart), [bv, interval, seedStart]);
+  const totalHits = selected.reduce((s, x) => s + x.hits, 0);
+  const keyN = selected.filter(s => s.key).length;
+  const reroll = () => { if (locked) return; setSeedFrac(Math.random()); };
   const methods = [
-    { k: 'MUS / PPS', sel: true, d: 'Seleksi proporsional terhadap nilai (probability-proportional-to-size). Item bernilai lebih besar berpeluang lebih besar terpilih.', use: 'Dipakai — efektif untuk uji lebih saji & populasi condong.', tag: 'Dipilih' },
+    { k: 'MUS / PPS', sel: true, d: 'Seleksi proporsional terhadap nilai (probability-proportional-to-size). Item bernilai lebih besar berpeluang lebih besar terpilih.', use: 'Dieksekusi pada tab ini — efektif untuk uji lebih saji & populasi condong.', tag: 'Dieksekusi' },
     { k: 'Acak (random)', sel: false, d: 'Setiap unit pengambilan punya peluang sama terpilih. Memerlukan penomoran populasi.', use: 'Alternatif bila fokus pada deviasi atribut, bukan nilai.', tag: 'Tersedia' },
     { k: 'Sistematis', sel: false, d: 'Titik awal acak lalu interval tetap. Hati-hati pola periodik dalam populasi.', use: 'Cocok bila tidak ada pola sistematik berkorelasi.', tag: 'Tersedia' },
     { k: 'Haphazard', sel: false, d: 'Tanpa teknik terstruktur namun tanpa bias sadar. Tidak untuk sampling statistik.', use: 'Hanya untuk pendekatan non-statistik.', tag: 'Tidak dipakai' },
@@ -301,15 +314,36 @@ function F530Selection({ interval, n }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 0 }}>
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
           {[
-            { v: n, l: 'Unit Terpilih', a: 'var(--blue)' },
-            { v: interval.toLocaleString('id-ID'), l: 'Interval (Rp jt)', a: 'var(--purple)' },
-            { v: '1 titik', l: 'Mulai Acak', a: 'var(--ink)' },
+            { v: selected.length, l: 'Item Terpilih', a: 'var(--blue)' },
+            { v: totalHits, l: 'Unit Moneter Tertusuk', a: 'var(--purple)' },
+            { v: keyN, l: 'Key Item (≥ interval)', a: 'var(--ink)' },
+            { v: seedStart.toLocaleString('id-ID'), l: 'Titik Mulai (jt)', a: 'var(--ink)' },
           ].map((s, i) => (
-            <div key={i} style={{ padding: '12px 16px', borderRight: i < 2 ? '1px solid var(--line-soft)' : 0 }}><Stat value={s.v} label={s.l} accent={s.a} /></div>
+            <div key={i} style={{ padding: '12px 16px', borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}><Stat value={s.v} label={s.l} accent={s.a} /></div>
           ))}
         </div>
+      </Panel>
+
+      <Panel noBody>
+        <div className="panel-h"><h3>Item Sampel Terpilih — MUS Sistematis (¶ Lamp. 4)</h3><div style={{ flex: 1 }} /><span className="tiny muted">interval {interval.toLocaleString('id-ID')} · mulai {seedStart.toLocaleString('id-ID')} jt</span>{!locked && <Btn sm style={{ marginLeft: 8 }} onClick={reroll}><I.dice size={12} /> Acak ulang titik mulai</Btn>}</div>
+        {interval > 0 ? (
+          <table className="dtbl">
+            <thead><tr><th style={{ width: 90 }}>Ref</th><th>Pelanggan</th><th className="num">Nilai Buku (jt)</th><th className="num" style={{ width: 84 }}>Tertusuk</th><th style={{ width: 110 }}>Jenis</th></tr></thead>
+            <tbody>
+              {selected.map(s => (
+                <tr key={s.id}>
+                  <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{s.id}</td>
+                  <td style={{ fontWeight: 600 }}>{s.name}</td>
+                  <td className="num mono">{s.bv.toLocaleString('id-ID')}</td>
+                  <td className="num mono">{s.hits}×</td>
+                  <td>{s.key ? <Badge kind="purple">Key item</Badge> : <Badge kind="blue">Sampel</Badge>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : <div className="tiny muted" style={{ padding: 16 }}>Interval tak terdefinisi — sesuaikan parameter di tab Ukuran Sampel.</div>}
       </Panel>
 
       <Panel noBody>
