@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+import { estimateSensitivity, type SensDriver } from './estimate_sensitivity';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 
@@ -37,9 +38,10 @@ const BIAS_ROWS: BiasRow[] = [
 ];
 
 /* ---- model estimasi ter-persist engagement-scoped (SA 540 revisi) ---- */
-type Estimate = { id: string; name: string; acct: string; mgmt: number; lo: number; hi: number; unc: string; risk: string; method: string; assump: string[]; approach: string; note: string; by?: string; at?: string };
+type Estimate = { id: string; name: string; acct: string; mgmt: number; lo: number; hi: number; unc: string; risk: string; method: string; assump: string[]; approach: string; note: string; cplx?: string; subj?: string; by?: string; at?: string };
 type BiasRow = { id: string; t: string; est: string; flag: string; d: string; by?: string; at?: string };
-type EstState = { register: Estimate[]; bias: BiasRow[] };
+/* sensitivity: daftar driver asumsi per id estimasi (Δ% × dampak per 1%) */
+type EstState = { register: Estimate[]; bias: BiasRow[]; sensitivity: Record<string, SensDriver[]> };
 /* tipe struktural minimal event input — hindari explicit-any (ratchet) */
 type Ev = { target: { value: string } };
 
@@ -48,7 +50,30 @@ const EST_RISK = ['Signifikan', 'Non-signifikan'];
 const EST_APPROACH = ['Uji proses manajemen', 'Rentang independen', 'Gunakan pakar (SA 620)', 'Uji peristiwa kemudian'];
 const BIAS_FLAG = ['amber', 'green'];
 
-const EST_SEED: EstState = { register: EST_REG, bias: BIAS_ROWS };
+/* default kompleksitas/subjektivitas per estimasi (spektrum risiko bawaan ¶4) */
+const EST_CS: Record<string, { cplx: string; subj: string }> = {
+  'E-01': { cplx: 'Tinggi', subj: 'Tinggi' }, 'E-02': { cplx: 'Sedang', subj: 'Sedang' },
+  'E-03': { cplx: 'Rendah', subj: 'Rendah' }, 'E-04': { cplx: 'Tinggi', subj: 'Sedang' },
+  'E-05': { cplx: 'Tinggi', subj: 'Tinggi' },
+};
+/* seed sensitivitas — driver asumsi ilustratif (Δ% × Rp jt per 1%) */
+const SENS_SEED: Record<string, SensDriver[]> = {
+  'E-01': [
+    { id: 's1', label: 'Probabilitas gagal bayar (PD) per umur', deltaPct: 10, perPct: 45 },
+    { id: 's2', label: 'Loss given default (LGD)', deltaPct: 5, perPct: 60 },
+    { id: 's3', label: 'Overlay makroekonomi (PDB)', deltaPct: -5, perPct: 24 },
+  ],
+  'E-05': [
+    { id: 's1', label: 'WACC (tingkat diskonto)', deltaPct: 0.5, perPct: -4200 },
+    { id: 's2', label: 'Pertumbuhan terminal', deltaPct: -0.5, perPct: 2800 },
+    { id: 's3', label: 'Arus kas tahun-1', deltaPct: -10, perPct: 195 },
+  ],
+};
+const EST_SEED: EstState = {
+  register: EST_REG.map(e => ({ ...e, ...(EST_CS[e.id] || { cplx: 'Sedang', subj: 'Sedang' }) })),
+  bias: BIAS_ROWS,
+  sensitivity: SENS_SEED,
+};
 
 function estToday() {
   try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
@@ -77,8 +102,11 @@ function SA540View() {
   const [est, setEst] = useAmsPersist('estimates.v1', () => EST_SEED);
   const register: Estimate[] = (est && est.register) || [];
   const bias: BiasRow[] = (est && est.bias) || [];
+  /* backward-compat: state lama tak punya sensitivity → seed */
+  const sensitivity: Record<string, SensDriver[]> = (est && est.sensitivity) || SENS_SEED;
   const setRegister = (fn: (l: Estimate[]) => Estimate[]) => setEst((s: EstState) => ({ ...s, register: fn((s && s.register) || []) }));
   const setBias = (fn: (l: BiasRow[]) => BiasRow[]) => setEst((s: EstState) => ({ ...s, bias: fn((s && s.bias) || []) }));
+  const setSensitivity = (id: string, drivers: SensDriver[]) => setEst((s: EstState) => ({ ...s, sensitivity: { ...((s && s.sensitivity) || {}), [id]: drivers } }));
 
   const [tab, setTab] = useState540('inventaris');
   const sig = register.filter(e => e.risk === 'Signifikan').length;
@@ -144,8 +172,8 @@ function SA540View() {
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
         {tab === 'inventaris' && <F540Register register={register} setRegister={setRegister} me={me} locked={locked} />}
-        {tab === 'risiko' && <F540Risk />}
-        {tab === 'respons' && <F540Response />}
+        {tab === 'risiko' && <F540Risk register={register} setRegister={setRegister} locked={locked} />}
+        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} />}
         {tab === 'bias' && <F540Bias bias={bias} setBias={setBias} me={me} locked={locked} />}
 
       </div></div>
@@ -251,7 +279,9 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
 }
 
 /* ---------------- Tab: Risiko & Ketidakpastian ---------------- */
-function F540Risk() {
+function F540Risk({ register, setRegister, locked }: { register: Estimate[]; setRegister: (fn: (l: Estimate[]) => Estimate[]) => void; locked: boolean }) {
+  const lvlKind = (v?: string) => v === 'Tinggi' ? 'red' : v === 'Sedang' ? 'amber' : 'green';
+  const patch = (id: string, p: Partial<Estimate>) => setRegister(l => l.map(e => e.id === id ? { ...e, ...p } : e));
   const drivers = [
     { k: 'Kompleksitas', ic: 'layers', color: 'blue', d: 'Kerumitan metode/model & data yang dibutuhkan untuk membuat estimasi.', ex: 'Model ECL multi-skenario & DCF goodwill tergolong kompleks.' },
     { k: 'Subjektivitas', ic: 'sliders', color: 'purple', d: 'Keterbatasan pengetahuan/data objektif → pertimbangan manajemen.', ex: 'Pemilihan WACC & overlay makro melibatkan pertimbangan signifikan.' },
@@ -277,25 +307,24 @@ function F540Risk() {
       </Panel>
 
       <Panel noBody>
-        <div className="panel-h"><h3>Pemetaan Ketidakpastian per Estimasi</h3><div style={{ flex: 1 }} /><span className="tiny muted">Kompleksitas × Subjektivitas</span></div>
+        <div className="panel-h"><h3>Pemetaan Ketidakpastian per Estimasi</h3><div style={{ flex: 1 }} /><span className="tiny muted">Kompleksitas × Subjektivitas {locked ? '' : '· dapat disunting'}</span></div>
         <table className="dtbl">
-          <thead><tr><th>Estimasi</th><th style={{ width: 110 }}>Kompleksitas</th><th style={{ width: 110 }}>Subjektivitas</th><th style={{ width: 130 }}>Ketidakpastian</th><th style={{ width: 96 }}>Risiko</th></tr></thead>
+          <thead><tr><th>Estimasi</th><th style={{ width: 124 }}>Kompleksitas</th><th style={{ width: 124 }}>Subjektivitas</th><th style={{ width: 110 }}>Ketidakpastian</th><th style={{ width: 96 }}>Risiko</th></tr></thead>
           <tbody>
-            {[
-              ['CKPN Piutang (ECL)', 'Tinggi', 'Tinggi', 'Tinggi', 'red'],
-              ['Penyisihan Persediaan', 'Sedang', 'Sedang', 'Sedang', 'amber'],
-              ['Provisi Garansi', 'Rendah', 'Rendah', 'Sedang', 'gray'],
-              ['Imbalan Kerja (PSAK 24)', 'Tinggi', 'Sedang', 'Tinggi', 'red'],
-              ['Penurunan Nilai Goodwill', 'Tinggi', 'Tinggi', 'Tinggi', 'red'],
-            ].map((r, i) => (
-              <tr key={i}>
-                <td style={{ fontWeight: 600 }}>{r[0]}</td>
-                <td><Badge kind={r[1] === 'Tinggi' ? 'red' : r[1] === 'Sedang' ? 'amber' : 'green'}>{r[1]}</Badge></td>
-                <td><Badge kind={r[2] === 'Tinggi' ? 'red' : r[2] === 'Sedang' ? 'amber' : 'green'}>{r[2]}</Badge></td>
-                <td><Badge kind={r[3] === 'Tinggi' ? 'red' : 'amber'}>{r[3]}</Badge></td>
-                <td><Badge kind={r[4]}>{r[4] === 'red' ? 'Signifikan' : r[4] === 'amber' ? 'Elevasi' : 'Normal'}</Badge></td>
+            {register.map(e => (
+              <tr key={e.id}>
+                <td style={{ fontWeight: 600 }}>{e.name}</td>
+                <td>{locked
+                  ? <Badge kind={lvlKind(e.cplx)}>{e.cplx || '—'}</Badge>
+                  : <select className="select" value={e.cplx || 'Sedang'} onChange={(ev: Ev) => patch(e.id, { cplx: ev.target.value })} style={{ height: 28 }}>{EST_UNC.map(u => <option key={u}>{u}</option>)}</select>}</td>
+                <td>{locked
+                  ? <Badge kind={lvlKind(e.subj)}>{e.subj || '—'}</Badge>
+                  : <select className="select" value={e.subj || 'Sedang'} onChange={(ev: Ev) => patch(e.id, { subj: ev.target.value })} style={{ height: 28 }}>{EST_UNC.map(u => <option key={u}>{u}</option>)}</select>}</td>
+                <td><Badge kind={lvlKind(e.unc)}>{e.unc}</Badge></td>
+                <td><Badge kind={e.risk === 'Signifikan' ? 'red' : 'gray'}>{e.risk === 'Signifikan' ? 'Signifikan' : 'Non-sig.'}</Badge></td>
               </tr>
             ))}
+            {!register.length && <tr><td colSpan={5} className="tiny muted" style={{ textAlign: 'center', padding: 16 }}>Belum ada estimasi — tambahkan di tab Inventaris.</td></tr>}
           </tbody>
         </table>
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
@@ -310,13 +339,24 @@ function F540Risk() {
 }
 
 /* ---------------- Tab: Respons & Rentang ---------------- */
-function F540Response() {
+function F540Response({ register, sensitivity, setSensitivity, locked }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean }) {
   const approaches = [
     { k: 'Uji bagaimana manajemen membuat estimasi', ref: '¶18', d: 'Evaluasi metode, asumsi signifikan, & data; uji penerapan & matematika model.', used: 'Persediaan · Garansi' },
     { k: 'Uji peristiwa hingga tanggal laporan auditor', ref: '¶21(a)', d: 'Bukti dari peristiwa setelah periode yang menguatkan/menyangkal estimasi.', used: 'Piutang (penerimaan kas pasca-periode)' },
     { k: 'Kembangkan estimasi/rentang titik auditor', ref: '¶21(b)', d: 'Auditor menyusun nilai/rentang independen untuk mengevaluasi titik manajemen.', used: 'CKPN · Goodwill' },
     { k: 'Uji efektivitas pengendalian atas proses estimasi', ref: '¶20', d: 'Bila bermaksud mengandalkan kontrol atas penyusunan estimasi.', used: 'ITGC model ECL' },
   ];
+  const indep = register.filter(e => e.approach === 'Rentang independen');
+  const [selId, setSelId] = useState540((indep[0] || register[0])?.id || 'E-01');
+  const sel = register.find(e => e.id === selId) || register[0] || null;
+  const drivers: SensDriver[] = (sel && sensitivity[sel.id]) || [];
+  const midpoint = sel ? Math.round((sel.lo + sel.hi) / 2) : 0;
+  const likely = sel ? sel.mgmt - midpoint : 0;
+  const sens = sel ? estimateSensitivity(sel.mgmt, sel.lo, sel.hi, drivers) : null;
+  const setDrivers = (fn: (l: SensDriver[]) => SensDriver[]) => { if (!sel || locked) return; setSensitivity(sel.id, fn(drivers)); };
+  const patchD = (id: string, p: Partial<SensDriver>) => setDrivers(l => l.map(d => d.id === id ? { ...d, ...p } : d));
+  const addD = () => setDrivers(l => [...l, { id: 'd' + (l.reduce((m, d) => Math.max(m, +(/(\d+)$/.exec(d.id)?.[1] || 0)), 0) + 1), label: 'Asumsi baru', deltaPct: 0, perPct: 0 }]);
+  const delD = (id: string) => setDrivers(l => l.filter(d => d.id !== id));
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -337,15 +377,19 @@ function F540Response() {
         </Panel>
 
         <Panel noBody>
-          <div className="panel-h"><h3>Rentang Independen — CKPN Piutang (E-01)</h3><div style={{ flex: 1 }} /><Badge kind="amber">Titik mgmt di batas bawah</Badge></div>
-          <div style={{ padding: 14 }}>
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
-              <KvBox label="Titik Manajemen" v="4.870" />
-              <KvBox label="Rentang Auditor" v="4.600–6.300" accent="var(--blue)" />
-              <KvBox label="Titik Tengah Auditor" v="5.450" accent="var(--amber)" />
-            </div>
-            <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>Titik manajemen <b>4.870</b> berada di dekat batas bawah rentang auditor yang dipandang masuk akal. Selisih terhadap titik tengah ±<b>580 jt</b> dicatat sebagai <b>kemungkinan salah saji</b> ke SAD Ledger; dievaluasi bersama indikasi bias & telaah retrospektif (SA 240).</p>
+          <div className="panel-h"><h3>Rentang Independen — {sel ? sel.name : '—'}</h3><div style={{ flex: 1 }} />
+            <select className="select" value={selId} onChange={(e: Ev) => setSelId(e.target.value)} style={{ height: 28, maxWidth: 220 }}>{register.map(e => <option key={e.id} value={e.id}>{e.id} · {e.name}</option>)}</select>
           </div>
+          {sel ? (
+            <div style={{ padding: 14 }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
+                <KvBox label="Titik Manajemen" v={sel.mgmt.toLocaleString('id-ID')} />
+                <KvBox label="Rentang Auditor" v={`${sel.lo.toLocaleString('id-ID')}–${sel.hi.toLocaleString('id-ID')}`} accent="var(--blue)" />
+                <KvBox label="Titik Tengah Auditor" v={midpoint.toLocaleString('id-ID')} accent="var(--amber)" />
+              </div>
+              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>Titik manajemen <b>{sel.mgmt.toLocaleString('id-ID')}</b> {sel.mgmt < midpoint ? 'di bawah' : sel.mgmt > midpoint ? 'di atas' : 'tepat di'} titik tengah rentang auditor. Selisih <b>{Math.abs(likely).toLocaleString('id-ID')} jt</b> ({likely < 0 ? 'understatement' : likely > 0 ? 'overstatement' : 'netral'}) dicatat sebagai <b>kemungkinan salah saji</b> ke SAD Ledger; dievaluasi bersama indikasi bias & telaah retrospektif (SA 240).</p>
+            </div>
+          ) : <div className="tiny muted" style={{ padding: 16 }}>Belum ada estimasi.</div>}
         </Panel>
       </div>
 
@@ -365,17 +409,31 @@ function F540Response() {
             ))}
           </div>
         </Panel>
-        <Panel title="Analisis Sensitivitas — Goodwill">
-          <table className="dtbl" style={{ marginTop: -4 }}>
-            <thead><tr><th>Asumsi</th><th className="num">Δ</th><th className="num">Δ Value-in-use</th></tr></thead>
-            <tbody>
-              <tr><td>WACC</td><td className="num mono tiny">+0,5%</td><td className="num mono" style={{ color: 'var(--red)' }}>−2.100</td></tr>
-              <tr><td>Pertumbuhan terminal</td><td className="num mono tiny">−0,5%</td><td className="num mono" style={{ color: 'var(--red)' }}>−1.400</td></tr>
-              <tr><td>Arus kas thn-1</td><td className="num mono tiny">−10%</td><td className="num mono" style={{ color: 'var(--red)' }}>−1.950</td></tr>
-            </tbody>
-          </table>
-          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={14} /></span><span style={{ fontSize: 11, lineHeight: 1.4 }}>Headroom tipis — sensitif terhadap WACC. Pertimbangkan sebagai Hal Audit Utama (SA 701).</span></div>
+        <Panel noBody>
+          <div className="panel-h"><h3>Analisis Sensitivitas — {sel ? sel.id : '—'}</h3><div style={{ flex: 1 }} />{!locked && sel && <Btn sm onClick={addD}><I.plus size={12} /> Driver</Btn>}</div>
+          <div style={{ padding: 12 }}>
+            <table className="dtbl" style={{ marginTop: -4 }}>
+              <thead><tr><th>Asumsi</th><th className="num" style={{ width: 56 }}>Δ%</th><th className="num" style={{ width: 64 }}>per 1%</th><th className="num" style={{ width: 76 }}>Dampak</th>{!locked && <th style={{ width: 24 }}></th>}</tr></thead>
+              <tbody>
+                {sens && sens.drivers.map(d => (
+                  <tr key={d.id}>
+                    <td style={{ whiteSpace: 'normal' }}>{locked ? d.label : <input className="input" value={d.label} onChange={(e: Ev) => patchD(d.id, { label: e.target.value })} style={{ height: 24 }} />}</td>
+                    <td className="num mono">{locked ? d.deltaPct : <input className="input mono" type="number" value={d.deltaPct} onChange={(e: Ev) => patchD(d.id, { deltaPct: +e.target.value })} style={{ height: 24, width: 50, textAlign: 'right' }} />}</td>
+                    <td className="num mono">{locked ? d.perPct : <input className="input mono" type="number" value={d.perPct} onChange={(e: Ev) => patchD(d.id, { perPct: +e.target.value })} style={{ height: 24, width: 58, textAlign: 'right' }} />}</td>
+                    <td className="num mono" style={{ fontWeight: 700, color: d.impact < 0 ? 'var(--red)' : d.impact > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{d.impact ? d.impact.toLocaleString('id-ID') : '—'}</td>
+                    {!locked && <td><button className="btn sm icon" title="Hapus" onClick={() => delD(d.id)}><I.x size={11} /></button></td>}
+                  </tr>
+                ))}
+                {sens && !sens.drivers.length && <tr><td colSpan={locked ? 4 : 5} className="tiny muted" style={{ textAlign: 'center', padding: 12 }}>Tambah driver asumsi untuk analisis.</td></tr>}
+              </tbody>
+            </table>
+            {sens && (
+              <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: sens.withinRange ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+                <div className="row jb ac" style={{ marginBottom: 3 }}><span className="tiny muted">Total dampak</span><span className="mono tiny" style={{ fontWeight: 700, color: sens.totalImpact < 0 ? 'var(--red)' : 'var(--green)' }}>{sens.totalImpact.toLocaleString('id-ID')} jt</span></div>
+                <div className="row jb ac" style={{ marginBottom: 5 }}><span className="tiny muted">Titik baru</span><span className="mono tiny" style={{ fontWeight: 700 }}>{sens.newPoint.toLocaleString('id-ID')} jt</span></div>
+                <div className="row ac gap8"><span style={{ color: sens.withinRange ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{sens.withinRange ? <I.checkCircle size={14} /> : <I.alert size={14} />}</span><span style={{ fontSize: 11, lineHeight: 1.4 }}>{sens.withinRange ? 'Titik baru tetap dalam rentang auditor — estimasi tahan terhadap perubahan asumsi.' : <>Titik baru <b>keluar</b> rentang auditor sejauh <b>{sens.breach.toLocaleString('id-ID')} jt</b> — sensitif; pertimbangkan sebagai Hal Audit Utama (SA 701).</>}</span></div>
+              </div>
+            )}
           </div>
         </Panel>
       </div>
