@@ -417,13 +417,16 @@ function WpCompletenessRecap({ moduleIds }: any) {
    ============================================================ */
 const PHASE_ORDER = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Arsip'];
 
-/* baca status finalisasi opini dari SSOT persist (ams.v1.opinionDoc.<engId>).
-   Murni-baca; fallback false bila berkas opini belum disentuh. */
+/* baca status finalisasi opini dari SSOT persist. Key opinionDoc kini statis
+   'opinionDoc.v1' berlingkup engagement → cacheKey W6 'ams.v1.engagement.<engId>.opinionDoc.v1'
+   (dulu komposit 'opinionDoc.'+engId scope firm; pembaca ini sebelumnya menunjuk
+   key legacy pra-W6 yg tak pernah ditulis pasca-W6 → selalu basi). Murni-baca cache;
+   fallback false bila berkas opini belum disentuh di browser ini. */
 function opinionFinalized(firm: any) {
   try {
     const engId = firm && firm.activeEngagementId;
     if (!engId) return false;
-    const raw = localStorage.getItem('ams.v1.opinionDoc.' + engId);
+    const raw = localStorage.getItem('ams.v1.engagement.' + engId + '.opinionDoc.v1');
     if (raw) { const d = JSON.parse(raw); if (d && typeof d.finalized === 'boolean') return d.finalized; }
   } catch (e) { /* localStorage/JSON gagal → anggap belum final */ }
   return false;
@@ -438,7 +441,11 @@ function opinionFinalized(firm: any) {
 type EqrReview = { eng?: string; cleared?: boolean };
 function eqrReviewsLS(): EqrReview[] {
   try {
-    const raw = localStorage.getItem('ams.v1.eqrReviews.v2');
+    /* eqrReviews.v2 firm-scoped (registry lintas-engagement, tak di AMS_PERSIST_SCOPE)
+       → cacheKey W6 'ams.v1.firm.<FIRM-WHR>.eqrReviews.v2'. Pembaca ini dulu menunjuk
+       key legacy pra-W6 'ams.v1.eqrReviews.v2' yg tak ditulis pasca-W6 → basi (bug laten,
+       sekelas pembaca opinionDoc). FIRM_SCOPE_ID konstan demo single-firm. */
+    const raw = localStorage.getItem('ams.v1.firm.FIRM-WHR.eqrReviews.v2');
     if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) return d as EqrReview[]; }
   } catch (e) { /* localStorage/JSON gagal → pakai seed */ }
   try {
