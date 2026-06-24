@@ -455,13 +455,20 @@ Setiap tombol sign/approve/kliring mengikuti pola `firm_attest.tsx` (`allowed = 
 | Slot opini **EQR** | `EQR_REVIEW` | Partner |
 | **Kliring/buka** catatan reviu (`view_workspace.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
 | **Penerbitan** opini (finalisasi) | `OPINION_APPROVE` | Partner |
+| **Persetujuan akseptasi** klien (`view_onboarding.tsx`) | `FIRM_ADMIN` | Partner |
+| **Penerbitan** surat perikatan SA 210 → sent/signed (`view_onboarding2.tsx`) | `FIRM_ADMIN` | Partner |
+
+> Identitas penanda-tangan opini direkam dari **sesi** (`auth.user.name`), bukan nama slot
+> hardcode — UI menampilkan "Ditandatangani oleh \<nama\>". Jejak audit server (`actorUserId`)
+> tetap sumber otoritatif "siapa".
 
 **Penegakan dua-lapis (Fase 1 UI + Fase 2 server — SELESAI):**
 - **UI** (`wp_signoff.tsx`/`view_opinion_parts.tsx`/`view_workspace.tsx`): tombol di-gate
   `can(role.cap)` — menutup jalur normal.
 - **Server** (`server/src/signoff.ts` `guardSignoffWrite`, dipanggil di `state.set`): `capForWrite`
-  hanya gate per-DOKUMEN (`wpState`/`opinionDoc.v1`/`reviewNotes` = `WP_EDIT`, semua peran), jadi
-  guard **mem-diff** nilai tersimpan vs masuk dan menuntut kapabilitas per-slot yang tepat —
+  hanya gate per-DOKUMEN (`wpState`/`opinionDoc.v1`/`reviewNotes` = `WP_EDIT`; `prospects` =
+  `ENGAGEMENT_MANAGE`), jadi guard **mem-diff** nilai tersimpan vs masuk dan menuntut kapabilitas
+  per-slot/per-keputusan yang tepat (termasuk akseptasi/penerbitan surat = `FIRM_ADMIN`) —
   menutup request termodifikasi yang lolos gate dokumen. Slot+cap masuk ke `detail` jejak audit
   (metadata-saja). SSOT kapabilitas sama (`rbac`) dengan UI.
 

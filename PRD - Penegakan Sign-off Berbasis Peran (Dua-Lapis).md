@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-06-24 |
 | Pemilik | Ari Widodo |
-| Status | Approved ("Proceed.") — **Fase 0–2 SELESAI**, Fase 3 sebagian (PR [#23](https://github.com/ari1945/Asseris/pull/23)) |
+| Status | Approved ("Proceed.") — **Fase 0–2 + Q4/Q5 SELESAI**, Fase 3 (test+docs) (PR [#23](https://github.com/ari1945/Asseris/pull/23)) |
 | Engagement ID terkait | Asseris (NeoSuite AMS) — platform, lintas-engagement |
 | Sumber temuan | QC UI/UX walkthrough + audit kode 2026-06-24 (4 peran, live). Memory: `asseris-opinion-signoff-sod-defect`. Tasks: `task_f882b8db`, `task_5cf98877`. |
 
@@ -104,8 +104,8 @@ Terukur, diverifikasi live per-peran (Junior/Senior/Manager/Partner) + uji otoma
 1. **Kapabilitas EQR:** buat `CAP.EQR_REVIEW` baru (diberikan ke peran EQR/Partner) atau pakai ulang `SIGNOFF_REVIEWER`/`OPINION_APPROVE`? (EQR = Engagement Quality Reviewer, independen dari tim — idealnya cap & identitas sendiri.)
 2. **Preparer multi-peran:** apakah preparer tetap boleh semua auditor (`WP_EDIT`)? (Asumsi: ya — preparer = penyusun, reviewer = otoritas.)
 3. **Server: Opsi A (mutasi terdedikasi) vs Opsi B (validator `state.set`)?** Rekomendasi A; konfirmasi.
-4. **Identitas slot opini:** ikat slot Manajer/Partner/EQR ke roster engagement nyata (login→peran) atau cukup cek peran sesi tanpa nama spesifik? (Mempengaruhi seberapa jauh impersonasi ditutup.)
-5. **Pengetatan akseptasi/SA 210 server** (Non-Scope sekarang) — masukkan ke PRD ini atau PRD terpisah?
+4. ~~**Identitas slot opini**~~ → **[SELESAI]** rekam `auth.user.name` sesi + tampilkan "Ditandatangani oleh \<nama\>"; otoritas tetap dua-lapis (peran), `actorUserId` jejak audit = sumber "siapa". Pengikatan roster login→nama-slot dilewati (peran cukup; divergensi kini terlihat).
+5. ~~**Pengetatan akseptasi/SA 210 server**~~ → **[SELESAI]** masuk PRD ini (Q5): `guardSignoffWrite` menuntut `FIRM_ADMIN` untuk `acceptance.approved` & `letter.status→sent/signed`; intake/PMPJ/draft tetap `ENGAGEMENT_MANAGE`.
 
 ---
 **Sign-off:** ditandai dengan balasan **"Proceed."**
