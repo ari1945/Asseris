@@ -32,3 +32,25 @@ server/.env.local
 .thumbnail
 .DS_Store
 Thumbs.db
+
+# Claude Code per-machine config (personal — never commit). settings.local.json
+# holds accumulated tool-permission grants; settings.json holds a local model override.
+.claude/settings.json
+.claude/settings.local.json
+
+# business-development / evaluation deliverables: kept on disk for reference but
+# NOT app source (pitch deck, business plan, eval report/dashboard, financial
+# model, gap matrix, test registers, user manual, WP template, dummy data + its
+# generator). Root-anchored so tracked "NeoSuite AMS*.html" / "Evaluasi NeoSuite
+# AMS - *.html" deliverables are unaffected.
+/ASSERIS_Model_Keuangan_3thn.xlsx
+/Asseris - Data Dummy Pengujian Modul.xlsx
+/Asseris - Manual Pengguna.docx
+/Asseris - Matriks Gap SAK SPAP ISQM.xlsx
+/Asseris - Register Uji Modul.xlsx
+/Asseris - Template Kertas Kerja Audit.xlsx
+/Evaluasi Asseris - Dashboard.html
+/Laporan Evaluasi Asseris.docx
+/Pitch Deck Asseris.pptx
+/Rencana Bisnis Asseris.docx
+/_build_dummy.py
