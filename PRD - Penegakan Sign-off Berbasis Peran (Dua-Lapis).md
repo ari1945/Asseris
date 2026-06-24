@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-06-24 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | Approved ("Proceed.") — **Fase 0–2 SELESAI**, Fase 3 sebagian (PR [#23](https://github.com/ari1945/Asseris/pull/23)) |
 | Engagement ID terkait | Asseris (NeoSuite AMS) — platform, lintas-engagement |
 | Sumber temuan | QC UI/UX walkthrough + audit kode 2026-06-24 (4 peran, live). Memory: `asseris-opinion-signoff-sod-defect`. Tasks: `task_f882b8db`, `task_5cf98877`. |
 

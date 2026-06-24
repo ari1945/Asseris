@@ -456,11 +456,17 @@ Setiap tombol sign/approve/kliring mengikuti pola `firm_attest.tsx` (`allowed = 
 | **Kliring/buka** catatan reviu (`view_workspace.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
 | **Penerbitan** opini (finalisasi) | `OPINION_APPROVE` | Partner |
 
-**Catatan jujur:** `capForWrite` (rbac.ts) masih granular per-DOKUMEN — sign-off hidup di
-`wpState`/`opinionDoc.v1`/`reviewNotes` yang hanya butuh `WP_EDIT` (semua peran). Jadi
-penegakan saat ini = **lapis UI**; request termodifikasi masih lolos di server sampai
-**Fase 2** (mutasi terdedikasi / validator per-slot). JANGAN tambah sign-off baru tanpa
-gate `can()` peran-spesifik.
+**Penegakan dua-lapis (Fase 1 UI + Fase 2 server — SELESAI):**
+- **UI** (`wp_signoff.tsx`/`view_opinion_parts.tsx`/`view_workspace.tsx`): tombol di-gate
+  `can(role.cap)` — menutup jalur normal.
+- **Server** (`server/src/signoff.ts` `guardSignoffWrite`, dipanggil di `state.set`): `capForWrite`
+  hanya gate per-DOKUMEN (`wpState`/`opinionDoc.v1`/`reviewNotes` = `WP_EDIT`, semua peran), jadi
+  guard **mem-diff** nilai tersimpan vs masuk dan menuntut kapabilitas per-slot yang tepat —
+  menutup request termodifikasi yang lolos gate dokumen. Slot+cap masuk ke `detail` jejak audit
+  (metadata-saja). SSOT kapabilitas sama (`rbac`) dengan UI.
+
+**JANGAN tambah sign-off baru tanpa:** (1) gate UI `can()` peran-spesifik, DAN (2) entri di
+`guardSignoffWrite` (server/src/signoff.ts) bila aksi menulis ke key engagement sensitif.
 
 ## TypeScript gate (W5 — `migration/tsconfig.json`)
 - **Scope:** the canon "number engines" only — `canon.ts`, `canon_base.ts`,
