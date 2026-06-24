@@ -1,7 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
+import { useAuth } from './contexts';
 import { AMS } from './data';
 import { I } from './icons';
+import { CAP } from './rbac';
 import { Badge, Btn } from './ui';
 import { OKv } from './view_onboarding';
 
@@ -139,9 +141,15 @@ function StepLetter({ p, onPatch }: any) {
   const setL = (patch: any) => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter, ...patch } }));
   const today = new Date().toISOString().slice(0, 10);
   const pushEvent = (t: any, who: any) => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter, esign: [...(pr.letter.esign || []), { t, who, date: today }] } }));
+  /* SA-01: otorisasi internal (KAP) ber-jejak user login + RBAC FIRM_ADMIN
+     (selaras gate server 'prospects'). Tanda tangan KLIEN (Direksi) + TTE/Meterai
+     tetap milik pihak klien — tak diubah. */
+  const auth = useAuth();
+  const me: string = (auth && auth.user && auth.user.name) || 'Auditor';
+  const canIssue: boolean = !auth || typeof auth.can !== 'function' || auth.can(CAP.FIRM_ADMIN);
 
-  const generate = () => setL({ version: (L.version || 0) + 1, status: 'draft', esign: [...(L.esign || []), { t: 'Surat dibuat / diperbarui (v' + ((L.version || 0) + 1) + ')', who: p.manager, date: today }] });
-  const send = () => { setL({ status: 'sent' }); pushEvent('Dikirim untuk TTE tersertifikasi (PrivyID · PSrE Kominfo)', 'Sistem'); };
+  const generate = () => setL({ version: (L.version || 0) + 1, status: 'draft', esign: [...(L.esign || []), { t: 'Surat dibuat / diperbarui (v' + ((L.version || 0) + 1) + ')', who: me, date: today }] });
+  const send = () => { setL({ status: 'sent' }); pushEvent('Dikirim untuk TTE tersertifikasi (PrivyID · PSrE Kominfo)', me); };
   const mkSerial = () => 'METERAI-1015-' + Math.random().toString(16).slice(2, 6).toUpperCase() + '-' + Math.random().toString(16).slice(2, 6).toUpperCase();
   const sign = () => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter,
     status: 'signed', signedBy: pr.name + ' (Direksi)', signedDate: today,
@@ -171,7 +179,7 @@ function StepLetter({ p, onPatch }: any) {
             <div style={{ width: 52, height: 52, borderRadius: 12, background: 'var(--surface-3)', display: 'grid', placeItems: 'center', margin: '0 auto 14px', color: 'var(--ink-4)' }}><I.doc size={26} /></div>
             <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink-2)' }}>Surat perikatan belum dibuat</div>
             <div className="tiny muted" style={{ margin: '6px 0 16px' }}>Buat draft SA 210 dari data prospek.</div>
-            <Btn variant="primary" onClick={generate}><I.sparkle size={14} /> Buat Engagement Letter</Btn>
+            <Btn variant="primary" disabled={!canIssue} onClick={generate}><I.sparkle size={14} /> Buat Engagement Letter</Btn>
           </div>
         ) : (
           <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.65, color: '#283b46' }}>
@@ -224,10 +232,11 @@ function StepLetter({ p, onPatch }: any) {
           )}
           <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
             {L.version > 0 && L.status === 'draft' && <>
-              <Btn sm onClick={generate}><I.sync size={12} /> Perbarui (v{L.version + 1})</Btn>
-              <Btn sm variant="primary" onClick={send}><I.send size={12} /> Kirim untuk e-Sign (PrivyID)</Btn>
+              <Btn sm disabled={!canIssue} onClick={generate}><I.sync size={12} /> Perbarui (v{L.version + 1})</Btn>
+              <Btn sm variant="primary" disabled={!canIssue} onClick={send}><I.send size={12} /> Kirim untuk e-Sign (PrivyID)</Btn>
             </>}
-            {L.status === 'sent' && <Btn sm variant="primary" onClick={sign}><I.check size={12} /> Tandatangani (PSrE) & Bubuhkan e-Meterai</Btn>}
+            {L.status === 'sent' && <Btn sm variant="primary" disabled={!canIssue} onClick={sign}><I.check size={12} /> Tandatangani (PSrE) & Bubuhkan e-Meterai</Btn>}
+            {!canIssue && L.status !== 'signed' && <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.4 }}>Penerbitan & otorisasi surat perikatan memerlukan otoritas Partner (FIRM_ADMIN).</div>}
             {L.status === 'signed' && <Btn sm onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={12} /> Cetak / Export PDF</Btn>}
           </div>
         </div>

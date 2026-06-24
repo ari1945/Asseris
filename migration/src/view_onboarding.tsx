@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAuth, useFirm, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
@@ -264,12 +265,20 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
 /* ============================================================
    STEP 1 — Akseptasi & Keberlanjutan (SA 220 / ISQM 1)
    ============================================================ */
+type AccTrail = { action: string; by: string; at: string };
 function StepAcceptance({ p, onPatch }: any) {
   const a = p.acceptance;
   const score = obAccScore(p);
   const verdict = obAccVerdict(score);
   const setFactor = (i: any, patch: any) => onPatch((pr: any) => ({ ...pr, acceptance: { ...pr.acceptance, factors: pr.acceptance.factors.map((f: any, j: any) => j === i ? { ...f, ...patch } : f) } }));
   const setAcc = (patch: any) => onPatch((pr: any) => ({ ...pr, acceptance: { ...pr.acceptance, ...patch } }));
+  /* SA-01: sign-off ber-jejak user login + RBAC (FIRM_ADMIN, selaras gate server
+     'prospects' firm-scope) + audit-trail append-only (pola Q-03a). */
+  const auth = useAuth();
+  const me: string = (auth && auth.user && auth.user.name) || 'Auditor';
+  const canApprove: boolean = !auth || typeof auth.can !== 'function' || auth.can(CAP.FIRM_ADMIN);
+  const today = new Date().toISOString().slice(0, 10);
+  const trail: AccTrail[] = (a.trail || []);
 
   return (
     <div>
@@ -327,12 +336,24 @@ function StepAcceptance({ p, onPatch }: any) {
               <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
                 <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Disetujui — {a.decision}</span></div>
                 <div className="tiny muted">{a.approver} · {a.date}</div>
-                <Btn sm style={{ marginTop: 9 }} onClick={() => setAcc({ approved: false })}><I.doc size={12} /> Buka kembali untuk edit</Btn>
+                <Btn sm disabled={!canApprove} style={{ marginTop: 9 }} onClick={() => setAcc({ approved: false, trail: [...trail, { action: 'Dibuka kembali untuk edit', by: me, at: today }] })}><I.doc size={12} /> Buka kembali untuk edit</Btn>
               </div>
             ) : (
-              <Btn variant="primary" onClick={() => setAcc({ approved: true, decision: a.decision || verdict.l, approver: p.partner, date: new Date().toISOString().slice(0, 10) })}>
-                <I.check size={14} /> Setujui sebagai {p.partner.split(',')[0]}
+              <Btn variant="primary" disabled={!canApprove} onClick={() => { const decision = a.decision || verdict.l; setAcc({ approved: true, decision, approver: me, date: today, trail: [...trail, { action: 'Disetujui — ' + decision, by: me, at: today }] }); }}>
+                <I.check size={14} /> Setujui sebagai {me}
               </Btn>
+            )}
+            {!canApprove && <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.45 }}>Persetujuan akseptasi memerlukan otoritas Partner (FIRM_ADMIN). Anda dapat menilai faktor; keputusan final disahkan Partner.</div>}
+            {trail.length > 0 && (
+              <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 8 }}>
+                <div className="tiny muted upper" style={{ marginBottom: 5 }}>Jejak Otorisasi (append-only)</div>
+                {trail.map((t, i) => (
+                  <div key={i} className="row gap8" style={{ fontSize: 11, padding: '3px 0', alignItems: 'flex-start' }}>
+                    <span style={{ color: 'var(--ink-4)', flex: '0 0 auto' }}><I.check size={11} /></span>
+                    <span style={{ lineHeight: 1.4 }}>{t.action} — <b>{t.by}</b> · {t.at}</span>
+                  </div>
+                ))}
+              </div>
             )}
             <div className="tiny muted" style={{ lineHeight: 1.5 }}>Persetujuan menandatangani gerbang penerimaan dan membuka tahap PMPJ.</div>
           </div>
