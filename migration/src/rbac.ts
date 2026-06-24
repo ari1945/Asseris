@@ -28,9 +28,10 @@ export const CAP = {
   EXPORT: 'export.use', // W10.5 — hasilkan & segel artefak ekspor (deliverable/register). Baca-saja terhadap data yang sudah boleh dilihat; ekspor jejak audit tetap di-gate AUDIT_VIEW.
   INTEGRATION_VIEW: 'integration.view', // W9 — lihat status konektor & antrean impor (transparansi data yang dikonsumsi). Baca-saja.
   INTEGRATION_MANAGE: 'integration.manage', // W9 — kelola koneksi & picu sync (tarik data eksternal → posting ke SSOT). Sensitif: hanya oversight/firm-ops.
+  EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (ISQM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW } = CAP;
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
@@ -41,6 +42,10 @@ const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGA
    ENGAGEMENT_VIEW_ALL granted to Partner + Manager only (W7.5 Q1) — oversight portofolio;
    Senior/Junior dibatasi ke engagement tempat mereka anggota (per-engagement data isolation).
    AUDIT_VIEW granted to Partner + Manager only (W10 D2) — baca jejak audit server-side (oversight).
+   SIGNOFF_REVIEWER (Partner + Manager) — otoritas tanda tangan REVIEWER kertas kerja & slot Reviu Manajer opini
+   (mencegah Junior/Senior memalsukan sign-off reviu; dikonsumsi UI via can(), penegakan server lebih halus = fase lanjut).
+   EQR_REVIEW granted to Partner only — penanda tangan slot Penelaahan Pengendalian Mutu (EQR, ISQM 2); penelaah
+   independen ⇒ Manager/Senior/Junior TAK boleh menandatangani slot EQR.
    EXPORT granted to ALL four roles (W10.5) — ekspor deliverable/register = tugas auditor normal atas
    data yang sudah boleh dilihat; isolasi engagement (W7.5) tetap membatasi engagement mana yang bisa
    diekspor, dan ekspor jejak audit tetap menuntut AUDIT_VIEW di jalurnya sendiri.
@@ -49,7 +54,7 @@ const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGA
    sync & mengelola koneksi eksternal = operasi firm-ops sensitif (OAuth, posting ke SSOT), sejajar
    ENGAGEMENT_MANAGE/AUDIT_VIEW. */
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE],
+  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW],
   'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE],
   'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
   'Junior Auditor': [WP_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],

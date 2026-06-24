@@ -13,6 +13,7 @@
    ============================================================ */
 import React from 'react';
 import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui';
 import { amsEvidenceCount } from './evidence';
@@ -152,6 +153,9 @@ function useWpSignoff(moduleId: any) {
   const chain = st.chain || {};
   const setWp = audit.setWp || (() => {});
   const locked = !!(firm && firm.locked);      // arsip/selesai engagement = read-only (sign-off lunak: boleh buka kembali selama belum diarsipkan)
+  /* Otoritas sign-off REVIEWER = SIGNOFF_REVIEWER (Partner+Manager). Preparer tetap semua auditor (WP_EDIT).
+     Menutup celah SoD: Junior/Senior tak boleh membubuhkan/menghapus tanda tangan reviewer. (rbac.ts SSOT) */
+  const canReview = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
   const status = chain.reviewer ? 'reviewed' : chain.preparer ? 'prepared' : 'draft';
 
   const sign = (level: any) => {
@@ -177,7 +181,7 @@ function useWpSignoff(moduleId: any) {
   const saveConclusion = (text: any, disposition: any) =>
     setWp(ref, { conclusion: { text, disposition, by: me, at: wpToday() } });
 
-  return { ref, me, chain, status, locked, sign, unsign,
+  return { ref, me, chain, status, locked, canReview, sign, unsign,
     preparer: chain.preparer || null, reviewer: chain.reviewer || null,
     conclusion, saveConclusion };
 }
@@ -208,9 +212,9 @@ function WpStatusBadge({ moduleId }: any) {
 
 /* ---- Kartu sign-off 2-tingkat (preparer → reviewer), lock lunak ---- */
 function WpSignoff({ moduleId }: any) {
-  const { status, locked, sign, unsign, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
+  const { status, locked, canReview, sign, unsign, preparer, reviewer, me, conclusion } = useWpSignoff(moduleId);
   const hasConclusion = !!(conclusion && conclusion.text);
-  const Line = ({ role, who, onSign, onUnsign, canSign }: any) => (
+  const Line = ({ role, who, onSign, onUnsign, canSign, noAuthHint }: any) => (
     <div className="row ac gap8" style={{ padding: '7px 0' }}>
       <span style={{ width: 24, height: 24, borderRadius: '50%', flex: '0 0 24px', display: 'grid', placeItems: 'center',
         background: who ? 'var(--green-bg)' : 'var(--surface-3)', color: who ? 'var(--green)' : 'var(--ink-4)' }}>
@@ -218,10 +222,11 @@ function WpSignoff({ moduleId }: any) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="tiny" style={{ fontWeight: 700 }}>{role}</div>
-        {who ? <div className="tiny muted">{who.by} · {who.at}</div> : <div className="tiny muted">belum ditandatangani</div>}
+        {who ? <div className="tiny muted">{who.by} · {who.at}</div>
+          : <div className="tiny muted">{!canSign && noAuthHint ? noAuthHint : 'belum ditandatangani'}</div>}
       </div>
       {who
-        ? <button className="btn sm" disabled={locked} onClick={onUnsign} title="Buka kembali (lock lunak)"><I.sync size={11} /> Buka</button>
+        ? <button className="btn sm" disabled={locked || !canSign} onClick={onUnsign} title={canSign ? 'Buka kembali (lock lunak)' : 'Hanya otoritas berwenang'}><I.sync size={11} /> Buka</button>
         : <Btn sm variant={canSign ? 'primary' : ''} disabled={locked || !canSign} onClick={onSign}><I.check size={12} /> Sign-off</Btn>}
     </div>
   );
@@ -229,7 +234,7 @@ function WpSignoff({ moduleId }: any) {
     <div>
       <Line role="Preparer" who={preparer} canSign onSign={() => sign('preparer')} onUnsign={() => unsign('preparer')} />
       <div style={{ borderTop: '1px solid var(--line-soft)' }} />
-      <Line role="Reviewer" who={reviewer} canSign={!!preparer} onSign={() => sign('reviewer')} onUnsign={() => unsign('reviewer')} />
+      <Line role="Reviewer" who={reviewer} canSign={!!preparer && canReview} noAuthHint={!canReview ? 'menunggu otoritas berwenang (reviewer)' : 'menunggu preparer'} onSign={() => sign('reviewer')} onUnsign={() => unsign('reviewer')} />
       {!hasConclusion && (
         reviewer
           ? <div className="tiny" style={{ marginTop: 6, color: 'var(--amber)', fontWeight: 600 }}><I.alert size={11} /> Ditelaah tanpa kesimpulan terdokumentasi (SA 230) — lengkapi di bawah.</div>

@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I, MODULES, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg } from './ui';
@@ -60,6 +61,11 @@ function ReviewNotes() {
   const nav = useNav();
   const firm = useFirm();
   const { reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, wpState, setWp } = useAudit();  // P5 Fase 2: catatan engagement aktif
+  const auth = useAuth();
+  /* Otoritas KLIRING/buka-kembali catatan reviu = SIGNOFF_REVIEWER (Partner+Manager). Menutup celah SoD:
+     Junior/Senior dapat MERESPONS (composer) tapi tak boleh menuntaskan/membuka catatan — penutupan memberi
+     makan gerbang lifecycle (→Finalisasi: 0 high-open; →Arsip: 0 open). Penegakan server = fase lanjut. */
+  const canClear = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
 
   const [statusF, setStatusF] = useStateWS2('open');      // open | resolved | all
   const [typeF, setTypeF] = useStateWS2('all');           // all | review | coaching | eqr | query
@@ -302,7 +308,7 @@ function ReviewNotes() {
             {selected
               ? <RN_Detail n={selected} thread={selected._thread} phase={selected._phase} firm={firm}
                   composer={composer} setComposer={setComposer} postComposer={postComposer}
-                  clearNote={clearNote} reopenNote={reopenNote} openSource={openSource}
+                  clearNote={clearNote} reopenNote={reopenNote} openSource={openSource} canClear={canClear}
                   updateReviewNote={updateReviewNote} />
               : <div className="muted tiny" style={{ margin: 'auto', padding: 36, textAlign: 'center' }}>Pilih catatan untuk melihat percakapan & kliring.</div>}
           </div>
@@ -397,7 +403,7 @@ function RN_Row({ n, active, onClick }: any) {
 }
 
 /* ---- detail / conversation pane ---- */
-function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer, clearNote, reopenNote, openSource, updateReviewNote }: any) {
+function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer, clearNote, reopenNote, openSource, canClear, updateReviewNote }: any) {
   const t = (RN_TYPES as any)[n.type] || RN_TYPES.review;
   const ph = (RN_PHASE_META as any)[phase];
   const resolved = n.status === 'resolved';
@@ -471,9 +477,10 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
               <div style={{ flex: 1 }} />
               <Btn sm onClick={() => postComposer(n)}><I.send size={13} /> Kirim</Btn>
               {resolved
-                ? <Btn sm onClick={() => reopenNote(n)}><I.sync size={13} /> Buka Kembali</Btn>
-                : <Btn sm variant="primary" onClick={() => clearNote(n)} style={{ background: 'var(--green)', borderColor: 'var(--green)' }}><I.checkCircle size={13} /> Tuntaskan & Kliring</Btn>}
+                ? <Btn sm disabled={!canClear} title={canClear ? undefined : 'Hanya reviewer berwenang (Manajer/Partner)'} onClick={() => reopenNote(n)}><I.sync size={13} /> Buka Kembali</Btn>
+                : <Btn sm variant="primary" disabled={!canClear} title={canClear ? undefined : 'Hanya reviewer berwenang (Manajer/Partner) yang dapat mengkliring'} onClick={() => clearNote(n)} style={{ background: 'var(--green)', borderColor: 'var(--green)' }}><I.checkCircle size={13} /> Tuntaskan & Kliring</Btn>}
             </div>
+            {!canClear && <div className="tiny muted" style={{ marginTop: 6 }}><I.lock size={11} /> Anda dapat merespons; kliring/buka catatan hanya oleh reviewer berwenang (Manajer/Partner).</div>}
           </>
         )}
         {/* meta strip */}

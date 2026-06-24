@@ -433,6 +433,47 @@ smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
   functions of the trial balance they're handed.
 - **Coverage gate:** `npm run test -- --coverage` → v8, ≥80% lines/stmts/funcs on
   canon (currently ~99% lines / 100% funcs / 77% branches).
+- **RBAC matrix net:** `src/rbac.test.ts` memaku matriks kapabilitas `rbac.ts`
+  (SSOT yang dikonsumsi UI **dan** server). Melindungi penegakan **sign-off berbasis
+  peran** (lihat invarian di bawah) dari regresi — mis. bila SIGNOFF_REVIEWER/
+  OPINION_APPROVE/EQR_REVIEW tak sengaja diberikan ke peran lebih rendah, uji gagal.
+
+## Sign-off berbasis peran (segregation of duties) — INVARIAN
+
+> PRD: `PRD - Penegakan Sign-off Berbasis Peran (Dua-Lapis).md` (Fase 0+1 SELESAI;
+> Fase 2 server PENDING). Konteks lengkap di memory `asseris-opinion-signoff-sod-defect`.
+
+Aksi **otoritatif intra-dokumen** WAJIB di-gate ke **peran**, bukan urutan/kelengkapan.
+Setiap tombol sign/approve/kliring mengikuti pola `firm_attest.tsx` (`allowed = can(role.cap)`):
+
+| Aksi | Kapabilitas | Boleh |
+|---|---|---|
+| Sign-off **Reviewer** kertas kerja (`wp_signoff.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
+| **Preparer** kertas kerja | `WP_EDIT` | semua auditor |
+| Slot opini **Reviu Manajer** (`view_opinion_parts.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
+| Slot opini **Rekan Perikatan** | `OPINION_APPROVE` | Partner |
+| Slot opini **EQR** | `EQR_REVIEW` | Partner |
+| **Kliring/buka** catatan reviu (`view_workspace.tsx`) | `SIGNOFF_REVIEWER` | Partner, Manager |
+| **Penerbitan** opini (finalisasi) | `OPINION_APPROVE` | Partner |
+| **Persetujuan akseptasi** klien (`view_onboarding.tsx`) | `FIRM_ADMIN` | Partner |
+| **Penerbitan** surat perikatan SA 210 → sent/signed (`view_onboarding2.tsx`) | `FIRM_ADMIN` | Partner |
+
+> Identitas penanda-tangan opini direkam dari **sesi** (`auth.user.name`), bukan nama slot
+> hardcode — UI menampilkan "Ditandatangani oleh \<nama\>". Jejak audit server (`actorUserId`)
+> tetap sumber otoritatif "siapa".
+
+**Penegakan dua-lapis (Fase 1 UI + Fase 2 server — SELESAI):**
+- **UI** (`wp_signoff.tsx`/`view_opinion_parts.tsx`/`view_workspace.tsx`): tombol di-gate
+  `can(role.cap)` — menutup jalur normal.
+- **Server** (`server/src/signoff.ts` `guardSignoffWrite`, dipanggil di `state.set`): `capForWrite`
+  hanya gate per-DOKUMEN (`wpState`/`opinionDoc.v1`/`reviewNotes` = `WP_EDIT`; `prospects` =
+  `ENGAGEMENT_MANAGE`), jadi guard **mem-diff** nilai tersimpan vs masuk dan menuntut kapabilitas
+  per-slot/per-keputusan yang tepat (termasuk akseptasi/penerbitan surat = `FIRM_ADMIN`) —
+  menutup request termodifikasi yang lolos gate dokumen. Slot+cap masuk ke `detail` jejak audit
+  (metadata-saja). SSOT kapabilitas sama (`rbac`) dengan UI.
+
+**JANGAN tambah sign-off baru tanpa:** (1) gate UI `can()` peran-spesifik, DAN (2) entri di
+`guardSignoffWrite` (server/src/signoff.ts) bila aksi menulis ke key engagement sensitif.
 
 ## TypeScript gate (W5 — `migration/tsconfig.json`)
 - **Scope:** the canon "number engines" only — `canon.ts`, `canon_base.ts`,

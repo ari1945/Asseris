@@ -455,6 +455,14 @@ function OpinionSignoff({ doc, patch }: any) {
   const auth = useAuth();
   // W7 — issuing the auditor's opinion requires opinion.approve (Engagement Partner; server-enforced).
   const canApprove = !auth || typeof auth.can !== 'function' || auth.can(CAP.OPINION_APPROVE);
+  /* Otoritas tanda tangan PER-SLOT reviu berjenjang (SoD): tiap slot terikat kapabilitas perannya —
+     Manajer→SIGNOFF_REVIEWER (Partner+Manager), Rekan Perikatan→OPINION_APPROVE (Partner),
+     EQR→EQR_REVIEW (Partner). Menutup celah: Junior/Senior tak boleh menandatangani slot manapun;
+     Manager tak boleh menandatangani slot Partner/EQR. Penegakan server = fase lanjut. */
+  const SLOT_CAP: Record<string, string> = { manager: CAP.SIGNOFF_REVIEWER, partner: CAP.OPINION_APPROVE, eqr: CAP.EQR_REVIEW };
+  const canSignSlot = (role: string) => !auth || typeof auth.can !== 'function' || auth.can(SLOT_CAP[role]);
+  // Q4 — rekam penanda tangan SEBENARNYA (dari sesi), bukan nama slot hardcode (REVIEW_CHAIN.who).
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
   const o = (OPINIONS as any)[doc.type];
   const eqrRequired = !!activeClient?.listed;
@@ -491,16 +499,16 @@ function OpinionSignoff({ doc, patch }: any) {
   const manualDone = manualChecks.every((c: any) => doc.checklist[c.id]);
 
   const sign = (role: any) => {
-    const next = doc.signoff[role] ? null : { date: today };
+    const next = doc.signoff[role] ? null : { date: today, by: me };
     patch({ signoff: { ...doc.signoff, [role]: next } });
-    /* mirror ke chain kanonik wpState['900']: manager→reviewer, partner→partner, eqr→eqr */
+    /* mirror ke chain kanonik wpState['900']: manager→reviewer, partner→partner, eqr→eqr.
+       Q4: rekam penanda tangan SEBENARNYA (me), bukan nama slot yang diharapkan. */
     const slot = role === 'manager' ? 'reviewer' : role;
-    const who = (REVIEW_CHAIN.find((r: any) => r.role === role) || {}).who || role;
     const curChain = { ...(((wpState || {})['900'] || {}).chain || {}) };
-    if (next) { curChain[slot] = { by: who, at: today }; if (!curChain.preparer) curChain.preparer = { by: 'Generator Laporan', at: today }; }
+    if (next) { curChain[slot] = { by: me, at: today }; if (!curChain.preparer) curChain.preparer = { by: 'Generator Laporan', at: today }; }
     else delete curChain[slot];
     const wpPatch: any = { chain: curChain };
-    if (slot === 'reviewer') { wpPatch.status = next ? 'Reviewed' : 'In Review'; wpPatch.reviewer = next ? who : null; wpPatch.signedAt = next ? today : null; }
+    if (slot === 'reviewer') { wpPatch.status = next ? 'Reviewed' : 'In Review'; wpPatch.reviewer = next ? me : null; wpPatch.signedAt = next ? today : null; }
     setWp('900', wpPatch);
   };
   const chainComplete = REVIEW_CHAIN.every((r: any) => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
@@ -556,9 +564,10 @@ function OpinionSignoff({ doc, patch }: any) {
                     <span className="tiny mono muted">{r.std}</span>
                   </div>
                   <div className="row ac jb" style={{ marginTop: 8 }}>
-                    {done ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}>Ditandatangani · {done.date}</span>
-                      : <span className="tiny muted">{prevDone ? 'Menunggu tanda tangan' : 'Menunggu reviu sebelumnya'}</span>}
-                    <Btn sm variant={done ? '' : 'primary'} disabled={!prevDone && !done} onClick={() => sign(r.role)}>
+                    {done ? <span className="tiny" style={{ color: 'var(--green)', fontWeight: 600 }}>Ditandatangani{done.by ? ' oleh ' + done.by : ''} · {done.date}</span>
+                      : <span className="tiny muted">{!prevDone ? 'Menunggu reviu sebelumnya' : canSignSlot(r.role) ? 'Menunggu tanda tangan' : 'Menunggu otoritas berwenang'}</span>}
+                    <Btn sm variant={done ? '' : 'primary'} disabled={done ? !canSignSlot(r.role) : (!prevDone || !canSignSlot(r.role))} onClick={() => sign(r.role)}
+                      title={!canSignSlot(r.role) ? 'Hanya otoritas yang berwenang dapat menandatangani slot ini' : undefined}>
                       {done ? 'Batalkan' : <><I.check size={12} /> Tandatangani</>}
                     </Btn>
                   </div>
