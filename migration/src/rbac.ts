@@ -69,7 +69,11 @@ export function can(role: any, cap: any) {
 export function capForWrite(scope: any, key: any) {
   if (scope === 'user') return null; // own profile/prefs — ownership checked server-side
   if (scope === 'firm') {
-    return key === 'clients' || key === 'engagements' ? ENGAGEMENT_MANAGE : FIRM_ADMIN;
+    // clients/engagements = roster; prospects = intake/penerimaan (data-entry Manager).
+    // Keputusan otoritatif intra-doc (persetujuan akseptasi / penerbitan surat SA 210)
+    // tetap Partner-only via gate klien can(FIRM_ADMIN) + audit-trail ber-jejak (PR#20) —
+    // pola "intra-doc gating = tugas UI" yang sama dengan opinion sign-off di wpState.
+    return key === 'clients' || key === 'engagements' || key === 'prospects' ? ENGAGEMENT_MANAGE : FIRM_ADMIN;
   }
   // scope === 'engagement'
   switch (key) {

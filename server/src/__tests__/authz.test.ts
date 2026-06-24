@@ -93,6 +93,17 @@ describe('capability gate on writes (negative authz)', () => {
       callerAs('Audit Manager').state.set({ scope: 'firm', scopeId: FIRM, key: 'rbacConfig', value: {}, baseVersion: 0 }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
+
+  it('Manager CAN do prospect intake (prospects = engagement.manage)', async () => {
+    const r = await callerAs('Audit Manager').state.set({ scope: 'firm', scopeId: FIRM, key: 'prospects', value: [], baseVersion: 0 });
+    expect(r.version).toBe(1);
+  });
+
+  it('Senior CANNOT do prospect intake (no engagement.manage) — FORBIDDEN', async () => {
+    await expect(
+      callerAs('Senior Auditor').state.set({ scope: 'firm', scopeId: FIRM, key: 'prospects', value: [], baseVersion: 0 }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
 });
 
 describe('user-scope ownership', () => {
