@@ -133,6 +133,9 @@ export interface GoingConcernResult {
    yang dalam — pemodelan tipe-balikan presisi DITUNDA (deep-typing leaf-view = ekor
    Non-Scope W15); karena itu `() => any`. Member non-opsional: augmenter selalu jalan
    saat load-modul sebelum view render (pola sama useAmsPersist W14). */
+/* AK-01 — satu baris padanan penomoran PSAK/ISAK (lama↔baru) per dokumen IAI */
+export interface PsakRenumberRow { old: string; neu: string; title: string; kind: 'PSAK' | 'ISAK'; }
+
 export interface CanonAugmentations {
   /* ISAK 35 (entitas nonlaba) — data_isak35 */
   isak35: () => any;
@@ -145,6 +148,9 @@ export interface CanonAugmentations {
   sakHorizon: () => any;
   SAK_STANDARDS: any;
   SAK_ISAKS: any;
+  /* AK-01 — padanan penomoran PSAK/ISAK lama↔baru (data_sakroadmap) */
+  PSAK_RENUMBER: PsakRenumberRow[];
+  psakRenumber: (oldCode: string) => PsakRenumberRow | null;
   /* Akuntansi syariah — data_syariah */
   syariah: () => any;
   SYARIAH_AKAD: any;

@@ -79,6 +79,7 @@ function SAKRoadmapView() {
 
   const [tab, setTab] = useStateSR(() => loader('ams.sakroadmap.tab', 'horizon'));
   const [isakFilter, setIsakFilter] = useStateSR('semua');
+  const [renumKind, setRenumKind] = useStateSR('semua');
   const [done, setDone] = useStateSR(() => loader('ams.sakroadmap.r207', {}));
   React.useEffect(() => { try { localStorage.setItem('ams.sakroadmap.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.sakroadmap.r207', JSON.stringify(done)); } catch (e) {} }, [done]);
@@ -92,6 +93,7 @@ function SAKRoadmapView() {
     { id: 'isak', label: 'Pelacak ISAK' },
     { id: 'dampak', label: 'Dampak Perikatan' },
     { id: 'lengkap', label: 'Kelengkapan Kerangka' },
+    { id: 'padanan', label: 'Padanan Penomoran' },
   ];
 
   const isakShown = H.isaks.filter((i: any) => {
@@ -195,11 +197,11 @@ function SAKRoadmapView() {
 
                 {/* right rail */}
                 <div className="grid" style={{ gap: 12 }}>
-                  {/* PSAK 207 spotlight */}
+                  {/* PSAK 118 (IFRS 18) spotlight */}
                   <Panel noBody>
                     <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                       <div className="row ac gap8" style={{ marginBottom: 6 }}>
-                        <span className="mono" style={{ border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 800 }}>PSAK 207</span>
+                        <span className="mono" style={{ border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 800 }}>PSAK 118</span>
                         <span style={{ fontSize: 12.5, fontWeight: 700 }}>adopsi IFRS 18</span>
                       </div>
                       <div style={{ fontSize: 12.5, lineHeight: 1.55, color: '#dbe9f2' }}>Perubahan paling berdampak di horizon: menata ulang laporan laba rugi & mengatur pengungkapan MPM. Efektif <b style={{ color: '#fff' }}>1 Jan 2027</b>, retrospektif — komparatif FY2026 disajikan ulang.</div>
@@ -314,10 +316,10 @@ function SAKRoadmapView() {
           {tab === 'dampak' && (
             <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
-                <div className="panel-h"><h3>Kesiapan PSAK 207 (IFRS 18)</h3><span className="sub mono">daftar-uji transisi</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{H.readiness207.length}</span></div>
+                <div className="panel-h"><h3>Kesiapan PSAK 118 (IFRS 18)</h3><span className="sub mono">daftar-uji transisi</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{H.readiness207.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1, flex: '0 0 auto' }}><I.building size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}><b>{client.name}</b> — {client.industry}. Entitas {client.listed ? 'terdaftar (Tbk)' : 'privat'} → penerapan PSAK 207 <b>wajib</b>. Persiapan dimulai dini agar komparatif FY2026 dapat disajikan ulang tepat waktu.</div>
+                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}><b>{client.name}</b> — {client.industry}. Entitas {client.listed ? 'terdaftar (Tbk)' : 'privat'} → penerapan PSAK 118 <b>wajib</b>. Persiapan dimulai dini agar komparatif FY2026 dapat disajikan ulang tepat waktu.</div>
                 </div>
                 <div>
                   {H.readiness207.map((r: any, i: any) => {
@@ -335,7 +337,7 @@ function SAKRoadmapView() {
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-                    <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesiapan Transisi PSAK 207</div>
+                    <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesiapan Transisi PSAK 118</div>
                     <div className="row ac gap12">
                       <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
                       <div style={{ flex: 1 }}>
@@ -367,8 +369,8 @@ function SAKRoadmapView() {
                   <div style={{ display: 'grid', gap: 6, padding: '10px 12px 12px' }}>
                     {[
                       { id: 'disclosure', ic: 'checkCircle', lbl: 'Daftar-Uji Pengungkapan', rel: 'Tambahkan baris "standar terbit belum efektif" (PSAK 25 ¶30)' },
-                      { id: 'psak1', ic: 'report', lbl: 'PSAK 1 → 207 · Penyajian LK', rel: 'Pemetaan struktur L/R lama → kategori baru' },
-                      { id: 'fsgen', ic: 'report', lbl: 'FS Generator', rel: 'Mutakhirkan template ke struktur PSAK 207' },
+                      { id: 'psak1', ic: 'report', lbl: 'PSAK 1 → 201 · Penyajian LK', rel: 'Pemetaan struktur L/R lama → kategori baru' },
+                      { id: 'fsgen', ic: 'report', lbl: 'FS Generator', rel: 'Mutakhirkan template ke struktur PSAK 118' },
                       { id: 'psak71', ic: 'coins', lbl: 'PSAK 71 · Instrumen Keuangan', rel: 'Amandemen klasifikasi & pengukuran (efektif 2026)' },
                     ].map(m => { const Ic = (I as any)[m.ic] || I.doc; return (
                       <button key={m.id} onClick={() => nav(m.id, { from: 'sakroadmap' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
@@ -417,8 +419,8 @@ function SAKRoadmapView() {
                   <div className="panel-h"><h3>Penutupan Gap G5</h3><span className="sub mono">Evaluasi Kepatuhan SAK</span></div>
                   <div style={{ padding: '4px 14px 12px', display: 'grid', gap: 0 }}>
                     {[
-                      ['Horizon SAK (efektif / akan datang)', 'PSAK 207 & 208 terlacak dengan tanggal efektif'],
-                      ['Pengungkapan tereduksi entitas anak', 'PSAK 208 (IFRS 19) didaftarkan & dinilai N/A untuk induk Tbk'],
+                      ['Horizon SAK (efektif / akan datang)', 'PSAK 118 (IFRS 18) & horizon terlacak dengan tanggal efektif'],
+                      ['Pengungkapan tereduksi entitas anak', 'Adopsi IFRS 19 didaftarkan & dinilai N/A untuk induk Tbk'],
                       ['Interpretasi ISAK terpisah', H.counts.isakTotal + ' ISAK (16, 30, 34, 36, …) di registri'],
                       ['Audit-trail kelengkapan kerangka', 'Tertaut SA 700 & daftar-uji pengungkapan'],
                     ].map((r, i) => (
@@ -463,8 +465,43 @@ function SAKRoadmapView() {
             </div>
           )}
 
+          {/* ================= TAB · PADANAN PENOMORAN (AK-01) ================= */}
+          {tab === 'padanan' && (() => {
+            const RENUM = AMS_CANON.PSAK_RENUMBER || [];
+            const rows = RENUM.filter(r => renumKind === 'semua' || r.kind === renumKind);
+            const usedOld = new Set(['PSAK 1', 'PSAK 22', 'PSAK 24', 'PSAK 46', 'PSAK 48', 'PSAK 57', 'PSAK 58', 'PSAK 65', 'PSAK 71', 'PSAK 72', 'PSAK 73', 'PSAK 74', 'ISAK 35', 'ISAK 36']);
+            const KINDS = [{ id: 'semua', label: 'Semua' }, { id: 'PSAK', label: 'PSAK' }, { id: 'ISAK', label: 'ISAK' }];
+            return (
+              <div className="grid" style={{ gap: 12 }}>
+                <Panel noBody>
+                  <div className="panel-h"><h3>Padanan Penomoran PSAK/ISAK — Lama ↔ Baru</h3><span className="sub mono">efektif 1 Jan 2024</span><div style={{ flex: 1 }} />
+                    <div className="seg" style={{ width: 'fit-content' }}>{KINDS.map(k => <button key={k.id} className={renumKind === k.id ? 'on' : ''} onClick={() => setRenumKind(k.id)}>{k.label}</button>)}</div>
+                  </div>
+                  <div className="panel" style={{ margin: '10px 14px', padding: '9px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
+                    <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={14} /></span>
+                      <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>IAI mengubah penomoran PSAK & ISAK efektif <b>1 Jan 2024</b> (1xx=IFRS · 2xx=IAS · 3xx=lokal · 4xx=syariah) — <b>substansi standar tidak berubah</b>. Nomor lama tetap lazim dirujuk pada LK FY2025; padanan baru ditampilkan untuk konsistensi penomoran & telaah. Sumber: dokumen resmi IAI "Perubahan Penomoran PSAK dan ISAK dalam SAK Indonesia".</span></div>
+                  </div>
+                  <table className="dtbl">
+                    <thead><tr><th style={{ width: 92 }}>Lama</th><th style={{ width: 100 }}>Baru</th><th>Judul</th><th style={{ width: 70 }}>Jenis</th></tr></thead>
+                    <tbody>
+                      {rows.map(r => (
+                        <tr key={r.old} style={usedOld.has(r.old) ? { background: 'var(--surface-2)' } : undefined}>
+                          <td className="mono" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{r.old}</td>
+                          <td className="mono" style={{ fontWeight: 700, color: 'var(--navy)' }}>{r.neu}</td>
+                          <td style={{ whiteSpace: 'normal', lineHeight: 1.35 }}>{r.title}{usedOld.has(r.old) && <Badge kind="blue">dipakai modul</Badge>}</td>
+                          <td><span className="tiny muted mono">{r.kind}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="tiny muted" style={{ padding: '8px 14px 12px', lineHeight: 1.5 }}>{rows.length} standar · baris tersorot = dirujuk modul aplikasi. Penomoran lama dipertahankan sebagai rujukan utama FY2025; nomor baru sebagai padanan. Ditarik dari <span className="mono">AMS_CANON.PSAK_RENUMBER</span>.</div>
+                </Panel>
+              </div>
+            );
+          })()}
+
           <div className="tiny muted" style={{ padding: '0 2px 4px', lineHeight: 1.5 }}>
-            Roadmap SAK & Pelacak ISAK memotret kerangka pelaporan keuangan yang <b>berlaku</b> dan <b>akan datang</b> — horizon standar terbit-belum-efektif (PSAK 207/IFRS 18, PSAK 208/IFRS 19 pengungkapan tereduksi entitas anak, amandemen instrumen keuangan), registri {H.counts.isakTotal} interpretasi ISAK yang dilacak terpisah dari PSAK induk, penilaian dampak per perikatan, hingga audit-trail kelengkapan kerangka (SA 700 · PSAK 25 ¶30–31). Seluruh daftar ditarik dari satu sumber kebenaran <span className="mono">AMS_CANON.sakHorizon()</span>. Menutup Gap G5 evaluasi kepatuhan SAK.
+            Roadmap SAK & Pelacak ISAK memotret kerangka pelaporan keuangan yang <b>berlaku</b> dan <b>akan datang</b> — horizon standar terbit-belum-efektif (PSAK 118/IFRS 18, adopsi IFRS 19 pengungkapan tereduksi entitas anak, amandemen instrumen keuangan), registri {H.counts.isakTotal} interpretasi ISAK yang dilacak terpisah dari PSAK induk, penilaian dampak per perikatan, hingga audit-trail kelengkapan kerangka (SA 700 · PSAK 25 ¶30–31). Seluruh daftar ditarik dari satu sumber kebenaran <span className="mono">AMS_CANON.sakHorizon()</span>. Menutup Gap G5 evaluasi kepatuhan SAK.
           </div>
         </div>
       </div>

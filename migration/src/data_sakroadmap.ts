@@ -7,8 +7,8 @@
 
    Sistem sebelumnya hanya MEMOTRET standar yang berlaku; modul ini
    mengantisipasi perubahan:
-     • Roadmap "terbit, belum efektif" (PSAK 25 ¶30–31) — PSAK 207
-       (adopsi IFRS 18), PSAK 208 (entitas anak tanpa akuntabilitas
+     • Roadmap "terbit, belum efektif" (PSAK 25 ¶30–31) — PSAK 118
+       (adopsi IFRS 18), adopsi IFRS 19 (entitas anak tanpa akuntabilitas
        publik / pengungkapan tereduksi), amandemen instrumen keuangan.
      • Registri ISAK terlacak terpisah dari PSAK induk (ISAK 16, 30,
        34, 36, dll.) — agar audit-trail kelengkapan kerangka utuh.
@@ -19,6 +19,86 @@
    CALK FY2025 sesuai PSAK 25 ¶30–31 (sebelumnya PSAK 1 ¶30).
    ============================================================ */
 import { AMS_CANON } from './canon';
+import type { PsakRenumberRow } from './canon_types';
+
+/* ============================================================
+   AK-01 — Padanan Penomoran PSAK/ISAK lama ↔ baru (SSOT)
+   ------------------------------------------------------------
+   SUMBER: dokumen resmi IAI "Perubahan Penomoran PSAK dan ISAK
+   dalam SAK Indonesia" (web.iaiglobal.or.id). Penomoran berubah
+   efektif 1 Jan 2024; SUBSTANSI tiap standar TIDAK berubah.
+   Skema: 1xx=adopsi IFRS · 2xx=adopsi IAS · 3xx=lokal · 4xx=syariah.
+   Nilai di bawah PERSIS dokumen IAI (bukan formula/tebakan). Syariah
+   (PSAK 101–112→401–412) sengaja diluar cakupan modul audit umum.
+   Diakses 24 Jun 2026.
+   ============================================================ */
+export const PSAK_RENUMBER: PsakRenumberRow[] = [
+  { kind: 'PSAK', old: 'PSAK 1', neu: 'PSAK 201', title: 'Penyajian Laporan Keuangan' },
+  { kind: 'PSAK', old: 'PSAK 2', neu: 'PSAK 207', title: 'Laporan Arus Kas' },
+  { kind: 'PSAK', old: 'PSAK 3', neu: 'PSAK 234', title: 'Laporan Keuangan Interim' },
+  { kind: 'PSAK', old: 'PSAK 4', neu: 'PSAK 227', title: 'Laporan Keuangan Tersendiri' },
+  { kind: 'PSAK', old: 'PSAK 5', neu: 'PSAK 108', title: 'Segmen Operasi' },
+  { kind: 'PSAK', old: 'PSAK 7', neu: 'PSAK 224', title: 'Pengungkapan Pihak-Pihak Berelasi' },
+  { kind: 'PSAK', old: 'PSAK 8', neu: 'PSAK 210', title: 'Peristiwa Setelah Periode Pelaporan' },
+  { kind: 'PSAK', old: 'PSAK 10', neu: 'PSAK 221', title: 'Pengaruh Perubahan Kurs Valuta Asing' },
+  { kind: 'PSAK', old: 'PSAK 13', neu: 'PSAK 240', title: 'Properti Investasi' },
+  { kind: 'PSAK', old: 'PSAK 14', neu: 'PSAK 202', title: 'Persediaan' },
+  { kind: 'PSAK', old: 'PSAK 15', neu: 'PSAK 228', title: 'Investasi pada Entitas Asosiasi dan Ventura Bersama' },
+  { kind: 'PSAK', old: 'PSAK 16', neu: 'PSAK 216', title: 'Aset Tetap' },
+  { kind: 'PSAK', old: 'PSAK 18', neu: 'PSAK 226', title: 'Akuntansi dan Pelaporan Program Manfaat Purnakarya' },
+  { kind: 'PSAK', old: 'PSAK 19', neu: 'PSAK 238', title: 'Aset Takberwujud' },
+  { kind: 'PSAK', old: 'PSAK 22', neu: 'PSAK 103', title: 'Kombinasi Bisnis' },
+  { kind: 'PSAK', old: 'PSAK 24', neu: 'PSAK 219', title: 'Imbalan Kerja' },
+  { kind: 'PSAK', old: 'PSAK 25', neu: 'PSAK 208', title: 'Kebijakan Akuntansi, Perubahan Estimasi Akuntansi, dan Kesalahan' },
+  { kind: 'PSAK', old: 'PSAK 26', neu: 'PSAK 223', title: 'Biaya Pinjaman' },
+  { kind: 'PSAK', old: 'PSAK 46', neu: 'PSAK 212', title: 'Pajak Penghasilan' },
+  { kind: 'PSAK', old: 'PSAK 48', neu: 'PSAK 236', title: 'Penurunan Nilai Aset' },
+  { kind: 'PSAK', old: 'PSAK 50', neu: 'PSAK 232', title: 'Instrumen Keuangan: Penyajian' },
+  { kind: 'PSAK', old: 'PSAK 53', neu: 'PSAK 102', title: 'Pembayaran Berbasis Saham' },
+  { kind: 'PSAK', old: 'PSAK 55', neu: 'PSAK 239', title: 'Instrumen Keuangan: Pengakuan dan Pengukuran' },
+  { kind: 'PSAK', old: 'PSAK 56', neu: 'PSAK 233', title: 'Laba per Saham' },
+  { kind: 'PSAK', old: 'PSAK 57', neu: 'PSAK 237', title: 'Provisi, Liabilitas Kontinjensi, dan Aset Kontinjensi' },
+  { kind: 'PSAK', old: 'PSAK 58', neu: 'PSAK 105', title: 'Aset Tidak Lancar yang Dikuasai untuk Dijual dan Operasi yang Dihentikan' },
+  { kind: 'PSAK', old: 'PSAK 60', neu: 'PSAK 107', title: 'Instrumen Keuangan: Pengungkapan' },
+  { kind: 'PSAK', old: 'PSAK 61', neu: 'PSAK 220', title: 'Akuntansi Hibah Pemerintah dan Pengungkapan Bantuan Pemerintah' },
+  { kind: 'PSAK', old: 'PSAK 62', neu: 'PSAK 104', title: 'Kontrak Asuransi' },
+  { kind: 'PSAK', old: 'PSAK 63', neu: 'PSAK 229', title: 'Pelaporan Keuangan dalam Ekonomi Hiperinflasi' },
+  { kind: 'PSAK', old: 'PSAK 64', neu: 'PSAK 106', title: 'Aktivitas Eksplorasi dan Evaluasi pada Pertambangan Sumber Daya Mineral' },
+  { kind: 'PSAK', old: 'PSAK 65', neu: 'PSAK 110', title: 'Laporan Keuangan Konsolidasian' },
+  { kind: 'PSAK', old: 'PSAK 66', neu: 'PSAK 111', title: 'Pengaturan Bersama' },
+  { kind: 'PSAK', old: 'PSAK 67', neu: 'PSAK 112', title: 'Pengungkapan Kepentingan dalam Entitas Lain' },
+  { kind: 'PSAK', old: 'PSAK 68', neu: 'PSAK 113', title: 'Pengukuran Nilai Wajar' },
+  { kind: 'PSAK', old: 'PSAK 69', neu: 'PSAK 241', title: 'Agrikultur' },
+  { kind: 'PSAK', old: 'PSAK 71', neu: 'PSAK 109', title: 'Instrumen Keuangan' },
+  { kind: 'PSAK', old: 'PSAK 72', neu: 'PSAK 115', title: 'Pendapatan dari Kontrak dengan Pelanggan' },
+  { kind: 'PSAK', old: 'PSAK 73', neu: 'PSAK 116', title: 'Sewa' },
+  { kind: 'PSAK', old: 'PSAK 74', neu: 'PSAK 117', title: 'Kontrak Asuransi' },
+  { kind: 'ISAK', old: 'ISAK 9', neu: 'ISAK 101', title: 'Perubahan atas Liabilitas Aktivitas Purnaoperasi, Restorasi, dan Liabilitas Serupa' },
+  { kind: 'ISAK', old: 'ISAK 13', neu: 'ISAK 116', title: 'Lindung Nilai Investasi Neto dalam Kegiatan Usaha Luar Negeri' },
+  { kind: 'ISAK', old: 'ISAK 15', neu: 'ISAK 114', title: 'Batas Aset Imbalan Pasti, Persyaratan Pendanaan Minimum, dan Interaksinya' },
+  { kind: 'ISAK', old: 'ISAK 16', neu: 'ISAK 112', title: 'Perjanjian Konsesi Jasa' },
+  { kind: 'ISAK', old: 'ISAK 18', neu: 'ISAK 210', title: 'Bantuan Pemerintah – Tidak Berelasi Spesifik dengan Aktivitas Operasi' },
+  { kind: 'ISAK', old: 'ISAK 29', neu: 'ISAK 120', title: 'Biaya Pengupasan Lapisan Tanah dalam Tahap Produksi pada Tambang Terbuka' },
+  { kind: 'ISAK', old: 'ISAK 30', neu: 'ISAK 121', title: 'Pungutan' },
+  { kind: 'ISAK', old: 'ISAK 31', neu: 'ISAK 331', title: 'Interpretasi atas Ruang Lingkup PSAK 240: Properti Investasi' },
+  { kind: 'ISAK', old: 'ISAK 32', neu: 'ISAK 332', title: 'Definisi dan Hierarki Standar Akuntansi Keuangan' },
+  { kind: 'ISAK', old: 'ISAK 33', neu: 'ISAK 122', title: 'Transaksi Valuta Asing dan Imbalan di Muka' },
+  { kind: 'ISAK', old: 'ISAK 34', neu: 'ISAK 123', title: 'Ketidakpastian dalam Perlakuan Pajak Penghasilan' },
+  { kind: 'ISAK', old: 'ISAK 35', neu: 'ISAK 335', title: 'Penyajian Laporan Keuangan Entitas Berorientasi Nonlaba' },
+  { kind: 'ISAK', old: 'ISAK 36', neu: 'ISAK 336', title: 'Interaksi Hak atas Tanah (PSAK 216: Aset Tetap) dengan PSAK 116: Sewa' },
+];
+
+/* peta lama→baru (key dinormalisasi 'PSAK 71'/'ISAK 35') */
+const PSAK_RENUMBER_INDEX: Record<string, PsakRenumberRow> = (() => {
+  const m: Record<string, PsakRenumberRow> = {};
+  PSAK_RENUMBER.forEach(r => { m[r.old.replace(/\s+/g, ' ').trim().toUpperCase()] = r; });
+  return m;
+})();
+
+export function psakRenumber(oldCode: string): PsakRenumberRow | null {
+  if (!oldCode) return null;
+  return PSAK_RENUMBER_INDEX[String(oldCode).replace(/\s+/g, ' ').trim().toUpperCase()] || null;
+}
 
 (function () {
   'use strict';
@@ -59,11 +139,11 @@ import { AMS_CANON } from './canon';
       note: 'Cara menilai keterukaran valuta & estimasi kurs spot saat tak dapat ditukar. Dampak rendah; valuta transaksi klien dapat ditukar.' },
 
     /* —— Terbit, belum efektif (PSAK 25 ¶30–31) — horizon —— */
-    { id: 's-207', code: 'PSAK 207', title: 'Penyajian & Pengungkapan dalam Laporan Keuangan', ifrs: 'IFRS 18',
+    { id: 's-207', code: 'PSAK 118', title: 'Penyajian & Pengungkapan dalam Laporan Keuangan', ifrs: 'IFRS 18',
       effYear: 2027, effective: '1 Jan 2027', impact: 'Tinggi', rel: 'wajib', view: 'psak1',
-      replaces: 'menggantikan PSAK 1', tag: 'Standar baru',
+      replaces: 'menggantikan PSAK 201 (d/h PSAK 1)', tag: 'Standar baru',
       note: 'Restrukturisasi laporan laba rugi ke kategori Operasi / Investasi / Pendanaan, subtotal baku (laba operasi & laba sebelum pendanaan-pajak), pengungkapan Ukuran Kinerja yang Ditentukan Manajemen (MPM/non-GAAP), serta prinsip agregasi/disagregasi. Berlaku retrospektif — komparatif FY2026 harus disajikan ulang. Klien Tbk: WAJIB.' },
-    { id: 's-208', code: 'PSAK 208', title: 'Entitas Anak Tanpa Akuntabilitas Publik: Pengungkapan', ifrs: 'IFRS 19',
+    { id: 's-208', code: 'Adopsi IFRS 19', title: 'Entitas Anak Tanpa Akuntabilitas Publik: Pengungkapan', ifrs: 'IFRS 19',
       effYear: 2027, effective: '1 Jan 2027', impact: 'Sedang', rel: 'tidak', view: null,
       replaces: '—', tag: 'Standar baru',
       note: 'Opsi pengungkapan tereduksi bagi entitas anak yang memenuhi syarat (induk menerapkan SAK & menyusun LK konsolidasian tersedia publik) sambil tetap memakai pengakuan & pengukuran SAK penuh. Klien aktif adalah induk terdaftar → tidak memenuhi syarat; relevan untuk entitas anak dalam grup konsolidasi.' },
@@ -125,7 +205,7 @@ import { AMS_CANON } from './canon';
       note: 'Apakah hak atas tanah dicatat sebagai aset tetap (PSAK 16) atau sewa (PSAK 73). Relevan: penentuan klasifikasi HGB tanah pabrik.' },
   ];
 
-  /* ---- Kesiapan PSAK 207 (IFRS 18) untuk perikatan aktif (default) ---- */
+  /* ---- Kesiapan PSAK 118 (IFRS 18) untuk perikatan aktif (default) ---- */
   const READINESS_207 = [
     { id: 'r1', t: 'Identifikasi pos pendapatan/beban ke kategori Operasi, Investasi & Pendanaan' },
     { id: 'r2', t: 'Petakan subtotal baku baru: "Laba Operasi" & "Laba sebelum pendanaan & pajak"' },
@@ -133,7 +213,7 @@ import { AMS_CANON } from './canon';
     { id: 'r4', t: 'Rancang pengungkapan rekonsiliasi MPM ke subtotal SAK + dampak pajak/NCI' },
     { id: 'r5', t: 'Terapkan prinsip agregasi/disagregasi — uraikan pos "lain-lain" yang material' },
     { id: 'r6', t: 'Susun ulang komparatif FY2026 secara retrospektif untuk sajian FY2027' },
-    { id: 'r7', t: 'Mutakhirkan pemetaan FS Generator & template CALK ke struktur PSAK 207' },
+    { id: 'r7', t: 'Mutakhirkan pemetaan FS Generator & template CALK ke struktur PSAK 118' },
     { id: 'r8', t: 'Diskusikan dampak penyajian dengan TCWG (SA 260) sebelum periode transisi' },
   ];
 
@@ -174,4 +254,6 @@ import { AMS_CANON } from './canon';
   AMS_CANON.sakHorizon = sakHorizon;
   AMS_CANON.SAK_STANDARDS = STANDARDS;
   AMS_CANON.SAK_ISAKS = ISAKS;
+  AMS_CANON.PSAK_RENUMBER = PSAK_RENUMBER;
+  AMS_CANON.psakRenumber = psakRenumber;
 })();
