@@ -246,9 +246,11 @@ const SAMPLE_GL = [
 
 function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
   const { fmt } = AMS;
-  const { setWtbLedger, wtb } = useAudit();
+  const { setWtbLedger, wtbLedger, wtb } = useAudit();
   const auth = useAuth();
   const canImport = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const hasLedger = !!(wtbLedger && Object.keys(wtbLedger).length);
+  const clearLedger = () => { if (!canImport) return; setWtbLedger({}); onClose(); };
   const [text, setText] = useStateX('');
   const parsed: LedgerParseResult | null = useMemoX(() => (text.trim() ? parseLedger(text) : null), [text]);
   const errors = parsed ? parsed.issues.filter(i => i.level === 'error') : [];
@@ -359,6 +361,7 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="tiny muted">Disimpan per-perikatan. Drill akun akan menampilkan detail GL nyata + tie-out ke saldo.</span>
           <div className="row gap8">
+            {hasLedger && <Btn sm onClick={clearLedger} disabled={!canImport} title="Hapus buku besar terimpor → drill kembali ke ilustrasi sintetik"><I.trash size={13} /> Hapus GL terimpor</Btn>}
             <Btn sm onClick={onClose}>Batal</Btn>
             <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport}><I.check size={14} /> Terapkan GL</Btn>
           </div>
@@ -382,6 +385,8 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
     const n = { ...d }; if (target) n[code] = target; else delete n[code]; return n;
   });
   const apply = () => { if (!canMap) return; setWtbMapping(draft); onClose(); };
+  const hasMapping = !!(wtbMapping && Object.keys(wtbMapping).length);
+  const clearMapping = () => { if (!canMap) return; setWtbMapping({}); onClose(); };
 
   // opsi select dikelompokkan per seksi FS
   const groups = [...new Set(STANDARD_COA.map((a: CoaAccount) => a.group))];
@@ -457,6 +462,7 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="tiny muted">Disimpan per-perikatan. Saat diterapkan, WTB di-relabel ke kode standar → canon/FSGEN/cakupan otomatis selaras.</span>
           <div className="row gap8">
+            {hasMapping && <Btn sm onClick={clearMapping} disabled={!canMap} title="Hapus pemetaan tersimpan → WTB kembali ke kode klien"><I.trash size={13} /> Hapus pemetaan</Btn>}
             <Btn sm onClick={onClose}>Batal</Btn>
             <Btn sm variant="primary" onClick={apply} disabled={!canMap}><I.check size={14} /> Terapkan Pemetaan</Btn>
           </div>
