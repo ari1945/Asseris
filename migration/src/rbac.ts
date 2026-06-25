@@ -29,9 +29,10 @@ export const CAP = {
   INTEGRATION_VIEW: 'integration.view', // W9 — lihat status konektor & antrean impor (transparansi data yang dikonsumsi). Baca-saja.
   INTEGRATION_MANAGE: 'integration.manage', // W9 — kelola koneksi & picu sync (tarik data eksternal → posting ke SSOT). Sensitif: hanya oversight/firm-ops.
   EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (ISQM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
+  PHASE_OVERRIDE: 'phase.override', // override gerbang transisi fase MESKI ada blocker (mulai Eksekusi tanpa akseptasi/surat SA 210/220; arsip dgn WP belum lengkap/opini belum final). Tindakan otoritatif ⇒ Partner-only.
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE } = CAP;
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
@@ -52,9 +53,12 @@ const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGA
    INTEGRATION_VIEW granted to ALL four roles (W9) — status impor/konektor = transparansi atas data
    yang mereka konsumsi; baca-saja. INTEGRATION_MANAGE granted to Partner + Manager only (W9) — memicu
    sync & mengelola koneksi eksternal = operasi firm-ops sensitif (OAuth, posting ke SSOT), sejajar
-   ENGAGEMENT_MANAGE/AUDIT_VIEW. */
+   ENGAGEMENT_MANAGE/AUDIT_VIEW.
+   PHASE_OVERRIDE granted to Partner only — menembus gerbang transisi fase meski ada blocker
+   (mulai Eksekusi tanpa akseptasi/surat; arsip dgn WP/opini belum lengkap) = keputusan otoritatif
+   tata kelola; Manager/Senior/Junior boleh maju fase saat prasyarat TERPENUHI, tapi tak boleh override. */
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW],
+  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE],
   'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE],
   'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
   'Junior Auditor': [WP_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
