@@ -102,7 +102,7 @@ const SYNC_DEBOUNCE_MS = 400;
 const CONFLICT_LABELS = {
   aje: 'Jurnal Penyesuaian (AJE)', risks: 'Register Risiko', wpState: 'Status Kertas Kerja',
   reviewNotes: 'Catatan Review', noteThreads: 'Balasan Catatan', timeEntries: 'Entri Waktu',
-  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB', wtbImport: 'Impor Neraca Saldo', wtbMapping: 'Pemetaan Akun WTB',
+  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB', wtbImport: 'Impor Neraca Saldo', wtbMapping: 'Pemetaan Akun WTB', wtbLedger: 'Buku Besar (GL)',
   clients: 'Daftar Klien', engagements: 'Daftar Perikatan', activeEng: 'Perikatan Aktif',
   profile: 'Profil Pengguna', role: 'Peran',
 };
@@ -367,6 +367,8 @@ function AppProviders({ me, onLogout, children }: any) {
   const [wtbImport, setWtbImport] = useServerState('wtbImport', null, 'engagement', activeEngagementId);
   /* W-WTB·3 — pemetaan bagan akun klien → CoA standar ({kodeKlien: kodeStandar}). */
   const [wtbMapping, setWtbMapping] = useServerState('wtbMapping', {}, 'engagement', activeEngagementId);
+  /* W-WTB·4 — buku besar (GL) detail per akun ({kode: [baris GL]}) untuk drill sub-ledger nyata. */
+  const [wtbLedger, setWtbLedger] = useServerState('wtbLedger', {}, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
@@ -437,7 +439,7 @@ function AppProviders({ me, onLogout, children }: any) {
   const audit = useMemo(() => ({
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
-    wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping,
+    wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
     wpState, setWp,
     reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
@@ -445,7 +447,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

@@ -14,6 +14,8 @@ import { checkWtbIntegrity } from './wtb_integrity';
 import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch } from './wtb_integrity';
 import { STANDARD_COA, autoMap, mappingCoverage } from './wtb_mapping';
 import type { CoaAccount, MappingCoverageResult } from './wtb_mapping';
+import { parseLedger, ledgerForRow } from './wtb_ledger';
+import type { LedgerParseResult, LedgerLine, LedgerTieOut } from './wtb_ledger';
 
 /* ============================================================
    Asseris — Working Trial Balance (WTB) + AJE
@@ -39,6 +41,7 @@ function WTBView() {
   const [exporting, setExporting] = useStateX(false);
   const [importOpen, setImportOpen] = useStateX(false);
   const [mapOpen, setMapOpen] = useStateX(false);
+  const [ledgerOpen, setLedgerOpen] = useStateX(false);
   const [showIntegrity, setShowIntegrity] = useStateX(false);
   const integrity: WtbIntegrityResult = useMemoX(() => checkWtbIntegrity(wtb, aje), [wtb, aje]);
 
@@ -102,6 +105,7 @@ function WTBView() {
           <span className="tiny muted mono">PM: Rp {fmt(pm / 1e6, 0)} jt</span>
           <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export XLSX'}</Btn>
           {wtbImport && wtbImport.rows && <Btn sm onClick={() => setMapOpen(true)} title="Petakan bagan akun klien ke CoA standar"><I.target size={13} /> Petakan Akun</Btn>}
+          <Btn sm onClick={() => setLedgerOpen(true)} title="Impor buku besar (GL) untuk detail sub-ledger nyata"><I.table size={13} /> Impor GL</Btn>
           <Btn sm variant="primary" onClick={() => setImportOpen(true)}><I.upload size={14} /> Impor TB</Btn>
         </div>
       } />
@@ -225,7 +229,142 @@ function WTBView() {
       {drill && <WtbDrill row={drill} onClose={() => setDrill(null)} nav={nav} />}
       {importOpen && <WtbImportDrawer onClose={() => setImportOpen(false)} />}
       {mapOpen && <WtbMappingDrawer onClose={() => setMapOpen(false)} />}
+      {ledgerOpen && <WtbLedgerDrawer onClose={() => setLedgerOpen(false)} />}
     </>
+  );
+}
+
+/* ---------------- W-WTB·4 · Drawer impor buku besar (GL) ---------------- */
+const SAMPLE_GL = [
+  'Kode\tTanggal\tUraian\tDokumen\tJumlah',
+  '1-1100\t2025-12-03\tSetoran tunai penjualan\tBKM-001\t12.500.300.000',
+  '1-1100\t2025-12-15\tPembayaran ke pemasok\tBKK-044\t-6.400.000.000',
+  '1-1100\t2025-12-28\tPenerimaan piutang\tBKM-090\t15.805.000.000',
+  '1-1200\t2025-12-10\tPenjualan kredit PT Ritel Maju\tINV-2207\t30.000.000.000',
+  '1-1200\t2025-12-22\tPelunasan sebagian\tBKM-091\t-21.322.400.000',
+].join('\n');
+
+function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
+  const { fmt } = AMS;
+  const { setWtbLedger, wtb } = useAudit();
+  const auth = useAuth();
+  const canImport = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const [text, setText] = useStateX('');
+  const parsed: LedgerParseResult | null = useMemoX(() => (text.trim() ? parseLedger(text) : null), [text]);
+  const errors = parsed ? parsed.issues.filter(i => i.level === 'error') : [];
+  const m = (v: number) => fmt(v / 1e6, 1);
+
+  // tie-out ringkas: cocokkan kode GL ke saldo unadj WTB (sadar srcCodes W-WTB·3)
+  const tie = useMemoX(() => {
+    if (!parsed) return null;
+    const target: Record<string, number> = {};
+    (wtb || []).forEach((r: { code: string; unadj?: number; srcCodes?: string[] }) => {
+      const codes = (r.srcCodes && r.srcCodes.length) ? r.srcCodes : [r.code];
+      codes.forEach((c: string) => { target[c] = r.unadj || 0; });
+    });
+    let tied = 0, untied = 0, unmatched = 0;
+    for (const code of Object.keys(parsed.byCode)) {
+      const total = parsed.byCode[code].reduce((s, l) => s + l.amount, 0);
+      if (target[code] == null) { unmatched++; continue; }
+      if (Math.abs(total - target[code]) <= 1000) tied++; else untied++;
+    }
+    return { tied, untied, unmatched };
+  }, [parsed, wtb]);
+
+  const apply = () => { if (!parsed || !parsed.ok || !canImport) return; setWtbLedger(parsed.byCode); onClose(); };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
+      <div className="panel" style={{ width: 900, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+          <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Impor Buku Besar (GL)</div>
+            <div className="tiny" style={{ color: '#bcd6e4' }}>Detail transaksi per akun untuk drill sub-ledger nyata · kolom: Kode · Tanggal · Uraian · Dokumen · Jumlah (atau Debit/Kredit)</div>
+          </div>
+          {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
+          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+        </div>
+
+        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1, minHeight: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--line)', minHeight: 0 }}>
+            <div className="row ac jb" style={{ padding: '8px 12px', borderBottom: '1px solid var(--line)' }}>
+              <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>1 · Tempel buku besar</span>
+              <div className="row gap6">
+                <button className="btn sm" onClick={() => setText(SAMPLE_GL)}><I.table size={12} /> Muat contoh</button>
+                <button className="btn sm ghost" onClick={() => setText('')} disabled={!text}><I.x size={12} /> Kosongkan</button>
+              </div>
+            </div>
+            <textarea value={text} onChange={(e: { target: { value: string } }) => setText(e.target.value)} spellCheck={false}
+              placeholder={'Tempel ekspor buku besar di sini…\n\nSatu baris = satu transaksi. Jumlah bertanda: Debit (+), Kredit (−).\nΣ baris per akun harus = saldo unadjusted akun tsb (tie-out).'}
+              style={{ flex: 1, minHeight: 280, border: 'none', outline: 'none', padding: '10px 12px', fontSize: 12, fontFamily: 'var(--mono)', resize: 'none', color: 'var(--ink)', lineHeight: 1.5 }} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'auto' }}>
+            <div className="row ac jb" style={{ padding: '8px 12px', borderBottom: '1px solid var(--line)' }}>
+              <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>2 · Pratinjau & tie-out</span>
+              {parsed && <Badge kind={parsed.ok ? 'green' : 'red'}>{parsed.ok ? 'Siap diterapkan' : errors.length + ' error'}</Badge>}
+            </div>
+            <div style={{ padding: 12, flex: 1 }}>
+              {!parsed && <div className="tiny muted" style={{ padding: '24px 0', textAlign: 'center' }}>Tempel buku besar atau klik “Muat contoh”.</div>}
+              {parsed && (<>
+                <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 10 }}>
+                  <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: 'var(--surface-2)' }}>
+                    <div className="tiny muted upper">Baris GL</div><div className="mono" style={{ fontWeight: 700 }}>{parsed.lineCount}</div>
+                  </div>
+                  <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: 'var(--surface-2)' }}>
+                    <div className="tiny muted upper">Akun</div><div className="mono" style={{ fontWeight: 700 }}>{parsed.codeCount}</div>
+                  </div>
+                  <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: tie && tie.untied ? 'var(--amber-bg)' : 'var(--green-bg)' }}>
+                    <div className="tiny muted upper">Tie-out</div>
+                    <div className="mono" style={{ fontWeight: 700, color: tie && tie.untied ? 'var(--amber)' : 'var(--green)' }}>{tie ? `${tie.tied} cocok` : '—'}</div>
+                  </div>
+                </div>
+
+                {errors.map((i, k) => (
+                  <div key={'e' + k} className="row ac gap6 tiny" style={{ padding: '4px 8px', border: '1px solid var(--red)', borderRadius: 5, marginBottom: 4, color: 'var(--red)' }}>
+                    <I.alert size={12} /> <span>{i.line ? `Baris ${i.line}: ` : ''}{i.message}</span>
+                  </div>
+                ))}
+                {tie && (tie.untied > 0 || tie.unmatched > 0) && (
+                  <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.5 }}>
+                    {tie.untied > 0 && <span style={{ color: 'var(--amber)' }}>{tie.untied} akun: Σ GL ≠ saldo unadjusted. </span>}
+                    {tie.unmatched > 0 && <span>{tie.unmatched} akun GL tak ada di WTB. </span>}
+                    Detail tetap dapat diimpor; tie-out per akun tampil di drill.
+                  </div>
+                )}
+
+                <div style={{ border: '1px solid var(--line)', borderRadius: 6, overflow: 'auto', maxHeight: 280 }}>
+                  <table className="dtbl">
+                    <thead><tr><th>Kode</th><th className="num">Baris</th><th className="num">Σ GL</th></tr></thead>
+                    <tbody>
+                      {Object.keys(parsed.byCode).map((code: string) => {
+                        const sum = parsed.byCode[code].reduce((s, l) => s + l.amount, 0);
+                        return (
+                          <tr key={code}>
+                            <td className="mono tiny">{code}</td>
+                            <td className="num muted">{parsed.byCode[code].length}</td>
+                            <td className="num" style={{ fontWeight: 600 }}><span className={sum < 0 ? 'neg' : ''}>{m(sum)}</span></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>)}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted">Disimpan per-perikatan. Drill akun akan menampilkan detail GL nyata + tie-out ke saldo.</span>
+          <div className="row gap8">
+            <Btn sm onClick={onClose}>Batal</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport}><I.check size={14} /> Terapkan GL</Btn>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -562,8 +701,10 @@ function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
 /* WTB account drill — synthetic sub-ledger transactions + lead schedule link */
 function WtbDrill({ row, onClose, nav }: any) {
   const { fmt } = AMS;
-  const { aje } = useAudit();
+  const { aje, wtbLedger } = useAudit();
   const [dtab, setDtab] = useStateX('ledger');
+  // W-WTB·4 — detail GL nyata bila diimpor (tie-out ke unadj, sadar srcCodes); else sintetik
+  const glTie: LedgerTieOut = ledgerForRow(wtbLedger || {}, row);
   // deterministic synthetic transactions summing to the unadjusted balance
   const txns = useMemoX(() => {
     const target = row.unadj;
@@ -591,7 +732,7 @@ function WtbDrill({ row, onClose, nav }: any) {
   const pct = row.ly !== 0 ? (delta / Math.abs(row.ly)) * 100 : null;
   const expl = (window.DEFAULT_EXPL || {})[row.code] || (row.note || '');
   const DTABS = [
-    { id: 'ledger', label: 'Buku Besar', n: txns.length },
+    { id: 'ledger', label: 'Buku Besar', n: glTie.hasDetail ? glTie.lines.length : txns.length },
     { id: 'move', label: 'Pergerakan' },
     { id: 'aje', label: 'AJE Terkait', n: relAje.length },
   ];
@@ -617,8 +758,32 @@ function WtbDrill({ row, onClose, nav }: any) {
           </div>
         </div>
         <div style={{ padding: '10px 16px', overflow: 'auto', flex: 1 }}>
-          {dtab === 'ledger' && (<>
-          <div className="tiny muted" style={{ margin: '2px 0 6px' }}>{txns.length} transaksi pembentuk saldo unadjusted · Rp jt</div>
+          {dtab === 'ledger' && glTie.hasDetail && (<>
+          <div className="row ac jb" style={{ margin: '2px 0 6px' }}>
+            <span className="tiny muted">{glTie.lines.length} baris buku besar (GL) nyata · Rp jt</span>
+            <Badge kind={glTie.tied ? 'green' : 'amber'}>{glTie.tied ? 'Tie-out cocok ✓' : 'Selisih ' + fmt(glTie.diff / 1e6, 1) + ' jt'}</Badge>
+          </div>
+          <table className="dtbl">
+            <thead><tr><th>Tanggal</th><th>Uraian</th><th>Pihak</th><th>Dokumen</th><th className="num">Jumlah</th></tr></thead>
+            <tbody>
+              {glTie.lines.map((l: LedgerLine, i: number) => (
+                <tr key={i}>
+                  <td className="mono tiny muted">{l.date}</td>
+                  <td className="truncate" style={{ maxWidth: 220 }}>{l.desc}</td>
+                  <td className="truncate tiny" style={{ maxWidth: 140 }}>{l.party || '—'}</td>
+                  <td className="mono tiny muted">{l.ref || '—'}</td>
+                  <td className="num">{num(l.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot><tr><td colSpan={4}>TOTAL GL{glTie.tied ? ' (= saldo unadjusted ✓)' : ' (≠ unadjusted ' + fmt(glTie.target / 1e6, 1) + ')'}</td><td className="num">{num(glTie.total)}</td></tr></tfoot>
+          </table>
+          </>)}
+          {dtab === 'ledger' && !glTie.hasDetail && (<>
+          <div className="row ac jb" style={{ margin: '2px 0 6px' }}>
+            <span className="tiny muted">{txns.length} transaksi (ilustratif) pembentuk saldo unadjusted · Rp jt</span>
+            <Badge kind="amber">Detail sintetik — impor GL untuk detail nyata</Badge>
+          </div>
           <table className="dtbl">
             <thead><tr><th>ID Transaksi</th><th>Tanggal</th><th>Pihak</th><th>Dokumen</th><th className="num">Jumlah</th></tr></thead>
             <tbody>
@@ -686,7 +851,7 @@ function WtbDrill({ row, onClose, nav }: any) {
           )}
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted">Sub-ledger sinkron dari GL klien · tie-out ke saldo buku besar ✓</span>
+          <span className="tiny muted">{glTie.hasDetail ? (glTie.tied ? 'Detail GL nyata · tie-out ke saldo unadjusted cocok ✓' : 'Detail GL nyata · tie-out selisih — periksa kelengkapan GL') : 'Detail ilustratif (sintetik) — impor GL untuk sub-ledger nyata'}</span>
           <div className="row gap8">
             <Btn sm onClick={() => { onClose(); nav('workpapers'); }}><I.layers size={13} /> Buka Lead Schedule {row.lead}</Btn>
             <Btn sm variant="primary" onClick={() => { onClose(); nav('sampling'); }}><I.dice size={13} /> Sampling Akun Ini</Btn>
