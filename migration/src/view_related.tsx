@@ -33,9 +33,14 @@ function RelatedParties() {
   const { fmt } = AMS;
   const nav = useNav();
   const [selParty, setSelParty] = useStateRP('All');
-  const [txns, setTxns] = useStateRP(RP_TXN as RpTxnRow[]);
-  const [procs, setProcs] = useStateRP(RP_PROCEDURES);
   const [selTxn, setSelTxn] = useStateRP('T-04');
+  /* engagement-scoped persist (AMS_PERSIST_SCOPE → engagement): pengungkapan,
+     harga pasar, status konfirmasi & tick prosedur bertahan lintas reload +
+     isolasi W7.5, capForWrite WP_EDIT. Override per-id atas register kanon (SSOT). */
+  const [txnOverride, setTxnOverride] = window.useAmsPersist('relatedTxn.v1', {});
+  const [procOverride, setProcOverride] = window.useAmsPersist('relatedProcs.v1', {});
+  const txns: RpTxnRow[] = (RP_TXN as RpTxnRow[]).map(t => (txnOverride[t.id] ? { ...t, ...txnOverride[t.id] } : t));
+  const procs = RP_PROCEDURES.map((p, i) => ((i in procOverride) ? { ...p, done: !!procOverride[i] } : p));
 
   const filtered = selParty === 'All' ? txns : txns.filter((t: any) => t.party === selParty);
   const tx = txns.find((t: any) => t.id === selTxn) || filtered[0];
@@ -51,14 +56,17 @@ function RelatedParties() {
     nav(g.reason === 'unrecorded' ? 'jet' : 'disclosure');
   };
 
-  const toggleDisclosed = (id: any) => setTxns((list: any) => list.map((t: any) => t.id === id ? { ...t, disclosed: !t.disclosed } : t));
-  const setTxn = (id: any, patch: any) => setTxns((list: any) => list.map((t: any) => t.id === id ? { ...t, ...patch } : t));
-  const advanceConf = (id: any) => setTxns((list: any) => list.map((t: any) => {
-    if (t.id !== id) return t;
-    const next = ({ undefined: 'Terkirim', 'Terkirim': 'Diterima' } as any)[t.conf] || 'Terkirim';
-    return { ...t, conf: next, confResp: next === 'Diterima' ? t.amount : t.confResp };
-  }));
-  const toggleProc = (i: any) => setProcs((ps: any) => ps.map((p: any, idx: any) => idx === i ? { ...p, done: !p.done } : p));
+  const curTxn = (id: string) => txns.find(t => t.id === id);
+  const patchTxn = (id: string, patch: Partial<RpTxnRow>) => setTxnOverride((s: Record<string, Partial<RpTxnRow>>) => ({ ...s, [id]: { ...s[id], ...patch } }));
+  const toggleDisclosed = (id: string) => patchTxn(id, { disclosed: !curTxn(id)?.disclosed });
+  const setTxn = (id: string, patch: Partial<RpTxnRow>) => patchTxn(id, patch);
+  const advanceConf = (id: string) => {
+    const t = curTxn(id);
+    if (!t) return;
+    const next = ({ '': 'Terkirim', 'Terkirim': 'Diterima' } as Record<string, string>)[t.conf || ''] || 'Terkirim';
+    patchTxn(id, { conf: next, confResp: next === 'Diterima' ? t.amount : t.confResp });
+  };
+  const toggleProc = (i: number) => setProcOverride((s: Record<number, boolean>) => ({ ...s, [i]: !((i in s) ? s[i] : RP_PROCEDURES[i].done) }));
   const procDone = procs.filter((p: any) => p.done).length;
 
   return (
