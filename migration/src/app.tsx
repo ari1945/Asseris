@@ -70,6 +70,7 @@ import { NewDisclosures2024 } from './view_newdisc';
 import { NonAuditPortfolio, Review2400 } from './view_nonaudit';
 import { OJKFilingView } from './view_ojkfiling';
 import { ClientOnboarding } from './view_onboarding';
+import { ContinuanceRegister } from './view_continuance';
 import { OpeningBalance } from './view_opening';
 import { AuditOpinionGen } from './view_opinion';
 import { CommandPalette } from './view_palette';
@@ -183,6 +184,7 @@ function viewFor(moduleId: any) {
     case 'risk':       return <RiskAssessment />;
     case 'engagement': return <EngagementMgmt />;
     case 'onboarding': return <ClientOnboarding />;
+    case 'continuance': return <ContinuanceRegister />;
     case 'dataflow':   return <DataFlow />;
     case 'wtb':        return <WTBView />;
     case 'aje':        return <AJEView />;
