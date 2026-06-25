@@ -482,6 +482,168 @@ const ENGAGEMENT_EXTRA = {
 };
 Object.assign(LINEAGE, ENGAGEMENT_EXTRA);
 
+/* ============================================================
+   Evaluasi modul (isu #5) — dock keterkaitan untuk modul TULANG-PUNGGUNG
+   perikatan yang tadinya orphan (dirujuk sbg up/down oleh modul lain, tapi
+   sendiri tak punya entri → tak menampilkan dock). WTB & Materiality node
+   paling sentral. Arah: up=sumber masukan, down=pengguna keluaran. SSOT:
+   angka dari WTB→AMS_CANON; status WP dari deriveWpStatus. ============================================================ */
+const BACKBONE_LINEAGE = {
+  wtb: { std: 'SA 500 · Working Trial Balance (SSOT angka)',
+    up: [
+      { id: 'integrations', ic: 'link2', lbl: 'Impor & Integrasi Data', rel: 'Saldo buku besar klien → neraca saldo (gerbang total-kontrol)' },
+      { id: 'aje', ic: 'ledger', lbl: 'Adjusting Entries (AJE)', rel: 'Jurnal penyesuaian → saldo setelah audit (adjusted TB)' },
+      { id: 'icfr', ic: 'sliders', lbl: 'Internal Control', rel: 'Keandalan pengendalian → keyakinan atas saldo buku' },
+    ],
+    down: [
+      { id: 'materiality', ic: 'target', lbl: 'Materiality', rel: 'Tolok ukur (laba/aset/pendapatan) → penetapan materialitas' },
+      { id: 'analytical', ic: 'trend', lbl: 'Analytical Review', rel: 'Saldo berjalan vs prior → prosedur analitis' },
+      { id: 'jet', ic: 'flask', lbl: 'Journal Entry Testing', rel: 'Populasi jurnal buku besar → pengujian (SA 240)' },
+      { id: 'fsgen', ic: 'report', lbl: 'Financial Statement', rel: 'Saldo final → penyusunan laporan keuangan' },
+    ] },
+  materiality: { std: 'SA 320 · Materialitas',
+    up: [
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Tolok ukur terpilih → basis perhitungan OM/PM' },
+      { id: 'strategy', ic: 'doc', lbl: 'Strategy Memo', rel: 'Pemahaman entitas → pemilihan benchmark & persentase' },
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Penilaian risiko → materialitas pelaksanaan (PM)' },
+    ],
+    down: [
+      { id: 'sampling', ic: 'dice', lbl: 'Sampling Engine', rel: 'PM & tolerable misstatement → ukuran sampel' },
+      { id: 'analytical', ic: 'trend', lbl: 'Analytical Review', rel: 'Ambang investigasi fluktuasi (threshold)' },
+      { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'PM & ambang sepele (clearly trivial) → evaluasi salah saji' },
+      { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Lingkup & kedalaman prosedur' },
+    ] },
+  workpapers: { std: 'SA 230 / 330 · Kertas Kerja',
+    up: [
+      { id: 'programme', ic: 'flask', lbl: 'Audit Programme', rel: 'Prosedur terencana → eksekusi kertas kerja' },
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Matriks RoMM → respons & prosedur (SA 330)' },
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Lead schedule per akun signifikan' },
+    ],
+    down: [
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Hasil prosedur → kecukupan & ketepatan bukti' },
+      { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'Eksepsi pengujian → akumulasi salah saji (SA 450)' },
+      { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'Dokumentasi dasar simpulan → opini' },
+    ] },
+  aje: { std: 'SA 450 · Adjusting Entries (AJE)',
+    up: [
+      { id: 'jet', ic: 'flask', lbl: 'Journal Entry Testing', rel: 'Jurnal anomali teridentifikasi → usulan koreksi' },
+      { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Temuan prosedur substantif → ayat penyesuaian' },
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Salah saji faktual pada saldo buku' },
+    ],
+    down: [
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'AJE diposting → saldo setelah audit (adjusted)' },
+      { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'Koreksi dilakukan/ditolak → daftar salah saji' },
+      { id: 'fsgen', ic: 'report', lbl: 'Financial Statement', rel: 'Angka final pasca-penyesuaian → LK' },
+    ] },
+  asersi: { std: 'SA 315 · Matriks Asersi',
+    up: [
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'RoMM per asersi → relevansi asersi' },
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Saldo & golongan transaksi signifikan → cakupan asersi' },
+      { id: 'icfr', ic: 'sliders', lbl: 'Internal Control', rel: 'Pengendalian relevan per asersi' },
+    ],
+    down: [
+      { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Asersi → prosedur yang menanggapi (coverage)' },
+      { id: 'programme', ic: 'flask', lbl: 'Audit Programme', rel: 'Asersi belum ditanggapi → prosedur tambahan' },
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Kecukupan bukti per asersi' },
+    ] },
+  sampling: { std: 'SA 530 · Sampling Audit',
+    up: [
+      { id: 'materiality', ic: 'target', lbl: 'Materiality', rel: 'PM / tolerable misstatement → ukuran sampel' },
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Tingkat risiko → luas pengujian (extent)' },
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Populasi saldo/transaksi → kerangka sampel' },
+    ],
+    down: [
+      { id: 'confirm', ic: 'mail', lbl: 'Confirmation Hub', rel: 'Pemilihan item & ukuran sampel konfirmasi' },
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Hasil uji sampel → proyeksi ke populasi' },
+      { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Dokumentasi seleksi & evaluasi sampel' },
+    ] },
+  diagnostic: { std: 'Diagnostik Audit (Benford · book-tax · sintesis)',
+    up: [
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Saldo & rasio → uji book-tax & anomali' },
+      { id: 'jet', ic: 'flask', lbl: 'Journal Entry Testing', rel: 'Populasi jurnal → uji Benford & pola' },
+      { id: 'forensic', ic: 'water', lbl: 'Forensic Cash Flow', rel: 'Arus kas forensik → indikator tekanan' },
+    ],
+    down: [
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Temuan diagnostik → risiko baru/terkonfirmasi' },
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Sinyal deterministik → prosedur lanjutan' },
+      { id: 'aje', ic: 'ledger', lbl: 'Adjusting Entries (AJE)', rel: 'Salah saji terindikasi → usulan koreksi' },
+    ] },
+  fsgen: { std: 'SA 700 · Financial Statement Generator',
+    up: [
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Saldo setelah audit → muka laporan' },
+      { id: 'aje', ic: 'ledger', lbl: 'Adjusting Entries (AJE)', rel: 'Penyesuaian → angka final LK' },
+      { id: 'psak1', ic: 'report', lbl: 'PSAK 1 · Penyajian LK', rel: 'Kerangka penyajian & klasifikasi' },
+    ],
+    down: [
+      { id: 'disclosure', ic: 'checkCircle', lbl: 'Daftar-Uji Pengungkapan', rel: 'Komponen LK → item pengungkapan wajib (CALK)' },
+      { id: 'analytical', ic: 'trend', lbl: 'Analytical Review', rel: 'Angka LK & rasio → reviu menyeluruh akhir' },
+      { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'LK final → dasar opini & paket pelaporan' },
+    ] },
+  disclosure: { std: 'SA 700 · Daftar-Uji Pengungkapan (CALK)',
+    up: [
+      { id: 'fsgen', ic: 'report', lbl: 'Financial Statement', rel: 'Komponen LK → item pengungkapan wajib' },
+      { id: 'psak1', ic: 'report', lbl: 'PSAK 1 · Penyajian LK', rel: 'Persyaratan penyajian & pengungkapan' },
+      { id: 'related', ic: 'link2', lbl: 'Related Parties', rel: 'Pihak berelasi → pengungkapan (PSAK 7 / SA 550)' },
+    ],
+    down: [
+      { id: 'fsgen', ic: 'report', lbl: 'Financial Statement', rel: 'Pengungkapan lengkap → CALK final' },
+      { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'Kelengkapan pengungkapan → kewajaran penyajian' },
+    ] },
+  mgmtletter: { std: 'SA 260 / 265 · Management Letter',
+    up: [
+      { id: 'icfr', ic: 'sliders', lbl: 'Internal Control', rel: 'Defisiensi signifikan → komunikasi (SA 265)' },
+      { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'Salah saji tak dikoreksi → komunikasi ke manajemen' },
+      { id: 'goingconcern', ic: 'pulse', lbl: 'Going Concern', rel: 'Indikator & rencana mitigasi → komunikasi' },
+    ],
+    down: [
+      { id: 'auditcomm', ic: 'group', lbl: 'Komite Audit', rel: 'Hal tata kelola → komunikasi TCWG (SA 260)' },
+      { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'Defisiensi/temuan → pertimbangan pelaporan' },
+    ] },
+  related: { std: 'SA 550 · Pihak Berelasi',
+    up: [
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Risiko transaksi pihak berelasi → fokus pengujian' },
+      { id: 'wtb', ic: 'table', lbl: 'Working Trial Balance', rel: 'Saldo & transaksi → identifikasi pihak berelasi' },
+      { id: 'icfr', ic: 'sliders', lbl: 'Internal Control', rel: 'Kontrol identifikasi & otorisasi transaksi berelasi' },
+    ],
+    down: [
+      { id: 'confirm', ic: 'mail', lbl: 'Confirmation Hub', rel: 'Konfirmasi syarat & saldo pihak berelasi' },
+      { id: 'disclosure', ic: 'checkCircle', lbl: 'Daftar-Uji Pengungkapan', rel: 'Pengungkapan pihak berelasi (PSAK 7)' },
+      { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'Salah saji transaksi berelasi → akumulasi' },
+    ] },
+  groupaudit: { std: 'SA 600 · Audit Grup (Komponen)',
+    up: [
+      { id: 'psak65', ic: 'building', lbl: 'PSAK 65 · Konsolidasian', rel: 'Struktur grup & komponen → lingkup audit grup' },
+      { id: 'materiality', ic: 'target', lbl: 'Materiality', rel: 'Materialitas komponen' },
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Risiko tingkat komponen' },
+    ],
+    down: [
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Paket pelaporan komponen → bukti audit grup' },
+      { id: 'fsgen', ic: 'report', lbl: 'Financial Statement', rel: 'Konsolidasi → LK grup' },
+      { id: 'opinion', ic: 'gavel', lbl: 'Audit Opinion', rel: 'Kecukupan bukti komponen → opini grup' },
+    ] },
+  expert: { std: 'SA 620 · Penggunaan Pakar Auditor',
+    up: [
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Area kompleks (estimasi/valuasi) → kebutuhan pakar' },
+      { id: 'psak68', ic: 'layers', lbl: 'PSAK 68 · Nilai Wajar', rel: 'Valuasi nilai wajar → pekerjaan pakar (KJPP)' },
+      { id: 'psak24', ic: 'users', lbl: 'PSAK 24 · Imbalan Kerja', rel: 'Asumsi aktuaria → pakar aktuaris' },
+    ],
+    down: [
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Hasil pakar → kecukupan & ketepatan bukti' },
+      { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Dokumentasi evaluasi & penggunaan pakar' },
+      { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'Selisih estimasi vs pakar → salah saji' },
+    ] },
+  serviceorg: { std: 'SA 402 · Organisasi Jasa',
+    up: [
+      { id: 'icfr', ic: 'sliders', lbl: 'Internal Control', rel: 'Proses yang di-outsource → pemahaman kontrol' },
+      { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Risiko atas proses di organisasi jasa' },
+    ],
+    down: [
+      { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Laporan ISAE 3402 (Type 1/2) → bukti kontrol' },
+      { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'CUEC & dampak → dokumentasi' },
+    ] },
+};
+Object.assign(LINEAGE, BACKBONE_LINEAGE);
+
 /* Prioritas 6 — Jasa advisory: Financial Due Diligence menaut ke rantai
    akuisisi (CRM/Onboarding di hulu; PSAK 22 / Asurans proyeksi di hilir). */
 const ADVISORY_LINEAGE = {
