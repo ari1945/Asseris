@@ -18,6 +18,7 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui';
 import { amsEvidenceCount } from './evidence';
+import { finalisationGateCriteria } from './engagement_phase_gate';
 
 const { useState: useStateWPS } = React;
 
@@ -366,7 +367,7 @@ function WpSubBarControl({ moduleId }: any) {
 function wpCompletenessFor(audit: any, moduleIds: any) {
   const wpState = (audit && audit.wpState) || {};
   const seen = new Set();
-  let total = 0, signed = 0, withEvidence = 0, withConclusion = 0;
+  let total = 0, signed = 0, withEvidence = 0, withConclusion = 0, notStarted = 0;
   moduleIds.forEach((mid: any) => {
     const ref = wpKeyFor(mid);
     if (seen.has(ref)) return;
@@ -376,10 +377,13 @@ function wpCompletenessFor(audit: any, moduleIds: any) {
     if (st.chain && st.chain.reviewer) signed++;
     const req = requiredEvidenceFor(mid);
     const att = (typeof amsEvidenceCount === 'function') ? amsEvidenceCount(mid) : 0;
+    const hasConclusion = !!(st.conclusion && st.conclusion.text);
     if (req.length ? att >= req.length : att > 0) withEvidence++;
-    if (st.conclusion && st.conclusion.text) withConclusion++;
+    if (hasConclusion) withConclusion++;
+    // "belum dimulai" (isu #3): nol bukti DAN nol kesimpulan
+    if (att === 0 && !hasConclusion) notStarted++;
   });
-  return { total, signed, withEvidence, withConclusion,
+  return { total, signed, withEvidence, withConclusion, notStarted,
     signedPct: total ? Math.round(signed / total * 100) : 0,
     evidencePct: total ? Math.round(withEvidence / total * 100) : 0,
     conclusionPct: total ? Math.round(withConclusion / total * 100) : 0 };
@@ -468,9 +472,10 @@ function eqrStatusFor(engId: string | null | undefined) {
 }
 
 /* engagementGate — daftar prasyarat transisi ke fase berikutnya.
-   Kriteria mengikuti spek disetujui (Q2): →Finalisasi butuh 0 catatan
-   prioritas-tinggi terbuka; →Arsip butuh opini final + 100% WP ter-review
-   + 0 catatan terbuka. Maju-mundur/sama-fase = bebas (severity 'none'). */
+   →Finalisasi (isu #3, sadar-progres): kesimpulan SA 230 ≥80% + 0 WP
+   belum-dimulai + 0 catatan prioritas-tinggi terbuka (severity 'warn',
+   override mungkin). →Arsip: opini final + 100% WP ter-review + 0 catatan
+   terbuka + EQR (severity 'confirm'). Maju-mundur/sama-fase = bebas. */
 function engagementGate(audit: any, firm: any, opts: any) {
   const o = opts || {};
   const moduleIds = o.moduleIds || Object.keys(WP_MODULE_MAP);
@@ -505,10 +510,13 @@ function engagementGate(audit: any, firm: any, opts: any) {
     criteria = engagementEntryGate(engagementEntryContext(eng)).criteria;
   } else if (nextPhase === 'Finalisasi') {
     severity = 'warn';
-    criteria = [
-      { key: 'noHighNotes', label: 'Tidak ada catatan review prioritas tinggi terbuka',
-        met: highOpen.length === 0, detail: `${highOpen.length} catatan prioritas tinggi terbuka`, view: 'cockpit' },
-    ];
+    // Isu #3: gerbang sadar-progres eksekusi (kesimpulan SA 230 ≥80% + 0 WP
+    // belum-dimulai + 0 catatan high). Logika ambang = util murni & teruji.
+    criteria = finalisationGateCriteria({
+      conclusionPct: recap.conclusionPct,
+      notStarted: recap.notStarted,
+      highOpenCount: highOpen.length,
+    });
   } else if (nextPhase === 'Arsip') {
     severity = 'confirm'; // titik lock — gesekan layak (graduated, Q1)
     criteria = [
