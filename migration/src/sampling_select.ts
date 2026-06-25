@@ -9,6 +9,25 @@
 
 export type PopItem = { id: string; name: string; bv: number };
 export type SelectedItem = { id: string; name: string; bv: number; hits: number; key: boolean };
+export type ConfFactor = { rf: number; ef: number; risk: number };
+export type MusPlan = ConfFactor & { basic: number; n: number; interval: number };
+
+/* Faktor keandalan (Poisson, 0 salah saji) & faktor ekspansi — SSOT SA 530. */
+export const CONF_FACTORS: Record<number, ConfFactor> = {
+  90: { rf: 2.31, ef: 1.5, risk: 10 },
+  95: { rf: 3.00, ef: 1.6, risk: 5 },
+  99: { rf: 4.61, ef: 1.9, risk: 1 },
+};
+
+/* Rencana MUS deterministik: ukuran sampel (n) & interval dari nilai populasi (bv),
+   tingkat keyakinan (conf), salah saji ditoleransi (tm) & ekspektasi (em). Rp jt. */
+export function musPlan(bv: number, conf: number, tm: number, em: number): MusPlan {
+  const f = CONF_FACTORS[conf] || CONF_FACTORS[95];
+  const basic = tm - em * f.ef;
+  const n = basic > 0 ? Math.ceil((bv * f.rf) / basic) : 9999;
+  const interval = Math.round(bv / n);
+  return { ...f, basic, n, interval };
+}
 
 /* Populasi ILUSTRATIF (bukan sub-ledger nyata) — 100 saldo piutang condong:
    beberapa saldo besar dominan + ekor panjang. Disimpan sebagai BOBOT relatif;

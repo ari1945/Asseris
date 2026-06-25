@@ -8,7 +8,7 @@ import { SACanonChips, SACanonicalStatus } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
-import { SA530_POPULATION, scalePopulation, selectMus, type PopItem, type SelectedItem } from './sampling_select';
+import { SA530_POPULATION, scalePopulation, selectMus, musPlan, type PopItem, type SelectedItem } from './sampling_select';
 import { WpPanel } from './wp_signoff';
 
 /* ============================================================
@@ -20,7 +20,6 @@ import { WpPanel } from './wp_signoff';
 const { useState: useState530, useMemo: useMemo530 } = React;
 
 /* ---- model sampling ter-persist engagement-scoped (SA 530) ---- */
-type ConfFactor = { rf: number; ef: number; risk: number };
 type SamplingParams = { bv: number; conf: number; tm: number; em: number };
 type SampleFinding = { id: string; bv: number; av: number; type: string; by?: string; at?: string };
 /* desain & stratifikasi (¶6–7) + titik-mulai acak generator (fraksi 0–1 dari interval) */
@@ -28,13 +27,6 @@ type SamplingDesign = { topThreshold: number; rationale: string; by?: string; at
 type SamplingState = { params: SamplingParams; findings: SampleFinding[]; design: SamplingDesign; seedFrac: number };
 /* tipe struktural minimal event input — hindari explicit-any (ratchet) */
 type Ev = { target: { value: string } };
-
-/* Faktor keandalan (Poisson, 0 salah saji) & faktor ekspansi */
-const CONF_FACTORS: Record<number, ConfFactor> = {
-  90: { rf: 2.31, ef: 1.5, risk: 10 },
-  95: { rf: 3.00, ef: 1.6, risk: 5 },
-  99: { rf: 4.61, ef: 1.9, risk: 1 },
-};
 
 /* Salah saji ditemukan dalam sampel (Rp jt) */
 const SAMPLE_FINDINGS: SampleFinding[] = [
@@ -85,13 +77,7 @@ function SA530View() {
   const setTm = (v: number) => setParam({ tm: v });
   const setEm = (v: number) => setParam({ em: v });
 
-  const calc = useMemo530(() => {
-    const f = CONF_FACTORS[conf] || CONF_FACTORS[95];
-    const basic = tm - em * f.ef;
-    const n = basic > 0 ? Math.ceil((bv * f.rf) / basic) : 9999;
-    const interval = Math.round(bv / n);
-    return { ...f, basic, n, interval };
-  }, [bv, conf, tm, em]);
+  const calc = useMemo530(() => musPlan(bv, conf, tm, em), [bv, conf, tm, em]);
 
   const tabs = [
     { id: 'desain', label: 'Desain & Populasi' },

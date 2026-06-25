@@ -12,6 +12,20 @@ import { materiality } from './canon_part4';
 import { goingConcern } from './canon_part5';
 import type { WTB, Figures, Fig, MaterialityOpts, MaterialityResult, GoingConcernResult } from './canon_types';
 
+/* W-asersi — boundary ber-tipe untuk lapisan asersi manajemen (SA 315).
+   Engine asersi sengaja TIDAK dipasang ke AMS_CANON (fingerprint regresi tetap
+   utuh); view menariknya dari sini, satu sumber yang sama dengan canon_assertions. */
+export {
+  ASSERTIONS, assertionDef, assertionsByGroup, resolveAssertion,
+  groupForAccountCode, groupForWtbGroup, relevanceFor, assertionCoverage,
+  ASSERTION_RELEVANCE, ASSERTION_STATUS_META,
+} from './canon_assertions';
+export type {
+  AssertionId, AssertionGroup, AssertionDef, AssertionStatus,
+  AssertionCell, LeadAssertionCoverage, CoverageInput,
+  ProcedureInput, RiskInput, EvidenceInput, AssertionConclInput,
+} from './canon_assertions';
+
 /** Figur akuntansi entitas (Rp juta) yang ditarik dari WTB. `wtb` opsional:
  *  bila diberi (mis. useAudit().wtb yang reaktif) → angka mengikuti AJE live. */
 export function figures(wtb?: WTB): Figures {

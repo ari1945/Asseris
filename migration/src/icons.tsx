@@ -169,6 +169,7 @@ const MODULES = [
     { id: 'wtb',        label: 'Working Trial Balance', icon: 'table', deep: true, tag: 'WTB' },
     { id: 'aje',        label: 'Adjusting Entries (AJE)', icon: 'ledger', deep: true },
     { id: 'workpapers', label: 'Working Papers', icon: 'layers', deep: true },
+    { id: 'asersi',     label: 'Matriks Asersi', icon: 'columns', deep: true, tag: 'SA 315' },
     { id: 'analytical', label: 'Analytical Review', icon: 'trend', deep: true },
     { id: 'sampling',   label: 'Sampling Engine', icon: 'dice', deep: true },
     { id: 'jet',        label: 'Journal Entry Testing', icon: 'flask', deep: true },

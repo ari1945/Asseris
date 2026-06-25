@@ -79,6 +79,9 @@ const AMS_PERSIST_SCOPE = {
   'strategyTab.v1': 'engagement',
   'strategyApproach.v1': 'engagement',
   'arMemo.v1': 'engagement',
+  /* Audit Programme (RoMM → prosedur). Engagement-scope → capForWrite=WP_EDIT
+     (semua auditor) + isolasi W7.5. Menyimpan daftar prosedur + status. */
+  'programme.v1': 'engagement',
 };
 
 const SYNC_DEBOUNCE_MS = 400;

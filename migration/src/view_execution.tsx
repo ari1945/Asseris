@@ -119,7 +119,7 @@ function WTBView() {
           </div>
 
           <Panel noBody style={{ overflow: 'hidden' }}>
-            <div style={{ maxHeight: 'calc(100vh - 372px)', overflow: 'auto' }}>
+            <div style={{ maxHeight: 'calc(100vh - 306px)', overflow: 'auto' }}>
               <table className="dtbl">
                 <thead>
                   <tr>

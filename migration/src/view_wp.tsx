@@ -2,7 +2,12 @@
 import React from 'react';
 import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
-import { useAudit, useFirm } from './contexts';
+import { useAudit, useFirm, useAmsPersist } from './contexts';
+import { SA530_POPULATION, scalePopulation, selectMus, musPlan } from './sampling_select';
+import {
+  assertionCoverage, groupForAccountCode, ASSERTION_RELEVANCE, ASSERTION_STATUS_META, assertionDef,
+} from './canon_selectors';
+import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } from './canon_selectors';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
@@ -61,6 +66,13 @@ const defaultProcState = (ref: any, status: any, i: any, total: any) => {
   if (status === 'In Progress') return i < Math.ceil(total / 2) ? 'Selesai' : 'Belum';
   return 'Belum';
 };
+/* Status satu prosedur (exec-aware) — SSOT dipakai WPDrill, roll-up asersi & matriks.
+   Diturunkan dari item eksekusi bila ada; jika tidak, flag manual lama lalu heuristik. */
+function procStatusAt(ref: any, st: any, status: any, defs: any, i: any) {
+  const es = execStatus((st.exec || {})['p' + i]);
+  if (es) return es;
+  return (st.procs && st.procs['p' + i] != null) ? st.procs['p' + i] : defaultProcState(ref, status, i, defs.length);
+}
 
 /* ---- Attachments per WP ---- */
 const WP_ATTACH = {
@@ -312,8 +324,9 @@ function WPDrill({ it, onClose }: any) {
   const effNoteStatus = (n: any) => noteStatus[n.id] || n.status;
   const openNotes = allNotes.filter((n: any) => effNoteStatus(n) === 'open').length;
 
-  /* procs done count */
-  const procState = (i: any) => (st.procs && st.procs['p' + i] != null) ? st.procs['p' + i] : defaultProcState(ref, status, i, defs.length);
+  /* procs done count — status DITURUNKAN dari item eksekusi bila ada (exec),
+     jika tidak jatuh ke flag manual lama lalu default heuristik. */
+  const procState = (i: any) => procStatusAt(ref, st, status, defs, i);
   const doneCount = defs.reduce((a: any, _: any, i: any) => a + (procState(i) === 'Selesai' ? 1 : 0), 0);
   const excCount = defs.reduce((a: any, _: any, i: any) => a + (procState(i) === 'Pengecualian' ? 1 : 0), 0);
 
@@ -355,8 +368,8 @@ function WPDrill({ it, onClose }: any) {
         <div style={{ flex: 1, overflow: 'auto', background: 'var(--surface-2)' }}>
           <div style={{ padding: 16 }}>
             {tab === 'lead' && <LeadTab ref_={ref} it={it} leadRows={leadRows} hasLead={hasLead} bal={bal} covLabel={covLabel} st={st} setWp={setWp} locked={locked} fmt={fmt} />}
-            {tab === 'procs' && <ProcsTab ref_={ref} defs={defs} procState={procState} setWp={setWp} st={st} locked={locked} doneCount={doneCount} excCount={excCount} />}
-            {tab === 'xref' && <XrefTab ref_={ref} relRisks={relRisks} relAje={relAje} fmt={fmt} />}
+            {tab === 'procs' && <ProcsTab ref_={ref} defs={defs} procState={procState} setWp={setWp} st={st} locked={locked} doneCount={doneCount} excCount={excCount} leadRows={leadRows} relRisks={relRisks} />}
+            {tab === 'xref' && <XrefTab ref_={ref} relRisks={relRisks} relAje={relAje} fmt={fmt} st={st} setWp={setWp} locked={locked} />}
             {tab === 'notes' && <NotesTab ref_={ref} allNotes={allNotes} effNoteStatus={effNoteStatus} setWp={setWp} st={st} locked={locked} />}
             {tab === 'signoff' && <SignoffTab ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} activeClient={activeClient} />}
           </div>
@@ -434,24 +447,220 @@ function LeadTab({ ref_, it, leadRows, hasLead, bal, covLabel, st, setWp, locked
   );
 }
 
+/* ============================================================
+   Fase 1 — eksekusi prosedur & pengujian bukti (SA 500).
+   Tipe lokal (tahan regrowth :any, ratchet W15) + model bukti & item uji.
+   ============================================================ */
+type EvRec = { id: string; name: string; source: string; tier: number; type: string; asr: string[]; by: string; at: string };
+type TestItem = { id: string; desc: string; ev: string; tick: string; result: string; note: string; lead?: string };
+type ExecP = { items: TestItem[]; concl?: string };
+type FormEvW = { target: { value: string } };
+/* Fase 2 — IPE (SA 500 ¶A56) & default parameter sampling (SA 530). */
+type IpeRec = { id: string; report: string; sys: string; usedFor: string; acc: string; comp: string; note: string };
+type SmpDefaults = { bv: number; conf: number; tm: number; em: number };
+/* Fase 3 — tracker konfirmasi (SA 505). */
+type ConfRec = { id: string; party: string; amount: number; sent: boolean; reply: string; diff: number; note: string };
+
+/* Hierarki keandalan bukti (SA 500 ¶A31) → tier 1..5. Selaras EV_HIERARCHY di view_evidence. */
+const EV_SOURCES = [
+  { k: 'eksternal', l: 'Pihak ketiga eksternal', tier: 5, hint: 'Konfirmasi bank/piutang, rekening koran' },
+  { k: 'auditor', l: 'Diperoleh langsung auditor', tier: 5, hint: 'Inspeksi fisik, observasi, rekalkulasi' },
+  { k: 'internal-kuat', l: 'Internal — pengendalian efektif', tier: 3, hint: 'Laporan sistem ber-kontrol' },
+  { k: 'internal-lemah', l: 'Internal — pengendalian lemah', tier: 2, hint: 'Spreadsheet/manual' },
+  { k: 'manajemen', l: 'Representasi manajemen', tier: 1, hint: 'Pernyataan manajemen' },
+];
+const evSource = (k: string) => EV_SOURCES.find(s => s.k === k) || EV_SOURCES[2];
+const WP_ASR = ['E/O', 'C', 'V', 'R&O', 'CO', 'P'];
+
+/* Hasil uji item → tickmark otomatis (reuse TICKMARKS). */
+const PROC_RESULTS: Record<string, { l: string; tick: string; color: string }> = {
+  tie: { l: 'Cocok', tick: '✓', color: 'var(--green)' },
+  exc: { l: 'Pengecualian', tick: '∆', color: 'var(--red)' },
+  na: { l: 'N/A', tick: '^', color: 'var(--ink-4)' },
+};
+
+/* Status prosedur DITURUNKAN dari item eksekusi bila ada; null → pakai flag lama. */
+function execStatus(ep: ExecP | undefined): string | null {
+  const items = (ep && ep.items) || [];
+  if (!items.length) return null;
+  if (items.some(it => it.result === 'exc')) return 'Pengecualian';
+  const rated = items.filter(it => it.result);
+  if (rated.length < items.length) return 'Berjalan';
+  if (items.every(it => it.result === 'na')) return 'N/A';
+  return 'Selesai';
+}
+
+/* Evaluasi kecukupan & ketepatan bukti tingkat WP (SA 500). */
+function wpEvidenceEval(evidence: EvRec[], exec: Record<string, ExecP>) {
+  const ev = evidence || [];
+  const items = Object.values(exec || {}).flatMap(p => (p && p.items) || []);
+  const tested = items.filter(it => it.result);
+  const exc = items.filter(it => it.result === 'exc');
+  const appr = ev.length ? ev.reduce((a, e) => a + (e.tier || 0), 0) / ev.length : 0; // 1..5
+  const suff = items.length ? tested.length / items.length : 0;                        // 0..1
+  let verdict: { l: string; k: string };
+  if (ev.length && items.length && appr >= 3 && suff >= 0.85 && exc.length === 0) verdict = { l: 'Bukti Cukup & Tepat', k: 'green' };
+  else if (ev.length && (appr >= 2.5 || suff >= 0.6)) verdict = { l: 'Sebagian Perlu Diperkuat', k: 'amber' };
+  else verdict = { l: 'Belum Memadai', k: 'red' };
+  return { evCount: ev.length, itemCount: items.length, tested: tested.length, exc: exc.length, appr, suffPct: Math.round(suff * 100), verdict };
+}
+
 /* ---- Procedures tab ---- */
 const PROC_FLOW = { Belum: 'Selesai', Selesai: 'Pengecualian', Pengecualian: 'N/A', 'N/A': 'Belum' };
 const PROC_STYLE = {
   Belum: { bg: 'var(--surface-3)', fg: 'var(--ink-3)', ic: (null as any) },
+  Berjalan: { bg: 'var(--amber-bg)', fg: 'var(--amber)', ic: (null as any) },
   Selesai: { bg: 'var(--green-bg)', fg: 'var(--green)', ic: 'check' },
   Pengecualian: { bg: 'var(--red-bg)', fg: 'var(--red)', ic: 'alert' },
   'N/A': { bg: 'var(--surface-3)', fg: 'var(--ink-4)', ic: (null as any) },
 };
-function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCount }: any) {
-  const cycle = (i: any) => {
-    if (locked) return;
-    const cur = procState(i);
-    setWp(ref_, { procs: { ...(st.procs || {}), ['p' + i]: (PROC_FLOW as any)[cur] } });
+/* Satu baris prosedur yang dapat diperluas jadi ruang eksekusi (item uji + bukti + hasil). */
+function ProcRow({ i, text, assertion, state, items, concl, evidence, open, onToggle, onItems, onConcl, locked, smpDef, leads, onTick }: {
+  key?: number; i: number; text: string; assertion: string; state: string; items: TestItem[]; concl: string;
+  evidence: EvRec[]; open: boolean; onToggle: () => void; onItems: (items: TestItem[]) => void; onConcl: (v: string) => void; locked: boolean; smpDef: SmpDefaults;
+  leads: { code: string; name: string }[]; onTick: (code: string, sym: string) => void;
+}) {
+  const stl = (PROC_STYLE as Record<string, { bg: string; fg: string; ic: string | null }>)[state] || PROC_STYLE.Belum;
+  const tested = items.filter(it => it.result).length;
+  const maxIdN = () => items.reduce((m, x) => Math.max(m, parseInt(String(x.id).replace(/\D/g, ''), 10) || 0), 0);
+  const addItem = () => onItems([...items, { id: 'it' + (maxIdN() + 1), desc: '', ev: '', tick: '', result: '', note: '', lead: '' }]);
+  const setItem = (idx: number, patch: Partial<TestItem>) => onItems(items.map((it, j) => j === idx ? { ...it, ...patch } : it));
+  const delItem = (idx: number) => onItems(items.filter((_, j) => j !== idx));
+  /* Set hasil → tickmark item; bila item tertaut akun lead, tandai pula Lead Schedule (SA 230). */
+  const setResult = (idx: number, result: string) => {
+    const it = items[idx];
+    setItem(idx, { result, tick: result ? PROC_RESULTS[result].tick : '' });
+    if (it && it.lead) onTick(it.lead, result ? PROC_RESULTS[result].tick : '');
   };
+  const setLead = (idx: number, lead: string) => {
+    const it = items[idx];
+    setItem(idx, { lead });
+    if (lead && it && it.result) onTick(lead, PROC_RESULTS[it.result].tick);
+  };
+
+  /* SA 530 — tarik sampel MUS deterministik jadi item uji. */
+  const [smpOn, setSmpOn] = useStateWP(false);
+  const [bv, setBv] = useStateWP(smpDef.bv);
+  const [conf, setConf] = useStateWP(smpDef.conf);
+  const [tm, setTm] = useStateWP(smpDef.tm);
+  const [em, setEm] = useStateWP(smpDef.em);
+  const [seedPct, setSeedPct] = useStateWP(50);
+  const plan = musPlan(Number(bv) || 0, Number(conf) || 95, Number(tm) || 0, Number(em) || 0);
+  const planOk = plan.basic > 0 && plan.interval > 0 && plan.n > 0 && plan.n <= 500;
+  const pullSample = () => {
+    if (!planOk) return;
+    const pop = scalePopulation(SA530_POPULATION, Number(bv));
+    const seedStart = Math.max(1, Math.round((seedPct / 100) * plan.interval));
+    const sel = selectMus(pop, plan.interval, seedStart);
+    let n = maxIdN();
+    const pulled: TestItem[] = sel.map(s => ({ id: 'it' + (++n), desc: s.name + ' · Rp ' + s.bv.toLocaleString('id-ID') + ' jt' + (s.key ? ' · KEY ITEM' : ''), ev: '', tick: '', result: '', note: '' }));
+    onItems([...items, ...pulled]);
+    setSmpOn(false);
+  };
+
+  return (
+    <div style={{ borderBottom: '1px solid var(--line-soft)' }}>
+      <div className="row gap10" style={{ padding: '11px 14px', alignItems: 'flex-start', cursor: 'pointer' }} onClick={onToggle}>
+        <span className="mono tiny muted" style={{ flex: '0 0 28px', paddingTop: 2 }}>P{i + 1}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, color: state === 'N/A' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: state === 'N/A' ? 'line-through' : 'none' }}>{text}</div>
+          <div className="tiny muted" style={{ marginTop: 2 }}>Asersi: <span style={{ fontWeight: 600 }}>{assertion}</span>{items.length ? <span> · {tested}/{items.length} item diuji</span> : null}</div>
+        </div>
+        <span style={{ flex: '0 0 auto', height: 24, padding: '0 10px', borderRadius: 12, background: stl.bg, color: stl.fg, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          {state === 'Selesai' && <I.check size={12} />}{state === 'Pengecualian' && <I.alert size={12} />}{state}
+        </span>
+        <span style={{ flex: '0 0 auto', color: 'var(--ink-4)', paddingTop: 2 }}><I.chevDown size={14} style={{ transform: open ? 'none' : 'rotate(-90deg)', transition: '.15s' }} /></span>
+      </div>
+      {open && (
+        <div style={{ padding: '0 14px 14px 42px', background: 'var(--surface-2)' }}>
+          <table className="dtbl" style={{ marginTop: 4 }}>
+            <thead><tr>
+              <th style={{ width: 30 }}>#</th><th>Item / sampel uji</th>
+              <th style={{ width: 140 }}>Bukti</th><th style={{ width: 110 }}>Hasil</th>
+              <th style={{ width: 38, textAlign: 'center' }}>Tick</th><th style={{ width: 96 }}>Akun Lead</th><th>Catatan</th><th style={{ width: 30 }} />
+            </tr></thead>
+            <tbody>
+              {items.map((it, idx) => (
+                <tr key={it.id}>
+                  <td className="mono tiny muted">{idx + 1}</td>
+                  <td><input className="input" style={{ width: '100%', height: 26 }} value={it.desc} placeholder="mis. Faktur INV-0241" disabled={locked} onChange={(e: FormEvW) => setItem(idx, { desc: e.target.value })} /></td>
+                  <td>
+                    <select className="input" style={{ width: '100%', height: 26 }} value={it.ev} disabled={locked} onChange={(e: FormEvW) => setItem(idx, { ev: e.target.value })}>
+                      <option value="">— tautkan —</option>
+                      {evidence.map((ev: EvRec) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <select className="input" style={{ width: '100%', height: 26 }} value={it.result} disabled={locked} onChange={(e: FormEvW) => setResult(idx, e.target.value)}>
+                      <option value="">—</option>
+                      {Object.entries(PROC_RESULTS).map(([k, r]) => <option key={k} value={k}>{r.l}</option>)}
+                    </select>
+                  </td>
+                  <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 700, color: it.result ? PROC_RESULTS[it.result].color : 'var(--ink-4)' }}>{it.tick || '·'}</td>
+                  <td>
+                    <select className="input" style={{ width: '100%', height: 26 }} value={it.lead || ''} disabled={locked} title="Tautkan ke akun Lead Schedule — tickmark hasil mengalir otomatis" onChange={(e: FormEvW) => setLead(idx, e.target.value)}>
+                      <option value="">—</option>
+                      {leads.map(l => <option key={l.code} value={l.code}>{l.code}</option>)}
+                    </select>
+                  </td>
+                  <td><input className="input" style={{ width: '100%', height: 26 }} value={it.note} placeholder="catatan" disabled={locked} onChange={(e: FormEvW) => setItem(idx, { note: e.target.value })} /></td>
+                  <td style={{ textAlign: 'center' }}>{!locked && <button className="btn sm icon" title="Hapus item" onClick={() => delItem(idx)}><I.x size={12} /></button>}</td>
+                </tr>
+              ))}
+              {!items.length && <tr><td colSpan={8} className="muted tiny" style={{ textAlign: 'center', padding: 12 }}>Belum ada item uji. Tambahkan item & tautkan bukti untuk menjalankan prosedur.</td></tr>}
+            </tbody>
+          </table>
+          {!locked && (
+            <div className="row gap8 ac" style={{ marginTop: 8 }}>
+              <button className="btn sm" onClick={addItem}><I.plus size={12} /> Tambah item uji</button>
+              <button className="btn sm" onClick={() => setSmpOn((v: boolean) => !v)} title="Tarik sampel MUS (SA 530) jadi item uji"><I.dice size={12} /> Tarik Sampel (SA 530)</button>
+            </div>
+          )}
+          {smpOn && !locked && (
+            <div className="panel" style={{ marginTop: 8, padding: '10px 12px', background: 'var(--surface)' }}>
+              <div className="tiny muted upper" style={{ fontWeight: 700, marginBottom: 7 }}>Sampling MUS Sistematis (SA 530) · populasi ilustratif</div>
+              <div className="row gap8 wrap ac">
+                <label className="field" style={{ gap: 3 }}><span className="tiny muted">Nilai populasi (jt)</span><input className="input mono" style={{ width: 96, height: 26, textAlign: 'right' }} type="number" value={bv} onChange={(e: FormEvW) => setBv(+e.target.value)} /></label>
+                <label className="field" style={{ gap: 3 }}><span className="tiny muted">Keyakinan</span><select className="input" style={{ height: 26 }} value={conf} onChange={(e: FormEvW) => setConf(+e.target.value)}>{[90, 95, 99].map(c => <option key={c} value={c}>{c}%</option>)}</select></label>
+                <label className="field" style={{ gap: 3 }}><span className="tiny muted">TM (jt)</span><input className="input mono" style={{ width: 80, height: 26, textAlign: 'right' }} type="number" value={tm} onChange={(e: FormEvW) => setTm(+e.target.value)} /></label>
+                <label className="field" style={{ gap: 3 }}><span className="tiny muted">EM (jt)</span><input className="input mono" style={{ width: 72, height: 26, textAlign: 'right' }} type="number" value={em} onChange={(e: FormEvW) => setEm(+e.target.value)} /></label>
+                <label className="field" style={{ gap: 3 }}><span className="tiny muted">Titik mulai %</span><input className="input mono" style={{ width: 64, height: 26, textAlign: 'right' }} type="number" min="1" max="100" value={seedPct} onChange={(e: FormEvW) => setSeedPct(Math.min(100, Math.max(1, +e.target.value || 1)))} /></label>
+              </div>
+              <div className="row ac jb" style={{ marginTop: 9 }}>
+                <span className="tiny" style={{ color: planOk ? 'var(--ink-2)' : 'var(--red)' }}>
+                  {planOk ? <>Ukuran sampel <b>{plan.n} item</b> · interval <b>{plan.interval.toLocaleString('id-ID')} jt</b> · risiko {plan.risk}%</> : 'Parameter tak valid (TM harus > EM × faktor ekspansi).'}
+                </span>
+                <Btn sm variant="primary" disabled={!planOk} onClick={pullSample}><I.download size={13} /> Tarik {planOk ? plan.n : ''} item ke uji</Btn>
+              </div>
+            </div>
+          )}
+          <div className="tiny muted upper" style={{ fontWeight: 700, margin: '12px 0 5px' }}>Kesimpulan prosedur</div>
+          <textarea className="input" style={{ width: '100%', minHeight: 48, padding: '7px 9px', resize: 'vertical' }} value={concl} disabled={locked}
+            placeholder="Simpulkan hasil prosedur & dampak terhadap asersi…" onChange={(e: FormEvW) => onConcl(e.target.value)} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCount, leadRows, relRisks }: any) {
+  const [open, setOpen] = useStateWP(-1);
+  const evidence: EvRec[] = st.evidence || [];
+  /* Default parameter sampling diambil (read-only) dari modul SA 530 (sampling.v1)
+     bila auditor sudah mengkonfigurasinya; jika belum, pakai default wajar. */
+  const [smp] = useAmsPersist('sampling.v1', null);
+  const smpDef: SmpDefaults = (smp && smp.params) || { bv: 245000, conf: 95, tm: 7000, em: 1200 };
+  /* Akun lead (untuk tautan auto-tickmark hasil item → Lead Schedule, Fase 3). */
+  const leads: { code: string; name: string }[] = (leadRows || []).map((r: { code: string; name: string }) => ({ code: r.code, name: r.name }));
+  const onTick = (code: string, sym: string) => setWp(ref_, { ticks: { ...(st.ticks || {}), [code]: sym || null } });
+  const execP = (i: number): ExecP => (st.exec && st.exec['p' + i]) || { items: [] };
+  const setExec = (i: number, patch: Partial<ExecP>) => setWp(ref_, { exec: { ...(st.exec || {}), ['p' + i]: { ...execP(i), ...patch } } });
   const pct = Math.round(doneCount / defs.length * 100);
   return (
+    <div style={{ display: 'grid', gap: 12 }}>
+    <AssertionRollup ref_={ref_} defs={defs} procState={procState} st={st} setWp={setWp} locked={locked} leadRows={leadRows} relRisks={relRisks} evidence={evidence} />
     <Panel noBody>
-      <div className="panel-h"><h3>Program Audit — Prosedur</h3><div style={{ flex: 1 }} />
+      <div className="panel-h"><h3>Program Audit — Eksekusi Prosedur</h3><div style={{ flex: 1 }} />
         <span className="row ac gap8 tiny">
           {excCount > 0 && <Badge kind="red">{excCount} pengecualian</Badge>}
           <span className="muted">{doneCount}/{defs.length} selesai</span>
@@ -459,36 +668,318 @@ function ProcsTab({ ref_, defs, procState, setWp, st, locked, doneCount, excCoun
         </span>
       </div>
       <div>
-        {defs.map(([text, assertion]: any, i: any) => {
-          const s = procState(i), stl = (PROC_STYLE as any)[s];
-          return (
-            <div key={i} className="row gap10" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line-soft)', alignItems: 'flex-start' }}>
-              <span className="mono tiny muted" style={{ flex: '0 0 28px', paddingTop: 2 }}>P{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, color: s === 'N/A' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: s === 'N/A' ? 'line-through' : 'none' }}>{text}</div>
-                <div className="tiny muted" style={{ marginTop: 2 }}>Asersi: <span style={{ fontWeight: 600 }}>{assertion}</span></div>
-              </div>
-              <button onClick={() => cycle(i)} disabled={locked} title="Klik untuk ubah status"
-                style={{ flex: '0 0 auto', height: 24, padding: '0 10px', borderRadius: 12, border: 'none', cursor: locked ? 'not-allowed' : 'pointer', background: stl.bg, color: stl.fg, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                {stl.ic && React.createElement((I as any)[stl.ic], { size: 12 })}{s}
-              </button>
-            </div>
-          );
-        })}
+        {defs.map(([text, assertion]: any, i: any) => (
+          <ProcRow key={i} i={i} text={text} assertion={assertion} state={procState(i)}
+            items={execP(i).items} concl={execP(i).concl || ''} evidence={evidence} locked={locked} smpDef={smpDef}
+            leads={leads} onTick={onTick}
+            open={open === i} onToggle={() => setOpen((o: number) => o === i ? -1 : i)}
+            onItems={(items: TestItem[]) => setExec(i, { items })} onConcl={(v: string) => setExec(i, { concl: v })} />
+        ))}
       </div>
       <div style={{ padding: '10px 14px', background: 'var(--surface-2)', borderTop: '1px solid var(--line)' }}>
-        <div className="tiny muted">Status prosedur tersimpan otomatis per kertas kerja. Pengecualian otomatis menandai WP di indeks & menambah hitungan pada dashboard file.</div>
+        <div className="tiny muted">Status prosedur diturunkan dari hasil item uji (cocok → Selesai · pengecualian → otomatis menandai WP). Tickmark item otomatis dari hasil. Bukti dikelola di tab <b>Bukti &amp; Referensi</b>.</div>
+      </div>
+    </Panel>
+    </div>
+  );
+}
+
+/* ============================================================
+   Roll-up kesimpulan per ASERSI (SA 315/330) — merajut prosedur,
+   risiko (RoMM), bukti & kesimpulan auditor ke tiap asersi relevan.
+   Status sel diturunkan dari prosedur (lewat canon assertionCoverage);
+   auditor menetapkan kesimpulan eksplisit per asersi (persist wpState.asrConcl).
+   ============================================================ */
+const ASR_CONCL_OPTS: Array<{ v: string; l: string }> = [
+  { v: '', l: '—' }, { v: 'clean', l: 'Bersih (cukup)' }, { v: 'exception', l: 'Pengecualian' }, { v: 'pending', l: 'Belum simpul' },
+];
+function AssertionRollup({ ref_, defs, procState, st, setWp, locked, leadRows, relRisks, evidence }: any) {
+  /* hanya bermakna untuk WP berbasis akun (punya lead/relevansi terkurasi);
+     WP perencanaan/penyelesaian (100/810/…) tak punya asersi → panel disembunyikan. */
+  const hasSeed = !!ASSERTION_RELEVANCE[ref_];
+  if (!leadRows?.length && !hasSeed) return null;
+
+  const group: AssertionGroup = leadRows?.length ? groupForAccountCode(leadRows[0].code)
+    : (assertionDef((ASSERTION_RELEVANCE[ref_] || [])[0])?.group || 'saldo');
+  const procedures: ProcedureInput[] = (defs || []).map(([text, assertion]: any, i: number) => ({ text, assertionLabel: assertion, status: procState(i) }));
+  const risks: RiskInput[] = (relRisks || []).map((r: any) => ({ id: r.id, area: r.area, assertion: r.assertion, inherent: r.inherent, fraud: !!r.fraud, desc: r.desc }));
+  const cov = assertionCoverage({ leadRef: ref_, group, procedures, risks, evidence: (evidence || []).map((e: EvRec) => ({ tier: e.tier, asr: e.asr || [] })), concl: st.asrConcl || {} });
+
+  const setConcl = (id: string, patch: AssertionConclInput) => {
+    const prev = (st.asrConcl || {})[id] || {};
+    const u = (AMS as { USER?: { name?: string } }).USER;
+    setWp(ref_, { asrConcl: { ...(st.asrConcl || {}), [id]: { ...prev, ...patch, by: (u && u.name) || 'Auditor', at: new Date().toISOString().slice(0, 10) } } });
+  };
+
+  return (
+    <Panel noBody>
+      <div className="panel-h">
+        <h3>Kesimpulan per Asersi — Cakupan (SA 315/330)</h3><div style={{ flex: 1 }} />
+        <span className="row ac gap6 tiny">
+          {cov.gapCount > 0 && <Badge kind="red">{cov.gapCount} belum ditanggapi</Badge>}
+          {cov.exceptionCount > 0 && <Badge kind="red">{cov.exceptionCount} pengecualian</Badge>}
+          <span className="muted">{cov.concludedCount}/{cov.relevantCount} disimpulkan</span>
+        </span>
+      </div>
+      <table className="dtbl">
+        <thead><tr>
+          <th>Asersi</th><th style={{ width: 70 }}>Relevansi</th>
+          <th style={{ width: 60, textAlign: 'center' }}>Risiko</th>
+          <th style={{ width: 92 }}>Prosedur</th>
+          <th style={{ width: 64, textAlign: 'center' }}>Bukti</th>
+          <th style={{ width: 116 }}>Status</th>
+          <th style={{ width: 250 }}>Kesimpulan auditor</th>
+        </tr></thead>
+        <tbody>
+          {cov.cells.map((c: any) => {
+            const sm = ASSERTION_STATUS_META[c.status as keyof typeof ASSERTION_STATUS_META];
+            const cur = (st.asrConcl || {})[c.assertion.id] || {};
+            return (
+              <tr key={c.assertion.id} style={c.status === 'gap' ? { background: 'var(--red-bg)' } : undefined}>
+                <td>
+                  <div style={{ fontWeight: 600, fontSize: 12 }}>{c.assertion.label}</div>
+                  <div className="tiny muted">{c.assertion.group === 'transaksi' ? 'Transaksi' : 'Saldo'} · {c.assertion.desc}</div>
+                </td>
+                <td>{c.relevant ? <Badge kind="blue">Relevan</Badge> : <span className="tiny muted">tambahan</span>}</td>
+                <td style={{ textAlign: 'center' }}>
+                  {c.risks.length
+                    ? <span title={c.risks.map((r: any) => r.id + ' ' + r.desc).join('\n')} className="mono tiny" style={{ fontWeight: 700, color: c.risks.some((r: any) => r.fraud) ? 'var(--red)' : 'var(--blue)' }}>{c.risks.length}</span>
+                    : <span className="muted tiny">—</span>}
+                </td>
+                <td className="tiny">{c.procedures.length ? <>{c.procedures.length} prosedur</> : <span className="muted">— belum —</span>}</td>
+                <td style={{ textAlign: 'center' }} className="mono tiny">{c.evidenceCount ? <span title={'rata tier ' + c.apprAvg.toFixed(1)}>{c.evidenceCount}</span> : <span className="muted">—</span>}</td>
+                <td><Badge kind={sm.k}>{sm.l}</Badge></td>
+                <td>
+                  <div className="row gap6 ac">
+                    <select className="input" style={{ height: 26, width: 96 }} value={cur.result || ''} disabled={locked} onChange={(e: FormEvW) => setConcl(c.assertion.id, { result: e.target.value })}>
+                      {ASR_CONCL_OPTS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                    </select>
+                    <input className="input" style={{ height: 26, flex: 1, minWidth: 0 }} value={cur.concl || ''} placeholder="catatan kesimpulan…" disabled={locked} onChange={(e: FormEvW) => setConcl(c.assertion.id, { concl: e.target.value })} />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <div style={{ padding: '8px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+        <div className="tiny muted">Asersi <b>relevan</b> ditentukan per SA 315 (peta kanon); sel merah = relevan tetapi belum ada prosedur. Status diturunkan dari hasil prosedur; kesimpulan eksplisit auditor menimpanya & tersimpan di file (SA 230).</div>
       </div>
     </Panel>
   );
 }
 
+/* ---- Register bukti per-WP + meteran kecukupan & ketepatan (SA 500) ---- */
+function EvidenceRegister({ ref_, st, setWp, locked }: {
+  ref_: string; st: { evidence?: EvRec[]; exec?: Record<string, ExecP> };
+  setWp: (ref: string, patch: { evidence?: EvRec[] }) => void; locked: boolean;
+}) {
+  const evidence: EvRec[] = st.evidence || [];
+  const meter = wpEvidenceEval(evidence, st.exec || {});
+  const [name, setName] = useStateWP('');
+  const [source, setSource] = useStateWP('eksternal');
+  const [type, setType] = useStateWP('PDF');
+  const [asr, setAsr] = useStateWP([]);
+  const toggleAsr = (c: string) => setAsr((a: string[]) => a.includes(c) ? a.filter((x: string) => x !== c) : [...a, c]);
+  const nextId = () => 'EV' + (evidence.reduce((m: number, e: EvRec) => Math.max(m, parseInt(String(e.id).replace(/\D/g, ''), 10) || 0), 0) + 1);
+  const add = () => {
+    if (!name.trim()) return;
+    const u = (AMS as { USER?: { name?: string } }).USER;
+    const rec: EvRec = { id: nextId(), name: name.trim(), source, tier: evSource(source).tier, type, asr, by: (u && u.name) || 'Auditor', at: new Date().toISOString().slice(0, 10) };
+    setWp(ref_, { evidence: [...evidence, rec] });
+    setName(''); setAsr([]);
+  };
+  const del = (id: string) => setWp(ref_, { evidence: evidence.filter((e: EvRec) => e.id !== id) });
+  const apprLabel = meter.appr >= 4 ? 'Tinggi' : meter.appr >= 3 ? 'Memadai' : meter.appr > 0 ? 'Rendah' : '—';
+
+  return (
+    <Panel noBody>
+      <div className="panel-h"><h3>Register Bukti & Evaluasi (SA 500)</h3><div style={{ flex: 1 }} />
+        <Badge kind={meter.verdict.k}>{meter.verdict.l}</Badge>
+      </div>
+      {/* meteran kecukupan & ketepatan */}
+      <div className="row gap12 wrap" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+        <div><div className="tiny muted upper" style={{ fontWeight: 700 }}>Ketepatan (appropriateness)</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{meter.appr ? meter.appr.toFixed(1) : '—'}<span className="tiny muted" style={{ fontWeight: 500 }}>/5 · {apprLabel}</span></div></div>
+        <div className="vdivider" style={{ height: 30 }} />
+        <div><div className="tiny muted upper" style={{ fontWeight: 700 }}>Kecukupan (sufficiency)</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{meter.suffPct}%<span className="tiny muted" style={{ fontWeight: 500 }}> · {meter.tested}/{meter.itemCount} item</span></div></div>
+        <div className="vdivider" style={{ height: 30 }} />
+        <div><div className="tiny muted upper" style={{ fontWeight: 700 }}>Bukti · Pengecualian</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{meter.evCount} <span className="tiny muted" style={{ fontWeight: 500 }}>bukti</span> · <span style={{ color: meter.exc ? 'var(--red)' : 'var(--green)' }}>{meter.exc}</span></div></div>
+      </div>
+      {/* daftar bukti */}
+      <table className="dtbl">
+        <thead><tr><th style={{ width: 48 }}>ID</th><th>Bukti</th><th style={{ width: 180 }}>Sumber (keandalan)</th><th style={{ width: 46, textAlign: 'center' }}>Tier</th><th style={{ width: 110 }}>Asersi</th><th style={{ width: 30 }} /></tr></thead>
+        <tbody>
+          {evidence.map((e: EvRec) => (
+            <tr key={e.id}>
+              <td className="mono tiny muted">{e.id}</td>
+              <td><span style={{ fontWeight: 600 }}>{e.name}</span> <span className="chip tiny">{e.type}</span></td>
+              <td className="tiny">{evSource(e.source).l}</td>
+              <td className="num mono" style={{ fontWeight: 700, color: e.tier >= 4 ? 'var(--green)' : e.tier >= 3 ? 'var(--blue)' : 'var(--amber)' }}>{e.tier}</td>
+              <td className="tiny mono">{(e.asr || []).join(' ') || '—'}</td>
+              <td style={{ textAlign: 'center' }}>{!locked && <button className="btn sm icon" title="Hapus bukti" onClick={() => del(e.id)}><I.x size={12} /></button>}</td>
+            </tr>
+          ))}
+          {!evidence.length && <tr><td colSpan={6} className="muted tiny" style={{ textAlign: 'center', padding: 12 }}>Belum ada bukti terdaftar. Tambahkan bukti untuk dievaluasi & ditautkan ke item uji prosedur.</td></tr>}
+        </tbody>
+      </table>
+      {/* form tambah bukti */}
+      {!locked && (
+        <div style={{ padding: '11px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+          <div className="row gap8 wrap ac">
+            <input className="input" style={{ flex: '1 1 200px', height: 28 }} value={name} placeholder="Nama/keterangan bukti (mis. Konfirmasi Bank BCA)" onChange={(e: FormEvW) => setName(e.target.value)} />
+            <select className="input" style={{ height: 28 }} value={source} onChange={(e: FormEvW) => setSource(e.target.value)} title="Keandalan menentukan tier">
+              {EV_SOURCES.map(s => <option key={s.k} value={s.k}>{s.l} (tier {s.tier})</option>)}
+            </select>
+            <select className="input" style={{ height: 28, width: 88 }} value={type} onChange={(e: FormEvW) => setType(e.target.value)}>
+              {['PDF', 'XLSX', 'DOC', 'Lainnya'].map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div className="row gap6 ac" style={{ marginTop: 8 }}>
+            <span className="tiny muted">Asersi:</span>
+            {WP_ASR.map(c => <button key={c} type="button" className="chip tiny" style={{ cursor: 'pointer', fontFamily: 'var(--mono)', fontWeight: 700, background: asr.includes(c) ? 'var(--navy)' : '#fff', color: asr.includes(c) ? '#fff' : 'var(--ink-3)' }} onClick={() => toggleAsr(c)}>{c}</button>)}
+            <div style={{ flex: 1 }} />
+            <Btn sm variant="primary" onClick={add}><I.plus size={13} /> Tambah Bukti</Btn>
+          </div>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+/* ---- IPE — keandalan informasi yang dihasilkan entitas (SA 500 ¶A56) ---- */
+const IPE_RESULTS: Record<string, { l: string; k: string }> = {
+  ok: { l: 'Teruji', k: 'green' }, exc: { l: 'Pengecualian', k: 'red' },
+};
+function IpeRegister({ ref_, st, setWp, locked }: {
+  ref_: string; st: { ipe?: IpeRec[] }; setWp: (ref: string, patch: { ipe?: IpeRec[] }) => void; locked: boolean;
+}) {
+  const ipe: IpeRec[] = st.ipe || [];
+  const [report, setReport] = useStateWP('');
+  const [sys, setSys] = useStateWP('');
+  const [usedFor, setUsedFor] = useStateWP('');
+  const nextId = () => 'IPE' + (ipe.reduce((m: number, x: IpeRec) => Math.max(m, parseInt(String(x.id).replace(/\D/g, ''), 10) || 0), 0) + 1);
+  const add = () => {
+    if (!report.trim()) return;
+    setWp(ref_, { ipe: [...ipe, { id: nextId(), report: report.trim(), sys: sys.trim(), usedFor: usedFor.trim(), acc: '', comp: '', note: '' }] });
+    setReport(''); setSys(''); setUsedFor('');
+  };
+  const setRec = (id: string, patch: Partial<IpeRec>) => setWp(ref_, { ipe: ipe.map((x: IpeRec) => x.id === id ? { ...x, ...patch } : x) });
+  const del = (id: string) => setWp(ref_, { ipe: ipe.filter((x: IpeRec) => x.id !== id) });
+  const tested = ipe.filter((x: IpeRec) => x.acc && x.comp).length;
+  const exc = ipe.filter((x: IpeRec) => x.acc === 'exc' || x.comp === 'exc').length;
+  const Sel = ({ v, onPick }: { v: string; onPick: (val: string) => void }) => (
+    <select className="input" style={{ width: '100%', height: 26 }} value={v} disabled={locked} onChange={(e: FormEvW) => onPick(e.target.value)}>
+      <option value="">—</option>
+      {Object.entries(IPE_RESULTS).map(([k, r]) => <option key={k} value={k}>{r.l}</option>)}
+    </select>
+  );
+
+  return (
+    <Panel noBody>
+      <div className="panel-h"><h3>Keandalan IPE (SA 500 ¶A56)</h3><div style={{ flex: 1 }} />
+        <span className="tiny muted">{tested}/{ipe.length} teruji</span>{exc > 0 && <span style={{ marginLeft: 8 }}><Badge kind="red">{exc} pengecualian</Badge></span>}
+      </div>
+      <table className="dtbl">
+        <thead><tr><th style={{ width: 52 }}>ID</th><th>Laporan / sistem · digunakan untuk</th><th style={{ width: 120 }}>Akurasi</th><th style={{ width: 120 }}>Kelengkapan</th><th>Catatan</th><th style={{ width: 30 }} /></tr></thead>
+        <tbody>
+          {ipe.map((x: IpeRec) => (
+            <tr key={x.id}>
+              <td className="mono tiny muted">{x.id}</td>
+              <td><div style={{ fontWeight: 600, fontSize: 12 }}>{x.report}</div><div className="tiny muted">{[x.sys, x.usedFor].filter(Boolean).join(' · ') || '—'}</div></td>
+              <td><Sel v={x.acc} onPick={(val: string) => setRec(x.id, { acc: val })} /></td>
+              <td><Sel v={x.comp} onPick={(val: string) => setRec(x.id, { comp: val })} /></td>
+              <td><input className="input" style={{ width: '100%', height: 26 }} value={x.note} placeholder="catatan uji" disabled={locked} onChange={(e: FormEvW) => setRec(x.id, { note: e.target.value })} /></td>
+              <td style={{ textAlign: 'center' }}>{!locked && <button className="btn sm icon" title="Hapus" onClick={() => del(x.id)}><I.x size={12} /></button>}</td>
+            </tr>
+          ))}
+          {!ipe.length && <tr><td colSpan={6} className="muted tiny" style={{ textAlign: 'center', padding: 12 }}>Belum ada IPE terdaftar. Daftarkan laporan/sistem yang dihasilkan entitas (mis. aging, register aset) lalu uji akurasi & kelengkapannya.</td></tr>}
+        </tbody>
+      </table>
+      {!locked && (
+        <div className="row gap8 wrap ac" style={{ padding: '11px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+          <input className="input" style={{ flex: '1 1 180px', height: 28 }} value={report} placeholder="Laporan IPE (mis. Aging Piutang Q4)" onChange={(e: FormEvW) => setReport(e.target.value)} />
+          <input className="input" style={{ flex: '0 1 130px', height: 28 }} value={sys} placeholder="Sistem sumber" onChange={(e: FormEvW) => setSys(e.target.value)} />
+          <input className="input" style={{ flex: '1 1 130px', height: 28 }} value={usedFor} placeholder="Digunakan untuk…" onChange={(e: FormEvW) => setUsedFor(e.target.value)} />
+          <Btn sm variant="primary" onClick={add}><I.plus size={13} /> Tambah IPE</Btn>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+/* ---- Tracker konfirmasi eksternal (SA 505) ---- */
+const CONF_REPLY: Record<string, { l: string; k: string }> = {
+  pending: { l: 'Menunggu', k: 'gray' }, agreed: { l: 'Sesuai', k: 'green' },
+  exception: { l: 'Selisih', k: 'red' }, noreply: { l: 'Tidak Dibalas', k: 'amber' },
+};
+function ConfirmTracker({ ref_, st, setWp, locked }: {
+  ref_: string; st: { confirms?: ConfRec[] }; setWp: (ref: string, patch: { confirms?: ConfRec[] }) => void; locked: boolean;
+}) {
+  const list: ConfRec[] = st.confirms || [];
+  const [party, setParty] = useStateWP('');
+  const [amount, setAmount] = useStateWP('');
+  const nextId = () => 'K' + (list.reduce((m: number, x: ConfRec) => Math.max(m, parseInt(String(x.id).replace(/\D/g, ''), 10) || 0), 0) + 1);
+  const add = () => {
+    if (!party.trim()) return;
+    setWp(ref_, { confirms: [...list, { id: nextId(), party: party.trim(), amount: Number(amount) || 0, sent: true, reply: 'pending', diff: 0, note: '' }] });
+    setParty(''); setAmount('');
+  };
+  const setRec = (id: string, patch: Partial<ConfRec>) => setWp(ref_, { confirms: list.map((x: ConfRec) => x.id === id ? { ...x, ...patch } : x) });
+  const del = (id: string) => setWp(ref_, { confirms: list.filter((x: ConfRec) => x.id !== id) });
+  const sent = list.filter((x: ConfRec) => x.sent).length;
+  const replied = list.filter((x: ConfRec) => x.reply === 'agreed' || x.reply === 'exception').length;
+  const exc = list.filter((x: ConfRec) => x.reply === 'exception').length;
+  const noreply = list.filter((x: ConfRec) => x.reply === 'noreply').length;
+  const rate = sent ? Math.round(replied / sent * 100) : 0;
+
+  return (
+    <Panel noBody>
+      <div className="panel-h"><h3>Konfirmasi Eksternal (SA 505)</h3><div style={{ flex: 1 }} />
+        <span className="tiny muted">terkirim {sent} · dibalas {replied} ({rate}%)</span>
+        {exc > 0 && <span style={{ marginLeft: 8 }}><Badge kind="red">{exc} selisih</Badge></span>}
+        {noreply > 0 && <span style={{ marginLeft: 6 }}><Badge kind="amber">{noreply} tanpa balasan</Badge></span>}
+      </div>
+      <table className="dtbl">
+        <thead><tr><th style={{ width: 44 }}>ID</th><th>Pihak dikonfirmasi</th><th className="num" style={{ width: 96 }}>Nilai (jt)</th><th style={{ width: 56, textAlign: 'center' }}>Kirim</th><th style={{ width: 120 }}>Balasan</th><th className="num" style={{ width: 90 }}>Selisih (jt)</th><th>Catatan</th><th style={{ width: 30 }} /></tr></thead>
+        <tbody>
+          {list.map((x: ConfRec) => (
+            <tr key={x.id}>
+              <td className="mono tiny muted">{x.id}</td>
+              <td style={{ fontWeight: 600 }}>{x.party}</td>
+              <td className="num mono">{x.amount.toLocaleString('id-ID')}</td>
+              <td style={{ textAlign: 'center' }}><input type="checkbox" checked={x.sent} disabled={locked} onChange={(e: { target: { checked: boolean } }) => setRec(x.id, { sent: e.target.checked })} /></td>
+              <td><select className="input" style={{ width: '100%', height: 26 }} value={x.reply} disabled={locked} onChange={(e: FormEvW) => setRec(x.id, { reply: e.target.value })}>{Object.entries(CONF_REPLY).map(([k, r]) => <option key={k} value={k}>{r.l}</option>)}</select></td>
+              <td className="num">{x.reply === 'exception' ? <input className="input mono" style={{ width: '100%', height: 26, textAlign: 'right' }} type="number" value={x.diff} disabled={locked} onChange={(e: FormEvW) => setRec(x.id, { diff: Number(e.target.value) || 0 })} /> : <span className="muted">—</span>}</td>
+              <td><input className="input" style={{ width: '100%', height: 26 }} value={x.note} placeholder={x.reply === 'noreply' ? 'prosedur alternatif…' : 'catatan'} disabled={locked} onChange={(e: FormEvW) => setRec(x.id, { note: e.target.value })} /></td>
+              <td style={{ textAlign: 'center' }}>{!locked && <button className="btn sm icon" title="Hapus" onClick={() => del(x.id)}><I.x size={12} /></button>}</td>
+            </tr>
+          ))}
+          {!list.length && <tr><td colSpan={8} className="muted tiny" style={{ textAlign: 'center', padding: 12 }}>Belum ada konfirmasi. Untuk prosedur konfirmasi (mis. piutang/bank), catat tiap pihak & lacak balasan; non-respons memerlukan prosedur alternatif (SA 505 ¶12).</td></tr>}
+        </tbody>
+      </table>
+      {!locked && (
+        <div className="row gap8 wrap ac" style={{ padding: '11px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+          <input className="input" style={{ flex: '1 1 200px', height: 28 }} value={party} placeholder="Pihak dikonfirmasi (mis. PT Ritel Maju)" onChange={(e: FormEvW) => setParty(e.target.value)} />
+          <input className="input mono" style={{ width: 120, height: 28, textAlign: 'right' }} type="number" value={amount} placeholder="Nilai (jt)" onChange={(e: FormEvW) => setAmount(e.target.value)} />
+          <Btn sm variant="primary" onClick={add}><I.plus size={13} /> Tambah Konfirmasi</Btn>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 /* ---- Cross-reference tab ---- */
-function XrefTab({ ref_, relRisks, relAje, fmt }: any) {
+function XrefTab({ ref_, relRisks, relAje, fmt, st, setWp, locked }: any) {
   const atts = attachFor(ref_);
   const fileIcon = (t: any) => t === 'PDF' ? 'report' : t === 'XLSX' ? 'table' : 'doc';
   return (
     <div style={{ display: 'grid', gap: 12 }}>
+      {/* register bukti + evaluasi SA 500 (Fase 1) */}
+      <EvidenceRegister ref_={ref_} st={st} setWp={setWp} locked={locked} />
+      {/* IPE — keandalan informasi entitas (SA 500 ¶A56, Fase 2) */}
+      <IpeRegister ref_={ref_} st={st} setWp={setWp} locked={locked} />
+      {/* konfirmasi eksternal (SA 505, Fase 3) */}
+      <ConfirmTracker ref_={ref_} st={st} setWp={setWp} locked={locked} />
       {/* risks */}
       <Panel noBody>
         <div className="panel-h"><h3>Risiko Teralamatkan (RoMM)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{relRisks.length} risiko</span></div>
@@ -796,14 +1287,25 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   return { ref, title: meta.title, section: meta.section, status, done, total: defs.length, exc, openNotes, coverage, pm, triv, signoff, signedCount, fullySigned: signedCount === signoff.length, relRisks, hasLead: leadRows.length > 0 };
 }
 
+/* Prosedur + status (exec-aware) satu lead schedule → input mesin cakupan asersi.
+   SSOT: dipakai Matriks Asersi lintas-modul agar tidak menyalin logika status WP. */
+function wpProcedureInputs(ref: any, audit: any): ProcedureInput[] {
+  const wpState = (audit && audit.wpState) || {};
+  const st = wpState[ref] || {};
+  const meta = (WP_META as any)[ref] || { statusDefault: 'Not Started' };
+  const status = st.status || meta.statusDefault;
+  const defs = procsFor(ref);
+  return defs.map(([text, assertion]: any, i: number) => ({ text, assertionLabel: assertion, status: procStatusAt(ref, st, status, defs, i) }));
+}
+
 /* deep-link: open a specific WP in the canonical Working Papers module */
 function openCanonicalWp(navigate: any, ref: any) {
   try { localStorage.setItem('ams.wpOpen', ref); } catch (e) {}
   if (typeof navigate === 'function') navigate('workpapers');
 }
 
-Object.assign(window, { WorkingPapers, WPDrill, collectWpNotes, WP_REFS, WP_META, deriveWpStatus, openCanonicalWp });
+Object.assign(window, { WorkingPapers, WPDrill, collectWpNotes, WP_REFS, WP_META, deriveWpStatus, openCanonicalWp, wpProcedureInputs, procsFor, WP_PROCS });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { WPDrill, WP_META, WP_REFS, WorkingPapers, collectWpNotes, deriveWpStatus, openCanonicalWp };
+export { WPDrill, WP_META, WP_REFS, WorkingPapers, collectWpNotes, deriveWpStatus, openCanonicalWp, wpEvidenceEval, wpProcedureInputs, procsFor, WP_PROCS };

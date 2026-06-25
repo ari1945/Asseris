@@ -6,6 +6,8 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui';
+import { assertionDef, groupForAccountCode } from './canon_selectors';
+import type { AssertionId } from './canon_selectors';
 import { AJEForm } from './view_execution';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { amsExportXlsx } from './export_xlsx';
@@ -28,11 +30,11 @@ const COVENANT = 1.20;
 /* per-entry audit metadata (keyed to seed AJEs). User-added entries derive
    their kind/PBT effect from posted journal lines. */
 const AJE_META = {
-  'AJE-01': { kind: 'adjusting', mis: 'M-05', pbt: -2_340_000_000, std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', preparer: 'Rina Kusuma', role: 'Junior Auditor', proposedOn: '04 Mei', reviewedOn: '06 Mei', postedOn: '08 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-02': { kind: 'adjusting', mis: 'M-04', pbt: -620_000_000, std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '06 Mei', reviewedOn: '10 Mei', postedOn: '12 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-03': { kind: 'adjusting', mis: 'M-01', pbt: -1_850_000_000, std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '28 Mei', reviewedOn: '30 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
-  'AJE-04': { kind: 'adjusting', mis: 'M-06', pbt: -980_000_000, std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', preparer: 'Sinta Wulandari', role: 'Senior Auditor', proposedOn: '09 Mei', reviewedOn: '11 Mei', postedOn: '13 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-05': { kind: 'adjusting', mis: 'M-02', pbt: -1_120_000_000, std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '30 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-01': { kind: 'adjusting', mis: 'M-05', pbt: -2_340_000_000, std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], preparer: 'Rina Kusuma', role: 'Junior Auditor', proposedOn: '04 Mei', reviewedOn: '06 Mei', postedOn: '08 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-02': { kind: 'adjusting', mis: 'M-04', pbt: -620_000_000, std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '06 Mei', reviewedOn: '10 Mei', postedOn: '12 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-03': { kind: 'adjusting', mis: 'M-01', pbt: -1_850_000_000, std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '28 Mei', reviewedOn: '30 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
+  'AJE-04': { kind: 'adjusting', mis: 'M-06', pbt: -980_000_000, std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], preparer: 'Sinta Wulandari', role: 'Senior Auditor', proposedOn: '09 Mei', reviewedOn: '11 Mei', postedOn: '13 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-05': { kind: 'adjusting', mis: 'M-02', pbt: -1_120_000_000, std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '30 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
 };
 
 const KIND_LABEL = { adjusting: 'Penyesuaian', reclass: 'Reklasifikasi' };
@@ -58,12 +60,31 @@ function ajeCurAssetEffect(a: any) {
   return a.lines.reduce((s: any, l: any) => String(l.code || '').startsWith('1-1') ? s + ((+l.debit || 0) - (+l.credit || 0)) : s, 0);
 }
 
+/* Asersi yang dikoreksi entri user-added (di luar seed): reklas → klasifikasi
+   sesuai kategori akun; penyesuaian tanpa meta → kosong (auditor lengkapi). */
+function ajeDeriveAssertions(a: any, kind: string): AssertionId[] {
+  if (kind === 'reclass') {
+    const code = Array.isArray(a.lines) && a.lines[0] ? a.lines[0].code : String(a.dr || '').split(' ')[0];
+    return [groupForAccountCode(code) === 'transaksi' ? 'classification_tx' : 'classification_bal'];
+  }
+  return [];
+}
+
+/* Asersi yang dikoreksi sebuah AJE — SSOT dipakai Matriks Asersi lintas-modul. */
+function ajeAssertionIds(a: any): AssertionId[] {
+  const m = (AJE_META as any)[a.id] || {};
+  const kind = m.kind || ajeDeriveKind(a);
+  return (m.assertions as AssertionId[] | undefined) || ajeDeriveAssertions(a, kind);
+}
+
 function buildAjeModel(aje: any) {
   return aje.map((a: any) => {
     const m = (AJE_META as any)[a.id] || {};
+    const kind = m.kind || ajeDeriveKind(a);
     return {
       ...a,
-      kind: m.kind || ajeDeriveKind(a),
+      kind,
+      assertions: (m.assertions as AssertionId[] | undefined) || ajeDeriveAssertions(a, kind),
       pbt: m.pbt != null ? m.pbt : ajeDerivePbt(a),
       curEff: a.id in AJE_META ? (a.id === 'AJE-01' ? -2_340_000_000 : a.id === 'AJE-03' ? -1_850_000_000 : 0) : ajeCurAssetEffect(a),
       mis: m.mis || null, std: m.std || '—', cycle: m.cycle || '—',
@@ -85,6 +106,16 @@ function AjeKv({ label, v, strong, accent }: any) {
   );
 }
 const signColor = (n: any) => n < 0 ? 'var(--red)' : n > 0 ? 'var(--green)' : 'var(--ink-4)';
+
+/* Chip asersi yang dikoreksi sebuah jurnal (SA 315). */
+function AjeAsrChips({ ids }: { ids?: AssertionId[] }) {
+  if (!ids || !ids.length) return null;
+  return (
+    <span className="row ac gap4" style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
+      {ids.map(id => { const d = assertionDef(id); return d ? <span key={id} className="chip tiny" title={d.label + ' — ' + d.desc} style={{ height: 17, padding: '0 6px', background: 'var(--blue-050)', color: 'var(--blue)', fontWeight: 600 }}>{d.label}</span> : null; })}
+    </span>
+  );
+}
 
 /* ============================================================
    SHELL — tabbed AJE module
@@ -242,6 +273,7 @@ function AjeRegister({ model, locked }: any) {
                 <td style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5, padding: '6px 9px' }}>
                   {a.desc}
                   <div className="tiny muted" style={{ marginTop: 2 }}>{a.cycle} · <span className="mono">WP {a.ref}</span> · {a.std}</div>
+                  {a.assertions?.length ? <div style={{ marginTop: 3 }}><AjeAsrChips ids={a.assertions} /></div> : null}
                 </td>
                 <td style={{ verticalAlign: 'top', paddingTop: 6 }}><Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge></td>
                 <td style={{ verticalAlign: 'top', paddingTop: 7 }} className="tiny mono">
@@ -322,6 +354,12 @@ function AjeDrill({ a, fmt, nav }: any) {
           <AjeKv label="Siklus / Lead schedule" v={a.cycle} />
           <AjeKv label="Disiapkan oleh" v={a.preparer} />
         </div>
+        {a.assertions?.length ? (
+          <div className="row ac jb" style={{ marginTop: 9, gap: 8 }}>
+            <span className="tiny muted">Asersi dikoreksi</span>
+            <AjeAsrChips ids={a.assertions} />
+          </div>
+        ) : null}
         {a.mis && (
           <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent', borderLeft: '3px solid var(--blue)' }}>
             <div className="tiny" style={{ lineHeight: 1.5 }}>Mengoreksi salah saji <b className="mono">{a.mis}</b> pada Summary of Audit Differences (SA 450). {a.status === 'Posted' ? 'Salah saji ini telah berstatus dikoreksi.' : 'Posting jurnal untuk menandai dikoreksi.'}</div>
@@ -433,6 +471,8 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
           <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>Penyesuaian audit yang berdampak temporer menimbulkan aset/liabilitas pajak tangguhan — telaah rekonsiliasi pajak (WP TX).</div>
         </Panel>
 
+        <AjeAssertionLens model={model} />
+
         <Panel title="Kesimpulan">
           <div className="panel" style={{ padding: '11px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap8">
@@ -447,6 +487,38 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
         </Panel>
       </div>
     </div>
+  );
+}
+
+/* Lensa per-asersi — agregasi asersi yang dikoreksi seluruh jurnal (SA 315). */
+function AjeAssertionLens({ model }: any) {
+  const { fmt } = AMS;
+  const map = new Map<AssertionId, { n: number; pbt: number; posted: number }>();
+  model.forEach((a: any) => (a.assertions || []).forEach((id: AssertionId) => {
+    const e = map.get(id) || { n: 0, pbt: 0, posted: 0 };
+    e.n++; e.pbt += a.pbt || 0; if (a.status === 'Posted') e.posted++;
+    map.set(id, e);
+  }));
+  const rows = [...map.entries()].map(([id, v]) => ({ d: assertionDef(id), ...v })).filter(r => r.d).sort((a, b) => Math.abs(b.pbt) - Math.abs(a.pbt));
+  return (
+    <Panel title="Lensa per Asersi (SA 315)" sub="asersi yang dikoreksi jurnal penyesuaian">
+      {rows.length ? (
+        <div style={{ display: 'grid', gap: 7 }}>
+          {rows.map(r => (
+            <div key={r.d.id} className="row ac jb" style={{ gap: 8 }}>
+              <span className="row ac gap6" style={{ minWidth: 0 }}>
+                <span className="chip tiny" style={{ height: 17, padding: '0 6px', background: 'var(--blue-050)', color: 'var(--blue)', fontWeight: 600 }}>{r.d.abbr}</span>
+                <span className="tiny truncate" style={{ fontWeight: 600 }}>{r.d.label}</span>
+              </span>
+              <span className="row ac gap8" style={{ flex: '0 0 auto' }}>
+                <span className="tiny muted">{r.n} jurnal{r.posted ? ` · ${r.posted} posted` : ''}</span>
+                <span className="mono tiny" style={{ fontWeight: 700, color: signColor(r.pbt) }}>{r.pbt ? (r.pbt < 0 ? '' : '+') + fmt(r.pbt / 1e6, 0) + ' jt' : '—'}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : <div className="tiny muted">Belum ada jurnal ber-tag asersi.</div>}
+    </Panel>
   );
 }
 
@@ -613,8 +685,8 @@ function WorkflowTrack({ steps }: any) {
   );
 }
 
-Object.assign(window, { AJEView });
+Object.assign(window, { AJEView, ajeAssertionIds });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AJEView };
+export { AJEView, ajeAssertionIds };
