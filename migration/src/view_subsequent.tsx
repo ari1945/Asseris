@@ -1,22 +1,19 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel } from './ui';
+import { Badge, Btn, Panel, Stat } from './ui';
+import { SE_EVENTS, scanSubsequent, BOOK_STATUS_META, DISC_STATUS_META, type SubsequentEvent, type SeReflection } from './canon_subsequent';
 
 /* ============================================================
    Asseris — Subsequent Events (SA 560 / PSAK 8)
+   Daftar peristiwa bersumber dari canon_subsequent (SSOT);
+   rekonsiliasi perlakuan LK (penyesuai→AJE, non-penyesuai→
+   pengungkapan) memakai register AJE kanonik (AMS.AJE).
    ============================================================ */
 const { useState: useStateSE } = React;
-
-const SE_EVENTS = [
-  { id: 'SE-01', date: '2026-01-12', day: 12, title: 'Pelanggan utama (PT Distribusi Andal) mengajukan PKPU', type: 'adjusting', amount: 2_530_000_000, desc: 'Kondisi sudah ada pada tgl neraca — piutang Rp 2,53 M perlu dievaluasi penurunan nilainya.', treatment: 'Sesuaikan CKPN / hapus buku piutang per 31 Des 2025.' },
-  { id: 'SE-02', date: '2026-01-28', day: 28, title: 'Kebakaran di gudang cabang Cikarang', type: 'nonadjusting', amount: 4_100_000_000, desc: 'Peristiwa terjadi setelah tgl neraca — tidak menyesuaikan, namun material untuk diungkapkan.', treatment: 'Ungkapkan dalam CALK (sifat & estimasi dampak keuangan).' },
-  { id: 'SE-03', date: '2026-02-10', day: 41, title: 'Penarikan fasilitas kredit baru Rp 20 M', type: 'nonadjusting', amount: 20_000_000_000, desc: 'Pendanaan baru untuk ekspansi — peristiwa non-penyesuai.', treatment: 'Ungkapkan dalam CALK peristiwa setelah periode pelaporan.' },
-  { id: 'SE-04', date: '2026-02-18', day: 49, title: 'Putusan pengadilan atas gugatan pemasok', type: 'adjusting', amount: 850_000_000, desc: 'Mengonfirmasi kewajiban yang sudah ada pada tgl neraca — provisi perlu disesuaikan.', treatment: 'Akui/sesuaikan provisi liabilitas Rp 850 jt per 31 Des 2025.' },
-  { id: 'SE-05', date: '2026-03-05', day: 64, title: 'Deklarasi dividen interim oleh Direksi', type: 'nonadjusting', amount: 6_000_000_000, desc: 'Dividen dideklarasi setelah tgl neraca — tidak diakui sebagai liabilitas per 31 Des.', treatment: 'Ungkapkan dalam CALK; tidak diakui sebagai liabilitas.' },
-];
 
 const SE_PROCEDURES = [
   { t: 'Inquiry kepada manajemen atas peristiwa setelah tgl neraca', done: true },
@@ -28,12 +25,18 @@ const SE_PROCEDURES = [
 
 function SubsequentEvents() {
   const { fmt } = AMS;
-  const [events, setEvents] = useStateSE(SE_EVENTS);
+  const nav = useNav();
+  const [events, setEvents] = useStateSE(SE_EVENTS as SubsequentEvent[]);
   const [selId, setSelId] = useStateSE('SE-01');
   const [procs, setProcs] = useStateSE(SE_PROCEDURES);
 
   const sel = events.find((e: any) => e.id === selId);
   const adjusting = events.filter((e: any) => e.type === 'adjusting').length;
+
+  /* —— Rekonsiliasi perlakuan LK: penyesuai→AJE, non-penyesuai→pengungkapan —— */
+  const scan = scanSubsequent({ events, aje: AMS.AJE });
+  const reflById = new Map(scan.reflections.map(r => [r.id, r]));
+  const openGap = (r: SeReflection) => { setSelId(r.id); nav(r.type === 'adjusting' ? 'aje' : 'disclosure'); };
   const setType = (id: any, type: any) => setEvents((list: any) => list.map((e: any) => e.id === id ? { ...e, type } : e));
   const toggleProc = (i: any) => setProcs((ps: any) => ps.map((p: any, idx: any) => idx === i ? { ...p, done: !p.done } : p));
   const procDone = procs.filter((p: any) => p.done).length;
@@ -79,6 +82,48 @@ function SubsequentEvents() {
                 <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--red)' }} /> Penyesuai (Type 1)</span>
                 <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--amber)' }} /> Non-Penyesuai (Type 2)</span>
               </div>
+            </div>
+          </Panel>
+
+          {/* —— rekonsiliasi perlakuan ke laporan keuangan (inti SA 560) —— */}
+          <Panel noBody style={{ marginBottom: 12 }}>
+            <div className="panel-h">
+              <h3>Rekonsiliasi ke Laporan Keuangan</h3>
+              <div style={{ flex: 1 }} />
+              <Badge kind="blue">SA 560 ¶6,10 · PSAK 8</Badge>
+            </div>
+            <div style={{ padding: '11px 14px' }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
+                <Stat value={scan.rollup.gaps} label="Gap Perlakuan" accent={scan.rollup.gaps ? 'var(--red)' : 'var(--green)'} />
+                <Stat value={'Rp ' + fmt(scan.rollup.adjustingImpact / 1e9, 2) + ' M'} label="Dampak Penyesuai" />
+                <Stat value={'Rp ' + fmt(scan.rollup.unbookedImpact / 1e9, 2) + ' M'} label="Belum Dibukukan" accent={scan.rollup.unbookedImpact ? 'var(--red)' : undefined} />
+              </div>
+              <div style={{ display: 'grid', gap: 6 }}>
+                {scan.reflections.map((r: SeReflection) => {
+                  const meta = r.type === 'adjusting' ? BOOK_STATUS_META[r.bookStatus!] : DISC_STATUS_META[r.discStatus!];
+                  const need = r.type === 'adjusting' ? 'Penyesuai → wajib dibukukan (jurnal penyesuai)' : 'Non-penyesuai → wajib diungkapkan (CALK)';
+                  return (
+                    <div key={r.id} onClick={() => r.isGap && openGap(r)} className="panel row jb ac" style={{ padding: '9px 11px', borderColor: 'var(--line)', cursor: r.isGap ? 'pointer' : 'default', borderLeft: '3px solid var(--' + (r.isGap ? meta.k : 'line') + ')' }}>
+                      <span className="row ac gap8" style={{ minWidth: 0 }}>
+                        <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</span>
+                        <span style={{ minWidth: 0 }}>
+                          <div className="truncate" style={{ fontSize: 12, fontWeight: 600, maxWidth: 360 }}>{r.title}</div>
+                          <div className="tiny muted">{need}{r.ajeId ? ' · ' + r.ajeId : ''}</div>
+                        </span>
+                      </span>
+                      <span className="row ac gap8" style={{ flexShrink: 0 }}>
+                        <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(r.amount / 1e6, 0)} jt</span>
+                        <Badge kind={meta.k}>{meta.l}</Badge>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {scan.rollup.gaps > 0 && (
+                <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.45 }}>
+                  <I.alert size={12} style={{ verticalAlign: 'middle', color: 'var(--red)' }} /> {scan.rollup.unbookedCount} peristiwa penyesuai belum dibukukan & {scan.rollup.undisclosedCount} non-penyesuai belum diungkap — klik untuk tindak lanjut ke AJE / Daftar-Uji Pengungkapan.
+                </div>
+              )}
             </div>
           </Panel>
 
