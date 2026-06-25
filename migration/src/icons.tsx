@@ -155,12 +155,12 @@ const MODULES = [
     { id: 'dashboard', label: 'Firm Dashboard', icon: 'dashboard', deep: true },
     { id: 'bi',        label: 'BI & Konsolidasi', icon: 'trend', deep: true },
     { id: 'crm',       label: 'Client CRM',     icon: 'users', deep: true },
-    { id: 'risk',      label: 'Risk Assessment', icon: 'shield', deep: true },
     { id: 'engagement',label: 'Engagement Mgmt', icon: 'briefcase', deep: true },
     { id: 'onboarding',label: 'Onboarding Klien', icon: 'flag', deep: true },
     { id: 'dataflow',  label: 'Alur Data & Integritas', icon: 'link2', deep: true },
   ]},
   { group: 'Core Planning', items: [
+    { id: 'risk',        label: 'Risk Assessment', icon: 'shield', deep: true, tag: 'SA 315' },
     { id: 'materiality', label: 'Materiality', icon: 'target', deep: true },
     { id: 'icfr',        label: 'Internal Control', icon: 'sliders', deep: true },
     { id: 'strategy',    label: 'Strategy Memo', icon: 'doc', deep: true },

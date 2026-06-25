@@ -83,6 +83,8 @@ export interface EngagementRow {
 
 /* ---------- Penilaian risiko (RoMM register) ---------- */
 export interface RiskRow {
+  /** perikatan pemilik register (di-seed; mengaktifkan agregasi portofolio). */
+  engagementId?: string;
   id: string;
   area: string;
   assertion: string;

@@ -1,12 +1,15 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm } from './contexts';
+import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Donut, Portlet, Progress, Spark, Stat } from './ui';
+import { Avatar, Badge, Btn, Donut, Panel, Portlet, Progress, Spark, Stat } from './ui';
 import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';
 import { MSub } from './view_fpm_parts';
+import { portfolioRisk, riskBandColor, type PortfolioRiskRow } from './portfolio_risk';
+import { ENG_RISK_SEED } from './data_part1';
 
 /* ============================================================
    Asseris — Firm Dashboard (draggable portlets)
@@ -48,10 +51,85 @@ function useDraggablePortlets(defaultOrder: any, storeKey: any) {
   return { order, handlers, overId, reset: () => setOrder(defaultOrder) };
 }
 
+/* ============================================================
+   Risiko Portofolio — pengawasan RoMM lintas-klien (Partner/Manager).
+   Agregat dari union register RoMM (ENG_RISK_SEED) via portfolio_risk;
+   perikatan tanpa register tersimpan tampil "belum dinilai". Klik baris
+   yang sudah dinilai → set engagement aktif & buka modul Risk Assessment.
+   ============================================================ */
+function PortfolioRiskPanel({ nav, setActiveEngagementId }: {
+  nav: (id: string, opts?: { from?: string }) => void;
+  setActiveEngagementId: (id: string) => void;
+}) {
+  const { engagements, clients } = useFirm();
+  const sum = portfolioRisk(engagements, clients, ENG_RISK_SEED);
+
+  const openEng = (row: PortfolioRiskRow) => {
+    if (!row.assessed) return;
+    try { setActiveEngagementId(row.engagementId); } catch (e) {}
+    nav('risk', { from: 'dashboard' });
+  };
+
+  return (
+    <div className="view-scroll">
+      <div className="view-pad">
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${sum.assessed}/${sum.engagements}`} label="Perikatan Dinilai (RoMM)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.significant} label="Risiko Signifikan (Firma)" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.fraud} label="Fraud Risk · SA 240" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.unassessed} label="Belum Dinilai" /></div></Panel>
+        </div>
+
+        <Panel noBody>
+          <div className="panel-h">
+            <h3>Profil Risiko per Klien</h3><div style={{ flex: 1 }} />
+            <span className="tiny muted">Klik baris yang sudah dinilai untuk membuka register RoMM</span>
+          </div>
+          <table className="dtbl">
+            <thead><tr>
+              <th>Klien</th><th>Perikatan</th><th>Partner</th><th>Fase</th>
+              <th className="r">Risiko</th><th className="r">Signifikan</th><th className="r">Fraud</th>
+              <th>Tingkat Tertinggi</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              {sum.rows.map((r) => (
+                <tr key={r.engagementId} onClick={() => openEng(r)} style={{ cursor: r.assessed ? 'pointer' : 'default', opacity: r.assessed ? 1 : 0.62 }}>
+                  <td className="truncate" style={{ maxWidth: 180 }}>{r.client.replace('PT ', '')}</td>
+                  <td className="mono tiny muted">{r.engagementId}</td>
+                  <td className="truncate tiny muted" style={{ maxWidth: 120 }}>{r.partner.split(',')[0]}</td>
+                  <td className="tiny">{r.phase}</td>
+                  <td className="num">{r.assessed ? r.total : '—'}</td>
+                  <td className="num" style={{ color: r.significant ? 'var(--red)' : undefined, fontWeight: r.significant ? 700 : 400 }}>{r.assessed ? r.significant : '—'}</td>
+                  <td className="num" style={{ color: r.fraud ? 'var(--amber)' : undefined, fontWeight: r.fraud ? 700 : 400 }}>{r.assessed ? r.fraud : '—'}</td>
+                  <td>{r.assessed
+                    ? <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 3, background: riskBandColor(r.band) }} /><span className="tiny">{r.band} · {r.maxScore}</span></span>
+                    : <span className="tiny muted">—</span>}</td>
+                  <td>{r.assessed
+                    ? <Badge kind="blue">Dinilai</Badge>
+                    : <span title={`Rating perikatan (metadata): ${r.engRating}`}><Badge kind="gray">Belum dinilai</Badge></span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Panel>
+
+        <div className="tiny muted" style={{ marginTop: 10, lineHeight: 1.5 }}>
+          Angka diturunkan dari register RoMM (SA 315/330) tiap perikatan — bukan estimasi.
+          Perikatan tanpa register tersimpan ditandai <b>Belum dinilai</b>; kolom rating perikatan
+          (High/Medium/Low) adalah metadata penerimaan, bukan skor RoMM.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FirmDashboard() {
   const { fmt, rp } = AMS;
   const { engagements, clients, setActiveEngagementId } = useFirm();
   const { team, activity, deadlines, risks } = useAudit();
+  const auth = useAuth();
+  const nav = useNav();
+  const canPortfolio = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_VIEW_ALL));
 
   const activeEng = engagements.filter((e: any) => e.status !== 'Completed');
   const totalWIP = engagements.reduce((s: any, e: any) => s + (e.budgetHrs - e.actualHrs > 0 ? 0 : 0) + e.actualHrs * 850000, 0);
@@ -242,11 +320,14 @@ function FirmDashboard() {
     { id: 'operasional', label: 'Operasional', icon: 'briefcase' },
     { id: 'finansial', label: 'Finansial', icon: 'coins' },
     { id: 'mutu', label: 'Mutu & Risiko', icon: 'shield' },
+    ...(canPortfolio ? [{ id: 'portofolio', label: 'Risiko Portofolio', icon: 'target' }] : []),
   ];
+  // guard: tab 'portofolio' tersimpan dari sesi oversight, lalu login peran lain
+  const effTab = (tab === 'portofolio' && !canPortfolio) ? 'ringkasan' : tab;
 
   return (
     <>
-      <SubBar moduleId="dashboard" right={tab === 'ringkasan' ?
+      <SubBar moduleId="dashboard" right={effTab === 'ringkasan' ?
         <div className="row gap8 ac">
           <span className="tiny muted">Tarik <I.grip size={12} style={{ verticalAlign: 'middle' }} /> untuk menata ulang portlet</span>
           <Btn sm onClick={reset}><I.sync size={13} /> Reset Layout</Btn>
@@ -254,8 +335,8 @@ function FirmDashboard() {
         </div> :
         <Badge kind="blue">FY2025 · Firma-wide</Badge>
       } />
-      <MSub tabs={dashTabs} active={tab} onChange={setTab} />
-      {tab === 'ringkasan' && (
+      <MSub tabs={dashTabs} active={effTab} onChange={setTab} />
+      {effTab === 'ringkasan' && (
         <div className="view-scroll">
           <div className="view-pad">
             <div className="grid" style={{ gridTemplateColumns: 'repeat(12,1fr)', gap: 12 }}>
@@ -268,9 +349,10 @@ function FirmDashboard() {
           </div>
         </div>
       )}
-      {tab === 'operasional' && <DashOperasional />}
-      {tab === 'finansial' && <DashFinansial />}
-      {tab === 'mutu' && <DashMutu />}
+      {effTab === 'operasional' && <DashOperasional />}
+      {effTab === 'finansial' && <DashFinansial />}
+      {effTab === 'mutu' && <DashMutu />}
+      {effTab === 'portofolio' && canPortfolio && <PortfolioRiskPanel nav={nav} setActiveEngagementId={setActiveEngagementId} />}
     </>
   );
 }
