@@ -87,6 +87,10 @@ const AMS_PERSIST_SCOPE = {
      prosedur bertahan lintas reload (override per-id atas register kanon). */
   'relatedTxn.v1': 'engagement',
   'relatedProcs.v1': 'engagement',
+  /* Subsequent Events (SA 560): reklasifikasi peristiwa penyesuai↔non-penyesuai &
+     status prosedur audit bertahan lintas reload (override per-id; seed=canon). */
+  'subsequentClass.v1': 'engagement',
+  'subsequentProcs.v1': 'engagement',
 };
 
 const SYNC_DEBOUNCE_MS = 400;
