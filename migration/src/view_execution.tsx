@@ -10,6 +10,8 @@ import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_de
 import { amsExportXlsx } from './export_xlsx';
 import { parseTrialBalance } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow } from './wtb_import';
+import { checkWtbIntegrity } from './wtb_integrity';
+import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch } from './wtb_integrity';
 
 /* ============================================================
    Asseris — Working Trial Balance (WTB) + AJE
@@ -24,7 +26,7 @@ const WTB_TABS = [
 
 function WTBView() {
   const { fmt, rp } = AMS;
-  const { wtb, ajeTotalPosted, wtbImport } = useAudit();
+  const { wtb, ajeTotalPosted, wtbImport, aje } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
   const nav = useNav();
   const [tab, setTab] = useStateX('tb');
@@ -34,6 +36,8 @@ function WTBView() {
   const [drill, setDrill] = useStateX(null);
   const [exporting, setExporting] = useStateX(false);
   const [importOpen, setImportOpen] = useStateX(false);
+  const [showIntegrity, setShowIntegrity] = useStateX(false);
+  const integrity: WtbIntegrityResult = useMemoX(() => checkWtbIntegrity(wtb, aje), [wtb, aje]);
 
   const pm = activeEngagement.materiality * 0.75;
 
@@ -113,13 +117,20 @@ function WTBView() {
                 <I.search2 size={14} style={{ color: 'var(--ink-4)' }} />
                 <input style={{ color: 'var(--ink)' }} placeholder="Cari akun / kode…" value={q} onChange={(e: any) => setQ(e.target.value)} />
               </div>
-              <span className="chip"><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} /> Balanced</span>
+              <button className="chip" onClick={() => setShowIntegrity((s: boolean) => !s)} title="Integritas neraca saldo — footing, rekonsiliasi neraca & AJE (SA 330/500)"
+                style={{ cursor: 'pointer', border: '1px solid var(--line)', background: integrity.status === 'ok' ? 'var(--green-bg)' : 'var(--amber-bg)' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: integrity.status === 'ok' ? 'var(--green)' : 'var(--amber)' }} />
+                {integrity.status === 'ok' ? 'Integritas OK' : 'Perlu perhatian'}
+                <I.chevDown size={11} style={{ transform: showIntegrity ? 'rotate(180deg)' : 'none' }} />
+              </button>
             </div>
             <div className="row ac gap8">
               <span className="tiny muted">Tampilkan kolom:</span>
               <Seg options={[{ value: true, label: 'Dgn AJE' }, { value: false, label: 'Unadjusted' }]} value={showAdj} onChange={setShowAdj} />
             </div>
           </div>
+
+          {showIntegrity && <WtbIntegrityPanel r={integrity} />}
 
           <Panel noBody style={{ overflow: 'hidden' }}>
             <div style={{ maxHeight: 'calc(100vh - 306px)', overflow: 'auto' }}>
@@ -370,6 +381,80 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
 }
 
 Object.assign(window, { WtbImportDrawer });
+
+/* ---------------- W-WTB·2 · Panel integritas neraca saldo ---------------- */
+function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
+  const { rp } = AMS;
+  const bsExact = Math.abs(r.bsDiff) <= r.tol;
+  const ajeOk = r.ajeBalanced && r.registerReconciled;
+  const dot = (c: string) => <span style={{ width: 6, height: 6, borderRadius: '50%', background: c, display: 'inline-block', flex: '0 0 auto' }} />;
+  const msgColor = (lvl: string) => lvl === 'warn' ? 'var(--amber)' : lvl === 'ok' ? 'var(--green)' : 'var(--ink-2)';
+  const msgDot = (lvl: string) => lvl === 'warn' ? 'var(--amber)' : lvl === 'ok' ? 'var(--green)' : 'var(--blue)';
+
+  const Tile = ({ label, value, valColor, sub, bg }: { label: string; value: string; valColor: string; sub: string; bg: string }) => (
+    <div className="panel" style={{ padding: '8px 11px', boxShadow: 'none', background: bg }}>
+      <div className="tiny muted upper" style={{ letterSpacing: '.04em' }}>{label}</div>
+      <div className="mono" style={{ fontWeight: 700, color: valColor, fontSize: 13 }}>{value}</div>
+      <div className="tiny muted" style={{ lineHeight: 1.3 }}>{sub}</div>
+    </div>
+  );
+
+  return (
+    <Panel noBody style={{ marginBottom: 12 }}>
+      <div className="panel-h">
+        <h3>Integritas Neraca Saldo</h3>
+        <span className="sub">Footing · rekonsiliasi neraca · rekonsiliasi AJE (SA 330/500)</span>
+        <div style={{ flex: 1 }} />
+        <Badge kind={r.status === 'ok' ? 'green' : 'amber'}>{r.status === 'ok' ? 'OK' : 'Perlu perhatian'}</Badge>
+      </div>
+      <div style={{ padding: '10px 14px' }}>
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 10 }}>
+          <Tile label="Footing (Σ adjusted)"
+            value={r.footed ? 'Ter-foot ✓' : rp(r.sumAdj)}
+            valColor={r.footed ? 'var(--green)' : (r.footingExplainedByIncome ? 'var(--ink)' : 'var(--red)')}
+            sub={r.footed ? 'Debit = kredit' : (r.footingExplainedByIncome ? '≈ laba berjalan (TB pra-tutup)' : 'anomali — periksa akun/tanda')}
+            bg={r.footed ? 'var(--green-bg)' : 'var(--surface-2)'} />
+          <Tile label="Rekonsiliasi Neraca"
+            value={bsExact ? 'Seimbang ✓' : rp(r.bsDiff)}
+            valColor={r.bsTied ? (bsExact ? 'var(--green)' : 'var(--ink)') : 'var(--red)'}
+            sub={bsExact ? 'Aset = Liabilitas + Ekuitas' : (r.bsExplainedByIncome ? '≈ laba berjalan (ditutup ke ekuitas di LK)' : 'tak seimbang — periksa pemetaan')}
+            bg={bsExact ? 'var(--green-bg)' : (r.bsExplainedByIncome ? 'var(--surface-2)' : 'var(--amber-bg)')} />
+          <Tile label="Rekonsiliasi AJE"
+            value={ajeOk ? 'Selaras ✓' : (r.ajeMismatches.length + ' akun selisih')}
+            valColor={ajeOk ? 'var(--green)' : 'var(--amber)'}
+            sub={r.ajeBalanced ? 'Σ AJE = 0 (jurnal seimbang)' : 'Σ AJE = ' + rp(r.wtbAjeSum)}
+            bg={ajeOk ? 'var(--green-bg)' : 'var(--amber-bg)'} />
+        </div>
+
+        <div className="col" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {r.messages.map((m: IntegrityMessage, i: number) => (
+            <div key={i} className="row ac gap6 tiny" style={{ color: msgColor(m.level) }}>
+              {dot(msgDot(m.level))} <span>{m.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {r.ajeMismatches.length > 0 && (
+          <div style={{ marginTop: 10, border: '1px solid var(--line)', borderRadius: 6, overflow: 'hidden' }}>
+            <table className="dtbl">
+              <thead><tr><th>Akun</th><th className="num">AJE di WTB</th><th className="num">AJE di Register</th><th className="num">Selisih</th></tr></thead>
+              <tbody>
+                {r.ajeMismatches.slice(0, 6).map((mm: AjeMismatch, i: number) => (
+                  <tr key={i}>
+                    <td className="mono tiny">{mm.code}</td>
+                    <td className="num"><span className={mm.wtb < 0 ? 'neg' : ''}>{rp(mm.wtb)}</span></td>
+                    <td className="num"><span className={mm.register < 0 ? 'neg' : ''}>{rp(mm.register)}</span></td>
+                    <td className="num" style={{ fontWeight: 600, color: 'var(--amber)' }}><span className={mm.diff < 0 ? 'neg' : ''}>{rp(mm.diff)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </Panel>
+  );
+}
 
 /* WTB account drill — synthetic sub-ledger transactions + lead schedule link */
 function WtbDrill({ row, onClose, nav }: any) {
