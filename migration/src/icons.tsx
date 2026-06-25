@@ -159,6 +159,7 @@ const MODULES = [
     { id: 'engagement',label: 'Engagement Mgmt', icon: 'briefcase', deep: true },
     { id: 'onboarding',label: 'Onboarding Klien', icon: 'flag', deep: true },
     { id: 'dataflow',  label: 'Alur Data & Integritas', icon: 'link2', deep: true },
+    { id: 'continuance', label: 'Keberlanjutan Klien', icon: 'checkCircle', deep: true, tag: 'ISQM 1' },
   ]},
   { group: 'Core Planning', items: [
     { id: 'materiality', label: 'Materiality', icon: 'target', deep: true },
@@ -355,6 +356,7 @@ const RELATED_SA = {
   // Perencanaan, penerimaan perikatan & kendali mutu
   programme:   [{ code: 'SA 300', title: 'Perencanaan Audit LK', phase: 'Perencanaan' }, { code: 'SA 330', title: 'Respons Auditor terhadap Risiko', phase: 'Pelaksanaan' }],
   onboarding:  [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }, { code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }],
+  continuance: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }, { code: 'ISQM 1', title: 'Penerimaan & Keberlanjutan Hubungan Klien (¶33–34)', phase: 'Tata Kelola Mutu' }],
   crm:         [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }],
   eqr:         [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaporan' }],
   reviewnotes: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaksanaan' }],

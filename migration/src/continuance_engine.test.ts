@@ -1,0 +1,94 @@
+/* ============================================================
+   Keberlanjutan Klien (ISQM 1 ¶33–34 / SA 220) — mesin pemicu.
+   Memastikan: pemicu turun dari data kanonik, hanya klien aktif,
+   keputusan tersimpan ter-merge, urutan (belum-diputuskan & perhatian
+   tinggi dulu), dan integrasi seed nyata.
+   ============================================================ */
+import { describe, it, expect } from 'vitest';
+import { continuanceFlags, type StoredDecision } from './continuance_engine';
+import { CLIENTS, INDEPENDENCE, INVOICES } from './data_part1';
+
+const CLI = [
+  { id: 'C-1', name: 'PT Alpha', industry: 'Manufaktur', partner: 'P. Satu', risk: 'High', listed: true, since: 2015, status: 'Active' },
+  { id: 'C-2', name: 'PT Beta', industry: 'Jasa', partner: 'P. Dua', risk: 'Low', listed: false, since: 2024, status: 'Active' },
+  { id: 'C-3', name: 'PT Gamma', industry: 'Properti', partner: 'P. Tiga', risk: 'Medium', listed: false, since: 2020, status: 'Proposal' },
+];
+const INDEP = [
+  { name: 'P. Satu', rotationClient: 'PT Alpha', tenure: 7, rotationLimit: 5, conflicts: 0, basis: 'PP 20/2015' },
+];
+const INV = [{ clientId: 'C-1', status: 'Overdue' }];
+
+describe('continuanceFlags — pemicu & ruang lingkup', () => {
+  const sum = continuanceFlags(CLI, INDEP, INV, {}, 2026);
+
+  it('hanya klien berstatus Active (proposal dikecualikan — itu domain onboarding)', () => {
+    expect(sum.total).toBe(2);
+    expect(sum.rows.map((r) => r.clientId).sort()).toEqual(['C-1', 'C-2']);
+  });
+
+  it('menghimpun pemicu klien berisiko dari kanon', () => {
+    const a = sum.rows.find((r) => r.clientId === 'C-1')!;
+    const keys = a.triggers.map((t) => t.key).sort();
+    expect(keys).toEqual(['asosiasi', 'fee', 'pie', 'risiko', 'rotasi']);
+    expect(a.triggers.find((t) => t.key === 'rotasi')!.severity).toBe('high'); // tenur 7 > batas 5
+    expect(a.attention).toBe('Tinggi');
+  });
+
+  it('klien bersih → tanpa pemicu, perhatian Rendah', () => {
+    const b = sum.rows.find((r) => r.clientId === 'C-2')!;
+    expect(b.triggers).toHaveLength(0);
+    expect(b.attention).toBe('Rendah');
+  });
+
+  it('default keputusan Tertunda bila belum diputuskan', () => {
+    expect(sum.rows.every((r) => r.decision === 'Tertunda' && !r.decided)).toBe(true);
+    expect(sum.pending).toBe(2);
+    expect(sum.decided).toBe(0);
+  });
+});
+
+describe('continuanceFlags — keputusan tersimpan & urutan', () => {
+  const decisions: Record<string, StoredDecision> = {
+    'C-2': { decision: 'Lanjut', approver: 'Partner X', date: '2026-01-10' },
+  };
+  const sum = continuanceFlags(CLI, INDEP, INV, decisions, 2026);
+
+  it('me-merge keputusan tersimpan', () => {
+    const b = sum.rows.find((r) => r.clientId === 'C-2')!;
+    expect(b.decided).toBe(true);
+    expect(b.decision).toBe('Lanjut');
+    expect(b.approver).toBe('Partner X');
+    expect(sum.decided).toBe(1);
+  });
+
+  it('mengurutkan belum-diputuskan & perhatian tinggi lebih dulu', () => {
+    expect(sum.rows[0].clientId).toBe('C-1'); // pending + Tinggi
+    expect(sum.rows[1].clientId).toBe('C-2'); // sudah diputuskan
+  });
+
+  it('menghitung rotationFlags & attentionHigh', () => {
+    expect(sum.rotationFlags).toBe(1);
+    expect(sum.attentionHigh).toBe(1);
+  });
+});
+
+describe('integrasi seed nyata', () => {
+  const sum = continuanceFlags(CLIENTS, INDEPENDENCE, INVOICES, {}, 2026);
+
+  it('mencakup hanya klien aktif (C-052 Proposal dikecualikan)', () => {
+    expect(sum.rows.some((r) => r.clientId === 'C-052')).toBe(false);
+    expect(sum.total).toBeGreaterThanOrEqual(6);
+  });
+
+  it('menandai rotasi terlampaui Rudi Gunawan / Graha Properti (tenur 7 > 5)', () => {
+    const graha = sum.rows.find((r) => r.client.includes('Graha'))!;
+    const rot = graha.triggers.find((t) => t.key === 'rotasi')!;
+    expect(rot.severity).toBe('high');
+    expect(graha.attention).toBe('Tinggi');
+  });
+
+  it('menandai rotasi jatuh tempo Hartono / Sentosa (tenur 5 = 5)', () => {
+    const sentosa = sum.rows.find((r) => r.client.includes('Sentosa'))!;
+    expect(sentosa.triggers.some((t) => t.key === 'rotasi' && t.severity === 'high')).toBe(true);
+  });
+});
