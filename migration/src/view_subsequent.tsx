@@ -26,9 +26,14 @@ const SE_PROCEDURES = [
 function SubsequentEvents() {
   const { fmt } = AMS;
   const nav = useNav();
-  const [events, setEvents] = useStateSE(SE_EVENTS as SubsequentEvent[]);
+  /* engagement-scoped persist (AMS_PERSIST_SCOPE → engagement): reklasifikasi
+     peristiwa & status prosedur bertahan lintas reload + isolasi W7.5, capForWrite
+     WP_EDIT (semua auditor). Hanya override per-id disimpan; seed = canon SSOT. */
+  const [typeOverride, setTypeOverride] = window.useAmsPersist('subsequentClass.v1', {});
+  const [procOverride, setProcOverride] = window.useAmsPersist('subsequentProcs.v1', {});
   const [selId, setSelId] = useStateSE('SE-01');
-  const [procs, setProcs] = useStateSE(SE_PROCEDURES);
+  const events: SubsequentEvent[] = (SE_EVENTS as SubsequentEvent[]).map(e => (typeOverride[e.id] ? { ...e, type: typeOverride[e.id] } : e));
+  const procs = SE_PROCEDURES.map((p, i) => ((i in procOverride) ? { ...p, done: !!procOverride[i] } : p));
 
   const sel = events.find((e: any) => e.id === selId);
   const adjusting = events.filter((e: any) => e.type === 'adjusting').length;
@@ -37,8 +42,8 @@ function SubsequentEvents() {
   const scan = scanSubsequent({ events, aje: AMS.AJE });
   const reflById = new Map(scan.reflections.map(r => [r.id, r]));
   const openGap = (r: SeReflection) => { setSelId(r.id); nav(r.type === 'adjusting' ? 'aje' : 'disclosure'); };
-  const setType = (id: any, type: any) => setEvents((list: any) => list.map((e: any) => e.id === id ? { ...e, type } : e));
-  const toggleProc = (i: any) => setProcs((ps: any) => ps.map((p: any, idx: any) => idx === i ? { ...p, done: !p.done } : p));
+  const setType = (id: string, type: SubsequentEvent['type']) => setTypeOverride((s: Record<string, string>) => ({ ...s, [id]: type }));
+  const toggleProc = (i: number) => setProcOverride((s: Record<number, boolean>) => ({ ...s, [i]: !((i in s) ? s[i] : SE_PROCEDURES[i].done) }));
   const procDone = procs.filter((p: any) => p.done).length;
   const periodDays = 73; // 31 Dec 2025 -> 14 Mar 2026
 

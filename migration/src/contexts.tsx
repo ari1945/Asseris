@@ -83,6 +83,10 @@ const AMS_PERSIST_SCOPE = {
   /* Audit Programme (RoMM → prosedur). Engagement-scope → capForWrite=WP_EDIT
      (semua auditor) + isolasi W7.5. Menyimpan daftar prosedur + status. */
   'programme.v1': 'engagement',
+  /* Subsequent Events (SA 560): reklasifikasi peristiwa penyesuai↔non-penyesuai &
+     status prosedur audit bertahan lintas reload (override per-id; seed=canon). */
+  'subsequentClass.v1': 'engagement',
+  'subsequentProcs.v1': 'engagement',
 };
 
 const SYNC_DEBOUNCE_MS = 400;
