@@ -4,6 +4,7 @@ import { api, isConflict } from './api';
 import { can as rbacCan } from './rbac';
 import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
+import { applyMapping } from './wtb_mapping';
 
 /* ============================================================
    Asseris — React Context providers
@@ -101,7 +102,7 @@ const SYNC_DEBOUNCE_MS = 400;
 const CONFLICT_LABELS = {
   aje: 'Jurnal Penyesuaian (AJE)', risks: 'Register Risiko', wpState: 'Status Kertas Kerja',
   reviewNotes: 'Catatan Review', noteThreads: 'Balasan Catatan', timeEntries: 'Entri Waktu',
-  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB', wtbImport: 'Impor Neraca Saldo',
+  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB', wtbImport: 'Impor Neraca Saldo', wtbMapping: 'Pemetaan Akun WTB',
   clients: 'Daftar Klien', engagements: 'Daftar Perikatan', activeEng: 'Perikatan Aktif',
   profile: 'Profil Pengguna', role: 'Peran',
 };
@@ -364,6 +365,8 @@ function AppProviders({ me, onLogout, children }: any) {
   const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
   /* W-WTB·1 — neraca saldo klien terimpor (paste/CSV), per-engagement. null = pakai seed demo D.WTB. */
   const [wtbImport, setWtbImport] = useServerState('wtbImport', null, 'engagement', activeEngagementId);
+  /* W-WTB·3 — pemetaan bagan akun klien → CoA standar ({kodeKlien: kodeStandar}). */
+  const [wtbMapping, setWtbMapping] = useServerState('wtbMapping', {}, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
@@ -394,8 +397,13 @@ function AppProviders({ me, onLogout, children }: any) {
   }, [aje]);
 
   /* base WTB = neraca saldo terimpor (per-engagement) bila ada, else seed demo D.WTB.
-     Lapisan override analitis + delta AJE ter-post tetap berlaku di atasnya (SSOT). */
-  const baseWtb = (wtbImport && Array.isArray(wtbImport.rows) && wtbImport.rows.length) ? wtbImport.rows : D.WTB;
+     W-WTB·3: bila ada pemetaan akun, relabel+merge ke CoA standar dulu agar canon/FSGEN
+     mengenali bagan akun klien. Lapisan override analitis + delta AJE tetap di atasnya (SSOT). */
+  const baseWtb = useMemo(() => {
+    const imported = (wtbImport && Array.isArray(wtbImport.rows) && wtbImport.rows.length) ? wtbImport.rows : null;
+    if (!imported) return D.WTB;
+    return (wtbMapping && Object.keys(wtbMapping).length) ? applyMapping(imported, wtbMapping) : imported;
+  }, [wtbImport, wtbMapping]);
   const wtb = useMemo(() => baseWtb.map((r: any) => {
     const extra = userPostDeltas[r.code] || 0;
     const o = wtbOverrides[r.key] || {};
@@ -429,7 +437,7 @@ function AppProviders({ me, onLogout, children }: any) {
   const audit = useMemo(() => ({
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
-    wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport,
+    wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping,
     wpState, setWp,
     reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
@@ -437,7 +445,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wtbImport, setWtbImport, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

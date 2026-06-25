@@ -90,6 +90,7 @@ export function capForWrite(scope: any, key: any) {
     case 'wtbOverrides':
       return AJE_EDIT;
     case 'wtbImport':        // W-WTB·1 — impor neraca saldo klien (data-entry preparer)
+    case 'wtbMapping':       // W-WTB·3 — pemetaan bagan akun klien → CoA standar
       return WP_EDIT;
     default:
       // wpState, risks, reviewNotes, noteThreads, timeEntries, taskState, logEntries,

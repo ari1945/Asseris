@@ -12,6 +12,8 @@ import { parseTrialBalance } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow } from './wtb_import';
 import { checkWtbIntegrity } from './wtb_integrity';
 import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch } from './wtb_integrity';
+import { STANDARD_COA, autoMap, mappingCoverage } from './wtb_mapping';
+import type { CoaAccount, MappingCoverageResult } from './wtb_mapping';
 
 /* ============================================================
    Asseris — Working Trial Balance (WTB) + AJE
@@ -36,6 +38,7 @@ function WTBView() {
   const [drill, setDrill] = useStateX(null);
   const [exporting, setExporting] = useStateX(false);
   const [importOpen, setImportOpen] = useStateX(false);
+  const [mapOpen, setMapOpen] = useStateX(false);
   const [showIntegrity, setShowIntegrity] = useStateX(false);
   const integrity: WtbIntegrityResult = useMemoX(() => checkWtbIntegrity(wtb, aje), [wtb, aje]);
 
@@ -98,6 +101,7 @@ function WTBView() {
         <div className="row gap8 ac">
           <span className="tiny muted mono">PM: Rp {fmt(pm / 1e6, 0)} jt</span>
           <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export XLSX'}</Btn>
+          {wtbImport && wtbImport.rows && <Btn sm onClick={() => setMapOpen(true)} title="Petakan bagan akun klien ke CoA standar"><I.target size={13} /> Petakan Akun</Btn>}
           <Btn sm variant="primary" onClick={() => setImportOpen(true)}><I.upload size={14} /> Impor TB</Btn>
         </div>
       } />
@@ -220,7 +224,106 @@ function WTBView() {
       </div>
       {drill && <WtbDrill row={drill} onClose={() => setDrill(null)} nav={nav} />}
       {importOpen && <WtbImportDrawer onClose={() => setImportOpen(false)} />}
+      {mapOpen && <WtbMappingDrawer onClose={() => setMapOpen(false)} />}
     </>
+  );
+}
+
+/* ---------------- W-WTB·3 · Drawer pemetaan bagan akun → CoA standar ---------------- */
+function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
+  const { fmt } = AMS;
+  const { wtbImport, wtbMapping, setWtbMapping } = useAudit();
+  const auth = useAuth();
+  const canMap = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const srcRows = (wtbImport && Array.isArray(wtbImport.rows)) ? wtbImport.rows : [];
+  const [draft, setDraft] = useStateX(() => ({ ...(wtbMapping || {}) }));
+  const cov: MappingCoverageResult = useMemoX(() => mappingCoverage(srcRows, draft), [srcRows, draft]);
+  const m = (v: number) => fmt(v / 1e6, 1);
+  const setOne = (code: string, target: string) => setDraft((d: Record<string, string>) => {
+    const n = { ...d }; if (target) n[code] = target; else delete n[code]; return n;
+  });
+  const apply = () => { if (!canMap) return; setWtbMapping(draft); onClose(); };
+
+  // opsi select dikelompokkan per seksi FS
+  const groups = [...new Set(STANDARD_COA.map((a: CoaAccount) => a.group))];
+  const litCount = cov.psak.engines.filter(e => e.lit).length;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
+      <div className="panel" style={{ width: 920, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+          <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.target size={18} /></span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Pemetaan Bagan Akun → CoA Standar</div>
+            <div className="tiny" style={{ color: '#bcd6e4' }}>Petakan akun klien ke kode standar agar engine PSAK & FS Generator mengenalinya. Akun yang dipetakan ke kode sama digabung.</div>
+          </div>
+          {!canMap && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
+          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+        </div>
+
+        {/* coverage strip */}
+        <div className="row ac jb" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line)', gap: 12, flexWrap: 'wrap' }}>
+          <div className="row ac gap14">
+            <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: cov.unmappedCodes.length ? 'var(--amber)' : 'var(--green)' }}>{cov.mappedCount}/{cov.total}</div><div className="tiny muted">akun dipetakan</div></div>
+            <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)' }}>{cov.fsLinesCovered}/{cov.fsLinesTotal}</div><div className="tiny muted">baris FS terisi</div></div>
+            <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: litCount === cov.psak.engines.length ? 'var(--green)' : 'var(--ink)' }}>{litCount}/{cov.psak.engines.length}</div><div className="tiny muted">engine PSAK menyala</div></div>
+          </div>
+          <div className="row gap6">
+            <button className="btn sm" onClick={() => setDraft(autoMap(srcRows))} disabled={!canMap}><I.sync size={12} /> Saran otomatis</button>
+            <button className="btn sm ghost" onClick={() => setDraft({})} disabled={!canMap}><I.x size={12} /> Kosongkan</button>
+          </div>
+        </div>
+
+        <div style={{ overflow: 'auto', flex: 1 }}>
+          <table className="dtbl">
+            <thead><tr>
+              <th>Akun Klien</th><th className="num" style={{ width: 120 }}>Unadjusted</th>
+              <th style={{ width: 320 }}>Petakan ke (CoA standar)</th><th style={{ width: 90 }}>Status</th>
+            </tr></thead>
+            <tbody>
+              {srcRows.map((r: { code: string; name?: string; unadj?: number }) => {
+                const target = draft[r.code] || '';
+                const std = target ? STANDARD_COA.find((a: CoaAccount) => a.code === target) : null;
+                return (
+                  <tr key={r.code}>
+                    <td><div style={{ fontWeight: 600 }}>{r.name || r.code}</div><div className="mono tiny muted">{r.code}</div></td>
+                    <td className="num"><span className={(r.unadj || 0) < 0 ? 'neg' : ''}>{m(r.unadj || 0)}</span></td>
+                    <td>
+                      <select value={target} disabled={!canMap}
+                        onChange={(e: { target: { value: string } }) => setOne(r.code, e.target.value)}
+                        style={{ width: '100%', height: 28, border: '1px solid var(--line-strong)', borderRadius: 5, padding: '0 8px', fontSize: 12, fontFamily: 'var(--ui)', color: 'var(--ink)', background: 'var(--surface)' }}>
+                        <option value="">— belum dipetakan —</option>
+                        {groups.map((g: string) => (
+                          <optgroup key={g} label={g}>
+                            {STANDARD_COA.filter((a: CoaAccount) => a.group === g).map((a: CoaAccount) => (
+                              <option key={a.code} value={a.code}>{a.code} · {a.label}{a.canonKey ? ' ◆' : ''}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      {std
+                        ? <Badge kind={std.canonKey ? 'blue' : 'green'}>{std.canonKey ? 'PSAK ◆' : 'Terpetakan'}</Badge>
+                        : <Badge kind="amber">Belum</Badge>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="tiny muted" style={{ padding: '8px 14px' }}>◆ = akun pemicu engine PSAK (CKPN, imbalan kerja, aset tetap, sewa, pajak tangguhan, dst). Akun belum dipetakan tetap masuk total namun tak mengisi baris FS spesifik.</div>
+        </div>
+
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted">Disimpan per-perikatan. Saat diterapkan, WTB di-relabel ke kode standar → canon/FSGEN/cakupan otomatis selaras.</span>
+          <div className="row gap8">
+            <Btn sm onClick={onClose}>Batal</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!canMap}><I.check size={14} /> Terapkan Pemetaan</Btn>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
