@@ -101,7 +101,7 @@ const SYNC_DEBOUNCE_MS = 400;
 const CONFLICT_LABELS = {
   aje: 'Jurnal Penyesuaian (AJE)', risks: 'Register Risiko', wpState: 'Status Kertas Kerja',
   reviewNotes: 'Catatan Review', noteThreads: 'Balasan Catatan', timeEntries: 'Entri Waktu',
-  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB',
+  taskState: 'Status Tugas', logEntries: 'Log Aktivitas', wtbOverrides: 'Override WTB', wtbImport: 'Impor Neraca Saldo',
   clients: 'Daftar Klien', engagements: 'Daftar Perikatan', activeEng: 'Perikatan Aktif',
   profile: 'Profil Pengguna', role: 'Peran',
 };
@@ -362,6 +362,8 @@ function AppProviders({ me, onLogout, children }: any) {
      melihat register-nya sendiri (drill-down konsisten dgn Risiko Portofolio). */
   const [risks, setRisks] = useServerState('risks', ENG_RISK_SEED.filter((r) => r.engagementId === activeEngagementId), 'engagement', activeEngagementId);
   const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
+  /* W-WTB·1 — neraca saldo klien terimpor (paste/CSV), per-engagement. null = pakai seed demo D.WTB. */
+  const [wtbImport, setWtbImport] = useServerState('wtbImport', null, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
@@ -391,12 +393,15 @@ function AppProviders({ me, onLogout, children }: any) {
     return d;
   }, [aje]);
 
-  const wtb = useMemo(() => D.WTB.map((r: any) => {
+  /* base WTB = neraca saldo terimpor (per-engagement) bila ada, else seed demo D.WTB.
+     Lapisan override analitis + delta AJE ter-post tetap berlaku di atasnya (SSOT). */
+  const baseWtb = (wtbImport && Array.isArray(wtbImport.rows) && wtbImport.rows.length) ? wtbImport.rows : D.WTB;
+  const wtb = useMemo(() => baseWtb.map((r: any) => {
     const extra = userPostDeltas[r.code] || 0;
     const o = wtbOverrides[r.key] || {};
-    const ajeVal = (o.aje != null ? o.aje : r.aje) + extra;
-    return { ...r, ...o, aje: ajeVal, adj: r.unadj + ajeVal };
-  }), [wtbOverrides, userPostDeltas]);
+    const ajeVal = (o.aje != null ? o.aje : (r.aje || 0)) + extra;
+    return { ...r, ...o, aje: ajeVal, adj: (r.unadj || 0) + ajeVal };
+  }), [baseWtb, wtbOverrides, userPostDeltas]);
 
   const toggleAjeStatus = useCallback((id: any) => {
     setAje((list: any) => list.map((a: any) => a.id === id
@@ -424,7 +429,7 @@ function AppProviders({ me, onLogout, children }: any) {
   const audit = useMemo(() => ({
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
-    wtb, wtbOverrides, setWtbOverrides,
+    wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport,
     wpState, setWp,
     reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
@@ -432,7 +437,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wtbImport, setWtbImport, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>
