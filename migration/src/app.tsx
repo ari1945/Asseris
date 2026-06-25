@@ -147,6 +147,7 @@ import { TimeBudget } from './view_timebudget';
 import { WIPRealization } from './view_wip_firm';
 import { ReviewNotes } from './view_workspace';
 import { WorkingPapers } from './view_wp';
+import { AssertionMatrix } from './view_assertions';
 
 /* ============================================================
    Asseris — Main app + router
@@ -244,6 +245,7 @@ function viewFor(moduleId: any) {
     case 'opening':    return <OpeningBalance />;
     case 'strategy':   return <StrategyMemo />;
     case 'workpapers': return <WorkingPapers />;
+    case 'asersi':     return <AssertionMatrix />;
     case 'governance': return <Governance />;
     case 'nonaudit':   return <NonAuditPortfolio />;
     case 'review2400': return <Review2400 />;

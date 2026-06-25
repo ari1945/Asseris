@@ -2,6 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAudit, useNav } from './contexts';
+import { assertionCoverage, groupForAccountCode, ASSERTION_STATUS_META } from './canon_selectors';
+import { wpProcedureInputs } from './view_wp';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Seg } from './ui';
 
@@ -92,6 +94,50 @@ function TrendBars({ py, cy, w = 46, h = 22 }: any) {
   );
 }
 
+/* Strip relevansi & status asersi (SA 315) untuk lead schedule akun terpilih.
+   Menarik prosedur (SSOT wpProcedureInputs), risiko & kesimpulan via mesin
+   cakupan kanon — angka identik dengan tab Prosedur WP & Matriks Asersi. */
+function WtbAssertionStrip({ sel, audit, nav }: any) {
+  const lead = sel.lead;
+  if (!lead) return null;
+  const group = groupForAccountCode(sel.code);
+  const wpState = audit.wpState || {};
+  const st = wpState[lead] || {};
+  const procedures = wpProcedureInputs(lead, audit);
+  const relRisks = (audit.risks || []).filter((r: any) => (r.wp || '').split('-')[0] === lead)
+    .map((r: any) => ({ id: r.id, area: r.area, assertion: r.assertion, inherent: r.inherent, fraud: !!r.fraud, desc: r.desc }));
+  const cov = assertionCoverage({
+    leadRef: lead, group, procedures, risks: relRisks,
+    evidence: (st.evidence || []).map((e: any) => ({ tier: e.tier, asr: e.asr || [] })),
+    concl: st.asrConcl || {},
+  });
+  const rel = cov.cells.filter((c: any) => c.relevant);
+  if (!rel.length) return null;
+
+  const openWp = () => { try { localStorage.setItem('ams.wpOpen', lead); } catch (e) {} nav('workpapers'); };
+  return (
+    <div style={{ marginBottom: 10, padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 6, background: 'var(--surface-2)' }}>
+      <div className="row ac jb" style={{ marginBottom: 6 }}>
+        <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Asersi Relevan · WP {lead} (SA 315)</span>
+        <span className="row ac gap5">
+          {cov.gapCount > 0 && <Badge kind="red">{cov.gapCount} gap</Badge>}
+          <span className="tiny muted">{cov.concludedCount}/{cov.relevantCount} simpul</span>
+        </span>
+      </div>
+      <div className="row wrap gap6">
+        {rel.map((c: any) => {
+          const sm = ASSERTION_STATUS_META[c.status as keyof typeof ASSERTION_STATUS_META];
+          return <span key={c.assertion.id} title={c.assertion.label + ' — ' + sm.l + (c.risks.length ? ` · ${c.risks.length} risiko` : '')}><Badge kind={sm.k}>{c.assertion.abbr}</Badge></span>;
+        })}
+      </div>
+      <div className="row gap8" style={{ marginTop: 8 }}>
+        <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={() => nav('asersi')}><I.target size={13} /> Matriks Asersi</Btn>
+        <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={openWp}><I.layers size={13} /> Buka WP {lead}</Btn>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Command KPI band ---------------- */
 function WtbKpiBand({ summary, pm, onGotoReview }: any) {
   const { fmt } = AMS;
@@ -100,23 +146,23 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
   const reviewPct = summary.flaggedCount ? Math.round((summary.explained / summary.flaggedCount) * 100) : 100;
 
   const Tile = ({ label, value, sub, accent, children, onClick }: any) => (
-    <div className="panel" style={{ padding: '11px 13px', display: 'flex', flexDirection: 'column', gap: 3, cursor: onClick ? 'pointer' : 'default', position: 'relative' }} onClick={onClick}>
-      <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em' }}>{label}</div>
-      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+    <div className="panel" style={{ padding: '6px 11px', display: 'flex', flexDirection: 'column', gap: 1, cursor: onClick ? 'pointer' : 'default', position: 'relative' }} onClick={onClick}>
+      <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em', fontSize: 9.5 }}>{label}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.1 }}>{value}</div>
       {children}
-      {sub && <div className="tiny muted" style={{ marginTop: 1 }}>{sub}</div>}
+      {sub && <div className="tiny muted" style={{ marginTop: 0, fontSize: 10, lineHeight: 1.25 }}>{sub}</div>}
     </div>
   );
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', marginBottom: 12 }}>
+    <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', marginBottom: 9 }}>
       <Tile label="Total Aset" value={M(summary.totAset)} sub="Saldo setelah penyesuaian" />
       <Tile label="Posisi Neraca" value={balanced ? 'Seimbang' : 'Selisih'} accent={balanced ? 'var(--green)' : 'var(--red)'} sub={balanced ? 'Aset = Liabilitas + Ekuitas' : 'Selisih ' + M(Math.abs(summary.neracaDiff))} />
       <Tile label="Laba Bersih" value={M(summary.laba)} accent="var(--blue)" sub={'Margin ' + fmt(summary.margin, 1) + '% · Pendapatan − Beban'} />
       <Tile label={'Akun > PM'} value={summary.overPm + ' akun'} accent={summary.overPm ? 'var(--amber)' : 'var(--green)'} sub={'Performance Materiality Rp ' + fmt(pm / 1e6, 0) + ' jt'} />
       <Tile label="Telaah Pergerakan" value={summary.explained + ' / ' + summary.flaggedCount} accent={summary.followup ? 'var(--amber)' : 'var(--green)'} onClick={onGotoReview}
         sub={(summary.followup ? summary.followup + ' perlu tindak lanjut' : 'Selesai') + ' · SA 520'}>
-        <div className="pbar" style={{ marginTop: 4 }}><span style={{ width: reviewPct + '%', background: summary.followup ? 'var(--amber)' : 'var(--green)' }} /></div>
+        <div className="pbar" style={{ marginTop: 2 }}><span style={{ width: reviewPct + '%', background: summary.followup ? 'var(--amber)' : 'var(--green)' }} /></div>
       </Tile>
     </div>
   );
@@ -125,7 +171,8 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
 /* ---------------- Preliminary Analytical Review (SA 520) ---------------- */
 function WtbAnalytical({ pm, onOpenAccount }: any) {
   const { fmt } = AMS;
-  const { wtb, setWtbOverrides, addReviewNote, aje } = useAudit();
+  const audit = useAudit();
+  const { wtb, setWtbOverrides, addReviewNote, aje } = audit;
   const nav = useNav();
   const [absJt, setAbsJt] = useStateWD(Math.round(pm / 1e6));
   const [pct, setPct] = useStateWD(20);
@@ -265,6 +312,8 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                     ))}
                   </div>
                 )}
+
+                <WtbAssertionStrip sel={sel} audit={audit} nav={nav} />
 
                 <div className="field" style={{ marginBottom: 10 }}>
                   <label>Penjelasan auditor</label>

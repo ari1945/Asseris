@@ -14,7 +14,8 @@ import { SA_FULFILLED_BY, SA_GROUPS, SA_REVERSE } from './related_modules_data2'
 function ModuleLineage({ moduleId }: any) {
   const L = (typeof LINEAGE !== 'undefined' ? LINEAGE : window.LINEAGE || {})[moduleId];
   const nav = useNav();
-  const [open, setOpen] = React.useState(true);
+  /* default COLLAPSE — bar keterkaitan modul tampil terlipat di semua modul */
+  const [open, setOpen] = React.useState(false);
   if (!L) return null;
 
   const Chip = ({ m, color }: any) => {

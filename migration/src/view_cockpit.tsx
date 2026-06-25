@@ -1,6 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts';
+import { useNav, useAuth, useAmsPersist } from './contexts';
+import { CAP } from './rbac';
+import { AMS } from './data';
+import { openCanonicalWp } from './view_wp';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Seg, Stat, Tabs } from './ui';
@@ -78,6 +81,90 @@ const PROGRAMME = [
   ]},
 ];
 
+/* Tipe lokal modul — menahan regrowth :any pada kode baru (ratchet W15). */
+type Proc = { id: string; t: string; nat: string; asr: string[]; timing: string; extent: string; sa: string; wp: string; prep: string; rev: string; bud: number; act: number; exc: number; status: string; concl: string };
+type Risk = { riskId: string; area: string; sig?: boolean; fraud?: boolean; procs: Proc[] };
+type Tpl = { match: string[]; nat: string; asr: string[]; timing: string; extent: string; sa: string; wp: string; dedupe: string; t: string; fraud?: boolean; generic?: boolean };
+type ProcSrc = { t: string; nat: string; asr: string[]; timing?: string; extent?: string; sa?: string; wp?: string; prep?: string; rev?: string; bud?: string | number };
+/* Tipe event struktural — proyek ini tanpa @types/react (shim W13), jadi
+   React.ChangeEvent/MouseEvent tak tersedia; cukup bentuk yang kita pakai. */
+type FormEv = { target: { value: string } };
+type ClickEv = { stopPropagation: () => void };
+
+/* ----------------------------------------------------------------
+   Mesin Saran Prosedur — DETERMINISTIK (bukan LLM). Katalog prosedur
+   audit standar dipetakan ke area RoMM / asersi / SA. LLM proxy (W8)
+   terkunci untuk narasi temuan; mengarang prosedur bukan perannya.
+   `match` = kata-kunci area (lowercase); `dedupe` = frasa penanda —
+   bila prosedur eksisting sudah memuatnya, saran disembunyikan.
+   ---------------------------------------------------------------- */
+const PROC_CATALOG: Tpl[] = [
+  // Pendapatan / Penjualan
+  { match: ['pendapatan', 'penjualan', 'revenue'], nat: 'ToD', asr: ['EO', 'CO'], timing: 'Akhir tahun', extent: '25 dokumen', sa: 'SA 330', wp: 'B-3', dedupe: 'pisah batas', t: 'Pengujian pisah batas (cut-off) penjualan sebelum/sesudah tutup buku' },
+  { match: ['pendapatan', 'penjualan', 'revenue'], nat: 'Confirm', asr: ['EO', 'RO'], timing: 'Akhir tahun', extent: 'Saldo signifikan', sa: 'SA 505', wp: 'B-5', dedupe: 'konfirmasi piutang', t: 'Konfirmasi piutang positif atas saldo signifikan & rekonsiliasi selisih' },
+  { match: ['pendapatan', 'penjualan', 'revenue'], nat: 'SAP', asr: ['EO', 'C'], timing: 'Interim', extent: 'Disagregasi per lini', sa: 'SA 520', wp: 'B-2', dedupe: 'margin', t: 'Prosedur analitis substantif: tren margin kotor per lini produk vs ekspektasi' },
+  // Persediaan
+  { match: ['persediaan', 'inventor'], nat: 'Obs', asr: ['EO', 'C'], timing: 'Akhir tahun', extent: '40 item', sa: 'SA 501', wp: 'C-1', dedupe: 'opname', t: 'Observasi perhitungan fisik (stock opname) & test count dua arah' },
+  { match: ['persediaan', 'inventor'], nat: 'ToD', asr: ['V'], timing: 'Akhir tahun', extent: 'Item slow-moving', sa: 'SA 540', wp: 'C-2', dedupe: 'nilai realisasi neto', t: 'Uji nilai realisasi neto (NRV) atas item slow-moving & usang' },
+  // Piutang / ECL
+  { match: ['piutang', 'ecl', 'receivable'], nat: 'Recalc', asr: ['V'], timing: 'Akhir tahun', extent: 'Model penuh', sa: 'SA 540', wp: 'B-7', dedupe: 'ecl', t: 'Re-perform model ECL (PSAK 71) & uji loss rate per bucket aging' },
+  { match: ['piutang', 'receivable'], nat: 'ToD', asr: ['V'], timing: 'Akhir tahun', extent: '35 saldo', sa: 'SA 500', wp: 'B-6', dedupe: 'aging', t: 'Uji aging piutang ke dokumen sumber & validitas bucket' },
+  // Aset Tetap
+  { match: ['aset tetap', 'aktiva tetap', 'fixed asset'], nat: 'ToD', asr: ['EO', 'RO'], timing: 'Akhir tahun', extent: 'Sampel penambahan', sa: 'SA 500', wp: 'E-4', dedupe: 'penambahan aset', t: 'Vouching penambahan aset & inspeksi fisik atas sampel' },
+  { match: ['aset tetap', 'aktiva tetap', 'fixed asset'], nat: 'Recalc', asr: ['V'], timing: 'Akhir tahun', extent: 'Populasi penuh', sa: 'SA 500', wp: 'E-6', dedupe: 'penyusutan', t: 'Re-kalkulasi beban penyusutan & uji konsistensi kebijakan' },
+  // Kas & Bank
+  { match: ['kas', 'bank'], nat: 'Confirm', asr: ['EO', 'RO'], timing: 'Akhir tahun', extent: 'Seluruh rekening', sa: 'SA 505', wp: 'A-1', dedupe: 'konfirmasi bank', t: 'Konfirmasi bank atas seluruh rekening & fasilitas' },
+  { match: ['kas', 'bank'], nat: 'ToD', asr: ['EO', 'C'], timing: 'Akhir tahun', extent: 'Rekonsiliasi penuh', sa: 'SA 500', wp: 'A-2', dedupe: 'rekonsiliasi bank', t: 'Telaah rekonsiliasi bank & uji outstanding item' },
+  // Utang / Pembelian
+  { match: ['utang', 'hutang', 'pembelian', 'payable'], nat: 'ToD', asr: ['C'], timing: 'Akhir tahun', extent: 'Pasca tutup buku', sa: 'SA 500', wp: 'D-1', dedupe: 'unrecorded', t: 'Search for unrecorded liabilities atas pembayaran pasca tutup buku' },
+  { match: ['utang', 'hutang', 'pembelian', 'payable'], nat: 'Confirm', asr: ['C', 'RO'], timing: 'Akhir tahun', extent: 'Pemasok utama', sa: 'SA 505', wp: 'D-2', dedupe: 'konfirmasi utang', t: 'Konfirmasi utang usaha atas pemasok utama' },
+  // Pihak Berelasi
+  { match: ['berelasi', 'related party'], nat: 'Confirm', asr: ['C', 'P'], timing: 'Akhir tahun', extent: 'Daftar lengkap', sa: 'SA 550', wp: 'RP-1', dedupe: 'pihak berelasi', t: 'Pengujian kelengkapan daftar & konfirmasi transaksi pihak berelasi' },
+  // Sewa
+  { match: ['sewa', 'lease', 'psak 73'], nat: 'Recalc', asr: ['C', 'V'], timing: 'Interim', extent: 'Kontrak baru', sa: 'SA 540', wp: 'F-1', dedupe: 'hak-guna', t: 'Telaah kontrak sewa baru & re-kalkulasi liabilitas / aset hak-guna' },
+  // Imbalan Kerja
+  { match: ['imbalan', 'aktuaria', 'pension'], nat: 'ToD', asr: ['V'], timing: 'Akhir tahun', extent: 'Laporan penuh', sa: 'SA 620', wp: 'H-2', dedupe: 'aktuaria', t: 'Evaluasi laporan aktuaria & kewajaran asumsi (SA 500/620)' },
+  // Pajak
+  { match: ['pajak', 'tax'], nat: 'Recalc', asr: ['V', 'C'], timing: 'Akhir tahun', extent: 'Rekonsiliasi fiskal', sa: 'SA 500', wp: 'G-1', dedupe: 'pajak tangguhan', t: 'Telaah pajak tangguhan & rekonsiliasi beban pajak ke laba fiskal' },
+  // Fraud / Management override (SA 240) — selalu ditawarkan untuk risiko fraud
+  { match: [], fraud: true, nat: 'ToD', asr: ['EO', 'V', 'P'], timing: 'Akhir tahun', extent: 'Filter risiko populasi penuh', sa: 'SA 240', wp: 'JE-1', dedupe: 'journal entry testing', t: 'Journal Entry Testing (SA 240) atas jurnal manual berkriteria risiko' },
+  { match: [], fraud: true, nat: 'ToD', asr: ['V'], timing: 'Akhir tahun', extent: 'Estimasi signifikan', sa: 'SA 540', wp: 'JE-2', dedupe: 'retrospektif', t: 'Telaah retrospektif estimasi akuntansi atas indikasi bias manajemen' },
+  { match: [], fraud: true, nat: 'Inq', asr: ['EO', 'P'], timing: 'Akhir tahun', extent: 'Ad hoc per identifikasi', sa: 'SA 240', wp: 'JE-3', dedupe: 'di luar kegiatan bisnis normal', t: 'Evaluasi transaksi signifikan di luar kegiatan bisnis normal' },
+  // Generik — fallback bila tak ada yang spesifik area
+  { match: [], generic: true, nat: 'SAP', asr: ['C', 'V'], timing: 'Interim', extent: 'Saldo akun terkait', sa: 'SA 520', wp: 'AR-1', dedupe: 'analitis substantif saldo', t: 'Prosedur analitis substantif atas saldo akun terkait vs ekspektasi' },
+  { match: [], generic: true, nat: 'Inq', asr: ['C'], timing: 'Akhir tahun', extent: 'Personel kunci', sa: 'SA 500', wp: 'AR-2', dedupe: 'inkuiri manajemen', t: 'Inkuiri manajemen & telaah dokumen pendukung atas saldo signifikan' },
+];
+
+/** Prosedur ID berikutnya: 'P-18' dari maksimum sufiks numerik yang ada. */
+function nextProcId(allProcs: Proc[]) {
+  const max = allProcs.reduce((m: number, p: Proc) => {
+    const n = parseInt(String(p.id).replace(/\D/g, ''), 10);
+    return Number.isFinite(n) && n > m ? n : m;
+  }, 0);
+  return 'P-' + String(max + 1).padStart(2, '0');
+}
+
+/** Saran deterministik untuk satu RoMM: template area/fraud yang belum tercakup. */
+function suggestFor(risk: Risk): Tpl[] {
+  const txt = (risk.procs || []).map((p: Proc) => (p.t || '').toLowerCase()).join(' | ');
+  const area = (risk.area || '').toLowerCase();
+  const pick = (tpl: Tpl) => !(tpl.dedupe && txt.includes(tpl.dedupe));
+  let out = PROC_CATALOG.filter((tpl: Tpl) =>
+    ((tpl.match.some((k: string) => area.includes(k))) || (tpl.fraud && risk.fraud)) && pick(tpl));
+  if (!out.length) out = PROC_CATALOG.filter((tpl: Tpl) => tpl.generic && pick(tpl));
+  return out;
+}
+
+/** Bentuk objek prosedur baru dari template/form + id baru. */
+function mkProc(allProcs: Proc[], src: ProcSrc): Proc {
+  return {
+    id: nextProcId(allProcs), t: src.t, nat: src.nat, asr: src.asr || [],
+    timing: src.timing || 'Akhir tahun', extent: src.extent || '—', sa: src.sa || 'SA 500',
+    wp: src.wp || '—', prep: src.prep || '', rev: src.rev || '',
+    bud: Number(src.bud) || 0, act: 0, exc: 0, status: 'notstarted', concl: '',
+  };
+}
+
 function NatTag({ nat }: any) {
   const n = (PRG_NATURE as any)[nat] || { l: nat, c: '#7a7f87' };
   return <span className="row ac gap6" style={{ fontSize: 11 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: n.c, flex: '0 0 7px' }} />{n.l}</span>;
@@ -95,14 +182,27 @@ function AsrChips({ asr }: any) {
 
 function AuditProgramme() {
   const nav = useNav();
-  const [prog, setProg] = useStateWS(PROGRAMME);
+  const auth = useAuth();
+  const canEdit = !!(auth && auth.can && auth.can(CAP.WP_EDIT));
+  const [prog, setProg] = useAmsPersist('programme.v1', PROGRAMME);
   const [tab, setTab] = useStateWS('program');
   const [statusFilter, setStatusFilter] = useStateWS('all');
   const [selId, setSelId] = useStateWS('P-01');
   const [q, setQ] = useStateWS('');
+  const [adding, setAdding] = useStateWS(false);   // form tambah manual
+  const [suggestFor_, setSuggestFor_] = useStateWS(null); // null=tutup; 'all' | riskId
 
   const cycle = (pid: any) => setProg((list: any) => list.map((r: any) => ({ ...r, procs: r.procs.map((p: any) => p.id !== pid ? p : { ...p, status: PRG_ORDER[(PRG_ORDER.indexOf(p.status) + 1) % PRG_ORDER.length] }) })));
   const setStatus = (pid: any, s: any) => setProg((list: any) => list.map((r: any) => ({ ...r, procs: r.procs.map((p: any) => p.id !== pid ? p : { ...p, status: s }) })));
+
+  /* Tambah satu/lebih prosedur ke RoMM tertentu (id berurutan, tahan tabrakan). */
+  const addProcs = (riskId: string, sources: ProcSrc[]) => setProg((list: Risk[]) => {
+    let flat: Proc[] = list.flatMap((r: Risk) => r.procs);
+    const built = sources.map((s: ProcSrc) => { const p = mkProc(flat, s); flat = [...flat, p]; return p; });
+    return list.map((r: Risk) => r.riskId !== riskId ? r : { ...r, procs: [...r.procs, ...built] });
+  });
+
+  const openWp = (ref: string) => { if (typeof openCanonicalWp === 'function') openCanonicalWp(nav, ref); else nav('workpapers'); };
 
   const allProcs = prog.flatMap((r: any) => r.procs);
   const sel = allProcs.find((p: any) => p.id === selId);
@@ -125,7 +225,8 @@ function AuditProgramme() {
         <div className="row gap8 ac">
           <Badge kind={pct === 100 ? 'green' : 'amber'}>{done}/{allProcs.length} prosedur</Badge>
           <Btn sm onClick={() => nav('risk')}><I.shield size={13} /> Risk Register</Btn>
-          <Btn sm><I.sparkle size={13} /> Saran Prosedur AI</Btn>
+          <Btn sm onClick={() => setSuggestFor_('all')} disabled={!canEdit} title={canEdit ? 'Saran prosedur standar per RoMM' : 'Perlu izin WP_EDIT'}><I.sparkle size={13} /> Saran Prosedur AI</Btn>
+          <Btn sm onClick={() => setAdding(true)} disabled={!canEdit} title={canEdit ? 'Tambah prosedur manual' : 'Perlu izin WP_EDIT'}><I.plus size={14} /> Tambah Prosedur</Btn>
           <Btn sm variant="primary"><I.download size={14} /> Export Programme</Btn>
         </div>
       } />
@@ -141,7 +242,7 @@ function AuditProgramme() {
         </div>
 
         <div className="panel" style={{ padding: '10px 14px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-          <div className="row ac gap8 tiny"><I.link2 size={14} style={{ color: 'var(--blue)' }} /><span style={{ fontWeight: 600 }}>Program audit merantai RoMM → sifat/saat/luas prosedur → asersi → kertas kerja → sign-off. Klik baris untuk detail; klik status untuk memperbarui; klik WP untuk membuka.</span></div>
+          <div className="row ac gap8 tiny"><I.link2 size={14} style={{ color: 'var(--blue)' }} /><span style={{ fontWeight: 600 }}>Program audit merantai RoMM → sifat/saat/luas prosedur → asersi → kertas kerja → sign-off. Klik baris untuk detail; klik judul prosedur untuk buka Kertas Kerja; klik status untuk memperbarui.</span></div>
         </div>
 
         <Tabs tabs={[{ id: 'program', label: 'Program', count: allProcs.length }, { id: 'coverage', label: 'Cakupan Asersi' }, { id: 'effort', label: 'Beban & Tim' }]} active={tab} onChange={setTab} />
@@ -193,7 +294,8 @@ function AuditProgramme() {
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{p.id}</td>
                             <td style={{ fontSize: 11.5 }}>
                               <span className="row ac gap6">
-                                <span style={{ lineHeight: 1.35 }}>{p.t}</span>
+                                <span className="prg-proc-link" style={{ lineHeight: 1.35 }} title={'Buka Kertas Kerja ' + p.wp}
+                                  onClick={(e: ClickEv) => { e.stopPropagation(); openWp(p.wp); }}>{p.t}</span>
                                 {p.exc > 0 && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px', flex: '0 0 auto' }}>{p.exc} EXC</span>}
                               </span>
                             </td>
@@ -237,7 +339,7 @@ function AuditProgramme() {
                           <div key={i}>
                             <div className="tiny muted upper" style={{ marginBottom: 3 }}>{lbl}</div>
                             {lbl === 'Asersi' ? <AsrChips asr={sel.asr} />
-                              : lbl === 'Kertas Kerja' ? <span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)', cursor: 'pointer' }} onClick={() => nav('workpapers')}>{v}</span>
+                              : lbl === 'Kertas Kerja' ? <span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)', cursor: 'pointer' }} onClick={() => openWp(String(v))}>{v}</span>
                               : <div style={{ fontSize: 12, fontWeight: 600 }}>{v}</div>}
                           </div>
                         ))}
@@ -251,9 +353,9 @@ function AuditProgramme() {
                         : <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'var(--line)' }}><span className="tiny muted">Belum ada kesimpulan — prosedur belum diselesaikan.</span></div>}
 
                       <div className="row gap8" style={{ marginTop: 12 }}>
-                        <Btn sm variant="primary" onClick={() => nav('workpapers')}><I.flask size={14} /> Buka Kertas Kerja {sel.wp}</Btn>
+                        <Btn sm variant="primary" onClick={() => openWp(sel.wp)}><I.flask size={14} /> Buka Kertas Kerja {sel.wp}</Btn>
                         <Btn sm onClick={() => nav('risk')}><I.shield size={14} /> Lihat {selRisk.riskId}</Btn>
-                        <Btn sm><I.sparkle size={14} /> Saran AI</Btn>
+                        <Btn sm onClick={() => setSuggestFor_(selRisk.riskId)} disabled={!canEdit}><I.sparkle size={14} /> Saran AI</Btn>
                       </div>
                     </div>
 
@@ -418,9 +520,184 @@ function AuditProgramme() {
           .prg-tbl tbody tr.sel{background:var(--blue-050)}
           .seg-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
           .seg-pill.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+          .prg-proc-link{cursor:pointer;border-bottom:1px dashed transparent}
+          .prg-proc-link:hover{color:var(--blue);border-bottom-color:var(--blue)}
+          .prg-modal-bd{position:fixed;inset:0;background:rgba(8,15,30,.42);z-index:9998;display:grid;place-items:center;padding:24px}
+          .prg-modal{background:var(--surface,#fff);border-radius:12px;box-shadow:0 24px 60px rgba(8,15,30,.34);width:640px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+          .prg-modal-h{display:flex;align-items:center;gap:9px;padding:13px 16px;border-bottom:1px solid var(--line);font-weight:700}
+          .prg-modal-b{padding:14px 16px;overflow:auto}
+          .prg-modal-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+          .prg-fld{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
+          .prg-fld label{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+          .prg-fld input,.prg-fld select,.prg-fld textarea{height:32px;border:1px solid var(--line);border-radius:7px;padding:0 9px;font:13px inherit;background:#fff;color:var(--ink-1)}
+          .prg-fld textarea{height:auto;min-height:52px;padding:7px 9px;resize:vertical}
+          .prg-sug{border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:8px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+          .prg-sug.on{border-color:var(--blue);background:var(--blue-050)}
+          .prg-asr-pick{display:flex;gap:5px;flex-wrap:wrap}
+          .prg-asr-pick button{font:700 9.5px var(--mono);height:22px;padding:0 7px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink-3);cursor:pointer}
+          .prg-asr-pick button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
         `}</style>
       </div></div>
+      {adding && <AddProcedureModal prog={prog} onClose={() => setAdding(false)} onAdd={(rid: string, src: ProcSrc) => { addProcs(rid, [src]); setAdding(false); }} />}
+      {suggestFor_ && <SuggestModal prog={prog} scope={suggestFor_} onClose={() => setSuggestFor_(null)} onAdd={(byRisk: Record<string, ProcSrc[]>) => { Object.entries(byRisk).forEach(([rid, srcs]) => addProcs(rid, srcs)); setSuggestFor_(null); }} />}
     </>
+  );
+}
+
+/* ---------------- Tambah Prosedur (form manual) ---------------- */
+type Member = { name: string };
+function AddProcedureModal({ prog, onClose, onAdd }: { prog: Risk[]; onClose: () => void; onAdd: (riskId: string, src: ProcSrc) => void }) {
+  const team: Member[] = ((AMS as { TEAM?: Member[] }).TEAM) || [];
+  const [riskId, setRiskId] = useStateWS(prog[0] ? prog[0].riskId : '');
+  const [t, setT] = useStateWS('');
+  const [nat, setNat] = useStateWS('ToD');
+  const [asr, setAsr] = useStateWS([]);
+  const [timing, setTiming] = useStateWS('Akhir tahun');
+  const [extent, setExtent] = useStateWS('');
+  const [sa, setSa] = useStateWS('SA 500');
+  const [wp, setWp] = useStateWS('');
+  const [prep, setPrep] = useStateWS('');
+  const [rev, setRev] = useStateWS('');
+  const [bud, setBud] = useStateWS('6');
+  const toggleAsr = (c: string) => setAsr((a: string[]) => a.includes(c) ? a.filter((x: string) => x !== c) : [...a, c]);
+  const valid = riskId && t.trim().length > 4;
+
+  return (
+    <div className="prg-modal-bd" onClick={onClose}>
+      <div className="prg-modal" onClick={(e: ClickEv) => e.stopPropagation()}>
+        <div className="prg-modal-h"><I.plus size={16} /> Tambah Prosedur Audit</div>
+        <div className="prg-modal-b">
+          <div className="prg-fld">
+            <label>RoMM / Area Risiko</label>
+            <select value={riskId} onChange={(e: FormEv) => setRiskId(e.target.value)}>
+              {prog.map((r: Risk) => <option key={r.riskId} value={r.riskId}>{r.riskId} — {r.area}{r.sig ? ' (signifikan)' : ''}</option>)}
+            </select>
+          </div>
+          <div className="prg-fld">
+            <label>Uraian Prosedur</label>
+            <textarea value={t} onChange={(e: FormEv) => setT(e.target.value)} placeholder="mis. Konfirmasi saldo bank atas seluruh rekening…" />
+          </div>
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="prg-fld">
+              <label>Sifat Prosedur</label>
+              <select value={nat} onChange={(e: FormEv) => setNat(e.target.value)}>
+                {Object.entries(PRG_NATURE).map(([k, n]) => <option key={k} value={k}>{(n as { l: string }).l}</option>)}
+              </select>
+            </div>
+            <div className="prg-fld">
+              <label>Standar (SA)</label>
+              <input value={sa} onChange={(e: FormEv) => setSa(e.target.value)} placeholder="SA 500" />
+            </div>
+          </div>
+          <div className="prg-fld">
+            <label>Asersi</label>
+            <div className="prg-asr-pick">
+              {PRG_ASSERT.map(a => <button key={a.c} type="button" className={asr.includes(a.c) ? 'on' : ''} title={a.full} onClick={() => toggleAsr(a.c)}>{a.l}</button>)}
+            </div>
+          </div>
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="prg-fld">
+              <label>Saat</label>
+              <select value={timing} onChange={(e: FormEv) => setTiming(e.target.value)}>
+                {['Akhir tahun', 'Interim', 'Sepanjang tahun'].map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            <div className="prg-fld">
+              <label>Luas / Sampel</label>
+              <input value={extent} onChange={(e: FormEv) => setExtent(e.target.value)} placeholder="mis. 25 dokumen" />
+            </div>
+          </div>
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="prg-fld">
+              <label>Kertas Kerja (Ref)</label>
+              <input value={wp} onChange={(e: FormEv) => setWp(e.target.value)} placeholder="mis. B-8" />
+            </div>
+            <div className="prg-fld">
+              <label>Anggaran Jam</label>
+              <input type="number" min="0" value={bud} onChange={(e: FormEv) => setBud(e.target.value)} />
+            </div>
+            <div className="prg-fld">
+              <label>Disusun oleh</label>
+              <select value={prep} onChange={(e: FormEv) => setPrep(e.target.value)}>
+                <option value="">—</option>
+                {team.map((m: Member) => <option key={m.name} value={m.name}>{m.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="prg-fld">
+            <label>Direviu oleh</label>
+            <select value={rev} onChange={(e: FormEv) => setRev(e.target.value)}>
+              <option value="">—</option>
+              {team.map((m: Member) => <option key={m.name} value={m.name}>{m.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="prg-modal-f">
+          <Btn sm onClick={onClose}>Batal</Btn>
+          <Btn sm variant="primary" disabled={!valid} onClick={() => onAdd(riskId, { t: t.trim(), nat, asr, timing, extent, sa, wp, prep, rev, bud })}><I.check size={14} /> Tambah Prosedur</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Saran Prosedur (deterministik) ---------------- */
+function SuggestModal({ prog, scope, onClose, onAdd }: { prog: Risk[]; scope: string; onClose: () => void; onAdd: (byRisk: Record<string, ProcSrc[]>) => void }) {
+  const risks = scope === 'all' ? prog : prog.filter((r: Risk) => r.riskId === scope);
+  /* Urutkan: signifikan/fraud dulu — gap di sini paling kritis. */
+  const ordered = [...risks].sort((a: Risk, b: Risk) => (b.sig ? 1 : 0) - (a.sig ? 1 : 0));
+  const groups = ordered.map((r: Risk) => ({ risk: r, sugs: suggestFor(r) })).filter((g) => g.sugs.length);
+  const [sel, setSel] = useStateWS({});
+  const keyOf = (rid: string, i: number) => rid + '#' + i;
+  const toggle = (k: string) => setSel((s: Record<string, boolean>) => ({ ...s, [k]: !s[k] }));
+  const chosen: Record<string, ProcSrc[]> = groups.reduce((acc: Record<string, ProcSrc[]>, g) => {
+    const picks = g.sugs.filter((_: Tpl, i: number) => sel[keyOf(g.risk.riskId, i)]);
+    if (picks.length) acc[g.risk.riskId] = picks;
+    return acc;
+  }, {});
+  const total = Object.values(chosen).reduce((s: number, a: ProcSrc[]) => s + a.length, 0);
+
+  return (
+    <div className="prg-modal-bd" onClick={onClose}>
+      <div className="prg-modal" onClick={(e: ClickEv) => e.stopPropagation()}>
+        <div className="prg-modal-h"><I.sparkle size={16} /> Saran Prosedur {scope === 'all' ? '— seluruh RoMM' : '— ' + scope}
+          <span className="tiny muted" style={{ fontWeight: 500, marginLeft: 'auto' }}>deterministik · prosedur standar</span></div>
+        <div className="prg-modal-b">
+          {!groups.length && <div className="tiny muted" style={{ padding: 8 }}>Tidak ada saran baru — RoMM ini sudah tercakup prosedur standar. Gunakan "Tambah Prosedur" untuk prosedur kustom.</div>}
+          {groups.map((g) => (
+            <div key={g.risk.riskId} style={{ marginBottom: 14 }}>
+              <div className="row ac gap6" style={{ marginBottom: 7 }}>
+                <span className="mono tiny" style={{ fontWeight: 700 }}>{g.risk.riskId}</span>
+                <span style={{ fontWeight: 700, fontSize: 12.5 }}>{g.risk.area}</span>
+                {g.risk.sig && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>SIGNIFICANT</span>}
+                {g.risk.fraud && <span className="badge b-amber" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD · SA 240</span>}
+              </div>
+              {g.sugs.map((s: Tpl, i: number) => {
+                const k = keyOf(g.risk.riskId, i);
+                return (
+                  <div key={k} className={'prg-sug' + (sel[k] ? ' on' : '')} onClick={() => toggle(k)}>
+                    <input type="checkbox" checked={!!sel[k]} readOnly style={{ marginTop: 2 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 4 }}>{s.t}</div>
+                      <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
+                        <NatTag nat={s.nat} />
+                        <AsrChips asr={s.asr} />
+                        <span className="chip tiny" style={{ height: 17, fontFamily: 'var(--mono)' }}>{s.sa}</span>
+                        <span className="tiny muted">{s.timing} · {s.extent}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="prg-modal-f">
+          <Btn sm onClick={onClose}>Tutup</Btn>
+          <Btn sm variant="primary" disabled={!total} onClick={() => onAdd(chosen)}><I.plus size={14} /> Tambah {total || ''} prosedur terpilih</Btn>
+        </div>
+      </div>
+    </div>
   );
 }
 

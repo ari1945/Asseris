@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { useFirm, useAudit } from './contexts';
+import { wpEvidenceEval } from './view_wp';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
@@ -102,6 +103,9 @@ const evCell = (v: any) => v === 0 ? { bg: 'var(--surface-3)', fg: 'var(--ink-4)
   : v === 2 ? { bg: 'var(--amber-bg)', fg: 'var(--amber)', t: '2' }
   : { bg: 'var(--green-bg)', fg: 'var(--green)', t: '3' };
 
+/* Bentuk area bukti (overlay live dari WP) — tipe konkret agar tak menambah :any. */
+type EvArea = { id: string; area: string; wp: string; risk: string; suff: number; approp: number; select?: string; procs?: string[]; asr: Record<string, number>; live?: boolean; exc?: number };
+
 /* ============================================================ */
 function EvidenceEvaluation() {
   const firm = useFirm();
@@ -113,12 +117,27 @@ function EvidenceEvaluation() {
   const setVal = (id: any, key: any, v: any) => setItems((l: any) => l.map((i: any) => i.id === id ? { ...i, [key]: v } : i));
   const cycleAsr = (id: any, a: any) => setItems((l: any) => l.map((i: any) => i.id === id ? { ...i, asr: { ...i.asr, [a]: (i.asr[a] + 1) % 4 } } : i));
 
-  /* aggregate metrics */
-  const avgScore = items.reduce((s: any, i: any) => s + evScore(i), 0) / items.length;
-  const adequate = items.filter((i: any) => evScore(i) >= 3.5).length;
-  const needWork = items.filter((i: any) => evScore(i) < 3).length;
+  /* Fase 3 — alirkan hasil kerja WP ke evaluasi bukti: bila WP suatu area sudah
+     punya bukti/eksekusi nyata (wpState[area.wp]), kecukupan & ketepatan dihitung
+     dari sana (wpEvidenceEval) menggantikan seed statis; `live` menandai area itu. */
+  const audit = useAudit();
+  const wpState = (audit && audit.wpState) || {};
+  const live = useMemoEV(() => items.map((s: EvArea) => {
+    const wst = wpState[s.wp];
+    if (!wst) return s;
+    const e = wpEvidenceEval(wst.evidence || [], wst.exec || {});
+    if (!e.evCount && !e.itemCount) return s;
+    const approp = e.appr ? Math.round(e.appr) : s.approp;
+    const suff = e.itemCount ? Math.max(1, Math.min(5, Math.round((e.suffPct / 100) * 5))) : s.suff;
+    return { ...s, suff, approp, live: true, exc: e.exc };
+  }), [items, wpState]);
+
+  /* aggregate metrics (dari overlay live) */
+  const avgScore = live.reduce((s: any, i: any) => s + evScore(i), 0) / live.length;
+  const adequate = live.filter((i: any) => evScore(i) >= 3.5).length;
+  const needWork = live.filter((i: any) => evScore(i) < 3).length;
   let relevant = 0, covered = 0;
-  items.forEach((i: any) => EV_ASR.forEach(({ k }) => { if (i.asr[k] > 0) { relevant++; if (i.asr[k] >= 2) covered++; } }));
+  live.forEach((i: any) => EV_ASR.forEach(({ k }) => { if (i.asr[k] > 0) { relevant++; if (i.asr[k] >= 2) covered++; } }));
   const coverage = Math.round(covered / relevant * 100);
   const openContra = EV_CONSIST.filter(c => c.open).length;
 
@@ -141,7 +160,7 @@ function EvidenceEvaluation() {
     { id: 'kesimpulan',label: 'Kesimpulan & Sign-off' },
   ];
 
-  const sel = items.find((i: any) => i.id === selId);
+  const sel = live.find((i: any) => i.id === selId);
 
   return (
     <>
@@ -160,14 +179,14 @@ function EvidenceEvaluation() {
             <div style={{ minWidth: 180 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Evaluasi Bukti Audit</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>{client}</div>
-              <div className="tiny muted">{items.length} area · {firm?.activeEngagement?.id || 'ENG-2025-014'}</div>
+              <div className="tiny muted">{live.length} area · {firm?.activeEngagement?.id || 'ENG-2025-014'}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Skor Bukti</div><div className="mono" style={{ fontWeight: 700, fontSize: 13, color: `var(--${avgScore >= 3.5 ? 'green' : 'amber'})` }}>{avgScore.toFixed(1)} / 5</div></div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Cakupan Asersi</div><div className="mono" style={{ fontWeight: 700, fontSize: 13, color: `var(--${coverage >= 85 ? 'green' : 'amber'})` }}>{coverage}%</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Area Memadai</div><div className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{adequate}/{items.length}</div></div>
+            <div><div className="tiny muted upper">Area Memadai</div><div className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{adequate}/{live.length}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Kontradiksi Terbuka</div><div className="mono" style={{ fontWeight: 700, fontSize: 13, color: `var(--${openContra ? 'red' : 'green'})` }}>{openContra}</div></div>
             <div style={{ flex: 1 }} />
@@ -180,16 +199,16 @@ function EvidenceEvaluation() {
 
         <div style={{ margin: '12px 0', overflowX: 'auto', paddingBottom: 1 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'ringkasan'  && <EvStrategy items={items} verdict={verdict} avgScore={avgScore} coverage={coverage} />}
-        {tab === 'matriks'    && <EvMatrix items={items} sel={sel} selId={selId} setSelId={setSelId} setVal={setVal} cycleAsr={cycleAsr} />}
+        {tab === 'ringkasan'  && <EvStrategy items={live} verdict={verdict} avgScore={avgScore} coverage={coverage} />}
+        {tab === 'matriks'    && <EvMatrix items={live} sel={sel} selId={selId} setSelId={setSelId} setVal={setVal} cycleAsr={cycleAsr} />}
         {tab === 'seleksi'    && <EvSelection />}
         {tab === 'arah'       && <EvDirection />}
         {tab === 'berkas'     && <EvDossier />}
-        {tab === 'asersi'     && <EvAssertions items={items} cycleAsr={cycleAsr} coverage={coverage} covered={covered} relevant={relevant} />}
-        {tab === 'prosedur'   && <EvProcedures items={items} />}
+        {tab === 'asersi'     && <EvAssertions items={live} cycleAsr={cycleAsr} coverage={coverage} covered={covered} relevant={relevant} />}
+        {tab === 'prosedur'   && <EvProcedures items={live} />}
         {tab === 'informasi'  && <EvInformation />}
         {tab === 'konsisten'  && <EvConsistency openContra={openContra} />}
-        {tab === 'kesimpulan' && <EvConclusion items={items} verdict={verdict} avgScore={avgScore} coverage={coverage} openContra={openContra} firm={firm} />}
+        {tab === 'kesimpulan' && <EvConclusion items={live} verdict={verdict} avgScore={avgScore} coverage={coverage} openContra={openContra} firm={firm} />}
 
       </div></div>
     </>
@@ -241,7 +260,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
               return (
                 <div key={i.id} className="row ac gap8" style={{ padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
                   <span className="mono tiny muted" style={{ width: 30, flex: '0 0 30px' }}>{i.wp}</span>
-                  <span style={{ width: 150, flex: '0 0 150px', fontWeight: 600, fontSize: 12 }}>{i.area}</span>
+                  <span style={{ width: 150, flex: '0 0 150px', fontWeight: 600, fontSize: 12 }}>{i.area}{i.live && <span className="chip tiny" title="Kecukupan & ketepatan dihitung dari kerja WP (item uji & register bukti)" style={{ marginLeft: 6, color: 'var(--blue)', borderColor: 'var(--blue)' }}>dari WP</span>}</span>
                   <Badge kind={(EV_RISK_COLOR as any)[i.risk]}>{i.risk}</Badge>
                   <div style={{ flex: 1, maxWidth: 240 }}><Progress value={sc / 5 * 100} color={`var(--${st.k})`} /></div>
                   <span className="mono" style={{ width: 30, textAlign: 'right', fontWeight: 700, color: `var(--${st.k})` }}>{sc.toFixed(1)}</span>
