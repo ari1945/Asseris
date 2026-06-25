@@ -5,25 +5,25 @@ import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
+import { deriveWpStatus, WP_META, openCanonicalWp } from './view_wp';
+import { APPROACHES, defaultApproach, reconcileRiskResponse, GAP_LABEL } from './canon_audit_plan';
+import type { PlanRow, PlanResult } from './canon_audit_plan';
 
 /* ============================================================
    Asseris — Strategy Memo (SA 300), Working Papers index, Governance
    ============================================================ */
 const { useState: useStateMS, useMemo: useMemoMS } = React;
 
-/* Audit-approach options used across the area-plan table */
-const SM_APPROACHES = [
-  { id: 'sub',  short: 'Substantif',          label: 'Prosedur substantif',                 color: 'var(--blue)' },
-  { id: 'ctrl', short: 'Pengendalian + Sub.', label: 'Andalkan pengendalian + substantif',  color: 'var(--teal)' },
-  { id: 'ext',  short: 'Substantif Diperluas', label: 'Substantif diperluas (risiko sig.)',  color: 'var(--red)' },
-];
-const smDefaultApproach = (r: any) => r.inherent === 'Significant' ? 'ext' : (r.likelihood * r.impact >= 9 ? 'ctrl' : 'sub');
+/* Pendekatan audit & default per-risiko = SSOT kanon (canon_audit_plan):
+   APPROACHES + defaultApproach (dulu SM_APPROACHES/smDefaultApproach inline). */
 
 /* ---------------- Strategy Memo (SA 300 workspace) ---------------- */
 function StrategyMemo() {
   const { fmt } = AMS;
-  const { activeClient, activeEngagement } = useFirm();
-  const { risks } = useAudit();
+  const firm = useFirm();
+  const { activeClient, activeEngagement } = firm;
+  const audit = useAudit();
+  const { risks } = audit;
   const nav = useNav();
   const om = activeEngagement.materiality, pm = Math.round(om * 0.75), ctt = Math.round(om * 0.05);
   const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
@@ -58,7 +58,7 @@ function StrategyMemo() {
       </div>
       <div className="view-scroll"><div className="view-pad">
         {tab === 'strategi' && <SmOverview {...{ fmt, activeClient, activeEngagement, risks, sigRisks, fraudRisks, om, pm, ctt, nav, setTab }} />}
-        {tab === 'pendekatan' && <SmApproach {...{ fmt, risks, pm, activeEngagement, nav }} />}
+        {tab === 'pendekatan' && <SmApproach {...{ fmt, risks, pm, activeEngagement, nav, audit, firm }} />}
         {tab === 'jadwal' && <SmSchedule {...{ fmt, activeEngagement }} />}
         {tab === 'memo' && <SmMemo {...{ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }} />}
       </div></div>
@@ -185,13 +185,28 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
 }
 
 /* ---- Tab 2 · Audit approach by area (editable response per RoMM) ---- */
-function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
+function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any) {
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'strategyApproach.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [over, setOver] = window.useAmsPersist('strategyApproach.v1', {});
-  const planFor = (r: any) => over[r.id] || smDefaultApproach(r);
-  const counts = SM_APPROACHES.map(a => ({ ...a, n: risks.filter((r: any) => planFor(r) === a.id).length }));
+  const planFor = (r: any) => over[r.id] || defaultApproach(r);
+  const counts = APPROACHES.map(a => ({ ...a, n: risks.filter((r: any) => planFor(r) === a.id).length }));
   const relyControls = risks.filter((r: any) => planFor(r) === 'ctrl').length;
+
+  /* SA 330 — status KK lead-schedule per ref risiko (deriveWpStatus = SSOT).
+     ref di luar lead schedule (mis. JE-1/RP-1) → '' (kanon perlakukan n/a, tak di-flag). */
+  const wpStatusByRef: Record<string, string> = {};
+  risks.forEach((r: { wp?: string }) => {
+    const ref = (r.wp || '').trim();
+    if (!ref || wpStatusByRef[ref] != null) return;
+    const section = ref.split('-')[0];
+    wpStatusByRef[ref] = (WP_META as Record<string, unknown>)[section]
+      ? deriveWpStatus(section, audit, firm).status
+      : '';
+  });
+  const rr: PlanResult = reconcileRiskResponse({ risks, overrides: over, wpStatusByRef });
+  const planById = new Map<string, PlanRow>(rr.rows.map(row => [row.id, row]));
+  const gapRows = rr.rows.filter(row => row.gaps.length > 0);
 
   return (
     <div className="grid" style={{ gap: 12 }}>
@@ -201,6 +216,49 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
         ))}
         <div style={{ display: 'none' }} />
       </div>
+
+      {/* SA 330 — rekonsiliasi pemetaan risiko → respons → prosedur/KK */}
+      <Panel title="Pemetaan Risiko → Prosedur (SA 330)" sub="SA 300.9 · SA 330.18/.21 — kememadaian & ketertautan respons terhadap setiap RoMM">
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+          <div><Stat value={rr.rollup.coveragePct + '%'} label="Cakupan respons memadai" accent={rr.rollup.coveragePct === 100 ? 'var(--green)' : rr.rollup.coveragePct >= 75 ? 'var(--amber)' : 'var(--red)'} /></div>
+          <div><Stat value={`${rr.rollup.significant}/${rr.rollup.total}`} label="RoMM signifikan / total" /></div>
+          <div><Stat value={rr.rollup.gapRisks} label="Risiko ber-gap" accent={rr.rollup.gapRisks ? 'var(--red)' : 'var(--green)'} /></div>
+          <div><Stat value={rr.rollup.byKind['under-response']} label="Respons kurang memadai" accent={rr.rollup.byKind['under-response'] ? 'var(--red)' : 'var(--ink-3)'} /></div>
+        </div>
+        <div className="divider" />
+        {gapRows.length === 0 ? (
+          <div className="row ac gap8" style={{ padding: '10px 12px', background: 'var(--green-bg, var(--surface-2))', borderRadius: 'var(--radius)', fontSize: 12, color: 'var(--ink-2)' }}>
+            <span style={{ color: 'var(--green)' }}><I.check size={16} /></span>
+            Seluruh RoMM memiliki respons memadai & tertaut prosedur/kertas kerja — tak ada gap rencana (SA 330).
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 0 }}>
+            {gapRows.map((row, i) => {
+              const underResp = row.gaps.includes('under-response');
+              return (
+                <div key={row.id} className="row ac jb" style={{ padding: '10px 0', borderBottom: i < gapRows.length - 1 ? '1px solid var(--line-soft)' : 0, gap: 12 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="row ac gap8" style={{ marginBottom: 3, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 600 }}>{row.area}</span>
+                      <Badge kind="blue">{row.assertion}</Badge>
+                      <Badge kind={row.inherent === 'Significant' ? 'red' : 'gray'}>{row.inherent}</Badge>
+                      {row.fraud && <Badge kind="red">SA 240</Badge>}
+                    </div>
+                    <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
+                      {row.gaps.map(g => <Badge key={g} kind={g === 'under-response' ? 'red' : 'amber'}>{GAP_LABEL[g]}</Badge>)}
+                      {underResp && <span className="tiny muted">terencana <b>{(APPROACHES.find(a => a.id === row.plan) || { short: row.plan }).short}</b> · minimum <b>{(APPROACHES.find(a => a.id === row.minAdequate) || { short: row.minAdequate }).short}</b></span>}
+                    </div>
+                  </div>
+                  <div className="row ac gap6" style={{ flex: '0 0 auto' }}>
+                    {row.wpKnown && <Btn sm onClick={() => openCanonicalWp(nav, row.wpSection)} title={`Status KK: ${row.wpStatus}`}><I.doc size={13} /> KK {row.wpSection}</Btn>}
+                    <Btn sm onClick={() => nav(row.proc || 'execution')}><I.arrowRight size={13} /> Tindak lanjut</Btn>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
 
       <Panel title="Pendekatan Audit per Area Signifikan" sub="SA 300 · SA 330 — respons keseluruhan & respons tingkat asersi" actions={<Btn sm onClick={() => nav('execution')}><I.arrowRight size={13} /> Ke Audit Programme</Btn>}>
         <table className="dtbl">
@@ -213,6 +271,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
               <th>Prosedur Kunci</th>
               <th>PIC</th>
               <th>WP</th>
+              <th>SA 330</th>
             </tr>
           </thead>
           <tbody>
@@ -228,7 +287,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
                   <td><Badge>{r.inherent}</Badge></td>
                   <td>
                     <div className="seg" role="group">
-                      {SM_APPROACHES.map(a => (
+                      {APPROACHES.map(a => (
                         <button key={a.id} className={plan === a.id ? 'on' : ''} onClick={() => setOver((s: any) => ({ ...s, [r.id]: a.id }))} title={a.label}>{a.short}</button>
                       ))}
                     </div>
@@ -236,6 +295,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav }: any) {
                   <td style={{ whiteSpace: 'normal', maxWidth: 240, fontSize: 11.5, color: 'var(--ink-2)' }}>{r.response}</td>
                   <td><span className="row ac gap6"><Avatar name={r.owner} size={22} /><span className="tiny">{r.owner}</span></span></td>
                   <td><span className="chip mono">{r.wp}</span></td>
+                  <td>{(() => { const pr = planById.get(r.id); if (!pr) return null; return pr.gaps.length === 0 ? <Badge kind="green">Memadai</Badge> : <Badge kind={pr.gaps.includes('under-response') ? 'red' : 'amber'}>{pr.gaps.length} gap</Badge>; })()}</td>
                 </tr>
               );
             })}

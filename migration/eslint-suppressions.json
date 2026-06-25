@@ -666,7 +666,7 @@
   },
   "src/view_misc1.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 24
+      "count": 23
     }
   },
   "src/view_misc2.tsx": {
