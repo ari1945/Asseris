@@ -129,3 +129,22 @@ export function engagementEntryGate(ctx: EngagementEntryContext | null | undefin
   const blockers = criteria.filter((x) => !x.met);
   return { ok: blockers.length === 0, allMet: blockers.length === 0, blockers, criteria };
 }
+
+/* engagementEntryContext (M2) — petakan objek engagement (membawa field
+   warisan M2) ke konteks gerbang. Seam tunggal yang dipakai M4 agar wiring
+   tak menjamah bentuk engagement langsung. Toleran data legacy: field hilang
+   → null/undefined → gerbang fail-safe "Pra-akseptasi". */
+export function engagementEntryContext(
+  eng: {
+    clientKind?: ClientKind;
+    acceptanceRef?: AcceptanceRef | null;
+    engagementLetter?: EngagementLetterRef | null;
+  } | null | undefined
+): EngagementEntryContext {
+  const e = eng || {};
+  return {
+    clientKind: e.clientKind,
+    acceptanceRef: e.acceptanceRef ?? null,
+    engagementLetter: e.engagementLetter ?? null,
+  };
+}

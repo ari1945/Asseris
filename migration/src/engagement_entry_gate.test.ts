@@ -4,7 +4,7 @@
    di-wire ke engagementGate (M4). Pure → fit harness node.
    ============================================================ */
 import { describe, it, expect } from 'vitest';
-import { engagementEntryGate } from './engagement_entry_gate';
+import { engagementEntryGate, engagementEntryContext } from './engagement_entry_gate';
 
 const SIGNED = { status: 'signed', version: 1, scope: 'Audit LK FY2025', esign: [] };
 const DRAFT = { status: 'draft', version: 0, scope: '', esign: [] };
@@ -129,5 +129,35 @@ describe('engagementEntryGate — prasyarat masuk Eksekusi', () => {
     const acc = g.criteria.find((c) => c.key === 'accepted');
     expect(acc?.detail).toContain('Sari Dewanti, CPA');
     expect(acc?.detail).toContain('2026-02-20');
+  });
+});
+
+describe('engagementEntryContext — seam engagement→gerbang (M2)', () => {
+  it('engagement dengan warisan lengkap → gerbang ok', () => {
+    const eng = {
+      id: 'ENG-2025-099', clientKind: 'Klien Baru' as const,
+      acceptanceRef: { approved: true, decision: 'Terima' },
+      engagementLetter: { status: 'signed', esign: [] },
+    };
+    expect(engagementEntryGate(engagementEntryContext(eng)).ok).toBe(true);
+  });
+
+  it('FAIL-SAFE: engagement legacy/seed (tanpa field warisan) → Pra-akseptasi, tanpa throw', () => {
+    const legacy = { id: 'ENG-2025-014', clientId: 'CLI-01', phase: 'Eksekusi' };
+    const g = engagementEntryGate(engagementEntryContext(legacy));
+    expect(g.ok).toBe(false);
+    expect(g.blockers).toHaveLength(2);
+  });
+
+  it('default Pra-akseptasi addEngagement (letter status "none") → blokir keduanya', () => {
+    const fresh = { clientKind: 'Klien Baru' as const, originProspectId: null, acceptanceRef: null,
+      engagementLetter: { status: 'none', version: 0, esign: [] } };
+    const g = engagementEntryGate(engagementEntryContext(fresh));
+    expect(g.blockers.map((b) => b.key)).toEqual(['accepted', 'letterSigned']);
+  });
+
+  it('null/undefined → konteks aman (tanpa throw)', () => {
+    expect(engagementEntryGate(engagementEntryContext(null)).ok).toBe(false);
+    expect(engagementEntryGate(engagementEntryContext(undefined)).blockers).toHaveLength(2);
   });
 });

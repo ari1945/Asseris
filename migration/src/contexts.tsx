@@ -316,7 +316,13 @@ function AppProviders({ me, onLogout, children }: any) {
   const addEngagement = useCallback((e: any) => setEngagements((list: any) => {
     const n = list.length + 8;
     const id = 'ENG-2025-0' + String(n).padStart(2, '0');
-    return [{ id, fy: 'FY2025', status: 'Planning', phase: 'Perencanaan', progress: 5, actualHrs: 0, ...e }, ...list];
+    /* PRD SA 210/220 (M2): default Pra-akseptasi. Engagement baru tanpa warisan
+       akseptasi/surat lahir eksplisit "belum disetujui" agar gerbang masuk Eksekusi
+       (M4) membaca nilai konsisten — bukan undefined. Konverter prospek (M3) menimpa
+       lewat ...e. */
+    const preAcc = { clientKind: 'Klien Baru', originProspectId: null, acceptanceRef: null,
+      engagementLetter: { status: 'none', version: 0, esign: [] } };
+    return [{ id, fy: 'FY2025', status: 'Planning', phase: 'Perencanaan', progress: 5, actualHrs: 0, ...preAcc, ...e }, ...list];
   }), []);
 
   const activeEngagement = useMemo(
