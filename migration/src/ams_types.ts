@@ -13,6 +13,8 @@
    di `AmsData` (lihat types/globals.d.ts).
    ============================================================ */
 
+import type { AcceptanceRef, ClientKind, EngagementLetterRef } from './engagement_entry_gate';
+
 /* ---------- Entitas firma & pengguna (objek tunggal, core) ---------- */
 export interface FirmInfo {
   name: string;
@@ -79,6 +81,13 @@ export interface EngagementRow {
   actualHrs: number;
   risk: string;
   materiality: number;
+  /* ---- Warisan akseptasi/keberlanjutan & surat perikatan (PRD SA 210/220, M2) ----
+     Opsional: engagement seed/legacy tak punya → gerbang masuk Eksekusi (M4)
+     fail-safe ke "Pra-akseptasi". Konverter prospek (M3) mengisinya. */
+  clientKind?: ClientKind;
+  originProspectId?: string | null;
+  acceptanceRef?: AcceptanceRef | null;
+  engagementLetter?: EngagementLetterRef | null;
 }
 
 /* ---------- Penilaian risiko (RoMM register) ---------- */

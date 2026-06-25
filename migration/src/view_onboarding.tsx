@@ -9,6 +9,7 @@ import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { MSub } from './view_fpm_parts';
 import { StepLetter, StepPMPJ } from './view_onboarding2';
 import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
+import { prospectToEngagementInheritance } from './engagement_entry_gate';
 
 /* ============================================================
    Asseris — Front-office: Client & Engagement Onboarding
@@ -370,6 +371,10 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const { addClient, addEngagement, clientById } = useFirm();
+  /* M3: konversi menulis `engagements` + `prospects` (server-gated ENGAGEMENT_MANAGE).
+     UI cermati gate yang sama (invarian SoD: tombol = can()). */
+  const auth = useAuth();
+  const canConvert: boolean = !auth || typeof auth.can !== 'function' || auth.can(CAP.ENGAGEMENT_MANAGE);
   const g = obGates(p);
 
   const checks = [
@@ -380,12 +385,17 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
   const ready = checks.every(c => c.ok);
 
   const doConvert = () => {
+    if (!ready || !canConvert || p.converted) return;   // idempoten + defensif (cermin gate UI)
     let clientId = p.clientId;
     if (!clientId) {
       clientId = 'C-' + Math.floor(Math.random() * 800 + 100);
       addClient({ id: clientId, name: p.name, industry: p.industry, tier: p.listed ? 'Tier 1' : 'Tier 2', risk: p.pmpj.riskRating === 'Tinggi' ? 'High' : p.pmpj.riskRating === 'Rendah' ? 'Low' : 'Medium', npwp: p.npwp, city: p.city, listed: !!p.listed, since: 2026, partner: p.partner, fee: p.fee, status: 'Active' });
     }
-    addEngagement({ clientId, type: p.service.includes('Review') ? 'Review (SPR 2400)' : p.service.includes('Due') ? 'Agreed-Upon Procedures' : 'Audit Laporan Keuangan', standard: p.standard, partner: p.partner, manager: p.manager, deadline: p.deadline, budgetHrs: p.budgetHrs, materiality: p.materiality, risk: p.pmpj.riskRating === 'Tinggi' ? 'High' : p.pmpj.riskRating === 'Rendah' ? 'Low' : 'Medium' });
+    /* M3: wariskan provenance akseptasi + surat perikatan agar engagement hasil
+       konversi LOLOS gerbang masuk Eksekusi (M4) by construction — bukan kena
+       default Pra-akseptasi (M2). Surat di-set tanggal tanda tangan bila kosong. */
+    const inheritance = prospectToEngagementInheritance(p);
+    addEngagement({ clientId, type: p.service.includes('Review') ? 'Review (SPR 2400)' : p.service.includes('Due') ? 'Agreed-Upon Procedures' : 'Audit Laporan Keuangan', standard: p.standard, partner: p.partner, manager: p.manager, deadline: p.deadline, budgetHrs: p.budgetHrs, materiality: p.materiality, risk: p.pmpj.riskRating === 'Tinggi' ? 'High' : p.pmpj.riskRating === 'Rendah' ? 'Low' : 'Medium', ...inheritance });
     onPatch((pr: any) => ({ ...pr, converted: true }));
   };
 
@@ -435,9 +445,11 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
         </div>
       </div>
 
-      {ready
-        ? <Btn variant="primary" style={{ width: '100%', height: 38 }} onClick={doConvert}><I.arrowRight size={15} /> Konversi ke Perikatan (fase Perencanaan)</Btn>
-        : <div className="panel" style={{ padding: '11px 13px', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Lengkapi seluruh gerbang di atas untuk membuka konversi.</span></div></div>}
+      {!canConvert
+        ? <div className="panel" style={{ padding: '11px 13px', background: 'var(--red-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Peran Anda tidak berwenang mengonversi perikatan (perlu Partner/Manajer · ENGAGEMENT_MANAGE).</span></div></div>
+        : ready
+          ? <Btn variant="primary" style={{ width: '100%', height: 38 }} onClick={doConvert}><I.arrowRight size={15} /> Konversi ke Perikatan (fase Perencanaan)</Btn>
+          : <div className="panel" style={{ padding: '11px 13px', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Lengkapi seluruh gerbang di atas untuk membuka konversi.</span></div></div>}
     </div>
   );
 }

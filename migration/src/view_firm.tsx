@@ -10,6 +10,7 @@ import { CRM360, CRMAktivitas, CRMPeluang, CRMSegmentasi } from './view_crm2';
 import { EngAnggaran, EngJadwal, EngPortofolio, EngStaffing } from './view_eng2';
 import { MSub } from './view_fpm_parts';
 import { usePhaseGate, PhaseGateDialog } from './wp_signoff';
+import { isEngagementPreAcceptance } from './engagement_entry_gate';
 
 /* ============================================================
    Asseris — Client CRM + Engagement Management
@@ -348,7 +349,12 @@ function EngagementMgmt() {
                             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
                           </div>
                           <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5, marginBottom: 2 }}>{c?.name.replace('PT ', '')}</div>
-                          <div className="tiny muted" style={{ marginBottom: 8 }}>{e.type}</div>
+                          <div className="tiny muted" style={{ marginBottom: isEngagementPreAcceptance(e) ? 5 : 8 }}>{e.type}</div>
+                          {isEngagementPreAcceptance(e) && (
+                            <div style={{ marginBottom: 7 }} title="Akseptasi/keberlanjutan belum disetujui atau surat perikatan belum ditandatangani (SA 210/220) — akan menahan masuk Eksekusi">
+                              <span className="badge b-amber" style={{ fontSize: 9, padding: '0 6px' }}><I.lock size={9} /> Pra-akseptasi</span>
+                            </div>
+                          )}
                           <div className="row ac gap6" style={{ marginBottom: 7 }}>
                             <Progress value={e.progress} color={phColor} /><span className="mono tiny" style={{ width: 26 }}>{e.progress}%</span>
                           </div>
@@ -400,6 +406,7 @@ function EngagementDetail({ e, client, onClose }: any) {
           <div className="row gap8" style={{ marginTop: 10 }}>
             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
             <span className="badge b-blue">{e.status}</span>
+            {isEngagementPreAcceptance(e) && <span className="badge b-amber" title="Akseptasi/surat perikatan belum lengkap (SA 210/220)"><I.lock size={10} /> Pra-akseptasi</span>}
           </div>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>

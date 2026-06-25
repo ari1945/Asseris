@@ -13,6 +13,7 @@
    ============================================================ */
 import React from 'react';
 import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { engagementEntryGate, engagementEntryContext } from './engagement_entry_gate';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui';
@@ -492,8 +493,16 @@ function engagementGate(audit: any, firm: any, opts: any) {
   let criteria: any[] = [];
   let severity = 'warn';
   if (nextPhase === 'Eksekusi') {
+    /* SA 210/220 (M4): masuk Eksekusi (mulai fieldwork) menuntut keputusan
+       penerimaan/keberlanjutan disetujui + surat perikatan signed. Severity
+       'warn' (Q1 graduated, override-able & ter-log) → engagement hasil konversi
+       (M3, mewarisi provenance) lolos TANPA dialog; jalur bypass (EngagementForm
+       manual / seed legacy → default Pra-akseptasi M2) memunculkan dialog blocker.
+       Resolusi engagement by engId yg sedang dipindah — bukan asumsi aktif. */
     severity = 'warn';
-    criteria = []; // Perencanaan→Eksekusi: tak ada prasyarat keras (informasional)
+    const eng = (o.engId && firm && firm.engagements
+      ? firm.engagements.find((x: { id?: string }) => x.id === o.engId) : null) || (firm && firm.activeEngagement);
+    criteria = engagementEntryGate(engagementEntryContext(eng)).criteria;
   } else if (nextPhase === 'Finalisasi') {
     severity = 'warn';
     criteria = [
@@ -576,7 +585,7 @@ function usePhaseGate() {
   const logActivity = (audit && audit.logActivity) || (() => {});
   const [pending, setPending] = useStateWPS(null);
   const attempt = (engId: any, fromPhase: any, toPhase: any) => {
-    const g = engagementGate(audit, firm, { nextPhase: toPhase, fromPhase });
+    const g = engagementGate(audit, firm, { nextPhase: toPhase, fromPhase, engId });
     const needsDialog = g.severity === 'confirm' ? true : (g.severity === 'warn' && !g.allMet);
     if (!needsDialog) { setEngagementPhase(engId, toPhase); return; }
     setPending({ engId, fromPhase, toPhase, gate: g });
