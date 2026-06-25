@@ -8,6 +8,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
+import { LEVELS, LEVEL_KIND, COMMS, DEF_SEED, DEFAULT_DEF_A, classifyDeficiency as classifyDef } from './canon_deficiency';
 
 /* ============================================================
    Asseris — Internal Control (ICFR)
@@ -595,30 +596,9 @@ function ICITGC({ data }: any) {
 
 /* ============================================================
    TAB 4 — Evaluasi & Agregasi Defisiensi (SA 265)
+   Model severity (LEVELS/classifyDef/COMMS/DEF_SEED) di-SSOT-kan
+   ke canon_deficiency (dipakai bersama Management Letter).
    ============================================================ */
-const LEVELS = ['Defisiensi Pengendalian', 'Defisiensi Signifikan', 'Kelemahan Material'];
-const LEVEL_KIND = { 'Defisiensi Pengendalian': 'gray', 'Defisiensi Signifikan': 'amber', 'Kelemahan Material': 'red' };
-
-function classifyDef(mag: any, lik: any, comp: any) {
-  let lvl = (mag === 'Material' && lik === 'Wajar mungkin') ? 2 : (mag === 'Material' || lik === 'Wajar mungkin') ? 1 : 0;
-  if (comp) lvl = Math.max(0, lvl - 1); // kontrol kompensasi efektif menurunkan severity
-  return LEVELS[lvl];
-}
-const COMMS = {
-  'Kelemahan Material': { who: 'Tertulis ke TCWG + Manajemen', ref: 'SA 265.9', resp: 'Perluas prosedur substantif; pertimbangkan dampak laporan; tautkan ke SAD.', icon: 'mail', kind: 'red' },
-  'Defisiensi Signifikan': { who: 'Tertulis ke TCWG', ref: 'SA 265.9', resp: 'Rancang prosedur substantif responsif; cantumkan di management letter.', icon: 'mail', kind: 'amber' },
-  'Defisiensi Pengendalian': { who: 'Management letter (pertimbangan profesional)', ref: 'SA 265.10', resp: 'Catat & pantau; dampak substantif terbatas.', icon: 'doc', kind: 'blue' },
-};
-
-/* seed assessments for each known deficiency */
-const DEF_SEED = {
-  'R-03': { mag: 'Material', lik: 'Wajar mungkin', comp: true, sad: 'SAD-04', cmp: 'Rekonsiliasi sub-ledger bulanan (R-04) sebagian memitigasi.' },
-  'I-02': { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: 'SAD-07', cmp: 'Tidak ada kontrol kompensasi efektif atas penilaian NRV.' },
-  'F-01': { mag: 'Material', lik: 'Remote', comp: false, sad: 'SAD-02', cmp: 'Rekonsiliasi akun (F-02) memberi keyakinan terbatas.' },
-  'ITGC-SoD': { mag: 'Imaterial', lik: 'Wajar mungkin', comp: true, sad: 'SAD-05', cmp: 'Reviu detektif manual atas transaksi konflik role.' },
-};
-
-const DEFAULT_DEF_A = { mag: 'Material', lik: 'Wajar mungkin', comp: false, sad: '—', cmp: '—' };
 function ICDeficiency({ data, locked }: any) {
   // collect deficiencies from matrix + ITGC SoD
   const matrixDefs = data.flatMap((cy: any) => cy.controls
