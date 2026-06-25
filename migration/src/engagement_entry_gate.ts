@@ -178,3 +178,21 @@ export function prospectToEngagementInheritance(p: ProspectLike | null | undefin
     engagementLetter: pr.letter ?? null,
   };
 }
+
+/* isEngagementPreAcceptance (M5) — true bila engagement MASIH di Perencanaan
+   DAN belum lolos prasyarat masuk Eksekusi (akseptasi/keberlanjutan + surat).
+   Dipakai sebagai flag visual ("Pra-akseptasi") di papan Engagement & Cockpit.
+   Sekali pindah ke Eksekusi+ (terpenuhi ATAU override ter-log), flag padam —
+   gerbang & jejak override yang menjadi kontrol, bukan flag. */
+export function isEngagementPreAcceptance(
+  eng: {
+    phase?: string;
+    clientKind?: ClientKind;
+    acceptanceRef?: AcceptanceRef | null;
+    engagementLetter?: EngagementLetterRef | null;
+  } | null | undefined
+): boolean {
+  // hanya tandai engagement yang EKSPLISIT di Perencanaan (null / fase lain = tak ada yg ditandai)
+  if (!eng || eng.phase !== 'Perencanaan') return false;
+  return !engagementEntryGate(engagementEntryContext(eng)).ok;
+}

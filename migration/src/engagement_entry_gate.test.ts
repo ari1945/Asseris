@@ -4,7 +4,7 @@
    di-wire ke engagementGate (M4). Pure → fit harness node.
    ============================================================ */
 import { describe, it, expect } from 'vitest';
-import { engagementEntryGate, engagementEntryContext, prospectToEngagementInheritance } from './engagement_entry_gate';
+import { engagementEntryGate, engagementEntryContext, prospectToEngagementInheritance, isEngagementPreAcceptance } from './engagement_entry_gate';
 
 const SIGNED = { status: 'signed', version: 1, scope: 'Audit LK FY2025', esign: [] };
 const DRAFT = { status: 'draft', version: 0, scope: '', esign: [] };
@@ -202,5 +202,28 @@ describe('prospectToEngagementInheritance — konversi prospek→engagement (M3)
     const inh = prospectToEngagementInheritance(null);
     expect(inh.originProspectId).toBeNull();
     expect(inh.acceptanceRef).toBeNull();
+  });
+});
+
+describe('isEngagementPreAcceptance — flag visual (M5)', () => {
+  it('engagement manual/seed di Perencanaan tanpa provenance → true', () => {
+    expect(isEngagementPreAcceptance({ phase: 'Perencanaan', clientKind: 'Klien Baru',
+      engagementLetter: { status: 'none', esign: [] } })).toBe(true);
+  });
+
+  it('engagement hasil konversi (akseptasi+surat) di Perencanaan → false', () => {
+    expect(isEngagementPreAcceptance({
+      phase: 'Perencanaan', clientKind: 'Klien Baru',
+      acceptanceRef: { approved: true, decision: 'Terima' },
+      engagementLetter: { status: 'signed', esign: [] },
+    })).toBe(false);
+  });
+
+  it('engagement sudah di Eksekusi → false (flag padam, gerbang/override yg menjaga)', () => {
+    expect(isEngagementPreAcceptance({ phase: 'Eksekusi', clientKind: 'Klien Baru' })).toBe(false);
+  });
+
+  it('null → false (tak ada engagement untuk ditandai), tanpa throw', () => {
+    expect(isEngagementPreAcceptance(null)).toBe(false);
   });
 });
