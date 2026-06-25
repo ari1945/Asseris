@@ -25,6 +25,13 @@ export interface FinalisationGateInput {
   notStarted: number;
   /* jumlah catatan review prioritas-tinggi yang masih terbuka */
   highOpenCount: number;
+  /* integritas neraca saldo (W-WTB·2): neraca seimbang + adjusted konsisten +
+     kolom AJE seimbang & selaras register. true bila checkWtbIntegrity.status==='ok'.
+     A1: menyambungkan gerbang integritas WTB ke gerbang finalisasi (sebelumnya
+     hanya tampil di modul WTB). */
+  wtbIntegrityOk: boolean;
+  /* ringkasan sisa ketidakt-tie-an (untuk auditor); kosong bila ok. */
+  wtbIntegrityDetail: string;
 }
 
 export interface GateCriterion {
@@ -66,6 +73,15 @@ export function finalisationGateCriteria(input: FinalisationGateInput): GateCrit
       met: high === 0,
       detail: `${high} catatan prioritas tinggi terbuka`,
       view: 'cockpit',
+    },
+    {
+      key: 'wtbIntegrity',
+      label: 'Neraca saldo seimbang & ter-rekonsiliasi (W-WTB·2)',
+      met: input.wtbIntegrityOk,
+      detail: input.wtbIntegrityOk
+        ? 'Neraca seimbang; kolom AJE & register ter-rekonsiliasi'
+        : (input.wtbIntegrityDetail || 'Integritas neraca saldo perlu perhatian'),
+      view: 'wtb',
     },
   ];
 }

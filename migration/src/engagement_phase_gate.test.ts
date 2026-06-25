@@ -12,16 +12,22 @@ import {
   type FinalisationGateInput,
 } from './engagement_phase_gate';
 
-const crit = (i: FinalisationGateInput) => {
-  const cs = finalisationGateCriteria(i);
+/* default integritas WTB = ok agar kasus 3-kriteria lama tak berubah; uji
+   khusus W-WTB·2 meng-override wtbIntegrityOk. */
+const crit = (i: Partial<FinalisationGateInput>) => {
+  const full: FinalisationGateInput = {
+    conclusionPct: 100, notStarted: 0, highOpenCount: 0,
+    wtbIntegrityOk: true, wtbIntegrityDetail: '', ...i,
+  };
+  const cs = finalisationGateCriteria(full);
   const by = (k: string) => cs.find(c => c.key === k)!;
   return { cs, by, allMet: cs.every(c => c.met) };
 };
 
 describe('finalisationGateCriteria() — ambang kesimpulan SA 230', () => {
-  it('selalu menghasilkan tepat 3 kriteria (concluded, allStarted, noHighNotes)', () => {
+  it('menghasilkan 4 kriteria (concluded, allStarted, noHighNotes, wtbIntegrity)', () => {
     const { cs } = crit({ conclusionPct: 100, notStarted: 0, highOpenCount: 0 });
-    expect(cs.map(c => c.key)).toEqual(['concluded', 'allStarted', 'noHighNotes']);
+    expect(cs.map(c => c.key)).toEqual(['concluded', 'allStarted', 'noHighNotes', 'wtbIntegrity']);
   });
 
   it('ambang konstan = 80%', () => {
@@ -69,6 +75,32 @@ describe('finalisationGateCriteria() — catatan review prioritas tinggi', () =>
 
   it('highOpenCount>0 → noHighNotes gagal', () => {
     expect(crit({ conclusionPct: 100, notStarted: 0, highOpenCount: 2 }).by('noHighNotes').met).toBe(false);
+  });
+});
+
+describe('finalisationGateCriteria() — integritas neraca saldo (W-WTB·2 / A1)', () => {
+  it('wtbIntegrityOk=true → kriteria wtbIntegrity lolos, detail ringkas', () => {
+    const r = crit({ wtbIntegrityOk: true });
+    expect(r.by('wtbIntegrity').met).toBe(true);
+    expect(r.by('wtbIntegrity').detail).toContain('rekonsiliasi');
+    expect(r.by('wtbIntegrity').view).toBe('wtb');
+  });
+
+  it('wtbIntegrityOk=false → wtbIntegrity gagal & memblok allMet (memantulkan detail)', () => {
+    const r = crit({ wtbIntegrityOk: false, wtbIntegrityDetail: 'kolom AJE tak seimbang' });
+    expect(r.by('wtbIntegrity').met).toBe(false);
+    expect(r.by('wtbIntegrity').detail).toBe('kolom AJE tak seimbang');
+    expect(r.allMet).toBe(false);
+  });
+
+  it('detail kosong saat tak-ok → fallback label generik (tak pernah kosong)', () => {
+    const r = crit({ wtbIntegrityOk: false, wtbIntegrityDetail: '' });
+    expect(r.by('wtbIntegrity').detail.length).toBeGreaterThan(0);
+  });
+
+  it('integritas gagal sendirian → satu-satunya blocker', () => {
+    const { cs } = crit({ conclusionPct: 100, notStarted: 0, highOpenCount: 0, wtbIntegrityOk: false });
+    expect(cs.filter(c => !c.met).map(c => c.key)).toEqual(['wtbIntegrity']);
   });
 });
 
