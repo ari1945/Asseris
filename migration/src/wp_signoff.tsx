@@ -572,6 +572,10 @@ function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }: any) {
 function usePhaseGate() {
   const audit = useAudit();
   const firm = useFirm();
+  const auth = useAuth();
+  /* Override gerbang (maju fase MESKI ada blocker) = Partner-only (PHASE_OVERRIDE).
+     Maju fase saat prasyarat TERPENUHI tetap bebas. Lihat prd-phase-gate-override-rbac. */
+  const canOverride: boolean = !auth || typeof auth.can !== 'function' || auth.can(CAP.PHASE_OVERRIDE);
   const setEngagementPhase = (firm && firm.setEngagementPhase) || (() => {});
   const logActivity = (audit && audit.logActivity) || (() => {});
   const [pending, setPending] = useStateWPS(null);
@@ -583,6 +587,8 @@ function usePhaseGate() {
   };
   const confirm = () => {
     if (!pending) return;
+    // guard defense-in-depth: override (lanjut meski blocker) butuh Partner — UI sudah disable tombolnya.
+    if (pending.gate.blockers.length && !canOverride) return;
     setEngagementPhase(pending.engId, pending.toPhase);
     if (pending.gate.blockers.length) {
       logActivity({ type: 'gate-override', module: 'engagement',
@@ -596,9 +602,13 @@ function usePhaseGate() {
 
 /* PhaseGateDialog — modal konfirmasi/peringatan transisi fase. */
 function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any) {
+  const auth = useAuth();
   if (!gate) return null;
   const isConfirm = gate.severity === 'confirm';
   const blocked = gate.blockers.length > 0;
+  /* override (lanjut meski blocker) = Partner-only; konfirmasi tanpa-blocker tetap bebas. */
+  const canOverride = !auth || typeof auth.can !== 'function' || auth.can(CAP.PHASE_OVERRIDE);
+  const overrideBlocked = blocked && !canOverride;
   const accent = isConfirm ? 'var(--red)' : 'var(--amber)';
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onCancel}>
@@ -619,9 +629,14 @@ function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any)
         <div style={{ padding: '12px 16px' }}>
           <EngagementGateSummary gate={gate} compact />
         </div>
+        {overrideBlocked && (
+          <div className="tiny" style={{ padding: '8px 16px', background: 'var(--red-bg)', color: 'var(--red)', fontWeight: 600 }}>
+            <I.lock size={11} /> Hanya Partner yang dapat menembus prasyarat (override). Selesaikan prasyarat di atas, atau minta Partner.
+          </div>
+        )}
         <div className="row jb ac" style={{ padding: '11px 16px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
           <button className="btn sm" onClick={onCancel}>Batal</button>
-          <Btn sm variant="primary" style={{ background: accent, borderColor: accent }} onClick={onConfirm}>
+          <Btn sm variant="primary" disabled={overrideBlocked} style={{ background: accent, borderColor: accent, opacity: overrideBlocked ? 0.5 : 1 }} onClick={overrideBlocked ? undefined : onConfirm}>
             {isConfirm
               ? (blocked ? <><I.lock size={13} /> Tetap arsipkan (override)</> : <><I.lock size={13} /> Arsipkan &amp; kunci</>)
               : <>Lanjutkan</>}

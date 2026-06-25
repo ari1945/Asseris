@@ -33,6 +33,8 @@ describe('RBAC — kapabilitas otoritatif sign-off (segregation of duties)', () 
     [CAP.WP_EDIT, [PARTNER, MANAGER, SENIOR, JUNIOR]],
     // pengaturan firma & RBAC
     [CAP.FIRM_ADMIN, [PARTNER]],
+    // override gerbang transisi fase meski ada blocker (mulai Eksekusi tanpa akseptasi/surat; arsip belum lengkap)
+    [CAP.PHASE_OVERRIDE, [PARTNER]],
   ];
 
   matrix.forEach(([cap, allowed]) => {
