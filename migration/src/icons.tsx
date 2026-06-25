@@ -137,7 +137,6 @@ const MODULES = [
   { group: 'Mutu, Risiko & Regulasi', items: [
     { id: 'governance', label: 'Governance (SOQM)', icon: 'building', deep: true },
     { id: 'soqm',       label: 'SOQM Operasional', icon: 'shield', deep: true },
-    { id: 'eqr',        label: 'EQR Workflow', icon: 'checkCircle', deep: true },
     { id: 'pppk',       label: 'Pelaporan PPPK', icon: 'report', deep: true },
   ]},
   { group: 'OJK · Pasar Modal & Keberlanjutan', items: [
@@ -263,6 +262,7 @@ const MODULES = [
     { id: 'fsgen',   label: 'Financial Statement Gen.', icon: 'report', deep: true },
     { id: 'disclosure', label: 'Daftar-Uji Pengungkapan', icon: 'checkCircle', tag: 'NEW', deep: true },
     { id: 'opinion', label: 'Audit Opinion Generator', icon: 'gavel', deep: true },
+    { id: 'eqr',     label: 'EQR Workflow', icon: 'checkCircle', deep: true, tag: 'ISQM 2' },
     { id: 'mgmtletter', label: 'Management Letter', icon: 'mail', deep: true },
   ]},
   { group: 'Backoffice & Firm Mgmt', items: [
