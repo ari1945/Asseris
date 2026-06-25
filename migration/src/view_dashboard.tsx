@@ -9,7 +9,7 @@ import { Avatar, Badge, Btn, Donut, Panel, Portlet, Progress, Spark, Stat } from
 import { DashFinansial, DashMutu, DashOperasional } from './view_dashboard2';
 import { MSub } from './view_fpm_parts';
 import { portfolioRisk, riskBandColor, type PortfolioRiskRow } from './portfolio_risk';
-import { RISKS } from './data_part1';
+import { ENG_RISK_SEED } from './data_part1';
 
 /* ============================================================
    Asseris — Firm Dashboard (draggable portlets)
@@ -53,7 +53,7 @@ function useDraggablePortlets(defaultOrder: any, storeKey: any) {
 
 /* ============================================================
    Risiko Portofolio — pengawasan RoMM lintas-klien (Partner/Manager).
-   Agregat dari register RoMM kanonik (AMS.RISKS) via portfolio_risk;
+   Agregat dari union register RoMM (ENG_RISK_SEED) via portfolio_risk;
    perikatan tanpa register tersimpan tampil "belum dinilai". Klik baris
    yang sudah dinilai → set engagement aktif & buka modul Risk Assessment.
    ============================================================ */
@@ -62,7 +62,7 @@ function PortfolioRiskPanel({ nav, setActiveEngagementId }: {
   setActiveEngagementId: (id: string) => void;
 }) {
   const { engagements, clients } = useFirm();
-  const sum = portfolioRisk(engagements, clients, RISKS);
+  const sum = portfolioRisk(engagements, clients, ENG_RISK_SEED);
 
   const openEng = (row: PortfolioRiskRow) => {
     if (!row.assessed) return;

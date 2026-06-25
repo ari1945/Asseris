@@ -3,6 +3,7 @@ import React from 'react';
 import { api, isConflict } from './api';
 import { can as rbacCan } from './rbac';
 import { AMS } from './data';
+import { ENG_RISK_SEED } from './data_part1';
 
 /* ============================================================
    Asseris — React Context providers
@@ -343,7 +344,9 @@ function AppProviders({ me, onLogout, children }: any) {
   /* user-added AJEs carry structured `lines: [{code, name, debit, credit}]` */
   /* engagement-scoped: re-hydrate when the active engagement changes */
   const [aje, setAje] = useServerState('aje', D.AJE, 'engagement', activeEngagementId);
-  const [risks, setRisks] = useServerState('risks', D.RISKS, 'engagement', activeEngagementId);
+  /* seed register RoMM dari union, di-filter per perikatan aktif → tiap engagement
+     melihat register-nya sendiri (drill-down konsisten dgn Risiko Portofolio). */
+  const [risks, setRisks] = useServerState('risks', ENG_RISK_SEED.filter((r) => r.engagementId === activeEngagementId), 'engagement', activeEngagementId);
   const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);

@@ -5,6 +5,7 @@
    ============================================================ */
 import { describe, it, expect } from 'vitest';
 import { portfolioRisk, riskBand } from './portfolio_risk';
+import { ENG_RISK_SEED, ENGAGEMENTS as REAL_ENGAGEMENTS, CLIENTS as REAL_CLIENTS } from './data_part1';
 
 const CLIENTS = [
   { id: 'C-1', name: 'PT Alpha', industry: 'Manufaktur' },
@@ -75,5 +76,24 @@ describe('portfolioRisk', () => {
   it('mengabaikan baris register tanpa engagementId', () => {
     const sum2 = portfolioRisk(ENGAGEMENTS, CLIENTS, [...RISKS, { likelihood: 5, impact: 5, fraud: true }]);
     expect(sum2.totalRisks).toBe(2); // baris yatim tak terhitung
+  });
+});
+
+describe('integrasi seed nyata (ENG_RISK_SEED)', () => {
+  const sum = portfolioRisk(REAL_ENGAGEMENTS, REAL_CLIENTS, ENG_RISK_SEED);
+
+  it('empat perikatan ter-seed muncul sebagai Dinilai', () => {
+    const assessedIds = sum.rows.filter((r) => r.assessed).map((r) => r.engagementId).sort();
+    expect(assessedIds).toEqual(['ENG-2025-014', 'ENG-2025-031', 'ENG-2025-040', 'ENG-2025-063']);
+  });
+
+  it('setiap baris ter-resolusi ke nama klien (bukan id mentah)', () => {
+    for (const r of sum.rows) expect(r.client.startsWith('C-')).toBe(false);
+  });
+
+  it('total firma menjumlahkan seluruh perikatan ter-seed', () => {
+    expect(sum.assessed).toBe(4);
+    expect(sum.unassessed).toBe(sum.engagements - 4);
+    expect(sum.totalRisks).toBe(ENG_RISK_SEED.length);
   });
 });

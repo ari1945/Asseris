@@ -104,7 +104,30 @@
     { id: 'R-06', area: 'Sewa (PSAK 73)', assertion: 'Completeness', desc: 'Kontrak sewa baru tidak diakui sebagai aset hak-guna', likelihood: 3, impact: 3, inherent: 'Moderate', fraud: false, assertionLvl: true, response: 'Telaah kontrak & re-kalkulasi liabilitas sewa', wp: 'F-1', proc: 'psak73', owner: 'Sinta W.' },
     { id: 'R-07', area: 'Imbalan Kerja', assertion: 'Valuation', desc: 'Asumsi aktuaria tidak sesuai kondisi terkini', likelihood: 2, impact: 3, inherent: 'Moderate', fraud: false, assertionLvl: true, response: 'Evaluasi pakar aktuaria (SA 500)', wp: 'H-2', proc: 'psak24', owner: 'Sinta W.' },
     { id: 'R-08', area: 'Pihak Berelasi', assertion: 'Completeness', desc: 'Transaksi pihak berelasi tidak diungkapkan lengkap', likelihood: 2, impact: 4, inherent: 'Moderate', fraud: false, assertionLvl: true, response: 'Pengujian kelengkapan & konfirmasi', wp: 'RP-1', proc: 'related', owner: 'Dimas R.' },
+  ].map((r) => ({ engagementId: 'ENG-2025-014', ...r }));   /* register milik perikatan demo aktif */
+
+  /* ---- RoMM ringkas untuk perikatan lain (mengaktifkan tampilan Risiko Portofolio lintas-klien).
+     Sengaja terpisah dari RISKS agar view yang membaca AMS.RISKS langsung (opini/presentasi)
+     tetap melihat HANYA register perikatan aktif. Union = ENG_RISK_SEED di bawah. ---- */
+  const RISKS_PORTFOLIO = [
+    /* ENG-2025-040 · PT Mandiri Sejahtera Finance — Multifinance, PSAK 71 (Perencanaan) */
+    { engagementId: 'ENG-2025-040', id: 'R40-1', area: 'Pembiayaan Konsumen', assertion: 'Valuation', desc: 'Cadangan kerugian penurunan nilai (ECL PSAK 71) atas piutang pembiayaan tidak memadai', likelihood: 4, impact: 5, inherent: 'Significant', fraud: false, assertionLvl: true, response: 'Re-perform model ECL & uji staging + backtesting', wp: 'B-7', proc: 'ecl', owner: 'Bayu S.' },
+    { engagementId: 'ENG-2025-040', id: 'R40-2', area: 'Pendapatan Bunga', assertion: 'Occurrence', desc: 'Pengakuan pendapatan bunga efektif tidak sesuai EIR / akrual berlebih', likelihood: 3, impact: 4, inherent: 'Significant', fraud: false, assertionLvl: true, response: 'Re-kalkulasi EIR sampel kontrak + uji cut-off', wp: 'R-1', proc: 'psak72', owner: 'Bayu S.' },
+    { engagementId: 'ENG-2025-040', id: 'R40-3', area: 'Management Override', assertion: 'Multiple', desc: 'Restrukturisasi pembiayaan dipakai menyembunyikan kredit bermasalah (evergreening)', likelihood: 3, impact: 5, inherent: 'Significant', fraud: true, assertionLvl: false, response: 'JE testing (SA 240) + telaah restrukturisasi', wp: 'JE-1', proc: 'jet', owner: 'Bayu S.' },
+    { engagementId: 'ENG-2025-040', id: 'R40-4', area: 'Pihak Berelasi', assertion: 'Completeness', desc: 'Pendanaan dari pihak berelasi tidak diungkapkan lengkap', likelihood: 2, impact: 3, inherent: 'Moderate', fraud: false, assertionLvl: true, response: 'Konfirmasi & telaah kelengkapan RPT', wp: 'RP-1', proc: 'related', owner: 'Bayu S.' },
+    /* ENG-2025-031 · PT Bumi Hijau Agrindo — Agribisnis, PSAK 73 (Eksekusi) */
+    { engagementId: 'ENG-2025-031', id: 'R31-1', area: 'Aset Biologis', assertion: 'Valuation', desc: 'Nilai wajar aset biologis (tanaman perkebunan) tidak ditopang asumsi yang andal', likelihood: 4, impact: 4, inherent: 'Significant', fraud: false, assertionLvl: true, response: 'Evaluasi pakar penilai + uji asumsi nilai wajar', wp: 'C-3', proc: 'psak16', owner: 'Anindya P.' },
+    { engagementId: 'ENG-2025-031', id: 'R31-2', area: 'Sewa (PSAK 73)', assertion: 'Completeness', desc: 'Sewa lahan jangka panjang tidak diakui sebagai aset hak-guna', likelihood: 3, impact: 4, inherent: 'Significant', fraud: false, assertionLvl: true, response: 'Telaah kontrak sewa lahan & re-kalkulasi liabilitas', wp: 'F-1', proc: 'psak73', owner: 'Anindya P.' },
+    { engagementId: 'ENG-2025-031', id: 'R31-3', area: 'Persediaan', assertion: 'Existence', desc: 'Kuantitas persediaan CPO/TBS hasil panen tidak terverifikasi memadai', likelihood: 2, impact: 3, inherent: 'Moderate', fraud: false, assertionLvl: true, response: 'Observasi stock-take + rekonsiliasi timbangan', wp: 'C-2', proc: 'psak14', owner: 'Dimas R.' },
+    /* ENG-2025-063 · PT Graha Properti Investama — Properti (Finalisasi) */
+    { engagementId: 'ENG-2025-063', id: 'R63-1', area: 'Pendapatan Properti', assertion: 'Occurrence', desc: 'Waktu pengakuan pendapatan penjualan unit (PSAK 72) tidak tepat (over time vs point in time)', likelihood: 3, impact: 5, inherent: 'Significant', fraud: false, assertionLvl: true, response: 'Telaah kontrak & analisis kriteria pengakuan', wp: 'R-2', proc: 'psak72', owner: 'Citra H.' },
+    { engagementId: 'ENG-2025-063', id: 'R63-2', area: 'Properti Investasi', assertion: 'Valuation', desc: 'Nilai wajar properti investasi (PSAK 13) menggunakan asumsi kapitalisasi usang', likelihood: 3, impact: 4, inherent: 'Significant', fraud: false, assertionLvl: true, response: 'Telaah laporan penilai independen (SA 500/620)', wp: 'E-5', proc: 'psak16', owner: 'Citra H.' },
+    { engagementId: 'ENG-2025-063', id: 'R63-3', area: 'Going Concern', assertion: 'Multiple', desc: 'Tekanan likuiditas dari jatuh tempo utang bank jangka pendek', likelihood: 2, impact: 4, inherent: 'Moderate', fraud: false, assertionLvl: false, response: 'Evaluasi rencana manajemen & proyeksi arus kas', wp: 'GC-1', proc: 'goingconcern', owner: 'Citra H.' },
   ];
+
+  /* Union seed: dipakai agregator portofolio (view_dashboard) & seed register per-perikatan
+     (contexts), di-filter per engagementId. AMS.RISKS sendiri TETAP = register ENG-2025-014. */
+  const ENG_RISK_SEED = [...RISKS, ...RISKS_PORTFOLIO];
 
   /* ---- Team / engagement staffing ---- */
   const TEAM = [
@@ -495,4 +518,4 @@
   /* ---- Firm Finance (ERP) — Treasury, Tax, Revenue ---- */
   /* FX rates to IDR (per 28 Feb 2026) */
 
-export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, PROSPECTS };
+export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, PROSPECTS };

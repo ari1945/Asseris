@@ -105,4 +105,11 @@ Dua masalah saling terkait pada arsitektur informasi modul risiko:
 4. **Drill-down:** klik baris portofolio harus mengubah `activeEngagement` lalu nav ke `risk` — konfirmasi pola set-active-engagement yang aman (guarded `setActiveEngagementId`, RBAC isolasi W7.5).
 
 ---
-**Sign-off:** ditandai dengan balasan **"Proceed."**
+
+## 12. Addendum — Implementasi (2026-06-25)
+
+- **Open Q #1 dieskalasi dari 1a → 1b** atas arahan Ari. Ditemukan saat implementasi: baris `RISKS` (data_part1) **tidak** membawa `engagementId` sama sekali → agregator akan menandai SEMUA perikatan "belum dinilai". Diperbaiki sebagai bagian 1b.
+- **1b terpasang:** `RISKS` di-tag `engagementId:'ENG-2025-014'`; ditambah `RISKS_PORTFOLIO` (RoMM ringkas untuk ENG-2025-040/031/063) + union `ENG_RISK_SEED`. `AMS.RISKS` **tetap** = register ENG-2025-014 (konsumen langsung opini/presentasi tidak berubah). Seed register per-perikatan (contexts) kini di-filter `engagementId` → drill-down konsisten dengan angka portofolio. `RiskRow.engagementId?` ditambah di `ams_types`.
+- **Gate:** typecheck 0 · lint bersih · 190 test (3 integrasi: seed nyata → tepat 4 perikatan Dinilai). Boot UI bersih (login render, nol error konsol); click-through Partner terhalang auth wall.
+
+**Sign-off:** ditandai dengan balasan **"Proceed."** (diberikan 2026-06-25; lanjut push + opsi 1b)
