@@ -581,7 +581,7 @@
   },
   "src/view_icfr.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 60
+      "count": 57
     }
   },
   "src/view_independence_parts.tsx": {

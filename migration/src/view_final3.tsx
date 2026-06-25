@@ -1,9 +1,10 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAmsPersist, useFirm } from './contexts';
+import { useAmsPersist, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Seg } from './ui';
+import { Badge, Btn, Panel, Seg, Stat } from './ui';
+import { DEFICIENCIES, DEF_SEED, DEFICIENCY_ML_LINK, LEVEL_KIND, reconcileGovernanceComms, type GovCommRow, type PendingFinding } from './canon_deficiency';
 
 /* ============================================================
    Asseris — Management Letter (SA 265/260)
@@ -491,6 +492,7 @@ function MLStatStrip({ findings }: any) {
    ============================================================ */
 function ManagementLetter() {
   const { activeClient, activeEngagement } = useFirm();
+  const nav = useNav();
   const persist = useAmsPersist;
   const [findings, setFindings] = persist('mgmtletter.findings.v2', ML_FINDINGS_SEED);
   const [discussions, setDiscussions] = persist('mgmtletter.discussions.v2', ML_DISCUSSIONS_SEED);
@@ -522,6 +524,9 @@ function ManagementLetter() {
   const finalCount = findings.filter((f: any) => f.stage === 'final').length;
   const pendingCount = findings.filter((f: any) => f.stage === 'diskusi' || f.stage === 'draft').length;
 
+  /* —— Rekonsiliasi defisiensi SA 265 (ICFR) → komunikasi tata kelola —— */
+  const govComm = reconcileGovernanceComms({ deficiencies: DEFICIENCIES, defSeed: DEF_SEED, links: DEFICIENCY_ML_LINK, mlFindings: findings });
+
   return (
     <>
       <SubBar moduleId="mgmtletter" right={
@@ -550,6 +555,56 @@ function ManagementLetter() {
 
       <div className="view-scroll"><div className="view-pad">
         <div style={{ marginBottom: 12 }}><MLStatStrip findings={findings} /></div>
+
+        {tab === 'workflow' && (
+          <Panel noBody style={{ marginBottom: 12 }}>
+            <div className="panel-h">
+              <h3>Rekonsiliasi Defisiensi → Komunikasi Tata Kelola</h3>
+              <div style={{ flex: 1 }} />
+              <Badge kind="blue">SA 265.9 · SA 260</Badge>
+            </div>
+            <div style={{ padding: '11px 14px' }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
+                <Stat value={govComm.rollup.communicatedCount + '/' + govComm.rollup.requiresTcwgCount} label="Defisiensi Wajib-TCWG Terkomunikasi" accent={govComm.rollup.defGaps ? 'var(--red)' : 'var(--green)'} />
+                <Stat value={govComm.rollup.defGaps} label="Gap Komunikasi (SA 265.9)" accent={govComm.rollup.defGaps ? 'var(--red)' : 'var(--green)'} />
+                <Stat value={govComm.rollup.pendingSignificant} label="Temuan Signifikan Belum Final" accent={govComm.rollup.pendingSignificant ? 'var(--amber)' : undefined} />
+              </div>
+
+              <div style={{ display: 'grid', gap: 6 }}>
+                <div className="tiny muted upper" style={{ fontWeight: 700 }}>Defisiensi pengendalian (SA 265) — dari modul ICFR</div>
+                {govComm.rows.map((r: GovCommRow) => {
+                  const stageOk = r.communicated;
+                  const badgeKind = r.isGap ? 'red' : (r.requiresTcwg ? (stageOk ? 'green' : 'amber') : 'blue');
+                  const badgeLabel = r.isGap ? 'Belum Dikomunikasikan' : (r.requiresTcwg ? (stageOk ? 'Terkomunikasi (Final ML)' : 'Menunggu Finalisasi') : 'Pertimbangan ML (SA 265.10)');
+                  return (
+                    <div key={r.defId} onClick={() => r.requiresTcwg && nav('icfr')} className="panel row jb ac" style={{ padding: '9px 11px', borderColor: 'var(--line)', cursor: r.requiresTcwg ? 'pointer' : 'default', borderLeft: '3px solid var(--' + (LEVEL_KIND[r.level] === 'gray' ? 'line' : LEVEL_KIND[r.level]) + ')' }}>
+                      <span className="row ac gap8" style={{ minWidth: 0 }}>
+                        <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.defId}</span>
+                        <span style={{ minWidth: 0 }}>
+                          <div className="truncate" style={{ fontSize: 12, fontWeight: 600, maxWidth: 340 }}>{r.desc}</div>
+                          <div className="tiny muted">{r.src} · {r.level}{r.mlId ? ' → ' + r.mlId : ''}</div>
+                        </span>
+                      </span>
+                      <Badge kind={badgeKind}>{badgeLabel}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {govComm.pendingFindings.length > 0 && (
+                <div style={{ display: 'grid', gap: 4, marginTop: 10 }}>
+                  <div className="tiny muted upper" style={{ fontWeight: 700 }}>Temuan signifikan menunggu finalisasi (SA 260)</div>
+                  {govComm.pendingFindings.map((p: PendingFinding) => (
+                    <div key={p.id} onClick={() => setSelId(p.id)} className="row jb ac" style={{ padding: '6px 9px', borderRadius: 6, cursor: 'pointer', background: 'var(--surface-2)' }}>
+                      <span className="row ac gap6" style={{ minWidth: 0 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.id}</span><span className="tiny truncate" style={{ maxWidth: 420 }}>{p.title}</span></span>
+                      <Badge kind="amber">Diskusi</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Panel>
+        )}
 
         {tab === 'workflow' && (
           <MLWorkflowFull
