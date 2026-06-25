@@ -4,7 +4,7 @@
    di-wire ke engagementGate (M4). Pure → fit harness node.
    ============================================================ */
 import { describe, it, expect } from 'vitest';
-import { engagementEntryGate, engagementEntryContext } from './engagement_entry_gate';
+import { engagementEntryGate, engagementEntryContext, prospectToEngagementInheritance } from './engagement_entry_gate';
 
 const SIGNED = { status: 'signed', version: 1, scope: 'Audit LK FY2025', esign: [] };
 const DRAFT = { status: 'draft', version: 0, scope: '', esign: [] };
@@ -159,5 +159,48 @@ describe('engagementEntryContext — seam engagement→gerbang (M2)', () => {
   it('null/undefined → konteks aman (tanpa throw)', () => {
     expect(engagementEntryGate(engagementEntryContext(null)).ok).toBe(false);
     expect(engagementEntryGate(engagementEntryContext(undefined)).blockers).toHaveLength(2);
+  });
+});
+
+describe('prospectToEngagementInheritance — konversi prospek→engagement (M3)', () => {
+  it('prospek ter-onboarding penuh → engagement hasil LOLOS gerbang by construction', () => {
+    const prospect = {
+      id: 'PROS-01', kind: 'Klien Baru' as const,
+      acceptance: { approved: true, decision: 'Terima dengan Syarat', approver: 'Rudi Gunawan, CPA', date: '2026-02-18' },
+      letter: { status: 'signed', version: 2, scope: 'Audit LK FY2025', esign: [{}, {}] },
+    };
+    const inh = prospectToEngagementInheritance(prospect);
+    expect(inh.originProspectId).toBe('PROS-01');
+    expect(inh.clientKind).toBe('Klien Baru');
+    const g = engagementEntryGate(engagementEntryContext(inh));
+    expect(g.ok).toBe(true);
+  });
+
+  it('keberlanjutan ter-onboarding penuh → lolos & view continuance', () => {
+    const inh = prospectToEngagementInheritance({
+      id: 'PROS-09', kind: 'Keberlanjutan',
+      acceptance: { approved: true, decision: 'Lanjut' },
+      letter: { status: 'signed', esign: [] },
+    });
+    const g = engagementEntryGate(engagementEntryContext(inh));
+    expect(g.ok).toBe(true);
+    expect(g.criteria.find((c) => c.key === 'accepted')?.view).toBe('continuance');
+  });
+
+  it('prospek belum lengkap → warisan dipetakan apa adanya, gerbang tetap blokir', () => {
+    const inh = prospectToEngagementInheritance({
+      id: 'PROS-02', kind: 'Klien Baru',
+      acceptance: { approved: false, decision: '' },
+      letter: { status: 'draft', esign: [] },
+    });
+    const g = engagementEntryGate(engagementEntryContext(inh));
+    expect(g.ok).toBe(false);
+    expect(g.blockers.map((b) => b.key)).toEqual(['accepted', 'letterSigned']);
+  });
+
+  it('prospek null → tanpa throw, originProspectId null', () => {
+    const inh = prospectToEngagementInheritance(null);
+    expect(inh.originProspectId).toBeNull();
+    expect(inh.acceptanceRef).toBeNull();
   });
 });

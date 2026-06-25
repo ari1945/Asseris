@@ -148,3 +148,33 @@ export function engagementEntryContext(
     engagementLetter: e.engagementLetter ?? null,
   };
 }
+
+/* ---- M3: konversi prospek → warisan engagement ----
+   Prospek onboarding (acceptance + letter) → field warisan engagement.
+   Dipakai konverter `StepConvert.doConvert` agar engagement hasil konversi
+   LOLOS gerbang masuk Eksekusi by construction (provenance terbawa, bukan
+   default Pra-akseptasi). Pure → ber-test tanpa React. */
+export type ProspectLike = {
+  id?: string;
+  kind?: ClientKind;
+  acceptance?: { approved?: boolean; decision?: string; approver?: string; date?: string } | null;
+  letter?: EngagementLetterRef | null;
+};
+
+export type EngagementInheritance = {
+  clientKind?: ClientKind;
+  originProspectId: string | null;
+  acceptanceRef: AcceptanceRef | null;
+  engagementLetter: EngagementLetterRef | null;
+};
+
+export function prospectToEngagementInheritance(p: ProspectLike | null | undefined): EngagementInheritance {
+  const pr = p || {};
+  const a = pr.acceptance || null;
+  return {
+    clientKind: pr.kind,
+    originProspectId: pr.id ?? null,
+    acceptanceRef: a ? { approved: a.approved, decision: a.decision, approver: a.approver, date: a.date } : null,
+    engagementLetter: pr.letter ?? null,
+  };
+}
