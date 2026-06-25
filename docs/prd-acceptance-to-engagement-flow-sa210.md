@@ -8,13 +8,21 @@
 | Engagement ID terkait | — (lintas: `onboarding` firm-level → siklus engagement) |
 | Asal | Evaluasi modul 2026-06-25, isu #2 (flow akseptasi) |
 
+> 🔧 **KOREKSI saat implementasi M3 (2026-06-25).** §1 poin 1 di bawah ("Akseptasi ↛ Perikatan
+> terputus") **overstate**: konverter prospek→engagement **SUDAH ADA** (`StepConvert.doConvert`,
+> `view_onboarding.tsx:382`) — membuat klien+engagement, set `converted`, dan men-gate pada 3 gerbang
+> front-office. Evaluasi awal & agen eksplorasi melewatkannya (pelajaran berulang: grep dulu).
+> Gap RIIL yang ditambal M3 = konverter tak mewariskan provenance akseptasi/surat + tombol tanpa gate
+> RBAC. Gerbang fase (M4) **tetap perlu** karena `EngagementForm` manual & engagement seed/legacy tak
+> lewat konverter. Teks §1.1/§3.1 dipertahankan apa adanya + ditandai 🔧 demi jejak.
+
 > ⚠️ **Pushback dulu (truth over agreement + prefer existing solutions).** Godaan: "bangun modul penerimaan perikatan". **Jangan.** Setelah baca kode, hampir semua bahan SUDAH ADA — akseptasi berbobot (`obAccScore`/`obAccVerdict`), funnel 4-gerbang termasuk *Engagement Letter*, register keberlanjutan (`continuance`), dan pola gerbang bertingkat (`usePhaseGate`/`PhaseGateDialog`). Yang **hilang hanyalah dua kabel**: (a) prospek-diterima tidak pernah *menjadi* engagement, dan (b) tidak ada gerbang yang menahan perikatan mulai fieldwork tanpa akseptasi+surat perikatan. PRD ini sengaja sempit: **menyambung, bukan membangun.** Baca §7, lalu putuskan di §11.
 
 ## 1. Problem
 
 Penugasan audit riil berurutan: **akseptasi/keberlanjutan (SA 220/ISQM 1) → surat perikatan ditandatangani (SA 210) → baru tim mulai fieldwork.** Di Asseris urutan itu tidak terjaga:
 
-1. **Akseptasi ↛ Perikatan (terputus).** `onboarding` menjalankan akseptasi + PMPJ + label "Engagement Letter" + "Konversi" atas `PROSPECTS` (`view_onboarding3.tsx:31-41`, skor `obAccScore`), **tetapi tidak ada jalur kode yang mengubah prospek diterima menjadi engagement.** Engagement dibuat manual lewat `EngagementForm` (`view_firm.tsx:457`) → `addEngagement` (`contexts.tsx:316`), yang hanya minta `clientId` + parameter tim/anggaran. Tidak ada referensi ke keputusan akseptasi/keberlanjutan.
+1. **Akseptasi → Perikatan: konversi ada tapi tak mewariskan provenance.** 🔧 *[koreksi M3: konverter `StepConvert.doConvert` ADA & ter-gate 3 gerbang; klaim "terputus" salah]* `onboarding` menjalankan akseptasi + PMPJ + Engagement Letter + Konversi atas `PROSPECTS`. Masalah riil: (a) konverter tak mewariskan keputusan akseptasi/surat ke engagement (ditutup M3), dan (b) **`EngagementForm` manual** (`view_firm.tsx:457`) → `addEngagement` (`contexts.tsx:316`) tetap membuat engagement **tanpa** referensi akseptasi sama sekali — jalur bypass yang hanya bisa dijaga gerbang fase (M4).
 2. **SA 210 tanpa gerbang.** `addEngagement` langsung menstempel `phase:'Perencanaan', progress:5` (`contexts.tsx:319`). Tidak ada artefak surat perikatan, tidak ada syarat surat ditandatangani sebelum perikatan berjalan. "Engagement Letter" hanya label funnel di onboarding, bukan kondisi yang mengikat siklus engagement.
 3. **Konsekuensi:** perikatan bisa eksis (bahkan masuk Eksekusi) tanpa pernah lulus akseptasi atau punya surat perikatan — pelanggaran SA 210.1/.10 (terms agreed in writing sebelum perikatan) dan SA 220/ISQM 1 (akseptasi/keberlanjutan sebelum mulai). Sebaliknya, prospek bisa **ditolak** di akseptasi namun engagement tetap dibuat manual karena dua proses tak saling tahu.
 
