@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { checkWtbIntegrity, ajeRegisterByAccount } from './wtb_integrity';
 import type { IntegrityWtbRow, IntegrityAjeEntry } from './wtb_integrity';
+import { AMS } from './data';
 
 describe('ajeRegisterByAccount — proyeksi register ke delta per akun (Dr +, Cr −)', () => {
   it('bentuk ringkas dr/cr + amount', () => {
@@ -13,6 +14,24 @@ describe('ajeRegisterByAccount — proyeksi register ke delta per akun (Dr +, Cr
     const m = ajeRegisterByAccount([{ id: 'A2', lines: [{ code: '5-3100', debit: 620_000_000 }, { code: '1-1210', credit: 620_000_000 }] }]);
     expect(m.get('5-3100')).toBe(620_000_000);
     expect(m.get('1-1210')).toBe(-620_000_000);
+  });
+});
+
+describe('checkWtbIntegrity — SEED demo (ENG-2025-014) konsisten penuh (A2)', () => {
+  /* Penjaga regresi: seed WTB+AJE harus lolos gerbang integritas — Σ kolom AJE = 0,
+     kolom AJE ≡ proyeksi register per akun, neraca ter-tie. Mencegah edit seed
+     mendatang diam-diam mengembalikan ketidakkonsistenan (sisi debit AJE hilang /
+     penyesuaian hantu tanpa jurnal). Gerbang finalisasi (A1) membaca status ini. */
+  const r = checkWtbIntegrity(AMS.WTB, AMS.AJE);
+  it('status ok — ajeBalanced, registerReconciled, adjConsistent, bsTied', () => {
+    expect(r.ajeBalanced).toBe(true);
+    expect(r.registerReconciled).toBe(true);
+    expect(r.adjConsistent).toBe(true);
+    expect(r.bsTied).toBe(true);
+    expect(r.status).toBe('ok');
+  });
+  it('tak ada akun yang kolom AJE-nya menyimpang dari register', () => {
+    expect(r.ajeMismatches).toHaveLength(0);
   });
 });
 

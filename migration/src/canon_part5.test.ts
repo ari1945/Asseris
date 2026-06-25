@@ -1,7 +1,12 @@
 /* W-GC — canon_part5: goingConcern() — rasio solvabilitas + Altman Z dari WTB.
-   Mengunci bahwa figur turunan-WTB SETARA nilai hardcoded yang digantikan di
-   view_goingconcern (bukti tak ada drift): CR 1.60, QR 0.79, DER 0.97,
-   ICR 3.96, Modal Kerja 57.1 (Rp M), Altman Z ≈ 2.69 (grey zone). */
+   Mengunci figur turunan-WTB: CR 1.60, QR 0.79, DER 0.97, Modal Kerja 57.1 (Rp M),
+   Altman Z ≈ 2.65 (grey zone).
+   A2 (2026-06-26): seed WTB dikoreksi agar kolom AJE tie ke register (gerbang
+   W-WTB·2) — sisi debit AJE-02/03/05 diposting & hantu pajak 5-5100 dinolkan.
+   Laba-rugi bergeser ⇒ pin turunan-LABA disetel ulang (terverifikasi independen):
+   ICR 3.96→3.56 (EBIT/finCost), EBIT 35.280→31.690, x3 0.111→0.100 (EBIT/TA),
+   x5 1.048→1.043 (sales/TA). Rasio NERACA (CR/QR/DER/modal kerja/x1/x2/x4) TETAP
+   (perubahan hanya akun L/R); zona Altman tetap 'grey'. */
 import { describe, it, expect } from 'vitest';
 import { goingConcern } from './canon_part5';
 
@@ -11,10 +16,10 @@ describe('goingConcern() — rasio & Altman Z dari WTB (SSOT)', () => {
     expect(r.cy.currentRatio).toBeCloseTo(1.60, 2);
     expect(r.cy.quickRatio).toBeCloseTo(0.79, 2);
     expect(r.cy.der).toBeCloseTo(0.97, 2);
-    expect(r.cy.interestCoverage).toBeCloseTo(3.96, 2);
+    expect(r.cy.interestCoverage).toBeCloseTo(3.56, 2);   // A2: EBIT/finCost = 31.690/8.910
     // modal kerja & EBIT dalam Rp juta
     expect(r.cy.workingCapital).toBeCloseTo(57_096.9, 0);
-    expect(r.cy.ebit).toBeCloseTo(35_280, 0);
+    expect(r.cy.ebit).toBeCloseTo(31_690, 0);             // A2: gross 96.450 − sell 26.440 − admin 38.320
   });
 
   it('neraca seimbang: total aset = total liabilitas + ekuitas', () => {
@@ -27,10 +32,10 @@ describe('goingConcern() — rasio & Altman Z dari WTB (SSOT)', () => {
     const { altman } = goingConcern();
     expect(altman.x1).toBeCloseTo(0.180, 2);
     expect(altman.x2).toBeCloseTo(0.317, 2);
-    expect(altman.x3).toBeCloseTo(0.111, 2);
+    expect(altman.x3).toBeCloseTo(0.100, 2);   // A2: EBIT/TA (EBIT turun pasca koreksi AJE)
     expect(altman.x4).toBeCloseTo(1.028, 2);
-    expect(altman.x5).toBeCloseTo(1.048, 2);
-    expect(altman.z).toBeCloseTo(2.69, 1);
+    expect(altman.x5).toBeCloseTo(1.043, 2);   // A2: sales/TA (penjualan −1.850 dari AJE-03)
+    expect(altman.z).toBeCloseTo(2.65, 1);
     expect(altman.zone).toBe('grey');
   });
 
