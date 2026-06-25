@@ -6,28 +6,20 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Stat } from './ui';
 import { KvBox } from './view_analytical';
+import { RP_PARTIES, RP_TXN, scanRelatedParties, LEDGER_GAP_META, type RptTransaction, type LedgerGap, type UnsupportedRegister } from './canon_related';
+import { AMS_FORENSIC } from './forensic_canon';
+
+/** Baris register + state workflow konfirmasi (view-only, di luar kanon). */
+interface RpTxnRow extends RptTransaction { conf?: string; confResp?: number; }
 
 /* ============================================================
    Asseris — Related Parties (SA 550)
+   Registri & register RPT bersumber dari canon_related (SSOT);
+   rekonsiliasi kelengkapan terhadap populasi jurnal kanonik
+   (forensic_canon JOURNAL_POP). Dual-publish ke window di akhir
+   file menjaga kompatibilitas view_forensic (legacy).
    ============================================================ */
 const { useState: useStateRP } = React;
-
-const RP_PARTIES = [
-  { id: 'RP-01', name: 'PT Sentosa Holding', rel: 'Entitas Induk', nature: 'Pengendali langsung 68%', risk: 'High' },
-  { id: 'RP-02', name: 'PT Makmur Properti', rel: 'Entitas Afiliasi', nature: 'Sepengendali (common control)', risk: 'High' },
-  { id: 'RP-03', name: 'PT Sentosa Logistik', rel: 'Entitas Anak', nature: 'Kepemilikan 99%', risk: 'Medium' },
-  { id: 'RP-04', name: 'Budi Santoso (Dir. Utama)', rel: 'Manajemen Kunci', nature: 'Personil manajemen kunci', risk: 'Medium' },
-  { id: 'RP-05', name: 'CV Mitra Keluarga', rel: 'Dikendalikan KMP', nature: 'Dimiliki keluarga komisaris', risk: 'High' },
-];
-
-const RP_TXN = [
-  { id: 'T-01', party: 'PT Sentosa Holding', type: 'Pinjaman diterima', amount: 5_600_000_000, terms: 'Bunga 6% (pasar 9%)', arm: false, disclosed: true, assertion: 'Valuation' },
-  { id: 'T-02', party: 'PT Makmur Properti', type: 'Sewa gudang dibayar', amount: 2_160_000_000, terms: 'Setara harga pasar', arm: true, disclosed: true, assertion: 'Occurrence' },
-  { id: 'T-03', party: 'PT Sentosa Logistik', type: 'Jasa distribusi', amount: 4_320_000_000, terms: 'Cost-plus 8%', arm: true, disclosed: true, assertion: 'Accuracy' },
-  { id: 'T-04', party: 'PT Makmur Properti', type: 'Penjualan barang', amount: 1_850_000_000, terms: 'Diskon 22% di atas normal', arm: false, disclosed: false, assertion: 'Occurrence' },
-  { id: 'T-05', party: 'Budi Santoso (Dir. Utama)', type: 'Remunerasi & bonus', amount: 3_200_000_000, terms: 'Sesuai kontrak kerja', arm: true, disclosed: true, assertion: 'Completeness' },
-  { id: 'T-06', party: 'CV Mitra Keluarga', type: 'Pembelian bahan baku', amount: 2_780_000_000, terms: 'Harga 12% di atas pasar', arm: false, disclosed: false, assertion: 'Valuation' },
-];
 
 const RP_PROCEDURES = [
   { t: 'Telaah daftar pemegang saham & susunan pengurus', done: true },
@@ -41,9 +33,14 @@ function RelatedParties() {
   const { fmt } = AMS;
   const nav = useNav();
   const [selParty, setSelParty] = useStateRP('All');
-  const [txns, setTxns] = useStateRP(RP_TXN);
-  const [procs, setProcs] = useStateRP(RP_PROCEDURES);
   const [selTxn, setSelTxn] = useStateRP('T-04');
+  /* engagement-scoped persist (AMS_PERSIST_SCOPE → engagement): pengungkapan,
+     harga pasar, status konfirmasi & tick prosedur bertahan lintas reload +
+     isolasi W7.5, capForWrite WP_EDIT. Override per-id atas register kanon (SSOT). */
+  const [txnOverride, setTxnOverride] = window.useAmsPersist('relatedTxn.v1', {});
+  const [procOverride, setProcOverride] = window.useAmsPersist('relatedProcs.v1', {});
+  const txns: RpTxnRow[] = (RP_TXN as RpTxnRow[]).map(t => (txnOverride[t.id] ? { ...t, ...txnOverride[t.id] } : t));
+  const procs = RP_PROCEDURES.map((p, i) => ((i in procOverride) ? { ...p, done: !!procOverride[i] } : p));
 
   const filtered = selParty === 'All' ? txns : txns.filter((t: any) => t.party === selParty);
   const tx = txns.find((t: any) => t.id === selTxn) || filtered[0];
@@ -52,14 +49,24 @@ function RelatedParties() {
   const undisclosed = txns.filter((t: any) => !t.disclosed).length;
   const nonArm = txns.filter((t: any) => !t.arm).length;
 
-  const toggleDisclosed = (id: any) => setTxns((list: any) => list.map((t: any) => t.id === id ? { ...t, disclosed: !t.disclosed } : t));
-  const setTxn = (id: any, patch: any) => setTxns((list: any) => list.map((t: any) => t.id === id ? { ...t, ...patch } : t));
-  const advanceConf = (id: any) => setTxns((list: any) => list.map((t: any) => {
-    if (t.id !== id) return t;
-    const next = ({ undefined: 'Terkirim', 'Terkirim': 'Diterima' } as any)[t.conf] || 'Terkirim';
-    return { ...t, conf: next, confResp: next === 'Diterima' ? t.amount : t.confResp };
-  }));
-  const toggleProc = (i: any) => setProcs((ps: any) => ps.map((p: any, idx: any) => idx === i ? { ...p, done: !p.done } : p));
+  /* —— Rekonsiliasi kelengkapan: register (state hidup) ↔ populasi jurnal kanonik —— */
+  const scan = scanRelatedParties({ parties: RP_PARTIES, register: txns, journal: AMS_FORENSIC.JOURNAL_POP });
+  const openGap = (g: { reason: string; txnId?: string }) => {
+    if (g.txnId) setSelTxn(g.txnId);
+    nav(g.reason === 'unrecorded' ? 'jet' : 'disclosure');
+  };
+
+  const curTxn = (id: string) => txns.find(t => t.id === id);
+  const patchTxn = (id: string, patch: Partial<RpTxnRow>) => setTxnOverride((s: Record<string, Partial<RpTxnRow>>) => ({ ...s, [id]: { ...s[id], ...patch } }));
+  const toggleDisclosed = (id: string) => patchTxn(id, { disclosed: !curTxn(id)?.disclosed });
+  const setTxn = (id: string, patch: Partial<RpTxnRow>) => patchTxn(id, patch);
+  const advanceConf = (id: string) => {
+    const t = curTxn(id);
+    if (!t) return;
+    const next = ({ '': 'Terkirim', 'Terkirim': 'Diterima' } as Record<string, string>)[t.conf || ''] || 'Terkirim';
+    patchTxn(id, { conf: next, confResp: next === 'Diterima' ? t.amount : t.confResp });
+  };
+  const toggleProc = (i: number) => setProcOverride((s: Record<number, boolean>) => ({ ...s, [i]: !((i in s) ? s[i] : RP_PROCEDURES[i].done) }));
   const procDone = procs.filter((p: any) => p.done).length;
 
   return (
@@ -108,6 +115,56 @@ function RelatedParties() {
 
             {/* transactions + detail */}
             <div className="grid" style={{ gap: 12 }}>
+              {/* —— rekonsiliasi kelengkapan terhadap buku besar (inti SA 550) —— */}
+              <Panel noBody>
+                <div className="panel-h">
+                  <h3>Rekonsiliasi Ledger ↔ Registri RPT</h3>
+                  <div style={{ flex: 1 }} />
+                  <Badge kind="blue">SA 550 ¶15-17</Badge>
+                </div>
+                <div style={{ padding: '11px 14px' }}>
+                  <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: scan.ledgerGaps.length || scan.unsupportedRegister.length ? 12 : 0 }}>
+                    <Stat value={scan.rollup.ledgerGaps} label="Gap dari Buku Besar" accent={scan.rollup.ledgerGaps ? 'var(--red)' : 'var(--green)'} />
+                    <Stat value={'Rp ' + fmt(scan.rollup.ledgerRpExposure / 1e9, 2) + ' M'} label="Eksposur Jurnal RP" />
+                    <Stat value={scan.rollup.unsupportedRegister} label="Register Tanpa Jejak" accent={scan.rollup.unsupportedRegister ? 'var(--amber)' : undefined} />
+                  </div>
+
+                  {scan.ledgerGaps.length === 0 && scan.unsupportedRegister.length === 0 && (
+                    <div className="tiny" style={{ color: 'var(--green)', fontWeight: 600, paddingTop: 4 }}><I.check size={12} style={{ verticalAlign: 'middle' }} /> Seluruh aktivitas pihak berelasi di buku besar tercermin & diungkapkan dalam register RPT.</div>
+                  )}
+
+                  {scan.ledgerGaps.length > 0 && (
+                    <div style={{ display: 'grid', gap: 6 }}>
+                      <div className="tiny muted upper" style={{ fontWeight: 700 }}>Temuan dari pemindaian jurnal (JOURNAL_POP)</div>
+                      {scan.ledgerGaps.map((g: LedgerGap) => {
+                        const meta = LEDGER_GAP_META[g.reason];
+                        return (
+                          <div key={g.journalId} onClick={() => openGap(g)} className="panel" style={{ padding: '9px 11px', borderColor: 'var(--line)', cursor: 'pointer', borderLeft: '3px solid var(--' + (meta.k === 'red' ? 'red' : 'amber') + ')' }}>
+                            <div className="row jb ac" style={{ marginBottom: 3 }}>
+                              <span className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{g.journalId}</span><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{g.party}</span></span>
+                              <span className="row ac gap6"><Badge kind={meta.k === 'red' ? 'red' : 'amber'}>{meta.l}</Badge><span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(g.amount / 1e6, 0)} jt</span></span>
+                            </div>
+                            <div className="tiny muted" style={{ lineHeight: 1.4 }}>{meta.hint}{g.note ? ' — ' + g.note : ''}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {scan.unsupportedRegister.length > 0 && (
+                    <div style={{ display: 'grid', gap: 4, marginTop: scan.ledgerGaps.length ? 10 : 0 }}>
+                      <div className="tiny muted upper" style={{ fontWeight: 700 }}>Register tanpa jejak jurnal (perlu bukti pendukung)</div>
+                      {scan.unsupportedRegister.map((u: UnsupportedRegister) => (
+                        <div key={u.txnId} onClick={() => setSelTxn(u.txnId)} className="row jb ac" style={{ padding: '5px 9px', borderRadius: 6, cursor: 'pointer', background: 'var(--surface-2)' }}>
+                          <span className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{u.txnId}</span><span className="tiny truncate">{u.party}</span></span>
+                          <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(u.amount / 1e6, 0)} jt</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Panel>
+
               <Panel noBody>
                 <div className="panel-h"><h3>Transaksi Pihak Berelasi (RPT)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{filtered.length} transaksi · klik untuk evaluasi</span></div>
                 <table className="dtbl">
