@@ -5,6 +5,7 @@ import { can as rbacCan } from './rbac';
 import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
 import { applyMapping } from './wtb_mapping';
+import { overlayWtbOverrides } from './wtb_overrides';
 
 /* ============================================================
    Asseris — React Context providers
@@ -406,12 +407,10 @@ function AppProviders({ me, onLogout, children }: any) {
     if (!imported) return D.WTB;
     return (wtbMapping && Object.keys(wtbMapping).length) ? applyMapping(imported, wtbMapping) : imported;
   }, [wtbImport, wtbMapping]);
-  const wtb = useMemo(() => baseWtb.map((r: any) => {
-    const extra = userPostDeltas[r.code] || 0;
-    const o = wtbOverrides[r.key] || {};
-    const ajeVal = (o.aje != null ? o.aje : (r.aje || 0)) + extra;
-    return { ...r, ...o, aje: ajeVal, adj: (r.unadj || 0) + ajeVal };
-  }), [baseWtb, wtbOverrides, userPostDeltas]);
+  // Override analitis di-key per KODE akun (identitas stabil) via overlayWtbOverrides —
+  // bertahan saat WTB di-impor/petakan ulang (key posisi bergeser). SSOT `wtb` view.
+  const wtb = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),
+    [baseWtb, wtbOverrides, userPostDeltas]);
 
   const toggleAjeStatus = useCallback((id: any) => {
     setAje((list: any) => list.map((a: any) => a.id === id

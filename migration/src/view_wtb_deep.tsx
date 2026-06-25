@@ -191,7 +191,9 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
 
   const save = (status: any) => {
     if (!sel) return;
-    setWtbOverrides((o: any) => ({ ...o, [sel.key]: { ...(o[sel.key] || {}), note: draft, revStatus: status } }));
+    // Override di-key per KODE akun (identitas stabil), bukan sel.key posisi — agar
+    // catatan/status reviu bertahan saat WTB di-impor/petakan ulang (sinkron contexts.jsx).
+    setWtbOverrides((o: any) => ({ ...o, [sel.code]: { ...(o[sel.code] || {}), note: draft, revStatus: status } }));
   };
   const relAje = (code: any) => aje.filter((a: any) => Array.isArray(a.lines)
     ? a.lines.some((l: any) => l.code === code)
