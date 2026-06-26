@@ -1,0 +1,29 @@
+# One origin for the whole app. $PUBLIC_HOST is injected from the compose env.
+# Real hostname (incl. <ip-with-dashes>.sslip.io) → Caddy gets automatic HTTPS.
+{$PUBLIC_HOST} {
+	encode gzip
+
+	# API + ops endpoints → backend container (no caching, cookies forwarded by default).
+	@api path /trpc/* /healthz /metrics
+	handle @api {
+		reverse_proxy server:5181
+	}
+
+	# Static SPA with client-side routing fallback.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# ── No domain / Let's Encrypt rate-limited? Comment the block above and use this
+#    self-signed variant instead (browser warning, but still HTTPS → Secure cookies work):
+#
+# {$PUBLIC_HOST} {
+# 	tls internal
+# 	encode gzip
+# 	@api path /trpc/* /healthz /metrics
+# 	handle @api { reverse_proxy server:5181 }
+# 	handle { root * /srv; try_files {path} /index.html; file_server }
+# }

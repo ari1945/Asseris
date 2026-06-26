@@ -1,0 +1,64 @@
+# AWS EC2 test deploy — whole stack on ONE box: Postgres + API + built SPA + Caddy TLS.
+#
+# Run from the REPO ROOT (build contexts are relative to the repo root):
+#   docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml \
+#     --env-file deploy/aws-ec2-test/.env up -d --build
+#
+# Only ports 80/443 are published (+ SSH at the OS level). API and DB stay internal.
+name: asseris-test
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: neosuite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: neosuite
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neosuite -d neosuite"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  server:
+    build:
+      context: ../..                 # repo root — server image copies migration/src (shared RBAC/seed)
+      dockerfile: server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://neosuite:${POSTGRES_PASSWORD:-changeme}@db:5432/neosuite
+      PORT: "5181"
+      NODE_ENV: production
+      COOKIE_SECURE: ${COOKIE_SECURE:-1}            # 1 = Secure cookies (we serve HTTPS via Caddy)
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY (openssl rand -hex 32)}
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}   # leave EMPTY behind a proxy (see README gotcha)
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    command: sh -c "npx prisma db push --skip-generate && npm start"
+    expose:
+      - "5181"                       # internal only — reached via Caddy, not published
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/aws-ec2-test/web.Dockerfile
+    depends_on:
+      - server
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST:?set PUBLIC_HOST in .env (e.g. 13-54-2-9.sslip.io)}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddydata:/data              # persist issued TLS certs across restarts (avoid LE rate limits)
+      - caddyconfig:/config
+
+volumes:
+  pgdata:
+  caddydata:
+  caddyconfig:
