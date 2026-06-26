@@ -23,7 +23,7 @@ import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
 import { listConnectors } from './integrations/config';
-import { runBankSync, reconcileBank, listJobs } from './integrations/sync';
+import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
@@ -313,23 +313,23 @@ export const appRouter = router({
       if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
         throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
       }
-      return { bank: await reconcileBank() };
+      return { bank: await reconcileBank(), coretax: await reconcileCoretax() };
     }),
 
     // Trigger a sync (INTEGRATION_MANAGE — Partner/Manager). Runs the real pipeline: pull → map →
-    // validate → control-total gate → idempotent post to the SSOT → audit. Fase 1 wires 'bank'
-    // (→ cashbank) against the fixture adapter; other ids are not wired yet.
+    // validate → control-total gate → idempotent post to the SSOT → audit. Wired connectors:
+    // 'bank' (→ cashbank) and 'coretax' (→ firmtax), both against fixture adapters; other ids are
+    // not wired yet → BAD_REQUEST.
     sync: protectedProcedure
       .input(z.object({ connectorId: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         if (!can(ctx.user.role, CAP.INTEGRATION_MANAGE)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_MANAGE}` });
         }
-        if (input.connectorId !== 'bank') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
-        }
-        inc('integration_syncs_total');
-        return runBankSync({ id: ctx.user.id, role: ctx.user.role });
+        const actor = { id: ctx.user.id, role: ctx.user.role };
+        if (input.connectorId === 'bank') { inc('integration_syncs_total'); return runBankSync(actor); }
+        if (input.connectorId === 'coretax') { inc('integration_syncs_total'); return runCoretaxSync(actor); }
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
       }),
 
     // Inbound provider webhook (NO session — providers don't have one). Authenticated by an

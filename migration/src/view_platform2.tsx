@@ -79,6 +79,22 @@ function Integrations() {
     }
   };
 
+  // W9·2 — Coretax / e-Faktur sync (output VAT → firmtax). Same MANAGE-gated path as the Bank Feed;
+  // a posted run ties Σ PPN Keluaran to the firmtax SSOT (the reconcile overlay flags it serverBacked).
+  const onSyncCoretax = async () => {
+    if (busy || !(window as any).amsIntegrationSync) return;
+    setBusy(true);
+    try {
+      const r = await (window as any).amsIntegrationSync('coretax');
+      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: `Coretax e-Faktur: ${r.status} · ${r.posted} faktur → SSOT · ${r.tied ? 'tie-out 0' : 'selisih'}` });
+      setSrv(await loadServer());
+    } catch (e) {
+      logActivity && logActivity({ who: (AMS.USER && AMS.USER.name) || 'Pengguna', action: 'SYNC', detail: 'Coretax sync ditolak/gagal' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const sum = IM.summary();
   const connected = list.filter((i: any) => i.status === 'connected').length;
   const errors = list.filter((i: any) => i.status === 'error').length;
@@ -101,7 +117,7 @@ function Integrations() {
 
   return (
     <>
-      <SubBar moduleId="integrations" right={<div className="row gap8 ac"><Badge kind="green">{connected} terhubung</Badge>{errors > 0 && <Badge kind="red">{errors} error</Badge>}{srv && srv.recon && srv.recon.bank && srv.recon.bank.tied && <Badge kind="green">Bank Feed: server · tie-out 0</Badge>}{srv && srv.status && srv.status.canManage && <Btn sm variant="primary" onClick={onSyncBank} disabled={busy}><I.sync size={13} /> {busy ? 'Menyinkron…' : 'Sinkronkan Bank'}</Btn>}<Btn sm><I.sync size={13} /> Sinkron Semua</Btn><Btn sm variant="primary"><I.plus size={13} /> Konektor</Btn></div>} />
+      <SubBar moduleId="integrations" right={<div className="row gap8 ac"><Badge kind="green">{connected} terhubung</Badge>{errors > 0 && <Badge kind="red">{errors} error</Badge>}{srv && srv.recon && srv.recon.bank && srv.recon.bank.tied && <Badge kind="green">Bank Feed: server · tie-out 0</Badge>}{srv && srv.recon && srv.recon.coretax && srv.recon.coretax.tied && <Badge kind="green">Coretax: server · tie-out 0</Badge>}{srv && srv.status && srv.status.canManage && <Btn sm variant="primary" onClick={onSyncBank} disabled={busy}><I.sync size={13} /> {busy ? 'Menyinkron…' : 'Sinkronkan Bank'}</Btn>}{srv && srv.status && srv.status.canManage && <Btn sm variant="primary" onClick={onSyncCoretax} disabled={busy}><I.sync size={13} /> {busy ? 'Menyinkron…' : 'Sinkronkan Pajak'}</Btn>}<Btn sm><I.sync size={13} /> Sinkron Semua</Btn><Btn sm variant="primary"><I.plus size={13} /> Konektor</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
 
         {/* provenance banner */}

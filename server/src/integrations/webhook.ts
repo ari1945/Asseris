@@ -6,7 +6,7 @@
 // idempotency, SSOT post and audit all apply identically — a webhook is just another trigger.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { TRPCError } from '@trpc/server';
-import { runBankSync, type SyncSummary } from './sync';
+import { runBankSync, runCoretaxSync, type SyncSummary } from './sync';
 
 export function webhookSecret(env: NodeJS.ProcessEnv = process.env): string | null {
   const s = (env.INTEGRATION_WEBHOOK_SECRET ?? '').trim();
@@ -31,6 +31,14 @@ export function verifyWebhook(secret: string, body: string, signature: string): 
 // Which provider events trigger a sync. Other events are acknowledged but take no action.
 const SYNC_EVENTS: Record<string, string[]> = {
   bank: ['transaction.posted'],
+  coretax: ['faktur.approved', 'spt.accepted'],
+};
+
+// The runner each connector's sync-triggering event drives. A webhook is just another trigger for
+// the same gated/idempotent/audited pipeline the manual sync uses.
+const RUNNERS: Record<string, (actor: { id: string; role: string }) => Promise<SyncSummary>> = {
+  bank: runBankSync,
+  coretax: runCoretaxSync,
 };
 
 export type WebhookInput = { connectorId: string; event: string; payload?: unknown; signature?: string };
@@ -47,9 +55,10 @@ export async function handleWebhook(input: WebhookInput): Promise<WebhookResult>
   const triggers = SYNC_EVENTS[input.connectorId] ?? [];
   if (!triggers.includes(input.event)) return { status: 'ok', synced: false };
 
-  if (input.connectorId === 'bank') {
+  const runner = RUNNERS[input.connectorId];
+  if (runner) {
     // No session actor on the webhook path (HMAC is the auth) — record a system actor in the audit.
-    const job = await runBankSync({ id: 'system:webhook', role: 'system' });
+    const job = await runner({ id: 'system:webhook', role: 'system' });
     return { status: 'ok', synced: true, job };
   }
   return { status: 'ok', synced: false };
