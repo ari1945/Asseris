@@ -19,6 +19,7 @@ import { I } from './icons';
 import { Badge, Btn, Panel, Avatar, Progress } from './ui';
 import { amsEvidenceCount } from './evidence';
 import { finalisationGateCriteria } from './engagement_phase_gate';
+import { checkWtbIntegrity } from './wtb_integrity';
 
 const { useState: useStateWPS } = React;
 
@@ -512,10 +513,21 @@ function engagementGate(audit: any, firm: any, opts: any) {
     severity = 'warn';
     // Isu #3: gerbang sadar-progres eksekusi (kesimpulan SA 230 ≥80% + 0 WP
     // belum-dimulai + 0 catatan high). Logika ambang = util murni & teruji.
+    // A1: integritas neraca saldo (W-WTB·2) — sumber & pemetaan identik modul
+    // WTB (checkWtbIntegrity(wtb, aje)), kini dibaca gerbang finalisasi.
+    const integ = checkWtbIntegrity((audit && audit.wtb) || [], (audit && audit.aje) || []);
+    const wtbDetail = integ.status === 'ok' ? '' : [
+      !integ.bsTied && 'neraca tak seimbang',
+      !integ.adjConsistent && `${integ.adjMismatches.length} akun adjusted ≠ unadj+AJE`,
+      !integ.ajeBalanced && 'kolom AJE tak seimbang',
+      !integ.registerReconciled && `${integ.ajeMismatches.length} akun AJE WTB ≠ register`,
+    ].filter(Boolean).join('; ');
     criteria = finalisationGateCriteria({
       conclusionPct: recap.conclusionPct,
       notStarted: recap.notStarted,
       highOpenCount: highOpen.length,
+      wtbIntegrityOk: integ.status === 'ok',
+      wtbIntegrityDetail: wtbDetail,
     });
   } else if (nextPhase === 'Arsip') {
     severity = 'confirm'; // titik lock — gesekan layak (graduated, Q1)

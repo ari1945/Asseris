@@ -31,7 +31,7 @@
   },
   "src/contexts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 104
+      "count": 103
     }
   },
   "src/copilot.tsx": {

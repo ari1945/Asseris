@@ -650,7 +650,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "ppeGross": 200340,
     "ppeNetCarry": 142040,
     "rouCarry": 12640,
-    "taxExpBooked": 11710,
+    "taxExpBooked": 11240,
   },
   "fixedAssets": {
     "accumAudit": 58300,
@@ -756,10 +756,10 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "altman": {
       "x1": 0.18,
       "x2": 0.317,
-      "x3": 0.111,
+      "x3": 0.1,
       "x4": 1.028,
-      "x5": 1.048,
-      "z": 2.694,
+      "x5": 1.043,
+      "z": 2.65,
       "zone": "grey",
     },
     "altmanPy": {
@@ -776,16 +776,16 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "currentLiab": 94901.3,
       "currentRatio": 1.602,
       "der": 0.973,
-      "ebit": 35280,
+      "ebit": 31690,
       "equity": 160456.6,
       "interest": 8910,
-      "interestCoverage": 3.96,
+      "interestCoverage": 3.557,
       "inventory": 76564.1,
-      "netIncome": 14660,
-      "operatingCashFlow": 16091.8,
+      "netIncome": 11540,
+      "operatingCashFlow": 12971.8,
       "quickRatio": 0.795,
       "retainedEarnings": 100456.6,
-      "sales": 331900,
+      "sales": 330050,
       "totalAssets": 316557.9,
       "totalLiab": 156101.3,
       "workingCapital": 57096.9,
@@ -923,9 +923,9 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "bookedWD": 2890,
     "closeNet": 76564,
     "closeUnadj": 78904,
-    "cogsAdj": 232480,
+    "cogsAdj": 233600,
     "cogsUnadj": 230140,
-    "dio": 110.776,
+    "dio": 110.245,
     "fgAging": [
       {
         "amt": 32712.202,
@@ -1150,8 +1150,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     ],
     "fgCost": 43194.56,
     "fgReqWD": 2695,
-    "gm": 99420,
-    "gmPct": 0.3,
+    "gm": 96450,
+    "gmPct": 0.292,
     "goodsAvail": 309044,
     "grossCost": 79454,
     "items": [
@@ -2093,9 +2093,9 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "openingCost": 64550,
     "purchases": 244494,
     "requiredWD": 4185,
-    "sales": 331900,
+    "sales": 330050,
     "shortfallWD": 1295,
-    "turnover": 3.295,
+    "turnover": 3.311,
   },
   "leasePortfolio": {
     "liab": 11758354677.666,
@@ -3514,8 +3514,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "treat": "Ventura bersama · ekuitas (PSAK 66)",
       },
     ],
-    "balCheck": -14660,
-    "consolNpat": 39770,
+    "balCheck": -11540,
+    "consolNpat": 36650,
     "control": [
       {
         "concl": "Dikonsolidasi",
@@ -3588,7 +3588,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "elimLaba": 2740,
     "goodwillTie": 6800,
     "goodwillTotal": 6800,
-    "indukSeparate": 16760,
+    "indukSeparate": 13640,
     "interco": [
       {
         "amount": 8400,
@@ -3648,8 +3648,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "nciPostTotal": 2650,
     "nciProfit": 2209,
     "nciProfitTotal": 2209,
-    "npatParent": 14660,
-    "ownersProfit": 37561,
+    "npatParent": 11540,
+    "ownersProfit": 34441,
     "par": {
       "asetLain": 24277,
       "asetTetap": 142040,
@@ -3677,7 +3677,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "pos": "Laba entitas induk (NPAT standalone)",
         "route": "wtb",
         "src": "WTB · 4/5-xxxx (adjusted)",
-        "val": 14660,
+        "val": 11540,
       },
       {
         "ok": true,
@@ -3713,7 +3713,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "pos": "LPK konsolidasian menutup (A = L + E)",
         "route": null,
         "src": "kertas kerja konsolidasi",
-        "val": -14660,
+        "val": -11540,
       },
     ],
     "subs": [
@@ -3897,8 +3897,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "ekuitas": {
         "anak": 77300,
         "elim": -43660,
-        "induk": 224937,
-        "konsol": 258577,
+        "induk": 221817,
+        "konsol": 255457,
       },
       "liab": {
         "anak": 75700,
@@ -4030,8 +4030,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "anak": 44300,
         "cap": "saldoLaba",
         "elim": -18290,
-        "induk": 115117,
-        "konsol": 141127,
+        "induk": 111997,
+        "konsol": 138007,
         "label": "Saldo laba",
         "sec": "Ekuitas",
       },
@@ -6118,7 +6118,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
         "extra": [
           {
             "label": "BPP audited (WTB 5-1100)",
-            "val": 232480,
+            "val": 233600,
           },
           {
             "label": "Cadangan NRV dibukukan",
@@ -6166,7 +6166,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
           {
             "label": "WTB 5-5100 · beban pajak dibukukan",
             "module": "wtb",
-            "val": 11710,
+            "val": 11240,
           },
           {
             "label": "FS Generator · beban pajak",
@@ -6175,7 +6175,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
           },
         ],
         "id": "tax",
-        "note": "Pajak kini = PKP Rp 53500 jt × 22% = Rp 11770 jt. Beban pajak dibukukan di WTB (5-5100) Rp 11710 jt mencakup komponen kini & tangguhan.",
+        "note": "Pajak kini = PKP Rp 53500 jt × 22% = Rp 11770 jt. Beban pajak dibukukan di WTB (5-5100) Rp 11240 jt mencakup komponen kini & tangguhan.",
         "pos": "Beban Pajak Kini",
         "ref": "PSAK 46",
         "source": 11770,
@@ -6525,7 +6525,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "ppeGross": 200340,
       "ppeNetCarry": 142040,
       "rouCarry": 12640,
-      "taxExpBooked": 11710,
+      "taxExpBooked": 11240,
     },
     "intan": {
       "accumAudit": 4700,
@@ -6640,9 +6640,9 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "bookedWD": 2890,
       "closeNet": 76564,
       "closeUnadj": 78904,
-      "cogsAdj": 232480,
+      "cogsAdj": 233600,
       "cogsUnadj": 230140,
-      "dio": 110.776,
+      "dio": 110.245,
       "fgAging": [
         {
           "amt": 32712.202,
@@ -6867,8 +6867,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       ],
       "fgCost": 43194.56,
       "fgReqWD": 2695,
-      "gm": 99420,
-      "gmPct": 0.3,
+      "gm": 96450,
+      "gmPct": 0.292,
       "goodsAvail": 309044,
       "grossCost": 79454,
       "items": [
@@ -7810,9 +7810,9 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "openingCost": 64550,
       "purchases": 244494,
       "requiredWD": 4185,
-      "sales": 331900,
+      "sales": 330050,
       "shortfallWD": 1295,
-      "turnover": 3.295,
+      "turnover": 3.311,
     },
     "p48": {
       "carry": 165228,
@@ -10128,7 +10128,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       },
     ],
     "pointTime": 292072,
-    "revAdjWTB": 331900,
+    "revAdjWTB": 330050,
     "revAudited": 330050,
     "revBooked": 331900,
     "revPY": 284500,
