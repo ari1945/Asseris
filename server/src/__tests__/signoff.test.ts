@@ -103,6 +103,25 @@ describe('guardSignoffWrite — prospects (akseptasi & penerbitan surat = FIRM_A
   });
 });
 
+describe('guardSignoffWrite — strategyApproved.v1 (persetujuan strategi SA 300 = SIGNOFF_REVIEWER)', () => {
+  it('menyetujui strategi (null→{by,at}) butuh SIGNOFF_REVIEWER — Junior/Senior ditolak', () => {
+    const next = { by: 'Anindya P.', at: '2026-02-02T00:00:00.000Z' };
+    expect(() => guardSignoffWrite(JUNIOR, 'strategyApproved.v1', null, next)).toThrow(/requires:signoff\.reviewer/);
+    expect(() => guardSignoffWrite(SENIOR, 'strategyApproved.v1', null, next)).toThrow(/signoff\.reviewer/);
+    expect(guardSignoffWrite(MANAGER, 'strategyApproved.v1', null, next)).toEqual([{ what: 'strategi:approved', cap: CAP.SIGNOFF_REVIEWER }]);
+    expect(() => guardSignoffWrite(PARTNER, 'strategyApproved.v1', null, next)).not.toThrow();
+  });
+  it('mencabut persetujuan ({by,at}→null) juga butuh SIGNOFF_REVIEWER', () => {
+    const prev = { by: 'Anindya P.', at: '2026-02-02T00:00:00.000Z' };
+    expect(() => guardSignoffWrite(JUNIOR, 'strategyApproved.v1', prev, null)).toThrow(/signoff\.reviewer/);
+    expect(() => guardSignoffWrite(MANAGER, 'strategyApproved.v1', prev, null)).not.toThrow();
+  });
+  it('nilai tak berubah (sig sama) → tanpa requirement', () => {
+    const v = { by: 'Anindya P.', at: '2026-02-02T00:00:00.000Z' };
+    expect(guardSignoffWrite(JUNIOR, 'strategyApproved.v1', v, { ...v })).toEqual([]);
+  });
+});
+
 describe('guardSignoffWrite — non-sensitif / no-op', () => {
   it('key tak dikenal → tanpa requirement', () => {
     expect(guardSignoffWrite(JUNIOR, 'risks', { a: 1 }, { a: 2 })).toEqual([]);

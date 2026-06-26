@@ -104,6 +104,9 @@ const AMS_PERSIST_SCOPE = {
      (eng.id / activeEngagement.id, bukan literal `engId`) → tak tertangkap grep awal. */
   'strategyTab.v1': 'engagement',
   'strategyApproach.v1': 'engagement',
+  /* Persetujuan strategi (SA 300). Engagement-scope → capForWrite=WP_EDIT (semua auditor)
+     + isolasi W7.5; otoritas reviewer (Partner/Manajer) ditegakkan server via guardSignoffWrite. */
+  'strategyApproved.v1': 'engagement',
   'arMemo.v1': 'engagement',
   /* Audit Programme (RoMM → prosedur). Engagement-scope → capForWrite=WP_EDIT
      (semua auditor) + isolasi W7.5. Menyimpan daftar prosedur + status. */
