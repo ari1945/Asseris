@@ -294,6 +294,9 @@ export const appRouter = router({
         connected: connectors.filter((c) => c.status === 'connected').length,
         errored: connectors.filter((c) => c.status === 'error').length,
         wired: connectors.filter((c) => c.wired).length,
+        // Per-konektor: adapter eksternal NYATA terpasang? Mendasari badge "Mode demo" yang jujur —
+        // konektor bisa tampak 'connected' (seed/fixture) padahal belum tersambung sumber asli.
+        configured: Object.fromEntries(connectors.map((c) => [c.id, c.configured])),
       };
     }),
 

@@ -5,10 +5,10 @@ import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
 import { loadConnectorSeed } from '../seedData';
 import { encryptSecret } from '../crypto/secretbox';
-import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax } from '../integrations/sync';
+import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, defaultCoretaxPull } from '../integrations/sync';
 import { applyMapping } from '../integrations/mapping';
 import { pullBankStatementBroken } from '../integrations/providers/bankFixture';
-import { pullCoretaxFeedBroken, pullCoretaxFeedBadInvoice } from '../integrations/providers/coretaxFixture';
+import { pullCoretaxFeed, pullCoretaxFeedBroken, pullCoretaxFeedBadInvoice } from '../integrations/providers/coretaxFixture';
 import { readBankHttpConfig, makeHttpBankPull } from '../integrations/providers/httpBank';
 import { readCoretaxHttpConfig, makeHttpCoretaxPull } from '../integrations/providers/httpCoretax';
 import { handleWebhook, signWebhook, canonicalBody, webhookSecret } from '../integrations/webhook';
@@ -437,6 +437,45 @@ describe('http coretax adapter (shape proven against a mock fetch, no credential
     expect(feed.raw).toHaveLength(1);
     expect(m.calls[0].url).toBe('https://api.pajak.go.id/coretax/v1/efaktur/keluaran?period=2026-02');
     expect((m.calls[0].init.headers as Record<string, string>).authorization).toBe('Bearer secret-coretax-tok');
+  });
+});
+
+describe('defaultCoretaxPull — tripwire parkir (jangan fallback fixture diam-diam di production)', () => {
+  const CORETAX_ENV = ['CORETAX_API_BASE_URL', 'CORETAX_API_TOKEN', 'CORETAX_API_PERIOD'];
+  let savedNodeEnv: string | undefined;
+  let savedCoretax: Record<string, string | undefined>;
+  beforeAll(() => {
+    savedNodeEnv = process.env.NODE_ENV;
+    savedCoretax = Object.fromEntries(CORETAX_ENV.map((k) => [k, process.env[k]]));
+  });
+  afterAll(() => {
+    if (savedNodeEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = savedNodeEnv;
+    for (const k of CORETAX_ENV) { if (savedCoretax[k] === undefined) delete process.env[k]; else process.env[k] = savedCoretax[k]!; }
+  });
+  function clearCoretaxEnv() { for (const k of CORETAX_ENV) delete process.env[k]; }
+
+  it('production tanpa CORETAX_API_* → pull MENOLAK (tak diam-diam pakai fixture)', async () => {
+    clearCoretaxEnv();
+    process.env.NODE_ENV = 'production';
+    const pull = defaultCoretaxPull();
+    expect(pull).not.toBe(pullCoretaxFeed);
+    await expect(pull()).rejects.toThrow(/coretax-not-configured/);
+  });
+
+  it('non-production tanpa env → fixture (pipa dapat dibuktikan di dev/test)', async () => {
+    clearCoretaxEnv();
+    process.env.NODE_ENV = 'test';
+    expect(defaultCoretaxPull()).toBe(pullCoretaxFeed);
+  });
+
+  it('env CORETAX_API_* terpasang → adapter HTTP nyata, bukan fixture maupun tripwire', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.CORETAX_API_BASE_URL = 'https://api.pajak.go.id/coretax/v1';
+    process.env.CORETAX_API_TOKEN = 'tok';
+    const pull = defaultCoretaxPull();
+    expect(pull).not.toBe(pullCoretaxFeed);
+    // bukan fungsi tripwire: ia tak melempar 'not-configured' (akan mencoba fetch → kita tak panggil).
+    expect(typeof pull).toBe('function');
   });
 });
 

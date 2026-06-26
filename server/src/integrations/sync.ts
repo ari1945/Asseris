@@ -265,7 +265,19 @@ interface TaxState {
  *  so flipping env takes effect immediately; in dev/test (no CORETAX_API_*) this is the fixture. */
 export function defaultCoretaxPull(): TaxPullFn {
   const cfg = readCoretaxHttpConfig();
-  return cfg ? makeHttpCoretaxPull(cfg) : pullCoretaxFeed;
+  if (cfg) return makeHttpCoretaxPull(cfg);
+  // Tripwire parkir (W9·2): di PRODUCTION tanpa kredensial DJP, JANGAN diam-diam memakai fixture.
+  // Fixture sengaja byte-faithful ke Σ-PPN Keluaran 443,3jt → LOLOS gate control-total → bisa
+  // memposting data DEMO ke SSOT firmtax dan menyamar sebagai data pajak nyata (pelanggaran
+  // integritas Tax-Defense). Blokir sampai CORETAX_API_* (Sertifikat Elektronik PKP) terpasang.
+  // Dev/test tetap memakai fixture untuk membuktikan pipa. Pull yang melempar → runCoretaxSync
+  // menandai SyncJob 'failed' (bukan post diam-diam).
+  if (process.env.NODE_ENV === 'production') {
+    return async () => {
+      throw new Error('coretax-not-configured: set CORETAX_API_* (Sertifikat Elektronik PKP) sebelum sync Coretax di production');
+    };
+  }
+  return pullCoretaxFeed;
 }
 
 /**

@@ -153,3 +153,36 @@ abstraksi + regresi pada jalur bank yang sudah terbukti. Sebaliknya:
    sekunder bila data faktur menyediakan tarif.**
 4. **Konfirmasi arah** — PRD ini mengasumsikan "lanjutan konektor data" = **wire konektor #2**, bukan
    OAuth/scheduler. Jika maksudnya OAuth atau scheduler, hentikan & re-scope.
+
+---
+
+## Addendum — Status: PARKIR (per 2026-06-26)
+
+Konektor diparkir **sengaja** menunggu kematangan sisi DJP (bukan utang teknis kita). Pipa
+sudah lengkap & terbukti vs fixture; yang kurang **hanya** kredensial/endpoint DJP nyata.
+
+### Pemblokir (eksternal)
+- **Sertifikat Elektronik PKP** tak bisa dikreditensialkan dari sini (per-WP, on-prem).
+- Endpoint/kontrak **API Coretax DJP** belum tersedia/stabil untuk konsumsi pihak ketiga.
+
+### Definition-of-Resume (pemicu lanjut)
+Lanjutkan saat **salah satu** terpenuhi:
+1. DJP merilis spesifikasi API Coretax (auth, skema e-Faktur Keluaran, paging) yang dapat dikonsumsi; **atau**
+2. Klien menyediakan Sertifikat Elektronik + kredensial untuk uji sandbox.
+
+### Yang SUDAH siap (tinggal di-credential — resume dingin tanpa gali ulang)
+- Adapter HTTP `server/src/integrations/providers/httpCoretax.ts` — drop-in; aktif begitu env
+  `CORETAX_API_*` terbaca (`readCoretaxHttpConfig`). Tinggal petakan skema respons DJP nyata → `RawTaxRecord`.
+- Anchor tie-out kanon `controlTotal('coretax')` = Σ PPN Keluaran (`A.EFAKTUR`) — gate sudah jalan.
+- Runner idempoten by `invoice_number`, SyncJob, audit SYNC, reconcile — tak berubah.
+
+### Pengaman parkir yang DIPASANG (commit lanjutan)
+- **Tripwire produksi** (`defaultCoretaxPull`): di `NODE_ENV=production` tanpa `CORETAX_API_*`,
+  konektor **menolak** (SyncJob `failed`) alih-alih diam-diam memakai fixture — mencegah data
+  demo (Σ-PPN 443,3jt yang sengaja lolos control-total) mencemari SSOT `firmtax`. Dev/test tetap fixture.
+- **Badge UI "Mode demo"** (server-truth `integration.status.configured`) di kartu konektor saat
+  adapter eksternal belum terpasang. Berlaku generik (mis. Bank Feed juga ditandai).
+
+### Utang yang DICATAT (belum dikerjakan — bukan blocker sekarang)
+- **Bank Feed** punya pola silent-fallback yang **identik** (`defaultBankPull`); tripwire produksi
+  belum dipasang untuk bank. Pasang sebelum platform memproses data keuangan klien nyata.

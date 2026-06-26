@@ -165,6 +165,9 @@ function Integrations() {
                   const IconC = (I as any)[it.icon] || I.panel;
                   const st = (INTEG_STATUS as any)[it.status];
                   const c: any = sum.connectors.find((x: any) => x.id === it.id) || {};
+                  // Jujur: konektor tampak 'connected' (seed/fixture) tapi server bilang adapter
+                  // eksternal belum terpasang → tandai mode demo (mis. Coretax belum tersambung DJP).
+                  const demo = it.status === 'connected' && srv && srv.status && srv.status.configured && srv.status.configured[it.id] === false;
                   return (
                     <div key={it.id} onClick={() => setSelId(it.id)} className="row ac gap10"
                       style={{ padding: '11px 13px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer', background: it.id === sel.id ? 'var(--blue-050)' : 'transparent', borderLeft: '3px solid ' + (it.id === sel.id ? 'var(--blue)' : 'transparent') }}>
@@ -173,7 +176,10 @@ function Integrations() {
                         <span style={{ position: 'absolute', right: -2, bottom: -2, width: 11, height: 11, borderRadius: '50%', border: '2px solid var(--surface)', background: it.status === 'connected' ? 'var(--green)' : it.status === 'error' ? 'var(--red)' : 'var(--ink-4)' }} />
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{it.name}</div>
+                        <div className="row ac gap6">
+                          <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{it.name}</div>
+                          {demo && <span title="Belum tersambung sumber eksternal — data dari fixture demo"><Badge kind="amber">Mode demo</Badge></span>}
+                        </div>
                         <div className="tiny muted">{it.cat} · {it.status === 'connected' ? AMS.fmt(c.posted || 0) + ' baris → SSOT' : st.l}</div>
                       </div>
                       {it.status === 'error' && <I.alert size={15} style={{ color: 'var(--red)' }} />}

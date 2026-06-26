@@ -4,6 +4,8 @@
 // this view. The job runner (Fase 1, sync.ts) and the tRPC `integration` router both read from
 // here so there is one source of connector truth.
 import { prisma } from '../db';
+import { coretaxHttpConfigured } from './providers/httpCoretax';
+import { bankHttpConfigured } from './providers/httpBank';
 
 export type ConnectorStatus = 'connected' | 'available' | 'error';
 
@@ -33,7 +35,18 @@ export interface ConnectorView {
   scopes: string[];
   mapping: Array<[string, string]>;
   wired: boolean; // true once a real adapter drives this connector (Fase 1+)
+  configured: boolean; // true bila adapter eksternal NYATA terpasang (env). false = mode demo/fixture.
   meta: ConnectorMeta;
+}
+
+/* Apakah konektor punya koneksi eksternal NYATA aktif (env adapter terpasang)? Hanya konektor
+   ber-adapter (coretax/bank) yang bisa true; sisanya blueprint-only → selalu false (mode demo).
+   `wired` BEDA: ia true setelah post pertama BAHKAN oleh fixture, jadi tak bisa membedakan
+   demo vs nyata — `configured` itulah sinyal jujur untuk badge UI "Mode demo · belum tersambung". */
+function connectorConfigured(id: string): boolean {
+  if (id === 'coretax') return coretaxHttpConfigured();
+  if (id === 'bank') return bankHttpConfigured();
+  return false;
 }
 
 const DEFAULT_META: ConnectorMeta = {
@@ -65,6 +78,7 @@ function toView(row: {
     scopes: parse<string[]>(row.scopesJson, []),
     mapping: parse<Array<[string, string]>>(row.mappingJson, []),
     wired: row.wired,
+    configured: connectorConfigured(row.id),
     meta: { ...DEFAULT_META, ...parse<Partial<ConnectorMeta>>(row.metaJson, {}) },
   };
 }
