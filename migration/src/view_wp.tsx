@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
-import { useAudit, useFirm, useAmsPersist } from './contexts';
+import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor } from './contexts';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan } from './sampling_select';
 import {
   assertionCoverage, groupForAccountCode, ASSERTION_RELEVANCE, ASSERTION_STATUS_META, assertionDef,
@@ -99,8 +99,13 @@ const WP_SEED_NOTES = {
 /* ============================================================ */
 function WorkingPapers() {
   const { fmt } = AMS;
-  const { wtb, wpState, risks } = useAudit();
+  const { wtb, wpState, risks, workpapers } = useAudit();
   const { activeEngagement, activeClient, locked } = useFirm();
+  const nav = useNav();
+  const { short: me } = useCurrentAuditor();
+  /* WP Assignment milik saya (preparer belum-tuntas / reviewer menunggu reviu) → muncul di My Tasks */
+  const myWpCount = (workpapers || []).filter((w: any) =>
+    (w.preparer === me && w.status !== 'Reviewed') || (w.reviewer === me && w.status === 'In Review')).length;
   const [filter, setFilter] = useStateWP('All');
   const [q, setQ] = useStateWP('');
   const [openRef, setOpenRef] = useStateWP(null);
@@ -166,6 +171,11 @@ function WorkingPapers() {
     <>
       <SubBar moduleId="workpapers" right={
         <div className="row gap8 ac">
+          {myWpCount > 0 && (
+            <Btn sm onClick={() => nav('tasks', { from: 'workpapers' })} title="Kertas kerja yang ditugaskan ke Anda (siapkan / reviu) muncul sebagai tugas di My Tasks">
+              <I.check size={13} /> {myWpCount} di My Tasks
+            </Btn>
+          )}
           <div className="row ac" style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 8, color: 'var(--ink-4)', pointerEvents: 'none' }}><I.search2 size={13} /></span>
             <input className="input" value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari ref / judul…" style={{ width: 150, paddingLeft: 26, height: 26 }} />

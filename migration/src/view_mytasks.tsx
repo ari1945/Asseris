@@ -154,7 +154,7 @@ function MyTasks() {
   const [drag, setDrag] = useStateMTV(null);
   const [dropCol, setDropCol] = useStateMTV(null);
 
-  const sources = ['all', 'Review Note', 'Catatan WP', 'AJE', 'Working Paper', 'Deadline', 'Pribadi'];
+  const sources = ['all', 'Review Note', 'Catatan WP', 'Siapkan WP', 'Reviu WP', 'AJE', 'Deadline', 'Pribadi'];
   const filtered = useMemoMTV(() => {
     let list = mt.tasks;
     if (source !== 'all') list = list.filter((t: any) => t.src === source);

@@ -61,7 +61,7 @@
   },
   "src/data_firmfin.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 110
+      "count": 127
     }
   },
   "src/data_firmops.ts": {
@@ -681,7 +681,7 @@
   },
   "src/view_mytasks_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 58
+      "count": 61
     }
   },
   "src/view_newdisc.tsx": {
@@ -1121,7 +1121,7 @@
   },
   "src/view_timebudget.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 65
+      "count": 62
     }
   },
   "src/view_wip_firm.tsx": {
@@ -1131,12 +1131,12 @@
   },
   "src/view_workspace.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 99
+      "count": 100
     }
   },
   "src/view_wp.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 116
+      "count": 117
     }
   },
   "src/view_wtb_deep.tsx": {

@@ -126,7 +126,7 @@ disentuh) dan **tanpa merusak demo** (boot tetap jalan untuk keempat akun peran)
 - `router.ts`: panggil `assertEngagementAccess` di `bootstrap` (input.engagementId) & di `state.get`/
   `state.set` bila `scope==='engagement'` (scopeId=engagementId); `engagement.list` → filter ke
   `accessibleEngagementIds`.
-- `seed.ts`: ENG-2025-014 → keempat akun; ENG-2025-031 → Senior (Bagas). (Partner+Manager lihat semua
+- `seed.ts`: ENG-2025-014 → keempat akun; ENG-2025-031 → Senior (Dimas). (Partner+Manager lihat semua
   via view-all; seed keanggotaan eksplisit mereka opsional.)
 
 **Klien.**
@@ -160,7 +160,7 @@ disentuh) dan **tanpa merusak demo** (boot tetap jalan untuk keempat akun peran)
   (anggun, bukan crash).
 - **Fase 1 — Klien.** Himpunan boleh-akses → filter switcher/palette + guard boot + tangani activeEng
   terlarang. Gate: lint 0, typecheck 0, 59 vitest (zero regression), build. **Live-proven:** login
-  Junior(Citra)→hanya ENG-014; Senior(Bagas)→ENG-014+031; Manager→semua; coba akses terlarang ditolak;
+  Junior(Fajar)→hanya ENG-014; Senior(Dimas)→ENG-014+031; Manager→semua; coba akses terlarang ditolak;
   0 console err.
 
 Tiap fase = commit terpisah `W7.5 Fase N: …`.

@@ -143,8 +143,8 @@
   const WORKPAPERS = [
     { ref: 'A', title: 'Kas dan Setara Kas', status: 'Reviewed', preparer: 'Fajar N.', reviewer: 'Anindya P.' },
     { ref: 'B', title: 'Piutang Usaha & ECL', status: 'In Review', preparer: 'Dimas R.', reviewer: 'Anindya P.' },
-    { ref: 'C', title: 'Persediaan', status: 'In Progress', preparer: 'Rina K.', reviewer: '—' },
-    { ref: 'E', title: 'Aset Tetap', status: 'In Review', preparer: 'Dimas R.', reviewer: 'Anindya P.' },
+    { ref: 'C', title: 'Persediaan', status: 'In Progress', preparer: 'Fajar N.', reviewer: '—' },
+    { ref: 'E', title: 'Aset Tetap', status: 'In Review', preparer: 'Dimas R.', reviewer: 'Hartono W.' },
     { ref: 'F', title: 'Sewa — PSAK 73', status: 'In Progress', preparer: 'Sinta W.', reviewer: '—' },
     { ref: 'R', title: 'Pendapatan', status: 'In Progress', preparer: 'Dimas R.', reviewer: '—' },
   ];

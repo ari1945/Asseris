@@ -12,8 +12,8 @@ const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engageme
 type SeedUser = { id: string; name: string; initials: string; role: string; email: string; password: string; title?: string };
 const EXTRA_USERS: SeedUser[] = [
   { id: 'WHR-EP-0001', name: 'Hartono Wijaya', initials: 'HW', role: 'Engagement Partner', email: 'hartono.w@whr-cpa.id', password: 'Partner#2025!', title: 'Engagement Partner' },
-  { id: 'WHR-SR-0210', name: 'Bagas Nugroho', initials: 'BN', role: 'Senior Auditor', email: 'bagas.n@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
-  { id: 'WHR-JR-0388', name: 'Citra Lestari', initials: 'CL', role: 'Junior Auditor', email: 'citra.l@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
+  { id: 'WHR-SR-0210', name: 'Dimas Raharjo', initials: 'DR', role: 'Senior Auditor', email: 'dimas.r@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
+  { id: 'WHR-JR-0388', name: 'Fajar Nugroho', initials: 'FN', role: 'Junior Auditor', email: 'fajar.n@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
 ];
 // Dev password for the primary seed user (Anindya, Audit Manager).
 const PRIMARY_PASSWORD = 'Manager#2025!';
@@ -158,8 +158,8 @@ async function main() {
   const memberships: Array<{ engagementId: string; userId: string }> = [
     { engagementId: ACTIVE_ENG, userId: PRIMARY_ID }, // Anindya (Manager)
     { engagementId: ACTIVE_ENG, userId: 'WHR-EP-0001' }, // Hartono (Partner)
-    { engagementId: ACTIVE_ENG, userId: 'WHR-SR-0210' }, // Bagas (Senior)
-    { engagementId: ACTIVE_ENG, userId: 'WHR-JR-0388' }, // Citra (Junior)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-SR-0210' }, // Dimas (Senior)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-JR-0388' }, // Fajar (Junior)
     { engagementId: SECOND_ENG, userId: 'WHR-SR-0210' }, // Senior also on a 2nd engagement
   ];
   for (const m of memberships) {

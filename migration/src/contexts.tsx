@@ -25,6 +25,29 @@ const useAudit = () => useContext(AuditContext);
 const useNav   = () => useContext(NavContext);
 const useNavFrom = () => useContext(NavFromContext);
 
+/* ============================================================
+   Identitas auditor saat ini — jembatan sesi → data demo.
+   Sesi (W7) menyimpan nama LENGKAP ('Anindya Pramesti'); data kerja
+   (WORKPAPERS.preparer/reviewer, REVIEW_NOTES.to) memakai bentuk SINGKAT
+   ('Anindya P.'). `amsShortName` menormalkan penuh→singkat sehingga
+   My Tasks & Review Notes bisa memfilter "milik saya" dari user sesi nyata,
+   bukan string hardcode. Idempoten: nama yang sudah singkat tetap utuh. */
+function amsShortName(full: unknown): string {
+  if (!full || typeof full !== 'string') return '';
+  const clean = full.replace(/,.*$/, '').trim();        // buang gelar (", CPA")
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return clean;
+  const last = parts[parts.length - 1];
+  if (/^[A-Z]\.?$/.test(last)) return clean;            // sudah "Nama X." → biarkan
+  return `${parts[0]} ${last[0].toUpperCase()}.`;
+}
+/* Hook: nama singkat auditor login aktif (untuk filter kepemilikan tugas/catatan). */
+function useCurrentAuditor() {
+  const auth = useAuth();
+  const full = (auth && auth.user && auth.user.name) || (AMS && AMS.USER && AMS.USER.name) || '';
+  return { full, short: amsShortName(full) };
+}
+
 /* P5 Fase 2 — catatan review berlingkup-engagement. Selektor murni: catatan
    milik engagement `engId`; catatan legacy tanpa `engagementId` ikut tampil
    (tak ada yang hilang dari state lama). */
@@ -463,11 +486,11 @@ function AppProviders({ me, onLogout, children }: any) {
 Object.assign(window, {
   AuthContext, FirmContext, AuditContext, NavContext, NavFromContext,
   useAuth, useFirm, useAudit, useNav, useNavFrom, AppProviders, clearPersisted,
-  notesForEngagement,
+  notesForEngagement, amsShortName, useCurrentAuditor,
 });
 window.clearPersisted = clearPersisted;
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom };
+export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor };
 export { useAmsPersist };

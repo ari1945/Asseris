@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAudit, useFirm } from './contexts';
+import { useAudit, useFirm, useCurrentAuditor } from './contexts';
 import { I, MODULES } from './icons';
 import { Badge, Btn, Panel } from './ui';
 
@@ -17,7 +17,7 @@ const mtStartOfDay = (d: any) => { const x = new Date(d); x.setHours(0, 0, 0, 0)
 const mtAddDays = (d: any, n: any) => new Date(mtStartOfDay(d).getTime() + n * MT_DAY);
 const MT_PRIO_K = { high: 'red', medium: 'amber', low: 'gray' };
 const MT_PRIO_ORDER = { high: 0, medium: 1, low: 2 };
-const MT_SRC_ICON = { 'Review Note': 'doc', 'Catatan WP': 'layers', 'AJE': 'ledger', 'Working Paper': 'layers', 'Deadline': 'clock', 'Pribadi': 'flag' };
+const MT_SRC_ICON = { 'Review Note': 'doc', 'Catatan WP': 'layers', 'AJE': 'ledger', 'Siapkan WP': 'layers', 'Reviu WP': 'shield', 'Working Paper': 'layers', 'Deadline': 'clock', 'Pribadi': 'flag' };
 const MT_STATUS = {
   todo:  { label: 'Belum Mulai', color: 'var(--ink-4)', kind: 'gray' },
   doing: { label: 'Dikerjakan', color: 'var(--blue)', kind: 'blue' },
@@ -32,11 +32,12 @@ const MT_BUCKETS = [
   { id: 'done',    label: 'Selesai', accent: 'var(--green)' },
 ];
 
-/* synthetic due-day offsets & effort estimates by source */
-function mtSystemTasks(audit: any) {
+/* synthetic due-day offsets & effort estimates by source.
+   `me` = nama-singkat auditor login aktif (dari sesi W7) — bukan lagi hardcode;
+   menentukan Review Note / Catatan WP / penugasan WP mana yang "milik saya". */
+function mtSystemTasks(audit: any, me: any) {
   const { deadlines, aje, wpState, workpapers } = audit;
   const reviewNotes = audit.reviewNotesActive || audit.reviewNotes || [];  // P5 Fase 2: catatan engagement aktif
-  const me = 'Anindya P.';
   const out: any[] = [];
   const rnOff = { high: 1, medium: 3, low: 6 };
   reviewNotes.filter((n: any) => n.status === 'open' && n.to === me).forEach((n: any) => out.push({
@@ -55,9 +56,19 @@ function mtSystemTasks(audit: any) {
     priority: 'medium', dueOffset: 4, est: 2, defaultStatus: 'doing',
     sub: [{ id: 's1', t: 'Validasi dasar jurnal', done: false }, { id: 's2', t: 'Diskusi dengan klien', done: false }, { id: 's3', t: 'Posting / tolak', done: false }],
   }));
-  workpapers.filter((w: any) => w.reviewer === '—' || w.status === 'In Progress').forEach((w: any) => out.push({
-    id: 'wp-' + w.ref, src: 'Working Paper', label: `Selesaikan WP ${w.ref} — ${w.title}`, route: 'workpapers',
-    wpRef: w.ref, priority: 'medium', dueOffset: 5, est: 4, defaultStatus: w.status === 'In Progress' ? 'doing' : 'todo',
+  /* WP Assignment — penugasan kertas kerja per orang (bukan lagi "semua WP belum selesai"):
+     · Siapkan WP  → saya preparer & WP belum tuntas direviu (todo/in-progress)
+     · Reviu WP    → saya reviewer & WP sedang menunggu reviu saya */
+  workpapers.filter((w: any) => w.preparer === me && w.status !== 'Reviewed').forEach((w: any) => out.push({
+    id: 'wp-prep-' + w.ref, src: 'Siapkan WP', label: `Siapkan WP ${w.ref} — ${w.title}`, route: 'workpapers',
+    wpRef: w.ref, priority: w.status === 'In Review' ? 'low' : 'medium', dueOffset: 5, est: 4,
+    defaultStatus: w.status === 'In Progress' ? 'doing' : 'todo',
+    sub: [{ id: 's1', t: 'Lengkapi kertas kerja & bukti', done: false }, { id: 's2', t: 'Tautkan referensi silang', done: false }, { id: 's3', t: 'Ajukan untuk reviu', done: false }],
+  }));
+  workpapers.filter((w: any) => w.reviewer === me && w.status === 'In Review').forEach((w: any) => out.push({
+    id: 'wp-rev-' + w.ref, src: 'Reviu WP', label: `Reviu WP ${w.ref} — ${w.title}`, route: 'workpapers',
+    wpRef: w.ref, priority: 'high', dueOffset: 3, est: 2, defaultStatus: 'doing',
+    sub: [{ id: 's1', t: 'Telaah kesimpulan & kecukupan bukti', done: false }, { id: 's2', t: 'Angkat catatan reviu bila perlu', done: false }, { id: 's3', t: 'Tandatangani / kliring' + ' WP ' + w.ref, done: false }],
   }));
   (deadlines || []).slice(0, 4).forEach((d: any, i: any) => out.push({
     id: 'dl-' + i, src: 'Deadline', label: `${d.task} — ${d.client}`, route: 'cockpit',
@@ -70,12 +81,13 @@ function mtSystemTasks(audit: any) {
 function useMyTasks() {
   const audit = useAudit();
   const firm = useFirm();
+  const { short: me } = useCurrentAuditor();   // identitas sesi nyata (W7) → filter "milik saya"
   const [meta, setMeta] = window.useAmsPersist('mt.meta', {});
   const [personal, setPersonal] = window.useAmsPersist('mt.personal', []);
   const engId = firm.activeEngagement ? firm.activeEngagement.id : '';
 
-  const system = useMemoMT(() => mtSystemTasks(audit),
-    [audit.reviewNotesActive, audit.aje, audit.workpapers, audit.deadlines, audit.wpState]);
+  const system = useMemoMT(() => mtSystemTasks(audit, me),
+    [me, audit.reviewNotesActive, audit.aje, audit.workpapers, audit.deadlines, audit.wpState]);
 
   const tasks = useMemoMT(() => {
     const decorate = (base: any) => {
