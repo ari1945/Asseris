@@ -88,11 +88,11 @@ const MODULES = [
     { id: 'programme',   label: 'Audit Programme', icon: 'flask', deep: true },
     { id: 'reviewnotes', label: 'Review Notes', icon: 'doc', deep: true },
     { id: 'time',        label: 'Time & Budget', icon: 'clock', deep: true },
+    { id: 'audittimeline', label: 'Jadwal & Lini Masa Audit', icon: 'calendar', deep: true },
   ]},
   { group: 'Practice Operations', items: [
     { id: 'pipeline',    label: 'Sales Pipeline', icon: 'trend', deep: true },
     { id: 'delivery',    label: 'Delivery & Milestones', icon: 'flag', deep: true },
-    { id: 'audittimeline', label: 'Jadwal & Lini Masa Audit', icon: 'calendar', tag: 'NEW', deep: true },
     { id: 'wipreal',     label: 'WIP & Realisasi', icon: 'hourglass', deep: true },
     { id: 'billing',     label: 'Billing & Invoicing', icon: 'receipt', deep: true },
     { id: 'scheduler',   label: 'Resource Scheduler', icon: 'users', deep: true },

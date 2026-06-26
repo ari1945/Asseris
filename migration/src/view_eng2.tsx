@@ -1,9 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm } from './contexts';
+import { useFirm, useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Panel, Progress, Seg, Stat } from './ui';
+import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
 import { EngagementDetail } from './view_firm';
 import { HBars } from './view_fpm_parts';
 
@@ -219,7 +219,8 @@ function EngStaffing() {
 /* ---------------- Jadwal (timeline / gantt) ---------------- */
 function EngJadwal() {
   const { fmt } = AMS;
-  const { engagements, clientById } = useFirm();
+  const { engagements, clientById, setActiveEngagementId } = useFirm();
+  const nav = useNav();
   const [selId, setSelId] = useEng2(engagements[0].id);
   const sel = engagements.find((e: any) => e.id === selId) || engagements[0];
 
@@ -290,6 +291,10 @@ function EngJadwal() {
                 </div>
               );
             })}
+            <div className="row ac jb gap10" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+              <span className="tiny muted" style={{ lineHeight: 1.5, flex: 1, minWidth: 0 }}>Lini masa milestone di atas ringkasan portofolio. Gantt detail per-aktivitas (SSOT <span className="mono">DELIVERY</span>, deep-link ke prosedur) ada di workspace Perikatan.</span>
+              <Btn sm onClick={() => { if (setActiveEngagementId) setActiveEngagementId(selId); nav('audittimeline', { from: 'engagement' }); }}><I.calendar size={13} /> Buka Lini Masa Detail</Btn>
+            </div>
           </div>
         </Panel>
 
