@@ -17,7 +17,7 @@ import { AuditCommitteeView } from './view_auditcomm';
 import { AuditTimeline } from './view_audittimeline';
 import { FirmBI } from './view_bi';
 import { FirmLicensing, FirmTravel } from './view_bo3';
-import { ECLCalculator, SamplingEngine } from './view_calc';
+import { ECLCalculator } from './view_calc';
 import { CapacityPlanning } from './view_capacity';
 import { ClientPortal } from './view_clientportal';
 import { AuditProgramme } from './view_cockpit';
@@ -189,7 +189,7 @@ function viewFor(moduleId: any) {
     case 'wtb':        return <WTBView />;
     case 'aje':        return <AJEView />;
     case 'materiality':return <MaterialityCalc />;
-    case 'sampling':   return <SamplingEngine />;
+    case 'sampling':   return <SA530View />;  /* alias redirect — modul SA 530 dikonsolidasi ke sa530 */
     case 'ecl':        return <ECLCalculator />;
     case 'goingconcern': return <GoingConcern />;
     case 'jet':        return <JournalEntryTesting />;

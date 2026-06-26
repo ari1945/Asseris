@@ -99,7 +99,6 @@ const WP_MODULE_MAP = {
   /* Core Execution — kertas kerja pelaksanaan substantif */
   aje:        { ref: 'aje',        requiredEvidence: ['Dukungan jurnal penyesuaian (AJE)', 'Persetujuan manajemen atas AJE'] },
   analytical: { ref: 'analytical', requiredEvidence: ['Kertas kerja reviu analitis', 'Penjelasan & korroborasi fluktuasi'] },
-  sampling:   { ref: 'sampling',   requiredEvidence: ['Parameter & metode sampling', 'Daftar item terpilih & hasil pengujian'] },
   jet:        { ref: 'jet',        requiredEvidence: ['Kriteria pengujian jurnal (JET)', 'Tindak lanjut jurnal anomali'] },
 };
 

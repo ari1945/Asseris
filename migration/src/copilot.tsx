@@ -40,7 +40,7 @@ const CP_RULES = [
   { re: /(aging|piutang|receivable|\bar\b|umur\s*piutang)/i, type: 'Aging Piutang', std: 'PSAK 71', dest: 'psak71',
     extract: ['Bucket umur 0–30 / 31–60 / >90 hari', 'Saldo piutang per pelanggan', 'Indikasi penurunan nilai (ECL)'], alts: ['confirm', 'ecl'] },
   { re: /(persediaan|inventory|stock\s*opname|stok)/i, type: 'Daftar Persediaan', std: 'PSAK 14', dest: 'psak14',
-    extract: ['Kuantitas & nilai per SKU', 'Dasar penilaian (FIFO/rata-rata)', 'Indikasi NRV < biaya perolehan'], alts: ['analytical', 'sampling'] },
+    extract: ['Kuantitas & nilai per SKU', 'Dasar penilaian (FIFO/rata-rata)', 'Indikasi NRV < biaya perolehan'], alts: ['analytical', 'sa530'] },
   { re: /(aset\s*tetap|fixed\s*asset|\bfa\b|register\s*aset|penyusutan|depres)/i, type: 'Daftar Aset Tetap', std: 'PSAK 16', dest: 'psak16',
     extract: ['Harga perolehan & akumulasi penyusutan', 'Umur manfaat & metode', 'Mutasi penambahan/pelepasan'], alts: ['invprop', 'analytical'] },
   { re: /(sewa|lease|\bpsak\s*73\b)/i, type: 'Kontrak Sewa', std: 'PSAK 73', dest: 'psak73',
@@ -59,7 +59,7 @@ const CP_RULES = [
     extract: ['Dasar pengenaan pajak', 'Beda waktu/tetap teridentifikasi', 'Aset/liabilitas pajak tangguhan'], alts: ['fsgen', 'firmtax'] },
   { re: /(representasi|rep\s*letter|management\s*rep|surat\s*pernyataan)/i, type: 'Surat Representasi', std: 'SA 580', dest: 'opinion',
     extract: ['Pernyataan tanggung jawab manajemen', 'Tanggal ≈ tanggal laporan auditor', 'Cakupan asersi LK'], alts: ['subsequent', 'goingconcern'] },
-  { re: /(sampl|populasi|seleksi)/i, type: 'Populasi Sampling', std: 'SA 530', dest: 'sampling',
+  { re: /(sampl|populasi|seleksi)/i, type: 'Populasi Sampling', std: 'SA 530', dest: 'sa530',
     extract: ['Ukuran & nilai populasi', 'Stratifikasi item kunci', 'Parameter risiko sampling'], alts: ['jet', 'analytical'] },
 ];
 

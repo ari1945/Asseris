@@ -28,7 +28,7 @@ const CKP_PHASES = [
     { id: 'wtb', label: 'Working Trial Balance', pct: 100 },
     { id: 'aje', label: 'Adjusting Entries', pct: 80 },
     { id: 'analytical', label: 'Analytical Review', pct: 60 },
-    { id: 'sampling', label: 'Sampling', pct: 55 },
+    { id: 'sa530', label: 'Sampling', pct: 55 },
     { id: 'confirm', label: 'Confirmation Hub', pct: 64 },
     { id: 'jet', label: 'Journal Entry Testing', pct: 40 },
     { id: 'workpapers', label: 'Working Papers', pct: 58 },

@@ -860,7 +860,7 @@ function WtbDrill({ row, onClose, nav }: any) {
           <span className="tiny muted">{glTie.hasDetail ? (glTie.tied ? 'Detail GL nyata · tie-out ke saldo unadjusted cocok ✓' : 'Detail GL nyata · tie-out selisih — periksa kelengkapan GL') : 'Detail ilustratif (sintetik) — impor GL untuk sub-ledger nyata'}</span>
           <div className="row gap8">
             <Btn sm onClick={() => { onClose(); nav('workpapers'); }}><I.layers size={13} /> Buka Lead Schedule {row.lead}</Btn>
-            <Btn sm variant="primary" onClick={() => { onClose(); nav('sampling'); }}><I.dice size={13} /> Sampling Akun Ini</Btn>
+            <Btn sm variant="primary" onClick={() => { onClose(); nav('sa530'); }}><I.dice size={13} /> Sampling Akun Ini</Btn>
           </div>
         </div>
       </div>

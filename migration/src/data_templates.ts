@@ -58,7 +58,7 @@ import { AMS } from './data';
       sa: [{ code: 'SA 500' }], dl: 340, engs: ['ENG-2025-014', 'ENG-2025-047', 'ENG-2025-063'],
       nextReview: '2027-02-18', retention: 10, desc: 'Lead & supporting schedule per pos LK — tertaut langsung ke Working Trial Balance dan AJE.' },
     { id: 'TPL-EXE-02', name: 'Sampling Worksheet (MUS)', fmt: 'XLSX', phase: 'Pelaksanaan', cat: 'Kertas Kerja Substantif',
-      ver: '4.2', updated: '2025-12-05', steward: 'Tim Metodologi', status: 'Aktif', module: 'sampling',
+      ver: '4.2', updated: '2025-12-05', steward: 'Tim Metodologi', status: 'Aktif', module: 'sa530',
       sa: [{ code: 'SA 530', view: 'sa530' }], dl: 87, engs: ['ENG-2025-014', 'ENG-2025-047'],
       nextReview: '2026-12-05', retention: 10, desc: 'Kalkulator sampel Monetary Unit Sampling — interval, seleksi, dan proyeksi salah saji populasi.' },
     { id: 'TPL-EXE-03', name: 'External Confirmation Pack', fmt: 'DOCX', phase: 'Pelaksanaan', cat: 'Konfirmasi & Eksternal',
