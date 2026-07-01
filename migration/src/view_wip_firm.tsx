@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui';
@@ -24,13 +24,20 @@ function WIPRealization() {
   const { fmt } = AMS;
   const FF = FIRMFIN;
   const nav = useNav();
-  const { engagements, clients } = useFirm();
+  const { engagements, clients, activeEngagement } = useFirm();
+  const { timeEntries } = useAudit();
   const [view, setView] = useStateWipF('Perikatan');
   const [sel, setSel] = useStateWipF(null);
   const [adj, setAdj] = useAmsPersist('wip.adj', {});
 
   const ctx = useMemoWipF(() => ({ engagements, clients }), [engagements, clients]);
-  const W = useMemoWipF(() => FF.wip(ctx), [ctx]);
+  /* overlay jam-aktual T&B untuk engagement aktif — identik dgn WIP Valuation (SSOT FIRMFIN). */
+  const liveByEng = useMemoWipF(() => {
+    const id = activeEngagement && activeEngagement.id;
+    const ew = FF.engagementWip(timeEntries, id);
+    return ew ? { [id]: { std: ew.stdValue, cost: ew.costValue, actualHrs: ew.actualHrs } } : null;
+  }, [timeEntries, activeEngagement]);
+  const W = useMemoWipF(() => FF.wip(ctx, undefined, liveByEng), [ctx, liveByEng]);
 
   /* overlay write-down manual di atas baris kanonik (semantik persen utk view ini) */
   const rows = W.registerAll.map((b: any) => {
@@ -73,6 +80,7 @@ function WIPRealization() {
     <>
       <SubBar moduleId="wipreal" right={
         <div className="row gap8 ac">
+          {liveByEng && <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)', cursor: 'pointer' }} title="Nilai standar engagement aktif ditarik dari jam aktual Time & Budget (live)" onClick={() => nav('time', { from: 'wipreal' })}><I.clock size={11} /> Sinkron T&B</span>}
           <span className="chip tiny" title="Satu sumber kebenaran dengan WIP Valuation & GL 1-300"><I.link2 size={11} /> Sinkron WIP Valuation</span>
           <Seg options={['Perikatan', 'Partner']} value={view} onChange={setView} />
           <Btn sm onClick={() => nav('wip', { from: 'wipreal' })}><I.hourglass size={13} /> WIP Valuation</Btn>

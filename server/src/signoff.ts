@@ -45,7 +45,7 @@ const OPINION_SLOT_CAP: Record<string, string> = {
 /* Key yang membawa aksi otoritatif intra-dokumen (engagement: wpState/opinionDoc/reviewNotes;
    firm: prospects → keputusan akseptasi & penerbitan surat perikatan). Nama key unik antar-scope
    (tak ada tabrakan), jadi guard di-dispatch by key. */
-export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 'prospects']);
+export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 'prospects', 'strategyApproved.v1']);
 
 /* Status surat perikatan yang berarti DITERBITKAN (vs intake/draft). */
 const LETTER_ISSUED = new Set(['sent', 'signed']);
@@ -89,6 +89,11 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
         need(CAP.SIGNOFF_REVIEWER, `note:${id}:${p[id].status}->${n[id].status}`);
       }
     }
+  } else if (key === 'strategyApproved.v1') {
+    // Persetujuan strategi audit (SA 300) = reviewer sign-off Partner/Manajer (SIGNOFF_REVIEWER).
+    // Set ATAU pencabutan persetujuan = perubahan otoritatif → tegakkan di server (sebelumnya
+    // hanya gate UI; capForWrite default = WP_EDIT, terlalu longgar untuk slot ini).
+    if (sig(prev) !== sig(next)) need(CAP.SIGNOFF_REVIEWER, 'strategi:approved');
   } else if (key === 'prospects') {
     // Q5 — keputusan AKSEPTASI & PENERBITAN surat perikatan = Partner-only (FIRM_ADMIN).
     // Intake/data-entry (tambah prospek, PMPJ, faktor, draft surat) = ENGAGEMENT_MANAGE,

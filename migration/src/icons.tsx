@@ -82,17 +82,24 @@ const I = {
 /* ---- Module registry: groups -> modules ---- */
 /* deep: has a real view; otherwise renders a designed stub */
 const MODULES = [
+  /* Beranda berbasis peran (PRD Restrukturisasi Navigasi & Beranda, Fase 5). Grup ini
+     sengaja di HIDDEN_GROUPS: Beranda TIDAK muncul di daftar grup workspace mana pun
+     (dipin terpisah di atas toggle workspace, shell.tsx) dan wsForModule('home')→null
+     supaya membukanya tak memaksa pindah workspace. Tetap terjangkau via ⌘K & MODULE_INDEX. */
+  { group: 'Beranda', items: [
+    { id: 'home', label: 'Beranda', icon: 'dashboard', deep: true },
+  ]},
   { group: 'Engagement Workspace', items: [
     { id: 'cockpit',     label: 'Engagement Cockpit', icon: 'dashboard', deep: true },
     { id: 'tasks',       label: 'My Tasks', icon: 'check', deep: true },
     { id: 'programme',   label: 'Audit Programme', icon: 'flask', deep: true },
     { id: 'reviewnotes', label: 'Review Notes', icon: 'doc', deep: true },
     { id: 'time',        label: 'Time & Budget', icon: 'clock', deep: true },
+    { id: 'audittimeline', label: 'Jadwal & Lini Masa Audit', icon: 'calendar', deep: true },
   ]},
   { group: 'Practice Operations', items: [
     { id: 'pipeline',    label: 'Sales Pipeline', icon: 'trend', deep: true },
     { id: 'delivery',    label: 'Delivery & Milestones', icon: 'flag', deep: true },
-    { id: 'audittimeline', label: 'Jadwal & Lini Masa Audit', icon: 'calendar', tag: 'NEW', deep: true },
     { id: 'wipreal',     label: 'WIP & Realisasi', icon: 'hourglass', deep: true },
     { id: 'billing',     label: 'Billing & Invoicing', icon: 'receipt', deep: true },
     { id: 'scheduler',   label: 'Resource Scheduler', icon: 'users', deep: true },
@@ -295,11 +302,17 @@ const WORKSPACES = [
   { id: 'engagement', label: 'Perikatan', icon: 'briefcase', desc: 'Kerja audit per-engagement',
     groups: ['Engagement Workspace', 'Referensi & Indeks', 'Core Planning', 'Core Execution', 'Core Specifics', 'Finalisasi & Pelaporan'] },
   { id: 'firm', label: 'Firma', icon: 'building', desc: 'Operasi & tata kelola firma',
-    groups: ['Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Jasa Non-Audit (SPAP)', 'SA · Area Khusus & Perikatan', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Firm Platform', 'Backoffice & Firm Mgmt'] },
+    groups: ['Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Firm Platform', 'Backoffice & Firm Mgmt'] },
 ];
 /* Grup yang tetap dapat diakses (⌘K + chip + Matriks Kepatuhan) tapi tidak
-   muncul di sidebar mana pun — menjaga sidebar Perikatan tetap ramping. */
-const HIDDEN_GROUPS = ['SA · Tanggung Jawab (200)', 'SA · Bukti Audit (500)', 'SA · Pelaporan (700)', 'Akuntansi (PSAK & SAK)', 'Akuntansi Syariah (SAK Syariah)'];
+   muncul di sidebar mana pun — menjaga sidebar Perikatan tetap ramping.
+   'SA · Area Khusus & Perikatan' dipindah ke sini (2026-07-01): namanya sendiri
+   memuat "Perikatan" tapi sebelumnya bocor ke sidebar Firma — satu-satunya dari
+   4 grup referensi SA mendalam yang tak konsisten dengan pola saudaranya
+   (200/500/700-series sudah di sini). Dijangkau via chip RELATED_SA dari modul
+   Jasa Non-Audit (lihat nonaudit/review2400/relatedsvc/assurance/duediligence/
+   serviceorg di bawah), ⌘K, atau Matriks Kepatuhan. */
+const HIDDEN_GROUPS = ['Beranda', 'SA · Tanggung Jawab (200)', 'SA · Bukti Audit (500)', 'SA · Pelaporan (700)', 'SA · Area Khusus & Perikatan', 'Akuntansi (PSAK & SAK)', 'Akuntansi Syariah (SAK Syariah)'];
 
 const GROUP_WS = {};
 WORKSPACES.forEach(w => w.groups.forEach(g => { (GROUP_WS as any)[g] = w.id; }));
@@ -308,6 +321,35 @@ const wsForModule = (id: any) => {
   if (HIDDEN_GROUPS.includes(g)) return null; // jangan paksa pindah workspace untuk halaman tersembunyi
   return (GROUP_WS as any)[g] || 'firm';
 };
+
+/* ---- P1 (Fase 6) — kurasi sidebar per peran ----
+   Grup default-visible per (peran, workspace). MURNI UI: capability (can()) TAK
+   berkurang — escape hatch "Tampilkan semua" (shell.tsx) + ⌘K + Matriks Kepatuhan
+   tetap menjangkau SEMUA modul. Tujuan: sidebar Firma yang tadinya 10 grup jadi
+   ramping untuk Senior/Junior & 2 persona firm-ops (Success Criteria #5).
+     null  = tanpa kurasi (tampilkan semua grup workspace itu — oversight).
+     array = HANYA grup tsb (boleh kosong = tak ada grup default untuk peran itu di ws itu). */
+const ROLE_SIDEBAR_GROUPS: Record<string, Record<string, string[] | null>> = {
+  // Oversight: jalankan seluruh firma → tak dikurasi.
+  'Engagement Partner': { engagement: null, firm: null },
+  'Audit Manager': { engagement: null, firm: null },
+  // Auditor lapangan: workspace Perikatan penuh; di Firma cukup data personal
+  // (People & Compliance, difilter milik-sendiri via Fase 3) + Portal/Dokumen kerja.
+  'Senior Auditor': { engagement: null, firm: ['People & Compliance', 'Portal & Dokumen'] },
+  'Junior Auditor': { engagement: null, firm: ['People & Compliance', 'Portal & Dokumen'] },
+  // Firm-ops: bukan anggota perikatan → workspace Perikatan kosong secara default;
+  // Firma difokuskan ke grup yang mereka kuasai (PRD §8).
+  'Admin & HR Firma': { engagement: [], firm: ['People & Compliance', 'Portal & Dokumen'] },
+  'Finance Firma': { engagement: [], firm: ['Firm Finance (ERP)', 'Practice Operations'] },
+};
+/** Grup default-visible untuk (peran, workspace). null = tampilkan semua (tanpa kurasi).
+ *  Peran tak dikenal → null (aman: tak menyembunyikan apa pun; capability tetap utuh). */
+function groupsVisibleFor(role: string, ws: string): string[] | null {
+  const byWs = ROLE_SIDEBAR_GROUPS[role];
+  if (!byWs) return null;
+  const v = byWs[ws];
+  return v === undefined ? null : v;
+}
 
 /* ---- Peta prosedur Perikatan → Standar Audit (SA) terkait ----
    `view` = id halaman SA mendalam bila tersedia (dibuka di drawer);
@@ -332,7 +374,7 @@ const RELATED_SA = {
   related:     [{ code: 'SA 550', title: 'Pihak Berelasi', phase: 'Pelaksanaan' }],
   groupaudit:  [{ code: 'SA 600', title: 'Audit Grup (Komponen)', phase: 'Pelaksanaan' }],
   expert:      [{ code: 'SA 620', title: 'Penggunaan Pekerjaan Pakar Auditor', phase: 'Pelaksanaan' }],
-  serviceorg:  [{ code: 'SA 402', title: 'Pertimbangan Audit atas Organisasi Jasa', phase: 'Pelaksanaan' }],
+  serviceorg:  [{ code: 'SA 402', title: 'Pertimbangan Audit atas Organisasi Jasa', phase: 'Pelaksanaan' }, { code: 'SJAH 3402', title: 'Laporan Asurans atas Pengendalian di Organisasi Jasa', phase: 'Perikatan Lain', view: 'sjah3402' }],
   sad:         [{ code: 'SA 450', title: 'Evaluasi Salah Saji', phase: 'Pelaporan' }],
   aje:         [{ code: 'SA 450', title: 'Evaluasi Salah Saji', phase: 'Pelaporan' }],
   // Finalisasi & pelaporan
@@ -360,6 +402,7 @@ const RELATED_SA = {
   crm:         [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }],
   eqr:         [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaporan' }],
   reviewnotes: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaksanaan' }],
+  hrcase:      [{ code: 'ISQM 1', title: 'Akuntabilitas, Budaya & Tindakan Disipliner atas Pelanggaran Mutu/Etika (¶28–34)', phase: 'Tata Kelola Mutu' }, { code: 'Kode Etik', title: 'Kepatuhan Ketentuan Etika (IAPI/IESBA) & Konsekuensi Pelanggaran', phase: 'Tata Kelola Mutu' }],
   dataflow:    [{ code: 'SA 500', title: 'Bukti Audit', phase: 'Pelaksanaan' }, { code: 'SA 230', title: 'Dokumentasi Audit', phase: 'Pelaksanaan' }],
   internalaudit: [{ code: 'SA 610', title: 'Penggunaan Pekerjaan Auditor Internal', phase: 'Pelaksanaan' }],
   framework:   [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan — keberterimaan kerangka pelaporan', phase: 'Perencanaan' }, { code: 'SA 700', title: 'Perumusan Opini & Pelaporan atas LK', phase: 'Pelaporan', view: 'sa705' }, { code: 'SA 800', title: 'Pertimbangan Khusus — Kerangka Bertujuan Khusus', phase: 'Area Khusus', view: 'sa800' }],
@@ -369,12 +412,18 @@ const RELATED_SA = {
   sectorck:    [{ code: 'SA 250', title: 'Pertimbangan Hukum & Regulasi Sektoral (POJK/SEOJK)', phase: 'Perencanaan', view: 'sa250' }, { code: 'SA 315', title: 'Identifikasi & Penilaian ROMM (industri teregulasi)', phase: 'Perencanaan' }, { code: 'SA 540', title: 'Audit Estimasi Akuntansi (CKPN / cadangan teknis)', phase: 'Pelaksanaan', view: 'sa540' }],
   ojkfiling:   [{ code: 'SA 700', title: 'Perumusan Opini & Pelaporan atas LK', phase: 'Pelaporan' }, { code: 'SA 560', title: 'Peristiwa Kemudian — sebelum tanggal penyampaian', phase: 'Pelaporan' }, { code: 'SA 230', title: 'Dokumentasi Audit (bukti tanda terima)', phase: 'Pelaporan', view: 'sa230' }],
   auditcomm:   [{ code: 'SA 260', title: 'Komunikasi dengan TCWG', phase: 'Pelaporan', view: 'sa260' }, { code: 'SA 265', title: 'Defisiensi Pengendalian Internal', phase: 'Pelaporan', view: 'sa265' }, { code: 'SA 701', title: 'Hal Audit Utama (KAM)', phase: 'Pelaporan', view: 'sa701' }],
+  // Jasa Non-Audit (SPAP) — jembatan ke grup tersembunyi 'SA · Area Khusus & Perikatan' (2026-07-01)
+  nonaudit:    [{ code: 'SA 800', title: 'Pertimbangan Khusus — Kerangka Bertujuan Khusus', phase: 'Area Khusus', view: 'sa800' }, { code: 'SA 805', title: 'Audit LK Tunggal & Unsur, Akun, atau Pos Tertentu', phase: 'Area Khusus', view: 'sa805' }, { code: 'SA 810', title: 'Perikatan Pelaporan atas Ringkasan Laporan Keuangan', phase: 'Area Khusus', view: 'sa810' }],
+  review2400:  [{ code: 'SPR 2400', title: 'Reviu atas Laporan Keuangan', phase: 'Perikatan Lain', view: 'spr2400' }, { code: 'SPR 2410', title: 'Reviu Informasi Keuangan Interim', phase: 'Perikatan Lain', view: 'spr2410' }],
+  relatedsvc:  [{ code: 'SPJ 4400/4410', title: 'Perikatan Prosedur Disepakati & Kompilasi', phase: 'Perikatan Lain' }],
+  assurance:   [{ code: 'SJAH 3000', title: 'Perikatan Asurans Selain Audit/Reviu Informasi Keuangan Historis', phase: 'Perikatan Lain', view: 'sjah3000' }, { code: 'SJAH 3400', title: 'Pemeriksaan Informasi Keuangan Prospektif', phase: 'Perikatan Lain', view: 'sjah3400' }],
+  duediligence:[{ code: 'SJAH 3000', title: 'Perikatan Asurans Selain Audit/Reviu Informasi Keuangan Historis', phase: 'Perikatan Lain', view: 'sjah3000' }, { code: 'SJAH 3420', title: 'Asurans Penyusunan Informasi Keuangan Proforma', phase: 'Perikatan Lain', view: 'sjah3420' }],
 };
 
 /* I dilucuti dari window (legacy-track slice: konsumen pakai named import dari icons.jsx).
    Sisa nama masih dual-published (namespace lain, di luar scope slice ini). */
-Object.assign(window, { Icon, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, wsForModule, HIDDEN_GROUPS, RELATED_SA });
+Object.assign(window, { Icon, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, wsForModule, groupsVisibleFor, HIDDEN_GROUPS, RELATED_SA });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { GROUP_WS, HIDDEN_GROUPS, I, Icon, MODULES, MODULE_INDEX, RELATED_SA, WORKSPACES, wsForModule };
+export { GROUP_WS, HIDDEN_GROUPS, I, Icon, MODULES, MODULE_INDEX, RELATED_SA, WORKSPACES, wsForModule, groupsVisibleFor };

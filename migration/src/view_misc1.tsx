@@ -1,13 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { deriveWpStatus, WP_META, openCanonicalWp } from './view_wp';
 import { APPROACHES, defaultApproach, reconcileRiskResponse, GAP_LABEL } from './canon_audit_plan';
-import type { PlanRow, PlanResult } from './canon_audit_plan';
+import type { ApproachId, PlanRow, PlanResult, RiskInput } from './canon_audit_plan';
 
 /* ============================================================
    Asseris — Strategy Memo (SA 300), Working Papers index, Governance
@@ -16,6 +17,27 @@ const { useState: useStateMS, useMemo: useMemoMS } = React;
 
 /* Pendekatan audit & default per-risiko = SSOT kanon (canon_audit_plan):
    APPROACHES + defaultApproach (dulu SM_APPROACHES/smDefaultApproach inline). */
+
+/* Rekonsiliasi risiko→respons (SSOT canon_audit_plan.reconcileRiskResponse) dipakai
+   BERSAMA oleh tab "Pendekatan per Area" & "Dokumen Memo" — narasi memo tak boleh
+   menyimpang dari plan aktual. Membaca override dari persist key yang sama
+   ('strategyApproach.v1'), status KK dari deriveWpStatus (SSOT). */
+function smReconcile(risks: RiskInput[], over: Record<string, ApproachId>, audit: unknown, firm: unknown) {
+  const planFor = (r: RiskInput) => over[r.id] || defaultApproach(r);
+  const relyControls = risks.filter((r: RiskInput) => planFor(r) === 'ctrl').length;
+  /* ref di luar lead schedule (mis. JE-1/RP-1) → '' (kanon perlakukan n/a, tak di-flag). */
+  const wpStatusByRef: Record<string, string> = {};
+  risks.forEach((r: RiskInput) => {
+    const ref = (r.wp || '').trim();
+    if (!ref || wpStatusByRef[ref] != null) return;
+    const section = ref.split('-')[0];
+    wpStatusByRef[ref] = (WP_META as Record<string, unknown>)[section]
+      ? deriveWpStatus(section, audit, firm).status
+      : '';
+  });
+  const rr: PlanResult = reconcileRiskResponse({ risks, overrides: over, wpStatusByRef });
+  return { planFor, relyControls, rr, wpStatusByRef };
+}
 
 /* ---------------- Strategy Memo (SA 300 workspace) ---------------- */
 function StrategyMemo() {
@@ -33,11 +55,21 @@ function StrategyMemo() {
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [tab, setTab] = window.useAmsPersist('strategyTab.v1', 'strategi');
 
+  /* Persetujuan strategi (SA 300) — reviewer sign-off Partner/Manajer (SIGNOFF_REVIEWER).
+     Engagement-scoped persist; UI di-gate can() — Senior/Junior hanya melihat status. */
+  const auth = useAuth();
+  const canApprove = typeof auth?.can === 'function' ? auth.can(CAP.SIGNOFF_REVIEWER) : false;
+  const [approved, setApproved] = window.useAmsPersist('strategyApproved.v1', null);
+  const approve = () => setApproved({ by: auth.user?.name || auth.user?.initials || 'Auditor', at: new Date().toISOString() });
+
   const right = (
     <div className="row gap8 ac">
       <Badge kind="blue">SA 300</Badge>
+      {approved && <Badge kind="green"><I.check size={12} /> Disetujui · {approved.by}</Badge>}
       <Btn sm onClick={() => window.amsPrintDoc()}><I.download size={13} /> Export PDF</Btn>
-      <Btn sm variant="primary"><I.check size={14} /> Setujui Strategi</Btn>
+      {approved
+        ? (canApprove && <Btn sm onClick={() => setApproved(null)}>Batalkan Persetujuan</Btn>)
+        : <Btn sm variant="primary" disabled={!canApprove} title={canApprove ? 'Setujui strategi audit (SA 300)' : 'Perlu peran Partner/Manajer (reviewer sign-off)'} onClick={canApprove ? approve : undefined}><I.check size={14} /> Setujui Strategi</Btn>}
     </div>
   );
 
@@ -60,7 +92,7 @@ function StrategyMemo() {
         {tab === 'strategi' && <SmOverview {...{ fmt, activeClient, activeEngagement, risks, sigRisks, fraudRisks, om, pm, ctt, nav, setTab }} />}
         {tab === 'pendekatan' && <SmApproach {...{ fmt, risks, pm, activeEngagement, nav, audit, firm }} />}
         {tab === 'jadwal' && <SmSchedule {...{ fmt, activeEngagement }} />}
-        {tab === 'memo' && <SmMemo {...{ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }} />}
+        {tab === 'memo' && <SmMemo {...{ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, ctt, audit, firm }} />}
       </div></div>
     </>
   );
@@ -175,7 +207,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
             <div style={{ padding: '12px 14px', background: 'var(--blue-050)', borderRadius: 'var(--radius)' }}>
               <div className="row ac gap8" style={{ marginBottom: 7 }}><span style={{ color: 'var(--blue)' }}><I.sparkle size={15} /></span><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>AI Co-pilot</span></div>
               <div style={{ fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>Susun draf strategi audit dari penilaian risiko, materialitas, dan profil klien aktif.</div>
-              <Btn sm variant="primary" style={{ width: '100%', marginTop: 9 }}><I.sparkle size={13} /> Perbarui dengan AI</Btn>
+              <Btn sm variant="primary" style={{ width: '100%', marginTop: 9 }} onClick={() => window.__amsOpenCopilot?.()}><I.sparkle size={13} /> Perbarui dengan AI</Btn>
             </div>
           </Panel>
         </div>
@@ -189,22 +221,9 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'strategyApproach.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [over, setOver] = window.useAmsPersist('strategyApproach.v1', {});
-  const planFor = (r: any) => over[r.id] || defaultApproach(r);
+  /* SSOT bersama dgn tab Dokumen Memo (smReconcile) — plan, rely-controls & SA 330 rollup. */
+  const { planFor, relyControls, rr } = smReconcile(risks, over, audit, firm);
   const counts = APPROACHES.map(a => ({ ...a, n: risks.filter((r: any) => planFor(r) === a.id).length }));
-  const relyControls = risks.filter((r: any) => planFor(r) === 'ctrl').length;
-
-  /* SA 330 — status KK lead-schedule per ref risiko (deriveWpStatus = SSOT).
-     ref di luar lead schedule (mis. JE-1/RP-1) → '' (kanon perlakukan n/a, tak di-flag). */
-  const wpStatusByRef: Record<string, string> = {};
-  risks.forEach((r: { wp?: string }) => {
-    const ref = (r.wp || '').trim();
-    if (!ref || wpStatusByRef[ref] != null) return;
-    const section = ref.split('-')[0];
-    wpStatusByRef[ref] = (WP_META as Record<string, unknown>)[section]
-      ? deriveWpStatus(section, audit, firm).status
-      : '';
-  });
-  const rr: PlanResult = reconcileRiskResponse({ risks, overrides: over, wpStatusByRef });
   const planById = new Map<string, PlanRow>(rr.rows.map(row => [row.id, row]));
   const gapRows = rr.rows.filter(row => row.gaps.length > 0);
 
@@ -444,9 +463,14 @@ function SmSchedule({ fmt, activeEngagement }: any) {
 }
 
 /* ---- Tab 4 · Memo document (editable, exportable to PDF) ---- */
-function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }: any) {
+function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, ctt, audit, firm }: any) {
   const [editing, setEditing] = useStateMS(false);
   const [edits, setEdits] = useStateMS({});
+
+  /* §5 auto-populate dari rekonsiliasi risiko→respons (SSOT bersama tab Pendekatan):
+     rely-controls, cakupan respons & gap SA 330 — bukan prosa statis. */
+  const [over] = window.useAmsPersist('strategyApproach.v1', {});
+  const { relyControls, rr } = smReconcile(risks || [], over, audit, firm);
 
   const Sec = ({ n, title, id, children }: any) => {
     const saved = edits[id];
@@ -500,7 +524,11 @@ function SmMemo({ fmt, activeClient, activeEngagement, sigRisks, om, pm, ctt }: 
             </ul>
           </Sec>
           <Sec n="5" id="s5" title="Pendekatan & Strategi Audit">
-            Pendekatan audit menggabungkan pengujian pengendalian atas siklus signifikan dengan prosedur substantif. Untuk area risiko signifikan, dilakukan prosedur substantif yang diperluas termasuk pengujian rinci, konfirmasi pihak ketiga, dan pengujian estimasi. Sampling menggunakan metode Monetary Unit Sampling (SA 530).
+            Pendekatan ditetapkan per area risiko (lihat tab <i>Pendekatan per Area</i>). Dari {rr.rollup.total} RoMM teridentifikasi, {relyControls === 0
+              ? 'seluruh area menggunakan prosedur substantif tanpa mengandalkan pengendalian'
+              : <>{relyControls} area mengandalkan pengujian efektivitas pengendalian (SA 330) dan sisanya prosedur substantif</>}; {sigRisks.length} risiko signifikan memperoleh prosedur substantif yang diperluas termasuk pengujian rinci, konfirmasi pihak ketiga (SA 505), dan pengujian estimasi. Cakupan respons memadai atas RoMM mencapai <b>{rr.rollup.coveragePct}%</b>{rr.rollup.gapRisks > 0
+              ? <> — <b style={{ color: '#b4232a' }}>{rr.rollup.gapRisks} risiko masih ber-gap</b> dan memerlukan tindak lanjut respons sebelum eksekusi</>
+              : ' — seluruh RoMM telah tertaut prosedur & kertas kerja'}. Sampling menggunakan metode Monetary Unit Sampling (SA 530).
           </Sec>
           <Sec n="6" id="s6" title="Tim Perikatan & Jadwal">
             Partner: {activeEngagement.partner} · Manajer: {activeEngagement.manager} · Anggaran {fmt(activeEngagement.budgetHrs)} jam. Tenggat fieldwork & pelaporan: {new Date(activeEngagement.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}.

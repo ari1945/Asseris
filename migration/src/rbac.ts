@@ -10,8 +10,15 @@
    (PERM_MATRIX) — W7 makes those cells real instead of cosmetic.
    ============================================================ */
 
-/** The four RBAC roles (order = seniority, matches view_settings dropdown). */
-export const ROLES = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor'];
+/** The RBAC roles (order = seniority for the 4 audit roles, matches view_settings dropdown;
+ * the 2 firm-ops roles are appended — they don't sit on the audit seniority ladder).
+ * 'Admin & HR Firma' / 'Finance Firma' ditambahkan 2026-07-01 (PRD Restrukturisasi Navigasi &
+ * Beranda Berbasis Peran, §0 OQ1): peran non-auditor pertama di sistem ini — TIDAK punya
+ * `activeEngagement`/keanggotaan perikatan, TIDAK muncul di `AMS.STAFF`/`AMS.TEAM` (roster itu
+ * berbentuk audit-staffing — grade/util/engagements/cert audit — dan diasumsikan closed-set 4
+ * grade di banyak view HCM/Capacity/Talent; menambah baris STAFF baru akan memecah asumsi itu
+ * tanpa manfaat, karena 2 peran ini bukan staf yang di-staffing ke perikatan). */
+export const ROLES = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor', 'Admin & HR Firma', 'Finance Firma'];
 
 /** Capability keys — the actions that authorization gates on. */
 export const CAP = {
@@ -30,9 +37,10 @@ export const CAP = {
   INTEGRATION_MANAGE: 'integration.manage', // W9 — kelola koneksi & picu sync (tarik data eksternal → posting ke SSOT). Sensitif: hanya oversight/firm-ops.
   EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (ISQM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
   PHASE_OVERRIDE: 'phase.override', // override gerbang transisi fase MESKI ada blocker (mulai Eksekusi tanpa akseptasi/surat SA 210/220; arsip dgn WP belum lengkap/opini belum final). Tindakan otoritatif ⇒ Partner-only.
+  HR_MANAGE: 'hr.manage', // 2026-07-01 — tulis dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP manual, deklarasi independensi/etik) ATAS NAMA siapa pun, bukan cuma milik-sendiri. Peran 'Admin & HR Firma' + Partner (oversight). Terpisah dari ENGAGEMENT_MANAGE (itu roster klien/perikatan, bukan data personal staf).
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE } = CAP;
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
@@ -58,10 +66,15 @@ const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGA
    (mulai Eksekusi tanpa akseptasi/surat; arsip dgn WP/opini belum lengkap) = keputusan otoritatif
    tata kelola; Manager/Senior/Junior boleh maju fase saat prasyarat TERPENUHI, tapi tak boleh override. */
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE],
+  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE],
   'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE],
   'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
   'Junior Auditor': [WP_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
+  // 2026-07-01 — peran firm-ops non-auditor (PRD Restrukturisasi Navigasi & Beranda Berbasis
+  // Peran). Tak dapat WP_EDIT/AJE_EDIT/ENGAGEMENT_VIEW_ALL dkk — mereka tak pernah menyentuh
+  // kerja/data perikatan audit, jadi tak butuh (dan tak boleh dapat) kapabilitas audit sama sekali.
+  'Admin & HR Firma': [HR_MANAGE, LLM_USE, EXPORT],
+  'Finance Firma': [FIRMFIN_EDIT, LLM_USE, EXPORT],
 };
 
 /** True if `role` is granted `cap`. Unknown role/cap → false (deny by default). */
@@ -82,7 +95,21 @@ export function capForWrite(scope: any, key: any) {
     // Keputusan otoritatif intra-doc (persetujuan akseptasi / penerbitan surat SA 210)
     // tetap Partner-only via gate klien can(FIRM_ADMIN) + audit-trail ber-jejak (PR#20) —
     // pola "intra-doc gating = tugas UI" yang sama dengan opinion sign-off di wpState.
-    return key === 'clients' || key === 'engagements' || key === 'prospects' ? ENGAGEMENT_MANAGE : FIRM_ADMIN;
+    // trainingAttendance.v1 = konfirmasi kehadiran pelatihan (HR-ops data-entry, kreditkan SKP) →
+    // setara roster/intake: ENGAGEMENT_MANAGE (Partner/Manajer). BELUM diperluas ke HR_MANAGE/
+    // 'Admin & HR Firma' (2026-07-01) — sengaja: konsep training-confirm sudah teruji lewat
+    // ENGAGEMENT_MANAGE, memperluasnya butuh keputusan terpisah, bukan efek samping PRD ini.
+    if (key === 'clients' || key === 'engagements' || key === 'prospects' || key === 'trainingAttendance.v1') return ENGAGEMENT_MANAGE;
+    // 2026-07-01 — dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP
+    // manual, deklarasi independensi/etik, hadiah&gratifikasi). Sebelumnya diam-diam jatuh ke
+    // FIRM_ADMIN (Partner-only) karena tak ada cabang eksplisit — kini HR_MANAGE eksplisit
+    // (Partner tetap punya HR_MANAGE, jadi tak kehilangan akses; 'Admin & HR Firma' kini bisa).
+    if (['payrollRun', 'payrollData', 'leaveReqs', 'perfPeople', 'cpeExtra', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck', 'pc.ethics', 'pc.gifts'].includes(key)) return HR_MANAGE;
+    // 2026-07-01 — dokumen Firm Finance (ERP) yang punya jalur tulis. FIRMFIN_EDIT sudah lama
+    // didefinisikan & diberikan ke Partner tapi TAK PERNAH dikonsumsi capForWrite (vestigial) —
+    // kini benar-benar men-gate, dan 'Finance Firma' jadi peran pertama yang memanfaatkannya.
+    if (['firmgl', 'firmap', 'firmtax', 'bankrecon'].includes(key)) return FIRMFIN_EDIT;
+    return FIRM_ADMIN;
   }
   // scope === 'engagement'
   switch (key) {

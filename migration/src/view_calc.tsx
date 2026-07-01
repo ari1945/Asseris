@@ -3,6 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { useAudit, useFirm, useNav } from './contexts';
+import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Seg, Stat } from './ui';
@@ -17,7 +18,8 @@ const REL_FACTOR = { 90: 2.31, 95: 3.0, 99: 4.61 };
 
 function SamplingEngine() {
   const { fmt } = AMS;
-  const { activeEngagement } = useFirm();
+  const { activeEngagement, activeClient } = useFirm();
+  const nav = useNav();
   const pm = Math.round(activeEngagement.materiality * 0.75);
 
   const [method, setMethod] = useStateS('mus');
@@ -50,6 +52,37 @@ function SamplingEngine() {
   const pass = uml < tm;
 
   const rp = (x: any) => 'Rp ' + fmt(x);
+
+  /* ---- Draft Kertas Kerja (SA 530) dari hasil sampling ----
+     Menutup isolasi engine→WP: hasil seleksi & evaluasi diekspor sebagai draft
+     kertas kerja (reuse amsExportPdf, engagement-scoped). Final WP/sign-off tetap
+     di modul sa530 (WpPanel SSOT) — engine ini hanya menyiapkan draft, bukan
+     menduplikasi penyimpanan WP. */
+  const exportDraftWp = () => {
+    const me = (AMS.USER && (AMS.USER as { name?: string }).name) || 'Auditor';
+    const client = (activeClient && activeClient.name) || 'Klien';
+    const engId = (activeEngagement && activeEngagement.id) || 'default';
+    const today = (() => { try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return ''; } })();
+    type SmpItem = { doc: string; party: string; book: number; sig: boolean; audited: number; tested: boolean };
+    const tested = (evalItems as SmpItem[]).filter((it) => it.tested);
+    const findRows = tested.map((it) => { const ms = it.book - (+it.audited || 0); return [it.doc, it.party, fmt(it.book), fmt(+it.audited || 0), ms ? fmt(ms) : '—']; });
+    amsExportPdf({
+      kind: 'memo-sampling', scope: 'engagement', scopeId: engId,
+      firm: (AMS.FIRM as { name?: string }).name || 'KAP', title: 'Draft Kertas Kerja Sampling Audit (SA 530)',
+      refNo: 'S-530 · ' + engId,
+      meta: [client + ' · ' + engId, 'SA 530 — Sampling Audit · Metode ' + (method === 'mus' ? 'MUS (PPS)' : method === 'random' ? 'Acak' : 'Atribut'), 'Draft dari Sampling Engine · ' + today + ' · ' + me],
+      blocks: [
+        { type: 'heading', text: 'Penentuan Ukuran Sampel' },
+        { type: 'kv', rows: [['Nilai populasi disampel', rp(bv)], ['Tingkat keyakinan', conf + '% (R = ' + rf + ')'], ['Salah saji ditoleransi (TM)', rp(tm)], ['Ekspektasi salah saji (EM)', rp(em)], ['Ukuran sampel', n + ' item'], ['Sampling interval (SI)', rp(si)]] },
+        { type: 'heading', text: 'Pengujian & Evaluasi Salah Saji (¶13–14)' },
+        { type: 'table', head: ['Dokumen', 'Pihak', 'Per Buku', 'Nilai Audit', 'Salah Saji'], body: findRows.length ? findRows : [['—', '—', '—', '—', '—']] },
+        { type: 'kv', rows: [['Salah saji ditemukan (sampel)', rp(found)], ['Projected Misstatement', rp(projected)], ['Basic Precision', rp(basicPrecision)], ['Upper Misstatement Limit (UML)', rp(uml)]] },
+        { type: 'para', text: pass
+          ? 'UML (' + rp(uml) + ') di bawah salah saji yang ditoleransi (TM ' + rp(tm) + '). Ditambah pertimbangan risiko sampling, populasi dapat diterima; salah saji aktual dicatat ke SAD. Finalisasi & sign-off di kertas kerja SA 530.'
+          : 'UML (' + rp(uml) + ') melampaui salah saji yang ditoleransi (TM ' + rp(tm) + '). Pertimbangkan perluasan sampel atau prosedur alternatif, dan usulkan koreksi (AJE). Finalisasi & sign-off di kertas kerja SA 530.' },
+      ],
+    }).catch(() => {});
+  };
 
   /* generated population (deterministic) representing the AR sub-ledger */
   const population = useMemoS(() => {
@@ -93,7 +126,8 @@ function SamplingEngine() {
       <SubBar moduleId="sampling" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 530</Badge>
-          <Btn sm><I.download size={13} /> Export Sampel</Btn>
+          <Btn sm onClick={exportDraftWp}><I.download size={13} /> Draft Kertas Kerja</Btn>
+          <Btn sm onClick={() => nav('sa530', { from: 'sampling' })}><I.doc size={13} /> Kertas Kerja SA 530</Btn>
           <Btn sm variant="primary" onClick={runSelection}><I.flask size={14} /> Jalankan Seleksi</Btn>
         </div>
       } />
@@ -227,6 +261,11 @@ function SamplingEngine() {
                   </span>
                 </div>
               </div>
+              <div className="row gap8" style={{ marginTop: 12 }}>
+                <Btn sm style={{ flex: 1 }} onClick={exportDraftWp}><I.download size={13} /> Draft Kertas Kerja</Btn>
+                <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => nav('sa530', { from: 'sampling' })}><I.doc size={13} /> Kirim ke Kertas Kerja SA 530 <I.arrowRight size={12} /></Btn>
+              </div>
+              <div className="tiny muted" style={{ marginTop: 7, lineHeight: 1.5 }}>Hasil tak lagi diinput manual — ekspor draft atau lanjut ke kertas kerja SA 530 untuk bukti, kesimpulan & sign-off (SSOT).</div>
             </Panel>
           </div>
         </div>

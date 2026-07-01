@@ -555,6 +555,7 @@ const BACKBONE_LINEAGE = {
     down: [
       { id: 'confirm', ic: 'mail', lbl: 'Confirmation Hub', rel: 'Pemilihan item & ukuran sampel konfirmasi' },
       { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Hasil uji sampel → proyeksi ke populasi' },
+      { id: 'sa530', ic: 'doc', lbl: 'Kertas Kerja SA 530', rel: 'Draft hasil sampling → bukti, kesimpulan & sign-off' },
       { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Dokumentasi seleksi & evaluasi sampel' },
     ] },
   diagnostic: { std: 'Diagnostik Audit (Benford · book-tax · sintesis)',

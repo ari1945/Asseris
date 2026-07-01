@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth, useFirm, useNav, useNavFrom } from './contexts';
 import { EvidenceControl } from './evidence';
 import { WpSubBarControl } from './wp_signoff';
-import { GROUP_WS, I, MODULES, MODULE_INDEX, WORKSPACES } from './icons';
+import { GROUP_WS, I, MODULES, MODULE_INDEX, WORKSPACES, groupsVisibleFor } from './icons';
 import { Avatar } from './ui';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
@@ -129,6 +129,13 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   const [closedGroups, setClosedGroups] = useStateSH({});
   const toggleGroup = (g: any) => setClosedGroups((s: any) => ({ ...s, [g]: !s[g] }));
   const firmCtx = useFirm();
+  const auth = useAuth();
+  const role = (auth && auth.role) || '';
+  /* P1 (Fase 6) — escape hatch "Tampilkan semua modul". Kurasi sidebar per peran hanya
+     mengubah TAMPILAN default; toggle ini (persist per-browser) membuka semua grup lagi.
+     Capability tak berubah — ini murni preferensi visual. */
+  const [showAll, setShowAll] = useStateSH(() => { try { return localStorage.getItem('ams.sideShowAll') === '1'; } catch (e) { return false; } });
+  React.useEffect(() => { try { localStorage.setItem('ams.sideShowAll', showAll ? '1' : '0'); } catch (e) {} }, [showAll]);
   const [ws, setWs] = useStateSH(() => {
     try { const s = localStorage.getItem('ams.ws'); if (s && WORKSPACES.some(w => w.id === s)) return s; } catch (e) {}
     return (window.wsForModule && window.wsForModule(active)) || 'engagement';
@@ -149,7 +156,15 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   }, []);
 
   const HIDDEN = window.HIDDEN_GROUPS || [];
-  const groups = MODULES.filter(g => !HIDDEN.includes(g.group) && ((GROUP_WS as any)[g.group] || 'firm') === ws);
+  /* Kurasi per-peran (Fase 6): null = tanpa kurasi (oversight/unknown → semua grup).
+     Grup modul yang SEDANG dibuka selalu ikut tampil (orientasi "di mana saya"), meski
+     terkurasi keluar — mencegah bingung saat tiba lewat ⌘K/chip. */
+  const curatedGroups = groupsVisibleFor(role, ws);
+  const activeGroup = (MODULE_INDEX as Record<string, { group?: string }>)[active]?.group;
+  const roleFilter = (!showAll && curatedGroups) ? curatedGroups : null;
+  const groups = MODULES.filter(g => !HIDDEN.includes(g.group)
+    && ((GROUP_WS as Record<string, string>)[g.group] || 'firm') === ws
+    && (!roleFilter || roleFilter.includes(g.group) || g.group === activeGroup));
 
   /* ---- adaptive computation (engagement workspace only, expanded only) ---- */
   const navPrefs = readSideNavPrefs();
@@ -166,8 +181,19 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   const focusObj = MODULES.find(g => g.group === (SIDE_PRIMARY_GROUP as any)[curKey]);
   const focusItems = (adaptiveOn && navPrefs.focusGroup && focusObj) ? focusObj.items : [];
 
+  const homeOn = active === 'home';
   return (
     <nav className={'sidebar' + (collapsed ? ' collapsed' : '')}>
+      {/* Beranda — dipin di atas toggle workspace (PRD Fase 5): titik masuk berbasis peran,
+          1 klik, netral-workspace (tak memaksa pindah Perikatan/Firma). */}
+      <div style={{ padding: collapsed ? '8px 6px 0' : '8px 8px 0' }}>
+        <button type="button" onClick={() => onNavigate('home')} title="Beranda — ringkasan kerja Anda"
+          style={{ width: '100%', display: 'flex', flexDirection: collapsed ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: collapsed ? 0 : 8, padding: collapsed ? '8px 0' : '8px 10px', borderRadius: 7, cursor: 'pointer', border: 'none', transition: '.13s',
+            background: homeOn ? 'var(--blue)' : 'rgba(255,255,255,.06)', color: homeOn ? '#fff' : 'var(--on-navy, #9fb3c0)', fontWeight: homeOn ? 700 : 600 }}>
+          <I.dashboard size={16} />
+          {!collapsed && <span style={{ fontSize: 12 }}>Beranda</span>}
+        </button>
+      </div>
       {/* workspace switcher */}
       <div className="ws-switch" style={{ padding: collapsed ? '8px 6px' : '8px', borderBottom: '1px solid var(--line)', display: 'flex', flexDirection: collapsed ? 'column' : 'row', gap: 4 }}>
         {WORKSPACES.map(w => {
@@ -184,6 +210,13 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         })}
       </div>
       <div className="side-scroll">
+        {!collapsed && curatedGroups && (
+          <button type="button" onClick={() => setShowAll(!showAll)}
+            title={showAll ? 'Sembunyikan lagi modul yang kurang relevan dengan peran Anda' : 'Tampilkan semua modul firma — kapabilitas tidak berubah, hanya tampilan'}
+            style={{ margin: '8px 8px 4px', width: 'calc(100% - 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', border: '1px dashed var(--line-strong)', background: showAll ? 'var(--blue-050)' : 'transparent', color: showAll ? 'var(--blue)' : 'var(--ink-3)', fontSize: 11, fontWeight: 600 }}>
+            <I.layers size={12} /> {showAll ? 'Tampilkan yang relevan' : 'Tampilkan semua modul'}
+          </button>
+        )}
         {adaptiveOn && resumeItems.length > 0 && (
           <div className="side-resume">
             <div className="side-pin-h"><I.clock size={11} /><span>Lanjutkan</span><span className="gr"></span><span className="mu">terakhir dibuka</span></div>

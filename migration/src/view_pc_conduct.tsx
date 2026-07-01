@@ -7,6 +7,7 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
+import { useEthicsOverrides, ethicsComplianceOf } from './ethics_gate';
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -21,6 +22,12 @@ function EthicsDeclaration() {
   const [decl, setDecl] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
   const [gifts, setGifts] = useAmsPersist('pc.gifts', () => A.GIFTS_REGISTER);
   const staff = A.STAFF, ITEMS = A.ETHICS_ITEMS;
+  /* #3 — gerbang: personel non-patuh (deklarasi belum sah / AML tertunda) diblokir dari sign-off WP
+     & penerbitan opini. Partner (FIRM_ADMIN) dapat memberi pengecualian sementara yang ter-log. */
+  const eov = useEthicsOverrides();
+  const gateRows = staff
+    .map((s: any) => ({ s, c: ethicsComplianceOf(decl, A.AML_SCREENING, eov.overrides, s.id, eov.period) }))
+    .filter((r: any) => !r.c.signed || !r.c.amlOk);
 
   const signed = staff.filter((s: any) => (decl[s.id] || {}).signed).length;
   const exceptions = staff.reduce((n: any, s: any) => n + ((decl[s.id] || {}).exceptions || 0), 0);
@@ -69,6 +76,46 @@ function EthicsDeclaration() {
                 </tbody>
               </table>
               <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.5 }}>Setiap personel wajib mendeklarasikan kepatuhan atas {ITEMS.length} butir Kode Etik IAPI setiap tahun. <span style={{ color: 'var(--amber)' }}><I.alert size={11} /></span> menandakan butir dengan pengecualian yang telah dimitigasi. Sumber independensi terhubung ke modul <span onClick={() => nav('independence')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>Independence &amp; Rotasi</span>.</div>
+
+              <div style={{ padding: '4px 14px 14px' }}>
+                <div className="panel" style={{ padding: 0, boxShadow: 'none', borderColor: 'var(--line)' }}>
+                  <div className="row ac gap8" style={{ padding: '9px 12px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+                    <I.lock size={13} style={{ color: gateRows.length ? 'var(--red)' : 'var(--green)' }} />
+                    <span className="tiny" style={{ fontWeight: 700 }}>Gerbang Sign-off — Kode Etik &amp; AML/PMPJ</span>
+                    <div style={{ flex: 1 }} />
+                    <Badge kind={gateRows.length ? 'red' : 'green'}>{gateRows.length ? gateRows.length + ' personel diblokir' : 'Semua patuh'}</Badge>
+                  </div>
+                  <div className="tiny muted" style={{ padding: '8px 12px', lineHeight: 1.5 }}>
+                    Personel dengan deklarasi belum sah / skrining AML tertunda <b>tidak dapat</b> membubuhkan tanda tangan kertas kerja atau menerbitkan opini ({eov.period}). {eov.canGrant ? 'Sebagai Partner, Anda dapat memberi pengecualian sementara yang ter-log.' : 'Pengecualian hanya dapat diberikan Partner (FIRM_ADMIN).'}
+                  </div>
+                  {gateRows.length === 0
+                    ? <div className="tiny muted" style={{ padding: '4px 12px 12px' }}>Tidak ada personel yang terblokir.</div>
+                    : (
+                      <table className="dtbl">
+                        <thead><tr><th>Personel</th><th>Alasan Blokir</th><th>Status Gerbang</th><th style={{ width: 150 }}>Pengecualian (Partner)</th></tr></thead>
+                        <tbody>
+                          {gateRows.map(({ s, c }: any) => {
+                            const ov = eov.activeFor(s.id);
+                            return (
+                              <tr key={s.id}>
+                                <td><div className="row ac gap8"><Avatar name={s.name} size={22} /><span className="tiny truncate" style={{ fontWeight: 600 }}>{s.name}</span></div></td>
+                                <td className="tiny" style={{ color: 'var(--red)' }}>{c.reason}</td>
+                                <td>{ov ? <Badge kind="amber">Dikecualikan</Badge> : <Badge kind="red">Diblokir</Badge>}</td>
+                                <td>
+                                  {ov
+                                    ? <div className="row ac gap6"><span className="tiny muted" title={'oleh ' + ov.by + ' · ' + ov.at}>{ov.by?.split(' ')[0]} · {ov.at}</span>{eov.canGrant && <button className="btn sm" style={{ height: 20, color: 'var(--red)' }} onClick={() => eov.revoke(s.id)} title="Cabut pengecualian"><I.x size={11} /></button>}</div>
+                                    : (eov.canGrant
+                                      ? <button className="btn sm" style={{ height: 22, color: 'var(--amber)' }} onClick={() => eov.grant(s.id, 'Pengecualian sementara — disetujui Partner')}><I.shield size={11} /> Beri Pengecualian</button>
+                                      : <span className="tiny muted">—</span>)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                </div>
+              </div>
             </div>
           )}
 

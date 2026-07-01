@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { FIRMFIN } from './data_firmfin';
 import { useAudit, useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -12,21 +13,13 @@ import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui';
    ============================================================ */
 const { useState: useTB, useMemo: useTBMemo } = React;
 
-/* charge-out (standard) rates & fully-loaded cost rates, IDR / hour */
-const TB_BILL = { 'Engagement Partner': 2500000, 'Audit Manager': 1200000, 'Senior Auditor': 700000, 'Junior Auditor': 400000 };
-const TB_COST = { 'Engagement Partner': 1100000, 'Audit Manager': 620000, 'Senior Auditor': 360000, 'Junior Auditor': 210000 };
+/* charge-out (standard) rates, cost rates & roster — SSOT bersama di FIRMFIN
+   (dipakai juga oleh WIP Valuation/WIP & Realisasi via overlay jam-aktual). */
+const TB_BILL = FIRMFIN.WIP_BILL;
+const TB_COST = FIRMFIN.WIP_COST;
+const TB_ROSTER = FIRMFIN.WIP_ROSTER_ENG['ENG-2025-014'];
 const TB_FEE = 1_520_000_000;            // fee disepakati untuk ENG-2025-014
 const TB_ROLE_COLOR = { 'Engagement Partner': '#5b3fa6', 'Audit Manager': '#005085', 'Senior Auditor': '#0a6b73', 'Junior Auditor': '#9a6a00' };
-
-/* opening logged hours per member (BEFORE the live timesheet below) */
-const TB_ROSTER = [
-  { name: 'Hartono Wijaya, CPA', role: 'Engagement Partner', budget: 120, base: 78 },
-  { name: 'Anindya Pramesti',    role: 'Audit Manager',      budget: 360, base: 256.5 },
-  { name: 'Dimas Raharjo',       role: 'Senior Auditor',     budget: 420, base: 304 },
-  { name: 'Sinta Wulandari',     role: 'Senior Auditor',     budget: 300, base: 150.5 },
-  { name: 'Fajar Nugroho',       role: 'Junior Auditor',     budget: 360, base: 189 },
-  { name: 'Rina Kusuma',         role: 'Junior Auditor',     budget: 280, base: 120 },
-];
 /* phases — opening logged hours BEFORE live timesheet */
 const TB_PHASES = [
   { id: 'Perencanaan', label: 'Perencanaan',          budget: 320,  base: 318, pct: 100, period: '02–20 Feb' },
@@ -42,31 +35,26 @@ const TB_WEEKLY = [ // 8 minggu terakhir, jam tercatat / minggu
 const tbJt = (n: any) => 'Rp ' + AMS.fmt(Math.round(n / 1e6)) + ' jt';
 const tbM  = (n: any) => 'Rp ' + AMS.fmt(n / 1e9, 2) + ' M';
 
-/* ----- shared derived model (reactive to live timesheet) ----- */
+/* ----- shared derived model (reactive to live timesheet) -----
+   Roster + jam aktual + nilai standar/biaya ditarik dari SSOT `FIRMFIN.engagementWip`
+   (sama persis dengan yang dipakai overlay WIP). Fase tetap lokal (presentasi T&B). */
 function useTBModel(timeEntries: any, e: any) {
   return useTBMemo(() => {
-    const liveByMember = {}, liveByPhase = {};
-    timeEntries.forEach((t: any) => {
-      (liveByMember as any)[t.member] = ((liveByMember as any)[t.member] || 0) + t.hours;
-      (liveByPhase as any)[t.phase] = ((liveByPhase as any)[t.phase] || 0) + t.hours;
-    });
-    const roster = TB_ROSTER.map(r => {
-      const actual = r.base + ((liveByMember as any)[r.name] || 0);
-      const bill = (TB_BILL as any)[r.role], cost = (TB_COST as any)[r.role];
-      return { ...r, actual, bill, cost, billVal: actual * bill, costVal: actual * cost,
-               variance: r.budget - actual, util: Math.round(actual / r.budget * 100) };
-    });
+    const ew = (FIRMFIN.engagementWip(timeEntries, e.id) || FIRMFIN.engagementWip(timeEntries, 'ENG-2025-014'))!;
+    const roster = ew.roster;
+    const liveByPhase: any = {};
+    timeEntries.forEach((t: any) => { liveByPhase[t.phase] = (liveByPhase[t.phase] || 0) + t.hours; });
     const phases = TB_PHASES.map(p => {
-      const actual = p.base + ((liveByPhase as any)[p.id] || 0);
+      const actual = p.base + (liveByPhase[p.id] || 0);
       const eac = p.pct > 0 ? actual / (p.pct / 100) : p.budget;
       return { ...p, actual, eac, variance: p.budget - actual };
     });
-    const actualTotal = roster.reduce((s, r) => s + r.actual, 0);
-    const budgetTotal = roster.reduce((s, r) => s + r.budget, 0);
-    const stdValue = roster.reduce((s, r) => s + r.billVal, 0);
-    const costActual = roster.reduce((s, r) => s + r.costVal, 0);
-    const stdValueBudget = roster.reduce((s, r) => s + r.budget * r.bill, 0);
-    const costBudget = roster.reduce((s, r) => s + r.budget * r.cost, 0);
+    const actualTotal = ew.actualHrs;
+    const budgetTotal = ew.budgetHrs;
+    const stdValue = ew.stdValue;
+    const costActual = ew.costValue;
+    const stdValueBudget = roster.reduce((s: any, r: any) => s + r.budget * r.bill, 0);
+    const costBudget = roster.reduce((s: any, r: any) => s + r.budget * r.cost, 0);
     const prog = (e.progress || 0) / 100;
     const eacHrs = prog > 0 ? actualTotal / prog : budgetTotal;
     const revRecognized = TB_FEE * prog;

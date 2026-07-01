@@ -367,11 +367,13 @@ LINEAGE.hrcase = {
     { id: 'ethics', ic: 'scale', lbl: 'Kode Etik & AML/PMPJ', rel: 'Temuan pelanggaran kode etik / PMPJ → pembukaan kasus' },
     { id: 'independence', ic: 'shield', lbl: 'Independence & Rotasi', rel: 'Benturan kepentingan tak diungkap → dasar sanksi' },
     { id: 'performance', ic: 'target', lbl: 'Siklus Kinerja', rel: 'Eskalasi PIP / pelanggaran kinerja → tindakan disiplin' },
+    { id: 'cpe', ic: 'book', lbl: 'CPE / PPL Tracker', rel: 'Ketidakcukupan PPL/SKP tahunan (AP/staf) → pemicu perkara kepatuhan kompetensi' },
   ],
   down: [
     { id: 'hcm', ic: 'users', lbl: 'Human Capital', rel: 'Catatan disiplin & status → berkas kepegawaian' },
     { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Rekap pelanggaran & sanksi → pemantauan budaya mutu (ISQM 1)' },
     { id: 'learning', ic: 'flask', lbl: 'Pelatihan & Kompetensi', rel: 'Sanksi → pelatihan remedial / etika wajib' },
+    { id: 'cpe', ic: 'book', lbl: 'CPE / PPL Tracker', rel: 'Sanksi kompetensi → target PPL remedial & pemantauan pemenuhan SKP' },
   ],
 };
 LINEAGE.soqm = {

@@ -25,6 +25,29 @@ const useAudit = () => useContext(AuditContext);
 const useNav   = () => useContext(NavContext);
 const useNavFrom = () => useContext(NavFromContext);
 
+/* ============================================================
+   Identitas auditor saat ini — jembatan sesi → data demo.
+   Sesi (W7) menyimpan nama LENGKAP ('Anindya Pramesti'); data kerja
+   (WORKPAPERS.preparer/reviewer, REVIEW_NOTES.to) memakai bentuk SINGKAT
+   ('Anindya P.'). `amsShortName` menormalkan penuh→singkat sehingga
+   My Tasks & Review Notes bisa memfilter "milik saya" dari user sesi nyata,
+   bukan string hardcode. Idempoten: nama yang sudah singkat tetap utuh. */
+function amsShortName(full: unknown): string {
+  if (!full || typeof full !== 'string') return '';
+  const clean = full.replace(/,.*$/, '').trim();        // buang gelar (", CPA")
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return clean;
+  const last = parts[parts.length - 1];
+  if (/^[A-Z]\.?$/.test(last)) return clean;            // sudah "Nama X." → biarkan
+  return `${parts[0]} ${last[0].toUpperCase()}.`;
+}
+/* Hook: nama singkat auditor login aktif (untuk filter kepemilikan tugas/catatan). */
+function useCurrentAuditor() {
+  const auth = useAuth();
+  const full = (auth && auth.user && auth.user.name) || (AMS && AMS.USER && AMS.USER.name) || '';
+  return { full, short: amsShortName(full) };
+}
+
 /* P5 Fase 2 — catatan review berlingkup-engagement. Selektor murni: catatan
    milik engagement `engId`; catatan legacy tanpa `engagementId` ikut tampil
    (tak ada yang hilang dari state lama). */
@@ -81,6 +104,9 @@ const AMS_PERSIST_SCOPE = {
      (eng.id / activeEngagement.id, bukan literal `engId`) → tak tertangkap grep awal. */
   'strategyTab.v1': 'engagement',
   'strategyApproach.v1': 'engagement',
+  /* Persetujuan strategi (SA 300). Engagement-scope → capForWrite=WP_EDIT (semua auditor)
+     + isolasi W7.5; otoritas reviewer (Partner/Manajer) ditegakkan server via guardSignoffWrite. */
+  'strategyApproved.v1': 'engagement',
   'arMemo.v1': 'engagement',
   /* Audit Programme (RoMM → prosedur). Engagement-scope → capForWrite=WP_EDIT
      (semua auditor) + isolasi W7.5. Menyimpan daftar prosedur + status. */
@@ -93,7 +119,21 @@ const AMS_PERSIST_SCOPE = {
      status prosedur audit bertahan lintas reload (override per-id; seed=canon). */
   'subsequentClass.v1': 'engagement',
   'subsequentProcs.v1': 'engagement',
+  /* Confirmation Hub (SA 505): kesimpulan kerja konfirmasi eksternal (override status/
+     resp/validated + rekonsiliasi + prosedur alternatif + keandalan) bertahan lintas
+     reload & terisolasi per-perikatan. Key statis '.v1' + scope engagement →
+     capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. Seed = CONFIRMATIONS. */
+  'confirmState.v1': 'engagement',
 };
+
+/* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the
+   generic `state.get` (server/src/personalScope.ts PERSONAL_KEYS — keep in sync). Writes
+   are UNCHANGED (still state.set, still capForWrite-gated); only hydration branches. */
+const PERSONAL_STATE_KEYS = new Set([
+  'payrollData', 'leaveReqs', 'perfPeople', 'cpeExtra',
+  'independence', 'indepAppr', 'indepThreats', 'indepRotAck',
+  'pc.ethics', 'pc.gifts',
+]);
 
 const SYNC_DEBOUNCE_MS = 400;
 
@@ -137,7 +177,8 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any) {
     let cancelled = false;
     setValRaw(cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache
     versionRef.current = 0;
-    (api as any).state.get.query({ scope, scopeId, key }).then((res: any) => {
+    const reader = PERSONAL_STATE_KEYS.has(key) ? (api as any).personal.get : (api as any).state.get;
+    reader.query({ scope, scopeId, key }).then((res: any) => {
       if (cancelled) return;
       versionRef.current = res.version;
       if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
@@ -463,11 +504,11 @@ function AppProviders({ me, onLogout, children }: any) {
 Object.assign(window, {
   AuthContext, FirmContext, AuditContext, NavContext, NavFromContext,
   useAuth, useFirm, useAudit, useNav, useNavFrom, AppProviders, clearPersisted,
-  notesForEngagement,
+  notesForEngagement, amsShortName, useCurrentAuditor,
 });
 window.clearPersisted = clearPersisted;
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom };
+export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor };
 export { useAmsPersist };

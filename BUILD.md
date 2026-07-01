@@ -85,8 +85,8 @@ npm start              # tRPC server on http://localhost:5181 (localhost only)
   |---|---|---|
   | Engagement Partner | `hartono.w@whr-cpa.id` | `Partner#2025!` |
   | Audit Manager (primary) | `anindya.p@whr-cpa.id` | `Manager#2025!` |
-  | Senior Auditor | `bagas.n@whr-cpa.id` | `Senior#2025!` |
-  | Junior Auditor | `citra.l@whr-cpa.id` | `Junior#2025!` |
+  | Senior Auditor | `dimas.r@whr-cpa.id` | `Senior#2025!` |
+  | Junior Auditor | `fajar.n@whr-cpa.id` | `Junior#2025!` |
 
   > After editing `schema.prisma`: `npm run prisma:generate && npm run db:push && npm run seed`.
 

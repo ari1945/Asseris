@@ -23,8 +23,13 @@ import { inc } from './obs/log';
 import { encryptSecret, decryptSecret } from './crypto/secretbox';
 import { assertIpAllowed } from './security/ipAllowlist';
 import { listConnectors } from './integrations/config';
-import { runBankSync, reconcileBank, listJobs } from './integrations/sync';
+import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
+import { PERSONAL_KEYS, resolveEmpId, filterPersonal } from './personalScope';
+import {
+  amsShortName, loadTaskSeed, deriveReviewNoteTasks, deriveWpAssignmentTasks, deriveDeadlineTasks,
+  type MineTask,
+} from './taskAgg';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -294,6 +299,9 @@ export const appRouter = router({
         connected: connectors.filter((c) => c.status === 'connected').length,
         errored: connectors.filter((c) => c.status === 'error').length,
         wired: connectors.filter((c) => c.wired).length,
+        // Per-konektor: adapter eksternal NYATA terpasang? Mendasari badge "Mode demo" yang jujur —
+        // konektor bisa tampak 'connected' (seed/fixture) padahal belum tersambung sumber asli.
+        configured: Object.fromEntries(connectors.map((c) => [c.id, c.configured])),
       };
     }),
 
@@ -313,23 +321,23 @@ export const appRouter = router({
       if (!can(ctx.user.role, CAP.INTEGRATION_VIEW)) {
         throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_VIEW}` });
       }
-      return { bank: await reconcileBank() };
+      return { bank: await reconcileBank(), coretax: await reconcileCoretax() };
     }),
 
     // Trigger a sync (INTEGRATION_MANAGE — Partner/Manager). Runs the real pipeline: pull → map →
-    // validate → control-total gate → idempotent post to the SSOT → audit. Fase 1 wires 'bank'
-    // (→ cashbank) against the fixture adapter; other ids are not wired yet.
+    // validate → control-total gate → idempotent post to the SSOT → audit. Wired connectors:
+    // 'bank' (→ cashbank) and 'coretax' (→ firmtax), both against fixture adapters; other ids are
+    // not wired yet → BAD_REQUEST.
     sync: protectedProcedure
       .input(z.object({ connectorId: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         if (!can(ctx.user.role, CAP.INTEGRATION_MANAGE)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.INTEGRATION_MANAGE}` });
         }
-        if (input.connectorId !== 'bank') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
-        }
-        inc('integration_syncs_total');
-        return runBankSync({ id: ctx.user.id, role: ctx.user.role });
+        const actor = { id: ctx.user.id, role: ctx.user.role };
+        if (input.connectorId === 'bank') { inc('integration_syncs_total'); return runBankSync(actor); }
+        if (input.connectorId === 'coretax') { inc('integration_syncs_total'); return runCoretaxSync(actor); }
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'connector-not-wired' });
       }),
 
     // Inbound provider webhook (NO session — providers don't have one). Authenticated by an
@@ -551,6 +559,72 @@ export const appRouter = router({
         });
         return { version: baseVersion + 1 };
       }),
+  }),
+
+  // 2026-07-01 — row-filtered read for People & Compliance documents that hold PERSONAL
+  // records (payroll, leave, performance, CPE log, independence/ethics declarations,
+  // gifts). state.get is document-granular (whole blob to anyone who can read the
+  // scope); this filters to the caller's own EMP-xxx row unless they hold HR_MANAGE or
+  // FIRM_ADMIN (oversight). Writes are UNCHANGED — still state.set, still gated by the
+  // SAME capForWrite(scope,key) as before (see rbac.ts). PRD "Restrukturisasi Navigasi
+  // & Beranda Berbasis Peran", Fase 3.
+  personal: router({
+    get: protectedProcedure.input(stateKey).query(async ({ input, ctx }) => {
+      if (!(input.key in PERSONAL_KEYS)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `not a personal-scoped key: ${input.key}` });
+      }
+      if (input.scope === 'engagement') await assertEngagementAccess(ctx.user, input.scopeId);
+      const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: input } });
+      const shape = PERSONAL_KEYS[input.key];
+      const raw = doc ? (JSON.parse(doc.valueJson) as unknown) : (shape.mode === 'array' ? [] : {});
+      const full = can(ctx.user.role, CAP.HR_MANAGE) || can(ctx.user.role, CAP.FIRM_ADMIN);
+      const empId = full ? null : await resolveEmpId(ctx.user);
+      return { value: filterPersonal(input.key, raw, empId, full), version: doc?.version ?? 0 };
+    }),
+  }),
+
+  // 2026-07-01 — cross-engagement task aggregation for the role-based Beranda (PRD
+  // "Restrukturisasi Navigasi & Beranda Berbasis Peran", Fase 4). The legacy client hook
+  // useMyTasks only ever sees ONE engagement (the active one); this rolls up open review
+  // notes addressed to the caller across EVERY engagement they may access, plus their
+  // firm-global WP assignments and reachable-client deadlines. Isolation is NOT re-invented:
+  // it reuses accessibleEngagementIds (W7.5), so a non-member never receives another
+  // engagement's tasks — pinned by the negative tests in __tests__/task_agg.test.ts.
+  tasks: router({
+    mine: protectedProcedure.query(async ({ ctx }) => {
+      const me = amsShortName(ctx.user.name);
+      const acc = await accessibleEngagementIds(ctx.user);
+      const engagements = await prisma.engagement.findMany({
+        where: acc === 'all' ? {} : { id: { in: acc } },
+        include: { client: true },
+        orderBy: { id: 'asc' },
+      });
+      const seed = await loadTaskSeed();
+
+      // Per-engagement, isolation-scoped: read this engagement's reviewNotes doc (seed
+      // fallback when never written) and derive the notes addressed to me. Each read is a
+      // scope the caller already passed the W7.5 gate for (it's in `acc`).
+      const perEngagement = await Promise.all(
+        engagements.map(async (e) => {
+          const doc = await prisma.stateDoc.findUnique({
+            where: { scope_scopeId_key: { scope: 'engagement', scopeId: e.id, key: 'reviewNotes' } },
+          });
+          const notesRaw = doc ? (JSON.parse(doc.valueJson) as unknown) : seed.reviewNotes;
+          const label = e.client?.name ?? e.id;
+          return deriveReviewNoteTasks(e.id, label, notesRaw, me);
+        }),
+      );
+
+      const clientNames: 'all' | Set<string> =
+        acc === 'all' ? 'all' : new Set(engagements.map((e) => e.client?.name).filter((n): n is string => !!n));
+
+      const tasks: MineTask[] = [
+        ...perEngagement.flat(),
+        ...deriveWpAssignmentTasks(seed.workpapers, me),
+        ...deriveDeadlineTasks(seed.deadlines, clientNames),
+      ];
+      return { me, engagementCount: engagements.length, tasks };
+    }),
   }),
 });
 

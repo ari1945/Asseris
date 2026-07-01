@@ -29,12 +29,50 @@ const FIRMFIN = (function () {
     { key: 'b90p', bucket: '> 90 hari',  lo: 90,   hi: 1e9, rate: 0.60 },
   ];
 
+  /* ---------- Ekonomi engagement dari JAM AKTUAL (SSOT bersama Time & Budget) ----------
+     Tarif charge-out/cost per-peran + roster jam-pembuka per engagement. `engagementWip`
+     menghitung jam aktual (base + timesheet live `timeEntries`) → nilai standar (WIP @
+     charge-out) & biaya. INI satu-satunya tempat angka ini hidup: `view_timebudget`
+     memakainya untuk modelnya, dan `wip()` meng-overlay baris engagement aktif dengan
+     hasilnya (param `liveByEng`) sehingga T&B ↔ WIP Valuation ↔ WIP & Realisasi tak lagi
+     menyimpan jam paralel. Hanya engagement dengan roster (demo: ENG-2025-014) yang punya
+     timesheet; lainnya → null (pakai seed WIP_ENG). */
+  const WIP_BILL = { 'Engagement Partner': 2_500_000, 'Audit Manager': 1_200_000, 'Senior Auditor': 700_000, 'Junior Auditor': 400_000 };
+  const WIP_COST = { 'Engagement Partner': 1_100_000, 'Audit Manager': 620_000, 'Senior Auditor': 360_000, 'Junior Auditor': 210_000 };
+  const WIP_ROSTER_ENG = {
+    'ENG-2025-014': [
+      { name: 'Hartono Wijaya, CPA', role: 'Engagement Partner', budget: 120, base: 78 },
+      { name: 'Anindya Pramesti',    role: 'Audit Manager',      budget: 360, base: 256.5 },
+      { name: 'Dimas Raharjo',       role: 'Senior Auditor',     budget: 420, base: 304 },
+      { name: 'Sinta Wulandari',     role: 'Senior Auditor',     budget: 300, base: 150.5 },
+      { name: 'Fajar Nugroho',       role: 'Junior Auditor',     budget: 360, base: 189 },
+      { name: 'Rina Kusuma',         role: 'Junior Auditor',     budget: 280, base: 120 },
+    ],
+  };
+  function engagementWip(timeEntries: any, engId: any) {
+    const roster0 = (WIP_ROSTER_ENG as any)[engId];
+    if (!roster0) return null;                       // tak ada roster → engagement ini tak punya timesheet
+    const liveByMember: any = {};
+    (timeEntries || []).forEach((t: any) => { liveByMember[t.member] = (liveByMember[t.member] || 0) + t.hours; });
+    const roster = roster0.map((r: any) => {
+      const actual = r.base + (liveByMember[r.name] || 0);
+      const bill = (WIP_BILL as any)[r.role], cost = (WIP_COST as any)[r.role];
+      return { ...r, actual, bill, cost, billVal: actual * bill, costVal: actual * cost,
+               variance: r.budget - actual, util: Math.round(actual / r.budget * 100) };
+    });
+    const actualHrs = roster.reduce((s: any, r: any) => s + r.actual, 0);
+    const budgetHrs = roster.reduce((s: any, r: any) => s + r.budget, 0);
+    const stdValue = roster.reduce((s: any, r: any) => s + r.billVal, 0);
+    const costValue = roster.reduce((s: any, r: any) => s + r.costVal, 0);
+    return { roster, actualHrs, budgetHrs, stdValue, costValue };
+  }
+
   /* ---------- WIP belum ditagih (SUMBER: WIP_ENG × ENGAGEMENTS × CLIENTS) → tutup ke kontrol 1-300 ----------
      Satu engine: valuasi per-perikatan (std ± write-up/down = recoverable), realisasi,
      margin, aging berbasis umur, penyisihan matriks & roll-forward. Dikonsumsi oleh
      WIP Valuation (route wip), WIP & Realisasi (wipreal), Dashboard & cockpit Firm Finance.
      `provFactor` (opsional) menstres tarif matriks untuk uji sensitivitas kebijakan. */
-  function wip(ctx: any, provFactor?: any) {
+  function wip(ctx: any, provFactor?: any, liveByEng?: any) {
     const F = (provFactor == null ? 1 : provFactor);
     const engs = engOf(ctx), clients = cliOf(ctx);
     const SEED = A().WIP_ENG || [];
@@ -44,21 +82,27 @@ const FIRMFIN = (function () {
 
     const registerAll = SEED.map((w: any) => {
       const e = eById(w.id), c = cById(e.clientId);
+      /* OVERLAY jam-aktual: bila view meneruskan ekonomi live (Time & Budget) untuk engagement
+         ini, std & cost ditarik dari jam aktual — bukan std seed. Turunan di bawah konsisten;
+         selisih ke kontrol GL 1-300 terserap oleh plug `reconciling`. */
+      const live = liveByEng && liveByEng[w.id];
+      const std = live ? live.std : w.std;
+      const cost = live ? live.cost : w.cost;
       const writeUp = w.writeUp || 0, writeDown = w.writeDown || 0;
-      const recoverable = w.std + writeUp - writeDown;
+      const recoverable = std + writeUp - writeDown;
       const unbilled = recoverable - w.billed;
-      const realization = w.std ? recoverable / w.std : 0;
-      const margin = recoverable ? (recoverable - w.cost) / recoverable : 0;
+      const realization = std ? recoverable / std : 0;
+      const margin = recoverable ? (recoverable - cost) / recoverable : 0;
       const age = w.originDays || 0;
       const b = bucketOf(age);
       return {
         id: w.id, client: c.name || w.id, clientShort: (c.name || w.id).replace('PT ', ''),
         tier: c.tier || '—', risk: c.risk || '—', partner: (e.partner || '—').split(',')[0],
         type: e.type || '—', status: e.status || '—', phase: e.phase || '—', progress: e.progress || 0,
-        std: w.std, writeUp, writeDown, recoverable, billed: w.billed, unbilled, cost: w.cost,
+        std, writeUp, writeDown, recoverable, billed: w.billed, unbilled, cost,
         realization, margin, age, bucket: b.bucket, bucketKey: b.key, provRate: b.rate * F,
-        overBilled: unbilled < 0, atRisk: age > 90,
-        hours: STD_RATE ? Math.round(w.std / STD_RATE) : 0, wipValue: w.std, // alias kompat
+        overBilled: unbilled < 0, atRisk: age > 90, live: !!live,
+        hours: live ? Math.round(live.actualHrs) : (STD_RATE ? Math.round(std / STD_RATE) : 0), wipValue: std, // alias kompat
       };
     }).sort((a: any, z: any) => z.unbilled - a.unbilled);
 
@@ -331,6 +375,7 @@ const FIRMFIN = (function () {
 
   return {
     REFDATE, BLENDED_RATE, STD_RATE, WIP_PROV_MATRIX, SERVICE_MIX,
+    WIP_BILL, WIP_COST, WIP_ROSTER_ENG, engagementWip,
     pl, balanceSheet, serviceLines, partners, arAging, ap, wip, cash, budget,
     kpis, reconciliations, provenance,
   };

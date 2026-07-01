@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
@@ -359,13 +359,21 @@ function WIPValuation() {
   const { fmt } = AMS;
   const FF = FIRMFIN;
   const nav = useNav();
-  const { engagements, clients } = useFirm();
+  const { engagements, clients, activeEngagement } = useFirm();
+  const { timeEntries } = useAudit();
   const [tab, setTab] = useStateFF('valuasi');
   const [sel, setSel] = useStateFF(null);
   const [provFactor, setProvFactor] = (window.useAmsPersist || useStateFF)('wip.provFactor', 1);
 
   const ctx = useMemoFF(() => ({ engagements, clients }), [engagements, clients]);
-  const W = useMemoFF(() => FF.wip(ctx, provFactor), [ctx, provFactor]);
+  /* overlay jam-aktual Time & Budget untuk engagement aktif (SSOT FIRMFIN.engagementWip) →
+     std/biaya/jam WIP = jam aktual live, bukan std seed. null bila eng tanpa timesheet. */
+  const liveByEng = useMemoFF(() => {
+    const id = activeEngagement && activeEngagement.id;
+    const ew = FF.engagementWip(timeEntries, id);
+    return ew ? { [id]: { std: ew.stdValue, cost: ew.costValue, actualHrs: ew.actualHrs } } : null;
+  }, [timeEntries, activeEngagement]);
+  const W = useMemoFF(() => FF.wip(ctx, provFactor, liveByEng), [ctx, provFactor, liveByEng]);
 
   const jt = (v: any) => fmt(v / 1e6, 0);
   const M = (v: any, d = 2) => fmt(v / 1e9, d);
@@ -387,6 +395,7 @@ function WIPValuation() {
     <>
       <SubBar moduleId="wip" right={
         <div className="row gap8 ac">
+          {liveByEng && <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)', cursor: 'pointer' }} title="Nilai standar engagement aktif ditarik dari jam aktual Time & Budget (live)" onClick={() => nav('time', { from: 'wip' })}><I.clock size={11} /> Sinkron T&B</span>}
           <span className="chip tiny" title="Seluruh angka ditarik dari sub-buku WIP_ENG → kontrol GL 1-300"><I.link2 size={11} /> Satu sumber kebenaran</span>
           <Btn sm onClick={() => nav('firmfinance', { from: 'wip' })}><I.table size={13} /> Kontrol GL 1-300</Btn>
           <Btn sm><I.download size={13} /> Export WIP</Btn>

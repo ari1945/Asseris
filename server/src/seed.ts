@@ -1,6 +1,7 @@
 import { prisma } from './db';
 import { loadAmsSeed, loadConnectorSeed } from './seedData';
 import { hashPassword } from './auth/password';
+import { PERSONAL_KEYS } from './personalScope';
 
 const FIRM_ID = 'FIRM-WHR';
 const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engagement
@@ -12,8 +13,19 @@ const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engageme
 type SeedUser = { id: string; name: string; initials: string; role: string; email: string; password: string; title?: string };
 const EXTRA_USERS: SeedUser[] = [
   { id: 'WHR-EP-0001', name: 'Hartono Wijaya', initials: 'HW', role: 'Engagement Partner', email: 'hartono.w@whr-cpa.id', password: 'Partner#2025!', title: 'Engagement Partner' },
-  { id: 'WHR-SR-0210', name: 'Bagas Nugroho', initials: 'BN', role: 'Senior Auditor', email: 'bagas.n@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
-  { id: 'WHR-JR-0388', name: 'Citra Lestari', initials: 'CL', role: 'Junior Auditor', email: 'citra.l@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
+  { id: 'WHR-SR-0210', name: 'Dimas Raharjo', initials: 'DR', role: 'Senior Auditor', email: 'dimas.r@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
+  /* EMP-022 — Senior yang deklarasi Kode Etik tahunannya BELUM sah (ETHICS_DECL seed: signed=false).
+     Login demo untuk gerbang #3: sign-off WP & penerbitan opini diblokir hingga deklarasi sah /
+     pengecualian Partner. email cocok dgn STAFF EMP-022 → resolveEmpId (ethics_gate). */
+  { id: 'WHR-SR-0022', name: 'Sinta Wulandari', initials: 'SW', role: 'Senior Auditor', email: 'sinta.w@whr-cpa.id', password: 'Sinta#2025!', title: 'Senior Auditor' },
+  { id: 'WHR-JR-0388', name: 'Fajar Nugroho', initials: 'FN', role: 'Junior Auditor', email: 'fajar.n@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
+  /* 2026-07-01 — dua peran firm-ops pertama (PRD Restrukturisasi Navigasi & Beranda Berbasis
+     Peran, §0 OQ1). BUKAN staf audit: sengaja TIDAK ditambahkan ke A.TEAM/A.STAFF (roster itu
+     audit-staffing shaped — grade/util/engagements/cert; lihat rbac.ts komentar ROLES) atau
+     EngagementMember (mereka tak pernah anggota perikatan apa pun). Login mereka bekerja murni
+     lewat User + dataJson di bawah. */
+  { id: 'WHR-HR-0501', name: 'Yuni Marlina', initials: 'YM', role: 'Admin & HR Firma', email: 'yuni.m@whr-cpa.id', password: 'HrAdmin#2025!', title: 'Admin & HR Firma' },
+  { id: 'WHR-FN-0601', name: 'Teguh Prasetyo', initials: 'TP', role: 'Finance Firma', email: 'teguh.p@whr-cpa.id', password: 'Finance#2025!', title: 'Finance Firma' },
 ];
 // Dev password for the primary seed user (Anindya, Audit Manager).
 const PRIMARY_PASSWORD = 'Manager#2025!';
@@ -158,8 +170,8 @@ async function main() {
   const memberships: Array<{ engagementId: string; userId: string }> = [
     { engagementId: ACTIVE_ENG, userId: PRIMARY_ID }, // Anindya (Manager)
     { engagementId: ACTIVE_ENG, userId: 'WHR-EP-0001' }, // Hartono (Partner)
-    { engagementId: ACTIVE_ENG, userId: 'WHR-SR-0210' }, // Bagas (Senior)
-    { engagementId: ACTIVE_ENG, userId: 'WHR-JR-0388' }, // Citra (Junior)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-SR-0210' }, // Dimas (Senior)
+    { engagementId: ACTIVE_ENG, userId: 'WHR-JR-0388' }, // Fajar (Junior)
     { engagementId: SECOND_ENG, userId: 'WHR-SR-0210' }, // Senior also on a 2nd engagement
   ];
   for (const m of memberships) {
@@ -199,11 +211,46 @@ async function main() {
     });
   }
 
+  // 2026-07-01 — seed StateDoc rows for the row-filtered `personal.get` read path (Fase 3,
+  // PRD Restrukturisasi Navigasi & Beranda Berbasis Peran) so there is never a "version 0,
+  // fall back to whatever the client computed locally" gap for these keys — the server is
+  // the source of truth for personal records from first boot, not just after a first write.
+  // (cpeExtra/indepAppr/indepRotAck are additive-only logs — {} is the correct empty state,
+  // matching the client's own `() => ({})` initial value; left unseeded on purpose.)
+  const seedIndepThreats = (rows: Array<{ id: string; conflicts: number; finInterest: string }>) =>
+    rows.filter((r) => r.conflicts > 0).map((r) => ({
+      id: 'TH-' + r.id, personId: r.id, type: 'Kedekatan', desc: r.finInterest,
+      severity: 'Sedang', safeguard: 'Pengamanan diterapkan & didokumentasikan (telaah independen).',
+      status: 'Dimitigasi', by: '', at: '',
+    }));
+  const Aany = A as unknown as {
+    PAYROLL?: Record<string, unknown>; LEAVE_REQUESTS?: unknown[];
+    PERF_CYCLE?: { people?: Record<string, unknown> };
+    INDEPENDENCE?: Array<{ id: string; conflicts: number; finInterest: string }>;
+    ETHICS_DECL?: Record<string, unknown>; GIFTS_REGISTER?: unknown[];
+  };
+  const personalSeed: Array<[string, unknown]> = [
+    ['payrollData', Aany.PAYROLL ?? {}],
+    ['leaveReqs', Aany.LEAVE_REQUESTS ?? []],
+    ['perfPeople', Aany.PERF_CYCLE?.people ?? {}],
+    ['independence', Aany.INDEPENDENCE ?? []],
+    ['indepThreats', seedIndepThreats(Aany.INDEPENDENCE ?? [])],
+    ['pc.ethics', Aany.ETHICS_DECL ?? {}],
+    ['pc.gifts', Aany.GIFTS_REGISTER ?? []],
+  ];
+  for (const [key, value] of personalSeed) {
+    if (!(key in PERSONAL_KEYS)) throw new Error(`personalSeed key "${key}" missing from PERSONAL_KEYS — keep them in sync`);
+    await prisma.stateDoc.create({
+      data: { scope: 'firm', scopeId: FIRM_ID, key, valueJson: JSON.stringify(value), version: 1, updatedBy: PRIMARY_ID },
+    });
+  }
+
   console.log(
     `Seeded: 1 firm, ${1 + EXTRA_USERS.length} users (1 per RBAC role, w/ dev passwords), ` +
       `${A.TEAM.length} team, ${A.CLIENTS.length} clients, ` +
       `${A.ENGAGEMENTS.length} engagements, ${A.WTB.length} WTB rows (${ACTIVE_ENG}), ` +
-      `${memberships.length} engagement memberships, ${CONNECTORS.length} connectors.`,
+      `${memberships.length} engagement memberships, ${CONNECTORS.length} connectors, ` +
+      `${personalSeed.length} personal-scope documents.`,
   );
 }
 

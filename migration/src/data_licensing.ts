@@ -1,6 +1,24 @@
 /* [codemod] ESM imports */
 import { AMS } from './data';
 import { BO as BO_NS } from './data_backoffice';
+import { cpeFromTraining } from './cpe_training';
+
+/* ---------- Ambang rotasi AP — SUMBER KEBENARAN TUNGGAL ----------
+   Empat tingkat, dipakai lintas view (BO Lisensi · Firm Dashboard ·
+   Independence · People) agar batas tidak direplikasi tak-konsisten:
+     · due   → tenure ≥ batas            (WAJIB rotasi sekarang)
+     · alert → ≤ 6 bulan sebelum batas   (jendela peringatan dini / auto-alert OJK)
+     · warn  → tahun terakhir sebelum batas
+     · ok    → di luar itu
+   6 bulan = 0,5 tahun (tenure dinyatakan dalam tahun). */
+export type RotTier = 'ok' | 'warn' | 'alert' | 'due';
+export function rotTier(tenure: number, limit: number): RotTier {
+  if (!(limit > 0)) return 'ok';
+  if (tenure >= limit) return 'due';
+  if (tenure >= limit - 0.5) return 'alert';
+  if (tenure >= limit - 1) return 'warn';
+  return 'ok';
+}
 
 /* ============================================================
    Asseris — Lisensi & Perizinan: lapisan kanonik
@@ -39,7 +57,10 @@ import { BO as BO_NS } from './data_backoffice';
   function pplOf(empId: any) {
     const base = (A().CPE_LOG && A().CPE_LOG[empId]) || [];
     const extra = (LS('cpeExtra', {})[empId]) || [];
-    const recs = [...extra, ...base];
+    /* kredit SKP otomatis dari pelatihan terkonfirmasi (admin/HR). Store firm-scope →
+       cacheKey berlingkup 'ams.v1.firm.<FIRM_SCOPE_ID>.trainingAttendance.v1'. */
+    const training = (cpeFromTraining(A().TRAINING_CATALOG, LS('firm.FIRM-WHR.trainingAttendance.v1', {}))[empId]) || [];
+    const recs = [...extra, ...training, ...base];
     const total = recs.reduce((a, r) => a + (r.skp || 0), 0);
     const structured = recs.filter(r => r.type === 'Terstruktur').reduce((a, r) => a + (r.skp || 0), 0);
     return { total, structured, recs };
@@ -57,7 +78,7 @@ import { BO as BO_NS } from './data_backoffice';
       const onPace = ppl.total >= expectedYtd;
       const structOk = ppl.structured >= Math.round(req.structured * frac);
       const tenure = ind.tenure || 0, limit = ind.rotationLimit || 5;
-      const rotState = tenure >= limit ? 'due' : tenure >= limit - 1 ? 'warn' : 'ok';
+      const rotState = rotTier(tenure, limit);
       return {
         ...a,
         empId: a.emp, ap: (s.name || a.emp) + (s.cert && /CPA/.test(s.cert) ? ', CPA' : ''),
@@ -113,9 +134,10 @@ import { BO as BO_NS } from './data_backoffice';
     const fl = firmLicenses(), ap = apLicenses(), mb = memberships();
     const expSoon = renewalCalendar(120);
     const rotDue = ap.filter((a: any) => a.rotState === 'due');
+    const rotAlert = ap.filter((a: { rotState: string }) => a.rotState === 'alert');
     const rotWarn = ap.filter((a: any) => a.rotState === 'warn');
     const pplRisk = ap.filter((a: any) => !a.onPace || !a.structOk);
-    return { firmLicenses: fl, ap, memberships: mb, expSoon, rotDue, rotWarn, pplRisk, totalDues: totalDues(), emiten: listedEngagements() };
+    return { firmLicenses: fl, ap, memberships: mb, expSoon, rotDue, rotAlert, rotWarn, pplRisk, totalDues: totalDues(), emiten: listedEngagements() };
   }
 
   const PROVENANCE = [
@@ -140,7 +162,7 @@ import { BO as BO_NS } from './data_backoffice';
 
   window.LICENSING = {
     staffById, indepById, pplOf, apLicenses, firmLicenses, memberships, totalDues,
-    listedEngagements, renewalCalendar, summary, PROVENANCE,
+    listedEngagements, renewalCalendar, summary, PROVENANCE, rotTier,
   };
 })();
 

@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui';
@@ -12,7 +13,7 @@ import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWor
    Tabs: Ringkasan · Daftar Konfirmasi · Rekonsiliasi & Tindak Lanjut
    (constants + reusable parts live in view_confirm_parts.jsx)
    ============================================================ */
-const { useState: useStateCF } = React;
+const { useState: useStateCF, useMemo: useMemoCF } = React;
 
 /* ---------- enriched detail rail (Register tab) ---------- */
 function CfDetailPanel(props: any) {
@@ -267,7 +268,7 @@ function CfOverview({ items, segs, rate, onJump }: any) {
 
 /* ---------- Tab 3 · Rekonsiliasi & Tindak Lanjut ---------- */
 function CfWorklist(props: any) {
-  const { items, recon, setRecon, altChecks, setAltChecks, onResolveRecon, onResolveAlt, focusId } = props;
+  const { items, recon, setRecon, altChecks, setAltChecks, onResolveRecon, onResolveAlt, focusId, nav } = props;
   const { fmt } = AMS;
   const discs = items.filter((c: any) => c.status === 'Discrepancy');
   const noReplies = items.filter((c: any) => c.status === 'No Reply');
@@ -336,9 +337,9 @@ function CfWorklist(props: any) {
             <div className="tiny muted" style={{ marginTop: 3 }}>selisih bruto dari {discs.length} diskrepansi</div>
             <div className="divider" />
             <div className="tiny" style={{ lineHeight: 1.55, color: 'var(--ink-2)' }}>
-              Selisih yang <b>tak terjelaskan</b> setelah rekonsiliasi diteruskan otomatis ke <b>Summary of Audit Differences</b> untuk evaluasi terhadap materialitas.
+              Selisih yang <b>tak terjelaskan</b> setelah rekonsiliasi <b>dibawa auditor</b> ke <b>Summary of Audit Differences</b> (SA 450) untuk evaluasi terhadap materialitas.
             </div>
-            <Btn sm style={{ width: '100%', marginTop: 10 }}><I.arrowRight size={13} /> Buka SAD Ledger</Btn>
+            <Btn sm style={{ width: '100%', marginTop: 10 }} onClick={() => nav('sad', { from: 'confirm' })}><I.arrowRight size={13} /> Buka SAD Ledger</Btn>
           </div>
         </Panel>
 
@@ -360,22 +361,68 @@ function CfWorklist(props: any) {
   );
 }
 
+/* ---------- Status Kertas Kerja SA 505 (Fase 2 · module-only) ----------
+   Cermin kelengkapan 3 bukti wajib WP_MODULE_MAP.confirm dari hasil kerja
+   nyata & persisten (engagement-scoped). Tanda tangan + lampiran dokumen
+   tetap via panel "Kertas Kerja" SubBar global (wpState, server-enforced). */
+function CfWpStatus({ wp }: any) {
+  return (
+    <Panel title="Status Kertas Kerja SA 505" sub="kelengkapan prosedur dari hasil kerja (persisten · per-perikatan)"
+      actions={<Badge kind={wp.all ? 'green' : 'amber'}>{wp.done}/{wp.reqs.length} bukti wajib</Badge>}>
+      <div style={{ padding: '4px 0' }}>
+        {wp.reqs.map((r: any, i: any) => (
+          <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderTop: i ? '1px solid var(--line-soft)' : 0 }}>
+            <span style={{ color: r.done ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 17px' }}>
+              {r.done ? <I.checkCircle size={17} /> : <span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid var(--line-strong)', display: 'inline-block' }} />}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.label}</div>
+              <div className="tiny muted">{r.detail}</div>
+            </div>
+            <Badge kind={r.done ? 'green' : 'gray'}>{r.done ? 'Terpenuhi' : 'Belum'}</Badge>
+          </div>
+        ))}
+      </div>
+      <div className="tiny muted" style={{ padding: '8px 14px 2px', lineHeight: 1.5, borderTop: '1px solid var(--line)' }}>
+        Tanda tangan preparer/reviewer &amp; lampiran bukti dokumen via panel <b>Kertas Kerja</b> di bilah atas
+        (SA 230, server-enforced). Status di atas mencerminkan kelengkapan prosedur SA 505 dari hasil kerja modul ini.
+      </div>
+    </Panel>
+  );
+}
+
 /* ============================================================
    Root — ConfirmationHub
    ============================================================ */
 function ConfirmationHub() {
   const { fmt } = AMS;
-  const [items, setItems] = useStateCF(CONFIRMATIONS);
+  const nav = useNav();
+
+  /* Fase 1 — kesimpulan kerja SA 505 PERSISTEN & engagement-scoped (bertahan reload,
+     terisolasi per-perikatan). UI-state (tab/filter/seleksi) tetap efemeral lokal.
+     Bentuk: override per-id atas seed CONFIRMATIONS + sub-state rekonsiliasi/alternatif/
+     keandalan. Key statis 'confirmState.v1' + AMS_PERSIST_SCOPE=engagement → isolasi
+     dibawa scopeId, capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
+  const [cfState, setCfState] = useAmsPersist('confirmState.v1', { overrides: {}, recon: {}, altChecks: {}, relChecks: {} });
+  const { recon, altChecks, relChecks } = cfState;
+
   const [tab, setTab] = useStateCF('overview');
   const [fType, setFType] = useStateCF('All');
   const [fStatus, setFStatus] = useStateCF('All');
   const [selId, setSelId] = useStateCF('CF-005');
   const [focusId, setFocusId] = useStateCF(null);
 
-  // shared exception state across tabs
-  const [recon, setRecon] = useStateCF({});
-  const [altChecks, setAltChecks] = useStateCF({});
-  const [relChecks, setRelChecks] = useStateCF({});
+  // items = seed + override persisten (status/resp/validated hasil kerja auditor)
+  const items = useMemoCF(() => CONFIRMATIONS.map((c: any) => {
+    const ov = (cfState.overrides as any)[c.id];
+    return ov ? { ...c, ...ov } : c;
+  }), [cfState.overrides]);
+
+  // setter adaptor: tulis slice ke dalam objek persisten (mempertahankan signatur updater lama)
+  const setRecon = (u: any) => setCfState((s: any) => ({ ...s, recon: typeof u === 'function' ? u(s.recon) : u }));
+  const setAltChecks = (u: any) => setCfState((s: any) => ({ ...s, altChecks: typeof u === 'function' ? u(s.altChecks) : u }));
+  const setRelChecks = (u: any) => setCfState((s: any) => ({ ...s, relChecks: typeof u === 'function' ? u(s.relChecks) : u }));
+  const setOverride = (id: any, patch: any) => setCfState((s: any) => ({ ...s, overrides: { ...s.overrides, [id]: { ...(s.overrides[id] || {}), ...patch } } }));
 
   const filtered = items.filter((c: any) => (fType === 'All' || c.type === fType) && (fStatus === 'All' || c.status === fStatus));
   const sel = items.find((c: any) => c.id === selId) || filtered[0];
@@ -394,9 +441,27 @@ function ConfirmationHub() {
     { label: 'No Reply', value: noReply, color: '#c79a1e' },
   ];
 
-  const markReceived = (id: any) => setItems((list: any) => list.map((c: any) => c.id === id ? { ...c, status: 'Received', resp: c.amount, validated: true } : c));
-  const resolveRecon = (id: any) => setItems((list: any) => list.map((c: any) => c.id === id ? { ...c, status: 'Received' } : c));
-  const resolveAlt = (id: any) => setItems((list: any) => list.map((c: any) => c.id === id ? { ...c, status: 'Received' } : c));
+  const markReceived = (id: any) => { const c = items.find((x: any) => x.id === id); setOverride(id, { status: 'Received', resp: c ? c.amount : null, validated: true }); };
+  const resolveRecon = (id: any) => setOverride(id, { status: 'Received' });
+  const resolveAlt = (id: any) => setOverride(id, { status: 'Received' });
+
+  /* Fase 2 — Status Kertas Kerja SA 505 (module-only, engagement-scoped via items).
+     Petakan 3 bukti wajib WP_MODULE_MAP.confirm → kelengkapan dari hasil kerja nyata.
+     TIDAK menyentuh store evidence global (ams.v1.evidence tak ber-scope perikatan →
+     auto-attach akan bocor antar-perikatan). Tanda tangan & lampiran dokumen tetap via
+     panel "Kertas Kerja" SubBar global (wpState, server-enforced). */
+  const cfWp = useMemoCF(() => {
+    const dispatched = items.filter((c: any) => c.status !== 'Draft').length;
+    const discOpen = items.filter((c: any) => c.status === 'Discrepancy').length;
+    const noReplyOpen = items.filter((c: any) => c.status === 'No Reply').length;
+    const reqs = [
+      { label: 'Register konfirmasi (terkirim/dijawab)', done: total > 0 && dispatched === total, detail: dispatched + '/' + total + ' konfirmasi terkirim' },
+      { label: 'Rekonsiliasi selisih jawaban', done: discOpen === 0, detail: discOpen === 0 ? 'nihil diskrepansi terbuka' : discOpen + ' diskrepansi terbuka' },
+      { label: 'Prosedur alternatif untuk non-jawaban (SA 505 ¶12)', done: noReplyOpen === 0, detail: noReplyOpen === 0 ? 'nihil non-jawaban terbuka' : noReplyOpen + ' non-jawaban terbuka' },
+    ];
+    const done = reqs.filter(r => r.done).length;
+    return { reqs, done, all: done === reqs.length };
+  }, [items, total]);
 
   const jump = (t: any, id: any) => { setTab(t); if (id) { setFocusId(id); setSelId(id); } };
 
@@ -410,9 +475,10 @@ function ConfirmationHub() {
     <>
       <SubBar moduleId="confirm" right={
         <div className="row gap8 ac">
-          <Btn sm><I.upload size={13} /> Import Saldo</Btn>
-          <Btn sm><I.send size={13} /> Kirim Pengingat ({outstanding})</Btn>
-          <Btn sm variant="primary"><I.send size={14} /> Kirim Batch Konfirmasi</Btn>
+          <Badge kind="gray" title="Simulasi — pengiriman & impor saldo nyata via konektor (W9)">demo</Badge>
+          <Btn sm title="Simulasi — impor saldo nyata via konektor (W9)"><I.upload size={13} /> Import Saldo</Btn>
+          <Btn sm title="Simulasi — pengiriman nyata via konektor (W9)"><I.send size={13} /> Kirim Pengingat ({outstanding})</Btn>
+          <Btn sm variant="primary" title="Simulasi — pengiriman nyata via konektor (W9)"><I.send size={14} /> Kirim Batch Konfirmasi</Btn>
         </div>
       } />
       <div className="view-scroll">
@@ -436,7 +502,7 @@ function ConfirmationHub() {
           {/* tabs */}
           <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={(t: any) => { setTab(t); setFocusId(null); }} /></div>
 
-          {tab === 'overview' && <CfOverview items={items} segs={segs} rate={rate} onJump={jump} />}
+          {tab === 'overview' && <div className="grid" style={{ gap: 12 }}><CfWpStatus wp={cfWp} /><CfOverview items={items} segs={segs} rate={rate} onJump={jump} /></div>}
 
           {tab === 'register' && (
             <>
@@ -495,7 +561,7 @@ function ConfirmationHub() {
           {tab === 'worklist' && (
             <CfWorklist
               items={items} recon={recon} setRecon={setRecon} altChecks={altChecks} setAltChecks={setAltChecks}
-              onResolveRecon={resolveRecon} onResolveAlt={resolveAlt} focusId={focusId}
+              onResolveRecon={resolveRecon} onResolveAlt={resolveAlt} focusId={focusId} nav={nav}
             />
           )}
         </div>

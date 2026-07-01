@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav, amsShortName } from './contexts';
 import { CAP } from './rbac';
 import { I, MODULES, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
@@ -42,7 +42,7 @@ const RN_ROLE = {
   'Rina Kusuma': 'Junior Auditor', 'Rina K.': 'Junior Auditor',
 };
 const RN_roleOf = (n: any) => (RN_ROLE as any)[n] || 'Tim Audit';
-const RN_ME = 'Anindya P.'; // current user (Audit Manager)
+const RN_ME_FALLBACK = 'Anindya P.'; // fallback bila sesi tak tersedia (offline/render luar provider)
 const RN_ASSIGNEES = ['Dimas R.', 'Sinta W.', 'Fajar N.', 'Rina K.', 'Anindya P.'];
 
 /* phase of a note from status + whether the preparer has responded */
@@ -66,6 +66,8 @@ function ReviewNotes() {
      Junior/Senior dapat MERESPONS (composer) tapi tak boleh menuntaskan/membuka catatan — penutupan memberi
      makan gerbang lifecycle (→Finalisasi: 0 high-open; →Arsip: 0 open). Penegakan server = fase lanjut. */
   const canClear = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
+  /* identitas auditor login aktif (W7) — bukan lagi hardcode 'Anindya P.' */
+  const me = amsShortName(auth && auth.user && auth.user.name) || RN_ME_FALLBACK;
 
   const [statusF, setStatusF] = useStateWS2('open');      // open | resolved | all
   const [typeF, setTypeF] = useStateWS2('all');           // all | review | coaching | eqr | query
@@ -140,8 +142,10 @@ function ReviewNotes() {
       eqrOpen: open.filter((n: any) => n.type === 'eqr').length,
       clearedPct: mustClear.length ? Math.round(clearedMust.length / mustClear.length * 100) : 100,
       mustClear: mustClear.length, clearedMust: clearedMust.length, blocking: blocking.length,
+      mine: open.filter((n: any) => n.to === me).length,   // tugas terkait Anda → My Tasks
     };
-  }, [notes]);
+  }, [notes, me]);
+  const myOpenNotes = M.mine;
 
   /* aging buckets over OPEN notes */
   const aging = useMemoWS2(() => {
@@ -171,13 +175,13 @@ function ReviewNotes() {
     } else resolveReviewNote(n.id);
     if (withMsg) addNoteReply(n.id, withMsg);
   };
-  const clearNote = (n: any) => toggleClear(n, { author: RN_ME, kind: 'clear', text: 'Catatan ditelaah & dikliring.' });
-  const reopenNote = (n: any) => toggleClear(n, { author: RN_ME, kind: 'comment', text: 'Catatan dibuka kembali untuk tindak lanjut.' });
+  const clearNote = (n: any) => toggleClear(n, { author: me, kind: 'clear', text: 'Catatan ditelaah & dikliring.' });
+  const reopenNote = (n: any) => toggleClear(n, { author: me, kind: 'comment', text: 'Catatan dibuka kembali untuk tindak lanjut.' });
 
   const postComposer = (n: any) => {
     const t = composer.trim(); if (!t) return;
-    const kind = n.to === RN_ME ? 'response' : 'comment';
-    addNoteReply(n.id, { author: RN_ME, kind, text: t });
+    const kind = n.to === me ? 'response' : 'comment';
+    addNoteReply(n.id, { author: me, kind, text: t });
     setComposer('');
   };
 
@@ -189,7 +193,7 @@ function ReviewNotes() {
   const submitNew = () => {
     if (!draft.text.trim()) return;
     if (draft.module === 'workpapers' && draft.wpRef) {
-      const note = { id: 'wn-' + Date.now(), author: 'Anindya P.', to: draft.to, text: draft.text.trim(), type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, status: 'open', created: 'baru saja', raised: '2026-03-09' };
+      const note = { id: 'wn-' + Date.now(), author: me, to: draft.to, text: draft.text.trim(), type: draft.type, priority: draft.priority, due: draft.due, ref: draft.ref, status: 'open', created: 'baru saja', raised: '2026-03-09' };
       setWp(draft.wpRef, { notes: [...((wpState[draft.wpRef] || {}).notes || []), note] });
     } else {
       const m = (MODULE_INDEX as any)[draft.module];
@@ -203,6 +207,11 @@ function ReviewNotes() {
     <>
       <SubBar moduleId="reviewnotes" right={
         <div className="row gap8 ac">
+          {myOpenNotes > 0 && (
+            <Btn sm onClick={() => nav('tasks', { from: 'reviewnotes' })} title="Catatan terbuka yang ditujukan ke Anda muncul sebagai tugas di My Tasks">
+              <I.check size={13} /> {myOpenNotes} di My Tasks
+            </Btn>
+          )}
           {M.blocking > 0
             ? <Badge kind="amber" dot>{M.blocking} perlu kliring</Badge>
             : <Badge kind="green" dot>Siap diarsipkan</Badge>}
@@ -306,7 +315,7 @@ function ReviewNotes() {
           {/* detail */}
           <div className="panel" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
             {selected
-              ? <RN_Detail n={selected} thread={selected._thread} phase={selected._phase} firm={firm}
+              ? <RN_Detail n={selected} thread={selected._thread} phase={selected._phase} firm={firm} me={me}
                   composer={composer} setComposer={setComposer} postComposer={postComposer}
                   clearNote={clearNote} reopenNote={reopenNote} openSource={openSource} canClear={canClear}
                   updateReviewNote={updateReviewNote} />
@@ -403,7 +412,7 @@ function RN_Row({ n, active, onClick }: any) {
 }
 
 /* ---- detail / conversation pane ---- */
-function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer, clearNote, reopenNote, openSource, canClear, updateReviewNote }: any) {
+function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComposer, clearNote, reopenNote, openSource, canClear, updateReviewNote }: any) {
   const t = (RN_TYPES as any)[n.type] || RN_TYPES.review;
   const ph = (RN_PHASE_META as any)[phase];
   const resolved = n.status === 'resolved';
@@ -442,7 +451,7 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
         <div style={{ display: 'grid', gap: 12, maxWidth: 720 }}>
           {msgs.map((m, i) => {
             const km = (KIND_META as any)[m.kind] || KIND_META.comment;
-            const mine = m.author === RN_ME;
+            const mine = m.author === me;
             return (
               <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
                 <Avatar name={m.author} size={30} />
@@ -471,9 +480,9 @@ function RN_Detail({ n, thread, phase, firm, composer, setComposer, postComposer
           <div className="row ac gap8 tiny muted" style={{ justifyContent: 'center', padding: 6 }}><I.lock size={13} /> Engagement diarsipkan — catatan read-only.</div>
         ) : (
           <>
-            <textarea className="input" value={composer} onChange={(e: any) => setComposer(e.target.value)} placeholder={n.to === RN_ME ? 'Tulis tanggapan Anda sebagai preparer…' : 'Tambahkan komentar pada catatan ini…'} style={{ width: '100%', height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 8 }} />
+            <textarea className="input" value={composer} onChange={(e: any) => setComposer(e.target.value)} placeholder={n.to === me ? 'Tulis tanggapan Anda sebagai preparer…' : 'Tambahkan komentar pada catatan ini…'} style={{ width: '100%', height: 56, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 8 }} />
             <div className="row ac gap8">
-              <span className="tiny muted">{n.to === RN_ME ? 'Anda penerima — kirim sebagai tanggapan' : 'Kirim sebagai komentar'}</span>
+              <span className="tiny muted">{n.to === me ? 'Anda penerima — kirim sebagai tanggapan' : 'Kirim sebagai komentar'}</span>
               <div style={{ flex: 1 }} />
               <Btn sm onClick={() => postComposer(n)}><I.send size={13} /> Kirim</Btn>
               {resolved

@@ -27,6 +27,7 @@ import { ComplianceMatrix } from './view_compmatrix';
 import { ConfirmationHub } from './view_confirm';
 import { CryptoCompliance } from './view_crypto';
 import { FirmDashboard } from './view_dashboard';
+import { HomeView } from './view_home';
 import { DataFlow } from './view_dataflow';
 import { DeliveryMilestones } from './view_delivery';
 import { DisclosureChecklist } from './view_disclosure';
@@ -178,6 +179,7 @@ class ViewErrorBoundary extends ReactComponentBase {
 
 function viewFor(moduleId: any) {
   switch (moduleId) {
+    case 'home':       return <HomeView />;
     case 'dashboard':  return <FirmDashboard />;
     case 'bi':         return <FirmBI />;
     case 'crm':        return <ClientCRM />;
@@ -405,7 +407,10 @@ function SARefDrawer({ data, onClose, onNavigate }: any) {
 }
 
 function App() {
-  const [route, setRoute] = useStateApp(() => localStorage.getItem('ams.route') || 'dashboard');
+  /* Fase 7 — default landing berbasis peran = Beranda (bukan lagi 'dashboard' statis).
+     Rute terakhir tetap dipulihkan saat reload (lihat Root.enter: hanya login EKSPLISIT
+     yang memaksa 'home'); Firm Dashboard tetap 1 klik bagi Partner/Manager. */
+  const [route, setRoute] = useStateApp(() => localStorage.getItem('ams.route') || 'home');
   const [collapsed, setCollapsed] = useStateApp(() => localStorage.getItem('ams.sidebarCollapsed') === '1');
   const [copilot, setCopilot] = useStateApp(false);
   const [palette, setPalette] = useStateApp(false);
@@ -494,8 +499,11 @@ function Root() {
   const [phase, setPhase] = useStateRT('checking');
   const [me, setMe] = useStateRT(null);
 
-  const enter = useCallbackRT(async (user: any) => {
+  const enter = useCallbackRT(async (user: any, fresh: boolean = true) => {
     setMe(user);
+    // Fase 7 — login EKSPLISIT (via LoginScreen) selalu mendarat di Beranda berbasis peran;
+    // reload sesi (auth.me, fresh=false) TIDAK menyentuh rute → pengguna kembali ke tempatnya.
+    if (fresh) { try { localStorage.setItem('ams.route', 'home'); } catch (e) { /* private mode */ } }
     try { await hydrateCoreFromApi(DEFAULT_ENG_ID, user.id); } catch (e) { /* offline: data.js fallback */ }
     setPhase('ready');
   }, []);
@@ -510,7 +518,7 @@ function Root() {
   useEffectRT(() => {
     let cancelled = false;
     (api as any).auth.me.query()
-      .then((user: any) => { if (!cancelled) { user ? enter(user) : setPhase('login'); } })
+      .then((user: any) => { if (!cancelled) { user ? enter(user, false) : setPhase('login'); } })
       .catch(() => { if (!cancelled) setPhase('login'); });
     const onExpired = () => { setAuthToken(null); setMe(null); setPhase('login'); };
     window.addEventListener('ams:auth-expired', onExpired);

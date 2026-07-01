@@ -31,7 +31,7 @@
   },
   "src/contexts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 103
+      "count": 104
     }
   },
   "src/copilot.tsx": {
@@ -61,7 +61,7 @@
   },
   "src/data_firmfin.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 110
+      "count": 127
     }
   },
   "src/data_firmops.ts": {
@@ -266,7 +266,7 @@
   },
   "src/shell.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 43
+      "count": 42
     }
   },
   "src/types/globals.d.ts": {
@@ -376,7 +376,7 @@
   },
   "src/view_confirm.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 68
+      "count": 80
     }
   },
   "src/view_confirm_parts.tsx": {
@@ -666,7 +666,7 @@
   },
   "src/view_misc1.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 23
+      "count": 21
     }
   },
   "src/view_misc2.tsx": {
@@ -681,7 +681,7 @@
   },
   "src/view_mytasks_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 58
+      "count": 61
     }
   },
   "src/view_newdisc.tsx": {
@@ -746,7 +746,7 @@
   },
   "src/view_pc_conduct.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 38
+      "count": 41
     }
   },
   "src/view_pc_hcm.tsx": {
@@ -761,7 +761,7 @@
   },
   "src/view_pc_talent.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 53
+      "count": 66
     }
   },
   "src/view_pdp.tsx": {
@@ -786,7 +786,7 @@
   },
   "src/view_platform2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 51
+      "count": 53
     }
   },
   "src/view_platform3.tsx": {
@@ -1121,7 +1121,7 @@
   },
   "src/view_timebudget.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 65
+      "count": 62
     }
   },
   "src/view_wip_firm.tsx": {
@@ -1131,12 +1131,12 @@
   },
   "src/view_workspace.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 99
+      "count": 100
     }
   },
   "src/view_wp.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 116
+      "count": 117
     }
   },
   "src/view_wtb_deep.tsx": {
@@ -1186,7 +1186,7 @@
   },
   "src/wp_signoff.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 49
+      "count": 50
     }
   }
 }

@@ -143,8 +143,8 @@
   const WORKPAPERS = [
     { ref: 'A', title: 'Kas dan Setara Kas', status: 'Reviewed', preparer: 'Fajar N.', reviewer: 'Anindya P.' },
     { ref: 'B', title: 'Piutang Usaha & ECL', status: 'In Review', preparer: 'Dimas R.', reviewer: 'Anindya P.' },
-    { ref: 'C', title: 'Persediaan', status: 'In Progress', preparer: 'Rina K.', reviewer: '—' },
-    { ref: 'E', title: 'Aset Tetap', status: 'In Review', preparer: 'Dimas R.', reviewer: 'Anindya P.' },
+    { ref: 'C', title: 'Persediaan', status: 'In Progress', preparer: 'Fajar N.', reviewer: '—' },
+    { ref: 'E', title: 'Aset Tetap', status: 'In Review', preparer: 'Dimas R.', reviewer: 'Hartono W.' },
     { ref: 'F', title: 'Sewa — PSAK 73', status: 'In Progress', preparer: 'Sinta W.', reviewer: '—' },
     { ref: 'R', title: 'Pendapatan', status: 'In Progress', preparer: 'Dimas R.', reviewer: '—' },
   ];
@@ -299,6 +299,7 @@
     { id: 'EMP-001', name: 'Hartono Wijaya', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Sentosa Makmur Tbk', tenure: 5, rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', cooloff: 2, listed: true },
     { id: 'EMP-002', name: 'Rudi Gunawan', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Graha Properti Investama', tenure: 7, rotationLimit: 5, sektorJK: false, sektor: 'PIE umum', basis: 'PP 20/2015 Ps. 11', cooloff: 2, listed: true },
     { id: 'EMP-003', name: 'Sari Dewanti', declared: true, conflicts: 1, finInterest: 'Saudara bekerja di calon klien (di-mitigasi)', rotationClient: 'PT Cahaya Logistik Nusantara', tenure: 3, rotationLimit: 5, sektorJK: false, sektor: 'Non-PIE', basis: 'Kebijakan firma (tanpa batas statutori)', cooloff: 0, listed: false },
+    { id: 'EMP-004', name: 'Lestari Handayani', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: 'PT Bank Arta Nusantara Tbk', tenure: 2.5, rotationLimit: 3, sektorJK: true, sektor: 'Jasa keuangan (bank)', basis: 'POJK 13/POJK.03/2017', cooloff: 2, listed: true },
     { id: 'EMP-007', name: 'Anindya Pramesti', declared: true, conflicts: 0, finInterest: 'Tidak ada', rotationClient: '—', tenure: 0, rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', cooloff: 2, listed: false },
     { id: 'EMP-008', name: 'Bayu Saputra', declared: false, conflicts: 0, finInterest: 'Belum dideklarasikan', rotationClient: '—', tenure: 0, rotationLimit: 5, sektorJK: false, sektor: '—', basis: '—', cooloff: 2, listed: false },
   ];
