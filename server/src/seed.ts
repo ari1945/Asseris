@@ -31,6 +31,17 @@ const EXTRA_USERS: SeedUser[] = [
 const PRIMARY_PASSWORD = 'Manager#2025!';
 
 async function main() {
+  // Deploy-Readiness M5 — this is the DESTRUCTIVE [DEMO] seed (wipes 11 tables → repopulates demo
+  // data). It must NEVER run against a real pilot DB. Fail-closed in production unless explicitly
+  // forced; for provisioning a real firm use the non-destructive `npm run bootstrap` instead.
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_SEED !== '1') {
+    console.error(
+      '[DEMO] seed DITOLAK di NODE_ENV=production (destruktif — menghapus SEMUA data). ' +
+        'Gunakan `npm run bootstrap` untuk provisioning firma nyata, atau set ALLOW_DEMO_SEED=1 hanya bila DB ini memang demo.',
+    );
+    process.exit(1);
+  }
+  console.warn('[DEMO] Menjalankan seed DESTRUKTIF — menghapus lalu mengisi ulang data demo…');
   const A = await loadAmsSeed();
 
   // Idempotent dev seed: clear in FK-safe order, then repopulate. Session/AuthEvent reference
