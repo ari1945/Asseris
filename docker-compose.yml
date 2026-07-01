@@ -1,5 +1,9 @@
 # W10 — app + Postgres, the "container + Postgres" deploy target (PRD Q3).
 #
+# NOTE (Deploy-Readiness 2026-07-01): this compose runs the API + DB ONLY (no UI, no TLS) — it is the
+# dev/API smoke target. For a full single-tenant instance (built SPA + API + Postgres + HTTPS same-origin
+# via Caddy, one command) use → deploy/aws-ec2-test/docker-compose.deploy.yml (see deploy/aws-ec2-test/README.md).
+#
 # ✅ LIVE-PROVEN on W11 (Hermes-hosted Docker Desktop + Alpine WSL).
 #    Build: docker compose build   # succeeded
 #    Up:    docker compose up -d   # db healthy, server started

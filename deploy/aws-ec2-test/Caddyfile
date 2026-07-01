@@ -1,0 +1,35 @@
+# One origin for the whole app. $PUBLIC_HOST is injected from the compose env.
+#
+# DEFAULT: self-signed internal TLS (pilot tertutup — keputusan Deploy-Readiness PRD 2026-07-01).
+# Browser menampilkan peringatan sertifikat SEKALI, TAPI koneksi tetap HTTPS → cookie `Secure`
+# (httpOnly auth) berfungsi. Cocok untuk pilot di balik VPN / akses-IP tanpa domain publik,
+# dan tak butuh port 80 terbuka atau DNS A-record.
+{$PUBLIC_HOST} {
+	tls internal
+	encode gzip
+
+	# API + ops endpoints → backend container (no caching, cookies forwarded by default).
+	@api path /trpc/* /healthz /metrics
+	handle @api {
+		reverse_proxy server:5181
+	}
+
+	# Static SPA with client-side routing fallback.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# ── PUNYA DOMAIN PUBLIK & ingin TLS tepercaya publik otomatis (Let's Encrypt / ACME)?
+#    Comment blok di atas dan pakai varian ini. PRASYARAT: DNS A-record $PUBLIC_HOST →
+#    IP host, port 80 & 443 terbuka ke publik (80 dibutuhkan untuk tantangan ACME).
+#    sslip.io (<ip-with-dashes>.sslip.io) juga bekerja tanpa beli domain.
+#
+# {$PUBLIC_HOST} {
+# 	encode gzip
+# 	@api path /trpc/* /healthz /metrics
+# 	handle @api { reverse_proxy server:5181 }
+# 	handle { root * /srv; try_files {path} /index.html; file_server }
+# }
