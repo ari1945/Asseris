@@ -6,6 +6,7 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { usePhaseGate, PhaseGateDialog, eqrStatusFor } from './wp_signoff';
+import { useEthicsGate } from './ethics_gate';
 
 /* ============================================================
    Asseris — Audit Opinion Generator · Engine & Panels
@@ -460,7 +461,9 @@ function OpinionSignoff({ doc, patch }: any) {
      EQR→EQR_REVIEW (Partner). Menutup celah: Junior/Senior tak boleh menandatangani slot manapun;
      Manager tak boleh menandatangani slot Partner/EQR. Penegakan server = fase lanjut. */
   const SLOT_CAP: Record<string, string> = { manager: CAP.SIGNOFF_REVIEWER, partner: CAP.OPINION_APPROVE, eqr: CAP.EQR_REVIEW };
-  const canSignSlot = (role: string) => !auth || typeof auth.can !== 'function' || auth.can(SLOT_CAP[role]);
+  /* #3 — deklarasi Kode Etik/AML penanda tangan wajib sah sebelum membubuhkan tanda tangan/menerbitkan opini. */
+  const eg = useEthicsGate();
+  const canSignSlot = (role: string) => (!auth || typeof auth.can !== 'function' || auth.can(SLOT_CAP[role])) && !eg.blocked;
   // Q4 — rekam penanda tangan SEBENARNYA (dari sesi), bukan nama slot hardcode (REVIEW_CHAIN.who).
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
@@ -512,7 +515,7 @@ function OpinionSignoff({ doc, patch }: any) {
     setWp('900', wpPatch);
   };
   const chainComplete = REVIEW_CHAIN.every((r: any) => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
-  const canFinalize = autoDone && manualDone && chainComplete && eqrSubstantiveDone && !doc.finalized && canApprove;
+  const canFinalize = autoDone && manualDone && chainComplete && eqrSubstantiveDone && !doc.finalized && canApprove && !eg.blocked;
 
   const finalize = () => { patch({ finalized: true, finalizedDate: today }); setWp('900', { status: 'Reviewed' }); };
 
@@ -597,6 +600,9 @@ function OpinionSignoff({ doc, patch }: any) {
             )}
             {!doc.finalized && !canApprove && (
               <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> Hanya Engagement Partner yang dapat menerbitkan opini (ditegakkan di server).</div>
+            )}
+            {!doc.finalized && eg.blocked && (
+              <div className="tiny" style={{ color: 'var(--red)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> {eg.reason} ({eg.name}) — tanda tangan &amp; penerbitan opini diblokir hingga Deklarasi Kode Etik/AML sah (atau pengecualian Partner).</div>
             )}
             {!doc.finalized
               ? <Btn variant="primary" disabled={!canFinalize} style={{ width: '100%' }} onClick={finalize}><I.lock size={14} /> Finalisasi Laporan Auditor</Btn>

@@ -109,6 +109,18 @@ export async function auditVerify() {
 Object.assign(window, { amsAuditList: auditList, amsAuditVerify: auditVerify });
 
 /* ============================================================
+   Fase 4/5 — cross-engagement task aggregation for the role-based Beranda.
+   The server rolls up open review notes addressed to me across EVERY engagement I may
+   access (W7.5), plus my firm-global WP assignments and reachable-client deadlines.
+   Degrades gracefully: null when the server is absent (the Beranda then shows an honest
+   "server offline" note instead of erroring). Read-only.
+   ============================================================ */
+export async function tasksMine() {
+  try { return await api.tasks.mine.query(); } catch (e) { return null; }
+}
+Object.assign(window, { amsTasksMine: tasksMine });
+
+/* ============================================================
    W10.5 — export seal + export-event logging. The artifact bytes are built client-side
    (export_pdf.js); these only ask the server to (a) sign a content hash into a verifiable
    provenance seal and (b) record the export to the audit chain. seal() may throw so the

@@ -6,6 +6,7 @@ import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { HBars, LineChart, StackBar } from './view_fpm_parts';
 import { FIRMFIN } from './data_firmfin';
+import { rotTier } from './data_licensing';
 
 /* ============================================================
    Asseris — Firm Dashboard · extra tabs
@@ -195,6 +196,10 @@ function DashMutu() {
   const eqrActive = EQR.filter((e: any) => e.status !== 'Selesai').length;
   const declaredPct = Math.round(IND.filter((i: any) => i.declared).length / IND.length * 100);
   const rotationWarn = IND.filter((i: any) => i.tenure >= i.rotationLimit).length;
+  /* peringatan dini: partner memasuki jendela ≤6 bulan sebelum batas (belum wajib) */
+  type RotRow = { name: string; rotationClient?: string; tenure: number; rotationLimit: number };
+  const rotationAlertList = (IND as RotRow[]).filter((i) => i.rotationClient && i.rotationClient !== '—' && rotTier(i.tenure, i.rotationLimit) === 'alert');
+  const rotationAlert = rotationAlertList.length;
 
   const cellRisks = (impact: any, likelihood: any) => risks.filter((r: any) => r.impact === impact && r.likelihood === likelihood);
 
@@ -266,18 +271,20 @@ function DashMutu() {
             <thead><tr><th>Partner</th><th>Klien Rotasi</th><th className="num">Tenure</th><th style={{ width: 96 }}>Status</th></tr></thead>
             <tbody>
               {IND.filter((i: any) => i.rotationClient).map((i: any) => {
-                const warn = i.tenure >= i.rotationLimit;
+                const tier = rotTier(i.tenure, i.rotationLimit);
+                const tierCol = tier === 'due' ? 'var(--red)' : tier === 'alert' ? 'var(--amber)' : 'inherit';
                 return (
                   <tr key={i.id}>
                     <td style={{ fontWeight: 600 }}>{i.name}</td>
                     <td className="tiny muted truncate" style={{ maxWidth: 150 }}>{i.rotationClient}</td>
-                    <td className="num" style={{ color: warn ? 'var(--red)' : 'inherit' }}>{i.tenure}/{i.rotationLimit}</td>
-                    <td><Badge kind={warn ? 'red' : 'green'}>{warn ? 'Rotasi Wajib' : 'Aman'}</Badge></td>
+                    <td className="num" style={{ color: tierCol }}>{i.tenure}/{i.rotationLimit}</td>
+                    <td><Badge kind={tier === 'due' ? 'red' : tier === 'alert' ? 'amber' : 'green'}>{tier === 'due' ? 'Rotasi Wajib' : tier === 'alert' ? '≤6 bln' : 'Aman'}</Badge></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          {rotationAlert > 0 && <div style={{ padding: '10px 14px 0' }}><div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}><I.alert size={11} /> Peringatan dini rotasi: <b>{rotationAlertList.map((i) => i.name.split(' ')[0]).join(', ')}</b> memasuki jendela ≤6 bulan sebelum batas rotasi — mulai perencanaan transisi partner (POJK 13/2017 · PP 20/2015).</div></div></div>}
           {rotationWarn > 0 && <div style={{ padding: '10px 14px' }}><div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}><I.alert size={11} /> {rotationWarn} partner mencapai batas rotasi — siapkan transisi sesuai SA 700 & ketentuan PPPK.</div></div></div>}
         </Panel>
       </div>
