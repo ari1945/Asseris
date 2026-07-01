@@ -5,8 +5,22 @@ import { appRouter } from './router';
 import { createContext } from './context';
 import { prisma } from './db';
 import { log, inc, renderMetrics } from './obs/log';
+import { assertProdConfig, configSummary } from './prodConfig';
 
 const PORT = Number(process.env.PORT ?? 5181);
+
+// Deploy-Readiness M2 (§3.2) — log a redacted config summary, then FAIL-FAST in production if any
+// required secret is missing/insecure (exit 1 before we ever listen). Dev/test are unaffected.
+log.info('config.summary', { ...configSummary() });
+assertProdConfig(process.env, {
+  onProblem: (p) => log.error('config.invalid', { key: p.key, problem: p.problem }),
+  onExit: (count) => {
+    log.error('config.fail_fast', {
+      detail: `Menolak start: ${count} masalah konfigurasi produksi tidak aman. Perbaiki env di atas lalu jalankan ulang.`,
+    });
+    process.exit(1);
+  },
+});
 
 // The tRPC request handler (procedures served at root; the Vite dev proxy strips the /trpc
 // prefix, and prod fronts this with the same path shape). onError feeds the error counter +

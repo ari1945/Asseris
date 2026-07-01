@@ -33,14 +33,18 @@ jobs:
     name: docker build + postgres boot + healthz/seed/login
     runs-on: ubuntu-latest
     env:
-      POSTGRES_PASSWORD: ci-smoke-pw   # ephemeral CI DB, dropped via `down -v` every run
-      COOKIE_SECURE: "0"               # HTTP on the runner
+      POSTGRES_PASSWORD: ci-smoke-pw   # ephemeral CI DB, dropped via `down -v` every run (≠ 'changeme' → passes M2 guard)
+      COOKIE_SECURE: "1"               # M2 fail-fast requires this in prod; login smoke uses the BODY token (not the cookie), so HTTP on the runner is fine
     steps:
       - uses: actions/checkout@v4
 
       # totpSecret-at-rest key (AES-256-GCM). Generated per-run; never persisted.
       - name: generate APP_ENCRYPTION_KEY
         run: echo "APP_ENCRYPTION_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      # M2 — Ed25519 export-seal signing key (base64 PKCS8 DER), required by the prod fail-fast guard. Per-run.
+      - name: generate APP_SIGNING_KEY
+        run: echo "APP_SIGNING_KEY=$(openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)" >> "$GITHUB_ENV"
 
       # Builds server/Dockerfile (catches COPY/dep/ESM footguns) and starts db + server.
       # compose's start command runs `prisma db push` against postgres:16, then `npm start`.
@@ -70,6 +74,16 @@ jobs:
             -H 'content-type: application/json' \
             -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
             | grep -q '"token"'
+
+      # M2 (§3.2) — prove the guard REFUSES an insecure prod boot: same image, but COOKIE_SECURE=0
+      # overridden → assertProdConfig must exit non-zero BEFORE listening. --no-deps: the guard runs
+      # before any DB use, so no Postgres needed. If it boots anyway, that's a fail-fast regression.
+      - name: fail-fast — boot refuses insecure prod config
+        run: |
+          if docker compose run --rm --no-deps -e COOKIE_SECURE=0 server npm start; then
+            echo "REGRESSION: server booted despite COOKIE_SECURE=0 under NODE_ENV=production"; exit 1
+          fi
+          echo "OK: server refused to boot (fail-fast) with insecure config"
 
       - name: dump compose logs on failure
         if: failure()

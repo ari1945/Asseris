@@ -1,7 +1,9 @@
 # W10 — deploy-ready container image for the NeoSuite AMS server (tRPC + Prisma).
 #
-# ⚠️ UNTESTED FROM THE DEV MACHINE — authored from the known runtime shape, not a verified build.
-#    See BUILD.md › "Deploy (W10)" for the runbook and what to verify before trusting it.
+# ✅ VERIFIED IN CI: .github/workflows/deploy-smoke.yml builds THIS image and boots the full compose
+#    stack (server + postgres:16) on every server/migration/compose change, asserting the chain
+#    db push → healthz → seed → login. (The old "UNTESTED FROM THE DEV MACHINE" note referred to the
+#    Windows dev box having no Docker; CI on ubuntu-latest supersedes it.) See BUILD.md › "Deploy (W10)".
 #
 # Build context MUST be the REPO ROOT: the server imports ../../migration/src/{rbac,data}.js
 # (the shared RBAC SSOT + seed data), so both packages have to be in the image.

@@ -35,6 +35,7 @@ services:
       NODE_ENV: production
       COOKIE_SECURE: ${COOKIE_SECURE:-1}            # 1 = Secure cookies (we serve HTTPS via Caddy)
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY (openssl rand -hex 32)}
+      APP_SIGNING_KEY: ${APP_SIGNING_KEY:?set APP_SIGNING_KEY (openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)}
       ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}   # leave EMPTY behind a proxy (see README gotcha)
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-}
