@@ -40,7 +40,7 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-}
-    command: sh -c "npx prisma db push --skip-generate && npm start"
+    command: sh -c "npx prisma migrate deploy && npm start"   # M4 — versioned Postgres migrations (idempotent)
     expose:
       - "5181"                       # internal only — reached via Caddy, not published
 

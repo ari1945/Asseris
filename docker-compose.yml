@@ -48,8 +48,9 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}                # optional — enables LLM narration proxy
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-}
-    # Apply schema to Postgres (no migrations dir yet — db push is the current workflow), then run.
-    command: sh -c "npx prisma db push --skip-generate && npm start"
+    # M4 — apply versioned Postgres migrations (prisma/migrations/, provider flipped to postgresql at
+    # image build), then run. Idempotent: already-applied migrations are skipped on restart.
+    command: sh -c "npx prisma migrate deploy && npm start"
     ports:
       - "5181:5181"
 
