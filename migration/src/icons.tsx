@@ -360,6 +360,7 @@ const RELATED_SA = {
   crm:         [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }],
   eqr:         [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaporan' }],
   reviewnotes: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaksanaan' }],
+  hrcase:      [{ code: 'ISQM 1', title: 'Akuntabilitas, Budaya & Tindakan Disipliner atas Pelanggaran Mutu/Etika (¶28–34)', phase: 'Tata Kelola Mutu' }, { code: 'Kode Etik', title: 'Kepatuhan Ketentuan Etika (IAPI/IESBA) & Konsekuensi Pelanggaran', phase: 'Tata Kelola Mutu' }],
   dataflow:    [{ code: 'SA 500', title: 'Bukti Audit', phase: 'Pelaksanaan' }, { code: 'SA 230', title: 'Dokumentasi Audit', phase: 'Pelaksanaan' }],
   internalaudit: [{ code: 'SA 610', title: 'Penggunaan Pekerjaan Auditor Internal', phase: 'Pelaksanaan' }],
   framework:   [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan — keberterimaan kerangka pelaporan', phase: 'Perencanaan' }, { code: 'SA 700', title: 'Perumusan Opini & Pelaporan atas LK', phase: 'Pelaporan', view: 'sa705' }, { code: 'SA 800', title: 'Pertimbangan Khusus — Kerangka Bertujuan Khusus', phase: 'Area Khusus', view: 'sa800' }],

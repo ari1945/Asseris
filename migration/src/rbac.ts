@@ -82,7 +82,9 @@ export function capForWrite(scope: any, key: any) {
     // Keputusan otoritatif intra-doc (persetujuan akseptasi / penerbitan surat SA 210)
     // tetap Partner-only via gate klien can(FIRM_ADMIN) + audit-trail ber-jejak (PR#20) —
     // pola "intra-doc gating = tugas UI" yang sama dengan opinion sign-off di wpState.
-    return key === 'clients' || key === 'engagements' || key === 'prospects' ? ENGAGEMENT_MANAGE : FIRM_ADMIN;
+    // trainingAttendance.v1 = konfirmasi kehadiran pelatihan (HR-ops data-entry, kreditkan SKP) →
+    // setara roster/intake: Admin/HR = Partner/Manajer (ENGAGEMENT_MANAGE), bukan FIRM_ADMIN penuh.
+    return key === 'clients' || key === 'engagements' || key === 'prospects' || key === 'trainingAttendance.v1' ? ENGAGEMENT_MANAGE : FIRM_ADMIN;
   }
   // scope === 'engagement'
   switch (key) {

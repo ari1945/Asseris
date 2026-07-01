@@ -366,7 +366,7 @@ function FirmLicensing() {
   const sum = L.summary();
   const fl = sum.firmLicenses, ap = sum.ap, mb = sum.memberships;
   const cal120 = sum.expSoon;
-  const rotFlag = sum.rotDue.length + sum.rotWarn.length;
+  const rotFlag = sum.rotDue.length + (sum.rotAlert ? sum.rotAlert.length : 0) + sum.rotWarn.length;
 
   const tabs = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -505,7 +505,7 @@ function FirmLicensing() {
                 {ap.map((a: any) => {
                   const open = openAp === a.izin;
                   const pplPct = Math.min(100, Math.round(a.ppl / a.pplReq * 100));
-                  const rotCol = a.rotState === 'due' ? 'var(--red)' : a.rotState === 'warn' ? 'var(--amber)' : 'var(--green)';
+                  const rotCol = a.rotState === 'due' ? 'var(--red)' : (a.rotState === 'alert' || a.rotState === 'warn') ? 'var(--amber)' : 'var(--green)';
                   const dExp = B.daysTo(a.exp);
                   return (
                     <React.Fragment key={a.izin}>
@@ -553,6 +553,7 @@ function FirmLicensing() {
                                   <div className="row ac gap6"><span className="tiny muted" style={{ width: 96 }}>Izin AP</span><span className="tiny mono">{a.izin} · {a.reg}</span></div>
                                 </div>
                                 {a.rotState === 'due' && <div className="panel" style={{ padding: '8px 10px', marginTop: 9, background: 'var(--red-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} style={{ verticalAlign: -2, color: 'var(--red)' }} /> Mencapai batas rotasi {a.rotationLimit} tahun — wajib rotasi partner penanggung jawab (UU 5/2011 · PMK). Dikelola di <TrSrc module="independence">Independence</TrSrc>.</div></div>}
+                                {a.rotState === 'alert' && <div className="panel" style={{ padding: '8px 10px', marginTop: 9, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}><I.alert size={12} style={{ verticalAlign: -2, color: 'var(--amber)' }} /> Peringatan dini — ≤6 bulan sebelum batas rotasi {a.rotationLimit} tahun. Mulai perencanaan transisi & cooling-off partner pengganti. Dikelola di <TrSrc module="independence">Independence</TrSrc>.</div></div>}
                               </div>
                             </div>
                           </div>

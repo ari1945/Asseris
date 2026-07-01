@@ -13,6 +13,10 @@ type SeedUser = { id: string; name: string; initials: string; role: string; emai
 const EXTRA_USERS: SeedUser[] = [
   { id: 'WHR-EP-0001', name: 'Hartono Wijaya', initials: 'HW', role: 'Engagement Partner', email: 'hartono.w@whr-cpa.id', password: 'Partner#2025!', title: 'Engagement Partner' },
   { id: 'WHR-SR-0210', name: 'Dimas Raharjo', initials: 'DR', role: 'Senior Auditor', email: 'dimas.r@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
+  /* EMP-022 — Senior yang deklarasi Kode Etik tahunannya BELUM sah (ETHICS_DECL seed: signed=false).
+     Login demo untuk gerbang #3: sign-off WP & penerbitan opini diblokir hingga deklarasi sah /
+     pengecualian Partner. email cocok dgn STAFF EMP-022 → resolveEmpId (ethics_gate). */
+  { id: 'WHR-SR-0022', name: 'Sinta Wulandari', initials: 'SW', role: 'Senior Auditor', email: 'sinta.w@whr-cpa.id', password: 'Sinta#2025!', title: 'Senior Auditor' },
   { id: 'WHR-JR-0388', name: 'Fajar Nugroho', initials: 'FN', role: 'Junior Auditor', email: 'fajar.n@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
 ];
 // Dev password for the primary seed user (Anindya, Audit Manager).

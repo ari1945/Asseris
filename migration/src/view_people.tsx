@@ -8,6 +8,8 @@ import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
+import { rotTier } from './data_licensing';
+import { cpeFromTraining, type TrainingCourse } from './cpe_training';
 
 /* ============================================================
    Asseris — HCM + CPE/PPL Tracker + Independence (Package E)
@@ -151,9 +153,12 @@ function CPETracker() {
   const nav = useNav();
   const staff: any = AMS.STAFF, req: any = AMS.CPE_REQ;
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
+  const [attendance] = useAmsPersist('trainingAttendance.v1', () => ({}));
   const [sel, setSel] = useStateE('EMP-007');
   const [showNew, setShowNew] = useStateE(false);
-  const log = (() => { const m = {}; staff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(((AMS.CPE_LOG as any)[s.id]) || [])]; }); return m; })();
+  /* #1/#2 — kredit SKP otomatis dari pelatihan yang kehadirannya dikonfirmasi (SSOT cpeFromTraining). */
+  const trainingByEmp = cpeFromTraining(AMS.TRAINING_CATALOG as TrainingCourse[], attendance);
+  const log = (() => { const m = {}; staff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((AMS.CPE_LOG as any)[s.id]) || [])]; }); return m; })();
   const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: '2026-03-09' }, ...(l[id] || [])] }));
 
   const summary = staff.map((s: any) => {
@@ -217,7 +222,7 @@ function CPETracker() {
               <div style={{ display: 'grid', gap: 0 }}>
                 {person.recs.length ? person.recs.map((r: any, i: any) => (
                   <div key={i} className="row ac jb" style={{ padding: '7px 0', borderBottom: i < person.recs.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                    <div style={{ minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{r.t}</div><div className="tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {r.type}</div></div>
+                    <div style={{ minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{r.t}</span>{r.src === 'training' && <Badge kind="teal"><I.flask size={9} /> Pelatihan</Badge>}</div><div className="tiny muted">{new Date(r.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {r.type}</div></div>
                     <span className="mono" style={{ fontWeight: 700 }}>{r.skp} SKP</span>
                   </div>
                 )) : <div className="tiny muted" style={{ padding: 12, textAlign: 'center' }}>Belum ada SKP tercatat tahun ini.</div>}
@@ -274,6 +279,9 @@ function Independence() {
   const conflicts = data.reduce((s: any, d: any) => s + d.conflicts, 0);
   const rotationDue = data.filter((d: any) => d.tenure >= d.rotationLimit).length;
   const rotationWarn = data.filter((d: any) => d.tenure >= d.rotationLimit - 1 && d.tenure < d.rotationLimit).length;
+  /* jendela peringatan dini ≤6 bulan sebelum batas (SSOT rotTier) */
+  type RotRow = { name: string; rotationClient?: string; tenure: number; rotationLimit: number };
+  const rotationAlertList = (data as RotRow[]).filter((d) => d.rotationClient !== '—' && rotTier(d.tenure, d.rotationLimit) === 'alert');
   const toggle = (id: any) => setData((list: any) => list.map((d: any) => d.id === id ? { ...d, declared: !d.declared } : d));
   const [sel, setSel] = useStateE(null);
   /* indepAppr: per-orang jejak persetujuan. Bentuk lama = number (level saja);
@@ -335,6 +343,12 @@ function Independence() {
         {rotationDue > 0 && (
           <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
             <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter((d: any) => d.tenure >= d.rotationLimit).map((d: any) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find((d: any) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
+          </div>
+        )}
+
+        {rotationAlertList.length > 0 && (
+          <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi & cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
           </div>
         )}
 

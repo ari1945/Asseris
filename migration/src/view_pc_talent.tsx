@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAuth, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
@@ -148,9 +149,23 @@ function lvlColor(actual: any, req: any) {
 
 function Learning() {
   const A: any = AMS;
+  const auth = useAuth();
   const [tab, setTab] = usePCtal('matrix');
   const [enroll, setEnroll] = useAmsPersist('pc.enroll', () => A.TRAINING_CATALOG.map((t: any) => ({ id: t.id, enrolled: t.enrolled })));
   const staff = A.STAFF, COMP = A.COMPETENCIES, REQ = A.COMPETENCY_REQ, ACT = A.COMPETENCY_ACTUAL;
+  /* #1/#2 — konfirmasi kehadiran pelatihan (admin/HR) → kredit SKP otomatis ke CPE Tracker.
+     Store firm-scope: tulis butuh ENGAGEMENT_MANAGE (Partner/Manager), ditegakkan server. */
+  const [attendance, setAttendance] = useAmsPersist('trainingAttendance.v1', () => ({}));
+  const canConfirm = !auth || typeof auth.can !== 'function' || auth.can(CAP.ENGAGEMENT_MANAGE);
+  const me = (auth && auth.user && auth.user.name) || 'Admin';
+  const attToday = (() => { try { return new Date().toLocaleDateString('en-CA'); } catch (e) { return '2026-03-09'; } })();
+  const isConfirmed = (trId: string, empId: string) => !!(attendance as any)[trId]?.[empId]?.confirmed;
+  const toggleAttend = (trId: string, empId: string) => setAttendance((a: any) => {
+    const cur = { ...(a[trId] || {}) };
+    if (cur[empId]?.confirmed) delete cur[empId];
+    else cur[empId] = { confirmed: true, by: me, at: attToday };
+    return { ...a, [trId]: cur };
+  });
 
   const actualOf = (s: any, cid: any) => (ACT[s.id] || {})[cid] ?? Math.max(1, (REQ[s.grade][cid] || 2) - 1);
   const gapCount = staff.reduce((n: any, s: any) => n + COMP.filter((c: any) => actualOf(s, c.id) < REQ[s.grade][c.id]).length, 0);
@@ -160,7 +175,8 @@ function Learning() {
   const seatsLeft = A.TRAINING_CATALOG.reduce((s: any, t: any) => s + (t.seats - (enroll.find((e: any) => e.id === t.id) || {}).enrolled), 0);
 
   const doEnroll = (id: any) => setEnroll((list: any) => list.map((e: any) => e.id === id ? { ...e, enrolled: Math.min(A.TRAINING_CATALOG.find((t: any) => t.id === id).seats, e.enrolled + 1) } : e));
-  const tabs = [{ id: 'matrix', label: 'Matriks Kompetensi' }, { id: 'catalog', label: 'Katalog Pelatihan', count: A.TRAINING_CATALOG.length }];
+  const confirmedTotal = A.TRAINING_CATALOG.reduce((n: any, t: any) => n + Object.values((attendance as any)[t.id] || {}).filter((r: any) => r?.confirmed).length, 0);
+  const tabs = [{ id: 'matrix', label: 'Matriks Kompetensi' }, { id: 'catalog', label: 'Katalog Pelatihan', count: A.TRAINING_CATALOG.length }, { id: 'attend', label: 'Kehadiran & SKP', count: confirmedTotal || null }];
 
   return (
     <>
@@ -227,6 +243,46 @@ function Learning() {
                 })}
               </tbody>
             </table>
+          )}
+
+          {tab === 'attend' && (
+            <div style={{ padding: 14, overflowX: 'auto' }}>
+              <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>
+                {canConfirm
+                  ? <>Konfirmasi kehadiran pelatihan per karyawan — SKP otomatis dikreditkan ke <b>CPE / PPL Tracker</b> begitu dikonfirmasi (tanpa input manual ganda). Klik sel untuk konfirmasi/batal.</>
+                  : <><I.lock size={11} /> Hanya Admin/HR (Partner/Manajer) yang dapat mengonfirmasi kehadiran. Anda melihat status saja.</>}
+              </div>
+              <table className="dtbl" style={{ minWidth: 760 }}>
+                <thead><tr>
+                  <th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)', minWidth: 150 }}>Karyawan</th>
+                  {A.TRAINING_CATALOG.map((t: any) => <th key={t.id} className="num" style={{ minWidth: 70, fontSize: 10, verticalAlign: 'bottom' }} title={t.title}>{t.id}<div className="tiny muted mono">{t.skp} SKP</div></th>)}
+                  <th className="num">Σ SKP</th>
+                </tr></thead>
+                <tbody>
+                  {staff.map((s: any) => {
+                    const gained = A.TRAINING_CATALOG.reduce((n: any, t: any) => n + (isConfirmed(t.id, s.id) ? t.skp : 0), 0);
+                    return (
+                      <tr key={s.id}>
+                        <td style={{ position: 'sticky', left: 0, background: 'var(--surface)' }}><div className="row ac gap8"><Avatar name={s.name} size={22} /><span className="truncate tiny" style={{ fontWeight: 600 }}>{s.name}</span></div></td>
+                        {A.TRAINING_CATALOG.map((t: any) => {
+                          const on = isConfirmed(t.id, s.id);
+                          return (
+                            <td key={t.id} className="num" style={{ textAlign: 'center' }}>
+                              <button className="btn sm" disabled={!canConfirm} onClick={() => toggleAttend(t.id, s.id)}
+                                title={on ? ((attendance as any)[t.id][s.id].by + ' · ' + (attendance as any)[t.id][s.id].at) : (canConfirm ? 'Konfirmasi hadir' : 'Hanya Admin/HR')}
+                                style={{ width: 26, height: 22, padding: 0, background: on ? 'var(--green-bg)' : 'transparent', color: on ? 'var(--green)' : 'var(--ink-4)', borderColor: on ? 'var(--green)' : 'var(--line)' }}>
+                                {on ? <I.check size={12} /> : '○'}
+                              </button>
+                            </td>
+                          );
+                        })}
+                        <td className="num mono" style={{ fontWeight: 700, color: gained ? 'var(--green)' : 'var(--ink-4)' }}>{gained}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </Panel>
         <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Pelatihan terstruktur tersinkron ke <b>CPE / PPL Tracker</b> (SKP IAPI). Level kompetensi disyaratkan meningkat seiring jenjang — gap menjadi dasar penyusunan rencana pelatihan & rencana pengembangan individu.</div>
