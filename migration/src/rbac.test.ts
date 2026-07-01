@@ -15,6 +15,8 @@ const PARTNER = 'Engagement Partner';
 const MANAGER = 'Audit Manager';
 const SENIOR = 'Senior Auditor';
 const JUNIOR = 'Junior Auditor';
+const HR_FIRMA = 'Admin & HR Firma';
+const FIN_FIRMA = 'Finance Firma';
 
 describe('RBAC — kapabilitas otoritatif sign-off (segregation of duties)', () => {
   /* Tiap baris = [cap, peran yang BERHAK]. Peran lain HARUS ditolak.
@@ -35,6 +37,10 @@ describe('RBAC — kapabilitas otoritatif sign-off (segregation of duties)', () 
     [CAP.FIRM_ADMIN, [PARTNER]],
     // override gerbang transisi fase meski ada blocker (mulai Eksekusi tanpa akseptasi/surat; arsip belum lengkap)
     [CAP.PHASE_OVERRIDE, [PARTNER]],
+    // 2026-07-01 — tulis dokumen People & Compliance firm-wide (payroll/cuti/kinerja/SKP/independensi/etik)
+    [CAP.HR_MANAGE, [PARTNER, HR_FIRMA]],
+    // tulis dokumen Firm Finance (ERP): GL/AP/pajak firma/rekonsiliasi bank
+    [CAP.FIRMFIN_EDIT, [PARTNER, FIN_FIRMA]],
   ];
 
   matrix.forEach(([cap, allowed]) => {
@@ -65,6 +71,22 @@ describe('RBAC — kapabilitas otoritatif sign-off (segregation of duties)', () 
     expect(can(PARTNER, 'cap.tidak.ada')).toBe(false);
     expect(can(undefined, CAP.WP_EDIT)).toBe(false);
   });
+
+  it('peran firm-ops (Admin & HR Firma, Finance Firma) TIDAK punya satu pun kapabilitas kerja perikatan', () => {
+    [HR_FIRMA, FIN_FIRMA].forEach((role) => {
+      expect(can(role, CAP.WP_EDIT)).toBe(false);
+      expect(can(role, CAP.AJE_EDIT)).toBe(false);
+      expect(can(role, CAP.SIGNOFF_REVIEWER)).toBe(false);
+      expect(can(role, CAP.OPINION_APPROVE)).toBe(false);
+      expect(can(role, CAP.ENGAGEMENT_VIEW_ALL)).toBe(false);
+      expect(can(role, CAP.ENGAGEMENT_MANAGE)).toBe(false);
+    });
+  });
+
+  it('Admin & HR Firma TIDAK boleh FIRMFIN_EDIT; Finance Firma TIDAK boleh HR_MANAGE (silo lintas-fungsi)', () => {
+    expect(can(HR_FIRMA, CAP.FIRMFIN_EDIT)).toBe(false);
+    expect(can(FIN_FIRMA, CAP.HR_MANAGE)).toBe(false);
+  });
 });
 
 describe('RBAC — capForWrite (gate dokumen server, dikonsumsi state.set)', () => {
@@ -85,6 +107,18 @@ describe('RBAC — capForWrite (gate dokumen server, dikonsumsi state.set)', () 
     expect(capForWrite('firm', 'engagements')).toBe(CAP.ENGAGEMENT_MANAGE);
     expect(capForWrite('firm', 'prospects')).toBe(CAP.ENGAGEMENT_MANAGE);
     expect(capForWrite('firm', 'eqrReviews.v2')).toBe(CAP.FIRM_ADMIN);
+  });
+
+  it('firm: dokumen People & Compliance (payroll/cuti/kinerja/SKP/independensi/etik) → HR_MANAGE', () => {
+    ['payrollRun', 'payrollData', 'leaveReqs', 'perfPeople', 'cpeExtra', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck', 'pc.ethics', 'pc.gifts'].forEach((key) => {
+      expect(capForWrite('firm', key)).toBe(CAP.HR_MANAGE);
+    });
+  });
+
+  it('firm: dokumen Firm Finance/ERP (GL/AP/pajak firma/rekonsiliasi bank) → FIRMFIN_EDIT', () => {
+    ['firmgl', 'firmap', 'firmtax', 'bankrecon'].forEach((key) => {
+      expect(capForWrite('firm', key)).toBe(CAP.FIRMFIN_EDIT);
+    });
   });
 
   it('user scope → null (kepemilikan dicek terpisah di server)', () => {

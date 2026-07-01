@@ -1,6 +1,7 @@
 import { prisma } from './db';
 import { loadAmsSeed, loadConnectorSeed } from './seedData';
 import { hashPassword } from './auth/password';
+import { PERSONAL_KEYS } from './personalScope';
 
 const FIRM_ID = 'FIRM-WHR';
 const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engagement
@@ -18,6 +19,13 @@ const EXTRA_USERS: SeedUser[] = [
      pengecualian Partner. email cocok dgn STAFF EMP-022 → resolveEmpId (ethics_gate). */
   { id: 'WHR-SR-0022', name: 'Sinta Wulandari', initials: 'SW', role: 'Senior Auditor', email: 'sinta.w@whr-cpa.id', password: 'Sinta#2025!', title: 'Senior Auditor' },
   { id: 'WHR-JR-0388', name: 'Fajar Nugroho', initials: 'FN', role: 'Junior Auditor', email: 'fajar.n@whr-cpa.id', password: 'Junior#2025!', title: 'Junior Auditor' },
+  /* 2026-07-01 — dua peran firm-ops pertama (PRD Restrukturisasi Navigasi & Beranda Berbasis
+     Peran, §0 OQ1). BUKAN staf audit: sengaja TIDAK ditambahkan ke A.TEAM/A.STAFF (roster itu
+     audit-staffing shaped — grade/util/engagements/cert; lihat rbac.ts komentar ROLES) atau
+     EngagementMember (mereka tak pernah anggota perikatan apa pun). Login mereka bekerja murni
+     lewat User + dataJson di bawah. */
+  { id: 'WHR-HR-0501', name: 'Yuni Marlina', initials: 'YM', role: 'Admin & HR Firma', email: 'yuni.m@whr-cpa.id', password: 'HrAdmin#2025!', title: 'Admin & HR Firma' },
+  { id: 'WHR-FN-0601', name: 'Teguh Prasetyo', initials: 'TP', role: 'Finance Firma', email: 'teguh.p@whr-cpa.id', password: 'Finance#2025!', title: 'Finance Firma' },
 ];
 // Dev password for the primary seed user (Anindya, Audit Manager).
 const PRIMARY_PASSWORD = 'Manager#2025!';
@@ -203,11 +211,46 @@ async function main() {
     });
   }
 
+  // 2026-07-01 — seed StateDoc rows for the row-filtered `personal.get` read path (Fase 3,
+  // PRD Restrukturisasi Navigasi & Beranda Berbasis Peran) so there is never a "version 0,
+  // fall back to whatever the client computed locally" gap for these keys — the server is
+  // the source of truth for personal records from first boot, not just after a first write.
+  // (cpeExtra/indepAppr/indepRotAck are additive-only logs — {} is the correct empty state,
+  // matching the client's own `() => ({})` initial value; left unseeded on purpose.)
+  const seedIndepThreats = (rows: Array<{ id: string; conflicts: number; finInterest: string }>) =>
+    rows.filter((r) => r.conflicts > 0).map((r) => ({
+      id: 'TH-' + r.id, personId: r.id, type: 'Kedekatan', desc: r.finInterest,
+      severity: 'Sedang', safeguard: 'Pengamanan diterapkan & didokumentasikan (telaah independen).',
+      status: 'Dimitigasi', by: '', at: '',
+    }));
+  const Aany = A as unknown as {
+    PAYROLL?: Record<string, unknown>; LEAVE_REQUESTS?: unknown[];
+    PERF_CYCLE?: { people?: Record<string, unknown> };
+    INDEPENDENCE?: Array<{ id: string; conflicts: number; finInterest: string }>;
+    ETHICS_DECL?: Record<string, unknown>; GIFTS_REGISTER?: unknown[];
+  };
+  const personalSeed: Array<[string, unknown]> = [
+    ['payrollData', Aany.PAYROLL ?? {}],
+    ['leaveReqs', Aany.LEAVE_REQUESTS ?? []],
+    ['perfPeople', Aany.PERF_CYCLE?.people ?? {}],
+    ['independence', Aany.INDEPENDENCE ?? []],
+    ['indepThreats', seedIndepThreats(Aany.INDEPENDENCE ?? [])],
+    ['pc.ethics', Aany.ETHICS_DECL ?? {}],
+    ['pc.gifts', Aany.GIFTS_REGISTER ?? []],
+  ];
+  for (const [key, value] of personalSeed) {
+    if (!(key in PERSONAL_KEYS)) throw new Error(`personalSeed key "${key}" missing from PERSONAL_KEYS — keep them in sync`);
+    await prisma.stateDoc.create({
+      data: { scope: 'firm', scopeId: FIRM_ID, key, valueJson: JSON.stringify(value), version: 1, updatedBy: PRIMARY_ID },
+    });
+  }
+
   console.log(
     `Seeded: 1 firm, ${1 + EXTRA_USERS.length} users (1 per RBAC role, w/ dev passwords), ` +
       `${A.TEAM.length} team, ${A.CLIENTS.length} clients, ` +
       `${A.ENGAGEMENTS.length} engagements, ${A.WTB.length} WTB rows (${ACTIVE_ENG}), ` +
-      `${memberships.length} engagement memberships, ${CONNECTORS.length} connectors.`,
+      `${memberships.length} engagement memberships, ${CONNECTORS.length} connectors, ` +
+      `${personalSeed.length} personal-scope documents.`,
   );
 }
 

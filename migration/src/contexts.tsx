@@ -119,7 +119,21 @@ const AMS_PERSIST_SCOPE = {
      status prosedur audit bertahan lintas reload (override per-id; seed=canon). */
   'subsequentClass.v1': 'engagement',
   'subsequentProcs.v1': 'engagement',
+  /* Confirmation Hub (SA 505): kesimpulan kerja konfirmasi eksternal (override status/
+     resp/validated + rekonsiliasi + prosedur alternatif + keandalan) bertahan lintas
+     reload & terisolasi per-perikatan. Key statis '.v1' + scope engagement →
+     capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. Seed = CONFIRMATIONS. */
+  'confirmState.v1': 'engagement',
 };
+
+/* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the
+   generic `state.get` (server/src/personalScope.ts PERSONAL_KEYS — keep in sync). Writes
+   are UNCHANGED (still state.set, still capForWrite-gated); only hydration branches. */
+const PERSONAL_STATE_KEYS = new Set([
+  'payrollData', 'leaveReqs', 'perfPeople', 'cpeExtra',
+  'independence', 'indepAppr', 'indepThreats', 'indepRotAck',
+  'pc.ethics', 'pc.gifts',
+]);
 
 const SYNC_DEBOUNCE_MS = 400;
 
@@ -163,7 +177,8 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any) {
     let cancelled = false;
     setValRaw(cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache
     versionRef.current = 0;
-    (api as any).state.get.query({ scope, scopeId, key }).then((res: any) => {
+    const reader = PERSONAL_STATE_KEYS.has(key) ? (api as any).personal.get : (api as any).state.get;
+    reader.query({ scope, scopeId, key }).then((res: any) => {
       if (cancelled) return;
       versionRef.current = res.version;
       if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }

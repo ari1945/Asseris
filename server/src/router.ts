@@ -25,6 +25,11 @@ import { assertIpAllowed } from './security/ipAllowlist';
 import { listConnectors } from './integrations/config';
 import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
+import { PERSONAL_KEYS, resolveEmpId, filterPersonal } from './personalScope';
+import {
+  amsShortName, loadTaskSeed, deriveReviewNoteTasks, deriveWpAssignmentTasks, deriveDeadlineTasks,
+  type MineTask,
+} from './taskAgg';
 
 const scopeEnum = z.enum(['engagement', 'firm', 'user']);
 
@@ -554,6 +559,72 @@ export const appRouter = router({
         });
         return { version: baseVersion + 1 };
       }),
+  }),
+
+  // 2026-07-01 — row-filtered read for People & Compliance documents that hold PERSONAL
+  // records (payroll, leave, performance, CPE log, independence/ethics declarations,
+  // gifts). state.get is document-granular (whole blob to anyone who can read the
+  // scope); this filters to the caller's own EMP-xxx row unless they hold HR_MANAGE or
+  // FIRM_ADMIN (oversight). Writes are UNCHANGED — still state.set, still gated by the
+  // SAME capForWrite(scope,key) as before (see rbac.ts). PRD "Restrukturisasi Navigasi
+  // & Beranda Berbasis Peran", Fase 3.
+  personal: router({
+    get: protectedProcedure.input(stateKey).query(async ({ input, ctx }) => {
+      if (!(input.key in PERSONAL_KEYS)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `not a personal-scoped key: ${input.key}` });
+      }
+      if (input.scope === 'engagement') await assertEngagementAccess(ctx.user, input.scopeId);
+      const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: input } });
+      const shape = PERSONAL_KEYS[input.key];
+      const raw = doc ? (JSON.parse(doc.valueJson) as unknown) : (shape.mode === 'array' ? [] : {});
+      const full = can(ctx.user.role, CAP.HR_MANAGE) || can(ctx.user.role, CAP.FIRM_ADMIN);
+      const empId = full ? null : await resolveEmpId(ctx.user);
+      return { value: filterPersonal(input.key, raw, empId, full), version: doc?.version ?? 0 };
+    }),
+  }),
+
+  // 2026-07-01 — cross-engagement task aggregation for the role-based Beranda (PRD
+  // "Restrukturisasi Navigasi & Beranda Berbasis Peran", Fase 4). The legacy client hook
+  // useMyTasks only ever sees ONE engagement (the active one); this rolls up open review
+  // notes addressed to the caller across EVERY engagement they may access, plus their
+  // firm-global WP assignments and reachable-client deadlines. Isolation is NOT re-invented:
+  // it reuses accessibleEngagementIds (W7.5), so a non-member never receives another
+  // engagement's tasks — pinned by the negative tests in __tests__/task_agg.test.ts.
+  tasks: router({
+    mine: protectedProcedure.query(async ({ ctx }) => {
+      const me = amsShortName(ctx.user.name);
+      const acc = await accessibleEngagementIds(ctx.user);
+      const engagements = await prisma.engagement.findMany({
+        where: acc === 'all' ? {} : { id: { in: acc } },
+        include: { client: true },
+        orderBy: { id: 'asc' },
+      });
+      const seed = await loadTaskSeed();
+
+      // Per-engagement, isolation-scoped: read this engagement's reviewNotes doc (seed
+      // fallback when never written) and derive the notes addressed to me. Each read is a
+      // scope the caller already passed the W7.5 gate for (it's in `acc`).
+      const perEngagement = await Promise.all(
+        engagements.map(async (e) => {
+          const doc = await prisma.stateDoc.findUnique({
+            where: { scope_scopeId_key: { scope: 'engagement', scopeId: e.id, key: 'reviewNotes' } },
+          });
+          const notesRaw = doc ? (JSON.parse(doc.valueJson) as unknown) : seed.reviewNotes;
+          const label = e.client?.name ?? e.id;
+          return deriveReviewNoteTasks(e.id, label, notesRaw, me);
+        }),
+      );
+
+      const clientNames: 'all' | Set<string> =
+        acc === 'all' ? 'all' : new Set(engagements.map((e) => e.client?.name).filter((n): n is string => !!n));
+
+      const tasks: MineTask[] = [
+        ...perEngagement.flat(),
+        ...deriveWpAssignmentTasks(seed.workpapers, me),
+        ...deriveDeadlineTasks(seed.deadlines, clientNames),
+      ];
+      return { me, engagementCount: engagements.length, tasks };
+    }),
   }),
 });
 

@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "lint:any-baseline": "eslint src --suppress-rule @typescript-eslint/no-explicit-any --prune-suppressions",
+    "lint:any-baseline": "eslint src --suppress-rule @typescript-eslint/no-explicit-any",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useAuth, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
@@ -38,9 +39,14 @@ function calcPayslip(p: any, R: any) {
 function Payroll() {
   const { fmt } = AMS;
   const nav = useNav();
+  const auth = useAuth();
+  const isFull = !!(auth && typeof auth.can === 'function' && (auth.can(CAP.HR_MANAGE) || auth.can(CAP.FIRM_ADMIN)));
   const R: any = AMS.PAYROLL_RATES;
   const staff: any = AMS.STAFF;
-  const PR = AMS.PAYROLL;
+  // 2026-07-01 — server-fetched & row-filtered (personal.get via useAmsPersist('payrollData',…)),
+  // bukan lagi AMS.PAYROLL statis: non-HR_MANAGE/FIRM_ADMIN hanya menerima baris miliknya sendiri
+  // dari server — bukan cuma disembunyikan di UI (lihat server/src/personalScope.ts).
+  const [PR] = useAmsPersist('payrollData', () => AMS.PAYROLL);
   const [sel, setSel] = usePR(null);
   const [run, setRun] = useAmsPersist('payrollRun', 'draft'); // draft | approved | paid
   const [thr, setThr] = usePR(false);
@@ -89,6 +95,11 @@ function Payroll() {
         <div className="row jb ac" style={{ marginBottom: 12 }}>
           <div><span style={{ fontSize: 15, fontWeight: 700 }}>Penggajian — {R.period}</span><span className="tiny muted" style={{ marginLeft: 8 }}>{rows.length} karyawan · metode PPh 21 TER (PMK 168/2023)</span></div>
         </div>
+        {!isFull && (
+          <div className="tiny" style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--ink-2)' }}>
+            Menampilkan slip gaji <b>Anda sendiri saja</b> — figur "Total" di bawah adalah milik Anda, bukan agregat firma. Admin & HR Firma dan Partner melihat seluruh staf.
+          </div>
+        )}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(tot.gross / 1e6, 0) + ' jt'} label="Total Penghasilan Bruto" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(tot.pph / 1e6, 1) + ' jt'} label="PPh 21 Dipotong" accent="var(--amber)" /></div></Panel>
