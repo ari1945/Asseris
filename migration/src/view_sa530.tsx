@@ -59,9 +59,15 @@ function SA530View() {
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useState530('kalkulator');
 
+  /* Default TM = Performance Materiality (75% × materialitas overall perikatan),
+     dikonversi ke Rp juta. Konsolidasi SA 530: dahulu SamplingEngine memakai PM ini
+     sebagai default; sa530 mewarisinya (fallback ke seed bila materialitas absen).
+     Hanya memengaruhi seed awal — state ter-persist tetap menang. */
+  const matRp = firm?.activeEngagement?.materiality;
+  const pmJuta = (typeof matRp === 'number' && matRp > 0) ? Math.round((matRp * 0.75) / 1e6) : SAMPLING_SEED.params.tm;
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'sampling.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
-  const [smp, setSmp] = useAmsPersist('sampling.v1', () => SAMPLING_SEED);
+  const [smp, setSmp] = useAmsPersist('sampling.v1', () => ({ ...SAMPLING_SEED, params: { ...SAMPLING_SEED.params, tm: pmJuta } }));
   const params: SamplingParams = (smp && smp.params) || SAMPLING_SEED.params;
   const findings: SampleFinding[] = (smp && smp.findings) || [];
   /* backward-compat: state lama tak punya design/seedFrac → default seed */
@@ -288,6 +294,12 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
 function F530Selection({ interval, bv, seedFrac, setSeedFrac, locked }: { interval: number; bv: number; seedFrac: number; setSeedFrac: (v: number) => void; locked: boolean }) {
   const seedStart = Math.max(1, Math.round(seedFrac * interval));
   const selected: SelectedItem[] = useMemo530(() => selectMus(scalePopulation(SA530_POPULATION, bv), interval, seedStart), [bv, interval, seedStart]);
+  /* ---- data peta sumbu-moneter (di-port dari SamplingEngine saat konsolidasi) ---- */
+  const scaled: PopItem[] = useMemo530(() => scalePopulation(SA530_POPULATION, bv), [bv]);
+  const popTotal = scaled.reduce((s, p) => s + p.bv, 0);
+  const selIds = useMemo530(() => new Set(selected.map(s => s.id)), [selected]);
+  const spans: { id: string; name: string; bv: number; from: number; to: number; key: boolean }[] = useMemo530(() => { let cum = 0; return scaled.map(p => { const from = cum; cum += p.bv; return { id: p.id, name: p.name, bv: p.bv, from, to: cum, key: p.bv >= interval }; }); }, [scaled, interval]);
+  const ticks: number[] = useMemo530(() => { const out: number[] = []; if (interval > 0) { for (let u = seedStart, k = 0; u <= popTotal && k < 80; u += interval, k++) out.push(u); } return out; }, [interval, seedStart, popTotal]);
   const totalHits = selected.reduce((s, x) => s + x.hits, 0);
   const keyN = selected.filter(s => s.key).length;
   const reroll = () => { if (locked) return; setSeedFrac(Math.random()); };
@@ -309,6 +321,33 @@ function F530Selection({ interval, bv, seedFrac, setSeedFrac, locked }: { interv
           ].map((s, i) => (
             <div key={i} style={{ padding: '12px 16px', borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}><Stat value={s.v} label={s.l} accent={s.a} /></div>
           ))}
+        </div>
+      </Panel>
+
+      <Panel noBody>
+        <div className="panel-h"><h3>Peta Seleksi Sistematis — Sumbu Unit Moneter (¶ Lamp. 4)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{selected.length} item terpilih · {ticks.length} titik pilih</span></div>
+        <div style={{ padding: 14 }}>
+          {interval > 0 ? (
+            <>
+              <div style={{ position: 'relative', height: 54, marginBottom: 10 }}>
+                <div style={{ position: 'absolute', left: 0, right: 0, top: 24, height: 8, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden', display: 'flex' }}>
+                  {spans.map(p => {
+                    const w = popTotal ? (p.bv / popTotal) * 100 : 0;
+                    const isSel = selIds.has(p.id);
+                    return <div key={p.id} title={p.name + ': ' + p.bv.toLocaleString('id-ID') + ' jt'} style={{ width: w + '%', height: '100%', background: isSel ? (p.key ? 'var(--purple)' : 'var(--blue)') : 'transparent', borderRight: '1px solid var(--surface)', opacity: isSel ? 1 : 0.25 }} />;
+                  })}
+                </div>
+                {ticks.map((u, i) => <div key={i} style={{ position: 'absolute', top: 18, left: (popTotal ? (u / popTotal) * 100 : 0) + '%', width: 1.5, height: 20, background: 'var(--navy)', opacity: 0.55 }} title={'Unit pilih ' + (i + 1)} />)}
+                <div className="tiny muted" style={{ position: 'absolute', top: 38, left: 0 }}>Rp 0</div>
+                <div className="tiny muted" style={{ position: 'absolute', top: 38, right: 0 }}>{popTotal.toLocaleString('id-ID')} jt</div>
+              </div>
+              <div className="row gap12 tiny muted">
+                <span className="row ac gap6"><span style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--purple)' }} /> Individual ≥ interval (pasti terpilih)</span>
+                <span className="row ac gap6"><span style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--blue)' }} /> Terpilih sistematis</span>
+                <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy)' }} /> Titik pilih (kelipatan interval)</span>
+              </div>
+            </>
+          ) : <div className="tiny muted">Interval tak terdefinisi — sesuaikan parameter di tab Ukuran Sampel.</div>}
         </div>
       </Panel>
 

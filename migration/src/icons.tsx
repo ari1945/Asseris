@@ -178,7 +178,6 @@ const MODULES = [
     { id: 'workpapers', label: 'Working Papers', icon: 'layers', deep: true },
     { id: 'asersi',     label: 'Matriks Asersi', icon: 'columns', deep: true, tag: 'SA 315' },
     { id: 'analytical', label: 'Analytical Review', icon: 'trend', deep: true },
-    { id: 'sampling',   label: 'Sampling Engine', icon: 'dice', deep: true },
     { id: 'jet',        label: 'Journal Entry Testing', icon: 'flask', deep: true },
     { id: 'diagnostic', label: 'Tax Audit Diagnostic', icon: 'sparkle', deep: true },
   ]},
@@ -363,7 +362,7 @@ const RELATED_SA = {
   wtb:         [{ code: 'SA 500', title: 'Bukti Audit', phase: 'Pelaksanaan' }],
   workpapers:  [{ code: 'SA 330', title: 'Respons Auditor terhadap Risiko', phase: 'Pelaksanaan' }, { code: 'SA 230', title: 'Dokumentasi Audit', phase: 'Pelaksanaan', view: 'sa230' }],
   analytical:  [{ code: 'SA 520', title: 'Prosedur Analitis', phase: 'Pelaksanaan', view: 'sa520' }],
-  sampling:    [{ code: 'SA 530', title: 'Sampling Audit', phase: 'Pelaksanaan', view: 'sa530' }],
+  sa530:       [{ code: 'SA 530', title: 'Sampling Audit', phase: 'Pelaksanaan' }],
   jet:         [{ code: 'SA 240', title: 'Tanggung Jawab atas Kecurangan (Fraud)', phase: 'Pelaksanaan', view: 'sa240' }, { code: 'SA 330', title: 'Respons Auditor terhadap Risiko', phase: 'Pelaksanaan' }],
   evidence:    [{ code: 'SA 500', title: 'Bukti Audit', phase: 'Pelaksanaan' }, { code: 'SA 501', title: 'Bukti Audit — Unsur Tertentu', phase: 'Pelaksanaan', view: 'sa501' }],
   // Pelaksanaan — spesifik

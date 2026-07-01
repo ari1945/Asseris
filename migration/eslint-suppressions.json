@@ -341,7 +341,7 @@
   },
   "src/view_calc.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 45
+      "count": 19
     }
   },
   "src/view_capacity.tsx": {

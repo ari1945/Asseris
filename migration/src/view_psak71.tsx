@@ -68,7 +68,7 @@ const P71_PROC = [
 /* ---- keterkaitan kertas kerja (lineage dua arah) ---- */
 const P71_UPSTREAM = [
   { id: 'wtb',     ic: 'table',   lbl: 'Working Trial Balance',  rel: 'Piutang bruto 1-1200 & CKPN 1-1210 — sumber saldo' },
-  { id: 'sampling', ic: 'flask',  lbl: 'Sampling (SA 530)',      rel: 'Sub-ledger piutang & pengujian saldo per debitur' },
+  { id: 'sa530', ic: 'flask',  lbl: 'Sampling (SA 530)',      rel: 'Sub-ledger piutang & pengujian saldo per debitur' },
   { id: 'confirm', ic: 'mail',    lbl: 'Konfirmasi (SA 505)',    rel: 'Konfirmasi eksternal piutang pihak ketiga' },
   { id: 'icfr',    ic: 'shield',  lbl: 'Pengendalian Internal',  rel: 'Kontrol pemberian kredit & penagihan' },
 ];

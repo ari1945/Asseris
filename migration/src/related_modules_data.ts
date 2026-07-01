@@ -96,7 +96,7 @@ const LINEAGE: any = {
     std: 'SA 505 · Konfirmasi Eksternal',    up: [
       { id: 'risk',     ic: 'shield', lbl: 'Risk Assessment', rel: 'R-01 piutang → keputusan konfirmasi & cakupan' },
       { id: 'psak71',   ic: 'coins',  lbl: 'PSAK 71 · Instrumen', rel: 'Saldo piutang & basis CKPN/ECL yang dikonfirmasi' },
-      { id: 'sampling', ic: 'dice',   lbl: 'Sampling Engine', rel: 'Pemilihan debitur & ukuran sampel konfirmasi' },
+      { id: 'sa530', ic: 'dice',   lbl: 'SA 530 · Sampling Audit', rel: 'Pemilihan debitur & ukuran sampel konfirmasi' },
     ],
     down: [
       { id: 'psak71',  ic: 'coins',   lbl: 'PSAK 71 · Instrumen', rel: 'Hasil konfirmasi → validasi keberadaan & ECL' },
@@ -158,7 +158,7 @@ const LINEAGE: any = {
     std: 'SA 500 · Bukti Audit',
     up: [
       { id: 'confirm',    ic: 'mail',   lbl: 'Confirmation Hub', rel: 'Bukti eksternal — reliabilitas tertinggi' },
-      { id: 'sampling',   ic: 'dice',   lbl: 'Sampling Engine',  rel: 'Hasil uji sampel → proyeksi populasi' },
+      { id: 'sa530',   ic: 'dice',   lbl: 'SA 530 · Sampling Audit',  rel: 'Hasil uji sampel → proyeksi populasi' },
       { id: 'analytical', ic: 'trend',  lbl: 'Analytical Review', rel: 'Bukti substantif analitis' },
       { id: 'jet',        ic: 'flask',  lbl: 'Journal Entry Testing', rel: 'Bukti pengujian jurnal' },
     ],
@@ -508,7 +508,7 @@ const BACKBONE_LINEAGE = {
       { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Penilaian risiko → materialitas pelaksanaan (PM)' },
     ],
     down: [
-      { id: 'sampling', ic: 'dice', lbl: 'Sampling Engine', rel: 'PM & tolerable misstatement → ukuran sampel' },
+      { id: 'sa530', ic: 'dice', lbl: 'SA 530 · Sampling Audit', rel: 'PM & tolerable misstatement → ukuran sampel' },
       { id: 'analytical', ic: 'trend', lbl: 'Analytical Review', rel: 'Ambang investigasi fluktuasi (threshold)' },
       { id: 'sad', ic: 'scale', lbl: 'SAD Ledger', rel: 'PM & ambang sepele (clearly trivial) → evaluasi salah saji' },
       { id: 'workpapers', ic: 'layers', lbl: 'Working Papers', rel: 'Lingkup & kedalaman prosedur' },
@@ -546,7 +546,7 @@ const BACKBONE_LINEAGE = {
       { id: 'programme', ic: 'flask', lbl: 'Audit Programme', rel: 'Asersi belum ditanggapi → prosedur tambahan' },
       { id: 'evidence', ic: 'search2', lbl: 'Evidence Evaluation', rel: 'Kecukupan bukti per asersi' },
     ] },
-  sampling: { std: 'SA 530 · Sampling Audit',
+  sa530: { std: 'SA 530 · Sampling Audit',
     up: [
       { id: 'materiality', ic: 'target', lbl: 'Materiality', rel: 'PM / tolerable misstatement → ukuran sampel' },
       { id: 'risk', ic: 'shield', lbl: 'Risk Assessment', rel: 'Tingkat risiko → luas pengujian (extent)' },
