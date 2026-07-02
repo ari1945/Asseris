@@ -107,3 +107,67 @@ jobs:
       - name: teardown (always — ephemeral CI DB)
         if: always()
         run: docker compose down -v
+
+  # Deploy-Readiness live-test finding (2026-07-02): the job above only exercises server+db
+  # directly on :5181 — it never goes through the real single-tenant edge (Caddy same-origin +
+  # TLS), which is what an actual pilot instance serves. That gap let a real bug ship silently:
+  # deploy/aws-ec2-test/Caddyfile forwarded /trpc/* to the server WITHOUT stripping the /trpc
+  # prefix, but the server mounts tRPC at ROOT (same contract as the Vite dev proxy) — so every
+  # tRPC call through the edge 404'd, including login. Found only by a real browser login through
+  # a locally-run copy of deploy/aws-ec2-test/docker-compose.deploy.yml; fixed in the same commit.
+  # This job makes that class of bug a CI failure instead of a live-testing discovery.
+  edge-smoke:
+    name: caddy edge (same-origin) + tRPC login through the real deploy package
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE: docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: generate .env (ephemeral CI keys)
+        run: |
+          cat > deploy/aws-ec2-test/.env <<EOF
+          POSTGRES_PASSWORD=$(openssl rand -hex 24)
+          APP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          APP_SIGNING_KEY=$(openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)
+          BACKUP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          PUBLIC_HOST=localhost
+          COOKIE_SECURE=1
+          ADMIN_IP_ALLOWLIST=
+          LLM_API_KEY=
+          LLM_PROVIDER=
+          LLM_MODEL=
+          EOF
+
+      # Caddyfile defaults to `tls internal` (self-signed) — no DNS/ACME needed for CI.
+      - name: build + boot (db + server + caddy edge)
+        run: $COMPOSE up -d --build
+
+      - name: wait for edge healthz (through Caddy, same-origin)
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsSk https://localhost/healthz; then echo; echo "edge healthz up after $((i*3))s"; exit 0; fi
+            sleep 3
+          done
+          echo "edge healthz never came up within ~120s"; exit 1
+
+      - name: seed demo data
+        run: $COMPOSE run --rm -e ALLOW_DEMO_SEED=1 server npm run seed
+
+      # The actual regression: login THROUGH the edge at /trpc/auth.login (not :5181/auth.login).
+      # This is the exact call that 404'd before the Caddyfile strip_prefix fix.
+      - name: assert edge healthz db:up + login through /trpc prefix returns a token
+        run: |
+          curl -fsSk https://localhost/healthz | grep -q '"db":"up"'
+          curl -fsSk -X POST 'https://localhost/trpc/auth.login?batch=1' \
+            -H 'content-type: application/json' \
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
+            | grep -q '"token"'
+
+      - name: dump compose logs on failure
+        if: failure()
+        run: $COMPOSE logs --no-color
+
+      - name: teardown (always — ephemeral CI DB)
+        if: always()
+        run: $COMPOSE down -v

@@ -133,3 +133,92 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 - Guard fail-fast: `server/src/prodConfig.ts` · Provisioning: `server/src/bootstrapFirm.ts`
 - Migrasi: `server/prisma/migrations/` + `server/prisma/gen-pg-migrations.sh`
 - CI yang memverifikasi build+boot+seed+login + guard fail-fast: `.github/workflows/deploy-smoke.yml`
+  (job `deploy-smoke`, server+db langsung di :5181 — TANPA edge) + job `edge-smoke` (login lewat
+  Caddy same-origin/`tls internal`, §12 di bawah).
+
+## 12. Verifikasi Live (2026-07-02) — 3 gap go-live ditutup sebagian
+
+Konteks: CI (`deploy-smoke.yml`) hanya pernah boot `server+db` langsung di `:5181`, tak pernah
+lewat edge Caddy — jadi "deploy-ready" sejauh ini = *server siap*, bukan *paket single-tenant
+yang sebenarnya dipakai pilot sudah teruji*. Sesi ini menutup itu dengan **Docker Compose lokal
+nyata** (bukan CI mock) lewat WSL dockerd yang sudah ada di mesin dev — **bukan EC2 sungguhan**
+(tak ada kredensial AWS di sesi ini); caveat ini tetap berlaku, lihat §12.5.
+
+### 12.1 Bug ditemukan & diperbaiki: `/trpc` prefix tak di-strip di edge Caddy
+
+`deploy/aws-ec2-test/Caddyfile` meneruskan `/trpc/*` ke `server:5181` **tanpa** `strip_prefix`,
+padahal server memasang prosedur tRPC di **ROOT** (`server/src/server.ts`, kontrak sama dengan
+proxy dev Vite). Akibatnya **setiap panggilan tRPC lewat edge — termasuk login — 404**, sejak
+paket ini ada. `deploy-smoke.yml` tak pernah menangkapnya karena job itu memanggil server
+langsung di `:5181/auth.login` (tanpa prefix `/trpc`, tanpa Caddy sama sekali).
+
+Ditemukan lewat login browser sungguhan (bukan curl) ke stack lokal → `Email atau kata sandi
+salah` generik menyamarkan 404 asli (`/trpc/auth.login → 404` di network tab). Diperbaiki:
+`Caddyfile` sekarang punya matcher terpisah — `/trpc/*` di-`strip_prefix` sebelum
+`reverse_proxy`, `/healthz`+`/metrics` tetap tanpa strip (sudah cocok di root). Diverifikasi ulang
+lewat browser: login → dashboard bekerja penuh lewat `https://localhost` (self-signed, root CA
+lokal diinstal ke trust store Windows current-user untuk keperluan uji — bukan langkah produksi).
+
+**Guardrail permanen**: job baru `edge-smoke` di `.github/workflows/deploy-smoke.yml` mem-boot
+paket `deploy/aws-ec2-test/docker-compose.deploy.yml` (server+db+Caddy) yang SAMA dipakai pilot,
+lalu login lewat `https://localhost/trpc/auth.login` (prefix asli, edge asli). Kelas bug ini
+sekarang gagal CI, bukan cuma ketahuan saat live-testing manual.
+
+### 12.2 E2E browser (setelah fix) — lulus semua
+
+Login (Manager, `anindya.p@whr-cpa.id`) → dashboard nyata dengan data seed (7 perikatan, 4 risiko
+tinggi) → **Impor TB** (paste-CSV contoh, 14 akun, control total seimbang, engine PSAK menyala,
+`Terapkan ke WTB` → `state.set 200`, WTB ter-update live) → **Sign-off Review** WP B (Piutang &
+ECL) sebagai reviewer → status `IN REVIEW → REVIEWED` real-time → **Export+Segel** register AJE
+(XLSX) → `POST /exporter.seal → 200` (tanda tangan Ed25519 sungguhan lewat kunci produksi
+container, bukan stub). Semua lewat `https://localhost` sungguhan, sesi cookie httpOnly, Postgres
+nyata — bukan dev-server Vite.
+
+Catatan sampingan: tombol "Export Log" di modul Audit Trail (`view_platform3.tsx`) adalah **stub
+tanpa handler** (`<Btn sm>...Export Log</Btn>` tanpa `onClick`) — beda dari export+segel register
+yang nyata (AJE/WP/dsb via `export_xlsx.ts`/`export_pdf.ts`). Belum diperbaiki (di luar 3 gap yang
+diminta); dicatat sebagai temuan kecil terpisah.
+
+### 12.3 Load/concurrency — titik jenuh (approksimasi t3.small, BUKAN EC2 nyata)
+
+Kontainer dibatasi via `docker update --cpus/--memory` meniru total kapasitas `t3.small` (2 vCPU
+/ 2 GiB) dibagi ke 3 servis (server 1.2 vCPU/1.2 GB, db 0.6/0.6, Caddy 0.2/0.2 GB — proporsional
+ke beban kerja). Skrip ramping (5→10→20→50 sesi konkuren, 15 dtk/level, 4 user nyata anggota
+`ENG-2025-014`) langsung ke `server:5181` dalam network compose (mengisolasi bottleneck arsitektur
+dari overhead Caddy):
+
+| Konkurensi | Ops/dtk | Login p50/p95 | Read p50/p95 | Write p50/p95/p99 | Error |
+|---|---|---|---|---|---|
+| 5  | 150 | 183ms / 280ms | 14ms / 61ms | 57ms / 90ms / 109ms | 0 |
+| 10 | 169 | 854ms / 1.1s | 15ms / 72ms | 103ms / 183ms / 214ms | 0 |
+| 20 | 164 | 1.4s / 1.9s | 15ms / 76ms | 291ms / 398ms / 473ms | 0 |
+| 50 | 150 | 4.3s / 6.3s | 11ms / 96ms | 601ms / 1.1s / 1.7s | 0 |
+
+Nol error di semua level — arsitektur tak *crash*, tapi **throughput mentok ~150-170 ops/dtk
+mulai konkurensi 10** dan tak pernah naik lagi (klasik tanda saturasi CPU), sementara latensi terus
+memburuk linear-ke-atas. Baca:
+- **Read** (`auth.me`) nyaris tak terpengaruh (p95 <100ms bahkan di 50 konkuren) — jalur baca aman.
+- **Login** adalah bottleneck TERTAJAM: p50 183ms→4.3dtk dari 5→50 konkuren. Penyebab kemungkinan
+  besar: **scrypt** (hashing password CPU-intensif by design) memblokir di bawah cap 1.2 vCPU.
+  Login massal serentak (mis. jam 9 pagi seluruh staf) berisiko nyata pada instance sekelas
+  `t3.small`; login yang tersebar (staf login bertahap) tak masalah.
+- **Write** (`state.set`, jalur yang sama dipakai simpan WTB/AJE/sign-off, lewat serialisasi
+  `AuditLog.seq`) masih nyaman (<100ms) sampai ~10 penulis konkuren-persis-bersamaan, mulai terasa
+  (~300-600ms median) di 20-50. Untuk KAP pilot skala kecil (10-20 staf) dengan pola kerja normal
+  (bukan semua orang klik simpan di milidetik yang sama), ini kemungkinan tak terasa — tapi event
+  sinkronisasi massal (delta-sync, lihat entri `SYNC` di Audit Trail) bisa memicu burst serentak.
+
+**Kesimpulan operasional**: arsitektur single-process (by design, §10) tak gagal di bawah beban
+ini — ia melambat dengan predictable, bukan crash. Untuk KAP pilot ~10-20 staf dengan pola login
+tersebar (bukan serentak), ini plausibel cukup. Untuk kepastian, ukur ulang skrip yang sama
+(`deploy/aws-ec2-test/README.md` akan merujuk ke sini) di EC2 `t3.small` sungguhan sebelum
+onboarding pilot — CPU burstable EC2 nyata bisa lebih baik ATAU lebih buruk dari cap lokal ini
+tergantung kredit burst yang tersisa.
+
+### 12.4 Apa yang BELUM terbukti (gap tersisa, jujur)
+
+- **EC2 sungguhan**: sesi ini pakai Docker Compose lokal (WSL dockerd) sebagai pengganti — bukan
+  jaringan/EBS/noisy-neighbor EC2 asli. Angka §12.3 adalah sinyal pertama, bukan SLA final.
+  Skrip ramping bisa dipakai ulang persis (lihat riwayat sesi/memory) begitu instance pilot ada.
+- Restore drill nyata, kepatuhan UU PDP, alerting produksi, secrets vault, TLS domain publik —
+  **masih 0%**, tak tersentuh sesi ini (lihat memory `asseris-deploy-readiness`).
