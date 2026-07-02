@@ -3,3 +3,12 @@
 
 # Encrypted DB backups (M6) — data, never in git.
 backups/
+
+# Terraform (IaC provisioning) — state + real per-firm values, never in git.
+# NOTE: terraform.lock.hcl (provider version lock) IS committed on purpose — not ignored here.
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/*.tfstate.*.backup
+terraform/terraform.tfvars
+terraform/crash.log

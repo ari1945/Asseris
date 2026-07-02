@@ -1,0 +1,42 @@
+# terraform-validate — read-only guardrail for deploy/aws-ec2-test/terraform/.
+#
+# No AWS credentials in this repo/CI (same gap as Secrets Manager / restore-drill S3 work — see
+# docs/prd-iac-ec2-provisioning.md Constraints), so this can only check syntax/formatting/internal
+# consistency (`terraform fmt -check` + `terraform validate`), NOT `terraform plan`/`apply` against
+# a real AWS account. Still catches the class of bug that would otherwise only surface the first
+# time an operator runs `terraform apply` by hand against a real firm's instance.
+name: terraform-validate
+
+on:
+  push:
+    paths:
+      - 'deploy/aws-ec2-test/terraform/**'
+      - '.github/workflows/terraform-validate.yml'
+  pull_request:
+    paths:
+      - 'deploy/aws-ec2-test/terraform/**'
+      - '.github/workflows/terraform-validate.yml'
+  workflow_dispatch: {}
+
+jobs:
+  validate:
+    name: fmt -check + validate (no AWS credentials — syntax/consistency only)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy/aws-ec2-test/terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '~1.5'
+
+      - name: terraform fmt -check
+        run: terraform fmt -check -recursive
+
+      - name: terraform init (backend + provider download only, no credentials needed)
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform validate
