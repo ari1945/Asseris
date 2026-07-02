@@ -90,18 +90,61 @@ Jadwalkan via **host crontab** (low-ops single-box):
 30 2 * * *  cd /home/ubuntu/Asseris && BACKUP_ENCRYPTION_KEY=<hex> \
             sh deploy/aws-ec2-test/backup.sh >> /var/log/asseris-backup.log 2>&1
 ```
-Dump ke `deploy/aws-ec2-test/backups/asseris-<UTC>.sql.gz.enc`; yang > 30 hari otomatis di-prune
-(`RETENTION_DAYS`). **Salin backups ke lokasi ke-2** (S3, dsb) — satu box bukan durable.
+Dump ke `./backups/asseris-<UTC>.sql.gz.enc` — **relatif ke cwd tempat skrip dijalankan**, bukan
+`deploy/aws-ec2-test/backups/` kecuali dijalankan dari situ; pola crontab di atas `cd` ke
+repo-root dulu, jadi dump mendarat di `<repo-root>/backups/` (root-anchored di `.gitignore` sejak
+2026-07-02 — direktori ini tak pernah tertelan `.git`). Yang > 30 hari otomatis di-prune
+(`RETENTION_DAYS`).
 
-## 7. Restore drill (WAJIB dijalankan sekali sebelum percaya backup — DoD §3.4)
-Pada instance kosong/standby:
+**Salinan off-box (S3, opt-in, 2026-07-02):** set `BACKUP_S3_BUCKET=<nama-bucket>` (+ opsional
+`BACKUP_S3_ENDPOINT` untuk target S3-compatible non-AWS, mis. pengujian) agar tiap backup lokal
+langsung disalin ke S3 lewat AWS CLI default credential chain (IAM instance profile EC2 — tanpa
+access key hardcoded, pola sama `SECRETS_PROVIDER` §13). Default kosong = perilaku lama, tak
+berubah. Kegagalan salin off-box **loud**: skrip exit non-zero + baris log `BACKUP_OFFBOX_FAILED`
+(backup lokal tetap ada, hanya salinan off-box yang gagal) — supaya kegagalan muncul di log cron,
+bukan diam-diam hilang; alerting-ke-manusia sungguhan (mis. `MAILTO` cron atau paging) tetap gap
+terpisah, belum dibangun. **Belum live-verified terhadap AWS S3 sungguhan** (nol kredensial AWS di
+lingkungan kerja manapun sejauh ini) — teruji end-to-end (upload sukses + kegagalan loud) vs MinIO
+(S3-compatible lokal) di CI `restore-drill.yml`, pola gap yang sama seperti Secrets Manager §13.
+Detail: `docs/prd-backup-restore-dr-hardening.md`.
+
+## 7. Restore drill & Recovery Objectives (RTO/RPO)
+
+**Status: dieksekusi nyata pertama kali 2026-07-02** (sebelumnya cuma instruksi tak tersentuh,
+lihat riwayat di bawah) — dan kini **otomatis**, bukan lagi bergantung ingatan manusia: CI
+`.github/workflows/restore-drill.yml` menjalankan siklus penuh backup→hancurkan→restore→verifikasi
+terjadwal **mingguan** (Senin 03:17 UTC) + tiap kali `backup.sh`/`restore.sh`/compose file berubah.
+CI juga mensimulasikan **kehilangan total** (`DROP SCHEMA public CASCADE`, bukan cuma sebagian) dan
+memverifikasi row-count tabel kunci + `audit.verify` secara headless (login + `curl`, bukan klik
+UI). Bukti lengkap + metodologi: `docs/prd-backup-restore-dr-hardening.md`.
+
+**Drill manual (rujukan/darurat), pada instance kosong/standby:**
 ```bash
 BACKUP_ENCRYPTION_KEY=<hex> sh deploy/aws-ec2-test/restore.sh \
-  deploy/aws-ec2-test/backups/asseris-<UTC>.sql.gz.enc
+  backups/asseris-<UTC>.sql.gz.enc     # path relatif-cwd — lihat catatan §6
 curl -k https://$PUBLIC_HOST/healthz        # → db:up
 ```
 Lalu **verifikasi integritas jejak audit**: buka app → **Jejak Audit** → `audit.verify` harus
 melaporkan **`ok`** (rantai hash-chained `AuditLog` utuh — backup transaksional menjaganya).
+
+**Gotcha ditemukan saat drill pertama (2026-07-02):** working-tree Windows lokal bisa
+terkorupsi CRLF secara senyap (blob git-nya tetap bersih LF — cuma checkout lokal yang rusak),
+membuat `sh backup.sh` gagal `illegal option -` di WSL. `.gitattributes` (`*.sh text eol=lf`)
+ditambahkan supaya kelas bug ini tak bisa lagi ke-commit ke depannya.
+
+### Recovery Objectives (RTO/RPO) — PROPOSAL, menunggu sign-off Ari
+Angka di bawah adalah **usulan berbasis kemampuan teknis yang benar-benar terukur**, BUKAN
+komitmen final/kontraktual ke klien — target akhir adalah keputusan bisnis Ari.
+
+| Metrik | Nilai | Dasar |
+|---|---|---|
+| **RPO** (maks. data hilang) | ≤ 24 jam (usulan) | Backup harian (§6 crontab). Memperketat → naikkan frekuensi backup, biaya storage/S3 naik sebanding. |
+| **RTO — mekanika restore saja** | ~2 detik (terukur, drill 2026-07-02: 7 User, 4.351 baris AuditLog, 123 StateDoc) | `restore.sh` end-to-end pada instance yang SUDAH berjalan. Akan naik sebanding ukuran DB produksi sungguhan — bukan angka flat. |
+| **RTO — total (skenario EC2 hilang total)** | **BELUM terukur** | Drill di atas jalan di WSL Docker Compose LOKAL (instance sudah ada) — TIDAK mengukur waktu provisioning instance/environment baru dari nol (install Docker, build/pull image, terbit sertifikat TLS). Justru itu yang mendominasi RTO nyata pada insiden kehilangan total. Perlu EC2 pilot sungguhan untuk divalidasi (prioritas go-live #4, terpisah — lihat memori `neosuite-ams-next-session`). |
+
+**Keputusan yang perlu Ari buat:** (1) apakah RPO ≤24 jam cukup, atau perlu diperketat; (2)
+publikasikan RTO final ke klien sekarang (dengan disclaimer "belum divalidasi di EC2 produksi
+penuh") atau tunggu validasi nyata dulu.
 
 ## 8. Upgrade skema (N → N+1)
 Dev tetap SQLite (`prisma db push`); **prod pakai migrasi Postgres**. Untuk perubahan skema:
@@ -132,7 +175,9 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 
 ## 10. Batasan (by design, didokumentasikan — bukan bug)
 - **Single-process**: `AuditLog.seq` diserialisasi satu proses → **tak** multi-instance/auto-scale.
-- **Satu box**: tanpa replikasi; durabilitas bergantung backup + salinan off-box.
+- **Satu box**: tanpa replikasi; durabilitas bergantung backup + salinan off-box. Salinan off-box
+  ke S3 kini ada (opt-in `BACKUP_S3_BUCKET`, §6) tapi **belum live-verified terhadap AWS
+  sungguhan** — baru teruji vs MinIO di CI.
 - **TLS internal (default)**: peringatan browser sekali. Cocok pilot tertutup; klien eksternal →
   `CADDY_TLS_MODE=acme` (§2, §13) begitu ada domain publik.
 - **Secrets berbasis `.env` (default)**: cukup untuk pilot terbatas dengan akses host dibatasi.

@@ -1,0 +1,184 @@
+# restore-drill — proves backup/restore is actually recoverable, on a schedule, instead of
+# leaving it as an unexecuted instruction. docs/DEPLOY.md §7 called a restore drill "WAJIB
+# dijalankan sekali sebelum percaya backup" but nothing had ever run it (found 2026-07-02, see
+# docs/prd-backup-restore-dr-hardening.md — the same session found deploy/aws-ec2-test/backup.sh
+# was silently broken on a CRLF-corrupted local checkout, which is exactly the class of bug an
+# unexercised "trust the docs" drill can hide indefinitely).
+#
+# Boots the real single-tenant deploy package, seeds data, takes an encrypted backup, destroys
+# the database (DROP SCHEMA, not just a few rows — a real catastrophic-loss simulation), restores
+# from that backup, then asserts the audit hash-chain (`audit.verify`) and row counts are intact.
+# A red run here means backups genuinely cannot be restored — not a hypothetical, not a doc that
+# can go stale unnoticed.
+name: restore-drill
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'   # weekly, Monday 03:17 UTC — off the hour to dodge Actions cron congestion
+  push:
+    paths:
+      - 'deploy/aws-ec2-test/backup.sh'
+      - 'deploy/aws-ec2-test/restore.sh'
+      - 'deploy/aws-ec2-test/docker-compose.deploy.yml'
+      - '.github/workflows/restore-drill.yml'
+  pull_request:
+    paths:
+      - 'deploy/aws-ec2-test/backup.sh'
+      - 'deploy/aws-ec2-test/restore.sh'
+      - 'deploy/aws-ec2-test/docker-compose.deploy.yml'
+      - '.github/workflows/restore-drill.yml'
+  workflow_dispatch: {}   # manual re-run on demand
+
+jobs:
+  restore-drill:
+    name: backup -> destroy -> restore -> verify audit hash-chain
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE: docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: generate .env (ephemeral CI keys)
+        run: |
+          cat > deploy/aws-ec2-test/.env <<EOF
+          POSTGRES_PASSWORD=$(openssl rand -hex 24)
+          APP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          APP_SIGNING_KEY=$(openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)
+          BACKUP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          PUBLIC_HOST=localhost
+          COOKIE_SECURE=1
+          ADMIN_IP_ALLOWLIST=
+          LLM_API_KEY=
+          LLM_PROVIDER=
+          LLM_MODEL=
+          EOF
+
+      - name: build + boot (db + server + caddy edge)
+        run: $COMPOSE up -d --build
+
+      - name: wait for edge healthz
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsSk https://localhost/healthz; then echo; echo "edge healthz up after $((i*3))s"; exit 0; fi
+            sleep 3
+          done
+          echo "edge healthz never came up within ~120s"; exit 1
+
+      - name: seed demo data
+        run: $COMPOSE run --rm -e ALLOW_DEMO_SEED=1 server npm run seed
+
+      # Baseline BEFORE backup: row counts (raw SQL, not app-mediated) + a live audit.verify call.
+      # The counts file is the ground truth the post-restore step diffs against.
+      - name: snapshot baseline (row counts + audit.verify)
+        run: |
+          TOKEN=$(curl -fsSk -X POST 'https://localhost/trpc/auth.login?batch=1' \
+            -H 'content-type: application/json' \
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+          curl -fsSk 'https://localhost/trpc/audit.verify?batch=1' -H "authorization: Bearer $TOKEN" | tee baseline_verify.json
+          grep -q '"ok":true' baseline_verify.json || { echo "seed itself produced a broken audit chain — not a restore bug"; exit 1; }
+          $COMPOSE exec -T db psql -U neosuite -d neosuite -At -c \
+            'select count(*) from "User" union all select count(*) from "AuditLog" union all select count(*) from "StateDoc";' \
+            > baseline_counts.txt
+          cat baseline_counts.txt
+
+      # Same script, same invocation shape as the documented crontab pattern (cd repo-root first,
+      # so BACKUP_DIR default `./backups` lands here — see docs/DEPLOY.md §6).
+      - name: take encrypted backup
+        run: |
+          BKEY=$(grep '^BACKUP_ENCRYPTION_KEY=' deploy/aws-ec2-test/.env | cut -d= -f2-)
+          env BACKUP_ENCRYPTION_KEY="$BKEY" sh deploy/aws-ec2-test/backup.sh
+          ls -la backups/
+
+      # Catastrophic-loss simulation: not "delete a few rows" — the whole schema, so a green
+      # restore afterward actually proves recovery from total data loss, not a partial rollback.
+      - name: simulate catastrophic loss (drop schema)
+        run: $COMPOSE exec -T db psql -U neosuite -d neosuite -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+
+      - name: restore from the encrypted backup
+        run: |
+          BKEY=$(grep '^BACKUP_ENCRYPTION_KEY=' deploy/aws-ec2-test/.env | cut -d= -f2-)
+          FILE=$(ls -1 backups/asseris-*.sql.gz.enc | head -1)
+          env BACKUP_ENCRYPTION_KEY="$BKEY" sh deploy/aws-ec2-test/restore.sh "$FILE"
+
+      # Order matters: this runs BEFORE the next step's fresh login, which itself appends one
+      # AuditLog row — so this is the true apples-to-apples comparison against the baseline.
+      - name: assert row counts match baseline exactly
+        run: |
+          $COMPOSE exec -T db psql -U neosuite -d neosuite -At -c \
+            'select count(*) from "User" union all select count(*) from "AuditLog" union all select count(*) from "StateDoc";' \
+            > restored_counts.txt
+          diff baseline_counts.txt restored_counts.txt || { echo "REGRESSION: row counts after restore don't match pre-drill baseline"; exit 1; }
+          echo "OK: row counts match baseline exactly"
+
+      - name: assert audit hash-chain intact post-restore
+        run: |
+          curl -fsSk https://localhost/healthz | grep -q '"db":"up"'
+          TOKEN=$(curl -fsSk -X POST 'https://localhost/trpc/auth.login?batch=1' \
+            -H 'content-type: application/json' \
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+          curl -fsSk 'https://localhost/trpc/audit.verify?batch=1' -H "authorization: Bearer $TOKEN" | tee post_restore_verify.json
+          grep -q '"ok":true' post_restore_verify.json || { echo "REGRESSION: audit hash-chain broken after restore"; exit 1; }
+          echo "OK: audit.verify reports ok after restore (chain intact AND correctly extended by the new login)"
+
+      # Off-box copy (opt-in BACKUP_S3_BUCKET, deploy/aws-ec2-test/backup.sh) — tested here against
+      # a disposable MinIO container, NOT real AWS: no S3 credentials exist in this CI environment
+      # (same gap as the AWS Secrets Manager work — see docs/prd-backup-restore-dr-hardening.md
+      # Non-Scope). This proves the code path and failure behavior; live AWS verification remains
+      # an open item pending real credentials. `docker run` (not GH's `services:` block) because
+      # services can't override the minio/minio image's CMD; `--network host` puts it on
+      # localhost:9000 same as the runner's own steps, matching the `aws` CLI already preinstalled
+      # on GH-hosted ubuntu runners (no extra install needed).
+      - name: start disposable MinIO (S3-compatible off-box target for testing)
+        run: |
+          docker run -d --name minio --network host \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin123 \
+            minio/minio server /data
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:9000/minio/health/live; then echo; echo "minio up after $((i*2))s"; exit 0; fi
+            sleep 2
+          done
+          echo "minio never came up within ~40s"; exit 1
+
+      - name: off-box copy — succeeds against a real (test) bucket
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin123
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws --endpoint-url http://localhost:9000 s3 mb s3://asseris-backups-test
+          BKEY=$(grep '^BACKUP_ENCRYPTION_KEY=' deploy/aws-ec2-test/.env | cut -d= -f2-)
+          env BACKUP_ENCRYPTION_KEY="$BKEY" BACKUP_S3_BUCKET=asseris-backups-test \
+              BACKUP_S3_ENDPOINT=http://localhost:9000 \
+              sh deploy/aws-ec2-test/backup.sh
+          aws --endpoint-url http://localhost:9000 s3 ls s3://asseris-backups-test/ | grep -q 'asseris-.*\.sql\.gz\.enc' \
+            || { echo "REGRESSION: backup.sh reported success but no object landed in the test bucket"; exit 1; }
+          echo "OK: off-box copy landed in the test bucket"
+
+      - name: off-box copy — fails loudly against a nonexistent bucket (local backup still intact)
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin123
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          BKEY=$(grep '^BACKUP_ENCRYPTION_KEY=' deploy/aws-ec2-test/.env | cut -d= -f2-)
+          BEFORE=$(ls backups/*.sql.gz.enc | wc -l)
+          if env BACKUP_ENCRYPTION_KEY="$BKEY" BACKUP_S3_BUCKET=does-not-exist-bucket \
+                 BACKUP_S3_ENDPOINT=http://localhost:9000 \
+                 sh deploy/aws-ec2-test/backup.sh; then
+            echo "REGRESSION: backup.sh exited 0 despite the off-box copy target not existing"; exit 1
+          fi
+          AFTER=$(ls backups/*.sql.gz.enc | wc -l)
+          [ "$AFTER" -gt "$BEFORE" ] || { echo "REGRESSION: local backup was not written when off-box copy failed"; exit 1; }
+          echo "OK: backup.sh exited non-zero on off-box failure, AND the local dump still landed"
+
+      - name: dump compose logs on failure
+        if: failure()
+        run: $COMPOSE logs --no-color
+
+      - name: teardown (always — ephemeral CI DB + MinIO)
+        if: always()
+        run: |
+          $COMPOSE down -v
+          docker rm -f minio 2>/dev/null || true
