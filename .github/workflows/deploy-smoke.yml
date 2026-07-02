@@ -143,6 +143,22 @@ jobs:
       - name: build + boot (db + server + caddy edge)
         run: $COMPOSE up -d --build
 
+      # 2026-07-02 (later same day): the TLS-mode toggle (CADDY_TLS_MODE=internal|acme, replacing
+      # a manual Caddyfile comment/uncomment edit) hit the exact same class of silent-breakage risk
+      # as the /trpc bug above — `tls {$VAR}` with an empty $VAR is a Caddyfile SYNTAX ERROR, found
+      # only by directly testing `caddy validate` against the built image. This step makes both
+      # modes a permanent CI check instead of a one-time manual discovery. Cheap (no network/DNS
+      # needed — validate only, doesn't attempt a real ACME fetch) and catches Caddyfile syntax
+      # regressions in either snippet (tls-internal.caddy / tls-acme.caddy) before they ship.
+      - name: caddy validate — both TLS modes parse (internal default + acme toggle)
+        run: |
+          docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml run --rm --no-deps \
+            -e PUBLIC_HOST=localhost -e CADDY_TLS_MODE=internal \
+            web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml run --rm --no-deps \
+            -e PUBLIC_HOST=localhost -e CADDY_TLS_MODE=acme \
+            web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
       - name: wait for edge healthz (through Caddy, same-origin)
         run: |
           for i in $(seq 1 40); do
