@@ -180,6 +180,25 @@ jobs:
             -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
             | grep -q '"token"'
 
+      # /trpc/auth.login had NO brute-force protection anywhere (edge or app) before this Caddyfile
+      # change — proves the new `login_zone` (5 events/min/IP, deploy/aws-ec2-test/Caddyfile) is
+      # actually wired, not just "caddy validate"-clean. Wrong creds on purpose: rate_limit runs
+      # ahead of the backend, so it trips regardless of whether auth would succeed.
+      - name: assert edge rate-limits /trpc/auth.login (429 after burst)
+        run: |
+          got_429=0
+          for i in $(seq 1 8); do
+            code=$(curl -sk -o /dev/null -w '%{http_code}' -X POST 'https://localhost/trpc/auth.login?batch=1' \
+              -H 'content-type: application/json' \
+              -d '{"0":{"email":"nobody@example.com","password":"wrong"}}')
+            if [ "$code" = "429" ]; then got_429=1; break; fi
+          done
+          if [ "$got_429" != "1" ]; then
+            echo "REGRESSION: no 429 after 8 rapid /trpc/auth.login requests — edge rate-limit not enforced"
+            exit 1
+          fi
+          echo "OK: edge rate-limit enforced (429 seen)"
+
       - name: dump compose logs on failure
         if: failure()
         run: $COMPOSE logs --no-color

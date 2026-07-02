@@ -9,6 +9,7 @@
     "start": "tsx src/server.ts",
     "seed": "tsx src/seed.ts",
     "bootstrap": "tsx src/bootstrap.ts",
+    "rotate-encryption-key": "tsx src/rotateEncryptionKey.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "prisma:generate": "prisma generate",

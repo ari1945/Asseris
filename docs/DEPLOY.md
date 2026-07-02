@@ -137,6 +137,11 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
   `CADDY_TLS_MODE=acme` (§2, §13) begitu ada domain publik.
 - **Secrets berbasis `.env` (default)**: cukup untuk pilot terbatas dengan akses host dibatasi.
   Data klien sungguhan → `SECRETS_PROVIDER=aws-sm` (§13) sebelum onboarding, bukan setelahnya.
+- **Rate-limit edge (§14) hanya per-IP, application-layer**: melindungi dari brute-force/abuse
+  wajar, BUKAN proteksi DDoS layer-jaringan (L3/L4). Untuk itu perlu layanan terpisah di depan EC2
+  (mis. AWS Shield/CloudFront) — di luar cakupan single-instance Caddy ini.
+- **Kunci produksi single-active** (§15): tak ada dukungan multi-key/versioned di
+  `secretbox.ts`/`signing.ts`. Lihat `docs/KEY-ROTATION.md` §0 untuk implikasinya per kunci.
 
 ## 11. Referensi
 - Paket & langkah EC2 rinci: `deploy/aws-ec2-test/README.md`
@@ -144,7 +149,8 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 - Migrasi: `server/prisma/migrations/` + `server/prisma/gen-pg-migrations.sh`
 - CI yang memverifikasi build+boot+seed+login + guard fail-fast: `.github/workflows/deploy-smoke.yml`
   (job `deploy-smoke`, server+db langsung di :5181 — TANPA edge) + job `edge-smoke` (login lewat
-  Caddy same-origin/`tls internal`, §12 di bawah).
+  Caddy same-origin/`tls internal`, §12 di bawah, + rate-limit §14).
+- Rotasi kunci: `docs/KEY-ROTATION.md` (§15) · Kesiapan pentest independen: `docs/PENTEST-READINESS.md`
 
 ## 12. Verifikasi Live (2026-07-02) — 3 gap go-live ditutup sebagian
 
@@ -276,3 +282,37 @@ meniadakan `tls` sepenuhnya sehingga automatic-HTTPS default Caddy yang jalan). 
 2026-07-02: `caddy validate` lulus kedua mode + edge nyata (healthz+login lewat `/trpc`) nol-regresi
 di mode `internal`; mode `acme` divalidasi struktural (config sah) — provisioning LE sungguhan
 BELUM diverifikasi (butuh domain publik nyata, tak tersedia di sesi ini).
+
+## 14. Rate-limit edge (Caddy) — go-live gap ditutup
+
+Sebelum ini, `/trpc/auth.login` — dan seluruh endpoint tRPC lain — **tak punya proteksi
+brute-force apa pun**, baik di edge maupun di app layer (satu-satunya rate limiter yang ada,
+`server/src/llm/ratelimit.ts`, hanya menutupi endpoint proxy LLM/W8). Ditutup dengan
+[`mholt/caddy-ratelimit`](https://github.com/mholt/caddy-ratelimit) — plugin pihak ketiga, jadi
+`deploy/aws-ec2-test/web.Dockerfile` kini build Caddy lewat `xcaddy` (image `caddy:2-builder-alpine`
+sebagai build stage, binary hasil compile disalin ke image final `caddy:2-alpine` — tak ada Go
+toolchain yang ikut ke image produksi).
+
+Dua zona di `deploy/aws-ec2-test/Caddyfile`, key per-IP (`{remote_host}`):
+- `/trpc/auth.login` — **5 permintaan/menit/IP**. Ambang ketat karena ini satu-satunya endpoint
+  yang sebelumnya nol-proteksi sama sekali.
+- `/trpc/*` (sisanya) — **60 permintaan/menit/IP**. Ambang longgar, sekadar jaring pengaman umum.
+
+Kedua ambang adalah default operasional, bukan angka regulasi — sesuaikan langsung di `Caddyfile`
+bila terlalu ketat untuk pola pemakaian nyata (mis. banyak staf di belakang satu NAT/IP kantor).
+
+CI (`edge-smoke` di `.github/workflows/deploy-smoke.yml`) memvalidasi `caddy validate` untuk kedua
+mode TLS **dan** membuktikan `429` benar-benar muncul setelah burst request ke `/trpc/auth.login` —
+bukan cuma "config-nya sah secara sintaks". **Belum diverifikasi**: perilaku di bawah beban nyata
+EC2 (ambang bisa perlu disesuaikan setelah observasi pola trafik pilot sungguhan), dan tak ada
+proteksi DDoS layer-jaringan (§10) — itu tanggung jawab layanan terpisah di depan EC2 bila/ketika
+dibutuhkan.
+
+## 15. Rotasi kunci produksi
+
+`APP_ENCRYPTION_KEY`/`APP_SIGNING_KEY` (§1, §13) sebelumnya hanya punya prosedur *generate sekali*
+— tak ada kebijakan rotasi. Kebijakan lengkap (cadence, prosedur, siapa approve, kenapa
+`APP_SIGNING_KEY` tak bisa dirotasi transparan) + skrip pendukung
+(`deploy/aws-ec2-test/rotate-keys.sh`) ada di **`docs/KEY-ROTATION.md`** — dokumen terpisah karena
+isinya operasional-berulang (bukan langkah deploy sekali), sama alasannya dengan `backup.sh`/
+`restore.sh` yang juga jadi prosedur berdiri sendiri, bukan bagian §1-§9 di atas.

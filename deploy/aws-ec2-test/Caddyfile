@@ -16,14 +16,43 @@
 #     internet (80 = ACME HTTP-01 challenge). sslip.io works without buying a domain. This is the
 #     bar for external clients — self-signed is fine for a closed pilot, but a real cert is what
 #     stops "your connection is not private" from training users to click through security warnings.
+# rate_limit (mholt/caddy-ratelimit, compiled in via web.Dockerfile/xcaddy) is a third-party
+# directive with no default position in Caddy's built-in handler order, so it must be placed
+# explicitly — this is the plugin's own documented Caddyfile integration snippet.
+{
+	order rate_limit before basicauth
+}
+
 {$PUBLIC_HOST} {
 	import /etc/caddy/tls-{$CADDY_TLS_MODE}.caddy
 	encode gzip
+
+	# Edge rate-limiting: before this, NOTHING protected auth.login from brute-force — the only
+	# in-app limiter (server/src/llm/ratelimit.ts) covers just the LLM narration endpoint. Login
+	# gets its own tighter zone (matched first, ahead of the general /trpc/* handle below).
+	handle /trpc/auth.login {
+		rate_limit {
+			zone login_zone {
+				key {remote_host}
+				events 5
+				window 1m
+			}
+		}
+		uri strip_prefix /trpc
+		reverse_proxy server:5181
+	}
 
 	# tRPC → backend container, stripped: the server mounts procedures at ROOT
 	# (server/src/server.ts), same contract as the Vite dev proxy. Forwarding
 	# /trpc/* as-is 404s every call — this bit live testing 2026-07-02.
 	handle /trpc/* {
+		rate_limit {
+			zone trpc_zone {
+				key {remote_host}
+				events 60
+				window 1m
+			}
+		}
 		uri strip_prefix /trpc
 		reverse_proxy server:5181
 	}
