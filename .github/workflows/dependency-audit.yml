@@ -1,0 +1,34 @@
+# Closes the gap flagged in the deploy-readiness review: no automated CVE monitoring existed
+# beyond ad-hoc manual `npm audit`. Dependabot (see .github/dependabot.yml) opens update PRs on
+# its own weekly cadence; this workflow is the gate that actually fails CI when a high/critical
+# vulnerability is present in production dependencies, on every push/PR AND on a weekly schedule
+# (so a newly-published CVE against an already-merged dependency doesn't go unnoticed until the
+# next code change touches package.json).
+name: dependency-audit
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1' # weekly, Monday 06:00 UTC
+
+jobs:
+  audit:
+    name: npm audit (production deps, high+critical fails)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [server, migration]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high

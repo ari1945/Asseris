@@ -1,0 +1,5 @@
+# Never commit the real environment (secrets live here).
+.env
+
+# Encrypted DB backups (M6) — data, never in git.
+backups/

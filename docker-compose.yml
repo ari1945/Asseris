@@ -1,13 +1,19 @@
 # W10 — app + Postgres, the "container + Postgres" deploy target (PRD Q3).
 #
+# NOTE (Deploy-Readiness 2026-07-01): this compose runs the API + DB ONLY (no UI, no TLS) — it is the
+# dev/API smoke target. For a full single-tenant instance (built SPA + API + Postgres + HTTPS same-origin
+# via Caddy, one command) use → deploy/aws-ec2-test/docker-compose.deploy.yml (see deploy/aws-ec2-test/README.md).
+#
 # ✅ LIVE-PROVEN on W11 (Hermes-hosted Docker Desktop + Alpine WSL).
 #    Build: docker compose build   # succeeded
 #    Up:    docker compose up -d   # db healthy, server started
 #    Check: curl localhost:5181/healthz → {"status":"ok","db":"up","uptime":N}
 #    One-time demo seed (DESTRUCTIVE — wipes + reseeds):  docker compose run --rm server npm run seed
 #
-# Secrets come from the environment / an .env file beside this compose (NOT committed). At minimum
-# set POSTGRES_PASSWORD and APP_ENCRYPTION_KEY in prod; set COOKIE_SECURE=1 behind TLS.
+# Secrets come from the environment / an .env file beside this compose (NOT committed).
+# FAIL-FAST (Deploy-Readiness M2): NODE_ENV=production below → the server REFUSES to boot unless
+# APP_ENCRYPTION_KEY (32B) + APP_SIGNING_KEY (Ed25519) are set, COOKIE_SECURE=1, and the DB password
+# is not 'changeme'. Generate keys:  openssl rand -hex 32  /  openssl genpkey -algorithm ed25519 -outform DER | base64 -w0
 
 services:
   db:
@@ -37,12 +43,14 @@ services:
       NODE_ENV: production
       COOKIE_SECURE: ${COOKIE_SECURE:-0}          # set 1 when fronted by TLS
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}  # 32B hex/base64 → encrypts totpSecret at rest
+      APP_SIGNING_KEY: ${APP_SIGNING_KEY:-}        # base64 PKCS8 Ed25519 → stable export seals across restarts (fail-fast in prod)
       ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}  # optional CSV of IPs/CIDRs for login
       LLM_API_KEY: ${LLM_API_KEY:-}                # optional — enables LLM narration proxy
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-}
-    # Apply schema to Postgres (no migrations dir yet — db push is the current workflow), then run.
-    command: sh -c "npx prisma db push --skip-generate && npm start"
+    # M4 — apply versioned Postgres migrations (prisma/migrations/, provider flipped to postgresql at
+    # image build), then run. Idempotent: already-applied migrations are skipped on restart.
+    command: sh -c "npx prisma migrate deploy && npm start"
     ports:
       - "5181:5181"
 
