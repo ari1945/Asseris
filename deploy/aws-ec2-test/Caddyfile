@@ -8,9 +8,17 @@
 	tls internal
 	encode gzip
 
-	# API + ops endpoints → backend container (no caching, cookies forwarded by default).
-	@api path /trpc/* /healthz /metrics
-	handle @api {
+	# tRPC → backend container, stripped: the server mounts procedures at ROOT
+	# (server/src/server.ts), same contract as the Vite dev proxy. Forwarding
+	# /trpc/* as-is 404s every call — this bit live testing 2026-07-02.
+	handle /trpc/* {
+		uri strip_prefix /trpc
+		reverse_proxy server:5181
+	}
+
+	# Ops endpoints already live at root on the server — no stripping.
+	@ops path /healthz /metrics
+	handle @ops {
 		reverse_proxy server:5181
 	}
 
