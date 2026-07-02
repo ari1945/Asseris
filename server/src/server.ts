@@ -6,6 +6,15 @@ import { createContext } from './context';
 import { prisma } from './db';
 import { log, inc, renderMetrics } from './obs/log';
 import { assertProdConfig, configSummary } from './prodConfig';
+import { loadSecretsIntoEnv } from './secrets';
+
+// Opt-in (SECRETS_PROVIDER=aws-sm) — no-op otherwise. MUST run before configSummary/assertProdConfig
+// so the fail-fast guard gates the real resolved secrets regardless of source. Fail-closed: a fetch
+// failure here is fatal, same philosophy as assertProdConfig itself.
+await loadSecretsIntoEnv().catch((e: unknown) => {
+  console.error('✗ secrets.load_failed:', e instanceof Error ? e.message : e);
+  process.exit(1);
+});
 
 const PORT = Number(process.env.PORT ?? 5181);
 

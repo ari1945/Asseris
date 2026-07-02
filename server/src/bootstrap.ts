@@ -9,8 +9,14 @@ import './env'; // load .env/.env.local first (DATABASE_URL etc.)
 import { prisma } from './db';
 import { bootstrapFirm } from './bootstrapFirm';
 import { assertProdConfig } from './prodConfig';
+import { loadSecretsIntoEnv } from './secrets';
 
 async function main(): Promise<void> {
+  // Opt-in (SECRETS_PROVIDER=aws-sm) — no-op otherwise. Same fail-closed reasoning as server.ts:
+  // this CLI writes a Partner-admin's TOTP secret to Postgres, so it must see the SAME resolved
+  // secrets assertProdConfig below is about to gate, regardless of .env vs Secrets Manager.
+  await loadSecretsIntoEnv();
+
   const env = process.env;
 
   // Fixed post pre-push-review finding: this CLI provisions a real Partner-admin (TOTP secret
