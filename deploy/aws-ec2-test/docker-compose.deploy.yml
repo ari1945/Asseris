@@ -34,12 +34,24 @@ services:
       PORT: "5181"
       NODE_ENV: production
       COOKIE_SECURE: ${COOKIE_SECURE:-1}            # 1 = Secure cookies (we serve HTTPS via Caddy)
-      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY (openssl rand -hex 32)}
-      APP_SIGNING_KEY: ${APP_SIGNING_KEY:?set APP_SIGNING_KEY (openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)}
+      # APP_ENCRYPTION_KEY/APP_SIGNING_KEY are optional HERE (not `:?required`) so
+      # SECRETS_PROVIDER=aws-sm can leave them unset in .env — they're fetched from Secrets Manager
+      # at boot instead (server/src/secrets.ts). Either way, server/src/prodConfig.ts is the REAL,
+      # authoritative fail-fast gate (assertProdConfig refuses to boot with a missing/weak key
+      # regardless of source) — compose-level `:?` here would only ever have checked ".env has
+      # SOMETHING", not "the key is cryptographically valid", so relaxing it loses nothing.
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}   # openssl rand -hex 32 (or via Secrets Manager)
+      APP_SIGNING_KEY: ${APP_SIGNING_KEY:-}         # openssl genpkey -algorithm ed25519 -outform DER | base64 -w0 (or via Secrets Manager)
       ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}   # leave EMPTY behind a proxy (see README gotcha)
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-}
+      # Opt-in AWS Secrets Manager (server/src/secrets.ts) — leave SECRETS_PROVIDER unset for the
+      # default .env-file path (unchanged behavior). IAM auth via the container's default AWS
+      # credential chain (EC2 instance profile) — no access keys here by design.
+      SECRETS_PROVIDER: ${SECRETS_PROVIDER:-}
+      AWS_SECRETS_MANAGER_SECRET_ID: ${AWS_SECRETS_MANAGER_SECRET_ID:-}
+      AWS_REGION: ${AWS_REGION:-}
     command: sh -c "npx prisma migrate deploy && npm start"   # M4 — versioned Postgres migrations (idempotent)
     expose:
       - "5181"                       # internal only — reached via Caddy, not published
@@ -52,6 +64,9 @@ services:
       - server
     environment:
       PUBLIC_HOST: ${PUBLIC_HOST:?set PUBLIC_HOST in .env (e.g. 13-54-2-9.sslip.io)}
+      # TLS mode toggle (Caddyfile §top) — internal (DEFAULT, self-signed pilot) or acme
+      # (real Let's Encrypt cert; needs a public DNS A-record + port 80/443 open).
+      CADDY_TLS_MODE: ${CADDY_TLS_MODE:-internal}
     ports:
       - "80:80"
       - "443:443"

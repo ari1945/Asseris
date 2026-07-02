@@ -42,9 +42,17 @@ cp deploy/aws-ec2-test/.env.example deploy/aws-ec2-test/.env
 nano deploy/aws-ec2-test/.env     # isi: POSTGRES_PASSWORD, APP_ENCRYPTION_KEY, APP_SIGNING_KEY,
                                   #      BACKUP_ENCRYPTION_KEY, PUBLIC_HOST, COOKIE_SECURE=1
 ```
-**TLS:** default `Caddyfile` = **self-signed** (`tls internal`) — HTTPS instan tanpa domain/DNS
-(peringatan sertifikat sekali di browser). Punya domain publik? uncomment blok ACME di `Caddyfile`
-(butuh DNS A-record + port 80/443) untuk sertifikat Let's Encrypt tepercaya.
+**TLS:** `CADDY_TLS_MODE=internal` (default di `.env.example`) = **self-signed** — HTTPS instan
+tanpa domain/DNS (peringatan sertifikat sekali di browser). Punya domain publik dan siap klien
+eksternal? Set `CADDY_TLS_MODE=acme` (butuh DNS A-record `PUBLIC_HOST` + port 80/443 terbuka ke
+publik) untuk sertifikat Let's Encrypt tepercaya — **satu baris di `.env`, bukan lagi edit
+`Caddyfile` manual** (comment/uncomment blok lama = risiko salah-edit nyata; kini ditegakkan
+lewat `docker compose ... build web` + `up -d web`, tak perlu sentuh file Caddy).
+
+**Secrets:** default = file `.env` di host (cukup untuk pilot terbatas). Menyimpan data klien
+sungguhan (pajak/keuangan)? Pertimbangkan `SECRETS_PROVIDER=aws-sm` sebelum onboarding — server
+menarik `APP_ENCRYPTION_KEY`/`APP_SIGNING_KEY`/dst dari **AWS Secrets Manager** saat boot (auth via
+IAM role instance EC2, bukan access key), bukan lagi disimpan mentah di `.env` host. Lihat §11a.
 
 ## 3. Deploy (build + boot)
 ```bash
@@ -125,8 +133,15 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 ## 10. Batasan (by design, didokumentasikan — bukan bug)
 - **Single-process**: `AuditLog.seq` diserialisasi satu proses → **tak** multi-instance/auto-scale.
 - **Satu box**: tanpa replikasi; durabilitas bergantung backup + salinan off-box.
-- **Self-signed TLS**: peringatan browser sekali (pilot). Domain publik → beralih ACME (§2).
-- **Secrets berbasis `.env`**: manajer rahasia terkelola (Vault/AWS SM) = fase lanjutan.
+- **TLS internal (default)**: peringatan browser sekali. Cocok pilot tertutup; klien eksternal →
+  `CADDY_TLS_MODE=acme` (§2, §13) begitu ada domain publik.
+- **Secrets berbasis `.env` (default)**: cukup untuk pilot terbatas dengan akses host dibatasi.
+  Data klien sungguhan → `SECRETS_PROVIDER=aws-sm` (§13) sebelum onboarding, bukan setelahnya.
+- **Rate-limit edge (§14) hanya per-IP, application-layer**: melindungi dari brute-force/abuse
+  wajar, BUKAN proteksi DDoS layer-jaringan (L3/L4). Untuk itu perlu layanan terpisah di depan EC2
+  (mis. AWS Shield/CloudFront) — di luar cakupan single-instance Caddy ini.
+- **Kunci produksi single-active** (§15): tak ada dukungan multi-key/versioned di
+  `secretbox.ts`/`signing.ts`. Lihat `docs/KEY-ROTATION.md` §0 untuk implikasinya per kunci.
 
 ## 11. Referensi
 - Paket & langkah EC2 rinci: `deploy/aws-ec2-test/README.md`
@@ -134,7 +149,8 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 - Migrasi: `server/prisma/migrations/` + `server/prisma/gen-pg-migrations.sh`
 - CI yang memverifikasi build+boot+seed+login + guard fail-fast: `.github/workflows/deploy-smoke.yml`
   (job `deploy-smoke`, server+db langsung di :5181 — TANPA edge) + job `edge-smoke` (login lewat
-  Caddy same-origin/`tls internal`, §12 di bawah).
+  Caddy same-origin/`tls internal`, §12 di bawah, + rate-limit §14).
+- Rotasi kunci: `docs/KEY-ROTATION.md` (§15) · Kesiapan pentest independen: `docs/PENTEST-READINESS.md`
 
 ## 12. Verifikasi Live (2026-07-02) — 3 gap go-live ditutup sebagian
 
@@ -220,5 +236,83 @@ tergantung kredit burst yang tersisa.
 - **EC2 sungguhan**: sesi ini pakai Docker Compose lokal (WSL dockerd) sebagai pengganti — bukan
   jaringan/EBS/noisy-neighbor EC2 asli. Angka §12.3 adalah sinyal pertama, bukan SLA final.
   Skrip ramping bisa dipakai ulang persis (lihat riwayat sesi/memory) begitu instance pilot ada.
-- Restore drill nyata, kepatuhan UU PDP, alerting produksi, secrets vault, TLS domain publik —
-  **masih 0%**, tak tersentuh sesi ini (lihat memory `asseris-deploy-readiness`).
+- Restore drill nyata, kepatuhan UU PDP, alerting produksi — **masih 0%**, tak tersentuh sesi ini
+  (lihat memory `asseris-deploy-readiness`). Secrets Manager & TLS publik ditutup sesi berikutnya
+  (2026-07-02, lanjutan) — lihat §13: kode+unit-test+live-fail-closed-verified, TAPI belum
+  live-verified terhadap AWS/domain sungguhan (kredensial/domain nyata tak tersedia di sesi manapun).
+
+## 13. Secrets Manager & TLS publik — go-live dengan data klien sungguhan
+
+Dua batasan §10 yang PALING relevan begitu ada data klien pajak/keuangan nyata di instance (bukan
+lagi demo/pilot-tertutup). Keduanya opt-in via `.env` — default tetap `.env`-file + self-signed
+(cukup untuk pilot), tak ada perubahan perilaku bila kedua var di bawah dibiarkan kosong.
+
+### Secrets Manager (AWS)
+1. Buat satu secret JSON di AWS Secrets Manager, mis. `asseris/prod/keys`:
+   ```json
+   {"APP_ENCRYPTION_KEY":"<hex-32B>","APP_SIGNING_KEY":"<base64-PKCS8-Ed25519>","BACKUP_ENCRYPTION_KEY":"<hex-32B>","POSTGRES_PASSWORD":"<sandi-kuat>"}
+   ```
+2. IAM role instance EC2 (bukan access key di `.env`) diberi policy minimal:
+   ```json
+   {"Effect":"Allow","Action":"secretsmanager:GetSecretValue","Resource":"arn:aws:secretsmanager:<region>:<acct>:secret:asseris/prod/keys-*"}
+   ```
+3. `.env`: `SECRETS_PROVIDER=aws-sm`, `AWS_SECRETS_MANAGER_SECRET_ID=asseris/prod/keys`,
+   `AWS_REGION=<region>` — **kosongkan** `APP_ENCRYPTION_KEY`/`APP_SIGNING_KEY`/`POSTGRES_PASSWORD`
+   di `.env` (ditarik dari SM saat boot; var `.env` yang TETAP diisi selalu menang atas SM —
+   override satu kunci tanpa redeploy SM bila perlu).
+4. Fail-closed: bila `SECRETS_PROVIDER=aws-sm` tapi fetch gagal (IAM salah/secret hilang/jaringan),
+   server **menolak boot** dengan pesan jelas (`server/src/secrets.ts`) — sama seperti guard M2.
+   Live-verified lokal 2026-07-02: boot ditolak bersih (tanpa kredensial AWS nyata) SEBELUM
+   `server.listen`; jalur default (`.env`) nol-regresi. Verifikasi live terhadap Secrets Manager
+   SUNGGUHAN (fetch sukses) belum dilakukan — butuh akses AWS nyata, di luar sesi yang membangun ini.
+
+### TLS publik (ACME/Let's Encrypt)
+1. Arahkan DNS: A-record `PUBLIC_HOST` → IP publik host (atau pakai `sslip.io` tanpa beli domain).
+2. Buka port 80+443 ke `0.0.0.0/0` di security group (80 = tantangan ACME HTTP-01).
+3. `.env`: `CADDY_TLS_MODE=acme` (dari default `internal`).
+4. `docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env up -d --build web`
+   — Caddy re-provisioning otomatis (LE cert pertama ~30 detik). Tak perlu edit `Caddyfile`.
+5. Rollback ke self-signed: `CADDY_TLS_MODE=internal` lalu ulangi langkah 4.
+
+Catatan desain (Caddyfile): `tls` Caddy tak bisa dibuat kosong-kondisional lewat placeholder
+langsung (`tls {$VAR}` dengan `$VAR` kosong = **error sintaks** Caddyfile — diuji langsung, bukan
+diasumsikan). Toggle bekerja lewat `import /etc/caddy/tls-{$CADDY_TLS_MODE}.caddy`, memilih salah
+satu dari dua snippet kecil (`tls-internal.caddy` = `tls internal`; `tls-acme.caddy` = kosong,
+meniadakan `tls` sepenuhnya sehingga automatic-HTTPS default Caddy yang jalan). Live-verified
+2026-07-02: `caddy validate` lulus kedua mode + edge nyata (healthz+login lewat `/trpc`) nol-regresi
+di mode `internal`; mode `acme` divalidasi struktural (config sah) — provisioning LE sungguhan
+BELUM diverifikasi (butuh domain publik nyata, tak tersedia di sesi ini).
+
+## 14. Rate-limit edge (Caddy) — go-live gap ditutup
+
+Sebelum ini, `/trpc/auth.login` — dan seluruh endpoint tRPC lain — **tak punya proteksi
+brute-force apa pun**, baik di edge maupun di app layer (satu-satunya rate limiter yang ada,
+`server/src/llm/ratelimit.ts`, hanya menutupi endpoint proxy LLM/W8). Ditutup dengan
+[`mholt/caddy-ratelimit`](https://github.com/mholt/caddy-ratelimit) — plugin pihak ketiga, jadi
+`deploy/aws-ec2-test/web.Dockerfile` kini build Caddy lewat `xcaddy` (image `caddy:2-builder-alpine`
+sebagai build stage, binary hasil compile disalin ke image final `caddy:2-alpine` — tak ada Go
+toolchain yang ikut ke image produksi).
+
+Dua zona di `deploy/aws-ec2-test/Caddyfile`, key per-IP (`{remote_host}`):
+- `/trpc/auth.login` — **5 permintaan/menit/IP**. Ambang ketat karena ini satu-satunya endpoint
+  yang sebelumnya nol-proteksi sama sekali.
+- `/trpc/*` (sisanya) — **60 permintaan/menit/IP**. Ambang longgar, sekadar jaring pengaman umum.
+
+Kedua ambang adalah default operasional, bukan angka regulasi — sesuaikan langsung di `Caddyfile`
+bila terlalu ketat untuk pola pemakaian nyata (mis. banyak staf di belakang satu NAT/IP kantor).
+
+CI (`edge-smoke` di `.github/workflows/deploy-smoke.yml`) memvalidasi `caddy validate` untuk kedua
+mode TLS **dan** membuktikan `429` benar-benar muncul setelah burst request ke `/trpc/auth.login` —
+bukan cuma "config-nya sah secara sintaks". **Belum diverifikasi**: perilaku di bawah beban nyata
+EC2 (ambang bisa perlu disesuaikan setelah observasi pola trafik pilot sungguhan), dan tak ada
+proteksi DDoS layer-jaringan (§10) — itu tanggung jawab layanan terpisah di depan EC2 bila/ketika
+dibutuhkan.
+
+## 15. Rotasi kunci produksi
+
+`APP_ENCRYPTION_KEY`/`APP_SIGNING_KEY` (§1, §13) sebelumnya hanya punya prosedur *generate sekali*
+— tak ada kebijakan rotasi. Kebijakan lengkap (cadence, prosedur, siapa approve, kenapa
+`APP_SIGNING_KEY` tak bisa dirotasi transparan) + skrip pendukung
+(`deploy/aws-ec2-test/rotate-keys.sh`) ada di **`docs/KEY-ROTATION.md`** — dokumen terpisah karena
+isinya operasional-berulang (bukan langkah deploy sekali), sama alasannya dengan `backup.sh`/
+`restore.sh` yang juga jadi prosedur berdiri sendiri, bukan bagian §1-§9 di atas.

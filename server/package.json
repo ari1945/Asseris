@@ -9,6 +9,7 @@
     "start": "tsx src/server.ts",
     "seed": "tsx src/seed.ts",
     "bootstrap": "tsx src/bootstrap.ts",
+    "rotate-encryption-key": "tsx src/rotateEncryptionKey.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "prisma:generate": "prisma generate",
@@ -16,6 +17,7 @@
     "db:reset": "prisma db push --skip-generate && tsx src/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1078.0",
     "@prisma/client": "^6.2.1",
     "@trpc/server": "^11.0.0",
     "prisma": "^6.2.1",

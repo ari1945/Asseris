@@ -17,8 +17,19 @@ RUN npm ci
 COPY migration/ ./
 RUN npm run build          # → /app/migration/dist (relative /trpc baked in, config-free)
 
+# Stock Caddy has no rate-limit directive built in — caddy-ratelimit is a third-party plugin,
+# which Caddy only ships via a custom-compiled binary (xcaddy). caddy:2-builder-alpine bundles
+# xcaddy; this stage's only output is the compiled /usr/bin/caddy binary, copied into the final
+# stage below (final image stays caddy:2-alpine, not the builder — no Go toolchain in prod).
+FROM caddy:2-builder-alpine AS caddy-build
+RUN xcaddy build --with github.com/mholt/caddy-ratelimit
+
 FROM caddy:2-alpine
+COPY --from=caddy-build /usr/bin/caddy /usr/bin/caddy
 COPY deploy/aws-ec2-test/Caddyfile /etc/caddy/Caddyfile
+# TLS-mode toggle snippets (CADDY_TLS_MODE=internal|acme) — see Caddyfile header.
+COPY deploy/aws-ec2-test/tls-internal.caddy /etc/caddy/tls-internal.caddy
+COPY deploy/aws-ec2-test/tls-acme.caddy /etc/caddy/tls-acme.caddy
 COPY --from=build /app/migration/dist /srv
 # Caddy auto-provisions Let's Encrypt TLS for $PUBLIC_HOST on first boot.
 EXPOSE 80 443

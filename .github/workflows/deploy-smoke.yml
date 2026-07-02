@@ -143,6 +143,22 @@ jobs:
       - name: build + boot (db + server + caddy edge)
         run: $COMPOSE up -d --build
 
+      # 2026-07-02 (later same day): the TLS-mode toggle (CADDY_TLS_MODE=internal|acme, replacing
+      # a manual Caddyfile comment/uncomment edit) hit the exact same class of silent-breakage risk
+      # as the /trpc bug above — `tls {$VAR}` with an empty $VAR is a Caddyfile SYNTAX ERROR, found
+      # only by directly testing `caddy validate` against the built image. This step makes both
+      # modes a permanent CI check instead of a one-time manual discovery. Cheap (no network/DNS
+      # needed — validate only, doesn't attempt a real ACME fetch) and catches Caddyfile syntax
+      # regressions in either snippet (tls-internal.caddy / tls-acme.caddy) before they ship.
+      - name: caddy validate — both TLS modes parse (internal default + acme toggle)
+        run: |
+          docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml run --rm --no-deps \
+            -e PUBLIC_HOST=localhost -e CADDY_TLS_MODE=internal \
+            web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml run --rm --no-deps \
+            -e PUBLIC_HOST=localhost -e CADDY_TLS_MODE=acme \
+            web caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
       - name: wait for edge healthz (through Caddy, same-origin)
         run: |
           for i in $(seq 1 40); do
@@ -163,6 +179,25 @@ jobs:
             -H 'content-type: application/json' \
             -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
             | grep -q '"token"'
+
+      # /trpc/auth.login had NO brute-force protection anywhere (edge or app) before this Caddyfile
+      # change — proves the new `login_zone` (5 events/min/IP, deploy/aws-ec2-test/Caddyfile) is
+      # actually wired, not just "caddy validate"-clean. Wrong creds on purpose: rate_limit runs
+      # ahead of the backend, so it trips regardless of whether auth would succeed.
+      - name: assert edge rate-limits /trpc/auth.login (429 after burst)
+        run: |
+          got_429=0
+          for i in $(seq 1 8); do
+            code=$(curl -sk -o /dev/null -w '%{http_code}' -X POST 'https://localhost/trpc/auth.login?batch=1' \
+              -H 'content-type: application/json' \
+              -d '{"0":{"email":"nobody@example.com","password":"wrong"}}')
+            if [ "$code" = "429" ]; then got_429=1; break; fi
+          done
+          if [ "$got_429" != "1" ]; then
+            echo "REGRESSION: no 429 after 8 rapid /trpc/auth.login requests — edge rate-limit not enforced"
+            exit 1
+          fi
+          echo "OK: edge rate-limit enforced (429 seen)"
 
       - name: dump compose logs on failure
         if: failure()

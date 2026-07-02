@@ -1,0 +1,4 @@
+# Self-signed local CA (DEFAULT — CADDY_TLS_MODE=internal). Browser shows a cert warning ONCE,
+# but the connection IS real HTTPS → cookie `Secure` (httpOnly auth) works. No domain/DNS/port-80
+# needed. Matches the locked Deploy-Readiness PRD decision (2026-07-01, pilot tertutup).
+tls internal
