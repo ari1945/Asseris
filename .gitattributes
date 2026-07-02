@@ -1,0 +1,6 @@
+# Shell scripts run on Linux (WSL/EC2/CI) — force LF regardless of the checkout OS. Found
+# 2026-07-02: no .gitattributes existed, so a Windows working tree could silently accumulate CRLF
+# (git blob stayed clean LF, only the local disk copy was corrupted) — `sh deploy/aws-ec2-test/
+# backup.sh` failed with "illegal option -" under WSL until the local files were reset from HEAD.
+# This doesn't fix a past commit (there was none to fix), it stops it from ever becoming one.
+*.sh text eol=lf

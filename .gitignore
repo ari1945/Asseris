@@ -28,6 +28,13 @@ _archive/
 !.env.example
 server/.env.local
 
+# encrypted DB backups (M6, deploy/aws-ec2-test/backup.sh): the documented crontab pattern runs
+# `cd <repo-root> && sh deploy/aws-ec2-test/backup.sh`, so BACKUP_DIR default `./backups` lands
+# HERE (repo root), not under deploy/aws-ec2-test/ — that dir's own .gitignore doesn't cover this
+# path. Root-anchored rule so a real deploy host that's a git checkout never risks `git add`-ing
+# an encrypted dump (found during the 2026-07-02 restore drill, see docs/DEPLOY.md).
+/backups/
+
 # misc
 .thumbnail
 .DS_Store
