@@ -171,6 +171,20 @@ model Seal {
   @@index([signerUserId])
 }
 
+// K4 hardening — archive of every Ed25519 PUBLIC key that has ever been the active
+// APP_SIGNING_KEY. Auto-recorded by createSeal() (via ensureSigningKeyArchived) before
+// every seal is signed, so a key rotation can never "forget" to archive: by the time a
+// new key is live, the old key's public half is already durable here. verifySeal looks
+// a seal's key up BY pubKeyId (not "is this today's key"), so seals remain verifiable
+// forever across any number of rotations, as long as this row survives (it's covered by
+// the normal DB backup — no separate secret-management concern since only the PUBLIC
+// half is stored).
+model SigningKey {
+  pubKeyId  String   @id
+  publicKey String // base64 SPKI DER — sufficient to verify, never the private half
+  createdAt DateTime @default(now())
+}
+
 model TeamMember {
   id     String @id @default(cuid())
   firmId String
@@ -289,6 +303,10 @@ model Engagement {
   actualHrs   Int?
   risk        String?
   materiality Float?
+  // K7 — set by engagement.archive (FIRM_ADMIN-only). Null = not yet archived. Drives the SA 230
+  // ¶A21 assembly-lock in state.set (ASSEMBLY_LOCK_DAYS after this timestamp, further engagement-
+  // scoped writes require CAP.PHASE_OVERRIDE) and the retention display in view_records.tsx.
+  archivedAt  DateTime?
   wtb         WtbRow[]
   members     EngagementMember[]
 }
@@ -332,4 +350,25 @@ model StateDoc {
 
   @@unique([scope, scopeId, key])
   @@index([scope, scopeId])
+}
+
+// K7 — immutable, append-only history of every StateDoc write. StateDoc itself only ever holds
+// the CURRENT value (that's the whole point of the CAS design); this table answers SA 230's
+// "what did the working paper say before it changed, and who changed it, when" — a gap the
+// versioned-but-current-only StateDoc could not close on its own. Populated inside the SAME
+// transaction as the StateDoc write (server/src/router.ts state.set), so it can never drift from
+// what StateDoc actually holds. One row per version EVER written (no unique-per-document
+// constraint like StateDoc — this is the append log, not the SSOT).
+model StateDocHistory {
+  id        String   @id @default(cuid())
+  scope     String
+  scopeId   String
+  key       String
+  version   Int
+  valueJson String
+  updatedAt DateTime @default(now())
+  updatedBy String?
+
+  @@unique([scope, scopeId, key, version])
+  @@index([scope, scopeId, key])
 }

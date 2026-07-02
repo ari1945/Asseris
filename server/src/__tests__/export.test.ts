@@ -121,6 +121,53 @@ describe('exporter.seal + verifySeal', () => {
   });
 });
 
+// K4 — a seal signed under one APP_SIGNING_KEY must stay verifiable after the key rotates,
+// because createSeal() archives the active key's public half (SigningKey table) BEFORE
+// signing, and verifySeal() looks the key up by the SEAL's OWN pubKeyId, not "today's key".
+describe('exporter — seal verification survives key rotation (K4)', () => {
+  it('a seal sealed under key A still verifies ok after rotating to key B', async () => {
+    const prev = process.env.APP_SIGNING_KEY;
+    try {
+      // Key A: a real (non-ephemeral) signing key.
+      process.env.APP_SIGNING_KEY = exportPrivateKeyBase64();
+      __resetSigner();
+      const pubKeyIdA = getSigner().pubKeyId;
+      const seal = await callerAs('Engagement Partner', PARTNER).exporter.seal({
+        kind: 'opinion', contentHash: HASH_A, scope: 'engagement', scopeId: XENG,
+      });
+      expect(seal.pubKeyId).toBe(pubKeyIdA);
+      // The active key's public half must already be archived at this point.
+      const archivedA = await prisma.signingKey.findUnique({ where: { pubKeyId: pubKeyIdA } });
+      expect(archivedA).not.toBeNull();
+
+      // Rotate: swap in a DIFFERENT Ed25519 key (key B) and drop the cached signer, exactly
+      // what a production restart with a new APP_SIGNING_KEY does. Clear the env var FIRST so
+      // getSigner() falls back to minting a fresh ephemeral keypair (not re-deriving key A).
+      delete process.env.APP_SIGNING_KEY;
+      __resetSigner();
+      process.env.APP_SIGNING_KEY = exportPrivateKeyBase64(); // exports the freshly-minted key B
+      __resetSigner();
+      expect(getSigner().pubKeyId).not.toBe(pubKeyIdA);
+
+      // The OLD seal (key A) must still verify — this is the exact regression K4 fixes.
+      const v = await callerAs('Engagement Partner', PARTNER).exporter.verifySeal({ sealId: seal.sealId, contentHash: HASH_A });
+      expect(v).toMatchObject({ valid: true, reason: 'ok', pubKeyId: pubKeyIdA });
+    } finally {
+      if (prev === undefined) delete process.env.APP_SIGNING_KEY;
+      else process.env.APP_SIGNING_KEY = prev;
+      __resetSigner();
+    }
+  });
+
+  it('a seal whose pubKeyId is not in the archive → unknown-key (not a false "tampered")', async () => {
+    const seal = await callerAs('Engagement Partner', PARTNER).exporter.seal({ kind: 'fs', contentHash: HASH_A, scope: 'engagement', scopeId: XENG });
+    // Simulate a foreign/corrupted row: a pubKeyId that was never archived.
+    await prisma.seal.update({ where: { id: seal.sealId }, data: { pubKeyId: 'deadbeefdeadbeef' } });
+    const v = await callerAs('Engagement Partner', PARTNER).exporter.verifySeal({ sealId: seal.sealId, contentHash: HASH_A });
+    expect(v).toMatchObject({ valid: false, reason: 'unknown-key' });
+  });
+});
+
 describe('exporter — RBAC & engagement isolation', () => {
   it('a role without EXPORT is FORBIDDEN', async () => {
     await expect(

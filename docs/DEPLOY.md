@@ -108,6 +108,33 @@ lingkungan kerja manapun sejauh ini) — teruji end-to-end (upload sukses + kega
 (S3-compatible lokal) di CI `restore-drill.yml`, pola gap yang sama seperti Secrets Manager §13.
 Detail: `docs/prd-backup-restore-dr-hardening.md`.
 
+## 6a. Ekspor audit-log append-only off-box (K5, 2026-07-02)
+
+Terpisah dari backup penuh §6 (yang jalan harian, mencakup seluruh DB): skrip
+`deploy/aws-ec2-test/export-audit-log.sh` mengekspor HANYA rantai `AuditLog` (hash-chained) ke
+JSONL, lebih murah sehingga bisa dijalankan lebih sering — poinnya: penyerang yang mengkompromikan
+host DB harus ALSO mengkompromikan lokasi off-box ini (prefix S3 terpisah) untuk menghapus semua
+salinan jejak audit. Integritas rantai diverifikasi SERVER-SIDE (`audit/export.ts`,
+`verifyAuditChain()`) **sebelum** ekspor — rantai rusak/ter-tamper menolak ekspor (skrip exit
+non-zero), tak pernah diam-diam mengirim data yang sudah tak valid.
+
+Inkremental via cursor lokal (`.since-seq` di `AUDIT_EXPORT_DIR`) — tiap run hanya mengekspor baris
+baru sejak run terakhir; run yang gagal (mis. koneksi S3 putus) TIDAK memajukan cursor, jadi run
+berikutnya otomatis mengulang rentang yang sama (crash-safe).
+
+```cron
+0 * * * *  cd /home/ubuntu/Asseris && BACKUP_ENCRYPTION_KEY=<hex> \
+           sh deploy/aws-ec2-test/export-audit-log.sh >> /var/log/asseris-audit-export.log 2>&1
+```
+
+Off-box (opt-in, pola sama §6): `BACKUP_S3_BUCKET=<nama-bucket>` → tersalin ke
+`s3://<bucket>/audit-log/…` — prefix TERPISAH dari dump DB penuh (`s3://<bucket>/asseris-…`) agar
+bisa diberi kebijakan retensi/Object Lock sendiri. Untuk WORM (write-once-read-many) sungguhan,
+aktifkan **S3 Object Lock (Compliance mode)** pada prefix ini — konfigurasi bucket sekali via
+`aws s3api put-object-lock-configuration`, **bukan** sesuatu yang bisa dilakukan skrip ini (bucket
+harus dibuat dengan versioning+Object Lock enabled sejak awal; tak bisa diaktifkan retroaktif di
+bucket existing). Belum live-verified terhadap AWS S3 sungguhan — gap yang sama seperti §6/§13.
+
 ## 7. Restore drill & Recovery Objectives (RTO/RPO)
 
 **Status: dieksekusi nyata pertama kali 2026-07-02** (sebelumnya cuma instruksi tak tersentuh,

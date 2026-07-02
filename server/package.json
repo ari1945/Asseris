@@ -10,6 +10,7 @@
     "seed": "tsx src/seed.ts",
     "bootstrap": "tsx src/bootstrap.ts",
     "rotate-encryption-key": "tsx src/rotateEncryptionKey.ts",
+    "export-audit-log": "tsx src/exportAuditLog.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "prisma:generate": "prisma generate",

@@ -84,3 +84,25 @@ export function verifyHash(contentHash: string, signatureB64: string): boolean {
 export function exportPrivateKeyBase64(signer: Signer = getSigner()): string {
   return (signer.privateKey.export({ format: 'der', type: 'pkcs8' }) as Buffer).toString('base64');
 }
+
+/** Base64 SPKI DER of a public key — the archival form stored in SigningKey.publicKey (K4). */
+export function exportPublicKeyBase64(publicKey: KeyObject): string {
+  return (publicKey.export({ format: 'der', type: 'spki' }) as Buffer).toString('base64');
+}
+
+/**
+ * Verify a base64 Ed25519 signature against an ARBITRARY archived public key (not
+ * necessarily the current process key). This is what makes seal verification survive
+ * APP_SIGNING_KEY rotation (K4): the caller looks up the archived public key by the
+ * seal's pubKeyId and verifies against that, instead of assuming "current key == signing
+ * key". Returns false (not throw) on any malformed input — same defensive shape as verifyHash.
+ */
+export function verifyHashWithKey(contentHash: string, signatureB64: string, publicKeyB64: string): boolean {
+  try {
+    const der = Buffer.from(publicKeyB64, 'base64');
+    const publicKey = createPublicKey({ key: der, format: 'der', type: 'spki' });
+    return nodeVerify(null, Buffer.from(contentHash, 'utf8'), publicKey, Buffer.from(signatureB64, 'base64'));
+  } catch {
+    return false;
+  }
+}

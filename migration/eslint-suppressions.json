@@ -926,7 +926,7 @@
   },
   "src/view_records.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 31
+      "count": 36
     }
   },
   "src/view_related.tsx": {

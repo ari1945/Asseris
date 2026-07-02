@@ -5,6 +5,7 @@ import {
 } from '../crypto/secretbox';
 import { ipAllowed, readAllowlist, assertIpAllowed } from '../security/ipAllowlist';
 import { buildSessionCookie, clearSessionCookie, COOKIE_NAME } from '../auth/cookie';
+import { hardenAuditLogImmutability } from '../dbHarden';
 
 const KEY = randomBytes(32); // 256-bit test key
 
@@ -106,5 +107,22 @@ describe('session cookie', () => {
 
   it('clear cookie has Max-Age=0', () => {
     expect(clearSessionCookie({} as NodeJS.ProcessEnv)).toContain('Max-Age=0');
+  });
+});
+
+// K5 — AuditLog immutability trigger. This is Postgres-only DDL; the real trigger behavior
+// (UPDATE/DELETE raises) can't be exercised against the SQLite test DB, but the SAFETY
+// properties that matter for boot (no-op on non-Postgres, never throws/crashes boot) can be.
+describe('dbHarden — AuditLog immutability trigger (K5)', () => {
+  it('no-ops for non-Postgres URLs (dev/test SQLite) — resolves without touching the DB', async () => {
+    await expect(hardenAuditLogImmutability('file:./dev.db')).resolves.toBeUndefined();
+    await expect(hardenAuditLogImmutability('')).resolves.toBeUndefined();
+  });
+
+  it('never throws even if the Postgres-only DDL runs against a non-Postgres DB (best-effort, logs and continues)', async () => {
+    // Forces the postgres branch (URL prefix check) while the actual $executeRawUnsafe still
+    // targets the process's real (SQLite) prisma client — must fail internally without
+    // propagating, matching the "never blocks boot" guarantee in dbHarden.ts.
+    await expect(hardenAuditLogImmutability('postgresql://localhost/nonexistent')).resolves.toBeUndefined();
   });
 });

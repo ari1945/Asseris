@@ -6,32 +6,35 @@
 
 ## 0. Batasan arsitektur (baca ini dulu — menentukan apa yang AMAN dirotasi)
 
-Kedua kunci hanya punya **satu kunci aktif** di runtime — `server/src/crypto/secretbox.ts` dan
-`server/src/crypto/signing.ts` **tidak** punya dukungan multi-key/versioned. Konsekuensinya beda
-untuk tiap kunci, dan itu menentukan seberapa sering masing-masing boleh dirotasi:
+`APP_ENCRYPTION_KEY` (`server/src/crypto/secretbox.ts`) hanya punya **satu kunci aktif** di
+runtime — tak ada dukungan multi-key/versioned, jadi rotasinya butuh re-encryption pass eksplisit.
 
 - **`APP_ENCRYPTION_KEY`** (AES-256-GCM, TOTP-at-rest): rotasi **AMAN** asalkan dijalankan lewat
   `rotate-keys.sh encryption` — skrip itu mendekripsi setiap `totpSecret` tersimpan dengan kunci
   LAMA lalu meng-enkripsi ulang dengan kunci BARU sebelum kunci lama dibuang. Tanpa langkah
   re-encrypt ini, mengganti env var begitu saja membuat SEMUA 2FA pengguna tak terbaca (server
   gagal decrypt, bukan silent-wrong — GCM auth tag membuatnya tamper-evident).
-- **`APP_SIGNING_KEY`** (Ed25519, segel ekspor): rotasi **TIDAK transparan**. `verifyHash()`
-  (`server/src/crypto/signing.ts`) hanya mengecek terhadap kunci publik proses SAAT INI — tak ada
-  cara memberitahunya "segel ini ditandatangani kunci versi sebelumnya, cek dengan kunci itu".
-  Merotasi kunci ini membuat **semua segel ekspor yang sudah diterbitkan gagal `audit.verify`**
-  begitu server restart dengan kunci baru. Membangun verifikasi bervensi (simpan `pubKeyId` per
-  segel + cek terhadap arsip kunci historis) adalah perubahan arsitektur nyata, sengaja **di luar
-  cakupan** dokumen/skrip ini (lihat PRD *Deploy Security Hardening*, 2026-07-02, Non-Scope) —
-  dicatat sebagai kandidat PRD terpisah bila rotasi rutin ternyata jadi kebutuhan nyata.
+- **`APP_SIGNING_KEY`** (Ed25519, segel ekspor): rotasi **kini transparan** (K4, 2026-07-02).
+  `createSeal()` (`server/src/export/seal.ts`) mengarsipkan kunci publik AKTIF ke tabel
+  `SigningKey` sebelum tiap segel ditandatangani (`server/src/crypto/keyArchive.ts`,
+  `ensureSigningKeyArchived`) — setiap segel yang pernah dibuat pasti sudah punya kunci
+  publiknya terarsip durable SEBELUM baris segel itu ada. `verifySeal()` memverifikasi terhadap
+  arsip kunci milik segel itu sendiri (dicari lewat `pubKeyId` yang tersimpan di baris segel),
+  BUKAN lagi "kunci proses hari ini". Konsekuensinya: merotasi `APP_SIGNING_KEY` **tidak lagi
+  mematahkan segel lama** — tak ada lagi langkah arsip manual yang diperlukan (§4 di bawah sudah
+  direvisi).
 
-Implikasi kebijakan: **kedua kunci TIDAK dirotasi dengan cadence yang sama.**
+Implikasi kebijakan: kedua kunci kini boleh mengikuti cadence yang sama secara arsitektural —
+`APP_SIGNING_KEY` di §1 tetap tak dijadwalkan rutin bukan karena keterbatasan teknis lagi,
+melainkan karena tak ada kebutuhan bisnis untuk merotasinya rutin (beda dengan
+`APP_ENCRYPTION_KEY` yang melindungi rahasia hidup/live secrets, bukan artefak historis).
 
 ## 1. Cadence
 
 | Kunci | Kalender | Event-driven (selalu, di luar jadwal kalender) |
 |---|---|---|
 | `APP_ENCRYPTION_KEY` | Tiap 180 hari (6 bulan) | Staf dengan akses `.env`/Secrets Manager keluar/berganti peran · kunci dicurigai bocor (log, laptop hilang, dsb) · insiden keamanan apa pun yang menyentuh host |
-| `APP_SIGNING_KEY` | **Tidak dijadwalkan rutin** — biaya (segel lama tak terverifikasi) melebihi manfaat rutin tanpa dukungan versioned-verify | HANYA bila kunci dicurigai bocor/kompromi. Ini keputusan Partner, bukan operasional rutin. |
+| `APP_SIGNING_KEY` | **Tidak dijadwalkan rutin** — tak ada kebutuhan bisnis untuk rotasi rutin (segel lama tetap terverifikasi pasca-K4, jadi ini murni pilihan operasional, bukan lagi keterbatasan teknis) | HANYA bila kunci dicurigai bocor/kompromi. Ini keputusan Partner, bukan operasional rutin. |
 | `BACKUP_ENCRYPTION_KEY` | Tiap 180 hari, selaras `APP_ENCRYPTION_KEY` | Sama seperti di atas |
 | `POSTGRES_PASSWORD` | Tiap 180 hari | Sama seperti di atas |
 
@@ -82,15 +85,14 @@ firma pilot skala kecil, jalankan di luar jam kerja atau matikan enrolment 2FA s
 
 ```bash
 sh deploy/aws-ec2-test/rotate-keys.sh signing
-# → wajib ketik 'ROTATE' untuk konfirmasi (menerima segel lama tak lagi terverifikasi otomatis)
 # → cetak kunci baru SEKALI + langkah manual berikutnya
 ```
 
-**Sebelum menjalankan**: arsipkan kunci LAMA offline (mis. brankas/password manager terpisah dari
-host) — itu satu-satunya cara memverifikasi segel lama secara manual di kemudian hari (di luar
-tombol `audit.verify` di app, yang hanya cek terhadap kunci aktif). Catat pubKeyId lama (muncul di
-log server) berdampingan dengan arsip kunci, supaya ketertelusuran "segel ini dari era kunci mana"
-tetap ada meski verifikasi otomatis tidak.
+**Pasca-K4 (2026-07-02):** tidak ada lagi langkah arsip manual kunci lama — `createSeal()` sudah
+mengarsipkan kunci publik aktif ke tabel `SigningKey` (DB, ikut ter-backup normal) SEBELUM tiap
+segel dibuat, dan `verifySeal()` mencari kunci lewat `pubKeyId` milik segel itu sendiri. Segel yang
+dibuat sebelum rotasi tetap `valid:true` setelah restart dengan `APP_SIGNING_KEY` baru — verifikasi
+lewat `audit.verify`/tombol "Verifikasi Segel" di app cukup, tak perlu arsip offline terpisah lagi.
 
 ## 5. Secrets Manager (bila `SECRETS_PROVIDER=aws-sm`)
 
@@ -98,10 +100,9 @@ Prosedur di atas sama — bedanya langkah "update .env" menjadi: tulis versi BAR
 (`docs/DEPLOY.md` §13) via `aws secretsmanager put-secret-value --secret-id asseris/prod/keys
 --secret-string '{...kunci baru...}'`. `server/src/secrets.ts` selalu fetch versi TERKINI (tak ada
 `VersionId` pinning) — begitu `put-secret-value` selesai dan server di-restart, kunci baru otomatis
-terpakai. AWS Secrets Manager sendiri menyimpan versi lama (`AWSPREVIOUS`) selama beberapa waktu —
-itu BUKAN pengganti arsip manual kunci lama di §4 (rotasi versi tetap mengubah nilai `SecretString`
-"current" yang di-fetch aplikasi; `AWSPREVIOUS` adalah jaring pengaman AWS-internal, bukan bagian
-alur rotasi Asseris).
+terpakai. AWS Secrets Manager sendiri menyimpan versi lama (`AWSPREVIOUS`) selama beberapa waktu,
+tapi itu tidak relevan lagi untuk `APP_SIGNING_KEY` pasca-K4 — arsip kunci publik yang menjamin
+segel lama tetap terverifikasi ada di tabel `SigningKey` (DB aplikasi), bukan di Secrets Manager.
 
 ## 6. Referensi
 - Generate kunci awal: `docs/DEPLOY.md` §1, §13
