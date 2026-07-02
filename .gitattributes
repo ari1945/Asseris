@@ -10,3 +10,8 @@
 # boot — a CRLF-corrupted copy would break bootstrap silently on the instance. *.sh above doesn't
 # match *.sh.tpl, so it needs its own rule.
 *.sh.tpl text eol=lf
+
+# .github/scripts/*.py (uptime-alert.yml) run under `python3` in CI (Linux runners) — same
+# precautionary rule, cheap insurance against the identical class of bug even though Python's
+# tokenizer tolerates CRLF better than a shell shebang does.
+*.py text eol=lf

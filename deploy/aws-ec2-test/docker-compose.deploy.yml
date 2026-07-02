@@ -21,6 +21,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
+    # 2026-07-03 — bound local disk (default json-file driver is unbounded otherwise); off-box
+    # durability/retention lives in deploy/aws-ec2-test/ship-logs.sh, see docs/LOGGING.md.
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
 
   server:
     build:
@@ -29,6 +36,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
     environment:
       DATABASE_URL: postgresql://neosuite:${POSTGRES_PASSWORD:-changeme}@db:5432/neosuite
       PORT: "5181"
@@ -62,6 +74,11 @@ services:
       dockerfile: deploy/aws-ec2-test/web.Dockerfile
     depends_on:
       - server
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
     environment:
       PUBLIC_HOST: ${PUBLIC_HOST:?set PUBLIC_HOST in .env (e.g. 13-54-2-9.sslip.io)}
       # TLS mode toggle (Caddyfile §top) — internal (DEFAULT, self-signed pilot) or acme

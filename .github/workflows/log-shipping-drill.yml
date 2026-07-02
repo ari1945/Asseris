@@ -1,0 +1,137 @@
+# log-shipping-drill — proves ship-logs.sh (deploy/aws-ec2-test/ship-logs.sh) actually captures,
+# archives, and off-box-copies container logs, on a schedule, instead of trusting an unexercised
+# script (the exact class of bug restore-drill.yml exists to catch — see its own header: backup.sh
+# was found silently broken by CRLF corruption only because someone finally ran it for real).
+#
+# Lower cadence than restore-drill.yml (monthly, not weekly) — a broken log-ship script loses
+# operational debugging history, not the ability to recover the database itself, so the stakes
+# don't justify the same weekly cost.
+name: log-shipping-drill
+
+on:
+  schedule:
+    - cron: '43 4 1 * *'   # monthly, 1st @ 04:43 UTC — off the hour to dodge Actions cron congestion
+  push:
+    paths:
+      - 'deploy/aws-ec2-test/ship-logs.sh'
+      - 'deploy/aws-ec2-test/docker-compose.deploy.yml'
+      - '.github/workflows/log-shipping-drill.yml'
+  pull_request:
+    paths:
+      - 'deploy/aws-ec2-test/ship-logs.sh'
+      - 'deploy/aws-ec2-test/docker-compose.deploy.yml'
+      - '.github/workflows/log-shipping-drill.yml'
+  workflow_dispatch: {}   # manual re-run on demand
+
+jobs:
+  log-shipping-drill:
+    name: capture -> cursor-dedup -> off-box copy -> retention prune
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE: docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: generate .env (ephemeral CI keys)
+        run: |
+          cat > deploy/aws-ec2-test/.env <<EOF
+          POSTGRES_PASSWORD=$(openssl rand -hex 24)
+          APP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          APP_SIGNING_KEY=$(openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)
+          BACKUP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          PUBLIC_HOST=localhost
+          COOKIE_SECURE=1
+          ADMIN_IP_ALLOWLIST=
+          LLM_API_KEY=
+          LLM_PROVIDER=
+          LLM_MODEL=
+          EOF
+
+      - name: build + boot (db + server + caddy edge)
+        run: $COMPOSE up -d --build
+
+      - name: wait for edge healthz
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsSk https://localhost/healthz; then echo; echo "edge healthz up after $((i*3))s"; exit 0; fi
+            sleep 3
+          done
+          echo "edge healthz never came up within ~120s"; exit 1
+
+      - name: generate some log traffic
+        run: for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+
+      - name: first ship — produces exactly one local archive
+        run: |
+          sh deploy/aws-ec2-test/ship-logs.sh
+          ls -la logs-shipped/
+          test -f logs-shipped/.since || { echo "REGRESSION: cursor file not written"; exit 1; }
+          COUNT_1=$(ls logs-shipped/asseris-logs-*.tar.gz | wc -l)
+          [ "$COUNT_1" -eq 1 ] || { echo "REGRESSION: expected exactly 1 archive after first run, got $COUNT_1"; exit 1; }
+
+      - name: second ship immediately after — cursor prevents re-shipping the same window
+        run: |
+          sh deploy/aws-ec2-test/ship-logs.sh
+          COUNT_2=$(ls logs-shipped/asseris-logs-*.tar.gz | wc -l)
+          [ "$COUNT_2" -eq 1 ] || { echo "REGRESSION: expected no NEW archive on an immediate re-run with nothing new since cursor, got $COUNT_2 total"; exit 1; }
+          echo "OK: cursor prevented duplicate shipping"
+
+      - name: start disposable MinIO (S3-compatible off-box target for testing)
+        run: |
+          docker run -d --name minio --network host \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin123 \
+            minio/minio server /data
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:9000/minio/health/live; then echo; echo "minio up after $((i*2))s"; exit 0; fi
+            sleep 2
+          done
+          echo "minio never came up within ~40s"; exit 1
+
+      - name: off-box copy — succeeds against a real (test) bucket
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin123
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws --endpoint-url http://localhost:9000 s3 mb s3://asseris-logs-test
+          for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+          LOG_S3_BUCKET=asseris-logs-test BACKUP_S3_ENDPOINT=http://localhost:9000 \
+              sh deploy/aws-ec2-test/ship-logs.sh
+          aws --endpoint-url http://localhost:9000 s3 ls s3://asseris-logs-test/logs/ | grep -q 'asseris-logs-.*\.tar\.gz' \
+            || { echo "REGRESSION: ship-logs.sh reported success but no object landed in the test bucket"; exit 1; }
+          echo "OK: off-box copy landed in the test bucket"
+
+      - name: off-box copy — fails loudly against a nonexistent bucket (local archive still intact)
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin123
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+          BEFORE=$(ls logs-shipped/*.tar.gz | wc -l)
+          if LOG_S3_BUCKET=does-not-exist-bucket BACKUP_S3_ENDPOINT=http://localhost:9000 \
+                 sh deploy/aws-ec2-test/ship-logs.sh; then
+            echo "REGRESSION: ship-logs.sh exited 0 despite the off-box copy target not existing"; exit 1
+          fi
+          AFTER=$(ls logs-shipped/*.tar.gz | wc -l)
+          [ "$AFTER" -gt "$BEFORE" ] || { echo "REGRESSION: local archive was not written when off-box copy failed"; exit 1; }
+          echo "OK: ship-logs.sh exited non-zero on off-box failure, AND the local archive still landed"
+
+      - name: retention prunes archives older than the window
+        run: |
+          touch -d '10 days ago' logs-shipped/asseris-logs-*.tar.gz
+          for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+          LOG_LOCAL_RETENTION_DAYS=3 sh deploy/aws-ec2-test/ship-logs.sh
+          OLD_LEFT=$(find logs-shipped -name 'asseris-logs-*.tar.gz' -mtime +3 | wc -l)
+          [ "$OLD_LEFT" -eq 0 ] || { echo "REGRESSION: retention did not prune archives older than 3 days"; exit 1; }
+          echo "OK: retention pruned old local archives"
+
+      - name: dump compose logs on failure
+        if: failure()
+        run: $COMPOSE logs --no-color
+
+      - name: teardown (always — ephemeral CI DB + MinIO)
+        if: always()
+        run: |
+          $COMPOSE down -v
+          docker rm -f minio 2>/dev/null || true

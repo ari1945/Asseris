@@ -29,6 +29,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
+    # 2026-07-03 — bound local disk (default json-file driver is unbounded otherwise); off-box
+    # durability/retention lives in deploy/aws-ec2-test/ship-logs.sh, see docs/LOGGING.md.
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
 
   server:
     build:
@@ -37,6 +44,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
     environment:
       DATABASE_URL: postgresql://neosuite:${POSTGRES_PASSWORD:-changeme}@db:5432/neosuite
       PORT: "5181"

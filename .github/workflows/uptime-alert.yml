@@ -1,0 +1,108 @@
+# uptime-alert — the alerting layer flagged missing 2026-07-03 ("siapa yang tahu jika server down
+# jam 2 pagi?"). server/src/server.ts exposes /healthz and /metrics (real Prometheus text format)
+# but nothing was scraping or paging on them. This check runs OUTSIDE the deployed box on purpose:
+# an alerter running ON the EC2 instance dies with the instance it's supposed to alert about, so
+# the only place this can live is an external runner (GitHub Actions), not the box itself.
+#
+# HOW TO ENABLE (does nothing until configured):
+#   1. Repo Settings -> Secrets and variables -> Actions -> Variables:
+#        HEALTHZ_URL = https://<your-public-host>/healthz
+#   2. Repo Settings -> Secrets and variables -> Actions -> Secrets:
+#        ALERT_SMTP_HOST, ALERT_SMTP_PORT (587 or 465), ALERT_SMTP_USER, ALERT_SMTP_PASS,
+#        ALERT_EMAIL_FROM, ALERT_EMAIL_TO
+#   See docs/DEPLOY.md (Alerting section) for the full walkthrough.
+#
+# LIMITATIONS (stated honestly, not oversold — see docs/INCIDENT-RESPONSE.md for the operating
+# posture this feeds into):
+#   - GitHub Actions `schedule` is best-effort: runs can be delayed several minutes under platform
+#     load, and GitHub disables scheduled workflows entirely after 60 days with no repo activity
+#     (unlikely here given commit frequency, but worth knowing).
+#   - This checks liveness + DB reachability only (the two things /healthz reports). It does not
+#     compute error rates from /metrics — that needs a persistent time series (Prometheus or
+#     similar), which is a real future upgrade, not something to fake with a stateless per-run
+#     check. Out of scope here; noted as a known gap rather than silently skipped.
+#   - Detection latency is "the next 15-minute tick", not real-time.
+#   - GitHub also emails repo watchers by default when a scheduled workflow run fails — a free,
+#     zero-config second layer on top of the SMTP email this workflow sends deliberately.
+name: uptime-alert
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  push:
+    paths:
+      - '.github/scripts/send-alert-email.py'
+      - '.github/scripts/test_send_alert_email.py'
+      - '.github/workflows/uptime-alert.yml'
+  pull_request:
+    paths:
+      - '.github/scripts/send-alert-email.py'
+      - '.github/scripts/test_send_alert_email.py'
+      - '.github/workflows/uptime-alert.yml'
+  workflow_dispatch: {}   # manual re-run on demand
+
+jobs:
+  check:
+    name: probe /healthz and alert on failure
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: is a target configured?
+        id: cfg
+        run: |
+          if [ -z "${{ vars.HEALTHZ_URL }}" ]; then
+            echo "configured=0" >> "$GITHUB_OUTPUT"
+            echo "HEALTHZ_URL repo variable not set — nothing deployed yet, or alerting not configured. Skipping (see docs/DEPLOY.md Alerting section)."
+          else
+            echo "configured=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: probe /healthz
+        if: steps.cfg.outputs.configured == '1'
+        id: probe
+        run: |
+          set +e
+          HTTP_CODE=$(curl -sk -o /tmp/healthz_body.json --max-time 10 -w '%{http_code}' "${{ vars.HEALTHZ_URL }}")
+          CURL_EXIT=$?
+          set -e
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "failed=1" >> "$GITHUB_OUTPUT"
+            echo "reason=connection failed (curl exit $CURL_EXIT) - unreachable, DNS/TLS/network failure, or timeout after 10s" >> "$GITHUB_OUTPUT"
+          elif [ "$HTTP_CODE" != "200" ]; then
+            echo "failed=1" >> "$GITHUB_OUTPUT"
+            echo "reason=HTTP $HTTP_CODE from /healthz - body: $(head -c 300 /tmp/healthz_body.json)" >> "$GITHUB_OUTPUT"
+          elif ! grep -q '"db":"up"' /tmp/healthz_body.json; then
+            echo "failed=1" >> "$GITHUB_OUTPUT"
+            echo "reason=HTTP 200 but db is down - body: $(cat /tmp/healthz_body.json)" >> "$GITHUB_OUTPUT"
+          else
+            echo "failed=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: send alert email
+        if: steps.cfg.outputs.configured == '1' && steps.probe.outputs.failed == '1'
+        env:
+          SMTP_HOST: ${{ secrets.ALERT_SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.ALERT_SMTP_PORT }}
+          SMTP_USER: ${{ secrets.ALERT_SMTP_USER }}
+          SMTP_PASS: ${{ secrets.ALERT_SMTP_PASS }}
+          ALERT_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+          ALERT_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          TARGET: ${{ vars.HEALTHZ_URL }}
+          REASON: ${{ steps.probe.outputs.reason }}
+        run: python3 .github/scripts/send-alert-email.py
+
+      - name: fail the run (surfaces in Actions + triggers GitHub's own failure-notification email)
+        if: steps.cfg.outputs.configured == '1' && steps.probe.outputs.failed == '1'
+        run: |
+          echo "ALERT: ${{ steps.probe.outputs.reason }}"
+          exit 1
+
+  test-alert-script:
+    name: verify alert email logic (mocked SMTP — no real email sent)
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/scripts/test_send_alert_email.py -v

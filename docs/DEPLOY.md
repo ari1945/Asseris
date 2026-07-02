@@ -223,6 +223,8 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
   (job `deploy-smoke`, server+db langsung di :5181 — TANPA edge) + job `edge-smoke` (login lewat
   Caddy same-origin/`tls internal`, §12 di bawah, + rate-limit §14).
 - Rotasi kunci: `docs/KEY-ROTATION.md` (§15) · Kesiapan pentest independen: `docs/PENTEST-READINESS.md`
+- Alerting (§16): `.github/workflows/uptime-alert.yml` · Log retensi (§17): `docs/LOGGING.md` ·
+  Respons insiden (§18): `docs/INCIDENT-RESPONSE.md`
 
 ## 12. Verifikasi Live (2026-07-02) — 3 gap go-live ditutup sebagian
 
@@ -308,8 +310,11 @@ tergantung kredit burst yang tersisa.
 - **EC2 sungguhan**: sesi ini pakai Docker Compose lokal (WSL dockerd) sebagai pengganti — bukan
   jaringan/EBS/noisy-neighbor EC2 asli. Angka §12.3 adalah sinyal pertama, bukan SLA final.
   Skrip ramping bisa dipakai ulang persis (lihat riwayat sesi/memory) begitu instance pilot ada.
-- Restore drill nyata, kepatuhan UU PDP, alerting produksi — **masih 0%**, tak tersentuh sesi ini
-  (lihat memory `asseris-deploy-readiness`). Secrets Manager & TLS publik ditutup sesi berikutnya
+- Restore drill nyata (2026-07-02), kepatuhan UU PDP (masih 0%). **Alerting + log retensi ditutup
+  2026-07-03** (§16, §17, `docs/INCIDENT-RESPONSE.md`) — kode+CI-verified (mocked SMTP/MinIO),
+  TAPI belum live-verified terhadap deploy produksi sungguhan (perlu `HEALTHZ_URL`/secret SMTP
+  nyata diisi di repo, dan crontab `ship-logs.sh` nyata di box) — pola gap yang sama seperti
+  Secrets Manager/TLS publik di bawah. Secrets Manager & TLS publik ditutup sesi berikutnya
   (2026-07-02, lanjutan) — lihat §13: kode+unit-test+live-fail-closed-verified, TAPI belum
   live-verified terhadap AWS/domain sungguhan (kredensial/domain nyata tak tersedia di sesi manapun).
 
@@ -388,3 +393,60 @@ dibutuhkan.
 (`deploy/aws-ec2-test/rotate-keys.sh`) ada di **`docs/KEY-ROTATION.md`** — dokumen terpisah karena
 isinya operasional-berulang (bukan langkah deploy sekali), sama alasannya dengan `backup.sh`/
 `restore.sh` yang juga jadi prosedur berdiri sendiri, bukan bagian §1-§9 di atas.
+
+## 16. Alerting (2026-07-03) — go-live gap ditutup
+
+Sebelum ini, `/healthz` dan `/metrics` (`server/src/server.ts`) sudah ada (format Prometheus text
+sungguhan) tapi **tak ada yang men-scrape atau memberi tahu manusia**. Ditutup dengan
+`.github/workflows/uptime-alert.yml` — probe eksternal, **sengaja berjalan di luar box** (GitHub
+Actions, bukan EC2 instance itu sendiri): pemeriksa yang jalan DI box mati bersama box yang harus
+diperiksanya, jadi ini secara arsitektur harus berjalan di luar.
+
+**Cara mengaktifkan** (tak melakukan apa pun sampai dikonfigurasi):
+1. Repo → Settings → Secrets and variables → Actions → tab **Variables**:
+   `HEALTHZ_URL = https://<PUBLIC_HOST>/healthz`
+2. Tab **Secrets**: `ALERT_SMTP_HOST`, `ALERT_SMTP_PORT` (587 atau 465), `ALERT_SMTP_USER`,
+   `ALERT_SMTP_PASS`, `ALERT_EMAIL_FROM`, `ALERT_EMAIL_TO`.
+
+Probe tiap 15 menit → gagal (tak terjangkau/HTTP bukan 200/`db` down) → email via SMTP
+(`.github/scripts/send-alert-email.py`, stdlib Python `smtplib`, nol dependensi pihak
+ketiga/vendor Action) + workflow run ditandai gagal (memicu juga notifikasi kegagalan bawaan
+GitHub ke *watcher* repo — lapisan kedua gratis). Logika skrip email diverifikasi via mocked-SMTP
+unit test (`.github/scripts/test_send_alert_email.py`) tiap kali skrip berubah — filosofi sama
+seperti `restore-drill.yml`: jalur yang tak pernah dieksekusi bisa diam-diam rusak berbulan-bulan.
+
+**Batasan (jujur, bukan dijual berlebihan):**
+- `schedule` GitHub Actions best-effort — bisa telat beberapa menit saat platform sibuk; GitHub
+  menonaktifkan scheduled workflow setelah 60 hari tanpa aktivitas repo (tak mungkin di repo ini
+  mengingat frekuensi commit, tapi perlu diketahui).
+- Hanya memeriksa liveness + keterjangkauan DB (dua hal yang dilaporkan `/healthz`) — **tidak**
+  menghitung laju error dari `/metrics` (itu butuh time-series persisten, mis. Prometheus
+  sungguhan — peningkatan masa depan yang wajar, dicatat sebagai gap, bukan dipalsukan dengan
+  pemeriksaan stateless per-run).
+- Latensi deteksi = "tick 15 menit berikutnya", bukan real-time.
+
+Postur respons (siapa dihubungi, SLA, eskalasi) → **`docs/INCIDENT-RESPONSE.md`**.
+
+## 17. Log aggregation & retensi (2026-07-03) — go-live gap ditutup
+
+Sebelum ini, log kontainer (`db`/`server`/`web`) hanya ada lewat driver `json-file` default
+Docker: **tanpa rotasi** (disk tumbuh tak terbatas) dan **tanpa salinan off-box** (box hilang →
+log ikut hilang). Ditutup dua lapis:
+1. **Rotasi lokal** — `docker-compose.yml`/`docker-compose.deploy.yml` kini menyetel
+   `logging.driver: json-file` dengan `max-size: 20m, max-file: 5` per servis (~100 MB/servis).
+2. **Salinan off-box terjadwal** — `deploy/aws-ec2-test/ship-logs.sh` (pola sama `backup.sh`),
+   cursor-based, opsional ke S3 (`LOG_S3_BUCKET`/`BACKUP_S3_BUCKET`), retensi lokal 3 hari
+   (`LOG_LOCAL_RETENTION_DAYS`), diuji end-to-end vs MinIO di CI
+   `.github/workflows/log-shipping-drill.yml` (bulanan + tiap kali skrip berubah).
+
+Detail lengkap (kebijakan retensi, rekomendasi S3 lifecycle, apa yang sengaja TIDAK dibangun) →
+**`docs/LOGGING.md`**.
+
+## 18. Incident response — deteksi, respons, eskalasi
+
+Alerting (§16) dan log retention (§17) menjawab "bagaimana tahu ada masalah" dan "bagaimana
+menyelidikinya setelah fakta" — **`docs/INCIDENT-RESPONSE.md`** menjawab "lalu apa yang
+dilakukan": matriks severitas, runbook mitigasi langkah-demi-langkah, template komunikasi klien,
+dan — penting — postur operasional saat ini yang dinyatakan jujur (satu kontak teknis, tanpa
+eskalasi sekunder, komitmen respons best-effort jam kerja saja; keputusan eksplisit Ari
+2026-07-03, bukan asumsi penulis dokumen).
