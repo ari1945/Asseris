@@ -8,9 +8,24 @@
 import './env'; // load .env/.env.local first (DATABASE_URL etc.)
 import { prisma } from './db';
 import { bootstrapFirm } from './bootstrapFirm';
+import { assertProdConfig } from './prodConfig';
 
 async function main(): Promise<void> {
   const env = process.env;
+
+  // Fixed post pre-push-review finding: this CLI provisions a real Partner-admin (TOTP secret
+  // encrypted via APP_ENCRYPTION_KEY) but never ran through the M2 fail-fast guard — an operator
+  // could run `npm run bootstrap` in production with a missing/weak key and the secret would be
+  // written to Postgres unencrypted (secretbox.ts passes through with no key configured), silently.
+  // Same guard as server.ts, same fail-closed behavior, before any DB write happens.
+  assertProdConfig(env, {
+    onProblem: (p) => console.error(`✗ config.invalid  ${p.key}: ${p.problem}`),
+    onExit: (count) => {
+      console.error(`✗ bootstrap ditolak: ${count} masalah konfigurasi produksi tidak aman. Perbaiki env lalu jalankan ulang.`);
+      process.exit(1);
+    },
+  });
+
   const req = (k: string): string => {
     const v = env[k];
     if (!v) throw new Error(`env ${k} wajib diisi`);

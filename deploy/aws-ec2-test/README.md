@@ -75,9 +75,12 @@ Tunggu image ter-build (build pertama beberapa menit) + Caddy ambil sertifikat (
 ## 6. Seed data demo (sekali, DESTRUKTIF)
 ```bash
 docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml \
-  --env-file deploy/aws-ec2-test/.env run --rm server npm run seed
+  --env-file deploy/aws-ec2-test/.env run --rm -e ALLOW_DEMO_SEED=1 server npm run seed
 ```
-Mengisi klien/perikatan/pengguna demo + kredensial login.
+Mengisi klien/perikatan/pengguna demo + kredensial login. `ALLOW_DEMO_SEED=1` wajib di sini karena
+`NODE_ENV=production` di compose ini (M5 fail-closed guard menolak seed destruktif di produksi
+tanpa override eksplisit) — instance test ini memang demo, bukan data klien nyata (lihat caveat §7).
+Untuk provisioning firma **nyata** (non-demo), pakai `npm run bootstrap` (lihat `docs/DEPLOY.md` §4), BUKAN seed ini.
 
 ## 7. Verifikasi
 ```bash

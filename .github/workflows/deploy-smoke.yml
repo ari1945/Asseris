@@ -47,7 +47,8 @@ jobs:
         run: echo "APP_SIGNING_KEY=$(openssl genpkey -algorithm ed25519 -outform DER | base64 -w0)" >> "$GITHUB_ENV"
 
       # Builds server/Dockerfile (catches COPY/dep/ESM footguns) and starts db + server.
-      # compose's start command runs `prisma db push` against postgres:16, then `npm start`.
+      # compose's start command runs `prisma migrate deploy` (M4 — versioned Postgres migrations)
+      # against postgres:16, then `npm start`.
       - name: build image + up stack
         run: docker compose up --build -d
 
@@ -63,8 +64,10 @@ jobs:
       # The W11 regression surface: seedData.ts imports migration/src/data.js → data.ts and
       # data_import.js → data_import.ts. A green seed proves tsx resolves `.js→.ts` in-container
       # AND that the Postgres write path works. (Dev creds; DB is ephemeral.)
+      # M5 fail-closed guard (seed.ts) refuses to run under NODE_ENV=production (inherited from the
+      # `server` service) unless explicitly overridden — this IS a demo/ephemeral CI DB, so opt in.
       - name: seed (proves tsx .js→.ts + Postgres writes)
-        run: docker compose run --rm server npm run seed
+        run: docker compose run --rm -e ALLOW_DEMO_SEED=1 server npm run seed
 
       # Full chain: server reads seeded Postgres, verifies the scrypt hash, issues a session.
       - name: assert healthz db:up + login returns a token
@@ -84,6 +87,18 @@ jobs:
             echo "REGRESSION: server booted despite COOKIE_SECURE=0 under NODE_ENV=production"; exit 1
           fi
           echo "OK: server refused to boot (fail-fast) with insecure config"
+
+      # Fixed post pre-push-review finding: `npm run bootstrap` (the non-destructive real-firm
+      # provisioning CLI) previously never ran through the M2 guard at all — it would silently
+      # write a Partner-admin's TOTP secret unencrypted if APP_ENCRYPTION_KEY was missing/weak.
+      # --no-deps: the guard must run before any DB use, so no Postgres needed. If bootstrap
+      # proceeds anyway, that's a regression of the fix in server/src/bootstrap.ts.
+      - name: fail-fast — bootstrap CLI refuses insecure prod config
+        run: |
+          if docker compose run --rm --no-deps -e APP_ENCRYPTION_KEY= server npm run bootstrap; then
+            echo "REGRESSION: bootstrap proceeded despite missing APP_ENCRYPTION_KEY under NODE_ENV=production"; exit 1
+          fi
+          echo "OK: bootstrap refused to run (fail-fast) with insecure config"
 
       - name: dump compose logs on failure
         if: failure()
