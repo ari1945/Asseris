@@ -17,7 +17,7 @@
     "db:reset": "prisma db push --skip-generate && tsx src/seed.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1078.0",
+    "@aws-sdk/client-secrets-manager": "^3.1079.0",
     "@prisma/client": "^6.2.1",
     "@trpc/server": "^11.0.0",
     "prisma": "^6.2.1",
