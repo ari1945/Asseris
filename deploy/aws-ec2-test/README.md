@@ -11,11 +11,13 @@ Internet ──443──► Caddy (web) ──► /trpc/* ─► server:5181 ─
                        └────────► /*       ─► SPA statis (/srv)
 ```
 
-> **TLS (default sejak 2026-07-01):** `Caddyfile` kini default **self-signed (`tls internal`)** sesuai
-> keputusan Deploy-Readiness PRD (pilot tertutup) — HTTPS langsung jalan tanpa domain/DNS/port-80,
-> browser menampilkan peringatan sertifikat sekali. **Punya domain publik?** Uncomment blok ACME di
-> `Caddyfile` (butuh DNS A-record + port 80/443 terbuka) untuk sertifikat Let's Encrypt tepercaya.
-> Langkah 5/7 di bawah menyebut alur ACME; dengan default self-signed sertifikat terbit instan.
+> **TLS (default sejak 2026-07-01):** `Caddyfile` default **self-signed (`tls internal`,
+> `CADDY_TLS_MODE=internal`)** sesuai keputusan Deploy-Readiness PRD (pilot tertutup) — HTTPS
+> langsung jalan tanpa domain/DNS/port-80, browser menampilkan peringatan sertifikat sekali.
+> **Punya domain publik?** Set `CADDY_TLS_MODE=acme` di `.env` (bukan lagi edit `Caddyfile` manual
+> sejak 2026-07-02 — lihat `docs/DEPLOY.md` §13) untuk sertifikat Let's Encrypt tepercaya; butuh DNS
+> A-record + port 80/443 terbuka. Langkah 5/7 di bawah menyebut alur ACME; dengan default
+> self-signed sertifikat terbit instan.
 
 ---
 

@@ -19,6 +19,9 @@ RUN npm run build          # → /app/migration/dist (relative /trpc baked in, c
 
 FROM caddy:2-alpine
 COPY deploy/aws-ec2-test/Caddyfile /etc/caddy/Caddyfile
+# TLS-mode toggle snippets (CADDY_TLS_MODE=internal|acme) — see Caddyfile header.
+COPY deploy/aws-ec2-test/tls-internal.caddy /etc/caddy/tls-internal.caddy
+COPY deploy/aws-ec2-test/tls-acme.caddy /etc/caddy/tls-acme.caddy
 COPY --from=build /app/migration/dist /srv
 # Caddy auto-provisions Let's Encrypt TLS for $PUBLIC_HOST on first boot.
 EXPOSE 80 443

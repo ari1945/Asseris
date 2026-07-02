@@ -1,11 +1,23 @@
 # One origin for the whole app. $PUBLIC_HOST is injected from the compose env.
 #
-# DEFAULT: self-signed internal TLS (pilot tertutup — keputusan Deploy-Readiness PRD 2026-07-01).
-# Browser menampilkan peringatan sertifikat SEKALI, TAPI koneksi tetap HTTPS → cookie `Secure`
-# (httpOnly auth) berfungsi. Cocok untuk pilot di balik VPN / akses-IP tanpa domain publik,
-# dan tak butuh port 80 terbuka atau DNS A-record.
+# TLS mode is a ONE-LINE toggle via $CADDY_TLS_MODE (docker-compose.deploy.yml → .env) — not a
+# manual comment/uncomment edit, which was a real operator-error risk (easy to get wrong/forget,
+# and this file has no CI coverage of "did the operator edit it correctly"). Caddy's `tls`
+# directive can't itself be made conditionally-empty via a placeholder (a bare `tls` with no
+# argument and no block is a Caddyfile syntax error — tested, not assumed), so the toggle works
+# by importing one of two tiny snippet files instead:
+#   tls-internal.caddy → `tls internal`  (CADDY_TLS_MODE=internal, DEFAULT) — self-signed local
+#     CA. Browser shows a cert warning ONCE, but the connection IS real HTTPS → cookie `Secure`
+#     (httpOnly auth) works. No domain/DNS/port-80 needed. Matches the locked Deploy-Readiness
+#     PRD decision (2026-07-01, pilot tertutup).
+#   tls-acme.caddy → empty (CADDY_TLS_MODE=acme) — omitting `tls` entirely is what activates
+#     Caddy's normal automatic HTTPS: a real Let's Encrypt cert via ACME. REQUIRES a real DNS
+#     A-record for $PUBLIC_HOST pointing at this host, and port 80+443 open to the public
+#     internet (80 = ACME HTTP-01 challenge). sslip.io works without buying a domain. This is the
+#     bar for external clients — self-signed is fine for a closed pilot, but a real cert is what
+#     stops "your connection is not private" from training users to click through security warnings.
 {$PUBLIC_HOST} {
-	tls internal
+	import /etc/caddy/tls-{$CADDY_TLS_MODE}.caddy
 	encode gzip
 
 	# tRPC → backend container, stripped: the server mounts procedures at ROOT
@@ -29,15 +41,3 @@
 		file_server
 	}
 }
-
-# ── PUNYA DOMAIN PUBLIK & ingin TLS tepercaya publik otomatis (Let's Encrypt / ACME)?
-#    Comment blok di atas dan pakai varian ini. PRASYARAT: DNS A-record $PUBLIC_HOST →
-#    IP host, port 80 & 443 terbuka ke publik (80 dibutuhkan untuk tantangan ACME).
-#    sslip.io (<ip-with-dashes>.sslip.io) juga bekerja tanpa beli domain.
-#
-# {$PUBLIC_HOST} {
-# 	encode gzip
-# 	@api path /trpc/* /healthz /metrics
-# 	handle @api { reverse_proxy server:5181 }
-# 	handle { root * /srv; try_files {path} /index.html; file_server }
-# }

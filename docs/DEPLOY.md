@@ -42,9 +42,17 @@ cp deploy/aws-ec2-test/.env.example deploy/aws-ec2-test/.env
 nano deploy/aws-ec2-test/.env     # isi: POSTGRES_PASSWORD, APP_ENCRYPTION_KEY, APP_SIGNING_KEY,
                                   #      BACKUP_ENCRYPTION_KEY, PUBLIC_HOST, COOKIE_SECURE=1
 ```
-**TLS:** default `Caddyfile` = **self-signed** (`tls internal`) — HTTPS instan tanpa domain/DNS
-(peringatan sertifikat sekali di browser). Punya domain publik? uncomment blok ACME di `Caddyfile`
-(butuh DNS A-record + port 80/443) untuk sertifikat Let's Encrypt tepercaya.
+**TLS:** `CADDY_TLS_MODE=internal` (default di `.env.example`) = **self-signed** — HTTPS instan
+tanpa domain/DNS (peringatan sertifikat sekali di browser). Punya domain publik dan siap klien
+eksternal? Set `CADDY_TLS_MODE=acme` (butuh DNS A-record `PUBLIC_HOST` + port 80/443 terbuka ke
+publik) untuk sertifikat Let's Encrypt tepercaya — **satu baris di `.env`, bukan lagi edit
+`Caddyfile` manual** (comment/uncomment blok lama = risiko salah-edit nyata; kini ditegakkan
+lewat `docker compose ... build web` + `up -d web`, tak perlu sentuh file Caddy).
+
+**Secrets:** default = file `.env` di host (cukup untuk pilot terbatas). Menyimpan data klien
+sungguhan (pajak/keuangan)? Pertimbangkan `SECRETS_PROVIDER=aws-sm` sebelum onboarding — server
+menarik `APP_ENCRYPTION_KEY`/`APP_SIGNING_KEY`/dst dari **AWS Secrets Manager** saat boot (auth via
+IAM role instance EC2, bukan access key), bukan lagi disimpan mentah di `.env` host. Lihat §11a.
 
 ## 3. Deploy (build + boot)
 ```bash
@@ -125,8 +133,10 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 ## 10. Batasan (by design, didokumentasikan — bukan bug)
 - **Single-process**: `AuditLog.seq` diserialisasi satu proses → **tak** multi-instance/auto-scale.
 - **Satu box**: tanpa replikasi; durabilitas bergantung backup + salinan off-box.
-- **Self-signed TLS**: peringatan browser sekali (pilot). Domain publik → beralih ACME (§2).
-- **Secrets berbasis `.env`**: manajer rahasia terkelola (Vault/AWS SM) = fase lanjutan.
+- **TLS internal (default)**: peringatan browser sekali. Cocok pilot tertutup; klien eksternal →
+  `CADDY_TLS_MODE=acme` (§2, §13) begitu ada domain publik.
+- **Secrets berbasis `.env` (default)**: cukup untuk pilot terbatas dengan akses host dibatasi.
+  Data klien sungguhan → `SECRETS_PROVIDER=aws-sm` (§13) sebelum onboarding, bukan setelahnya.
 
 ## 11. Referensi
 - Paket & langkah EC2 rinci: `deploy/aws-ec2-test/README.md`
@@ -220,5 +230,49 @@ tergantung kredit burst yang tersisa.
 - **EC2 sungguhan**: sesi ini pakai Docker Compose lokal (WSL dockerd) sebagai pengganti — bukan
   jaringan/EBS/noisy-neighbor EC2 asli. Angka §12.3 adalah sinyal pertama, bukan SLA final.
   Skrip ramping bisa dipakai ulang persis (lihat riwayat sesi/memory) begitu instance pilot ada.
-- Restore drill nyata, kepatuhan UU PDP, alerting produksi, secrets vault, TLS domain publik —
-  **masih 0%**, tak tersentuh sesi ini (lihat memory `asseris-deploy-readiness`).
+- Restore drill nyata, kepatuhan UU PDP, alerting produksi — **masih 0%**, tak tersentuh sesi ini
+  (lihat memory `asseris-deploy-readiness`). Secrets Manager & TLS publik ditutup sesi berikutnya
+  (2026-07-02, lanjutan) — lihat §13: kode+unit-test+live-fail-closed-verified, TAPI belum
+  live-verified terhadap AWS/domain sungguhan (kredensial/domain nyata tak tersedia di sesi manapun).
+
+## 13. Secrets Manager & TLS publik — go-live dengan data klien sungguhan
+
+Dua batasan §10 yang PALING relevan begitu ada data klien pajak/keuangan nyata di instance (bukan
+lagi demo/pilot-tertutup). Keduanya opt-in via `.env` — default tetap `.env`-file + self-signed
+(cukup untuk pilot), tak ada perubahan perilaku bila kedua var di bawah dibiarkan kosong.
+
+### Secrets Manager (AWS)
+1. Buat satu secret JSON di AWS Secrets Manager, mis. `asseris/prod/keys`:
+   ```json
+   {"APP_ENCRYPTION_KEY":"<hex-32B>","APP_SIGNING_KEY":"<base64-PKCS8-Ed25519>","BACKUP_ENCRYPTION_KEY":"<hex-32B>","POSTGRES_PASSWORD":"<sandi-kuat>"}
+   ```
+2. IAM role instance EC2 (bukan access key di `.env`) diberi policy minimal:
+   ```json
+   {"Effect":"Allow","Action":"secretsmanager:GetSecretValue","Resource":"arn:aws:secretsmanager:<region>:<acct>:secret:asseris/prod/keys-*"}
+   ```
+3. `.env`: `SECRETS_PROVIDER=aws-sm`, `AWS_SECRETS_MANAGER_SECRET_ID=asseris/prod/keys`,
+   `AWS_REGION=<region>` — **kosongkan** `APP_ENCRYPTION_KEY`/`APP_SIGNING_KEY`/`POSTGRES_PASSWORD`
+   di `.env` (ditarik dari SM saat boot; var `.env` yang TETAP diisi selalu menang atas SM —
+   override satu kunci tanpa redeploy SM bila perlu).
+4. Fail-closed: bila `SECRETS_PROVIDER=aws-sm` tapi fetch gagal (IAM salah/secret hilang/jaringan),
+   server **menolak boot** dengan pesan jelas (`server/src/secrets.ts`) — sama seperti guard M2.
+   Live-verified lokal 2026-07-02: boot ditolak bersih (tanpa kredensial AWS nyata) SEBELUM
+   `server.listen`; jalur default (`.env`) nol-regresi. Verifikasi live terhadap Secrets Manager
+   SUNGGUHAN (fetch sukses) belum dilakukan — butuh akses AWS nyata, di luar sesi yang membangun ini.
+
+### TLS publik (ACME/Let's Encrypt)
+1. Arahkan DNS: A-record `PUBLIC_HOST` → IP publik host (atau pakai `sslip.io` tanpa beli domain).
+2. Buka port 80+443 ke `0.0.0.0/0` di security group (80 = tantangan ACME HTTP-01).
+3. `.env`: `CADDY_TLS_MODE=acme` (dari default `internal`).
+4. `docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env up -d --build web`
+   — Caddy re-provisioning otomatis (LE cert pertama ~30 detik). Tak perlu edit `Caddyfile`.
+5. Rollback ke self-signed: `CADDY_TLS_MODE=internal` lalu ulangi langkah 4.
+
+Catatan desain (Caddyfile): `tls` Caddy tak bisa dibuat kosong-kondisional lewat placeholder
+langsung (`tls {$VAR}` dengan `$VAR` kosong = **error sintaks** Caddyfile — diuji langsung, bukan
+diasumsikan). Toggle bekerja lewat `import /etc/caddy/tls-{$CADDY_TLS_MODE}.caddy`, memilih salah
+satu dari dua snippet kecil (`tls-internal.caddy` = `tls internal`; `tls-acme.caddy` = kosong,
+meniadakan `tls` sepenuhnya sehingga automatic-HTTPS default Caddy yang jalan). Live-verified
+2026-07-02: `caddy validate` lulus kedua mode + edge nyata (healthz+login lewat `/trpc`) nol-regresi
+di mode `internal`; mode `acme` divalidasi struktural (config sah) — provisioning LE sungguhan
+BELUM diverifikasi (butuh domain publik nyata, tak tersedia di sesi ini).
