@@ -94,7 +94,14 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
           aws --endpoint-url http://localhost:9000 s3 mb s3://asseris-logs-test
-          for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+          # /healthz hits alone don't reliably produce new container log lines (health probes
+          # aren't logged app-side) — whether leftover boot chatter still sits inside the capture
+          # window is a timing race that flips between CI runs. Restart to guarantee fresh output.
+          $COMPOSE restart server
+          for i in $(seq 1 40); do
+            if curl -fsSk https://localhost/healthz >/dev/null; then echo "server back up after $((i*3))s"; break; fi
+            sleep 3
+          done
           LOG_S3_BUCKET=asseris-logs-test BACKUP_S3_ENDPOINT=http://localhost:9000 \
               sh deploy/aws-ec2-test/ship-logs.sh
           aws --endpoint-url http://localhost:9000 s3 ls s3://asseris-logs-test/logs/ | grep -q 'asseris-logs-.*\.tar\.gz' \
