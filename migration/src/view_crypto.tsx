@@ -787,7 +787,7 @@ const SEAL_VERDICT = {
   'hash-mismatch': { kind: 'red',   icon: 'alert',       label: 'Hash tak cocok', note: 'Segel sah, tetapi hash konten yang ditempel berbeda — artefak telah diubah sejak disegel.' },
   'bad-signature': { kind: 'red',   icon: 'alert',       label: 'Tanda tangan tak sah', note: 'Baris segel tidak ditandatangani oleh kunci aplikasi — kemungkinan dipalsukan.' },
   'not-found':     { kind: 'amber', icon: 'alert',       label: 'Tak ditemukan', note: 'Tidak ada segel dengan ID tersebut di server.' },
-  'key-rotated':   { kind: 'amber', icon: 'alert',       label: 'Kunci berganti', note: 'Segel dibuat oleh kunci dev ephemeral yang sudah berganti pasca-restart — tak dapat diverifikasi (bukan indikasi tamper). Set APP_SIGNING_KEY agar stabil.' },
+  'unknown-key':   { kind: 'red',   icon: 'alert',       label: 'Kunci tak dikenal', note: 'pubKeyId segel ini tidak ada di arsip kunci server — bukan kasus rotasi normal (rotasi APP_SIGNING_KEY tidak lagi mematahkan segel lama sejak K4). Kemungkinan baris asing/rusak.' },
   unavailable:     { kind: 'gray',  icon: 'alert',       label: 'Tak tersedia', note: 'Server verifikasi tak tersedia atau peran tanpa akses.' },
 };
 

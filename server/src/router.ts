@@ -60,6 +60,13 @@ function isUniqueViolation(e: unknown): boolean {
 const MAX_FAILED = 5;
 const LOCK_MINUTES = 15;
 
+// K7 — SA 230 ¶A21 assembly period: once an engagement is archived, further amendment is
+// expected only for a bounded window (referenced in migration/src/view_records.tsx as the
+// "batas 60 hari"). After that window, engagement-scoped writes are locked unless the actor
+// holds CAP.PHASE_OVERRIDE (Partner) — and an override past the lock is tagged distinctly in
+// the audit detail so it stands out on review instead of blending into ordinary STATE_SET rows.
+const ASSEMBLY_LOCK_DAYS = 60;
+
 // The user shape the client may see — never the passwordHash/totpSecret.
 function publicUser(u: User) {
   return { id: u.id, name: u.name, initials: u.initials, role: u.role, email: u.email, totpEnabled: u.totpEnabled };
@@ -81,6 +88,24 @@ function assertCanWrite(user: { id: string; role: string }, scope: string, scope
   if (cap && !can(user.role, cap)) {
     throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${cap}` });
   }
+}
+
+// K7 — SA 230 ¶A21 assembly-lock. Returns an audit-detail suffix (' OVERRIDE[assembly-lock]')
+// when a Partner writes past the lock window, so it never happens silently; throws FORBIDDEN
+// for anyone else. No-op (empty string) when the engagement isn't archived or is still within
+// the assembly window.
+async function assertNotAssemblyLocked(user: { role: string }, engagementId: string): Promise<string> {
+  const eng = await prisma.engagement.findUnique({ where: { id: engagementId }, select: { archivedAt: true } });
+  if (!eng?.archivedAt) return '';
+  const lockAt = new Date(eng.archivedAt.getTime() + ASSEMBLY_LOCK_DAYS * 86400000);
+  if (new Date() <= lockAt) return '';
+  if (!can(user.role, CAP.PHASE_OVERRIDE)) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: `assembly-locked: archived ${eng.archivedAt.toISOString()}, locked since ${lockAt.toISOString()}`,
+    });
+  }
+  return ' OVERRIDE[assembly-lock]';
 }
 
 export const appRouter = router({
@@ -362,6 +387,31 @@ export const appRouter = router({
       const where = acc === 'all' ? {} : { id: { in: acc } };
       return prisma.engagement.findMany({ where, include: { client: true }, orderBy: { id: 'asc' } });
     }),
+
+    // K7 — moves an engagement into "Arsip" and stamps archivedAt, which starts the SA 230
+    // ¶A21 assembly-lock window (ASSEMBLY_LOCK_DAYS) enforced in state.set. FIRM_ADMIN-only
+    // (Partner) — same authority tier as other terminal engagement-lifecycle actions
+    // (engagement letter issuance in signoff.ts). Idempotent-ish: re-archiving just bumps
+    // archivedAt to now (extends the window), which is the desired behavior for a Partner
+    // correction, not a bug — there is no "un-archive" by design (append-only lifecycle).
+    archive: protectedProcedure
+      .input(z.object({ engagementId: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+        }
+        await assertEngagementAccess(ctx.user, input.engagementId);
+        const eng = await prisma.engagement.update({
+          where: { id: input.engagementId },
+          data: { archivedAt: new Date(), phase: 'Arsip' },
+        });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ARCHIVE',
+          scope: 'engagement', scopeId: input.engagementId,
+          detail: `archivedAt=${eng.archivedAt?.toISOString()}`,
+        });
+        return { archivedAt: eng.archivedAt };
+      }),
   }),
 
   // W10 — read-only window onto the server-side append-only audit chain. No mutation path
@@ -511,6 +561,9 @@ export const appRouter = router({
         // W7 capability gate (may your role write this key?).
         if (scope === 'engagement') await assertEngagementAccess(ctx.user, scopeId);
         assertCanWrite(ctx.user, scope, scopeId, key);
+        // K7 — SA 230 ¶A21 assembly-lock: no-op unless the engagement is archived AND past the
+        // lock window, in which case only PHASE_OVERRIDE may proceed (tagged in the audit detail).
+        const lockDetail = scope === 'engagement' ? await assertNotAssemblyLocked(ctx.user, scopeId) : '';
         // Fase 2 — penegakan sign-off per-slot (intra-dokumen). capForWrite hanya gate
         // dokumen (WP_EDIT); guard ini menuntut kapabilitas peran yang tepat untuk tiap
         // tanda tangan/kliring di dalam dok, dengan mem-diff nilai tersimpan vs masuk.
@@ -527,12 +580,17 @@ export const appRouter = router({
 
         if (baseVersion === 0) {
           try {
-            const created = await prisma.stateDoc.create({
-              data: { scope, scopeId, key, valueJson, version: 1, updatedBy },
+            // K7 — StateDoc write + its StateDocHistory row are ONE transaction: history can
+            // never drift from what StateDoc actually holds, and this closes the earlier
+            // read-then-write-without-$transaction gap on the CAS path too (below).
+            const created = await prisma.$transaction(async (tx) => {
+              const row = await tx.stateDoc.create({ data: { scope, scopeId, key, valueJson, version: 1, updatedBy } });
+              await tx.stateDocHistory.create({ data: { scope, scopeId, key, version: 1, valueJson, updatedBy } });
+              return row;
             });
             await appendAudit({
               actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-              scope, scopeId, key, detail: 'v0->v1' + signoffDetail,
+              scope, scopeId, key, detail: 'v0->v1' + signoffDetail + lockDetail,
             });
             return { version: created.version };
           } catch (e) {
@@ -544,20 +602,26 @@ export const appRouter = router({
           }
         }
 
-        // Atomic CAS: the UPDATE only matches when the stored version equals baseVersion.
-        const res = await prisma.stateDoc.updateMany({
-          where: { scope, scopeId, key, version: baseVersion },
-          data: { valueJson, version: { increment: 1 }, updatedBy },
+        // Atomic CAS: the UPDATE only matches when the stored version equals baseVersion. The
+        // history insert is conditioned on that same match by living inside the interactive
+        // transaction — a lost CAS race (count===0) throws before any history row is written.
+        const newVersion = await prisma.$transaction(async (tx) => {
+          const res = await tx.stateDoc.updateMany({
+            where: { scope, scopeId, key, version: baseVersion },
+            data: { valueJson, version: { increment: 1 }, updatedBy },
+          });
+          if (res.count === 0) {
+            const current = await tx.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
+            throw new TRPCError({ code: 'CONFLICT', message: `version-mismatch:server=${current?.version ?? 0}` });
+          }
+          await tx.stateDocHistory.create({ data: { scope, scopeId, key, version: baseVersion + 1, valueJson, updatedBy } });
+          return baseVersion + 1;
         });
-        if (res.count === 0) {
-          const current = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
-          throw new TRPCError({ code: 'CONFLICT', message: `version-mismatch:server=${current?.version ?? 0}` });
-        }
         await appendAudit({
           actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-          scope, scopeId, key, detail: `v${baseVersion}->v${baseVersion + 1}` + signoffDetail,
+          scope, scopeId, key, detail: `v${baseVersion}->v${newVersion}` + signoffDetail + lockDetail,
         });
-        return { version: baseVersion + 1 };
+        return { version: newVersion };
       }),
   }),
 

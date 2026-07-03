@@ -1,21 +1,34 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useNav } from './contexts';
+import { useAuth, useNav } from './contexts';
 import { I } from './icons';
+import { CAP } from './rbac';
 import { SubBar } from './shell';
 import { Btn, Donut, Panel, Tabs } from './ui';
 import { BoStat } from './view_bo1';
 import { PDrawer } from './view_docparts';
 import { KV, SectionTitle } from './view_fpm_parts';
+import { api } from './api';
 
 /* ============================================================
    Asseris — Retensi & Arsip (modul mendalam · SA 230 / SPM 1 / ISQM)
    ------------------------------------------------------------
    UI murni penyaji. Seluruh angka ditarik dari window.RETENTION
    (lapisan kanonik) yang sendirinya menderivasi dari DMS_DOCS,
-   ENGAGEMENTS/CLIENTS, Legal (sengketa) & Pengadaan (PO pemusnahan).
+   ENGAGEMENTS/CLIENTS, Legal (sengketa) & Pengadaan (PO pemusnahan) —
+   KECUALI archivedOn/retentionUntil/status, yang di-OVERRIDE per-box
+   (K7, 2026-07-02) oleh `archivedAt` SERVER SUNGGUHAN dari
+   `engagement.archive` (server/src/router.ts) bila sudah pernah
+   dipanggil untuk perikatan itu. `window.RETENTION` sendiri TIDAK
+   disentuh (masih murni demo/DMS-derived) — override terjadi di sini
+   saja, supaya modul kanonik lain yang membaca RETENTION tidak
+   diam-diam berubah perilaku. Alasan tidak lewat AMS.ENGAGEMENTS/
+   engById(): `_engIndex` di data_part4.ts adalah snapshot SEKALI-JALAN
+   dari seed, tidak ikut re-hydrate saat hydrateCoreFromApi() mengganti
+   AMS.ENGAGEMENTS — jadi archivedAt tak akan pernah terlihat lewat
+   jalur itu tanpa fetch server langsung di sini.
    ============================================================ */
-const { useState: useStateRR, useMemo: useMemoRR } = React;
+const { useState: useStateRR, useMemo: useMemoRR, useEffect: useEffectRR } = React;
 
 /* ---- format helpers ---- */
 const rrDID = (d: any, o?: any) => d ? new Date(d).toLocaleDateString('id-ID', o || { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -60,12 +73,20 @@ function RetentionBar({ box }: any) {
 /* ============================================================
    Drawer detail kotak arsip — drill-down dokumen DMS live
    ============================================================ */
-function ArchiveDrawer({ box, onClose, nav }: any) {
+function ArchiveDrawer({ box, onClose, nav, canArchive, onArchived }: any) {
   const R = window.RETENTION;
+  const [archiving, setArchiving] = useStateRR(false);
   if (!box) return null;
   const docs = R.docsForEng(box.engId);
   const cls = R.classById(box.classId);
   const assembleDays = box.assembleBy ? R.daysTo(box.assembleBy) : null;
+  const doArchive = () => {
+    setArchiving(true);
+    api.engagement.archive.mutate({ engagementId: box.engId })
+      .then(() => { onArchived && onArchived(); })
+      .catch((e: any) => { console.error('engagement.archive gagal:', e); })
+      .finally(() => setArchiving(false));
+  };
   return (
     <PDrawer open={!!box} onClose={onClose} width={620}>
       <div className="pdrawer-h">
@@ -145,7 +166,20 @@ function ArchiveDrawer({ box, onClose, nav }: any) {
           <Btn sm onClick={() => nav('dms', { from: 'records' })}><I.archive size={13} /> Buka di DMS</Btn>
           {box.status === 'Jatuh Tempo' && <Btn sm variant="primary" disabled={!!box.hold}><I.trash size={13} /> Usul Pemusnahan</Btn>}
           {box.disposalPO && <span className="chip tiny" style={{ alignSelf: 'center' }}><I.cart size={11} /> {box.disposalPO}</span>}
+          {/* K7 — memicu engagement.archive server sungguhan (bukan lagi demo-only). Sekali
+              diarsipkan, gerbang assembly-lock 60 hari (SA 230 ¶A21) mulai berjalan di server;
+              tombol ini disembunyikan setelah realArchive=true (lihat merge di RecordsRetention). */}
+          {canArchive && !box.realArchive && (
+            <Btn sm disabled={archiving} onClick={doArchive}>
+              <I.lock size={13} /> {archiving ? 'Mengarsipkan…' : 'Arsipkan Perikatan (server)'}
+            </Btn>
+          )}
         </div>
+        {box.realArchive && (
+          <div className="tiny muted" style={{ marginTop: 8 }}>
+            <I.checkCircle size={11} style={{ verticalAlign: -1, color: 'var(--green)' }} /> Diarsipkan via server pada {rrDID(box.archivedOn)} — gerbang perakitan 60 hari (SA 230 ¶A21) aktif.
+          </div>
+        )}
       </div>
     </PDrawer>
   );
@@ -310,14 +344,45 @@ function RRRecon({ nav }: any) {
 function RecordsRetention() {
   const R = window.RETENTION;
   const nav = useNav();
+  const auth = useAuth();
+  const canArchive: boolean = !auth || typeof auth.can !== 'function' || auth.can(CAP.FIRM_ADMIN);
   const [tab, setTab] = useStateRR('overview');
   const [selId, setSelId] = useStateRR(null);
-  const boxes = useMemoRR(() => R.archiveBoxes(), []);
+  // K7 — real archivedAt per engagement, fetched from the server (see file-header note on why
+  // this can't go through AMS.ENGAGEMENTS/engById). refreshTick re-fetches after archiving.
+  const [realArchived, setRealArchived] = useStateRR({} as Record<string, string>);
+  const [refreshTick, setRefreshTick] = useStateRR(0);
+  useEffectRR(() => {
+    let alive = true;
+    api.engagement.list.query()
+      .then((list: any) => {
+        if (!alive) return;
+        const m2: Record<string, string> = {};
+        (list || []).forEach((e: any) => { if (e.archivedAt) m2[e.id] = e.archivedAt; });
+        setRealArchived(m2);
+      })
+      .catch(() => { /* server absent/forbidden — degrade to demo-only boxes, same as elsewhere */ });
+    return () => { alive = false; };
+  }, [refreshTick]);
+
+  const boxes = useMemoRR(() => {
+    const raw = R.archiveBoxes();
+    return raw.map((b: any) => {
+      const real = realArchived[b.engId];
+      if (!real) return b;
+      const archivedOn = String(real).slice(0, 10);
+      const retentionUntil = R.addYears(archivedOn, b.retentionYears);
+      const yearsLeft = R.yearsLeft(retentionUntil);
+      const status = b.hold ? 'Legal Hold' : (yearsLeft != null && yearsLeft <= 0 ? 'Jatuh Tempo' : 'Terkunci');
+      return { ...b, archivedOn, retentionUntil, yearsLeft, status, realArchive: true };
+    });
+  }, [realArchived]);
   const holds = useMemoRR(() => R.holdRegistry(), []);
   const queue = useMemoRR(() => R.disposalQueue(), []);
   const m = useMemoRR(() => R.metrics(), []);
   const sel = boxes.find((b: any) => b.id === selId) || null;
   const onPick = (b: any) => setSelId(b.id);
+  const onArchived = () => setRefreshTick((t: any) => t + 1);
 
   const tabs = [
     { id: 'overview', label: 'Ikhtisar' },
@@ -446,7 +511,7 @@ function RecordsRetention() {
         </Panel>
       </div></div>
 
-      <ArchiveDrawer box={sel} onClose={() => setSelId(null)} nav={nav} />
+      <ArchiveDrawer box={sel} onClose={() => setSelId(null)} nav={nav} canArchive={canArchive} onArchived={onArchived} />
     </>
   );
 }

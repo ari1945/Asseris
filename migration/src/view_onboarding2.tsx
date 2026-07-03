@@ -6,6 +6,9 @@ import { I } from './icons';
 import { CAP } from './rbac';
 import { Badge, Btn } from './ui';
 import { OKv } from './view_onboarding';
+import { amsExportPdf } from './export_pdf';
+import { buildLetterPayload } from './letter_payload';
+import { exportVerifySeal } from './api';
 
 /* ============================================================
    Asseris — Onboarding steps 2 & 3
@@ -151,15 +154,50 @@ function StepLetter({ p, onPatch }: any) {
   const generate = () => setL({ version: (L.version || 0) + 1, status: 'draft', esign: [...(L.esign || []), { t: 'Surat dibuat / diperbarui (v' + ((L.version || 0) + 1) + ')', who: me, date: today }] });
   const send = () => { setL({ status: 'sent' }); pushEvent('Dikirim untuk TTE tersertifikasi (PrivyID · PSrE Kominfo)', me); };
   const mkSerial = () => 'METERAI-1015-' + Math.random().toString(16).slice(2, 6).toUpperCase() + '-' + Math.random().toString(16).slice(2, 6).toUpperCase();
-  const sign = () => onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter,
-    status: 'signed', signedBy: pr.name + ' (Direksi)', signedDate: today,
-    psre: { provider: 'PrivyID', accred: 'PSrE Kominfo', algo: 'RSA-2048 / SHA-256', at: today },
-    meterai: { serial: mkSerial(), denom: 10000, at: today, provider: 'Peruri' },
-    legalBound: true,
-    esign: [...(pr.letter.esign || []),
-      { t: 'Ditandatangani — TTE tersertifikasi PSrE (PrivyID)', who: 'PrivyID · PSrE Kominfo', date: today },
-      { t: 'e-Meterai Rp 10.000 dibubuhkan (Peruri)', who: 'Peruri', date: today },
-    ] } }));
+
+  // #4 — surat perikatan tersegel. PSrE/e-Meterai TETAP simulasi (SEAL_DISCLAIMER, tak berubah);
+  // yang baru: signedBy/signedDate/scope/fee/standard PADA SAAT tanda tangan dibekukan lewat
+  // buildLetterPayload() → amsExportPdf() → server exporter.seal (Ed25519, sama seperti opini),
+  // jadi "signed" dibuktikan oleh baris Seal server-side yang bisa diverifikasi ulang kapan pun
+  // (termasuk lintas rotasi APP_SIGNING_KEY, berkat arsip kunci K4) — bukan lagi sekadar string
+  // status yang bisa diubah lagi lewat StateDoc mutable yang sama.
+  const [signing, setSigning] = useStateOB2(false);
+  const [verify, setVerify] = useStateOB2(null as { valid: boolean; reason?: string } | null);
+  const sign = async () => {
+    if (signing) return;
+    setSigning(true);
+    setVerify(null);
+    const signedBy = p.name + ' (Direksi)';
+    try {
+      const sealResult = await amsExportPdf({
+        kind: 'engagement-letter',
+        fileName: `Surat Perikatan - ${p.name}.pdf`,
+        firm: FIRM.name,
+        title: 'Surat Perikatan Audit',
+        refNo: `No. ${p.id}/EL/${new Date(today).getFullYear()}`,
+        meta: [`${p.id} · ${p.name} · ${p.standard}`, `Versi ${L.version}`],
+        blocks: buildLetterPayload(p, { ...L, signedBy, signedDate: today }),
+      });
+      onPatch((pr: any) => ({ ...pr, letter: { ...pr.letter,
+        status: 'signed', signedBy, signedDate: today,
+        psre: { provider: 'PrivyID', accred: 'PSrE Kominfo', algo: 'RSA-2048 / SHA-256', at: today },
+        meterai: { serial: mkSerial(), denom: 10000, at: today, provider: 'Peruri' },
+        legalBound: true,
+        seal: sealResult.sealed ? { sealId: sealResult.sealId, contentHash: sealResult.contentHash } : null,
+        esign: [...(pr.letter.esign || []),
+          { t: 'Ditandatangani — TTE tersertifikasi PSrE (PrivyID)', who: 'PrivyID · PSrE Kominfo', date: today },
+          { t: 'e-Meterai Rp 10.000 dibubuhkan (Peruri)', who: 'Peruri', date: today },
+          { t: sealResult.sealed ? `Segel provenans server dibuat (${sealResult.sealId})` : 'Segel provenans server TIDAK tersedia (mode luring) — hanya jejak lokal', who: 'Asseris', date: today },
+        ] } }));
+    } finally {
+      setSigning(false);
+    }
+  };
+  const verifySeal = async () => {
+    if (!L.seal) return;
+    const r = await exportVerifySeal({ sealId: L.seal.sealId, contentHash: L.seal.contentHash });
+    setVerify(r);
+  };
 
   const STAT = { draft: { k: 'gray', l: 'Draft' }, sent: { k: 'blue', l: 'Menunggu Tanda Tangan' }, signed: { k: 'green', l: 'Ditandatangani' } };
   const stt = (STAT as any)[L.status] || STAT.draft;
@@ -235,9 +273,26 @@ function StepLetter({ p, onPatch }: any) {
               <Btn sm disabled={!canIssue} onClick={generate}><I.sync size={12} /> Perbarui (v{L.version + 1})</Btn>
               <Btn sm variant="primary" disabled={!canIssue} onClick={send}><I.send size={12} /> Kirim untuk e-Sign (PrivyID)</Btn>
             </>}
-            {L.status === 'sent' && <Btn sm variant="primary" disabled={!canIssue} onClick={sign}><I.check size={12} /> Tandatangani (PSrE) & Bubuhkan e-Meterai</Btn>}
+            {L.status === 'sent' && <Btn sm variant="primary" disabled={!canIssue || signing} onClick={sign}><I.check size={12} /> {signing ? 'Menyegel…' : 'Tandatangani (PSrE) & Bubuhkan e-Meterai'}</Btn>}
             {!canIssue && L.status !== 'signed' && <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.4 }}>Penerbitan & otorisasi surat perikatan memerlukan otoritas Partner (FIRM_ADMIN).</div>}
             {L.status === 'signed' && <Btn sm onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={12} /> Cetak / Export PDF</Btn>}
+            {/* #4 — surat sudah ditandatangani TETAP tak bisa ditimpa diam-diam: generate()/send()
+                tak muncul lagi (blok di atas hanya render saat status==='draft'). Amandemen adalah
+                aksi eksplisit terpisah, sama gate-nya (Partner/FIRM_ADMIN) dengan penerbitan awal. */}
+            {L.status === 'signed' && <Btn sm disabled={!canIssue} onClick={generate}><I.sync size={12} /> Buat Amandemen (v{L.version + 1})</Btn>}
+            {L.status === 'signed' && L.seal && (
+              <>
+                <Btn sm onClick={verifySeal}><I.shield size={12} /> Verifikasi Segel</Btn>
+                {verify && (
+                  <div className="tiny" style={{ color: verify.valid ? 'var(--green)' : 'var(--red)', lineHeight: 1.4 }}>
+                    {verify.valid ? `✓ Segel valid (${L.seal.sealId})` : `✗ Segel tak valid: ${verify.reason || 'unknown'}`}
+                  </div>
+                )}
+              </>
+            )}
+            {L.status === 'signed' && !L.seal && (
+              <div className="tiny muted" style={{ lineHeight: 1.4 }}>Ditandatangani dalam mode luring — segel provenans server tak tersedia untuk versi ini.</div>
+            )}
           </div>
         </div>
 

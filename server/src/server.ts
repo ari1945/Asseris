@@ -7,6 +7,7 @@ import { prisma } from './db';
 import { log, inc, renderMetrics } from './obs/log';
 import { assertProdConfig, configSummary } from './prodConfig';
 import { loadSecretsIntoEnv } from './secrets';
+import { hardenAuditLogImmutability } from './dbHarden';
 
 // Opt-in (SECRETS_PROVIDER=aws-sm) — no-op otherwise. MUST run before configSummary/assertProdConfig
 // so the fail-fast guard gates the real resolved secrets regardless of source. Fail-closed: a fetch
@@ -30,6 +31,10 @@ assertProdConfig(process.env, {
     process.exit(1);
   },
 });
+
+// K5 — Postgres-only AuditLog immutability trigger (no-op on SQLite dev/test). Best-effort:
+// logs and continues on failure so a missing DDL grant never blocks boot (see dbHarden.ts).
+await hardenAuditLogImmutability();
 
 // The tRPC request handler (procedures served at root; the Vite dev proxy strips the /trpc
 // prefix, and prod fronts this with the same path shape). onError feeds the error counter +
