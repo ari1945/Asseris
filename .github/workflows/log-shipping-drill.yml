@@ -107,7 +107,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: minioadmin123
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+          # /healthz hits alone don't reliably produce new container log lines once initial
+          # boot chatter has scrolled out of the capture window (health probes aren't logged
+          # app-side) — that starved this negative test of anything to ship, so ship-logs.sh
+          # correctly took its "nothing new" exit before ever reaching the S3 copy attempt.
+          # A restart guarantees fresh boot-line output inside the window.
+          $COMPOSE restart server
+          for i in $(seq 1 40); do
+            if curl -fsSk https://localhost/healthz >/dev/null; then echo "server back up after $((i*3))s"; break; fi
+            sleep 3
+          done
           BEFORE=$(ls logs-shipped/*.tar.gz | wc -l)
           if LOG_S3_BUCKET=does-not-exist-bucket BACKUP_S3_ENDPOINT=http://localhost:9000 \
                  sh deploy/aws-ec2-test/ship-logs.sh; then
@@ -120,7 +129,14 @@ jobs:
       - name: retention prunes archives older than the window
         run: |
           touch -d '10 days ago' logs-shipped/asseris-logs-*.tar.gz
-          for i in $(seq 1 5); do curl -fsSk https://localhost/healthz >/dev/null; done
+          # same reasoning as the prior step: retention pruning only runs once ship-logs.sh gets
+          # past its "nothing new" short-circuit, which needs an actual new log line, not just
+          # unlogged /healthz probes.
+          $COMPOSE restart server
+          for i in $(seq 1 40); do
+            if curl -fsSk https://localhost/healthz >/dev/null; then echo "server back up after $((i*3))s"; break; fi
+            sleep 3
+          done
           LOG_LOCAL_RETENTION_DAYS=3 sh deploy/aws-ec2-test/ship-logs.sh
           OLD_LEFT=$(find logs-shipped -name 'asseris-logs-*.tar.gz' -mtime +3 | wc -l)
           [ "$OLD_LEFT" -eq 0 ] || { echo "REGRESSION: retention did not prune archives older than 3 days"; exit 1; }
