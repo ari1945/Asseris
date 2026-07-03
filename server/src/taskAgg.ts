@@ -165,8 +165,17 @@ export function deriveWpAssignmentTasks(workpapers: Workpaper[], me: string): Mi
 }
 
 /** Firm deadlines scoped to the caller's reachable clients (`'all'` for oversight). Keeps
- * a firm-wide source from surfacing a client the caller has no engagement with. */
-export function deriveDeadlineTasks(deadlines: Deadline[], clientNames: 'all' | Set<string>): MineTask[] {
+ * a firm-wide source from surfacing a client the caller has no engagement with.
+ * `clientEngagementId` (optional — router has the accessible-engagement list, this module
+ * doesn't) resolves a client name to ONE of its engagement ids so the Beranda "Tugas Saya"
+ * click can open the right cockpit instead of whatever engagement happens to be active. A
+ * client with more than one engagement gets a best-effort pick, not a hard guarantee — this
+ * is a navigation convenience, not an isolation boundary. */
+export function deriveDeadlineTasks(
+  deadlines: Deadline[],
+  clientNames: 'all' | Set<string>,
+  clientEngagementId?: (client: string) => string | null,
+): MineTask[] {
   const sevPrio = (sev?: string): MineTask['priority'] => (sev === 'red' ? 'high' : sev === 'amber' ? 'medium' : 'low');
   return deadlines
     .filter((d) => clientNames === 'all' || (d.client != null && clientNames.has(d.client)))
@@ -176,7 +185,7 @@ export function deriveDeadlineTasks(deadlines: Deadline[], clientNames: 'all' | 
       label: `${d.task || ''} — ${d.client || ''}`,
       route: 'cockpit',
       priority: sevPrio(d.sev),
-      engagementId: null,
+      engagementId: (d.client && clientEngagementId ? clientEngagementId(d.client) : null) ?? null,
       engagementLabel: d.client || null,
     }));
 }

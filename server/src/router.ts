@@ -681,11 +681,16 @@ export const appRouter = router({
 
       const clientNames: 'all' | Set<string> =
         acc === 'all' ? 'all' : new Set(engagements.map((e) => e.client?.name).filter((n): n is string => !!n));
+      // `engagements` already covers the full firm when acc === 'all' (query above has no
+      // `where` filter in that case), so one map serves both branches — best-effort pick when
+      // a client has more than one engagement (see deriveDeadlineTasks doc comment).
+      const clientToEngagementId = new Map<string, string>();
+      for (const e of engagements) if (e.client?.name && !clientToEngagementId.has(e.client.name)) clientToEngagementId.set(e.client.name, e.id);
 
       const tasks: MineTask[] = [
         ...perEngagement.flat(),
         ...deriveWpAssignmentTasks(seed.workpapers, me),
-        ...deriveDeadlineTasks(seed.deadlines, clientNames),
+        ...deriveDeadlineTasks(seed.deadlines, clientNames, (client) => clientToEngagementId.get(client) ?? null),
       ];
       return { me, engagementCount: engagements.length, tasks };
     }),

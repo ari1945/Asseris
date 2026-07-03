@@ -136,6 +136,20 @@ function HomeView() {
     nav('cockpit', { from: 'home' });
   };
 
+  /* Tugas Saya → tujuan yang tepat: tugas dari `tasks.mine` bisa membawa perikatan LAIN
+     dari yang sedang aktif (mis. Review Note lintas-perikatan) dan/atau merujuk WP
+     spesifik (wpRef). Tanpa dua langkah ini, nav(route) hanya membuka modul untuk
+     perikatan yang KEBETULAN sedang aktif — bukan yang direferensikan tugasnya. Pola
+     `ams.wpOpen` sama dengan yang sudah dipakai legacy My Tasks (view_mytasks.tsx) &
+     view_wp.tsx (pembaca localStorage-nya). */
+  const openTask = (task: { route?: string; engagementId?: string | null; wpRef?: string }) => {
+    if (task.engagementId && firm && typeof firm.setActiveEngagementId === 'function') {
+      firm.setActiveEngagementId(task.engagementId);
+    }
+    if (task.wpRef) { try { localStorage.setItem('ams.wpOpen', task.wpRef); } catch (e) { /* ignore */ } }
+    nav(task.route || 'tasks', { from: 'home' });
+  };
+
   const firmOps = (HM_FIRMOPS_AREAS as Record<string, { title: string; ids: string[] }>)[role];
 
   return (
@@ -205,8 +219,8 @@ function HomeView() {
                   Tidak ada tugas terbuka untuk Anda. 🎉
                 </div>
               )}
-              {sortedTasks.slice(0, 8).map((t: { id: string; src: string; label: string; priority: string; route: string; engagementLabel?: string | null; wpRef?: string; from?: string }) => (
-                <TaskLine key={t.id} task={t} onOpen={() => nav(t.route || 'tasks', { from: 'home' })} />
+              {sortedTasks.slice(0, 8).map((t: { id: string; src: string; label: string; priority: string; route: string; engagementId?: string | null; engagementLabel?: string | null; wpRef?: string; from?: string }) => (
+                <TaskLine key={t.id} task={t} onOpen={() => openTask(t)} />
               ))}
               {sortedTasks.length > 8 && <div className="tiny muted" style={{ textAlign: 'center', paddingTop: 8 }}>+{sortedTasks.length - 8} tugas lain di My Tasks</div>}
             </div>

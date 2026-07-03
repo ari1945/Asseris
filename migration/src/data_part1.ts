@@ -160,11 +160,17 @@
   ];
 
   /* ---- Deadlines ---- */
+  // `client` HARUS sama persis dgn CLIENTS[].name (dipakai sbg kunci pencocokan exact-match
+  // di deriveDeadlineTasks isolasi-klien & resolusi engagementId untuk deep-link Beranda —
+  // versi singkat sebelumnya ('PT Graha Properti' dst.) tak pernah cocok dgn nama kanonik
+  // ('PT Graha Properti Investama' dst.), diam-diam menghilangkan deadline ini utk siapa pun
+  // yang bukan oversight ('all') DAN membuat klik "Tugas Saya" tak pernah bisa berpindah ke
+  // perikatan yg tepat).
   const DEADLINES = [
-    { client: 'PT Graha Properti', task: 'EQR & tanda tangan opini', date: '15 Mar', days: 6, sev: 'red' },
-    { client: 'PT Sentosa Makmur', task: 'Selesai fieldwork', date: '31 Mar', days: 22, sev: 'amber' },
-    { client: 'PT Mandiri Finance', task: 'Walkthrough pengendalian', date: '02 Apr', days: 24, sev: 'gray' },
-    { client: 'PT Bumi Hijau', task: 'Konfirmasi piutang batch-2', date: '30 Apr', days: 52, sev: 'gray' },
+    { client: 'PT Graha Properti Investama', task: 'EQR & tanda tangan opini', date: '15 Mar', days: 6, sev: 'red' },
+    { client: 'PT Sentosa Makmur Tbk', task: 'Selesai fieldwork', date: '31 Mar', days: 22, sev: 'amber' },
+    { client: 'PT Mandiri Sejahtera Finance', task: 'Walkthrough pengendalian', date: '02 Apr', days: 24, sev: 'gray' },
+    { client: 'PT Bumi Hijau Agrindo', task: 'Konfirmasi piutang batch-2', date: '30 Apr', days: 52, sev: 'gray' },
   ];
 
   /* ---- Review notes (coaching/review/EQR notes, cross-module) ----
