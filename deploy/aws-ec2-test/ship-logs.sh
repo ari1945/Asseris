@@ -32,9 +32,14 @@ RETENTION_DAYS="${LOG_LOCAL_RETENTION_DAYS:-3}"
 S3_BUCKET="${LOG_S3_BUCKET:-${BACKUP_S3_BUCKET:-}}"
 
 mkdir -p "$DIR"
-SINCE="1970-01-01T00:00:00Z"
+SINCE="1970-01-01T00:00:00.000000000Z"
 [ -f "$CURSOR" ] && SINCE=$(cat "$CURSOR")
-UNTIL=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+# Nanosecond precision (Docker's --since/--until accept RFC3339Nano) — whole-second precision
+# here would truncate the cutoff to e.g. "12:00:01Z" (=12:00:01.000), silently excluding any
+# container log line stamped later within that same clock second. Those lines would then
+# reappear in the NEXT run's window instead of this one — harmless (duplicates are tolerated,
+# see below) but needlessly non-deterministic across back-to-back runs.
+UNTIL=$(date -u +%Y-%m-%dT%H:%M:%S.%NZ)
 
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 WORK=$(mktemp -d)
