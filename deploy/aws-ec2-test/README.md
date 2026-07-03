@@ -141,6 +141,12 @@ terraform destroy
 - **IP berubah** saat stop/start tanpa Elastic IP → `PUBLIC_HOST` jadi salah, sertifikat & cookie domain ikut rusak. Pakai Elastic IP.
 - **Biaya:** t4g.small + 20GB gp3 ≈ beberapa USD/minggu bila dibiarkan hidup. Stop/terminate setelah uji.
 
+## Baseline performa & kapasitas
+Sebelum onboarding firma dgn volume data besar (grup/konsolidasi ribuan baris WTB) atau tim
+fieldwork besar, lihat **`loadtest/README.md`** — skrip reusable (generator WTB sintetis + bench
+headless kanon + bench jaringan/konkurensi) yang menghasilkan tabel kapasitas
+`docs/DEPLOY.md` §19 ("firma sebesar apa yang aman di t3.small sebelum perlu upgrade").
+
 ## Naik kelas ke produksi
 Bila test ini meyakinkan, target produksi-AWS = **App Runner (dari ECR) + RDS PostgreSQL + S3/CloudFront**
 (CloudFront path-behavior `/trpc/*`→backend menggantikan peran Caddy di sini). Lihat catatan arsitektur

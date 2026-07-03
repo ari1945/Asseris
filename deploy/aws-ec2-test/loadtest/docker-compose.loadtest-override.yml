@@ -1,0 +1,15 @@
+# Override HANYA untuk sesi benchmark lokal (docs/prd-performance-baseline-capacity.md).
+# Publish port 5181 (server) ke host supaya bench.mjs bisa memanggil server LANGSUNG,
+# melewati edge Caddy (menghindari rate-limit §14 + overhead TLS yang akan mencemari hasil
+# ramp konkurensi — metodologi sama dengan docs/DEPLOY.md §12.3).
+#
+# JANGAN PERNAH dipakai di deploy produksi sungguhan (docker-compose.deploy.yml sengaja
+# menahan port ini internal-only — lihat komentar "expose" di file itu). Gunakan HANYA
+# digabung eksplisit:
+#   docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml \
+#     -f deploy/aws-ec2-test/loadtest/docker-compose.loadtest-override.yml \
+#     --env-file deploy/aws-ec2-test/.env up -d --build
+services:
+  server:
+    ports:
+      - "5181:5181"

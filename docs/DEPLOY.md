@@ -3,6 +3,10 @@
 > **Satu instance per firma** (bukan multi-tenant). Seluruh app — SPA + API tRPC + Postgres + TLS —
 > di **satu kotak** lewat docker-compose, dengan **Caddy** menyajikan satu origin (SPA statis +
 > reverse-proxy `/trpc`). Hasil dari PRD *Deploy-Readiness Single-Tenant*. Ikuti dari atas ke bawah.
+>
+> **Dokumen ini untuk operator/IT** (instalasi, backup, kunci, kapasitas). Mencari cara MEMAKAI
+> aplikasi sebagai Partner/Manager/Auditor/staf firma? Lihat **`docs/USER-GUIDE.md`**. Menyiapkan
+> training firma pilot pertama? Lihat **`docs/PILOT-ONBOARDING-PLAN.md`**.
 
 Arsitektur:
 
@@ -225,6 +229,14 @@ docker compose ... run --rm server npx prisma migrate resolve --applied 0_init
 - Rotasi kunci: `docs/KEY-ROTATION.md` (§15) · Kesiapan pentest independen: `docs/PENTEST-READINESS.md`
 - Alerting (§16): `.github/workflows/uptime-alert.yml` · Log retensi (§17): `docs/LOGGING.md` ·
   Respons insiden (§18): `docs/INCIDENT-RESPONSE.md`
+- Baseline performa & kapasitas (§19): `deploy/aws-ec2-test/loadtest/README.md` ·
+  `docs/prd-performance-baseline-capacity.md`
+- Kepatuhan UU PDP & lokasi data (§20): `docs/PDP-COMPLIANCE-ASSESSMENT.md` ·
+  `docs/DATA-HANDLING-COMMITMENT.md` · `docs/DATA-RETENTION-POLICY.md` ·
+  `docs/HOSTING-DATA-RESIDENCY-REVIEW.md`
+- **Dokumentasi end-user (BUKAN dokumen ini — ini untuk operator/IT):** panduan pengguna per-peran
+  (Partner/Manager/Senior/Junior/Admin & HR/Finance) → `docs/USER-GUIDE.md` · rencana training &
+  onboarding firma pilot pertama → `docs/PILOT-ONBOARDING-PLAN.md`
 
 ## 12. Verifikasi Live (2026-07-02) — 3 gap go-live ditutup sebagian
 
@@ -310,8 +322,12 @@ tergantung kredit burst yang tersisa.
 - **EC2 sungguhan**: sesi ini pakai Docker Compose lokal (WSL dockerd) sebagai pengganti — bukan
   jaringan/EBS/noisy-neighbor EC2 asli. Angka §12.3 adalah sinyal pertama, bukan SLA final.
   Skrip ramping bisa dipakai ulang persis (lihat riwayat sesi/memory) begitu instance pilot ada.
-- Restore drill nyata (2026-07-02), kepatuhan UU PDP (masih 0%). **Alerting + log retensi ditutup
-  2026-07-03** (§16, §17, `docs/INCIDENT-RESPONSE.md`) — kode+CI-verified (mocked SMTP/MinIO),
+- Restore drill nyata (2026-07-02). **Kajian gap UU PDP + lokasi hosting ditutup 2026-07-03**
+  (§20, `docs/PDP-COMPLIANCE-ASSESSMENT.md`) — gap analysis + kebijakan retensi/DPA-internal
+  selesai, TAPI belum direview pengacara dan sejumlah item operasional (DSR belum wired ke data
+  produksi, transfer LLM lintas-batas belum berbasis hukum) masih terbuka, lihat dokumen itu §5.
+  **Alerting + log retensi ditutup 2026-07-03** (§16, §17, `docs/INCIDENT-RESPONSE.md`) —
+  kode+CI-verified (mocked SMTP/MinIO),
   TAPI belum live-verified terhadap deploy produksi sungguhan (perlu `HEALTHZ_URL`/secret SMTP
   nyata diisi di repo, dan crontab `ship-logs.sh` nyata di box) — pola gap yang sama seperti
   Secrets Manager/TLS publik di bawah. Secrets Manager & TLS publik ditutup sesi berikutnya
@@ -450,3 +466,134 @@ dilakukan": matriks severitas, runbook mitigasi langkah-demi-langkah, template k
 dan — penting — postur operasional saat ini yang dinyatakan jujur (satu kontak teknis, tanpa
 eskalasi sekunder, komitmen respons best-effort jam kerja saja; keputusan eksplisit Ari
 2026-07-03, bukan asumsi penulis dokumen).
+
+## 19. Baseline performa & kapasitas instance (2026-07-03) — dua gap go-live ditutup
+
+Sebelum ini, §12.3 sudah mengukur ramp konkurensi tapi terhadap **seed demo kecil** (WTB ~27
+baris) dan endpoint generik (`auth.me`/`state.set`) — bukan volume data realistis, dan tak pernah
+diterjemahkan ke "firma sebesar apa yang aman". PRD:
+[`docs/prd-performance-baseline-capacity.md`](prd-performance-baseline-capacity.md). Tooling
+(reusable, di-commit): [`deploy/aws-ec2-test/loadtest/`](../deploy/aws-ec2-test/loadtest/README.md).
+
+### 19.1 Metodologi
+
+- **Data sintetis**: WTB fiktif "grup/konsolidasi" **5.023 baris** (5 sub-entitas × sub-ledger
+  piutang/utang/aset-tetap/persediaan per pihak, 1 blok induk dgn 11 kode pemicu WTB_MAP) —
+  dibangkitkan (`gen-synthetic-wtb.ts`), lolos parser **nyata** `wtb_import.ts` (`ok=true`,
+  balanced, 6/6 engine PSAK menyala), dimuat ke `ENG-2025-014` lewat jalur **nyata** `state.set`
+  (bukan insert SQL langsung) — payload 841 KB per JSON. Preset "wajar" (240 baris) dimuat ke
+  2 perikatan pendamping (`ENG-2025-040`, `ENG-2025-031`) utk dimensi jumlah-perikatan-aktif.
+- **Lingkungan**: stack Docker Compose lokal yang SAMA dgn §12.3 (WSL dockerd), cap
+  `docker update --cpus/--memory` identik (server 1.2 vCPU/1.2 GB, db 0.6/0.6, web 0.2/0.2 —
+  total meniru t3.small 2 vCPU/2 GiB), target `server:5181` **langsung** (bypass Caddy — sama
+  alasan §12.3: mengisolasi bottleneck arsitektur + menghindari rate-limit §14 mencemari hasil).
+  **BUKAN EC2 nyata** — approksimasi, sama seperti seluruh angka §12.3/§12.4.
+- **Ambang SLA** (disepakati Ari sebelum pengujian, bukan dipilih setelah lihat angka): p95 baca
+  <1 detik, p95 tulis <2 detik.
+
+### 19.2 Biaya komputasi kanon (headless, tanpa browser)
+
+`figuresFromWTB`/`reconcile`/`psak65` (`canon_part*.ts`) murni fungsi `wtb`, TANPA memoisasi —
+dijalankan langsung di Node (`bench-canon.ts`), 200 repetisi:
+
+| Fungsi | Baseline (28 baris) | Volume besar (5.023 baris) |
+|---|---|---|
+| `figuresFromWTB` | p50 0,006ms | p50 0,004ms |
+| `reconcile` | p50 0,176ms | p50 0,299ms |
+| `psak65` (konsolidasi grup) | p50 0,040ms | p50 0,676ms |
+
+**Temuan yang mengoreksi asumsi awal PRD**: `materiality()` TERNYATA tidak menerima parameter
+`wtb` sama sekali (config-only via `localStorage`/`window.BENCHMARKS`, O(1) terhadap volume) —
+diasumsikan volume-sensitif di PRD, ternyata salah setelah baca kode, dicatat di sini supaya
+jujur. Kesimpulan utama: **komputasi kanon BUKAN bottleneck** — bahkan `psak65` (fungsi paling
+berat, iterasi per-sub-entitas) tetap sub-milidetik pada 5.023 baris. Bottleneck sesungguhnya ada
+di jaringan/DB (§19.3) dan (belum terukur — lihat §19.4) render tabel WTB tak-berpaginasi di
+browser.
+
+### 19.3 Volume data (single-session) & konkurensi
+
+**Single-session, `bootstrap` (fetch WTB penuh + seluruh StateDoc perikatan), 30 repetisi:**
+
+| Perikatan | Volume WTB | p50 | p95 | p99 |
+|---|---|---|---|---|
+| ENG-2025-063 (tak disentuh) | ~0 baris | 8ms | 21ms | 56ms |
+| ENG-2025-040 / 031 (preset wajar) | 240 baris | 9ms | 11–16ms | 12–18ms |
+| ENG-2025-014 (preset besar) | 5.023 baris | 28ms | 36ms | 39ms |
+
+Delta nyata (~3,5× baseline) tapi jauh di bawah ambang SLA baca (1 detik) bahkan single-session.
+
+**Ramp konkurensi (5→10→20→50 sesi, 15dtk/level, campuran 2-baca:1-tulis), thd perikatan
+BESAR (`ENG-2025-014`, 4 user nyata: Partner/Manager/Senior/Junior) vs perikatan RINGAN
+(`ENG-2025-063`, 2 user ber-akses-lintas Manager/Partner — Senior/Junior bukan anggota
+perikatan itu, `not-engagement-member`, jadi dikeluarkan dari perbandingan ini, bukan
+disembunyikan):**
+
+| Konkurensi | Ops/dtk (besar) | Baca p95 (besar) | Tulis p95 (besar) | Ops/dtk (ringan) | Baca p95 (ringan) | Tulis p95 (ringan) |
+|---|---|---|---|---|---|---|
+| 5  | 37 | 177ms ✓ | 176ms ✓  | 108 | 74ms ✓  | 85ms ✓ |
+| 10 | 39 | 295ms ✓ | 365ms ✓  | 87  | 155ms ✓ | 199ms ✓ |
+| 20 | 39 | 408ms ✓ | 1.102ms ✓ | 79 | 314ms ✓ | 498ms ✓ |
+| 50 | 33 | 1.680ms **✗** | 3.992ms **✗** | 72 | 540ms ✓ | 1.839ms ✓ (mepet) |
+
+✓/✗ terhadap ambang p95 baca<1dtk/tulis<2dtk. Nol error nyata di semua level (kolom Error/CAS-409
+skrip = 0 setelah perbaikan bug kunci-StateDoc-dibagi — lihat catatan alat).
+
+**Baca**: perikatan RINGAN tak pernah melanggar ambang bahkan di 50 sesi. Perikatan BESAR
+melanggar ambang baca **antara 20 dan 50 sesi konkuren** menyentuh perikatan yang SAMA.
+**Tulis**: pola serupa — perikatan BESAR melanggar ambang tulis di level yang sama (50), perikatan
+RINGAN nyaris menyentuh ambang di 50 (1.839ms dari batas 2.000ms) tapi masih lolos.
+
+### 19.4 Tabel kapasitas — rekomendasi operasional
+
+| Skenario | t3.small/t4g.small (2 vCPU/2 GiB) | Rekomendasi |
+|---|---|---|
+| Firma kecil, perikatan bervolume wajar (ratusan baris WTB) | Aman hingga **~40-50 staf konkuren** aktif firma-wide | Cukup di t3.small utk pilot KAP kecil-menengah |
+| Firma dgn 1+ perikatan bervolume besar (grup/konsolidasi ribuan baris) sedang dikerjakan intensif | Aman hingga **~15-20 staf konkuren** menyentuh perikatan BESAR yang SAMA secara bersamaan | Bila tim fieldwork besar (>20 org) mengerjakan SATU klien grup secara serentak, pertimbangkan upgrade (`t3.medium`/`t4g.medium`, 2 vCPU/4 GiB atau 4 vCPU) SEBELUM fieldwork puncak, bukan reaktif |
+| Banyak perikatan aktif bersamaan (volume campuran, staf tersebar) | Throughput firma-wide tak terikat SATU perikatan — pola realistis (staf tersebar lintas klien) lebih ringan dari worst-case tabel di atas | Estimasi konservatif: `t3.small` cukup utk ~15-20 perikatan aktif bersamaan bila TAK semua bervolume besar sekaligus |
+
+**Keterbatasan yang jujur (bukan dijual berlebihan) — dibaca sebelum memakai tabel di atas**:
+1. **Bukan EC2 nyata** — approksimasi WSL Docker Compose lokal, sama seperti §12.3/§12.4. CPU
+   burstable EC2 asli bisa lebih baik ATAU lebih buruk tergantung kredit burst tersisa.
+2. **Closed-loop, tanpa think-time** — tiap "sesi" bench memanggil `bootstrap`/`state.set` dalam
+   loop rapat tanpa jeda, jauh lebih agresif dari pola staf nyata (switch perikatan lalu bekerja
+   beberapa menit sebelum switch lagi). Angka "aman hingga N sesi konkuren" di atas adalah
+   **plafon saturasi worst-case**, bukan "N staf nyata" 1:1 — kapasitas staf-nyata kemungkinan
+   LEBIH TINGGI dari angka mentah tabel di atas.
+3. **Render browser TIDAK terukur** — §19.2 hanya computasi kanon headless + §19.3 hanya
+   jaringan/DB. Waktu React me-render ribuan baris tabel WTB **tak berpaginasi** (dikonfirmasi
+   lewat baca kode: `view_wtb_deep.tsx` tak ada virtualisasi/limit) tetap gap terbuka — kemungkinan
+   inilah kontributor terbesar utk "terasa lambat" di sisi pengguna yang belum masuk pengukuran
+   manapun di atas. Perbaikan (pagination/virtualisasi) di luar scope PRD ini (murni pengukuran,
+   bukan remediasi) — dicatat sebagai temuan follow-up, bukan ditambal diam-diam.
+4. **Dua dimensi (volume vs konkurensi) diuji, bukan matriks penuh** — kombinasi "volume besar +
+   50 perikatan aktif bersamaan" sekaligus belum diuji (biaya seeding meningkat tajam); tabel di
+   atas adalah interpolasi kualitatif dari dua sumbu terukur terpisah, bukan titik data langsung.
+5. Reproduksi: `deploy/aws-ec2-test/loadtest/README.md` — seluruh perintah persis yang
+   menghasilkan angka di atas, termasuk cara memuat ulang data sintetis.
+
+## 20. Kepatuhan UU PDP & lokasi data (2026-07-03) — kajian awal selesai, belum tuntas
+
+Sebelum ini, tak ada kajian tertulis apa pun soal kepatuhan UU PDP 27/2022, DPA/ToS dengan firma
+pilot, kebijakan retensi data pasca-kontrak, atau justifikasi region hosting — empat dokumen
+terpisah menutup ini (pola sama `docs/KEY-ROTATION.md`/`docs/PENTEST-READINESS.md`: topik
+operasional-berulang berdiri sendiri, bukan bagian runbook deploy §1-§9 di atas):
+
+- **`docs/PDP-COMPLIANCE-ASSESSMENT.md`** — gap analysis pasal-per-pasal UU PDP terhadap kode
+  aktual (bukan generik), termasuk temuan baru: transfer data lintas-batas via proksi LLM (W8)
+  belum punya basis hukum yang dikonfirmasi.
+- **`docs/DATA-HANDLING-COMMITMENT.md`** — komitmen data-handling **internal** (keputusan Ari,
+  BUKAN DPA/ToS final yang ditandatangani firma pilot) — kerangka klausul siap-pakai bila/ketika
+  diformalkan ke surat perikatan (`TPL-PLN-02`, SA 210) setelah direview pengacara.
+- **`docs/DATA-RETENTION-POLICY.md`** — timeline & prosedur (interim manual) untuk backup
+  serah-terima + pemusnahan instance EC2/S3 pasca kontrak software SELURUH firma berakhir —
+  berbeda dari retensi kertas kerja per-perikatan (SA 230/UU KUP) yang sudah ada di
+  `app/data_records.js` dan tidak berubah.
+- **`docs/HOSTING-DATA-RESIDENCY-REVIEW.md`** — region default `ap-southeast-3` (Jakarta,
+  `deploy/aws-ec2-test/terraform/variables.tf:11-14`) dinilai memadai untuk profil klien
+  non-regulasi saat ini; klien ter-regulasi OJK di masa depan butuh kajian ulang terpisah.
+
+**Batasan (jujur)**: keempat dokumen adalah kajian teknis + kebijakan operasional, **BUKAN legal
+opinion** — belum direview pengacara Indonesia. Jangan jadikan dasar klaim kepatuhan penuh ke
+klien firma pilot sampai `docs/PDP-COMPLIANCE-ASSESSMENT.md` §5 selesai. Ini gap #2 (UU PDP) yang
+tersisa dari evaluasi menyeluruh sebelumnya — statusnya bergeser dari "0%" ke "kajian awal +
+kebijakan ada, implementasi teknis (DSR wiring, purge otomatis) & review hukum masih terbuka".

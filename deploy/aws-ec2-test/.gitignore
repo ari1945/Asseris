@@ -12,3 +12,7 @@ terraform/*.tfstate.backup
 terraform/*.tfstate.*.backup
 terraform/terraform.tfvars
 terraform/crash.log
+
+# Loadtest fixtures (generated, deterministic — regenerate via gen-synthetic-wtb.ts).
+# Never commit: fully reproducible, would otherwise bloat repo with ~1.3MB synthetic data.
+loadtest/fixtures/
