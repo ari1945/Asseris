@@ -9,6 +9,7 @@
     "start": "tsx src/server.ts",
     "seed": "tsx src/seed.ts",
     "bootstrap": "tsx src/bootstrap.ts",
+    "add-user": "tsx src/addUserCli.ts",
     "rotate-encryption-key": "tsx src/rotateEncryptionKey.ts",
     "export-audit-log": "tsx src/exportAuditLog.ts",
     "typecheck": "tsc --noEmit",
