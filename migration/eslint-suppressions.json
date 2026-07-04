@@ -1056,7 +1056,7 @@
   },
   "src/view_settings.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 123
+      "count": 138
     }
   },
   "src/view_sjah3000.tsx": {

@@ -10,6 +10,7 @@ import { createSession, revokeSession } from './auth/session';
 import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
 import { can, capForWrite, CAP } from './rbac';
+import { refreshRoleCache } from './roleStore';
 import { guardSignoffWrite, SIGNOFF_KEYS, type SignoffChange } from './signoff';
 import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
@@ -66,6 +67,27 @@ const LOCK_MINUTES = 15;
 // holds CAP.PHASE_OVERRIDE (Partner) — and an override past the lock is tagged distinctly in
 // the audit detail so it stands out on review instead of blending into ordinary STATE_SET rows.
 const ASSEMBLY_LOCK_DAYS = 60;
+
+// RBAC admin console (PRD docs/prd-rbac-admin-console.md) — the fixed capability catalog an admin
+// may pick from. Deliberately NOT extensible from the UI (PRD §5 Non-Scope): a brand-new capability
+// needs a brand-new gate in code somewhere, which a settings toggle can't create.
+const VALID_CAPS = new Set(Object.values(CAP));
+
+// Self-lockout guardrail (PRD §3 success criterion 4 / §9 Risks): simulates a role change (update
+// one role's caps, or remove a role entirely) against the FULL current role set and reports whether
+// at least one role would still hold FIRM_ADMIN afterward. Both roles.updateGrants and roles.delete
+// call this BEFORE writing, so an admin can never save their way into a firm with zero FIRM_ADMIN
+// holders — the one failure mode that would require a manual DB fix to recover from.
+function retainsFirmAdmin(
+  allRoles: Array<{ id: string; capsJson: string }>,
+  change: { updateId?: string; newCaps?: string[]; deleteId?: string },
+): boolean {
+  return allRoles.some((r) => {
+    if (r.id === change.deleteId) return false;
+    const caps = r.id === change.updateId ? (change.newCaps ?? []) : (JSON.parse(r.capsJson) as string[]);
+    return caps.includes(CAP.FIRM_ADMIN);
+  });
+}
 
 // The user shape the client may see — never the passwordHash/totpSecret.
 function publicUser(u: User) {
@@ -441,6 +463,114 @@ export const appRouter = router({
       }
       return verifyAuditChain();
     }),
+  }),
+
+  // RBAC admin console (PRD docs/prd-rbac-admin-console.md) — admin-managed roles & capabilities,
+  // replacing what used to be a hardcoded GRANTS map requiring a code deploy to change. All 4
+  // endpoints are FIRM_ADMIN-only (today = Engagement Partner, confirmed PRD §11 Q3); the CAP
+  // catalog itself stays fixed (VALID_CAPS above) — only the role→capability MAPPING is dynamic.
+  roles: router({
+    // Every role + its current capabilities + how many users hold it (informs the UI's
+    // delete-disabled state before the user even tries and gets rejected server-side).
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+      }
+      const [roles, users] = await Promise.all([
+        prisma.role.findMany({ orderBy: { createdAt: 'asc' } }),
+        prisma.user.findMany({ select: { role: true } }),
+      ]);
+      const userCountByRole = new Map<string, number>();
+      for (const u of users) userCountByRole.set(u.role, (userCountByRole.get(u.role) ?? 0) + 1);
+      return roles.map((r) => ({
+        id: r.id,
+        name: r.name,
+        caps: JSON.parse(r.capsJson) as string[],
+        isBuiltIn: r.isBuiltIn,
+        userCount: userCountByRole.get(r.name) ?? 0,
+      }));
+    }),
+
+    // New role, born with the admin's chosen capability subset (empty by default in the client
+    // form — PRD §8.6: a new role must NEVER inherit engagement access implicitly). Name must be
+    // unique within the firm (mirrors the (firmId,name) DB constraint with a friendlier error).
+    create: protectedProcedure
+      .input(z.object({ name: z.string().trim().min(1).max(80), caps: z.array(z.string()).default([]) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+        }
+        const badCap = input.caps.find((c) => !VALID_CAPS.has(c));
+        if (badCap) throw new TRPCError({ code: 'BAD_REQUEST', message: `unknown-capability:${badCap}` });
+        const existing = await prisma.role.findFirst({ where: { firmId: ctx.user.firmId, name: input.name } });
+        if (existing) throw new TRPCError({ code: 'CONFLICT', message: 'role-name-exists' });
+        const role = await prisma.role.create({
+          data: { firmId: ctx.user.firmId, name: input.name, capsJson: JSON.stringify(input.caps), isBuiltIn: false },
+        });
+        await refreshRoleCache();
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ROLE_CREATE',
+          scope: 'firm', scopeId: ctx.user.firmId, key: role.name,
+          detail: `caps=[${input.caps.join(',')}]`,
+        });
+        return { id: role.id, name: role.name, caps: input.caps, isBuiltIn: false };
+      }),
+
+    // Replace a role's capability set wholesale. isBuiltIn roles ARE editable this way (PRD §11
+    // Q2 — only their name/existence is locked, not their grants). Rejects if the result would
+    // leave the firm with zero FIRM_ADMIN-holding roles (retainsFirmAdmin guardrail above).
+    updateGrants: protectedProcedure
+      .input(z.object({ roleId: z.string().min(1), caps: z.array(z.string()) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+        }
+        const badCap = input.caps.find((c) => !VALID_CAPS.has(c));
+        if (badCap) throw new TRPCError({ code: 'BAD_REQUEST', message: `unknown-capability:${badCap}` });
+        const target = await prisma.role.findUnique({ where: { id: input.roleId } });
+        if (!target) throw new TRPCError({ code: 'NOT_FOUND', message: 'role-not-found' });
+        const allRoles = await prisma.role.findMany({ select: { id: true, capsJson: true } });
+        if (!retainsFirmAdmin(allRoles, { updateId: input.roleId, newCaps: input.caps })) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'lockout:no-role-would-retain-firm-admin' });
+        }
+        await prisma.role.update({ where: { id: input.roleId }, data: { capsJson: JSON.stringify(input.caps) } });
+        await refreshRoleCache();
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ROLE_UPDATE_GRANTS',
+          scope: 'firm', scopeId: ctx.user.firmId, key: target.name,
+          detail: `caps=[${input.caps.join(',')}]`,
+        });
+        return { id: target.id, name: target.name, caps: input.caps };
+      }),
+
+    // Delete a custom role. Rejected for isBuiltIn roles (name/existence locked — PRD §11 Q2) and
+    // for any role still assigned to a User (would strand that account with an unknown, denied-by-
+    // default role — same "unknown role → deny" semantics roleStore.ts already documents). Also
+    // runs the FIRM_ADMIN-retention guardrail for defense-in-depth against an unused-but-only
+    // FIRM_ADMIN-holding role being deleted.
+    delete: protectedProcedure
+      .input(z.object({ roleId: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+        }
+        const target = await prisma.role.findUnique({ where: { id: input.roleId } });
+        if (!target) throw new TRPCError({ code: 'NOT_FOUND', message: 'role-not-found' });
+        if (target.isBuiltIn) throw new TRPCError({ code: 'BAD_REQUEST', message: 'cannot-delete-builtin-role' });
+        const inUse = await prisma.user.count({ where: { role: target.name } });
+        if (inUse > 0) throw new TRPCError({ code: 'BAD_REQUEST', message: `role-in-use:${inUse}` });
+        const allRoles = await prisma.role.findMany({ select: { id: true, capsJson: true } });
+        if (!retainsFirmAdmin(allRoles, { deleteId: input.roleId })) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'lockout:no-role-would-retain-firm-admin' });
+        }
+        await prisma.role.delete({ where: { id: input.roleId } });
+        await refreshRoleCache();
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ROLE_DELETE',
+          scope: 'firm', scopeId: ctx.user.firmId, key: target.name,
+        });
+        return { ok: true };
+      }),
   }),
 
   // W10.5 — export seal + export-event logging. The bytes are generated client-side (Q1=A); the

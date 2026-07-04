@@ -10,7 +10,11 @@ import { inc } from '../obs/log';
 // The chain root. The first row's prevHash is this; an empty DB verifies as ok.
 export const GENESIS_HASH = '0'.repeat(64);
 
-export type AuditAction = 'STATE_SET' | 'LOGIN' | 'LOGOUT' | 'LLM_NARRATE' | 'EXPORT' | 'SEAL' | 'SYNC' | 'ARCHIVE';
+export type AuditAction =
+  | 'STATE_SET' | 'LOGIN' | 'LOGOUT' | 'LLM_NARRATE' | 'EXPORT' | 'SEAL' | 'SYNC' | 'ARCHIVE'
+  // RBAC admin console (PRD docs/prd-rbac-admin-console.md) — every role/grant change is a
+  // security-sensitive event (PRD §3 success criterion 6).
+  | 'ROLE_CREATE' | 'ROLE_UPDATE_GRANTS' | 'ROLE_DELETE';
 
 export interface AuditEntry {
   actorUserId?: string | null;

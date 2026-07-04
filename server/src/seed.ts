@@ -2,6 +2,8 @@ import { prisma } from './db';
 import { loadAmsSeed, loadConnectorSeed } from './seedData';
 import { hashPassword } from './auth/password';
 import { PERSONAL_KEYS } from './personalScope';
+// @ts-ignore — ../../migration/src/rbac is untyped canonical JS shared with the client.
+import { ROLES, GRANTS } from '../../migration/src/rbac';
 
 const FIRM_ID = 'FIRM-WHR';
 const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engagement
@@ -59,6 +61,7 @@ async function main() {
   await prisma.session.deleteMany();
   await prisma.authEvent.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.role.deleteMany();
   await prisma.firm.deleteMany();
 
   const f = A.FIRM as Record<string, unknown>;
@@ -73,6 +76,17 @@ async function main() {
       staff: (f.staff as number) ?? 0,
     },
   });
+
+  // RBAC admin console (PRD docs/prd-rbac-admin-console.md) — port the 6 roles from the OLD static
+  // GRANTS map into the new DB-backed Role table, isBuiltIn=true (name/existence locked; capsJson
+  // remains admin-editable via roles.updateGrants — PRD §11 Q2). This is what server.ts's
+  // refreshRoleCache() hydrates from on next boot; running server instances only pick this up after
+  // a restart (same "reseed → restart" operational nuance as every other seeded table here).
+  for (const roleName of ROLES as string[]) {
+    await prisma.role.create({
+      data: { firmId: FIRM_ID, name: roleName, capsJson: JSON.stringify((GRANTS as Record<string, string[]>)[roleName] ?? []), isBuiltIn: true },
+    });
+  }
 
   const u = A.USER as Record<string, unknown>;
   const PRIMARY_ID = (u.employeeId as string) ?? 'USER-1'; // Anindya (Audit Manager)

@@ -11,9 +11,10 @@ import { verifyPassword } from '../auth/password';
 interface Captured {
   firms: Array<Record<string, unknown>>;
   users: Array<Record<string, unknown>>;
+  roles: Array<Record<string, unknown>>;
 }
 function mockDb(firmCount: number) {
-  const cap: Captured = { firms: [], users: [] };
+  const cap: Captured = { firms: [], users: [], roles: [] };
   const db = {
     firm: {
       count: async () => firmCount,
@@ -21,6 +22,11 @@ function mockDb(firmCount: number) {
     },
     user: {
       create: async ({ data }: { data: Record<string, unknown> }) => { cap.users.push(data); return data; },
+    },
+    // RBAC admin console (PRD docs/prd-rbac-admin-console.md) — bootstrapFirm now also seeds the 6
+    // built-in Role rows for a fresh firm; the mock just needs to accept the writes.
+    role: {
+      create: async ({ data }: { data: Record<string, unknown> }) => { cap.roles.push(data); return data; },
     },
   } as unknown as Parameters<typeof bootstrapFirm>[0];
   return { db, cap };
@@ -44,6 +50,15 @@ describe('bootstrapFirm — provisioning non-destruktif', () => {
     expect(await verifyPassword('sebuah-passphrase-kuat', u.passwordHash as string)).toBe(true);
     expect(res.firmId).toBe('FIRM-WHR');
     expect(res.userId).toBe('USER-WHR-ADMIN');
+  });
+
+  it('seeds the 6 built-in Role rows (isBuiltIn=true) so the fresh firm is DB-backed from the start', async () => {
+    const { db, cap } = mockDb(0);
+    await bootstrapFirm(db, input());
+    expect(cap.roles).toHaveLength(6);
+    expect(cap.roles.every((r) => r.isBuiltIn === true && r.firmId === 'FIRM-WHR')).toBe(true);
+    const partner = cap.roles.find((r) => r.name === 'Engagement Partner');
+    expect(JSON.parse(partner?.capsJson as string)).toContain('firm.admin');
   });
 
   it('TOTP di-enrol secara default (armed + material sekali-tampil)', async () => {

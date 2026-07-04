@@ -83,6 +83,15 @@ export function can(role: any, cap: any) {
   return Array.isArray(grants) && grants.includes(cap);
 }
 
+/* RBAC admin console (PRD docs/prd-rbac-admin-console.md) — exported (previously module-private)
+   so server/src/roleStore.ts can (a) seed the DB-backed Role table from these exact values at
+   bootstrap/demo-seed time, and (b) fall back to this static map when its cache has never been
+   hydrated (e.g. a unit test that talks to the Prisma test DB directly without booting server.ts —
+   see roleStore.ts header). The CLIENT bundle's own can()/capForWrite() above are UNCHANGED by any
+   of this — they still read this same static GRANTS object, cosmetic-only as always (real
+   enforcement is server-side and DB-backed post-migration). */
+export { GRANTS };
+
 /* (scope, key) → capability required to WRITE that StateDoc. The W6 store is one doc
    per key, so enforcement is at document granularity (finer intra-doc gating — e.g.
    the opinion sign-off living inside wpState — is the UI's job via can(), and a future
