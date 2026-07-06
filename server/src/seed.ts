@@ -14,7 +14,13 @@ const ACTIVE_ENG = 'ENG-2025-014'; // data.js WTB belongs to the active engageme
 // documented in BUILD.md — NOT production credentials.
 type SeedUser = { id: string; name: string; initials: string; role: string; email: string; password: string; title?: string };
 const EXTRA_USERS: SeedUser[] = [
-  { id: 'WHR-EP-0001', name: 'Hartono Wijaya', initials: 'HW', role: 'Engagement Partner', email: 'hartono.w@whr-cpa.id', password: 'Partner#2025!', title: 'Engagement Partner' },
+  /* 2026-07-05 — PRD Isolasi Data Personal. Hartono (EMP-001) = Rekan Pemimpin (Managing Partner):
+     satu-satunya yang melihat data personal SELURUH firma (cap *.viewFirm). Rudi (EMP-002, lead unit
+     U-KOM) = Rekan otonom: lihat data personal UNIT-nya saja (*.viewUnit). Sari (EMP-003) tetap
+     Engagement Partner default = self-only (mode tersentralisasi) — mendemokan ketiga tingkat. */
+  { id: 'WHR-EP-0001', name: 'Hartono Wijaya', initials: 'HW', role: 'Rekan Pemimpin', email: 'hartono.w@whr-cpa.id', password: 'Partner#2025!', title: 'Rekan Pemimpin (Managing Partner)' },
+  { id: 'WHR-EP-0002', name: 'Rudi Gunawan', initials: 'RG', role: 'Rekan', email: 'rudi.g@whr-cpa.id', password: 'Rekan#2025!', title: 'Rekan (Partner — Unit Komersial)' },
+  { id: 'WHR-EP-0003', name: 'Sari Dewanti', initials: 'SD', role: 'Engagement Partner', email: 'sari.d@whr-cpa.id', password: 'Partner#2025!', title: 'Engagement Partner' },
   { id: 'WHR-SR-0210', name: 'Dimas Raharjo', initials: 'DR', role: 'Senior Auditor', email: 'dimas.r@whr-cpa.id', password: 'Senior#2025!', title: 'Senior Auditor' },
   /* EMP-022 — Senior yang deklarasi Kode Etik tahunannya BELUM sah (ETHICS_DECL seed: signed=false).
      Login demo untuk gerbang #3: sign-off WP & penerbitan opini diblokir hingga deklarasi sah /

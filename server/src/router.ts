@@ -26,7 +26,8 @@ import { assertIpAllowed } from './security/ipAllowlist';
 import { listConnectors } from './integrations/config';
 import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
-import { PERSONAL_KEYS, resolveEmpId, filterPersonal } from './personalScope';
+import { PERSONAL_KEYS, personalPopulation, filterPersonalByPopulation, seedForKey } from './personalScope';
+import { submitLeaveRequest, declareSelf } from './personalSelfService';
 import {
   amsShortName, loadTaskSeed, deriveReviewNoteTasks, deriveWpAssignmentTasks, deriveDeadlineTasks,
   type MineTask,
@@ -769,12 +770,22 @@ export const appRouter = router({
       }
       if (input.scope === 'engagement') await assertEngagementAccess(ctx.user, input.scopeId);
       const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: input } });
-      const shape = PERSONAL_KEYS[input.key];
-      const raw = doc ? (JSON.parse(doc.valueJson) as unknown) : (shape.mode === 'array' ? [] : {});
-      const full = can(ctx.user.role, CAP.HR_MANAGE) || can(ctx.user.role, CAP.FIRM_ADMIN);
-      const empId = full ? null : await resolveEmpId(ctx.user);
-      return { value: filterPersonal(input.key, raw, empId, full), version: doc?.version ?? 0 };
+      // Fallback ke SEED ter-filter (bukan objek kosong) saat belum ada StateDoc — menutup lubang
+      // version-0 (klien mengadopsi hasil server ini utk key personal walau version 0, lihat
+      // contexts.tsx), sehingga isolasi berlaku juga di DB baru di-seed.
+      const raw = doc ? (JSON.parse(doc.valueJson) as unknown) : await seedForKey(input.key);
+      const population = await personalPopulation(ctx.user, input.key);
+      return { value: filterPersonalByPopulation(input.key, raw, population), version: doc?.version ?? 0 };
     }),
+    // 2026-07-06 — SELF-SERVICE dari "Data Personal Saya" (halaman detail). Server menentukan empId
+    // dari SESI; hanya menyentuh baris milik caller (append cuti sendiri / set flag deklarasi sendiri)
+    // — tak bisa mengubah baris pegawai lain (lihat personalSelfService.ts). Dikembalikan self-filtered.
+    submitLeave: protectedProcedure
+      .input(z.object({ type: z.string().min(1), from: z.string().min(1), to: z.string().min(1), reason: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => submitLeaveRequest(ctx.user, input)),
+    declare: protectedProcedure
+      .input(z.object({ kind: z.enum(['independence', 'ethics']) }))
+      .mutation(async ({ input, ctx }) => declareSelf(ctx.user, input.kind)),
   }),
 
   // 2026-07-01 — cross-engagement task aggregation for the role-based Beranda (PRD

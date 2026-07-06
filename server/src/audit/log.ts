@@ -14,7 +14,9 @@ export type AuditAction =
   | 'STATE_SET' | 'LOGIN' | 'LOGOUT' | 'LLM_NARRATE' | 'EXPORT' | 'SEAL' | 'SYNC' | 'ARCHIVE'
   // RBAC admin console (PRD docs/prd-rbac-admin-console.md) — every role/grant change is a
   // security-sensitive event (PRD §3 success criterion 6).
-  | 'ROLE_CREATE' | 'ROLE_UPDATE_GRANTS' | 'ROLE_DELETE';
+  | 'ROLE_CREATE' | 'ROLE_UPDATE_GRANTS' | 'ROLE_DELETE'
+  // 2026-07-06 — self-service pegawai (ajukan cuti / deklarasi sendiri) dari "Data Personal Saya".
+  | 'SELF_SERVICE';
 
 export interface AuditEntry {
   actorUserId?: string | null;

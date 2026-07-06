@@ -3,13 +3,12 @@ import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
-import { filterPersonal, resolveEmpId, PERSONAL_KEYS } from '../personalScope';
+import { filterPersonalByPopulation, personalPopulation, resolveEmpId, unitSubtree, PERSONAL_KEYS } from '../personalScope';
 
 /* 2026-07-01 — PRD "Restrukturisasi Navigasi & Beranda Berbasis Peran", Fase 3.
-   personal.get is the row-filtered read path that closes the gap state.get can't:
-   a capability gate on WRITE never stopped a caller who can merely READ that scope
-   from reading every OTHER person's row. These tests pin the security property
-   itself (isolation), not just "the feature renders" — mirrors engagement_isolation.test.ts. */
+   2026-07-05 — PRD "Isolasi Data Personal": diperluas jadi BERJENJANG (self→unit→firm) +
+   kategori-cap granular + fallback seed ter-filter. Tes ini memaku properti KEAMANAN
+   (isolasi), bukan sekadar "fitur render" — sejajar engagement_isolation.test.ts. */
 
 function callerAs(role: string, id: string, email: string) {
   const user = { id, role, email } as unknown as User;
@@ -17,28 +16,31 @@ function callerAs(role: string, id: string, email: string) {
 }
 
 const FIRM = 'PSC-FIRM';
-// Real seeded STAFF emails (migration/src/data_part1.ts) — resolveEmpId matches the
-// AUTHENTIC roster, so the test proves the real resolution path, not a fixture stand-in.
-const DIMAS_EMAIL = 'dimas.r@whr-cpa.id'; // EMP-021, Senior Auditor
-const FAJAR_EMAIL = 'fajar.n@whr-cpa.id'; // EMP-031, Junior Auditor
-const DIMAS = 'PSC-dimas';
-const FAJAR = 'PSC-fajar';
-const PARTNER = 'PSC-partner';
-const HR = 'PSC-hr';
+// Email STAFF seed nyata (migration/src/data_part1.ts) — resolveEmpId mencocokkan roster ASLI.
+const DIMAS_EMAIL = 'dimas.r@whr-cpa.id'; // EMP-021, Senior, unit U-LEAD
+const FAJAR_EMAIL = 'fajar.n@whr-cpa.id'; // EMP-031, Junior, unit U-LEAD
+const RUDI_EMAIL = 'rudi.g@whr-cpa.id'; // EMP-002, lead unit U-KOM
+const HARTONO_EMAIL = 'hartono.w@whr-cpa.id'; // EMP-001, managing partner
+const DIMAS = 'PSC-dimas', FAJAR = 'PSC-fajar', RUDI = 'PSC-rudi', HARTONO = 'PSC-hartono';
+const PARTNER = 'PSC-partner', HR = 'PSC-hr', FIN = 'PSC-fin';
 
 beforeAll(async () => {
   await prisma.firm.create({ data: { id: FIRM, name: 'Personal Scope Firm', short: 'PSC' } });
   await prisma.user.create({ data: { id: DIMAS, firmId: FIRM, name: 'Dimas Raharjo', role: 'Senior Auditor', email: DIMAS_EMAIL, dataJson: '{}' } });
   await prisma.user.create({ data: { id: FAJAR, firmId: FIRM, name: 'Fajar Nugroho', role: 'Junior Auditor', email: FAJAR_EMAIL, dataJson: '{}' } });
+  await prisma.user.create({ data: { id: RUDI, firmId: FIRM, name: 'Rudi Gunawan', role: 'Rekan', email: RUDI_EMAIL, dataJson: '{}' } });
+  await prisma.user.create({ data: { id: HARTONO, firmId: FIRM, name: 'Hartono Wijaya', role: 'Rekan Pemimpin', email: HARTONO_EMAIL, dataJson: '{}' } });
   await prisma.user.create({ data: { id: PARTNER, firmId: FIRM, name: 'Test Partner', role: 'Engagement Partner', email: 'psc.partner@test.local', dataJson: '{}' } });
   await prisma.user.create({ data: { id: HR, firmId: FIRM, name: 'Test HR', role: 'Admin & HR Firma', email: 'psc.hr@test.local', dataJson: '{}' } });
+  await prisma.user.create({ data: { id: FIN, firmId: FIRM, name: 'Test Finance', role: 'Finance Firma', email: 'psc.fin@test.local', dataJson: '{}' } });
   await prisma.stateDoc.create({
     data: {
-      scope: 'firm', scopeId: FIRM, key: 'leaveReqs', version: 1, updatedBy: PARTNER,
+      scope: 'firm', scopeId: FIRM, key: 'leaveReqs', version: 1, updatedBy: HR,
       valueJson: JSON.stringify([
-        { id: 'LV-D1', emp: 'EMP-021', type: 'Cuti Tahunan', status: 'Menunggu' }, // Dimas's own
-        { id: 'LV-F1', emp: 'EMP-031', type: 'Sakit', status: 'Menunggu' }, // Fajar's own
-        { id: 'LV-X1', emp: 'EMP-999', type: 'Cuti Tahunan', status: 'Disetujui' }, // nobody in this test
+        { id: 'LV-D1', emp: 'EMP-021', type: 'Cuti Tahunan', status: 'Menunggu' }, // Dimas (U-LEAD)
+        { id: 'LV-F1', emp: 'EMP-031', type: 'Sakit', status: 'Menunggu' }, // Fajar (U-LEAD)
+        { id: 'LV-B1', emp: 'EMP-008', type: 'Cuti Tahunan', status: 'Disetujui' }, // Bayu (U-KOM, unit Rudi)
+        { id: 'LV-X1', emp: 'EMP-999', type: 'Cuti Tahunan', status: 'Disetujui' }, // nobody
       ]),
     },
   });
@@ -54,65 +56,115 @@ afterAll(async () => {
 describe('resolveEmpId — pemetaan sesi → EMP-xxx via STAFF asli (email)', () => {
   it('cocok via email STAFF seed nyata', async () => {
     expect(await resolveEmpId({ email: DIMAS_EMAIL })).toBe('EMP-021');
-    expect(await resolveEmpId({ email: FAJAR_EMAIL })).toBe('EMP-031');
+    expect(await resolveEmpId({ email: RUDI_EMAIL })).toBe('EMP-002');
   });
-  it('null bila email tak cocok STAFF mana pun (persona firm-ops — bukan staf audit)', async () => {
+  it('null bila email tak cocok STAFF mana pun (persona firm-ops)', async () => {
     expect(await resolveEmpId({ email: 'psc.hr@test.local' })).toBeNull();
   });
 });
 
-describe('filterPersonal — filter murni per bentuk dokumen', () => {
-  const rows = [{ id: 'A', emp: 'EMP-021' }, { id: 'B', emp: 'EMP-031' }];
-  it('full=true → dokumen utuh, tanpa filter', () => {
-    expect(filterPersonal('leaveReqs', rows, null, true)).toEqual(rows);
+describe('unitSubtree — rumah tangga partner (eksplisit UNITS → fallback ORG)', () => {
+  it('Rudi (lead U-KOM) → seluruh anggota unit U-KOM, BUKAN unit lain', async () => {
+    const set = await unitSubtree({ email: RUDI_EMAIL });
+    expect(set.has('EMP-002')).toBe(true); // dirinya
+    expect(set.has('EMP-008')).toBe(true); // Bayu, U-KOM
+    expect(set.has('EMP-022')).toBe(true); // Sinta, U-KOM
+    expect(set.has('EMP-021')).toBe(false); // Dimas, U-LEAD — di luar unitnya
+    expect(set.has('EMP-031')).toBe(false); // Fajar, U-LEAD
   });
-  it('array-shape → hanya baris milik empId', () => {
-    expect(filterPersonal('leaveReqs', rows, 'EMP-021', false)).toEqual([{ id: 'A', emp: 'EMP-021' }]);
-  });
-  it('object-shape → hanya entri dengan key = empId', () => {
-    const doc = { 'EMP-021': { gross: 1 }, 'EMP-031': { gross: 2 } };
-    expect(filterPersonal('payrollData', doc, 'EMP-021', false)).toEqual({ 'EMP-021': { gross: 1 } });
-  });
-  it('empId null & full=false → fail-closed (kosong, BUKAN semua)', () => {
-    expect(filterPersonal('leaveReqs', rows, null, false)).toEqual([]);
-    expect(filterPersonal('payrollData', { 'EMP-021': {} }, null, false)).toEqual({});
+  it('non-partner (tak memimpin unit) → fallback ORG subtree (mereka yang melapor ke bawahnya)', async () => {
+    const set = await unitSubtree({ email: DIMAS_EMAIL }); // EMP-021 → EMP-031 melapor ke dia
+    expect(set.has('EMP-021')).toBe(true);
+    expect(set.has('EMP-031')).toBe(true);
+    expect(set.has('EMP-002')).toBe(false);
   });
 });
 
-describe('personal.get — isolasi end-to-end lewat router nyata', () => {
-  it('Dimas hanya menerima barisnya sendiri, bukan milik Fajar atau baris tak dikenal', async () => {
+describe('filterPersonalByPopulation — filter murni per bentuk dokumen', () => {
+  const rows = [{ id: 'A', emp: 'EMP-021' }, { id: 'B', emp: 'EMP-031' }, { id: 'C', emp: 'EMP-008' }];
+  it("population 'all' → dokumen utuh", () => {
+    expect(filterPersonalByPopulation('leaveReqs', rows, 'all')).toEqual(rows);
+  });
+  it('array-shape → hanya baris yang emp-nya ada di populasi', () => {
+    expect(filterPersonalByPopulation('leaveReqs', rows, new Set(['EMP-021']))).toEqual([{ id: 'A', emp: 'EMP-021' }]);
+    expect(filterPersonalByPopulation('leaveReqs', rows, new Set(['EMP-021', 'EMP-008']))).toEqual([{ id: 'A', emp: 'EMP-021' }, { id: 'C', emp: 'EMP-008' }]);
+  });
+  it('object-shape → hanya entri yang key-nya ada di populasi', () => {
+    const doc = { 'EMP-021': { gross: 1 }, 'EMP-031': { gross: 2 } };
+    expect(filterPersonalByPopulation('payrollData', doc, new Set(['EMP-021']))).toEqual({ 'EMP-021': { gross: 1 } });
+  });
+  it('populasi kosong → fail-closed (kosong, BUKAN semua)', () => {
+    expect(filterPersonalByPopulation('leaveReqs', rows, new Set())).toEqual([]);
+    expect(filterPersonalByPopulation('payrollData', { 'EMP-021': {} }, new Set())).toEqual({});
+  });
+});
+
+describe('personalPopulation — resolusi cakupan per peran/kategori', () => {
+  it("Rekan Pemimpin → 'all' (firm) untuk payroll", async () => {
+    expect(await personalPopulation({ role: 'Rekan Pemimpin', email: HARTONO_EMAIL }, 'payrollData')).toBe('all');
+  });
+  it('Finance Firma → firm untuk payroll, tapi self (kosong) untuk data SDM (cuti)', async () => {
+    expect(await personalPopulation({ role: 'Finance Firma', email: 'psc.fin@test.local' }, 'payrollData')).toBe('all');
+    const leave = await personalPopulation({ role: 'Finance Firma', email: 'psc.fin@test.local' }, 'leaveReqs');
+    expect(leave).toBeInstanceOf(Set);
+    expect((leave as Set<string>).size).toBe(0); // bukan staf → tak ada empId → kosong
+  });
+  it('Engagement Partner (default) → self-only, BUKAN firm (decoupling dari FIRM_ADMIN)', async () => {
+    const p = await personalPopulation({ role: 'Engagement Partner', email: 'psc.partner@test.local' }, 'payrollData');
+    expect(p).toBeInstanceOf(Set);
+    expect((p as Set<string>).size).toBe(0);
+  });
+});
+
+describe('personal.get — isolasi end-to-end lewat router nyata (berjenjang)', () => {
+  it('Dimas (self) hanya barisnya sendiri', async () => {
     const r = await callerAs('Senior Auditor', DIMAS, DIMAS_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'leaveReqs' });
     expect(r.value).toEqual([{ id: 'LV-D1', emp: 'EMP-021', type: 'Cuti Tahunan', status: 'Menunggu' }]);
   });
-  it('Fajar hanya menerima barisnya sendiri', async () => {
-    const r = await callerAs('Junior Auditor', FAJAR, FAJAR_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'leaveReqs' });
-    expect(r.value).toEqual([{ id: 'LV-F1', emp: 'EMP-031', type: 'Sakit', status: 'Menunggu' }]);
+  it('Rudi (Rekan, unit U-KOM) melihat anggota unitnya (Bayu), TAPI bukan U-LEAD (Dimas/Fajar)', async () => {
+    const r = await callerAs('Rekan', RUDI, RUDI_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'leaveReqs' });
+    const ids = (r.value as Array<{ id: string }>).map((x) => x.id);
+    expect(ids).toContain('LV-B1'); // Bayu, U-KOM
+    expect(ids).not.toContain('LV-D1'); // Dimas, U-LEAD
+    expect(ids).not.toContain('LV-F1'); // Fajar, U-LEAD
   });
-  it('Admin & HR Firma (HR_MANAGE) menerima SEMUA baris', async () => {
+  it('Rekan Pemimpin (firm) menerima SEMUA baris', async () => {
+    const r = await callerAs('Rekan Pemimpin', HARTONO, HARTONO_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'leaveReqs' });
+    expect((r.value as unknown[]).length).toBe(4);
+  });
+  it('Admin & HR (firm untuk SDM) menerima SEMUA baris', async () => {
     const r = await callerAs('Admin & HR Firma', HR, 'psc.hr@test.local').personal.get({ scope: 'firm', scopeId: FIRM, key: 'leaveReqs' });
-    expect((r.value as unknown[]).length).toBe(3);
+    expect((r.value as unknown[]).length).toBe(4);
   });
-  it('Partner (FIRM_ADMIN) menerima SEMUA baris', async () => {
+  it('Engagement Partner default → self-only: TAK menerima baris (decoupling FIRM_ADMIN)', async () => {
     const r = await callerAs('Engagement Partner', PARTNER, 'psc.partner@test.local').personal.get({ scope: 'firm', scopeId: FIRM, key: 'leaveReqs' });
-    expect((r.value as unknown[]).length).toBe(3);
+    expect(r.value).toEqual([]); // empId null (bukan staf seed) → kosong
   });
-  it('key di luar PERSONAL_KEYS ditolak — bukan pintu belakang ke state.get lain', async () => {
+  it('key di luar PERSONAL_KEYS ditolak', async () => {
     await expect(
       callerAs('Senior Auditor', DIMAS, DIMAS_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'wpState' }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
   });
-  it('dokumen belum pernah ditulis → default kosong sesuai bentuk, bukan error', async () => {
-    const r = await callerAs('Senior Auditor', DIMAS, DIMAS_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'cpeExtra' });
-    expect(r.value).toEqual({});
+  it('LUBANG VERSION-0 TERTUTUP: payroll belum ditulis → fallback SEED ter-filter (Dimas hanya barisnya), bukan kosong/semua', async () => {
+    const r = await callerAs('Senior Auditor', DIMAS, DIMAS_EMAIL).personal.get({ scope: 'firm', scopeId: FIRM, key: 'payrollData' });
+    const keys = Object.keys(r.value as Record<string, unknown>);
+    expect(keys).toEqual(['EMP-021']); // hanya barisnya sendiri, dari seed
     expect(r.version).toBe(0);
+  });
+  it('version-0 seed juga ter-filter untuk HR (semua) & Partner default (kosong)', async () => {
+    const hr = await callerAs('Admin & HR Firma', HR, 'psc.hr@test.local').personal.get({ scope: 'firm', scopeId: FIRM, key: 'payrollData' });
+    expect(Object.keys(hr.value as Record<string, unknown>).length).toBeGreaterThan(1); // seluruh roster
+    const partner = await callerAs('Engagement Partner', PARTNER, 'psc.partner@test.local').personal.get({ scope: 'firm', scopeId: FIRM, key: 'payrollData' });
+    expect(partner.value).toEqual({}); // self-only, bukan staf → kosong
   });
 });
 
 describe('PERSONAL_KEYS — konsistensi konfigurasi', () => {
-  it('semua 10 key yang disebut PRD Fase 3 terdaftar', () => {
+  it('memuat key Fase 3 + key baru Isolasi Data Personal (16 total)', () => {
     expect(Object.keys(PERSONAL_KEYS).sort()).toEqual([
-      'cpeExtra', 'indepAppr', 'indepRotAck', 'indepThreats', 'independence',
-      'leaveReqs', 'payrollData', 'pc.ethics', 'pc.gifts', 'perfPeople',
+      'amlScreening', 'cpeExtra', 'cpeLog', 'hrCases', 'indepAppr', 'indepRotAck', 'indepThreats',
+      'independence', 'leaveBalance', 'leaveReqs', 'payrollData', 'pc.ethics', 'pc.gifts',
+      'perfGoals', 'perfPeople', 'staffProfile',
     ].sort());
   });
 });

@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useNav } from './contexts';
+import { useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { Avatar, Btn, Donut, Panel, Stat } from './ui';
 
@@ -11,10 +11,12 @@ import { Avatar, Btn, Donut, Panel, Stat } from './ui';
    ============================================================ */
 const { useState: usePChcm } = React;
 
-/* default profile when an employee has no enriched record */
-function profileOf(s: any) {
+/* default profile when an employee has no enriched record. `profiles` = server-scoped STAFF_PROFILE
+ * (personal.get): non-privileged hanya menerima baris miliknya → membuka drawer orang lain hanya
+ * memunculkan placeholder ter-masking (NIK/NPWP/kontak '—'), BUKAN PII asli. */
+function profileOf(s: any, profiles: any) {
   const A: any = AMS;
-  const base = (A.STAFF_PROFILE || {})[s.id] || {};
+  const base = (profiles || {})[s.id] || {};
   return {
     phone: base.phone || '0811-•••-' + s.id.slice(-3),
     location: base.location || 'Jakarta (HQ)',
@@ -37,16 +39,26 @@ function profileOf(s: any) {
 function Profile360Drawer({ s, onClose }: any) {
   const A: any = AMS, fmt = A.fmt;
   const nav = useNav();
-  const p = profileOf(s);
+  // 2026-07-05 — seluruh data personal drawer 360° ditarik via personal.get (row-filtered server):
+  // non-privileged hanya menerima barisnya sendiri, jadi membuka profil kolega hanya menampilkan
+  // placeholder default (tanpa gaji/PII/kinerja asli). HR/Managing Partner menerima semua.
+  const [profiles] = useAmsPersist('staffProfile', () => A.STAFF_PROFILE);
+  const [payAll] = useAmsPersist('payrollData', () => A.PAYROLL);
+  const [lvAll] = useAmsPersist('leaveBalance', () => A.LEAVE_BALANCE);
+  const [cpeAll] = useAmsPersist('cpeLog', () => A.CPE_LOG);
+  const [perfAll] = useAmsPersist('perfPeople', () => (A.PERF_CYCLE.people || {}));
+  const [indepAll] = useAmsPersist('independence', () => A.INDEPENDENCE);
+  const [ethAll] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
+  const p = profileOf(s, profiles);
   const tenure = 2026 - s.joined;
-  const pay = (A.PAYROLL || {})[s.id];
-  const lv = (A.LEAVE_BALANCE || {})[s.id];
+  const pay = (payAll || {})[s.id];
+  const lv = (lvAll || {})[s.id];
   const lvTotal = lv ? lv.ent + lv.carry : 12;
   const lvLeft = lv ? lvTotal - lv.used : 12;
-  const cpe = ((A.CPE_LOG || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
-  const perf = (A.PERF_CYCLE.people || {})[s.id];
-  const indep = (A.INDEPENDENCE || []).find((d: any) => d.id === s.id);
-  const ethics = (A.ETHICS_DECL || {})[s.id];
+  const cpe = ((cpeAll || {})[s.id] || []).reduce((a: any, r: any) => a + r.skp, 0);
+  const perf = (perfAll || {})[s.id];
+  const indep = (indepAll || []).find((d: any) => d.id === s.id);
+  const ethics = (ethAll || {})[s.id];
   const GC = A.GRADE_COLOR_PC;
 
   const Section = ({ title, children, action }: any) => (

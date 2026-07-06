@@ -21,7 +21,9 @@ const LV_TYPE_COLOR = { 'Cuti Tahunan': '#005085', 'Sakit': '#9a6a00', 'Cuti Men
 
 function LeaveAttendance() {
   const staff: any = AMS.STAFF;
-  const BAL: any = AMS.LEAVE_BALANCE;
+  // 2026-07-05 — saldo cuti & pengajuan ter-filter server (personal.get): non-privileged hanya
+  // menerima barisnya sendiri (tabel Saldo Cuti otomatis menyusut, pola view_payroll).
+  const [BAL] = useAmsPersist('leaveBalance', () => AMS.LEAVE_BALANCE) as any;
   const [reqs, setReqs] = useAmsPersist('leaveReqs', () => AMS.LEAVE_REQUESTS) as any;
   const [tab, setTab] = useHR('requests');
 
@@ -100,7 +102,9 @@ function LeaveAttendance() {
               <table className="dtbl" style={{ minWidth: 760 }}>
                 <thead><tr><th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)' }}>Karyawan</th>{days.map((d, i) => <th key={i} className="num" style={{ minWidth: 26, padding: '6px 3px', color: d.getDay() === 0 || d.getDay() === 6 ? 'var(--ink-4)' : 'inherit' }}>{d.getDate()}</th>)}</tr></thead>
                 <tbody>
-                  {staff.map((s: any) => (
+                  {/* 2026-07-06 — self-scoped: BAL (leaveBalance via personal.get) hanya berisi baris
+                      yang boleh dilihat caller; non-privileged → hanya dirinya sendiri. */}
+                  {staff.filter((s: any) => BAL[s.id]).map((s: any) => (
                     <tr key={s.id}>
                       <td style={{ position: 'sticky', left: 0, background: 'var(--surface)', fontWeight: 600 }}><div className="row ac gap6"><Avatar name={s.name} size={20} /><span className="tiny truncate" style={{ maxWidth: 110 }}>{s.name}</span></div></td>
                       {days.map((d, i) => {
@@ -132,15 +136,19 @@ function Performance() {
   const C: any = AMS.PERF_CYCLE;
   const [sel, setSel] = useHR('EMP-021');
   const [pdata, setPdata] = useAmsPersist('perfPeople', () => C.people);
+  // 2026-07-05 — sasaran/KPI (perfGoals) ter-filter server (personal.get) sejalan perfPeople.
+  const [goalsAll] = useAmsPersist('perfGoals', () => C.goals);
   const advance = (id: any) => setPdata((m: any) => { const p = { ...m[id] }; if (!p.goalsSet) p.goalsSet = true; else if (!p.selfDone) p.selfDone = true; else if (!p.mgrDone) p.mgrDone = true; else p.calibrated = true; return { ...m, [id]: p }; });
 
   const people = staff.filter((s: any) => pdata[s.id]).map((s: any) => ({ ...s, ...pdata[s.id] }));
+  // Guard: data ter-filter bisa kosong (mis. peran self-only yang EMP-nya tak ada di siklus kinerja).
+  if (!people.length) return (<><SubBar moduleId="performance" /><div className="view-scroll"><div className="view-pad"><Panel><div style={{ padding: 28, textAlign: 'center' }} className="tiny muted">Tidak ada data kinerja yang dapat Anda lihat. Data kinerja staf lain hanya untuk Rekan Pemimpin / HR (lihat data personal Anda di modul <b>Data Personal Saya</b>).</div></Panel></div></div></>);
   const phaseIdx = (p: any) => p.calibrated ? 4 : p.mgrDone ? 3 : p.selfDone ? 2 : p.goalsSet ? 1 : 0;
   const calibrated = people.filter((p: any) => p.calibrated).length;
   const pendingMgr = people.filter((p: any) => p.selfDone && !p.mgrDone).length;
   const avgPerf = (people.reduce((s: any, p: any) => s + p.perf, 0) / people.length);
   const person = people.find((p: any) => p.id === sel) || people[0];
-  const goals = C.goals[person.id];
+  const goals = (goalsAll || {})[person.id];
 
   /* 9-box: x = perf (1-5 → low/mid/high), y = potential */
   const band = (v: any) => v >= 4.3 ? 2 : v >= 3.6 ? 1 : 0;

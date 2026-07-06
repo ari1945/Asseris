@@ -120,6 +120,16 @@ export async function tasksMine() {
 }
 Object.assign(window, { amsTasksMine: tasksMine });
 
+/* 2026-07-06 — self-service pegawai dari "Data Personal Saya" (halaman detail). Server men-scope
+   ke empId sesi; hanya baris caller yang berubah. Melempar error (bukan null) agar UI bisa
+   membedakan sukses/gagal & menampilkan umpan balik. */
+export async function personalSubmitLeave(input: any) {
+  return api.personal.submitLeave.mutate(input);
+}
+export async function personalDeclare(kind: any) {
+  return api.personal.declare.mutate({ kind });
+}
+
 /* ============================================================
    W10.5 — export seal + export-event logging. The artifact bytes are built client-side
    (export_pdf.js); these only ask the server to (a) sign a content hash into a verifiable

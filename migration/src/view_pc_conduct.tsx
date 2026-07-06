@@ -21,23 +21,28 @@ function EthicsDeclaration() {
   const [tab, setTab] = usePCcon('decl');
   const [decl, setDecl] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
   const [gifts, setGifts] = useAmsPersist('pc.gifts', () => A.GIFTS_REGISTER);
+  const [aml] = useAmsPersist('amlScreening', () => A.AML_SCREENING);
   const staff = A.STAFF, ITEMS = A.ETHICS_ITEMS;
+  // 2026-07-05 — data personal ter-filter server (personal.get): non-privileged hanya menerima
+  // barisnya sendiri. Batasi iterasi tabel ke staf yang datanya benar-benar diterima (pola
+  // view_payroll) agar tak menampilkan baris kosong/menyesatkan milik orang lain.
+  const myStaff = staff.filter((s: any) => Object.prototype.hasOwnProperty.call(decl, s.id));
   /* #3 — gerbang: personel non-patuh (deklarasi belum sah / AML tertunda) diblokir dari sign-off WP
      & penerbitan opini. Partner (FIRM_ADMIN) dapat memberi pengecualian sementara yang ter-log. */
   const eov = useEthicsOverrides();
-  const gateRows = staff
-    .map((s: any) => ({ s, c: ethicsComplianceOf(decl, A.AML_SCREENING, eov.overrides, s.id, eov.period) }))
+  const gateRows = myStaff
+    .map((s: any) => ({ s, c: ethicsComplianceOf(decl, aml, eov.overrides, s.id, eov.period) }))
     .filter((r: any) => !r.c.signed || !r.c.amlOk);
 
-  const signed = staff.filter((s: any) => (decl[s.id] || {}).signed).length;
-  const exceptions = staff.reduce((n: any, s: any) => n + ((decl[s.id] || {}).exceptions || 0), 0);
+  const signed = myStaff.filter((s: any) => (decl[s.id] || {}).signed).length;
+  const exceptions = myStaff.reduce((n: any, s: any) => n + ((decl[s.id] || {}).exceptions || 0), 0);
   const giftsPending = gifts.filter((g: any) => g.status === 'Menunggu').length;
-  const amlPending = A.AML_SCREENING.filter((a: any) => a.result !== 'Bersih').length;
+  const amlPending = aml.filter((a: any) => a.result !== 'Bersih').length;
 
   const sign = (id: any) => setDecl((d: any) => ({ ...d, [id]: { ...d[id], signed: true, date: '2026-03-09', items: ITEMS.map((_: any, i: any) => (d[id].items[i] ? 1 : 1)) } }));
   const decideGift = (id: any, status: any) => setGifts((list: any) => list.map((g: any) => g.id === id ? { ...g, status, action: status === 'Disetujui' ? 'Disetujui & dicatat' : g.action } : g));
 
-  const tabs = [{ id: 'decl', label: 'Deklarasi Tahunan', count: staff.length - signed || undefined }, { id: 'gifts', label: 'Register Gratifikasi', count: giftsPending || undefined }, { id: 'aml', label: 'Screening APU-PPT' }, { id: 'noclar', label: 'NOCLAR (§360)', count: A.NOCLAR_ETHICS.filter((r: any) => r.stageIdx > 0 && r.stageIdx < A.NOCLAR_STAGES.length - 1).length || undefined }, { id: 'taxtech', label: 'Etika Pajak & Teknologi' }];
+  const tabs = [{ id: 'decl', label: 'Deklarasi Tahunan', count: myStaff.length - signed || undefined }, { id: 'gifts', label: 'Register Gratifikasi', count: giftsPending || undefined }, { id: 'aml', label: 'Screening APU-PPT' }, { id: 'noclar', label: 'NOCLAR (§360)', count: A.NOCLAR_ETHICS.filter((r: any) => r.stageIdx > 0 && r.stageIdx < A.NOCLAR_STAGES.length - 1).length || undefined }, { id: 'taxtech', label: 'Etika Pajak & Teknologi' }];
 
   return (
     <>
@@ -58,7 +63,7 @@ function EthicsDeclaration() {
               <table className="dtbl" style={{ minWidth: 880 }}>
                 <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it: any, i: any) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 9.5, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
                 <tbody>
-                  {staff.map((s: any) => {
+                  {myStaff.map((s: any) => {
                     const d = decl[s.id] || { signed: false, items: ITEMS.map(() => 0) };
                     return (
                       <tr key={s.id}>
@@ -148,7 +153,7 @@ function EthicsDeclaration() {
             <table className="dtbl">
               <thead><tr><th>Karyawan</th><th>Pelatihan APU-PPT</th><th>Tgl Screening</th><th>DTTOT / Daftar Sanksi</th><th>Status PEP</th><th>Hasil</th></tr></thead>
               <tbody>
-                {A.AML_SCREENING.map((a: any) => {
+                {aml.map((a: any) => {
                   const p = A.byId(a.id);
                   return (
                     <tr key={a.id}>
@@ -184,7 +189,8 @@ function HRCases() {
   const A: any = AMS;
   const [sel, setSel] = usePCcon(null);
   const [filter, setFilter] = usePCcon('Semua');
-  const cases = A.HR_CASES;
+  // 2026-07-05 — sanksi/disiplin ter-filter server (personal.get): non-privileged hanya kasus miliknya.
+  const [cases] = useAmsPersist('hrCases', () => A.HR_CASES);
 
   const open = cases.filter((c: any) => c.status !== 'Selesai').length;
   const invest = cases.filter((c: any) => c.status === 'Investigasi').length;

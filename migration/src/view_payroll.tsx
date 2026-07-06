@@ -65,7 +65,9 @@ function Payroll() {
 
   const STAT = { draft: { k: 'gray', l: 'Draft' }, approved: { k: 'blue', l: 'Disetujui' }, paid: { k: 'green', l: 'Dibayar' } };
   const person = sel ? rows.find((r: any) => r.id === sel) : null;
-  const PR_TABS = [{ id: 'gaji', label: 'Daftar Gaji' }, { id: 'bpjs', label: 'Ringkasan BPJS' }, { id: 'jurnal', label: 'Jurnal Penggajian' }, { id: 'buktipotong', label: 'Bukti Potong 1721' }];
+  // 2026-07-06 — Jurnal Penggajian = jurnal GL agregat firma (bukan data personal); hanya untuk
+  // HR/Partner (isFull). Karyawan biasa lihat slip & bukti potong MILIKNYA saja.
+  const PR_TABS = [{ id: 'gaji', label: 'Daftar Gaji' }, { id: 'bpjs', label: 'Ringkasan BPJS' }, ...(isFull ? [{ id: 'jurnal', label: 'Jurnal Penggajian' }] : []), { id: 'buktipotong', label: 'Bukti Potong 1721' }];
   /* employer + employee BPJS aggregates */
   const bpjs: any = rows.reduce((a: any, r: any) => ({
     eKes: a.eKes + r.slip.eKes, eJht: a.eJht + r.slip.eJht, eJp: a.eJp + r.slip.eJp, eJkk: a.eJkk + r.slip.eJkk, eJkm: a.eJkm + r.slip.eJkm,

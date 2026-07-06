@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth, useFirm, useNav, useNavFrom } from './contexts';
 import { EvidenceControl } from './evidence';
 import { WpSubBarControl } from './wp_signoff';
-import { GROUP_WS, I, MODULES, MODULE_INDEX, WORKSPACES, groupsVisibleFor } from './icons';
+import { GROUP_CAP, GROUP_WS, I, MODULES, MODULE_CAP, MODULE_INDEX, WORKSPACES, groupsVisibleFor } from './icons';
 import { Avatar } from './ui';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
@@ -164,7 +164,15 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   const roleFilter = (!showAll && curatedGroups) ? curatedGroups : null;
   const groups = MODULES.filter(g => !HIDDEN.includes(g.group)
     && ((GROUP_WS as Record<string, string>)[g.group] || 'firm') === ws
-    && (!roleFilter || roleFilter.includes(g.group) || g.group === activeGroup));
+    && (!roleFilter || roleFilter.includes(g.group) || g.group === activeGroup)
+    // 2026-07-06 — grup ber-kapabilitas (GROUP_CAP, mis. People & Compliance → HR_MODULE_VIEW):
+    // sembunyikan bila peran tak memegang cap (kecuali grup yang sedang aktif, utk orientasi).
+    && (!(GROUP_CAP as Record<string, string>)[g.group] || g.group === activeGroup
+        || !!(auth && typeof auth.can === 'function' && auth.can((GROUP_CAP as Record<string, string>)[g.group]))));
+  /* 2026-07-05 — sembunyikan modul ber-kapabilitas (MODULE_CAP) yang tak dipegang peran ini
+     (mis. recruitment/learning/succession → HR_MODULE_VIEW). Ini kurasi tampilan; gate sebenarnya
+     ada di view (AccessDenied). Modul yang SEDANG aktif tetap tampil (orientasi), toh view-nya gating. */
+  const canOpenModule = (id: string) => { const c = (MODULE_CAP as Record<string, string>)[id]; return !c || id === active || !!(auth && typeof auth.can === 'function' && auth.can(c)); };
 
   /* ---- adaptive computation (engagement workspace only, expanded only) ---- */
   const navPrefs = readSideNavPrefs();
@@ -266,7 +274,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
                   <I.chevDown size={13} className="chev" />
                 </div>
               )}
-              {!isClosed && group.items.map(m => {
+              {!isClosed && group.items.filter(m => canOpenModule(m.id)).map(m => {
                 const IconC = (I as any)[m.icon] || I.panel;
                 const isRelevant = adaptiveOn && gp && relevant.includes(gp);
                 const isDone = adaptiveOn && navPrefs.markDone && gp && (SIDE_PHASE_RANK as any)[gp] < curRank;

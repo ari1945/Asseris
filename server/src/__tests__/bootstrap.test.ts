@@ -52,10 +52,10 @@ describe('bootstrapFirm — provisioning non-destruktif', () => {
     expect(res.userId).toBe('USER-WHR-ADMIN');
   });
 
-  it('seeds the 6 built-in Role rows (isBuiltIn=true) so the fresh firm is DB-backed from the start', async () => {
+  it('seeds the 8 built-in Role rows (isBuiltIn=true) so the fresh firm is DB-backed from the start', async () => {
     const { db, cap } = mockDb(0);
     await bootstrapFirm(db, input());
-    expect(cap.roles).toHaveLength(6);
+    expect(cap.roles).toHaveLength(8); // 2026-07-05 — +Rekan Pemimpin, +Rekan (PRD Isolasi Data Personal)
     expect(cap.roles.every((r) => r.isBuiltIn === true && r.firmId === 'FIRM-WHR')).toBe(true);
     const partner = cap.roles.find((r) => r.name === 'Engagement Partner');
     expect(JSON.parse(partner?.capsJson as string)).toContain('firm.admin');

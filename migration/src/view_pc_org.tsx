@@ -1,10 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useNav } from './contexts';
+import { useAuth, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
+import { AccessDenied, Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
@@ -177,6 +178,7 @@ function OrgChart() {
 function SuccessionPlanning() {
   const A: any = AMS;
   const nav = useNav();
+  const authSucc = useAuth();
   const [tab, setTab] = usePCorg('map');
   const [sel, setSel] = usePCorg('SR-01');
   const ROLES = A.SUCCESSION_ROLES, LADDER = A.CAREER_LADDER, IDP = A.IDP, RC = A.READY_COLOR;
@@ -189,6 +191,9 @@ function SuccessionPlanning() {
   const RISK_C = { Rendah: 'var(--green)', Sedang: 'var(--amber)', Tinggi: 'var(--red)' };
 
   const tabs = [{ id: 'map', label: 'Peta Suksesi' }, { id: 'ladder', label: 'Jenjang Karier' }, { id: 'idp', label: 'Rencana Pengembangan' }];
+
+  // 2026-07-05 — suksesi & karier = data SDM sensitif: hanya Partner + Admin & HR (HR_MODULE_VIEW).
+  if (!(authSucc && typeof authSucc.can === 'function' && authSucc.can(CAP.HR_MODULE_VIEW))) return (<><SubBar moduleId="succession" /><AccessDenied moduleId="succession" /></>);
 
   return (
     <>

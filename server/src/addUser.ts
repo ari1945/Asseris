@@ -17,7 +17,7 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 // instead of "can log in but invisible in rosters". Admin & HR Firma / Finance Firma are
 // deliberately excluded — same design decision already encoded in migration/src/rbac.ts's
 // comment on ROLES: those two roles never sit on the audit-staffing roster.
-const AUDIT_ROLES = new Set(['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor']);
+const AUDIT_ROLES = new Set(['Rekan Pemimpin', 'Engagement Partner', 'Rekan', 'Audit Manager', 'Senior Auditor', 'Junior Auditor']);
 
 export interface AddUserInput {
   firmId: string;

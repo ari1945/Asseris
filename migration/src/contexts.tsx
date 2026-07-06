@@ -130,10 +130,19 @@ const AMS_PERSIST_SCOPE = {
    generic `state.get` (server/src/personalScope.ts PERSONAL_KEYS — keep in sync). Writes
    are UNCHANGED (still state.set, still capForWrite-gated); only hydration branches. */
 const PERSONAL_STATE_KEYS = new Set([
-  'payrollData', 'leaveReqs', 'perfPeople', 'cpeExtra',
+  'payrollData', 'leaveReqs', 'leaveBalance', 'perfPeople', 'perfGoals', 'cpeExtra', 'cpeLog',
   'independence', 'indepAppr', 'indepThreats', 'indepRotAck',
-  'pc.ethics', 'pc.gifts',
+  'pc.ethics', 'pc.gifts', 'hrCases', 'amlScreening', 'staffProfile',
 ]);
+
+/* Bentuk kosong-aman ([]/{}) dari sebuah initializer — dipakai untuk key personal agar cat
+ * pertama TIDAK memakai nilai penuh (AMS.*) maupun cache firm-scope bersama (bisa memuat data
+ * milik pengguna lain dari sesi sebelumnya di browser yang sama). Server yang mengisi baris
+ * ter-filter. */
+function emptyLike(initial: any) {
+  const v = typeof initial === 'function' ? initial() : initial;
+  return Array.isArray(v) ? [] : {};
+}
 
 const SYNC_DEBOUNCE_MS = 400;
 
@@ -165,7 +174,10 @@ function cacheWrite(cacheKey: any, val: any) { try { localStorage.setItem(cacheK
 function useServerState(key: any, initial: any, scope: any, scopeId: any) {
   const cacheKey = 'ams.v1.' + scope + '.' + scopeId + '.' + key;
   const legacyKey = 'ams.v1.' + key;
-  const [val, setValRaw] = React.useState(() => cacheRead(cacheKey, legacyKey, initial));
+  const isPersonal = PERSONAL_STATE_KEYS.has(key);
+  // Personal keys: JANGAN baca cache firm-scope bersama (bisa memuat baris pengguna lain dari
+  // sesi sebelumnya) dan JANGAN pakai nilai penuh AMS.* — mulai dari kosong-aman, server mengisi.
+  const [val, setValRaw] = React.useState(() => isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial));
   const versionRef = React.useRef(0);
   const timerRef = React.useRef(null);
   const targetRef = React.useRef(null);
@@ -175,14 +187,17 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any) {
   // (e.g. switching the active engagement re-points engagement-scoped keys).
   React.useEffect(() => {
     let cancelled = false;
-    setValRaw(cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache
+    setValRaw(isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache (kosong-aman utk personal)
     versionRef.current = 0;
-    const reader = PERSONAL_STATE_KEYS.has(key) ? (api as any).personal.get : (api as any).state.get;
+    const reader = isPersonal ? (api as any).personal.get : (api as any).state.get;
     reader.query({ scope, scopeId, key }).then((res: any) => {
       if (cancelled) return;
       versionRef.current = res.version;
-      if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
-    }).catch(() => { /* offline / no server: keep the cache */ });
+      // Personal keys: SELALU adopsi nilai server (otoritas filter), walau version 0 (fallback seed
+      // ter-filter) — menutup lubang version-0. Jangan tulis ke cache bersama (hindari bocor lintas-user).
+      if (isPersonal) { setValRaw(res.value); }
+      else if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
+    }).catch(() => { /* offline / no server: keep the cache (personal: kosong-aman) */ });
     return () => { cancelled = true; };
   }, [scope, scopeId, key]);
 

@@ -179,7 +179,7 @@ function HomeView() {
         </div>
       )}
 
-      <div className="grid" style={{ gridTemplateColumns: isFirmOps ? '1fr' : '1.4fr 1fr', gap: 14, alignItems: 'start' }}>
+      <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 14, alignItems: 'start' }}>
 
         {/* ---- kolom kiri ---- */}
         <div style={{ display: 'grid', gap: 14 }}>
@@ -227,23 +227,21 @@ function HomeView() {
           </Panel>
         </div>
 
-        {/* ---- kolom kanan (auditor saja): Non-Perikatan Saya ---- */}
-        {!isFirmOps && (
-          <div style={{ display: 'grid', gap: 14 }}>
-            <Panel title="Non-Perikatan Saya" noBody>
-              <div style={{ padding: 12, display: 'grid', gap: 10 }}>
-                <div className="row ac jb" style={{ padding: '4px 2px' }}>
-                  <span className="row ac gap8"><I.calendar size={15} style={{ color: 'var(--ink-3)' }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>Pengajuan Cuti</span></span>
-                  <Badge kind={openLeave ? 'amber' : 'gray'}>{openLeave} menunggu</Badge>
-                </div>
-                <QuickLink id="cpe" onOpen={() => nav('cpe', { from: 'home' })} />
-                <QuickLink id="leave" onOpen={() => nav('leave', { from: 'home' })} />
-                <QuickLink id="payroll" onOpen={() => nav('payroll', { from: 'home' })} />
-                <QuickLink id="independence" onOpen={() => nav('independence', { from: 'home' })} />
+        {/* ---- kolom kanan: Data Personal Saya (SEMUA peran, termasuk firm-ops — mereka juga
+             karyawan KAP). Menu modul People & Compliance sengaja TIDAK diurai; satu pintu
+             terkonsolidasi agar tampilan level-karyawan sederhana (declutter). ---- */}
+        <div style={{ display: 'grid', gap: 14 }}>
+          <Panel title="Data Personal Saya" noBody>
+            <div style={{ padding: 14, display: 'grid', gap: 12 }}>
+              <div className="tiny muted" style={{ lineHeight: 1.5 }}>Ringkasan gaji &amp; pajak, PPL/SKP, cuti, dan data kepegawaian <b>milik Anda</b> dalam satu halaman.</div>
+              <div className="row ac jb" style={{ padding: '4px 2px' }}>
+                <span className="row ac gap8"><I.calendar size={15} style={{ color: 'var(--ink-3)' }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>Pengajuan Cuti</span></span>
+                <Badge kind={openLeave ? 'amber' : 'gray'}>{openLeave} menunggu</Badge>
               </div>
-            </Panel>
-          </div>
-        )}
+              <Btn variant="primary" onClick={() => nav('personal', { from: 'home' })} style={{ width: '100%', justifyContent: 'center' }}><I.users size={14} /> Buka Data Personal Saya</Btn>
+            </div>
+          </Panel>
+        </div>
       </div>
 
     </div></div>

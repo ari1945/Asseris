@@ -28,6 +28,7 @@ import { ConfirmationHub } from './view_confirm';
 import { CryptoCompliance } from './view_crypto';
 import { FirmDashboard } from './view_dashboard';
 import { HomeView } from './view_home';
+import { DataPersonalSaya } from './view_personal';
 import { DataFlow } from './view_dataflow';
 import { DeliveryMilestones } from './view_delivery';
 import { DisclosureChecklist } from './view_disclosure';
@@ -180,6 +181,7 @@ class ViewErrorBoundary extends ReactComponentBase {
 function viewFor(moduleId: any) {
   switch (moduleId) {
     case 'home':       return <HomeView />;
+    case 'personal':   return <DataPersonalSaya />;
     case 'dashboard':  return <FirmDashboard />;
     case 'bi':         return <FirmBI />;
     case 'crm':        return <ClientCRM />;

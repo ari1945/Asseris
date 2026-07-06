@@ -18,7 +18,12 @@
  * berbentuk audit-staffing — grade/util/engagements/cert audit — dan diasumsikan closed-set 4
  * grade di banyak view HCM/Capacity/Talent; menambah baris STAFF baru akan memecah asumsi itu
  * tanpa manfaat, karena 2 peran ini bukan staf yang di-staffing ke perikatan). */
-export const ROLES = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor', 'Admin & HR Firma', 'Finance Firma'];
+/* 2026-07-05 — dua peran tingkat-partner baru (PRD Isolasi Data Personal):
+ * • 'Rekan Pemimpin' (Managing Partner) — melihat data personal SELURUH firma (viewFirm).
+ * • 'Rekan' (partner otonom) — melihat data personal UNIT/rumah-tangganya sendiri (viewUnit).
+ * 'Engagement Partner' TETAP ada = partner default (mode tersentralisasi: self-only utk data
+ * personal; otonomi bersifat opt-in dengan meng-assign peran 'Rekan'). Urutan = senioritas. */
+export const ROLES = ['Rekan Pemimpin', 'Engagement Partner', 'Rekan', 'Audit Manager', 'Senior Auditor', 'Junior Auditor', 'Admin & HR Firma', 'Finance Firma'];
 
 /** Capability keys — the actions that authorization gates on. */
 export const CAP = {
@@ -38,9 +43,29 @@ export const CAP = {
   EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (ISQM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
   PHASE_OVERRIDE: 'phase.override', // override gerbang transisi fase MESKI ada blocker (mulai Eksekusi tanpa akseptasi/surat SA 210/220; arsip dgn WP belum lengkap/opini belum final). Tindakan otoritatif ⇒ Partner-only.
   HR_MANAGE: 'hr.manage', // 2026-07-01 — tulis dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP manual, deklarasi independensi/etik) ATAS NAMA siapa pun, bukan cuma milik-sendiri. Peran 'Admin & HR Firma' + Partner (oversight). Terpisah dari ENGAGEMENT_MANAGE (itu roster klien/perikatan, bukan data personal staf).
+  HR_MODULE_VIEW: 'hr.moduleView', // 2026-07-05 — LIHAT (buka) modul manajemen SDM firma: Rekrutmen & Onboarding · Pelatihan & Kompetensi · Suksesi & Karier. Data agregat SDM (bukan milik-sendiri) → kewenangan Partner + Admin & HR Firma; pegawai lain tak berkepentingan DIBLOKIR di level modul (bukan filter baris). Gate BACA, terpisah dari HR_MANAGE (tulis).
+
+  /* ============================================================
+     2026-07-05 — PRD "Isolasi Data Personal (Privacy) & Halaman Data Personal Saya".
+     Kapabilitas MELIHAT data personal orang lain, dua sumbu: KATEGORI (7) × CAKUPAN (unit/firm).
+     Default TANPA cap = self-only (hanya baris milik-sendiri, via personal.get). `viewFirm ⊇ viewUnit`.
+     PENTING: ini kapabilitas BACA — TERPISAH dari HR_MANAGE (tulis) & FIRM_ADMIN (admin). Jalur baca
+     personal.get kini HANYA mengecek cap-cap ini, bukan HR_MANAGE/FIRM_ADMIN (decoupling privasi).
+     ============================================================ */
+  PERSONAL_PAYROLL_VIEW_UNIT: 'personal.payroll.viewUnit',   PERSONAL_PAYROLL_VIEW_FIRM: 'personal.payroll.viewFirm',   // gaji, PPh21, BPJS, bukti potong
+  PERSONAL_LEAVE_VIEW_UNIT: 'personal.leave.viewUnit',       PERSONAL_LEAVE_VIEW_FIRM: 'personal.leave.viewFirm',       // cuti & saldo
+  PERSONAL_PERF_VIEW_UNIT: 'personal.perf.viewUnit',         PERSONAL_PERF_VIEW_FIRM: 'personal.perf.viewFirm',         // kinerja & sasaran
+  PERSONAL_CPE_VIEW_UNIT: 'personal.cpe.viewUnit',           PERSONAL_CPE_VIEW_FIRM: 'personal.cpe.viewFirm',           // PPL/SKP
+  PERSONAL_CONDUCT_VIEW_UNIT: 'personal.conduct.viewUnit',   PERSONAL_CONDUCT_VIEW_FIRM: 'personal.conduct.viewFirm',   // sanksi/disiplin, etika, gratifikasi, AML
+  PERSONAL_INDEP_VIEW_UNIT: 'personal.indep.viewUnit',       PERSONAL_INDEP_VIEW_FIRM: 'personal.indep.viewFirm',       // independensi & rotasi
+  PERSONAL_PROFILE_VIEW_UNIT: 'personal.profile.viewUnit',   PERSONAL_PROFILE_VIEW_FIRM: 'personal.profile.viewFirm',   // profil/PII (NIK, NPWP, kontak darurat)
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE } = CAP;
+const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE, HR_MODULE_VIEW } = CAP;
+
+/* Bundel cap personal per-cakupan (menghemat pengulangan di GRANTS). */
+const PERSONAL_UNIT = [CAP.PERSONAL_PAYROLL_VIEW_UNIT, CAP.PERSONAL_LEAVE_VIEW_UNIT, CAP.PERSONAL_PERF_VIEW_UNIT, CAP.PERSONAL_CPE_VIEW_UNIT, CAP.PERSONAL_CONDUCT_VIEW_UNIT, CAP.PERSONAL_INDEP_VIEW_UNIT, CAP.PERSONAL_PROFILE_VIEW_UNIT];
+const PERSONAL_FIRM = [CAP.PERSONAL_PAYROLL_VIEW_FIRM, CAP.PERSONAL_LEAVE_VIEW_FIRM, CAP.PERSONAL_PERF_VIEW_FIRM, CAP.PERSONAL_CPE_VIEW_FIRM, CAP.PERSONAL_CONDUCT_VIEW_FIRM, CAP.PERSONAL_INDEP_VIEW_FIRM, CAP.PERSONAL_PROFILE_VIEW_FIRM];
 
 /* role → granted capabilities. Mirrors PERM_MATRIX 'edit' cells:
    WP:[P,M,S,J] · Signoff:[P,M] · AJE:[P,M,S] · Opini:[P] · FirmFin:[P] · FirmAdmin:[P]
@@ -65,16 +90,29 @@ const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGA
    PHASE_OVERRIDE granted to Partner only — menembus gerbang transisi fase meski ada blocker
    (mulai Eksekusi tanpa akseptasi/surat; arsip dgn WP/opini belum lengkap) = keputusan otoritatif
    tata kelola; Manager/Senior/Junior boleh maju fase saat prasyarat TERPENUHI, tapi tak boleh override. */
+/* Basis kapabilitas seorang partner perikatan (audit + oversight + admin/tulis). Dipakai bersama
+ * oleh 'Engagement Partner', 'Rekan', dan 'Rekan Pemimpin' — bedanya HANYA pada cap BACA personal
+ * (tak ada / viewUnit / viewFirm). FIRM_ADMIN & HR_MANAGE tetap di sini utk fungsi admin/tulis yang
+ * TIDAK terkait privasi baca (akseptasi/opini/pengaturan) — jalur baca personal.get TAK lagi
+ * memeriksanya (lihat komentar CAP personal). */
+const PARTNER_BASE = [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE, HR_MODULE_VIEW];
+
 const GRANTS = {
-  'Engagement Partner': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE],
+  // Managing Partner — kontrol penuh firma + lihat data personal SELURUH firma.
+  'Rekan Pemimpin': [...PARTNER_BASE, ...PERSONAL_FIRM],
+  // Partner default (tersentralisasi): TANPA cap personal → self-only utk data personal.
+  'Engagement Partner': [...PARTNER_BASE],
+  // Partner otonom (terdesentralisasi): lihat data personal UNIT-nya sendiri.
+  'Rekan': [...PARTNER_BASE, ...PERSONAL_UNIT],
   'Audit Manager': [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, ENGAGEMENT_MANAGE, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE],
   'Senior Auditor': [WP_EDIT, AJE_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
   'Junior Auditor': [WP_EDIT, LLM_USE, EXPORT, INTEGRATION_VIEW],
   // 2026-07-01 — peran firm-ops non-auditor (PRD Restrukturisasi Navigasi & Beranda Berbasis
   // Peran). Tak dapat WP_EDIT/AJE_EDIT/ENGAGEMENT_VIEW_ALL dkk — mereka tak pernah menyentuh
   // kerja/data perikatan audit, jadi tak butuh (dan tak boleh dapat) kapabilitas audit sama sekali.
-  'Admin & HR Firma': [HR_MANAGE, LLM_USE, EXPORT],
-  'Finance Firma': [FIRMFIN_EDIT, LLM_USE, EXPORT],
+  // 2026-07-05 — Admin & HR: lihat SELURUH data personal firma (SDM). Finance: hanya payroll firma.
+  'Admin & HR Firma': [HR_MANAGE, HR_MODULE_VIEW, LLM_USE, EXPORT, ...PERSONAL_FIRM],
+  'Finance Firma': [FIRMFIN_EDIT, LLM_USE, EXPORT, CAP.PERSONAL_PAYROLL_VIEW_FIRM],
 };
 
 /** True if `role` is granted `cap`. Unknown role/cap → false (deny by default). */
@@ -113,7 +151,11 @@ export function capForWrite(scope: any, key: any) {
     // manual, deklarasi independensi/etik, hadiah&gratifikasi). Sebelumnya diam-diam jatuh ke
     // FIRM_ADMIN (Partner-only) karena tak ada cabang eksplisit — kini HR_MANAGE eksplisit
     // (Partner tetap punya HR_MANAGE, jadi tak kehilangan akses; 'Admin & HR Firma' kini bisa).
-    if (['payrollRun', 'payrollData', 'leaveReqs', 'perfPeople', 'cpeExtra', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck', 'pc.ethics', 'pc.gifts'].includes(key)) return HR_MANAGE;
+    // 2026-07-05 — key personal tambahan (PRD Isolasi Data Personal) ikut di-gate HR_MANAGE agar
+    // pengguna non-privileged (yang hanya menerima BARISNYA sendiri via personal.get) tak bisa
+    // menulis-balik dokumen parsial & meng-clobber baris orang lain — hanya pemegang data-penuh
+    // (HR_MANAGE) yang boleh menulis. Halaman "Data Personal Saya" bersifat baca-saja.
+    if (['payrollRun', 'payrollData', 'leaveReqs', 'leaveBalance', 'perfPeople', 'perfGoals', 'cpeExtra', 'cpeLog', 'hrCases', 'amlScreening', 'staffProfile', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck', 'pc.ethics', 'pc.gifts'].includes(key)) return HR_MANAGE;
     // 2026-07-01 — dokumen Firm Finance (ERP) yang punya jalur tulis. FIRMFIN_EDIT sudah lama
     // didefinisikan & diberikan ke Partner tapi TAK PERNAH dikonsumsi capForWrite (vestigial) —
     // kini benar-benar men-gate, dan 'Finance Firma' jadi peran pertama yang memanfaatkannya.
