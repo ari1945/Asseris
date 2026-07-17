@@ -36,7 +36,7 @@ jobs:
       POSTGRES_PASSWORD: ci-smoke-pw   # ephemeral CI DB, dropped via `down -v` every run (≠ 'changeme' → passes M2 guard)
       COOKIE_SECURE: "1"               # M2 fail-fast requires this in prod; login smoke uses the BODY token (not the cookie), so HTTP on the runner is fine
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # totpSecret-at-rest key (AES-256-GCM). Generated per-run; never persisted.
       - name: generate APP_ENCRYPTION_KEY
@@ -122,7 +122,7 @@ jobs:
     env:
       COMPOSE: docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: generate .env (ephemeral CI keys)
         run: |
