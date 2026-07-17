@@ -9,7 +9,7 @@
 # (the shared RBAC SSOT + seed data), so both packages have to be in the image.
 #   docker build -f server/Dockerfile -t neosuite-ams-server .
 
-FROM node:22-bookworm-slim AS base
+FROM node:26-bookworm-slim AS base
 # Prisma needs OpenSSL (engine) + CA certs (outbound LLM proxy) at build and runtime.
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
