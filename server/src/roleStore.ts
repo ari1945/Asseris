@@ -20,9 +20,11 @@
 // via router procedures and never boot server.ts — so refreshRoleCache() is never called and no Role
 // rows necessarily exist. Treating `null` as "fall back to the pre-migration static GRANTS lookup"
 // keeps every one of those tests passing unchanged (PRD §3 success criterion 7: zero regression
-// across the 73 call sites). Once refreshRoleCache() runs even once (real server boot, or a test that
-// explicitly seeds Role rows + calls it), the DB takes over completely — including an explicit empty
-// capsJson array, which correctly denies everything for that role.
+// across the 73 call sites). Once refreshRoleCache() hydrates AT LEAST ONE Role row (real server boot
+// after seed, or a test that explicitly seeds Role rows + calls it), the DB takes over completely —
+// including an explicit empty capsJson array, which correctly denies everything for that role. A
+// refresh that finds an EMPTY table is treated as still-not-seeded and preserves the static fallback
+// (cache stays null) rather than denying everything — see refreshRoleCache() below for why.
 import { prisma } from './db';
 // @ts-ignore — ../../migration/src/rbac is untyped canonical JS shared with the client.
 import { GRANTS as STATIC_GRANTS } from '../../migration/src/rbac';
@@ -73,7 +75,17 @@ async function loadFromDb(): Promise<Map<string, Set<string>>> {
  * mutations (server/src/router.ts) after a successful write, so a capability change is visible to
  * the very next request — no restart, no TTL lag. */
 export async function refreshRoleCache(): Promise<void> {
-  cache = await loadFromDb();
+  const next = await loadFromDb();
+  // EMPTY-TABLE = NOT-YET-SEEDED: keep the static-fallback (cache === null) rather than clobbering it
+  // with an empty Map that would deny every capability. This is the normal `docker compose up` order
+  // on a fresh deploy — the long-running server boots and hydrates BEFORE `npm run seed` populates
+  // the Role table, and the cache is only refreshed again on a roles.* mutation (never on an external
+  // seed). Hydrating to an empty Map there left the whole instance deny-all until restart (a Managing
+  // Partner could not even read the audit trail — surfaced by the restore-drill: audit.verify → 403).
+  // An admin can never leave ZERO roles (the FIRM_ADMIN-retention guardrail in roles.updateGrants),
+  // so a truly empty table only ever means "pre-seed". Once ANY role row exists the DB takes over
+  // completely — including a role whose capsJson is an explicit `[]`, which still denies (size > 0).
+  cache = next.size === 0 ? null : next;
 }
 
 /** Test-only escape hatch: force the cache back to "never hydrated" so a test can verify the

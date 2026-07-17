@@ -16,6 +16,21 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
+describe('roleStore — empty Role table preserves the static fallback (regression: DB-backed boot before seed)', () => {
+  it('refreshRoleCache() over an EMPTY table stays in static-fallback mode, not deny-all', async () => {
+    // Reproduces the restore-drill regression: `docker compose up` boots the server and hydrates the
+    // cache BEFORE `npm run seed` writes the Role table, so a Managing Partner (Hartono / 'Rekan
+    // Pemimpin') got 403 on audit.verify because the empty-Map cache denied every capability.
+    // fileParallelism is off (see vitest.config.ts) so clearing the shared table here is safe.
+    await prisma.role.deleteMany({});
+    await refreshRoleCache();
+    expect(roleCan('Rekan Pemimpin', 'audit.view')).toBe(true); // was false (403) before the fix
+    expect(roleCan('Engagement Partner', 'firm.admin')).toBe(true);
+    expect(cachedRoleNames()).toContain('Rekan Pemimpin'); // static catalog answers while cache === null
+    __resetRoleCacheForTests();
+  });
+});
+
 describe('roleStore — never-hydrated fallback (cache === null)', () => {
   it('falls back to the static GRANTS map for known roles', () => {
     expect(roleCan('Engagement Partner', 'firm.admin')).toBe(true);
