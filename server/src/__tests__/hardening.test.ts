@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { randomBytes } from 'node:crypto';
+import { prisma } from '../db';
 import {
   encryptSecret, decryptSecret, isEncrypted, isEncryptionConfigured, readEncryptionKey,
 } from '../crypto/secretbox';
 import { ipAllowed, readAllowlist, assertIpAllowed } from '../security/ipAllowlist';
 import { buildSessionCookie, clearSessionCookie, COOKIE_NAME } from '../auth/cookie';
-import { hardenAuditLogImmutability } from '../dbHarden';
+import { hardenAuditLogImmutability, HARDEN_STATEMENTS } from '../dbHarden';
 
 const KEY = randomBytes(32); // 256-bit test key
 
@@ -124,5 +125,24 @@ describe('dbHarden — AuditLog immutability trigger (K5)', () => {
     // targets the process's real (SQLite) prisma client — must fail internally without
     // propagating, matching the "never blocks boot" guarantee in dbHarden.ts.
     await expect(hardenAuditLogImmutability('postgresql://localhost/nonexistent')).resolves.toBeUndefined();
+  });
+
+  it('issues each DDL statement as a SEPARATE command (Postgres rejects multiple commands per call)', async () => {
+    // Regression for the 42601 "cannot insert multiple commands into a prepared statement" failure:
+    // the DDL used to be one multi-statement string, so the trigger silently never installed on
+    // Postgres. Mock the executor so this is a pure dialect-independent check of the split.
+    const spy = vi.spyOn(prisma, '$executeRawUnsafe').mockResolvedValue(0 as unknown as number);
+    try {
+      await hardenAuditLogImmutability('postgresql://localhost/whatever');
+      expect(spy).toHaveBeenCalledTimes(HARDEN_STATEMENTS.length);
+      expect(HARDEN_STATEMENTS.length).toBeGreaterThanOrEqual(2);
+      for (const call of spy.mock.calls) {
+        // Drop the dollar-quoted plpgsql body, then no statement may bundle a 2nd top-level command.
+        const bare = String(call[0]).replace(/\$\$[\s\S]*?\$\$/g, '');
+        expect(bare.split(';').filter((s) => s.trim().length > 0).length).toBeLessThanOrEqual(1);
+      }
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
