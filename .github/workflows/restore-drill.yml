@@ -82,6 +82,18 @@ jobs:
             > baseline_counts.txt
           cat baseline_counts.txt
 
+      # K5 defense-in-depth: the append-only trigger (server/src/dbHarden.ts) MUST be live on the
+      # real Postgres DB — a direct UPDATE on "AuditLog" has to be rejected by the trigger, not
+      # silently allowed. This once failed silently (42601: multiple commands in one prepared
+      # statement) so the trigger never installed; this step is the end-to-end guard that it does.
+      - name: assert AuditLog is DB-level append-only (K5 trigger active)
+        run: |
+          if $COMPOSE exec -T db psql -U neosuite -d neosuite -v ON_ERROR_STOP=1 -c \
+            'UPDATE "AuditLog" SET detail = detail WHERE seq = (SELECT min(seq) FROM "AuditLog");'; then
+            echo "REGRESSION: direct UPDATE on AuditLog was ALLOWED — K5 immutability trigger not installed"; exit 1
+          fi
+          echo "OK: AuditLog UPDATE rejected by the append-only trigger (K5 active on Postgres)"
+
       # Same script, same invocation shape as the documented crontab pattern (cd repo-root first,
       # so BACKUP_DIR default `./backups` lands here — see docs/DEPLOY.md §6).
       - name: take encrypted backup
