@@ -26,7 +26,7 @@ jobs:
       run:
         working-directory: deploy/aws-ec2-test/terraform
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: hashicorp/setup-terraform@v4
         with:
