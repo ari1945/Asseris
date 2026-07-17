@@ -9,7 +9,7 @@
 # node_modules/ and dist/ are excluded by the repo .dockerignore, so the
 # `COPY migration/ ./` below never clobbers the build with host artifacts.
 
-FROM node:22-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /app/migration
 # deps first → layer caches on the lockfile, not on every source edit
 COPY migration/package.json migration/package-lock.json ./
