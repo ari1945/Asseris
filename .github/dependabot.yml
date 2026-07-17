@@ -1,4 +1,11 @@
 version: 2
+
+# Grouping strategy (see docs/UPGRADE-BACKLOG.md):
+# - dev-dependency groups carry ONLY minor+patch bumps so a single breaking
+#   major (e.g. TypeScript 7, ESLint 10) can never sink the whole group PR.
+# - Known-breaking majors are held via `ignore` until tackled as a deliberate,
+#   tested upgrade. Remove the matching ignore entry when starting that upgrade.
+
 updates:
   - package-ecosystem: npm
     directory: /server
@@ -8,6 +15,22 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Prisma 7 = breaking datasource/config migration (P1012). Deferred.
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      # TS 7 toolchain jump — deferred as one coordinated upgrade.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /migration
@@ -17,6 +40,25 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # React 19 = major runtime upgrade; react + react-dom must move together
+      # in a dedicated PR. Deferred.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      # ESLint 10 outruns the react eslint-plugin peer ranges. Held until the
+      # plugin ecosystem catches up.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      # TS 7 toolchain jump — deferred alongside /server.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directory: /server
