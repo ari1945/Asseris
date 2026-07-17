@@ -30,7 +30,7 @@
   "devDependencies": {
     "@babel/parser": "^7.25.0",
     "@babel/traverse": "^7.25.0",
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/coverage-v8": "^2.1.9",
     "concurrently": "^9.1.0",
