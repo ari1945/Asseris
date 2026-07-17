@@ -102,6 +102,10 @@ import { fmt } from './data_base';
     'EMP-022': { gross: 20_000_000, allowance: 2_000_000, ptkp: 'K/0', terCat: 'A', ter: 0.075 },
     'EMP-031': { gross: 10_500_000, allowance: 1_200_000, ptkp: 'TK/0', terCat: 'A', ter: 0.0175 },
     'EMP-032': { gross: 9_500_000, allowance: 1_200_000, ptkp: 'TK/0', terCat: 'A', ter: 0.01 },
+    // 2026-07-06 — pegawai firm-ops (bukan staf audit; lihat FIRM_STAFF di data_part1). Punya gaji/cuti
+    // sendiri agar dashboard "Data Personal Saya" mereka terisi. Tak muncul di roster audit (view HCM/payroll iterasi AMS.STAFF).
+    'EMP-501': { gross: 22_000_000, allowance: 2_500_000, ptkp: 'K/1', terCat: 'A', ter: 0.09 },
+    'EMP-601': { gross: 24_000_000, allowance: 2_500_000, ptkp: 'K/2', terCat: 'B', ter: 0.10 },
   };
   /* BPJS & statutory rates */
   const PAYROLL_RATES = {
@@ -118,6 +122,7 @@ import { fmt } from './data_base';
     'EMP-008': { ent: 12, used: 6, carry: 0 }, 'EMP-012': { ent: 12, used: 8, carry: 2 },
     'EMP-021': { ent: 12, used: 1, carry: 0 }, 'EMP-022': { ent: 12, used: 3, carry: 0 },
     'EMP-031': { ent: 12, used: 0, carry: 0 }, 'EMP-032': { ent: 12, used: 2, carry: 0 },
+    'EMP-501': { ent: 12, used: 2, carry: 1 }, 'EMP-601': { ent: 12, used: 4, carry: 0 }, // firm-ops (FIRM_STAFF)
   };
   const LEAVE_REQUESTS = [
     { id: 'LV-0042', emp: 'EMP-012', name: 'Citra Halim', type: 'Cuti Tahunan', from: '2026-03-09', to: '2026-03-13', days: 5, reason: 'Liburan keluarga', status: 'Disetujui', approver: 'Hartono Wijaya' },

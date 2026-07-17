@@ -208,6 +208,22 @@ function LockBanner() {
   );
 }
 
+/* Modul terkunci untuk peran yang tak berkepentingan (gate BACA berbasis kapabilitas —
+   mis. HR_MODULE_VIEW pada Rekrutmen/Pelatihan/Suksesi). Dirender MENGGANTIKAN isi view
+   (bukan overlay) sehingga datanya tak pernah tersusun/tertampil. */
+function AccessDenied({ moduleId, note }: any) {
+  const m = (MODULE_INDEX as any)[moduleId] || { label: moduleId };
+  return (
+    <div className="view-scroll"><div className="view-pad">
+      <div className="panel" style={{ maxWidth: 560, margin: '40px auto', padding: 30, textAlign: 'center' }}>
+        <div style={{ color: 'var(--amber)', marginBottom: 12 }}><I.lock size={30} /></div>
+        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Akses terbatas — {m.label}</div>
+        <div className="tiny muted" style={{ lineHeight: 1.6 }}>{note || 'Modul manajemen SDM ini hanya dapat diakses oleh Partner dan Admin & HR Firma. Data personal milik Anda tersedia di modul '}{!note && <b>Data Personal Saya</b>}{!note && '.'}</div>
+      </div>
+    </div></div>
+  );
+}
+
 /* Empty/coming-soon stub for un-built modules */
 function StubView({ moduleId }: any) {
   const m = (MODULE_INDEX as any)[moduleId] || { label: moduleId, icon: 'panel', group: '' };
@@ -256,7 +272,7 @@ function StubView({ moduleId }: any) {
 
 Object.assign(window, {
   Badge, Btn, Portlet, Panel, Stat, Progress, Avatar, Tabs, Seg,
-  Placeholder, Spark, MiniBars, Donut, Menu, StubView, LockBanner,
+  Placeholder, Spark, MiniBars, Donut, Menu, StubView, LockBanner, AccessDenied,
 });
 
 /* Print the currently-visible document paper (.doc-paper) to PDF */window.amsPrintDoc = function () {
@@ -271,5 +287,5 @@ Object.assign(window, {
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { Avatar, Badge, Btn, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Tabs };
+export { AccessDenied, Avatar, Badge, Btn, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Tabs };
 export const amsPrintDoc = window.amsPrintDoc;

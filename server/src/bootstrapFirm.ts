@@ -6,6 +6,8 @@ import { hashPassword } from './auth/password';
 import { generateSecret, otpauthUrl } from './auth/totp';
 import { encryptSecret } from './crypto/secretbox';
 import type { PrismaClient } from '@prisma/client';
+// @ts-ignore — ../../migration/src/rbac is untyped canonical JS shared with the client.
+import { ROLES, GRANTS } from '../../migration/src/rbac';
 
 export interface BootstrapInput {
   firm: { id?: string; name: string; short: string };
@@ -28,7 +30,7 @@ const initialsOf = (name: string): string =>
 /** Create 1 Firm + 1 Partner-admin on an empty DB. Throws (refuses) if any Firm already exists, or
  *  if the password is too short. Returns the created ids + one-time TOTP enrolment material. */
 export async function bootstrapFirm(
-  db: Pick<PrismaClient, 'firm' | 'user'>,
+  db: Pick<PrismaClient, 'firm' | 'user' | 'role'>,
   input: BootstrapInput,
 ): Promise<BootstrapResult> {
   const existing = await db.firm.count();
@@ -57,6 +59,15 @@ export async function bootstrapFirm(
   }
 
   await db.firm.create({ data: { id: firmId, name: input.firm.name, short: input.firm.short } });
+  // RBAC admin console (PRD docs/prd-rbac-admin-console.md) — a real firm needs the same 6
+  // built-in Role rows a demo seed gets (seed.ts), otherwise its very first Partner-admin would
+  // have zero DB-backed capabilities the moment ANY role's grants get customized elsewhere and the
+  // cache is refreshed (until then the roleStore static fallback covers it — see roleStore.ts).
+  for (const roleName of ROLES as string[]) {
+    await db.role.create({
+      data: { firmId, name: roleName, capsJson: JSON.stringify((GRANTS as Record<string, string[]>)[roleName] ?? []), isBuiltIn: true },
+    });
+  }
   await db.user.create({
     data: {
       id: userId,

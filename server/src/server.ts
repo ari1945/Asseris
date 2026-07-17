@@ -8,6 +8,7 @@ import { log, inc, renderMetrics } from './obs/log';
 import { assertProdConfig, configSummary } from './prodConfig';
 import { loadSecretsIntoEnv } from './secrets';
 import { hardenAuditLogImmutability } from './dbHarden';
+import { refreshRoleCache } from './roleStore';
 
 // Opt-in (SECRETS_PROVIDER=aws-sm) — no-op otherwise. MUST run before configSummary/assertProdConfig
 // so the fail-fast guard gates the real resolved secrets regardless of source. Fail-closed: a fetch
@@ -35,6 +36,11 @@ assertProdConfig(process.env, {
 // K5 — Postgres-only AuditLog immutability trigger (no-op on SQLite dev/test). Best-effort:
 // logs and continues on failure so a missing DDL grant never blocks boot (see dbHarden.ts).
 await hardenAuditLogImmutability();
+
+// RBAC admin console — MUST be awaited before listen() below. can() reads a synchronous
+// in-memory cache (roleStore.ts); an empty cache would fail every authorization check closed,
+// including the Partner's own, until the first roles.* mutation happened to refresh it.
+await refreshRoleCache();
 
 // The tRPC request handler (procedures served at root; the Vite dev proxy strips the /trpc
 // prefix, and prod fronts this with the same path shape). onError feeds the error counter +

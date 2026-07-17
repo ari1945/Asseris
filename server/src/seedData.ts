@@ -36,6 +36,13 @@ export async function loadAmsSeed(): Promise<AmsSeed> {
   // window.AMS readers under the same stub (e.g. data_import.js in loadConnectorSeed) still work.
   const ams = (mod.AMS ?? (g.window as { AMS?: AmsSeed }).AMS) as AmsSeed;
   (g.window as { AMS?: AmsSeed }).AMS = ams;
+  // 2026-07-05 — data_people.js meng-augment AMS via IIFE side-effect (ORG · STAFF_PROFILE ·
+  // ETHICS_DECL · GIFTS_REGISTER · AML_SCREENING · HR_CASES). Impor efek-sampingnya agar
+  // personal-scope sisi-server (unitSubtree fallback ORG + seedForKey) melihat bentuk yang sama
+  // dengan browser. Meng-augment objek AMS singleton yang SAMA (`ams` di atas), jadi tak perlu ambil
+  // return value. Aman & idempoten di bawah window-stub.
+  // @ts-ignore — untyped canonical JS shared with the client.
+  await import('../../migration/src/data_people.js');
   return ams;
 }
 

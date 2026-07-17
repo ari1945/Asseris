@@ -89,6 +89,11 @@ const MODULES = [
   { group: 'Beranda', items: [
     { id: 'home', label: 'Beranda', icon: 'dashboard', deep: true },
   ]},
+  /* 2026-07-05 — grup "Saya": halaman data personal milik-sendiri (PRD Isolasi Data Personal,
+     OQ3). Tampil untuk SEMUA peran (di workspace Firma + kurasi sidebar per-peran di bawah). */
+  { group: 'Saya', items: [
+    { id: 'personal', label: 'Data Personal Saya', icon: 'users', deep: true },
+  ]},
   { group: 'Engagement Workspace', items: [
     { id: 'cockpit',     label: 'Engagement Cockpit', icon: 'dashboard', deep: true },
     { id: 'tasks',       label: 'My Tasks', icon: 'check', deep: true },
@@ -301,7 +306,7 @@ const WORKSPACES = [
   { id: 'engagement', label: 'Perikatan', icon: 'briefcase', desc: 'Kerja audit per-engagement',
     groups: ['Engagement Workspace', 'Referensi & Indeks', 'Core Planning', 'Core Execution', 'Core Specifics', 'Finalisasi & Pelaporan'] },
   { id: 'firm', label: 'Firma', icon: 'building', desc: 'Operasi & tata kelola firma',
-    groups: ['Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Firm Platform', 'Backoffice & Firm Mgmt'] },
+    groups: ['Saya', 'Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Firm Platform', 'Backoffice & Firm Mgmt'] },
 ];
 /* Grup yang tetap dapat diakses (⌘K + chip + Matriks Kepatuhan) tapi tidak
    muncul di sidebar mana pun — menjaga sidebar Perikatan tetap ramping.
@@ -312,6 +317,19 @@ const WORKSPACES = [
    Jasa Non-Audit (lihat nonaudit/review2400/relatedsvc/assurance/duediligence/
    serviceorg di bawah), ⌘K, atau Matriks Kepatuhan. */
 const HIDDEN_GROUPS = ['Beranda', 'SA · Tanggung Jawab (200)', 'SA · Bukti Audit (500)', 'SA · Pelaporan (700)', 'SA · Area Khusus & Perikatan', 'Akuntansi (PSAK & SAK)', 'Akuntansi Syariah (SAK Syariah)'];
+
+/* 2026-07-05 — modul yang butuh KAPABILITAS untuk dibuka (gate BACA level-modul, PRD Isolasi
+   Data Personal lanjutan). Sidebar & command-palette menyembunyikannya bila can(cap) gagal; VIEW-nya
+   juga meng-gate (authoritative → nav tetap "murni UI"). recruitment/learning/succession = data
+   manajemen SDM firma agregat → HR_MODULE_VIEW (Partner + Admin & HR). */
+const MODULE_CAP = { hcm: 'hr.moduleView', recruitment: 'hr.moduleView', learning: 'hr.moduleView', succession: 'hr.moduleView' };
+
+/* 2026-07-06 — grup nav yang butuh KAPABILITAS untuk MUNCUL di sidebar. "People & Compliance" =
+   modul detail kepegawaian (kewenangan Partner + HRD). Pegawai level-karyawan tak melihat menu
+   grup ini sama sekali; data personal MILIK-SENDIRI mereka diakses lewat "Data Personal Saya" (grup
+   "Saya"). Grup yang SEDANG aktif tetap tampil (orientasi). Deep-link dari Data Personal Saya ke
+   modul personal (mis. payroll self-scoped) tetap berfungsi. */
+const GROUP_CAP = { 'People & Compliance': 'hr.moduleView' };
 
 const GROUP_WS = {};
 WORKSPACES.forEach(w => w.groups.forEach(g => { (GROUP_WS as any)[g] = w.id; }));
@@ -334,12 +352,14 @@ const ROLE_SIDEBAR_GROUPS: Record<string, Record<string, string[] | null>> = {
   'Audit Manager': { engagement: null, firm: null },
   // Auditor lapangan: workspace Perikatan penuh; di Firma cukup data personal
   // (People & Compliance, difilter milik-sendiri via Fase 3) + Portal/Dokumen kerja.
-  'Senior Auditor': { engagement: null, firm: ['People & Compliance', 'Portal & Dokumen'] },
-  'Junior Auditor': { engagement: null, firm: ['People & Compliance', 'Portal & Dokumen'] },
+  // 2026-07-06 — auditor level-karyawan: TANPA menu "People & Compliance" (detail kepegawaian =
+  // kewenangan Partner/HRD). Data personal milik-sendiri lewat grup "Saya" (Data Personal Saya).
+  'Senior Auditor': { engagement: null, firm: ['Saya', 'Portal & Dokumen'] },
+  'Junior Auditor': { engagement: null, firm: ['Saya', 'Portal & Dokumen'] },
   // Firm-ops: bukan anggota perikatan → workspace Perikatan kosong secara default;
-  // Firma difokuskan ke grup yang mereka kuasai (PRD §8).
-  'Admin & HR Firma': { engagement: [], firm: ['People & Compliance', 'Portal & Dokumen'] },
-  'Finance Firma': { engagement: [], firm: ['Firm Finance (ERP)', 'Practice Operations'] },
+  // Firma difokuskan ke grup yang mereka kuasai (PRD §8) + "Saya" (data personal sendiri).
+  'Admin & HR Firma': { engagement: [], firm: ['Saya', 'People & Compliance', 'Portal & Dokumen'] },
+  'Finance Firma': { engagement: [], firm: ['Saya', 'Firm Finance (ERP)', 'Practice Operations'] },
 };
 /** Grup default-visible untuk (peran, workspace). null = tampilkan semua (tanpa kurasi).
  *  Peran tak dikenal → null (aman: tak menyembunyikan apa pun; capability tetap utuh). */
@@ -421,8 +441,8 @@ const RELATED_SA = {
 
 /* I dilucuti dari window (legacy-track slice: konsumen pakai named import dari icons.jsx).
    Sisa nama masih dual-published (namespace lain, di luar scope slice ini). */
-Object.assign(window, { Icon, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, wsForModule, groupsVisibleFor, HIDDEN_GROUPS, RELATED_SA });
+Object.assign(window, { Icon, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, MODULE_CAP, GROUP_CAP, wsForModule, groupsVisibleFor, HIDDEN_GROUPS, RELATED_SA });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { GROUP_WS, HIDDEN_GROUPS, I, Icon, MODULES, MODULE_INDEX, RELATED_SA, WORKSPACES, wsForModule, groupsVisibleFor };
+export { GROUP_CAP, GROUP_WS, HIDDEN_GROUPS, I, Icon, MODULES, MODULE_CAP, MODULE_INDEX, RELATED_SA, WORKSPACES, wsForModule, groupsVisibleFor };

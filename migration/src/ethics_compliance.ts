@@ -26,10 +26,12 @@ export function ethicsPeriod(): string {
   return 'TA ' + y;
 }
 
-/* Petakan pengguna sesi → id pegawai (EMP-xxx) via email (SSOT STAFF), fallback nama. */
+/* Petakan pengguna sesi → id pegawai (EMP-xxx) via email (SSOT STAFF ∪ FIRM_STAFF), fallback nama.
+   FIRM_STAFF = pegawai firm-ops (Admin&HR/Finance) yang juga karyawan KAP (data personal sendiri). */
 export function resolveEmpId(user: EthicsUser | null | undefined): string | null {
   if (!user) return null;
-  const staff = ((AMS as unknown as { STAFF?: Array<{ id: string; name?: string; email?: string }> }).STAFF) || [];
+  const A = AMS as unknown as { STAFF?: Array<{ id: string; name?: string; email?: string }>; FIRM_STAFF?: Array<{ id: string; name?: string; email?: string }> };
+  const staff = [...(A.STAFF || []), ...(A.FIRM_STAFF || [])];
   const email = (user.email || '').toLowerCase();
   if (email) {
     const byEmail = staff.find(s => (s.email || '').toLowerCase() === email);

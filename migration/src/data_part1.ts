@@ -271,17 +271,34 @@
   ];
 
   /* ---- E: Staff (HCM) ---- */
+  /* `unit` = rumah tangga/portofolio partner (PRD Isolasi Data Personal, cakupan .viewUnit).
+     UNITS memetakan unit → partner pemimpin (lead). Dipakai server unitSubtree() (eksplisit →
+     fallback ORG). 3 unit demo: Komersial (Rudi), Jasa Keuangan (Sari), Kepemimpinan (Hartono). */
   const STAFF = [
-    { id: 'EMP-001', name: 'Hartono Wijaya', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, CA, AP', joined: 2009, util: 71, status: 'Aktif', email: 'hartono.w@whr-cpa.id', engagements: 3, rating: 4.6 },
-    { id: 'EMP-002', name: 'Rudi Gunawan', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2011, util: 68, status: 'Aktif', email: 'rudi.g@whr-cpa.id', engagements: 2, rating: 4.5 },
-    { id: 'EMP-003', name: 'Sari Dewanti', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2013, util: 74, status: 'Aktif', email: 'sari.d@whr-cpa.id', engagements: 2, rating: 4.4 },
-    { id: 'EMP-007', name: 'Anindya Pramesti', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2016, util: 88, status: 'Aktif', email: 'anindya.p@whr-cpa.id', engagements: 2, rating: 4.7 },
-    { id: 'EMP-008', name: 'Bayu Saputra', role: 'Audit Manager', grade: 'Manager', cert: 'CPA', joined: 2017, util: 81, status: 'Aktif', email: 'bayu.s@whr-cpa.id', engagements: 2, rating: 4.2 },
-    { id: 'EMP-012', name: 'Citra Halim', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2017, util: 79, status: 'Cuti', email: 'citra.h@whr-cpa.id', engagements: 1, rating: 4.3 },
-    { id: 'EMP-021', name: 'Dimas Raharjo', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, util: 94, status: 'Aktif', email: 'dimas.r@whr-cpa.id', engagements: 1, rating: 4.5 },
-    { id: 'EMP-022', name: 'Sinta Wulandari', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, util: 90, status: 'Aktif', email: 'sinta.w@whr-cpa.id', engagements: 2, rating: 4.4 },
-    { id: 'EMP-031', name: 'Fajar Nugroho', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2023, util: 82, status: 'Aktif', email: 'fajar.n@whr-cpa.id', engagements: 1, rating: 4.0 },
-    { id: 'EMP-032', name: 'Rina Kusuma', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2024, util: 79, status: 'Aktif', email: 'rina.k@whr-cpa.id', engagements: 2, rating: 3.9 },
+    { id: 'EMP-001', name: 'Hartono Wijaya', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, CA, AP', joined: 2009, util: 71, status: 'Aktif', email: 'hartono.w@whr-cpa.id', engagements: 3, rating: 4.6, unit: 'U-LEAD' },
+    { id: 'EMP-002', name: 'Rudi Gunawan', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2011, util: 68, status: 'Aktif', email: 'rudi.g@whr-cpa.id', engagements: 2, rating: 4.5, unit: 'U-KOM' },
+    { id: 'EMP-003', name: 'Sari Dewanti', role: 'Engagement Partner', grade: 'Partner', cert: 'CPA, AP', joined: 2013, util: 74, status: 'Aktif', email: 'sari.d@whr-cpa.id', engagements: 2, rating: 4.4, unit: 'U-JK' },
+    { id: 'EMP-007', name: 'Anindya Pramesti', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2016, util: 88, status: 'Aktif', email: 'anindya.p@whr-cpa.id', engagements: 2, rating: 4.7, unit: 'U-LEAD' },
+    { id: 'EMP-008', name: 'Bayu Saputra', role: 'Audit Manager', grade: 'Manager', cert: 'CPA', joined: 2017, util: 81, status: 'Aktif', email: 'bayu.s@whr-cpa.id', engagements: 2, rating: 4.2, unit: 'U-KOM' },
+    { id: 'EMP-012', name: 'Citra Halim', role: 'Audit Manager', grade: 'Manager', cert: 'CPA, CA', joined: 2017, util: 79, status: 'Cuti', email: 'citra.h@whr-cpa.id', engagements: 1, rating: 4.3, unit: 'U-JK' },
+    { id: 'EMP-021', name: 'Dimas Raharjo', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, util: 94, status: 'Aktif', email: 'dimas.r@whr-cpa.id', engagements: 1, rating: 4.5, unit: 'U-LEAD' },
+    { id: 'EMP-022', name: 'Sinta Wulandari', role: 'Senior Auditor', grade: 'Senior', cert: 'CA (kandidat CPA)', joined: 2020, util: 90, status: 'Aktif', email: 'sinta.w@whr-cpa.id', engagements: 2, rating: 4.4, unit: 'U-KOM' },
+    { id: 'EMP-031', name: 'Fajar Nugroho', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2023, util: 82, status: 'Aktif', email: 'fajar.n@whr-cpa.id', engagements: 1, rating: 4.0, unit: 'U-LEAD' },
+    { id: 'EMP-032', name: 'Rina Kusuma', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', joined: 2024, util: 79, status: 'Aktif', email: 'rina.k@whr-cpa.id', engagements: 2, rating: 3.9, unit: 'U-KOM' },
+  ];
+  const UNITS = {
+    'U-KOM': { name: 'Audit Komersial', lead: 'EMP-002' },
+    'U-JK': { name: 'Audit Jasa Keuangan', lead: 'EMP-003' },
+    'U-LEAD': { name: 'Kepemimpinan & Mutu', lead: 'EMP-001' },
+  };
+  /* 2026-07-06 — pegawai FIRM-OPS (non-audit): Admin & HR + Finance. SENGAJA TERPISAH dari STAFF
+     (roster STAFF berbentuk audit-staffing: grade/util/engagements/cert — view HCM/Talent/Capacity
+     mengindeks by grade & akan crash utk grade non-audit). Mereka TETAP karyawan KAP: punya data
+     personal sendiri (PAYROLL/LEAVE_BALANCE/STAFF_PROFILE ber-id EMP-501/601) → dashboard "Data
+     Personal Saya" mereka terisi. resolveEmpId (klien+server) mencari STAFF ∪ FIRM_STAFF. */
+  const FIRM_STAFF = [
+    { id: 'EMP-501', name: 'Yuni Marlina', role: 'Admin & HR Firma', grade: 'Staf Firma', dept: 'SDM & Umum', email: 'yuni.m@whr-cpa.id', joined: 2019, status: 'Aktif', firmOps: true },
+    { id: 'EMP-601', name: 'Teguh Prasetyo', role: 'Finance Firma', grade: 'Staf Firma', dept: 'Keuangan Firma', email: 'teguh.p@whr-cpa.id', joined: 2020, status: 'Aktif', firmOps: true },
   ];
 
   /* ---- E: CPE/PPL requirement & records (annual 40 SKP; 20 terstruktur) ---- */
@@ -525,4 +542,4 @@
   /* ---- Firm Finance (ERP) — Treasury, Tax, Revenue ---- */
   /* FX rates to IDR (per 28 Feb 2026) */
 
-export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, PROSPECTS };
+export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, PROSPECTS };

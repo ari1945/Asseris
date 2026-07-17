@@ -2,9 +2,10 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useAuth, useNav } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
+import { AccessDenied, Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
@@ -23,6 +24,7 @@ const GRADE_COLOR = { Partner: '#002C3F', Manager: '#005085', Senior: '#0a6b73',
 function HCM() {
   const { fmt } = AMS;
   const nav = useNav();
+  const authHcm = useAuth();
   const [extra, setExtra] = useAmsPersist('staffExtra', []);
   const staff = [...extra, ...AMS.STAFF];
   const [sel, setSel] = useStateE((AMS.STAFF as any)[3].id);
@@ -45,6 +47,9 @@ function HCM() {
     ['Manajemen waktu & deadline', person.rating],
     ['Komunikasi klien', person.rating - 0.1],
   ];
+
+  // 2026-07-06 — Human Capital = direktori & profil detail seluruh staf: kewenangan Partner + HRD (HR_MODULE_VIEW).
+  if (!(authHcm && typeof authHcm.can === 'function' && authHcm.can(CAP.HR_MODULE_VIEW))) return (<><SubBar moduleId="hcm" /><AccessDenied moduleId="hcm" /></>);
 
   return (
     <>
@@ -151,17 +156,25 @@ function StaffForm({ onClose, onAdd }: any) {
 function CPETracker() {
   const { fmt } = AMS;
   const nav = useNav();
+  const auth = useAuth();
   const staff: any = AMS.STAFF, req: any = AMS.CPE_REQ;
   const [extraLog, setExtraLog] = useAmsPersist('cpeExtra', {});
+  // 2026-07-05 — cpeLog (kredit SKP dasar) & cpeExtra ter-filter server (personal.get).
+  const [cpeLog] = useAmsPersist('cpeLog', () => AMS.CPE_LOG);
   const [attendance] = useAmsPersist('trainingAttendance.v1', () => ({}));
   const [sel, setSel] = useStateE('EMP-007');
   const [showNew, setShowNew] = useStateE(false);
   /* #1/#2 — kredit SKP otomatis dari pelatihan yang kehadirannya dikonfirmasi (SSOT cpeFromTraining). */
   const trainingByEmp = cpeFromTraining(AMS.TRAINING_CATALOG as TrainingCourse[], attendance);
-  const log = (() => { const m = {}; staff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((AMS.CPE_LOG as any)[s.id]) || [])]; }); return m; })();
+  // Firm-view → seluruh roster; selain itu batasi ke id yang datanya benar-benar diterima
+  // (unit/self) agar tabel tak menampilkan baris orang lain (data nilai sudah ter-filter server).
+  const canFirm = !!(auth && typeof auth.can === 'function' && auth.can(CAP.PERSONAL_CPE_VIEW_FIRM));
+  const scopedIds = new Set<string>([...Object.keys(cpeLog || {}), ...Object.keys(extraLog || {})]);
+  const vstaff = canFirm ? staff : staff.filter((s: any) => scopedIds.has(s.id));
+  const log = (() => { const m = {}; vstaff.forEach((s: any) => { (m as any)[s.id] = [...(extraLog[s.id] || []), ...(trainingByEmp[s.id] || []), ...(((cpeLog as any)[s.id]) || [])]; }); return m; })();
   const addSkp = (id: any, rec: any) => setExtraLog((l: any) => ({ ...l, [id]: [{ ...rec, date: '2026-03-09' }, ...(l[id] || [])] }));
 
-  const summary = staff.map((s: any) => {
+  const summary = vstaff.map((s: any) => {
     const recs = (log as any)[s.id] || [];
     const structured = recs.filter((r: any) => r.type === 'Terstruktur').reduce((a: any, r: any) => a + r.skp, 0);
     const total = recs.reduce((a: any, r: any) => a + r.skp, 0);
@@ -171,13 +184,15 @@ function CPETracker() {
   const compliantN = summary.filter((s: any) => s.compliant).length;
   const atRisk = summary.filter((s: any) => !s.compliant && s.total < req.annual * 0.5).length;
   const person = summary.find((s: any) => s.id === sel) || summary[0];
+  // Guard: data ter-filter bisa kosong (peran self-only tanpa catatan SKP tersimpan).
+  if (!person) return (<><SubBar moduleId="cpe" /><div className="view-scroll"><div className="view-pad"><Panel><div style={{ padding: 28, textAlign: 'center' }} className="tiny muted">Belum ada catatan PPL/SKP yang dapat Anda lihat. Lihat data PPL Anda sendiri di modul <b>Data Personal Saya</b>.</div></Panel></div></div></>);
 
   return (
     <>
       <SubBar moduleId="cpe" right={<div className="row gap8 ac"><Badge kind="blue">PPL {req.year} · {req.annual} SKP</Badge><Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Catat SKP</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${compliantN}/${staff.length}`} label="Memenuhi PPL" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${compliantN}/${vstaff.length}`} label="Memenuhi PPL" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={req.annual + ' SKP'} label="Syarat Tahunan" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={req.structured + ' SKP'} label="Min. Terstruktur" /></div></Panel>
           <Panel><div style={{ padding: '11px 14px' }}><Stat value={atRisk} label="Berisiko Tidak Memenuhi" accent="var(--red)" /></div></Panel>
@@ -236,7 +251,7 @@ function CPETracker() {
           </Panel>
         </div>
       </div></div>
-      {showNew && <SkpForm staff={staff} onClose={() => setShowNew(false)} onAdd={(id: any, rec: any) => { addSkp(id, rec); setShowNew(false); }} />}
+      {showNew && <SkpForm staff={vstaff.length ? vstaff : staff} onClose={() => setShowNew(false)} onAdd={(id: any, rec: any) => { addSkp(id, rec); setShowNew(false); }} />}
     </>
   );
 }

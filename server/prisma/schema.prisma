@@ -27,6 +27,28 @@ model Firm {
   team        TeamMember[]
   clients     Client[]
   engagements Engagement[]
+  roles       Role[]
+}
+
+// RBAC admin console — dynamic replacement for the hardcoded GRANTS map in
+// migration/src/rbac.ts. `capsJson` is a JSON string array of CAP keys (e.g. '["wp.edit","llm.use"]'),
+// validated against the fixed CAP catalog at the API boundary (server/src/router.ts roles.*), not by
+// a DB constraint. `isBuiltIn` marks the 6 roles ported from the old static GRANTS at seed/bootstrap
+// time — their NAME and existence are locked (no rename/delete), but capsJson remains editable like
+// any custom role (PRD docs/prd-rbac-admin-console.md §8.3/§11 Q2). `User.role` stays a free-text
+// string (not a FK here) matching Role.name — see rbac-admin-console PRD §9 for why a full FK
+// migration across 73 existing call sites was deliberately avoided.
+model Role {
+  id        String   @id @default(cuid())
+  firmId    String
+  firm      Firm     @relation(fields: [firmId], references: [id])
+  name      String
+  capsJson  String   @default("[]")
+  isBuiltIn Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([firmId, name])
 }
 
 model User {

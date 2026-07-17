@@ -5,7 +5,7 @@ import { useAmsPersist, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
+import { AccessDenied, Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -19,6 +19,7 @@ const PRIO_C = { Tinggi: 'var(--red)', Sedang: 'var(--amber)', Rendah: 'var(--gr
 function Recruitment() {
   const A: any = AMS;
   const nav = useNav();
+  const authRec = useAuth();
   const [tab, setTab] = usePCtal('reqs');
   const [cands, setCands] = useAmsPersist('pc.cands', () => A.CANDIDATES);
   const [hires, setHires] = useAmsPersist('pc.onboard', () => A.ONBOARDING_HIRES);
@@ -38,6 +39,9 @@ function Recruitment() {
 
   const STAGE_C = { 'Pelamar': '#647889', 'Penyaringan': '#5b3fa6', 'Wawancara': '#005085', 'Penawaran': '#9a6a00', 'Diterima': '#0a6b73' };
   const tabs = [{ id: 'reqs', label: 'Requisisi', count: A.REQUISITIONS.length }, { id: 'pipeline', label: 'Pipeline Kandidat', count: cands.length }, { id: 'onboard', label: 'Onboarding', count: hires.length }];
+
+  // 2026-07-05 — modul manajemen SDM: hanya Partner + Admin & HR (HR_MODULE_VIEW). Pegawai lain diblokir.
+  if (!(authRec && typeof authRec.can === 'function' && authRec.can(CAP.HR_MODULE_VIEW))) return (<><SubBar moduleId="recruitment" /><AccessDenied moduleId="recruitment" /></>);
 
   return (
     <>
@@ -177,6 +181,9 @@ function Learning() {
   const doEnroll = (id: any) => setEnroll((list: any) => list.map((e: any) => e.id === id ? { ...e, enrolled: Math.min(A.TRAINING_CATALOG.find((t: any) => t.id === id).seats, e.enrolled + 1) } : e));
   const confirmedTotal = A.TRAINING_CATALOG.reduce((n: any, t: any) => n + Object.values((attendance as any)[t.id] || {}).filter((r: any) => r?.confirmed).length, 0);
   const tabs = [{ id: 'matrix', label: 'Matriks Kompetensi' }, { id: 'catalog', label: 'Katalog Pelatihan', count: A.TRAINING_CATALOG.length }, { id: 'attend', label: 'Kehadiran & SKP', count: confirmedTotal || null }];
+
+  // 2026-07-05 — matriks kompetensi = data SDM agregat: hanya Partner + Admin & HR (HR_MODULE_VIEW).
+  if (!(auth && typeof auth.can === 'function' && auth.can(CAP.HR_MODULE_VIEW))) return (<><SubBar moduleId="learning" /><AccessDenied moduleId="learning" /></>);
 
   return (
     <>

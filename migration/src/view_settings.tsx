@@ -152,7 +152,7 @@ function SettingsView() {
             {section === 'lokalisasi' && <SecLokalisasi s={s} setGroup={setGroup} />}
             {section === 'integrasi' && <SecIntegrasi nav={nav} />}
             {section === 'ai' && <SecAI s={s} setGroup={setGroup} flash={flash} />}
-            {section === 'akses' && <SecAkses auth={auth} />}
+            {section === 'akses' && <SecAkses auth={auth} flash={flash} />}
           </div>
         </div>
       </div></div>
@@ -750,7 +750,16 @@ const PERM_MATRIX = [
   ['Keuangan Firma (ERP)', ['edit', 'view', 'none', 'none']],
   ['Pengaturan Firma & RBAC', ['edit', 'none', 'none', 'none']],
 ];
-function SecAkses({ auth }: any) {
+/* RBAC admin console (PRD docs/prd-rbac-admin-console.md) — gate: FIRM_ADMIN gets the live,
+   editable roles.* console (SecAksesAdmin); everyone else keeps the exact static read-only view
+   this file always had (SecAksesReadOnly, unchanged below), since non-admins can't call roles.list
+   anyway (server-gated) and have no action to take here. */
+function SecAkses({ auth, flash }: any) {
+  const isAdmin = typeof auth.can === 'function' ? auth.can(CAP.FIRM_ADMIN) : auth.role === 'Engagement Partner';
+  return isAdmin ? <SecAksesAdmin flash={flash} /> : <SecAksesReadOnly auth={auth} />;
+}
+
+function SecAksesReadOnly({ auth }: any) {
   const roles = ['Engagement Partner', 'Audit Manager', 'Senior Auditor', 'Junior Auditor'];
   const ri = roles.indexOf(auth.role);
   const cap = (ROLE_CAPS as any)[auth.role] || ROLE_CAPS['Audit Manager'];
@@ -797,6 +806,195 @@ function SecAkses({ auth }: any) {
           <I.lock size={11} style={{ verticalAlign: '-1px' }} /> Hak <b>Ubah</b> ditegakkan di server dari peta kapabilitas bersama (<span className="mono">rbac.js</span>) — UI &amp; API memakai sumber yang sama. Tindakan terlarang ditolak server, bukan sekadar disembunyikan.
         </div>
       </Panel>
+    </>
+  );
+}
+
+/* Human-readable Indonesian labels for the fixed CAP catalog — the admin console lets a Partner
+   pick FROM these, it never invents new ones (PRD §5 Non-Scope: a new capability needs a new gate
+   in code, not a settings toggle). ENGAGEMENT_VIEW_ALL carries an extra hint because it's the one
+   capability directly tied to the "non-auditor sees zero engagement data by default" requirement
+   (PRD §2) — everything else about engagement access already flows from W7.5 membership. */
+const CAP_LABELS: Record<string, { label: string; hint?: string }> = {
+  [CAP.WP_EDIT]: { label: 'Kertas Kerja & Lead Schedule' },
+  [CAP.AJE_EDIT]: { label: 'Jurnal Penyesuaian (AJE)' },
+  [CAP.SIGNOFF_REVIEWER]: { label: 'Sign-off Reviewer' },
+  [CAP.OPINION_APPROVE]: { label: 'Persetujuan & Opini' },
+  [CAP.FIRMFIN_EDIT]: { label: 'Keuangan Firma (ERP)' },
+  [CAP.ENGAGEMENT_MANAGE]: { label: 'Kelola Klien & Perikatan' },
+  [CAP.FIRM_ADMIN]: { label: 'Admin Firma & RBAC', hint: 'Termasuk hak mengelola peran & akses di halaman ini.' },
+  [CAP.LLM_USE]: { label: 'Gunakan AI Co-pilot' },
+  [CAP.ENGAGEMENT_VIEW_ALL]: { label: 'Lihat Semua Perikatan (Oversight)', hint: 'Tanpa ini, peran hanya melihat perikatan tempat ia terdaftar sebagai anggota — bukan seluruh data perikatan firma.' },
+  [CAP.AUDIT_VIEW]: { label: 'Baca Jejak Audit' },
+  [CAP.EXPORT]: { label: 'Ekspor & Segel Dokumen' },
+  [CAP.INTEGRATION_VIEW]: { label: 'Lihat Status Integrasi' },
+  [CAP.INTEGRATION_MANAGE]: { label: 'Kelola Integrasi & Sinkronisasi' },
+  [CAP.EQR_REVIEW]: { label: 'Telaah Pengendalian Mutu (EQR)' },
+  [CAP.PHASE_OVERRIDE]: { label: 'Override Gerbang Fase' },
+  [CAP.HR_MANAGE]: { label: 'Kelola People & Compliance (HR)' },
+};
+const CAP_ROWS: Array<[string, string]> = Object.entries(CAP as Record<string, string>);
+
+/* Server error messages (router.ts roles.*) → user-facing Indonesian toasts. Matched by
+   prefix/substring since some carry a dynamic suffix (role-in-use:<n>). */
+function rolesErrMsg(e: any): string {
+  const m = (e && e.message) || '';
+  if (m.includes('lockout')) return 'Ditolak — perubahan ini akan membuat TIDAK ADA peran yang memegang akses Admin Firma.';
+  if (m.startsWith('role-in-use')) return 'Tidak bisa dihapus — peran ini masih dipakai oleh pengguna aktif.';
+  if (m === 'cannot-delete-builtin-role') return 'Peran bawaan tidak bisa dihapus (kapabilitasnya tetap bisa diubah).';
+  if (m === 'role-name-exists') return 'Nama peran sudah dipakai di firma ini.';
+  if (m.startsWith('unknown-capability')) return 'Kapabilitas tidak dikenal.';
+  return 'Gagal menyimpan perubahan.';
+}
+
+function SecAksesAdmin({ flash }: any) {
+  const [roles, setRoles] = useStateSet([] as any[]);
+  const [loading, setLoading] = useStateSet(true);
+  const [busy, setBusy] = useStateSet(false);
+  const [modal, setModal] = useStateSet(false);
+  const [newName, setNewName] = useStateSet('');
+  const [newCaps, setNewCaps] = useStateSet([] as string[]);
+
+  const refresh = React.useCallback(() => {
+    setLoading(true);
+    (api as any).roles.list.query()
+      .then((r: any) => setRoles(r))
+      .catch(() => flash && flash('Gagal memuat peran'))
+      .finally(() => setLoading(false));
+  }, []);
+  useEffectSet(() => { refresh(); }, [refresh]);
+
+  const toggleCap = async (role: any, capVal: string) => {
+    const has = role.caps.includes(capVal);
+    const nextCaps = has ? role.caps.filter((c: string) => c !== capVal) : [...role.caps, capVal];
+    setBusy(true);
+    try {
+      await (api as any).roles.updateGrants.mutate({ roleId: role.id, caps: nextCaps });
+      flash && flash(`${CAP_LABELS[capVal]?.label || capVal} ${has ? 'dicabut dari' : 'diberikan ke'} "${role.name}"`);
+      refresh();
+    } catch (e) {
+      flash && flash(rolesErrMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const createRole = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    setBusy(true);
+    try {
+      await (api as any).roles.create.mutate({ name, caps: newCaps });
+      flash && flash(`Peran "${name}" dibuat`);
+      setModal(false); setNewName(''); setNewCaps([]);
+      refresh();
+    } catch (e) {
+      flash && flash(rolesErrMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteRole = async (role: any) => {
+    if (!window.confirm(`Hapus peran "${role.name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    setBusy(true);
+    try {
+      await (api as any).roles.delete.mutate({ roleId: role.id });
+      flash && flash(`Peran "${role.name}" dihapus`);
+      refresh();
+    } catch (e) {
+      flash && flash(rolesErrMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (loading) {
+    return <Panel noBody><div className="tiny muted" style={{ padding: 24 }}>Memuat peran…</div></Panel>;
+  }
+
+  return (
+    <>
+      <div className="panel" style={{ padding: '11px 14px', display: 'flex', gap: 10, alignItems: 'flex-start', background: 'var(--blue-050)', borderColor: 'transparent' }}>
+        <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.shield size={16} /></span>
+        <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
+          <b>Anda mengelola RBAC firma.</b> Perubahan ditegakkan di server dan berlaku seketika. Peran baru lahir <b>tanpa kapabilitas apa pun</b> — termasuk tanpa akses data perikatan — sampai dicentang secara eksplisit di sini.
+        </div>
+      </div>
+
+      <Panel noBody>
+        <div className="panel-h">
+          <h3>Matriks Peran & Kapabilitas</h3>
+          <div style={{ flex: 1 }} />
+          <Btn sm variant="primary" onClick={() => setModal(true)} disabled={busy}><I.plus size={13} /> Peran Baru</Btn>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="dtbl">
+            <thead>
+              <tr>
+                <th style={{ minWidth: 220 }}>Kapabilitas</th>
+                {roles.map((r: any) => (
+                  <th key={r.id} style={{ textAlign: 'center', minWidth: 130 }}>
+                    <div>{r.name}</div>
+                    <div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{r.userCount} pengguna{r.isBuiltIn ? ' · bawaan' : ''}</div>
+                    {!r.isBuiltIn && (
+                      <button className="btn sm" disabled={busy || r.userCount > 0}
+                        title={r.userCount > 0 ? 'Masih dipakai pengguna — tak bisa dihapus' : 'Hapus peran ini'}
+                        onClick={() => deleteRole(r)} style={{ marginTop: 4, height: 22, fontSize: 11 }}>
+                        <I.trash size={11} /> Hapus
+                      </button>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {CAP_ROWS.map(([key, capVal]) => (
+                <tr key={capVal}>
+                  <td style={{ fontWeight: 600 }}>
+                    {CAP_LABELS[capVal]?.label || key}
+                    {CAP_LABELS[capVal]?.hint && <div className="tiny muted" style={{ fontWeight: 400, marginTop: 2, maxWidth: 260 }}>{CAP_LABELS[capVal]?.hint}</div>}
+                  </td>
+                  {roles.map((r: any) => (
+                    <td key={r.id} style={{ textAlign: 'center' }}>
+                      <input type="checkbox" checked={r.caps.includes(capVal)} disabled={busy} onChange={() => toggleCap(r, capVal)} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="tiny muted" style={{ padding: '10px 14px', lineHeight: 1.45 }}>
+          <I.lock size={11} style={{ verticalAlign: '-1px' }} /> Perubahan ditegakkan langsung di server (bukan tampilan saja). Peran <b>bawaan</b> boleh diubah kapabilitasnya tapi tak bisa dihapus atau diganti nama. Sistem menolak perubahan yang akan menyisakan <b>nol</b> peran dengan akses Admin Firma.
+        </div>
+      </Panel>
+
+      {modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', zIndex: 100, display: 'grid', placeItems: 'center' }} onClick={() => !busy && setModal(false)}>
+          <div className="panel" style={{ width: 440, maxHeight: '80vh', overflow: 'auto', padding: 18 }} onClick={(e: any) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>Peran Baru</h3>
+            <div className="field" style={{ marginBottom: 12 }}>
+              <label>Nama Peran</label>
+              <input className="input" value={newName} onChange={(e: any) => setNewName(e.target.value)} placeholder="mis. Tax Consultant Internal" style={{ height: 32 }} autoFocus />
+            </div>
+            <div className="tiny muted" style={{ marginBottom: 8 }}>Kapabilitas — kosong secara default, centang yang diperlukan:</div>
+            <div style={{ display: 'grid', gap: 7, maxHeight: 280, overflow: 'auto', marginBottom: 14 }}>
+              {CAP_ROWS.map(([key, capVal]) => (
+                <label key={capVal} className="row ac gap8" style={{ fontSize: 12.5, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={newCaps.includes(capVal)}
+                    onChange={() => setNewCaps((p: string[]) => p.includes(capVal) ? p.filter((c) => c !== capVal) : [...p, capVal])} />
+                  {CAP_LABELS[capVal]?.label || key}
+                </label>
+              ))}
+            </div>
+            <div className="row je gap8">
+              <Btn sm onClick={() => setModal(false)} disabled={busy}>Batal</Btn>
+              <Btn sm variant="primary" disabled={busy || !newName.trim()} onClick={createRole}><I.check size={13} /> Buat Peran</Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
