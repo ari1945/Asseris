@@ -62,3 +62,6 @@ Thumbs.db
 /Rencana Bisnis Asseris.docx
 /_build_dummy.py
 __pycache__/
+
+# Excel engagement-pack build output (root .xlsx is the published deliverable)
+tools/excel-pack/dist/
