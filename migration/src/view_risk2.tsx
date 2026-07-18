@@ -101,6 +101,12 @@ function RiskTren() {
   const sel = risks.find((r: any) => r.id === selId) || risks[0];
   const series = T.series[selId] || T.series['R-01'];
 
+  if (!sel) return (
+    <div className="view-scroll"><div className="view-pad">
+      <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12.5, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) untuk perikatan ini — tren inheren → residual akan muncul setelah register RoMM diisi di tab <b>Register</b>.</div></Panel>
+    </div></div>
+  );
+
   const rows = risks.map((r: any) => {
     const s = T.series[r.id] || [0, 0, 0, 0];
     return { id: r.id, area: r.area, inherent: s[0], residual: s[s.length - 1], reduction: s[0] - s[s.length - 1] };
