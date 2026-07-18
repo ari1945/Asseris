@@ -136,3 +136,28 @@ Tiap fase dapat di-hentikan/di-review terpisah; bila waktu terbatas, P1–P4 mem
 
 ---
 **Sign-off:** balas **"Proceed."** (sebut pilihan §11 — minimal Q1) untuk memulai **P1**.
+
+---
+
+## 12. Addendum — Implementasi (2026-07-18)
+
+Sign-off **"Proceed."** diberikan 2026-07-18 dengan rekomendasi default seluruh §11
+(P1→P6 berurutan · PDF+XLSX · bobot §8 diterima · SA 510/deklarasi independensi
+ditunda · segel per-amandemen). Terpasang di cabang `feat/penerimaan-keberlanjutan-detail`:
+
+- **P1** — `assessment_model.ts` (murni, bebas-any): `weightedScore` + `verdict(kind)` SSOT;
+  refactor `obAccScore`/`obAccVerdict` memakainya (perilaku identik, uji kesetaraan). `6b3ba2f`.
+- **P2** — `continuance_engine` pemicu tahun-lalu (opini modifikasian/temuan/perubahan) +
+  `CONT_FACTORS`; `PRIOR_YEAR` (peta referensi). `bf6adf8` (+ refactor peta di P3).
+- **P3** — kertas kerja keberlanjutan: matriks faktor + kartu tahun-lalu + safeguard +
+  keputusan + jejak; `PRIOR_YEAR` dipindah ke peta (bertahan hidrasi server). Live-verified. `79ecd8b`.
+- **P4** — `acceptance_continuance_memo.ts` (generator memo murni) + tombol Ekspor Memo
+  PDF/XLSX + segel Ed25519 + Verifikasi Segel di kedua sisi. Live-verified round-trip. `e96cfdf`.
+- **P5** — riwayat siklus keberlanjutan tahunan (read-only). `e372252`.
+- **P6** — `docs/acceptance-continuance-methodology.md` + addendum ini + memory arc.
+
+**Gate:** typecheck 0 · lint bersih · 461 test hijau (assessment_model 8, memo 8, continuance 18).
+**Keputusan desain:** `PRIOR_YEAR` sengaja data referensi klien-side (bukan kolom CRM/StateDoc)
+karena `hydrateCoreFromApi` melucuti field non-kolom; persistensi server = kandidat lanjutan.
+
+**Sign-off:** **"Proceed."** — P1–P6 DONE.
