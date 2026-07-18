@@ -72,6 +72,53 @@ describe('continuanceFlags — keputusan tersimpan & urutan', () => {
   });
 });
 
+describe('pemicu pengalaman tahun lalu (SA 220.A24 / ISQM 1 ¶34)', () => {
+  const base = { id: 'C-9', name: 'PT Delta', industry: 'Jasa', partner: 'P. Empat', risk: 'Low', listed: false, since: 2023, status: 'Active' };
+
+  it('opini modifikasian (WDP) → pemicu opiniLY severity high & perhatian Tinggi', () => {
+    const sum = continuanceFlags([{ ...base, priorYear: { fy: 'FY2024', opinion: 'WDP', findings: 0 } }], [], [], {}, 2026);
+    const r = sum.rows[0];
+    const t = r.triggers.find((x) => x.key === 'opiniLY')!;
+    expect(t.severity).toBe('high');
+    expect(r.attention).toBe('Tinggi');
+  });
+
+  it('WTP-EoM (penekanan, SA 706) BUKAN modifikasi → tanpa pemicu opiniLY', () => {
+    const sum = continuanceFlags([{ ...base, priorYear: { fy: 'FY2024', opinion: 'WTP-EoM', findings: 0 } }], [], [], {}, 2026);
+    expect(sum.rows[0].triggers.some((x) => x.key === 'opiniLY')).toBe(false);
+  });
+
+  it('teks penuh "Wajar Tanpa Pengecualian" tidak salah-tandai modifikasi', () => {
+    const sum = continuanceFlags([{ ...base, priorYear: { opinion: 'Wajar Tanpa Pengecualian' } }], [], [], {}, 2026);
+    expect(sum.rows[0].triggers.some((x) => x.key === 'opiniLY')).toBe(false);
+  });
+
+  it('≥2 temuan → temuanLY med; 1 temuan → temuanLY low', () => {
+    const two = continuanceFlags([{ ...base, priorYear: { findings: 2, findingsNote: 'X' } }], [], [], {}, 2026);
+    expect(two.rows[0].triggers.find((x) => x.key === 'temuanLY')!.severity).toBe('med');
+    const one = continuanceFlags([{ ...base, priorYear: { findings: 1 } }], [], [], {}, 2026);
+    expect(one.rows[0].triggers.find((x) => x.key === 'temuanLY')!.severity).toBe('low');
+  });
+
+  it('perubahan keadaan non-kosong → pemicu perubahan; kosong → tanpa pemicu', () => {
+    const chg = continuanceFlags([{ ...base, priorYear: { changed: 'Regulasi baru' } }], [], [], {}, 2026);
+    expect(chg.rows[0].triggers.some((x) => x.key === 'perubahan')).toBe(true);
+    const none = continuanceFlags([{ ...base, priorYear: { changed: '   ' } }], [], [], {}, 2026);
+    expect(none.rows[0].triggers.some((x) => x.key === 'perubahan')).toBe(false);
+  });
+
+  it('tanpa priorYear → tanpa pemicu tahun-lalu (fail-safe data lama)', () => {
+    const sum = continuanceFlags([base], [], [], {}, 2026);
+    expect(sum.rows[0].triggers.some((x) => ['opiniLY', 'temuanLY', 'perubahan'].includes(x.key))).toBe(false);
+    expect(sum.rows[0].priorYear).toBeUndefined();
+  });
+
+  it('meneruskan priorYear ke row untuk UI', () => {
+    const sum = continuanceFlags([{ ...base, priorYear: { fy: 'FY2024', opinion: 'WTP', findings: 1 } }], [], [], {}, 2026);
+    expect(sum.rows[0].priorYear).toEqual({ fy: 'FY2024', opinion: 'WTP', findings: 1 });
+  });
+});
+
 describe('integrasi seed nyata', () => {
   const sum = continuanceFlags(CLIENTS, INDEPENDENCE, INVOICES, {}, 2026);
 
@@ -90,5 +137,11 @@ describe('integrasi seed nyata', () => {
   it('menandai rotasi jatuh tempo Hartono / Sentosa (tenur 5 = 5)', () => {
     const sentosa = sum.rows.find((r) => r.client.includes('Sentosa'))!;
     expect(sentosa.triggers.some((t) => t.key === 'rotasi' && t.severity === 'high')).toBe(true);
+  });
+
+  it('menandai opini modifikasian tahun lalu Bumi Hijau (WDP FY2024)', () => {
+    const bumi = sum.rows.find((r) => r.client.includes('Bumi Hijau'))!;
+    expect(bumi.triggers.some((t) => t.key === 'opiniLY' && t.severity === 'high')).toBe(true);
+    expect(bumi.attention).toBe('Tinggi');
   });
 });
