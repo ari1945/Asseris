@@ -15,6 +15,8 @@
      · asosiasi panjang                                          → familiarity
    ============================================================ */
 
+import type { AssessmentFactor } from './assessment_model';
+
 export type ContinuanceDecision = 'Lanjut' | 'Lanjut dengan Syarat' | 'Tidak Dilanjutkan' | 'Tertunda';
 export type Attention = 'Tinggi' | 'Sedang' | 'Rendah';
 export type TriggerSeverity = 'high' | 'med' | 'low';
@@ -80,7 +82,7 @@ interface ClientLike {
 
 /* Opini dimodifikasi (SA 705: WDP/TMP/TW) → pemicu keberlanjutan.
    WTP & WTP-EoM (SA 706 penekanan) BUKAN modifikasi. Aman utk kode & teks penuh. */
-function isOpinionModified(op?: string): boolean {
+export function isOpinionModified(op?: string): boolean {
   if (!op) return false;
   const s = op.trim().toUpperCase();
   if (s.startsWith('WTP')) return false;
@@ -97,11 +99,23 @@ interface IndependenceLike {
 }
 interface InvoiceLike { clientId?: string; status?: string }
 
+export interface ContinuanceTrailEntry {
+  action: string;
+  by: string;
+  at: string;
+}
+
 export interface StoredDecision {
   decision?: ContinuanceDecision;
   approver?: string;
   date?: string;
   conditions?: string;
+  /* Kertas kerja terdokumentasi (P3): penilaian berbobot + safeguard + jejak.
+     Diabaikan mesin pemicu; disimpan berdampingan di state firm-scope. */
+  approved?: boolean;
+  safeguards?: string;
+  factors?: AssessmentFactor[];
+  trail?: ContinuanceTrailEntry[];
 }
 
 const LONG_ASSOC_YEARS = 8;

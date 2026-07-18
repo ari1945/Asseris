@@ -27,14 +27,14 @@
 
   /* ---- Clients ---- */
   const CLIENTS = [
-    { id: 'C-014', name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', tier: 'Tier 1', risk: 'High', npwp: '01.234.567.8-045.000', city: 'Bekasi, Jawa Barat', listed: true, since: 2016, partner: 'Hartono Wijaya, CPA', fee: 1_850_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WTP', findings: 1, findingsNote: 'Cut-off pendapatan akhir tahun — dikoreksi', uncorrected: 0, changed: 'Tahun ke-5 partner penanggung jawab — mendekati ambang rotasi', difficulties: '' } },
-    { id: 'C-022', name: 'PT Cahaya Logistik Nusantara', industry: 'Transportasi & Logistik', tier: 'Tier 2', risk: 'Medium', npwp: '02.811.450.1-091.000', city: 'Surabaya, Jawa Timur', listed: false, since: 2019, partner: 'Sari Dewanti, CPA', fee: 720_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: '', difficulties: '' } },
-    { id: 'C-031', name: 'PT Bumi Hijau Agrindo', industry: 'Agribisnis · Perkebunan', tier: 'Tier 2', risk: 'High', npwp: '03.119.882.4-431.000', city: 'Pekanbaru, Riau', listed: true, since: 2020, partner: 'Hartono Wijaya, CPA', fee: 1_120_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WDP', findings: 2, findingsNote: 'Nilai wajar aset biologis kurang ditopang bukti', uncorrected: 1_800_000_000, changed: 'Ekspansi lahan perkebunan baru', difficulties: 'Akses data kebun terpencil terbatas' } },
-    { id: 'C-040', name: 'PT Mandiri Sejahtera Finance', industry: 'Jasa Keuangan · Multifinance', tier: 'Tier 1', risk: 'High', npwp: '01.557.203.9-058.000', city: 'Jakarta Selatan', listed: true, since: 2017, partner: 'Rudi Gunawan, CPA', fee: 2_340_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WTP-EoM', findings: 1, findingsNote: 'Ketidakpastian estimasi ECL (paragraf penekanan suatu hal)', uncorrected: 0, changed: 'Regulasi OJK multifinance baru', difficulties: '' } },
-    { id: 'C-047', name: 'PT Teknologi Andalan Digital', industry: 'Teknologi · SaaS', tier: 'Tier 3', risk: 'Medium', npwp: '04.220.118.6-013.000', city: 'Bandung, Jawa Barat', listed: false, since: 2022, partner: 'Sari Dewanti, CPA', fee: 410_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: 'Pertumbuhan cepat & migrasi sistem akuntansi', difficulties: '' } },
+    { id: 'C-014', name: 'PT Sentosa Makmur Tbk', industry: 'Manufaktur · Consumer Goods', tier: 'Tier 1', risk: 'High', npwp: '01.234.567.8-045.000', city: 'Bekasi, Jawa Barat', listed: true, since: 2016, partner: 'Hartono Wijaya, CPA', fee: 1_850_000_000, status: 'Active' },
+    { id: 'C-022', name: 'PT Cahaya Logistik Nusantara', industry: 'Transportasi & Logistik', tier: 'Tier 2', risk: 'Medium', npwp: '02.811.450.1-091.000', city: 'Surabaya, Jawa Timur', listed: false, since: 2019, partner: 'Sari Dewanti, CPA', fee: 720_000_000, status: 'Active' },
+    { id: 'C-031', name: 'PT Bumi Hijau Agrindo', industry: 'Agribisnis · Perkebunan', tier: 'Tier 2', risk: 'High', npwp: '03.119.882.4-431.000', city: 'Pekanbaru, Riau', listed: true, since: 2020, partner: 'Hartono Wijaya, CPA', fee: 1_120_000_000, status: 'Active' },
+    { id: 'C-040', name: 'PT Mandiri Sejahtera Finance', industry: 'Jasa Keuangan · Multifinance', tier: 'Tier 1', risk: 'High', npwp: '01.557.203.9-058.000', city: 'Jakarta Selatan', listed: true, since: 2017, partner: 'Rudi Gunawan, CPA', fee: 2_340_000_000, status: 'Active' },
+    { id: 'C-047', name: 'PT Teknologi Andalan Digital', industry: 'Teknologi · SaaS', tier: 'Tier 3', risk: 'Medium', npwp: '04.220.118.6-013.000', city: 'Bandung, Jawa Barat', listed: false, since: 2022, partner: 'Sari Dewanti, CPA', fee: 410_000_000, status: 'Active' },
     { id: 'C-052', name: 'PT Karya Beton Perkasa', industry: 'Konstruksi & Material', tier: 'Tier 2', risk: 'Medium', npwp: '02.901.337.2-407.000', city: 'Semarang, Jawa Tengah', listed: false, since: 2021, partner: 'Hartono Wijaya, CPA', fee: 640_000_000, status: 'Proposal' },
-    { id: 'C-058', name: 'PT Samudra Pangan Lestari', industry: 'Manufaktur · F&B', tier: 'Tier 2', risk: 'Low', npwp: '03.445.901.7-622.000', city: 'Medan, Sumatera Utara', listed: false, since: 2018, partner: 'Rudi Gunawan, CPA', fee: 580_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: '', difficulties: '' } },
-    { id: 'C-063', name: 'PT Graha Properti Investama', industry: 'Properti & Real Estate', tier: 'Tier 1', risk: 'High', npwp: '01.778.224.0-079.000', city: 'Jakarta Pusat', listed: true, since: 2015, partner: 'Rudi Gunawan, CPA', fee: 1_640_000_000, status: 'Active', priorYear: { fy: 'FY2024', opinion: 'WTP', findings: 1, findingsNote: 'Timing pengakuan pendapatan properti', uncorrected: 900_000_000, changed: '', difficulties: '' } },
+    { id: 'C-058', name: 'PT Samudra Pangan Lestari', industry: 'Manufaktur · F&B', tier: 'Tier 2', risk: 'Low', npwp: '03.445.901.7-622.000', city: 'Medan, Sumatera Utara', listed: false, since: 2018, partner: 'Rudi Gunawan, CPA', fee: 580_000_000, status: 'Active' },
+    { id: 'C-063', name: 'PT Graha Properti Investama', industry: 'Properti & Real Estate', tier: 'Tier 1', risk: 'High', npwp: '01.778.224.0-079.000', city: 'Jakarta Pusat', listed: true, since: 2015, partner: 'Rudi Gunawan, CPA', fee: 1_640_000_000, status: 'Active' },
   ];
 
   /* ---- Engagements ---- */
@@ -385,6 +385,18 @@
     { k: 'Risiko klien/industri & regulasi', w: 10, s: 3, note: '', ...over[4] },
     { k: 'Etika & proporsionalitas/kolektibilitas imbalan', w: 10, s: 3, note: '', ...over[5] },
   ];
+  /* Pengalaman tahun lalu per klien — data REFERENSI (bukan kolom CRM klien;
+     tidak melewati hidrasi server, jadi disimpan sebagai peta ber-clientId).
+     Dibaca modul Keberlanjutan sebagai pemicu (SA 220.A24 / ISQM 1 ¶34). */
+  const PRIOR_YEAR: Record<string, { fy: string; opinion: string; findings: number; findingsNote: string; uncorrected: number; changed: string; difficulties: string }> = {
+    'C-014': { fy: 'FY2024', opinion: 'WTP', findings: 1, findingsNote: 'Cut-off pendapatan akhir tahun — dikoreksi', uncorrected: 0, changed: 'Tahun ke-5 partner penanggung jawab — mendekati ambang rotasi', difficulties: '' },
+    'C-022': { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: '', difficulties: '' },
+    'C-031': { fy: 'FY2024', opinion: 'WDP', findings: 2, findingsNote: 'Nilai wajar aset biologis kurang ditopang bukti', uncorrected: 1_800_000_000, changed: 'Ekspansi lahan perkebunan baru', difficulties: 'Akses data kebun terpencil terbatas' },
+    'C-040': { fy: 'FY2024', opinion: 'WTP-EoM', findings: 1, findingsNote: 'Ketidakpastian estimasi ECL (paragraf penekanan suatu hal)', uncorrected: 0, changed: 'Regulasi OJK multifinance baru', difficulties: '' },
+    'C-047': { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: 'Pertumbuhan cepat & migrasi sistem akuntansi', difficulties: '' },
+    'C-058': { fy: 'FY2024', opinion: 'WTP', findings: 0, findingsNote: '', uncorrected: 0, changed: '', difficulties: '' },
+    'C-063': { fy: 'FY2024', opinion: 'WTP', findings: 1, findingsNote: 'Timing pengakuan pendapatan properti', uncorrected: 900_000_000, changed: '', difficulties: '' },
+  };
   const PROSPECTS = [
     {
       id: 'PROS-01', name: 'PT Pelita Energi Nusantara', industry: 'Energi · Pembangkit Listrik', city: 'Jakarta Selatan',
@@ -552,4 +564,4 @@
   /* ---- Firm Finance (ERP) — Treasury, Tax, Revenue ---- */
   /* FX rates to IDR (per 28 Feb 2026) */
 
-export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, CONT_FACTORS, PROSPECTS };
+export { FIRM, USER, CLIENTS, ENGAGEMENTS, WTB, AJE, RISKS, RISKS_PORTFOLIO, ENG_RISK_SEED, TEAM, WORKPAPERS, ACTIVITY, DEADLINES, REVIEW_NOTES, TIME_ENTRIES, PIPELINE, INVOICES, SCHEDULE, STAFF, UNITS, FIRM_STAFF, CPE_REQ, CPE_LOG, INDEPENDENCE, FIRM_COA, FIRM_GL, FIRM_AP, ACC_FACTORS, CONT_FACTORS, PRIOR_YEAR, PROSPECTS };

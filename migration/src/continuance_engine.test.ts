@@ -6,7 +6,7 @@
    ============================================================ */
 import { describe, it, expect } from 'vitest';
 import { continuanceFlags, type StoredDecision } from './continuance_engine';
-import { CLIENTS, INDEPENDENCE, INVOICES } from './data_part1';
+import { CLIENTS, INDEPENDENCE, INVOICES, PRIOR_YEAR } from './data_part1';
 
 const CLI = [
   { id: 'C-1', name: 'PT Alpha', industry: 'Manufaktur', partner: 'P. Satu', risk: 'High', listed: true, since: 2015, status: 'Active' },
@@ -120,7 +120,9 @@ describe('pemicu pengalaman tahun lalu (SA 220.A24 / ISQM 1 ¶34)', () => {
 });
 
 describe('integrasi seed nyata', () => {
-  const sum = continuanceFlags(CLIENTS, INDEPENDENCE, INVOICES, {}, 2026);
+  // priorYear = data referensi ber-clientId (tak inline di CLIENTS) → perkaya seperti di view.
+  const enriched = CLIENTS.map((c) => ({ ...c, priorYear: PRIOR_YEAR[c.id] }));
+  const sum = continuanceFlags(enriched, INDEPENDENCE, INVOICES, {}, 2026);
 
   it('mencakup hanya klien aktif (C-052 Proposal dikecualikan)', () => {
     expect(sum.rows.some((r) => r.clientId === 'C-052')).toBe(false);

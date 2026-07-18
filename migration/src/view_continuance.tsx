@@ -3,12 +3,15 @@ import { useAmsPersist, useAuth, useFirm, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Stat } from './ui';
-import { INDEPENDENCE, INVOICES } from './data_part1';
+import { Badge, Btn, Panel, Progress, Stat } from './ui';
+import { CONT_FACTORS, INDEPENDENCE, INVOICES, PRIOR_YEAR } from './data_part1';
+import { verdict, weightedScore, type AssessmentFactor } from './assessment_model';
 import {
   continuanceFlags,
+  isOpinionModified,
   type Attention,
   type ContinuanceDecision,
+  type ContinuanceRow,
   type StoredDecision,
   type TriggerSeverity,
 } from './continuance_engine';
@@ -17,17 +20,30 @@ import {
    Asseris — Keberlanjutan Klien (ISQM 1 ¶33–34 / SA 220)
    Register pengawasan KEBERLANJUTAN atas portofolio klien aktif
    (bukan penerimaan klien baru — itu modul `onboarding`). Pemicu
-   diturunkan dari kanon via continuance_engine; keputusan persist
-   firm-scope. Gate: lihat = ENGAGEMENT_VIEW_ALL, putuskan = FIRM_ADMIN.
+   diturunkan dari kanon via continuance_engine; penilaian berbobot +
+   keputusan terdokumentasi (kertas kerja SA 230) persist firm-scope.
+   Gate: lihat = ENGAGEMENT_VIEW_ALL, putuskan/kunci = FIRM_ADMIN.
    ============================================================ */
 const { useState: useStateCN } = React;
 
 const REF_YEAR = 2026; // siklus keberlanjutan yang dinilai (FY2025 audit → keputusan FY2026)
 
-/* seed keputusan demo (state firm-scope; sisanya default "Tertunda") */
+/* seed keputusan demo (state firm-scope; sisanya default "Tertunda") —
+   kini dengan penilaian berbobot + jejak agar contoh bermakna. */
 const CONTINUANCE_SEED: Record<string, StoredDecision> = {
-  'C-058': { decision: 'Lanjut', approver: 'Rudi Gunawan, CPA', date: '2026-01-12' },
-  'C-031': { decision: 'Lanjut dengan Syarat', approver: 'Hartono Wijaya, CPA', date: '2026-01-20', conditions: 'Perkuat prosedur aset biologis & pertimbangkan rotasi tim senior.' },
+  'C-058': {
+    decision: 'Lanjut', approver: 'Rudi Gunawan, CPA', date: '2026-01-12', approved: true,
+    safeguards: '',
+    factors: CONT_FACTORS({ 0: { s: 4 }, 1: { s: 4, note: 'Opini WTP FY2024, tanpa temuan signifikan.' }, 2: { s: 4 }, 3: { s: 4 }, 4: { s: 5 }, 5: { s: 4 } }),
+    trail: [{ action: 'Disetujui — Lanjut', by: 'Rudi Gunawan, CPA', at: '2026-01-12' }],
+  },
+  'C-031': {
+    decision: 'Lanjut dengan Syarat', approver: 'Hartono Wijaya, CPA', date: '2026-01-20', approved: true,
+    conditions: 'Perkuat prosedur aset biologis & pertimbangkan rotasi tim senior.',
+    safeguards: 'Libatkan pakar penilai aset biologis; reviu mutu tambahan (EQR) atas area nilai wajar.',
+    factors: CONT_FACTORS({ 0: { s: 3 }, 1: { s: 2, note: 'Opini WDP FY2024; 2 temuan signifikan (aset biologis).' }, 2: { s: 3, note: 'Tenur tim senior mendekati batas.' }, 3: { s: 3 }, 4: { s: 3 }, 5: { s: 4 } }),
+    trail: [{ action: 'Disetujui — Lanjut dengan Syarat', by: 'Hartono Wijaya, CPA', at: '2026-01-20' }],
+  },
 };
 
 const DECISIONS: ContinuanceDecision[] = ['Lanjut', 'Lanjut dengan Syarat', 'Tidak Dilanjutkan'];
@@ -35,6 +51,52 @@ const DECISIONS: ContinuanceDecision[] = ['Lanjut', 'Lanjut dengan Syarat', 'Tid
 const attnKind = (a: Attention) => (a === 'Tinggi' ? 'red' : a === 'Sedang' ? 'amber' : 'green');
 const decKind = (d: ContinuanceDecision) => (d === 'Lanjut' ? 'green' : d === 'Lanjut dengan Syarat' ? 'amber' : d === 'Tidak Dilanjutkan' ? 'red' : 'gray');
 const sevColor = (s: TriggerSeverity) => (s === 'high' ? 'var(--red)' : s === 'med' ? 'var(--amber)' : 'var(--ink-4)');
+const rp0 = (n: number) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+
+/* pemilih skor 1–5 (paralel ScorePick akseptasi) */
+function CNScorePick({ value, onChange, disabled }: { value: number; onChange: (n: number) => void; disabled?: boolean }) {
+  return (
+    <div className="row" style={{ gap: 4 }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button key={n} disabled={disabled} onClick={() => onChange(n)}
+          style={{
+            width: 24, height: 24, borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: disabled ? 'default' : 'pointer',
+            border: '1px solid ' + (n <= value ? 'transparent' : 'var(--line-strong)'),
+            background: n <= value ? (value >= 4 ? 'var(--green)' : value >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-2)',
+            color: n <= value ? '#fff' : 'var(--ink-4)', opacity: disabled ? 0.7 : 1, transition: '.12s',
+          }}>{n}</button>
+      ))}
+    </div>
+  );
+}
+
+/* kartu pengalaman tahun lalu (SA 220.A24) */
+function PriorYearCard({ row }: { row: ContinuanceRow }) {
+  const py = row.priorYear;
+  if (!py) return <div className="tiny muted">Tidak ada data tahun lalu (klien baru / belum terekam).</div>;
+  const modified = isOpinionModified(py.opinion);
+  return (
+    <div style={{ display: 'grid', gap: 7 }}>
+      <div className="row ac gap8">
+        <span className="tiny muted upper" style={{ flex: '0 0 96px' }}>Opini {py.fy || ''}</span>
+        <Badge kind={modified ? 'red' : 'green'}>{py.opinion || '—'}</Badge>
+        {modified && <span className="tiny" style={{ color: 'var(--red)' }}>modifikasian</span>}
+      </div>
+      <div className="row ac gap8">
+        <span className="tiny muted upper" style={{ flex: '0 0 96px' }}>Temuan signifikan</span>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>{py.findings ?? 0}{py.findingsNote ? ' — ' + py.findingsNote : ''}</span>
+      </div>
+      {!!py.uncorrected && (
+        <div className="row ac gap8">
+          <span className="tiny muted upper" style={{ flex: '0 0 96px' }}>Salah saji tak dikoreksi</span>
+          <span className="mono" style={{ fontSize: 12 }}>{rp0(py.uncorrected)}</span>
+        </div>
+      )}
+      {py.changed && <div className="row gap8"><span className="tiny muted upper" style={{ flex: '0 0 96px' }}>Perubahan keadaan</span><span style={{ fontSize: 12 }}>{py.changed}</span></div>}
+      {py.difficulties && <div className="row gap8"><span className="tiny muted upper" style={{ flex: '0 0 96px' }}>Kesulitan/keterbatasan</span><span style={{ fontSize: 12 }}>{py.difficulties}</span></div>}
+    </div>
+  );
+}
 
 function ContinuanceRegister() {
   const auth = useAuth();
@@ -45,27 +107,43 @@ function ContinuanceRegister() {
   const canView = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_VIEW_ALL));
   const canDecide = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRM_ADMIN));
 
-  const sum = continuanceFlags(clients, INDEPENDENCE, INVOICES, decisions, REF_YEAR);
+  // Perkaya klien terhidrasi-server (yang melucuti field non-CRM) dengan pengalaman
+  // tahun lalu dari peta referensi ber-clientId, agar pemicu & kartu tahun-lalu hidup.
+  const enrichedClients = clients.map((c: { id: string }) => ({ ...c, priorYear: PRIOR_YEAR[c.id] }));
+  const sum = continuanceFlags(enrichedClients, INDEPENDENCE, INVOICES, decisions, REF_YEAR);
   const [selId, setSelId] = useStateCN(sum.rows[0] ? sum.rows[0].clientId : '');
   const sel = sum.rows.find((r) => r.clientId === selId) || sum.rows[0];
 
-  const setDecision = (clientId: string, decision: ContinuanceDecision) => {
-    if (!canDecide) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const approver = (auth && auth.user && auth.user.name) || 'Partner';
-    setDecisions((prev: Record<string, StoredDecision>) => {
-      const next = { ...prev };
-      next[clientId] = { decision, approver, date: today, conditions: prev[clientId] ? prev[clientId].conditions : undefined };
-      return next;
-    });
+  const me = (auth && auth.user && auth.user.name) || 'Partner';
+  const stamp = () => new Date().toISOString().slice(0, 10);
+
+  const patchRec = (clientId: string, patch: Partial<StoredDecision>) =>
+    setDecisions((prev: Record<string, StoredDecision>) => ({ ...prev, [clientId]: { ...(prev[clientId] || {}), ...patch } }));
+
+  // kertas kerja klien terpilih
+  const rec: StoredDecision = (sel && decisions[sel.clientId]) || {};
+  const factors: AssessmentFactor[] = (rec.factors && rec.factors.length) ? rec.factors : CONT_FACTORS();
+  const score = weightedScore(factors);
+  const rv = verdict(score, 'continuance');
+  const approved = !!rec.approved;
+  const editable = canView && !approved;
+
+  const patchFactor = (i: number, p: Partial<AssessmentFactor>) => {
+    if (!sel || !editable) return;
+    const base = (rec.factors && rec.factors.length) ? rec.factors : CONT_FACTORS();
+    patchRec(sel.clientId, { factors: base.map((f, idx) => (idx === i ? { ...f, ...p } : f)) });
   };
-  const resetDecision = (clientId: string) => {
-    if (!canDecide) return;
-    setDecisions((prev: Record<string, StoredDecision>) => {
-      const next = { ...prev };
-      delete next[clientId];
-      return next;
-    });
+  const setSafeguards = (v: string) => { if (sel && editable) patchRec(sel.clientId, { safeguards: v }); };
+  const setDecisionField = (d: ContinuanceDecision) => { if (sel && canDecide && !approved) patchRec(sel.clientId, { decision: d }); };
+  const approveWp = () => {
+    if (!sel || !canDecide) return;
+    const dec: ContinuanceDecision = rec.decision || (rv.l as ContinuanceDecision);
+    const at = stamp();
+    patchRec(sel.clientId, { approved: true, decision: dec, approver: me, date: at, factors, trail: [...(rec.trail || []), { action: 'Disetujui — ' + dec, by: me, at }] });
+  };
+  const reopenWp = () => {
+    if (!sel || !canDecide) return;
+    patchRec(sel.clientId, { approved: false, trail: [...(rec.trail || []), { action: 'Dibuka kembali untuk revisi', by: me, at: stamp() }] });
   };
 
   if (!canView) {
@@ -102,7 +180,7 @@ function ContinuanceRegister() {
           <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
             {/* Register */}
             <Panel noBody>
-              <div className="panel-h"><h3>Register Keberlanjutan — Portofolio Aktif</h3><div style={{ flex: 1 }} /><span className="tiny muted">Klik baris untuk detail & keputusan</span></div>
+              <div className="panel-h"><h3>Register Keberlanjutan — Portofolio Aktif</h3><div style={{ flex: 1 }} /><span className="tiny muted">Klik baris untuk kertas kerja & keputusan</span></div>
               <table className="dtbl">
                 <thead><tr>
                   <th>Klien</th><th>Partner</th><th className="r">Asosiasi</th><th>Pemicu</th><th>Perhatian</th><th>Keputusan</th>
@@ -125,19 +203,19 @@ function ContinuanceRegister() {
                           </span>}
                       </td>
                       <td><Badge kind={attnKind(r.attention)}>{r.attention}</Badge></td>
-                      <td><Badge kind={decKind(r.decision)} dot={r.decided}>{r.decision}</Badge></td>
+                      <td><Badge kind={decKind(r.decision)} dot={!!(decisions[r.clientId] && decisions[r.clientId].approved)}>{r.decision}</Badge></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </Panel>
 
-            {/* Detail & keputusan */}
+            {/* Ringkasan pemicu + tindak lanjut */}
             {sel && (
               <div className="grid" style={{ gap: 12 }}>
                 <Panel title={sel.client.replace('PT ', '')} sub={`${sel.industry} · ${sel.partner.split(',')[0]}`}>
                   <div style={{ padding: '12px 14px' }}>
-                    <div className="row ac gap8" style={{ marginBottom: 10 }}>
+                    <div className="row ac gap8" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
                       <Badge kind={attnKind(sel.attention)}>Perhatian {sel.attention}</Badge>
                       {sel.pie && <Badge kind="blue">Emiten / PIE</Badge>}
                       <Badge kind={sel.risk === 'High' ? 'red' : sel.risk === 'Medium' ? 'amber' : 'gray'}>Risiko {sel.risk}</Badge>
@@ -156,29 +234,16 @@ function ContinuanceRegister() {
                       </div>}
 
                     <div className="divider" />
-                    <div className="row ac jb" style={{ marginBottom: 8 }}>
-                      <span className="tiny muted upper">Keputusan</span>
-                      <Badge kind={decKind(sel.decision)} dot={sel.decided}>{sel.decision}</Badge>
+                    <div className="row ac jb">
+                      <span className="tiny muted upper">Status keputusan</span>
+                      <Badge kind={decKind(sel.decision)} dot={approved}>{approved ? sel.decision : 'Tertunda'}</Badge>
                     </div>
-                    {sel.decided && (
-                      <div className="tiny muted" style={{ marginBottom: 8 }}>
-                        Oleh {sel.approver} · {sel.decidedDate}{sel.conditions ? <div style={{ marginTop: 3 }}>Syarat: {sel.conditions}</div> : null}
+                    {approved && (
+                      <div className="tiny muted" style={{ marginTop: 6 }}>
+                        Disetujui {sel.approver} · {sel.decidedDate}
                       </div>
                     )}
-
-                    {canDecide ? (
-                      <>
-                        <div className="row wrap gap6">
-                          {DECISIONS.map((d) => (
-                            <Btn key={d} sm variant={sel.decision === d ? 'primary' : ''} onClick={() => setDecision(sel.clientId, d)}>{d}</Btn>
-                          ))}
-                          {sel.decided && <Btn sm variant="ghost" onClick={() => resetDecision(sel.clientId)}><I.sync size={13} /> Tertunda</Btn>}
-                        </div>
-                        <div className="tiny muted" style={{ marginTop: 6 }}>Persetujuan dicatat atas nama Anda ({(auth && auth.user && auth.user.name) || 'Partner'}) — SA 220 / ISQM 1.</div>
-                      </>
-                    ) : (
-                      <div className="tiny muted">Hanya Partner (otoritas firma) yang dapat memutuskan keberlanjutan. Anda dapat menelaah.</div>
-                    )}
+                    <div className="tiny muted" style={{ marginTop: 8 }}>Isi kertas kerja berbobot di bawah, lalu Partner mengunci keputusan.</div>
                   </div>
                 </Panel>
 
@@ -192,6 +257,96 @@ function ContinuanceRegister() {
               </div>
             )}
           </div>
+
+          {/* KERTAS KERJA KEBERLANJUTAN (SA 230) — penilaian berbobot + tahun-lalu + keputusan */}
+          {sel && (
+            <Panel noBody style={{ marginTop: 12 }}>
+              <div className="panel-h">
+                <h3>Kertas Kerja Keberlanjutan — {sel.client.replace('PT ', '')}</h3>
+                <div style={{ flex: 1 }} />
+                <span className="tiny muted">SA 220 · ISQM 1 ¶34 · siklus {REF_YEAR}</span>
+              </div>
+              <div className="grid" style={{ gridTemplateColumns: '1.35fr 1fr', gap: 0 }}>
+                {/* KIRI — penilaian berbobot */}
+                <div style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}>
+                  <div className="row ac jb" style={{ marginBottom: 10 }}>
+                    <span className="tiny muted upper">Penilaian berbobot faktor</span>
+                    <div className="row ac gap8">
+                      <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--' + rv.k + ')' }}>{score.toFixed(2)}</span>
+                      <span className={'badge b-' + rv.k} style={{ fontSize: 11, padding: '2px 8px' }}>{rv.l}</span>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: 12 }}><Progress value={score / 5 * 100} color={'var(--' + rv.k + ')'} /></div>
+
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    {factors.map((f, i) => (
+                      <div key={i}>
+                        <div className="row ac jb" style={{ gap: 8, marginBottom: 5 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600 }}>{f.k} <span className="tiny muted">· bobot {f.w}</span></span>
+                          <CNScorePick value={f.s} onChange={(n) => patchFactor(i, { s: n })} disabled={!editable} />
+                        </div>
+                        <input className="input" value={f.note || ''} disabled={!editable}
+                          onChange={(e: { target: { value: string } }) => patchFactor(i, { note: e.target.value })}
+                          placeholder="Catatan/justifikasi penilai…"
+                          style={{ width: '100%', fontSize: 11.5, padding: '5px 8px', background: editable ? 'var(--surface)' : 'var(--surface-2)' }} />
+                      </div>
+                    ))}
+                  </div>
+                  {!canView ? null : !editable && (
+                    <div className="tiny muted" style={{ marginTop: 10 }}>Kertas kerja terkunci (disetujui). Buka kembali untuk merevisi penilaian.</div>
+                  )}
+                </div>
+
+                {/* KANAN — tahun lalu + safeguard + keputusan + jejak */}
+                <div style={{ padding: '14px 16px', display: 'grid', gap: 12, alignContent: 'start' }}>
+                  <div>
+                    <div className="tiny muted upper" style={{ marginBottom: 7 }}>Pengalaman tahun lalu (SA 220.A24)</div>
+                    <PriorYearCard row={sel} />
+                  </div>
+
+                  <div>
+                    <div className="tiny muted upper" style={{ marginBottom: 5 }}>Safeguard / syarat keberlanjutan</div>
+                    <textarea className="input" value={rec.safeguards || ''} disabled={!editable}
+                      onChange={(e: { target: { value: string } }) => setSafeguards(e.target.value)}
+                      placeholder="Tindakan pengaman atas ancaman teridentifikasi (mis. rotasi, EQR, pakar)…"
+                      style={{ width: '100%', minHeight: 56, fontSize: 11.5, padding: '6px 8px', resize: 'vertical', background: editable ? 'var(--surface)' : 'var(--surface-2)' }} />
+                  </div>
+
+                  <div>
+                    <div className="tiny muted upper" style={{ marginBottom: 6 }}>Keputusan (menuntun: {rv.l})</div>
+                    {canDecide ? (
+                      <>
+                        <div className="row wrap gap6">
+                          {DECISIONS.map((d) => (
+                            <Btn key={d} sm variant={(rec.decision || rv.l) === d ? 'primary' : ''} disabled={approved} onClick={() => setDecisionField(d)}>{d}</Btn>
+                          ))}
+                        </div>
+                        <div className="row gap6" style={{ marginTop: 8 }}>
+                          {!approved
+                            ? <Btn sm variant="primary" onClick={approveWp}><I.check size={13} /> Setujui &amp; Kunci</Btn>
+                            : <Btn sm variant="ghost" onClick={reopenWp}><I.sync size={13} /> Buka kembali</Btn>}
+                        </div>
+                        <div className="tiny muted" style={{ marginTop: 6 }}>Persetujuan atas nama Anda ({me}) — SA 220 / ISQM 1.</div>
+                      </>
+                    ) : (
+                      <div className="tiny muted">Hanya Partner (otoritas firma) yang mengunci keputusan. Anda dapat menilai & menelaah.</div>
+                    )}
+                  </div>
+
+                  {rec.trail && rec.trail.length > 0 && (
+                    <div>
+                      <div className="tiny muted upper" style={{ marginBottom: 5 }}>Jejak persetujuan</div>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        {rec.trail.map((t, i) => (
+                          <div key={i} className="tiny muted">• {t.action} — {t.by} · {t.at}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Panel>
+          )}
         </div>
       </div>
     </>
