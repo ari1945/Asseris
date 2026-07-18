@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAmsPersist, useAuth, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAuth, useFirm, useInitialSelection, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -46,7 +46,13 @@ function ContinuanceRegister() {
   const canDecide = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRM_ADMIN));
 
   const sum = continuanceFlags(clients, INDEPENDENCE, INVOICES, decisions, REF_YEAR);
-  const [selId, setSelId] = useStateCN(sum.rows[0] ? sum.rows[0].clientId : '');
+  // Deep-link (mis. dari Lini Masa Audit): buka langsung baris klien perikatan
+  // terpilih bila valid; jika tidak, jatuh ke default (baris teratas) → nol regresi.
+  const seedClient = useInitialSelection('continuance');
+  const [selId, setSelId] = useStateCN(
+    seedClient && sum.rows.some((r) => r.clientId === seedClient) ? seedClient
+      : (sum.rows[0] ? sum.rows[0].clientId : '')
+  );
   const sel = sum.rows.find((r) => r.clientId === selId) || sum.rows[0];
 
   const setDecision = (clientId: string, decision: ContinuanceDecision) => {

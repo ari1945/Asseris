@@ -28,10 +28,13 @@ const ATL_tint = (hex: any, a: any) => { const n = parseInt(hex.slice(1), 16); r
 /* template aktivitas per fase — fraksi [a,b] di dalam jendela fase nyata.
    mod = modul/prosedur terkait yang dibuka saat baris diklik.
    tab (opsional, PRD 2026-07-18) = tab/lensa awal yang diseed di modul-tujuan
-   via useInitialTab; tanpa tab → modul memakai default/last-used (perilaku lama). */
+   via useInitialTab; tanpa tab → modul memakai default/last-used (perilaku lama).
+   selClient (opsional) = teruskan clientId perikatan aktif sebagai deep-link
+   selection (useInitialSelection) agar modul-tujuan membuka baris klien yg tepat —
+   dipakai 'Penerimaan & keberlanjutan' → register Keberlanjutan Klien. */
 const ATL_TASKS = {
   Perencanaan: [
-    { n: 'Penerimaan & keberlanjutan perikatan', ref: 'A-100', a: 0, b: .28, mod: 'onboarding' },
+    { n: 'Penerimaan & keberlanjutan perikatan', ref: 'A-100', a: 0, b: .28, mod: 'continuance', selClient: true },
     { n: 'Pemahaman entitas & lingkungan', ref: 'A-200', a: .18, b: .55, mod: 'risk', tab: 'register' },
     { n: 'Penilaian risiko & penetapan materialitas', ref: 'A-300', a: .42, b: .78, mod: 'materiality' },
     { n: 'Penyusunan strategi & program audit', ref: 'A-310', a: .66, b: .92, mod: 'programme' },
@@ -181,7 +184,7 @@ function AuditTimeline() {
         {/* GANTT */}
         <Panel noBody style={{ marginBottom: 12, overflow: 'hidden' }}>
           <div style={{ display: 'flex', overflowX: 'auto' }}>
-            <ATL_Chart mode={mode} groups={groups} plan={plan} months={months} frac={frac} today={today} done={done} onOpen={(t: any) => t && t.mod && nav(t.mod, { from: 'audittimeline', tab: t.tab })} />
+            <ATL_Chart mode={mode} groups={groups} plan={plan} months={months} frac={frac} today={today} done={done} onOpen={(t: any) => t && t.mod && nav(t.mod, { from: 'audittimeline', tab: t.tab, sel: t.selClient ? client.id : undefined })} />
           </div>
         </Panel>
 
