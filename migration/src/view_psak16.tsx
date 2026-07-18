@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
@@ -121,7 +121,7 @@ function PSAK16View() {
   const [unit, setUnit] = useStateP16(() => loader('ams.psak16.unit', 'jutaan'));
   const [measure, setMeasure] = useStateP16(() => loader('ams.psak16.measure', 'cost'));
   const [regTab, setRegTab] = useStateP16(() => loader('ams.psak16.regtab', 'register'));
-  const [tab, setTab] = useStateP16(() => loader('ams.psak16.tab', 'ikhtisar'));
+  const [tab, setTab] = useInitialTab('psak16', () => loader('ams.psak16.tab', 'ikhtisar'));
   const [disc, setDisc] = useStateP16(() => loader('ams.psak16.disc', P16_DISCLOSURE));
   const [impair, setImpair] = useStateP16(() => loader('ams.psak16.impair', P16_IMPAIR));
   const [exporting, setExporting] = useStateP16(false);

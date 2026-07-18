@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { materialityFor } from './canon_selectors';
@@ -97,7 +97,7 @@ function PSAK14View() {
   const inv = useMemoP14(() => (AMS_CANON ? AMS_CANON.inventory(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP14(() => loader('ams.psak14.unit', 'jutaan'));
-  const [tab, setTab] = useStateP14(() => loader('ams.psak14.tab', 'ikhtisar'));
+  const [tab, setTab] = useInitialTab('psak14', () => loader('ams.psak14.tab', 'ikhtisar'));
   const [disc, setDisc] = useStateP14(() => loader('ams.psak14.disc', P14_DISCLOSURE));
   const [formula, setFormula] = useStateP14(() => loader('ams.psak14.formula', 'wavg'));
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);

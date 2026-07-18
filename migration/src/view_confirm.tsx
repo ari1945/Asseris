@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui';
@@ -406,8 +406,10 @@ function ConfirmationHub() {
   const [cfState, setCfState] = useAmsPersist('confirmState.v1', { overrides: {}, recon: {}, altChecks: {}, relChecks: {} });
   const { recon, altChecks, relChecks } = cfState;
 
-  const [tab, setTab] = useStateCF('overview');
-  const [fType, setFType] = useStateCF('All');
+  // Deep-link (PRD 2026-07-18): seed jenis konfirmasi (mis. Bank/Utang dari timeline);
+  // bila diseed non-'All', buka langsung tab "Daftar Konfirmasi" agar filter terlihat.
+  const [fType, setFType] = useInitialTab('confirm', 'All');
+  const [tab, setTab] = useStateCF(() => fType !== 'All' ? 'register' : 'overview');
   const [fStatus, setFStatus] = useStateCF('All');
   const [selId, setSelId] = useStateCF('CF-005');
   const [focusId, setFocusId] = useStateCF(null);

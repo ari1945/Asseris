@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat } from './ui';
@@ -70,7 +70,7 @@ function RiskAssessment() {
   const sig = risks.filter((r: any) => r.likelihood * r.impact >= 12).length;
   const fraud = risks.filter((r: any) => r.fraud).length;
 
-  const [mtab, setMtab] = useStateR(() => localStorage.getItem('ams.risk.tab') || 'register');
+  const [mtab, setMtab] = useInitialTab('risk', () => localStorage.getItem('ams.risk.tab') || 'register');
   React.useEffect(() => { try { localStorage.setItem('ams.risk.tab', mtab); } catch (e) {} }, [mtab]);
   const riskTabs = [
     { id: 'register', label: 'Register', icon: 'table' },

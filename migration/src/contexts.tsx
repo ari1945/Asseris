@@ -48,6 +48,24 @@ function useCurrentAuditor() {
   return { full, short: amsShortName(full) };
 }
 
+/* Deep-link tab (PRD 2026-07-18): `navigate(id, { tab })` menaruh one-shot
+   `sessionStorage['ams.navtab.<id>']`; modul bertab memakai
+   `useInitialTab(moduleId, fallback)` untuk menyeed tab awalnya SEKALI — override
+   default/last-used hanya saat tiba via deep-link, lalu MENGONSUMSI kunci (hapus)
+   sehingga kunjungan/render berikutnya kembali ke perilaku normal. Drop-in
+   pengganti `useState(fallback)`: mengembalikan tuple [nilai, setter] yang sama.
+   `fallback` boleh nilai atau fungsi lazy (dievaluasi bila tak ada tab diminta). */
+function useInitialTab(moduleId: string, fallback: unknown) {
+  return useState(() => {
+    try {
+      const k = 'ams.navtab.' + moduleId;
+      const v = sessionStorage.getItem(k);
+      if (v != null) { sessionStorage.removeItem(k); return v; }
+    } catch (e) { /* private mode / no sessionStorage */ }
+    return typeof fallback === 'function' ? fallback() : fallback;
+  });
+}
+
 /* P5 Fase 2 — catatan review berlingkup-engagement. Selektor murni: catatan
    milik engagement `engId`; catatan legacy tanpa `engagementId` ikut tampil
    (tak ada yang hilang dari state lama). */
@@ -520,11 +538,11 @@ function AppProviders({ me, onLogout, children }: any) {
 Object.assign(window, {
   AuthContext, FirmContext, AuditContext, NavContext, NavFromContext,
   useAuth, useFirm, useAudit, useNav, useNavFrom, AppProviders, clearPersisted,
-  notesForEngagement, amsShortName, useCurrentAuditor,
+  notesForEngagement, amsShortName, useCurrentAuditor, useInitialTab,
 });
 window.clearPersisted = clearPersisted;
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor };
+export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor, useInitialTab };
 export { useAmsPersist };

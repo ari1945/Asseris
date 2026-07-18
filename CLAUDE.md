@@ -119,6 +119,7 @@ Opsional (rekat ke ekosistem):
 - **SSOT / "sumber kebenaran tunggal":** angka berasal dari `window.AMS.WTB` melalui `AMS_CANON.*`. Status WP dari `deriveWpStatus`. **Jangan** menyimpan salinan privat / hardcode angka yang sudah ada di canon.
 - **Persistensi:** `usePersisted`/`useAmsPersist` → key `ams.v1.<key>`. Prefs app → `ams.<key>`. Checklist → `ams.comp.<stdId>.*`. Selalu try/catch JSON.
 - **Navigasi:** `nav(id, { from:'modulIni' })` agar breadcrumb "kembali" (SubBar) & follow-workspace bekerja. Drawer SA dibuka `window.__amsOpenSA({ code, title, view? })`.
+- **Deep-link tab** (PRD 2026-07-18): `nav(id, { from, tab })` menaruh one-shot `sessionStorage['ams.navtab.<id>']` (consume-once, tahan reload). Modul bertab menyeed tab awalnya dengan `useInitialTab('<id>', fallback)` (drop-in `useState`; `fallback` boleh nilai/fungsi) — override default/last-used HANYA saat tiba via deep-link, lalu mengonsumsi kuncinya. Tanpa `tab` = perilaku lama (nol regresi). Contoh nyata: `view_audittimeline.tsx` `ATL_TASKS[].tab` → confirm(Bank/Utang)/psak16(register)/psak14(nrv)/risk(register).
 - **Routing modul tak terdaftar:** `viewFor()` fallback ke `<ComplianceView>` (bila ada `COMPLIANCE_CONFIG[id]`) atau `<StubView>`.
 - **Bahasa & angka:** UI Bahasa Indonesia; mata uang `rp()`/`fmt()` lokal id-ID (mis. `Rp 1.850.000.000`, negatif dalam kurung).
 - **Styling:** CSS di `app/styles.css` + CSS var (`--navy --blue --ink-2 --line --red --amber-bg …`). Pakai var, bukan warna hardcode baru.
