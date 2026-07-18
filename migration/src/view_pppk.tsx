@@ -46,10 +46,10 @@ function PPPKReport() {
       <SubBar moduleId="pppk" right={<div className="row gap8 ac"><Badge kind="blue">P2PK · PMK 154/2017 jo. 186/2021</Badge><Btn sm variant="primary"><I.upload size={13} /> Ajukan Laporan Tahunan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={R.totalClients} label="Total Klien FY2025" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={R.pie} label="Klien Emiten / PIE" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={totalOpinions} label="Opini Diterbitkan" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={daysLeft + ' hari'} label="Menuju Tenggat (30 Apr)" accent={daysLeft < 30 ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={R.totalClients} label="Total Klien FY2025" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={R.pie} label="Klien Emiten / PIE" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalOpinions} label="Opini Diterbitkan" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={daysLeft + ' hari'} label="Menuju Tenggat (30 Apr)" accent={daysLeft < 30 ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
         </div>
 
         <Panel noBody>

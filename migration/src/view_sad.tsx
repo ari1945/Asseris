@@ -152,7 +152,7 @@ function SADLedger() {
 
 /* ---------- KPI card ---------- */
 function KpiCard({ value, label, accent }: any) {
-  return <Panel><div style={{ padding: '11px 14px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
+  return <Panel><div style={{ padding: '15px 18px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
 }
 
 /* ============================================================

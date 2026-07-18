@@ -161,11 +161,11 @@ function GroupAudit() {
         <div className="view-pad">
           {/* KPI row */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={comps.length} label="Komponen Grup" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={revCoverage + '%'} label="Cakupan Pendapatan" accent={revCoverage >= 90 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={astCoverage + '%'} label="Cakupan Aset" accent={astCoverage >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={pkgApproved + '/' + pkgTotal} label="Paket Disetujui" accent={pkgApproved === pkgTotal ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalSad / 1e6, 0) + ' jt'} label="SAD Grup Terbuka" accent={totalSad > GROUP_MAT ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={comps.length} label="Komponen Grup" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={revCoverage + '%'} label="Cakupan Pendapatan" accent={revCoverage >= 90 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={astCoverage + '%'} label="Cakupan Aset" accent={astCoverage >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={pkgApproved + '/' + pkgTotal} label="Paket Disetujui" accent={pkgApproved === pkgTotal ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalSad / 1e6, 0) + ' jt'} label="SAD Grup Terbuka" accent={totalSad > GROUP_MAT ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
           </div>
 
           <Panel noBody>
@@ -262,7 +262,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
 
           {sel && (
             <Panel noBody>
-              <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+              <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
                 <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={(STATUS_KIND_GA as any)[sel.status]}>{sel.status}</Badge></div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3 }}>{sel.name}</div>
               </div>
@@ -375,7 +375,7 @@ function GAAuditor({ comps, setComp }: any) {
           const reliable = avg >= 3.5;
           return (
             <div key={c.id} className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-              <div className="row jb ac" style={{ padding: '11px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
+              <div className="row jb ac" style={{ padding: '15px 18px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
                 <div className="row ac gap8">
                   <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span>
                   <span style={{ fontWeight: 700, fontSize: 13 }}>{c.auditor}</span>

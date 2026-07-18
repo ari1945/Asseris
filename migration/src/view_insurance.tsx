@@ -190,7 +190,7 @@ function InsPolicies({ pols, nav, setTab }: any) {
         </table>
 
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
             <span style={{ width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}><I.umbrella size={16} /></span>
             <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{p.jenis}</div><div className="tiny muted mono">{p.id} · {p.policyNo}</div></div>
             <BoBadge s={p.status} />
@@ -270,7 +270,7 @@ function InsClaims({ claims, nav, setTab }: any) {
         </table>
 
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</span>
             <div style={{ flex: 1 }} />
             <BoBadge s={c.status} />
@@ -327,7 +327,7 @@ function InsRegister({ reg, nav, setTab }: any) {
         </table>
 
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700 }}>{r.id}</span>
             <Badge>{r.kat}</Badge>
             <div style={{ flex: 1 }} />

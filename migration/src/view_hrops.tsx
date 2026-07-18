@@ -44,10 +44,10 @@ function LeaveAttendance() {
       <SubBar moduleId="leave" right={<div className="row gap8 ac"><Badge kind="blue">Kuota 12 hari/tahun</Badge><Btn sm variant="primary"><I.plus size={14} /> Ajukan Cuti</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent={pending.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={onLeaveToday.length} label="Cuti Hari Ini" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={totalUsed + ' / ' + totalEnt} label="Hari Cuti Terpakai (firma)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(totalUsed / totalEnt * 100) + '%'} label="Pemanfaatan Kuota" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent={pending.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={onLeaveToday.length} label="Cuti Hari Ini" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalUsed + ' / ' + totalEnt} label="Hari Cuti Terpakai (firma)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(totalUsed / totalEnt * 100) + '%'} label="Pemanfaatan Kuota" accent="var(--blue)" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -162,10 +162,10 @@ function Performance() {
       <SubBar moduleId="performance" right={<div className="row gap8 ac"><Badge kind="blue">{C.cycle} · {C.phase}</Badge><Btn sm><I.download size={13} /> Laporan Kalibrasi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={calibrated + ' / ' + people.length} label="Terkalibrasi" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pendingMgr} label="Menunggu Reviu Manajer" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgPerf.toFixed(2)} label="Rata-rata Skor Kinerja" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={people.filter((p: any) => p.promote && p.promote !== '—').length} label="Kandidat Promosi" accent="var(--purple)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={calibrated + ' / ' + people.length} label="Terkalibrasi" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pendingMgr} label="Menunggu Reviu Manajer" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgPerf.toFixed(2)} label="Rata-rata Skor Kinerja" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={people.filter((p: any) => p.promote && p.promote !== '—').length} label="Kandidat Promosi" accent="var(--purple)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1.35fr 1fr', gap: 12, alignItems: 'start' }}>

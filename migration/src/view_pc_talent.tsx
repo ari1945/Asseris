@@ -48,10 +48,10 @@ function Recruitment() {
       <SubBar moduleId="recruitment" right={<div className="row gap8 ac"><Badge kind="blue">{openReqs} lowongan aktif</Badge><Btn sm variant="primary"><I.plus size={14} /> Requisisi Baru</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={openReqs} label="Requisisi Terbuka" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={totalApp} label="Total Pelamar" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={offers} label="Penawaran Berjalan" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgFill + ' hari'} label="Rata-rata Time-to-Fill" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={openReqs} label="Requisisi Terbuka" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalApp} label="Total Pelamar" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={offers} label="Penawaran Berjalan" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgFill + ' hari'} label="Rata-rata Time-to-Fill" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -190,10 +190,10 @@ function Learning() {
       <SubBar moduleId="learning" right={<div className="row gap8 ac"><Badge kind="blue">{COMP.length} kompetensi inti</Badge><Btn sm variant="primary"><I.plus size={14} /> Jadwalkan Pelatihan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={coverage + '%'} label="Kompetensi Terpenuhi" accent={coverage >= 80 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={gapCount} label="Gap Kompetensi" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={upcoming} label="Pelatihan Mendatang" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={seatsLeft} label="Kursi Tersedia" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={coverage + '%'} label="Kompetensi Terpenuhi" accent={coverage >= 80 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={gapCount} label="Gap Kompetensi" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={upcoming} label="Pelatihan Mendatang" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={seatsLeft} label="Kursi Tersedia" accent="var(--blue)" /></div></Panel>
         </div>
 
         <Panel noBody>

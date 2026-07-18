@@ -104,11 +104,11 @@ function AssertionMatrix() {
 
         {/* KPI band */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={agg.relevant} label="Asersi Relevan (SA 315)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${agg.covered}/${agg.relevant}`} label="Ditanggapi Prosedur" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${agg.concluded}/${agg.relevant}`} label="Disimpulkan" accent={agg.concluded === agg.relevant ? 'var(--green)' : 'var(--ink)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={agg.gap} label="Gap (belum ditanggapi)" accent={agg.gap ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={agg.exc} label="Pengecualian" accent={agg.exc ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={agg.relevant} label="Asersi Relevan (SA 315)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${agg.covered}/${agg.relevant}`} label="Ditanggapi Prosedur" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${agg.concluded}/${agg.relevant}`} label="Disimpulkan" accent={agg.concluded === agg.relevant ? 'var(--green)' : 'var(--ink)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={agg.gap} label="Gap (belum ditanggapi)" accent={agg.gap ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={agg.exc} label="Pengecualian" accent={agg.exc ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: sel ? 'minmax(0,1fr) 340px' : '1fr', gap: 12, alignItems: 'start' }}>

@@ -56,10 +56,10 @@ function CapacityPlanning() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(avgUtil, 0) + '%'} label="Utilisasi Proyeksi" accent={utilColor(avgUtil)} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={deficitWeeks} label="Minggu Defisit Kapasitas" accent={deficitWeeks ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(benchNext4) + 'h'} label="Bench 4 Minggu Depan" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(avgUtil, 0) + '%'} label="Utilisasi Proyeksi" accent={utilColor(avgUtil)} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficitWeeks} label="Minggu Defisit Kapasitas" accent={deficitWeeks ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(benchNext4) + 'h'} label="Bench 4 Minggu Depan" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)" /></div></Panel>
         </div>
 
         {/* supply vs demand chart */}

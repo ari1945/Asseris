@@ -68,10 +68,10 @@ function FirmRevenue() {
       <SubBar moduleId="revenue" right={<div className="row gap8 ac"><span className="chip tiny"><I.link2 size={11} /> e-Faktur DJP</span><Btn sm variant="primary"><I.receipt size={14} /> Terbitkan Faktur dari WIP</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totRecognized / 1e9, 1) + ' M'} label="Pendapatan Diakui (PSAK 72)" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(backlog / 1e9, 1) + ' M'} label="Backlog (belum diakui)" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totAsset / 1e6, 0) + ' jt'} label="Aset Kontrak (belum ditagih)" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totLiab / 1e6, 0) + ' jt'} label="Pendapatan Diterima Dimuka" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totRecognized / 1e9, 1) + ' M'} label="Pendapatan Diakui (PSAK 72)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(backlog / 1e9, 1) + ' M'} label="Backlog (belum diakui)" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totAsset / 1e6, 0) + ' jt'} label="Aset Kontrak (belum ditagih)" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totLiab / 1e6, 0) + ' jt'} label="Pendapatan Diterima Dimuka" accent="var(--amber)" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -222,7 +222,7 @@ function RecognitionDrill({ r, onClose }: any) {
   ];
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{r.client.replace('PT ', '')}</div><div className="tiny muted mono">{r.id} · {r.partner} · {r.method}</div></div>
         <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>

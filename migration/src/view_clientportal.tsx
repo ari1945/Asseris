@@ -410,10 +410,10 @@ function ClientPortal() {
           </div>
         )}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={engReqs.length} label="Total Permintaan (PBC)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={received + ' / ' + engReqs.length} label="Diterima" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={overdue.length} label="Terlambat" accent={overdue.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><div className="row ac jb"><Stat value={pct + '%'} label="Progres Pengumpulan" accent="var(--blue)" /><Donut size={52} thickness={9} segments={[{ value: reviewed, color: 'var(--green)' }, { value: received - reviewed, color: 'var(--blue)' }, { value: engReqs.length - received, color: 'var(--surface-3)' }]} /></div></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={engReqs.length} label="Total Permintaan (PBC)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={received + ' / ' + engReqs.length} label="Diterima" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={overdue.length} label="Terlambat" accent={overdue.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><div className="row ac jb"><Stat value={pct + '%'} label="Progres Pengumpulan" accent="var(--blue)" /><Donut size={52} thickness={9} segments={[{ value: reviewed, color: 'var(--green)' }, { value: received - reviewed, color: 'var(--blue)' }, { value: engReqs.length - received, color: 'var(--surface-3)' }]} /></div></div></Panel>
         </div>
 
         <Panel noBody>

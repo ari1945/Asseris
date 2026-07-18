@@ -39,10 +39,10 @@ function EQRWorkflow() {
       <SubBar moduleId="eqr" right={<div className="row gap8 ac"><Badge kind="blue">ISQM 2 · SA 220</Badge></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.length} label="EQR Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.filter((x: any) => x.type.includes('PIE')).length} label="Wajib (PIE/Emiten)" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.filter((x: any) => x.cleared).length + ' / ' + reviews.length} label="Gerbang Lolos" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={reviews.reduce((s: any, x: any) => s + x.findings.filter((f: any) => f.status === 'Terbuka').length, 0)} label="Temuan Terbuka" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={reviews.length} label="EQR Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={reviews.filter((x: any) => x.type.includes('PIE')).length} label="Wajib (PIE/Emiten)" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={reviews.filter((x: any) => x.cleared).length + ' / ' + reviews.length} label="Gerbang Lolos" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={reviews.reduce((s: any, x: any) => s + x.findings.filter((f: any) => f.status === 'Terbuka').length, 0)} label="Temuan Terbuka" accent="var(--amber)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>

@@ -77,10 +77,10 @@ function AuditTrail() {
       <div className="view-scroll"><div className="view-pad">
         {/* KPI + integrity */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(all.length)} label="Total Entri" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.filter((a: any) => a.ts.startsWith('2026-03-10') || a.ts.startsWith('2026-03-09')).length} label="Aktivitas 24 Jam" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(all.map((a: any) => a.who)).size} label="Pengguna Unik" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: 'var(--green)' }}>Terverifikasi</div><div className="s-lbl">Integritas Hash-Chain</div></div></div></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(all.length)} label="Total Entri" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.filter((a: any) => a.ts.startsWith('2026-03-10') || a.ts.startsWith('2026-03-09')).length} label="Aktivitas 24 Jam" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={new Set(all.map((a: any) => a.who)).size} label="Pengguna Unik" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: 'var(--green)' }}>Terverifikasi</div><div className="s-lbl">Integritas Hash-Chain</div></div></div></div></Panel>
         </div>
 
         {/* charts row */}

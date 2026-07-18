@@ -64,10 +64,10 @@ function InvestmentProperty() {
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(D.fvSum)} label="Nilai wajar (Level 3)" accent="var(--navy)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(IP_ROLL.fvGain)} label="Keuntungan NW → Laba Rugi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(IP_PL.rental)} label="Pendapatan sewa" accent="var(--blue)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(D.noi)} label="Hasil operasi neto (NOI)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(D.fvSum)} label="Nilai wajar (Level 3)" accent="var(--navy)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(IP_ROLL.fvGain)} label="Keuntungan NW → Laba Rugi" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(IP_PL.rental)} label="Pendapatan sewa" accent="var(--blue)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(D.noi)} label="Hasil operasi neto (NOI)" /></div></Panel>
           </div>
 
           <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>

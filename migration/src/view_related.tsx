@@ -81,10 +81,10 @@ function RelatedParties() {
       <div className="view-scroll">
         <div className="view-pad">
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={RP_PARTIES.length} label="Pihak Berelasi" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalRPT / 1e9, 1) + ' M'} label="Nilai Transaksi RPT" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={nonArm} label="Non Arm's-Length" accent="var(--amber)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={undisclosed} label="Belum Diungkapkan" accent="var(--red)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={RP_PARTIES.length} label="Pihak Berelasi" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalRPT / 1e9, 1) + ' M'} label="Nilai Transaksi RPT" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={nonArm} label="Non Arm's-Length" accent="var(--amber)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={undisclosed} label="Belum Diungkapkan" accent="var(--red)" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '250px 1fr', gap: 12, alignItems: 'start' }}>
@@ -122,7 +122,7 @@ function RelatedParties() {
                   <div style={{ flex: 1 }} />
                   <Badge kind="blue">SA 550 ¶15-17</Badge>
                 </div>
-                <div style={{ padding: '11px 14px' }}>
+                <div style={{ padding: '15px 18px' }}>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: scan.ledgerGaps.length || scan.unsupportedRegister.length ? 12 : 0 }}>
                     <Stat value={scan.rollup.ledgerGaps} label="Gap dari Buku Besar" accent={scan.rollup.ledgerGaps ? 'var(--red)' : 'var(--green)'} />
                     <Stat value={'Rp ' + fmt(scan.rollup.ledgerRpExposure / 1e9, 2) + ' M'} label="Eksposur Jurnal RP" />
@@ -188,7 +188,7 @@ function RelatedParties() {
 
               {tx && (
                 <Panel noBody>
-                  <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+                  <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{tx.id}</span>
                     <span style={{ fontWeight: 700 }}>{tx.type}</span>
                     <span className="tiny muted">· {tx.party}</span>

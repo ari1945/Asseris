@@ -74,10 +74,10 @@ function PortfolioRiskPanel({ nav, setActiveEngagementId }: {
     <div className="view-scroll">
       <div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${sum.assessed}/${sum.engagements}`} label="Perikatan Dinilai (RoMM)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.significant} label="Risiko Signifikan (Firma)" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.fraud} label="Fraud Risk · SA 240" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.unassessed} label="Belum Dinilai" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${sum.assessed}/${sum.engagements}`} label="Perikatan Dinilai (RoMM)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.significant} label="Risiko Signifikan (Firma)" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.fraud} label="Fraud Risk · SA 240" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.unassessed} label="Belum Dinilai" /></div></Panel>
         </div>
 
         <Panel noBody>

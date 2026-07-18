@@ -315,7 +315,7 @@ function OBProcedures({ fmt }: any) {
       </Panel>
       {sel && (
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Lead {sel.lead}</span><Badge kind={sel.result === 'Memadai' ? 'green' : 'amber'}>{sel.result}</Badge></div>
             <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3 }}>{sel.acct}</div>
             <div className="tiny muted">{sel.assertion}</div>

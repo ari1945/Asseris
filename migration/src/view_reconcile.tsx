@@ -124,10 +124,10 @@ function DFRekonsiliasi() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={rows.length} label="Pos Terhubung ke Sumber" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={ok} label="Tie-out Cocok" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={warn + err} label="Perlu Ditelusuri" accent={(warn + err) ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={rcJt(dtaVar)} label="Selisih DTA (model − buku)" accent={dtaVar > 1 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={rows.length} label="Pos Terhubung ke Sumber" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={ok} label="Tie-out Cocok" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={warn + err} label="Perlu Ditelusuri" accent={(warn + err) ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={rcJt(dtaVar)} label="Selisih DTA (model − buku)" accent={dtaVar > 1 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
       </div>
 
       {/* ---- lineage angka ---- */}

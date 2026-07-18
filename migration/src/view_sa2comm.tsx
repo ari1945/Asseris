@@ -220,7 +220,7 @@ function S250Register({ items, setItems, me, locked }: { items: NoclarItem[]; se
       </Panel>
       {sel && (
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac jb">
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sevKind(sel.sev)}>{sel.sev}</Badge><Badge kind={sel.cat === 'direct' ? 'red' : 'amber'}>{sel.cat === 'direct' ? 'Dampak Langsung' : 'Fundamental Operasi'}</Badge></div>
               {!locked && <button className="btn sm icon" title="Hapus pos" onClick={() => delItem(sel.id)}><I.x size={13} /></button>}
@@ -654,7 +654,7 @@ function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDe
       </Panel>
       {sel && (
         <Panel noBody>
-          <div style={{ background: sel.sig ? 'var(--red-bg)' : 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ background: sel.sig ? 'var(--red-bg)' : 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac jb">
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.sig ? 'red' : 'gray'}>{sel.sig ? 'Signifikan' : 'Biasa'}</Badge></div>
               {!locked && <button className="btn sm icon" title="Hapus" onClick={() => delD(sel.id)}><I.x size={13} /></button>}

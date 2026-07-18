@@ -97,7 +97,7 @@ function SubsequentEvents() {
               <div style={{ flex: 1 }} />
               <Badge kind="blue">SA 560 ¶6,10 · PSAK 8</Badge>
             </div>
-            <div style={{ padding: '11px 14px' }}>
+            <div style={{ padding: '15px 18px' }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
                 <Stat value={scan.rollup.gaps} label="Gap Perlakuan" accent={scan.rollup.gaps ? 'var(--red)' : 'var(--green)'} />
                 <Stat value={'Rp ' + fmt(scan.rollup.adjustingImpact / 1e9, 2) + ' M'} label="Dampak Penyesuai" />
@@ -154,7 +154,7 @@ function SubsequentEvents() {
 
               {sel && (
                 <Panel noBody>
-                  <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+                  <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
                     <span className="tiny muted mono">{new Date(sel.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                     <div style={{ flex: 1 }} />

@@ -100,10 +100,10 @@ function SegmentInfo() {
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={D.segs.length + ' + 1'} label="Segmen dilaporkan + tak-teralokasi" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(Math.round(D.totalRev))} label="Pendapatan konsolidasian" accent="var(--blue)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(Math.round(D.opProfit))} label="Laba usaha tersegmentasi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={tiePass + '/' + tie.length} label="Rekonsiliasi ke LK" accent={tiePass === tie.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.segs.length + ' + 1'} label="Segmen dilaporkan + tak-teralokasi" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(Math.round(D.totalRev))} label="Pendapatan konsolidasian" accent="var(--blue)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(Math.round(D.opProfit))} label="Laba usaha tersegmentasi" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={tiePass + '/' + tie.length} label="Rekonsiliasi ke LK" accent={tiePass === tie.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
           </div>
 
           <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>

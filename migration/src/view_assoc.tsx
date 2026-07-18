@@ -76,10 +76,10 @@ function AssociatesEquity() {
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(D.carry)} label="Nilai tercatat (ekuitas)" accent="var(--navy)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={D.assoc.own + '%'} label="Kepemilikan · pengaruh signifikan" accent="var(--blue)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(ASSOC_RF.shareProfit)} label="Bagian laba → Laba Rugi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(D.goodwillInCarry)} label="Goodwill dalam nilai tercatat" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(D.carry)} label="Nilai tercatat (ekuitas)" accent="var(--navy)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.assoc.own + '%'} label="Kepemilikan · pengaruh signifikan" accent="var(--blue)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(ASSOC_RF.shareProfit)} label="Bagian laba → Laba Rugi" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(D.goodwillInCarry)} label="Goodwill dalam nilai tercatat" /></div></Panel>
           </div>
 
           <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>

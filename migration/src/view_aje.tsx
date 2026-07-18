@@ -230,7 +230,7 @@ function AJEView() {
 }
 
 function AjeKpi({ value, label, accent }: any) {
-  return <Panel><div style={{ padding: '11px 14px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
+  return <Panel><div style={{ padding: '15px 18px' }}><Stat value={value} label={label} accent={accent} /></div></Panel>;
 }
 
 /* ============================================================
@@ -647,7 +647,7 @@ function ApprovalCard({ a }: any) {
     { role: 'Partner (Otorisasi)', who: a.partner, on: a.postedOn, done: isPosted },
   ];
   return (
-    <div style={{ padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+    <div style={{ padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
       <div className="row ac gap8" style={{ marginBottom: 9 }}>
         <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</span>
         <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>

@@ -225,10 +225,10 @@ function ICEntityLevel({ data }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${full}/17`} label="Prinsip ada & berfungsi" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={part} label="Perlu peningkatan" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${sigCycles}/${data.length}`} label="Siklus signifikan" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value="Andalkan" label="Strategi kontrol" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${full}/17`} label="Prinsip ada & berfungsi" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={part} label="Perlu peningkatan" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${sigCycles}/${data.length}`} label="Siklus signifikan" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value="Andalkan" label="Strategi kontrol" accent="var(--blue)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '260px 1fr', gap: 12, alignItems: 'start' }}>
@@ -330,10 +330,10 @@ function ICMatrix({ data, setData, locked }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={allControls.length} label="Total Kontrol" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${tested}/${allControls.length}`} label="Telah Diuji" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={effective} label="Operasi Efektif" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={deficiencies} label="Defisiensi" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={allControls.length} label="Total Kontrol" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${tested}/${allControls.length}`} label="Telah Diuji" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective} label="Operasi Efektif" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficiencies} label="Defisiensi" accent="var(--red)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '220px 1fr', gap: 12, alignItems: 'start' }}>
@@ -381,7 +381,7 @@ function ICMatrix({ data, setData, locked }: any) {
 
           {/* walkthrough detail */}
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
               <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{ctrl.id}</span>
               <Badge kind={ctrl.type === 'Preventive' ? 'blue' : 'purple'}>{ctrl.type === 'Preventive' ? 'Preventif' : 'Detektif'}</Badge>
               <span className="chip tiny">{ctrl.nature === 'Automated' ? 'Otomatis' : 'Manual'}</span>
@@ -495,10 +495,10 @@ function ICITGC({ data }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${effDomains}/4`} label="Domain ITGC efektif" accent={effDomains === 4 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={autoControls.length} label="Kontrol aplikasi otomatis" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value="1" label="Defisiensi ITGC (SoD)" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value="SAP S/4" label="Sistem signifikan" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${effDomains}/4`} label="Domain ITGC efektif" accent={effDomains === 4 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={autoControls.length} label="Kontrol aplikasi otomatis" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value="1" label="Defisiensi ITGC (SoD)" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value="SAP S/4" label="Sistem signifikan" accent="var(--blue)" /></div></Panel>
       </div>
 
       <Panel noBody>
@@ -629,9 +629,9 @@ function ICDeficiency({ data, locked }: any) {
     <div className="grid" style={{ gap: 12 }}>
       {/* aggregation summary */}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={defs.length} label="Total Defisiensi" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={defs.length} label="Total Defisiensi" /></div></Panel>
         {LEVELS.map((l, i) => (
-          <Panel key={l}><div style={{ padding: '11px 14px' }}><Stat value={counts[i]} label={l} accent={`var(--${(LEVEL_KIND as any)[l] === 'gray' ? 'ink-3' : (LEVEL_KIND as any)[l]})`} /></div></Panel>
+          <Panel key={l}><div style={{ padding: '15px 18px' }}><Stat value={counts[i]} label={l} accent={`var(--${(LEVEL_KIND as any)[l] === 'gray' ? 'ink-3' : (LEVEL_KIND as any)[l]})`} /></div></Panel>
         ))}
       </div>
 
@@ -663,7 +663,7 @@ function ICDeficiency({ data, locked }: any) {
 
         {/* severity evaluator */}
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
             <span className="tiny muted">{sel.src}</span>
             <span className="chip tiny">{sel.kind}</span>

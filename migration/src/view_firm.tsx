@@ -77,10 +77,10 @@ function ClientCRM() {
         <div className="view-pad">
           {/* KPI strip */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-            <Panel className="row" ><div style={{ padding: '11px 14px' }}><Stat value={clients.length} label="Total Klien" delta="+1 QoQ" deltaDir="up" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter((c: any) => c.status === 'Active').length} label="Klien Aktif" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalFee / 1e9, 1) + ' M'} label="Total Annual Fee" delta="+11%" deltaDir="up" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter((c: any) => c.risk === 'High').length} label="Klien Risiko Tinggi" accent="var(--red)" /></div></Panel>
+            <Panel className="row" ><div style={{ padding: '15px 18px' }}><Stat value={clients.length} label="Total Klien" delta="+1 QoQ" deltaDir="up" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={clients.filter((c: any) => c.status === 'Active').length} label="Klien Aktif" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalFee / 1e9, 1) + ' M'} label="Total Annual Fee" delta="+11%" deltaDir="up" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={clients.filter((c: any) => c.risk === 'High').length} label="Klien Risiko Tinggi" accent="var(--red)" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '1.55fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -314,7 +314,7 @@ function EngagementMgmt() {
               { v: engagements.filter((e: any) => e.risk === 'High').length, l: 'Risiko Tinggi', a: 'var(--red)' },
               { v: Math.round(engagements.reduce((s: any, e: any) => s + e.actualHrs, 0) / 1000) + 'k', l: 'Total Jam Aktual' },
               { v: Math.round(engagements.reduce((s: any, e: any) => s + e.progress, 0) / engagements.length) + '%', l: 'Rata-rata Progress' },
-            ].map((k, i) => <Panel key={i}><div style={{ padding: '11px 14px' }}><Stat value={k.v} label={k.l} accent={k.a} /></div></Panel>)}
+            ].map((k, i) => <Panel key={i}><div style={{ padding: '15px 18px' }}><Stat value={k.v} label={k.l} accent={k.a} /></div></Panel>)}
           </div>
 
           {/* Kanban board by phase */}

@@ -31,10 +31,10 @@ function EngPortofolio() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.length} label="Total Engagement" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter((e: any) => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter((e: any) => e.actualHrs / e.budgetHrs > 0.95).length} label="Burn > 95%" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(engagements.reduce((s: any, e: any) => s + e.progress, 0) / engagements.length) + '%'} label="Rata-rata Progress" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.length} label="Total Engagement" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.filter((e: any) => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.filter((e: any) => e.actualHrs / e.budgetHrs > 0.95).length} label="Burn > 95%" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(engagements.reduce((s: any, e: any) => s + e.progress, 0) / engagements.length) + '%'} label="Rata-rata Progress" /></div></Panel>
       </div>
 
       <Panel noBody>
@@ -90,10 +90,10 @@ function EngAnggaran() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(totalBudget) + 'h'} label="Total Anggaran Jam" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(totalActual) + 'h'} label="Total Jam Aktual" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(totalActual / totalBudget * 100) + '%'} label="Burn Portofolio" accent={totalActual / totalBudget > 0.9 ? 'var(--amber)' : undefined} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={overBudget} label="Melebihi Anggaran" accent={overBudget ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(totalBudget) + 'h'} label="Total Anggaran Jam" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(totalActual) + 'h'} label="Total Jam Aktual" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(totalActual / totalBudget * 100) + '%'} label="Burn Portofolio" accent={totalActual / totalBudget > 0.9 ? 'var(--amber)' : undefined} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={overBudget} label="Melebihi Anggaran" accent={overBudget ? 'var(--red)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <Panel noBody className="mb12">
@@ -175,10 +175,10 @@ function EngStaffing() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={roster.length} label="Anggota Tertugas" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(roster.reduce((s, p) => s + p.hrs, 0))} label="Total Jam Dialokasikan" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={roster.filter(p => p.role === 'Partner' || p.role === 'Manager').length} label="Partner & Manajer" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(roster.reduce((s, p) => s + p.engs, 0) / roster.length * 10) / 10} label="Rata-rata Engagement/Org" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={roster.length} label="Anggota Tertugas" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(roster.reduce((s, p) => s + p.hrs, 0))} label="Total Jam Dialokasikan" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={roster.filter(p => p.role === 'Partner' || p.role === 'Manager').length} label="Partner & Manajer" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(roster.reduce((s, p) => s + p.engs, 0) / roster.length * 10) / 10} label="Rata-rata Engagement/Org" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.1fr 1fr', gap: 12, alignItems: 'start' }}>

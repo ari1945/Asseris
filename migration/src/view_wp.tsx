@@ -239,10 +239,10 @@ function WorkingPapers() {
 
         {/* ---- KPI cards ---- */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${cnt['Reviewed']}/${total}`} label="Sign-off Selesai" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={cnt['In Review']} label="Menunggu Review" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={openNotesTotal} label="Catatan Review Terbuka" accent={openNotesTotal ? 'var(--amber)' : 'var(--ink)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={excTotal} label="Pengecualian Prosedur" accent={excTotal ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${cnt['Reviewed']}/${total}`} label="Sign-off Selesai" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={cnt['In Review']} label="Menunggu Review" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={openNotesTotal} label="Catatan Review Terbuka" accent={openNotesTotal ? 'var(--amber)' : 'var(--ink)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={excTotal} label="Pengecualian Prosedur" accent={excTotal ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
         </div>
 
         {/* ---- Index ---- */}
@@ -570,7 +570,7 @@ function ProcRow({ i, text, assertion, state, items, concl, evidence, open, onTo
 
   return (
     <div style={{ borderBottom: '1px solid var(--line-soft)' }}>
-      <div className="row gap10" style={{ padding: '11px 14px', alignItems: 'flex-start', cursor: 'pointer' }} onClick={onToggle}>
+      <div className="row gap10" style={{ padding: '15px 18px', alignItems: 'flex-start', cursor: 'pointer' }} onClick={onToggle}>
         <span className="mono tiny muted" style={{ flex: '0 0 28px', paddingTop: 2 }}>P{i + 1}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, color: state === 'N/A' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: state === 'N/A' ? 'line-through' : 'none' }}>{text}</div>
@@ -808,7 +808,7 @@ function EvidenceRegister({ ref_, st, setWp, locked }: {
         <Badge kind={meter.verdict.k}>{meter.verdict.l}</Badge>
       </div>
       {/* meteran kecukupan & ketepatan */}
-      <div className="row gap12 wrap" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+      <div className="row gap12 wrap" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
         <div><div className="tiny muted upper" style={{ fontWeight: 700 }}>Ketepatan (appropriateness)</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{meter.appr ? meter.appr.toFixed(1) : '—'}<span className="tiny muted" style={{ fontWeight: 500 }}>/5 · {apprLabel}</span></div></div>
         <div className="vdivider" style={{ height: 30 }} />
         <div><div className="tiny muted upper" style={{ fontWeight: 700 }}>Kecukupan (sufficiency)</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{meter.suffPct}%<span className="tiny muted" style={{ fontWeight: 500 }}> · {meter.tested}/{meter.itemCount} item</span></div></div>
@@ -834,7 +834,7 @@ function EvidenceRegister({ ref_, st, setWp, locked }: {
       </table>
       {/* form tambah bukti */}
       {!locked && (
-        <div style={{ padding: '11px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+        <div style={{ padding: '15px 18px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
           <div className="row gap8 wrap ac">
             <input className="input" style={{ flex: '1 1 200px', height: 28 }} value={name} placeholder="Nama/keterangan bukti (mis. Konfirmasi Bank BCA)" onChange={(e: FormEvW) => setName(e.target.value)} />
             <select className="input" style={{ height: 28 }} value={source} onChange={(e: FormEvW) => setSource(e.target.value)} title="Keandalan menentukan tier">
@@ -906,7 +906,7 @@ function IpeRegister({ ref_, st, setWp, locked }: {
         </tbody>
       </table>
       {!locked && (
-        <div className="row gap8 wrap ac" style={{ padding: '11px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+        <div className="row gap8 wrap ac" style={{ padding: '15px 18px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
           <input className="input" style={{ flex: '1 1 180px', height: 28 }} value={report} placeholder="Laporan IPE (mis. Aging Piutang Q4)" onChange={(e: FormEvW) => setReport(e.target.value)} />
           <input className="input" style={{ flex: '0 1 130px', height: 28 }} value={sys} placeholder="Sistem sumber" onChange={(e: FormEvW) => setSys(e.target.value)} />
           <input className="input" style={{ flex: '1 1 130px', height: 28 }} value={usedFor} placeholder="Digunakan untuk…" onChange={(e: FormEvW) => setUsedFor(e.target.value)} />
@@ -968,7 +968,7 @@ function ConfirmTracker({ ref_, st, setWp, locked }: {
         </tbody>
       </table>
       {!locked && (
-        <div className="row gap8 wrap ac" style={{ padding: '11px 14px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+        <div className="row gap8 wrap ac" style={{ padding: '15px 18px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
           <input className="input" style={{ flex: '1 1 200px', height: 28 }} value={party} placeholder="Pihak dikonfirmasi (mis. PT Ritel Maju)" onChange={(e: FormEvW) => setParty(e.target.value)} />
           <input className="input mono" style={{ width: 120, height: 28, textAlign: 'right' }} type="number" value={amount} placeholder="Nilai (jt)" onChange={(e: FormEvW) => setAmount(e.target.value)} />
           <Btn sm variant="primary" onClick={add}><I.plus size={13} /> Tambah Konfirmasi</Btn>

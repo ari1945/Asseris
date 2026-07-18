@@ -31,10 +31,10 @@ function DFAturan() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={RULES.length} label="Aturan Integritas" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={pass} label="Lolos" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={warn} label="Peringatan" accent={warn ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={err} label="Gagal" accent={err ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={RULES.length} label="Aturan Integritas" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={pass} label="Lolos" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={warn} label="Peringatan" accent={warn ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={err} label="Gagal" accent={err ? 'var(--red)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 2.4fr', gap: 12, alignItems: 'start' }}>
@@ -166,10 +166,10 @@ function DFJejak() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.length} label="Total Peristiwa" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.filter((t: any) => (t.ts || '').startsWith('2026-03-05')).length} label="Hari Ini" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(all.map((t: any) => t.module)).size} label="Modul Tersentuh" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={byUser.length} label="Pengguna Aktif" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.length} label="Total Peristiwa" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.filter((t: any) => (t.ts || '').startsWith('2026-03-05')).length} label="Hari Ini" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={new Set(all.map((t: any) => t.module)).size} label="Modul Tersentuh" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={byUser.length} label="Pengguna Aktif" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '2fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -177,7 +177,7 @@ function DFJejak() {
           <div className="panel-h"><h3>Jejak Audit (Immutable Log)</h3><div style={{ flex: 1 }} /><Seg options={mods.map((m: any) => ({ value: m, label: m === 'All' ? 'Semua' : m }))} value={mod} onChange={setMod} /></div>
           <div style={{ maxHeight: 480, overflow: 'auto' }}>
             {rows.map((t, i) => (
-              <div key={i} className="row gap10" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line-soft)' }}>
+              <div key={i} className="row gap10" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
                 <span style={{ width: 30, height: 30, borderRadius: 8, background: ((modColor as any)[t.module] || '#5b8aa6'), color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.pulse size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5 }}><b>{t.user}</b> — {t.action}</div>

@@ -40,10 +40,10 @@ function ResourceScheduler() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={utilPct + '%'} label="Utilisasi Tim" accent={utilPct > 90 ? 'var(--red)' : utilPct > 75 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(benchHrs) + 'h'} label="Kapasitas Tersedia (bench)" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={overbooked} label="Anggota Over-booked" accent={overbooked ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={Object.keys(engColors).length} label="Engagement Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={utilPct + '%'} label="Utilisasi Tim" accent={utilPct > 90 ? 'var(--red)' : utilPct > 75 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(benchHrs) + 'h'} label="Kapasitas Tersedia (bench)" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={overbooked} label="Anggota Over-booked" accent={overbooked ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={Object.keys(engColors).length} label="Engagement Aktif" /></div></Panel>
         </div>
 
         {/* allocation matrix */}

@@ -290,7 +290,7 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
 
       {sel && (
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.ref}</span><Badge kind={sel.v >= 4 ? 'green' : sel.v >= 3 ? 'amber' : 'red'}>{sel.v}/5</Badge></div>
             <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 3 }}>{sel.k}</div>
             <div className="tiny muted">{sel.note}</div>
@@ -357,7 +357,7 @@ function IAUsage() {
       </Panel>
       {sel && (
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Lead {sel.lead}</span><Badge kind={natKind(sel.nature)}>{sel.nature}</Badge></div>
             <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3, lineHeight: 1.3 }}>{sel.area}</div>
             <div className="tiny muted">{sel.assertion}</div>
@@ -394,10 +394,10 @@ function IAReperform() {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={IA_REPERF.length} label="Pos Diuji Ulang" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={ok} label="Konsisten dgn IA" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={totExc} label="Pengecualian" accent={totExc ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'1'} label="Area Perlu Perluasan" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={IA_REPERF.length} label="Pos Diuji Ulang" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={ok} label="Konsisten dgn IA" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={totExc} label="Pengecualian" accent={totExc ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'1'} label="Area Perlu Perluasan" accent="var(--amber)" /></div></Panel>
       </div>
       <Panel noBody>
         <div className="panel-h"><h3>Reperformansi atas Pekerjaan IA yang Digunakan (¶24)</h3><div style={{ flex: 1 }} /><span className="tiny muted">Auditor melaksanakan kembali sebagian pekerjaan</span></div>

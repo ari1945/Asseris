@@ -164,7 +164,7 @@ function AuditCommitteeView() {
                 <div className="panel-h"><h3>Komposisi Komite Audit</h3><span className="sub mono">POJK 55/2015 Ps. 4–10</span></div>
                 <div>
                   {A.composition.map((c: any, i: any) => (
-                    <div key={i} className="row ac gap10" style={{ padding: '11px 14px', borderBottom: i < A.composition.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                    <div key={i} className="row ac gap10" style={{ padding: '15px 18px', borderBottom: i < A.composition.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <Avatar name={c.name} size={30} />
                       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</div><div className="tiny muted">{c.role}</div></div>
                       <div className="row gap6">

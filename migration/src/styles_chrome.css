@@ -86,14 +86,45 @@
 .user-chip .u-name { font-size: 12px; font-weight: 600; line-height: 1.1; }
 .user-chip .u-role { font-size: 9.5px; color: var(--on-navy); }
 
-/* ---------- Subbar (breadcrumb / view toolbar) ---------- */
-.subbar {
-  height: var(--subbar-h); flex: 0 0 var(--subbar-h);
+/* ---------- Page header (identitas modul: judul besar + konteks) ---------- */
+.pagehead {
+  flex: 0 0 auto;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 12px; position: relative; z-index: 20;
+  position: relative; z-index: 20;
+  padding: 13px 18px 0;
 }
+.pagehead-main { display: flex; align-items: center; gap: 13px; padding-bottom: 13px; }
+.pagehead-icon {
+  width: 38px; height: 38px; flex: 0 0 38px; border-radius: 10px;
+  display: grid; place-items: center; color: #fff;
+  background: linear-gradient(140deg, var(--blue), var(--navy));
+  box-shadow: var(--shadow-sm);
+}
+.pagehead-titles { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pagehead-eyebrow {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--blue); line-height: 1;
+}
+.pagehead-title {
+  margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.01em;
+  color: var(--ink); line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pagehead-spacer { flex: 1; }
+.pagehead-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.pagehead-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 9px 0; border-top: 1px solid var(--line-soft);
+}
+/* Kepadatan tinggi — header lebih ringkas */
+body.dense .pagehead { padding: 8px 12px 0; }
+body.dense .pagehead-main { padding-bottom: 8px; gap: 10px; }
+body.dense .pagehead-icon { width: 32px; height: 32px; flex-basis: 32px; }
+body.dense .pagehead-title { font-size: 16px; }
+body.dense .pagehead-meta { padding: 7px 0; }
+
+/* Kelas subbar lama — dipertahankan untuk kompatibilitas (mis. .subbar-spacer) */
 .crumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
 .crumb b { color: var(--ink); font-weight: 600; }
 .crumb .sep { color: var(--ink-4); }
@@ -244,7 +275,7 @@
 .portlet-h .p-act { color: var(--ink-4); width: 22px; height: 22px; border: 0; background: transparent; border-radius: 4px; display: grid; place-items: center; }
 .portlet-h .p-act:hover { background: rgba(0,0,0,.06); color: var(--ink-2); }
 .portlet-body { flex: 1; overflow: auto; }
-.portlet-body.pad { padding: 11px 12px; }
+.portlet-body.pad { padding: 14px 16px; }
 
 /* ---------- Card / panel ---------- */
 .panel {
@@ -253,10 +284,22 @@
 }
 .panel-h {
   display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-bottom: 1px solid var(--line);
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
 }
 .panel-h h3 { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); }
 .panel-h .sub { font-size: 11px; color: var(--ink-3); }
+/* Badan panel — beri margin default agar konten tak mepet frame (keluhan lintas-modul).
+   Namun JANGAN gandakan: bila konten sudah mengatur padding-nya sendiri (pola lama
+   <div style="padding…">) atau berisi tabel/daftar full-bleed, biarkan konten yang atur. */
+.panel-body { padding: 13px 16px; }
+.panel-body.flush { padding: 0; }
+.panel-body:has(> [style*="padding"]) { padding: 0; }
+.panel-body:has(> table),
+.panel-body:has(> .dtbl),
+.panel-body:has(> .tbl-wrap),
+.panel-body:has(> .tabs),
+.panel-body:has(> .msub) { padding: 0; }
+body.dense .panel-body { padding: 10px 12px; }
 
 /* ---------- Buttons ---------- */
 .btn {

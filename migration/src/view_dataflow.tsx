@@ -163,10 +163,10 @@ function DataFlow() {
       {mtab === 'jejak' && <DFJejak />}
       {mtab === 'lineage' && <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={score + '%'} label="Integritas Alur Data" accent={score >= 90 ? 'var(--green)' : score >= 75 ? 'var(--amber)' : 'var(--red)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={passed + ' / ' + allChecks.length} label="Cek Lolos" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={warns} label="Peringatan" accent={warns ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={errs} label="Pelanggaran Integritas" accent={errs ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={score + '%'} label="Integritas Alur Data" accent={score >= 90 ? 'var(--green)' : score >= 75 ? 'var(--amber)' : 'var(--red)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={passed + ' / ' + allChecks.length} label="Cek Lolos" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={warns} label="Peringatan" accent={warns ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={errs} label="Pelanggaran Integritas" accent={errs ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         {/* lineage chain */}

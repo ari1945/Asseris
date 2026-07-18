@@ -129,12 +129,12 @@ function TBOverview({ m, e }: any) {
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(m.actualTotal)} label="Jam Aktual" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(m.budgetTotal)} label="Anggaran Jam" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(m.remaining)} label="Sisa Jam" accent={m.remaining < 120 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={burnPct + '%'} label="Budget Burn" accent={burnPct > 95 ? 'var(--red)' : burnPct > 85 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(Math.round(m.eacHrs))} label="Proyeksi (EAC)" accent={eacVar < 0 ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(m.marginCompletion / m.fee * 100) + '%'} label="Margin Proyeksi" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(m.actualTotal)} label="Jam Aktual" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(m.budgetTotal)} label="Anggaran Jam" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(m.remaining)} label="Sisa Jam" accent={m.remaining < 120 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={burnPct + '%'} label="Budget Burn" accent={burnPct > 95 ? 'var(--red)' : burnPct > 85 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(Math.round(m.eacHrs))} label="Proyeksi (EAC)" accent={eacVar < 0 ? 'var(--red)' : 'var(--ink)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(m.marginCompletion / m.fee * 100) + '%'} label="Margin Proyeksi" accent="var(--green)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -467,10 +467,10 @@ function TBEconomics({ m, e }: any) {
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={tbM(m.fee)} label="Fee Disepakati" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={tbM(m.costBudget)} label="Biaya pd Penyelesaian" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={tbM(m.marginCompletion)} label="Margin Proyeksi" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={marginPct + '%'} label="Margin %" accent={marginPct >= 40 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbM(m.fee)} label="Fee Disepakati" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbM(m.costBudget)} label="Biaya pd Penyelesaian" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={tbM(m.marginCompletion)} label="Margin Proyeksi" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={marginPct + '%'} label="Margin %" accent={marginPct >= 40 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, alignItems: 'start' }}>

@@ -49,10 +49,10 @@ function SalesPipeline() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={openCount} label="Peluang Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 1) + ' M'} label="Pipeline Tertimbang" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(won / 1e9, 1) + ' M'} label="Dimenangkan (YTD)" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={winRate + '%'} label="Win Rate" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={openCount} label="Peluang Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 1) + ' M'} label="Pipeline Tertimbang" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(won / 1e9, 1) + ' M'} label="Dimenangkan (YTD)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={winRate + '%'} label="Win Rate" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10, alignItems: 'start' }}>
@@ -231,10 +231,10 @@ function Billing() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalBilled / 1e9, 1) + ' M'} label="Total Ditagih" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(collected / 1e9, 1) + ' M'} label="Terkumpul" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(outstanding / 1e6, 0) + ' jt'} label="Outstanding" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(overdue / 1e6, 0) + ' jt'} label="Jatuh Tempo Lewat" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalBilled / 1e9, 1) + ' M'} label="Total Ditagih" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(collected / 1e9, 1) + ' M'} label="Terkumpul" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(outstanding / 1e6, 0) + ' jt'} label="Outstanding" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(overdue / 1e6, 0) + ' jt'} label="Jatuh Tempo Lewat" accent="var(--red)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: selInv ? '1fr 340px' : '1fr', gap: 12, alignItems: 'start' }}>
@@ -261,7 +261,7 @@ function Billing() {
 
           {selInv && (
             <Panel noBody>
-              <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+              <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
                 <div className="row jb ac"><span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{selInv.id}</span><Badge kind={(INV_STATUS as any)[selInv.status]}>{selInv.status}</Badge></div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginTop: 3 }}>{selInv.client}</div>
                 <div className="tiny muted mono">{selInv.eng} · {selInv.milestone}</div>

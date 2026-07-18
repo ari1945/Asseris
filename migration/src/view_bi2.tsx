@@ -29,10 +29,10 @@ function BIPendapatan() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan FY2025" delta={yoy.toFixed(1) + '% YoY'} deltaDir="up" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(profit / 1e9, 1) + ' M'} label="Laba Operasi" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={(profit / actRev * 100).toFixed(0) + '%'} label="Margin Operasi" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt((B.targetRevenue - B.fyRevenue) / 1e9, 1) + ' M'} label="Selisih ke Target" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan FY2025" delta={yoy.toFixed(1) + '% YoY'} deltaDir="up" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(profit / 1e9, 1) + ' M'} label="Laba Operasi" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={(profit / actRev * 100).toFixed(0) + '%'} label="Margin Operasi" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt((B.targetRevenue - B.fyRevenue) / 1e9, 1) + ' M'} label="Selisih ke Target" accent="var(--amber)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -111,10 +111,10 @@ function BIPipeline() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(gross / 1e9, 2) + ' M'} label="Pipeline Gross" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Tertimbang Probabilitas" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={WL.winRate + '%'} label="Win Rate (TTM)" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(avgDeal / 1e6, 0) + ' jt'} label="Rata-rata Deal" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(gross / 1e9, 2) + ' M'} label="Pipeline Gross" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Tertimbang Probabilitas" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={WL.winRate + '%'} label="Win Rate (TTM)" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(avgDeal / 1e6, 0) + ' jt'} label="Rata-rata Deal" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -184,10 +184,10 @@ function BIKlien() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={top1.toFixed(0) + '%'} label="Klien Terbesar" accent={top1 > 25 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={top3.toFixed(0) + '%'} label="Konsentrasi 3 Klien" accent={top3 > 50 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={hhi} label="HHI (Konsentrasi)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={RET.netRevRetention + '%'} label="Net Revenue Retention" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={top1.toFixed(0) + '%'} label="Klien Terbesar" accent={top1 > 25 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={top3.toFixed(0) + '%'} label="Konsentrasi 3 Klien" accent={top3 > 50 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={hhi} label="HHI (Konsentrasi)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={RET.netRevRetention + '%'} label="Net Revenue Retention" accent="var(--green)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -270,10 +270,10 @@ function BIPartner() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={partners.length} label="Partner Aktif" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgUtil + '%'} label="Rata-rata Utilisasi" accent={avgUtil > 75 ? 'var(--amber)' : undefined} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value="88%" label="Realization Rate" delta="+2pp" deltaDir="up" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={EQR.length} label="EQR Aktif" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={partners.length} label="Partner Aktif" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgUtil + '%'} label="Rata-rata Utilisasi" accent={avgUtil > 75 ? 'var(--amber)' : undefined} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value="88%" label="Realization Rate" delta="+2pp" deltaDir="up" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={EQR.length} label="EQR Aktif" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>

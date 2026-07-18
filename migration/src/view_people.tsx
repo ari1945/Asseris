@@ -57,10 +57,10 @@ function HCM() {
       <div className="view-scroll"><div className="view-pad">
         {mode === 'analitik' ? <HCMAnalytics /> : (<>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={staff.length} label="Total SDM" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={staff.filter(s => s.grade === 'Partner').length} label="Partner" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgUtil + '%'} label="Rata-rata Utilisasi" accent={avgUtil > 85 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={staff.filter(s => s.status === 'Cuti').length} label="Sedang Cuti" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={staff.length} label="Total SDM" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={staff.filter(s => s.grade === 'Partner').length} label="Partner" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgUtil + '%'} label="Rata-rata Utilisasi" accent={avgUtil > 85 ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={staff.filter(s => s.status === 'Cuti').length} label="Sedang Cuti" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -192,10 +192,10 @@ function CPETracker() {
       <SubBar moduleId="cpe" right={<div className="row gap8 ac"><Badge kind="blue">PPL {req.year} · {req.annual} SKP</Badge><Btn sm variant="primary" onClick={() => setShowNew(true)}><I.plus size={14} /> Catat SKP</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${compliantN}/${vstaff.length}`} label="Memenuhi PPL" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={req.annual + ' SKP'} label="Syarat Tahunan" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={req.structured + ' SKP'} label="Min. Terstruktur" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={atRisk} label="Berisiko Tidak Memenuhi" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${compliantN}/${vstaff.length}`} label="Memenuhi PPL" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={req.annual + ' SKP'} label="Syarat Tahunan" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={req.structured + ' SKP'} label="Min. Terstruktur" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={atRisk} label="Berisiko Tidak Memenuhi" accent="var(--red)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -218,7 +218,7 @@ function CPETracker() {
           </Panel>
 
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
               <Avatar name={person.name} size={28} />
               <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{person.name}</div><div className="tiny muted">{person.role}</div></div>
               {person.compliant ? <Badge kind="green">Memenuhi</Badge> : <Badge kind="amber">Kurang {Math.max(0, req.annual - person.total)} SKP</Badge>}
@@ -349,20 +349,20 @@ function Independence() {
         {itab === 'longassoc' && <LongAssociationTab />}
         {itab === 'rotasi' && (<>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${declared}/${data.length}`} label="Deklarasi Diterima" accent={declared === data.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={conflicts} label="Konflik Teridentifikasi" accent={conflicts ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={rotationDue} label="Rotasi Wajib" accent={rotationDue ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={rotationWarn} label="Rotasi Tahun Depan" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${declared}/${data.length}`} label="Deklarasi Diterima" accent={declared === data.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={conflicts} label="Konflik Teridentifikasi" accent={conflicts ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={rotationDue} label="Rotasi Wajib" accent={rotationDue ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={rotationWarn} label="Rotasi Tahun Depan" accent="var(--amber)" /></div></Panel>
         </div>
 
         {rotationDue > 0 && (
-          <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
+          <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
             <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter((d: any) => d.tenure >= d.rotationLimit).map((d: any) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find((d: any) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
           </div>
         )}
 
         {rotationAlertList.length > 0 && (
-          <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+          <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi & cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
           </div>
         )}

@@ -387,7 +387,7 @@ function F240Register({ register, setRegister, me, locked }: { register: FraudRi
       </Panel>
       {sel && (
         <Panel noBody>
-          <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac jb">
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.lvl === 'Signifikan' ? 'red' : 'amber'}>{sel.lvl}</Badge>{sel.presumed && <Badge kind="red">Presumsi Wajib</Badge>}</div>
               {!locked && <button className="btn sm icon" title="Hapus" onClick={() => del(sel.id)}><I.x size={13} /></button>}

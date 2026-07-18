@@ -191,7 +191,7 @@ function F805Registri({ selId, setSelId, sel }: any) {
 
         {sel && (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={speColor(sel.scope)}>{sel.scope}</Badge></div>
               <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>{sel.client}</div>
               <div className="tiny muted">{sel.subject}</div>

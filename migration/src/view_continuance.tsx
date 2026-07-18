@@ -93,10 +93,10 @@ function ContinuanceRegister() {
       <div className="view-scroll">
         <div className="view-pad">
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.total} label="Klien Aktif" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.pending} label="Perlu Keputusan" accent={sum.pending ? 'var(--amber)' : undefined} /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.attentionHigh} label="Perhatian Tinggi" accent="var(--red)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.rotationFlags} label="Pemicu Rotasi AP" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.total} label="Klien Aktif" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.pending} label="Perlu Keputusan" accent={sum.pending ? 'var(--amber)' : undefined} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.attentionHigh} label="Perhatian Tinggi" accent="var(--red)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.rotationFlags} label="Pemicu Rotasi AP" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>

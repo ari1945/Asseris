@@ -66,7 +66,7 @@ function CRM360() {
             </div>
             <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 0 }}>
               {[['CSAT', h.csat + ' / 5'], ['NPS', h.nps, h.nps >= 50 ? 'var(--green)' : h.nps >= 30 ? 'var(--amber)' : 'var(--red)'], ['Annual Fee', rp(sel.fee / 1e6, 0) + ' jt'], ['DSO', h.dso + ' hari', h.dso > 60 ? 'var(--amber)' : undefined], ['Outstanding', rp(h.outstanding / 1e6, 0) + ' jt', h.outstanding > 0 ? 'var(--amber)' : 'var(--green)']].map(([l, v, a], i) => (
-                <div key={l} style={{ padding: '11px 14px', borderLeft: i ? '1px solid var(--line-soft)' : 0 }}><Stat value={v} label={l} accent={a} /></div>
+                <div key={l} style={{ padding: '15px 18px', borderLeft: i ? '1px solid var(--line-soft)' : 0 }}><Stat value={v} label={l} accent={a} /></div>
               ))}
             </div>
           </Panel>
@@ -152,8 +152,8 @@ function CRMAktivitas() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={feed.length} label="Total Interaksi (90 hari)" /></div></Panel>
-        {counts.map(c => <Panel key={c.k}><div style={{ padding: '11px 14px' }}><Stat value={c.n} label={META[c.k].label} accent={META[c.k].color} /></div></Panel>)}
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={feed.length} label="Total Interaksi (90 hari)" /></div></Panel>
+        {counts.map(c => <Panel key={c.k}><div style={{ padding: '15px 18px' }}><Stat value={c.n} label={META[c.k].label} accent={META[c.k].color} /></div></Panel>)}
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.6fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -165,7 +165,7 @@ function CRMAktivitas() {
             {shown.map((a, i) => {
               const m = META[a.type] || META.doc;
               return (
-                <div key={i} className="row gap10" style={{ padding: '11px 14px', borderBottom: '1px solid var(--line-soft)' }}>
+                <div key={i} className="row gap10" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
                   <span style={{ width: 30, height: 30, borderRadius: 8, background: m.color, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}>{React.createElement((I as any)[m.icon] || I.doc, { size: 15 })}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, lineHeight: 1.4 }}>{a.note}</div>
@@ -222,10 +222,10 @@ function CRMPeluang() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={openOpps.length} label="Peluang Cross-sell Aktif" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(gross / 1e9, 2) + ' M'} label="Nilai Gross" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Tertimbang" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(openOpps.map(o => o.clientId)).size} label="Klien dengan Peluang" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={openOpps.length} label="Peluang Cross-sell Aktif" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(gross / 1e9, 2) + ' M'} label="Nilai Gross" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(weighted / 1e9, 2) + ' M'} label="Tertimbang" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={new Set(openOpps.map(o => o.clientId)).size} label="Klien dengan Peluang" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1.4fr', gap: 12, alignItems: 'start' }}>
@@ -283,10 +283,10 @@ function CRMSegmentasi() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.length} label="Total Klien" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totFee / 1e9, 1) + ' M'} label="Total Annual Fee" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={clients.filter((c: any) => c.listed).length} label="Emiten (IDX)" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgHealth} label="Rata-rata Health" accent={avgHealth >= 75 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={clients.length} label="Total Klien" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totFee / 1e9, 1) + ' M'} label="Total Annual Fee" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={clients.filter((c: any) => c.listed).length} label="Emiten (IDX)" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgHealth} label="Rata-rata Health" accent={avgHealth >= 75 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>

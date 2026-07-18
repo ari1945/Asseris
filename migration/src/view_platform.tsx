@@ -127,11 +127,11 @@ function Approvals() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending.filter((i: any) => i.priority === 'high').length} label="Prioritas Tinggi" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={breached.length} label="Lewat SLA" accent={breached.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.filter((i: any) => i.status === 'approved').length} label="Disetujui" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + AMS.fmt(pending.reduce((s: any, i: any) => s + i.amount, 0) / 1e6, 0) + ' jt'} label="Nilai Menunggu" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pending.filter((i: any) => i.priority === 'high').length} label="Prioritas Tinggi" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={breached.length} label="Lewat SLA" accent={breached.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={items.filter((i: any) => i.status === 'approved').length} label="Disetujui" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + AMS.fmt(pending.reduce((s: any, i: any) => s + i.amount, 0) / 1e6, 0) + ' jt'} label="Nilai Menunggu" /></div></Panel>
         </div>
 
         {/* strip ketertelusuran SSOT — antrean diturunkan dari modul sumber */}

@@ -266,7 +266,7 @@ function SecNavigasi({ s, setGroup }: any) {
         </Panel>
       </div>
 
-      <div className="panel" style={{ padding: '11px 14px', display: 'flex', gap: 10, alignItems: 'flex-start', background: 'var(--blue-050)', borderColor: 'transparent' }}>
+      <div className="panel" style={{ padding: '15px 18px', display: 'flex', gap: 10, alignItems: 'flex-start', background: 'var(--blue-050)', borderColor: 'transparent' }}>
         <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.shield size={16} /></span>
         <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
           <b>Preferensi per-pengguna.</b> Tersimpan di profil Anda &amp; tidak memengaruhi rekan tim. Murni lapisan tampilan — tidak menyentuh data, perhitungan, atau hak akses. Hanya berlaku di ruang kerja <b>Perikatan</b> saat sidebar diperluas.
@@ -915,7 +915,7 @@ function SecAksesAdmin({ flash }: any) {
 
   return (
     <>
-      <div className="panel" style={{ padding: '11px 14px', display: 'flex', gap: 10, alignItems: 'flex-start', background: 'var(--blue-050)', borderColor: 'transparent' }}>
+      <div className="panel" style={{ padding: '15px 18px', display: 'flex', gap: 10, alignItems: 'flex-start', background: 'var(--blue-050)', borderColor: 'transparent' }}>
         <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.shield size={16} /></span>
         <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
           <b>Anda mengelola RBAC firma.</b> Perubahan ditegakkan di server dan berlaku seketika. Peran baru lahir <b>tanpa kapabilitas apa pun</b> — termasuk tanpa akses data perikatan — sampai dicentang secara eksplisit di sini.
@@ -1050,7 +1050,7 @@ function SecAI({ s, setGroup, flash }: any) {
         const bg = up ? 'var(--green-bg)' : 'var(--amber-bg)';
         const fg = up ? 'var(--green)' : 'var(--amber)';
         return (
-          <div className="panel" style={{ padding: '11px 14px', display: 'flex', gap: 10, alignItems: 'flex-start', background: bg, borderColor: 'transparent' }}>
+          <div className="panel" style={{ padding: '15px 18px', display: 'flex', gap: 10, alignItems: 'flex-start', background: bg, borderColor: 'transparent' }}>
             <span style={{ color: fg, flex: '0 0 auto', marginTop: 1 }}><I.shield size={16} /></span>
             <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
               {srv.state !== 'ready'

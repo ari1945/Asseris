@@ -32,9 +32,9 @@ function NoclarEthics() {
         Kewajiban etika <b>NOCLAR</b> (Respons atas Ketidakpatuhan terhadap Hukum & Peraturan — Kode Etik IAPI <b>§360</b>) <b>melekat pada profesi</b>, berbeda dari respons audit per perikatan (SA 250). Alur ini mencakup evaluasi etika, eskalasi ke manajemen/TCWG, dan <b>keputusan pengungkapan ke otoritas</b> beserta jejak dokumentasinya.
       </p>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={inProgress} label="Dalam Tindak Lanjut" accent={inProgress ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={escalated} label="Dieskalasi ke TCWG+" accent={escalated ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={discl} label="Pertimbangan Pengungkapan" accent={discl ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={inProgress} label="Dalam Tindak Lanjut" accent={inProgress ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={escalated} label="Dieskalasi ke TCWG+" accent={escalated ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={discl} label="Pertimbangan Pengungkapan" accent={discl ? 'var(--red)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
@@ -57,7 +57,7 @@ function NoclarEthics() {
 
         {cur && (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{cur.id}</span><Badge kind={sevKind(cur.severity)}>{cur.severity}</Badge><span className="badge b-gray tiny mono">{cur.section}</span></div>
               <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>{cur.client.replace('PT ', '')}</div>
             </div>

@@ -136,7 +136,7 @@ function ClientOnboarding() {
       {mtab === 'aml' && <OBAml />}
       {mtab === 'papan' && <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          {kpis.map((k, i) => <Panel key={i}><div style={{ padding: '11px 14px' }}><Stat value={k.v} label={k.l} accent={k.a} /></div></Panel>)}
+          {kpis.map((k, i) => <Panel key={i}><div style={{ padding: '15px 18px' }}><Stat value={k.v} label={k.l} accent={k.a} /></div></Panel>)}
         </div>
 
         {/* 4-gate board */}

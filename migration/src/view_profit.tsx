@@ -97,10 +97,10 @@ function Profitability() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totBilled / 1e9, 1) + ' M'} label="Pendapatan Terealisasi" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totMargin / 1e9, 1) + ' M'} label="Margin Kotor" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgMargin.toFixed(0) + '%'} label="Margin Rata-rata" accent={marginColor(avgMargin)} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgReal.toFixed(0) + '%'} label="Realization Rate" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totBilled / 1e9, 1) + ' M'} label="Pendapatan Terealisasi" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totMargin / 1e9, 1) + ' M'} label="Margin Kotor" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgMargin.toFixed(0) + '%'} label="Margin Rata-rata" accent={marginColor(avgMargin)} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgReal.toFixed(0) + '%'} label="Realization Rate" /></div></Panel>
         </div>
 
         {view === 'engagement' ? (
@@ -133,7 +133,7 @@ function Profitability() {
 
             {selRow && (
               <Panel noBody>
-                <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+                <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{selRow.client}</div>
                   <div className="tiny muted mono">{selRow.id} · {selRow.partner}</div>
                 </div>

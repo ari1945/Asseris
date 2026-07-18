@@ -49,10 +49,10 @@ function EthicsDeclaration() {
       <SubBar moduleId="ethics" right={<div className="row gap8 ac"><Badge kind="blue">Kode Etik IAPI · TA 2026</Badge><Btn sm><I.send size={13} /> Minta Deklarasi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={signed + '/' + staff.length} label="Deklarasi Ditandatangani" accent={signed === staff.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={exceptions} label="Pengecualian Dilaporkan" accent={exceptions ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={giftsPending} label="Gratifikasi Menunggu" accent={giftsPending ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={amlPending} label="Screening APU-PPT Tertunda" accent={amlPending ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={signed + '/' + staff.length} label="Deklarasi Ditandatangani" accent={signed === staff.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={exceptions} label="Pengecualian Dilaporkan" accent={exceptions ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={giftsPending} label="Gratifikasi Menunggu" accent={giftsPending ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={amlPending} label="Screening APU-PPT Tertunda" accent={amlPending ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -204,10 +204,10 @@ function HRCases() {
       <SubBar moduleId="hrcase" right={<div className="row gap8 ac"><Badge kind="blue">Kanal WBS aktif</Badge><Btn sm variant="primary"><I.plus size={14} /> Catat Kasus</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={open} label="Kasus Aktif" accent={open ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={invest} label="Dalam Investigasi" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={heavy} label="Severitas Berat" accent={heavy ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={closed} label="Selesai (12 bln)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={open} label="Kasus Aktif" accent={open ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={invest} label="Dalam Investigasi" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={heavy} label="Severitas Berat" accent={heavy ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={closed} label="Selesai (12 bln)" accent="var(--green)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: cur ? '1fr 380px' : '1fr', gap: 12, alignItems: 'start' }}>

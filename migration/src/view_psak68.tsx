@@ -311,7 +311,7 @@ function PSAK68View() {
                       const ap = (P68_APPROACH as any)[it.approach];
                       const ApIc = (I as any)[ap.ic] || I.target;
                       return (
-                        <div key={it.id} style={{ padding: '11px 14px', borderBottom: idx < p68.items.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                        <div key={it.id} style={{ padding: '15px 18px', borderBottom: idx < p68.items.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                           <div className="row ac jb" style={{ marginBottom: 6 }}>
                             <div className="row ac gap8" style={{ minWidth: 0 }}>
                               <span style={{ color: 'var(--navy)', flex: '0 0 auto' }}><ApIc size={15} /></span>

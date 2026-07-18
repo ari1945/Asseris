@@ -335,7 +335,7 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
 
         {sel && (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
               <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
               <span style={{ fontWeight: 700 }}>{sel.area}</span>
               <Badge kind={(EV_RISK_COLOR as any)[sel.risk]}>{sel.risk}</Badge>
@@ -407,9 +407,9 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={coverage + '%'} label="Asersi Tercakup (kekuatan ≥ 2)" accent={coverage >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={covered + '/' + relevant} label="Sel Tercakup / Relevan" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={items.reduce((s: any, i: any) => s + EV_ASR.filter(({ k }) => i.asr[k] === 1).length, 0)} label="Asersi Bukti Lemah (gap)" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={coverage + '%'} label="Asersi Tercakup (kekuatan ≥ 2)" accent={coverage >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={covered + '/' + relevant} label="Sel Tercakup / Relevan" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={items.reduce((s: any, i: any) => s + EV_ASR.filter(({ k }) => i.asr[k] === 1).length, 0)} label="Asersi Bukti Lemah (gap)" accent="var(--red)" /></div></Panel>
       </div>
 
       <Panel noBody>
@@ -503,7 +503,7 @@ function EvProcedures({ items }: any) {
           </table>
         </Panel>
 
-        <div className="panel" style={{ padding: '11px 14px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+        <div className="panel" style={{ padding: '15px 18px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row ac gap8" style={{ marginBottom: 4 }}><span style={{ color: 'var(--amber)' }}><I.alert size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Peringatan: permintaan keterangan tidak cukup sendiri (¶A2)</span></div>
           <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
             Permintaan keterangan digunakan pada {inquiryAreas.length} area ({inquiryAreas.map((a: any) => a.wp).join(', ')}). Pada area tersebut bukti
@@ -582,7 +582,7 @@ function EvInformation() {
         </table>
       </Panel>
 
-      <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'var(--line)' }}>
+      <div className="panel" style={{ padding: '15px 18px', background: 'var(--blue-050)', borderColor: 'var(--line)' }}>
         <div className="tiny" style={{ lineHeight: 1.55, color: 'var(--ink-2)' }}>
           <b>Catatan:</b> Saat menggunakan informasi yang dihasilkan entitas sebagai bukti, auditor mengevaluasi apakah informasi
           tersebut cukup andal — termasuk <b>akurasi & kelengkapan</b> serta tingkat <b>presisi & rincian</b> yang memadai untuk tujuan audit.
@@ -599,13 +599,13 @@ function EvConsistency({ openContra }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={EV_CONSIST.filter(c => !c.open).length} label="Bukti Saling Konsisten" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={openContra} label="Kontradiksi Terbuka" accent={openContra ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={EV_CONSIST.length} label="Item Triangulasi" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={EV_CONSIST.filter(c => !c.open).length} label="Bukti Saling Konsisten" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={openContra} label="Kontradiksi Terbuka" accent={openContra ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={EV_CONSIST.length} label="Item Triangulasi" accent="var(--blue)" /></div></Panel>
       </div>
 
       {openContra > 0 && (
-        <div className="panel" style={{ padding: '11px 14px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
+        <div className="panel" style={{ padding: '15px 18px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
           <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{openContra} kontradiksi bukti belum terselesaikan — SA 500 ¶11 mewajibkan auditor menentukan modifikasi/penambahan prosedur untuk menyelesaikan inkonsistensi sebelum menyimpulkan.</span></div>
         </div>
       )}

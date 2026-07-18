@@ -487,10 +487,10 @@ function ConfirmationHub() {
         <div className="view-pad">
           {/* KPI strip — persistent across tabs */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr) 1.2fr', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={total} label="Total Konfirmasi" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={rate + '%'} label="Response Rate" accent={rate >= 75 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={outstanding} label="Outstanding" accent={outstanding ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={discrepancies} label="Diskrepansi" accent={discrepancies ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={total} label="Total Konfirmasi" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={rate + '%'} label="Response Rate" accent={rate >= 75 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={outstanding} label="Outstanding" accent={outstanding ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={discrepancies} label="Diskrepansi" accent={discrepancies ? 'var(--red)' : 'var(--green)'} /></div></Panel>
             <Panel><div style={{ padding: '8px 14px' }}>
               <div className="row gap12 ac">
                 <Donut segments={segs} size={62} thickness={10} center={<div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{rate}%</div>} />

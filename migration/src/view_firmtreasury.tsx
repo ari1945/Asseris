@@ -65,10 +65,10 @@ function FirmTreasury() {
       <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Seg options={['FY2025', 'FY2026 (RKA)']} value="FY2025" onChange={() => {}} /><Btn sm><I.download size={13} /> Export</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan Aktual" delta={((actRev / budRev - 1) * 100).toFixed(1) + '% vs anggaran'} deltaDir={actRev >= budRev ? 'up' : 'down'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(actProfit / 1e9, 1) + ' M'} label="Laba Operasi Aktual" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(minClose / 1e3, 1) + ' M'} label="Proyeksi Kas Terendah (6 bln)" accent={minClose < 7000 ? 'var(--amber)' : 'var(--blue)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={runway.toFixed(1) + ' bln'} label="Cash Runway (kas ÷ beban bln)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan Aktual" delta={((actRev / budRev - 1) * 100).toFixed(1) + '% vs anggaran'} deltaDir={actRev >= budRev ? 'up' : 'down'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actProfit / 1e9, 1) + ' M'} label="Laba Operasi Aktual" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(minClose / 1e3, 1) + ' M'} label="Proyeksi Kas Terendah (6 bln)" accent={minClose < 7000 ? 'var(--amber)' : 'var(--blue)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={runway.toFixed(1) + ' bln'} label="Cash Runway (kas ÷ beban bln)" accent="var(--green)" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -150,7 +150,7 @@ function BudgetLineDrill({ b, onClose }: any) {
     : [['Volume perikatan', 0.55], ['Tarif & realisasi', 0.30], ['Bauran jasa', 0.15]];
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13 }}>{b.line}</div><div className="tiny muted">{isCost ? 'Beban' : 'Pendapatan'} · fasing triwulanan</div></div>
         <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>
@@ -222,10 +222,10 @@ function CashBank() {
       <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny"><I.sync size={11} /> Bank feed: 15 mnt lalu</span><Btn sm variant="primary"><I.plus size={14} /> Transaksi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={accts.length} label="Rekening Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={(totReval >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval) / 1e6, 0) + ' jt'} label="Selisih Kurs Belum Terealisasi" accent={totReval >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={unrec.length} label="Item Belum Direkonsiliasi" accent={unrec.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={accts.length} label="Rekening Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={(totReval >= 0 ? '+' : '−') + 'Rp ' + fmt(Math.abs(totReval) / 1e6, 0) + ' jt'} label="Selisih Kurs Belum Terealisasi" accent={totReval >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={unrec.length} label="Item Belum Direkonsiliasi" accent={unrec.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -357,10 +357,10 @@ function FixedAssets() {
       <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm><I.download size={13} /> Daftar Aset</Btn><Btn sm variant="primary"><I.plus size={14} /> Aset Baru</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totCost / 1e9, 2) + ' M'} label="Harga Perolehan" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totAcc / 1e9, 2) + ' M'} label="Akumulasi Penyusutan" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totNbv / 1e9, 2) + ' M'} label="Nilai Buku Neto" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totAnnual / 1e6, 0) + ' jt'} label="Beban Penyusutan / Tahun" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totCost / 1e9, 2) + ' M'} label="Harga Perolehan" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totAcc / 1e9, 2) + ' M'} label="Akumulasi Penyusutan" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totNbv / 1e9, 2) + ' M'} label="Nilai Buku Neto" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totAnnual / 1e6, 0) + ' jt'} label="Beban Penyusutan / Tahun" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12, alignItems: 'start' }}>
@@ -432,7 +432,7 @@ function DepreciationSchedule({ a, onClose }: any) {
   });
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 13 }} className="truncate">{a.name}</div><div className="tiny muted mono">{a.id} · {a.cat}</div></div>
         <button className="top-btn" onClick={onClose}><I.x size={16} /></button>
       </div>

@@ -215,13 +215,13 @@ function MyTasks() {
 
         {/* KPI strip */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr) 1.3fr', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={stats.active} label="Tugas Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={stats.overdue} label="Terlambat" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={stats.today} label="Jatuh Tempo Hari Ini" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={stats.doing} label="Dikerjakan" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={stats.done} label="Selesai" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.active} label="Tugas Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.overdue} label="Terlambat" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.today} label="Jatuh Tempo Hari Ini" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.doing} label="Dikerjakan" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.done} label="Selesai" accent="var(--green)" /></div></Panel>
           <Panel>
-            <div style={{ padding: '11px 14px' }}>
+            <div style={{ padding: '15px 18px' }}>
               <div className="row jb tiny" style={{ marginBottom: 6 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-3)', fontSize: 10.5 }}>Penyelesaian</span><span className="mono" style={{ fontWeight: 700, color: 'var(--navy)' }}>{donePct}%</span></div>
               <div className="mt-mini" style={{ height: 8 }}><span style={{ width: donePct + '%', background: 'var(--green)' }} /></div>
               <div className="tiny muted" style={{ marginTop: 7 }}>Estimasi beban minggu ini: <b className="mono" style={{ color: 'var(--ink)' }}>{stats.estWeek.toFixed(1)} jam</b></div>

@@ -888,10 +888,10 @@ function AJEViewLegacy() {
         <div className="view-pad">
           {locked && <LockBanner />}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={aje.length} label="Total AJE" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={posted.length} label="Posted" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={proposed.length} label="Proposed" accent="var(--amber)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(netPosted / 1e6, 0) + ' jt'} label="Dampak Posted ke Laba" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={aje.length} label="Total AJE" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={posted.length} label="Posted" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={proposed.length} label="Proposed" accent="var(--amber)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(netPosted / 1e6, 0) + ' jt'} label="Dampak Posted ke Laba" /></div></Panel>
           </div>
 
           <Panel noBody>

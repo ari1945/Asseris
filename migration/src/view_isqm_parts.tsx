@@ -198,7 +198,7 @@ function SoqmLineage({ nav }: any) {
 
   return (
     <div style={{ padding: 14, display: 'grid', gap: 16 }}>
-      <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
+      <div className="panel" style={{ padding: '15px 18px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
         <div className="row ac gap8">
           <span style={{ color: 'var(--blue)' }}>{I ? <I.link2 size={16} /> : null}</span>
           <div className="tiny" style={{ lineHeight: 1.5 }}>

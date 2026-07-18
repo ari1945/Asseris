@@ -158,11 +158,11 @@ function AuditTimeline() {
 
         {/* KPI tiles */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={plan.phases.length ? ATL_fmt(plan.phases[0].start) : '—'} label="Mulai Perikatan" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={phEnd ? ATL_fmt(phEnd) : '—'} label="Selesai Fieldwork" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={target ? ATL_fmt(target) : '—'} label="Target Tanda Tangan Opini" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'± ' + durWk + ' mg'} label="Durasi · 3 fase" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={plan.phases.length ? ATL_fmt(plan.phases[0].start) : '—'} label="Mulai Perikatan" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={phEnd ? ATL_fmt(phEnd) : '—'} label="Selesai Fieldwork" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={target ? ATL_fmt(target) : '—'} label="Target Tanda Tangan Opini" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'± ' + durWk + ' mg'} label="Durasi · 3 fase" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}>
             <div className="row ac jb" style={{ marginBottom: 6 }}><span className="s-val" style={{ fontSize: 20, color: 'var(--navy)' }}>{eng.progress}%</span><span className="tiny muted">progres</span></div>
             <Progress value={eng.progress} color="var(--blue)" />
             <div className="s-lbl" style={{ marginTop: 6 }}>Progres Keseluruhan</div>

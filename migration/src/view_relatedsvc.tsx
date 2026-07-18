@@ -120,7 +120,7 @@ function AUPPanel() {
   return (
     <>
       {/* engagement header */}
-      <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 38, height: 38, borderRadius: 9, background: '#5b3fa6', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>AP</span>
         <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{A.client}</div><div className="tiny muted truncate">{A.id} · Prosedur yang Disepakati ({A.standard}) · Pengguna: {A.requester}</div></div>
         <div className="row gap8 ac">
@@ -350,7 +350,7 @@ function AUPPanel() {
               <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur Dilaksanakan</div><div className="mono" style={{ fontSize: 18, fontWeight: 700 }}>{E.done} / {E.total}</div></div>
               <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Temuan Pengecualian</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: E.exceptions ? 'var(--red)' : 'var(--green)' }}>{E.exceptions}</div></div>
             </div>
-            <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: E.ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+            <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: E.ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row ac gap8"><span style={{ color: E.ready ? 'var(--green)' : 'var(--amber)' }}>{E.ready ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
                 <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{E.ready
                   ? 'Seluruh prosedur yang disepakati telah dilaksanakan — Laporan Temuan Faktual siap diterbitkan, mencakup ' + E.exceptions + ' pengecualian.'
@@ -378,7 +378,7 @@ function CompilationPanel() {
   ];
   return (
     <>
-      <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 38, height: 38, borderRadius: 9, background: '#5b3fa6', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>K</span>
         <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{C.client}</div><div className="tiny muted">{C.id} · Kompilasi Informasi Keuangan (SPSJL 4410) · Kerangka {C.framework} · {C.period}</div></div>
         <Badge kind={allCompiled ? 'green' : 'amber'}>{allCompiled ? 'Siap Diterbitkan' : 'Dalam Proses'}</Badge>
@@ -493,7 +493,7 @@ function OtherAssurance() {
               </table>
             </Panel>
 
-            <div className="panel" style={{ marginTop: 12, padding: '11px 14px', background: doneN === e.matters.length ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+            <div className="panel" style={{ marginTop: 12, padding: '15px 18px', background: doneN === e.matters.length ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row ac gap8"><span style={{ color: doneN === e.matters.length ? 'var(--green)' : 'var(--amber)' }}>{doneN === e.matters.length ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
                 <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{doneN === e.matters.length
                   ? 'Seluruh hal pokok selesai — simpulan asurans (' + e.level + ') dapat dirumuskan dan laporan diterbitkan sesuai ' + e.std + '.'

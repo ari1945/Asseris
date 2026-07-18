@@ -82,9 +82,9 @@ function NewDisclosures2024() {
 
               {tab === 'pilar2' && <>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
-                  <Panel><div style={{ padding: '11px 14px' }}><Stat value={P2_MIN_RATE.toFixed(0) + '%'} label="Tarif minimum efektif (GloBE)" accent="var(--navy)" /></div></Panel>
-                  <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(D.etrGroup, 1) + '%'} label="ETR grup konsolidasian" accent={D.etrGroup >= P2_MIN_RATE ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-                  <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(D.topUp)} label="Estimasi eksposur top-up tax" accent="var(--amber)" /></div></Panel>
+                  <Panel><div style={{ padding: '15px 18px' }}><Stat value={P2_MIN_RATE.toFixed(0) + '%'} label="Tarif minimum efektif (GloBE)" accent="var(--navy)" /></div></Panel>
+                  <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(D.etrGroup, 1) + '%'} label="ETR grup konsolidasian" accent={D.etrGroup >= P2_MIN_RATE ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+                  <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(D.topUp)} label="Estimasi eksposur top-up tax" accent="var(--amber)" /></div></Panel>
                 </div>
                 <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, borderLeft: '4px solid var(--blue)' }}>
                   <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.55 }}>
@@ -145,9 +145,9 @@ function NewDisclosures2024() {
 
               {tab === 'supplier' && <>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
-                  <Panel><div style={{ padding: '11px 14px' }}><Stat value={J(SF.carrying)} label="Nilai tercatat dalam pengaturan" accent="var(--navy)" /></div></Panel>
-                  <Panel><div style={{ padding: '11px 14px' }}><Stat value={SF.rangeDays} label="Rentang jatuh tempo" accent="var(--blue)" /></div></Panel>
-                  <Panel><div style={{ padding: '11px 14px' }}><Stat value={SF.normalTerms} label="Termin normal pemasok" /></div></Panel>
+                  <Panel><div style={{ padding: '15px 18px' }}><Stat value={J(SF.carrying)} label="Nilai tercatat dalam pengaturan" accent="var(--navy)" /></div></Panel>
+                  <Panel><div style={{ padding: '15px 18px' }}><Stat value={SF.rangeDays} label="Rentang jatuh tempo" accent="var(--blue)" /></div></Panel>
+                  <Panel><div style={{ padding: '15px 18px' }}><Stat value={SF.normalTerms} label="Termin normal pemasok" /></div></Panel>
                 </div>
                 <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, borderLeft: '4px solid var(--blue)' }}>
                   <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.55 }}>

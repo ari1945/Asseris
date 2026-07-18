@@ -348,7 +348,7 @@ function RN_ClearanceCard({ M, aging }: any) {
   const maxA = Math.max(1, ...aging.map((b: any) => b.n));
   return (
     <div className="panel" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10, background: ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderBottom: '1px solid var(--line-soft)' }}>
+      <div style={{ padding: '15px 18px', display: 'flex', alignItems: 'center', gap: 10, background: ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderBottom: '1px solid var(--line-soft)' }}>
         <span style={{ color: ready ? 'var(--green)' : 'var(--amber)' }}>{ready ? <I.checkCircle size={18} /> : <I.lock size={17} />}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kesiapan Kliring File</div>
@@ -356,7 +356,7 @@ function RN_ClearanceCard({ M, aging }: any) {
         </div>
         <div className="mono" style={{ fontSize: 26, fontWeight: 800, color: ready ? 'var(--green)' : 'var(--amber)', lineHeight: 1 }}>{M.clearedPct}%</div>
       </div>
-      <div style={{ padding: '11px 14px', display: 'grid', gap: 10 }}>
+      <div style={{ padding: '15px 18px', display: 'grid', gap: 10 }}>
         <div>
           <div className="pbar" style={{ height: 7 }}><span style={{ width: M.clearedPct + '%', background: ready ? 'var(--green)' : 'var(--amber)' }} /></div>
           <div className="row jb tiny muted" style={{ marginTop: 4 }}><span>{M.clearedMust} dari {M.mustClear} dikliring</span><span>review · EQR · query</span></div>
