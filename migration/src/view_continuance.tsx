@@ -53,6 +53,30 @@ const CONTINUANCE_SEED: Record<string, StoredDecision> = {
 
 const DECISIONS: ContinuanceDecision[] = ['Lanjut', 'Lanjut dengan Syarat', 'Tidak Dilanjutkan'];
 
+/* Riwayat keputusan keberlanjutan siklus-siklus sebelumnya (read-only) —
+   memperlihatkan kontinuitas penilaian tahunan (ISQM 1: reasesmen berulang). */
+type CycleEntry = { decision: ContinuanceDecision; approver: string; date: string };
+const CONTINUANCE_HISTORY: Record<string, Record<string, CycleEntry>> = {
+  '2025': {
+    'C-014': { decision: 'Lanjut', approver: 'Hartono Wijaya, CPA', date: '2025-01-15' },
+    'C-031': { decision: 'Lanjut', approver: 'Hartono Wijaya, CPA', date: '2025-01-18' },
+    'C-040': { decision: 'Lanjut dengan Syarat', approver: 'Rudi Gunawan, CPA', date: '2025-01-20' },
+    'C-058': { decision: 'Lanjut', approver: 'Rudi Gunawan, CPA', date: '2025-01-12' },
+    'C-063': { decision: 'Lanjut', approver: 'Rudi Gunawan, CPA', date: '2025-01-22' },
+    'C-022': { decision: 'Lanjut', approver: 'Sari Dewanti, CPA', date: '2025-01-25' },
+  },
+  '2024': {
+    'C-014': { decision: 'Lanjut', approver: 'Hartono Wijaya, CPA', date: '2024-01-16' },
+    'C-031': { decision: 'Lanjut', approver: 'Hartono Wijaya, CPA', date: '2024-01-19' },
+    'C-063': { decision: 'Lanjut', approver: 'Rudi Gunawan, CPA', date: '2024-01-21' },
+  },
+};
+function cycleHistoryFor(clientId: string): { yr: string; d: CycleEntry }[] {
+  return Object.keys(CONTINUANCE_HISTORY).sort().reverse()
+    .map((yr) => ({ yr, d: CONTINUANCE_HISTORY[yr][clientId] }))
+    .filter((x): x is { yr: string; d: CycleEntry } => !!x.d);
+}
+
 const attnKind = (a: Attention) => (a === 'Tinggi' ? 'red' : a === 'Sedang' ? 'amber' : 'green');
 const decKind = (d: ContinuanceDecision) => (d === 'Lanjut' ? 'green' : d === 'Lanjut dengan Syarat' ? 'amber' : d === 'Tidak Dilanjutkan' ? 'red' : 'gray');
 const sevColor = (s: TriggerSeverity) => (s === 'high' ? 'var(--red)' : s === 'med' ? 'var(--amber)' : 'var(--ink-4)');
@@ -373,6 +397,24 @@ function ContinuanceRegister() {
                       <div style={{ display: 'grid', gap: 4 }}>
                         {rec.trail.map((t, i) => (
                           <div key={i} className="tiny muted">• {t.action} — {t.by} · {t.at}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {cycleHistoryFor(sel.clientId).length > 0 && (
+                    <div>
+                      <div className="tiny muted upper" style={{ marginBottom: 5 }}>Riwayat siklus keberlanjutan</div>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        <div className="row ac jb tiny">
+                          <span style={{ fontWeight: 600 }}>Siklus {REF_YEAR} (berjalan)</span>
+                          <Badge kind={decKind(approved ? sel.decision : 'Tertunda')} dot={approved}>{approved ? sel.decision : 'Tertunda'}</Badge>
+                        </div>
+                        {cycleHistoryFor(sel.clientId).map(({ yr, d }) => (
+                          <div key={yr} className="row ac jb tiny" title={`${d.approver} · ${d.date}`}>
+                            <span className="muted">Siklus {yr}</span>
+                            <Badge kind={decKind(d.decision)} dot>{d.decision}</Badge>
+                          </div>
                         ))}
                       </div>
                     </div>
