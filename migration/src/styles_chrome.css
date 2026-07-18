@@ -195,7 +195,13 @@
 .side-focus { margin: 0 8px 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(77,184,255,.16); border-radius: 10px; padding: 4px; }
 
 .side-item.relev .ico { color: #4db8ff; opacity: 1; }
-.side-item.dim { opacity: .55; }
+/* Fase non-berjalan (mode "Sorot"): de-emphasis lewat warna label yang tetap
+   terbaca (--on-navy-dim, kontras ≳4.5:1) + ikon pudar — BUKAN opacity global
+   .55 yang menjatuhkan keterbacaan label di bawah ambang WCAG AA. */
+.side-item.dim { opacity: 1; }
+.side-item.dim .lbl { color: var(--on-navy-dim); }
+.side-item.dim .ico { opacity: .5; }
+.side-item.dim:hover .lbl { color: #eaf3f8; }
 .side-item .done { color: #5fcf9a; display: grid; place-items: center; }
 .side-alltree-h { padding: 11px 12px 2px; font: 700 9.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: var(--on-navy-dim); }
 
