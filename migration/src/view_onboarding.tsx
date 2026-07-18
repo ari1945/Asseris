@@ -10,6 +10,7 @@ import { MSub } from './view_fpm_parts';
 import { StepLetter, StepPMPJ } from './view_onboarding2';
 import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
 import { prospectToEngagementInheritance } from './engagement_entry_gate';
+import { verdict, weightedScore } from './assessment_model';
 
 /* ============================================================
    Asseris — Front-office: Client & Engagement Onboarding
@@ -25,15 +26,13 @@ const OB_STAGES = [
   { id: 'letter',     label: 'Engagement Letter',          short: 'Letter',    color: '#005085' },
   { id: 'convert',    label: 'Konversi ke Perikatan',      short: 'Konversi',  color: '#1f7a4d' },
 ];
+/* Skor & verdict akseptasi kini memakai model penilaian bersama
+   (assessment_model) — SSOT dipakai juga oleh keberlanjutan. Perilaku identik. */
 function obAccScore(p: any) {
-  const f = (p.acceptance && p.acceptance.factors) || [];
-  const tw = f.reduce((s: any, x: any) => s + x.w, 0) || 1;
-  return f.reduce((s: any, x: any) => s + x.s * x.w, 0) / tw;
+  return weightedScore(p.acceptance && p.acceptance.factors);
 }
 function obAccVerdict(score: any) {
-  return score >= 4 ? { k: 'green', l: 'Terima' }
-    : score >= 3 ? { k: 'amber', l: 'Terima dengan Syarat' }
-    : { k: 'red', l: 'Tolak' };
+  return verdict(score, 'acceptance');
 }
 function obGates(p: any) {
   return {

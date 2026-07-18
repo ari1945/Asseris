@@ -706,7 +706,7 @@
   },
   "src/view_onboarding.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 74
+      "count": 70
     }
   },
   "src/view_onboarding2.tsx": {
