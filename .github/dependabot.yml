@@ -51,8 +51,16 @@ updates:
       - dependency-name: "react-dom"
         update-types: ["version-update:semver-major"]
       # ESLint 10 outruns the react eslint-plugin peer ranges. Held until the
-      # plugin ecosystem catches up.
+      # plugin ecosystem catches up. @eslint/js tracks the same major, so hold it too.
       - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      # Vite 8 = major build-tool upgrade; vite + @vitejs/plugin-react must move
+      # together (CI red on either alone). Deferred as one dedicated upgrade.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
         update-types: ["version-update:semver-major"]
       # TS 7 toolchain jump — deferred alongside /server.
       - dependency-name: "typescript"

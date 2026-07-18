@@ -61,6 +61,25 @@ Context: these surfaced as failing Dependabot PRs #50/#51/#53/#54/#63/#66
   4. Watch for `tsc` behaviour changes vs the W14 full-strict baseline.
 - **Risk:** medium-high (compiler-wide; can cascade through canon `.ts`).
 
+## 4. Vite 8 (`migration/`)
+
+- **Packages:** `vite` 5→8, `@vitejs/plugin-react` 4→6 (move together — CI is red
+  on either alone; #78 and #80 failed individually).
+- **Why deferred:** major build-tool upgrade; plugin-react 6 targets Vite 8.
+- **Scope / steps:** branch; bump both together; `npm run build` + `npm run dev`
+  smoke; confirm the ESM/Babel-in-browser boot chain (see CLAUDE.md) still serves.
+- **Risk:** medium (build/dev tooling; no runtime app-code change expected).
+
+## 5. ESLint 10 ecosystem (`migration/`)
+
+- **Packages:** `eslint` 9→10, `@eslint/js` 9→10 (and the react eslint plugins).
+- **Why deferred:** ESLint 10 outruns `eslint-plugin-react`'s peer range (#66/#83).
+- **Do when:** the react eslint plugins publish ESLint 10 peer support. Low urgency.
+- **Risk:** low (lint-only; no shipped code affected).
+
+_Note: the deferred majors above are held in `.github/dependabot.yml` via `ignore`.
+Remove the matching entry when you start the upgrade so Dependabot resumes it._
+
 ---
 
 _Last updated: 2026-07-18._
