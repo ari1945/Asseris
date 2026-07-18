@@ -164,6 +164,25 @@ export interface CanonAugmentations {
   pdp: () => any;
 }
 
+/* ---------- PSAK 25 · Item Penyajian Kembali (restatement, editable auditor) ----------
+   Satu koreksi/perubahan retrospektif yang dimasukkan auditor. Estimasi DIKECUALIKAN
+   (prospektif ¶36 — tak menyebabkan penyajian kembali). */
+export interface RestatementItem {
+  id: string;
+  /** kesalahan periode lalu (¶42) · perubahan kebijakan retrospektif (¶19/22) · reklasifikasi penyajian (PSAK 1 ¶41) */
+  type: 'error' | 'policy' | 'reclass';
+  desc: string;
+  /** periode asal koreksi, mis. 'FY2024' */
+  period: string;
+  /** pos LK utama terdampak (label naratif) */
+  affects: string;
+  /** dampak bruto ke laba sebelum pajak periode lalu (Rp juta); negatif = laba dikoreksi turun.
+      Diabaikan untuk type 'reclass' (tak berdampak laba/saldo laba). */
+  gross: number;
+  /** dikenai gross-up pajak (RATE) — hanya relevan untuk error/policy */
+  tax?: boolean;
+}
+
 /* ---------- SA 320 · Materialitas (om/pm/ctt lintas-modul) ---------- */
 export interface MaterialityOpts {
   /** materialitas engagement (Rp penuh) sbg basis bila tak ada override */

@@ -74,6 +74,7 @@ import { OJKFilingView } from './view_ojkfiling';
 import { ClientOnboarding } from './view_onboarding';
 import { ContinuanceRegister } from './view_continuance';
 import { OpeningBalance } from './view_opening';
+import { RestatementView } from './view_restatement';
 import { AuditOpinionGen } from './view_opinion';
 import { CommandPalette } from './view_palette';
 import { Payroll } from './view_payroll';
@@ -249,6 +250,7 @@ function viewFor(moduleId: any) {
     case 'expert':     return <UseOfExpert />;
     case 'serviceorg': return <ServiceOrg />;
     case 'opening':    return <OpeningBalance />;
+    case 'restatement': return <RestatementView />;
     case 'strategy':   return <StrategyMemo />;
     case 'workpapers': return <WorkingPapers />;
     case 'asersi':     return <AssertionMatrix />;

@@ -84,6 +84,7 @@ const AMS_PERSIST_SCOPE = {
   'jet.v1': 'engagement',
   'sampling.v1': 'engagement',
   'estimates.v1': 'engagement',
+  'restatement.v1': 'engagement',
   'fraud.v1': 'engagement',
   /* Migrasi pola firm-scope laten (task lanjutan dari fraud.v1/sampling.v1):
      modul ini dulu menyandikan engId ke dalam string key (mis. 'goingconcern.'+engId)

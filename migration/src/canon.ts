@@ -18,7 +18,7 @@
    ============================================================ */
 import { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures } from './canon_base';
 import { deferredTax, INV_MIX, INV_FG_AGING, INV_ITEMS, inventory, PPE_CLASSES, fixedAssets, REGISTER_SEED, REGISTER_MAP, assetRegister, REV_STREAMS, REV_CHANNELS, REV_GEO, REV_VC, REV_SSP_CONTRACT, REV_CONTRACT_BAL, revenue, INTAN_CLASSES, intangibles } from './canon_part1';
-import { RESTATE, psak25, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 } from './canon_part2';
+import { RESTATE, psak25, RESTATEMENT_SEED, restatementEngine, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 } from './canon_part2';
 import { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65 } from './canon_part3';
 import { JOINT_ARR, P66_DISCLOSURE, psak66, PPA_DEALS, P22_PROC, psak22, materiality } from './canon_part4';
 import { goingConcern } from './canon_part5';
@@ -44,7 +44,7 @@ const AMS_CANON_BASE = {
   psak48, valueInUse, GOODWILL, P48_INDICATORS,
   psak57, PROV_REGISTER, P57_TREAT,
   psak58, P58_GROUP,
-  psak25, RESTATE,
+  psak25, RESTATE, restatementEngine, RESTATEMENT_SEED,
   figuresFromWTB, WTB_MAP, FISCAL, FIG,
 };
 
