@@ -4,8 +4,13 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
+import { AMS } from './data';
 import { CONT_FACTORS, INDEPENDENCE, INVOICES, PRIOR_YEAR } from './data_part1';
 import { verdict, weightedScore, type AssessmentFactor } from './assessment_model';
+import { amsExportPdf } from './export_pdf';
+import { amsExportXlsx } from './export_xlsx';
+import { exportVerifySeal } from './api';
+import { buildMemoBlocks, buildMemoSheets, memoMeta, memoRefNo, memoTitle, type MemoInput } from './acceptance_continuance_memo';
 import {
   continuanceFlags,
   isOpinionModified,
@@ -144,6 +149,35 @@ function ContinuanceRegister() {
   const reopenWp = () => {
     if (!sel || !canDecide) return;
     patchRec(sel.clientId, { approved: false, trail: [...(rec.trail || []), { action: 'Dibuka kembali untuk revisi', by: me, at: stamp() }] });
+  };
+
+  // Ekspor memo kertas kerja (SA 230) tersegel — PDF/XLSX via generator bersama.
+  const firmMeta = AMS as { FIRM?: { name?: string } };
+  const firmName = (firmMeta.FIRM && firmMeta.FIRM.name) || 'Kantor Akuntan Publik';
+  const [busyExport, setBusyExport] = useStateCN(false);
+  const [verifyRes, setVerifyRes] = useStateCN(null as { valid: boolean; reason?: string } | null);
+  const buildMemoInput = (): MemoInput | null => sel ? ({
+    kind: 'continuance', client: sel.client, clientId: sel.clientId, industry: sel.industry,
+    partner: sel.partner, cycle: String(REF_YEAR), score, verdict: rv.l, factors,
+    decision: approved ? sel.decision : (rec.decision || rv.l),
+    approver: rec.approver, date: rec.date, approved,
+    safeguards: rec.safeguards, triggers: sel.triggers, priorYear: sel.priorYear || null, trail: rec.trail,
+  }) : null;
+  const doExport = async (fmtKind: 'pdf' | 'xlsx') => {
+    const mi = buildMemoInput();
+    if (!mi || !sel || busyExport) return;
+    setBusyExport(true); setVerifyRes(null);
+    try {
+      const base = { kind: 'continuance-memo', firm: firmName, title: memoTitle(mi), meta: memoMeta(mi) };
+      const res = fmtKind === 'pdf'
+        ? await amsExportPdf({ ...base, refNo: memoRefNo(mi), fileName: `Memo Keberlanjutan - ${sel.client}.pdf`, blocks: buildMemoBlocks(mi) })
+        : await amsExportXlsx({ ...base, fileName: `Memo Keberlanjutan - ${sel.client}.xlsx`, sheets: buildMemoSheets(mi) });
+      if (res && res.sealed && res.sealId) patchRec(sel.clientId, { memoSeal: { sealId: res.sealId, contentHash: res.contentHash } });
+    } finally { setBusyExport(false); }
+  };
+  const doVerify = async () => {
+    if (!rec.memoSeal) return;
+    setVerifyRes(await exportVerifySeal({ sealId: rec.memoSeal.sealId, contentHash: rec.memoSeal.contentHash }));
   };
 
   if (!canView) {
@@ -343,6 +377,24 @@ function ContinuanceRegister() {
                       </div>
                     </div>
                   )}
+
+                  <div>
+                    <div className="tiny muted upper" style={{ marginBottom: 5 }}>Dokumentasi (SA 230) — memo tersegel</div>
+                    <div className="row wrap gap6">
+                      <Btn sm variant="ghost" disabled={busyExport} onClick={() => doExport('pdf')}><I.download size={13} /> Memo PDF</Btn>
+                      <Btn sm variant="ghost" disabled={busyExport} onClick={() => doExport('xlsx')}><I.download size={13} /> Memo XLSX</Btn>
+                      {rec.memoSeal && <Btn sm variant="ghost" onClick={doVerify}><I.shield size={13} /> Verifikasi Segel</Btn>}
+                    </div>
+                    {rec.memoSeal && (
+                      <div className="tiny mono" style={{ marginTop: 5, color: 'var(--ink-3)' }}>Segel: {rec.memoSeal.sealId}</div>
+                    )}
+                    {verifyRes && (
+                      <div className="tiny" style={{ marginTop: 4, color: verifyRes.valid ? 'var(--green)' : 'var(--red)' }}>
+                        {verifyRes.valid ? '✓ Segel sah — konten utuh' : '✗ Segel tidak sah' + (verifyRes.reason ? ' (' + verifyRes.reason + ')' : '')}
+                      </div>
+                    )}
+                    <div className="tiny muted" style={{ marginTop: 5 }}>Segel Ed25519 (provenans Asseris) — bukan e-Meterai/PSrE.</div>
+                  </div>
                 </div>
               </div>
             </Panel>

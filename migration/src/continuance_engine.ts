@@ -116,6 +116,8 @@ export interface StoredDecision {
   safeguards?: string;
   factors?: AssessmentFactor[];
   trail?: ContinuanceTrailEntry[];
+  /* Segel provenans memo terekspor (P4) — untuk verifikasi ulang (Ed25519). */
+  memoSeal?: { sealId: string; contentHash: string } | null;
 }
 
 const LONG_ASSOC_YEARS = 8;
