@@ -1,99 +1,64 @@
-# Migrasi `window` → ESM — NeoSuite AMS
+# `migration/` — Frontend Asseris (Vite + React + TypeScript)
 
-Paket migrasi mekanis untuk menutup gap **P1 · "Namespace `window` menggantikan impor ESM"**
-dari dokumen _Kesiapan Pengembangan Claude Code_. Targetnya: graf dependensi statis di bawah
-**Vite**, agar Claude Code (dan tooling: lint / tree-shake / typecheck) bisa menelusuri
-"siapa memakai apa", dan kelas bug "tabrakan nama top-level" hilang.
+Paket ini adalah **sumber kebenaran aplikasi** Asseris (SPA React, ESM-only). Edit di
+`migration/src/*`. Untuk gambaran produk & arsitektur menyeluruh, lihat
+[`../README.md`](../README.md); untuk panduan build/alur kerja lengkap, lihat
+[`../BUILD.md`](../BUILD.md).
 
-> **App asli tidak disentuh.** Semua hasil ditulis ke dalam folder `migration/`.
-> Rollback = hapus `migration/`. Versi buildless di root tetap berjalan apa adanya.
+> **Sejarah:** paket ini semula lahir sebagai pass migrasi mekanis `window` → ESM
+> (codemod). Sejak W3 Phase 2, `src/` menjadi **kanonik & di-maintain tangan**;
+> `codemod.mjs` **pensiun** — menjalankannya akan menimpa suntingan tangan. Berkas
+> buildless lama di root (`NeoSuite AMS.html`, `app/*`, `build/`) kini **referensi beku**.
 
 ---
 
 ## TL;DR
 
-```bash
+```powershell
 cd migration
 npm install
-npm run codemod:dry     # laporan dulu: tabrakan nama + global tak dikenal (TIDAK menulis)
-npm run codemod         # tulis migration/src/*, main.jsx, index.html
-npm run dev             # Vite — verifikasi app jalan identik di http://localhost:5180
-npm run build           # bundel produksi → migration/dist
+npm run dev:all     # server (:5181) + Vite (:5180) — cara utama menjalankan app
+# atau tanpa backend:
+npm run dev         # Vite saja (:5180) — persistensi degrade ke cache-only
 ```
 
-Butuh Node ≥ 18. Jalankan & verifikasi di mesin Anda / sesi Claude Code (Vite perlu Node —
-tidak bisa diverifikasi di dalam preview HTML).
+Butuh Node ≥ 18. Login dengan akun dev (lihat [`../README.md`](../README.md#akun-dev)).
 
----
+## Skrip
 
-## Strategi: dual-publish (kenapa aman)
+| Skrip | Fungsi |
+|---|---|
+| `npm run dev` | Vite dev server (:5180, HMR) |
+| `npm run dev:all` | Server backend (:5181) + Vite (:5180) bersamaan |
+| `npm run build` | Bundel produksi → `dist/` |
+| `npm run lint` | ESLint (`no-undef` + `no-dupe-keys` = 0 pada `.js/.jsx`) — WAJIB hijau |
+| `npm run typecheck` | `tsc --noEmit` — gerbang TypeScript kanon (strict penuh), WAJIB 0 error |
+| `npm run test` | Vitest — jaring "mesin angka" kanon (`+ --coverage` untuk gerbang ≥80%) |
 
-Codemod **menambah**, tidak menimpa:
-
-| Lapisan | Sebelum | Sesudah |
-|---|---|---|
-| Ekspor | `Object.assign(window, { Badge, Btn })` | _tetap_ **+** `export { Badge, Btn };` |
-| Impor | `Badge` muncul sbg global ajaib | `import { Badge } from './ui.jsx';` disisipkan di atas |
-| Bus runtime | `window.__amsOpenSA = …` | _tetap apa adanya_ (sengaja) |
-
-Karena tulisan ke `window` dipertahankan, **migrasi sebagian pun tetap jalan**: jika satu
-simbol terlewat oleh penyisip impor, runtime masih menemukannya lewat `window`. Ini menukar
-"big-bang yang rapuh" dengan "konversi bertahap yang selalu hijau".
-
-Setelah `npm run dev` terbukti identik, lapisan `window` bisa dilucuti **berkas demi berkas**
-(hapus `Object.assign(window, …)`; ganti sisa `window.X` baca dengan `import`) — masing-masing
-PR kecil yang bisa diverifikasi. Itulah pekerjaan yang **cocok diserahkan ke Claude Code**.
-
----
-
-## Yang dihasilkan
+## Struktur
 
 ```
 migration/
-  codemod.mjs          ← konverter (AST @babel/parser, dijalankan di Node)
-  package.json         ← deps + skrip (dev/build/test/codemod)
-  vite.config.mjs      ← satu titik entri, plugin-react, sourcemap
-  README.md            ← berkas ini
-  index.html           ← entri Vite (GENERATED) — 1 <script type="module">, bukan ~190 tag
-  src/                 ← (GENERATED) salinan app/* + import/export ESM
-    main.jsx           ← entri: import CSS → semua modul (boot order) → app.jsx
-    *.js / *.jsx       ← modul hasil konversi
-    styles.css
+  index.html         entri Vite → src/main.jsx (import ber-urutan boot)
+  src/
+    main.jsx         entri: CSS → semua modul (boot order) → app.jsx
+    canon*.ts        MESIN HITUNG kanonik (SSOT), TypeScript strict
+    forensic_canon.ts arus kas forensik
+    canon_selectors.ts / canon_types.ts   selektor & tipe publik yang dikonsumsi view
+    data*.js|ts      data master + helper (WTB/AJE/RISKS/…)
+    view_*.jsx|tsx   ~150 modul halaman
+    contexts.jsx     Auth/Firm/Audit context + hook persistensi
+    ui.jsx / shell.jsx  primitif UI + TopBar/Sidebar/SubBar
+  vite.config.mjs    esbuild loader 'tsx' atas .js/.jsx/.ts/.tsx
+  vitest.config.mjs  harness uji kanon
+  eslint.config.js   flat config (melint .js/.jsx; .ts dijaga tsc)
 ```
 
-## Cara kerja codemod (ringkas)
+## Verifikasi
 
-1. **Baca boot order** dari `NeoSuite AMS.html` (urutan `<script src="app/…">`).
-2. **Peta simbol global** via AST: `Object.assign(window,{…})`, `window.NAMA = …`,
-   namespace data (`window.AMS/PROC/BO/FAC/FIRMFIN/FSGEN` → pemilik = berkas pertama).
-3. **Per berkas**, dengan analisis scope Babel: identifier bebas (termasuk komponen JSX
-   `<Foo/>` dan `<I.x/>`) yang ada di peta tetapi tak dideklarasi lokal → `import { … }`.
-   `React` → `import React from 'react'`; `ReactDOM` → `import ReactDOM from 'react-dom/client'`.
-4. **Dual-publish** ekspor di kaki berkas. Entri `main.jsx` + `index.html` dibuat otomatis.
+- [ ] `npm run dev` / `dev:all` membuka app; navigasi ⌘K, sidebar, drawer SA berfungsi.
+- [ ] Tidak ada error konsol "X is not defined".
+- [ ] Angka kanonik konsisten (materialitas OM 4.260 / PM 3.195 / CTT 213; PSAK 46/71/73).
+- [ ] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` — semua hijau.
 
-## Membaca laporan codemod
-
-- **Tabrakan nama** — nama yang dimiliki >1 berkas (footgun `const styles`, dsb). Codemod
-  memakai pemilik pertama (load order) + fallback `window`; tetap **tinjau manual** dan beri
-  nama unik (lihat aturan emas di `CLAUDE.md`).
-- **Global tak dikenal** — identifier yang dirujuk tapi bukan simbol modul/browser. Biasanya:
-  global runtime baru (tambahkan ke `BROWSER_GLOBALS`), atau simbol yang lupa diekspor.
-
-## Verifikasi (checklist)
-
-- [ ] `npm run dev` membuka app; navigasi ⌘K, sidebar, drawer SA berfungsi.
-- [ ] Tidak ada error konsol "X is not defined" (artinya ada import terlewat → cek laporan).
-- [ ] Modul angka konsisten (PSAK 46/71/73, materialitas) — sama seperti versi root.
-- [ ] `npm run build` sukses; `npm run preview` jalan.
-
-## Langkah lanjut (sesuai roadmap dokumen)
-
-1. **Lucuti `window`** berkas demi berkas (PR kecil) setelah dev hijau.
-2. **Vitest untuk "mesin angka"** — `AMS_CANON`, PSAK 46/71/73 (lihat `scripts.test`).
-3. **TypeScript bertahap** mulai dari `canon` + kontrak antar-modul.
-
----
-
-_Catatan: codemod adalah pass mekanis pertama. Ia dirancang konservatif (tak ada kode lama
-ditimpa) justru agar Claude Code dapat menyelesaikan sisa pelucutan `window` dengan aman,
-dipandu jaring uji._
+_Detail konvensi domain, aturan emas anti-tabrakan, dan cara menambah modul: [`../CLAUDE.md`](../CLAUDE.md)._
