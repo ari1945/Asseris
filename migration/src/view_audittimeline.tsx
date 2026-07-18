@@ -26,22 +26,24 @@ const ATL_iso = (t: any) => new Date(t).toISOString().slice(0, 10);
 const ATL_tint = (hex: any, a: any) => { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; };
 
 /* template aktivitas per fase — fraksi [a,b] di dalam jendela fase nyata.
-   mod = modul/prosedur terkait yang dibuka saat baris diklik. */
+   mod = modul/prosedur terkait yang dibuka saat baris diklik.
+   tab (opsional, PRD 2026-07-18) = tab/lensa awal yang diseed di modul-tujuan
+   via useInitialTab; tanpa tab → modul memakai default/last-used (perilaku lama). */
 const ATL_TASKS = {
   Perencanaan: [
     { n: 'Penerimaan & keberlanjutan perikatan', ref: 'A-100', a: 0, b: .28, mod: 'onboarding' },
-    { n: 'Pemahaman entitas & lingkungan', ref: 'A-200', a: .18, b: .55, mod: 'risk' },
+    { n: 'Pemahaman entitas & lingkungan', ref: 'A-200', a: .18, b: .55, mod: 'risk', tab: 'register' },
     { n: 'Penilaian risiko & penetapan materialitas', ref: 'A-300', a: .42, b: .78, mod: 'materiality' },
     { n: 'Penyusunan strategi & program audit', ref: 'A-310', a: .66, b: .92, mod: 'programme' },
     { n: 'Permintaan data awal (daftar PBC)', ref: 'A-410', a: .82, b: 1, mod: 'clientportal' },
   ],
   Eksekusi: [
-    { n: 'Kas, bank & konfirmasi bank', ref: 'C-100', a: 0, b: .22, mod: 'confirm' },
+    { n: 'Kas, bank & konfirmasi bank', ref: 'C-100', a: 0, b: .22, mod: 'confirm', tab: 'Bank' },
     { n: 'Piutang usaha & penurunan nilai (ECL)', ref: 'C-200', a: 0, b: .42, mod: 'ecl' },
-    { n: 'Persediaan & penilaian', ref: 'C-300', a: .12, b: .46, mod: 'psak14' },
-    { n: 'Aset tetap & penyusutan', ref: 'C-400', a: .26, b: .60, mod: 'psak16' },
+    { n: 'Persediaan & penilaian', ref: 'C-300', a: .12, b: .46, mod: 'psak14', tab: 'nrv' },
+    { n: 'Aset tetap & penyusutan', ref: 'C-400', a: .26, b: .60, mod: 'psak16', tab: 'register' },
     { n: 'Pendapatan & pengujian cut-off', ref: 'C-500', a: .30, b: .72, mod: 'psak72' },
-    { n: 'Liabilitas & konfirmasi utang', ref: 'C-600', a: .46, b: .76, mod: 'confirm' },
+    { n: 'Liabilitas & konfirmasi utang', ref: 'C-600', a: .46, b: .76, mod: 'confirm', tab: 'Utang' },
     { n: 'Pajak kini & tangguhan', ref: 'C-700', a: .58, b: .86, mod: 'psak46' },
     { n: 'Penyesuaian (AJE) & WTB final', ref: 'C-900', a: .84, b: 1, mod: 'aje' },
   ],
@@ -179,7 +181,7 @@ function AuditTimeline() {
         {/* GANTT */}
         <Panel noBody style={{ marginBottom: 12, overflow: 'hidden' }}>
           <div style={{ display: 'flex', overflowX: 'auto' }}>
-            <ATL_Chart mode={mode} groups={groups} plan={plan} months={months} frac={frac} today={today} done={done} onOpen={(id: any) => id && nav(id, { from: 'audittimeline' })} />
+            <ATL_Chart mode={mode} groups={groups} plan={plan} months={months} frac={frac} today={today} done={done} onOpen={(t: any) => t && t.mod && nav(t.mod, { from: 'audittimeline', tab: t.tab })} />
           </div>
         </Panel>
 
@@ -281,7 +283,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
             );
           }
           return (
-            <div key={i} onClick={() => onOpen && onOpen(r.t.mod)} onMouseEnter={() => setHov(r.t.ref)} onMouseLeave={() => setHov(null)}
+            <div key={i} onClick={() => onOpen && onOpen(r.t)} onMouseEnter={() => setHov(r.t.ref)} onMouseLeave={() => setHov(null)}
               title={'Buka modul terkait — ' + r.t.n}
               style={{ height: ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px 0 24px', borderBottom: '1px solid var(--line-soft)', position: 'relative', cursor: 'pointer', background: hov === r.t.ref ? 'var(--blue-050)' : 'transparent' }}>
               <span style={{ position: 'absolute', left: 14, width: 6, height: 6, borderRadius: '50%', background: ATL_tint((ATL_PHASE_COLOR as any)[r.ph.name], 1) }} />
@@ -332,7 +334,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
           const L = frac(r.t.s), W = Math.max(0.8, frac(r.t.e) - frac(r.t.s)), c = (ATL_PHASE_COLOR as any)[r.ph.name];
           const active = hov === r.t.ref;
           return (
-            <div key={i} onClick={() => onOpen && onOpen(r.t.mod)} onMouseEnter={() => setHov(r.t.ref)} onMouseLeave={() => setHov(null)}
+            <div key={i} onClick={() => onOpen && onOpen(r.t)} onMouseEnter={() => setHov(r.t.ref)} onMouseLeave={() => setHov(null)}
               style={{ height: ROW, position: 'relative', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer', background: active ? 'var(--blue-050)' : 'transparent' }}>
               <div title={r.t.n + ' · ' + ATL_fmt(r.t.s) + ' – ' + ATL_fmt(r.t.e) + ' (' + r.t.pct + '%)'}
                 style={{ position: 'absolute', left: L + '%', width: W + '%', top: 7, height: 16, background: ATL_tint(c, .24), borderRadius: 4, overflow: 'hidden', boxShadow: active ? '0 0 0 2px ' + ATL_tint(c, .55) : '0 1px 2px rgba(7,30,42,.12)' }}>

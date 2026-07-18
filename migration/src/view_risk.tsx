@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat } from './ui';
@@ -32,10 +32,10 @@ function RiskAssessment() {
   const nav = useNav();
   const { risks, updateRisk } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
-  const [selId, setSelId] = useStateR(risks[0].id);
+  const [selId, setSelId] = useStateR(risks[0]?.id ?? null);
   const [hoverCell, setHoverCell] = useStateR(null);
   const [exporting, setExporting] = useStateR(false);
-  const sel = risks.find((r: any) => r.id === selId);
+  const sel = risks.find((r: any) => r.id === selId) || risks[0];
 
   // W10.5 Fase 2 — sealed XLSX risk register (RoMM). No currency: L/I/score are integers.
   const onExportXlsx = async () => {
@@ -70,7 +70,7 @@ function RiskAssessment() {
   const sig = risks.filter((r: any) => r.likelihood * r.impact >= 12).length;
   const fraud = risks.filter((r: any) => r.fraud).length;
 
-  const [mtab, setMtab] = useStateR(() => localStorage.getItem('ams.risk.tab') || 'register');
+  const [mtab, setMtab] = useInitialTab('risk', () => localStorage.getItem('ams.risk.tab') || 'register');
   React.useEffect(() => { try { localStorage.setItem('ams.risk.tab', mtab); } catch (e) {} }, [mtab]);
   const riskTabs = [
     { id: 'register', label: 'Register', icon: 'table' },
@@ -176,6 +176,7 @@ function RiskAssessment() {
               </Panel>
 
               {/* detail / response editor */}
+              {!sel ? <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12.5, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) yang teridentifikasi untuk perikatan ini. Tambahkan risiko lewat tombol <b>Tambah Risiko</b> untuk mulai menyusun register.</div></Panel> :
               <Panel noBody>
                 <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                   <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
@@ -219,7 +220,7 @@ function RiskAssessment() {
                     </div>
                   </div>
                 </div>
-              </Panel>
+              </Panel>}
             </div>
           </div>
         </div>

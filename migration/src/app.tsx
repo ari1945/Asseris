@@ -424,6 +424,12 @@ function App() {
 
   const navigate = React.useCallback((id: any, opts: any) => {
     setNavFrom(opts && opts.from ? opts.from : null);
+    // Deep-link tab (PRD 2026-07-18): stash a one-shot pending-tab BEFORE setRoute
+    // so the target module's useInitialTab seeds it on mount. sessionStorage +
+    // consume-once → survives reload, no staleness. Absent tab = unchanged behavior.
+    try {
+      if (opts && opts.tab != null) sessionStorage.setItem('ams.navtab.' + id, String(opts.tab));
+    } catch (e) { /* private mode */ }
     try {
       if (((MODULE_INDEX as any)[id] || {}).deep) {
         const prev = JSON.parse(localStorage.getItem('ams.recent') || '[]');
