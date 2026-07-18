@@ -3,7 +3,7 @@
    ============================================================ */
 import { FIG, FISCAL, RATE, figuresFromWTB, jt, wtbVal } from './canon_base';
 import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1';
-import type { WTB } from './canon_types';
+import type { WTB, RestatementItem } from './canon_types';
 
   const RESTATE = {
     // Kesalahan periode lalu (prior period error) — penjualan & piutang fiktif FY2024
@@ -128,6 +128,83 @@ import type { WTB } from './canon_types';
     changes.forEach(c => { counts[c.cat] = (counts[c.cat] || 0) + 1; });
 
     return { estimates, estTotalCy, changes, counts, restate, rate: RATE };
+  }
+
+  /* ---------- PROSEDUR PENYAJIAN KEMBALI (restatement) — engine editable ----------
+     Menerima daftar item restatement DARI auditor (bukan hardcode `RESTATE`), lalu
+     menghitung roll-forward saldo laba awal, dampak komparatif agregat, EPS, &
+     materialitas. Baseline PY ditarik dari WTB kolom `ly`; tarif pajak dari RATE
+     (SSOT). Materialitas dibandingkan ambang PM (Rp juta) yang diberi pemanggil
+     (AMS_CANON.materiality().pm). PURE — tanpa efek samping, deterministik. */
+  const RESTATEMENT_SEED: RestatementItem[] = [
+    { id: 'RS-01', type: 'error', period: 'FY2024',
+      desc: 'Penjualan & piutang fiktif FY2024 (channel stuffing, R-01)',
+      affects: 'Penjualan · Piutang usaha', gross: -2400, tax: true },
+  ];
+
+  function restatementEngine(items?: RestatementItem[], wtb?: WTB, opts?: { pm?: number | null; parValue?: number }) {
+    const list = (items && items.length) ? items : RESTATEMENT_SEED;
+    const rate = RATE;
+    const parValue = (opts && opts.parValue) || 100;
+
+    /* baseline PY (audited, dilaporkan) dari WTB kolom `ly` */
+    const pyRev  = -jt(wtbVal(wtb, '4-1100', 'ly'));
+    const pyCogs =  jt(wtbVal(wtb, '5-1100', 'ly'));
+    const pySell =  jt(wtbVal(wtb, '5-2100', 'ly'));
+    const pyGA   =  jt(wtbVal(wtb, '5-3100', 'ly'));
+    const pyFin  =  jt(wtbVal(wtb, '5-4100', 'ly'));
+    const pyTax  =  jt(wtbVal(wtb, '5-5100', 'ly'));
+    const pyPbt  = pyRev - pyCogs - pySell - pyGA - pyFin;
+    const pyNet  = pyPbt - pyTax;
+    const reOpenReported = -jt(wtbVal(wtb, '3-2100', 'ly'));
+
+    /* perkaya tiap item: efek pajak & neto. Reklas tak berdampak laba/saldo laba. */
+    const enriched = list.map(it => {
+      const isReclass = it.type === 'reclass';
+      const gross = isReclass ? 0 : (it.gross || 0);
+      const taxEff = (!isReclass && it.tax) ? Math.round(gross * rate) : 0;
+      const netEff = gross - taxEff;
+      return { ...it, grossEff: gross, taxEff, netEff };
+    });
+
+    const errGross = enriched.reduce((a, e) => a + e.grossEff, 0);
+    const errTax   = enriched.reduce((a, e) => a + e.taxEff, 0);
+    const errNet   = errGross - errTax;
+
+    const pbtR = pyPbt + errGross;
+    const taxR = pyTax + errTax;
+    const netR = pbtR - taxR;
+    const reOpenRestated = reOpenReported + errNet;
+
+    const impact = [
+      { id: 'pbt', label: 'Laba sebelum pajak',         rep: pyPbt, adj: errGross, res: pbtR },
+      { id: 'tax', label: 'Beban pajak penghasilan',    rep: pyTax, adj: errTax,   res: taxR },
+      { id: 'net', label: 'Laba tahun berjalan',        rep: pyNet, adj: errNet,   res: netR, bold: true },
+      { id: 're',  label: 'Saldo laba — akhir periode',  rep: reOpenReported, adj: errNet, res: reOpenRestated, bold: true },
+    ];
+
+    /* lembar saham (juta) dari modal disetor 3-1100 & nilai nominal → EPS dasar */
+    const sharesM = parValue ? (-jt(wtbVal(wtb, '3-1100', 'adj'))) * 1e6 / parValue / 1e6 : 0;
+    const eps = { reported: sharesM ? pyNet / sharesM : 0, restated: sharesM ? netR / sharesM : 0, sharesM };
+
+    const counts: Record<string, number> = { error: 0, policy: 0, reclass: 0 };
+    enriched.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
+
+    const pm = (opts && opts.pm != null) ? opts.pm : null;
+    const hasReclass = counts.reclass > 0;
+    /* material bila dampak neto ke saldo laba ≥ PM (atau ada reklas material — di sini
+       reklas tanpa nilai laba dianggap memicu ¶40A bila item lain sudah material). */
+    const material = pm != null ? (Math.abs(errNet) >= pm) : (Math.abs(errNet) > 0);
+    const thirdBalanceSheet = material || (hasReclass && Math.abs(errNet) === 0 && pm == null);
+
+    return {
+      items: enriched, counts, rate,
+      errGross, errTax, errNet,
+      reOpenReported, reOpenRestated,
+      py: { rev: pyRev, cogs: pyCogs, sell: pySell, ga: pyGA, fin: pyFin, tax: pyTax, pbt: pyPbt, net: pyNet },
+      restated: { pbt: pbtR, tax: taxR, net: netR },
+      impact, eps, pm, material, hasReclass, thirdBalanceSheet,
+    };
   }
 
   /* ---------- PSAK 71 · Instrumen Keuangan (sumber kebenaran ECL & klasifikasi) ----------
@@ -497,4 +574,4 @@ import type { WTB } from './canon_types';
      (¶20) mengalir ke hasil operasi dihentikan (¶33). Penyajian terpisah
      di Neraca (¶38) & jumlah tunggal di Laba Rugi (¶33a). Rp juta. */
 
-export { RESTATE, psak25, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 };
+export { RESTATE, psak25, RESTATEMENT_SEED, restatementEngine, ECL_AGING, ECL_SCENARIOS, ECL_HISTORY, psak71, FV_PORTFOLIO, psak68, GOODWILL, P48, P48_INDICATORS, valueInUse, psak48, PROV_REGISTER, P57_TREAT, psak57 };
