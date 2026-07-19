@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SignoffDots } from './sa_canonical';
 import { SubBar } from './shell';
@@ -26,10 +26,22 @@ const { useState: useStateD2, useMemo: useMemoD2 } = React;
 
 /* REF "hari ini" — selaras dengan modul DMS (sumber perakitan) */
 const D2_REF = new Date('2026-03-09');
-/* tanggal laporan terencana untuk perikatan aktif (kanonik di DMS DOC-0623) */
-const D2_REPORT_DATE = new Date('2026-03-20');
-const D2_RETENTION_YEARS = 10;     // SPM 1 / kebijakan firma (Pengaturan)
-const D2_ASSEMBLY_DAYS = 60;       // SA 230 ¶A21
+/* F2/PR-F — konstanta perikatan (tgl laporan/perakitan/retensi) & atestasi kelengkapan
+   kini TERSIMPAN di sa230Doc.v1 (bukan hardcode modul-level). Rollup kelengkapan tetap
+   turunan dari WP kanonik (useDocCanon). Nilai di bawah = seed default (¶A21 · SPM 1). */
+const DEFAULT_REPORT_DATE = '2026-03-20';   // tanggal laporan terencana (kanonik di DMS DOC-0623)
+const DEFAULT_RETENTION_YEARS = 10;         // SPM 1 / kebijakan firma (Pengaturan)
+const DEFAULT_ASSEMBLY_DAYS = 60;           // SA 230 ¶A21
+interface Sa230Attest { signed: boolean; signer: string; date: string; memo: string }
+interface Sa230Doc { reportDate: string; assemblyDays: number; retentionYears: number; attestation: Sa230Attest }
+type Patch230 = (p: Partial<Sa230Doc>) => void;
+const DEFAULT_SA230DOC: Sa230Doc = {
+  reportDate: DEFAULT_REPORT_DATE, assemblyDays: DEFAULT_ASSEMBLY_DAYS, retentionYears: DEFAULT_RETENTION_YEARS,
+  attestation: { signed: false, signer: '', date: '', memo: '' },
+};
+/* 'YYYY-MM-DD' → Date lokal (tengah hari, hindari geser zona waktu). */
+const d2parseDate = (s: string): Date => { const [y, m, d] = (s || DEFAULT_REPORT_DATE).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1, 12); };
+const D2_REF_ISO = '2026-03-09';
 
 const d2fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const d2addDays = (d: any, n: any) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -94,6 +106,10 @@ function SA230View() {
   const eng = firm?.activeEngagement?.id || 'ENG-2025-014';
   const [tab, setTab] = useStateD2('ikhtisar');
   const C = useDocCanon();
+  /* engagement-scope (AMS_PERSIST_SCOPE: 'sa230Doc.v1' → engagement) — isolasi W7.5.
+     Konstanta perikatan + atestasi; rollup kelengkapan tetap dari useDocCanon. */
+  const [doc, setDoc] = useAmsPersist('sa230Doc.v1', () => DEFAULT_SA230DOC) as [Sa230Doc, (u: (d: Sa230Doc) => Sa230Doc) => void];
+  const patch230: Patch230 = (p) => setDoc(d => ({ ...d, ...p }));
 
   const tabs = [
     { id: 'ikhtisar', label: 'Ikhtisar Dokumentasi' },
@@ -145,8 +161,8 @@ function SA230View() {
         {tab === 'ikhtisar' && <D2Ikhtisar C={C} />}
         {tab === 'atribut' && <D2Atribut C={C} />}
         {tab === 'signifikan' && <D2Signifikan C={C} />}
-        {tab === 'penyimpangan' && <D2Penyimpangan C={C} />}
-        {tab === 'perakitan' && <D2Perakitan C={C} />}
+        {tab === 'penyimpangan' && <D2Penyimpangan C={C} doc={doc} />}
+        {tab === 'perakitan' && <D2Perakitan C={C} doc={doc} patch={patch230} />}
         {tab === 'keterkaitan' && <D2Keterkaitan C={C} />}
 
       </div></div>
@@ -541,8 +557,9 @@ function D2Signifikan({ C }: any) {
 /* ============================================================
    TAB 4 — Penyimpangan & Inkonsistensi (¶11–¶13)
    ============================================================ */
-function D2Penyimpangan({ C }: any) {
+function D2Penyimpangan({ C, doc }: { C: any; doc: Sa230Doc }) {
   const { rows, nav } = C;
+  const reportDate = d2parseDate(doc.reportDate);
   const excRows = rows.filter((r: any) => r.exc > 0);
 
   // ¶11 — inkonsistensi: pengecualian prosedur yang perlu rekonsiliasi dengan kesimpulan
@@ -568,7 +585,7 @@ function D2Penyimpangan({ C }: any) {
     {
       ref: '¶13 / A20', icon: 'clock', title: 'Hal yang Timbul Setelah Tanggal Laporan',
       desc: 'Prosedur audit baru/bukti baru/kesimpulan baru setelah tanggal laporan auditor harus didokumentasikan: kapan, oleh & direviu siapa, serta alasannya.',
-      body: <D2Empty text={`Belum berlaku — tanggal laporan terencana ${d2fmtDate(D2_REPORT_DATE)} belum tercapai. Kanal perubahan setelah tanggal laporan aktif setelah opini ditandatangani.`} />,
+      body: <D2Empty text={`Belum berlaku — tanggal laporan terencana ${d2fmtDate(reportDate)} belum tercapai. Kanal perubahan setelah tanggal laporan aktif setelah opini ditandatangani.`} />,
     },
   ];
 
@@ -653,19 +670,22 @@ function D2Empty({ text, ok }: any) {
 /* ============================================================
    TAB 5 — Perakitan Berkas Final & Retensi (¶14–¶16)
    ============================================================ */
-function D2Perakitan({ C }: any) {
+function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230 }) {
   const { agg, nav } = C;
-  const reportDate = D2_REPORT_DATE;
-  const assemblyDue = d2addDays(reportDate, D2_ASSEMBLY_DAYS);
-  const retentionUntil = d2addYears(reportDate, D2_RETENTION_YEARS);
+  const reportDate = d2parseDate(doc.reportDate);
+  const assemblyDue = d2addDays(reportDate, doc.assemblyDays);
+  const retentionUntil = d2addYears(reportDate, doc.retentionYears);
   const daysToReport = Math.round((+reportDate - +D2_REF) / 864e5);
   const daysToAssembly = Math.round((+assemblyDue - +D2_REF) / 864e5);
   const preReport = daysToReport > 0;
   // kelengkapan berkas = % atribut dokumentasi (SSOT)
   const filePct = agg.docPct;
+  const att = doc.attestation;
+  const setAttest = (p: Partial<Sa230Attest>) => patch({ attestation: { ...att, ...p } });
+  const signAttest = () => setAttest({ signed: true, date: D2_REF_ISO, signer: att.signer.trim() || (AMS.USER && AMS.USER.name) || 'Auditor' });
 
   // ¶16 — perubahan setelah perakitan (kanonik di DMS; periode berjalan: belum dirakit)
-  const postAssembly = []; // belum ada — berkas belum dirakit
+  const postAssembly: never[] = []; // belum ada — berkas belum dirakit
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
@@ -677,8 +697,8 @@ function D2Perakitan({ C }: any) {
             <D2Timeline
               points={[
                 { lbl: 'Tanggal Laporan', date: reportDate, k: 'navy', sub: 'Opini ditandatangani' },
-                { lbl: 'Batas Perakitan', date: assemblyDue, k: 'amber', sub: `≤ ${D2_ASSEMBLY_DAYS} hari (¶A21)` },
-                { lbl: 'Akhir Retensi', date: retentionUntil, k: 'green', sub: `${D2_RETENTION_YEARS} tahun` },
+                { lbl: 'Batas Perakitan', date: assemblyDue, k: 'amber', sub: `≤ ${doc.assemblyDays} hari (¶A21)` },
+                { lbl: 'Akhir Retensi', date: retentionUntil, k: 'green', sub: `${doc.retentionYears} tahun` },
               ]}
             />
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 18 }}>
@@ -694,6 +714,62 @@ function D2Perakitan({ C }: any) {
               <div className="pbar"><span style={{ width: filePct + '%', background: filePct === 100 ? 'var(--green)' : 'var(--blue)' }} /></div>
               <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>Perakitan bersifat administratif (tanpa prosedur audit baru). {agg.blocking > 0 ? <span style={{ color: 'var(--amber)' }}>{agg.blocking} hal masih menghambat finalisasi — selesaikan sebelum mengunci berkas.</span> : 'Tidak ada hal yang menghambat — berkas siap dirakit & dikunci.'}</div>
             </div>
+          </div>
+        </Panel>
+
+        {/* parameter perikatan tersimpan (F2/PR-F) */}
+        <Panel title="Parameter Perikatan (tersimpan)" sub="Menggerakkan lini masa perakitan & retensi — tersimpan per-perikatan">
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <div>
+              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Tanggal Laporan</div>
+              <input type="date" className="input" style={{ width: '100%' }} value={doc.reportDate} onChange={(e: { target: { value: string } }) => patch({ reportDate: e.target.value })} />
+            </div>
+            <div>
+              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Batas Perakitan (hari)</div>
+              <input type="number" min={1} className="input" style={{ width: '100%' }} value={doc.assemblyDays} onChange={(e: { target: { value: string } }) => patch({ assemblyDays: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+            </div>
+            <div>
+              <div className="tiny muted upper" style={{ marginBottom: 4 }}>Retensi (tahun)</div>
+              <input type="number" min={1} className="input" style={{ width: '100%' }} value={doc.retentionYears} onChange={(e: { target: { value: string } }) => patch({ retentionYears: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+            </div>
+          </div>
+          <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>SA 230 ¶A21 — perakitan berkas final umumnya ≤ 60 hari setelah tanggal laporan; retensi mengikuti SPM 1 / kebijakan firma.</div>
+        </Panel>
+
+        {/* atestasi kelengkapan dokumentasi (F2/PR-F) */}
+        <Panel noBody>
+          <div className="panel-h"><span className="row ac gap8"><span style={{ color: att.signed ? 'var(--green)' : 'var(--blue)' }}><I.checkCircle size={14} /></span><h3 style={{ margin: 0 }}>Atestasi Kelengkapan Dokumentasi (¶8)</h3></span><div style={{ flex: 1 }} />{att.signed ? <Badge kind="green" dot>Ditandatangani</Badge> : <Badge kind="amber" dot>Belum</Badge>}</div>
+          <div style={{ padding: '14px 18px' }}>
+            {agg.blocking > 0 && !att.signed && (
+              <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 11 }}>
+                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{agg.blocking} hal masih menghambat finalisasi — pertimbangkan menyelesaikannya sebelum menandatangani atestasi.</span></div>
+              </div>
+            )}
+            {att.signed ? (
+              <div className="grid" style={{ gap: 9 }}>
+                <div className="panel" style={{ padding: '11px 13px', background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
+                  <div className="tiny" style={{ lineHeight: 1.5 }}>Saya menyatakan bahwa dokumentasi audit telah <b>cukup & tepat</b> untuk memungkinkan auditor berpengalaman memahami sifat, saat & lingkup prosedur, hasilnya, serta hal signifikan & kesimpulan (SA 230 ¶8).</div>
+                  <div className="row gap12" style={{ marginTop: 8 }}>
+                    <div><div className="tiny muted upper">Ditandatangani</div><div style={{ fontWeight: 700, fontSize: 12.5 }}>{att.signer}</div></div>
+                    <div><div className="tiny muted upper">Tanggal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{d2fmtDate(att.date)}</div></div>
+                  </div>
+                  {att.memo && <div style={{ marginTop: 8 }}><div className="tiny muted upper">Memo</div><div className="tiny" style={{ lineHeight: 1.5 }}>{att.memo}</div></div>}
+                </div>
+                <Btn sm onClick={() => setAttest({ signed: false })}><I.arrowLeft size={13} /> Cabut atestasi</Btn>
+              </div>
+            ) : (
+              <div className="grid" style={{ gap: 10 }}>
+                <div>
+                  <div className="tiny muted upper" style={{ marginBottom: 4 }}>Penanda Tangan</div>
+                  <input className="input" style={{ width: '100%' }} placeholder={(AMS.USER && AMS.USER.name) || 'Nama auditor penanggung jawab'} value={att.signer} onChange={(e: { target: { value: string } }) => setAttest({ signer: e.target.value })} />
+                </div>
+                <div>
+                  <div className="tiny muted upper" style={{ marginBottom: 4 }}>Memo Atestasi</div>
+                  <textarea className="input" value={att.memo} placeholder="Catatan kelengkapan dokumentasi / hal yang perlu ditegaskan sebelum perakitan." onChange={(e: { target: { value: string } }) => setAttest({ memo: e.target.value })} style={{ width: '100%', height: 60, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
+                </div>
+                <Btn variant="primary" onClick={signAttest}><I.check size={14} /> Tandatangani Atestasi Kelengkapan</Btn>
+              </div>
+            )}
           </div>
         </Panel>
 
@@ -714,7 +790,7 @@ function D2Perakitan({ C }: any) {
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Periode Retensi</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{D2_RETENTION_YEARS} tahun</div>
+            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{doc.retentionYears} tahun</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>s.d. {d2fmtDate(retentionUntil)}</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
