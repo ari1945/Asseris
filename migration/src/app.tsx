@@ -169,6 +169,9 @@ class ViewErrorBoundary extends ReactComponentBase {
   componentDidUpdate(prev: any) { if (prev.routeKey !== this.props.routeKey && this.state.err) this.setState({ err: null }); }
   render() {
     if (this.state.err) {
+      // Fallback kustom (mis. Copilot pakai `fallback={null}` agar degrade senyap tanpa
+      // panel merah mengambang & tanpa crash-loop). Tanpa prop → panel diagnostik default.
+      if (this.props.fallback !== undefined) return this.props.fallback;
       return <div className="view-pad" style={{ padding: 24 }}>
         <div className="panel" style={{ padding: 18, borderTop: '3px solid var(--red)' }}>
           <div style={{ fontWeight: 700, marginBottom: 8, color: 'var(--red)' }}>Gagal merender modul “{this.props.routeKey}”.</div>
@@ -484,7 +487,9 @@ function App() {
         <button className="copilot-fab" onClick={() => setCopilot(true)}>
           <I.sparkle size={18} /> AI Co-pilot
         </button>
-        <Copilot open={copilot} onClose={() => setCopilot(false)} route={route} />
+        <ViewErrorBoundary routeKey={'copilot:' + route} fallback={null}>
+          <Copilot open={copilot} onClose={() => setCopilot(false)} route={route} />
+        </ViewErrorBoundary>
         {typeof MiniMap !== 'undefined' && <MiniMap open={minimap} route={route} onClose={() => setMiniMap(false)} onNavigate={navigate} />}
         {palette && <CommandPalette onClose={() => setPalette(false)} onNavigate={navigate} />}
         <SARefDrawer data={saRef} onClose={() => setSaRef(null)} onNavigate={navigate} />

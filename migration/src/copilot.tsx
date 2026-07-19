@@ -476,7 +476,7 @@ const CP_GREETING = {
 
 function Copilot({ open, onClose, route }: any) {
   const nav = useNav();
-  const firm = useFirm();
+  const firm = useFirm() || {}; /* defensif: null di luar provider → jangan crash render */
   const persist = useAmsPersist;
 
   const [msgs, setMsgs] = persist('copilot.msgs2', [CP_GREETING]);
@@ -639,7 +639,7 @@ function Copilot({ open, onClose, route }: any) {
             <AiInsightPanel embedded title="Kontradiksi & sinyal lintas-modul" />
           </div>
         )}
-        {msgs.map((m: any, i: any) => {
+        {(Array.isArray(msgs) ? msgs : [CP_GREETING]).map((m: any, i: any) => {
           if (m.kind === 'opdt') return <CpOpinionTree key={i} nav={nav} onClose={onClose} />;
           if (m.kind === 'extract') return (typeof ExtractReview === 'function') ? <ExtractReview key={i} rec={m.rec} route={route} nav={nav} onClose={onClose} /> : null;
           if (m.kind === 'files') {
