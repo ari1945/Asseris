@@ -170,6 +170,7 @@ const MODULES = [
     { id: 'onboarding',label: 'Onboarding Klien', icon: 'flag', deep: true },
     { id: 'dataflow',  label: 'Alur Data & Integritas', icon: 'link2', deep: true },
     { id: 'continuance', label: 'Keberlanjutan Klien', icon: 'checkCircle', deep: true, tag: 'ISQM 1' },
+    { id: 'teamindep', label: 'Independensi Tim', icon: 'shield', deep: true, tag: 'SA 220' },
   ]},
   { group: 'Core Planning', items: [
     { id: 'risk',        label: 'Risk Assessment', icon: 'shield', deep: true, tag: 'SA 315' },
@@ -420,6 +421,7 @@ const RELATED_SA = {
   programme:   [{ code: 'SA 300', title: 'Perencanaan Audit LK', phase: 'Perencanaan' }, { code: 'SA 330', title: 'Respons Auditor terhadap Risiko', phase: 'Pelaksanaan' }],
   onboarding:  [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }, { code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }],
   continuance: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Perencanaan' }, { code: 'ISQM 1', title: 'Penerimaan & Keberlanjutan Hubungan Klien (¶33–34)', phase: 'Tata Kelola Mutu' }],
+  teamindep: [{ code: 'SA 220', title: 'Independensi & Objektivitas Tim Perikatan (¶16–24)', phase: 'Perencanaan' }, { code: 'Kode Etik', title: 'Ancaman & Pengaman Independensi (IAPI/IESBA 290)', phase: 'Tata Kelola Mutu' }, { code: 'ISQM 1', title: 'Ketentuan Etika Relevan (¶29)', phase: 'Tata Kelola Mutu' }],
   crm:         [{ code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan', phase: 'Perencanaan' }],
   eqr:         [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaporan' }],
   reviewnotes: [{ code: 'SA 220', title: 'Pengendalian Mutu Perikatan Audit', phase: 'Pelaksanaan' }],

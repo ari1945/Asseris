@@ -160,6 +160,10 @@ const AMS_PERSIST_SCOPE = {
      reload & terisolasi per-perikatan. Key statis '.v1' + scope engagement →
      capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. Seed = CONFIRMATIONS. */
   'confirmState.v1': 'engagement',
+  /* Independensi per-anggota tim (SA 220.16–24 · ISQM 1 · Kode Etik): deklarasi
+     anggota × ancaman per perikatan. Engagement-scope → capForWrite=WP_EDIT (setiap
+     anggota menandatangani baris-sendiri) + isolasi W7.5. Seed = seedDeclarations(roster). */
+  'memberIndep.v1': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the

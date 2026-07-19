@@ -35,7 +35,8 @@ const ATL_tint = (hex: any, a: any) => { const n = parseInt(hex.slice(1), 16); r
 const ATL_TASKS = {
   Perencanaan: [
     { n: 'Penerimaan & keberlanjutan perikatan', ref: 'A-100', a: 0, b: .28, mod: 'continuance', selClient: true },
-    { n: 'Independensi & konsentrasi imbalan (Kode Etik)', ref: 'A-110', a: .06, b: .34, mod: 'continuance', selClient: true },
+    { n: 'Deklarasi independensi tim perikatan (SA 220)', ref: 'A-105', a: .04, b: .30, mod: 'teamindep' },
+    { n: 'Konsentrasi imbalan & keberlanjutan (Kode Etik)', ref: 'A-110', a: .06, b: .34, mod: 'continuance', selClient: true },
     { n: 'Pemahaman entitas & lingkungan', ref: 'A-200', a: .18, b: .55, mod: 'risk', tab: 'register' },
     { n: 'Penilaian risiko & penetapan materialitas', ref: 'A-300', a: .42, b: .78, mod: 'materiality' },
     { n: 'Penyusunan strategi & program audit', ref: 'A-310', a: .66, b: .92, mod: 'programme' },
