@@ -185,6 +185,12 @@ const AMS_PERSIST_SCOPE = {
   'fluxState.v1': 'engagement',
   'leaseOverride.v1': 'engagement',
   'eclInputs.v1': 'engagement',
+  /* F2/PR-C (PRD 2026-07-19) — SA 580 Representasi Tertulis: status perolehan
+     per-representasi (diminta/diterima/N-A), tanggal diterima, teks pengecualian,
+     flag penolakan manajemen (¶20), + metadata surat (tanggal, penanda tangan) &
+     id lampiran surat bertandatangan (Attachment F0.1). Engagement-scope →
+     capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
+  'rep580.v1': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the
