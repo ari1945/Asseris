@@ -1,9 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { useFirm, useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Tabs } from './ui';
+import { AMSOpinion } from './view_opinion_parts';
+import { DEFAULT_DOC_O } from './view_opinion';
 
 /* ============================================================
    Asseris — SA 705 & 706 · Modifikasi Opini & Paragraf
@@ -12,7 +14,7 @@ import { Badge, Btn, Panel, Seg, Tabs } from './ui';
    matriks sifat × pervasif, basis modifikasi & rumusan opini,
    serta paragraf Penekanan Suatu Hal & Hal Lain (SA 706).
    ============================================================ */
-const { useState: useState705, useMemo: useMemo705 } = React;
+const { useState: useState705 } = React;
 
 /* matriks keputusan opini */
 function opinionFor(nature: any, perv: any) {
@@ -26,11 +28,43 @@ function opinionFor(nature: any, perv: any) {
     : { key: 'qual', label: 'Wajar Dengan Pengecualian', short: 'WDP', color: 'amber', ref: 'SA 705 ¶7', desc: 'Tidak mampu memperoleh bukti atas hal tertentu — material namun tidak pervasif.' };
 }
 
+/* F2/PR-A — sa705 kini LENSA atas SSOT opini bersama `opinionDoc.v1` (modul opini).
+   Peta dua-arah antara sumbu decider SA 705 (sifat × pervasif) dan `doc.type`
+   (kunci opini modul opini). Menghapus simpulan "WTP" yang dulu hardcode. */
+type Nature705 = 'none' | 'miss' | 'inability';
+type Perv705 = 'notperv' | 'perv';
+const KEY705_TO_TYPE: Record<string, string> = { wtp: 'unmodified', qual: 'qualified', adverse: 'adverse', disclaimer: 'disclaimer' };
+/* turunkan sumbu decider dari doc.type saat mod705 belum tersimpan (best-effort;
+   'qualified' ambigu → default ke salah-saji tidak-pervasif, kasus paling lazim). */
+function mod705FromType(type: string): { nature: Nature705; perv: Perv705 } {
+  if (type === 'adverse') return { nature: 'miss', perv: 'perv' };
+  if (type === 'disclaimer') return { nature: 'inability', perv: 'perv' };
+  if (type === 'qualified') return { nature: 'miss', perv: 'notperv' };
+  return { nature: 'none', perv: 'notperv' };
+}
+/* bentuk doc opini bersama (dari seed DEFAULT_DOC_O) + field sumbu sa705. Dipakai
+   sebagai tipe param anak agar tak perlu `:any` (ratchet no-explicit-any). */
+type ODoc = typeof DEFAULT_DOC_O & { mod705?: { nature: Nature705; perv: Perv705 } };
+type Patch = (p: Record<string, unknown>) => void;
+
 /* ============================================================ */
 function SA705View() {
   const firm = useFirm();
+  const nav = useNav();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
+  const engId = firm?.activeEngagement?.id || 'ENG-2025-014';
   const [tab, setTab] = useState705('penentuan');
+  /* SSOT bersama modul opini — engagement-scope (AMS_PERSIST_SCOPE) + isolasi W7.5.
+     Seed = DEFAULT_DOC_O yang sama dengan view_opinion (cegah data-loss lintas modul). */
+  const [doc, setDoc] = useAmsPersist('opinionDoc.v1', () => DEFAULT_DOC_O);
+  const patch: Patch = (p) => setDoc((d: ODoc) => ({ ...d, ...p }));
+
+  const OPINIONS = AMSOpinion.OPINIONS;
+  const o = OPINIONS[doc.type] || OPINIONS.unmodified;
+  const modified = doc.type !== 'unmodified';
+  const eomCount = doc.opts?.eom ? 1 : 0;
+  const omCount = (doc.opts?.om ? 1 : 0) + (doc.opts?.comparative ? 1 : 0);
+  const signedCount = Object.values(doc.signoff || {}).filter(Boolean).length;
 
   const tabs = [
     { id: 'penentuan', label: 'Penentu Opini' },
@@ -39,13 +73,17 @@ function SA705View() {
     { id: 'eom', label: 'Penekanan & Hal Lain (706)' },
   ];
 
+  /* buka Generator Opini untuk finalisasi/tanda tangan — sign-off opini adalah
+     SSOT tunggal di modul `opinion` (doc.signoff); sa705 tak menaruh tandingan. */
+  const openOpinion = () => { (nav as (id: string, opt?: { from?: string }) => void)('opinion', { from: 'sa705' }); };
+
   return (
     <>
       <SubBar moduleId="sa705" right={
         <div className="row gap8 ac">
-          <Badge kind="green" dot>Simpulan: WTP (tanpa modifikasi)</Badge>
-          <Btn sm><I.download size={13} /> Memo Opini</Btn>
-          <Btn sm variant="primary"><I.sparkle size={14} /> AI Assist</Btn>
+          <Badge kind={o.k} dot>Simpulan: {o.short}{modified ? '' : ' (tanpa modifikasi)'}</Badge>
+          {doc.finalized && <Badge kind="green">Final</Badge>}
+          <Btn sm onClick={openOpinion}><I.doc size={13} /> Generator Opini</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -55,39 +93,50 @@ function SA705View() {
             <div style={{ minWidth: 210 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 705 & 706</div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>Modifikasi Opini & Paragraf Tambahan</div>
-              <div className="tiny muted">{client} · ENG-2025-014</div>
+              <div className="tiny muted">{client} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Simpulan Saat Ini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--green)' }}>Wajar Tanpa Modifikasi</div></div>
+            <div><div className="tiny muted upper">Simpulan Saat Ini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: `var(--${o.k})` }}>{o.title}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Penekanan Suatu Hal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Tidak ada</div></div>
+            <div><div className="tiny muted upper">Penekanan Suatu Hal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{eomCount ? '1 paragraf' : 'Tidak ada'}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Paragraf Hal Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>1 (komparatif)</div></div>
+            <div><div className="tiny muted upper">Paragraf Hal Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: omCount ? 'var(--blue)' : 'var(--ink-3)' }}>{omCount ? `${omCount}${doc.opts?.comparative ? ' (komparatif)' : ''}` : 'Tidak ada'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
-              <div className="tiny muted upper" style={{ marginBottom: 3 }}>Salah Saji Belum Dikoreksi</div>
-              <Badge kind="green" dot>Di bawah materialitas</Badge>
+              <div className="tiny muted upper" style={{ marginBottom: 3 }}>Tanda Tangan Opini</div>
+              <Badge kind={signedCount >= 2 ? 'green' : 'amber'} dot>{doc.finalized ? 'Difinalisasi' : `${signedCount}/3 di Generator Opini`}</Badge>
             </div>
           </div>
         </Panel>
 
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'penentuan' && <F705Decider />}
+        {tab === 'penentuan' && <F705Decider doc={doc} patch={patch} />}
         {tab === 'matriks' && <F705Matrix />}
-        {tab === 'rumusan' && <F705Wording client={client} />}
-        {tab === 'eom' && <F705Eom client={client} />}
+        {tab === 'rumusan' && <F705Wording client={client} doc={doc} patch={patch} />}
+        {tab === 'eom' && <F705Eom client={client} doc={doc} patch={patch} />}
 
       </div></div>
     </>
   );
 }
 
-/* ---------------- Tab: Penentu Opini (interaktif) ---------------- */
-function F705Decider() {
-  const [nature, setNature] = useState705('none');
-  const [perv, setPerv] = useState705('notperv');
+/* ---------------- Tab: Penentu Opini (interaktif, tersimpan) ---------------- */
+function F705Decider({ doc, patch }: { doc: ODoc; patch: Patch }) {
+  /* sumbu decider dari SSOT bersama: mod705 tersimpan bila ada, jika belum
+     diturunkan dari doc.type (mod705FromType). Perubahan menulis KEDUANYA —
+     mod705 (sumbu) + type (kunci opini modul opini) — agar simpulan tunggal. */
+  const seeded = doc.mod705 || mod705FromType(doc.type);
+  const nature: Nature705 = seeded.nature;
+  const perv: Perv705 = seeded.perv;
+  const commit = (nx: Nature705, px: Perv705) => {
+    const res = opinionFor(nx, px);
+    patch({ mod705: { nature: nx, perv: px }, type: KEY705_TO_TYPE[res.key] || 'unmodified' });
+  };
+  const setNature = (v: string) => commit(v as Nature705, perv);
+  const setPerv = (v: string) => commit(nature, v as Perv705);
   const out = opinionFor(nature, perv);
+  const modified = out.key !== 'wtp';
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
@@ -143,11 +192,14 @@ function F705Decider() {
             )}
           </div>
         </Panel>
-        <Panel title="Simpulan Engagement Ini">
-          <div className="row ac gap8" style={{ padding: '9px 11px', background: 'var(--green-bg)', borderRadius: 7 }}>
-            <span style={{ color: 'var(--green)' }}><I.checkCircle size={16} /></span>
-            <span style={{ fontSize: 12, fontWeight: 600 }}>Tidak ada modifikasi — salah saji belum dikoreksi di bawah materialitas & bukti cukup diperoleh.</span>
+        <Panel title="Simpulan Engagement Ini" sub="Tersimpan → SSOT opini bersama">
+          <div className="row ac gap8" style={{ padding: '9px 11px', background: `var(--${out.color}-bg)`, borderRadius: 7 }}>
+            <span style={{ color: `var(--${out.color})` }}>{modified ? <I.alert size={16} /> : <I.checkCircle size={16} />}</span>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>{modified
+              ? `Opini dimodifikasi: ${out.label}. Uraikan basisnya pada tab "Basis & Rumusan" dan finalisasi di Generator Opini.`
+              : 'Tidak ada modifikasi — salah saji belum dikoreksi di bawah materialitas & bukti cukup diperoleh.'}</span>
           </div>
+          <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.45 }}>Perubahan di sini otomatis memperbarui jenis opini pada Generator Opini (SA 700) & laporan auditor — satu sumber kebenaran.</div>
         </Panel>
       </div>
     </div>
@@ -221,7 +273,8 @@ function F705Matrix() {
 }
 
 /* ---------------- Tab: Basis & Rumusan ---------------- */
-function F705Wording({ client }: any) {
+function F705Wording({ client, doc, patch }: { client: string; doc: ODoc; patch: Patch }) {
+  const modified = doc.type !== 'unmodified';
   const [view, setView] = useState705('wdp');
   const samples = {
     wdp: { h: 'Wajar Dengan Pengecualian', op: `Menurut opini kami, kecuali untuk dampak hal yang diuraikan dalam paragraf Basis untuk Opini Wajar Dengan Pengecualian, laporan keuangan terlampir menyajikan secara wajar, dalam semua hal yang material, posisi keuangan ${client} ...`, basis: 'Persediaan disajikan pada laporan posisi keuangan sebesar Rp X. Manajemen tidak menyatakan persediaan pada nilai yang lebih rendah antara biaya perolehan dan nilai realisasi neto, melainkan hanya pada biaya perolehan ... Catatan akuntansi entitas menunjukkan bahwa seandainya manajemen menyatakan persediaan pada ..., maka ...', color: 'amber' },
@@ -230,9 +283,30 @@ function F705Wording({ client }: any) {
   };
   const s = (samples as any)[view];
   return (
+    <div className="grid" style={{ gap: 12 }}>
+      <Panel title="Basis Modifikasi (tersimpan)" sub={modified ? 'Paragraf "Basis untuk Opini …" — SSOT opini bersama' : 'Aktif hanya bila opini dimodifikasi'}>
+        {modified ? (
+          <>
+            <textarea
+              value={doc.basisText || ''}
+              onChange={(e: { target: { value: string } }) => patch({ basisText: e.target.value })}
+              className="input"
+              placeholder="Uraikan sebab & dampak kuantitatif (bila praktis) dari modifikasi (SA 705 ¶16–21)…"
+              style={{ width: '100%', height: 120, padding: 10, resize: 'vertical', lineHeight: 1.55, fontFamily: 'var(--ui)' }}
+            />
+            <div className="tiny muted" style={{ marginTop: 7, lineHeight: 1.45 }}>Teks ini adalah paragraf basis yang sama dengan Generator Opini (SA 700) & laporan auditor tersegel — diedit sekali, tersinkron.</div>
+          </>
+        ) : (
+          <div className="row ac gap8" style={{ padding: '9px 11px', background: 'var(--green-bg)', borderRadius: 7 }}>
+            <span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>Opini tidak dimodifikasi — tidak diperlukan paragraf basis modifikasi. Ubah simpulan di tab "Penentu Opini" bila perlu.</span>
+          </div>
+        )}
+      </Panel>
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Contoh Rumusan Basis & Opini (¶16–27)</h3><div style={{ flex: 1 }} />
+          {modified && <Btn sm onClick={() => patch({ basisText: s.basis })}><I.check size={12} /> Gunakan contoh ini</Btn>}
           <Seg options={[{ value: 'wdp', label: 'WDP' }, { value: 'adverse', label: 'Tidak Wajar' }, { value: 'tmp', label: 'TMP' }]} value={view} onChange={setView} />
         </div>
         <div style={{ padding: 20 }}>
@@ -266,17 +340,22 @@ function F705Wording({ client }: any) {
         </Panel>
       </div>
     </div>
+    </div>
   );
 }
 
 /* ---------------- Tab: Penekanan & Hal Lain (SA 706) ---------------- */
-function F705Eom({ client }: any) {
+function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Patch }) {
+  const eomOn = !!doc.opts?.eom;
+  const omOn = !!doc.opts?.om;
+  const compOn = !!doc.opts?.comparative;
+  const toggleOpt = (k: keyof ODoc['opts']) => patch({ opts: { ...(doc.opts || {}), [k]: !doc.opts?.[k] } });
   return (
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-            <div className="row jb ac"><Badge kind="blue">SA 706 ¶8</Badge><span className="mono tiny" style={{ color: '#bcd6e4' }}>Status: Tidak ada</span></div>
+            <div className="row jb ac"><Badge kind="blue">SA 706 ¶8</Badge><span className="mono tiny" style={{ color: '#bcd6e4' }}>Status: {eomOn ? 'Disertakan' : 'Tidak ada'}</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Penekanan Suatu Hal (Emphasis of Matter)</div>
             <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#bcd6e4' }}>Merujuk hal yang telah <b>disajikan/diungkap dengan tepat</b> dalam LK yang, menurut pertimbangan auditor, demikian penting hingga fundamental bagi pemahaman pengguna.</p>
           </div>
@@ -287,30 +366,46 @@ function F705Eom({ client }: any) {
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span><span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
             ))}
-            <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent', marginTop: 12 }}>
-              <div className="row ac gap8"><span style={{ color: 'var(--ink-3)' }}><I.circle size={14} /></span><span style={{ fontSize: 11.5, fontWeight: 600 }}>Tidak diperlukan untuk engagement ini.</span></div>
-            </div>
+            <label className="row ac gap8" style={{ padding: '10px 11px', background: eomOn ? 'var(--blue-050)' : 'var(--surface-2)', border: '1px solid ' + (eomOn ? 'var(--blue-100)' : 'transparent'), borderRadius: 7, cursor: 'pointer', marginTop: 12 }} onClick={() => toggleOpt('eom')}>
+              <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: eomOn ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
+                <span style={{ position: 'absolute', top: 2, left: eomOn ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
+              </span>
+              <span style={{ fontSize: 11.5, fontWeight: 600 }}>{eomOn ? 'Paragraf Penekanan disertakan pada laporan' : 'Sertakan paragraf Penekanan Suatu Hal'}</span>
+            </label>
           </div>
         </Panel>
 
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#063b40,#0a6b73)', color: '#fff', padding: '14px 16px' }}>
-            <div className="row jb ac"><Badge kind="teal">SA 706 ¶10</Badge><span className="mono tiny" style={{ color: '#b9e0e3' }}>Status: 1 paragraf</span></div>
+            <div className="row jb ac"><Badge kind="teal">SA 706 ¶10</Badge><span className="mono tiny" style={{ color: '#b9e0e3' }}>Status: {(omOn ? 1 : 0) + (compOn ? 1 : 0)} paragraf</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Paragraf Hal Lain (Other Matter)</div>
             <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#b9e0e3' }}>Merujuk hal <b>selain</b> yang disajikan/diungkap dalam LK yang relevan bagi pemahaman pengguna atas audit, tanggung jawab auditor, atau laporan auditor.</p>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Paragraf Aktif</div>
-            <div className="panel" style={{ padding: '11px 13px', background: 'var(--teal-bg)', borderColor: 'transparent', marginBottom: 10 }}>
-              <div className="row ac gap8" style={{ marginBottom: 5 }}><Badge kind="teal">Hal Lain</Badge><span className="mono tiny" style={{ color: 'var(--teal)' }}>terkait SA 710</span></div>
-              <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5 }}>Laporan keuangan {client} untuk tahun yang berakhir 31 Desember 2024 (angka komparatif) diaudit oleh auditor independen <b>pendahulu</b> yang menyatakan opini Wajar Tanpa Modifikasi pada 18 Maret 2025.</p>
-            </div>
-            <div className="tiny muted upper" style={{ marginBottom: 6 }}>Contoh Lain</div>
-            {['Pembatasan distribusi/penggunaan laporan (kerangka khusus)', 'Pelaporan atas lebih dari satu kerangka pelaporan'].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start', padding: '5px 0' }}>
-                <span style={{ color: 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}><I.circle size={12} /></span><span style={{ lineHeight: 1.4 }}>{t}</span>
+            {compOn ? (
+              <div className="panel" style={{ padding: '11px 13px', background: 'var(--teal-bg)', borderColor: 'transparent', marginBottom: 10 }}>
+                <div className="row ac gap8" style={{ marginBottom: 5 }}><Badge kind="teal">Hal Lain</Badge><span className="mono tiny" style={{ color: 'var(--teal)' }}>terkait SA 710</span></div>
+                <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5 }}>Laporan keuangan {client} untuk tahun yang berakhir 31 Desember 2024 (angka komparatif) diaudit oleh auditor independen <b>pendahulu</b> yang menyatakan opini Wajar Tanpa Modifikasi pada 18 Maret 2025.</p>
+                <div className="tiny muted" style={{ marginTop: 6 }}>Rumusan pendahulu berasal dari SA 710; kelola detailnya di modul Komparatif.</div>
               </div>
-            ))}
+            ) : (
+              <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent', marginBottom: 10 }}>
+                <div className="row ac gap8"><span style={{ color: 'var(--ink-3)' }}><I.circle size={13} /></span><span style={{ fontSize: 11.5, fontWeight: 600 }}>Tidak ada paragraf komparatif aktif.</span></div>
+              </div>
+            )}
+            <label className="row ac gap8" style={{ padding: '9px 11px', background: compOn ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 7, cursor: 'pointer', marginBottom: 6 }} onClick={() => toggleOpt('comparative')}>
+              <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: compOn ? 'var(--teal)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
+                <span style={{ position: 'absolute', top: 2, left: compOn ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
+              </span>
+              <span style={{ fontSize: 11.5, fontWeight: 600 }}>Paragraf komparatif (auditor pendahulu, SA 710)</span>
+            </label>
+            <label className="row ac gap8" style={{ padding: '9px 11px', background: omOn ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 7, cursor: 'pointer' }} onClick={() => toggleOpt('om')}>
+              <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: omOn ? 'var(--teal)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
+                <span style={{ position: 'absolute', top: 2, left: omOn ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
+              </span>
+              <span style={{ fontSize: 11.5, fontWeight: 600 }}>Paragraf Hal Lain lain (mis. pembatasan distribusi)</span>
+            </label>
           </div>
         </Panel>
       </div>

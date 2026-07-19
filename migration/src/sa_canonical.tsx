@@ -19,6 +19,9 @@ const SA_WP_MAP = {
   sa530: { refs: ['B', 'AA'], focus: 'Sampling audit — konfirmasi piutang MUS (B) & uji utang usaha (AA).' },
   sa540: { refs: ['B', 'E', 'F', 'H'], focus: 'Estimasi akuntansi — CKPN/ECL (B), penyusutan (E), sewa PSAK 73 (F) & imbalan kerja (H).' },
   sa580: { refs: ['810', '900'], focus: 'Representasi tertulis pada finalisasi — evaluasi salah saji (810) & draf laporan/opini (900).' },
+  /* F2/PR-B — SA 701 KAM: kertas kerja pelaporan (draf laporan/opini 900) berbagi
+     SSOT KAM dengan Generator Opini (opinionDoc.v1.kams). */
+  sa701: { refs: ['900'], focus: 'Hal Audit Utama (KAM) — register bersama opinionDoc.v1.kams yang mengalir ke bagian KAM laporan auditor (900).' },
 };
 
 /* status WP → warna badge (selaras dengan modul Kertas Kerja) */

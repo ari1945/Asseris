@@ -13,10 +13,13 @@ import { amsExportPdf } from './export_pdf';
    ============================================================ */
 const { useState: useStateO } = React;
 
+/* F2/PR-B — shape KAM diperkaya: fsRef (rujukan LK/CALK, SA 701 ¶13) + include
+   (toggle sertakan-di-laporan). Field baru OPSIONAL & backward-compatible: doc
+   lama tanpa keduanya tetap valid (include absen = disertakan; fsRef absen = ''). */
 const DEFAULT_KAMS_O = [
-  { id: 'k1', risk: 'R-01', title: 'Pengakuan Pendapatan', why: 'Pendapatan diakui dari sejumlah besar transaksi dengan syarat yang beragam, dan terdapat tekanan untuk memenuhi ekspektasi pasar menjelang akhir periode — menimbulkan risiko pengakuan dini (cut-off).', how: 'Kami mengevaluasi kebijakan pengakuan pendapatan, menguji pisah batas (cut-off) atas transaksi signifikan di sekitar tanggal pelaporan, mengonfirmasi piutang, dan menginspeksi dokumen pengiriman serta perjanjian penjualan.', wpRef: 'C-300 · C-310' },
-  { id: 'k2', risk: 'R-02', title: 'Penilaian Persediaan', why: 'Persediaan diukur pada nilai terendah antara biaya perolehan dan nilai realisasi neto; penentuan keusangan dan NRV melibatkan pertimbangan signifikan manajemen.', how: 'Kami mengobservasi stock opname, menguji perhitungan NRV terhadap harga jual aktual pascaperiode, dan mengevaluasi kelayakan cadangan keusangan persediaan.', wpRef: 'D-200' },
-  { id: 'k3', risk: 'R-03', title: 'Cadangan Kerugian Penurunan Nilai Piutang (PSAK 71)', why: 'Estimasi kerugian kredit ekspektasian (ECL) bersifat judgmental dan sensitif terhadap asumsi loss rate serta data umur piutang.', how: 'Kami menguji model ECL, mengevaluasi kewajaran asumsi loss rate, menelusuri data umur piutang ke sumbernya, dan melakukan analisis sensitivitas.', wpRef: 'C-340' },
+  { id: 'k1', risk: 'R-01', title: 'Pengakuan Pendapatan', why: 'Pendapatan diakui dari sejumlah besar transaksi dengan syarat yang beragam, dan terdapat tekanan untuk memenuhi ekspektasi pasar menjelang akhir periode — menimbulkan risiko pengakuan dini (cut-off).', how: 'Kami mengevaluasi kebijakan pengakuan pendapatan, menguji pisah batas (cut-off) atas transaksi signifikan di sekitar tanggal pelaporan, mengonfirmasi piutang, dan menginspeksi dokumen pengiriman serta perjanjian penjualan.', wpRef: 'C-300 · C-310', fsRef: 'CALK 3 & 24', include: true },
+  { id: 'k2', risk: 'R-02', title: 'Penilaian Persediaan', why: 'Persediaan diukur pada nilai terendah antara biaya perolehan dan nilai realisasi neto; penentuan keusangan dan NRV melibatkan pertimbangan signifikan manajemen.', how: 'Kami mengobservasi stock opname, menguji perhitungan NRV terhadap harga jual aktual pascaperiode, dan mengevaluasi kelayakan cadangan keusangan persediaan.', wpRef: 'D-200', fsRef: 'CALK 9', include: true },
+  { id: 'k3', risk: 'R-03', title: 'Cadangan Kerugian Penurunan Nilai Piutang (PSAK 71)', why: 'Estimasi kerugian kredit ekspektasian (ECL) bersifat judgmental dan sensitif terhadap asumsi loss rate serta data umur piutang.', how: 'Kami menguji model ECL, mengevaluasi kewajaran asumsi loss rate, menelusuri data umur piutang ke sumbernya, dan melakukan analisis sensitivitas.', wpRef: 'C-340', fsRef: 'CALK 8 & 31', include: true },
 ];
 
 const DEFAULT_DOC_O = {
@@ -25,6 +28,9 @@ const DEFAULT_DOC_O = {
   compMode: 'corresponding',
   basisText: 'Persediaan dinyatakan sebesar Rp 78,9 miliar. Kami tidak dapat memperoleh bukti audit yang cukup dan tepat mengenai kuantitas persediaan di gudang cabang karena kami tidak menghadiri perhitungan fisik persediaan.',
   kams: DEFAULT_KAMS_O,
+  /* F2/PR-B — kumpulan hal yang dikomunikasikan ke TCWG namun BUKAN KAM (SA 701 ¶18):
+     dokumentasi alasan pengecualian. Diedit di sa701 (Keterkaitan & TCWG); tak masuk laporan. */
+  kamExcluded: [] as { id: string; matter: string; reason: string }[],
   scope: 'sufficient', misOverride: 'auto', gcStatus: 'none', method: 'rollover',
   reportDate: '2026-03-14', dualDate: '', signer: 'partner1',
   signoff: { manager: (null as any), partner: (null as any), eqr: (null as any) }, checklist: {},
@@ -76,9 +82,10 @@ function buildOpinionBlocks(doc: any, client: any, O: any) {
   if (doc.opts.eom) blocks.push({ type: 'heading', text: 'Penekanan Suatu Hal' }, { type: 'para', text: OP_TXT.eom });
   if (showKam) {
     blocks.push({ type: 'heading', text: 'Hal-Hal Audit Utama' }, { type: 'para', text: OP_TXT.kamIntro });
-    doc.kams.forEach((k: any, i: any) => {
+    // F2/PR-B — hanya KAM yang ditandai disertakan (include !== false) yang masuk laporan.
+    doc.kams.filter((k: { include?: boolean }) => k.include !== false).forEach((k: any, i: any) => {
       blocks.push({ type: 'para', text: `${i + 1}. ${k.title}` });
-      if (k.why) blocks.push({ type: 'para', text: k.why });
+      if (k.why) blocks.push({ type: 'para', text: k.why + (k.fsRef ? ` (Rujukan: ${k.fsRef}.)` : '') });
       if (k.how) blocks.push({ type: 'para', text: `Penanganan audit — ${k.how}` });
       if (k.wpRef) blocks.push({ type: 'para', text: `Ref. KKP: ${k.wpRef}` });
     });
@@ -130,7 +137,7 @@ function AuditOpinionGen() {
 
   const o = O.OPINIONS[doc.type];
   const client = activeClient?.name || 'PT Sentosa Makmur Tbk';
-  const kamCount = doc.opts.kam && doc.type !== 'disclaimer' ? doc.kams.length : 0;
+  const kamCount = doc.opts.kam && doc.type !== 'disclaimer' ? doc.kams.filter((k: { include?: boolean }) => k.include !== false).length : 0;
   const signedCount = Object.values(doc.signoff).filter(Boolean).length;
 
   const TABS = [
@@ -320,10 +327,10 @@ function ReportBuilder({ doc, patch, client, O }: any) {
             {showKam && <>
               <DocH>Hal-Hal Audit Utama</DocH>
               <p style={{ margin: '0 0 12px', textAlign: 'justify' }}>{OP_TXT.kamIntro}</p>
-              {doc.kams.map((k: any, i: any) => (
+              {doc.kams.filter((k: { include?: boolean }) => k.include !== false).map((k: any, i: any) => (
                 <div key={k.id} style={{ margin: '0 0 14px' }}>
                   <p style={{ margin: '0 0 4px', fontWeight: 700 }}>{i + 1}. {k.title}</p>
-                  {k.why && <p style={{ margin: '0 0 4px', textAlign: 'justify' }}>{k.why}</p>}
+                  {k.why && <p style={{ margin: '0 0 4px', textAlign: 'justify' }}>{k.why}{k.fsRef ? ` (Rujukan: ${k.fsRef}.)` : ''}</p>}
                   {k.how && <p style={{ margin: 0, textAlign: 'justify' }}><i style={{ color: '#5a6770' }}>Penanganan audit — </i>{k.how}</p>}
                   {k.wpRef && <p className="mono" style={{ margin: '3px 0 0', fontSize: 10, color: '#9aa6ae' }}>Ref. KKP: {k.wpRef}</p>}
                 </div>
@@ -379,3 +386,7 @@ Object.assign(window, { AuditOpinionGen });
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { AuditOpinionGen };
+/* F2/PR-A — seed opinionDoc.v1 di-single-source-kan agar modul lensa (view_sa705)
+   memakai default IDENTIK. Bila sa705 dibuka sebelum modul opini pernah dirender,
+   seed sama → tak ada mismatch/data-loss pada StateDoc bersama 'opinionDoc.v1'. */
+export { DEFAULT_DOC_O };

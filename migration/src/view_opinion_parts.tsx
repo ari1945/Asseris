@@ -381,10 +381,10 @@ function KAMWorkshop({ doc, patch }: any) {
   const move = (id: any, dir: any) => setKams((ks: any) => { const i = ks.indexOf(ks.find((k: any) => k.id === id)); const j = i + dir; if (j < 0 || j >= ks.length) return ks; const n = [...ks]; [n[i], n[j]] = [n[j], n[i]]; return n; });
   const promote = (r: any) => {
     const id = 'k' + Date.now();
-    setKams((ks: any) => [...ks, { id, risk: r.id, title: r.area, why: `Risiko signifikan ${r.id}: ${r.desc} (asersi: ${r.assertion}).`, how: 'Uraikan prosedur audit yang dirancang untuk menanggapi risiko ini.', wpRef: '' }]);
+    setKams((ks: any) => [...ks, { id, risk: r.id, title: r.area, why: `Risiko signifikan ${r.id}: ${r.desc} (asersi: ${r.assertion}).`, how: 'Uraikan prosedur audit yang dirancang untuk menanggapi risiko ini.', wpRef: '', fsRef: '', include: true }]);
     setOpen(id);
   };
-  const addBlank = () => { const id = 'k' + Date.now(); setKams((ks: any) => [...ks, { id, risk: null, title: 'Hal Audit Utama Baru', why: '', how: '', wpRef: '' }]); setOpen(id); };
+  const addBlank = () => { const id = 'k' + Date.now(); setKams((ks: any) => [...ks, { id, risk: null, title: 'Hal Audit Utama Baru', why: '', how: '', wpRef: '', fsRef: '', include: true }]); setOpen(id); };
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
@@ -413,10 +413,12 @@ function KAMWorkshop({ doc, patch }: any) {
         <div style={{ display: 'grid', gap: 9 }}>
           {doc.kams.map((k: any, i: any) => (
             <div key={k.id} className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-              <div className="row ac gap8" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderBottom: open === k.id ? '1px solid var(--line)' : 0 }}>
+              <div className="row ac gap8" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderBottom: open === k.id ? '1px solid var(--line)' : 0, opacity: k.include === false ? 0.55 : 1 }}>
                 <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{i + 1}</span>
                 <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }} className="truncate">{k.title}</span>
+                {k.include === false && <span className="chip tiny" style={{ background: 'var(--surface-3)', color: 'var(--ink-3)' }}>Tak di laporan</span>}
                 {k.risk && <span className="chip tiny" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }}><I.shield size={10} /> {k.risk}</span>}
+                <button className="p-act" onClick={() => update(k.id, { include: k.include === false })} title={k.include === false ? 'Sertakan di laporan' : 'Kecualikan dari laporan'} style={{ color: k.include === false ? 'var(--ink-4)' : 'var(--teal)' }}><I.checkCircle size={13} /></button>
                 <button className="p-act" onClick={() => move(k.id, -1)} title="Naik"><I.chevDown size={13} style={{ transform: 'rotate(180deg)' }} /></button>
                 <button className="p-act" onClick={() => move(k.id, 1)} title="Turun"><I.chevDown size={13} /></button>
                 <button className="p-act" onClick={() => setOpen(open === k.id ? null : k.id)} title="Edit"><I.doc size={13} /></button>
@@ -430,8 +432,18 @@ function KAMWorkshop({ doc, patch }: any) {
                     <textarea className="input" value={k.why} onChange={(e: any) => update(k.id, { why: e.target.value })} style={{ height: 64, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} /></div>
                   <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Bagaimana hal tersebut ditangani dalam audit</div>
                     <textarea className="input" value={k.how} onChange={(e: any) => update(k.id, { how: e.target.value })} style={{ height: 76, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} /></div>
-                  <div style={{ width: 220 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Referensi Kertas Kerja</div>
-                    <input className="input" style={{ width: '100%' }} placeholder="mis. C-300 · E-210" value={k.wpRef} onChange={(e: any) => update(k.id, { wpRef: e.target.value })} /></div>
+                  <div className="row gap10">
+                    <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Rujukan LK / CALK (¶13)</div>
+                      <input className="input" style={{ width: '100%' }} placeholder="mis. CALK 3 & 24" value={k.fsRef || ''} onChange={(e: { target: { value: string } }) => update(k.id, { fsRef: e.target.value })} /></div>
+                    <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Referensi Kertas Kerja</div>
+                      <input className="input" style={{ width: '100%' }} placeholder="mis. C-300 · E-210" value={k.wpRef} onChange={(e: { target: { value: string } }) => update(k.id, { wpRef: e.target.value })} /></div>
+                  </div>
+                  <label className="row ac gap8" style={{ cursor: 'pointer' }} onClick={() => update(k.id, { include: k.include === false })}>
+                    <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: k.include !== false ? 'var(--teal)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
+                      <span style={{ position: 'absolute', top: 2, left: k.include !== false ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
+                    </span>
+                    <span style={{ fontSize: 11.5, fontWeight: 600 }}>Sertakan KAM ini pada bagian laporan auditor</span>
+                  </label>
                 </div>
               )}
             </div>
