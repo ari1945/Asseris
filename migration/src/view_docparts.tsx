@@ -121,7 +121,7 @@ function PVerList({ versions, fileFallback, onCompare, compareSel = [] }: any) {
             </div>
             <div className="row gap4 ac" style={{ flex: '0 0 auto' }}>
               {onCompare && <button className={'pchk' + (picked ? ' on' : '')} title="Pilih untuk dibandingkan" onClick={() => onCompare(v.ver)}>{picked ? <I.check size={11} /> : null}</button>}
-              <button className="btn sm icon" title="Unduh" style={{ height: 24, width: 24 }}><I.download size={12} /></button>
+              <button className="btn sm icon" title={v.attachmentId ? 'Unduh berkas' : 'Berkas byte belum tersimpan (unggahan lama/tanpa server)'} disabled={!v.attachmentId} style={{ height: 24, width: 24, opacity: v.attachmentId ? 1 : 0.4 }} onClick={() => { if (v.attachmentId && window.amsAttachmentSave) window.amsAttachmentSave(v.attachmentId); }}><I.download size={12} /></button>
             </div>
           </div>
         );

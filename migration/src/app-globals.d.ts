@@ -64,5 +64,33 @@ declare global {
     CONFIRMATIONS: any;
     logAiUsage: any;
     amsLlmNarrateDiagnostics: any;
+    /* F0.1 (PRD 2026-07-19) — bus lampiran berkas nyata (api.ts): unggah/unduh/hapus byte
+       ke server (SHA-256 nyata, terenkripsi). amsHashFile (evidence.tsx) = hash isi berkas. */
+    amsHashFile: (file: File) => Promise<string>;
+    amsAttachmentUpload: (o: {
+      scope: string; scopeId: string; collection: string; refId?: string;
+      meta: { file: File; name?: string; sha256?: string }; retentionClass?: string | number;
+    }) => Promise<AttachmentMeta>;
+    amsAttachmentList: (o: { scope: string; scopeId: string; collection?: string; refId?: string }) => Promise<AttachmentMeta[] | null>;
+    amsAttachmentDownload: (id: string) => Promise<(AttachmentMeta & { dataBase64: string }) | null>;
+    amsAttachmentSave: (id: string) => Promise<boolean>;
+    amsAttachmentRemove: (id: string) => Promise<{ id: string; removed: boolean }>;
+    amsAttachmentUsage: (o: { scope: string; scopeId: string }) => Promise<{ used: number; maxFile: number; maxScope: number } | null>;
+  }
+
+  /** F0.1 — stored-attachment metadata returned by the server (never the bytes). */
+  interface AttachmentMeta {
+    id: string;
+    scope: string;
+    scopeId: string;
+    collection: string;
+    refId: string | null;
+    name: string;
+    mime: string | null;
+    size: number;
+    sha256: string;
+    retentionClass: string | null;
+    uploadedBy: string | null;
+    createdAt: string;
   }
 }

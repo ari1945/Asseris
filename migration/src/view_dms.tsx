@@ -247,17 +247,31 @@ function DocManagement() {
   const patch = (id: any, fn: any) => setDocs((list: any) => list.map((d: any) => d.id === id ? fn(d) : d));
   const toggleHold = (id: any) => patch(id, (d: any) => ({ ...d, legalHold: !d.legalHold, holdReason: !d.legalHold ? 'Legal hold manual oleh tim legal KAP.' : undefined, access: [...(d.access || []), ['Legal KAP', d.legalHold ? 'view' : 'lock', pNowTime()]] }));
   const logAccess = (id: any, action: any) => patch(id, (d: any) => ({ ...d, access: [...(d.access || []), ['Anindya Pramesti', action, pNowTime()]] }));
-  const addDoc = (f: any) => {
+  const addDoc = async (f: any) => {
     const id = 'DOC-' + String(700 + Math.floor(Math.random() * 299)).padStart(4, '0');
     const engObj = DMS_ENGS.find(e => e.id === f.eng);
     const meta = (f.files && f.files[0]) || (window as any).amsFileMeta({ name: f.name + '.pdf' });
-    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: '2026-03-09', sizeMB: meta.sizeMB, retentionYears: f.retentionYears, archivedOn: '2026-03-09', legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
-      sha256: meta.sha256, scan: 'clean', enc: 'AES-256', uploadedVia: 'DMS',
-      versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: '2026-03-09', sizeMB: meta.sizeMB, sha256: meta.sha256, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
+    // F0.1 (PRD 2026-07-19) — unggah BYTE asli ke server (bukan lagi metadata + hash fiktif). Doc
+    // index tetap firm-scope (dms.v2); byte disimpan sbagai lampiran (terenkripsi, SHA-256 nyata
+    // diverifikasi server). Degradasi anggun: bila server absen/tak ada file, catatan tetap dibuat
+    // dgn metadata seperti sebelumnya. attachmentId + sha nyata dipakai untuk unduh & integritas.
+    let attachmentId: string | undefined; let sha256 = meta.sha256; let realSize = meta.sizeMB;
+    if (meta.file && window.amsAttachmentUpload) {
+      try {
+        const up = await window.amsAttachmentUpload({
+          scope: 'firm', scopeId: 'FIRM-WHR', collection: 'dms', refId: id, meta,
+          retentionClass: 'SA230/' + f.retentionYears + 'y',
+        });
+        attachmentId = up.id; sha256 = up.sha256; realSize = +(up.size / 1048576).toFixed(1);
+      } catch (e) { /* server absen / ditolak: pertahankan catatan metadata-only */ }
+    }
+    const nd = { id, name: f.name.trim(), eng: f.eng, client: engObj ? engObj.client : '—', type: f.type, ver: 1, classification: f.classification, owner: 'Anindya Pramesti', modified: '2026-03-09', sizeMB: realSize, retentionYears: f.retentionYears, archivedOn: '2026-03-09', legalHold: false, assembly: f.type === 'Kertas Kerja' ? 'in-progress' : 'complete',
+      sha256, attachmentId, scan: 'clean', enc: 'AES-256', uploadedVia: 'DMS',
+      versions: [{ ver: 1, file: meta.name, by: 'Anindya Pramesti', date: '2026-03-09', sizeMB: realSize, sha256, attachmentId, scan: 'clean', note: 'Unggahan awal melalui DMS.' }],
       access: [['Anindya Pramesti', 'edit', pNowTime()], ['Sistem', 'scan', pNowTime()]],
       linkedWP: f.linkedWP ? f.linkedWP.split(',').map((s: any) => s.trim()).filter(Boolean) : [] };
     setDocs((list: any) => [nd, ...list]); setShowUpload(false); setSelId(id);
-    if ((window as any).amsAttachEvidence) (window as any).amsAttachEvidence((DMS_TYPE_MODULE as any)[f.type] || 'dms', { file: meta.name, type: 'Dokumen DMS · ' + f.type, std: f.classification, classified: 'dms', sha256: meta.sha256, scan: 'clean' });
+    if ((window as any).amsAttachEvidence) (window as any).amsAttachEvidence((DMS_TYPE_MODULE as any)[f.type] || 'dms', { file: meta.name, type: 'Dokumen DMS · ' + f.type, std: f.classification, classified: 'dms', sha256, scan: 'clean' });
   };
 
   const onHold = docs.filter((d: any) => d.legalHold);

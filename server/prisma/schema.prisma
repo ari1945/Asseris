@@ -394,3 +394,43 @@ model StateDocHistory {
   @@unique([scope, scopeId, key, version])
   @@index([scope, scopeId, key])
 }
+
+// F0.1 (PRD 2026-07-19) — real file storage. Until now the app's "upload" (evidence.tsx
+// FileDropField) captured only name/size + a FABRICATED sha256 (amsFakeHash of name|size) and
+// never read the file bytes; there was no server model at all. This holds the actual bytes with a
+// REAL, server-verified SHA-256.
+//
+// Scoping mirrors StateDoc (engagement|firm|user + scopeId) so the same access rules apply
+// (assertEngagementAccess for reads/writes, owner check for user scope). `collection` groups
+// attachments by module ('dms' | 'pbc' | 'aup' | …) and `refId` optionally ties one to a specific
+// record inside that module's StateDoc — the view keeps only the returned id in its JSON, never the
+// bytes.
+//
+// Blob backend is deliberately behind attachments/blobStore.ts (PRD §8 "repository interface"):
+// `storageKind`='inline' stores AES-256-GCM ciphertext (base64) in `blob` here (Opsi A, single-tenant
+// today); switching to S3 later becomes storageKind='s3' + an external key with ZERO view changes.
+//
+// Delete is SOFT (deletedAt/deletedBy) — hard-deleting audit-relevant evidence is exactly the
+// permanent-deletion the app avoids; the row stays for the audit trail, the bytes can be purged by a
+// separate retention job. Every upload/remove also appends an AuditLog row (ATTACH_UPLOAD/REMOVE).
+model Attachment {
+  id             String    @id @default(cuid())
+  scope          String // engagement | firm | user  (same axis as StateDoc)
+  scopeId        String
+  collection     String // module grouping: 'dms' | 'pbc' | 'aup' | module key
+  refId          String? // optional link to a specific record within the collection
+  name           String
+  mime           String?
+  size           Int // bytes of the DECODED file (server-measured, not client-claimed)
+  sha256         String // hex, recomputed and verified server-side from the actual bytes
+  retentionClass String?
+  storageKind    String    @default("inline") // 'inline' (blob column) | 's3' (future)
+  blob           String? // inline: AES-256-GCM ciphertext (base64) of the file bytes
+  uploadedBy     String?
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime? // soft-delete marker; row is retained for the audit trail
+  deletedBy      String?
+
+  @@index([scope, scopeId, collection])
+  @@index([scope, scopeId, refId])
+}
