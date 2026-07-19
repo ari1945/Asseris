@@ -113,6 +113,10 @@ describe('RBAC — capForWrite (gate dokumen server, dikonsumsi state.set)', () 
     expect(capForWrite('firm', 'clients')).toBe(CAP.ENGAGEMENT_MANAGE);
     expect(capForWrite('firm', 'engagements')).toBe(CAP.ENGAGEMENT_MANAGE);
     expect(capForWrite('firm', 'prospects')).toBe(CAP.ENGAGEMENT_MANAGE);
+    // priorYear = kertas kerja pengalaman tahun lalu (SA 220.A24), data-entry tim perikatan —
+    // sejajar roster, BUKAN FIRM_ADMIN. Keputusan keberlanjutan otoritatif tetap FIRM_ADMIN.
+    expect(capForWrite('firm', 'priorYear')).toBe(CAP.ENGAGEMENT_MANAGE);
+    expect(capForWrite('firm', 'continuanceDecisions')).toBe(CAP.FIRM_ADMIN);
     expect(capForWrite('firm', 'eqrReviews.v2')).toBe(CAP.FIRM_ADMIN);
   });
 

@@ -147,6 +147,11 @@ export function capForWrite(scope: any, key: any) {
     // 'Admin & HR Firma' (2026-07-01) — sengaja: konsep training-confirm sudah teruji lewat
     // ENGAGEMENT_MANAGE, memperluasnya butuh keputusan terpisah, bukan efek samping PRD ini.
     if (key === 'clients' || key === 'engagements' || key === 'prospects' || key === 'trainingAttendance.v1') return ENGAGEMENT_MANAGE;
+    // priorYear = register pengalaman tahun lalu per klien (SA 220.A24) — data kertas kerja
+    // tim perikatan (Partner/Manajer), sejajar roster klien/perikatan; BUKAN keputusan
+    // otoritatif firma. Tanpa cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → edit Manajer
+    // gagal senyap. Keputusan keberlanjutan otoritatif tetap di key 'continuanceDecisions' (FIRM_ADMIN).
+    if (key === 'priorYear') return ENGAGEMENT_MANAGE;
     // 2026-07-01 — dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP
     // manual, deklarasi independensi/etik, hadiah&gratifikasi). Sebelumnya diam-diam jatuh ke
     // FIRM_ADMIN (Partner-only) karena tak ada cabang eksplisit — kini HR_MANAGE eksplisit
