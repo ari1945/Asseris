@@ -73,6 +73,7 @@ import { NonAuditPortfolio, Review2400 } from './view_nonaudit';
 import { OJKFilingView } from './view_ojkfiling';
 import { ClientOnboarding } from './view_onboarding';
 import { ContinuanceRegister } from './view_continuance';
+import { MemberIndependence } from './view_independence';
 import { OpeningBalance } from './view_opening';
 import { RestatementView } from './view_restatement';
 import { AuditOpinionGen } from './view_opinion';
@@ -190,6 +191,7 @@ function viewFor(moduleId: any) {
     case 'engagement': return <EngagementMgmt />;
     case 'onboarding': return <ClientOnboarding />;
     case 'continuance': return <ContinuanceRegister />;
+    case 'teamindep': return <MemberIndependence />;
     case 'dataflow':   return <DataFlow />;
     case 'wtb':        return <WTBView />;
     case 'aje':        return <AJEView />;

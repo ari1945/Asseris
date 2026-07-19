@@ -7,6 +7,7 @@ import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { usePhaseGate, PhaseGateDialog, eqrStatusFor } from './wp_signoff';
 import { useEthicsGate } from './ethics_gate';
+import { useMemberIndependenceGate } from './view_independence';
 
 /* ============================================================
    Asseris — Audit Opinion Generator · Engine & Panels
@@ -463,7 +464,10 @@ function OpinionSignoff({ doc, patch }: any) {
   const SLOT_CAP: Record<string, string> = { manager: CAP.SIGNOFF_REVIEWER, partner: CAP.OPINION_APPROVE, eqr: CAP.EQR_REVIEW };
   /* #3 — deklarasi Kode Etik/AML penanda tangan wajib sah sebelum membubuhkan tanda tangan/menerbitkan opini. */
   const eg = useEthicsGate();
-  const canSignSlot = (role: string) => (!auth || typeof auth.can !== 'function' || auth.can(SLOT_CAP[role])) && !eg.blocked;
+  /* F2 — independensi per-anggota tim (SA 220.16–24 / Kode Etik): seluruh anggota harus
+     menyatakan independensi & ancaman ter-safeguard sebelum sign-off/opini (mirror gerbang etik). */
+  const mig = useMemberIndependenceGate();
+  const canSignSlot = (role: string) => (!auth || typeof auth.can !== 'function' || auth.can(SLOT_CAP[role])) && !eg.blocked && mig.clear;
   // Q4 — rekam penanda tangan SEBENARNYA (dari sesi), bukan nama slot hardcode (REVIEW_CHAIN.who).
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const pg = usePhaseGate();               // P5 Fase 3: tawaran arsip pasca-finalisasi (lewat gerbang fase)
@@ -515,7 +519,7 @@ function OpinionSignoff({ doc, patch }: any) {
     setWp('900', wpPatch);
   };
   const chainComplete = REVIEW_CHAIN.every((r: any) => (r.role === 'eqr' && !eqrRequired) ? true : doc.signoff[r.role]);
-  const canFinalize = autoDone && manualDone && chainComplete && eqrSubstantiveDone && !doc.finalized && canApprove && !eg.blocked;
+  const canFinalize = autoDone && manualDone && chainComplete && eqrSubstantiveDone && !doc.finalized && canApprove && !eg.blocked && mig.clear;
 
   const finalize = () => { patch({ finalized: true, finalizedDate: today }); setWp('900', { status: 'Reviewed' }); };
 
@@ -603,6 +607,9 @@ function OpinionSignoff({ doc, patch }: any) {
             )}
             {!doc.finalized && eg.blocked && (
               <div className="tiny" style={{ color: 'var(--red)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> {eg.reason} ({eg.name}) — tanda tangan &amp; penerbitan opini diblokir hingga Deklarasi Kode Etik/AML sah (atau pengecualian Partner).</div>
+            )}
+            {!doc.finalized && !mig.clear && (
+              <div className="tiny" style={{ color: 'var(--red)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.shield size={12} /> Independensi tim belum bersih ({mig.blockers} anggota belum menyatakan / ancaman tak-tersafeguard) — tanda tangan &amp; penerbitan opini diblokir (SA 220 · Kode Etik). Lihat modul Independensi Tim.</div>
             )}
             {!doc.finalized
               ? <Btn variant="primary" disabled={!canFinalize} style={{ width: '100%' }} onClick={finalize}><I.lock size={14} /> Finalisasi Laporan Auditor</Btn>
