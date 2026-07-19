@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm, useAudit } from './contexts';
+import { useFirm, useAudit, useAmsPersist } from './contexts';
 import { wpEvidenceEval } from './view_wp';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -111,7 +111,7 @@ function EvidenceEvaluation() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateEV('ringkasan');
-  const [items, setItems] = useStateEV(EV_SEED);
+  const [items, setItems] = useAmsPersist('evidenceEval.v1', () => EV_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [selId, setSelId] = useStateEV('EV-C');
 
   const setVal = (id: any, key: any, v: any) => setItems((l: any) => l.map((i: any) => i.id === id ? { ...i, [key]: v } : i));

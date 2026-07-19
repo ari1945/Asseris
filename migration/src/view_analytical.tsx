@@ -298,7 +298,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
 function FluxTab({ der, pm, fmt }: any) {
   const [thr, setThr] = useStateAR(15);
   const [flaggedOnly, setFlaggedOnly] = useStateAR(false);
-  const [state, setState] = useStateAR(FLUX_SEED);
+  const [state, setState] = window.useAmsPersist('fluxState.v1', () => FLUX_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [selCode, setSelCode] = useStateAR('1-1300');
 
   const rows = der.flux.map((r: any) => ({ ...r, flagged: Math.abs(r.dAbs) > pm || Math.abs(r.dPct) > thr }));

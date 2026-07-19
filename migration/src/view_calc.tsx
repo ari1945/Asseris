@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Stat } from './ui';
@@ -16,7 +16,6 @@ import { Badge, Btn, Donut, Panel, Stat } from './ui';
    'sampling' kini alias redirect ke sana. Helper bersama Kv/RowKv
    tetap diekspor dari berkas ini (dipakai lintas modul).
    ============================================================ */
-const { useState: useStateS } = React;
 
 /* ---------------- ECL Calculator (PSAK 71) ---------------- */
 function ECLCalculator() {
@@ -27,9 +26,9 @@ function ECLCalculator() {
   /* SATU sumber: matriks bucket, gross & loss-rate efektif ditarik dari AMS_CANON.psak71(wtb).
      Tidak ada lagi angka hardcode — konsisten dengan modul PSAK 71 & tab Rekonsiliasi. */
   const p71 = (AMS_CANON ? AMS_CANON.psak71(wtb) : null);
-  const [buckets, setBuckets] = useStateS(() => (p71 ? p71.buckets.map(b => ({
+  const [buckets, setBuckets] = useAmsPersist('eclInputs.v1', () => (p71 ? p71.buckets.map(b => ({
     id: b.id, label: b.label, stage: b.stage, gross: Math.round(b.gross) * 1e6, rate: +b.rate.toFixed(1),
-  })) : []));
+  })) : [])); // F1/PR-3: persist loss-rate (dulu useState → hilang saat reload)
   const booked = (p71 ? p71.ckpnBooked : 1980) * 1e6; // WTB 1-1210 (satu sumber)
 
   const setRate = (id: any, rate: any) => setBuckets((bs: any) => bs.map((b: any) => b.id === id ? { ...b, rate: Math.max(0, Math.min(100, rate)) } : b));

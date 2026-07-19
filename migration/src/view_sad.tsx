@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm, useNav } from './contexts';
+import { useFirm, useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { materialityFor } from './canon_selectors';
@@ -60,10 +60,10 @@ function SADLedger() {
   const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement } = useFirm();
-  const [items, setItems] = useStateSD(SAD_SEED);
-  const [quals, setQuals] = useStateSD(QUAL_SEED);
+  const [items, setItems] = useAmsPersist('sadItems.v1', () => SAD_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
+  const [quals, setQuals] = useAmsPersist('sadQual.v1', () => QUAL_SEED);
   const [tab, setTab] = useStateSD('ledger');
-  const [method, setMethod] = useStateSD('rollover');
+  const [method, setMethod] = useAmsPersist('sadMethod.v1', 'rollover');
 
   /* materialitas: SATU sumber dari SA 320 (Materiality Workspace) — PM%/CTT% & override
      yang sama dipakai PSAK 14 dkk., bukan lagi hardcode 75%/5%. */

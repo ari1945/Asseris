@@ -168,6 +168,23 @@ const AMS_PERSIST_SCOPE = {
      risiko berbobot, kesiapan komunikasi auditor pendahulu, pengaman & kesimpulan.
      Engagement-scope → capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
   'opening.v1': 'engagement',
+  /* F1/PR-3 (PRD 2026-07-19) — kertas kerja yang dulu useState murni (HILANG saat
+     reload) kini bertahan di server. Semua engagement-scope → capForWrite=WP_EDIT
+     (semua auditor) + isolasi W7.5.
+     evidenceEval.v1 = skoring kecukupan/keandalan bukti (SA 500);
+     sadItems/sadQual/sadMethod.v1 = ledger salah saji tak-terkoreksi + kualitatif + metode agregasi (SA 450);
+     internalAudit.v1 = faktor evaluasi fungsi audit internal (SA 610);
+     fluxState.v1 = analisis fluktuasi prosedur analitis (SA 520; memo = arMemo.v1);
+     leaseOverride.v1 = override parameter sewa per-kontrak (PSAK 73);
+     eclInputs.v1 = loss-rate per-bucket kalkulator ECL (PSAK 71). */
+  'evidenceEval.v1': 'engagement',
+  'sadItems.v1': 'engagement',
+  'sadQual.v1': 'engagement',
+  'sadMethod.v1': 'engagement',
+  'internalAudit.v1': 'engagement',
+  'fluxState.v1': 'engagement',
+  'leaseOverride.v1': 'engagement',
+  'eclInputs.v1': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the
