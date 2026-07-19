@@ -102,7 +102,7 @@ function JournalEntryTesting() {
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
             {funnel.map((f, i) => (
               <Panel key={i} noBody>
-                <div style={{ padding: '11px 14px', borderTop: '3px solid ' + f.c }}>
+                <div style={{ padding: '15px 18px', borderTop: '3px solid ' + f.c }}>
                   <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)' }}>{fmt(f.v)}</div>
                   <div className="tiny muted upper">{f.l}</div>
                   {i > 0 && <div className="tiny" style={{ marginTop: 3, color: 'var(--ink-4)' }}>{(f.v / funnel[i - 1].v * 100).toFixed(1)}% dari tahap sebelumnya</div>}
@@ -176,7 +176,7 @@ function JournalEntryTesting() {
               {/* detail */}
               {sel && (
                 <Panel noBody>
-                  <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+                  <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
                     <span className="tiny muted mono">{sel.date} · {sel.time} · {sel.user}</span>
                     <div style={{ flex: 1 }} />

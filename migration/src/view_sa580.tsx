@@ -127,7 +127,7 @@ function F580List({ got }: any) {
 
         {sel && (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.cat === 'Wajib' ? 'blue' : 'purple'}>{sel.cat}</Badge><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{sel.src}</span></div>
               <div style={{ fontWeight: 600, fontSize: 12.5, marginTop: 6, lineHeight: 1.45 }}>{sel.t}</div>
             </div>

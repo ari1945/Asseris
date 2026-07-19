@@ -208,7 +208,7 @@ function F501Inventory({ invTotal }: any) {
 
         {sel && (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>{sel.attend ? <Badge kind="green">Dihadiri</Badge> : <Badge kind="amber">Prosedur Alternatif</Badge>}</div>
               <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>{sel.loc}</div>
             </div>
@@ -277,7 +277,7 @@ function F501Litigation() {
 
         {sel && (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={likKind(sel.likely)}>{sel.likely}</Badge></div>
               <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4, lineHeight: 1.35 }}>{sel.party}</div>
             </div>

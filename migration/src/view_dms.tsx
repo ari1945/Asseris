@@ -287,10 +287,10 @@ function DocManagement() {
       <SubBar moduleId="dms" right={<div className="row gap8 ac"><span className="chip tiny"><I.lock size={10} /> AES-256 · ISQM</span><Btn sm variant="primary" onClick={() => setShowUpload(true)}><I.upload size={13} /> Unggah Dokumen</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={docs.length} label="Total Dokumen" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={assembling.length} label="Perakitan Belum Final (SA 230)" accent={assembling.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={onHold.length} label="Legal Hold Aktif" accent={onHold.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(totalGB, 2) + ' GB'} label="Total Arsip" delta={expiringSoon ? expiringSoon + ' kedaluwarsa <1 thn' : null} deltaDir={expiringSoon ? 'down' : null} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={docs.length} label="Total Dokumen" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={assembling.length} label="Perakitan Belum Final (SA 230)" accent={assembling.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={onHold.length} label="Legal Hold Aktif" accent={onHold.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(totalGB, 2) + ' GB'} label="Total Arsip" delta={expiringSoon ? expiringSoon + ' kedaluwarsa <1 thn' : null} deltaDir={expiringSoon ? 'down' : null} /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '212px 1fr', gap: 12, alignItems: 'start' }}>

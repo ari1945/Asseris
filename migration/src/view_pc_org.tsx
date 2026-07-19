@@ -76,10 +76,10 @@ function OrgChart() {
       </div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={A.FIRM.partners + A.FIRM.managers + A.FIRM.staff} label="Total Headcount" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={depts.length} label="Divisi / Unit" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={A.FIRM.partners} label="Rekan (Partner)" accent="var(--navy)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={(A.FIRM.staff / A.FIRM.managers).toFixed(1)} label="Rasio Staf : Manajer" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={A.FIRM.partners + A.FIRM.managers + A.FIRM.staff} label="Total Headcount" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={depts.length} label="Divisi / Unit" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={A.FIRM.partners} label="Rekan (Partner)" accent="var(--navy)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={(A.FIRM.staff / A.FIRM.managers).toFixed(1)} label="Rasio Staf : Manajer" accent="var(--blue)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: view === 'chart' ? '1fr 320px' : '1fr', gap: 12, alignItems: 'start' }}>
@@ -200,10 +200,10 @@ function SuccessionPlanning() {
       <SubBar moduleId="succession" right={<div className="row gap8 ac"><Badge kind="blue">{ROLES.length} peran kunci</Badge><Btn sm><I.download size={13} /> Laporan Suksesi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={ROLES.length} label="Peran Kunci Dipetakan" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={readyNow + '/' + ROLES.length} label="Punya Penerus Siap" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={atRisk} label="Risiko Kehilangan" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={noReady} label="Tanpa Penerus" accent={noReady ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={ROLES.length} label="Peran Kunci Dipetakan" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={readyNow + '/' + ROLES.length} label="Punya Penerus Siap" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={atRisk} label="Risiko Kehilangan" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={noReady} label="Tanpa Penerus" accent={noReady ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <Panel noBody className="" >

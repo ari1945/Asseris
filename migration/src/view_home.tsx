@@ -172,10 +172,10 @@ function HomeView() {
       {/* oversight strip (Partner/Manager) */}
       {isOversight && (
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.length} label="Perikatan Portofolio" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={engagements.filter((e: { risk?: string }) => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sortedTasks.length} label="Tugas Saya Aktif" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', height: '100%' }}><Btn sm onClick={() => nav('dashboard', { from: 'home' })}><I.arrowRight size={13} /> Dashboard Firma</Btn></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.length} label="Perikatan Portofolio" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.filter((e: { risk?: string }) => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={sortedTasks.length} label="Tugas Saya Aktif" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px', display: 'flex', alignItems: 'center', height: '100%' }}><Btn sm onClick={() => nav('dashboard', { from: 'home' })}><I.arrowRight size={13} /> Dashboard Firma</Btn></div></Panel>
         </div>
       )}
 

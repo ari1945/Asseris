@@ -29,7 +29,7 @@ function FeeDependencyTab() {
         Untuk klien <b>kepentingan publik (PIE)</b>, total imbalan dari satu klien (termasuk entitas berelasi) yang melampaui <b>{F.threshold}% total imbalan firma</b> selama <b>dua tahun berturut-turut</b> memicu pengamanan & komunikasi ke pihak tata kelola (TCWG). Imbalan ditarik dari <span className="mono">PPPK_CLIENTS</span> (sumber tunggal); persentase dihitung atas total imbalan firma Rp {fmt(F.firmRevCur)} jt (TA-1: Rp {fmt(F.firmRevPrior)} jt).
       </p>
       {triggers.length > 0 && (
-        <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
+        <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
           <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={16} /></span><span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{triggers.length} klien PIE melampaui ambang {F.threshold}% dua tahun berturut: <b>{triggers.map((t: any) => t.name.replace('PT ', '')).join(', ')}</b> — wajib pengamanan & komunikasi TCWG (IESBA 410).</span></div>
         </div>
       )}
@@ -97,7 +97,7 @@ function NASPreApprovalTab() {
         </Panel>
         {sel ? (
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={stKind(sel.status)}>{sel.status}</Badge>{sel.prohibited && <Badge kind="red">Dilarang</Badge>}</div>
               <div style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>{sel.client.replace('PT ', '')}</div>
             </div>

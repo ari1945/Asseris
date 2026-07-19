@@ -96,10 +96,10 @@ function RiskAssessment() {
         <div className="view-pad">
           <div style={{ marginBottom: 12 }}><DiagnosticPanel area="risk" title="Diagnostik Risiko — Temuan Otomatis" /></div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.length} label="Total RoMM" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={sig} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={fraud} label="Fraud Risk (SA 240)" accent="var(--amber)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.length} label="Total RoMM" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={sig} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={fraud} label="Fraud Risk (SA 240)" accent="var(--amber)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
@@ -178,7 +178,7 @@ function RiskAssessment() {
               {/* detail / response editor */}
               {!sel ? <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12.5, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) yang teridentifikasi untuk perikatan ini. Tambahkan risiko lewat tombol <b>Tambah Risiko</b> untuk mulai menyusun register.</div></Panel> :
               <Panel noBody>
-                <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+                <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                   <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
                   <span style={{ fontWeight: 700 }}>{sel.area}</span>
                   <Badge>{sel.assertion}</Badge>

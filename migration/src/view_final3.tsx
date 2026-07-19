@@ -563,7 +563,7 @@ function ManagementLetter() {
               <div style={{ flex: 1 }} />
               <Badge kind="blue">SA 265.9 · SA 260</Badge>
             </div>
-            <div style={{ padding: '11px 14px' }}>
+            <div style={{ padding: '15px 18px' }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
                 <Stat value={govComm.rollup.communicatedCount + '/' + govComm.rollup.requiresTcwgCount} label="Defisiensi Wajib-TCWG Terkomunikasi" accent={govComm.rollup.defGaps ? 'var(--red)' : 'var(--green)'} />
                 <Stat value={govComm.rollup.defGaps} label="Gap Komunikasi (SA 265.9)" accent={govComm.rollup.defGaps ? 'var(--red)' : 'var(--green)'} />

@@ -317,7 +317,7 @@ function SocTesting({ E, toggle }: any) {
             </div>
           </div>
         </Panel>
-        <div className="panel" style={{ padding: '11px 14px', background: E.canIssue ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+        <div className="panel" style={{ padding: '15px 18px', background: E.canIssue ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row ac gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: E.canIssue ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{E.canIssue ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
             <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{E.canIssue
               ? 'Seluruh kontrol diuji & tujuan tercapai — opini ' + E.opinion.label + ' dapat diterbitkan. Perubahan status mengalir konsisten ke Asurans Lain, Portofolio Jasa, & Organisasi Jasa SA 402.'

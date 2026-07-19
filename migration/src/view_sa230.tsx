@@ -584,7 +584,7 @@ function D2Penyimpangan({ C }: any) {
               <div style={{ flex: 1 }} />
               <Badge kind="blue">{c.ref}</Badge>
             </div>
-            <div style={{ padding: '11px 14px' }}>
+            <div style={{ padding: '15px 18px' }}>
               <div className="tiny muted" style={{ lineHeight: 1.5, marginBottom: 10 }}>{c.desc}</div>
               {c.body}
             </div>
@@ -700,7 +700,7 @@ function D2Perakitan({ C }: any) {
         {/* perubahan setelah perakitan ¶16 */}
         <Panel noBody>
           <div className="panel-h"><span className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.lock size={14} /></span><h3 style={{ margin: 0 }}>Perubahan Setelah Perakitan (¶16)</h3></span><div style={{ flex: 1 }} /><Btn sm onClick={() => nav('dms', { from: 'sa230' })}><I.arrowRight size={13} /> Riwayat di DMS</Btn></div>
-          <div style={{ padding: '11px 14px' }}>
+          <div style={{ padding: '15px 18px' }}>
             {postAssembly.length === 0
               ? <D2Empty text="Berkas final perikatan ini belum dirakit — belum ada perubahan pasca-perakitan. Setelah berkas dikunci, setiap penambahan/perubahan dicatat dengan siapa, kapan & alasannya, serta tidak ada dokumentasi yang dihapus sebelum akhir retensi (¶15)." />
               : null}

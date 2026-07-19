@@ -361,7 +361,7 @@ function FluxTab({ der, pm, fmt }: any) {
       </Panel>
 
       <Panel noBody style={{ position: 'sticky', top: 0 }}>
-        <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
           <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.code}</span><span style={{ fontWeight: 700, fontSize: 13 }} className="truncate">{sel.name}</span></div>
         </div>
         <div style={{ padding: 14 }}>

@@ -103,10 +103,10 @@ function Payroll() {
           </div>
         )}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(tot.gross / 1e6, 0) + ' jt'} label="Total Penghasilan Bruto" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(tot.pph / 1e6, 1) + ' jt'} label="PPh 21 Dipotong" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(tot.net / 1e6, 0) + ' jt'} label="Total Take-Home (Neto)" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(tot.employer / 1e6, 0) + ' jt'} label="Total Beban Pemberi Kerja" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(tot.gross / 1e6, 0) + ' jt'} label="Total Penghasilan Bruto" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(tot.pph / 1e6, 1) + ' jt'} label="PPh 21 Dipotong" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(tot.net / 1e6, 0) + ' jt'} label="Total Take-Home (Neto)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(tot.employer / 1e6, 0) + ' jt'} label="Total Beban Pemberi Kerja" accent="var(--blue)" /></div></Panel>
         </div>
 
         <Panel noBody>

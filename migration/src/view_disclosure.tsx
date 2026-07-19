@@ -113,10 +113,10 @@ function DisclosureChecklist() {
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
           {/* scorecards */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={pct + '%'} label="Kelengkapan pengungkapan" accent={pct === 100 ? 'var(--green)' : 'var(--amber)'} /><div className="pbar" style={{ marginTop: 6 }}><span style={{ width: pct + '%', background: pct === 100 ? 'var(--green)' : 'var(--amber)' }} /></div></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={applic.length} label="Persyaratan berlaku" sub="dari registri rujukan paragraf" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={doneN} label="Terpenuhi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={openN} label="Belum terpenuhi" accent={openN ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={pct + '%'} label="Kelengkapan pengungkapan" accent={pct === 100 ? 'var(--green)' : 'var(--amber)'} /><div className="pbar" style={{ marginTop: 6 }}><span style={{ width: pct + '%', background: pct === 100 ? 'var(--green)' : 'var(--amber)' }} /></div></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={applic.length} label="Persyaratan berlaku" sub="dari registri rujukan paragraf" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={doneN} label="Terpenuhi" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={openN} label="Belum terpenuhi" accent={openN ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
           </div>
 
           {/* per-statement bars */}

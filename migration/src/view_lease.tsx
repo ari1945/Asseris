@@ -75,10 +75,10 @@ function LeaseCalculator() {
         <div className="view-pad">
           {/* portfolio summary */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(allTotals.rou / 1e6, 0) + ' jt'} label="Total Aset Hak-Guna" accent="var(--blue)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(allTotals.liab / 1e6, 0) + ' jt'} label="Total Liabilitas Sewa" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={LEASES.length} label="Kontrak Sewa Aktif" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(rows.reduce((s: any, x: any) => s + x.interest, 0) / 1e6, 0) + ' jt'} label="Total Beban Bunga (kontrak ini)" accent="var(--amber)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(allTotals.rou / 1e6, 0) + ' jt'} label="Total Aset Hak-Guna" accent="var(--blue)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(allTotals.liab / 1e6, 0) + ' jt'} label="Total Liabilitas Sewa" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={LEASES.length} label="Kontrak Sewa Aktif" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(rows.reduce((s: any, x: any) => s + x.interest, 0) / 1e6, 0) + ' jt'} label="Total Beban Bunga (kontrak ini)" accent="var(--amber)" /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>

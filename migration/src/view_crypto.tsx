@@ -492,10 +492,10 @@ function CRServerChain({ rows, verify, nav }: any) {
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={writes} label="Penulisan Kertas Kerja" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={logins} label="Autentikasi (LOGIN)" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={writes} label="Penulisan Kertas Kerja" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={logins} label="Autentikasi (LOGIN)" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
       </div>
 
       <div className="panel" style={{ padding: '10px 14px', background: 'var(--green-bg)', borderColor: 'transparent', marginBottom: 12 }}>
@@ -543,10 +543,10 @@ function CRRantai({ ctx }: any) {
         <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>Rantai server tak tersedia (proxy mati atau peran tanpa <span className="mono">AUDIT_VIEW</span>) — menampilkan <b>arus turunan lokal</b> dari log aktivitas. Bukan jejak append-only otoritatif.</div>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter((e: any) => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={chain.filter((e: any) => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={chain.filter((e: any) => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={chain.filter((e: any) => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
       </div>
 
       <Panel noBody>
@@ -629,10 +629,10 @@ function CRKontrol({ ctx }: any) {
   return (
     <>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={all.length} label="Total Kontrol" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={ok} label="Aktif" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={part} label="Parsial" accent={part ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={fail} label="Gagal" accent={fail ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.length} label="Total Kontrol" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={ok} label="Aktif" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={part} label="Parsial" accent={part ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={fail} label="Gagal" accent={fail ? 'var(--red)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -657,7 +657,7 @@ function CRKontrol({ ctx }: any) {
           );
         })}
       </div>
-      <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'transparent', marginTop: 12 }}>
+      <div className="panel" style={{ padding: '15px 18px', background: 'var(--blue-050)', borderColor: 'transparent', marginTop: 12 }}>
         <div className="tiny" style={{ lineHeight: 1.55 }}><I.link2 size={11} /> Tiap kontrol menautkan ke <b>aturan integritas</b> &amp; data live di modul sumbernya — status di sini berubah otomatis saat data hulu berubah (mis. rotasi partner menurunkan IR-02, posting AJE tanpa approver menggagalkan IR-07). Tidak ada penilaian manual yang bisa menyimpang dari kenyataan.</div>
       </div>
     </>
@@ -879,10 +879,10 @@ function CRMeterai({ ctx }: any) {
     <>
       <CRVerifySeal />
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.bound + '/' + s.total} label="Dokumen Mengikat Penuh" sub="TTE tersertifikasi + e-Meterai" accent={s.bound === s.total ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.certified + '/' + s.total} label="TTE Tersertifikasi (PSrE)" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.meteraiAffixed + '/' + s.meteraiReq} label="Surat Perikatan ber-e-Meterai" accent={s.meteraiPending ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.weak + s.pending} label="Belum Mengikat / Menunggu" accent={(s.weak + s.pending) ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={s.bound + '/' + s.total} label="Dokumen Mengikat Penuh" sub="TTE tersertifikasi + e-Meterai" accent={s.bound === s.total ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={s.certified + '/' + s.total} label="TTE Tersertifikasi (PSrE)" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={s.meteraiAffixed + '/' + s.meteraiReq} label="Surat Perikatan ber-e-Meterai" accent={s.meteraiPending ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={s.weak + s.pending} label="Belum Mengikat / Menunggu" accent={(s.weak + s.pending) ? 'var(--red)' : 'var(--green)'} /></div></Panel>
       </div>
 
       {(s.weak + s.pending) > 0 && (
@@ -932,7 +932,7 @@ function CRMeterai({ ctx }: any) {
             <div className="panel-h"><h3>Penyelenggara Tepercaya</h3><span className="sub">PSrE & e-Meterai</span></div>
             <div>
               {L.providers.map((p: any, i: any) => (
-                <div key={i} className="row gap10 ac" style={{ padding: '11px 14px', borderBottom: i < L.providers.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                <div key={i} className="row gap10 ac" style={{ padding: '15px 18px', borderBottom: i < L.providers.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 32px' }}><I.shield size={16} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 700 }}>{p.name}</span><span className="chip tiny" style={{ height: 16 }}>{p.role}</span></div>
@@ -961,7 +961,7 @@ function CRMeterai({ ctx }: any) {
           </Panel>
         </div>
       </div>
-      <div className="panel" style={{ padding: '11px 14px', background: 'var(--blue-050)', borderColor: 'transparent', marginTop: 12 }}>
+      <div className="panel" style={{ padding: '15px 18px', background: 'var(--blue-050)', borderColor: 'transparent', marginTop: 12 }}>
         <div className="tiny" style={{ lineHeight: 1.55 }}><I.link2 size={11} /> Surat perikatan ditandatangani & dibubuhi e-Meterai di alur <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('onboarding', { from: 'crypto' })}>Onboarding (SA 210) ↗</span>; opini & laporan diikat TTE tersertifikasi di <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav('opinion', { from: 'crypto' })}>Audit Opinion ↗</span>. Bukti segel tersimpan WORM di Document Management.</div>
       </div>
     </>

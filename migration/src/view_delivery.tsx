@@ -71,10 +71,10 @@ function DeliveryMilestones() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={active.length} label="Perikatan Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={dueSoon} label="Milestone ≤ 7 hari" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={atRisk} label="Perikatan At-risk" accent={atRisk ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={overdueMs} label="Milestone Lewat Tempo" accent={overdueMs ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={active.length} label="Perikatan Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={dueSoon} label="Milestone ≤ 7 hari" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={atRisk} label="Perikatan At-risk" accent={atRisk ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={overdueMs} label="Milestone Lewat Tempo" accent={overdueMs ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         {/* Gantt */}

@@ -72,10 +72,10 @@ function FirmTax() {
       <SubBar moduleId="firmtax" right={<div className="row gap8 ac"><span className="chip tiny"><I.link2 size={11} /> DJP Coretax: terhubung</span><Btn sm variant="primary"><I.upload size={13} /> Lapor SPT Masa</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(ppnPayable / 1e6, 0) + ' jt'} label="PPN Kurang Bayar (Feb)" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(pphTotal / 1e6, 0) + ' jt'} label="PPh Dipotong/Disetor" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(cit.amount / 1e9, 2) + ' M'} label="Estimasi PPh Badan FY2025" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={obs.filter((o: any) => o.status === 'Belum Lapor' || o.status === 'Draft').length} label="Kewajiban Belum Selesai" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(ppnPayable / 1e6, 0) + ' jt'} label="PPN Kurang Bayar (Feb)" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(pphTotal / 1e6, 0) + ' jt'} label="PPh Dipotong/Disetor" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(cit.amount / 1e9, 2) + ' M'} label="Estimasi PPh Badan FY2025" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={obs.filter((o: any) => o.status === 'Belum Lapor' || o.status === 'Draft').length} label="Kewajiban Belum Selesai" accent="var(--amber)" /></div></Panel>
         </div>
 
         <Panel noBody>

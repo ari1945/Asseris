@@ -130,11 +130,11 @@ function DueDiligence() {
 
         {/* ---- KPI ---- */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(X.normalized, 1) + ' M'} label="EBITDA Ternormalisasi" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(X.netDebt, 0) + ' M'} label="Net Debt + Debt-like" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(X.stake, 0) + ' M'} label={'Indikasi Harga ' + D.stakePct + '%'} accent="var(--navy)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(X.chip, 0) + ' M'} label="Headroom Negosiasi (DD)" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={D.redFlags.length} label="Red Flag" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(X.normalized, 1) + ' M'} label="EBITDA Ternormalisasi" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(X.netDebt, 0) + ' M'} label="Net Debt + Debt-like" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(X.stake, 0) + ' M'} label={'Indikasi Harga ' + D.stakePct + '%'} accent="var(--navy)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(X.chip, 0) + ' M'} label="Headroom Negosiasi (DD)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.redFlags.length} label="Red Flag" accent="var(--red)" /></div></Panel>
         </div>
 
         <Panel noBody>

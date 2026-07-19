@@ -212,7 +212,7 @@ function ForensicCashFlow() {
               {/* detail anomali */}
               {selTx && (
                 <Panel noBody>
-                  <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+                  <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{selTx.id}</span>
                     <span className="tiny muted mono">{selTx.date} · {selTx.time} · {selTx.user}</span>
                     <div style={{ flex: 1 }} />

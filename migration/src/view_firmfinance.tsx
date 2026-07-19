@@ -61,10 +61,10 @@ function FirmFinance() {
         <div className="view-pad">
           {/* headline KPI — semua diturunkan dari FIRMFIN */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + M(k.revenue) + ' M'} label="Pendapatan KAP (GL 4-100)" delta={'+' + ((D.budget.actRev / D.budget.budRev - 1) * 100 + 6).toFixed(1) + '%'} deltaDir="up" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + M(k.opProfit, 2) + ' M'} label="Laba Operasi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={(k.margin * 100).toFixed(1) + '%'} label="Margin Operasi" accent="var(--green)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + M(k.cashControl, 2) + ' M'} label="Posisi Kas (GL 1-100)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.revenue) + ' M'} label="Pendapatan KAP (GL 4-100)" delta={'+' + ((D.budget.actRev / D.budget.budRev - 1) * 100 + 6).toFixed(1) + '%'} deltaDir="up" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.opProfit, 2) + ' M'} label="Laba Operasi" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={(k.margin * 100).toFixed(1) + '%'} label="Margin Operasi" accent="var(--green)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(k.cashControl, 2) + ' M'} label="Posisi Kas (GL 1-100)" /></div></Panel>
           </div>
 
           <Panel noBody>
@@ -405,11 +405,11 @@ function WIPValuation() {
       <div className="view-scroll"><div className="view-pad">
         {/* headline KPI — semua diturunkan dari FIRMFIN.wip() */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + M(W.unbilledTotal) + ' M'} label="Saldo WIP Belum Ditagih" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + M(W.netRecoverable) + ' M'} label="Nilai Dapat Dipulihkan Neto" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pc(W.avgRealization)} label="Realisasi Rata-rata" accent={realColor(W.avgRealization)} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pc(W.avgMargin)} label="Margin Rata-rata" accent={marginColor(W.avgMargin)} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + jt(W.provisionTotal) + ' jt'} label={'Penyisihan WIP · ' + pc(W.provisionPct, 1)} accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(W.unbilledTotal) + ' M'} label="Saldo WIP Belum Ditagih" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + M(W.netRecoverable) + ' M'} label="Nilai Dapat Dipulihkan Neto" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pc(W.avgRealization)} label="Realisasi Rata-rata" accent={realColor(W.avgRealization)} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pc(W.avgMargin)} label="Margin Rata-rata" accent={marginColor(W.avgMargin)} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + jt(W.provisionTotal) + ' jt'} label={'Penyisihan WIP · ' + pc(W.provisionPct, 1)} accent="var(--red)" /></div></Panel>
         </div>
 
         <Panel noBody>

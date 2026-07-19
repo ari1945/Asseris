@@ -62,10 +62,10 @@ function ECLCalculator() {
       <div className="view-scroll">
         <div className="view-pad">
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={rp(totalGross / 1e6) + ' jt'} label="Eksposur Bruto" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={rp(totalEcl / 1e6) + ' jt'} label="ECL per Model" accent="var(--blue)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={rp(booked / 1e6) + ' jt'} label="CKPN Dibukukan Klien" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={(diff >= 0 ? '+' : '') + rp(diff / 1e6) + ' jt'} label="Selisih (Under/Over)" accent={Math.abs(diff) > 100e6 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={rp(totalGross / 1e6) + ' jt'} label="Eksposur Bruto" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={rp(totalEcl / 1e6) + ' jt'} label="ECL per Model" accent="var(--blue)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={rp(booked / 1e6) + ' jt'} label="CKPN Dibukukan Klien" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={(diff >= 0 ? '+' : '') + rp(diff / 1e6) + ' jt'} label="Selisih (Under/Over)" accent={Math.abs(diff) > 100e6 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
           </div>
 
           <div className="grid" style={{ gridTemplateColumns: '1.55fr 1fr', gap: 12, alignItems: 'start' }}>

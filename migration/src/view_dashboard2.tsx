@@ -43,10 +43,10 @@ function DashOperasional() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={active.length} label="Engagement Aktif" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={critical} label="Deadline ≤ 14 Hari" accent={critical ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgBurn + '%'} label="Rata-rata Budget Burn" accent={avgBurn > 90 ? 'var(--amber)' : undefined} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={overUtil} label="Tim Over-utilised (>90%)" accent={overUtil ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={active.length} label="Engagement Aktif" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={critical} label="Deadline ≤ 14 Hari" accent={critical ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgBurn + '%'} label="Rata-rata Budget Burn" accent={avgBurn > 90 ? 'var(--amber)' : undefined} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={overUtil} label="Tim Over-utilised (>90%)" accent={overUtil ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -136,10 +136,10 @@ function DashFinansial() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalWip / 1e9, 2) + ' M'} label="WIP Belum Ditagih" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value="87%" label="Collection Rate" delta="+3pp" deltaDir="up" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value="87%" label="Realization Rate" delta="+3.1pp" deltaDir="up" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(B.fyRevenue / 1e9, 1) + ' M'} label="Pendapatan FY2025" delta="+11% YoY" deltaDir="up" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalWip / 1e9, 2) + ' M'} label="WIP Belum Ditagih" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value="87%" label="Collection Rate" delta="+3pp" deltaDir="up" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value="87%" label="Realization Rate" delta="+3.1pp" deltaDir="up" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(B.fyRevenue / 1e9, 1) + ' M'} label="Pendapatan FY2025" delta="+11% YoY" deltaDir="up" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -206,10 +206,10 @@ function DashMutu() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={sig} label="Risiko Signifikan (firm)" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={eqrActive} label="EQR Berjalan" accent={eqrActive ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={declaredPct + '%'} label="Independensi Terdeklarasi" accent={declaredPct === 100 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={openNotes.length} label="Catatan Reviu Terbuka" accent={openNotes.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={sig} label="Risiko Signifikan (firm)" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={eqrActive} label="EQR Berjalan" accent={eqrActive ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={declaredPct + '%'} label="Independensi Terdeklarasi" accent={declaredPct === 100 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={openNotes.length} label="Catatan Reviu Terbuka" accent={openNotes.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>

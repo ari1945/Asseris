@@ -137,10 +137,10 @@ function Integrations() {
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={connected} label="Konektor Terhubung" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(sum.postedRows)} label="Baris Di-posting ke SSOT" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(sum.stagedRows)} label="Menunggu Validasi" accent={sum.stagedRows ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={sum.failedJobs.length} label="Impor Gagal" accent={sum.failedJobs.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={connected} label="Konektor Terhubung" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(sum.postedRows)} label="Baris Di-posting ke SSOT" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(sum.stagedRows)} label="Menunggu Validasi" accent={sum.stagedRows ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.failedJobs.length} label="Impor Gagal" accent={sum.failedJobs.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         {/* mode switch */}

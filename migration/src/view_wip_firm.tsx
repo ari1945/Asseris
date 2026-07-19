@@ -89,10 +89,10 @@ function WIPRealization() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totWip / 1e9, 2) + ' M'} label="Saldo WIP (belum tertagih)" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(avgReal, 0) + '%'} label="Realisasi Rata-rata" accent={realColor(avgReal)} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totWD / 1e6, 0) + ' jt'} label="Write-down YTD" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={fmt(avgMargin, 0) + '%'} label="Margin Rata-rata" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totWip / 1e9, 2) + ' M'} label="Saldo WIP (belum tertagih)" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(avgReal, 0) + '%'} label="Realisasi Rata-rata" accent={realColor(avgReal)} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totWD / 1e6, 0) + ' jt'} label="Write-down YTD" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(avgMargin, 0) + '%'} label="Margin Rata-rata" accent="var(--green)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: selRow ? '1fr 360px' : '1fr', gap: 12, alignItems: 'start' }}>

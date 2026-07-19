@@ -333,35 +333,50 @@ function SubBar({ moduleId, right }: any) {
   const scoped = !firmWide && m.group !== '';
   const saRefs = (window.RELATED_SA || {})[moduleId] || [];
   const ifrsAlias = (window.MODULE_IFRS || {})[moduleId];
+  const TitleIcon = I[m.icon as keyof typeof I] || I.panel;
+  // Baris meta (kedua) hanya tampil bila ada konteks — mencegah strip kosong.
+  const hasMeta = !!fromMeta || !!ifrsAlias || (scoped && !!firm.activeEngagement) || (firmWide && m.group !== '') || saRefs.length > 0;
   return (
-    <div className="subbar">
+    <div className="pagehead">
+      {/* Baris 1 — identitas modul: ikon + eyebrow (grup) + judul besar + aksi view */}
+      <div className="pagehead-main">
+        <span className="pagehead-icon"><TitleIcon size={20} /></span>
+        <div className="pagehead-titles">
+          {m.group && <span className="pagehead-eyebrow">{m.group}</span>}
+          <h1 className="pagehead-title">{m.label}</h1>
+        </div>
+        <div className="pagehead-spacer" />
+        <div className="pagehead-actions">
+          {typeof WpSubBarControl !== 'undefined' && <WpSubBarControl moduleId={moduleId} />}
+          {typeof EvidenceControl !== 'undefined' && <EvidenceControl moduleId={moduleId} />}
+          {right}
+        </div>
+      </div>
+      {/* Baris 2 — konteks: kembali + chip engagement/standar (kondisional) */}
+      {hasMeta && (
+      <div className="pagehead-meta">
       {fromMeta && (
         <button type="button" className="subbar-back" title={'Kembali ke ' + fromMeta.label}
           onClick={() => nav(navFrom)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 26, padding: '0 10px 0 7px', marginRight: 10, border: '1px solid var(--line-strong)', borderRadius: 7, background: 'var(--surface-2)', color: 'var(--ink-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 24, padding: '0 10px 0 7px', border: '1px solid var(--line-strong)', borderRadius: 7, background: 'var(--surface-2)', color: 'var(--ink-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
           onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue)'; e.currentTarget.style.color = 'var(--blue)'; }}
           onMouseLeave={(e: any) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.color = 'var(--ink-2)'; }}>
           <I.arrowLeft size={14} /> {fromMeta.label}
         </button>
       )}
-      <div className="crumb">
-        <span>{m.group}</span>
-        <span className="sep"><I.chevron size={12} /></span>
-        <b>{m.label}</b>
-      </div>
       {ifrsAlias && (
         <span className="chip tiny" title={'Penomoran PSAK selaras-IFRS (efektif 2024) \u2014 dahulu ' + ifrsAlias.legacy}
-          style={{ marginLeft: 10, fontFamily: 'var(--mono)', background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
+          style={{ fontFamily: 'var(--mono)', background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
           ≡ {ifrsAlias.code} · {ifrsAlias.base}
         </span>
       )}
       {scoped && firm.activeEngagement && (
-        <span className="chip tiny" title="Data modul ini terkait engagement aktif" style={{ marginLeft: 10, background: 'var(--blue-100)', color: 'var(--blue)' }}>
+        <span className="chip tiny" title="Data modul ini terkait engagement aktif" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }}>
           <I.briefcase size={11} /> {firm.activeEngagement.id} · {firm.activeClient?.name?.replace('PT ', '').slice(0, 18)}
         </span>
       )}
       {firmWide && m.group !== '' && (
-        <span className="chip tiny" title="Data tingkat firma (lintas engagement)" style={{ marginLeft: 10 }}>
+        <span className="chip tiny" title="Data tingkat firma (lintas engagement)">
           <I.building size={11} /> Firma-wide
         </span>
       )}
@@ -377,10 +392,8 @@ function SubBar({ moduleId, right }: any) {
           ))}
         </span>
       )}
-      <div className="subbar-spacer" />
-      {typeof WpSubBarControl !== 'undefined' && <WpSubBarControl moduleId={moduleId} />}
-      {typeof EvidenceControl !== 'undefined' && <EvidenceControl moduleId={moduleId} />}
-      {right}
+      </div>
+      )}
     </div>
   );
 }

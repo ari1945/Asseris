@@ -62,10 +62,10 @@ function NonAuditPortfolio() {
       <SubBar moduleId="nonaudit" right={<div className="row gap8 ac"><Badge kind="blue">SPAP · Asurans & Jasa Terkait</Badge><Btn sm variant="primary" onClick={() => nav('onboarding')}><I.plus size={14} /> Perikatan Baru</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={list.length} label="Perikatan Non-Audit Aktif" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalFee / 1e6, 0) + ' jt'} label="Nilai Portofolio" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={list.filter(e => e.cat === 'Asurans Lain').length} label="Asurans Lain (3000-series)" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={list.filter(e => e.assurance.includes('Tanpa')).length} label="Tanpa Asurans (4400/4410)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={list.length} label="Perikatan Non-Audit Aktif" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalFee / 1e6, 0) + ' jt'} label="Nilai Portofolio" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={list.filter(e => e.cat === 'Asurans Lain').length} label="Asurans Lain (3000-series)" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={list.filter(e => e.assurance.includes('Tanpa')).length} label="Tanpa Asurans (4400/4410)" /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -140,7 +140,7 @@ function Review2400() {
     <>
       <SubBar moduleId="review2400" right={<div className="row gap8 ac"><Badge kind="blue">SPR 2400 · Keyakinan Terbatas</Badge></div>} />
       <div className="view-scroll"><div className="view-pad">
-        <div className="panel" style={{ padding: '11px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: '#0a6b73', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>R</span>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{R.client}</div><div className="tiny muted">{R.id} · Reviu {R.fy} · Kerangka {R.framework} · Reviu memberikan keyakinan terbatas (bukan audit)</div></div>
           <div className="row gap8">

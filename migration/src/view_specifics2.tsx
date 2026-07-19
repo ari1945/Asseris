@@ -527,7 +527,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
       </Panel>
 
       <Panel noBody>
-        <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
           <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.ref}</span><Badge kind={f.v >= 4 ? 'green' : f.v >= 3 ? 'amber' : 'red'}>{f.v}/5</Badge>
             <div style={{ flex: 1 }} /><span className="tiny muted">{exp.name} · {f.k}</span></div>
           <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 3 }}>{f.k}</div>

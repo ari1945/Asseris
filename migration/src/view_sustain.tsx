@@ -177,7 +177,7 @@ function SustainabilityView() {
                 <div className="panel-h"><h3>Rencana Aksi Keuangan Berkelanjutan (RAKB)</h3><span className="sub mono">Ps. 8 POJK 51</span></div>
                 <div>
                   {S.rakb.map((r: any, i: any) => (
-                    <div key={r.ref} className="row ac gap10" style={{ padding: '11px 14px', borderBottom: i < S.rakb.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                    <div key={r.ref} className="row ac gap10" style={{ padding: '15px 18px', borderBottom: i < S.rakb.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)', width: 64, flex: '0 0 64px' }}>{r.ref}</span>
                       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.t}</div><div className="tiny muted">Target: {r.tgt}</div></div>
                       <Badge kind={r.status === 'Selesai' ? 'green' : r.status === 'Berjalan' ? 'blue' : 'amber'}>{r.status}</Badge>
@@ -210,7 +210,7 @@ function SustainabilityView() {
                   </div>
                 </Panel>
               ))}
-              <div className="panel" style={{ gridColumn: '1 / -1', padding: '11px 14px', background: 'var(--teal-bg)', borderColor: 'transparent' }}>
+              <div className="panel" style={{ gridColumn: '1 / -1', padding: '15px 18px', background: 'var(--teal-bg)', borderColor: 'transparent' }}>
                 <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                   <span style={{ color: 'var(--teal)', marginTop: 1, flex: '0 0 auto' }}><I.target size={15} /></span>
                   <div style={{ fontSize: 12, lineHeight: 1.6 }}>DSK-IAI mengadopsi IFRS S1 & S2 menjadi <b>Standar Pengungkapan Keberlanjutan (SPK)</b>. Pengungkapan emisi GRK Cakupan 1–2 sudah siap (ditopang asurans <b>SJAH 3410</b>); area belum-siap utama: <b>Cakupan 3</b>, analisis skenario iklim, dan rencana transisi net-zero. Kandidat fokus pada perikatan asurans keberlanjutan (SPA 3000 / ISSA 5000).</div>

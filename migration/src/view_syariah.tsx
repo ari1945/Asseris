@@ -372,13 +372,13 @@ function SyariahView() {
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--navy)', marginLeft: 10 }}>{fmt(a.pokok)} jt</span>
                   </div>
                   <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0 }}>
-                    <div style={{ padding: '11px 14px', borderRight: '1px solid var(--line-soft)' }}>
+                    <div style={{ padding: '15px 18px', borderRight: '1px solid var(--line-soft)' }}>
                       <div className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', marginBottom: 4 }}>Dasar Pengakuan</div>
                       <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>{a.basis}</div>
                       <div className="tiny muted" style={{ marginTop: 7, lineHeight: 1.5 }}><b style={{ color: 'var(--ink-2)' }}>Penyajian:</b> {a.sajian}</div>
                       {a.marjin > 0 && <div className="mono tiny" style={{ marginTop: 6, color: 'var(--ink-3)' }}>Marjin/pendapatan ditangguhkan: {fmt(a.marjin)} jt</div>}
                     </div>
-                    <div style={{ padding: '11px 14px' }}>
+                    <div style={{ padding: '15px 18px' }}>
                       <div className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', marginBottom: 4 }}>Fokus Audit</div>
                       <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                         <span style={{ color: 'var(--blue)', marginTop: 1, flex: '0 0 auto' }}><I.search2 size={14} /></span>

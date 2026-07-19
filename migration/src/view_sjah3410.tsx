@@ -376,7 +376,7 @@ function GhgProcedures({ E, toggle }: any) {
         <Panel title="Ketidakpastian Estimasi (¶35)">
           <p className="tiny" style={{ margin: 0, lineHeight: 1.55 }}>Emisi <b>fugitif refrigeran (S1-4)</b> diestimasi dari top-up tahunan × GWP — sumber ketidakpastian terbesar. Praktisi mengevaluasi rentang & dampaknya terhadap materialitas; bila tidak material, simpulan tidak dimodifikasi namun ketidakpastian inheren ditekankan dalam laporan.</p>
         </Panel>
-        <div className="panel" style={{ padding: '11px 14px', background: E.canIssue ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+        <div className="panel" style={{ padding: '15px 18px', background: E.canIssue ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row ac gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: E.canIssue ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto' }}>{E.canIssue ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
             <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>{E.canIssue
               ? 'Seluruh prosedur & rekalkulasi sumber selesai tanpa salah saji material — simpulan keyakinan terbatas (negatif) dapat dirumuskan & laporan SJAH 3410 siap diterbitkan.'

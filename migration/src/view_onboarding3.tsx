@@ -46,10 +46,10 @@ function OBAnalitik() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={prospects.length} label="Total Prospek" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={convRate + '%'} label="Conversion Rate" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalFee / 1e9, 2) + ' M'} label="Fee dalam Pipeline" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Object.values(OB_CYCLE).reduce((s, v) => s + v, 0) + ' hari'} label="Target Siklus Onboarding" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={prospects.length} label="Total Prospek" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={convRate + '%'} label="Conversion Rate" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalFee / 1e9, 2) + ' M'} label="Fee dalam Pipeline" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Object.values(OB_CYCLE).reduce((s, v) => s + v, 0) + ' hari'} label="Target Siklus Onboarding" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -122,10 +122,10 @@ function OBAcceptance() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={approved} label="Disetujui" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={pending} label="Menunggu Keputusan" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={conditional} label="Terima dengan Syarat" accent="var(--purple)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={avgScore} label="Rata-rata Skor Akseptasi" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={approved} label="Disetujui" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={pending} label="Menunggu Keputusan" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={conditional} label="Terima dengan Syarat" accent="var(--purple)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={avgScore} label="Rata-rata Skor Akseptasi" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -194,10 +194,10 @@ function OBAml() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={verified + ' / ' + withPmpj.length} label="PMPJ Terverifikasi" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={edd} label="Enhanced DD (EDD)" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={pepCount} label="UBO PEP Teridentifikasi" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={strCount} label="Laporan Transaksi (STR)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={verified + ' / ' + withPmpj.length} label="PMPJ Terverifikasi" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={edd} label="Enhanced DD (EDD)" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={pepCount} label="UBO PEP Teridentifikasi" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={strCount} label="Laporan Transaksi (STR)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.2fr 1fr', gap: 12, alignItems: 'start' }}>

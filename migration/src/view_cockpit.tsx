@@ -233,12 +233,12 @@ function AuditProgramme() {
       <div className="view-scroll"><div className="view-pad">
         {/* KPIs */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(6,1fr)', gap: 10, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={prog.length} label="RoMM Tertangani" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={allProcs.length} label="Total Prosedur" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pct + '%'} label="Penyelesaian" accent={pct >= 80 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${sigCovered}/${sigRisks.length}`} label="Risk Signifikan Tuntas" accent={sigCovered === sigRisks.length ? 'var(--green)' : 'var(--red)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${actTot}/${budTot}j`} label="Jam (Aktual/Budget)" accent={actTot > budTot ? 'var(--red)' : null} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={excTot} label="Pengecualian" accent={excTot > 0 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={prog.length} label="RoMM Tertangani" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={allProcs.length} label="Total Prosedur" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pct + '%'} label="Penyelesaian" accent={pct >= 80 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${sigCovered}/${sigRisks.length}`} label="Risk Signifikan Tuntas" accent={sigCovered === sigRisks.length ? 'var(--green)' : 'var(--red)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${actTot}/${budTot}j`} label="Jam (Aktual/Budget)" accent={actTot > budTot ? 'var(--red)' : null} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={excTot} label="Pengecualian" accent={excTot > 0 ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <div className="panel" style={{ padding: '10px 14px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
@@ -319,7 +319,7 @@ function AuditProgramme() {
             {/* detail */}
             {sel && (
               <Panel noBody className="prg-detail">
-                <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8 wrap">
+                <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8 wrap">
                   <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
                   <span style={{ fontWeight: 700, fontSize: 12.5 }}>{selRisk.area}</span>
                   <NatTag nat={sel.nat} />

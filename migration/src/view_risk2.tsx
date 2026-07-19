@@ -31,10 +31,10 @@ function RiskKontrol() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={CTL.length} label="Total Kontrol" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={Math.round(eff[0].n / CTL.length * 100) + '%'} label="Kontrol Efektif" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={deficiencies.length} label="Defisiensi Teridentifikasi" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={untested} label="Belum Diuji" accent={untested ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={CTL.length} label="Total Kontrol" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={Math.round(eff[0].n / CTL.length * 100) + '%'} label="Kontrol Efektif" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficiencies.length} label="Defisiensi Teridentifikasi" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={untested} label="Belum Diuji" accent={untested ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -116,10 +116,10 @@ function RiskTren() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={T.firmAvg[0]} label="Rata-rata Inheren" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={T.firmAvg[T.firmAvg.length - 1]} label="Rata-rata Residual" accent="var(--amber)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'-' + (T.firmAvg[0] - T.firmAvg[T.firmAvg.length - 1]).toFixed(1)} label="Penurunan Risiko" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={rows.filter((r: any) => r.residual >= 12).length} label="Residual Signifikan" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={T.firmAvg[0]} label="Rata-rata Inheren" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={T.firmAvg[T.firmAvg.length - 1]} label="Rata-rata Residual" accent="var(--amber)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'-' + (T.firmAvg[0] - T.firmAvg[T.firmAvg.length - 1]).toFixed(1)} label="Penurunan Risiko" accent="var(--green)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={rows.filter((r: any) => r.residual >= 12).length} label="Residual Signifikan" accent="var(--red)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
@@ -190,10 +190,10 @@ function RiskRespons() {
   return (
     <div className="view-scroll"><div className="view-pad">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.length} label="Risiko dengan Respons" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter((r: any) => r.fraud).length} label="Respons Fraud (SA 240)" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={new Set(risks.map((r: any) => r.wp)).size} label="Prosedur Tertaut (WP)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.length} label="Risiko dengan Respons" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.filter((r: any) => r.fraud).length} label="Respons Fraud (SA 240)" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={new Set(risks.map((r: any) => r.wp)).size} label="Prosedur Tertaut (WP)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 2fr', gap: 12, alignItems: 'start' }}>

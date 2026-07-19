@@ -214,10 +214,10 @@ function HCMAnalytics() {
   return (
     <div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={totalHC} label="Headcount Aktif" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={D.annualAttrition + '%'} label="Attrition Tahunan" accent={D.annualAttrition > 15 ? 'var(--amber)' : 'var(--green)'} delta={D.regrettable + '% regrettable'} deltaDir="down" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={D.avgTenure + ' th'} label="Rata-rata Masa Kerja" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={D.timeToFill + ' hari'} label="Time-to-Fill" accent="var(--blue)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={totalHC} label="Headcount Aktif" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.annualAttrition + '%'} label="Attrition Tahunan" accent={D.annualAttrition > 15 ? 'var(--amber)' : 'var(--green)'} delta={D.regrettable + '% regrettable'} deltaDir="down" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.avgTenure + ' th'} label="Rata-rata Masa Kerja" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={D.timeToFill + ' hari'} label="Time-to-Fill" accent="var(--blue)" /></div></Panel>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 12, marginBottom: 12, alignItems: 'stretch' }}>

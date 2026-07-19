@@ -366,10 +366,10 @@ function DataPersonalSaya() {
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={pay ? 'Rp ' + fmt(payBase / 1e6, 1) + ' jt' : '—'} label="Penghasilan Bruto / bln" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={`${skpTotal}/${req.annual}`} label="SKP (PPL) tahun ini" accent={skpOk ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={bal ? lvLeft + ' hari' : '—'} label="Sisa Cuti" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={myCases.length} label="Kasus Disiplin" accent={myCases.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={pay ? 'Rp ' + fmt(payBase / 1e6, 1) + ' jt' : '—'} label="Penghasilan Bruto / bln" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={`${skpTotal}/${req.annual}`} label="SKP (PPL) tahun ini" accent={skpOk ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={bal ? lvLeft + ' hari' : '—'} label="Sisa Cuti" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={myCases.length} label="Kasus Disiplin" accent={myCases.length ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>

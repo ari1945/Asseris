@@ -129,10 +129,10 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
     <div className="grid" style={{ gap: 12 }}>
       {/* parameter strip */}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={activeEngagement.risk} label="Risiko Engagement" accent={activeEngagement.risk === 'High' ? 'var(--red)' : activeEngagement.risk === 'Medium' ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(om / 1e9, 1) + ' M'} label="Overall Materiality" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={sigRisks.length} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>
-        <Panel><div style={{ padding: '11px 14px' }}><Stat value={deadline.replace(/ \d{4}/, '')} label="Tenggat Opini" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={activeEngagement.risk} label="Risiko Engagement" accent={activeEngagement.risk === 'High' ? 'var(--red)' : activeEngagement.risk === 'Medium' ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(om / 1e9, 1) + ' M'} label="Overall Materiality" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={sigRisks.length} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><Stat value={deadline.replace(/ \d{4}/, '')} label="Tenggat Opini" /></div></Panel>
       </div>
 
       {/* SA 300 three pillars */}
@@ -231,7 +231,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
     <div className="grid" style={{ gap: 12 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
         {counts.map(c => (
-          <Panel key={c.id}><div style={{ padding: '11px 14px' }}><Stat value={c.n} label={c.short} accent={c.color} /></div></Panel>
+          <Panel key={c.id}><div style={{ padding: '15px 18px' }}><Stat value={c.n} label={c.short} accent={c.color} /></div></Panel>
         ))}
         <div style={{ display: 'none' }} />
       </div>
@@ -324,7 +324,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
-          <div style={{ padding: '11px 14px', background: relyControls > 0 ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 'var(--radius)' }}>
+          <div style={{ padding: '15px 18px', background: relyControls > 0 ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 'var(--radius)' }}>
             <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--teal)' }}><I.sliders size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Strategi Pengendalian</span></div>
             <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               {relyControls > 0
@@ -334,7 +334,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
           </div>
         </Panel>
         <Panel noBody>
-          <div style={{ padding: '11px 14px', background: 'var(--amber-bg)', borderRadius: 'var(--radius)' }}>
+          <div style={{ padding: '15px 18px', background: 'var(--amber-bg)', borderRadius: 'var(--radius)' }}>
             <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--amber)' }}><I.scale size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Tautan ke Materialitas</span></div>
             <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Performance Materiality <b className="mono">Rp {fmt(pm / 1e6, 0)} jt</b> menjadi ambang penentuan luas sampel & pemilihan item kunci. {AMS.WTB.filter(r => Math.abs(r.adj ?? 0) > pm).length} akun WTB melampaui PM dan diperlakukan sebagai area fokus.

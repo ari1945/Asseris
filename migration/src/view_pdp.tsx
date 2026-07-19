@@ -217,7 +217,7 @@ function PDPView() {
                   {P.principles.map((p: any, i: any) => {
                     const SK = { 'Aktif': 'green', 'Parsial': 'amber', 'Gagal': 'red' };
                     return (
-                      <div key={i} className="row ac gap10" style={{ padding: '11px 14px', borderBottom: i < P.principles.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                      <div key={i} className="row ac gap10" style={{ padding: '15px 18px', borderBottom: i < P.principles.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <span style={{ color: p.status === 'Aktif' ? 'var(--green)' : p.status === 'Parsial' ? 'var(--amber)' : 'var(--red)', flex: '0 0 auto' }}>{p.status === 'Aktif' ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 12.5, fontWeight: 600 }}>{p.k}</div>

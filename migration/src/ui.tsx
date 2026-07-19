@@ -51,7 +51,7 @@ function Portlet({ title, dot, actions, children, bodyPad = true, dragProps = {}
   );
 }
 
-function Panel({ title, sub, actions, children, className = '', noBody }: any) {
+function Panel({ title, sub, actions, children, className = '', noBody, flush }: any) {
   return (
     <div className={'panel ' + className}>
       {(title || actions) && (
@@ -62,7 +62,7 @@ function Panel({ title, sub, actions, children, className = '', noBody }: any) {
           {actions}
         </div>
       )}
-      {noBody ? children : <div>{children}</div>}
+      {noBody ? children : <div className={'panel-body' + (flush ? ' flush' : '')}>{children}</div>}
     </div>
   );
 }

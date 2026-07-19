@@ -354,7 +354,7 @@ function ComplianceView({ stdId }: any) {
                   </div>
                 </Panel>
               ))}
-              <div className="panel" style={{ padding: '11px 14px', background: pct === 100 ? 'var(--green-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
+              <div className="panel" style={{ padding: '15px 18px', background: pct === 100 ? 'var(--green-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
                 <div className="row ac gap8">
                   <span style={{ color: pct === 100 ? 'var(--green)' : 'var(--ink-3)' }}>{pct === 100 ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
                   <span style={{ fontSize: 12.5, fontWeight: 600 }}>{pct === 100 ? 'Seluruh prosedur yang berlaku telah diselesaikan — siap untuk review.' : `${applicable - done} prosedur masih tertunda. Klik kotak untuk menandai Selesai / N/A.`}</span>

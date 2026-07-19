@@ -79,10 +79,10 @@ function TaxPPh23() {
 
         {/* KPI ringkas — selalu tampak */}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(s.totalPph / 1e6, 1) + ' jt'} label={'PPh 23 Dipotong · YTD (' + s.count + ' bupot)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(s.disetor / 1e6, 1) + ' jt'} label="Telah Disetor / Dilaporkan" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(s.terutang / 1e6, 1) + ' jt'} label="Masih Terutang" accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={s.noNpwpCount} label={'Tanpa NPWP/NIK · tarif ganda (+Rp ' + fmt(s.extraCost / 1e6, 1) + ' jt)'} accent={s.noNpwpCount ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(s.totalPph / 1e6, 1) + ' jt'} label={'PPh 23 Dipotong · YTD (' + s.count + ' bupot)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(s.disetor / 1e6, 1) + ' jt'} label="Telah Disetor / Dilaporkan" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(s.terutang / 1e6, 1) + ' jt'} label="Masih Terutang" accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={s.noNpwpCount} label={'Tanpa NPWP/NIK · tarif ganda (+Rp ' + fmt(s.extraCost / 1e6, 1) + ' jt)'} accent={s.noNpwpCount ? 'var(--red)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <Panel noBody>

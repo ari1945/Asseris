@@ -87,10 +87,10 @@ function FirmGL() {
       } />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalDr / 1e9, 1) + ' M'} label="Total Debit" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(totalCr / 1e9, 1) + ' M'} label="Total Kredit" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={gl.length} label="Jurnal (bulan ini)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={unposted} label="Belum Diposting" accent={unposted ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalDr / 1e9, 1) + ' M'} label="Total Debit" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalCr / 1e9, 1) + ' M'} label="Total Kredit" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={gl.length} label="Jurnal (bulan ini)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={unposted} label="Belum Diposting" accent={unposted ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
         </div>
 
         <Panel noBody>
@@ -366,10 +366,10 @@ function FirmAPAR() {
       <SubBar moduleId="apar" right={<div className="row gap8 ac"><Btn sm onClick={() => nav('firmgl')}><I.ledger size={13} /> Ke GL</Btn><Btn sm variant="primary"><I.plus size={14} /> {tab === 'ap' ? 'Tagihan Vendor' : 'Faktur Klien'}</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(arOutstanding / 1e6, 0) + ' jt'} label={'Piutang Outstanding · DSO ' + dso + ' hr'} accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt(apOutstanding / 1e6, 0) + ' jt'} label={'Utang Outstanding · DPO ' + dpo + ' hr'} accent="var(--amber)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={(netPosition >= 0 ? '+' : '') + 'Rp ' + fmt(netPosition / 1e6, 0) + ' jt'} label="Posisi Neto" accent={netPosition >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={'Rp ' + fmt((apOverdue + arOverdue) / 1e6, 0) + ' jt'} label="Total Jatuh Tempo Lewat" accent="var(--red)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(arOutstanding / 1e6, 0) + ' jt'} label={'Piutang Outstanding · DSO ' + dso + ' hr'} accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(apOutstanding / 1e6, 0) + ' jt'} label={'Utang Outstanding · DPO ' + dpo + ' hr'} accent="var(--amber)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={(netPosition >= 0 ? '+' : '') + 'Rp ' + fmt(netPosition / 1e6, 0) + ' jt'} label="Posisi Neto" accent={netPosition >= 0 ? 'var(--green)' : 'var(--red)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt((apOverdue + arOverdue) / 1e6, 0) + ' jt'} label="Total Jatuh Tempo Lewat" accent="var(--red)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1.55fr 1fr', gap: 12, alignItems: 'start' }}>

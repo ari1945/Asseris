@@ -59,10 +59,10 @@ function Templates() {
       <SubBar moduleId="templates" right={<div className="row gap8 ac"><Btn sm><I.upload size={13} /> Unggah</Btn><Btn sm variant="primary"><I.plus size={14} /> Template Baru</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={T.length} label="Template Terdaftar" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={aktif} label="Aktif & Disahkan" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={due} label="Perlu Reviu" accent={due ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={instans} label="Instans di Engagement" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={T.length} label="Template Terdaftar" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={aktif} label="Aktif & Disahkan" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={due} label="Perlu Reviu" accent={due ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={instans} label="Instans di Engagement" accent="var(--blue)" /></div></Panel>
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>

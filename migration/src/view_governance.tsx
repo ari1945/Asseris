@@ -40,10 +40,10 @@ function Governance() {
       <SubBar moduleId="governance" right={<div className="row gap8 ac"><Badge kind="blue">ISQM 1 · SPM</Badge><Btn sm><I.download size={13} /> Evaluasi SPM Tahunan</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={avg + '%'} label="Skor Efektivitas SPM" accent={scoreColor(avg)} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value="Memadai" label="Simpulan Evaluasi 2025" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={avg + '%'} label="Skor Efektivitas SPM" accent={scoreColor(avg)} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={effective + ' / ' + comps.length} label="Komponen Efektif" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={openDefs} label="Defisiensi Terbuka" accent={openDefs ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value="Memadai" label="Simpulan Evaluasi 2025" accent="var(--green)" /></div></Panel>
         </div>
 
         {/* Annual evaluation conclusion — centerpiece of ISQM 1 */}

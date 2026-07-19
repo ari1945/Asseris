@@ -24,10 +24,10 @@ function TaxAuditDiagnostic() {
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={findings.length} label="Total temuan" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={c.high} label="Severity tinggi" accent="var(--red)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={c.med} label="Severity sedang" accent="var(--amber)" /></div></Panel>
-            <Panel><div style={{ padding: '11px 14px' }}><Stat value={Object.keys(byDetector).length} label="Detektor aktif" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={findings.length} label="Total temuan" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={c.high} label="Severity tinggi" accent="var(--red)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={c.med} label="Severity sedang" accent="var(--amber)" /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={Object.keys(byDetector).length} label="Detektor aktif" /></div></Panel>
           </div>
 
           <div className="tiny muted" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

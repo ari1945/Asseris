@@ -396,7 +396,7 @@ function SORegister({ orgs, setOrgs, me, locked }: { orgs: ServiceOrgRow[]; setO
       {sel && (
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
-            <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
               <div className="row ac jb">
                 <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.reportType === 'Type 2' ? 'green' : sel.reportType === 'Type 1' ? 'amber' : 'red'}>{sel.reportType} · {sel.std}</Badge></div>
                 {!locked && !synced && <button className="btn sm icon" title="Hapus organisasi jasa" onClick={() => delOrg(sel.id)}><I.x size={13} /></button>}

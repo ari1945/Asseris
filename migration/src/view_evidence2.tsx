@@ -166,7 +166,7 @@ function EvSelection() {
         {sel && (
           <div className="grid" style={{ gap: 12 }}>
             <Panel noBody>
-              <div style={{ background: 'var(--surface-2)', padding: '11px 14px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
+              <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                 <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>WP {sel.wp}</span>
                 <span style={{ fontWeight: 700 }}>{sel.area}</span>
               </div>
@@ -341,10 +341,10 @@ function EvDossier() {
 
       <div className="grid" style={{ gap: 12 }}>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={dos.items.length} label="Bukti Terkumpul" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={tie} label="Cocok (Tie-out)" accent="var(--green)" /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={exc} label="Eksepsi" accent={exc ? 'var(--red)' : 'var(--green)'} /></div></Panel>
-          <Panel><div style={{ padding: '11px 14px' }}><Stat value={na} label="Korroborasi" accent="var(--ink-3)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={dos.items.length} label="Bukti Terkumpul" accent="var(--blue)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={tie} label="Cocok (Tie-out)" accent="var(--green)" /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={exc} label="Eksepsi" accent={exc ? 'var(--red)' : 'var(--green)'} /></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><Stat value={na} label="Korroborasi" accent="var(--ink-3)" /></div></Panel>
         </div>
 
         <Panel noBody>
