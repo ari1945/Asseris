@@ -25,6 +25,9 @@ const SA_WP_MAP = {
   /* F2/PR-E — SA 710 Informasi Komparatif: paragraf auditor pendahulu (SSOT opinionDoc.v1.comp)
      mengalir ke draf laporan/opini (900). Sign-off nyata dari WP kanonik (mengganti blok palsu). */
   sa710: { refs: ['900'], focus: 'Informasi komparatif & paragraf Hal Lain auditor pendahulu — mengalir ke laporan auditor (900); fakta pendahulu ber-SSOT di opinionDoc.v1.comp.' },
+  /* F2/PR-D — SA 720 Informasi Lain: telaah konsistensi info lain → bagian "Informasi Lain"
+     laporan auditor (900). Sign-off nyata dari WP kanonik (mengganti blok palsu). */
+  sa720: { refs: ['900'], focus: 'Telaah konsistensi informasi lain (laporan tahunan) vs LK & pengetahuan auditor — mengalir ke bagian Informasi Lain laporan auditor (900).' },
 };
 
 /* status WP → warna badge (selaras dengan modul Kertas Kerja) */
