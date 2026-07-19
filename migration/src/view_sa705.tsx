@@ -5,7 +5,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Tabs } from './ui';
 import { AMSOpinion } from './view_opinion_parts';
-import { DEFAULT_DOC_O } from './view_opinion';
+import { DEFAULT_DOC_O, comparativeParagraph } from './view_opinion';
 
 /* ============================================================
    Asseris — SA 705 & 706 · Modifikasi Opini & Paragraf
@@ -386,8 +386,8 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
             {compOn ? (
               <div className="panel" style={{ padding: '11px 13px', background: 'var(--teal-bg)', borderColor: 'transparent', marginBottom: 10 }}>
                 <div className="row ac gap8" style={{ marginBottom: 5 }}><Badge kind="teal">Hal Lain</Badge><span className="mono tiny" style={{ color: 'var(--teal)' }}>terkait SA 710</span></div>
-                <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5 }}>Laporan keuangan {client} untuk tahun yang berakhir 31 Desember 2024 (angka komparatif) diaudit oleh auditor independen <b>pendahulu</b> yang menyatakan opini Wajar Tanpa Modifikasi pada 18 Maret 2025.</p>
-                <div className="tiny muted" style={{ marginTop: 6 }}>Rumusan pendahulu berasal dari SA 710; kelola detailnya di modul Komparatif.</div>
+                <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5 }}>{comparativeParagraph(client, doc.compMode, doc.comp)}</p>
+                <div className="tiny muted" style={{ marginTop: 6 }}>Sumber tunggal dari SSOT opini (SA 710); kelola detail auditor pendahulu di modul Informasi Komparatif.</div>
               </div>
             ) : (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent', marginBottom: 10 }}>

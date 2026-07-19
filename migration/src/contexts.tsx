@@ -191,6 +191,11 @@ const AMS_PERSIST_SCOPE = {
      id lampiran surat bertandatangan (Attachment F0.1). Engagement-scope →
      capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
   'rep580.v1': 'engagement',
+  /* F2/PR-E (PRD 2026-07-19) — SA 710 Informasi Komparatif: KERTAS KERJA sa710
+     (checklist prosedur ¶7–9 selesai/tgl/ref-WP/catatan + flag situasi khusus
+     ¶11–14 + catatan). Fakta paragraf auditor pendahulu TIDAK di sini — itu SSOT
+     di opinionDoc.v1.comp (dibaca opini+sa705). Engagement-scope → WP_EDIT + W7.5. */
+  'comp710.v1': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the

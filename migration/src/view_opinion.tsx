@@ -22,10 +22,41 @@ const DEFAULT_KAMS_O = [
   { id: 'k3', risk: 'R-03', title: 'Cadangan Kerugian Penurunan Nilai Piutang (PSAK 71)', why: 'Estimasi kerugian kredit ekspektasian (ECL) bersifat judgmental dan sensitif terhadap asumsi loss rate serta data umur piutang.', how: 'Kami menguji model ECL, mengevaluasi kewajaran asumsi loss rate, menelusuri data umur piutang ke sumbernya, dan melakukan analisis sensitivitas.', wpRef: 'C-340', fsRef: 'CALK 8 & 31', include: true },
 ];
 
+/* F2/PR-E — SSOT tunggal paragraf auditor pendahulu (SA 710 ¶13). Fakta pendahulu
+   (periode lalu, jenis opini lalu, tanggal laporan lalu, nama) dulu HARDCODE TRIPLIKAT
+   di view_opinion (OP_TXT.comparative), view_sa705 & view_sa710. Kini tinggal di
+   opinionDoc.v1.comp — modul opini = SSOT konten laporan (Constraint §6); sa710 =
+   permukaan penulisan (lensa), sa705 = konsumen. `comparativeParagraph` menurunkan
+   teks tunggal yang dibaca ketiganya. Backward-compat: doc lama tanpa `comp` → default. */
+type PredOpinionType = 'unmodified' | 'qualified' | 'adverse' | 'disclaimer';
+const PRED_OPINION_LABEL: Record<PredOpinionType, string> = {
+  unmodified: 'opini tanpa modifikasian',
+  qualified: 'opini wajar dengan pengecualian',
+  adverse: 'opini tidak wajar',
+  disclaimer: 'tidak menyatakan suatu opini',
+};
+const DEFAULT_COMP_O = { priorPeriodEnd: '31 Desember 2024', predOpinion: 'unmodified' as PredOpinionType, predDate: '18 Maret 2025', predName: '' };
+
+/* Paragraf komparatif tunggal — pendekatan (angka koresponding vs LK komparatif) ×
+   fakta pendahulu. Pure & diekspor agar opini (laporan+PDF), sa705 & sa710 memakainya
+   tanpa menyalin teks. `comp` boleh sebagian/absen (doc lama) → jatuh ke default. */
+function comparativeParagraph(client: string, mode: string, comp?: Partial<typeof DEFAULT_COMP_O>): string {
+  const c = comp || {};
+  const end = c.priorPeriodEnd || DEFAULT_COMP_O.priorPeriodEnd;
+  const date = c.predDate || DEFAULT_COMP_O.predDate;
+  const who = c.predName ? `auditor independen ${c.predName}` : 'auditor independen lain';
+  const op = PRED_OPINION_LABEL[(c.predOpinion as PredOpinionType)] || PRED_OPINION_LABEL.unmodified;
+  return mode === 'corresponding'
+    ? `Audit atas laporan keuangan ${client} untuk tahun yang berakhir ${end} (angka koresponding) dilaksanakan oleh ${who} yang menyatakan ${op} pada tanggal ${date} (SA 710).`
+    : `Laporan keuangan komparatif ${client} untuk tahun yang berakhir ${end} telah diaudit oleh ${who} yang menyatakan ${op} pada tanggal ${date} (SA 710).`;
+}
+
 const DEFAULT_DOC_O = {
   type: 'unmodified',
   opts: { kam: true, gc: false, eom: false, om: false, comparative: true, otherInfo: true, legalReg: false },
   compMode: 'corresponding',
+  /* F2/PR-E — fakta paragraf auditor pendahulu (SA 710). Ditulis di sa710, dibaca di sini & sa705. */
+  comp: DEFAULT_COMP_O,
   basisText: 'Persediaan dinyatakan sebesar Rp 78,9 miliar. Kami tidak dapat memperoleh bukti audit yang cukup dan tepat mengenai kuantitas persediaan di gudang cabang karena kami tidak menghadiri perhitungan fisik persediaan.',
   kams: DEFAULT_KAMS_O,
   /* F2/PR-B — kumpulan hal yang dikomunikasikan ke TCWG namun BUKAN KAM (SA 701 ¶18):
@@ -59,9 +90,7 @@ const OP_TXT = {
   mgmtResp: 'Manajemen bertanggung jawab atas penyusunan dan penyajian wajar laporan keuangan sesuai dengan Standar Akuntansi Keuangan di Indonesia, dan atas pengendalian internal yang dipandang perlu untuk memungkinkan penyusunan laporan keuangan yang bebas dari kesalahan penyajian material.',
   auditorResp: 'Tujuan kami adalah untuk memperoleh keyakinan memadai tentang apakah laporan keuangan secara keseluruhan bebas dari kesalahan penyajian material, baik yang disebabkan oleh kecurangan maupun kesalahan, dan untuk menerbitkan laporan auditor yang mencakup opini kami. Keyakinan memadai merupakan keyakinan tingkat tinggi, namun bukan merupakan jaminan bahwa audit yang dilaksanakan berdasarkan SA akan selalu mendeteksi kesalahan penyajian material yang ada.',
   legalReg: 'Sebagaimana diwajibkan oleh peraturan perundang-undangan, kami melaporkan bahwa pembukuan dan catatan yang diwajibkan telah diselenggarakan secara memadai sesuai dengan ketentuan yang berlaku.',
-  comparative: (client: any, mode: any) => mode === 'corresponding'
-    ? `Audit atas laporan keuangan ${client} untuk tahun yang berakhir 31 Desember 2024 (angka koresponding) dilaksanakan oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`
-    : `Laporan keuangan komparatif ${client} untuk tahun yang berakhir 31 Desember 2024 telah diaudit oleh auditor independen lain yang menyatakan opini tanpa modifikasian pada tanggal 18 Maret 2025 (SA 710).`,
+  /* comparative dipindah ke `comparativeParagraph` (SSOT, diturunkan dari doc.comp) — F2/PR-E. */
 };
 
 /* Ordered body blocks for the sealed PDF — mirrors ReportBuilder's preview, same prose source. */
@@ -99,7 +128,7 @@ function buildOpinionBlocks(doc: any, client: any, O: any) {
     { type: 'para', text: OP_TXT.auditorResp },
   );
   if (doc.opts.legalReg) blocks.push({ type: 'heading', text: 'Laporan atas Ketentuan Hukum dan Regulasi Lain' }, { type: 'para', text: OP_TXT.legalReg });
-  if (doc.opts.comparative) blocks.push({ type: 'para', text: OP_TXT.comparative(client, doc.compMode) });
+  if (doc.opts.comparative) blocks.push({ type: 'para', text: comparativeParagraph(client, doc.compMode, doc.comp) });
   const signer = O.SIGNERS[doc.signer] || O.SIGNERS.partner1;
   blocks.push({ type: 'signature', signers: [{ label: 'KAP Wijaya Hartono & Rekan', name: signer.name, role: `${signer.role} · Izin AP No. ${signer.reg}`, at: `Jakarta, ${fmtDateID(doc.reportDate)}` }] });
   return blocks;
@@ -358,7 +387,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
               <p style={{ margin: '0 0 16px', textAlign: 'justify' }}>{OP_TXT.legalReg}</p>
             </>}
 
-            {doc.opts.comparative && <p style={{ margin: '0 0 20px', textAlign: 'justify', fontStyle: 'italic', color: '#5a6770' }}>{OP_TXT.comparative(client, doc.compMode)}</p>}
+            {doc.opts.comparative && <p style={{ margin: '0 0 20px', textAlign: 'justify', fontStyle: 'italic', color: '#5a6770' }}>{comparativeParagraph(client, doc.compMode, doc.comp)}</p>}
 
             <div style={{ marginTop: 30 }}>
               <p style={{ margin: '0 0 2px', fontWeight: 700 }}>KAP Wijaya Hartono &amp; Rekan</p>
@@ -390,3 +419,6 @@ export { AuditOpinionGen };
    memakai default IDENTIK. Bila sa705 dibuka sebelum modul opini pernah dirender,
    seed sama → tak ada mismatch/data-loss pada StateDoc bersama 'opinionDoc.v1'. */
 export { DEFAULT_DOC_O };
+/* F2/PR-E — SSOT paragraf komparatif/pendahulu (SA 710) dibagikan ke lensa sa710 & konsumen sa705. */
+export { comparativeParagraph, DEFAULT_COMP_O, PRED_OPINION_LABEL };
+export type { PredOpinionType };
