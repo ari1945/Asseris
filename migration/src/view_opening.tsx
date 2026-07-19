@@ -1,11 +1,17 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit } from './contexts';
+import { useAudit, useAuth, useFirm, useAmsPersist, useInitialTab } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Tabs } from './ui';
+import { Badge, Btn, Panel, Progress, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { OB_RISK_FACTORS, openingScore, openingVerdict, predecessorReadiness, PREDECESSOR_STEPS } from './opening_assessment';
+import { type AssessmentFactor } from './assessment_model';
+import { amsExportPdf } from './export_pdf';
+import { amsExportXlsx } from './export_xlsx';
+import { buildOpeningBlocks, buildOpeningSheets, openingMemoMeta, openingMemoRefNo, openingMemoTitle, type OpeningMemoInput } from './opening_memo';
 
 /* ============================================================
    Asseris — Opening Balance / Saldo Awal (SA 510)
@@ -52,14 +58,44 @@ const OB_OPINION_MATRIX = [
 ];
 
 /* ============================================================ */
+interface OBState {
+  engType: 'lanjutan' | 'awal';
+  factors: AssessmentFactor[];
+  predSteps: Record<string, boolean>;
+  safeguards: string;
+  conclusion: string;
+  concluded: boolean;
+}
+const defaultOB = (): OBState => ({ engType: 'lanjutan', factors: OB_RISK_FACTORS(), predSteps: {}, safeguards: '', conclusion: '', concluded: false });
+
 function OpeningBalance() {
   const { fmt } = AMS;
   const { wtb } = useAudit();
-  const [tab, setTab] = useStateOPN('konteks');
-  const [engType, setEngType] = useStateOPN('lanjutan'); // 'lanjutan' | 'awal'
+  const auth = useAuth();
+  const firm = useFirm();
+  const [tab, setTab] = useInitialTab('opening', 'konteks');
+  const [st, setSt] = useAmsPersist('opening.v1', defaultOB);
+  const s: OBState = st;
+
+  const engType: 'lanjutan' | 'awal' = s.engType === 'awal' ? 'awal' : 'lanjutan';
+  const factors: AssessmentFactor[] = (s.factors && s.factors.length) ? s.factors : OB_RISK_FACTORS();
+  const score = openingScore(factors);
+  const rv = openingVerdict(score);
+  const readiness = predecessorReadiness(s.predSteps || {});
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.WP_EDIT));
+
+  const setEngType = (v: 'lanjutan' | 'awal') => setSt((p: OBState) => ({ ...p, engType: v }));
+  const patchFactor = (i: number, patch: Partial<AssessmentFactor>) => setSt((p: OBState) => {
+    const base = (p.factors && p.factors.length) ? p.factors : OB_RISK_FACTORS();
+    return { ...p, factors: base.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) };
+  });
+  const toggleStep = (id: string) => setSt((p: OBState) => ({ ...p, predSteps: { ...(p.predSteps || {}), [id]: !(p.predSteps || {})[id] } }));
+  const setSafeguards = (v: string) => setSt((p: OBState) => ({ ...p, safeguards: v }));
+  const toggleConcluded = () => setSt((p: OBState) => ({ ...p, concluded: !p.concluded }));
 
   const tabs = [
     { id: 'konteks', label: 'Konteks & Strategi' },
+    { id: 'nilai', label: 'Penilaian Tahun Pertama' },
     { id: 'trace', label: 'Penelusuran Saldo' },
     { id: 'proc', label: 'Prosedur Spesifik' },
     { id: 'policy', label: 'Konsistensi Kebijakan' },
@@ -70,13 +106,41 @@ function OpeningBalance() {
     ? { name: 'KAP Sutrisno, Bambang & Rekan', note: 'Auditor pendahulu — izin akses KKP diperoleh' }
     : { name: '— (diaudit sendiri TA lalu)', note: 'Tidak ada auditor pendahulu' };
 
+  // Info klien perikatan aktif untuk memo tersegel.
+  const engId = (firm && firm.activeEngagementId) || '';
+  const eng = ((firm && firm.engagements) || []).find((e: { id: string; clientId?: string; partner?: string; fy?: string }) => e.id === engId);
+  const client = ((firm && firm.clients) || []).find((c: { id: string; name?: string; partner?: string }) => c.id === (eng && eng.clientId));
+  const clientName = (client && client.name) || 'Klien';
+  const partnerName = (eng && eng.partner) || (client && client.partner) || '';
+  const cycle = (eng && eng.fy) || 'FY2025';
+  const firmName = ((AMS as { FIRM?: { name?: string } }).FIRM || {}).name || 'Kantor Akuntan Publik';
+
+  const [busyExport, setBusyExport] = useStateOPN(false);
+  const buildMemoInput = (): OpeningMemoInput => ({
+    client: clientName, clientId: (client && client.id) || engId, partner: partnerName, cycle, engType,
+    predecessorName: predecessor.name, score, verdict: rv.l, factors, safeguards: s.safeguards,
+    predecessorSteps: PREDECESSOR_STEPS.map((step) => ({ label: step.label, done: !!(s.predSteps || {})[step.id] })),
+    conclusion: s.conclusion, date: '2026-03-09',
+  });
+  const doExport = async (kind: 'pdf' | 'xlsx') => {
+    if (busyExport) return;
+    setBusyExport(true);
+    try {
+      const mi = buildMemoInput();
+      const base = { kind: 'opening-memo', firm: firmName, title: openingMemoTitle(mi), meta: openingMemoMeta(mi) };
+      if (kind === 'pdf') await amsExportPdf({ ...base, refNo: openingMemoRefNo(mi), fileName: `Memo Saldo Awal - ${clientName}.pdf`, blocks: buildOpeningBlocks(mi) });
+      else await amsExportXlsx({ ...base, fileName: `Memo Saldo Awal - ${clientName}.xlsx`, sheets: buildOpeningSheets(mi) });
+    } finally { setBusyExport(false); }
+  };
+
   return (
     <>
       <SubBar moduleId="opening" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 510</Badge>
-          <Btn sm><I.download size={13} /> Memo Saldo Awal</Btn>
-          <Btn sm variant="primary"><I.check size={14} /> Simpulkan</Btn>
+          <span className={'badge b-' + rv.k} style={{ fontSize: 11, padding: '2px 8px' }} title={'Skor risiko saldo awal ' + score.toFixed(2)}>{rv.l}</span>
+          <Btn sm disabled={busyExport} onClick={() => doExport('pdf')}><I.download size={13} /> Memo Saldo Awal</Btn>
+          <Btn sm variant={s.concluded ? 'ghost' : 'primary'} onClick={toggleConcluded}><I.check size={14} /> {s.concluded ? 'Dibuka kembali' : 'Simpulkan'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -107,11 +171,12 @@ function OpeningBalance() {
 
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-        {tab === 'konteks' && <OBContext engType={engType} predecessor={predecessor} />}
+        {tab === 'konteks' && <OBContext engType={engType} predecessor={predecessor} predSteps={s.predSteps || {}} toggleStep={toggleStep} readiness={readiness} canEdit={canEdit} />}
+        {tab === 'nilai' && <OBAssessment engType={engType} factors={factors} score={score} rv={rv} patchFactor={patchFactor} safeguards={s.safeguards} setSafeguards={setSafeguards} canEdit={canEdit} readiness={readiness} />}
         {tab === 'trace' && <OBTrace wtb={wtb} fmt={fmt} />}
         {tab === 'proc' && <OBProcedures fmt={fmt} />}
         {tab === 'policy' && <OBPolicy />}
-        {tab === 'opini' && <OBConclusion />}
+        {tab === 'opini' && <OBConclusion concluded={s.concluded} verdict={rv} score={score} />}
 
       </div></div>
     </>
@@ -119,13 +184,7 @@ function OpeningBalance() {
 }
 
 /* ---------------- Tab: Konteks & Strategi ---------------- */
-function OBContext({ engType, predecessor }: any) {
-  const initialSteps = [
-    'Peroleh izin klien untuk berkomunikasi & mengakses KKP auditor pendahulu',
-    'Telaah KKP auditor pendahulu atas saldo akun signifikan & area pertimbangan',
-    'Evaluasi kompetensi & independensi auditor pendahulu',
-    'Inquiry alasan pergantian auditor & isu signifikan yang belum terselesaikan',
-  ];
+function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, canEdit }: any) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -163,12 +222,16 @@ function OBContext({ engType, predecessor }: any) {
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 12 }}>
                 <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Perikatan tahun pertama — saldo awal belum diaudit oleh KAP ini. Prosedur tambahan wajib dilaksanakan.</span></div>
               </div>
+              <div className="row ac gap8" style={{ marginBottom: 10 }}>
+                <div style={{ flex: 1 }}><Progress value={readiness.pct} color={readiness.ready ? 'var(--green)' : 'var(--amber)'} /></div>
+                <span className="tiny" style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{readiness.done}/{readiness.total} · {readiness.pct}%</span>
+              </div>
               <div style={{ display: 'grid', gap: 0 }}>
-                {initialSteps.map((s, i) => (
-                  <div key={i} className="row gap8" style={{ padding: '9px 0', alignItems: 'flex-start', borderBottom: i < initialSteps.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                    <span className="mono tiny" style={{ flex: '0 0 20px', fontWeight: 700, color: 'var(--blue)' }}>{String(i + 1).padStart(2, '0')}</span>
-                    <span style={{ fontSize: 12, lineHeight: 1.45 }}>{s}</span>
-                  </div>
+                {PREDECESSOR_STEPS.map((step, i) => (
+                  <label key={step.id} className="row gap8" style={{ padding: '9px 0', alignItems: 'flex-start', borderBottom: i < PREDECESSOR_STEPS.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: canEdit ? 'pointer' : 'default' }}>
+                    <input type="checkbox" checked={!!predSteps[step.id]} disabled={!canEdit} onChange={() => toggleStep(step.id)} style={{ marginTop: 2 }} />
+                    <span style={{ fontSize: 12, lineHeight: 1.45 }}>{step.label}</span>
+                  </label>
                 ))}
               </div>
             </div>
@@ -219,6 +282,78 @@ function OBContext({ engType, predecessor }: any) {
                 <span className="muted">{r.k}</span><span style={{ fontWeight: 700, color: r.c }}>{r.v}</span>
               </div>
             ))}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Tab: Penilaian Tahun Pertama (SA 510) ---------------- */
+function OBAssessment({ engType, factors, score, rv, patchFactor, safeguards, setSafeguards, canEdit, readiness }: {
+  engType: string; factors: AssessmentFactor[]; score: number; rv: { k: string; l: string };
+  patchFactor: (i: number, p: Partial<AssessmentFactor>) => void; safeguards: string; setSafeguards: (v: string) => void;
+  canEdit: boolean; readiness: { done: number; total: number; pct: number; ready: boolean };
+}) {
+  return (
+    <div className="grid" style={{ gridTemplateColumns: '1.35fr 340px', gap: 12, alignItems: 'start' }}>
+      <Panel noBody>
+        <div className="panel-h"><h3>Penilaian Berbobot Risiko Saldo Awal (SA 510)</h3><div style={{ flex: 1 }} /><span className="tiny muted">skor 1–5 · bobot Σ100</span></div>
+        <div style={{ padding: '14px 16px' }}>
+          <div className="row ac jb" style={{ marginBottom: 10 }}>
+            <span className="tiny muted upper">Skor tertimbang</span>
+            <div className="row ac gap8">
+              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--' + rv.k + ')' }}>{score.toFixed(2)}</span>
+              <span className={'badge b-' + rv.k} style={{ fontSize: 11, padding: '2px 8px' }}>{rv.l}</span>
+            </div>
+          </div>
+          <div style={{ marginBottom: 12 }}><Progress value={score / 5 * 100} color={'var(--' + rv.k + ')'} /></div>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {factors.map((f: AssessmentFactor, i: number) => (
+              <div key={i}>
+                <div className="row ac jb" style={{ gap: 8, marginBottom: 5 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{f.k} <span className="tiny muted">· bobot {f.w}</span></span>
+                  <div className="row" style={{ gap: 4 }}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button key={n} disabled={!canEdit} onClick={() => patchFactor(i, { s: n })}
+                        style={{
+                          width: 24, height: 24, borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: canEdit ? 'pointer' : 'default',
+                          border: '1px solid ' + (n <= f.s ? 'transparent' : 'var(--line-strong)'),
+                          background: n <= f.s ? (f.s >= 4 ? 'var(--green)' : f.s >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-2)',
+                          color: n <= f.s ? '#fff' : 'var(--ink-4)',
+                        }}>{n}</button>
+                    ))}
+                  </div>
+                </div>
+                <input className="input" value={f.note || ''} disabled={!canEdit}
+                  onChange={(e: { target: { value: string } }) => patchFactor(i, { note: e.target.value })}
+                  placeholder="Catatan/justifikasi penilai…"
+                  style={{ width: '100%', fontSize: 11.5, padding: '5px 8px', background: canEdit ? 'var(--surface)' : 'var(--surface-2)' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </Panel>
+
+      <div className="grid" style={{ gap: 12 }}>
+        <Panel title="Prosedur Tambahan / Pengaman">
+          <textarea className="input" value={safeguards || ''} disabled={!canEdit}
+            onChange={(e: { target: { value: string } }) => setSafeguards(e.target.value)}
+            placeholder="Prosedur tambahan atas risiko saldo awal (mis. telaah KKP pendahulu, uji roll-back, konfirmasi, pakar)…"
+            style={{ width: '100%', minHeight: 90, fontSize: 11.5, padding: '6px 8px', resize: 'vertical', background: canEdit ? 'var(--surface)' : 'var(--surface-2)' }} />
+        </Panel>
+        {engType === 'awal' && (
+          <Panel title="Kesiapan Auditor Pendahulu (SA 510 ¶6)">
+            <div className="row ac gap8">
+              <div style={{ flex: 1 }}><Progress value={readiness.pct} color={readiness.ready ? 'var(--green)' : 'var(--amber)'} /></div>
+              <span className="tiny" style={{ fontWeight: 700 }}>{readiness.pct}%</span>
+            </div>
+            <div className="tiny muted" style={{ marginTop: 6 }}>{readiness.ready ? 'Seluruh langkah komunikasi selesai.' : (readiness.total - readiness.done) + ' langkah tersisa — lihat tab Konteks & Strategi.'}</div>
+          </Panel>
+        )}
+        <Panel title="Interpretasi">
+          <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+            <b>≥4,0</b> saldo awal andal · <b>3,0–3,9</b> perlu prosedur tambahan · <b>&lt;3,0</b> risiko tinggi (potensi modifikasi opini, SA 510 ¶10–13).
           </div>
         </Panel>
       </div>
@@ -370,7 +505,7 @@ function OBPolicy() {
 }
 
 /* ---------------- Tab: Kesimpulan & Opini ---------------- */
-function OBConclusion() {
+function OBConclusion({ concluded, verdict, score }: { concluded: boolean; verdict: { k: string; l: string }; score: number }) {
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
@@ -392,6 +527,11 @@ function OBConclusion() {
         </Panel>
 
         <Panel title="Kesimpulan Auditor">
+          <div className="row ac gap8" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
+            <span className={'badge b-' + (verdict ? verdict.k : 'green')} style={{ fontSize: 11, padding: '2px 8px' }}>{verdict ? verdict.l : 'Saldo Awal Andal'}</span>
+            <span className="tiny muted">Skor risiko saldo awal {typeof score === 'number' ? score.toFixed(2) : '—'} / 5,00</span>
+            {concluded ? <Badge kind="green" dot>Disimpulkan</Badge> : <Badge kind="amber">Draf — belum disimpulkan</Badge>}
+          </div>
           <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.6 }}>
             Berdasarkan prosedur yang dilaksanakan, kami memperoleh bukti audit yang cukup dan tepat bahwa
             <b> saldo awal per 1 Januari 2025 tidak mengandung salah saji yang berdampak material</b> terhadap
