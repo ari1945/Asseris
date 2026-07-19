@@ -133,6 +133,8 @@ const LINEAGE: any = {
   opening: {
     std: 'SA 510 · Saldo Awal — Perikatan Tahun Pertama',
     up: [
+      { id: 'onboarding',  ic: 'flag',        lbl: 'Onboarding Klien', rel: 'Perikatan tahun pertama → prosedur saldo awal & auditor pendahulu' },
+      { id: 'continuance', ic: 'checkCircle',  lbl: 'Keberlanjutan Klien', rel: 'Pergantian auditor / tahun pertama → pemicu SA 510' },
       { id: 'wtb',      ic: 'table', lbl: 'Working Trial Balance', rel: 'Saldo awal vs audited prior — penelusuran' },
       { id: 'strategy', ic: 'doc',   lbl: 'Strategy Memo',  rel: 'Jenis perikatan (awal/lanjutan) & ketergantungan auditor pendahulu' },
     ],

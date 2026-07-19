@@ -74,9 +74,16 @@ describe('verdict — ambang identik, label per-jenis', () => {
     expect(verdict(2, 'continuance')).toEqual({ k: 'red', l: 'Tidak Dilanjutkan' });
   });
 
+  it('saldo awal (SA 510): ≥4 Andal · ≥3 Prosedur Tambahan · <3 Risiko Tinggi', () => {
+    expect(verdict(4, 'opening')).toEqual({ k: 'green', l: 'Saldo Awal Andal' });
+    expect(verdict(3, 'opening')).toEqual({ k: 'amber', l: 'Perlu Prosedur Tambahan' });
+    expect(verdict(2, 'opening')).toEqual({ k: 'red', l: 'Risiko Tinggi — Potensi Modifikasi' });
+  });
+
   it('warna verdict (k) identik lintas-jenis pada skor sama', () => {
     for (const sc of [4.5, 3.2, 1.1]) {
       expect(verdict(sc, 'acceptance').k).toBe(verdict(sc, 'continuance').k);
+      expect(verdict(sc, 'acceptance').k).toBe(verdict(sc, 'opening').k);
     }
   });
 });

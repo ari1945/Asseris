@@ -164,6 +164,10 @@ const AMS_PERSIST_SCOPE = {
      anggota × ancaman per perikatan. Engagement-scope → capForWrite=WP_EDIT (setiap
      anggota menandatangani baris-sendiri) + isolasi W7.5. Seed = seedDeclarations(roster). */
   'memberIndep.v1': 'engagement',
+  /* Saldo Awal / Perikatan Tahun Pertama (SA 510): jenis perikatan, penilaian
+     risiko berbobot, kesiapan komunikasi auditor pendahulu, pengaman & kesimpulan.
+     Engagement-scope → capForWrite=WP_EDIT (semua auditor) + isolasi W7.5. */
+  'opening.v1': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the

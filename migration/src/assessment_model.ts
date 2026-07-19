@@ -10,7 +10,7 @@
    (mis. ACC_FACTORS penerimaan, faktor keberlanjutan) — bukan di sini.
    ============================================================ */
 
-export type AssessmentKind = 'acceptance' | 'continuance';
+export type AssessmentKind = 'acceptance' | 'continuance' | 'opening';
 
 export interface AssessmentFactor {
   /** label faktor */
@@ -37,6 +37,8 @@ export interface AssessmentVerdict {
 const VERDICT_LABELS: Record<AssessmentKind, Record<VerdictColor, string>> = {
   acceptance: { green: 'Terima', amber: 'Terima dengan Syarat', red: 'Tolak' },
   continuance: { green: 'Lanjut', amber: 'Lanjut dengan Syarat', red: 'Tidak Dilanjutkan' },
+  // SA 510 — kesiapan/keandalan saldo awal perikatan tahun pertama.
+  opening: { green: 'Saldo Awal Andal', amber: 'Perlu Prosedur Tambahan', red: 'Risiko Tinggi — Potensi Modifikasi' },
 };
 
 /**
