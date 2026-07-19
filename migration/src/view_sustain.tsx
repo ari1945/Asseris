@@ -39,9 +39,9 @@ function SustainabilityView() {
   const S = useMemoSus(() => AMS_CANON.ojkSustain(), []);
 
   const [tab, setTab] = useStateSus(() => loader('ams.sustain.tab', 'muatan'));
-  const [done, setDone] = useStateSus(() => loader('ams.sustain.done', {}));
+  const [done, setDone] = window.useAmsPersist('sustain.done.v1', () => ({}));
   React.useEffect(() => { try { localStorage.setItem('ams.sustain.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.sustain.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
 
   // overlay persisted toggles onto canon defaults
   const isDone = (it: any) => (done[it.ref] != null ? done[it.ref] : it.done);

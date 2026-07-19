@@ -77,9 +77,9 @@ function SPR2410View() {
   const risks = (audit && audit.risks) ? audit.risks : ((AMS && AMS.RISKS) || []);
 
   const [tab, setTab] = useState2410(() => loader('ams.spr2410.tab', 'ikhtisar'));
-  const [concl, setConcl] = useState2410(() => loader('ams.spr2410.concl', 0));
+  const [concl, setConcl] = window.useAmsPersist('spr2410.concl.v1', () => (0));
   useEffect2410(() => { try { localStorage.setItem('ams.spr2410.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffect2410(() => { try { localStorage.setItem('ams.spr2410.concl', JSON.stringify(concl)); } catch (e) {} }, [concl]);
+
 
   if (!model) {
     return <><SubBar moduleId="spr2410" /><div className="view-pad"><Panel title="SPR 2410"><div className="tiny muted">Mesin FS Generator belum dimuat.</div></Panel></div></>;

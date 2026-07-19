@@ -33,9 +33,9 @@ function SectorChecklistView() {
   const S = useMemoSec(() => AMS_CANON.ojkSector(), []);
 
   const [sec, setSec] = useStateSec(() => loader('ams.sectorck.sec', 'pembiayaan'));
-  const [done, setDone] = useStateSec(() => loader('ams.sectorck.done', {}));
+  const [done, setDone] = window.useAmsPersist('sectorck.done.v1', () => ({}));
   React.useEffect(() => { try { localStorage.setItem('ams.sectorck.sec', JSON.stringify(sec)); } catch (e) {} }, [sec]);
-  React.useEffect(() => { try { localStorage.setItem('ams.sectorck.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
 
   const cur = S.sectors.find((s: any) => s.id === sec) || S.sectors[0];
   const isDone = (it: any) => (done[it.ref] != null ? done[it.ref] : it.done);

@@ -108,12 +108,12 @@ function PSAK2View() {
   const model = useMemoP2(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
   const lease = useMemoP2(() => (AMS_CANON ? AMS_CANON.leasePortfolio() : null), []);
 
-  const [method, setMethod] = useStateP2(() => loader('ams.psak2.method', 'indirect'));
+  const [method, setMethod] = window.useAmsPersist('psak2.method.v1', () => ('indirect'));
   const [unit, setUnit] = useStateP2(() => loader('ams.psak2.unit', 'jutaan'));
-  const [disc, setDisc] = useStateP2(() => loader('ams.psak2.disc', P2_DISCLOSURE));
-  useEffectP2(() => { try { localStorage.setItem('ams.psak2.method', JSON.stringify(method)); } catch (e) {} }, [method]);
+  const [disc, setDisc] = window.useAmsPersist('psak2.disc.v1', () => (P2_DISCLOSURE));
+
   useEffectP2(() => { try { localStorage.setItem('ams.psak2.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
-  useEffectP2(() => { try { localStorage.setItem('ams.psak2.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
+
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
   if (!model) {

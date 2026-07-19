@@ -16,7 +16,10 @@ export type AuditAction =
   // security-sensitive event (PRD §3 success criterion 6).
   | 'ROLE_CREATE' | 'ROLE_UPDATE_GRANTS' | 'ROLE_DELETE'
   // 2026-07-06 — self-service pegawai (ajukan cuti / deklarasi sendiri) dari "Data Personal Saya".
-  | 'SELF_SERVICE';
+  | 'SELF_SERVICE'
+  // F0.1 (PRD 2026-07-19) — file attachment upload / soft-remove. detail holds metadata only
+  // (name/size/sha prefix), never the file bytes.
+  | 'ATTACH_UPLOAD' | 'ATTACH_REMOVE';
 
 export interface AuditEntry {
   actorUserId?: string | null;

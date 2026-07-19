@@ -194,14 +194,31 @@ function amsFileMeta(f: any) {
   return { name, ext, ok: ok && !tooBig, badType: !ok, tooBig, sizeMB, sha256: amsFakeHash(name + '|' + sizeMB) };
 }
 
-/* dropzone berkas nyata (input file + drag/drop + validasi jenis & ukuran) */
+/* SHA-256 NYATA atas isi berkas (Web Crypto). F0.1 (PRD 2026-07-19) — mengganti amsFakeHash
+   (yang cuma hash nama|ukuran, bukan isi) pada jalur unggah. Fallback ke amsFakeHash hanya bila
+   crypto.subtle absen (konteks non-aman/HTTP), sehingga UI tetap jalan. */
+async function amsHashFile(file: File) {
+  const subtle = (window.crypto && window.crypto.subtle) || null;
+  if (!subtle || !file || typeof file.arrayBuffer !== 'function') return amsFakeHash((file && file.name) || 'berkas');
+  const digest = await subtle.digest('SHA-256', await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* dropzone berkas nyata (input file + drag/drop + validasi jenis & ukuran).
+   F0.1 — kini menyertakan objek File asli (m.file) + SHA-256 NYATA (m.sha256) agar pemanggil
+   dapat mengunggah byte sesungguhnya ke server (api.attachment.upload). Hashing asinkron; onFiles
+   dipanggil setelah semua hash selesai (beberapa ms untuk berkas kecil). */
 function FileDropField({ multiple = true, onFiles, hint, compact }: any) {
   const ref = React.useRef(null);
   const [drag, setDrag] = React.useState(false);
-  const handle = (fl: any) => {
+  const handle = (fl: FileList | null) => {
     const arr = Array.from(fl || []).filter(Boolean);
     if (!arr.length) return;
-    onFiles(arr.map(amsFileMeta));
+    Promise.all(arr.map(async (file: File) => {
+      const base = amsFileMeta(file);
+      const sha256 = await amsHashFile(file).catch(() => base.sha256); // byte asli → SHA-256 nyata
+      return { ...base, file, sha256 }; // file = byte asli untuk unggah
+    })).then(onFiles);
   };
   return (
     <div className={'filedrop' + (drag ? ' on' : '') + (compact ? ' sm' : '')}
@@ -268,8 +285,8 @@ function SecurePipeline({ title = 'Kontrol keamanan saat unggah' }: any) {
   );
 }
 
-Object.assign(window, { amsFakeHash, amsFileMeta, EV_ALLOW, EV_MAX_MB, FileDropField, FileList, SecurePipeline });
+Object.assign(window, { amsFakeHash, amsHashFile, amsFileMeta, EV_ALLOW, EV_MAX_MB, FileDropField, FileList, SecurePipeline });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { EV_ALLOW, EV_MAX_MB, EvidenceControl, FileDropField, FileList, SecurePipeline, amsAttachEvidence, amsEvRead, amsEvidenceAll, amsEvidenceCount, amsEvidenceFor, amsFakeHash, amsFileMeta, amsRemoveEvidence, useEvidence };
+export { EV_ALLOW, EV_MAX_MB, EvidenceControl, FileDropField, FileList, SecurePipeline, amsAttachEvidence, amsEvRead, amsEvidenceAll, amsEvidenceCount, amsEvidenceFor, amsFakeHash, amsHashFile, amsFileMeta, amsRemoveEvidence, useEvidence };

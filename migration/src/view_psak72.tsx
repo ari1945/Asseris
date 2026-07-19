@@ -115,13 +115,13 @@ function PSAK72View() {
   const [unit, setUnit] = useStateP72(() => loader('ams.psak72.unit', 'jutaan'));
   const [tab, setTab] = useStateP72(() => loader('ams.psak72.tab', 'ikhtisar'));
   const [dim, setDim] = useStateP72(() => loader('ams.psak72.dim', 'lini'));
-  const [disc, setDisc] = useStateP72(() => loader('ams.psak72.disc', P72_DISCLOSURE));
-  const [proc, setProc] = useStateP72(() => loader('ams.psak72.proc', P72_PROC));
+  const [disc, setDisc] = window.useAmsPersist('psak72.disc.v1', () => (P72_DISCLOSURE));
+  const [proc, setProc] = window.useAmsPersist('psak72.proc.v1', () => (P72_PROC));
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   useEffectP72(() => { try { localStorage.setItem('ams.psak72.dim', JSON.stringify(dim)); } catch (e) {} }, [dim]);
-  useEffectP72(() => { try { localStorage.setItem('ams.psak72.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  useEffectP72(() => { try { localStorage.setItem('ams.psak72.proc', JSON.stringify(proc)); } catch (e) {} }, [proc]);
+
+
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
   const toggleProc = (id: any) => setProc((list: any) => list.map((r: any) => r.id === id ? { ...r, done: !r.done } : r));
 

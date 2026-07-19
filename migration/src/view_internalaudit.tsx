@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useFirm } from './contexts';
+import { useFirm, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
@@ -101,7 +101,7 @@ function InternalAudit() {
   const firm = useFirm();
   const client = firm?.activeClient?.name || 'PT Sentosa Makmur Tbk';
   const [tab, setTab] = useStateIA('konteks');
-  const [factors, setFactors] = useStateIA(IA_FACTORS_SEED);
+  const [factors, setFactors] = useAmsPersist('internalAudit.v1', () => IA_FACTORS_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
 
   const setV = (id: any, v: any) => setFactors((fs: any) => fs.map((f: any) => f.id === id ? { ...f, v } : f));
   const avg = factors.reduce((s: any, f: any) => s + f.v, 0) / factors.length;

@@ -240,9 +240,9 @@ function SyariahView() {
   const sy = useMemoSY(() => (canon as any).syariah(), []);
 
   const [tab, setTab] = useStateSY(() => loader('ams.syariah.tab', 'penyajian'));
-  const [done, setDone] = useStateSY(() => loader('ams.syariah.done', {}));
+  const [done, setDone] = window.useAmsPersist('syariah.done.v1', () => ({}));
   React.useEffect(() => { try { localStorage.setItem('ams.syariah.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.syariah.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
   const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));

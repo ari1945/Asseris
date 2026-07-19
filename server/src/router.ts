@@ -27,6 +27,10 @@ import { listConnectors } from './integrations/config';
 import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
 import { PERSONAL_KEYS, personalPopulation, filterPersonalByPopulation, seedForKey } from './personalScope';
+import {
+  createAttachment, listAttachments, getMeta, readBytes, softRemove, scopeUsage,
+  AttachmentError, MAX_FILE_BYTES, MAX_SCOPE_BYTES,
+} from './attachments/store';
 import { submitLeaveRequest, declareSelf } from './personalSelfService';
 import {
   amsShortName, loadTaskSeed, deriveReviewNoteTasks, deriveWpAssignmentTasks, deriveDeadlineTasks,
@@ -129,6 +133,41 @@ async function assertNotAssemblyLocked(user: { role: string }, engagementId: str
     });
   }
   return ' OVERRIDE[assembly-lock]';
+}
+
+// F0.1 (PRD 2026-07-19) — attachment access. Mirrors StateDoc rules so file bytes inherit the same
+// isolation as the working papers that reference them. Engagement scope: isolation + the ¶A21
+// assembly-lock + WP_EDIT (the same auditor-edit baseline as an engagement StateDoc). Firm scope:
+// WP_EDIT (documents are ordinary auditor work — keeps DMS usable by all four auditor roles; finer
+// per-collection gating can come later without loosening anything). User scope: owner-or-admin.
+// Write returns an audit-detail suffix (assembly-lock override tag) so a past-lock write is never
+// silent.
+async function assertAttachmentWrite(user: { id: string; role: string }, scope: string, scopeId: string): Promise<string> {
+  if (scope === 'user') {
+    if (scopeId === user.id || can(user.role, CAP.FIRM_ADMIN)) return '';
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+  }
+  let lockDetail = '';
+  if (scope === 'engagement') {
+    await assertEngagementAccess(user, scopeId);
+    lockDetail = await assertNotAssemblyLocked(user, scopeId);
+  }
+  if (!can(user.role, CAP.WP_EDIT)) throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.WP_EDIT}` });
+  return lockDetail;
+}
+
+async function assertAttachmentRead(user: { id: string; role: string }, scope: string, scopeId: string): Promise<void> {
+  if (scope === 'engagement') { await assertEngagementAccess(user, scopeId); return; }
+  if (scope === 'user' && scopeId !== user.id && !can(user.role, CAP.FIRM_ADMIN)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'not-owner' });
+  }
+  // firm scope: any authenticated user may read firm-scope documents (same as state.get firm scope).
+}
+
+// Map an AttachmentError reason to the right tRPC code (quota/size/type/checksum → 400, else 404).
+function attachmentTrpcError(e: AttachmentError): TRPCError {
+  const code = e.reason === 'not-found' ? 'NOT_FOUND' : 'BAD_REQUEST';
+  return new TRPCError({ code, message: `${e.reason}: ${e.message}` });
 }
 
 export const appRouter = router({
@@ -786,6 +825,102 @@ export const appRouter = router({
     declare: protectedProcedure
       .input(z.object({ kind: z.enum(['independence', 'ethics']) }))
       .mutation(async ({ input, ctx }) => declareSelf(ctx.user, input.kind)),
+  }),
+
+  // F0.1 (PRD 2026-07-19) — real file storage. Replaces the metadata-only + fake-hash "upload" that
+  // never read file bytes. Bytes arrive base64'd; the server measures the real size, RE-verifies the
+  // SHA-256 against the bytes (a client can't lie about integrity), enforces per-file + per-scope
+  // quotas, encrypts at rest, and appends an audit row. Reads/writes inherit StateDoc-style scoping.
+  attachment: router({
+    // Quota + limits for a scope target — lets the client show remaining space before an upload.
+    usage: protectedProcedure
+      .input(z.object({ scope: scopeEnum, scopeId: z.string().min(1) }))
+      .query(async ({ input, ctx }) => {
+        await assertAttachmentRead(ctx.user, input.scope, input.scopeId);
+        const used = await scopeUsage(input.scope, input.scopeId);
+        return { used, maxFile: MAX_FILE_BYTES, maxScope: MAX_SCOPE_BYTES };
+      }),
+
+    // Live attachment metadata (never bytes) for a scope target, optionally filtered.
+    list: protectedProcedure
+      .input(z.object({
+        scope: scopeEnum, scopeId: z.string().min(1),
+        collection: z.string().optional(), refId: z.string().optional(),
+      }))
+      .query(async ({ input, ctx }) => {
+        await assertAttachmentRead(ctx.user, input.scope, input.scopeId);
+        return listAttachments(input.scope, input.scopeId, input.collection, input.refId);
+      }),
+
+    // Download one attachment's bytes (base64) + metadata. Access is re-checked against the row's own
+    // scope, not the caller's claim, so an id from another engagement can't be pulled cross-scope.
+    download: protectedProcedure
+      .input(z.object({ id: z.string().min(1) }))
+      .query(async ({ input, ctx }) => {
+        const meta = await getMeta(input.id);
+        if (!meta) throw new TRPCError({ code: 'NOT_FOUND', message: 'attachment-not-found' });
+        await assertAttachmentRead(ctx.user, meta.scope, meta.scopeId);
+        const got = await readBytes(input.id);
+        if (!got) throw new TRPCError({ code: 'NOT_FOUND', message: 'attachment-unreadable' });
+        return { ...got.meta, dataBase64: got.bytes.toString('base64') };
+      }),
+
+    // Upload: validate → verify checksum → quota → encrypt → persist → audit. baseVersion-free
+    // (each upload is a new row, not a CAS on an existing doc).
+    upload: protectedProcedure
+      .input(z.object({
+        scope: scopeEnum, scopeId: z.string().min(1),
+        collection: z.string().min(1), refId: z.string().optional(),
+        name: z.string().min(1), mime: z.string().optional(),
+        sha256: z.string().regex(/^[0-9a-fA-F]{64}$/, 'sha256 must be 64 hex chars'),
+        retentionClass: z.string().optional(),
+        dataBase64: z.string().min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const lockDetail = await assertAttachmentWrite(ctx.user, input.scope, input.scopeId);
+        let bytes: Buffer;
+        try {
+          bytes = Buffer.from(input.dataBase64, 'base64');
+        } catch {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'invalid-base64' });
+        }
+        let meta;
+        try {
+          meta = await createAttachment({
+            scope: input.scope, scopeId: input.scopeId, collection: input.collection, refId: input.refId ?? null,
+            name: input.name, mime: input.mime ?? null, sha256: input.sha256,
+            retentionClass: input.retentionClass ?? null, bytes, uploadedBy: ctx.user.id,
+          });
+        } catch (e) {
+          if (e instanceof AttachmentError) throw attachmentTrpcError(e);
+          throw e;
+        }
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ATTACH_UPLOAD',
+          scope: input.scope, scopeId: input.scopeId, key: input.collection,
+          // metadata only — name + size + sha prefix, never the bytes
+          detail: `${meta.name} ${meta.size}B sha:${meta.sha256.slice(0, 12)}` + lockDetail,
+        });
+        return meta;
+      }),
+
+    // Soft-delete (retain the row for the audit trail, drop the bytes). Access re-checked on the
+    // row's own scope.
+    remove: protectedProcedure
+      .input(z.object({ id: z.string().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        const meta = await getMeta(input.id);
+        if (!meta) throw new TRPCError({ code: 'NOT_FOUND', message: 'attachment-not-found' });
+        const lockDetail = await assertAttachmentWrite(ctx.user, meta.scope, meta.scopeId);
+        const removed = await softRemove(input.id, ctx.user.id);
+        if (!removed) throw new TRPCError({ code: 'NOT_FOUND', message: 'already-removed' });
+        await appendAudit({
+          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ATTACH_REMOVE',
+          scope: meta.scope, scopeId: meta.scopeId, key: meta.collection,
+          detail: `${meta.name} ${meta.size}B` + lockDetail,
+        });
+        return { id: input.id, removed: true };
+      }),
   }),
 
   // 2026-07-01 — cross-engagement task aggregation for the role-based Beranda (PRD

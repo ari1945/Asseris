@@ -109,12 +109,12 @@ function PSAK65View() {
   const p65 = useMemoP65(() => canon.psak65(wtb), [wtb]);
 
   const [tab, setTab] = useStateP65(() => loader('ams.psak65.tab', 'kendali'));
-  const [done, setDone] = useStateP65(() => loader('ams.psak65.done', {}));
-  const [elimDone, setElimDone] = useStateP65(() => loader('ams.psak65.elim', {}));
+  const [done, setDone] = window.useAmsPersist('psak65.done.v1', () => ({}));
+  const [elimDone, setElimDone] = window.useAmsPersist('psak65.elim.v1', () => ({}));
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak65.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak65.done', JSON.stringify(done)); } catch (e) {} }, [done]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak65.elim', JSON.stringify(elimDone)); } catch (e) {} }, [elimDone]);
+
+
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
   const sgn = (x: any) => (x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x)));

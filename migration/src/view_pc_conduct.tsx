@@ -185,12 +185,30 @@ function EthicsDeclaration() {
 const HC_SEV = { Ringan: 'green', Sedang: 'amber', Berat: 'red' };
 const HC_STAT = { Selesai: 'green', Investigasi: 'amber', Ditangani: 'blue', Terbuka: 'amber' };
 
+/* F1/PR-5 — bentuk baris register disiplin (untuk jalur tulis bertipe, hindari :any baru). */
+type HcCase = { id: string; staff: string; cat: string; severity: string; channel: string; status: string; owner: string; desc: string; sanction: string; steps: string[][] };
+
 function HRCases() {
   const A: any = AMS;
   const [sel, setSel] = usePCcon(null);
   const [filter, setFilter] = usePCcon('Semua');
   // 2026-07-05 — sanksi/disiplin ter-filter server (personal.get): non-privileged hanya kasus miliknya.
-  const [cases] = useAmsPersist('hrCases', () => A.HR_CASES);
+  const [cases, setCases] = useAmsPersist('hrCases', () => A.HR_CASES);
+  const staff = A.STAFF;
+  // F1/PR-5 (PRD 2026-07-19) — jalur tulis nyata: register disiplin kini editable (dulu setter
+  // useAmsPersist dideklarasi tapi tak pernah dipanggil → efektif display-only).
+  const today = () => new Date().toISOString().slice(0, 10);
+  const patchCase = (id: string, fn: (c: HcCase) => HcCase) => setCases((list: HcCase[]) => list.map((c) => c.id === id ? fn(c) : c));
+  const addCase = () => {
+    const id = 'HC-' + String(700 + Math.floor(Math.random() * 290)).padStart(3, '0');
+    const nc: HcCase = { id, staff: staff[0].id, cat: 'Pelanggaran Ringan', severity: 'Ringan', channel: 'Laporan Langsung', status: 'Terbuka', owner: staff[0].id, desc: 'Kasus baru — lengkapi detail & tetapkan penanggung jawab.', sanction: A.SANCTION_LADDER[0], steps: [[today(), 'Kasus dicatat melalui register disiplin.']] };
+    setCases((list: HcCase[]) => [nc, ...list]); setSel(id);
+  };
+  const closeCase = (id: string) => patchCase(id, (c) => {
+    const i = A.SANCTION_LADDER.findIndex((x: string) => c.sanction.includes(x.split(' ')[0]));
+    const next = A.SANCTION_LADDER[Math.min(i + 1, A.SANCTION_LADDER.length - 1)] || c.sanction;
+    return { ...c, status: 'Selesai', sanction: next, steps: [...c.steps, [today(), 'Sanksi ditetapkan (' + next + ') & kasus ditutup.']] };
+  });
 
   const open = cases.filter((c: any) => c.status !== 'Selesai').length;
   const invest = cases.filter((c: any) => c.status === 'Investigasi').length;
@@ -201,7 +219,7 @@ function HRCases() {
 
   return (
     <>
-      <SubBar moduleId="hrcase" right={<div className="row gap8 ac"><Badge kind="blue">Kanal WBS aktif</Badge><Btn sm variant="primary"><I.plus size={14} /> Catat Kasus</Btn></div>} />
+      <SubBar moduleId="hrcase" right={<div className="row gap8 ac"><Badge kind="blue">Kanal WBS aktif</Badge><Btn sm variant="primary" onClick={addCase}><I.plus size={14} /> Catat Kasus</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={open} label="Kasus Aktif" accent={open ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
@@ -244,11 +262,22 @@ function HRCases() {
                   <button className="top-btn" onClick={() => setSel(null)}><I.x size={16} /></button>
                 </div>
                 <div style={{ padding: 14 }}>
-                  <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                  <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                     <KvBox label="Severitas" v={cur.severity} accent={cur.severity === 'Berat' ? 'var(--red)' : cur.severity === 'Sedang' ? 'var(--amber)' : 'var(--green)'} />
                     <KvBox label="Status" v={cur.status} />
                     <KvBox label="Kanal" v={cur.channel} />
                     <KvBox label="Penanggung Jawab" v={owner.name.split(' ')[0]} />
+                  </div>
+                  {/* F1/PR-5 — kontrol edit nyata (persist ke server) */}
+                  <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                    <label className="tiny muted" style={{ display: 'grid', gap: 3 }}>Karyawan
+                      <select className="select" value={cur.staff} onChange={(e: { target: { value: string } }) => patchCase(cur.id, (c) => ({ ...c, staff: e.target.value, owner: c.owner || e.target.value }))}>{staff.map((s: { id: string; name: string }) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+                    <label className="tiny muted" style={{ display: 'grid', gap: 3 }}>Severitas
+                      <select className="select" value={cur.severity} onChange={(e: { target: { value: string } }) => patchCase(cur.id, (c) => ({ ...c, severity: e.target.value }))}>{['Ringan', 'Sedang', 'Berat'].map((s) => <option key={s}>{s}</option>)}</select></label>
+                    <label className="tiny muted" style={{ display: 'grid', gap: 3 }}>Status
+                      <select className="select" value={cur.status} onChange={(e: { target: { value: string } }) => patchCase(cur.id, (c) => ({ ...c, status: e.target.value }))}>{['Terbuka', 'Ditangani', 'Investigasi', 'Selesai'].map((s) => <option key={s}>{s}</option>)}</select></label>
+                    <label className="tiny muted" style={{ display: 'grid', gap: 3 }}>Kategori
+                      <input className="input" value={cur.cat} onChange={(e: { target: { value: string } }) => patchCase(cur.id, (c) => ({ ...c, cat: e.target.value }))} /></label>
                   </div>
                   <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none', background: 'var(--surface-2)', marginBottom: 12 }}>
                     <div className="tiny muted upper" style={{ marginBottom: 3 }}>Uraian</div>
@@ -273,7 +302,7 @@ function HRCases() {
                       </div>
                     ))}
                   </div>
-                  {cur.status !== 'Selesai' && <Btn variant="primary" sm style={{ width: '100%', marginTop: 12 }}><I.gavel size={13} /> Tetapkan Sanksi & Tutup</Btn>}
+                  {cur.status !== 'Selesai' && <Btn variant="primary" sm style={{ width: '100%', marginTop: 12 }} onClick={() => closeCase(cur.id)}><I.gavel size={13} /> Tetapkan Sanksi & Tutup</Btn>}
                 </div>
               </Panel>
             );

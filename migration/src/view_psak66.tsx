@@ -84,10 +84,10 @@ function PSAK66View() {
 
   const [unit, setUnit] = useStateP66(() => loader('ams.psak66.unit', 'jutaan'));
   const [tab, setTab] = useStateP66(() => loader('ams.psak66.tab', 'ikhtisar'));
-  const [disc, setDisc] = useStateP66(() => loader('ams.psak66.disc', null));
+  const [disc, setDisc] = window.useAmsPersist('psak66.disc.v1', () => (null));
   useEffectP66(() => { try { localStorage.setItem('ams.psak66.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP66(() => { try { localStorage.setItem('ams.psak66.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffectP66(() => { try { localStorage.setItem('ams.psak66.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
+
 
   if (!p66) {
     return <><SubBar moduleId="psak66" /><div className="view-pad"><Panel title="PSAK 66"><div className="tiny muted">Mesin kanonik belum dimuat.</div></Panel></div></>;

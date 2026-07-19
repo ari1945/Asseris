@@ -195,6 +195,92 @@ Object.assign(window, {
 });
 
 /* ============================================================
+   F0.1 (PRD 2026-07-19) — real file attachments. The server owns the bytes (encrypted at rest),
+   verifies a REAL SHA-256, enforces per-file/per-scope quotas, and audits every upload/remove.
+   These helpers marshal a browser File → base64 for upload and back on download. Reads degrade
+   gracefully (null when the server is absent / forbidden); upload & remove THROW so the UI can
+   surface a real failure instead of silently pretending the file was stored.
+   ============================================================ */
+
+/** base64 of an ArrayBuffer, chunked so large files don't blow the argument stack. */
+function base64FromBuffer(buf: ArrayBuffer) {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]);
+  }
+  return btoa(s);
+}
+
+type UploadOpts = {
+  scope: string; scopeId: string; collection: string; refId?: string;
+  meta: { file: File; name?: string; sha256?: string }; retentionClass?: string | number;
+};
+type ScopeTarget = { scope: string; scopeId: string; collection?: string; refId?: string };
+
+/** Upload a browser File's bytes. `meta` is a FileDropField meta ({ file, name, sha256 }); pass the
+    scope target + collection ('dms'|'pbc'|'aup'|module) and optional refId/retentionClass. Returns
+    the stored attachment metadata (id, real sha256, size, …). Throws on rejection (quota/type/…). */
+export async function attachmentUpload({ scope, scopeId, collection, refId, meta, retentionClass }: UploadOpts) {
+  const file = meta && meta.file;
+  if (!file || typeof file.arrayBuffer !== 'function') throw new Error('no-file-bytes');
+  const buf = await file.arrayBuffer();
+  const sha256 = meta.sha256 && /^[0-9a-f]{64}$/i.test(meta.sha256) ? meta.sha256 : await window.amsHashFile(file);
+  return api.attachment.upload.mutate({
+    scope, scopeId, collection, refId: refId || undefined,
+    name: meta.name || file.name, mime: file.type || undefined,
+    sha256, retentionClass: retentionClass != null ? String(retentionClass) : undefined,
+    dataBase64: base64FromBuffer(buf),
+  });
+}
+
+/** Live attachment metadata for a scope target (optionally filtered), or null when unavailable. */
+export async function attachmentList({ scope, scopeId, collection, refId }: ScopeTarget) {
+  try { return await api.attachment.list.query({ scope, scopeId, collection: collection || undefined, refId: refId || undefined }); }
+  catch (e) { return null; }
+}
+
+/** Download an attachment's bytes → { dataBase64, name, mime, sha256, size, … }, or null. */
+export async function attachmentDownload(id: string) {
+  try { return await api.attachment.download.query({ id }); }
+  catch (e) { return null; }
+}
+
+/** Trigger a browser save of an attachment's bytes. Returns false when unavailable. */
+export async function attachmentSave(id: string) {
+  const got = await attachmentDownload(id);
+  if (!got) return false;
+  const bin = atob(got.dataBase64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const blob = new Blob([bytes], { type: got.mime || 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = got.name || 'berkas';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
+}
+
+/** Soft-remove an attachment (server retains the row for audit, purges the bytes). Throws on failure. */
+export async function attachmentRemove(id: string) {
+  return api.attachment.remove.mutate({ id });
+}
+
+/** Storage usage for a scope target → { used, maxFile, maxScope }, or null. */
+export async function attachmentUsage({ scope, scopeId }: { scope: string; scopeId: string }) {
+  try { return await api.attachment.usage.query({ scope, scopeId }); }
+  catch (e) { return null; }
+}
+
+Object.assign(window, {
+  amsAttachmentUpload: attachmentUpload, amsAttachmentList: attachmentList,
+  amsAttachmentDownload: attachmentDownload, amsAttachmentSave: attachmentSave,
+  amsAttachmentRemove: attachmentRemove, amsAttachmentUsage: attachmentUsage,
+});
+
+/* ============================================================
    W6 Fase 3 — hydrate AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the

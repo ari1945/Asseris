@@ -356,13 +356,13 @@ function PSAK71View() {
   const wadj = (code: any) => { const r = wtb.find((x: any) => x.code === code); return r ? Math.round(r.adj / 1e6) : 0; };
 
   const [tab, setTab] = useStateP71(() => loader('ams.psak71.tab', 'klasifikasi'));
-  const [done, setDone] = useStateP71(() => loader('ams.psak71.done', {}));
+  const [done, setDone] = window.useAmsPersist('psak71.done.v1', () => ({}));
   /* bobot skenario interaktif (what-if) — diseed dari canon, dinormalkan saat dipakai */
-  const [probs, setProbs] = useStateP71(() => loader('ams.psak71.probs', null) || Object.fromEntries(p71.scenarios.map((s: any) => [s.id, s.prob])));
+  const [probs, setProbs] = window.useAmsPersist('psak71.probs.v1', () => (Object.fromEntries(p71.scenarios.map((s: any) => [s.id, s.prob]))));
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak71.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak71.done', JSON.stringify(done)); } catch (e) {} }, [done]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak71.probs', JSON.stringify(probs)); } catch (e) {} }, [probs]);
+
+
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
   const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));

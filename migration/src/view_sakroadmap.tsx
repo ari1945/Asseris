@@ -80,9 +80,9 @@ function SAKRoadmapView() {
   const [tab, setTab] = useStateSR(() => loader('ams.sakroadmap.tab', 'horizon'));
   const [isakFilter, setIsakFilter] = useStateSR('semua');
   const [renumKind, setRenumKind] = useStateSR('semua');
-  const [done, setDone] = useStateSR(() => loader('ams.sakroadmap.r207', {}));
+  const [done, setDone] = window.useAmsPersist('sakroadmap.r207.v1', () => ({}));
   React.useEffect(() => { try { localStorage.setItem('ams.sakroadmap.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.sakroadmap.r207', JSON.stringify(done)); } catch (e) {} }, [done]);
+
   const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
 
   const doneCount = H.readiness207.filter((r: any) => done[r.id]).length;

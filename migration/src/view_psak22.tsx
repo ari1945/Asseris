@@ -92,11 +92,11 @@ function PSAK22View() {
 
   const [tab, setTab] = useStateP22(() => loader('ams.psak22.tab', 'akuisisi'));
   const [sel, setSel] = useStateP22(() => loader('ams.psak22.sel', p22.deals[1] ? p22.deals[1].id : p22.deals[0].id));
-  const [done, setDone] = useStateP22(() => loader('ams.psak22.done', {}));
+  const [done, setDone] = window.useAmsPersist('psak22.done.v1', () => ({}));
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak22.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
   React.useEffect(() => { try { localStorage.setItem('ams.psak22.sel', JSON.stringify(sel)); } catch (e) {} }, [sel]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak22.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
   const sgn = (x: any) => (x < 0 ? '(' + fmt(Math.round(-x)) + ')' : fmt(Math.round(x)));

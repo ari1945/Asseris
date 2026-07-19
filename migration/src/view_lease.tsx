@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useNav } from './contexts';
+import { useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -22,7 +22,7 @@ function LeaseCalculator() {
   const { fmt } = AMS;
   const nav = useNav();
   const [selId, setSelId] = useStateL('LS-01');
-  const [override, setOverride] = useStateL({});
+  const [override, setOverride] = useAmsPersist('leaseOverride.v1', () => ({})); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [yearly, setYearly] = useStateL(true);
 
   const base = LEASES.find(l => l.id === selId);

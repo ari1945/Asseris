@@ -22,6 +22,12 @@ import { OKv } from './view_onboarding';
    ============================================================ */
 const { useState: useSOQM } = React;
 
+/* F1/PR-5 — siklus status + bentuk baris bertipe untuk jalur tulis (hindari :any baru). */
+const SOQM_MON_CYCLE = ['Belum Diuji', 'Efektif', 'Defisiensi'];
+const SOQM_CMP_CYCLE = ['Baru', 'Ditangani', 'Investigasi', 'Selesai'];
+type SoqmMonRow = { id: string; monitor: string };
+type SoqmCmpRow = { id: string; status: string };
+
 const MON_KIND = { 'Efektif': 'green', 'Defisiensi': 'red', 'Belum Diuji': 'gray' };
 const CMP_STAT = { 'Selesai': 'green', 'Investigasi': 'red', 'Ditangani': 'amber', 'Baru': 'blue' };
 const SEV_KIND = { 'Tinggi': 'red', 'Sedang': 'amber', 'Rendah': 'gray' };
@@ -39,7 +45,16 @@ const MON_SOURCE = {
 function SOQM() {
   const nav = useNav();
   const [risks, setRisks]: any = useAmsPersist('soqmRisks', () => AMS.SOQM_RISKS);
-  const [complaints]: any = useAmsPersist('complaints.v2', () => AMS.COMPLAINTS);
+  const [complaints, setComplaints]: any = useAmsPersist('complaints.v2', () => AMS.COMPLAINTS);
+  // F1/PR-5 (PRD 2026-07-19) — jalur tulis nyata: register risiko mutu & keluhan kini editable
+  // (dulu setter useAmsPersist dideklarasi tapi TAK PERNAH dipanggil → efektif display-only).
+  const cycleMon = (id: string) => setRisks((list: SoqmMonRow[]) => list.map((r) => r.id === id ? { ...r, monitor: SOQM_MON_CYCLE[(SOQM_MON_CYCLE.indexOf(r.monitor) + 1) % SOQM_MON_CYCLE.length] } : r));
+  const advComplaint = (id: string) => setComplaints((list: SoqmCmpRow[]) => list.map((c) => c.id === id ? { ...c, status: SOQM_CMP_CYCLE[Math.min(SOQM_CMP_CYCLE.indexOf(c.status) + 1, SOQM_CMP_CYCLE.length - 1)] } : c));
+  const addComplaint = () => {
+    const id = 'KP-' + String(200 + Math.floor(Math.random() * 700)).padStart(3, '0');
+    const nc = { id, date: new Date().toISOString().slice(0, 10), source: 'Internal', type: 'Keluhan', subject: 'Keluhan baru — lengkapi pokok perkara & penanggung jawab.', resolution: '', severity: 'Rendah', owner: 'Tim Mutu', status: 'Baru' };
+    setComplaints((list: SoqmCmpRow[]) => [nc, ...list]);
+  };
   const inspections: any = AMS.QM_INSPECTIONS;
   const inspFindings: any = AMS.QM_INSP_FINDINGS;
   const monActivities: any = AMS.QM_MON_ACTIVITIES;
@@ -108,7 +123,7 @@ function SOQM() {
                       <td className="tiny muted truncate" style={{ maxWidth: 280 }}>{r.risk}</td>
                       <td className="num"><span className="mono" style={{ fontWeight: 700, color: sevColor(r.lik, r.imp) }}>{r.lik}×{r.imp}</span></td>
                       <td className="tiny">{r.owner}</td>
-                      <td><Badge kind={(MON_KIND as any)[r.monitor]}>{r.monitor}</Badge></td>
+                      <td onClick={(e: { stopPropagation(): void }) => { e.stopPropagation(); cycleMon(r.id); }} title="Klik untuk ubah status pemantauan" style={{ cursor: 'pointer' }}><Badge kind={(MON_KIND as any)[r.monitor]}>{r.monitor}</Badge></td>
                     </tr>
                   ))}
                 </tbody>
@@ -227,23 +242,27 @@ function SOQM() {
           {tab === 'evaluation' && <SoqmAnnualEval risks={risks} inspections={inspections} inspFindings={inspFindings} complaints={complaints} nav={nav} />}
 
           {tab === 'complaints' && (
-            <table className="dtbl">
-              <thead><tr><th>ID</th><th>Tanggal</th><th>Sumber</th><th>Jenis</th><th>Pokok Perkara</th><th>Tingkat</th><th>Penanggung Jawab</th><th>Status</th></tr></thead>
-              <tbody>
-                {complaints.map((c: any) => (
-                  <tr key={c.id}>
-                    <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
-                    <td className="mono tiny muted">{new Date(c.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
-                    <td className="tiny">{c.source}{c.clientId ? <button type="button" className="soqm-go inline" title="Buka klien" onClick={() => nav('crm', { from: 'soqm' })}><span className="mono">{c.clientId}</span></button> : null}</td>
-                    <td><Badge kind={c.type === 'Tuduhan' ? 'red' : 'blue'}>{c.type}</Badge></td>
-                    <td className="tiny truncate" style={{ maxWidth: 240 }}>{c.subject}<div className="tiny muted truncate">{c.resolution}</div></td>
-                    <td><Badge kind={(SEV_KIND as any)[c.severity]}>{c.severity}</Badge></td>
-                    <td className="tiny">{c.owner}</td>
-                    <td><Badge kind={(CMP_STAT as any)[c.status]}>{c.status}</Badge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div>
+              <div className="panel-h" style={{ borderBottom: '1px solid var(--line-soft)' }}><h3>Register Keluhan & Tuduhan (ISQM 1 ¶A56)</h3><div style={{ flex: 1 }} /><Btn sm variant="primary" onClick={addComplaint}><I.plus size={13} /> Catat Keluhan</Btn></div>
+              <table className="dtbl">
+                <thead><tr><th>ID</th><th>Tanggal</th><th>Sumber</th><th>Jenis</th><th>Pokok Perkara</th><th>Tingkat</th><th>Penanggung Jawab</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  {complaints.map((c: any) => (
+                    <tr key={c.id}>
+                      <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
+                      <td className="mono tiny muted">{new Date(c.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
+                      <td className="tiny">{c.source}{c.clientId ? <button type="button" className="soqm-go inline" title="Buka klien" onClick={() => nav('crm', { from: 'soqm' })}><span className="mono">{c.clientId}</span></button> : null}</td>
+                      <td><Badge kind={c.type === 'Tuduhan' ? 'red' : 'blue'}>{c.type}</Badge></td>
+                      <td className="tiny truncate" style={{ maxWidth: 240 }}>{c.subject}<div className="tiny muted truncate">{c.resolution}</div></td>
+                      <td><Badge kind={(SEV_KIND as any)[c.severity]}>{c.severity}</Badge></td>
+                      <td className="tiny">{c.owner}</td>
+                      <td><Badge kind={(CMP_STAT as any)[c.status]}>{c.status}</Badge></td>
+                      <td>{c.status !== 'Selesai' && <button type="button" className="btn sm" style={{ height: 24 }} title="Lanjutkan status penanganan" onClick={() => advComplaint(c.id)}>Lanjut <I.arrowRight size={11} /></button>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {tab === 'lineage' && <SoqmLineage nav={nav} />}

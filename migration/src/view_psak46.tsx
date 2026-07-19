@@ -139,13 +139,13 @@ function PSAK46View() {
   const loader = window.loadLS || ((k, d) => d);
 
   const [scenario, setScenario] = useStateP46(() => loader('ams.psak46.scenario', 'support'));
-  const [doneS, setDoneS] = useStateP46(() => loader('ams.psak46.doneS', {}));
-  const [doneD, setDoneD] = useStateP46(() => loader('ams.psak46.doneD', {}));
+  const [doneS, setDoneS] = window.useAmsPersist('psak46.doneS.v1', () => ({}));
+  const [doneD, setDoneD] = window.useAmsPersist('psak46.doneD.v1', () => ({}));
   const [stmtTab, setStmtTab] = useStateP46('all');
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak46.scenario', JSON.stringify(scenario)); } catch (e) {} }, [scenario]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak46.doneS', JSON.stringify(doneS)); } catch (e) {} }, [doneS]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak46.doneD', JSON.stringify(doneD)); } catch (e) {} }, [doneD]);
+
+
 
   const supp = scenario === 'support';
   const procs = supp ? P46_PROC_SUPP : P46_PROC_DOUBT;
