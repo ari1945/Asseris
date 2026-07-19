@@ -16,6 +16,7 @@
    ============================================================ */
 
 import type { AssessmentFactor } from './assessment_model';
+import type { FeeConcentrationRow } from './fee_concentration';
 
 export type ContinuanceDecision = 'Lanjut' | 'Lanjut dengan Syarat' | 'Tidak Dilanjutkan' | 'Tertunda';
 export type Attention = 'Tinggi' | 'Sedang' | 'Rendah';
@@ -128,6 +129,7 @@ export function continuanceFlags(
   invoices: InvoiceLike[],
   decisions: Record<string, StoredDecision>,
   refYear: number,
+  concentration?: Record<string, FeeConcentrationRow>,
 ): ContinuanceSummary {
   const active = clients.filter((c) => (c.status ?? 'Active') === 'Active');
 
@@ -149,6 +151,17 @@ export function continuanceFlags(
     if (c.risk === 'High') triggers.push({ key: 'risiko', label: 'Risiko klien tinggi', severity: 'med', detail: 'Rating risiko klien = High' });
     if (c.listed) triggers.push({ key: 'pie', label: 'Emiten/PIE', severity: 'med', detail: 'Klien tercatat (PIE) — penelaahan keberlanjutan tahunan wajib' });
     if (c.id && overdueBy.has(c.id)) triggers.push({ key: 'fee', label: 'Imbalan tertunggak', severity: 'med', detail: 'Terdapat faktur jatuh tempo (overdue) — ancaman kepentingan pribadi' });
+    // Konsentrasi/ketergantungan imbalan (Kode Etik/IESBA 290) — disuntik dari fee_concentration.
+    // PIE breach (≥ ambang) = ancaman signifikan; watch = pemantauan (PIE med / non-PIE informatif low).
+    const conc = c.id ? concentration?.[c.id] : undefined;
+    if (conc && conc.level !== 'ok') {
+      const pctFirm = (conc.ratioFirm * 100).toFixed(1) + '%';
+      if (conc.level === 'breach') {
+        triggers.push({ key: 'feeKonsentrasi', label: 'Konsentrasi imbalan (PIE ≥ ambang)', severity: 'high', detail: `Imbalan klien ${pctFirm} pendapatan firma > ambang ${(conc.threshold * 100).toFixed(0)}% — ancaman kepentingan pribadi (Kode Etik/IESBA 290); wajib pengaman/EQR.` });
+      } else {
+        triggers.push({ key: 'feeKonsentrasi', label: 'Konsentrasi imbalan — pemantauan', severity: conc.pie ? 'med' : 'low', detail: `Imbalan klien ${pctFirm} pendapatan firma — pantau ketergantungan imbalan (Kode Etik).` });
+      }
+    }
     const assoc = c.since != null ? refYear - c.since : 0;
     if (assoc >= LONG_ASSOC_YEARS) triggers.push({ key: 'asosiasi', label: 'Asosiasi panjang', severity: 'low', detail: `${assoc} th hubungan — ancaman kedekatan (familiarity)` });
 

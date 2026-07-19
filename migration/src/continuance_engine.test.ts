@@ -147,3 +147,33 @@ describe('integrasi seed nyata', () => {
     expect(bumi.attention).toBe('Tinggi');
   });
 });
+
+describe('continuanceFlags — pemicu konsentrasi imbalan (Kode Etik/IESBA 290)', () => {
+  const base = { id: 'C-1', name: 'PT Alpha', partner: 'P', risk: 'Low', listed: true, since: 2024, status: 'Active' };
+
+  it('konsentrasi disuntik: breach PIE → pemicu high; ok → tanpa pemicu', () => {
+    const conc = { 'C-1': { clientId: 'C-1', client: 'PT Alpha', partner: 'P', pie: true, fee: 2000, ratioFirm: 0.2, ratioPartner: 1, level: 'breach' as const, threshold: 0.15 } };
+    const sum = continuanceFlags([base], [], [], {}, 2026, conc);
+    const t = sum.rows[0].triggers.find((x) => x.key === 'feeKonsentrasi')!;
+    expect(t).toBeTruthy();
+    expect(t.severity).toBe('high');
+
+    const concOk = { 'C-1': { ...conc['C-1'], ratioFirm: 0.05, level: 'ok' as const } };
+    const sumOk = continuanceFlags([base], [], [], {}, 2026, concOk);
+    expect(sumOk.rows[0].triggers.some((x) => x.key === 'feeKonsentrasi')).toBe(false);
+  });
+
+  it('watch: PIE → med, non-PIE → low (informatif)', () => {
+    const pieWatch = { 'C-1': { clientId: 'C-1', client: 'PT Alpha', partner: 'P', pie: true, fee: 1200, ratioFirm: 0.12, ratioPartner: 1, level: 'watch' as const, threshold: 0.15 } };
+    expect(continuanceFlags([base], [], [], {}, 2026, pieWatch).rows[0].triggers.find((x) => x.key === 'feeKonsentrasi')!.severity).toBe('med');
+
+    const nonPie = { ...base, listed: false };
+    const nonPieWatch = { 'C-1': { clientId: 'C-1', client: 'PT Alpha', partner: 'P', pie: false, fee: 3500, ratioFirm: 0.35, ratioPartner: 1, level: 'watch' as const, threshold: 0.30 } };
+    expect(continuanceFlags([nonPie], [], [], {}, 2026, nonPieWatch).rows[0].triggers.find((x) => x.key === 'feeKonsentrasi')!.severity).toBe('low');
+  });
+
+  it('tanpa argumen konsentrasi → nol regresi (tak ada pemicu feeKonsentrasi)', () => {
+    const sum = continuanceFlags([base], [], [], {}, 2026);
+    expect(sum.rows[0].triggers.some((x) => x.key === 'feeKonsentrasi')).toBe(false);
+  });
+});
