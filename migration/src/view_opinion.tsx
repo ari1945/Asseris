@@ -379,3 +379,7 @@ Object.assign(window, { AuditOpinionGen });
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { AuditOpinionGen };
+/* F2/PR-A — seed opinionDoc.v1 di-single-source-kan agar modul lensa (view_sa705)
+   memakai default IDENTIK. Bila sa705 dibuka sebelum modul opini pernah dirender,
+   seed sama → tak ada mismatch/data-loss pada StateDoc bersama 'opinionDoc.v1'. */
+export { DEFAULT_DOC_O };

@@ -996,7 +996,7 @@
   },
   "src/view_sa705.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 8
+      "count": 6
     }
   },
   "src/view_sa710.tsx": {
