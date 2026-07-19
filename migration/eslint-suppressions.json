@@ -984,11 +984,6 @@
       "count": 1
     }
   },
-  "src/view_sa580.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "src/view_sa705.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
