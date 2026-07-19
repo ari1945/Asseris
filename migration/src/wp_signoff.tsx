@@ -70,6 +70,8 @@ const WP_MODULE_MAP = {
   sa530:   { ref: 'sa530',  requiredEvidence: ['Penentuan ukuran sampel', 'Evaluasi hasil & proyeksi salah saji'] },
   sa540:   { ref: 'sa540',  requiredEvidence: ['Evaluasi estimasi akuntansi'] },
   sa580:   { ref: 'sa580',  requiredEvidence: ['Surat representasi tertulis manajemen'] },
+  /* F2/PR-E — SA 710 Informasi Komparatif (kertas kerja komparatif + paragraf pendahulu). */
+  sa710:   { ref: 'sa710',  requiredEvidence: ['Kertas kerja audit informasi komparatif (SA 710 ¶7–9)', 'Evaluasi paragraf auditor pendahulu / situasi khusus (¶11–14)'] },
   spr2410: { ref: 'spr2410', requiredEvidence: ['Kertas kerja prosedur reviu interim'] },
   /* prosedur SA substantif yg sebelumnya TAK terpetakan → kini auditable
      (sign-off + bukti + kesimpulan SA 230 via SubBar global). Menutup sisi

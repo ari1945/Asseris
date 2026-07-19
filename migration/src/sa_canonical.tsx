@@ -22,6 +22,9 @@ const SA_WP_MAP = {
   /* F2/PR-B — SA 701 KAM: kertas kerja pelaporan (draf laporan/opini 900) berbagi
      SSOT KAM dengan Generator Opini (opinionDoc.v1.kams). */
   sa701: { refs: ['900'], focus: 'Hal Audit Utama (KAM) — register bersama opinionDoc.v1.kams yang mengalir ke bagian KAM laporan auditor (900).' },
+  /* F2/PR-E — SA 710 Informasi Komparatif: paragraf auditor pendahulu (SSOT opinionDoc.v1.comp)
+     mengalir ke draf laporan/opini (900). Sign-off nyata dari WP kanonik (mengganti blok palsu). */
+  sa710: { refs: ['900'], focus: 'Informasi komparatif & paragraf Hal Lain auditor pendahulu — mengalir ke laporan auditor (900); fakta pendahulu ber-SSOT di opinionDoc.v1.comp.' },
 };
 
 /* status WP → warna badge (selaras dengan modul Kertas Kerja) */
