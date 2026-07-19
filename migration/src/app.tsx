@@ -429,6 +429,10 @@ function App() {
     // consume-once → survives reload, no staleness. Absent tab = unchanged behavior.
     try {
       if (opts && opts.tab != null) sessionStorage.setItem('ams.navtab.' + id, String(opts.tab));
+      // Deep-link selection (mirror of tab): one-shot pending-record so the target
+      // module's useInitialSelection seeds which row/entity to open (mis. klien di
+      // register keberlanjutan). Consume-once → tahan reload, tak lengket.
+      if (opts && opts.sel != null) sessionStorage.setItem('ams.navsel.' + id, String(opts.sel));
     } catch (e) { /* private mode */ }
     try {
       if (((MODULE_INDEX as any)[id] || {}).deep) {

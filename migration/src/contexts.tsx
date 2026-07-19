@@ -66,6 +66,23 @@ function useInitialTab(moduleId: string, fallback: unknown) {
   });
 }
 
+/* Deep-link selection (sibling `useInitialTab`): `navigate(id, { sel })` menaruh
+   one-shot `sessionStorage['ams.navsel.<id>']`; modul dengan register/daftar
+   memakai `useInitialSelection(moduleId)` untuk mengetahui baris/entitas mana yang
+   harus dibuka SEKALI saat tiba via deep-link, lalu MENGONSUMSI kuncinya (hapus).
+   Kembalikan id terpilih (string) atau null bila bukan datang dari deep-link. */
+function useInitialSelection(moduleId: string): string | null {
+  const [v] = useState(() => {
+    try {
+      const k = 'ams.navsel.' + moduleId;
+      const s = sessionStorage.getItem(k);
+      if (s != null) { sessionStorage.removeItem(k); return s; }
+    } catch (e) { /* private mode / no sessionStorage */ }
+    return null;
+  });
+  return v as string | null;
+}
+
 /* P5 Fase 2 — catatan review berlingkup-engagement. Selektor murni: catatan
    milik engagement `engId`; catatan legacy tanpa `engagementId` ikut tampil
    (tak ada yang hilang dari state lama). */
@@ -538,11 +555,11 @@ function AppProviders({ me, onLogout, children }: any) {
 Object.assign(window, {
   AuthContext, FirmContext, AuditContext, NavContext, NavFromContext,
   useAuth, useFirm, useAudit, useNav, useNavFrom, AppProviders, clearPersisted,
-  notesForEngagement, amsShortName, useCurrentAuditor, useInitialTab,
+  notesForEngagement, amsShortName, useCurrentAuditor, useInitialTab, useInitialSelection,
 });
 window.clearPersisted = clearPersisted;
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor, useInitialTab };
+export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor, useInitialTab, useInitialSelection };
 export { useAmsPersist };
