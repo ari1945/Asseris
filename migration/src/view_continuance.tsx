@@ -17,6 +17,7 @@ import {
   type Attention,
   type ContinuanceDecision,
   type ContinuanceRow,
+  type PriorYear,
   type StoredDecision,
   type TriggerSeverity,
 } from './continuance_engine';
@@ -127,18 +128,77 @@ function PriorYearCard({ row }: { row: ContinuanceRow }) {
   );
 }
 
+/* editor pengalaman tahun lalu — auditor memutakhirkan basis SA 220.A24; persist server
+   (StateDoc firma). Opini memakai kode ringkas selaras isOpinionModified (pemicu keberlanjutan). */
+const PY_OPINIONS = ['WTP', 'WTP-EoM', 'WDP', 'TMP', 'TW'];
+function PriorYearEditor({ value, onPatch }: { value?: PriorYear; onPatch: (p: Partial<PriorYear>) => void }) {
+  const v: PriorYear = value || {};
+  const inp = { width: '100%', fontSize: 11.5, padding: '5px 8px', background: 'var(--surface)' } as const;
+  const lbl = { marginBottom: 3 } as const;
+  return (
+    <div style={{ display: 'grid', gap: 7 }}>
+      <div className="row gap8">
+        <div style={{ flex: '1 1 50%' }}>
+          <div className="tiny muted" style={lbl}>Opini</div>
+          <select className="input" value={v.opinion || ''} style={inp}
+            onChange={(e: { target: { value: string } }) => onPatch({ opinion: e.target.value })}>
+            <option value="">—</option>
+            {PY_OPINIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: '1 1 50%' }}>
+          <div className="tiny muted" style={lbl}>Tahun buku</div>
+          <input className="input" value={v.fy || ''} placeholder="mis. FY2024" style={inp}
+            onChange={(e: { target: { value: string } }) => onPatch({ fy: e.target.value })} />
+        </div>
+      </div>
+      <div className="row gap8">
+        <div style={{ flex: '0 0 96px' }}>
+          <div className="tiny muted" style={lbl}>Temuan signifikan</div>
+          <input className="input" type="number" min={0} value={v.findings ?? 0} style={inp}
+            onChange={(e: { target: { value: string } }) => onPatch({ findings: Math.max(0, Number(e.target.value) || 0) })} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div className="tiny muted" style={lbl}>Catatan temuan</div>
+          <input className="input" value={v.findingsNote || ''} placeholder="Ringkas temuan signifikan…" style={inp}
+            onChange={(e: { target: { value: string } }) => onPatch({ findingsNote: e.target.value })} />
+        </div>
+      </div>
+      <div>
+        <div className="tiny muted" style={lbl}>Salah saji tak dikoreksi (Rp)</div>
+        <input className="input" type="number" min={0} value={v.uncorrected ?? 0} style={inp}
+          onChange={(e: { target: { value: string } }) => onPatch({ uncorrected: Math.max(0, Number(e.target.value) || 0) })} />
+      </div>
+      <div>
+        <div className="tiny muted" style={lbl}>Perubahan keadaan</div>
+        <input className="input" value={v.changed || ''} placeholder="Perubahan signifikan sejak tahun lalu…" style={inp}
+          onChange={(e: { target: { value: string } }) => onPatch({ changed: e.target.value })} />
+      </div>
+      <div>
+        <div className="tiny muted" style={lbl}>Kesulitan/keterbatasan</div>
+        <input className="input" value={v.difficulties || ''} placeholder="Hambatan/keterbatasan audit tahun lalu…" style={inp}
+          onChange={(e: { target: { value: string } }) => onPatch({ difficulties: e.target.value })} />
+      </div>
+    </div>
+  );
+}
+
 function ContinuanceRegister() {
   const auth = useAuth();
   const nav = useNav();
   const { clients } = useFirm();
   const [decisions, setDecisions] = useAmsPersist('continuanceDecisions', CONTINUANCE_SEED);
+  // Pengalaman tahun lalu (SA 220.A24) kini PERSIST server (StateDoc firma, keyed clientId),
+  // bukan lagi konstanta hardcode. `PRIOR_YEAR` hanya seed awal saat StateDoc masih kosong
+  // (version 0) → hydrate-on-first-load; setelah edit pertama, server jadi SSOT & auditable.
+  const [priorYearMap, setPriorYearMap] = useAmsPersist('priorYear', PRIOR_YEAR);
 
   const canView = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_VIEW_ALL));
   const canDecide = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRM_ADMIN));
 
   // Perkaya klien terhidrasi-server (yang melucuti field non-CRM) dengan pengalaman
-  // tahun lalu dari peta referensi ber-clientId, agar pemicu & kartu tahun-lalu hidup.
-  const enrichedClients = clients.map((c: { id: string }) => ({ ...c, priorYear: PRIOR_YEAR[c.id] }));
+  // tahun lalu dari peta terpersist ber-clientId, agar pemicu & kartu tahun-lalu hidup.
+  const enrichedClients = clients.map((c: { id: string }) => ({ ...c, priorYear: priorYearMap[c.id] }));
   const sum = continuanceFlags(enrichedClients, INDEPENDENCE, INVOICES, decisions, REF_YEAR);
   // Deep-link (mis. dari Lini Masa Audit): buka langsung baris klien perikatan
   // terpilih bila valid; jika tidak, jatuh ke default (baris teratas) → nol regresi.
@@ -154,6 +214,8 @@ function ContinuanceRegister() {
 
   const patchRec = (clientId: string, patch: Partial<StoredDecision>) =>
     setDecisions((prev: Record<string, StoredDecision>) => ({ ...prev, [clientId]: { ...(prev[clientId] || {}), ...patch } }));
+  const patchPriorYear = (clientId: string, patch: Partial<PriorYear>) =>
+    setPriorYearMap((prev: Record<string, PriorYear>) => ({ ...prev, [clientId]: { ...(prev[clientId] || {}), ...patch } }));
 
   // kertas kerja klien terpilih
   const rec: StoredDecision = (sel && decisions[sel.clientId]) || {};
@@ -365,7 +427,9 @@ function ContinuanceRegister() {
                 <div style={{ padding: '14px 16px', display: 'grid', gap: 12, alignContent: 'start' }}>
                   <div>
                     <div className="tiny muted upper" style={{ marginBottom: 7 }}>Pengalaman tahun lalu (SA 220.A24)</div>
-                    <PriorYearCard row={sel} />
+                    {editable
+                      ? <PriorYearEditor value={sel.priorYear} onPatch={(p) => patchPriorYear(sel.clientId, p)} />
+                      : <PriorYearCard row={sel} />}
                   </div>
 
                   <div>
