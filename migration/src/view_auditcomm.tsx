@@ -35,9 +35,9 @@ function AuditCommitteeView() {
   const A = useMemoAc(() => AMS_CANON.ojkAuditComm(), []);
 
   const [tab, setTab] = useStateAc(() => loader('ams.auditcomm.tab', 'tugas'));
-  const [done, setDone] = useStateAc(() => loader('ams.auditcomm.done', {}));
+  const [done, setDone] = window.useAmsPersist('auditcomm.done.v1', () => ({}));
   React.useEffect(() => { try { localStorage.setItem('ams.auditcomm.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.auditcomm.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
 
   const isDone = (it: any) => (done[it.ref] != null ? done[it.ref] : it.done);
   const toggle = (ref: any) => { const it = A.duties.find((d: any) => d.ref === ref); setDone((m: any) => ({ ...m, [ref]: !(m[ref] != null ? m[ref] : it.done) })); };

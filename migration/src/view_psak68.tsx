@@ -119,11 +119,11 @@ function PSAK68View() {
   const p68 = useMemoP68(() => canon.psak68(wtb), [wtb]);
 
   const [tab, setTab] = useStateP68(() => loader('ams.psak68.tab', 'hierarki'));
-  const [done, setDone] = useStateP68(() => loader('ams.psak68.done', {}));
+  const [done, setDone] = window.useAmsPersist('psak68.done.v1', () => ({}));
   const [focus, setFocus] = useStateP68(() => loader('ams.psak68.focus', null)); // item id disorot
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak68.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak68.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
   React.useEffect(() => { try { localStorage.setItem('ams.psak68.focus', JSON.stringify(focus)); } catch (e) {} }, [focus]);
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));

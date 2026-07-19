@@ -103,12 +103,12 @@ function PSAK58View() {
 
   const [unit, setUnit] = useStateP58(() => loader('ams.psak58.unit', 'jutaan'));
   const [tab, setTab] = useStateP58(() => loader('ams.psak58.tab', 'ikhtisar'));
-  const [crit, setCrit] = useStateP58(() => loader('ams.psak58.crit', P58_CRITERIA));
-  const [disc, setDisc] = useStateP58(() => loader('ams.psak58.disc', P58_DISCLOSURE));
+  const [crit, setCrit] = window.useAmsPersist('psak58.crit.v1', () => (P58_CRITERIA));
+  const [disc, setDisc] = window.useAmsPersist('psak58.disc.v1', () => (P58_DISCLOSURE));
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP58(() => { try { localStorage.setItem('ams.psak58.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffectP58(() => { try { localStorage.setItem('ams.psak58.crit', JSON.stringify(crit)); } catch (e) {} }, [crit]);
-  useEffectP58(() => { try { localStorage.setItem('ams.psak58.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
+
+
   const toggleCrit = (id: any) => setCrit((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 

@@ -514,8 +514,8 @@ function PresentasiKlien() {
   const data = useMemoPR(() => prData(firm), [firm.activeEngagement, firm.activeClient]);
   const allSlides = useMemoPR(() => prBuildSlides(data), [data]);
 
-  const [included, setIncluded] = useStatePR(() => prLoadLS('presentasi.included', {}) || {});
-  const setInc = (next: any) => setIncluded(() => { try { localStorage.setItem('ams.v1.presentasi.included', JSON.stringify(next)); } catch (e) {} return next; });
+  const [included, setIncluded] = window.useAmsPersist('presentasi.included.v1', () => ({})); // F1/PR-4: persist kurasi slide ke server (dulu localStorage client-only)
+  const setInc = (next: any) => setIncluded(next);
   const slides = useMemoPR(() => { const f = allSlides.filter((s: any) => included[s.key] !== false); return f.length ? f : allSlides; }, [allSlides, included]);
   const total = slides.length;
   /* penomoran & jumlah temuan mengikuti yang terpilih */

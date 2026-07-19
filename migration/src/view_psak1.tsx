@@ -97,20 +97,19 @@ function PSAK1View() {
   const { fmt } = AMS;
   const firm = useFirm();
   const nav = useNav();
-  const loader = window.loadLS || ((k, d) => d);
 
-  const [comps, setComps] = useStateP1(() => loader('ams.psak1.comps', P1_COMPONENTS));
-  const [feats, setFeats] = useStateP1(() => loader('ams.psak1.feats', P1_FEATURES));
-  const [disc, setDisc] = useStateP1(() => loader('ams.psak1.disc', P1_DISCLOSURE));
+  const [comps, setComps] = window.useAmsPersist('psak1.comps.v1', () => (P1_COMPONENTS));
+  const [feats, setFeats] = window.useAmsPersist('psak1.feats.v1', () => (P1_FEATURES));
+  const [disc, setDisc] = window.useAmsPersist('psak1.disc.v1', () => (P1_DISCLOSURE));
   const [lineTab, setLineTab] = useStateP1('sofp');
-  const [linesSofp, setLinesSofp] = useStateP1(() => loader('ams.psak1.lsofp', P1_LINES_SOFP.map(l => ({ t: l[0], on: !!l[1] }))));
-  const [linesPl, setLinesPl] = useStateP1(() => loader('ams.psak1.lpl', P1_LINES_PL.map(l => ({ t: l[0], on: !!l[1] }))));
+  const [linesSofp, setLinesSofp] = window.useAmsPersist('psak1.lsofp.v1', () => (P1_LINES_SOFP.map(l => ({ t: l[0], on: !!l[1] }))));
+  const [linesPl, setLinesPl] = window.useAmsPersist('psak1.lpl.v1', () => (P1_LINES_PL.map(l => ({ t: l[0], on: !!l[1] }))));
 
-  React.useEffect(() => { try { localStorage.setItem('ams.psak1.comps', JSON.stringify(comps)); } catch (e) {} }, [comps]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak1.feats', JSON.stringify(feats)); } catch (e) {} }, [feats]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak1.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak1.lsofp', JSON.stringify(linesSofp)); } catch (e) {} }, [linesSofp]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak1.lpl', JSON.stringify(linesPl)); } catch (e) {} }, [linesPl]);
+
+
+
+
+
 
   const cycle = (setter: any) => (id: any) => setter((list: any) => list.map((r: any) => r.id === id ? { ...r, st: (P1_CYCLE as any)[r.st] } : r));
   const cycleComp = cycle(setComps);

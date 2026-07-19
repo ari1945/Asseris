@@ -110,12 +110,12 @@ function PSAK24View() {
   const loader = window.loadLS || ((k, d) => d);
 
   const [scenario, setScenario] = useStateP24(() => loader('ams.psak24.scenario', 'avail'));
-  const [doneA, setDoneA] = useStateP24(() => loader('ams.psak24.doneA', {}));
-  const [doneN, setDoneN] = useStateP24(() => loader('ams.psak24.doneN', {}));
+  const [doneA, setDoneA] = window.useAmsPersist('psak24.doneA.v1', () => ({}));
+  const [doneN, setDoneN] = window.useAmsPersist('psak24.doneN.v1', () => ({}));
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak24.scenario', JSON.stringify(scenario)); } catch (e) {} }, [scenario]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak24.doneA', JSON.stringify(doneA)); } catch (e) {} }, [doneA]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak24.doneN', JSON.stringify(doneN)); } catch (e) {} }, [doneN]);
+
+
 
   const avail = scenario === 'avail';
   const procs = avail ? P24_PROC_AVAIL : P24_PROC_NONE;

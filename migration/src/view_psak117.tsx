@@ -230,9 +230,9 @@ function PSAK117View() {
   const p117 = useMemoP117(() => (canon as any).psak117(), []);
 
   const [tab, setTab] = useStateP117(() => loader('ams.psak117.tab', 'model'));
-  const [done, setDone] = useStateP117(() => loader('ams.psak117.done', {}));
+  const [done, setDone] = window.useAmsPersist('psak117.done.v1', () => ({}));
   React.useEffect(() => { try { localStorage.setItem('ams.psak117.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak117.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
   const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));

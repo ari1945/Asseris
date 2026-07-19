@@ -307,11 +307,18 @@ function clearPersisted() {
   try { Object.keys(localStorage).filter(k => k.startsWith('ams.v1.') || k.startsWith('ams.')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
 }
 
+/* F1/PR-4 (PRD 2026-07-19) — keluarga kertas kerja modul (checklist PSAK/ISAK/syariah, OJK
+   sustain/sectorck/auditcomm, spr2410, presentasi, sakroadmap) yang dimigrasi dari localStorage
+   ke server. Semua engagement-scope (capForWrite default WP_EDIT + isolasi W7.5). Aturan prefiks
+   menghindari mendaftar ~40 key satu-satu; hanya key `<mod>.<field>.v1` baru yang cocok (tak ada
+   key server lama yang bertabrakan — dulu semuanya localStorage). */
+const PR4_ENGAGEMENT_KEY_RE = /^(psak\d+|syariah|sustain|sectorck|auditcomm|spr2410|presentasi|sakroadmap)\./;
+
 /* standalone persisted-state hook for modules outside the providers.
    Scope from the map (default firm); engagement-scoped keys read the active
    engagement from FirmContext (null outside a provider → default engagement). */
 function useAmsPersist(key: any, initial: any) {
-  const scope = (AMS_PERSIST_SCOPE as any)[key] || 'firm';
+  const scope = (AMS_PERSIST_SCOPE as any)[key] || (PR4_ENGAGEMENT_KEY_RE.test(key) ? 'engagement' : 'firm');
   const firm = useFirm(); // always called (rules-of-hooks); null outside provider
   const scopeId = scope === 'engagement'
     ? ((firm && firm.activeEngagementId) || DEFAULT_ENG_ID)

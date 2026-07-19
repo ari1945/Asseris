@@ -97,11 +97,11 @@ function PSAK25View() {
   const M = useMemoP25(() => (AMS_CANON ? AMS_CANON.psak25(wtb) : null), [wtb]);
 
   const [tab, setTab] = useStateP25(() => loader('ams.psak25.tab', 'klasifikasi'));
-  const [proc, setProc] = useStateP25(() => loader('ams.psak25.proc', {}));
-  const [disc, setDisc] = useStateP25(() => loader('ams.psak25.disc', {}));
+  const [proc, setProc] = window.useAmsPersist('psak25.proc.v1', () => ({}));
+  const [disc, setDisc] = window.useAmsPersist('psak25.disc.v1', () => ({}));
   useEffectP25(() => { try { localStorage.setItem('ams.psak25.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffectP25(() => { try { localStorage.setItem('ams.psak25.proc', JSON.stringify(proc)); } catch (e) {} }, [proc]);
-  useEffectP25(() => { try { localStorage.setItem('ams.psak25.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
+
+
 
   if (!M) {
     return <><SubBar moduleId="psak25" /><div className="view-pad"><Panel title="PSAK 25"><div className="tiny muted">Lapisan kanonik (AMS_CANON) belum dimuat.</div></Panel></div></>;

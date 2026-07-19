@@ -133,17 +133,17 @@ function PSAK19View() {
   const it = useMemoP19(() => (AMS_CANON ? AMS_CANON.intangibles(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP19(() => loader('ams.psak19.unit', 'jutaan'));
-  const [measure, setMeasure] = useStateP19(() => loader('ams.psak19.measure', 'cost'));
+  const [measure, setMeasure] = window.useAmsPersist('psak19.measure.v1', () => ('cost'));
   const [tab, setTab] = useStateP19(() => loader('ams.psak19.tab', 'ikhtisar'));
-  const [disc, setDisc] = useStateP19(() => loader('ams.psak19.disc', P19_DISCLOSURE));
-  const [impair, setImpair] = useStateP19(() => loader('ams.psak19.impair', P19_IMPAIR));
-  const [crit, setCrit] = useStateP19(() => loader('ams.psak19.crit', P19_DEVCRIT));
+  const [disc, setDisc] = window.useAmsPersist('psak19.disc.v1', () => (P19_DISCLOSURE));
+  const [impair, setImpair] = window.useAmsPersist('psak19.impair.v1', () => (P19_IMPAIR));
+  const [crit, setCrit] = window.useAmsPersist('psak19.crit.v1', () => (P19_DEVCRIT));
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
-  useEffectP19(() => { try { localStorage.setItem('ams.psak19.measure', JSON.stringify(measure)); } catch (e) {} }, [measure]);
+
   useEffectP19(() => { try { localStorage.setItem('ams.psak19.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffectP19(() => { try { localStorage.setItem('ams.psak19.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  useEffectP19(() => { try { localStorage.setItem('ams.psak19.impair', JSON.stringify(impair)); } catch (e) {} }, [impair]);
-  useEffectP19(() => { try { localStorage.setItem('ams.psak19.crit', JSON.stringify(crit)); } catch (e) {} }, [crit]);
+
+
+
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
   const toggleImpair = (id: any) => setImpair((list: any) => list.map((r: any) => r.id === id ? { ...r, flag: !r.flag } : r));
   const toggleCrit = (id: any) => setCrit((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));

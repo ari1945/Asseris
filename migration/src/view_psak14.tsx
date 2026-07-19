@@ -98,12 +98,12 @@ function PSAK14View() {
 
   const [unit, setUnit] = useStateP14(() => loader('ams.psak14.unit', 'jutaan'));
   const [tab, setTab] = useInitialTab('psak14', () => loader('ams.psak14.tab', 'ikhtisar'));
-  const [disc, setDisc] = useStateP14(() => loader('ams.psak14.disc', P14_DISCLOSURE));
-  const [formula, setFormula] = useStateP14(() => loader('ams.psak14.formula', 'wavg'));
+  const [disc, setDisc] = window.useAmsPersist('psak14.disc.v1', () => (P14_DISCLOSURE));
+  const [formula, setFormula] = window.useAmsPersist('psak14.formula.v1', () => ('wavg'));
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
   useEffectP14(() => { try { localStorage.setItem('ams.psak14.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffectP14(() => { try { localStorage.setItem('ams.psak14.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  useEffectP14(() => { try { localStorage.setItem('ams.psak14.formula', JSON.stringify(formula)); } catch (e) {} }, [formula]);
+
+
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
   if (!model || !inv) {

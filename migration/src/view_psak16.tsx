@@ -119,18 +119,18 @@ function PSAK16View() {
   const reg = useMemoP16(() => (AMS_CANON ? AMS_CANON.assetRegister(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP16(() => loader('ams.psak16.unit', 'jutaan'));
-  const [measure, setMeasure] = useStateP16(() => loader('ams.psak16.measure', 'cost'));
+  const [measure, setMeasure] = window.useAmsPersist('psak16.measure.v1', () => ('cost'));
   const [regTab, setRegTab] = useStateP16(() => loader('ams.psak16.regtab', 'register'));
   const [tab, setTab] = useInitialTab('psak16', () => loader('ams.psak16.tab', 'ikhtisar'));
-  const [disc, setDisc] = useStateP16(() => loader('ams.psak16.disc', P16_DISCLOSURE));
-  const [impair, setImpair] = useStateP16(() => loader('ams.psak16.impair', P16_IMPAIR));
+  const [disc, setDisc] = window.useAmsPersist('psak16.disc.v1', () => (P16_DISCLOSURE));
+  const [impair, setImpair] = window.useAmsPersist('psak16.impair.v1', () => (P16_IMPAIR));
   const [exporting, setExporting] = useStateP16(false);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.unit', JSON.stringify(unit)); } catch (e) {} }, [unit]);
-  useEffectP16(() => { try { localStorage.setItem('ams.psak16.measure', JSON.stringify(measure)); } catch (e) {} }, [measure]);
+
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.regtab', JSON.stringify(regTab)); } catch (e) {} }, [regTab]);
   useEffectP16(() => { try { localStorage.setItem('ams.psak16.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  useEffectP16(() => { try { localStorage.setItem('ams.psak16.disc', JSON.stringify(disc)); } catch (e) {} }, [disc]);
-  useEffectP16(() => { try { localStorage.setItem('ams.psak16.impair', JSON.stringify(impair)); } catch (e) {} }, [impair]);
+
+
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
   const toggleImpair = (id: any) => setImpair((list: any) => list.map((r: any) => r.id === id ? { ...r, flag: !r.flag } : r));
 

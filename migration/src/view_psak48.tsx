@@ -106,11 +106,11 @@ function PSAK48View() {
   const p57 = useMemoP48(() => canon.psak57(wtb), [wtb]);
 
   const [tab, setTab] = useStateP48(() => loader('ams.psak48.tab', 'impair'));
-  const [done, setDone] = useStateP48(() => loader('ams.psak48.done', {}));
+  const [done, setDone] = window.useAmsPersist('psak48.done.v1', () => ({}));
   const [selProv, setSelProv] = useStateP48(() => loader('ams.psak48.selprov', 'LIT-02'));
 
   React.useEffect(() => { try { localStorage.setItem('ams.psak48.tab', JSON.stringify(tab)); } catch (e) {} }, [tab]);
-  React.useEffect(() => { try { localStorage.setItem('ams.psak48.done', JSON.stringify(done)); } catch (e) {} }, [done]);
+
   React.useEffect(() => { try { localStorage.setItem('ams.psak48.selprov', JSON.stringify(selProv)); } catch (e) {} }, [selProv]);
 
   const rp = (x: any) => 'Rp ' + fmt(Math.round(x));
