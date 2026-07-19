@@ -10,6 +10,11 @@ import { MSub } from './view_fpm_parts';
 import { StepLetter, StepPMPJ } from './view_onboarding2';
 import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
 import { prospectToEngagementInheritance } from './engagement_entry_gate';
+import { verdict, weightedScore } from './assessment_model';
+import { amsExportPdf } from './export_pdf';
+import { amsExportXlsx } from './export_xlsx';
+import { exportVerifySeal } from './api';
+import { buildMemoBlocks, buildMemoSheets, memoMeta, memoRefNo, memoTitle, type MemoInput } from './acceptance_continuance_memo';
 
 /* ============================================================
    Asseris — Front-office: Client & Engagement Onboarding
@@ -25,15 +30,13 @@ const OB_STAGES = [
   { id: 'letter',     label: 'Engagement Letter',          short: 'Letter',    color: '#005085' },
   { id: 'convert',    label: 'Konversi ke Perikatan',      short: 'Konversi',  color: '#1f7a4d' },
 ];
+/* Skor & verdict akseptasi kini memakai model penilaian bersama
+   (assessment_model) — SSOT dipakai juga oleh keberlanjutan. Perilaku identik. */
 function obAccScore(p: any) {
-  const f = (p.acceptance && p.acceptance.factors) || [];
-  const tw = f.reduce((s: any, x: any) => s + x.w, 0) || 1;
-  return f.reduce((s: any, x: any) => s + x.s * x.w, 0) / tw;
+  return weightedScore(p.acceptance && p.acceptance.factors);
 }
 function obAccVerdict(score: any) {
-  return score >= 4 ? { k: 'green', l: 'Terima' }
-    : score >= 3 ? { k: 'amber', l: 'Terima dengan Syarat' }
-    : { k: 'red', l: 'Tolak' };
+  return verdict(score, 'acceptance');
 }
 function obGates(p: any) {
   return {
@@ -281,6 +284,32 @@ function StepAcceptance({ p, onPatch }: any) {
   const today = new Date().toISOString().slice(0, 10);
   const trail: AccTrail[] = (a.trail || []);
 
+  // Ekspor memo penerimaan tersegel (SA 230) — generator bersama dgn keberlanjutan.
+  const [busyMemo, setBusyMemo] = useStateOB(false);
+  const [memoVerify, setMemoVerify] = useStateOB(null as { valid: boolean; reason?: string } | null);
+  const firmRef = AMS as { FIRM?: { name?: string } };
+  const firmName = (firmRef.FIRM && firmRef.FIRM.name) || 'Kantor Akuntan Publik';
+  const memoKind: 'acceptance' | 'continuance' = p.kind === 'Keberlanjutan' ? 'continuance' : 'acceptance';
+  const buildMi = (): MemoInput => ({
+    kind: memoKind, client: p.name, clientId: p.id, industry: p.industry, partner: p.partner,
+    cycle: p.fyEnd, score, verdict: verdict.l, factors: a.factors,
+    decision: a.decision || verdict.l, approver: a.approver, date: a.date, approved: a.approved,
+    safeguards: a.safeguard, trail: a.trail,
+  });
+  const exportMemo = async (fmtKind: 'pdf' | 'xlsx') => {
+    if (busyMemo) return;
+    setBusyMemo(true); setMemoVerify(null);
+    try {
+      const mi = buildMi();
+      const base = { kind: memoKind + '-memo', firm: firmName, title: memoTitle(mi), meta: memoMeta(mi) };
+      const res = fmtKind === 'pdf'
+        ? await amsExportPdf({ ...base, refNo: memoRefNo(mi), fileName: `Memo Penerimaan - ${p.name}.pdf`, blocks: buildMemoBlocks(mi) })
+        : await amsExportXlsx({ ...base, fileName: `Memo Penerimaan - ${p.name}.xlsx`, sheets: buildMemoSheets(mi) });
+      if (res && res.sealed && res.sealId) setAcc({ memoSeal: { sealId: res.sealId, contentHash: res.contentHash } });
+    } finally { setBusyMemo(false); }
+  };
+  const verifyMemo = async () => { if (a.memoSeal) setMemoVerify(await exportVerifySeal({ sealId: a.memoSeal.sealId, contentHash: a.memoSeal.contentHash })); };
+
   return (
     <div>
       <div className="row jb ac" style={{ marginBottom: 4 }}>
@@ -356,6 +385,17 @@ function StepAcceptance({ p, onPatch }: any) {
                 ))}
               </div>
             )}
+            <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 8 }}>
+              <div className="tiny muted upper" style={{ marginBottom: 5 }}>Dokumentasi (SA 230) — memo tersegel</div>
+              <div className="row wrap gap6">
+                <Btn sm variant="ghost" disabled={busyMemo} onClick={() => exportMemo('pdf')}><I.download size={13} /> Memo PDF</Btn>
+                <Btn sm variant="ghost" disabled={busyMemo} onClick={() => exportMemo('xlsx')}><I.download size={13} /> Memo XLSX</Btn>
+                {a.memoSeal && <Btn sm variant="ghost" onClick={verifyMemo}><I.shield size={13} /> Verifikasi Segel</Btn>}
+              </div>
+              {a.memoSeal && <div className="tiny mono" style={{ marginTop: 5, color: 'var(--ink-3)' }}>Segel: {a.memoSeal.sealId}</div>}
+              {memoVerify && <div className="tiny" style={{ marginTop: 4, color: memoVerify.valid ? 'var(--green)' : 'var(--red)' }}>{memoVerify.valid ? '✓ Segel sah — konten utuh' : '✗ Segel tidak sah'}</div>}
+              <div className="tiny muted" style={{ marginTop: 5 }}>Segel Ed25519 (provenans Asseris) — bukan e-Meterai/PSrE.</div>
+            </div>
             <div className="tiny muted" style={{ lineHeight: 1.5 }}>Persetujuan menandatangani gerbang penerimaan dan membuka tahap PMPJ.</div>
           </div>
         </div>

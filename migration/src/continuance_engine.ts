@@ -15,6 +15,8 @@
      · asosiasi panjang                                          → familiarity
    ============================================================ */
 
+import type { AssessmentFactor } from './assessment_model';
+
 export type ContinuanceDecision = 'Lanjut' | 'Lanjut dengan Syarat' | 'Tidak Dilanjutkan' | 'Tertunda';
 export type Attention = 'Tinggi' | 'Sedang' | 'Rendah';
 export type TriggerSeverity = 'high' | 'med' | 'low';
@@ -24,6 +26,18 @@ export interface ContinuanceTrigger {
   label: string;
   severity: TriggerSeverity;
   detail: string;
+}
+
+/* Pengalaman tahun lalu — masukan pertimbangan keberlanjutan (SA 220.A24).
+   `opinion` memakai kode ringkas (WTP · WTP-EoM · WDP · TMP · TW) atau teks penuh. */
+export interface PriorYear {
+  fy?: string;
+  opinion?: string;
+  findings?: number;
+  findingsNote?: string;
+  uncorrected?: number;
+  changed?: string;
+  difficulties?: string;
 }
 
 export interface ContinuanceRow {
@@ -42,6 +56,7 @@ export interface ContinuanceRow {
   approver?: string;
   decidedDate?: string;
   conditions?: string;
+  priorYear?: PriorYear;
 }
 
 export interface ContinuanceSummary {
@@ -62,6 +77,17 @@ interface ClientLike {
   listed?: boolean;
   since?: number;
   status?: string;
+  priorYear?: PriorYear;
+}
+
+/* Opini dimodifikasi (SA 705: WDP/TMP/TW) → pemicu keberlanjutan.
+   WTP & WTP-EoM (SA 706 penekanan) BUKAN modifikasi. Aman utk kode & teks penuh. */
+export function isOpinionModified(op?: string): boolean {
+  if (!op) return false;
+  const s = op.trim().toUpperCase();
+  if (s.startsWith('WTP')) return false;
+  return /^(WDP|TMP|TW)\b/.test(s)
+    || /DENGAN PENGECUALIAN|TIDAK WAJAR|TIDAK MENYATAKAN PENDAPAT|DISCLAIMER|ADVERSE|QUALIFIED/.test(s);
 }
 interface IndependenceLike {
   name?: string;
@@ -73,11 +99,25 @@ interface IndependenceLike {
 }
 interface InvoiceLike { clientId?: string; status?: string }
 
+export interface ContinuanceTrailEntry {
+  action: string;
+  by: string;
+  at: string;
+}
+
 export interface StoredDecision {
   decision?: ContinuanceDecision;
   approver?: string;
   date?: string;
   conditions?: string;
+  /* Kertas kerja terdokumentasi (P3): penilaian berbobot + safeguard + jejak.
+     Diabaikan mesin pemicu; disimpan berdampingan di state firm-scope. */
+  approved?: boolean;
+  safeguards?: string;
+  factors?: AssessmentFactor[];
+  trail?: ContinuanceTrailEntry[];
+  /* Segel provenans memo terekspor (P4) — untuk verifikasi ulang (Ed25519). */
+  memoSeal?: { sealId: string; contentHash: string } | null;
 }
 
 const LONG_ASSOC_YEARS = 8;
@@ -112,6 +152,18 @@ export function continuanceFlags(
     const assoc = c.since != null ? refYear - c.since : 0;
     if (assoc >= LONG_ASSOC_YEARS) triggers.push({ key: 'asosiasi', label: 'Asosiasi panjang', severity: 'low', detail: `${assoc} th hubungan — ancaman kedekatan (familiarity)` });
 
+    // Pengalaman tahun lalu (SA 220.A24 / ISQM 1 ¶34) — pemicu dari data kanonik.
+    const py = c.priorYear;
+    if (py) {
+      if (isOpinionModified(py.opinion)) {
+        triggers.push({ key: 'opiniLY', label: 'Opini modifikasian tahun lalu', severity: 'high', detail: `Opini ${py.fy ?? 'tahun lalu'}: ${py.opinion}${py.findingsNote ? ' — ' + py.findingsNote : ''}` });
+      }
+      const nf = py.findings ?? 0;
+      if (nf >= 2) triggers.push({ key: 'temuanLY', label: 'Temuan signifikan berulang', severity: 'med', detail: `${nf} temuan signifikan tahun lalu${py.findingsNote ? ' — ' + py.findingsNote : ''}` });
+      else if (nf === 1) triggers.push({ key: 'temuanLY', label: 'Temuan signifikan tahun lalu', severity: 'low', detail: py.findingsNote || '1 temuan signifikan tahun lalu' });
+      if (py.changed && py.changed.trim()) triggers.push({ key: 'perubahan', label: 'Perubahan keadaan', severity: 'low', detail: py.changed });
+    }
+
     const highCount = triggers.filter((t) => t.severity === 'high').length;
     const medCount = triggers.filter((t) => t.severity === 'med').length;
     const attention: Attention = highCount > 0 || triggers.length >= 4 ? 'Tinggi'
@@ -135,6 +187,7 @@ export function continuanceFlags(
       approver: stored.approver,
       decidedDate: stored.date,
       conditions: stored.conditions,
+      priorYear: c.priorYear,
     };
   });
 
