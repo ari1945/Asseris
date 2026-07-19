@@ -731,7 +731,7 @@
   },
   "src/view_opinion_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 72
+      "count": 71
     }
   },
   "src/view_palette.tsx": {
@@ -987,11 +987,6 @@
   "src/view_sa580.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    }
-  },
-  "src/view_sa701.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "src/view_sa705.tsx": {
