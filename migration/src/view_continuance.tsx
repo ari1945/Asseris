@@ -6,6 +6,8 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { AMS } from './data';
 import { CONT_FACTORS, INDEPENDENCE, INVOICES, PRIOR_YEAR } from './data_part1';
+import { FIRMFIN } from './data_firmfin';
+import { feeConcentration, feeConcentrationMap, FEE_CONCENTRATION_CONFIG } from './fee_concentration';
 import { verdict, weightedScore, type AssessmentFactor } from './assessment_model';
 import { amsExportPdf } from './export_pdf';
 import { amsExportXlsx } from './export_xlsx';
@@ -199,7 +201,12 @@ function ContinuanceRegister() {
   // Perkaya klien terhidrasi-server (yang melucuti field non-CRM) dengan pengalaman
   // tahun lalu dari peta terpersist ber-clientId, agar pemicu & kartu tahun-lalu hidup.
   const enrichedClients = clients.map((c: { id: string }) => ({ ...c, priorYear: priorYearMap[c.id] }));
-  const sum = continuanceFlags(enrichedClients, INDEPENDENCE, INVOICES, decisions, REF_YEAR);
+  // Konsentrasi imbalan (Kode Etik/IESBA 290): rasio fee klien thd pendapatan firma
+  // (GL 4-100 via FIRMFIN.pl) & portofolio partner → pemicu keberlanjutan + panel.
+  const firmRevenue: number = FIRMFIN.pl({}).revenue || 0;
+  const feeConc = feeConcentration(enrichedClients, firmRevenue);
+  const concMap = feeConcentrationMap(feeConc);
+  const sum = continuanceFlags(enrichedClients, INDEPENDENCE, INVOICES, decisions, REF_YEAR, concMap);
   // Deep-link (mis. dari Lini Masa Audit): buka langsung baris klien perikatan
   // terpilih bila valid; jika tidak, jatuh ke default (baris teratas) → nol regresi.
   const seedClient = useInitialSelection('continuance');
@@ -302,6 +309,42 @@ function ContinuanceRegister() {
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.attentionHigh} label="Perhatian Tinggi" accent="var(--red)" /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={sum.rotationFlags} label="Pemicu Rotasi AP" /></div></Panel>
           </div>
+
+          {/* KONSENTRASI IMBALAN (Kode Etik/IESBA 290) — ketergantungan imbalan firma & partner */}
+          <Panel noBody style={{ marginBottom: 12 }}>
+            <div className="panel-h">
+              <h3>Konsentrasi Imbalan — Ketergantungan (Kode Etik · IESBA 290)</h3>
+              <div style={{ flex: 1 }} />
+              <span className="tiny muted">Pendapatan firma {rp0(feeConc.firmRevenue)} · ambang PIE {(FEE_CONCENTRATION_CONFIG.pieBreach * 100).toFixed(0)}%</span>
+            </div>
+            <div style={{ padding: '10px 14px' }}>
+              <div className="row ac gap8" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
+                <Badge kind={feeConc.breaches ? 'red' : 'green'}>{feeConc.breaches} pelampauan PIE</Badge>
+                <Badge kind={feeConc.watches ? 'amber' : 'gray'}>{feeConc.watches} pemantauan</Badge>
+                <span className="tiny muted">Konsentrasi puncak {(feeConc.topRatio * 100).toFixed(1)}% pendapatan firma · klik baris untuk kertas kerja</span>
+              </div>
+              <table className="dtbl">
+                <thead><tr>
+                  <th>Klien</th><th>Partner</th><th className="r">Imbalan</th><th className="r">% Firma</th><th className="r">% Partner</th><th>Status</th>
+                </tr></thead>
+                <tbody>
+                  {feeConc.rows.map((r) => (
+                    <tr key={r.clientId} onClick={() => setSelId(r.clientId)}
+                      style={{ cursor: 'pointer', background: sel && sel.clientId === r.clientId ? 'var(--blue-100)' : undefined }}>
+                      <td className="truncate" style={{ maxWidth: 180 }}>
+                        {r.client.replace('PT ', '')}{r.pie && <span className="tiny mono" style={{ color: 'var(--blue)', marginLeft: 5 }}>PIE</span>}
+                      </td>
+                      <td className="truncate tiny muted" style={{ maxWidth: 110 }}>{r.partner.split(',')[0]}</td>
+                      <td className="num tiny mono">{rp0(r.fee)}</td>
+                      <td className="num tiny mono" style={{ fontWeight: 700, color: r.level === 'breach' ? 'var(--red)' : r.level === 'watch' ? 'var(--amber)' : undefined }}>{(r.ratioFirm * 100).toFixed(1)}%</td>
+                      <td className="num tiny mono">{(r.ratioPartner * 100).toFixed(0)}%</td>
+                      <td><Badge kind={r.level === 'breach' ? 'red' : r.level === 'watch' ? 'amber' : 'green'}>{r.level === 'breach' ? 'Signifikan' : r.level === 'watch' ? 'Pantau' : 'Wajar'}</Badge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
 
           <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
             {/* Register */}
