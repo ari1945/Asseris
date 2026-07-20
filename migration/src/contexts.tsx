@@ -201,6 +201,11 @@ const AMS_PERSIST_SCOPE = {
      konsistensi, disposisi, catatan telaah + lampiran dokumen F0.1). Engagement-scope
      → capForWrite=WP_EDIT + isolasi W7.5. */
   'oi720.v1': 'engagement',
+  /* F2/PR-F (PRD 2026-07-19) — SA 230 Dokumentasi Audit: konstanta perikatan
+     (tgl laporan, batas perakitan ¶A21, retensi) + atestasi kelengkapan dokumentasi
+     (penanda tangan, tgl, memo). Rollup kelengkapan tetap turunan (useDocCanon, SSOT).
+     Engagement-scope → capForWrite=WP_EDIT + isolasi W7.5. */
+  'sa230Doc.v1': 'engagement',
 };
 
 /* 2026-07-01 — keys read via the row-filtered `personal.get` endpoint instead of the
