@@ -1,7 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm, useNav } from './contexts';
+import { useAmsPersist, useFirm, useNav } from './contexts';
+import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
+import type { DeliveryEngPlan } from './canon_delivery';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Progress, Seg, Stat } from './ui';
@@ -9,9 +11,10 @@ import { Btn, Panel, Progress, Seg, Stat } from './ui';
 /* ============================================================
    Asseris — Jadwal & Lini Masa Audit (Practice Operations)
    Gantt aktivitas per-perikatan untuk diserahkan ke klien.
-   SSOT: fase & milestone ditarik dari AMS.DELIVERY;
-   "hari ini" dari DELIVERY_WINDOW.today. Aktivitas granular diperinci
-   dari template di dalam jendela fase nyata; progres dihitung dari today.
+   SSOT: fase & milestone dari deliveryPlan.v1 tersimpan (editable di modul
+   Delivery); "hari ini" dari klok tunggal AMS.TODAY; status milestone diturunkan
+   vs today. Aktivitas granular diperinci dari template di dalam jendela fase
+   nyata; progres dihitung dari today.
    ============================================================ */
 const { useState: useStateATL, useMemo: useMemoATL } = React;
 
@@ -72,10 +75,15 @@ function ATL_pct(s: any, e: any, today: any, done: any) {
 
 function AuditTimeline() {
   const A: any = AMS;
-  const { CLIENTS, ENGAGEMENTS, DELIVERY, DELIVERY_WINDOW, FIRM, fmt } = A;
-  const today = DELIVERY_WINDOW.today;
+  const { CLIENTS, ENGAGEMENTS, FIRM, fmt } = A;
+  const today = A.TODAY;   /* klok SSOT (Fase 4) */
   const firm = useFirm();
   const nav = useNav();
+
+  /* SSOT: fase & milestone dari deliveryPlan.v1 tersimpan (seed AMS.DELIVERY,
+     editable di modul Delivery); status milestone diturunkan vs AMS.TODAY. */
+  const [planRaw] = useAmsPersist('deliveryPlan.v1', () => seedDeliveryPlan(A.DELIVERY));
+  const DELIVERY = useMemoATL(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
 
   // perikatan yang punya rencana pengiriman
   const planned = DELIVERY.map((d: any) => d.id);

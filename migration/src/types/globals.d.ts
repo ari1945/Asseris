@@ -57,6 +57,8 @@ export interface AmsData {
   PIPELINE: PipelineOpp[];
   INVOICES: InvoiceRow[];
   STAFF: StaffRow[];
+  /** Klok demo SSOT (Fase 4) — "hari ini" tunggal utk delivery/audittimeline (YYYY-MM-DD). */
+  TODAY: string;
   /** Format angka lokal id-ID (mis. `fmt(1850, 0)` → "1.850"). Helper universal dipakai ~semua view. */
   fmt: (n: number, decimals?: number) => string;
   /** Format rupiah lokal id-ID (mis. `rp(1.85e9)` → "Rp 1.850.000.000", negatif dlm kurung). */
