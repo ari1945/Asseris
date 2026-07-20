@@ -5,6 +5,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
+import { reconcileOpinionConsistency, type OpinionConsistencyResult } from './canon_validation';
 
 /* ============================================================
    Asseris — Audit Opinion Generator
@@ -169,6 +170,25 @@ function AuditOpinionGen() {
   const kamCount = doc.opts.kam && doc.type !== 'disclaimer' ? doc.kams.filter((k: { include?: boolean }) => k.include !== false).length : 0;
   const signedCount = Object.values(doc.signoff).filter(Boolean).length;
 
+  /* SA 705 — konsistensi opini (guardrail level-modul). `rec` dihitung SAMA
+     seperti DeterminationPanel/OpinionFlowBar (via window.AMSOpinion) agar banner
+     selaras dgn rekomendasi yang ditampilkan; pure fn menilai divergensi +
+     kelengkapan (Basis SA 705.20, seksi GC SA 570.22) + gerbang finalisasi. */
+  const _om = activeEngagement?.materiality || 4_250_000_000;
+  const _rec = O.recommendOpinion({
+    misSev: doc.misOverride === 'auto' ? O.classifyMis(O.aggUncorr(doc.method), _om).sev : doc.misOverride,
+    scope: doc.scope, gc: doc.gcStatus,
+  });
+  const con: OpinionConsistencyResult = reconcileOpinionConsistency({
+    appliedType: doc.type,
+    recommendedType: _rec.opinion,
+    scope: doc.scope,
+    gcStatus: doc.gcStatus,
+    gcSectionShown: doc.opts.gc,
+    basisText: doc.basisText,
+    finalized: doc.finalized,
+  });
+
   const TABS = [
     { id: 'determine', label: 'Penentuan Opini' },
     { id: 'builder', label: 'Penyusun Laporan' },
@@ -191,6 +211,28 @@ function AuditOpinionGen() {
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
           <OpinionFlowBar tab={tab} doc={doc} O={O} />
+          {con.count > 0 && (
+            <div className="panel" style={{ padding: '11px 13px', background: con.severe ? 'var(--red-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+              <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+                <span style={{ color: con.severe ? 'var(--red)' : 'var(--amber)', marginTop: 1 }}><I.alert size={16} /></span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 3 }}>
+                    Konsistensi opini SA 705 — {con.count} hal perlu ditinjau
+                  </div>
+                  <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+                    {con.issues.map((iss) => (
+                      <li key={iss.code} style={iss.severe ? { color: 'var(--ink)' } : undefined}>{iss.text}</li>
+                    ))}
+                  </ul>
+                  {tab !== 'determine' && (
+                    <div className="row gap8" style={{ marginTop: 8 }}>
+                      <Btn sm onClick={() => setTab('determine')}><I.arrowRight size={12} /> Buka Penentuan Opini</Btn>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <Tabs tabs={TABS} active={tab} onChange={setTab} />
           {tab === 'determine' && <><O.DeterminationPanel doc={doc} patch={patch} /><O.OpinionDecisionTree doc={doc} patch={patch} /></>}
           {tab === 'builder' && <ReportBuilder doc={doc} patch={patch} client={client} O={O} />}

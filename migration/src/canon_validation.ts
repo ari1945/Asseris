@@ -206,3 +206,86 @@ export function reconcileUncorrectedMisstatements(input: {
     issues: missingFromSad.length + stale.length + (opinionInconsistent ? 1 : 0),
   };
 }
+
+/* ------------------------------------------------------------
+   SA 705 — konsistensi opini yang diterapkan vs determinan.
+   Guardrail level-modul (persisten, di luar panel Penentuan): opini
+   TERSIMPAN (opinionDoc.v1.type) direkonsiliasi dgn rekomendasi determinan
+   (recommendOpinion, dihitung view dari salah saji/lingkup/GC) + kelengkapan
+   laporan. Menutup celah: opini diterapkan lebih ringan dari yang diimplikasikan
+   (under-modification), opini modifikasian tanpa paragraf Basis (SA 705.20),
+   ketidakpastian material GC tanpa seksi khusus (SA 570.22), dan — paling
+   kritis — laporan DIFINALISASI padahal masih inkonsisten (gerbang mutu).
+   PURE: rekomendasi diterima sebagai input (tanpa menduplikasi matriks SA 705). ------------------------------------------------------------ */
+export const OPINION_LEVEL: Record<string, number> = { unmodified: 0, qualified: 1, adverse: 2, disclaimer: 2 };
+export const OPINION_LABEL: Record<string, string> = {
+  unmodified: 'Tanpa Modifikasian (WTP)',
+  qualified: 'Wajar Dengan Pengecualian (WDP)',
+  adverse: 'Tidak Wajar (TW)',
+  disclaimer: 'Tidak Menyatakan Opini (TMO)',
+};
+const opLabel = (t: string): string => OPINION_LABEL[t] || t;
+
+export interface OpinionIssue { code: string; severe: boolean; text: string }
+export interface OpinionConsistencyResult {
+  appliedType: string;
+  recommendedType: string;
+  diverges: boolean;
+  underModified: boolean;   // opini diterapkan LEBIH RINGAN dari rekomendasi (risiko material tak tercermin)
+  overModified: boolean;    // opini diterapkan lebih berat dari rekomendasi
+  issues: OpinionIssue[];
+  severe: boolean;          // ada isu berat (under-mod / basis hilang / GC hilang / finalisasi inkonsisten)
+  count: number;
+}
+
+export function reconcileOpinionConsistency(input: {
+  appliedType: string;
+  recommendedType: string;
+  scope?: string;
+  gcStatus?: string;
+  gcSectionShown?: boolean;
+  basisText?: string;
+  finalized?: boolean;
+}): OpinionConsistencyResult {
+  const applied = (input.appliedType || 'unmodified').trim();
+  const recommended = (input.recommendedType || 'unmodified').trim();
+  const aLvl = OPINION_LEVEL[applied] ?? 0;
+  const rLvl = OPINION_LEVEL[recommended] ?? 0;
+  const diverges = applied !== recommended;
+  const underModified = aLvl < rLvl;
+  const overModified = aLvl > rLvl;
+  const issues: OpinionIssue[] = [];
+
+  if (diverges) {
+    if (underModified) {
+      issues.push({ code: 'under', severe: true, text: `Opini diterapkan "${opLabel(applied)}" lebih ringan dari rekomendasi determinan "${opLabel(recommended)}" — salah saji material / pembatasan lingkup berisiko tak tercermin dalam opini (SA 705.7–10).` });
+    } else if (overModified) {
+      issues.push({ code: 'over', severe: false, text: `Opini diterapkan "${opLabel(applied)}" lebih berat dari rekomendasi determinan "${opLabel(recommended)}" — pastikan basis modifikasi memang mendukung.` });
+    } else {
+      issues.push({ code: 'mismatch', severe: false, text: `Jenis opini "${opLabel(applied)}" berbeda dari rekomendasi "${opLabel(recommended)}" meski setingkat — tinjau pemicu (salah saji vs pembatasan ruang lingkup).` });
+    }
+  }
+  if (applied !== 'unmodified' && !(input.basisText || '').trim()) {
+    issues.push({ code: 'basis', severe: true, text: 'Opini modifikasian tanpa paragraf Basis — SA 705.20 mewajibkan paragraf "Basis untuk Opini …".' });
+  }
+  const gc = (input.gcStatus || '').trim();
+  if (gc === 'mu' && !input.gcSectionShown) {
+    issues.push({ code: 'gc-missing', severe: true, text: 'Ketidakpastian material kelangsungan usaha diungkapkan memadai, namun seksi "Ketidakpastian Material Terkait Kelangsungan Usaha" tidak aktif (SA 570.22).' });
+  } else if (input.gcSectionShown && gc !== 'mu') {
+    issues.push({ code: 'gc-stray', severe: false, text: 'Seksi Kelangsungan Usaha aktif namun status GC bukan "Ketidakpastian Material" — tinjau relevansi paragraf.' });
+  }
+  const finalizedInconsistent = !!input.finalized && issues.some(i => i.severe);
+  if (finalizedInconsistent) {
+    issues.push({ code: 'finalized', severe: true, text: 'Laporan sudah DIFINALISASI namun mengandung inkonsistensi opini di atas — buka finalisasi & perbaiki sebelum penerbitan.' });
+  }
+  return {
+    appliedType: applied,
+    recommendedType: recommended,
+    diverges,
+    underModified,
+    overModified,
+    issues,
+    severe: issues.some(i => i.severe),
+    count: issues.length,
+  };
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements } from './canon_validation';
+import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements, reconcileOpinionConsistency } from './canon_validation';
 
 describe('probError — probabilitas 0–100', () => {
   it('menerima 0/50/100', () => {
@@ -203,5 +203,67 @@ describe('reconcileUncorrectedMisstatements — SA 450 rekonsiliasi 3-arah', () 
   it('input kosong aman', () => {
     const r = reconcileUncorrectedMisstatements({ aje: [], sad: [], om: 0, opinionType: '' });
     expect(r).toMatchObject({ proposed: 0, issues: 0, exceedsOm: false, opinionInconsistent: false });
+  });
+});
+
+describe('reconcileOpinionConsistency — SA 705 konsistensi opini', () => {
+  it('selaras (applied == recommended) → nol isu', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'qualified', recommendedType: 'qualified', basisText: 'Persediaan…' });
+    expect(r.diverges).toBe(false);
+    expect(r.count).toBe(0);
+    expect(r.severe).toBe(false);
+  });
+
+  it('under-modification: unmodified diterapkan padahal qualified direkomendasikan → severe', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'unmodified', recommendedType: 'qualified' });
+    expect(r.underModified).toBe(true);
+    expect(r.overModified).toBe(false);
+    expect(r.severe).toBe(true);
+    expect(r.issues.map(i => i.code)).toContain('under');
+  });
+
+  it('over-modification: adverse diterapkan padahal qualified direkomendasikan → tidak severe', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'adverse', recommendedType: 'qualified', basisText: 'x' });
+    expect(r.overModified).toBe(true);
+    expect(r.issues.map(i => i.code)).toContain('over');
+    expect(r.severe).toBe(false);
+  });
+
+  it('opini modifikasian tanpa paragraf Basis → isu basis (SA 705.20)', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'qualified', recommendedType: 'qualified', basisText: '  ' });
+    expect(r.issues.map(i => i.code)).toContain('basis');
+    expect(r.severe).toBe(true);
+  });
+
+  it('GC ketidakpastian material tanpa seksi khusus → isu gc-missing (SA 570.22)', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'unmodified', recommendedType: 'unmodified', gcStatus: 'mu', gcSectionShown: false });
+    expect(r.issues.map(i => i.code)).toContain('gc-missing');
+    expect(r.severe).toBe(true);
+  });
+
+  it('seksi GC aktif tanpa status ketidakpastian material → gc-stray (tidak severe)', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'unmodified', recommendedType: 'unmodified', gcStatus: 'none', gcSectionShown: true });
+    expect(r.issues.map(i => i.code)).toContain('gc-stray');
+    expect(r.severe).toBe(false);
+  });
+
+  it('finalisasi dengan inkonsistensi berat → menambah gerbang finalized', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'unmodified', recommendedType: 'adverse', finalized: true });
+    const codes = r.issues.map(i => i.code);
+    expect(codes).toContain('under');
+    expect(codes).toContain('finalized');
+    expect(r.severe).toBe(true);
+  });
+
+  it('finalisasi tetapi konsisten → tanpa gerbang finalized', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'unmodified', recommendedType: 'unmodified', finalized: true });
+    expect(r.issues).toEqual([]);
+  });
+
+  it('disclaimer vs adverse setara level → tidak dianggap under/over', () => {
+    const r = reconcileOpinionConsistency({ appliedType: 'disclaimer', recommendedType: 'adverse', basisText: 'x' });
+    expect(r.underModified).toBe(false);
+    expect(r.overModified).toBe(false);
+    expect(r.diverges).toBe(true); // tetap berbeda jenis
   });
 });
