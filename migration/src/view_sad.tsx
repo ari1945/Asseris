@@ -5,6 +5,7 @@ import { useFirm, useNav, useAmsPersist } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { materialityFor } from './canon_selectors';
+import { reconcileUncorrectedMisstatements, type UncorrResult } from './canon_validation';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
 
@@ -72,6 +73,19 @@ function SADLedger() {
   const pm = (_mat && _mat.pmFull != null) ? _mat.pmFull : Math.round(om * 0.75);
   const ctt = (_mat && _mat.cttFull != null) ? _mat.cttFull : Math.round(om * 0.05);
 
+  /* SA 450 — rekonsiliasi silang 3-arah (baca-saja): register jurnal AMS.AJE
+     (Posted/Proposed) × ledger SAD ini × jenis opini (opinionDoc.v1 → SA 705).
+     opinionDoc.v1 dibaca read-only; useServerState tak menulis saat mount →
+     tak menyemai/merusak dokumen opini (default minimal hanya .type). */
+  const [opinionDoc] = useAmsPersist('opinionDoc.v1', () => ({ type: 'unmodified' }));
+  const recon: UncorrResult = useMemoSD(() => reconcileUncorrectedMisstatements({
+    aje: AMS.AJE || [],
+    sad: items,
+    om,
+    opinionType: (opinionDoc && opinionDoc.type) || 'unmodified',
+    method,
+  }), [items, om, opinionDoc, method]);
+
   const cycleDisp = (id: any) => setItems((list: any) => list.map((m: any) => m.id === id
     ? { ...m, disp: DISP_CYCLE[(DISP_CYCLE.indexOf(m.disp) + 1) % DISP_CYCLE.length] } : m));
   const toggleQual = (id: any) => setQuals((list: any) => list.map((q: any) => q.id === id ? { ...q, on: !q.on } : q));
@@ -133,6 +147,39 @@ function SADLedger() {
             <KpiCard value={'Rp ' + fmt(Math.abs(calc.rolloverNet) / 1e6, 0)} label="Uncorrected Neto (jt)" accent={exceedsOM ? 'var(--red)' : exceedsPM ? 'var(--amber)' : 'var(--green)'} />
             <KpiCard value={(Math.abs(calc.rolloverNet) / om * 100).toFixed(0) + '%'} label="dari Overall Mat." accent={exceedsOM ? 'var(--red)' : exceedsPM ? 'var(--amber)' : 'var(--green)'} />
           </div>
+
+          {/* F4/SA450 — banner validasi silang 3-arah (AJE ↔ SAD ↔ opini) */}
+          {recon.issues > 0 && (
+            <div className="panel" style={{ margin: '0 0 12px', padding: '11px 13px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+              <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+                <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={16} /></span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 3 }}>
+                    Validasi silang SA 450 — {recon.issues} inkonsistensi antar sumber kebenaran
+                  </div>
+                  <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+                    {recon.stale.map((s) => (
+                      <li key={s.sadId}><b className="mono">{s.sadId}</b> · {s.reason} (jurnal <span className="mono">{s.ajeId}</span> = {s.ajeStatus}).</li>
+                    ))}
+                    {recon.missingFromSad.length > 0 && (
+                      <li>AJE usulan belum diakumulasi di ledger SAD: <span className="mono">{recon.missingFromSad.join(', ')}</span> — agregat SA 450 berisiko understated.</li>
+                    )}
+                    {recon.opinionInconsistent && (
+                      <li>Agregat tidak dikoreksi <b>Rp {fmt(recon.aggAbs / 1e6, 0)} jt</b> ({recon.pctOfOm}% OM) melampaui materialitas keseluruhan, namun opini tersimpan masih <b>tanpa modifikasian</b> — pertimbangkan opini modifikasian (SA 705.7/.8).</li>
+                    )}
+                  </ul>
+                  <div className="row gap8" style={{ marginTop: 8 }}>
+                    {(recon.stale.length > 0 || recon.missingFromSad.length > 0) && (
+                      <Btn sm onClick={() => nav('aje', { from: 'sad' })}><I.arrowRight size={12} /> Register AJE</Btn>
+                    )}
+                    {recon.opinionInconsistent && (
+                      <Btn sm variant="primary" onClick={() => nav('opinion', { from: 'sad' })}><I.gavel size={13} /> Opinion Generator</Btn>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <Panel noBody>
             <div style={{ padding: '0 12px' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>

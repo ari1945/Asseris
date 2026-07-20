@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm } from './canon_validation';
+import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements } from './canon_validation';
 
 describe('probError — probabilitas 0–100', () => {
   it('menerima 0/50/100', () => {
@@ -109,5 +109,99 @@ describe('reconcileDeficiencyComm — SA 265 ¶9 → SA 260 ¶16', () => {
   it('list kosong aman', () => {
     const r = reconcileDeficiencyComm({ deficiencies: [] });
     expect(r).toMatchObject({ total: 0, sig: 0, issues: 0, coveragePct: 100 });
+  });
+});
+
+describe('ajeRefKey — normalisasi ref SAD → id jurnal AMS.AJE', () => {
+  it('PAJE-03 & AJE-03 sama-sama → AJE-03', () => {
+    expect(ajeRefKey('PAJE-03')).toBe('AJE-03');
+    expect(ajeRefKey('AJE-03')).toBe('AJE-03');
+    expect(ajeRefKey('aje-3')).toBe('AJE-03');
+  });
+  it('ref non-jurnal → null', () => {
+    expect(ajeRefKey('SA 530')).toBeNull();
+    expect(ajeRefKey('SUM-PY')).toBeNull();
+    expect(ajeRefKey('CTT')).toBeNull();
+    expect(ajeRefKey('')).toBeNull();
+  });
+});
+
+describe('reconcileUncorrectedMisstatements — SA 450 rekonsiliasi 3-arah', () => {
+  const AJE = [
+    { id: 'AJE-01', status: 'Posted', amount: 2_340_000_000 },
+    { id: 'AJE-02', status: 'Posted', amount: 620_000_000 },
+    { id: 'AJE-03', status: 'Proposed', amount: 1_850_000_000 },
+    { id: 'AJE-05', status: 'Proposed', amount: 1_120_000_000 },
+  ];
+  // ledger SAD selaras (tanpa drift): item uncorrected ↔ AJE Proposed, corrected ↔ Posted
+  const SAD_OK = [
+    { id: 'M-01', disp: 'uncorrected', aje: 'PAJE-03', pbt: -1_950_000_000, na: -1_950_000_000, origin: 'current', qual: [] },
+    { id: 'M-02', disp: 'uncorrected', aje: 'AJE-05', pbt: -1_120_000_000, na: -1_120_000_000, origin: 'current', qual: [] },
+    { id: 'M-05', disp: 'corrected', aje: 'AJE-01', pbt: -2_340_000_000, na: -2_340_000_000, origin: 'current', qual: [] },
+  ];
+
+  it('ledger selaras + agregat < OM + opini konsisten → nol isu', () => {
+    const r = reconcileUncorrectedMisstatements({ aje: AJE, sad: SAD_OK, om: 4_250_000_000, opinionType: 'unmodified' });
+    expect(r.stale).toEqual([]);
+    expect(r.missingFromSad).toEqual([]);
+    expect(r.aggAbs).toBe(3_070_000_000); // 1.95M + 1.12M uncorrected current
+    expect(r.exceedsOm).toBe(false);
+    expect(r.opinionInconsistent).toBe(false);
+    expect(r.issues).toBe(0);
+  });
+
+  it('staleness: SAD "dikoreksi" padahal AJE masih usulan (Proposed)', () => {
+    const sad = [{ id: 'M-02', disp: 'corrected', aje: 'AJE-05', pbt: -1_120_000_000, na: -1_120_000_000, origin: 'current', qual: [] }];
+    const r = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'unmodified' });
+    expect(r.stale).toHaveLength(1);
+    expect(r.stale[0]).toMatchObject({ sadId: 'M-02', ajeId: 'AJE-05', ajeStatus: 'Proposed' });
+    expect(r.missingFromSad).toEqual(['AJE-03']); // AJE-03 Proposed tak terwakili di sad ini
+    expect(r.issues).toBe(2); // 1 stale + 1 missing
+  });
+
+  it('staleness: SAD "tidak dikoreksi" padahal AJE sudah diposting', () => {
+    const sad = [{ id: 'M-04', disp: 'uncorrected', aje: 'PAJE-02', pbt: -680_000_000, na: -680_000_000, origin: 'current', qual: [] }];
+    const r = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'unmodified' });
+    expect(r.stale).toHaveLength(1);
+    expect(r.stale[0]).toMatchObject({ sadId: 'M-04', ajeId: 'AJE-02', ajeStatus: 'Posted' });
+  });
+
+  it('completeness: AJE Proposed tanpa item SAD → missingFromSad', () => {
+    const sad = [{ id: 'M-01', disp: 'uncorrected', aje: 'PAJE-03', pbt: -1_950_000_000, na: -1_950_000_000, origin: 'current', qual: [] }];
+    const r = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'unmodified' });
+    expect(r.missingFromSad).toEqual(['AJE-05']); // AJE-03 terwakili M-01, AJE-05 hilang
+  });
+
+  it('SA 450→705: agregat > OM tetapi opini "unmodified" → inconsistent', () => {
+    const sad = [{ id: 'M-01', disp: 'uncorrected', aje: 'PAJE-03', pbt: -5_000_000_000, na: -5_000_000_000, origin: 'current', qual: ['fraud'] }];
+    const r = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'unmodified' });
+    expect(r.exceedsOm).toBe(true);
+    expect(r.opinionInconsistent).toBe(true);
+    expect(r.qualFlags).toContain('fraud');
+    expect(r.issues).toBeGreaterThanOrEqual(1);
+  });
+
+  it('SA 450→705: agregat > OM tetapi opini sudah "qualified" → konsisten', () => {
+    const sad = [{ id: 'M-01', disp: 'uncorrected', aje: 'PAJE-03', pbt: -5_000_000_000, na: -5_000_000_000, origin: 'current', qual: [] }];
+    const r = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'qualified' });
+    expect(r.exceedsOm).toBe(true);
+    expect(r.opinionModified).toBe(true);
+    expect(r.opinionInconsistent).toBe(false);
+  });
+
+  it('iron-curtain memakai efek aset neto & memasukkan carryover PY', () => {
+    const sad = [
+      { id: 'M-01', disp: 'uncorrected', aje: 'PAJE-03', pbt: -1_000_000_000, na: -1_000_000_000, origin: 'current', qual: [] },
+      { id: 'M-08', disp: 'uncorrected', aje: 'SUM-PY', pbt: 0, na: -180_000_000, origin: 'prior', qual: [] },
+    ];
+    const roll = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'unmodified', method: 'rollover' });
+    const iron = reconcileUncorrectedMisstatements({ aje: AJE, sad, om: 4_250_000_000, opinionType: 'unmodified', method: 'ironcurtain' });
+    expect(roll.aggAbs).toBe(1_000_000_000); // PY dikecualikan
+    expect(iron.aggAbs).toBe(1_180_000_000); // PY carryover masuk (na)
+  });
+
+  it('input kosong aman', () => {
+    const r = reconcileUncorrectedMisstatements({ aje: [], sad: [], om: 0, opinionType: '' });
+    expect(r).toMatchObject({ proposed: 0, issues: 0, exceedsOm: false, opinionInconsistent: false });
   });
 });
