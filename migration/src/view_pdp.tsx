@@ -7,6 +7,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Pelindungan Data Pribadi (UU 27/2022 · PDP)
@@ -269,6 +270,29 @@ function PDPView() {
 
 /* ---------------- RoPA detail drawer ---------------- */
 function PDPRopaDrawer({ r, onClose, P, nav }: any) {
+  const onExport = async () => {
+    const rows: (string | number)[][] = [
+      ['ID', r.id],
+      ['Aktivitas', r.activity],
+      ['Tujuan pemrosesan', r.purpose],
+      ['Subjek data', r.subject],
+      ['Dasar pemrosesan', r.basis],
+      ['Penerima data', r.recipients],
+      ['Transfer lintas-negara', r.crossBorder ? 'Ya' : 'Tidak'],
+      ['Tingkat risiko', r.risk],
+      ['Data spesifik', r.special ? 'Ya — pengamanan ketat' : 'Tidak'],
+      ['Jenis data pribadi', (r.data || []).join(', ')],
+      ['Kelas retensi', r.retClass],
+    ];
+    await amsExportXlsx({
+      kind: 'pdp-ropa', scope: 'firm',
+      fileName: `Catatan RoPA - ${r.id}.xlsx`,
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: `Catatan Aktivitas Pemrosesan (RoPA) — ${r.activity}`,
+      meta: [`${r.id} · UU 27/2022 Ps. 31 · dasar pemrosesan ${r.basis} · risiko ${r.risk}`],
+      sheets: [{ name: 'RoPA', columns: ['Atribut', 'Nilai'], rows, colWidths: [26, 70] }],
+    });
+  };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '94vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
@@ -304,7 +328,7 @@ function PDPRopaDrawer({ r, onClose, P, nav }: any) {
         </div>
         <div style={{ padding: '13px 18px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Btn onClick={onClose}>Tutup</Btn>
-          <Btn variant="primary"><I.download size={13} /> Unduh Catatan RoPA</Btn>
+          <Btn variant="primary" onClick={onExport}><I.download size={13} /> Unduh Catatan RoPA</Btn>
         </div>
       </div>
     </div>

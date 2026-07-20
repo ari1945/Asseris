@@ -366,6 +366,30 @@ function CRDokumen({ ctx }: any) {
 /* doc drawer — silsilah versi + log akses + segel */
 function CRDocDrawer({ d, onClose, nav }: any) {
   const versions = (d.versions || []).slice().reverse();
+  const onExport = async () => {
+    const rows: (string | number)[][] = [
+      ['Ref', d.id],
+      ['Dokumen', d.name],
+      ['Versi', 'v' + d.ver],
+      ['Klasifikasi', d.classification],
+      ['Perikatan', d.eng],
+      ['Penandatangan', d.signer],
+      ['Integritas', d.valid ? 'Valid — hash konten cocok' : 'Mismatch — perubahan tak sah terdeteksi'],
+      ['Segel WORM', d.wormLabel],
+      ['Hash tersegel (SHA-256)', d.sha],
+      ['Enkripsi at-rest', 'AES-256-GCM'],
+      ['Retensi', (d.retentionYears || 10) + ' tahun'],
+      ['Legal hold', d.legalHold ? 'Ya' : 'Tidak'],
+    ];
+    await amsExportXlsx({
+      kind: 'crypto-seal', scope: 'firm',
+      fileName: `Bukti Segel - ${d.id}.xlsx`,
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: `Bukti Segel Kriptografis — ${d.name}`,
+      meta: [`${d.id} v${d.ver} · SHA-256 · ${d.wormLabel} · ${d.valid ? 'integritas valid' : 'INTEGRITAS MISMATCH'}`],
+      sheets: [{ name: 'Bukti Segel', columns: ['Atribut', 'Nilai'], rows, colWidths: [26, 80] }],
+    });
+  };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
       <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 480, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
@@ -441,7 +465,7 @@ function CRDocDrawer({ d, onClose, nav }: any) {
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
           <Btn style={{ flex: 1 }} onClick={() => { nav('dms', { from: 'crypto' }); onClose(); }}><I.archive size={14} /> Buka di Document Mgmt</Btn>
-          <Btn variant="primary"><I.download size={14} /> Unduh Bukti Segel</Btn>
+          <Btn variant="primary" onClick={onExport}><I.download size={14} /> Unduh Bukti Segel</Btn>
         </div>
       </div>
     </div>

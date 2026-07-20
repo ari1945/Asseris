@@ -9,6 +9,7 @@ import { BoStat } from './view_bo1';
 import { PDrawer } from './view_docparts';
 import { KV, SectionTitle } from './view_fpm_parts';
 import { api } from './api';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Retensi & Arsip (modul mendalam · SA 230 / SPM 1 / ISQM)
@@ -393,9 +394,27 @@ function RecordsRetention() {
     { id: 'recon', label: 'Rekonsiliasi' },
   ];
 
+  const onExport = async () => {
+    const boxRows: (string | number)[][] = [];
+    for (const b of boxes) boxRows.push([b.id, b.client, b.engId, b.fy, b.source, b.docCount, rrSize(b.sizeMB), b.archivedOn ? rrDID(b.archivedOn, { month: 'short', year: 'numeric' }) : '—', b.retentionUntil ? rrDID(b.retentionUntil, { month: 'short', year: 'numeric' }) : '—', b.status]);
+    const clsRows: (string | number)[][] = [];
+    for (const c of R.RETENTION_CLASSES) clsRows.push([c.jenis, c.dasar, c.years + ' thn', c.format]);
+    await amsExportXlsx({
+      kind: 'firm-records', scope: 'firm',
+      fileName: 'Register Arsip & Retensi.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Register Arsip & Kebijakan Retensi (SA 230 / SPM 1 / ISQM)',
+      meta: [`${m.total} arsip · ${m.sizeGB.toFixed(1)} GB · ${m.locked} terkunci · ${m.due} jatuh tempo pemusnahan · ${m.holds} legal hold aktif`],
+      sheets: [
+        { name: 'Register Arsip', columns: ['Kotak', 'Klien', 'Perikatan', 'FY', 'Sumber', 'Berkas', 'Ukuran', 'Diarsip', 'Retensi s/d', 'Status'], rows: boxRows, colWidths: [12, 26, 14, 8, 10, 8, 10, 14, 14, 12] },
+        { name: 'Kebijakan Retensi', columns: ['Kelas Dokumen', 'Dasar Hukum / Standar', 'Retensi', 'Format'], rows: clsRows, colWidths: [24, 40, 10, 14] },
+      ],
+    });
+  };
+
   return (
     <>
-      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SPM 1 · ISQM</span><Btn sm><I.download size={13} /> Ekspor Register</Btn></div>} />
+      <SubBar moduleId="records" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> SA 230 · SPM 1 · ISQM</span><Btn sm onClick={onExport}><I.download size={13} /> Ekspor Register</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <BoStat value={m.total} label={'Arsip Terkelola · ' + m.sizeGB.toFixed(1) + ' GB'} />

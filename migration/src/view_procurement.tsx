@@ -9,6 +9,7 @@ import { Btn, Donut, Panel } from './ui';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { ProcDiligence, ProcLineage, ProcP2P, ProcSpend, ProcVendorDrawer } from './view_procurement2';
 import { BO } from './data_backoffice';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Pengadaan & Manajemen Vendor (DEEP) · 1/2
@@ -121,12 +122,31 @@ function Procurement() {
     { id: 'lineage', label: 'Sumber Kebenaran' },
   ];
 
+  const total = conc.total;
+  const onExport = async () => {
+    const vRows: (string | number)[][] = [];
+    for (const v of B.VENDORS) vRows.push([v.id, v.name, v.cat, v.npwp, v.since, AMS.rp(v.ytd), procPct(v.ytd / total), v.otp + '%', v.risk, v.diligence, v.status]);
+    const poRows: (string | number)[][] = [];
+    for (const p of B.PURCHASE_ORDERS) poRows.push([p.id, AMS.rp(p.amount), p.status]);
+    await amsExportXlsx({
+      kind: 'firm-procurement', scope: 'firm',
+      fileName: 'Register Pengadaan & Vendor.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Register Vendor & Purchase Order',
+      meta: [`${B.VENDORS.length} vendor master · ${B.PURCHASE_ORDERS.length} PO · belanja YTD ${AMS.fmt(hl.spendYtd / 1e9, 1)} M · HHI ${conc.hhi}`],
+      sheets: [
+        { name: 'Master Vendor', columns: ['ID', 'Vendor', 'Kategori', 'NPWP', 'Sejak', 'Belanja YTD', 'Share', 'SLA', 'Risiko', 'PMPJ', 'Status'], rows: vRows, colWidths: [10, 28, 16, 20, 8, 20, 8, 8, 10, 14, 12] },
+        { name: 'Purchase Order', columns: ['No. PO', 'Nilai', 'Status'], rows: poRows, colWidths: [16, 20, 20] },
+      ],
+    });
+  };
+
   return (
     <>
       <SubBar moduleId="procurement" right={
         <div className="row gap8 ac">
           <span className="chip tiny"><I.link2 size={11} /> {B.VENDORS.length} vendor master · {B.PURCHASE_ORDERS.length} PO</span>
-          <Btn sm><I.download size={13} /> Ekspor Register</Btn>
+          <Btn sm onClick={onExport}><I.download size={13} /> Ekspor Register</Btn>
           <Btn sm variant="primary"><I.plus size={13} /> Buat PO</Btn>
         </div>
       } />

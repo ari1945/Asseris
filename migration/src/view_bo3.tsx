@@ -8,6 +8,7 @@ import { Avatar, Btn, Donut } from './ui';
 import { BoBadge, BoStat, BoTabPanel, boJt } from './view_bo1';
 import { HBars, KV, LineChart, SectionTitle } from './view_fpm_parts';
 import { BO } from './data_backoffice';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Backoffice & Firm Mgmt (3/3)
@@ -379,9 +380,27 @@ function FirmLicensing() {
   const sevCol = (d: any) => d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--ink-2)';
   const kindCol = { 'Izin Firma': 'var(--blue)', 'Izin AP': 'var(--purple)', 'Keanggotaan': 'var(--teal)' };
 
+  const onExport = async () => {
+    const flRows: (string | number)[][] = [];
+    for (const l of fl) flRows.push([l.id, l.nama, l.no, l.otoritas, l.terbit, l.exp || 'Tanpa batas', l.status]);
+    const apRows: (string | number)[][] = [];
+    for (const a of ap) apRows.push([a.ap, a.izin, a.reg, a.exp, `${a.ppl}/${a.pplReq}`, a.onPace ? 'Sesuai laju' : 'Di bawah laju', `${a.tenure}/${a.rotationLimit}th`]);
+    await amsExportXlsx({
+      kind: 'firm-licensing', scope: 'firm',
+      fileName: 'Bukti Perizinan & Registrasi.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Register Izin Firma & Akuntan Publik',
+      meta: [`${fl.length} izin firma · ${ap.length} akuntan publik · ${cal120.length} perpanjangan ≤120 hari · Izin KAP 1142/KM.1/2019`],
+      sheets: [
+        { name: 'Izin Firma', columns: ['ID', 'Izin / Registrasi', 'Nomor', 'Otoritas', 'Terbit', 'Berakhir', 'Status'], rows: flRows, colWidths: [10, 30, 20, 18, 12, 14, 12] },
+        { name: 'Izin Akuntan Publik', columns: ['Akuntan Publik', 'No. Izin', 'Registrasi', 'Berakhir', 'PPL (SKP)', 'Status PPL', 'Rotasi'], rows: apRows, colWidths: [24, 16, 16, 12, 12, 16, 12] },
+      ],
+    });
+  };
+
   return (
     <>
-      <SubBar moduleId="licensing" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> Izin KAP 1142/KM.1/2019</span><Btn sm><I.download size={13} /> Unduh Bukti</Btn></div>} />
+      <SubBar moduleId="licensing" right={<div className="row gap8 ac"><span className="chip tiny"><I.shield size={11} /> Izin KAP 1142/KM.1/2019</span><Btn sm onClick={onExport}><I.download size={13} /> Unduh Bukti</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
 
         {/* provenance banner */}
