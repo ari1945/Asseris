@@ -8,6 +8,7 @@ import { Avatar, Badge, Btn, Panel, Stat } from './ui';
 import { MSub } from './view_fpm_parts';
 import { RiskKontrol, RiskRespons, RiskTren } from './view_risk2';
 import { DiagnosticPanel } from './diagnostics_panel';
+import { reconcileRiskResponse } from './canon_audit_plan';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -69,6 +70,10 @@ function RiskAssessment() {
 
   const sig = risks.filter((r: any) => r.likelihood * r.impact >= 12).length;
   const fraud = risks.filter((r: any) => r.fraud).length;
+  /* Validasi silang RoMM → prosedur (SA 315/330): reuse reconcileRiskResponse
+     (canon_audit_plan) — dulu hanya dipakai di Memo Strategi, kini surface
+     sebagai guardrail di register. */
+  const romGap = reconcileRiskResponse({ risks }).rollup;
 
   const [mtab, setMtab] = useInitialTab('risk', () => localStorage.getItem('ams.risk.tab') || 'register');
   React.useEffect(() => { try { localStorage.setItem('ams.risk.tab', mtab); } catch (e) {} }, [mtab]);
@@ -95,6 +100,21 @@ function RiskAssessment() {
       {mtab === 'register' && <div className="view-scroll">
         <div className="view-pad">
           <div style={{ marginBottom: 12 }}><DiagnosticPanel area="risk" title="Diagnostik Risiko — Temuan Otomatis" /></div>
+          {romGap.gapRisks > 0 && (
+            <div className="panel" style={{ padding: '10px 12px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+              <div className="row ac gap8">
+                <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
+                <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>
+                  <b>{romGap.gapRisks}</b> dari {romGap.total} RoMM belum tertaut penuh ke rencana respons (cakupan {romGap.coveragePct}%)
+                  {romGap.byKind['no-response'] ? ` · ${romGap.byKind['no-response']} tanpa respons` : ''}
+                  {romGap.byKind['no-proc'] ? ` · ${romGap.byKind['no-proc']} tanpa prosedur` : ''}
+                  {romGap.byKind['under-response'] ? ` · ${romGap.byKind['under-response']} respons kurang memadai (risiko signifikan/kecurangan)` : ''}
+                  {romGap.byKind['no-wp'] ? ` · ${romGap.byKind['no-wp']} tanpa KK` : ''}
+                  {' '}— lengkapi tautan di <button type="button" onClick={() => nav('programme', { from: 'risk' })} style={{ background: 'none', border: 0, padding: 0, color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Program Audit</button>.
+                </span>
+              </div>
+            </div>
+          )}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12 }}>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.length} label="Total RoMM" /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={sig} label="Risiko Signifikan" accent="var(--red)" /></div></Panel>
