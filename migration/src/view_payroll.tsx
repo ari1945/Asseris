@@ -14,6 +14,8 @@ import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
    ============================================================ */
 const { useState: usePR } = React;
 
+type PSent = Record<string, { at: string; by: string }>;
+
 /* compute one employee's payslip */
 function calcPayslip(p: any, R: any) {
   const base = p.gross + p.allowance;                     // penghasilan bruto
@@ -49,6 +51,10 @@ function Payroll() {
   const [PR] = useAmsPersist('payrollData', () => AMS.PAYROLL);
   const [sel, setSel] = usePR(null);
   const [run, setRun] = useAmsPersist('payrollRun', 'draft'); // draft | approved | paid
+  const [sent, setSent] = useAmsPersist('payrollSent.v1', () => ({})); // { empId: { at, by } } — distribusi slip
+  const meName = (auth && auth.user && auth.user.name) || 'HR';
+  const sendToday = (() => { try { return new Date().toLocaleDateString('en-CA'); } catch (e) { return '2026-03-09'; } })();
+  const markSent = (id: string) => setSent((m: PSent) => ({ ...m, [id]: { at: sendToday, by: meName } }));
   const [thr, setThr] = usePR(false);
   const [tab, setTab] = usePR('gaji');
 
@@ -194,12 +200,12 @@ function Payroll() {
         {tab === 'buktipotong' && <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>Bukti potong <b>1721-A1</b> diterbitkan tahunan melalui Coretax DJP. Estimasi tahunan mengasumsikan penghasilan tetap; rekonsiliasi final mengikuti tarif progresif Pasal 17 pada masa pajak Desember.</div>}
       </div></div>
 
-      {person && <PayslipDrawer r={person} R={R} onClose={() => setSel(null)} />}
+      {person && <PayslipDrawer r={person} R={R} canSend={isFull} sent={sent[person.id]} onSend={markSent} onClose={() => setSel(null)} />}
     </>
   );
 }
 
-function PayslipDrawer({ r, R, onClose }: any) {
+function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
   const { fmt } = AMS;
   const s = r.slip;
   const FIRM: any = AMS.FIRM;
@@ -252,7 +258,9 @@ function PayslipDrawer({ r, R, onClose }: any) {
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
           <Btn style={{ flex: 1 }} onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={13} /> Unduh Slip (PDF)</Btn>
-          <Btn variant="primary" style={{ flex: 1 }}><I.mail size={13} /> Kirim ke Karyawan</Btn>
+          {canSend && (sent
+            ? <Btn disabled style={{ flex: 1, color: 'var(--green)' }} title={'Terkirim ' + sent.at + ' oleh ' + sent.by}><I.check size={13} /> Terkirim · {sent.at}</Btn>
+            : <Btn variant="primary" style={{ flex: 1 }} onClick={() => onSend(r.id)}><I.mail size={13} /> Kirim ke Karyawan</Btn>)}
         </div>
       </div>
     </div>

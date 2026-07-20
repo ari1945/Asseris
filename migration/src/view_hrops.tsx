@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist } from './contexts';
+import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
@@ -21,6 +21,7 @@ const LV_STAT = { 'Disetujui': 'green', 'Menunggu': 'amber', 'Ditolak': 'red' };
 const LV_TYPE_COLOR = { 'Cuti Tahunan': '#005085', 'Sakit': '#9a6a00', 'Cuti Menikah': '#5b3fa6', 'Cuti Melahirkan': '#0a6b73', 'Izin': '#647889' };
 
 function LeaveAttendance() {
+  const nav = useNav();
   const staff: any = AMS.STAFF;
   // 2026-07-05 — saldo cuti & pengajuan ter-filter server (personal.get): non-privileged hanya
   // menerima barisnya sendiri (tabel Saldo Cuti otomatis menyusut, pola view_payroll).
@@ -42,7 +43,7 @@ function LeaveAttendance() {
 
   return (
     <>
-      <SubBar moduleId="leave" right={<div className="row gap8 ac"><Badge kind="blue">Kuota 12 hari/tahun</Badge><Btn sm variant="primary"><I.plus size={14} /> Ajukan Cuti</Btn></div>} />
+      <SubBar moduleId="leave" right={<div className="row gap8 ac"><Badge kind="blue">Kuota 12 hari/tahun</Badge><Btn sm variant="primary" onClick={() => nav('personal')} title="Ajukan cuti via Data Personal Saya (self-service)"><I.plus size={14} /> Ajukan Cuti</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent={pending.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>

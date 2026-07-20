@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useNav } from './contexts';
+import { useAmsPersist, useNav, useAuth } from './contexts';
+import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
@@ -15,9 +16,13 @@ import { useEthicsOverrides, ethicsComplianceOf } from './ethics_gate';
    ============================================================ */
 const { useState: usePCcon } = React;
 
+type EthDecl = Record<string, { signed?: boolean; items?: number[]; date?: string; exceptions?: number; exNote?: string; requested?: boolean; requestedAt?: string }>;
+
 function EthicsDeclaration() {
   const A: any = AMS, fmt = A.fmt;
   const nav = useNav();
+  const authEth = useAuth();
+  const canReqDecl = !authEth || typeof authEth.can !== 'function' || authEth.can(CAP.HR_MANAGE);
   const [tab, setTab] = usePCcon('decl');
   const [decl, setDecl] = useAmsPersist('pc.ethics', () => A.ETHICS_DECL);
   const [gifts, setGifts] = useAmsPersist('pc.gifts', () => A.GIFTS_REGISTER);
@@ -40,13 +45,18 @@ function EthicsDeclaration() {
   const amlPending = aml.filter((a: any) => a.result !== 'Bersih').length;
 
   const sign = (id: any) => setDecl((d: any) => ({ ...d, [id]: { ...d[id], signed: true, date: '2026-03-09', items: ITEMS.map((_: any, i: any) => (d[id].items[i] ? 1 : 1)) } }));
+  const requestDecl = () => setDecl((d: EthDecl) => {
+    const next: EthDecl = { ...d };
+    for (const s of myStaff) { const cur = next[s.id]; if (cur && !cur.signed) next[s.id] = { ...cur, requested: true, requestedAt: '2026-03-09' }; }
+    return next;
+  });
   const decideGift = (id: any, status: any) => setGifts((list: any) => list.map((g: any) => g.id === id ? { ...g, status, action: status === 'Disetujui' ? 'Disetujui & dicatat' : g.action } : g));
 
   const tabs = [{ id: 'decl', label: 'Deklarasi Tahunan', count: myStaff.length - signed || undefined }, { id: 'gifts', label: 'Register Gratifikasi', count: giftsPending || undefined }, { id: 'aml', label: 'Screening APU-PPT' }, { id: 'noclar', label: 'NOCLAR (§360)', count: A.NOCLAR_ETHICS.filter((r: any) => r.stageIdx > 0 && r.stageIdx < A.NOCLAR_STAGES.length - 1).length || undefined }, { id: 'taxtech', label: 'Etika Pajak & Teknologi' }];
 
   return (
     <>
-      <SubBar moduleId="ethics" right={<div className="row gap8 ac"><Badge kind="blue">Kode Etik IAPI · TA 2026</Badge><Btn sm><I.send size={13} /> Minta Deklarasi</Btn></div>} />
+      <SubBar moduleId="ethics" right={<div className="row gap8 ac"><Badge kind="blue">Kode Etik IAPI · TA 2026</Badge>{canReqDecl && <Btn sm onClick={requestDecl} title="Kirim permintaan deklarasi ke seluruh personel yang belum menandatangani"><I.send size={13} /> Minta Deklarasi</Btn>}</div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={signed + '/' + staff.length} label="Deklarasi Ditandatangani" accent={signed === staff.length ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
@@ -74,7 +84,7 @@ function EthicsDeclaration() {
                           return <td key={i} className="num" style={{ textAlign: 'center' }}>{d.signed ? (ok ? <I.check size={14} style={{ color: 'var(--green)' }} /> : ex ? <span title={d.exNote} style={{ color: 'var(--amber)' }}><I.alert size={13} /></span> : '–') : <span className="muted">–</span>}</td>;
                         })}
                         <td className="tiny muted">{d.signed ? new Date(d.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '—'}</td>
-                        <td>{d.signed ? (d.exceptions ? <Badge kind="amber">Dgn Pengecualian</Badge> : <Badge kind="green">Lengkap</Badge>) : <button className="btn sm" style={{ height: 22, color: 'var(--blue)' }} onClick={() => sign(s.id)}><I.check size={12} /> Tandatangani</button>}</td>
+                        <td>{d.signed ? (d.exceptions ? <Badge kind="amber">Dgn Pengecualian</Badge> : <Badge kind="green">Lengkap</Badge>) : <div className="row ac gap6">{d.requested && <span className="chip tiny" style={{ color: 'var(--amber)', borderColor: 'var(--amber)' }} title={'Deklarasi diminta ' + (d.requestedAt || '')}><I.send size={10} /> Diminta</span>}<button className="btn sm" style={{ height: 22, color: 'var(--blue)' }} onClick={() => sign(s.id)}><I.check size={12} /> Tandatangani</button></div>}</td>
                       </tr>
                     );
                   })}
