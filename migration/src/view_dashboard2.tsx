@@ -1,7 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useAmsPersist, useFirm, useNav } from './contexts';
+import { capacityModel, seedForwardPlan } from './canon_capacity';
+import type { CapacitySeed } from './canon_capacity';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { HBars, LineChart, StackBar } from './view_fpm_parts';
@@ -23,6 +25,12 @@ function DashOperasional() {
   const nav = useNav();
   const { engagements, clients, clientById } = useFirm();
   const { team, deadlines } = useAudit();
+
+  /* Kapasitas: DITURUNKAN dari 'schedule' + capacityPlan.v1 (SSOT tunggal, sama
+     dgn modul Capacity Planning) — bukan lagi seed AMS.CAPACITY langsung. */
+  const [dSchedule] = useAmsPersist('schedule', () => AMS.SCHEDULE);
+  const [dPlan] = useAmsPersist('capacityPlan.v1', () => seedForwardPlan(AMS.CAPACITY as CapacitySeed));
+  const capGrades = capacityModel(dSchedule, dPlan, { nowLabel: (AMS.CAPACITY as CapacitySeed).weeks[0] }).grades;
 
   const active = engagements.filter((e: any) => e.status !== 'Completed');
   const critical = deadlines.filter((d: any) => d.days <= 14).length;
@@ -99,9 +107,9 @@ function DashOperasional() {
 
         <Panel title="Kapasitas Tim · 8 Minggu" sub="supply vs demand (jam)" actions={<Btn sm variant="ghost" onClick={() => nav('capacity')}><I.arrowRight size={13} /></Btn>}>
           <div style={{ padding: '12px 14px', display: 'grid', gap: 12 }}>
-            {(AMS as any).CAPACITY.grades.map((g: any) => {
-              const supply = g.supply.reduce((s: any, v: any) => s + v, 0);
-              const demand = g.demand.reduce((s: any, v: any) => s + v, 0);
+            {capGrades.map((g) => {
+              const supply = g.supply.reduce((s: number, v: number) => s + v, 0);
+              const demand = g.demand.reduce((s: number, v: number) => s + v, 0);
               const ratio = Math.round(demand / supply * 100);
               return (
                 <div key={g.grade}>

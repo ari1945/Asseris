@@ -306,7 +306,7 @@ function RemediationTab({ deficiencies, nav }: any) {
                   <OKv label="Utilisasi puncak senior" v={P.peakUtil + '%'} accent={P.peakUtil > 100 ? 'var(--red)' : 'var(--amber)'} />
                   <OKv label="Senior terdampak" v={P.overloaded.map((s: any) => s.name.split(' ')[0]).join(', ') || '—'} />
                 </div>
-                <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.4 }}>Angka ditarik dari <span className="mono">CAPACITY.staff</span> — defisiensi QR-02 tervalidasi terhadap proyeksi beban senior 8 minggu, bukan klaim manual.</div>
+                <div className="tiny muted" style={{ marginTop: 6, lineHeight: 1.4 }}>Angka diturunkan dari <span className="mono">schedule</span> + <span className="mono">capacityPlan</span> (Capacity Planning) — defisiensi QR-02 tervalidasi terhadap proyeksi beban senior, bukan klaim manual.</div>
               </div>
             )}
 

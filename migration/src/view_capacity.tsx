@@ -1,6 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { useAmsPersist } from './contexts';
+import { capacityModel, seedForwardPlan } from './canon_capacity';
+import type { CapacityPlan, CapacitySeed, GradeSeries } from './canon_capacity';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -23,10 +26,31 @@ function capCell(v: any, leave: any) {
 }
 
 function CapacityPlanning() {
-  const { fmt, CAPACITY } = AMS;
-  const { weeks, grades, staff, pipeline } = CAPACITY as any;
+  const { fmt } = AMS;
+  /* SSOT: minggu-berjalan DITURUNKAN dari 'schedule' (booking nyata, key sama
+     yang dibaca Resource Scheduler); minggu ke-depan = capacityPlan.v1 (firm-scope,
+     editable). Menutup gap "dua model kapasitas" (eval 2026-07-19 Kelas G). */
+  const [schedule] = useAmsPersist('schedule', () => AMS.SCHEDULE);
+  const [plan, setPlan] = useAmsPersist('capacityPlan.v1', () => seedForwardPlan(AMS.CAPACITY as CapacitySeed));
   const [grade, setGrade] = useStateCap('Semua');
   const [hover, setHover] = useStateCap(null);
+  const [editing, setEditing] = useStateCap(false);
+
+  const leaveSet = useMemoCap(() => new Set((AMS.STAFF || []).filter((s) => s.status === 'Cuti').map((s) => (s.name || '').split(',')[0].trim())), []);
+  const model = useMemoCap(() => capacityModel(schedule, plan, {
+    nowLabel: (AMS.CAPACITY as CapacitySeed).weeks[0],
+    pipeline: AMS.PIPELINE,
+    leaveOf: (n: string) => leaveSet.has(n),
+  }), [schedule, plan, leaveSet]);
+  const { weeks, grades, staff, pipeline } = model;
+  const fwdN = plan.weeks.length;   /* minggu ke-depan yang bisa disunting (index 1.. di weeks) */
+  const userName = AMS.USER.name || 'Pengguna';
+  const setCell = (gradeName: string, field: 'supply' | 'demand', wi: number, val: number) => setPlan((pl: CapacityPlan) => ({
+    ...pl,
+    grades: pl.grades.map((g) => g.grade === gradeName ? { ...g, [field]: g[field].map((x, i) => i === wi ? Math.max(0, val) : x) } : g),
+    updatedBy: userName,
+    updatedAt: new Date().toISOString(),
+  }));
 
   // selected series
   const series = useMemoCap(() => {
@@ -51,7 +75,7 @@ function CapacityPlanning() {
       <SubBar moduleId="capacity" right={
         <div className="row gap8 ac">
           <Seg options={['Semua', 'Partner', 'Manager', 'Senior', 'Junior']} value={grade} onChange={setGrade} />
-          <Btn sm><I.calendar size={13} /> 8 minggu</Btn>
+          <Btn sm variant={editing ? 'primary' : undefined} onClick={() => setEditing((v: boolean) => !v)}><I.sliders size={13} /> {editing ? 'Selesai' : 'Sunting Rencana'}</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -60,6 +84,10 @@ function CapacityPlanning() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={deficitWeeks} label="Minggu Defisit Kapasitas" accent={deficitWeeks ? 'var(--red)' : 'var(--green)'} /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(benchNext4) + 'h'} label="Bench 4 Minggu Depan" accent="var(--blue)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={fmt(pipeProb) + 'h'} label="Demand Pipeline (tertimbang)" accent="var(--purple)" /></div></Panel>
+        </div>
+
+        <div className="tiny muted" style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <I.link2 size={12} /> Minggu berjalan (<b style={{ color: 'var(--ink-2)' }}>{weeks[0]}</b>) diturunkan langsung dari booking Resource Scheduler; minggu berikutnya dari rencana kapasitas (dapat disunting).
         </div>
 
         {/* supply vs demand chart */}
@@ -97,6 +125,31 @@ function CapacityPlanning() {
             </div>
           </div>
         </Panel>
+
+        {editing && (
+          <Panel noBody style={{ marginBottom: 12 }}>
+            <div className="panel-h"><h3>Sunting Rencana Kapasitas — Minggu ke Depan</h3><div style={{ flex: 1 }} />
+              <span className="tiny muted">jam/minggu · minggu berjalan diturunkan dari Scheduler (tak disunting di sini)</span></div>
+            <div style={{ overflowX: 'auto', padding: '4px 14px 12px' }}>
+              <table className="dtbl" style={{ minWidth: 640 }}>
+                <thead><tr><th style={{ minWidth: 150 }}>Grade · Metrik</th>{plan.weeks.map((w: string, i: number) => <th key={i} className="num" style={{ textAlign: 'center' }}>{w}</th>)}</tr></thead>
+                <tbody>
+                  {plan.grades.map((g: GradeSeries) => [
+                    <tr key={g.grade + '-s'}>
+                      <td><b>{g.grade}</b> · <span className="tiny muted">kapasitas</span></td>
+                      {g.supply.slice(0, fwdN).map((v, i) => <td key={i} style={{ padding: '2px 4px' }}><input className="input mono" type="number" value={v} onChange={(e: { target: { value: string } }) => setCell(g.grade, 'supply', i, +e.target.value)} style={{ height: 26, textAlign: 'right', width: 62 }} /></td>)}
+                    </tr>,
+                    <tr key={g.grade + '-d'}>
+                      <td style={{ paddingLeft: 16 }} className="tiny muted">kebutuhan</td>
+                      {g.demand.slice(0, fwdN).map((v, i) => <td key={i} style={{ padding: '2px 4px' }}><input className="input mono" type="number" value={v} onChange={(e: { target: { value: string } }) => setCell(g.grade, 'demand', i, +e.target.value)} style={{ height: 26, textAlign: 'right', width: 62 }} /></td>)}
+                    </tr>,
+                  ])}
+                </tbody>
+              </table>
+              {plan.updatedBy && <div className="tiny muted" style={{ marginTop: 8 }}>Terakhir disunting oleh <b>{plan.updatedBy}</b>{plan.updatedAt ? ' · ' + new Date(plan.updatedAt).toLocaleString('id-ID') : ''}.</div>}
+            </div>
+          </Panel>
+        )}
 
         {/* per-staff heatmap */}
         <Panel noBody style={{ marginBottom: 12 }}>

@@ -346,7 +346,7 @@
   },
   "src/view_capacity.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 47
+      "count": 46
     }
   },
   "src/view_clientportal.tsx": {
@@ -401,7 +401,7 @@
   },
   "src/view_dashboard2.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 53
+      "count": 47
     }
   },
   "src/view_dataflow.tsx": {
@@ -621,7 +621,7 @@
   },
   "src/view_isqm_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 31
+      "count": 28
     }
   },
   "src/view_jet.tsx": {
