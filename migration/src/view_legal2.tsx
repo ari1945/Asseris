@@ -91,7 +91,7 @@ function FirmLegal() {
         <div className="row gap8 ac">
           {driftCount > 0 && <span className="chip tiny" style={{ color: 'var(--amber)' }} title="Entri registri legacy yang belum selaras dengan SSOT"><I.alert size={11} /> {driftCount} perlu sinkron</span>}
           <span className="chip tiny"><I.gavel size={11} /> {openLit.length} perkara aktif</span>
-          <Btn sm variant="primary"><I.plus size={13} /> Tambah Kontrak</Btn>
+          <span className="chip tiny muted" title="Read-only — entri kontrak dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

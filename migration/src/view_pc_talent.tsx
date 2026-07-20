@@ -45,7 +45,7 @@ function Recruitment() {
 
   return (
     <>
-      <SubBar moduleId="recruitment" right={<div className="row gap8 ac"><Badge kind="blue">{openReqs} lowongan aktif</Badge><Btn sm variant="primary"><I.plus size={14} /> Requisisi Baru</Btn></div>} />
+      <SubBar moduleId="recruitment" right={<div className="row gap8 ac"><Badge kind="blue">{openReqs} lowongan aktif</Badge><span className="chip tiny muted" title="Read-only — pengelolaan populasi requisisi menyusul (fase populasi editable)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={openReqs} label="Requisisi Terbuka" /></div></Panel>
@@ -187,7 +187,7 @@ function Learning() {
 
   return (
     <>
-      <SubBar moduleId="learning" right={<div className="row gap8 ac"><Badge kind="blue">{COMP.length} kompetensi inti</Badge><Btn sm variant="primary"><I.plus size={14} /> Jadwalkan Pelatihan</Btn></div>} />
+      <SubBar moduleId="learning" right={<div className="row gap8 ac"><Badge kind="blue">{COMP.length} kompetensi inti</Badge><span className="chip tiny muted" title="Read-only — penjadwalan katalog pelatihan menyusul (fase populasi editable)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={coverage + '%'} label="Kompetensi Terpenuhi" accent={coverage >= 80 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>

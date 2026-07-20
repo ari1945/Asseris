@@ -65,7 +65,7 @@ function FirmTravel() {
 
   return (
     <>
-      <SubBar moduleId="travel" right={<div className="row gap8 ac"><span className="chip tiny"><I.users size={11} /> {sum.pending.length} pengajuan menunggu</span><Btn sm variant="primary"><I.plus size={13} /> Ajukan Perjalanan</Btn></div>} />
+      <SubBar moduleId="travel" right={<div className="row gap8 ac"><span className="chip tiny"><I.users size={11} /> {sum.pending.length} pengajuan menunggu</span><span className="chip tiny muted" title="Read-only — pengajuan perjalanan dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
 
         {/* provenance banner — satu sumber kebenaran */}

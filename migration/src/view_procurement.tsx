@@ -147,7 +147,7 @@ function Procurement() {
         <div className="row gap8 ac">
           <span className="chip tiny"><I.link2 size={11} /> {B.VENDORS.length} vendor master · {B.PURCHASE_ORDERS.length} PO</span>
           <Btn sm onClick={onExport}><I.download size={13} /> Ekspor Register</Btn>
-          <Btn sm variant="primary"><I.plus size={13} /> Buat PO</Btn>
+          <span className="chip tiny muted" title="Read-only — pembuatan PO dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

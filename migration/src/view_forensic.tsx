@@ -110,7 +110,6 @@ function ForensicCashFlow() {
             <button className={unit === 'jt' ? 'on' : ''} onClick={() => setUnit('jt')}>Jutaan</button>
           </div>
           <Btn sm onClick={() => nav('psak2', { from: 'forensic' })}><I.water size={13} /> Laporan Arus Kas</Btn>
-          <Btn sm variant="primary"><I.search2 size={14} /> Pindai Anomali</Btn>
         </div>
       } />
       <div className="view-scroll">
@@ -244,8 +243,7 @@ function ForensicCashFlow() {
                           </div>
                         )}
                         <div className="row wrap gap8">
-                          <Btn sm variant="primary"><I.flask size={14} /> Investigasi Lanjutan</Btn>
-                          <Btn sm onClick={() => nav('jet', { from: 'forensic' })}><I.flask size={13} /> Buka di JET</Btn>
+                          <Btn sm variant="primary" onClick={() => nav('jet', { from: 'forensic' })}><I.flask size={13} /> Investigasi di JET</Btn>
                           {selTx.rpId && <Btn sm onClick={() => nav('related', { from: 'forensic' })}><I.group size={13} /> Pihak Berelasi</Btn>}
                         </div>
                       </div>

@@ -65,7 +65,7 @@ function FirmRevenue() {
 
   return (
     <>
-      <SubBar moduleId="revenue" right={<div className="row gap8 ac"><span className="chip tiny"><I.link2 size={11} /> e-Faktur DJP</span><Btn sm variant="primary"><I.receipt size={14} /> Terbitkan Faktur dari WIP</Btn></div>} />
+      <SubBar moduleId="revenue" right={<div className="row gap8 ac"><span className="chip tiny"><I.link2 size={11} /> e-Faktur DJP</span><span className="chip tiny muted" title="Read-only — penerbitan faktur dari WIP dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totRecognized / 1e9, 1) + ' M'} label="Pendapatan Diakui (PSAK 72)" accent="var(--green)" /></div></Panel>
@@ -173,7 +173,7 @@ function FirmRevenue() {
                     <td className="mono tiny" style={{ color: d.daysOver > 0 ? 'var(--red)' : 'var(--ink-3)' }}>{new Date(d.due).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
                     <td className="num tiny" style={{ color: d.daysOver > 30 ? 'var(--red)' : d.daysOver > 0 ? 'var(--amber)' : 'var(--ink-3)' }}>{d.daysOver > 0 ? d.daysOver + ' hr' : '—'}</td>
                     <td><Badge kind={(DUN_LEVEL as any)[d.level].k}>{(DUN_LEVEL as any)[d.level].l}</Badge></td>
-                    <td>{d.level > 0 && <button className="btn sm" style={{ height: 22 }}><I.mail size={11} /> Kirim Pengingat</button>}</td>
+                    <td className="tiny muted">{d.level > 0 ? 'Dunning otomatis (CoreSys)' : '—'}</td>
                   </tr>
                 ))}
               </tbody>

@@ -81,7 +81,7 @@ function FirmInsurance() {
         <div className="row gap8 ac">
           <span className="chip tiny"><I.link2 size={11} /> SSOT · premi → Cockpit & Legal · ISQM 1</span>
           <Btn sm onClick={onExport}><I.download size={13} /> Risk Register</Btn>
-          <Btn sm variant="primary"><I.plus size={13} /> Lapor Klaim</Btn>
+          <span className="chip tiny muted" title="Read-only — pelaporan klaim dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

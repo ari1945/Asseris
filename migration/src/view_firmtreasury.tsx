@@ -83,7 +83,7 @@ function FirmTreasury() {
 
   return (
     <>
-      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Seg options={['FY2025', 'FY2026 (RKA)']} value="FY2025" onChange={() => {}} /><Btn sm onClick={onExport}><I.download size={13} /> Export</Btn></div>} />
+      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Badge kind="gray">FY2025</Badge><Btn sm onClick={onExport}><I.download size={13} /> Export</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan Aktual" delta={((actRev / budRev - 1) * 100).toFixed(1) + '% vs anggaran'} deltaDir={actRev >= budRev ? 'up' : 'down'} /></div></Panel>
@@ -240,7 +240,7 @@ function CashBank() {
 
   return (
     <>
-      <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny"><I.sync size={11} /> Bank feed: 15 mnt lalu</span><Btn sm variant="primary"><I.plus size={14} /> Transaksi</Btn></div>} />
+      <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny"><I.sync size={11} /> Bank feed: 15 mnt lalu</span><span className="chip tiny muted" title="Read-only — entri transaksi kas/bank dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
@@ -395,7 +395,7 @@ function FixedAssets() {
 
   return (
     <>
-      <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm onClick={onExportAssets}><I.download size={13} /> Daftar Aset</Btn><Btn sm variant="primary"><I.plus size={14} /> Aset Baru</Btn></div>} />
+      <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm onClick={onExportAssets}><I.download size={13} /> Daftar Aset</Btn><span className="chip tiny muted" title="Read-only — registrasi aset dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totCost / 1e9, 2) + ' M'} label="Harga Perolehan" /></div></Panel>

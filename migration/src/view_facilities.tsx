@@ -98,7 +98,7 @@ function Facilities() {
         <div className="row gap8 ac">
           <span className="chip tiny"><I.link2 size={11} /> Sub-ledger PSAK 16 · sinkron GL Aset Tetap</span>
           <Btn sm onClick={onExport}><I.download size={13} /> Daftar Aset</Btn>
-          <Btn sm variant="primary"><I.plus size={13} /> Daftarkan Aset</Btn>
+          <span className="chip tiny muted" title="Read-only — registrasi aset dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
