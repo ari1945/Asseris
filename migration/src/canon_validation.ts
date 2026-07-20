@@ -85,3 +85,124 @@ export function reconcileDeficiencyComm(input: {
     issues: misclassified.length + (tcwgPending ? 1 : 0),
   };
 }
+
+/* ------------------------------------------------------------
+   SA 450 — Salah saji tidak dikoreksi: rekonsiliasi 3-arah.
+   Menutup split-brain antara TIGA SSOT yang selama ini terputus:
+   (1) register jurnal AMS.AJE (status Posted=dikoreksi / Proposed=usulan
+       belum diposting = tidak dikoreksi);
+   (2) ledger SAD SA 450 (sadItems.v1: disp corrected/uncorrected/passed —
+       populasi terlengkap; memuat pula salah saji Projected/sampling &
+       carryover tahun lalu yang bukan jurnal);
+   (3) opini (opinionDoc.v1.type — SA 705).
+   Derivasi MURNI dari data (tanpa flag baru). Tiga cek:
+   - completeness: AJE Proposed tanpa representasi di ledger SAD
+     (agregat SA 450 understated);
+   - staleness: disposisi SAD bertentangan dgn status posting AJE
+     (SAD "dikoreksi" padahal AJE masih usulan, atau sebaliknya);
+   - konsistensi SA 450→705: agregat uncorrected (SSOT SAD) > materialitas
+     keseluruhan tetapi opini masih "tanpa modifikasian" (SA 705.7/.8).
+   ------------------------------------------------------------ */
+export const AJE_POSTED = 'Posted';
+export const AJE_PROPOSED = 'Proposed';
+export const SAD_UNCORRECTED = 'uncorrected';
+export const SAD_CORRECTED = 'corrected';
+export const OPINION_UNMODIFIED = 'unmodified';
+
+export interface AjeEntry { id: string; status?: string; amount?: number }
+export interface SadEntry { id: string; disp?: string; aje?: string; pbt?: number; na?: number; origin?: string; qual?: string[] }
+
+/* Normalisasi ref `aje` di ledger SAD → id jurnal AMS.AJE (AJE-NN).
+   'PAJE-03' (proposed AJE) & 'AJE-03' sama-sama merujuk jurnal AJE-03;
+   ref non-jurnal ('SA 530', 'SUM-PY', 'CTT') → null (proyeksi/carryover/remeh,
+   memang bukan jurnal — dikecualikan dari rekonsiliasi AJE). */
+export function ajeRefKey(ref: string): string | null {
+  const m = /^P?AJE-0*(\d+)$/i.exec((ref || '').trim());
+  return m ? 'AJE-' + m[1].padStart(2, '0') : null;
+}
+
+export interface UncorrStale { sadId: string; ajeId: string; sadDisp: string; ajeStatus: string; reason: string }
+export interface UncorrResult {
+  proposed: number;              // jumlah AJE berstatus Proposed (tidak dikoreksi di jurnal)
+  missingFromSad: string[];      // id AJE Proposed tanpa item di ledger SAD (understate agregat)
+  stale: UncorrStale[];          // disposisi SAD bertentangan dgn status posting AJE
+  aggNet: number;                // agregat neto (bertanda) uncorrected dari SAD
+  aggAbs: number;
+  om: number;
+  pctOfOm: number;
+  exceedsOm: boolean;
+  qualFlags: string[];           // faktor kualitatif (SA 450.A21) pada item uncorrected
+  opinionType: string;
+  opinionModified: boolean;
+  opinionInconsistent: boolean;  // agregat > OM tetapi opini belum dimodifikasi (SA 705)
+  issues: number;                // titik objektif yang perlu ditindaklanjuti
+}
+
+export function reconcileUncorrectedMisstatements(input: {
+  aje: AjeEntry[];
+  sad: SadEntry[];
+  om: number;
+  opinionType: string;
+  method?: string;
+}): UncorrResult {
+  const aje = input.aje || [];
+  const sad = input.sad || [];
+  const method = input.method === 'ironcurtain' ? 'ironcurtain' : 'rollover';
+
+  // indeks item SAD menurut id jurnal terselesaikan (bisa >1 item per id)
+  const sadByAje = new Map<string, SadEntry[]>();
+  for (const s of sad) {
+    const k = ajeRefKey(s.aje || '');
+    if (!k) continue;
+    const arr = sadByAje.get(k) || [];
+    arr.push(s);
+    sadByAje.set(k, arr);
+  }
+
+  const proposedAje = aje.filter(a => a && (a.status || '').trim() === AJE_PROPOSED);
+  const postedIds = new Set(aje.filter(a => (a.status || '').trim() === AJE_POSTED).map(a => a.id));
+  const proposedIds = new Set(proposedAje.map(a => a.id));
+
+  // completeness — AJE Proposed tanpa item SAD sama sekali
+  const missingFromSad = proposedAje.filter(a => !sadByAje.has(a.id)).map(a => a.id);
+
+  // staleness — disposisi SAD bertentangan dgn status posting jurnal
+  const stale: UncorrStale[] = [];
+  sadByAje.forEach((items, ajeId) => {
+    for (const s of items) {
+      const disp = (s.disp || '').trim();
+      if (postedIds.has(ajeId) && disp === SAD_UNCORRECTED) {
+        stale.push({ sadId: s.id, ajeId, sadDisp: disp, ajeStatus: AJE_POSTED, reason: 'AJE sudah diposting (dikoreksi) tetapi SAD menandai tidak dikoreksi' });
+      } else if (proposedIds.has(ajeId) && disp === SAD_CORRECTED) {
+        stale.push({ sadId: s.id, ajeId, sadDisp: disp, ajeStatus: AJE_PROPOSED, reason: 'SAD menandai dikoreksi tetapi AJE belum diposting (masih usulan)' });
+      }
+    }
+  });
+
+  // agregat uncorrected dari ledger SAD (populasi SA 450 terlengkap)
+  const uncorr = sad.filter(s => (s.disp || '').trim() === SAD_UNCORRECTED);
+  const inScope = method === 'ironcurtain' ? uncorr : uncorr.filter(s => (s.origin || 'current') === 'current');
+  const aggNet = inScope.reduce((t, s) => t + (method === 'ironcurtain' ? (s.na || 0) : (s.pbt || 0)), 0);
+  const aggAbs = Math.abs(aggNet);
+  const om = input.om > 0 ? input.om : 0;
+  const exceedsOm = om > 0 && aggAbs > om;
+  const qualFlags = [...new Set(inScope.flatMap(s => s.qual || []))];
+
+  const opinionType = (input.opinionType || OPINION_UNMODIFIED).trim();
+  const opinionModified = opinionType !== OPINION_UNMODIFIED;
+  const opinionInconsistent = exceedsOm && !opinionModified;
+
+  return {
+    proposed: proposedAje.length,
+    missingFromSad,
+    stale,
+    aggNet, aggAbs, om,
+    pctOfOm: om > 0 ? Math.round((aggAbs / om) * 100) : 0,
+    exceedsOm,
+    qualFlags,
+    opinionType,
+    opinionModified,
+    opinionInconsistent,
+    issues: missingFromSad.length + stale.length + (opinionInconsistent ? 1 : 0),
+  };
+}
