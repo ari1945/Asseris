@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { useAmsPersist, useAuth, useFirm, useNav } from './contexts';
+import { reconcileDeficiencyComm } from './canon_validation';
 import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -578,6 +579,13 @@ function SA265View() {
   const [defs, setDefs] = useAmsPersist('deficiencies.v1', () => DEFICIENCIES_SEED);
   const list: Deficiency[] = defs || [];
   const sig = list.filter(d => d.sig).length;
+  const nav = useNav();
+  /* Validasi silang SA 265 → SA 260 (defisiensi signifikan → TCWG): derivasi
+     murni dari dua SSOT — register defisiensi (deficiencies.v1) + status baris
+     "Temuan signifikan dari audit" (SA 260 ¶16) di matriks tcwg.v1 (baca-saja). */
+  const [tcwg] = useAmsPersist('tcwg.v1', () => TCWG_SEED);
+  const sigFindingsStatus = ((tcwg && tcwg.matrix) || []).find((m: TcwgMatrixRow) => m.ref === '¶16')?.status;
+  const defComm = reconcileDeficiencyComm({ deficiencies: list, sigFindingsStatus });
 
   const [tab, setTab] = useStateSC('register');
   const tabs = [{ id: 'register', label: 'Register & Klasifikasi' }, { id: 'indikator', label: 'Indikator Signifikan' }, { id: 'komunikasi', label: 'Komunikasi' }];
@@ -613,6 +621,19 @@ function SA265View() {
           </div>
         </Panel>
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
+        {tab === 'register' && defComm.issues > 0 && (
+          <div className="panel" style={{ padding: '10px 12px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+            <div className="row ac gap8">
+              <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
+              <span className="tiny" style={{ fontWeight: 600, lineHeight: 1.5 }}>
+                <b>{defComm.sig}</b> defisiensi signifikan wajib dikomunikasikan tertulis ke TCWG (SA 265 ¶9 · SA 260 ¶16)
+                {defComm.misclassified.length ? ` · ${defComm.misclassified.length} masih "Lisan ke manajemen" (${defComm.misclassified.join(', ')})` : ''}
+                {defComm.tcwgPending ? ' · komunikasi Temuan Signifikan di SA 260 (¶16) belum "Selesai"' : ''}
+                {' '}— selaraskan di <button type="button" onClick={() => nav('sa260', { from: 'sa265' })} style={{ background: 'none', border: 0, padding: 0, color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Komunikasi TCWG (SA 260)</button>.
+              </span>
+            </div>
+          </div>
+        )}
         {tab === 'register' && <S265Register defs={list} setDefs={setDefs} me={me} locked={locked} />}
         {tab === 'indikator' && <S265Indicators />}
         {tab === 'komunikasi' && <S265Comms sig={sig} defs={list} />}

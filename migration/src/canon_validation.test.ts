@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { probError, clampPct, dueBeforeIssued, capacityProjection } from './canon_validation';
+import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm } from './canon_validation';
 
 describe('probError — probabilitas 0–100', () => {
   it('menerima 0/50/100', () => {
@@ -50,5 +50,64 @@ describe('capacityProjection — jam vs kapasitas', () => {
   });
   it('addHrs negatif dianggap 0', () => {
     expect(capacityProjection(20, 40, -5).projected).toBe(20);
+  });
+});
+
+describe('reconcileDeficiencyComm — SA 265 ¶9 → SA 260 ¶16', () => {
+  const D = (id: string, sig: boolean, status: string) => ({ id, sig, status });
+  const WRITTEN = 'Tertulis ke TCWG';
+  const ORAL = 'Lisan ke manajemen';
+
+  it('bersih: seluruh signifikan tertulis & SA 260 ¶16 selesai', () => {
+    const r = reconcileDeficiencyComm({
+      deficiencies: [D('D-01', true, WRITTEN), D('D-02', true, WRITTEN), D('D-03', false, ORAL)],
+      sigFindingsStatus: 'Selesai',
+    });
+    expect(r.sig).toBe(2);
+    expect(r.misclassified).toEqual([]);
+    expect(r.tcwgPending).toBe(false);
+    expect(r.coveragePct).toBe(100);
+    expect(r.issues).toBe(0);
+  });
+
+  it('menandai defisiensi signifikan yang dikomunikasikan lisan (langgar ¶9)', () => {
+    const r = reconcileDeficiencyComm({
+      deficiencies: [D('D-01', true, WRITTEN), D('D-02', true, ORAL)],
+      sigFindingsStatus: 'Selesai',
+    });
+    expect(r.misclassified).toEqual(['D-02']);
+    expect(r.coveragePct).toBe(50);
+    expect(r.issues).toBe(1);
+  });
+
+  it('menandai SA 260 ¶16 belum selesai saat ada defisiensi signifikan', () => {
+    const r = reconcileDeficiencyComm({
+      deficiencies: [D('D-01', true, WRITTEN)],
+      sigFindingsStatus: 'Berlangsung',
+    });
+    expect(r.tcwgReported).toBe(false);
+    expect(r.tcwgPending).toBe(true);
+    expect(r.issues).toBe(1);
+  });
+
+  it('tanpa status SA 260 → dianggap belum selesai (bila ada signifikan)', () => {
+    const r = reconcileDeficiencyComm({ deficiencies: [D('D-01', true, WRITTEN)] });
+    expect(r.tcwgPending).toBe(true);
+  });
+
+  it('nol defisiensi signifikan → tak ada isu meski SA 260 belum selesai', () => {
+    const r = reconcileDeficiencyComm({
+      deficiencies: [D('D-01', false, ORAL)],
+      sigFindingsStatus: '',
+    });
+    expect(r.sig).toBe(0);
+    expect(r.tcwgPending).toBe(false);
+    expect(r.coveragePct).toBe(100);
+    expect(r.issues).toBe(0);
+  });
+
+  it('list kosong aman', () => {
+    const r = reconcileDeficiencyComm({ deficiencies: [] });
+    expect(r).toMatchObject({ total: 0, sig: 0, issues: 0, coveragePct: 100 });
   });
 });
