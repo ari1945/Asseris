@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
+import { probError, dueBeforeIssued } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -102,7 +103,8 @@ function OppForm({ onClose, onAdd }: any) {
   const { fmt } = AMS;
   const [d, setD] = useStateD1({ name: '', service: 'Audit Laporan Keuangan', industry: '', value: 500000000, prob: 25, owner: 'Hartono Wijaya', close: '2026-06-30' });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
-  const valid = d.name.trim() && d.industry.trim() && +d.value > 0;
+  const probErr = probError(+d.prob);
+  const valid = d.name.trim() && d.industry.trim() && +d.value > 0 && !probErr;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
@@ -118,7 +120,7 @@ function OppForm({ onClose, onAdd }: any) {
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div className="field"><label>Nilai Estimasi (Rp)</label><input className="input mono" type="number" value={d.value} onChange={(e: any) => set('value', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Probabilitas (%)</label><input className="input mono" type="number" value={d.prob} onChange={(e: any) => set('prob', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+            <div className="field"><label>Probabilitas (%)</label><input className="input mono" type="number" min={0} max={100} value={d.prob} onChange={(e: any) => set('prob', +e.target.value)} style={{ textAlign: 'right', borderColor: probErr ? 'var(--red)' : undefined }} />{probErr && <div className="tiny" style={{ color: 'var(--red)', marginTop: 3 }}>{probErr}</div>}</div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
             <div className="field"><label>Owner</label><select className="select" value={d.owner} onChange={(e: any) => set('owner', e.target.value)}>{['Hartono Wijaya', 'Rudi Gunawan', 'Sari Dewanti', 'Bayu Saputra'].map(s => <option key={s}>{s}</option>)}</select></div>
@@ -219,7 +221,7 @@ function Billing() {
   const send = (id: any) => setInvoices((list: any) => list.map((i: any) => i.id === id ? { ...i, status: 'Sent' } : i));
   const selInv = sel ? invoices.find((i: any) => i.id === sel) : null;
   const [showNew, setShowNew] = useStateD1(false);
-  const addInv = (inv: any) => setInvoices((list: any) => [{ id: 'INV-2026-0' + (46 + list.length), issued: '2026-03-09', paid: 0, status: 'Draft', ...inv }, ...list]);
+  const addInv = (inv: any) => setInvoices((list: any) => [{ id: 'INV-2026-0' + (46 + list.length), paid: 0, status: 'Draft', ...inv }, ...list]);
 
   return (
     <>
@@ -293,10 +295,11 @@ function Billing() {
 function InvForm({ onClose, onAdd }: any) {
   const { fmt } = AMS;
   const clients: any = AMS.CLIENTS;
-  const [d, setD] = useStateD1({ clientId: clients[0].id, milestone: 'Termin 1 (50%)', amount: 500000000, due: '2026-04-15', eng: '' });
+  const [d, setD] = useStateD1({ clientId: clients[0].id, milestone: 'Termin 1 (50%)', amount: 500000000, issued: '2026-03-09', due: '2026-04-15', eng: '' });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
-  const valid = +d.amount > 0;
-  const submit = () => { const c = clients.find((x: any) => x.id === d.clientId); onAdd({ clientId: d.clientId, client: c.name, eng: d.eng || '—', milestone: d.milestone, amount: +d.amount, due: d.due }); };
+  const dueErr = dueBeforeIssued(d.issued, d.due);
+  const valid = +d.amount > 0 && !!d.issued && !!d.due && !dueErr;
+  const submit = () => { const c = clients.find((x: any) => x.id === d.clientId); onAdd({ clientId: d.clientId, client: c.name, eng: d.eng || '—', milestone: d.milestone, amount: +d.amount, issued: d.issued, due: d.due }); };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
@@ -310,10 +313,12 @@ function InvForm({ onClose, onAdd }: any) {
             <div className="field"><label>Termin</label><select className="select" value={d.milestone} onChange={(e: any) => set('milestone', e.target.value)}>{['Termin 1 (50%)', 'Termin 2 (30%)', 'Termin 3 (20%)', 'Final (100%)'].map(s => <option key={s}>{s}</option>)}</select></div>
             <div className="field"><label>Engagement (opsional)</label><input className="input mono" value={d.eng} onChange={(e: any) => set('eng', e.target.value)} placeholder="ENG-2025-014" /></div>
           </div>
+          <div className="field"><label>Nilai (Rp)</label><input className="input mono" type="number" value={d.amount} onChange={(e: any) => set('amount', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div className="field"><label>Nilai (Rp)</label><input className="input mono" type="number" value={d.amount} onChange={(e: any) => set('amount', +e.target.value)} style={{ textAlign: 'right' }} /></div>
-            <div className="field"><label>Jatuh Tempo</label><input className="input" type="date" value={d.due} onChange={(e: any) => set('due', e.target.value)} /></div>
+            <div className="field"><label>Tanggal Terbit</label><input className="input" type="date" value={d.issued} onChange={(e: { target: { value: string } }) => set('issued', e.target.value)} /></div>
+            <div className="field"><label>Jatuh Tempo</label><input className="input" type="date" value={d.due} min={d.issued} onChange={(e: { target: { value: string } }) => set('due', e.target.value)} style={{ borderColor: dueErr ? 'var(--red)' : undefined }} /></div>
           </div>
+          {dueErr && <div className="tiny" style={{ color: 'var(--red)' }}>Tanggal jatuh tempo tidak boleh sebelum tanggal terbit.</div>}
           <div className="tiny muted mono">Total: Rp {fmt(+d.amount || 0)}</div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>

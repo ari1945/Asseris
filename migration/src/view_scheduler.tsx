@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useNav } from './contexts';
+import { capacityProjection } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Panel, Stat } from './ui';
@@ -134,6 +135,9 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
   const colors = ['#005085', '#1f7a4d', '#5b3fa6', '#0a6b73', '#9a6a00'];
   const [d, setD] = useStateD3({ member: schedule[0].member, eng: engs[0].id, hrs: 8 });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
+  const member = schedule.find((m: { member: string }) => m.member === d.member) || schedule[0];
+  const used = member.alloc.reduce((a: number, x: { hrs: number }) => a + x.hrs, 0);
+  const proj = capacityProjection(used, member.capacity, +d.hrs);
   const valid = +d.hrs > 0;
   const submit = () => {
     const e = engs.find((x: any) => x.id === d.eng); const c = cl.find((x: any) => x.id === e.clientId);
@@ -149,7 +153,12 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
           <div className="field"><label>Anggota Tim</label><select className="select" value={d.member} onChange={(e: any) => set('member', e.target.value)}>{schedule.map((m: any) => <option key={m.member} value={m.member}>{m.member} ({m.role})</option>)}</select></div>
           <div className="field"><label>Engagement</label><select className="select" value={d.eng} onChange={(e: any) => set('eng', e.target.value)}>{engs.map((x: any) => { const c = cl.find((y: any) => y.id === x.clientId); return <option key={x.id} value={x.id}>{x.id} · {(c?.name || '').replace('PT ', '')}</option>; })}</select></div>
-          <div className="field"><label>Jam / Minggu</label><input className="input mono" type="number" value={d.hrs} onChange={(e: any) => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+          <div className="field"><label>Jam / Minggu</label><input className="input mono" type="number" min={0} value={d.hrs} onChange={(e: any) => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
+          <div className="tiny" style={{ padding: '8px 10px', borderRadius: 6, background: proj.over ? 'var(--amber-bg)' : 'var(--surface-2)', color: proj.over ? 'var(--amber)' : 'var(--ink-2)', fontWeight: proj.over ? 600 : 400 }}>
+            {proj.over
+              ? <><I.alert size={12} style={{ verticalAlign: -2 }} /> {member.member.split(',')[0]} akan teralokasi <b>{proj.projected}h</b> dari kapasitas {member.capacity}h (util <b>{proj.pct}%</b>) — melebihi {proj.overBy}h. Booking tetap diperbolehkan bila disengaja.</>
+              : <>Proyeksi alokasi {member.member.split(',')[0]}: <b>{proj.projected}h</b> / {member.capacity}h (util {proj.pct}%).</>}
+          </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>
