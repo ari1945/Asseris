@@ -26,6 +26,10 @@ describe('milestoneStatus — status DITURUNKAN dari done × klok', () => {
     expect(milestoneStatus({ done: false, date: '2026-03-15' }, TODAY)).toBe('due');   // +6
     expect(milestoneStatus({ done: false, date: '2026-03-05' }, TODAY)).toBe('due');   // -4 (lewat)
   });
+  it('batas ambang: tepat +7 → due; +8 → upcoming (TODAY 2026-03-09)', () => {
+    expect(milestoneStatus({ done: false, date: '2026-03-16' }, TODAY)).toBe('due');       // +7 (inklusif)
+    expect(milestoneStatus({ done: false, date: '2026-03-17' }, TODAY)).toBe('upcoming');  // +8
+  });
   it('belum done & >7 hari → upcoming', () => {
     expect(milestoneStatus({ done: false, date: '2026-03-31' }, TODAY)).toBe('upcoming');
   });

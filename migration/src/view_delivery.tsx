@@ -41,7 +41,10 @@ function DeliveryMilestones() {
   const DELIVERY = useMemoDlv(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
   /* jalur tulis milestone: tandai selesai/urung + geser tanggal → deliveryPlan.v1 */
   const setMsDone = (engId: string, idx: number, done: boolean) => setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, done } : m) } : p));
-  const setMsDate = (engId: string, idx: number, date: string) => setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, date } : m) } : p));
+  const setMsDate = (engId: string, idx: number, date: string) => {
+    if (!date) return; // date picker yang dikosongkan → jangan timpa tanggal valid dgn '' (→ "Invalid Date"/NaN status)
+    setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, date } : m) } : p));
+  };
 
   const engById = (id: any) => ENGAGEMENTS.find((e) => e.id === id) || ({} as EngagementRow);
   const cliOf = (e: any) => CLIENTS.find((c) => c.id === e.clientId) || ({} as ClientRow);
