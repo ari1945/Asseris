@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import type { WtbRow } from './canon_types';
 import { I } from './icons';
 import { Badge, Btn } from './ui';
 
@@ -38,12 +39,23 @@ const CONFIRMATIONS = [
   { id: 'CF-014', type: 'Pihak Berelasi', party: 'PT Makmur Properti (afiliasi)', amount: 1_850_000_000, sent: '13-01-2026', due: '27-01-2026', status: 'Sent', resp: null, days: 26, method: 'Positif', channel: 'Email', contact: 'Finance · finance@makmurproperti.co.id', reminders: 1, validated: false },
 ];
 
+/* Saldo populasi per area konfirmasi — DITARIK dari WTB (SSOT AMS.WTB), bukan
+   angka seed statis. Populasi = saldo buku dilaporkan (kolom `unadj`) yang menjadi
+   objek konfirmasi. Bila WTB berubah, populasi & % cakupan (SA 505/330) ikut. */
+const wtbUnadj = (code: string): number => {
+  const rows = (AMS.WTB || []) as WtbRow[];
+  const row = rows.find((r) => r.code === code);
+  return row && typeof row.unadj === 'number' ? Math.abs(row.unadj) : 0;
+};
+
 /* FS areas confirmed — for SA 505 coverage analysis (population = saldo akun per WTB) */
 const CF_AREA = [
-  { type: 'Bank', caption: 'Kas & Setara Kas', pop: 21_905_300_000, note: 'Konfirmasi bank juga mencakup fasilitas pinjaman & jaminan.' },
-  { type: 'Piutang', caption: 'Piutang Usaha — Pihak Ketiga', pop: 51_322_400_000, note: 'Sisa populasi: pengujian penerimaan kas subsekuen & analitis.' },
-  { type: 'Utang', caption: 'Utang Usaha', pop: 44_900_300_000, note: 'Dilengkapi pencarian liabilitas tak tercatat (completeness).' },
-  { type: 'Pihak Berelasi', caption: 'Saldo Pihak Berelasi', pop: 7_450_000_000, note: 'Seluruh saldo material pihak berelasi dikonfirmasi (SA 550).' },
+  { type: 'Bank', caption: 'Kas & Setara Kas', pop: wtbUnadj('1-1100'), note: 'Konfirmasi bank juga mencakup fasilitas pinjaman & jaminan.' },
+  { type: 'Piutang', caption: 'Piutang Usaha — Pihak Ketiga', pop: wtbUnadj('1-1200'), note: 'Sisa populasi: pengujian penerimaan kas subsekuen & analitis.' },
+  { type: 'Utang', caption: 'Utang Usaha', pop: wtbUnadj('2-1100'), note: 'Dilengkapi pencarian liabilitas tak tercatat (completeness).' },
+  /* Pihak Berelasi = agregat pengungkapan SA 550 — tidak berdiri sebagai akun WTB
+     tersendiri (melekat di AR/AP), jadi tetap eksplisit sampai ada akun terpisah. */
+  { type: 'Pihak Berelasi', caption: 'Saldo Pihak Berelasi', pop: 7_450_000_000, note: 'Agregat pengungkapan SA 550 (bukan akun WTB tersendiri); seluruh saldo material dikonfirmasi.' },
 ];
 
 const CF_RECON_PRESETS = {
