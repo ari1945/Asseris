@@ -121,7 +121,7 @@ describe('RBAC — capForWrite (gate dokumen server, dikonsumsi state.set)', () 
   });
 
   it('firm: dokumen People & Compliance (payroll/cuti/kinerja/SKP/independensi/etik + key baru Isolasi Data Personal) → HR_MANAGE', () => {
-    ['payrollRun', 'payrollData', 'leaveReqs', 'leaveBalance', 'perfPeople', 'perfGoals', 'cpeExtra', 'cpeLog',
+    ['payrollRun', 'payrollData', 'payrollSent.v1', 'leaveReqs', 'leaveBalance', 'perfPeople', 'perfGoals', 'cpeExtra', 'cpeLog',
       'hrCases', 'amlScreening', 'staffProfile', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck',
       'pc.ethics', 'pc.gifts'].forEach((key) => {
       expect(capForWrite('firm', key)).toBe(CAP.HR_MANAGE);

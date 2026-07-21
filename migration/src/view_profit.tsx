@@ -6,6 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Partner & Engagement Profitability (Package F)
@@ -87,12 +88,31 @@ function Profitability() {
   const marginColor = (p: any) => p >= 45 ? 'var(--green)' : p >= 30 ? 'var(--blue)' : p >= 15 ? 'var(--amber)' : 'var(--red)';
   const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
+  const { rp } = AMS;
+  const onExport = async () => {
+    const engRows: (string | number)[][] = [];
+    for (const r of rows) engRows.push([r.id, r.client, r.partner, rp(r.fee), Math.round(r.realized * 100) + '%', rp(r.stdCost), rp(Math.round(r.margin)), r.marginPct.toFixed(0) + '%']);
+    const partRows: (string | number)[][] = [];
+    for (const p of partners) partRows.push([p.partner, p.count, fmt(p.hours), rp(p.fee), rp(Math.round(p.billed)), rp(Math.round(p.margin)), p.marginPct.toFixed(0) + '%']);
+    await amsExportXlsx({
+      kind: 'firm-profitability', scope: 'firm',
+      fileName: 'Profitabilitas Firma.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Profitabilitas Engagement & Partner',
+      meta: [`${rows.length} engagement · margin rata-rata ${avgMargin.toFixed(0)}% · realization ${avgReal.toFixed(0)}%`],
+      sheets: [
+        { name: 'Per Engagement', columns: ['Engagement', 'Klien', 'Partner', 'Fee', 'Realisasi', 'Biaya Standar', 'Margin', 'Margin %'], rows: engRows, colWidths: [14, 26, 18, 18, 11, 18, 18, 10] },
+        { name: 'Per Partner', columns: ['Partner', 'Engagement', 'Jam', 'Fee', 'Terealisasi', 'Margin', 'Margin %'], rows: partRows, colWidths: [22, 12, 10, 18, 18, 18, 10] },
+      ],
+    });
+  };
+
   return (
     <>
       <SubBar moduleId="profitability" right={
         <div className="row gap8 ac">
           <Seg options={[{ value: 'engagement', label: 'Per Engagement' }, { value: 'partner', label: 'Per Partner' }, { value: 'leverage', label: 'Leverage & Recovery' }]} value={view} onChange={setView} />
-          <Btn sm><I.download size={13} /> Export</Btn>
+          <Btn sm onClick={onExport}><I.download size={13} /> Export</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

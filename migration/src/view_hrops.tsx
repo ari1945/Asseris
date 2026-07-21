@@ -1,10 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist } from './contexts';
+import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — HCM: Cuti & Kehadiran  ·  Siklus Kinerja
@@ -20,6 +21,7 @@ const LV_STAT = { 'Disetujui': 'green', 'Menunggu': 'amber', 'Ditolak': 'red' };
 const LV_TYPE_COLOR = { 'Cuti Tahunan': '#005085', 'Sakit': '#9a6a00', 'Cuti Menikah': '#5b3fa6', 'Cuti Melahirkan': '#0a6b73', 'Izin': '#647889' };
 
 function LeaveAttendance() {
+  const nav = useNav();
   const staff: any = AMS.STAFF;
   // 2026-07-05 — saldo cuti & pengajuan ter-filter server (personal.get): non-privileged hanya
   // menerima barisnya sendiri (tabel Saldo Cuti otomatis menyusut, pola view_payroll).
@@ -41,7 +43,7 @@ function LeaveAttendance() {
 
   return (
     <>
-      <SubBar moduleId="leave" right={<div className="row gap8 ac"><Badge kind="blue">Kuota 12 hari/tahun</Badge><Btn sm variant="primary"><I.plus size={14} /> Ajukan Cuti</Btn></div>} />
+      <SubBar moduleId="leave" right={<div className="row gap8 ac"><Badge kind="blue">Kuota 12 hari/tahun</Badge><Btn sm variant="primary" onClick={() => nav('personal')} title="Ajukan cuti via Data Personal Saya (self-service)"><I.plus size={14} /> Ajukan Cuti</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={pending.length} label="Menunggu Persetujuan" accent={pending.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
@@ -157,9 +159,22 @@ function Performance() {
     return sum >= 3 ? 'var(--green-bg)' : sum >= 2 ? 'var(--blue-050)' : sum >= 1 ? 'var(--amber-bg)' : 'var(--red-bg)';
   };
 
+  const onExport = async () => {
+    const rows: (string | number)[][] = [];
+    for (const p of people) rows.push([p.id, p.name, p.role, p.calibrated ? 'Selesai' : (PERF_PHASES[phaseIdx(p)] || 'Mulai'), p.perf.toFixed(1), p.pot.toFixed(1), p.box, p.promote === '—' ? 'Pertahankan' : p.promote]);
+    await amsExportXlsx({
+      kind: 'firm-performance', scope: 'firm',
+      fileName: 'Laporan Kalibrasi Kinerja.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: `Kalibrasi Kinerja — ${C.cycle}`,
+      meta: [`${calibrated}/${people.length} terkalibrasi · rata-rata skor ${avgPerf.toFixed(2)} · ${pendingMgr} menunggu reviu manajer`],
+      sheets: [{ name: 'Kalibrasi', columns: ['ID', 'Karyawan', 'Jabatan', 'Tahapan', 'Skor Kinerja', 'Potensi', '9-Box', 'Rekomendasi'], rows, colWidths: [10, 24, 22, 18, 12, 10, 22, 18] }],
+    });
+  };
+
   return (
     <>
-      <SubBar moduleId="performance" right={<div className="row gap8 ac"><Badge kind="blue">{C.cycle} · {C.phase}</Badge><Btn sm><I.download size={13} /> Laporan Kalibrasi</Btn></div>} />
+      <SubBar moduleId="performance" right={<div className="row gap8 ac"><Badge kind="blue">{C.cycle} · {C.phase}</Badge><Btn sm onClick={onExport}><I.download size={13} /> Laporan Kalibrasi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={calibrated + ' / ' + people.length} label="Terkalibrasi" accent="var(--green)" /></div></Panel>

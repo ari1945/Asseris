@@ -363,7 +363,7 @@ function FirmAPAR() {
 
   return (
     <>
-      <SubBar moduleId="apar" right={<div className="row gap8 ac"><Btn sm onClick={() => nav('firmgl')}><I.ledger size={13} /> Ke GL</Btn><Btn sm variant="primary"><I.plus size={14} /> {tab === 'ap' ? 'Tagihan Vendor' : 'Faktur Klien'}</Btn></div>} />
+      <SubBar moduleId="apar" right={<div className="row gap8 ac"><Btn sm onClick={() => nav('firmgl')}><I.ledger size={13} /> Ke GL</Btn><span className="chip tiny muted" title="Read-only — entri tagihan/faktur dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(arOutstanding / 1e6, 0) + ' jt'} label={'Piutang Outstanding · DSO ' + dso + ' hr'} accent="var(--green)" /></div></Panel>

@@ -9,6 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 import { SliderRow } from './view_materiality';
 import { FIRMFIN } from './data_firmfin';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Firm Finance · Cockpit Keuangan Firma
@@ -391,6 +392,20 @@ function WIPValuation() {
   const presets = [{ k: 'Dasar', f: 1 }, { k: 'Konservatif', f: 1.5 }, { k: 'Stress', f: 2 }];
   const activePreset = (presets.find(p => Math.abs(p.f - provFactor) < 0.001) || {}).k || 'Custom';
 
+  const onExport = async () => {
+    const rows: (string | number)[][] = [];
+    for (const r of W.registerAll) rows.push([r.id, r.clientShort, r.partner, jt(r.std), jt(r.writeUp - r.writeDown), jt(r.recoverable), r.billed ? jt(r.billed) : '—', jt(r.unbilled), r.age + 'h', pc(r.realization), pc(r.margin)]);
+    rows.push(['TOTAL', `${W.registerAll.length} perikatan`, '', jt(W.totStd), jt(W.totWriteUp - W.totWriteDown), jt(W.totRecoverable), jt(W.totBilled), jt(W.unbilledTotal), '', pc(W.avgRealization), pc(W.avgMargin)]);
+    await amsExportXlsx({
+      kind: 'firm-wip', scope: 'firm',
+      fileName: 'Valuasi WIP Perikatan.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Sub-buku Valuasi WIP per Perikatan',
+      meta: [`WIP belum ditagih Rp ${M(W.unbilledTotal)} M · recoverable neto Rp ${M(W.netRecoverable)} M · realisasi ${pc(W.avgRealization)} · penyisihan ${pc(W.provisionPct, 1)} · nilai dalam Rp juta`],
+      sheets: [{ name: 'Valuasi WIP', columns: ['Perikatan', 'Klien', 'Partner', 'Nilai Standar', 'Penyesuaian', 'Recoverable', 'Difakturkan', 'WIP', 'Umur', 'Realisasi', 'Margin'], rows, colWidths: [14, 24, 16, 14, 12, 14, 12, 12, 8, 10, 10] }],
+    });
+  };
+
   return (
     <>
       <SubBar moduleId="wip" right={
@@ -398,7 +413,7 @@ function WIPValuation() {
           {liveByEng && <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)', cursor: 'pointer' }} title="Nilai standar engagement aktif ditarik dari jam aktual Time & Budget (live)" onClick={() => nav('time', { from: 'wip' })}><I.clock size={11} /> Sinkron T&B</span>}
           <span className="chip tiny" title="Seluruh angka ditarik dari sub-buku WIP_ENG → kontrol GL 1-300"><I.link2 size={11} /> Satu sumber kebenaran</span>
           <Btn sm onClick={() => nav('firmfinance', { from: 'wip' })}><I.table size={13} /> Kontrol GL 1-300</Btn>
-          <Btn sm><I.download size={13} /> Export WIP</Btn>
+          <Btn sm onClick={onExport}><I.download size={13} /> Export WIP</Btn>
           <Btn sm variant="primary" onClick={() => nav('billing', { from: 'wip' })}><I.receipt size={14} /> Buat Tagihan</Btn>
         </div>
       } />

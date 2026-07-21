@@ -10,6 +10,7 @@ import { FacLeaseInsurance, FacLicenses, FacLineage, FacMaintenance, FacSpace } 
 import { HBars, KV, SectionTitle } from './view_fpm_parts';
 import { FAC } from './data_facilities';
 import { BO } from './data_backoffice';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Aset & Fasilitas Kantor (DEEP) · 1/2
@@ -77,13 +78,27 @@ function Facilities() {
     { id: 'lineage', label: 'Sumber Kebenaran' },
   ];
 
+  const onExport = async () => {
+    const rows: (string | number)[][] = [];
+    for (const a of reg.rows) rows.push([a.id, a.name, a.cat, a.qty, a.loc, new Date(a.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), a.life + 'th', boJt(a.cost), boJt(a.accDep), boJt(a.nbv), facPct(a.pct * 100), a.status]);
+    rows.push(['TOTAL', '', '', '', '', '', '', boM(reg.totCost, 2), boM(reg.totAcc, 2), boM(reg.totNbv, 2), '', '']);
+    await amsExportXlsx({
+      kind: 'firm-facilities', scope: 'firm',
+      fileName: 'Register Aset & Fasilitas.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Register Aset & Fasilitas Kantor (sub-ledger PSAK 16)',
+      meta: [`per 1 Mar 2026 · perolehan ${boM(reg.totCost, 2)} · NBV ${boM(reg.totNbv, 2)} · penyusutan ${boJt(reg.totAnnual)}/th`],
+      sheets: [{ name: 'Register Aset', columns: ['Kode', 'Aset', 'Kategori', 'Qty', 'Lokasi', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'NBV', 'Terpakai', 'Status'], rows, colWidths: [10, 26, 16, 6, 16, 12, 8, 16, 16, 16, 10, 12] }],
+    });
+  };
+
   return (
     <>
       <SubBar moduleId="facilities" right={
         <div className="row gap8 ac">
           <span className="chip tiny"><I.link2 size={11} /> Sub-ledger PSAK 16 · sinkron GL Aset Tetap</span>
-          <Btn sm><I.download size={13} /> Daftar Aset</Btn>
-          <Btn sm variant="primary"><I.plus size={13} /> Daftarkan Aset</Btn>
+          <Btn sm onClick={onExport}><I.download size={13} /> Daftar Aset</Btn>
+          <span className="chip tiny muted" title="Read-only — registrasi aset dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

@@ -6,6 +6,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
 import { BoBadge, BoStat, BoTabPanel, boJt, boM } from './view_bo1';
 import { KV, SectionTitle } from './view_fpm_parts';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Asuransi (PII) & Manajemen Risiko (DEEP)
@@ -56,13 +57,31 @@ function FirmInsurance() {
     { id: 'lineage', label: 'Sumber Kebenaran' },
   ];
 
+  const onExport = async () => {
+    const regRows: (string | number)[][] = [];
+    for (const r of reg) regRows.push([r.id, r.risk, r.kat, r.inherent, r.residual, r.treatment, r.owner, r.appetite, r.lastReview]);
+    const polRows: (string | number)[][] = [];
+    for (const p of pols) polRows.push([p.id, p.jenis, p.insurer, boM(p.limit, 0), boJt(p.premi), boJt(p.deductible), p.akhir, p.status]);
+    await amsExportXlsx({
+      kind: 'firm-insurance-risk', scope: 'firm',
+      fileName: 'Risk Register & Polis.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Risk Register Firma & Register Polis (PII)',
+      meta: [`${reg.length} risiko · ${pols.length} polis · limit PII ${boM(hl.piiLimit, 0)} · ${hl.highRisk} risiko tinggi residual`],
+      sheets: [
+        { name: 'Risk Register', columns: ['ID', 'Risiko', 'Kategori', 'Inheren', 'Residual', 'Perlakuan', 'Pemilik', 'Selera', 'Reviu Terakhir'], rows: regRows, colWidths: [8, 40, 16, 10, 10, 16, 18, 14, 14] },
+        { name: 'Polis', columns: ['ID', 'Jenis', 'Penanggung', 'Limit', 'Premi/thn', 'Deductible', 'Berakhir', 'Status'], rows: polRows, colWidths: [10, 24, 20, 14, 14, 14, 12, 12] },
+      ],
+    });
+  };
+
   return (
     <>
       <SubBar moduleId="insurance" right={
         <div className="row gap8 ac">
           <span className="chip tiny"><I.link2 size={11} /> SSOT · premi → Cockpit & Legal · ISQM 1</span>
-          <Btn sm><I.download size={13} /> Risk Register</Btn>
-          <Btn sm variant="primary"><I.plus size={13} /> Lapor Klaim</Btn>
+          <Btn sm onClick={onExport}><I.download size={13} /> Risk Register</Btn>
+          <span className="chip tiny muted" title="Read-only — pelaporan klaim dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">

@@ -160,7 +160,7 @@ export function capForWrite(scope: any, key: any) {
     // pengguna non-privileged (yang hanya menerima BARISNYA sendiri via personal.get) tak bisa
     // menulis-balik dokumen parsial & meng-clobber baris orang lain — hanya pemegang data-penuh
     // (HR_MANAGE) yang boleh menulis. Halaman "Data Personal Saya" bersifat baca-saja.
-    if (['payrollRun', 'payrollData', 'leaveReqs', 'leaveBalance', 'perfPeople', 'perfGoals', 'cpeExtra', 'cpeLog', 'hrCases', 'amlScreening', 'staffProfile', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck', 'pc.ethics', 'pc.gifts'].includes(key)) return HR_MANAGE;
+    if (['payrollRun', 'payrollData', 'payrollSent.v1', 'leaveReqs', 'leaveBalance', 'perfPeople', 'perfGoals', 'cpeExtra', 'cpeLog', 'hrCases', 'amlScreening', 'staffProfile', 'independence', 'indepAppr', 'indepThreats', 'indepRotAck', 'pc.ethics', 'pc.gifts'].includes(key)) return HR_MANAGE;
     // 2026-07-01 — dokumen Firm Finance (ERP) yang punya jalur tulis. FIRMFIN_EDIT sudah lama
     // didefinisikan & diberikan ke Partner tapi TAK PERNAH dikonsumsi capForWrite (vestigial) —
     // kini benar-benar men-gate, dan 'Finance Firma' jadi peran pertama yang memanfaatkannya.

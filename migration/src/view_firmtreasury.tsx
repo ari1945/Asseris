@@ -7,6 +7,7 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — Firm Finance (ERP): Treasury, Cash & Bank, Assets
@@ -55,6 +56,26 @@ function FirmTreasury() {
   const netGen = fc.reduce((s: any, r: any) => s + r.net, 0);
 
   const tabs = [{ id: 'budget', label: 'Anggaran vs Aktual' }, { id: 'cash', label: 'Forecast Arus Kas' }];
+
+  const { rp } = AMS;
+  const onExport = async () => {
+    const budRows: (string | number)[][] = [];
+    for (const b of B) budRows.push([b.line, b.type === 'rev' ? 'Pendapatan' : 'Beban', rp(b.budget), rp(b.actual), rp(b.actual - b.budget), (b.actual / b.budget * 100).toFixed(0) + '%']);
+    budRows.push(['LABA OPERASI', '', rp(budProfit), rp(actProfit), rp(actProfit - budProfit), '']);
+    const cashRows: (string | number)[][] = [];
+    for (const r of fc) cashRows.push([r.m + ' 2026', r.open, r.inflow, r.outflow, r.net, r.close]);
+    await amsExportXlsx({
+      kind: 'firm-treasury', scope: 'firm',
+      fileName: 'Anggaran & Arus Kas Firma.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Anggaran vs Aktual & Forecast Arus Kas',
+      meta: [`FY2025 · laba operasi aktual Rp ${fmt(actProfit / 1e9, 1)} M · cash runway ${runway.toFixed(1)} bln · skenario ${sc.label}`],
+      sheets: [
+        { name: 'Anggaran vs Aktual', columns: ['Pos Anggaran', 'Jenis', 'Anggaran', 'Aktual', 'Varians', 'Realisasi'], rows: budRows, colWidths: [30, 12, 20, 20, 20, 11] },
+        { name: 'Forecast Arus Kas (Rp jt)', columns: ['Bulan', 'Saldo Awal', 'Arus Masuk', 'Arus Keluar', 'Arus Bersih', 'Saldo Akhir'], rows: cashRows, colWidths: [14, 14, 14, 14, 14, 14] },
+      ],
+    });
+  };
   const VarCell = ({ b, a, cost }: any) => {
     const v = a - b; const adverse = cost ? v > 0 : v < 0;
     return <span className="mono" style={{ color: Math.abs(v) < 1e6 ? 'var(--ink-3)' : adverse ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{v >= 0 ? '+' : '−'}{fmt(Math.abs(v) / 1e6, 0)}</span>;
@@ -62,7 +83,7 @@ function FirmTreasury() {
 
   return (
     <>
-      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Seg options={['FY2025', 'FY2026 (RKA)']} value="FY2025" onChange={() => {}} /><Btn sm><I.download size={13} /> Export</Btn></div>} />
+      <SubBar moduleId="treasury" right={<div className="row gap8 ac"><Badge kind="gray">FY2025</Badge><Btn sm onClick={onExport}><I.download size={13} /> Export</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(actRev / 1e9, 1) + ' M'} label="Pendapatan Aktual" delta={((actRev / budRev - 1) * 100).toFixed(1) + '% vs anggaran'} deltaDir={actRev >= budRev ? 'up' : 'down'} /></div></Panel>
@@ -219,7 +240,7 @@ function CashBank() {
 
   return (
     <>
-      <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny"><I.sync size={11} /> Bank feed: 15 mnt lalu</span><Btn sm variant="primary"><I.plus size={14} /> Transaksi</Btn></div>} />
+      <SubBar moduleId="cashbank" right={<div className="row gap8 ac"><span className="chip tiny"><I.sync size={11} /> Bank feed: 15 mnt lalu</span><span className="chip tiny muted" title="Read-only — entri transaksi kas/bank dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalIDR / 1e9, 2) + ' M'} label="Total Kas (ekuivalen IDR)" /></div></Panel>
@@ -352,9 +373,29 @@ function FixedAssets() {
 
   const selRow = sel ? rows.find((r: any) => r.id === sel) : null;
 
+  const { rp } = AMS;
+  const onExportAssets = async () => {
+    const assetRows: (string | number)[][] = [];
+    for (const r of rows) assetRows.push([r.id, r.name, r.cat, new Date(r.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), r.life + 'th', rp(r.cost), rp(r.accDep), rp(r.nbv), (r.pct * 100).toFixed(0) + '%']);
+    assetRows.push(['TOTAL', '', '', '', '', rp(totCost), rp(totAcc), rp(totNbv), '']);
+    const catRows: (string | number)[][] = [];
+    for (const c of cats as Array<{ cat: string; n: number; cost: number; nbv: number }>) catRows.push([c.cat, c.n, rp(c.cost), rp(c.nbv)]);
+    await amsExportXlsx({
+      kind: 'firm-fixed-assets', scope: 'firm',
+      fileName: 'Register Aset Tetap Kantor.xlsx',
+      firm: 'KAP Wijaya Hartono & Rekan',
+      title: 'Register Aset Tetap Kantor',
+      meta: [`per 1 Mar 2026 · NBV Rp ${fmt(totNbv / 1e9, 2)} M · penyusutan Rp ${fmt(totAnnual / 1e6, 0)} jt/th · metode garis lurus`],
+      sheets: [
+        { name: 'Register Aset', columns: ['Kode', 'Aset', 'Kategori', 'Perolehan', 'Umur', 'Harga Perolehan', 'Ak. Penyusutan', 'Nilai Buku', 'Terpakai'], rows: assetRows, colWidths: [10, 30, 16, 12, 8, 20, 20, 20, 10] },
+        { name: 'Ringkasan Kategori', columns: ['Kategori', 'Jumlah', 'Harga Perolehan', 'Nilai Buku'], rows: catRows, colWidths: [22, 10, 20, 20] },
+      ],
+    });
+  };
+
   return (
     <>
-      <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm><I.download size={13} /> Daftar Aset</Btn><Btn sm variant="primary"><I.plus size={14} /> Aset Baru</Btn></div>} />
+      <SubBar moduleId="fixedassets" right={<div className="row gap8 ac"><Badge kind="blue">Garis Lurus</Badge><Btn sm onClick={onExportAssets}><I.download size={13} /> Daftar Aset</Btn><span className="chip tiny muted" title="Read-only — registrasi aset dikelola di CoreSys (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totCost / 1e9, 2) + ' M'} label="Harga Perolehan" /></div></Panel>

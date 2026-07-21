@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { AccessDenied, Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -68,11 +69,28 @@ function OrgChart() {
     return { d, members, head };
   });
 
+  const onExport = async () => {
+    const rosterRows: (string | number)[][] = [];
+    for (const s of staff) {
+      const rep = (ORG[s.id] || {}).reports;
+      const mgrP = rep ? A.byId(rep) : null;
+      rosterRows.push([s.id, s.name, s.role, s.grade, (ORG[s.id] || {}).dept || '—', mgrP ? mgrP.name : 'Puncak', directReports(s.id), spanAll(s.id)]);
+    }
+    await amsExportXlsx({
+      kind: 'firm-orgchart', scope: 'firm',
+      fileName: 'Struktur Organisasi.xlsx',
+      firm: A.FIRM.short || 'KAP',
+      title: 'Struktur Organisasi & Rentang Kendali',
+      meta: [`${A.FIRM.partners + A.FIRM.managers + A.FIRM.staff} headcount · ${depts.length} divisi · rasio staf:manajer ${(A.FIRM.staff / A.FIRM.managers).toFixed(1)}`],
+      sheets: [{ name: 'Roster', columns: ['ID', 'Nama', 'Jabatan', 'Jenjang', 'Divisi', 'Atasan', 'Bawahan Langsung', 'Total Bawahan'], rows: rosterRows, colWidths: [10, 26, 26, 12, 20, 20, 16, 14] }],
+    });
+  };
+
   return (
     <>
       <SubBar moduleId="orgchart" right={<div className="row gap8 ac">
         <Seg options={[{ value: 'chart', label: 'Bagan' }, { value: 'dept', label: 'Divisi' }, { value: 'span', label: 'Rentang Kendali' }]} value={view} onChange={setView} />
-        <Btn sm><I.download size={13} /> Ekspor</Btn>
+        <Btn sm onClick={onExport}><I.download size={13} /> Ekspor</Btn>
       </div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
@@ -195,9 +213,27 @@ function SuccessionPlanning() {
   // 2026-07-05 — suksesi & karier = data SDM sensitif: hanya Partner + Admin & HR (HR_MODULE_VIEW).
   if (!(authSucc && typeof authSucc.can === 'function' && authSucc.can(CAP.HR_MODULE_VIEW))) return (<><SubBar moduleId="succession" /><AccessDenied moduleId="succession" /></>);
 
+  const onExport = async () => {
+    const roleRows: (string | number)[][] = [];
+    for (const r of ROLES) { const ic = A.byId(r.incumbent); roleRows.push([r.role, ic ? ic.name : '', r.critical, r.riskOfLoss, r.vacancyImpact, r.successors.length]); }
+    const succRows: (string | number)[][] = [];
+    for (const r of ROLES) for (const s of r.successors) { const p = A.byId(s.id); succRows.push([r.role, p ? p.name : '', p ? p.role : '', s.readiness, s.gaps]); }
+    await amsExportXlsx({
+      kind: 'firm-succession', scope: 'firm',
+      fileName: 'Laporan Suksesi.xlsx',
+      firm: A.FIRM.short || 'KAP',
+      title: 'Perencanaan Suksesi & Karier',
+      meta: [`${ROLES.length} peran kunci · ${readyNow} punya penerus siap · ${atRisk} risiko kehilangan · ${noReady} tanpa penerus`],
+      sheets: [
+        { name: 'Peran Kunci', columns: ['Peran', 'Pemangku', 'Kritikalitas', 'Risiko Kehilangan', 'Dampak Kekosongan', 'Jumlah Penerus'], rows: roleRows, colWidths: [28, 22, 16, 18, 18, 14] },
+        { name: 'Kandidat Penerus', columns: ['Peran', 'Kandidat', 'Jabatan', 'Kesiapan', 'Gap'], rows: succRows, colWidths: [28, 22, 22, 16, 40] },
+      ],
+    });
+  };
+
   return (
     <>
-      <SubBar moduleId="succession" right={<div className="row gap8 ac"><Badge kind="blue">{ROLES.length} peran kunci</Badge><Btn sm><I.download size={13} /> Laporan Suksesi</Btn></div>} />
+      <SubBar moduleId="succession" right={<div className="row gap8 ac"><Badge kind="blue">{ROLES.length} peran kunci</Badge><Btn sm onClick={onExport}><I.download size={13} /> Laporan Suksesi</Btn></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={ROLES.length} label="Peran Kunci Dipetakan" /></div></Panel>

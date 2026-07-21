@@ -69,7 +69,7 @@ function FirmTax() {
 
   return (
     <>
-      <SubBar moduleId="firmtax" right={<div className="row gap8 ac"><span className="chip tiny"><I.link2 size={11} /> DJP Coretax: terhubung</span><Btn sm variant="primary"><I.upload size={13} /> Lapor SPT Masa</Btn></div>} />
+      <SubBar moduleId="firmtax" right={<div className="row gap8 ac"><span className="chip tiny"><I.link2 size={11} /> DJP Coretax: terhubung</span><span className="chip tiny muted" title="Read-only — pelaporan SPT dikelola di CoreSys / Coretax (roadmap)"><I.lock size={11} /> Read-only</span></div>} />
       <div className="view-scroll"><div className="view-pad">
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(ppnPayable / 1e6, 0) + ' jt'} label="PPN Kurang Bayar (Feb)" accent="var(--amber)" /></div></Panel>
@@ -222,7 +222,7 @@ function FirmTax() {
                   <div className="panel" style={{ padding: 14 }}>
                     <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Status: Draft</span></div>
                     <div className="tiny muted" style={{ lineHeight: 1.5, marginBottom: 10 }}>Lampiran (1771, daftar nominatif, laporan keuangan audited) belum lengkap.</div>
-                    <Btn sm variant="primary" style={{ width: '100%' }}><I.doc size={13} /> Susun SPT 1771</Btn>
+                    <div className="chip tiny muted" style={{ width: 'fit-content' }} title="Read-only — penyusunan SPT 1771 dikelola di CoreSys / Coretax (roadmap)"><I.lock size={11} /> Penyusunan SPT: CoreSys (roadmap)</div>
                   </div>
                 </div>
               </div>
