@@ -362,3 +362,95 @@ export function reconcileSamplingTolerance(input: {
     count: issues.length,
   };
 }
+
+/* ------------------------------------------------------------
+   Validasi silang SA 505 · Cakupan konfirmasi vs saldo populasi.
+   [PURE]
+   ------------------------------------------------------------
+   Satu SSOT: register konfirmasi (confirmState.v1 → items = seed +
+   override). Resolusi dikodekan pada `status`: rekonsiliasi selisih
+   & prosedur alternatif yang tuntas mem-flip status → 'Received'
+   (resolveRecon/resolveAlt). Maka status sendiri menandai tindak
+   lanjut terbuka — tanpa flag manual (nol drift).
+   Deteksi:
+   - Non-respons konfirmasi POSITIF ('No Reply') tanpa prosedur
+     alternatif (SA 505 ¶12) — BERAT. Konfirmasi negatif dikecualikan
+     (non-respons memang diterima, ¶15/A23).
+   - Diskrepansi jawaban belum diselesaikan (SA 505 ¶11) — investigasi
+     & bawa selisih ke SAD (SA 450).
+   - Respons diterima namun keandalan belum divalidasi (SA 505 ¶10–11).
+   - Cakupan nilai terkonfirmasi < ambang saldo populasi per area
+     (SA 330 — perluasan/uji lain). Ambang = konvensi, bukan SA baku.
+   Saldo populasi (pop) per area dari SSOT WTB (CF_AREA). ------------------------------------------------------------ */
+/* Konvensi: cakupan nilai terkonfirmasi < 50% saldo populasi → tinjau perluasan (BUKAN ambang SA baku). */
+export const CONF_COVERAGE_MIN = 0.5;
+
+export interface ConfItem { id: string; area: string; method: string; amount: number; resp: number | null; status: string; validated?: boolean }
+export interface ConfArea { area: string; pop: number }
+export interface ConfCoverageIssue { code: string; severe: boolean; text: string }
+export interface ConfAreaCoverage { area: string; pop: number; sentValue: number; respValue: number; covSent: number; covResp: number; low: boolean }
+export interface ConfCoverageResult {
+  areas: ConfAreaCoverage[];
+  altMissing: string[];   // konfirmasi positif 'No Reply' tanpa prosedur alternatif (¶12)
+  discOpen: string[];     // diskrepansi belum diselesaikan (¶11)
+  unreliable: string[];   // direspons tetapi keandalan belum divalidasi (¶10–11)
+  issues: ConfCoverageIssue[];
+  severe: boolean;
+  count: number;
+}
+
+const jtLabel = (rp: number): string => Math.round(rp / 1e6).toLocaleString('id-ID');
+
+export function reconcileConfirmationCoverage(input: {
+  items: ConfItem[];
+  areas: ConfArea[];
+  coverageMin?: number;
+  finalized?: boolean;
+}): ConfCoverageResult {
+  const items = Array.isArray(input.items) ? input.items : [];
+  const areas = Array.isArray(input.areas) ? input.areas : [];
+  const min = (typeof input.coverageMin === 'number' && input.coverageMin > 0) ? input.coverageMin : CONF_COVERAGE_MIN;
+  const issues: ConfCoverageIssue[] = [];
+
+  const isPositive = (m: string) => (m || '').trim().toLowerCase().startsWith('pos');
+  const altMissing = items.filter(c => isPositive(c.method) && c.status === 'No Reply').map(c => c.id);
+  const discOpen = items.filter(c => c.status === 'Discrepancy').map(c => c.id);
+  const unreliable = items.filter(c => c.resp != null && c.validated === false).map(c => c.id);
+
+  const areaCov: ConfAreaCoverage[] = areas.map(a => {
+    const its = items.filter(c => c.area === a.area);
+    const sentValue = its.reduce((s, c) => s + (c.amount || 0), 0);
+    const respValue = its.filter(c => c.resp != null).reduce((s, c) => s + (c.amount || 0), 0);
+    const covSent = a.pop > 0 ? sentValue / a.pop : 0;
+    const covResp = a.pop > 0 ? respValue / a.pop : 0;
+    return { area: a.area, pop: a.pop, sentValue, respValue, covSent, covResp, low: a.pop > 0 && covSent < min };
+  });
+
+  if (altMissing.length) {
+    issues.push({ code: 'alt-missing', severe: true, text: `${altMissing.length} konfirmasi positif tanpa respons ("No Reply") belum dijalankan prosedur alternatif (SA 505 ¶12): ${altMissing.join(', ')}. Non-respons konfirmasi positif WAJIB ditindaklanjuti prosedur alternatif.` });
+  }
+  if (discOpen.length) {
+    issues.push({ code: 'disc-open', severe: false, text: `${discOpen.length} diskrepansi jawaban belum diselesaikan (SA 505 ¶11): ${discOpen.join(', ')}. Investigasi penyebab & bawa selisih tak terjelaskan ke SAD (SA 450).` });
+  }
+  if (unreliable.length) {
+    issues.push({ code: 'reliability', severe: false, text: `${unreliable.length} respons diterima namun keandalannya belum divalidasi (SA 505 ¶10–11): ${unreliable.join(', ')}. Verifikasi sumber & otoritas penjawab sebelum diandalkan.` });
+  }
+  for (const a of areaCov) {
+    if (a.low) {
+      issues.push({ code: 'coverage-low', severe: false, text: `Cakupan konfirmasi ${a.area} hanya ${Math.round(a.covSent * 100)}% dari saldo populasi (Rp ${jtLabel(a.pop)} jt) — di bawah ${Math.round(min * 100)}%. Pertimbangkan perluasan cakupan atau prosedur substantif lain (SA 330); pastikan disengaja.` });
+    }
+  }
+  if (input.finalized && (altMissing.length || discOpen.length)) {
+    issues.push({ code: 'finalized', severe: true, text: 'Kertas kerja SA 505 sudah DIFINALISASI namun masih ada tindak lanjut terbuka (non-respons tanpa prosedur alternatif / diskrepansi belum selesai) — selesaikan sebelum mengandalkan bukti konfirmasi.' });
+  }
+
+  return {
+    areas: areaCov,
+    altMissing,
+    discOpen,
+    unreliable,
+    issues,
+    severe: issues.some(i => i.severe),
+    count: issues.length,
+  };
+}

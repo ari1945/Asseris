@@ -6,6 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Donut, MiniBars, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
+import { reconcileConfirmationCoverage, type ConfCoverageResult } from './canon_validation';
 import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWorksheet, CfReliability, CfTrack, STATUS_KIND } from './view_confirm_parts';
 
 /* ============================================================
@@ -14,6 +15,10 @@ import { CF_AREA, CONFIRMATIONS, CONF_TYPES, CfAltProcedures, CfMeta, CfReconWor
    (constants + reusable parts live in view_confirm_parts.jsx)
    ============================================================ */
 const { useState: useStateCF, useMemo: useMemoCF } = React;
+
+/* Bentuk baris konfirmasi (seed CONFIRMATIONS + override) — untuk memberi tipe
+   pada map() ke reconcileConfirmationCoverage tanpa `:any` (ratchet no-explicit-any). */
+type CfRow = { id: string; type: string; method: string; amount: number; resp: number | null; status: string; validated?: boolean };
 
 /* ---------- enriched detail rail (Register tab) ---------- */
 function CfDetailPanel(props: any) {
@@ -119,8 +124,9 @@ function CfDetailPanel(props: any) {
 }
 
 /* ---------- Tab 1 · Ringkasan ---------- */
-function CfOverview({ items, segs, rate, onJump }: any) {
+function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
   const { fmt } = AMS;
+  const cr: ConfCoverageResult | null = covRecon || null;
   const responded = items.filter((c: any) => c.resp != null).length;
   const concluded = items.filter((c: any) => c.status === 'Received').length;
   const discrepancies = items.filter((c: any) => c.status === 'Discrepancy').length;
@@ -155,6 +161,27 @@ function CfOverview({ items, segs, rate, onJump }: any) {
 
   return (
     <div className="grid" style={{ gap: 12 }}>
+      {/* PR-G/SA505 — banner validasi silang cakupan konfirmasi vs saldo + tindak lanjut wajib */}
+      {cr && cr.count > 0 && (
+        <div className="panel" style={{ padding: '11px 13px', background: cr.severe ? 'var(--amber-bg)' : 'var(--blue-050)', borderColor: 'transparent' }}>
+          <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+            <span style={{ color: cr.severe ? 'var(--amber)' : 'var(--blue)', marginTop: 1 }}>{cr.severe ? <I.alert size={16} /> : <I.book size={16} />}</span>
+            <div style={{ flex: 1 }}>
+              <div className="row jb ac" style={{ marginBottom: 3 }}>
+                <div style={{ fontWeight: 700, fontSize: 12.5 }}>Validasi silang SA 505 — {cr.count} catatan cakupan &amp; tindak lanjut</div>
+                {(cr.altMissing.length > 0 || cr.discOpen.length > 0) && (
+                  <Btn sm onClick={() => onJump('worklist', (cr.altMissing[0] || cr.discOpen[0]))}>Buka Tindak Lanjut</Btn>
+                )}
+              </div>
+              <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+                {cr.issues.map((i, k) => (
+                  <li key={k} style={i.severe ? { color: 'var(--ink)' } : undefined}>{i.severe && <b>[berat] </b>}{i.text}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       {/* coverage */}
       <Panel title="Analisis Cakupan Konfirmasi" sub="SA 505 — cakupan nilai per area laporan keuangan" actions={<Badge kind="blue">Per Nilai</Badge>}>
         <div style={{ padding: '4px 0' }}>
@@ -467,6 +494,14 @@ function ConfirmationHub() {
 
   const jump = (t: any, id: any) => { setTab(t); if (id) { setFocusId(id); setSelId(id); } };
 
+  /* PR-G · Validasi silang SA 505 — cakupan konfirmasi vs saldo populasi + tindak
+     lanjut wajib. Satu SSOT: `items` (seed + override); status mengkodekan resolusi
+     (resolveRecon/resolveAlt → 'Received'). Saldo populasi per area dari CF_AREA (WTB). */
+  const covRecon: ConfCoverageResult = useMemoCF(() => reconcileConfirmationCoverage({
+    items: (items as CfRow[]).map((c) => ({ id: c.id, area: c.type, method: c.method, amount: c.amount, resp: c.resp, status: c.status, validated: c.validated })),
+    areas: CF_AREA.map((a) => ({ area: a.type, pop: a.pop })),
+  }), [items]);
+
   const tabs = [
     { id: 'overview', label: 'Ringkasan' },
     { id: 'register', label: 'Daftar Konfirmasi', count: total },
@@ -504,7 +539,7 @@ function ConfirmationHub() {
           {/* tabs */}
           <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={(t: any) => { setTab(t); setFocusId(null); }} /></div>
 
-          {tab === 'overview' && <div className="grid" style={{ gap: 12 }}><CfWpStatus wp={cfWp} /><CfOverview items={items} segs={segs} rate={rate} onJump={jump} /></div>}
+          {tab === 'overview' && <div className="grid" style={{ gap: 12 }}><CfWpStatus wp={cfWp} /><CfOverview items={items} segs={segs} rate={rate} onJump={jump} covRecon={covRecon} /></div>}
 
           {tab === 'register' && (
             <>
