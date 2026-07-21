@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { capacityModel, seedForwardPlan } from './canon_capacity';
 import { I } from './icons';
 import { Badge } from './ui';
 
@@ -25,10 +26,12 @@ function soqmPull() {
   const bare = (n: any) => (n || '').split(',')[0].trim();
   const engMeta = A.engMeta || ((): any => null);
 
-  /* QR-02 Sumber Daya · utilisasi senior dari Capacity Planning */
-  const seniors = (A.CAPACITY.staff || []).filter((s: any) => s.grade === 'Senior');
-  const peak = (s: any) => Math.max.apply(null, s.forecast);
-  const overloaded = seniors.filter((s: any) => peak(s) > 92);
+  /* QR-02 Sumber Daya · utilisasi senior DITURUNKAN dari 'schedule'+capacityPlan
+     (SSOT kapasitas tunggal, Fase 4) — bukan seed CAPACITY.staff langsung. */
+  const capStaff = capacityModel(A.SCHEDULE, seedForwardPlan(A.CAPACITY), { nowLabel: A.CAPACITY.weeks[0] }).staff;
+  const seniors = capStaff.filter((s) => s.grade === 'Senior');
+  const peak = (s: { forecast: number[] }) => Math.max.apply(null, s.forecast);
+  const overloaded = seniors.filter((s) => peak(s) > 92);
   const peakUtil = seniors.length ? Math.max.apply(null, seniors.map(peak)) : 0;
 
   /* QR-04 Etika & Independensi · rotasi AP dari register Independensi */
