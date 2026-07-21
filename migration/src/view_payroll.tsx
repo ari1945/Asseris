@@ -259,8 +259,8 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
           <Btn style={{ flex: 1 }} onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={13} /> Unduh Slip (PDF)</Btn>
           {canSend && (sent
-            ? <Btn disabled style={{ flex: 1, color: 'var(--green)' }} title={'Terkirim ' + sent.at + ' oleh ' + sent.by}><I.check size={13} /> Terkirim · {sent.at}</Btn>
-            : <Btn variant="primary" style={{ flex: 1 }} onClick={() => onSend(r.id)}><I.mail size={13} /> Kirim ke Karyawan</Btn>)}
+            ? <Btn disabled style={{ flex: 1, color: 'var(--green)' }} title={'Ditandai terkirim ' + sent.at + ' oleh ' + sent.by + ' — distribusi slip dilakukan di luar aplikasi'}><I.check size={13} /> Ditandai Terkirim · {sent.at}</Btn>
+            : <Btn variant="primary" style={{ flex: 1 }} onClick={() => onSend(r.id)} title="Catat atestasi distribusi slip (pengiriman aktual di luar aplikasi)"><I.check size={13} /> Tandai Terkirim</Btn>)}
         </div>
       </div>
     </div>
