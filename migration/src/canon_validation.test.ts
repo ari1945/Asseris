@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements, reconcileOpinionConsistency, reconcileSamplingTolerance } from './canon_validation';
+import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements, reconcileOpinionConsistency, reconcileSamplingTolerance, reconcileConfirmationCoverage, type ConfItem } from './canon_validation';
 
 describe('probError — probabilitas 0–100', () => {
   it('menerima 0/50/100', () => {
@@ -105,6 +105,99 @@ describe('reconcileSamplingTolerance — SA 530 · TM vs PM', () => {
     const r = reconcileSamplingTolerance({ tm: 9000, pm: 6000, finalized: true });
     expect(r.issues.some(i => i.code === 'finalized' && i.severe)).toBe(true);
     expect(r.count).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('reconcileConfirmationCoverage — SA 505 · cakupan vs saldo', () => {
+  const C = (o: Partial<ConfItem> & { id: string }): ConfItem => ({
+    area: 'Piutang', method: 'Positif', amount: 1000, resp: 1000, status: 'Received', validated: true, ...o,
+  });
+  const AREAS = [{ area: 'Piutang', pop: 10000 }];
+
+  it('non-respons positif ("No Reply") → berat alt-missing (¶12)', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-1', status: 'No Reply', resp: null })],
+      areas: AREAS,
+    });
+    expect(r.altMissing).toEqual(['CF-1']);
+    expect(r.severe).toBe(true);
+    expect(r.issues.some(i => i.code === 'alt-missing' && i.severe)).toBe(true);
+  });
+
+  it('non-respons NEGATIF dikecualikan (¶15) → tidak alt-missing', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-2', method: 'Negatif', status: 'No Reply', resp: null })],
+      areas: AREAS,
+    });
+    expect(r.altMissing).toEqual([]);
+    expect(r.severe).toBe(false);
+  });
+
+  it('diskrepansi terbuka → warn non-berat disc-open (¶11)', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-3', status: 'Discrepancy', resp: 800 })],
+      areas: AREAS,
+    });
+    expect(r.discOpen).toEqual(['CF-3']);
+    expect(r.severe).toBe(false);
+    expect(r.issues.some(i => i.code === 'disc-open' && !i.severe)).toBe(true);
+  });
+
+  it('respons diterima tapi keandalan belum divalidasi → warn reliability', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-4', validated: false })],
+      areas: AREAS,
+    });
+    expect(r.unreliable).toEqual(['CF-4']);
+    expect(r.issues.some(i => i.code === 'reliability' && !i.severe)).toBe(true);
+  });
+
+  it('cakupan nilai < 50% saldo populasi → warn coverage-low (SA 330)', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-5', amount: 2000 })], // 2000/10000 = 20%
+      areas: AREAS,
+    });
+    const cov = r.areas[0];
+    expect(cov.covSent).toBeCloseTo(0.2, 5);
+    expect(cov.low).toBe(true);
+    expect(r.issues.some(i => i.code === 'coverage-low' && !i.severe)).toBe(true);
+  });
+
+  it('cakupan ≥ 50% → tidak coverage-low', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-6', amount: 6000 })], // 60%
+      areas: AREAS,
+    });
+    expect(r.areas[0].low).toBe(false);
+    expect(r.issues.some(i => i.code === 'coverage-low')).toBe(false);
+  });
+
+  it('cakupan respons (covResp) hanya menghitung item yang dijawab', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-7', amount: 6000 }), C({ id: 'CF-8', amount: 4000, status: 'No Reply', resp: null })],
+      areas: AREAS,
+    });
+    const cov = r.areas[0];
+    expect(cov.covSent).toBeCloseTo(1.0, 5);   // 10000/10000 terkirim
+    expect(cov.covResp).toBeCloseTo(0.6, 5);    // hanya CF-7 dijawab
+  });
+
+  it('finalisasi + tindak lanjut terbuka → berat finalized', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-9', status: 'No Reply', resp: null })],
+      areas: AREAS,
+      finalized: true,
+    });
+    expect(r.issues.some(i => i.code === 'finalized' && i.severe)).toBe(true);
+  });
+
+  it('semua bersih (dijawab, tervalidasi, cakupan penuh) → nol isu', () => {
+    const r = reconcileConfirmationCoverage({
+      items: [C({ id: 'CF-10', amount: 10000 })],
+      areas: AREAS,
+    });
+    expect(r.count).toBe(0);
+    expect(r.severe).toBe(false);
   });
 });
 
