@@ -291,8 +291,14 @@ import { NONAUDIT } from './data_part2';
      Anchor "hari ini" = 2026-03-09 (selaras Resource Scheduler).
      ============================================================ */
 
+  /* ---- Klok demo SSOT (Fase 4 · PR-A2): satu "hari ini" untuk delivery/
+     audittimeline. Konstanta demo (bukan wall-clock — data seed berpusat Mar
+     2026). Modul lain masih punya anchor '2026-03-09' sendiri (sweep klok
+     app-wide = pekerjaan lanjutan, di luar PR ini). ---- */
+  const TODAY = '2026-03-09';
+
   /* ---- Delivery plan: fase + milestone per engagement (Gantt) ---- */
-  const DELIVERY_WINDOW = { start: '2025-11-17', end: '2026-06-30', today: '2026-03-09' };
+  const DELIVERY_WINDOW = { start: '2025-11-17', end: '2026-06-30', today: TODAY };
   const DELIVERY = [
     { id: 'ENG-2025-063', phases: [
         { name: 'Perencanaan', start: '2025-12-08', end: '2026-01-09' },
@@ -453,4 +459,4 @@ import { NONAUDIT } from './data_part2';
   /* — Normalisasi data mutu: tulis ulang field turunan dari resolver kanonik.
      Yang disimpan di sumber hanyalah FOREIGN KEY (eng). Sisanya diturunkan. — */
 
-export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };
+export { DD_OPP, DD_PROS, DD_REG, DD_EBITDA_BRIDGE, DD_NORM_EBITDA, DUE_DILIGENCE, QM_COMPONENTS, QM_ROLES, QM_PROVIDERS, QM_CULTURE, QM_EVAL, QM_INSPECTIONS, QM_INSP_FINDINGS, QM_MON_ACTIVITIES, EQR_META, PPPK_CLIENTS, PPPK_PPL, PPPK_ROTATION, PPPK_HISTORY, TODAY, DELIVERY_WINDOW, DELIVERY, WIP_ENG, WIP_AGING, CAPACITY, _engIndex, _cliIndex, engById, clientById, shortName, bareName, staffByName, industryTag, engMeta };

@@ -1,7 +1,10 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useNav } from './contexts';
+import { useAmsPersist, useNav } from './contexts';
+import { seedDeliveryPlan, withMilestoneStatus } from './canon_delivery';
+import type { DeliveryEngPlan, SeedEngPlan } from './canon_delivery';
+import type { ClientRow, EngagementRow } from './ams_types';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
@@ -20,19 +23,31 @@ const DLV_fmtDate = (s: any) => DLV_d(s).toLocaleDateString('id-ID', { day: '2-d
 const DLV_daysTo = (s: any, today: any) => Math.round((+DLV_d(s) - +DLV_d(today)) / 864e5);
 
 function DeliveryMilestones() {
-  const { fmt, DELIVERY, DELIVERY_WINDOW, ENGAGEMENTS, CLIENTS } = AMS as any;
-  const win = DELIVERY_WINDOW;
+  const { fmt, ENGAGEMENTS, CLIENTS } = AMS;
+  /* SSOT: rencana pengiriman tersimpan (deliveryPlan.v1, seed dari AMS.DELIVERY);
+     status milestone DITURUNKAN dari flag done × klok AMS.TODAY (Fase 4 PR-A2). */
+  const [planRaw, setPlan] = useAmsPersist('deliveryPlan.v1', () => seedDeliveryPlan(AMS.DELIVERY as unknown as SeedEngPlan[]));
+  const today = AMS.TODAY;
+  const win = AMS.DELIVERY_WINDOW as { start: string; end: string; today: string };
   const t0 = DLV_d(win.start).getTime(), t1 = DLV_d(win.end).getTime();
   const span = t1 - t0;
   const frac = (s: any) => ((DLV_d(s).getTime() - t0) / span) * 100;
-  const today = win.today;
   const nav = useNav();
 
   const [filter, setFilter] = useStateDlv('Semua');
   const [sel, setSel] = useStateDlv(null);
 
-  const engById = (id: any) => ENGAGEMENTS.find((e: any) => e.id === id) || {};
-  const cliOf = (e: any) => CLIENTS.find((c: any) => c.id === e.clientId) || {};
+  /* rencana + status milestone turunan (done/due/upcoming vs today). */
+  const DELIVERY = useMemoDlv(() => (planRaw as DeliveryEngPlan[]).map((p) => withMilestoneStatus(p, today)), [planRaw, today]);
+  /* jalur tulis milestone: tandai selesai/urung + geser tanggal → deliveryPlan.v1 */
+  const setMsDone = (engId: string, idx: number, done: boolean) => setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, done } : m) } : p));
+  const setMsDate = (engId: string, idx: number, date: string) => {
+    if (!date) return; // date picker yang dikosongkan → jangan timpa tanggal valid dgn '' (→ "Invalid Date"/NaN status)
+    setPlan((list: DeliveryEngPlan[]) => list.map((p) => p.id === engId ? { ...p, milestones: p.milestones.map((m, i) => i === idx ? { ...m, date } : m) } : p));
+  };
+
+  const engById = (id: any) => ENGAGEMENTS.find((e) => e.id === id) || ({} as EngagementRow);
+  const cliOf = (e: any) => CLIENTS.find((c) => c.id === e.clientId) || ({} as ClientRow);
 
   // month gridlines
   const months = useMemoDlv(() => {
@@ -176,14 +191,17 @@ function DeliveryMilestones() {
             </div>
           </Panel>
 
-          {selRow && <DeliveryDetail row={selRow} eng={selRow.e} client={selRow.c} today={today} onClose={() => setSel(null)} onNav={nav} />}
+          {selRow && <DeliveryDetail row={selRow} eng={selRow.e} client={selRow.c} today={today}
+            onToggleMs={(idx: number, done: boolean) => setMsDone(selRow.id, idx, done)}
+            onDateMs={(idx: number, date: string) => setMsDate(selRow.id, idx, date)}
+            onClose={() => setSel(null)} onNav={nav} />}
         </div>
       </div></div>
     </>
   );
 }
 
-function DeliveryDetail({ row, eng, client, today, onClose, onNav }: any) {
+function DeliveryDetail({ row, eng, client, today, onToggleMs, onDateMs, onClose, onNav }: any) {
   const { fmt } = AMS;
   const burn = eng.budgetHrs ? Math.round(eng.actualHrs / eng.budgetHrs * 100) : 0;
   const overburn = burn > eng.progress + 12;
@@ -213,17 +231,22 @@ function DeliveryDetail({ row, eng, client, today, onClose, onNav }: any) {
           ))}
         </div>
 
-        <div className="tiny muted upper" style={{ marginBottom: 7 }}>Milestone</div>
+        <div className="row ac jb" style={{ marginBottom: 7 }}><span className="tiny muted upper">Milestone</span><span className="tiny muted">klik status = tandai selesai · tanggal dapat disunting</span></div>
         <div style={{ display: 'grid', gap: 0, marginBottom: 14 }}>
           {row.milestones.map((m: any, i: any) => {
             const dl = DLV_daysTo(m.date, today);
             return (
               <div key={i} className="row ac jb" style={{ padding: '6px 0', borderBottom: i < row.milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                <span className="row ac gap8">
-                  <span style={{ color: (DLV_MS_COLOR as any)[m.status] }}>{m.status === 'done' ? <I.checkCircle size={15} /> : m.status === 'due' ? <I.clock size={15} /> : <I.circle size={15} />}</span>
-                  <span className="tiny" style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'none' : 'none' }}>{m.label}</span>
+                <span className="row ac gap8" style={{ minWidth: 0 }}>
+                  <button type="button" title={m.done ? 'Tandai belum selesai' : 'Tandai selesai'} onClick={() => onToggleMs && onToggleMs(i, !m.done)}
+                    style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', color: (DLV_MS_COLOR as any)[m.status], display: 'inline-flex' }}>
+                    {m.status === 'done' ? <I.checkCircle size={15} /> : m.status === 'due' ? <I.clock size={15} /> : <I.circle size={15} />}
+                  </button>
+                  <span className="tiny truncate" style={{ fontWeight: 600, textDecoration: m.status === 'done' ? 'line-through' : 'none', color: m.status === 'done' ? 'var(--ink-4)' : 'var(--ink)' }}>{m.label}</span>
                 </span>
-                <span className="mono tiny" style={{ color: m.status === 'done' ? 'var(--ink-4)' : dl < 0 ? 'var(--red)' : 'var(--ink-3)' }}>{DLV_fmtDate(m.date)}</span>
+                <input type="date" value={m.date} onChange={(e: { target: { value: string } }) => onDateMs && onDateMs(i, e.target.value)}
+                  title={dl < 0 ? Math.abs(dl) + ' hari lewat' : dl + ' hari lagi'}
+                  className="mono tiny" style={{ border: '1px solid var(--line)', borderRadius: 4, background: 'var(--surface)', color: m.status === 'done' ? 'var(--ink-4)' : dl < 0 ? 'var(--red)' : 'var(--ink-3)', height: 24, padding: '0 4px' }} />
               </div>
             );
           })}
