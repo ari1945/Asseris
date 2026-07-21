@@ -165,6 +165,11 @@ export function capForWrite(scope: any, key: any) {
     // didefinisikan & diberikan ke Partner tapi TAK PERNAH dikonsumsi capForWrite (vestigial) —
     // kini benar-benar men-gate, dan 'Finance Firma' jadi peran pertama yang memanfaatkannya.
     if (['firmgl', 'firmap', 'firmtax', 'bankrecon'].includes(key)) return FIRMFIN_EDIT;
+    // 2026-07-21 (PR-A1 derivasi kapasitas) — rencana kapasitas minggu ke-depan
+    // (capacityPlan.v1). Perencanaan kapasitas adalah tugas Partner/Manajer; tanpa
+    // cabang ini ia jatuh ke FIRM_ADMIN (Partner-only) → suntingan Manajer gagal
+    // SENYAP (tak tersimpan, tampak berhasil sampai reload). Sejajar roster/priorYear.
+    if (key === 'capacityPlan.v1') return ENGAGEMENT_MANAGE;
     return FIRM_ADMIN;
   }
   // scope === 'engagement'

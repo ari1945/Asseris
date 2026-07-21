@@ -110,7 +110,7 @@ function DashOperasional() {
             {capGrades.map((g) => {
               const supply = g.supply.reduce((s: number, v: number) => s + v, 0);
               const demand = g.demand.reduce((s: number, v: number) => s + v, 0);
-              const ratio = Math.round(demand / supply * 100);
+              const ratio = supply > 0 ? Math.round(demand / supply * 100) : 0;
               return (
                 <div key={g.grade}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}>

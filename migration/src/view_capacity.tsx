@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist } from './contexts';
+import { useAmsPersist, useAuth } from './contexts';
+import { CAP } from './rbac';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacityPlan, CapacitySeed, GradeSeries } from './canon_capacity';
 import { I } from './icons';
@@ -35,6 +36,11 @@ function CapacityPlanning() {
   const [grade, setGrade] = useStateCap('Semua');
   const [hover, setHover] = useStateCap(null);
   const [editing, setEditing] = useStateCap(false);
+  /* Gerbang tulis dua-lapis (UI + server capForWrite). capacityPlan.v1 = ENGAGEMENT_MANAGE
+     (Partner/Manajer); tanpa gate UI ini pengguna non-privileged melihat editor lalu
+     suntingannya ditolak SENYAP oleh server. */
+  const auth = useAuth();
+  const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.ENGAGEMENT_MANAGE));
 
   const leaveSet = useMemoCap(() => new Set((AMS.STAFF || []).filter((s) => s.status === 'Cuti').map((s) => (s.name || '').split(',')[0].trim())), []);
   const model = useMemoCap(() => capacityModel(schedule, plan, {
@@ -75,7 +81,7 @@ function CapacityPlanning() {
       <SubBar moduleId="capacity" right={
         <div className="row gap8 ac">
           <Seg options={['Semua', 'Partner', 'Manager', 'Senior', 'Junior']} value={grade} onChange={setGrade} />
-          <Btn sm variant={editing ? 'primary' : undefined} onClick={() => setEditing((v: boolean) => !v)}><I.sliders size={13} /> {editing ? 'Selesai' : 'Sunting Rencana'}</Btn>
+          {canEdit && <Btn sm variant={editing ? 'primary' : undefined} onClick={() => setEditing((v: boolean) => !v)}><I.sliders size={13} /> {editing ? 'Selesai' : 'Sunting Rencana'}</Btn>}
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -126,7 +132,7 @@ function CapacityPlanning() {
           </div>
         </Panel>
 
-        {editing && (
+        {editing && canEdit && (
           <Panel noBody style={{ marginBottom: 12 }}>
             <div className="panel-h"><h3>Sunting Rencana Kapasitas — Minggu ke Depan</h3><div style={{ flex: 1 }} />
               <span className="tiny muted">jam/minggu · minggu berjalan diturunkan dari Scheduler (tak disunting di sini)</span></div>
