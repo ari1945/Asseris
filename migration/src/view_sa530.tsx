@@ -9,6 +9,8 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan, type PopItem, type SelectedItem } from './sampling_select';
+import { materialityFor } from './canon_selectors';
+import { reconcileSamplingTolerance, type SamplingToleranceResult } from './canon_validation';
 import { WpPanel } from './wp_signoff';
 
 /* ============================================================
@@ -85,6 +87,19 @@ function SA530View() {
 
   const calc = useMemo530(() => musPlan(bv, conf, tm, em), [bv, conf, tm, em]);
 
+  /* PR-F · Validasi silang SA 530 — TM sampel vs Performance Materiality (PM) kanon.
+     PM ditarik dari SSOT materialitas (menghormati pmPct workspace, BUKAN hardcode
+     ×0.75). Proyeksi salah saji ke populasi (¶13–14) konsisten dgn exportMemo &
+     F530Evaluation. `accepted` = kesimpulan modul (proyeksi < TM). */
+  const pmCanon: number | null = useMemo530(() => materialityFor({ engMateriality: matRp }).pm, [matRp]);
+  const totalProj = useMemo530(() => findings.reduce((s: number, f: SampleFinding) => {
+    const taint = f.bv ? (f.bv - f.av) / f.bv : 0;
+    return s + Math.round(taint * calc.interval);
+  }, 0), [findings, calc.interval]);
+  const tol: SamplingToleranceResult = useMemo530(() => reconcileSamplingTolerance({
+    tm, pm: pmCanon, projectedMisstatement: totalProj, accepted: totalProj < tm,
+  }), [tm, pmCanon, totalProj]);
+
   const tabs = [
     { id: 'desain', label: 'Desain & Populasi' },
     { id: 'kalkulator', label: 'Ukuran Sampel' },
@@ -147,7 +162,7 @@ function SA530View() {
         <div style={{ marginBottom: 12 }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
         {tab === 'desain' && <F530Design bv={bv} design={design} setDesign={setDesign} locked={locked} />}
-        {tab === 'kalkulator' && <F530Calc bv={bv} setBv={setBv} conf={conf} setConf={setConf} tm={tm} setTm={setTm} em={em} setEm={setEm} calc={calc} locked={locked} />}
+        {tab === 'kalkulator' && <F530Calc bv={bv} setBv={setBv} conf={conf} setConf={setConf} tm={tm} setTm={setTm} em={em} setEm={setEm} calc={calc} locked={locked} tol={tol} pmCanon={pmCanon} />}
         {tab === 'seleksi' && <F530Selection interval={calc.interval} bv={bv} seedFrac={seedFrac} setSeedFrac={setSeedFrac} locked={locked} />}
         {tab === 'evaluasi' && <F530Evaluation interval={calc.interval} tm={tm} findings={findings} setFindings={setFindings} me={me} locked={locked} />}
 
@@ -225,14 +240,34 @@ function F530Design({ bv, design, setDesign, locked }: { bv: number; design: Sam
 }
 
 /* ---------------- Tab: Kalkulator Ukuran Sampel ---------------- */
-function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked }: any) {
+function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked, tol, pmCanon }: any) {
   const Field = ({ label, hint, children }: any) => (
     <div style={{ marginBottom: 16 }}>
       <div className="row jb ac" style={{ marginBottom: 6 }}><span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span><span className="tiny muted">{hint}</span></div>
       {children}
     </div>
   );
+  const t: SamplingToleranceResult = tol || { tm, pm: pmCanon, ratio: null, exceedsPm: false, issues: [], severe: false, count: 0 };
   return (
+    <>
+    {/* PR-F/SA530 — banner validasi silang TM vs PM (SA 320/530) */}
+    {t.count > 0 && (
+      <div className="panel" style={{ margin: '0 0 12px', padding: '11px 13px', background: t.severe ? 'var(--amber-bg)' : 'var(--blue-050)', borderColor: 'transparent' }}>
+        <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+          <span style={{ color: t.severe ? 'var(--amber)' : 'var(--blue)', marginTop: 1 }}>{t.severe ? <I.alert size={16} /> : <I.book size={16} />}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 3 }}>
+              Validasi silang SA 530 — {t.count} catatan konsistensi TM vs PM
+            </div>
+            <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+              {t.issues.map((i, k) => (
+                <li key={k} style={i.severe ? { color: 'var(--ink)' } : undefined}>{i.severe && <b>[berat] </b>}{i.text}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    )}
     <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Kalkulator Ukuran Sampel — Monetary Unit Sampling</h3><div style={{ flex: 1 }} /><Badge kind="purple">PPS</Badge></div>
@@ -245,6 +280,14 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
           </Field>
           <Field label="Salah saji yang dapat ditoleransi — TM (Rp jt)" hint={tm.toLocaleString('id-ID')}>
             <input type="range" min="3000" max="14000" step="250" value={tm} disabled={locked} onChange={(e: Ev) => setTm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+            {/* PR-F — rujuk-silang TM aktif vs PM kanon (SA 320.9: TM ≤ PM) */}
+            <div className="row jb ac tiny" style={{ marginTop: 5, color: 'var(--ink-3)' }}>
+              <span className="muted">PM kanon (SA 320)</span>
+              <span className="mono" style={{ fontWeight: 700, color: t.exceedsPm ? 'var(--amber)' : 'var(--ink-2)' }}>
+                {t.pm != null ? 'Rp ' + t.pm.toLocaleString('id-ID') + ' jt' : 'belum ditetapkan'}
+                {t.pm != null && (t.exceedsPm ? ' · TM > PM' : t.ratio != null ? ' · TM ' + Math.round(t.ratio * 100) + '% PM' : '')}
+              </span>
+            </div>
           </Field>
           <Field label="Ekspektasi salah saji — EM (Rp jt)" hint={em.toLocaleString('id-ID')}>
             <input type="range" min="0" max="4000" step="100" value={em} disabled={locked} onChange={(e: Ev) => setEm(parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--blue)' }} />
@@ -287,6 +330,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
         </Panel>
       </div>
     </div>
+    </>
   );
 }
 

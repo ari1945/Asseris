@@ -289,3 +289,76 @@ export function reconcileOpinionConsistency(input: {
     count: issues.length,
   };
 }
+
+/* ------------------------------------------------------------
+   Validasi silang SA 530 · Salah saji ditoleransi (TM) vs
+   Performance Materiality (PM).  [PURE]
+   ------------------------------------------------------------
+   Dua SSOT yang HARUS rujuk-silang:
+   - TM sampel (sampling.v1.params.tm) — di-seed dari PM sekali,
+     lalu slider persisten yang bisa digeser independen;
+   - PM kanon (AMS_CANON.materiality().pm via canon_selectors),
+     satu sumber lintas-modul.
+   SA 320 ¶9 & SA 530 ¶7: salah saji ditoleransi untuk suatu
+   populasi TIDAK boleh melampaui performance materiality — bila
+   TM > PM, penyebut n = (bv·RF)/(TM−EM·EF) membesar → ukuran
+   sampel mengecil → bukti kurang → asurans palsu. Guardrail juga
+   menutup: proyeksi salah saji ≥ TM namun populasi tetap "diterima"
+   (SA 530 ¶A22–A23 / SA 450), dan drift TM jauh di bawah PM
+   (over-sampling / inefisiensi — non-severe). Semua nilai Rp juta. ------------------------------------------------------------ */
+/* Ambang drift ke bawah yang dianggap material (TM ≤ 85% PM) → catatan efisiensi. */
+export const SAMPLING_UNDER_PM_TOL = 0.15;
+
+export interface SamplingToleranceIssue { code: string; severe: boolean; text: string }
+export interface SamplingToleranceResult {
+  tm: number;
+  pm: number | null;
+  ratio: number | null;      // TM / PM (null bila PM tak tersedia)
+  exceedsPm: boolean;        // TM > PM (defisiensi berat)
+  issues: SamplingToleranceIssue[];
+  severe: boolean;
+  count: number;
+}
+
+export function reconcileSamplingTolerance(input: {
+  tm: number;
+  pm: number | null;
+  projectedMisstatement?: number | null;
+  accepted?: boolean;        // kesimpulan modul: populasi dapat diterima
+  finalized?: boolean;       // kertas kerja SA 530 sudah difinalisasi/ditandatangani
+}): SamplingToleranceResult {
+  const tm = Number.isFinite(input.tm) ? input.tm : 0;
+  const pm = (input.pm != null && Number.isFinite(input.pm)) ? input.pm : null;
+  const issues: SamplingToleranceIssue[] = [];
+  const ratio = pm && pm > 0 ? tm / pm : null;
+  const exceedsPm = pm != null && tm > pm;
+
+  if (pm == null) {
+    issues.push({ code: 'pm-missing', severe: false, text: 'Performance materiality belum tersedia (materialitas perikatan/benchmark belum ditetapkan) — TM sampel tidak dapat divalidasi silang terhadap PM (SA 320).' });
+  } else {
+    if (exceedsPm) {
+      issues.push({ code: 'tm-gt-pm', severe: true, text: `Salah saji ditoleransi TM (Rp ${tm.toLocaleString('id-ID')} jt) MELAMPAUI performance materiality PM (Rp ${pm.toLocaleString('id-ID')} jt) — SA 320 ¶9/SA 530 ¶7 melarang TM > PM. Ukuran sampel menjadi terlalu kecil → bukti tidak memadai. Turunkan TM ≤ PM.` });
+    } else if (pm > 0 && tm <= pm * (1 - SAMPLING_UNDER_PM_TOL)) {
+      issues.push({ code: 'tm-under-pm', severe: false, text: `TM (Rp ${tm.toLocaleString('id-ID')} jt) ≥ ${Math.round(SAMPLING_UNDER_PM_TOL * 100)}% di bawah PM (Rp ${pm.toLocaleString('id-ID')} jt) — sampel mungkin lebih besar dari yang diperlukan (inefisiensi). Pastikan penurunan TM memang disengaja atas pertimbangan risiko.` });
+    }
+  }
+
+  const proj = (input.projectedMisstatement != null && Number.isFinite(input.projectedMisstatement)) ? input.projectedMisstatement : null;
+  if (proj != null && proj >= tm && input.accepted === true) {
+    issues.push({ code: 'proj-ge-tm-accepted', severe: true, text: `Proyeksi salah saji (Rp ${proj.toLocaleString('id-ID')} jt) ≥ TM (Rp ${tm.toLocaleString('id-ID')} jt) namun populasi disimpulkan "dapat diterima" — SA 530 ¶A22–A23 menuntut perluasan sampel/prosedur alternatif & salah saji dibawa ke SAD (SA 450).` });
+  }
+
+  if (input.finalized && issues.some(i => i.severe)) {
+    issues.push({ code: 'finalized', severe: true, text: 'Kertas kerja SA 530 sudah DIFINALISASI namun mengandung inkonsistensi TM/PM berat di atas — buka finalisasi & perbaiki sebelum mengandalkan hasil sampel.' });
+  }
+
+  return {
+    tm,
+    pm,
+    ratio,
+    exceedsPm,
+    issues,
+    severe: issues.some(i => i.severe),
+    count: issues.length,
+  };
+}

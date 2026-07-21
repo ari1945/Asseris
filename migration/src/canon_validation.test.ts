@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements, reconcileOpinionConsistency } from './canon_validation';
+import { probError, clampPct, dueBeforeIssued, capacityProjection, reconcileDeficiencyComm, ajeRefKey, reconcileUncorrectedMisstatements, reconcileOpinionConsistency, reconcileSamplingTolerance } from './canon_validation';
 
 describe('probError — probabilitas 0–100', () => {
   it('menerima 0/50/100', () => {
@@ -50,6 +50,61 @@ describe('capacityProjection — jam vs kapasitas', () => {
   });
   it('addHrs negatif dianggap 0', () => {
     expect(capacityProjection(20, 40, -5).projected).toBe(20);
+  });
+});
+
+describe('reconcileSamplingTolerance — SA 530 · TM vs PM', () => {
+  it('TM > PM → berat (sampel under-powered, SA 320.9/530.7)', () => {
+    const r = reconcileSamplingTolerance({ tm: 9000, pm: 6000 });
+    expect(r.exceedsPm).toBe(true);
+    expect(r.severe).toBe(true);
+    expect(r.issues.some(i => i.code === 'tm-gt-pm' && i.severe)).toBe(true);
+    expect(r.ratio).toBeCloseTo(1.5, 5);
+  });
+
+  it('TM = PM → bersih (batas atas yang diizinkan)', () => {
+    const r = reconcileSamplingTolerance({ tm: 6000, pm: 6000 });
+    expect(r.exceedsPm).toBe(false);
+    expect(r.severe).toBe(false);
+    expect(r.count).toBe(0);
+    expect(r.ratio).toBe(1);
+  });
+
+  it('TM sedikit di bawah PM (dalam toleransi 15%) → bersih', () => {
+    const r = reconcileSamplingTolerance({ tm: 5400, pm: 6000 }); // 90% PM
+    expect(r.severe).toBe(false);
+    expect(r.count).toBe(0);
+  });
+
+  it('TM ≥ 15% di bawah PM → catatan efisiensi non-berat', () => {
+    const r = reconcileSamplingTolerance({ tm: 3000, pm: 6000 }); // 50% PM
+    expect(r.severe).toBe(false);
+    expect(r.issues.some(i => i.code === 'tm-under-pm' && !i.severe)).toBe(true);
+  });
+
+  it('proyeksi ≥ TM tetapi populasi "diterima" → berat (SA 530.A22/450)', () => {
+    const r = reconcileSamplingTolerance({ tm: 6000, pm: 6000, projectedMisstatement: 6500, accepted: true });
+    expect(r.severe).toBe(true);
+    expect(r.issues.some(i => i.code === 'proj-ge-tm-accepted' && i.severe)).toBe(true);
+  });
+
+  it('proyeksi ≥ TM tetapi TIDAK diterima → tak memicu isu proyeksi', () => {
+    const r = reconcileSamplingTolerance({ tm: 6000, pm: 6000, projectedMisstatement: 6500, accepted: false });
+    expect(r.issues.some(i => i.code === 'proj-ge-tm-accepted')).toBe(false);
+  });
+
+  it('PM tak tersedia → catatan non-berat, tak divalidasi', () => {
+    const r = reconcileSamplingTolerance({ tm: 7000, pm: null });
+    expect(r.exceedsPm).toBe(false);
+    expect(r.ratio).toBeNull();
+    expect(r.severe).toBe(false);
+    expect(r.issues.some(i => i.code === 'pm-missing')).toBe(true);
+  });
+
+  it('finalisasi + isu berat → tambah isu "finalized" berat', () => {
+    const r = reconcileSamplingTolerance({ tm: 9000, pm: 6000, finalized: true });
+    expect(r.issues.some(i => i.code === 'finalized' && i.severe)).toBe(true);
+    expect(r.count).toBeGreaterThanOrEqual(2);
   });
 });
 
