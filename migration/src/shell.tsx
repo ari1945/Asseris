@@ -322,24 +322,25 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
 }
 
 /* Breadcrumb / view toolbar */
-const FIRMWIDE_GROUPS = ['Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Firm Platform', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'Portal & Dokumen', 'Backoffice & Firm Mgmt', 'Knowledge'];
 function SubBar({ moduleId, right }: any) {
   const m = (MODULE_INDEX as any)[moduleId] || { label: moduleId, group: '' };
-  const firm = useFirm();
   const nav = useNav();
   const navFrom = useNavFrom();
   const fromMeta = navFrom && navFrom !== moduleId ? ((MODULE_INDEX as any)[navFrom] || { label: navFrom }) : null;
-  const firmWide = FIRMWIDE_GROUPS.includes(m.group) || ['dashboard'].includes(moduleId);
-  const scoped = !firmWide && m.group !== '';
-  const saRefs = (window.RELATED_SA || {})[moduleId] || [];
-  const ifrsAlias = (window.MODULE_IFRS || {})[moduleId];
   const TitleIcon = I[m.icon as keyof typeof I] || I.panel;
-  // Baris meta (kedua) hanya tampil bila ada konteks — mencegah strip kosong.
-  const hasMeta = !!fromMeta || !!ifrsAlias || (scoped && !!firm.activeEngagement) || (firmWide && m.group !== '') || saRefs.length > 0;
   return (
     <div className="pagehead">
-      {/* Baris 1 — identitas modul: ikon + eyebrow (grup) + judul besar + aksi view */}
+      {/* Baris tunggal — kembali + ikon + eyebrow + judul + aksi view */}
       <div className="pagehead-main">
+        {fromMeta && (
+          <button type="button" className="subbar-back" title={'Kembali ke ' + fromMeta.label}
+            onClick={() => nav(navFrom)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 10px 0 7px', border: '1px solid var(--line-strong)', borderRadius: 7, background: 'var(--surface-2)', color: 'var(--ink-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flex: '0 0 auto' }}
+            onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue)'; e.currentTarget.style.color = 'var(--blue)'; }}
+            onMouseLeave={(e: any) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.color = 'var(--ink-2)'; }}>
+            <I.arrowLeft size={14} /> {fromMeta.label}
+          </button>
+        )}
         <span className="pagehead-icon"><TitleIcon size={20} /></span>
         <div className="pagehead-titles">
           {m.group && <span className="pagehead-eyebrow">{m.group}</span>}
@@ -352,48 +353,6 @@ function SubBar({ moduleId, right }: any) {
           {right}
         </div>
       </div>
-      {/* Baris 2 — konteks: kembali + chip engagement/standar (kondisional) */}
-      {hasMeta && (
-      <div className="pagehead-meta">
-      {fromMeta && (
-        <button type="button" className="subbar-back" title={'Kembali ke ' + fromMeta.label}
-          onClick={() => nav(navFrom)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 24, padding: '0 10px 0 7px', border: '1px solid var(--line-strong)', borderRadius: 7, background: 'var(--surface-2)', color: 'var(--ink-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-          onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue)'; e.currentTarget.style.color = 'var(--blue)'; }}
-          onMouseLeave={(e: any) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.color = 'var(--ink-2)'; }}>
-          <I.arrowLeft size={14} /> {fromMeta.label}
-        </button>
-      )}
-      {ifrsAlias && (
-        <span className="chip tiny" title={'Penomoran PSAK selaras-IFRS (efektif 2024) \u2014 dahulu ' + ifrsAlias.legacy}
-          style={{ fontFamily: 'var(--mono)', background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
-          ≡ {ifrsAlias.code} · {ifrsAlias.base}
-        </span>
-      )}
-      {scoped && firm.activeEngagement && (
-        <span className="chip tiny" title="Data modul ini terkait engagement aktif" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }}>
-          <I.briefcase size={11} /> {firm.activeEngagement.id} · {firm.activeClient?.name?.replace('PT ', '').slice(0, 18)}
-        </span>
-      )}
-      {firmWide && m.group !== '' && (
-        <span className="chip tiny" title="Data tingkat firma (lintas engagement)">
-          <I.building size={11} /> Firma-wide
-        </span>
-      )}
-      {saRefs.length > 0 && (
-        <span className="sa-rel" title="Standar Audit yang dipenuhi oleh prosedur ini">
-          <span className="sa-rel-lbl"><I.shield size={11} /> Standar Terkait</span>
-          {saRefs.map((r: any) => (
-            <button key={r.code} type="button" className="sa-rel-chip"
-              title={r.code + ' · ' + r.title + (r.view ? ' — buka rujukan' : ' — lihat di Matriks Kepatuhan')}
-              onClick={() => window.__amsOpenSA && window.__amsOpenSA({ ...r, fromModule: moduleId })}>
-              {r.code}
-            </button>
-          ))}
-        </span>
-      )}
-      </div>
-      )}
     </div>
   );
 }
