@@ -94,7 +94,7 @@ const MODULES = [
   { group: 'Saya', items: [
     { id: 'personal', label: 'Data Personal Saya', icon: 'users', deep: true },
   ]},
-  { group: 'Engagement Workspace', items: [
+  { group: 'Ruang Kerja Perikatan', items: [
     { id: 'cockpit',     label: 'Engagement Cockpit', icon: 'dashboard', deep: true },
     { id: 'tasks',       label: 'My Tasks', icon: 'check', deep: true },
     { id: 'programme',   label: 'Audit Programme', icon: 'flask', deep: true },
@@ -172,13 +172,13 @@ const MODULES = [
     { id: 'continuance', label: 'Keberlanjutan Klien', icon: 'checkCircle', deep: true, tag: 'ISQM 1' },
     { id: 'teamindep', label: 'Independensi Tim', icon: 'shield', deep: true, tag: 'SA 220' },
   ]},
-  { group: 'Core Planning', items: [
+  { group: '1 · Perencanaan', items: [
     { id: 'risk',        label: 'Risk Assessment', icon: 'alert', deep: true, tag: 'SA 315' },
     { id: 'materiality', label: 'Materiality', icon: 'target', deep: true },
     { id: 'icfr',        label: 'Internal Control', icon: 'sliders', deep: true },
     { id: 'strategy',    label: 'Strategy Memo', icon: 'doc', deep: true },
   ]},
-  { group: 'Core Execution', items: [
+  { group: '2 · Pelaksanaan', items: [
     { id: 'wtb',        label: 'Working Trial Balance', icon: 'table', deep: true, tag: 'WTB' },
     { id: 'aje',        label: 'Adjusting Entries (AJE)', icon: 'ledger', deep: true },
     { id: 'workpapers', label: 'Working Papers', icon: 'layers', deep: true },
@@ -187,7 +187,7 @@ const MODULES = [
     { id: 'jet',        label: 'Journal Entry Testing', icon: 'flask', deep: true },
     { id: 'diagnostic', label: 'Tax Audit Diagnostic', icon: 'sparkle', deep: true },
   ]},
-  { group: 'Core Specifics', items: [
+  { group: 'Area Khusus & Estimasi', items: [
     { id: 'confirm',    label: 'Confirmation Hub', icon: 'mail', deep: true },
     { id: 'goingconcern', label: 'Going Concern', icon: 'pulse', deep: true },
     { id: 'opening',    label: 'Opening Balance', icon: 'clock', deep: true },
@@ -200,11 +200,6 @@ const MODULES = [
     { id: 'serviceorg', label: 'Service Org', icon: 'server', deep: true },
     { id: 'sad',        label: 'SAD Ledger', icon: 'scale', deep: true },
     { id: 'evidence',   label: 'Evidence Evaluation', icon: 'search2', deep: true },
-  ]},
-  { group: 'Referensi & Indeks', items: [
-    { id: 'compmatrix', label: 'Matriks Kepatuhan', icon: 'table', tag: 'NEW', deep: true },
-    { id: 'templates',  label: 'Template Library', icon: 'template', deep: true },
-    { id: 'kb',         label: 'Knowledge Base', icon: 'book', deep: true },
   ]},
   { group: 'SA · Tanggung Jawab (200)', items: [
     { id: 'sa200', label: 'SA 200 · Tujuan Keseluruhan', icon: 'shield', tag: 'NEW', deep: true },
@@ -271,12 +266,19 @@ const MODULES = [
   { group: 'Akuntansi Syariah (SAK Syariah)', items: [
     { id: 'syariah', label: 'SAK Syariah · PSAK 101–112', icon: 'book', tag: 'NEW', deep: true },
   ]},
-  { group: 'Finalisasi & Pelaporan', items: [
+  { group: '3 · Penyelesaian & Pelaporan', items: [
     { id: 'fsgen',   label: 'Financial Statement Gen.', icon: 'report', deep: true },
     { id: 'disclosure', label: 'Daftar-Uji Pengungkapan', icon: 'checkCircle', tag: 'NEW', deep: true },
     { id: 'opinion', label: 'Audit Opinion Generator', icon: 'gavel', deep: true },
     { id: 'eqr',     label: 'EQR Workflow', icon: 'checkCircle', deep: true, tag: 'ISQM 2' },
     { id: 'mgmtletter', label: 'Management Letter', icon: 'mail', deep: true },
+  ]},
+  /* Referensi lintas-fase — diletakkan setelah fase 3 agar urutan 1→2→(Area Khusus)→3
+     terbaca sbg siklus, referensi menutup di bawah (PRD Fase 3 R4). */
+  { group: 'Referensi & Indeks', items: [
+    { id: 'compmatrix', label: 'Matriks Kepatuhan', icon: 'table', tag: 'NEW', deep: true },
+    { id: 'templates',  label: 'Template Library', icon: 'template', deep: true },
+    { id: 'kb',         label: 'Knowledge Base', icon: 'book', deep: true },
   ]},
   { group: 'Backoffice & Firm Mgmt', items: [
     { id: 'firmops',     label: 'Cockpit Operasi Firma', icon: 'layers', tag: 'NEW', deep: true },
@@ -313,7 +315,7 @@ const NEW_ALLOW = new Set<string>(['restatement']);
    Matriks Kepatuhan, atau ⌘K. */
 const WORKSPACES = [
   { id: 'engagement', label: 'Perikatan', icon: 'briefcase', desc: 'Kerja audit per-engagement',
-    groups: ['Engagement Workspace', 'Referensi & Indeks', 'Core Planning', 'Core Execution', 'Core Specifics', 'Finalisasi & Pelaporan'] },
+    groups: ['Ruang Kerja Perikatan', '1 · Perencanaan', '2 · Pelaksanaan', 'Area Khusus & Estimasi', '3 · Penyelesaian & Pelaporan', 'Referensi & Indeks'] },
   { id: 'firm', label: 'Firma', icon: 'building', desc: 'Operasi & tata kelola firma',
     groups: ['Saya', 'Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Firm Platform', 'Backoffice & Firm Mgmt'] },
 ];
@@ -368,8 +370,8 @@ const ROLE_SIDEBAR_GROUPS: Record<string, Record<string, string[] | null>> = {
   // Sekarang default ke grup harian per-peran; escape hatch "Tampilkan semua modul" (shell.tsx,
   // kini SELALU tampil) + ⌘K/filter tetap menjangkau SEMUA modul. Murni UI — capability utuh.
   // Kebijakan awal (silakan tuning): Senior = penuh kecuali area khusus; Junior = inti eksekusi.
-  'Senior Auditor': { engagement: ['Engagement Workspace', 'Core Planning', 'Core Execution', 'Finalisasi & Pelaporan', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
-  'Junior Auditor': { engagement: ['Engagement Workspace', 'Core Execution', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
+  'Senior Auditor': { engagement: ['Ruang Kerja Perikatan', '1 · Perencanaan', '2 · Pelaksanaan', '3 · Penyelesaian & Pelaporan', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
+  'Junior Auditor': { engagement: ['Ruang Kerja Perikatan', '2 · Pelaksanaan', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
   // Firm-ops: bukan anggota perikatan → workspace Perikatan kosong secara default;
   // Firma difokuskan ke grup yang mereka kuasai (PRD §8) + "Saya" (data personal sendiri).
   'Admin & HR Firma': { engagement: [], firm: ['Saya', 'People & Compliance', 'Portal & Dokumen'] },

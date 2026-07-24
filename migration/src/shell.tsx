@@ -109,11 +109,11 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
 }
 
 /* ---- Sidebar adaptif: peta fase audit (lihat Pengaturan › Navigasi & Sidebar) ---- */
-const SIDE_GROUP_PHASE = { 'Core Planning': 'plan', 'Core Execution': 'exec', 'Core Specifics': 'spec', 'Finalisasi & Pelaporan': 'final' };
+const SIDE_GROUP_PHASE = { '1 · Perencanaan': 'plan', '2 · Pelaksanaan': 'exec', 'Area Khusus & Estimasi': 'spec', '3 · Penyelesaian & Pelaporan': 'final' };
 const SIDE_PHASE_RANK = { plan: 0, exec: 1, spec: 1, final: 2 };
 const SIDE_ENG_PHASE = { 'Perencanaan': 'plan', 'Eksekusi': 'exec', 'Finalisasi': 'final', 'Arsip': 'final' };
 const SIDE_RELEVANT = { plan: ['plan'], exec: ['exec', 'spec'], final: ['final'] };
-const SIDE_PRIMARY_GROUP = { plan: 'Core Planning', exec: 'Core Execution', final: 'Finalisasi & Pelaporan' };
+const SIDE_PRIMARY_GROUP = { plan: '1 · Perencanaan', exec: '2 · Pelaksanaan', final: '3 · Penyelesaian & Pelaporan' };
 const SIDE_PHASE_LABEL = { plan: 'PERENCANAAN', exec: 'EKSEKUSI', final: 'FINALISASI' };
 const SIDE_NAV_DEFAULTS = { adaptive: true, mode: 'sorot', source: 'auto', manualPhase: 'Eksekusi', focusGroup: true, resumeCard: true, resumeCount: 3, markDone: true };
 function readSideNavPrefs() {
@@ -264,7 +264,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
      Jangkar: grup modul aktif (orientasi), anchor per-workspace, dan grup fokus fase
      (adaptif) — dulu disalin ke kartu "Fokus Fase" terpisah (R7: kini cukup emphasis
      .relev di pohon, tanpa duplikasi). */
-  const WS_ANCHOR: Record<string, string> = { engagement: 'Engagement Workspace', firm: 'Firm Practice Management' };
+  const WS_ANCHOR: Record<string, string> = { engagement: 'Ruang Kerja Perikatan', firm: 'Firm Practice Management' };
   const defaultOpenSet = new Set<string>([activeGroup, WS_ANCHOR[ws]].filter(Boolean) as string[]);
   if (adaptiveOn) defaultOpenSet.add((SIDE_PRIMARY_GROUP as any)[curKey]);
   const effClosed = (g: string) => (g in closedGroups) ? closedGroups[g] : (showAll ? false : !defaultOpenSet.has(g));
