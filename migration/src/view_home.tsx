@@ -4,6 +4,7 @@ import { CAP } from './rbac';
 import { I, MODULE_INDEX } from './icons';
 import { Badge, Btn, Panel, Stat } from './ui';
 import { tasksMine } from './api';
+import { HomeCockpit } from './view_home_cockpit';
 
 /* ============================================================
    Asseris — Beranda berbasis peran (PRD "Restrukturisasi Navigasi & Beranda
@@ -165,20 +166,13 @@ function HomeView() {
         </div>
         <div className="row gap8">
           {!isFirmOps && <Btn sm onClick={() => nav('tasks', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: '#fff', border: 'none' }}><I.check size={14} /> My Tasks</Btn>}
+          {isOversight && <Btn sm onClick={() => nav('personal', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: '#fff', border: 'none' }}><I.users size={14} /> Data Personal</Btn>}
           {isOversight && <Btn sm onClick={() => nav('dashboard', { from: 'home' })} style={{ background: 'rgba(255,255,255,.16)', color: '#fff', border: 'none' }}><I.dashboard size={14} /> Firm Dashboard</Btn>}
         </div>
       </div>
 
-      {/* oversight strip (Partner/Manager) */}
-      {isOversight && (
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.length} label="Perikatan Portofolio" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={engagements.filter((e: { risk?: string }) => e.risk === 'High').length} label="Risiko Tinggi" accent="var(--red)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><Stat value={sortedTasks.length} label="Tugas Saya Aktif" accent="var(--blue)" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px', display: 'flex', alignItems: 'center', height: '100%' }}><Btn sm onClick={() => nav('dashboard', { from: 'home' })}><I.arrowRight size={13} /> Dashboard Firma</Btn></div></Panel>
-        </div>
-      )}
-
+      {/* Partner/Manager: Kokpit Eksekutif (SSOT). Peran lain: beranda personal. */}
+      {isOversight ? <HomeCockpit /> : (
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 14, alignItems: 'start' }}>
 
         {/* ---- kolom kiri ---- */}
@@ -243,6 +237,7 @@ function HomeView() {
           </Panel>
         </div>
       </div>
+      )}
 
     </div></div>
   );
