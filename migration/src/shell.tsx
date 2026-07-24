@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth, useFirm, useNav, useNavFrom } from './contexts';
 import { EvidenceControl } from './evidence';
 import { WpSubBarControl } from './wp_signoff';
-import { GROUP_CAP, GROUP_WS, I, MODULES, MODULE_CAP, MODULE_INDEX, NEW_ALLOW, WORKSPACES, groupsVisibleFor } from './icons';
+import { GROUP_CAP, GROUP_WS, HIDDEN_GROUPS, I, MODULES, MODULE_CAP, MODULE_INDEX, NEW_ALLOW, WORKSPACES, groupsVisibleFor } from './icons';
 import { Avatar } from './ui';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
@@ -125,6 +125,28 @@ function readSideRecent() {
   catch (e) { return []; }
 }
 
+/* R2 (PRD learning-curve) — indeks pencarian sidebar: SELURUH modul lintas kedua workspace,
+   TERMASUK grup tersembunyi (HIDDEN_GROUPS: 27 PSAK + halaman SA mendalam). Menutup tebing
+   discoverability — dulu 34% app hanya terjangkau via recall (⌘K/Matriks). `ws` menautkan tiap
+   hasil ke workspace-nya (null = grup tersembunyi, tak memaksa pindah). Statis → dihitung sekali. */
+type SideSearchRow = { id: string; label: string; icon: string; group: string; tag?: string; hidden: boolean; ws: string | null };
+type SideSearchGroup = { group: string; items: Array<{ id: string; label: string; icon: string; tag?: string }> };
+const SIDE_SEARCH_ALL: SideSearchRow[] = (MODULES as SideSearchGroup[]).flatMap(g => g.items.map(m => ({
+  id: m.id, label: m.label, icon: m.icon, group: g.group, tag: m.tag,
+  hidden: HIDDEN_GROUPS.includes(g.group),
+  ws: HIDDEN_GROUPS.includes(g.group) ? null : ((GROUP_WS as Record<string, string>)[g.group] || 'firm'),
+})));
+/* Skor kecocokan: awalan-label > kata-label > substring-label > grup/id. Kecil = lebih baik. */
+function sideSearchScore(row: SideSearchRow, q: string): number {
+  const label = row.label.toLowerCase();
+  if (label.startsWith(q)) return 0;
+  if (label.split(/[\s·—>/()]+/).some(w => w.startsWith(q))) return 1;
+  if (label.includes(q)) return 2;
+  if (row.group.toLowerCase().includes(q)) return 3;
+  if (row.id.toLowerCase().includes(q)) return 4;
+  return 99;
+}
+
 function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   /* R1 (PRD learning-curve) — progressive disclosure: grup default CIUT kecuali jangkar
      (grup aktif / fokus fase / anchor workspace); pilihan buka-tutup DIPERSIST per-browser
@@ -135,6 +157,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
     return {};
   });
   React.useEffect(() => { try { localStorage.setItem('ams.sideGroups', JSON.stringify(closedGroups)); } catch (e) {} }, [closedGroups]);
+  const [query, setQuery] = useStateSH('');   // R2 — filter pencarian modul
   const firmCtx = useFirm();
   const auth = useAuth();
   const role = (auth && auth.role) || '';
@@ -180,6 +203,22 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
      (mis. recruitment/learning/succession → HR_MODULE_VIEW). Ini kurasi tampilan; gate sebenarnya
      ada di view (AccessDenied). Modul yang SEDANG aktif tetap tampil (orientasi), toh view-nya gating. */
   const canOpenModule = (id: string) => { const c = (MODULE_CAP as Record<string, string>)[id]; return !c || id === active || !!(auth && typeof auth.can === 'function' && auth.can(c)); };
+
+  /* R2 — hasil pencarian: kecocokan lintas-158 (termasuk PSAK/SA tersembunyi), dihormati
+     kapabilitas yang sama seperti pohon (GROUP_CAP grup + MODULE_CAP modul) → tak menyurface
+     modul yang toh ter-gate AccessDenied. null = tak sedang mencari (pohon normal). */
+  const q = query.trim().toLowerCase();
+  const SIDE_SEARCH_MAX = 40;
+  const canSeeInSearch = (row: SideSearchRow) => {
+    const gc = (GROUP_CAP as Record<string, string>)[row.group];
+    if (gc && !(auth && typeof auth.can === 'function' && auth.can(gc))) return false;
+    return canOpenModule(row.id);
+  };
+  const searchAll = q ? SIDE_SEARCH_ALL.filter(canSeeInSearch)
+    .map(r => ({ r, s: sideSearchScore(r, q) })).filter(x => x.s < 99)
+    .sort((a, b) => a.s - b.s || a.r.label.localeCompare(b.r.label)) : null;
+  const searchResults = searchAll ? searchAll.slice(0, SIDE_SEARCH_MAX).map(x => x.r) : null;
+  const searchOverflow = searchAll ? Math.max(0, searchAll.length - SIDE_SEARCH_MAX) : 0;
 
   /* ---- adaptive computation (engagement workspace only, expanded only) ---- */
   const navPrefs = readSideNavPrefs();
@@ -231,18 +270,50 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
           );
         })}
       </div>
+      {/* R2 — filter pencarian: recognition-first, menjangkau 158 modul termasuk PSAK/SA
+          tersembunyi. Kosong = pohon normal; berisi = daftar hasil datar menggantikan pohon. */}
+      {!collapsed && (
+        <div className="side-search">
+          <I.search2 size={13} />
+          <input value={query} onChange={(e: { target: { value: string } }) => setQuery(e.target.value)} placeholder="Cari modul… (mis. PSAK 73)"
+            spellCheck={false} autoComplete="off" aria-label="Cari modul"
+            onKeyDown={(e: { key: string }) => {
+              if (e.key === 'Escape') setQuery('');
+              else if (e.key === 'Enter' && searchResults && searchResults[0]) { onNavigate(searchResults[0].id); setQuery(''); }
+            }} />
+          {query && <button type="button" className="side-search-x" title="Bersihkan (Esc)" onClick={() => setQuery('')}>×</button>}
+        </div>
+      )}
       <div className="side-scroll">
+        {searchResults && (
+          <div className="side-search-results">
+            <div className="side-search-h">{searchResults.length ? (searchResults.length + (searchOverflow ? '+' : '') + ' hasil') : 'Tak ada modul cocok'}</div>
+            {searchResults.map(m => {
+              const IconS = I[m.icon as keyof typeof I] || I.panel;
+              return (
+                <div key={m.id} className={'side-search-item' + (active === m.id ? ' active' : '')} onClick={() => { onNavigate(m.id); setQuery(''); }}>
+                  <span className="ico"><IconS size={15} /></span>
+                  <span className="mn">
+                    <span className="l">{m.label}</span>
+                    <span className="g">{m.group}{m.hidden ? ' · referensi' : ''}{m.ws && m.ws !== ws ? (' · ' + (m.ws === 'engagement' ? 'Perikatan' : 'Firma')) : ''}</span>
+                  </span>
+                </div>
+              );
+            })}
+            {searchOverflow > 0 && <div className="side-search-more">+{searchOverflow} lagi — persempit kata kunci</div>}
+          </div>
+        )}
         {/* R3 — escape hatch SELALU tampil saat sidebar diperluas (dulu hanya bila peran
             terkurasi → Partner/Manager, menu terbesar, tak punya kontrol). showAll = buka
             SEMUA grup (abaikan kurasi peran & default-ciut). Murni tampilan; capability utuh. */}
-        {!collapsed && (
+        {!collapsed && !searchResults && (
           <button type="button" onClick={() => setShowAll(!showAll)}
             title={showAll ? 'Kembali ke tampilan ringkas (relevan dengan peran & fase Anda)' : 'Buka semua modul & grup — kapabilitas tidak berubah, hanya tampilan'}
             style={{ margin: '8px 8px 4px', width: 'calc(100% - 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', border: '1px dashed var(--line-strong)', background: showAll ? 'var(--blue-050)' : 'transparent', color: showAll ? 'var(--blue)' : 'var(--ink-3)', fontSize: 11, fontWeight: 600 }}>
             <I.layers size={12} /> {showAll ? 'Ringkas kembali' : (curatedGroups ? 'Tampilkan semua modul' : 'Buka semua grup')}
           </button>
         )}
-        {adaptiveOn && resumeItems.length > 0 && (
+        {adaptiveOn && !searchResults && resumeItems.length > 0 && (
           <div className="side-resume">
             <div className="side-pin-h"><I.clock size={11} /><span>Lanjutkan</span><span className="gr"></span><span className="mu">terakhir dibuka</span></div>
             {resumeItems.map((m, i) => {
@@ -261,11 +332,11 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         {/* R7 — indikator fase (orientasi) TANPA menyalin item; grup fokus terbuka di pohon
             di bawah dengan emphasis .relev (dulu 7 modul Core Execution ter-render dua kali:
             44 baris untuk 37 modul unik). */}
-        {adaptiveOn && (
+        {adaptiveOn && !searchResults && (
           <div className="side-focus-h"><span className="ft">Fokus Fase</span><span className="fb">{phaseLabel}</span>{engProgress != null && <span className="fp">{engProgress}%</span>}</div>
         )}
 
-        {groups.map(group => {
+        {!searchResults && groups.map(group => {
           const gp = (SIDE_GROUP_PHASE as any)[group.group];
           if (adaptiveOn && navPrefs.mode === 'ringkas' && gp && !relevant.includes(gp)) return null;
           const isClosed = effClosed(group.group);
