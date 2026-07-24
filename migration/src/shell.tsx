@@ -129,21 +129,49 @@ function readSideRecent() {
    TERMASUK grup tersembunyi (HIDDEN_GROUPS: 27 PSAK + halaman SA mendalam). Menutup tebing
    discoverability — dulu 34% app hanya terjangkau via recall (⌘K/Matriks). `ws` menautkan tiap
    hasil ke workspace-nya (null = grup tersembunyi, tak memaksa pindah). Statis → dihitung sekali. */
-type SideSearchRow = { id: string; label: string; icon: string; group: string; tag?: string; hidden: boolean; ws: string | null };
+type SideSearchRow = { id: string; label: string; icon: string; group: string; tag?: string; hidden: boolean; ws: string | null; syn: string };
 type SideSearchGroup = { group: string; items: Array<{ id: string; label: string; icon: string; tag?: string }> };
+/* R-lang (PRD Fase 3, keputusan Q1) — sinonim/kata-kunci Indonesia per modul. Filter jadi
+   TAHAN-BAHASA: modul berlabel Inggris/jargon KAP ("Confirmation Hub", "Going Concern",
+   "Working Papers") tetap ketemu dgn istilah Indonesia yang diketik auditor ("konfirmasi",
+   "kelangsungan usaha", "kertas kerja") — menutup gap yang terukur di uji Fase 2. Aditif;
+   tak mengubah label tampil (rename label = bagian 3b). */
+const SIDE_SYNONYMS: Record<string, string> = {
+  confirm: 'konfirmasi saldo sirkularisasi pihak ketiga', goingconcern: 'kelangsungan usaha kesangsian going concern',
+  workpapers: 'kertas kerja audit wp', reviewnotes: 'catatan reviu telaah', cockpit: 'kokpit ringkasan perikatan dasbor',
+  tasks: 'tugas saya pekerjaan', programme: 'program audit prosedur', time: 'waktu anggaran jam realisasi budget',
+  strategy: 'strategi memo perencanaan', icfr: 'pengendalian internal spi', analytical: 'prosedur analitis analisa',
+  jet: 'pengujian jurnal je testing', diagnostic: 'diagnostik pajak', opening: 'saldo awal opening',
+  subsequent: 'peristiwa kemudian setelah tanggal neraca', related: 'pihak berelasi hubungan istimewa',
+  groupaudit: 'audit grup konsolidasi komponen', internalaudit: 'audit internal spi', expert: 'pakar ahli tenaga ahli',
+  serviceorg: 'organisasi jasa service org', evidence: 'bukti audit evaluasi', fsgen: 'penyusun laporan keuangan generator lk',
+  disclosure: 'pengungkapan daftar uji', opinion: 'opini laporan auditor', eqr: 'reviu mutu perikatan pengendali mutu',
+  mgmtletter: 'surat manajemen management letter', pipeline: 'pipa penjualan prospek peluang', delivery: 'pengiriman milestone tonggak',
+  billing: 'penagihan faktur invoice', scheduler: 'penjadwalan sumber daya jadwal', capacity: 'kapasitas perencanaan',
+  hcm: 'sdm human capital kepegawaian', payroll: 'gaji penggajian', performance: 'kinerja penilaian',
+  approvals: 'persetujuan otorisasi', integrations: 'integrasi koneksi', audittrail: 'jejak audit log',
+  governance: 'tata kelola mutu', dashboard: 'dasbor firma ringkasan', bi: 'intelijen bisnis konsolidasi',
+  crm: 'klien pelanggan relasi', engagement: 'manajemen perikatan', onboarding: 'penerimaan klien',
+  dataflow: 'alur data integritas', continuance: 'keberlanjutan klien', teamindep: 'independensi tim',
+  wip: 'pekerjaan dalam proses valuasi', wipreal: 'wip realisasi', revenue: 'pendapatan',
+  firmgl: 'buku besar general ledger', apar: 'utang piutang', treasury: 'anggaran arus kas treasuri',
+  cashbank: 'kas bank rekonsiliasi', fixedassets: 'aset tetap kantor', firmtax: 'pajak firma', profitability: 'profitabilitas laba',
+};
 const SIDE_SEARCH_ALL: SideSearchRow[] = (MODULES as SideSearchGroup[]).flatMap(g => g.items.map(m => ({
   id: m.id, label: m.label, icon: m.icon, group: g.group, tag: m.tag,
   hidden: HIDDEN_GROUPS.includes(g.group),
   ws: HIDDEN_GROUPS.includes(g.group) ? null : ((GROUP_WS as Record<string, string>)[g.group] || 'firm'),
+  syn: SIDE_SYNONYMS[m.id] || '',
 })));
-/* Skor kecocokan: awalan-label > kata-label > substring-label > grup/id. Kecil = lebih baik. */
+/* Skor kecocokan: awalan-label > kata-label > substring-label > sinonim > grup/id. Kecil = lebih baik. */
 function sideSearchScore(row: SideSearchRow, q: string): number {
   const label = row.label.toLowerCase();
   if (label.startsWith(q)) return 0;
   if (label.split(/[\s·—>/()]+/).some(w => w.startsWith(q))) return 1;
   if (label.includes(q)) return 2;
-  if (row.group.toLowerCase().includes(q)) return 3;
-  if (row.id.toLowerCase().includes(q)) return 4;
+  if (row.syn && row.syn.includes(q)) return 3;   // substring: dukung kueri multi-kata & tengah-kata (mis. "gaji"→"penggajian")
+  if (row.group.toLowerCase().includes(q)) return 4;
+  if (row.id.toLowerCase().includes(q)) return 5;
   return 99;
 }
 
@@ -339,7 +367,9 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         {!searchResults && groups.map(group => {
           const gp = (SIDE_GROUP_PHASE as any)[group.group];
           if (adaptiveOn && navPrefs.mode === 'ringkas' && gp && !relevant.includes(gp)) return null;
-          const isClosed = effClosed(group.group);
+          // Sidebar ciut (48px): tak ada header utk buka-tutup → tampilkan semua grup
+          // (cegah regresi default-ciut R1 yg akan menyembunyikan ikon di mode ini).
+          const isClosed = collapsed ? false : effClosed(group.group);
           return (
             <div key={group.group} className={'side-group' + (isClosed ? ' closed' : '')}>
               {!collapsed && (

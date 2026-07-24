@@ -193,6 +193,9 @@ body.dense .pagehead-titles { min-width: 120px; }
 .sidebar.collapsed .lbl, .sidebar.collapsed .tag, .sidebar.collapsed .side-group-h span,
 .sidebar.collapsed .chev { display: none; }
 .sidebar.collapsed .side-item { justify-content: center; padding: 0; margin: 2px 6px; }
+/* R8 (Fase 3) — mode ciut: header grup tersembunyi (tak muat di 48px) → pulihkan
+   batas antar-grup dgn pemisah tipis supaya kolom ikon tak jadi satu blok tak terbedakan. */
+.sidebar.collapsed .side-group + .side-group { border-top: 1px solid rgba(255,255,255,.09); margin-top: 6px; padding-top: 6px; }
 
 /* ---------- Adaptive sidebar (Navigasi & Sidebar) ---------- */
 .side-resume {
