@@ -148,5 +148,12 @@ Menentukan Fase 3; **tidak memblokir Fase 1–2**. Rekomendasi saya di tiap poin
 2. **Nasib `Core Specifics` (12 modul).** Dibubarkan ke fase "Pelaksanaan", atau diberi nama bermakna (mis. "Prosedur Area Berisiko / Area Khusus")? *Rekomendasi: rename "Area Khusus & Estimasi", bukan bubarkan (12 modul terlalu banyak untuk dicampur ke Pelaksanaan).*
 3. **PSAK/SA tersembunyi.** Tetap tersembunyi dari pohon tapi terjangkau via filter R2 (**rekomendasi saya**), atau dikembalikan sebagai workspace ketiga "Referensi & Standar"? *Rekomendasi: filter dulu (Fase 2); evaluasi ulang kebutuhan workspace ketiga setelah data pemakaian.*
 
+### Keputusan (2026-07-24 — Ari: "ikuti rekomendasi")
+1. **Bahasa** → Indonesia untuk label grup & aksi; kode standar (SA/PSAK/ISQM/WTB/AJE) & jargon teknik KAP dipertahankan. Mitigasi murah: **kata-kunci sinonim per modul** (mis. `confirm` juga cocok "konfirmasi") agar filter R2 tak bergantung pada bahasa label.
+2. **`Core Specifics`** → **rename** "Area Khusus & Estimasi" (tidak dibubarkan).
+3. **PSAK/SA** → tetap tersembunyi + terjangkau via filter R2; **tidak** menambah workspace ketiga sekarang.
+
+Fase 3 dipecah: **R4** rename+nomori grup Perikatan (`1 · Perencanaan` / `2 · Pelaksanaan` / `3 · Penyelesaian & Pelaporan`) + rename Core Specifics · **R5** satukan konsep kembar · **R8** label grup mini saat ciut + ikon unik ~12 modul · **R-lang** label grup/aksi Indonesia + sinonim filter. ⚠️ Nama grup = KEY di banyak tempat (`GROUP_WS`, `HIDDEN_GROUPS`, `ROLE_SIDEBAR_GROUPS`, `WORKSPACES.groups`, `SIDE_GROUP_PHASE`, `SIDE_PRIMARY_GROUP`, `WS_ANCHOR`, `connectivity.json`) → rename harus serempak.
+
 ---
 **Sign-off:** ditandai dengan balasan **"Proceed."** — sebutkan bila hanya menyetujui Fase 1 (independen) atau seluruh rencana. Q1–Q3 dapat dijawab kapan saja sebelum Fase 3.
