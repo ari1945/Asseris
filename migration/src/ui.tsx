@@ -241,7 +241,7 @@ function StubView({ moduleId }: any) {
             <IconC size={26} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{m.label}</div>
+            <div style={{ fontSize: 19, fontWeight: 700 }}>{m.label}</div>
             <div style={{ fontSize: 12, color: '#bcd6e4' }}>{m.group}</div>
           </div>
           <div style={{ flex: 1 }} />

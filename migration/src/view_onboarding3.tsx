@@ -89,7 +89,7 @@ function OBAnalitik() {
         <Panel title="Komposisi Prospek">
           <div style={{ padding: 14 }} className="row gap12 ac">
             <Donut segments={byKind.map((k, i) => ({ value: k.n || 0.1, color: i === 0 ? '#5b3fa6' : '#005085' }))} size={100} thickness={15}
-              center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700 }}>{prospects.length}</div><div className="tiny muted">prospek</div></>} />
+              center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{prospects.length}</div><div className="tiny muted">prospek</div></>} />
             <div style={{ flex: 1 }}>
               {byKind.map((k, i) => (
                 <div key={k.k} className="row jb ac" style={{ padding: '5px 0' }}>
@@ -153,7 +153,7 @@ function OBAcceptance() {
 
         <Panel noBody>
           <div style={{ background: 'linear-gradient(120deg,#3a2a6a,#5b3fa6)', color: '#fff', padding: '13px 16px' }}>
-            <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 14 }} className="truncate">{sel.name}</div><div className="tiny" style={{ color: '#d4c8ee' }}>{sel.industry}</div></div>
+            <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 15 }} className="truncate">{sel.name}</div><div className="tiny" style={{ color: '#d4c8ee' }}>{sel.industry}</div></div>
               <div style={{ textAlign: 'center' }}><div className="mono" style={{ fontSize: 22, fontWeight: 800 }}>{score.toFixed(1)}</div><div className="tiny" style={{ color: '#d4c8ee' }}>skor tertimbang</div></div></div>
           </div>
           <div style={{ padding: 14 }}>

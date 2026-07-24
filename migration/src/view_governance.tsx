@@ -148,7 +148,7 @@ function Governance() {
               <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14 }}>
                 {culture.map((k: any, i: any) => (
                   <div key={i} className="panel" style={{ padding: '12px 13px', boxShadow: 'none' }}>
-                    <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: 'var(--' + k.accent + ')' }}>{k.v}</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--' + k.accent + ')' }}>{k.v}</div>
                     <div className="tiny" style={{ fontWeight: 600, margin: '2px 0 4px', lineHeight: 1.3 }}>{k.k}</div>
                     <div className="tiny muted" style={{ lineHeight: 1.4 }}>{k.note}</div>
                   </div>
@@ -176,12 +176,12 @@ function GovCompDetail({ c, onClose }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 440, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 14, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>ISQM 1 {c.ref}</div></div>
+          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>ISQM 1 {c.ref}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="row ac gap10">
-            <Donut size={76} thickness={11} segments={[{ value: c.score, color: scoreColor }, { value: 100 - c.score, color: 'var(--surface-3)' }]} center={<div><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: scoreColor }}>{c.score}%</div></div>} />
+            <Donut size={76} thickness={11} segments={[{ value: c.score, color: scoreColor }, { value: 100 - c.score, color: 'var(--surface-3)' }]} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: scoreColor }}>{c.score}%</div></div>} />
             <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Cakupan Komponen</div><div style={{ fontSize: 12, lineHeight: 1.5 }}>{c.desc}</div></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>

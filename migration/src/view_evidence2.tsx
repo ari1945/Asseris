@@ -172,7 +172,7 @@ function EvSelection() {
               </div>
               <div style={{ padding: 14, display: 'grid', placeItems: 'center', gap: 10 }}>
                 <Donut size={108} thickness={15} segments={[{ value: selCov, color: selCov >= 80 ? 'var(--green)' : selCov >= 50 ? 'var(--amber)' : 'var(--blue)' }, { value: 100 - selCov, color: 'var(--surface-3)' }]}
-                  center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 20 }}>{selCov}%</div><div className="tiny muted">nilai diuji</div></div>} />
+                  center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 19 }}>{selCov}%</div><div className="tiny muted">nilai diuji</div></div>} />
                 <div className="row gap6" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>{sel.methods.map(m => <Badge key={m} kind={(EV2_MEANS as any)[m].color} dot>{(EV2_MEANS as any)[m].label}</Badge>)}</div>
               </div>
               <div style={{ padding: '0 14px 14px', display: 'grid', gap: 8 }}>

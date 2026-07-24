@@ -278,7 +278,7 @@ function GoingConcern() {
               </div>
               <div style={{ padding: '13px 18px', borderLeft: '1px solid var(--line)', textAlign: 'center', display: 'grid', placeItems: 'center' }}>
                 <div className="tiny muted upper">Altman Z-Score</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: zNum > 2.99 ? 'var(--green)' : zNum >= 1.81 ? 'var(--amber)' : 'var(--red)' }}>{z}</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: zNum > 2.99 ? 'var(--green)' : zNum >= 1.81 ? 'var(--amber)' : 'var(--red)' }}>{z}</div>
                 <div className="tiny muted">{canon.altman.zone === 'safe' ? 'Safe zone' : canon.altman.zone === 'grey' ? 'Grey zone' : 'Distress'}</div>
               </div>
             </div>
@@ -299,7 +299,7 @@ function GoingConcern() {
                     </div>
                     <div className="row jb" style={{ alignItems: 'flex-end' }}>
                       <div>
-                        <span className="mono" style={{ fontSize: 23, fontWeight: 700, color: 'var(--navy)' }}>{value.toFixed(2)}{r.unit}</span>
+                        <span className="mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)' }}>{value.toFixed(2)}{r.unit}</span>
                         <div className="tiny muted" style={{ marginTop: 2 }}>
                           {py == null ? 'PY —' : <>PY {py.toFixed(2)}{r.unit} · <span style={{ color: improving ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>{improving ? '▲ membaik' : '▼ menurun'}</span></>}
                         </div>

@@ -45,7 +45,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-head { display: flex; align-items: center; gap: 11px; padding: 13px 16px;
     background: linear-gradient(135deg, var(--navy-600, #013049), var(--navy-solid)); color: #fff; flex: 0 0 auto; }
   .mm-head .mm-h-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.13); display: grid; place-items: center; }
-  .mm-head .mm-h-t { font-size: 14px; font-weight: 700; }
+  .mm-head .mm-h-t { font-size: 15px; font-weight: 700; }
   .mm-head .mm-h-s { font-size: 11px; opacity: .72; }
   .mm-head .mm-x { margin-left: auto; width: 30px; height: 30px; border-radius: 7px; border: 0; background: rgba(255,255,255,.10); color: #fff; display: grid; place-items: center; cursor: pointer; }
   .mm-head .mm-x:hover { background: rgba(255,255,255,.22); }

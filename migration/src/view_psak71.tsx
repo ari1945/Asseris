@@ -98,7 +98,7 @@ const P71_STAGE_META = {
 function P71Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -168,11 +168,11 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--navy)', lineHeight: 1.2 }}>{FIRM.name}</div>
           <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{FIRM.license}</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginTop: 9 }}>Kertas Kerja — Penurunan Nilai Piutang Usaha (ECL)</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginTop: 9 }}>Kertas Kerja — Penurunan Nilai Piutang Usaha (ECL)</div>
           <div className="tiny muted">Kerugian Kredit Ekspektasian · PSAK 71 (IFRS 9) · pendekatan disederhanakan</div>
         </div>
         <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
-          <div className="mono" style={{ display: 'inline-block', border: '1.5px solid var(--navy)', borderRadius: 7, padding: '5px 12px', fontSize: 17, fontWeight: 800, color: 'var(--navy)' }}>B-7</div>
+          <div className="mono" style={{ display: 'inline-block', border: '1.5px solid var(--navy)', borderRadius: 7, padding: '5px 12px', fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>B-7</div>
           <div className="tiny muted" style={{ marginTop: 6 }}>Indeks lead schedule <b style={{ color: 'var(--ink)' }}>B</b> · Piutang</div>
         </div>
       </div>
@@ -833,7 +833,7 @@ function PSAK71View() {
                   <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — Estimasi ECL</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{doneCount}/{P71_PROC.length} prosedur audit selesai</div>

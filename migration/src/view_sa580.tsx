@@ -263,7 +263,7 @@ function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter }: {
         <div style={{ padding: 22, background: 'var(--surface-1, #fff)' }}>
           <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12, lineHeight: 1.65, color: 'var(--ink)' }}>
             <div className="row jb" style={{ marginBottom: 18, alignItems: 'flex-start' }}>
-              <div style={{ fontWeight: 800, fontSize: 14 }}>{client}</div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{client}</div>
               <div className="tiny muted" style={{ textAlign: 'right' }}>Jl. Industri Raya No. 12<br />Cikarang, Jawa Barat</div>
             </div>
             <div className="tiny muted" style={{ marginBottom: 14 }}>{L.date || '[Tanggal — sama dengan tanggal laporan auditor independen]'}</div>

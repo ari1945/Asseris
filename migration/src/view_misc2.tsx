@@ -195,7 +195,7 @@ function TemplateDetail({ t, onClose }: any) {
   const openSA = (s: any) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });
 
   const Kv = ({ label, children }: any) => (
-    <div><div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div><div style={{ fontSize: 14, fontWeight: 600 }}>{children}</div></div>
+    <div><div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div><div style={{ fontSize: 15, fontWeight: 600 }}>{children}</div></div>
   );
 
   return (
@@ -204,7 +204,7 @@ function TemplateDetail({ t, onClose }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 40, height: 48, borderRadius: 5, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', position: 'relative', flex: '0 0 40px' }}><I.doc size={21} /><span style={{ position: 'absolute', bottom: 3, fontSize: 7.5, fontWeight: 800 }}>{t.fmt}</span></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>{t.name}</div>
+            <div style={{ fontWeight: 700, fontSize: 19 }}>{t.name}</div>
             <div className="row ac gap8" style={{ color: '#bcd6e4', marginTop: 3, fontSize: 12 }}><span className="mono">{t.id}</span><span>· {t.phase}</span><span>· {t.cat}</span></div>
           </div>
           <span className={'badge b-' + st.k} style={{ marginRight: 4 }}>{t.status}</span>
@@ -218,7 +218,7 @@ function TemplateDetail({ t, onClose }: any) {
           </div>
 
           <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: 20, borderLeft: '1px solid var(--line)', display: 'grid', gap: 16, alignContent: 'start' }}>
-            <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--ink-2)' }}>{t.desc}</div>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--ink-2)' }}>{t.desc}</div>
 
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Kv label="Steward">{t.steward}</Kv>

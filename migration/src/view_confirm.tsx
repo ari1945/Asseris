@@ -37,7 +37,7 @@ function CfDetailPanel(props: any) {
           <div style={{ flex: 1 }} />
           <Badge kind={(STATUS_KIND as any)[sel.status]}>{sel.status}</Badge>
         </div>
-        <div style={{ fontWeight: 700, fontSize: 14 }}>{sel.party}</div>
+        <div style={{ fontWeight: 700, fontSize: 15 }}>{sel.party}</div>
         <div className="tiny" style={{ color: '#bcd6e4' }}>Dikirim {sel.sent} · jatuh tempo {sel.due} · {sel.days} hari berjalan</div>
       </div>
       <div style={{ padding: 14, maxHeight: 'calc(100vh - 250px)', overflow: 'auto' }}>
@@ -249,7 +249,7 @@ function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
           <div style={{ padding: '12px 14px' }}>
             <div className="row gap12 ac" style={{ marginBottom: 12 }}>
               <div>
-                <div className="mono" style={{ fontSize: 26, fontWeight: 700, color: 'var(--navy)', lineHeight: 1 }}>{avgDays}<span style={{ fontSize: 13, color: 'var(--ink-3)' }}> hari</span></div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 700, color: 'var(--navy)', lineHeight: 1 }}>{avgDays}<span style={{ fontSize: 13, color: 'var(--ink-3)' }}> hari</span></div>
                 <div className="tiny muted upper">Rata-rata turnaround</div>
               </div>
               <div style={{ flex: 1 }} />
@@ -360,7 +360,7 @@ function CfWorklist(props: any) {
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Proyeksi ke SAD" sub="salah saji teridentifikasi">
           <div style={{ padding: '12px 14px' }}>
-            <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: grossDiff ? 'var(--red)' : 'var(--green)', lineHeight: 1 }}>Rp {fmt(grossDiff / 1e6, 1)} <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>jt</span></div>
+            <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: grossDiff ? 'var(--red)' : 'var(--green)', lineHeight: 1 }}>Rp {fmt(grossDiff / 1e6, 1)} <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>jt</span></div>
             <div className="tiny muted" style={{ marginTop: 3 }}>selisih bruto dari {discs.length} diskrepansi</div>
             <div className="divider" />
             <div className="tiny" style={{ lineHeight: 1.55, color: 'var(--ink-2)' }}>

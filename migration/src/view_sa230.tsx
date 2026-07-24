@@ -282,7 +282,7 @@ function D2Criterion({ para, title, sub, pct, detail }: any) {
           <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 11 }} className="mono">{para.replace('¶8', '')}</span>
           <span><span style={{ fontWeight: 700, fontSize: 12, display: 'block' }}>{title}</span><span className="tiny muted">{sub}</span></span>
         </span>
-        <span className="mono" style={{ fontWeight: 700, fontSize: 16, color }}>{pct}%</span>
+        <span className="mono" style={{ fontWeight: 700, fontSize: 15, color }}>{pct}%</span>
       </div>
       <div className="pbar"><span style={{ width: pct + '%', background: color }} /></div>
       <div className="tiny muted" style={{ marginTop: 6 }}>{detail}</div>
@@ -790,7 +790,7 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Periode Retensi</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{doc.retentionYears} tahun</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{doc.retentionYears} tahun</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>s.d. {d2fmtDate(retentionUntil)}</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
@@ -839,7 +839,7 @@ function D2Mini({ label, value, accent }: any) {
   return (
     <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div className="mono" style={{ fontWeight: 700, fontSize: 14, color: accent || 'var(--ink)' }}>{value}</div>
+      <div className="mono" style={{ fontWeight: 700, fontSize: 15, color: accent || 'var(--ink)' }}>{value}</div>
     </div>
   );
 }
@@ -950,7 +950,7 @@ function D2Keterkaitan({ C }: any) {
           <div className="d2net-hub">
             <div className="d2net-node">
               <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Standar Audit</div>
-              <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>230</div>
+              <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>230</div>
               <div className="tiny" style={{ color: '#cfe0ea', marginTop: 4, fontWeight: 600 }}>Dokumentasi Audit</div>
               <div style={{ height: 1, background: 'rgba(255,255,255,.18)', margin: '11px 0' }} />
               <div className="mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: ready ? '#7ee2b0' : '#ffd27a' }}>{agg.docPct}%</div>

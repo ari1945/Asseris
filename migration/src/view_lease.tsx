@@ -117,12 +117,12 @@ function LeaseCalculator() {
                 <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px', display: 'flex', gap: 26, flexWrap: 'wrap' }}>
                   <div>
                     <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.07em' }}>Aset Hak-Guna (ROU)</div>
-                    <div className="mono" style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.1 }}>Rp {fmt(pv)}</div>
+                    <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>Rp {fmt(pv)}</div>
                   </div>
                   <div className="vdivider" style={{ background: 'rgba(255,255,255,.18)' }} />
                   <div>
                     <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.07em' }}>Liabilitas Sewa</div>
-                    <div className="mono" style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.1 }}>Rp {fmt(pv)}</div>
+                    <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>Rp {fmt(pv)}</div>
                   </div>
                   <div className="vdivider" style={{ background: 'rgba(255,255,255,.18)' }} />
                   <div style={{ display: 'grid', gap: 6, alignContent: 'center' }}>

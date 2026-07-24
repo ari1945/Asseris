@@ -235,7 +235,7 @@ function Performance() {
           <Panel noBody>
             <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
               <Avatar name={person.name} size={42} />
-              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
               {person.calibrated ? <Badge kind="green">Terkalibrasi</Badge> : <Badge kind="amber">{PERF_PHASES[phaseIdx(person)]}</Badge>}
             </div>
             <div style={{ padding: 14 }}>

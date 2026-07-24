@@ -272,7 +272,7 @@
 .hc-kpi-c { padding: 11px 13px; }
 .hc-kpi-c .stat { gap: 1px; }
 .hc-kpi-spark { margin-top: 7px; }
-.hc-kpi .s-val { font-size: 20px; }
+.hc-kpi .s-val { font-size: 19px; }
 
 .hc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 .hc-cell { min-width: 0; }

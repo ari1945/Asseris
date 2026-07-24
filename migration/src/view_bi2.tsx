@@ -52,7 +52,7 @@ function BIPendapatan() {
           <div style={{ padding: 14 }}>
             <div className="row gap12 ac" style={{ marginBottom: 14 }}>
               <Donut segments={IND.map((s: any) => ({ value: s.rev, color: s.color }))} size={100} thickness={15}
-                center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{IND.length}</div><div className="tiny muted">sektor</div></>} />
+                center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{IND.length}</div><div className="tiny muted">sektor</div></>} />
               <div style={{ flex: 1 }}>
                 <HBars rows={IND.slice().sort((a: any, b: any) => b.rev - a.rev).map((s: any) => ({ label: s.industry, value: s.rev, right: (s.rev / totalInd * 100).toFixed(0) + '%', color: s.color, sub: s.clients + ' klien' }))} />
               </div>

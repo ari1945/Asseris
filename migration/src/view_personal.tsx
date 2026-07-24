@@ -338,7 +338,7 @@ function DataPersonalSaya() {
         <div className="view-scroll"><div className="view-pad">
           <div className="row ac gap8" style={{ marginBottom: 12 }}>
             <button className="btn sm" onClick={back}><I.arrowLeft size={13} /></button>
-            <IconC size={18} /><span style={{ fontSize: 16, fontWeight: 700 }}>{meta.title}</span>
+            <IconC size={18} /><span style={{ fontSize: 15, fontWeight: 700 }}>{meta.title}</span>
             <div style={{ flex: 1 }} /><Badge kind="blue">Data milik Anda</Badge>
           </div>
           {msg ? <div className="panel" style={{ padding: '9px 12px', marginBottom: 12, boxShadow: 'none', background: msg.ok ? 'var(--green-bg)' : 'var(--red-bg)', borderColor: 'transparent' }}><span className="tiny" style={{ fontWeight: 600 }}>{msg.ok ? <I.check size={12} /> : <I.alert size={12} />} {msg.t}</span></div> : null}

@@ -419,7 +419,7 @@ function SmSchedule({ fmt, activeEngagement }: any) {
           {/* hours budget */}
           <Panel title="Anggaran Jam (SA 300 — sifat, waktu & luas)">
             <div className="row jb ac" style={{ marginBottom: 7 }}>
-              <span className="mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--navy)' }}>{fmt(used)}<span style={{ fontSize: 12, color: 'var(--ink-3)', fontWeight: 600 }}> / {fmt(budget)} jam</span></span>
+              <span className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{fmt(used)}<span style={{ fontSize: 12, color: 'var(--ink-3)', fontWeight: 600 }}> / {fmt(budget)} jam</span></span>
               <Badge kind={pct > 90 ? 'red' : pct > 75 ? 'amber' : 'green'}>{pct}% terpakai</Badge>
             </div>
             <Progress value={pct} color={pct > 90 ? 'var(--red)' : pct > 75 ? 'var(--amber)' : 'var(--blue)'} />
@@ -498,7 +498,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, 
       <div style={{ background: '#e7eaef', padding: 18 }}>
         <div className="doc-paper" style={{ background: '#fff', maxWidth: 720, margin: '0 auto', padding: '40px 50px', boxShadow: 'var(--shadow)' }}>
           <div style={{ textAlign: 'center', marginBottom: 22 }}>
-            <div style={{ fontWeight: 800, fontSize: 16 }}>MEMORANDUM STRATEGI AUDIT</div>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>MEMORANDUM STRATEGI AUDIT</div>
             <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', marginTop: 4 }}>{activeEngagement.id} · {activeClient?.name} · {activeEngagement.fy}</div>
           </div>
           <Sec n="1" id="s1" title="Latar Belakang Perikatan">

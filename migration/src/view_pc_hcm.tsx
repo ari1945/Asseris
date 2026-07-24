@@ -80,7 +80,7 @@ function Profile360Drawer({ s, onClose }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 13, flex: '0 0 auto' }}>
           <Avatar name={s.name} size={50} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 700 }} className="truncate">{s.name}</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{s.name}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{s.role} · {s.id} · {p.location}</div>
             <div className="row gap6 ac" style={{ marginTop: 5 }}>
               <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{s.grade} · Band {p.band}</span>
@@ -92,10 +92,10 @@ function Profile360Drawer({ s, onClose }: any) {
 
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 16 }}>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 10, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 10, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
           </div>
 
           <Section title="Informasi Pribadi & Kepegawaian">
@@ -247,7 +247,7 @@ function HCMAnalytics() {
         <Panel noBody>
           <div className="panel-h"><h3>Komposisi Jenjang</h3></div>
           <div style={{ padding: 16, display: 'flex', gap: 14, alignItems: 'center' }}>
-            <Donut size={120} thickness={18} segments={D.gradeMix.map((g: any) => ({ value: g.n, color: GC[g.g] }))} center={<><div className="mono" style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>{totalHC}</div><div className="tiny muted">SDM</div></>} />
+            <Donut size={120} thickness={18} segments={D.gradeMix.map((g: any) => ({ value: g.n, color: GC[g.g] }))} center={<><div className="mono" style={{ fontSize: 19, fontWeight: 800, color: 'var(--navy)' }}>{totalHC}</div><div className="tiny muted">SDM</div></>} />
             <div style={{ flex: 1, display: 'grid', gap: 8 }}>
               {D.gradeMix.map((g: any) => (
                 <div key={g.g} className="row ac jb">

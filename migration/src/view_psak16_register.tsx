@@ -72,7 +72,7 @@ function SubLedgerRecon({ reg, sc, nav }: any) {
       <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
         <div><div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)' }}>Rekonsiliasi Sub-ledger ↔ GL</div><div className="tiny muted">Register foot ke akun kontrol WTB</div></div>
         <div style={{ textAlign: 'right' }}>
-          <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: reg.reconciled ? 'var(--green)' : 'var(--red)' }}>{reg.reconciled ? 'MENUTUP' : 'SELISIH'}</div>
+          <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: reg.reconciled ? 'var(--green)' : 'var(--red)' }}>{reg.reconciled ? 'MENUTUP' : 'SELISIH'}</div>
           <div className="tiny muted">gerbang posting</div>
         </div>
       </div>

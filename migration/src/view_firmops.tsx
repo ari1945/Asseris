@@ -37,7 +37,7 @@ function FopsModuleCard({ m, stat, sub, status, statusKind, onNav }: any) {
       </div>
       <div className="row ac jb" style={{ marginTop: 2 }}>
         <div>
-          <div className="mono" style={{ fontSize: 17, fontWeight: 800, color: 'var(--navy)', lineHeight: 1 }}>{stat}</div>
+          <div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)', lineHeight: 1 }}>{stat}</div>
           <div className="tiny muted" style={{ marginTop: 3 }}>{sub}</div>
         </div>
         {status && <span className={'badge b-' + statusKind} style={{ textTransform: 'none', flex: '0 0 auto' }}>{status}</span>}
@@ -138,7 +138,7 @@ function FirmOps() {
                   <div className="row gap14" style={{ alignItems: 'center' }}>
                     <Donut size={120} thickness={17}
                       segments={oc.rows.map((r: any, i: any) => ({ label: r.label, value: r.amount, color: FOPS_PALETTE[i % FOPS_PALETTE.length] }))}
-                      center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{AMS.fmt(oc.total / 1e9, 1)}M</div><div className="tiny muted">total</div></>} />
+                      center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{AMS.fmt(oc.total / 1e9, 1)}M</div><div className="tiny muted">total</div></>} />
                     <div style={{ flex: 1 }}>
                       {oc.rows.map((r: any, i: any) => (
                         <div key={r.key} className="row jb ac" style={{ padding: '4px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => { setTab('opex'); }}>

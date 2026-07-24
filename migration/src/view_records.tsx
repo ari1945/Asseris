@@ -93,7 +93,7 @@ function ArchiveDrawer({ box, onClose, nav, canArchive, onArchived }: any) {
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.archive size={18} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{box.client}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{box.client}</div>
           <div className="row ac gap8" style={{ marginTop: 4 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{box.id}</span>
             <span className="badge b-gray" style={{ textTransform: 'none' }}>{box.engId} · {box.fy}</span>
@@ -271,7 +271,7 @@ function RROverview({ boxes, nav, onPick }: any) {
               boxes.forEach((b: any) => { const j = R.classById(b.classId).jenis; (by as any)[j] = ((by as any)[j] || 0) + 1; });
               const cols = ['#005085', '#1f7a4d', '#9a6a00', '#5b3fa6', '#0a6b73'];
               return Object.keys(by).map((k, i) => ({ value: (by as any)[k], color: cols[i % cols.length] }));
-            })()} center={<div><div className="mono" style={{ fontSize: 16, fontWeight: 800 }}>{boxes.length}</div><div className="tiny muted">kotak</div></div>} />
+            })()} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 800 }}>{boxes.length}</div><div className="tiny muted">kotak</div></div>} />
             <div style={{ flex: 1 }}>
               <KV label="Total arsip terkelola" v={boxes.length + ' kotak · ' + R.metrics().sizeGB.toFixed(1) + ' GB'} />
               <div style={{ height: 8 }} />

@@ -222,7 +222,7 @@ function DeterminationPanel({ doc, patch }: any) {
           <div style={{ padding: '13px 15px', background: kindBg(recO.k) }}>
             <div className="tiny upper" style={{ color: kindVar(recO.k), fontWeight: 700 }}>Rekomendasi Sistem</div>
             <div className="row ac jb" style={{ marginTop: 4 }}>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{recO.title}</div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{recO.title}</div>
               <Badge kind={recO.k}>{recO.short}</Badge>
             </div>
           </div>

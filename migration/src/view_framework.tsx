@@ -108,7 +108,7 @@ const FW_STD_LINKS = [
 function FWStat({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div style={{ fontSize: 20, fontWeight: 800, color: accent || 'var(--navy)', lineHeight: 1.05, letterSpacing: '-.01em' }}>{value}</div>
+      <div style={{ fontSize: 19, fontWeight: 800, color: accent || 'var(--navy)', lineHeight: 1.05, letterSpacing: '-.01em' }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 700 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>

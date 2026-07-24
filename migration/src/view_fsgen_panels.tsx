@@ -127,7 +127,7 @@ function FSValidationPanel({ checks, sc, unitShort }: any) {
           <div className="tiny muted">Rekonsiliasi silang antar laporan</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div className="mono" style={{ fontSize: 17, fontWeight: 700, color: passed === checks.length ? 'var(--green)' : 'var(--amber)' }}>{passed}/{checks.length}</div>
+          <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: passed === checks.length ? 'var(--green)' : 'var(--amber)' }}>{passed}/{checks.length}</div>
           <div className="tiny muted">lolos</div>
         </div>
       </div>
@@ -235,7 +235,7 @@ function FSDisclosurePanel({ disclosures, setDisclosures, locked }: any) {
             <div className="tiny muted">Kelengkapan CALK terhadap PSAK</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div className="mono" style={{ fontSize: 17, fontWeight: 700, color: pct === 100 ? 'var(--green)' : 'var(--amber)' }}>{pct}%</div>
+            <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: pct === 100 ? 'var(--green)' : 'var(--amber)' }}>{pct}%</div>
             <div className="tiny muted">{done}/{disclosures.length} item</div>
           </div>
         </div>

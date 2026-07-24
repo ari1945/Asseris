@@ -103,7 +103,7 @@ function JournalEntryTesting() {
             {funnel.map((f, i) => (
               <Panel key={i} noBody>
                 <div style={{ padding: '15px 18px', borderTop: '3px solid ' + f.c }}>
-                  <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)' }}>{fmt(f.v)}</div>
+                  <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)' }}>{fmt(f.v)}</div>
                   <div className="tiny muted upper">{f.l}</div>
                   {i > 0 && <div className="tiny" style={{ marginTop: 3, color: 'var(--ink-4)' }}>{(f.v / funnel[i - 1].v * 100).toFixed(1)}% dari tahap sebelumnya</div>}
                 </div>

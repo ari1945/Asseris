@@ -322,7 +322,7 @@ function AjeDrill({ a, fmt, nav }: any) {
       <Panel noBody>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
           <div className="row ac gap8">
-            <span className="mono" style={{ fontWeight: 700, fontSize: 14 }}>{a.id}</span>
+            <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{a.id}</span>
             <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
             <div style={{ flex: 1 }} />
             <Badge>{a.status}</Badge>
@@ -424,15 +424,15 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
           <div className="row gap10" style={{ alignItems: 'stretch' }}>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
               <div className="tiny muted upper">Rasio Lancar (kini)</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 20, color: 'var(--navy)' }}>{ratioNow.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--navy)' }}>{ratioNow.toFixed(2)}×</div>
             </div>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: ratioAfter < COVENANT ? 'var(--red-bg)' : 'var(--surface-2)' }}>
               <div className="tiny muted upper">Jika usulan diposting</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 20, color: ratioAfter < COVENANT ? 'var(--red)' : 'var(--navy)' }}>{ratioAfter.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: ratioAfter < COVENANT ? 'var(--red)' : 'var(--navy)' }}>{ratioAfter.toFixed(2)}×</div>
             </div>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
               <div className="tiny muted upper">Ambang Covenant</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 20, color: 'var(--ink-3)' }}>{COVENANT.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--ink-3)' }}>{COVENANT.toFixed(2)}×</div>
             </div>
           </div>
           <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: ratioAfter < COVENANT ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
@@ -451,7 +451,7 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Laba Sebelum Pajak (Dilaporkan)</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Unadjusted Rp {jt(AJE_PBT_UNADJ)} jt · {posted.length} penyesuaian posted</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>

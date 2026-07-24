@@ -241,7 +241,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
 
           <div style={{ background: 'var(--green-bg)', borderRadius: 8, padding: '12px 14px', marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontWeight: 700, fontSize: 13 }}>Take-Home Pay</span>
-            <span className="mono" style={{ fontWeight: 800, fontSize: 18, color: 'var(--green)' }}>Rp {fmt(s.net + r.thr, 0)}</span>
+            <span className="mono" style={{ fontWeight: 800, fontSize: 19, color: 'var(--green)' }}>Rp {fmt(s.net + r.thr, 0)}</span>
           </div>
 
           <div className="tiny muted upper" style={{ margin: '18px 0 4px' }}>Kontribusi Pemberi Kerja (di luar take-home)</div>

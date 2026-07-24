@@ -141,7 +141,7 @@ function S250Framework() {
         <Panel key={key} noBody>
           <div style={{ background: `var(--${c.color}-bg)`, padding: '14px 16px', borderBottom: '1px solid var(--line)' }}>
             <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700, color: `var(--${c.color})` }}>SA 250 {c.ref}</span><Badge kind={c.color === 'red' ? 'red' : 'amber'}>{c.color === 'red' ? 'Respons lebih dalam' : 'Prosedur terbatas'}</Badge></div>
-            <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6 }}>{c.k}</div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginTop: 6 }}>{c.k}</div>
             <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3, lineHeight: 1.45 }}>{c.sub}</div>
           </div>
           <div style={{ padding: 14 }}>

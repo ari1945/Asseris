@@ -281,7 +281,7 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Impor Buku Besar (GL)</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Buku Besar (GL)</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>Detail transaksi per akun untuk drill sub-ledger nyata · kolom: Kode · Tanggal · Uraian · Dokumen · Jumlah (atau Debit/Kredit)</div>
           </div>
           {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
@@ -398,7 +398,7 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.target size={18} /></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Pemetaan Bagan Akun → CoA Standar</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Pemetaan Bagan Akun → CoA Standar</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>Petakan akun klien ke kode standar agar engine PSAK & FS Generator mengenalinya. Akun yang dipetakan ke kode sama digabung.</div>
           </div>
           {!canMap && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
@@ -518,7 +518,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.upload size={18} /></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Impor Neraca Saldo Klien</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Neraca Saldo Klien</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>Tempel dari Excel/CSV · tab/titik-koma/koma · kolom: Kode · Nama · TA Lalu · Unadjusted · AJE (atau Debit/Kredit)</div>
           </div>
           {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
@@ -748,15 +748,15 @@ function WtbDrill({ row, onClose, nav }: any) {
       <div className="panel" style={{ width: 720, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
           <Badge kind="blue">WP {row.lead}</Badge>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-          <div><div className="tiny muted upper">Saldo Unadjusted</div><div className="mono" style={{ fontWeight: 700, fontSize: 14 }}>Rp {fmt(row.unadj / 1e6, 1)} jt</div></div>
-          <div><div className="tiny muted upper">Penyesuaian (AJE)</div><div className="mono" style={{ fontWeight: 700, fontSize: 14, color: row.aje ? 'var(--blue)' : 'var(--ink-3)' }}>{row.aje ? 'Rp ' + fmt(row.aje / 1e6, 1) + ' jt' : '—'}</div></div>
-          <div><div className="tiny muted upper">Saldo Adjusted</div><div className="mono" style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy)' }}>Rp {fmt(row.adj / 1e6, 1)} jt</div></div>
-          <div><div className="tiny muted upper">TA Lalu</div><div className="mono" style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink-3)' }}>Rp {fmt(row.ly / 1e6, 1)} jt</div></div>
+          <div><div className="tiny muted upper">Saldo Unadjusted</div><div className="mono" style={{ fontWeight: 700, fontSize: 15 }}>Rp {fmt(row.unadj / 1e6, 1)} jt</div></div>
+          <div><div className="tiny muted upper">Penyesuaian (AJE)</div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: row.aje ? 'var(--blue)' : 'var(--ink-3)' }}>{row.aje ? 'Rp ' + fmt(row.aje / 1e6, 1) + ' jt' : '—'}</div></div>
+          <div><div className="tiny muted upper">Saldo Adjusted</div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)' }}>Rp {fmt(row.adj / 1e6, 1)} jt</div></div>
+          <div><div className="tiny muted upper">TA Lalu</div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink-3)' }}>Rp {fmt(row.ly / 1e6, 1)} jt</div></div>
         </div>
         <div style={{ padding: '0 16px', borderBottom: '1px solid var(--line)' }}>
           <div className="tabs">
@@ -984,7 +984,7 @@ function AJEForm({ accounts, onClose, onPost }: any) {
       <div className="panel" style={{ width: 680, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Posting langsung ke Working Trial Balance · ENG-2025-014</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Posting langsung ke Working Trial Balance · ENG-2025-014</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto' }}>

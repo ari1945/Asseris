@@ -19,10 +19,10 @@
   width: 26px; height: 26px; border-radius: 5px;
   background: linear-gradient(135deg, #1f9ad6, var(--blue-solid));
   display: grid; place-items: center;
-  font-weight: 800; font-size: 14px; color: #fff;
+  font-weight: 800; font-size: 15px; color: #fff;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
 }
-.brand-name { font-weight: 700; font-size: 14px; letter-spacing: .2px; }
+.brand-name { font-weight: 700; font-size: 15px; letter-spacing: .2px; }
 .brand-name small { font-weight: 500; color: var(--on-navy); font-size: 10px; display: block; letter-spacing: .12em; margin-top: -2px; }
 
 .global-search {
@@ -259,7 +259,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-search input::placeholder { color: rgba(255,255,255,.66); }
 .side-search-x {
   border: none; background: transparent; cursor: pointer; color: #fff;
-  font-size: 16px; line-height: 1; padding: 0 2px; border-radius: 4px;
+  font-size: 15px; line-height: 1; padding: 0 2px; border-radius: 4px;
 }
 .side-search-x:hover { color: #fff; background: rgba(255,255,255,.12); }
 .side-search-h { padding: 4px 12px 6px; font: 700 9.5px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: #fff; }

@@ -251,7 +251,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
               {[['Pendapatan', revCoverage], ['Aset', astCoverage]].map(([l, v]) => (
                 <div key={l} style={{ textAlign: 'center' }}>
                   <Donut segments={[{ value: v, color: v >= 90 ? '#1f7a4d' : '#9a6a00' }, { value: 100 - v, color: '#e7ebef' }]} size={84} thickness={12}
-                    center={<div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>{v}%</div>} />
+                    center={<div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{v}%</div>} />
                   <div className="tiny muted" style={{ marginTop: 4 }}>{l}</div>
                 </div>
               ))}

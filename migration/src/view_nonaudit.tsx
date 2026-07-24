@@ -142,7 +142,7 @@ function Review2400() {
       <div className="view-scroll"><div className="view-pad">
         <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: '#0a6b73', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>R</span>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{R.client}</div><div className="tiny muted">{R.id} · Reviu {R.fy} · Kerangka {R.framework} · Reviu memberikan keyakinan terbatas (bukan audit)</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{R.client}</div><div className="tiny muted">{R.id} · Reviu {R.fy} · Kerangka {R.framework} · Reviu memberikan keyakinan terbatas (bukan audit)</div></div>
           <div className="row gap8">
             <div style={{ textAlign: 'right' }}><div className="tiny muted">Anomali Analitis</div><div className="mono" style={{ fontWeight: 700, color: flagged ? 'var(--amber)' : 'var(--green)' }}>{flagged}</div></div>
             <div style={{ textAlign: 'right' }}><div className="tiny muted">Inquiry Selesai</div><div className="mono" style={{ fontWeight: 700 }}>{inqDone}/{inq.length}</div></div>
@@ -157,8 +157,8 @@ function Review2400() {
             return (
               <div style={{ padding: 16 }}>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Reviu</div><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(P.materiality / 1e6, 0)} jt</div><div className="tiny muted">{P.benchmark}</div></div>
-                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Pelaksanaan</div><div className="mono" style={{ fontSize: 16, fontWeight: 700 }}>Rp {fmt(P.pm / 1e6, 0)} jt</div><div className="tiny muted">75% dari materialitas</div></div>
+                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Reviu</div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(P.materiality / 1e6, 0)} jt</div><div className="tiny muted">{P.benchmark}</div></div>
+                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Pelaksanaan</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>Rp {fmt(P.pm / 1e6, 0)} jt</div><div className="tiny muted">75% dari materialitas</div></div>
                   <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Sifat Perikatan</div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--teal)' }}>Keyakinan Terbatas</div><div className="tiny muted">inquiry & analitis</div></div>
                 </div>
                 <div className="tiny muted upper" style={{ marginBottom: 8 }}>Area Fokus & Pendekatan Reviu</div>

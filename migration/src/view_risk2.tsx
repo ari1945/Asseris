@@ -41,7 +41,7 @@ function RiskKontrol() {
         <Panel title="Efektivitas Kontrol">
           <div style={{ padding: 14 }} className="row gap12 ac">
             <Donut segments={eff.map(x => ({ value: x.n, color: (EFF_COLOR as any)[x.e] }))} size={104} thickness={15}
-              center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>{CTL.length}</div><div className="tiny muted">kontrol</div></>} />
+              center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{CTL.length}</div><div className="tiny muted">kontrol</div></>} />
             <div style={{ flex: 1 }}>
               {eff.map(x => (
                 <div key={x.e} className="row jb ac" style={{ padding: '4px 0' }}>

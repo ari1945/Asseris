@@ -380,7 +380,7 @@ function ConflictToaster() {
   const row = { display: 'flex', gap: 8, marginTop: 10 };
   const btn = { cursor: 'pointer', border: '1px solid var(--line,#e3e6ea)', borderRadius: 7, padding: '5px 10px', font: '12px inherit', background: '#fff', color: 'var(--ink,#1f2733)' };
   const btnPrimary = { ...btn, background: 'var(--navy,#1f3a5f)', color: '#fff', borderColor: 'var(--navy,#1f3a5f)' };
-  const x = { marginLeft: 'auto', cursor: 'pointer', border: 'none', background: 'none', color: 'var(--ink-2,#8a93a2)', fontSize: 16, lineHeight: 1 };
+  const x = { marginLeft: 'auto', cursor: 'pointer', border: 'none', background: 'none', color: 'var(--ink-2,#8a93a2)', fontSize: 15, lineHeight: 1 };
   return (
     <div style={wrap} role="status" aria-live="polite" data-testid="conflict-toaster">
       {items.map((t: any) => (

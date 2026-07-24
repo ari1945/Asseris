@@ -380,7 +380,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
       <div className="doc-paper" style={{ background: '#fff', maxWidth: 760, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c', lineHeight: 1.6 }}>
         <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 22, paddingBottom: 16, borderBottom: '2px solid #0c2430', gap: 16 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#0c2430', whiteSpace: 'nowrap', lineHeight: 1.25 }}>KAP Wijaya Hartono &amp; Rekan</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430', whiteSpace: 'nowrap', lineHeight: 1.25 }}>KAP Wijaya Hartono &amp; Rekan</div>
             <div style={{ fontSize: 10.5, color: '#7a8893', marginTop: 2 }}>Registered Public Accountants</div>
           </div>
           <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' }}>

@@ -242,7 +242,7 @@ function FirmDashboard() {
         <Portlet title="Portofolio per Fase" dot="#5b3fa6" dragProps={dragP('phases')}>
           <div className="row gap12 ac">
             <Donut segments={segs} size={96} thickness={14}
-              center={<><div className="mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--navy)' }}>{engagements.length}</div><div className="tiny muted">engagement</div></>} />
+              center={<><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{engagements.length}</div><div className="tiny muted">engagement</div></>} />
             <div style={{ flex: 1 }}>
               {segs.map(s => (
                 <div key={s.label} className="row ac jb" style={{ padding: '3px 0' }}>

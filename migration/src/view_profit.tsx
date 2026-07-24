@@ -202,7 +202,7 @@ function Profitability() {
                       <div style={{ height: 12, borderRadius: 6, background: 'var(--surface-3)' }}><div style={{ width: (p.margin / maxPartnerMargin * 100) + '%', height: '100%', borderRadius: 6, background: marginColor(p.marginPct) }} /></div>
                     </div>
                     <div style={{ width: 90, flex: '0 0 90px', textAlign: 'right' }}>
-                      <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(p.fee / 1e9, 1)}M</div>
+                      <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(p.fee / 1e9, 1)}M</div>
                       <div className="tiny muted">portofolio fee</div>
                     </div>
                   </div>

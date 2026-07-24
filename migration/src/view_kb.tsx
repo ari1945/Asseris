@@ -82,7 +82,7 @@ function KnowledgeBase() {
           <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '20px 22px' }}>
             <div className="row jb ac wrap" style={{ gap: 12 }}>
               <div style={{ minWidth: 280, flex: 1 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan Asseris</div>
+                <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan Asseris</div>
                 <div style={{ fontSize: 12, color: '#bcd6e4', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
               </div>
               <div className="row gap14" style={{ flexShrink: 0 }}>
@@ -266,7 +266,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   const Src = ({ ic, lbl, val, onClick, accent }: any) => (
     <button onClick={onClick} disabled={!onClick} style={{ display: 'grid', gap: 3, textAlign: 'left', padding: '10px 13px', border: '1px solid var(--line)', borderRadius: 9, background: 'var(--surface-2)', cursor: onClick ? 'pointer' : 'default', opacity: onClick ? 1 : .85, flex: 1, minWidth: 130 }}>
       <span className="muted row ac gap5" style={{ fontWeight: 600, fontSize: 12 }}>{ic}{lbl}</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: accent || 'var(--ink)' }}>{val}</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: accent || 'var(--ink)' }}>{val}</span>
     </button>
   );
 
@@ -278,7 +278,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           <span style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', flex: '0 0 48px' }}><I.book size={24} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row ac gap8" style={{ marginBottom: 4 }}>
-              <span className="mono" style={{ fontWeight: 700, fontSize: 14 }}>{reg.code}</span>
+              <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{reg.code}</span>
               <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{fw.label}</span>
             </div>
             <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1.25 }}>{reg.title}</div>
@@ -307,7 +307,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           {/* isi */}
           {(c.sections || []).map((s: any, i: any) => (
             <div key={i} style={{ marginBottom: 18 }}>
-              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 7 }}>{s.h}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 7 }}>{s.h}</div>
               <p style={{ margin: 0, textAlign: 'left', textWrap: 'pretty', color: 'var(--ink-2)' }}>{s.p}</p>
             </div>
           ))}

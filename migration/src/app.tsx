@@ -506,7 +506,7 @@ const DEFAULT_ENG_ID = 'ENG-2025-014';
 function BootSplash({ label }: any) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh',
-      font: '14px system-ui,sans-serif', color: '#8a93a2' }}>{label}</div>
+      font: '15px system-ui,sans-serif', color: '#8a93a2' }}>{label}</div>
   );
 }
 

@@ -85,7 +85,7 @@ function LglContractDrawer({ c, onClose, onNav }: any) {
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: cat.c + '1a', color: cat.c }}><Ic size={18} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{c.party}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{c.party}</div>
           <div className="row ac gap8" style={{ marginTop: 4 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: cat.c }}>{c.id}</span>
             <span className="badge b-gray" style={{ textTransform: 'none' }}>{cat.lbl}</span>

@@ -128,7 +128,7 @@ function ClientCRM() {
             <Panel noBody>
               <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                 <div className="row ac gap12">
-                  <span style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+                  <span style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</div>
                     <div style={{ fontSize: 12, color: '#bcd6e4' }}>{sel.industry}</div>
@@ -232,7 +232,7 @@ function ClientForm({ form, onClose, onSave }: any) {
       <div className="panel" style={{ width: 560, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto', display: 'grid', gap: 12 }}>
@@ -401,7 +401,7 @@ function EngagementDetail({ e, client, onClose }: any) {
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{e.id}</span>
             <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{client?.name}</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>{client?.name}</div>
           <div className="tiny" style={{ color: '#bcd6e4' }}>{e.type} · {e.fy} · {e.standard}</div>
           <div className="row gap8" style={{ marginTop: 10 }}>
             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
@@ -469,7 +469,7 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
+          <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

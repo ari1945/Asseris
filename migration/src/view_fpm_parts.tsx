@@ -31,7 +31,7 @@ function KV({ label, v, accent, sub }: any) {
   return (
     <div className="panel" style={{ padding: '8px 11px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
       {sub && <div className="tiny muted" style={{ marginTop: 1 }}>{sub}</div>}
     </div>
   );

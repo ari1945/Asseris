@@ -78,7 +78,7 @@ const P25_DISC = [
 function P25Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -393,7 +393,7 @@ function PSAK25View() {
                   <div style={{ padding: 14, display: 'grid', gap: 8 }}>
                     {P25_HIER.map((h) => (
                       <div key={h.n} className="row gap10" style={{ alignItems: 'flex-start', padding: '9px 11px', borderRadius: 7, background: 'var(--surface-2)', border: '1px solid var(--line-soft)' }}>
-                        <span className="mono" style={{ fontWeight: 800, color: 'var(--blue)', fontSize: 14, flex: '0 0 22px' }}>{h.n}</span>
+                        <span className="mono" style={{ fontWeight: 800, color: 'var(--blue)', fontSize: 15, flex: '0 0 22px' }}>{h.n}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 12, fontWeight: 700 }}>{h.t}</div>
                           <div className="tiny muted" style={{ lineHeight: 1.5, marginTop: 1 }}>{h.d}</div>
@@ -416,7 +416,7 @@ function PSAK25View() {
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                   <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — PSAK 25</div>
                   <div className="row ac gap12">
-                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                       <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{procDone}/{P25_PROC.length} prosedur · {discDone}/{P25_DISC.length} pengungkapan</div>

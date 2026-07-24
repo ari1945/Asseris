@@ -104,7 +104,7 @@ function Overview({ D, jt, M, fmt, setDrill }: any) {
         <Panel title="Pendapatan per Lini Jasa" sub="alokasi atas pendapatan Buku Besar · FY2025">
           <div className="row gap12" style={{ alignItems: 'center' }}>
             <Donut segments={svc.rows.map((l: any) => ({ label: l.line, value: l.rev, color: l.color }))} size={120} thickness={17}
-              center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>{M(svc.total)}M</div><div className="tiny muted">total</div></>} />
+              center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{M(svc.total)}M</div><div className="tiny muted">total</div></>} />
             <div style={{ flex: 1 }}>
               {svc.rows.map((l: any) => (
                 <div key={l.line} className="row jb ac" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => setDrill(l)}>
@@ -596,7 +596,7 @@ function WipValDetail({ r, jt, pc, realColor, marginColor, onClose, nav }: any) 
     <Panel noBody style={{ position: 'sticky', top: 0 }}>
       <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px' }}>
         <div className="row jb ac" style={{ marginBottom: 6 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{r.id}</span><button className="top-btn" onClick={onClose}><I.x size={17} /></button></div>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>{r.clientShort}</div>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{r.clientShort}</div>
         <div className="tiny" style={{ color: '#bcd6e4' }}>{r.partner} · {r.type}</div>
       </div>
       <div style={{ padding: 14 }}>
@@ -640,7 +640,7 @@ function ServiceLineDrill({ l, total, onClose }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 480, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: l.color, color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{l.line}</div><div className="tiny" style={{ opacity: .85 }}>Rincian pendapatan · {(l.rev / total * 100).toFixed(0)}% dari total KAP</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{l.line}</div><div className="tiny" style={{ opacity: .85 }}>Rincian pendapatan · {(l.rev / total * 100).toFixed(0)}% dari total KAP</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16 }}>

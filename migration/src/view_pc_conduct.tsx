@@ -268,7 +268,7 @@ function HRCases() {
               <Panel noBody>
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
                   <Avatar name={p.name} size={40} />
-                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }} className="truncate">{p.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{cur.id} · {cur.cat}</div></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{cur.id} · {cur.cat}</div></div>
                   <button className="top-btn" onClick={() => setSel(null)}><I.x size={16} /></button>
                 </div>
                 <div style={{ padding: 14 }}>

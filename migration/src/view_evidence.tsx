@@ -277,7 +277,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
           <div style={{ padding: '14px 16px', background: `var(--${verdict.k}-bg)`, borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8" style={{ marginBottom: 6 }}>
               <span style={{ color: `var(--${verdict.k})` }}>{verdict.k === 'green' ? <I.checkCircle size={18} /> : <I.alert size={18} />}</span>
-              <span style={{ fontWeight: 800, fontSize: 14, color: `var(--${verdict.k})` }}>{verdict.label}</span>
+              <span style={{ fontWeight: 800, fontSize: 15, color: `var(--${verdict.k})` }}>{verdict.label}</span>
             </div>
             <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>{verdict.t}</div>
           </div>

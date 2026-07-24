@@ -354,7 +354,7 @@ function RN_ClearanceCard({ M, aging }: any) {
           <div style={{ fontSize: 12, fontWeight: 700 }}>Kesiapan Kliring File</div>
           <div className="tiny" style={{ color: ready ? 'var(--green)' : 'var(--amber)', fontWeight: 600 }}>{ready ? 'Semua catatan wajib telah dikliring' : `${M.blocking} catatan wajib belum dikliring`}</div>
         </div>
-        <div className="mono" style={{ fontSize: 26, fontWeight: 800, color: ready ? 'var(--green)' : 'var(--amber)', lineHeight: 1 }}>{M.clearedPct}%</div>
+        <div className="mono" style={{ fontSize: 28, fontWeight: 800, color: ready ? 'var(--green)' : 'var(--amber)', lineHeight: 1 }}>{M.clearedPct}%</div>
       </div>
       <div style={{ padding: '15px 18px', display: 'grid', gap: 10 }}>
         <div>

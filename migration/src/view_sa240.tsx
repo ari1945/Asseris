@@ -329,7 +329,7 @@ function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; s
       <Panel noBody>
         <div style={{ background: `var(--${sel.color}-bg)`, padding: '12px 14px', borderBottom: '1px solid var(--line)' }}>
           <div className="row ac gap8">{(() => { const Sic = (I as any)[sel.icon]; return <span style={{ color: `var(--${sel.color})` }}><Sic size={18} /></span>; })()}<span className="mono tiny" style={{ fontWeight: 700, color: `var(--${sel.color})` }}>{sel.ref}</span></div>
-          <div style={{ fontWeight: 700, fontSize: 14, marginTop: 4 }}>{sel.k}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginTop: 4 }}>{sel.k}</div>
           <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 2, lineHeight: 1.4 }}>{sel.sub}</div>
         </div>
         <div style={{ padding: '6px 0' }}>

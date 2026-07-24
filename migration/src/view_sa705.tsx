@@ -212,7 +212,7 @@ function F705Matrix() {
   const Cell = ({ o }: any) => (
     <td style={{ padding: 0 }}>
       <div style={{ margin: 6, padding: '12px 10px', borderRadius: 8, background: `var(--${o.color}-bg)`, border: `1px solid var(--${o.color})`, textAlign: 'center' }}>
-        <div className="mono" style={{ fontWeight: 800, fontSize: 16, color: `var(--${o.color})` }}>{o.short}</div>
+        <div className="mono" style={{ fontWeight: 800, fontSize: 15, color: `var(--${o.color})` }}>{o.short}</div>
         <div className="tiny" style={{ fontWeight: 600, marginTop: 2 }}>{o.label}</div>
         <div className="mono tiny muted" style={{ marginTop: 3 }}>{o.ref}</div>
       </div>

@@ -369,7 +369,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
           <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '46px 52px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#1a2730', position: 'relative' }}>
             {doc.finalized && <div style={{ position: 'absolute', top: 40, right: 30, border: '2.5px solid var(--green)', color: 'var(--green)', padding: '4px 12px', borderRadius: 6, fontWeight: 800, fontSize: 12, letterSpacing: '.1em', transform: 'rotate(8deg)', opacity: 0.85 }}>DITERBITKAN</div>}
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '.04em' }}>LAPORAN AUDITOR INDEPENDEN</div>
+              <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '.04em' }}>LAPORAN AUDITOR INDEPENDEN</div>
               <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', marginTop: 4 }}>No. 142/WHR-CPA/AR/III/2026</div>
             </div>
 

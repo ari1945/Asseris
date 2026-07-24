@@ -186,7 +186,7 @@ function MatComponent({ om, locked }: any) {
         <Panel title="Cakupan Audit Grup" sub="Komponen audit penuh">
           <div className="row ac" style={{ gap: 14, justifyContent: 'center', padding: '4px 0 8px' }}>
             <Donut size={96} thickness={14} segments={[{ value: coverage, color: 'var(--blue)' }, { value: Math.max(0, 100 - coverage), color: 'var(--surface-3)' }]}
-              center={<div><div className="mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--navy)' }}>{coverage}%</div><div className="tiny muted">cakupan</div></div>} />
+              center={<div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{coverage}%</div><div className="tiny muted">cakupan</div></div>} />
           </div>
           <div className="tiny muted" style={{ textAlign: 'center', lineHeight: 1.5 }}>Komponen audit penuh meliputi {coverage}% pendapatan konsolidasian.</div>
         </Panel>
@@ -401,7 +401,7 @@ function MatRevision({ om, applied, locked }: any) {
                   </div>
                   <div className="row ac gap8" style={{ margin: '3px 0' }}>
                     {r.from > 0 && <><span className="mono muted">{_FM(r.from)}</span><I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} /></>}
-                    <span className="mono" style={{ fontWeight: 700, fontSize: 14 }}>{_FM(r.to)}</span>
+                    <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{_FM(r.to)}</span>
                     {delta != null && <span className="badge" style={{ background: up ? 'var(--green-bg)' : 'var(--red-bg)', color: up ? 'var(--green)' : 'var(--red)' }}>{up ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%</span>}
                   </div>
                   <div className="tiny" style={{ color: 'var(--ink-2)' }}>{r.basis} · <span className="muted">oleh {r.by}</span></div>
@@ -418,7 +418,7 @@ function MatRevision({ om, applied, locked }: any) {
                 <Badge kind="purple">Usulan saat ini</Badge>
                 <div className="row ac gap8" style={{ margin: '3px 0' }}>
                   <span className="mono muted">{_FM(last.to)}</span><I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
-                  <span className="mono" style={{ fontWeight: 700, fontSize: 14, color: 'var(--blue)' }}>{_FM(om)}</span>
+                  <span className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--blue)' }}>{_FM(om)}</span>
                 </div>
                 <div className="tiny muted">Belum dicatat sebagai revisi resmi — gunakan tombol di atas.</div>
               </div>
@@ -536,7 +536,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         </div>
         <div style={{ padding: '16px 20px', maxWidth: 720 }}>
           <div className="tiny muted upper" style={{ letterSpacing: '.08em', marginBottom: 3 }}>KAP Wijaya Hartono & Rekan</div>
-          <h2 style={{ margin: '0 0 4px', fontSize: 18, color: 'var(--navy)' }}>Penetapan Materialitas Audit</h2>
+          <h2 style={{ margin: '0 0 4px', fontSize: 19, color: 'var(--navy)' }}>Penetapan Materialitas Audit</h2>
           <div className="tiny muted" style={{ marginBottom: 14 }}>FY2025 · Standar {activeEngagement?.standard} · SA 320 & SA 450</div>
 
           <SecTitle n="1" t="Pemilihan Benchmark & Persentase" />
@@ -560,7 +560,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>OM Diusulkan</div>
-            <div className="mono" style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>{_RP(om)}</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{_RP(om)}</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Terterapkan saat ini: {_RP(applied)}</div>
           </div>
           <div style={{ padding: '12px 14px' }}>

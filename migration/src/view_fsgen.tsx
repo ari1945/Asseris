@@ -248,7 +248,7 @@ function FSGenerator() {
             {/* document */}
             <div style={{ flex: 1, minWidth: 0, background: '#e7eaef', borderRadius: 6, padding: 16, border: '1px solid var(--line)' }}>
               <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c' }}>
-                <div style={{ textAlign: 'center', marginBottom: 3, fontWeight: 800, fontSize: 14 }}>{activeClient?.name || 'PT Sentosa Makmur Tbk'}</div>
+                <div style={{ textAlign: 'center', marginBottom: 3, fontWeight: 800, fontSize: 15 }}>{activeClient?.name || 'PT Sentosa Makmur Tbk'}</div>
                 <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12 }}>{title}</div>
                 <div style={{ textAlign: 'center', color: '#7a8893', fontSize: 11, marginBottom: 18 }}>{periodTxt} · (dalam {U.label})</div>
 
@@ -377,7 +377,7 @@ function KpiTile({ label, value, sub, accent, onClick, children }: any) {
   return (
     <div className="panel" style={{ padding: '11px 13px', display: 'flex', flexDirection: 'column', gap: 3, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
       <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em' }}>{label}</div>
-      <div className="mono" style={{ fontSize: 18, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       {children}
       {sub && <div className="tiny muted">{sub}</div>}
     </div>

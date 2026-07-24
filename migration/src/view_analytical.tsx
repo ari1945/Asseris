@@ -217,7 +217,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
         {KPIS.map((k, i) => (
           <Panel key={i} noBody>
             <div style={{ padding: '12px 14px' }}>
-              <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: k.accent, lineHeight: 1.1 }}>{k.v}</div>
+              <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: k.accent, lineHeight: 1.1 }}>{k.v}</div>
               <div style={{ fontSize: 12, fontWeight: 600, marginTop: 3 }}>{k.l}</div>
               <div className="tiny muted" style={{ marginTop: 1 }}>{k.sub}</div>
             </div>
@@ -408,7 +408,7 @@ function KvBox({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 1 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: accent || 'var(--navy)' }}>{v}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: accent || 'var(--navy)' }}>{v}</div>
     </div>
   );
 }

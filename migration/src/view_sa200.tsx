@@ -276,17 +276,17 @@ function S200RiskModel() {
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
               <div className="panel" style={{ padding: '12px', boxShadow: 'none', textAlign: 'center', background: 'var(--surface-2)' }}>
                 <div className="tiny muted upper">RMM (IR×CR)</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 800, color: `var(--${lvl(rmm).k})`, margin: '4px 0 2px' }}>{rmm}%</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${lvl(rmm).k})`, margin: '4px 0 2px' }}>{rmm}%</div>
                 <Badge kind={lvl(rmm).k}>{lvl(rmm).t}</Badge>
               </div>
               <div className="panel" style={{ padding: '12px', boxShadow: 'none', textAlign: 'center', background: 'var(--surface-2)' }}>
                 <div className="tiny muted upper">Target AR</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink)', margin: '4px 0 2px' }}>{targetAR}%</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: '4px 0 2px' }}>{targetAR}%</div>
                 <Badge kind="green">Rendah</Badge>
               </div>
               <div className="panel" style={{ padding: '12px', boxShadow: 'none', textAlign: 'center', background: `var(--${drLvl.k}-bg)`, border: '1px solid var(--' + drLvl.k + ')' }}>
                 <div className="tiny muted upper">Risiko Deteksi (DR)</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 800, color: `var(--${drLvl.k})`, margin: '4px 0 2px' }}>{drPct}%</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${drLvl.k})`, margin: '4px 0 2px' }}>{drPct}%</div>
                 <Badge kind={drLvl.k}>{drLvl.t.split('—')[0].trim()}</Badge>
               </div>
             </div>
@@ -359,7 +359,7 @@ function S200Assurance() {
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#0d3b22,#1f7a4d)', color: '#fff', padding: '16px' }}>
             <div className="tiny upper" style={{ color: '#bfe3cf', letterSpacing: '.05em' }}>Tingkat Keyakinan</div>
-            <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>Memadai</div>
+            <div style={{ fontSize: 19, fontWeight: 800, marginTop: 4 }}>Memadai</div>
             <div style={{ fontSize: 12, color: '#bfe3cf', marginTop: 2 }}>Tinggi, tetapi bukan absolut</div>
           </div>
           <div style={{ padding: 14 }}>

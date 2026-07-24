@@ -275,9 +275,9 @@ function T23Counterparty({ opts, nav }: any) {
   return (
     <div style={{ padding: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-        <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Lawan Transaksi</div><div className="mono" style={{ fontSize: 18, fontWeight: 700 }}>{groups.length}</div><div className="tiny muted">{masterN} tertaut master vendor</div></div>
-        <div className="panel" style={{ padding: 12, background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Ber-NPWP</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--green)' }}>{withNpwp}/{groups.length}</div><div className="tiny muted">tarif normal</div></div>
-        <div className="panel" style={{ padding: 12, background: groups.length - withNpwp ? 'var(--red-bg)' : 'var(--surface)', borderColor: 'transparent' }}><div className="tiny muted upper">Tanpa NPWP</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--red)' }}>{groups.length - withNpwp}</div><div className="tiny muted">tarif 100% lebih tinggi</div></div>
+        <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Lawan Transaksi</div><div className="mono" style={{ fontSize: 19, fontWeight: 700 }}>{groups.length}</div><div className="tiny muted">{masterN} tertaut master vendor</div></div>
+        <div className="panel" style={{ padding: 12, background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Ber-NPWP</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--green)' }}>{withNpwp}/{groups.length}</div><div className="tiny muted">tarif normal</div></div>
+        <div className="panel" style={{ padding: 12, background: groups.length - withNpwp ? 'var(--red-bg)' : 'var(--surface)', borderColor: 'transparent' }}><div className="tiny muted upper">Tanpa NPWP</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--red)' }}>{groups.length - withNpwp}</div><div className="tiny muted">tarif 100% lebih tinggi</div></div>
       </div>
       <table className="dtbl">
         <thead><tr><th>Lawan Transaksi</th><th>NPWP</th><th>Kategori</th><th>Objek</th><th className="num">Bupot</th><th className="num">DPP</th><th className="num">PPh 23</th><th></th></tr></thead>
@@ -425,7 +425,7 @@ function T23Detail({ r, onClose, nav, toggle }: any) {
         <div style={{ padding: 18, overflowY: 'auto', flex: 1, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="panel" style={{ padding: 13, background: r.surcharge ? 'var(--red-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
             <div className="row jb ac"><span className="tiny muted upper">PPh 23 Dipotong</span><Badge kind={(T23_STAT as any)[r.status]}>{r.status}</Badge></div>
-            <div className="mono" style={{ fontSize: 26, fontWeight: 800, color: r.surcharge ? 'var(--red)' : 'var(--navy)' }}>Rp {fmt(r.pph)}</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 800, color: r.surcharge ? 'var(--red)' : 'var(--navy)' }}>Rp {fmt(r.pph)}</div>
             <div className="tiny muted">DPP Rp {fmt(r.dpp / 1e6, 0)} jt × {r.effRate}%{r.surcharge ? ' (tarif ganda — tanpa NPWP)' : ''}</div>
           </div>
 
@@ -499,7 +499,7 @@ function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Bukti Potong PPh 23 Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>{nextId} · Bukti Potong Unifikasi (Coretax)</div></div>
+          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Bukti Potong PPh 23 Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>{nextId} · Bukti Potong Unifikasi (Coretax)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
@@ -514,7 +514,7 @@ function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
           </div>
           <div className="panel" style={{ padding: '11px 13px', background: hasNpwp ? 'var(--surface-2)' : 'var(--red-bg)', borderColor: 'transparent' }}>
             <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny muted">Tarif {rate}%{!hasNpwp ? ' × 2 (tanpa NPWP) = ' + effRate + '%' : ''} · {(OBJ[obj] || {}).art}</span><span className="mono tiny" style={{ fontWeight: 700, color: hasNpwp ? 'inherit' : 'var(--red)' }}>{effRate}%</span></div>
-            <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 700 }}>PPh 23 Dipotong</span><span className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(pph)}</span></div>
+            <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 700 }}>PPh 23 Dipotong</span><span className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(pph)}</span></div>
           </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>

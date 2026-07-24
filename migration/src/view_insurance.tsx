@@ -496,7 +496,7 @@ function InsLineage({ IRM, firm, nav }: any) {
               {i > 0 && <div style={{ display: 'grid', placeItems: 'center', padding: '0 14px' }}><I.arrowRight size={16} style={{ color: 'var(--ink-4)' }} /></div>}
               <div style={{ flex: '1 1 180px', padding: '10px 12px', borderRadius: 9, border: '1px solid var(--line)', borderLeft: '3px solid ' + n.c, background: 'var(--surface-1)' }}>
                 <div className="tiny muted upper" style={{ letterSpacing: '.04em', marginBottom: 2 }}>{n.lbl}</div>
-                <div className="mono" style={{ fontWeight: 800, fontSize: 16 }}>{n.v != null ? boJt(n.v) : '—'}</div>
+                <div className="mono" style={{ fontWeight: 800, fontSize: 15 }}>{n.v != null ? boJt(n.v) : '—'}</div>
                 <div className="tiny muted">{n.sub}</div>
               </div>
             </React.Fragment>

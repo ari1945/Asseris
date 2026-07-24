@@ -263,7 +263,7 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
               { value: calc.factual, color: 'var(--blue)' },
               { value: calc.judgmental, color: 'var(--purple)' },
               { value: calc.projected, color: 'var(--teal)' },
-            ]} center={<div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>{calc.factual + calc.judgmental + calc.projected}</div><div className="tiny muted">item</div></div>} />
+            ]} center={<div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{calc.factual + calc.judgmental + calc.projected}</div><div className="tiny muted">item</div></div>} />
             <div style={{ flex: 1, display: 'grid', gap: 6 }}>
               <LegendRow color="var(--blue)" label="Faktual" v={calc.factual} />
               <LegendRow color="var(--purple)" label="Pertimbangan" v={calc.judgmental} />
@@ -368,7 +368,7 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Agregat Tidak Dikoreksi ({method === 'rollover' ? 'Neto, L/R' : 'Neto, Neraca'})</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>Rp {fmt(absNet / 1e6, 0)} jt</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {fmt(absNet / 1e6, 0)} jt</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Bruto Rp {fmt(evalGross / 1e6, 0)} jt · {calc.uncorr.length} item tidak dikoreksi</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>

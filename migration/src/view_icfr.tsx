@@ -260,7 +260,7 @@ function ICEntityLevel({ data }: any) {
             <div style={{ background: 'var(--surface-2)', padding: '12px 16px', borderBottom: '1px solid var(--line)' }} className="row ac gap10">
               <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--blue-100)', color: 'var(--blue)', flex: '0 0 34px' }}>{((I as any)[sel.icon] || I.panel)({ size: 19 })}</span>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{sel.no}. {sel.name}</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{sel.no}. {sel.name}</div>
                 <div className="tiny muted">{sel.en}</div>
               </div>
               <div style={{ flex: 1 }} />
@@ -539,7 +539,7 @@ function ICITGC({ data }: any) {
             <div style={{ background: 'var(--surface-2)', padding: '12px 16px', borderBottom: '1px solid var(--line)' }} className="row ac gap10">
               <span style={{ width: 34, height: 34, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--blue-100)', color: 'var(--blue)', flex: '0 0 34px' }}>{((I as any)[sel.icon] || I.panel)({ size: 19 })}</span>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{sel.name}</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{sel.name}</div>
                 <div className="tiny muted">{sel.en} · {sel.sys}</div>
               </div>
               <div style={{ flex: 1 }} />

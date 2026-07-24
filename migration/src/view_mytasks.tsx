@@ -41,7 +41,7 @@ function TaskDetail({ t, mt, nav }: any) {
         <button className={'mt-star ' + (t.starred ? 'on' : '')} onClick={() => mt.toggleStar(t.id, t.starred)}><I.star size={16} fill={t.starred} /></button>
       </div>
       <div style={{ padding: 14, display: 'grid', gap: 14 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.4, color: 'var(--ink)' }}>{t.label}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, color: 'var(--ink)' }}>{t.label}</div>
 
         {/* status */}
         <div className="mt-kv">
@@ -297,7 +297,7 @@ function MyTasks() {
                     segments={[{ value: stats.done, color: '#4db8ff' }, { value: Math.max(0, total - stats.done), color: 'rgba(255,255,255,.18)' }]}
                     center={<div><div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'var(--mono)' }}>{donePct}%</div></div>} />
                   <div>
-                    <div style={{ fontSize: 16, fontWeight: 700 }}>Fokus Hari Ini</div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>Fokus Hari Ini</div>
                     <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: '#fff' }}>{focusEst.toFixed(1)} jam</b></div>
                     <div className="row gap8" style={{ marginTop: 9 }}>
                       <span className="badge b-red" style={{ background: 'rgba(255,107,87,.22)', color: '#ffd2c9' }}>{stats.overdue} terlambat</span>

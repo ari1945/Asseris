@@ -77,8 +77,8 @@ function RatioAnalysisTab({ der, fmt }: any) {
                 <div className="tiny muted" style={{ minHeight: 26, lineHeight: 1.35, marginBottom: 4 }}>{r.formula}</div>
                 <div className="row jb" style={{ alignItems: 'flex-end' }}>
                   <div>
-                    <span className="mono" style={{ fontSize: 26, fontWeight: 700, color: 'var(--navy)' }}>{fnum(cy)}</span>
-                    <span className="mono" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-3)' }}>{r.unit}</span>
+                    <span className="mono" style={{ fontSize: 28, fontWeight: 700, color: 'var(--navy)' }}>{fnum(cy)}</span>
+                    <span className="mono" style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-3)' }}>{r.unit}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <Spark data={r.y} width={84} height={30} color={verdict === 'bad' ? '#b3261e' : '#005085'} />

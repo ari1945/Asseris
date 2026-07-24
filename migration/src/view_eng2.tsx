@@ -305,7 +305,7 @@ function EngJadwal() {
               const days = Math.round((+new Date(e.deadline) - +today) / 86400000);
               return (
                 <div key={e.id} className="row ac gap10" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)' }}>
-                  <div style={{ width: 40, textAlign: 'center', flex: '0 0 40px' }}><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: days < 14 ? 'var(--red)' : days < 30 ? 'var(--amber)' : 'var(--navy)' }}>{days}</div><div className="tiny muted">hari</div></div>
+                  <div style={{ width: 40, textAlign: 'center', flex: '0 0 40px' }}><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: days < 14 ? 'var(--red)' : days < 30 ? 'var(--amber)' : 'var(--navy)' }}>{days}</div><div className="tiny muted">hari</div></div>
                   <div className="vdivider" style={{ height: 26 }} />
                   <div style={{ flex: 1, minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{c?.name.replace('PT ', '')}</div><div className="tiny muted">{e.type} · {e.phase}</div></div>
                   <div style={{ width: 70 }}><Progress value={e.progress} color={(ENG_PHASE_COLOR as any)[e.phase]} /></div>

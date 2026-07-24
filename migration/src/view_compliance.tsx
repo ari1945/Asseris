@@ -303,7 +303,7 @@ function ComplianceView({ stdId }: any) {
                 </div>
                 <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
                   <Donut segments={[{ value: done, color: '#1f7a4d' }, { value: (counts.pending || 0), color: '#e7ebef' }, { value: (counts.na || 0), color: '#c3cad2' }]} size={84} thickness={12}
-                    center={<div className="mono" style={{ fontSize: 17, fontWeight: 700, color: 'var(--navy)' }}>{pct}%</div>} />
+                    center={<div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{pct}%</div>} />
                   <div style={{ flex: 1, display: 'grid', gap: 5 }}>
                     <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#1f7a4d' }} />Selesai</span><b className="mono">{done}</b></div>
                     <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e7ebef' }} />Tertunda</span><b className="mono">{counts.pending || 0}</b></div>

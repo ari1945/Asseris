@@ -345,7 +345,7 @@ function StepAcceptance({ p, onPatch }: any) {
         <div style={{ display: 'grid', gap: 12 }}>
           <div className="panel" style={{ padding: 16, textAlign: 'center' }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Skor Berbobot</div>
-            <div style={{ fontSize: 40, fontWeight: 800, lineHeight: 1, color: 'var(--' + verdict.k + ')' }}>{score.toFixed(2)}</div>
+            <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, color: 'var(--' + verdict.k + ')' }}>{score.toFixed(2)}</div>
             <div className="tiny muted" style={{ marginBottom: 10 }}>dari 5,00</div>
             <Progress value={score / 5 * 100} color={'var(--' + verdict.k + ')'} />
             <div style={{ marginTop: 12 }}><span className={'badge b-' + verdict.k} style={{ fontSize: 12, padding: '3px 10px' }}>Rekomendasi: {verdict.l}</span></div>
@@ -443,7 +443,7 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
     return (
       <div style={{ maxWidth: 560, margin: '24px auto', textAlign: 'center' }}>
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}><I.checkCircle size={34} /></div>
-        <div style={{ fontSize: 18, fontWeight: 800 }}>Perikatan Berhasil Dibuat</div>
+        <div style={{ fontSize: 19, fontWeight: 800 }}>Perikatan Berhasil Dibuat</div>
         <p style={{ color: 'var(--ink-2)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 18px' }}>
           {p.name} telah dikonversi dari prospek menjadi perikatan aktif pada fase <b>Perencanaan</b>. Seluruh gerbang front-office (akseptasi, PMPJ, engagement letter) tercatat di jejak audit.
         </p>
@@ -512,7 +512,7 @@ function ProspectForm({ onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 92, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
+          <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

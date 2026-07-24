@@ -104,7 +104,7 @@ function SignalCard({ icon, label, tone, value, read, onClick }: any) {
         <div style={{ flex: 1 }} />
         <span style={{ width: 8, height: 8, borderRadius: 50, background: (TONE as any)[tone] }} />
       </div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink-1)', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink-1)', lineHeight: 1.1 }}>{value}</div>
       <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{read}</div>
     </button>
   );
@@ -242,7 +242,7 @@ function EngagementCockpit() {
                 <circle cx="50" cy="50" r="42" fill="none" stroke="#4db8ff" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${D.overall / 100 * 264} 264`} />
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', flexDirection: 'column' }}>
-                <div className="mono" style={{ fontSize: 26, fontWeight: 700 }}>{D.overall}%</div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 700 }}>{D.overall}%</div>
                 <div className="tiny" style={{ color: '#bcd6e4' }}>selesai</div>
               </div>
             </div>
@@ -528,7 +528,7 @@ function TabAnggaran({ D, e }: any) {
                 ['WIP Terpakai (aktual)', rpM(D.wipTot), 'var(--blue)'],
               ].map(([l, v, c]) => (
                 <div key={l} className="ckp-fee">
-                  <div className="mono" style={{ fontSize: 18, fontWeight: 700, color: c }}>{v}</div>
+                  <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: c }}>{v}</div>
                   <div className="tiny muted upper">{l}</div>
                 </div>
               ))}
@@ -624,7 +624,7 @@ function TabTim({ D, nav }: any) {
           <div style={{ padding: '10px 14px 14px' }} className="row ac gap12">
             <Donut size={104} thickness={15}
               segments={D.members.map((m: any, i: any) => ({ value: m.act, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
-              center={<div><div className="mono" style={{ fontSize: 17, fontWeight: 700 }}>{fmt(D.members.reduce((s: any, m: any) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
+              center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{fmt(D.members.reduce((s: any, m: any) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
             <div style={{ flex: 1 }}>
               {D.members.map((m: any, i: any) => (
                 <div key={m.name} className="row jb ac" style={{ padding: '3px 0' }}>

@@ -58,7 +58,7 @@ function CommandPalette({ onClose, onNavigate }: any) {
         <div className="row ac gap8" style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)' }}>
           <I.search2 size={18} style={{ color: 'var(--ink-3)' }} />
           <input ref={inputRef} value={q} onChange={(e: any) => setQ(e.target.value)} onKeyDown={onKey}
-            placeholder="Cari modul, klien, engagement, akun…" style={{ flex: 1, border: 0, outline: 0, fontSize: 14, background: 'transparent', color: 'var(--ink)' }} />
+            placeholder="Cari modul, klien, engagement, akun…" style={{ flex: 1, border: 0, outline: 0, fontSize: 15, background: 'transparent', color: 'var(--ink)' }} />
           <kbd style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink-4)', border: '1px solid var(--line)', borderRadius: 3, padding: '1px 5px' }}>ESC</kbd>
         </div>
         <div style={{ maxHeight: 380, overflow: 'auto', padding: 6 }}>

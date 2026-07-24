@@ -26,7 +26,7 @@ const SUS_ISSB_META = {
 function SusCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -114,7 +114,7 @@ function SustainabilityView() {
                   <div style={{ background: 'linear-gradient(120deg,#0a5b54,#0a6b73)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#bfe3e0', letterSpacing: '.05em', marginBottom: 8 }}>Kelengkapan Laporan Keberlanjutan</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#ffd166', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#bfe3e0', marginTop: 6 }}>{doneCount}/{reqItems.length} muatan wajib terpenuhi</div>

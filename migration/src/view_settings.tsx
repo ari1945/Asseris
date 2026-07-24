@@ -357,7 +357,7 @@ function SecProfil({ auth, flash }: any) {
 
             {/* identity summary + role chips */}
             <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
-              <div style={{ fontSize: 17, fontWeight: 700 }}>{u.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>{u.name}</div>
               <div className="tiny muted" style={{ marginTop: 1 }}>{u.title} · {auth.firm.name}</div>
               <div className="row wrap gap6" style={{ marginTop: 10 }}>
                 <span className="chip tiny" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.shield size={11} /> {auth.role}</span>
@@ -645,7 +645,7 @@ function SecFirma({ s, setGroup, firm, isPartner }: any) {
         <div style={{ padding: 14 }}>
           <div className="row ac gap12" style={{ marginBottom: 12 }}>
             <span style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15 }}>{firm.short}</span>
-            <div><div style={{ fontWeight: 700, fontSize: 14 }}>{firm.name}</div><div className="tiny muted mono">{firm.license}</div></div>
+            <div><div style={{ fontWeight: 700, fontSize: 15 }}>{firm.name}</div><div className="tiny muted mono">{firm.license}</div></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
             <div className="panel" style={{ padding: '9px 12px' }}><Stat value={firm.partners} label="Rekan (Partner)" /></div>

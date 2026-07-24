@@ -326,12 +326,12 @@ function DueDiligence() {
                     <div className="tiny muted upper" style={{ marginBottom: 8 }}>Dampak DD pada Negosiasi</div>
                     <div className="panel" style={{ padding: 14 }}>
                       <div className="row jb ac" style={{ marginBottom: 10 }}>
-                        <div><div className="tiny muted">Tawaran awal ({fmt(D.valuation.preDdMultiple, 1)}x · EBITDA dilaporkan)</div><div className="mono" style={{ fontSize: 17, fontWeight: 700 }}>Rp {fmt(X.preStake, 0)} M</div></div>
+                        <div><div className="tiny muted">Tawaran awal ({fmt(D.valuation.preDdMultiple, 1)}x · EBITDA dilaporkan)</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>Rp {fmt(X.preStake, 0)} M</div></div>
                         <I.arrowRight size={20} style={{ color: 'var(--ink-4)' }} />
-                        <div style={{ textAlign: 'right' }}><div className="tiny muted">Indikasi pasca-DD ({fmt(D.valuation.multiple, 1)}x)</div><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(X.stake, 0)} M</div></div>
+                        <div style={{ textAlign: 'right' }}><div className="tiny muted">Indikasi pasca-DD ({fmt(D.valuation.multiple, 1)}x)</div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(X.stake, 0)} M</div></div>
                       </div>
                       <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-                        <div className="row jb ac"><span className="tiny" style={{ fontWeight: 600 }}>Headroom negosiasi yang dibuka DD</span><span className="mono" style={{ fontWeight: 800, fontSize: 16, color: 'var(--green)' }}>Rp {fmt(X.chip, 0)} M</span></div>
+                        <div className="row jb ac"><span className="tiny" style={{ fontWeight: 600 }}>Headroom negosiasi yang dibuka DD</span><span className="mono" style={{ fontWeight: 800, fontSize: 15, color: 'var(--green)' }}>Rp {fmt(X.chip, 0)} M</span></div>
                       </div>
                       <ul style={{ margin: '12px 0 0', paddingLeft: 16, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
                         <li>Multiple turun {fmt(D.valuation.preDdMultiple, 1)}x → {fmt(D.valuation.multiple, 1)}x (kualitas laba & konsentrasi pelanggan).</li>

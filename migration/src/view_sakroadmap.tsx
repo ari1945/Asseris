@@ -339,7 +339,7 @@ function SAKRoadmapView() {
                   <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesiapan Transisi PSAK 118</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{doneCount}/{H.readiness207.length} langkah persiapan</div>
@@ -399,7 +399,7 @@ function SAKRoadmapView() {
                       { v: H.counts.ed, l: 'Eksposur Draf dipantau', s: 'agenda DSAK-IAI', c: 'var(--purple)' },
                     ].map((x, i) => (
                       <div key={i} className="panel" style={{ padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
-                        <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: x.c }}>{x.v}</div>
+                        <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: x.c }}>{x.v}</div>
                         <div style={{ fontSize: 12, fontWeight: 600, marginTop: 1 }}>{x.l}</div>
                         <div className="tiny muted">{x.s}</div>
                       </div>

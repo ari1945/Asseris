@@ -171,7 +171,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Overall Materiality (OM)</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{rp(om)}</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{rp(om)}</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>= {fmt(bench.value / 1e9, 1)} M × {pct}% ({bench.label})</div>
           </div>
           <div style={{ padding: '14px 18px' }}>
@@ -200,7 +200,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
             <Compare label="OM Tahun Lalu" a={priorOM} />
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 2 }}>Perubahan YoY</div>
-              <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: om > priorOM ? 'var(--amber)' : 'var(--green)' }}>
+              <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: om > priorOM ? 'var(--amber)' : 'var(--green)' }}>
                 {om > priorOM ? '+' : ''}{((om - priorOM) / priorOM * 100).toFixed(1)}%
               </div>
             </div>
@@ -254,7 +254,7 @@ function Compare({ label, a }: any) {
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700 }}>Rp {fmt(a)}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>Rp {fmt(a)}</div>
     </div>
   );
 }

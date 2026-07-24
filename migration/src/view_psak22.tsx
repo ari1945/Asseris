@@ -62,7 +62,7 @@ const FVA_LBL = { customer: 'Hub. pelanggan', brand: 'Merek dagang', tech: 'Tekn
 function P22Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -634,7 +634,7 @@ function PSAK22View() {
                 <Panel title="Progres Prosedur" sub="kombinasi bisnis">
                   <div className="row gap12 ac">
                     <Donut segments={[{ label: 'Selesai', value: doneCount, color: 'var(--green)' }, { label: 'Sisa', value: Math.max(0, p22.proc.length - doneCount), color: 'var(--surface-3)' }]} size={104} thickness={15}
-                      center={<><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>{score}%</div></>} />
+                      center={<><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{score}%</div></>} />
                     <div style={{ flex: 1, display: 'grid', gap: 7 }}>
                       <P22Kv label="Prosedur selesai" v={doneCount + ' / ' + p22.proc.length} strong />
                       <div className="tiny muted" style={{ lineHeight: 1.5 }}>PPA & nilai wajar adalah <b>estimasi akuntansi signifikan</b> (SA 540) — uji kompetensi & objektivitas penilai (KJPP) serta kewajaran asumsi.</div>

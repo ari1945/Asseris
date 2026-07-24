@@ -208,7 +208,7 @@ function WorkingPapers() {
             <div style={{ background: 'var(--line-soft)' }} />
             {/* completeness donut */}
             <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <Donut segments={donutSegs} size={84} thickness={12} center={<><div style={{ fontWeight: 800, fontSize: 18, lineHeight: 1 }}>{completeness}%</div><div className="tiny muted" style={{ fontSize: 9 }}>lengkap</div></>} />
+              <Donut segments={donutSegs} size={84} thickness={12} center={<><div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1 }}>{completeness}%</div><div className="tiny muted" style={{ fontSize: 9 }}>lengkap</div></>} />
               <div style={{ display: 'grid', gap: 4 }}>
                 {[['Reviewed', cnt['Reviewed'], 'var(--green)'], ['In Review', cnt['In Review'], 'var(--blue)'], ['In Progress', cnt['In Progress'], 'var(--amber)'], ['Not Started', cnt['Not Started'], 'var(--line-strong)']].map(([l, n, c]) => (
                   <div key={l} className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: c }} /><span style={{ color: 'var(--ink-2)' }}>{l}</span><span className="mono muted" style={{ marginLeft: 2 }}>{n}</span></div>
@@ -358,7 +358,7 @@ function WPDrill({ it, onClose }: any) {
       <div className="panel" style={{ width: 1000, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={(e: any) => e.stopPropagation()}>
         {/* header */}
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
-          <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16 }}>{ref}</span>
+          <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 15 }}>{ref}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{it[1]}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{activeEngagement.id} · {activeClient?.name?.replace('PT ', '')} · {activeEngagement.fy} &nbsp;/&nbsp; Preparer {it[2]}</div>

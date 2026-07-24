@@ -177,7 +177,7 @@ function AuditTimeline() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={target ? ATL_fmt(target) : '—'} label="Target Tanda Tangan Opini" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'± ' + durWk + ' mg'} label="Durasi · 3 fase" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}>
-            <div className="row ac jb" style={{ marginBottom: 6 }}><span className="s-val" style={{ fontSize: 20, color: 'var(--navy)' }}>{eng.progress}%</span><span className="tiny muted">progres</span></div>
+            <div className="row ac jb" style={{ marginBottom: 6 }}><span className="s-val" style={{ fontSize: 19, color: 'var(--navy)' }}>{eng.progress}%</span><span className="tiny muted">progres</span></div>
             <Progress value={eng.progress} color="var(--blue)" />
             <div className="s-lbl" style={{ marginTop: 6 }}>Progres Keseluruhan</div>
           </div></Panel>
@@ -260,7 +260,7 @@ function ATL_Kv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
       <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700, marginTop: 2, color: accent || 'var(--ink)' }}>{v}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700, marginTop: 2, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 }

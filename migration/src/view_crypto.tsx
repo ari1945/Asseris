@@ -229,7 +229,7 @@ function CRPostur({ ctx }: any) {
               <div className="row jb ac" style={{ marginBottom: 8 }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, background: 'color-mix(in srgb,' + k.accent + ' 14%, transparent)', color: k.accent, display: 'grid', placeItems: 'center' }}><KIc size={17} /></span>
               </div>
-              <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: k.accent, lineHeight: 1 }}>{k.v}</div>
+              <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: k.accent, lineHeight: 1 }}>{k.v}</div>
               <div style={{ fontSize: 12, fontWeight: 600, marginTop: 5 }}>{k.l}</div>
               <div className="tiny muted" style={{ marginTop: 1 }}>{k.sub}</div>
             </div></Panel>
@@ -519,7 +519,7 @@ function CRServerChain({ rows, verify, nav }: any) {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={writes} label="Penulisan Kertas Kerja" accent="var(--blue)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={logins} label="Autentikasi (LOGIN)" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 15, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
       </div>
 
       <div className="panel" style={{ padding: '10px 14px', background: 'var(--green-bg)', borderColor: 'transparent', marginBottom: 12 }}>
@@ -570,7 +570,7 @@ function CRRantai({ ctx }: any) {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={chain.filter((e: any) => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={chain.filter((e: any) => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 15, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
       </div>
 
       <Panel noBody>

@@ -109,7 +109,7 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
           { v: tot.nExc, l: 'pengecualian', s: 'item NRV < nilai tercatat', c: 'var(--purple)' },
         ].map((k, i) => (
           <div key={i} style={{ padding: '15px 18px', borderRight: i < 4 ? '1px solid var(--line-soft)' : 0 }}>
-            <div className="mono" style={{ fontSize: 18, fontWeight: 700, color: k.c, lineHeight: 1.1 }}>{k.v}</div>
+            <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: k.c, lineHeight: 1.1 }}>{k.v}</div>
             <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{k.l}</div>
             <div className="tiny" style={{ color: 'var(--ink-4)' }}>{k.s}</div>
           </div>
