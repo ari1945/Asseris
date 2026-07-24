@@ -291,11 +291,17 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-collapse-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
 
 /* ---------- Portlet ---------- */
+/* SATU bahasa pemisah per konteks: kontainer statis dipisah oleh BORDER saja.
+   Sebelumnya tiap panel/portlet menumpuk tiga pembatas sekaligus (border +
+   box-shadow + header ber-border-bottom) di atas garis yg sendirinya sangat
+   lemah (--line 1,39:1) → banyak batas samar yg saling menumpuk = noise tanpa
+   struktur, berlipat sejumlah portlet di halaman padat. Bayangan kini hanya
+   utk yg benar-benar melayang (menu, drawer, modal) dan utk afordans hover/
+   drag pd .mt-row/.mt-card — di sana bayangan bermakna, bukan dekorasi. */
 .portlet {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
   display: flex; flex-direction: column;
   overflow: hidden;
 }
@@ -303,7 +309,9 @@ body.dense .pagehead-titles { min-width: 120px; }
 .portlet.drop-target { outline: 2px dashed var(--blue); outline-offset: 2px; }
 .portlet-h {
   height: 32px; flex: 0 0 32px;
-  background: linear-gradient(180deg,#fbfcfd,#eef1f4);
+  /* dulu linear-gradient(180deg,#fbfcfd,#eef1f4) — hex hardcode di luar sistem
+     token, dan gradient pd bilah 32px = dekorasi tanpa fungsi. Rata & ber-token. */
+  background: var(--surface-2);
   border-bottom: 1px solid var(--line);
   display: flex; align-items: center; gap: 8px; padding: 0 8px 0 9px;
 }
@@ -323,7 +331,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 /* ---------- Card / panel ---------- */
 .panel {
   background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
 }
 .panel-h {
   display: flex; align-items: center; gap: 10px;

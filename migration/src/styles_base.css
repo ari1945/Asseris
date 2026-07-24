@@ -30,25 +30,40 @@
   --line-soft:   #e6e9ee;
   --line-strong: #c3cad2;
 
-  /* Text */
+  /* Text — tangga kontras terukur (rasio pd #fff): 15,94 · 9,17 · 6,93 · 5,19.
+     Jarak antar-tingkat 1,74× · 1,32× · 1,34× (≥1,3× = masih terbedakan mata).
+     ink-3 & ink-4 digelapkan bersama-sama, BUKAN ink-4 sendirian: menambal
+     ink-4 saja ke ambang AA membuatnya kembar dgn ink-3 (4,55 vs 5,05) dan
+     meruntuhkan 4 tingkat jadi 3. Nilai dipilih agar terburuk-dari-4-latar
+     (surface/surface-2/surface-3/bg) tetap ≥4,5 — surface-3 #eef1f4 adalah
+     latar pengikat, bukan putih. */
   --ink:         #12242e;
   --ink-2:       #3a4a55;
-  --ink-3:       #61717c;
-  --ink-4:       #8a97a1;
+  --ink-3:       #4f5c64;   /* dulu #61717c — 5,05 → 6,93 */
+  --ink-4:       #656e76;   /* dulu #8a97a1 — 2,99 → 5,19 (gagal AA bahkan utk teks besar) */
   --on-navy:     #cfdde6;
   --on-navy-dim: #7e98a8;
 
   /* Semantic */
   --green:       #1f7a4d;
   --green-bg:    #e4f3ea;
-  --amber:       #9a6a00;
+  --amber:       #926500;   /* dulu #9a6a00 — 4,19 → 4,55 pd --amber-bg (lolos di putih, gagal di latar badge-nya sendiri) */
   --amber-bg:    #fbf0d9;
-  --red:         #b3261e;
+  --red:         #b3261e;   /* ALARM SAJA: eksepsi, risiko tinggi, terlambat. Angka negatif → --num-neg */
   --red-bg:      #fbe6e4;
   --purple:      #5b3fa6;
   --purple-bg:   #ece6f8;
   --teal:        #0a6b73;
   --teal-bg:     #def0f1;
+
+  /* Angka negatif ≠ alarm. Konvensi akuntansi menuntut negatif tampil merah,
+     tetapi memakai --red yg sama membuat neraca saldo normal (63 angka negatif
+     dalam satu layar WTB) terbaca sbg "layar penuh masalah" dan mendilusi
+     sinyal alarm justru di modul yg paling membutuhkannya. Kurung "(1.850,0)"
+     sudah menyandikan negatif — warna tak perlu berteriak.
+     Terukur 6,44–7,58 pd keempat latar baris tabel (surface · zebra surface-2
+     · hover blue-050 · terpilih blue-100). */
+  --num-neg:     #8c3a34;
 
   /* Type */
   --ui:   'Inter', -apple-system, system-ui, sans-serif;
@@ -75,6 +90,13 @@ body.dark {
   --blue-100: #173040; --blue-050: #14222e;
   --green-bg: #11241a; --amber-bg: #2a2210; --red-bg: #2a1513; --purple-bg: #1d1730; --teal-bg: #0c2429;
   --on-navy: #9fb3c0; --on-navy-dim: #6b8294;
+  /* --num-neg adalah token BARU; nilai terang (#8c3a34) hanya 2,26 di sini.
+     Di-override agar token baru tak lahir dalam keadaan rusak (status quo
+     .neg memakai --red = 2,62). BUKAN perbaikan tema gelap menyeluruh:
+     keenam badge .b-* masih gagal AA di sini (1,62–3,32) karena blok ini
+     menimpa seluruh LATAR tapi tak satu pun WARNA DEPAN semantik.
+     Perbaikannya menuntut pemecahan peran token → PR terpisah (PRD §4 Fase 5). */
+  --num-neg: #af7571;
 }
 body.dark .global-search { background: rgba(255,255,255,.07); }
 body.dark .topbar { background: linear-gradient(180deg,#0d1d29,#070e15); }
@@ -126,7 +148,7 @@ a { color: var(--blue); text-decoration: none; }
 .tiny  { font-size: 11px; }
 .upper { text-transform: uppercase; letter-spacing: .06em; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.neg { color: var(--red); }
+.neg { color: var(--num-neg); }
 
 /* ---------- App frame ---------- */
 .app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
