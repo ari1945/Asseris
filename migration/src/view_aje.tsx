@@ -671,7 +671,7 @@ function WorkflowTrack({ steps }: any) {
               <div style={{ width: 24, height: 24, borderRadius: '50%', margin: '0 auto', display: 'grid', placeItems: 'center',
                 background: s.done ? 'var(--green)' : '#fff', border: '2px solid ' + (s.done ? 'var(--green)' : 'var(--line-strong)'),
                 color: s.done ? '#fff' : 'var(--ink-4)' }}>
-                {s.done ? <I.check size={13} /> : <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--amber)' }} />}
+                {s.done ? <I.check size={13} /> : <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--amber-solid)' }} />}
               </div>
               <div className="tiny" style={{ fontWeight: 600, marginTop: 4, color: pending ? 'var(--ink-3)' : 'var(--ink)' }}>{s.role}</div>
               <div className="tiny muted" style={{ lineHeight: 1.3 }}>{s.who.split(' ')[0]}</div>

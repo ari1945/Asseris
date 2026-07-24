@@ -68,7 +68,7 @@
   /* Warna DEPAN badge, dipisah dari token semantik. Alasannya: token semantik
      merangkap dua peran yang menuntut arah penyesuaian BERLAWANAN di tema gelap —
        (a) warna depan di atas latar bernuansa  →  .b-blue { color: var(--blue) }
-       (b) isian solid                          →  .btn.primary { background: var(--blue) }
+       (b) isian solid                          →  .btn.primary { background: var(--blue-solid) }
      Mencerahkan --blue agar badge terbaca akan merusak tombol primer (teks putih
      di atas biru muda). Token terpisah ini membiarkan (a) bergerak tanpa menyentuh (b).
      Di tema terang nilainya menunjuk token lama → nol perubahan visual. */
@@ -78,6 +78,24 @@
   --b-purple-fg: var(--purple);
   --b-teal-fg:   var(--teal);
   --b-blue-fg:   var(--blue);
+
+  /* ISIAN SOLID — nilai merek, sengaja TIDAK ikut berubah di tema gelap.
+     Token semantik di atas (--navy/--blue/--red/...) adalah token TEKS: di tema
+     gelap mereka DICERAHKAN agar terbaca di atas permukaan gelap. Isian solid
+     tak boleh ikut cerah, karena teks di atasnya putih.
+     Ini bukan preferensi gaya melainkan batasan aritmetik: pd --surface gelap
+     #161c24, peran teks menuntut luminans >= 0,2258 sedangkan peran isian
+     (teks putih di atasnya) menuntut <= 0,1833. Kedua syarat TAK BERIRISAN —
+     satu nilai mustahil melayani keduanya, jadi pemisahan token wajib.
+     Pembagian mengikuti sebaran nyata: 1.813 pemakaian sbg teks vs 94 sbg
+     isian, sehingga yang dipindah adalah yang 94. */
+  --navy-solid:   #002C3F;
+  --blue-solid:   #005085;
+  --red-solid:    #b3261e;
+  --green-solid:  #1f7a4d;
+  --amber-solid:  #926500;
+  --purple-solid: #5b3fa6;
+  --teal-solid:   #0a6b73;
 
   /* Type */
   --ui:   'Inter', -apple-system, system-ui, sans-serif;
@@ -96,20 +114,28 @@
 }
 
 /* ---------- Dark theme ---------- */
-/* Selektor GANDA, disengaja. Dulu blok ini hanya `body.dark`, sehingga token
-   gelap tak pernah sampai ke `:root` (= <html>). Akibatnya aturan
-   `html, body { background: var(--bg) }` membuat <html> MENGECAT KANVAS TERANG
-   (#f0f2f5) di tema gelap: .app/.view-scroll/.view-pad semuanya transparan,
-   jadi latar terang tembus di seluruh celah antar panel, dan teks gelap-tema
-   (--ink-3/--ink-4) mendarat di atasnya. Terverifikasi ADA DI BUILD PRODUKSI,
-   bukan artefak dev-server.
-   `:has()` dipakai supaya kelas tetap boleh dipasang di <body> — app.tsx,
-   shell.tsx, dan view_settings.tsx semuanya menulis ke document.body, dan
-   memindahkannya ke <html> akan memutus ketiganya. `:has()` sudah jadi
-   ketergantungan yang diterima di basis kode ini (lihat .panel-body:has(...)). */
-:root:has(body.dark),
-body.dark {
-  --navy: #0a1620; --navy-700: #0d1d29; --navy-600: #112634;
+/* Kelas tema dipasang di <html>, BUKAN <body>. Dua sebab, keduanya terverifikasi
+   di build produksi:
+   1. Kalau blok ini hanya berselektor `body.dark`, token gelap tak pernah sampai
+      ke :root (= <html>), sehingga `html, body { background: var(--bg) }` membuat
+      <html> MENGECAT KANVAS TERANG (#f0f2f5) di tema gelap — .app/.view-scroll/
+      .view-pad semuanya transparan, jadi latar terang tembus di seluruh celah
+      antar panel.
+   2. Upaya pertama memakai `:root:has(body.dark), body.dark`. Itu memperbaiki
+      kanvas TAPI menciptakan SIKLUS INVALIDASI: properti <html> bergantung pada
+      <body> lewat :has(), sedangkan <body> mewarisi dari <html>. Chrome lalu
+      menyelesaikan deklarasi <body> dengan snapshot lama — `color: var(--ink)`
+      pada body menghasilkan ink TERANG meski `--ink` pada body sudah #e6edf3,
+      dan seluruh subtree mewarisi warna terang itu di atas panel gelap.
+   Memasang kelas di <html> menghapus kebutuhan :has() sekaligus siklusnya.
+   Penulis kelas: app.tsx, shell.tsx, view_settings.tsx — ketiganya kini menulis
+   ke document.documentElement. */
+:root.dark {
+  --navy-700: #0d1d29; --navy-600: #112634;
+  /* Chrome (sidebar/topbar) memakai peran ISIAN → --navy-solid, dan nilai gelap
+     #0a1620 yang lama DIPERTAHANKAN di sini supaya penampilan chrome gelap tidak
+     berubah. Yang pindah peran hanyalah --navy sbg TEKS (di bawah). */
+  --navy-solid: #0a1620;
   --bg: #0d1117; --bg-sunken: #090d12; --surface: #161c24; --surface-2: #1b232d; --surface-3: #222c38;
   --line: #2a3744; --line-soft: #232e3a; --line-strong: #3a4a59;
   /* Tangga gelap ditata BERPASANGAN spt tema terang, diikat ke TERBURUK-dari-4
@@ -122,7 +148,11 @@ body.dark {
   --blue-100: #173040; --blue-050: #14222e;
   --green-bg: #11241a; --amber-bg: #2a2210; --red-bg: #2a1513; --purple-bg: #1d1730; --teal-bg: #0c2429;
   --on-navy: #9fb3c0; --on-navy-dim: #6b8294;
-  --num-neg: #af7571;   /* nilai terang hanya 2,26 di sini (status quo --red 2,62) → 4,57 */
+  /* Diikat ke TERBURUK dari SELURUH latar baris tabel gelap — surface #161c24 ·
+     zebra/group surface-2 #1b232d · tfoot surface-3 #222c38 · hover blue-050
+     #14222e · terpilih blue-100 #173040 → terburuk 4,56. Mengikat hanya ke
+     --surface (upaya pertama #af7571) meleset di tfoot 3,77 dan terpilih 3,66. */
+  --num-neg: #ba8985;
 
   /* Blok ini dulu menimpa seluruh LATAR tetapi tak satu pun WARNA DEPAN semantik,
      sehingga warna depan tema terang dipasangkan dgn latar tema gelap dan KEENAM
@@ -136,11 +166,22 @@ body.dark {
   --b-teal-fg:   #4c9399;   /* pd --teal-bg   #0c2429 → 4,57 */
   --b-blue-fg:   #6b9ab8;   /* pd --blue-100  #173040 → 4,51 */
 
+  /* Token semantik dalam PERAN TEKS — dicerahkan agar terbaca di atas permukaan
+     gelap. Pasangan isian-solidnya (--*-solid) sengaja TIDAK di-override di sini
+     sehingga tombol primer, chip aktif, dan chrome tetap persis seperti sekarang.
+     Semua diikat ke TERBURUK-dari-4 permukaan gelap, rona dipertahankan. */
+  --navy:   #8298a1;   /* dari #002C3F — terburuk 4,67 */
+  --blue:   #6b9ab8;   /* dari #005085 — terburuk 4,65 */
+  --red:    #d17b76;   /* dari #b3261e — terburuk 4,56 */
+  --green:  #60a181;   /* dari #1f7a4d — terburuk 4,63 */
+  --amber:  #af8f45;   /* dari #926500 — terburuk 4,59 */
+  --purple: #9b8ac9;   /* dari #5b3fa6 — terburuk 4,62 */
+  --teal:   #5d9da3;   /* dari #0a6b73 — terburuk 4,60 */
 }
-body.dark .global-search { background: rgba(255,255,255,.07); }
-body.dark .topbar { background: linear-gradient(180deg,#0d1d29,#070e15); }
-body.dark .doc-paper { color: #16242c; }
-body.dark ::-webkit-scrollbar-thumb { background: #3a4a59; background-clip: content-box; }
+:root.dark .global-search { background: rgba(255,255,255,.07); }
+:root.dark .topbar { background: linear-gradient(180deg,#0d1d29,#070e15); }
+:root.dark .doc-paper { color: #16242c; }
+:root.dark ::-webkit-scrollbar-thumb { background: #3a4a59; background-clip: content-box; }
 
 /* ---------- Density ---------- */
 body.dense {
@@ -154,7 +195,14 @@ body.dense .grid { gap: 9px; }
 
 * { box-sizing: border-box; }
 
-html, body {
+/* color & background HANYA di <html>; <body> mewarisinya.
+   Dulu keduanya dideklarasikan lewat `html, body { ... }`. Itu redundan (body
+   mewarisi dari html) DAN merupakan sumber cacat nyata di tema gelap: <body>
+   menyelesaikan `color: var(--ink)` ke nilai TERANG meskipun `--ink` pada body
+   sudah #e6edf3 — terverifikasi di build produksi, dan seluruh subtree mewarisi
+   warna terang itu di atas panel gelap. Mendeklarasikan sekali di <html> membuat
+   pewarisan bekerja normal dan menghapus jalur yang bermasalah itu. */
+html {
   margin: 0;
   height: 100%;
   font-family: var(--ui);
@@ -163,6 +211,13 @@ html, body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+body {
+  margin: 0;
+  height: 100%;
+  font: inherit;
+  color: inherit;
+  background: transparent;   /* kanvas dicat oleh <html> */
 }
 
 #root { height: 100%; }

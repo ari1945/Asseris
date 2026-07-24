@@ -211,16 +211,16 @@ function DueDiligence() {
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 130, padding: '4px 0', borderBottom: '1px solid var(--line)' }}>
                       {D.qoeMonthly.map((m: any, i: any) => (
                         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }} title={m.m + ': Rp ' + m.rev + ' M · margin ' + m.mgn + '%'}>
-                          <div style={{ width: '100%', maxWidth: 20, height: (m.rev / revMax * 96) + 'px', borderRadius: '3px 3px 0 0', background: 'var(--blue)', opacity: .85, position: 'relative' }}>
-                            <span style={{ position: 'absolute', top: -3, left: '50%', transform: 'translate(-50%,-100%)', width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 0 2px #fff' }} />
+                          <div style={{ width: '100%', maxWidth: 20, height: (m.rev / revMax * 96) + 'px', borderRadius: '3px 3px 0 0', background: 'var(--blue-solid)', opacity: .85, position: 'relative' }}>
+                            <span style={{ position: 'absolute', top: -3, left: '50%', transform: 'translate(-50%,-100%)', width: 6, height: 6, borderRadius: '50%', background: 'var(--green-solid)', boxShadow: '0 0 0 2px #fff' }} />
                           </div>
                           <span className="tiny muted" style={{ fontSize: 9 }}>{m.m}</span>
                         </div>
                       ))}
                     </div>
                     <div className="row" style={{ marginTop: 8, gap: 14 }}>
-                      <span className="tiny"><span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 2, background: 'var(--blue)', marginRight: 5, verticalAlign: '-1px' }} />Pendapatan (Rp M)</span>
-                      <span className="tiny"><span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: '50%', background: 'var(--green)', marginRight: 5, verticalAlign: '-1px' }} />Margin EBITDA ternormalisasi</span>
+                      <span className="tiny"><span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 2, background: 'var(--blue-solid)', marginRight: 5, verticalAlign: '-1px' }} />Pendapatan (Rp M)</span>
+                      <span className="tiny"><span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: '50%', background: 'var(--green-solid)', marginRight: 5, verticalAlign: '-1px' }} />Margin EBITDA ternormalisasi</span>
                     </div>
                     <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 12 }}>
                       <div className="panel" style={{ padding: 10 }}><div className="tiny muted">Pendapatan berulang</div><div className="mono" style={{ fontWeight: 700, color: 'var(--green)' }}>{D.revQuality.recurringPct}%</div></div>

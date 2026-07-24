@@ -467,7 +467,7 @@ function SubBar({ moduleId, right }: any) {
 function SettingsMenu({ open, onClose, onNavigate }: any) {
   const [dark, setDark] = useStateSH(() => localStorage.getItem('ams.dark') === '1');
   const [dense, setDense] = useStateSH(() => localStorage.getItem('ams.dense') === '1');
-  React.useEffect(() => { document.body.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
+  React.useEffect(() => { document.documentElement.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
   React.useEffect(() => { document.body.classList.toggle('dense', dense); localStorage.setItem('ams.dense', dense ? '1' : '0'); }, [dense]);
   if (!open) return null;
   const Row = ({ label, sub, on, set, icon }: any) => (

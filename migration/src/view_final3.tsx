@@ -216,7 +216,7 @@ function MLDiscussionThread({ items, onAdd }: any) {
           const isDecision = /KEPUTUSAN/i.test(m.note);
           return (
             <div key={i} style={{ display: 'flex', gap: 10, justifyContent: isAud ? 'flex-start' : 'flex-end' }}>
-              {isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--blue)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800 }}>A</div>}
+              {isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800 }}>A</div>}
               <div style={{ maxWidth: '72%', background: isDecision ? 'var(--green-bg)' : (isAud ? 'var(--blue-050)' : 'var(--surface-2)'), border: '1px solid ' + (isDecision ? 'var(--green)' : 'var(--line)'), borderRadius: isAud ? '11px 11px 11px 3px' : '11px 11px 3px 11px', padding: '8px 11px' }}>
                 <div className="row ac jb" style={{ gap: 8, marginBottom: 3 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: isDecision ? 'var(--green)' : (isAud ? 'var(--blue)' : 'var(--ink-2)') }}>{m.who} <span className="muted" style={{ fontWeight: 500 }}>· {m.org}</span></span>

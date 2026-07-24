@@ -116,7 +116,7 @@ function OrgChart() {
                 {deptRows.map(({ d, members, head }) => (
                   <div key={d} className="panel" style={{ padding: 0, boxShadow: 'none' }}>
                     <div className="row ac jb" style={{ padding: '9px 12px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
-                      <div className="row ac gap8"><span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--navy)' }} /><b style={{ fontSize: 13 }}>{d}</b><span className="tiny muted">· dipimpin {head.name}</span></div>
+                      <div className="row ac gap8"><span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--navy-solid)' }} /><b style={{ fontSize: 13 }}>{d}</b><span className="tiny muted">· dipimpin {head.name}</span></div>
                       <Badge kind="blue">{members.length} anggota</Badge>
                     </div>
                     <div style={{ padding: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -173,7 +173,7 @@ function OrgChart() {
                     <div className="row ac gap6" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
                       <span className="chip tiny">{A.byId('EMP-001').name.split(' ')[0]}</span>
                       {mgr.id !== 'EMP-001' && <><I.chevron size={12} style={{ color: 'var(--ink-4)' }} /><span className="chip tiny">{mgr.name.split(' ')[0]}</span></>}
-                      <I.chevron size={12} style={{ color: 'var(--ink-4)' }} /><span className="chip tiny" style={{ background: 'var(--navy)', color: '#fff' }}>{person.name.split(' ')[0]}</span>
+                      <I.chevron size={12} style={{ color: 'var(--ink-4)' }} /><span className="chip tiny" style={{ background: 'var(--navy-solid)', color: '#fff' }}>{person.name.split(' ')[0]}</span>
                     </div>
                   </>
                 )}

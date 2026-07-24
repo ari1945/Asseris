@@ -306,8 +306,8 @@ function PSAK46View() {
                   })}
                 </div>
                 <div className="row gap14" style={{ padding: '10px 14px 4px' }}>
-                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--blue)' }} /> Manfaat ke L/R: <b style={{ color: 'var(--ink)' }}>Rp {fmt(deferredPL)} jt</b></div>
-                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(DT.oci)} jt</b></div>
+                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--blue-solid)' }} /> Manfaat ke L/R: <b style={{ color: 'var(--ink)' }}>Rp {fmt(deferredPL)} jt</b></div>
+                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple-solid)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(DT.oci)} jt</b></div>
                 </div>
                 <div className="tiny muted" style={{ padding: '0 14px 12px', lineHeight: 1.5 }}>
                   Manfaat L/R <b>Rp {fmt(deferredPL)} jt</b> = beda temporer tahun berjalan (rekonsiliasi fiskal Rp {fmt(canon.FIG.fiscalTempMovement)} jt) × 22%; OCI <b>Rp {fmt(DT.oci)} jt</b> = pengukuran kembali PSAK 24 Rp {fmt(canon.FIG.ociRemeasure)} jt × 22%. Saldo akhir <b>Rp {fmt(DT.closing)} jt</b> = jumlah pajak tangguhan per pos di atas.

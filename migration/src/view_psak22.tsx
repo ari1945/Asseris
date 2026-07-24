@@ -212,7 +212,7 @@ function PSAK22View() {
                       { n: 4, t: 'Akui & ukur goodwill / untung pembelian diskon', s: 'Goodwill residual Rp ' + fmt(deal.goodwill) + ' jt (¶32).' },
                     ].map(st => (
                       <div key={st.n} className="row gap10" style={{ alignItems: 'flex-start' }}>
-                        <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px', fontSize: 12, fontWeight: 700 }}>{st.n}</span>
+                        <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px', fontSize: 12, fontWeight: 700 }}>{st.n}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 12.5, fontWeight: 600 }}>{st.t}</div>
                           <div className="tiny muted" style={{ lineHeight: 1.45 }}>{st.s}</div>

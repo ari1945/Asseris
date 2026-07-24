@@ -188,7 +188,7 @@ function AuditTimeline() {
           {Object.entries(ATL_PHASE_COLOR).map(([k, v]) => <span key={k} className="row ac gap6"><span style={{ width: 20, height: 10, borderRadius: 3, background: v }} />{k}</span>)}
           <span style={{ width: 1, height: 14, background: 'var(--line)' }} />
           <span className="row ac gap6"><span style={{ width: 11, height: 11, transform: 'rotate(45deg)', background: 'var(--ink-2)', borderRadius: 2 }} />Milestone</span>
-          {mode === 'internal' && <span className="row ac gap6"><span style={{ width: 20, height: 10, borderRadius: 3, background: 'linear-gradient(90deg,var(--blue) 60%,' + ATL_tint('#005085', .22) + ' 60%)' }} />Progres aktual</span>}
+          {mode === 'internal' && <span className="row ac gap6"><span style={{ width: 20, height: 10, borderRadius: 3, background: 'linear-gradient(90deg,var(--blue-solid) 60%,' + ATL_tint('#005085', .22) + ' 60%)' }} />Progres aktual</span>}
           <span className="row ac gap6"><span style={{ width: 0, borderLeft: '2px dashed var(--red)', height: 13 }} />Hari ini</span>
         </div>
 
@@ -322,7 +322,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         <div style={{ position: 'absolute', top: HEAD, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
           {months.map((m: any, i: any) => <span key={i} style={{ position: 'absolute', left: m.pos + '%', top: 0, bottom: 0, width: 1, background: 'var(--line-soft)' }} />)}
           <span style={{ position: 'absolute', left: frac(today) + '%', top: 0, bottom: 0, width: 0, borderLeft: '2px dashed var(--red)', zIndex: 4 }} />
-          <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
+          <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red-solid)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
         </div>
 
         {/* lanes */}

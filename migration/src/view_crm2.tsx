@@ -39,7 +39,7 @@ function CRM360() {
               const ch = C360[c.id];
               return (
                 <div key={c.id} onClick={() => setSelId(c.id)} className="row ac gap8" style={{ padding: '9px 12px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer', background: c.id === selId ? 'var(--blue-100)' : 'transparent' }}>
-                  <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 30px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+                  <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 30px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{c.name.replace('PT ', '')}</div>
                     <div className="tiny muted">Health {ch.health} · NPS {ch.nps}</div>

@@ -27,7 +27,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
     border-radius: 9px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
     color: #fff; cursor: pointer; text-align: left; transition: .13s; }
   .side-minimap:hover { background: rgba(255,255,255,.10); border-color: rgba(77,184,255,.5); }
-  .side-minimap .ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 7px; background: var(--blue); color: #fff; display: grid; place-items: center; }
+  .side-minimap .ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 7px; background: var(--blue-solid); color: #fff; display: grid; place-items: center; }
   .side-minimap .mn { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
   .side-minimap .mn .k { font: 700 9px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; }
   .side-minimap .mn .l { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -43,7 +43,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   @keyframes mm-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
   .mm-head { display: flex; align-items: center; gap: 11px; padding: 13px 16px;
-    background: linear-gradient(135deg, var(--navy-600, #013049), var(--navy)); color: #fff; flex: 0 0 auto; }
+    background: linear-gradient(135deg, var(--navy-600, #013049), var(--navy-solid)); color: #fff; flex: 0 0 auto; }
   .mm-head .mm-h-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.13); display: grid; place-items: center; }
   .mm-head .mm-h-t { font-size: 14px; font-weight: 700; }
   .mm-head .mm-h-s { font-size: 11px; opacity: .72; }
@@ -85,7 +85,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
     gap: 6px; padding: 14px 16px; border-radius: 13px; min-width: 150px; max-width: 200px;
     background: var(--surface); border: 2px solid var(--navy); box-shadow: 0 8px 24px rgba(0,80,133,.18); }
   .mm-node .mm-n-here { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-    color: #fff; background: var(--navy); padding: 2px 9px; border-radius: 20px; }
+    color: #fff; background: var(--navy-solid); padding: 2px 9px; border-radius: 20px; }
   .mm-node .mm-n-ic { width: 38px; height: 38px; border-radius: 10px; background: var(--blue-050); color: var(--navy); display: grid; place-items: center; }
   .mm-node .mm-n-l { font-size: 13px; font-weight: 800; color: var(--ink); text-align: center; line-height: 1.2; }
   .mm-node .mm-n-g { font-size: 10px; color: var(--ink-4); text-align: center; }
@@ -105,7 +105,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-dot { width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--line);
     display: grid; place-items: center; cursor: pointer; background: var(--surface); transition: .12s; color: var(--ink-4); }
   .mm-dot:hover { border-color: var(--blue); color: var(--blue); transform: scale(1.12); }
-  .mm-dot.cur { background: var(--navy); border-color: var(--navy); color: #fff; box-shadow: 0 0 0 3px var(--blue-100); }
+  .mm-dot.cur { background: var(--navy-solid); border-color: var(--navy-solid); color: #fff; box-shadow: 0 0 0 3px var(--blue-100); }
   .mm-dot .mm-dot-i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
   .mm-dot.deep .mm-dot-i { border-radius: 2px; }
 
@@ -114,8 +114,8 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-btn { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 13px; border-radius: 8px;
     font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); transition: .13s; }
   .mm-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-050); }
-  .mm-btn.primary { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .mm-btn.primary:hover { filter: brightness(1.08); background: var(--navy); color: #fff; }
+  .mm-btn.primary { background: var(--navy-solid); border-color: var(--navy-solid); color: #fff; }
+  .mm-btn.primary:hover { filter: brightness(1.08); background: var(--navy-solid); color: #fff; }
   .mm-loc-r { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .mm-deg { font-size: 11px; font-weight: 600; color: var(--ink-3); font-family: var(--mono); }
   .mm-col-h em { font-style: normal; font-weight: 600; opacity: .5; }
@@ -128,8 +128,8 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-leg b { color: var(--ink-2); font-weight: 700; }
   .mm-leg.tip { margin-left: auto; color: var(--ink-4); }
   .mm-ln { width: 18px; height: 2px; border-radius: 2px; flex: 0 0 18px; }
-  .mm-ln.blue { background: var(--blue); }
-  .mm-ln.green { background: var(--green); }
+  .mm-ln.blue { background: var(--blue-solid); }
+  .mm-ln.green { background: var(--green-solid); }
   .mm-ov-sub { font-size: 11px; color: var(--ink-4); }
   @media (max-width: 720px) {
     .mm-graph { grid-template-columns: 1fr; gap: 12px; }

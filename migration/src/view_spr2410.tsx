@@ -235,8 +235,8 @@ function Tab2410Overview({ sigRisks, risks, nav }: any) {
         <Panel noBody>
           <div className="panel-h"><h3>Kontinum Keyakinan</h3><div style={{ flex: 1 }} /><Badge kind="teal">Interim = terbatas</Badge></div>
           <div style={{ padding: 16 }}>
-            <div style={{ position: 'relative', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,var(--surface-3),var(--teal),var(--blue))', marginBottom: 22 }}>
-              <div style={{ position: 'absolute', left: '60%', top: -5, bottom: -5, width: 2, background: 'var(--navy)' }} />
+            <div style={{ position: 'relative', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,var(--surface-3),var(--teal-solid),var(--blue-solid))', marginBottom: 22 }}>
+              <div style={{ position: 'absolute', left: '60%', top: -5, bottom: -5, width: 2, background: 'var(--navy-solid)' }} />
               <div style={{ position: 'absolute', left: '60%', top: -22, transform: 'translateX(-50%)' }}><span className="chip tiny" style={{ background: 'var(--teal-bg)', color: 'var(--teal)', fontWeight: 700 }}>Reviu interim</span></div>
             </div>
             <div className="grid" style={{ gap: 8 }}>

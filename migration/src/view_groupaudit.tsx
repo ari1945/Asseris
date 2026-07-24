@@ -228,7 +228,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
                 <tr key={c.id} className={c.id === selId ? 'sel' : ''} onClick={() => setSelId(c.id)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="row ac gap8">
-                      <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, flex: '0 0 24px' }}>{c.own}%</span>
+                      <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, flex: '0 0 24px' }}>{c.own}%</span>
                       <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, maxWidth: 170, fontSize: 12 }}>{c.name}</div><div className="tiny muted">{c.auditor}</div></div>
                     </div>
                   </td>

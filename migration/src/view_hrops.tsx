@@ -112,13 +112,13 @@ function LeaveAttendance() {
                       {days.map((d, i) => {
                         const wknd = d.getDay() === 0 || d.getDay() === 6;
                         const lv = onLeave(s.id, d);
-                        return <td key={i} style={{ textAlign: 'center', padding: '4px 3px', background: wknd ? 'var(--surface-2)' : 'transparent' }}>{lv ? <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: 4, background: 'var(--blue)' }} title="Cuti" /> : wknd ? '' : <span style={{ color: 'var(--ink-4)', fontSize: 10 }}>·</span>}</td>;
+                        return <td key={i} style={{ textAlign: 'center', padding: '4px 3px', background: wknd ? 'var(--surface-2)' : 'transparent' }}>{lv ? <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: 4, background: 'var(--blue-solid)' }} title="Cuti" /> : wknd ? '' : <span style={{ color: 'var(--ink-4)', fontSize: 10 }}>·</span>}</td>;
                       })}
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div className="row gap12 tiny muted" style={{ marginTop: 10 }}><span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--blue)' }} /> Cuti</span><span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--surface-2)', border: '1px solid var(--line)' }} /> Akhir pekan</span><span>· Maret 2026</span></div>
+              <div className="row gap12 tiny muted" style={{ marginTop: 10 }}><span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--blue-solid)' }} /> Cuti</span><span className="row ac gap4"><span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--surface-2)', border: '1px solid var(--line)' }} /> Akhir pekan</span><span>· Maret 2026</span></div>
             </div>
           )}
         </Panel>

@@ -394,9 +394,9 @@ function FluxTab({ der, pm, fmt }: any) {
           <textarea value={state[sel.code]?.note || ''} onChange={(e: any) => setNote(sel.code, e.target.value)} placeholder="Catat penjelasan dan bukti pendukung…" className="input" style={{ width: '100%', height: 92, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 12 }} />
           <div className="tiny muted upper" style={{ marginBottom: 5 }}>Konklusi</div>
           <div className="row gap6">
-            <Btn sm onClick={() => setStatus(sel.code, 'explained')} style={state[sel.code]?.status === 'explained' ? { background: 'var(--green)', color: '#fff', borderColor: 'var(--green)' } : {}}><I.check size={13} /> Explained</Btn>
-            <Btn sm onClick={() => setStatus(sel.code, 'pending')} style={state[sel.code]?.status === 'pending' ? { background: 'var(--amber)', color: '#fff', borderColor: 'var(--amber)' } : {}}>Pending</Btn>
-            <Btn sm onClick={() => setStatus(sel.code, 'unexplained')} style={state[sel.code]?.status === 'unexplained' ? { background: 'var(--red)', color: '#fff', borderColor: 'var(--red)' } : {}}>Unexpl.</Btn>
+            <Btn sm onClick={() => setStatus(sel.code, 'explained')} style={state[sel.code]?.status === 'explained' ? { background: 'var(--green-solid)', color: '#fff', borderColor: 'var(--green)' } : {}}><I.check size={13} /> Explained</Btn>
+            <Btn sm onClick={() => setStatus(sel.code, 'pending')} style={state[sel.code]?.status === 'pending' ? { background: 'var(--amber-solid)', color: '#fff', borderColor: 'var(--amber)' } : {}}>Pending</Btn>
+            <Btn sm onClick={() => setStatus(sel.code, 'unexplained')} style={state[sel.code]?.status === 'unexplained' ? { background: 'var(--red-solid)', color: '#fff', borderColor: 'var(--red)' } : {}}>Unexpl.</Btn>
           </div>
         </div>
       </Panel>

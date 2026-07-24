@@ -333,7 +333,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
               <div className="tiny muted upper" style={{ marginBottom: 8, fontWeight: 700 }}>Jalankan standar ini</div>
               <div className="row jb ac gap10 wrap">
                 <div className="row ac gap10" style={{ minWidth: 0 }}>
-                  <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{(I as any)[mi.icon] ? React.createElement((I as any)[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
+                  <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{(I as any)[mi.icon] ? React.createElement((I as any)[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
                   <div style={{ minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }}>{mi.label}</div><div className="muted" style={{ fontSize: 12 }}>{cov.note} · {mi.group}</div></div>
                 </div>
                 <div className="row gap8">
@@ -359,7 +359,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
               <div style={{ display: 'grid', gap: 6 }}>
                 {tpls.slice(0, 5).map((t: any) => (
                   <button key={t.id} className="kb-readlink" onClick={() => { onClose(); nav('templates', { from: 'kb' }); }}>
-                    <span className="mono tiny" style={{ fontWeight: 700, color: '#fff', background: 'var(--navy)', padding: '2px 6px', borderRadius: 4, flex: '0 0 auto' }}>{t.fmt}</span>
+                    <span className="mono tiny" style={{ fontWeight: 700, color: '#fff', background: 'var(--navy-solid)', padding: '2px 6px', borderRadius: 4, flex: '0 0 auto' }}>{t.fmt}</span>
                     <span style={{ flex: 1, minWidth: 0 }}><span style={{ fontSize: 13.5, fontWeight: 600 }}>{t.name}</span><span className="tiny muted" style={{ display: 'block' }}>v{t.ver} · {t.status}{t.reviewDue ? ' · perlu reviu' : ''}</span></span>
                     <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
                   </button>

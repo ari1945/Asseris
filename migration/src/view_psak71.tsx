@@ -139,7 +139,7 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
   const Sect = ({ n, title, sub, children }: any) => (
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
-        <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
+        <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
         <h4 style={{ margin: 0, fontSize: 13.5, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
         {sub && <span className="tiny muted mono" style={{ marginLeft: 'auto' }}>{sub}</span>}
       </div>

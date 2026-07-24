@@ -101,7 +101,7 @@ function CapacityPlanning() {
           <div className="panel-h"><h3>Pasokan vs Kebutuhan — {grade}</h3><div style={{ flex: 1 }} />
             <div className="row gap10 ac">
               <span className="row ac gap6"><span style={{ width: 14, height: 9, borderRadius: 2, border: '1.5px dashed var(--ink-4)' }} /><span className="tiny muted">Kapasitas</span></span>
-              <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--blue)' }} /><span className="tiny muted">Kebutuhan</span></span>
+              <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--blue-solid)' }} /><span className="tiny muted">Kebutuhan</span></span>
             </div>
           </div>
           <div style={{ padding: '16px 16px 12px' }}>

@@ -261,7 +261,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
               <div key={i} className="row gap10" style={{ position: 'relative', paddingBottom: last ? 0 : 16 }}>
                 {!last && <span style={{ position: 'absolute', left: 13, top: 28, bottom: 0, width: 2, background: c.status === 'approved' ? 'var(--green)' : 'var(--line)' }} />}
                 <span style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: c.status === 'pending' ? 'var(--surface-3)' : col, color: c.status === 'pending' ? 'var(--ink-4)' : '#fff', display: 'grid', placeItems: 'center', zIndex: 1, border: c.status === 'current' ? '2px solid var(--blue)' : 'none' }}>
-                  {c.status === 'approved' ? <I.check size={14} /> : c.status === 'rejected' ? <I.x size={14} /> : c.status === 'current' ? <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--blue)' }} /> : <span className="tiny mono">{i + 1}</span>}
+                  {c.status === 'approved' ? <I.check size={14} /> : c.status === 'rejected' ? <I.x size={14} /> : c.status === 'current' ? <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--blue-solid)' }} /> : <span className="tiny mono">{i + 1}</span>}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</span>{c.status === 'current' && <Badge kind="blue">Menunggu</Badge>}</div>

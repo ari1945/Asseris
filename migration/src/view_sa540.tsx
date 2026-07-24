@@ -250,9 +250,9 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
 
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Titik Manajemen vs Rentang Auditor (Rp jt)</div>
             <div style={{ position: 'relative', height: 30, marginBottom: 4 }}>
-              <div style={{ position: 'absolute', top: 12, left: 0, right: 0, height: 6, borderRadius: 3, background: 'linear-gradient(90deg,var(--green),var(--amber),var(--red))', opacity: .25 }} />
+              <div style={{ position: 'absolute', top: 12, left: 0, right: 0, height: 6, borderRadius: 3, background: 'linear-gradient(90deg,var(--green-solid),var(--amber-solid),var(--red-solid))', opacity: .25 }} />
               <div style={{ position: 'absolute', top: 12, left: 0, right: 0, height: 6, borderRadius: 3, border: '1px solid var(--line-strong)' }} />
-              <div style={{ position: 'absolute', top: 6, left: `calc(${pos}% - 1px)`, width: 2, height: 18, background: 'var(--navy)' }} />
+              <div style={{ position: 'absolute', top: 6, left: `calc(${pos}% - 1px)`, width: 2, height: 18, background: 'var(--navy-solid)' }} />
               <div style={{ position: 'absolute', top: -2, left: `${pos}%`, transform: 'translateX(-50%)' }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{sel.mgmt.toLocaleString('id-ID')}</span></div>
             </div>
             <div className="row jb tiny mono muted" style={{ marginBottom: 12 }}><span>{sel.lo.toLocaleString('id-ID')}</span><span>rentang independen auditor</span><span>{sel.hi.toLocaleString('id-ID')}</span></div>

@@ -231,7 +231,7 @@ function DashMutu() {
               }))}
             </div>
             <div className="divider" />
-            <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 3, background: '#b3261e' }} />{sig} Significant</span><span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--amber)' }} />{fraud} Fraud (SA 240)</span></div>
+            <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 3, background: '#b3261e' }} />{sig} Significant</span><span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--amber-solid)' }} />{fraud} Fraud (SA 240)</span></div>
           </div>
         </Panel>
 

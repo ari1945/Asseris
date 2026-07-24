@@ -134,7 +134,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }: any) {
                   </div>
                   <div style={{ height: 14, borderRadius: 4, background: 'var(--surface-3)', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ width: pct + '%', height: '100%', borderRadius: 4, background: 'var(--blue-100)' }} />
-                    {usePct > 0 && <div style={{ position: 'absolute', top: 0, left: 0, width: (pct * usePct / 100) + '%', height: '100%', borderRadius: 4, background: 'var(--amber)' }} title="Pemakaian klaim" />}
+                    {usePct > 0 && <div style={{ position: 'absolute', top: 0, left: 0, width: (pct * usePct / 100) + '%', height: '100%', borderRadius: 4, background: 'var(--amber-solid)' }} title="Pemakaian klaim" />}
                   </div>
                   <div className="row jb tiny muted" style={{ marginTop: 3 }}>
                     <span>Premi {boJt(p.premi)} · deductible {boJt(p.deductible)}</span>

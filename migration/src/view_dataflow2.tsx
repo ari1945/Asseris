@@ -133,7 +133,7 @@ function DFPropagasi() {
                   <td style={{ fontWeight: 600 }}>{f}</td>
                   {modules.map((m: any) => (
                     <td key={m.id} className="num" style={{ textAlign: 'center' }}>
-                      {(M as any)[f].includes(m.id) ? <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue)', display: 'inline-block' }} /> : <span className="muted">·</span>}
+                      {(M as any)[f].includes(m.id) ? <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue-solid)', display: 'inline-block' }} /> : <span className="muted">·</span>}
                     </td>
                   ))}
                 </tr>

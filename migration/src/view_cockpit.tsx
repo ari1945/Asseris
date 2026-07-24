@@ -519,7 +519,7 @@ function AuditProgramme() {
           .prg-detail{margin-top:12px}
           .prg-tbl tbody tr.sel{background:var(--blue-050)}
           .seg-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
-          .seg-pill.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+          .seg-pill.on{background:var(--navy-solid);color:#fff;border-color:var(--navy)}
           .prg-proc-link{cursor:pointer;border-bottom:1px dashed transparent}
           .prg-proc-link:hover{color:var(--blue);border-bottom-color:var(--blue)}
           .prg-modal-bd{position:fixed;inset:0;background:rgba(8,15,30,.42);z-index:9998;display:grid;place-items:center;padding:24px}
@@ -535,7 +535,7 @@ function AuditProgramme() {
           .prg-sug.on{border-color:var(--blue);background:var(--blue-050)}
           .prg-asr-pick{display:flex;gap:5px;flex-wrap:wrap}
           .prg-asr-pick button{font:700 9.5px var(--mono);height:22px;padding:0 7px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink-3);cursor:pointer}
-          .prg-asr-pick button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+          .prg-asr-pick button.on{background:var(--navy-solid);color:#fff;border-color:var(--navy)}
         `}</style>
       </div></div>
       {adding && <AddProcedureModal prog={prog} onClose={() => setAdding(false)} onAdd={(rid: string, src: ProcSrc) => { addProcs(rid, [src]); setAdding(false); }} />}

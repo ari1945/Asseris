@@ -110,7 +110,7 @@ function EngAnggaran() {
                 </div>
                 <div style={{ height: 9, borderRadius: 5, background: 'var(--surface-3)', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: Math.min(100, burn * 100) + '%', background: burn > 1 ? 'var(--red)' : burn > 0.9 ? 'var(--amber)' : 'var(--blue)' }} />
-                  {burn > 1 && <div style={{ position: 'absolute', left: '100%', top: 0, bottom: 0, width: 3, background: 'var(--red)', transform: 'translateX(-3px)' }} />}
+                  {burn > 1 && <div style={{ position: 'absolute', left: '100%', top: 0, bottom: 0, width: 3, background: 'var(--red-solid)', transform: 'translateX(-3px)' }} />}
                 </div>
               </div>
             );
@@ -249,7 +249,7 @@ function EngJadwal() {
           {/* month axis */}
           <div style={{ position: 'relative', marginLeft: 170, height: 16, borderBottom: '1px solid var(--line)', marginBottom: 8 }}>
             {months.map((m, i) => <span key={m} style={{ position: 'absolute', left: (i / months.length * 100) + '%', fontSize: 9.5, color: 'var(--ink-4)', fontWeight: 700 }}>{m}</span>)}
-            <span style={{ position: 'absolute', left: todayPos + '%', top: -2, bottom: -200, width: 2, background: 'var(--red)', opacity: .5, zIndex: 1 }} />
+            <span style={{ position: 'absolute', left: todayPos + '%', top: -2, bottom: -200, width: 2, background: 'var(--red-solid)', opacity: .5, zIndex: 1 }} />
           </div>
           <div style={{ display: 'grid', gap: 7, position: 'relative' }}>
             {sorted.map((e: any) => {

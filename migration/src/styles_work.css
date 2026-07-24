@@ -49,13 +49,13 @@
 /* checkbox / status control */
 .mt-check {
   flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; border-radius: 5px;
-  border: 1.6px solid var(--line-strong); background: #fff; display: grid; place-items: center;
+  border: 1.6px solid var(--line-strong); background: var(--surface); display: grid; place-items: center;
   color: #fff; padding: 0; transition: .12s;
 }
 .mt-check:hover { border-color: var(--blue); }
 .mt-check.todo { }
-.mt-check.doing { border-color: var(--blue); background: var(--blue); }
-.mt-check.done { border-color: var(--green); background: var(--green); }
+.mt-check.doing { border-color: var(--blue); background: var(--blue-solid); }
+.mt-check.done { border-color: var(--green); background: var(--green-solid); }
 
 .mt-icobox { flex: 0 0 27px; width: 27px; height: 27px; border-radius: 7px; background: var(--surface-3); color: var(--ink-3); display: grid; place-items: center; }
 .mt-star { background: transparent; border: 0; color: var(--ink-4); padding: 2px; display: grid; place-items: center; border-radius: 4px; }
@@ -78,8 +78,8 @@
 /* subtask checklist */
 .mt-sub { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
 .mt-sub:last-child { border-bottom: 0; }
-.mt-sub-box { flex: 0 0 16px; width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--line-strong); background: #fff; display: grid; place-items: center; color: #fff; padding: 0; }
-.mt-sub-box.on { background: var(--green); border-color: var(--green); }
+.mt-sub-box { flex: 0 0 16px; width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--line-strong); background: var(--surface); display: grid; place-items: center; color: #fff; padding: 0; }
+.mt-sub-box.on { background: var(--green-solid); border-color: var(--green-solid); }
 .mt-sub-text { flex: 1; font-size: 12px; color: var(--ink); }
 .mt-sub-text.done { text-decoration: line-through; color: var(--ink-4); }
 .mt-sub-del { background: transparent; border: 0; color: var(--ink-4); display: grid; place-items: center; padding: 2px; border-radius: 4px; }
@@ -118,7 +118,7 @@
 
 /* mini progress used in rows/cards */
 .mt-mini { height: 4px; border-radius: 3px; background: var(--surface-3); overflow: hidden; flex: 1; min-width: 40px; }
-.mt-mini > span { display: block; height: 100%; background: var(--blue); border-radius: 3px; }
+.mt-mini > span { display: block; height: 100%; background: var(--blue-solid); border-radius: 3px; }
 
 /* ---------- Print to PDF ---------- */
 @media print {

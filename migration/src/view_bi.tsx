@@ -170,7 +170,7 @@ function FirmBI() {
                     <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)', position: 'relative' }}>
                       <div style={{ width: (s.gross / maxStage * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--surface-3)', position: 'absolute' }} />
                       <div style={{ width: (s.gross / maxStage * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue-100)', position: 'absolute' }} />
-                      <div style={{ width: (s.wt / maxStage * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue)', position: 'absolute' }} />
+                      <div style={{ width: (s.wt / maxStage * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue-solid)', position: 'absolute' }} />
                     </div>
                   </div>
                 ))}
@@ -211,7 +211,7 @@ function FirmBI() {
                       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{p.p}</div><div className="tiny muted">{p.n} klien · {eqrN} EQR · util {util}%</div></div>
                       <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(p.fee / 1e9, 2)}M</div></div>
                     </div>
-                    <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (p.fee / maxPartnerFee * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue)' }} /></div>
+                    <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (p.fee / maxPartnerFee * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div>
                   </div>
                 );
               })}

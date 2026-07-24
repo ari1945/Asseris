@@ -120,7 +120,7 @@ function NotificationsPanel({ open, onClose, onNavigate, items, onMarkAll }: any
                   <div className="tiny muted" style={{ lineHeight: 1.35 }}>{n.body}</div>
                   <div className="tiny muted" style={{ marginTop: 2 }}>{n.when}</div>
                 </div>
-                {n.unread && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue)', flex: '0 0 7px', marginTop: 5 }} />}
+                {n.unread && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue-solid)', flex: '0 0 7px', marginTop: 5 }} />}
               </div>
             );
           })}

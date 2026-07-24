@@ -141,7 +141,7 @@ function EvidenceControl({ moduleId }: any) {
                 const cl = d.classified && d.classified !== moduleId ? ((MODULE_INDEX as any)[d.classified] || {}).label : null;
                 return (
                   <div key={d.uid} className="ev-row">
-                    <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 24px' }}><FI size={12} /></span>
+                    <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 24px' }}><FI size={12} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="truncate" style={{ fontSize: 11.5, fontWeight: 600 }}>{d.file}</div>
                       <div className="tiny muted truncate">{d.type}{d.when ? ' · ' + d.when : ''}</div>

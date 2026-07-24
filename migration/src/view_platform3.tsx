@@ -93,7 +93,7 @@ function AuditTrail() {
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, justifyContent: 'flex-end', height: '100%' }}>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{n}</span>
-                    <div style={{ width: '100%', maxWidth: 38, height: (n / max) * 70 + 6, background: 'var(--blue)', borderRadius: '3px 3px 0 0', opacity: i === byDay.length - 1 ? 1 : 0.5 }} />
+                    <div style={{ width: '100%', maxWidth: 38, height: (n / max) * 70 + 6, background: 'var(--blue-solid)', borderRadius: '3px 3px 0 0', opacity: i === byDay.length - 1 ? 1 : 0.5 }} />
                     <span className="tiny muted mono">{d}</span>
                   </div>
                 );
@@ -108,7 +108,7 @@ function AuditTrail() {
                 return (
                   <div key={i} className="row ac gap8">
                     <Badge kind={(AT_ACT_COLOR as any)[a] || 'gray'}>{a}</Badge>
-                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (n / max) * 100 + '%', background: 'var(--blue)' }} /></div>
+                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: (n / max) * 100 + '%', background: 'var(--blue-solid)' }} /></div>
                     <span className="mono tiny" style={{ width: 18, textAlign: 'right', fontWeight: 700 }}>{n}</span>
                   </div>
                 );

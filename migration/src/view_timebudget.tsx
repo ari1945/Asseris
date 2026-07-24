@@ -77,7 +77,7 @@ function TBBar({ budget, actual, pct, max }: any) {
     <div style={{ position: 'relative', height: 18 }}>
       <div style={{ position: 'absolute', inset: 0, width: bw + '%', background: 'var(--surface-3)', borderRadius: 4 }} />
       <div style={{ position: 'absolute', top: 3, bottom: 3, width: aw + '%', background: over ? 'var(--red)' : 'var(--blue)', borderRadius: 3 }} />
-      {pct != null && <div style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(${(pct / 100) * bw}% - 1px)`, width: 2, background: 'var(--navy)' }} title={'Earned ' + pct + '%'} />}
+      {pct != null && <div style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(${(pct / 100) * bw}% - 1px)`, width: 2, background: 'var(--navy-solid)' }} title={'Earned ' + pct + '%'} />}
     </div>
   );
 }
@@ -143,7 +143,7 @@ function TBOverview({ m, e }: any) {
             <div className="row jb tiny" style={{ marginBottom: 4 }}><span style={{ fontWeight: 600 }}>Jam terpakai</span><span className="mono">{fmt(m.actualTotal)} / {fmt(m.budgetTotal)} jam</span></div>
             <div style={{ height: 14, borderRadius: 7, background: 'var(--surface-3)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ width: Math.min(100, m.burn * 100) + '%', height: '100%', borderRadius: 7, background: m.burn > 0.95 ? 'var(--red)' : m.burn > 0.85 ? 'var(--amber)' : 'var(--blue)' }} />
-              <div style={{ position: 'absolute', top: 0, bottom: 0, left: e.progress + '%', width: 2, background: 'var(--navy)' }} title="Progress audit" />
+              <div style={{ position: 'absolute', top: 0, bottom: 0, left: e.progress + '%', width: 2, background: 'var(--navy-solid)' }} title="Progress audit" />
             </div>
             <div className="row jb tiny muted" style={{ marginTop: 5 }}><span>Burn {burnPct}%</span><span>Progress audit {e.progress}% (garis hitam)</span></div>
           </div>
@@ -189,9 +189,9 @@ function TBOverview({ m, e }: any) {
             })}
           </div>
           <div className="row gap8 ac tiny muted" style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--line-soft)' }}>
-            <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--blue)' }} /> Aktual</span>
+            <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--blue-solid)' }} /> Aktual</span>
             <span className="row ac gap6"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--surface-3)' }} /> Anggaran</span>
-            <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy)' }} /> % selesai (earned)</span>
+            <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy-solid)' }} /> % selesai (earned)</span>
           </div>
         </Panel>
 
@@ -399,7 +399,7 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
               return (
                 <div key={p.id}>
                   <div className="row jb tiny" style={{ marginBottom: 3 }}><span style={{ fontWeight: 600 }}>{p.label}</span><span className="mono muted">{fmt(p.actual, 0)}j</span></div>
-                  <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (p.actual / max * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--teal)' }} /></div>
+                  <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (p.actual / max * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--teal-solid)' }} /></div>
                 </div>
               );
             })}

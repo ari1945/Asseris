@@ -159,7 +159,7 @@ function ForensicCashFlow() {
                     {B.inflows.map((f: any, i: any) => (
                       <div key={i} style={{ marginBottom: 9 }}>
                         <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6" style={{ minWidth: 0 }}><Badge kind={(FC_ACT as any)[f.act].kind}>{f.act}</Badge><span className="truncate">{f.label}</span></span><span className="mono" style={{ fontWeight: 600 }}>{sc(f.v)}</span></div>
-                        <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (f.v / maxFlow * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--green)' }} /></div>
+                        <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (f.v / maxFlow * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--green-solid)' }} /></div>
                       </div>
                     ))}
                   </div>
@@ -168,7 +168,7 @@ function ForensicCashFlow() {
                     {B.outflows.map((f: any, i: any) => (
                       <div key={i} style={{ marginBottom: 9 }}>
                         <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6" style={{ minWidth: 0 }}><Badge kind={(FC_ACT as any)[f.act].kind}>{f.act}</Badge><span className="truncate">{f.label}</span></span><span className="mono" style={{ fontWeight: 600 }}>{sc(f.v)}</span></div>
-                        <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (f.v / maxFlow * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--red)' }} /></div>
+                        <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (f.v / maxFlow * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--red-solid)' }} /></div>
                       </div>
                     ))}
                   </div>
