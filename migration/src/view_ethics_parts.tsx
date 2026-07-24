@@ -111,7 +111,7 @@ function TaxTechEthics() {
           <div key={i} className="row gap10" style={{ padding: '10px 12px', borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start' }}>
             <span style={{ flex: '0 0 auto', marginTop: 1, color: it.status === 'Patuh' ? 'var(--green)' : 'var(--amber)' }}>{it.status === 'Patuh' ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12.5, lineHeight: 1.4 }}>{it.t}</div>
+              <div style={{ fontSize: 12, lineHeight: 1.4 }}>{it.t}</div>
               <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{it.ref}</span>
             </div>
             <Badge kind={stKind(it.status)}>{it.status}</Badge>

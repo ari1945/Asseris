@@ -31,7 +31,7 @@ function LglRenewalTimeline({ items, onSel }: any) {
             <div className="row jb ac" style={{ marginBottom: 6 }}>
               <span className="row ac gap8" style={{ minWidth: 0 }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: cat.c, flex: '0 0 8px' }} />
-                <span style={{ fontWeight: 600, fontSize: 12.5 }} className="truncate">{c.party}</span>
+                <span style={{ fontWeight: 600, fontSize: 12 }} className="truncate">{c.party}</span>
                 <span className="tiny muted">· {cat.lbl}</span>
               </span>
               <span className="mono tiny" style={{ fontWeight: 700, color: col, flex: '0 0 auto' }}>{d < 0 ? 'lewat ' + Math.abs(d) + 'h' : d + ' hari'}</span>
@@ -127,7 +127,7 @@ function FirmLegal() {
                 <Panel title="Kesehatan Sumber Kebenaran" sub="ketertelusuran registri">
                   <div style={{ display: 'grid', gap: 10 }}>
                     <div className="panel" style={{ padding: '11px 13px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-                      <div className="row ac gap8"><I.link2 size={15} style={{ color: 'var(--green)' }} /><b style={{ fontSize: 12.5 }}>100% kontrak tertaut ke modul sumber</b></div>
+                      <div className="row ac gap8"><I.link2 size={15} style={{ color: 'var(--green)' }} /><b style={{ fontSize: 12 }}>100% kontrak tertaut ke modul sumber</b></div>
                       <div className="tiny muted" style={{ marginTop: 5, lineHeight: 1.5 }}>Seluruh {register.length} kontrak menarik nilainya dari Engagement/CRM, Vendor, Lisensi, atau Asuransi — tidak ada angka yang disalin manual.</div>
                     </div>
                     <div className="row gap10">
@@ -183,7 +183,7 @@ function FirmLegal() {
                     return (
                       <tr key={c.id} onClick={() => setSel(c)} style={{ cursor: 'pointer' }} className={sel && sel.id === c.id ? 'sel' : ''}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: cat.c }}>{c.id}</td>
-                        <td style={{ fontWeight: 600, fontSize: 11.5 }}>{c.party}<div className="tiny muted" style={{ fontWeight: 400 }}>{c.type.replace(/^(Surat Perikatan|Lisensi|Polis) — /, '')}</div></td>
+                        <td style={{ fontWeight: 600, fontSize: 12 }}>{c.party}<div className="tiny muted" style={{ fontWeight: 400 }}>{c.type.replace(/^(Surat Perikatan|Lisensi|Polis) — /, '')}</div></td>
                         <td><span className="badge b-gray" style={{ textTransform: 'none' }}>{cat.lbl}</span></td>
                         <td className="num">{c.value === 0 ? '—' : boJt(c.value)}</td>
                         <td className="tiny mono" style={{ color: d == null ? 'var(--ink-3)' : d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--ink-2)' }}>{c.end || '—'}{d != null ? <span className="muted"> · {d}h</span> : null}</td>
@@ -201,7 +201,7 @@ function FirmLegal() {
           {tab === 'engagement' && (
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <div className="panel" style={{ padding: '12px 14px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                <div className="row ac gap8" style={{ marginBottom: 6 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12.5 }}>Satu sumber kebenaran: nilai surat perikatan = fee klien</b></div>
+                <div className="row ac gap8" style={{ marginBottom: 6 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Satu sumber kebenaran: nilai surat perikatan = fee klien</b></div>
                 <div className="tiny muted" style={{ lineHeight: 1.55 }}>Tiap surat perikatan dibangkitkan dari <b>Engagement Mgmt</b>; nilainya mengikuti <b>fee klien di CRM</b>. Total nilai perikatan <b>{boJt(engTotal)}</b> identik dengan portofolio fee di CRM dan menjadi dasar termin di <b>Billing</b> — tidak ada angka ganda.</div>
               </div>
               <table className="dtbl">
@@ -210,7 +210,7 @@ function FirmLegal() {
                   {engLetters.map((c: any) => (
                     <tr key={c.id}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
-                      <td style={{ fontWeight: 600, fontSize: 11.5, cursor: 'pointer' }} onClick={() => setSel(c)}>{c.party}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12, cursor: 'pointer' }} onClick={() => setSel(c)}>{c.party}</td>
                       <td className="tiny">{c.type.replace('Surat Perikatan — ', '')}</td>
                       <td className="tiny muted">{c.meta.standard}</td>
                       <td className="num" style={{ fontWeight: 600 }}>{boJt(c.value)}</td>
@@ -252,7 +252,7 @@ function FirmLegal() {
                     {disputes.map((d: any) => (
                       <tr key={d.id} className={d.id === selDispute ? 'sel' : ''} onClick={() => setSelDispute(d.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
-                        <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{d.lawan}</div><div className="tiny muted truncate" style={{ maxWidth: 220 }}>{d.perkara}</div></td>
+                        <td><div style={{ fontWeight: 600, fontSize: 12 }}>{d.lawan}</div><div className="tiny muted truncate" style={{ maxWidth: 220 }}>{d.perkara}</div></td>
                         <td className="num">{boJt(d.exposure)}</td>
                         <td><BoBadge s={d.risk} /></td>
                         <td><BoBadge s={d.status} /></td>

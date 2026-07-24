@@ -624,7 +624,7 @@ function Copilot({ open, onClose, route }: any) {
       <div className="copilot-h">
         <span style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><I.sparkle size={16} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 }}>AI Co-pilot</div>
+          <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.2 }}>AI Co-pilot</div>
           <div style={{ fontSize: 10.5, opacity: .8 }}>{share ? 'Konteks: ' + moduleLabel : 'Mode anonim'} · {llm ? llm.modelLabel : 'asistif'}</div>
         </div>
         <button className="top-btn" title="Insight lintas-modul (kontradiksi)" style={{ color: '#fff', background: showIns ? 'rgba(255,255,255,.18)' : 'transparent', borderRadius: 7 }} onClick={() => setShowIns((v: any) => !v)}><I.target size={17} /></button>

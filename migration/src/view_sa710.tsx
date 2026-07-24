@@ -117,11 +117,11 @@ function SA710View() {
               <div className="tiny muted">{client} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Pendekatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{mode === 'corresponding' ? 'Angka Koresponding' : 'LK Komparatif'}</div></div>
+            <div><div className="tiny muted upper">Pendekatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{mode === 'corresponding' ? 'Angka Koresponding' : 'LK Komparatif'}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Periode Komparatif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{comp.priorPeriodEnd}</div></div>
+            <div><div className="tiny muted upper">Periode Komparatif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{comp.priorPeriodEnd}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Auditor PY</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{comp.predName ? comp.predName : 'Pendahulu'} — {PRED_OPINION_LABEL[comp.predOpinion].replace('opini ', '').replace('tanpa modifikasian', 'WTP')}</div></div>
+            <div><div className="tiny muted upper">Auditor PY</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--blue)' }}>{comp.predName ? comp.predName : 'Pendahulu'} — {PRED_OPINION_LABEL[comp.predOpinion].replace('opini ', '').replace('tanpa modifikasian', 'WTP')}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Konsekuensi Laporan</div>
@@ -172,7 +172,7 @@ function F710Type({ mode, setMode }: { mode: string; setMode: (m: string) => voi
             return (
               <button key={k} onClick={() => { setSel(k); setMode(v.key); }} className="panel" style={{ width: '100%', padding: 0, textAlign: 'left', cursor: 'pointer', marginBottom: 10, border: applied ? `1.5px solid var(--${v.color})` : (sel === k ? '1.5px solid var(--line-strong)' : '1px solid var(--line)'), overflow: 'hidden' }}>
                 <div style={{ padding: '12px 14px', background: applied ? 'var(--blue-050)' : (sel === k ? 'var(--surface-2)' : 'transparent') }}>
-                  <div className="row jb ac"><div style={{ fontWeight: 700, fontSize: 12.5 }}>{v.h}</div><Badge kind={applied ? v.color : 'gray'}>{applied ? 'Diterapkan' : 'Pilih'}</Badge></div>
+                  <div className="row jb ac"><div style={{ fontWeight: 700, fontSize: 12 }}>{v.h}</div><Badge kind={applied ? v.color : 'gray'}>{applied ? 'Diterapkan' : 'Pilih'}</Badge></div>
                   <div className="tiny muted" style={{ marginTop: 4, lineHeight: 1.45 }}>{v.d}</div>
                 </div>
               </button>
@@ -184,11 +184,11 @@ function F710Type({ mode, setMode }: { mode: string; setMode: (m: string) => voi
       <Panel noBody>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
           <Badge kind={mode === t.key ? t.color : 'gray'}>{mode === t.key ? 'Diterapkan' : 'Pratinjau'}</Badge>
-          <div style={{ fontSize: 14.5, fontWeight: 700, marginTop: 8 }}>{t.h}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>{t.h}</div>
         </div>
         <div style={{ padding: 16 }}>
           <div className="tiny muted upper" style={{ marginBottom: 4 }}>Implikasi pada Opini</div>
-          <p style={{ margin: '0 0 14px', fontSize: 12.5, lineHeight: 1.55, fontWeight: 600 }}>{t.op}</p>
+          <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.55, fontWeight: 600 }}>{t.op}</p>
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Karakteristik</div>
           {t.points.map((p, i) => (
             <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start', padding: '6px 0', borderBottom: i < t.points.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -217,7 +217,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
               return (
                 <div key={p.id} onClick={() => setSelId(p.id)} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < PROCS_710.length - 1 ? '1px solid var(--line-soft)' : 0, cursor: 'pointer', background: p.id === selId ? 'var(--blue-050)' : 'transparent' }}>
                   <button className="btn sm icon" title={s.done ? 'Tandai belum' : 'Tandai selesai'} style={{ flex: '0 0 auto', marginTop: 1, height: 22, width: 22, color: s.done ? 'var(--green)' : 'var(--amber)' }} onClick={(e: { stopPropagation: () => void }) => { e.stopPropagation(); setProc(p.id, { done: !s.done, date: !s.done ? (s.date || '2026-02-20') : s.date }); }}>{s.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</button>
-                  <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{p.t}{s.wpRef ? <span className="mono tiny muted"> · {s.wpRef}</span> : ''}</div>
+                  <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{p.t}{s.wpRef ? <span className="mono tiny muted"> · {s.wpRef}</span> : ''}</div>
                   <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{p.ref}</span>
                 </div>
               );
@@ -238,7 +238,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Beban distribusi direklasifikasi dari HPP menjadi pos terpisah; angka koresponding FY2024 disajikan kembali agar sebanding & diungkap dalam CALK. Tidak berdampak pada laba bersih.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Beban distribusi direklasifikasi dari HPP menjadi pos terpisah; angka koresponding FY2024 disajikan kembali agar sebanding & diungkap dalam CALK. Tidak berdampak pada laba bersih.</span>
             </div>
           </div>
         </Panel>
@@ -247,7 +247,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
       <Panel noBody>
         <div style={{ background: 'var(--surface-2)', padding: '13px 16px', borderBottom: '1px solid var(--line)' }}>
           <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{cat.ref}</span>{st.done ? <Badge kind="green" dot>Selesai</Badge> : <Badge kind="amber" dot>Menunggu</Badge>}</div>
-          <div style={{ fontWeight: 600, fontSize: 12.5, marginTop: 6, lineHeight: 1.45 }}>{cat.t}</div>
+          <div style={{ fontWeight: 600, fontSize: 12, marginTop: 6, lineHeight: 1.45 }}>{cat.t}</div>
         </div>
         <div style={{ padding: 14, display: 'grid', gap: 11 }}>
           <label className="row gap8 ac" style={{ cursor: 'pointer', fontSize: 12 }}>
@@ -292,7 +292,7 @@ function F710Special({ comp, patchComp, wp, setSitu, compActive, setCompActive }
                 <span style={{ flex: '0 0 36px', width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${c.k}-bg)`, color: `var(--${c.k})` }}><Ic size={18} /></span>
                 <div style={{ flex: 1 }}>
                   <div className="row jb ac">
-                    <div style={{ fontSize: 12.5, fontWeight: 700 }}>{c.t}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700 }}>{c.t}</div>
                     <label className="row ac gap6" style={{ cursor: 'pointer' }}>
                       <input type="checkbox" checked={active} onChange={(e: { target: { checked: boolean } }) => isPred ? setCompActive(e.target.checked) : setSitu(c.id, { active: e.target.checked })} />
                       <span className="tiny muted">{active ? 'Aktif' : 'N/A'}</span>
@@ -348,8 +348,8 @@ function F710Impact({ client, mode, comp, compActive }: { client: string; mode: 
       <Panel noBody>
         <div className="panel-h"><h3>Paragraf Hal Lain — Auditor Pendahulu</h3><div style={{ flex: 1 }} /><Badge kind="teal">SA 710 ¶13 → SA 706</Badge></div>
         <div style={{ padding: 22 }}>
-          <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12.5, lineHeight: 1.7 }}>
-            <div style={{ fontWeight: 800, fontSize: 13.5, marginBottom: 8 }}>Hal Lain</div>
+          <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12, lineHeight: 1.7 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 8 }}>Hal Lain</div>
             {compActive
               ? <p style={{ margin: 0, color: 'var(--ink-2)' }}>{comparativeParagraph(client, mode, comp)}</p>
               : <p style={{ margin: 0, color: 'var(--ink-3)', fontStyle: 'italic' }}>Paragraf komparatif tidak disertakan dalam laporan (nonaktif pada tab Situasi Khusus / Generator Opini).</p>}
@@ -358,7 +358,7 @@ function F710Impact({ client, mode, comp, compActive }: { client: string; mode: 
         <div className="panel" style={{ margin: 16, padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Teks di atas <b>diturunkan</b> dari SSOT <span className="mono">opinionDoc.v1.comp</span> — identik dengan yang tercetak di Generator Opini & tercermin di SA 705. {mode === 'corresponding' ? <>Karena pendekatan <b>angka koresponding</b>, opini <b>tidak merujuk</b> periode lalu; informasi pendahulu via paragraf <b>Hal Lain</b> (SA 706).</> : <>Pada <b>LK komparatif</b>, opini merujuk setiap periode yang diaudit.</>}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Teks di atas <b>diturunkan</b> dari SSOT <span className="mono">opinionDoc.v1.comp</span> — identik dengan yang tercetak di Generator Opini & tercermin di SA 705. {mode === 'corresponding' ? <>Karena pendekatan <b>angka koresponding</b>, opini <b>tidak merujuk</b> periode lalu; informasi pendahulu via paragraf <b>Hal Lain</b> (SA 706).</> : <>Pada <b>LK komparatif</b>, opini merujuk setiap periode yang diaudit.</>}</span>
           </div>
         </div>
       </Panel>
@@ -372,7 +372,7 @@ function F710Impact({ client, mode, comp, compActive }: { client: string; mode: 
               ['Paragraf Hal Lain', compActive ? 'Ditambahkan' : 'Tidak', compActive ? 'blue' : 'gray'],
               ['Penyajian kembali komparatif', 'Diungkap (PSAK 25)', 'amber'],
             ] as [string, string, string][]).map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                 <span>{r[0]}</span><Badge kind={r[2]}>{r[1]}</Badge>
               </div>
             ))}

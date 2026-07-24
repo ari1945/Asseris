@@ -53,7 +53,7 @@ function EQRWorkflow() {
               {reviews.map((x: any) => (
                 <div key={x.id} onClick={() => setSel(x.id)} style={{ padding: '11px 13px', cursor: 'pointer', borderBottom: '1px solid var(--line-soft)', borderLeft: '3px solid ' + (x.id === sel ? 'var(--blue)' : 'transparent'), background: x.id === sel ? 'var(--blue-050)' : 'transparent' }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{x.id}</span><Badge kind={(EQR_STAT as any)[x.status]}>{x.status}</Badge></div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{x.client.replace('PT ', '')}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{x.client.replace('PT ', '')}</div>
                   <div className="row jb ac" style={{ marginTop: 3 }}><span className="tiny muted">{x.reviewer.split(',')[0]}</span><span className="badge tiny" style={{ background: x.type.includes('PIE') ? 'var(--red-bg)' : 'var(--surface-3)', color: x.type.includes('PIE') ? 'var(--red)' : 'var(--ink-3)' }}>{x.type}</span></div>
                 </div>
               ))}
@@ -108,7 +108,7 @@ function EQRWorkflow() {
                 {r.checklist.map((c: any, i: any) => (
                   <div key={i} onClick={r.cleared ? undefined : () => toggleCheck(i)} className="panel" style={{ padding: '9px 12px', cursor: r.cleared ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: 'none' }}>
                     <span style={{ width: 20, height: 20, borderRadius: 5, display: 'grid', placeItems: 'center', background: c.ok ? 'var(--green)' : 'var(--surface-3)', color: '#fff', flex: '0 0 20px' }}>{c.ok && <I.check size={13} />}</span>
-                    <span style={{ fontSize: 12.5, fontWeight: 500 }}>{c.k}</span>
+                    <span style={{ fontSize: 12, fontWeight: 500 }}>{c.k}</span>
                   </div>
                 ))}
               </div>
@@ -143,7 +143,7 @@ function EQRWorkflow() {
                 <div style={{ marginBottom: 16 }}>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Perbedaan Pendapat & Penyelesaian (SA 220 ¶31–35)</div>
                   <div className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid var(--purple)' }}>
-                    <div className="row jb ac" style={{ marginBottom: 8 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{meta.diff.topic}</span><Badge kind="green">{meta.diff.status}</Badge></div>
+                    <div className="row jb ac" style={{ marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}>{meta.diff.topic}</span><Badge kind="green">{meta.diff.status}</Badge></div>
                     <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
                       <div><div className="tiny muted upper" style={{ marginBottom: 2 }}>Posisi Tim</div><div className="tiny" style={{ lineHeight: 1.45 }}>{meta.diff.team}</div></div>
                       <div><div className="tiny muted upper" style={{ marginBottom: 2 }}>Posisi Reviewer</div><div className="tiny" style={{ lineHeight: 1.45 }}>{meta.diff.reviewer}</div></div>
@@ -155,7 +155,7 @@ function EQRWorkflow() {
 
               {r.cleared ? (
                 <div className="panel" style={{ padding: '12px 14px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-                  <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--green)' }}><I.checkCircle size={17} /></span><div><div style={{ fontSize: 12.5, fontWeight: 700 }}>EQR selesai — gerbang opini terbuka</div><div className="tiny muted">{r.clearedBy} · {r.clearedDate}</div></div></div>
+                  <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--green)' }}><I.checkCircle size={17} /></span><div><div style={{ fontSize: 12, fontWeight: 700 }}>EQR selesai — gerbang opini terbuka</div><div className="tiny muted">{r.clearedBy} · {r.clearedDate}</div></div></div>
                   <Btn sm variant="primary" onClick={() => nav('opinion')}><I.gavel size={13} /> Lanjut ke Penerbitan Opini</Btn>
                 </div>
               ) : (

@@ -142,9 +142,9 @@ function InternalAudit() {
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Garis Pelaporan</div><div style={{ fontWeight: 600, fontSize: 12, maxWidth: 190, lineHeight: 1.35 }}>{IA_PROFILE.reportLine}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tim SPI</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{IA_PROFILE.headcount} org · {IA_PROFILE.certified} bersertifikat</div></div>
+            <div><div className="tiny muted upper">Tim SPI</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{IA_PROFILE.headcount} org · {IA_PROFILE.certified} bersertifikat</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Skor Evaluasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: `var(--${verdict.k})` }}>{avg.toFixed(1)} / 5</div></div>
+            <div><div className="tiny muted upper">Skor Evaluasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: `var(--${verdict.k})` }}>{avg.toFixed(1)} / 5</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Keputusan Penggunaan</div>
@@ -181,7 +181,7 @@ function IAContext() {
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Lingkup (SA 610)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Bila entitas memiliki fungsi audit internal, auditor menentukan apakah <b>pekerjaan fungsi audit internal
               dapat digunakan</b> untuk tujuan audit, dan jika ya, dalam <b>area mana</b> dan sampai <b>sejauh mana</b>.
               Auditor juga dapat memanfaatkan <b>bantuan langsung</b> dari individu fungsi audit internal di bawah arahan,
@@ -216,7 +216,7 @@ function IAContext() {
                   {d.ok ? <I.checkCircle size={17} /> : <I.alert size={17} />}
                 </span>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 2 }}>{d.q}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{d.q}</div>
                   <div className="tiny muted" style={{ lineHeight: 1.4 }}>{d.a}</div>
                 </div>
               </div>
@@ -269,7 +269,7 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
               border: '1px solid ' + (f.id === selId ? 'var(--blue)' : 'var(--line-soft)'),
               background: f.id === selId ? 'var(--blue-050)' : 'transparent' }}>
             <div className="row jb ac" style={{ marginBottom: 6 }}>
-              <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}>{f.k}<span className="mono tiny muted">{f.ref}</span></span>
+              <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 700 }}>{f.k}<span className="mono tiny muted">{f.ref}</span></span>
               <span className="mono" style={{ fontWeight: 700, color: f.v >= 4 ? 'var(--green)' : f.v >= 3 ? 'var(--amber)' : 'var(--red)' }}>{f.v}/5</span>
             </div>
             <input type="range" min="1" max="5" value={f.v} onClick={(e: any) => e.stopPropagation()} onChange={(e: any) => setV(f.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
@@ -281,7 +281,7 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
           <div className="row ac gap10">
             <span className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${verdict.k})` }}>{avg.toFixed(1)}</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 12.5, color: `var(--${verdict.k})` }}>{verdict.label}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: `var(--${verdict.k})` }}>{verdict.label}</div>
               <div className="tiny" style={{ lineHeight: 1.4, marginTop: 2 }}>{verdict.t}</div>
             </div>
           </div>
@@ -292,7 +292,7 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.ref}</span><Badge kind={sel.v >= 4 ? 'green' : sel.v >= 3 ? 'amber' : 'red'}>{sel.v}/5</Badge></div>
-            <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 3 }}>{sel.k}</div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginTop: 3 }}>{sel.k}</div>
             <div className="tiny muted">{sel.note}</div>
           </div>
           <table className="dtbl">
@@ -315,7 +315,7 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>
                 Faktor <b>{sel.k}</b> dievaluasi atas {sel.subs.length} sub-kriteria. Catatan perhatian tidak meniadakan
                 penggunaan, namun menyempitkan area & menaikkan tingkat reperformansi atas pekerjaan terkait.
               </span>
@@ -376,7 +376,7 @@ function IAUsage() {
             </div>
             {sel.result === 'Dikecualikan' && (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 12 }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Pertimbangan signifikan — SA 610 ¶15 melarang pengandalan. Dikerjakan penuh oleh tim audit.</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Pertimbangan signifikan — SA 610 ¶15 melarang pengandalan. Dikerjakan penuh oleh tim audit.</span></div>
               </div>
             )}
             <Btn sm variant="primary" style={{ width: '100%' }}><I.flask size={14} /> Buka WP {sel.lead}</Btn>
@@ -423,7 +423,7 @@ function IAReperform() {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.flask size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               Reperformansi mengonfirmasi simpulan SPI pada area penggajian, bank & opname (selisih opname &lt; clearly
               trivial threshold). Pada <b>siklus pendapatan</b>, ditemukan 2 kekurangan dokumentasi — tim audit
               <b> memperluas pengujian substantif sendiri</b> dan tidak mengandalkan pekerjaan IA atas area tersebut.
@@ -486,7 +486,7 @@ function IADirect() {
               { t: 'Persetujuan tertulis individu IA — jaga kerahasiaan (¶33b)', ok: true },
               { t: 'Arahan, supervisi & reviu memadai oleh auditor (¶34)', ok: true },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>
@@ -494,7 +494,7 @@ function IADirect() {
           </div>
         </Panel>
         <Panel title="Reviu Pekerjaan Bantuan Langsung">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>
             Seluruh pekerjaan bantuan langsung direviu <b>100%</b> oleh anggota tim audit yang lebih senior.
             Sifat tugas dibatasi pada prosedur <b>non-judgmental</b> (observasi, vouching, penghitungan ulang).
             Auditor tetap mempertimbangkan kembali kecukupan keterlibatannya sendiri (¶32).
@@ -534,7 +534,7 @@ function IAConclusion({ verdict }: any) {
         </Panel>
 
         <Panel title="Kesimpulan Auditor (SA 610)">
-          <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>
             Fungsi audit internal (SPI) entitas dinilai memenuhi faktor <b>objektivitas, kompetensi, serta pendekatan
             sistematis & disiplin</b> (skor {verdict.label === 'Dapat Diandalkan' ? '≥ 3,5' : 'evaluasi'}). Pekerjaan IA
             <b> digunakan untuk area berpertimbangan & berisiko rendah hingga moderat</b> dengan reperformansi atas

@@ -187,7 +187,7 @@ function PSAK14View() {
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--green)', marginTop: 1 }}><I.checkCircle size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               Pembelian Rp {sc(inv.purchases)} {UN.short} merupakan <b>derivasi</b> (saldo akhir − awal + BPP) sehingga roll-forward menutup. Penyesuaian <b>pisah batas (AJE-01)</b> Rp {fmt(Math.abs(inv.ajeInv))} jt menurunkan persediaan & menaikkan BPP — saldo akhir menutup persis ke <b>WTB 1-1300</b>.
             </span>
           </div>
@@ -201,7 +201,7 @@ function PSAK14View() {
     <Panel noBody>
       <div className="panel-h"><h3>Klasifikasi Persediaan</h3><span className="sub mono">¶36(b)</span><div style={{ flex: 1 }} /><span className="tiny muted">biaya − cadangan = neto</span></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Klasifikasi</th>
@@ -239,7 +239,7 @@ function PSAK14View() {
     <Panel noBody>
       <div className="panel-h"><h3>Uji Nilai Realisasi Neto — Ikhtisar</h3><span className="sub mono">¶28–33</span><div style={{ flex: 1 }} /><Badge kind="amber">SA 540 · WP C-2</Badge></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Klasifikasi</th>
@@ -272,7 +272,7 @@ function PSAK14View() {
           </tbody>
         </table>
         <div onClick={() => nav('sad', { from: 'psak14' })} className="row ac jb" style={{ marginTop: 10, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--amber-bg)', cursor: 'pointer' }}>
-          <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Persediaan diukur pada <b>nilai terendah biaya & NRV</b> (¶9). Uji menunjukkan penurunan kurang dibukukan Rp <b>{fmt(inv.shortfallWD)} jt</b>{aboveCTT != null && <> — {aboveCTT ? <>di atas ambang jelas remeh (CTT Rp {fmt(ctt ?? 0)} jt), <b>wajib diakumulasikan ke SAD</b></> : <>di bawah ambang jelas remeh (CTT Rp {fmt(ctt ?? 0)} jt)</>}{abovePM ? <>; bahkan <b style={{ color: 'var(--red)' }}>melampaui PM Rp {fmt(pm ?? 0)} jt</b></> : null}</>}. Rincian per-SKU pada kertas kerja di bawah.</span>
+          <span style={{ fontSize: 12, lineHeight: 1.4 }}>Persediaan diukur pada <b>nilai terendah biaya & NRV</b> (¶9). Uji menunjukkan penurunan kurang dibukukan Rp <b>{fmt(inv.shortfallWD)} jt</b>{aboveCTT != null && <> — {aboveCTT ? <>di atas ambang jelas remeh (CTT Rp {fmt(ctt ?? 0)} jt), <b>wajib diakumulasikan ke SAD</b></> : <>di bawah ambang jelas remeh (CTT Rp {fmt(ctt ?? 0)} jt)</>}{abovePM ? <>; bahkan <b style={{ color: 'var(--red)' }}>melampaui PM Rp {fmt(pm ?? 0)} jt</b></> : null}</>}. Rincian per-SKU pada kertas kerja di bawah.</span>
           <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--amber)', whiteSpace: 'nowrap', marginLeft: 8 }}>Usulkan ke SAD <I.arrowRight size={12} /></span>
         </div>
       </div>
@@ -297,7 +297,7 @@ function PSAK14View() {
         ))}
         <div className="row ac jb" style={{ padding: '8px 0' }}>
           <span style={{ fontSize: 12, fontWeight: 700 }}>Taksiran penurunan barang jadi</span>
-          <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--amber)' }}>{sc(agingWD)}</span>
+          <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--amber)' }}>{sc(agingWD)}</span>
         </div>
       </div>
     </Panel>
@@ -335,7 +335,7 @@ function PSAK14View() {
     <Panel noBody>
       <div className="panel-h"><h3>Pengukuran & Rumus Biaya</h3><span className="sub mono">¶9–25</span></div>
       <div style={{ padding: '10px 13px', display: 'grid', gap: 9 }}>
-        <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Diukur pada <b>nilai terendah</b> antara biaya perolehan & nilai realisasi neto (¶9). Biaya mencakup pembelian, konversi & biaya lain hingga lokasi & kondisi kini (¶10).</div>
+        <div style={{ fontSize: 12, lineHeight: 1.5 }}>Diukur pada <b>nilai terendah</b> antara biaya perolehan & nilai realisasi neto (¶9). Biaya mencakup pembelian, konversi & biaya lain hingga lokasi & kondisi kini (¶10).</div>
         <div className="seg" style={{ width: 'fit-content' }}>
           <button className={formula === 'wavg' ? 'on' : ''} onClick={() => setFormula('wavg')}>Rata-rata tertimbang</button>
           <button className={formula === 'fifo' ? 'on' : ''} onClick={() => setFormula('fifo')}>MPKP (FIFO)</button>
@@ -364,7 +364,7 @@ function PSAK14View() {
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P14_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
                 <div className="tiny muted">{r.proc}</div>
               </div>
               <Badge kind="gray">{r.sa}</Badge>
@@ -442,7 +442,7 @@ function PSAK14View() {
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.ok ? 'var(--green)' : 'var(--amber)'), background: d.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{d.ref}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
           </label>
         ))}
       </div>
@@ -492,7 +492,7 @@ function PSAK14View() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
                   padding: '9px 15px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  fontSize: 12.5, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
+                  fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
                   borderBottom: '2px solid ' + (on ? 'var(--navy)' : 'transparent'), marginBottom: -1,
                 }}>
                   <IconT size={14} />

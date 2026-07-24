@@ -143,7 +143,7 @@ function SubsequentEvents() {
                       <tr key={e.id} className={e.id === selId ? 'sel' : ''} onClick={() => setSelId(e.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</td>
                         <td className="mono tiny">{new Date(e.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</td>
-                        <td className="truncate" style={{ maxWidth: 320, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5 }}>{e.title}</td>
+                        <td className="truncate" style={{ maxWidth: 320, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12 }}>{e.title}</td>
                         <td className="num">{fmt(e.amount / 1e6, 0)} jt</td>
                         <td>{e.type === 'adjusting' ? <Badge kind="red">Penyesuai</Badge> : <Badge kind="amber">Non-Penyesuai</Badge>}</td>
                       </tr>
@@ -162,10 +162,10 @@ function SubsequentEvents() {
                   </div>
                   <div style={{ padding: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>{sel.title}</div>
-                    <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>{sel.desc}</p>
+                    <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>{sel.desc}</p>
                     <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)', marginBottom: 14 }}>
                       <div className="tiny muted upper" style={{ marginBottom: 2 }}>Perlakuan Akuntansi (PSAK 8)</div>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{sel.treatment}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{sel.treatment}</div>
                     </div>
                     <div className="tiny muted upper" style={{ marginBottom: 6 }}>Klasifikasi — geser sesuai pertimbangan</div>
                     <div className="seg" style={{ width: 'fit-content' }}>
@@ -182,14 +182,14 @@ function SubsequentEvents() {
                 {procs.map((p: any, i: any) => (
                   <label key={i} className="row gap8" style={{ padding: '8px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < procs.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleProc(i)}>
                     <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (p.done ? 'var(--green)' : 'var(--line-strong)'), background: p.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{p.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
-                    <span style={{ fontSize: 11.5, lineHeight: 1.4, color: p.done ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</span>
+                    <span style={{ fontSize: 12, lineHeight: 1.4, color: p.done ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</span>
                   </label>
                 ))}
               </div>
               <div className="divider" />
               <div className="panel" style={{ padding: '9px 11px', background: procDone === procs.length ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
                 <div className="row ac gap8"><span style={{ color: procDone === procs.length ? 'var(--green)' : 'var(--amber)' }}>{procDone === procs.length ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
-                  <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{procDone === procs.length ? 'Seluruh prosedur selesai — siap kesimpulan & representasi tertulis.' : `${procs.length - procDone} prosedur belum diselesaikan hingga tgl laporan.`}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.4 }}>{procDone === procs.length ? 'Seluruh prosedur selesai — siap kesimpulan & representasi tertulis.' : `${procs.length - procDone} prosedur belum diselesaikan hingga tgl laporan.`}</span>
                 </div>
               </div>
             </Panel>

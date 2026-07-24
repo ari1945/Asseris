@@ -126,7 +126,7 @@ function HcPersetujuan({ items, nav, grip }: { items: ApprovalItem[]; nav: NavFn
       <div className="hc-list">
         {items.map((a) => (
           <div key={a.key} className="hc-row" onClick={() => nav(a.route, { from: 'home' })} style={{ cursor: 'pointer' }}>
-            <div className="hc-main"><span style={{ fontWeight: 600, fontSize: 12.5 }}>{a.tipe}</span><span className="muted tiny">{a.ref}</span></div>
+            <div className="hc-main"><span style={{ fontWeight: 600, fontSize: 12 }}>{a.tipe}</span><span className="muted tiny">{a.ref}</span></div>
             <Badge kind={a.prioKind}>{a.prio}</Badge>
             <Btn sm variant="ghost" onClick={(ev: { stopPropagation(): void }) => { ev.stopPropagation(); nav(a.route, { from: 'home' }); }}>Reviu</Btn>
           </div>
@@ -146,7 +146,7 @@ function HcPerhatian({ items, nav, grip }: { items: PerhatianItem[]; nav: NavFn;
         {items.map((r) => (
           <div key={r.key} className="hc-row" onClick={() => nav(r.route, { from: 'home' })} style={{ cursor: 'pointer' }}>
             <span className="hc-sev" style={{ background: r.kind === 'red' ? 'var(--red)' : r.kind === 'amber' ? 'var(--amber)' : 'var(--green)' }} />
-            <div className="hc-main"><span style={{ fontSize: 12.5 }}>{r.text}</span><span className="muted tiny">{r.sub}</span></div>
+            <div className="hc-main"><span style={{ fontSize: 12 }}>{r.text}</span><span className="muted tiny">{r.sub}</span></div>
             <Badge kind={r.kind}>{r.level}</Badge>
           </div>
         ))}

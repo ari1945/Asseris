@@ -74,7 +74,7 @@ function SectorChecklistView() {
                   border: '1px solid ' + (on ? s.accent : 'var(--line)'), background: on ? s.accent : 'var(--surface)', color: on ? '#fff' : 'var(--ink)', boxShadow: on ? 'var(--shadow)' : 'none' }}>
                   <IconC size={16} style={{ color: on ? '#fff' : s.accent, flex: '0 0 auto' }} />
                   <span>
-                    <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700 }}>{s.label}</span>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 700 }}>{s.label}</span>
                     <span className="tiny mono" style={{ color: on ? 'rgba(255,255,255,.8)' : 'var(--ink-4)' }}>{sd}/{s.checks.length} uji</span>
                   </span>
                 </button>
@@ -88,7 +88,7 @@ function SectorChecklistView() {
               <div className="panel-h"><h3>Daftar-Uji Regulatori — {cur.label}</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{curDone}/{cur.checks.length}</span></div>
               <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--surface-2)' }}>
                 <span style={{ color: cur.accent, marginTop: 1, flex: '0 0 auto' }}><I.shield size={15} /></span>
-                <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Entitas <b>{cur.clientName || cur.client}</b> tunduk pada ketentuan kehati-hatian & pelaporan OJK sektoral. Daftar-uji menambah prosedur khusus di atas program audit umum.</div>
+                <div style={{ fontSize: 12, lineHeight: 1.5 }}>Entitas <b>{cur.clientName || cur.client}</b> tunduk pada ketentuan kehati-hatian & pelaporan OJK sektoral. Daftar-uji menambah prosedur khusus di atas program audit umum.</div>
               </div>
               <div>
                 {cur.checks.map((c: any, i: any) => {
@@ -97,7 +97,7 @@ function SectorChecklistView() {
                     <div key={c.ref} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < cur.checks.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <span onClick={() => toggle(c.ref)} style={{ cursor: 'pointer', flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={11} style={{ color: '#fff' }} />}</span>
                       <span className="mono tiny" style={{ fontWeight: 700, color: cur.accent, width: 52, flex: '0 0 52px', marginTop: 1 }}>{c.ref}</span>
-                      <span onClick={() => toggle(c.ref)} style={{ cursor: 'pointer', flex: 1, minWidth: 0, fontSize: 12.5, lineHeight: 1.45, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{c.t}</span>
+                      <span onClick={() => toggle(c.ref)} style={{ cursor: 'pointer', flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.45, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{c.t}</span>
                       {c.view && <button onClick={() => nav(c.view, { from: 'sectorck' })} title="Buka modul terkait" className="row ac" style={{ flex: '0 0 auto', padding: '3px 7px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer' }}><I.link2 size={12} style={{ color: 'var(--blue)' }} /></button>}
                     </div>
                   );

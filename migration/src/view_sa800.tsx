@@ -115,11 +115,11 @@ function SA800View() {
               <div className="tiny muted">Pertimbangan khusus atas perikatan basis-khusus</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Perikatan Aktif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{SPF_ENG.length} perikatan</div></div>
+            <div><div className="tiny muted upper">Perikatan Aktif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{SPF_ENG.length} perikatan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Penggunaan Terbatas</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--purple)' }}>{restricted} laporan</div></div>
+            <div><div className="tiny muted upper">Penggunaan Terbatas</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--purple)' }}>{restricted} laporan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Opini Modifikasian</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>{modified} perikatan</div></div>
+            <div><div className="tiny muted upper">Opini Modifikasian</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--amber)' }}>{modified} perikatan</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Acuan</div>
@@ -155,7 +155,7 @@ function F800Registri({ selId, setSelId, sel }: any) {
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={18} /></span>
-                <div style={{ fontWeight: 700, fontSize: 12.5 }}>{d.k}</div>
+                <div style={{ fontWeight: 700, fontSize: 12 }}>{d.k}</div>
                 <p className="tiny muted" style={{ margin: '4px 0 8px', lineHeight: 1.45 }}>{d.desc}</p>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)' }}>{d.ex}</div>
               </div>
@@ -201,7 +201,7 @@ function F800Registri({ selId, setSelId, sel }: any) {
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
                 <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                   <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span>
-                  <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{sel.notes}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.4 }}>{sel.notes}</span>
                 </div>
               </div>
             </div>
@@ -224,14 +224,14 @@ function F800Accept({ sel }: any) {
           {sel.accept.map((a: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < sel.accept.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: a[1] ? 'var(--green)' : 'var(--amber)' }}>{a[1] ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-              <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{a[0]}</div>
+              <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{a[0]}</div>
             </div>
           ))}
         </div>
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Auditor harus memperoleh pemahaman atas <b>tujuan penyusunan</b>, <b>pengguna yang dituju</b>, & langkah manajemen menentukan <b>keberterimaan</b> kerangka pelaporan dalam konteks tersebut (¶8).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Auditor harus memperoleh pemahaman atas <b>tujuan penyusunan</b>, <b>pengguna yang dituju</b>, & langkah manajemen menentukan <b>keberterimaan</b> kerangka pelaporan dalam konteks tersebut (¶8).</span>
           </div>
         </div>
       </Panel>
@@ -283,7 +283,7 @@ function F800Consider({ sel }: any) {
               <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><Ic size={16} /></span>
                 <div style={{ flex: 1 }}>
-                  <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{a.t}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{a.ref}</span></div>
+                  <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{a.t}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{a.ref}</span></div>
                   <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 2 }}>{a.d}</div>
                 </div>
               </div>
@@ -308,7 +308,7 @@ function F800Consider({ sel }: any) {
               'Pengguna keliru menganggap LK = kerangka bertujuan umum',
               'Pengungkapan basis akuntansi tidak memadai',
             ].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}><I.alert size={14} /></span>
                 <span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
@@ -346,7 +346,7 @@ function F800Report({ sel }: any) {
               ['Pembatasan distribusi & penggunaan', '¶14'],
               ['Rujukan kerangka pelaporan yang tepat', '¶13'],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.check size={13} /></span>{r[0]}</span>
                 <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r[1]}</span>
               </div>
@@ -373,7 +373,7 @@ function F800Report({ sel }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan Auditor Independen</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN AUDITOR INDEPENDEN</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Audit atas Laporan Keuangan Bertujuan Khusus — SA 800</div>
             <p style={{ margin: '0 0 10px' }}>Kepada {sel.users} — {sel.client}</p>

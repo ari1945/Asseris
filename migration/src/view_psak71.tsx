@@ -140,7 +140,7 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
         <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
-        <h4 style={{ margin: 0, fontSize: 13.5, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
+        <h4 style={{ margin: 0, fontSize: 15, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
         {sub && <span className="tiny muted mono" style={{ marginLeft: 'auto' }}>{sub}</span>}
       </div>
       {children}
@@ -155,7 +155,7 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
   const Sign = ({ lbl, p, accent }: any) => (
     <div style={{ flex: 1, borderTop: '2px solid ' + (accent || 'var(--navy)'), paddingTop: 8 }}>
       <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
       <div className="tiny muted">{p.role}</div>
       <div className="tiny mono" style={{ color: 'var(--ink-3)', marginTop: 3 }}>{p.at}</div>
     </div>
@@ -317,7 +317,7 @@ function P71WorkPaper({ p71, client, eng, fmt, rp, nav }: any) {
             { lbl: 'PSAK 68 · Nilai Wajar', id: 'psak68' }, { lbl: 'SAD Ledger', id: 'sad' },
             { lbl: 'AJE Ledger', id: 'aje' }, { lbl: 'FS Generator', id: 'fsgen' },
           ].map(x => (
-            <button key={x.id} onClick={() => nav(x.id, { from: 'psak71' })} className="row ac gap6" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-2)' }}>
+            <button key={x.id} onClick={() => nav(x.id, { from: 'psak71' })} className="row ac gap6" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}>
               <I.link2 size={12} style={{ color: 'var(--blue)' }} />{x.lbl}
             </button>
           ))}
@@ -446,7 +446,7 @@ function PSAK71View() {
                               return (
                                 <tr key={r.id} onClick={r.link ? () => nav(r.link, { from: 'psak71' }) : undefined} style={{ cursor: r.link ? 'pointer' : 'default', background: r.focus ? 'var(--blue-050)' : undefined }}>
                                   <td>
-                                    <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>
+                                    <div className="row ac gap6" style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>
                                       <span>{r.inst}</span>
                                       {r.focus && <Badge kind="blue">Fokus</Badge>}
                                       {r.link && <I.link2 size={12} style={{ color: 'var(--blue)' }} />}
@@ -485,7 +485,7 @@ function PSAK71View() {
                     ))}
                   </div>
                   <div className="panel" style={{ marginTop: 11, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-                    <div className="row gap8"><span style={{ color: 'var(--green)' }}><I.check size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Piutang usaha lolos SPPI & model "dimiliki untuk menagih" → diukur pada <b>biaya perolehan diamortisasi</b>, dikenakan <b>ECL pendekatan disederhanakan</b>.</span></div>
+                    <div className="row gap8"><span style={{ color: 'var(--green)' }}><I.check size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.5 }}>Piutang usaha lolos SPPI & model "dimiliki untuk menagih" → diukur pada <b>biaya perolehan diamortisasi</b>, dikenakan <b>ECL pendekatan disederhanakan</b>.</span></div>
                   </div>
                 </Panel>
 
@@ -597,14 +597,14 @@ function PSAK71View() {
                         <div key={s.id} style={{ padding: '9px 0', borderBottom: '1px solid var(--line-soft)' }}>
                           <div className="row ac jb" style={{ marginBottom: 5 }}>
                             <div>
-                              <span style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</span>
+                              <span style={{ fontSize: 12, fontWeight: 600 }}>{s.label}</span>
                               <span className="tiny muted" style={{ marginLeft: 8 }}>{s.macro}</span>
                             </div>
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>mult ×{s.mult.toFixed(2)}</span>
                           </div>
                           <div className="row ac gap10">
                             <input type="range" min="0" max="1" step="0.01" value={probs[s.id] || 0} onChange={(e: any) => setProbs((p: any) => ({ ...p, [s.id]: +e.target.value }))} style={{ flex: 1, accentColor: 'var(--blue)' }} />
-                            <span className="mono" style={{ width: 52, textAlign: 'right', fontWeight: 700, fontSize: 12.5 }}>{(w * 100).toFixed(0)}%</span>
+                            <span className="mono" style={{ width: 52, textAlign: 'right', fontWeight: 700, fontSize: 12 }}>{(w * 100).toFixed(0)}%</span>
                           </div>
                         </div>
                       );
@@ -684,7 +684,7 @@ function PSAK71View() {
                     { t: 'Saldo akhir — CKPN audited (31 Des 2025)', v: p71.ckpnAudited, tot: true },
                   ].map((r, i) => (
                     <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
-                      <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                       {!r.tot && r.kind ? <Badge kind={r.kind}>{r.kind === 'amber' ? 'AJE' : r.kind === 'blue' ? 'P&L' : r.kind === 'red' ? 'keluar' : 'masuk'}</Badge> : <span style={{ width: 54 }} />}
                       <div className="mono" style={{ width: 82, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tot ? 'var(--navy)' : 'var(--green)' }}>{r.v < 0 ? '(' + fmt(Math.round(-r.v)) + ')' : (r.tot ? '' : '+') + fmt(Math.round(r.v))}</div>
                     </div>
@@ -705,7 +705,7 @@ function PSAK71View() {
                     </div>
                   </div>
                   <button onClick={() => nav('psak2', { from: 'psak71' })} className="row ac jb" style={{ marginTop: 11, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
-                    <div><div style={{ fontSize: 11.5, fontWeight: 600 }}>Add-back non-kas (PSAK 2)</div><div className="tiny muted">Beban ECL bersifat non-kas → arus kas operasi</div></div>
+                    <div><div style={{ fontSize: 12, fontWeight: 600 }}>Add-back non-kas (PSAK 2)</div><div className="tiny muted">Beban ECL bersifat non-kas → arus kas operasi</div></div>
                     <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
                   </button>
                 </Panel>
@@ -714,7 +714,7 @@ function PSAK71View() {
                   <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Piutang bruto pra-audit {fmt(Math.round(p71.grossUnadj))} jt diturunkan {fmt(Math.round(p71.grossUnadj - p71.grossAudited))} jt (AJE-03 — pembalikan piutang fiktif/channel stuffing). Matriks ECL dihitung atas <b>bruto audited {fmt(Math.round(p71.grossAudited))} jt</b> agar tidak menutupi salah saji eksistensi.</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>Piutang bruto pra-audit {fmt(Math.round(p71.grossUnadj))} jt diturunkan {fmt(Math.round(p71.grossUnadj - p71.grossAudited))} jt (AJE-03 — pembalikan piutang fiktif/channel stuffing). Matriks ECL dihitung atas <b>bruto audited {fmt(Math.round(p71.grossAudited))} jt</b> agar tidak menutupi salah saji eksistensi.</span>
                     </div>
                   </div>
                 </Panel>
@@ -746,7 +746,7 @@ function PSAK71View() {
                           { pos: 'Selisih model vs audited', src: 'toleransi ≤ Rp 25 jt', val: p71.auditVariance, ok: Math.abs(p71.auditVariance) <= 25 },
                         ].map((r, i) => (
                           <tr key={i} style={{ background: r.hi ? 'var(--blue-050)' : undefined }}>
-                            <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.pos}</td>
+                            <td style={{ fontWeight: 600, fontSize: 12 }}>{r.pos}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{r.src}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{r.val < 0 ? '(' + fmt(Math.round(-r.val)) + ')' : fmt(Math.round(r.val))}</td>
                             <td style={{ textAlign: 'center' }}>{r.ok ? <span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> : <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>}</td>
@@ -811,7 +811,7 @@ function PSAK71View() {
                 <div className="panel-h"><h3>Prosedur Audit — Estimasi ECL (SA 540)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P71_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.target size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>ECL adalah <b>estimasi akuntansi dengan ketidakpastian tinggi</b> (R-03 · Penilaian). Prosedur menguji data, asumsi loss rate, overlay forward-looking, serta indikator bias manajemen.</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>ECL adalah <b>estimasi akuntansi dengan ketidakpastian tinggi</b> (R-03 · Penilaian). Prosedur menguji data, asumsi loss rate, overlay forward-looking, serta indikator bias manajemen.</div>
                 </div>
                 <div>
                   {P71_PROC.map((p, i) => {

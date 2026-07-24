@@ -220,7 +220,7 @@ function FirmTax() {
                     <RowKv label="Effective Tax Rate" v="22,5%" />
                   </div>
                   <div className="panel" style={{ padding: 14 }}>
-                    <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Status: Draft</span></div>
+                    <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Status: Draft</span></div>
                     <div className="tiny muted" style={{ lineHeight: 1.5, marginBottom: 10 }}>Lampiran (1771, daftar nominatif, laporan keuangan audited) belum lengkap.</div>
                     <div className="chip tiny muted" style={{ width: 'fit-content' }} title="Read-only — penyusunan SPT 1771 dikelola di CoreSys / Coretax (roadmap)"><I.lock size={11} /> Penyusunan SPT: CoreSys (roadmap)</div>
                   </div>
@@ -262,7 +262,7 @@ function FirmTax() {
                   </div>
                 </Panel>
                 <div className="panel" style={{ padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                  <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--blue)' }}><I.report size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>PSAK 46 — Pajak Penghasilan</span></div>
+                  <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--blue)' }}><I.report size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>PSAK 46 — Pajak Penghasilan</span></div>
                   <div className="tiny" style={{ lineHeight: 1.6 }}>Aset/liabilitas pajak tangguhan diukur dengan tarif <b>22%</b> yang berlaku saat beda temporer terpulihkan. DTA neto sebesar <b>Rp {fmt(Math.abs(netDeferred) / 1e6, 0)} jt</b> diakui karena firma memiliki laba kena pajak yang memadai untuk pemulihannya.</div>
                 </div>
               </div>

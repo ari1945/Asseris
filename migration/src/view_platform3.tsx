@@ -178,7 +178,7 @@ function AuditEntryDrawer({ e, onClose, nav }: any) {
           </div>
           <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none', marginBottom: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 3 }}>Perangkat / Agen</div>
-            <div style={{ fontSize: 12.5, fontWeight: 600 }}>{e.device}</div>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>{e.device}</div>
           </div>
 
           {(e.before || e.after) && (

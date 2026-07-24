@@ -86,11 +86,11 @@ function SA501View() {
               <div className="tiny muted">{client} · ENG-2025-014</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Persediaan (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{invTotal.toLocaleString('id-ID')} · 5 lokasi</div></div>
+            <div><div className="tiny muted upper">Persediaan (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{invTotal.toLocaleString('id-ID')} · 5 lokasi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Eksposur Litigasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>{litExposure.toLocaleString('id-ID')} · 4 perkara</div></div>
+            <div><div className="tiny muted upper">Eksposur Litigasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--amber)' }}>{litExposure.toLocaleString('id-ID')} · 4 perkara</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Penasihat Hukum</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>3 dari 4 surat dibalas</div></div>
+            <div><div className="tiny muted upper">Penasihat Hukum</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>3 dari 4 surat dibalas</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Tanggal Hitung Fisik</div>
@@ -225,7 +225,7 @@ function F501Inventory({ invTotal }: any) {
               <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>{sel.note}</p>
               {!sel.attend && (
                 <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 12 }}>
-                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Tidak dapat dihadiri — laksanakan prosedur alternatif untuk bukti yang cukup atas keberadaan & kondisi (¶7–8).</span></div>
+                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Tidak dapat dihadiri — laksanakan prosedur alternatif untuk bukti yang cukup atas keberadaan & kondisi (¶7–8).</span></div>
                 </div>
               )}
             </div>
@@ -239,7 +239,7 @@ function F501Inventory({ invTotal }: any) {
           {INV_PROC.map((p, i) => (
             <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < INV_PROC.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: p.done ? 'var(--green)' : 'var(--amber)' }}>{p.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-              <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{p.t}</div>
+              <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{p.t}</div>
               <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{p.ref}</span>
             </div>
           ))}
@@ -294,7 +294,7 @@ function F501Litigation() {
               <Badge kind={sel.disc.startsWith('Provisi') ? 'red' : sel.disc.startsWith('Diungkap') ? 'amber' : 'gray'}>{sel.disc}</Badge>
               {!sel.resp && (
                 <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 12 }}>
-                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.mail size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Surat permintaan keterangan langsung ke penasihat hukum eksternal belum dibalas (¶10) — tindak lanjut sebelum tanggal laporan.</span></div>
+                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.mail size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Surat permintaan keterangan langsung ke penasihat hukum eksternal belum dibalas (¶10) — tindak lanjut sebelum tanggal laporan.</span></div>
                 </div>
               )}
             </div>
@@ -339,7 +339,7 @@ function F501Litigation() {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Jika manajemen menolak memberi izin komunikasi dengan penasihat hukum, atau penasihat menolak menjawab dengan memadai, dan auditor tak dapat memperoleh bukti alternatif yang cukup — terdapat <b>pembatasan ruang lingkup</b> → opini dimodifikasi (¶11, SA 705).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Jika manajemen menolak memberi izin komunikasi dengan penasihat hukum, atau penasihat menolak menjawab dengan memadai, dan auditor tak dapat memperoleh bukti alternatif yang cukup — terdapat <b>pembatasan ruang lingkup</b> → opini dimodifikasi (¶11, SA 705).</span>
           </div>
         </div>
       </Panel>
@@ -394,7 +394,7 @@ function F501Segment() {
             ].map((p, i) => (
               <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: p.done ? 'var(--green)' : 'var(--amber)' }}>{p.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{p.t}</div>
+                <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{p.t}</div>
               </div>
             ))}
           </div>
@@ -416,7 +416,7 @@ function F501Segment() {
           <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><I.checkCircle size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Informasi segmen disajikan & diungkapkan sesuai PSAK 5; total tersaji <b>rekonsiliasi tepat</b> ke laporan keuangan konsolidasi. Tidak ada salah saji material teridentifikasi.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Informasi segmen disajikan & diungkapkan sesuai PSAK 5; total tersaji <b>rekonsiliasi tepat</b> ke laporan keuangan konsolidasi. Tidak ada salah saji material teridentifikasi.</span>
             </div>
           </div>
         </Panel>

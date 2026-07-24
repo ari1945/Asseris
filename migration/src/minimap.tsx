@@ -79,7 +79,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-chip .mm-c-l { font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mm-chip .mm-c-r { font-size: 10.5px; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
   .mm-more { font-size: 10.5px; color: var(--ink-4); padding: 2px 4px; }
-  .mm-empty { font-size: 11.5px; color: var(--ink-4); font-style: italic; padding: 4px 2px; }
+  .mm-empty { font-size: 12px; color: var(--ink-4); font-style: italic; padding: 4px 2px; }
 
   .mm-node { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center;
     gap: 6px; padding: 14px 16px; border-radius: 13px; min-width: 150px; max-width: 200px;

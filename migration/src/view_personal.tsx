@@ -67,7 +67,7 @@ function Kv({ label, v, accent }: { key?: string; label: string; v: string | num
   return (
     <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 }
@@ -76,7 +76,7 @@ function DRow({ l, v, accent, bold }: { key?: string; l: string; v: string | num
   return (
     <div className="row ac jb" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="tiny" style={{ color: 'var(--ink-2)' }}>{l}</span>
-      <span className="mono" style={{ fontSize: 12.5, fontWeight: bold ? 700 : 600, color: accent || 'var(--ink)' }}>{v}</span>
+      <span className="mono" style={{ fontSize: 12, fontWeight: bold ? 700 : 600, color: accent || 'var(--ink)' }}>{v}</span>
     </div>
   );
 }

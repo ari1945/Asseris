@@ -149,7 +149,7 @@ function ReqDetail({ r, persona, onUpload, onReview, onRevise, onRemind, onComme
         <div className="row ac gap10" style={{ marginBottom: 8 }}>
           <span className="preq-ico" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }}><IconC size={16} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.3 }}>{r.item}</div>
+            <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{r.item}</div>
             <div className="mono tiny muted">{r.id} · {r.cat}</div>
           </div>
         </div>
@@ -396,7 +396,7 @@ function ClientPortal() {
         {/* konteks perikatan — sumber kebenaran tunggal (useFirm) */}
         <div className="panel" style={{ margin: '0 0 12px', padding: '9px 13px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ color: 'var(--blue)' }}><I.briefcase size={15} /></span>
-          <span style={{ fontSize: 12.5, fontWeight: 700 }}>{clientName}</span>
+          <span style={{ fontSize: 12, fontWeight: 700 }}>{clientName}</span>
           <span className="chip tiny mono">{engId}</span>
           <span className="chip tiny">{eng.fy || 'FY2025'}</span>
           {eng.partner && <span className="tiny muted">Partner: {eng.partner} · Manajer: {eng.manager}</span>}
@@ -406,7 +406,7 @@ function ClientPortal() {
         {persona === 'client' && (
           <div className="panel" style={{ margin: '0 0 12px', padding: '9px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ color: 'var(--blue)' }}><I.users size={15} /></span>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-2)' }}>Pratinjau portal sebagaimana dilihat klien ({clientName}). Aksi reviu internal & catatan auditor disembunyikan.</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}>Pratinjau portal sebagaimana dilihat klien ({clientName}). Aksi reviu internal & catatan auditor disembunyikan.</span>
           </div>
         )}
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 12 }}>

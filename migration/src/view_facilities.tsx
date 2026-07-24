@@ -116,7 +116,7 @@ function Facilities() {
           {tab === 'overview' && (
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                <div className="row ac gap8" style={{ marginBottom: 5 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12.5 }}>Satu register aset, satu mesin penyusutan</b></div>
+                <div className="row ac gap8" style={{ marginBottom: 5 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Satu register aset, satu mesin penyusutan</b></div>
                 <div className="tiny muted" style={{ lineHeight: 1.55 }}>NBV <b>diturunkan</b> dari mesin garis lurus PSAK 16 (bukan diketik). Pemeliharaan & lisensi menunjuk <b>master vendor</b>, sewa & kontrak ke <b>Legal</b>, asuransi ke <b>polis</b>. Penyusutan mengalir ke <b>Biaya Operasi → Laba Rugi & Pajak</b>. Tab <b>Sumber Kebenaran</b> membuktikan tiap angka menutup.</div>
               </div>
 
@@ -213,7 +213,7 @@ function FacRegister({ reg, sel, setSel }: any) {
           {reg.rows.map((a: any) => (
             <tr key={a.id} onClick={() => setSel(a)} style={{ cursor: 'pointer' }} className={sel && sel.id === a.id ? 'sel' : ''}>
               <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
-              <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{a.name}</div><div className="tiny muted mono">{new Date(a.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })} · {a.life}th · {a.loc}</div></td>
+              <td><div style={{ fontWeight: 600, fontSize: 12 }}>{a.name}</div><div className="tiny muted mono">{new Date(a.acq).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })} · {a.life}th · {a.loc}</div></td>
               <td className="tiny">{a.cat}</td>
               <td className="num">{a.qty}</td>
               <td className="num">{boJt(a.cost)}</td>

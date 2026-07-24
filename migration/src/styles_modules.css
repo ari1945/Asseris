@@ -21,7 +21,7 @@
 @keyframes pmodalIn { from { transform: translateY(10px) scale(.99); opacity: .4; } to { transform: none; opacity: 1; } }
 .pmodal-h { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border-bottom: 1px solid var(--line); }
 .pmodal-ico { width: 34px; height: 34px; border-radius: 8px; background: var(--blue-100); color: var(--blue); display: grid; place-items: center; flex: 0 0 34px; }
-.pmodal-title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.pmodal-title { font-size: 15px; font-weight: 700; color: var(--ink); }
 .pmodal-body { padding: 15px; overflow: auto; }
 .pmodal-foot { padding: 11px 14px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; justify-content: flex-end; background: var(--surface-2); }
 
@@ -99,14 +99,14 @@
 .preq.p-Rendah { border-left-color: var(--line-strong); }
 .preq.sel.p-Tinggi, .preq.sel.p-Sedang, .preq.sel.p-Rendah { border-left-color: var(--blue); }
 .preq-ico { width: 30px; height: 30px; border-radius: 8px; background: var(--surface-3); color: var(--ink-3); display: grid; place-items: center; flex: 0 0 30px; }
-.preq-title { font-size: 12.5px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+.preq-title { font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.35; }
 .preq-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 3px; }
 
 /* ---- Folder tree (DMS) ---- */
 .pfolder { display: flex; flex-direction: column; gap: 2px; }
 .pfolder-item {
   display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px;
-  border-radius: 6px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; user-select: none;
+  border-radius: 6px; font-size: 12px; color: var(--ink-2); cursor: pointer; user-select: none;
 }
 .pfolder-item:hover { background: var(--surface-2); }
 .pfolder-item.on { background: var(--blue-100); color: var(--blue); font-weight: 600; }
@@ -138,7 +138,7 @@
 .lineage-dock.sa { background: var(--surface-2); }
 .lineage-dock.sa .lin-head > svg:first-child { color: var(--navy); }
 .lin-chip.sib { padding: 6px 9px; }
-.lin-empty { font-size: 11.5px; color: var(--ink-3); padding: 6px 2px; }
+.lin-empty { font-size: 12px; color: var(--ink-3); padding: 6px 2px; }
 .lin-cta { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--navy); background: var(--navy-solid); color: #fff; border-radius: 7px; padding: 6px 11px; font: 600 12px var(--ui); cursor: pointer; transition: opacity .12s; }
 .lin-cta:hover { opacity: .88; }
 .lin-chips { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -225,7 +225,7 @@
 .soqm-obj-list { display: grid; gap: 5px; }
 .soqm-obj-row { display: grid; grid-template-columns: 60px 1fr 90px; gap: 10px; align-items: stretch; padding: 8px 10px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 6px; cursor: pointer; text-align: left; transition: .15s; }
 .soqm-obj-row:hover { border-color: var(--blue); background: var(--blue-050); }
-.soqm-obj-id { font-weight: 700; color: var(--blue); font-size: 11.5px; padding-top: 2px; }
+.soqm-obj-id { font-weight: 700; color: var(--blue); font-size: 12px; padding-top: 2px; }
 .soqm-obj-chain { display: grid; grid-template-columns: 1fr 12px 1fr 12px 1fr; gap: 4px; align-items: stretch; min-width: 0; }
 .soqm-obj-cell { display: grid; gap: 2px; font-size: 11px; line-height: 1.35; color: var(--ink-2); padding: 4px 6px; border-radius: 4px; min-width: 0; }
 .soqm-obj-cell .tiny.upper { font-size: 9px; letter-spacing: .06em; }

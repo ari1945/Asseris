@@ -41,7 +41,7 @@ function FacMaintenance({ FA, nav }: any) {
           <div key={bk.key} style={{ marginBottom: 14 }}>
             <div className="row ac gap8" style={{ marginBottom: 8 }}>
               <span style={{ width: 10, height: 10, borderRadius: 3, background: bk.col }} />
-              <b style={{ fontSize: 12.5 }}>{bk.lbl}</b><span className="tiny muted">· {items.length}</span>
+              <b style={{ fontSize: 12 }}>{bk.lbl}</b><span className="tiny muted">· {items.length}</span>
               <div style={{ flex: 1, height: 1, background: 'var(--line-soft)' }} />
             </div>
             <table className="dtbl">
@@ -50,7 +50,7 @@ function FacMaintenance({ FA, nav }: any) {
                 {items.map((m: any) => (
                   <tr key={m.id}>
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{m.id}</td>
-                    <td style={{ fontWeight: 600, fontSize: 11.5 }}>{m.asset}</td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{m.asset}</td>
                     <td>{m.k3 ? <span className="badge b-purple" style={{ textTransform: 'none' }}><I.shield size={10} /> {m.type}</span> : <span className="tiny">{m.type}</span>}</td>
                     <td className="tiny">{m.vendorId ? <span className="row ac gap6"><span className="mono" style={{ color: 'var(--blue)' }}>{m.vendorId}</span><span className="muted">{m.vendor.name}</span></span> : <span className="muted">{m.vendor} <span className="chip tiny" style={{ marginLeft: 4 }}>eksternal</span></span>}</td>
                     <td className="tiny mono" style={{ color: m.days < 0 ? 'var(--red)' : 'var(--ink-2)' }}>{m.due}<span className="muted"> · {m.days < 0 ? Math.abs(m.days) + 'h lalu' : m.days + 'h'}</span></td>
@@ -81,7 +81,7 @@ function FacLicenses({ FA, firm, nav }: any) {
         <tbody>
           {lic.map((l: any) => (
             <tr key={l.name} style={{ background: l.renew ? 'var(--amber-bg)' : undefined }}>
-              <td style={{ fontWeight: 600, fontSize: 11.5 }}>{l.name}</td>
+              <td style={{ fontWeight: 600, fontSize: 12 }}>{l.name}</td>
               <td className="tiny">{l.vendorId ? <span className="row ac gap6"><span className="mono" style={{ color: 'var(--blue)' }}>{l.vendorId}</span><span className="muted truncate" style={{ maxWidth: 120 }}>{l.vendor.name}</span></span> : <span className="muted">{l.vendor} <span className="chip tiny">reseller</span></span>}</td>
               <td className="mono tiny">{l.contract ? <span style={{ color: 'var(--purple)', cursor: 'pointer' }} onClick={() => nav('legal', { from: 'facilities' })}>{l.contract.id}</span> : <span className="muted">—</span>}</td>
               <td className="num mono">{l.used}/{l.seats}</td>
@@ -114,7 +114,7 @@ function FacSpace({ FA }: any) {
         {sp.rows.map((f: any) => (
           <div key={f.floor} className="panel" style={{ padding: '11px 13px' }}>
             <div className="row jb ac" style={{ marginBottom: 6 }}>
-              <span style={{ fontWeight: 600, fontSize: 12.5 }}>{f.floor}</span>
+              <span style={{ fontWeight: 600, fontSize: 12 }}>{f.floor}</span>
               <span className="tiny muted mono">{f.area} m² · {f.occ}/{f.seats} kursi</span>
             </div>
             <div style={{ height: 10, borderRadius: 5, background: 'var(--surface-3)' }}><div style={{ width: f.util + '%', height: '100%', borderRadius: 5, background: f.util > 85 ? 'var(--amber)' : 'var(--blue)' }} /></div>
@@ -238,13 +238,13 @@ function FacLineage({ FA, firm, nav }: any) {
         <table className="dtbl">
           <thead><tr><th>Register</th><th className="num">Jml Aset</th><th className="num">Perolehan</th><th className="num">NBV</th></tr></thead>
           <tbody>
-            <tr><td style={{ fontWeight: 600, fontSize: 11.5 }}>Fasilitas (kustodian fisik)</td><td className="num">{reg.rows.length}</td><td className="num">{boM(reg.totCost, 2)}</td><td className="num" style={{ fontWeight: 600 }}>{boM(reg.totNbv, 2)}</td></tr>
-            <tr><td style={{ fontWeight: 600, fontSize: 11.5 }}>ERP (akuntansi)</td><td className="num">{erp.n}</td><td className="num">{boM(erp.totCost, 2)}</td><td className="num" style={{ fontWeight: 600 }}>{boM(erp.totNbv, 2)}</td></tr>
+            <tr><td style={{ fontWeight: 600, fontSize: 12 }}>Fasilitas (kustodian fisik)</td><td className="num">{reg.rows.length}</td><td className="num">{boM(reg.totCost, 2)}</td><td className="num" style={{ fontWeight: 600 }}>{boM(reg.totNbv, 2)}</td></tr>
+            <tr><td style={{ fontWeight: 600, fontSize: 12 }}>ERP (akuntansi)</td><td className="num">{erp.n}</td><td className="num">{boM(erp.totCost, 2)}</td><td className="num" style={{ fontWeight: 600 }}>{boM(erp.totNbv, 2)}</td></tr>
           </tbody>
           <tfoot><tr><td>Selisih cakupan</td><td className="num">{Math.abs(reg.rows.length - erp.n)}</td><td className="num">{boM(Math.abs(reg.totCost - erp.totCost), 2)}</td><td className="num">{boM(Math.abs(reg.totNbv - erp.totNbv), 2)}</td></tr></tfoot>
         </table>
         <div className="panel" style={{ padding: '12px 14px' }}>
-          <div className="row ac gap8" style={{ marginBottom: 8 }}><I.alert size={15} style={{ color: 'var(--amber)' }} /><b style={{ fontSize: 12.5 }}>Temuan: dua register paralel</b></div>
+          <div className="row ac gap8" style={{ marginBottom: 8 }}><I.alert size={15} style={{ color: 'var(--amber)' }} /><b style={{ fontSize: 12 }}>Temuan: dua register paralel</b></div>
           <div className="tiny muted" style={{ lineHeight: 1.6, marginBottom: 10 }}>Register <b>Fasilitas</b> (kustodian fisik, lokasi & pemeliharaan) dan register <b>ERP</b> (akuntansi PSAK 16 → GL) saat ini terpisah. Keduanya memakai <b>mesin penyusutan yang sama</b>, namun cakupan asetnya berbeda. Rekomendasi: konsolidasi ke <b>satu master aset</b> dengan dua tampilan (operasional & akuntansi).</div>
           <div className="tiny upper muted" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Data aset mengalir ke</div>
           <div style={{ display: 'grid', gap: 6 }}>

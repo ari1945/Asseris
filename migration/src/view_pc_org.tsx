@@ -255,7 +255,7 @@ function SuccessionPlanning() {
                     const hasReady = r.successors.some((s: any) => s.readiness === 'Siap sekarang');
                     return (
                       <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }}>
-                        <td><div style={{ fontWeight: 600, fontSize: 12.5 }}>{r.role}</div><div className="tiny muted">{r.critical} · dampak {r.vacancyImpact.toLowerCase()}</div></td>
+                        <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.role}</div><div className="tiny muted">{r.critical} · dampak {r.vacancyImpact.toLowerCase()}</div></td>
                         <td><div className="row ac gap6"><Avatar name={ic.name} size={22} /><span className="tiny truncate" style={{ maxWidth: 90 }}>{ic.name}</span></div></td>
                         <td><Badge kind={r.riskOfLoss === 'Rendah' ? 'green' : r.riskOfLoss === 'Sedang' ? 'amber' : 'red'}>{r.riskOfLoss}</Badge></td>
                         <td className="num">{r.successors.length ? <span style={{ color: hasReady ? 'var(--green)' : 'var(--amber)', fontWeight: 700 }}>{r.successors.length}</span> : <Badge kind="red">0</Badge>}</td>
@@ -267,10 +267,10 @@ function SuccessionPlanning() {
 
               <div style={{ padding: 14 }}>
                 <div className="tiny muted upper" style={{ marginBottom: 4 }}>Peran</div>
-                <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 2 }}>{role.role}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{role.role}</div>
                 <div className="row ac gap8" style={{ marginBottom: 12 }}>
                   <Avatar name={inc.name} size={30} />
-                  <div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{inc.name}</div><div className="tiny muted">Pemangku saat ini · {inc.role}</div></div>
+                  <div><div style={{ fontWeight: 600, fontSize: 12 }}>{inc.name}</div><div className="tiny muted">Pemangku saat ini · {inc.role}</div></div>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
                   <KvBox label="Kritikalitas" v={role.critical} />

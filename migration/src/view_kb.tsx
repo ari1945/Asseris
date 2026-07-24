@@ -83,7 +83,7 @@ function KnowledgeBase() {
             <div className="row jb ac wrap" style={{ gap: 12 }}>
               <div style={{ minWidth: 280, flex: 1 }}>
                 <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 3 }}>Basis Pengetahuan Asseris</div>
-                <div style={{ fontSize: 12.5, color: '#bcd6e4', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
+                <div style={{ fontSize: 12, color: '#bcd6e4', maxWidth: 560, lineHeight: 1.5 }}>Panduan standar audit (SA), akuntansi (PSAK), mutu & etika — diindeks langsung dari Registri Standar yang sama dengan Matriks Kepatuhan.</div>
               </div>
               <div className="row gap14" style={{ flexShrink: 0 }}>
                 {[['SA', all.filter((a: any) => a.type === 'SA').length], ['PSAK', all.filter((a: any) => kbFamily(a.type) === 'PSAK').length], ['Editorial', authored]].map(([l, n]) => (
@@ -265,7 +265,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
 
   const Src = ({ ic, lbl, val, onClick, accent }: any) => (
     <button onClick={onClick} disabled={!onClick} style={{ display: 'grid', gap: 3, textAlign: 'left', padding: '10px 13px', border: '1px solid var(--line)', borderRadius: 9, background: 'var(--surface-2)', cursor: onClick ? 'pointer' : 'default', opacity: onClick ? 1 : .85, flex: 1, minWidth: 130 }}>
-      <span className="muted row ac gap5" style={{ fontWeight: 600, fontSize: 11.5 }}>{ic}{lbl}</span>
+      <span className="muted row ac gap5" style={{ fontWeight: 600, fontSize: 12 }}>{ic}{lbl}</span>
       <span style={{ fontSize: 14, fontWeight: 700, color: accent || 'var(--ink)' }}>{val}</span>
     </button>
   );
@@ -287,7 +287,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           <button className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={20} /></button>
         </div>
 
-        <div style={{ padding: '24px 32px', overflowY: 'auto', overflowX: 'hidden', fontSize: 15.5, lineHeight: 1.78, color: 'var(--ink)' }}>
+        <div style={{ padding: '24px 32px', overflowY: 'auto', overflowX: 'hidden', fontSize: 15, lineHeight: 1.78, color: 'var(--ink)' }}>
           {/* SUMBER KEBENARAN — provenance strip */}
           <div className="row gap8 wrap" style={{ marginBottom: 16 }}>
             <Src ic={<I.shield size={12} />} lbl="Registri Standar" val={reg.code} onClick={() => { onClose(); nav('compmatrix', { from: 'kb' }); }} />
@@ -320,7 +320,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
                 {c.points.map((t: any, i: any) => (
                   <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
                     <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 2 }}><I.checkCircle size={17} /></span>
-                    <span style={{ fontSize: 14.5, lineHeight: 1.55 }}>{t}</span>
+                    <span style={{ fontSize: 15, lineHeight: 1.55 }}>{t}</span>
                   </div>
                 ))}
               </div>
@@ -334,7 +334,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
               <div className="row jb ac gap10 wrap">
                 <div className="row ac gap10" style={{ minWidth: 0 }}>
                   <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}>{(I as any)[mi.icon] ? React.createElement((I as any)[mi.icon], { size: 17 }) : <I.panel size={17} />}</span>
-                  <div style={{ minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }}>{mi.label}</div><div className="muted" style={{ fontSize: 12 }}>{cov.note} · {mi.group}</div></div>
+                  <div style={{ minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }}>{mi.label}</div><div className="muted" style={{ fontSize: 12 }}>{cov.note} · {mi.group}</div></div>
                 </div>
                 <div className="row gap8">
                   {kbIsStdPage(reg.module) && <Btn sm onClick={previewStd}><I.search2 size={13} /> Pratinjau</Btn>}
@@ -360,7 +360,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
                 {tpls.slice(0, 5).map((t: any) => (
                   <button key={t.id} className="kb-readlink" onClick={() => { onClose(); nav('templates', { from: 'kb' }); }}>
                     <span className="mono tiny" style={{ fontWeight: 700, color: '#fff', background: 'var(--navy-solid)', padding: '2px 6px', borderRadius: 4, flex: '0 0 auto' }}>{t.fmt}</span>
-                    <span style={{ flex: 1, minWidth: 0 }}><span style={{ fontSize: 13.5, fontWeight: 600 }}>{t.name}</span><span className="tiny muted" style={{ display: 'block' }}>v{t.ver} · {t.status}{t.reviewDue ? ' · perlu reviu' : ''}</span></span>
+                    <span style={{ flex: 1, minWidth: 0 }}><span style={{ fontSize: 15, fontWeight: 600 }}>{t.name}</span><span className="tiny muted" style={{ display: 'block' }}>v{t.ver} · {t.status}{t.reviewDue ? ' · perlu reviu' : ''}</span></span>
                     <I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} />
                   </button>
                 ))}

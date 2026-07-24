@@ -48,7 +48,7 @@ function SRStdRow({ s, fmt, nav, dense }: any) {
   return (
     <div style={{ padding: dense ? '9px 14px' : '11px 14px', borderBottom: '1px solid var(--line-soft)' }}>
       <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
-        <span className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--navy)', flex: '0 0 auto' }}>{s.code}</span>
+        <span className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--navy)', flex: '0 0 auto' }}>{s.code}</span>
         <Badge kind={(SR_IMPACT as any)[s.impact]}>{s.impact}</Badge>
         {s.rel && <Badge kind={(SR_REL as any)[s.rel].kind === 'muted' ? undefined : (SR_REL as any)[s.rel].kind}>{(SR_REL as any)[s.rel].lbl}</Badge>}
         <span style={{ flex: 1 }} />
@@ -190,7 +190,7 @@ function SAKRoadmapView() {
                   <div className="panel-h"><h3>Terbit, Belum Efektif</h3><span className="sub mono">PSAK 25 ¶30–31 — wajib diungkap</span><div style={{ flex: 1 }} /><Badge kind="amber">{H.counts.horizon}</Badge></div>
                   <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--amber-bg)' }}>
                     <span style={{ color: 'var(--amber)', marginTop: 1, flex: '0 0 auto' }}><I.alert size={15} /></span>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Standar yang telah disahkan namun belum berlaku untuk FY2025 — <b>wajib</b> diungkap pada CALK beserta estimasi dampak penerapannya (PSAK 25 ¶30–31).</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>Standar yang telah disahkan namun belum berlaku untuk FY2025 — <b>wajib</b> diungkap pada CALK beserta estimasi dampak penerapannya (PSAK 25 ¶30–31).</div>
                   </div>
                   {H.horizon.map((s: any) => <SRStdRow key={s.id} s={s} fmt={fmt} nav={nav} />)}
                 </Panel>
@@ -202,9 +202,9 @@ function SAKRoadmapView() {
                     <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                       <div className="row ac gap8" style={{ marginBottom: 6 }}>
                         <span className="mono" style={{ border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 800 }}>PSAK 118</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 700 }}>adopsi IFRS 18</span>
+                        <span style={{ fontSize: 12, fontWeight: 700 }}>adopsi IFRS 18</span>
                       </div>
-                      <div style={{ fontSize: 12.5, lineHeight: 1.55, color: '#dbe9f2' }}>Perubahan paling berdampak di horizon: menata ulang laporan laba rugi & mengatur pengungkapan MPM. Efektif <b style={{ color: '#fff' }}>1 Jan 2027</b>, retrospektif — komparatif FY2026 disajikan ulang.</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.55, color: '#dbe9f2' }}>Perubahan paling berdampak di horizon: menata ulang laporan laba rugi & mengatur pengungkapan MPM. Efektif <b style={{ color: '#fff' }}>1 Jan 2027</b>, retrospektif — komparatif FY2026 disajikan ulang.</div>
                     </div>
                     <div style={{ padding: 14, display: 'grid', gap: 8 }}>
                       {[
@@ -264,7 +264,7 @@ function SAKRoadmapView() {
                           <tr key={i.code} onClick={() => i.view && nav(i.view, { from: 'sakroadmap' })} style={{ cursor: i.view ? 'pointer' : 'default' }}>
                             <td className="mono" style={{ fontWeight: 700, color: cut ? 'var(--ink-4)' : 'var(--navy)', textDecoration: cut ? 'line-through' : 'none' }}>{i.code}</td>
                             <td>
-                              <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3, color: cut ? 'var(--ink-3)' : 'var(--ink)' }}>{i.title}{i.view && <span className="tiny" style={{ color: 'var(--blue)', fontWeight: 600, marginLeft: 6 }}>modul ↗</span>}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: cut ? 'var(--ink-3)' : 'var(--ink)' }}>{i.title}{i.view && <span className="tiny" style={{ color: 'var(--blue)', fontWeight: 600, marginLeft: 6 }}>modul ↗</span>}</div>
                               <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{i.note}</div>
                             </td>
                             <td className="mono tiny" style={{ color: 'var(--ink-2)' }}>{i.parent}</td>
@@ -304,7 +304,7 @@ function SAKRoadmapView() {
                   <div className="tiny" style={{ color: 'var(--ink-2)', lineHeight: 1.6 }}>
                     Interpretasi (ISAK) mengikat setara PSAK namun sebelumnya tersamar di balik standar induk. Registri terpisah ini memastikan tidak ada interpretasi yang terlewat dinilai — landasan opini bahwa LK disusun atas kerangka pelaporan yang <b>lengkap & berterima</b> (SA 700).
                   </div>
-                  <button onClick={() => nav('isak35', { from: 'sakroadmap' })} className="row ac gap6" style={{ marginTop: 10, padding: '6px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 11.5, fontWeight: 600, color: 'var(--blue)' }}>
+                  <button onClick={() => nav('isak35', { from: 'sakroadmap' })} className="row ac gap6" style={{ marginTop: 10, padding: '6px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--blue)' }}>
                     <I.users size={13} /> ISAK 35 · Entitas Nonlaba (modul mendalam)
                   </button>
                 </Panel>
@@ -319,7 +319,7 @@ function SAKRoadmapView() {
                 <div className="panel-h"><h3>Kesiapan PSAK 118 (IFRS 18)</h3><span className="sub mono">daftar-uji transisi</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{H.readiness207.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1, flex: '0 0 auto' }}><I.building size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}><b>{client.name}</b> — {client.industry}. Entitas {client.listed ? 'terdaftar (Tbk)' : 'privat'} → penerapan PSAK 118 <b>wajib</b>. Persiapan dimulai dini agar komparatif FY2026 dapat disajikan ulang tepat waktu.</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}><b>{client.name}</b> — {client.industry}. Entitas {client.listed ? 'terdaftar (Tbk)' : 'privat'} → penerapan PSAK 118 <b>wajib</b>. Persiapan dimulai dini agar komparatif FY2026 dapat disajikan ulang tepat waktu.</div>
                 </div>
                 <div>
                   {H.readiness207.map((r: any, i: any) => {
@@ -327,7 +327,7 @@ function SAKRoadmapView() {
                     return (
                       <label key={r.id} className="row gap10" style={{ padding: '10px 14px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < H.readiness207.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(r.id)}>
                         <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={11} style={{ color: '#fff' }} />}</span>
-                        <span style={{ fontSize: 12.5, lineHeight: 1.4, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{r.t}</span>
+                        <span style={{ fontSize: 12, lineHeight: 1.4, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{r.t}</span>
                       </label>
                     );
                   })}
@@ -352,7 +352,7 @@ function SAKRoadmapView() {
                       {H.horizon.map((s: any) => (
                         <div key={s.id} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', background: 'var(--surface-2)' }}>
                           <div className="row ac gap6" style={{ marginBottom: 3 }}>
-                            <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{s.code}</span>
+                            <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{s.code}</span>
                             <Badge kind={(SR_REL as any)[s.rel].kind === 'muted' ? undefined : (SR_REL as any)[s.rel].kind}>{(SR_REL as any)[s.rel].lbl}</Badge>
                             <span style={{ flex: 1 }} />
                             <Badge kind={(SR_IMPACT as any)[s.impact]}>{s.impact}</Badge>
@@ -426,7 +426,7 @@ function SAKRoadmapView() {
                     ].map((r, i) => (
                       <div key={i} className="row ac gap10" style={{ padding: '9px 0', borderTop: i ? '1px solid var(--line-soft)' : 0 }}>
                         <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><I.check size={14} /></span>
-                        <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>{r[0]}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{r[0]}</span>
                         <span className="tiny muted" style={{ textAlign: 'right', maxWidth: 230 }}>{r[1]}</span>
                       </div>
                     ))}
@@ -479,7 +479,7 @@ function SAKRoadmapView() {
                   </div>
                   <div className="panel" style={{ margin: '10px 14px', padding: '9px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={14} /></span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>IAI mengubah penomoran PSAK & ISAK efektif <b>1 Jan 2024</b> (1xx=IFRS · 2xx=IAS · 3xx=lokal · 4xx=syariah) — <b>substansi standar tidak berubah</b>. Nomor lama tetap lazim dirujuk pada LK FY2025; padanan baru ditampilkan untuk konsistensi penomoran & telaah. Sumber: dokumen resmi IAI "Perubahan Penomoran PSAK dan ISAK dalam SAK Indonesia".</span></div>
+                      <span style={{ fontSize: 12, lineHeight: 1.45 }}>IAI mengubah penomoran PSAK & ISAK efektif <b>1 Jan 2024</b> (1xx=IFRS · 2xx=IAS · 3xx=lokal · 4xx=syariah) — <b>substansi standar tidak berubah</b>. Nomor lama tetap lazim dirujuk pada LK FY2025; padanan baru ditampilkan untuk konsistensi penomoran & telaah. Sumber: dokumen resmi IAI "Perubahan Penomoran PSAK dan ISAK dalam SAK Indonesia".</span></div>
                   </div>
                   <table className="dtbl">
                     <thead><tr><th style={{ width: 92 }}>Lama</th><th style={{ width: 100 }}>Baru</th><th>Judul</th><th style={{ width: 70 }}>Jenis</th></tr></thead>

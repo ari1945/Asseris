@@ -60,7 +60,7 @@ function ResourceScheduler() {
                   <div className="row ac gap10">
                     <div style={{ width: 180, flex: '0 0 180px' }} className="row ac gap8">
                       <Avatar name={m.member} size={28} />
-                      <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{m.member.split(',')[0]}</div><div className="tiny muted">{m.role}</div></div>
+                      <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{m.member.split(',')[0]}</div><div className="tiny muted">{m.role}</div></div>
                     </div>
                     {/* stacked bar */}
                     <div style={{ flex: 1, height: 26, borderRadius: 5, background: 'var(--surface-3)', display: 'flex', overflow: 'hidden', position: 'relative' }}>
@@ -73,7 +73,7 @@ function ResourceScheduler() {
                       {over && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 3, background: 'var(--red-solid)' }} />}
                     </div>
                     <div style={{ width: 76, flex: '0 0 76px', textAlign: 'right' }}>
-                      <span className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: over ? 'var(--red)' : pct < 60 ? 'var(--amber)' : 'var(--green)' }}>{used}/{m.capacity}h</span>
+                      <span className="mono" style={{ fontWeight: 700, fontSize: 12, color: over ? 'var(--red)' : pct < 60 ? 'var(--amber)' : 'var(--green)' }}>{used}/{m.capacity}h</span>
                       <div className="tiny muted">{Math.round(pct)}%</div>
                     </div>
                   </div>

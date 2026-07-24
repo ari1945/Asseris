@@ -66,19 +66,19 @@ function SJAH3420View() {
               <div className="tiny muted">{A.id} · PUT II + Akuisisi 80% {A.target.name.replace('PT ', '')}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Goodwill Akuisisi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--navy)' }}>Rp {fmt(E.ppa.goodwill, 0)} jt</div></div>
+            <div><div className="tiny muted upper">Goodwill Akuisisi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--navy)' }}>Rp {fmt(E.ppa.goodwill, 0)} jt</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Dana HMETD (neto)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Rp {fmt(E.fin.netProceeds, 0)} jt</div></div>
+            <div><div className="tiny muted upper">Dana HMETD (neto)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Rp {fmt(E.fin.netProceeds, 0)} jt</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">EPS Historis → Proforma</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: E.eps.accretion >= 0 ? 'var(--green)' : 'var(--red)' }}>Rp {fmt(E.eps.histEPS, 1)} → {fmt(E.eps.pfEPS, 1)} <span style={{ fontWeight: 600 }}>({sgnEps}{fmt(Math.abs(E.eps.accretion), 1)})</span></div></div>
+            <div><div className="tiny muted upper">EPS Historis → Proforma</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: E.eps.accretion >= 0 ? 'var(--green)' : 'var(--red)' }}>Rp {fmt(E.eps.histEPS, 1)} → {fmt(E.eps.pfEPS, 1)} <span style={{ fontWeight: 600 }}>({sgnEps}{fmt(Math.abs(E.eps.accretion), 1)})</span></div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tie-out SSOT</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: E.tieOk ? 'var(--green)' : 'var(--red)' }}>{E.tieOk ? 'Menutup' : 'Selisih'} · LPK {E.bs.balance === 0 ? 'balance' : 'off'}</div></div>
+            <div><div className="tiny muted upper">Tie-out SSOT</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: E.tieOk ? 'var(--green)' : 'var(--red)' }}>{E.tieOk ? 'Menutup' : 'Selisih'} · LPK {E.bs.balance === 0 ? 'balance' : 'off'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right', minWidth: 120 }}>
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Progres Prosedur</div>
               <div className="row ac gap8" style={{ justifyContent: 'flex-end' }}>
                 <div style={{ width: 90 }}><Progress value={E.progress} color={E.allProc ? 'var(--green)' : undefined} /></div>
-                <span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{E.progress}%</span>
+                <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{E.progress}%</span>
               </div>
             </div>
           </div>
@@ -121,7 +121,7 @@ function PfAnatomy({ E, A }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.link2 size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Kolom <b>tidak disesuaikan</b> TIDAK dimasukkan ulang — ditarik LIVE dari <b className="mono">AMS_CANON</b> (laporan konsolidasian auditan {A.issuer} FY2025 · PSAK 65/72). Penyesuaian proforma mengikuti metodologi <b className="mono">AMS_CANON.psak22</b> & tarif <b className="mono">AMS_CANON.RATE</b>. Mengubah satu AJE di WTB → kolom historis ikut bergerak & tie-out tetap menutup.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Kolom <b>tidak disesuaikan</b> TIDAK dimasukkan ulang — ditarik LIVE dari <b className="mono">AMS_CANON</b> (laporan konsolidasian auditan {A.issuer} FY2025 · PSAK 65/72). Penyesuaian proforma mengikuti metodologi <b className="mono">AMS_CANON.psak22</b> & tarif <b className="mono">AMS_CANON.RATE</b>. Mengubah satu AJE di WTB → kolom historis ikut bergerak & tie-out tetap menutup.</span>
           </div>
         </div>
       </Panel>
@@ -183,7 +183,7 @@ function PfAnatomy({ E, A }: any) {
         <div className="panel-h"><h3>Struktur Transaksi yang Diproformakan</h3></div>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0 }}>
           <div style={{ padding: 16, borderRight: '1px solid var(--line-soft)' }}>
-            <div className="row gap8 ac" style={{ marginBottom: 8 }}><span style={{ color: 'var(--navy)' }}><I.layers size={15} /></span><span style={{ fontWeight: 700, fontSize: 12.5 }}>Akuisisi 80% {A.target.name}</span></div>
+            <div className="row gap8 ac" style={{ marginBottom: 8 }}><span style={{ color: 'var(--navy)' }}><I.layers size={15} /></span><span style={{ fontWeight: 700, fontSize: 12 }}>Akuisisi 80% {A.target.name}</span></div>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <KvBox label="Imbalan dialihkan (kas)" v={'Rp ' + pfJ(E.ppa.considerationCash) + ' jt'} accent="var(--navy)" />
               <KvBox label="FVNIA (aset neto NW)" v={'Rp ' + pfJ(E.ppa.fvnia) + ' jt'} accent="var(--blue)" />
@@ -193,7 +193,7 @@ function PfAnatomy({ E, A }: any) {
             <p className="tiny muted" style={{ margin: '9px 0 0', lineHeight: 1.45 }}>Sektor target: {A.target.sector}. {A.target.auditor}.</p>
           </div>
           <div style={{ padding: 16 }}>
-            <div className="row gap8 ac" style={{ marginBottom: 8 }}><span style={{ color: 'var(--green)' }}><I.coins size={15} /></span><span style={{ fontWeight: 700, fontSize: 12.5 }}>Pendanaan HMETD (PUT II)</span></div>
+            <div className="row gap8 ac" style={{ marginBottom: 8 }}><span style={{ color: 'var(--green)' }}><I.coins size={15} /></span><span style={{ fontWeight: 700, fontSize: 12 }}>Pendanaan HMETD (PUT II)</span></div>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <KvBox label="Saham baru" v={pfJ(E.fin.newShares) + ' jt lembar'} accent="var(--green)" />
               <KvBox label="Harga pelaksanaan" v={'Rp ' + E.fin.price + '/lembar'} accent="var(--navy)" />
@@ -428,7 +428,7 @@ function PfReport({ E, A }: any) {
           <div className="panel-h"><h3>Prosedur Asurans (¶)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700 }}>{E.counts.proceduresDone}/{E.counts.procedures}</span></div>
           <div style={{ padding: 10, display: 'grid', gap: 6 }}>
             {E.procedures.map((p: any) => (
-              <div key={p.id} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={p.id} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span style={{ lineHeight: 1.3, paddingRight: 8 }}><span className="mono tiny muted" style={{ fontWeight: 700 }}>{p.ref}</span> {p.short}</span>
                 <Badge kind={p.done ? 'green' : 'amber'}>{p.done ? 'Selesai' : 'Tertunda'}</Badge>
               </div>
@@ -449,7 +449,7 @@ function PfReport({ E, A }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan Asurans Akuntan Pelapor Independen</h3><div style={{ flex: 1 }} /><Badge kind={E.canIssue ? 'green' : 'amber'}>{E.canIssue ? 'Siap terbit' : 'Draf'}</Badge></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN ASURANS AKUNTAN PELAPOR INDEPENDEN ATAS PENYUSUNAN INFORMASI KEUANGAN PROFORMA</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>{A.std} · Keyakinan {A.level} · Tercantum dalam Prospektus PUT II {A.issuer}</div>
             <p style={{ margin: '0 0 10px' }}>Kepada Direksi {A.issuer}</p>

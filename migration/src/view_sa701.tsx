@@ -68,11 +68,11 @@ function SA701View() {
               <div className="tiny muted">{client} · {listed ? 'Entitas Terdaftar' : 'Entitas'} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Hal ke TCWG</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{kams.length + (doc.kamExcluded?.length || 0)} hal</div></div>
+            <div><div className="tiny muted upper">Hal ke TCWG</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{kams.length + (doc.kamExcluded?.length || 0)} hal</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">KAM Final</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--teal)' }}>{suppressed ? '—' : `${included.length} hal audit utama`}</div></div>
+            <div><div className="tiny muted upper">KAM Final</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--teal)' }}>{suppressed ? '—' : `${included.length} hal audit utama`}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Penerapan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{listed ? 'Wajib — entitas terdaftar' : 'Sesuai pertimbangan/ketentuan'}</div></div>
+            <div><div className="tiny muted upper">Penerapan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{listed ? 'Wajib — entitas terdaftar' : 'Sesuai pertimbangan/ketentuan'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Letak dalam Laporan</div>
@@ -127,7 +127,7 @@ function F701Funnel({ doc }: { doc: ODoc }) {
             return (
               <div key={i} style={{ marginBottom: i < 2 ? 8 : 0 }}>
                 <div style={{ width: w + '%', margin: '0 auto', background: `var(--${f.color}-bg)`, border: `1.5px solid var(--${f.color})`, borderRadius: 10, padding: '12px 16px', textAlign: 'center' }}>
-                  <div className="row ac jc gap8"><span className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${f.color})` }}>{f.n}</span><span style={{ fontWeight: 700, fontSize: 12.5 }}>{f.stage}</span></div>
+                  <div className="row ac jc gap8"><span className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${f.color})` }}>{f.n}</span><span style={{ fontWeight: 700, fontSize: 12 }}>{f.stage}</span></div>
                   <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.4 }}>{f.d}</div>
                 </div>
                 {i < 2 && <div style={{ textAlign: 'center', color: 'var(--ink-4)', margin: '2px 0' }}><I.chevDown size={16} /></div>}
@@ -138,7 +138,7 @@ function F701Funnel({ doc }: { doc: ODoc }) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>KAM dipilih dari hal yang dikomunikasikan ke TCWG yang <b>memerlukan perhatian signifikan auditor</b> (¶9), lalu ditentukan hal mana yang <b>paling signifikan</b> (¶10). Kelola kandidat di tab <b>Register KAM</b>; hal yang dikecualikan di <b>Keterkaitan & TCWG</b>.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>KAM dipilih dari hal yang dikomunikasikan ke TCWG yang <b>memerlukan perhatian signifikan auditor</b> (¶9), lalu ditentukan hal mana yang <b>paling signifikan</b> (¶10). Kelola kandidat di tab <b>Register KAM</b>; hal yang dikecualikan di <b>Keterkaitan & TCWG</b>.</span>
           </div>
         </div>
       </Panel>
@@ -150,7 +150,7 @@ function F701Funnel({ doc }: { doc: ODoc }) {
             {sigRisks.map((r) => {
               const used = kams.some((k) => k.risk === r.id);
               return (
-                <div key={r.id} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+                <div key={r.id} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                   <span style={{ color: used ? 'var(--teal)' : 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{used ? <I.checkCircle size={13} /> : <I.circle size={13} />}</span>
                   <span style={{ lineHeight: 1.4 }}><span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</span> — {r.area}{used ? ' · menjadi KAM' : ''}</span>
                 </div>
@@ -166,7 +166,7 @@ function F701Funnel({ doc }: { doc: ODoc }) {
               ['Pertimbangan auditor signifikan atas area estimasi dengan ketidakpastian tinggi', 'b'],
               ['Dampak peristiwa/transaksi signifikan terhadap audit', 'c'],
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: 5, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 10 }}>{r[1]}</span>
                 <span style={{ lineHeight: 1.4 }}>{r[0]}</span>
               </div>
@@ -186,7 +186,7 @@ function F701Register({ doc, patch }: { doc: ODoc; patch: Patch }) {
       <div className="panel" style={{ padding: '9px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
         <div className="row gap8" style={{ alignItems: 'flex-start' }}>
           <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.link2 size={14} /></span>
-          <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Register ini adalah <b>sumber kebenaran tunggal</b> KAM — sama dengan Generator Opini & bagian "Hal Audit Utama" pada laporan auditor. Perubahan tersinkron otomatis.</span>
+          <span style={{ fontSize: 12, lineHeight: 1.45 }}>Register ini adalah <b>sumber kebenaran tunggal</b> KAM — sama dengan Generator Opini & bagian "Hal Audit Utama" pada laporan auditor. Perubahan tersinkron otomatis.</span>
         </div>
       </div>
       <KAMWorkshop doc={doc} patch={patch} />
@@ -202,7 +202,7 @@ function F701Report({ client, doc, suppressed }: { client: string; doc: ODoc; su
       <Panel noBody>
         <div className="panel-h"><h3>Draf Bagian "Hal Audit Utama" — Laporan Auditor</h3><div style={{ flex: 1 }} /><Badge kind="blue">Pratinjau</Badge></div>
         <div style={{ padding: 22 }}>
-          <div style={{ maxWidth: 660, margin: '0 auto', fontSize: 12.5, lineHeight: 1.65 }}>
+          <div style={{ maxWidth: 660, margin: '0 auto', fontSize: 12, lineHeight: 1.65 }}>
             {suppressed ? (
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}><I.alert size={15} /></span>
@@ -211,7 +211,7 @@ function F701Report({ client, doc, suppressed }: { client: string; doc: ODoc; su
             ) : kams.length === 0 ? (
               <div className="tiny muted" style={{ padding: '18px 0', textAlign: 'center' }}>Belum ada KAM yang disertakan. Tambahkan/aktifkan KAM di tab Register KAM.</div>
             ) : (<>
-              <div style={{ fontWeight: 800, fontSize: 13.5, marginBottom: 6 }}>Hal Audit Utama</div>
+              <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>Hal Audit Utama</div>
               <p style={{ margin: '0 0 14px', color: 'var(--ink-2)' }}>Hal audit utama adalah hal-hal yang, menurut pertimbangan profesional kami, merupakan hal yang paling signifikan dalam audit kami atas laporan keuangan periode kini. Hal-hal tersebut ditangani dalam konteks audit kami atas laporan keuangan secara keseluruhan, dan dalam merumuskan opini kami, kami tidak menyatakan suatu opini terpisah atas hal-hal tersebut.</p>
               {kams.map((k, i) => (
                 <div key={k.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < kams.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
@@ -230,7 +230,7 @@ function F701Report({ client, doc, suppressed }: { client: string; doc: ODoc; su
         <Panel title="Letak & Urutan dalam Laporan">
           <div style={{ display: 'grid', gap: 6 }}>
             {['Opini', 'Basis Opini', 'Hal Audit Utama ◄', 'Tanggung Jawab Manajemen', 'Tanggung Jawab Auditor', 'Tanda Tangan & Tanggal'].map((t, i) => (
-              <div key={i} className="row ac gap8" style={{ fontSize: 11.5, padding: '6px 9px', borderRadius: 6, background: t.includes('◄') ? 'var(--teal-bg)' : 'var(--surface-2)', fontWeight: t.includes('◄') ? 700 : 500 }}>
+              <div key={i} className="row ac gap8" style={{ fontSize: 12, padding: '6px 9px', borderRadius: 6, background: t.includes('◄') ? 'var(--teal-bg)' : 'var(--surface-2)', fontWeight: t.includes('◄') ? 700 : 500 }}>
                 <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>{i + 1}</span>{t.replace(' ◄', '')}
               </div>
             ))}
@@ -298,7 +298,7 @@ function F701Comms({ doc, patch }: { doc: ODoc; patch: Patch }) {
               { t: 'Setiap KAM memuat alasan (why) & penanganan (how)', ok: kams.length > 0 && kams.every((k) => k.why && k.how) },
               { t: 'Setiap KAM memiliki rujukan LK / kertas kerja', ok: kams.length > 0 && kams.every((k) => k.fsRef || k.wpRef) },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: r.ok ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{r.ok ? <I.checkCircle size={15} /> : <I.circle size={14} />}</span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>

@@ -97,7 +97,7 @@ function MatSpecific({ om, pmPct, locked }: any) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Konsep" sub="Mengapa lebih rendah dari OM">
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             Untuk kelas transaksi, saldo akun, atau pengungkapan tertentu, salah saji bernilai <b>lebih kecil dari Materialitas Keseluruhan</b> tetap
             dapat memengaruhi keputusan ekonomi pengguna. Auditor menetapkan tingkat materialitas spesifik yang lebih rendah untuk pos-pos tersebut.
           </p>
@@ -328,7 +328,7 @@ function MatImpact({ om, pm, ctt, locked }: any) {
               {[['Agregat tak-dikoreksi', matGross, om], ['Performance Materiality', pm, om], ['Overall Materiality', om, om]].map(([lbl, v, base]) => (
                 <div key={lbl} style={{ marginBottom: 10 }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 600 }}>{lbl}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>{lbl}</span>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{_FM(v)}</span>
                   </div>
                   <div style={{ height: 9, borderRadius: 5, background: 'var(--surface-3)' }}>
@@ -437,7 +437,7 @@ function MatRevision({ om, applied, locked }: any) {
           </div>
         </Panel>
         <Panel title="Catatan SA 320">
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             Auditor merevisi materialitas bila memperoleh informasi yang, seandainya diketahui sejak awal, akan menghasilkan
             angka berbeda — misalnya perubahan signifikan hasil keuangan aktual. Setiap revisi <b>didokumentasikan dan disetujui</b> partner.
           </p>
@@ -504,7 +504,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
 
   const Row = ({ label, value, strong }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
-      <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{label}</span>
+      <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
       <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5 }}>{value}</span>
     </div>
   );
@@ -515,7 +515,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         <div className="tiny muted upper" style={{ marginBottom: 6 }}>{title}</div>
         {s ? (
           <>
-            <div className="row ac gap8"><Avatar name={s.name} size={26} /><div><div style={{ fontWeight: 700, fontSize: 12.5 }}>{s.name}</div><div className="tiny muted">{s.role}</div></div></div>
+            <div className="row ac gap8"><Avatar name={s.name} size={26} /><div><div style={{ fontWeight: 700, fontSize: 12 }}>{s.name}</div><div className="tiny muted">{s.role}</div></div></div>
             <div className="row ac gap6 tiny" style={{ color: 'var(--green)', marginTop: 7, fontWeight: 600 }}><I.checkCircle size={13} /> Ditandatangani {s.at}</div>
           </>
         ) : (
@@ -540,7 +540,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
           <div className="tiny muted" style={{ marginBottom: 14 }}>FY2025 · Standar {activeEngagement?.standard} · SA 320 & SA 450</div>
 
           <SecTitle n="1" t="Pemilihan Benchmark & Persentase" />
-          <p style={{ margin: '0 0 6px', fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 6px', fontSize: 12, lineHeight: 1.6 }}>
             Benchmark utama adalah <b>{bench.label}</b> sebesar {_RP(bench.value)} ({bench.note}). Persentase {pct}% diterapkan
             (kisaran lazim {bench.lo}–{bench.hi}%), menghasilkan Materialitas Keseluruhan {_RP(om)}.
           </p>
@@ -549,10 +549,10 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
           <Row label={`Ambang Jelas Remeh (${cttPct}% OM)`} value={_RP(ctt)} />
 
           <SecTitle n="2" t="Materialitas Spesifik & Komponen" mt />
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>{MAT_MEMO_SEC2}</p>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6 }}>{MAT_MEMO_SEC2}</p>
 
           <SecTitle n="3" t="Kesimpulan" mt />
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>{MAT_MEMO_SEC3}</p>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6 }}>{MAT_MEMO_SEC3}</p>
         </div>
       </Panel>
 

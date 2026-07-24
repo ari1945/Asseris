@@ -141,7 +141,7 @@ function SOQM() {
                     const src = (MON_SOURCE as any)[a.act];
                     return (
                       <div key={i} className="panel" style={{ padding: '11px 13px', boxShadow: 'none' }}>
-                        <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{a.act}</span><Badge kind={(MON_RESULT as any)[a.result]}>{a.result}</Badge></div>
+                        <div className="row jb ac" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 700 }}>{a.act}</span><Badge kind={(MON_RESULT as any)[a.result]}>{a.result}</Badge></div>
                         <div className="row ac gap10 tiny muted"><span>{a.freq}</span><span>·</span><span>Terakhir {a.last}</span><span>·</span><span>{a.owner}</span></div>
                         <div className="tiny" style={{ marginTop: 4, color: 'var(--ink-2)' }}>{a.cover}</div>
                         {src && (
@@ -192,7 +192,7 @@ function SOQM() {
                       <div key={i} className="panel" style={{ padding: 0, boxShadow: 'none', borderLeft: '3px solid var(--' + ((SEV_KIND as any)[f.sev] || 'amber') + ')', overflow: 'hidden' }}>
                         <div onClick={() => setOpenRca(isOpen ? null : i)} style={{ padding: '10px 13px', cursor: 'pointer' }}>
                           <div className="row jb ac">
-                            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.ins}</span>{m ? <span className="tiny muted">{m.shortClient}</span> : null}<span style={{ fontSize: 12.5, fontWeight: 700 }}>{f.area}</span><Badge kind={(SEV_KIND as any)[f.sev]}>{f.sev}</Badge></div>
+                            <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.ins}</span>{m ? <span className="tiny muted">{m.shortClient}</span> : null}<span style={{ fontSize: 12, fontWeight: 700 }}>{f.area}</span><Badge kind={(SEV_KIND as any)[f.sev]}>{f.sev}</Badge></div>
                             <span style={{ color: 'var(--ink-4)' }}><I.chevDown size={15} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: '.15s' }} /></span>
                           </div>
                           <div className="tiny muted" style={{ marginTop: 4, lineHeight: 1.45 }}>{f.desc}</div>
@@ -322,7 +322,7 @@ function RemediationTab({ deficiencies, nav }: any) {
                 <div className="tiny muted upper" style={{ marginBottom: 5 }}>Temuan inspeksi terkait (ketertelusuran akar masalah)</div>
                 <div style={{ display: 'grid', gap: 5 }}>
                   {sevList.map((f: any, i: any) => (
-                    <div key={i} className="row ac gap8" style={{ fontSize: 11.5 }}>
+                    <div key={i} className="row ac gap8" style={{ fontSize: 12 }}>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.ins}</span>
                       <span style={{ fontWeight: 600 }}>{f.area}</span>
                       <span className="muted truncate" style={{ flex: 1 }}>{f.cause}</span>
@@ -355,13 +355,13 @@ function RiskDetail({ r, nav, onClose }: any) {
               <React.Fragment key={i}><span className="soqm-chain-node">{s}</span>{i < 3 && <span className="soqm-chain-arr">→</span>}</React.Fragment>
             ))}
           </div>
-          <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Tujuan Mutu</div><div style={{ fontSize: 12.5, lineHeight: 1.55 }}>{r.objective}</div></div>
-          <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Risiko Mutu</div><div style={{ fontSize: 12.5, lineHeight: 1.55 }}>{r.risk}</div></div>
+          <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Tujuan Mutu</div><div style={{ fontSize: 12, lineHeight: 1.55 }}>{r.objective}</div></div>
+          <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Risiko Mutu</div><div style={{ fontSize: 12, lineHeight: 1.55 }}>{r.risk}</div></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <OKv label="Likelihood" v={r.lik + ' / 5'} />
             <OKv label="Dampak" v={r.imp + ' / 5'} accent={r.lik * r.imp >= 12 ? 'var(--red)' : r.lik * r.imp >= 6 ? 'var(--amber)' : 'var(--green)'} />
           </div>
-          <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Mutu</div><div className="panel" style={{ padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'transparent', fontSize: 12.5, lineHeight: 1.55 }}>{r.response}</div></div>
+          <div><div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Mutu</div><div className="panel" style={{ padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'transparent', fontSize: 12, lineHeight: 1.55 }}>{r.response}</div></div>
           {comp && (
             <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}><span className="tiny" style={{ fontWeight: 700 }}>Komponen SPM {comp.id} · {comp.name}</span><span className="mono" style={{ fontWeight: 800, color: comp.score >= 85 ? 'var(--green)' : 'var(--amber)' }}>{comp.score}</span></div>

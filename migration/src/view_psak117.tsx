@@ -72,7 +72,7 @@ function P117WorkPaper({ p117, fmt, rp, nav }: any) {
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
         <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
-        <h4 style={{ margin: 0, fontSize: 13.5, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
+        <h4 style={{ margin: 0, fontSize: 15, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
         {sub && <span className="tiny muted mono" style={{ marginLeft: 'auto' }}>{sub}</span>}
       </div>
       {children}
@@ -87,7 +87,7 @@ function P117WorkPaper({ p117, fmt, rp, nav }: any) {
   const Sign = ({ lbl, p, accent }: any) => (
     <div style={{ flex: 1, borderTop: '2px solid ' + (accent || 'var(--navy)'), paddingTop: 8 }}>
       <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
       <div className="tiny muted">{p.role}</div>
       <div className="tiny mono" style={{ color: 'var(--ink-3)', marginTop: 3 }}>{p.at}</div>
     </div>
@@ -203,7 +203,7 @@ function P117WorkPaper({ p117, fmt, rp, nav }: any) {
             { lbl: 'PSAK 1 · Penyajian LK', id: 'psak1' }, { lbl: 'FS Generator', id: 'fsgen' },
             { lbl: 'SAD Ledger', id: 'sad' }, { lbl: 'Opini & KAM', id: 'opinion' },
           ].map(x => (
-            <button key={x.id} onClick={() => nav(x.id, { from: 'psak117' })} className="row ac gap6" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-2)' }}>
+            <button key={x.id} onClick={() => nav(x.id, { from: 'psak117' })} className="row ac gap6" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}>
               <I.link2 size={12} style={{ color: 'var(--blue)' }} />{x.lbl}
             </button>
           ))}
@@ -303,7 +303,7 @@ function PSAK117View() {
                         {p117.ports.map((p: any) => (
                           <tr key={p.id}>
                             <td>
-                              <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{p.name}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{p.name}</div>
                               <div className="tiny muted" style={{ lineHeight: 1.4 }}>{p.note}</div>
                             </td>
                             <td style={{ textAlign: 'center' }}><Badge kind={(P117_MODEL_META as any)[p.model].kind}>{p.model}</Badge></td>
@@ -326,7 +326,7 @@ function PSAK117View() {
                       <div key={m.model} style={{ padding: '11px 0', borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
                         <div className="row ac gap8" style={{ marginBottom: 4 }}>
                           <Badge kind={(P117_MODEL_META as any)[m.model].kind}>{m.model}</Badge>
-                          <span style={{ fontSize: 12.5, fontWeight: 700 }}>{m.label}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700 }}>{m.label}</span>
                           <span className="tiny muted">{m.sub}</span>
                           <span style={{ flex: 1 }} />
                           <span className="tiny muted">{m.n} portofolio · {fmt(m.lrc)} jt</span>
@@ -414,7 +414,7 @@ function PSAK117View() {
                   <div className="panel-h"><h3>Total Liabilitas Kontrak Asuransi</h3><span className="sub mono">LRC + LIC</span></div>
                   <div className="row gap12 ac" style={{ padding: '12px 14px' }}>
                     <Donut segments={liabSegs} size={104} thickness={15}
-                      center={<><div className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(p117.liabTotal / 1000))}rb</div><div className="tiny muted">jt</div></>} />
+                      center={<><div className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(p117.liabTotal / 1000))}rb</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1, display: 'grid', gap: 7 }}>
                       <P117Kv label="Liab. Sisa Perlindungan (LRC)" v={fmt(p117.lrcTotal)} />
                       <P117Kv label="Liab. Klaim Terjadi (LIC)" v={fmt(p117.licTotal)} />
@@ -447,7 +447,7 @@ function PSAK117View() {
                 <div>
                   {p117.csmRoll.map((r: any, i: any) => (
                     <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
-                      <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                       {!r.tot && r.kind ? <Badge kind={r.kind}>{r.k === 'new' ? 'baru' : r.k === 'accr' ? 'akresi' : r.k === 'chg' ? 'estimasi' : 'release'}</Badge> : <span style={{ width: 54 }} />}
                       <div className="mono" style={{ width: 82, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tot ? 'var(--navy)' : 'var(--green)' }}>{r.v < 0 ? '(' + fmt(-r.v) + ')' : (r.tot ? '' : '+') + fmt(r.v)}</div>
                     </div>
@@ -470,7 +470,7 @@ function PSAK117View() {
                     ))}
                   </div>
                   <div className="panel" style={{ margin: '11px 14px 12px', padding: '9px 11px', background: 'var(--teal-bg)', borderColor: 'transparent' }}>
-                    <div className="row gap8"><span style={{ color: 'var(--teal)' }}><I.target size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Tingkat keyakinan RA ditetapkan pada <b>persentil ke-{p117.raConfidence}</b> dari distribusi arus kas — diungkapkan sesuai ¶119.</span></div>
+                    <div className="row gap8"><span style={{ color: 'var(--teal)' }}><I.target size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.5 }}>Tingkat keyakinan RA ditetapkan pada <b>persentil ke-{p117.raConfidence}</b> dari distribusi arus kas — diungkapkan sesuai ¶119.</span></div>
                   </div>
                 </Panel>
 
@@ -602,7 +602,7 @@ function PSAK117View() {
                 <div className="panel-h"><h3>Prosedur Audit — Estimasi Aktuaria (SA 540 · SA 620)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{p117.proc.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.target size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Valuasi kontrak asuransi adalah <b>estimasi akuntansi berketidakpastian tinggi</b> (R-A1). Prosedur menguji metodologi model, asumsi aktuaria, kurva diskonto, penyesuaian risiko, gulir CSM & pekerjaan Aktuaris.</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>Valuasi kontrak asuransi adalah <b>estimasi akuntansi berketidakpastian tinggi</b> (R-A1). Prosedur menguji metodologi model, asumsi aktuaria, kurva diskonto, penyesuaian risiko, gulir CSM & pekerjaan Aktuaris.</div>
                 </div>
                 <div>
                   {p117.proc.map((p: any, i: any) => {

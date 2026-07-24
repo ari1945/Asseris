@@ -208,7 +208,7 @@ function FirmBI() {
                   <div key={p.p}>
                     <div className="row ac gap8" style={{ marginBottom: 5 }}>
                       <Avatar name={p.p} size={28} />
-                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{p.p}</div><div className="tiny muted">{p.n} klien · {eqrN} EQR · util {util}%</div></div>
+                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{p.p}</div><div className="tiny muted">{p.n} klien · {eqrN} EQR · util {util}%</div></div>
                       <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(p.fee / 1e9, 2)}M</div></div>
                     </div>
                     <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (p.fee / maxPartnerFee * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div>

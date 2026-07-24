@@ -150,7 +150,7 @@ function DiagFindingCard({ f, decision, onDecide, nav }: any) {
       <div className="row ac jb" style={{ gap: 8, marginBottom: 4 }}>
         <div className="row ac gap8" style={{ minWidth: 0 }}>
           <Badge kind={tone} dot>{((DIAG_SEV as any)[f.sev] || DIAG_SEV.low).label}</Badge>
-          <span style={{ fontWeight: 700, fontSize: 12.5 }}>{f.title}</span>
+          <span style={{ fontWeight: 700, fontSize: 12 }}>{f.title}</span>
         </div>
         <span className="tiny mono muted" style={{ flex: '0 0 auto' }}>{f.std}</span>
       </div>

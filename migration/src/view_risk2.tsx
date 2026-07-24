@@ -103,7 +103,7 @@ function RiskTren() {
 
   if (!sel) return (
     <div className="view-scroll"><div className="view-pad">
-      <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12.5, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) untuk perikatan ini — tren inheren → residual akan muncul setelah register RoMM diisi di tab <b>Register</b>.</div></Panel>
+      <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) untuk perikatan ini — tren inheren → residual akan muncul setelah register RoMM diisi di tab <b>Register</b>.</div></Panel>
     </div></div>
   );
 
@@ -215,7 +215,7 @@ function RiskRespons() {
                 <div key={r.id} style={{ padding: '12px 14px', borderBottom: '1px solid var(--line-soft)' }}>
                   <div className="row ac gap8" style={{ marginBottom: 5 }}>
                     <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r.id}</span>
-                    <span style={{ fontWeight: 700, fontSize: 12.5 }}>{r.area}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12 }}>{r.area}</span>
                     <Badge>{r.assertion}</Badge>
                     {r.fraud && <Badge kind="red">Fraud · SA 240</Badge>}
                     <div style={{ flex: 1 }} />
@@ -239,7 +239,7 @@ function RiskRespons() {
                               onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--blue-050)'; e.currentTarget.style.borderColor = 'var(--blue-100)'; e.currentTarget.style.borderLeftColor = 'var(--blue)'; }}
                               onMouseLeave={(e: any) => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.borderLeftColor = 'var(--blue)'; }}>
                               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><PI size={14} /></span>
-                              <span style={{ flex: 1, fontSize: 11.5, fontWeight: 600 }}>{pm.label}</span>
+                              <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{pm.label}</span>
                               <I.arrowRight size={12} style={{ color: 'var(--ink-4)' }} />
                             </button>
                             <div className="row ac gap6">

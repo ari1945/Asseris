@@ -182,11 +182,11 @@ function FSGenerator() {
   /* ---- shared document row ---- */
   const colCount = comparative ? 3 : 2;
   const styleFor = (lvl: any) => (({
-    section:  { fontWeight: 800, fontSize: 12.5, paddingTop: 14, color: '#0c2430' },
+    section:  { fontWeight: 800, fontSize: 12, paddingTop: 14, color: '#0c2430' },
     sub:      { fontWeight: 700, fontSize: 12, paddingTop: 8, color: '#28414e' },
     line:     { fontWeight: 400 },
     subtotal: { fontWeight: 700, borderTop: '1px solid #cdd5dc' },
-    total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12.5 },
+    total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12 },
   } as any)[lvl]);
   const numCell = (v: any, py?: any) => v == null ? '' : sc(v);
 
@@ -247,9 +247,9 @@ function FSGenerator() {
 
             {/* document */}
             <div style={{ flex: 1, minWidth: 0, background: '#e7eaef', borderRadius: 6, padding: 16, border: '1px solid var(--line)' }}>
-              <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12.5, color: '#16242c' }}>
+              <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c' }}>
                 <div style={{ textAlign: 'center', marginBottom: 3, fontWeight: 800, fontSize: 14 }}>{activeClient?.name || 'PT Sentosa Makmur Tbk'}</div>
-                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12.5 }}>{title}</div>
+                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12 }}>{title}</div>
                 <div style={{ textAlign: 'center', color: '#7a8893', fontSize: 11, marginBottom: 18 }}>{periodTxt} · (dalam {U.label})</div>
 
                 {tab !== 'calk' && tab !== 'ekuitas' && (
@@ -430,7 +430,7 @@ function CALK({ model, activeClient, f0, disclosures }: any) {
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
         {psak && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#005085', background: '#e3eef6', padding: '1px 6px', borderRadius: 9 }}>{psak}</span>}
       </div>
-      <div style={{ fontSize: 11.5, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
+      <div style={{ fontSize: 12, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
     </div>
   );
   const done = disclosures.filter((d: any) => d.done).length;

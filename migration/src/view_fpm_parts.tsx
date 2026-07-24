@@ -78,12 +78,12 @@ function Funnel({ stages }: any) {
         return (
           <div key={i} className="row ac gap10">
             <div style={{ width: 110, textAlign: 'right', flex: '0 0 110px' }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600 }} className="truncate">{s.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{s.label}</div>
               {s.n != null && <div className="tiny muted">{s.n} item</div>}
             </div>
             <div style={{ flex: 1, height: 26, background: 'var(--surface-3)', borderRadius: 5, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', inset: 0, width: w + '%', background: s.color, borderRadius: 5, display: 'flex', alignItems: 'center', paddingLeft: 9 }}>
-                <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>{s.disp}</span>
+                <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{s.disp}</span>
               </div>
             </div>
             {i > 0 && <span className="tiny muted mono" style={{ width: 38, flex: '0 0 38px' }}>{conv}%</span>}

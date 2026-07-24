@@ -70,7 +70,7 @@ function P72CritRow({ k, t, ok, last }: any) {
         {ok ? <I.check size={11} style={{ color: '#fff' }} /> : <I.x size={10} style={{ color: 'var(--ink-4)' }} />}
       </span>
       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 50, flex: '0 0 50px', marginTop: 1 }}>{k}</span>
-      <span style={{ fontSize: 11.5, lineHeight: 1.4, color: ok ? 'var(--ink-2)' : 'var(--ink-4)' }}>{t}</span>
+      <span style={{ fontSize: 12, lineHeight: 1.4, color: ok ? 'var(--ink-2)' : 'var(--ink-4)' }}>{t}</span>
     </div>
   );
 }
@@ -110,7 +110,7 @@ function P72_FiveStep({ rev, sc, fmt }: any) {
           {P72_STEP3.map((r, i) => (
             <div key={i} className="row ac jb gap9" style={{ padding: '7px 0', borderTop: '1px solid var(--line-soft)' }}>
               <span style={{ fontSize: 12, color: 'var(--ink-2)', flex: 1 }}>{r.t}<span className="mono tiny" style={{ color: 'var(--ink-4)', marginLeft: 6 }}>{r.ref}</span></span>
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: (tone as any)[r.tone] }}>{r.st}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: (tone as any)[r.tone] }}>{r.st}</span>
             </div>
           ))}
         </div>
@@ -162,7 +162,7 @@ function P72_SspTable({ rev, sc, fmt, embedded }: any) {
       <div className="tiny muted" style={{ marginBottom: 6 }}>
         Kontrak demonstrasi <b className="mono">{c.id}</b> — {c.name} · harga transaksi <b className="mono">Rp {sc(c.price)}</b>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
         <thead>
           <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
             <th style={{ textAlign: 'left', fontWeight: 600, padding: '5px 4px' }}>Kewajiban pelaksanaan</th>
@@ -223,13 +223,13 @@ function P72_ContractBal({ rev, sc, nav }: any) {
     <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12, alignItems: 'start' }}>
       {cards.map(c => (
         <Panel key={c.id} noBody>
-          <div className="panel-h"><h3 style={{ fontSize: 12.5 }}>{c.label}</h3><span className="sub mono">{c.ref}</span></div>
+          <div className="panel-h"><h3 style={{ fontSize: 12 }}>{c.label}</h3><span className="sub mono">{c.ref}</span></div>
           <div style={{ padding: '6px 13px 10px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <tbody>
                 {c.rows.map((r, i) => (
                   <tr key={i} style={{ borderTop: r[2] ? '1.5px solid var(--navy)' : (i ? '1px solid var(--line-soft)' : 0) }}>
-                    <td style={{ padding: r[2] ? '8px 0' : '6px 0', fontSize: 11.5, color: r[2] ? 'var(--ink)' : 'var(--ink-2)', fontWeight: r[2] ? 700 : 400, lineHeight: 1.3 }}>{r[0]}</td>
+                    <td style={{ padding: r[2] ? '8px 0' : '6px 0', fontSize: 12, color: r[2] ? 'var(--ink)' : 'var(--ink-2)', fontWeight: r[2] ? 700 : 400, lineHeight: 1.3 }}>{r[0]}</td>
                     <td className="mono" style={{ textAlign: 'right', padding: r[2] ? '8px 0' : '6px 0', fontWeight: r[2] ? 700 : 500, color: r[1] < 0 ? 'var(--red)' : (r[2] ? c.accent : 'var(--ink)') }}>{r[1] === 0 ? '—' : sc(r[1])}</td>
                   </tr>
                 ))}

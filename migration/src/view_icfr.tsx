@@ -243,7 +243,7 @@ function ICEntityLevel({ data }: any) {
                   <div className="row ac gap8">
                     <span style={{ width: 26, height: 26, borderRadius: 7, flex: '0 0 26px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{((I as any)[cy.icon] || I.panel)({ size: 15 })}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="row ac gap6"><span className="mono tiny muted" style={{ fontWeight: 700 }}>{cy.no}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{cy.name}</span></div>
+                      <div className="row ac gap6"><span className="mono tiny muted" style={{ fontWeight: 700 }}>{cy.no}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{cy.name}</span></div>
                       <div className="tiny muted">{cy.principles.length} prinsip</div>
                     </div>
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: `var(--${k})` }} />
@@ -266,7 +266,7 @@ function ICEntityLevel({ data }: any) {
               <div style={{ flex: 1 }} />
               <Badge kind={cosoPF(sel) === 'green' ? 'green' : cosoPF(sel) === 'amber' ? 'amber' : 'red'}>{cosoPF(sel) === 'green' ? 'Memadai' : cosoPF(sel) === 'amber' ? 'Perlu peningkatan' : 'Defisiensi'}</Badge>
             </div>
-            <div style={{ padding: '10px 16px', fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, borderBottom: '1px solid var(--line-soft)' }}>{sel.desc}</div>
+            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.5, borderBottom: '1px solid var(--line-soft)' }}>{sel.desc}</div>
             <div style={{ padding: '4px 0' }}>
               {sel.principles.map((p, i) => {
                 const c = p.pf === 'Ya' ? 'var(--green)' : p.pf === 'Sebagian' ? 'var(--amber)' : 'var(--red)';
@@ -274,7 +274,7 @@ function ICEntityLevel({ data }: any) {
                   <div key={p.n} className="row gap10" style={{ padding: '11px 16px', alignItems: 'flex-start', borderBottom: i < sel.principles.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span className="mono tiny" style={{ flex: '0 0 26px', width: 26, height: 22, borderRadius: 6, background: 'var(--surface-3)', color: 'var(--ink-3)', display: 'grid', placeItems: 'center', fontWeight: 700 }}>P{p.n}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4 }}>{p.t}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{p.t}</div>
                       <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.45 }}>{p.note}</div>
                     </div>
                     <span className="row ac gap6 tiny" style={{ flex: '0 0 auto', color: c, fontWeight: 600 }}>
@@ -343,7 +343,7 @@ function ICMatrix({ data, setData, locked }: any) {
             {data.map((cy: any) => (
               <div key={cy.id} onClick={() => { setCycleId(cy.id); setSelCtrl(cy.controls[0].id); }} style={{ padding: '9px 10px', borderRadius: 7, cursor: 'pointer', background: cy.id === cycleId ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (cy.id === cycleId ? 'var(--blue)' : 'transparent') }}>
                 <div className="row jb ac">
-                  <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600 }}>{cy.name}{cy.sig && <span className="badge b-red" style={{ fontSize: 8, padding: '0 4px' }}>SIG</span>}</span>
+                  <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 600 }}>{cy.name}{cy.sig && <span className="badge b-red" style={{ fontSize: 8, padding: '0 4px' }}>SIG</span>}</span>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: `var(--${cycleEff(cy)})` }} />
                 </div>
                 <div className="tiny muted">{cy.controls.length} kontrol · {cy.amt}</div>
@@ -366,7 +366,7 @@ function ICMatrix({ data, setData, locked }: any) {
                 {cycle.controls.map((c: any) => (
                   <tr key={c.id} className={c.id === ctrl.id ? 'sel' : ''} onClick={() => setSelCtrl(c.id)} style={{ cursor: 'pointer' }}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
-                    <td className="truncate" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5 }}>{c.desc}</td>
+                    <td className="truncate" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12 }}>{c.desc}</td>
                     <td><span className="tiny" style={{ color: c.type === 'Preventive' ? 'var(--blue)' : 'var(--purple)', fontWeight: 600 }}>{c.type === 'Preventive' ? 'Preventif' : 'Detektif'}</span></td>
                     <td><span className="chip tiny" style={{ height: 18 }}>{c.nature === 'Automated' ? 'Otomatis' : 'Manual'}</span></td>
                     {ASSERTIONS.map(a => (
@@ -392,7 +392,7 @@ function ICMatrix({ data, setData, locked }: any) {
               {ctrl.asr.map((a: any) => <span key={a} className="badge b-green" style={{ padding: '1px 6px' }} title={(ASSERTION_FULL as any)[a]}>{a}</span>)}
             </div>
             <div style={{ padding: 14 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 12 }}>{ctrl.desc}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 12 }}>{ctrl.desc}</div>
               <div className="grid" style={{ gridTemplateColumns: '1.3fr 1fr', gap: 18 }}>
                 <div>
                   <div className="tiny muted upper" style={{ marginBottom: 8 }}>Langkah Walkthrough (SA 315)</div>
@@ -413,7 +413,7 @@ function ICMatrix({ data, setData, locked }: any) {
                   </div>
                   {(ctrl.design === 'Deficiency' || ctrl.oper === 'Deficiency') && (
                     <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 12 }}>
-                      <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Defisiensi teridentifikasi — nilai severity di tab <b>Evaluasi Defisiensi</b> &amp; rancang prosedur substantif tambahan.</span></div>
+                      <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Defisiensi teridentifikasi — nilai severity di tab <b>Evaluasi Defisiensi</b> &amp; rancang prosedur substantif tambahan.</span></div>
                     </div>
                   )}
                   <div className="tiny muted upper" style={{ marginBottom: 6 }}>Test of Controls (Atribut · SA 330)</div>
@@ -523,7 +523,7 @@ function ICITGC({ data }: any) {
                   <div className="row ac gap8">
                     <span style={{ width: 26, height: 26, borderRadius: 7, flex: '0 0 26px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{((I as any)[d.icon] || I.panel)({ size: 15 })}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{d.name}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{d.name}</div>
                       <div className="tiny muted">{d.controls.length} kontrol</div>
                     </div>
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: `var(--${k})` }} />
@@ -578,7 +578,7 @@ function ICITGC({ data }: any) {
                     return (
                       <tr key={c.id}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
-                        <td style={{ fontSize: 11.5, whiteSpace: 'normal', lineHeight: 1.35 }}>{c.desc}</td>
+                        <td style={{ fontSize: 12, whiteSpace: 'normal', lineHeight: 1.35 }}>{c.desc}</td>
                         <td className="tiny muted">{c.cycle}</td>
                         <td>{reliable ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={13} /> Dapat diandalkan</span> : <span className="row ac gap6 tiny" style={{ color: 'var(--amber)', fontWeight: 600 }}><I.alert size={13} /> Andalkan + mitigasi</span>}</td>
                       </tr>
@@ -722,7 +722,7 @@ function ICDeficiency({ data, locked }: any) {
             <div className="panel" style={{ padding: '11px 13px', background: comm.kind === 'red' ? 'var(--red-bg)' : comm.kind === 'amber' ? 'var(--amber-bg)' : 'var(--blue-050)', borderColor: 'transparent' }}>
               <div className="row ac gap8" style={{ marginBottom: 8 }}>
                 <span style={{ color: `var(--${comm.kind})` }}>{((I as any)[comm.icon] || I.mail)({ size: 16 })}</span>
-                <span style={{ fontSize: 12.5, fontWeight: 700 }}>Komunikasi: {comm.who}</span>
+                <span style={{ fontSize: 12, fontWeight: 700 }}>Komunikasi: {comm.who}</span>
                 <div style={{ flex: 1 }} />
                 <span className="chip tiny mono">{comm.ref}</span>
               </div>

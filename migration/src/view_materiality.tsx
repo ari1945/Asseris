@@ -240,7 +240,7 @@ function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disab
   return (
     <div style={{ marginBottom: 15 }}>
       <div className="row jb ac" style={{ marginBottom: 5 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
         <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{value}{suffix}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e: any) => onChange(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)', opacity: disabled ? .5 : 1 }} />

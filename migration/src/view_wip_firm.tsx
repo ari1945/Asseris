@@ -179,7 +179,7 @@ function WipDetail({ r, onClose, onWriteDown, onReset }: any) {
   const Line = ({ label, v, op, strong, accent }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="tiny" style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--ink)' : 'var(--ink-2)' }}>{op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 5 }}>{op}</span>}{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + fmt(Math.abs(v) / 1e6, 0) + ' jt' + (v < 0 ? ')' : '')}</span>
+      <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + fmt(Math.abs(v) / 1e6, 0) + ' jt' + (v < 0 ? ')' : '')}</span>
     </div>
   );
   return (

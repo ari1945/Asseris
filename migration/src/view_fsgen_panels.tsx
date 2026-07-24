@@ -16,7 +16,7 @@ function FSStatementNav({ items, active, onChange }: any) {
   return (
     <Panel noBody className="">
       <div className="panel-h" style={{ padding: '8px 12px' }}>
-        <h3 style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Komponen Laporan</h3>
+        <h3 style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Komponen Laporan</h3>
       </div>
       <div style={{ padding: 5 }}>
         {items.map((s: any) => {
@@ -26,7 +26,7 @@ function FSStatementNav({ items, active, onChange }: any) {
             <button key={s.id} onClick={() => onChange(s.id)}
               style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', textAlign: 'left',
                 border: 0, background: on ? 'var(--blue-100)' : 'transparent', color: on ? 'var(--blue)' : 'var(--ink-2)',
-                borderRadius: 6, padding: '7px 9px', cursor: 'pointer', fontWeight: on ? 700 : 500, fontSize: 12.5 }}>
+                borderRadius: 6, padding: '7px 9px', cursor: 'pointer', fontWeight: on ? 700 : 500, fontSize: 12 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: col, flex: '0 0 7px' }} title={s.statusLabel} />
               <span style={{ flex: 1 }}>{s.label}</span>
               <span className="mono tiny" style={{ color: on ? 'var(--blue)' : 'var(--ink-4)' }}>{s.tag}</span>
@@ -43,7 +43,7 @@ function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, 
   return (
     <Panel noBody>
       <div className="panel-h" style={{ padding: '8px 12px' }}>
-        <h3 style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Penyajian</h3>
+        <h3 style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Penyajian</h3>
       </div>
       <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 11 }}>
         <div className="field">
@@ -60,11 +60,11 @@ function FSPresentation({ unit, setUnit, comparative, setComparative, rounding, 
           </div>
         )}
         <div className="row ac jb">
-          <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>Kolom komparatif 2024</span>
+          <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Kolom komparatif 2024</span>
           <Toggle on={comparative} set={() => setComparative((v: any) => !v)} />
         </div>
         <div className="row ac jb">
-          <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>Pembulatan ke satuan</span>
+          <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Pembulatan ke satuan</span>
           <Toggle on={rounding} set={() => setRounding((v: any) => !v)} />
         </div>
         <div className="tiny muted" style={{ lineHeight: 1.5 }}>
@@ -90,7 +90,7 @@ function FSSignoff({ moduleId }: any) {
     <div className="row ac jb" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div>
         <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700 }}>{role}</div>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: signed ? 'var(--ink)' : 'var(--ink-4)' }}>{signed ? signed.by : fallbackWho}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: signed ? 'var(--ink)' : 'var(--ink-4)' }}>{signed ? signed.by : fallbackWho}</div>
         {signed && <div className="tiny mono muted">{signed.at}</div>}
       </div>
       {signed
@@ -102,13 +102,13 @@ function FSSignoff({ moduleId }: any) {
   return (
     <Panel noBody>
       <div className="panel-h" style={{ padding: '8px 12px' }}>
-        <h3 style={{ fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Status & Tanda Tangan</h3>
+        <h3 style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--navy)' }}>Status & Tanda Tangan</h3>
       </div>
       <div style={{ padding: '4px 12px 12px' }}>
         <Step signed={s.preparer} role="Disusun oleh" fallbackWho={s.me} canSign={!s.locked} onSign={() => s.sign('preparer')} />
         <Step signed={s.reviewer} role="Direviu oleh" fallbackWho="menunggu reviewer" canSign={!s.locked && !!s.preparer} onSign={() => s.sign('reviewer')} />
         <div className="row ac jb" style={{ paddingTop: 10 }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600 }}>Status laporan</span>
+          <span style={{ fontSize: 12, fontWeight: 600 }}>Status laporan</span>
           <Badge kind={allDone ? 'green' : 'amber'}>{allDone ? 'Final — siap EQR' : 'Draft kerja'}</Badge>
         </div>
       </div>
@@ -138,7 +138,7 @@ function FSValidationPanel({ checks, sc, unitShort }: any) {
               <span style={{ color: c.ok ? 'var(--green)' : 'var(--amber)', display: 'grid', placeItems: 'center' }}>
                 {c.ok ? <I.checkCircle size={16} /> : <I.alert size={16} />}
               </span>
-              <span style={{ fontWeight: 600, fontSize: 12.5, flex: 1, color: 'var(--ink)' }}>{c.label}</span>
+              <span style={{ fontWeight: 600, fontSize: 12, flex: 1, color: 'var(--ink)' }}>{c.label}</span>
               <Badge kind="gray">{c.std}</Badge>
             </div>
             <div className="tiny muted" style={{ marginBottom: 6, paddingLeft: 24, lineHeight: 1.45 }}>{c.note}</div>
@@ -249,7 +249,7 @@ function FSDisclosurePanel({ disclosures, setDisclosures, locked }: any) {
               {d.done && <I.check size={11} />}
             </span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.35 }}>{d.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.35 }}>{d.label}</div>
               <div className="row ac gap6" style={{ marginTop: 3 }}>
                 <Badge kind="blue">{d.psak}</Badge>
                 <span className="tiny muted">Catatan {d.note}</span>

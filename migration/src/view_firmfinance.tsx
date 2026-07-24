@@ -108,7 +108,7 @@ function Overview({ D, jt, M, fmt, setDrill }: any) {
             <div style={{ flex: 1 }}>
               {svc.rows.map((l: any) => (
                 <div key={l.line} className="row jb ac" style={{ padding: '6px 0', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={() => setDrill(l)}>
-                  <span className="row ac gap8"><span style={{ width: 10, height: 10, borderRadius: 3, background: l.color }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{l.line}</span></span>
+                  <span className="row ac gap8"><span style={{ width: 10, height: 10, borderRadius: 3, background: l.color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{l.line}</span></span>
                   <div className="row ac gap10" style={{ gap: 12 }}>
                     <span className="mono" style={{ fontWeight: 700 }}>Rp {jt(l.rev)} jt</span>
                     <span className="tiny" style={{ width: 42, textAlign: 'right', color: l.growth >= 0 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>{l.growth >= 0 ? '+' : ''}{l.growth}%</span>
@@ -534,7 +534,7 @@ function WIPValuation() {
                   <div>
                     {W.movement.map((m: any) => (
                       <div key={m.k} className="row jb ac" style={{ padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                        <span style={{ fontSize: 12.5, fontWeight: m.strong ? 700 : 500, color: m.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{m.op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 6 }}>{m.op}</span>}{m.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: m.strong ? 700 : 500, color: m.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{m.op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 6 }}>{m.op}</span>}{m.label}</span>
                         <span className="mono" style={{ fontWeight: m.strong ? 800 : 600, fontSize: 13, color: m.accent === 'green' ? 'var(--green)' : m.accent === 'red' ? 'var(--red)' : m.strong ? 'var(--navy)' : 'var(--ink)' }}>{(m.value < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(m.value)) + ' jt' + (m.value < 0 ? ')' : '')}</span>
                       </div>
                     ))}
@@ -548,7 +548,7 @@ function WIPValuation() {
                       {W.bridge.map((b: any, i: any) => (
                         <div key={i} className="row jb ac" style={{ padding: '8px 0', borderBottom: i < W.bridge.length - 1 ? '1px solid var(--line-soft)' : 'none', background: b.control ? 'var(--blue-050)' : 'transparent', margin: b.control ? '4px -6px 0' : 0, paddingLeft: b.control ? 6 : 0, paddingRight: b.control ? 6 : 0, borderRadius: b.control ? 4 : 0 }}>
                           <span style={{ fontSize: 12, fontWeight: b.strong ? 700 : 500, color: b.strong ? 'var(--ink)' : 'var(--ink-2)' }}>{b.control ? '= ' : (b.strong ? '' : '+ ')}{b.label}</span>
-                          <span className="mono" style={{ fontWeight: b.strong ? 800 : 600, fontSize: 12.5, color: b.control ? 'var(--blue)' : 'var(--ink)' }}>Rp {jt(b.value)} jt</span>
+                          <span className="mono" style={{ fontWeight: b.strong ? 800 : 600, fontSize: 12, color: b.control ? 'var(--blue)' : 'var(--ink)' }}>Rp {jt(b.value)} jt</span>
                         </div>
                       ))}
                     </div>
@@ -589,7 +589,7 @@ function WipValDetail({ r, jt, pc, realColor, marginColor, onClose, nav }: any) 
   const Line = ({ label, v, op, strong, accent }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="tiny" style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--ink)' : 'var(--ink-2)' }}>{op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 5 }}>{op}</span>}{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(v)) + ' jt' + (v < 0 ? ')' : '')}</span>
+      <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + jt(Math.abs(v)) + ' jt' + (v < 0 ? ')' : '')}</span>
     </div>
   );
   return (

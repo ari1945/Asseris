@@ -150,7 +150,7 @@ function LglContractDrawer({ c, onClose, onNav }: any) {
           <tbody>
             {obligs.map((o, i) => (
               <tr key={i}>
-                <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{o.jenis}</div><div className="tiny muted">{o.note}</div></td>
+                <td><div style={{ fontWeight: 600, fontSize: 12 }}>{o.jenis}</div><div className="tiny muted">{o.note}</div></td>
                 <td className="tiny mono">{lglDate(o.due)}</td>
                 <td className="num">{o.val == null ? '—' : boJt(o.val)}</td>
               </tr>

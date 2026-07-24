@@ -35,7 +35,7 @@
 }
 .global-search input {
   flex: 1; background: transparent; border: 0; outline: 0;
-  color: #fff; font-size: 12.5px;
+  color: #fff; font-size: 12px;
 }
 .global-search input::placeholder { color: #8fb0c2; }
 .global-search kbd {
@@ -117,7 +117,7 @@
 body.dense .pagehead { padding: 5px 12px; }
 body.dense .pagehead-main { gap: 9px; }
 body.dense .pagehead-icon { width: 26px; height: 26px; flex-basis: 26px; }
-body.dense .pagehead-title { font-size: 13.5px; }
+body.dense .pagehead-title { font-size: 15px; }
 body.dense .pagehead-titles { min-width: 120px; }
 
 /* Kelas subbar lama — dipertahankan untuk kompatibilitas (mis. .subbar-spacer) */
@@ -178,7 +178,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-item {
   display: flex; align-items: center; gap: 9px;
   height: 27px; padding: 0 12px; margin: 0 6px;
-  border-radius: 5px; font-size: 12.5px; color: #fff;
+  border-radius: 5px; font-size: 12px; color: #fff;
   cursor: pointer; position: relative; user-select: none;
 }
 .side-item:hover { background: rgba(255,255,255,.07); color: #fff; }
@@ -252,7 +252,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-search:focus-within { border-color: #4db8ff; background: rgba(77,184,255,.1); color: #fff; }
 .side-search input {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none;
-  color: #fff; font-size: 12.5px; font-family: var(--ui);
+  color: #fff; font-size: 12px; font-family: var(--ui);
 }
 /* Satu-satunya teks sidebar yang tidak putih-pekat: placeholder harus terbaca
    sebagai "belum diisi", bukan sebagai nilai. Tetap rona putih (beralfa), bukan abu. */
@@ -273,7 +273,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-search-item .ico { width: 16px; flex: 0 0 16px; display: grid; place-items: center; opacity: .85; color: #4db8ff; }
 .side-search-item.active .ico { color: #fff; }
 .side-search-item .mn { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.side-search-item .l { font-size: 12.5px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-search-item .l { font-size: 12px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-search-item.active .l { color: #fff; font-weight: 600; }
 .side-search-item .g { font-size: 10px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-search-item.active .g { color: #fff; }
@@ -318,7 +318,7 @@ body.dense .pagehead-titles { min-width: 120px; }
 .portlet-h .grip { color: var(--ink-4); cursor: grab; display: grid; place-items: center; }
 .portlet-h .grip:active { cursor: grabbing; }
 .portlet-title {
-  font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .05em; color: var(--navy); flex: 1;
   display: flex; align-items: center; gap: 7px;
 }
@@ -366,7 +366,7 @@ body.dense .panel-body { padding: 10px 12px; }
 .btn.navy:hover { background: var(--navy-700); }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
 .btn.ghost:hover { background: rgba(0,0,0,.05); }
-.btn.sm { height: 24px; padding: 0 9px; font-size: 11.5px; }
+.btn.sm { height: 24px; padding: 0 9px; font-size: 12px; }
 .btn.icon { width: 28px; padding: 0; justify-content: center; }
 
 /* ---------- Badges / pills ---------- */
@@ -440,13 +440,13 @@ body.dense .panel-body { padding: 10px 12px; }
 .field label { font-size: 10.5px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
 .input, .select {
   height: 28px; border: 1px solid var(--line-strong); border-radius: 5px;
-  padding: 0 9px; font-size: 12.5px; color: var(--ink); background: var(--surface); outline: none;
+  padding: 0 9px; font-size: 12px; color: var(--ink); background: var(--surface); outline: none;
 }
 .input:focus, .select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-100); }
 
 /* segmented control */
 .seg { display: inline-flex; background: var(--surface-3); border: 1px solid var(--line); border-radius: 6px; padding: 2px; gap: 2px; }
-.seg button { height: 22px; padding: 0 10px; border: 0; background: transparent; border-radius: 4px; font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.seg button { height: 22px; padding: 0 10px; border: 0; background: transparent; border-radius: 4px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
 .seg button.on { background: var(--surface); color: var(--navy); box-shadow: var(--shadow-sm); }
 
 /* progress */
@@ -455,7 +455,7 @@ body.dense .panel-body { padding: 10px 12px; }
 
 /* tabs */
 .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); }
-.tab { height: 32px; padding: 0 13px; border: 0; background: transparent; font-size: 12.5px; font-weight: 600; color: var(--ink-3); border-bottom: 2px solid transparent; }
+.tab { height: 32px; padding: 0 13px; border: 0; background: transparent; font-size: 12px; font-weight: 600; color: var(--ink-3); border-bottom: 2px solid transparent; }
 .tab:hover { color: var(--ink); }
 .tab.on { color: var(--blue); border-bottom-color: var(--blue); }
 
@@ -466,7 +466,7 @@ body.dense .panel-body { padding: 10px 12px; }
 .msub::-webkit-scrollbar { display: none; }
 .msub-tab { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 12px;
   border: 1px solid transparent; border-radius: 7px; background: transparent; white-space: nowrap;
-  font-size: 12.5px; font-weight: 600; color: var(--ink-3); cursor: pointer; transition: .12s; }
+  font-size: 12px; font-weight: 600; color: var(--ink-3); cursor: pointer; transition: .12s; }
 .msub-tab:hover { color: var(--ink); background: var(--surface-2); }
 .msub-tab.on { color: var(--navy); background: var(--surface-3); border-color: var(--line); }
 .msub-tab .mscount { font-family: var(--mono); font-size: 10.5px; font-weight: 700; min-width: 17px; height: 17px;

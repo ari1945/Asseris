@@ -173,7 +173,7 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
         <div className="mono" style={{ fontSize: 10, color: '#9aa7b0', letterSpacing: '.08em', marginBottom: 8 }}>TEMUAN {idx + 1} DARI {total}</div>
       )}
       <div className="row jb ac" style={{ marginBottom: 6, gap: 10 }}>
-        <span style={{ fontWeight: 800, fontSize: 13.5, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
+        <span style={{ fontWeight: 800, fontSize: 15, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
         <Badge kind={(ML_SEV_KIND as any)[f.sev]}>{f.sev}</Badge>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 10.5, color: '#6a7a85', marginBottom: 16, paddingBottom: 13, borderBottom: '1px dashed #e0e4e8' }}>
@@ -222,7 +222,7 @@ function MLDiscussionThread({ items, onAdd }: any) {
                   <span style={{ fontSize: 11, fontWeight: 700, color: isDecision ? 'var(--green)' : (isAud ? 'var(--blue)' : 'var(--ink-2)') }}>{m.who} <span className="muted" style={{ fontWeight: 500 }}>· {m.org}</span></span>
                   <span className="mono tiny muted">{idDate(m.d)}</span>
                 </div>
-                <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>{m.note}</div>
+                <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>{m.note}</div>
               </div>
               {!isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-3)', color: 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800, border: '1px solid var(--line)' }}>K</div>}
             </div>
@@ -257,7 +257,7 @@ function MLDecisionPanel({ f, onDecide, onReopen }: any) {
           <div className="row ac gap8" style={{ marginBottom: 8 }}>
             <Badge kind={(ML_STAGE as any)[f.stage].kind}>{f.stage === 'final' ? <><I.check size={11} /> Masuk Final ML</> : <><I.x size={11} /> Tuntas — Dikeluarkan</>}</Badge>
           </div>
-          <div style={{ display: 'grid', gap: 5, fontSize: 11.5, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gap: 5, fontSize: 12, marginBottom: 10 }}>
             <div><span className="tiny muted upper">Tanggal &nbsp;</span><b>{idDate(f.decisionDate)}</b></div>
             <div><span className="tiny muted upper">Oleh &nbsp;</span><b>{f.decisionBy || '—'}</b></div>
             <div style={{ marginTop: 4, padding: 9, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 6, lineHeight: 1.55, color: 'var(--ink-2)' }}>{f.decisionNote || <span className="muted">(tanpa catatan)</span>}</div>
@@ -350,7 +350,7 @@ function MLWorkflowFull(props: any) {
         <div style={{ display: 'grid', gap: 12 }}>
           <MLDecisionPanel f={sel} onDecide={(stage: any, note: any) => setStage(sel.id, stage, note)} onReopen={() => setStage(sel.id, 'diskusi', '')} />
           <Panel title="Klasifikasi (SA 265)">
-            <div style={{ display: 'grid', gap: 7, fontSize: 11.5, padding: '2px 0' }}>
+            <div style={{ display: 'grid', gap: 7, fontSize: 12, padding: '2px 0' }}>
               <div className="row jb ac"><span className="muted">Severitas</span><Badge kind={(ML_SEV_KIND as any)[sel.sev]}>{sel.sev}</Badge></div>
               <div className="row jb ac"><span className="muted">Area</span><b>{sel.area}</b></div>
               <div className="row jb ac"><span className="muted">Acuan</span><b className="mono tiny">{sel.ref}</b></div>
@@ -388,7 +388,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
           </div>
         </div>
         {viewMode === 'draft' && (
-          <div style={{ background: '#fff8e1', border: '1px solid #f0d27a', color: '#7a5a00', padding: '9px 13px', borderRadius: 6, fontSize: 11.5, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <div style={{ background: '#fff8e1', border: '1px solid #f0d27a', color: '#7a5a00', padding: '9px 13px', borderRadius: 6, fontSize: 12, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <I.alert size={14} style={{ flex: '0 0 14px', marginTop: 1 }} />
             <div>
               <b>Pratinjau DRAFT.</b> Menampilkan {visible.length} temuan yang sedang dibahas/akan masuk surat akhir. {excluded.length > 0 && <>Temuan tuntas saat diskusi ({excluded.length}) telah dikeluarkan otomatis sesuai keputusan auditor.</>}
@@ -402,14 +402,14 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
         <p style={{ margin: '0 0 8px' }}>
           Dalam rangka audit kami atas laporan keuangan {activeClient?.name} untuk tahun yang berakhir 31 Desember 2025, kami mengidentifikasi sejumlah hal terkait pengendalian internal dan praktik akuntansi yang ingin kami sampaikan untuk perbaikan. Sesuai SA 265 dan SA 260, setiap temuan kami uraikan menurut <b>enam unsur</b>: Kondisi, Sebab, Kriteria, Akibat, Rekomendasi, dan Tanggapan Manajemen.
         </p>
-        <p style={{ margin: '0 0 8px', color: '#52616b', fontSize: 11.5 }}>
+        <p style={{ margin: '0 0 8px', color: '#52616b', fontSize: 12 }}>
           Hal-hal berikut tidak memengaruhi opini audit kami atas laporan keuangan.
         </p>
 
         {/* Daftar ringkas */}
         <div style={{ background: '#f7f9fb', border: '1px solid #e0e7ee', borderRadius: 8, padding: '12px 16px', margin: '14px 0 20px' }}>
           <div style={{ fontSize: 10.5, color: '#005085', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 7 }}>Daftar Pokok Temuan</div>
-          <ol style={{ margin: 0, paddingLeft: 20, fontSize: 11.5, lineHeight: 1.7 }}>
+          <ol style={{ margin: 0, paddingLeft: 20, fontSize: 12, lineHeight: 1.7 }}>
             {visible.map((f: any) => (
               <li key={f.id} style={{ marginBottom: 2 }}>
                 <b style={{ color: '#0c2430' }}>{f.title}</b> <span style={{ color: '#7a8893' }}>— {f.sev} · {f.area}</span>
@@ -445,7 +445,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
           </div>
         )}
 
-        <p style={{ margin: '22px 0 0', paddingTop: 14, borderTop: '1px solid #e0e4e8', color: '#52616b', fontSize: 11.5 }}>
+        <p style={{ margin: '22px 0 0', paddingTop: 14, borderTop: '1px solid #e0e4e8', color: '#52616b', fontSize: 12 }}>
           Surat ini memuat {visible.length} temuan beserta tanggapan manajemen. Kami mengapresiasi kerja sama tim manajemen dan siap membahas tindak lanjut lebih lanjut pada pertemuan terpisah.
         </p>
         <div style={{ marginTop: 18 }}>

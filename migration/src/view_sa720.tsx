@@ -126,11 +126,11 @@ function SA720View() {
               <div className="tiny muted">{client} · Laporan Tahunan · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Komponen Info Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{docs.length} dokumen</div></div>
+            <div><div className="tiny muted upper">Komponen Info Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{docs.length} dokumen</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Diperoleh</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{gotCount} dari {docs.length}</div></div>
+            <div><div className="tiny muted upper">Diperoleh</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{gotCount} dari {docs.length}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Kesalahan Penyajian</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: misCount ? 'var(--red)' : 'var(--green)' }}>{misCount ? `${misCount} tak terselesaikan` : 'Nihil'}</div></div>
+            <div><div className="tiny muted upper">Kesalahan Penyajian</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: misCount ? 'var(--red)' : 'var(--green)' }}>{misCount ? `${misCount} tak terselesaikan` : 'Nihil'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Bagian Laporan</div>
@@ -176,7 +176,7 @@ function F720Scope({ docs, selId, setSelId, setOi, addOi, removeOi }: { docs: Oi
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Informasi lain adalah informasi <b>keuangan & non-keuangan</b> dalam laporan tahunan, <b>selain</b> laporan keuangan & laporan auditor. <b>Tidak termasuk:</b> prospektus, siaran pers, atau materi tata kelola berdiri sendiri di luar laporan tahunan (¶ A8–A10).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Informasi lain adalah informasi <b>keuangan & non-keuangan</b> dalam laporan tahunan, <b>selain</b> laporan keuangan & laporan auditor. <b>Tidak termasuk:</b> prospektus, siaran pers, atau materi tata kelola berdiri sendiri di luar laporan tahunan (¶ A8–A10).</span>
           </div>
         </div>
       </Panel>
@@ -236,7 +236,7 @@ function F720Review({ docs, sel, selId, setSelId, setOi, onFiles, removeAttach }
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.search2 size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Telaah dua arah: (a) konsistensi dengan <b>laporan keuangan</b>, dan (b) konsistensi dengan <b>pengetahuan auditor</b> yang diperoleh selama audit (¶14).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Telaah dua arah: (a) konsistensi dengan <b>laporan keuangan</b>, dan (b) konsistensi dengan <b>pengetahuan auditor</b> yang diperoleh selama audit (¶14).</span>
           </div>
         </div>
       </Panel>
@@ -272,7 +272,7 @@ function F720Review({ docs, sel, selId, setSelId, setOi, onFiles, removeAttach }
             </div>
             {sel.consistency === 'misstatement' && !sel.disposition.trim() && (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Salah saji material <b>belum terselesaikan</b> → bila manajemen menolak revisi, laporan auditor memuat pernyataan dalam bagian Informasi Lain (¶18).</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Salah saji material <b>belum terselesaikan</b> → bila manajemen menolak revisi, laporan auditor memuat pernyataan dalam bagian Informasi Lain (¶18).</span></div>
               </div>
             )}
             <div>
@@ -337,7 +337,7 @@ function F720Response({ docs, misCount }: { docs: OiDoc[]; misCount: number }) {
         <div className="panel" style={{ margin: 16, padding: '11px 13px', background: unresolved.length ? 'var(--red-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: unresolved.length ? 'var(--red)' : 'var(--green)', flex: '0 0 auto' }}>{unresolved.length ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               {unresolved.length
                 ? <><b>{unresolved.length} kesalahan penyajian material belum terselesaikan</b> ({unresolved.map(d => d.id).join(', ')}) — laporan auditor <b>memuat pernyataan</b> dalam bagian Informasi Lain (¶18).</>
                 : corrected.length
@@ -351,8 +351,8 @@ function F720Response({ docs, misCount }: { docs: OiDoc[]; misCount: number }) {
       <Panel noBody>
         <div className="panel-h"><h3>Draf Bagian "Informasi Lain" — Laporan Auditor (¶22–24)</h3><div style={{ flex: 1 }} /><Badge kind={unresolved.length ? 'red' : 'blue'}>{unresolved.length ? 'Memuat pernyataan' : 'Kesimpulan standar'}</Badge></div>
         <div style={{ padding: 20 }}>
-          <div style={{ maxWidth: 660, margin: '0 auto', fontSize: 12.5, lineHeight: 1.65 }}>
-            <div style={{ fontWeight: 800, fontSize: 13.5, marginBottom: 6 }}>Informasi Lain</div>
+          <div style={{ maxWidth: 660, margin: '0 auto', fontSize: 12, lineHeight: 1.65 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>Informasi Lain</div>
             <p style={{ margin: '0 0 10px', color: 'var(--ink-2)' }}>Manajemen bertanggung jawab atas informasi lain. Informasi lain terdiri dari informasi yang tercakup dalam laporan tahunan, tetapi tidak mencakup laporan keuangan dan laporan auditor kami atasnya.</p>
             <p style={{ margin: '0 0 10px', color: 'var(--ink-2)' }}>Opini kami atas laporan keuangan tidak mencakup informasi lain tersebut, dan kami tidak menyatakan suatu bentuk kesimpulan asurans apa pun atasnya.</p>
             <p style={{ margin: 0, color: 'var(--ink-2)' }}>
@@ -387,7 +387,7 @@ function F720Status({ docs }: { docs: OiDoc[] }) {
               <div key={d.id} className="row gap10" style={{ alignItems: 'center', padding: '11px 13px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 8 }}>
                 <span style={{ color: d.got ? 'var(--green)' : 'var(--amber)' }}>{d.got ? <I.checkCircle size={18} /> : <I.clock size={18} />}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>{d.id} · {d.name}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{d.id} · {d.name}</div>
                   <div className="tiny muted">{d.got ? 'Telah dibaca; prosedur konsistensi selesai.' : 'Dijadwalkan terbit dengan laporan tahunan — prosedur pembacaan tertunda.'}</div>
                 </div>
                 <Badge kind={d.got ? 'green' : 'amber'}>{d.got ? 'Selesai' : 'Tindak lanjut'}</Badge>
@@ -406,7 +406,7 @@ function F720Status({ docs }: { docs: OiDoc[] }) {
               { t: 'Pernyataan komponen laporan tahunan dari manajemen', ok: true },
               { t: 'Prosedur dokumen pasca tanggal laporan', ok: pendingAfter.length === 0 },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{r.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>

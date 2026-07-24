@@ -160,7 +160,7 @@ function AuditTimeline() {
             <div>
               {mode === 'klien' && <div style={{ fontSize: 12, fontWeight: 600, color: '#9fb9c8', marginBottom: 6 }}>{firmName}</div>}
               <div style={{ fontSize: mode === 'klien' ? 19 : 15, fontWeight: 700, letterSpacing: '-.01em' }}>Jadwal &amp; Lini Masa Audit</div>
-              <div style={{ fontSize: 12.5, color: '#bcd6e4', marginTop: 3 }}>{client.name || eng.id} · {eng.fy} · {eng.type}</div>
+              <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{client.name || eng.id} · {eng.fy} · {eng.type}</div>
             </div>
             <div style={{ textAlign: 'right', fontSize: 11, color: '#9fb9c8', lineHeight: 1.7 }}>
               <div>Perikatan <b style={{ color: '#eaf2f7' }} className="mono">{eng.id}</b></div>
@@ -184,7 +184,7 @@ function AuditTimeline() {
         </div>
 
         {/* legend */}
-        <div className="row ac" style={{ gap: 16, flexWrap: 'wrap', marginBottom: 10, fontSize: 11.5, color: 'var(--ink-2)' }}>
+        <div className="row ac" style={{ gap: 16, flexWrap: 'wrap', marginBottom: 10, fontSize: 12, color: 'var(--ink-2)' }}>
           {Object.entries(ATL_PHASE_COLOR).map(([k, v]) => <span key={k} className="row ac gap6"><span style={{ width: 20, height: 10, borderRadius: 3, background: v }} />{k}</span>)}
           <span style={{ width: 1, height: 14, background: 'var(--line)' }} />
           <span className="row ac gap6"><span style={{ width: 11, height: 11, transform: 'rotate(45deg)', background: 'var(--ink-2)', borderRadius: 2 }} />Milestone</span>
@@ -209,7 +209,7 @@ function AuditTimeline() {
                   <div key={i} className="row ac jb" style={{ padding: '8px 0', borderBottom: i < plan.milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span className="row ac gap8" style={{ minWidth: 0 }}>
                       <span style={{ width: 11, height: 11, background: (ATL_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, flex: '0 0 11px' }} />
-                      <span className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label}</span>
+                      <span className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{m.label}</span>
                     </span>
                     <span style={{ textAlign: 'right' }}>
                       <div className="mono tiny" style={{ fontWeight: 700 }}>{ATL_fmtY(m.date)}</div>
@@ -241,7 +241,7 @@ function AuditTimeline() {
             </Panel>
           ) : (
             <Panel title="Catatan & Asumsi" sub="untuk klien">
-              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink-2)', lineHeight: 1.65 }}>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.65 }}>
                 <li>Lini masa mengasumsikan kelengkapan &amp; ketepatan waktu penyerahan dokumen PBC sesuai daftar permintaan; keterlambatan dapat menggeser milestone berikutnya.</li>
                 <li>Observasi <i>stock opname</i> dilaksanakan pada/menjelang tanggal tutup buku; konfirmasi pihak ketiga dikirim pada awal pelaksanaan substantif.</li>
                 <li>Tanggal tanda tangan opini bersifat <b>target</b> dan bergantung pada penyelesaian EQR, surat representasi manajemen, serta penilaian peristiwa kemudian.</li>
@@ -301,7 +301,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               title={'Buka modul terkait — ' + r.t.n}
               style={{ height: ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px 0 24px', borderBottom: '1px solid var(--line-soft)', position: 'relative', cursor: 'pointer', background: hov === r.t.ref ? 'var(--blue-050)' : 'transparent' }}>
               <span style={{ position: 'absolute', left: 14, width: 6, height: 6, borderRadius: '50%', background: ATL_tint((ATL_PHASE_COLOR as any)[r.ph.name], 1) }} />
-              <span className="truncate" style={{ fontSize: 11.5, color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-2)', fontWeight: hov === r.t.ref ? 600 : 400, flex: 1 }}>{r.t.n}</span>
+              <span className="truncate" style={{ fontSize: 12, color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-2)', fontWeight: hov === r.t.ref ? 600 : 400, flex: 1 }}>{r.t.n}</span>
               <span className="mono tiny" style={{ color: 'var(--ink-4)', fontSize: 9.5 }}>{r.t.ref}</span>
               <I.arrowRight size={12} style={{ color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-4)', opacity: hov === r.t.ref ? 1 : .4, flex: '0 0 auto' }} />
             </div>

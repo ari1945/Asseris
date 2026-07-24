@@ -299,7 +299,7 @@ function ComplianceView({ stdId }: any) {
                     <Badge kind={meta.risk === 'High' ? 'red' : meta.risk === 'Medium' ? 'amber' : 'green'}>{meta.risk}</Badge>
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>{meta.mat || stLabel}</div>
-                  <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#bcd6e4' }}>{cfg.obj}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#bcd6e4' }}>{cfg.obj}</p>
                 </div>
                 <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
                   <Donut segments={[{ value: done, color: '#1f7a4d' }, { value: (counts.pending || 0), color: '#e7ebef' }, { value: (counts.na || 0), color: '#c3cad2' }]} size={84} thickness={12}
@@ -337,7 +337,7 @@ function ComplianceView({ stdId }: any) {
                               {st === 'na' && <span className="tiny" style={{ fontSize: 8, fontWeight: 700, color: 'var(--ink-4)' }}>NA</span>}
                             </button>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 12.5, lineHeight: 1.45, color: st === 'na' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: st === 'na' ? 'line-through' : 'none' }}>{it.text}</div>
+                              <div style={{ fontSize: 12, lineHeight: 1.45, color: st === 'na' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: st === 'na' ? 'line-through' : 'none' }}>{it.text}</div>
                               {notes[it.id] && <div className="tiny muted" style={{ marginTop: 3, fontStyle: 'italic' }}>“{notes[it.id]}”</div>}
                             </div>
                             <span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)' }}>{it.ref}</span>
@@ -357,7 +357,7 @@ function ComplianceView({ stdId }: any) {
               <div className="panel" style={{ padding: '15px 18px', background: pct === 100 ? 'var(--green-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
                 <div className="row ac gap8">
                   <span style={{ color: pct === 100 ? 'var(--green)' : 'var(--ink-3)' }}>{pct === 100 ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                  <span style={{ fontSize: 12.5, fontWeight: 600 }}>{pct === 100 ? 'Seluruh prosedur yang berlaku telah diselesaikan — siap untuk review.' : `${applicable - done} prosedur masih tertunda. Klik kotak untuk menandai Selesai / N/A.`}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{pct === 100 ? 'Seluruh prosedur yang berlaku telah diselesaikan — siap untuk review.' : `${applicable - done} prosedur masih tertunda. Klik kotak untuk menandai Selesai / N/A.`}</span>
                 </div>
               </div>
             </div>

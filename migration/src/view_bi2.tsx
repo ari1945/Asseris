@@ -202,7 +202,7 @@ function BIKlien() {
 
         <Panel title="Retensi Klien (Cohort)" sub={'logo retention ' + RET.logoRetention + '%'}>
           <div style={{ padding: 14 }}>
-            <table className="dtbl" style={{ fontSize: 11.5 }}>
+            <table className="dtbl" style={{ fontSize: 12 }}>
               <thead><tr><th>Kohort</th><th className="num">Awal</th><th className="num">Thn 1</th><th className="num">Thn 2</th><th className="num">Thn 3</th><th className="num">Thn 4</th></tr></thead>
               <tbody>
                 {RET.cohorts.map((co: any) => (
@@ -286,7 +286,7 @@ function BIPartner() {
           <div style={{ padding: 14, display: 'grid', gap: 14 }}>
             {partners.map((p: any) => (
               <div key={p.p}>
-                <div className="row ac gap8" style={{ marginBottom: 6 }}><Avatar name={p.p} size={26} /><span style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>{p.p}</span></div>
+                <div className="row ac gap8" style={{ marginBottom: 6 }}><Avatar name={p.p} size={26} /><span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{p.p}</span></div>
                 <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="muted">Utilisasi</span><span className="mono" style={{ fontWeight: 700 }}>{(UTIL as any)[p.p] || 70}%</span></div>
                 <Progress value={(UTIL as any)[p.p] || 70} color="#0a6b73" />
                 <div className="row jb tiny" style={{ margin: '5px 0 2px' }}><span className="muted">Realisasi</span><span className="mono" style={{ fontWeight: 700 }}>{(REAL as any)[p.p] || 85}%</span></div>

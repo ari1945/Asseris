@@ -45,7 +45,7 @@ function FopsCalendar({ obligations, calFilter, setCalFilter, nav }: any) {
             <div key={bk.key}>
               <div className="row ac gap8" style={{ marginBottom: 8 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 3, background: col }} />
-                <b style={{ fontSize: 12.5 }}>{bk.lbl}</b>
+                <b style={{ fontSize: 12 }}>{bk.lbl}</b>
                 <span className="tiny muted">· {items.length} kewajiban</span>
                 <div style={{ flex: 1, height: 1, background: 'var(--line-soft)' }} />
               </div>
@@ -95,7 +95,7 @@ function FopsVendors({ B, vSel, setVSel, nav }: any) {
             return (
               <tr key={v.id} onClick={() => setVSel(v)} style={{ cursor: 'pointer' }} className={vSel && vSel.id === v.id ? 'sel' : ''}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v.id}</td>
-                <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.npwp}</div></td>
+                <td><div style={{ fontWeight: 600, fontSize: 12 }}>{v.name}</div><div className="tiny muted mono">{v.npwp}</div></td>
                 <td className="tiny">{v.cat}</td>
                 <td className="num">{boJt(v.ytd)}</td>
                 <td><BoBadge s={v.diligence} /></td>
@@ -212,7 +212,7 @@ function FopsLineage({ oc, spendRecon, nbv, register, B, nav }: any) {
         <tbody>
           {spendRecon.map((s: any) => (
             <tr key={s.cat} style={{ background: s.ok ? undefined : 'var(--amber-bg)' }}>
-              <td style={{ fontWeight: 600, fontSize: 11.5 }}><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: s.color }} />{s.cat}</span></td>
+              <td style={{ fontWeight: 600, fontSize: 12 }}><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: s.color }} />{s.cat}</span></td>
               <td className="tiny muted">{s.cats.join(', ')}</td>
               <td className="num">{boJt(s.recorded)}</td>
               <td className="num">{boJt(s.master)}</td>

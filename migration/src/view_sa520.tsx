@@ -65,11 +65,11 @@ function SA520View() {
               <div className="tiny muted">{client} · ENG-2025-014</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Prosedur Substantif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{SAP_ROWS.length} area akun</div></div>
+            <div><div className="tiny muted upper">Prosedur Substantif</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{SAP_ROWS.length} area akun</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ambang Selisih</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{thr.toFixed(1)}% · ≈ MK</div></div>
+            <div><div className="tiny muted upper">Ambang Selisih</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--blue)' }}>{thr.toFixed(1)}% · ≈ MK</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Selisih Ditindaklanjuti</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: flagged ? 'var(--amber)' : 'var(--green)' }}>{flagged} dari {SAP_ROWS.length}</div></div>
+            <div><div className="tiny muted upper">Selisih Ditindaklanjuti</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: flagged ? 'var(--amber)' : 'var(--green)' }}>{flagged} dari {SAP_ROWS.length}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Tahap</div>
@@ -124,7 +124,7 @@ function F520Substantive({ rows, thr, setThr, flagged }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.sliders size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Ambang selisih ditetapkan ±<b>{thr.toFixed(1)}%</b> (mendekati materialitas kinerja). Selisih melebihi ambang wajib <b>diselidiki</b> — inquiry manajemen <i>dan</i> prosedur audit lain bila perlu (¶7). Geser slider untuk menguji sensitivitas: kini <b>{flagged}</b> selisih perlu tindak lanjut.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Ambang selisih ditetapkan ±<b>{thr.toFixed(1)}%</b> (mendekati materialitas kinerja). Selisih melebihi ambang wajib <b>diselidiki</b> — inquiry manajemen <i>dan</i> prosedur audit lain bila perlu (¶7). Geser slider untuk menguji sensitivitas: kini <b>{flagged}</b> selisih perlu tindak lanjut.</span>
           </div>
         </div>
       </Panel>
@@ -145,7 +145,7 @@ function F520Substantive({ rows, thr, setThr, flagged }: any) {
               <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>{sel.note}</p>
               {sel.flag && (
                 <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 12 }}>
-                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Selisih melampaui ambang — penjelasan manajemen diuji terhadap bukti pendukung; tidak diterima tanpa korroborasi (¶7).</span></div>
+                  <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Selisih melampaui ambang — penjelasan manajemen diuji terhadap bukti pendukung; tidak diterima tanpa korroborasi (¶7).</span></div>
                 </div>
               )}
             </div>
@@ -191,7 +191,7 @@ function F520Reliability() {
             <div key={i} className="row gap12" style={{ padding: '12px 0', alignItems: 'flex-start', borderBottom: i < factors.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 36px', width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${f.k}-bg)`, color: `var(--${f.k})` }}><I.check size={17} /></span>
               <div style={{ flex: 1 }}>
-                <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{f.t}</div><Badge kind={f.k}>{f.lvl}</Badge></div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{f.t}</div><Badge kind={f.k}>{f.lvl}</Badge></div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, margin: '2px 0 5px' }}>{f.d}</div>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)' }}>{f.ex}</div>
               </div>
@@ -202,7 +202,7 @@ function F520Reliability() {
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Tingkat Disagregasi & Ketepatan">
-          <p style={{ margin: '0 0 10px', fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>Makin terdisagregasi data, makin tinggi ketepatan ekspektasi dalam mendeteksi salah saji. Pendapatan dianalisis bulanan per lini, bukan agregat tahunan.</p>
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>Makin terdisagregasi data, makin tinggi ketepatan ekspektasi dalam mendeteksi salah saji. Pendapatan dianalisis bulanan per lini, bukan agregat tahunan.</p>
           <div style={{ display: 'grid', gap: 8 }}>
             {[['Agregat tahunan', 25, 'gray'], ['Per kuartal', 50, 'amber'], ['Bulanan × lini produk', 92, 'green']].map((r, i) => (
               <div key={i}>
@@ -220,7 +220,7 @@ function F520Reliability() {
               { t: 'Uji rincian sebagai pelengkap untuk asersi berisiko', ok: true },
               { t: 'Analitis penutup mendekati akhir audit (¶6)', ok: false },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{r.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>
@@ -257,14 +257,14 @@ function F520Final() {
             {checks.map((c, i) => (
               <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < checks.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: c.ok ? 'var(--green)' : 'var(--amber)' }}>{c.ok ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{c.t}</div>
+                <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{c.t}</div>
               </div>
             ))}
           </div>
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Tujuannya membantu auditor menyimpulkan apakah LK <b>konsisten secara keseluruhan</b> dengan pemahamannya. Hubungan tak konsisten yang teridentifikasi pada tahap ini dapat mengungkap risiko salah saji material yang belum dikenali sebelumnya.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Tujuannya membantu auditor menyimpulkan apakah LK <b>konsisten secara keseluruhan</b> dengan pemahamannya. Hubungan tak konsisten yang teridentifikasi pada tahap ini dapat mengungkap risiko salah saji material yang belum dikenali sebelumnya.</span>
             </div>
           </div>
         </Panel>

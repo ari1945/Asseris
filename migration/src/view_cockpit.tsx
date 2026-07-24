@@ -292,7 +292,7 @@ function AuditProgramme() {
                         return (
                           <tr key={p.id} className={p.id === selId ? 'sel' : ''} style={{ cursor: 'pointer' }} onClick={() => setSelId(p.id)}>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{p.id}</td>
-                            <td style={{ fontSize: 11.5 }}>
+                            <td style={{ fontSize: 12 }}>
                               <span className="row ac gap6">
                                 <span className="prg-proc-link" style={{ lineHeight: 1.35 }} title={'Buka Kertas Kerja ' + p.wp}
                                   onClick={(e: ClickEv) => { e.stopPropagation(); openWp(p.wp); }}>{p.t}</span>
@@ -321,7 +321,7 @@ function AuditProgramme() {
               <Panel noBody className="prg-detail">
                 <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8 wrap">
                   <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
-                  <span style={{ fontWeight: 700, fontSize: 12.5 }}>{selRisk.area}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{selRisk.area}</span>
                   <NatTag nat={sel.nat} />
                   <span className="chip tiny" style={{ height: 18, fontFamily: 'var(--mono)' }}>{sel.sa}</span>
                   <div style={{ flex: 1 }} />
@@ -332,7 +332,7 @@ function AuditProgramme() {
                   <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 18, alignItems: 'start' }}>
                     <div>
                       <div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur</div>
-                      <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.55, fontWeight: 600 }}>{sel.t}</p>
+                      <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, fontWeight: 600 }}>{sel.t}</p>
 
                       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
                         {[['Sifat', (PRG_NATURE as any)[sel.nat].l], ['Saat', sel.timing], ['Luas / Sampel', sel.extent], ['Asersi', null], ['Standar', sel.sa], ['Kertas Kerja', sel.wp]].map(([lbl, v], i) => (
@@ -348,7 +348,7 @@ function AuditProgramme() {
                       <div className="tiny muted upper" style={{ marginBottom: 4 }}>Kesimpulan / Temuan</div>
                       {sel.concl
                         ? <div className="panel" style={{ padding: '9px 11px', background: sel.exc > 0 ? 'var(--amber-bg)' : 'var(--blue-050)', borderColor: 'transparent' }}>
-                            <div className="row ac gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: sel.exc > 0 ? 'var(--amber)' : 'var(--blue)', marginTop: 1 }}>{sel.exc > 0 ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span><span style={{ fontSize: 12.5, lineHeight: 1.5 }}>{sel.concl}</span></div>
+                            <div className="row ac gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: sel.exc > 0 ? 'var(--amber)' : 'var(--blue)', marginTop: 1 }}>{sel.exc > 0 ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span><span style={{ fontSize: 12, lineHeight: 1.5 }}>{sel.concl}</span></div>
                           </div>
                         : <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'var(--line)' }}><span className="tiny muted">Belum ada kesimpulan — prosedur belum diselesaikan.</span></div>}
 
@@ -422,7 +422,7 @@ function AuditProgramme() {
                         <td><span className="row ac gap6"><span style={{ fontWeight: 600, fontSize: 12 }}>{r.area}</span>{r.sig && <span className="badge b-red" style={{ fontSize: 8, padding: '0 4px' }}>SIG</span>}</span></td>
                         {counts.map((n, i) => (
                           <td key={i} className="num" style={{ padding: 4 }}>
-                            <div style={{ height: 26, borderRadius: 5, display: 'grid', placeItems: 'center', background: n === 0 ? 'transparent' : `rgba(0,80,133,${0.12 + Math.min(n, 3) * 0.22})`, color: n === 0 ? 'var(--ink-4)' : (n >= 2 ? '#fff' : 'var(--navy)'), fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 11.5, border: n === 0 ? '1px dashed var(--line)' : 'none' }}>{n || '·'}</div>
+                            <div style={{ height: 26, borderRadius: 5, display: 'grid', placeItems: 'center', background: n === 0 ? 'transparent' : `rgba(0,80,133,${0.12 + Math.min(n, 3) * 0.22})`, color: n === 0 ? 'var(--ink-4)' : (n >= 2 ? '#fff' : 'var(--navy)'), fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 12, border: n === 0 ? '1px dashed var(--line)' : 'none' }}>{n || '·'}</div>
                           </td>
                         ))}
                         <td className="num mono" style={{ fontWeight: 700 }}>{r.procs.length}</td>
@@ -450,7 +450,7 @@ function AuditProgramme() {
                       <div key={r.riskId} className="row ac gap10" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
                         <span style={{ color: full ? 'var(--green)' : dn > 0 ? 'var(--amber)' : 'var(--red)' }}>{full ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                         <span className="mono tiny" style={{ fontWeight: 700, width: 40 }}>{r.riskId}</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>{r.area}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{r.area}</span>
                         <span className="tiny muted">{dn}/{tot} prosedur tuntas</span>
                         <div style={{ width: 120 }}><Progress value={dn / tot * 100} color={full ? 'var(--green)' : 'var(--amber)'} /></div>
                       </div>
@@ -472,7 +472,7 @@ function AuditProgramme() {
                   return (
                     <div key={name} style={{ padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
                       <div className="row jb ac" style={{ marginBottom: 5 }}>
-                        <span className="row ac gap6"><Avatar name={name} size={22} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{name}</span><span className="tiny muted">· {v.n} prosedur</span></span>
+                        <span className="row ac gap6"><Avatar name={name} size={22} /><span style={{ fontSize: 12, fontWeight: 600 }}>{name}</span><span className="tiny muted">· {v.n} prosedur</span></span>
                         <span className="mono tiny" style={{ fontWeight: 700, color: over ? 'var(--red)' : 'var(--ink-2)' }}>{v.act} / {v.bud}j</span>
                       </div>
                       <Progress value={v.act / v.bud * 100} color={over ? 'var(--red)' : 'var(--blue)'} />
@@ -492,7 +492,7 @@ function AuditProgramme() {
                   return (
                     <div key={k} className="row ac gap10" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
                       <span style={{ width: 9, height: 9, borderRadius: 2, background: n.c, flex: '0 0 9px' }} />
-                      <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>{n.l}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{n.l}</span>
                       <span className="tiny muted">{dn}/{ps.length} tuntas</span>
                       <span className="mono tiny" style={{ fontWeight: 700, width: 44, textAlign: 'right' }}>{hrs}j</span>
                     </div>
@@ -668,7 +668,7 @@ function SuggestModal({ prog, scope, onClose, onAdd }: { prog: Risk[]; scope: st
             <div key={g.risk.riskId} style={{ marginBottom: 14 }}>
               <div className="row ac gap6" style={{ marginBottom: 7 }}>
                 <span className="mono tiny" style={{ fontWeight: 700 }}>{g.risk.riskId}</span>
-                <span style={{ fontWeight: 700, fontSize: 12.5 }}>{g.risk.area}</span>
+                <span style={{ fontWeight: 700, fontSize: 12 }}>{g.risk.area}</span>
                 {g.risk.sig && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>SIGNIFICANT</span>}
                 {g.risk.fraud && <span className="badge b-amber" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD · SA 240</span>}
               </div>
@@ -678,7 +678,7 @@ function SuggestModal({ prog, scope, onClose, onAdd }: { prog: Risk[]; scope: st
                   <div key={k} className={'prg-sug' + (sel[k] ? ' on' : '')} onClick={() => toggle(k)}>
                     <input type="checkbox" checked={!!sel[k]} readOnly style={{ marginTop: 2 }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 4 }}>{s.t}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{s.t}</div>
                       <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
                         <NatTag nat={s.nat} />
                         <AsrChips asr={s.asr} />

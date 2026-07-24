@@ -168,7 +168,7 @@ function CRMAktivitas() {
                 <div key={i} className="row gap10" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
                   <span style={{ width: 30, height: 30, borderRadius: 8, background: m.color, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}>{React.createElement((I as any)[m.icon] || I.doc, { size: 15 })}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, lineHeight: 1.4 }}>{a.note}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.4 }}>{a.note}</div>
                     <div className="tiny muted row ac gap6"><b style={{ color: 'var(--ink-2)' }}>{a.client}</b> · {m.label} · {a.who} · {new Date(a.d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</div>
                   </div>
                 </div>

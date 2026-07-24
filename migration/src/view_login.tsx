@@ -46,14 +46,14 @@ export function LoginScreen({ onLoggedIn }: any) {
   const label = { display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-2, #5a6675)', marginBottom: 5 };
   const input = { width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--line, #d7dce3)', padding: '0 11px', font: '14px inherit', boxSizing: 'border-box', marginBottom: 14, background: '#fff', color: 'inherit' };
   const btn = { width: '100%', height: 40, borderRadius: 8, border: 'none', background: 'var(--blue, #2563eb)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 };
-  const errBox = { background: 'var(--red-bg, #fde8e8)', color: 'var(--red, #c0392b)', borderRadius: 8, padding: '8px 11px', fontSize: 12.5, marginBottom: 14 };
+  const errBox = { background: 'var(--red-bg, #fde8e8)', color: 'var(--red, #c0392b)', borderRadius: 8, padding: '8px 11px', fontSize: 12, marginBottom: 14 };
 
   return (
     <div style={wrap}>
       <form style={card} onSubmit={submit}>
         <div style={logo}>A</div>
         <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2 }}>Asseris</div>
-        <div style={{ fontSize: 12.5, color: 'var(--ink-2, #5a6675)', marginBottom: 22 }}>Audit Management System — masuk untuk melanjutkan</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-2, #5a6675)', marginBottom: 22 }}>Audit Management System — masuk untuk melanjutkan</div>
 
         {err && <div style={errBox} role="alert">{err}</div>}
 

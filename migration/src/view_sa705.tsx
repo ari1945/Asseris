@@ -96,11 +96,11 @@ function SA705View() {
               <div className="tiny muted">{client} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Simpulan Saat Ini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: `var(--${o.k})` }}>{o.title}</div></div>
+            <div><div className="tiny muted upper">Simpulan Saat Ini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: `var(--${o.k})` }}>{o.title}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Penekanan Suatu Hal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{eomCount ? '1 paragraf' : 'Tidak ada'}</div></div>
+            <div><div className="tiny muted upper">Penekanan Suatu Hal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{eomCount ? '1 paragraf' : 'Tidak ada'}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Paragraf Hal Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: omCount ? 'var(--blue)' : 'var(--ink-3)' }}>{omCount ? `${omCount}${doc.opts?.comparative ? ' (komparatif)' : ''}` : 'Tidak ada'}</div></div>
+            <div><div className="tiny muted upper">Paragraf Hal Lain</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: omCount ? 'var(--blue)' : 'var(--ink-3)' }}>{omCount ? `${omCount}${doc.opts?.comparative ? ' (komparatif)' : ''}` : 'Tidak ada'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Tanda Tangan Opini</div>
@@ -143,7 +143,7 @@ function F705Decider({ doc, patch }: { doc: ODoc; patch: Patch }) {
         <div className="panel-h"><h3>Alat Penentu Jenis Opini (SA 705 ¶2–10)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Interaktif</Badge></div>
         <div style={{ padding: 18 }}>
           <div style={{ marginBottom: 18 }}>
-            <div className="row jb ac" style={{ marginBottom: 7 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>1 · Sifat hal yang menimbulkan modifikasi</span><span className="mono tiny muted">¶4–5</span></div>
+            <div className="row jb ac" style={{ marginBottom: 7 }}><span style={{ fontSize: 12, fontWeight: 700 }}>1 · Sifat hal yang menimbulkan modifikasi</span><span className="mono tiny muted">¶4–5</span></div>
             <Seg options={[
               { value: 'none', label: 'Tidak ada' },
               { value: 'miss', label: 'Salah saji material' },
@@ -153,7 +153,7 @@ function F705Decider({ doc, patch }: { doc: ODoc; patch: Patch }) {
           </div>
 
           <div style={{ marginBottom: 18, opacity: nature === 'none' ? 0.4 : 1, pointerEvents: nature === 'none' ? 'none' : 'auto' }}>
-            <div className="row jb ac" style={{ marginBottom: 7 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>2 · Pervasif terhadap LK secara keseluruhan?</span><span className="mono tiny muted">¶6</span></div>
+            <div className="row jb ac" style={{ marginBottom: 7 }}><span style={{ fontSize: 12, fontWeight: 700 }}>2 · Pervasif terhadap LK secara keseluruhan?</span><span className="mono tiny muted">¶6</span></div>
             <Seg options={[
               { value: 'notperv', label: 'Material, tidak pervasif' },
               { value: 'perv', label: 'Material & pervasif' },
@@ -163,7 +163,7 @@ function F705Decider({ doc, patch }: { doc: ODoc; patch: Patch }) {
 
           <div className="panel" style={{ padding: '11px 13px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Logika</div>
-            <div className="mono" style={{ fontSize: 11.5, lineHeight: 1.7 }}>
+            <div className="mono" style={{ fontSize: 12, lineHeight: 1.7 }}>
               sifat = <b>{nature === 'none' ? 'tidak ada' : nature === 'miss' ? 'salah saji material' : 'tak mampu peroleh bukti'}</b><br />
               {nature !== 'none' && <>pervasif = <b>{perv === 'perv' ? 'ya' : 'tidak'}</b> → </>}
               <span style={{ color: `var(--${out.color})`, fontWeight: 700 }}>opini = {out.label}</span>
@@ -227,8 +227,8 @@ function F705Matrix() {
             <thead>
               <tr>
                 <th style={{ width: '34%', textAlign: 'left', padding: '8px 10px', fontSize: 11, color: 'var(--ink-3)' }}>Sifat hal ↓ / Pervasif →</th>
-                <th style={{ padding: '8px 10px', fontSize: 11.5, fontWeight: 700 }}>Material, tidak pervasif</th>
-                <th style={{ padding: '8px 10px', fontSize: 11.5, fontWeight: 700 }}>Material & pervasif</th>
+                <th style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700 }}>Material, tidak pervasif</th>
+                <th style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700 }}>Material & pervasif</th>
               </tr>
             </thead>
             <tbody>
@@ -248,7 +248,7 @@ function F705Matrix() {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Jenis modifikasi bergantung pada (a) <b>sifat</b> hal — salah saji vs ketidakmampuan memperoleh bukti, dan (b) <b>pertimbangan pervasif</b> dampaknya/kemungkinan dampaknya terhadap laporan keuangan (¶2).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Jenis modifikasi bergantung pada (a) <b>sifat</b> hal — salah saji vs ketidakmampuan memperoleh bukti, dan (b) <b>pertimbangan pervasif</b> dampaknya/kemungkinan dampaknya terhadap laporan keuangan (¶2).</span>
           </div>
         </div>
       </Panel>
@@ -257,7 +257,7 @@ function F705Matrix() {
         <Panel title="Definisi Pervasif (¶5)">
           <div style={{ display: 'grid', gap: 8 }}>
             {['Tidak terbatas pada unsur, akun, atau pos tertentu LK', 'Bila terbatas — mewakili/dapat mewakili proporsi substansial dari LK', 'Terkait pengungkapan: fundamental bagi pemahaman pengguna LK'].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span>
                 <span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
@@ -310,10 +310,10 @@ function F705Wording({ client, doc, patch }: { client: string; doc: ODoc; patch:
           <Seg options={[{ value: 'wdp', label: 'WDP' }, { value: 'adverse', label: 'Tidak Wajar' }, { value: 'tmp', label: 'TMP' }]} value={view} onChange={setView} />
         </div>
         <div style={{ padding: 20 }}>
-          <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12.5, lineHeight: 1.65 }}>
-            <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ fontWeight: 800, fontSize: 13.5 }}>Basis untuk Opini {s.h}</span><Badge kind={s.color}>{view.toUpperCase()}</Badge></div>
+          <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12, lineHeight: 1.65 }}>
+            <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ fontWeight: 800, fontSize: 15 }}>Basis untuk Opini {s.h}</span><Badge kind={s.color}>{view.toUpperCase()}</Badge></div>
             <p style={{ margin: '0 0 16px', color: 'var(--ink-2)' }}>{s.basis} Kami melaksanakan audit berdasarkan Standar Audit. Tanggung jawab kami menurut standar tersebut diuraikan lebih lanjut dalam paragraf Tanggung Jawab Auditor. Kami independen terhadap entitas ... dan kami yakin bahwa bukti audit yang telah kami peroleh adalah cukup dan tepat untuk menjadi basis bagi opini {view === 'tmp' ? '— namun lihat keterbatasan di atas' : 'kami'}.</p>
-            <div style={{ fontWeight: 800, fontSize: 13.5, marginBottom: 6 }}>Opini {view === 'tmp' ? '— Tidak Menyatakan Pendapat' : s.h}</div>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>Opini {view === 'tmp' ? '— Tidak Menyatakan Pendapat' : s.h}</div>
             <p style={{ margin: 0, color: 'var(--ink-2)' }}>{s.op}</p>
           </div>
         </div>
@@ -328,7 +328,7 @@ function F705Wording({ client, doc, patch }: { client: string; doc: ODoc; patch:
               ['Pernyataan "bukti cukup & tepat" — disesuaikan untuk TMP', view === 'tmp'],
               ['Tanggung Jawab Auditor — diringkas untuk TMP', view === 'tmp'],
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: r[1] ? 'var(--amber)' : 'var(--ink-4)', flex: '0 0 auto', marginTop: 1 }}>{r[1] ? <I.alert size={14} /> : <I.circle size={13} />}</span>
                 <span style={{ lineHeight: 1.4 }}>{r[0]}</span>
               </div>
@@ -357,7 +357,7 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
             <div className="row jb ac"><Badge kind="blue">SA 706 ¶8</Badge><span className="mono tiny" style={{ color: '#bcd6e4' }}>Status: {eomOn ? 'Disertakan' : 'Tidak ada'}</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Penekanan Suatu Hal (Emphasis of Matter)</div>
-            <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#bcd6e4' }}>Merujuk hal yang telah <b>disajikan/diungkap dengan tepat</b> dalam LK yang, menurut pertimbangan auditor, demikian penting hingga fundamental bagi pemahaman pengguna.</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#bcd6e4' }}>Merujuk hal yang telah <b>disajikan/diungkap dengan tepat</b> dalam LK yang, menurut pertimbangan auditor, demikian penting hingga fundamental bagi pemahaman pengguna.</p>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Contoh Pemicu</div>
@@ -370,7 +370,7 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
               <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: eomOn ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
                 <span style={{ position: 'absolute', top: 2, left: eomOn ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
               </span>
-              <span style={{ fontSize: 11.5, fontWeight: 600 }}>{eomOn ? 'Paragraf Penekanan disertakan pada laporan' : 'Sertakan paragraf Penekanan Suatu Hal'}</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>{eomOn ? 'Paragraf Penekanan disertakan pada laporan' : 'Sertakan paragraf Penekanan Suatu Hal'}</span>
             </label>
           </div>
         </Panel>
@@ -379,32 +379,32 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
           <div style={{ background: 'linear-gradient(125deg,#063b40,#0a6b73)', color: '#fff', padding: '14px 16px' }}>
             <div className="row jb ac"><Badge kind="teal">SA 706 ¶10</Badge><span className="mono tiny" style={{ color: '#b9e0e3' }}>Status: {(omOn ? 1 : 0) + (compOn ? 1 : 0)} paragraf</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Paragraf Hal Lain (Other Matter)</div>
-            <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#b9e0e3' }}>Merujuk hal <b>selain</b> yang disajikan/diungkap dalam LK yang relevan bagi pemahaman pengguna atas audit, tanggung jawab auditor, atau laporan auditor.</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#b9e0e3' }}>Merujuk hal <b>selain</b> yang disajikan/diungkap dalam LK yang relevan bagi pemahaman pengguna atas audit, tanggung jawab auditor, atau laporan auditor.</p>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Paragraf Aktif</div>
             {compOn ? (
               <div className="panel" style={{ padding: '11px 13px', background: 'var(--teal-bg)', borderColor: 'transparent', marginBottom: 10 }}>
                 <div className="row ac gap8" style={{ marginBottom: 5 }}><Badge kind="teal">Hal Lain</Badge><span className="mono tiny" style={{ color: 'var(--teal)' }}>terkait SA 710</span></div>
-                <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5 }}>{comparativeParagraph(client, doc.compMode, doc.comp)}</p>
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>{comparativeParagraph(client, doc.compMode, doc.comp)}</p>
                 <div className="tiny muted" style={{ marginTop: 6 }}>Sumber tunggal dari SSOT opini (SA 710); kelola detail auditor pendahulu di modul Informasi Komparatif.</div>
               </div>
             ) : (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent', marginBottom: 10 }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--ink-3)' }}><I.circle size={13} /></span><span style={{ fontSize: 11.5, fontWeight: 600 }}>Tidak ada paragraf komparatif aktif.</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--ink-3)' }}><I.circle size={13} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Tidak ada paragraf komparatif aktif.</span></div>
               </div>
             )}
             <label className="row ac gap8" style={{ padding: '9px 11px', background: compOn ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 7, cursor: 'pointer', marginBottom: 6 }} onClick={() => toggleOpt('comparative')}>
               <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: compOn ? 'var(--teal)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
                 <span style={{ position: 'absolute', top: 2, left: compOn ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
               </span>
-              <span style={{ fontSize: 11.5, fontWeight: 600 }}>Paragraf komparatif (auditor pendahulu, SA 710)</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>Paragraf komparatif (auditor pendahulu, SA 710)</span>
             </label>
             <label className="row ac gap8" style={{ padding: '9px 11px', background: omOn ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 7, cursor: 'pointer' }} onClick={() => toggleOpt('om')}>
               <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: omOn ? 'var(--teal)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
                 <span style={{ position: 'absolute', top: 2, left: omOn ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
               </span>
-              <span style={{ fontSize: 11.5, fontWeight: 600 }}>Paragraf Hal Lain lain (mis. pembatasan distribusi)</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>Paragraf Hal Lain lain (mis. pembatasan distribusi)</span>
             </label>
           </div>
         </Panel>

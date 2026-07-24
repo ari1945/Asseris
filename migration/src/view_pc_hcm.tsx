@@ -70,7 +70,7 @@ function Profile360Drawer({ s, onClose }: any) {
   const Kv = ({ l, v, accent }: any) => (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{l}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 
@@ -176,7 +176,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Darurat (Emergency Contact)">
             <div className="panel" style={{ padding: '9px 12px', boxShadow: 'none', background: 'var(--surface-2)' }}>
-              <div className="row ac jb"><span style={{ fontWeight: 600, fontSize: 12.5 }}>{p.emergency.name}</span><span className="tiny muted">{p.emergency.rel}</span></div>
+              <div className="row ac jb"><span style={{ fontWeight: 600, fontSize: 12 }}>{p.emergency.name}</span><span className="tiny muted">{p.emergency.rel}</span></div>
               <div className="tiny mono muted" style={{ marginTop: 2 }}>{p.emergency.phone}</div>
             </div>
           </Section>

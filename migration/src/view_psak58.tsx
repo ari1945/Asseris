@@ -167,7 +167,7 @@ function PSAK58View() {
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)'), background: c.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{c.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 34, flex: '0 0 34px', marginTop: 1 }}>{c.ref}</span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 11.5, lineHeight: 1.4, color: c.ok ? 'var(--ink)' : 'var(--ink-2)', fontWeight: c.ok ? 600 : 400 }}>{c.t}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.4, color: c.ok ? 'var(--ink)' : 'var(--ink-2)', fontWeight: c.ok ? 600 : 400 }}>{c.t}</span>
               <span className="tiny" style={{ display: 'block', color: 'var(--ink-4)', marginTop: 1 }}>{c.ev}</span>
             </span>
           </label>
@@ -186,7 +186,7 @@ function PSAK58View() {
     <Panel noBody>
       <div className="panel-h"><h3>Reklasifikasi Disposal Group</h3><span className="sub mono">¶4 · ¶38</span><div style={{ flex: 1 }} /><span className="tiny muted">{dg.group.segment}</span></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Aset (tag · register)</th>
@@ -200,7 +200,7 @@ function PSAK58View() {
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
                 <td style={{ padding: '7px 4px' }}>
                   <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{m.tag}</span>
-                  <span style={{ fontSize: 11.5, fontWeight: 600, marginLeft: 6 }}>{m.name}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, marginLeft: 6 }}>{m.name}</span>
                   <span className="tiny" style={{ display: 'block', color: 'var(--ink-4)' }}>{m.classLabel}{m.depreciable ? ' · umur ' + m.life + ' th' : ' · tidak disusutkan (¶58 PSAK 16)'}</span>
                 </td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(m.cost)}</td>
@@ -233,7 +233,7 @@ function PSAK58View() {
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.building size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               Nilai grup <b>Rp {sc(dg.carryBefore)} {UN.short}</b> ({fmt(dg.dgPctPpe * 100, 1)}% aset tetap) ditarik per nomor tag dari <b onClick={() => nav('psak16', { from: 'psak58' })} style={{ color: 'var(--blue)', cursor: 'pointer' }}>Register Aset Tetap (PSAK 16)</b>. Reklasifikasi adalah penyajian carve-out — bukan saldo baru di buku besar — sehingga total aset tetap + HFS menutup ke WTB.
             </span>
           </div>
@@ -267,7 +267,7 @@ function PSAK58View() {
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: dg.impaired ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: dg.impaired ? 'var(--amber)' : 'var(--green)', marginTop: 1 }}>{dg.impaired ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               {dg.impaired
                 ? <>FVLCS <b>Rp {sc(dg.fvlcs)} {UN.short}</b> lebih rendah dari jumlah tercatat → diakui <b>rugi penurunan nilai Rp {sc(dg.writedown)} {UN.short}</b> (¶20), dialokasikan ke aset non-lancar dalam lingkup (¶23) & disajikan pada hasil operasi dihentikan (¶33b). Nilai wajar diukur per <b onClick={() => nav('psak68', { from: 'psak58' })} style={{ color: 'var(--blue)', cursor: 'pointer' }}>PSAK 68</b> (Level 2/3).</>
                 : <>FVLCS tidak lebih rendah dari jumlah tercatat → tidak ada rugi penurunan nilai; aset disajikan pada jumlah tercatat.</>}
@@ -283,7 +283,7 @@ function PSAK58View() {
     <Panel noBody>
       <div className="panel-h"><h3>Penghentian Penyusutan</h3><span className="sub mono">¶25</span><div style={{ flex: 1 }} /><span className="tiny muted">sejak {dg.classDate}</span></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Aset disusutkan</th>
@@ -294,7 +294,7 @@ function PSAK58View() {
           <tbody>
             {dg.members.filter((m: any) => m.depreciable).map((m: any, i: any) => (
               <tr key={i} style={{ borderTop: '1px solid var(--line-soft)' }}>
-                <td style={{ padding: '7px 4px' }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{m.tag}</span> <span style={{ fontSize: 11.5 }}>{m.name}</span></td>
+                <td style={{ padding: '7px 4px' }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{m.tag}</span> <span style={{ fontSize: 12 }}>{m.name}</span></td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px' }}>{sc(m.annual)}</td>
                 <td className="mono" style={{ textAlign: 'right', padding: '7px 4px', color: 'var(--blue)', fontWeight: 600 }}>{sc(Math.round(m.annual * dg.monthsCeased / 12))}</td>
               </tr>
@@ -354,8 +354,8 @@ function PSAK58View() {
           { l: 'Laba dari operasi dilanjutkan', v: dg.contProfit, total: true },
         ].map((r, i) => (
           <div key={i} className="row ac jb" style={{ padding: '8px 0', borderTop: r.total ? '1.5px solid var(--navy)' : (i ? '1px solid var(--line-soft)' : 0) }}>
-            <span style={{ fontSize: 12.5, color: 'var(--ink)', fontWeight: r.sub || r.total ? 700 : 400 }}>{r.l}</span>
-            <span className="mono" style={{ fontSize: 12.5, fontWeight: r.sub || r.total ? 700 : 600, color: r.total ? 'var(--navy)' : (r.v < 0 ? 'var(--red)' : 'var(--ink)') }}>{r.v < 0 ? '(' + sc(Math.abs(r.v)) + ')' : sc(r.v)}</span>
+            <span style={{ fontSize: 12, color: 'var(--ink)', fontWeight: r.sub || r.total ? 700 : 400 }}>{r.l}</span>
+            <span className="mono" style={{ fontSize: 12, fontWeight: r.sub || r.total ? 700 : 600, color: r.total ? 'var(--navy)' : (r.v < 0 ? 'var(--red)' : 'var(--ink)') }}>{r.v < 0 ? '(' + sc(Math.abs(r.v)) + ')' : sc(r.v)}</span>
           </div>
         ))}
       </div>
@@ -449,7 +449,7 @@ function PSAK58View() {
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{d.ref}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
           </label>
         ))}
       </div>
@@ -503,7 +503,7 @@ function PSAK58View() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
                   padding: '9px 15px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  fontSize: 12.5, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
+                  fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
                   borderBottom: '2px solid ' + (on ? 'var(--navy)' : 'transparent'), marginBottom: -1,
                 }}>
                   <IconT size={14} />

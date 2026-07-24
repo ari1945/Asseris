@@ -249,7 +249,7 @@ function PSAK16View() {
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--green)', marginTop: 1 }}><I.checkCircle size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               <b>Penambahan</b> Rp {sc(fa.additions)} {UN.short} = mutasi neto harga perolehan WTB (belanja modal {eng.fy}); tidak ada pelepasan dibukukan klien — keberadaan diuji terpisah (R-04). Koreksi audit <b>AJE-05</b> Rp {fmt(Math.abs(fa.ajeDepr))} jt menaikkan penyusutan — saldo akhir neto menutup persis ke <b>WTB 1-2100 + 1-2110</b> (= Aset tetap neto pada Neraca).
             </span>
           </div>
@@ -263,7 +263,7 @@ function PSAK16View() {
     <Panel noBody>
       <div className="panel-h"><h3>Klasifikasi per Kelompok Aset</h3><span className="sub mono">¶73 · ¶50–57</span><div style={{ flex: 1 }} /><span className="tiny muted">bruto − akum = neto</span></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Kelompok</th>
@@ -304,7 +304,7 @@ function PSAK16View() {
     <Panel noBody>
       <div className="panel-h"><h3>Uji Kewajaran Penyusutan</h3><span className="sub mono">SA 520 · ¶60–62</span><div style={{ flex: 1 }} /><Badge kind={depWithin ? 'green' : 'amber'}>WP E-4</Badge></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Kelompok</th>
@@ -389,7 +389,7 @@ function PSAK16View() {
         {impair.map((m: any, i: any) => (
           <label key={m.id} className="row gap9" style={{ padding: '7px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < impair.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleImpair(m.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (m.flag ? 'var(--amber)' : 'var(--line)'), background: m.flag ? 'var(--amber)' : '#fff', display: 'grid', placeItems: 'center' }}>{m.flag && <I.check size={11} style={{ color: '#fff' }} />}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.35, color: m.flag ? 'var(--ink)' : 'var(--ink-2)', fontWeight: m.flag ? 600 : 400 }}>{m.t}<span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>· {m.src}</span></span>
+            <span style={{ fontSize: 12, lineHeight: 1.35, color: m.flag ? 'var(--ink)' : 'var(--ink-2)', fontWeight: m.flag ? 600 : 400 }}>{m.t}<span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>· {m.src}</span></span>
           </label>
         ))}
       </div>
@@ -410,7 +410,7 @@ function PSAK16View() {
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P16_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
                 <div className="tiny muted">{r.proc}</div>
               </div>
               <Badge kind="gray">{r.sa}</Badge>
@@ -489,7 +489,7 @@ function PSAK16View() {
           <button className={measure === 'reval' ? 'on' : ''} onClick={() => setMeasure('reval')} style={{ flex: 1 }}>Model revaluasi</button>
         </div>
         {measure === 'cost' ? (
-          <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Entitas menerapkan <b>model biaya</b> (¶30): aset disajikan pada biaya perolehan dikurangi akumulasi penyusutan & rugi penurunan nilai. Diterapkan konsisten untuk seluruh kelompok.</div>
+          <div style={{ fontSize: 12, lineHeight: 1.5 }}>Entitas menerapkan <b>model biaya</b> (¶30): aset disajikan pada biaya perolehan dikurangi akumulasi penyusutan & rugi penurunan nilai. Diterapkan konsisten untuk seluruh kelompok.</div>
         ) : (
           <div className="panel" style={{ padding: '8px 10px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap6" style={{ alignItems: 'flex-start' }}>
@@ -514,7 +514,7 @@ function PSAK16View() {
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{d.ref}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
           </label>
         ))}
       </div>
@@ -526,7 +526,7 @@ function PSAK16View() {
     <div className="grid" style={{ gap: 12 }}>
       <div className="row ac jb">
         <div>
-          <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--navy)' }}>Register Aset Tetap & Impor Lampiran</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)' }}>Register Aset Tetap & Impor Lampiran</div>
           <div className="tiny muted">Buku besar pembantu dari <span className="mono">register-aset-tetap.xlsx</span> — direkonsiliasi ke akun kontrol GL</div>
         </div>
         <div className="seg" style={{ width: 'fit-content' }}>
@@ -590,7 +590,7 @@ function PSAK16View() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
                   padding: '9px 15px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  fontSize: 12.5, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
+                  fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
                   borderBottom: '2px solid ' + (on ? 'var(--navy)' : 'transparent'), marginBottom: -1,
                 }}>
                   <IconT size={14} />

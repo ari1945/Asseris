@@ -46,8 +46,8 @@ function AupWorksheet({ p }: any) {
   const threshDisp = m.count ? m.requirement : valDisp(m.threshold);
   const th = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', padding: '4px 8px', border: '1px solid var(--line-strong)', fontSize: 10.5 };
   const rn = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', border: '1px solid var(--line-strong)', width: 30, fontSize: 10.5 };
-  const ca = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 11.5 };
-  const cb = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 11.5, textAlign: 'right', fontWeight: 600 };
+  const ca = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 12 };
+  const cb = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 12, textAlign: 'right', fontWeight: 600 };
   let r = 0;
   const inputRows = m.inputs.map((inp: any) => { r += 1; return { n: r, a: inp.k, b: inp.v }; });
   const calcN = ++r, threshN = m.count ? null : ++r, statN = ++r;
@@ -389,7 +389,7 @@ function CompilationPanel() {
           <div style={{ display: 'grid', gap: 8 }}>
             {C.statements.map((s: any, i: any) => (
               <div key={i} className="row ac jb" style={{ padding: '9px 11px', borderRadius: 6, background: 'var(--surface-2)' }}>
-                <span className="row ac gap8"><span style={{ color: s.compiled ? 'var(--green)' : 'var(--ink-4)' }}>{s.compiled ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{s.name}</span></span>
+                <span className="row ac gap8"><span style={{ color: s.compiled ? 'var(--green)' : 'var(--ink-4)' }}>{s.compiled ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{s.name}</span></span>
                 <Badge kind={s.compiled ? 'green' : 'amber'}>{s.compiled ? 'Selesai' : 'Proses'}</Badge>
               </div>
             ))}

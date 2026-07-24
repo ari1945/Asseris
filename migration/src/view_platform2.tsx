@@ -177,7 +177,7 @@ function Integrations() {
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="row ac gap6">
-                          <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{it.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{it.name}</div>
                           {demo && <span title="Belum tersambung sumber eksternal — data dari fixture demo"><Badge kind="amber">Mode demo</Badge></span>}
                         </div>
                         <div className="tiny muted">{it.cat} · {it.status === 'connected' ? AMS.fmt(c.posted || 0) + ' baris → SSOT' : st.l}</div>
@@ -472,7 +472,7 @@ function IntegrationDetail({ it, onToggle }: any) {
                   <button key={i} className="panel row ac gap10" style={{ padding: '10px 12px', boxShadow: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', border: '1px solid var(--line)' }} onClick={() => nav(f.module, { from: 'integrations' })} title={'Buka ' + (m.label || f.label)}>
                     <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface-3)', color: 'var(--navy)', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}><MIc size={17} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label || f.label}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{m.label || f.label}</div>
                       <div className="tiny muted">{AMS.fmt(f.n)} {f.unit}</div>
                     </div>
                     <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{AMS.fmt(f.n)}</span>

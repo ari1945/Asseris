@@ -133,7 +133,7 @@ function FWToggle({ label, hint, value, onChange, yes = 'Ya', no = 'Tidak' }: an
   return (
     <div className="row jb ac" style={{ gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
         {hint && <div className="tiny" style={{ color: 'var(--ink-4)', marginTop: 2, lineHeight: 1.4 }}>{hint}</div>}
       </div>
       <div className="seg" style={{ flex: '0 0 auto' }}>
@@ -152,8 +152,8 @@ function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
   return (
     <div style={{ padding: '10px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: over ? 'var(--amber)' : 'var(--green)' }}>{fwRp(value)}</span>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
+        <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: over ? 'var(--amber)' : 'var(--green)' }}>{fwRp(value)}</span>
       </div>
       <div style={{ position: 'relative' }}>
         <input type="range" className="fw-range" min={0} max={max} step={max / 200} value={value}
@@ -358,7 +358,7 @@ function FrameworkView() {
                     <span style={{ color: m.accent }}><I.checkCircle size={15} /></span>
                     <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink)' }}>Dasar penetapan (Gerbang {result.gate})</span>
                   </div>
-                  <p style={{ margin: 0, fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.55 }}>{result.why}</p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.55 }}>{result.why}</p>
                 </div>
               </div>
 
@@ -455,8 +455,8 @@ function FrameworkView() {
                           ? <span style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 11 }}>{p.listed && p.fiduciary ? 'Emiten + LJK' : p.listed ? 'Emiten' : 'LJK fidusia'}</span>
                           : <span className="tiny muted">—</span>}
                       </td>
-                      <td className="mono" style={{ textAlign: 'right', fontSize: 11.5 }}>{fwRp(p.sales)}</td>
-                      <td className="mono" style={{ textAlign: 'right', fontSize: 11.5 }}>{fwRp(p.capital)}</td>
+                      <td className="mono" style={{ textAlign: 'right', fontSize: 12 }}>{fwRp(p.sales)}</td>
+                      <td className="mono" style={{ textAlign: 'right', fontSize: 12 }}>{fwRp(p.capital)}</td>
                       <td style={{ textAlign: 'center' }}><span className="tiny" style={{ fontWeight: 600, color: p.tier === 'Besar' ? 'var(--ink-2)' : 'var(--teal)' }}>{p.tier}</span></td>
                       <td><FWChip fw={p.fw} sm /></td>
                       <td className="tiny" style={{ color: 'var(--ink-3)', maxWidth: 230, lineHeight: 1.4 }}>{p.branch === 'pa' ? 'Akuntabilitas publik' : p.branch === 'big' ? 'Entitas besar (> ambang UMKM)' : p.branch === 'ep' ? 'UMKM → naik ke EP (kompleksitas)' : 'UMKM · pelaporan sederhana'}</td>

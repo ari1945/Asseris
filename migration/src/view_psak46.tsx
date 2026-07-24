@@ -231,7 +231,7 @@ function PSAK46View() {
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_FISCAL.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         {!isTot ? <Badge kind={b.kind}>{b.lbl}</Badge> : <span style={{ width: 86 }} />}
                         <div className="mono" style={{ width: 84, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : isTot ? 'var(--navy)' : 'var(--ink)' }}>{fmt(r.v)}</div>
                       </div>
@@ -262,7 +262,7 @@ function PSAK46View() {
                       {tempRows.map((r: any) => (
                         <tr key={r.id} onClick={r.src ? () => nav(r.src, { from: 'psak46' }) : undefined} style={{ cursor: r.src ? 'pointer' : 'default' }} title={r.src ? 'Buka ' + r.srcLbl : undefined}>
                           <td>
-                            <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }} className="row ac gap6">
+                            <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }} className="row ac gap6">
                               <span>{r.pos} <span className="mono tiny" style={{ color: 'var(--ink-4)', fontWeight: 600 }}>{r.ref}</span></span>
                               {r.src && <I.link2 size={12} style={{ color: 'var(--blue)', flex: '0 0 auto' }} />}
                             </div>
@@ -277,7 +277,7 @@ function PSAK46View() {
                     </tbody>
                     <tfoot>
                       <tr style={{ background: 'var(--surface-2)' }}>
-                        <td colSpan={3} style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--navy)' }}>Aset pajak tangguhan neto</td>
+                        <td colSpan={3} style={{ fontWeight: 700, fontSize: 12, color: 'var(--navy)' }}>Aset pajak tangguhan neto</td>
                         <td className="mono tiny" style={{ textAlign: 'right', color: 'var(--ink-3)' }}>DTA {fmt(dtaTotal)} · DTL ({fmt(-dtlTotal)})</td>
                         <td className="mono" style={{ textAlign: 'right', fontWeight: 800, color: 'var(--navy)' }}>{fmt(netDT)}</td>
                       </tr>
@@ -298,7 +298,7 @@ function PSAK46View() {
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_MOVE.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         {!isTot ? <Badge kind={b.kind}>{b.lbl}</Badge> : <span style={{ width: 60 }} />}
                         <div className="mono" style={{ width: 78, textAlign: 'right', fontWeight: 700, color: isTot ? 'var(--navy)' : 'var(--green)' }}>{isTot ? fmt(r.v) : '+' + fmt(r.v)}</div>
                       </div>
@@ -320,7 +320,7 @@ function PSAK46View() {
                 <div>
                   {P46_ETR.map((r, i) => (
                     <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_ETR.length - 1 ? '1px solid var(--line-soft)' : 0, background: r.head ? 'var(--surface-2)' : 'transparent' }}>
-                      <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.head ? 700 : 500, color: r.head ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.head ? 700 : 500, color: r.head ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                       <div className="mono tiny" style={{ width: 60, textAlign: 'right', color: 'var(--ink-4)' }}>{r.head ? (r.id === 'stat' ? '22,0%' : etr.toFixed(1) + '%') : ((r.v / pbt * 100 >= 0 ? '+' : '') + (r.v / pbt * 100).toFixed(1) + '%')}</div>
                       <div className="mono" style={{ width: 78, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.head ? 'var(--navy)' : 'var(--ink)' }}>{fmt(r.v)}</div>
                     </div>
@@ -341,7 +341,7 @@ function PSAK46View() {
                 </div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: supp ? 'var(--blue-050)' : 'var(--amber-bg)' }}>
                   <span style={{ color: supp ? 'var(--blue)' : 'var(--amber)', marginTop: 1 }}>{supp ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                     {supp
                       ? <>Proyeksi laba kena pajak <b>memadai</b> untuk memulihkan DTA & rugi fiskal dalam batas waktu kompensasi. Fokus audit pada <b>akurasi tax base, tarif & pengungkapan</b>.</>
                       : <>Recoverability DTA <b>diragukan</b> (riwayat rugi / proyeksi lemah). Auditor menguji ulang asumsi proyeksi dan menilai apakah DTA perlu <b>diturunkan</b> (¶56) — berpotensi memengaruhi opini.</>}
@@ -387,7 +387,7 @@ function PSAK46View() {
                         return (
                           <tr key={r.id}>
                             <td>
-                              <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.line}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.line}</div>
                               <div className="tiny muted" style={{ lineHeight: 1.4 }}>{r.note}</div>
                             </td>
                             <td><Badge kind={sb.k}>{sb.l}</Badge></td>
@@ -424,7 +424,7 @@ function PSAK46View() {
                   <div className="panel" style={{ padding: '9px 11px', background: supp ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: supp ? 'var(--green)' : 'var(--amber)', marginTop: 1 }}>{supp ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>{supp
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>{supp
                         ? <>Aset pajak tangguhan neto <b>Rp {fmt(netDT)} jt</b> didukung proyeksi laba kena pajak; tax base, tarif 22% & pengungkapan teruji. Mendukung <b>opini tanpa modifikasi</b> atas pos perpajakan.</>
                         : <>Bila estimasi independen menunjukkan DTA <b>tidak terpulihkan</b> secara material dan manajemen menolak menurunkannya → pertimbangkan <b>modifikasi opini (SA 705)</b>.</>}</span>
                     </div>
@@ -441,7 +441,7 @@ function PSAK46View() {
                         ].map((s, i) => (
                           <div key={i} className="row ac gap8" style={{ padding: '7px 9px', borderRadius: 7, background: 'var(--surface-2)', border: '1px solid var(--line-soft)' }}>
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--amber)', flex: '0 0 18px' }}>{i + 1}</span>
-                            <span style={{ fontSize: 11.5, lineHeight: 1.35, flex: 1 }}>{s[0]}</span>
+                            <span style={{ fontSize: 12, lineHeight: 1.35, flex: 1 }}>{s[0]}</span>
                             <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>{s[1]}</span>
                           </div>
                         ))}
@@ -460,7 +460,7 @@ function PSAK46View() {
                     return (
                       <div key={r.id}>
                         <div className="row ac jb" style={{ marginBottom: 3 }}>
-                          <span style={{ fontSize: 11.5 }}>{r.pos}</span>
+                          <span style={{ fontSize: 12 }}>{r.pos}</span>
                           <span className="mono tiny" style={{ fontWeight: 700, color: pos ? 'var(--green)' : 'var(--red)' }}>{pos ? fmt(r.dt) : '(' + fmt(-r.dt) + ')'}</span>
                         </div>
                         <div style={{ position: 'relative', height: 7, background: 'var(--surface-3)', borderRadius: 4 }}>
@@ -507,7 +507,7 @@ function PSAK46View() {
                     <div key={i} style={{ padding: '8px 0', borderBottom: i < P46_HPP.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <div className="row ac jb">
                         <span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span>
-                        <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span>
+                        <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span>
                       </div>
                       <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{a.note}</div>
                     </div>

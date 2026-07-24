@@ -177,7 +177,7 @@ function PSAK24View() {
                       {P24_PRESENT.map((r) => (
                         <tr key={r.id}>
                           <td>
-                            <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.line}</div>
+                            <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.line}</div>
                             <div className="tiny muted" style={{ lineHeight: 1.4 }}>{r.note}</div>
                           </td>
                           <td><Badge kind={r.stmt.includes('Komprehensif') ? 'purple' : r.stmt.includes('Posisi') ? 'teal' : 'blue'}>{r.stmt.includes('Posisi') ? 'Posisi Keuangan' : r.stmt.includes('Komprehensif') ? 'OCI' : 'Laba Rugi'}</Badge></td>
@@ -202,7 +202,7 @@ function PSAK24View() {
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P24_RECON.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         {!isTot ? <Badge kind={b.kind}>{b.lbl}</Badge> : <span style={{ width: 60 }} />}
                         <div className="mono" style={{ width: 84, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : isTot ? 'var(--navy)' : 'var(--ink)' }}>{fmt(r.v)}</div>
                       </div>
@@ -214,7 +214,7 @@ function PSAK24View() {
                   <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple-solid)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(oci)} jt</b></div>
                 </div>
                 <div onClick={() => nav('psak46', { from: 'psak24' })} className="row ac jb" style={{ margin: '4px 14px 12px', padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer' }}>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.4 }}>Liabilitas ini berdasar pajak <b>0</b> (deductible saat dibayar) → <b>beda temporer dapat dikurangkan</b> di PSAK 46. Pengukuran kembali OCI Rp {fmt(oci)} jt × 22% = pajak OCI.</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.4 }}>Liabilitas ini berdasar pajak <b>0</b> (deductible saat dibayar) → <b>beda temporer dapat dikurangkan</b> di PSAK 46. Pengukuran kembali OCI Rp {fmt(oci)} jt × 22% = pajak OCI.</div>
                   <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--green)', whiteSpace: 'nowrap', marginLeft: 8 }}>DTA Rp {fmt(Math.round(dbo * 0.22))} jt <I.arrowRight size={12} /></span>
                 </div>
               </Panel>
@@ -229,7 +229,7 @@ function PSAK24View() {
                 </div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: avail ? 'var(--blue-050)' : 'var(--amber-bg)' }}>
                   <span style={{ color: avail ? 'var(--blue)' : 'var(--amber)', marginTop: 1 }}>{avail ? <I.expert size={15} /> : <I.alert size={15} />}</span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                     {avail
                       ? <>Aktuaris adalah <b>pakar yang digunakan manajemen</b> (SA 500 ¶8). Laporan tidak diterima begitu saja — auditor menguji <b>data input, asumsi, metode</b>, dan kecukupan pengungkapan.</>
                       : <>Tanpa valuasi aktuaria, kewajiban berisiko <b>tidak tercatat / understated</b>. Auditor wajib menguji materialitas, mengembangkan <b>estimasi independen</b>, dan menilai dampaknya ke opini.</>}
@@ -254,7 +254,7 @@ function PSAK24View() {
                 <div className="panel-h"><h3>Ketentuan UU Cipta Kerja</h3><span className="sub mono">UU 11/2020 jo. PP 35/2021</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.gavel size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                     Perubahan ketentuan pesangon = <b>amandemen program</b> → menimbulkan <b>biaya jasa lalu</b> yang diakui segera di laba rugi. Mayoritas entitas mencatat <b>keuntungan</b> (sebagian skenario PHK lebih rendah). Tiga komponen: <b>Uang Pesangon (UP)</b>, <b>UPMK</b>, <b>UPH</b>.
                   </div>
                 </div>
@@ -305,7 +305,7 @@ function PSAK24View() {
                   <div className="panel" style={{ padding: '9px 11px', background: avail ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: avail ? 'var(--green)' : 'var(--amber)', marginTop: 1 }}>{avail ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>{avail
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>{avail
                         ? <>Liabilitas <b>Rp {fmt(dbo)} jt</b> didukung laporan aktuaria yang relevan & andal; asumsi dan data telah diuji. Mendukung <b>opini tanpa modifikasi</b> atas pos imbalan kerja.</>
                         : <>Bila estimasi independen menunjukkan jumlah <b>material</b> tidak tercatat dan manajemen menolak koreksi → pertimbangkan <b>modifikasi opini (SA 705)</b>.</>}</span>
                     </div>
@@ -322,7 +322,7 @@ function PSAK24View() {
                         ].map((s, i) => (
                           <div key={i} className="row ac gap8" style={{ padding: '7px 9px', borderRadius: 7, background: 'var(--surface-2)', border: '1px solid var(--line-soft)' }}>
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--amber)', flex: '0 0 18px' }}>{i + 1}</span>
-                            <span style={{ fontSize: 11.5, lineHeight: 1.35, flex: 1 }}>{s[0]}</span>
+                            <span style={{ fontSize: 12, lineHeight: 1.35, flex: 1 }}>{s[0]}</span>
                             <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>{s[1]}</span>
                           </div>
                         ))}
@@ -339,7 +339,7 @@ function PSAK24View() {
                     <div key={i} style={{ padding: '8px 0', borderBottom: i < P24_ASSUMP.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <div className="row ac jb">
                         <span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span>
-                        <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span>
+                        <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span>
                       </div>
                       <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{a.note} <span style={{ color: 'var(--ink-4)' }}>· PY {a.py}</span></div>
                     </div>
@@ -356,7 +356,7 @@ function PSAK24View() {
                     return (
                       <div key={i}>
                         <div className="row ac jb" style={{ marginBottom: 3 }}>
-                          <span style={{ fontSize: 11.5 }}>{s.k}</span>
+                          <span style={{ fontSize: 12 }}>{s.k}</span>
                           <span className="mono tiny" style={{ fontWeight: 700, color: pos ? 'var(--red)' : 'var(--green)' }}>{pos ? '+' : ''}{s.d.toFixed(1)}%</span>
                         </div>
                         <div style={{ position: 'relative', height: 7, background: 'var(--surface-3)', borderRadius: 4 }}>

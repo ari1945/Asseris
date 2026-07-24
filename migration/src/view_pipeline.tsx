@@ -68,7 +68,7 @@ function SalesPipeline() {
                 style={{ borderRadius: 8, padding: 5, minHeight: 120, background: over === st.id ? 'var(--blue-050)' : 'transparent', outline: over === st.id ? '2px dashed var(--blue)' : 'none' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 11.5 }}>{st.id}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{st.id}</span>
                   <span className="chip tiny">{col.length}</span>
                 </div>
                 <div className="tiny muted mono" style={{ padding: '0 3px 8px' }}>Rp {fmt(colVal / 1e6, 0)} jt</div>

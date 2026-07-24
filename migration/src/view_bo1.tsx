@@ -95,7 +95,7 @@ function ProcurementLegacy() {
                   return (
                     <tr key={p.id}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.id}</td>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{p.vendor}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{p.vendor}</td>
                       <td className="tiny" style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3 }}>{p.desc}</td>
                       <td className="tiny muted">{p.dept}</td>
                       <td className="num">{boJt(p.amount)}</td>
@@ -140,7 +140,7 @@ function ProcurementLegacy() {
               <tbody>
                 {B.VENDORS.map((v: any) => (
                   <tr key={v.id}>
-                    <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.id}</div></td>
+                    <td><div style={{ fontWeight: 600, fontSize: 12 }}>{v.name}</div><div className="tiny muted mono">{v.id}</div></td>
                     <td className="tiny">{v.pic}</td>
                     <td className="tiny mono">{v.terms}</td>
                     <td><BoBadge s={v.diligence} /></td>
@@ -193,7 +193,7 @@ function FacilitiesLegacy() {
                 {B.FIXED_ASSETS.map((a: any) => (
                   <tr key={a.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
-                    <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{a.name}</div><div className="tiny muted mono">akuisisi {a.acq} · umur {a.life} thn</div></td>
+                    <td><div style={{ fontWeight: 600, fontSize: 12 }}>{a.name}</div><div className="tiny muted mono">akuisisi {a.acq} · umur {a.life} thn</div></td>
                     <td className="tiny">{a.cat}</td>
                     <td className="num">{a.qty}</td>
                     <td className="num">{boJt(a.cost)}</td>
@@ -216,7 +216,7 @@ function FacilitiesLegacy() {
                   return (
                     <tr key={m.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{m.id}</td>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{m.asset}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{m.asset}</td>
                       <td className="tiny">{m.type}</td>
                       <td className="tiny muted">{m.vendor}</td>
                       <td className="tiny mono" style={{ color: d < 0 ? 'var(--red)' : 'var(--ink-2)' }}>{m.due}<span className="muted"> · {d < 0 ? Math.abs(d) + 'h lalu' : d + 'h'}</span></td>
@@ -237,7 +237,7 @@ function FacilitiesLegacy() {
                   const u = Math.round(l.used / l.seats * 100);
                   return (
                     <tr key={l.name}>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{l.name}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{l.name}</td>
                       <td className="tiny muted">{l.vendor}</td>
                       <td className="num mono">{l.used}/{l.seats}</td>
                       <td style={{ width: 130 }}><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: u + '%', height: '100%', borderRadius: 3, background: u > 90 ? 'var(--amber)' : 'var(--blue)' }} /></div><span className="tiny mono">{u}%</span></div></td>
@@ -260,7 +260,7 @@ function FacilitiesLegacy() {
                   return (
                     <div key={f.floor} className="panel" style={{ padding: '11px 13px' }}>
                       <div className="row jb ac" style={{ marginBottom: 6 }}>
-                        <span style={{ fontWeight: 600, fontSize: 12.5 }}>{f.floor}</span>
+                        <span style={{ fontWeight: 600, fontSize: 12 }}>{f.floor}</span>
                         <span className="tiny muted mono">{f.area} m² · {f.occ}/{f.seats} kursi</span>
                       </div>
                       <div style={{ height: 10, borderRadius: 5, background: 'var(--surface-3)' }}><div style={{ width: u + '%', height: '100%', borderRadius: 5, background: u > 85 ? 'var(--amber)' : 'var(--blue)' }} /></div>
@@ -313,7 +313,7 @@ function RecordsRetentionLegacy() {
                 {B.ARCHIVES.map((a: any) => (
                   <tr key={a.id}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</td>
-                    <td style={{ fontWeight: 600, fontSize: 11.5 }}>{a.eng}</td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{a.eng}</td>
                     <td className="num mono">{a.tahun}</td>
                     <td className="tiny mono">{a.arsip}</td>
                     <td className="tiny mono" style={{ color: B.daysTo(a.musnah) < 0 ? 'var(--amber)' : 'var(--ink-2)' }}>{a.musnah}</td>
@@ -331,7 +331,7 @@ function RecordsRetentionLegacy() {
               <tbody>
                 {B.RETENTION_POLICY.map((p: any, i: any) => (
                   <tr key={i}>
-                    <td style={{ fontWeight: 600, fontSize: 11.5 }}>{p.jenis}</td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{p.jenis}</td>
                     <td className="tiny muted">{p.dasar}</td>
                     <td className="num"><span className="mono" style={{ fontWeight: 700 }}>{p.years} thn</span></td>
                     <td className="tiny">{p.format}</td>
@@ -353,7 +353,7 @@ function RecordsRetentionLegacy() {
                   {due.map((a: any) => (
                     <tr key={a.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{a.id}</td>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{a.eng}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{a.eng}</td>
                       <td className="tiny mono">{a.musnah}</td>
                       <td>{a.legal ? <BoBadge s="Legal Hold" /> : <span className="badge b-green">Bebas</span>}</td>
                       <td><Btn sm disabled={a.legal}><I.trash size={12} /> Usul Musnah</Btn></td>
@@ -371,7 +371,7 @@ function RecordsRetentionLegacy() {
                 {B.LEGAL_HOLDS.map((h: any) => (
                   <tr key={h.id}>
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{h.id}</td>
-                    <td style={{ fontWeight: 600, fontSize: 11.5 }}>{h.subjek}</td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{h.subjek}</td>
                     <td className="tiny muted" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.3 }}>{h.alasan}</td>
                     <td className="tiny mono">{h.sejak}</td>
                     <td className="tiny">{h.oleh}</td>

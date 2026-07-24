@@ -131,7 +131,7 @@ function ClientCRM() {
                   <span style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</div>
-                    <div style={{ fontSize: 11.5, color: '#bcd6e4' }}>{sel.industry}</div>
+                    <div style={{ fontSize: 12, color: '#bcd6e4' }}>{sel.industry}</div>
                   </div>
                   <button className="top-btn" title="Edit klien" onClick={() => setForm({ mode: 'edit', data: { ...sel } })}><I.doc size={16} /></button>
                 </div>
@@ -145,7 +145,7 @@ function ClientCRM() {
                       {[['NPWP', sel.npwp, true], ['Domisili', sel.city], ['Klien Sejak', sel.since], ['Partner', sel.partner.split(',')[0]], ['Tingkat Risiko', sel.risk, false, true], ['Annual Fee', rp(sel.fee / 1e6) + ' juta', true]].map(([k, v, mono, badge]) => (
                         <div key={k}>
                           <div className="tiny muted upper" style={{ marginBottom: 2 }}>{k}</div>
-                          {badge ? <Badge>{v}</Badge> : <div className={mono ? 'mono' : ''} style={{ fontSize: 12.5, fontWeight: 600 }}>{v}</div>}
+                          {badge ? <Badge>{v}</Badge> : <div className={mono ? 'mono' : ''} style={{ fontSize: 12, fontWeight: 600 }}>{v}</div>}
                         </div>
                       ))}
                     </div>
@@ -162,7 +162,7 @@ function ClientCRM() {
                       <div key={i} className="panel" style={{ padding: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
                         <Avatar name={ct.name} size={32} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{ct.name}</span>{ct.pic && <span className="badge b-blue" style={{ fontSize: 8.5, padding: '0 5px' }}>PIC</span>}</div>
+                          <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{ct.name}</span>{ct.pic && <span className="badge b-blue" style={{ fontSize: 8.5, padding: '0 5px' }}>PIC</span>}</div>
                           <div className="tiny muted">{ct.role}</div>
                           <div className="tiny mono" style={{ color: 'var(--blue)' }}>{ct.email}</div>
                         </div>
@@ -255,7 +255,7 @@ function ClientForm({ form, onClose, onSave }: any) {
             <div className="field"><label>Annual Fee (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} /></div>
             <div className="field"><label>Klien Sejak</label><input className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
           </div>
-          <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12.5 }}>
+          <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12 }}>
             <span onClick={() => set('listed', !d.listed)} style={{ width: 36, height: 20, borderRadius: 11, background: d.listed ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: d.listed ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
             Emiten tercatat di Bursa Efek Indonesia (IDX)
           </label>
@@ -330,7 +330,7 @@ function EngagementMgmt() {
                   style={{ borderRadius: 8, padding: 4, background: overPhase === ph ? 'var(--blue-050)' : 'transparent', outline: overPhase === ph ? '2px dashed var(--blue)' : 'none', minHeight: 80, transition: 'background .12s' }}>
                   <div className="row ac gap8" style={{ marginBottom: 8, padding: '0 4px' }}>
                     <span style={{ width: 9, height: 9, borderRadius: 3, background: phColor }} />
-                    <span style={{ fontWeight: 700, fontSize: 12.5 }}>{ph}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12 }}>{ph}</span>
                     <span className="chip tiny">{col.length}</span>
                   </div>
                   <div className="grid" style={{ gap: 9 }}>
@@ -348,7 +348,7 @@ function EngagementMgmt() {
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</span>
                             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
                           </div>
-                          <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5, marginBottom: 2 }}>{c?.name.replace('PT ', '')}</div>
+                          <div className="truncate" style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>{c?.name.replace('PT ', '')}</div>
                           <div className="tiny muted" style={{ marginBottom: isEngagementPreAcceptance(e) ? 5 : 8 }}>{e.type}</div>
                           {isEngagementPreAcceptance(e) && (
                             <div style={{ marginBottom: 7 }} title="Akseptasi/keberlanjutan belum disetujui atau surat perikatan belum ditandatangani (SA 210/220) — akan menahan masuk Eksekusi">

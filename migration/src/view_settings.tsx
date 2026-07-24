@@ -54,7 +54,7 @@ function SRow({ title, sub, children, last }: any) {
   return (
     <div className="row ac jb" style={{ padding: '12px 14px', borderBottom: last ? 0 : '1px solid var(--line-soft)', gap: 16 }}>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600 }}>{title}</div>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>{title}</div>
         {sub && <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.45, maxWidth: 460 }}>{sub}</div>}
       </div>
       <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>{children}</div>
@@ -133,7 +133,7 @@ function SettingsView() {
                   className="row ac gap10" style={{ padding: '9px 10px', borderRadius: 8, cursor: 'pointer', background: on ? 'var(--blue-050)' : 'transparent', marginBottom: 2 }}>
                   <span style={{ width: 30, height: 30, borderRadius: 8, flex: '0 0 30px', display: 'grid', placeItems: 'center', background: on ? 'var(--blue)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{React.createElement((I as any)[sec.icon], { size: 15 })}</span>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: on ? 700 : 600, color: on ? 'var(--blue)' : 'var(--ink)' }}>{sec.label}</div>
+                    <div style={{ fontSize: 12, fontWeight: on ? 700 : 600, color: on ? 'var(--blue)' : 'var(--ink)' }}>{sec.label}</div>
                     <div className="tiny muted truncate">{sec.sub}</div>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ function SettingsView() {
       </div></div>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', zIndex: 95, background: 'var(--navy-solid)', color: '#fff', padding: '10px 16px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, boxShadow: 'var(--shadow-lg)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', zIndex: 95, background: 'var(--navy-solid)', color: '#fff', padding: '10px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, boxShadow: 'var(--shadow-lg)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <I.checkCircle size={15} style={{ color: '#5fd08a' }} /> {toast}
         </div>
       )}
@@ -200,7 +200,7 @@ function SecTampilan({ s, setTop }: any) {
                 <button key={id} onClick={() => setTop('accent', id)}
                   className="row ac gap8" style={{ padding: '8px 12px', borderRadius: 9, cursor: 'pointer', border: '1.5px solid ' + (on ? a.swatch : 'var(--line)'), background: on ? 'var(--surface-2)' : 'var(--surface)' }}>
                   <span style={{ width: 20, height: 20, borderRadius: 6, background: a.swatch, boxShadow: on ? '0 0 0 2px #fff inset' : 'none' }} />
-                  <span style={{ fontSize: 12.5, fontWeight: on ? 700 : 600 }}>{a.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: on ? 700 : 600 }}>{a.label}</span>
                   {on && <I.check size={14} style={{ color: a.swatch }} />}
                 </button>
               );
@@ -314,7 +314,7 @@ function CredRow({ icon, label, value, mono }: any) {
     <div className="row ac gap10" style={{ padding: '10px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span style={{ width: 28, height: 28, borderRadius: 7, flex: '0 0 28px', display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}>{React.createElement((I as any)[icon] || I.panel, { size: 14 })}</span>
       <div className="tiny muted" style={{ flex: '0 0 152px' }}>{label}</div>
-      <div style={{ flex: 1, fontSize: 12.5, fontWeight: 600, fontFamily: mono ? 'var(--mono)' : undefined }}>{value}</div>
+      <div style={{ flex: 1, fontSize: 12, fontWeight: 600, fontFamily: mono ? 'var(--mono)' : undefined }}>{value}</div>
     </div>
   );
 }
@@ -395,14 +395,14 @@ function SecProfil({ auth, flash }: any) {
           <div className="row ac gap10" style={{ padding: '10px 0' }}>
             <span style={{ width: 28, height: 28, borderRadius: 7, flex: '0 0 28px', display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}><I.users size={14} /></span>
             <div className="tiny muted" style={{ flex: '0 0 152px' }}>Atasan Langsung</div>
-            <div style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }}>{u.reportsTo}</div>
+            <div style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{u.reportsTo}</div>
           </div>
         </div>
         {/* CPE / PPL progress */}
         <div style={{ padding: '0 16px 16px' }}>
           <div className="panel" style={{ padding: 14, background: 'var(--surface-2)', borderColor: 'transparent' }}>
             <div className="row ac jb" style={{ marginBottom: 8 }}>
-              <div className="row ac gap8"><I.calendar size={14} style={{ color: 'var(--blue)' }} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>CPE / PPL — Tahun Berjalan</span></div>
+              <div className="row ac gap8"><I.calendar size={14} style={{ color: 'var(--blue)' }} /><span style={{ fontSize: 12, fontWeight: 700 }}>CPE / PPL — Tahun Berjalan</span></div>
               <span className="tiny" style={{ fontWeight: 700, color: cpeOk ? 'var(--green)' : 'var(--amber)' }}>{u.cpeHours || 0} / {cpeTarget} SKP</span>
             </div>
             <div style={{ height: 8, borderRadius: 5, background: 'var(--line)', overflow: 'hidden' }}>
@@ -426,7 +426,7 @@ function SecProfil({ auth, flash }: any) {
           <div className="row ac gap12" style={{ padding: 12, border: '1px dashed var(--line-strong)', borderRadius: 10, background: 'var(--surface-2)', maxWidth: 360 }}>
             <span style={{ width: 42, height: 42, borderRadius: 8, flex: '0 0 42px', display: 'grid', placeItems: 'center', background: 'var(--green-solid)', color: '#fff', fontWeight: 800, letterSpacing: '.04em', fontSize: 15 }}>{u.initials}</span>
             <div style={{ minWidth: 0 }}>
-              <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}><I.checkCircle size={14} style={{ color: 'var(--green)' }} /> Direview oleh {u.name.split(' ')[0]}</div>
+              <div className="row ac gap6" style={{ fontSize: 12, fontWeight: 700 }}><I.checkCircle size={14} style={{ color: 'var(--green)' }} /> Direview oleh {u.name.split(' ')[0]}</div>
               <div className="tiny muted">{auth.role} · {u.initials} · {today}</div>
             </div>
           </div>
@@ -561,7 +561,7 @@ function SecKeamanan({ s, setGroup, flash }: any) {
         {!totpOn && enroll && (
           <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 8, maxWidth: 460 }}>
             <div className="tiny muted">Tambahkan ke aplikasi authenticator (masukkan kunci ini), lalu masukkan kode 6 digit untuk mengaktifkan:</div>
-            <div className="mono" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 7, fontSize: 12.5, wordBreak: 'break-all', userSelect: 'all' }}>{enroll.secret}</div>
+            <div className="mono" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 7, fontSize: 12, wordBreak: 'break-all', userSelect: 'all' }}>{enroll.secret}</div>
             <div className="row ac gap8">
               <input className="input mono" inputMode="numeric" maxLength={6} value={otp} onChange={(e: any) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="123456" style={{ width: 120, height: 32, letterSpacing: 3 }} />
               <Btn sm variant="primary" onClick={confirmEnroll} disabled={busy2fa || otp.length < 6}><I.check size={12} /> Verifikasi & Aktifkan</Btn>
@@ -637,7 +637,7 @@ function SecFirma({ s, setGroup, firm, isPartner }: any) {
       {!isPartner && (
         <div className="panel" style={{ padding: '10px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ color: 'var(--amber)' }}><I.lock size={16} /></span>
-          <span style={{ fontSize: 12.5, fontWeight: 600 }}>Hanya <b>Engagement Partner</b> / Admin yang dapat mengubah default metodologi firma. Mode tampilan saja.</span>
+          <span style={{ fontSize: 12, fontWeight: 600 }}>Hanya <b>Engagement Partner</b> / Admin yang dapat mengubah default metodologi firma. Mode tampilan saja.</span>
         </div>
       )}
       <Panel noBody>
@@ -725,7 +725,7 @@ function SecIntegrasi({ nav }: any) {
         {conns.map((c, i) => (
           <div key={i} className="row ac gap12" style={{ padding: '12px 14px', borderBottom: i < conns.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
             <span style={{ width: 34, height: 34, borderRadius: 8, flex: '0 0 34px', display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}>{React.createElement((I as any)[c.icon], { size: 17 })}</span>
-            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</div><div className="tiny muted">{c.desc}</div></div>
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</div><div className="tiny muted">{c.desc}</div></div>
             <Badge kind={c.kind}>{c.status}</Badge>
             <Btn sm>{c.status === 'Terhubung' ? 'Kelola' : 'Hubungkan'}</Btn>
           </div>
@@ -774,14 +774,14 @@ function SecAksesReadOnly({ auth }: any) {
         <div className="panel-h"><h3>Peran Aktif</h3></div>
         <div style={{ padding: 14 }}>
           <div className="row ac jb" style={{ marginBottom: 12 }}>
-            <div className="row ac gap10"><span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.shield size={19} /></span><div><div style={{ fontWeight: 700, fontSize: 13.5 }}>{auth.role}</div><div className="tiny muted">Kontrol akses berbasis peran (RBAC)</div></div></div>
+            <div className="row ac gap10"><span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.shield size={19} /></span><div><div style={{ fontWeight: 700, fontSize: 15 }}>{auth.role}</div><div className="tiny muted">Kontrol akses berbasis peran (RBAC)</div></div></div>
             <span className="chip tiny" style={{ background: 'var(--green-050, var(--surface-3))', color: 'var(--green)' }} title="Peran berasal dari sesi login & ditegakkan di server"><I.lock size={11} /> Ditegakkan di server</span>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
-            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Hak Sign-off</div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{cap.sign}</div></div>
-            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Persetujuan</div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{cap.approve}</div></div>
-            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Hak Edit</div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{cap.edit}</div></div>
-            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Admin Firma</div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{cap.admin ? <span style={{ color: 'var(--green)' }}>Ya</span> : 'Tidak'}</div></div>
+            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Hak Sign-off</div><div style={{ fontSize: 12, fontWeight: 600 }}>{cap.sign}</div></div>
+            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Persetujuan</div><div style={{ fontSize: 12, fontWeight: 600 }}>{cap.approve}</div></div>
+            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Hak Edit</div><div style={{ fontSize: 12, fontWeight: 600 }}>{cap.edit}</div></div>
+            <div className="panel" style={{ padding: '9px 12px' }}><div className="tiny muted upper" style={{ marginBottom: 2 }}>Admin Firma</div><div style={{ fontSize: 12, fontWeight: 600 }}>{cap.admin ? <span style={{ color: 'var(--green)' }}>Ya</span> : 'Tidak'}</div></div>
           </div>
         </div>
       </Panel>
@@ -981,7 +981,7 @@ function SecAksesAdmin({ flash }: any) {
             <div className="tiny muted" style={{ marginBottom: 8 }}>Kapabilitas — kosong secara default, centang yang diperlukan:</div>
             <div style={{ display: 'grid', gap: 7, maxHeight: 280, overflow: 'auto', marginBottom: 14 }}>
               {CAP_ROWS.map(([key, capVal]) => (
-                <label key={capVal} className="row ac gap8" style={{ fontSize: 12.5, cursor: 'pointer' }}>
+                <label key={capVal} className="row ac gap8" style={{ fontSize: 12, cursor: 'pointer' }}>
                   <input type="checkbox" checked={newCaps.includes(capVal)}
                     onChange={() => setNewCaps((p: string[]) => p.includes(capVal) ? p.filter((c) => c !== capVal) : [...p, capVal])} />
                   {CAP_LABELS[capVal]?.label || key}
@@ -1102,7 +1102,7 @@ function SecAI({ s, setGroup, flash }: any) {
           {/* API key */}
           <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line-soft)' }}>
             <div className="row ac jb" style={{ marginBottom: 6 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600 }}>Kunci API</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Kunci API</div>
               <button className="btn sm" onClick={() => setShowKey((v: any) => !v)} style={{ height: 24 }}>{showKey ? 'Sembunyikan' : 'Tampilkan'}</button>
             </div>
             <input className="input" type={showKey ? 'text' : 'password'} value={curKey} onChange={(e: any) => setKey(e.target.value)}
@@ -1113,7 +1113,7 @@ function SecAI({ s, setGroup, flash }: any) {
 
           {/* base URL */}
           <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line-soft)' }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 6 }}>Base URL <span className="tiny muted" style={{ fontWeight: 400 }}>· endpoint kustom / proxy</span></div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Base URL <span className="tiny muted" style={{ fontWeight: 400 }}>· endpoint kustom / proxy</span></div>
             <input className="input" value={curBase} onChange={(e: any) => setBase(e.target.value)} placeholder={active.baseUrl}
               style={{ width: '100%', height: 32, fontFamily: 'var(--mono)', fontSize: 12 }} />
           </div>

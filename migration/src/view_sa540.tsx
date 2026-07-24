@@ -154,11 +154,11 @@ function SA540View() {
               <div className="tiny muted">{client} · {engLabel}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Estimasi Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{register.length} · {sig} signifikan</div></div>
+            <div><div className="tiny muted upper">Estimasi Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{register.length} · {sig} signifikan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ketidakpastian Tinggi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{uncHi} estimasi</div></div>
+            <div><div className="tiny muted upper">Ketidakpastian Tinggi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--red)' }}>{uncHi} estimasi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Indikasi Bias</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>{biasFlags} perhatian</div></div>
+            <div><div className="tiny muted upper">Indikasi Bias</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--amber)' }}>{biasFlags} perhatian</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Sikap Auditor</div>
@@ -267,7 +267,7 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
             <div className="tiny muted upper" style={{ margin: '12px 0 5px' }}>Catatan Auditor</div>
             {locked ? (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
-                <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{sel.note}</span></div>
+                <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>{sel.note}</span></div>
               </div>
             ) : <textarea className="input" value={sel.note} onChange={(e: Ev) => patch(sel.id, { note: e.target.value })} style={{ height: 50, padding: 8, lineHeight: 1.45, resize: 'vertical' }} placeholder="Catatan/kesimpulan atas estimasi…" />}
             {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
@@ -330,7 +330,7 @@ function F540Risk({ register, setRegister, locked }: { register: Estimate[]; set
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>SA 540 revisi menuntut penilaian risiko bawaan secara <b>terpisah</b> dari risiko pengendalian, dengan mempertimbangkan derajat <b>kompleksitas, subjektivitas, & ketidakpastian estimasi</b> pada spektrum risiko bawaan (¶4, ¶13).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>SA 540 revisi menuntut penilaian risiko bawaan secara <b>terpisah</b> dari risiko pengendalian, dengan mempertimbangkan derajat <b>kompleksitas, subjektivitas, & ketidakpastian estimasi</b> pada spektrum risiko bawaan (¶4, ¶13).</span>
           </div>
         </div>
       </Panel>
@@ -367,7 +367,7 @@ function F540Response({ register, sensitivity, setSensitivity, locked }: { regis
               <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < approaches.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={16} /></span>
                 <div style={{ flex: 1 }}>
-                  <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{a.k}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{a.ref}</span></div>
+                  <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{a.k}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{a.ref}</span></div>
                   <div className="tiny muted" style={{ lineHeight: 1.45, margin: '2px 0 5px' }}>{a.d}</div>
                   <div className="chip tiny" style={{ background: 'var(--surface-2)' }}>Diterapkan pada: {a.used}</div>
                 </div>
@@ -402,7 +402,7 @@ function F540Response({ register, sensitivity, setSensitivity, locked }: { regis
               { t: 'Ruang lingkup & asumsi pakar dipahami', ok: true },
               { t: 'Kewajaran temuan pakar dievaluasi', ok: true },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>
@@ -466,7 +466,7 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
                   </td>
                   <td className="tiny">{locked ? b.est : <input className="input" value={b.est} onChange={(e: Ev) => patch(b.id, { est: e.target.value })} style={{ height: 26 }} />}</td>
                   <td>{locked ? (b.flag === 'green' ? <Badge kind="green">Wajar</Badge> : <Badge kind="amber">Perhatian</Badge>)
-                    : <select className="select" value={b.flag} onChange={(e: Ev) => patch(b.id, { flag: e.target.value })} style={{ height: 28, fontSize: 11.5 }}>{BIAS_FLAG.map(f => <option key={f} value={f}>{f === 'green' ? 'Wajar' : 'Perhatian'}</option>)}</select>}</td>
+                    : <select className="select" value={b.flag} onChange={(e: Ev) => patch(b.id, { flag: e.target.value })} style={{ height: 28, fontSize: 12 }}>{BIAS_FLAG.map(f => <option key={f} value={f}>{f === 'green' ? 'Wajar' : 'Perhatian'}</option>)}</select>}</td>
                   {!locked && <td><button className="btn sm icon" title="Hapus" onClick={() => del(b.id)}><I.x size={12} /></button></td>}
                 </tr>
               ))}
@@ -476,7 +476,7 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Indikator bias <b>secara individual</b> belum tentu salah saji, namun <b>secara kolektif</b> dipertimbangkan dalam mengevaluasi kewajaran estimasi & implikasi terhadap audit secara keseluruhan (¶32, SA 240 ¶32b).</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Indikator bias <b>secara individual</b> belum tentu salah saji, namun <b>secara kolektif</b> dipertimbangkan dalam mengevaluasi kewajaran estimasi & implikasi terhadap audit secara keseluruhan (¶32, SA 240 ¶32b).</span>
             </div>
           </div>
         </Panel>
@@ -492,7 +492,7 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
             ].map((p, i) => (
               <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: p.done ? 'var(--green)' : 'var(--amber)' }}>{p.done ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{p.t}</div>
+                <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{p.t}</div>
               </div>
             ))}
           </div>
@@ -512,7 +512,7 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
         <Panel title="Komunikasi TCWG (SA 260)">
           <div style={{ display: 'grid', gap: 7 }}>
             {['Area ketidakpastian estimasi tinggi & dampaknya', 'Indikasi bias manajemen yang teridentifikasi', 'Selisih titik mgmt vs rentang auditor (CKPN)'].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.mail size={14} /></span>
                 <span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>

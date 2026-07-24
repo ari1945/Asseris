@@ -354,7 +354,7 @@ function WpSubBarControl({ moduleId }: any) {
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 74 }} onClick={() => setOpen(false)} />
           <div className="ev-pop" style={{ width: 340 }}>
-            <div className="ev-pop-h" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line)', fontWeight: 700, fontSize: 12.5 }}>
+            <div className="ev-pop-h" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line)', fontWeight: 700, fontSize: 12 }}>
               Kertas Kerja — Sign-off, Bukti &amp; Kesimpulan
             </div>
             <div style={{ padding: 12, maxHeight: '70vh', overflowY: 'auto' }}>
@@ -655,7 +655,7 @@ function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any)
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onCancel}>
       <div className="panel" style={{ width: 460, maxWidth: '94vw', padding: 0, overflow: 'hidden' }} onClick={(ev: any) => ev.stopPropagation()}>
         <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', borderTop: `3px solid ${accent}` }}>
-          <div className="row ac gap8" style={{ fontWeight: 700, fontSize: 13.5 }}>
+          <div className="row ac gap8" style={{ fontWeight: 700, fontSize: 15 }}>
             <span style={{ color: accent }}><I.alert size={15} /></span>
             {isConfirm ? 'Konfirmasi pengarsipan engagement' : `Transisi ${fromPhase} → ${toPhase}`}
           </div>

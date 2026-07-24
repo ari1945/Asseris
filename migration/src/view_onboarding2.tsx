@@ -122,7 +122,7 @@ function StepPMPJ({ p, onPatch }: any) {
 
       {/* str + verify */}
       <div className="row jb ac" style={{ gap: 14, flexWrap: 'wrap' }}>
-        <label className="row ac gap8" style={{ cursor: locked ? 'default' : 'pointer', fontSize: 12.5 }}>
+        <label className="row ac gap8" style={{ cursor: locked ? 'default' : 'pointer', fontSize: 12 }}>
           <span onClick={locked ? undefined : () => setP({ str: !m.str })} style={{ width: 36, height: 20, borderRadius: 11, background: m.str ? 'var(--red)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: m.str ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
           Ajukan Laporan Transaksi Mencurigakan (LTKM) ke PPATK
         </label>
@@ -215,12 +215,12 @@ function StepLetter({ p, onPatch }: any) {
         {L.version === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink-3)' }}>
             <div style={{ width: 52, height: 52, borderRadius: 12, background: 'var(--surface-3)', display: 'grid', placeItems: 'center', margin: '0 auto 14px', color: 'var(--ink-4)' }}><I.doc size={26} /></div>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink-2)' }}>Surat perikatan belum dibuat</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-2)' }}>Surat perikatan belum dibuat</div>
             <div className="tiny muted" style={{ margin: '6px 0 16px' }}>Buat draft SA 210 dari data prospek.</div>
             <Btn variant="primary" disabled={!canIssue} onClick={generate}><I.sparkle size={14} /> Buat Engagement Letter</Btn>
           </div>
         ) : (
-          <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.65, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.65, color: '#283b46' }}>
             <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 18, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>
               <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>{FIRM.license}</div></div>
               <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>No. {p.id}/EL/{new Date().getFullYear()}</div><div className="tiny" style={{ color: '#7a8893' }}>v{L.version} · {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</div></div>
@@ -260,7 +260,7 @@ function StepLetter({ p, onPatch }: any) {
       {/* control panel */}
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="panel" style={{ padding: 14 }}>
-          <div className="row jb ac" style={{ marginBottom: 10 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>Status Surat</span><Badge kind={stt.k}>{stt.l}</Badge></div>
+          <div className="row jb ac" style={{ marginBottom: 10 }}><span style={{ fontSize: 12, fontWeight: 700 }}>Status Surat</span><Badge kind={stt.k}>{stt.l}</Badge></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <OKv label="Versi" v={'v' + L.version} />
             <OKv label="Standar" v="SA 210" />
@@ -297,7 +297,7 @@ function StepLetter({ p, onPatch }: any) {
         </div>
 
         <div className="panel" style={{ padding: 14 }}>
-          <div className="row jb ac" style={{ marginBottom: 10 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>Keabsahan Hukum</span><Badge kind={L.legalBound ? 'green' : 'amber'}>{L.legalBound ? 'Mengikat' : 'Belum mengikat'}</Badge></div>
+          <div className="row jb ac" style={{ marginBottom: 10 }}><span style={{ fontSize: 12, fontWeight: 700 }}>Keabsahan Hukum</span><Badge kind={L.legalBound ? 'green' : 'amber'}>{L.legalBound ? 'Mengikat' : 'Belum mengikat'}</Badge></div>
           <div style={{ display: 'grid', gap: 8 }}>
             <div className="row ac gap8"><span style={{ color: L.psre ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto' }}>{L.psre ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span><div style={{ flex: 1, minWidth: 0 }}><div className="tiny" style={{ fontWeight: 600 }}>TTE tersertifikasi (PSrE)</div><div className="tiny muted">{L.psre ? L.psre.provider + ' · ' + L.psre.accred : 'PrivyID · PSrE Kominfo'}</div></div></div>
             <div className="row ac gap8"><span style={{ color: L.meterai ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto' }}>{L.meterai ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span><div style={{ flex: 1, minWidth: 0 }}><div className="tiny" style={{ fontWeight: 600 }}>e-Meterai Rp 10.000 (Peruri)</div><div className="tiny muted">{L.meterai ? L.meterai.serial : 'Wajib untuk surat perikatan (UU 10/2020)'}</div></div></div>
@@ -312,7 +312,7 @@ function StepLetter({ p, onPatch }: any) {
               {L.esign.map((e: any, i: any) => (
                 <div key={i} className="row gap8" style={{ padding: '7px 0', borderBottom: i < L.esign.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 22px', width: 22, height: 22, borderRadius: '50%', background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center' }}><I.check size={12} /></span>
-                  <div style={{ flex: 1 }}><div style={{ fontSize: 11.5, lineHeight: 1.4 }}>{e.t}</div><div className="tiny muted">{e.who} · {e.date}</div></div>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 12, lineHeight: 1.4 }}>{e.t}</div><div className="tiny muted">{e.who} · {e.date}</div></div>
                 </div>
               ))}
             </div>

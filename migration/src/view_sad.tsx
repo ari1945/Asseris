@@ -154,10 +154,10 @@ function SADLedger() {
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={16} /></span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 3 }}>
+                  <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 3 }}>
                     Validasi silang SA 450 — {recon.issues} inkonsistensi antar sumber kebenaran
                   </div>
-                  <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+                  <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
                     {recon.stale.map((s) => (
                       <li key={s.sadId}><b className="mono">{s.sadId}</b> · {s.reason} (jurnal <span className="mono">{s.ajeId}</span> = {s.ajeStatus}).</li>
                     ))}
@@ -226,7 +226,7 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 6 }}>
                   {m.id}{m.origin === 'prior' && <div><Badge kind="gray">PY</Badge></div>}
                 </td>
-                <td style={{ maxWidth: 250, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5, padding: '6px 9px' }}>
+                <td style={{ maxWidth: 250, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12, padding: '6px 9px' }}>
                   {m.desc}
                   <div className="tiny muted" style={{ marginTop: 2 }}>{m.fsli} · <span className="mono">→ {m.aje}</span></div>
                   {m.qual.length > 0 && <div className="row gap6 wrap" style={{ marginTop: 4 }}><span className="tiny" style={{ color: 'var(--amber)', fontWeight: 700 }}>⚑ Kualitatif</span></div>}
@@ -293,7 +293,7 @@ function LegendRow({ color, label, v }: any) {
   return (
     <div className="row jb ac">
       <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: color }} /><span style={{ fontSize: 12 }}>{label}</span></span>
-      <span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{v}</span>
+      <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{v}</span>
     </div>
   );
 }
@@ -432,7 +432,7 @@ function TabQualitative({ quals, toggleQual, qualCount }: any) {
                 </span>
                 <div style={{ flex: 1 }}>
                   <div className="row jb ac">
-                    <span style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{q.text}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{q.text}</span>
                     {q.on && <Badge kind="amber">Relevan</Badge>}
                   </div>
                   {q.on && q.note && <div className="tiny" style={{ marginTop: 5, lineHeight: 1.5, color: 'var(--ink-2)' }}>{q.note}</div>}
@@ -499,7 +499,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
             {commLog.map((c, i) => (
               <div key={i} className="panel" style={{ margin: 8, padding: '10px 12px', boxShadow: 'none' }}>
                 <div className="row jb ac" style={{ marginBottom: 4 }}>
-                  <span className="row ac gap8"><Avatar name={c.who} size={22} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{c.who}</span><Badge kind="gray">{c.kind}</Badge></span>
+                  <span className="row ac gap8"><Avatar name={c.who} size={22} /><span style={{ fontSize: 12, fontWeight: 700 }}>{c.who}</span><Badge kind="gray">{c.kind}</Badge></span>
                   <span className="row ac gap8"><span className="tiny muted">{c.date}</span><Badge kind={(statusKind as any)[c.status]}>{c.status}</Badge></span>
                 </div>
                 <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>{c.body}</div>
@@ -545,7 +545,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
             <div className="panel" style={{ padding: '10px 12px', background: `var(--${concl.k}-bg)`, borderColor: 'transparent', marginBottom: 10 }}>
               <div className="row gap8 ac" style={{ marginBottom: 4 }}>
                 <span style={{ color: `var(--${concl.k})` }}>{concl.k === 'green' ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: `var(--${concl.k})` }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: `var(--${concl.k})` }}>
                   {exceedsOM ? 'Material — Modifikasi Opini' : exceedsPM ? 'Perlu Evaluasi Lanjut' : 'Tidak Material (Kuantitatif)'}
                 </span>
               </div>

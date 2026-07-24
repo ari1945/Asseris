@@ -342,7 +342,7 @@ function DocManagement() {
                     const IconC = (I as any)[(TYPE_ICON as any)[d.type]] || I.doc;
                     return (
                       <tr key={d.id} onClick={() => setSelId(d.id)} style={{ cursor: 'pointer' }} className={d.id === selId ? 'sel' : ''}>
-                        <td style={{ minWidth: 220 }}><div className="row ac gap8"><span style={{ color: d.legalHold ? 'var(--red)' : 'var(--ink-4)' }}>{d.legalHold ? <I.lock size={14} /> : <IconC size={14} />}</span><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12.5 }}>{d.name}</div><div className="mono tiny muted">{d.id}</div></div></div></td>
+                        <td style={{ minWidth: 220 }}><div className="row ac gap8"><span style={{ color: d.legalHold ? 'var(--red)' : 'var(--ink-4)' }}>{d.legalHold ? <I.lock size={14} /> : <IconC size={14} />}</span><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{d.name}</div><div className="mono tiny muted">{d.id}</div></div></div></td>
                         <td className="mono tiny muted">{d.eng}</td>
                         <td className="tiny">{d.type}</td>
                         <td className="num"><span className="chip tiny">v{d.ver}</span></td>

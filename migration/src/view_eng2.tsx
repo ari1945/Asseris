@@ -260,7 +260,7 @@ function EngJadwal() {
               return (
                 <div key={e.id} className="row ac" onClick={() => setSelId(e.id)} style={{ cursor: 'pointer', background: e.id === selId ? 'var(--blue-050)' : 'transparent', borderRadius: 6, padding: '2px 0' }}>
                   <div style={{ width: 170, flex: '0 0 170px', minWidth: 0, paddingLeft: 4 }}>
-                    <div className="truncate" style={{ fontSize: 11.5, fontWeight: 600 }}>{c?.name.replace('PT ', '')}</div>
+                    <div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{c?.name.replace('PT ', '')}</div>
                     <div className="tiny muted mono">{e.id}</div>
                   </div>
                   <div style={{ flex: 1, position: 'relative', height: 24 }}>

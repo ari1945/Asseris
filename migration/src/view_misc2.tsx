@@ -98,7 +98,7 @@ function Templates() {
                             <FmtBadge fmt={t.fmt} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="row ac gap6" style={{ marginBottom: 2 }}>
-                                <span style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.25 }} className="truncate">{t.name}</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.25 }} className="truncate">{t.name}</span>
                               </div>
                               <div className="row ac gap6 tiny muted">
                                 <span className="mono" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{t.id}</span>
@@ -173,7 +173,7 @@ function TplDocPreview({ t }: any) {
         </table>
       ) : (
         <>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 13.5, marginBottom: 4 }}>{t.name.toUpperCase()}</div>
+          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 15, marginBottom: 4 }}>{t.name.toUpperCase()}</div>
           <div style={{ textAlign: 'center', fontSize: 9.5, color: '#7a8893', marginBottom: 18 }}>KAP Wijaya Hartono &amp; Rekan · Template Standar IAPI · v{t.ver}</div>
           {[1, 2, 3, 4].map(n => <div key={n} style={{ marginBottom: 13 }}><div style={{ fontWeight: 700, fontSize: 11, marginBottom: 5 }}>{n}. {['Latar Belakang', 'Ruang Lingkup', 'Prosedur', 'Kesimpulan'][n - 1]}</div>{[1, 2, 3].map(k => <div key={k} style={{ height: 6.5, background: '#eef1f4', borderRadius: 3, marginBottom: 4, width: k === 3 ? '70%' : '100%' }} />)}</div>)}
         </>
@@ -205,7 +205,7 @@ function TemplateDetail({ t, onClose }: any) {
           <span style={{ width: 40, height: 48, borderRadius: 5, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', position: 'relative', flex: '0 0 40px' }}><I.doc size={21} /><span style={{ position: 'absolute', bottom: 3, fontSize: 7.5, fontWeight: 800 }}>{t.fmt}</span></span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 18 }}>{t.name}</div>
-            <div className="row ac gap8" style={{ color: '#bcd6e4', marginTop: 3, fontSize: 12.5 }}><span className="mono">{t.id}</span><span>· {t.phase}</span><span>· {t.cat}</span></div>
+            <div className="row ac gap8" style={{ color: '#bcd6e4', marginTop: 3, fontSize: 12 }}><span className="mono">{t.id}</span><span>· {t.phase}</span><span>· {t.cat}</span></div>
           </div>
           <span className={'badge b-' + st.k} style={{ marginRight: 4 }}>{t.status}</span>
           <button className="top-btn" onClick={onClose}><I.x size={20} /></button>
@@ -257,7 +257,7 @@ function TemplateDetail({ t, onClose }: any) {
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Dipakai di engagement · {engObjs.length}</div>
               <div className="grid" style={{ gap: 5 }}>
                 {engObjs.length ? engObjs.map((e: any) => (
-                  <div key={e.id} className="row jb ac" style={{ fontSize: 12.5, padding: '7px 10px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+                  <div key={e.id} className="row jb ac" style={{ fontSize: 12, padding: '7px 10px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{e.id}</span>
                     <span className="truncate muted" style={{ maxWidth: 150 }}>{(e.client || '').replace('PT ', '')}</span>
                   </div>

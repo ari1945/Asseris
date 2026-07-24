@@ -129,8 +129,8 @@ function TaxPPh23() {
                       <div style={{ flex: 1, display: 'grid', gap: 8 }}>
                         {kindMix.map(k => (
                           <div key={k.k} className="row jb ac">
-                            <span className="row ac gap8"><span style={{ width: 10, height: 10, borderRadius: 3, background: k.color }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{k.label}</span></span>
-                            <span className="row ac gap10"><span className="tiny muted">{k.n} bupot · DPP {fmt(k.dpp / 1e6, 0)} jt</span><span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{fmt(k.value / 1e6, 1)} jt</span></span>
+                            <span className="row ac gap8"><span style={{ width: 10, height: 10, borderRadius: 3, background: k.color }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{k.label}</span></span>
+                            <span className="row ac gap10"><span className="tiny muted">{k.n} bupot · DPP {fmt(k.dpp / 1e6, 0)} jt</span><span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{fmt(k.value / 1e6, 1)} jt</span></span>
                           </div>
                         ))}
                       </div>
@@ -170,7 +170,7 @@ function TaxPPh23() {
 
                   {s.noNpwpCount > 0 && (
                     <div className="panel" style={{ padding: '11px 13px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
-                      <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>{s.noNpwpCount} lawan transaksi tanpa NPWP</span></div>
+                      <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>{s.noNpwpCount} lawan transaksi tanpa NPWP</span></div>
                       <div className="tiny" style={{ lineHeight: 1.55 }}>Dikenakan tarif <b>100% lebih tinggi</b> (UU PPh Ps. 23(1a)). Beban tambahan firma <b>Rp {fmt(s.extraCost / 1e6, 1)} jt</b> — mintakan NPWP untuk menghindari pungutan ekstra.</div>
                     </div>
                   )}
@@ -230,7 +230,7 @@ function TaxPPh23() {
                   return (
                     <div key={m.masa} className="panel" style={{ padding: 0, overflow: 'hidden' }}>
                       <div className="row jb ac" style={{ padding: '11px 13px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line-soft)' }}>
-                        <div><div style={{ fontWeight: 700, fontSize: 13.5 }}>{m.label}</div><div className="tiny muted">{m.count} bukti potong · Unifikasi</div></div>
+                        <div><div style={{ fontWeight: 700, fontSize: 15 }}>{m.label}</div><div className="tiny muted">{m.count} bukti potong · Unifikasi</div></div>
                         <Badge kind={(T23_STAT as any)[m.status] || 'amber'}>{m.status}</Badge>
                       </div>
                       <div style={{ padding: 13, display: 'grid', gap: 7 }}>
@@ -328,7 +328,7 @@ function T23Reconcile({ opts, nav }: any) {
           {flow.map((f, i) => (
             <React.Fragment key={f.lbl}>
               <button className="panel" style={{ flex: 1, minWidth: 150, padding: '11px 12px', textAlign: 'left', cursor: 'pointer', borderLeft: '3px solid ' + f.color, boxShadow: 'none' }} onClick={() => nav(f.mod, { from: 'tax' })}>
-                <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: f.color }}>{React.createElement((I as any)[f.ic], { size: 15 })}</span><span style={{ fontSize: 12.5, fontWeight: 700 }}>{f.lbl}</span></div>
+                <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: f.color }}>{React.createElement((I as any)[f.ic], { size: 15 })}</span><span style={{ fontSize: 12, fontWeight: 700 }}>{f.lbl}</span></div>
                 <div className="tiny muted">{f.sub}</div>
               </button>
               {i < flow.length - 1 && <span style={{ color: 'var(--ink-4)', padding: '0 6px' }}><I.arrowRight size={16} /></span>}
@@ -374,7 +374,7 @@ function T23Reconcile({ opts, nav }: any) {
           {prov.map((p: any, i: any) => (
             <div key={p.label} className="row jb ac" style={{ padding: '9px 0', borderBottom: i < prov.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{p.label}</span>{p.tied && <span style={{ color: 'var(--green)' }} title="Tertaut & tertutup"><I.checkCircle size={12} /></span>}</div>
+                <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{p.label}</span>{p.tied && <span style={{ color: 'var(--green)' }} title="Tertaut & tertutup"><I.checkCircle size={12} /></span>}</div>
                 <div className="tiny muted">{p.source}</div>
               </div>
               <div className="row ac gap10">

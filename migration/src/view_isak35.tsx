@@ -60,7 +60,7 @@ function I35Nav({ items, active, onChange }: any) {
             <button key={it.id} onClick={() => onChange(it.id)} className="row ac gap8"
               style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid ' + (on ? 'var(--blue)' : 'var(--line)'), background: on ? 'var(--blue-050)' : 'var(--surface)', cursor: 'pointer', textAlign: 'left' }}>
               <span className="mono tiny" style={{ fontWeight: 700, color: on ? 'var(--blue)' : 'var(--ink-4)', flex: '0 0 22px' }}>{it.tag}</span>
-              <span style={{ fontSize: 12.5, fontWeight: on ? 700 : 500, flex: 1, color: on ? 'var(--navy)' : 'var(--ink-2)' }}>{it.label}</span>
+              <span style={{ fontSize: 12, fontWeight: on ? 700 : 500, flex: 1, color: on ? 'var(--navy)' : 'var(--ink-2)' }}>{it.label}</span>
               {it.status && <span style={{ width: 7, height: 7, borderRadius: 4, background: meta.c, flex: '0 0 auto' }} />}
             </button>
           );
@@ -114,11 +114,11 @@ function ISAK35View() {
 
   /* ---- baris dokumen bersama ---- */
   const styleFor = (lvl: any) => (({
-    section:  { fontWeight: 800, fontSize: 12.5, paddingTop: 14, color: '#0c2430' },
+    section:  { fontWeight: 800, fontSize: 12, paddingTop: 14, color: '#0c2430' },
     sub:      { fontWeight: 700, fontSize: 12, paddingTop: 8, color: '#28414e' },
     line:     { fontWeight: 400 },
     subtotal: { fontWeight: 700, borderTop: '1px solid #cdd5dc' },
-    total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12.5 },
+    total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12 },
   } as any)[lvl]);
 
   const R = ({ label, cy, py, lvl = 'line', note, indent }: any) => {
@@ -196,9 +196,9 @@ function ISAK35View() {
 
             {/* dokumen */}
             <div style={{ flex: 1, minWidth: 0, background: '#e7eaef', borderRadius: 6, padding: 16, border: '1px solid var(--line)' }}>
-              <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12.5, color: '#16242c' }}>
+              <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c' }}>
                 <div style={{ textAlign: 'center', marginBottom: 3, fontWeight: 800, fontSize: 14 }}>{m.entity.name}</div>
-                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12.5 }}>{title}</div>
+                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12 }}>{title}</div>
                 <div style={{ textAlign: 'center', color: '#7a8893', fontSize: 11, marginBottom: 18 }}>{periodTxt} · (dalam {U.label})</div>
 
                 {(tab === 'posisi' || tab === 'penghasilan' || tab === 'aruskas') && (
@@ -372,7 +372,7 @@ function I35Calk({ m, f0, disc }: any) {
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
         {std && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#005085', background: '#e3eef6', padding: '1px 6px', borderRadius: 9 }}>{std}</span>}
       </div>
-      <div style={{ fontSize: 11.5, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
+      <div style={{ fontSize: 12, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
     </div>
   );
   const done = disc.filter((d: any) => d.done).length;
@@ -438,7 +438,7 @@ function I35Disclosure({ disc, setDisc }: any) {
           <label key={d.id} className="row gap8" style={{ padding: '8px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.done ? 'var(--green)' : 'var(--amber)'), background: d.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, lineHeight: 1.4, color: d.done ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.done ? 400 : 600 }}>{d.label}</div>
+              <div style={{ fontSize: 12, lineHeight: 1.4, color: d.done ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.done ? 400 : 600 }}>{d.label}</div>
               <div className="mono tiny" style={{ color: 'var(--ink-4)', marginTop: 1 }}>{d.ref}{!d.done && <span style={{ color: 'var(--amber)', fontWeight: 700, marginLeft: 6 }}>belum lengkap</span>}</div>
             </div>
           </label>
@@ -463,7 +463,7 @@ function I35Audit({ proc, done, setDone, nav }: any) {
           <label key={i} className="row gap8" style={{ padding: '8px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < proc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(i)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (done[i] ? 'var(--green)' : 'var(--line-strong)'), background: done[i] ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{done[i] && <I.check size={11} style={{ color: '#fff' }} />}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, lineHeight: 1.4, color: done[i] ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</div>
+              <div style={{ fontSize: 12, lineHeight: 1.4, color: done[i] ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</div>
               <div className="mono tiny" style={{ color: 'var(--blue)', marginTop: 1, fontWeight: 600 }}>{p.ref}</div>
             </div>
           </label>
@@ -483,7 +483,7 @@ function I35Signoff({ moduleId }: any) {
       <span style={{ color: signed ? 'var(--green)' : 'var(--ink-4)', flex: '0 0 auto' }}>{signed ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="tiny muted">{label}</div>
-        <div style={{ fontSize: 11.5, fontWeight: 600 }}>{signed ? signed.by : 'Belum ditandatangani'}</div>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>{signed ? signed.by : 'Belum ditandatangani'}</div>
       </div>
       {signed && <span className="tiny mono" style={{ color: 'var(--ink-4)' }}>{signed.at}</span>}
     </button>

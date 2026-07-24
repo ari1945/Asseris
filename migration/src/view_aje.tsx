@@ -101,7 +101,7 @@ function AjeKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span className="tiny muted">{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{v}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: 12, color: accent || 'var(--ink)' }}>{v}</span>
     </div>
   );
 }
@@ -200,7 +200,7 @@ function AJEView() {
           {!locked && !canEditAje && (
             <div className="panel" style={{ margin: '0 0 12px', padding: '10px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ color: 'var(--amber)' }}><I.lock size={16} /></span>
-              <span style={{ fontSize: 12.5, fontWeight: 600 }}>Peran <b>{auth.role}</b> hanya dapat melihat AJE. Penyusunan/posting jurnal memerlukan peran Senior Auditor ke atas (ditegakkan di server).</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>Peran <b>{auth.role}</b> hanya dapat melihat AJE. Penyusunan/posting jurnal memerlukan peran Senior Auditor ke atas (ditegakkan di server).</span>
             </div>
           )}
           <div style={{ marginBottom: 12 }}><DiagnosticPanel area="aje" title="Diagnostik AJE — Temuan Otomatis" /></div>
@@ -270,7 +270,7 @@ function AjeRegister({ model, locked }: any) {
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 7 }}>
                   {a.id}{a.fraud && <span title="Terkait kecurangan (SA 240)" style={{ marginLeft: 3, color: 'var(--red)' }}>⚑</span>}
                 </td>
-                <td style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5, padding: '6px 9px' }}>
+                <td style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12, padding: '6px 9px' }}>
                   {a.desc}
                   <div className="tiny muted" style={{ marginTop: 2 }}>{a.cycle} · <span className="mono">WP {a.ref}</span> · {a.std}</div>
                   {a.assertions?.length ? <div style={{ marginTop: 3 }}><AjeAsrChips ids={a.assertions} /></div> : null}
@@ -327,7 +327,7 @@ function AjeDrill({ a, fmt, nav }: any) {
             <div style={{ flex: 1 }} />
             <Badge>{a.status}</Badge>
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{a.desc}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{a.desc}</div>
           <div className="tiny" style={{ color: '#bcd6e4', marginTop: 4 }}>{a.std} · WP {a.ref}</div>
         </div>
         <table className="dtbl">

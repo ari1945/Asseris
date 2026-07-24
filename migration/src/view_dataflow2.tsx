@@ -180,7 +180,7 @@ function DFJejak() {
               <div key={i} className="row gap10" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
                 <span style={{ width: 30, height: 30, borderRadius: 8, background: ((modColor as any)[t.module] || '#5b8aa6'), color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.pulse size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5 }}><b>{t.user}</b> — {t.action}</div>
+                  <div style={{ fontSize: 12 }}><b>{t.user}</b> — {t.action}</div>
                   <div className="tiny muted">{t.entity}</div>
                 </div>
                 <div style={{ textAlign: 'right', flex: '0 0 auto' }}>

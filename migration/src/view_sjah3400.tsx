@@ -63,17 +63,17 @@ function SJAH3400View() {
               <div className="tiny muted">{A.id} · {A.subject.split('(')[0].trim()}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Jenis PFI</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--purple)' }}>{A.pfiType}</div></div>
+            <div><div className="tiny muted upper">Jenis PFI</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--purple)' }}>{A.pfiType}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">CAGR Pendapatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: E.derived.cagr <= E.derived.cagrCap ? 'var(--teal)' : 'var(--red)' }}>{(E.derived.cagr * 100).toFixed(1).replace('.', ',')}%</div></div>
+            <div><div className="tiny muted upper">CAGR Pendapatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: E.derived.cagr <= E.derived.cagrCap ? 'var(--teal)' : 'var(--red)' }}>{(E.derived.cagr * 100).toFixed(1).replace('.', ',')}%</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tie-out Model</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: E.derived.ebitdaTie ? 'var(--green)' : 'var(--red)' }}>{E.derived.ebitdaTie ? 'Cocok' : 'Selisih'}</div></div>
+            <div><div className="tiny muted upper">Tie-out Model</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: E.derived.ebitdaTie ? 'var(--green)' : 'var(--red)' }}>{E.derived.ebitdaTie ? 'Cocok' : 'Selisih'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right', minWidth: 120 }}>
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Progres Pemeriksaan</div>
               <div className="row ac gap8" style={{ justifyContent: 'flex-end' }}>
                 <div style={{ width: 90 }}><Progress value={E.progress} color={E.complete ? 'var(--green)' : undefined} /></div>
-                <span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{E.progress}%</span>
+                <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{E.progress}%</span>
               </div>
             </div>
           </div>
@@ -112,7 +112,7 @@ function PfiAcceptance({ E, A }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Karena memuat <b>{E.hypoA.length} asumsi hipotetis</b> (konstruksi & pencairan kredit), informasi prospektif ini diklasifikasikan sebagai <b>proyeksi</b> — bentuk simpulan menuntut paragraf peringatan (caveat) yang lebih tegas.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Karena memuat <b>{E.hypoA.length} asumsi hipotetis</b> (konstruksi & pencairan kredit), informasi prospektif ini diklasifikasikan sebagai <b>proyeksi</b> — bentuk simpulan menuntut paragraf peringatan (caveat) yang lebih tegas.</span>
           </div>
         </div>
       </Panel>
@@ -141,7 +141,7 @@ function PfiAcceptance({ E, A }: any) {
             </div>
           </Panel>
           <Panel title="Pengguna & Tujuan">
-            <div style={{ fontSize: 11.5, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 12, lineHeight: 1.55 }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Pengguna yang Dituju</div>
               <p style={{ margin: '0 0 8px' }}>{A.intendedUser}</p>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Tujuan</div>
@@ -290,7 +290,7 @@ function PfiReport({ E, A }: any) {
               ['Penyajian sesuai kerangka', E.presentationDone],
               ['Paragraf peringatan (caveat) wajib', true],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span>{r[0]}</span>
                 <Badge kind={r[1] ? 'green' : 'amber'}>{r[1] ? 'Siap' : 'Tertunda'}</Badge>
               </div>
@@ -311,7 +311,7 @@ function PfiReport({ E, A }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan Pemeriksaan PFI</h3><div style={{ flex: 1 }} /><Badge kind={E.canConclude ? 'green' : 'amber'}>{E.canConclude ? 'Siap terbit' : 'Draf'}</Badge></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN PEMERIKSAAN INFORMASI KEUANGAN PROSPEKTIF</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>{A.std} · {A.pfiType} · Keyakinan {A.level}</div>
             <p style={{ margin: '0 0 10px' }}>Kepada Direksi {A.client} dan {A.intendedUser}</p>

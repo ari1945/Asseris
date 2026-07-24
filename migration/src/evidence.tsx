@@ -95,7 +95,7 @@ function EvidenceControl({ moduleId }: any) {
             <div className="ev-pop-h">
               <span style={{ color: 'var(--blue)' }}><I.upload size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700 }} className="truncate">Bukti · {meta.label || moduleId}</div>
+                <div style={{ fontSize: 12, fontWeight: 700 }} className="truncate">Bukti · {meta.label || moduleId}</div>
                 <div className="tiny muted">{list.length} berkas terlampir di modul ini</div>
               </div>
               <button className="top-btn" style={{ width: 26, height: 26 }} onClick={() => setOpen(false)}><I.x size={15} /></button>
@@ -108,7 +108,7 @@ function EvidenceControl({ moduleId }: any) {
               onDragLeave={(e: any) => { e.preventDefault(); setDrag(false); }}
               onDrop={(e: any) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer && e.dataTransfer.files); }}>
               <I.upload size={18} />
-              <div style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4 }}>Tarik / klik untuk unggah bukti</div>
+              <div style={{ fontSize: 12, fontWeight: 600, marginTop: 4 }}>Tarik / klik untuk unggah bukti</div>
               <div className="tiny muted">AI mengklasifikasi & melampirkan ke <b>{meta.label || moduleId}</b></div>
               <input ref={fileRef} type="file" multiple style={{ display: 'none' }} onChange={(e: any) => { addFiles(e.target.files); e.target.value = ''; }} />
             </div>
@@ -122,7 +122,7 @@ function EvidenceControl({ moduleId }: any) {
                   <div className="row ac gap8" style={{ marginBottom: 7 }}>
                     <span style={{ color: 'var(--blue)' }}><FI size={14} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="truncate" style={{ fontSize: 11.5, fontWeight: 700 }}>{r.file}</div>
+                      <div className="truncate" style={{ fontSize: 12, fontWeight: 700 }}>{r.file}</div>
                       <div className="tiny" style={{ color: 'var(--blue)' }}>AI: {r.type} · saran {sug.label}</div>
                     </div>
                   </div>
@@ -143,7 +143,7 @@ function EvidenceControl({ moduleId }: any) {
                   <div key={d.uid} className="ev-row">
                     <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 24px' }}><FI size={12} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="truncate" style={{ fontSize: 11.5, fontWeight: 600 }}>{d.file}</div>
+                      <div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{d.file}</div>
                       <div className="tiny muted truncate">{d.type}{d.when ? ' · ' + d.when : ''}</div>
                     </div>
                     {d.std && <span className="mono tiny" style={{ color: 'var(--ink-3)', flex: '0 0 auto' }}>{d.std}</span>}
@@ -247,7 +247,7 @@ function FileList({ files, onRemove }: any) {
           <div key={i} className={'upl-file' + (m.ok ? '' : ' bad')}>
             <span style={{ color: m.ok ? 'var(--blue)' : 'var(--red)', flex: '0 0 auto' }}><FI size={14} /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="truncate" style={{ fontSize: 11.5, fontWeight: 600 }}>{m.name}</div>
+              <div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{m.name}</div>
               <div className="tiny" style={{ color: m.ok ? 'var(--ink-3)' : 'var(--red)' }}>
                 {m.ok ? <>{m.sizeMB} MB · <span className="mono">SHA-256 {m.sha256.slice(0, 10)}…</span></>
                   : m.tooBig ? 'Melebihi batas ' + EV_MAX_MB + ' MB' : 'Jenis berkas tidak didukung'}

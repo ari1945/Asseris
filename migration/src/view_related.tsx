@@ -92,7 +92,7 @@ function RelatedParties() {
             <div className="grid" style={{ gap: 12 }}>
               <Panel title="Daftar Pihak Berelasi">
                 <div style={{ display: 'grid', gap: 2 }}>
-                  <div onClick={() => setSelParty('All')} style={{ padding: '7px 9px', borderRadius: 6, cursor: 'pointer', background: selParty === 'All' ? 'var(--blue-050)' : 'transparent', fontWeight: 600, fontSize: 12.5 }}>Semua Pihak</div>
+                  <div onClick={() => setSelParty('All')} style={{ padding: '7px 9px', borderRadius: 6, cursor: 'pointer', background: selParty === 'All' ? 'var(--blue-050)' : 'transparent', fontWeight: 600, fontSize: 12 }}>Semua Pihak</div>
                   {RP_PARTIES.map(p => (
                     <div key={p.id} onClick={() => setSelParty(p.name)} style={{ padding: '8px 9px', borderRadius: 7, cursor: 'pointer', background: selParty === p.name ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (selParty === p.name ? 'var(--blue)' : 'transparent') }}>
                       <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{p.name}</span><span style={{ width: 7, height: 7, borderRadius: '50%', background: p.risk === 'High' ? 'var(--red)' : 'var(--amber)' }} /></div>
@@ -106,7 +106,7 @@ function RelatedParties() {
                   {procs.map((p: any, i: any) => (
                     <label key={i} className="row gap8" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < procs.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleProc(i)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (p.done ? 'var(--green)' : 'var(--line-strong)'), background: p.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{p.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.4, color: p.done ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.4, color: p.done ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</span>
                     </label>
                   ))}
                 </div>

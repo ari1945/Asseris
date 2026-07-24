@@ -156,11 +156,11 @@ function OpeningBalance() {
               </div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Auditor Pendahulu</div><div style={{ fontWeight: 700, fontSize: 12.5, maxWidth: 200 }}>{predecessor.name}</div></div>
+            <div><div className="tiny muted upper">Auditor Pendahulu</div><div style={{ fontWeight: 700, fontSize: 12, maxWidth: 200 }}>{predecessor.name}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
             <div><div className="tiny muted upper">Opini TA Lalu (2024)</div><div style={{ marginTop: 2 }}><Badge kind="green">Wajar Tanpa Modifikasian</Badge></div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tgl Neraca Awal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>1 Jan 2025</div></div>
+            <div><div className="tiny muted upper">Tgl Neraca Awal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>1 Jan 2025</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Kesimpulan Saldo Awal</div>
@@ -191,7 +191,7 @@ function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, can
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Lingkup (SA 510)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Auditor harus memperoleh bukti audit yang cukup dan tepat mengenai apakah <b>saldo awal</b> mengandung
               salah saji yang berdampak material terhadap laporan keuangan periode berjalan, serta apakah <b>kebijakan
               akuntansi</b> yang tercermin dalam saldo awal telah diterapkan secara konsisten.
@@ -220,7 +220,7 @@ function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, can
             <div className="panel-h"><h3>Komunikasi dengan Auditor Pendahulu (SA 510 ¶6 · SA 300)</h3><div style={{ flex: 1 }} /><Badge kind="amber">Perikatan Awal</Badge></div>
             <div style={{ padding: 14 }}>
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 12 }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Perikatan tahun pertama — saldo awal belum diaudit oleh KAP ini. Prosedur tambahan wajib dilaksanakan.</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Perikatan tahun pertama — saldo awal belum diaudit oleh KAP ini. Prosedur tambahan wajib dilaksanakan.</span></div>
               </div>
               <div className="row ac gap8" style={{ marginBottom: 10 }}>
                 <div style={{ flex: 1 }}><Progress value={readiness.pct} color={readiness.ready ? 'var(--green)' : 'var(--amber)'} /></div>
@@ -240,7 +240,7 @@ function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, can
           <Panel noBody>
             <div className="panel-h"><h3>Strategi Saldo Awal — Perikatan Lanjutan</h3><div style={{ flex: 1 }} /><Badge kind="green">Tahun ke-10</Badge></div>
             <div style={{ padding: 14 }}>
-              <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+              <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
                 Saldo awal TA 2025 berasal dari laporan keuangan 2024 yang <b>diaudit sendiri oleh KAP ini</b> dengan opini
                 Wajar Tanpa Modifikasian. Risiko saldo awal rendah; fokus prosedur diarahkan pada:
               </p>
@@ -328,7 +328,7 @@ function OBAssessment({ engType, factors, score, rv, patchFactor, safeguards, se
                 <input className="input" value={f.note || ''} disabled={!canEdit}
                   onChange={(e: { target: { value: string } }) => patchFactor(i, { note: e.target.value })}
                   placeholder="Catatan/justifikasi penilai…"
-                  style={{ width: '100%', fontSize: 11.5, padding: '5px 8px', background: canEdit ? 'var(--surface)' : 'var(--surface-2)' }} />
+                  style={{ width: '100%', fontSize: 12, padding: '5px 8px', background: canEdit ? 'var(--surface)' : 'var(--surface-2)' }} />
               </div>
             ))}
           </div>
@@ -340,7 +340,7 @@ function OBAssessment({ engType, factors, score, rv, patchFactor, safeguards, se
           <textarea className="input" value={safeguards || ''} disabled={!canEdit}
             onChange={(e: { target: { value: string } }) => setSafeguards(e.target.value)}
             placeholder="Prosedur tambahan atas risiko saldo awal (mis. telaah KKP pendahulu, uji roll-back, konfirmasi, pakar)…"
-            style={{ width: '100%', minHeight: 90, fontSize: 11.5, padding: '6px 8px', resize: 'vertical', background: canEdit ? 'var(--surface)' : 'var(--surface-2)' }} />
+            style={{ width: '100%', minHeight: 90, fontSize: 12, padding: '6px 8px', resize: 'vertical', background: canEdit ? 'var(--surface)' : 'var(--surface-2)' }} />
         </Panel>
         {engType === 'awal' && (
           <Panel title="Kesiapan Auditor Pendahulu (SA 510 ¶6)">
@@ -371,7 +371,7 @@ function OBTrace({ wtb, fmt }: any) {
   return (
     <Panel noBody>
       <div className="panel-h"><h3>Penelusuran Saldo Akhir Audited TA-1 → Saldo Awal TA Kini</h3><div style={{ flex: 1 }} /><span className="tiny muted">Posisi keuangan · nilai Rp juta</span></div>
-      <div className="panel" style={{ margin: '0', padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, fontSize: 11.5 }}>
+      <div className="panel" style={{ margin: '0', padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, fontSize: 12 }}>
         <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green-solid)' }} /> Carry-forward cocok</span>
         <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> Saldo timbul dari transisi PSAK 73 (1 Jan 2025)</span>
       </div>
@@ -419,7 +419,7 @@ function OBTrace({ wtb, fmt }: any) {
         </tr></tfoot>
       </table>
       <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-        <div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Seluruh saldo akhir audited 2024 ditelusuri tepat ke saldo awal 2025. Selisih hanya berasal dari pengakuan transisi PSAK 73 yang telah diuji terpisah (lihat Prosedur Spesifik — Lead F).</span></div>
+        <div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Seluruh saldo akhir audited 2024 ditelusuri tepat ke saldo awal 2025. Selisih hanya berasal dari pengakuan transisi PSAK 73 yang telah diuji terpisah (lihat Prosedur Spesifik — Lead F).</span></div>
       </div>
     </Panel>
   );
@@ -459,7 +459,7 @@ function OBProcedures({ fmt }: any) {
             <div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur</div>
             <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5 }}>{sel.proc}</p>
             <div className="tiny muted upper" style={{ marginBottom: 4 }}>Bukti Diperoleh</div>
-            <p style={{ margin: '0 0 12px', fontSize: 11.5, lineHeight: 1.45, color: 'var(--ink-2)' }}>{sel.evidence}</p>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>{sel.evidence}</p>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
               <KvBox label="Tingkat Risiko" v={sel.risk} accent={sel.risk === 'Signifikan' ? 'var(--red)' : 'var(--amber)'} />
               <KvBox label="Hasil" v={sel.result} accent={sel.result === 'Memadai' ? 'var(--green)' : 'var(--amber)'} />
@@ -497,7 +497,7 @@ function OBPolicy() {
       <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
         <div className="row gap8" style={{ alignItems: 'flex-start' }}>
           <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.scale size={15} /></span>
-          <span style={{ fontSize: 11.5, lineHeight: 1.45 }}><b>Akuntansi sewa — PSAK 30 → PSAK 73.</b> Bukan inkonsistensi kebijakan, melainkan penerapan standar baru secara modified retrospective per 1 Jan 2025. Dampak transisi diakui pada saldo pembukaan dan diungkapkan dalam CALK — tidak memerlukan modifikasi opini.</span>
+          <span style={{ fontSize: 12, lineHeight: 1.45 }}><b>Akuntansi sewa — PSAK 30 → PSAK 73.</b> Bukan inkonsistensi kebijakan, melainkan penerapan standar baru secara modified retrospective per 1 Jan 2025. Dampak transisi diakui pada saldo pembukaan dan diungkapkan dalam CALK — tidak memerlukan modifikasi opini.</span>
         </div>
       </div>
     </Panel>
@@ -517,7 +517,7 @@ function OBConclusion({ concluded, verdict, score }: { concluded: boolean; verdi
               {OB_OPINION_MATRIX.map((m, i) => (
                 <tr key={i}>
                   <td className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{m.ref}</td>
-                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontSize: 11.5 }}>{m.cond}<div className="tiny muted" style={{ marginTop: 3 }}>{m.note}</div></td>
+                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontSize: 12 }}>{m.cond}<div className="tiny muted" style={{ marginTop: 3 }}>{m.note}</div></td>
                   <td className="tiny">{m.mod}</td>
                   <td>{m.status === 'clear' ? <Badge kind="green">Bersih</Badge> : <Badge kind="amber">Pantau</Badge>}</td>
                 </tr>
@@ -532,7 +532,7 @@ function OBConclusion({ concluded, verdict, score }: { concluded: boolean; verdi
             <span className="tiny muted">Skor risiko saldo awal {typeof score === 'number' ? score.toFixed(2) : '—'} / 5,00</span>
             {concluded ? <Badge kind="green" dot>Disimpulkan</Badge> : <Badge kind="amber">Draf — belum disimpulkan</Badge>}
           </div>
-          <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>
             Berdasarkan prosedur yang dilaksanakan, kami memperoleh bukti audit yang cukup dan tepat bahwa
             <b> saldo awal per 1 Januari 2025 tidak mengandung salah saji yang berdampak material</b> terhadap
             laporan keuangan periode berjalan, dan kebijakan akuntansi telah diterapkan secara konsisten.

@@ -185,7 +185,7 @@ function PSAK22View() {
                         {p22.deals.map((d: any) => (
                           <tr key={d.id} style={{ cursor: 'pointer', background: sel === d.id ? 'var(--blue-050)' : undefined }} onClick={() => setSel(d.id)}>
                             <td>
-                              <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600 }}><span className="mono tiny" style={{ color: 'var(--blue)' }}>{d.id}</span><span>{d.acquiree}</span>{d.foreign && <Badge kind="gray">PSAK 10</Badge>}</div>
+                              <div className="row ac gap6" style={{ fontSize: 12, fontWeight: 600 }}><span className="mono tiny" style={{ color: 'var(--blue)' }}>{d.id}</span><span>{d.acquiree}</span>{d.foreign && <Badge kind="gray">PSAK 10</Badge>}</div>
                               <div className="tiny muted" style={{ lineHeight: 1.4 }}>{d.rationale}</div>
                             </td>
                             <td className="mono tiny" style={{ fontWeight: 600 }}>{d.acqDate}</td>
@@ -214,7 +214,7 @@ function PSAK22View() {
                       <div key={st.n} className="row gap10" style={{ alignItems: 'flex-start' }}>
                         <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px', fontSize: 12, fontWeight: 700 }}>{st.n}</span>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600 }}>{st.t}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }}>{st.t}</div>
                           <div className="tiny muted" style={{ lineHeight: 1.45 }}>{st.s}</div>
                         </div>
                       </div>
@@ -227,7 +227,7 @@ function PSAK22View() {
                 <div style={{ display: 'grid', gap: 0 }}>
                   {P22_KEY.map((a, i) => (
                     <div key={i} style={{ padding: '8px 0', borderBottom: i < P22_KEY.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                      <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
+                      <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
                       <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{a.note}</div>
                     </div>
                   ))}
@@ -246,11 +246,11 @@ function PSAK22View() {
                   <table className="dtbl" style={{ width: '100%' }}>
                     <tbody>
                       {deal.d.consid.map((c: any, i: any) => (
-                        <tr key={i}><td style={{ fontSize: 12.5, fontWeight: 500 }}>{c.k}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(c.v)}</td></tr>
+                        <tr key={i}><td style={{ fontSize: 12, fontWeight: 500 }}>{c.k}</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(c.v)}</td></tr>
                       ))}
                       {deal.contingent > 0 && (
                         <tr style={{ background: 'var(--amber-bg)' }}>
-                          <td style={{ fontSize: 12.5, fontWeight: 600 }}>Imbalan kontinjensi (earn-out · NW ¶39)<div className="tiny muted">diklasifikasikan sebagai liabilitas — diukur kembali ¶58</div></td>
+                          <td style={{ fontSize: 12, fontWeight: 600 }}>Imbalan kontinjensi (earn-out · NW ¶39)<div className="tiny muted">diklasifikasikan sebagai liabilitas — diukur kembali ¶58</div></td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--amber)' }}>{fmt(deal.contingent)}</td>
                         </tr>
                       )}
@@ -302,7 +302,7 @@ function PSAK22View() {
                     <div className="panel-h"><h3>Alokasi Harga Akuisisi (PPA) — {deal.acquiree}</h3><span className="sub mono">aset neto teridentifikasi pd nilai wajar (¶18)</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                     <table className="dtbl" style={{ width: '100%' }}>
                       <tbody>
-                        <tr><td style={{ fontSize: 12.5, fontWeight: 600 }}>Nilai buku aset neto teridentifikasi</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(deal.bookNA)}</td></tr>
+                        <tr><td style={{ fontSize: 12, fontWeight: 600 }}>Nilai buku aset neto teridentifikasi</td><td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(deal.bookNA)}</td></tr>
                         <tr><td colSpan={2} className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', paddingTop: 8 }}>Penyesuaian nilai wajar (¶18 · B31-B33)</td></tr>
                         {deal.d.fva.map((f: any, i: any) => (
                           <tr key={i}>
@@ -374,7 +374,7 @@ function PSAK22View() {
                       <tbody>
                         {p22.deals.map((d: any) => (
                           <tr key={d.id}>
-                            <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{d.acquiree}</div><div className="tiny muted">{d.own}% · {d.acqDate}</div></td>
+                            <td><div style={{ fontSize: 12, fontWeight: 600 }}>{d.acquiree}</div><div className="tiny muted">{d.own}% · {d.acqDate}</div></td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(d.considTotal)}</td>
                             <td className="mono" style={{ textAlign: 'right', color: 'var(--amber)' }}>{fmt(d.nciAcqProp)}</td>
                             <td className="mono" style={{ textAlign: 'right', color: 'var(--ink-3)' }}>({fmt(d.fvnia)})</td>
@@ -413,7 +413,7 @@ function PSAK22View() {
                       <tbody>
                         {p22.deals.map((d: any) => (
                           <tr key={d.id}>
-                            <td style={{ fontSize: 12.5, fontWeight: 600 }}>{d.acquiree}</td>
+                            <td style={{ fontSize: 12, fontWeight: 600 }}>{d.acquiree}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(d.nciAcqProp)}</td>
                             <td className="mono" style={{ textAlign: 'right', color: 'var(--ink-3)' }}>{d.own === 100 ? '—' : fmt(d.nciFair)}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(d.goodwillFull)}</td>
@@ -438,7 +438,7 @@ function PSAK22View() {
                     <div style={{ flex: 1, display: 'grid', gap: 6 }}>
                       {p22.deals.map((d: any, i: any) => (
                         <div key={d.id} className="row jb ac">
-                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: gwSegs[i].color }} /><span style={{ fontSize: 11.5 }}>{d.acquiree.replace('PT Sentosa ', '').replace('Sentosa ', '')}</span></span>
+                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: gwSegs[i].color }} /><span style={{ fontSize: 12 }}>{d.acquiree.replace('PT Sentosa ', '').replace('Sentosa ', '')}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(d.goodwill)}</span>
                         </div>
                       ))}
@@ -472,7 +472,7 @@ function PSAK22View() {
                     <tbody>
                       {p22.deals.map((d: any) => (
                         <tr key={d.id}>
-                          <td style={{ fontSize: 12.5, fontWeight: 600 }}>{d.acquiree}</td>
+                          <td style={{ fontSize: 12, fontWeight: 600 }}>{d.acquiree}</td>
                           <td className="mono tiny" style={{ fontWeight: 600 }}>{d.acqDate}</td>
                           <td style={{ textAlign: 'center' }}><Badge kind="green">Ditutup (&gt;12 bln)</Badge></td>
                           <td className="tiny muted" style={{ lineHeight: 1.4 }}>Nilai PPA final; tidak ada penyesuaian provisional tersisa.</td>
@@ -500,7 +500,7 @@ function PSAK22View() {
                       <tbody>
                         {p22.contingentItems.map((c: any) => (
                           <tr key={c.id}>
-                            <td style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</td>
+                            <td style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(c.initial)}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(c.now)}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: c.remeasure <= 0 ? 'var(--green)' : 'var(--red)' }}>{c.remeasure <= 0 ? '+' + fmt(-c.remeasure) : '(' + fmt(c.remeasure) + ')'}</td>
@@ -547,7 +547,7 @@ function PSAK22View() {
                       <tbody>
                         {p22.recon.map((r: any, i: any) => (
                           <tr key={i} style={{ background: r.hi ? 'var(--blue-050)' : undefined, cursor: r.route ? 'pointer' : 'default' }} onClick={r.route ? () => nav(r.route, { from: 'psak22' }) : undefined}>
-                            <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.pos}</td>
+                            <td style={{ fontWeight: 600, fontSize: 12 }}>{r.pos}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{r.src}{r.route && <I.arrowRight size={11} style={{ marginLeft: 4, verticalAlign: 'middle', color: 'var(--blue)' }} />}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{r.val < 0 ? '(' + fmt(-r.val) + ')' : fmt(r.val)}</td>
                             <td style={{ textAlign: 'center' }}>{r.ok ? <span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> : <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>}</td>
@@ -621,7 +621,7 @@ function PSAK22View() {
                           <td style={{ width: 30, textAlign: 'center' }}>
                             <span style={{ display: 'inline-grid', placeItems: 'center', width: 18, height: 18, borderRadius: 5, border: '1.5px solid ' + (ok ? 'var(--green)' : 'var(--line-strong)'), background: ok ? 'var(--green)' : 'transparent', color: '#fff' }}>{ok && <I.check size={12} />}</span>
                           </td>
-                          <td><div style={{ fontSize: 12.5, fontWeight: 500, lineHeight: 1.4, color: ok ? 'var(--ink-3)' : 'var(--ink)', textDecoration: ok ? 'line-through' : 'none' }}>{p.t}</div></td>
+                          <td><div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: ok ? 'var(--ink-3)' : 'var(--ink)', textDecoration: ok ? 'line-through' : 'none' }}>{p.t}</div></td>
                           <td style={{ width: 110, textAlign: 'right' }}><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.ref}</span></td>
                         </tr>
                       );

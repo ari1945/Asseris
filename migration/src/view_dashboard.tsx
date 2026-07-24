@@ -167,7 +167,7 @@ function FirmDashboard() {
               const c = clients.find((x: any) => x.id === e.clientId);
               return (
                 <tr key={e.id} onClick={() => setActiveEngagementId(e.id)} style={{ cursor: 'pointer' }}>
-                  <td className="mono" style={{ fontSize: 11.5 }}>{e.id}</td>
+                  <td className="mono" style={{ fontSize: 12 }}>{e.id}</td>
                   <td className="truncate" style={{ maxWidth: 150 }}>{c?.name.replace('PT ', '')}</td>
                   <td><Badge>{e.status}</Badge></td>
                   <td style={{ width: 120 }}>

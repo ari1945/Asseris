@@ -252,7 +252,7 @@ function SubstantiveTab({ der, pm, ct, fmt }: any) {
     <>
       <div className="panel" style={{ padding: '10px 13px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)', display: 'flex', gap: 10, alignItems: 'center' }}>
         <span style={{ color: 'var(--blue)' }}><I.flask size={17} /></span>
-        <span style={{ fontSize: 12.5, lineHeight: 1.5 }}><b>Prosedur analitis substantif (SA 520.5)</b> — auditor membangun <b>ekspektasi independen</b> atas saldo yang dapat diprediksi, lalu membandingkannya dengan nilai tercatat. Selisih melampaui ambang harus diselidiki. Sesuaikan pemicu (driver) di bawah untuk menguji sensitivitas.</span>
+        <span style={{ fontSize: 12, lineHeight: 1.5 }}><b>Prosedur analitis substantif (SA 520.5)</b> — auditor membangun <b>ekspektasi independen</b> atas saldo yang dapat diprediksi, lalu membandingkannya dengan nilai tercatat. Selisih melampaui ambang harus diselidiki. Sesuaikan pemicu (driver) di bawah untuk menguji sensitivitas.</span>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -389,7 +389,7 @@ function DisaggregationTab({ der, fmt }: any) {
           <div className="panel-h"><h3>Interpretasi &amp; Tindak Lanjut</h3></div>
           <div style={{ padding: 14 }}>
             <div className="panel" style={{ padding: '10px 11px', boxShadow: 'none', background: 'var(--red-bg)', borderColor: 'transparent', marginBottom: 11 }}>
-              <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><b style={{ fontSize: 12.5 }}>Lonjakan Penjualan Desember</b></div>
+              <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><b style={{ fontSize: 12 }}>Lonjakan Penjualan Desember</b></div>
               <div className="tiny" style={{ lineHeight: 1.55, color: 'var(--ink-2)' }}>Penjualan Des <b className="mono">Rp {jt(rev[11])} jt</b> (z = +{decZ.toFixed(1)}) — ~{decAbove}% di atas rata-rata bulanan, disertai marjin kotor anjlok ke <b className="mono">{gm[11].toFixed(1)}%</b>. Pola khas <b>channel stuffing</b> menjelang tutup buku.</div>
             </div>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Prosedur Lanjutan</div>

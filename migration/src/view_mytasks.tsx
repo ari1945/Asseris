@@ -57,7 +57,7 @@ function TaskDetail({ t, mt, nav }: any) {
           </div>
           <div className="mt-kv">
             <label>Jatuh Tempo</label>
-            <span className={'mt-due ' + (t.bucket === 'overdue' ? 'over' : t.bucket === 'today' ? 'today' : '')} style={{ fontSize: 12.5 }}>
+            <span className={'mt-due ' + (t.bucket === 'overdue' ? 'over' : t.bucket === 'today' ? 'today' : '')} style={{ fontSize: 12 }}>
               <I.calendar size={12} /> {t.due.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
           </div>
@@ -298,7 +298,7 @@ function MyTasks() {
                     center={<div><div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'var(--mono)' }}>{donePct}%</div></div>} />
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>Fokus Hari Ini</div>
-                    <div style={{ fontSize: 12.5, color: '#bcd6e4', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: '#fff' }}>{focusEst.toFixed(1)} jam</b></div>
+                    <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: '#fff' }}>{focusEst.toFixed(1)} jam</b></div>
                     <div className="row gap8" style={{ marginTop: 9 }}>
                       <span className="badge b-red" style={{ background: 'rgba(255,107,87,.22)', color: '#ffd2c9' }}>{stats.overdue} terlambat</span>
                       <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff' }}>{stats.today} hari ini</span>

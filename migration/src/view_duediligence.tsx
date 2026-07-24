@@ -120,7 +120,7 @@ function DueDiligence() {
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}>{(I as any)[s.ic] ? React.createElement((I as any)[s.ic], { size: 14 }) : null}</span>
                 <span style={{ minWidth: 0 }}>
                   <span className="tiny muted" style={{ display: 'block' }}>{s.lbl}</span>
-                  <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{s.src}</span>
+                  <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{s.src}</span>
                   <span className="tiny" style={{ display: 'block', color: 'var(--ink-3)' }}>{s.val}</span>
                 </span>
               </button>
@@ -157,7 +157,7 @@ function DueDiligence() {
                     ].map((r, i) => (
                       <div key={i} className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
                         <span className="tiny muted" style={{ width: 120, flex: '0 0 120px' }}>{r[0]}</span>
-                        <span style={{ fontSize: 12.5, lineHeight: 1.5 }}>{r[1]}</span>
+                        <span style={{ fontSize: 12, lineHeight: 1.5 }}>{r[1]}</span>
                       </div>
                     ))}
                   </div>
@@ -168,7 +168,7 @@ function DueDiligence() {
                     {D.workstreams.map((w: any, i: any) => (
                       <div key={i}>
                         <div className="row jb ac" style={{ marginBottom: 3 }}>
-                          <span style={{ fontSize: 12.5, fontWeight: 600 }}>{w.area}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600 }}>{w.area}</span>
                           <span className="row ac gap6"><span className="tiny muted">{w.lead.split(' ')[0]}</span><Badge kind={(DD_STATUS as any)[w.status]}>{w.status}</Badge></span>
                         </div>
                         <div className="row ac gap8">
@@ -233,7 +233,7 @@ function DueDiligence() {
                 <div style={{ display: 'grid', gap: 7 }}>
                   {D.customers.map((c: any, i: any) => (
                     <div key={i} className="row ac gap10">
-                      <span style={{ fontSize: 12.5, fontWeight: c.flag ? 700 : 500, width: 280, flex: '0 0 280px', color: c.flag ? 'var(--red)' : 'var(--ink)' }}>{c.flag && <I.alert size={12} style={{ verticalAlign: '-1px', marginRight: 4 }} />}{c.name}</span>
+                      <span style={{ fontSize: 12, fontWeight: c.flag ? 700 : 500, width: 280, flex: '0 0 280px', color: c.flag ? 'var(--red)' : 'var(--ink)' }}>{c.flag && <I.alert size={12} style={{ verticalAlign: '-1px', marginRight: 4 }} />}{c.name}</span>
                       <div style={{ flex: 1, height: 14, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: c.pct + '%', height: '100%', borderRadius: 4, background: c.flag ? 'var(--red)' : 'var(--navy)', opacity: c.flag ? 1 : .65 }} /></div>
                       <span className="mono tiny" style={{ width: 38, textAlign: 'right', fontWeight: 700 }}>{c.pct}%</span>
                     </div>
@@ -310,7 +310,7 @@ function DueDiligence() {
                       <tbody>
                         {rows.map((r, i) => (
                           <tr key={i} style={{ background: r.strong ? 'var(--surface-2)' : 'transparent' }}>
-                            <td style={{ fontWeight: r.strong ? 700 : 500, fontSize: 12.5 }}>{r.k}{r.note && <span className="tiny muted" style={{ marginLeft: 6 }}>· {r.note}</span>}</td>
+                            <td style={{ fontWeight: r.strong ? 700 : 500, fontSize: 12 }}>{r.k}{r.note && <span className="tiny muted" style={{ marginLeft: 6 }}>· {r.note}</span>}</td>
                             <td className="num mono" style={{ fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.strong ? 'var(--navy)' : 'var(--ink)' }}>{r.v < 0 ? '(' + fmt(-r.v, 1) + ')' : fmt(r.v, 1)} M</td>
                           </tr>
                         ))}
@@ -333,7 +333,7 @@ function DueDiligence() {
                       <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
                         <div className="row jb ac"><span className="tiny" style={{ fontWeight: 600 }}>Headroom negosiasi yang dibuka DD</span><span className="mono" style={{ fontWeight: 800, fontSize: 16, color: 'var(--green)' }}>Rp {fmt(X.chip, 0)} M</span></div>
                       </div>
-                      <ul style={{ margin: '12px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+                      <ul style={{ margin: '12px 0 0', paddingLeft: 16, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
                         <li>Multiple turun {fmt(D.valuation.preDdMultiple, 1)}x → {fmt(D.valuation.multiple, 1)}x (kualitas laba & konsentrasi pelanggan).</li>
                         <li>Net debt naik Rp {fmt(X.foundDebtLike, 1)} M dari temuan debt-like.</li>
                         <li>Penyesuaian modal kerja Rp {fmt(-X.nwcAdj, 1)} M (di bawah peg).</li>
@@ -356,7 +356,7 @@ function DueDiligence() {
                     <tbody>
                       {D.taxExposure.map((t: any, i: any) => (
                         <tr key={i}>
-                          <td style={{ fontWeight: 600, fontSize: 12.5 }}>{t.item}</td>
+                          <td style={{ fontWeight: 600, fontSize: 12 }}>{t.item}</td>
                           <td className="num mono" style={{ fontWeight: 700 }}>Rp {fmt(t.exposure, 1)} M</td>
                           <td><Badge kind={(DD_LIKE as any)[t.likelihood]}>{t.likelihood}</Badge></td>
                           <td className="tiny muted" style={{ whiteSpace: 'normal' }}>{t.status}</td>
@@ -376,7 +376,7 @@ function DueDiligence() {
                     {D.contingencies.map((c: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
                         <div className="row jb ac">
-                          <span style={{ fontSize: 12.5, fontWeight: 600 }}>{c.item}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600 }}>{c.item}</span>
                           <span className="mono" style={{ fontWeight: 700 }}>Rp {fmt(c.value, 0)} M</span>
                         </div>
                         <div className="row jb ac" style={{ marginTop: 3 }}>
@@ -404,7 +404,7 @@ function DueDiligence() {
                       <div style={{ flex: 1 }} />
                       <span className="mono tiny muted">Kuantum: Rp {fmt(f.quantum, 1)} M</span>
                     </div>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.5, marginBottom: 6 }}>{f.t}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.5, marginBottom: 6 }}>{f.t}</div>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.scale size={13} /></span>
                       <span className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}><b>Implikasi SPA:</b> {f.spa}</span>
@@ -430,7 +430,7 @@ function DueDiligence() {
                   {D.pbc.map((p: any, i: any) => (
                     <tr key={i}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.ref}</td>
-                      <td style={{ fontWeight: 600, fontSize: 12.5 }}>{p.item}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{p.item}</td>
                       <td><span className="chip tiny">{p.cat}</span></td>
                       <td className="tiny muted">{p.owner}</td>
                       <td><Badge kind={(DD_PBC as any)[p.status]}>{p.status}</Badge></td>

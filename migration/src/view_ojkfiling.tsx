@@ -73,7 +73,7 @@ function OJKFilingView() {
                 <tbody>
                   {F.obligations.map((o: any, i: any) => (
                     <tr key={i}>
-                      <td style={{ fontWeight: 600, fontSize: 12.5 }}>{o.kind}{o.interim && <span className="tiny muted" style={{ marginLeft: 6 }}>(interim)</span>}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{o.kind}{o.interim && <span className="tiny muted" style={{ marginLeft: 6 }}>(interim)</span>}</td>
                       <td className="mono tiny" style={{ color: 'var(--ink-2)' }}>{o.basis}</td>
                       <td className="tiny" style={{ color: 'var(--ink-2)' }}>{o.win}</td>
                       <td style={{ textAlign: 'center' }} className="mono"><span style={{ fontWeight: 700, color: 'var(--navy)' }}>{o.due.split('-').reverse().join('/')}</span></td>
@@ -102,7 +102,7 @@ function OJKFilingView() {
                     const b = filStatusMeta(e.ar.st, e.ar.late, e.ar.atRisk);
                     return (
                       <tr key={e.id}>
-                        <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{e.name}</div><div className="tiny muted">{e.sector}</div></td>
+                        <td><div style={{ fontSize: 12, fontWeight: 600 }}>{e.name}</div><div className="tiny muted">{e.sector}</div></td>
                         <td>
                           <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
                             <Badge kind={a.kind}>{a.txt}</Badge>

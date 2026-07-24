@@ -116,7 +116,7 @@ function SegmentInfo() {
                 <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>
                   Pendekatan manajemen (PSAK 5 ¶5): segmen mencerminkan komponen yang hasilnya ditelaah <b>Pengambil Keputusan Operasional (CODM)</b>. Pendapatan ditarik dari disagregasi <Src module="psak72">PSAK 72</Src>; aset & hasil dialokasikan lalu ditutup ke <Src module="fsgen">FS Generator</Src>.
                 </div>
-                <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: '1.5px solid var(--line-strong)' }}>
                     <th style={{ textAlign: 'left', padding: '8px 6px' }}>Segmen</th>
                     <th style={{ textAlign: 'right', padding: '8px 6px' }}>Pendapatan</th>
@@ -201,10 +201,10 @@ function SegmentInfo() {
                     <div key={i} className="panel" style={{ padding: '11px 13px', background: t.ok ? 'var(--surface)' : 'var(--amber-bg)', cursor: t.route ? 'pointer' : 'default' }} onClick={() => t.route && nav(t.route, { from: 'segmen' })}>
                       <div className="row ac gap8" style={{ marginBottom: 5 }}>
                         <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)' }}>{t.ok ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-                        <span style={{ fontWeight: 600, fontSize: 12.5, flex: 1 }}>{t.k}</span>
+                        <span style={{ fontWeight: 600, fontSize: 12, flex: 1 }}>{t.k}</span>
                         <Badge kind="gray">{t.ref}</Badge>
                       </div>
-                      <div className="row" style={{ paddingLeft: 24, fontFamily: 'var(--mono)', fontSize: 11.5 }}>
+                      <div className="row" style={{ paddingLeft: 24, fontFamily: 'var(--mono)', fontSize: 12 }}>
                         <div style={{ flex: 1 }}><div className="tiny muted">Σ Segmen</div><b>{fmt(t.a, 0)}</b></div>
                         <div style={{ flex: 1 }}><div className="tiny muted">LK</div><b>{fmt(t.b, 0)}</b></div>
                         <div style={{ flex: 1 }}><div className="tiny muted">Selisih</div><b style={{ color: t.ok ? 'var(--green)' : 'var(--red)' }}>{fmt(t.diff, 0)}</b></div>

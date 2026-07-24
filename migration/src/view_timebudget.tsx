@@ -335,11 +335,11 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
         <div className="panel-h">
           <h3>Catatan Waktu (Timesheet)</h3>
           <div style={{ flex: 1 }} />
-          <select className="select" value={fMember} onChange={(ev: any) => setFMember(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
+          <select className="select" value={fMember} onChange={(ev: any) => setFMember(ev.target.value)} style={{ height: 24, fontSize: 12 }}>
             <option value="all">Semua anggota</option>
             {team.map((t: any) => <option key={t.name} value={t.name}>{t.name.split(',')[0]}</option>)}
           </select>
-          <select className="select" value={fPhase} onChange={(ev: any) => setFPhase(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
+          <select className="select" value={fPhase} onChange={(ev: any) => setFPhase(ev.target.value)} style={{ height: 24, fontSize: 12 }}>
             <option value="all">Semua fase</option>
             {phaseOpts.map(p => <option key={p} value={p}>{p}</option>)}
           </select>

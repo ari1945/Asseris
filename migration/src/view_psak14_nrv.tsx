@@ -122,12 +122,12 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
           {FILTERS.map(f => <button key={f.id} className={filter === f.id ? 'on' : ''} onClick={() => setFilter(f.id)}>{f.label} <span style={{ opacity: 0.6 }}>{f.n}</span></button>)}
         </div>
         <div style={{ flex: 1 }} />
-        <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari SKU / deskripsi…" style={{ fontSize: 11.5, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--line)', width: 190, fontFamily: 'inherit' }} />
+        <input value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari SKU / deskripsi…" style={{ fontSize: 12, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--line)', width: 190, fontFamily: 'inherit' }} />
       </div>
 
       {/* tabel item-level */}
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5, minWidth: 1080 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 1080 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)' }}>
               <Th l>SKU / Deskripsi</Th>
@@ -216,7 +216,7 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
           </span>
         </div>
         <div onClick={() => nav('sad', { from: 'psak14' })} className="row ac gap6" style={{ cursor: 'pointer', padding: '6px 10px', borderRadius: 7, background: 'var(--amber-bg)', border: '1px solid var(--line)' }}>
-          <span style={{ fontSize: 11.5 }}>Kurang dibukukan agregat Rp <b>{fmt(tot.shortfall)} jt</b> dari <b>{tot.nExc}</b> pengecualian → usulkan ke SAD</span>
+          <span style={{ fontSize: 12 }}>Kurang dibukukan agregat Rp <b>{fmt(tot.shortfall)} jt</b> dari <b>{tot.nExc}</b> pengecualian → usulkan ke SAD</span>
           <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--amber)' }}>SAD <I.arrowRight size={12} /></span>
         </div>
       </div>

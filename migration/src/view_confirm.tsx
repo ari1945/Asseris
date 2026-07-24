@@ -79,7 +79,7 @@ function CfDetailPanel(props: any) {
             <div key={i} className="row ac gap8" style={{ padding: '6px 9px', border: '1px solid var(--line)', borderRadius: 5, background: f.ok ? '#fff' : 'var(--surface-2)' }}>
               <span style={{ color: f.ok ? 'var(--blue)' : 'var(--ink-4)' }}><I.doc size={15} /></span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="truncate" style={{ fontSize: 11.5, fontWeight: 600, color: f.ok ? 'var(--ink)' : 'var(--ink-4)' }}>{f.n}</div>
+                <div className="truncate" style={{ fontSize: 12, fontWeight: 600, color: f.ok ? 'var(--ink)' : 'var(--ink-4)' }}>{f.n}</div>
                 <div className="tiny muted">{f.s}</div>
               </div>
               {f.ok && <button className="btn sm icon" title="Unduh"><I.download size={13} /></button>}
@@ -113,7 +113,7 @@ function CfDetailPanel(props: any) {
           {outstanding && <Btn sm style={{ flex: 1 }}><I.send size={13} /> Kirim Pengingat</Btn>}
           {outstanding && <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => onMarkReceived(sel.id)}><I.check size={14} /> Tandai Diterima</Btn>}
           {!outstanding && (
-            <div className="panel" style={{ flex: 1, padding: '8px 11px', background: 'var(--green-bg)', borderColor: 'transparent', fontSize: 11.5, fontWeight: 600, color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="panel" style={{ flex: 1, padding: '8px 11px', background: 'var(--green-bg)', borderColor: 'transparent', fontSize: 12, fontWeight: 600, color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <I.checkCircle size={14} /> {sel.status === 'Discrepancy' ? 'Selisih dalam rekonsiliasi' : 'Bukti konfirmasi memadai'}
             </div>
           )}
@@ -168,12 +168,12 @@ function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
             <span style={{ color: cr.severe ? 'var(--amber)' : 'var(--blue)', marginTop: 1 }}>{cr.severe ? <I.alert size={16} /> : <I.book size={16} />}</span>
             <div style={{ flex: 1 }}>
               <div className="row jb ac" style={{ marginBottom: 3 }}>
-                <div style={{ fontWeight: 700, fontSize: 12.5 }}>Validasi silang SA 505 — {cr.count} catatan cakupan &amp; tindak lanjut</div>
+                <div style={{ fontWeight: 700, fontSize: 12 }}>Validasi silang SA 505 — {cr.count} catatan cakupan &amp; tindak lanjut</div>
                 {(cr.altMissing.length > 0 || cr.discOpen.length > 0) && (
                   <Btn sm onClick={() => onJump('worklist', (cr.altMissing[0] || cr.discOpen[0]))}>Buka Tindak Lanjut</Btn>
                 )}
               </div>
-              <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+              <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
                 {cr.issues.map((i, k) => (
                   <li key={k} style={i.severe ? { color: 'var(--ink)' } : undefined}>{i.severe && <b>[berat] </b>}{i.text}</li>
                 ))}
@@ -196,7 +196,7 @@ function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
                 <div className="row jb ac" style={{ marginBottom: 6 }}>
                   <span className="row ac gap8">
                     <span style={{ color: 'var(--' + (CONF_TYPES as any)[a.type].k.replace('blue', 'blue').replace('teal', 'teal').replace('purple', 'purple').replace('red', 'red') + ')' }}>{React.createElement((I as any)[(CONF_TYPES as any)[a.type].icon], { size: 15 })}</span>
-                    <span style={{ fontWeight: 600, fontSize: 12.5 }}>{a.caption}</span>
+                    <span style={{ fontWeight: 600, fontSize: 12 }}>{a.caption}</span>
                     <Badge kind={(CONF_TYPES as any)[a.type].k}>{its.length} konf.</Badge>
                   </span>
                   <span className="mono tiny muted">populasi Rp {fmt(a.pop / 1e6, 0)} jt</span>
@@ -231,7 +231,7 @@ function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
                 <div key={s.l} style={{ marginBottom: i < pipe.length - 1 ? 11 : 0 }}>
                   <div className="row jb ac" style={{ marginBottom: 4 }}>
                     <span className="row ac gap8" style={{ fontSize: 12 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: s.c }} />{s.l}</span>
-                    <span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{s.v}<span className="muted" style={{ fontWeight: 500 }}> / {pipe[0].v}</span></span>
+                    <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{s.v}<span className="muted" style={{ fontWeight: 500 }}> / {pipe[0].v}</span></span>
                   </div>
                   <CfTrack pct={pct} color={s.c} h={7} />
                 </div>
@@ -260,7 +260,7 @@ function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
               {aging.map(a => (
                 <div key={a.l} className="row ac gap8">
                   <span style={{ width: 9, height: 9, borderRadius: 2, background: a.c, flex: '0 0 9px' }} />
-                  <span style={{ fontSize: 11.5, flex: 1 }}>{a.l}</span>
+                  <span style={{ fontSize: 12, flex: 1 }}>{a.l}</span>
                   <span className="mono" style={{ fontWeight: 700, color: a.c }}>{a.v}</span>
                 </div>
               ))}
@@ -272,14 +272,14 @@ function CfOverview({ items, segs, rate, onJump, covRecon }: any) {
       {/* worklist */}
       <Panel title="Tindak Lanjut & Pengecualian" sub={work.length + ' butir memerlukan tindakan'} actions={<Btn sm onClick={() => onJump('worklist')}>Buka workbench <I.arrowRight size={13} /></Btn>}>
         {work.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', color: 'var(--green)' }}><I.checkCircle size={22} /><div style={{ fontSize: 12.5, fontWeight: 600, marginTop: 6 }}>Tidak ada pengecualian terbuka</div></div>
+          <div style={{ padding: 24, textAlign: 'center', color: 'var(--green)' }}><I.checkCircle size={22} /><div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Tidak ada pengecualian terbuka</div></div>
         ) : (
           <div>
             {work.map((w, i) => (
               <div key={w.c.id} className="row ac gap10" style={{ padding: '9px 14px', borderTop: i ? '1px solid var(--line-soft)' : 0, cursor: 'pointer' }} onClick={() => onJump('worklist', w.c.id)}>
                 <span style={{ width: 6, height: 30, borderRadius: 3, background: w.col, flex: '0 0 6px' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{w.c.id}</span><span style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{w.c.party}</span></div>
+                  <div className="row ac gap6"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{w.c.id}</span><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{w.c.party}</span></div>
                   <div className="tiny muted">{w.txt}</div>
                 </div>
                 <Badge kind={w.kind === 'Diskrepansi' ? 'red' : w.kind === 'Tanpa Respons' ? 'amber' : 'blue'}>{w.kind}</Badge>
@@ -376,7 +376,7 @@ function CfWorklist(props: any) {
               <div key={i} className="row gap8" style={{ padding: '6px 0', borderTop: i ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: e.col, marginTop: 4, flex: '0 0 8px' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.4 }}>{e.ev}</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.4 }}>{e.ev}</div>
                   <div className="tiny muted mono">{e.who} · {e.t}</div>
                 </div>
               </div>
@@ -403,7 +403,7 @@ function CfWpStatus({ wp }: any) {
               {r.done ? <I.checkCircle size={17} /> : <span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid var(--line-strong)', display: 'inline-block' }} />}
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{r.label}</div>
               <div className="tiny muted">{r.detail}</div>
             </div>
             <Badge kind={r.done ? 'green' : 'gray'}>{r.done ? 'Terpenuhi' : 'Belum'}</Badge>

@@ -63,7 +63,7 @@ function PPPKReport() {
                   <div className="panel" style={{ padding: 4, boxShadow: 'none' }}>
                     {R.sections.map((s: any, i: any) => (
                       <div key={i} className="row ac jb" style={{ padding: '10px 12px', borderBottom: i < R.sections.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                        <span className="row ac gap10"><span style={{ width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: s.status === 'Lengkap' ? 'var(--green)' : s.status === 'Belum' ? 'var(--red)' : 'var(--amber)', color: '#fff' }}>{s.status === 'Lengkap' ? <I.check size={12} /> : i + 1}</span><span style={{ fontSize: 12.5, fontWeight: 500 }}>{s.t}</span></span>
+                        <span className="row ac gap10"><span style={{ width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: s.status === 'Lengkap' ? 'var(--green)' : s.status === 'Belum' ? 'var(--red)' : 'var(--amber)', color: '#fff' }}>{s.status === 'Lengkap' ? <I.check size={12} /> : i + 1}</span><span style={{ fontSize: 12, fontWeight: 500 }}>{s.t}</span></span>
                         <Badge kind={(PPPK_SEC_STAT as any)[s.status]}>{s.status}</Badge>
                       </div>
                     ))}
@@ -113,7 +113,7 @@ function PPPKReport() {
                 <tbody>
                   {clients.map((c: any) => (
                     <tr key={c.id}>
-                      <td style={{ fontWeight: 600, fontSize: 12.5 }}>{c.client.replace('PT ', '')}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{c.client.replace('PT ', '')}</td>
                       <td className="tiny">{c.service}</td>
                       <td><span className="badge b-gray tiny mono">{c.std}</span></td>
                       <td className="tiny">{c.ap}</td>
@@ -138,7 +138,7 @@ function PPPKReport() {
                   return (
                     <div key={i} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid ' + (ok ? 'var(--green)' : 'var(--amber)') }}>
                       <div className="row jb ac" style={{ marginBottom: 8 }}>
-                        <div className="row ac gap8"><Avatar name={p.ap} size={26} /><div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{p.ap}</div><div className="tiny muted">{p.grade}</div></div></div>
+                        <div className="row ac gap8"><Avatar name={p.ap} size={26} /><div><div style={{ fontSize: 12, fontWeight: 600 }}>{p.ap}</div><div className="tiny muted">{p.grade}</div></div></div>
                         <Badge kind={ok ? 'green' : 'amber'}>{ok ? 'Terpenuhi' : 'Belum Terpenuhi'}</Badge>
                       </div>
                       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -212,7 +212,7 @@ function PPPKReport() {
                 </div>
               </div>
               <div className="panel" style={{ padding: '12px 14px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
-                <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--blue)' }}><I.book size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Dasar Kewajiban Pelaporan</span></div>
+                <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--blue)' }}><I.book size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Dasar Kewajiban Pelaporan</span></div>
                 <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>KAP wajib menyampaikan Laporan Tahunan kepada Pusat Pembinaan Profesi Keuangan (P2PK/PPPK) Kementerian Keuangan paling lambat <b>30 April</b> setiap tahun, memuat identitas & susunan AP, daftar klien dan jasa, jumlah & jenis opini, realisasi PPL, serta gambaran Sistem Pengelolaan Mutu (SPM) — sesuai PMK 154/PMK.01/2017 sebagaimana diubah dengan <b>PMK 186/PMK.01/2021</b> dan UU 5/2011 tentang Akuntan Publik. Penyampaian dilakukan secara <b>elektronik (e-reporting PPPK)</b> dengan tanda terima elektronik sebagai bukti.</p>
               </div>
             </div>

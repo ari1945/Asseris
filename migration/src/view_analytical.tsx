@@ -218,7 +218,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
           <Panel key={i} noBody>
             <div style={{ padding: '12px 14px' }}>
               <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: k.accent, lineHeight: 1.1 }}>{k.v}</div>
-              <div style={{ fontSize: 12.5, fontWeight: 600, marginTop: 3 }}>{k.l}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, marginTop: 3 }}>{k.l}</div>
               <div className="tiny muted" style={{ marginTop: 1 }}>{k.sub}</div>
             </div>
           </Panel>
@@ -383,7 +383,7 @@ function FluxTab({ der, pm, fmt }: any) {
               const exp = state[sel.code]?.exp ?? 8, tol = state[sel.code]?.tol ?? 5;
               const within = Math.abs(sel.dPct - exp) <= tol;
               return (
-                <div className="row ac gap6" style={{ fontSize: 11.5 }}>
+                <div className="row ac gap6" style={{ fontSize: 12 }}>
                   <span style={{ color: within ? 'var(--green)' : 'var(--red)' }}>{within ? <I.checkCircle size={14} /> : <I.alert size={14} />}</span>
                   <span style={{ lineHeight: 1.4 }}>Aktual <b className="mono">{sel.dPct > 0 ? '+' : ''}{sel.dPct.toFixed(0)}%</b> {within ? 'sesuai' : 'menyimpang dari'} ekspektasi (<span className="mono">{exp}%±{tol}</span>){within ? '' : ' — perlu investigasi & bukti pendukung.'}</span>
                 </div>

@@ -132,11 +132,11 @@ function SJAH3000View() {
               <div className="tiny muted">Hal pokok non-historis & kriteria khusus</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Perikatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{ASR_ENG.length} aktif</div></div>
+            <div><div className="tiny muted upper">Perikatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{ASR_ENG.length} aktif</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Keyakinan Memadai</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{memadai} perikatan</div></div>
+            <div><div className="tiny muted upper">Keyakinan Memadai</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--blue)' }}>{memadai} perikatan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Keyakinan Terbatas</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--teal)' }}>{ASR_ENG.length - memadai} perikatan</div></div>
+            <div><div className="tiny muted upper">Keyakinan Terbatas</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--teal)' }}>{ASR_ENG.length - memadai} perikatan</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Seri Standar</div>
@@ -186,7 +186,7 @@ function F3000Anatomy() {
               ['Langsung (direct)', 'Praktisi sendiri mengukur/mengevaluasi hal pokok terhadap kriteria & melaporkan hasilnya.', 'blue', 'Laporan pengendalian organisasi jasa'],
             ].map((r, i) => (
               <div key={i} className="panel" style={{ padding: '11px 13px', boxShadow: 'none', borderLeft: `3px solid var(--${r[2]})` }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700 }}>{r[0]}</div>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{r[0]}</div>
                 <div className="tiny muted" style={{ margin: '4px 0 7px', lineHeight: 1.45 }}>{r[1]}</div>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)' }}>{r[3]}</div>
               </div>
@@ -216,7 +216,7 @@ function F3000Anatomy() {
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>SPA 3000 mengatur perikatan asurans atas hal pokok <b>selain</b> informasi keuangan historis — mis. keberlanjutan, KPI, kepatuhan, & pengendalian.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>SPA 3000 mengatur perikatan asurans atas hal pokok <b>selain</b> informasi keuangan historis — mis. keberlanjutan, KPI, kepatuhan, & pengendalian.</span>
             </div>
           </div>
         </Panel>
@@ -250,7 +250,7 @@ function F3000Subject({ selId, setSelId, sel }: any) {
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span><Badge kind={sel.color}>{sel.std}</Badge><Badge kind={sel.kind === 'Langsung' ? 'blue' : 'teal'}>{sel.kind}</Badge></div>
-            <div style={{ fontWeight: 700, fontSize: 12.5, marginTop: 4, lineHeight: 1.35 }}>{sel.subject}</div>
+            <div style={{ fontWeight: 700, fontSize: 12, marginTop: 4, lineHeight: 1.35 }}>{sel.subject}</div>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 4 }}>Kriteria Diterapkan</div>
@@ -259,7 +259,7 @@ function F3000Subject({ selId, setSelId, sel }: any) {
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Keberterimaan Kriteria (¶24)</div>
             <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
               {sel.suit.map((s: any, i: any) => (
-                <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '5px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+                <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '5px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                   <span>{s[0]}</span>
                   {s[1] ? <Badge kind="green">Memenuhi</Badge> : <Badge kind="amber">Perhatian</Badge>}
                 </div>
@@ -269,7 +269,7 @@ function F3000Subject({ selId, setSelId, sel }: any) {
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Hal Pokok & Prosedur Pengukuran</div>
             {sel.matters.map((m: any, i: any) => (
               <div key={i} style={{ padding: '8px 0', borderBottom: i < sel.matters.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                <div className="row jb ac"><span style={{ fontSize: 11.5, fontWeight: 600 }}>{m[0]}</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)' }}>{m[1]}</span></div>
+                <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 600 }}>{m[0]}</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)' }}>{m[1]}</span></div>
                 <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.4 }}>{m[2]}</div>
               </div>
             ))}
@@ -300,7 +300,7 @@ function F3000Evidence({ sel }: any) {
               <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: r[2] ? 'var(--green)' : 'var(--amber)' }}>{r[2] ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
                 <div style={{ flex: 1 }} className="row jb ac">
-                  <span style={{ fontSize: 12.5, lineHeight: 1.45 }}>{r[0]}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.45 }}>{r[0]}</span>
                   <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700, flex: '0 0 auto', marginLeft: 8 }}>{r[1]}</span>
                 </div>
               </div>
@@ -325,7 +325,7 @@ function F3000Evidence({ sel }: any) {
         <Panel title="Independensi & Etika (¶20)">
           <div style={{ display: 'grid', gap: 7 }}>
             {['Praktisi mematuhi kode etik & ketentuan independensi', 'Kompetensi & kapabilitas tim memadai untuk hal pokok', 'Pengendalian mutu perikatan diterapkan (SPM 1)'].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
                 <span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
@@ -367,7 +367,7 @@ function F3000Report({ sel }: any) {
               ['Ringkasan pekerjaan dilaksanakan', '¶69k'],
               ['Simpulan asurans', '¶69m'],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.check size={13} /></span>{r[0]}</span>
                 <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r[1]}</span>
               </div>
@@ -387,7 +387,7 @@ function F3000Report({ sel }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan Asurans Independen</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN ASURANS INDEPENDEN</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Keyakinan {sel.level} — {sel.std} ({sel.kind})</div>
             <p style={{ margin: '0 0 10px' }}>Kepada Manajemen {sel.client}</p>

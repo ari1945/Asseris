@@ -266,7 +266,7 @@ function ComplianceMatrix() {
                         {al && <div className="mono" style={{ fontSize: 9.5, color: 'var(--ink-4)', marginTop: 2, whiteSpace: 'nowrap' }}>{newNum ? ('lama ' + r.code) : ('\u2261 ' + al.code)}</div>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{r.title}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{r.title}</div>
                         {r.coverage === 'module' && <div className="tiny muted">→ {((MODULE_INDEX as any)[r.module] || {}).label || r.module}</div>}
                         {r.coverage === 'gap' && <div className="tiny" style={{ color: 'var(--amber)' }}>Kandidat untuk ditambahkan</div>}
                       </div>

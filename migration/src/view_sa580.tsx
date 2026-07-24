@@ -126,11 +126,11 @@ function SA580View() {
               <div className="tiny muted">{client} · {engId}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Representasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{applicable} berlaku · {received} diperoleh</div></div>
+            <div><div className="tiny muted upper">Representasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{applicable} berlaku · {received} diperoleh</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Penanda Tangan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{doc.letter.signatory1} & {doc.letter.signatory2}</div></div>
+            <div><div className="tiny muted upper">Penanda Tangan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{doc.letter.signatory1} & {doc.letter.signatory2}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tanggal Surat</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{doc.letter.date || '—'}</div></div>
+            <div><div className="tiny muted upper">Tanggal Surat</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--blue)' }}>{doc.letter.date || '—'}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Surat Bertandatangan</div>
@@ -207,7 +207,7 @@ function F580List({ doc, setItem, received, applicable }: { doc: Rep580Doc; setI
         <Panel noBody>
           <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{catalog.id}</span><Badge kind={catalog.cat === 'Wajib' ? 'blue' : 'purple'}>{catalog.cat}</Badge><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{catalog.src}</span></div>
-            <div style={{ fontWeight: 600, fontSize: 12.5, marginTop: 6, lineHeight: 1.45 }}>{catalog.t}</div>
+            <div style={{ fontWeight: 600, fontSize: 12, marginTop: 6, lineHeight: 1.45 }}>{catalog.t}</div>
           </div>
           <div style={{ padding: 14, display: 'grid', gap: 12 }}>
             <div>
@@ -231,19 +231,19 @@ function F580List({ doc, setItem, received, applicable }: { doc: Rep580Doc; setI
               <textarea className="input" value={sel.exception} placeholder="Kosongkan bila representasi diberikan tanpa pengecualian. Catat kualifikasi/keberatan manajemen bila ada." onChange={(e: { target: { value: string } }) => setItem(catalog.id, { exception: e.target.value })} style={{ width: '100%', height: 62, padding: 8, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)' }} />
             </div>
 
-            <label className="row gap8 ac" style={{ cursor: 'pointer', fontSize: 11.5 }}>
+            <label className="row gap8 ac" style={{ cursor: 'pointer', fontSize: 12 }}>
               <input type="checkbox" checked={sel.refused} onChange={(e: { target: { checked: boolean } }) => setItem(catalog.id, { refused: e.target.checked })} />
               <span style={{ lineHeight: 1.4 }}>Manajemen <b>menolak</b> memberikan representasi ini (¶20 — evaluasi integritas & dampak pada opini).</span>
             </label>
 
             {sel.refused && (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Penolakan representasi wajib dapat berujung <b>tidak menyatakan pendapat</b> (¶20, A26). Diskusikan dengan manajemen & TCWG; dokumentasikan pada tab Keandalan & Dampak.</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Penolakan representasi wajib dapat berujung <b>tidak menyatakan pendapat</b> (¶20, A26). Diskusikan dengan manajemen & TCWG; dokumentasikan pada tab Keandalan & Dampak.</span></div>
               </div>
             )}
             {!sel.refused && sel.status === 'requested' && (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Belum diterima — diperlukan sebelum tanggal laporan auditor.</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Belum diterima — diperlukan sebelum tanggal laporan auditor.</span></div>
               </div>
             )}
           </div>
@@ -261,7 +261,7 @@ function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter }: {
       <Panel noBody>
         <div className="panel-h"><h3>Draf Surat Representasi Manajemen</h3><div style={{ flex: 1 }} /><Badge kind="blue">Kop Surat Klien</Badge></div>
         <div style={{ padding: 22, background: 'var(--surface-1, #fff)' }}>
-          <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12.5, lineHeight: 1.65, color: 'var(--ink)' }}>
+          <div style={{ maxWidth: 640, margin: '0 auto', fontSize: 12, lineHeight: 1.65, color: 'var(--ink)' }}>
             <div className="row jb" style={{ marginBottom: 18, alignItems: 'flex-start' }}>
               <div style={{ fontWeight: 800, fontSize: 14 }}>{client}</div>
               <div className="tiny muted" style={{ textAlign: 'right' }}>Jl. Industri Raya No. 12<br />Cikarang, Jawa Barat</div>
@@ -394,7 +394,7 @@ function F580Reliability({ doc, refusedCount }: { doc: Rep580Doc; refusedCount: 
                 <div key={i} className="row gap12" style={{ padding: '12px 0', alignItems: 'flex-start', borderBottom: i < scenarios.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 34px', width: 34, height: 34, borderRadius: 8, display: 'grid', placeItems: 'center', background: `var(--${s.k}-bg)`, color: `var(--${s.k})` }}><Ic size={17} /></span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.35 }}>{s.t}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>{s.t}</div>
                     <div className="tiny muted" style={{ lineHeight: 1.45, margin: '3px 0 6px' }}>{s.d}</div>
                     <Badge kind={s.ok ? 'green' : s.k}>{s.sts}</Badge>
                   </div>
@@ -409,7 +409,7 @@ function F580Reliability({ doc, refusedCount }: { doc: Rep580Doc; refusedCount: 
           <div className="panel" style={{ margin: 14, padding: '11px 13px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Representasi tertulis adalah <b>bukti audit yang perlu</b>, namun <b>tidak memberikan bukti yang cukup & tepat</b> dengan sendirinya. Diperolehnya representasi <b>tidak memengaruhi</b> sifat/luas bukti audit lain atas tanggung jawab manajemen (¶4).</span>
+              <span style={{ fontSize: 12, lineHeight: 1.5 }}>Representasi tertulis adalah <b>bukti audit yang perlu</b>, namun <b>tidak memberikan bukti yang cukup & tepat</b> dengan sendirinya. Diperolehnya representasi <b>tidak memengaruhi</b> sifat/luas bukti audit lain atas tanggung jawab manajemen (¶4).</span>
             </div>
           </div>
         </Panel>
@@ -424,7 +424,7 @@ function F580Reliability({ doc, refusedCount }: { doc: Rep580Doc; refusedCount: 
               { t: 'Integritas manajemen tidak diragukan', ok: refusedCount === 0 },
               { t: 'Seluruh representasi berlaku diperoleh', ok: pendingCount === 0 },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{r.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>
@@ -432,7 +432,7 @@ function F580Reliability({ doc, refusedCount }: { doc: Rep580Doc; refusedCount: 
           </div>
           <div className="divider" />
           <div className="panel" style={{ padding: '10px 12px', background: `var(--${modImpact.k}-bg)`, borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: `var(--${modImpact.k})` }}><MIc size={15} /></span><span style={{ fontSize: 11.5, fontWeight: 600, lineHeight: 1.4 }}>{modImpact.t}</span></div>
+            <div className="row ac gap8"><span style={{ color: `var(--${modImpact.k})` }}><MIc size={15} /></span><span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{modImpact.t}</span></div>
           </div>
         </Panel>
         <SASignoffMini stdId="sa580" />

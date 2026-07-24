@@ -196,7 +196,7 @@ function ForensicCashFlow() {
                     {rows.map((f: any) => (
                       <tr key={f.id} className={f.id === selTx.id ? 'sel' : ''} onClick={() => setSel(f.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.id}</td>
-                        <td style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3, fontSize: 11.5 }}>
+                        <td style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3, fontSize: 12 }}>
                           <span className="row ac gap6">{f.party}{f.rpId && <span title="Pihak berelasi" style={{ color: 'var(--red)', display: 'inline-flex' }}><I.group size={11} /></span>}</span>
                         </td>
                         <td><Badge kind={f.dir === 'in' ? 'green' : 'gray'}>{f.dir === 'in' ? 'Masuk' : 'Keluar'}</Badge></td>

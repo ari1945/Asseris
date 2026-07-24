@@ -274,7 +274,7 @@ function GoingConcern() {
                   <Badge kind={level.k}>{level.l}</Badge>
                   <span className="tiny muted">· {triggered} indikator aktif · {ratioFlags} rasio di bawah ambang{covBreaches ? ` · ${covBreaches} covenant dilanggar` : ''}</span>
                 </div>
-                <div style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: 880 }}>{level.txt}</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: 880 }}>{level.txt}</div>
               </div>
               <div style={{ padding: '13px 18px', borderLeft: '1px solid var(--line)', textAlign: 'center', display: 'grid', placeItems: 'center' }}>
                 <div className="tiny muted upper">Altman Z-Score</div>
@@ -368,7 +368,7 @@ function GoingConcern() {
               </div>
               <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: breach ? 'var(--red-bg)' : minBal < 5 ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
                 <div className="row ac gap8"><span style={{ color: breach ? 'var(--red)' : minBal < 5 ? 'var(--amber)' : 'var(--green)' }}>{breach ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-                  <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{breach ? `Proyeksi kas negatif pada ${breach.m} — indikasi material uncertainty.` : minBal < 5 ? 'Likuiditas menipis namun tetap positif — pantau ketat.' : 'Proyeksi kas tetap positif sepanjang 12 bulan.'}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.4 }}>{breach ? `Proyeksi kas negatif pada ${breach.m} — indikasi material uncertainty.` : minBal < 5 ? 'Likuiditas menipis namun tetap positif — pantau ketat.' : 'Proyeksi kas tetap positif sepanjang 12 bulan.'}</span>
                 </div>
               </div>
             </Panel>
@@ -510,13 +510,13 @@ function GCMitigations({ mitigations, setMitigations, me, locked }: { mitigation
               </span>
             </div>
             {locked
-              ? <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4 }}>{m.plan}</div>
+              ? <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{m.plan}</div>
               : <input className="input" value={m.plan} onChange={(e: Ev) => patch(m.id, { plan: e.target.value })} placeholder="Rencana manajemen…" style={{ marginBottom: 6 }} />}
             <div className="row ac gap8" style={{ marginTop: 8, flexWrap: 'wrap' }}>
               {!locked && <>
                 <span className="tiny muted">Kelayakan:</span>
                 <select className="select" value={m.feasibility} onChange={(e: Ev) => patch(m.id, { feasibility: e.target.value })} style={{ height: 26, width: 96 }}>{MITI_FEAS.map(f => <option key={f}>{f}</option>)}</select>
-                <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 11.5 }}><input type="checkbox" checked={m.evidence} onChange={() => patch(m.id, { evidence: !m.evidence })} /> Bukti diperoleh</label>
+                <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 12 }}><input type="checkbox" checked={m.evidence} onChange={() => patch(m.id, { evidence: !m.evidence })} /> Bukti diperoleh</label>
               </>}
               {locked
                 ? (m.note && <span className="tiny muted">{m.note}</span>)

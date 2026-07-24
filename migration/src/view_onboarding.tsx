@@ -71,7 +71,7 @@ function OKv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 }
@@ -83,7 +83,7 @@ function ScorePick({ value, onChange }: any) {
       {[1, 2, 3, 4, 5].map(n => (
         <button key={n} onClick={() => onChange(n)}
           style={{
-            width: 26, height: 26, borderRadius: 6, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+            width: 26, height: 26, borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
             border: '1px solid ' + (n <= value ? 'transparent' : 'var(--line-strong)'),
             background: n <= value ? (value >= 4 ? 'var(--green)' : value >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-2)',
             color: n <= value ? '#fff' : 'var(--ink-4)', transition: '.12s',
@@ -154,7 +154,7 @@ function ClientOnboarding() {
                 style={{ borderRadius: 8, padding: 5, minHeight: 140, background: over === st.id ? 'var(--blue-050)' : 'transparent' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 11.5 }}>{st.label}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{st.label}</span>
                   <span className="chip tiny">{col.length}</span>
                 </div>
                 <div className="grid" style={{ gap: 8 }}>
@@ -169,7 +169,7 @@ function ClientOnboarding() {
                           {p.converted ? <span className="badge b-green" style={{ fontSize: 9, padding: '0 6px' }}>Terkonversi</span>
                             : pep ? <span className="badge b-red" style={{ fontSize: 9, padding: '0 6px' }}>PEP</span> : null}
                         </div>
-                        <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5 }}>{p.name.replace('PT ', '')}</div>
+                        <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{p.name.replace('PT ', '')}</div>
                         <div className="tiny muted" style={{ marginBottom: 7 }}>{p.service}</div>
                         <div className="row jb ac">
                           <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(p.fee / 1e6, 0)} jt</span>
@@ -330,7 +330,7 @@ function StepAcceptance({ p, onPatch }: any) {
           {a.factors.map((f: any, i: any) => (
             <div key={i} className="panel" style={{ padding: 12 }}>
               <div className="row jb ac" style={{ marginBottom: 7 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 600 }}>{f.k}</span>
+                <span style={{ fontSize: 12, fontWeight: 600 }}>{f.k}</span>
                 <span className="chip tiny" title="Bobot">{f.w}%</span>
               </div>
               <div className="row jb ac" style={{ gap: 12 }}>
@@ -465,7 +465,7 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
           <div key={c.id} className="panel" onClick={() => goStep(c.id)} style={{ padding: '11px 13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 11, borderLeft: '3px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)') }}>
             <span style={{ color: c.ok ? 'var(--green)' : 'var(--ink-4)' }}>{c.ok ? <I.checkCircle size={20} /> : <I.clock size={20} />}</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.t}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{c.t}</div>
               <div className="tiny muted">{c.detail}</div>
             </div>
             {!c.ok && <span className="tiny" style={{ color: 'var(--blue)', fontWeight: 600 }}>Lengkapi →</span>}

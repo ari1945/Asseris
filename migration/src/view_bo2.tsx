@@ -52,7 +52,7 @@ function FirmLegal_LEGACY_UNUSED() {
                   return (
                     <tr key={c.id}>
                       <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{c.id}</td>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{c.pihak}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{c.pihak}</td>
                       <td className="tiny">{c.jenis}</td>
                       <td className="num">{c.nilai === 0 ? '—' : boJt(c.nilai)}</td>
                       <td className="tiny mono" style={{ color: d < 30 ? 'var(--red)' : d < 120 ? 'var(--amber)' : 'var(--ink-2)' }}>{c.akhir}<span className="muted"> · {d}h</span></td>
@@ -77,7 +77,7 @@ function FirmLegal_LEGACY_UNUSED() {
                   return (
                     <div key={c.id} className="panel" style={{ padding: '11px 13px' }}>
                       <div className="row jb ac" style={{ marginBottom: 6 }}>
-                        <span style={{ fontWeight: 600, fontSize: 12.5 }}>{c.pihak} <span className="muted tiny">· {c.jenis}</span></span>
+                        <span style={{ fontWeight: 600, fontSize: 12 }}>{c.pihak} <span className="muted tiny">· {c.jenis}</span></span>
                         <span className="mono tiny" style={{ fontWeight: 700, color: col }}>{d} hari lagi</span>
                       </div>
                       <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: pct + '%', height: '100%', borderRadius: 4, background: col }} /></div>
@@ -98,7 +98,7 @@ function FirmLegal_LEGACY_UNUSED() {
                     {B.DISPUTES.map((d: any) => (
                       <tr key={d.id} className={d.id === sel ? 'sel' : ''} onClick={() => setSel(d.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{d.id}</td>
-                        <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{d.lawan}</div><div className="tiny muted truncate" style={{ maxWidth: 220 }}>{d.perkara}</div></td>
+                        <td><div style={{ fontWeight: 600, fontSize: 12 }}>{d.lawan}</div><div className="tiny muted truncate" style={{ maxWidth: 220 }}>{d.perkara}</div></td>
                         <td className="num">{boJt(d.exposure)}</td>
                         <td><BoBadge s={d.risk} /></td>
                         <td><BoBadge s={d.status} /></td>

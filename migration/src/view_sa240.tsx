@@ -174,11 +174,11 @@ function SA240View() {
               <div className="tiny muted">{client} · {engLabel}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Risiko Fraud Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{register.length} risiko · {sigCount} signifikan</div></div>
+            <div><div className="tiny muted upper">Risiko Fraud Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{register.length} risiko · {sigCount} signifikan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Risiko Wajib (Presumsi)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{presumedCount} presumsi</div></div>
+            <div><div className="tiny muted upper">Risiko Wajib (Presumsi)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--red)' }}>{presumedCount} presumsi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Brainstorming Tim</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>06 Mar · 5 peserta</div></div>
+            <div><div className="tiny muted upper">Brainstorming Tim</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>06 Mar · 5 peserta</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Sikap Auditor</div>
@@ -222,7 +222,7 @@ function F240Risk({ client }: any) {
                 <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < steps.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ flex: '0 0 30px', width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--blue-050)', color: 'var(--blue)' }}><Ic size={16} /></span>
                   <div style={{ flex: 1 }}>
-                    <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{s.t}</div><Badge kind={s.ok ? 'green' : 'amber'}>{s.tag}</Badge></div>
+                    <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{s.t}</div><Badge kind={s.ok ? 'green' : 'amber'}>{s.tag}</Badge></div>
                     <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 3 }}>{s.d}</div>
                   </div>
                 </div>
@@ -262,7 +262,7 @@ function F240Risk({ client }: any) {
           </div>
         </Panel>
         <Panel title="Catatan Skeptisisme Profesional" sub="SA 200 ¶15">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
             Tim mempertahankan sikap skeptis terlepas dari pengalaman masa lalu atas <b>kejujuran & integritas</b>
             manajemen {client}. Representasi tidak diterima sebagai pengganti bukti; dokumen menjelang tutup buku
             diuji keasliannya bila terdapat indikasi.
@@ -310,7 +310,7 @@ function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; s
                   background: on ? `var(--${t.color}-bg)` : 'var(--surface-1, #fff)', textAlign: 'center',
                   boxShadow: on ? '0 2px 10px rgba(0,0,0,.08)' : 'none' }}>
                   <span style={{ color: `var(--${t.color})` }}><Tic size={18} /></span>
-                  <div style={{ fontWeight: 700, fontSize: 11.5, marginTop: 3, color: on ? `var(--${t.color})` : 'var(--ink)' }}>{t.k}</div>
+                  <div style={{ fontWeight: 700, fontSize: 12, marginTop: 3, color: on ? `var(--${t.color})` : 'var(--ink)' }}>{t.k}</div>
                   <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{t.factors.filter(f => f.on).length} aktif</div>
                 </button>
               );
@@ -336,7 +336,7 @@ function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; s
           {sel.factors.map((f, i) => (
             <div key={i} onClick={() => toggleFactor(selId, i)} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < sel.factors.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: f.on ? 1 : 0.5, cursor: locked ? 'default' : 'pointer' }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: f.on ? `var(--${sel.color})` : 'var(--ink-4)' }}>{f.on ? <I.checkCircle size={16} /> : <I.circle size={16} />}</span>
-              <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{f.t}</div>
+              <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{f.t}</div>
               <Badge kind={sevKind(f.sev)}>{f.sev}</Badge>
             </div>
           ))}
@@ -345,7 +345,7 @@ function F240Triangle({ triangle, setTriangle, locked }: { triangle: Triangle; s
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: `var(--${sel.color})`, flex: '0 0 auto' }}><I.flag size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Faktor <b>{sel.k.toLowerCase()}</b> yang aktif diteruskan ke <b>Register Risiko Fraud</b> untuk dipetakan ke asersi & respons audit.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Faktor <b>{sel.k.toLowerCase()}</b> yang aktif diteruskan ke <b>Register Risiko Fraud</b> untuk dipetakan ke asersi & respons audit.</span>
           </div>
         </div>
       </Panel>
@@ -419,15 +419,15 @@ function F240Register({ register, setRegister, me, locked }: { register: FraudRi
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 9 }}>
                   <div className="field"><label>Status</label><select className="select" value={sel.status} onChange={(e: Ev) => patch(sel.id, { status: e.target.value })}>{FRAUD_STATUS.map(t => <option key={t}>{t}</option>)}</select></div>
                   <div className="row ac gap10" style={{ paddingTop: 18 }}>
-                    <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 11.5 }}><input type="checkbox" checked={sel.sig} onChange={() => patch(sel.id, { sig: !sel.sig })} /> Signifikan</label>
-                    <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 11.5 }}><input type="checkbox" checked={sel.presumed} onChange={() => patch(sel.id, { presumed: !sel.presumed })} /> Presumsi wajib</label>
+                    <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 12 }}><input type="checkbox" checked={sel.sig} onChange={() => patch(sel.id, { sig: !sel.sig })} /> Signifikan</label>
+                    <label className="row ac gap6" style={{ cursor: 'pointer', fontSize: 12 }}><input type="checkbox" checked={sel.presumed} onChange={() => patch(sel.id, { presumed: !sel.presumed })} /> Presumsi wajib</label>
                   </div>
                 </div>
               </div>
             )}
             {sel.sig && (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginTop: 12 }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Risiko signifikan — wajib respons spesifik & pengujian substantif; tidak boleh hanya mengandalkan kontrol (¶30).</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Risiko signifikan — wajib respons spesifik & pengujian substantif; tidak boleh hanya mengandalkan kontrol (¶30).</span></div>
               </div>
             )}
             {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
@@ -449,7 +449,7 @@ function F240Assumptions({ overrideProc, setOverride, locked }: { overrideProc: 
           <div style={{ background: 'linear-gradient(125deg,#5a1410,#8a2a1e)', color: '#fff', padding: '14px 16px' }}>
             <div className="row jb ac"><Badge kind="red">Presumsi ¶26</Badge><span className="mono tiny" style={{ color: '#f0c9c4' }}>Risiko Signifikan</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Risiko Fraud Pengakuan Pendapatan</div>
-            <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#f0d4cf' }}>Auditor wajib menganggap terdapat risiko fraud pada pengakuan pendapatan, kecuali presumsi dapat dibantah & terdokumentasi (¶47).</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#f0d4cf' }}>Auditor wajib menganggap terdapat risiko fraud pada pengakuan pendapatan, kecuali presumsi dapat dibantah & terdokumentasi (¶47).</p>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Evaluasi Presumsi</div>
@@ -476,7 +476,7 @@ function F240Assumptions({ overrideProc, setOverride, locked }: { overrideProc: 
           <div style={{ background: 'linear-gradient(125deg,#3a2a05,#6b4e0a)', color: '#fff', padding: '14px 16px' }}>
             <div className="row jb ac"><Badge kind="amber">Presumsi ¶31</Badge><span className="mono tiny" style={{ color: '#e8d6a8' }}>Selalu Signifikan</span></div>
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 8 }}>Risiko Override Manajemen</div>
-            <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#ecdcb0' }}>Manajemen berada pada posisi unik untuk melakukan fraud dengan menembus kontrol. Risiko ini <b>selalu</b> ada & tidak dapat dibantah.</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#ecdcb0' }}>Manajemen berada pada posisi unik untuk melakukan fraud dengan menembus kontrol. Risiko ini <b>selalu</b> ada & tidak dapat dibantah.</p>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Prosedur Wajib (¶32)</div>
@@ -507,7 +507,7 @@ function F240Assumptions({ overrideProc, setOverride, locked }: { overrideProc: 
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>CKPN tahun lalu ternyata <b>understated 42%</b> terhadap realisasi — pola yang dapat mengindikasikan <b>bias manajemen</b> untuk menahan laba. Estimasi tahun berjalan ditelaah ulang dengan rentang independen (lihat FR-05).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>CKPN tahun lalu ternyata <b>understated 42%</b> terhadap realisasi — pola yang dapat mengindikasikan <b>bias manajemen</b> untuk menahan laba. Estimasi tahun berjalan ditelaah ulang dengan rentang independen (lihat FR-05).</span>
           </div>
         </div>
       </Panel>
@@ -531,7 +531,7 @@ function F240Response() {
             {overall.map((r, i) => (
               <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < overall.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={16} /></span>
-                <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{r.t}</div>
+                <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{r.t}</div>
                 <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.ref}</span>
               </div>
             ))}
@@ -617,7 +617,7 @@ function F240Comms({ client }: any) {
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Jika auditor mengidentifikasi fraud yang melibatkan <b>manajemen</b>, komunikasi langsung ditujukan ke <b>TCWG</b> secara tepat waktu (¶41). Kewajiban pelaporan kepada pihak eksternal dapat <b>mengalahkan</b> kewajiban kerahasiaan bila diatur hukum (¶43).</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Jika auditor mengidentifikasi fraud yang melibatkan <b>manajemen</b>, komunikasi langsung ditujukan ke <b>TCWG</b> secara tepat waktu (¶41). Kewajiban pelaporan kepada pihak eksternal dapat <b>mengalahkan</b> kewajiban kerahasiaan bila diatur hukum (¶43).</span>
             </div>
           </div>
         </Panel>
@@ -632,7 +632,7 @@ function F240Comms({ client }: any) {
               { t: 'Representasi tertulis fraud diperoleh (SA 580)', ok: true },
               { t: 'Eksepsi JET tuntas dijelaskan/diinvestigasi', ok: false },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>{r.ok ? <I.checkCircle size={15} /> : <I.clock size={15} />}</span>
                 <span style={{ lineHeight: 1.4 }}>{r.t}</span>
               </div>
@@ -640,7 +640,7 @@ function F240Comms({ client }: any) {
           </div>
           <div className="divider" />
           <div className="panel" style={{ padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 11.5, fontWeight: 600 }}>2 eksepsi JET dalam investigasi — simpulan opini menunggu penyelesaian.</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>2 eksepsi JET dalam investigasi — simpulan opini menunggu penyelesaian.</span></div>
           </div>
         </Panel>
         <WpPanel moduleId="sa240" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan (SA 240/230)" />

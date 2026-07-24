@@ -61,7 +61,7 @@ function DecisionStep({ n, q, par, ans, detail, terminal }: any) {
       <span className="mono" style={{ flex: '0 0 22px', width: 22, height: 22, borderRadius: 6, background: terminal ? 'var(--navy)' : 'var(--blue-050)', color: terminal ? '#fff' : 'var(--navy)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>{n}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{q}</span>
+          <span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{q}</span>
           {par && <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>{par}</span>}
         </div>
         <div className="tiny" style={{ color: 'var(--ink-3)', lineHeight: 1.45, marginTop: 2 }}>{detail}</div>
@@ -142,7 +142,7 @@ function PSAK66View() {
     <Panel noBody>
       <div className="panel-h"><h3>Penilaian Pengendalian Bersama</h3><span className="sub mono">¶7–13</span><div style={{ flex: 1 }} /><span className="tiny muted">2 elemen</span></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Pengaturan</th>
@@ -167,7 +167,7 @@ function PSAK66View() {
         <div className="panel" style={{ marginTop: 11, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.shield size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               Kedua pengaturan memenuhi <b>pengendalian bersama</b> (¶7): para pihak secara <b>kolektif mengendalikan</b> aktivitas relevan dan keputusan membutuhkan <b>persetujuan bulat</b>. Karena pengendalian BERSAMA (bukan pengendalian tunggal), entitas <b>tidak mengonsolidasi</b> — konsisten dengan penilaian <b onClick={() => nav('psak65', { from: 'psak66' })} style={{ color: 'var(--blue)', cursor: 'pointer' }}>GROUP_CONTROL AS-02 (PSAK 65)</b>.
             </span>
           </div>
@@ -202,7 +202,7 @@ function PSAK66View() {
         <div className="panel" style={{ marginTop: 11, padding: '9px 11px', background: jv.carryTie ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: jv.carryTie ? 'var(--green)' : 'var(--amber)', marginTop: 1 }}><I.checkCircle size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               Roll-forward menutup ke nilai tercatat <b>Rp {sc(jv.carry)} {UN.short}</b> — angka yang SAMA disajikan <b onClick={() => nav('psak65', { from: 'psak66' })} style={{ color: 'var(--blue)', cursor: 'pointer' }}>PSAK 65</b> sebagai pos asosiasi/ventura di luar batas konsolidasi. Termasuk goodwill terkandung Rp {sc(jv.goodwillInCarry)} {UN.short} (selisih nilai tercatat vs bagian aset neto Rp {sc(jv.netAssetShare)} {UN.short}).
             </span>
           </div>
@@ -216,7 +216,7 @@ function PSAK66View() {
     <Panel noBody>
       <div className="panel-h"><h3>Informasi Keuangan Ringkas Ventura</h3><span className="sub mono">PSAK 67 ¶B12-B14</span></div>
       <div style={{ padding: '4px 14px 12px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <tbody>
             {[
               { l: 'Total aset ventura (100%)', v: jv.sf.assets },
@@ -283,7 +283,7 @@ function PSAK66View() {
 
         {/* aset tetap operasi bersama per tag register */}
         <div className="tiny muted upper" style={{ margin: '12px 0 5px', letterSpacing: '.04em' }}>Bagian Aset Tetap — per Nomor Tag (Register PSAK 16)</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '5px 6px' }}>Tag</th>
@@ -338,7 +338,7 @@ function PSAK66View() {
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P66_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
                 <div className="tiny muted">{r.proc}</div>
               </div>
               <Badge kind="gray">{r.sa}</Badge>
@@ -418,7 +418,7 @@ function PSAK66View() {
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < discList.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 78, flex: '0 0 78px', marginTop: 1 }}>{d.ref}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
           </label>
         ))}
       </div>
@@ -470,7 +470,7 @@ function PSAK66View() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
                   padding: '9px 15px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  fontSize: 12.5, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
+                  fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
                   borderBottom: '2px solid ' + (on ? 'var(--navy)' : 'transparent'), marginBottom: -1,
                 }}>
                   <IconT size={14} />

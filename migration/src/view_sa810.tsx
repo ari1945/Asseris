@@ -119,11 +119,11 @@ function SA810View() {
               <div className="tiny muted">Ringkasan diturunkan dari LK auditan</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Perikatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{RIN_ENG.length} aktif</div></div>
+            <div><div className="tiny muted upper">Perikatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{RIN_ENG.length} aktif</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Cermin Opini LK</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>{reflect} perikatan</div></div>
+            <div><div className="tiny muted upper">Cermin Opini LK</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--amber)' }}>{reflect} perikatan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Opini Tidak Wajar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{adverse} ringkasan</div></div>
+            <div><div className="tiny muted upper">Opini Tidak Wajar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--red)' }}>{adverse} ringkasan</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Acuan</div>
@@ -161,7 +161,7 @@ function F810Registri({ selId, setSelId, sel }: any) {
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={18} /></span>
-                <div style={{ fontWeight: 700, fontSize: 12.5 }}>{d.k}</div>
+                <div style={{ fontWeight: 700, fontSize: 12 }}>{d.k}</div>
                 <p className="tiny muted" style={{ margin: '4px 0 8px', lineHeight: 1.45 }}>{d.desc}</p>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)' }}>{d.ex}</div>
               </div>
@@ -208,7 +208,7 @@ function F810Registri({ selId, setSelId, sel }: any) {
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
                 <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                   <span style={{ color: sumKind(sel.summaryOpinion) === 'red' ? 'var(--red)' : 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span>
-                  <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{sel.notes}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.4 }}>{sel.notes}</span>
                 </div>
               </div>
             </div>
@@ -231,7 +231,7 @@ function F810Proc({ sel }: any) {
           {sel.procedures.map((a: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < sel.procedures.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: a[1] ? 'var(--green)' : 'var(--red)' }}>{a[1] ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-              <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{a[0]}</div>
+              <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{a[0]}</div>
               <span className="mono tiny" style={{ flex: '0 0 auto', color: a[1] ? 'var(--green)' : 'var(--red)', fontWeight: 700, marginTop: 1 }}>{a[1] ? 'OK' : 'ISU'}</span>
             </div>
           ))}
@@ -239,7 +239,7 @@ function F810Proc({ sel }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Auditor mengevaluasi apakah ringkasan LK <b>konsisten</b> / merupakan <b>ringkasan yang wajar</b>, dengan membandingkan terhadap LK auditan & menilai tingkat agregasi agar tidak menyesatkan (¶8).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Auditor mengevaluasi apakah ringkasan LK <b>konsisten</b> / merupakan <b>ringkasan yang wajar</b>, dengan membandingkan terhadap LK auditan & menilai tingkat agregasi agar tidak menyesatkan (¶8).</span>
           </div>
         </div>
       </Panel>
@@ -253,7 +253,7 @@ function F810Proc({ sel }: any) {
               ['Akses penuh ke LK auditan tersedia', 'green'],
               ['Bentuk opini disepakati dengan manajemen', 'blue'],
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                 <span style={{ color: `var(--${r[1]})`, flex: '0 0 auto', marginTop: 1 }}><I.check size={14} /></span>
                 <span style={{ lineHeight: 1.4 }}>{r[0]}</span>
               </div>
@@ -321,7 +321,7 @@ function F810Impact({ sel }: any) {
               <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < rules.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: r.active ? 1 : 0.5 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: r.active ? 'var(--amber)' : 'var(--ink-4)' }}>{r.active ? <I.flag size={16} /> : <I.circle size={16} />}</span>
                 <div style={{ flex: 1 }}>
-                  <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{r.t}</div>{r.active && <Badge kind="amber">Berlaku</Badge>}</div>
+                  <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{r.t}</div>{r.active && <Badge kind="amber">Berlaku</Badge>}</div>
                   <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 2 }}>{r.d}</div>
                 </div>
               </div>
@@ -335,7 +335,7 @@ function F810Impact({ sel }: any) {
           <div className="panel" style={{ padding: '11px 12px', background: sel.summaryOpinion.startsWith('Tidak Wajar') ? 'var(--red-bg)' : (modified || sel.auditEOM) ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: sel.summaryOpinion.startsWith('Tidak Wajar') ? 'var(--red)' : (modified || sel.auditEOM) ? 'var(--amber)' : 'var(--green)', flex: '0 0 auto' }}>{sel.summaryOpinion.startsWith('Tidak Wajar') ? <I.alert size={15} /> : (modified || sel.auditEOM) ? <I.flag size={15} /> : <I.checkCircle size={15} />}</span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>{sel.summaryOpinion.startsWith('Tidak Wajar')
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>{sel.summaryOpinion.startsWith('Tidak Wajar')
                 ? <>Nyatakan <b>opini tidak wajar</b> atas ringkasan & jelaskan alasannya.</>
                 : modified
                   ? <>Laporan ringkasan memuat <b>paragraf yang mencerminkan opini {sel.auditOpinion.split(' ')[0]}</b> atas LK auditan (¶17).</>
@@ -373,7 +373,7 @@ function F810Report({ sel }: any) {
               ['Rujukan jenis opini atas LK auditan', '¶14'],
               ['Opini: konsisten / ringkasan yang wajar', '¶14'],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.check size={13} /></span>{r[0]}</span>
                 <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r[1]}</span>
               </div>
@@ -400,7 +400,7 @@ function F810Report({ sel }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan atas Ringkasan LK</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN AUDITOR INDEPENDEN</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>atas Ringkasan Laporan Keuangan — SA 810</div>
             <p style={{ margin: '0 0 10px' }}>Kepada Pengguna {sel.subject} — {sel.client}</p>

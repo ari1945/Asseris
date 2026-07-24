@@ -128,7 +128,7 @@ function FirmOps() {
               <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
                 {F.SUBMODULES.map((m: any) => <FopsModuleCard key={m.id} m={m} {...(health as any)[m.id]} onNav={nav} />)}
                 <div className="panel" style={{ padding: '12px 13px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                  <div className="row ac gap8"><I.link2 size={14} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 11.5 }}>Satu sumber kebenaran</b></div>
+                  <div className="row ac gap8"><I.link2 size={14} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Satu sumber kebenaran</b></div>
                   <div className="tiny muted" style={{ lineHeight: 1.45 }}>Tiap angka ditarik dari sub-ledger pemiliknya. Cockpit tidak menyimpan salinan.</div>
                 </div>
               </div>
@@ -180,7 +180,7 @@ function FirmOps() {
           {tab === 'opex' && (
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <div className="panel" style={{ padding: '12px 14px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                <div className="row ac gap8" style={{ marginBottom: 6 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12.5 }}>Biaya operasi diturunkan dari sub-ledger — bukan diinput ulang</b></div>
+                <div className="row ac gap8" style={{ marginBottom: 6 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Biaya operasi diturunkan dari sub-ledger — bukan diinput ulang</b></div>
                 <div className="tiny muted" style={{ lineHeight: 1.55 }}>Tiap baris menunjuk modul sumbernya (sewa ← master vendor, penyusutan ← register aset PSAK 16, premi ← polis, iuran ← keanggotaan). Klasifikasi <b>Overhead</b>/<b>Beban Langsung</b> menentukan pos di Laba Rugi KAP (<b>Firm Finance</b>).</div>
               </div>
               <table className="dtbl">
@@ -188,7 +188,7 @@ function FirmOps() {
                 <tbody>
                   {oc.rows.map((r: any) => (
                     <tr key={r.key}>
-                      <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{r.label}</div><div className="tiny muted" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.3 }}>{r.detail}</div></td>
+                      <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.label}</div><div className="tiny muted" style={{ maxWidth: 280, whiteSpace: 'normal', lineHeight: 1.3 }}>{r.detail}</div></td>
                       <td><span className="badge" style={{ textTransform: 'none', background: (FOPS_CLS as any)[r.cls].c + '1a', color: (FOPS_CLS as any)[r.cls].c }}>{(FOPS_CLS as any)[r.cls].lbl}</span></td>
                       <td className="tiny"><span className={'badge ' + (r.basis === 'tahunan' ? 'b-blue' : 'b-gray')} style={{ textTransform: 'none' }}>{r.basis === 'tahunan' ? 'Tahunan' : 'YTD'}</span></td>
                       <td className="tiny muted">{r.src}</td>

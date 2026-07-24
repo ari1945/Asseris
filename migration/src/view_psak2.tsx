@@ -281,7 +281,7 @@ function PSAK2View() {
                   <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: cf.ties ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: cf.ties ? 'var(--green)' : 'var(--amber)', marginTop: 1 }}>{cf.ties ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+                      <span style={{ fontSize: 12, lineHeight: 1.45 }}>
                         {method === 'direct'
                           ? <>Metode <b>langsung</b> direkonstruksi dari mutasi akun WTB dan <b>tie persis</b> ke metode tidak langsung (selisih {sc(cfoDirect - cf.cfoTotal)} {UN.short}). </>
                           : <>Arus kas disusun <b>tidak langsung</b> dari pergerakan neraca; setiap mutasi non-kas terklasifikasi sehingga Σ aktivitas = ΔKas. </>}
@@ -302,7 +302,7 @@ function PSAK2View() {
                       <div key={i} className="row ac gap10" style={{ padding: '8px 14px', borderBottom: i < classRows.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <Badge kind={meta.kind}>{meta.label}</Badge>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.label}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.label}</div>
                           <div className="tiny muted mono">WTB {r.code} · {r.ref}</div>
                         </div>
                         <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: r.v < 0 ? 'var(--red)' : 'var(--ink)', whiteSpace: 'nowrap' }}>{sc(r.v)}</span>
@@ -319,7 +319,7 @@ function PSAK2View() {
               <Panel noBody>
                 <div className="panel-h"><h3>Rekonsiliasi Liabilitas dari Aktivitas Pendanaan</h3><span className="sub mono">¶44A–44E</span></div>
                 <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
                       <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
                         <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Liabilitas</th>
@@ -381,7 +381,7 @@ function PSAK2View() {
                     ))}
                     <div className="row ac jb" style={{ padding: '8px 0' }}>
                       <span style={{ fontSize: 12, fontWeight: 700 }}>Kas & setara kas — neraca</span>
-                      <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{sc(cf.cashBS)}</span>
+                      <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{sc(cf.cashBS)}</span>
                     </div>
                   </div>
                 </Panel>
@@ -467,7 +467,7 @@ function PSAK2View() {
                     <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(d.id)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.ok ? 'var(--green)' : 'var(--amber)'), background: d.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && <I.check size={11} style={{ color: '#fff' }} />}</span>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 46, flex: '0 0 46px', marginTop: 1 }}>{d.ref}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
                     </label>
                   ))}
                 </div>

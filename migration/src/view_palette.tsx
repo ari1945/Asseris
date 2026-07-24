@@ -116,7 +116,7 @@ function NotificationsPanel({ open, onClose, onNavigate, items, onMarkAll }: any
               <div key={n.id} onClick={() => { onNavigate(n.route); onClose(); }} style={{ display: 'flex', gap: 10, padding: '11px 13px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer', background: n.unread ? 'var(--blue-050)' : '#fff' }}>
                 <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--surface-3)', color: n.color, display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><IconC size={15} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{n.title}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{n.title}</div>
                   <div className="tiny muted" style={{ lineHeight: 1.35 }}>{n.body}</div>
                   <div className="tiny muted" style={{ marginTop: 2 }}>{n.when}</div>
                 </div>
@@ -155,7 +155,7 @@ function UserMenu({ open, onClose, user, onNavigate }: any) {
         <div style={{ padding: '10px 11px', borderBottom: '1px solid var(--line-soft)', display: 'flex', gap: 10, alignItems: 'center' }}>
           <Avatar name={user.name} size={36} photo={user.photo} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700 }} className="truncate">{user.name}</div>
+            <div style={{ fontSize: 12, fontWeight: 700 }} className="truncate">{user.name}</div>
             <div className="tiny muted truncate">{user.email}</div>
           </div>
         </div>

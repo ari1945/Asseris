@@ -165,7 +165,7 @@ function Procurement() {
           {tab === 'overview' && (
             <div className="view-pad" style={{ paddingTop: 14 }}>
               <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                <div className="row ac gap8" style={{ marginBottom: 5 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12.5 }}>Master vendor adalah satu-satunya sumber kebenaran counterparty</b></div>
+                <div className="row ac gap8" style={{ marginBottom: 5 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Master vendor adalah satu-satunya sumber kebenaran counterparty</b></div>
                 <div className="tiny muted" style={{ lineHeight: 1.55 }}>Belanja, komitmen PO, 3-way match, kontrak (Legal) & utang usaha (AP/GL) semuanya <b>ditarik</b> dari record vendor yang sama — tidak ada NPWP/rekening/PMPJ ganda. Tab <b>Sumber Kebenaran</b> membuktikan tiap angka menutup ke kontrolnya.</div>
               </div>
 
@@ -245,7 +245,7 @@ function ProcVendorTable({ B, P, vSel, setVSel }: any) {
           {B.VENDORS.map((v: any) => (
             <tr key={v.id} onClick={() => setVSel(v)} style={{ cursor: 'pointer' }} className={vSel && vSel.id === v.id ? 'sel' : ''}>
               <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v.id}</td>
-              <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.npwp} · sejak {v.since}</div></td>
+              <td><div style={{ fontWeight: 600, fontSize: 12 }}>{v.name}</div><div className="tiny muted mono">{v.npwp} · sejak {v.since}</div></td>
               <td className="tiny">{v.cat}</td>
               <td className="num">{boJt(v.ytd)}</td>
               <td className="num"><span className="mono tiny" style={{ fontWeight: 700, color: v.ytd / total > 0.25 ? 'var(--amber)' : 'var(--ink-2)' }}>{procPct(v.ytd / total)}</span></td>

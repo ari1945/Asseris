@@ -64,19 +64,19 @@ function SJAH3402View() {
               <div className="tiny muted">{A.id} · {A.system}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tipe Laporan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{A.reportType}</div></div>
+            <div><div className="tiny muted upper">Tipe Laporan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--blue)' }}>{A.reportType}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tujuan · Kontrol</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{E.counts.objectives} · {E.counts.controls}</div></div>
+            <div><div className="tiny muted upper">Tujuan · Kontrol</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{E.counts.objectives} · {E.counts.controls}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Deviasi · Pengecualian</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: E.counts.exceptionsReported ? 'var(--red)' : (E.counts.deviationsNoted ? 'var(--amber)' : 'var(--green)') }}>{E.counts.deviationsNoted} · {E.counts.exceptionsReported}</div></div>
+            <div><div className="tiny muted upper">Deviasi · Pengecualian</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: E.counts.exceptionsReported ? 'var(--red)' : (E.counts.deviationsNoted ? 'var(--amber)' : 'var(--green)') }}>{E.counts.deviationsNoted} · {E.counts.exceptionsReported}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Opini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: E.opinion.type === 'unqualified' ? 'var(--green)' : 'var(--red)' }}>{E.opinion.label}</div></div>
+            <div><div className="tiny muted upper">Opini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: E.opinion.type === 'unqualified' ? 'var(--green)' : 'var(--red)' }}>{E.opinion.label}</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right', minWidth: 120 }}>
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Progres Pengujian</div>
               <div className="row ac gap8" style={{ justifyContent: 'flex-end' }}>
                 <div style={{ width: 90 }}><Progress value={E.progress} color={E.allTested ? 'var(--green)' : undefined} /></div>
-                <span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{E.progress}%</span>
+                <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{E.progress}%</span>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ function SocAnatomy({ E, A }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Perikatan <b>Type 2</b> menyediakan bukti efektivitas operasi sepanjang <b>{A.period}</b> — paling berguna bagi auditor entitas pengguna untuk mengandalkan pengendalian organisasi jasa (lihat tautan SA 402 di bilah atas).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Perikatan <b>Type 2</b> menyediakan bukti efektivitas operasi sepanjang <b>{A.period}</b> — paling berguna bagi auditor entitas pengguna untuk mengandalkan pengendalian organisasi jasa (lihat tautan SA 402 di bilah atas).</span>
           </div>
         </div>
       </Panel>
@@ -156,7 +156,7 @@ function SocAnatomy({ E, A }: any) {
                   ['Carve-out', 'Kontrol subservice dikecualikan; pengguna mengandalkan CSOC & laporan terpisah.', A.subservice.method === 'Carve-out'],
                 ].map((r, i) => (
                   <div key={i} style={{ padding: '8px 10px', borderRight: i === 0 ? '1px solid var(--line-soft)' : 0, background: r[2] ? 'var(--surface-2)' : 'transparent', borderRadius: 6 }}>
-                    <div className="row jb ac"><span style={{ fontWeight: 700, fontSize: 11.5 }}>{r[0]}</span>{r[2] && <I.check size={13} style={{ color: 'var(--blue)' }} />}</div>
+                    <div className="row jb ac"><span style={{ fontWeight: 700, fontSize: 12 }}>{r[0]}</span>{r[2] && <I.check size={13} style={{ color: 'var(--blue)' }} />}</div>
                     <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 3 }}>{r[1]}</div>
                   </div>
                 ))}
@@ -226,7 +226,7 @@ function SocMatrix({ E }: any) {
         <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.target size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Tujuan pengendalian ditetapkan <b>manajemen organisasi jasa</b>; auditor jasa menilai kesesuaian desain kontrol untuk mencapai tiap tujuan, lalu (Type 2) menguji efektivitas operasinya sepanjang periode pada tab <b>Pengujian & Hasil</b>.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Tujuan pengendalian ditetapkan <b>manajemen organisasi jasa</b>; auditor jasa menilai kesesuaian desain kontrol untuk mencapai tiap tujuan, lalu (Type 2) menguji efektivitas operasinya sepanjang periode pada tab <b>Pengujian & Hasil</b>.</span>
           </div>
         </div>
       </Panel>
@@ -252,7 +252,7 @@ function SocTesting({ E, toggle }: any) {
                 <React.Fragment key={o.id}>
                   <tr style={{ background: 'var(--surface-2)' }}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{o.id}</td>
-                    <td colSpan={3} style={{ fontWeight: 700, fontSize: 11.5 }}>{o.name}</td>
+                    <td colSpan={3} style={{ fontWeight: 700, fontSize: 12 }}>{o.name}</td>
                     <td colSpan={2}>{!o.allTested ? <Badge kind="gray">Berjalan {o.tested}/{o.total}</Badge> : (o.achieved ? <Badge kind="green">Tujuan tercapai</Badge> : <Badge kind="red">Belum tercapai</Badge>)}</td>
                   </tr>
                   {o.controls.map((c: any) => (
@@ -297,7 +297,7 @@ function SocTesting({ E, toggle }: any) {
           <p className="tiny muted" style={{ margin: '0 0 9px', lineHeight: 1.5 }}>Efektivitas operasi diuji melalui kombinasi prosedur sepanjang periode:</p>
           <div style={{ display: 'grid', gap: 6 }}>
             {[['Inquiry', 'amber'], ['Observasi', 'teal'], ['Inspeksi', 'blue'], ['Reperformance', 'purple']].map(([n, col]) => (
-              <div key={n} className="row ac gap8" style={{ fontSize: 11.5, padding: '6px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={n} className="row ac gap8" style={{ fontSize: 12, padding: '6px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span style={{ width: 9, height: 9, borderRadius: 2, background: `var(--${col})` }} />{n}
               </div>
             ))}
@@ -309,7 +309,7 @@ function SocTesting({ E, toggle }: any) {
             <p className="tiny muted" style={{ margin: '0 0 9px', lineHeight: 1.5 }}>Complementary User Entity Controls — diasumsikan beroperasi di entitas pengguna agar tujuan pengendalian tercapai. Satu sumber yang juga dirujuk modul SA 402.</p>
             <div style={{ display: 'grid', gap: 6 }}>
               {E.cuec.map((c: any, i: any) => (
-                <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}>
+                <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
                   <span className="mono tiny" style={{ flex: '0 0 22px', fontWeight: 700, color: 'var(--blue)' }}>{String(i + 1).padStart(2, '0')}</span>
                   <span style={{ lineHeight: 1.4 }}>{c}</span>
                 </div>
@@ -343,7 +343,7 @@ function SocReport({ E, A }: any) {
               ['Beroperasi efektif sepanjang periode', E.operatingEffective],
               ['Bebas pengecualian material', E.counts.exceptionsReported === 0],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span>{r[0]}</span>
                 <Badge kind={r[1] ? 'green' : 'amber'}>{r[1] ? 'Terpenuhi' : 'Tertunda'}</Badge>
               </div>
@@ -364,7 +364,7 @@ function SocReport({ E, A }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan Asurans Auditor Jasa</h3><div style={{ flex: 1 }} /><Badge kind={E.canIssue ? 'green' : 'amber'}>{E.canIssue ? 'Siap terbit' : 'Draf'}</Badge></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN ASURANS AUDITOR JASA INDEPENDEN</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>{A.std} · {A.reportType} · Keyakinan {A.level}</div>
             <p style={{ margin: '0 0 10px' }}>Kepada Manajemen {A.client}, entitas pengguna, dan auditor entitas pengguna</p>

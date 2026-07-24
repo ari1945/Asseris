@@ -194,7 +194,7 @@ function Profitability() {
                   <div className="row ac gap10">
                     <Avatar name={p.partner} size={34} />
                     <div style={{ width: 150, flex: '0 0 150px' }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{p.partner}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{p.partner}</div>
                       <div className="tiny muted">{p.count} engagement · {fmt(p.hours)} jam</div>
                     </div>
                     <div style={{ flex: 1 }}>
