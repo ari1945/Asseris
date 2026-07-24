@@ -102,7 +102,7 @@ const MODULES = [
     { id: 'time',        label: 'Time & Budget', icon: 'clock', deep: true },
     { id: 'audittimeline', label: 'Jadwal & Lini Masa Audit', icon: 'calendar', deep: true },
   ]},
-  { group: 'Practice Operations', items: [
+  { group: 'Operasi Praktik', items: [
     { id: 'pipeline',    label: 'Sales Pipeline', icon: 'filter', deep: true },
     { id: 'delivery',    label: 'Delivery & Milestones', icon: 'flag', deep: true },
     { id: 'wipreal',     label: 'WIP · Realisasi', icon: 'hourglass', deep: true },
@@ -110,7 +110,7 @@ const MODULES = [
     { id: 'scheduler',   label: 'Resource Scheduler', icon: 'users', deep: true },
     { id: 'capacity',    label: 'Capacity Planning', icon: 'pulse', deep: true },
   ]},
-  { group: 'People & Compliance', items: [
+  { group: 'SDM & Kepatuhan', items: [
     { id: 'hcm',          label: 'Human Capital', icon: 'users', deep: true },
     { id: 'orgchart',     label: 'Struktur Organisasi', icon: 'group', tag: 'NEW', deep: true },
     { id: 'recruitment',  label: 'Rekrutmen & Onboarding', icon: 'briefcase', tag: 'NEW', deep: true },
@@ -124,7 +124,7 @@ const MODULES = [
     { id: 'independence', label: 'Independensi Firma & Rotasi', icon: 'sync', deep: true },
     { id: 'hrcase',       label: 'Sanksi & Disiplin', icon: 'gavel', tag: 'NEW', deep: true },
   ]},
-  { group: 'Firm Finance (ERP)', items: [
+  { group: 'Keuangan Firma (ERP)', items: [
     { id: 'firmgl',       label: 'General Ledger', icon: 'ledger', deep: true },
     { id: 'apar',         label: 'AP / AR Firma', icon: 'coins', deep: true },
     { id: 'revenue',      label: 'Pendapatan Firma', icon: 'receipt', deep: true },
@@ -134,7 +134,7 @@ const MODULES = [
     { id: 'firmtax',      label: 'PPh Badan Firma', icon: 'report', deep: true },
     { id: 'profitability',label: 'Profitability', icon: 'trend', deep: true },
   ]},
-  { group: 'Firm Platform', items: [
+  { group: 'Platform Firma', items: [
     { id: 'approvals',    label: 'Approvals', icon: 'checkCircle', deep: true },
     { id: 'integrations', label: 'Integrations', icon: 'link2', deep: true },
     { id: 'audittrail',   label: 'Audit Trail', icon: 'lock', deep: true },
@@ -162,7 +162,7 @@ const MODULES = [
     { id: 'clientportal', label: 'Portal Klien / PBC', icon: 'users', deep: true },
     { id: 'dms',          label: 'Manajemen Dokumen', icon: 'archive', deep: true },
   ]},
-  { group: 'Firm Practice Management', items: [
+  { group: 'Manajemen Praktik Firma', items: [
     { id: 'dashboard', label: 'Firm Dashboard', icon: 'dashboard', deep: true },
     { id: 'bi',        label: 'BI & Konsolidasi', icon: 'trend', deep: true },
     { id: 'crm',       label: 'Client CRM',     icon: 'users', deep: true },
@@ -280,7 +280,7 @@ const MODULES = [
     { id: 'templates',  label: 'Template Library', icon: 'template', deep: true },
     { id: 'kb',         label: 'Knowledge Base', icon: 'book', deep: true },
   ]},
-  { group: 'Backoffice & Firm Mgmt', items: [
+  { group: 'Operasi & Administrasi Firma', items: [
     { id: 'firmops',     label: 'Cockpit Operasi Firma', icon: 'layers', tag: 'NEW', deep: true },
     { id: 'firmfinance', label: 'Firm Finance', icon: 'coins', deep: true },
     { id: 'procurement', label: 'Pengadaan & Vendor', icon: 'cart', tag: 'NEW', deep: true },
@@ -317,7 +317,7 @@ const WORKSPACES = [
   { id: 'engagement', label: 'Perikatan', icon: 'briefcase', desc: 'Kerja audit per-engagement',
     groups: ['Ruang Kerja Perikatan', '1 · Perencanaan', '2 · Pelaksanaan', 'Area Khusus & Estimasi', '3 · Penyelesaian & Pelaporan', 'Referensi & Indeks'] },
   { id: 'firm', label: 'Firma', icon: 'building', desc: 'Operasi & tata kelola firma',
-    groups: ['Saya', 'Firm Practice Management', 'Practice Operations', 'People & Compliance', 'Firm Finance (ERP)', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Firm Platform', 'Backoffice & Firm Mgmt'] },
+    groups: ['Saya', 'Manajemen Praktik Firma', 'Operasi Praktik', 'SDM & Kepatuhan', 'Keuangan Firma (ERP)', 'Jasa Non-Audit (SPAP)', 'Mutu, Risiko & Regulasi', 'OJK · Pasar Modal & Keberlanjutan', 'Portal & Dokumen', 'Platform Firma', 'Operasi & Administrasi Firma'] },
 ];
 /* Grup yang tetap dapat diakses (⌘K + chip + Matriks Kepatuhan) tapi tidak
    muncul di sidebar mana pun — menjaga sidebar Perikatan tetap ramping.
@@ -340,7 +340,7 @@ const MODULE_CAP = { hcm: 'hr.moduleView', recruitment: 'hr.moduleView', learnin
    grup ini sama sekali; data personal MILIK-SENDIRI mereka diakses lewat "Data Personal Saya" (grup
    "Saya"). Grup yang SEDANG aktif tetap tampil (orientasi). Deep-link dari Data Personal Saya ke
    modul personal (mis. payroll self-scoped) tetap berfungsi. */
-const GROUP_CAP = { 'People & Compliance': 'hr.moduleView' };
+const GROUP_CAP = { 'SDM & Kepatuhan': 'hr.moduleView' };
 
 const GROUP_WS = {};
 WORKSPACES.forEach(w => w.groups.forEach(g => { (GROUP_WS as any)[g] = w.id; }));
@@ -374,8 +374,8 @@ const ROLE_SIDEBAR_GROUPS: Record<string, Record<string, string[] | null>> = {
   'Junior Auditor': { engagement: ['Ruang Kerja Perikatan', '2 · Pelaksanaan', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
   // Firm-ops: bukan anggota perikatan → workspace Perikatan kosong secara default;
   // Firma difokuskan ke grup yang mereka kuasai (PRD §8) + "Saya" (data personal sendiri).
-  'Admin & HR Firma': { engagement: [], firm: ['Saya', 'People & Compliance', 'Portal & Dokumen'] },
-  'Finance Firma': { engagement: [], firm: ['Saya', 'Firm Finance (ERP)', 'Practice Operations'] },
+  'Admin & HR Firma': { engagement: [], firm: ['Saya', 'SDM & Kepatuhan', 'Portal & Dokumen'] },
+  'Finance Firma': { engagement: [], firm: ['Saya', 'Keuangan Firma (ERP)', 'Operasi Praktik'] },
 };
 /** Grup default-visible untuk (peran, workspace). null = tampilkan semua (tanpa kurasi).
  *  Peran tak dikenal → null (aman: tak menyembunyikan apa pun; capability tetap utuh). */

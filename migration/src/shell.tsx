@@ -264,7 +264,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
      Jangkar: grup modul aktif (orientasi), anchor per-workspace, dan grup fokus fase
      (adaptif) — dulu disalin ke kartu "Fokus Fase" terpisah (R7: kini cukup emphasis
      .relev di pohon, tanpa duplikasi). */
-  const WS_ANCHOR: Record<string, string> = { engagement: 'Ruang Kerja Perikatan', firm: 'Firm Practice Management' };
+  const WS_ANCHOR: Record<string, string> = { engagement: 'Ruang Kerja Perikatan', firm: 'Manajemen Praktik Firma' };
   const defaultOpenSet = new Set<string>([activeGroup, WS_ANCHOR[ws]].filter(Boolean) as string[]);
   if (adaptiveOn) defaultOpenSet.add((SIDE_PRIMARY_GROUP as any)[curKey]);
   const effClosed = (g: string) => (g in closedGroups) ? closedGroups[g] : (showAll ? false : !defaultOpenSet.has(g));

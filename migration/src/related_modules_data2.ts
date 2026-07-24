@@ -179,7 +179,7 @@ LINEAGE.clientportal = {
    entitas kanonik yang sama yang dibaca modul-modul ini.
    ============================================================ */
 LINEAGE.approvals = {
-  std: 'Firm Platform · Otorisasi & Persetujuan (ISQM 1)',
+  std: 'Platform Firma ·Otorisasi & Persetujuan (ISQM 1)',
   up: [
     { id: 'aje', ic: 'ledger', lbl: 'Adjusting Entries (AJE)', rel: 'Jurnal Proposed → persetujuan; final → posting ke WTB' },
     { id: 'billing', ic: 'receipt', lbl: 'Billing & Invoicing', rel: 'Faktur Draft / termin besar → otorisasi penerbitan' },
@@ -194,7 +194,7 @@ LINEAGE.approvals = {
   ],
 };
 LINEAGE.integrations = {
-  std: 'Firm Platform · Impor & Integrasi Data (gerbang masuk SSOT)',
+  std: 'Platform Firma ·Impor & Integrasi Data (gerbang masuk SSOT)',
   up: [
     { id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan keamanan, retensi & gerbang kontrol data (ISQM 1)' },
     { id: 'settings', ic: 'sliders', lbl: 'Pengaturan Firma', rel: 'Kredensial, scope & jadwal sinkron konektor' },
@@ -211,7 +211,7 @@ LINEAGE.integrations = {
   ],
 };
 LINEAGE.audittrail = {
-  std: 'Firm Platform · Jejak Audit Sistem (tamper-evident)',
+  std: 'Platform Firma ·Jejak Audit Sistem (tamper-evident)',
   up: [
     { id: 'approvals', ic: 'checkCircle', lbl: 'Approvals', rel: 'Setiap keputusan persetujuan → entri log real-time' },
     { id: 'aje', ic: 'ledger', lbl: 'Adjusting Entries (AJE)', rel: 'Posting & penyetujuan jurnal tercatat' },

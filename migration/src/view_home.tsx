@@ -27,8 +27,8 @@ const HM_SRC_ICON = { 'Review Note': 'doc', 'Siapkan WP': 'layers', 'Reviu WP': 
 /* Persona firm-ops → area kerja yang mereka kuasai (module id, PRD §8). Dipakai untuk
    kartu tautan-cepat "Area Kerja Saya" menggantikan panel "Perikatan Saya" auditor. */
 const HM_FIRMOPS_AREAS: Record<string, { title: string; ids: string[] }> = {
-  'Admin & HR Firma': { title: 'People & Compliance', ids: ['hcm', 'payroll', 'leave', 'performance', 'cpe', 'ethics', 'independence', 'hrcase'] },
-  'Finance Firma': { title: 'Firm Finance (ERP)', ids: ['firmgl', 'apar', 'revenue', 'treasury', 'cashbank', 'firmtax', 'profitability', 'wipreal'] },
+  'Admin & HR Firma': { title: 'SDM & Kepatuhan', ids: ['hcm', 'payroll', 'leave', 'performance', 'cpe', 'ethics', 'independence', 'hrcase'] },
+  'Finance Firma': { title: 'Keuangan Firma (ERP)', ids: ['firmgl', 'apar', 'revenue', 'treasury', 'cashbank', 'firmtax', 'profitability', 'wipreal'] },
 };
 
 const hmFirstName = (name: string) => (name || '').trim().split(/\s+/)[0] || 'Rekan';
