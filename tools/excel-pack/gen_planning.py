@@ -1,4 +1,4 @@
-"""Core Planning: 10_Risiko, 11_Materialitas, 12_ICFR, 13_StrategyMemo."""
+"""1 · Perencanaan: 10_Risiko, 11_Materialitas, 12_ICFR, 13_StrategyMemo."""
 from xhelp import *
 from gen_ref_setup import sum_cats, MAP_LR_PRATAX_L, MAP_ASET_L, MAP_EK_LR_L
 

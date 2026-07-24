@@ -1,4 +1,4 @@
-"""Core Execution: 20_WTB, 21_AJE, 22_IndeksWP, 23_Asersi, 24_Analitis, 25_JET, 26_BookTax, 27_Sampling."""
+"""2 · Pelaksanaan: 20_WTB, 21_AJE, 22_IndeksWP, 23_Asersi, 24_Analitis, 25_JET, 26_BookTax, 27_Sampling."""
 from xhelp import *
 from gen_ref_setup import sum_cats, MAP_LR_PRATAX_L
 

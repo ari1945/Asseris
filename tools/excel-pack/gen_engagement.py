@@ -1,4 +1,4 @@
-"""Engagement Workspace: 00_Cockpit, 01_Tugas, 02_Program, 03_CatatanReviu, 04_TimeBudget, 05_Timeline."""
+"""Ruang Kerja Perikatan: 00_Cockpit, 01_Tugas, 02_Program, 03_CatatanReviu, 04_TimeBudget, 05_Timeline."""
 from xhelp import *
 from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import PatternFill
