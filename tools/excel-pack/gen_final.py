@@ -1,4 +1,4 @@
-"""Finalisasi & Pelaporan: 40_LK, 41_Pengungkapan, 42_Opini, 43_EQR, 44_ML, 90_MatriksSA."""
+"""3 · Penyelesaian & Pelaporan: 40_LK, 41_Pengungkapan, 42_Opini, 43_EQR, 44_ML, 90_MatriksSA."""
 from xhelp import *
 from gen_ref_setup import MAP_AL, MAP_ATL, MAP_LJPDK, MAP_LJPJG, MAP_EK, MAP_LR, sum_cats
 

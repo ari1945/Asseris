@@ -1,4 +1,4 @@
-"""Core Specifics: 30_Konfirmasi, 31_GC, 32_SaldoAwal, 33_PeristiwaSetelah, 34_PihakBerelasi,
+"""Area Khusus & Estimasi: 30_Konfirmasi, 31_GC, 32_SaldoAwal, 33_PeristiwaSetelah, 34_PihakBerelasi,
 35_GrupAudit, 36_Reliance, 37_SAD, 38_EvaluasiBukti."""
 from xhelp import *
 from openpyxl.worksheet.datavalidation import DataValidation

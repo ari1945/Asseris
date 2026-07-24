@@ -299,6 +299,56 @@ LINEAGE.tax = {
     { id: 'integrations', ic: 'link2', lbl: 'Integrasi & Data Eksternal', rel: 'e-Bupot & SPT Masa disinkronkan via DJP Coretax' },
   ],
 };
+
+/* ============================================================
+   Cross-link modul ber-konsep serumpun (R5, PRD Fase 3) — modul DISTINCT
+   yang overlap NAMA dibuat eksplisit HUBUNGANNYA lewat dock keterkaitan,
+   supaya pengguna paham "sudut lain", bukan duplikat. Rantai nyata:
+   WIP: Valuasi → Realisasi → Pendapatan; PPh 23 → PPh Badan; Independensi
+   Firma → Independensi Tim (SA 220).
+   ============================================================ */
+LINEAGE.wip = {
+  std: 'Keuangan Firma · Valuasi WIP (pekerjaan dalam proses belum tertagih)',
+  up: [{ id: 'time', ic: 'clock', lbl: 'Time & Budget', rel: 'Jam tercatat per perikatan → dasar nilai WIP' }],
+  down: [
+    { id: 'wipreal', ic: 'hourglass', lbl: 'WIP · Realisasi', rel: 'Sudut lain (bukan duplikat): WIP direalisasi jadi tagihan' },
+    { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan Firma', rel: 'Nilai WIP → pengakuan pendapatan' },
+  ],
+};
+LINEAGE.wipreal = {
+  std: 'Operasi Praktik · Realisasi WIP (konversi WIP ke tagihan)',
+  up: [{ id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi', rel: 'Valuasi WIP yang direalisasikan di sini' }],
+  down: [
+    { id: 'billing', ic: 'receipt', lbl: 'Billing & Invoicing', rel: 'WIP terealisasi → faktur klien' },
+    { id: 'revenue', ic: 'receipt', lbl: 'Pendapatan Firma', rel: 'Realisasi → pendapatan diakui' },
+  ],
+};
+LINEAGE.revenue = {
+  std: 'Keuangan Firma (ERP) · Pendapatan & Pengakuan',
+  up: [
+    { id: 'wipreal', ic: 'hourglass', lbl: 'WIP · Realisasi', rel: 'Realisasi WIP → pendapatan diakui' },
+    { id: 'wip', ic: 'hourglass', lbl: 'WIP · Valuasi', rel: 'Sudut valuasi dari pekerjaan yang sama' },
+  ],
+  down: [{ id: 'firmgl', ic: 'ledger', lbl: 'General Ledger', rel: 'Pendapatan → posting buku besar firma' }],
+};
+LINEAGE.firmtax = {
+  std: 'Keuangan Firma (ERP) · PPh Badan & SPT Masa Unifikasi',
+  up: [
+    { id: 'tax', ic: 'receipt', lbl: 'PPh 23 · Pemotongan', rel: 'Sudut pemotongan (bukan duplikat): PPh 23 pot/put → agregat SPT Masa' },
+    { id: 'firmgl', ic: 'ledger', lbl: 'General Ledger', rel: 'Pos utang/beban pajak → dasar perhitungan' },
+  ],
+  down: [{ id: 'treasury', ic: 'pulse', lbl: 'Anggaran & Arus Kas', rel: 'Setoran pajak → proyeksi arus kas keluar' }],
+};
+LINEAGE.independence = {
+  std: 'SDM & Kepatuhan · Independensi Firma & Rotasi Rekan',
+  up: [{ id: 'governance', ic: 'building', lbl: 'Governance (SOQM)', rel: 'Kebijakan independensi & rotasi (ISQM 1)' }],
+  down: [{ id: 'teamindep', ic: 'shield', lbl: 'Independensi Tim', rel: 'Sudut per-perikatan (bukan duplikat): penerapan SA 220 di tingkat anggota tim' }],
+};
+LINEAGE.teamindep = {
+  std: 'SA 220 · Independensi Anggota Tim Perikatan',
+  up: [{ id: 'independence', ic: 'sync', lbl: 'Independensi Firma & Rotasi', rel: 'Kebijakan firma & rotasi rekan → batasan tingkat tim' }],
+  down: [{ id: 'eqr', ic: 'checkCircle', lbl: 'EQR Workflow', rel: 'Deklarasi independensi tim → gerbang reviu mutu perikatan' }],
+};
 Object.assign(window, { LINEAGE });
 
 /* ============================================================
