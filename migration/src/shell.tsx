@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth, useFirm, useNav, useNavFrom } from './contexts';
 import { EvidenceControl } from './evidence';
 import { WpSubBarControl } from './wp_signoff';
-import { GROUP_CAP, GROUP_WS, I, MODULES, MODULE_CAP, MODULE_INDEX, WORKSPACES, groupsVisibleFor } from './icons';
+import { GROUP_CAP, GROUP_WS, I, MODULES, MODULE_CAP, MODULE_INDEX, NEW_ALLOW, WORKSPACES, groupsVisibleFor } from './icons';
 import { Avatar } from './ui';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
@@ -126,8 +126,15 @@ function readSideRecent() {
 }
 
 function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
-  const [closedGroups, setClosedGroups] = useStateSH({});
-  const toggleGroup = (g: any) => setClosedGroups((s: any) => ({ ...s, [g]: !s[g] }));
+  /* R1 (PRD learning-curve) — progressive disclosure: grup default CIUT kecuali jangkar
+     (grup aktif / fokus fase / anchor workspace); pilihan buka-tutup DIPERSIST per-browser
+     (sebelumnya {} → semua terbuka tiap muat = 67 baris sekaligus di Firma). Pola localStorage
+     sama seperti ams.ws / ams.sideShowAll (bukan server-state: preferensi UI trivial). */
+  const [closedGroups, setClosedGroups] = useStateSH(() => {
+    try { const s = JSON.parse(localStorage.getItem('ams.sideGroups') || 'null'); if (s && typeof s === 'object') return s; } catch (e) {}
+    return {};
+  });
+  React.useEffect(() => { try { localStorage.setItem('ams.sideGroups', JSON.stringify(closedGroups)); } catch (e) {} }, [closedGroups]);
   const firmCtx = useFirm();
   const auth = useAuth();
   const role = (auth && auth.role) || '';
@@ -186,8 +193,15 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   const resumeItems = (adaptiveOn && navPrefs.resumeCard)
     ? readSideRecent().filter(id => { const g = ((MODULE_INDEX as any)[id] || {}).group; return g && (GROUP_WS as any)[g] === 'engagement' && ((MODULE_INDEX as any)[id] || {}).deep; }).slice(0, navPrefs.resumeCount).map(id => (MODULE_INDEX as any)[id]).filter(Boolean)
     : [];
-  const focusObj = MODULES.find(g => g.group === (SIDE_PRIMARY_GROUP as any)[curKey]);
-  const focusItems = (adaptiveOn && navPrefs.focusGroup && focusObj) ? focusObj.items : [];
+  /* R1 — himpunan grup yang default-TERBUKA (sisanya ciut sampai dibuka/dipersist).
+     Jangkar: grup modul aktif (orientasi), anchor per-workspace, dan grup fokus fase
+     (adaptif) — dulu disalin ke kartu "Fokus Fase" terpisah (R7: kini cukup emphasis
+     .relev di pohon, tanpa duplikasi). */
+  const WS_ANCHOR: Record<string, string> = { engagement: 'Engagement Workspace', firm: 'Firm Practice Management' };
+  const defaultOpenSet = new Set<string>([activeGroup, WS_ANCHOR[ws]].filter(Boolean) as string[]);
+  if (adaptiveOn) defaultOpenSet.add((SIDE_PRIMARY_GROUP as any)[curKey]);
+  const effClosed = (g: string) => (g in closedGroups) ? closedGroups[g] : (showAll ? false : !defaultOpenSet.has(g));
+  const toggleGroup = (g: string) => setClosedGroups((s: any) => ({ ...s, [g]: !effClosed(g) }));
 
   const homeOn = active === 'home';
   return (
@@ -218,11 +232,14 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         })}
       </div>
       <div className="side-scroll">
-        {!collapsed && curatedGroups && (
+        {/* R3 — escape hatch SELALU tampil saat sidebar diperluas (dulu hanya bila peran
+            terkurasi → Partner/Manager, menu terbesar, tak punya kontrol). showAll = buka
+            SEMUA grup (abaikan kurasi peran & default-ciut). Murni tampilan; capability utuh. */}
+        {!collapsed && (
           <button type="button" onClick={() => setShowAll(!showAll)}
-            title={showAll ? 'Sembunyikan lagi modul yang kurang relevan dengan peran Anda' : 'Tampilkan semua modul firma — kapabilitas tidak berubah, hanya tampilan'}
+            title={showAll ? 'Kembali ke tampilan ringkas (relevan dengan peran & fase Anda)' : 'Buka semua modul & grup — kapabilitas tidak berubah, hanya tampilan'}
             style={{ margin: '8px 8px 4px', width: 'calc(100% - 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', border: '1px dashed var(--line-strong)', background: showAll ? 'var(--blue-050)' : 'transparent', color: showAll ? 'var(--blue)' : 'var(--ink-3)', fontSize: 11, fontWeight: 600 }}>
-            <I.layers size={12} /> {showAll ? 'Tampilkan yang relevan' : 'Tampilkan semua modul'}
+            <I.layers size={12} /> {showAll ? 'Ringkas kembali' : (curatedGroups ? 'Tampilkan semua modul' : 'Buka semua grup')}
           </button>
         )}
         {adaptiveOn && resumeItems.length > 0 && (
@@ -241,31 +258,17 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
           </div>
         )}
 
-        {adaptiveOn && focusItems.length > 0 && (
-          <div>
-            <div className="side-focus-h"><span className="ft">Fokus Fase</span><span className="fb">{phaseLabel}</span>{engProgress != null && <span className="fp">{engProgress}%</span>}</div>
-            <div className="side-focus">
-              {focusItems.map(m => {
-                const IconF = (I as any)[m.icon] || I.panel;
-                return (
-                  <div key={'f-' + m.id} className={'side-item' + (active === m.id ? ' active' : '')} onClick={() => onNavigate(m.id)}>
-                    <span className="ico"><IconF size={16} /></span>
-                    <span className="lbl">{m.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {adaptiveOn && (resumeItems.length > 0 || focusItems.length > 0) && (
-          <div className="side-alltree-h">Semua Modul</div>
+        {/* R7 — indikator fase (orientasi) TANPA menyalin item; grup fokus terbuka di pohon
+            di bawah dengan emphasis .relev (dulu 7 modul Core Execution ter-render dua kali:
+            44 baris untuk 37 modul unik). */}
+        {adaptiveOn && (
+          <div className="side-focus-h"><span className="ft">Fokus Fase</span><span className="fb">{phaseLabel}</span>{engProgress != null && <span className="fp">{engProgress}%</span>}</div>
         )}
 
         {groups.map(group => {
           const gp = (SIDE_GROUP_PHASE as any)[group.group];
           if (adaptiveOn && navPrefs.mode === 'ringkas' && gp && !relevant.includes(gp)) return null;
-          const isClosed = closedGroups[group.group];
+          const isClosed = effClosed(group.group);
           return (
             <div key={group.group} className={'side-group' + (isClosed ? ' closed' : '')}>
               {!collapsed && (
@@ -290,9 +293,11 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
                        onClick={() => onNavigate(m.id)}>
                     <span className="ico"><IconC size={16} /></span>
                     <span className="lbl">{m.label}</span>
+                    {/* R6 — badge NEW hanya utk id di NEW_ALLOW; tag non-NEW (kode standar) selalu.
+                        Cabang mati '.soon' dibuang (semua modul deep:true → tak pernah render). */}
                     {isDone ? <span className="done"><I.check size={14} /></span>
-                      : m.tag ? <span className="tag">{m.tag}</span>
-                      : (!m.deep && !m.tag ? <span className="tag soon">soon</span> : null)}
+                      : (m.tag && (m.tag !== 'NEW' || NEW_ALLOW.has(m.id))) ? <span className="tag">{m.tag}</span>
+                      : null}
                   </div>
                 );
               })}

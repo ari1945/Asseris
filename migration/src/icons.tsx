@@ -299,6 +299,13 @@ const MODULES = [
 const MODULE_INDEX = {};
 MODULES.forEach(g => g.items.forEach(m => { (MODULE_INDEX as any)[m.id] = { ...m, group: g.group }; }));
 
+/* 2026-07-24 (PRD learning-curve R6) — auto-luruh badge "NEW". Sebelumnya 57/158 modul
+   (36%) ber-tag 'NEW' → badge di sepertiga app = tak membawa sinyal & menenggelamkan tag
+   informatif (SA 315 / ISQM / WTB / ECL). Sidebar kini menampilkan badge NEW HANYA untuk id
+   di set ini; tag non-NEW (kode standar) selalu tampil. Basis ideal = tanggal rilis; sementara
+   = allowlist yang DI-REVIEW berkala. Isi konservatif: modul yang benar-benar baru siklus ini. */
+const NEW_ALLOW = new Set<string>(['restatement']);
+
 /* ---- Two-tier navigation: workspaces (top-level context) ----
    "Standar" dilebur ke "Perikatan": tiap prosedur menautkan SA terkait
    lewat chip "Standar Terkait" (lihat RELATED_SA). Halaman SA mendalam tetap
@@ -356,8 +363,13 @@ const ROLE_SIDEBAR_GROUPS: Record<string, Record<string, string[] | null>> = {
   // (People & Compliance, difilter milik-sendiri via Fase 3) + Portal/Dokumen kerja.
   // 2026-07-06 — auditor level-karyawan: TANPA menu "People & Compliance" (detail kepegawaian =
   // kewenangan Partner/HRD). Data personal milik-sendiri lewat grup "Saya" (Data Personal Saya).
-  'Senior Auditor': { engagement: null, firm: ['Saya', 'Portal & Dokumen'] },
-  'Junior Auditor': { engagement: null, firm: ['Saya', 'Portal & Dokumen'] },
+  // 2026-07-24 (PRD learning-curve R3) — kurasi juga workspace PERIKATAN, bukan cuma Firma.
+  // Auditor lapangan tiba di sidebar Perikatan yang tadinya identik dengan Partner (44 baris).
+  // Sekarang default ke grup harian per-peran; escape hatch "Tampilkan semua modul" (shell.tsx,
+  // kini SELALU tampil) + ⌘K/filter tetap menjangkau SEMUA modul. Murni UI — capability utuh.
+  // Kebijakan awal (silakan tuning): Senior = penuh kecuali area khusus; Junior = inti eksekusi.
+  'Senior Auditor': { engagement: ['Engagement Workspace', 'Core Planning', 'Core Execution', 'Finalisasi & Pelaporan', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
+  'Junior Auditor': { engagement: ['Engagement Workspace', 'Core Execution', 'Referensi & Indeks'], firm: ['Saya', 'Portal & Dokumen'] },
   // Firm-ops: bukan anggota perikatan → workspace Perikatan kosong secara default;
   // Firma difokuskan ke grup yang mereka kuasai (PRD §8) + "Saya" (data personal sendiri).
   'Admin & HR Firma': { engagement: [], firm: ['Saya', 'People & Compliance', 'Portal & Dokumen'] },
@@ -449,4 +461,4 @@ Object.assign(window, { Icon, MODULES, MODULE_INDEX, WORKSPACES, GROUP_WS, MODUL
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { GROUP_CAP, GROUP_WS, HIDDEN_GROUPS, I, Icon, MODULES, MODULE_CAP, MODULE_INDEX, RELATED_SA, WORKSPACES, wsForModule, groupsVisibleFor };
+export { GROUP_CAP, GROUP_WS, HIDDEN_GROUPS, I, Icon, MODULES, MODULE_CAP, MODULE_INDEX, NEW_ALLOW, RELATED_SA, WORKSPACES, wsForModule, groupsVisibleFor };
