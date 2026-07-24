@@ -266,7 +266,7 @@
   },
   "src/shell.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 41
+      "count": 39
     }
   },
   "src/types/globals.d.ts": {
