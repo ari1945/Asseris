@@ -155,7 +155,7 @@ function PPPKReport() {
                   );
                 })}
               </div>
-              <div className="tiny muted" style={{ marginTop: 10 }}>Sumber data terhubung ke <span onClick={() => nav('cpe')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>CPE / PPL Tracker</span> di modul People & Compliance.</div>
+              <div className="tiny muted" style={{ marginTop: 10 }}>Sumber data terhubung ke <span onClick={() => nav('cpe')} style={{ color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>CPE / PPL Tracker</span> di modul SDM & Kepatuhan.</div>
             </div>
           )}
 

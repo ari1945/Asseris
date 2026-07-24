@@ -115,7 +115,7 @@ function SettingsView() {
     <>
       {/* custom subbar */}
       <div className="subbar">
-        <div className="crumb"><span>Firm Platform</span><span className="sep"><I.chevron size={12} /></span><b>Pengaturan</b></div>
+        <div className="crumb"><span>Platform Firma</span><span className="sep"><I.chevron size={12} /></span><b>Pengaturan</b></div>
         <span className="chip tiny" style={{ marginLeft: 10, background: 'var(--blue-100)', color: 'var(--blue)' }}><I.settings size={11} /> {firm.short} · Enterprise</span>
         <div className="subbar-spacer" />
         <span className="tiny muted row ac gap6" style={{ marginRight: 10 }}><I.check size={12} style={{ color: 'var(--green)' }} /> Tersimpan otomatis</span>
@@ -831,7 +831,7 @@ const CAP_LABELS: Record<string, { label: string; hint?: string }> = {
   [CAP.INTEGRATION_MANAGE]: { label: 'Kelola Integrasi & Sinkronisasi' },
   [CAP.EQR_REVIEW]: { label: 'Telaah Pengendalian Mutu (EQR)' },
   [CAP.PHASE_OVERRIDE]: { label: 'Override Gerbang Fase' },
-  [CAP.HR_MANAGE]: { label: 'Kelola People & Compliance (HR)' },
+  [CAP.HR_MANAGE]: { label: 'Kelola SDM & Kepatuhan (HR)' },
 };
 const CAP_ROWS: Array<[string, string]> = Object.entries(CAP as Record<string, string>);
 
