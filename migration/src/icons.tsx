@@ -103,7 +103,7 @@ const MODULES = [
     { id: 'audittimeline', label: 'Jadwal & Lini Masa Audit', icon: 'calendar', deep: true },
   ]},
   { group: 'Practice Operations', items: [
-    { id: 'pipeline',    label: 'Sales Pipeline', icon: 'trend', deep: true },
+    { id: 'pipeline',    label: 'Sales Pipeline', icon: 'filter', deep: true },
     { id: 'delivery',    label: 'Delivery & Milestones', icon: 'flag', deep: true },
     { id: 'wipreal',     label: 'WIP & Realisasi', icon: 'hourglass', deep: true },
     { id: 'billing',     label: 'Billing & Invoicing', icon: 'receipt', deep: true },
@@ -121,7 +121,7 @@ const MODULES = [
     { id: 'performance',  label: 'Siklus Kinerja', icon: 'target', deep: true },
     { id: 'cpe',          label: 'CPE / PPL Tracker', icon: 'book', deep: true },
     { id: 'ethics',       label: 'Kode Etik & AML/PMPJ', icon: 'scale', tag: 'NEW', deep: true },
-    { id: 'independence', label: 'Independence & Rotasi', icon: 'shield', deep: true },
+    { id: 'independence', label: 'Independence & Rotasi', icon: 'sync', deep: true },
     { id: 'hrcase',       label: 'Sanksi & Disiplin', icon: 'gavel', tag: 'NEW', deep: true },
   ]},
   { group: 'Firm Finance (ERP)', items: [
@@ -160,7 +160,7 @@ const MODULES = [
   { group: 'Portal & Dokumen', items: [
     { id: 'presentasi',   label: 'Presentasi Klien', icon: 'play', tag: 'NEW', deep: true },
     { id: 'clientportal', label: 'Portal Klien / PBC', icon: 'users', deep: true },
-    { id: 'dms',          label: 'Manajemen Dokumen', icon: 'layers', deep: true },
+    { id: 'dms',          label: 'Manajemen Dokumen', icon: 'archive', deep: true },
   ]},
   { group: 'Firm Practice Management', items: [
     { id: 'dashboard', label: 'Firm Dashboard', icon: 'dashboard', deep: true },
@@ -173,7 +173,7 @@ const MODULES = [
     { id: 'teamindep', label: 'Independensi Tim', icon: 'shield', deep: true, tag: 'SA 220' },
   ]},
   { group: 'Core Planning', items: [
-    { id: 'risk',        label: 'Risk Assessment', icon: 'shield', deep: true, tag: 'SA 315' },
+    { id: 'risk',        label: 'Risk Assessment', icon: 'alert', deep: true, tag: 'SA 315' },
     { id: 'materiality', label: 'Materiality', icon: 'target', deep: true },
     { id: 'icfr',        label: 'Internal Control', icon: 'sliders', deep: true },
     { id: 'strategy',    label: 'Strategy Memo', icon: 'doc', deep: true },
@@ -183,7 +183,7 @@ const MODULES = [
     { id: 'aje',        label: 'Adjusting Entries (AJE)', icon: 'ledger', deep: true },
     { id: 'workpapers', label: 'Working Papers', icon: 'layers', deep: true },
     { id: 'asersi',     label: 'Matriks Asersi', icon: 'columns', deep: true, tag: 'SA 315' },
-    { id: 'analytical', label: 'Analytical Review', icon: 'trend', deep: true },
+    { id: 'analytical', label: 'Analytical Review', icon: 'pulse', deep: true },
     { id: 'jet',        label: 'Journal Entry Testing', icon: 'flask', deep: true },
     { id: 'diagnostic', label: 'Tax Audit Diagnostic', icon: 'sparkle', deep: true },
   ]},
@@ -290,7 +290,7 @@ const MODULES = [
     { id: 'licensing',   label: 'Lisensi & Perizinan', icon: 'key', tag: 'NEW', deep: true },
     { id: 'tax',     label: 'Pajak PPh 23', icon: 'receipt', deep: true },
     { id: 'crypto',  label: 'Compliance & Kriptografi', icon: 'lock', deep: true },
-    { id: 'pdp',     label: 'Pelindungan Data Pribadi (PDP)', icon: 'shield', tag: 'NEW', deep: true },
+    { id: 'pdp',     label: 'Pelindungan Data Pribadi (PDP)', icon: 'lock', tag: 'NEW', deep: true },
     { id: 'wip',     label: 'WIP Valuation', icon: 'hourglass', deep: true },
     { id: 'forensic', label: 'Forensic Cash Flow', icon: 'water', deep: true },
   ]},
