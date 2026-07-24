@@ -259,7 +259,7 @@ function AuditTimeline() {
 function ATL_Kv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
-      <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
+      <div className="tiny muted upper" style={{ fontSize: 11 }}>{label}</div>
       <div className="mono" style={{ fontSize: 15, fontWeight: 700, marginTop: 2, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
@@ -302,7 +302,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               style={{ height: ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px 0 24px', borderBottom: '1px solid var(--line-soft)', position: 'relative', cursor: 'pointer', background: hov === r.t.ref ? 'var(--blue-050)' : 'transparent' }}>
               <span style={{ position: 'absolute', left: 14, width: 6, height: 6, borderRadius: '50%', background: ATL_tint((ATL_PHASE_COLOR as any)[r.ph.name], 1) }} />
               <span className="truncate" style={{ fontSize: 12, color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-2)', fontWeight: hov === r.t.ref ? 600 : 400, flex: 1 }}>{r.t.n}</span>
-              <span className="mono tiny" style={{ color: 'var(--ink-4)', fontSize: 9.5 }}>{r.t.ref}</span>
+              <span className="mono tiny" style={{ color: 'var(--ink-4)', fontSize: 11 }}>{r.t.ref}</span>
               <I.arrowRight size={12} style={{ color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-4)', opacity: hov === r.t.ref ? 1 : .4, flex: '0 0 auto' }} />
             </div>
           );
@@ -314,7 +314,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         {/* month header */}
         <div style={{ height: HEAD, borderBottom: '1px solid var(--line)', position: 'relative' }}>
           {months.map((m: any, i: any) => (
-            <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 8, fontSize: 9.5, letterSpacing: '.03em', borderLeft: '1px solid var(--line)', paddingLeft: 4, height: 18 }}>{m.label}</span>
+            <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 8, fontSize: 11, letterSpacing: '.03em', borderLeft: '1px solid var(--line)', paddingLeft: 4, height: 18 }}>{m.label}</span>
           ))}
         </div>
 
@@ -322,7 +322,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         <div style={{ position: 'absolute', top: HEAD, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
           {months.map((m: any, i: any) => <span key={i} style={{ position: 'absolute', left: m.pos + '%', top: 0, bottom: 0, width: 1, background: 'var(--line-soft)' }} />)}
           <span style={{ position: 'absolute', left: frac(today) + '%', top: 0, bottom: 0, width: 0, borderLeft: '2px dashed var(--red)', zIndex: 4 }} />
-          <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red-solid)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
+          <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red-solid)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
         </div>
 
         {/* lanes */}
@@ -335,7 +335,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               <div key={i} style={{ height: isKlien ? phaseRowH : ROW, position: 'relative', borderBottom: '1px solid var(--line-soft)', background: isKlien ? 'transparent' : 'rgba(0,80,133,.03)' }}>
                 <div title={r.g.ph.name + ' · ' + ATL_fmt(s) + ' – ' + ATL_fmt(e)}
                   style={{ position: 'absolute', left: frac(s) + '%', width: Math.max(0.6, frac(e) - frac(s)) + '%', top: isKlien ? 8 : 11, height: isKlien ? 18 : 8, background: isKlien ? c : ATL_tint(c, .5), borderRadius: 4, opacity: done ? .55 : 1, boxShadow: isKlien ? '0 1px 2px rgba(7,30,42,.14)' : 'none', display: 'flex', alignItems: 'center' }}>
-                  {isKlien && (frac(e) - frac(s)) > 14 && <span style={{ color: '#fff', fontSize: 9.5, fontWeight: 600, padding: '0 8px', whiteSpace: 'nowrap', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{ATL_fmt(s)} – {ATL_fmt(e)}</span>}
+                  {isKlien && (frac(e) - frac(s)) > 14 && <span style={{ color: '#fff', fontSize: 11, fontWeight: 600, padding: '0 8px', whiteSpace: 'nowrap', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{ATL_fmt(s)} – {ATL_fmt(e)}</span>}
                 </div>
                 {/* milestones di lane fase (mode klien) — yang jatuh di rentang fase */}
                 {isKlien && plan.milestones.filter((m: any) => ATL_ms(m.date) >= ATL_ms(s) - 3 * 864e5 && ATL_ms(m.date) <= ATL_ms(e) + 3 * 864e5).map((m: any, mi: any) => (
@@ -353,7 +353,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               <div title={r.t.n + ' · ' + ATL_fmt(r.t.s) + ' – ' + ATL_fmt(r.t.e) + ' (' + r.t.pct + '%)'}
                 style={{ position: 'absolute', left: L + '%', width: W + '%', top: 7, height: 16, background: ATL_tint(c, .24), borderRadius: 4, overflow: 'hidden', boxShadow: active ? '0 0 0 2px ' + ATL_tint(c, .55) : '0 1px 2px rgba(7,30,42,.12)' }}>
                 <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: r.t.pct + '%', background: c, borderRadius: '4px 0 0 4px' }} />
-                {W > 7 && <span style={{ position: 'absolute', left: 6, top: 0, bottom: 0, display: 'flex', alignItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{r.t.pct}%</span>}
+                {W > 7 && <span style={{ position: 'absolute', left: 6, top: 0, bottom: 0, display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: 700, color: '#fff', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{r.t.pct}%</span>}
               </div>
             </div>
           );

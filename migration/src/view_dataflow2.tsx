@@ -61,7 +61,7 @@ function DFAturan() {
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                     <td style={{ fontWeight: 600, maxWidth: 240 }} className="truncate">{r.rule}</td>
                     <td className="tiny muted">{r.cat}</td>
-                    <td><span className="badge" style={{ background: (DF2_SEV as any)[r.severity], color: '#fff', fontSize: 9 }}>{r.severity}</span></td>
+                    <td><span className="badge" style={{ background: (DF2_SEV as any)[r.severity], color: '#fff', fontSize: 11 }}>{r.severity}</span></td>
                     <td className="tiny">{r.scope}</td>
                     <td><Badge kind={st.c}>{st.l}</Badge></td>
                     <td className="tiny muted truncate" style={{ maxWidth: 180 }}>{r.detail}</td>

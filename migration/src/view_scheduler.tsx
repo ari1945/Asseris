@@ -66,7 +66,7 @@ function ResourceScheduler() {
                     <div style={{ flex: 1, height: 26, borderRadius: 5, background: 'var(--surface-3)', display: 'flex', overflow: 'hidden', position: 'relative' }}>
                       {m.alloc.map((a: any, ai: any) => (
                         <div key={ai} title={a.client + ': ' + a.hrs + 'h'} style={{ width: (a.hrs / m.capacity * 100) + '%', background: a.color, display: 'grid', placeItems: 'center' }}>
-                          {a.hrs / m.capacity > 0.12 && <span style={{ color: '#fff', fontSize: 9.5, fontWeight: 700, fontFamily: 'var(--mono)' }}>{a.hrs}h</span>}
+                          {a.hrs / m.capacity > 0.12 && <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: 'var(--mono)' }}>{a.hrs}h</span>}
                         </div>
                       ))}
                       {/* capacity line at 100% is full width; mark overflow */}

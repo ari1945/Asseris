@@ -203,7 +203,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
             <div style={{ height: 4, background: gaRisk(c.risk) }} />
             <div style={{ padding: '9px 11px' }}>
               <div className="row ac jb" style={{ marginBottom: 6 }}>
-                <span style={{ width: 26, height: 26, borderRadius: 7, background: c.role.startsWith('Induk') ? 'var(--navy)' : 'var(--surface-3)', color: c.role.startsWith('Induk') ? '#fff' : 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 800 }}>{c.own}%</span>
+                <span style={{ width: 26, height: 26, borderRadius: 7, background: c.role.startsWith('Induk') ? 'var(--navy)' : 'var(--surface-3)', color: c.role.startsWith('Induk') ? '#fff' : 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800 }}>{c.own}%</span>
                 <Badge kind={(SCOPE_KIND as any)[c.scope]}>{c.scope}</Badge>
               </div>
               <div style={{ fontWeight: 700, fontSize: 12, lineHeight: 1.25 }}>{c.name}</div>
@@ -228,7 +228,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
                 <tr key={c.id} className={c.id === selId ? 'sel' : ''} onClick={() => setSelId(c.id)} style={{ cursor: 'pointer' }}>
                   <td>
                     <div className="row ac gap8">
-                      <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, flex: '0 0 24px' }}>{c.own}%</span>
+                      <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 24px' }}>{c.own}%</span>
                       <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, maxWidth: 170, fontSize: 12 }}>{c.name}</div><div className="tiny muted">{c.auditor}</div></div>
                     </div>
                   </td>
@@ -327,7 +327,7 @@ function GAInstr({ comps, setComp, fmt }: any) {
                 <div key={s} style={{ flex: 1, position: 'relative', textAlign: 'center' }}>
                   {i > 0 && <div style={{ position: 'absolute', top: 11, right: '50%', width: '100%', height: 2, background: i <= c.step ? 'var(--blue)' : 'var(--line)' }} />}
                   <div style={{ position: 'relative', width: 22, height: 22, borderRadius: '50%', margin: '0 auto', display: 'grid', placeItems: 'center', background: done ? 'var(--blue)' : active ? '#fff' : 'var(--surface-3)', border: active ? '2px solid var(--blue)' : done ? '2px solid var(--blue)' : '2px solid var(--line)', color: done ? '#fff' : 'var(--ink-3)' }}>
-                    {done ? <I.check size={12} /> : <span className="mono" style={{ fontSize: 10, fontWeight: 700 }}>{i + 1}</span>}
+                    {done ? <I.check size={12} /> : <span className="mono" style={{ fontSize: 11, fontWeight: 700 }}>{i + 1}</span>}
                   </div>
                   <div className="tiny" style={{ marginTop: 5, fontWeight: i <= c.step ? 600 : 400, color: i <= c.step ? 'var(--ink)' : 'var(--ink-4)' }}>{s}</div>
                 </div>

@@ -178,7 +178,7 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
                   <td style={{ textAlign: 'center', padding: '7px 8px' }}>
                     <button onClick={() => toggleExc(it.code)} style={{ cursor: 'pointer', border: 0, background: 'none', padding: 0 }}>
                       {isExc
-                        ? <span className="row ac gap4" style={{ color: 'var(--amber)', fontWeight: 700, fontSize: 10.5 }}><I.alert size={12} /> Ya</span>
+                        ? <span className="row ac gap4" style={{ color: 'var(--amber)', fontWeight: 700, fontSize: 11 }}><I.alert size={12} /> Ya</span>
                         : <span className="tiny" style={{ color: 'var(--ink-4)' }}>—</span>}
                     </button>
                   </td>

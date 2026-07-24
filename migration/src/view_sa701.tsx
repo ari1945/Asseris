@@ -167,7 +167,7 @@ function F701Funnel({ doc }: { doc: ODoc }) {
               ['Dampak peristiwa/transaksi signifikan terhadap audit', 'c'],
             ].map((r, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}>
-                <span style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: 5, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 10 }}>{r[1]}</span>
+                <span style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: 5, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 11 }}>{r[1]}</span>
                 <span style={{ lineHeight: 1.4 }}>{r[0]}</span>
               </div>
             ))}

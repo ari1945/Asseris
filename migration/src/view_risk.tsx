@@ -128,7 +128,7 @@ function RiskAssessment() {
               <div style={{ padding: '14px 14px 10px' }}>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {/* y-axis label */}
-                  <div style={{ display: 'grid', placeItems: 'center', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 10, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Kemungkinan →</div>
+                  <div style={{ display: 'grid', placeItems: 'center', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 11, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Kemungkinan →</div>
                   <div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4 }}>
                       {[5, 4, 3, 2, 1].map(lk => (
@@ -148,9 +148,9 @@ function RiskAssessment() {
                       ))}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4, marginTop: 4 }}>
-                      {[1, 2, 3, 4, 5].map(n => <div key={n} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--ink-4)', fontFamily: 'var(--mono)' }}>{n}</div>)}
+                      {[1, 2, 3, 4, 5].map(n => <div key={n} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--ink-4)', fontFamily: 'var(--mono)' }}>{n}</div>)}
                     </div>
-                    <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>Dampak →</div>
+                    <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>Dampak →</div>
                   </div>
                 </div>
                 <div className="divider" />
@@ -180,7 +180,7 @@ function RiskAssessment() {
                           <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                           <td>
                             <div style={{ fontWeight: 600, fontSize: 12 }}>{r.area}</div>
-                            <div className="tiny muted row ac gap6">{r.assertion}{r.fraud && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD</span>}</div>
+                            <div className="tiny muted row ac gap6">{r.assertion}{r.fraud && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>FRAUD</span>}</div>
                           </td>
                           <td className="tiny muted truncate" style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35 }}>{r.desc}</td>
                           <td className="num mono">{r.likelihood}</td>

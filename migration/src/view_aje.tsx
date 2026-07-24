@@ -568,11 +568,11 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) 
           <div key={i} style={{ flex: 1, position: 'relative', height: H }}>
             <div style={{ position: 'absolute', left: '14%', right: '14%', top, height: h, background: col, borderRadius: 3, transition: 'all .25s' }} />
             <div style={{ position: 'absolute', left: 0, right: 0, top: top - 16, textAlign: 'center' }} className="mono tiny">
-              <span style={{ fontSize: 10.5, fontWeight: 700, color: isTotal ? 'var(--navy)' : (s.kind === 'proposed' ? 'var(--amber)' : 'var(--blue)') }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: isTotal ? 'var(--navy)' : (s.kind === 'proposed' ? 'var(--amber)' : 'var(--blue)') }}>
                 {isTotal ? jt(s.value) : (s.delta > 0 ? '+' : '') + jt(s.delta)}
               </span>
             </div>
-            <div style={{ position: 'absolute', left: -2, right: -2, top: H + 4, textAlign: 'center', fontSize: 9.5, fontWeight: isTotal ? 700 : 500, color: isTotal ? 'var(--ink-2)' : 'var(--ink-4)', lineHeight: 1.2 }}>{s.label}</div>
+            <div style={{ position: 'absolute', left: -2, right: -2, top: H + 4, textAlign: 'center', fontSize: 11, fontWeight: isTotal ? 700 : 500, color: isTotal ? 'var(--ink-2)' : 'var(--ink-4)', lineHeight: 1.2 }}>{s.label}</div>
           </div>
         );
       })}

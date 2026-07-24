@@ -289,7 +289,7 @@ function CpGovernance({ ctxText, share, onShare, log, onClear, onClose, acc }: a
         <div className="gov-sec">
           <div className="gov-lbl" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Log kueri (keterlusuran)</span>
-            {queries > 0 && <button onClick={onClear} style={{ background: 'none', border: 0, color: 'var(--blue)', fontWeight: 700, fontSize: 10, cursor: 'pointer' }}>Bersihkan</button>}
+            {queries > 0 && <button onClick={onClear} style={{ background: 'none', border: 0, color: 'var(--blue)', fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>Bersihkan</button>}
           </div>
           {queries === 0
             ? <div className="gov-txt">Belum ada kueri pada sesi ini.</div>
@@ -625,7 +625,7 @@ function Copilot({ open, onClose, route }: any) {
         <span style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><I.sparkle size={16} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.2 }}>AI Co-pilot</div>
-          <div style={{ fontSize: 10.5, opacity: .8 }}>{share ? 'Konteks: ' + moduleLabel : 'Mode anonim'} · {llm ? llm.modelLabel : 'asistif'}</div>
+          <div style={{ fontSize: 11, opacity: .8 }}>{share ? 'Konteks: ' + moduleLabel : 'Mode anonim'} · {llm ? llm.modelLabel : 'asistif'}</div>
         </div>
         <button className="top-btn" title="Insight lintas-modul (kontradiksi)" style={{ color: '#fff', background: showIns ? 'rgba(255,255,255,.18)' : 'transparent', borderRadius: 7 }} onClick={() => setShowIns((v: any) => !v)}><I.target size={17} /></button>
         <button className="top-btn" title="Tata kelola AI (ISQM 1)" style={{ color: '#fff' }} onClick={() => setGov(true)}><I.shield size={17} /></button>

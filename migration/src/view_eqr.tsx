@@ -92,7 +92,7 @@ function EQRWorkflow() {
                       return (
                         <div key={i} style={{ flex: 1, position: 'relative' }}>
                           <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <span style={{ width: 22, height: 22, borderRadius: '50%', background: col, color: s.status === 'Belum Mulai' ? 'var(--ink-4)' : '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px', zIndex: 1 }}>{s.status === 'Selesai' ? <I.check size={12} /> : <span style={{ fontSize: 10, fontWeight: 700 }}>{i + 1}</span>}</span>
+                            <span style={{ width: 22, height: 22, borderRadius: '50%', background: col, color: s.status === 'Belum Mulai' ? 'var(--ink-4)' : '#fff', display: 'grid', placeItems: 'center', flex: '0 0 22px', zIndex: 1 }}>{s.status === 'Selesai' ? <I.check size={12} /> : <span style={{ fontSize: 11, fontWeight: 700 }}>{i + 1}</span>}</span>
                             {i < meta.timeline.length - 1 && <span style={{ flex: 1, height: 2, background: s.status === 'Selesai' ? 'var(--green)' : 'var(--line)' }} />}
                           </div>
                           <div style={{ paddingRight: 8, marginTop: 5 }}><div className="tiny" style={{ fontWeight: 600, lineHeight: 1.3 }}>{s.stage}</div><div className="tiny muted mono">{s.date}</div></div>

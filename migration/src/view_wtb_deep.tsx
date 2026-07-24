@@ -147,10 +147,10 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
 
   const Tile = ({ label, value, sub, accent, children, onClick }: any) => (
     <div className="panel" style={{ padding: '6px 11px', display: 'flex', flexDirection: 'column', gap: 1, cursor: onClick ? 'pointer' : 'default', position: 'relative' }} onClick={onClick}>
-      <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em', fontSize: 9.5 }}>{label}</div>
+      <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em', fontSize: 11 }}>{label}</div>
       <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.1 }}>{value}</div>
       {children}
-      {sub && <div className="tiny muted" style={{ marginTop: 0, fontSize: 10, lineHeight: 1.25 }}>{sub}</div>}
+      {sub && <div className="tiny muted" style={{ marginTop: 0, fontSize: 11, lineHeight: 1.25 }}>{sub}</div>}
     </div>
   );
 

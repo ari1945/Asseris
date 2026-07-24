@@ -381,7 +381,7 @@ function GoingConcern() {
                   const neg = r.bal < 0;
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }} title={r.m + ': Rp ' + r.bal.toFixed(1) + ' M'}>
-                      <span className="mono" style={{ fontSize: 8.5, color: neg ? 'var(--red)' : 'var(--ink-3)', marginBottom: 2 }}>{r.bal.toFixed(0)}</span>
+                      <span className="mono" style={{ fontSize: 11, color: neg ? 'var(--red)' : 'var(--ink-3)', marginBottom: 2 }}>{r.bal.toFixed(0)}</span>
                       <div style={{ width: '78%', height: Math.max(2, h), background: neg ? 'var(--red)' : r.bal < 5 ? 'var(--amber)' : 'var(--blue)', borderRadius: '3px 3px 0 0' }} />
                     </div>
                   );

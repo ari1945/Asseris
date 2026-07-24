@@ -167,7 +167,7 @@ function CryptoCompliance() {
                 background: on ? 'linear-gradient(125deg,#013a52,#005085)' : 'var(--surface)',
                 color: on ? '#fff' : 'var(--ink-2)' }}>
                 <TIc size={14} />{t.label}
-                {t.count != null && <span className="mono" style={{ fontSize: 10.5, padding: '1px 6px', borderRadius: 20, background: on ? 'rgba(255,255,255,.18)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{t.count}</span>}
+                {t.count != null && <span className="mono" style={{ fontSize: 11, padding: '1px 6px', borderRadius: 20, background: on ? 'rgba(255,255,255,.18)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{t.count}</span>}
               </button>
             );
           })}

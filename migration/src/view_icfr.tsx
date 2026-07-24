@@ -343,7 +343,7 @@ function ICMatrix({ data, setData, locked }: any) {
             {data.map((cy: any) => (
               <div key={cy.id} onClick={() => { setCycleId(cy.id); setSelCtrl(cy.controls[0].id); }} style={{ padding: '9px 10px', borderRadius: 7, cursor: 'pointer', background: cy.id === cycleId ? 'var(--blue-050)' : 'transparent', border: '1px solid ' + (cy.id === cycleId ? 'var(--blue)' : 'transparent') }}>
                 <div className="row jb ac">
-                  <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 600 }}>{cy.name}{cy.sig && <span className="badge b-red" style={{ fontSize: 8, padding: '0 4px' }}>SIG</span>}</span>
+                  <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 600 }}>{cy.name}{cy.sig && <span className="badge b-red" style={{ fontSize: 11, padding: '0 4px' }}>SIG</span>}</span>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: `var(--${cycleEff(cy)})` }} />
                 </div>
                 <div className="tiny muted">{cy.controls.length} kontrol · {cy.amt}</div>
@@ -399,7 +399,7 @@ function ICMatrix({ data, setData, locked }: any) {
                   <div style={{ display: 'grid', gap: 0 }}>
                     {WT_STEPS.map((s, i) => (
                       <div key={i} className="row gap8" style={{ padding: '6px 0', borderBottom: i < WT_STEPS.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                        <span style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: '50%', background: ctrl.wt ? 'var(--green-bg)' : 'var(--surface-3)', color: ctrl.wt ? 'var(--green)' : 'var(--ink-4)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700 }}>{ctrl.wt ? <I.check size={12} /> : i + 1}</span>
+                        <span style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: '50%', background: ctrl.wt ? 'var(--green-bg)' : 'var(--surface-3)', color: ctrl.wt ? 'var(--green)' : 'var(--ink-4)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{ctrl.wt ? <I.check size={12} /> : i + 1}</span>
                         <span style={{ fontSize: 12, lineHeight: 1.4 }}>{s}</span>
                       </div>
                     ))}
@@ -698,7 +698,7 @@ function ICDeficiency({ data, locked }: any) {
                     const fg = kc === 'red' ? 'var(--red)' : kc === 'amber' ? 'var(--amber)' : 'var(--ink-3)';
                     return (
                       <div key={mag} style={{ padding: '9px 8px', borderRadius: 7, background: bg, border: '2px solid ' + (active ? fg : 'transparent'), textAlign: 'center' }}>
-                        <div style={{ fontSize: 10.5, fontWeight: 700, color: fg, lineHeight: 1.25 }}>{cellCls.replace('Defisiensi ', 'Def. ')}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: fg, lineHeight: 1.25 }}>{cellCls.replace('Defisiensi ', 'Def. ')}</div>
                         {active && <div className="tiny" style={{ color: fg, marginTop: 2, fontWeight: 600 }}>● posisi</div>}
                       </div>
                     );

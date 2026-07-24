@@ -370,7 +370,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
             {doc.finalized && <div style={{ position: 'absolute', top: 40, right: 30, border: '2.5px solid var(--green)', color: 'var(--green)', padding: '4px 12px', borderRadius: 6, fontWeight: 800, fontSize: 12, letterSpacing: '.1em', transform: 'rotate(8deg)', opacity: 0.85 }}>DITERBITKAN</div>}
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '.04em' }}>LAPORAN AUDITOR INDEPENDEN</div>
-              <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', marginTop: 4 }}>No. 142/WHR-CPA/AR/III/2026</div>
+              <div className="mono" style={{ fontSize: 11, color: '#7a8893', marginTop: 4 }}>No. 142/WHR-CPA/AR/III/2026</div>
             </div>
 
             <p style={{ margin: '0 0 4px' }}>Kepada Yth.</p>
@@ -403,7 +403,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
                   <p style={{ margin: '0 0 4px', fontWeight: 700 }}>{i + 1}. {k.title}</p>
                   {k.why && <p style={{ margin: '0 0 4px', textAlign: 'justify' }}>{k.why}{k.fsRef ? ` (Rujukan: ${k.fsRef}.)` : ''}</p>}
                   {k.how && <p style={{ margin: 0, textAlign: 'justify' }}><i style={{ color: '#5a6770' }}>Penanganan audit — </i>{k.how}</p>}
-                  {k.wpRef && <p className="mono" style={{ margin: '3px 0 0', fontSize: 10, color: '#9aa6ae' }}>Ref. KKP: {k.wpRef}</p>}
+                  {k.wpRef && <p className="mono" style={{ margin: '3px 0 0', fontSize: 11, color: '#9aa6ae' }}>Ref. KKP: {k.wpRef}</p>}
                 </div>
               ))}
             </>}

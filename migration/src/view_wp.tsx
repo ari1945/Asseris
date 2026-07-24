@@ -208,7 +208,7 @@ function WorkingPapers() {
             <div style={{ background: 'var(--line-soft)' }} />
             {/* completeness donut */}
             <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <Donut segments={donutSegs} size={84} thickness={12} center={<><div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1 }}>{completeness}%</div><div className="tiny muted" style={{ fontSize: 9 }}>lengkap</div></>} />
+              <Donut segments={donutSegs} size={84} thickness={12} center={<><div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1 }}>{completeness}%</div><div className="tiny muted" style={{ fontSize: 11 }}>lengkap</div></>} />
               <div style={{ display: 'grid', gap: 4 }}>
                 {[['Reviewed', cnt['Reviewed'], 'var(--green)'], ['In Review', cnt['In Review'], 'var(--blue)'], ['In Progress', cnt['In Progress'], 'var(--amber)'], ['Not Started', cnt['Not Started'], 'var(--line-strong)']].map(([l, n, c]) => (
                   <div key={l} className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: c }} /><span style={{ color: 'var(--ink-2)' }}>{l}</span><span className="mono muted" style={{ marginLeft: 2 }}>{n}</span></div>

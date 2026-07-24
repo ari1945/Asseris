@@ -38,7 +38,7 @@ function FeeDependencyTab() {
         <tbody>
           {rows.map((r: any) => (
             <tr key={r.id}>
-              <td style={{ fontWeight: 600, fontSize: 12 }}>{r.name.replace('PT ', '')}{r.sektorJK && <span className="badge b-teal" style={{ fontSize: 8, padding: '0 4px', marginLeft: 5 }}>JK</span>}</td>
+              <td style={{ fontWeight: 600, fontSize: 12 }}>{r.name.replace('PT ', '')}{r.sektorJK && <span className="badge b-teal" style={{ fontSize: 11, padding: '0 4px', marginLeft: 5 }}>JK</span>}</td>
               <td>{r.pie ? <Badge kind="red">PIE</Badge> : <span className="tiny muted">Non-PIE</span>}</td>
               <td className="num mono tiny">Rp {fmt(r.curFee)} jt</td>
               <td>

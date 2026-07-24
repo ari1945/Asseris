@@ -499,7 +499,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, 
         <div className="doc-paper" style={{ background: '#fff', maxWidth: 720, margin: '0 auto', padding: '40px 50px', boxShadow: 'var(--shadow)' }}>
           <div style={{ textAlign: 'center', marginBottom: 22 }}>
             <div style={{ fontWeight: 800, fontSize: 15 }}>MEMORANDUM STRATEGI AUDIT</div>
-            <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', marginTop: 4 }}>{activeEngagement.id} · {activeClient?.name} · {activeEngagement.fy}</div>
+            <div className="mono" style={{ fontSize: 11, color: '#7a8893', marginTop: 4 }}>{activeEngagement.id} · {activeClient?.name} · {activeEngagement.fy}</div>
           </div>
           <Sec n="1" id="s1" title="Latar Belakang Perikatan">
             Kami ditunjuk untuk mengaudit laporan keuangan {activeClient?.name} untuk tahun buku {activeEngagement.fy} sesuai Standar Audit (SA) yang ditetapkan IAPI. Perikatan ini merupakan {activeEngagement.type.toLowerCase()} dengan partner penanggung jawab {activeEngagement.partner}.
@@ -511,7 +511,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, margin: '4px 0' }}>
               {[['Overall Materiality', om], ['Performance Materiality', pm], ['Clearly Trivial', ctt]].map(([l, v]) => (
                 <div key={l} style={{ border: '1px solid #e0e4e8', borderRadius: 6, padding: '8px 10px' }}>
-                  <div style={{ fontSize: 10, color: '#7a8893', textTransform: 'uppercase' }}>{l}</div>
+                  <div style={{ fontSize: 11, color: '#7a8893', textTransform: 'uppercase' }}>{l}</div>
                   <div className="mono" style={{ fontWeight: 700, fontSize: 13, color: '#0c2430' }}>Rp {fmt(v / 1e6, 0)} jt</div>
                 </div>
               ))}

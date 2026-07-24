@@ -85,7 +85,7 @@ function StepPMPJ({ p, onPatch }: any) {
                 <td style={{ minWidth: 150 }}>{locked ? <span style={{ fontWeight: 600 }}>{u.name}</span> : <input className="input" value={u.name} onChange={(e: any) => setUbo(i, { name: e.target.value })} style={{ height: 24 }} placeholder="Nama" />}</td>
                 <td className="tiny muted" style={{ minWidth: 130 }}>{locked ? u.role : <input className="input" value={u.role} onChange={(e: any) => setUbo(i, { role: e.target.value })} style={{ height: 24 }} placeholder="Peran" />}</td>
                 <td className="num">{locked ? u.pct : <input className="input mono" type="number" value={u.pct} onChange={(e: any) => setUbo(i, { pct: +e.target.value })} style={{ height: 24, width: 56, textAlign: 'right' }} />}</td>
-                <td className="tiny"><span className="chip tiny">{u.idType}</span> <span className="mono" style={{ fontSize: 10.5 }}>{u.idNo}</span></td>
+                <td className="tiny"><span className="chip tiny">{u.idType}</span> <span className="mono" style={{ fontSize: 11 }}>{u.idNo}</span></td>
                 <td><span onClick={locked ? undefined : () => setUbo(i, { pep: !u.pep })} style={{ cursor: locked ? 'default' : 'pointer' }}><Badge kind={u.pep ? 'red' : 'gray'}>{u.pep ? 'PEP' : 'Bukan'}</Badge></span></td>
                 {!locked && <td><button className="btn sm icon" onClick={() => delUbo(i)}><I.x size={13} /></button></td>}
               </tr>
@@ -222,8 +222,8 @@ function StepLetter({ p, onPatch }: any) {
         ) : (
           <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.65, color: '#283b46' }}>
             <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 18, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>
-              <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>{FIRM.license}</div></div>
-              <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>No. {p.id}/EL/{new Date().getFullYear()}</div><div className="tiny" style={{ color: '#7a8893' }}>v{L.version} · {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</div></div>
+              <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>{FIRM.license}</div></div>
+              <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>No. {p.id}/EL/{new Date().getFullYear()}</div><div className="tiny" style={{ color: '#7a8893' }}>v{L.version} · {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</div></div>
             </div>
 
             <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 13, color: '#0c2430', marginBottom: 16, letterSpacing: '.02em' }}>SURAT PERIKATAN AUDIT</div>
@@ -250,8 +250,8 @@ function StepLetter({ p, onPatch }: any) {
               <div><div className="tiny" style={{ color: '#7a8893', marginBottom: 30 }}>Menyetujui untuk {p.name.replace('PT ', '')},</div><div style={{ borderTop: '1px solid #0c2430', paddingTop: 4, fontSize: 11 }}><b>{L.signedBy || '________________'}</b><br />Direksi</div></div>
             </div>
             {L.status === 'signed' && <div style={{ marginTop: 18, display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <span className="badge b-green" style={{ fontSize: 10 }}>● TTE tersertifikasi PSrE · PrivyID · {L.signedDate}</span>
-              {L.meterai && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1.5px dashed #b3261e', color: '#b3261e', borderRadius: 6, padding: '3px 9px', fontSize: 9.5, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>e-METERAI Rp 10.000 · {L.meterai.serial}</span>}
+              <span className="badge b-green" style={{ fontSize: 11 }}>● TTE tersertifikasi PSrE · PrivyID · {L.signedDate}</span>
+              {L.meterai && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1.5px dashed #b3261e', color: '#b3261e', borderRadius: 6, padding: '3px 9px', fontSize: 11, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>e-METERAI Rp 10.000 · {L.meterai.serial}</span>}
             </div>}
           </div>
         )}

@@ -24,9 +24,9 @@
 /* grouped list */
 .mt-group-h {
   display: flex; align-items: center; gap: 8px; padding: 9px 4px 6px;
-  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3);
 }
-.mt-group-h .cnt { background: var(--surface-3); color: var(--ink-3); border-radius: 9px; padding: 0 7px; font-size: 10px; line-height: 16px; height: 16px; }
+.mt-group-h .cnt { background: var(--surface-3); color: var(--ink-3); border-radius: 9px; padding: 0 7px; font-size: 11px; line-height: 16px; height: 16px; }
 .mt-group-h .ln { flex: 1; height: 1px; background: var(--line-soft); }
 
 .mt-row {
@@ -73,7 +73,7 @@
 .mt-seg-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .mt-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .mt-kv { display: flex; flex-direction: column; gap: 3px; }
-.mt-kv label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-4); }
+.mt-kv label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-4); }
 
 /* subtask checklist */
 .mt-sub { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
@@ -95,7 +95,7 @@
 .mt-col-h { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-bottom: 1px solid var(--line); }
 .mt-col-h .dot { width: 8px; height: 8px; border-radius: 3px; }
 .mt-col-h .ttl { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); }
-.mt-col-h .cnt { margin-left: auto; background: var(--surface-3); color: var(--ink-3); border-radius: 9px; padding: 0 7px; font-size: 10.5px; font-weight: 700; line-height: 17px; }
+.mt-col-h .cnt { margin-left: auto; background: var(--surface-3); color: var(--ink-3); border-radius: 9px; padding: 0 7px; font-size: 11px; font-weight: 700; line-height: 17px; }
 .mt-col-body { padding: 9px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; flex: 1; }
 .mt-col.drop-on { outline: 2px dashed var(--blue); outline-offset: -3px; background: var(--blue-050); }
 .mt-col-empty { text-align: center; color: var(--ink-4); font-size: 11px; padding: 16px 6px; border: 1px dashed var(--line); border-radius: 6px; }

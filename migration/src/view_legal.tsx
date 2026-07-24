@@ -37,7 +37,7 @@ function LglSourceChip({ kind, id, onNav }: any) {
       onClick={(e: any) => { e.stopPropagation(); onNav(meta.module, { from: 'legal' }); }}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', borderColor: 'var(--line)' }}>
       <Ic size={11} /><span style={{ fontWeight: 600 }}>{meta.label}</span>
-      <span className="mono muted" style={{ fontSize: 10 }}>{id}</span>
+      <span className="mono muted" style={{ fontSize: 11 }}>{id}</span>
     </button>
   );
 }

@@ -29,7 +29,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .side-minimap:hover { background: rgba(255,255,255,.10); border-color: rgba(77,184,255,.5); }
   .side-minimap .ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 7px; background: var(--blue-solid); color: #fff; display: grid; place-items: center; }
   .side-minimap .mn { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
-  .side-minimap .mn .k { font: 700 9px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; }
+  .side-minimap .mn .k { font: 700 11px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; }
   .side-minimap .mn .l { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .side-minimap .ar { color: #fff; flex: 0 0 auto; }
   .sidebar.collapsed .side-minimap { justify-content: center; padding: 8px 0; margin: 6px; }
@@ -52,7 +52,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
 
   .mm-loc { display: flex; align-items: center; gap: 8px; padding: 10px 16px; flex: 0 0 auto;
     border-bottom: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; }
-  .mm-loc .mm-ws { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  .mm-loc .mm-ws { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
     padding: 2px 8px; border-radius: 5px; color: #fff; }
   .mm-loc .mm-crumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
   .mm-loc .mm-crumb b { color: var(--ink); }
@@ -66,7 +66,7 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-col { display: flex; flex-direction: column; gap: 7px; position: relative; z-index: 2; min-width: 0; }
   .mm-col.up { align-items: flex-start; }
   .mm-col.down { align-items: flex-end; }
-  .mm-col-h { font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 1px; }
+  .mm-col-h { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 1px; }
   .mm-col.up .mm-col-h { color: var(--blue); }
   .mm-col.down .mm-col-h { color: var(--green); }
 
@@ -77,18 +77,18 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-chip .mm-c-ic { flex: 0 0 16px; display: grid; place-items: center; }
   .mm-chip .mm-c-tx { display: flex; flex-direction: column; min-width: 0; }
   .mm-chip .mm-c-l { font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mm-chip .mm-c-r { font-size: 10.5px; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
-  .mm-more { font-size: 10.5px; color: var(--ink-4); padding: 2px 4px; }
+  .mm-chip .mm-c-r { font-size: 11px; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
+  .mm-more { font-size: 11px; color: var(--ink-4); padding: 2px 4px; }
   .mm-empty { font-size: 12px; color: var(--ink-4); font-style: italic; padding: 4px 2px; }
 
   .mm-node { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center;
     gap: 6px; padding: 14px 16px; border-radius: 13px; min-width: 150px; max-width: 200px;
     background: var(--surface); border: 2px solid var(--navy); box-shadow: 0 8px 24px rgba(0,80,133,.18); }
-  .mm-node .mm-n-here { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  .mm-node .mm-n-here { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
     color: #fff; background: var(--navy-solid); padding: 2px 9px; border-radius: 20px; }
   .mm-node .mm-n-ic { width: 38px; height: 38px; border-radius: 10px; background: var(--blue-050); color: var(--navy); display: grid; place-items: center; }
   .mm-node .mm-n-l { font-size: 13px; font-weight: 800; color: var(--ink); text-align: center; line-height: 1.2; }
-  .mm-node .mm-n-g { font-size: 10px; color: var(--ink-4); text-align: center; }
+  .mm-node .mm-n-g { font-size: 11px; color: var(--ink-4); text-align: center; }
 
   .mm-ov { flex: 0 0 auto; border-top: 1px solid var(--line); background: var(--surface-2); }
   .mm-ov-h { display: flex; align-items: center; gap: 8px; padding: 9px 16px; cursor: pointer; user-select: none; }
@@ -96,10 +96,10 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   .mm-ov-h .mm-ov-c { font-size: 11px; color: var(--ink-4); margin-left: auto; }
   .mm-ov-body { display: flex; gap: 14px; padding: 4px 16px 14px; overflow-x: auto; }
   .mm-ws-col { flex: 0 0 auto; min-width: 220px; max-width: 320px; }
-  .mm-ws-col-h { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 7px; }
+  .mm-ws-col-h { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 7px; }
   .mm-ws-col-h .mm-ws-dot { width: 8px; height: 8px; border-radius: 3px; }
   .mm-grp { margin-bottom: 9px; }
-  .mm-grp-n { font-size: 10.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 4px; }
+  .mm-grp-n { font-size: 11px; font-weight: 700; color: var(--ink-2); margin-bottom: 4px; }
   .mm-grp-n.cur { color: var(--blue); }
   .mm-dots { display: flex; flex-wrap: wrap; gap: 5px; }
   .mm-dot { width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--line);

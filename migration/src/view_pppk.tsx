@@ -169,7 +169,7 @@ function PPPKReport() {
                     <tr key={i}>
                       <td className="tiny" style={{ fontWeight: 600 }}>{r.ap}</td>
                       <td className="tiny">{r.client.replace('PT ', '')}</td>
-                      <td className="tiny"><span className="row ac gap4">{r.sektorJK ? <span className="badge b-teal" style={{ fontSize: 8.5, padding: '1px 5px' }}>Jasa Keuangan</span> : <span className="badge b-gray" style={{ fontSize: 8.5, padding: '1px 5px' }}>PIE umum</span>}</span><div className="tiny muted mono" style={{ marginTop: 2 }}>{r.basis}</div></td>
+                      <td className="tiny"><span className="row ac gap4">{r.sektorJK ? <span className="badge b-teal" style={{ fontSize: 11, padding: '1px 5px' }}>Jasa Keuangan</span> : <span className="badge b-gray" style={{ fontSize: 11, padding: '1px 5px' }}>PIE umum</span>}</span><div className="tiny muted mono" style={{ marginTop: 2 }}>{r.basis}</div></td>
                       <td className="num"><span className="mono" style={{ fontWeight: 700, color: r.tenure >= r.limit ? 'var(--red)' : r.tenure >= r.limit - 1 ? 'var(--amber)' : 'var(--ink)' }}>{r.tenure} thn</span></td>
                       <td className="num mono tiny muted">{r.limit} thn</td>
                       <td><Badge kind={(ROT_STAT as any)[r.status]}>{r.status}</Badge></td>
@@ -195,7 +195,7 @@ function PPPKReport() {
                     <div className="row jb ac">
                       <div className="row ac gap10">
                         <span style={{ width: 36, height: 36, borderRadius: 9, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 36px' }}><I.report size={18} /></span>
-                        <div><div style={{ fontSize: 13, fontWeight: 700 }}>Laporan Tahunan FY{h.year}</div><div className="tiny muted">{h.note}</div>{h.receipt && <div className="row ac gap6" style={{ marginTop: 4 }}><span className="badge b-green" style={{ fontSize: 8.5, padding: '1px 6px' }}><I.checkCircle size={9} /> Tanda terima elektronik</span><span className="mono tiny muted">{h.receipt} · {h.channel}</span></div>}</div>
+                        <div><div style={{ fontSize: 13, fontWeight: 700 }}>Laporan Tahunan FY{h.year}</div><div className="tiny muted">{h.note}</div>{h.receipt && <div className="row ac gap6" style={{ marginTop: 4 }}><span className="badge b-green" style={{ fontSize: 11, padding: '1px 6px' }}><I.checkCircle size={9} /> Tanda terima elektronik</span><span className="mono tiny muted">{h.receipt} · {h.channel}</span></div>}</div>
                       </div>
                       <div className="row ac gap10"><div className="tiny muted mono">Disampaikan {h.submitted}</div><Badge kind="green"><I.checkCircle size={12} /> {h.status}</Badge></div>
                     </div>

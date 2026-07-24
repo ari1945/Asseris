@@ -54,7 +54,7 @@ function OrgChart() {
           <Avatar name={s.name} size={34} />
           <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.15 }}>{s.name}</div>
           <div className="tiny muted" style={{ lineHeight: 1.1 }}>{s.role}</div>
-          <span className="badge" style={{ background: GC[s.grade] + '1a', color: GC[s.grade], fontSize: 9.5, padding: '0 6px' }}>{s.grade}</span>
+          <span className="badge" style={{ background: GC[s.grade] + '1a', color: GC[s.grade], fontSize: 11, padding: '0 6px' }}>{s.grade}</span>
           {kids.length > 0 && <span className="tiny" style={{ color: 'var(--ink-4)' }}>{kids.length} bawahan langsung</span>}
         </span>
         {kids.length > 0 && <ul>{kids.map((k: any) => <Node key={k.id} s={k} />)}</ul>}
@@ -284,7 +284,7 @@ function SuccessionPlanning() {
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row ac jb" style={{ marginBottom: 4 }}>
                           <div className="row ac gap8"><Avatar name={p.name} size={26} /><div><div style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</div><div className="tiny muted">{p.role}</div></div></div>
-                          <span className="badge" style={{ background: 'transparent', color: RC[s.readiness] || 'var(--ink-3)', border: '1px solid currentColor', fontSize: 10 }}>{s.readiness}</span>
+                          <span className="badge" style={{ background: 'transparent', color: RC[s.readiness] || 'var(--ink-3)', border: '1px solid currentColor', fontSize: 11 }}>{s.readiness}</span>
                         </div>
                         <div className="tiny muted">Gap: {s.gaps}</div>
                       </div>

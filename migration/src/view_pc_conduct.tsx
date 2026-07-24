@@ -71,7 +71,7 @@ function EthicsDeclaration() {
           {tab === 'decl' && (
             <div style={{ overflowX: 'auto' }}>
               <table className="dtbl" style={{ minWidth: 880 }}>
-                <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it: any, i: any) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 9.5, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
+                <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it: any, i: any) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 11, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
                 <tbody>
                   {myStaff.map((s: any) => {
                     const d = decl[s.id] || { signed: false, items: ITEMS.map(() => 0) };

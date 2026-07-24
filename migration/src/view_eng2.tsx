@@ -248,7 +248,7 @@ function EngJadwal() {
         <div style={{ padding: '14px 16px' }}>
           {/* month axis */}
           <div style={{ position: 'relative', marginLeft: 170, height: 16, borderBottom: '1px solid var(--line)', marginBottom: 8 }}>
-            {months.map((m, i) => <span key={m} style={{ position: 'absolute', left: (i / months.length * 100) + '%', fontSize: 9.5, color: 'var(--ink-4)', fontWeight: 700 }}>{m}</span>)}
+            {months.map((m, i) => <span key={m} style={{ position: 'absolute', left: (i / months.length * 100) + '%', fontSize: 11, color: 'var(--ink-4)', fontWeight: 700 }}>{m}</span>)}
             <span style={{ position: 'absolute', left: todayPos + '%', top: -2, bottom: -200, width: 2, background: 'var(--red-solid)', opacity: .5, zIndex: 1 }} />
           </div>
           <div style={{ display: 'grid', gap: 7, position: 'relative' }}>
@@ -266,9 +266,9 @@ function EngJadwal() {
                   <div style={{ flex: 1, position: 'relative', height: 24 }}>
                     <div style={{ position: 'absolute', left: start + '%', width: Math.max(4, dl - start) + '%', top: 4, height: 16, borderRadius: 4, background: (ENG_PHASE_COLOR as any)[e.phase], opacity: .25 }} />
                     <div style={{ position: 'absolute', left: start + '%', width: Math.max(4, (dl - start) * e.progress / 100) + '%', top: 4, height: 16, borderRadius: 4, background: (ENG_PHASE_COLOR as any)[e.phase], display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
-                      <span className="mono" style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>{e.progress}%</span>
+                      <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{e.progress}%</span>
                     </div>
-                    <span style={{ position: 'absolute', left: 'calc(' + dl + '% + 4px)', top: 5, fontSize: 9.5, fontWeight: 700, color: days < 14 ? 'var(--red)' : 'var(--ink-3)', whiteSpace: 'nowrap' }} className="mono">{new Date(e.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {days}h</span>
+                    <span style={{ position: 'absolute', left: 'calc(' + dl + '% + 4px)', top: 5, fontSize: 11, fontWeight: 700, color: days < 14 ? 'var(--red)' : 'var(--ink-3)', whiteSpace: 'nowrap' }} className="mono">{new Date(e.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} · {days}h</span>
                   </div>
                 </div>
               );
@@ -285,7 +285,7 @@ function EngJadwal() {
               const active = m.ph === phIdx;
               return (
                 <div key={i} className="row gap8" style={{ padding: '7px 0', borderBottom: i < milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                  <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10 }}>{done ? <I.check size={11} /> : active ? '•' : ''}</span>
+                  <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11 }}>{done ? <I.check size={11} /> : active ? '•' : ''}</span>
                   <span style={{ fontSize: 12, color: done ? 'var(--ink-3)' : 'var(--ink)', fontWeight: active ? 600 : 400, flex: 1 }}>{m.t}</span>
                   <span className="tiny muted">{phases[m.ph]}</span>
                 </div>

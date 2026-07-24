@@ -420,7 +420,7 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
               <tr>
                 <th style={{ textAlign: 'left', fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, padding: '0 6px' }}>Area</th>
                 {EV_ASR.map(({ k, full }) => (
-                  <th key={k} title={full} style={{ width: 64, fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, padding: 2 }}>{k}<div className="tiny muted" style={{ fontWeight: 500, fontSize: 9 }}>{full.split(' / ')[0]}</div></th>
+                  <th key={k} title={full} style={{ width: 64, fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, padding: 2 }}>{k}<div className="tiny muted" style={{ fontWeight: 500, fontSize: 11 }}>{full.split(' / ')[0]}</div></th>
                 ))}
                 <th style={{ width: 70, fontSize: 11, color: 'var(--ink-3)', fontWeight: 700 }}>Rata²</th>
               </tr>

@@ -195,7 +195,7 @@ function FirmDashboard() {
           <div className="row gap12" style={{ alignItems: 'center' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,26px)', gridAutoRows: '26px', gap: 3 }}>
               {heat.slice().reverse().map((row, ri) => row.map((v, ci) => (
-                <div key={ri + '-' + ci} title={'Skor ' + v} style={{ background: colorFor(v), borderRadius: 3, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 9.5, fontFamily: 'var(--mono)', fontWeight: 700, opacity: .35 + (v / 20) * 0.65 }}>{v}</div>
+                <div key={ri + '-' + ci} title={'Skor ' + v} style={{ background: colorFor(v), borderRadius: 3, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 11, fontFamily: 'var(--mono)', fontWeight: 700, opacity: .35 + (v / 20) * 0.65 }}>{v}</div>
               )))}
             </div>
             <div style={{ flex: 1 }}>

@@ -281,7 +281,7 @@ function ISAK35View() {
                 )}
                 {tab === 'posisi' && !m.bs.balanced && <div style={{ marginTop: 14, color: '#b3261e', fontSize: 11, fontWeight: 600 }}>⚠ Posisi keuangan tidak seimbang — periksa pemetaan akun.</div>}
 
-                <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid #e0e4e8', color: '#7a8893', fontSize: 10.5, lineHeight: 1.5 }}>
+                <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid #e0e4e8', color: '#7a8893', fontSize: 11, lineHeight: 1.5 }}>
                   Catatan atas laporan keuangan merupakan bagian yang tidak terpisahkan dari laporan keuangan ini. Disusun sesuai ISAK 35 — Penyajian Laporan Keuangan Entitas Berorientasi Nonlaba; angka diturunkan dari saldo buku besar setelah penyesuaian audit (Asseris).
                   {allSigned && <span> · Disusun {signoff.prepared?.by} ({signoff.prepared?.date}); direviu {signoff.reviewed?.by} ({signoff.reviewed?.date}).</span>}
                 </div>
@@ -343,9 +343,9 @@ function I35EquityStatement({ m, sc }: any) {
       <thead>
         <tr style={{ borderBottom: '1.5px solid #2a3f4a' }}>
           <th style={{ textAlign: 'left', padding: '4px 0' }}></th>
-          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 10.5, width: 150 }}>Tanpa Pembatasan</th>
-          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 10.5, width: 150 }}>Dengan Pembatasan</th>
-          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 10.5, width: 130 }}>Total Aset Neto</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 150 }}>Tanpa Pembatasan</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 150 }}>Dengan Pembatasan</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 130 }}>Total Aset Neto</th>
         </tr>
       </thead>
       <tbody>
@@ -370,7 +370,7 @@ function I35Calk({ m, f0, disc }: any) {
     <div style={{ marginBottom: 13 }}>
       <div className="row ac gap8" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
-        {std && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#005085', background: '#e3eef6', padding: '1px 6px', borderRadius: 9 }}>{std}</span>}
+        {std && <span style={{ fontSize: 11, fontWeight: 700, color: '#005085', background: '#e3eef6', padding: '1px 6px', borderRadius: 9 }}>{std}</span>}
       </div>
       <div style={{ fontSize: 12, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
     </div>
@@ -390,7 +390,7 @@ function I35Calk({ m, f0, disc }: any) {
       {note('17', 'Peristiwa Setelah Periode Pelaporan', 'Tidak terdapat peristiwa penyesuai material setelah tanggal pelaporan selain yang telah diungkapkan.', 'PSAK 8')}
       <div className="row ac jb" style={{ marginTop: 8, padding: '8px 11px', background: '#f3f6f9', borderRadius: 6 }}>
         <span className="tiny" style={{ color: '#465a66', fontStyle: 'italic' }}>Catatan tertaut langsung ke saldo posisi keuangan & penghasilan komprehensif. Kelengkapan pengungkapan dipantau di panel "CALK".</span>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: done === disc.length ? '#1f7a4d' : '#9a6a00', whiteSpace: 'nowrap', marginLeft: 10 }}>{done}/{disc.length}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: done === disc.length ? '#1f7a4d' : '#9a6a00', whiteSpace: 'nowrap', marginLeft: 10 }}>{done}/{disc.length}</span>
       </div>
     </div>
   );

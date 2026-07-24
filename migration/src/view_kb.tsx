@@ -198,7 +198,7 @@ function KBCard({ a, onOpen }: any) {
         <div className="row ac gap8 wrap" style={{ marginBottom: 3 }}>
           <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.code}</span>
           <Badge kind={kbTypeKind(a.type)}>{a.type}</Badge>
-          {a.hot && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>SERING DIRUJUK</span>}
+          {a.hot && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>SERING DIRUJUK</span>}
           {a.fallback && <span className="tiny muted" title="Ringkasan otomatis dari registri">· ringkas</span>}
         </div>
         <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.35 }}>{a.title}</div>
@@ -279,7 +279,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row ac gap8" style={{ marginBottom: 4 }}>
               <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{reg.code}</span>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{fw.label}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{fw.label}</span>
             </div>
             <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1.25 }}>{reg.title}</div>
             <div style={{ color: '#bcd6e4', marginTop: 6, fontSize: 13 }}>{reg.phase} · {c.read || 5} mnt baca · {c.level || 'Inti'}</div>

@@ -165,9 +165,9 @@ function ClientOnboarding() {
                       <div key={p.id} className="panel" onClick={() => setSelId(p.id)}
                         style={{ padding: 10, cursor: 'pointer', borderTop: '3px solid ' + st.color, opacity: p.converted ? .72 : 1 }}>
                         <div className="row jb ac" style={{ marginBottom: 3 }}>
-                          <span className="badge" style={{ fontSize: 9, padding: '0 6px', background: p.kind === 'Keberlanjutan' ? 'var(--blue-100)' : 'var(--purple-bg)', color: p.kind === 'Keberlanjutan' ? 'var(--blue)' : 'var(--purple)' }}>{p.kind}</span>
-                          {p.converted ? <span className="badge b-green" style={{ fontSize: 9, padding: '0 6px' }}>Terkonversi</span>
-                            : pep ? <span className="badge b-red" style={{ fontSize: 9, padding: '0 6px' }}>PEP</span> : null}
+                          <span className="badge" style={{ fontSize: 11, padding: '0 6px', background: p.kind === 'Keberlanjutan' ? 'var(--blue-100)' : 'var(--purple-bg)', color: p.kind === 'Keberlanjutan' ? 'var(--blue)' : 'var(--purple)' }}>{p.kind}</span>
+                          {p.converted ? <span className="badge b-green" style={{ fontSize: 11, padding: '0 6px' }}>Terkonversi</span>
+                            : pep ? <span className="badge b-red" style={{ fontSize: 11, padding: '0 6px' }}>PEP</span> : null}
                         </div>
                         <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{p.name.replace('PT ', '')}</div>
                         <div className="tiny muted" style={{ marginBottom: 7 }}>{p.service}</div>
@@ -214,7 +214,7 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <span style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700, flex: '0 0 42px' }}>{p.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</span><span className="badge" style={{ fontSize: 9.5, background: 'rgba(255,255,255,.16)', color: '#fff' }}>{p.kind}</span>{p.listed && <span className="badge" style={{ fontSize: 9.5, background: 'rgba(255,255,255,.16)', color: '#fff' }}>IDX</span>}</div>
+            <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</span><span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: '#fff' }}>{p.kind}</span>{p.listed && <span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: '#fff' }}>IDX</span>}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{p.industry} · {p.service} · {p.standard} · {p.partner.split(',')[0]}</div>
           </div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>

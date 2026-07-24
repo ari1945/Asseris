@@ -110,13 +110,13 @@ function SYWorkPaper({ sy, fmt, rp, nav }: any) {
   );
   const Meta = ({ k, v, mono }: any) => (
     <div style={{ display: 'grid', gap: 1 }}>
-      <span className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700 }}>{k}</span>
+      <span className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 11, fontWeight: 700 }}>{k}</span>
       <span className={mono ? 'mono' : ''} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{v}</span>
     </div>
   );
   const Sign = ({ lbl, p, accent }: any) => (
     <div style={{ flex: 1, borderTop: '2px solid ' + (accent || 'var(--navy)'), paddingTop: 8 }}>
-      <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
+      <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 11, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
       <div className="tiny muted">{p.role}</div>
       <div className="tiny mono" style={{ color: 'var(--ink-3)', marginTop: 3 }}>{p.at}</div>

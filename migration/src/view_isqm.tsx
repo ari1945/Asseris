@@ -210,7 +210,7 @@ function SOQM() {
                                   <div style={{ display: 'grid', gap: 4 }}>
                                     {f.rca5.map((w: any, wi: any) => (
                                       <div key={wi} className="row gap8" style={{ alignItems: 'flex-start' }}>
-                                        <span style={{ flex: '0 0 16px', height: 16, borderRadius: 4, background: wi === f.rca5.length - 1 ? 'var(--amber)' : 'var(--blue)', color: '#fff', fontSize: 9, fontWeight: 700, display: 'grid', placeItems: 'center', marginTop: 1 }}>{wi + 1}</span>
+                                        <span style={{ flex: '0 0 16px', height: 16, borderRadius: 4, background: wi === f.rca5.length - 1 ? 'var(--amber)' : 'var(--blue)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'grid', placeItems: 'center', marginTop: 1 }}>{wi + 1}</span>
                                         <span className="tiny" style={{ lineHeight: 1.4, fontWeight: wi === f.rca5.length - 1 ? 700 : 400 }}>{w}</span>
                                       </div>
                                     ))}

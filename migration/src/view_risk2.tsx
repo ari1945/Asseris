@@ -81,8 +81,8 @@ function RiskKontrol() {
                 <td><Badge kind={c.type === 'Preventive' ? 'blue' : 'purple'}>{c.type === 'Preventive' ? 'Preventif' : 'Detektif'}</Badge></td>
                 <td className="tiny">{c.freq}</td>
                 <td className="tiny muted">{c.owner}</td>
-                <td>{c.auto ? <span className="badge b-green" style={{ fontSize: 8.5 }}>AUTO</span> : <span className="badge b-gray" style={{ fontSize: 8.5 }}>MANUAL</span>}</td>
-                <td><span className="badge" style={{ background: (EFF_COLOR as any)[c.effective], color: '#fff', fontSize: 9 }}>{c.effective}</span></td>
+                <td>{c.auto ? <span className="badge b-green" style={{ fontSize: 11 }}>AUTO</span> : <span className="badge b-gray" style={{ fontSize: 11 }}>MANUAL</span>}</td>
+                <td><span className="badge" style={{ background: (EFF_COLOR as any)[c.effective], color: '#fff', fontSize: 11 }}>{c.effective}</span></td>
                 <td>{c.risks.map((r: any) => <span key={r} className="chip tiny" style={{ marginRight: 3, cursor: 'pointer' }} onClick={() => nav('risk')}>{r}</span>)}</td>
               </tr>
             ))}
@@ -163,8 +163,8 @@ function RiskTren() {
               <tr key={r.id}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                 <td style={{ fontWeight: 600 }}>{r.area}</td>
-                <td className="num"><span className="badge" style={{ background: rScoreColor(r.inherent), color: '#fff', fontSize: 9 }}>{r.inherent}</span></td>
-                <td className="num"><span className="badge" style={{ background: rScoreColor(r.residual), color: '#fff', fontSize: 9 }}>{r.residual}</span></td>
+                <td className="num"><span className="badge" style={{ background: rScoreColor(r.inherent), color: '#fff', fontSize: 11 }}>{r.inherent}</span></td>
+                <td className="num"><span className="badge" style={{ background: rScoreColor(r.residual), color: '#fff', fontSize: 11 }}>{r.residual}</span></td>
                 <td className="num" style={{ fontWeight: 700, color: 'var(--green)' }}>-{r.reduction}</td>
                 <td><Progress value={r.inherent ? r.reduction / r.inherent * 100 : 0} color="var(--green)" /></td>
               </tr>

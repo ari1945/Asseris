@@ -72,7 +72,7 @@ function NoclarEthics() {
                   return (
                     <div key={i} className="row gap10" style={{ paddingBottom: i < STAGES.length - 1 ? 12 : 0 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto' }}>
-                        <span style={{ width: 20, height: 20, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: done || active ? '#fff' : 'var(--ink-3)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700 }}>{done ? <I.check size={11} /> : i + 1}</span>
+                        <span style={{ width: 20, height: 20, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: done || active ? '#fff' : 'var(--ink-3)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{done ? <I.check size={11} /> : i + 1}</span>
                         {i < STAGES.length - 1 && <span style={{ width: 1.5, flex: 1, minHeight: 16, background: done ? 'var(--green)' : 'var(--line)' }} />}
                       </div>
                       <div style={{ minWidth: 0, paddingBottom: 4 }}>

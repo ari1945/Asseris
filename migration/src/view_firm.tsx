@@ -108,7 +108,7 @@ function ClientCRM() {
                             <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 28px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                             <div style={{ minWidth: 0 }}>
                               <div className="truncate" style={{ fontWeight: 600, maxWidth: 180 }}>{c.name}</div>
-                              <div className="tiny muted mono">{c.id} {c.listed && <span className="badge b-blue" style={{ padding: '0 5px', fontSize: 9 }}>IDX</span>}</div>
+                              <div className="tiny muted mono">{c.id} {c.listed && <span className="badge b-blue" style={{ padding: '0 5px', fontSize: 11 }}>IDX</span>}</div>
                             </div>
                           </div>
                         </td>
@@ -162,7 +162,7 @@ function ClientCRM() {
                       <div key={i} className="panel" style={{ padding: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
                         <Avatar name={ct.name} size={32} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{ct.name}</span>{ct.pic && <span className="badge b-blue" style={{ fontSize: 8.5, padding: '0 5px' }}>PIC</span>}</div>
+                          <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{ct.name}</span>{ct.pic && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 5px' }}>PIC</span>}</div>
                           <div className="tiny muted">{ct.role}</div>
                           <div className="tiny mono" style={{ color: 'var(--blue)' }}>{ct.email}</div>
                         </div>
@@ -352,7 +352,7 @@ function EngagementMgmt() {
                           <div className="tiny muted" style={{ marginBottom: isEngagementPreAcceptance(e) ? 5 : 8 }}>{e.type}</div>
                           {isEngagementPreAcceptance(e) && (
                             <div style={{ marginBottom: 7 }} title="Akseptasi/keberlanjutan belum disetujui atau surat perikatan belum ditandatangani (SA 210/220) — akan menahan masuk Eksekusi">
-                              <span className="badge b-amber" style={{ fontSize: 9, padding: '0 6px' }}><I.lock size={9} /> Pra-akseptasi</span>
+                              <span className="badge b-amber" style={{ fontSize: 11, padding: '0 6px' }}><I.lock size={9} /> Pra-akseptasi</span>
                             </div>
                           )}
                           <div className="row ac gap6" style={{ marginBottom: 7 }}>
@@ -442,7 +442,7 @@ function EngagementDetail({ e, client, onClose }: any) {
               const active = mPhIdx === phIdx;
               return (
                 <div key={i} className="row gap8" style={{ padding: '7px 0', borderBottom: i < milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                  <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10 }}>{done ? <I.check size={11} /> : active ? '•' : ''}</span>
+                  <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11 }}>{done ? <I.check size={11} /> : active ? '•' : ''}</span>
                   <span style={{ fontSize: 12, color: done ? 'var(--ink-3)' : 'var(--ink)', fontWeight: active ? 600 : 400 }}>{m.t}</span>
                   {active && <span className="badge b-blue" style={{ marginLeft: 'auto' }}>Aktif</span>}
                 </div>

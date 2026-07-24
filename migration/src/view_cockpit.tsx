@@ -174,7 +174,7 @@ function AsrChips({ asr }: any) {
     <span className="row ac gap4">
       {asr.map((a: any) => {
         const m = PRG_ASSERT.find(x => x.c === a);
-        return <span key={a} title={m ? m.full : a} className="chip tiny" style={{ height: 17, padding: '0 5px', fontFamily: 'var(--mono)', fontSize: 9.5, fontWeight: 700 }}>{m ? m.l : a}</span>;
+        return <span key={a} title={m ? m.full : a} className="chip tiny" style={{ height: 17, padding: '0 5px', fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700 }}>{m ? m.l : a}</span>;
       })}
     </span>
   );
@@ -281,8 +281,8 @@ function AuditProgramme() {
                         <td colSpan={8}>
                           <span className="row ac gap6" style={{ cursor: 'pointer' }} onClick={() => nav('risk')}>
                             <span style={{ fontWeight: 700 }}>{r.area}</span>
-                            {r.sig && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>SIGNIFICANT</span>}
-                            {r.fraud && <span className="badge b-amber" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD · SA 240</span>}
+                            {r.sig && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>SIGNIFICANT</span>}
+                            {r.fraud && <span className="badge b-amber" style={{ fontSize: 11, padding: '0 5px' }}>FRAUD · SA 240</span>}
                             <span className="tiny muted" style={{ textTransform: 'none', letterSpacing: 0 }}>· {r.procs.length} prosedur</span>
                           </span>
                         </td>
@@ -296,7 +296,7 @@ function AuditProgramme() {
                               <span className="row ac gap6">
                                 <span className="prg-proc-link" style={{ lineHeight: 1.35 }} title={'Buka Kertas Kerja ' + p.wp}
                                   onClick={(e: ClickEv) => { e.stopPropagation(); openWp(p.wp); }}>{p.t}</span>
-                                {p.exc > 0 && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px', flex: '0 0 auto' }}>{p.exc} EXC</span>}
+                                {p.exc > 0 && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px', flex: '0 0 auto' }}>{p.exc} EXC</span>}
                               </span>
                             </td>
                             <td><NatTag nat={p.nat} /></td>
@@ -419,7 +419,7 @@ function AuditProgramme() {
                     return (
                       <tr key={r.riskId}>
                         <td className="mono tiny" style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => nav('risk')}>{r.riskId}</td>
-                        <td><span className="row ac gap6"><span style={{ fontWeight: 600, fontSize: 12 }}>{r.area}</span>{r.sig && <span className="badge b-red" style={{ fontSize: 8, padding: '0 4px' }}>SIG</span>}</span></td>
+                        <td><span className="row ac gap6"><span style={{ fontWeight: 600, fontSize: 12 }}>{r.area}</span>{r.sig && <span className="badge b-red" style={{ fontSize: 11, padding: '0 4px' }}>SIG</span>}</span></td>
                         {counts.map((n, i) => (
                           <td key={i} className="num" style={{ padding: 4 }}>
                             <div style={{ height: 26, borderRadius: 5, display: 'grid', placeItems: 'center', background: n === 0 ? 'transparent' : `rgba(0,80,133,${0.12 + Math.min(n, 3) * 0.22})`, color: n === 0 ? 'var(--ink-4)' : (n >= 2 ? '#fff' : 'var(--navy)'), fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 12, border: n === 0 ? '1px dashed var(--line)' : 'none' }}>{n || '·'}</div>
@@ -534,7 +534,7 @@ function AuditProgramme() {
           .prg-sug{border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:8px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}
           .prg-sug.on{border-color:var(--blue);background:var(--blue-050)}
           .prg-asr-pick{display:flex;gap:5px;flex-wrap:wrap}
-          .prg-asr-pick button{font:700 9.5px var(--mono);height:22px;padding:0 7px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink-3);cursor:pointer}
+          .prg-asr-pick button{font:700 11px var(--mono);height:22px;padding:0 7px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink-3);cursor:pointer}
           .prg-asr-pick button.on{background:var(--navy-solid);color:#fff;border-color:var(--navy)}
         `}</style>
       </div></div>
@@ -669,8 +669,8 @@ function SuggestModal({ prog, scope, onClose, onAdd }: { prog: Risk[]; scope: st
               <div className="row ac gap6" style={{ marginBottom: 7 }}>
                 <span className="mono tiny" style={{ fontWeight: 700 }}>{g.risk.riskId}</span>
                 <span style={{ fontWeight: 700, fontSize: 12 }}>{g.risk.area}</span>
-                {g.risk.sig && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>SIGNIFICANT</span>}
-                {g.risk.fraud && <span className="badge b-amber" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD · SA 240</span>}
+                {g.risk.sig && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>SIGNIFICANT</span>}
+                {g.risk.fraud && <span className="badge b-amber" style={{ fontSize: 11, padding: '0 5px' }}>FRAUD · SA 240</span>}
               </div>
               {g.sugs.map((s: Tpl, i: number) => {
                 const k = keyOf(g.risk.riskId, i);

@@ -478,7 +478,7 @@ function SOCoverageBar({ coverage }: any) {
       {months.map((m, i) => (
         <div key={i} style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ height: 18, borderRadius: 3, background: fill[i] ? (coverage === 'design' ? 'var(--amber)' : 'var(--green)') : 'var(--line)', opacity: fill[i] ? 1 : 0.7 }} />
-          <div className="mono" style={{ fontSize: 8.5, color: 'var(--ink-4)', marginTop: 2 }}>{m}</div>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 2 }}>{m}</div>
         </div>
       ))}
     </div>

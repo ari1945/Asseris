@@ -212,7 +212,7 @@ function BIKlien() {
                       const v = co.retained[yi];
                       if (v == null) return <td key={yi} className="num muted">—</td>;
                       const pct = Math.round(v / co.start * 100);
-                      return <td key={yi} className="num" style={{ background: 'rgba(31,122,77,' + (pct / 100 * 0.35) + ')', fontWeight: yi === 0 ? 700 : 500 }}>{v} <span className="muted" style={{ fontSize: 9.5 }}>{pct}%</span></td>;
+                      return <td key={yi} className="num" style={{ background: 'rgba(31,122,77,' + (pct / 100 * 0.35) + ')', fontWeight: yi === 0 ? 700 : 500 }}>{v} <span className="muted" style={{ fontSize: 11 }}>{pct}%</span></td>;
                     })}
                   </tr>
                 ))}
@@ -232,7 +232,7 @@ function BIKlien() {
               const h = C360[c.id] || {};
               return (
                 <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => nav('crm')}>
-                  <td><span className="row ac gap6" style={{ fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 8, padding: '0 4px' }}>IDX</span>}</span></td>
+                  <td><span className="row ac gap6" style={{ fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 4px' }}>IDX</span>}</span></td>
                   <td className="tiny muted truncate" style={{ maxWidth: 150 }}>{c.industry}</td>
                   <td className="num">Rp {fmt(c.fee / 1e6, 0)} jt</td>
                   <td className="num">{h.tenure || c.since ? (h.tenure || (2026 - c.since)) + ' th' : '—'}</td>

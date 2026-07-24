@@ -143,7 +143,7 @@ function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }: any)
       </div>
       <div className="row jb tiny muted" style={{ marginTop: 5 }}>
         {labels.map((l: any, i: any) => (i === 0 || i === labels.length - 1 || (labels.length <= 8) || i % Math.ceil(labels.length / 6) === 0)
-          ? <span key={i} style={{ fontSize: 9.5 }}>{l}</span> : <span key={i} />)}
+          ? <span key={i} style={{ fontSize: 11 }}>{l}</span> : <span key={i} />)}
       </div>
       {series.length > 1 && (
         <div className="row gap12 ac" style={{ marginTop: 6, flexWrap: 'wrap' }}>

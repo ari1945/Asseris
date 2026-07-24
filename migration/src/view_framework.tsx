@@ -160,7 +160,7 @@ function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
           onChange={(e: any) => onChange(Number(e.target.value))}
           style={{ width: '100%', accentColor: over ? 'var(--amber)' : 'var(--teal)' }} />
         <div style={{ position: 'absolute', left: ceilPct + '%', top: -2, bottom: 14, width: 2, background: 'var(--red-solid)', opacity: .7, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', left: ceilPct + '%', top: -16, transform: 'translateX(-50%)', fontSize: 9.5, fontWeight: 700, color: 'var(--red)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>batas UMKM {unit}</div>
+        <div style={{ position: 'absolute', left: ceilPct + '%', top: -16, transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: 'var(--red)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>batas UMKM {unit}</div>
       </div>
     </div>
   );
@@ -178,7 +178,7 @@ function FWGateNode({ n, q, active, dim, accent }: any) {
       boxShadow: active ? '0 1px 8px rgba(7,30,42,.08)' : 'none',
     }}>
       <div className="row ac gap8">
-        <span className="mono" style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--blue)', background: 'var(--blue-100,#e2edf4)', padding: '2px 6px', borderRadius: 5 }}>{n}</span>
+        <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--blue-100,#e2edf4)', padding: '2px 6px', borderRadius: 5 }}>{n}</span>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{q}</span>
       </div>
     </div>
@@ -190,7 +190,7 @@ function FWBranch({ label, taken, dim, accent }: any) {
     <div className="row ac gap8" style={{ paddingLeft: 14, opacity: dim ? .4 : 1, transition: '.15s' }}>
       <span style={{ width: 18, height: 1.5, background: taken ? accent : 'var(--line-strong)' }} />
       <span style={{
-        fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
+        fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
         color: taken ? '#fff' : 'var(--ink-3)', background: taken ? accent : 'var(--surface-2)',
         border: '1px solid ' + (taken ? accent : 'var(--line)'),
       }}>{label}</span>
@@ -481,7 +481,7 @@ function FrameworkView() {
       <style>{`
         .fw-range{ height: 4px; border-radius: 3px; }
         .fw-tbl{ width:100%; border-collapse:collapse; font-size:12px; }
-        .fw-tbl th{ text-align:left; background:var(--surface-2); color:var(--ink-3); font-size:10px; text-transform:uppercase; letter-spacing:.05em; padding:8px 11px; font-weight:700; border-bottom:1px solid var(--line); white-space:nowrap; }
+        .fw-tbl th{ text-align:left; background:var(--surface-2); color:var(--ink-3); font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 11px; font-weight:700; border-bottom:1px solid var(--line); white-space:nowrap; }
         .fw-tbl td{ padding:9px 11px; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
         .fw-tbl tbody tr:last-child td{ border-bottom:none; }
         .fw-tbl tbody tr:hover td{ background:var(--surface-2); }

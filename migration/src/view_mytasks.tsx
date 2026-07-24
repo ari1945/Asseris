@@ -74,7 +74,7 @@ function TaskDetail({ t, mt, nav }: any) {
         {/* subtasks */}
         <div>
           <div className="row jb ac" style={{ marginBottom: 4 }}>
-            <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-4)' }}>Checklist</label>
+            <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-4)' }}>Checklist</label>
             {t.subTotal > 0 && <span className="tiny muted mono">{t.subDone}/{t.subTotal}</span>}
           </div>
           {t.subTotal > 0 && <div className="mt-mini" style={{ height: 5, marginBottom: 8 }}><span style={{ width: Math.round(t.progress * 100) + '%', background: t.progress === 1 ? 'var(--green)' : 'var(--blue)' }} /></div>}
@@ -222,7 +222,7 @@ function MyTasks() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.done} label="Selesai" accent="var(--green)" /></div></Panel>
           <Panel>
             <div style={{ padding: '15px 18px' }}>
-              <div className="row jb tiny" style={{ marginBottom: 6 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-3)', fontSize: 10.5 }}>Penyelesaian</span><span className="mono" style={{ fontWeight: 700, color: 'var(--navy)' }}>{donePct}%</span></div>
+              <div className="row jb tiny" style={{ marginBottom: 6 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-3)', fontSize: 11 }}>Penyelesaian</span><span className="mono" style={{ fontWeight: 700, color: 'var(--navy)' }}>{donePct}%</span></div>
               <div className="mt-mini" style={{ height: 8 }}><span style={{ width: donePct + '%', background: 'var(--green-solid)' }} /></div>
               <div className="tiny muted" style={{ marginTop: 7 }}>Estimasi beban minggu ini: <b className="mono" style={{ color: 'var(--ink)' }}>{stats.estWeek.toFixed(1)} jam</b></div>
             </div>

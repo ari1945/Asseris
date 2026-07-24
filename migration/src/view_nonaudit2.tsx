@@ -20,7 +20,7 @@ function NAReport({ kind, engId, onClose }: any) {
   const Paper = ({ title, std, children, signer }: any) => (
     <div className="doc-paper" style={{ background: '#fff', maxWidth: 640, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
       <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 16, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>
-        <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>{FIRM.license}</div></div>
+        <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>{FIRM.license}</div></div>
         <div className="tiny" style={{ color: '#7a8893', textAlign: 'right' }}>{std}</div>
       </div>
       <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 16, letterSpacing: '.01em' }}>{title}</div>

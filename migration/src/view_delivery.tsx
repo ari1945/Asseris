@@ -102,7 +102,7 @@ function DeliveryMilestones() {
           <div style={{ padding: '4px 14px 14px' }}>
             {/* month header */}
             <div style={{ position: 'relative', height: 18, marginLeft: 214, borderBottom: '1px solid var(--line)' }}>
-              {months.map((m: any, i: any) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 9.5, letterSpacing: '.04em' }}>{m.label}</span>)}
+              {months.map((m: any, i: any) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 11, letterSpacing: '.04em' }}>{m.label}</span>)}
               <span style={{ position: 'absolute', left: frac(today) + '%', top: -2, bottom: -2000, width: 2, background: 'var(--red-solid)', opacity: .8, zIndex: 3 }} />
             </div>
             {shown.map((r: any, ri: any) => {

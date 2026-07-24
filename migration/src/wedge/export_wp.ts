@@ -97,7 +97,7 @@ export async function exportWpPdf(rv: WpReview, meta: WpMeta): Promise<SealBlock
   y += 12;
 
   autoTable(doc, {
-    startY: y, styles: { fontSize: 8, cellPadding: 3 }, headStyles: { fillColor: [22, 35, 58] },
+    startY: y, styles: { fontSize: 11, cellPadding: 3 }, headStyles: { fillColor: [22, 35, 58] },
     head: [['#', 'Sev', 'Standar', 'Judul', 'Keputusan']],
     body: (rv.findings || []).map((f, i) => [i + 1, f.sev, f.std, f.title, verdictLabel((rv.decisions[f.id] || {}).verdict)]),
   });
@@ -106,7 +106,7 @@ export async function exportWpPdf(rv: WpReview, meta: WpMeta): Promise<SealBlock
   doc.setFontSize(10).setFont(undefined, 'bold').text('Segel provenans (Ed25519 lokal)', M, afterY);
   afterY += 6;
   autoTable(doc, {
-    startY: afterY, styles: { fontSize: 7, cellPadding: 3 }, theme: 'plain',
+    startY: afterY, styles: { fontSize: 11, cellPadding: 3 }, theme: 'plain',
     body: sealRows(seal).map(r => [r[0], r[1]]),
     columnStyles: { 0: { fontStyle: 'bold', cellWidth: 110 } },
   });

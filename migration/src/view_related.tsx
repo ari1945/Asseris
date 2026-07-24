@@ -238,7 +238,7 @@ function RelatedParties() {
                           const on = i <= idx;
                           return <React.Fragment key={s}>
                             {i > 0 && <div style={{ flex: 1, height: 2, background: i <= idx ? 'var(--green)' : 'var(--line)' }} />}
-                            <div style={{ display: 'grid', placeItems: 'center', gap: 2 }} title={s}><span style={{ width: 16, height: 16, borderRadius: '50%', background: on ? 'var(--green)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9 }}>{on ? <I.check size={10} /> : i + 1}</span></div>
+                            <div style={{ display: 'grid', placeItems: 'center', gap: 2 }} title={s}><span style={{ width: 16, height: 16, borderRadius: '50%', background: on ? 'var(--green)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11 }}>{on ? <I.check size={10} /> : i + 1}</span></div>
                           </React.Fragment>;
                         })}
                       </div>

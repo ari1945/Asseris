@@ -103,7 +103,7 @@ function HcPortofolio({ rows, nav, grip }: { rows: PortRow[]; nav: NavFn; grip: 
           {rows.map((e) => (
             <tr key={e.id} style={{ cursor: 'pointer' }} onClick={() => e.open()}>
               <td className="truncate" style={{ maxWidth: 220, fontWeight: 600 }}>{e.clientName}</td>
-              <td><span className="avatar" style={{ width: 24, height: 24, fontSize: 9.5 }} title={e.partner}>{hcInitials(e.partner)}</span></td>
+              <td><span className="avatar" style={{ width: 24, height: 24, fontSize: 11 }} title={e.partner}>{hcInitials(e.partner)}</span></td>
               <td><Badge kind={HC_PHASE_KIND[e.phase] || 'gray'}>{e.phase}</Badge></td>
               <td><div className="row ac gap8"><div style={{ flex: 1 }}><Progress value={e.progress} color={e.progress >= 75 ? 'var(--green)' : undefined} /></div><span className="mono tiny" style={{ width: 30, textAlign: 'right' }}>{e.progress}%</span></div></td>
               <td className="tiny mono" style={{ color: e.dueKind === 'red' ? 'var(--red)' : e.dueKind === 'amber' ? 'var(--amber)' : 'var(--ink-3)' }}>{e.dueLabel}</td>

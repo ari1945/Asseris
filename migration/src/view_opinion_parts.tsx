@@ -207,7 +207,7 @@ function DeterminationPanel({ doc, patch }: any) {
           <Field label="3 · Kelangsungan usaha (SA 570)">
             <div className="seg" style={{ width: '100%' }}>
               {[['none', 'Tdk Ada'], ['adequate', 'Layak'], ['mu', 'KU Material'], ['inadequate', 'Tdk Layak']].map(([v, l]) =>
-                <button key={v} className={doc.gcStatus === v ? 'on' : ''} style={{ flex: 1, fontSize: 10.5 }} onClick={() => patch({ gcStatus: v, opts: { ...doc.opts, gc: v === 'mu' } })}>{l}</button>)}
+                <button key={v} className={doc.gcStatus === v ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} onClick={() => patch({ gcStatus: v, opts: { ...doc.opts, gc: v === 'mu' } })}>{l}</button>)}
             </div>
             <div className="tiny muted" style={{ marginTop: 6 }}>{({
               none: 'Tidak terdapat peristiwa/kondisi yang meragukan kelangsungan usaha.',
@@ -246,7 +246,7 @@ function DeterminationPanel({ doc, patch }: any) {
 function ThreshCard({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
-      <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
+      <div className="tiny muted upper" style={{ fontSize: 11 }}>{label}</div>
       <div className="mono" style={{ fontWeight: 700, fontSize: 13, marginTop: 3, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );

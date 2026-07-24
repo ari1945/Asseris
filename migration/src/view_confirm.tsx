@@ -530,7 +530,7 @@ function ConfirmationHub() {
               <div className="row gap12 ac">
                 <Donut segments={segs} size={62} thickness={10} center={<div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{rate}%</div>} />
                 <div style={{ flex: 1 }}>
-                  {segs.map(s => <div key={s.label} className="row jb ac" style={{ fontSize: 10.5 }}><span className="row ac" style={{ gap: 5 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: s.color }} />{s.label}</span><b className="mono">{s.value}</b></div>)}
+                  {segs.map(s => <div key={s.label} className="row jb ac" style={{ fontSize: 11 }}><span className="row ac" style={{ gap: 5 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: s.color }} />{s.label}</span><b className="mono">{s.value}</b></div>)}
                 </div>
               </div>
             </div></Panel>

@@ -263,7 +263,7 @@ function ComplianceMatrix() {
                       onMouseLeave={(e: any) => { e.currentTarget.style.background = 'transparent'; }}>
                       <div style={{ minWidth: 0 }}>
                         <div className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{newNum && al ? al.code : r.code}</div>
-                        {al && <div className="mono" style={{ fontSize: 9.5, color: 'var(--ink-4)', marginTop: 2, whiteSpace: 'nowrap' }}>{newNum ? ('lama ' + r.code) : ('\u2261 ' + al.code)}</div>}
+                        {al && <div className="mono" style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 2, whiteSpace: 'nowrap' }}>{newNum ? ('lama ' + r.code) : ('\u2261 ' + al.code)}</div>}
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{r.title}</div>

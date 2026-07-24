@@ -118,7 +118,7 @@ export async function amsExportPdf(model: any) {
     } else if (b.type === 'kv') {
       autoTable(doc, {
         startY: y, margin: { left: MARGIN, right: MARGIN }, theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 5, lineColor: LINE, lineWidth: 0.5 },
+        styles: { fontSize: 11, cellPadding: 5, lineColor: LINE, lineWidth: 0.5 },
         columnStyles: { 0: { textColor: [70, 80, 88] }, 1: { halign: 'right', font: 'courier', fontStyle: 'bold', textColor: NAVY } },
         body: b.rows,
       });
@@ -127,8 +127,8 @@ export async function amsExportPdf(model: any) {
       const bold = new Set(b.boldRows || []); // row indices to render bold (FS sections/totals)
       autoTable(doc, {
         startY: y, margin: { left: MARGIN, right: MARGIN }, theme: 'striped',
-        headStyles: { fillColor: NAVY, fontSize: 9.5 },
-        styles: { fontSize: 9, cellPadding: 4 },
+        headStyles: { fillColor: NAVY, fontSize: 11 },
+        styles: { fontSize: 11, cellPadding: 4 },
         columnStyles: b.columnStyles || {},
         head: [b.head], body: b.body,
         didParseCell: bold.size ? (data: any) => { if (data.section === 'body' && bold.has(data.row.index)) data.cell.styles.fontStyle = 'bold'; } : undefined,

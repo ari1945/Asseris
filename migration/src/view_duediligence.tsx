@@ -214,7 +214,7 @@ function DueDiligence() {
                           <div style={{ width: '100%', maxWidth: 20, height: (m.rev / revMax * 96) + 'px', borderRadius: '3px 3px 0 0', background: 'var(--blue-solid)', opacity: .85, position: 'relative' }}>
                             <span style={{ position: 'absolute', top: -3, left: '50%', transform: 'translate(-50%,-100%)', width: 6, height: 6, borderRadius: '50%', background: 'var(--green-solid)', boxShadow: '0 0 0 2px #fff' }} />
                           </div>
-                          <span className="tiny muted" style={{ fontSize: 9 }}>{m.m}</span>
+                          <span className="tiny muted" style={{ fontSize: 11 }}>{m.m}</span>
                         </div>
                       ))}
                     </div>
@@ -274,7 +274,7 @@ function DueDiligence() {
                         return (
                           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }} title={months[i] + ': Rp ' + v + ' M'}>
                             <div style={{ width: '100%', maxWidth: 20, height: (v / nwcMax * 122) + 'px', borderRadius: '3px 3px 0 0', background: last ? 'var(--navy)' : 'var(--teal)', opacity: last ? 1 : .55 }} />
-                            <span className="tiny muted" style={{ fontSize: 9 }}>{months[i]}</span>
+                            <span className="tiny muted" style={{ fontSize: 11 }}>{months[i]}</span>
                           </div>
                         );
                       })}

@@ -83,8 +83,8 @@ function Profile360Drawer({ s, onClose }: any) {
             <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{s.name}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{s.role} · {s.id} · {p.location}</div>
             <div className="row gap6 ac" style={{ marginTop: 5 }}>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{s.grade} · Band {p.band}</span>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{s.cert}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{s.grade} · Band {p.band}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{s.cert}</span>
             </div>
           </div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -92,7 +92,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 16 }}>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 10, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 11, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
             <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
@@ -232,7 +232,7 @@ function HCMAnalytics() {
                     <div title={'Exit ' + t.exits} style={{ width: 9, height: (t.exits / 8 * 100) + '%', minHeight: 4, background: 'var(--red-solid)', borderRadius: '2px 2px 0 0' }} />
                   </div>
                   <div className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{t.total}</div>
-                  <div className="tiny muted" style={{ fontSize: 9.5 }}>{t.q}</div>
+                  <div className="tiny muted" style={{ fontSize: 11 }}>{t.q}</div>
                 </div>
               ))}
             </div>

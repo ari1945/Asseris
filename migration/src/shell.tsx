@@ -67,7 +67,7 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
                 return (
                   <div key={e.id} onClick={() => { setActiveEngagementId(e.id); setOpen(false); }}
                        style={{ padding: '9px 12px', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', borderBottom: '1px solid var(--line-soft)', background: on ? 'var(--blue-050)' : 'transparent' }}>
-                    <span style={{ width: 30, height: 30, borderRadius: 7, background: on ? 'var(--blue)' : 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700, flex: '0 0 30px' }}>{c?.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+                    <span style={{ width: 30, height: 30, borderRadius: 7, background: on ? 'var(--blue)' : 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 30px' }}>{c?.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{c?.name}</div>
                       <div className="tiny muted mono">{e.id} · {e.fy} · {e.phase}</div>

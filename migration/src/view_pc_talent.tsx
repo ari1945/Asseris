@@ -202,7 +202,7 @@ function Learning() {
           {tab === 'matrix' && (
             <div style={{ padding: 14, overflowX: 'auto' }}>
               <table className="dtbl" style={{ minWidth: 820 }}>
-                <thead><tr><th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)', minWidth: 160 }}>Karyawan</th>{COMP.map((c: any) => <th key={c.id} className="num" style={{ minWidth: 78, fontSize: 10, verticalAlign: 'bottom' }}>{c.name}</th>)}<th className="num">Gap</th></tr></thead>
+                <thead><tr><th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)', minWidth: 160 }}>Karyawan</th>{COMP.map((c: any) => <th key={c.id} className="num" style={{ minWidth: 78, fontSize: 11, verticalAlign: 'bottom' }}>{c.name}</th>)}<th className="num">Gap</th></tr></thead>
                 <tbody>
                   {staff.map((s: any) => {
                     const gaps = COMP.filter((c: any) => actualOf(s, c.id) < REQ[s.grade][c.id]).length;
@@ -262,7 +262,7 @@ function Learning() {
               <table className="dtbl" style={{ minWidth: 760 }}>
                 <thead><tr>
                   <th style={{ position: 'sticky', left: 0, background: 'var(--surface-2)', minWidth: 150 }}>Karyawan</th>
-                  {A.TRAINING_CATALOG.map((t: any) => <th key={t.id} className="num" style={{ minWidth: 70, fontSize: 10, verticalAlign: 'bottom' }} title={t.title}>{t.id}<div className="tiny muted mono">{t.skp} SKP</div></th>)}
+                  {A.TRAINING_CATALOG.map((t: any) => <th key={t.id} className="num" style={{ minWidth: 70, fontSize: 11, verticalAlign: 'bottom' }} title={t.title}>{t.id}<div className="tiny muted mono">{t.skp} SKP</div></th>)}
                   <th className="num">Σ SKP</th>
                 </tr></thead>
                 <tbody>

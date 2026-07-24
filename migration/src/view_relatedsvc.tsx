@@ -44,8 +44,8 @@ function AupWorksheet({ p }: any) {
   const valDisp = (n: any) => m.money ? ('Rp ' + fmt(n, 0) + ' jt') : (fmt(n, m.dp) + m.unit);
   const compDisp = m.count ? (m.computed + ' keterlambatan') : valDisp(m.computed);
   const threshDisp = m.count ? m.requirement : valDisp(m.threshold);
-  const th = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', padding: '4px 8px', border: '1px solid var(--line-strong)', fontSize: 10.5 };
-  const rn = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', border: '1px solid var(--line-strong)', width: 30, fontSize: 10.5 };
+  const th = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', padding: '4px 8px', border: '1px solid var(--line-strong)', fontSize: 11 };
+  const rn = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', border: '1px solid var(--line-strong)', width: 30, fontSize: 11 };
   const ca = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 12 };
   const cb = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 12, textAlign: 'right', fontWeight: 600 };
   let r = 0;
@@ -54,7 +54,7 @@ function AupWorksheet({ p }: any) {
   return (
     <div style={{ border: '1px solid var(--line-strong)', borderRadius: 8, overflow: 'hidden' }}>
       <div className="row ac gap8" style={{ padding: '6px 10px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line-strong)' }}>
-        <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink-3)', border: '1px solid var(--line-strong)', borderRadius: 4, padding: '1px 6px', background: '#fff' }}>fx</span>
+        <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-3)', border: '1px solid var(--line-strong)', borderRadius: 4, padding: '1px 6px', background: '#fff' }}>fx</span>
         <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{m.formula}</span>
         <span className="tiny muted">— {m.recompute}</span>
       </div>

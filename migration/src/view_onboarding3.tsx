@@ -140,7 +140,7 @@ function OBAcceptance() {
                 return (
                   <tr key={p.id} className={p.id === selId ? 'sel' : ''} style={{ cursor: 'pointer' }} onClick={() => setSelId(p.id)}>
                     <td><div style={{ fontWeight: 600 }} className="truncate">{p.name.replace('PT ', '')}</div><div className="tiny muted">{p.kind}</div></td>
-                    <td className="num"><span className="badge" style={{ background: 'var(--' + v.k + ')', color: '#fff', fontSize: 9 }}>{sc.toFixed(1)}</span></td>
+                    <td className="num"><span className="badge" style={{ background: 'var(--' + v.k + ')', color: '#fff', fontSize: 11 }}>{sc.toFixed(1)}</span></td>
                     <td><Badge kind={p.acceptance && p.acceptance.approved ? (v.k === 'red' ? 'red' : v.k === 'amber' ? 'amber' : 'green') : 'gray'}>{p.acceptance && p.acceptance.decision || 'Pending'}</Badge></td>
                     <td className="tiny muted truncate" style={{ maxWidth: 110 }}>{p.acceptance && p.acceptance.approver ? p.acceptance.approver.split(',')[0] : '—'}</td>
                     <td className="num tiny">{p.acceptance && p.acceptance.date || '—'}</td>
@@ -214,7 +214,7 @@ function OBAml() {
                     <td><Badge kind={(riskColor as any)[p.pmpj.riskRating] || 'gray'}>{p.pmpj.riskRating}</Badge></td>
                     <td className="tiny">{p.pmpj.cddLevel}</td>
                     <td className="num">{(p.pmpj.ubo || []).length}</td>
-                    <td>{pep ? <span className="badge b-red" style={{ fontSize: 9 }}>PEP</span> : <span className="badge b-green" style={{ fontSize: 9 }}>Bersih</span>}</td>
+                    <td>{pep ? <span className="badge b-red" style={{ fontSize: 11 }}>PEP</span> : <span className="badge b-green" style={{ fontSize: 11 }}>Bersih</span>}</td>
                     <td><Badge kind={p.pmpj.verified ? 'green' : 'amber'}>{p.pmpj.verified ? 'Terverifikasi' : 'Proses'}</Badge></td>
                   </tr>
                 );
@@ -229,7 +229,7 @@ function OBAml() {
               {(pmpj.ubo || []).map((u: any, i: any) => (
                 <div key={i} className="row ac gap10" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)' }}>
                   <Avatar name={u.name} size={28} />
-                  <div style={{ flex: 1, minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{u.name}</span>{u.pep && <span className="badge b-red" style={{ fontSize: 8.5 }}>PEP</span>}</div><div className="tiny muted">{u.role} · {u.idType} {u.idNo}</div></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{u.name}</span>{u.pep && <span className="badge b-red" style={{ fontSize: 11 }}>PEP</span>}</div><div className="tiny muted">{u.role} · {u.idType} {u.idNo}</div></div>
                   <span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{u.pct}%</span>
                 </div>
               ))}

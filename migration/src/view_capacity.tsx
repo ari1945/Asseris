@@ -120,7 +120,7 @@ function CapacityPlanning() {
                       {/* capacity tick */}
                       <div style={{ position: 'absolute', bottom: supH + '%', left: '12%', right: '12%', borderTop: '2px dashed var(--ink-4)' }} />
                     </div>
-                    <div className="tiny muted" style={{ marginTop: 6, fontSize: 10 }}>{wk}</div>
+                    <div className="tiny muted" style={{ marginTop: 6, fontSize: 11 }}>{wk}</div>
                   </div>
                 );
               })}
@@ -174,7 +174,7 @@ function CapacityPlanning() {
                       <td><div className="row ac gap8"><Avatar name={s.name} size={22} /><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{s.name}</div><div className="tiny muted" style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 7, height: 7, borderRadius: 2, background: (CAP_GRADE_COLOR as any)[s.grade] }} />{s.grade}</div></div></div></td>
                       {s.forecast.map((v: any, i: any) => {
                         const cc = capCell(v, s.leave);
-                        return <td key={i} style={{ textAlign: 'center', padding: '3px 4px' }}><div style={{ background: cc.bg, color: cc.fg, fontFamily: 'var(--mono)', fontSize: 10.5, fontWeight: 700, borderRadius: 4, height: 22, display: 'grid', placeItems: 'center' }}>{s.leave && v === 0 ? 'cuti' : v + '%'}</div></td>;
+                        return <td key={i} style={{ textAlign: 'center', padding: '3px 4px' }}><div style={{ background: cc.bg, color: cc.fg, fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700, borderRadius: 4, height: 22, display: 'grid', placeItems: 'center' }}>{s.leave && v === 0 ? 'cuti' : v + '%'}</div></td>;
                       })}
                       <td className="num" style={{ fontWeight: 700, color: utilColor(avg) }}>{fmt(avg, 0)}%</td>
                     </tr>

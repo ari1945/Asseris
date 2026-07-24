@@ -166,7 +166,7 @@ function SAKRoadmapView() {
                                   title={s.title}
                                   style={{ padding: '6px 8px', borderRadius: 7, background: st.bg, borderLeft: '3px solid ' + st.color, cursor: s.view ? 'pointer' : 'default' }}>
                                   <div className="mono" style={{ fontSize: 11, fontWeight: 700, color: st.color }}>{s.code}</div>
-                                  <div style={{ fontSize: 10.5, color: 'var(--ink-2)', lineHeight: 1.3, marginTop: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{s.title}</div>
+                                  <div style={{ fontSize: 11, color: 'var(--ink-2)', lineHeight: 1.3, marginTop: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{s.title}</div>
                                 </div>
                               );
                             })}

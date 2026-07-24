@@ -521,7 +521,7 @@ function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComp
 function RN_Meta({ label, value }: any) {
   return (
     <div style={{ minWidth: 0 }}>
-      <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-4)', fontSize: 9.5, marginBottom: 2 }}>{label}</div>
+      <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-4)', fontSize: 11, marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{value}</div>
     </div>
   );
