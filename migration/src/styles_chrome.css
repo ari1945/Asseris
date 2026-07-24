@@ -147,10 +147,15 @@ body.dense .pagehead-titles { min-width: 120px; }
 @keyframes saBackdropIn { from { background: rgba(15,23,42,0); } to { background: rgba(15,23,42,.34); } }
 
 /* ---------- Sidebar ---------- */
+/* Warna teks sidebar: PUTIH SERAGAM (keputusan Ari 2026-07-25). Tidak ada label
+   abu-abu (--on-navy / --on-navy-dim) di dalam .sidebar. Hierarki visual dibawa
+   oleh ukuran, tebal huruf, uppercase, opacity IKON, dan latar (.active/.lead) —
+   bukan oleh perbedaan rona teks. Satu-satunya pengecualian: placeholder input
+   pencarian (putih beralfa, supaya tak terbaca sebagai nilai terisi). */
 .sidebar {
   width: 232px; flex: 0 0 232px;
   background: var(--navy);
-  color: var(--on-navy);
+  color: #fff;
   display: flex; flex-direction: column;
   border-right: 1px solid #00202e;
   transition: width .16s ease, flex-basis .16s ease;
@@ -163,20 +168,20 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-group-h {
   display: flex; align-items: center; gap: 7px;
   padding: 6px 12px 4px; font-size: 9.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .1em; color: var(--on-navy-dim);
+  text-transform: uppercase; letter-spacing: .1em; color: #fff;
   cursor: pointer; user-select: none;
 }
-.side-group-h:hover { color: #bcd6e4; }
+.side-group-h:hover { color: #fff; }
 .side-group-h .chev { margin-left: auto; transition: transform .15s; opacity: .6; }
 .side-group.closed .chev { transform: rotate(-90deg); }
 
 .side-item {
   display: flex; align-items: center; gap: 9px;
   height: 27px; padding: 0 12px; margin: 0 6px;
-  border-radius: 5px; font-size: 12.5px; color: var(--on-navy);
+  border-radius: 5px; font-size: 12.5px; color: #fff;
   cursor: pointer; position: relative; user-select: none;
 }
-.side-item:hover { background: rgba(255,255,255,.07); color: #eaf3f8; }
+.side-item:hover { background: rgba(255,255,255,.07); color: #fff; }
 .side-item.active { background: var(--blue); color: #fff; font-weight: 600; }
 .side-item.active::before {
   content: ''; position: absolute; left: -6px; top: 4px; bottom: 4px;
@@ -187,9 +192,9 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-item .lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-item .tag {
   font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 9px;
-  background: rgba(255,255,255,.14); color: #cfe6f2;
+  background: rgba(255,255,255,.14); color: #fff;
 }
-.side-item .tag.soon { background: rgba(255,255,255,.07); color: #6f8a9a; }
+.side-item .tag.soon { background: rgba(255,255,255,.07); color: #fff; }
 .sidebar.collapsed .lbl, .sidebar.collapsed .tag, .sidebar.collapsed .side-group-h span,
 .sidebar.collapsed .chev { display: none; }
 .sidebar.collapsed .side-item { justify-content: center; padding: 0; margin: 2px 6px; }
@@ -205,55 +210,59 @@ body.dense .pagehead-titles { min-width: 120px; }
 }
 .side-pin-h {
   display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
-  font: 700 9px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #bfe2fb;
+  font: 700 9px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #fff;
 }
-.side-pin-h .gr { flex: 1; } .side-pin-h .mu { opacity: .7; font-weight: 600; }
+.side-pin-h .gr { flex: 1; } .side-pin-h .mu { opacity: 1; font-weight: 600; }
 .side-resume-item { display: flex; align-items: center; gap: 9px; padding: 6px 7px; border-radius: 7px; cursor: pointer; }
 .side-resume-item:hover { background: rgba(255,255,255,.08); }
 .side-resume-item.lead { background: rgba(255,255,255,.07); }
-.side-resume-item .ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 7px; background: rgba(255,255,255,.1); display: grid; place-items: center; color: #dbeefb; }
+.side-resume-item .ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 7px; background: rgba(255,255,255,.1); display: grid; place-items: center; color: #fff; }
 .side-resume-item.lead .ic { background: var(--blue); color: #fff; }
 .side-resume-item .mn { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.side-resume-item .l { font-size: 12px; font-weight: 600; color: #eaf3f8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.side-resume-item .s { font-size: 10px; color: var(--on-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-.side-resume-item .ar { color: #cfeaff; flex: 0 0 auto; opacity: .8; }
+.side-resume-item .l { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-resume-item .s { font-size: 10px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.side-resume-item .ar { color: #fff; flex: 0 0 auto; opacity: .8; }
 
 .side-focus-h { display: flex; align-items: center; gap: 7px; padding: 8px 12px 6px; }
-.side-focus-h .ft { font: 700 9px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #cfe6f2; }
+.side-focus-h .ft { font: 700 9px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #fff; }
 .side-focus-h .fb { font: 700 9px/1 var(--mono); color: var(--navy); background: #4db8ff; border-radius: 5px; padding: 3px 6px; }
-.side-focus-h .fp { margin-left: auto; font: 700 9.5px/1 var(--mono); color: #bfe2fb; }
+.side-focus-h .fp { margin-left: auto; font: 700 9.5px/1 var(--mono); color: #fff; }
 .side-focus { margin: 0 8px 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(77,184,255,.16); border-radius: 10px; padding: 4px; }
 
 .side-item.relev .ico { color: #4db8ff; opacity: 1; }
-/* Fase non-berjalan (mode "Sorot"): de-emphasis lewat warna label yang tetap
-   terbaca (--on-navy-dim, kontras ≳4.5:1) + ikon pudar — BUKAN opacity global
-   .55 yang menjatuhkan keterbacaan label di bawah ambang WCAG AA. */
+/* Fase non-berjalan (mode "Sorot"): de-emphasis DIPINDAH sepenuhnya ke ikon
+   (opacity .5) + bobot huruf. Label tetap PUTIH — dulu diredupkan ke
+   --on-navy-dim; kini seluruh teks sidebar seragam putih (lihat catatan di
+   kepala blok Sidebar). Bukan opacity global .55 yang menjatuhkan keterbacaan. */
 .side-item.dim { opacity: 1; }
-.side-item.dim .lbl { color: var(--on-navy-dim); }
+.side-item.dim .lbl { color: #fff; font-weight: 400; }
 .side-item.dim .ico { opacity: .5; }
-.side-item.dim:hover .lbl { color: #eaf3f8; }
+.side-item.dim:hover .lbl { color: #fff; }
+.side-item.dim:hover .ico { opacity: .85; }
 .side-item .done { color: #5fcf9a; display: grid; place-items: center; }
-.side-alltree-h { padding: 11px 12px 2px; font: 700 9.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: var(--on-navy-dim); }
+.side-alltree-h { padding: 11px 12px 2px; font: 700 9.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #fff; }
 
 /* ---------- R2 · Filter pencarian modul (learning-curve) ---------- */
 .side-search {
   display: flex; align-items: center; gap: 7px;
   margin: 8px; padding: 0 8px; height: 32px;
   border-radius: 7px; background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.1); color: var(--on-navy-dim);
+  border: 1px solid rgba(255,255,255,.1); color: #fff;
 }
-.side-search:focus-within { border-color: #4db8ff; background: rgba(77,184,255,.1); color: #bcd6e4; }
+.side-search:focus-within { border-color: #4db8ff; background: rgba(77,184,255,.1); color: #fff; }
 .side-search input {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none;
-  color: var(--on-navy); font-size: 12.5px; font-family: var(--ui);
+  color: #fff; font-size: 12.5px; font-family: var(--ui);
 }
-.side-search input::placeholder { color: var(--on-navy-dim); }
+/* Satu-satunya teks sidebar yang tidak putih-pekat: placeholder harus terbaca
+   sebagai "belum diisi", bukan sebagai nilai. Tetap rona putih (beralfa), bukan abu. */
+.side-search input::placeholder { color: rgba(255,255,255,.66); }
 .side-search-x {
-  border: none; background: transparent; cursor: pointer; color: var(--on-navy-dim);
+  border: none; background: transparent; cursor: pointer; color: #fff;
   font-size: 16px; line-height: 1; padding: 0 2px; border-radius: 4px;
 }
-.side-search-x:hover { color: #eaf3f8; }
-.side-search-h { padding: 4px 12px 6px; font: 700 9.5px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--on-navy-dim); }
+.side-search-x:hover { color: #fff; background: rgba(255,255,255,.12); }
+.side-search-h { padding: 4px 12px 6px; font: 700 9.5px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: #fff; }
 .side-search-item {
   display: flex; align-items: center; gap: 9px;
   padding: 5px 12px; margin: 0 6px; border-radius: 5px;
@@ -264,19 +273,19 @@ body.dense .pagehead-titles { min-width: 120px; }
 .side-search-item .ico { width: 16px; flex: 0 0 16px; display: grid; place-items: center; opacity: .85; color: #4db8ff; }
 .side-search-item.active .ico { color: #fff; }
 .side-search-item .mn { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.side-search-item .l { font-size: 12.5px; color: var(--on-navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-search-item .l { font-size: 12.5px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-search-item.active .l { color: #fff; font-weight: 600; }
-.side-search-item .g { font-size: 10px; color: var(--on-navy-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.side-search-item.active .g { color: rgba(255,255,255,.8); }
-.side-search-more { padding: 8px 12px; font-size: 10.5px; color: var(--on-navy-dim); font-style: italic; }
+.side-search-item .g { font-size: 10px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-search-item.active .g { color: #fff; }
+.side-search-more { padding: 8px 12px; font-size: 10.5px; color: #fff; font-style: italic; }
 
 .side-foot {
   border-top: 1px solid rgba(255,255,255,.08);
   padding: 7px 10px; display: flex; align-items: center; gap: 8px;
-  font-size: 11px; color: var(--on-navy-dim);
+  font-size: 11px; color: #fff;
 }
 .side-collapse-btn {
-  background: transparent; border: 0; color: var(--on-navy-dim);
+  background: transparent; border: 0; color: #fff;
   width: 26px; height: 26px; border-radius: 5px; display: grid; place-items: center;
 }
 .side-collapse-btn:hover { background: rgba(255,255,255,.08); color: #fff; }

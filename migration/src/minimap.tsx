@@ -25,13 +25,13 @@ const { useState: useStateMM, useRef: useRefMM, useMemo: useMemoMM, useLayoutEff
   const css = `
   .side-minimap { display: flex; align-items: center; gap: 9px; margin: 6px 8px 0; padding: 8px 10px;
     border-radius: 9px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
-    color: #dbeefb; cursor: pointer; text-align: left; transition: .13s; }
+    color: #fff; cursor: pointer; text-align: left; transition: .13s; }
   .side-minimap:hover { background: rgba(255,255,255,.10); border-color: rgba(77,184,255,.5); }
   .side-minimap .ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 7px; background: var(--blue); color: #fff; display: grid; place-items: center; }
   .side-minimap .mn { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
-  .side-minimap .mn .k { font: 700 9px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #7fa8c2; }
-  .side-minimap .mn .l { font-size: 12px; font-weight: 700; color: #eaf3f8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .side-minimap .ar { color: #7fa8c2; flex: 0 0 auto; }
+  .side-minimap .mn .k { font: 700 9px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; }
+  .side-minimap .mn .l { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side-minimap .ar { color: #fff; flex: 0 0 auto; }
   .sidebar.collapsed .side-minimap { justify-content: center; padding: 8px 0; margin: 6px; }
 
   .mm-back { position: fixed; inset: 0; z-index: 90; background: rgba(0,24,38,.46);
