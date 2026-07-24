@@ -9,6 +9,7 @@ import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
 import { SliderRow } from './view_materiality';
 import { FIRMFIN } from './data_firmfin';
+import { useFirmWip } from './use_firm_wip';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -31,12 +32,15 @@ function FirmFinance() {
   const [drill, setDrill] = useStateFF(null);
 
   const ctx = useMemoFF(() => ({ engagements, clients }), [engagements, clients]);
+  /* WIP via SSOT tunggal (useFirmWip) — overlay jam-aktual T&B, identik dgn
+     WIP Valuation/Realisasi, Dashboard & cockpit Beranda. */
+  const { wip: wipLive } = useFirmWip();
   const D = useMemoFF(() => ({
     pl: FF.pl(ctx), bs: FF.balanceSheet(ctx), svc: FF.serviceLines(ctx),
     partners: FF.partners(ctx), ar: FF.arAging(ctx), ap: FF.ap(ctx),
-    wip: FF.wip(ctx), cash: FF.cash(ctx), budget: FF.budget(ctx),
+    wip: wipLive, cash: FF.cash(ctx), budget: FF.budget(ctx),
     kpis: FF.kpis(ctx), recon: FF.reconciliations(ctx), prov: FF.provenance(ctx),
-  }), [ctx]);
+  }), [ctx, wipLive]);
 
   const jt = (v: any) => fmt(v / 1e6, 0);
   const M = (v: any, d = 1) => fmt(v / 1e9, d);
@@ -358,23 +362,14 @@ function SourceOfTruth({ D, jt, M, fmt, nav }: any) {
    Firm Finance — tidak ada perhitungan paralel di view ini. */
 function WIPValuation() {
   const { fmt } = AMS;
-  const FF = FIRMFIN;
   const nav = useNav();
-  const { engagements, clients, activeEngagement } = useFirm();
-  const { timeEntries } = useAudit();
   const [tab, setTab] = useStateFF('valuasi');
   const [sel, setSel] = useStateFF(null);
   const [provFactor, setProvFactor] = (window.useAmsPersist || useStateFF)('wip.provFactor', 1);
 
-  const ctx = useMemoFF(() => ({ engagements, clients }), [engagements, clients]);
-  /* overlay jam-aktual Time & Budget untuk engagement aktif (SSOT FIRMFIN.engagementWip) →
-     std/biaya/jam WIP = jam aktual live, bukan std seed. null bila eng tanpa timesheet. */
-  const liveByEng = useMemoFF(() => {
-    const id = activeEngagement && activeEngagement.id;
-    const ew = FF.engagementWip(timeEntries, id);
-    return ew ? { [id]: { std: ew.stdValue, cost: ew.costValue, actualHrs: ew.actualHrs } } : null;
-  }, [timeEntries, activeEngagement]);
-  const W = useMemoFF(() => FF.wip(ctx, provFactor, liveByEng), [ctx, provFactor, liveByEng]);
+  /* WIP — SSOT tunggal (useFirmWip) dgn overlay jam-aktual T&B; provFactor
+     menstres tarif penyisihan. Identik dgn Dashboard/cockpit/WIP & Realisasi. */
+  const { wip: W, liveByEng } = useFirmWip(provFactor);
 
   const jt = (v: any) => fmt(v / 1e6, 0);
   const M = (v: any, d = 2) => fmt(v / 1e9, d);

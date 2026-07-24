@@ -264,3 +264,41 @@
 .soqm-basis-ul { margin: 0; padding-left: 16px; display: grid; gap: 4px; }
 .soqm-basis-ul li { color: var(--ink-2); }
 
+
+/* ============================================================
+   Beranda·Kokpit Eksekutif (view_home_cockpit) — adopsi konsep
+   "Dashboard Partner". Pakai token & primitif yang ada.
+   ============================================================ */
+.hc-kpi-c { padding: 11px 13px; }
+.hc-kpi-c .stat { gap: 1px; }
+.hc-kpi-spark { margin-top: 7px; }
+.hc-kpi .s-val { font-size: 20px; }
+
+.hc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.hc-cell { min-width: 0; }
+.hc-cell.wide { grid-column: 1 / -1; }
+.hc-portlet .panel-h { cursor: default; }
+.hc-grip { display: inline-flex; align-items: center; color: var(--ink-3); margin-right: 2px; }
+.hc-grip:hover { color: var(--ink); }
+
+.hc-tbl tbody td { height: auto; padding: 7px 9px; vertical-align: middle; }
+.hc-tbl tbody tr:hover td { background: var(--blue-050, var(--surface-2)); }
+
+.hc-list { display: flex; flex-direction: column; }
+.hc-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--line-soft); }
+.hc-row:last-child { border-bottom: 0; }
+.hc-row:hover { background: var(--blue-050, var(--surface-2)); }
+.hc-main { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hc-sev { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
+
+.hc-gauges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.hc-gauges .pbar { margin-top: 7px; }
+.hc-g-num { font-size: 19px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+.hc-g-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin-top: 3px; }
+.hc-findings { margin-top: 12px; border-top: 1px solid var(--line-soft); padding-top: 8px; }
+.hc-fin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+
+@media (max-width: 1100px) {
+  .hc-kpi { grid-template-columns: repeat(3, 1fr) !important; }
+  .hc-grid { grid-template-columns: 1fr; }
+}

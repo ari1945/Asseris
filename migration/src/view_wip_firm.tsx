@@ -1,12 +1,12 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
+import { useAmsPersist, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Donut, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
-import { FIRMFIN } from './data_firmfin';
+import { useFirmWip } from './use_firm_wip';
 
 /* ============================================================
    Asseris — WIP & Realisasi (Practice Operations · D+)
@@ -22,22 +22,13 @@ const { useState: useStateWipF, useMemo: useMemoWipF } = React;
 
 function WIPRealization() {
   const { fmt } = AMS;
-  const FF = FIRMFIN;
   const nav = useNav();
-  const { engagements, clients, activeEngagement } = useFirm();
-  const { timeEntries } = useAudit();
   const [view, setView] = useStateWipF('Perikatan');
   const [sel, setSel] = useStateWipF(null);
   const [adj, setAdj] = useAmsPersist('wip.adj', {});
 
-  const ctx = useMemoWipF(() => ({ engagements, clients }), [engagements, clients]);
-  /* overlay jam-aktual T&B untuk engagement aktif — identik dgn WIP Valuation (SSOT FIRMFIN). */
-  const liveByEng = useMemoWipF(() => {
-    const id = activeEngagement && activeEngagement.id;
-    const ew = FF.engagementWip(timeEntries, id);
-    return ew ? { [id]: { std: ew.stdValue, cost: ew.costValue, actualHrs: ew.actualHrs } } : null;
-  }, [timeEntries, activeEngagement]);
-  const W = useMemoWipF(() => FF.wip(ctx, undefined, liveByEng), [ctx, liveByEng]);
+  /* WIP — SSOT tunggal (useFirmWip): ctx + overlay jam-aktual T&B seragam antar-modul. */
+  const { wip: W, liveByEng } = useFirmWip();
 
   /* overlay write-down manual di atas baris kanonik (semantik persen utk view ini) */
   const rows = W.registerAll.map((b: any) => {
