@@ -381,14 +381,14 @@ function F530Selection({ interval, bv, seedFrac, setSeedFrac, locked }: { interv
                     return <div key={p.id} title={p.name + ': ' + p.bv.toLocaleString('id-ID') + ' jt'} style={{ width: w + '%', height: '100%', background: isSel ? (p.key ? 'var(--purple)' : 'var(--blue)') : 'transparent', borderRight: '1px solid var(--surface)', opacity: isSel ? 1 : 0.25 }} />;
                   })}
                 </div>
-                {ticks.map((u, i) => <div key={i} style={{ position: 'absolute', top: 18, left: (popTotal ? (u / popTotal) * 100 : 0) + '%', width: 1.5, height: 20, background: 'var(--navy)', opacity: 0.55 }} title={'Unit pilih ' + (i + 1)} />)}
+                {ticks.map((u, i) => <div key={i} style={{ position: 'absolute', top: 18, left: (popTotal ? (u / popTotal) * 100 : 0) + '%', width: 1.5, height: 20, background: 'var(--navy-solid)', opacity: 0.55 }} title={'Unit pilih ' + (i + 1)} />)}
                 <div className="tiny muted" style={{ position: 'absolute', top: 38, left: 0 }}>Rp 0</div>
                 <div className="tiny muted" style={{ position: 'absolute', top: 38, right: 0 }}>{popTotal.toLocaleString('id-ID')} jt</div>
               </div>
               <div className="row gap12 tiny muted">
-                <span className="row ac gap6"><span style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--purple)' }} /> Individual ≥ interval (pasti terpilih)</span>
-                <span className="row ac gap6"><span style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--blue)' }} /> Terpilih sistematis</span>
-                <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy)' }} /> Titik pilih (kelipatan interval)</span>
+                <span className="row ac gap6"><span style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--purple-solid)' }} /> Individual ≥ interval (pasti terpilih)</span>
+                <span className="row ac gap6"><span style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--blue-solid)' }} /> Terpilih sistematis</span>
+                <span className="row ac gap6"><span style={{ width: 2, height: 12, background: 'var(--navy-solid)' }} /> Titik pilih (kelipatan interval)</span>
               </div>
             </>
           ) : <div className="tiny muted">Interval tak terdefinisi — sesuaikan parameter di tab Ukuran Sampel.</div>}

@@ -162,7 +162,7 @@ function TaxPPh23() {
                       <RowKv label="PPh 21 / 4(2) / PPN — lainnya" v={'Rp ' + fmt(tie.lainnya / 1e6, 0) + ' jt'} />
                     </div>
                     <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden', marginTop: 10, display: 'flex' }}>
-                      <div style={{ width: (tie.pct * 100) + '%', background: 'var(--amber)' }} title="PPh 23 terutang" />
+                      <div style={{ width: (tie.pct * 100) + '%', background: 'var(--amber-solid)' }} title="PPh 23 terutang" />
                       <div style={{ flex: 1, background: '#9fb2c0' }} title="Pajak lainnya" />
                     </div>
                     <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>PPh 23 terutang menutup ke pos kontrol <b>Utang Pajak (2-200)</b> bersama PPh 21, PPh 4(2) & PPN.</div>
@@ -236,7 +236,7 @@ function TaxPPh23() {
                       <div style={{ padding: 13, display: 'grid', gap: 7 }}>
                         <RowKv label="Total DPP" v={'Rp ' + fmt(m.dpp / 1e6, 0) + ' jt'} />
                         <RowKv label="PPh 23 dipotong" v={'Rp ' + fmt(m.pph / 1e6, 2) + ' jt'} strong />
-                        <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: (pctDep * 100) + '%', height: '100%', background: 'var(--green)' }} /></div>
+                        <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden' }}><div style={{ width: (pctDep * 100) + '%', height: '100%', background: 'var(--green-solid)' }} /></div>
                         <div className="tiny muted">{fmt(pctDep * 100, 0)}% telah disetor (Rp {fmt(m.disetor / 1e6, 1)} jt)</div>
                         <div className="divider" style={{ margin: '4px 0' }} />
                         <div className="row jb tiny"><span className="muted">Setor (tgl 10)</span><span className="mono" style={{ fontWeight: 600, color: m.setorDays < 0 && m.status !== 'Lapor' ? 'var(--red)' : 'var(--ink-2)' }}>{t23Date(m.setorDue)}</span></div>

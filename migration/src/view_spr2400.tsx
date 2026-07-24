@@ -105,8 +105,8 @@ function F2400Continuum() {
         <div className="panel-h"><h3>Kontinum Tingkat Keyakinan Jasa</h3><div style={{ flex: 1 }} /><Badge kind="teal">SPR 2400 = keyakinan terbatas</Badge></div>
         <div style={{ padding: 16 }}>
           {/* bar spektrum */}
-          <div style={{ position: 'relative', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,var(--surface-3),var(--teal),var(--blue))', marginBottom: 22 }}>
-            <div style={{ position: 'absolute', left: '60%', top: -5, bottom: -5, width: 2, background: 'var(--navy)' }} />
+          <div style={{ position: 'relative', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,var(--surface-3),var(--teal-solid),var(--blue-solid))', marginBottom: 22 }}>
+            <div style={{ position: 'absolute', left: '60%', top: -5, bottom: -5, width: 2, background: 'var(--navy-solid)' }} />
             <div style={{ position: 'absolute', left: '60%', top: -22, transform: 'translateX(-50%)' }}><span className="chip tiny" style={{ background: 'var(--teal-bg)', color: 'var(--teal)', fontWeight: 700 }}>Reviu di sini</span></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>

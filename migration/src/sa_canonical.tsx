@@ -109,7 +109,7 @@ function SACanonicalStatus({ stdId }: any) {
     <Panel noBody style={{ marginBottom: 12, borderColor: 'var(--blue-100, var(--line))' }}>
       <div className="panel-h" style={{ background: 'var(--blue-050)', borderBottom: '1px solid var(--line)' }}>
         <span className="row ac gap8">
-          <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}><I.layers size={14} /></span>
+          <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 26px' }}><I.layers size={14} /></span>
           <span>
             <span style={{ display: 'block', fontWeight: 700, fontSize: 13 }}>Status Perikatan · Sumber Tunggal</span>
             <span className="tiny muted" style={{ fontWeight: 400 }}>Dibaca langsung dari Kertas Kerja kanonik — tanpa salinan data di halaman ini</span>

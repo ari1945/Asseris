@@ -167,7 +167,7 @@ function ProfitTab({ D, jt, M, fmt, nav, setDrill }: any) {
                   <td className="num">{pt.clients}</td>
                   <td className="num muted">{fmt(pt.hours)}</td>
                   <td className="num">{pt.util != null ? <span style={{ color: pt.util > 72 ? 'var(--green)' : 'var(--amber)' }}>{pt.util}%</span> : '—'}</td>
-                  <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (pt.portfolio / maxP * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue)' }} /></div><span className="tiny mono" style={{ width: 30 }}>{(pt.portfolio / total * 100).toFixed(0)}%</span></div></td>
+                  <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (pt.portfolio / maxP * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div><span className="tiny mono" style={{ width: 30 }}>{(pt.portfolio / total * 100).toFixed(0)}%</span></div></td>
                 </tr>
               ))}
             </tbody>
@@ -245,7 +245,7 @@ function WorkingCapital({ D, jt, M, fmt, nav }: any) {
             return (
               <div key={c.cat} style={{ marginBottom: 9 }}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{c.cat}</span><span className="mono" style={{ fontWeight: 700 }}>Rp {jt(c.v)} jt</span></div>
-                <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (c.v / mx * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--amber)' }} /></div>
+                <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (c.v / mx * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--amber-solid)' }} /></div>
               </div>
             );
           })}

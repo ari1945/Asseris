@@ -210,8 +210,8 @@ function PSAK24View() {
                   })}
                 </div>
                 <div className="row gap14" style={{ padding: '10px 14px 4px' }}>
-                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--blue)' }} /> Ke Laba Rugi: <b style={{ color: 'var(--ink)' }}>Rp {fmt(plCost)} jt</b></div>
-                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(oci)} jt</b></div>
+                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--blue-solid)' }} /> Ke Laba Rugi: <b style={{ color: 'var(--ink)' }}>Rp {fmt(plCost)} jt</b></div>
+                  <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple-solid)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(oci)} jt</b></div>
                 </div>
                 <div onClick={() => nav('psak46', { from: 'psak24' })} className="row ac jb" style={{ margin: '4px 14px 12px', padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer' }}>
                   <div style={{ fontSize: 11.5, lineHeight: 1.4 }}>Liabilitas ini berdasar pajak <b>0</b> (deductible saat dibayar) → <b>beda temporer dapat dikurangkan</b> di PSAK 46. Pengukuran kembali OCI Rp {fmt(oci)} jt × 22% = pajak OCI.</div>

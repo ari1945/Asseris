@@ -159,7 +159,7 @@ function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
         <input type="range" className="fw-range" min={0} max={max} step={max / 200} value={value}
           onChange={(e: any) => onChange(Number(e.target.value))}
           style={{ width: '100%', accentColor: over ? 'var(--amber)' : 'var(--teal)' }} />
-        <div style={{ position: 'absolute', left: ceilPct + '%', top: -2, bottom: 14, width: 2, background: 'var(--red)', opacity: .7, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', left: ceilPct + '%', top: -2, bottom: 14, width: 2, background: 'var(--red-solid)', opacity: .7, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: ceilPct + '%', top: -16, transform: 'translateX(-50%)', fontSize: 9.5, fontWeight: 700, color: 'var(--red)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>batas UMKM {unit}</div>
       </div>
     </div>

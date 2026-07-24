@@ -165,7 +165,7 @@ function Profile360Drawer({ s, onClose }: any) {
               {p.timeline.map((t: any, i: any) => (
                 <div key={i} className="row gap8" style={{ paddingBottom: i < p.timeline.length - 1 ? 12 : 0 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto' }}>
-                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue)', marginTop: 3 }} />
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--blue-solid)', marginTop: 3 }} />
                     {i < p.timeline.length - 1 && <span style={{ width: 1.5, flex: 1, background: 'var(--line)' }} />}
                   </div>
                   <div><span className="mono tiny muted" style={{ marginRight: 8 }}>{t[0]}</span><span style={{ fontSize: 12 }}>{t[1]}</span></div>
@@ -228,8 +228,8 @@ function HCMAnalytics() {
               {D.headcountTrend.map((t: any, i: any) => (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 3 }}>
-                    <div title={'Hire ' + t.hires} style={{ width: 9, height: (t.hires / 8 * 100) + '%', minHeight: 4, background: 'var(--green)', borderRadius: '2px 2px 0 0' }} />
-                    <div title={'Exit ' + t.exits} style={{ width: 9, height: (t.exits / 8 * 100) + '%', minHeight: 4, background: 'var(--red)', borderRadius: '2px 2px 0 0' }} />
+                    <div title={'Hire ' + t.hires} style={{ width: 9, height: (t.hires / 8 * 100) + '%', minHeight: 4, background: 'var(--green-solid)', borderRadius: '2px 2px 0 0' }} />
+                    <div title={'Exit ' + t.exits} style={{ width: 9, height: (t.exits / 8 * 100) + '%', minHeight: 4, background: 'var(--red-solid)', borderRadius: '2px 2px 0 0' }} />
                   </div>
                   <div className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{t.total}</div>
                   <div className="tiny muted" style={{ fontSize: 9.5 }}>{t.q}</div>
@@ -237,8 +237,8 @@ function HCMAnalytics() {
               ))}
             </div>
             <div className="row gap12 tiny muted" style={{ marginTop: 10, justifyContent: 'center' }}>
-              <span className="row ac gap4"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--green)' }} /> Rekrutmen</span>
-              <span className="row ac gap4"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--red)' }} /> Keluar</span>
+              <span className="row ac gap4"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--green-solid)' }} /> Rekrutmen</span>
+              <span className="row ac gap4"><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--red-solid)' }} /> Keluar</span>
               <span>· angka = total headcount akhir kuartal</span>
             </div>
           </div>

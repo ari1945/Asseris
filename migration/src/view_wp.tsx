@@ -193,7 +193,7 @@ function WorkingPapers() {
             {/* identity */}
             <div style={{ padding: '14px 16px' }}>
               <div className="row ac gap8" style={{ marginBottom: 8 }}>
-                <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.layers size={17} /></span>
+                <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.layers size={17} /></span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 13.5 }} className="truncate">File Audit · {activeClient?.name}</div>
                   <div className="tiny muted mono">{activeEngagement.id} · {activeEngagement.fy} · {activeEngagement.standard}</div>
@@ -1102,7 +1102,7 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }: any) {
                 </div>
                 <div style={{ fontSize: 12.5, lineHeight: 1.5, textDecoration: resolved ? 'line-through' : 'none' }}>{n.text}</div>
               </div>
-              <button className="btn sm" disabled={locked} onClick={() => toggle(n)} style={resolved ? {} : { background: 'var(--green)', color: '#fff', borderColor: 'var(--green)' }}>
+              <button className="btn sm" disabled={locked} onClick={() => toggle(n)} style={resolved ? {} : { background: 'var(--green-solid)', color: '#fff', borderColor: 'var(--green)' }}>
                 {resolved ? <><I.sync size={13} /> Buka</> : <><I.check size={13} /> Tuntaskan</>}
               </button>
             </div>

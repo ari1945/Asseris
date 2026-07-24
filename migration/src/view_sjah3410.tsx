@@ -235,8 +235,8 @@ function GhgInventory({ E, A, toggle }: any) {
             <div style={{ marginTop: 12 }}>
               <div className="tiny muted upper" style={{ marginBottom: 5 }}>Proporsi Scope</div>
               <div className="row" style={{ height: 14, borderRadius: 7, overflow: 'hidden', background: 'var(--surface-3)' }}>
-                <div style={{ width: (E.totals.scope1 / E.totals.assured * 100) + '%', background: 'var(--teal)' }} title={'Scope 1 · ' + fmt(E.totals.scope1, 1)} />
-                <div style={{ width: (E.totals.scope2 / E.totals.assured * 100) + '%', background: 'var(--blue)' }} title={'Scope 2 · ' + fmt(E.totals.scope2, 1)} />
+                <div style={{ width: (E.totals.scope1 / E.totals.assured * 100) + '%', background: 'var(--teal-solid)' }} title={'Scope 1 · ' + fmt(E.totals.scope1, 1)} />
+                <div style={{ width: (E.totals.scope2 / E.totals.assured * 100) + '%', background: 'var(--blue-solid)' }} title={'Scope 2 · ' + fmt(E.totals.scope2, 1)} />
               </div>
               <div className="row jb" style={{ marginTop: 4 }}>
                 <span className="tiny muted">Scope 1 {Math.round(E.totals.scope1 / E.totals.assured * 100)}%</span>

@@ -786,7 +786,7 @@ function CockpitStyles() {
     .ckp-phasecol:last-child { border-right:0; }
     .ckp-phasecol.on { background:var(--blue-050); }
     .ckp-phasecol-h { padding:11px 13px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
-    .ckp-now { font-size:8.5px; font-weight:800; letter-spacing:.06em; color:#fff; background:var(--blue); padding:1px 6px; border-radius:9px; }
+    .ckp-now { font-size:8.5px; font-weight:800; letter-spacing:.06em; color:#fff; background:var(--blue-solid); padding:1px 6px; border-radius:9px; }
     .ckp-modrow { padding:7px 8px; border-radius:6px; cursor:pointer; margin-bottom:1px; }
     .ckp-modrow:hover { background:var(--surface-2); }
 
@@ -802,12 +802,12 @@ function CockpitStyles() {
 
     .ckp-rail { position:relative; height:30px; }
     .ckp-rail-line { position:absolute; left:0; right:0; top:14px; height:3px; border-radius:3px; background:var(--surface-3); }
-    .ckp-rail-fill { position:absolute; left:0; top:14px; height:3px; border-radius:3px; background:var(--blue); }
+    .ckp-rail-fill { position:absolute; left:0; top:14px; height:3px; border-radius:3px; background:var(--blue-solid); }
     .ckp-node { position:absolute; top:5px; transform:translateX(-50%); }
     .ckp-dot { width:22px; height:22px; border-radius:50%; color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center; border:2px solid var(--surface); }
     .ckp-today { position:absolute; top:-20px; transform:translateX(-50%); }
     .ckp-today span { font-size:8.5px; font-weight:800; letter-spacing:.06em; color:var(--blue); background:var(--blue-050); padding:1px 6px; border-radius:8px; border:1px solid var(--blue-100); white-space:nowrap; }
-    .ckp-today::after { content:''; position:absolute; left:50%; top:16px; transform:translateX(-50%); width:2px; height:18px; background:var(--blue); }
+    .ckp-today::after { content:''; position:absolute; left:50%; top:16px; transform:translateX(-50%); width:2px; height:18px; background:var(--blue-solid); }
 
     .ckp-ms { display:flex; gap:12px; align-items:flex-start; padding:9px 10px; border-radius:8px; }
     .ckp-ms:hover { background:var(--surface-2); }

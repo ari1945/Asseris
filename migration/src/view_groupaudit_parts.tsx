@@ -111,7 +111,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }:
                     <tr>
                       <td>
                         <div className="row ac gap8">
-                          <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, flex: '0 0 24px' }}>{s.own}%</span>
+                          <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, flex: '0 0 24px' }}>{s.own}%</span>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 600, fontSize: 12 }}>{s.name}</div>
                             <div className="tiny muted">{s.auditor} · {s.country} · {s.ccy}{s.ccy !== 'IDR' && <span> @ {fmt(s.fx / 1e3, 1)}k</span>}</div>

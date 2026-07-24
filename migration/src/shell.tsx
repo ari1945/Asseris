@@ -278,7 +278,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
       <div style={{ padding: collapsed ? '8px 6px 0' : '8px 8px 0' }}>
         <button type="button" onClick={() => onNavigate('home')} title="Beranda — ringkasan kerja Anda"
           style={{ width: '100%', display: 'flex', flexDirection: collapsed ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: collapsed ? 0 : 8, padding: collapsed ? '8px 0' : '8px 10px', borderRadius: 7, cursor: 'pointer', border: 'none', transition: '.13s',
-            background: homeOn ? 'var(--blue)' : 'rgba(255,255,255,.06)', color: homeOn ? '#fff' : 'var(--on-navy, #9fb3c0)', fontWeight: homeOn ? 700 : 600 }}>
+            background: homeOn ? 'var(--blue)' : 'rgba(255,255,255,.06)', color: '#fff', fontWeight: homeOn ? 700 : 600 }}>
           <I.dashboard size={16} />
           {!collapsed && <span style={{ fontSize: 12 }}>Beranda</span>}
         </button>
@@ -291,7 +291,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
           return (
             <button key={w.id} onClick={() => setWs(w.id)} title={w.label + ' — ' + w.desc}
               style={{ flex: collapsed ? 'none' : 1, display: 'flex', flexDirection: collapsed ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: collapsed ? 0 : 6, padding: collapsed ? '8px 0' : '7px 6px', borderRadius: 7, cursor: 'pointer', border: 'none', transition: '.13s',
-                background: on ? 'var(--blue)' : 'transparent', color: on ? '#fff' : 'var(--on-navy, #9fb3c0)' }}>
+                background: on ? 'var(--blue)' : 'transparent', color: '#fff' }}>
               <IconW size={16} />
               {!collapsed && <span style={{ fontSize: 11, fontWeight: on ? 700 : 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.label}</span>}
             </button>
@@ -337,7 +337,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
         {!collapsed && !searchResults && (
           <button type="button" onClick={() => setShowAll(!showAll)}
             title={showAll ? 'Kembali ke tampilan ringkas (relevan dengan peran & fase Anda)' : 'Buka semua modul & grup — kapabilitas tidak berubah, hanya tampilan'}
-            style={{ margin: '8px 8px 4px', width: 'calc(100% - 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', border: '1px dashed var(--line-strong)', background: showAll ? 'var(--blue-050)' : 'transparent', color: showAll ? 'var(--blue)' : 'var(--ink-3)', fontSize: 11, fontWeight: 600 }}>
+            style={{ margin: '8px 8px 4px', width: 'calc(100% - 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', border: '1px dashed rgba(255,255,255,.28)', background: showAll ? 'var(--blue-050)' : 'transparent', color: showAll ? 'var(--blue)' : '#fff', fontSize: 11, fontWeight: 600 }}>
             <I.layers size={12} /> {showAll ? 'Ringkas kembali' : (curatedGroups ? 'Tampilkan semua modul' : 'Buka semua grup')}
           </button>
         )}
@@ -467,7 +467,7 @@ function SubBar({ moduleId, right }: any) {
 function SettingsMenu({ open, onClose, onNavigate }: any) {
   const [dark, setDark] = useStateSH(() => localStorage.getItem('ams.dark') === '1');
   const [dense, setDense] = useStateSH(() => localStorage.getItem('ams.dense') === '1');
-  React.useEffect(() => { document.body.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
+  React.useEffect(() => { document.documentElement.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
   React.useEffect(() => { document.body.classList.toggle('dense', dense); localStorage.setItem('ams.dense', dense ? '1' : '0'); }, [dense]);
   if (!open) return null;
   const Row = ({ label, sub, on, set, icon }: any) => (

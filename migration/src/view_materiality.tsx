@@ -124,7 +124,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
             <tbody>
               {BENCHMARKS.map(b => (
                 <tr key={b.id} className={b.id === benchId ? 'sel' : ''} onClick={() => !locked && pickBench(b.id)} style={{ cursor: locked ? 'default' : 'pointer' }}>
-                  <td><span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (b.id === benchId ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{b.id === benchId && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue)' }} />}</span></td>
+                  <td><span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (b.id === benchId ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{b.id === benchId && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue-solid)' }} />}</span></td>
                   <td><div style={{ fontWeight: 600 }}>{b.label}</div><div className="tiny muted">{b.note}</div></td>
                   <td className="num">{fmt(b.value)}</td>
                   <td className="num tiny muted">{b.lo}–{b.hi}%</td>

@@ -487,7 +487,7 @@ function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComp
               <Btn sm onClick={() => postComposer(n)}><I.send size={13} /> Kirim</Btn>
               {resolved
                 ? <Btn sm disabled={!canClear} title={canClear ? undefined : 'Hanya reviewer berwenang (Manajer/Partner)'} onClick={() => reopenNote(n)}><I.sync size={13} /> Buka Kembali</Btn>
-                : <Btn sm variant="primary" disabled={!canClear} title={canClear ? undefined : 'Hanya reviewer berwenang (Manajer/Partner) yang dapat mengkliring'} onClick={() => clearNote(n)} style={{ background: 'var(--green)', borderColor: 'var(--green)' }}><I.checkCircle size={13} /> Tuntaskan & Kliring</Btn>}
+                : <Btn sm variant="primary" disabled={!canClear} title={canClear ? undefined : 'Hanya reviewer berwenang (Manajer/Partner) yang dapat mengkliring'} onClick={() => clearNote(n)} style={{ background: 'var(--green-solid)', borderColor: 'var(--green)' }}><I.checkCircle size={13} /> Tuntaskan & Kliring</Btn>}
             </div>
             {!canClear && <div className="tiny muted" style={{ marginTop: 6 }}><I.lock size={11} /> Anda dapat merespons; kliring/buka catatan hanya oleh reviewer berwenang (Manajer/Partner).</div>}
           </>

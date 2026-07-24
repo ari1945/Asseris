@@ -53,7 +53,7 @@ function AIIntakeLog() {
                 style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer' }}
                 onMouseEnter={(e: any) => { e.currentTarget.style.borderColor = 'var(--blue)'; }}
                 onMouseLeave={(e: any) => { e.currentTarget.style.borderColor = 'var(--line)'; }}>
-                <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><FI size={14} /></span>
+                <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><FI size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{d.file}</div>
                   <div className="tiny muted">{d.type}{d.when ? ' · ' + d.when : ''}</div>

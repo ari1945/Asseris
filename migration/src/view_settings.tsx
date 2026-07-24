@@ -158,7 +158,7 @@ function SettingsView() {
       </div></div>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', zIndex: 95, background: 'var(--navy)', color: '#fff', padding: '10px 16px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, boxShadow: 'var(--shadow-lg)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', zIndex: 95, background: 'var(--navy-solid)', color: '#fff', padding: '10px 16px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, boxShadow: 'var(--shadow-lg)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <I.checkCircle size={15} style={{ color: '#5fd08a' }} /> {toast}
         </div>
       )}
@@ -171,7 +171,7 @@ function SecTampilan({ s, setTop }: any) {
   const [dark, setDark] = useStateSet(() => localStorage.getItem('ams.dark') === '1');
   const [dense, setDense] = useStateSet(() => localStorage.getItem('ams.dense') === '1');
   const [collapsed, setCollapsed] = useStateSet(() => localStorage.getItem('ams.sidebarCollapsed') === '1');
-  useEffectSet(() => { document.body.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
+  useEffectSet(() => { document.documentElement.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
   useEffectSet(() => { document.body.classList.toggle('dense', dense); localStorage.setItem('ams.dense', dense ? '1' : '0'); }, [dense]);
   const setSidebar = (v: any) => { setCollapsed(v); localStorage.setItem('ams.sidebarCollapsed', v ? '1' : '0'); if (window.__amsSetSidebar) window.__amsSetSidebar(v); };
 
@@ -424,7 +424,7 @@ function SecProfil({ auth, flash }: any) {
         <div style={{ padding: '0 16px 16px' }}>
           <div className="tiny muted upper" style={{ margin: '4px 0 8px', letterSpacing: '.05em' }}>Pratinjau Sign-off</div>
           <div className="row ac gap12" style={{ padding: 12, border: '1px dashed var(--line-strong)', borderRadius: 10, background: 'var(--surface-2)', maxWidth: 360 }}>
-            <span style={{ width: 42, height: 42, borderRadius: 8, flex: '0 0 42px', display: 'grid', placeItems: 'center', background: 'var(--green)', color: '#fff', fontWeight: 800, letterSpacing: '.04em', fontSize: 15 }}>{u.initials}</span>
+            <span style={{ width: 42, height: 42, borderRadius: 8, flex: '0 0 42px', display: 'grid', placeItems: 'center', background: 'var(--green-solid)', color: '#fff', fontWeight: 800, letterSpacing: '.04em', fontSize: 15 }}>{u.initials}</span>
             <div style={{ minWidth: 0 }}>
               <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}><I.checkCircle size={14} style={{ color: 'var(--green)' }} /> Direview oleh {u.name.split(' ')[0]}</div>
               <div className="tiny muted">{auth.role} · {u.initials} · {today}</div>
@@ -644,7 +644,7 @@ function SecFirma({ s, setGroup, firm, isPartner }: any) {
         <div className="panel-h"><h3>Identitas Firma</h3></div>
         <div style={{ padding: 14 }}>
           <div className="row ac gap12" style={{ marginBottom: 12 }}>
-            <span style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15 }}>{firm.short}</span>
+            <span style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15 }}>{firm.short}</span>
             <div><div style={{ fontWeight: 700, fontSize: 14 }}>{firm.name}</div><div className="tiny muted mono">{firm.license}</div></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
@@ -774,7 +774,7 @@ function SecAksesReadOnly({ auth }: any) {
         <div className="panel-h"><h3>Peran Aktif</h3></div>
         <div style={{ padding: 14 }}>
           <div className="row ac jb" style={{ marginBottom: 12 }}>
-            <div className="row ac gap10"><span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.shield size={19} /></span><div><div style={{ fontWeight: 700, fontSize: 13.5 }}>{auth.role}</div><div className="tiny muted">Kontrol akses berbasis peran (RBAC)</div></div></div>
+            <div className="row ac gap10"><span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.shield size={19} /></span><div><div style={{ fontWeight: 700, fontSize: 13.5 }}>{auth.role}</div><div className="tiny muted">Kontrol akses berbasis peran (RBAC)</div></div></div>
             <span className="chip tiny" style={{ background: 'var(--green-050, var(--surface-3))', color: 'var(--green)' }} title="Peran berasal dari sesi login & ditegakkan di server"><I.lock size={11} /> Ditegakkan di server</span>
           </div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>

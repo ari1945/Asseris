@@ -317,12 +317,12 @@ function PSAK1View() {
                           <span className="tiny muted mono">Rp {fmt(tot, 1)} M</span>
                         </div>
                         <div style={{ display: 'flex', height: 22, borderRadius: 5, overflow: 'hidden', border: '1px solid var(--line)' }}>
-                          <div style={{ width: pct + '%', background: 'var(--blue)', display: 'grid', placeItems: 'center' }}><span className="tiny mono" style={{ color: '#fff', fontWeight: 700 }}>{Math.round(pct)}%</span></div>
-                          <div style={{ width: (100 - pct) + '%', background: 'var(--navy)', display: 'grid', placeItems: 'center' }}><span className="tiny mono" style={{ color: '#fff', fontWeight: 700 }}>{Math.round(100 - pct)}%</span></div>
+                          <div style={{ width: pct + '%', background: 'var(--blue-solid)', display: 'grid', placeItems: 'center' }}><span className="tiny mono" style={{ color: '#fff', fontWeight: 700 }}>{Math.round(pct)}%</span></div>
+                          <div style={{ width: (100 - pct) + '%', background: 'var(--navy-solid)', display: 'grid', placeItems: 'center' }}><span className="tiny mono" style={{ color: '#fff', fontWeight: 700 }}>{Math.round(100 - pct)}%</span></div>
                         </div>
                         <div className="row ac jb tiny muted" style={{ marginTop: 4 }}>
-                          <span className="row ac gap4"><span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--blue)' }} /> {r.curL} {fmt(r.cur, 1)}</span>
-                          <span className="row ac gap4">{r.nonL} {fmt(r.non, 1)} <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--navy)' }} /></span>
+                          <span className="row ac gap4"><span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--blue-solid)' }} /> {r.curL} {fmt(r.cur, 1)}</span>
+                          <span className="row ac gap4">{r.nonL} {fmt(r.non, 1)} <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--navy-solid)' }} /></span>
                         </div>
                       </div>
                     );

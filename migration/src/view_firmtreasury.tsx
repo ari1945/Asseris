@@ -104,7 +104,7 @@ function FirmTreasury() {
                     <tr className="group-row"><td colSpan={5}>Pendapatan</td></tr>
                     {rev.map((b: any) => (
                       <tr key={b.line} className={selLine === b.line ? 'sel' : ''} onClick={() => setSelLine(selLine === b.line ? null : b.line)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 600 }}>{b.line}</td><td className="num">{fmt(b.budget / 1e6, 0)}</td><td className="num">{fmt(b.actual / 1e6, 0)}</td><td className="num"><VarCell b={b.budget} a={b.actual} /></td>
-                        <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, b.actual / b.budget * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green)' }} /></div><span className="tiny mono" style={{ width: 32 }}>{(b.actual / b.budget * 100).toFixed(0)}%</span></div></td></tr>
+                        <td><div className="row ac gap6"><div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, b.actual / b.budget * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green-solid)' }} /></div><span className="tiny mono" style={{ width: 32 }}>{(b.actual / b.budget * 100).toFixed(0)}%</span></div></td></tr>
                     ))}
                     <tr className="group-row"><td colSpan={5}>Beban</td></tr>
                     {cost.map((b: any) => (
@@ -258,13 +258,13 @@ function CashBank() {
               <tbody>
                 {accts.map((a: any) => (
                   <tr key={a.id}>
-                    <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
+                    <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
                     <td className="mono tiny muted">{a.no}</td>
                     <td><span className="chip tiny">{a.ccy}</span></td>
                     <td className="num" style={{ fontWeight: 600 }}>{(CCY_SYMBOL as any)[a.ccy]} {fmt(a.balance, 0)}</td>
                     <td className="num tiny muted">{a.ccy === 'IDR' ? '—' : fmt(FX[a.ccy], 0)}</td>
                     <td className="num">{fmt(idrOf(a) / 1e6, 0)} jt</td>
-                    <td><div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (idrOf(a) / totalIDR * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue)' }} /></div></td>
+                    <td><div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (idrOf(a) / totalIDR * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -420,12 +420,12 @@ function FixedAssets() {
               <div key={c.cat} style={{ marginBottom: 10 }}>
                 <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="row ac gap6"><span style={{ fontWeight: 600 }}>{c.cat}</span><span className="muted">· {c.n}</span></span><span className="mono" style={{ fontWeight: 700 }}>NBV {fmt(c.nbv / 1e6, 0)} jt</span></div>
                 <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', background: 'var(--surface-3)' }}>
-                  <div style={{ width: (c.nbv / c.cost * 100) + '%', background: 'var(--green)' }} title="Nilai buku" />
-                  <div style={{ width: ((c.cost - c.nbv) / c.cost * 100) + '%', background: 'var(--amber)' }} title="Telah disusutkan" />
+                  <div style={{ width: (c.nbv / c.cost * 100) + '%', background: 'var(--green-solid)' }} title="Nilai buku" />
+                  <div style={{ width: ((c.cost - c.nbv) / c.cost * 100) + '%', background: 'var(--amber-solid)' }} title="Telah disusutkan" />
                 </div>
               </div>
             ))}
-            <div className="row gap14 tiny muted" style={{ marginTop: 4 }}><span className="row ac gap6"><span style={{ width: 14, height: 6, borderRadius: 3, background: 'var(--green)', display: 'inline-block' }} /> Nilai buku</span><span className="row ac gap6"><span style={{ width: 14, height: 6, borderRadius: 3, background: 'var(--amber)', display: 'inline-block' }} /> Disusutkan</span></div>
+            <div className="row gap14 tiny muted" style={{ marginTop: 4 }}><span className="row ac gap6"><span style={{ width: 14, height: 6, borderRadius: 3, background: 'var(--green-solid)', display: 'inline-block' }} /> Nilai buku</span><span className="row ac gap6"><span style={{ width: 14, height: 6, borderRadius: 3, background: 'var(--amber-solid)', display: 'inline-block' }} /> Disusutkan</span></div>
           </Panel>
         </div>
 

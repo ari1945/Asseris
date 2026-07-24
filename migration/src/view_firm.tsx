@@ -105,7 +105,7 @@ function ClientCRM() {
                       <tr key={c.id} className={c.id === sel.id ? 'sel' : ''} onClick={() => { setSelId(c.id); setTab('profil'); }} style={{ cursor: 'pointer' }}>
                         <td>
                           <div className="row ac gap8">
-                            <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 28px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+                            <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 28px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                             <div style={{ minWidth: 0 }}>
                               <div className="truncate" style={{ fontWeight: 600, maxWidth: 180 }}>{c.name}</div>
                               <div className="tiny muted mono">{c.id} {c.listed && <span className="badge b-blue" style={{ padding: '0 5px', fontSize: 9 }}>IDX</span>}</div>

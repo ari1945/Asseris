@@ -295,7 +295,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
           <div style={{ display: 'grid', gap: 7 }}>
             {Object.entries(O.OPINIONS).map(([k, v]: [any, any]) => (
               <label key={k} className="row ac gap8" style={{ padding: '8px 10px', borderRadius: 7, cursor: 'pointer', border: '1px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line)'), background: doc.type === k ? 'var(--blue-050)' : '#fff' }} onClick={() => patch({ type: k })}>
-                <span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{doc.type === k && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue)' }} />}</span>
+                <span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{doc.type === k && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue-solid)' }} />}</span>
                 <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }}>{v.title}</span>
                 <Badge kind={v.k}>{v.short}</Badge>
               </label>

@@ -196,7 +196,7 @@ function FirmGL() {
                       {byType('Beban').map((a: any) => (
                         <div key={a.code} style={{ marginBottom: 9 }}>
                           <div className="row jb tiny" style={{ marginBottom: 3 }}><span>{a.name}</span><span className="mono" style={{ fontWeight: 700 }}>{(a.bal / expense * 100).toFixed(0)}%</span></div>
-                          <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (a.bal / expense * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue)' }} /></div>
+                          <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (a.bal / expense * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue-solid)' }} /></div>
                         </div>
                       ))}
                     </Panel>
@@ -442,7 +442,7 @@ function FirmAPAR() {
                   return (
                     <div key={c.k} style={{ marginBottom: 9 }}>
                       <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="truncate" style={{ maxWidth: 150 }}>{c.k}</span><span className="mono" style={{ fontWeight: 700 }}>Rp {fmt(c.v / 1e6, 0)} jt</span></div>
-                      <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (c.v / mx * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue)' }} /></div>
+                      <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: (c.v / mx * 100) + '%', height: '100%', borderRadius: 4, background: 'var(--blue-solid)' }} /></div>
                     </div>
                   );
                 })}

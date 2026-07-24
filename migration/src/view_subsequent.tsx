@@ -67,10 +67,10 @@ function SubsequentEvents() {
               </div>
               <div style={{ position: 'relative', height: 64, margin: '0 8px' }}>
                 {/* line */}
-                <div style={{ position: 'absolute', top: 30, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,var(--blue),var(--navy))', borderRadius: 3 }} />
+                <div style={{ position: 'absolute', top: 30, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,var(--blue-solid),var(--navy-solid))', borderRadius: 3 }} />
                 {/* endpoints */}
-                <div style={{ position: 'absolute', left: 0, top: 22, textAlign: 'left' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--navy)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--navy)' }} /><div className="tiny mono" style={{ marginTop: 8, color: 'var(--navy)', fontWeight: 700 }}>31 Des</div></div>
-                <div style={{ position: 'absolute', right: 0, top: 22, textAlign: 'right' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--navy)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--navy)', marginLeft: 'auto' }} /><div className="tiny mono" style={{ marginTop: 8, color: 'var(--navy)', fontWeight: 700 }}>14 Mar</div></div>
+                <div style={{ position: 'absolute', left: 0, top: 22, textAlign: 'left' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--navy-solid)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--navy)' }} /><div className="tiny mono" style={{ marginTop: 8, color: 'var(--navy)', fontWeight: 700 }}>31 Des</div></div>
+                <div style={{ position: 'absolute', right: 0, top: 22, textAlign: 'right' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--navy-solid)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--navy)', marginLeft: 'auto' }} /><div className="tiny mono" style={{ marginTop: 8, color: 'var(--navy)', fontWeight: 700 }}>14 Mar</div></div>
                 {/* events */}
                 {events.map((e: any) => {
                   const pct = (e.day / periodDays) * 96 + 2;
@@ -84,8 +84,8 @@ function SubsequentEvents() {
                 })}
               </div>
               <div className="row gap12" style={{ marginTop: 6 }}>
-                <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--red)' }} /> Penyesuai (Type 1)</span>
-                <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--amber)' }} /> Non-Penyesuai (Type 2)</span>
+                <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--red-solid)' }} /> Penyesuai (Type 1)</span>
+                <span className="row ac gap6 tiny"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--amber-solid)' }} /> Non-Penyesuai (Type 2)</span>
               </div>
             </div>
           </Panel>

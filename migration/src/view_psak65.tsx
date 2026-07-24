@@ -254,7 +254,7 @@ function PSAK65View() {
                   <div style={{ display: 'grid', gap: 9 }}>
                     {P65_ELEMENTS.map((e, i) => (
                       <div key={e.key} className="row gap8" style={{ alignItems: 'flex-start' }}>
-                        <span style={{ width: 18, height: 18, borderRadius: 5, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 18px', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
+                        <span style={{ width: 18, height: 18, borderRadius: 5, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 18px', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{e.lbl}</div>
                           <div className="tiny muted" style={{ lineHeight: 1.4 }}>{e.sub}</div>
@@ -288,7 +288,7 @@ function PSAK65View() {
                 <div className="panel-h"><h3>Struktur Grup — PT Sentosa Group (konsolidasian)</h3><span className="sub mono">induk · {p65.subs.length} anak · {p65.associates.length} asosiasi</span></div>
                 <div style={{ padding: 14 }}>
                   {/* induk */}
-                  <div className="panel" style={{ padding: '12px 14px', background: 'var(--navy)', color: '#fff', borderColor: 'transparent', marginBottom: 10 }}>
+                  <div className="panel" style={{ padding: '12px 14px', background: 'var(--navy-solid)', color: '#fff', borderColor: 'transparent', marginBottom: 10 }}>
                     <div className="row ac jb">
                       <div className="row ac gap10">
                         <span style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center' }}><I.building size={17} /></span>
@@ -310,8 +310,8 @@ function PSAK65View() {
                         <div style={{ display: 'grid', gap: 4, marginTop: 2 }}>
                           <div className="row jb ac"><span className="tiny muted">Kepemilikan</span><span className="mono tiny" style={{ fontWeight: 700 }}>{s.own}%</span></div>
                           <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                            <span style={{ display: 'block', height: '100%', width: s.own + '%', background: 'var(--navy)' }} />
-                            <span style={{ display: 'block', marginTop: -6, height: '100%', width: (100 - s.own) + '%', marginLeft: s.own + '%', background: 'var(--amber)' }} />
+                            <span style={{ display: 'block', height: '100%', width: s.own + '%', background: 'var(--navy-solid)' }} />
+                            <span style={{ display: 'block', marginTop: -6, height: '100%', width: (100 - s.own) + '%', marginLeft: s.own + '%', background: 'var(--amber-solid)' }} />
                           </div>
                           <div className="row jb ac"><span className="tiny muted">NCI {(100 - s.own)}%</span><span className="mono tiny" style={{ fontWeight: 600, color: 'var(--amber)' }}>{fmt(s.nciClose)} jt</span></div>
                           <div className="row jb ac"><span className="tiny muted">Laba (NPAT)</span><span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(s.npat)} jt</span></div>
@@ -349,8 +349,8 @@ function PSAK65View() {
                     <div style={{ flex: 1, display: 'grid', gap: 7 }}>
                       <P65RowKv label="Laba tahun berjalan konsolidasi" v={fmt(p65.consolNpat) + ' jt'} strong />
                       <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 7, display: 'grid', gap: 5 }}>
-                        <div className="row jb ac"><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--navy)' }} /><span style={{ fontSize: 12 }}>Pemilik entitas induk</span></span><span className="mono" style={{ fontWeight: 700 }}>{fmt(p65.ownersProfit)} jt</span></div>
-                        <div className="row jb ac"><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber)' }} /><span style={{ fontSize: 12 }}>Kepentingan nonpengendali</span></span><span className="mono" style={{ fontWeight: 700, color: 'var(--amber)' }}>{fmt(p65.nciProfit)} jt</span></div>
+                        <div className="row jb ac"><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--navy-solid)' }} /><span style={{ fontSize: 12 }}>Pemilik entitas induk</span></span><span className="mono" style={{ fontWeight: 700 }}>{fmt(p65.ownersProfit)} jt</span></div>
+                        <div className="row jb ac"><span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /><span style={{ fontSize: 12 }}>Kepentingan nonpengendali</span></span><span className="mono" style={{ fontWeight: 700, color: 'var(--amber)' }}>{fmt(p65.nciProfit)} jt</span></div>
                       </div>
                     </div>
                   </div>

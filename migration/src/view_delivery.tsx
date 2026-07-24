@@ -103,7 +103,7 @@ function DeliveryMilestones() {
             {/* month header */}
             <div style={{ position: 'relative', height: 18, marginLeft: 214, borderBottom: '1px solid var(--line)' }}>
               {months.map((m: any, i: any) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 9.5, letterSpacing: '.04em' }}>{m.label}</span>)}
-              <span style={{ position: 'absolute', left: frac(today) + '%', top: -2, bottom: -2000, width: 2, background: 'var(--red)', opacity: .8, zIndex: 3 }} />
+              <span style={{ position: 'absolute', left: frac(today) + '%', top: -2, bottom: -2000, width: 2, background: 'var(--red-solid)', opacity: .8, zIndex: 3 }} />
             </div>
             {shown.map((r: any, ri: any) => {
               const used = r.e.budgetHrs ? Math.round(r.e.actualHrs / r.e.budgetHrs * 100) : 0;
@@ -132,7 +132,7 @@ function DeliveryMilestones() {
                         style={{ position: 'absolute', top: 8, left: 'calc(' + frac(m.date) + '% - 6px)', width: 12, height: 12, background: (DLV_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, border: '1.5px solid var(--surface)', zIndex: 2 }} />
                     ))}
                     {/* today line */}
-                    <span style={{ position: 'absolute', top: -7, bottom: -7, left: frac(today) + '%', width: 2, background: 'var(--red)', opacity: .55 }} />
+                    <span style={{ position: 'absolute', top: -7, bottom: -7, left: frac(today) + '%', width: 2, background: 'var(--red-solid)', opacity: .55 }} />
                   </div>
                   <div style={{ width: 86, flex: '0 0 86px', textAlign: 'right' }}>
                     <Badge kind={dl < 0 ? 'red' : dl <= 14 ? 'amber' : 'gray'}>{dl < 0 ? Math.abs(dl) + 'h lewat' : dl + ' hari'}</Badge>

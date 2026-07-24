@@ -222,7 +222,7 @@ function HcTim({ tim, nav, grip }: { tim: Team; nav: NavFn; grip: DragGrip }) {
           <div className="hc-findings">
             {tim.overload.map((o, i) => (
               <div key={i} className="hc-row" style={{ padding: '5px 0', borderBottom: 0 }}>
-                <span className="hc-sev" style={{ background: 'var(--red)' }} />
+                <span className="hc-sev" style={{ background: 'var(--red-solid)' }} />
                 <div className="hc-main"><span className="tiny">{o.name} — <b>{o.util}%</b></span><span className="muted tiny">{o.role}</span></div>
               </div>
             ))}

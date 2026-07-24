@@ -341,7 +341,7 @@ function IntegrationDetail({ it, onToggle }: any) {
     <Panel noBody>
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--line)' }}>
         <div className="row ac gap12">
-          <span style={{ width: 46, height: 46, borderRadius: 11, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 46px' }}><IconC size={22} /></span>
+          <span style={{ width: 46, height: 46, borderRadius: 11, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 46px' }}><IconC size={22} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }}>{it.name}</span><Badge kind={st.k}>{st.l}</Badge>{isOn && cdata.tied && <span className="row ac gap4" style={{ color: 'var(--green)', fontSize: 11, fontWeight: 700 }}><I.checkCircle size={12} /> SSOT menutup</span>}</div>
             <div className="tiny muted">{it.cat} · {it.desc}</div>

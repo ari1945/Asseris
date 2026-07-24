@@ -372,8 +372,8 @@ function OBTrace({ wtb, fmt }: any) {
     <Panel noBody>
       <div className="panel-h"><h3>Penelusuran Saldo Akhir Audited TA-1 → Saldo Awal TA Kini</h3><div style={{ flex: 1 }} /><span className="tiny muted">Posisi keuangan · nilai Rp juta</span></div>
       <div className="panel" style={{ margin: '0', padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, fontSize: 11.5 }}>
-        <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green)' }} /> Carry-forward cocok</span>
-        <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber)' }} /> Saldo timbul dari transisi PSAK 73 (1 Jan 2025)</span>
+        <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green-solid)' }} /> Carry-forward cocok</span>
+        <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> Saldo timbul dari transisi PSAK 73 (1 Jan 2025)</span>
       </div>
       <table className="dtbl">
         <thead><tr>

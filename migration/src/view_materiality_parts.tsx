@@ -390,7 +390,7 @@ function MatRevision({ om, applied, locked }: any) {
             return (
               <div key={r.id} className="row" style={{ gap: 12 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--blue)', border: '2px solid var(--surface)', boxShadow: '0 0 0 2px var(--blue-100)' }} />
+                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--blue-solid)', border: '2px solid var(--surface)', boxShadow: '0 0 0 2px var(--blue-100)' }} />
                   {i < revs.length - 1 && <span style={{ flex: 1, width: 2, background: 'var(--line)', minHeight: 26 }} />}
                 </div>
                 <div style={{ paddingBottom: 18, flex: 1 }}>
@@ -601,7 +601,7 @@ function Line({ label, val, sub }: any) {
 function SecTitle({ n, t, mt }: any) {
   return (
     <div className="row ac gap8" style={{ marginTop: mt ? 16 : 0, marginBottom: 6 }}>
-      <span style={{ width: 20, height: 20, borderRadius: 5, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, fontFamily: 'var(--mono)' }}>{n}</span>
+      <span style={{ width: 20, height: 20, borderRadius: 5, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, fontFamily: 'var(--mono)' }}>{n}</span>
       <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)' }}>{t}</span>
     </div>
   );

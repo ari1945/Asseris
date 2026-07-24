@@ -506,8 +506,8 @@ function SOCuec({ orgs }: { orgs: ServiceOrgRow[] }) {
         </div>
         <div className="panel" style={{ margin: 0, padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, alignItems: 'center', fontSize: 11.5 }}>
           <span><b>{sel?.name || '—'}</b> — {sel?.cuec ?? 0} CUEC diidentifikasi dari laporan auditor jasa</span>
-          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green)' }} /> {tested} diuji</span>
-          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber)' }} /> {issues} dengan catatan</span>
+          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green-solid)' }} /> {tested} diuji</span>
+          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> {issues} dengan catatan</span>
         </div>
         <table className="dtbl">
           <thead><tr>

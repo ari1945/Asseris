@@ -46,7 +46,7 @@ function EngagementCard({ eng, client, onOpen }: { key?: string; eng: { id: stri
   return (
     <div className="panel" style={{ padding: 13, display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div className="row ac gap8">
-        <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700, flex: '0 0 30px' }}>
+        <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700, flex: '0 0 30px' }}>
           {(client?.name || '').replace('PT ', '').slice(0, 2).toUpperCase() || '—'}
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>

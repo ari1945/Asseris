@@ -70,7 +70,7 @@ function ResourceScheduler() {
                         </div>
                       ))}
                       {/* capacity line at 100% is full width; mark overflow */}
-                      {over && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 3, background: 'var(--red)' }} />}
+                      {over && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 3, background: 'var(--red-solid)' }} />}
                     </div>
                     <div style={{ width: 76, flex: '0 0 76px', textAlign: 'right' }}>
                       <span className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: over ? 'var(--red)' : pct < 60 ? 'var(--amber)' : 'var(--green)' }}>{used}/{m.capacity}h</span>

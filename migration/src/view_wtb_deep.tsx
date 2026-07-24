@@ -267,7 +267,7 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
           </div>
           <div className="row gap8 tiny muted" style={{ padding: '8px 12px' }}>
             <span className="row ac gap6"><span style={{ width: 11, height: 8, borderRadius: 2, background: 'var(--ink-4)', opacity: .5, display: 'inline-block' }} /> TA lalu</span>
-            <span className="row ac gap6"><span style={{ width: 11, height: 8, borderRadius: 2, background: 'var(--blue)', display: 'inline-block' }} /> Saldo kini</span>
+            <span className="row ac gap6"><span style={{ width: 11, height: 8, borderRadius: 2, background: 'var(--blue-solid)', display: 'inline-block' }} /> Saldo kini</span>
             <span>·</span><span>Nilai dalam jutaan Rupiah · klik baris untuk dokumentasi</span>
           </div>
         </Panel>

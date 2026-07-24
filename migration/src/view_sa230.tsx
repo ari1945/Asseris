@@ -279,7 +279,7 @@ function D2Criterion({ para, title, sub, pct, detail }: any) {
     <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none', borderColor: 'var(--line)' }}>
       <div className="row jb ac" style={{ marginBottom: 6 }}>
         <span className="row ac gap8">
-          <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 11 }} className="mono">{para.replace('¶8', '')}</span>
+          <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 11 }} className="mono">{para.replace('¶8', '')}</span>
           <span><span style={{ fontWeight: 700, fontSize: 12.5, display: 'block' }}>{title}</span><span className="tiny muted">{sub}</span></span>
         </span>
         <span className="mono" style={{ fontWeight: 700, fontSize: 16, color }}>{pct}%</span>

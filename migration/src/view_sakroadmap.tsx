@@ -151,7 +151,7 @@ function SAKRoadmapView() {
                 <div style={{ padding: '14px 16px 18px', overflowX: 'auto' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 0, minWidth: 720, position: 'relative' }}>
                     {/* now marker antara 2025|2026 */}
-                    <div style={{ position: 'absolute', left: '50%', top: -2, bottom: 8, width: 2, background: 'var(--red)', opacity: .55 }} />
+                    <div style={{ position: 'absolute', left: '50%', top: -2, bottom: 8, width: 2, background: 'var(--red-solid)', opacity: .55 }} />
                     <div className="mono tiny" style={{ position: 'absolute', left: '50%', top: -14, transform: 'translateX(-50%)', color: 'var(--red)', fontWeight: 700, whiteSpace: 'nowrap' }}>◂ diterapkan · belum efektif ▸</div>
                     {H.years.map((y: any) => {
                       const items = yearItems(y);

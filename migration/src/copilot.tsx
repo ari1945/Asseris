@@ -406,7 +406,7 @@ function CpOpinionTree({ nav, onClose }: any) {
       <div className="opdt-guard"><I.shield size={15} /><span>Alat bantu keputusan. Penentuan opini final tetap <b>pertimbangan profesional auditor</b> dan tunduk pada penelaahan EQR (SA 220). Setiap jawaban terekam untuk dokumentasi (SA 230).</span></div>
       <div className="opdt-tree">
         <div className="opdt-node">
-          <div className="opdt-rail"><div className="opdt-dot" style={{ background: 'var(--blue)' }}>1</div><div className="opdt-line" /></div>
+          <div className="opdt-rail"><div className="opdt-dot" style={{ background: 'var(--blue-solid)' }}>1</div><div className="opdt-line" /></div>
           <div className="opdt-body">
             <div className="opdt-q">Adakah hal yang berpotensi memodifikasi opini? <span className="opdt-sa">SA 705 ¶6</span></div>
             {source
@@ -421,7 +421,7 @@ function CpOpinionTree({ nav, onClose }: any) {
 
         {source && source !== 'none' && (
           <div className="opdt-node">
-            <div className="opdt-rail"><div className="opdt-dot" style={{ background: 'var(--blue)' }}>2</div><div className="opdt-line" /></div>
+            <div className="opdt-rail"><div className="opdt-dot" style={{ background: 'var(--blue-solid)' }}>2</div><div className="opdt-line" /></div>
             <div className="opdt-body">
               <div className="opdt-q">Seberapa luas dampaknya terhadap LK? <span className="opdt-sa">SA 705 ¶5(a)</span></div>
               {pervasive != null

@@ -58,7 +58,7 @@ function RCRow({ r, nav }: any) {
       <div style={{ padding: '11px 13px', display: 'grid', gap: 9 }}>
         {/* sumber kebenaran */}
         <div onClick={r.sourceRoute ? () => nav(r.sourceRoute) : undefined} className="row ac gap8" style={{ padding: '8px 11px', borderRadius: 8, background: 'var(--navy-bg, var(--surface-2))', cursor: r.sourceRoute ? 'pointer' : 'default' }}>
-          <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy)', flex: '0 0 7px' }} />
+          <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy-solid)', flex: '0 0 7px' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="tiny upper muted" style={{ letterSpacing: '.05em', fontWeight: 700 }}>Sumber kebenaran</div>
             <div className="mono" style={{ fontSize: 11.5, fontWeight: 600 }}>{r.sourceLabel}</div>
@@ -166,7 +166,7 @@ function DFRekonsiliasi() {
       <Panel title="Tie-out Keuangan Firma" sub="fee perikatan lintas-modul (ENG-2025-014 · PT Sentosa Makmur)">
         <div style={{ padding: 13, display: 'grid', gap: 9 }}>
           <div className="row ac gap8" style={{ padding: '8px 11px', borderRadius: 8, background: 'var(--surface-2)' }}>
-            <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy)', flex: '0 0 7px' }} />
+            <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy-solid)', flex: '0 0 7px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="tiny upper muted" style={{ letterSpacing: '.05em', fontWeight: 700 }}>Sumber kebenaran</div>
               <div className="mono" style={{ fontSize: 11.5, fontWeight: 600 }}>Engagement Letter · CRM 360</div>

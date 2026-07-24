@@ -366,7 +366,7 @@ function StandardRefCard({ data, onNavigate, onClose }: any) {
   return (
     <div className="view-pad">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <span style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 44px' }}><I.shield size={20} /></span>
+        <span style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 44px' }}><I.shield size={20} /></span>
         <div>
           <div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{data.code}</div>
           <div className="muted" style={{ fontSize: 13 }}>{data.title}</div>
@@ -457,7 +457,9 @@ function App() {
   useEffectApp(() => { window.__amsOpenCopilot = () => setCopilot(true); return () => { delete window.__amsOpenCopilot; }; }, []);
   useEffectApp(() => { window.__amsOpenMiniMap = () => setMiniMap(true); return () => { delete window.__amsOpenMiniMap; }; }, []);
   useEffectApp(() => {
-    if (localStorage.getItem('ams.dark') === '1') document.body.classList.add('dark');
+    /* Kelas tema di <html>, bukan <body> — lihat catatan blok :root.dark di styles_base.css
+       (token gelap harus mencapai :root, dan :has() menimbulkan siklus invalidasi). */
+    if (localStorage.getItem('ams.dark') === '1') document.documentElement.classList.add('dark');
     if (localStorage.getItem('ams.dense') === '1') document.body.classList.add('dense');
     try { const s = JSON.parse(localStorage.getItem('ams.v1.settings') || '{}'); window.amsApplyPrefs && window.amsApplyPrefs(s); } catch (e) {}
   }, []);

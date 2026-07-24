@@ -91,7 +91,7 @@ function FirmRevenue() {
                           <td className="truncate" style={{ maxWidth: 140, fontWeight: 600 }}>{r.client.replace('PT ', '')}</td>
                           <td className="tiny muted">{r.method}</td>
                           <td className="num">{fmt(r.contract / 1e6, 0)}</td>
-                          <td className="num"><div className="row ac gap6" style={{ justifyContent: 'flex-end' }}><div style={{ width: 38, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.pct * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green)' }} /></div><span className="tiny mono" style={{ width: 28 }}>{(r.pct * 100).toFixed(0)}%</span></div></td>
+                          <td className="num"><div className="row ac gap6" style={{ justifyContent: 'flex-end' }}><div style={{ width: 38, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.pct * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green-solid)' }} /></div><span className="tiny mono" style={{ width: 28 }}>{(r.pct * 100).toFixed(0)}%</span></div></td>
                           <td className="num" style={{ fontWeight: 600 }}>{fmt(r.recognized / 1e6, 0)}</td>
                           <td className="num muted">{fmt(r.billed / 1e6, 0)}</td>
                           <td className="num" style={{ fontWeight: 600, color: net > 0 ? 'var(--blue)' : net < 0 ? 'var(--amber)' : 'var(--ink-3)' }}>{net === 0 ? '—' : net > 0 ? fmt(net / 1e6, 0) : '(' + fmt(-net / 1e6, 0) + ')'}</td>
@@ -146,8 +146,8 @@ function FirmRevenue() {
                           <td className="num" style={{ fontWeight: 600, color: r.liab ? 'var(--amber)' : 'var(--ink-4)' }}>{r.liab ? fmt(r.liab / 1e6, 0) : '—'}</td>
                           <td>
                             <div style={{ position: 'relative', height: 16 }}>
-                              <div style={{ position: 'absolute', top: 2, left: 0, width: '100%', height: 5, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.recognized / mx * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green)' }} /></div>
-                              <div style={{ position: 'absolute', top: 9, left: 0, width: '100%', height: 5, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.billed / mx * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue)' }} /></div>
+                              <div style={{ position: 'absolute', top: 2, left: 0, width: '100%', height: 5, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.recognized / mx * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--green-solid)' }} /></div>
+                              <div style={{ position: 'absolute', top: 9, left: 0, width: '100%', height: 5, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (r.billed / mx * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div>
                             </div>
                           </td>
                         </tr>
@@ -156,7 +156,7 @@ function FirmRevenue() {
                   </tbody>
                   <tfoot><tr><td colSpan={2}>TOTAL</td><td className="num">{fmt(totRecognized / 1e6, 0)}</td><td className="num">{fmt(totBilled / 1e6, 0)}</td><td className="num">{fmt(totAsset / 1e6, 0)}</td><td className="num">{fmt(totLiab / 1e6, 0)}</td><td></td></tr></tfoot>
                 </table>
-                <div className="row gap14 tiny muted" style={{ padding: '8px 12px' }}><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--green)', display: 'inline-block' }} /> Pendapatan diakui</span><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--blue)', display: 'inline-block' }} /> Telah ditagih</span></div>
+                <div className="row gap14 tiny muted" style={{ padding: '8px 12px' }}><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--green-solid)', display: 'inline-block' }} /> Pendapatan diakui</span><span className="row ac gap6"><span style={{ width: 18, height: 5, borderRadius: 3, background: 'var(--blue-solid)', display: 'inline-block' }} /> Telah ditagih</span></div>
               </Panel>
             </div>
           )}
