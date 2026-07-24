@@ -116,7 +116,7 @@ function InsOverview({ pols, claims, reg, hl, nav, setTab }: any) {
   return (
     <div className="view-pad" style={{ paddingTop: 14 }}>
       <div className="panel" style={{ padding: '11px 13px', marginBottom: 12, background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-        <div className="row ac gap8" style={{ marginBottom: 5 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12.5 }}>Satu register polis & risiko, satu sumber kebenaran</b></div>
+        <div className="row ac gap8" style={{ marginBottom: 5 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Satu register polis & risiko, satu sumber kebenaran</b></div>
         <div className="tiny muted" style={{ lineHeight: 1.55 }}>Premi <b>mengalir</b> ke <b>Cockpit Operasi</b> (overhead) & <b>Legal</b> (nilai kontrak) tanpa diketik ulang. Property All-Risk menarik nilai dari <b>Register Aset</b> (PSAK 16); klaim PII tertaut ke <b>Litigasi</b>; tiap risiko firma menunjuk <b>polis</b> & <b>modul mitigasi</b>-nya. Tab <b>Sumber Kebenaran</b> membuktikan tiap angka menutup.</div>
       </div>
 
@@ -198,7 +198,7 @@ function InsPolicies({ pols, nav, setTab }: any) {
           <tbody>
             {pols.map((x: any) => (
               <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)} style={{ cursor: 'pointer' }}>
-                <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{x.jenis}</div><div className="tiny muted mono">{x.id} · {x.insurer}</div></td>
+                <td><div style={{ fontWeight: 600, fontSize: 12 }}>{x.jenis}</div><div className="tiny muted mono">{x.id} · {x.insurer}</div></td>
                 <td className="num">{boM(x.limit, 0)}</td>
                 <td className="num">{boJt(x.premi)}</td>
                 <td className="tiny mono" style={{ color: x.days < 30 ? 'var(--red)' : x.days < 60 ? 'var(--amber)' : 'var(--ink-2)' }}>{x.akhir}<span className="muted"> · {x.days}h</span></td>
@@ -336,7 +336,7 @@ function InsRegister({ reg, nav, setTab }: any) {
             {reg.map((x: any) => (
               <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)} style={{ cursor: 'pointer' }}>
                 <td className="mono tiny" style={{ fontWeight: 700 }}>{x.id}</td>
-                <td><div style={{ fontWeight: 600, fontSize: 11.5, maxWidth: 200, whiteSpace: 'normal', lineHeight: 1.3 }}>{x.risk}</div><div className="tiny muted">{x.kat}</div></td>
+                <td><div style={{ fontWeight: 600, fontSize: 12, maxWidth: 200, whiteSpace: 'normal', lineHeight: 1.3 }}>{x.risk}</div><div className="tiny muted">{x.kat}</div></td>
                 <td className="num"><ScoreBox v={x.inherent} color={x.inhColor} size={22} /></td>
                 <td className="num"><ScoreBox v={x.residual} color={x.resColor} size={22} /></td>
                 <td className="tiny" style={{ fontWeight: 600 }}>{x.treatment}</td>
@@ -353,7 +353,7 @@ function InsRegister({ reg, nav, setTab }: any) {
             <span className="tiny mono" style={{ fontWeight: 700, color: r.trend === 'naik' ? 'var(--red)' : r.trend === 'turun' ? 'var(--green)' : 'var(--ink-4)' }}>{r.trend === 'naik' ? '▲ naik' : r.trend === 'turun' ? '▼ turun' : '▬ stabil'}</span>
           </div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, fontWeight: 600, lineHeight: 1.4 }}>{r.risk}</p>
+            <p style={{ margin: '0 0 12px', fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{r.risk}</p>
 
             <div className="row ac gap8" style={{ marginBottom: 12 }}>
               <div style={{ textAlign: 'center' }}><div className="tiny muted" style={{ marginBottom: 3 }}>Inheren</div><ScoreBox v={r.inherent} color={r.inhColor} size={30} /></div>
@@ -496,7 +496,7 @@ function InsLineage({ IRM, firm, nav }: any) {
               {i > 0 && <div style={{ display: 'grid', placeItems: 'center', padding: '0 14px' }}><I.arrowRight size={16} style={{ color: 'var(--ink-4)' }} /></div>}
               <div style={{ flex: '1 1 180px', padding: '10px 12px', borderRadius: 9, border: '1px solid var(--line)', borderLeft: '3px solid ' + n.c, background: 'var(--surface-1)' }}>
                 <div className="tiny muted upper" style={{ letterSpacing: '.04em', marginBottom: 2 }}>{n.lbl}</div>
-                <div className="mono" style={{ fontWeight: 800, fontSize: 16 }}>{n.v != null ? boJt(n.v) : '—'}</div>
+                <div className="mono" style={{ fontWeight: 800, fontSize: 15 }}>{n.v != null ? boJt(n.v) : '—'}</div>
                 <div className="tiny muted">{n.sub}</div>
               </div>
             </React.Fragment>

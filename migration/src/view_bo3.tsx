@@ -120,7 +120,7 @@ function FirmTravel() {
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{trJt(r.value, 0)}</span>
                         </div>
                         <div className="row ac gap6" style={{ marginTop: 5 }}>
-                          <TrSrc module={r.owner} title={'Sumber: ' + r.src}><span className="mono" style={{ fontSize: 9.5 }}>{r.src}</span></TrSrc>
+                          <TrSrc module={r.owner} title={'Sumber: ' + r.src}><span className="mono" style={{ fontSize: 11 }}>{r.src}</span></TrSrc>
                           {i < recon.rows.length - 1 && <I.chevron size={11} style={{ color: 'var(--ink-3)' }} />}
                         </div>
                       </div>
@@ -159,7 +159,7 @@ function FirmTravel() {
                       <tr style={{ cursor: 'pointer', background: open ? 'var(--blue-050)' : undefined }} onClick={() => setOpenTrip(open ? null : t.id)}>
                         <td style={{ textAlign: 'center', color: 'var(--ink-3)' }}><I.chevDown size={12} style={{ transform: open ? 'none' : 'rotate(-90deg)', transition: '.12s' }} /></td>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{t.id}</td>
-                        <td><div className="row ac gap6"><Avatar name={t.staff} size={22} /><div><div style={{ fontWeight: 600, fontSize: 11.5 }}>{t.staff}</div><div className="tiny muted">{t.grade}</div></div></div></td>
+                        <td><div className="row ac gap6"><Avatar name={t.staff} size={22} /><div><div style={{ fontWeight: 600, fontSize: 12 }}>{t.staff}</div><div className="tiny muted">{t.grade}</div></div></div></td>
                         <td className="tiny"><div style={{ fontWeight: 600 }}>{t.client.replace(/^PT /, '')}</div><div className="tiny muted mono">{t.eng}</div></td>
                         <td className="tiny">{t.city.split(',')[0]}{e.intl && <span className="badge b-purple" style={{ marginLeft: 4 }}>Int'l</span>}</td>
                         <td className="tiny mono">{t.tgl}</td>
@@ -218,7 +218,7 @@ function FirmTravel() {
                   {reimb.map((r: any) => (
                     <tr key={r.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
-                      <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{r.staff}</div><div className="tiny muted">{r.grade}</div></td>
+                      <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.staff}</div><div className="tiny muted">{r.grade}</div></td>
                       <td className="tiny">{r.trip !== '—' ? <><span className="mono">{r.trip}</span><div className="tiny muted">{(r.client || '').replace(/^PT /, '')}</div></> : <span className="muted">tanpa trip</span>}</td>
                       <td className="tiny" style={{ maxWidth: 190, whiteSpace: 'normal', lineHeight: 1.3 }}>{r.kategori}</td>
                       <td className="num" style={{ color: r.over ? 'var(--red)' : 'var(--ink)', fontWeight: r.over ? 700 : 400 }}>{trJt(r.klaim)}</td>
@@ -320,7 +320,7 @@ function FirmTravel() {
                       {recon.rows.map((r: any, i: any) => (
                         <tr key={i}>
                           <td className="tiny" style={{ fontWeight: 600, maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.3 }}>{r.label}</td>
-                          <td><TrSrc module={r.owner}><span className="mono" style={{ fontSize: 9.5 }}>{r.src}</span></TrSrc></td>
+                          <td><TrSrc module={r.owner}><span className="mono" style={{ fontSize: 11 }}>{r.src}</span></TrSrc></td>
                           <td className="num mono tiny">{trJt(r.value, 0)}</td>
                         </tr>
                       ))}
@@ -452,7 +452,7 @@ function FirmLicensing() {
                     {cal120.slice(0, 5).map((x: any, i: any) => (
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row jb ac" style={{ marginBottom: 5 }}>
-                          <span className="row ac gap6"><span className="badge" style={{ background: 'transparent', color: (kindCol as any)[x.kind], border: '1px solid currentColor', fontSize: 9.5 }}>{x.kind}</span><span className="tiny" style={{ fontWeight: 600, maxWidth: 150, lineHeight: 1.25 }}>{x.label}</span></span>
+                          <span className="row ac gap6"><span className="badge" style={{ background: 'transparent', color: (kindCol as any)[x.kind], border: '1px solid currentColor', fontSize: 11 }}>{x.kind}</span><span className="tiny" style={{ fontWeight: 600, maxWidth: 150, lineHeight: 1.25 }}>{x.label}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700, color: sevCol(x.days) }}>{x.days}h</span>
                         </div>
                         <div className="row jb tiny muted"><span className="mono">{x.exp}</span><span>{x.otoritas}</span></div>
@@ -481,7 +481,7 @@ function FirmLicensing() {
                       <tr style={{ cursor: hasDetail ? 'pointer' : 'default', background: open ? 'var(--blue-050)' : undefined }} onClick={() => hasDetail && setOpenFirm(open ? null : l.id)}>
                         <td style={{ textAlign: 'center', color: 'var(--ink-3)' }}>{hasDetail ? <I.chevDown size={12} style={{ transform: open ? 'none' : 'rotate(-90deg)', transition: '.12s' }} /> : null}</td>
                         <td className="mono tiny" style={{ fontWeight: 700 }}>{l.id}</td>
-                        <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{l.nama}</div>{l.note && <div className="tiny muted" style={{ maxWidth: 260, whiteSpace: 'normal', lineHeight: 1.3 }}>{l.note}</div>}</td>
+                        <td><div style={{ fontWeight: 600, fontSize: 12 }}>{l.nama}</div>{l.note && <div className="tiny muted" style={{ maxWidth: 260, whiteSpace: 'normal', lineHeight: 1.3 }}>{l.note}</div>}</td>
                         <td className="tiny mono">{l.no}</td>
                         <td className="tiny">{l.otoritas}</td>
                         <td className="tiny mono muted">{l.terbit}</td>
@@ -530,7 +530,7 @@ function FirmLicensing() {
                     <React.Fragment key={a.izin}>
                       <tr style={{ cursor: 'pointer', background: open ? 'var(--blue-050)' : undefined }} onClick={() => setOpenAp(open ? null : a.izin)}>
                         <td style={{ textAlign: 'center', color: 'var(--ink-3)' }}><I.chevDown size={12} style={{ transform: open ? 'none' : 'rotate(-90deg)', transition: '.12s' }} /></td>
-                        <td><div className="row ac gap6"><Avatar name={a.name} size={22} /><div><div style={{ fontWeight: 600, fontSize: 11.5 }}>{a.ap}</div><div className="tiny muted">{a.role}{a.emiten && <span className="badge b-purple" style={{ marginLeft: 4 }}>Emiten</span>}</div></div></div></td>
+                        <td><div className="row ac gap6"><Avatar name={a.name} size={22} /><div><div style={{ fontWeight: 600, fontSize: 12 }}>{a.ap}</div><div className="tiny muted">{a.role}{a.emiten && <span className="badge b-purple" style={{ marginLeft: 4 }}>Emiten</span>}</div></div></div></td>
                         <td className="tiny mono">{a.izin}<div className="tiny muted">{a.reg}</div></td>
                         <td className="tiny mono" style={{ color: sevCol(dExp) }}>{a.exp}<div className="tiny muted">{dExp}h</div></td>
                         <td className="num"><div className="row ac gap6" style={{ justifyContent: 'flex-end' }}><span className="mono tiny" style={{ fontWeight: 700, color: a.onPace ? 'var(--green)' : 'var(--amber)' }}>{a.ppl}/{a.pplReq}</span><div style={{ width: 46, height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: pplPct + '%', height: '100%', borderRadius: 3, background: a.onPace ? 'var(--green)' : 'var(--amber)' }} /></div></div></td>
@@ -593,7 +593,7 @@ function FirmLicensing() {
                 <tbody>
                   {mb.map((m: any, i: any) => (
                     <tr key={i}>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{m.nama}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{m.nama}</td>
                       <td className="tiny">{m.tipe}</td>
                       <td className="num">{boJt(m.iuran)}</td>
                       <td className="tiny mono" style={{ color: m.days != null ? sevCol(m.days) : 'var(--ink-2)' }}>{m.exp}{m.days != null ? <span className="muted"> · {m.days}h</span> : null}</td>
@@ -623,7 +623,7 @@ function FirmLicensing() {
                   return (
                     <div key={i} className="panel" style={{ padding: '11px 13px' }}>
                       <div className="row jb ac" style={{ marginBottom: 6 }}>
-                        <span className="row ac gap8"><span className="badge" style={{ background: 'transparent', color: (kindCol as any)[x.kind], border: '1px solid currentColor', fontSize: 9.5 }}>{x.kind}</span><span style={{ fontWeight: 600, fontSize: 12.5 }}>{x.label}</span></span>
+                        <span className="row ac gap8"><span className="badge" style={{ background: 'transparent', color: (kindCol as any)[x.kind], border: '1px solid currentColor', fontSize: 11 }}>{x.kind}</span><span style={{ fontWeight: 600, fontSize: 12 }}>{x.label}</span></span>
                         <span className="mono tiny" style={{ fontWeight: 700, color: col }}>{x.days} hari lagi</span>
                       </div>
                       <div style={{ height: 8, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: pct + '%', height: '100%', borderRadius: 4, background: col }} /></div>

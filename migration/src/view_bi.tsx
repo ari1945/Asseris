@@ -28,7 +28,7 @@ function BIChart({ months, bars, line, barColor, lineColor, barMax, lineMax, uni
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end', position: 'relative' }}>
             {line && <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: `calc(${(line[i] / (lineMax || 100)) * 100}% + 2px)`, width: 6, height: 6, borderRadius: '50%', background: lineColor, zIndex: 2 }} title={line[i] + (unit || '%')} />}
             <div style={{ width: '70%', maxWidth: 30, height: (v / bmax * 100) + '%', background: barColor, borderRadius: '3px 3px 0 0', minHeight: 2 }} title={v} />
-            <span className="tiny muted" style={{ fontSize: 9.5 }}>{months[i]}</span>
+            <span className="tiny muted" style={{ fontSize: 11 }}>{months[i]}</span>
           </div>
         ))}
         {/* line polyline overlay */}
@@ -186,7 +186,7 @@ function FirmBI() {
               <div style={{ display: 'grid', gap: 7, marginBottom: 12 }}>
                 {active.slice(0, 6).map((c: any, i: any) => (
                   <div key={c.id}>
-                    <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="truncate" style={{ maxWidth: 150, fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 8, padding: '0 4px', marginLeft: 4 }}>IDX</span>}</span><span className="mono" style={{ fontWeight: 700 }}>{(c.fee / totClientFee * 100).toFixed(0)}%</span></div>
+                    <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="truncate" style={{ maxWidth: 150, fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 4px', marginLeft: 4 }}>IDX</span>}</span><span className="mono" style={{ fontWeight: 700 }}>{(c.fee / totClientFee * 100).toFixed(0)}%</span></div>
                     <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (c.fee / active[0].fee * 100) + '%', height: '100%', borderRadius: 3, background: i === 0 ? 'var(--amber)' : 'var(--navy)' }} /></div>
                   </div>
                 ))}
@@ -208,7 +208,7 @@ function FirmBI() {
                   <div key={p.p}>
                     <div className="row ac gap8" style={{ marginBottom: 5 }}>
                       <Avatar name={p.p} size={28} />
-                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{p.p}</div><div className="tiny muted">{p.n} klien · {eqrN} EQR · util {util}%</div></div>
+                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{p.p}</div><div className="tiny muted">{p.n} klien · {eqrN} EQR · util {util}%</div></div>
                       <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(p.fee / 1e9, 2)}M</div></div>
                     </div>
                     <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: (p.fee / maxPartnerFee * 100) + '%', height: '100%', borderRadius: 3, background: 'var(--blue-solid)' }} /></div>

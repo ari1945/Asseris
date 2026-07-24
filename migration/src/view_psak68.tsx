@@ -85,7 +85,7 @@ const P68_DOWNSTREAM = [
 function P68Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -205,7 +205,7 @@ function PSAK68View() {
                         {p68.items.map((it: any) => (
                           <tr key={it.id} onClick={() => setFocus(focus === it.id ? null : it.id)} style={{ cursor: 'pointer', background: focus === it.id ? 'var(--blue-050)' : undefined }}>
                             <td>
-                              <div className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>
+                              <div className="row ac gap6" style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>
                                 <span>{it.label}</span>
                                 {it.expert && <Badge kind="amber">Pakar {it.expert}</Badge>}
                               </div>
@@ -281,7 +281,7 @@ function PSAK68View() {
                   <div className="panel" style={{ marginTop: 11, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Level 3 sebesar <b>{rp(p68.l3Total)} jt ({(p68.byLevel[2].pct * 100).toFixed(0)}%)</b> bergantung input tak teramati — area pertimbangan signifikan & potensi <b>Hal Audit Utama (SA 701)</b>.</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>Level 3 sebesar <b>{rp(p68.l3Total)} jt ({(p68.byLevel[2].pct * 100).toFixed(0)}%)</b> bergantung input tak teramati — area pertimbangan signifikan & potensi <b>Hal Audit Utama (SA 701)</b>.</span>
                     </div>
                   </div>
                 </Panel>
@@ -290,7 +290,7 @@ function PSAK68View() {
                   <div style={{ display: 'grid', gap: 0 }}>
                     {P68_KEY.map((a, i) => (
                       <div key={i} style={{ padding: '8px 0', borderBottom: i < P68_KEY.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                        <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
+                        <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
                         <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{a.note}</div>
                       </div>
                     ))}
@@ -316,11 +316,11 @@ function PSAK68View() {
                             <div className="row ac gap8" style={{ minWidth: 0 }}>
                               <span style={{ color: 'var(--navy)', flex: '0 0 auto' }}><ApIc size={15} /></span>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.25 }}>{it.label}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.25 }}>{it.label}</div>
                                 <div className="tiny muted">{ap.lbl} · {it.technique}</div>
                               </div>
                             </div>
-                            <div className="row ac gap6" style={{ flex: '0 0 auto' }}><P68LevelChip level={it.level} /><span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{fmt(it.fv)}</span></div>
+                            <div className="row ac gap6" style={{ flex: '0 0 auto' }}><P68LevelChip level={it.level} /><span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{fmt(it.fv)}</span></div>
                           </div>
                           <div className="row" style={{ flexWrap: 'wrap', gap: 6, paddingLeft: 23 }}>
                             {it.inputs.map((inp: any, i: any) => (
@@ -352,7 +352,7 @@ function PSAK68View() {
                         <div key={k} className="panel" style={{ padding: '9px 11px', borderColor: 'var(--line)' }}>
                           <div className="row ac gap8" style={{ marginBottom: 4 }}>
                             <span style={{ color: 'var(--navy)' }}><ApIc size={15} /></span>
-                            <span style={{ fontSize: 12.5, fontWeight: 700 }}>{ap.lbl}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700 }}>{ap.lbl}</span>
                             {used.length > 0 && <span className="tiny mono muted" style={{ marginLeft: 'auto' }}>{used.length} pos</span>}
                           </div>
                           <div className="tiny muted" style={{ lineHeight: 1.45 }}>{ap.desc}</div>
@@ -367,7 +367,7 @@ function PSAK68View() {
                     Untuk aset non-keuangan (tanah & bangunan), nilai wajar mengasumsikan penggunaan oleh pelaku pasar yang <b>memaksimalkan nilai</b> — secara fisik mungkin, legal diizinkan, & finansial layak.
                   </div>
                   <div className="panel" style={{ marginTop: 9, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-                    <div className="row gap8"><span style={{ color: 'var(--green)' }}><I.check size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Penilai menyimpulkan <b>penggunaan saat ini</b> (kawasan & fasilitas industri) adalah penggunaan tertinggi & terbaik — tidak ada premis alternatif yang lebih tinggi.</span></div>
+                    <div className="row gap8"><span style={{ color: 'var(--green)' }}><I.check size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.5 }}>Penilai menyimpulkan <b>penggunaan saat ini</b> (kawasan & fasilitas industri) adalah penggunaan tertinggi & terbaik — tidak ada premis alternatif yang lebih tinggi.</span></div>
                   </div>
                 </Panel>
               </div>
@@ -383,7 +383,7 @@ function PSAK68View() {
                   <div>
                     {rfRows.map((r, i) => (
                       <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         {!r.tot && r.kind ? <Badge kind={r.kind === 'gray' ? 'blue' : r.kind}>{r.kind === 'amber' ? 'OCI' : r.kind === 'blue' ? 'L/R' : r.kind === 'green' ? 'masuk' : r.kind === 'red' ? 'keluar' : '—'}</Badge> : <span style={{ width: 44 }} />}
                         <div className="mono" style={{ width: 84, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tot ? 'var(--navy)' : (r.v === 0 ? 'var(--ink-4)' : 'var(--green)') }}>{r.v < 0 ? '(' + fmt(Math.round(-r.v)) + ')' : (r.tot ? '' : (r.v === 0 ? '' : '+')) + fmt(Math.round(r.v))}</div>
                       </div>
@@ -418,7 +418,7 @@ function PSAK68View() {
                       <tbody>
                         {p68.sens.map((s: any, i: any) => (
                           <tr key={i}>
-                            <td style={{ fontSize: 11.5, lineHeight: 1.3 }}>{s.label}<div className="tiny muted mono">{s.shock}</div></td>
+                            <td style={{ fontSize: 12, lineHeight: 1.3 }}>{s.label}<div className="tiny muted mono">{s.shock}</div></td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--green)' }}>+{fmt(s.fav)}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--red)' }}>({fmt(-s.unf)})</td>
                           </tr>
@@ -527,7 +527,7 @@ function PSAK68View() {
                     </div>
                   </div>
                   <button onClick={() => nav('fsgen', { from: 'psak68' })} className="row ac jb" style={{ marginTop: 11, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
-                    <div><div style={{ fontSize: 11.5, fontWeight: 600 }}>Buka FS Generator</div><div className="tiny muted">Catatan hierarki nilai wajar di CALK</div></div>
+                    <div><div style={{ fontSize: 12, fontWeight: 600 }}>Buka FS Generator</div><div className="tiny muted">Catatan hierarki nilai wajar di CALK</div></div>
                     <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
                   </button>
                 </Panel>
@@ -571,7 +571,7 @@ function PSAK68View() {
                           { pos: 'Pajak tangguhan surplus (OCI)', src: '→ PSAK 46 · 22%', val: p68.dtlOci, ok: true },
                         ].map((r, i) => (
                           <tr key={i} style={{ background: r.hi ? 'var(--blue-050)' : undefined }}>
-                            <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.pos}</td>
+                            <td style={{ fontWeight: 600, fontSize: 12 }}>{r.pos}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{r.src}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(Math.round(r.val))}</td>
                             <td style={{ textAlign: 'center' }}>{r.ok ? <span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> : <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>}</td>
@@ -640,7 +640,7 @@ function PSAK68View() {
                 <div className="panel-h"><h3>Prosedur Audit — Estimasi Nilai Wajar (SA 540 · SA 500)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P68_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.target size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Pengukuran nilai wajar — khususnya <b>Level 3</b> — adalah estimasi dengan ketidakpastian tinggi. Prosedur menguji penetapan level, teknik valuasi, input tak teramati, serta kompetensi & objektivitas penilai (KJPP V-2 & pakar derivatif V-3).</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>Pengukuran nilai wajar — khususnya <b>Level 3</b> — adalah estimasi dengan ketidakpastian tinggi. Prosedur menguji penetapan level, teknik valuasi, input tak teramati, serta kompetensi & objektivitas penilai (KJPP V-2 & pakar derivatif V-3).</div>
                 </div>
                 <div>
                   {P68_PROC.map((p, i) => {
@@ -662,7 +662,7 @@ function PSAK68View() {
                   <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — Pengukuran Nilai Wajar</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{doneCount}/{P68_PROC.length} prosedur audit selesai</div>
@@ -691,7 +691,7 @@ function PSAK68View() {
                     ].map((e, i) => (
                       <button key={i} onClick={() => nav('expert', { from: 'psak68' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--amber)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', flex: '0 0 auto' }}>{e.wp}</span>
-                        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11.5, fontWeight: 600 }}>{e.t}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{e.s}</div></div>
+                        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{e.t}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{e.s}</div></div>
                         <I.arrowRight size={13} style={{ color: 'var(--ink-4)', flex: '0 0 auto' }} />
                       </button>
                     ))}

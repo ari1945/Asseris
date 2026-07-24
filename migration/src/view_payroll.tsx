@@ -220,7 +220,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
       <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={r.name} size={42} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{r.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.role} · {r.id} · PTKP {r.p.ptkp}</div></div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{r.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{r.role} · {r.id} · PTKP {r.p.ptkp}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
@@ -241,7 +241,7 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
 
           <div style={{ background: 'var(--green-bg)', borderRadius: 8, padding: '12px 14px', marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontWeight: 700, fontSize: 13 }}>Take-Home Pay</span>
-            <span className="mono" style={{ fontWeight: 800, fontSize: 18, color: 'var(--green)' }}>Rp {fmt(s.net + r.thr, 0)}</span>
+            <span className="mono" style={{ fontWeight: 800, fontSize: 19, color: 'var(--green)' }}>Rp {fmt(s.net + r.thr, 0)}</span>
           </div>
 
           <div className="tiny muted upper" style={{ margin: '18px 0 4px' }}>Kontribusi Pemberi Kerja (di luar take-home)</div>

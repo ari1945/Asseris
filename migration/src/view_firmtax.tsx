@@ -105,9 +105,9 @@ function FirmTax() {
           {tab === 'ppn' && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Keluaran</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(ppnOut / 1e6, 1)} jt</div><div className="tiny muted">{EF.filter((e: any) => e.kind === 'Keluaran').length} faktur keluaran</div></div>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Masukan</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--green)' }}>Rp {fmt(ppnIn / 1e6, 1)} jt</div><div className="tiny muted">dapat dikreditkan</div></div>
-                <div className="panel" style={{ padding: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">PPN Kurang Bayar</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--amber)' }}>Rp {fmt(ppnPayable / 1e6, 1)} jt</div><div className="tiny muted">setor maks. akhir bulan berikutnya</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Keluaran</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(ppnOut / 1e6, 1)} jt</div><div className="tiny muted">{EF.filter((e: any) => e.kind === 'Keluaran').length} faktur keluaran</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">PPN Masukan</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--green)' }}>Rp {fmt(ppnIn / 1e6, 1)} jt</div><div className="tiny muted">dapat dikreditkan</div></div>
+                <div className="panel" style={{ padding: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">PPN Kurang Bayar</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--amber)' }}>Rp {fmt(ppnPayable / 1e6, 1)} jt</div><div className="tiny muted">setor maks. akhir bulan berikutnya</div></div>
               </div>
               <div className="panel" style={{ padding: 14, marginBottom: 14 }}>
                 <div className="row jb ac" style={{ marginBottom: 12 }}><div className="tiny upper" style={{ fontWeight: 700, color: 'var(--blue)' }}>Tren PPN 6 Bulan</div><div className="row gap14 tiny muted"><span className="row ac gap6"><span style={{ width: 14, height: 8, borderRadius: 2, background: '#005085', display: 'inline-block' }} /> Keluaran</span><span className="row ac gap6"><span style={{ width: 14, height: 8, borderRadius: 2, background: '#1f9d63', display: 'inline-block' }} /> Masukan</span><span className="row ac gap6"><span style={{ width: 14, height: 3, background: 'var(--amber-solid)', display: 'inline-block' }} /> Kurang bayar</span></div></div>
@@ -220,7 +220,7 @@ function FirmTax() {
                     <RowKv label="Effective Tax Rate" v="22,5%" />
                   </div>
                   <div className="panel" style={{ padding: 14 }}>
-                    <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Status: Draft</span></div>
+                    <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Status: Draft</span></div>
                     <div className="tiny muted" style={{ lineHeight: 1.5, marginBottom: 10 }}>Lampiran (1771, daftar nominatif, laporan keuangan audited) belum lengkap.</div>
                     <div className="chip tiny muted" style={{ width: 'fit-content' }} title="Read-only — penyusunan SPT 1771 dikelola di CoreSys / Coretax (roadmap)"><I.lock size={11} /> Penyusunan SPT: CoreSys (roadmap)</div>
                   </div>
@@ -232,9 +232,9 @@ function FirmTax() {
           {tab === 'deferred' && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: 12, background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Aset Pajak Tangguhan (DTA)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--green)' }}>Rp {fmt(dtaSum / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Liabilitas Pajak Tangguhan (DTL)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--amber)' }}>Rp {fmt(dtlSum / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Pajak Tangguhan Neto</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: netDeferred >= 0 ? 'var(--green)' : 'var(--red)' }}>{netDeferred >= 0 ? 'DTA ' : 'DTL '}Rp {fmt(Math.abs(netDeferred) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12, background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Aset Pajak Tangguhan (DTA)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--green)' }}>Rp {fmt(dtaSum / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Liabilitas Pajak Tangguhan (DTL)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--amber)' }}>Rp {fmt(dtlSum / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Pajak Tangguhan Neto</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: netDeferred >= 0 ? 'var(--green)' : 'var(--red)' }}>{netDeferred >= 0 ? 'DTA ' : 'DTL '}Rp {fmt(Math.abs(netDeferred) / 1e6, 0)} jt</div></div>
               </div>
               <table className="dtbl">
                 <thead><tr><th>Beda Temporer</th><th className="num">Nilai Tercatat</th><th className="num">Dasar Pajak</th><th className="num">Beda Temporer</th><th>Sifat</th><th className="num">DTA/(DTL) 22%</th></tr></thead>
@@ -262,7 +262,7 @@ function FirmTax() {
                   </div>
                 </Panel>
                 <div className="panel" style={{ padding: '11px 13px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                  <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--blue)' }}><I.report size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>PSAK 46 — Pajak Penghasilan</span></div>
+                  <div className="row ac gap8" style={{ marginBottom: 8 }}><span style={{ color: 'var(--blue)' }}><I.report size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>PSAK 46 — Pajak Penghasilan</span></div>
                   <div className="tiny" style={{ lineHeight: 1.6 }}>Aset/liabilitas pajak tangguhan diukur dengan tarif <b>22%</b> yang berlaku saat beda temporer terpulihkan. DTA neto sebesar <b>Rp {fmt(Math.abs(netDeferred) / 1e6, 0)} jt</b> diakui karena firma memiliki laba kena pajak yang memadai untuk pemulihannya.</div>
                 </div>
               </div>

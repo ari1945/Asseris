@@ -351,10 +351,10 @@ function RN_ClearanceCard({ M, aging }: any) {
       <div style={{ padding: '15px 18px', display: 'flex', alignItems: 'center', gap: 10, background: ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderBottom: '1px solid var(--line-soft)' }}>
         <span style={{ color: ready ? 'var(--green)' : 'var(--amber)' }}>{ready ? <I.checkCircle size={18} /> : <I.lock size={17} />}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kesiapan Kliring File</div>
+          <div style={{ fontSize: 12, fontWeight: 700 }}>Kesiapan Kliring File</div>
           <div className="tiny" style={{ color: ready ? 'var(--green)' : 'var(--amber)', fontWeight: 600 }}>{ready ? 'Semua catatan wajib telah dikliring' : `${M.blocking} catatan wajib belum dikliring`}</div>
         </div>
-        <div className="mono" style={{ fontSize: 26, fontWeight: 800, color: ready ? 'var(--green)' : 'var(--amber)', lineHeight: 1 }}>{M.clearedPct}%</div>
+        <div className="mono" style={{ fontSize: 28, fontWeight: 800, color: ready ? 'var(--green)' : 'var(--amber)', lineHeight: 1 }}>{M.clearedPct}%</div>
       </div>
       <div style={{ padding: '15px 18px', display: 'grid', gap: 10 }}>
         <div>
@@ -398,7 +398,7 @@ function RN_Row({ n, active, onClick }: any) {
           ? <span className="tiny" style={{ color: 'var(--red)', fontWeight: 700 }}>+{n._dueIn != null ? -n._dueIn : ''}h lewat</span>
           : n._replies > 0 && <span className="tiny muted row ac gap6" style={{ gap: 3 }}><I.mail size={11} /> {n._replies}</span>}
       </div>
-      <div style={{ fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textDecoration: resolved ? 'line-through' : 'none' }}>{n.text}</div>
+      <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textDecoration: resolved ? 'line-through' : 'none' }}>{n.text}</div>
       <div className="row ac gap6" style={{ marginTop: 6 }}>
         <Avatar name={n.author} size={18} />
         <span className="tiny muted truncate" style={{ maxWidth: 110 }}>{n.author.split(' ')[0]} → {n.to}</span>
@@ -457,13 +457,13 @@ function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComp
                 <Avatar name={m.author} size={30} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="row ac gap8" style={{ marginBottom: 4 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700 }}>{m.author}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700 }}>{m.author}</span>
                     <span className="tiny muted">{RN_roleOf(m.author)}</span>
                     <span className="badge" style={{ background: km.bg, color: km.c }}>{km.label}</span>
                     <div style={{ flex: 1 }} />
                     <span className="tiny muted">{m.when}</span>
                   </div>
-                  <div style={{ background: m.kind === 'note' ? '#fff' : km.bg, border: '1px solid var(--line)', borderLeft: `3px solid ${km.c}`, borderRadius: 7, padding: '10px 12px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)' }}>
+                  <div style={{ background: m.kind === 'note' ? '#fff' : km.bg, border: '1px solid var(--line)', borderLeft: `3px solid ${km.c}`, borderRadius: 7, padding: '10px 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink)' }}>
                     {m.kind === 'clear' && <I.check size={13} style={{ verticalAlign: '-2px', marginRight: 5, color: 'var(--green)' }} />}
                     {m.text}
                   </div>
@@ -521,7 +521,7 @@ function RN_Detail({ n, thread, phase, firm, me, composer, setComposer, postComp
 function RN_Meta({ label, value }: any) {
   return (
     <div style={{ minWidth: 0 }}>
-      <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-4)', fontSize: 9.5, marginBottom: 2 }}>{label}</div>
+      <div className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-4)', fontSize: 11, marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{value}</div>
     </div>
   );

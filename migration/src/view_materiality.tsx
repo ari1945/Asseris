@@ -171,7 +171,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Overall Materiality (OM)</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{rp(om)}</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{rp(om)}</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>= {fmt(bench.value / 1e9, 1)} M × {pct}% ({bench.label})</div>
           </div>
           <div style={{ padding: '14px 18px' }}>
@@ -200,7 +200,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
             <Compare label="OM Tahun Lalu" a={priorOM} />
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 2 }}>Perubahan YoY</div>
-              <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: om > priorOM ? 'var(--amber)' : 'var(--green)' }}>
+              <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: om > priorOM ? 'var(--amber)' : 'var(--green)' }}>
                 {om > priorOM ? '+' : ''}{((om - priorOM) / priorOM * 100).toFixed(1)}%
               </div>
             </div>
@@ -240,7 +240,7 @@ function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disab
   return (
     <div style={{ marginBottom: 15 }}>
       <div className="row jb ac" style={{ marginBottom: 5 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
         <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{value}{suffix}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e: any) => onChange(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)', opacity: disabled ? .5 : 1 }} />
@@ -254,7 +254,7 @@ function Compare({ label, a }: any) {
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700 }}>Rp {fmt(a)}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>Rp {fmt(a)}</div>
     </div>
   );
 }
@@ -262,7 +262,7 @@ function Compare({ label, a }: any) {
 function RailChip({ label, value, strong, align, last }: any) {
   return (
     <div style={{ padding: '7px 16px 7px 0', marginRight: last ? 0 : 16, borderRight: last ? 'none' : '1px solid var(--line)', textAlign: align || 'left' }}>
-      <div className="tiny muted upper" style={{ fontSize: 9.5, letterSpacing: '.06em' }}>{label}</div>
+      <div className="tiny muted upper" style={{ fontSize: 11, letterSpacing: '.06em' }}>{label}</div>
       <div className="mono" style={{ fontWeight: 700, fontSize: strong ? 14 : 12.5, color: strong ? 'var(--blue)' : 'var(--ink)' }}>{value}</div>
     </div>
   );

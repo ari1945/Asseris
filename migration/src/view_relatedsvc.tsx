@@ -44,17 +44,17 @@ function AupWorksheet({ p }: any) {
   const valDisp = (n: any) => m.money ? ('Rp ' + fmt(n, 0) + ' jt') : (fmt(n, m.dp) + m.unit);
   const compDisp = m.count ? (m.computed + ' keterlambatan') : valDisp(m.computed);
   const threshDisp = m.count ? m.requirement : valDisp(m.threshold);
-  const th = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', padding: '4px 8px', border: '1px solid var(--line-strong)', fontSize: 10.5 };
-  const rn = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', border: '1px solid var(--line-strong)', width: 30, fontSize: 10.5 };
-  const ca = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 11.5 };
-  const cb = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 11.5, textAlign: 'right', fontWeight: 600 };
+  const th = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', padding: '4px 8px', border: '1px solid var(--line-strong)', fontSize: 11 };
+  const rn = { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 700, textAlign: 'center', border: '1px solid var(--line-strong)', width: 30, fontSize: 11 };
+  const ca = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 12 };
+  const cb = { padding: '5px 9px', border: '1px solid var(--line)', fontSize: 12, textAlign: 'right', fontWeight: 600 };
   let r = 0;
   const inputRows = m.inputs.map((inp: any) => { r += 1; return { n: r, a: inp.k, b: inp.v }; });
   const calcN = ++r, threshN = m.count ? null : ++r, statN = ++r;
   return (
     <div style={{ border: '1px solid var(--line-strong)', borderRadius: 8, overflow: 'hidden' }}>
       <div className="row ac gap8" style={{ padding: '6px 10px', background: 'var(--surface-2)', borderBottom: '1px solid var(--line-strong)' }}>
-        <span className="mono" style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink-3)', border: '1px solid var(--line-strong)', borderRadius: 4, padding: '1px 6px', background: '#fff' }}>fx</span>
+        <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-3)', border: '1px solid var(--line-strong)', borderRadius: 4, padding: '1px 6px', background: '#fff' }}>fx</span>
         <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{m.formula}</span>
         <span className="tiny muted">— {m.recompute}</span>
       </div>
@@ -122,7 +122,7 @@ function AUPPanel() {
       {/* engagement header */}
       <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 38, height: 38, borderRadius: 9, background: '#5b3fa6', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>AP</span>
-        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{A.client}</div><div className="tiny muted truncate">{A.id} · Prosedur yang Disepakati ({A.standard}) · Pengguna: {A.requester}</div></div>
+        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{A.client}</div><div className="tiny muted truncate">{A.id} · Prosedur yang Disepakati ({A.standard}) · Pengguna: {A.requester}</div></div>
         <div className="row gap8 ac">
           <div style={{ textAlign: 'right' }}><div className="tiny muted">Prosedur</div><div className="mono" style={{ fontWeight: 700 }}>{E.done}/{E.total}</div></div>
           <div style={{ textAlign: 'right' }}><div className="tiny muted">Pengecualian</div><div className="mono" style={{ fontWeight: 700, color: E.exceptions ? 'var(--red)' : 'var(--green)' }}>{E.exceptions}</div></div>
@@ -347,8 +347,8 @@ function AUPPanel() {
         {tab === 'report' && (
           <div style={{ padding: 16 }}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur Dilaksanakan</div><div className="mono" style={{ fontSize: 18, fontWeight: 700 }}>{E.done} / {E.total}</div></div>
-              <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Temuan Pengecualian</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: E.exceptions ? 'var(--red)' : 'var(--green)' }}>{E.exceptions}</div></div>
+              <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Prosedur Dilaksanakan</div><div className="mono" style={{ fontSize: 19, fontWeight: 700 }}>{E.done} / {E.total}</div></div>
+              <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Temuan Pengecualian</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: E.exceptions ? 'var(--red)' : 'var(--green)' }}>{E.exceptions}</div></div>
             </div>
             <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: E.ready ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row ac gap8"><span style={{ color: E.ready ? 'var(--green)' : 'var(--amber)' }}>{E.ready ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
@@ -380,7 +380,7 @@ function CompilationPanel() {
     <>
       <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 38, height: 38, borderRadius: 9, background: '#5b3fa6', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>K</span>
-        <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{C.client}</div><div className="tiny muted">{C.id} · Kompilasi Informasi Keuangan (SPSJL 4410) · Kerangka {C.framework} · {C.period}</div></div>
+        <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{C.client}</div><div className="tiny muted">{C.id} · Kompilasi Informasi Keuangan (SPSJL 4410) · Kerangka {C.framework} · {C.period}</div></div>
         <Badge kind={allCompiled ? 'green' : 'amber'}>{allCompiled ? 'Siap Diterbitkan' : 'Dalam Proses'}</Badge>
       </div>
 
@@ -389,7 +389,7 @@ function CompilationPanel() {
           <div style={{ display: 'grid', gap: 8 }}>
             {C.statements.map((s: any, i: any) => (
               <div key={i} className="row ac jb" style={{ padding: '9px 11px', borderRadius: 6, background: 'var(--surface-2)' }}>
-                <span className="row ac gap8"><span style={{ color: s.compiled ? 'var(--green)' : 'var(--ink-4)' }}>{s.compiled ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{s.name}</span></span>
+                <span className="row ac gap8"><span style={{ color: s.compiled ? 'var(--green)' : 'var(--ink-4)' }}>{s.compiled ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{s.name}</span></span>
                 <Badge kind={s.compiled ? 'green' : 'amber'}>{s.compiled ? 'Selesai' : 'Proses'}</Badge>
               </div>
             ))}
@@ -468,7 +468,7 @@ function OtherAssurance() {
 
           <div>
             <div className="panel" style={{ padding: '12px 16px', marginBottom: 12 }}>
-              <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 14 }}>{m.client}</div><div className="tiny muted">{sel} · {m.stdLabel}</div></div><div className="row gap8 ac">{isPfi && <Btn sm onClick={() => nav('sjah3400', { from: 'assurance' })}><I.arrowRight size={13} /> Modul SJAH 3400</Btn>}{isSoc && <Btn sm onClick={() => nav('sjah3402', { from: 'assurance' })}><I.arrowRight size={13} /> Modul SJAH 3402</Btn>}{isGhg && <Btn sm onClick={() => nav('sjah3410', { from: 'assurance' })}><I.arrowRight size={13} /> Modul SJAH 3410</Btn>}<Badge kind={e.level.includes('Memadai') ? 'green' : 'blue'}>Keyakinan {e.level}</Badge><Btn sm variant="primary" onClick={() => setRpt(true)}><I.doc size={13} /> Laporan Asurans</Btn></div></div>
+              <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 15 }}>{m.client}</div><div className="tiny muted">{sel} · {m.stdLabel}</div></div><div className="row gap8 ac">{isPfi && <Btn sm onClick={() => nav('sjah3400', { from: 'assurance' })}><I.arrowRight size={13} /> Modul SJAH 3400</Btn>}{isSoc && <Btn sm onClick={() => nav('sjah3402', { from: 'assurance' })}><I.arrowRight size={13} /> Modul SJAH 3402</Btn>}{isGhg && <Btn sm onClick={() => nav('sjah3410', { from: 'assurance' })}><I.arrowRight size={13} /> Modul SJAH 3410</Btn>}<Badge kind={e.level.includes('Memadai') ? 'green' : 'blue'}>Keyakinan {e.level}</Badge><Btn sm variant="primary" onClick={() => setRpt(true)}><I.doc size={13} /> Laporan Asurans</Btn></div></div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
                 <OKv label="Hal Pokok (Subject Matter)" v={e.subject} />
                 <OKv label="Kriteria yang Sesuai" v={e.criteria} />

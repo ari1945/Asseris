@@ -123,6 +123,8 @@ Opsional (rekat ke ekosistem):
 - **Routing modul tak terdaftar:** `viewFor()` fallback ke `<ComplianceView>` (bila ada `COMPLIANCE_CONFIG[id]`) atau `<StubView>`.
 - **Bahasa & angka:** UI Bahasa Indonesia; mata uang `rp()`/`fmt()` lokal id-ID (mis. `Rp 1.850.000.000`, negatif dalam kurung).
 - **Styling:** CSS di `app/styles.css` + CSS var (`--navy --blue --ink-2 --line --red --amber-bg …`). Pakai var, bukan warna hardcode baru.
+- **Skala tipografi (MENGIKAT, PR #128):** hanya **8 ukuran**. Teks: **11** (`--fs-xs` meta/badge/header tabel/label KPI) · **12** (`--fs-sm` isi tabel/tombol/chip) · **13** (`--fs-md` body) · **15** (`--fs-lg` judul panel) · **19** (`--fs-xl` judul halaman). Angka display: **22 · 28 · 34** (`--fs-d1/d2/d3`). **Lantai 11px — tak ada teks di bawahnya.** DILARANG setengah-langkah (11,5 · 12,5 · 13,5 …): selisih 0,5px tak terbaca sbg hierarki, hanya menambah ketidakteraturan. Berlaku untuk CSS *dan* `fontSize` inline di `.tsx`. Pengecualian terdaftar: gaya cetak `#print-area`, dan `body.dense` boleh turun satu langkah.
+- **Peran warna semantik (PR #127):** `--navy/--blue/--red/--green/--amber/--purple/--teal` adalah token **TEKS** (dicerahkan di tema gelap). Untuk **isian solid** pakai `--*-solid`; untuk warna depan badge pakai `--b-*-fg`. Angka negatif pakai `--num-neg`, BUKAN `--red` (merah itu khusus alarm). Kelas tema ada di `<html>` (`:root.dark`), bukan `<body>`.
 - **Babel & React dipin** (versi + integrity di `<head>`) — jangan ubah.
 
 ---

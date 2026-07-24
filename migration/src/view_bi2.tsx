@@ -52,7 +52,7 @@ function BIPendapatan() {
           <div style={{ padding: 14 }}>
             <div className="row gap12 ac" style={{ marginBottom: 14 }}>
               <Donut segments={IND.map((s: any) => ({ value: s.rev, color: s.color }))} size={100} thickness={15}
-                center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{IND.length}</div><div className="tiny muted">sektor</div></>} />
+                center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{IND.length}</div><div className="tiny muted">sektor</div></>} />
               <div style={{ flex: 1 }}>
                 <HBars rows={IND.slice().sort((a: any, b: any) => b.rev - a.rev).map((s: any) => ({ label: s.industry, value: s.rev, right: (s.rev / totalInd * 100).toFixed(0) + '%', color: s.color, sub: s.clients + ' klien' }))} />
               </div>
@@ -202,7 +202,7 @@ function BIKlien() {
 
         <Panel title="Retensi Klien (Cohort)" sub={'logo retention ' + RET.logoRetention + '%'}>
           <div style={{ padding: 14 }}>
-            <table className="dtbl" style={{ fontSize: 11.5 }}>
+            <table className="dtbl" style={{ fontSize: 12 }}>
               <thead><tr><th>Kohort</th><th className="num">Awal</th><th className="num">Thn 1</th><th className="num">Thn 2</th><th className="num">Thn 3</th><th className="num">Thn 4</th></tr></thead>
               <tbody>
                 {RET.cohorts.map((co: any) => (
@@ -212,7 +212,7 @@ function BIKlien() {
                       const v = co.retained[yi];
                       if (v == null) return <td key={yi} className="num muted">—</td>;
                       const pct = Math.round(v / co.start * 100);
-                      return <td key={yi} className="num" style={{ background: 'rgba(31,122,77,' + (pct / 100 * 0.35) + ')', fontWeight: yi === 0 ? 700 : 500 }}>{v} <span className="muted" style={{ fontSize: 9.5 }}>{pct}%</span></td>;
+                      return <td key={yi} className="num" style={{ background: 'rgba(31,122,77,' + (pct / 100 * 0.35) + ')', fontWeight: yi === 0 ? 700 : 500 }}>{v} <span className="muted" style={{ fontSize: 11 }}>{pct}%</span></td>;
                     })}
                   </tr>
                 ))}
@@ -232,7 +232,7 @@ function BIKlien() {
               const h = C360[c.id] || {};
               return (
                 <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => nav('crm')}>
-                  <td><span className="row ac gap6" style={{ fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 8, padding: '0 4px' }}>IDX</span>}</span></td>
+                  <td><span className="row ac gap6" style={{ fontWeight: 600 }}>{c.name.replace('PT ', '')}{c.listed && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 4px' }}>IDX</span>}</span></td>
                   <td className="tiny muted truncate" style={{ maxWidth: 150 }}>{c.industry}</td>
                   <td className="num">Rp {fmt(c.fee / 1e6, 0)} jt</td>
                   <td className="num">{h.tenure || c.since ? (h.tenure || (2026 - c.since)) + ' th' : '—'}</td>
@@ -286,7 +286,7 @@ function BIPartner() {
           <div style={{ padding: 14, display: 'grid', gap: 14 }}>
             {partners.map((p: any) => (
               <div key={p.p}>
-                <div className="row ac gap8" style={{ marginBottom: 6 }}><Avatar name={p.p} size={26} /><span style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>{p.p}</span></div>
+                <div className="row ac gap8" style={{ marginBottom: 6 }}><Avatar name={p.p} size={26} /><span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{p.p}</span></div>
                 <div className="row jb tiny" style={{ marginBottom: 2 }}><span className="muted">Utilisasi</span><span className="mono" style={{ fontWeight: 700 }}>{(UTIL as any)[p.p] || 70}%</span></div>
                 <Progress value={(UTIL as any)[p.p] || 70} color="#0a6b73" />
                 <div className="row jb tiny" style={{ margin: '5px 0 2px' }}><span className="muted">Realisasi</span><span className="mono" style={{ fontWeight: 700 }}>{(REAL as any)[p.p] || 85}%</span></div>

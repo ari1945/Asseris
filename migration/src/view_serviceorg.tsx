@@ -258,7 +258,7 @@ function SOImpact({ orgs }: { orgs: ServiceOrgRow[] }) {
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Lingkup (SA 402)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Entitas menggunakan <b>organisasi jasa</b> yang layanannya merupakan bagian dari sistem informasi
               relevan terhadap pelaporan keuangan. Auditor harus memperoleh pemahaman atas bagaimana entitas
               menggunakan jasa tersebut, menilai risiko salah saji material, dan merancang prosedur yang responsif —
@@ -306,7 +306,7 @@ function SOImpact({ orgs }: { orgs: ServiceOrgRow[] }) {
           <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.target size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Empat organisasi jasa mempengaruhi sistem informasi pelaporan keuangan. CloudKas (ITGC) bersifat pervasif lintas siklus — kegagalan kontrolnya berpotensi memengaruhi seluruh asersi yang bergantung sistem.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Empat organisasi jasa mempengaruhi sistem informasi pelaporan keuangan. CloudKas (ITGC) bersifat pervasif lintas siklus — kegagalan kontrolnya berpotensi memengaruhi seluruh asersi yang bergantung sistem.</span>
             </div>
           </div>
         </Panel>
@@ -436,10 +436,10 @@ function SORegister({ orgs, setOrgs, me, locked }: { orgs: ServiceOrgRow[]; setO
               <div style={{ marginTop: 6 }}>
                 <Badge kind={(covMap as any)[sel.coverage].kind}>{(covMap as any)[sel.coverage].label}</Badge>
               </div>
-              {sel.coverage === 'gap' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Laporan berakhir 30 Jun 2025 — gap Jul–Des 2025 terhadap tanggal neraca. Diperlukan prosedur roll-forward (inquiry perubahan kontrol, bridge letter, uji langsung).</span></div></div>}
-              {sel.coverage === 'design' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Type 1 hanya menyatakan kesesuaian desain pada satu tanggal — tidak memberi bukti efektivitas operasi. Uji efektivitas dilakukan langsung atau ganti dengan substantif.</span></div></div>}
-              {sel.coverage === 'none' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Tidak tersedia laporan auditor jasa. Terapkan prosedur alternatif: kunjungan ke organisasi jasa, gunakan auditor lain, atau perluas prosedur substantif di entitas.</span></div></div>}
-              {sel.sourceModule && <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)', marginTop: 10 }}><div className="row gap8 ac" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.shield size={15} /></span><div style={{ flex: 1 }}><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Laporan Type 2 ini <b>kita terbitkan sendiri</b> via perikatan SJAH 3402 ({sel.sourceEng}). Tipe laporan, opini, deviasi & {sel.cuec} CUEC ditarik dari satu sumber kebenaran.</span><div style={{ marginTop: 7 }}><Btn sm onClick={() => nav('sjah3402', { from: 'serviceorg' })}><I.arrowRight size={13} /> Buka Modul SJAH 3402</Btn></div></div></div></div>}
+              {sel.coverage === 'gap' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--amber)' }}><I.clock size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Laporan berakhir 30 Jun 2025 — gap Jul–Des 2025 terhadap tanggal neraca. Diperlukan prosedur roll-forward (inquiry perubahan kontrol, bridge letter, uji langsung).</span></div></div>}
+              {sel.coverage === 'design' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Type 1 hanya menyatakan kesesuaian desain pada satu tanggal — tidak memberi bukti efektivitas operasi. Uji efektivitas dilakukan langsung atau ganti dengan substantif.</span></div></div>}
+              {sel.coverage === 'none' && <div className="panel" style={{ padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent', marginTop: 10 }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Tidak tersedia laporan auditor jasa. Terapkan prosedur alternatif: kunjungan ke organisasi jasa, gunakan auditor lain, atau perluas prosedur substantif di entitas.</span></div></div>}
+              {sel.sourceModule && <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)', marginTop: 10 }}><div className="row gap8 ac" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.shield size={15} /></span><div style={{ flex: 1 }}><span style={{ fontSize: 12, lineHeight: 1.4 }}>Laporan Type 2 ini <b>kita terbitkan sendiri</b> via perikatan SJAH 3402 ({sel.sourceEng}). Tipe laporan, opini, deviasi & {sel.cuec} CUEC ditarik dari satu sumber kebenaran.</span><div style={{ marginTop: 7 }}><Btn sm onClick={() => nav('sjah3402', { from: 'serviceorg' })}><I.arrowRight size={13} /> Buka Modul SJAH 3402</Btn></div></div></div></div>}
             </div>
           </Panel>
 
@@ -448,7 +448,7 @@ function SORegister({ orgs, setOrgs, me, locked }: { orgs: ServiceOrgRow[]; setO
               <div style={{ display: 'grid', gap: 0 }}>
                 {SO_AUDITOR_EVAL.map((r, i) => (
                   <div key={i} className="row jb ac gap8" style={{ padding: '8px 0', borderBottom: i < SO_AUDITOR_EVAL.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                    <span style={{ fontSize: 11.5, lineHeight: 1.4, flex: 1 }}>{r.k}</span>
+                    <span style={{ fontSize: 12, lineHeight: 1.4, flex: 1 }}>{r.k}</span>
                     {r.ok === true
                       ? <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><I.checkCircle size={15} /></span>
                       : <Badge kind="amber">Catatan</Badge>}
@@ -478,7 +478,7 @@ function SOCoverageBar({ coverage }: any) {
       {months.map((m, i) => (
         <div key={i} style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ height: 18, borderRadius: 3, background: fill[i] ? (coverage === 'design' ? 'var(--amber)' : 'var(--green)') : 'var(--line)', opacity: fill[i] ? 1 : 0.7 }} />
-          <div className="mono" style={{ fontSize: 8.5, color: 'var(--ink-4)', marginTop: 2 }}>{m}</div>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 2 }}>{m}</div>
         </div>
       ))}
     </div>
@@ -504,7 +504,7 @@ function SOCuec({ orgs }: { orgs: ServiceOrgRow[] }) {
             ))}
           </div>
         </div>
-        <div className="panel" style={{ margin: 0, padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, alignItems: 'center', fontSize: 11.5 }}>
+        <div className="panel" style={{ margin: 0, padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, alignItems: 'center', fontSize: 12 }}>
           <span><b>{sel?.name || '—'}</b> — {sel?.cuec ?? 0} CUEC diidentifikasi dari laporan auditor jasa</span>
           <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green-solid)' }} /> {tested} diuji</span>
           <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> {issues} dengan catatan</span>
@@ -534,7 +534,7 @@ function SOCuec({ orgs }: { orgs: ServiceOrgRow[] }) {
           <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Tanpa CUEC yang beroperasi efektif di sisi entitas, kontrol organisasi jasa tidak cukup untuk mencapai tujuan pengendalian. Defisiensi & CUEC yang belum diuji ditindaklanjuti dengan prosedur substantif/uji langsung.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Tanpa CUEC yang beroperasi efektif di sisi entitas, kontrol organisasi jasa tidak cukup untuk mencapai tujuan pengendalian. Defisiensi & CUEC yang belum diuji ditindaklanjuti dengan prosedur substantif/uji langsung.</span>
             </div>
           </div>
         )}
@@ -565,7 +565,7 @@ function SOExceptions({ orgs }: { orgs: ServiceOrgRow[] }) {
         <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.layers size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}><b>Metode carve-out</b> (CloudKas → AWS) mengecualikan kontrol subservice dari lingkup laporan. Auditor harus memperoleh bukti terpisah atas kontrol AWS yang relevan (mis. SOC 1 AWS) atau menilai dampaknya melalui CUEC & prosedur substantif.</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}><b>Metode carve-out</b> (CloudKas → AWS) mengecualikan kontrol subservice dari lingkup laporan. Auditor harus memperoleh bukti terpisah atas kontrol AWS yang relevan (mis. SOC 1 AWS) atau menilai dampaknya melalui CUEC & prosedur substantif.</span>
           </div>
         </div>
       </Panel>
@@ -579,7 +579,7 @@ function SOExceptions({ orgs }: { orgs: ServiceOrgRow[] }) {
               <div key={ex.id} className="panel" style={{ padding: 0, boxShadow: 'none', overflow: 'hidden' }}>
                 <div style={{ background: 'var(--surface-2)', padding: '9px 12px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--red)' }}>{ex.id}</span>
-                  <span style={{ fontWeight: 700, fontSize: 12.5 }}>{ex.ctrl}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{ex.ctrl}</span>
                   <span className="tiny muted">· {org?.name || ex.org}</span>
                   <div style={{ flex: 1 }} />
                   {ex.resolved ? <Badge kind="green" dot>Teratasi</Badge> : <Badge kind="red">Terbuka</Badge>}
@@ -589,15 +589,15 @@ function SOExceptions({ orgs }: { orgs: ServiceOrgRow[] }) {
                   <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
                       <div className="tiny muted upper" style={{ marginBottom: 3 }}>Deviasi yang Dilaporkan</div>
-                      <div style={{ fontSize: 11.5, lineHeight: 1.45, marginBottom: 10 }}>{ex.dev}</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.45, marginBottom: 10 }}>{ex.dev}</div>
                       <div className="tiny muted upper" style={{ marginBottom: 3 }}>Akar Penyebab</div>
-                      <div style={{ fontSize: 11.5, lineHeight: 1.45 }}>{ex.cause}</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.45 }}>{ex.cause}</div>
                     </div>
                     <div>
                       <div className="tiny muted upper" style={{ marginBottom: 3 }}>Dampak Potensial</div>
-                      <div style={{ fontSize: 11.5, lineHeight: 1.45, marginBottom: 10 }}>{ex.impact}</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.45, marginBottom: 10 }}>{ex.impact}</div>
                       <div className="tiny muted upper" style={{ marginBottom: 3 }}>Prosedur Tambahan Auditor</div>
-                      <div style={{ fontSize: 11.5, lineHeight: 1.45 }}>{ex.addl}</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.45 }}>{ex.addl}</div>
                     </div>
                   </div>
                 </div>
@@ -656,7 +656,7 @@ function SOConclusion({ orgs }: { orgs: ServiceOrgRow[] }) {
               ].map((m, i) => (
                 <tr key={i}>
                   <td className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{m.ref}</td>
-                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontSize: 11.5 }}>{m.cond}<div className="tiny muted" style={{ marginTop: 3 }}>{m.note}</div></td>
+                  <td style={{ whiteSpace: 'normal', lineHeight: 1.4, fontSize: 12 }}>{m.cond}<div className="tiny muted" style={{ marginTop: 3 }}>{m.note}</div></td>
                   <td className="tiny">{m.mod}</td>
                   <td>{m.status === 'clear' ? <Badge kind="green">Bersih</Badge> : <Badge kind="amber">Pantau</Badge>}</td>
                 </tr>
@@ -666,7 +666,7 @@ function SOConclusion({ orgs }: { orgs: ServiceOrgRow[] }) {
         </Panel>
 
         <Panel title="Ringkasan Penggunaan Organisasi Jasa (SA 402)">
-          <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>
             Kami memperoleh pemahaman atas <b>{orgs.length} organisasi jasa</b> dan dampaknya terhadap sistem informasi
             pelaporan keuangan entitas. <b>{cFull}</b> dapat diandalkan penuh (laporan & CUEC teruji);
             {cPartial > 0 && <> <b>{cPartial}</b> diandalkan parsial/terbatas dengan prosedur tambahan (roll-forward gap / uji efektivitas langsung);</>}

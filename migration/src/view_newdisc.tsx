@@ -92,7 +92,7 @@ function NewDisclosures2024() {
                   </div>
                 </div>
                 <SectionTitle right={<span className="tiny muted">ETR per yurisdiksi</span>}>Profil Pajak per Yurisdiksi</SectionTitle>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: '1.5px solid var(--line-strong)' }}>
                     <th style={{ textAlign: 'left', padding: '7px 6px' }}>Yurisdiksi</th>
                     <th style={{ textAlign: 'right', padding: '7px 6px' }}>Laba sebelum pajak</th>
@@ -130,7 +130,7 @@ function NewDisclosures2024() {
                     <div key={i} className="panel" style={{ padding: '11px 13px', cursor: 'pointer' }} onClick={() => nav(c.route, { from: 'newdisc' })}>
                       <div className="row ac gap8" style={{ marginBottom: 3 }}>
                         <span style={{ color: 'var(--teal)' }}><I.pulse size={15} /></span>
-                        <b style={{ fontSize: 12.5, flex: 1 }}>{c.area}</b>
+                        <b style={{ fontSize: 12, flex: 1 }}>{c.area}</b>
                         <Badge kind="gray">{c.ref}</Badge>
                         <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
                       </div>
@@ -162,7 +162,7 @@ function NewDisclosures2024() {
                     ['Telah ditarik penyedia (dibayar lebih awal ke pemasok)', SF.drawn],
                   ].map((r, i) => (
                     <div key={i} className="row jb ac" style={{ padding: '8px 10px', borderBottom: '1px solid var(--line-soft)' }}>
-                      <span style={{ fontSize: 12.5 }}>{r[0]}</span>
+                      <span style={{ fontSize: 12 }}>{r[0]}</span>
                       <span className="mono" style={{ fontWeight: 600 }}>{fmt(r[1] as any, 0)}</span>
                     </div>
                   ))}

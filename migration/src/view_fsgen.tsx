@@ -182,11 +182,11 @@ function FSGenerator() {
   /* ---- shared document row ---- */
   const colCount = comparative ? 3 : 2;
   const styleFor = (lvl: any) => (({
-    section:  { fontWeight: 800, fontSize: 12.5, paddingTop: 14, color: '#0c2430' },
+    section:  { fontWeight: 800, fontSize: 12, paddingTop: 14, color: '#0c2430' },
     sub:      { fontWeight: 700, fontSize: 12, paddingTop: 8, color: '#28414e' },
     line:     { fontWeight: 400 },
     subtotal: { fontWeight: 700, borderTop: '1px solid #cdd5dc' },
-    total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12.5 },
+    total:    { fontWeight: 800, borderTop: '2px solid #2a3f4a', borderBottom: '1px solid #2a3f4a', fontSize: 12 },
   } as any)[lvl]);
   const numCell = (v: any, py?: any) => v == null ? '' : sc(v);
 
@@ -247,9 +247,9 @@ function FSGenerator() {
 
             {/* document */}
             <div style={{ flex: 1, minWidth: 0, background: '#e7eaef', borderRadius: 6, padding: 16, border: '1px solid var(--line)' }}>
-              <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12.5, color: '#16242c' }}>
-                <div style={{ textAlign: 'center', marginBottom: 3, fontWeight: 800, fontSize: 14 }}>{activeClient?.name || 'PT Sentosa Makmur Tbk'}</div>
-                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12.5 }}>{title}</div>
+              <div className="doc-paper" style={{ background: '#fff', maxWidth: 1080, margin: '0 auto', padding: '46px 66px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c' }}>
+                <div style={{ textAlign: 'center', marginBottom: 3, fontWeight: 800, fontSize: 15 }}>{activeClient?.name || 'PT Sentosa Makmur Tbk'}</div>
+                <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 12 }}>{title}</div>
                 <div style={{ textAlign: 'center', color: '#7a8893', fontSize: 11, marginBottom: 18 }}>{periodTxt} · (dalam {U.label})</div>
 
                 {tab !== 'calk' && tab !== 'ekuitas' && (
@@ -343,7 +343,7 @@ function FSGenerator() {
 
                 {tab === 'neraca' && !model.bs.balanced && <div style={{ marginTop: 14, color: '#b3261e', fontSize: 11, fontWeight: 600 }}>⚠ Neraca tidak seimbang — periksa pemetaan akun WTB.</div>}
 
-                <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid #e0e4e8', color: '#7a8893', fontSize: 10.5, lineHeight: 1.5 }}>
+                <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid #e0e4e8', color: '#7a8893', fontSize: 11, lineHeight: 1.5 }}>
                   Catatan atas laporan keuangan merupakan bagian yang tidak terpisahkan dari laporan keuangan ini. Dihasilkan otomatis dari Working Trial Balance (saldo setelah penyesuaian audit) — Asseris.
                   {allSigned && <span> · Disusun {signoff.prepared?.by} ({signoff.prepared?.date}); direviu {signoff.reviewed?.by} ({signoff.reviewed?.date}).</span>}
                 </div>
@@ -377,7 +377,7 @@ function KpiTile({ label, value, sub, accent, onClick, children }: any) {
   return (
     <div className="panel" style={{ padding: '11px 13px', display: 'flex', flexDirection: 'column', gap: 3, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
       <div className="tiny upper" style={{ color: 'var(--ink-4)', fontWeight: 700, letterSpacing: '.05em' }}>{label}</div>
-      <div className="mono" style={{ fontSize: 18, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       {children}
       {sub && <div className="tiny muted">{sub}</div>}
     </div>
@@ -428,9 +428,9 @@ function CALK({ model, activeClient, f0, disclosures }: any) {
     <div style={{ marginBottom: 13 }}>
       <div className="row ac gap8" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 700, fontSize: 12, color: '#0c2430' }}>{no}. {title}</span>
-        {psak && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#005085', background: '#e3eef6', padding: '1px 6px', borderRadius: 9 }}>{psak}</span>}
+        {psak && <span style={{ fontSize: 11, fontWeight: 700, color: '#005085', background: '#e3eef6', padding: '1px 6px', borderRadius: 9 }}>{psak}</span>}
       </div>
-      <div style={{ fontSize: 11.5, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
+      <div style={{ fontSize: 12, lineHeight: 1.6, color: '#283b46' }}>{body}</div>
     </div>
   );
   const done = disclosures.filter((d: any) => d.done).length;
@@ -450,7 +450,7 @@ function CALK({ model, activeClient, f0, disclosures }: any) {
       {note('17', 'Peristiwa Setelah Periode Pelaporan', 'Tidak terdapat peristiwa penyesuai material setelah tanggal pelaporan selain yang telah diungkapkan (lihat modul Subsequent Events).', 'PSAK 8')}
       <div className="row ac jb" style={{ marginTop: 8, padding: '8px 11px', background: '#f3f6f9', borderRadius: 6 }}>
         <span className="tiny" style={{ color: '#465a66', fontStyle: 'italic' }}>Catatan tertaut langsung ke saldo neraca & laba rugi (Working Trial Balance). Kelengkapan pengungkapan dipantau di panel "CALK".</span>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: done === disclosures.length ? '#1f7a4d' : '#9a6a00', whiteSpace: 'nowrap', marginLeft: 10 }}>{done}/{disclosures.length} PSAK</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: done === disclosures.length ? '#1f7a4d' : '#9a6a00', whiteSpace: 'nowrap', marginLeft: 10 }}>{done}/{disclosures.length} PSAK</span>
       </div>
     </div>
   );

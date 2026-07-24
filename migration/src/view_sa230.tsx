@@ -280,9 +280,9 @@ function D2Criterion({ para, title, sub, pct, detail }: any) {
       <div className="row jb ac" style={{ marginBottom: 6 }}>
         <span className="row ac gap8">
           <span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 11 }} className="mono">{para.replace('¶8', '')}</span>
-          <span><span style={{ fontWeight: 700, fontSize: 12.5, display: 'block' }}>{title}</span><span className="tiny muted">{sub}</span></span>
+          <span><span style={{ fontWeight: 700, fontSize: 12, display: 'block' }}>{title}</span><span className="tiny muted">{sub}</span></span>
         </span>
-        <span className="mono" style={{ fontWeight: 700, fontSize: 16, color }}>{pct}%</span>
+        <span className="mono" style={{ fontWeight: 700, fontSize: 15, color }}>{pct}%</span>
       </div>
       <div className="pbar"><span style={{ width: pct + '%', background: color }} /></div>
       <div className="tiny muted" style={{ marginTop: 6 }}>{detail}</div>
@@ -509,7 +509,7 @@ function D2Signifikan({ C }: any) {
             {judgments.map((j, i) => (
               <div key={i} className="panel row jb ac" style={{ padding: '10px 12px', boxShadow: 'none', gap: 10 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div className="row ac gap8" style={{ marginBottom: 2 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{j.area}</span><Badge kind="blue">{j.ref}</Badge></div>
+                  <div className="row ac gap8" style={{ marginBottom: 2 }}><span style={{ fontSize: 12, fontWeight: 700 }}>{j.area}</span><Badge kind="blue">{j.ref}</Badge></div>
                   <div className="tiny" style={{ lineHeight: 1.4 }}>{j.t}</div>
                   <div className="tiny muted" style={{ marginTop: 2 }}>{j.basis}</div>
                 </div>
@@ -742,7 +742,7 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
           <div style={{ padding: '14px 18px' }}>
             {agg.blocking > 0 && !att.signed && (
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 11 }}>
-                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{agg.blocking} hal masih menghambat finalisasi — pertimbangkan menyelesaikannya sebelum menandatangani atestasi.</span></div>
+                <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>{agg.blocking} hal masih menghambat finalisasi — pertimbangkan menyelesaikannya sebelum menandatangani atestasi.</span></div>
               </div>
             )}
             {att.signed ? (
@@ -750,8 +750,8 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
                 <div className="panel" style={{ padding: '11px 13px', background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}>
                   <div className="tiny" style={{ lineHeight: 1.5 }}>Saya menyatakan bahwa dokumentasi audit telah <b>cukup & tepat</b> untuk memungkinkan auditor berpengalaman memahami sifat, saat & lingkup prosedur, hasilnya, serta hal signifikan & kesimpulan (SA 230 ¶8).</div>
                   <div className="row gap12" style={{ marginTop: 8 }}>
-                    <div><div className="tiny muted upper">Ditandatangani</div><div style={{ fontWeight: 700, fontSize: 12.5 }}>{att.signer}</div></div>
-                    <div><div className="tiny muted upper">Tanggal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{d2fmtDate(att.date)}</div></div>
+                    <div><div className="tiny muted upper">Ditandatangani</div><div style={{ fontWeight: 700, fontSize: 12 }}>{att.signer}</div></div>
+                    <div><div className="tiny muted upper">Tanggal</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{d2fmtDate(att.date)}</div></div>
                   </div>
                   {att.memo && <div style={{ marginTop: 8 }}><div className="tiny muted upper">Memo</div><div className="tiny" style={{ lineHeight: 1.5 }}>{att.memo}</div></div>}
                 </div>
@@ -790,7 +790,7 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Periode Retensi</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{doc.retentionYears} tahun</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{doc.retentionYears} tahun</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>s.d. {d2fmtDate(retentionUntil)}</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
@@ -839,7 +839,7 @@ function D2Mini({ label, value, accent }: any) {
   return (
     <div className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div className="mono" style={{ fontWeight: 700, fontSize: 14, color: accent || 'var(--ink)' }}>{value}</div>
+      <div className="mono" style={{ fontWeight: 700, fontSize: 15, color: accent || 'var(--ink)' }}>{value}</div>
     </div>
   );
 }
@@ -950,7 +950,7 @@ function D2Keterkaitan({ C }: any) {
           <div className="d2net-hub">
             <div className="d2net-node">
               <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Standar Audit</div>
-              <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>230</div>
+              <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1, marginTop: 2 }}>230</div>
               <div className="tiny" style={{ color: '#cfe0ea', marginTop: 4, fontWeight: 600 }}>Dokumentasi Audit</div>
               <div style={{ height: 1, background: 'rgba(255,255,255,.18)', margin: '11px 0' }} />
               <div className="mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: ready ? '#7ee2b0' : '#ffd27a' }}>{agg.docPct}%</div>
@@ -1021,7 +1021,7 @@ function D2LinkCard({ m, dir, onOpen }: any) {
       <div className="row jb ac" style={{ marginBottom: 3 }}>
         <span className="row ac gap6" style={{ minWidth: 0 }}>
           <span style={{ color: m.c, flex: '0 0 auto' }}><Ic size={14} /></span>
-          <span style={{ fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.lbl}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.lbl}</span>
         </span>
         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', flex: '0 0 auto' }}>{m.para}</span>
       </div>

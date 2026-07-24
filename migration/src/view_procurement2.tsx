@@ -70,7 +70,7 @@ function ProcP2P({ B, P, nav }: any) {
             return (
               <tr key={p.id}>
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{p.id}</td>
-                <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{p.vendorId}</span><span style={{ fontWeight: 600, fontSize: 11.5 }}>{v ? v.name : '⚠ tak dikenal'}</span></div></td>
+                <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{p.vendorId}</span><span style={{ fontWeight: 600, fontSize: 12 }}>{v ? v.name : '⚠ tak dikenal'}</span></div></td>
                 <td className="tiny" style={{ maxWidth: 200, whiteSpace: 'normal', lineHeight: 1.3 }}>{p.desc}</td>
                 <td className="tiny muted">{p.dept}</td>
                 <td className="num">{boJt(p.amount)}</td>
@@ -144,7 +144,7 @@ function ProcSpend({ B, P, conc }: any) {
         <tbody>
           {bva.rows.map((r: any) => (
             <tr key={r.cat} style={{ background: r.over ? 'var(--amber-bg)' : undefined }}>
-              <td><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: r.color }} /><span style={{ fontWeight: 600, fontSize: 11.5 }}>{r.cat}</span></span></td>
+              <td><span className="row ac gap8"><span style={{ width: 9, height: 9, borderRadius: 2, background: r.color }} /><span style={{ fontWeight: 600, fontSize: 12 }}>{r.cat}</span></span></td>
               <td className="num">{boJt(r.budget)}</td>
               <td className="num" style={{ fontWeight: 600 }}>{boJt(r.actual)}</td>
               <td style={{ width: 150 }}><div className="row ac gap6"><div style={{ flex: 1, height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: Math.min(100, r.pct) + '%', height: '100%', borderRadius: 4, background: r.over ? 'var(--red)' : r.pct > 90 ? 'var(--amber)' : 'var(--blue)' }} /></div><span className="mono tiny" style={{ fontWeight: 700 }}>{r.pct}%</span></div></td>
@@ -181,7 +181,7 @@ function ProcDiligence({ B, setVSel, nav }: any) {
         <tbody>
           {rows.map((v: any) => (
             <tr key={v.id} style={{ background: v.diligence.includes('Gagal') ? 'var(--red-bg)' : undefined }}>
-              <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</div><div className="tiny muted mono">{v.id} · {v.npwp}</div></td>
+              <td><div style={{ fontWeight: 600, fontSize: 12 }}>{v.name}</div><div className="tiny muted mono">{v.id} · {v.npwp}</div></td>
               <td className="tiny">{v.pic}</td>
               <td className="tiny mono">{v.terms}</td>
               <td className="tiny mono muted">{v.onboard}</td>
@@ -240,7 +240,7 @@ function ProcLineage({ P, firm, nav }: any) {
           <tbody>
             {ap.sources.map((s: any, i: any) => (
               <tr key={i}>
-                <td style={{ fontWeight: 600, fontSize: 11.5 }}>{s.label}</td>
+                <td style={{ fontWeight: 600, fontSize: 12 }}>{s.label}</td>
                 <td className="num tiny">{s.n}</td>
                 <td className="num">{boJt(s.v)}</td>
                 <td>{s.master ? <span className="badge b-green" style={{ textTransform: 'none' }}>Master</span> : <span className="badge b-gray" style={{ textTransform: 'none' }}>Modul lain</span>}</td>
@@ -254,7 +254,7 @@ function ProcLineage({ P, firm, nav }: any) {
           </tfoot>
         </table>
         <div className="panel" style={{ padding: '12px 14px' }}>
-          <div className="row ac gap8" style={{ marginBottom: 8 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12.5 }}>Satu vendor → banyak konsumen</b></div>
+          <div className="row ac gap8" style={{ marginBottom: 8 }}><I.link2 size={15} style={{ color: 'var(--blue)' }} /><b style={{ fontSize: 12 }}>Satu vendor → banyak konsumen</b></div>
           <div className="tiny muted" style={{ lineHeight: 1.6, marginBottom: 10 }}>Utang usaha firma menutup ke kontrol GL <b>2-100</b>. Porsi dari <b>master vendor pengadaan</b> = <b>{boJt(ap.procMaster)}</b>; sisanya berasal dari modul pemiliknya sendiri (asuransi, utilitas) — bukan duplikat data vendor.</div>
           <div className="tiny upper muted" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Data vendor mengalir ke</div>
           <div style={{ display: 'grid', gap: 6 }}>
@@ -275,7 +275,7 @@ function ProcLineage({ P, firm, nav }: any) {
         <tbody>
           {cons.map(({ v, cons: cs }: any) => (
             <tr key={v.id}>
-              <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{v.id}</span><span style={{ fontWeight: 600, fontSize: 11.5 }}>{v.name}</span></div></td>
+              <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{v.id}</span><span style={{ fontWeight: 600, fontSize: 12 }}>{v.name}</span></div></td>
               <td className="num">{boJt(v.ytd)}</td>
               <td>
                 <div className="row gap4" style={{ flexWrap: 'wrap' }}>
@@ -306,7 +306,7 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }: any) {
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.cart size={18} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{v.name}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{v.name}</div>
           <div className="row ac gap8" style={{ marginTop: 4, flexWrap: 'wrap' }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v.id}</span>
             <span className="badge b-gray" style={{ textTransform: 'none' }}>{v.cat}</span>

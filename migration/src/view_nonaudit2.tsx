@@ -18,9 +18,9 @@ function NAReport({ kind, engId, onClose }: any) {
   const FIRM: any = AMS.FIRM;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   const Paper = ({ title, std, children, signer }: any) => (
-    <div className="doc-paper" style={{ background: '#fff', maxWidth: 640, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+    <div className="doc-paper" style={{ background: '#fff', maxWidth: 640, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
       <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 16, paddingBottom: 12, borderBottom: '2px solid #0c2430' }}>
-        <div><div style={{ fontWeight: 800, fontSize: 14, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 9.5, color: '#7a8893' }}>{FIRM.license}</div></div>
+        <div><div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430' }}>{FIRM.name}</div><div className="mono" style={{ fontSize: 11, color: '#7a8893' }}>{FIRM.license}</div></div>
         <div className="tiny" style={{ color: '#7a8893', textAlign: 'right' }}>{std}</div>
       </div>
       <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 16, letterSpacing: '.01em' }}>{title}</div>
@@ -123,7 +123,7 @@ function NAReport({ kind, engId, onClose }: any) {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
           <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
             <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
-              <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
+              <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
               <button className="top-btn" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={16} /></button>
               <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
             </div>
@@ -153,7 +153,7 @@ function NAReport({ kind, engId, onClose }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div style={{ width: 760, maxWidth: '96vw', height: '100%', background: '#e7eaef', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
-          <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
+          <I.doc size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Pratinjau Laporan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deliverable formal sesuai standar SPAP</div></div>
           <button className="top-btn" onClick={() => window.amsPrintDoc && window.amsPrintDoc()}><I.download size={16} /></button>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>

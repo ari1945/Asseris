@@ -103,7 +103,7 @@ function HcPortofolio({ rows, nav, grip }: { rows: PortRow[]; nav: NavFn; grip: 
           {rows.map((e) => (
             <tr key={e.id} style={{ cursor: 'pointer' }} onClick={() => e.open()}>
               <td className="truncate" style={{ maxWidth: 220, fontWeight: 600 }}>{e.clientName}</td>
-              <td><span className="avatar" style={{ width: 24, height: 24, fontSize: 9.5 }} title={e.partner}>{hcInitials(e.partner)}</span></td>
+              <td><span className="avatar" style={{ width: 24, height: 24, fontSize: 11 }} title={e.partner}>{hcInitials(e.partner)}</span></td>
               <td><Badge kind={HC_PHASE_KIND[e.phase] || 'gray'}>{e.phase}</Badge></td>
               <td><div className="row ac gap8"><div style={{ flex: 1 }}><Progress value={e.progress} color={e.progress >= 75 ? 'var(--green)' : undefined} /></div><span className="mono tiny" style={{ width: 30, textAlign: 'right' }}>{e.progress}%</span></div></td>
               <td className="tiny mono" style={{ color: e.dueKind === 'red' ? 'var(--red)' : e.dueKind === 'amber' ? 'var(--amber)' : 'var(--ink-3)' }}>{e.dueLabel}</td>
@@ -126,7 +126,7 @@ function HcPersetujuan({ items, nav, grip }: { items: ApprovalItem[]; nav: NavFn
       <div className="hc-list">
         {items.map((a) => (
           <div key={a.key} className="hc-row" onClick={() => nav(a.route, { from: 'home' })} style={{ cursor: 'pointer' }}>
-            <div className="hc-main"><span style={{ fontWeight: 600, fontSize: 12.5 }}>{a.tipe}</span><span className="muted tiny">{a.ref}</span></div>
+            <div className="hc-main"><span style={{ fontWeight: 600, fontSize: 12 }}>{a.tipe}</span><span className="muted tiny">{a.ref}</span></div>
             <Badge kind={a.prioKind}>{a.prio}</Badge>
             <Btn sm variant="ghost" onClick={(ev: { stopPropagation(): void }) => { ev.stopPropagation(); nav(a.route, { from: 'home' }); }}>Reviu</Btn>
           </div>
@@ -146,7 +146,7 @@ function HcPerhatian({ items, nav, grip }: { items: PerhatianItem[]; nav: NavFn;
         {items.map((r) => (
           <div key={r.key} className="hc-row" onClick={() => nav(r.route, { from: 'home' })} style={{ cursor: 'pointer' }}>
             <span className="hc-sev" style={{ background: r.kind === 'red' ? 'var(--red)' : r.kind === 'amber' ? 'var(--amber)' : 'var(--green)' }} />
-            <div className="hc-main"><span style={{ fontSize: 12.5 }}>{r.text}</span><span className="muted tiny">{r.sub}</span></div>
+            <div className="hc-main"><span style={{ fontSize: 12 }}>{r.text}</span><span className="muted tiny">{r.sub}</span></div>
             <Badge kind={r.kind}>{r.level}</Badge>
           </div>
         ))}

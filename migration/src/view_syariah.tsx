@@ -29,7 +29,7 @@ const SY_KEL_KIND  = { 'Jual-beli': 'blue', 'Jual-beli pesanan': 'teal', 'Bagi h
 function SYCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -102,7 +102,7 @@ function SYWorkPaper({ sy, fmt, rp, nav }: any) {
     <div style={{ marginTop: 22 }}>
       <div className="row ac gap8" style={{ borderBottom: '1.5px solid var(--navy)', paddingBottom: 5, marginBottom: 11 }}>
         <span className="mono" style={{ width: 22, height: 22, flex: '0 0 22px', borderRadius: 5, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{n}</span>
-        <h4 style={{ margin: 0, fontSize: 13.5, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
+        <h4 style={{ margin: 0, fontSize: 15, color: 'var(--navy)', fontWeight: 700, letterSpacing: '.01em' }}>{title}</h4>
         {sub && <span className="tiny muted mono" style={{ marginLeft: 'auto' }}>{sub}</span>}
       </div>
       {children}
@@ -110,14 +110,14 @@ function SYWorkPaper({ sy, fmt, rp, nav }: any) {
   );
   const Meta = ({ k, v, mono }: any) => (
     <div style={{ display: 'grid', gap: 1 }}>
-      <span className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700 }}>{k}</span>
+      <span className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 11, fontWeight: 700 }}>{k}</span>
       <span className={mono ? 'mono' : ''} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{v}</span>
     </div>
   );
   const Sign = ({ lbl, p, accent }: any) => (
     <div style={{ flex: 1, borderTop: '2px solid ' + (accent || 'var(--navy)'), paddingTop: 8 }}>
-      <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 9.5, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
+      <div className="tiny upper" style={{ letterSpacing: '.05em', color: 'var(--ink-4)', fontSize: 11, fontWeight: 700, marginBottom: 14 }}>{lbl}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{p.by}</div>
       <div className="tiny muted">{p.role}</div>
       <div className="tiny mono" style={{ color: 'var(--ink-3)', marginTop: 3 }}>{p.at}</div>
     </div>
@@ -129,11 +129,11 @@ function SYWorkPaper({ sy, fmt, rp, nav }: any) {
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--navy)', lineHeight: 1.2 }}>{FIRM.name}</div>
           <div className="mono tiny" style={{ color: 'var(--ink-4)' }}>{FIRM.license}</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginTop: 9 }}>Kertas Kerja — Akuntansi & Kepatuhan Syariah</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginTop: 9 }}>Kertas Kerja — Akuntansi & Kepatuhan Syariah</div>
           <div className="tiny muted">SAK Syariah · PSAK 101–112 · akad, zakat, dana kebajikan & pemurnian</div>
         </div>
         <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
-          <div className="mono" style={{ display: 'inline-block', border: '1.5px solid var(--navy)', borderRadius: 7, padding: '5px 12px', fontSize: 17, fontWeight: 800, color: 'var(--navy)' }}>S-1</div>
+          <div className="mono" style={{ display: 'inline-block', border: '1.5px solid var(--navy)', borderRadius: 7, padding: '5px 12px', fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>S-1</div>
           <div className="tiny muted" style={{ marginTop: 6 }}>Indeks lead schedule <b style={{ color: 'var(--ink)' }}>S</b> · Syariah</div>
         </div>
       </div>
@@ -213,7 +213,7 @@ function SYWorkPaper({ sy, fmt, rp, nav }: any) {
             { lbl: 'PSAK 71 · CKPN', id: 'psak71' }, { lbl: 'Pengakuan Pendapatan', id: 'psak72' },
             { lbl: 'FS Generator', id: 'fsgen' }, { lbl: 'SAD Ledger', id: 'sad' }, { lbl: 'Opini & KAM', id: 'opinion' },
           ].map(x => (
-            <button key={x.id} onClick={() => nav(x.id, { from: 'syariah' })} className="row ac gap6" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-2)' }}>
+            <button key={x.id} onClick={() => nav(x.id, { from: 'syariah' })} className="row ac gap6" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}>
               <I.link2 size={12} style={{ color: 'var(--blue)' }} />{x.lbl}
             </button>
           ))}
@@ -301,7 +301,7 @@ function SyariahView() {
                       <div key={s.id} className="row ac gap10" style={{ padding: '9px 0', borderBottom: i < sy.lkKhas.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <span style={{ color: s.khas ? 'var(--purple)' : 'var(--ink-4)', flex: '0 0 auto' }}><I.report size={15} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{s.label}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{s.label}</div>
                           <div className="tiny muted mono">{s.psak}</div>
                         </div>
                         {s.khas && <Badge kind="purple">Khas Syariah</Badge>}
@@ -334,11 +334,11 @@ function SyariahView() {
                 <Panel title="Komposisi Pembiayaan per Kelompok Akad" sub="Rp juta">
                   <div className="row gap12 ac">
                     <Donut segments={sy.byKel.map((k: any) => ({ label: k.kel, value: k.amt, color: (SY_KEL_COLOR as any)[k.kel] }))} size={104} thickness={15}
-                      center={<><div className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(sy.pembiayaanBruto / 1000))}rb</div><div className="tiny muted">jt</div></>} />
+                      center={<><div className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{fmt(Math.round(sy.pembiayaanBruto / 1000))}rb</div><div className="tiny muted">jt</div></>} />
                     <div style={{ flex: 1 }}>
                       {sy.byKel.map((k: any) => (
                         <div key={k.kel} className="row jb ac" style={{ padding: '4px 0' }}>
-                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: (SY_KEL_COLOR as any)[k.kel] }} /><span style={{ fontSize: 11.5, fontWeight: 600 }}>{k.kel}</span></span>
+                          <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: (SY_KEL_COLOR as any)[k.kel] }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{k.kel}</span></span>
                           <span className="mono tiny" style={{ fontWeight: 700 }}>{fmt(k.amt)}</span>
                         </div>
                       ))}
@@ -431,7 +431,7 @@ function SyariahView() {
                 <div className="panel" style={{ margin: '11px 14px 12px', padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
                   <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                     <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Pendapatan non-halal <b>{fmt(sy.purif)} jt</b> (mis. jasa giro bank konvensional) <b>tidak boleh</b> diakui sebagai pendapatan bank — dipisahkan ke <b>dana kebajikan</b> & disalurkan untuk kemaslahatan umum. Auditor menguji kelengkapan identifikasi & pemisahannya.</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>Pendapatan non-halal <b>{fmt(sy.purif)} jt</b> (mis. jasa giro bank konvensional) <b>tidak boleh</b> diakui sebagai pendapatan bank — dipisahkan ke <b>dana kebajikan</b> & disalurkan untuk kemaslahatan umum. Auditor menguji kelengkapan identifikasi & pemisahannya.</div>
                   </div>
                 </div>
               </Panel>
@@ -467,7 +467,7 @@ function SyariahView() {
                     <tbody>
                       {sy.sukuk.map((s: any) => (
                         <tr key={s.id}>
-                          <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div><div className="tiny muted" style={{ lineHeight: 1.4 }}>{s.note}</div></td>
+                          <td><div style={{ fontSize: 12, fontWeight: 600 }}>{s.label}</div><div className="tiny muted" style={{ lineHeight: 1.4 }}>{s.note}</div></td>
                           <td style={{ textAlign: 'center' }}><Badge kind={s.sisi === 'Aset' ? 'blue' : 'amber'}>{s.sisi}</Badge></td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(s.amt)}</td>
                         </tr>
@@ -514,7 +514,7 @@ function SyariahView() {
                 <div className="panel-h"><h3>Prosedur Audit — Entitas Syariah</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{sy.proc.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.target size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Audit menguji <b>substansi akad</b>, penyajian Dana Syirkah Temporer, kelengkapan dana zakat & kebajikan, serta <b>pemurnian</b> pendapatan non-halal. Kepatuhan prinsip syariah dipertimbangkan via opini DPS (SA 250 & SA 620).</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>Audit menguji <b>substansi akad</b>, penyajian Dana Syirkah Temporer, kelengkapan dana zakat & kebajikan, serta <b>pemurnian</b> pendapatan non-halal. Kepatuhan prinsip syariah dipertimbangkan via opini DPS (SA 250 & SA 620).</div>
                 </div>
                 <div>
                   {sy.proc.map((p: any, i: any) => {
@@ -536,7 +536,7 @@ function SyariahView() {
                   <div style={{ background: 'linear-gradient(120deg,#3a2a6b,#5b3fa6)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#d6cdf0', letterSpacing: '.05em', marginBottom: 8 }}>Kemajuan Audit Syariah</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#c9b6ff', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#d6cdf0', marginTop: 6 }}>{doneCount}/{sy.proc.length} prosedur selesai</div>
@@ -549,12 +549,12 @@ function SyariahView() {
                       {sy.dps.temuan.map((t: any, i: any) => (
                         <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
                           <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)', marginTop: 1, flex: '0 0 auto' }}>{t.ok ? <I.checkCircle size={14} /> : <I.alert size={14} />}</span>
-                          <span style={{ fontSize: 11.5, lineHeight: 1.45, color: t.ok ? 'var(--ink-2)' : 'var(--ink)' }}>{t.t}</span>
+                          <span style={{ fontSize: 12, lineHeight: 1.45, color: t.ok ? 'var(--ink-2)' : 'var(--ink)' }}>{t.t}</span>
                         </div>
                       ))}
                     </div>
                     <div className="panel" style={{ marginTop: 11, padding: '9px 11px', background: sy.dpsPct === 100 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
-                      <div style={{ fontSize: 11.5, lineHeight: 1.5 }}><b>Opini DPS:</b> {sy.dps.opini} — {sy.dpsOk}/{sy.dps.temuan.length} butir terpenuhi.</div>
+                      <div style={{ fontSize: 12, lineHeight: 1.5 }}><b>Opini DPS:</b> {sy.dps.opini} — {sy.dpsOk}/{sy.dps.temuan.length} butir terpenuhi.</div>
                     </div>
                   </div>
                 </Panel>

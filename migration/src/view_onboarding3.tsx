@@ -89,7 +89,7 @@ function OBAnalitik() {
         <Panel title="Komposisi Prospek">
           <div style={{ padding: 14 }} className="row gap12 ac">
             <Donut segments={byKind.map((k, i) => ({ value: k.n || 0.1, color: i === 0 ? '#5b3fa6' : '#005085' }))} size={100} thickness={15}
-              center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700 }}>{prospects.length}</div><div className="tiny muted">prospek</div></>} />
+              center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{prospects.length}</div><div className="tiny muted">prospek</div></>} />
             <div style={{ flex: 1 }}>
               {byKind.map((k, i) => (
                 <div key={k.k} className="row jb ac" style={{ padding: '5px 0' }}>
@@ -140,7 +140,7 @@ function OBAcceptance() {
                 return (
                   <tr key={p.id} className={p.id === selId ? 'sel' : ''} style={{ cursor: 'pointer' }} onClick={() => setSelId(p.id)}>
                     <td><div style={{ fontWeight: 600 }} className="truncate">{p.name.replace('PT ', '')}</div><div className="tiny muted">{p.kind}</div></td>
-                    <td className="num"><span className="badge" style={{ background: 'var(--' + v.k + ')', color: '#fff', fontSize: 9 }}>{sc.toFixed(1)}</span></td>
+                    <td className="num"><span className="badge" style={{ background: 'var(--' + v.k + ')', color: '#fff', fontSize: 11 }}>{sc.toFixed(1)}</span></td>
                     <td><Badge kind={p.acceptance && p.acceptance.approved ? (v.k === 'red' ? 'red' : v.k === 'amber' ? 'amber' : 'green') : 'gray'}>{p.acceptance && p.acceptance.decision || 'Pending'}</Badge></td>
                     <td className="tiny muted truncate" style={{ maxWidth: 110 }}>{p.acceptance && p.acceptance.approver ? p.acceptance.approver.split(',')[0] : '—'}</td>
                     <td className="num tiny">{p.acceptance && p.acceptance.date || '—'}</td>
@@ -153,7 +153,7 @@ function OBAcceptance() {
 
         <Panel noBody>
           <div style={{ background: 'linear-gradient(120deg,#3a2a6a,#5b3fa6)', color: '#fff', padding: '13px 16px' }}>
-            <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 14 }} className="truncate">{sel.name}</div><div className="tiny" style={{ color: '#d4c8ee' }}>{sel.industry}</div></div>
+            <div className="row jb ac"><div><div style={{ fontWeight: 700, fontSize: 15 }} className="truncate">{sel.name}</div><div className="tiny" style={{ color: '#d4c8ee' }}>{sel.industry}</div></div>
               <div style={{ textAlign: 'center' }}><div className="mono" style={{ fontSize: 22, fontWeight: 800 }}>{score.toFixed(1)}</div><div className="tiny" style={{ color: '#d4c8ee' }}>skor tertimbang</div></div></div>
           </div>
           <div style={{ padding: 14 }}>
@@ -214,7 +214,7 @@ function OBAml() {
                     <td><Badge kind={(riskColor as any)[p.pmpj.riskRating] || 'gray'}>{p.pmpj.riskRating}</Badge></td>
                     <td className="tiny">{p.pmpj.cddLevel}</td>
                     <td className="num">{(p.pmpj.ubo || []).length}</td>
-                    <td>{pep ? <span className="badge b-red" style={{ fontSize: 9 }}>PEP</span> : <span className="badge b-green" style={{ fontSize: 9 }}>Bersih</span>}</td>
+                    <td>{pep ? <span className="badge b-red" style={{ fontSize: 11 }}>PEP</span> : <span className="badge b-green" style={{ fontSize: 11 }}>Bersih</span>}</td>
                     <td><Badge kind={p.pmpj.verified ? 'green' : 'amber'}>{p.pmpj.verified ? 'Terverifikasi' : 'Proses'}</Badge></td>
                   </tr>
                 );
@@ -229,7 +229,7 @@ function OBAml() {
               {(pmpj.ubo || []).map((u: any, i: any) => (
                 <div key={i} className="row ac gap10" style={{ padding: '8px 10px', borderRadius: 7, background: 'var(--surface-2)' }}>
                   <Avatar name={u.name} size={28} />
-                  <div style={{ flex: 1, minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{u.name}</span>{u.pep && <span className="badge b-red" style={{ fontSize: 8.5 }}>PEP</span>}</div><div className="tiny muted">{u.role} · {u.idType} {u.idNo}</div></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{u.name}</span>{u.pep && <span className="badge b-red" style={{ fontSize: 11 }}>PEP</span>}</div><div className="tiny muted">{u.role} · {u.idType} {u.idNo}</div></div>
                   <span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{u.pct}%</span>
                 </div>
               ))}

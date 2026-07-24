@@ -46,11 +46,11 @@ function EngagementCard({ eng, client, onOpen }: { key?: string; eng: { id: stri
   return (
     <div className="panel" style={{ padding: 13, display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div className="row ac gap8">
-        <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700, flex: '0 0 30px' }}>
+        <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 30px' }}>
           {(client?.name || '').replace('PT ', '').slice(0, 2).toUpperCase() || '—'}
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5 }}>{client?.name || eng.id}</div>
+          <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{client?.name || eng.id}</div>
           <div className="tiny muted mono">{eng.id} · {eng.fy} · {eng.phase}</div>
         </div>
         {eng.risk && <Badge kind={riskKind}>{eng.risk}</Badge>}
@@ -67,7 +67,7 @@ function TaskLine({ task, onOpen }: { key?: string; task: { id: string; src: str
     <div className="row ac gap8" style={{ padding: '9px 4px', borderBottom: '1px solid var(--line-soft)', cursor: 'pointer' }} onClick={onOpen}>
       <span className="mt-icobox" style={{ width: 26, height: 26, borderRadius: 6, flex: '0 0 26px' }}><IconC size={13} /></span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{task.label}</div>
+        <div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{task.label}</div>
         <div className="row ac gap6 tiny muted" style={{ marginTop: 2 }}>
           <span>{task.src}{task.wpRef ? ' · ' + task.wpRef : ''}</span>
           {task.engagementLabel && <span className="chip tiny" style={{ height: 16 }}><I.briefcase size={10} /> {String(task.engagementLabel).replace('PT ', '')}</span>}
@@ -87,7 +87,7 @@ function QuickLink({ id, onOpen }: { key?: string; id: string; onOpen: () => voi
     <button type="button" className="panel" onClick={onOpen}
       style={{ padding: 12, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '1px solid var(--line)', textAlign: 'left', background: 'var(--surface, #fff)' }}>
       <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><IconC size={16} /></span>
-      <span style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label || id}</span>
+      <span style={{ fontSize: 12, fontWeight: 600 }}>{m.label || id}</span>
       <span style={{ flex: 1 }} />
       <I.arrowRight size={14} style={{ opacity: .5 }} />
     </button>
@@ -160,7 +160,7 @@ function HomeView() {
       <div className="panel" style={{ padding: '18px 20px', background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 19, fontWeight: 800 }}>Selamat datang, {hmFirstName(user.name)}</div>
-          <div style={{ fontSize: 12.5, color: '#bcd6e4', marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>
             {role}{isFirmOps ? ' · Operasi Firma' : isOversight ? ' · Oversight Portofolio' : ' · Ruang Kerja Perikatan'}
           </div>
         </div>
@@ -229,7 +229,7 @@ function HomeView() {
             <div style={{ padding: 14, display: 'grid', gap: 12 }}>
               <div className="tiny muted" style={{ lineHeight: 1.5 }}>Ringkasan gaji &amp; pajak, PPL/SKP, cuti, dan data kepegawaian <b>milik Anda</b> dalam satu halaman.</div>
               <div className="row ac jb" style={{ padding: '4px 2px' }}>
-                <span className="row ac gap8"><I.calendar size={15} style={{ color: 'var(--ink-3)' }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>Pengajuan Cuti</span></span>
+                <span className="row ac gap8"><I.calendar size={15} style={{ color: 'var(--ink-3)' }} /><span style={{ fontSize: 12, fontWeight: 600 }}>Pengajuan Cuti</span></span>
                 <Badge kind={openLeave ? 'amber' : 'gray'}>{openLeave} menunggu</Badge>
               </div>
               <Btn variant="primary" onClick={() => nav('personal', { from: 'home' })} style={{ width: '100%', justifyContent: 'center' }}><I.users size={14} /> Buka Data Personal Saya</Btn>

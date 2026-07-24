@@ -72,11 +72,11 @@ function SPR2400View() {
               <div className="tiny muted">Perikatan asurans — keyakinan terbatas</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Sifat Keyakinan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--teal)' }}>Terbatas (negatif)</div></div>
+            <div><div className="tiny muted upper">Sifat Keyakinan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--teal)' }}>Terbatas (negatif)</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Prosedur Utama</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Inquiry & Analitis</div></div>
+            <div><div className="tiny muted upper">Prosedur Utama</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Inquiry & Analitis</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Bentuk Opini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Simpulan negatif</div></div>
+            <div><div className="tiny muted upper">Bentuk Opini</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Simpulan negatif</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Perikatan Aktif</div>
@@ -112,7 +112,7 @@ function F2400Continuum() {
           <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
             {ASSUR_CONTINUUM.map((c, i) => (
               <div key={i} className="panel" style={{ padding: 13, boxShadow: 'none', borderColor: c.here ? 'var(--teal)' : 'var(--line)', borderWidth: c.here ? 2 : 1, background: c.here ? 'var(--teal-bg)' : 'transparent' }}>
-                <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{c.k}</div><Badge kind={c.color}>{c.level}</Badge></div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{c.k}</div><Badge kind={c.color}>{c.level}</Badge></div>
                 <div style={{ margin: '10px 0 6px', height: 6, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: c.pct + '%', height: '100%', borderRadius: 3, background: `var(--${c.color === 'gray' ? 'ink-4' : c.color})` }} /></div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 8 }}>{c.proc}</div>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)', whiteSpace: 'normal', height: 'auto', lineHeight: 1.4, padding: '4px 8px' }}>{c.concl}</div>
@@ -189,7 +189,7 @@ function F2400Proc() {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--teal-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--teal)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Reviu <b>terutama</b> terdiri dari <b>inquiry & prosedur analitis</b> — bukan pengujian rinci. Prosedur dirancang berdasarkan pemahaman entitas & area berisiko salah saji material (¶46–47).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Reviu <b>terutama</b> terdiri dari <b>inquiry & prosedur analitis</b> — bukan pengujian rinci. Prosedur dirancang berdasarkan pemahaman entitas & area berisiko salah saji material (¶46–47).</span>
           </div>
         </div>
       </Panel>
@@ -199,7 +199,7 @@ function F2400Proc() {
           <div style={{ display: 'grid', gap: 8 }}>
             {ADD_TRIGGERS.map((t, i) => (
               <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid var(--amber)' }}>
-                <div className="row jb ac"><div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{t.t}</div><span className="mono tiny" style={{ color: 'var(--amber)', fontWeight: 700, flex: '0 0 auto', marginLeft: 6 }}>{t.ref}</span></div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>{t.t}</div><span className="mono tiny" style={{ color: 'var(--amber)', fontWeight: 700, flex: '0 0 auto', marginLeft: 6 }}>{t.ref}</span></div>
                 <div className="tiny muted" style={{ marginTop: 4, lineHeight: 1.4 }}>{t.action}</div>
               </div>
             ))}
@@ -252,7 +252,7 @@ function F2400Evidence() {
             ].map((r, i) => (
               <div key={i} className="row gap10" style={{ alignItems: 'flex-start' }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: r[1] ? 'var(--green)' : 'var(--amber)' }}>{r[1] ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <span style={{ fontSize: 12.5, lineHeight: 1.45 }}>{r[0]}</span>
+                <span style={{ fontSize: 12, lineHeight: 1.45 }}>{r[0]}</span>
               </div>
             ))}
           </div>
@@ -293,7 +293,7 @@ function F2400Concl() {
           {CONCL_2400.map((x, i) => (
             <div key={i} onClick={() => setSel(i)} className="panel" style={{ padding: '11px 13px', cursor: 'pointer', boxShadow: 'none', borderColor: sel === i ? `var(--${x.k})` : 'var(--line)', borderWidth: sel === i ? 2 : 1, background: sel === i ? `var(--${x.k}-bg)` : 'transparent' }}>
               <div className="row jb ac">
-                <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid var(--${x.k})`, background: sel === i ? `var(--${x.k})` : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{x.l}</span></div>
+                <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid var(--${x.k})`, background: sel === i ? `var(--${x.k})` : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12, fontWeight: 700 }}>{x.l}</span></div>
                 <span className="mono tiny" style={{ color: `var(--${x.k})`, fontWeight: 700 }}>{x.ref}</span>
               </div>
               <div className="tiny muted" style={{ marginTop: 5, lineHeight: 1.45, paddingLeft: 22 }}>{x.d}</div>
@@ -305,7 +305,7 @@ function F2400Concl() {
       <Panel noBody>
         <div className="panel-h"><h3>Elemen Laporan Reviu (¶86)</h3><div style={{ flex: 1 }} /><Badge kind={c.k}>{c.l}</Badge></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN REVIU PRAKTISI INDEPENDEN</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Berdasarkan Standar Perikatan Reviu (SPR) 2400</div>
             <div style={{ fontWeight: 700, color: '#0c2430', margin: '0 0 4px' }}>Tanggung Jawab Praktisi</div>

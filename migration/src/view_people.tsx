@@ -132,7 +132,7 @@ function StaffForm({ onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.users size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Karyawan Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke direktori SDM</div></div>
+          <I.users size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Karyawan Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke direktori SDM</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
@@ -226,7 +226,7 @@ function CPETracker() {
             <div style={{ padding: 14 }}>
               <div className="row gap12" style={{ marginBottom: 14 }}>
                 <Donut segments={[{ value: person.structured, color: '#005085' }, { value: Math.max(0, person.total - person.structured), color: '#0a6b73' }, { value: Math.max(0, req.annual - person.total), color: '#e7ebef' }]} size={92} thickness={13}
-                  center={<><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>{person.total}</div><div className="tiny muted">SKP</div></>} />
+                  center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{person.total}</div><div className="tiny muted">SKP</div></>} />
                 <div style={{ flex: 1, display: 'grid', gap: 5, alignContent: 'center' }}>
                   <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#005085' }} />Terstruktur</span><b className="mono">{person.structured}</b></div>
                   <div className="row jb tiny"><span className="row ac gap6"><span style={{ width: 8, height: 8, borderRadius: 2, background: '#0a6b73' }} />Tidak terstruktur</span><b className="mono">{person.total - person.structured}</b></div>
@@ -264,7 +264,7 @@ function SkpForm({ staff, onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.book size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Catat SKP (PPL)</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah satuan kredit pendidikan profesional</div></div>
+          <I.book size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Catat SKP (PPL)</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah satuan kredit pendidikan profesional</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
@@ -357,13 +357,13 @@ function Independence() {
 
         {rotationDue > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--red-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter((d: any) => d.tenure >= d.rotationLimit).map((d: any) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find((d: any) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Rotasi partner wajib: <b>{data.filter((d: any) => d.tenure >= d.rotationLimit).map((d: any) => d.name.split(' ')[0]).join(', ')}</b> telah mencapai batas {data.find((d: any) => d.tenure >= d.rotationLimit)?.rotationLimit} tahun pada emiten — tunjuk partner pengganti (UU 5/2011 & POJK 13/2017).</span></div>
           </div>
         )}
 
         {rotationAlertList.length > 0 && (
           <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi & cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Peringatan dini rotasi (≤6 bulan): <b>{rotationAlertList.map((d) => d.name.split(' ')[0]).join(', ')}</b> memasuki jendela 6 bulan sebelum batas rotasi pada emiten — mulai perencanaan transisi & cooling-off partner pengganti sekarang (POJK 13/2017 · PP 20/2015).</span></div>
           </div>
         )}
 
@@ -383,7 +383,7 @@ function Independence() {
                     <td><span onClick={(e: any) => { e.stopPropagation(); toggle(d.id); }} style={{ cursor: 'pointer' }}>{d.declared ? <Badge kind="green"><I.check size={10} /> Diterima</Badge> : <Badge kind="red">Belum</Badge>}</span></td>
                     <td><div className="row ac gap4">{[1, 2, 3].map(i => <span key={i} title={STEPS[i]} style={{ width: 22, height: 5, borderRadius: 3, background: i <= lvl ? 'var(--green)' : 'var(--surface-3)' }} />)}<span className="tiny muted" style={{ marginLeft: 4 }}>{STEPS[lvl]}</span></div></td>
                     <td className="num">{d.conflicts ? <Badge kind="amber">{d.conflicts}</Badge> : <span className="muted">0</span>}</td>
-                    <td className="tiny">{d.rotationClient === '—' ? <span className="muted">—</span> : <span className="row ac gap4">{d.rotationClient.replace('PT ', '')}{d.listed && <span className="badge b-blue" style={{ fontSize: 8, padding: '0 4px' }}>IDX</span>}</span>}</td>
+                    <td className="tiny">{d.rotationClient === '—' ? <span className="muted">—</span> : <span className="row ac gap4">{d.rotationClient.replace('PT ', '')}{d.listed && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 4px' }}>IDX</span>}</span>}</td>
                     <td>
                       {d.rotationClient === '—' ? <span className="muted tiny">n/a</span> : (
                         <div className="row ac gap8">
@@ -451,7 +451,7 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
       <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <Avatar name={d.name} size={42} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · {per}</div></div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · {per}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
@@ -524,7 +524,7 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
                     {i < INDEP_CHAIN.length - 1 && <span style={{ width: 1.5, flex: 1, minHeight: 24, background: done ? 'var(--green)' : 'var(--line)' }} />}
                   </div>
                   <div style={{ minWidth: 0, paddingBottom: 4, flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.role}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600 }}>{c.role}</div>
                     <div className="tiny muted">{c.who}</div>
                     {active && (
                       <Btn sm variant="primary" style={{ marginTop: 6 }} onClick={() => { if (i === 0 && !d.declared) onDeclare(); onApprove(i + 1); }}>

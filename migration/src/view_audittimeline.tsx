@@ -160,7 +160,7 @@ function AuditTimeline() {
             <div>
               {mode === 'klien' && <div style={{ fontSize: 12, fontWeight: 600, color: '#9fb9c8', marginBottom: 6 }}>{firmName}</div>}
               <div style={{ fontSize: mode === 'klien' ? 19 : 15, fontWeight: 700, letterSpacing: '-.01em' }}>Jadwal &amp; Lini Masa Audit</div>
-              <div style={{ fontSize: 12.5, color: '#bcd6e4', marginTop: 3 }}>{client.name || eng.id} · {eng.fy} · {eng.type}</div>
+              <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{client.name || eng.id} · {eng.fy} · {eng.type}</div>
             </div>
             <div style={{ textAlign: 'right', fontSize: 11, color: '#9fb9c8', lineHeight: 1.7 }}>
               <div>Perikatan <b style={{ color: '#eaf2f7' }} className="mono">{eng.id}</b></div>
@@ -177,14 +177,14 @@ function AuditTimeline() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={target ? ATL_fmt(target) : '—'} label="Target Tanda Tangan Opini" accent="var(--green)" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={'± ' + durWk + ' mg'} label="Durasi · 3 fase" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}>
-            <div className="row ac jb" style={{ marginBottom: 6 }}><span className="s-val" style={{ fontSize: 20, color: 'var(--navy)' }}>{eng.progress}%</span><span className="tiny muted">progres</span></div>
+            <div className="row ac jb" style={{ marginBottom: 6 }}><span className="s-val" style={{ fontSize: 19, color: 'var(--navy)' }}>{eng.progress}%</span><span className="tiny muted">progres</span></div>
             <Progress value={eng.progress} color="var(--blue)" />
             <div className="s-lbl" style={{ marginTop: 6 }}>Progres Keseluruhan</div>
           </div></Panel>
         </div>
 
         {/* legend */}
-        <div className="row ac" style={{ gap: 16, flexWrap: 'wrap', marginBottom: 10, fontSize: 11.5, color: 'var(--ink-2)' }}>
+        <div className="row ac" style={{ gap: 16, flexWrap: 'wrap', marginBottom: 10, fontSize: 12, color: 'var(--ink-2)' }}>
           {Object.entries(ATL_PHASE_COLOR).map(([k, v]) => <span key={k} className="row ac gap6"><span style={{ width: 20, height: 10, borderRadius: 3, background: v }} />{k}</span>)}
           <span style={{ width: 1, height: 14, background: 'var(--line)' }} />
           <span className="row ac gap6"><span style={{ width: 11, height: 11, transform: 'rotate(45deg)', background: 'var(--ink-2)', borderRadius: 2 }} />Milestone</span>
@@ -209,7 +209,7 @@ function AuditTimeline() {
                   <div key={i} className="row ac jb" style={{ padding: '8px 0', borderBottom: i < plan.milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span className="row ac gap8" style={{ minWidth: 0 }}>
                       <span style={{ width: 11, height: 11, background: (ATL_MS_COLOR as any)[m.status], transform: 'rotate(45deg)', borderRadius: 2, flex: '0 0 11px' }} />
-                      <span className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label}</span>
+                      <span className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{m.label}</span>
                     </span>
                     <span style={{ textAlign: 'right' }}>
                       <div className="mono tiny" style={{ fontWeight: 700 }}>{ATL_fmtY(m.date)}</div>
@@ -241,7 +241,7 @@ function AuditTimeline() {
             </Panel>
           ) : (
             <Panel title="Catatan & Asumsi" sub="untuk klien">
-              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink-2)', lineHeight: 1.65 }}>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.65 }}>
                 <li>Lini masa mengasumsikan kelengkapan &amp; ketepatan waktu penyerahan dokumen PBC sesuai daftar permintaan; keterlambatan dapat menggeser milestone berikutnya.</li>
                 <li>Observasi <i>stock opname</i> dilaksanakan pada/menjelang tanggal tutup buku; konfirmasi pihak ketiga dikirim pada awal pelaksanaan substantif.</li>
                 <li>Tanggal tanda tangan opini bersifat <b>target</b> dan bergantung pada penyelesaian EQR, surat representasi manajemen, serta penilaian peristiwa kemudian.</li>
@@ -259,8 +259,8 @@ function AuditTimeline() {
 function ATL_Kv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
-      <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700, marginTop: 2, color: accent || 'var(--ink)' }}>{v}</div>
+      <div className="tiny muted upper" style={{ fontSize: 11 }}>{label}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700, marginTop: 2, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 }
@@ -301,8 +301,8 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               title={'Buka modul terkait — ' + r.t.n}
               style={{ height: ROW, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px 0 24px', borderBottom: '1px solid var(--line-soft)', position: 'relative', cursor: 'pointer', background: hov === r.t.ref ? 'var(--blue-050)' : 'transparent' }}>
               <span style={{ position: 'absolute', left: 14, width: 6, height: 6, borderRadius: '50%', background: ATL_tint((ATL_PHASE_COLOR as any)[r.ph.name], 1) }} />
-              <span className="truncate" style={{ fontSize: 11.5, color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-2)', fontWeight: hov === r.t.ref ? 600 : 400, flex: 1 }}>{r.t.n}</span>
-              <span className="mono tiny" style={{ color: 'var(--ink-4)', fontSize: 9.5 }}>{r.t.ref}</span>
+              <span className="truncate" style={{ fontSize: 12, color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-2)', fontWeight: hov === r.t.ref ? 600 : 400, flex: 1 }}>{r.t.n}</span>
+              <span className="mono tiny" style={{ color: 'var(--ink-4)', fontSize: 11 }}>{r.t.ref}</span>
               <I.arrowRight size={12} style={{ color: hov === r.t.ref ? 'var(--blue)' : 'var(--ink-4)', opacity: hov === r.t.ref ? 1 : .4, flex: '0 0 auto' }} />
             </div>
           );
@@ -314,7 +314,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         {/* month header */}
         <div style={{ height: HEAD, borderBottom: '1px solid var(--line)', position: 'relative' }}>
           {months.map((m: any, i: any) => (
-            <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 8, fontSize: 9.5, letterSpacing: '.03em', borderLeft: '1px solid var(--line)', paddingLeft: 4, height: 18 }}>{m.label}</span>
+            <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 8, fontSize: 11, letterSpacing: '.03em', borderLeft: '1px solid var(--line)', paddingLeft: 4, height: 18 }}>{m.label}</span>
           ))}
         </div>
 
@@ -322,7 +322,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
         <div style={{ position: 'absolute', top: HEAD, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
           {months.map((m: any, i: any) => <span key={i} style={{ position: 'absolute', left: m.pos + '%', top: 0, bottom: 0, width: 1, background: 'var(--line-soft)' }} />)}
           <span style={{ position: 'absolute', left: frac(today) + '%', top: 0, bottom: 0, width: 0, borderLeft: '2px dashed var(--red)', zIndex: 4 }} />
-          <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red-solid)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
+          <span className="mono" style={{ position: 'absolute', left: frac(today) + '%', top: -20, transform: 'translateX(-50%)', background: 'var(--red-solid)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', zIndex: 5 }}>Hari ini · {ATL_fmt(today)}</span>
         </div>
 
         {/* lanes */}
@@ -335,7 +335,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               <div key={i} style={{ height: isKlien ? phaseRowH : ROW, position: 'relative', borderBottom: '1px solid var(--line-soft)', background: isKlien ? 'transparent' : 'rgba(0,80,133,.03)' }}>
                 <div title={r.g.ph.name + ' · ' + ATL_fmt(s) + ' – ' + ATL_fmt(e)}
                   style={{ position: 'absolute', left: frac(s) + '%', width: Math.max(0.6, frac(e) - frac(s)) + '%', top: isKlien ? 8 : 11, height: isKlien ? 18 : 8, background: isKlien ? c : ATL_tint(c, .5), borderRadius: 4, opacity: done ? .55 : 1, boxShadow: isKlien ? '0 1px 2px rgba(7,30,42,.14)' : 'none', display: 'flex', alignItems: 'center' }}>
-                  {isKlien && (frac(e) - frac(s)) > 14 && <span style={{ color: '#fff', fontSize: 9.5, fontWeight: 600, padding: '0 8px', whiteSpace: 'nowrap', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{ATL_fmt(s)} – {ATL_fmt(e)}</span>}
+                  {isKlien && (frac(e) - frac(s)) > 14 && <span style={{ color: '#fff', fontSize: 11, fontWeight: 600, padding: '0 8px', whiteSpace: 'nowrap', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{ATL_fmt(s)} – {ATL_fmt(e)}</span>}
                 </div>
                 {/* milestones di lane fase (mode klien) — yang jatuh di rentang fase */}
                 {isKlien && plan.milestones.filter((m: any) => ATL_ms(m.date) >= ATL_ms(s) - 3 * 864e5 && ATL_ms(m.date) <= ATL_ms(e) + 3 * 864e5).map((m: any, mi: any) => (
@@ -353,7 +353,7 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
               <div title={r.t.n + ' · ' + ATL_fmt(r.t.s) + ' – ' + ATL_fmt(r.t.e) + ' (' + r.t.pct + '%)'}
                 style={{ position: 'absolute', left: L + '%', width: W + '%', top: 7, height: 16, background: ATL_tint(c, .24), borderRadius: 4, overflow: 'hidden', boxShadow: active ? '0 0 0 2px ' + ATL_tint(c, .55) : '0 1px 2px rgba(7,30,42,.12)' }}>
                 <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: r.t.pct + '%', background: c, borderRadius: '4px 0 0 4px' }} />
-                {W > 7 && <span style={{ position: 'absolute', left: 6, top: 0, bottom: 0, display: 'flex', alignItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{r.t.pct}%</span>}
+                {W > 7 && <span style={{ position: 'absolute', left: 6, top: 0, bottom: 0, display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: 700, color: '#fff', textShadow: '0 1px 1px rgba(0,0,0,.18)' }}>{r.t.pct}%</span>}
               </div>
             </div>
           );

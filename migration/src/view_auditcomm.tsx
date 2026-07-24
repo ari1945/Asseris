@@ -20,7 +20,7 @@ const { useState: useStateAc, useMemo: useMemoAc } = React;
 function AcCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -94,7 +94,7 @@ function AuditCommitteeView() {
                         <span onClick={() => toggle(d.ref)} style={{ cursor: 'pointer', flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={11} style={{ color: '#fff' }} />}</span>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--purple)', width: 40, flex: '0 0 40px', marginTop: 1 }}>{d.ref}</span>
                         <span style={{ flex: 1, minWidth: 0 }}>
-                          <span onClick={() => toggle(d.ref)} style={{ cursor: 'pointer', display: 'block', fontSize: 12.5, lineHeight: 1.45, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{d.t}</span>
+                          <span onClick={() => toggle(d.ref)} style={{ cursor: 'pointer', display: 'block', fontSize: 12, lineHeight: 1.45, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{d.t}</span>
                           <span className="tiny mono muted" style={{ display: 'block', marginTop: 2 }}>{d.basis}</span>
                         </span>
                         {d.view && <button onClick={() => nav(d.view, { from: 'auditcomm' })} title="Buka modul terkait" className="row ac" style={{ flex: '0 0 auto', padding: '3px 7px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer' }}><I.link2 size={12} style={{ color: 'var(--blue)' }} /></button>}
@@ -109,7 +109,7 @@ function AuditCommitteeView() {
                   <div style={{ background: 'linear-gradient(120deg,#3d2a73,#5b3fa6)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#d6cdf0', letterSpacing: '.05em', marginBottom: 8 }}>Dokumentasi Tugas Komite</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#c4b5fd', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#d6cdf0', marginTop: 6 }}>{doneCount}/{A.duties.length} tugas terdokumentasi</div>
@@ -147,7 +147,7 @@ function AuditCommitteeView() {
                       <Badge kind={(AC_MEETING_KIND as any)[m.kind] || 'gray'}>{m.kind}</Badge>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45 }}>{m.topic}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.45 }}>{m.topic}</div>
                       <div className="tiny muted" style={{ marginTop: 2 }}><I.users size={11} style={{ verticalAlign: -2, marginRight: 3 }} />{m.who}</div>
                     </div>
                   </div>
@@ -166,7 +166,7 @@ function AuditCommitteeView() {
                   {A.composition.map((c: any, i: any) => (
                     <div key={i} className="row ac gap10" style={{ padding: '15px 18px', borderBottom: i < A.composition.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <Avatar name={c.name} size={30} />
-                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</div><div className="tiny muted">{c.role}</div></div>
+                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</div><div className="tiny muted">{c.role}</div></div>
                       <div className="row gap6">
                         {c.indep && <Badge kind="green">Independen</Badge>}
                         {c.fin && <Badge kind="blue">Ahli Keuangan</Badge>}

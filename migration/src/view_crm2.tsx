@@ -55,9 +55,9 @@ function CRM360() {
         <div className="grid" style={{ gap: 12 }}>
           <Panel noBody>
             <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }} className="row ac gap12">
-              <span style={{ width: 50, height: 50, borderRadius: 12, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 17, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+              <span style={{ width: 50, height: 50, borderRadius: 12, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="row ac gap8"><span style={{ fontSize: 16, fontWeight: 700 }} className="truncate">{sel.name}</span>{sel.listed && <span className="badge b-blue">IDX</span>}</div>
+                <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</span>{sel.listed && <span className="badge b-blue">IDX</span>}</div>
                 <div className="tiny" style={{ color: '#bcd6e4' }}>{sel.industry} · klien sejak {sel.since} · partner {h.partnerRel}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
@@ -168,7 +168,7 @@ function CRMAktivitas() {
                 <div key={i} className="row gap10" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
                   <span style={{ width: 30, height: 30, borderRadius: 8, background: m.color, color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}>{React.createElement((I as any)[m.icon] || I.doc, { size: 15 })}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, lineHeight: 1.4 }}>{a.note}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.4 }}>{a.note}</div>
                     <div className="tiny muted row ac gap6"><b style={{ color: 'var(--ink-2)' }}>{a.client}</b> · {m.label} · {a.who} · {new Date(a.d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</div>
                   </div>
                 </div>
@@ -297,7 +297,7 @@ function CRMSegmentasi() {
           <div style={{ padding: 14 }}>
             <div className="row gap12 ac">
               <Donut segments={byTier.map(t => ({ value: t.fee, color: (tierColor as any)[t.k] || '#9aa7b2' }))} size={100} thickness={15}
-                center={<><div className="mono" style={{ fontSize: 14, fontWeight: 700 }}>{clients.length}</div><div className="tiny muted">klien</div></>} />
+                center={<><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{clients.length}</div><div className="tiny muted">klien</div></>} />
               <div style={{ flex: 1 }}>
                 {byTier.map(t => (
                   <div key={t.k} className="row jb ac" style={{ padding: '4px 0' }}>

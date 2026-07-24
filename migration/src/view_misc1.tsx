@@ -142,7 +142,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
             <div style={{ padding: '13px 15px', borderBottom: '1px solid var(--line-soft)', display: 'flex', alignItems: 'center', gap: 11 }}>
               <div style={{ width: 36, height: 36, borderRadius: 9, background: 'color-mix(in srgb,' + p.tone + ' 13%, transparent)', color: p.tone, display: 'grid', placeItems: 'center', flex: '0 0 36px' }}>{React.createElement((I as any)[p.icon], { size: 19 })}</div>
               <div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>{p.title}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>{p.title}</div>
                 <div className="tiny upper muted" style={{ marginTop: 1 }}>{p.sub}</div>
               </div>
             </div>
@@ -168,7 +168,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
               <div key={r.id} className="row ac jb" style={{ padding: '10px 0', borderBottom: i < sigRisks.length - 1 ? '1px solid var(--line-soft)' : 0, gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
                   <div className="row ac gap8" style={{ marginBottom: 2 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 600 }}>{r.area}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>{r.area}</span>
                     <Badge kind="blue">{r.assertion}</Badge>
                     {r.fraud && <Badge kind="red">SA 240</Badge>}
                   </div>
@@ -192,7 +192,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
                 <div key={l}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}>
                     <span style={{ fontSize: 12, fontWeight: 600 }}>{l}</span>
-                    <span className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Rp {fmt(v / 1e6, 0)} jt</span>
+                    <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Rp {fmt(v / 1e6, 0)} jt</span>
                   </div>
                   <div style={{ height: 8, borderRadius: 6, background: 'var(--surface-3)' }}><div style={{ width: Math.max(4, w) + '%', height: '100%', borderRadius: 6, background: c }} /></div>
                 </div>
@@ -206,7 +206,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
           <Panel noBody>
             <div style={{ padding: '12px 14px', background: 'var(--blue-050)', borderRadius: 'var(--radius)' }}>
               <div className="row ac gap8" style={{ marginBottom: 7 }}><span style={{ color: 'var(--blue)' }}><I.sparkle size={15} /></span><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>AI Co-pilot</span></div>
-              <div style={{ fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>Susun draf strategi audit dari penilaian risiko, materialitas, dan profil klien aktif.</div>
+              <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>Susun draf strategi audit dari penilaian risiko, materialitas, dan profil klien aktif.</div>
               <Btn sm variant="primary" style={{ width: '100%', marginTop: 9 }} onClick={() => window.__amsOpenCopilot?.()}><I.sparkle size={13} /> Perbarui dengan AI</Btn>
             </div>
           </Panel>
@@ -258,7 +258,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
                 <div key={row.id} className="row ac jb" style={{ padding: '10px 0', borderBottom: i < gapRows.length - 1 ? '1px solid var(--line-soft)' : 0, gap: 12 }}>
                   <div style={{ minWidth: 0 }}>
                     <div className="row ac gap8" style={{ marginBottom: 3, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 600 }}>{row.area}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600 }}>{row.area}</span>
                       <Badge kind="blue">{row.assertion}</Badge>
                       <Badge kind={row.inherent === 'Significant' ? 'red' : 'gray'}>{row.inherent}</Badge>
                       {row.fraud && <Badge kind="red">SA 240</Badge>}
@@ -311,7 +311,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
                       ))}
                     </div>
                   </td>
-                  <td style={{ whiteSpace: 'normal', maxWidth: 240, fontSize: 11.5, color: 'var(--ink-2)' }}>{r.response}</td>
+                  <td style={{ whiteSpace: 'normal', maxWidth: 240, fontSize: 12, color: 'var(--ink-2)' }}>{r.response}</td>
                   <td><span className="row ac gap6"><Avatar name={r.owner} size={22} /><span className="tiny">{r.owner}</span></span></td>
                   <td><span className="chip mono">{r.wp}</span></td>
                   <td>{(() => { const pr = planById.get(r.id); if (!pr) return null; return pr.gaps.length === 0 ? <Badge kind="green">Memadai</Badge> : <Badge kind={pr.gaps.includes('under-response') ? 'red' : 'amber'}>{pr.gaps.length} gap</Badge>; })()}</td>
@@ -325,8 +325,8 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div style={{ padding: '15px 18px', background: relyControls > 0 ? 'var(--teal-bg)' : 'var(--surface-2)', borderRadius: 'var(--radius)' }}>
-            <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--teal)' }}><I.sliders size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Strategi Pengendalian</span></div>
-            <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--teal)' }}><I.sliders size={16} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Strategi Pengendalian</span></div>
+            <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               {relyControls > 0
                 ? `Mengandalkan pengujian pengendalian untuk ${relyControls} area. Uji efektivitas operasi (SA 330) wajib didokumentasikan sebelum mengurangi prosedur substantif.`
                 : 'Pendekatan substantif penuh — tidak mengandalkan pengendalian. Sesuai untuk area dengan risiko signifikan & populasi yang dapat diuji secara substantif.'}
@@ -335,8 +335,8 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
         </Panel>
         <Panel noBody>
           <div style={{ padding: '15px 18px', background: 'var(--amber-bg)', borderRadius: 'var(--radius)' }}>
-            <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--amber)' }}><I.scale size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Tautan ke Materialitas</span></div>
-            <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--amber)' }}><I.scale size={16} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Tautan ke Materialitas</span></div>
+            <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Performance Materiality <b className="mono">Rp {fmt(pm / 1e6, 0)} jt</b> menjadi ambang penentuan luas sampel & pemilihan item kunci. {AMS.WTB.filter(r => Math.abs(r.adj ?? 0) > pm).length} akun WTB melampaui PM dan diperlakukan sebagai area fokus.
             </div>
           </div>
@@ -419,7 +419,7 @@ function SmSchedule({ fmt, activeEngagement }: any) {
           {/* hours budget */}
           <Panel title="Anggaran Jam (SA 300 — sifat, waktu & luas)">
             <div className="row jb ac" style={{ marginBottom: 7 }}>
-              <span className="mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--navy)' }}>{fmt(used)}<span style={{ fontSize: 12, color: 'var(--ink-3)', fontWeight: 600 }}> / {fmt(budget)} jam</span></span>
+              <span className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{fmt(used)}<span style={{ fontSize: 12, color: 'var(--ink-3)', fontWeight: 600 }}> / {fmt(budget)} jam</span></span>
               <Badge kind={pct > 90 ? 'red' : pct > 75 ? 'amber' : 'green'}>{pct}% terpakai</Badge>
             </div>
             <Progress value={pct} color={pct > 90 ? 'var(--red)' : pct > 75 ? 'var(--amber)' : 'var(--blue)'} />
@@ -494,12 +494,12 @@ function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, 
         <span className="tiny muted">Dokumen final — diekspor ke berkas kertas kerja</span>
         <Btn sm onClick={() => setEditing((e: any) => !e)} variant={editing ? 'primary' : ''}>{editing ? <><I.check size={13} /> Selesai Edit</> : <><I.doc size={13} /> Edit Teks</>}</Btn>
       </div>
-      {editing && <div style={{ background: 'var(--blue-050)', borderBottom: '1px solid var(--blue-100)', padding: '7px 14px', fontSize: 11.5, color: 'var(--blue)', fontWeight: 600 }}><I.doc size={12} style={{ verticalAlign: 'middle' }} /> Mode edit aktif — klik paragraf mana pun untuk mengubah teks. Perubahan tersimpan saat Anda klik di luar paragraf.</div>}
+      {editing && <div style={{ background: 'var(--blue-050)', borderBottom: '1px solid var(--blue-100)', padding: '7px 14px', fontSize: 12, color: 'var(--blue)', fontWeight: 600 }}><I.doc size={12} style={{ verticalAlign: 'middle' }} /> Mode edit aktif — klik paragraf mana pun untuk mengubah teks. Perubahan tersimpan saat Anda klik di luar paragraf.</div>}
       <div style={{ background: '#e7eaef', padding: 18 }}>
         <div className="doc-paper" style={{ background: '#fff', maxWidth: 720, margin: '0 auto', padding: '40px 50px', boxShadow: 'var(--shadow)' }}>
           <div style={{ textAlign: 'center', marginBottom: 22 }}>
-            <div style={{ fontWeight: 800, fontSize: 16 }}>MEMORANDUM STRATEGI AUDIT</div>
-            <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', marginTop: 4 }}>{activeEngagement.id} · {activeClient?.name} · {activeEngagement.fy}</div>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>MEMORANDUM STRATEGI AUDIT</div>
+            <div className="mono" style={{ fontSize: 11, color: '#7a8893', marginTop: 4 }}>{activeEngagement.id} · {activeClient?.name} · {activeEngagement.fy}</div>
           </div>
           <Sec n="1" id="s1" title="Latar Belakang Perikatan">
             Kami ditunjuk untuk mengaudit laporan keuangan {activeClient?.name} untuk tahun buku {activeEngagement.fy} sesuai Standar Audit (SA) yang ditetapkan IAPI. Perikatan ini merupakan {activeEngagement.type.toLowerCase()} dengan partner penanggung jawab {activeEngagement.partner}.
@@ -511,7 +511,7 @@ function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, margin: '4px 0' }}>
               {[['Overall Materiality', om], ['Performance Materiality', pm], ['Clearly Trivial', ctt]].map(([l, v]) => (
                 <div key={l} style={{ border: '1px solid #e0e4e8', borderRadius: 6, padding: '8px 10px' }}>
-                  <div style={{ fontSize: 10, color: '#7a8893', textTransform: 'uppercase' }}>{l}</div>
+                  <div style={{ fontSize: 11, color: '#7a8893', textTransform: 'uppercase' }}>{l}</div>
                   <div className="mono" style={{ fontWeight: 700, fontSize: 13, color: '#0c2430' }}>Rp {fmt(v / 1e6, 0)} jt</div>
                 </div>
               ))}

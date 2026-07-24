@@ -299,7 +299,7 @@ function TBRoleMix({ m }: any) {
   const tot = segs.reduce((s, x) => s + x.value, 0);
   return (
     <div className="row gap8 ac" style={{ alignItems: 'center', gap: 18 }}>
-      <Donut segments={segs} size={120} thickness={18} center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 17 }}>{fmt(Math.round(tot))}</div><div className="tiny muted">jam</div></div>} />
+      <Donut segments={segs} size={120} thickness={18} center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 15 }}>{fmt(Math.round(tot))}</div><div className="tiny muted">jam</div></div>} />
       <div style={{ flex: 1, display: 'grid', gap: 8 }}>
         {segs.map(s => (
           <div key={s.role} className="row jb ac tiny">
@@ -335,11 +335,11 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
         <div className="panel-h">
           <h3>Catatan Waktu (Timesheet)</h3>
           <div style={{ flex: 1 }} />
-          <select className="select" value={fMember} onChange={(ev: any) => setFMember(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
+          <select className="select" value={fMember} onChange={(ev: any) => setFMember(ev.target.value)} style={{ height: 24, fontSize: 12 }}>
             <option value="all">Semua anggota</option>
             {team.map((t: any) => <option key={t.name} value={t.name}>{t.name.split(',')[0]}</option>)}
           </select>
-          <select className="select" value={fPhase} onChange={(ev: any) => setFPhase(ev.target.value)} style={{ height: 24, fontSize: 11.5 }}>
+          <select className="select" value={fPhase} onChange={(ev: any) => setFPhase(ev.target.value)} style={{ height: 24, fontSize: 12 }}>
             <option value="all">Semua fase</option>
             {phaseOpts.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -498,7 +498,7 @@ function TBEconomics({ m, e }: any) {
                   ? [{ value: m.stdValueBudget, color: 'var(--blue)' }, { value: wd, color: 'var(--green)' }]
                   : [{ value: m.fee, color: 'var(--blue)' }, { value: -wd, color: 'var(--red)' }]}
                 size={120} thickness={18}
-                center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 18, color: m.realization >= 1 ? 'var(--green)' : 'var(--amber)' }}>{Math.round(m.realization * 100)}%</div><div className="tiny muted">realisasi</div></div>}
+                center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 19, color: m.realization >= 1 ? 'var(--green)' : 'var(--amber)' }}>{Math.round(m.realization * 100)}%</div><div className="tiny muted">realisasi</div></div>}
               />
               <div style={{ flex: 1, display: 'grid', gap: 8 }}>
                 <EacRow label="Nilai standar (budget)" v={tbJt(m.stdValueBudget)} />

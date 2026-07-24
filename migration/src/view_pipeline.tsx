@@ -68,7 +68,7 @@ function SalesPipeline() {
                 style={{ borderRadius: 8, padding: 5, minHeight: 120, background: over === st.id ? 'var(--blue-050)' : 'transparent', outline: over === st.id ? '2px dashed var(--blue)' : 'none' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 11.5 }}>{st.id}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{st.id}</span>
                   <span className="chip tiny">{col.length}</span>
                 </div>
                 <div className="tiny muted mono" style={{ padding: '0 3px 8px' }}>Rp {fmt(colVal / 1e6, 0)} jt</div>
@@ -109,7 +109,7 @@ function OppForm({ onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.trend size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Peluang Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke pipeline penjualan</div></div>
+          <I.trend size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Peluang Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke pipeline penjualan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>
@@ -166,7 +166,7 @@ function OppDetail({ o, onClose, onMove }: any) {
       <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{o.id}</span><button className="top-btn" onClick={onClose}><I.x size={18} /></button></div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{o.name}</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>{o.name}</div>
           <div className="tiny" style={{ color: '#bcd6e4' }}>{o.service} · {o.industry}</div>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
@@ -304,7 +304,7 @@ function InvForm({ onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Faktur Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Terbitkan tagihan ke klien (status awal Draft)</div></div>
+          <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Faktur Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Terbitkan tagihan ke klien (status awal Draft)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

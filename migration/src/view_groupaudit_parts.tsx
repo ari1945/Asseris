@@ -111,7 +111,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }:
                     <tr>
                       <td>
                         <div className="row ac gap8">
-                          <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, flex: '0 0 24px' }}>{s.own}%</span>
+                          <span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 24px' }}>{s.own}%</span>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 600, fontSize: 12 }}>{s.name}</div>
                             <div className="tiny muted">{s.auditor} · {s.country} · {s.ccy}{s.ccy !== 'IDR' && <span> @ {fmt(s.fx / 1e3, 1)}k</span>}</div>
@@ -167,7 +167,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }:
                               <div className="tiny upper" style={{ fontWeight: 700, letterSpacing: '.04em', color: 'var(--ink-3)', marginBottom: 6 }}>Impor paket (JSON) — {s.id}</div>
                               <div className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.5 }}>Tempel paket pelaporan komponen dalam format JSON (field figur: {PKG_NUM_KEYS.join(', ')}; opsional <span className="mono">status</span>, <span className="mono">received</span>). Field yang tidak dikenali diabaikan.</div>
                               <textarea value={impText} onChange={(e: any) => { setImpText(e.target.value); setImpErr(''); }} spellCheck={false}
-                                style={{ width: '100%', minHeight: 150, padding: 10, border: '1px solid var(--line)', borderRadius: 7, fontSize: 11.5, fontFamily: 'var(--mono, monospace)', lineHeight: 1.5, background: 'var(--surface)', color: 'var(--ink)', resize: 'vertical' }} />
+                                style={{ width: '100%', minHeight: 150, padding: 10, border: '1px solid var(--line)', borderRadius: 7, fontSize: 12, fontFamily: 'var(--mono, monospace)', lineHeight: 1.5, background: 'var(--surface)', color: 'var(--ink)', resize: 'vertical' }} />
                               {impErr && <div className="tiny" style={{ color: 'var(--red)', marginTop: 6, fontWeight: 600 }}><I.alert size={11} style={{ verticalAlign: 'middle' }} /> {impErr}</div>}
                               <div className="row gap8" style={{ marginTop: 8 }}>
                                 <Btn sm variant="primary" onClick={() => applyImport(s.id)}><I.upload size={12} /> Impor & terapkan</Btn>

@@ -76,7 +76,7 @@ const P48_DOWNSTREAM = [
 function P48Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -184,7 +184,7 @@ function PSAK48View() {
                       <tbody>
                         {p48.parts.map((pt: any) => (
                           <tr key={pt.id} onClick={() => pt.route !== 'psak48' && nav(pt.route, { from: 'psak48' })} style={{ cursor: pt.route !== 'psak48' ? 'pointer' : 'default' }}>
-                            <td style={{ fontSize: 12.5, fontWeight: 600 }}>{pt.label}</td>
+                            <td style={{ fontSize: 12, fontWeight: 600 }}>{pt.label}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{pt.code}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(pt.val)}</td>
                           </tr>
@@ -292,7 +292,7 @@ function PSAK48View() {
                       <tbody>
                         {p48.sens.map((sn: any, i: any) => (
                           <tr key={i}>
-                            <td style={{ fontSize: 11.5, lineHeight: 1.3 }}>{sn.label}<div className="tiny muted mono">{sn.shock}</div></td>
+                            <td style={{ fontSize: 12, lineHeight: 1.3 }}>{sn.label}<div className="tiny muted mono">{sn.shock}</div></td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(sn.rec)}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: sn.head < 0 ? 'var(--red)' : 'var(--green)' }}>{sn.head < 0 ? '(' + fmt(-sn.head) + ')' : '+' + fmt(sn.head)}</td>
                           </tr>
@@ -303,7 +303,7 @@ function PSAK48View() {
                   <div className="panel" style={{ margin: '0 12px 12px', padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Kenaikan WACC <b>+1%</b> atau penurunan arus kas <b>−5%</b> menghapus headroom & menimbulkan rugi penurunan nilai — area pertimbangan signifikan & kandidat <b>KAM (SA 701)</b>.</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>Kenaikan WACC <b>+1%</b> atau penurunan arus kas <b>−5%</b> menghapus headroom & menimbulkan rugi penurunan nilai — area pertimbangan signifikan & kandidat <b>KAM (SA 701)</b>.</span>
                     </div>
                   </div>
                 </Panel>
@@ -312,7 +312,7 @@ function PSAK48View() {
                   <div style={{ display: 'grid', gap: 0 }}>
                     {P48_KEY.map((a, i) => (
                       <div key={i} style={{ padding: '8px 0', borderBottom: i < P48_KEY.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                        <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
+                        <div className="row ac jb"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.k}</span><span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{a.v}</span></div>
                         <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 1 }}>{a.note}</div>
                       </div>
                     ))}
@@ -376,7 +376,7 @@ function PSAK48View() {
                       { t: 'Saldo akhir — 31 Des 2025', v: p57.rf.closing, tot: true },
                     ].map((r, i) => (
                       <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         <div className="mono" style={{ width: 90, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tot ? 'var(--navy)' : (r.v === 0 ? 'var(--ink-4)' : 'var(--green)') }}>{r.v < 0 ? '(' + fmt(-r.v) + ')' : (r.tot ? '' : (r.v === 0 ? '—' : '+')) + (r.v === 0 ? '' : fmt(r.v))}</div>
                       </div>
                     ))}
@@ -406,7 +406,7 @@ function PSAK48View() {
                       </div>
                       {!sel.resp && (
                         <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-                          <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.mail size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Surat ke penasihat hukum eksternal belum dibalas (SA 501 ¶10) — tindak lanjut sebelum tanggal laporan.</span></div>
+                          <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.mail size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Surat ke penasihat hukum eksternal belum dibalas (SA 501 ¶10) — tindak lanjut sebelum tanggal laporan.</span></div>
                         </div>
                       )}
                     </div>
@@ -443,7 +443,7 @@ function PSAK48View() {
                   </div>
                   <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>Beda temporer mengalir ke pos <span className="mono">prv</span> di <b>PSAK 46</b>. Provisi litigasi LIT-02 tidak <i>deductible</i> hingga penyelesaian hukum → tidak dimodelkan sebagai beda temporer.</div>
                   <button onClick={() => nav('psak46', { from: 'psak48' })} className="row ac jb" style={{ marginTop: 11, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', background: 'var(--surface)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
-                    <div><div style={{ fontSize: 11.5, fontWeight: 600 }}>Buka PSAK 46</div><div className="tiny muted">Beda temporer & DTA</div></div>
+                    <div><div style={{ fontSize: 12, fontWeight: 600 }}>Buka PSAK 46</div><div className="tiny muted">Beda temporer & DTA</div></div>
                     <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
                   </button>
                 </Panel>
@@ -489,7 +489,7 @@ function PSAK48View() {
                           { pos: 'Beda temporer provisi → PSAK 46', src: 'FISCAL.provisi · 22%', val: p57.tempDiffModeled, ok: true },
                         ].map((r, i) => (
                           <tr key={i} style={{ background: r.hi ? 'var(--blue-050)' : undefined }}>
-                            <td style={{ fontWeight: 600, fontSize: 12.5 }}>{r.pos}</td>
+                            <td style={{ fontWeight: 600, fontSize: 12 }}>{r.pos}</td>
                             <td className="mono tiny" style={{ color: 'var(--ink-3)' }}>{r.src}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(Math.round(r.val))}</td>
                             <td style={{ textAlign: 'center' }}>{r.ok ? <span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> : <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>}</td>
@@ -542,7 +542,7 @@ function PSAK48View() {
                 <div className="panel-h"><h3>Prosedur Audit — Penurunan Nilai & Provisi (SA 540 · 501 · 500)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P48_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                   <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.target size={15} /></span>
-                  <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Penurunan nilai (terutama nilai pakai goodwill) & provisi adalah estimasi dengan ketidakpastian tinggi. Prosedur menguji asesmen indikator, proyeksi arus kas & tingkat diskonto, klasifikasi provisi/kontinjensi, serta komunikasi penasihat hukum.</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>Penurunan nilai (terutama nilai pakai goodwill) & provisi adalah estimasi dengan ketidakpastian tinggi. Prosedur menguji asesmen indikator, proyeksi arus kas & tingkat diskonto, klasifikasi provisi/kontinjensi, serta komunikasi penasihat hukum.</div>
                 </div>
                 <div>
                   {P48_PROC.map((p, i) => {
@@ -570,11 +570,11 @@ function PSAK48View() {
                   <div className="panel" style={{ marginTop: 11, padding: '9px 11px', background: headKind === 'amber' ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: headKind === 'amber' ? 'var(--amber)' : 'var(--green)', marginTop: 1 }}>{headKind === 'amber' ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Tidak ada rugi penurunan nilai diakui, namun <b>headroom UPK tipis ({(p48.headroomPct * 100).toFixed(1)}%)</b> & sensitif terhadap WACC → diusulkan sebagai <b>Hal Audit Utama</b> dan diungkap dalam CALK (asumsi & sensitivitas).</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>Tidak ada rugi penurunan nilai diakui, namun <b>headroom UPK tipis ({(p48.headroomPct * 100).toFixed(1)}%)</b> & sensitif terhadap WACC → diusulkan sebagai <b>Hal Audit Utama</b> dan diungkap dalam CALK (asumsi & sensitivitas).</span>
                     </div>
                   </div>
                   <button onClick={() => nav('sa701', { from: 'psak48' })} className="row ac jb" style={{ marginTop: 11, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--navy)', background: 'var(--surface)', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
-                    <div><div style={{ fontSize: 11.5, fontWeight: 600 }}>Buka SA 701 · KAM</div><div className="tiny muted">Hal Audit Utama (KAM-3)</div></div>
+                    <div><div style={{ fontSize: 12, fontWeight: 600 }}>Buka SA 701 · KAM</div><div className="tiny muted">Hal Audit Utama (KAM-3)</div></div>
                     <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
                   </button>
                 </Panel>

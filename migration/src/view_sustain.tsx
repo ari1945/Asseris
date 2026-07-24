@@ -26,7 +26,7 @@ const SUS_ISSB_META = {
 function SusCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -98,7 +98,7 @@ function SustainabilityView() {
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 46, flex: '0 0 46px', marginTop: 1 }}>{c.ref}</span>
                         <span style={{ minWidth: 0 }}>
                           <span className="row ac gap6" style={{ flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 12.5, fontWeight: 600, color: on ? 'var(--ink-3)' : 'var(--ink)' }}>{c.t}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: on ? 'var(--ink-3)' : 'var(--ink)' }}>{c.t}</span>
                             {c.opt && <Badge kind="gray">opsional</Badge>}
                           </span>
                           <span className="tiny muted" style={{ display: 'block', lineHeight: 1.45, marginTop: 1 }}>{c.d}</span>
@@ -114,7 +114,7 @@ function SustainabilityView() {
                   <div style={{ background: 'linear-gradient(120deg,#0a5b54,#0a6b73)', color: '#fff', padding: '14px 16px' }}>
                     <div className="tiny upper" style={{ color: '#bfe3e0', letterSpacing: '.05em', marginBottom: 8 }}>Kelengkapan Laporan Keberlanjutan</div>
                     <div className="row ac gap12">
-                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                      <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#ffd166', borderRadius: 4, transition: '.3s' }} /></div>
                         <div className="tiny" style={{ color: '#bfe3e0', marginTop: 6 }}>{doneCount}/{reqItems.length} muatan wajib terpenuhi</div>
@@ -160,7 +160,7 @@ function SustainabilityView() {
                     <tbody>
                       {S.entities.map((e: any) => (
                         <tr key={e.id}>
-                          <td><div style={{ fontSize: 12.5, fontWeight: 600 }}>{e.name}</div><div className="tiny muted">{e.phase}</div></td>
+                          <td><div style={{ fontSize: 12, fontWeight: 600 }}>{e.name}</div><div className="tiny muted">{e.phase}</div></td>
                           <td className="tiny" style={{ color: 'var(--ink-2)' }}>{e.sector}</td>
                           <td style={{ textAlign: 'center' }}><Badge kind={e.sr === 'Terbit' ? 'green' : e.sr === 'Draf' ? 'amber' : 'gray'}>{e.sr}</Badge></td>
                           <td style={{ textAlign: 'center' }}><span className="tiny mono" style={{ color: e.rakb === 'N/A' ? 'var(--ink-4)' : 'var(--ink-2)', fontWeight: 600 }}>{e.rakb}</span></td>
@@ -179,7 +179,7 @@ function SustainabilityView() {
                   {S.rakb.map((r: any, i: any) => (
                     <div key={r.ref} className="row ac gap10" style={{ padding: '15px 18px', borderBottom: i < S.rakb.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)', width: 64, flex: '0 0 64px' }}>{r.ref}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.t}</div><div className="tiny muted">Target: {r.tgt}</div></div>
+                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{r.t}</div><div className="tiny muted">Target: {r.tgt}</div></div>
                       <Badge kind={r.status === 'Selesai' ? 'green' : r.status === 'Berjalan' ? 'blue' : 'amber'}>{r.status}</Badge>
                     </div>
                   ))}
@@ -201,7 +201,7 @@ function SustainabilityView() {
                       return (
                         <div key={r.ref} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < blk.rows.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                           <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-4)', width: 44, flex: '0 0 44px' }}>{r.ref}</span>
-                          <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, lineHeight: 1.4 }}>{r.t}</span>
+                          <span style={{ flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.4 }}>{r.t}</span>
                           <span style={{ width: 9, height: 9, borderRadius: '50%', background: m.color, flex: '0 0 auto' }} />
                           <span className="tiny" style={{ width: 60, flex: '0 0 60px', textAlign: 'right', fontWeight: 600, color: m.color }}>{m.lbl}</span>
                         </div>
@@ -227,7 +227,7 @@ function SustainabilityView() {
                 {S.bridge.map((m: any) => { const IconC = (I as any)[m.icon || 'link2'] || I.link2; return (
                   <button key={m.id} onClick={() => nav(m.id, { from: 'sustain' })} className="row ac gap9" style={{ padding: '10px 12px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--teal)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                     <span style={{ color: 'var(--teal)', flex: '0 0 auto' }}><IconC size={16} /></span>
-                    <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.4 }}>{m.rel}</div></div>
+                    <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{m.lbl}</div><div className="tiny muted" style={{ lineHeight: 1.4 }}>{m.rel}</div></div>
                     <I.arrowRight size={14} style={{ color: 'var(--ink-4)', flex: '0 0 auto' }} />
                   </button>
                 ); })}

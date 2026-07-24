@@ -258,7 +258,7 @@ function CashBank() {
               <tbody>
                 {accts.map((a: any) => (
                   <tr key={a.id}>
-                    <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 9.5, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
+                    <td><div className="row ac gap8"><span style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700 }}>{a.bank.slice(0, 3).toUpperCase()}</span><div><div style={{ fontWeight: 600, fontSize: 12 }}>{a.name}</div><div className="tiny muted">{a.bank}</div></div></div></td>
                     <td className="mono tiny muted">{a.no}</td>
                     <td><span className="chip tiny">{a.ccy}</span></td>
                     <td className="num" style={{ fontWeight: 600 }}>{(CCY_SYMBOL as any)[a.ccy]} {fmt(a.balance, 0)}</td>
@@ -314,9 +314,9 @@ function CashBank() {
           {tab === 'fx' && (
             <div style={{ padding: 14 }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs kini)</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
-                <div className="panel" style={{ padding: 12, background: totReval >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 18, fontWeight: 700, color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt</div><div className="tiny muted">belum terealisasi</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Tercatat (kurs perolehan)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.bookIDR, 0) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper">Nilai Pasar (kurs kini)</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(reval.reduce((s: any, r: any) => s + r.mktIDR, 0) / 1e6, 0)} jt</div></div>
+                <div className="panel" style={{ padding: 12, background: totReval >= 0 ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny muted upper">Laba/(Rugi) Selisih Kurs</div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: totReval >= 0 ? 'var(--green)' : 'var(--red)' }}>{totReval >= 0 ? '+' : '−'}Rp {fmt(Math.abs(totReval) / 1e6, 0)} jt</div><div className="tiny muted">belum terealisasi</div></div>
               </div>
               <table className="dtbl">
                 <thead><tr><th>Rekening</th><th>Mata Uang</th><th className="num">Saldo Valas</th><th className="num">Kurs Perolehan</th><th className="num">Kurs Kini</th><th className="num">Nilai Tercatat</th><th className="num">Nilai Pasar</th><th className="num">Selisih Kurs</th></tr></thead>

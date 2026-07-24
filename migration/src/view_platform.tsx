@@ -177,7 +177,7 @@ function Approvals() {
                         ? <span className="tiny mono" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : sla.diffH < 12 ? 'var(--amber)' : 'var(--ink-3)' }}>{sla.label}</span>
                         : <Badge kind={i.status === 'approved' ? 'green' : i.status === 'rejected' ? 'red' : 'amber'}>{i.status === 'approved' ? 'Disetujui' : i.status === 'rejected' ? 'Ditolak' : 'Revisi'}</Badge>}
                     </div>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3 }} className="truncate">{i.title}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 3 }} className="truncate">{i.title}</div>
                     <div className="tiny muted">{i.from} · {(i.client || '').replace('PT ', '')}{i.amount ? ' · Rp ' + AMS.fmt(i.amount / 1e6, 0) + ' jt' : ''}</div>
                     {isPend && <div className="row ac gap6" style={{ marginTop: 6 }}>
                       {i.chain.map((c: any, ci: any) => <span key={ci} title={c.role + ' · ' + c.name} style={{ flex: 1, height: 3, borderRadius: 2, background: c.status === 'approved' ? 'var(--green)' : c.status === 'current' ? 'var(--blue)' : c.status === 'rejected' ? 'var(--red)' : 'var(--line-strong)' }} />)}
@@ -219,7 +219,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
             ? <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff' }}>{sla.label}</span>
             : <Badge kind={it.status === 'approved' ? 'green' : it.status === 'rejected' ? 'red' : 'amber'}>{it.status === 'approved' ? 'Disetujui' : it.status === 'rejected' ? 'Ditolak' : 'Perlu Revisi'}</Badge>}
         </div>
-        <div style={{ fontSize: 15.5, fontWeight: 700, lineHeight: 1.3 }}>{it.title}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{it.title}</div>
         <div className="tiny" style={{ color: '#bcd6e4', marginTop: 3 }}>{it.client}{it.eng && it.eng !== '—' ? ' · ' + it.eng : ''}{it.amount ? ' · Rp ' + fmt(it.amount / 1e6, 0) + ' juta' : ''}</div>
       </div>
 
@@ -264,7 +264,7 @@ function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any)
                   {c.status === 'approved' ? <I.check size={14} /> : c.status === 'rejected' ? <I.x size={14} /> : c.status === 'current' ? <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--blue-solid)' }} /> : <span className="tiny mono">{i + 1}</span>}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{c.name}</span>{c.status === 'current' && <Badge kind="blue">Menunggu</Badge>}</div>
+                  <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</span>{c.status === 'current' && <Badge kind="blue">Menunggu</Badge>}</div>
                   <div className="tiny muted">{c.role}{c.ts ? ' · ' + new Date(String(c.ts).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
                   {c.note && <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3, fontStyle: 'italic' }}>“{c.note}”</div>}
                 </div>
@@ -327,7 +327,7 @@ function RoutingRulesModal({ onClose }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 760, maxWidth: '94vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.scale size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Aturan Routing Persetujuan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Matriks otorisasi berbasis jenis & nilai — sesuai kebijakan ISQM firma</div></div>
+          <I.scale size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Aturan Routing Persetujuan</div><div className="tiny" style={{ color: '#bcd6e4' }}>Matriks otorisasi berbasis jenis & nilai — sesuai kebijakan ISQM firma</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto' }}>

@@ -78,7 +78,7 @@ function InvestmentProperty() {
 
               {tab === 'porto' && <>
                 <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>Properti investasi diukur pada <b>nilai wajar</b> (PSAK 13 ¶33); perubahan diakui di laba rugi. Properti dimiliki untuk memperoleh sewa dan/atau apresiasi modal — bukan dipakai sendiri (¶7).</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: '1.5px solid var(--line-strong)' }}>
                     <th style={{ textAlign: 'left', padding: '8px 6px' }}>Properti</th>
                     <th style={{ textAlign: 'left', padding: '8px 6px' }}>Penggunaan</th>
@@ -113,7 +113,7 @@ function InvestmentProperty() {
                     <div style={{ display: 'grid', gap: 2 }}>
                       {rf.map((r, i) => (
                         <div key={i} className="row jb ac" style={{ padding: '8px 10px', borderTop: r.total ? '2px solid var(--navy)' : '1px solid var(--line-soft)', background: r.strong ? 'var(--surface-2)' : 'transparent' }}>
-                          <span style={{ fontSize: 12.5, fontWeight: r.total || r.strong ? 700 : 400 }}>{r.k}</span>
+                          <span style={{ fontSize: 12, fontWeight: r.total || r.strong ? 700 : 400 }}>{r.k}</span>
                           <span className="mono" style={{ fontWeight: r.total ? 800 : 600, color: r.accent || (r.v < 0 ? 'var(--red)' : 'var(--ink)') }}>{r.v < 0 ? '(' + fmt(-r.v, 0) + ')' : fmt(r.v, 0)}</span>
                         </div>
                       ))}
@@ -147,7 +147,7 @@ function InvestmentProperty() {
                   {IP_SENS.map((s, i) => (
                     <div key={i} className="panel" style={{ padding: '10px 12px' }}>
                       <div className="row jb ac">
-                        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{s.k}<div className="tiny muted" style={{ fontWeight: 400 }}>{s.note}</div></span>
+                        <span style={{ fontSize: 12, fontWeight: 600 }}>{s.k}<div className="tiny muted" style={{ fontWeight: 400 }}>{s.note}</div></span>
                         <span className="mono" style={{ fontWeight: 700, color: s.impact < 0 ? 'var(--red)' : 'var(--green)' }}>{s.impact < 0 ? '(' + fmt(-s.impact, 0) + ')' : '+' + fmt(s.impact, 0)} jt</span>
                       </div>
                     </div>
@@ -166,7 +166,7 @@ function InvestmentProperty() {
                     { ref: 'SA 240', t: 'Pertimbangan risiko kecurangan atas estimasi nilai wajar (bias manajemen menaikkan laba via keuntungan NW).', route: 'sa240' },
                   ].map((p, i) => (
                     <div key={i} className="panel" style={{ padding: '11px 13px', cursor: 'pointer' }} onClick={() => nav(p.route, { from: 'invprop' })}>
-                      <div className="row ac gap8"><Badge kind="blue">{p.ref}</Badge><span style={{ fontSize: 12.5, flex: 1, color: 'var(--ink-2)' }}>{p.t}</span><I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} /></div>
+                      <div className="row ac gap8"><Badge kind="blue">{p.ref}</Badge><span style={{ fontSize: 12, flex: 1, color: 'var(--ink-2)' }}>{p.t}</span><I.arrowRight size={14} style={{ color: 'var(--ink-4)' }} /></div>
                     </div>
                   ))}
                 </div>

@@ -112,7 +112,7 @@ function LeaveAttendance() {
                       {days.map((d, i) => {
                         const wknd = d.getDay() === 0 || d.getDay() === 6;
                         const lv = onLeave(s.id, d);
-                        return <td key={i} style={{ textAlign: 'center', padding: '4px 3px', background: wknd ? 'var(--surface-2)' : 'transparent' }}>{lv ? <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: 4, background: 'var(--blue-solid)' }} title="Cuti" /> : wknd ? '' : <span style={{ color: 'var(--ink-4)', fontSize: 10 }}>·</span>}</td>;
+                        return <td key={i} style={{ textAlign: 'center', padding: '4px 3px', background: wknd ? 'var(--surface-2)' : 'transparent' }}>{lv ? <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: 4, background: 'var(--blue-solid)' }} title="Cuti" /> : wknd ? '' : <span style={{ color: 'var(--ink-4)', fontSize: 11 }}>·</span>}</td>;
                       })}
                     </tr>
                   ))}
@@ -213,7 +213,7 @@ function Performance() {
             <div style={{ padding: 16, borderTop: '1px solid var(--line)' }}>
               <div className="tiny muted upper" style={{ marginBottom: 10 }}>Matriks Kalibrasi 9-Box (Kinerja × Potensi)</div>
               <div className="row" style={{ gap: 8 }}>
-                <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 9.5, color: 'var(--ink-4)', textAlign: 'center', fontWeight: 600, letterSpacing: '.05em' }}>POTENSI →</div>
+                <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 11, color: 'var(--ink-4)', textAlign: 'center', fontWeight: 600, letterSpacing: '.05em' }}>POTENSI →</div>
                 <div style={{ flex: 1 }}>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,52px)', gap: 4 }}>
                     {[2, 1, 0].map(py => [0, 1, 2].map(px => {
@@ -225,7 +225,7 @@ function Performance() {
                       );
                     }))}
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: 9.5, color: 'var(--ink-4)', fontWeight: 600, letterSpacing: '.05em', marginTop: 4 }}>KINERJA →</div>
+                  <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--ink-4)', fontWeight: 600, letterSpacing: '.05em', marginTop: 4 }}>KINERJA →</div>
                 </div>
               </div>
             </div>
@@ -235,7 +235,7 @@ function Performance() {
           <Panel noBody>
             <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
               <Avatar name={person.name} size={42} />
-              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
               {person.calibrated ? <Badge kind="green">Terkalibrasi</Badge> : <Badge kind="amber">{PERF_PHASES[phaseIdx(person)]}</Badge>}
             </div>
             <div style={{ padding: 14 }}>
@@ -283,7 +283,7 @@ function RowKvBox({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 }

@@ -116,7 +116,7 @@ function MemberIndependence() {
                 <table className="dtbl">
                   <thead><tr>
                     <th>Anggota</th><th>Peran</th>
-                    {THREATS.map((t) => <th key={t.key} className="r" title={t.hint} style={{ writingMode: 'horizontal-tb', fontSize: 10.5 }}>{t.label}</th>)}
+                    {THREATS.map((t) => <th key={t.key} className="r" title={t.hint} style={{ writingMode: 'horizontal-tb', fontSize: 11 }}>{t.label}</th>)}
                     <th>Pengaman</th><th>Status</th><th>Deklarasi</th>
                   </tr></thead>
                   <tbody>

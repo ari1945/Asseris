@@ -82,7 +82,7 @@ function SignoffDots({ signoff }: any) {
           style={{ width: 16, height: 16, borderRadius: '50%', display: 'grid', placeItems: 'center', flex: '0 0 16px',
             background: l.signed ? 'var(--green-bg)' : 'var(--surface-3)', color: l.signed ? 'var(--green)' : 'var(--ink-4)',
             border: '1px solid ' + (l.signed ? 'var(--green)' : 'var(--line-strong)') }}>
-          {l.signed ? <I.check size={10} /> : <span className="mono" style={{ fontSize: 8, fontWeight: 700 }}>{i + 1}</span>}
+          {l.signed ? <I.check size={10} /> : <span className="mono" style={{ fontSize: 11, fontWeight: 700 }}>{i + 1}</span>}
         </span>
       ))}
     </span>

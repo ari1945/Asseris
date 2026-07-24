@@ -67,9 +67,9 @@ function TopBar({ onToggleSidebar, onOpenCopilot, onOpenPalette, onOpenMiniMap, 
                 return (
                   <div key={e.id} onClick={() => { setActiveEngagementId(e.id); setOpen(false); }}
                        style={{ padding: '9px 12px', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', borderBottom: '1px solid var(--line-soft)', background: on ? 'var(--blue-050)' : 'transparent' }}>
-                    <span style={{ width: 30, height: 30, borderRadius: 7, background: on ? 'var(--blue)' : 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700, flex: '0 0 30px' }}>{c?.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+                    <span style={{ width: 30, height: 30, borderRadius: 7, background: on ? 'var(--blue)' : 'var(--navy)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 30px' }}>{c?.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5 }}>{c?.name}</div>
+                      <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{c?.name}</div>
                       <div className="tiny muted mono">{e.id} · {e.fy} · {e.phase}</div>
                     </div>
                     {on ? <span style={{ color: 'var(--blue)' }}><I.checkCircle size={16} /></span>
@@ -472,7 +472,7 @@ function SettingsMenu({ open, onClose, onNavigate }: any) {
   if (!open) return null;
   const Row = ({ label, sub, on, set, icon }: any) => (
     <div className="row ac jb" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line-soft)' }}>
-      <span className="row ac gap8">{React.createElement((I as any)[icon], { size: 16, style: { color: 'var(--ink-3)' } })}<span><div style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</div><div className="tiny muted">{sub}</div></span></span>
+      <span className="row ac gap8">{React.createElement((I as any)[icon], { size: 16, style: { color: 'var(--ink-3)' } })}<span><div style={{ fontSize: 12, fontWeight: 600 }}>{label}</div><div className="tiny muted">{sub}</div></span></span>
       <span onClick={() => set((v: any) => !v)} style={{ width: 38, height: 21, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flex: '0 0 38px', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: on ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
     </div>
   );

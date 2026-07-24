@@ -128,7 +128,7 @@ function RiskAssessment() {
               <div style={{ padding: '14px 14px 10px' }}>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {/* y-axis label */}
-                  <div style={{ display: 'grid', placeItems: 'center', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 10, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Kemungkinan →</div>
+                  <div style={{ display: 'grid', placeItems: 'center', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 11, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Kemungkinan →</div>
                   <div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4 }}>
                       {[5, 4, 3, 2, 1].map(lk => (
@@ -148,9 +148,9 @@ function RiskAssessment() {
                       ))}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4, marginTop: 4 }}>
-                      {[1, 2, 3, 4, 5].map(n => <div key={n} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--ink-4)', fontFamily: 'var(--mono)' }}>{n}</div>)}
+                      {[1, 2, 3, 4, 5].map(n => <div key={n} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--ink-4)', fontFamily: 'var(--mono)' }}>{n}</div>)}
                     </div>
-                    <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>Dampak →</div>
+                    <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginTop: 4 }}>Dampak →</div>
                   </div>
                 </div>
                 <div className="divider" />
@@ -180,7 +180,7 @@ function RiskAssessment() {
                           <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                           <td>
                             <div style={{ fontWeight: 600, fontSize: 12 }}>{r.area}</div>
-                            <div className="tiny muted row ac gap6">{r.assertion}{r.fraud && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD</span>}</div>
+                            <div className="tiny muted row ac gap6">{r.assertion}{r.fraud && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>FRAUD</span>}</div>
                           </td>
                           <td className="tiny muted truncate" style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35 }}>{r.desc}</td>
                           <td className="num mono">{r.likelihood}</td>
@@ -196,7 +196,7 @@ function RiskAssessment() {
               </Panel>
 
               {/* detail / response editor */}
-              {!sel ? <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12.5, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) yang teridentifikasi untuk perikatan ini. Tambahkan risiko lewat tombol <b>Tambah Risiko</b> untuk mulai menyusun register.</div></Panel> :
+              {!sel ? <Panel><div style={{ padding: 20, color: 'var(--ink-3)', fontSize: 12, lineHeight: 1.6 }}>Belum ada risiko salah saji material (RoMM) yang teridentifikasi untuk perikatan ini. Tambahkan risiko lewat tombol <b>Tambah Risiko</b> untuk mulai menyusun register.</div></Panel> :
               <Panel noBody>
                 <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }} className="row ac gap8">
                   <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{sel.id}</span>
@@ -211,10 +211,10 @@ function RiskAssessment() {
                   <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
                     <div>
                       <div className="tiny muted upper" style={{ marginBottom: 4 }}>Deskripsi Risiko</div>
-                      <p style={{ margin: '0 0 14px', fontSize: 12.5, lineHeight: 1.55 }}>{sel.desc}</p>
+                      <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.55 }}>{sel.desc}</p>
                       <div className="tiny muted upper" style={{ marginBottom: 4 }}>Respons Audit yang Direncanakan</div>
                       <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                        <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.arrowRight size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{sel.response}</span></div>
+                        <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.arrowRight size={15} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>{sel.response}</span></div>
                       </div>
                       <div className="row gap8" style={{ marginTop: 12 }}>
                         <Btn sm variant="primary" onClick={() => nav(sel.proc || (((AMS.RISKS as any[]) || []).find(x => x.id === sel.id) || {}).proc || 'workpapers', { from: 'risk' })}><I.flask size={14} /> Buka Prosedur Respons</Btn>

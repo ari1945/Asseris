@@ -78,7 +78,7 @@ const P25_DISC = [
 function P25Card({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -159,7 +159,7 @@ function PSAK25View() {
                   <div className="panel-h"><h3>Pohon Keputusan Klasifikasi</h3><span className="sub mono">¶32 · kebijakan vs estimasi vs kesalahan</span></div>
                   <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
                     <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.scale size={15} /></span>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                       Perlakuan akuntansi ditentukan oleh <b>klasifikasi</b>: perubahan <b>kebijakan</b> & koreksi <b>kesalahan</b> bersifat <b>retrospektif</b> (saji ulang komparatif); perubahan <b>estimasi</b> bersifat <b>prospektif</b>. Bila perubahan sulit dibedakan kebijakan vs estimasi → diperlakukan sebagai <b>estimasi</b> (¶35).
                     </div>
                   </div>
@@ -170,7 +170,7 @@ function PSAK25View() {
                         <div key={i} className="panel" style={{ padding: 0, overflow: 'hidden', borderLeft: '3px solid ' + c.color }}>
                           <div className="row ac gap10" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line-soft)' }}>
                             <span className="mono" style={{ fontWeight: 800, color: c.color, fontSize: 13, flex: '0 0 22px' }}>{i + 1}</span>
-                            <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }}>{node.q}</span>
+                            <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{node.q}</span>
                             <Badge kind={c.kind}>{c.treat}</Badge>
                           </div>
                           <div className="row ac gap8" style={{ padding: '8px 12px 4px' }}>
@@ -204,7 +204,7 @@ function PSAK25View() {
                           return (
                             <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => r.module && nav(r.module, { from: 'psak25' })}>
                               <td>
-                                <div style={{ fontSize: 12.3, fontWeight: 600, lineHeight: 1.35 }}>{r.item}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{r.item}</div>
                                 <div className="tiny" style={{ color: c.color, fontWeight: 600 }}>{r.treat}</div>
                               </td>
                               <td><Badge kind={c.kind}>{c.lbl}</Badge></td>
@@ -229,7 +229,7 @@ function PSAK25View() {
                   <div className="panel-h"><h3>Register Estimasi Akuntansi</h3><span className="sub mono">satu sumber kebenaran · prospektif ¶36</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                   <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--surface-2)' }}>
                     <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.sync size={15} /></span>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                       Setiap estimasi ditarik <b>live</b> dari modul sumbernya (Working Trial Balance & kalkulator kanonik) — bukan di-hardcode. Mengubah AJE pada satu modul mengalir konsisten ke register ini. Perubahan estimasi diakui <b>prospektif</b>.
                     </div>
                   </div>
@@ -251,7 +251,7 @@ function PSAK25View() {
                           return (
                             <tr key={e.id} style={{ cursor: 'pointer' }} onClick={() => nav(e.module, { from: 'psak25' })}>
                               <td>
-                                <div style={{ fontSize: 12.3, fontWeight: 600, lineHeight: 1.3 }}>{e.pos}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{e.pos}</div>
                                 <div className="tiny muted" style={{ lineHeight: 1.4 }}>{e.basis}</div>
                                 <div className="row ac gap6" style={{ marginTop: 2 }}>
                                   <span className="mono tiny" style={{ color: 'var(--ink-3)' }}>{e.ref}</span>
@@ -310,7 +310,7 @@ function PSAK25View() {
                   <div className="panel-h"><h3>Roll-forward Saldo Laba — Penyajian Kembali</h3><span className="sub mono">¶42 · neto pajak 22%</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                   <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--red-bg, #fdecec)' }}>
                     <span style={{ color: 'var(--red)', marginTop: 1 }}><I.alert size={15} /></span>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                       Kesalahan periode lalu: <b>penjualan & piutang fiktif FY2024</b> (channel stuffing, R-01) teridentifikasi pada audit FY2025. Karena <b>bukan</b> revisi estimasi melainkan kelalaian data yang tersedia saat itu → dikoreksi <b>retrospektif</b>.
                     </div>
                   </div>
@@ -322,7 +322,7 @@ function PSAK25View() {
                       { t: 'Saldo laba awal — disajikan kembali (1 Jan 2025)', v: rt.reOpenRestated, tot: true },
                     ].map((r, i, arr) => (
                       <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < arr.length - 1 ? '1px solid var(--line-soft)' : 0, background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         <div className="mono" style={{ width: 96, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tax ? 'var(--green)' : r.tot ? 'var(--navy)' : 'var(--ink)' }}>{fmtJt(r.v)}</div>
                       </div>
                     ))}
@@ -347,14 +347,14 @@ function PSAK25View() {
                       <tbody>
                         {rt.impact.map((r: any) => (
                           <tr key={r.id} style={{ background: r.bold ? 'var(--surface-2)' : 'transparent' }}>
-                            <td style={{ fontSize: 12.3, fontWeight: r.bold ? 700 : 500, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{r.label}</td>
+                            <td style={{ fontSize: 12, fontWeight: r.bold ? 700 : 500, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{r.label}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(Math.round(r.rep))}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: r.adj < 0 ? 'var(--red)' : 'var(--green)' }}>{fmtJt(r.adj)}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: r.bold ? 800 : 600, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{fmt(Math.round(r.res))}</td>
                           </tr>
                         ))}
                         <tr>
-                          <td style={{ fontSize: 12.3, fontWeight: 600 }}>Laba per saham dasar (Rp)</td>
+                          <td style={{ fontSize: 12, fontWeight: 600 }}>Laba per saham dasar (Rp)</td>
                           <td className="mono" style={{ textAlign: 'right' }}>{rt.eps.reported.toFixed(1)}</td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--red)' }}>({(rt.eps.reported - rt.eps.restated).toFixed(1)})</td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{rt.eps.restated.toFixed(1)}</td>
@@ -364,7 +364,7 @@ function PSAK25View() {
                   </div>
                   <div className="row ac gap8" style={{ margin: '4px 14px 12px', padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--teal)', background: 'var(--surface)' }}>
                     <I.table size={14} style={{ color: 'var(--teal)', flex: '0 0 auto' }} />
-                    <span style={{ fontSize: 11.5, lineHeight: 1.4, flex: 1 }}>Penyajian kembali <b>material</b> → PSAK 1 ¶40A mensyaratkan <b>laporan posisi keuangan ketiga</b> per 1 Jan 2024. Komparatif diberi tanda "disajikan kembali".</span>
+                    <span style={{ fontSize: 12, lineHeight: 1.4, flex: 1 }}>Penyajian kembali <b>material</b> → PSAK 1 ¶40A mensyaratkan <b>laporan posisi keuangan ketiga</b> per 1 Jan 2024. Komparatif diberi tanda "disajikan kembali".</span>
                     <button onClick={() => nav('sa710', { from: 'psak25' })} className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)', whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer' }}>SA 710 <I.arrowRight size={12} /></button>
                   </div>
                 </Panel>
@@ -393,9 +393,9 @@ function PSAK25View() {
                   <div style={{ padding: 14, display: 'grid', gap: 8 }}>
                     {P25_HIER.map((h) => (
                       <div key={h.n} className="row gap10" style={{ alignItems: 'flex-start', padding: '9px 11px', borderRadius: 7, background: 'var(--surface-2)', border: '1px solid var(--line-soft)' }}>
-                        <span className="mono" style={{ fontWeight: 800, color: 'var(--blue)', fontSize: 14, flex: '0 0 22px' }}>{h.n}</span>
+                        <span className="mono" style={{ fontWeight: 800, color: 'var(--blue)', fontSize: 15, flex: '0 0 22px' }}>{h.n}</span>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 700 }}>{h.t}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700 }}>{h.t}</div>
                           <div className="tiny muted" style={{ lineHeight: 1.5, marginTop: 1 }}>{h.d}</div>
                         </div>
                       </div>
@@ -416,7 +416,7 @@ function PSAK25View() {
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                   <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Kesimpulan Audit — PSAK 25</div>
                   <div className="row ac gap12">
-                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                       <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{procDone}/{P25_PROC.length} prosedur · {discDone}/{P25_DISC.length} pengungkapan</div>
@@ -427,7 +427,7 @@ function PSAK25View() {
                   <div className="panel" style={{ padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.flag size={15} /></span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>Kesalahan periode lalu <b>Rp {fmt(rt.errGross)} jt</b> (neto pajak Rp {fmt(rt.errNet)} jt) bersifat <b>material</b> → penyajian kembali komparatif & saldo laba awal disyaratkan. Komunikasikan ke TCWG (SA 260) & ungkapkan penuh (¶49).</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>Kesalahan periode lalu <b>Rp {fmt(rt.errGross)} jt</b> (neto pajak Rp {fmt(rt.errNet)} jt) bersifat <b>material</b> → penyajian kembali komparatif & saldo laba awal disyaratkan. Komunikasikan ke TCWG (SA 260) & ungkapkan penuh (¶49).</span>
                     </div>
                   </div>
                 </div>
@@ -443,7 +443,7 @@ function PSAK25View() {
                     return (
                       <div key={k}>
                         <div className="row ac jb" style={{ marginBottom: 3 }}>
-                          <span style={{ fontSize: 11.5 }}>{c.lbl}</span>
+                          <span style={{ fontSize: 12 }}>{c.lbl}</span>
                           <span className="mono tiny" style={{ fontWeight: 700, color: c.color }}>{n} · {c.treat}</span>
                         </div>
                         <div style={{ height: 7, background: 'var(--surface-3)', borderRadius: 4, overflow: 'hidden' }}>
@@ -464,7 +464,7 @@ function PSAK25View() {
                     return (
                       <label key={d.id} className="row gap9" style={{ padding: '8px 14px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < P25_DISC.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(d.id)}>
                         <span style={{ flex: '0 0 15px', width: 15, height: 15, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={10} style={{ color: '#fff' }} />}</span>
-                        <span style={{ flex: 1, fontSize: 11.5, lineHeight: 1.4, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{d.t}</span>
+                        <span style={{ flex: 1, fontSize: 12, lineHeight: 1.4, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{d.t}</span>
                         <span className="mono tiny" style={{ color: 'var(--ink-4)', flex: '0 0 auto' }}>{d.ref}</span>
                       </label>
                     );

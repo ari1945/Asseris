@@ -162,12 +162,12 @@ function CryptoCompliance() {
             const on = tab === t.id; const TIc = (I as any)[t.ic] || I.panel;
             return (
               <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap6" style={{
-                padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, fontWeight: 600,
+                padding: '7px 13px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                 border: '1px solid ' + (on ? 'var(--navy)' : 'var(--line)'),
                 background: on ? 'linear-gradient(125deg,#013a52,#005085)' : 'var(--surface)',
                 color: on ? '#fff' : 'var(--ink-2)' }}>
                 <TIc size={14} />{t.label}
-                {t.count != null && <span className="mono" style={{ fontSize: 10.5, padding: '1px 6px', borderRadius: 20, background: on ? 'rgba(255,255,255,.18)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{t.count}</span>}
+                {t.count != null && <span className="mono" style={{ fontSize: 11, padding: '1px 6px', borderRadius: 20, background: on ? 'rgba(255,255,255,.18)' : 'var(--surface-3)', color: on ? '#fff' : 'var(--ink-3)' }}>{t.count}</span>}
               </button>
             );
           })}
@@ -229,7 +229,7 @@ function CRPostur({ ctx }: any) {
               <div className="row jb ac" style={{ marginBottom: 8 }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, background: 'color-mix(in srgb,' + k.accent + ' 14%, transparent)', color: k.accent, display: 'grid', placeItems: 'center' }}><KIc size={17} /></span>
               </div>
-              <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: k.accent, lineHeight: 1 }}>{k.v}</div>
+              <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: k.accent, lineHeight: 1 }}>{k.v}</div>
               <div style={{ fontSize: 12, fontWeight: 600, marginTop: 5 }}>{k.l}</div>
               <div className="tiny muted" style={{ marginTop: 1 }}>{k.sub}</div>
             </div></Panel>
@@ -250,7 +250,7 @@ function CRPostur({ ctx }: any) {
               return (
                 <div key={f.id}>
                   <div className="row jb ac" style={{ marginBottom: 5 }}>
-                    <span className="row ac gap8"><span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 24px' }}><FIc size={13} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{f.name}</span><span className="tiny muted">{f.std}</span></span>
+                    <span className="row ac gap8"><span style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 24px' }}><FIc size={13} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>{f.name}</span><span className="tiny muted">{f.std}</span></span>
                     <span className="mono tiny" style={{ fontWeight: 700, color: part ? 'var(--amber)' : 'var(--green)' }}>{ok}/{f.controls.length}</span>
                   </div>
                   <Progress value={pct} color={part ? 'var(--amber)' : 'var(--green)'} />
@@ -519,7 +519,7 @@ function CRServerChain({ rows, verify, nav }: any) {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(verify ? verify.count : rows.length)} label="Entri Rantai (server)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={writes} label="Penulisan Kertas Kerja" accent="var(--blue)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={logins} label="Autentikasi (LOGIN)" accent="var(--green)" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: ok ? 'var(--green-bg)' : 'var(--red-bg)', color: ok ? 'var(--green)' : 'var(--red)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 15, fontWeight: 700, color: ok ? 'var(--green)' : 'var(--red)' }}>{ok ? 'Terverifikasi' : 'Terputus #' + verify.brokenAt}</div><div className="s-lbl">Verifikasi Server</div></div></div></div></Panel>
       </div>
 
       <div className="panel" style={{ padding: '10px 14px', background: 'var(--green-bg)', borderColor: 'transparent', marginBottom: 12 }}>
@@ -570,7 +570,7 @@ function CRRantai({ ctx }: any) {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(chain.length)} label="Entri Tertaut" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={chain.filter((e: any) => e.action === 'SIGN').length} label="Tanda Tangan Digital" accent="var(--purple)" /></div></Panel>
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={chain.filter((e: any) => e.action === 'LOGIN').length} label="Autentikasi (MFA)" accent="var(--blue)" /></div></Panel>
-        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
+        <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: broken ? 'var(--red-bg)' : 'var(--green-bg)', color: broken ? 'var(--red)' : 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 15, fontWeight: 700, color: broken ? 'var(--red)' : 'var(--green)' }}>{broken ? 'Terputus' : 'Utuh'}</div><div className="s-lbl">Rantai-Hash</div></div></div></div></Panel>
       </div>
 
       <Panel noBody>
@@ -670,7 +670,7 @@ function CRKontrol({ ctx }: any) {
                   <div key={i} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < f.controls.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                     <span style={{ color: c.status === 'Aktif' ? 'var(--green)' : c.status === 'Parsial' ? 'var(--amber)' : 'var(--red)', flex: '0 0 auto' }}>{c.status === 'Aktif' ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{c.k}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{c.k}</div>
                       <div className="tiny muted" style={{ marginTop: 1 }}>{c.ev} · <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav(c.src, { from: 'crypto' })}>{c.srcLbl} ↗</span></div>
                     </div>
                     <Badge kind={(SK as any)[c.status] || 'gray'}>{c.status}</Badge>
@@ -753,7 +753,7 @@ function CRKunci({ ctx }: any) {
             {ROTATION.map((r, i) => (
               <div key={i} style={{ padding: '10px 10px', borderBottom: i < ROTATION.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <div className="row jb ac" style={{ marginBottom: 5 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600 }}>{r.k}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{r.k}</span>
                   <span className="chip tiny">{r.cycle}</span>
                 </div>
                 <div className="row jb tiny muted">
@@ -959,7 +959,7 @@ function CRMeterai({ ctx }: any) {
                 <div key={i} className="row gap10 ac" style={{ padding: '15px 18px', borderBottom: i < L.providers.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                   <span style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 32px' }}><I.shield size={16} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 700 }}>{p.name}</span><span className="chip tiny" style={{ height: 16 }}>{p.role}</span></div>
+                    <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 700 }}>{p.name}</span><span className="chip tiny" style={{ height: 16 }}>{p.role}</span></div>
                     <div className="tiny muted" style={{ lineHeight: 1.4 }}>{p.note}</div>
                   </div>
                   <Badge kind="green">{p.accred}</Badge>

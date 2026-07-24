@@ -144,11 +144,11 @@ function SA530View() {
               <div className="tiny muted">{client} · Piutang Usaha · ENG-2025-014</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Populasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{bv.toLocaleString('id-ID')} · {SA530_POPULATION.length} item ilustratif</div></div>
+            <div><div className="tiny muted upper">Populasi (Rp jt)</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{bv.toLocaleString('id-ID')} · {SA530_POPULATION.length} item ilustratif</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ukuran Sampel</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--blue)' }}>{calc.n} item</div></div>
+            <div><div className="tiny muted upper">Ukuran Sampel</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--blue)' }}>{calc.n} item</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Keyakinan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{conf}% · risiko {calc.risk}%</div></div>
+            <div><div className="tiny muted upper">Keyakinan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{conf}% · risiko {calc.risk}%</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Metode</div>
@@ -228,7 +228,7 @@ function F530Design({ bv, design, setDesign, locked }: { bv: number; design: Sam
         <Panel title="Faktor Penentu Ukuran Sampel (¶ Lamp. 2–3)">
           <div style={{ display: 'grid', gap: 7 }}>
             {[['Risiko salah saji material ↑', 'Sampel ↑'], ['Salah saji yang ditoleransi ↑', 'Sampel ↓'], ['Ekspektasi salah saji ↑', 'Sampel ↑'], ['Stratifikasi efektif', 'Sampel ↓'], ['Jumlah unit populasi', 'Hampir tak berpengaruh']].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '6px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '6px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                 <span>{r[0]}</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{r[1]}</span>
               </div>
             ))}
@@ -256,10 +256,10 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
         <div className="row gap8" style={{ alignItems: 'flex-start' }}>
           <span style={{ color: t.severe ? 'var(--amber)' : 'var(--blue)', marginTop: 1 }}>{t.severe ? <I.alert size={16} /> : <I.book size={16} />}</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 3 }}>
+            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 3 }}>
               Validasi silang SA 530 — {t.count} catatan konsistensi TM vs PM
             </div>
-            <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               {t.issues.map((i, k) => (
                 <li key={k} style={i.severe ? { color: 'var(--ink)' } : undefined}>{i.severe && <b>[berat] </b>}{i.text}</li>
               ))}
@@ -295,7 +295,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
 
           <div className="panel" style={{ padding: '11px 13px', background: 'var(--surface-2)', borderColor: 'transparent', marginTop: 4 }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Rumus MUS</div>
-            <div className="mono" style={{ fontSize: 12.5, lineHeight: 1.7 }}>
+            <div className="mono" style={{ fontSize: 12, lineHeight: 1.7 }}>
               n = (NilaiPopulasi × RF) ÷ (TM − EM × EF)<br />
               n = ({bv.toLocaleString('id-ID')} × {calc.rf}) ÷ ({tm.toLocaleString('id-ID')} − {em.toLocaleString('id-ID')} × {calc.ef})<br />
               <span style={{ color: calc.basic > 0 ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>n = {calc.basic > 0 ? calc.n + ' item' : 'tak terdefinisi — TM terlalu kecil'}</span>
@@ -308,7 +308,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '18px 18px 16px', textAlign: 'center' }}>
             <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em' }}>Ukuran Sampel Direkomendasikan</div>
-            <div className="mono" style={{ fontSize: 46, fontWeight: 800, lineHeight: 1.1, margin: '6px 0 2px' }}>{calc.basic > 0 ? calc.n : '—'}</div>
+            <div className="mono" style={{ fontSize: 34, fontWeight: 800, lineHeight: 1.1, margin: '6px 0 2px' }}>{calc.basic > 0 ? calc.n : '—'}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>unit moneter terpilih</div>
           </div>
           <div style={{ padding: 14, display: 'grid', gap: 10 }}>
@@ -324,7 +324,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
           <div className="panel" style={{ padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Ukuran populasi (jumlah item) <b>tidak</b> berpengaruh signifikan pada ukuran sampel untuk populasi besar (¶A11). Penentu utama: keyakinan yang diinginkan, TM, dan ekspektasi salah saji.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Ukuran populasi (jumlah item) <b>tidak</b> berpengaruh signifikan pada ukuran sampel untuk populasi besar (¶A11). Penentu utama: keyakinan yang diinginkan, TM, dan ekspektasi salah saji.</span>
             </div>
           </div>
         </Panel>
@@ -422,7 +422,7 @@ function F530Selection({ interval, bv, seedFrac, setSeedFrac, locked }: { interv
             <div key={i} className="row gap12" style={{ padding: '12px 0', alignItems: 'flex-start', borderBottom: i < methods.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: m.k === 'Haphazard' ? 0.6 : 1 }}>
               <span style={{ flex: '0 0 34px', width: 34, height: 34, borderRadius: 8, display: 'grid', placeItems: 'center', background: m.sel ? 'var(--purple-bg)' : 'var(--surface-2)', color: m.sel ? 'var(--purple)' : 'var(--ink-3)' }}>{m.sel ? <I.checkCircle size={17} /> : <I.dice size={16} />}</span>
               <div style={{ flex: 1 }}>
-                <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{m.k}</div><Badge kind={m.sel ? 'purple' : m.tag === 'Tidak dipakai' ? 'gray' : 'blue'}>{m.tag}</Badge></div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{m.k}</div><Badge kind={m.sel ? 'purple' : m.tag === 'Tidak dipakai' ? 'gray' : 'blue'}>{m.tag}</Badge></div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, margin: '3px 0 5px' }}>{m.d}</div>
                 <div className="chip tiny" style={{ background: m.sel ? 'var(--purple-bg)' : 'var(--surface-2)' }}>{m.use}</div>
               </div>
@@ -491,7 +491,7 @@ function F530Evaluation({ interval, tm, findings, setFindings, me, locked }: any
             <div className="panel" style={{ padding: '10px 12px', background: within ? 'var(--green-bg)' : 'var(--red-bg)', borderColor: 'transparent' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: within ? 'var(--green)' : 'var(--red)', flex: '0 0 auto' }}>{within ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-                <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>{within
+                <span style={{ fontSize: 12, lineHeight: 1.45 }}>{within
                   ? <>Proyeksi salah saji (<b>{totalProj.toLocaleString('id-ID')} jt</b>) <b>di bawah</b> salah saji yang ditoleransi. Ditambah pertimbangan risiko sampling, populasi dapat diterima — namun salah saji aktual dicatat ke <b>SAD Ledger</b>.</>
                   : <>Proyeksi salah saji <b>melampaui</b> toleransi — pertimbangkan perluasan sampel atau prosedur alternatif, dan diskusikan koreksi dengan manajemen.</>}</span>
               </div>

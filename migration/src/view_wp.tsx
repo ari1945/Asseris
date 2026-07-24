@@ -195,7 +195,7 @@ function WorkingPapers() {
               <div className="row ac gap8" style={{ marginBottom: 8 }}>
                 <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center' }}><I.layers size={17} /></span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13.5 }} className="truncate">File Audit · {activeClient?.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }} className="truncate">File Audit · {activeClient?.name}</div>
                   <div className="tiny muted mono">{activeEngagement.id} · {activeEngagement.fy} · {activeEngagement.standard}</div>
                 </div>
               </div>
@@ -208,7 +208,7 @@ function WorkingPapers() {
             <div style={{ background: 'var(--line-soft)' }} />
             {/* completeness donut */}
             <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <Donut segments={donutSegs} size={84} thickness={12} center={<><div style={{ fontWeight: 800, fontSize: 18, lineHeight: 1 }}>{completeness}%</div><div className="tiny muted" style={{ fontSize: 9 }}>lengkap</div></>} />
+              <Donut segments={donutSegs} size={84} thickness={12} center={<><div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1 }}>{completeness}%</div><div className="tiny muted" style={{ fontSize: 11 }}>lengkap</div></>} />
               <div style={{ display: 'grid', gap: 4 }}>
                 {[['Reviewed', cnt['Reviewed'], 'var(--green)'], ['In Review', cnt['In Review'], 'var(--blue)'], ['In Progress', cnt['In Progress'], 'var(--amber)'], ['Not Started', cnt['Not Started'], 'var(--line-strong)']].map(([l, n, c]) => (
                   <div key={l} className="row ac gap6 tiny"><span style={{ width: 8, height: 8, borderRadius: 2, background: c }} /><span style={{ color: 'var(--ink-2)' }}>{l}</span><span className="mono muted" style={{ marginLeft: 2 }}>{n}</span></div>
@@ -358,9 +358,9 @@ function WPDrill({ it, onClose }: any) {
       <div className="panel" style={{ width: 1000, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={(e: any) => e.stopPropagation()}>
         {/* header */}
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
-          <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 16 }}>{ref}</span>
+          <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 15 }}>{ref}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14.5 }}>{it[1]}</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{it[1]}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{activeEngagement.id} · {activeClient?.name?.replace('PT ', '')} · {activeEngagement.fy} &nbsp;/&nbsp; Preparer {it[2]}</div>
           </div>
           <div className="row ac gap8">
@@ -573,7 +573,7 @@ function ProcRow({ i, text, assertion, state, items, concl, evidence, open, onTo
       <div className="row gap10" style={{ padding: '15px 18px', alignItems: 'flex-start', cursor: 'pointer' }} onClick={onToggle}>
         <span className="mono tiny muted" style={{ flex: '0 0 28px', paddingTop: 2 }}>P{i + 1}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, color: state === 'N/A' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: state === 'N/A' ? 'line-through' : 'none' }}>{text}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.45, color: state === 'N/A' ? 'var(--ink-4)' : 'var(--ink)', textDecoration: state === 'N/A' ? 'line-through' : 'none' }}>{text}</div>
           <div className="tiny muted" style={{ marginTop: 2 }}>Asersi: <span style={{ fontWeight: 600 }}>{assertion}</span>{items.length ? <span> · {tested}/{items.length} item diuji</span> : null}</div>
         </div>
         <span style={{ flex: '0 0 auto', height: 24, padding: '0 10px', borderRadius: 12, background: stl.bg, color: stl.fg, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
@@ -1039,7 +1039,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt, st, setWp, locked }: any) {
           {atts.map(([name, type, by, kb]: any, i: any) => (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)' }}>
               <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}>{React.createElement(I[fileIcon(type)], { size: 15 })}</span>
-              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{name}</div><div className="tiny muted">Diunggah oleh {by} · {kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB'}</div></div>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{name}</div><div className="tiny muted">Diunggah oleh {by} · {kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB'}</div></div>
               <span className="chip tiny">{type}</span>
               <button className="btn sm icon" title="Lihat"><I.search2 size={13} /></button>
             </div>
@@ -1094,13 +1094,13 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }: any) {
               <Avatar name={n.author} size={30} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="row ac gap8" style={{ marginBottom: 3 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 700 }}>{n.author}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>{n.author}</span>
                   <span className="tiny muted">→ {n.to}</span>
                   <Badge kind={(prioK as any)[n.priority]}>{n.priority}</Badge>
                   <div style={{ flex: 1 }} />
                   <span className="tiny muted">{n.created}</span>
                 </div>
-                <div style={{ fontSize: 12.5, lineHeight: 1.5, textDecoration: resolved ? 'line-through' : 'none' }}>{n.text}</div>
+                <div style={{ fontSize: 12, lineHeight: 1.5, textDecoration: resolved ? 'line-through' : 'none' }}>{n.text}</div>
               </div>
               <button className="btn sm" disabled={locked} onClick={() => toggle(n)} style={resolved ? {} : { background: 'var(--green-solid)', color: '#fff', borderColor: 'var(--green)' }}>
                 {resolved ? <><I.sync size={13} /> Buka</> : <><I.check size={13} /> Tuntaskan</>}
@@ -1166,7 +1166,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
                 {l.signed ? <I.check size={15} /> : <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{i + 1}</span>}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="row ac gap8"><span style={{ fontSize: 12.5, fontWeight: 700 }}>{l.role}</span>{l.key === 'eqr' && <Badge kind="purple">PIE</Badge>}</div>
+                <div className="row ac gap8"><span style={{ fontSize: 12, fontWeight: 700 }}>{l.role}</span>{l.key === 'eqr' && <Badge kind="purple">PIE</Badge>}</div>
                 <div className="tiny muted">{l.desc}</div>
               </div>
               <div style={{ textAlign: 'right' }}>

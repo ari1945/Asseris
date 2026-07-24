@@ -120,11 +120,11 @@ function SA805View() {
               <div className="tiny muted">Pertimbangan khusus atas satu LK / akun / pos</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Perikatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{SPE_ENG.length} aktif</div></div>
+            <div><div className="tiny muted upper">Perikatan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{SPE_ENG.length} aktif</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">In-Conjunction</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--purple)' }}>{conj} perikatan</div></div>
+            <div><div className="tiny muted upper">In-Conjunction</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--purple)' }}>{conj} perikatan</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Terkendala ¶15</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{constrained} perikatan</div></div>
+            <div><div className="tiny muted upper">Terkendala ¶15</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--red)' }}>{constrained} perikatan</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Acuan</div>
@@ -161,7 +161,7 @@ function F805Registri({ selId, setSelId, sel }: any) {
             return (
               <div key={i} style={{ padding: 15, borderRight: i < 3 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ width: 36, height: 36, borderRadius: 9, display: 'grid', placeItems: 'center', background: `var(--${d.color}-bg)`, color: `var(--${d.color})`, marginBottom: 10 }}><Ic size={18} /></span>
-                <div style={{ fontWeight: 700, fontSize: 12.5 }}>{d.k}</div>
+                <div style={{ fontWeight: 700, fontSize: 12 }}>{d.k}</div>
                 <p className="tiny muted" style={{ margin: '4px 0 8px', lineHeight: 1.45 }}>{d.desc}</p>
                 <div className="chip tiny" style={{ background: 'var(--surface-2)' }}>{d.ex}</div>
               </div>
@@ -208,7 +208,7 @@ function F805Registri({ selId, setSelId, sel }: any) {
               <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
                 <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                   <span style={{ color: sel.opinion === 'Terkendala' ? 'var(--red)' : 'var(--blue)', flex: '0 0 auto' }}><I.flag size={14} /></span>
-                  <span style={{ fontSize: 11.5, lineHeight: 1.4 }}>{sel.notes}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.4 }}>{sel.notes}</span>
                 </div>
               </div>
             </div>
@@ -231,14 +231,14 @@ function F805Accept({ sel }: any) {
           {sel.accept.map((a: any, i: any) => (
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < sel.accept.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 auto', marginTop: 1, color: a[1] ? 'var(--green)' : 'var(--red)' }}>{a[1] ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-              <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{a[0]}</div>
+              <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{a[0]}</div>
             </div>
           ))}
         </div>
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Auditor menentukan keberterimaan <b>kerangka pelaporan</b> yang diterapkan, apakah audit dapat dilakukan atas <b>satu elemen</b> tersendiri, & menyepakati <b>bentuk opini</b> bersama manajemen (¶6–9).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Auditor menentukan keberterimaan <b>kerangka pelaporan</b> yang diterapkan, apakah audit dapat dilakukan atas <b>satu elemen</b> tersendiri, & menyepakati <b>bentuk opini</b> bersama manajemen (¶6–9).</span>
           </div>
         </div>
       </Panel>
@@ -301,7 +301,7 @@ function F805Link({ sel }: any) {
               <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: r.ok ? 'var(--green)' : 'var(--red)' }}>{r.ok ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>{r.t}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{r.t}</div>
                   <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 2 }}>{r.d}</div>
                 </div>
               </div>
@@ -315,7 +315,7 @@ function F805Link({ sel }: any) {
           <div className="panel" style={{ padding: '11px 12px', background: adverse ? 'var(--red-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: adverse ? 'var(--red)' : 'var(--green)', flex: '0 0 auto' }}>{adverse ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>{adverse
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>{adverse
                 ? <>Opini wajar atas <b>{sel.element}</b> bertentangan dengan {sel.completeOpinion} atas LK lengkap. Pertimbangkan menunda penerbitan atau menerapkan pengecualian ¶16.</>
                 : <>Opini atas <b>{sel.element}</b> dapat dinyatakan terpisah; opini atas LK lengkap ({sel.completeOpinion || 'tidak ada'}) tidak menimbulkan pertentangan.</>}</span>
             </div>
@@ -360,7 +360,7 @@ function F805Report({ sel }: any) {
               ['Opini terpisah atas elemen/LK tunggal', '¶11'],
               ['Paragraf Hal Lain — rujuk opini LK lengkap', '¶14'],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', borderRadius: 6, background: 'var(--surface-2)' }}>
                 <span className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.check size={13} /></span>{r[0]}</span>
                 <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r[1]}</span>
               </div>
@@ -387,7 +387,7 @@ function F805Report({ sel }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Pratinjau Laporan Auditor Independen</h3><div style={{ flex: 1 }} /><Btn sm><I.download size={13} /> Unduh</Btn></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN AUDITOR INDEPENDEN</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Audit atas {sel.subject} — SA 805</div>
             <p style={{ margin: '0 0 10px' }}>Kepada {sel.users} — {sel.client}</p>

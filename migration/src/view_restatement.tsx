@@ -76,7 +76,7 @@ const RS_TYPES: { id: RestatementItem['type']; label: string }[] = [
 function RSCard({ value, label, sub, accent }: { value: string; label: string; sub?: string; accent?: string }) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -162,7 +162,7 @@ function RestatementView() {
                   <div className="panel-h"><h3>Register Item Penyajian Kembali</h3><span className="sub mono">editable · PSAK 25</span><div style={{ flex: 1 }} /><Btn sm onClick={addItem}><I.plus size={13} /> Tambah item</Btn></div>
                   <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--surface-2)' }}>
                     <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.scale size={15} /></span>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                       Masukkan tiap koreksi retrospektif: <b>kesalahan</b> periode lalu (¶42), <b>perubahan kebijakan</b> retrospektif (¶19/22), atau <b>reklasifikasi</b> penyajian (PSAK 1 ¶41). Kolom <b>Bruto</b> = dampak ke laba sebelum pajak periode lalu (Rp juta); <b>negatif</b> bila laba dikoreksi turun. Estimasi bersifat prospektif → <b>tidak</b> dimasukkan di sini.
                     </div>
                   </div>
@@ -249,7 +249,7 @@ function RestatementView() {
                       { t: 'Saldo laba awal — disajikan kembali', v: M.reOpenRestated, tot: true },
                     ].map((r, i, arr) => (
                       <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < arr.length - 1 ? '1px solid var(--line-soft)' : 0, background: r.tot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.tot ? 700 : 500, color: r.tot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
                         <div className="mono" style={{ width: 96, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.tax ? 'var(--green)' : r.tot ? 'var(--navy)' : 'var(--ink)' }}>{fmtJt(r.v)}</div>
                       </div>
                     ))}
@@ -271,14 +271,14 @@ function RestatementView() {
                       <tbody>
                         {M.impact.map((r) => (
                           <tr key={r.id} style={{ background: r.bold ? 'var(--surface-2)' : 'transparent' }}>
-                            <td style={{ fontSize: 12.3, fontWeight: r.bold ? 700 : 500, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{r.label}</td>
+                            <td style={{ fontSize: 12, fontWeight: r.bold ? 700 : 500, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{r.label}</td>
                             <td className="mono" style={{ textAlign: 'right' }}>{fmt(Math.round(r.rep))}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: r.adj < 0 ? 'var(--red)' : r.adj > 0 ? 'var(--green)' : 'var(--ink-4)' }}>{r.adj === 0 ? '—' : fmtJt(r.adj)}</td>
                             <td className="mono" style={{ textAlign: 'right', fontWeight: r.bold ? 800 : 600, color: r.bold ? 'var(--navy)' : 'var(--ink)' }}>{fmt(Math.round(r.res))}</td>
                           </tr>
                         ))}
                         <tr>
-                          <td style={{ fontSize: 12.3, fontWeight: 600 }}>Laba per saham dasar (Rp)</td>
+                          <td style={{ fontSize: 12, fontWeight: 600 }}>Laba per saham dasar (Rp)</td>
                           <td className="mono" style={{ textAlign: 'right' }}>{M.eps.reported.toFixed(1)}</td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700, color: (M.eps.restated - M.eps.reported) < 0 ? 'var(--red)' : 'var(--green)' }}>{(M.eps.restated - M.eps.reported).toFixed(1)}</td>
                           <td className="mono" style={{ textAlign: 'right', fontWeight: 700 }}>{M.eps.restated.toFixed(1)}</td>
@@ -289,7 +289,7 @@ function RestatementView() {
                   {M.thirdBalanceSheet && (
                     <div className="row ac gap8" style={{ margin: '4px 14px 12px', padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--teal)', background: 'var(--surface)' }}>
                       <I.table size={14} style={{ color: 'var(--teal)', flex: '0 0 auto' }} />
-                      <span style={{ fontSize: 11.5, lineHeight: 1.4, flex: 1 }}>Penyajian kembali <b>material</b> → PSAK 1 ¶40A mensyaratkan <b>laporan posisi keuangan ketiga</b> pada awal periode komparatif. Beri tanda "disajikan kembali".</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.4, flex: 1 }}>Penyajian kembali <b>material</b> → PSAK 1 ¶40A mensyaratkan <b>laporan posisi keuangan ketiga</b> pada awal periode komparatif. Beri tanda "disajikan kembali".</span>
                       <button onClick={() => nav('sa710', { from: 'restatement' })} className="mono tiny" style={{ fontWeight: 700, color: 'var(--teal)', whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer' }}>SA 710 <I.arrowRight size={12} /></button>
                     </div>
                   )}
@@ -322,7 +322,7 @@ function RestatementView() {
                       return (
                         <label key={x.id} className="row gap9" style={{ padding: '8px 14px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < RS_DISC.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleDisc(x.id)}>
                           <span style={{ flex: '0 0 15px', width: 15, height: 15, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={10} style={{ color: '#fff' }} />}</span>
-                          <span style={{ flex: 1, fontSize: 11.5, lineHeight: 1.4, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{x.t}</span>
+                          <span style={{ flex: 1, fontSize: 12, lineHeight: 1.4, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{x.t}</span>
                           <span className="mono tiny" style={{ color: 'var(--ink-4)', flex: '0 0 auto' }}>{x.ref}</span>
                         </label>
                       );
@@ -339,14 +339,14 @@ function RestatementView() {
                     <div className="panel" style={{ padding: '10px 12px', background: M.material ? 'var(--amber-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
                       <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                         <span style={{ color: M.material ? 'var(--amber)' : 'var(--green)', marginTop: 1 }}><I.flag size={15} /></span>
-                        <span style={{ fontSize: 11.5, lineHeight: 1.5 }}>
+                        <span style={{ fontSize: 12, lineHeight: 1.5 }}>
                           Koreksi neto <b>Rp {fmtJt(M.errNet)} jt</b> {M.material ? <>bersifat <b>material</b> (≥ PM {pm != null ? 'Rp ' + fmt(Math.round(pm)) + ' jt' : ''}) → penyajian kembali komparatif & saldo laba awal disyaratkan{M.thirdBalanceSheet ? ', termasuk laporan posisi keuangan ketiga (PSAK 1 ¶40A)' : ''}. Komunikasikan ke TCWG (SA 260) & ungkapkan penuh (¶49).</> : <>di bawah materialitas — evaluasi apakah tetap dikoreksi atau diakumulasikan ke SAD (SA 450).</>}
                         </span>
                       </div>
                     </div>
                     <textarea value={d.conclusion} placeholder="Kesimpulan & pertimbangan auditor atas penyajian kembali (sifat, sebab, dampak, kecukupan pengungkapan, dampak ke opini)…"
                       onChange={(e: InputEvt) => setDoc((m: RestatementDoc) => ({ ...m, conclusion: e.target.value }))}
-                      style={{ width: '100%', minHeight: 150, fontSize: 12.5, lineHeight: 1.5, padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', resize: 'vertical', fontFamily: 'inherit' }} />
+                      style={{ width: '100%', minHeight: 150, fontSize: 12, lineHeight: 1.5, padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', resize: 'vertical', fontFamily: 'inherit' }} />
                     <div className="tiny muted" style={{ lineHeight: 1.5 }}>Tersimpan otomatis (engagement-scoped) untuk jejak audit. Rujuk SA 700/705 untuk dampak ke opini bila penyajian kembali/pengungkapan tidak memadai.</div>
                   </div>
                 </Panel>
@@ -360,7 +360,7 @@ function RestatementView() {
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                   <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Progres — Prosedur Restatement</div>
                   <div className="row ac gap12">
-                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                       <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{procDone}/{RS_PROC.length} prosedur · {discDone}/{RS_DISC.length} pengungkapan</div>
@@ -386,7 +386,7 @@ function RestatementView() {
                     return (
                       <div key={k}>
                         <div className="row ac jb" style={{ marginBottom: 3 }}>
-                          <span style={{ fontSize: 11.5 }}>{c.lbl}</span>
+                          <span style={{ fontSize: 12 }}>{c.lbl}</span>
                           <span className="mono tiny" style={{ fontWeight: 700, color: c.color }}>{n} · {c.treat}</span>
                         </div>
                         <div style={{ height: 7, background: 'var(--surface-3)', borderRadius: 4, overflow: 'hidden' }}>

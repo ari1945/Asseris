@@ -41,7 +41,7 @@ function TaskDetail({ t, mt, nav }: any) {
         <button className={'mt-star ' + (t.starred ? 'on' : '')} onClick={() => mt.toggleStar(t.id, t.starred)}><I.star size={16} fill={t.starred} /></button>
       </div>
       <div style={{ padding: 14, display: 'grid', gap: 14 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.4, color: 'var(--ink)' }}>{t.label}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, color: 'var(--ink)' }}>{t.label}</div>
 
         {/* status */}
         <div className="mt-kv">
@@ -57,7 +57,7 @@ function TaskDetail({ t, mt, nav }: any) {
           </div>
           <div className="mt-kv">
             <label>Jatuh Tempo</label>
-            <span className={'mt-due ' + (t.bucket === 'overdue' ? 'over' : t.bucket === 'today' ? 'today' : '')} style={{ fontSize: 12.5 }}>
+            <span className={'mt-due ' + (t.bucket === 'overdue' ? 'over' : t.bucket === 'today' ? 'today' : '')} style={{ fontSize: 12 }}>
               <I.calendar size={12} /> {t.due.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
           </div>
@@ -74,7 +74,7 @@ function TaskDetail({ t, mt, nav }: any) {
         {/* subtasks */}
         <div>
           <div className="row jb ac" style={{ marginBottom: 4 }}>
-            <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-4)' }}>Checklist</label>
+            <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-4)' }}>Checklist</label>
             {t.subTotal > 0 && <span className="tiny muted mono">{t.subDone}/{t.subTotal}</span>}
           </div>
           {t.subTotal > 0 && <div className="mt-mini" style={{ height: 5, marginBottom: 8 }}><span style={{ width: Math.round(t.progress * 100) + '%', background: t.progress === 1 ? 'var(--green)' : 'var(--blue)' }} /></div>}
@@ -222,7 +222,7 @@ function MyTasks() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={stats.done} label="Selesai" accent="var(--green)" /></div></Panel>
           <Panel>
             <div style={{ padding: '15px 18px' }}>
-              <div className="row jb tiny" style={{ marginBottom: 6 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-3)', fontSize: 10.5 }}>Penyelesaian</span><span className="mono" style={{ fontWeight: 700, color: 'var(--navy)' }}>{donePct}%</span></div>
+              <div className="row jb tiny" style={{ marginBottom: 6 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink-3)', fontSize: 11 }}>Penyelesaian</span><span className="mono" style={{ fontWeight: 700, color: 'var(--navy)' }}>{donePct}%</span></div>
               <div className="mt-mini" style={{ height: 8 }}><span style={{ width: donePct + '%', background: 'var(--green-solid)' }} /></div>
               <div className="tiny muted" style={{ marginTop: 7 }}>Estimasi beban minggu ini: <b className="mono" style={{ color: 'var(--ink)' }}>{stats.estWeek.toFixed(1)} jam</b></div>
             </div>
@@ -297,8 +297,8 @@ function MyTasks() {
                     segments={[{ value: stats.done, color: '#4db8ff' }, { value: Math.max(0, total - stats.done), color: 'rgba(255,255,255,.18)' }]}
                     center={<div><div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'var(--mono)' }}>{donePct}%</div></div>} />
                   <div>
-                    <div style={{ fontSize: 16, fontWeight: 700 }}>Fokus Hari Ini</div>
-                    <div style={{ fontSize: 12.5, color: '#bcd6e4', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: '#fff' }}>{focusEst.toFixed(1)} jam</b></div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>Fokus Hari Ini</div>
+                    <div style={{ fontSize: 12, color: '#bcd6e4', marginTop: 3 }}>{focus.length} tugas prioritas · estimasi <b style={{ color: '#fff' }}>{focusEst.toFixed(1)} jam</b></div>
                     <div className="row gap8" style={{ marginTop: 9 }}>
                       <span className="badge b-red" style={{ background: 'rgba(255,107,87,.22)', color: '#ffd2c9' }}>{stats.overdue} terlambat</span>
                       <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff' }}>{stats.today} hari ini</span>

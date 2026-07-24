@@ -331,7 +331,7 @@ function SoqmInfoComm({ nav }: any) {
           {roles.map((r: any, i: any) => (
             <div key={i} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{r.role}</span>
+                <span style={{ fontSize: 12, fontWeight: 700 }}>{r.role}</span>
                 <Badge kind="blue">{r.ref}</Badge>
               </div>
               <div className="tiny" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>{r.person} · <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>{r.title}</span></div>
@@ -527,7 +527,7 @@ function D2KV({ label, v }: any) {
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-2)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}>{v}</div>
     </div>
   );
 }

@@ -108,7 +108,7 @@ const FW_STD_LINKS = [
 function FWStat({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div style={{ fontSize: 20, fontWeight: 800, color: accent || 'var(--navy)', lineHeight: 1.05, letterSpacing: '-.01em' }}>{value}</div>
+      <div style={{ fontSize: 19, fontWeight: 800, color: accent || 'var(--navy)', lineHeight: 1.05, letterSpacing: '-.01em' }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 700 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -133,7 +133,7 @@ function FWToggle({ label, hint, value, onChange, yes = 'Ya', no = 'Tidak' }: an
   return (
     <div className="row jb ac" style={{ gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
         {hint && <div className="tiny" style={{ color: 'var(--ink-4)', marginTop: 2, lineHeight: 1.4 }}>{hint}</div>}
       </div>
       <div className="seg" style={{ flex: '0 0 auto' }}>
@@ -152,15 +152,15 @@ function FWSlider({ label, value, onChange, max, ceil, unit }: any) {
   return (
     <div style={{ padding: '10px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <div className="row jb ac" style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: over ? 'var(--amber)' : 'var(--green)' }}>{fwRp(value)}</span>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
+        <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: over ? 'var(--amber)' : 'var(--green)' }}>{fwRp(value)}</span>
       </div>
       <div style={{ position: 'relative' }}>
         <input type="range" className="fw-range" min={0} max={max} step={max / 200} value={value}
           onChange={(e: any) => onChange(Number(e.target.value))}
           style={{ width: '100%', accentColor: over ? 'var(--amber)' : 'var(--teal)' }} />
         <div style={{ position: 'absolute', left: ceilPct + '%', top: -2, bottom: 14, width: 2, background: 'var(--red-solid)', opacity: .7, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', left: ceilPct + '%', top: -16, transform: 'translateX(-50%)', fontSize: 9.5, fontWeight: 700, color: 'var(--red)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>batas UMKM {unit}</div>
+        <div style={{ position: 'absolute', left: ceilPct + '%', top: -16, transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: 'var(--red)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>batas UMKM {unit}</div>
       </div>
     </div>
   );
@@ -178,7 +178,7 @@ function FWGateNode({ n, q, active, dim, accent }: any) {
       boxShadow: active ? '0 1px 8px rgba(7,30,42,.08)' : 'none',
     }}>
       <div className="row ac gap8">
-        <span className="mono" style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--blue)', background: 'var(--blue-100,#e2edf4)', padding: '2px 6px', borderRadius: 5 }}>{n}</span>
+        <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--blue-100,#e2edf4)', padding: '2px 6px', borderRadius: 5 }}>{n}</span>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{q}</span>
       </div>
     </div>
@@ -190,7 +190,7 @@ function FWBranch({ label, taken, dim, accent }: any) {
     <div className="row ac gap8" style={{ paddingLeft: 14, opacity: dim ? .4 : 1, transition: '.15s' }}>
       <span style={{ width: 18, height: 1.5, background: taken ? accent : 'var(--line-strong)' }} />
       <span style={{
-        fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
+        fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
         color: taken ? '#fff' : 'var(--ink-3)', background: taken ? accent : 'var(--surface-2)',
         border: '1px solid ' + (taken ? accent : 'var(--line)'),
       }}>{label}</span>
@@ -358,7 +358,7 @@ function FrameworkView() {
                     <span style={{ color: m.accent }}><I.checkCircle size={15} /></span>
                     <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink)' }}>Dasar penetapan (Gerbang {result.gate})</span>
                   </div>
-                  <p style={{ margin: 0, fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.55 }}>{result.why}</p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.55 }}>{result.why}</p>
                 </div>
               </div>
 
@@ -455,8 +455,8 @@ function FrameworkView() {
                           ? <span style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 11 }}>{p.listed && p.fiduciary ? 'Emiten + LJK' : p.listed ? 'Emiten' : 'LJK fidusia'}</span>
                           : <span className="tiny muted">—</span>}
                       </td>
-                      <td className="mono" style={{ textAlign: 'right', fontSize: 11.5 }}>{fwRp(p.sales)}</td>
-                      <td className="mono" style={{ textAlign: 'right', fontSize: 11.5 }}>{fwRp(p.capital)}</td>
+                      <td className="mono" style={{ textAlign: 'right', fontSize: 12 }}>{fwRp(p.sales)}</td>
+                      <td className="mono" style={{ textAlign: 'right', fontSize: 12 }}>{fwRp(p.capital)}</td>
                       <td style={{ textAlign: 'center' }}><span className="tiny" style={{ fontWeight: 600, color: p.tier === 'Besar' ? 'var(--ink-2)' : 'var(--teal)' }}>{p.tier}</span></td>
                       <td><FWChip fw={p.fw} sm /></td>
                       <td className="tiny" style={{ color: 'var(--ink-3)', maxWidth: 230, lineHeight: 1.4 }}>{p.branch === 'pa' ? 'Akuntabilitas publik' : p.branch === 'big' ? 'Entitas besar (> ambang UMKM)' : p.branch === 'ep' ? 'UMKM → naik ke EP (kompleksitas)' : 'UMKM · pelaporan sederhana'}</td>
@@ -481,7 +481,7 @@ function FrameworkView() {
       <style>{`
         .fw-range{ height: 4px; border-radius: 3px; }
         .fw-tbl{ width:100%; border-collapse:collapse; font-size:12px; }
-        .fw-tbl th{ text-align:left; background:var(--surface-2); color:var(--ink-3); font-size:10px; text-transform:uppercase; letter-spacing:.05em; padding:8px 11px; font-weight:700; border-bottom:1px solid var(--line); white-space:nowrap; }
+        .fw-tbl th{ text-align:left; background:var(--surface-2); color:var(--ink-3); font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 11px; font-weight:700; border-bottom:1px solid var(--line); white-space:nowrap; }
         .fw-tbl td{ padding:9px 11px; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2); }
         .fw-tbl tbody tr:last-child td{ border-bottom:none; }
         .fw-tbl tbody tr:hover td{ background:var(--surface-2); }

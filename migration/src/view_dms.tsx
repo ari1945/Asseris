@@ -98,7 +98,7 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }: any) {
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: d.legalHold ? 'var(--red-bg)' : 'var(--blue-100)', color: d.legalHold ? 'var(--red)' : 'var(--blue)' }}>{d.legalHold ? <I.lock size={18} /> : <IconC size={18} />}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{d.name}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{d.name}</div>
           <div className="mono tiny muted" style={{ marginTop: 1 }}>{d.id} · {d.eng}</div>
           <div className="row ac gap6 wrap" style={{ marginTop: 7 }}>
             <Badge kind={(CLASS_KIND as any)[d.classification]}>{d.classification}</Badge>
@@ -138,7 +138,7 @@ function DocDrawer({ d, onClose, onToggleHold, onAccess, fmt }: any) {
                 <div className="row ac gap8"><div style={{ flex: 1, height: 7, borderRadius: 4, background: 'var(--surface-3)' }}><div style={{ width: r.pct + '%', height: '100%', borderRadius: 4, background: r.expired ? 'var(--red)' : r.yrsLeft < 1 ? 'var(--amber)' : 'var(--blue)' }} /></div></div>
                 <div className="tiny muted" style={{ marginTop: 4 }}>Diarsip {dDate(d.archivedOn, { month: 'short', year: 'numeric' })} · kedaluwarsa {dDate(r.until, { month: 'short', year: 'numeric' })} · retensi {d.retentionYears} thn</div>
               </div>
-              <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: r.expired ? 'var(--red)' : 'var(--navy)' }}>{r.expired ? 'Lewat' : r.yrsLeft.toFixed(1)}</div><div className="tiny muted">{r.expired ? 'masa retensi' : 'tahun tersisa'}</div></div>
+              <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: r.expired ? 'var(--red)' : 'var(--navy)' }}>{r.expired ? 'Lewat' : r.yrsLeft.toFixed(1)}</div><div className="tiny muted">{r.expired ? 'masa retensi' : 'tahun tersisa'}</div></div>
             </div>
           </div>
         )}
@@ -342,7 +342,7 @@ function DocManagement() {
                     const IconC = (I as any)[(TYPE_ICON as any)[d.type]] || I.doc;
                     return (
                       <tr key={d.id} onClick={() => setSelId(d.id)} style={{ cursor: 'pointer' }} className={d.id === selId ? 'sel' : ''}>
-                        <td style={{ minWidth: 220 }}><div className="row ac gap8"><span style={{ color: d.legalHold ? 'var(--red)' : 'var(--ink-4)' }}>{d.legalHold ? <I.lock size={14} /> : <IconC size={14} />}</span><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12.5 }}>{d.name}</div><div className="mono tiny muted">{d.id}</div></div></div></td>
+                        <td style={{ minWidth: 220 }}><div className="row ac gap8"><span style={{ color: d.legalHold ? 'var(--red)' : 'var(--ink-4)' }}>{d.legalHold ? <I.lock size={14} /> : <IconC size={14} />}</span><div style={{ minWidth: 0 }}><div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{d.name}</div><div className="mono tiny muted">{d.id}</div></div></div></td>
                         <td className="mono tiny muted">{d.eng}</td>
                         <td className="tiny">{d.type}</td>
                         <td className="num"><span className="chip tiny">v{d.ver}</span></td>

@@ -61,7 +61,7 @@ function RCRow({ r, nav }: any) {
           <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy-solid)', flex: '0 0 7px' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="tiny upper muted" style={{ letterSpacing: '.05em', fontWeight: 700 }}>Sumber kebenaran</div>
-            <div className="mono" style={{ fontSize: 11.5, fontWeight: 600 }}>{r.sourceLabel}</div>
+            <div className="mono" style={{ fontSize: 12, fontWeight: 600 }}>{r.sourceLabel}</div>
           </div>
           <span className="mono" style={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap' }}>{rcJt(r.source)}</span>
           {r.sourceRoute && <I.chevron size={13} style={{ color: 'var(--ink-4)' }} />}
@@ -169,7 +169,7 @@ function DFRekonsiliasi() {
             <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--navy-solid)', flex: '0 0 7px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="tiny upper muted" style={{ letterSpacing: '.05em', fontWeight: 700 }}>Sumber kebenaran</div>
-              <div className="mono" style={{ fontSize: 11.5, fontWeight: 600 }}>Engagement Letter · CRM 360</div>
+              <div className="mono" style={{ fontSize: 12, fontWeight: 600 }}>Engagement Letter · CRM 360</div>
             </div>
             <span className="mono" style={{ fontSize: 13, fontWeight: 800 }}>{feeCrm != null ? rcJt(feeCrm) : '—'}</span>
           </div>

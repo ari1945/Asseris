@@ -320,11 +320,11 @@ function UseOfExpert() {
               <div className="tiny muted">{client}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Pakar Terdaftar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{experts.length} pakar</div></div>
+            <div><div className="tiny muted upper">Pakar Terdaftar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{experts.length} pakar</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tipe</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{experts.filter((e: any) => e.type === 'Pakar Auditor').length} auditor · {experts.filter((e: any) => e.type === 'Pakar Manajemen').length} manajemen</div></div>
+            <div><div className="tiny muted upper">Tipe</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{experts.filter((e: any) => e.type === 'Pakar Auditor').length} auditor · {experts.filter((e: any) => e.type === 'Pakar Manajemen').length} manajemen</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Risiko Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{experts.filter((e: any) => e.risk === 'Signifikan').length} area</div></div>
+            <div><div className="tiny muted upper">Risiko Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--red)' }}>{experts.filter((e: any) => e.risk === 'Signifikan').length} area</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Status Evaluasi Pekerjaan</div>
@@ -351,7 +351,7 @@ function UseOfExpert() {
                       <Badge kind={e.type === 'Pakar Auditor' ? 'purple' : 'blue'}>{e.type.replace('Pakar ', '')}</Badge></span>
                     <span className="mono tiny" style={{ fontWeight: 700, color: vColor(a) }}>{a.toFixed(1)}/5</span>
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 12.5, marginTop: 5 }} className="truncate">{e.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 12, marginTop: 5 }} className="truncate">{e.name}</div>
                   <div className="tiny muted truncate">{e.field}</div>
                   <div className="row ac jb" style={{ marginTop: 7 }}>
                     <span className="mono tiny muted">{e.account} · {e.amount}</span>
@@ -390,7 +390,7 @@ function ExpContext({ experts, avgOf }: any) {
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Penentuan Kebutuhan Pakar (SA 620)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
               Bila keahlian di bidang selain akuntansi atau audit diperlukan untuk memperoleh bukti audit yang cukup &
               tepat, auditor menentukan apakah akan menggunakan <b>pekerjaan pakar auditor</b>. Auditor wajib mengevaluasi
               <b> kompetensi, kapabilitas, dan objektivitas</b> pakar (¶9), memperoleh <b>pemahaman atas bidang keahlian</b>
@@ -425,7 +425,7 @@ function ExpContext({ experts, avgOf }: any) {
                   {d.ok ? <I.checkCircle size={17} /> : <I.alert size={17} />}
                 </span>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 2 }}>{d.q}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{d.q}</div>
                   <div className="tiny muted" style={{ lineHeight: 1.4 }}>{d.a}</div>
                 </div>
               </div>
@@ -507,7 +507,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
               border: '1px solid ' + (fc.id === selF ? 'var(--blue)' : 'var(--line-soft)'),
               background: fc.id === selF ? 'var(--blue-050)' : 'transparent' }}>
             <div className="row jb ac" style={{ marginBottom: 6 }}>
-              <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}>{fc.k}<span className="mono tiny muted">{fc.ref}</span></span>
+              <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 700 }}>{fc.k}<span className="mono tiny muted">{fc.ref}</span></span>
               <span className="mono" style={{ fontWeight: 700, color: vColor(fc.v) }}>{fc.v}/5</span>
             </div>
             <input type="range" min="1" max="5" value={fc.v} onClick={(e: any) => e.stopPropagation()} onChange={(e: any) => setV(exp.id, fc.id, +e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
@@ -519,7 +519,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
           <div className="row ac gap10">
             <span className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${verdict.k})` }}>{avg.toFixed(1)}</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 12.5, color: `var(--${verdict.k})` }}>{verdict.label}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: `var(--${verdict.k})` }}>{verdict.label}</div>
               <div className="tiny" style={{ lineHeight: 1.4, marginTop: 2 }}>{verdict.t}</div>
             </div>
           </div>
@@ -530,7 +530,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
         <div style={{ background: 'var(--surface-2)', padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
           <div className="row ac gap8"><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.ref}</span><Badge kind={f.v >= 4 ? 'green' : f.v >= 3 ? 'amber' : 'red'}>{f.v}/5</Badge>
             <div style={{ flex: 1 }} /><span className="tiny muted">{exp.name} · {f.k}</span></div>
-          <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 3 }}>{f.k}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginTop: 3 }}>{f.k}</div>
           <div className="tiny muted">{f.note}</div>
         </div>
         <table className="dtbl">
@@ -553,7 +553,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               {f.id === 'obj' && exp.type === 'Pakar Manajemen'
                 ? <>Untuk <b>pakar manajemen</b>, objektivitas merupakan area perhatian utama (¶A21–A22): pakar ditunjuk & dibayar entitas. Auditor menerapkan pengaman berupa <b>pengujian independen atas asumsi & data sumber</b>.</>
                 : <>Faktor <b>{f.k}</b> dievaluasi atas {f.subs.length} sub-kriteria. Catatan perhatian tidak otomatis meniadakan penggunaan, namun menambah prosedur evaluasi atas pekerjaan pakar (¶12).</>}
@@ -576,7 +576,7 @@ function ExpAgreement({ exp }: any) {
           <div style={{ padding: 14, display: 'grid', gap: 12 }}>
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 4 }}>Sifat Pekerjaan Pakar</div>
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5 }}>{u.nature}</p>
+              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>{u.nature}</p>
             </div>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <KvBox label="Standar Profesional/Industri" v={u.standards} />
@@ -601,7 +601,7 @@ function ExpAgreement({ exp }: any) {
                   {a.ok ? <I.checkCircle size={17} /> : <I.clock size={17} />}
                 </span>
                 <div style={{ flex: 1 }}>
-                  <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{a.dim}</span><span className="mono tiny muted">{a.ref}</span></div>
+                  <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{a.dim}</span><span className="mono tiny muted">{a.ref}</span></div>
                   <div className="tiny" style={{ color: a.ok ? 'var(--green)' : 'var(--amber)', marginTop: 2, fontWeight: 600 }}>{a.ok ? 'Disepakati & terdokumentasi' : 'Menunggu finalisasi engagement letter'}</div>
                 </div>
               </div>
@@ -667,7 +667,7 @@ function ExpWorkEval({ exp }: any) {
                   {dm.d.status === 'Memadai' ? <I.checkCircle size={18} /> : dm.d.status === 'Proses' ? <I.clock size={18} /> : <I.alert size={18} />}
                 </span>
                 <div style={{ flex: 1 }}>
-                  <div className="row ac gap6" style={{ marginBottom: 2 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{dm.t}</span><span className="mono tiny muted">{dm.ref}</span>
+                  <div className="row ac gap6" style={{ marginBottom: 2 }}><span style={{ fontSize: 12, fontWeight: 700 }}>{dm.t}</span><span className="mono tiny muted">{dm.ref}</span>
                     <div style={{ flex: 1 }} /><Badge kind={statusKind(dm.d.status)}>{dm.d.status}</Badge></div>
                   <div className="tiny muted" style={{ lineHeight: 1.45 }}>{dm.d.note}</div>
                 </div>
@@ -695,7 +695,7 @@ function ExpWorkEval({ exp }: any) {
             <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.flag size={15} /></span>
-                <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+                <span style={{ fontSize: 12, lineHeight: 1.45 }}>
                   Asumsi <b>kenaikan gaji 7,0%</b> berada di atas rentang historis. Auditor menantang dasar asumsi & meminta
                   analisis sensitivitas; dampak ke liabilitas dievaluasi terhadap <b>materialitas pelaksanaan</b>.
                 </span>
@@ -711,7 +711,7 @@ function ExpWorkEval({ exp }: any) {
             <div className="tiny upper" style={{ color: `var(--${adqKind(w.adequacy)})`, fontWeight: 700, letterSpacing: '.04em' }}>Hasil Evaluasi (¶12)</div>
             <div style={{ fontWeight: 800, fontSize: 15, color: `var(--${adqKind(w.adequacy)})`, marginTop: 3 }}>{w.adequacy}</div>
           </div>
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>
             Bila pekerjaan pakar <b>tidak memadai</b> (¶13), auditor menyepakati prosedur lanjutan dengan pakar atau
             melaksanakan prosedur tambahan yang sesuai dengan keadaan.
           </p>
@@ -724,7 +724,7 @@ function ExpWorkEval({ exp }: any) {
               ? ['Peroleh analisis sensitivitas asumsi gaji', 'Dokumentasikan rekonsiliasi data sensus', 'Reviu partner atas asumsi signifikan']
               : ['Arsipkan laporan pakar & dasar simpulan', 'Tautkan ke kertas kerja akun terkait', 'Tutup poin reviu']
             ).map((t, i) => (
-              <label key={i} className="row ac gap6" style={{ fontSize: 11.5 }}>
+              <label key={i} className="row ac gap6" style={{ fontSize: 12 }}>
                 <span style={{ width: 14, height: 14, borderRadius: 3, border: '1.5px solid var(--line-strong)', display: 'grid', placeItems: 'center', flex: '0 0 auto' }} />
                 {t}
               </label>
@@ -766,7 +766,7 @@ function ExpConclusion({ experts, avgOf }: any) {
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>
                 <b>Rujukan dalam laporan auditor (¶14–15):</b> auditor <b>tidak merujuk</b> pekerjaan pakar auditor dalam
                 opini tanpa modifikasi. Rujukan hanya dibuat bila diwajibkan hukum/regulasi, atau relevan untuk memahami
                 modifikasi opini — dan rujukan tersebut <b>tidak mengurangi tanggung jawab</b> auditor atas opini.
@@ -776,7 +776,7 @@ function ExpConclusion({ experts, avgOf }: any) {
         </Panel>
 
         <Panel title="Ringkasan Penggunaan Pakar (SA 620)">
-          <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6 }}>
             Auditor menggunakan pekerjaan <b>{total} pakar</b> atas area yang memerlukan keahlian khusus.
             {' '}<b>{adequate.length}</b> dinilai kecukupannya <b>memadai</b> (¶12);
             {mgmtCount > 0 && <> objektivitas <b>{mgmtCount} pakar manajemen</b> diimbangi pengujian independen atas asumsi & data sumber;</>}

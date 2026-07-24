@@ -86,7 +86,7 @@ function ItCard({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
-        <span className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</span>
+        <span className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</span>
         {unit && <span className="tiny mono" style={{ color: 'var(--ink-4)', fontWeight: 600 }}>{unit}</span>}
       </div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
@@ -211,7 +211,7 @@ function PSAK19View() {
     <div className="panel" style={{ padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
       <div className="row gap8" style={{ alignItems: 'flex-start' }}>
         <span style={{ color: 'var(--blue)', marginTop: 1 }}><I.link2 size={15} /></span>
-        <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+        <span style={{ fontSize: 12, lineHeight: 1.45 }}>
           Akun <b>1-2400 / 1-2410</b> direklasifikasi dari Aset Tetap (lisensi software, paten & hubungan pelanggan yang sebelumnya tercatat pada 1-2100/1-2110). <b>Total Aset Tidak Lancar tidak berubah</b> — hanya pengklasifikasian ulang antar-pos agar penyajian sesuai PSAK 19. Aset tetap neto kini Rp {sc(ppeBS.cy / 1e6)} {UN.short}; takberwujud neto Rp {sc(it.netClose)} {UN.short}. Klik <button onClick={() => nav('psak16', { from: 'psak19' })} style={{ border: 'none', background: 'none', color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', padding: 0, font: 'inherit' }}>PSAK 16</button> untuk menelusuri.
         </span>
       </div>
@@ -244,7 +244,7 @@ function PSAK19View() {
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--green)', marginTop: 1 }}><I.checkCircle size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               <b>Penambahan</b> Rp {sc(it.additions)} {UN.short} terdiri atas perolehan terpisah Rp {sc(acqAdd)} & pengembangan dikapitalisasi Rp {sc(it.devAdditionsYr)} {UN.short} (¶57). <b>Amortisasi</b> Rp {sc(it.amortAudited)} {UN.short} hanya atas aset berumur terbatas; lisensi umur tak-terbatas Rp {sc(it.indefCarry)} {UN.short} tidak diamortisasi (¶107) — saldo akhir neto menutup persis ke <b>WTB 1-2400 + 1-2410</b> (= Aset takberwujud neto pada Neraca).
             </span>
           </div>
@@ -258,7 +258,7 @@ function PSAK19View() {
     <Panel noBody>
       <div className="panel-h"><h3>Klasifikasi per Kelompok</h3><span className="sub mono">¶118 · ¶88–96</span><div style={{ flex: 1 }} /><span className="tiny muted">bruto − akum = neto</span></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Kelompok</th>
@@ -302,7 +302,7 @@ function PSAK19View() {
     <Panel noBody>
       <div className="panel-h"><h3>Uji Kewajaran Amortisasi</h3><span className="sub mono">SA 520 · ¶97–106</span><div style={{ flex: 1 }} /><Badge kind={amWithin ? 'green' : 'amber'}>WP E-INT-4</Badge></div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Kelompok</th>
@@ -362,7 +362,7 @@ function PSAK19View() {
           <button className={measure === 'reval' ? 'on' : ''} onClick={() => setMeasure('reval')} style={{ flex: 1 }}>Model revaluasi</button>
         </div>
         {measure === 'cost' ? (
-          <div style={{ fontSize: 11.5, lineHeight: 1.5 }}>Entitas menerapkan <b>model biaya</b> (¶74): aset disajikan pada biaya perolehan dikurangi akumulasi amortisasi & rugi penurunan nilai. Diterapkan konsisten untuk seluruh kelompok.</div>
+          <div style={{ fontSize: 12, lineHeight: 1.5 }}>Entitas menerapkan <b>model biaya</b> (¶74): aset disajikan pada biaya perolehan dikurangi akumulasi amortisasi & rugi penurunan nilai. Diterapkan konsisten untuk seluruh kelompok.</div>
         ) : (
           <div className="panel" style={{ padding: '8px 10px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap6" style={{ alignItems: 'flex-start' }}>
@@ -399,8 +399,8 @@ function PSAK19View() {
         <div style={{ display: 'grid', gap: 0, borderTop: '1px solid var(--line-soft)', marginTop: 2 }}>
           {crit.map((c: any, i: any) => (
             <label key={c.id} className="row gap9" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < crit.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleCrit(c.id)}>
-              <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)'), background: c.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{c.ok ? <I.check size={11} style={{ color: '#fff' }} /> : <span className="mono" style={{ fontSize: 9, color: 'var(--amber)', fontWeight: 700 }}>{i + 1}</span>}</span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.35, color: c.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: c.ok ? 400 : 600 }}>{c.t}</span>
+              <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)'), background: c.ok ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{c.ok ? <I.check size={11} style={{ color: '#fff' }} /> : <span className="mono" style={{ fontSize: 11, color: 'var(--amber)', fontWeight: 700 }}>{i + 1}</span>}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.35, color: c.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: c.ok ? 400 : 600 }}>{c.t}</span>
             </label>
           ))}
         </div>
@@ -432,7 +432,7 @@ function PSAK19View() {
         {impair.map((m: any, i: any) => (
           <label key={m.id} className="row gap9" style={{ padding: '7px 13px', cursor: m.src === 'wajib' ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < impair.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: m.src === 'wajib' ? 0.95 : 1 }} onClick={() => m.src !== 'wajib' && toggleImpair(m.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (m.flag ? (m.src === 'wajib' ? 'var(--purple)' : 'var(--amber)') : 'var(--line)'), background: m.flag ? (m.src === 'wajib' ? 'var(--purple)' : 'var(--amber)') : '#fff', display: 'grid', placeItems: 'center' }}>{m.flag && <I.check size={11} style={{ color: '#fff' }} />}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.35, color: m.flag ? 'var(--ink)' : 'var(--ink-2)', fontWeight: m.flag ? 600 : 400 }}>{m.t}<span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>· {m.src}</span></span>
+            <span style={{ fontSize: 12, lineHeight: 1.35, color: m.flag ? 'var(--ink)' : 'var(--ink-2)', fontWeight: m.flag ? 600 : 400 }}>{m.t}<span className="tiny" style={{ color: 'var(--ink-4)', fontWeight: 400, marginLeft: 5 }}>· {m.src}</span></span>
           </label>
         ))}
       </div>
@@ -453,7 +453,7 @@ function PSAK19View() {
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P19_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
                 <div className="tiny muted">{r.proc}</div>
               </div>
               <Badge kind="gray">{r.sa}</Badge>
@@ -473,7 +473,7 @@ function PSAK19View() {
     <Panel noBody>
       <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
         <div><div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)' }}>Validasi & Tie-out</div><div className="tiny muted">Satu sumber kebenaran (WTB → FSGEN)</div></div>
-        <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
+        <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
       </div>
       <div style={{ padding: 9, display: 'grid', gap: 7 }}>
         {tieRows.map(c => (
@@ -484,7 +484,7 @@ function PSAK19View() {
               <Badge kind="gray">{c.std}</Badge>
             </div>
             <div className="tiny muted" style={{ marginBottom: 5, paddingLeft: 23, lineHeight: 1.4 }}>{c.note}</div>
-            <div className="row" style={{ paddingLeft: 23, gap: 0, fontFamily: 'var(--mono)', fontSize: 10.5 }}>
+            <div className="row" style={{ paddingLeft: 23, gap: 0, fontFamily: 'var(--mono)', fontSize: 11 }}>
               <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>A</div><div style={{ fontWeight: 600 }}>{sc(c.a)}</div></div>
               <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>B</div><div style={{ fontWeight: 600 }}>{sc(c.b)}</div></div>
               <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>Δ</div><div style={{ fontWeight: 700, color: c.ok ? 'var(--green)' : 'var(--red)' }}>{sc(c.diff)}</div></div>
@@ -529,9 +529,9 @@ function PSAK19View() {
       <div>
         {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
-            <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
+            <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 11, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 58, flex: '0 0 58px', marginTop: 1 }}>{d.ref}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
           </label>
         ))}
       </div>
@@ -582,12 +582,12 @@ function PSAK19View() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
                   padding: '9px 15px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  fontSize: 12.5, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
+                  fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
                   borderBottom: '2px solid ' + (on ? 'var(--navy)' : 'transparent'), marginBottom: -1,
                 }}>
                   <IconT size={14} />
                   {t.label}
-                  {t.badge && <span className="mono" style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 9, color: t.bad ? 'var(--amber)' : (on ? 'var(--navy)' : 'var(--ink-4)'), background: t.bad ? 'var(--amber-bg)' : (on ? 'var(--blue-050)' : 'var(--surface-2, #f1f3f6)') }}>{t.badge}</span>}
+                  {t.badge && <span className="mono" style={{ fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 9, color: t.bad ? 'var(--amber)' : (on ? 'var(--navy)' : 'var(--ink-4)'), background: t.bad ? 'var(--amber-bg)' : (on ? 'var(--blue-050)' : 'var(--surface-2, #f1f3f6)') }}>{t.badge}</span>}
                 </button>
               );
             })}

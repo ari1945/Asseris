@@ -104,7 +104,7 @@ function SignalCard({ icon, label, tone, value, read, onClick }: any) {
         <div style={{ flex: 1 }} />
         <span style={{ width: 8, height: 8, borderRadius: 50, background: (TONE as any)[tone] }} />
       </div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink-1)', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink-1)', lineHeight: 1.1 }}>{value}</div>
       <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.35 }}>{read}</div>
     </button>
   );
@@ -242,13 +242,13 @@ function EngagementCockpit() {
                 <circle cx="50" cy="50" r="42" fill="none" stroke="#4db8ff" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${D.overall / 100 * 264} 264`} />
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', flexDirection: 'column' }}>
-                <div className="mono" style={{ fontSize: 26, fontWeight: 700 }}>{D.overall}%</div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 700 }}>{D.overall}%</div>
                 <div className="tiny" style={{ color: '#bcd6e4' }}>selesai</div>
               </div>
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.01em' }}>{activeClient?.name}</div>
-              <div style={{ fontSize: 12.5, color: '#bcd6e4', margin: '3px 0 9px' }}>{e.type} · {e.standard} · Partner {e.partner.split(',')[0]} · Manager {e.manager}</div>
+              <div style={{ fontSize: 12, color: '#bcd6e4', margin: '3px 0 9px' }}>{e.type} · {e.standard} · Partner {e.partner.split(',')[0]} · Manager {e.manager}</div>
               <div className="row gap6 wrap">
                 <span className="ckp-htag">Fase: {e.phase}</span>
                 <span className="ckp-htag" style={{ background: e.risk === 'High' ? 'rgba(255,107,87,.24)' : 'rgba(255,255,255,.14)' }}>Risiko {e.risk}</span>
@@ -266,7 +266,7 @@ function EngagementCockpit() {
                 <div key={l} className="ckp-hstat">
                   <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: c }}>{v}</div>
                   <div className="tiny" style={{ color: '#bcd6e4', fontWeight: 600 }}>{l}</div>
-                  <div className="tiny" style={{ color: '#8fb0c2', fontSize: 10 }}>{sub}</div>
+                  <div className="tiny" style={{ color: '#8fb0c2', fontSize: 11 }}>{sub}</div>
                 </div>
               ))}
             </div>
@@ -331,7 +331,7 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
               <div key={p.phase} className={'ckp-phasecol' + (isActive ? ' on' : '')}>
                 <div className="ckp-phasecol-h">
                   <span style={{ width: 9, height: 9, borderRadius: 3, background: p.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 12.5 }}>{p.phase}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{p.phase}</span>
                   {isActive && <span className="ckp-now">AKTIF</span>}
                   <div style={{ flex: 1 }} />
                   <span className="mono tiny" style={{ fontWeight: 700, color: ckpBar(pp) }}>{pp}%</span>
@@ -340,7 +340,7 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
                   {p.modules.map((m: any) => (
                     <div key={m.id} onClick={() => nav(m.id)} className="ckp-modrow">
                       <div className="row jb ac" style={{ marginBottom: 4 }}>
-                        <span style={{ fontSize: 11.5, fontWeight: 600 }} className="truncate">{m.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{m.label}</span>
                         <span className="mono tiny" style={{ color: ckpBar(m.pct), fontWeight: 700 }}>{m.pct}%</span>
                       </div>
                       <div style={{ height: 4, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: m.pct + '%', height: '100%', borderRadius: 3, background: ckpBar(m.pct) }} /></div>
@@ -368,7 +368,7 @@ function TabRingkasan({ D, e, nav, activity, setTab }: any) {
                 <div key={i} className="ckp-attn" onClick={() => nav(it.route)}>
                   <span className="ckp-attn-ic" style={{ background: (TONE_BG as any)[it.tone], color: (TONE as any)[it.tone] }}><IconC size={15} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-1)' }}>{it.t}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-1)' }}>{it.t}</div>
                     <div className="tiny muted" style={{ marginTop: 1, lineHeight: 1.4 }}>{it.sub}</div>
                   </div>
                   <span className="ckp-attn-go"><I.arrowRight size={15} /></span>
@@ -448,9 +448,9 @@ function TabJalur({ D, e, nav, deadlines, activeClient }: any) {
                   <span className="ckp-ms-dot" style={{ background: (TONE as any)[tone] }}>{m.status === 'done' ? <I.check size={13} /> : m.n}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 700 }}>{m.name}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700 }}>{m.name}</span>
                       <span className="chip tiny" style={{ height: 17, fontFamily: 'var(--mono)' }}>{m.sa}</span>
-                      {overdue && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>LEWAT TARGET</span>}
+                      {overdue && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>LEWAT TARGET</span>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 2 }}>{m.phase} · {m.owner}{m.note ? ' · ' + m.note : ''}</div>
                   </div>
@@ -528,7 +528,7 @@ function TabAnggaran({ D, e }: any) {
                 ['WIP Terpakai (aktual)', rpM(D.wipTot), 'var(--blue)'],
               ].map(([l, v, c]) => (
                 <div key={l} className="ckp-fee">
-                  <div className="mono" style={{ fontSize: 18, fontWeight: 700, color: c }}>{v}</div>
+                  <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: c }}>{v}</div>
                   <div className="tiny muted upper">{l}</div>
                 </div>
               ))}
@@ -604,7 +604,7 @@ function TabTim({ D, nav }: any) {
                   <div className="row ac gap8">
                     <span style={{ fontSize: 13, fontWeight: 700 }}>{m.name}</span>
                     <span className="chip tiny" style={{ height: 17 }}>{m.grade}</span>
-                    {m.util >= 92 && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>OVER-UTILIZED</span>}
+                    {m.util >= 92 && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>OVER-UTILIZED</span>}
                   </div>
                   <div className="tiny muted" style={{ marginBottom: 5 }}>{m.role} · {fmt(m.act)}/{fmt(m.bud)} jam · {m.wpPrep} WP disusun · {m.wpRev} WP direviu · {m.procPrep} prosedur</div>
                   <div className="row ac gap8">
@@ -624,7 +624,7 @@ function TabTim({ D, nav }: any) {
           <div style={{ padding: '10px 14px 14px' }} className="row ac gap12">
             <Donut size={104} thickness={15}
               segments={D.members.map((m: any, i: any) => ({ value: m.act, color: ['#013a52', '#005085', '#1d6fb8', '#0a6b73', '#5b3fa6', '#9a6a00'][i % 6] }))}
-              center={<div><div className="mono" style={{ fontSize: 17, fontWeight: 700 }}>{fmt(D.members.reduce((s: any, m: any) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
+              center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{fmt(D.members.reduce((s: any, m: any) => s + m.act, 0))}</div><div className="tiny muted">jam</div></div>} />
             <div style={{ flex: 1 }}>
               {D.members.map((m: any, i: any) => (
                 <div key={m.name} className="row jb ac" style={{ padding: '3px 0' }}>
@@ -693,9 +693,9 @@ function TabRisiko({ D, e, nav }: any) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="row ac gap6" style={{ flexWrap: 'wrap' }}>
                       <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{r.id}</span>
-                      <span style={{ fontSize: 12.5, fontWeight: 700 }}>{r.area}</span>
-                      {r.fraud && <span className="badge b-amber" style={{ fontSize: 8.5, padding: '0 5px' }}>FRAUD · SA 240</span>}
-                      {r.exc > 0 && <span className="badge b-red" style={{ fontSize: 8.5, padding: '0 5px' }}>{r.exc} EXC</span>}
+                      <span style={{ fontSize: 12, fontWeight: 700 }}>{r.area}</span>
+                      {r.fraud && <span className="badge b-amber" style={{ fontSize: 11, padding: '0 5px' }}>FRAUD · SA 240</span>}
+                      {r.exc > 0 && <span className="badge b-red" style={{ fontSize: 11, padding: '0 5px' }}>{r.exc} EXC</span>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 1, lineHeight: 1.4 }}>{r.response} · WP {r.wp} · {r.owner}</div>
                   </div>
@@ -786,7 +786,7 @@ function CockpitStyles() {
     .ckp-phasecol:last-child { border-right:0; }
     .ckp-phasecol.on { background:var(--blue-050); }
     .ckp-phasecol-h { padding:11px 13px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
-    .ckp-now { font-size:8.5px; font-weight:800; letter-spacing:.06em; color:#fff; background:var(--blue-solid); padding:1px 6px; border-radius:9px; }
+    .ckp-now { font-size:11px; font-weight:800; letter-spacing:.06em; color:#fff; background:var(--blue-solid); padding:1px 6px; border-radius:9px; }
     .ckp-modrow { padding:7px 8px; border-radius:6px; cursor:pointer; margin-bottom:1px; }
     .ckp-modrow:hover { background:var(--surface-2); }
 
@@ -804,9 +804,9 @@ function CockpitStyles() {
     .ckp-rail-line { position:absolute; left:0; right:0; top:14px; height:3px; border-radius:3px; background:var(--surface-3); }
     .ckp-rail-fill { position:absolute; left:0; top:14px; height:3px; border-radius:3px; background:var(--blue-solid); }
     .ckp-node { position:absolute; top:5px; transform:translateX(-50%); }
-    .ckp-dot { width:22px; height:22px; border-radius:50%; color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center; border:2px solid var(--surface); }
+    .ckp-dot { width:22px; height:22px; border-radius:50%; color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; border:2px solid var(--surface); }
     .ckp-today { position:absolute; top:-20px; transform:translateX(-50%); }
-    .ckp-today span { font-size:8.5px; font-weight:800; letter-spacing:.06em; color:var(--blue); background:var(--blue-050); padding:1px 6px; border-radius:8px; border:1px solid var(--blue-100); white-space:nowrap; }
+    .ckp-today span { font-size:11px; font-weight:800; letter-spacing:.06em; color:var(--blue); background:var(--blue-050); padding:1px 6px; border-radius:8px; border:1px solid var(--blue-100); white-space:nowrap; }
     .ckp-today::after { content:''; position:absolute; left:50%; top:16px; transform:translateX(-50%); width:2px; height:18px; background:var(--blue-solid); }
 
     .ckp-ms { display:flex; gap:12px; align-items:flex-start; padding:9px 10px; border-radius:8px; }
@@ -834,7 +834,7 @@ function CockpitStyles() {
     .ckp-notes { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
     .ckp-notecol { padding:12px 14px; border-right:1px solid var(--line); }
     .ckp-notecol:last-child { border-right:0; }
-    .ckp-notecol-h { font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:7px; margin-bottom:10px; }
+    .ckp-notecol-h { font-size:12px; font-weight:700; display:flex; align-items:center; gap:7px; margin-bottom:10px; }
     .ckp-note { background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 11px; margin-bottom:8px; cursor:pointer; transition:.12s; }
     .ckp-note:hover { border-color:var(--blue-400); box-shadow:var(--shadow-sm); }
 

@@ -113,7 +113,7 @@ function ECLCalculator() {
                 <div className="panel" style={{ padding: '11px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
                   <div className="row gap8">
                     <span style={{ color: 'var(--amber)' }}><I.alert size={16} /></span>
-                    <div style={{ fontSize: 12.5, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                       CKPN klien <b>{rp(booked)}</b> lebih rendah <b>{rp(Math.abs(diff))}</b> dari model ECL. Diusulkan
                       <b> AJE-02</b> untuk menambah cadangan sesuai PSAK 71.
                     </div>
@@ -125,7 +125,7 @@ function ECLCalculator() {
                 </div>
                 <div onClick={() => nav('psak46', { from: 'ecl' })} className="row ac jb" style={{ marginTop: 10, padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--green)', background: 'var(--surface)', cursor: 'pointer' }}>
                   <div>
-                    <div style={{ fontSize: 11.5, fontWeight: 600 }}>Dampak pajak tangguhan (PSAK 46)</div>
+                    <div style={{ fontSize: 12, fontWeight: 600 }}>Dampak pajak tangguhan (PSAK 46)</div>
                     <div className="tiny muted">CKPN Rp {fmt(AMS_CANON.FIG.ckpn)} jt × 22% — belum deductible fiskal</div>
                   </div>
                   <span className="mono" style={{ fontWeight: 700, color: 'var(--green)', whiteSpace: 'nowrap' }}>DTA Rp {fmt(Math.round(AMS_CANON.FIG.ckpn * AMS_CANON.RATE))} jt <I.arrowRight size={12} /></span>

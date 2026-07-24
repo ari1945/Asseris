@@ -93,7 +93,7 @@ function ArchiveDrawer({ box, onClose, nav, canArchive, onArchived }: any) {
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: 'var(--blue-050)', color: 'var(--blue)' }}><I.archive size={18} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{box.client}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{box.client}</div>
           <div className="row ac gap8" style={{ marginTop: 4 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{box.id}</span>
             <span className="badge b-gray" style={{ textTransform: 'none' }}>{box.engId} · {box.fy}</span>
@@ -271,7 +271,7 @@ function RROverview({ boxes, nav, onPick }: any) {
               boxes.forEach((b: any) => { const j = R.classById(b.classId).jenis; (by as any)[j] = ((by as any)[j] || 0) + 1; });
               const cols = ['#005085', '#1f7a4d', '#9a6a00', '#5b3fa6', '#0a6b73'];
               return Object.keys(by).map((k, i) => ({ value: (by as any)[k], color: cols[i % cols.length] }));
-            })()} center={<div><div className="mono" style={{ fontSize: 16, fontWeight: 800 }}>{boxes.length}</div><div className="tiny muted">kotak</div></div>} />
+            })()} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 800 }}>{boxes.length}</div><div className="tiny muted">kotak</div></div>} />
             <div style={{ flex: 1 }}>
               <KV label="Total arsip terkelola" v={boxes.length + ' kotak · ' + R.metrics().sizeGB.toFixed(1) + ' GB'} />
               <div style={{ height: 8 }} />
@@ -435,7 +435,7 @@ function RecordsRetention() {
                 {boxes.map((b: any) => (
                   <tr key={b.id} onClick={() => onPick(b)} style={{ cursor: 'pointer' }} className={b.id === selId ? 'sel' : ''}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{b.id}</td>
-                    <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{b.client}</div><div className="tiny muted mono">{b.engId}</div></td>
+                    <td><div style={{ fontWeight: 600, fontSize: 12 }}>{b.client}</div><div className="tiny muted mono">{b.engId}</div></td>
                     <td className="tiny mono">{b.fy}</td>
                     <td>{b.source === 'DMS' ? <span className="chip tiny" style={{ color: 'var(--blue)' }}><I.archive size={10} /> DMS</span> : <span className="chip tiny muted">Legacy</span>}</td>
                     <td className="num mono tiny">{b.docCount}</td>
@@ -459,7 +459,7 @@ function RecordsRetention() {
                 <tbody>
                   {R.RETENTION_CLASSES.map((c: any) => (
                     <tr key={c.id}>
-                      <td style={{ fontWeight: 600, fontSize: 11.5 }}>{c.jenis}{c.types.length ? <div className="tiny muted">DMS: {c.types.join(', ')}</div> : null}</td>
+                      <td style={{ fontWeight: 600, fontSize: 12 }}>{c.jenis}{c.types.length ? <div className="tiny muted">DMS: {c.types.join(', ')}</div> : null}</td>
                       <td className="tiny muted">{c.dasar}</td>
                       <td className="num"><span className="mono" style={{ fontWeight: 700 }}>{c.years} thn</span></td>
                       <td className="tiny">{c.format}</td>
@@ -482,7 +482,7 @@ function RecordsRetention() {
                     <div className="row jb ac" style={{ marginBottom: 6 }}>
                       <div className="row ac gap8">
                         <span className="mono tiny" style={{ fontWeight: 700, color: h.status === 'Aktif' ? 'var(--red)' : 'var(--ink-3)' }}>{h.id}</span>
-                        <span style={{ fontWeight: 700, fontSize: 12.5 }}>{h.subject}</span>
+                        <span style={{ fontWeight: 700, fontSize: 12 }}>{h.subject}</span>
                         <span className="badge b-gray" style={{ textTransform: 'none' }}>{h.engId} · FY{h.fy}</span>
                         {h.status === 'Aktif' ? <span className="badge b-red">Aktif</span> : <span className="badge b-gray">Dicabut {rrDID(h.releasedOn, { month: 'short', year: 'numeric' })}</span>}
                       </div>
@@ -512,7 +512,7 @@ function RecordsRetention() {
                   {queue.map((b: any) => (
                     <tr key={b.id}>
                       <td className="mono tiny" style={{ fontWeight: 700 }}>{b.id}</td>
-                      <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{b.client}</div><div className="tiny muted mono">{b.engId} · {b.fy}</div></td>
+                      <td><div style={{ fontWeight: 600, fontSize: 12 }}>{b.client}</div><div className="tiny muted mono">{b.engId} · {b.fy}</div></td>
                       <td className="tiny mono" style={{ color: 'var(--amber)' }}>{rrDID(b.retentionUntil)}</td>
                       <td className="num mono tiny">{rrSize(b.sizeMB)}</td>
                       <td>{b.hold ? <span className="badge b-red"><I.lock size={9} /> Ditahan</span> : <span className="badge b-green">Bebas</span>}</td>

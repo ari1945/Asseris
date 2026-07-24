@@ -26,7 +26,7 @@ function AssetRegisterTable({ reg, sc, fmt }: any) {
         <span className="tiny muted">sumber: register-aset-tetap.xlsx</span>
       </div>
       <div style={{ padding: '4px 14px 12px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 4px' }}>Tag</th>
@@ -72,12 +72,12 @@ function SubLedgerRecon({ reg, sc, nav }: any) {
       <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
         <div><div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)' }}>Rekonsiliasi Sub-ledger ↔ GL</div><div className="tiny muted">Register foot ke akun kontrol WTB</div></div>
         <div style={{ textAlign: 'right' }}>
-          <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: reg.reconciled ? 'var(--green)' : 'var(--red)' }}>{reg.reconciled ? 'MENUTUP' : 'SELISIH'}</div>
+          <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: reg.reconciled ? 'var(--green)' : 'var(--red)' }}>{reg.reconciled ? 'MENUTUP' : 'SELISIH'}</div>
           <div className="tiny muted">gerbang posting</div>
         </div>
       </div>
       <div style={{ padding: '6px 13px 12px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ color: 'var(--ink-4)', textAlign: 'right' }}>
               <th style={{ textAlign: 'left', fontWeight: 600, padding: '6px 2px' }}>Total kontrol</th>
@@ -162,7 +162,7 @@ function ImportMappingPanel({ reg, fmt, nav }: any) {
         <div>
           <div className="tiny upper muted" style={{ fontWeight: 700, letterSpacing: '.04em', marginBottom: 6 }}>Pemetaan Kolom → Field Aplikasi</div>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ color: 'var(--ink-4)', textAlign: 'left' }}>
                   <th style={{ fontWeight: 600, padding: '5px 6px' }}>Kol</th>
@@ -200,13 +200,13 @@ function ImportMappingPanel({ reg, fmt, nav }: any) {
             {checks.map((c, i) => (
               <div key={i} className="row ac gap8" style={{ padding: '6px 0', borderTop: i ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ color: c.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', display: 'grid', placeItems: 'center' }}>{c.ok ? <I.checkCircle size={14} /> : <I.alert size={14} />}</span>
-                <span style={{ fontSize: 11.5, flex: 1, lineHeight: 1.3 }}>{c.t}</span>
+                <span style={{ fontSize: 12, flex: 1, lineHeight: 1.3 }}>{c.t}</span>
                 <span className="mono tiny" style={{ color: 'var(--ink-4)' }}>{c.n}</span>
               </div>
             ))}
           </div>
           <div className="row ac jb" style={{ marginTop: 9, padding: '8px 10px', borderRadius: 7, background: reg.reconciled ? 'var(--green-bg)' : 'var(--amber-bg)' }}>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: reg.reconciled ? 'var(--green)' : 'var(--amber)' }}>{reg.reconciled ? 'Lolos — siap di-posting ke kertas kerja' : 'Tertahan — selisih kontrol harus ditelusuri'}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: reg.reconciled ? 'var(--green)' : 'var(--amber)' }}>{reg.reconciled ? 'Lolos — siap di-posting ke kertas kerja' : 'Tertahan — selisih kontrol harus ditelusuri'}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>gerbang control-total</span>
           </div>
         </div>

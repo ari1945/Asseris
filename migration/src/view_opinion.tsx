@@ -216,10 +216,10 @@ function AuditOpinionGen() {
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: con.severe ? 'var(--red)' : 'var(--amber)', marginTop: 1 }}><I.alert size={16} /></span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 3 }}>
+                  <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 3 }}>
                     Konsistensi opini SA 705 — {con.count} hal perlu ditinjau
                   </div>
-                  <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+                  <ul style={{ margin: '2px 0 0', paddingLeft: 16, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
                     {con.issues.map((iss) => (
                       <li key={iss.code} style={iss.severe ? { color: 'var(--ink)' } : undefined}>{iss.text}</li>
                     ))}
@@ -296,7 +296,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
             {Object.entries(O.OPINIONS).map(([k, v]: [any, any]) => (
               <label key={k} className="row ac gap8" style={{ padding: '8px 10px', borderRadius: 7, cursor: 'pointer', border: '1px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line)'), background: doc.type === k ? 'var(--blue-050)' : '#fff' }} onClick={() => patch({ type: k })}>
                 <span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (doc.type === k ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{doc.type === k && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue-solid)' }} />}</span>
-                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }}>{v.title}</span>
+                <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{v.title}</span>
                 <Badge kind={v.k}>{v.short}</Badge>
               </label>
             ))}
@@ -366,11 +366,11 @@ function ReportBuilder({ doc, patch, client, O }: any) {
           <Badge kind={o.k}>{o.title}</Badge>
         </div>
         <div style={{ background: '#e7eaef', padding: 20, maxHeight: 'calc(100vh - 240px)', overflow: 'auto' }}>
-          <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '46px 52px', boxShadow: 'var(--shadow)', fontSize: 12.5, lineHeight: 1.7, color: '#1a2730', position: 'relative' }}>
+          <div className="doc-paper" style={{ background: '#fff', maxWidth: 660, margin: '0 auto', padding: '46px 52px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#1a2730', position: 'relative' }}>
             {doc.finalized && <div style={{ position: 'absolute', top: 40, right: 30, border: '2.5px solid var(--green)', color: 'var(--green)', padding: '4px 12px', borderRadius: 6, fontWeight: 800, fontSize: 12, letterSpacing: '.1em', transform: 'rotate(8deg)', opacity: 0.85 }}>DITERBITKAN</div>}
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '.04em' }}>LAPORAN AUDITOR INDEPENDEN</div>
-              <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', marginTop: 4 }}>No. 142/WHR-CPA/AR/III/2026</div>
+              <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '.04em' }}>LAPORAN AUDITOR INDEPENDEN</div>
+              <div className="mono" style={{ fontSize: 11, color: '#7a8893', marginTop: 4 }}>No. 142/WHR-CPA/AR/III/2026</div>
             </div>
 
             <p style={{ margin: '0 0 4px' }}>Kepada Yth.</p>
@@ -403,7 +403,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
                   <p style={{ margin: '0 0 4px', fontWeight: 700 }}>{i + 1}. {k.title}</p>
                   {k.why && <p style={{ margin: '0 0 4px', textAlign: 'justify' }}>{k.why}{k.fsRef ? ` (Rujukan: ${k.fsRef}.)` : ''}</p>}
                   {k.how && <p style={{ margin: 0, textAlign: 'justify' }}><i style={{ color: '#5a6770' }}>Penanganan audit — </i>{k.how}</p>}
-                  {k.wpRef && <p className="mono" style={{ margin: '3px 0 0', fontSize: 10, color: '#9aa6ae' }}>Ref. KKP: {k.wpRef}</p>}
+                  {k.wpRef && <p className="mono" style={{ margin: '3px 0 0', fontSize: 11, color: '#9aa6ae' }}>Ref. KKP: {k.wpRef}</p>}
                 </div>
               ))}
             </>}

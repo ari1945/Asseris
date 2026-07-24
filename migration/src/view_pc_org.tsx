@@ -54,7 +54,7 @@ function OrgChart() {
           <Avatar name={s.name} size={34} />
           <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.15 }}>{s.name}</div>
           <div className="tiny muted" style={{ lineHeight: 1.1 }}>{s.role}</div>
-          <span className="badge" style={{ background: GC[s.grade] + '1a', color: GC[s.grade], fontSize: 9.5, padding: '0 6px' }}>{s.grade}</span>
+          <span className="badge" style={{ background: GC[s.grade] + '1a', color: GC[s.grade], fontSize: 11, padding: '0 6px' }}>{s.grade}</span>
           {kids.length > 0 && <span className="tiny" style={{ color: 'var(--ink-4)' }}>{kids.length} bawahan langsung</span>}
         </span>
         {kids.length > 0 && <ul>{kids.map((k: any) => <Node key={k.id} s={k} />)}</ul>}
@@ -158,7 +158,7 @@ function OrgChart() {
             <Panel noBody>
               <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '16px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
                 <Avatar name={person.name} size={44} />
-                <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
+                <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{person.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{person.role}</div></div>
               </div>
               <div style={{ padding: 14 }}>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
@@ -255,7 +255,7 @@ function SuccessionPlanning() {
                     const hasReady = r.successors.some((s: any) => s.readiness === 'Siap sekarang');
                     return (
                       <tr key={r.id} className={r.id === sel ? 'sel' : ''} onClick={() => setSel(r.id)} style={{ cursor: 'pointer' }}>
-                        <td><div style={{ fontWeight: 600, fontSize: 12.5 }}>{r.role}</div><div className="tiny muted">{r.critical} · dampak {r.vacancyImpact.toLowerCase()}</div></td>
+                        <td><div style={{ fontWeight: 600, fontSize: 12 }}>{r.role}</div><div className="tiny muted">{r.critical} · dampak {r.vacancyImpact.toLowerCase()}</div></td>
                         <td><div className="row ac gap6"><Avatar name={ic.name} size={22} /><span className="tiny truncate" style={{ maxWidth: 90 }}>{ic.name}</span></div></td>
                         <td><Badge kind={r.riskOfLoss === 'Rendah' ? 'green' : r.riskOfLoss === 'Sedang' ? 'amber' : 'red'}>{r.riskOfLoss}</Badge></td>
                         <td className="num">{r.successors.length ? <span style={{ color: hasReady ? 'var(--green)' : 'var(--amber)', fontWeight: 700 }}>{r.successors.length}</span> : <Badge kind="red">0</Badge>}</td>
@@ -267,10 +267,10 @@ function SuccessionPlanning() {
 
               <div style={{ padding: 14 }}>
                 <div className="tiny muted upper" style={{ marginBottom: 4 }}>Peran</div>
-                <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 2 }}>{role.role}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{role.role}</div>
                 <div className="row ac gap8" style={{ marginBottom: 12 }}>
                   <Avatar name={inc.name} size={30} />
-                  <div><div style={{ fontWeight: 600, fontSize: 12.5 }}>{inc.name}</div><div className="tiny muted">Pemangku saat ini · {inc.role}</div></div>
+                  <div><div style={{ fontWeight: 600, fontSize: 12 }}>{inc.name}</div><div className="tiny muted">Pemangku saat ini · {inc.role}</div></div>
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
                   <KvBox label="Kritikalitas" v={role.critical} />
@@ -284,7 +284,7 @@ function SuccessionPlanning() {
                       <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}>
                         <div className="row ac jb" style={{ marginBottom: 4 }}>
                           <div className="row ac gap8"><Avatar name={p.name} size={26} /><div><div style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</div><div className="tiny muted">{p.role}</div></div></div>
-                          <span className="badge" style={{ background: 'transparent', color: RC[s.readiness] || 'var(--ink-3)', border: '1px solid currentColor', fontSize: 10 }}>{s.readiness}</span>
+                          <span className="badge" style={{ background: 'transparent', color: RC[s.readiness] || 'var(--ink-3)', border: '1px solid currentColor', fontSize: 11 }}>{s.readiness}</span>
                         </div>
                         <div className="tiny muted">Gap: {s.gaps}</div>
                       </div>

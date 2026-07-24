@@ -142,7 +142,7 @@ function Review2400() {
       <div className="view-scroll"><div className="view-pad">
         <div className="panel" style={{ padding: '15px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: '#0a6b73', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>R</span>
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{R.client}</div><div className="tiny muted">{R.id} · Reviu {R.fy} · Kerangka {R.framework} · Reviu memberikan keyakinan terbatas (bukan audit)</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{R.client}</div><div className="tiny muted">{R.id} · Reviu {R.fy} · Kerangka {R.framework} · Reviu memberikan keyakinan terbatas (bukan audit)</div></div>
           <div className="row gap8">
             <div style={{ textAlign: 'right' }}><div className="tiny muted">Anomali Analitis</div><div className="mono" style={{ fontWeight: 700, color: flagged ? 'var(--amber)' : 'var(--green)' }}>{flagged}</div></div>
             <div style={{ textAlign: 'right' }}><div className="tiny muted">Inquiry Selesai</div><div className="mono" style={{ fontWeight: 700 }}>{inqDone}/{inq.length}</div></div>
@@ -157,8 +157,8 @@ function Review2400() {
             return (
               <div style={{ padding: 16 }}>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Reviu</div><div className="mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(P.materiality / 1e6, 0)} jt</div><div className="tiny muted">{P.benchmark}</div></div>
-                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Pelaksanaan</div><div className="mono" style={{ fontSize: 16, fontWeight: 700 }}>Rp {fmt(P.pm / 1e6, 0)} jt</div><div className="tiny muted">75% dari materialitas</div></div>
+                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Reviu</div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Rp {fmt(P.materiality / 1e6, 0)} jt</div><div className="tiny muted">{P.benchmark}</div></div>
+                  <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Materialitas Pelaksanaan</div><div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>Rp {fmt(P.pm / 1e6, 0)} jt</div><div className="tiny muted">75% dari materialitas</div></div>
                   <div className="panel" style={{ padding: 12 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Sifat Perikatan</div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--teal)' }}>Keyakinan Terbatas</div><div className="tiny muted">inquiry & analitis</div></div>
                 </div>
                 <div className="tiny muted upper" style={{ marginBottom: 8 }}>Area Fokus & Pendekatan Reviu</div>
@@ -201,7 +201,7 @@ function Review2400() {
               {inq.map((x: any, i: any) => (
                 <div key={i} className="panel" style={{ padding: 12, boxShadow: 'none', borderLeft: '3px solid ' + (x.done ? 'var(--green)' : 'var(--line-strong)') }}>
                   <div className="row jb ac" style={{ marginBottom: 6 }}>
-                    <span className="row ac gap8"><span onClick={() => toggleInq(i)} style={{ cursor: 'pointer', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center', background: x.done ? 'var(--green)' : 'var(--surface-3)', color: '#fff', flex: '0 0 18px' }}>{x.done && <I.check size={11} />}</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{x.q}</span></span>
+                    <span className="row ac gap8"><span onClick={() => toggleInq(i)} style={{ cursor: 'pointer', width: 18, height: 18, borderRadius: 5, display: 'grid', placeItems: 'center', background: x.done ? 'var(--green)' : 'var(--surface-3)', color: '#fff', flex: '0 0 18px' }}>{x.done && <I.check size={11} />}</span><span style={{ fontSize: 12, fontWeight: 600 }}>{x.q}</span></span>
                   </div>
                   <input className="input" value={x.resp} onChange={(e: any) => setResp(i, e.target.value)} placeholder="Catat respons manajemen / hasil prosedur analitis…" style={{ width: '100%' }} />
                 </div>
@@ -217,14 +217,14 @@ function Review2400() {
                   <div style={{ display: 'grid', gap: 7 }}>
                     {Object.keys(REV_CONCL).map(k => (
                       <div key={k} onClick={() => setConcl(k)} className="panel" style={{ padding: '10px 12px', cursor: 'pointer', boxShadow: 'none', borderColor: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + ')' : 'var(--line)', borderWidth: concl === k ? 2 : 1, background: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + '-bg)' : 'transparent' }}>
-                        <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--' + (REV_CONCL as any)[k].k + ')', background: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + ')' : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{(REV_CONCL as any)[k].l}</span></div>
+                        <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--' + (REV_CONCL as any)[k].k + ')', background: concl === k ? 'var(--' + (REV_CONCL as any)[k].k + ')' : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12, fontWeight: 600 }}>{(REV_CONCL as any)[k].l}</span></div>
                       </div>
                     ))}
                   </div>
                   {!ready && <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="tiny" style={{ fontWeight: 600 }}><I.alert size={12} /> {inq.length - inqDone} inquiry belum selesai — lengkapi sebelum menerbitkan laporan reviu.</div></div>}
                 </div>
 
-                <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+                <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
                   <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN REVIU AUDITOR INDEPENDEN</div>
                   <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Berdasarkan Standar Perikatan Reviu (SPR) 2400</div>
                   <p style={{ margin: '0 0 10px' }}>Kepada Direksi {R.client}</p>

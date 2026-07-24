@@ -229,7 +229,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
         <Panel noBody>
           <div className="panel-h"><h3>Strategi Perolehan & Evaluasi Bukti</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 · SA 330</span></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
               Tim merancang prosedur audit lanjutan yang responsif terhadap risiko salah saji material yang dinilai (SA 330),
               guna memperoleh <b>bukti audit yang cukup dan tepat</b> sebagai dasar kesimpulan opini. Setiap area lead schedule
               dievaluasi atas dua dimensi — kecukupan (kuantitas) dan ketepatan (kualitas: relevansi & keandalan) — serta
@@ -277,7 +277,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
           <div style={{ padding: '14px 16px', background: `var(--${verdict.k}-bg)`, borderBottom: '1px solid var(--line)' }}>
             <div className="row ac gap8" style={{ marginBottom: 6 }}>
               <span style={{ color: `var(--${verdict.k})` }}>{verdict.k === 'green' ? <I.checkCircle size={18} /> : <I.alert size={18} />}</span>
-              <span style={{ fontWeight: 800, fontSize: 14, color: `var(--${verdict.k})` }}>{verdict.label}</span>
+              <span style={{ fontWeight: 800, fontSize: 15, color: `var(--${verdict.k})` }}>{verdict.label}</span>
             </div>
             <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>{verdict.t}</div>
           </div>
@@ -288,7 +288,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
         </Panel>
 
         <Panel title="Pernyataan Standar" sub="SA 500 ¶6">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             "Auditor harus merancang dan melaksanakan prosedur audit yang tepat sesuai dengan kondisi untuk memperoleh
             bukti audit yang cukup dan tepat." Cukup ≠ banyak; bukti berkualitas tinggi dari sumber andal menurunkan
             kuantitas yang dibutuhkan untuk tingkat keyakinan yang sama.
@@ -391,7 +391,7 @@ function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
               <div style={{ display: 'flex', gap: 2, flex: '0 0 auto' }}>
                 {[1, 2, 3, 4, 5].map(n => <span key={n} style={{ width: 6, height: 14, borderRadius: 1, background: n <= r ? (r >= 4 ? 'var(--green)' : r >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-3)' }} />)}
               </div>
-              <span style={{ fontSize: 11.5, lineHeight: 1.35 }}>{t}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.35 }}>{t}</span>
             </div>
           ))}
         </div>
@@ -420,7 +420,7 @@ function EvAssertions({ items, cycleAsr, coverage, covered, relevant }: any) {
               <tr>
                 <th style={{ textAlign: 'left', fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, padding: '0 6px' }}>Area</th>
                 {EV_ASR.map(({ k, full }) => (
-                  <th key={k} title={full} style={{ width: 64, fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, padding: 2 }}>{k}<div className="tiny muted" style={{ fontWeight: 500, fontSize: 9 }}>{full.split(' / ')[0]}</div></th>
+                  <th key={k} title={full} style={{ width: 64, fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, padding: 2 }}>{k}<div className="tiny muted" style={{ fontWeight: 500, fontSize: 11 }}>{full.split(' / ')[0]}</div></th>
                 ))}
                 <th style={{ width: 70, fontSize: 11, color: 'var(--ink-3)', fontWeight: 700 }}>Rata²</th>
               </tr>
@@ -504,7 +504,7 @@ function EvProcedures({ items }: any) {
         </Panel>
 
         <div className="panel" style={{ padding: '15px 18px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-          <div className="row ac gap8" style={{ marginBottom: 4 }}><span style={{ color: 'var(--amber)' }}><I.alert size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Peringatan: permintaan keterangan tidak cukup sendiri (¶A2)</span></div>
+          <div className="row ac gap8" style={{ marginBottom: 4 }}><span style={{ color: 'var(--amber)' }}><I.alert size={16} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Peringatan: permintaan keterangan tidak cukup sendiri (¶A2)</span></div>
           <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>
             Permintaan keterangan digunakan pada {inquiryAreas.length} area ({inquiryAreas.map((a: any) => a.wp).join(', ')}). Pada area tersebut bukti
             harus dikuatkan prosedur korroboratif (inspeksi, konfirmasi, atau re-perform) — bukan diandalkan sebagai bukti tunggal.
@@ -524,7 +524,7 @@ function EvProcedures({ items }: any) {
           </div>
         </Panel>
         <Panel title="Faktor Keandalan Bukti" sub="¶A31">
-          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             <li>Independensi sumber dari entitas</li>
             <li>Efektivitas pengendalian internal atas bukti internal</li>
             <li>Diperoleh langsung oleh auditor vs. tidak langsung</li>
@@ -606,7 +606,7 @@ function EvConsistency({ openContra }: any) {
 
       {openContra > 0 && (
         <div className="panel" style={{ padding: '15px 18px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
-          <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{openContra} kontradiksi bukti belum terselesaikan — SA 500 ¶11 mewajibkan auditor menentukan modifikasi/penambahan prosedur untuk menyelesaikan inkonsistensi sebelum menyimpulkan.</span></div>
+          <div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={17} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>{openContra} kontradiksi bukti belum terselesaikan — SA 500 ¶11 mewajibkan auditor menentukan modifikasi/penambahan prosedur untuk menyelesaikan inkonsistensi sebelum menyimpulkan.</span></div>
         </div>
       )}
 
@@ -666,7 +666,7 @@ function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: 
               <span style={{ color: `var(--${verdict.k})` }}>{verdict.k === 'green' ? <I.checkCircle size={18} /> : <I.alert size={18} />}</span>
               <span style={{ fontWeight: 800, fontSize: 15, color: `var(--${verdict.k})` }}>Simpulan Keseluruhan: {verdict.label}</span>
             </div>
-            <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>{verdict.t}</div>
+            <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>{verdict.t}</div>
           </div>
           <div style={{ padding: 14 }}>
             <p style={{ margin: '0 0 10px', fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
@@ -703,7 +703,7 @@ function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: 
           ))}
         </Panel>
         <Panel title="Referensi Standar">
-          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, lineHeight: 1.7, color: 'var(--ink-2)' }}>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, lineHeight: 1.7, color: 'var(--ink-2)' }}>
             <li><b>SA 500</b> — Bukti Audit</li>
             <li><b>SA 330</b> — Respons terhadap Risiko</li>
             <li><b>SA 501</b> — Bukti Audit Spesifik</li>

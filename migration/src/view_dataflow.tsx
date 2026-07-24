@@ -38,7 +38,7 @@ function AIIntakeLog() {
       {log.length === 0 ? (
         <div className="panel" style={{ padding: '20px 16px', textAlign: 'center', borderStyle: 'dashed', background: 'var(--surface-2)' }}>
           <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', margin: '0 auto 9px' }}><I.upload size={19} /></div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3 }}>Belum ada bukti diunggah</div>
+          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 3 }}>Belum ada bukti diunggah</div>
           <div className="tiny muted" style={{ maxWidth: 360, margin: '0 auto 11px', lineHeight: 1.5 }}>Unggah neraca saldo, kontrak, konfirmasi, atau daftar aset lewat AI Co-pilot — AI akan mengklasifikasi & menyimpannya ke modul yang sesuai.</div>
           <Btn sm variant="primary" onClick={openCopilot}><I.sparkle size={13} /> Buka AI Co-pilot</Btn>
         </div>
@@ -55,7 +55,7 @@ function AIIntakeLog() {
                 onMouseLeave={(e: any) => { e.currentTarget.style.borderColor = 'var(--line)'; }}>
                 <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 28px' }}><FI size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{d.file}</div>
+                  <div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{d.file}</div>
                   <div className="tiny muted">{d.type}{d.when ? ' · ' + d.when : ''}</div>
                 </div>
                 <span className="chip tiny" style={{ background: 'var(--blue-050)', color: 'var(--blue)', flex: '0 0 auto' }}><DI size={11} /> {m.label}</span>
@@ -138,7 +138,7 @@ function DataFlow() {
         {checks.map((c: any, i: any) => (
           <div key={i} onClick={c.route ? () => nav(c.route) : undefined} className="row ac gap8" style={{ padding: '7px 8px', borderRadius: 6, cursor: c.route ? 'pointer' : 'default' }}>
             <span style={{ color: 'var(--' + (DF_KIND as any)[c.s] + ')', flex: '0 0 16px' }}>{React.createElement((I as any)[(DF_ICON as any)[c.s]] || I.panel, { size: 15 })}</span>
-            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, lineHeight: 1.3 }}>{c.k}</div><div className="tiny muted truncate">{c.d}</div></div>
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}>{c.k}</div><div className="tiny muted truncate">{c.d}</div></div>
             {c.route && <I.chevron size={12} style={{ color: 'var(--ink-4)', flex: '0 0 12px' }} />}
           </div>
         ))}

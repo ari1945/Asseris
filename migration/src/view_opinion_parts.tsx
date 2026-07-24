@@ -83,7 +83,7 @@ const kindVar = (k: any) => k === 'green' ? 'var(--green)' : k === 'amber' ? 'va
 const kindBg = (k: any) => k === 'green' ? 'var(--green-bg)' : k === 'amber' ? 'var(--amber-bg)' : k === 'red' ? 'var(--red-bg)' : 'var(--blue-100)';
 
 function DocH({ children }: any) {
-  return <div style={{ fontWeight: 800, fontSize: 12.5, margin: '0 0 6px' }}>{children}</div>;
+  return <div style={{ fontWeight: 800, fontSize: 12, margin: '0 0 6px' }}>{children}</div>;
 }
 
 /* ============================================================
@@ -207,7 +207,7 @@ function DeterminationPanel({ doc, patch }: any) {
           <Field label="3 · Kelangsungan usaha (SA 570)">
             <div className="seg" style={{ width: '100%' }}>
               {[['none', 'Tdk Ada'], ['adequate', 'Layak'], ['mu', 'KU Material'], ['inadequate', 'Tdk Layak']].map(([v, l]) =>
-                <button key={v} className={doc.gcStatus === v ? 'on' : ''} style={{ flex: 1, fontSize: 10.5 }} onClick={() => patch({ gcStatus: v, opts: { ...doc.opts, gc: v === 'mu' } })}>{l}</button>)}
+                <button key={v} className={doc.gcStatus === v ? 'on' : ''} style={{ flex: 1, fontSize: 11 }} onClick={() => patch({ gcStatus: v, opts: { ...doc.opts, gc: v === 'mu' } })}>{l}</button>)}
             </div>
             <div className="tiny muted" style={{ marginTop: 6 }}>{({
               none: 'Tidak terdapat peristiwa/kondisi yang meragukan kelangsungan usaha.',
@@ -222,7 +222,7 @@ function DeterminationPanel({ doc, patch }: any) {
           <div style={{ padding: '13px 15px', background: kindBg(recO.k) }}>
             <div className="tiny upper" style={{ color: kindVar(recO.k), fontWeight: 700 }}>Rekomendasi Sistem</div>
             <div className="row ac jb" style={{ marginTop: 4 }}>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{recO.title}</div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{recO.title}</div>
               <Badge kind={recO.k}>{recO.short}</Badge>
             </div>
           </div>
@@ -246,7 +246,7 @@ function DeterminationPanel({ doc, patch }: any) {
 function ThreshCard({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderColor: 'transparent' }}>
-      <div className="tiny muted upper" style={{ fontSize: 9.5 }}>{label}</div>
+      <div className="tiny muted upper" style={{ fontSize: 11 }}>{label}</div>
       <div className="mono" style={{ fontWeight: 700, fontSize: 13, marginTop: 3, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
@@ -415,7 +415,7 @@ function KAMWorkshop({ doc, patch }: any) {
             <div key={k.id} className="panel" style={{ padding: 0, overflow: 'hidden' }}>
               <div className="row ac gap8" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderBottom: open === k.id ? '1px solid var(--line)' : 0, opacity: k.include === false ? 0.55 : 1 }}>
                 <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{i + 1}</span>
-                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }} className="truncate">{k.title}</span>
+                <span style={{ flex: 1, fontSize: 12, fontWeight: 600 }} className="truncate">{k.title}</span>
                 {k.include === false && <span className="chip tiny" style={{ background: 'var(--surface-3)', color: 'var(--ink-3)' }}>Tak di laporan</span>}
                 {k.risk && <span className="chip tiny" style={{ background: 'var(--blue-100)', color: 'var(--blue)' }}><I.shield size={10} /> {k.risk}</span>}
                 <button className="p-act" onClick={() => update(k.id, { include: k.include === false })} title={k.include === false ? 'Sertakan di laporan' : 'Kecualikan dari laporan'} style={{ color: k.include === false ? 'var(--ink-4)' : 'var(--teal)' }}><I.checkCircle size={13} /></button>
@@ -442,7 +442,7 @@ function KAMWorkshop({ doc, patch }: any) {
                     <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: k.include !== false ? 'var(--teal)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
                       <span style={{ position: 'absolute', top: 2, left: k.include !== false ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
                     </span>
-                    <span style={{ fontSize: 11.5, fontWeight: 600 }}>Sertakan KAM ini pada bagian laporan auditor</span>
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>Sertakan KAM ini pada bagian laporan auditor</span>
                   </label>
                 </div>
               )}
@@ -577,7 +577,7 @@ function OpinionSignoff({ doc, patch }: any) {
                   <div className="row ac jb">
                     <div className="row ac gap8">
                       <span style={{ width: 24, height: 24, borderRadius: '50%', background: done ? 'var(--green)' : 'var(--surface-3)', color: done ? '#fff' : 'var(--ink-3)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 11 }}>{done ? <I.check size={13} /> : i + 1}</span>
-                      <div><div style={{ fontSize: 12.5, fontWeight: 700 }}>{r.label}{optional && <span className="muted" style={{ fontWeight: 400 }}> · opsional</span>}</div>
+                      <div><div style={{ fontSize: 12, fontWeight: 700 }}>{r.label}{optional && <span className="muted" style={{ fontWeight: 400 }}> · opsional</span>}</div>
                         <div className="tiny muted">{r.who} · {r.sub}</div></div>
                     </div>
                     <span className="tiny mono muted">{r.std}</span>

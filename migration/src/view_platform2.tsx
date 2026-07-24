@@ -177,7 +177,7 @@ function Integrations() {
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="row ac gap6">
-                          <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{it.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{it.name}</div>
                           {demo && <span title="Belum tersambung sumber eksternal — data dari fixture demo"><Badge kind="amber">Mode demo</Badge></span>}
                         </div>
                         <div className="tiny muted">{it.cat} · {it.status === 'connected' ? AMS.fmt(c.posted || 0) + ' baris → SSOT' : st.l}</div>
@@ -298,7 +298,7 @@ function ImportRecon({ IM, sum }: any) {
                   {r.status === 'error' ? <Badge kind="red">Impor gagal</Badge> : r.tied ? <span className="row ac gap4" style={{ color: 'var(--green)', fontWeight: 700, fontSize: 12 }}><I.checkCircle size={14} /> Menutup (selisih 0)</span> : <Badge kind="amber">Selisih {fmt(Math.abs(r.posted - r.consumed))}</Badge>}
                 </div>
                 <div className="row ac gap8" style={{ flexWrap: 'wrap' }}>
-                  <div className="panel" style={{ padding: '8px 12px', boxShadow: 'none', minWidth: 120 }}><div className="tiny muted upper">Di-posting</div><div className="mono" style={{ fontSize: 17, fontWeight: 800, color: 'var(--blue)' }}>{fmt(r.posted)}</div></div>
+                  <div className="panel" style={{ padding: '8px 12px', boxShadow: 'none', minWidth: 120 }}><div className="tiny muted upper">Di-posting</div><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--blue)' }}>{fmt(r.posted)}</div></div>
                   <I.arrowRight size={16} style={{ color: 'var(--ink-4)' }} />
                   <div style={{ flex: 1, minWidth: 200, display: 'grid', gap: 5 }}>
                     {r.feeds.map((f: any, i: any) => { const m = (window.MODULE_INDEX || {})[f.module] || { label: f.label, icon: 'panel' }; const MIc = (I as any)[m.icon] || I.panel; return (
@@ -309,7 +309,7 @@ function ImportRecon({ IM, sum }: any) {
                     {!r.feeds.length && <div className="tiny muted">Tidak ada modul hilir.</div>}
                   </div>
                   <I.arrowRight size={16} style={{ color: 'var(--ink-4)' }} />
-                  <div className="panel" style={{ padding: '8px 12px', boxShadow: 'none', minWidth: 120 }}><div className="tiny muted upper">Dikonsumsi</div><div className="mono" style={{ fontSize: 17, fontWeight: 800, color: r.tied ? 'var(--green)' : 'var(--amber)' }}>{fmt(r.consumed)}</div></div>
+                  <div className="panel" style={{ padding: '8px 12px', boxShadow: 'none', minWidth: 120 }}><div className="tiny muted upper">Dikonsumsi</div><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: r.tied ? 'var(--green)' : 'var(--amber)' }}>{fmt(r.consumed)}</div></div>
                 </div>
                 <div className="row ac jb tiny muted" style={{ marginTop: 9, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}>
                   <span>Gerbang total kontrol: <b style={{ color: 'var(--ink-2)' }}>{r.control.label}</b> = {r.control.value}</span>
@@ -364,9 +364,9 @@ function IntegrationDetail({ it, onToggle }: any) {
           {tab === 'ringkasan' && (
             <>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
-                <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}><div className="tiny muted upper">Baris → SSOT</div><div style={{ fontSize: 17, fontWeight: 700, color: 'var(--blue)' }} className="mono">{fmt(cdata.posted)}</div></div>
-                <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}><div className="tiny muted upper">Uptime 30 hari</div><div style={{ fontSize: 17, fontWeight: 700, color: it.uptime >= 99 ? 'var(--green)' : 'var(--amber)' }}>{it.uptime ? it.uptime.toFixed(1) + '%' : '—'}</div></div>
-                <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}><div className="tiny muted upper">Volume sinkron 30h</div><div style={{ fontSize: 17, fontWeight: 700 }} className="mono">{fmt(it.vol)}</div></div>
+                <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}><div className="tiny muted upper">Baris → SSOT</div><div style={{ fontSize: 15, fontWeight: 700, color: 'var(--blue)' }} className="mono">{fmt(cdata.posted)}</div></div>
+                <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}><div className="tiny muted upper">Uptime 30 hari</div><div style={{ fontSize: 15, fontWeight: 700, color: it.uptime >= 99 ? 'var(--green)' : 'var(--amber)' }}>{it.uptime ? it.uptime.toFixed(1) + '%' : '—'}</div></div>
+                <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none' }}><div className="tiny muted upper">Volume sinkron 30h</div><div style={{ fontSize: 15, fontWeight: 700 }} className="mono">{fmt(it.vol)}</div></div>
               </div>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '9px 14px', marginBottom: 14 }}>
                 <KvBox label="Jadwal Sinkron" v={it.schedule} />
@@ -472,7 +472,7 @@ function IntegrationDetail({ it, onToggle }: any) {
                   <button key={i} className="panel row ac gap10" style={{ padding: '10px 12px', boxShadow: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', border: '1px solid var(--line)' }} onClick={() => nav(f.module, { from: 'integrations' })} title={'Buka ' + (m.label || f.label)}>
                     <span style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface-3)', color: 'var(--navy)', display: 'grid', placeItems: 'center', flex: '0 0 34px' }}><MIc size={17} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{m.label || f.label}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{m.label || f.label}</div>
                       <div className="tiny muted">{AMS.fmt(f.n)} {f.unit}</div>
                     </div>
                     <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{AMS.fmt(f.n)}</span>

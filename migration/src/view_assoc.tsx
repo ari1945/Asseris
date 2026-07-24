@@ -93,7 +93,7 @@ function AssociatesEquity() {
                   <div className="row ac gap10">
                     <span style={{ width: 38, height: 38, borderRadius: 9, background: 'var(--blue-100)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 38px' }}><I.building size={19} /></span>
                     <div style={{ flex: 1 }}>
-                      <b style={{ fontSize: 13.5 }}>{D.assoc.name}</b>
+                      <b style={{ fontSize: 15 }}>{D.assoc.name}</b>
                       <div className="tiny muted">{D.assoc.id} · Asosiasi · diukur dengan metode ekuitas (PSAK 15). {D.assoc.note}</div>
                     </div>
                     <Badge kind="green">Ekuitas</Badge>
@@ -103,7 +103,7 @@ function AssociatesEquity() {
                 <div style={{ display: 'grid', gap: 2, maxWidth: 560 }}>
                   {rf.map((r, i) => (
                     <div key={i} className="row jb ac" style={{ padding: '8px 10px', borderTop: r.total ? '2px solid var(--navy)' : '1px solid var(--line-soft)', background: r.strong ? 'var(--surface-2)' : 'transparent', opacity: r.sub ? 0.75 : 1 }}>
-                      <span style={{ fontSize: 12.5, fontWeight: r.total || r.strong ? 700 : 400, fontStyle: r.sub ? 'italic' : 'normal' }}>{r.k}</span>
+                      <span style={{ fontSize: 12, fontWeight: r.total || r.strong ? 700 : 400, fontStyle: r.sub ? 'italic' : 'normal' }}>{r.k}</span>
                       <span className="mono" style={{ fontWeight: r.total ? 800 : 600, color: r.accent || (r.v < 0 ? 'var(--red)' : 'var(--ink)') }}>{r.v < 0 ? '(' + fmt(-r.v, 0) + ')' : fmt(r.v, 0)}</span>
                     </div>
                   ))}
@@ -119,7 +119,7 @@ function AssociatesEquity() {
                     <div style={{ display: 'grid', gap: 6 }}>
                       {[['Total aset', ASSOC_SF.assets], ['Total liabilitas', -ASSOC_SF.liab], ['Aset neto', D.netAssets, true], ['Pendapatan', ASSOC_SF.revenue], ['Laba tahun berjalan', ASSOC_SF.profit, false, 'var(--green)']].map((r, i) => (
                         <div key={i} className="row jb ac" style={{ padding: '7px 10px', borderBottom: '1px solid var(--line-soft)', fontWeight: r[2] ? 700 : 400 }}>
-                          <span style={{ fontSize: 12.5 }}>{r[0]}</span>
+                          <span style={{ fontSize: 12 }}>{r[0]}</span>
                           <span className="mono" style={{ fontWeight: r[2] ? 800 : 600, color: r[3] || (r[1] < 0 ? 'var(--red)' : 'var(--ink)') }}>{r[1] < 0 ? '(' + fmt(-r[1], 0) + ')' : fmt(r[1], 0)}</span>
                         </div>
                       ))}
@@ -130,7 +130,7 @@ function AssociatesEquity() {
                     <div style={{ display: 'grid', gap: 6 }}>
                       {[['Aset neto asosiasi @100%', D.netAssets], ['Bagian Grup (' + D.assoc.own + '%)', D.shareNet, true], ['Goodwill dalam nilai tercatat', D.goodwillInCarry], ['Nilai tercatat investasi', D.carry, true, 'var(--navy)']].map((r, i) => (
                         <div key={i} className="row jb ac" style={{ padding: '7px 10px', borderBottom: '1px solid var(--line-soft)', fontWeight: r[2] ? 700 : 400 }}>
-                          <span style={{ fontSize: 12.5 }}>{r[0]}</span>
+                          <span style={{ fontSize: 12 }}>{r[0]}</span>
                           <span className="mono" style={{ fontWeight: r[2] ? 800 : 600, color: r[3] || 'var(--ink)' }}>{fmt(r[1], 0)}</span>
                         </div>
                       ))}
@@ -155,7 +155,7 @@ function AssociatesEquity() {
                     ].map((c, i) => (
                       <div key={i} className="row ac gap8" style={{ padding: '7px 4px', borderBottom: '1px solid var(--line-soft)' }}>
                         <span style={{ color: c.neg ? 'var(--ink-4)' : 'var(--green)' }}>{c.neg ? <I.x size={15} /> : <I.check size={15} />}</span>
-                        <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{c.t}</span>
+                        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{c.t}</span>
                       </div>
                     ))}
                     <div className="panel" style={{ marginTop: 10, padding: '9px 11px', borderLeft: '3px solid var(--green)' }}>
@@ -185,10 +185,10 @@ function AssociatesEquity() {
                     <div key={i} className="panel" style={{ padding: '11px 13px', background: t.ok ? 'var(--surface)' : 'var(--amber-bg)', cursor: t.route ? 'pointer' : 'default' }} onClick={() => t.route && nav(t.route, { from: 'assoc' })}>
                       <div className="row ac gap8" style={{ marginBottom: 5 }}>
                         <span style={{ color: t.ok ? 'var(--green)' : 'var(--amber)' }}>{t.ok ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-                        <span style={{ fontWeight: 600, fontSize: 12.5, flex: 1 }}>{t.k}</span>
+                        <span style={{ fontWeight: 600, fontSize: 12, flex: 1 }}>{t.k}</span>
                         <Badge kind="gray">{t.ref}</Badge>
                       </div>
-                      <div className="row" style={{ paddingLeft: 24, fontFamily: 'var(--mono)', fontSize: 11.5 }}>
+                      <div className="row" style={{ paddingLeft: 24, fontFamily: 'var(--mono)', fontSize: 12 }}>
                         <div style={{ flex: 1 }}><div className="tiny muted">A</div><b>{fmt(t.a, 0)}</b></div>
                         <div style={{ flex: 1 }}><div className="tiny muted">B</div><b>{fmt(t.b, 0)}</b></div>
                         <div style={{ flex: 1 }}><div className="tiny muted">Selisih</div><b style={{ color: t.ok ? 'var(--green)' : 'var(--red)' }}>{fmt(t.diff, 0)}</b></div>

@@ -80,7 +80,7 @@ function AuditTrail() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={AMS.fmt(all.length)} label="Total Entri" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={all.filter((a: any) => a.ts.startsWith('2026-03-10') || a.ts.startsWith('2026-03-09')).length} label="Aktivitas 24 Jam" /></div></Panel>
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={new Set(all.map((a: any) => a.who)).size} label="Pengguna Unik" /></div></Panel>
-          <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 14, fontWeight: 700, color: 'var(--green)' }}>Terverifikasi</div><div className="s-lbl">Integritas Hash-Chain</div></div></div></div></Panel>
+          <Panel><div style={{ padding: '15px 18px' }}><div className="row ac gap8"><span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.shield size={17} /></span><div><div style={{ fontSize: 15, fontWeight: 700, color: 'var(--green)' }}>Terverifikasi</div><div className="s-lbl">Integritas Hash-Chain</div></div></div></div></Panel>
         </div>
 
         {/* charts row */}
@@ -178,7 +178,7 @@ function AuditEntryDrawer({ e, onClose, nav }: any) {
           </div>
           <div className="panel" style={{ padding: '9px 11px', boxShadow: 'none', marginBottom: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 3 }}>Perangkat / Agen</div>
-            <div style={{ fontSize: 12.5, fontWeight: 600 }}>{e.device}</div>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>{e.device}</div>
           </div>
 
           {(e.before || e.after) && (

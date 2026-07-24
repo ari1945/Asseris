@@ -80,7 +80,7 @@ function FindingCard({ f, decision, onDecide }: any) {
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-2, #6b7280)' }}>{f.std}</span>
         <span style={{ fontSize: 11, color: 'var(--ink-2, #9aa3b2)', marginLeft: 'auto' }}>{f.detector}</span>
       </div>
-      <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy, #16233a)', marginBottom: 4 }}>{f.title}</div>
+      <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy, #16233a)', marginBottom: 4 }}>{f.title}</div>
       <div style={{ fontSize: 13, color: 'var(--ink-2, #4b5563)', lineHeight: 1.5 }}>{f.detail}</div>
       {f.suggestedProcedure && (
         <div style={{ fontSize: 12, color: 'var(--ink-2, #6b7280)', marginTop: 8, paddingTop: 8, borderTop: '1px dashed var(--line, #e3e7ee)' }}>
@@ -229,7 +229,7 @@ export function WedgeApp() {
     <div style={{ maxWidth: 880, margin: '0 auto', padding: '32px 24px', color: 'var(--navy, #16233a)' }}>
       <header style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--blue, #2a63d6)', letterSpacing: 1, textTransform: 'uppercase' }}>Asseris · Wedge MVP</div>
-        <h1 style={{ fontSize: 24, margin: '4px 0 6px' }}>Diagnostik &amp; Analitik Audit</h1>
+        <h1 style={{ fontSize: 22, margin: '4px 0 6px' }}>Diagnostik &amp; Analitik Audit</h1>
         <p style={{ fontSize: 13, color: 'var(--ink-2, #6b7280)', margin: 0, lineHeight: 1.5 }}>
           JET (SA 240) · Benford · Analitik/book-tax (SA 520) — deterministik, lokal, offline.
         </p>
@@ -311,7 +311,7 @@ export function WedgeApp() {
             )}
           </div>
 
-          <h2 style={{ fontSize: 16, margin: '4px 0 12px' }}>{findings.length} temuan ter-peringkat · diimpor {review.ts}</h2>
+          <h2 style={{ fontSize: 15, margin: '4px 0 12px' }}>{findings.length} temuan ter-peringkat · diimpor {review.ts}</h2>
           {findings.length === 0
             ? <div style={{ ...card, padding: 24, textAlign: 'center', color: 'var(--ink-2, #6b7280)' }}>Tidak ada temuan diagnostik dari data ini.</div>
             : findings.map((f: any) => <FindingCard key={f.id} f={f} decision={decisions[f.id]} onDecide={decide} />)}

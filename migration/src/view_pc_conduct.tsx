@@ -71,7 +71,7 @@ function EthicsDeclaration() {
           {tab === 'decl' && (
             <div style={{ overflowX: 'auto' }}>
               <table className="dtbl" style={{ minWidth: 880 }}>
-                <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it: any, i: any) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 9.5, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
+                <thead><tr><th style={{ minWidth: 160 }}>Karyawan</th>{ITEMS.map((it: any, i: any) => <th key={i} className="num" title={it.ref} style={{ minWidth: 60, fontSize: 11, verticalAlign: 'bottom', lineHeight: 1.15 }}>{it.k.split(' ').slice(0, 2).join(' ')}</th>)}<th>Tgl</th><th>Status</th></tr></thead>
                 <tbody>
                   {myStaff.map((s: any) => {
                     const d = decl[s.id] || { signed: false, items: ITEMS.map(() => 0) };
@@ -268,7 +268,7 @@ function HRCases() {
               <Panel noBody>
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
                   <Avatar name={p.name} size={40} />
-                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }} className="truncate">{p.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{cur.id} · {cur.cat}</div></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{cur.id} · {cur.cat}</div></div>
                   <button className="top-btn" onClick={() => setSel(null)}><I.x size={16} /></button>
                 </div>
                 <div style={{ padding: 14 }}>

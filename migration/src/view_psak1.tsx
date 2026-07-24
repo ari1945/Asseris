@@ -188,7 +188,7 @@ function PSAK1View() {
                       <div key={c.id} className="row ac gap10" style={{ padding: '10px 14px', borderBottom: i < comps.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: c.st === 'na' ? 0.62 : 1 }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px' }}>{c.ref}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{c.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{c.name}</div>
                           <div className="tiny muted">{c.sub}</div>
                         </div>
                         <button onClick={() => cycleComp(c.id)} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer' }} title="Ubah status"><StatusPill meta={meta} /></button>
@@ -208,7 +208,7 @@ function PSAK1View() {
                       <div key={f.id} className="row gap10" style={{ padding: '10px 14px', borderBottom: i < feats.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'flex-start', opacity: f.st === 'na' ? 0.62 : 1 }}>
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 52, flex: '0 0 52px', marginTop: 1 }}>{f.ref}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{f.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35 }}>{f.name}</div>
                           <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 1 }}>{f.note}</div>
                         </div>
                         <button onClick={() => cycleFeat(f.id)} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', flex: '0 0 auto', marginTop: 1 }} title="Ubah penilaian"><StatusPill meta={meta} /></button>
@@ -234,7 +234,7 @@ function PSAK1View() {
                   {lines.map((l: any, i: any) => (
                     <label key={i} className="row gap8" style={{ padding: '7px 0', cursor: 'pointer', alignItems: 'flex-start' }} onClick={() => toggleLine(lineTab)(i)}>
                       <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (l.on ? 'var(--green)' : 'var(--line-strong)'), background: l.on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{l.on && <I.check size={11} style={{ color: '#fff' }} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.4, color: l.on ? 'var(--ink)' : 'var(--ink-4)' }}>{l.t}</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.4, color: l.on ? 'var(--ink)' : 'var(--ink-4)' }}>{l.t}</span>
                     </label>
                   ))}
                 </div>
@@ -266,7 +266,7 @@ function PSAK1View() {
                 <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                   <div className="tiny upper" style={{ color: '#bcd6e4', letterSpacing: '.05em', marginBottom: 8 }}>Skor Kepatuhan Penyajian</div>
                   <div className="row ac gap12">
-                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 18 }}>%</span></div>
+                    <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>{score}<span style={{ fontSize: 19 }}>%</span></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: score + '%', background: score === 100 ? '#4ade80' : '#7cc6ff', borderRadius: 4, transition: '.3s' }} /></div>
                       <div className="tiny" style={{ color: '#bcd6e4', marginTop: 6 }}>{numer}/{denom} kriteria penyajian terpenuhi</div>
@@ -277,14 +277,14 @@ function PSAK1View() {
                   <div className="panel" style={{ padding: '9px 11px', background: attention ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent', marginBottom: 12 }}>
                     <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                       <span style={{ color: attention ? 'var(--amber)' : 'var(--green)', marginTop: 1 }}>{attention ? <I.clock size={15} /> : <I.checkCircle size={15} />}</span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>{attention
+                      <span style={{ fontSize: 12, lineHeight: 1.45 }}>{attention
                         ? <><b>{attention} hal</b> memerlukan perhatian sebelum penyajian dapat dinyatakan patuh penuh terhadap PSAK 1.</>
                         : <>Penyajian LK <b>{client.name}</b> patuh penuh terhadap PSAK 1 — siap pernyataan kepatuhan tanpa pengecualian.</>}</span>
                     </div>
                   </div>
                   <div className="tiny muted upper" style={{ marginBottom: 5 }}>Pernyataan Kepatuhan (¶16)</div>
                   <div className="panel" style={{ padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-                    <div style={{ fontSize: 11.5, lineHeight: 1.5, fontStyle: 'italic', color: 'var(--ink-2)' }}>"Laporan keuangan {client.name} telah disusun dan disajikan sesuai dengan Standar Akuntansi Keuangan di Indonesia."</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5, fontStyle: 'italic', color: 'var(--ink-2)' }}>"Laporan keuangan {client.name} telah disusun dan disajikan sesuai dengan Standar Akuntansi Keuangan di Indonesia."</div>
                   </div>
                 </div>
               </Panel>

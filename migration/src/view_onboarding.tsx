@@ -71,7 +71,7 @@ function OKv({ label, v, accent }: any) {
   return (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 }
@@ -83,7 +83,7 @@ function ScorePick({ value, onChange }: any) {
       {[1, 2, 3, 4, 5].map(n => (
         <button key={n} onClick={() => onChange(n)}
           style={{
-            width: 26, height: 26, borderRadius: 6, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+            width: 26, height: 26, borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
             border: '1px solid ' + (n <= value ? 'transparent' : 'var(--line-strong)'),
             background: n <= value ? (value >= 4 ? 'var(--green)' : value >= 3 ? 'var(--amber)' : 'var(--red)') : 'var(--surface-2)',
             color: n <= value ? '#fff' : 'var(--ink-4)', transition: '.12s',
@@ -154,7 +154,7 @@ function ClientOnboarding() {
                 style={{ borderRadius: 8, padding: 5, minHeight: 140, background: over === st.id ? 'var(--blue-050)' : 'transparent' }}>
                 <div className="row ac gap6" style={{ marginBottom: 8, padding: '0 3px' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: st.color }} />
-                  <span style={{ fontWeight: 700, fontSize: 11.5 }}>{st.label}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{st.label}</span>
                   <span className="chip tiny">{col.length}</span>
                 </div>
                 <div className="grid" style={{ gap: 8 }}>
@@ -165,11 +165,11 @@ function ClientOnboarding() {
                       <div key={p.id} className="panel" onClick={() => setSelId(p.id)}
                         style={{ padding: 10, cursor: 'pointer', borderTop: '3px solid ' + st.color, opacity: p.converted ? .72 : 1 }}>
                         <div className="row jb ac" style={{ marginBottom: 3 }}>
-                          <span className="badge" style={{ fontSize: 9, padding: '0 6px', background: p.kind === 'Keberlanjutan' ? 'var(--blue-100)' : 'var(--purple-bg)', color: p.kind === 'Keberlanjutan' ? 'var(--blue)' : 'var(--purple)' }}>{p.kind}</span>
-                          {p.converted ? <span className="badge b-green" style={{ fontSize: 9, padding: '0 6px' }}>Terkonversi</span>
-                            : pep ? <span className="badge b-red" style={{ fontSize: 9, padding: '0 6px' }}>PEP</span> : null}
+                          <span className="badge" style={{ fontSize: 11, padding: '0 6px', background: p.kind === 'Keberlanjutan' ? 'var(--blue-100)' : 'var(--purple-bg)', color: p.kind === 'Keberlanjutan' ? 'var(--blue)' : 'var(--purple)' }}>{p.kind}</span>
+                          {p.converted ? <span className="badge b-green" style={{ fontSize: 11, padding: '0 6px' }}>Terkonversi</span>
+                            : pep ? <span className="badge b-red" style={{ fontSize: 11, padding: '0 6px' }}>PEP</span> : null}
                         </div>
-                        <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5 }}>{p.name.replace('PT ', '')}</div>
+                        <div className="truncate" style={{ fontWeight: 600, fontSize: 12 }}>{p.name.replace('PT ', '')}</div>
                         <div className="tiny muted" style={{ marginBottom: 7 }}>{p.service}</div>
                         <div className="row jb ac">
                           <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(p.fee / 1e6, 0)} jt</span>
@@ -214,7 +214,7 @@ function OnboardingDrawer({ p, onClose, onPatch }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
           <span style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700, flex: '0 0 42px' }}>{p.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</span><span className="badge" style={{ fontSize: 9.5, background: 'rgba(255,255,255,.16)', color: '#fff' }}>{p.kind}</span>{p.listed && <span className="badge" style={{ fontSize: 9.5, background: 'rgba(255,255,255,.16)', color: '#fff' }}>IDX</span>}</div>
+            <div className="row ac gap8"><span style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{p.name}</span><span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: '#fff' }}>{p.kind}</span>{p.listed && <span className="badge" style={{ fontSize: 11, background: 'rgba(255,255,255,.16)', color: '#fff' }}>IDX</span>}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{p.industry} · {p.service} · {p.standard} · {p.partner.split(',')[0]}</div>
           </div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -330,7 +330,7 @@ function StepAcceptance({ p, onPatch }: any) {
           {a.factors.map((f: any, i: any) => (
             <div key={i} className="panel" style={{ padding: 12 }}>
               <div className="row jb ac" style={{ marginBottom: 7 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 600 }}>{f.k}</span>
+                <span style={{ fontSize: 12, fontWeight: 600 }}>{f.k}</span>
                 <span className="chip tiny" title="Bobot">{f.w}%</span>
               </div>
               <div className="row jb ac" style={{ gap: 12 }}>
@@ -345,7 +345,7 @@ function StepAcceptance({ p, onPatch }: any) {
         <div style={{ display: 'grid', gap: 12 }}>
           <div className="panel" style={{ padding: 16, textAlign: 'center' }}>
             <div className="tiny muted upper" style={{ marginBottom: 6 }}>Skor Berbobot</div>
-            <div style={{ fontSize: 40, fontWeight: 800, lineHeight: 1, color: 'var(--' + verdict.k + ')' }}>{score.toFixed(2)}</div>
+            <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, color: 'var(--' + verdict.k + ')' }}>{score.toFixed(2)}</div>
             <div className="tiny muted" style={{ marginBottom: 10 }}>dari 5,00</div>
             <Progress value={score / 5 * 100} color={'var(--' + verdict.k + ')'} />
             <div style={{ marginTop: 12 }}><span className={'badge b-' + verdict.k} style={{ fontSize: 12, padding: '3px 10px' }}>Rekomendasi: {verdict.l}</span></div>
@@ -443,7 +443,7 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
     return (
       <div style={{ maxWidth: 560, margin: '24px auto', textAlign: 'center' }}>
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--green-bg)', color: 'var(--green)', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}><I.checkCircle size={34} /></div>
-        <div style={{ fontSize: 18, fontWeight: 800 }}>Perikatan Berhasil Dibuat</div>
+        <div style={{ fontSize: 19, fontWeight: 800 }}>Perikatan Berhasil Dibuat</div>
         <p style={{ color: 'var(--ink-2)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 18px' }}>
           {p.name} telah dikonversi dari prospek menjadi perikatan aktif pada fase <b>Perencanaan</b>. Seluruh gerbang front-office (akseptasi, PMPJ, engagement letter) tercatat di jejak audit.
         </p>
@@ -465,7 +465,7 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
           <div key={c.id} className="panel" onClick={() => goStep(c.id)} style={{ padding: '11px 13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 11, borderLeft: '3px solid ' + (c.ok ? 'var(--green)' : 'var(--amber)') }}>
             <span style={{ color: c.ok ? 'var(--green)' : 'var(--ink-4)' }}>{c.ok ? <I.checkCircle size={20} /> : <I.clock size={20} />}</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.t}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{c.t}</div>
               <div className="tiny muted">{c.detail}</div>
             </div>
             {!c.ok && <span className="tiny" style={{ color: 'var(--blue)', fontWeight: 600 }}>Lengkapi →</span>}
@@ -512,7 +512,7 @@ function ProspectForm({ onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 92, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
+          <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

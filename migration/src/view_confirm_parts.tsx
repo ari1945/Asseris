@@ -150,7 +150,7 @@ function CfReconWorksheet({ item, recon, setRecon, onResolve, compact }: any) {
       ) : (
         <div className="panel" style={{ padding: '8px 10px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
           <div className="row ac jb">
-            <span className="row ac gap6" style={{ fontSize: 11.5, fontWeight: 600 }}><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> Selisih terjelaskan penuh</span>
+            <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 600 }}><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span> Selisih terjelaskan penuh</span>
             <Btn sm variant="primary" onClick={() => onResolve(item.id)}><I.check size={13} /> Terekonsiliasi</Btn>
           </div>
         </div>
@@ -183,7 +183,7 @@ function CfAltProcedures({ item, checks, setChecks, onResolve }: any) {
       </div>
       <div style={{ display: 'grid', gap: 6 }}>
         {list.map((p: any, i: any) => (
-          <label key={i} className="row ac gap8" style={{ fontSize: 11.5, cursor: 'pointer', lineHeight: 1.35 }} onClick={(e: any) => { e.preventDefault(); toggle(i); }}>
+          <label key={i} className="row ac gap8" style={{ fontSize: 12, cursor: 'pointer', lineHeight: 1.35 }} onClick={(e: any) => { e.preventDefault(); toggle(i); }}>
             <span style={{ width: 15, height: 15, borderRadius: 3, border: '1.5px solid var(--amber)', background: state[i] ? 'var(--amber)' : 'transparent', display: 'grid', placeItems: 'center', flex: '0 0 15px' }}>{state[i] && <I.check size={10} style={{ color: '#fff' }} />}</span>
             <span style={{ textDecoration: state[i] ? 'line-through' : 'none', color: state[i] ? 'var(--ink-3)' : 'var(--ink)' }}>{p}</span>
           </label>

@@ -101,6 +101,25 @@
   --ui:   'Inter', -apple-system, system-ui, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
+  /* SKALA TIPOGRAFI — MENGIKAT. Tidak ada ukuran huruf di luar delapan nilai ini.
+     Sebelum skala ini ada 39 nilai berbeda pada 2.817 deklarasi, dgn 1.067 di
+     antaranya berupa setengah-langkah (11,5 · 12,3 · 12,5 · 13,5 · 14,5 · 15,5).
+     Selisih 0,5px tak terbaca mata sbg HIERARKI — yang terbaca hanya
+     ketidakteraturan: biaya kognitif dibayar tanpa imbalan informasi.
+     Lantai 11px: dulu 279 deklarasi berada di 7–10,5px (72% simpul teks Beranda
+     ≤11px), penyumbang utama keluhan "capek dilihat".
+     Tier teks (5 langkah) — hierarki dibawa oleh langkah yg benar2 terlihat: */
+  --fs-xs: 11px;   /* meta, timestamp, footer, badge, header tabel, label KPI */
+  --fs-sm: 12px;   /* isi tabel, tombol, chip, isi padat */
+  --fs-md: 13px;   /* body / default aplikasi */
+  --fs-lg: 15px;   /* judul panel & portlet */
+  --fs-xl: 19px;   /* judul halaman */
+  /* Tier display — ANGKA (KPI/hero), bukan teks. Terpisah karena tier teks tak
+     dapat menampungnya tanpa merusak fungsi "angka besar yg terbaca sekilas". */
+  --fs-d1: 22px;   /* angka KPI (.stat .s-val) */
+  --fs-d2: 28px;   /* angka sorot besar */
+  --fs-d3: 34px;   /* angka hero / presentasi */
+
   /* Metrics — dense enterprise */
   --topbar-h:   46px;
   --subbar-h:   34px;

@@ -118,9 +118,9 @@ function SA250View() {
           <div style={{ padding: '13px 16px', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ minWidth: 210 }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 250</div><div style={{ fontWeight: 700, fontSize: 13 }}>Hukum & Regulasi (NOCLAR)</div><div className="tiny muted">{client} · {engLabel}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ketidakpatuhan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{items.length} teridentifikasi</div></div>
+            <div><div className="tiny muted upper">Ketidakpatuhan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{items.length} teridentifikasi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Dampak Langsung LK</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: directMaterial ? 'var(--red)' : 'var(--ink-3)' }}>{directMaterial} material</div></div>
+            <div><div className="tiny muted upper">Dampak Langsung LK</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: directMaterial ? 'var(--red)' : 'var(--ink-3)' }}>{directMaterial} material</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Tanggung Jawab Utama</div><Badge kind="blue">Kepatuhan = Manajemen</Badge></div>
           </div>
@@ -141,7 +141,7 @@ function S250Framework() {
         <Panel key={key} noBody>
           <div style={{ background: `var(--${c.color}-bg)`, padding: '14px 16px', borderBottom: '1px solid var(--line)' }}>
             <div className="row jb ac"><span className="mono tiny" style={{ fontWeight: 700, color: `var(--${c.color})` }}>SA 250 {c.ref}</span><Badge kind={c.color === 'red' ? 'red' : 'amber'}>{c.color === 'red' ? 'Respons lebih dalam' : 'Prosedur terbatas'}</Badge></div>
-            <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6 }}>{c.k}</div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginTop: 6 }}>{c.k}</div>
             <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3, lineHeight: 1.45 }}>{c.sub}</div>
           </div>
           <div style={{ padding: 14 }}>
@@ -253,7 +253,7 @@ function S250Register({ items, setItems, me, locked }: { items: NoclarItem[]; se
               'Diskusi dengan manajemen & (bila perlu) penasihat hukum',
               sel.cat === 'direct' ? 'Uji kecukupan provisi/pengungkapan terkait' : 'Pertimbangkan dampak terhadap risiko kelangsungan & opini',
             ].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start', padding: '5px 0' }}>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start', padding: '5px 0' }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span><span style={{ lineHeight: 1.4 }}>{t}</span>
               </div>
             ))}
@@ -285,7 +285,7 @@ function S250Reporting({ report, setReport, me, locked }: { report: ReportTier[]
                 <td>
                   {locked
                     ? <Badge kind={repKind(r.status)}>{r.status}</Badge>
-                    : <select className="select" value={r.status} onChange={(e: Ev) => setStatus(r.id, e.target.value)} style={{ height: 28, fontSize: 11.5 }}>{REPORT_STATUS.map(s => <option key={s}>{s}</option>)}</select>}
+                    : <select className="select" value={r.status} onChange={(e: Ev) => setStatus(r.id, e.target.value)} style={{ height: 28, fontSize: 12 }}>{REPORT_STATUS.map(s => <option key={s}>{s}</option>)}</select>}
                 </td>
                 <td className="tiny muted">{r.by ? <span title={r.by + ' · ' + (r.at || '')}><I.check size={10} /> {r.at}</span> : '—'}</td>
               </tr>
@@ -293,7 +293,7 @@ function S250Reporting({ report, setReport, me, locked }: { report: ReportTier[]
           </tbody>
         </table>
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-          <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Tanggung jawab mencegah & mendeteksi ketidakpatuhan ada pada <b>manajemen & TCWG</b>. Auditor bukan penegak hukum; tujuannya memperoleh bukti & merespons ketidakpatuhan yang teridentifikasi. Kesimpulan auditor atas kecukupan respons dicatat via <b>Kertas Kerja</b> (bilah atas).</span></div>
+          <div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.45 }}>Tanggung jawab mencegah & mendeteksi ketidakpatuhan ada pada <b>manajemen & TCWG</b>. Auditor bukan penegak hukum; tujuannya memperoleh bukti & merespons ketidakpatuhan yang teridentifikasi. Kesimpulan auditor atas kecukupan respons dicatat via <b>Kertas Kerja</b> (bilah atas).</span></div>
         </div>
       </Panel>
       <div className="grid" style={{ gap: 12 }}>
@@ -304,7 +304,7 @@ function S250Reporting({ report, setReport, me, locked }: { report: ReportTier[]
               'Kecukupan provisi/pengungkapan atas sanksi & kewajiban dievaluasi',
               'Seluruh item register berstatus terselesaikan/terpantau sebelum opini',
             ].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={14} /></span><span style={{ lineHeight: 1.4 }}>{t}</span></div>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={14} /></span><span style={{ lineHeight: 1.4 }}>{t}</span></div>
             ))}
           </div>
         </Panel>
@@ -406,9 +406,9 @@ function SA260View() {
           <div style={{ padding: '13px 16px', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ minWidth: 210 }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 260</div><div style={{ fontWeight: 700, fontSize: 13 }}>Komunikasi dengan TCWG</div><div className="tiny muted">{client} · {engLabel}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Pihak Tata Kelola</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Komite Audit (3 anggota)</div></div>
+            <div><div className="tiny muted upper">Pihak Tata Kelola</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Komite Audit (3 anggota)</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Temuan Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--amber)' }}>{findings.length} hal</div></div>
+            <div><div className="tiny muted upper">Temuan Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--amber)' }}>{findings.length} hal</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Komunikasi</div><Badge kind="blue" dot>Dua Arah</Badge></div>
           </div>
@@ -437,7 +437,7 @@ function S260Parties() {
             <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < 2 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 30px', width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: p.primary ? 'var(--blue-050)' : 'var(--surface-2)', color: p.primary ? 'var(--blue)' : 'var(--ink-3)' }}><I.group size={16} /></span>
               <div style={{ flex: 1 }}>
-                <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{p.who}</div>{p.primary && <Badge kind="blue">Utama</Badge>}</div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{p.who}</div>{p.primary && <Badge kind="blue">Utama</Badge>}</div>
                 <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 2 }}>{p.role}</div>
                 <div className="tiny" style={{ color: 'var(--ink-3)', marginTop: 2 }}>{p.note}</div>
               </div>
@@ -454,15 +454,15 @@ function S260Parties() {
               { t: 'Tepat waktu', d: 'Memungkinkan TCWG mengambil tindakan yang sesuai.', k: 'green' },
             ].map((r, i) => (
               <div key={i} className="panel" style={{ padding: '10px 12px', boxShadow: 'none' }}>
-                <div className="row jb ac"><span style={{ fontWeight: 700, fontSize: 12.5 }}>{r.t}</span><Badge kind={r.k}>{r.k === 'blue' ? 'Disyaratkan' : r.k === 'green' ? 'Prinsip' : 'Diizinkan'}</Badge></div>
+                <div className="row jb ac"><span style={{ fontWeight: 700, fontSize: 12 }}>{r.t}</span><Badge kind={r.k}>{r.k === 'blue' ? 'Disyaratkan' : r.k === 'green' ? 'Prinsip' : 'Diizinkan'}</Badge></div>
                 <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.45 }}>{r.d}</div>
               </div>
             ))}
           </div>
         </Panel>
         <Panel title="Kecukupan Komunikasi Dua Arah (¶22)">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>Auditor mengevaluasi apakah komunikasi dua arah antara auditor & TCWG telah <b>memadai</b> untuk tujuan audit. Bila tidak, auditor mengevaluasi dampaknya terhadap penilaian risiko & kemampuan memperoleh bukti, serta mengambil tindakan yang sesuai.</p>
-          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 11.5, fontWeight: 600 }}>Komunikasi dua arah dinilai memadai periode ini.</span></div></div>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>Auditor mengevaluasi apakah komunikasi dua arah antara auditor & TCWG telah <b>memadai</b> untuk tujuan audit. Bila tidak, auditor mengevaluasi dampaknya terhadap penilaian risiko & kemampuan memperoleh bukti, serta mengambil tindakan yang sesuai.</p>
+          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 12, fontWeight: 600 }}>Komunikasi dua arah dinilai memadai periode ini.</span></div></div>
         </Panel>
       </div>
     </div>
@@ -487,14 +487,14 @@ function S260Matrix({ done, matrix, setMatrix, me, locked }: { done: number; mat
               <td className="tiny">{m.when}</td>
               <td>{locked
                 ? <Badge kind={stKind(m.status)}>{m.status}</Badge>
-                : <select className="select" value={m.status} onChange={(e: Ev) => setStatus(m.id, e.target.value)} style={{ height: 28, fontSize: 11.5 }}>{TCWG_MATRIX_STATUS.map(s => <option key={s}>{s}</option>)}</select>}
+                : <select className="select" value={m.status} onChange={(e: Ev) => setStatus(m.id, e.target.value)} style={{ height: 28, fontSize: 12 }}>{TCWG_MATRIX_STATUS.map(s => <option key={s}>{s}</option>)}</select>}
               </td>
               <td className="tiny muted">{m.by ? <span title={m.by + ' · ' + (m.at || '')}><I.check size={10} /> {m.at}</span> : '—'}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Defisiensi signifikan pengendalian internal dikomunikasikan tertulis sesuai <b>SA 265</b>; hal terkait kecurangan sesuai <b>SA 240</b>. Sign-off & kesimpulan auditor (SA 230) direkam via <b>Kertas Kerja</b> (bilah atas).</span></div></div>
+      <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.45 }}>Defisiensi signifikan pengendalian internal dikomunikasikan tertulis sesuai <b>SA 265</b>; hal terkait kecurangan sesuai <b>SA 240</b>. Sign-off & kesimpulan auditor (SA 230) direkam via <b>Kertas Kerja</b> (bilah atas).</span></div></div>
     </Panel>
   );
 }
@@ -514,7 +514,7 @@ function S260Findings({ findings, setFindings, me, locked }: { findings: TcwgFin
               <span style={{ flex: '0 0 auto', marginTop: 3, color: `var(--${sevKind(f.sev)})` }}><I.flag size={16} /></span>
               {locked ? (
                 <>
-                  <div style={{ flex: 1 }}><div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4 }}>{f.t}</div><div className="tiny muted" style={{ marginTop: 3 }}>Area: {f.area}</div></div>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{f.t}</div><div className="tiny muted" style={{ marginTop: 3 }}>Area: {f.area}</div></div>
                   <div className="row ac gap6" style={{ flex: '0 0 auto' }}><span className="chip tiny" style={{ height: 18 }}>{f.link}</span><Badge kind={sevKind(f.sev)}>{f.sev}</Badge></div>
                 </>
               ) : (
@@ -523,7 +523,7 @@ function S260Findings({ findings, setFindings, me, locked }: { findings: TcwgFin
                   <div className="row gap6 ac">
                     <input className="input" value={f.area} onChange={(e: Ev) => patch(f.id, { area: e.target.value })} placeholder="Area" style={{ height: 26, flex: 1 }} />
                     <input className="input" value={f.link} onChange={(e: Ev) => patch(f.id, { link: e.target.value })} placeholder="Kaitan (SA …)" style={{ height: 26, width: 110 }} />
-                    <select className="select" value={f.sev} onChange={(e: Ev) => patch(f.id, { sev: e.target.value })} style={{ height: 26, width: 92, fontSize: 11.5 }}>{FINDING_SEV.map(s => <option key={s}>{s}</option>)}</select>
+                    <select className="select" value={f.sev} onChange={(e: Ev) => patch(f.id, { sev: e.target.value })} style={{ height: 26, width: 92, fontSize: 12 }}>{FINDING_SEV.map(s => <option key={s}>{s}</option>)}</select>
                     <button className="btn sm icon" title="Hapus" onClick={() => delF(f.id)}><I.x size={12} /></button>
                   </div>
                 </div>
@@ -537,7 +537,7 @@ function S260Findings({ findings, setFindings, me, locked }: { findings: TcwgFin
         <Panel title="Cakupan Laporan kepada TCWG">
           <div style={{ display: 'grid', gap: 7 }}>
             {['Pandangan atas aspek kualitatif praktik akuntansi', 'Kesulitan signifikan (jika ada)', 'Salah saji tidak dikoreksi (SAD)', 'Defisiensi signifikan pengendalian (SA 265)', 'Hal lain yang signifikan & relevan'].map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span><span style={{ lineHeight: 1.4 }}>{t}</span></div>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.arrowRight size={13} /></span><span style={{ lineHeight: 1.4 }}>{t}</span></div>
             ))}
           </div>
         </Panel>
@@ -613,9 +613,9 @@ function SA265View() {
           <div style={{ padding: '13px 16px', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ minWidth: 210 }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Standar Audit 265</div><div style={{ fontWeight: 700, fontSize: 13 }}>Defisiensi Pengendalian Internal</div><div className="tiny muted">{client} · {engLabel}</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>{list.length} defisiensi</div></div>
+            <div><div className="tiny muted upper">Teridentifikasi</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{list.length} defisiensi</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--red)' }}>{sig} → tertulis TCWG</div></div>
+            <div><div className="tiny muted upper">Signifikan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--red)' }}>{sig} → tertulis TCWG</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}><div className="tiny muted upper" style={{ marginBottom: 3 }}>Komunikasi</div><Badge kind="red" dot>Tertulis Wajib (¶9)</Badge></div>
           </div>
@@ -671,7 +671,7 @@ function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDe
             {!list.length && <tr><td colSpan={4} className="tiny muted" style={{ textAlign: 'center', padding: 18 }}>Belum ada defisiensi tercatat.</td></tr>}
           </tbody>
         </table>
-        <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'transparent' }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Defisiensi = kontrol dirancang/diterapkan/dioperasikan sehingga tidak mampu mencegah atau mendeteksi & mengoreksi salah saji tepat waktu (¶6a). <b>Signifikan</b> bila, atas pertimbangan auditor, cukup penting untuk diperhatikan TCWG (¶6b).</span></div></div>
+        <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--surface-2)', borderColor: 'transparent' }}><div className="row gap8" style={{ alignItems: 'flex-start' }}><span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.45 }}>Defisiensi = kontrol dirancang/diterapkan/dioperasikan sehingga tidak mampu mencegah atau mendeteksi & mengoreksi salah saji tepat waktu (¶6a). <b>Signifikan</b> bila, atas pertimbangan auditor, cukup penting untuk diperhatikan TCWG (¶6b).</span></div></div>
       </Panel>
       {sel && (
         <Panel noBody>
@@ -702,7 +702,7 @@ function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDe
                 </div>
               </div>
             )}
-            {sel.sig && <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Defisiensi signifikan — wajib dikomunikasikan <b>tertulis</b> kepada TCWG (¶9).</span></div></div>}
+            {sel.sig && <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: 'var(--red-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--red)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Defisiensi signifikan — wajib dikomunikasikan <b>tertulis</b> kepada TCWG (¶9).</span></div></div>}
             {sel.by && <div className="tiny muted" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line-soft)' }}><I.check size={11} /> Diperbarui {sel.by} · {sel.at}</div>}
           </div>
         </Panel>
@@ -721,7 +721,7 @@ function S265Indicators() {
           {SIG_INDICATORS.map((t, i) => (
             <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < SIG_INDICATORS.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 22px', width: 22, height: 22, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'var(--red-bg)', color: 'var(--red)', fontWeight: 700, fontSize: 11 }} className="mono">{i + 1}</span>
-              <span style={{ fontSize: 12.5, lineHeight: 1.45 }}>{t}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>{t}</span>
             </div>
           ))}
         </div>
@@ -762,8 +762,8 @@ function S265Comms({ sig, defs }: { sig: number; defs: Deficiency[] }) {
       <Panel noBody>
         <div className="panel-h"><h3>Draf Surat Defisiensi Signifikan kepada TCWG</h3><div style={{ flex: 1 }} /><Badge kind="red">¶9–¶11</Badge></div>
         <div style={{ padding: 20, background: 'var(--surface-2)' }}>
-          <div style={{ background: '#fff', maxWidth: 600, margin: '0 auto', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46', borderRadius: 4 }}>
-            <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 12.5, color: '#0c2430', marginBottom: 14, letterSpacing: '.02em' }}>KOMUNIKASI DEFISIENSI SIGNIFIKAN PENGENDALIAN INTERNAL</div>
+          <div style={{ background: '#fff', maxWidth: 600, margin: '0 auto', padding: '34px 40px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46', borderRadius: 4 }}>
+            <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#0c2430', marginBottom: 14, letterSpacing: '.02em' }}>KOMUNIKASI DEFISIENSI SIGNIFIKAN PENGENDALIAN INTERNAL</div>
             <p style={{ margin: '0 0 10px' }}>Kepada Yth. Komite Audit / Pihak yang Bertanggung Jawab atas Tata Kelola</p>
             <p style={{ margin: '0 0 10px' }}>Sehubungan dengan audit kami atas laporan keuangan untuk tahun yang berakhir 31 Desember 2025, kami menyampaikan defisiensi signifikan dalam pengendalian internal yang kami identifikasi selama audit.</p>
             <p style={{ margin: '0 0 6px' }}>Komunikasi ini disusun semata untuk informasi & penggunaan TCWG dan manajemen, serta tidak ditujukan untuk pihak lain. Audit kami tidak dirancang untuk menyatakan opini atas efektivitas pengendalian internal.</p>
@@ -791,12 +791,12 @@ function S265Comms({ sig, defs }: { sig: number; defs: Deficiency[] }) {
               { t: 'Memuat deskripsi & dampak potensial', ref: '¶11(a)', ok: true },
               { t: 'Menjelaskan tujuan & batasan audit kontrol', ref: '¶11(b)', ok: true },
             ].map((r, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 11.5, alignItems: 'flex-start' }}><span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span><div style={{ flex: 1, lineHeight: 1.4 }}>{r.t}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.ref}</span></div>
+              <div key={i} className="row gap8" style={{ fontSize: 12, alignItems: 'flex-start' }}><span style={{ color: r.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span><div style={{ flex: 1, lineHeight: 1.4 }}>{r.t}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.ref}</span></div>
             ))}
           </div>
         </Panel>
         <Panel title="Waktu Komunikasi (¶9)">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>Komunikasi tertulis defisiensi signifikan dilakukan <b>tepat waktu</b> — selambatnya pada penyelesaian audit. Untuk hal mendesak, komunikasi dapat dilakukan lebih awal agar TCWG dapat mengambil tindakan korektif.</p>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>Komunikasi tertulis defisiensi signifikan dilakukan <b>tepat waktu</b> — selambatnya pada penyelesaian audit. Untuk hal mendesak, komunikasi dapat dilakukan lebih awal agar TCWG dapat mengambil tindakan korektif.</p>
         </Panel>
         <WpPanel moduleId="sa265" title="Kertas Kerja — Sign-off, Bukti & Kesimpulan" />
       </div>

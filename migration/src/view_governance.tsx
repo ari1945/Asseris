@@ -51,7 +51,7 @@ function Governance() {
           <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 42, height: 42, borderRadius: 11, background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', flex: '0 0 42px' }}><I.shield size={22} /></div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 700 }}>Simpulan Evaluasi SPM Tahunan — Periode {ev.period}</div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>Simpulan Evaluasi SPM Tahunan — Periode {ev.period}</div>
               <div className="tiny" style={{ color: '#bcd6e4' }}>Disusun {ev.by} · Disetujui {ev.approvedBy}</div>
             </div>
             <Badge kind="green"><I.checkCircle size={12} /> Keyakinan Memadai</Badge>
@@ -59,7 +59,7 @@ function Governance() {
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 0 }}>
             <div style={{ padding: '14px 18px', borderRight: '1px solid var(--line-soft)' }}>
               <div className="tiny muted upper" style={{ marginBottom: 5 }}>Pernyataan Simpulan (ISQM 1 ¶54)</div>
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>{ev.statement}</p>
+              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>{ev.statement}</p>
             </div>
             <div style={{ padding: '14px 18px' }}>
               <div className="tiny muted upper" style={{ marginBottom: 7 }}>Dasar Simpulan</div>
@@ -114,10 +114,10 @@ function Governance() {
                   <div key={i} className="panel" style={{ padding: '13px 15px', boxShadow: 'none' }}>
                     <div className="grid" style={{ gridTemplateColumns: '1.1fr 1.2fr 2fr', gap: 14, alignItems: 'center' }}>
                       <div>
-                        <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: 'var(--blue)' }}><I.shield size={15} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>{r.role}</span></div>
+                        <div className="row ac gap8" style={{ marginBottom: 3 }}><span style={{ color: 'var(--blue)' }}><I.shield size={15} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>{r.role}</span></div>
                         <span className="badge b-blue tiny mono">{r.ref}</span>
                       </div>
-                      <div className="row ac gap8"><Avatar name={r.person} size={30} /><div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.person}</div><div className="tiny muted">{r.title} · sejak {r.since}</div></div></div>
+                      <div className="row ac gap8"><Avatar name={r.person} size={30} /><div><div style={{ fontSize: 12, fontWeight: 600 }}>{r.person}</div><div className="tiny muted">{r.title} · sejak {r.since}</div></div></div>
                       <div className="tiny" style={{ lineHeight: 1.5, color: 'var(--ink-2)' }}>{r.note}</div>
                     </div>
                   </div>
@@ -132,7 +132,7 @@ function Governance() {
               <tbody>
                 {providers.map((p: any, i: any) => (
                   <tr key={i}>
-                    <td style={{ fontWeight: 600, fontSize: 12.5 }}>{p.name}<div className="tiny muted truncate" style={{ maxWidth: 300, fontWeight: 400 }}>{p.note}</div></td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{p.name}<div className="tiny muted truncate" style={{ maxWidth: 300, fontWeight: 400 }}>{p.note}</div></td>
                     <td className="tiny">{p.type}</td>
                     <td className="tiny muted">{p.reliance}</td>
                     <td className="mono tiny muted">{p.evaluated}</td>
@@ -148,14 +148,14 @@ function Governance() {
               <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14 }}>
                 {culture.map((k: any, i: any) => (
                   <div key={i} className="panel" style={{ padding: '12px 13px', boxShadow: 'none' }}>
-                    <div className="mono" style={{ fontSize: 21, fontWeight: 700, color: 'var(--' + k.accent + ')' }}>{k.v}</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--' + k.accent + ')' }}>{k.v}</div>
                     <div className="tiny" style={{ fontWeight: 600, margin: '2px 0 4px', lineHeight: 1.3 }}>{k.k}</div>
                     <div className="tiny muted" style={{ lineHeight: 1.4 }}>{k.note}</div>
                   </div>
                 ))}
               </div>
               <div className="panel" style={{ padding: '13px 16px', background: 'var(--blue-050)', borderColor: 'transparent' }}>
-                <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ color: 'var(--blue)' }}><I.book size={16} /></span><span style={{ fontSize: 12.5, fontWeight: 700 }}>Tone at the Top — Komitmen Mutu Pimpinan</span></div>
+                <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ color: 'var(--blue)' }}><I.book size={16} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Tone at the Top — Komitmen Mutu Pimpinan</span></div>
                 <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>Pimpinan firma menempatkan mutu di atas pertimbangan komersial dan tenggat waktu. Akuntabilitas mutu tercermin pada evaluasi & remunerasi partner (bobot 40%), komunikasi mutu berkala, serta penyediaan sumber daya yang memadai. Budaya mutu dipantau melalui survei staf tahunan dan dievaluasi sebagai bagian dari simpulan SPM.</p>
               </div>
             </div>
@@ -176,13 +176,13 @@ function GovCompDetail({ c, onClose }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
       <div className="panel" style={{ width: 440, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 14, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>ISQM 1 {c.ref}</div></div>
+          <div style={{ flex: 1 }}><div className="row ac gap8"><span className="mono" style={{ fontSize: 13, fontWeight: 700 }}>{c.id}</span><Badge kind={(GOV_STAT as any)[c.status]}>{c.status}</Badge></div><div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{c.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>ISQM 1 {c.ref}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'grid', gap: 14, alignContent: 'start' }}>
           <div className="row ac gap10">
-            <Donut size={76} thickness={11} segments={[{ value: c.score, color: scoreColor }, { value: 100 - c.score, color: 'var(--surface-3)' }]} center={<div><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: scoreColor }}>{c.score}%</div></div>} />
-            <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Cakupan Komponen</div><div style={{ fontSize: 12.5, lineHeight: 1.5 }}>{c.desc}</div></div>
+            <Donut size={76} thickness={11} segments={[{ value: c.score, color: scoreColor }, { value: 100 - c.score, color: 'var(--surface-3)' }]} center={<div><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: scoreColor }}>{c.score}%</div></div>} />
+            <div style={{ flex: 1 }}><div className="tiny muted upper" style={{ marginBottom: 4 }}>Cakupan Komponen</div><div style={{ fontSize: 12, lineHeight: 1.5 }}>{c.desc}</div></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <OKv label="Tujuan Mutu" v={c.obj} />
@@ -193,13 +193,13 @@ function GovCompDetail({ c, onClose }: any) {
           {role && (
             <div><div className="tiny muted upper" style={{ marginBottom: 5 }}>Pemilik Komponen</div>
               <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none' }}>
-                <div className="row ac gap8"><Avatar name={role.person} size={30} /><div><div style={{ fontSize: 12.5, fontWeight: 600 }}>{role.person}</div><div className="tiny muted">{role.title}</div></div></div>
+                <div className="row ac gap8"><Avatar name={role.person} size={30} /><div><div style={{ fontSize: 12, fontWeight: 600 }}>{role.person}</div><div className="tiny muted">{role.title}</div></div></div>
               </div>
             </div>
           )}
           {!role && (
             <div><div className="tiny muted upper" style={{ marginBottom: 5 }}>Pemilik Komponen</div>
-              <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none' }}><div className="row ac gap8"><Avatar name={c.owner} size={30} /><span style={{ fontSize: 12.5, fontWeight: 600 }}>{c.owner}</span></div></div>
+              <div className="panel" style={{ padding: '11px 13px', boxShadow: 'none' }}><div className="row ac gap8"><Avatar name={c.owner} size={30} /><span style={{ fontSize: 12, fontWeight: 600 }}>{c.owner}</span></div></div>
             </div>
           )}
           <div className="panel" style={{ padding: '10px 12px', background: c.status === 'Efektif' ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>

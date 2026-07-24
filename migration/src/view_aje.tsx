@@ -101,7 +101,7 @@ function AjeKv({ label, v, strong, accent }: any) {
   return (
     <div className="row jb ac">
       <span className="tiny muted">{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{v}</span>
+      <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: 12, color: accent || 'var(--ink)' }}>{v}</span>
     </div>
   );
 }
@@ -200,7 +200,7 @@ function AJEView() {
           {!locked && !canEditAje && (
             <div className="panel" style={{ margin: '0 0 12px', padding: '10px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ color: 'var(--amber)' }}><I.lock size={16} /></span>
-              <span style={{ fontSize: 12.5, fontWeight: 600 }}>Peran <b>{auth.role}</b> hanya dapat melihat AJE. Penyusunan/posting jurnal memerlukan peran Senior Auditor ke atas (ditegakkan di server).</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>Peran <b>{auth.role}</b> hanya dapat melihat AJE. Penyusunan/posting jurnal memerlukan peran Senior Auditor ke atas (ditegakkan di server).</span>
             </div>
           )}
           <div style={{ marginBottom: 12 }}><DiagnosticPanel area="aje" title="Diagnostik AJE — Temuan Otomatis" /></div>
@@ -270,7 +270,7 @@ function AjeRegister({ model, locked }: any) {
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 7 }}>
                   {a.id}{a.fraud && <span title="Terkait kecurangan (SA 240)" style={{ marginLeft: 3, color: 'var(--red)' }}>⚑</span>}
                 </td>
-                <td style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 11.5, padding: '6px 9px' }}>
+                <td style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12, padding: '6px 9px' }}>
                   {a.desc}
                   <div className="tiny muted" style={{ marginTop: 2 }}>{a.cycle} · <span className="mono">WP {a.ref}</span> · {a.std}</div>
                   {a.assertions?.length ? <div style={{ marginTop: 3 }}><AjeAsrChips ids={a.assertions} /></div> : null}
@@ -322,12 +322,12 @@ function AjeDrill({ a, fmt, nav }: any) {
       <Panel noBody>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
           <div className="row ac gap8">
-            <span className="mono" style={{ fontWeight: 700, fontSize: 14 }}>{a.id}</span>
+            <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{a.id}</span>
             <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
             <div style={{ flex: 1 }} />
             <Badge>{a.status}</Badge>
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{a.desc}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{a.desc}</div>
           <div className="tiny" style={{ color: '#bcd6e4', marginTop: 4 }}>{a.std} · WP {a.ref}</div>
         </div>
         <table className="dtbl">
@@ -424,15 +424,15 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
           <div className="row gap10" style={{ alignItems: 'stretch' }}>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
               <div className="tiny muted upper">Rasio Lancar (kini)</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 20, color: 'var(--navy)' }}>{ratioNow.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--navy)' }}>{ratioNow.toFixed(2)}×</div>
             </div>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: ratioAfter < COVENANT ? 'var(--red-bg)' : 'var(--surface-2)' }}>
               <div className="tiny muted upper">Jika usulan diposting</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 20, color: ratioAfter < COVENANT ? 'var(--red)' : 'var(--navy)' }}>{ratioAfter.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: ratioAfter < COVENANT ? 'var(--red)' : 'var(--navy)' }}>{ratioAfter.toFixed(2)}×</div>
             </div>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
               <div className="tiny muted upper">Ambang Covenant</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 20, color: 'var(--ink-3)' }}>{COVENANT.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--ink-3)' }}>{COVENANT.toFixed(2)}×</div>
             </div>
           </div>
           <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: ratioAfter < COVENANT ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
@@ -451,7 +451,7 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Laba Sebelum Pajak (Dilaporkan)</div>
-            <div className="mono" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Unadjusted Rp {jt(AJE_PBT_UNADJ)} jt · {posted.length} penyesuaian posted</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>
@@ -568,11 +568,11 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) 
           <div key={i} style={{ flex: 1, position: 'relative', height: H }}>
             <div style={{ position: 'absolute', left: '14%', right: '14%', top, height: h, background: col, borderRadius: 3, transition: 'all .25s' }} />
             <div style={{ position: 'absolute', left: 0, right: 0, top: top - 16, textAlign: 'center' }} className="mono tiny">
-              <span style={{ fontSize: 10.5, fontWeight: 700, color: isTotal ? 'var(--navy)' : (s.kind === 'proposed' ? 'var(--amber)' : 'var(--blue)') }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: isTotal ? 'var(--navy)' : (s.kind === 'proposed' ? 'var(--amber)' : 'var(--blue)') }}>
                 {isTotal ? jt(s.value) : (s.delta > 0 ? '+' : '') + jt(s.delta)}
               </span>
             </div>
-            <div style={{ position: 'absolute', left: -2, right: -2, top: H + 4, textAlign: 'center', fontSize: 9.5, fontWeight: isTotal ? 700 : 500, color: isTotal ? 'var(--ink-2)' : 'var(--ink-4)', lineHeight: 1.2 }}>{s.label}</div>
+            <div style={{ position: 'absolute', left: -2, right: -2, top: H + 4, textAlign: 'center', fontSize: 11, fontWeight: isTotal ? 700 : 500, color: isTotal ? 'var(--ink-2)' : 'var(--ink-4)', lineHeight: 1.2 }}>{s.label}</div>
           </div>
         );
       })}

@@ -27,7 +27,7 @@ function FCStat({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
-        <span className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</span>
+        <span className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</span>
         {unit && <span className="tiny mono" style={{ color: 'var(--ink-4)', fontWeight: 600 }}>{unit}</span>}
       </div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
@@ -196,7 +196,7 @@ function ForensicCashFlow() {
                     {rows.map((f: any) => (
                       <tr key={f.id} className={f.id === selTx.id ? 'sel' : ''} onClick={() => setSel(f.id)} style={{ cursor: 'pointer' }}>
                         <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{f.id}</td>
-                        <td style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3, fontSize: 11.5 }}>
+                        <td style={{ maxWidth: 230, whiteSpace: 'normal', lineHeight: 1.3, fontSize: 12 }}>
                           <span className="row ac gap6">{f.party}{f.rpId && <span title="Pihak berelasi" style={{ color: 'var(--red)', display: 'inline-flex' }}><I.group size={11} /></span>}</span>
                         </td>
                         <td><Badge kind={f.dir === 'in' ? 'green' : 'gray'}>{f.dir === 'in' ? 'Masuk' : 'Keluar'}</Badge></td>
@@ -260,7 +260,7 @@ function ForensicCashFlow() {
               <Panel noBody>
                 <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
                   <div><div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)' }}>Validasi & Tie-out</div><div className="tiny muted">Satu sumber kebenaran (WTB → FSGEN)</div></div>
-                  <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
+                  <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
                 </div>
                 <div style={{ padding: 9, display: 'grid', gap: 7 }}>
                   {tieRows.map(c => (
@@ -271,7 +271,7 @@ function ForensicCashFlow() {
                         <Badge kind="gray">{c.std}</Badge>
                       </div>
                       <div className="tiny muted" style={{ marginBottom: 5, paddingLeft: 23, lineHeight: 1.4 }}>{c.note}</div>
-                      <div className="row" style={{ paddingLeft: 23, gap: 0, fontFamily: 'var(--mono)', fontSize: 10.5 }}>
+                      <div className="row" style={{ paddingLeft: 23, gap: 0, fontFamily: 'var(--mono)', fontSize: 11 }}>
                         <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>A</div><div style={{ fontWeight: 600 }}>{sc(c.a)}</div></div>
                         <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>B</div><div style={{ fontWeight: 600 }}>{sc(c.b)}</div></div>
                         <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>Δ</div><div style={{ fontWeight: 700, color: c.ok ? 'var(--green)' : 'var(--red)' }}>{sc(c.diff)}</div></div>

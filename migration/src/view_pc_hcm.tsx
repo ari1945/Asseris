@@ -70,7 +70,7 @@ function Profile360Drawer({ s, onClose }: any) {
   const Kv = ({ l, v, accent }: any) => (
     <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{l}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
     </div>
   );
 
@@ -80,11 +80,11 @@ function Profile360Drawer({ s, onClose }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 13, flex: '0 0 auto' }}>
           <Avatar name={s.name} size={50} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 700 }} className="truncate">{s.name}</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{s.name}</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>{s.role} · {s.id} · {p.location}</div>
             <div className="row gap6 ac" style={{ marginTop: 5 }}>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{s.grade} · Band {p.band}</span>
-              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 10 }}>{s.cert}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{s.grade} · Band {p.band}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', fontSize: 11 }}>{s.cert}</span>
             </div>
           </div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
@@ -92,10 +92,10 @@ function Profile360Drawer({ s, onClose }: any) {
 
         <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 16 }}>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 10, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
-            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 16, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--navy)' }}>{tenure}<span style={{ fontSize: 11, fontWeight: 600 }}>th</span></div><div className="tiny muted">Masa Kerja</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: s.util > 90 ? 'var(--red)' : 'var(--green)' }}>{s.util}%</div><div className="tiny muted">Utilisasi</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: 'var(--blue)' }}>{s.rating.toFixed(1)}</div><div className="tiny muted">Rating</div></div>
+            <div className="panel" style={{ padding: '8px 10px', boxShadow: 'none', textAlign: 'center' }}><div className="mono" style={{ fontSize: 15, fontWeight: 800, color: cpe >= 40 ? 'var(--green)' : 'var(--amber)' }}>{cpe}</div><div className="tiny muted">SKP</div></div>
           </div>
 
           <Section title="Informasi Pribadi & Kepegawaian">
@@ -176,7 +176,7 @@ function Profile360Drawer({ s, onClose }: any) {
 
           <Section title="Darurat (Emergency Contact)">
             <div className="panel" style={{ padding: '9px 12px', boxShadow: 'none', background: 'var(--surface-2)' }}>
-              <div className="row ac jb"><span style={{ fontWeight: 600, fontSize: 12.5 }}>{p.emergency.name}</span><span className="tiny muted">{p.emergency.rel}</span></div>
+              <div className="row ac jb"><span style={{ fontWeight: 600, fontSize: 12 }}>{p.emergency.name}</span><span className="tiny muted">{p.emergency.rel}</span></div>
               <div className="tiny mono muted" style={{ marginTop: 2 }}>{p.emergency.phone}</div>
             </div>
           </Section>
@@ -232,7 +232,7 @@ function HCMAnalytics() {
                     <div title={'Exit ' + t.exits} style={{ width: 9, height: (t.exits / 8 * 100) + '%', minHeight: 4, background: 'var(--red-solid)', borderRadius: '2px 2px 0 0' }} />
                   </div>
                   <div className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{t.total}</div>
-                  <div className="tiny muted" style={{ fontSize: 9.5 }}>{t.q}</div>
+                  <div className="tiny muted" style={{ fontSize: 11 }}>{t.q}</div>
                 </div>
               ))}
             </div>
@@ -247,7 +247,7 @@ function HCMAnalytics() {
         <Panel noBody>
           <div className="panel-h"><h3>Komposisi Jenjang</h3></div>
           <div style={{ padding: 16, display: 'flex', gap: 14, alignItems: 'center' }}>
-            <Donut size={120} thickness={18} segments={D.gradeMix.map((g: any) => ({ value: g.n, color: GC[g.g] }))} center={<><div className="mono" style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>{totalHC}</div><div className="tiny muted">SDM</div></>} />
+            <Donut size={120} thickness={18} segments={D.gradeMix.map((g: any) => ({ value: g.n, color: GC[g.g] }))} center={<><div className="mono" style={{ fontSize: 19, fontWeight: 800, color: 'var(--navy)' }}>{totalHC}</div><div className="tiny muted">SDM</div></>} />
             <div style={{ flex: 1, display: 'grid', gap: 8 }}>
               {D.gradeMix.map((g: any) => (
                 <div key={g.g} className="row ac jb">

@@ -179,14 +179,14 @@ function WipDetail({ r, onClose, onWriteDown, onReset }: any) {
   const Line = ({ label, v, op, strong, accent }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="tiny" style={{ fontWeight: strong ? 700 : 500, color: strong ? 'var(--ink)' : 'var(--ink-2)' }}>{op && <span className="mono" style={{ color: 'var(--ink-4)', marginRight: 5 }}>{op}</span>}{label}</span>
-      <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12.5, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + fmt(Math.abs(v) / 1e6, 0) + ' jt' + (v < 0 ? ')' : '')}</span>
+      <span className="mono" style={{ fontWeight: strong ? 800 : 600, fontSize: 12, color: accent || 'var(--ink)' }}>{(v < 0 ? '(' : '') + 'Rp ' + fmt(Math.abs(v) / 1e6, 0) + ' jt' + (v < 0 ? ')' : '')}</span>
     </div>
   );
   return (
     <Panel noBody style={{ position: 'sticky', top: 0 }}>
       <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px' }}>
         <div className="row jb ac" style={{ marginBottom: 6 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{r.id}</span><button className="top-btn" onClick={onClose}><I.x size={17} /></button></div>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>{r.clientShort}</div>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{r.clientShort}</div>
         <div className="tiny" style={{ color: '#bcd6e4' }}>{r.partner} · {r.type}</div>
       </div>
       <div style={{ padding: 14 }}>

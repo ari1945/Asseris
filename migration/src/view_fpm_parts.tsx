@@ -31,7 +31,7 @@ function KV({ label, v, accent, sub }: any) {
   return (
     <div className="panel" style={{ padding: '8px 11px', boxShadow: 'none' }}>
       <div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div>
-      <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: accent || 'var(--ink)' }}>{v}</div>
       {sub && <div className="tiny muted" style={{ marginTop: 1 }}>{sub}</div>}
     </div>
   );
@@ -78,12 +78,12 @@ function Funnel({ stages }: any) {
         return (
           <div key={i} className="row ac gap10">
             <div style={{ width: 110, textAlign: 'right', flex: '0 0 110px' }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600 }} className="truncate">{s.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{s.label}</div>
               {s.n != null && <div className="tiny muted">{s.n} item</div>}
             </div>
             <div style={{ flex: 1, height: 26, background: 'var(--surface-3)', borderRadius: 5, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', inset: 0, width: w + '%', background: s.color, borderRadius: 5, display: 'flex', alignItems: 'center', paddingLeft: 9 }}>
-                <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>{s.disp}</span>
+                <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{s.disp}</span>
               </div>
             </div>
             {i > 0 && <span className="tiny muted mono" style={{ width: 38, flex: '0 0 38px' }}>{conv}%</span>}
@@ -143,7 +143,7 @@ function LineChart({ series, labels, height = 170, yMax, yFmt, unit = '' }: any)
       </div>
       <div className="row jb tiny muted" style={{ marginTop: 5 }}>
         {labels.map((l: any, i: any) => (i === 0 || i === labels.length - 1 || (labels.length <= 8) || i % Math.ceil(labels.length / 6) === 0)
-          ? <span key={i} style={{ fontSize: 9.5 }}>{l}</span> : <span key={i} />)}
+          ? <span key={i} style={{ fontSize: 11 }}>{l}</span> : <span key={i} />)}
       </div>
       {series.length > 1 && (
         <div className="row gap12 ac" style={{ marginTop: 6, flexWrap: 'wrap' }}>

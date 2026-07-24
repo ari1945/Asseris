@@ -129,7 +129,7 @@ function FirmGL() {
                 <div className="panel-h" style={{ borderBottom: '1px solid var(--line)' }}>
                   <div><h3 style={{ margin: 0 }}>{ledger.acct.code} · {ledger.acct.name}</h3><span className="tiny muted">{ledger.acct.type} · saldo normal {ledger.acct.bal >= 0 ? 'Debit' : 'Kredit'}</span></div>
                   <div style={{ flex: 1 }} />
-                  <div style={{ textAlign: 'right' }}><div className="tiny muted">Saldo akhir</div><div className="mono" style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy)' }}>Rp {fmt(Math.abs(ledger.closing) / 1e6, 0)} jt {ledger.closing >= 0 ? 'D' : 'K'}</div></div>
+                  <div style={{ textAlign: 'right' }}><div className="tiny muted">Saldo akhir</div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)' }}>Rp {fmt(Math.abs(ledger.closing) / 1e6, 0)} jt {ledger.closing >= 0 ? 'D' : 'K'}</div></div>
                 </div>
                 <table className="dtbl">
                   <thead><tr><th>Tanggal</th><th>No. & Keterangan</th><th>Lawan Akun</th><th className="num">Debit</th><th className="num">Kredit</th><th className="num">Saldo Berjalan</th></tr></thead>
@@ -269,7 +269,7 @@ function FirmJVForm({ coa, onClose, onPost }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 520, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.ledger size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Jurnal Umum Firma</div><div className="tiny" style={{ color: '#bcd6e4' }}>Double-entry · GL KAP</div></div>
+          <I.ledger size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Jurnal Umum Firma</div><div className="tiny" style={{ color: '#bcd6e4' }}>Double-entry · GL KAP</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

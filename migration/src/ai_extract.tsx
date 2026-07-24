@@ -423,7 +423,7 @@ function WpExtractions({ wpRef }: any) {
               <div className="row ac gap10" style={{ padding: '9px 14px', cursor: 'pointer' }} onClick={() => setOpen((o: any) => ({ ...o, [r.uid]: !o[r.uid] }))}>
                 <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.sparkle size={15} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }} className="truncate">{r.file}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{r.file}</div>
                   <div className="tiny muted">{r.docLabel} · {r.std} · {r.fields.length} field</div>
                 </div>
                 <span className="chip tiny" style={{ background: 'var(--green-bg)', color: 'var(--green)' }}><I.check size={11} /> {r.approver}</span>

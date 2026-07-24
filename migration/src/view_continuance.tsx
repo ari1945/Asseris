@@ -135,7 +135,7 @@ function PriorYearCard({ row }: { row: ContinuanceRow }) {
 const PY_OPINIONS = ['WTP', 'WTP-EoM', 'WDP', 'TMP', 'TW'];
 function PriorYearEditor({ value, onPatch }: { value?: PriorYear; onPatch: (p: Partial<PriorYear>) => void }) {
   const v: PriorYear = value || {};
-  const inp = { width: '100%', fontSize: 11.5, padding: '5px 8px', background: 'var(--surface)' } as const;
+  const inp = { width: '100%', fontSize: 12, padding: '5px 8px', background: 'var(--surface)' } as const;
   const lbl = { marginBottom: 3 } as const;
   return (
     <div style={{ display: 'grid', gap: 7 }}>
@@ -457,7 +457,7 @@ function ContinuanceRegister() {
                         <input className="input" value={f.note || ''} disabled={!editable}
                           onChange={(e: { target: { value: string } }) => patchFactor(i, { note: e.target.value })}
                           placeholder="Catatan/justifikasi penilai…"
-                          style={{ width: '100%', fontSize: 11.5, padding: '5px 8px', background: editable ? 'var(--surface)' : 'var(--surface-2)' }} />
+                          style={{ width: '100%', fontSize: 12, padding: '5px 8px', background: editable ? 'var(--surface)' : 'var(--surface-2)' }} />
                       </div>
                     ))}
                   </div>
@@ -480,7 +480,7 @@ function ContinuanceRegister() {
                     <textarea className="input" value={rec.safeguards || ''} disabled={!editable}
                       onChange={(e: { target: { value: string } }) => setSafeguards(e.target.value)}
                       placeholder="Tindakan pengaman atas ancaman teridentifikasi (mis. rotasi, EQR, pakar)…"
-                      style={{ width: '100%', minHeight: 56, fontSize: 11.5, padding: '6px 8px', resize: 'vertical', background: editable ? 'var(--surface)' : 'var(--surface-2)' }} />
+                      style={{ width: '100%', minHeight: 56, fontSize: 12, padding: '6px 8px', resize: 'vertical', background: editable ? 'var(--surface)' : 'var(--surface-2)' }} />
                   </div>
 
                   <div>

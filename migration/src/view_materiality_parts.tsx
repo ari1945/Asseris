@@ -97,7 +97,7 @@ function MatSpecific({ om, pmPct, locked }: any) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Konsep" sub="Mengapa lebih rendah dari OM">
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             Untuk kelas transaksi, saldo akun, atau pengungkapan tertentu, salah saji bernilai <b>lebih kecil dari Materialitas Keseluruhan</b> tetap
             dapat memengaruhi keputusan ekonomi pengguna. Auditor menetapkan tingkat materialitas spesifik yang lebih rendah untuk pos-pos tersebut.
           </p>
@@ -186,7 +186,7 @@ function MatComponent({ om, locked }: any) {
         <Panel title="Cakupan Audit Grup" sub="Komponen audit penuh">
           <div className="row ac" style={{ gap: 14, justifyContent: 'center', padding: '4px 0 8px' }}>
             <Donut size={96} thickness={14} segments={[{ value: coverage, color: 'var(--blue)' }, { value: Math.max(0, 100 - coverage), color: 'var(--surface-3)' }]}
-              center={<div><div className="mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--navy)' }}>{coverage}%</div><div className="tiny muted">cakupan</div></div>} />
+              center={<div><div className="mono" style={{ fontSize: 19, fontWeight: 700, color: 'var(--navy)' }}>{coverage}%</div><div className="tiny muted">cakupan</div></div>} />
           </div>
           <div className="tiny muted" style={{ textAlign: 'center', lineHeight: 1.5 }}>Komponen audit penuh meliputi {coverage}% pendapatan konsolidasian.</div>
         </Panel>
@@ -328,7 +328,7 @@ function MatImpact({ om, pm, ctt, locked }: any) {
               {[['Agregat tak-dikoreksi', matGross, om], ['Performance Materiality', pm, om], ['Overall Materiality', om, om]].map(([lbl, v, base]) => (
                 <div key={lbl} style={{ marginBottom: 10 }}>
                   <div className="row jb ac" style={{ marginBottom: 3 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 600 }}>{lbl}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>{lbl}</span>
                     <span className="mono tiny" style={{ fontWeight: 700 }}>{_FM(v)}</span>
                   </div>
                   <div style={{ height: 9, borderRadius: 5, background: 'var(--surface-3)' }}>
@@ -401,7 +401,7 @@ function MatRevision({ om, applied, locked }: any) {
                   </div>
                   <div className="row ac gap8" style={{ margin: '3px 0' }}>
                     {r.from > 0 && <><span className="mono muted">{_FM(r.from)}</span><I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} /></>}
-                    <span className="mono" style={{ fontWeight: 700, fontSize: 14 }}>{_FM(r.to)}</span>
+                    <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{_FM(r.to)}</span>
                     {delta != null && <span className="badge" style={{ background: up ? 'var(--green-bg)' : 'var(--red-bg)', color: up ? 'var(--green)' : 'var(--red)' }}>{up ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%</span>}
                   </div>
                   <div className="tiny" style={{ color: 'var(--ink-2)' }}>{r.basis} · <span className="muted">oleh {r.by}</span></div>
@@ -418,7 +418,7 @@ function MatRevision({ om, applied, locked }: any) {
                 <Badge kind="purple">Usulan saat ini</Badge>
                 <div className="row ac gap8" style={{ margin: '3px 0' }}>
                   <span className="mono muted">{_FM(last.to)}</span><I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
-                  <span className="mono" style={{ fontWeight: 700, fontSize: 14, color: 'var(--blue)' }}>{_FM(om)}</span>
+                  <span className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--blue)' }}>{_FM(om)}</span>
                 </div>
                 <div className="tiny muted">Belum dicatat sebagai revisi resmi — gunakan tombol di atas.</div>
               </div>
@@ -437,7 +437,7 @@ function MatRevision({ om, applied, locked }: any) {
           </div>
         </Panel>
         <Panel title="Catatan SA 320">
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             Auditor merevisi materialitas bila memperoleh informasi yang, seandainya diketahui sejak awal, akan menghasilkan
             angka berbeda — misalnya perubahan signifikan hasil keuangan aktual. Setiap revisi <b>didokumentasikan dan disetujui</b> partner.
           </p>
@@ -504,7 +504,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
 
   const Row = ({ label, value, strong }: any) => (
     <div className="row jb ac" style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
-      <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{label}</span>
+      <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span>
       <span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5 }}>{value}</span>
     </div>
   );
@@ -515,7 +515,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         <div className="tiny muted upper" style={{ marginBottom: 6 }}>{title}</div>
         {s ? (
           <>
-            <div className="row ac gap8"><Avatar name={s.name} size={26} /><div><div style={{ fontWeight: 700, fontSize: 12.5 }}>{s.name}</div><div className="tiny muted">{s.role}</div></div></div>
+            <div className="row ac gap8"><Avatar name={s.name} size={26} /><div><div style={{ fontWeight: 700, fontSize: 12 }}>{s.name}</div><div className="tiny muted">{s.role}</div></div></div>
             <div className="row ac gap6 tiny" style={{ color: 'var(--green)', marginTop: 7, fontWeight: 600 }}><I.checkCircle size={13} /> Ditandatangani {s.at}</div>
           </>
         ) : (
@@ -536,11 +536,11 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         </div>
         <div style={{ padding: '16px 20px', maxWidth: 720 }}>
           <div className="tiny muted upper" style={{ letterSpacing: '.08em', marginBottom: 3 }}>KAP Wijaya Hartono & Rekan</div>
-          <h2 style={{ margin: '0 0 4px', fontSize: 18, color: 'var(--navy)' }}>Penetapan Materialitas Audit</h2>
+          <h2 style={{ margin: '0 0 4px', fontSize: 19, color: 'var(--navy)' }}>Penetapan Materialitas Audit</h2>
           <div className="tiny muted" style={{ marginBottom: 14 }}>FY2025 · Standar {activeEngagement?.standard} · SA 320 & SA 450</div>
 
           <SecTitle n="1" t="Pemilihan Benchmark & Persentase" />
-          <p style={{ margin: '0 0 6px', fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 6px', fontSize: 12, lineHeight: 1.6 }}>
             Benchmark utama adalah <b>{bench.label}</b> sebesar {_RP(bench.value)} ({bench.note}). Persentase {pct}% diterapkan
             (kisaran lazim {bench.lo}–{bench.hi}%), menghasilkan Materialitas Keseluruhan {_RP(om)}.
           </p>
@@ -549,10 +549,10 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
           <Row label={`Ambang Jelas Remeh (${cttPct}% OM)`} value={_RP(ctt)} />
 
           <SecTitle n="2" t="Materialitas Spesifik & Komponen" mt />
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>{MAT_MEMO_SEC2}</p>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6 }}>{MAT_MEMO_SEC2}</p>
 
           <SecTitle n="3" t="Kesimpulan" mt />
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6 }}>{MAT_MEMO_SEC3}</p>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6 }}>{MAT_MEMO_SEC3}</p>
         </div>
       </Panel>
 
@@ -560,7 +560,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>OM Diusulkan</div>
-            <div className="mono" style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>{_RP(om)}</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{_RP(om)}</div>
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Terterapkan saat ini: {_RP(applied)}</div>
           </div>
           <div style={{ padding: '12px 14px' }}>

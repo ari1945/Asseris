@@ -170,25 +170,25 @@ function MLFinding({ f, editing, setField, idx, total }: any) {
   return (
     <div>
       {(typeof idx === 'number') && (
-        <div className="mono" style={{ fontSize: 10, color: '#9aa7b0', letterSpacing: '.08em', marginBottom: 8 }}>TEMUAN {idx + 1} DARI {total}</div>
+        <div className="mono" style={{ fontSize: 11, color: '#9aa7b0', letterSpacing: '.08em', marginBottom: 8 }}>TEMUAN {idx + 1} DARI {total}</div>
       )}
       <div className="row jb ac" style={{ marginBottom: 6, gap: 10 }}>
-        <span style={{ fontWeight: 800, fontSize: 13.5, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
+        <span style={{ fontWeight: 800, fontSize: 15, color: '#0c2430', lineHeight: 1.35 }}>{f.id} · {f.title}</span>
         <Badge kind={(ML_SEV_KIND as any)[f.sev]}>{f.sev}</Badge>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 10.5, color: '#6a7a85', marginBottom: 16, paddingBottom: 13, borderBottom: '1px dashed #e0e4e8' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 11, color: '#6a7a85', marginBottom: 16, paddingBottom: 13, borderBottom: '1px dashed #e0e4e8' }}>
         {[['Area', f.area], ['Acuan', f.ref], ['Penanggung Jawab', f.pic], ['Target Tindak Lanjut', f.target]].map(([l, v]) => (
-          <span key={l}><span style={{ color: '#9aa7b0', textTransform: 'uppercase', letterSpacing: '.04em', fontSize: 9.5, fontWeight: 700 }}>{l} </span><b style={{ color: '#46555f', fontWeight: 600 }}>{v}</b></span>
+          <span key={l}><span style={{ color: '#9aa7b0', textTransform: 'uppercase', letterSpacing: '.04em', fontSize: 11, fontWeight: 700 }}>{l} </span><b style={{ color: '#46555f', fontWeight: 600 }}>{v}</b></span>
         ))}
       </div>
       {ML_SECTIONS.map(([num, label, key]) => {
         const isResp = key === 'resp';
         return (
           <div key={key} style={{ display: 'flex', gap: 12, marginBottom: 13, alignItems: 'flex-start', ...(isResp ? { background: '#f1f6fa', border: '1px solid #dde7ef', borderRadius: 8, padding: '13px 15px', marginTop: 4 } : {}) }}>
-            <div style={{ flex: '0 0 21px', width: 21, height: 21, borderRadius: '50%', background: isResp ? '#005085' : '#e3eef6', color: isResp ? '#fff' : '#005085', display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 800, marginTop: 1 }}>{num}</div>
+            <div style={{ flex: '0 0 21px', width: 21, height: 21, borderRadius: '50%', background: isResp ? '#005085' : '#e3eef6', color: isResp ? '#fff' : '#005085', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800, marginTop: 1 }}>{num}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="row ac jb" style={{ marginBottom: 3, gap: 8 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#005085', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#005085', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
               </div>
               <div
                 contentEditable={editing}
@@ -216,15 +216,15 @@ function MLDiscussionThread({ items, onAdd }: any) {
           const isDecision = /KEPUTUSAN/i.test(m.note);
           return (
             <div key={i} style={{ display: 'flex', gap: 10, justifyContent: isAud ? 'flex-start' : 'flex-end' }}>
-              {isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800 }}>A</div>}
+              {isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--blue-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800 }}>A</div>}
               <div style={{ maxWidth: '72%', background: isDecision ? 'var(--green-bg)' : (isAud ? 'var(--blue-050)' : 'var(--surface-2)'), border: '1px solid ' + (isDecision ? 'var(--green)' : 'var(--line)'), borderRadius: isAud ? '11px 11px 11px 3px' : '11px 11px 3px 11px', padding: '8px 11px' }}>
                 <div className="row ac jb" style={{ gap: 8, marginBottom: 3 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: isDecision ? 'var(--green)' : (isAud ? 'var(--blue)' : 'var(--ink-2)') }}>{m.who} <span className="muted" style={{ fontWeight: 500 }}>· {m.org}</span></span>
                   <span className="mono tiny muted">{idDate(m.d)}</span>
                 </div>
-                <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>{m.note}</div>
+                <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>{m.note}</div>
               </div>
-              {!isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-3)', color: 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800, border: '1px solid var(--line)' }}>K</div>}
+              {!isAud && <div style={{ flex: '0 0 28px', width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-3)', color: 'var(--ink-2)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800, border: '1px solid var(--line)' }}>K</div>}
             </div>
           );
         })}
@@ -257,7 +257,7 @@ function MLDecisionPanel({ f, onDecide, onReopen }: any) {
           <div className="row ac gap8" style={{ marginBottom: 8 }}>
             <Badge kind={(ML_STAGE as any)[f.stage].kind}>{f.stage === 'final' ? <><I.check size={11} /> Masuk Final ML</> : <><I.x size={11} /> Tuntas — Dikeluarkan</>}</Badge>
           </div>
-          <div style={{ display: 'grid', gap: 5, fontSize: 11.5, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gap: 5, fontSize: 12, marginBottom: 10 }}>
             <div><span className="tiny muted upper">Tanggal &nbsp;</span><b>{idDate(f.decisionDate)}</b></div>
             <div><span className="tiny muted upper">Oleh &nbsp;</span><b>{f.decisionBy || '—'}</b></div>
             <div style={{ marginTop: 4, padding: 9, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 6, lineHeight: 1.55, color: 'var(--ink-2)' }}>{f.decisionNote || <span className="muted">(tanpa catatan)</span>}</div>
@@ -292,7 +292,7 @@ function MLFindingList({ findings, selId, onSel, filter, onFilter }: any) {
     <Panel title="Daftar Temuan" sub={`${findings.length} total`}>
       <div className="row gap6 ac wrap" style={{ padding: '0 0 8px', marginBottom: 4 }}>
         {[['all', 'Semua'], ['draft', 'Draft'], ['diskusi', 'Diskusi'], ['final', 'Final ML'], ['tuntas', 'Tuntas']].map(([v, l]) => (
-          <button key={v} onClick={() => onFilter(v)} className="chip x" style={{ fontSize: 10.5, background: filter === v ? 'var(--blue)' : 'var(--surface-2)', color: filter === v ? '#fff' : 'var(--ink-3)', border: '1px solid ' + (filter === v ? 'var(--blue)' : 'var(--line)'), padding: '3px 9px', borderRadius: 11, fontWeight: 700 }}>{l}</button>
+          <button key={v} onClick={() => onFilter(v)} className="chip x" style={{ fontSize: 11, background: filter === v ? 'var(--blue)' : 'var(--surface-2)', color: filter === v ? '#fff' : 'var(--ink-3)', border: '1px solid ' + (filter === v ? 'var(--blue)' : 'var(--line)'), padding: '3px 9px', borderRadius: 11, fontWeight: 700 }}>{l}</button>
         ))}
       </div>
       <div style={{ display: 'grid', gap: 2 }}>
@@ -350,7 +350,7 @@ function MLWorkflowFull(props: any) {
         <div style={{ display: 'grid', gap: 12 }}>
           <MLDecisionPanel f={sel} onDecide={(stage: any, note: any) => setStage(sel.id, stage, note)} onReopen={() => setStage(sel.id, 'diskusi', '')} />
           <Panel title="Klasifikasi (SA 265)">
-            <div style={{ display: 'grid', gap: 7, fontSize: 11.5, padding: '2px 0' }}>
+            <div style={{ display: 'grid', gap: 7, fontSize: 12, padding: '2px 0' }}>
               <div className="row jb ac"><span className="muted">Severitas</span><Badge kind={(ML_SEV_KIND as any)[sel.sev]}>{sel.sev}</Badge></div>
               <div className="row jb ac"><span className="muted">Area</span><b>{sel.area}</b></div>
               <div className="row jb ac"><span className="muted">Acuan</span><b className="mono tiny">{sel.ref}</b></div>
@@ -380,15 +380,15 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
       <div className="doc-paper" style={{ background: '#fff', maxWidth: 760, margin: '0 auto', padding: '40px 48px', boxShadow: 'var(--shadow)', fontSize: 12, color: '#16242c', lineHeight: 1.6 }}>
         <div className="row jb" style={{ alignItems: 'flex-start', marginBottom: 22, paddingBottom: 16, borderBottom: '2px solid #0c2430', gap: 16 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#0c2430', whiteSpace: 'nowrap', lineHeight: 1.25 }}>KAP Wijaya Hartono &amp; Rekan</div>
-            <div style={{ fontSize: 10.5, color: '#7a8893', marginTop: 2 }}>Registered Public Accountants</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: '#0c2430', whiteSpace: 'nowrap', lineHeight: 1.25 }}>KAP Wijaya Hartono &amp; Rekan</div>
+            <div style={{ fontSize: 11, color: '#7a8893', marginTop: 2 }}>Registered Public Accountants</div>
           </div>
-          <div className="mono" style={{ fontSize: 10.5, color: '#7a8893', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
+          <div className="mono" style={{ fontSize: 11, color: '#7a8893', textAlign: 'right', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
             {activeEngagement?.id}<br />{viewMode === 'final' ? '14 Maret 2026' : 'DRAFT — ' + idDate(today())}
           </div>
         </div>
         {viewMode === 'draft' && (
-          <div style={{ background: '#fff8e1', border: '1px solid #f0d27a', color: '#7a5a00', padding: '9px 13px', borderRadius: 6, fontSize: 11.5, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <div style={{ background: '#fff8e1', border: '1px solid #f0d27a', color: '#7a5a00', padding: '9px 13px', borderRadius: 6, fontSize: 12, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <I.alert size={14} style={{ flex: '0 0 14px', marginTop: 1 }} />
             <div>
               <b>Pratinjau DRAFT.</b> Menampilkan {visible.length} temuan yang sedang dibahas/akan masuk surat akhir. {excluded.length > 0 && <>Temuan tuntas saat diskusi ({excluded.length}) telah dikeluarkan otomatis sesuai keputusan auditor.</>}
@@ -402,14 +402,14 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
         <p style={{ margin: '0 0 8px' }}>
           Dalam rangka audit kami atas laporan keuangan {activeClient?.name} untuk tahun yang berakhir 31 Desember 2025, kami mengidentifikasi sejumlah hal terkait pengendalian internal dan praktik akuntansi yang ingin kami sampaikan untuk perbaikan. Sesuai SA 265 dan SA 260, setiap temuan kami uraikan menurut <b>enam unsur</b>: Kondisi, Sebab, Kriteria, Akibat, Rekomendasi, dan Tanggapan Manajemen.
         </p>
-        <p style={{ margin: '0 0 8px', color: '#52616b', fontSize: 11.5 }}>
+        <p style={{ margin: '0 0 8px', color: '#52616b', fontSize: 12 }}>
           Hal-hal berikut tidak memengaruhi opini audit kami atas laporan keuangan.
         </p>
 
         {/* Daftar ringkas */}
         <div style={{ background: '#f7f9fb', border: '1px solid #e0e7ee', borderRadius: 8, padding: '12px 16px', margin: '14px 0 20px' }}>
-          <div style={{ fontSize: 10.5, color: '#005085', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 7 }}>Daftar Pokok Temuan</div>
-          <ol style={{ margin: 0, paddingLeft: 20, fontSize: 11.5, lineHeight: 1.7 }}>
+          <div style={{ fontSize: 11, color: '#005085', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 7 }}>Daftar Pokok Temuan</div>
+          <ol style={{ margin: 0, paddingLeft: 20, fontSize: 12, lineHeight: 1.7 }}>
             {visible.map((f: any) => (
               <li key={f.id} style={{ marginBottom: 2 }}>
                 <b style={{ color: '#0c2430' }}>{f.title}</b> <span style={{ color: '#7a8893' }}>— {f.sev} · {f.area}</span>
@@ -427,7 +427,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
 
         {viewMode === 'draft' && excluded.length > 0 && (
           <div style={{ marginTop: 26, paddingTop: 16, borderTop: '1px dashed #c0cad3' }}>
-            <div style={{ fontSize: 10.5, color: '#1f7a4d', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 9 }}>Tuntas Saat Diskusi — Tidak Dicantumkan pada Surat Akhir</div>
+            <div style={{ fontSize: 11, color: '#1f7a4d', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 9 }}>Tuntas Saat Diskusi — Tidak Dicantumkan pada Surat Akhir</div>
             <div style={{ display: 'grid', gap: 8 }}>
               {excluded.map((f: any) => (
                 <div key={f.id} style={{ padding: '10px 12px', background: '#f3f9f5', border: '1px solid #cfe6d8', borderRadius: 6 }}>
@@ -445,7 +445,7 @@ function MLLetter({ findings, activeClient, activeEngagement, viewMode, editing,
           </div>
         )}
 
-        <p style={{ margin: '22px 0 0', paddingTop: 14, borderTop: '1px solid #e0e4e8', color: '#52616b', fontSize: 11.5 }}>
+        <p style={{ margin: '22px 0 0', paddingTop: 14, borderTop: '1px solid #e0e4e8', color: '#52616b', fontSize: 12 }}>
           Surat ini memuat {visible.length} temuan beserta tanggapan manajemen. Kami mengapresiasi kerja sama tim manajemen dan siap membahas tindak lanjut lebih lanjut pada pertemuan terpisah.
         </p>
         <div style={{ marginTop: 18 }}>

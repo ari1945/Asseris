@@ -203,7 +203,7 @@ function LockBanner() {
   return (
     <div className="panel" style={{ margin: '0 0 12px', padding: '10px 14px', background: 'var(--amber-bg)', borderColor: 'transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
       <span style={{ color: 'var(--amber)' }}><I.lock size={16} /></span>
-      <span style={{ fontSize: 12.5, fontWeight: 600 }}>Engagement diarsipkan — kertas kerja terkunci (read-only) sesuai ISQM. Buka kembali fase untuk mengubah.</span>
+      <span style={{ fontSize: 12, fontWeight: 600 }}>Engagement diarsipkan — kertas kerja terkunci (read-only) sesuai ISQM. Buka kembali fase untuk mengubah.</span>
     </div>
   );
 }
@@ -241,7 +241,7 @@ function StubView({ moduleId }: any) {
             <IconC size={26} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{m.label}</div>
+            <div style={{ fontSize: 19, fontWeight: 700 }}>{m.label}</div>
             <div style={{ fontSize: 12, color: '#bcd6e4' }}>{m.group}</div>
           </div>
           <div style={{ flex: 1 }} />

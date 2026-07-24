@@ -158,9 +158,9 @@ function DisclosureChecklist() {
                 const mod = r.module ? ((MODULE_INDEX as any)[r.module] || {}) : null;
                 return (
                   <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '78px 1fr 130px 96px', gap: 10, alignItems: 'center', padding: '9px 14px', borderBottom: '1px solid var(--line-soft)' }}>
-                    <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: r.ref === 'DV' ? 'var(--purple)' : 'var(--navy)' }}>{r.ref}</span>
+                    <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: r.ref === 'DV' ? 'var(--purple)' : 'var(--navy)' }}>{r.ref}</span>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{r.area} {r.dv && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 700 }}>· DV</span>}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{r.area} {r.dv && <span className="tiny" style={{ color: 'var(--purple)', fontWeight: 700 }}>· DV</span>}</div>
                       <div className="tiny muted">{r.std}{al ? ' → ' + al.code : ''}</div>
                     </div>
                     <div>

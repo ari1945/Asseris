@@ -28,7 +28,7 @@ const PDP_DSR_KIND = { 'Baru': 'blue', 'Diproses': 'amber', 'Selesai': 'green' }
 function PdpCard({ value, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
+      <div className="mono" style={{ fontSize: 19, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1.05 }}>{value}</div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
       {sub && <div className="tiny" style={{ color: 'var(--ink-4)' }}>{sub}</div>}
     </div>
@@ -87,7 +87,7 @@ function PDPView() {
                   <tbody>
                     {P.ropa.map((r: any) => (
                       <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setSelRopa(r)}>
-                        <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.id}</span><span style={{ fontWeight: 600, fontSize: 12.5 }}>{r.activity}</span>{r.special && <span className="chip tiny" style={{ height: 16, color: 'var(--red)', borderColor: 'var(--red)' }}>spesifik</span>}</div><div className="tiny muted">{r.purpose}</div></td>
+                        <td><div className="row ac gap6"><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.id}</span><span style={{ fontWeight: 600, fontSize: 12 }}>{r.activity}</span>{r.special && <span className="chip tiny" style={{ height: 16, color: 'var(--red)', borderColor: 'var(--red)' }}>spesifik</span>}</div><div className="tiny muted">{r.purpose}</div></td>
                         <td className="tiny" style={{ color: 'var(--ink-2)' }}>{r.subject}</td>
                         <td><Badge kind={(PDP_BASIS_KIND as any)[r.basis] || 'gray'}>{r.basis}</Badge></td>
                         <td className="tiny muted">{r.crossBorder ? 'Lintas-negara' : 'Domestik'}</td>
@@ -131,7 +131,7 @@ function PDPView() {
                   <tbody>
                     {P.dsr.map((d: any) => (
                       <tr key={d.id}>
-                        <td><div style={{ fontWeight: 600, fontSize: 12.5 }}>{d.subject}</div><div className="tiny muted">{d.id} · {d.handler}</div></td>
+                        <td><div style={{ fontWeight: 600, fontSize: 12 }}>{d.subject}</div><div className="tiny muted">{d.id} · {d.handler}</div></td>
                         <td className="tiny" style={{ fontWeight: 600, color: 'var(--ink-2)' }}>{d.type}</td>
                         <td className="tiny mono muted">{d.received}</td>
                         <td className="tiny mono" style={{ color: d.overdue ? 'var(--red)' : 'var(--ink-3)', fontWeight: d.overdue ? 700 : 400 }}>{d.open ? (d.dueDays >= 0 ? d.dueDays + 'h lagi' : 'lewat') : '✓'}</td>
@@ -221,7 +221,7 @@ function PDPView() {
                       <div key={i} className="row ac gap10" style={{ padding: '15px 18px', borderBottom: i < P.principles.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                         <span style={{ color: p.status === 'Aktif' ? 'var(--green)' : p.status === 'Parsial' ? 'var(--amber)' : 'var(--red)', flex: '0 0 auto' }}>{p.status === 'Aktif' ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600 }}>{p.k}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }}>{p.k}</div>
                           <div className="tiny muted">{p.ev}{p.to && <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => nav(p.to, { from: 'pdp' })}> · buka modul ↗</span>}</div>
                         </div>
                         <Badge kind={(SK as any)[p.status] || 'gray'}>{p.status}</Badge>

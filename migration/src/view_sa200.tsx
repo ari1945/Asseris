@@ -61,11 +61,11 @@ function SA200View() {
               <div className="tiny muted">{client} · ENG-2025-014</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Kerangka Pelaporan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>SAK · Tujuan Umum</div></div>
+            <div><div className="tiny muted upper">Kerangka Pelaporan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>SAK · Tujuan Umum</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Tingkat Keyakinan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Memadai (bukan absolut)</div></div>
+            <div><div className="tiny muted upper">Tingkat Keyakinan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Memadai (bukan absolut)</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Basis Standar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>SA (IAPI)</div></div>
+            <div><div className="tiny muted upper">Basis Standar</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>SA (IAPI)</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Status Prasyarat</div>
@@ -127,12 +127,12 @@ function S200Objectives() {
             {SA200_PREMISE.map((p, i) => (
               <div key={i} className="row gap10" style={{ padding: '10px 0', alignItems: 'flex-start', borderBottom: i < SA200_PREMISE.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
                 <span style={{ flex: '0 0 auto', marginTop: 1, color: p.ok ? 'var(--green)' : 'var(--amber)' }}>{p.ok ? <I.checkCircle size={16} /> : <I.clock size={16} />}</span>
-                <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.45 }}>{p.t}</div>
+                <div style={{ flex: 1, fontSize: 12, lineHeight: 1.45 }}>{p.t}</div>
                 <span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700, flex: '0 0 auto' }}>{p.ref}</span>
               </div>
             ))}
             <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
-              <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Konfirmasi tertulis premis diperoleh via <b>Surat Perikatan (SA 210)</b> & <b>Representasi Tertulis (SA 580)</b>. Satu butir akses bukti masih menunggu konfirmasi manajemen.</span></div>
+              <div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Konfirmasi tertulis premis diperoleh via <b>Surat Perikatan (SA 210)</b> & <b>Representasi Tertulis (SA 580)</b>. Satu butir akses bukti masih menunggu konfirmasi manajemen.</span></div>
             </div>
           </div>
         </Panel>
@@ -157,7 +157,7 @@ function S200Objectives() {
           </div>
         </Panel>
         <Panel title="Lingkup Audit">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
             Audit atas laporan keuangan tujuan umum periode <b>31 Des 2025</b>, disusun sesuai <b>Standar Akuntansi
             Keuangan</b>. Opini ditujukan kepada pemegang saham. Audit tidak ditujukan untuk menyatakan keyakinan atas
             kelangsungan usaha di masa depan maupun efisiensi pengelolaan oleh manajemen.
@@ -176,7 +176,7 @@ function S200Skeptis() {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
           <div className="row ac gap8"><span><I.search2 size={18} /></span><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>¶15 · A18–A22</span></div>
           <div style={{ fontSize: 15, fontWeight: 700, marginTop: 6 }}>Skeptisisme Profesional</div>
-          <p style={{ margin: '6px 0 0', fontSize: 11.5, lineHeight: 1.5, color: '#bcd6e4' }}>Sikap yang mencakup pikiran yang selalu mempertanyakan, waspada terhadap kondisi yang mungkin mengindikasikan salah saji, & penilaian kritis atas bukti audit.</p>
+          <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: '#bcd6e4' }}>Sikap yang mencakup pikiran yang selalu mempertanyakan, waspada terhadap kondisi yang mungkin mengindikasikan salah saji, & penilaian kritis atas bukti audit.</p>
         </div>
         <div style={{ padding: 14 }}>
           <div className="tiny muted upper" style={{ marginBottom: 8 }}>Penerapan pada Engagement Ini</div>
@@ -185,7 +185,7 @@ function S200Skeptis() {
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4 }}>{s.t}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{s.t}</div>
                   <div className="tiny muted" style={{ marginTop: 3, lineHeight: 1.45, fontStyle: 'italic' }}>{s.ex}</div>
                 </div>
               </div>
@@ -262,7 +262,7 @@ function S200RiskModel() {
               return (
                 <div key={i} style={{ marginBottom: 16 }}>
                   <div className="row jb ac" style={{ marginBottom: 4 }}>
-                    <span className="row ac gap6" style={{ fontSize: 12.5, fontWeight: 700 }}>{s.lab}<span className="mono tiny muted">{s.ref}</span></span>
+                    <span className="row ac gap6" style={{ fontSize: 12, fontWeight: 700 }}>{s.lab}<span className="mono tiny muted">{s.ref}</span></span>
                     <span className="row ac gap8"><Badge kind={L.k}>{L.t}</Badge><span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{s.v}%</span></span>
                   </div>
                   <div className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.4 }}>{s.desc}</div>
@@ -276,17 +276,17 @@ function S200RiskModel() {
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
               <div className="panel" style={{ padding: '12px', boxShadow: 'none', textAlign: 'center', background: 'var(--surface-2)' }}>
                 <div className="tiny muted upper">RMM (IR×CR)</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 800, color: `var(--${lvl(rmm).k})`, margin: '4px 0 2px' }}>{rmm}%</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${lvl(rmm).k})`, margin: '4px 0 2px' }}>{rmm}%</div>
                 <Badge kind={lvl(rmm).k}>{lvl(rmm).t}</Badge>
               </div>
               <div className="panel" style={{ padding: '12px', boxShadow: 'none', textAlign: 'center', background: 'var(--surface-2)' }}>
                 <div className="tiny muted upper">Target AR</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink)', margin: '4px 0 2px' }}>{targetAR}%</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: '4px 0 2px' }}>{targetAR}%</div>
                 <Badge kind="green">Rendah</Badge>
               </div>
               <div className="panel" style={{ padding: '12px', boxShadow: 'none', textAlign: 'center', background: `var(--${drLvl.k}-bg)`, border: '1px solid var(--' + drLvl.k + ')' }}>
                 <div className="tiny muted upper">Risiko Deteksi (DR)</div>
-                <div className="mono" style={{ fontSize: 24, fontWeight: 800, color: `var(--${drLvl.k})`, margin: '4px 0 2px' }}>{drPct}%</div>
+                <div className="mono" style={{ fontSize: 22, fontWeight: 800, color: `var(--${drLvl.k})`, margin: '4px 0 2px' }}>{drPct}%</div>
                 <Badge kind={drLvl.k}>{drLvl.t.split('—')[0].trim()}</Badge>
               </div>
             </div>
@@ -297,7 +297,7 @@ function S200RiskModel() {
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Implikasi terhadap Strategi" sub="Hubungan terbalik DR ↔ prosedur">
           <div className="panel" style={{ padding: '12px 13px', background: `var(--${drLvl.k}-bg)`, borderColor: 'transparent', marginBottom: 10 }}>
-            <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ color: `var(--${drLvl.k})` }}><I.target size={16} /></span><span style={{ fontWeight: 700, fontSize: 12.5, color: `var(--${drLvl.k})` }}>{drLvl.t}</span></div>
+            <div className="row ac gap8" style={{ marginBottom: 6 }}><span style={{ color: `var(--${drLvl.k})` }}><I.target size={16} /></span><span style={{ fontWeight: 700, fontSize: 12, color: `var(--${drLvl.k})` }}>{drLvl.t}</span></div>
             <div className="tiny" style={{ lineHeight: 1.5 }}>
               {drPct <= 30
                 ? 'RMM tinggi memaksa DR rendah: tingkatkan luas pengujian substantif, gunakan staf berpengalaman, & laksanakan prosedur pada tanggal pelaporan, bukan interim.'
@@ -317,7 +317,7 @@ function S200RiskModel() {
           </div>
         </Panel>
         <Panel title="Catatan Konseptual">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
             Model risiko audit adalah <b>alat bantu konseptual</b>, bukan rumus matematis yang presisi (¶A34, A40).
             Risiko bawaan & pengendalian merupakan risiko entitas yang ada terlepas dari audit; risiko deteksi terkait
             efektivitas prosedur auditor. Risiko deteksi tidak dapat ditekan menjadi nol karena <b>keterbatasan bawaan</b>.
@@ -347,7 +347,7 @@ function S200Assurance() {
             <div key={i} className="row gap10" style={{ padding: '11px 0', alignItems: 'flex-start', borderBottom: i < limits.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ flex: '0 0 26px', width: 26, height: 26, borderRadius: 7, display: 'grid', placeItems: 'center', background: 'var(--amber-bg)', color: 'var(--amber)' }}><I.alert size={14} /></span>
               <div style={{ flex: 1 }}>
-                <div className="row jb ac"><div style={{ fontSize: 12.5, fontWeight: 700 }}>{l.t}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{l.ref}</span></div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700 }}>{l.t}</div><span className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{l.ref}</span></div>
                 <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 3 }}>{l.d}</div>
               </div>
             </div>
@@ -359,8 +359,8 @@ function S200Assurance() {
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,#0d3b22,#1f7a4d)', color: '#fff', padding: '16px' }}>
             <div className="tiny upper" style={{ color: '#bfe3cf', letterSpacing: '.05em' }}>Tingkat Keyakinan</div>
-            <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>Memadai</div>
-            <div style={{ fontSize: 11.5, color: '#bfe3cf', marginTop: 2 }}>Tinggi, tetapi bukan absolut</div>
+            <div style={{ fontSize: 19, fontWeight: 800, marginTop: 4 }}>Memadai</div>
+            <div style={{ fontSize: 12, color: '#bfe3cf', marginTop: 2 }}>Tinggi, tetapi bukan absolut</div>
           </div>
           <div style={{ padding: 14 }}>
             <div className="tiny muted upper" style={{ marginBottom: 8 }}>Spektrum Keyakinan</div>
@@ -377,7 +377,7 @@ function S200Assurance() {
           </div>
         </Panel>
         <Panel title="Konsekuensi pada Opini">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
             Karena keterbatasan bawaan, opini auditor <b>bukan jaminan</b> atas viabilitas masa depan entitas maupun
             efektivitas pengelolaan. Laporan auditor secara eksplisit menjelaskan tanggung jawab auditor & keterbatasan
             ini (lihat <b>Audit Opinion Generator</b>).
@@ -414,7 +414,7 @@ function S200Ethics() {
             <div key={i} className="row gap10" style={{ padding: '9px 0', alignItems: 'flex-start', borderBottom: i < principles.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: 'var(--green)', flex: '0 0 auto', marginTop: 1 }}><I.checkCircle size={15} /></span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700 }}>{p.t}</div>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{p.t}</div>
                 <div className="tiny muted" style={{ lineHeight: 1.4, marginTop: 2 }}>{p.d}</div>
               </div>
             </div>
@@ -437,7 +437,7 @@ function S200Ethics() {
             </tbody>
           </table>
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
-            <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.shield size={15} /></span><span style={{ fontSize: 11.5, lineHeight: 1.4 }}>Evaluasi lengkap pada modul <b>Independence & Rotasi</b>. Surat pernyataan independensi tim diperoleh.</span></div>
+            <div className="row ac gap8"><span style={{ color: 'var(--blue)' }}><I.shield size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Evaluasi lengkap pada modul <b>Independence & Rotasi</b>. Surat pernyataan independensi tim diperoleh.</span></div>
           </div>
         </Panel>
         <Panel title="Sign-off Partner">

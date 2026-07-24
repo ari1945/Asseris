@@ -108,7 +108,7 @@ function ClientCRM() {
                             <span style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--navy-solid)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flex: '0 0 28px' }}>{c.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                             <div style={{ minWidth: 0 }}>
                               <div className="truncate" style={{ fontWeight: 600, maxWidth: 180 }}>{c.name}</div>
-                              <div className="tiny muted mono">{c.id} {c.listed && <span className="badge b-blue" style={{ padding: '0 5px', fontSize: 9 }}>IDX</span>}</div>
+                              <div className="tiny muted mono">{c.id} {c.listed && <span className="badge b-blue" style={{ padding: '0 5px', fontSize: 11 }}>IDX</span>}</div>
                             </div>
                           </div>
                         </td>
@@ -128,10 +128,10 @@ function ClientCRM() {
             <Panel noBody>
               <div style={{ background: 'linear-gradient(120deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
                 <div className="row ac gap12">
-                  <span style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
+                  <span style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontSize: 15, fontWeight: 700 }}>{sel.name.replace('PT ', '').slice(0, 2).toUpperCase()}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{sel.name}</div>
-                    <div style={{ fontSize: 11.5, color: '#bcd6e4' }}>{sel.industry}</div>
+                    <div style={{ fontSize: 12, color: '#bcd6e4' }}>{sel.industry}</div>
                   </div>
                   <button className="top-btn" title="Edit klien" onClick={() => setForm({ mode: 'edit', data: { ...sel } })}><I.doc size={16} /></button>
                 </div>
@@ -145,7 +145,7 @@ function ClientCRM() {
                       {[['NPWP', sel.npwp, true], ['Domisili', sel.city], ['Klien Sejak', sel.since], ['Partner', sel.partner.split(',')[0]], ['Tingkat Risiko', sel.risk, false, true], ['Annual Fee', rp(sel.fee / 1e6) + ' juta', true]].map(([k, v, mono, badge]) => (
                         <div key={k}>
                           <div className="tiny muted upper" style={{ marginBottom: 2 }}>{k}</div>
-                          {badge ? <Badge>{v}</Badge> : <div className={mono ? 'mono' : ''} style={{ fontSize: 12.5, fontWeight: 600 }}>{v}</div>}
+                          {badge ? <Badge>{v}</Badge> : <div className={mono ? 'mono' : ''} style={{ fontSize: 12, fontWeight: 600 }}>{v}</div>}
                         </div>
                       ))}
                     </div>
@@ -162,7 +162,7 @@ function ClientCRM() {
                       <div key={i} className="panel" style={{ padding: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
                         <Avatar name={ct.name} size={32} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className="row ac gap6"><span style={{ fontSize: 12.5, fontWeight: 600 }}>{ct.name}</span>{ct.pic && <span className="badge b-blue" style={{ fontSize: 8.5, padding: '0 5px' }}>PIC</span>}</div>
+                          <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{ct.name}</span>{ct.pic && <span className="badge b-blue" style={{ fontSize: 11, padding: '0 5px' }}>PIC</span>}</div>
                           <div className="tiny muted">{ct.role}</div>
                           <div className="tiny mono" style={{ color: 'var(--blue)' }}>{ct.email}</div>
                         </div>
@@ -232,7 +232,7 @@ function ClientForm({ form, onClose, onSave }: any) {
       <div className="panel" style={{ width: 560, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto', display: 'grid', gap: 12 }}>
@@ -255,7 +255,7 @@ function ClientForm({ form, onClose, onSave }: any) {
             <div className="field"><label>Annual Fee (Rp)</label><input className="input mono" type="number" value={d.fee} onChange={(e: any) => set('fee', +e.target.value)} /></div>
             <div className="field"><label>Klien Sejak</label><input className="input mono" type="number" value={d.since} onChange={(e: any) => set('since', +e.target.value)} /></div>
           </div>
-          <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12.5 }}>
+          <label className="row ac gap8" style={{ cursor: 'pointer', fontSize: 12 }}>
             <span onClick={() => set('listed', !d.listed)} style={{ width: 36, height: 20, borderRadius: 11, background: d.listed ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: d.listed ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
             Emiten tercatat di Bursa Efek Indonesia (IDX)
           </label>
@@ -330,7 +330,7 @@ function EngagementMgmt() {
                   style={{ borderRadius: 8, padding: 4, background: overPhase === ph ? 'var(--blue-050)' : 'transparent', outline: overPhase === ph ? '2px dashed var(--blue)' : 'none', minHeight: 80, transition: 'background .12s' }}>
                   <div className="row ac gap8" style={{ marginBottom: 8, padding: '0 4px' }}>
                     <span style={{ width: 9, height: 9, borderRadius: 3, background: phColor }} />
-                    <span style={{ fontWeight: 700, fontSize: 12.5 }}>{ph}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12 }}>{ph}</span>
                     <span className="chip tiny">{col.length}</span>
                   </div>
                   <div className="grid" style={{ gap: 9 }}>
@@ -348,11 +348,11 @@ function EngagementMgmt() {
                             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>{e.id}</span>
                             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
                           </div>
-                          <div className="truncate" style={{ fontWeight: 600, fontSize: 12.5, marginBottom: 2 }}>{c?.name.replace('PT ', '')}</div>
+                          <div className="truncate" style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>{c?.name.replace('PT ', '')}</div>
                           <div className="tiny muted" style={{ marginBottom: isEngagementPreAcceptance(e) ? 5 : 8 }}>{e.type}</div>
                           {isEngagementPreAcceptance(e) && (
                             <div style={{ marginBottom: 7 }} title="Akseptasi/keberlanjutan belum disetujui atau surat perikatan belum ditandatangani (SA 210/220) — akan menahan masuk Eksekusi">
-                              <span className="badge b-amber" style={{ fontSize: 9, padding: '0 6px' }}><I.lock size={9} /> Pra-akseptasi</span>
+                              <span className="badge b-amber" style={{ fontSize: 11, padding: '0 6px' }}><I.lock size={9} /> Pra-akseptasi</span>
                             </div>
                           )}
                           <div className="row ac gap6" style={{ marginBottom: 7 }}>
@@ -401,7 +401,7 @@ function EngagementDetail({ e, client, onClose }: any) {
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{e.id}</span>
             <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{client?.name}</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>{client?.name}</div>
           <div className="tiny" style={{ color: '#bcd6e4' }}>{e.type} · {e.fy} · {e.standard}</div>
           <div className="row gap8" style={{ marginTop: 10 }}>
             <Badge kind={e.risk === 'High' ? 'red' : e.risk === 'Medium' ? 'amber' : 'green'}>{e.risk}</Badge>
@@ -442,7 +442,7 @@ function EngagementDetail({ e, client, onClose }: any) {
               const active = mPhIdx === phIdx;
               return (
                 <div key={i} className="row gap8" style={{ padding: '7px 0', borderBottom: i < milestones.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                  <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 10 }}>{done ? <I.check size={11} /> : active ? '•' : ''}</span>
+                  <span style={{ flex: '0 0 18px', width: 18, height: 18, borderRadius: '50%', background: done ? 'var(--green)' : active ? 'var(--blue)' : 'var(--surface-3)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11 }}>{done ? <I.check size={11} /> : active ? '•' : ''}</span>
                   <span style={{ fontSize: 12, color: done ? 'var(--ink-3)' : 'var(--ink)', fontWeight: active ? 600 : 400 }}>{m.t}</span>
                   {active && <span className="badge b-blue" style={{ marginLeft: 'auto' }}>Aktif</span>}
                 </div>
@@ -469,7 +469,7 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
+          <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

@@ -41,19 +41,19 @@ export function LoginScreen({ onLoggedIn }: any) {
   }
 
   const wrap = { minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--navy, #1f3a5f)', padding: 20 };
-  const card = { width: 380, maxWidth: '92vw', background: 'var(--surface, #fff)', borderRadius: 14, boxShadow: '0 24px 60px rgba(8,15,30,.38)', padding: '30px 30px 26px', font: '14px/1.5 Inter, system-ui, sans-serif', color: 'var(--ink, #1f2733)' };
-  const logo = { width: 46, height: 46, borderRadius: 11, background: 'var(--navy, #1f3a5f)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 18, marginBottom: 14 };
+  const card = { width: 380, maxWidth: '92vw', background: 'var(--surface, #fff)', borderRadius: 14, boxShadow: '0 24px 60px rgba(8,15,30,.38)', padding: '30px 30px 26px', font: '15px/1.5 Inter, system-ui, sans-serif', color: 'var(--ink, #1f2733)' };
+  const logo = { width: 46, height: 46, borderRadius: 11, background: 'var(--navy, #1f3a5f)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 19, marginBottom: 14 };
   const label = { display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-2, #5a6675)', marginBottom: 5 };
-  const input = { width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--line, #d7dce3)', padding: '0 11px', font: '14px inherit', boxSizing: 'border-box', marginBottom: 14, background: '#fff', color: 'inherit' };
-  const btn = { width: '100%', height: 40, borderRadius: 8, border: 'none', background: 'var(--blue, #2563eb)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 };
-  const errBox = { background: 'var(--red-bg, #fde8e8)', color: 'var(--red, #c0392b)', borderRadius: 8, padding: '8px 11px', fontSize: 12.5, marginBottom: 14 };
+  const input = { width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--line, #d7dce3)', padding: '0 11px', font: '15px inherit', boxSizing: 'border-box', marginBottom: 14, background: '#fff', color: 'inherit' };
+  const btn = { width: '100%', height: 40, borderRadius: 8, border: 'none', background: 'var(--blue, #2563eb)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 };
+  const errBox = { background: 'var(--red-bg, #fde8e8)', color: 'var(--red, #c0392b)', borderRadius: 8, padding: '8px 11px', fontSize: 12, marginBottom: 14 };
 
   return (
     <div style={wrap}>
       <form style={card} onSubmit={submit}>
         <div style={logo}>A</div>
-        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2 }}>Asseris</div>
-        <div style={{ fontSize: 12.5, color: 'var(--ink-2, #5a6675)', marginBottom: 22 }}>Audit Management System — masuk untuk melanjutkan</div>
+        <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: -0.2 }}>Asseris</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-2, #5a6675)', marginBottom: 22 }}>Audit Management System — masuk untuk melanjutkan</div>
 
         {err && <div style={errBox} role="alert">{err}</div>}
 

@@ -98,7 +98,7 @@ function Templates() {
                             <FmtBadge fmt={t.fmt} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="row ac gap6" style={{ marginBottom: 2 }}>
-                                <span style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.25 }} className="truncate">{t.name}</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.25 }} className="truncate">{t.name}</span>
                               </div>
                               <div className="row ac gap6 tiny muted">
                                 <span className="mono" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>{t.id}</span>
@@ -167,14 +167,14 @@ function TplDocPreview({ t }: any) {
   return (
     <div style={{ background: '#fff', minHeight: 360, boxShadow: 'var(--shadow)', padding: isXls ? 0 : '34px 38px' }}>
       {isXls ? (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, fontFamily: 'var(--mono)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'var(--mono)' }}>
           <thead><tr>{['Ref', 'Akun', 'TA Lalu', 'Saldo', 'AJE', 'Adjusted'].map(h => <th key={h} style={{ background: '#1f7a4d', color: '#fff', padding: '6px 8px', textAlign: h === 'Ref' || h === 'Akun' ? 'left' : 'right', border: '1px solid #15603c' }}>{h}</th>)}</tr></thead>
           <tbody>{[['A', 'Kas & Setara Kas'], ['B', 'Piutang Usaha'], ['C', 'Persediaan'], ['', '⋯'], ['', 'TOTAL']].map((r, i) => <tr key={i}>{['', r[1] || '', '', '', '', ''].map((c, j) => <td key={j} style={{ padding: '5px 8px', border: '1px solid #dfe3e7', background: i % 2 ? '#f7faf8' : '#fff', textAlign: j > 1 ? 'right' : 'left', fontWeight: i === 4 ? 700 : 400 }}>{j === 0 ? r[0] : c}</td>)}</tr>)}</tbody>
         </table>
       ) : (
         <>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 13.5, marginBottom: 4 }}>{t.name.toUpperCase()}</div>
-          <div style={{ textAlign: 'center', fontSize: 9.5, color: '#7a8893', marginBottom: 18 }}>KAP Wijaya Hartono &amp; Rekan · Template Standar IAPI · v{t.ver}</div>
+          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 15, marginBottom: 4 }}>{t.name.toUpperCase()}</div>
+          <div style={{ textAlign: 'center', fontSize: 11, color: '#7a8893', marginBottom: 18 }}>KAP Wijaya Hartono &amp; Rekan · Template Standar IAPI · v{t.ver}</div>
           {[1, 2, 3, 4].map(n => <div key={n} style={{ marginBottom: 13 }}><div style={{ fontWeight: 700, fontSize: 11, marginBottom: 5 }}>{n}. {['Latar Belakang', 'Ruang Lingkup', 'Prosedur', 'Kesimpulan'][n - 1]}</div>{[1, 2, 3].map(k => <div key={k} style={{ height: 6.5, background: '#eef1f4', borderRadius: 3, marginBottom: 4, width: k === 3 ? '70%' : '100%' }} />)}</div>)}
         </>
       )}
@@ -195,17 +195,17 @@ function TemplateDetail({ t, onClose }: any) {
   const openSA = (s: any) => window.__amsOpenSA && window.__amsOpenSA({ ...s, title: s.code, fromModule: 'templates' });
 
   const Kv = ({ label, children }: any) => (
-    <div><div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div><div style={{ fontSize: 14, fontWeight: 600 }}>{children}</div></div>
+    <div><div className="tiny muted upper" style={{ marginBottom: 3, letterSpacing: '.04em' }}>{label}</div><div style={{ fontSize: 15, fontWeight: 600 }}>{children}</div></div>
   );
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 24 }} onClick={onClose}>
       <div className="panel" style={{ width: 1060, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, borderRadius: '4px 4px 0 0' }}>
-          <span style={{ width: 40, height: 48, borderRadius: 5, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', position: 'relative', flex: '0 0 40px' }}><I.doc size={21} /><span style={{ position: 'absolute', bottom: 3, fontSize: 7.5, fontWeight: 800 }}>{t.fmt}</span></span>
+          <span style={{ width: 40, height: 48, borderRadius: 5, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', position: 'relative', flex: '0 0 40px' }}><I.doc size={21} /><span style={{ position: 'absolute', bottom: 3, fontSize: 11, fontWeight: 800 }}>{t.fmt}</span></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>{t.name}</div>
-            <div className="row ac gap8" style={{ color: '#bcd6e4', marginTop: 3, fontSize: 12.5 }}><span className="mono">{t.id}</span><span>· {t.phase}</span><span>· {t.cat}</span></div>
+            <div style={{ fontWeight: 700, fontSize: 19 }}>{t.name}</div>
+            <div className="row ac gap8" style={{ color: '#bcd6e4', marginTop: 3, fontSize: 12 }}><span className="mono">{t.id}</span><span>· {t.phase}</span><span>· {t.cat}</span></div>
           </div>
           <span className={'badge b-' + st.k} style={{ marginRight: 4 }}>{t.status}</span>
           <button className="top-btn" onClick={onClose}><I.x size={20} /></button>
@@ -218,7 +218,7 @@ function TemplateDetail({ t, onClose }: any) {
           </div>
 
           <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: 20, borderLeft: '1px solid var(--line)', display: 'grid', gap: 16, alignContent: 'start' }}>
-            <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--ink-2)' }}>{t.desc}</div>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--ink-2)' }}>{t.desc}</div>
 
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Kv label="Steward">{t.steward}</Kv>
@@ -257,7 +257,7 @@ function TemplateDetail({ t, onClose }: any) {
               <div className="tiny muted upper" style={{ marginBottom: 6, letterSpacing: '.04em' }}>Dipakai di engagement · {engObjs.length}</div>
               <div className="grid" style={{ gap: 5 }}>
                 {engObjs.length ? engObjs.map((e: any) => (
-                  <div key={e.id} className="row jb ac" style={{ fontSize: 12.5, padding: '7px 10px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+                  <div key={e.id} className="row jb ac" style={{ fontSize: 12, padding: '7px 10px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                     <span className="mono" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{e.id}</span>
                     <span className="truncate muted" style={{ maxWidth: 150 }}>{(e.client || '').replace('PT ', '')}</span>
                   </div>

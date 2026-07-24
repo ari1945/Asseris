@@ -61,7 +61,7 @@ function DFAturan() {
                     <td className="mono tiny" style={{ fontWeight: 700 }}>{r.id}</td>
                     <td style={{ fontWeight: 600, maxWidth: 240 }} className="truncate">{r.rule}</td>
                     <td className="tiny muted">{r.cat}</td>
-                    <td><span className="badge" style={{ background: (DF2_SEV as any)[r.severity], color: '#fff', fontSize: 9 }}>{r.severity}</span></td>
+                    <td><span className="badge" style={{ background: (DF2_SEV as any)[r.severity], color: '#fff', fontSize: 11 }}>{r.severity}</span></td>
                     <td className="tiny">{r.scope}</td>
                     <td><Badge kind={st.c}>{st.l}</Badge></td>
                     <td className="tiny muted truncate" style={{ maxWidth: 180 }}>{r.detail}</td>
@@ -180,7 +180,7 @@ function DFJejak() {
               <div key={i} className="row gap10" style={{ padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
                 <span style={{ width: 30, height: 30, borderRadius: 8, background: ((modColor as any)[t.module] || '#5b8aa6'), color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}><I.pulse size={14} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5 }}><b>{t.user}</b> — {t.action}</div>
+                  <div style={{ fontSize: 12 }}><b>{t.user}</b> — {t.action}</div>
                   <div className="tiny muted">{t.entity}</div>
                 </div>
                 <div style={{ textAlign: 'right', flex: '0 0 auto' }}>

@@ -103,7 +103,7 @@ function JournalEntryTesting() {
             {funnel.map((f, i) => (
               <Panel key={i} noBody>
                 <div style={{ padding: '15px 18px', borderTop: '3px solid ' + f.c }}>
-                  <div className="mono" style={{ fontSize: 24, fontWeight: 700, color: 'var(--navy)' }}>{fmt(f.v)}</div>
+                  <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)' }}>{fmt(f.v)}</div>
                   <div className="tiny muted upper">{f.l}</div>
                   {i > 0 && <div className="tiny" style={{ marginTop: 3, color: 'var(--ink-4)' }}>{(f.v / funnel[i - 1].v * 100).toFixed(1)}% dari tahap sebelumnya</div>}
                 </div>
@@ -123,12 +123,12 @@ function JournalEntryTesting() {
                       <span style={{ flex: '0 0 32px', width: 32, height: 18, borderRadius: 9, background: c.on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s', marginTop: 1 }}>
                         <span style={{ position: 'absolute', top: 2, left: c.on ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
                       </span>
-                      <span style={{ fontSize: 11.5, lineHeight: 1.35, color: c.on ? 'var(--ink)' : 'var(--ink-3)' }}>{c.label}</span>
+                      <span style={{ fontSize: 12, lineHeight: 1.35, color: c.on ? 'var(--ink)' : 'var(--ink-3)' }}>{c.label}</span>
                     </label>
                   ))}
                 </div>
                 <div className="divider" />
-                <div className="row jb ac" style={{ marginBottom: 5 }}><span style={{ fontSize: 11.5, fontWeight: 600 }}>Ambang nilai minimum</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(minAmt / 1e6, 0)} jt</span></div>
+                <div className="row jb ac" style={{ marginBottom: 5 }}><span style={{ fontSize: 12, fontWeight: 600 }}>Ambang nilai minimum</span><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)' }}>Rp {fmt(minAmt / 1e6, 0)} jt</span></div>
                 <input type="range" min="0" max="2000000000" step="50000000" value={minAmt} disabled={locked} onChange={(e: Ev) => setMinAmt(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)' }} />
               </Panel>
               <Panel title="Stratifikasi per User" sub="frekuensi posting">
@@ -208,7 +208,7 @@ function JournalEntryTesting() {
                         {tested[sel.id]?.status === 'exception' && (
                           <div style={{ marginTop: 10 }}>
                             <div className="tiny muted upper" style={{ marginBottom: 5 }}>Tindak Lanjut Jurnal Anomali</div>
-                            <textarea className="input" rows={2} disabled={locked} value={tested[sel.id]?.note || ''} placeholder="Sifat & sebab penyimpangan, dokumen pendukung, dampak ke SAD / area lain…" onChange={(e: Ev) => setNote(sel.id, e.target.value)} style={{ width: '100%', resize: 'vertical', fontSize: 11.5, lineHeight: 1.45 }} />
+                            <textarea className="input" rows={2} disabled={locked} value={tested[sel.id]?.note || ''} placeholder="Sifat & sebab penyimpangan, dokumen pendukung, dampak ke SAD / area lain…" onChange={(e: Ev) => setNote(sel.id, e.target.value)} style={{ width: '100%', resize: 'vertical', fontSize: 12, lineHeight: 1.45 }} />
                           </div>
                         )}
                         {tested[sel.id]?.at && <div className="tiny muted" style={{ marginTop: 8 }}>Disimpan oleh <b>{tested[sel.id]?.by}</b> · {tested[sel.id]?.at}</div>}

@@ -70,7 +70,7 @@ function RevCard({ value, unit, label, sub, accent }: any) {
   return (
     <div className="panel" style={{ padding: '12px 14px', display: 'grid', gap: 2 }}>
       <div className="row ac gap4" style={{ alignItems: 'baseline' }}>
-        <span className="mono" style={{ fontSize: 21, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</span>
+        <span className="mono" style={{ fontSize: 22, fontWeight: 700, color: accent || 'var(--navy)', lineHeight: 1 }}>{value}</span>
         {unit && <span className="tiny mono" style={{ color: 'var(--ink-4)', fontWeight: 600 }}>{unit}</span>}
       </div>
       <div className="tiny muted" style={{ fontWeight: 600 }}>{label}</div>
@@ -200,7 +200,7 @@ function PSAK72View() {
         <div className="panel" style={{ marginTop: 12, padding: '9px 11px', background: rev.cutoffPosted ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: rev.cutoffPosted ? 'var(--green)' : 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               <b>Konsiderasi variabel</b> Rp {sc(rev.grossBilling - rev.revBooked)} {UN.short} (retur, rabat, diskon) mengurangi bruto ke neto dibukukan. Koreksi audit <b>AJE-03</b> ({rev.aje03 ? rev.aje03.status : '—'}) Rp {fmt(rev.cutoffRev)} jt membalik pengakuan dini (channel stuffing) — pendapatan audited <b className="mono">Rp {sc(rev.revAudited)}</b> {UN.short}.
             </span>
           </div>
@@ -225,8 +225,8 @@ function PSAK72View() {
         {dimRows.map((r: any, i: any) => (
           <div key={i} style={{ display: 'grid', gap: 3 }}>
             <div className="row ac jb">
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink-2)' }}>{r.label}{r.timing && <Badge kind={r.timing === 'over' ? 'blue' : 'gray'} >{r.timing === 'over' ? 'sepanjang' : 'titik'}</Badge>}</span>
-              <span className="mono" style={{ fontSize: 11.5, fontWeight: 700 }}>{sc(r.amount)} <span className="tiny muted">· {fmt(r.amount / rev.revBooked * 100, 1)}%</span></span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}>{r.label}{r.timing && <Badge kind={r.timing === 'over' ? 'blue' : 'gray'} >{r.timing === 'over' ? 'sepanjang' : 'titik'}</Badge>}</span>
+              <span className="mono" style={{ fontSize: 12, fontWeight: 700 }}>{sc(r.amount)} <span className="tiny muted">· {fmt(r.amount / rev.revBooked * 100, 1)}%</span></span>
             </div>
             <div style={{ height: 7, borderRadius: 4, background: 'var(--surface-2, #f1f3f6)', overflow: 'hidden' }}>
               <div style={{ width: (r.amount / dimMax * 100) + '%', height: '100%', background: r.timing === 'over' ? 'var(--blue)' : 'var(--navy)', borderRadius: 4 }} />
@@ -252,7 +252,7 @@ function PSAK72View() {
     <Panel noBody>
       <div className="row ac jb" style={{ padding: '11px 13px', borderBottom: '1px solid var(--line)' }}>
         <div><div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)' }}>Validasi & Tie-out</div><div className="tiny muted">Satu sumber kebenaran (WTB → FSGEN)</div></div>
-        <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 17, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
+        <div style={{ textAlign: 'right' }}><div className="mono" style={{ fontSize: 15, fontWeight: 700, color: tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)' }}>{tiePass}/{tieRows.length}</div><div className="tiny muted">lolos</div></div>
       </div>
       <div style={{ padding: 9, display: 'grid', gap: 7 }}>
         {tieRows.map(c => (
@@ -263,7 +263,7 @@ function PSAK72View() {
               <Badge kind="gray">{c.std}</Badge>
             </div>
             <div className="tiny muted" style={{ marginBottom: 5, paddingLeft: 23, lineHeight: 1.4 }}>{c.note}</div>
-            <div className="row" style={{ paddingLeft: 23, gap: 0, fontFamily: 'var(--mono)', fontSize: 10.5 }}>
+            <div className="row" style={{ paddingLeft: 23, gap: 0, fontFamily: 'var(--mono)', fontSize: 11 }}>
               <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>A</div><div style={{ fontWeight: 600 }}>{sc(c.a)}</div></div>
               <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>B</div><div style={{ fontWeight: 600 }}>{sc(c.b)}</div></div>
               <div style={{ flex: 1 }}><div className="tiny" style={{ color: 'var(--ink-4)' }}>Δ</div><div style={{ fontWeight: 700, color: c.ok ? 'var(--green)' : 'var(--red)' }}>{sc(c.diff)}</div></div>
@@ -312,7 +312,7 @@ function PSAK72View() {
         {proc.map((p: any, i: any) => (
           <label key={p.id} className="row gap9" style={{ padding: '8px 13px', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < proc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggleProc(p.id)}>
             <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (p.done ? 'var(--green)' : 'var(--line-strong)'), background: p.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{p.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
-            <span style={{ flex: 1, fontSize: 11.5, lineHeight: 1.4, color: p.done ? 'var(--ink-2)' : 'var(--ink)', fontWeight: p.done ? 400 : 600 }}>{p.t}</span>
+            <span style={{ flex: 1, fontSize: 12, lineHeight: 1.4, color: p.done ? 'var(--ink-2)' : 'var(--ink)', fontWeight: p.done ? 400 : 600 }}>{p.t}</span>
             <Badge kind="gray">{p.sa}</Badge>
           </label>
         ))}
@@ -331,7 +331,7 @@ function PSAK72View() {
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P72_ASSERT.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
               <span style={{ color: st.c, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>{r.state === 'ok' ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{r.asr}</div>
                 <div className="tiny muted">{r.proc}</div>
               </div>
               <Badge kind="gray">{r.sa}</Badge>
@@ -353,9 +353,9 @@ function PSAK72View() {
       <div>
         {disc.map((d: any, i: any) => (
           <label key={d.id} className="row gap9" style={{ padding: '8px 13px', cursor: d.na ? 'default' : 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0, opacity: d.na ? 0.6 : 1 }} onClick={() => !d.na && toggleDisc(d.id)}>
-            <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 8, color: 'var(--ink-4)' }}>N/A</span>}</span>
+            <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.na ? 'var(--line)' : (d.ok ? 'var(--green)' : 'var(--amber)')), background: d.ok && !d.na ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.ok && !d.na && <I.check size={11} style={{ color: '#fff' }} />}{d.na && <span className="mono" style={{ fontSize: 11, color: 'var(--ink-4)' }}>N/A</span>}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', width: 46, flex: '0 0 46px', marginTop: 1 }}>{d.ref}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: d.ok ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.ok ? 400 : 600 }}>{d.t}</span>
           </label>
         ))}
       </div>
@@ -435,12 +435,12 @@ function PSAK72View() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="row ac gap7" style={{
                   padding: '9px 15px', border: 'none', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  fontSize: 12.5, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
+                  fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--navy)' : 'var(--ink-3)',
                   borderBottom: '2px solid ' + (on ? 'var(--navy)' : 'transparent'), marginBottom: -1,
                 }}>
                   <IconT size={14} />
                   {t.label}
-                  {t.badge && <span className="mono" style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 9, color: t.bad ? 'var(--amber)' : (on ? 'var(--navy)' : 'var(--ink-4)'), background: t.bad ? 'var(--amber-bg)' : (on ? 'var(--blue-050)' : 'var(--surface-2, #f1f3f6)') }}>{t.badge}</span>}
+                  {t.badge && <span className="mono" style={{ fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 9, color: t.bad ? 'var(--amber)' : (on ? 'var(--navy)' : 'var(--ink-4)'), background: t.bad ? 'var(--amber-bg)' : (on ? 'var(--blue-050)' : 'var(--surface-2, #f1f3f6)') }}>{t.badge}</span>}
                 </button>
               );
             })}

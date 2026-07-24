@@ -37,7 +37,7 @@ function LglSourceChip({ kind, id, onNav }: any) {
       onClick={(e: any) => { e.stopPropagation(); onNav(meta.module, { from: 'legal' }); }}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', borderColor: 'var(--line)' }}>
       <Ic size={11} /><span style={{ fontWeight: 600 }}>{meta.label}</span>
-      <span className="mono muted" style={{ fontSize: 10 }}>{id}</span>
+      <span className="mono muted" style={{ fontSize: 11 }}>{id}</span>
     </button>
   );
 }
@@ -85,7 +85,7 @@ function LglContractDrawer({ c, onClose, onNav }: any) {
       <div className="pdrawer-h">
         <span className="pdrawer-ico" style={{ background: cat.c + '1a', color: cat.c }}><Ic size={18} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{c.party}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{c.party}</div>
           <div className="row ac gap8" style={{ marginTop: 4 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: cat.c }}>{c.id}</span>
             <span className="badge b-gray" style={{ textTransform: 'none' }}>{cat.lbl}</span>
@@ -150,7 +150,7 @@ function LglContractDrawer({ c, onClose, onNav }: any) {
           <tbody>
             {obligs.map((o, i) => (
               <tr key={i}>
-                <td><div style={{ fontWeight: 600, fontSize: 11.5 }}>{o.jenis}</div><div className="tiny muted">{o.note}</div></td>
+                <td><div style={{ fontWeight: 600, fontSize: 12 }}>{o.jenis}</div><div className="tiny muted">{o.note}</div></td>
                 <td className="tiny mono">{lglDate(o.due)}</td>
                 <td className="num">{o.val == null ? '—' : boJt(o.val)}</td>
               </tr>

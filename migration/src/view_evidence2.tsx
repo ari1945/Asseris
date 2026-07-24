@@ -117,7 +117,7 @@ function EvSelection() {
           <Panel key={k} noBody>
             <div style={{ padding: '12px 14px', borderLeft: `3px solid var(--${m.color})` }}>
               <div className="row jb ac" style={{ marginBottom: 4 }}>
-                <span style={{ fontWeight: 700, fontSize: 12.5 }}>{m.label}</span>
+                <span style={{ fontWeight: 700, fontSize: 12 }}>{m.label}</span>
                 <Badge kind={m.color}>{(counts as any)[k]} area</Badge>
               </div>
               <div className="tiny muted" style={{ lineHeight: 1.45, marginBottom: 6 }}>{m.desc}</div>
@@ -158,7 +158,7 @@ function EvSelection() {
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--line)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Cakupan nilai pada <b>sampling</b> lebih rendah dari <b>100%/spesifik</b> karena hasil sampel <b>diproyeksikan</b> ke populasi (¶A56) — bukan indikasi bukti kurang. Item spesifik tidak dapat diproyeksikan & tidak menggantikan sampling atas sisa populasi (¶A55).</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Cakupan nilai pada <b>sampling</b> lebih rendah dari <b>100%/spesifik</b> karena hasil sampel <b>diproyeksikan</b> ke populasi (¶A56) — bukan indikasi bukti kurang. Item spesifik tidak dapat diproyeksikan & tidak menggantikan sampling atas sisa populasi (¶A55).</span>
             </div>
           </div>
         </Panel>
@@ -172,7 +172,7 @@ function EvSelection() {
               </div>
               <div style={{ padding: 14, display: 'grid', placeItems: 'center', gap: 10 }}>
                 <Donut size={108} thickness={15} segments={[{ value: selCov, color: selCov >= 80 ? 'var(--green)' : selCov >= 50 ? 'var(--amber)' : 'var(--blue)' }, { value: 100 - selCov, color: 'var(--surface-3)' }]}
-                  center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 20 }}>{selCov}%</div><div className="tiny muted">nilai diuji</div></div>} />
+                  center={<div><div className="mono" style={{ fontWeight: 800, fontSize: 19 }}>{selCov}%</div><div className="tiny muted">nilai diuji</div></div>} />
                 <div className="row gap6" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>{sel.methods.map(m => <Badge key={m} kind={(EV2_MEANS as any)[m].color} dot>{(EV2_MEANS as any)[m].label}</Badge>)}</div>
               </div>
               <div style={{ padding: '0 14px 14px', display: 'grid', gap: 8 }}>
@@ -184,7 +184,7 @@ function EvSelection() {
                 </div>
                 <div>
                   <div className="tiny muted upper" style={{ margin: '2px 0 4px' }}>Dasar Pemilihan</div>
-                  <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>{sel.basis}</p>
+                  <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>{sel.basis}</p>
                 </div>
               </div>
             </Panel>
@@ -207,7 +207,7 @@ function EvDirection() {
         <Panel noBody>
           <div className="panel-h"><h3>Relevansi Bukti Bergantung pada Arah Pengujian</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 ¶A27–A30</span></div>
           <div style={{ padding: 14 }}>
-            <p style={{ margin: '0 0 14px', fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+            <p style={{ margin: '0 0 14px', fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
               Relevansi suatu prosedur bergantung pada <b>asersi</b> yang diuji dan <b>arah</b> pengujian. Prosedur yang sama
               dapat relevan untuk satu asersi tetapi tidak untuk asersi lain. Pengujian <b>lebih saji</b> dimulai dari catatan
               menuju dokumen pendukung; pengujian <b>kurang saji</b> dimulai dari dokumen sumber menuju catatan.
@@ -216,7 +216,7 @@ function EvDirection() {
               {Object.values(EV2_DIR).map(o => (
                 <button key={o.key} onClick={() => setDir(o.key)} style={{ flex: 1, cursor: 'pointer', textAlign: 'left', padding: '11px 13px', borderRadius: 10,
                   border: '1.5px solid ' + (dir === o.key ? `var(--${o.color})` : 'var(--line)'), background: dir === o.key ? `var(--${o.color}-bg)` : 'transparent' }}>
-                  <div className="row jb ac"><span style={{ fontWeight: 700, fontSize: 12.5, color: dir === o.key ? `var(--${o.color})` : 'var(--ink)' }}>{o.dir}</span><Badge kind={o.color}>{o.technique}</Badge></div>
+                  <div className="row jb ac"><span style={{ fontWeight: 700, fontSize: 12, color: dir === o.key ? `var(--${o.color})` : 'var(--ink)' }}>{o.dir}</span><Badge kind={o.color}>{o.technique}</Badge></div>
                   <div className="tiny muted" style={{ marginTop: 3 }}>{o.asr}</div>
                 </button>
               ))}
@@ -230,7 +230,7 @@ function EvDirection() {
                   const right = { label: dir === 'over' ? 'Dokumen Pendukung' : 'Catatan', sub: dir === 'over' ? 'Bukti validitas item' : 'Buku besar / saldo tercatat' };
                   const box = (b: any, accent: any) => (
                     <div style={{ flex: '1 1 0', minWidth: 0, padding: '12px 12px', borderRadius: 9, background: '#fff', border: `1.5px solid var(--${accent ? d.color : 'line'})`, textAlign: 'center' }}>
-                      <div style={{ fontWeight: 700, fontSize: 12.5 }}>{b.label}</div>
+                      <div style={{ fontWeight: 700, fontSize: 12 }}>{b.label}</div>
                       <div className="tiny muted" style={{ marginTop: 2, lineHeight: 1.3 }}>{b.sub}</div>
                     </div>
                   );
@@ -285,7 +285,7 @@ function EvDirection() {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Relevansi ≠ Keandalan" sub="¶A27 vs ¶A31">
-          <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-2)' }}>
             <b>Relevansi</b> = kaitan logis bukti dengan asersi & arah uji yang dituju. <b>Keandalan</b> = kualitas/sumber bukti.
             Bukti bisa sangat andal namun tidak relevan untuk asersi tertentu — mis. konfirmasi piutang andal untuk
             <b> keberadaan</b>, tetapi tidak menjawab <b>kelengkapan</b>.
@@ -298,7 +298,7 @@ function EvDirection() {
               ['Tracing (dokumen → catatan)', 'Kelengkapan', 'amber'],
               ['Test count dua arah', 'Keberadaan + Kelengkapan', 'purple'],
             ].map((r, i) => (
-              <div key={i} className="row jb ac" style={{ fontSize: 11.5, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
+              <div key={i} className="row jb ac" style={{ fontSize: 12, padding: '7px 9px', border: '1px solid var(--line-soft)', borderRadius: 6 }}>
                 <span style={{ fontWeight: 600 }}>{r[0]}</span><Badge kind={r[2]}>{r[1]}</Badge>
               </div>
             ))}
@@ -372,7 +372,7 @@ function EvDossier() {
             <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--red)', flex: '0 0 auto' }}><I.alert size={15} /></span>
-                <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>{exc} bukti menghasilkan <b>eksepsi</b> — selisih ditelusuri & dievaluasi terhadap salah saji. Bila bukti tidak konsisten / meragukan keandalannya, auditor menentukan modifikasi atau penambahan prosedur (¶11) sebelum menyimpulkan.</span>
+                <span style={{ fontSize: 12, lineHeight: 1.45 }}>{exc} bukti menghasilkan <b>eksepsi</b> — selisih ditelusuri & dievaluasi terhadap salah saji. Bila bukti tidak konsisten / meragukan keandalannya, auditor menentukan modifikasi atau penambahan prosedur (¶11) sebelum menyimpulkan.</span>
               </div>
             </div>
           )}
@@ -380,7 +380,7 @@ function EvDossier() {
             <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.flag size={15} /></span>
-                <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Permintaan keterangan (keandalan rendah) tidak cukup sendiri (¶A2) — dikuatkan oleh bukti korroboratif lain dalam berkas ini.</span>
+                <span style={{ fontSize: 12, lineHeight: 1.45 }}>Permintaan keterangan (keandalan rendah) tidak cukup sendiri (¶A2) — dikuatkan oleh bukti korroboratif lain dalam berkas ini.</span>
               </div>
             </div>
           )}

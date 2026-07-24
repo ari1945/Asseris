@@ -60,20 +60,20 @@ function ResourceScheduler() {
                   <div className="row ac gap10">
                     <div style={{ width: 180, flex: '0 0 180px' }} className="row ac gap8">
                       <Avatar name={m.member} size={28} />
-                      <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontSize: 12.5, fontWeight: 600 }}>{m.member.split(',')[0]}</div><div className="tiny muted">{m.role}</div></div>
+                      <div style={{ minWidth: 0 }}><div className="truncate" style={{ fontSize: 12, fontWeight: 600 }}>{m.member.split(',')[0]}</div><div className="tiny muted">{m.role}</div></div>
                     </div>
                     {/* stacked bar */}
                     <div style={{ flex: 1, height: 26, borderRadius: 5, background: 'var(--surface-3)', display: 'flex', overflow: 'hidden', position: 'relative' }}>
                       {m.alloc.map((a: any, ai: any) => (
                         <div key={ai} title={a.client + ': ' + a.hrs + 'h'} style={{ width: (a.hrs / m.capacity * 100) + '%', background: a.color, display: 'grid', placeItems: 'center' }}>
-                          {a.hrs / m.capacity > 0.12 && <span style={{ color: '#fff', fontSize: 9.5, fontWeight: 700, fontFamily: 'var(--mono)' }}>{a.hrs}h</span>}
+                          {a.hrs / m.capacity > 0.12 && <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: 'var(--mono)' }}>{a.hrs}h</span>}
                         </div>
                       ))}
                       {/* capacity line at 100% is full width; mark overflow */}
                       {over && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 3, background: 'var(--red-solid)' }} />}
                     </div>
                     <div style={{ width: 76, flex: '0 0 76px', textAlign: 'right' }}>
-                      <span className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: over ? 'var(--red)' : pct < 60 ? 'var(--amber)' : 'var(--green)' }}>{used}/{m.capacity}h</span>
+                      <span className="mono" style={{ fontWeight: 700, fontSize: 12, color: over ? 'var(--red)' : pct < 60 ? 'var(--amber)' : 'var(--green)' }}>{used}/{m.capacity}h</span>
                       <div className="tiny muted">{Math.round(pct)}%</div>
                     </div>
                   </div>
@@ -147,7 +147,7 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
-          <I.calendar size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>Booking Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Alokasikan anggota ke engagement</div></div>
+          <I.calendar size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Booking Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Alokasikan anggota ke engagement</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, display: 'grid', gap: 12 }}>

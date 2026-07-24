@@ -186,11 +186,11 @@ function SPR2410View() {
               <div className="tiny muted">Oleh auditor independen entitas — {client.name}</div>
             </div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Periode Interim</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>9 bln · 30 Sep 2025</div></div>
+            <div><div className="tiny muted upper">Periode Interim</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>9 bln · 30 Sep 2025</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Ciri Pembeda</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--teal)' }}>Pakai pemahaman audit</div></div>
+            <div><div className="tiny muted upper">Ciri Pembeda</div><div className="mono" style={{ fontWeight: 700, fontSize: 12, color: 'var(--teal)' }}>Pakai pemahaman audit</div></div>
             <div className="vdivider" style={{ height: 38 }} />
-            <div><div className="tiny muted upper">Simpulan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12.5 }}>Negatif (terbatas)</div></div>
+            <div><div className="tiny muted upper">Simpulan</div><div className="mono" style={{ fontWeight: 700, fontSize: 12 }}>Negatif (terbatas)</div></div>
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Tertaut Audit Tahunan</div>
@@ -242,7 +242,7 @@ function Tab2410Overview({ sigRisks, risks, nav }: any) {
             <div className="grid" style={{ gap: 8 }}>
               {continuum.map((c, i) => (
                 <div key={i} className="panel" style={{ padding: '9px 12px', boxShadow: 'none', borderColor: c.here ? 'var(--teal)' : 'var(--line)', borderWidth: c.here ? 2 : 1, background: c.here ? 'var(--teal-bg)' : 'transparent' }}>
-                  <div className="row jb ac"><span style={{ fontSize: 12.5, fontWeight: 700 }}>{c.k}</span><span className="mono tiny muted">{c.pct}%</span></div>
+                  <div className="row jb ac"><span style={{ fontSize: 12, fontWeight: 700 }}>{c.k}</span><span className="mono tiny muted">{c.pct}%</span></div>
                   <div style={{ margin: '7px 0 4px', height: 5, borderRadius: 3, background: 'var(--surface-3)' }}><div style={{ width: c.pct + '%', height: '100%', borderRadius: 3, background: `var(--${c.color === 'gray' ? 'ink-4' : c.color})` }} /></div>
                   <div className="tiny muted">{c.d}</div>
                 </div>
@@ -321,7 +321,7 @@ function Tab2410Proc({ nav }: any) {
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--teal-bg)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--teal)', flex: '0 0 auto' }}><I.book size={15} /></span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Reviu interim <b>tidak</b> mencakup pengujian pengendalian, konfirmasi, atau observasi fisik rutin. Auditor mengandalkan <b>pemahaman dari audit tahunan</b> untuk merancang prosedur yang lebih terfokus (¶13, ¶15).</span>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>Reviu interim <b>tidak</b> mencakup pengujian pengendalian, konfirmasi, atau observasi fisik rutin. Auditor mengandalkan <b>pemahaman dari audit tahunan</b> untuk merancang prosedur yang lebih terfokus (¶13, ¶15).</span>
           </div>
         </div>
       </Panel>
@@ -331,7 +331,7 @@ function Tab2410Proc({ nav }: any) {
           <div style={{ display: 'grid', gap: 8 }}>
             {TRIG_2410.map((t, i) => (
               <div key={i} className="panel" style={{ padding: '9px 11px', boxShadow: 'none', borderLeft: '3px solid var(--amber)' }}>
-                <div className="row jb ac"><div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{t.t}</div><span className="mono tiny" style={{ color: 'var(--amber)', fontWeight: 700, flex: '0 0 auto', marginLeft: 6 }}>{t.ref}</span></div>
+                <div className="row jb ac"><div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>{t.t}</div><span className="mono tiny" style={{ color: 'var(--amber)', fontWeight: 700, flex: '0 0 auto', marginLeft: 6 }}>{t.ref}</span></div>
                 <div className="tiny muted" style={{ marginTop: 4, lineHeight: 1.4 }}>{t.a}</div>
               </div>
             ))}
@@ -396,7 +396,7 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
         <div className="panel" style={{ margin: 12, padding: '10px 12px', background: flagged.length ? 'var(--amber-bg, #fdf6e3)' : 'var(--green-050, #eef7f0)', borderColor: 'transparent' }}>
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: flagged.length ? 'var(--amber)' : 'var(--green)', flex: '0 0 auto' }}>{flagged.length ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-            <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>
+            <span style={{ fontSize: 12, lineHeight: 1.45 }}>
               {flagged.length
                 ? <>Fluktuasi <b>{flagged.map((f: any) => f.k.toLowerCase()).join(', ')}</b> melampaui ekspektasi &gt; PM. Memicu <b>inquiry tambahan (¶22)</b> — perhatikan keterkaitan dengan risiko pengakuan pendapatan dini (R-01) yang teridentifikasi pada audit tahunan. Dokumentasikan penjelasan manajemen & bukti pendukung sebelum menyimpulkan.</>
                 : <>Seluruh fluktuasi dalam batas ekspektasi (≤ PM). Tidak ada indikasi salah saji material dari prosedur analitis.</>}
@@ -425,7 +425,7 @@ function Tab2410Analytical({ act, exp, py, aRows, flagged, interimPM, interimOM,
           <div className="panel" style={{ margin: 12, padding: '10px 12px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)' }}>
             <div className="row gap8" style={{ alignItems: 'flex-start' }}>
               <span style={{ color: 'var(--blue)', flex: '0 0 auto', marginTop: 1 }}><I.link2 size={15} /></span>
-              <span style={{ fontSize: 11.5, lineHeight: 1.45 }}>Saldo awal periode interim <b>menutup</b> ke saldo audited 31 Des 2024 (kolom komparatif WTB) — sumber yang sama dipakai FS Generator. Komparatif & ambang materialitas reviu interim ditarik dari dataset audited, bukan di-input ulang.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Saldo awal periode interim <b>menutup</b> ke saldo audited 31 Des 2024 (kolom komparatif WTB) — sumber yang sama dipakai FS Generator. Komparatif & ambang materialitas reviu interim ditarik dari dataset audited, bukan di-input ulang.</span>
             </div>
           </div>
         </Panel>
@@ -472,7 +472,7 @@ function Tab2410Materiality({ mat, interimPM, interimOM, act, sc, nav }: any) {
               <KvBox label="Materialitas pelaksanaan (PM)" v={'Rp ' + sc(interimPM) + ' jt'} accent="var(--teal)" />
               <KvBox label={'Ambang sepele (CTT)'} v={'Rp ' + sc(mat.ctt != null ? mat.ctt : Math.round(interimOM * 0.05)) + ' jt'} />
             </div>
-            <div className="row jb ac" style={{ marginTop: 12, fontSize: 11.5 }}>
+            <div className="row jb ac" style={{ marginTop: 12, fontSize: 12 }}>
               <span className="muted">Benchmark & % berasal dari Materiality Workspace</span>
               <button onClick={() => nav('materiality', { from: 'spr2410' })} style={{ border: 'none', background: 'none', color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', font: 'inherit' }}>Buka Materialitas ↗</button>
             </div>
@@ -548,7 +548,7 @@ function Tab2410Concl({ concl, setConcl, flagged, client, eng, sc }: any) {
             {CONCL_2410.map((x, i) => (
               <div key={i} onClick={() => setConcl(i)} className="panel" style={{ padding: '11px 13px', cursor: 'pointer', boxShadow: 'none', borderColor: concl === i ? `var(--${x.k})` : 'var(--line)', borderWidth: concl === i ? 2 : 1, background: concl === i ? `var(--${x.k}-bg)` : 'transparent' }}>
                 <div className="row jb ac">
-                  <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid var(--${x.k})`, background: concl === i ? `var(--${x.k})` : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{x.l}</span></div>
+                  <div className="row ac gap8"><span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid var(--${x.k})`, background: concl === i ? `var(--${x.k})` : 'transparent', flex: '0 0 14px' }} /><span style={{ fontSize: 12, fontWeight: 700 }}>{x.l}</span></div>
                   <span className="mono tiny" style={{ color: `var(--${x.k})`, fontWeight: 700 }}>{x.ref}</span>
                 </div>
                 <div className="tiny muted" style={{ marginTop: 5, lineHeight: 1.45, paddingLeft: 22 }}>{x.d}</div>
@@ -576,7 +576,7 @@ function Tab2410Concl({ concl, setConcl, flagged, client, eng, sc }: any) {
       <Panel noBody>
         <div className="panel-h"><h3>Laporan Reviu atas Informasi Interim (¶43)</h3><div style={{ flex: 1 }} /><Badge kind={c.k}>{c.l}</Badge></div>
         <div style={{ padding: 18 }}>
-          <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 11.5, lineHeight: 1.7, color: '#283b46' }}>
+          <div className="doc-paper" style={{ background: '#fff', padding: '32px 36px', boxShadow: 'var(--shadow)', fontSize: 12, lineHeight: 1.7, color: '#283b46' }}>
             <div style={{ fontWeight: 800, fontSize: 13, color: '#0c2430', textAlign: 'center', marginBottom: 4 }}>LAPORAN REVIU ATAS INFORMASI KEUANGAN INTERIM</div>
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginBottom: 16 }}>Berdasarkan Standar Perikatan Reviu (SPR) 2410</div>
             <p style={{ margin: '0 0 10px' }}>Kami telah mereviu neraca interim {client.name} pada tanggal 30 September 2025 serta laporan laba rugi terkait untuk periode sembilan bulan yang berakhir pada tanggal tersebut. Manajemen bertanggung jawab atas penyusunan & penyajian informasi keuangan interim ini sesuai SAK.</p>

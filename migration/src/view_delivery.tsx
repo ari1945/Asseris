@@ -102,7 +102,7 @@ function DeliveryMilestones() {
           <div style={{ padding: '4px 14px 14px' }}>
             {/* month header */}
             <div style={{ position: 'relative', height: 18, marginLeft: 214, borderBottom: '1px solid var(--line)' }}>
-              {months.map((m: any, i: any) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 9.5, letterSpacing: '.04em' }}>{m.label}</span>)}
+              {months.map((m: any, i: any) => <span key={i} className="tiny muted upper" style={{ position: 'absolute', left: m.pos + '%', top: 2, fontSize: 11, letterSpacing: '.04em' }}>{m.label}</span>)}
               <span style={{ position: 'absolute', left: frac(today) + '%', top: -2, bottom: -2000, width: 2, background: 'var(--red-solid)', opacity: .8, zIndex: 3 }} />
             </div>
             {shown.map((r: any, ri: any) => {
@@ -209,7 +209,7 @@ function DeliveryDetail({ row, eng, client, today, onToggleMs, onDateMs, onClose
     <Panel noBody style={{ position: 'sticky', top: 0 }}>
       <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px' }}>
         <div className="row jb ac" style={{ marginBottom: 6 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{eng.id}</span><button className="top-btn" onClick={onClose}><I.x size={17} /></button></div>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>{(client.name || eng.id).replace('PT ', '')}</div>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{(client.name || eng.id).replace('PT ', '')}</div>
         <div className="tiny" style={{ color: '#bcd6e4' }}>{eng.type} · {eng.phase}</div>
       </div>
       <div style={{ padding: 14 }}>
