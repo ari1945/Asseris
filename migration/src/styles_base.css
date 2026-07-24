@@ -65,6 +65,20 @@
      · hover blue-050 · terpilih blue-100). */
   --num-neg:     #8c3a34;
 
+  /* Warna DEPAN badge, dipisah dari token semantik. Alasannya: token semantik
+     merangkap dua peran yang menuntut arah penyesuaian BERLAWANAN di tema gelap —
+       (a) warna depan di atas latar bernuansa  →  .b-blue { color: var(--blue) }
+       (b) isian solid                          →  .btn.primary { background: var(--blue) }
+     Mencerahkan --blue agar badge terbaca akan merusak tombol primer (teks putih
+     di atas biru muda). Token terpisah ini membiarkan (a) bergerak tanpa menyentuh (b).
+     Di tema terang nilainya menunjuk token lama → nol perubahan visual. */
+  --b-green-fg:  var(--green);
+  --b-amber-fg:  var(--amber);
+  --b-red-fg:    var(--red);
+  --b-purple-fg: var(--purple);
+  --b-teal-fg:   var(--teal);
+  --b-blue-fg:   var(--blue);
+
   /* Type */
   --ui:   'Inter', -apple-system, system-ui, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
@@ -82,21 +96,46 @@
 }
 
 /* ---------- Dark theme ---------- */
+/* Selektor GANDA, disengaja. Dulu blok ini hanya `body.dark`, sehingga token
+   gelap tak pernah sampai ke `:root` (= <html>). Akibatnya aturan
+   `html, body { background: var(--bg) }` membuat <html> MENGECAT KANVAS TERANG
+   (#f0f2f5) di tema gelap: .app/.view-scroll/.view-pad semuanya transparan,
+   jadi latar terang tembus di seluruh celah antar panel, dan teks gelap-tema
+   (--ink-3/--ink-4) mendarat di atasnya. Terverifikasi ADA DI BUILD PRODUKSI,
+   bukan artefak dev-server.
+   `:has()` dipakai supaya kelas tetap boleh dipasang di <body> — app.tsx,
+   shell.tsx, dan view_settings.tsx semuanya menulis ke document.body, dan
+   memindahkannya ke <html> akan memutus ketiganya. `:has()` sudah jadi
+   ketergantungan yang diterima di basis kode ini (lihat .panel-body:has(...)). */
+:root:has(body.dark),
 body.dark {
   --navy: #0a1620; --navy-700: #0d1d29; --navy-600: #112634;
   --bg: #0d1117; --bg-sunken: #090d12; --surface: #161c24; --surface-2: #1b232d; --surface-3: #222c38;
   --line: #2a3744; --line-soft: #232e3a; --line-strong: #3a4a59;
-  --ink: #e6edf3; --ink-2: #c2ccd6; --ink-3: #8b98a5; --ink-4: #687480;
+  /* Tangga gelap ditata BERPASANGAN spt tema terang, diikat ke TERBURUK-dari-4
+     permukaan gelap (bg #0d1117 · surface #161c24 · surface-2 #1b232d ·
+     surface-3 #222c38 — surface-3 adalah pengikatnya). Rasio pd --surface:
+     14,50 · 10,53 · 7,39 · 5,56; jarak 1,38× · 1,42× · 1,33×.
+     ink-3 ikut naik karena menaikkan ink-4 sendirian (3,59→4,59) membuatnya
+     kembar dgn ink-3 lama #8b98a5 (4,80) — keruntuhan tangga yg sama. */
+  --ink: #e6edf3; --ink-2: #c2ccd6; --ink-3: #a1acb6; --ink-4: #8b949d;
   --blue-100: #173040; --blue-050: #14222e;
   --green-bg: #11241a; --amber-bg: #2a2210; --red-bg: #2a1513; --purple-bg: #1d1730; --teal-bg: #0c2429;
   --on-navy: #9fb3c0; --on-navy-dim: #6b8294;
-  /* --num-neg adalah token BARU; nilai terang (#8c3a34) hanya 2,26 di sini.
-     Di-override agar token baru tak lahir dalam keadaan rusak (status quo
-     .neg memakai --red = 2,62). BUKAN perbaikan tema gelap menyeluruh:
-     keenam badge .b-* masih gagal AA di sini (1,62–3,32) karena blok ini
-     menimpa seluruh LATAR tapi tak satu pun WARNA DEPAN semantik.
-     Perbaikannya menuntut pemecahan peran token → PR terpisah (PRD §4 Fase 5). */
-  --num-neg: #af7571;
+  --num-neg: #af7571;   /* nilai terang hanya 2,26 di sini (status quo --red 2,62) → 4,57 */
+
+  /* Blok ini dulu menimpa seluruh LATAR tetapi tak satu pun WARNA DEPAN semantik,
+     sehingga warna depan tema terang dipasangkan dgn latar tema gelap dan KEENAM
+     badge runtuh: blue 1,62 · purple 2,22 · teal 2,59 · red 2,64 · green 3,06 ·
+     amber 3,32. Bukan enam bug terpisah — satu kelalaian sistematis.
+     Nilai di bawah semuanya terverifikasi ≥4,5:1 pd latar gelap masing-masing. */
+  --b-green-fg:  #4c9571;   /* pd --green-bg  #11241a → 4,50 */
+  --b-amber-fg:  #ab832b;   /* pd --amber-bg  #2a2210 → 4,52 */
+  --b-red-fg:    #c9655f;   /* pd --red-bg    #2a1513 → 4,53 */
+  --b-purple-fg: #8c79c1;   /* pd --purple-bg #1d1730 → 4,60 */
+  --b-teal-fg:   #4c9399;   /* pd --teal-bg   #0c2429 → 4,57 */
+  --b-blue-fg:   #6b9ab8;   /* pd --blue-100  #173040 → 4,51 */
+
 }
 body.dark .global-search { background: rgba(255,255,255,.07); }
 body.dark .topbar { background: linear-gradient(180deg,#0d1d29,#070e15); }

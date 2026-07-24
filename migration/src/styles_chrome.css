@@ -377,12 +377,16 @@ body.dense .panel-body { padding: 10px 12px; }
   white-space: nowrap;
 }
 .badge .bdot { width: 6px; height: 6px; border-radius: 50%; }
-.b-green  { background: var(--green-bg);  color: var(--green); }
-.b-amber  { background: var(--amber-bg);  color: var(--amber); }
-.b-red    { background: var(--red-bg);    color: var(--red); }
-.b-blue   { background: var(--blue-100);  color: var(--blue); }
-.b-purple { background: var(--purple-bg); color: var(--purple); }
-.b-teal   { background: var(--teal-bg);   color: var(--teal); }
+/* Warna depan lewat --b-*-fg, BUKAN token semantik langsung: di tema terang
+   keduanya identik, di tema gelap --b-*-fg bergerak sendiri tanpa menyeret
+   pemakaian isian-solid (tombol primer, item sidebar aktif). Lihat catatan
+   di blok --b-*-fg pada styles_base.css. */
+.b-green  { background: var(--green-bg);  color: var(--b-green-fg); }
+.b-amber  { background: var(--amber-bg);  color: var(--b-amber-fg); }
+.b-red    { background: var(--red-bg);    color: var(--b-red-fg); }
+.b-blue   { background: var(--blue-100);  color: var(--b-blue-fg); }
+.b-purple { background: var(--purple-bg); color: var(--b-purple-fg); }
+.b-teal   { background: var(--teal-bg);   color: var(--b-teal-fg); }
 .b-gray   { background: var(--surface-3); color: var(--ink-3); }
 
 /* spinner (verifikasi hash) */
