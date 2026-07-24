@@ -3,7 +3,7 @@ import { AMS } from './data';
 import { useAudit, useFirm, useNav, useAmsPersist } from './contexts';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacitySeed } from './canon_capacity';
-import { FIRMFIN } from './data_firmfin';
+import { useFirmWip } from './use_firm_wip';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Spark, Stat } from './ui';
 
@@ -251,9 +251,13 @@ function HomeCockpit() {
   const [schedule] = useAmsPersist('schedule', () => AMS.SCHEDULE);
   const [plan] = useAmsPersist('capacityPlan.v1', () => seedForwardPlan(AMS.CAPACITY as CapacitySeed));
 
+  /* WIP — SSOT tunggal (useFirmWip): sama dgn WIP Valuation/Realisasi & Firm
+     Finance, dengan overlay jam-aktual T&B. Bukan lagi FIRMFIN.wip({engagements})
+     tanpa overlay yang menghasilkan angka basi berbeda. */
+  const W = useFirmWip().wip as unknown as WipResult;
+
   /* ---- perhitungan turunan (SSOT) ---- */
   const model: CockpitModel = useMemoHC(() => {
-    const W = FIRMFIN.wip({ engagements }) as unknown as WipResult;
     const BI = (AMS.BI_DATA as unknown as Bi) || ({} as Bi);
     const AR = (AMS.BI_AR_AGING as unknown as ArBucket[]) || [];
     const EQR = (AMS.EQR_REVIEWS as unknown as EqrRow[]) || [];
@@ -380,7 +384,7 @@ function HomeCockpit() {
     };
 
     return { k, portRows, persetujuan, perhatian, q, fin, tim };
-  }, [engagements, team, risks, reviewNotes, schedule, plan, clientById, setActive, activeId, nav]);
+  }, [W, engagements, team, risks, reviewNotes, schedule, plan, clientById, setActive, activeId, nav]);
 
   /* ---- drag-reorder portlet (handler di DOM: gagang span + sel div) ---- */
   const [order, setOrder]: [string[], (v: string[]) => void] = useStateHC(hcLoadOrder);

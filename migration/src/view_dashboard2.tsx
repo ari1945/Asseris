@@ -7,7 +7,7 @@ import type { CapacitySeed } from './canon_capacity';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Stat } from './ui';
 import { HBars, LineChart, StackBar } from './view_fpm_parts';
-import { FIRMFIN } from './data_firmfin';
+import { useFirmWip } from './use_firm_wip';
 import { rotTier } from './data_licensing';
 
 /* ============================================================
@@ -132,8 +132,7 @@ function DashOperasional() {
 function DashFinansial() {
   const { fmt } = AMS;
   const nav = useNav();
-  const { engagements } = useFirm();
-  const W = FIRMFIN.wip({ engagements });
+  const W = useFirmWip().wip;
   const B: any = AMS.BI_DATA;
   const AGING: any = AMS.BI_AR_AGING;
 
