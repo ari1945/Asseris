@@ -155,12 +155,12 @@ export function setFluxExpectation(
   return { ...(state || {}), [code]: { ...base, ...patch, by, at } };
 }
 
-/** Hapus telaah sebuah akun (mis. auditor membatalkan kesimpulannya). */
-export function clearFlux(state: FluxState | null | undefined, code: string): FluxState {
-  const next = { ...(state || {}) };
-  delete next[code];
-  return next;
-}
+/* DIHAPUS: `clearFlux`. Ia diekspor & diuji tapi tak pernah dipakai satu permukaan pun —
+   dan tak akan pernah bekerja seperti namanya: `fluxState` adalah hasil MERGE baca-lewat
+   `fluxStateRaw` + `wtbOverrides` (contexts.tsx), sedangkan `setFluxState` hanya menulis
+   yang pertama. Menghapus entri karena itu memunculkan KEMBALI catatan warisan pada
+   pembacaan berikutnya. UI juga tak punya afordans "batalkan telaah". Bila kelak dibutuhkan,
+   ia harus berupa nisan eksplisit yang dilewati `mergeLegacyFlux`, bukan `delete`. */
 
 export interface FluxCounts {
   explained: number;

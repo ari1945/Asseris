@@ -1,6 +1,6 @@
 /* PR-2b — provenance impor & pratinjau dampak (fungsi murni). */
 import { describe, it, expect } from 'vitest';
-import { summarizeImport, pushHistory, diffWtb } from './wtb_provenance';
+import { summarizeImport, pushHistory, diffWtb, rawExcerptOf, RAW_EXCERPT_LIMIT } from './wtb_provenance';
 import type { ImportProvenance } from './wtb_provenance';
 
 const prov = (at: string): ImportProvenance => summarizeImport({
@@ -117,5 +117,35 @@ describe('diffWtb — dampak penggantian TB', () => {
     ];
     const d = diffWtb(before, after);
     expect(d.changed.map(c => c.code)).toEqual(['1-1200', '1-1100']);
+  });
+});
+
+describe('cakupan hash — cuplikan tersimpan vs teks penuh', () => {
+  it('rawExcerptOf memotong tepat pada batas', () => {
+    const teks = 'x'.repeat(RAW_EXCERPT_LIMIT + 500);
+    expect(rawExcerptOf(teks)).toHaveLength(RAW_EXCERPT_LIMIT);
+    expect(rawExcerptOf('pendek')).toBe('pendek');
+    expect(rawExcerptOf('')).toBe('');
+  });
+
+  it('kedua hash & kedua panjang tercatat terpisah — cakupan tak lagi ambigu', () => {
+    const p = summarizeImport({
+      importedAt: '2026-07-26T00:00:00.000Z', user: null, unit: 'full', unitFactor: 1,
+      sha256: 'penuh', sha256Excerpt: 'cuplikan', rawLength: 12_000, excerptLength: RAW_EXCERPT_LIMIT,
+      rowCount: 1, totalAssets: 0, balanced: true,
+    });
+    expect(p.sha256).toBe('penuh');
+    expect(p.sha256Excerpt).toBe('cuplikan');
+    expect(p.rawLength).toBe(12_000);
+    expect(p.excerptLength).toBe(RAW_EXCERPT_LIMIT);
+  });
+
+  it('impor tanpa cuplikan (mis. sumber TA-1) tak mengarang hash cuplikan', () => {
+    const p = summarizeImport({
+      importedAt: '2026-07-26T00:00:00.000Z', user: null, unit: 'full', unitFactor: 1,
+      sha256: 'penuh', rawLength: 300, rowCount: 1, totalAssets: 0, balanced: true,
+    });
+    expect(p.sha256Excerpt).toBe('');
+    expect(p.excerptLength).toBe(0);
   });
 });

@@ -1,7 +1,7 @@
 /* PR-3 — SSOT telaah fluktuasi SA 520 (fungsi murni). */
 import { describe, it, expect } from 'vitest';
 import {
-  mergeLegacyFlux, statusOf, noteOf, upsertFlux, setFluxExpectation, clearFlux, fluxCounts,
+  mergeLegacyFlux, statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts,
   fluxThresholds, isFluxFlagged,
 } from './flux_state';
 import type { FluxState } from './flux_state';
@@ -97,13 +97,6 @@ describe('setFluxExpectation — menetapkan ekspektasi ≠ menyelesaikan telaah'
     const b = setFluxExpectation(a, '5-1100', { tol: 2 }, ARI, AT);
     expect(statusOf(b, '5-1100')).toBe('explained');
     expect(noteOf(b, '5-1100')).toBe('ok');
-  });
-});
-
-describe('clearFlux', () => {
-  it('menghapus telaah → kembali belum ditelaah', () => {
-    const a = upsertFlux({}, '1-1100', { status: 'explained', note: 'x' }, ARI, AT);
-    expect(statusOf(clearFlux(a, '1-1100'), '1-1100')).toBeNull();
   });
 });
 

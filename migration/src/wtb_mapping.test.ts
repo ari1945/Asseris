@@ -91,3 +91,25 @@ describe('mappingCoverage — ringkasan + kejujuran PSAK', () => {
     expect(cov.psak.engines.find(e => e.id === 'psak16')!.lit).toBe(false); // ppe belum
   });
 });
+
+describe('applyMapping — penanda lead tebakan tak boleh lenyap saat pemetaan disiapkan', () => {
+  const rows = [
+    { code: '1-1100', name: 'Kas Besar', ly: 10, unadj: 12, aje: 0, lead: 'A', leadSrc: 'guess' },
+    { code: '7-7777', name: 'Akun Khas Klien', ly: 5, unadj: 6, aje: 0, lead: 'C', leadSrc: 'guess' },
+  ];
+
+  it('baris TAK terpetakan mempertahankan tebakan DAN penandanya', () => {
+    const out = applyMapping(rows, { '1-1100': '1-1100' });
+    const asing = out.find(r => r.code === '7-7777')!;
+    expect(asing.mapped).toBe(false);
+    expect(asing.lead).toBe('C');
+    expect(asing.leadSrc).toBe('guess');   // dulu hilang → chip solid, XLSX "Pemetaan CoA"
+  });
+
+  it('baris terpetakan mengambil lead CoA standar → bukan tebakan lagi', () => {
+    const out = applyMapping(rows, { '1-1100': '1-1100' });
+    const kas = out.find(r => r.code === '1-1100')!;
+    expect(kas.mapped).toBe(true);
+    expect(kas.leadSrc).toBe('');
+  });
+});

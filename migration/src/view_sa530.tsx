@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAuth, useFirm } from './contexts';
+import { useAmsPersist, useAuth, useFirm, useInitialTab } from './contexts';
 import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
@@ -27,6 +27,8 @@ type SampleFinding = { id: string; bv: number; av: number; type: string; by?: st
 /* desain & stratifikasi (¶6–7) + titik-mulai acak generator (fraksi 0–1 dari interval) */
 type SamplingDesign = { topThreshold: number; rationale: string; by?: string; at?: string };
 type SamplingState = { params: SamplingParams; findings: SampleFinding[]; design: SamplingDesign; seedFrac: number };
+/* konteks akun yang dikirim drill WTB — lihat `ams.samplingAccount` */
+type SamplingAccountCtx = { code: string; name?: string; lead?: string; balance?: number };
 /* tipe struktural minimal event input — hindari explicit-any (ratchet) */
 type Ev = { target: { value: string } };
 
@@ -59,7 +61,21 @@ function SA530View() {
   const engId = firm?.activeEngagement?.id || 'default';
   const engLabel = firm?.activeEngagement?.id || 'ENG-2025-014';
   const locked = !!(firm && firm.locked);
-  const [tab, setTab] = useState530('kalkulator');
+  const [tab, setTab] = useInitialTab('sa530', 'kalkulator');
+
+  /* Konteks akun yang dikirim drill WTB ("Sampling Akun Ini"). One-shot, dikonsumsi sekali
+     seperti `ams.wpOpen`. TIDAK menimpa parameter tersimpan secara diam-diam — nilai
+     populasi hanya berubah bila auditor menekan tombolnya. */
+  const [ctx, setCtx]: [SamplingAccountCtx | null, (v: SamplingAccountCtx | null) => void] = useState530(null);
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem('ams.samplingAccount');
+      if (!raw) return;
+      localStorage.removeItem('ams.samplingAccount');
+      const p: unknown = JSON.parse(raw);
+      if (p && typeof p === 'object' && typeof (p as SamplingAccountCtx).code === 'string') setCtx(p as SamplingAccountCtx);
+    } catch (e) { /* storage tertutup / JSON rusak — konteks diabaikan */ }
+  }, []);
 
   /* Default TM = Performance Materiality kanon (menghormati pmPct workspace — PR-1a
      mengganti hardcode ×0.75 di sini), dikonversi ke Rp juta. Konsolidasi SA 530: dahulu
@@ -136,6 +152,30 @@ function SA530View() {
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
+
+        {/* Konteks akun dari drill WTB. Dulu tombol "Sampling Akun Ini" hanya `nav('sa530')`
+            telanjang — auditor mendarat di modul ini tanpa jejak akun mana yang hendak
+            disampel, dan harus mengetik ulang nilai populasinya. */}
+        {ctx && (
+          <div className="row ac gap10" style={{ marginBottom: 12, padding: '9px 12px', border: '1px solid var(--blue)', background: 'var(--blue-050)', borderRadius: 6, flexWrap: 'wrap' }}>
+            <span style={{ color: 'var(--blue)', flex: '0 0 auto' }}><I.layers size={16} /></span>
+            <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)', flex: 1, minWidth: 240 }}>
+              Dari Working Trial Balance: <b>{ctx.code}</b> — {ctx.name || '(tanpa nama)'}
+              {ctx.lead ? <> · lead <span className="mono">{ctx.lead}</span></> : null}
+              {typeof ctx.balance === 'number' && ctx.balance !== 0
+                ? <> · saldo adjusted <span className="mono">Rp {Math.round(Math.abs(ctx.balance) / 1e6).toLocaleString('id-ID')} jt</span></>
+                : null}
+            </span>
+            {typeof ctx.balance === 'number' && Math.abs(ctx.balance) >= 1e6 && (
+              <Btn sm variant="primary" disabled={locked}
+                title="Menetapkan nilai populasi (BV) sama dengan saldo adjusted akun ini"
+                onClick={() => { setBv(Math.round(Math.abs(ctx.balance as number) / 1e6)); setCtx(null); }}>
+                <I.check size={13} /> Pakai sebagai nilai populasi
+              </Btn>
+            )}
+            <button className="btn sm ghost" onClick={() => setCtx(null)} title="Tutup konteks"><I.x size={12} /></button>
+          </div>
+        )}
 
         <Panel noBody style={{ marginBottom: 12 }}>
           <div style={{ padding: '13px 16px', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>

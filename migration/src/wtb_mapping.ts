@@ -32,6 +32,8 @@ export interface MappedRow {
   aje: number;
   adj: number;
   lead: string;
+  /** asal lead — 'guess' hanya bertahan pada baris yang TAK terpetakan (lihat applyMapping) */
+  leadSrc?: string;
   /** jejak: kode/akun klien yang digabung ke baris ini */
   srcCodes: string[];
   mapped: boolean;
@@ -114,7 +116,7 @@ export function autoMap(rows: ImportedLike[]): Record<string, string> {
 /* ---------- terapkan pemetaan: relabel + merge ----------
    Baris dengan target kode standar yang sama digabung (Σ ly/unadj/aje).
    Baris tak terpetakan mempertahankan kodenya (tak hilang dari total). */
-export function applyMapping(rows: { code: string; name?: string; group?: string; ly?: number; unadj?: number; aje?: number; lead?: string }[],
+export function applyMapping(rows: { code: string; name?: string; group?: string; ly?: number; unadj?: number; aje?: number; lead?: string; leadSrc?: string }[],
   mapping: Record<string, string>): MappedRow[] {
   const acc = new Map<string, MappedRow>();
   let i = 0;
@@ -134,6 +136,13 @@ export function applyMapping(rows: { code: string; name?: string; group?: string
         group: isMapped ? std.group : (r.group || 'Lainnya'),
         ly, unadj, aje, adj: unadj + aje,
         lead: isMapped ? std.lead : (r.lead || ''),
+        /* Baris TERPETAKAN mengambil lead dari CoA standar → bukan tebakan lagi.
+           Baris TAK terpetakan tetap memakai tebakan heuristiknya, jadi penandanya HARUS
+           ikut terbawa — objek ini dibangun dari nol, bukan spread, sehingga tanpa baris
+           ini `leadSrc` lenyap begitu auditor menyiapkan pemetaan CoA dan tebakan mesin
+           kembali menyamar sebagai penetapan. Justru di TB klien nyata mayoritas akun
+           berada di cabang tak-terpetakan ini. */
+        leadSrc: isMapped ? '' : (r.leadSrc || ''),
         srcCodes: [r.code], mapped: isMapped,
       });
     }

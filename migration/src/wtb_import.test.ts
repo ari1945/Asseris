@@ -256,3 +256,21 @@ describe('computeCoverage — kejujuran engine PSAK', () => {
     expect(cov.matchedPct).toBeLessThan(100);
   });
 });
+
+describe('leadSrc — tebakan mesin harus dapat dibedakan dari penetapan auditor', () => {
+  const TB = 'Kode\tNama\tTA Lalu\tUnadjusted\n1-1100\tKas\t100\t120\n9-9999\tAkun Asing\t50\t60\n';
+
+  it('baris terimpor yang keluarganya dikenali ditandai tebakan', () => {
+    const r = parseTrialBalance(TB, { requireBalanced: false });
+    const kas = r.rows.find(x => x.code === '1-1100')!;
+    expect(kas.lead).toBe('A');
+    expect(kas.leadSrc).toBe('guess');
+  });
+
+  it('kode tak dikenali: tanpa lead, tanpa klaim tebakan', () => {
+    const r = parseTrialBalance(TB, { requireBalanced: false });
+    const asing = r.rows.find(x => x.code === '9-9999')!;
+    expect(asing.lead).toBe('');
+    expect(asing.leadSrc).toBe('');
+  });
+});
