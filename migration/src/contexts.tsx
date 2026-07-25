@@ -606,11 +606,13 @@ function AppProviders({ me, onLogout, children }: any) {
   // bertahan saat WTB di-impor/petakan ulang (key posisi bergeser). SSOT `wtb` view.
   const wtbBase = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),
     [baseWtb, wtbOverrides, userPostDeltas]);
-  /* PR-4a — penetapan lead auditor menimpa tebakan heuristik/pemetaan. */
+  /* PR-4a — penetapan lead auditor menimpa tebakan heuristik/pemetaan. `leadSrc` ikut
+     ditetapkan agar hilir (chip tabel, XLSX tersegel) dapat membedakan penetapan auditor
+     dari tebakan mesin; tanpa itu keduanya dirender identik. */
   const wtb = useMemo(() => {
     if (!wtbLeads || !Object.keys(wtbLeads).length) return wtbBase;
     return wtbBase.map((r: { code: string; lead?: string }) => (
-      wtbLeads[r.code] ? { ...r, lead: wtbLeads[r.code] } : r
+      wtbLeads[r.code] ? { ...r, lead: wtbLeads[r.code], leadSrc: 'auditor' } : r
     ));
   }, [wtbBase, wtbLeads]);
 

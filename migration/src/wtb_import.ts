@@ -26,7 +26,11 @@ export interface ImportedWtbRow {
   aje: number;
   adj: number;
   lead: string;
+  /** asal lead: 'guess' = heuristik kode akun · 'auditor' = ditetapkan auditor · '' = tak ada */
+  leadSrc?: LeadSource;
 }
+
+export type LeadSource = 'guess' | 'auditor' | '';
 
 export type IssueLevel = 'error' | 'warn' | 'info';
 
@@ -338,7 +342,11 @@ export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseR
     /* skala satuan diterapkan SEKALI di sini → seluruh hilir (canon/FSGEN/materialitas)
        selalu menerima Rupiah penuh, tanpa perlu tahu satuan sumber. */
     const sLy = ly * unitFactor, sUnadj = unadj * unitFactor, sAje = aje * unitFactor;
-    rows.push({ key: 'imp' + rows.length, code, name, group, ly: sLy, unadj: sUnadj, aje: sAje, adj: sUnadj + sAje, lead: leadFromCode(code) });
+    /* `leadSrc` menandai ASAL lead. Tanpa ini, lead hasil tebakan heuristik dirender —
+       dan ikut ke XLSX tersegel — identik dengan lead yang ditetapkan auditor, sehingga
+       kertas kerja menyajikan tebakan mesin sebagai penetapan profesional. */
+    const guess = leadFromCode(code);
+    rows.push({ key: 'imp' + rows.length, code, name, group, ly: sLy, unadj: sUnadj, aje: sAje, adj: sUnadj + sAje, lead: guess, leadSrc: guess ? 'guess' : '' });
   });
 
   if (rows.length === 0 && !issues.some(i => i.level === 'error')) {

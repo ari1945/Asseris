@@ -6,13 +6,13 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
-import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, DEFAULT_EXPL } from './view_wtb_deep';
+import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, DEFAULT_EXPL, LeadChip, LEAD_SRC_TITLE } from './view_wtb_deep';
 import { noteOf, statusOf, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
 import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
 import { parseTrialBalance, computeCoverage, UNIT_LABEL, leadFromCode } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow, TbUnit } from './wtb_import';
-import { diffWtb, summarizeImport, pushHistory } from './wtb_provenance';
+import { diffWtb, summarizeImport, pushHistory, rawExcerptOf } from './wtb_provenance';
 import { isTieException, tieOutPriorYear, tieStatusFor, TIE_LABEL } from './prior_year';
 import type { TieResult, TieRow, TieStatus } from './prior_year';
 import type { ImportDiff, ImportProvenance } from './wtb_provenance';
@@ -31,6 +31,7 @@ const { useState: useStateX, useMemo: useMemoX } = React;
 
 /** Empat kolom saldo WTB yang dijumlahkan di tfoot (PR-1b). */
 interface WtbTotals { ly: number; unadj: number; aje: number; adj: number }
+
 
 const WTB_TABS = [
   { id: 'tb', label: 'Neraca Saldo' },
@@ -80,7 +81,10 @@ function WTBView() {
     try {
       const rows = wtb.map((r: any) => {
         const yoy = r.ly !== 0 ? ((r.adj - r.ly) / Math.abs(r.ly)) * 100 : 0;
-        return [r.code, r.name, r.group, r.lead, rp(r.ly), rp(r.unadj), r.aje ? rp(r.aje) : '—', rp(r.adj), fmt(yoy, 1) + '%'];
+        /* Kolom "Sumber WP" — kertas kerja tersegel tak boleh menyajikan tebakan mesin
+           sebagai penetapan auditor. Baris bawaan pemetaan CoA baku ditandai "Pemetaan CoA". */
+        const leadSrc = !r.lead ? '' : r.leadSrc === 'guess' ? 'Tebakan sistem' : r.leadSrc === 'auditor' ? 'Auditor' : 'Pemetaan CoA';
+        return [r.code, r.name, r.group, r.lead, leadSrc, rp(r.ly), rp(r.unadj), r.aje ? rp(r.aje) : '—', rp(r.adj), fmt(yoy, 1) + '%'];
       });
       const t = wtb.reduce((a: any, r: any) => ({ ly: a.ly + r.ly, unadj: a.unadj + r.unadj, aje: a.aje + r.aje, adj: a.adj + r.adj }), { ly: 0, unadj: 0, aje: 0, adj: 0 });
       await amsExportXlsx({
@@ -92,10 +96,10 @@ function WTBView() {
           `Performance materiality: ${pm != null ? rp(pm) : 'belum ditetapkan'} · saldo penuh dalam Rupiah (setelah penyesuaian audit)`],
         sheets: [{
           name: 'Neraca Saldo Kerja',
-          columns: ['Kode', 'Nama Akun', 'Grup FS', 'WP', 'TA Lalu', 'Unadjusted', 'AJE', 'Adjusted', 'Δ YoY'],
+          columns: ['Kode', 'Nama Akun', 'Grup FS', 'WP', 'Sumber WP', 'TA Lalu', 'Unadjusted', 'AJE', 'Adjusted', 'Δ YoY'],
           rows,
-          totals: ['', 'TOTAL', '', '', rp(t.ly), rp(t.unadj), rp(t.aje), rp(t.adj), ''],
-          colWidths: [12, 34, 18, 8, 20, 20, 18, 20, 10],
+          totals: ['', 'TOTAL', '', '', '', rp(t.ly), rp(t.unadj), rp(t.aje), rp(t.adj), ''],
+          colWidths: [12, 34, 18, 8, 15, 20, 20, 18, 20, 10],
         }],
       });
     } finally {
@@ -230,7 +234,7 @@ function WTBView() {
                                   {matFlag && <span title="Melebihi performance materiality" style={{ color: 'var(--red)' }}><I.flag size={12} /></span>}
                                 </span>
                               </td>
-                              <td><span className="chip tiny" style={{ height: 18, padding: '0 6px', fontFamily: 'var(--mono)' }}>{r.lead}</span></td>
+                              <td><LeadChip lead={r.lead} src={r.leadSrc} /></td>
                               {/* PR-4c — "TA Lalu" bukan lagi klaim tak berdasar: bila ada sumber
                                   audited TA-1, baris yang tak tertelusur ditandai (SA 510 ¶6). */}
                               <td className="num muted">
@@ -495,7 +499,9 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
           user: auth && auth.user ? { id: auth.user.id, name: auth.user.name, role: auth.user.role } : null,
           unit: unitPY, unitFactor: parsed.meta.unitFactor,
           period: (activeEngagement?.fy || '').replace(/(\d{4})/, (y: string) => String(+y - 1)),
-          sourceName, sha256: sha,
+          /* Sumber TA-1 tak menyimpan teks mentah sama sekali, jadi tak ada `sha256Excerpt`:
+             hash ini menutup teks penuh dan hanya dapat diverifikasi dengan menempel ulang. */
+          sourceName, sha256: sha, rawLength: text.length,
           rowCount: parsed.meta.rowCount, totalAssets: parsed.meta.totalAssets, balanced: parsed.meta.balanced,
         }),
       });
@@ -793,18 +799,28 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
   }, [parsed, wtb]);
 
   const history: ImportProvenance[] = (wtbImport && Array.isArray(wtbImport.history)) ? wtbImport.history : [];
+  const storedExcerpt: string = (wtbImport && typeof wtbImport.rawExcerpt === 'string') ? wtbImport.rawExcerpt : '';
+  const storedLength: number = (wtbImport && typeof wtbImport.rawLength === 'number') ? wtbImport.rawLength : 0;
 
   const apply = async () => {
     if (!parsed || !parsed.ok || !canImport || busy) return;
     if (diff && diff.hasChanges && !confirming) { setConfirming(true); return; }
     setBusy(true);
     try {
-      let sha = '';
+      /* Dua sidik jari dengan cakupan BERBEDA, dan keduanya dikatakan apa adanya:
+         `sha` menutup teks penuh (diverifikasi dengan menempel ulang berkas sumber), sedangkan
+         `shaExcerpt` menutup cuplikan yang benar-benar tersimpan (satu-satunya yang dapat
+         dihitung ulang dari payload). Dulu hanya `sha` yang disimpan lalu ditampilkan di
+         sebelah cuplikan — mengesankan cuplikan itulah yang di-hash. */
+      const excerpt = rawExcerptOf(text);
+      let sha = '', shaExcerpt = '';
       try { sha = await sha256Hex(text); } catch (e) { /* konteks non-secure: hash dilewati, bukan penghalang */ }
+      try { shaExcerpt = await sha256Hex(excerpt); } catch (e) { /* idem */ }
       const prov = summarizeImport({
         importedAt: new Date().toISOString(),
         user: auth && auth.user ? { id: auth.user.id, name: auth.user.name, role: auth.user.role } : null,
-        unit, unitFactor: parsed.meta.unitFactor, period, sourceName, sha256: sha,
+        unit, unitFactor: parsed.meta.unitFactor, period, sourceName,
+        sha256: sha, sha256Excerpt: shaExcerpt, rawLength: text.length, excerptLength: excerpt.length,
         rowCount: parsed.meta.rowCount, totalAssets: parsed.meta.totalAssets, balanced: parsed.meta.balanced,
       });
       setWtbImport({
@@ -813,7 +829,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
         provenance: prov,
         /* teks mentah ditahan (dibatasi) agar impor dapat ditelusuri ulang, bukan hanya
            hasil parse-nya — SA 500 keandalan sumber bukti. */
-        rawExcerpt: text.slice(0, 4000),
+        rawExcerpt: excerpt,
         rawLength: text.length,
         history: pushHistory(history, prov),
       });
@@ -998,6 +1014,25 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
                 )}
               </>)}
 
+              {/* Cuplikan sumber impor SEBELUMNYA. Payload sudah menyimpannya sejak PR-2b, tapi
+                  tak satu pun permukaan menampilkannya — data tulis-saja, sehingga alasan
+                  keberadaannya (ketertelusuran sumber, SA 500) tak pernah terpenuhi dan
+                  `sha256Excerpt` mengesahkan sesuatu yang tak dapat dilihat. */}
+              {storedExcerpt && (
+                <details style={{ marginTop: 10 }}>
+                  <summary className="tiny muted upper" style={{ cursor: 'pointer', marginBottom: 5 }}>
+                    Cuplikan sumber tersimpan {storedLength ? `(${storedExcerpt.length.toLocaleString('id-ID')} dari ${storedLength.toLocaleString('id-ID')} karakter)` : ''}
+                  </summary>
+                  <pre style={{ margin: 0, padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 5, background: 'var(--surface-2)', maxHeight: 180, overflow: 'auto', fontSize: 11, lineHeight: 1.5, fontFamily: 'var(--mono)', color: 'var(--ink-2)', whiteSpace: 'pre-wrap' }}>{storedExcerpt}</pre>
+                  {storedLength > storedExcerpt.length && (
+                    <div className="tiny muted" style={{ marginTop: 4 }}>
+                      Dipotong — sisanya tak disimpan. Sidik jari teks penuh tetap tercatat di riwayat dan
+                      diverifikasi dengan menempel ulang berkas sumber yang sama.
+                    </div>
+                  )}
+                </details>
+              )}
+
               {/* PR-2b — riwayat impor (header provenance, di dalam payload yang sama) */}
               {history.length > 0 && (
                 <div style={{ marginTop: 10 }}>
@@ -1010,8 +1045,23 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
                       </div>
                       <div className="tiny muted">
                         {h.rowCount} akun · {UNIT_LABEL[h.unit]}{h.period ? ' · ' + h.period : ''}{h.sourceName ? ' · ' + h.sourceName : ''}
-                        {h.sha256 ? <> · <span className="mono">sha256 {h.sha256.slice(0, 12)}…</span></> : null}
                       </div>
+                      {/* Cakupan tiap hash disebut eksplisit — dulu satu label "sha256" berdiri
+                          di sebelah cuplikan dan tampak seolah menutup cuplikan itu. */}
+                      {(h.sha256 || h.sha256Excerpt) && (
+                        <div className="tiny muted" style={{ marginTop: 2 }}>
+                          {h.sha256 ? (
+                            <span title={`SHA-256 atas teks penuh yang ditempel${h.rawLength ? ` (${h.rawLength.toLocaleString('id-ID')} karakter)` : ''} — verifikasi dengan menempel ulang berkas sumber yang sama`}>
+                              teks penuh <span className="mono">{h.sha256.slice(0, 12)}…</span>
+                            </span>
+                          ) : null}
+                          {h.sha256Excerpt ? (
+                            <span title="SHA-256 atas cuplikan yang tersimpan — satu-satunya hash yang dapat dihitung ulang dari isi kertas kerja ini">
+                              {h.sha256 ? ' · ' : ''}cuplikan tersimpan <span className="mono">{h.sha256Excerpt.slice(0, 12)}…</span>
+                            </span>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1178,7 +1228,7 @@ function WtbDrill({ row, onClose, nav }: any) {
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
-          <Badge kind="blue">WP {row.lead}</Badge>
+          <Badge kind="blue" title={LEAD_SRC_TITLE[row.leadSrc || ''] || undefined}>WP {row.lead}{row.leadSrc === 'guess' ? '?' : ''}</Badge>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', display: 'flex', gap: 22, flexWrap: 'wrap' }}>
@@ -1297,9 +1347,28 @@ function WtbDrill({ row, onClose, nav }: any) {
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="tiny muted">{glTie.hasDetail ? (glTie.tied ? 'Detail GL nyata · tie-out ke saldo unadjusted cocok ✓' : 'Detail GL nyata · tie-out selisih — periksa kelengkapan GL') : 'Detail ilustratif (sintetik) — impor GL untuk sub-ledger nyata'}</span>
+          {/* PR-4d menjanjikan kedua tombol ini MEMBAWA konteks; yang terkirim dulu hanya
+              `nav()` telanjang, sehingga "Buka Lead Schedule E" mendarat di daftar WP tanpa
+              membuka E, dan "Sampling Akun Ini" membuka SA 530 tanpa tahu akun mana.
+              `ams.wpOpen` = kunci one-shot yang sudah dipakai My Tasks/Beranda/Workspace. */}
           <div className="row gap8">
-            <Btn sm onClick={() => { onClose(); nav('workpapers'); }}><I.layers size={13} /> Buka Lead Schedule {row.lead}</Btn>
-            <Btn sm variant="primary" onClick={() => { onClose(); nav('sa530'); }}><I.dice size={13} /> Sampling Akun Ini</Btn>
+            <Btn sm disabled={!row.lead}
+              title={row.lead ? `Buka kertas kerja lead ${row.lead}` : 'Akun ini belum punya lead schedule — tetapkan di Pemetaan CoA'}
+              onClick={() => {
+                if (!row.lead) return;
+                try { localStorage.setItem('ams.wpOpen', row.lead); } catch (e) { /* storage tertutup */ }
+                onClose(); nav('workpapers', { from: 'wtb' });
+              }}><I.layers size={13} /> Buka Lead Schedule {row.lead || '—'}</Btn>
+            <Btn sm variant="primary"
+              title={`Buka SA 530 dengan konteks akun ${row.code} — ${row.name}`}
+              onClick={() => {
+                try {
+                  localStorage.setItem('ams.samplingAccount', JSON.stringify({
+                    code: row.code, name: row.name, lead: row.lead || '', balance: row.adj,
+                  }));
+                } catch (e) { /* storage tertutup */ }
+                onClose(); nav('sa530', { from: 'wtb', tab: 'desain' });
+              }}><I.dice size={13} /> Sampling Akun Ini</Btn>
           </div>
         </div>
       </div>

@@ -25,7 +25,17 @@ export interface ImportProvenance {
   unitFactor: number;
   period: string;              // periode TB (mis. 'FY2025')
   sourceName: string;          // nama berkas/asal yang diketik auditor
-  sha256: string;              // hash isi mentah yang ditempel ('' bila gagal dihitung)
+  /* Sidik jari TEKS PENUH yang ditempel. Diverifikasi ulang dengan menempel kembali berkas
+     sumber yang sama — BUKAN dari data yang tersimpan di sini, karena hanya cuplikan yang
+     disimpan (lihat `rawExcerpt`/`rawLength` pada payload impor). '' bila gagal dihitung. */
+  sha256: string;
+  /* Sidik jari CUPLIKAN yang benar-benar tersimpan. Inilah satu-satunya hash yang dapat
+     dihitung ulang dari isi payload. Dulu hanya `sha256` yang ada dan ia ditampilkan tepat
+     di sebelah cuplikan — mengesankan cuplikan itulah yang di-hash, padahal bukan. */
+  sha256Excerpt: string;
+  /* panjang teks penuh vs jumlah karakter yang disimpan — supaya klaim cakupan eksplisit */
+  rawLength: number;
+  excerptLength: number;
   rowCount: number;
   totalAssets: number;
   balanced: boolean;
@@ -39,9 +49,20 @@ export interface ProvenanceInput {
   period?: string;
   sourceName?: string;
   sha256?: string;
+  sha256Excerpt?: string;
+  rawLength?: number;
+  excerptLength?: number;
   rowCount: number;
   totalAssets: number;
   balanced: boolean;
+}
+
+/** Berapa banyak teks mentah yang ditahan di payload impor (SA 500 — ketertelusuran sumber). */
+export const RAW_EXCERPT_LIMIT = 4000;
+
+/** Cuplikan yang disimpan; hash-nya (`sha256Excerpt`) dihitung atas NILAI INI, bukan teks penuh. */
+export function rawExcerptOf(text: string, limit = RAW_EXCERPT_LIMIT): string {
+  return (text || '').slice(0, limit);
 }
 
 export function summarizeImport(input: ProvenanceInput): ImportProvenance {
@@ -56,6 +77,9 @@ export function summarizeImport(input: ProvenanceInput): ImportProvenance {
     period: input.period || '',
     sourceName: input.sourceName || '',
     sha256: input.sha256 || '',
+    sha256Excerpt: input.sha256Excerpt || '',
+    rawLength: input.rawLength || 0,
+    excerptLength: input.excerptLength || 0,
     rowCount: input.rowCount,
     totalAssets: input.totalAssets,
     balanced: input.balanced,

@@ -17,6 +17,28 @@ import type { FluxState, FluxStatus } from './flux_state';
    ============================================================ */
 const { useState: useStateWD, useMemo: useMemoWD } = React;
 
+/* Lead schedule hasil TEBAKAN heuristik dibedakan secara visual dari penetapan auditor.
+   Dulu keduanya dirender chip yang sama persis — tak ada cara membedakan "auditor
+   menetapkan akun ini ke Lead B" dari "mesin menebak dari awalan kode", dan tebakan itu
+   ikut masuk ke XLSX tersegel sebagai seolah-olah penetapan profesional. */
+export const LEAD_SRC_TITLE: Record<string, string> = {
+  guess: 'Tebakan sistem dari kode akun — belum ditetapkan auditor (sunting di Pemetaan CoA)',
+  auditor: 'Ditetapkan auditor',
+};
+export function LeadChip({ lead, src }: { lead?: string; src?: string }) {
+  if (!lead) return <span className="tiny muted">—</span>;
+  const guessed = src === 'guess';
+  return (
+    <span className="chip tiny" title={LEAD_SRC_TITLE[src || ''] || undefined}
+      style={{
+        height: 18, padding: '0 6px', fontFamily: 'var(--mono)',
+        ...(guessed ? { borderStyle: 'dashed', color: 'var(--ink-3)' } : null),
+      }}>
+      {lead}{guessed ? '?' : ''}
+    </span>
+  );
+}
+
 /* SARAN sistem atas fluktuasi yang lazim (per kode GL) — BUKAN dokumentasi auditor.
    PR-3b: dulu peta ini dipakai sebagai `note` fallback dan status diturunkan darinya
    (`status = note ? 'explained' : 'followup'`), sehingga perikatan baru langsung
@@ -224,6 +246,20 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
      (ditandai jelas di bawah kotak — lihat label "Saran sistem"). */
   React.useEffect(() => { setDraft(sel ? (sel.noteText || sel.suggestion || '') : ''); }, [selKey]);
 
+  /* Dirty-guard. Efek di atas menimpa `draft` setiap kali pilihan berubah, jadi mengeklik
+     baris lain saat ada ketikan yang belum disimpan MEMBUANGNYA tanpa sepatah kata pun —
+     dokumentasi telaah yang baru diketik auditor hilang begitu saja (SA 230). Perpindahan
+     kini ditahan sampai auditor memutuskan. */
+  const baselineOf = (r: { noteText?: string; suggestion?: string } | null) => (r ? (r.noteText || r.suggestion || '') : '');
+  const dirty = !!sel && draft !== baselineOf(sel);
+  const [pendingKey, setPendingKey]: [string | null, (v: string | null) => void] = useStateWD(null);
+  const selectRow = (key: string) => {
+    if (key === selKey) return;
+    if (dirty) { setPendingKey(key); return; }
+    setSelKey(key);
+  };
+  const discardPending = () => { if (pendingKey != null) { setSelKey(pendingKey); setPendingKey(null); } };
+
   const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
   const pctStr = (r: any) => r.isNew ? 'baru' : (r.pct > 0 ? '+' : '') + fmt(r.pct, 1) + '%';
   /* jejak penyimpan telaah; entri warisan (pra-PR-3) tak punya penulis/waktu —
@@ -244,6 +280,8 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
     if (!sel) return;
     const actor = (auth && auth.user) ? { name: auth.user.name, role: auth.user.role } : null;
     setFluxState((s: FluxState) => upsertFlux(s, sel.code, { status, note: draft }, actor, new Date().toISOString()));
+    /* menyimpan menuntaskan perpindahan yang tertahan dirty-guard */
+    if (pendingKey != null) { setSelKey(pendingKey); setPendingKey(null); }
   };
   const relAje = (code: any) => aje.filter((a: any) => Array.isArray(a.lines)
     ? a.lines.some((l: any) => l.code === code)
@@ -300,9 +338,9 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
               </tr></thead>
               <tbody>
                 {list.map((r: any) => (
-                  <tr key={r.key} onClick={() => setSelKey(r.key)} className={selKey === r.key ? 'sel' : ''} style={{ cursor: 'pointer' }}>
+                  <tr key={r.key} onClick={() => selectRow(r.key)} className={selKey === r.key ? 'sel' : ''} style={{ cursor: 'pointer' }}>
                     <td><div style={{ fontWeight: 600 }}>{r.name}</div><div className="mono tiny muted">{r.code}</div></td>
-                    <td><span className="chip tiny" style={{ height: 18, padding: '0 6px', fontFamily: 'var(--mono)' }}>{r.lead}</span></td>
+                    <td><LeadChip lead={r.lead} src={r.leadSrc} /></td>
                     <td className="num muted">{num(r.ly)}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{num(r.adj)}</td>
                     <td className="num" style={{ color: 'var(--ink-2)' }}>{r.delta > 0 ? '+' : ''}{num(r.delta)}</td>
@@ -394,6 +432,23 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                   <div className="row ac jb tiny muted" style={{ marginBottom: 8, padding: '5px 8px', border: '1px solid var(--line)', borderRadius: 5 }}>
                     <span><Badge kind={fluxStatusKind(sel.status)}>{FLUX_STATUS_LABEL[sel.status as FluxStatus]}</Badge></span>
                     <span>{savedBy(sel.code)}</span>
+                  </div>
+                )}
+
+                {/* Perpindahan baris ditahan selama ada ketikan belum tersimpan. Auditor
+                    memutuskan: simpan lewat salah satu tombol status, atau buang eksplisit. */}
+                {pendingKey != null && (
+                  <div style={{ marginBottom: 8, padding: '8px 10px', border: '1px solid var(--amber)', background: 'var(--amber-bg)', borderRadius: 5 }}>
+                    <div className="row ac gap6" style={{ marginBottom: 6 }}>
+                      <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={14} /></span>
+                      <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--ink-2)' }}>
+                        Penjelasan untuk <b>{sel.code}</b> belum disimpan. Berpindah akun akan membuangnya.
+                      </span>
+                    </div>
+                    <div className="row gap8">
+                      <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={() => setPendingKey(null)}>Tetap di sini</Btn>
+                      <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={discardPending}><I.trash size={13} /> Buang & pindah</Btn>
+                    </div>
                   </div>
                 )}
 
