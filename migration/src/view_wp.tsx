@@ -6,6 +6,7 @@ import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor } from './c
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan } from './sampling_select';
 import {
   assertionCoverage, groupForAccountCode, ASSERTION_RELEVANCE, ASSERTION_STATUS_META, assertionDef,
+  materialityFor,
 } from './canon_selectors';
 import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } from './canon_selectors';
 import { I } from './icons';
@@ -148,7 +149,12 @@ function WorkingPapers() {
   const openNotesTotal = Object.values(metrics).reduce((a, x: any) => a + x.openNotes, 0);
   const excTotal = Object.values(metrics).reduce((a, x: any) => a + x.exc, 0);
 
-  const om = activeEngagement.materiality, pm = Math.round(om * 0.75), triv = Math.round(om * 0.05);
+  /* PR-1b — OM/PM/ambang sepele dari SSOT materialitas (SA 320), bukan hardcode
+     ×0,75 / ×0,05; badge cakupan lead schedule kini ikut pmPct/cttPct workspace. */
+  const _matW = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const om = _matW.omFull != null ? _matW.omFull : activeEngagement.materiality;
+  const pm = _matW.pmFull != null ? _matW.pmFull : 0;
+  const triv = _matW.cttFull != null ? _matW.cttFull : 0;
   const covBadge = (bal: any) => {
     if (bal == null) return null;
     const a = Math.abs(bal);
@@ -324,7 +330,12 @@ function WPDrill({ it, onClose }: any) {
   const leadRows = wtb.filter((r: any) => r.lead === ref);
   const hasLead = leadRows.length > 0;
   const bal = hasLead ? leadRows.reduce((a: any, r: any) => a + r.adj, 0) : null;
-  const om = activeEngagement.materiality, pm = Math.round(om * 0.75), triv = Math.round(om * 0.05);
+  /* PR-1b — OM/PM/ambang sepele dari SSOT materialitas (SA 320), bukan hardcode
+     ×0,75 / ×0,05; badge cakupan lead schedule kini ikut pmPct/cttPct workspace. */
+  const _matW = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const om = _matW.omFull != null ? _matW.omFull : activeEngagement.materiality;
+  const pm = _matW.pmFull != null ? _matW.pmFull : 0;
+  const triv = _matW.cttFull != null ? _matW.cttFull : 0;
 
   /* notes */
   const baseNotes = (WP_SEED_NOTES as any)[ref] || [];

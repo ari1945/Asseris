@@ -98,7 +98,7 @@ function MaterialityCalc() {
               om={om} pm={pm} ctt={ctt} applied={applied} priorOM={priorOM} rp={rp} locked={locked} />
           )}
           {tab === 'spec' && <MatSpecific om={om} pmPct={pmPct} locked={locked} />}
-          {tab === 'comp' && <MatComponent om={om} locked={locked} />}
+          {tab === 'comp' && <MatComponent om={om} cttPct={cttPct} locked={locked} />}
           {tab === 'sad'  && <MatImpact om={om} pm={pm} ctt={ctt} locked={locked} />}
           {tab === 'rev'  && <MatRevision om={om} applied={applied} locked={locked} />}
           {tab === 'memo' && <MatMemo bench={bench} pct={pct} pmPct={pmPct} cttPct={cttPct} om={om} pm={pm} ctt={ctt} applied={applied} onApply={onApply} locked={locked} />}

@@ -221,7 +221,10 @@ function NumDriver({ label, suffix, value, onChange, w = 92 }: any) {
 }
 
 function SubstantiveTab({ der, pm, ct, fmt }: any) {
-  const pmJt = Math.round(pm / 1e6);
+  /* PR-1b — `pm` boleh null (materialitas perikatan belum ditetapkan). pmJt hanya
+     dipakai sebagai NILAI AWAL ambang ekspektasi yang lalu di-persist & disunting
+     auditor; 0 = ambang belum ditetapkan, bukan "semua menyimpang". */
+  const pmJt = pm != null ? Math.round(pm / 1e6) : 0;
   const jtv = (arr: any) => arr.map((x: any) => x / 1e6);
 
   /* recorded (Rp jt) */

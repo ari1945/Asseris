@@ -45,9 +45,14 @@ const DEFAULT_EXPL = {
 
 const grpKind = (g: any) => g.startsWith('Aset') ? 'aset' : g.startsWith('Liabilitas') ? 'liab' : g === 'Ekuitas' ? 'ekuitas' : g === 'Pendapatan' ? 'pendapatan' : 'beban';
 
-/* Shared WTB summary + analytical flags */
-function computeWtbSummary(wtb: any, pm: any, opts?: any) {
-  const absThr = (opts && opts.absThr != null) ? opts.absThr : pm;        // Rupiah
+/* Shared WTB summary + analytical flags.
+   PR-1b — `pm` kini boleh `null` (materialitas perikatan belum ditetapkan). Semua kriteria
+   berbasis PM dinonaktifkan dengan jujur alih-alih membandingkan terhadap NaN, yang dulu
+   selalu menghasilkan `false` diam-diam (nol akun > PM, nol fluktuasi ter-flag).
+   `absThr <= 0` berarti kriteria nominal dimatikan; kriteria persentase tetap berlaku. */
+function computeWtbSummary(wtb: any, pm: number | null, opts?: any) {
+  const absThrRaw = (opts && opts.absThr != null) ? opts.absThr : pm;     // Rupiah
+  const absThr: number | null = (typeof absThrRaw === 'number' && absThrRaw > 0) ? absThrRaw : null;
   const pctThr = (opts && opts.pctThr != null) ? opts.pctThr : 20;        // %
   let totAset = 0, liabMag = 0, ekuMag = 0, revMag = 0, beban = 0, overPm = 0;
   const rows = wtb.map((r: any) => {
@@ -57,11 +62,11 @@ function computeWtbSummary(wtb: any, pm: any, opts?: any) {
     else if (k === 'ekuitas') ekuMag += -r.adj;
     else if (k === 'pendapatan') revMag += -r.adj;
     else beban += r.adj;
-    if (Math.abs(r.adj) > pm) overPm++;
+    if (pm != null && Math.abs(r.adj) > pm) overPm++;
     const delta = r.adj - r.ly;
     const isNew = r.ly === 0;
     const pct = isNew ? (delta !== 0 ? Infinity : 0) : (delta / Math.abs(r.ly)) * 100;
-    const flagged = Math.abs(delta) >= absThr || Math.abs(pct) >= pctThr;
+    const flagged = (absThr != null && Math.abs(delta) >= absThr) || Math.abs(pct) >= pctThr;
     const noteText = (r.note != null && r.note !== '') ? r.note : ((DEFAULT_EXPL as any)[r.code] || '');
     const status = r.revStatus || (noteText ? 'explained' : 'followup');
     return { ...r, kind: k, delta, pct, isNew, flagged, noteText, status };
@@ -74,7 +79,7 @@ function computeWtbSummary(wtb: any, pm: any, opts?: any) {
     rows, totAset, liabMag, ekuMag, revMag, beban, laba,
     neracaDiff: totAset - (liabMag + ekuMag),
     margin: revMag ? (laba / revMag) * 100 : 0,
-    overPm, absThr, pctThr,
+    overPm, absThr, pctThr, pmAvailable: pm != null,
     flaggedCount: flagged.length, explained, followup,
   };
 }
@@ -159,7 +164,10 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
       <Tile label="Total Aset" value={M(summary.totAset)} sub="Saldo setelah penyesuaian" />
       <Tile label="Posisi Neraca" value={balanced ? 'Seimbang' : 'Selisih'} accent={balanced ? 'var(--green)' : 'var(--red)'} sub={balanced ? 'Aset = Liabilitas + Ekuitas' : 'Selisih ' + M(Math.abs(summary.neracaDiff))} />
       <Tile label="Laba Bersih" value={M(summary.laba)} accent="var(--blue)" sub={'Margin ' + fmt(summary.margin, 1) + '% · Pendapatan − Beban'} />
-      <Tile label={'Akun > PM'} value={summary.overPm + ' akun'} accent={summary.overPm ? 'var(--amber)' : 'var(--green)'} sub={'Performance Materiality Rp ' + fmt(pm / 1e6, 0) + ' jt'} />
+      <Tile label={'Akun > PM'}
+        value={pm != null ? summary.overPm + ' akun' : '—'}
+        accent={pm == null ? 'var(--ink-3)' : summary.overPm ? 'var(--amber)' : 'var(--green)'}
+        sub={pm != null ? 'Performance Materiality Rp ' + fmt(pm / 1e6, 0) + ' jt' : 'Materialitas perikatan belum ditetapkan (SA 320)'} />
       <Tile label="Telaah Pergerakan" value={summary.explained + ' / ' + summary.flaggedCount} accent={summary.followup ? 'var(--amber)' : 'var(--green)'} onClick={onGotoReview}
         sub={(summary.followup ? summary.followup + ' perlu tindak lanjut' : 'Selesai') + ' · SA 520'}>
         <div className="pbar" style={{ marginTop: 2 }}><span style={{ width: reviewPct + '%', background: summary.followup ? 'var(--amber)' : 'var(--green)' }} /></div>
@@ -174,7 +182,7 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
   const audit = useAudit();
   const { wtb, setWtbOverrides, addReviewNote, aje } = audit;
   const nav = useNav();
-  const [absJt, setAbsJt] = useStateWD(Math.round(pm / 1e6));
+  const [absJt, setAbsJt] = useStateWD(pm != null ? Math.round(pm / 1e6) : 0);
   const [pct, setPct] = useStateWD(20);
   const [scope, setScope] = useStateWD('sig'); // sig | all
   const [selKey, setSelKey] = useStateWD(null);
@@ -216,7 +224,9 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
             <input className="input mono" style={{ width: 56, height: 26, textAlign: 'right' }} type="number" value={pct} onChange={(e: any) => setPct(Math.max(0, +e.target.value || 0))} />
             <span className="tiny muted">%</span>
           </div>
-          <button className="btn sm" onClick={() => { setAbsJt(Math.round(pm / 1e6)); setPct(20); }}><I.sync size={12} /> Reset ke PM</button>
+          <button className="btn sm" disabled={pm == null} title={pm == null ? 'Materialitas perikatan belum ditetapkan (SA 320)' : 'Kembalikan ambang ke performance materiality'}
+            onClick={() => { if (pm == null) return; setAbsJt(Math.round(pm / 1e6)); setPct(20); }}><I.sync size={12} /> Reset ke PM</button>
+          {absJt <= 0 && <span className="tiny muted">ambang nominal nonaktif — hanya kriteria %</span>}
         </div>
         <div className="vdivider" style={{ height: 26 }} />
         <div className="row ac gap12" style={{ flex: 1 }}>

@@ -6,7 +6,8 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
-import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand } from './view_wtb_deep';
+import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary } from './view_wtb_deep';
+import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
 import { parseTrialBalance } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow } from './wtb_import';
@@ -21,6 +22,9 @@ import type { LedgerParseResult, LedgerLine, LedgerTieOut } from './wtb_ledger';
    Asseris — Working Trial Balance (WTB) + AJE
    ============================================================ */
 const { useState: useStateX, useMemo: useMemoX } = React;
+
+/** Empat kolom saldo WTB yang dijumlahkan di tfoot (PR-1b). */
+interface WtbTotals { ly: number; unadj: number; aje: number; adj: number }
 
 const WTB_TABS = [
   { id: 'tb', label: 'Neraca Saldo' },
@@ -45,7 +49,15 @@ function WTBView() {
   const [showIntegrity, setShowIntegrity] = useStateX(false);
   const integrity: WtbIntegrityResult = useMemoX(() => checkWtbIntegrity(wtb, aje), [wtb, aje]);
 
-  const pm = activeEngagement.materiality * 0.75;
+  /* PR-1b — PM dari SSOT materialitas (SA 320), bukan hardcode `materiality * 0.75`.
+     Kini menghormati pmPct + override "Terapkan ke Engagement" dari Materiality Workspace,
+     jadi perubahan di sana mengalir serempak ke bendera per-baris, KPI "Akun > PM", ambang
+     default fluktuasi, DAN header XLSX tersegel. `null` = materialitas perikatan belum
+     ditetapkan → kriteria berbasis PM dinonaktifkan (dulu: NaN yang menyamar sebagai angka). */
+  const pm: number | null = useMemoX(
+    () => materialityFor({ engMateriality: activeEngagement?.materiality, engagementId: activeEngagement?.id }).pmFull,
+    [activeEngagement?.materiality, activeEngagement?.id],
+  );
 
   // W10.5 Fase 2 — sealed XLSX register: the full Working Trial Balance, full-rupiah via rp()
   // (SSOT = the same wtb rows the table renders). Δ YoY mirrors the on-screen adjusted-vs-LY view.
@@ -64,7 +76,7 @@ function WTBView() {
         firm: 'KAP Wijaya Hartono & Rekan',
         title: `Working Trial Balance — ${activeClient?.name || ''}`,
         meta: [`${activeEngagement?.id || ''} · ${activeEngagement?.fy || 'FY2025'} · ${activeEngagement?.standard || 'SAK'}`,
-          `Performance materiality: ${rp(pm)} · saldo penuh dalam Rupiah (setelah penyesuaian audit)`],
+          `Performance materiality: ${pm != null ? rp(pm) : 'belum ditetapkan'} · saldo penuh dalam Rupiah (setelah penyesuaian audit)`],
         sheets: [{
           name: 'Neraca Saldo Kerja',
           columns: ['Kode', 'Nama Akun', 'Grup FS', 'WP', 'TA Lalu', 'Unadjusted', 'AJE', 'Adjusted', 'Δ YoY'],
@@ -77,24 +89,36 @@ function WTBView() {
       setExporting(false);
     }
   };
-  const summary = useMemoX(() => window.computeWtbSummary?.(wtb, pm), [wtb, pm]);
+  /* PR-1b — impor ESM langsung (dulu `window.computeWtbSummary?.()`, sisa era buildless:
+     bila global belum terpasang hasilnya `undefined` → WtbKpiBand crash di summary.neracaDiff). */
+  const summary = useMemoX(() => computeWtbSummary(wtb, pm), [wtb, pm]);
 
   // group rows
+  const shown = useMemoX(
+    () => wtb.filter((r: any) => q === '' || r.name.toLowerCase().includes(q.toLowerCase()) || r.code.includes(q)),
+    [wtb, q],
+  );
   const groups = useMemoX(() => {
     const order: any[] = [];
     const map = {};
-    wtb.filter((r: any) => q === '' || r.name.toLowerCase().includes(q.toLowerCase()) || r.code.includes(q)).forEach((r: any) => {
+    shown.forEach((r: any) => {
       if (!(map as any)[r.group]) { (map as any)[r.group] = []; order.push(r.group); }
       (map as any)[r.group].push(r);
     });
     return order.map(g => ({ name: g, rows: (map as any)[g] }));
-  }, [wtb, q]);
+  }, [shown]);
 
-  const totals = useMemoX(() => {
-    const t = { ly: 0, unadj: 0, aje: 0, adj: 0 };
-    wtb.forEach((r: any) => { t.ly += r.ly; t.unadj += r.unadj; t.aje += r.aje; t.adj += r.adj; });
-    return t;
-  }, [wtb]);
+  /* PR-1b — total mengikuti baris yang TAMPIL. Dulu tfoot selalu menjumlah `wtb` penuh
+     sementara barisnya terfilter `q`, sehingga tangkapan layar/cetak sebagai bukti audit
+     memperlihatkan total yang tak menjumlahkan apa pun di atasnya. Saat filter aktif,
+     total keseluruhan tetap ditampilkan berdampingan agar konteksnya tak hilang. */
+  const sumRows = (rows: WtbTotals[]): WtbTotals => rows.reduce(
+    (t: WtbTotals, r: WtbTotals) => ({ ly: t.ly + r.ly, unadj: t.unadj + r.unadj, aje: t.aje + r.aje, adj: t.adj + r.adj }),
+    { ly: 0, unadj: 0, aje: 0, adj: 0 },
+  );
+  const totals = useMemoX(() => sumRows(shown), [shown]);
+  const totalsAll = useMemoX(() => sumRows(wtb), [wtb]);
+  const filtered = shown.length !== wtb.length;
 
   const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
 
@@ -102,7 +126,7 @@ function WTBView() {
     <>
       <SubBar moduleId="wtb" right={
         <div className="row gap8 ac">
-          <span className="tiny muted mono">PM: Rp {fmt(pm / 1e6, 0)} jt</span>
+          <span className="tiny muted mono">{pm != null ? `PM: Rp ${fmt(pm / 1e6, 0)} jt` : 'PM belum ditetapkan'}</span>
           <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export XLSX'}</Btn>
           {wtbImport && wtbImport.rows && <Btn sm onClick={() => setMapOpen(true)} title="Petakan bagan akun klien ke CoA standar"><I.target size={13} /> Petakan Akun</Btn>}
           <Btn sm onClick={() => setLedgerOpen(true)} title="Impor buku besar (GL) untuk detail sub-ledger nyata"><I.table size={13} /> Impor GL</Btn>
@@ -172,7 +196,7 @@ function WTBView() {
                         {!isCol && g.rows.map((r: any) => {
                           const base = showAdj ? r.adj : r.unadj;
                           const yoy = r.ly !== 0 ? ((base - r.ly) / Math.abs(r.ly)) * 100 : 0;
-                          const matFlag = Math.abs(base) > pm;
+                          const matFlag = pm != null && Math.abs(base) > pm;
                           return (
                             <tr key={r.key} onClick={() => setDrill(r)} style={{ cursor: 'pointer' }}>
                               <td className="mono tiny muted">{r.code}</td>
@@ -196,14 +220,28 @@ function WTBView() {
                   })}
                 </tbody>
                 <tfoot>
+                  {/* PR-1b — label lama "TOTAL (harus = 0, balanced)" menyatakan invarian yang
+                      SALAH: TB pra-tutup yang benar ber-Σ adjusted = −laba berjalan, dan panel
+                      Integritas di atas justru menjelaskan itu sebagai normal. Verdikt ada di
+                      sana, bukan di label footer. */}
                   <tr>
-                    <td colSpan={3}>TOTAL (harus = 0, balanced)</td>
+                    <td colSpan={3}>{filtered ? `TOTAL TERFILTER — ${shown.length} dari ${wtb.length} akun` : `TOTAL — ${wtb.length} akun`}</td>
                     <td className="num">{num(totals.ly)}</td>
                     <td className="num">{num(totals.unadj)}</td>
                     <td className="num">{num(totals.aje)}</td>
                     {showAdj && <td className="num">{num(totals.adj)}</td>}
                     <td className="num"></td>
                   </tr>
+                  {filtered && (
+                    <tr>
+                      <td colSpan={3} className="muted">TOTAL SELURUH AKUN</td>
+                      <td className="num muted">{num(totalsAll.ly)}</td>
+                      <td className="num muted">{num(totalsAll.unadj)}</td>
+                      <td className="num muted">{num(totalsAll.aje)}</td>
+                      {showAdj && <td className="num muted">{num(totalsAll.adj)}</td>}
+                      <td className="num"></td>
+                    </tr>
+                  )}
                 </tfoot>
               </table>
             </div>
@@ -212,6 +250,8 @@ function WTBView() {
             <span className="row ac gap6"><I.flag size={12} style={{ color: 'var(--red)' }} /> Saldo melebihi performance materiality</span>
             <span>·</span>
             <span>Nilai dalam jutaan Rupiah</span>
+            <span>·</span>
+            <span>Σ adjusted = 0 hanya untuk TB pra-tutup yang seimbang; selisih sebesar laba berjalan adalah normal — verdiktnya di panel Integritas</span>
             <span>·</span>
             {wtbImport && wtbImport.rows ? (
               <span className="row ac gap5">

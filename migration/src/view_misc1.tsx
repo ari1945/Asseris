@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { deriveWpStatus, WP_META, openCanonicalWp } from './view_wp';
+import { materialityFor } from './canon_selectors';
 import { APPROACHES, defaultApproach, reconcileRiskResponse, GAP_LABEL } from './canon_audit_plan';
 import type { ApproachId, PlanRow, PlanResult, RiskInput } from './canon_audit_plan';
 
@@ -47,7 +48,12 @@ function StrategyMemo() {
   const audit = useAudit();
   const { risks } = audit;
   const nav = useNav();
-  const om = activeEngagement.materiality, pm = Math.round(om * 0.75), ctt = Math.round(om * 0.05);
+  /* PR-1b — OM/PM/CTT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
+     Fallback ke materialitas perikatan bila workspace belum menetapkan apa pun. */
+  const _matS = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const om = _matS.omFull != null ? _matS.omFull : activeEngagement.materiality;
+  const pm = _matS.pmFull != null ? _matS.pmFull : 0;
+  const ctt = _matS.cttFull != null ? _matS.cttFull : 0;
   const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
   const fraudRisks = risks.filter((r: any) => r.fraud);
 
