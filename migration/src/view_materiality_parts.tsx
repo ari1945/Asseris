@@ -132,13 +132,15 @@ const DEFAULT_COMPONENTS = [
   { id: 'K-4', name: 'PT Sentosa Properti Indah', role: 'Anak — Properti', sig: false, scope: 'Prosedur spesifik', contrib: 6, cm: 1_200_000_000 },
 ];
 
-function MatComponent({ om, locked }: any) {
+/* PR-1b — `cttPct` kini prop (sejajar MatSpecific yang sudah menerima `pmPct`): ambang
+   sepele mengikuti setelan workspace, bukan hardcode 5%. */
+function MatComponent({ om, cttPct, locked }: any) {
   const [rows, setRows] = window.useAmsPersist('mat.components', DEFAULT_COMPONENTS);
   const set = (id: any, patch: any) => setRows((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
   const sumCM = rows.reduce((s: any, r: any) => s + r.cm, 0);
   const coverage = rows.filter((r: any) => r.scope === 'Audit penuh').reduce((s: any, r: any) => s + r.contrib, 0);
   const overGroup = rows.filter((r: any) => r.cm > om).length;
-  const ctThreshold = Math.round(om * 0.05);
+  const ctThreshold = Math.round(om * ((typeof cttPct === 'number' ? cttPct : 5) / 100));
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>

@@ -165,7 +165,7 @@ function PSAK14View() {
      membaca konfigurasi benchmark/PM%/CTT% & override yang sama dipakai modul
      Materialitas & SAD — bukan lagi hardcode 75%. */
   /** @type {import('./canon_selectors').MaterialityResult} */
-  const mat = materialityFor({ engMateriality: eng.materiality });
+  const mat = materialityFor({ engMateriality: eng.materiality, engagementId: eng.id });
   const overMat  = inv.shortfallWD;                      // usulan penurunan belum dibukukan (juta)
   const pm  = mat.pm;                                     // materialitas pelaksanaan (juta)
   const ctt = mat.ctt;                                    // ambang jelas remeh (juta)

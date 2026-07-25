@@ -6,6 +6,7 @@ import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
 import { applyMapping } from './wtb_mapping';
 import { overlayWtbOverrides } from './wtb_overrides';
+import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 
 /* ============================================================
    Asseris — React Context providers
@@ -105,9 +106,9 @@ function notesForEngagement(notes: any, engId: any) {
      engagement  → active engagement (aje / risks / wpState / review notes / …)
    Single-firm/single-user demo, so the firm/user scopeIds are constants that
    match the seed (FIRM-WHR / USER.employeeId). ============================================================ */
-const FIRM_SCOPE_ID = 'FIRM-WHR';
+/* FIRM_SCOPE_ID & DEFAULT_ENG_ID kini di-SSOT-kan di `persist_scope.ts` — canon
+   (non-React) memerlukan konstanta yang sama untuk membaca cache terpersist (PR-1a). */
 function userScopeId() { try { return (AMS && AMS.USER && AMS.USER.employeeId) || 'USER-1'; } catch (e) { return 'USER-1'; } }
-const DEFAULT_ENG_ID = 'ENG-2025-014';
 
 /* Public useAmsPersist (module state) defaults to firm scope — i.e. today's
    "one global doc", now shared across browsers — so no module changes behavior.
@@ -185,6 +186,31 @@ const AMS_PERSIST_SCOPE = {
   'fluxState.v1': 'engagement',
   'leaseOverride.v1': 'engagement',
   'eclInputs.v1': 'engagement',
+  /* PR-1a (PRD WTB 2026-07-25) — Materiality Workspace (SA 320). DUA cacat sekaligus:
+     (1) materialitas adalah pertimbangan PER-PERIKATAN (SA 320 ¶10-11), tapi kunci ini
+     dulu jatuh ke default 'firm' → satu setelan dipakai SELURUH perikatan, dan
+     `mat.appliedOverride` yang berlabel "Terapkan ke Engagement" justru berlaku
+     lintas-perikatan; (2) firm-scope tanpa cabang capForWrite = FIRM_ADMIN → hanya
+     Rekan Pemimpin yang bisa menyimpan, suntingan Manajer/Senior gagal SENYAP (tampak
+     tersimpan sampai reload) — kelas bug yang sama dengan priorYear & capacityPlan.v1.
+     Engagement-scope menyelesaikan keduanya: capForWrite default = WP_EDIT + isolasi W7.5.
+     Setelan lama yang tersimpan firm-scope tetap terbaca lewat rantai baca-lewat
+     `readPersisted` (perikatan → firma → legacy) di persist_scope.ts — tanpa tulisan
+     destruktif; tersalin ke tier perikatan saat pengguna menyimpan berikutnya.
+     CATATAN: `mat.memo.signoff` SENGAJA TIDAK ikut pindah — ia slot persetujuan, dan
+     memindahkannya ke engagement-scope tanpa entri `guardSignoffWrite` akan melonggarkan
+     otoritasnya dari Rekan (FIRM_ADMIN) menjadi WP_EDIT (semua auditor). Pemindahannya
+     butuh guard server terlebih dulu — keputusan terpisah, lihat PRD §11 Q2. */
+  'mat.benchId': 'engagement',
+  'mat.pct': 'engagement',
+  'mat.pmPct': 'engagement',
+  'mat.cttPct': 'engagement',
+  'mat.appliedOverride': 'engagement',
+  'mat.quals': 'engagement',
+  'mat.specifics': 'engagement',
+  'mat.components': 'engagement',
+  'mat.revisions': 'engagement',
+  'mat.tab': 'engagement',
   /* F2/PR-C (PRD 2026-07-19) — SA 580 Representasi Tertulis: status perolehan
      per-representasi (diminta/diterima/N-A), tanggal diterima, teks pengecualian,
      flag penolakan manajemen (¶20), + metadata surat (tanggal, penanda tangan) &

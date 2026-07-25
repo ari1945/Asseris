@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAudit, useFirm } from './contexts';
+import { materialityFor } from './canon_selectors';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
@@ -130,8 +131,16 @@ function AnalyticalReview() {
   const { fmt } = AMS;
   const { wtb, risks } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
-  const pm = Math.round(activeEngagement.materiality * 0.75);
-  const ct = Math.round(activeEngagement.materiality * 0.05);
+  /* PR-1b — PM & CT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
+     Menghormati pmPct/cttPct + override "Terapkan ke Engagement" dari Materiality
+     Workspace. `null` = materialitas perikatan belum ditetapkan → kriteria berbasis PM
+     dinonaktifkan & ditampilkan "—" (dulu NaN yang menyamar sebagai angka). */
+  const mat = useMemoAR(
+    () => materialityFor({ engMateriality: activeEngagement?.materiality, engagementId: activeEngagement?.id }),
+    [activeEngagement?.materiality, activeEngagement?.id],
+  );
+  const pm: number | null = mat.pmFull;
+  const ct: number | null = mat.cttFull;
 
   const [tab, setTab] = useStateAR('ringkasan');
   const der = useMemoAR(() => arDerive(wtb, pm), [wtb]);
@@ -184,7 +193,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [memo, setMemo] = window.useAmsPersist('arMemo.v1', '');
   /* "unexpected" fluctuation = material AND unusual %  → genuine exceptions to investigate */
-  const rows = der.flux.map((r: any) => ({ ...r, flagged: Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
+  const rows = der.flux.map((r: any) => ({ ...r, flagged: pm != null && Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
   const flagged = rows.filter((r: any) => r.flagged);
   const explained = flagged.filter((r: any) => (FLUX_SEED as any)[r.code]?.status === 'explained').length;
   const unexplainedAmt = flagged.filter((r: any) => (FLUX_SEED as any)[r.code]?.status !== 'explained').reduce((s: any, r: any) => s + Math.abs(r.dAbs), 0);
@@ -207,7 +216,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
   const KPIS = [
     { v: flagged.length, l: 'Fluktuasi tak terduga', sub: 'material & menyimpang > 15%', accent: 'var(--blue)' },
     { v: explained + '/' + flagged.length, l: 'Terjelaskan', sub: Math.round(explained / (flagged.length || 1) * 100) + '% selesai', accent: 'var(--green)' },
-    { v: 'Rp ' + fmt(unexplainedAmt / 1e6, 0) + ' jt', l: 'Selisih belum dijelaskan', sub: 'vs PM Rp ' + fmt(pm / 1e6, 0) + ' jt', accent: unexplainedAmt > pm ? 'var(--red)' : 'var(--amber)' },
+    { v: 'Rp ' + fmt(unexplainedAmt / 1e6, 0) + ' jt', l: 'Selisih belum dijelaskan', sub: pm != null ? 'vs PM Rp ' + fmt(pm / 1e6, 0) + ' jt' : 'PM belum ditetapkan', accent: (pm != null && unexplainedAmt > pm) ? 'var(--red)' : 'var(--amber)' },
     { v: adverseRatios, l: 'Rasio di luar tolok ukur', sub: 'dari ' + der.ratios.length + ' rasio industri', accent: adverseRatios ? 'var(--amber)' : 'var(--green)' },
   ];
 
@@ -273,8 +282,8 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
           <div className="panel-h"><h3>Kesimpulan Prosedur Analitis</h3></div>
           <div style={{ padding: 14 }}>
             <div className="panel" style={{ padding: '9px 11px', background: 'var(--surface-2)', boxShadow: 'none', marginBottom: 12 }}>
-              <div className="row jb" style={{ marginBottom: 5 }}><span className="tiny muted upper">Materialitas Pelaksanaan</span><span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(pm / 1e6, 0)} jt</span></div>
-              <div className="row jb"><span className="tiny muted upper">Ambang Trivial (CT)</span><span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(ct / 1e6, 0)} jt</span></div>
+              <div className="row jb" style={{ marginBottom: 5 }}><span className="tiny muted upper">Materialitas Pelaksanaan</span><span className="mono tiny" style={{ fontWeight: 700 }}>{pm != null ? 'Rp ' + fmt(pm / 1e6, 0) + ' jt' : '—'}</span></div>
+              <div className="row jb"><span className="tiny muted upper">Ambang Trivial (CT)</span><span className="mono tiny" style={{ fontWeight: 700 }}>{ct != null ? 'Rp ' + fmt(ct / 1e6, 0) + ' jt' : '—'}</span></div>
             </div>
             <div className="tiny muted upper" style={{ marginBottom: 5 }}>Memo Konklusi Auditor</div>
             <textarea value={memo} onChange={(e: any) => setMemo(e.target.value)} placeholder="Catat kesimpulan menyeluruh: apakah laporan keuangan konsisten dengan pemahaman auditor; selisih signifikan yang teridentifikasi telah diselidiki & didukung bukti…" className="input" style={{ width: '100%', height: 150, padding: 10, resize: 'vertical', lineHeight: 1.55, fontFamily: 'var(--ui)' }} />
@@ -301,7 +310,7 @@ function FluxTab({ der, pm, fmt }: any) {
   const [state, setState] = window.useAmsPersist('fluxState.v1', () => FLUX_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [selCode, setSelCode] = useStateAR('1-1300');
 
-  const rows = der.flux.map((r: any) => ({ ...r, flagged: Math.abs(r.dAbs) > pm || Math.abs(r.dPct) > thr }));
+  const rows = der.flux.map((r: any) => ({ ...r, flagged: (pm != null && Math.abs(r.dAbs) > pm) || Math.abs(r.dPct) > thr }));
   const shown = flaggedOnly ? rows.filter((r: any) => r.flagged) : rows;
   const sel = rows.find((r: any) => r.code === selCode) || rows[0];
   const flaggedCount = rows.filter((r: any) => r.flagged).length;
@@ -366,7 +375,7 @@ function FluxTab({ der, pm, fmt }: any) {
         </div>
         <div style={{ padding: 14 }}>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <KvBox label="Perubahan Absolut" v={'Rp ' + fmt(sel.dAbs / 1e6, 0) + ' jt'} accent={Math.abs(sel.dAbs) > pm ? 'var(--amber)' : null} />
+            <KvBox label="Perubahan Absolut" v={'Rp ' + fmt(sel.dAbs / 1e6, 0) + ' jt'} accent={(pm != null && Math.abs(sel.dAbs) > pm) ? 'var(--amber)' : null} />
             <KvBox label="Perubahan %" v={(sel.dPct > 0 ? '+' : '') + sel.dPct.toFixed(1) + '%'} accent={Math.abs(sel.dPct) > thr ? 'var(--amber)' : null} />
           </div>
           <div className="panel" style={{ padding: '9px 10px', background: 'var(--blue-050)', borderColor: 'var(--blue-100)', marginBottom: 12 }}>

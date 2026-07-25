@@ -68,7 +68,7 @@ function SADLedger() {
 
   /* materialitas: SATU sumber dari SA 320 (Materiality Workspace) — PM%/CTT% & override
      yang sama dipakai PSAK 14 dkk., bukan lagi hardcode 75%/5%. */
-  const _mat = materialityFor({ engMateriality: activeEngagement.materiality });
+  const _mat = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
   const om = (_mat && _mat.omFull != null) ? _mat.omFull : activeEngagement.materiality;
   const pm = (_mat && _mat.pmFull != null) ? _mat.pmFull : Math.round(om * 0.75);
   const ctt = (_mat && _mat.cttFull != null) ? _mat.cttFull : Math.round(om * 0.05);

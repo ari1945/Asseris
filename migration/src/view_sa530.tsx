@@ -61,12 +61,13 @@ function SA530View() {
   const locked = !!(firm && firm.locked);
   const [tab, setTab] = useState530('kalkulator');
 
-  /* Default TM = Performance Materiality (75% × materialitas overall perikatan),
-     dikonversi ke Rp juta. Konsolidasi SA 530: dahulu SamplingEngine memakai PM ini
-     sebagai default; sa530 mewarisinya (fallback ke seed bila materialitas absen).
-     Hanya memengaruhi seed awal — state ter-persist tetap menang. */
+  /* Default TM = Performance Materiality kanon (menghormati pmPct workspace — PR-1a
+     mengganti hardcode ×0.75 di sini), dikonversi ke Rp juta. Konsolidasi SA 530: dahulu
+     SamplingEngine memakai PM ini sebagai default; sa530 mewarisinya (fallback ke seed
+     bila materialitas absen). Hanya memengaruhi seed awal — state ter-persist tetap menang. */
   const matRp = firm?.activeEngagement?.materiality;
-  const pmJuta = (typeof matRp === 'number' && matRp > 0) ? Math.round((matRp * 0.75) / 1e6) : SAMPLING_SEED.params.tm;
+  const pmSeed = materialityFor({ engMateriality: matRp, engagementId: engId }).pm;
+  const pmJuta = (typeof pmSeed === 'number' && pmSeed > 0) ? Math.round(pmSeed) : SAMPLING_SEED.params.tm;
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'sampling.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [smp, setSmp] = useAmsPersist('sampling.v1', () => ({ ...SAMPLING_SEED, params: { ...SAMPLING_SEED.params, tm: pmJuta } }));
@@ -91,7 +92,7 @@ function SA530View() {
      PM ditarik dari SSOT materialitas (menghormati pmPct workspace, BUKAN hardcode
      ×0.75). Proyeksi salah saji ke populasi (¶13–14) konsisten dgn exportMemo &
      F530Evaluation. `accepted` = kesimpulan modul (proyeksi < TM). */
-  const pmCanon: number | null = useMemo530(() => materialityFor({ engMateriality: matRp }).pm, [matRp]);
+  const pmCanon: number | null = useMemo530(() => materialityFor({ engMateriality: matRp, engagementId: engId }).pm, [matRp, engId]);
   const totalProj = useMemo530(() => findings.reduce((s: number, f: SampleFinding) => {
     const taint = f.bv ? (f.bv - f.av) / f.bv : 0;
     return s + Math.round(taint * calc.interval);

@@ -187,6 +187,9 @@ export interface RestatementItem {
 export interface MaterialityOpts {
   /** materialitas engagement (Rp penuh) sbg basis bila tak ada override */
   engMateriality?: number;
+  /** perikatan aktif — kunci `mat.*` berlingkup perikatan (PR-1a). Tanpa ini
+   *  tier perikatan dilewati & hanya setelan firma/legacy yang terbaca. */
+  engagementId?: string | null;
 }
 
 export interface MaterialityResult {

@@ -2,6 +2,7 @@
    Asseris — canon part4 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import { RATE, jt } from './canon_base';
+import { readPersisted } from './persist_scope';
 import { assetRegister, intangibles } from './canon_part1';
 import { GOODWILL } from './canon_part2';
 import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3';
@@ -306,19 +307,30 @@ import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
 
   /* ---------- SA 320 · Materialitas (satu sumber kebenaran lintas-modul) ----------
      Mengembalikan OM / PM / CTT yang IDENTIK dengan Materiality Workspace: membaca
-     konfigurasi terpersist yang sama (ams.v1.mat.*) + tabel benchmark (window.BENCHMARKS)
-     + override "Terapkan ke Engagement". Modul hilir (PSAK 14, SAD, dll.) memanggil ini
-     alih-alih meng-hardcode 75%/5%, sehingga perubahan di workspace mengalir serempak.
+     konfigurasi terpersist yang SAMA + tabel benchmark (window.BENCHMARKS) + override
+     "Terapkan ke Engagement". Modul hilir (WTB, PSAK 14, SAD, dll.) memanggil ini alih-alih
+     meng-hardcode 75%/5%, sehingga perubahan di workspace mengalir serempak.
+
+     PR-1a — rantai bacanya DIPERBAIKI. Dulu fungsi ini membaca `ams.v1.mat.*`, kunci
+     tak-berlingkup yang sejak W6 tak pernah lagi ditulis aplikasi (useServerState menulis
+     `ams.v1.<scope>.<scopeId>.<key>`). Akibatnya materiality() SELALU mengembalikan default
+     — pmPct 75, tanpa override — sehingga setiap konsumen "benar" pun sebenarnya basi, dan
+     kebetulan bernilai sama dengan hardcode `engMateriality × 0,75` di WTB. Kini dibaca via
+     `readPersisted` (perikatan → firma → legacy → default), jadi kunci legacy tetap dihormati
+     bila ada data pra-W6 dan test lama tetap sahih.
+
      opts.engMateriality = materialitas engagement (Rp penuh) sbg basis bila tak ada override.
+     opts.engagementId   = perikatan aktif; TANPA ini tier perikatan dilewati dan setelan
+                           per-perikatan tak terbaca (pemanggil view WAJIB mengirimnya).
      Nilai penuh (Rp) & Rp juta. */
   function materiality(opts?: MaterialityOpts): MaterialityResult {
     opts = opts || {};
-    const LS = <T,>(k: string, d: T): T => { try { const s = localStorage.getItem('ams.v1.' + k); return s != null ? JSON.parse(s) : d; } catch (e) { return d; } };
-    const benchId  = LS('mat.benchId', 'pbt');
-    const pct      = LS('mat.pct', 5);
-    const pmPct    = LS('mat.pmPct', 75);
-    const cttPct   = LS('mat.cttPct', 5);
-    const override = LS('mat.appliedOverride', null);
+    const engId    = opts.engagementId;
+    const benchId  = readPersisted('mat.benchId', 'pbt', engId);
+    const pct      = readPersisted('mat.pct', 5, engId);
+    const pmPct    = readPersisted('mat.pmPct', 75, engId);
+    const cttPct   = readPersisted('mat.cttPct', 5, engId);
+    const override = readPersisted<number | null>('mat.appliedOverride', null, engId);
     const benches  = (typeof window !== 'undefined' && window.BENCHMARKS) || [];
     const bench    = benches.find(b => b.id === benchId) || benches[0] || null;
     const calcOM   = bench ? Math.round(bench.value * pct / 100) : null; // OM hitung benchmark (live)
