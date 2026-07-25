@@ -1,6 +1,6 @@
 /* W-WTB·1 — parser/validator ingress WTB (paste/CSV). Fungsi murni. */
 import { describe, it, expect } from 'vitest';
-import { parseTrialBalance, parseAmount, groupFromCode, computeCoverage } from './wtb_import';
+import { parseTrialBalance, parseAmount, groupFromCode, computeCoverage, leadFromCode } from './wtb_import';
 
 /* TB mini SEIMBANG (Dr +, Cr −). unadj Σ=0; AJE pasangan ganda (Dr beban / Cr
    piutang) net 0 → adj Σ=0. */
@@ -193,6 +193,39 @@ describe('parseTrialBalance — satuan penyajian (PR-2a)', () => {
   it('tanpa materialitas perikatan gerbang skala nonaktif (tak ada acuan → tak menuduh)', () => {
     const r = parseTrialBalance(TB_RIBUAN);
     expect(r.issues.some(i => i.code.startsWith('scale-'))).toBe(false);
+  });
+});
+
+/* PR-4a — dulu setiap baris terimpor ber-lead '' sehingga strip asersi SA 315 hilang
+   total dan kolom WP kosong untuk TB klien nyata. */
+describe('leadFromCode — lead schedule tebakan (PR-4a)', () => {
+  it('memetakan keluarga kode ke huruf lead kanonik', () => {
+    expect(leadFromCode('1-1100')).toBe('A');   // kas
+    expect(leadFromCode('1-1210')).toBe('B');   // CKPN ikut piutang
+    expect(leadFromCode('1-1300')).toBe('C');   // persediaan
+    expect(leadFromCode('1-2110')).toBe('E');   // akumulasi penyusutan ikut aset tetap
+    expect(leadFromCode('1-2400')).toBe('EI');  // takberwujud
+    expect(leadFromCode('2-2200')).toBe('F');   // liabilitas sewa jk panjang
+    expect(leadFromCode('2-2300')).toBe('H');   // imbalan kerja
+    expect(leadFromCode('4-1100')).toBe('R');
+    expect(leadFromCode('5-5100')).toBe('W');
+  });
+
+  it('menerima kode tanpa tanda hubung', () => {
+    expect(leadFromCode('11100')).toBe('A');
+    expect(leadFromCode('5 1100')).toBe('S');
+  });
+
+  it('keluarga tak dikenali → kosong (bukan tebakan asal)', () => {
+    expect(leadFromCode('9-9999')).toBe('');
+    expect(leadFromCode('')).toBe('');
+  });
+
+  it('baris hasil impor membawa lead, bukan string kosong', () => {
+    const r = parseTrialBalance(BALANCED_TB);
+    expect(r.rows.find(x => x.code === '1-1100')!.lead).toBe('A');
+    expect(r.rows.find(x => x.code === '5-1100')!.lead).toBe('S');
+    expect(r.rows.every(x => x.lead !== '')).toBe(true);
   });
 });
 

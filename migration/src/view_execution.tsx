@@ -10,7 +10,7 @@ import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, D
 import { noteOf, statusOf, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
 import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
-import { parseTrialBalance, computeCoverage, UNIT_LABEL } from './wtb_import';
+import { parseTrialBalance, computeCoverage, UNIT_LABEL, leadFromCode } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow, TbUnit } from './wtb_import';
 import { diffWtb, summarizeImport, pushHistory } from './wtb_provenance';
 import type { ImportDiff, ImportProvenance } from './wtb_provenance';
@@ -435,10 +435,11 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
 /* ---------------- W-WTB·3 · Drawer pemetaan bagan akun → CoA standar ---------------- */
 function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
   const { fmt } = AMS;
-  const { wtbImport, wtbMapping, setWtbMapping } = useAudit();
+  const { wtbImport, wtbMapping, setWtbMapping, wtbLeads, setWtbLeads } = useAudit();
   const { locked } = useFirm();
   const auth = useAuth();
   const canMap = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked; // PR-2c
+  const [leadDraft, setLeadDraft] = useStateX(() => ({ ...(wtbLeads || {}) }));   // PR-4a
   const srcRows = (wtbImport && Array.isArray(wtbImport.rows)) ? wtbImport.rows : [];
   const [draft, setDraft] = useStateX(() => ({ ...(wtbMapping || {}) }));
   const cov: MappingCoverageResult = useMemoX(() => mappingCoverage(srcRows, draft), [srcRows, draft]);
@@ -446,9 +447,21 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
   const setOne = (code: string, target: string) => setDraft((d: Record<string, string>) => {
     const n = { ...d }; if (target) n[code] = target; else delete n[code]; return n;
   });
-  const apply = () => { if (!canMap) return; setWtbMapping(draft); onClose(); };
+  const apply = () => {
+    if (!canMap) return;
+    setWtbMapping(draft);
+    /* PR-4a — hanya lead yang benar-benar diketik yang disimpan; sel kosong = ikut
+       tebakan heuristik/pemetaan, bukan lead kosong yang mengikat. */
+    const leads: Record<string, string> = {};
+    for (const code of Object.keys(leadDraft)) {
+      const v = (leadDraft[code] || '').trim();
+      if (v) leads[code] = v;
+    }
+    setWtbLeads(leads);
+    onClose();
+  };
   const hasMapping = !!(wtbMapping && Object.keys(wtbMapping).length);
-  const clearMapping = () => { if (!canMap) return; setWtbMapping({}); onClose(); };
+  const clearMapping = () => { if (!canMap) return; setWtbMapping({}); setWtbLeads({}); onClose(); };
 
   // opsi select dikelompokkan per seksi FS
   const groups = [...new Set(STANDARD_COA.map((a: CoaAccount) => a.group))];
@@ -484,7 +497,9 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
           <table className="dtbl">
             <thead><tr>
               <th>Akun Klien</th><th className="num" style={{ width: 120 }}>Unadjusted</th>
-              <th style={{ width: 320 }}>Petakan ke (CoA standar)</th><th style={{ width: 90 }}>Status</th>
+              <th style={{ width: 300 }}>Petakan ke (CoA standar)</th>
+              <th style={{ width: 88 }} title="Lead schedule — tebakan dari kode akun, dapat ditimpa">Lead</th>
+              <th style={{ width: 90 }}>Status</th>
             </tr></thead>
             <tbody>
               {srcRows.map((r: { code: string; name?: string; unadj?: number }) => {
@@ -507,6 +522,15 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
                           </optgroup>
                         ))}
                       </select>
+                    </td>
+                    {/* PR-4a — lead schedule: tebakan heuristik ditampilkan sebagai placeholder,
+                        nilai yang diketik auditor mengikat (store `wtbLeads.v1`). */}
+                    <td>
+                      <input className="input mono" disabled={!canMap} maxLength={3}
+                        style={{ width: 66, height: 26, textAlign: 'center', textTransform: 'uppercase' }}
+                        value={leadDraft[r.code] != null ? leadDraft[r.code] : ''}
+                        placeholder={(std && std.lead) || leadFromCode(r.code) || '—'}
+                        onChange={(e: { target: { value: string } }) => setLeadDraft((d: Record<string, string>) => ({ ...d, [r.code]: e.target.value.toUpperCase() }))} />
                     </td>
                     <td>
                       {std
@@ -878,6 +902,18 @@ function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
             sub={r.ajeBalanced ? 'Σ AJE = 0 (jurnal seimbang)' : 'Σ AJE = ' + rp(r.wtbAjeSum)}
             bg={ajeOk ? 'var(--green-bg)' : 'var(--amber-bg)'} />
         </div>
+
+        {/* PR-4d — pola mustahil yang dulu lolos sebagai "OK": masing-masing kondisi tampak
+            wajar sendiri-sendiri, residunya diserap FSGEN ke baris plug. */}
+        {r.incomeDoubleCounted && (
+          <div className="row ac gap8" style={{ marginBottom: 10, padding: '8px 11px', border: '1px solid var(--amber)', background: 'var(--amber-bg)', borderRadius: 6 }}>
+            <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={16} /></span>
+            <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>
+              <b>Laba berjalan tampaknya tercatat dua kali.</b> Neraca sudah pas — artinya saldo laba memuat laba {rp(r.netIncome)} — padahal akun laba-rugi masih terbuka.
+              TB pra-tutup yang koheren ber-Σ adjusted = 0 dengan selisih neraca sebesar laba; di sini keduanya tak terpenuhi. Periksa saldo laba & pos penutup sebelum menyusun LK.
+            </span>
+          </div>
+        )}
 
         <div className="col" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {r.messages.map((m: IntegrityMessage, i: number) => (

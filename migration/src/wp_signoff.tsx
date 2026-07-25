@@ -26,6 +26,13 @@ const { useState: useStateWPS } = React;
 
 /* ---- Fase 0: peta modul → ref WP kanonik + bukti yang diwajibkan (seed dari SA/WP) ---- */
 const WP_MODULE_MAP = {
+  /* PR-4b — Working Trial Balance. Kertas kerja paling sentral di perikatan (seluruh figur
+     PSAK/LK/materialitas mengalir darinya) tetapi SEBELUMNYA tak terdaftar di sini: tanpa
+     sign-off penyusun/penelaah, tanpa bukti wajib, dan tak muncul di rekap kelengkapan —
+     tak auditable dalam model sistemnya sendiri. Bukti wajib mengikuti SA 500 (keandalan
+     sumber) & SA 510 (saldo awal). Catatan: menambah entri ini MENGGESER penyebut rekap
+     kelengkapan WP, jadi persentase cockpit akan turun — itu benar, bukan regresi. */
+  wtb: { ref: 'wtb', requiredEvidence: ['Neraca saldo klien bertandatangan', 'Rekonsiliasi TB ke buku besar', 'Tie saldo awal ke LK audited TA-1'] },
   /* dipetakan ke ref huruf kanonik → berbagi sign-off dgn register Kertas Kerja */
   psak14:  { ref: 'C',   requiredEvidence: ['Berita acara stock opname', 'Kertas kerja uji NRV'] },
   psak16:  { ref: 'E',   requiredEvidence: ['Register aset tetap', 'Vouching penambahan signifikan'] },
