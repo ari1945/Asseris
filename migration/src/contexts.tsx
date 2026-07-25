@@ -562,6 +562,9 @@ function AppProviders({ me, onLogout, children }: any) {
      TEBAKAN awal; auditor menetapkan yang mengikat di sini. Engagement + WP_EDIT (bukan
      AJE_EDIT: menetapkan lead adalah penataan kertas kerja, bukan mengubah angka). */
   const [wtbLeads, setWtbLeads] = useServerState('wtbLeads.v1', {}, 'engagement', activeEngagementId);
+  /* PR-4c — saldo akhir audited TA-1 sebagai sumber INDEPENDEN (SA 510 ¶6). Tanpa ini,
+     penelusuran saldo awal membandingkan `ly` dengan dirinya sendiri → selalu "Cocok". */
+  const [priorYearBalances, setPriorYearBalances] = useServerState('priorYearBalances.v1', null, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
@@ -639,6 +642,7 @@ function AppProviders({ me, onLogout, children }: any) {
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
     fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads,
+    priorYearBalances, setPriorYearBalances,
     wpState, setWp,
     reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
@@ -646,7 +650,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

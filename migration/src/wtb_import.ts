@@ -99,6 +99,10 @@ export interface ParseOptions {
    *  Total aset yang lebih kecil dari materialitas praktis mustahil; rasio lazim
    *  total-aset : OM adalah puluhan hingga ratusan kali. */
   engMateriality?: number;
+  /** PR-4c — tegakkan Σ saldo = 0 sebagai ERROR (default true, untuk neraca saldo utuh).
+   *  Setel false bila masukan memang EKSTRAK SEBAGIAN — mis. sumber saldo audited TA-1
+   *  yang hanya memuat pos neraca; di sana ketidak-seimbangan adalah info, bukan cacat. */
+  requireBalanced?: boolean;
 }
 
 /* ---------- sinonim header (id + en) → kolom logis ---------- */
@@ -348,10 +352,13 @@ export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseR
   const balanceTolerance = Math.max(toleranceFloor, Math.abs(totalAssets) * tolerancePct);
   const balanceDiff = totals.adj;
   const balanced = Math.abs(balanceDiff) <= balanceTolerance;
+  const requireBalanced = opts.requireBalanced !== false;
   if (rows.length > 0 && !balanced) {
     issues.push({
-      level: 'error', code: 'unbalanced',
-      message: `Neraca saldo tidak seimbang — Σ saldo adjusted = ${fmtRp(balanceDiff)} (toleransi ${fmtRp(balanceTolerance)}). Periksa konvensi tanda (Dr +, Cr −) atau akun hilang.`,
+      level: requireBalanced ? 'error' : 'warn', code: 'unbalanced',
+      message: requireBalanced
+        ? `Neraca saldo tidak seimbang — Σ saldo adjusted = ${fmtRp(balanceDiff)} (toleransi ${fmtRp(balanceTolerance)}). Periksa konvensi tanda (Dr +, Cr −) atau akun hilang.`
+        : `Σ saldo = ${fmtRp(balanceDiff)} ≠ 0 — wajar bila ini ekstrak sebagian (mis. pos neraca saja). Periksa konvensi tanda (Dr +, Cr −) bila seharusnya utuh.`,
     });
   }
 

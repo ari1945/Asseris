@@ -71,6 +71,17 @@ describe('parseTrialBalance — alur sukses (header + tab)', () => {
 });
 
 describe('parseTrialBalance — gerbang validasi', () => {
+  /* PR-4c — sumber saldo audited TA-1 adalah ekstrak sebagian; Σ = 0 tak berlaku di sana. */
+  it('requireBalanced:false → ketidak-seimbangan jadi peringatan, bukan penolakan', () => {
+    const sebagian = ['Kode\tNama\tSaldo', '1-1100\tKas\t900.000.000', '1-1200\tPiutang\t1.800.000.000'].join('\n');
+    const ketat = parseTrialBalance(sebagian);
+    const longgar = parseTrialBalance(sebagian, { requireBalanced: false });
+    expect(ketat.ok).toBe(false);
+    expect(longgar.ok).toBe(true);
+    expect(longgar.issues.some(i => i.code === 'unbalanced' && i.level === 'warn')).toBe(true);
+    expect(longgar.meta.balanced).toBe(false);   // fakta tetap dilaporkan apa adanya
+  });
+
   it('menandai TB tak seimbang sebagai error', () => {
     const unbal = ['Kode\tUnadjusted', '1-1100\t1.000.000.000', '2-1100\t-400.000.000'].join('\n');
     const res = parseTrialBalance(unbal);
