@@ -6,6 +6,7 @@ import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
 import { applyMapping } from './wtb_mapping';
 import { overlayWtbOverrides } from './wtb_overrides';
+import { mergeLegacyFlux } from './flux_state';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 
 /* ============================================================
@@ -211,6 +212,8 @@ const AMS_PERSIST_SCOPE = {
   'mat.components': 'engagement',
   'mat.revisions': 'engagement',
   'mat.tab': 'engagement',
+  /* PR-3a — ambang investigasi analitis bersama (tab WTB ⟷ modul `analytical`). */
+  'fluxThreshold.v1': 'engagement',
   /* F2/PR-C (PRD 2026-07-19) — SA 580 Representasi Tertulis: status perolehan
      per-representasi (diminta/diterima/N-A), tanggal diterima, teks pengecualian,
      flag penolakan manajemen (¶20), + metadata surat (tanggal, penanda tangan) &
@@ -535,6 +538,17 @@ function AppProviders({ me, onLogout, children }: any) {
      melihat register-nya sendiri (drill-down konsisten dgn Risiko Portofolio). */
   const [risks, setRisks] = useServerState('risks', ENG_RISK_SEED.filter((r) => r.engagementId === activeEngagementId), 'engagement', activeEngagementId);
   const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
+  /* PR-3 — SSOT telaah fluktuasi SA 520. Dulu terbelah dua: tab WTB menulis ke
+     `wtbOverrides.{note,revStatus}` (ber-AJE_EDIT → Junior tak bisa mendokumentasikan),
+     modul `analytical` ke `fluxState.v1` — dua seed bertentangan, dua hitungan "explained".
+     Kini satu store (engagement + WP_EDIT); catatan lama tetap terbaca lewat merge
+     baca-lewat, tanpa tulisan destruktif ke `wtbOverrides`. */
+  const [fluxStateRaw, setFluxState] = useServerState('fluxState.v1', {}, 'engagement', activeEngagementId);
+  const fluxState = useMemo(() => mergeLegacyFlux(fluxStateRaw, wtbOverrides), [fluxStateRaw, wtbOverrides]);
+  /* Ambang investigasi (SA 520 ¶5c) juga SSOT: dulu tab WTB memakai 20% dan modul
+     `analytical` 15%, sehingga himpunan akun ter-flag — dan penyebut "x dari y
+     terjelaskan" — berbeda untuk perikatan yang sama. `absJt` null = turunkan dari PM. */
+  const [fluxThreshold, setFluxThreshold] = useServerState('fluxThreshold.v1', { absJt: null, pctThr: 20 }, 'engagement', activeEngagementId);
   /* W-WTB·1 — neraca saldo klien terimpor (paste/CSV), per-engagement. null = pakai seed demo D.WTB. */
   const [wtbImport, setWtbImport] = useServerState('wtbImport', null, 'engagement', activeEngagementId);
   /* W-WTB·3 — pemetaan bagan akun klien → CoA standar ({kodeKlien: kodeStandar}). */
@@ -610,6 +624,7 @@ function AppProviders({ me, onLogout, children }: any) {
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
+    fluxState, setFluxState, fluxThreshold, setFluxThreshold,
     wpState, setWp,
     reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
@@ -617,7 +632,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

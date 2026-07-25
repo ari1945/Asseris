@@ -286,7 +286,7 @@
   },
   "src/view_analytical.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 103
+      "count": 97
     }
   },
   "src/view_analytical2.tsx": {
@@ -1121,7 +1121,7 @@
   },
   "src/view_wtb_deep.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 41
+      "count": 38
     }
   },
   "src/wedge/VerifySealPanel.tsx": {
