@@ -73,7 +73,7 @@ function SPR2410View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025', materiality: 4_250_000_000 };
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   /** @type {import('./canon_selectors').MaterialityResult} */
-  const mat = materialityFor({ engMateriality: eng.materiality });
+  const mat = materialityFor({ engMateriality: eng.materiality, engagementId: eng.id });
   const risks = (audit && audit.risks) ? audit.risks : ((AMS && AMS.RISKS) || []);
 
   const [tab, setTab] = useState2410(() => loader('ams.spr2410.tab', 'ikhtisar'));
