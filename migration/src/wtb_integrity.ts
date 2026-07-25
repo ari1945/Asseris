@@ -42,6 +42,12 @@ export interface WtbIntegrityResult {
   /* adj = unadj + aje — gerbang */
   adjConsistent: boolean;
   adjMismatches: AdjMismatch[];
+  /* PR-4d — laba berjalan tercatat ganda: neraca PAS (saldo laba sudah menyerap laba)
+     SEKALIGUS Σ adjusted = −laba (akun L/R masih terbuka). Dua kondisi ini tak bisa
+     benar bersamaan pada TB yang koheren; masing-masing tampak wajar bila dinilai
+     sendiri-sendiri, sehingga dulu lolos sebagai status OK dan residunya diserap FSGEN
+     ke baris plug "mutasi RE bukan dari laba berjalan". */
+  incomeDoubleCounted: boolean;
   /* rekonsiliasi AJE vs register — gerbang */
   wtbAjeSum: number;
   ajeBalanced: boolean;            // |Σ aje kolom| ≤ tol
@@ -114,6 +120,15 @@ export function checkWtbIntegrity(
 
   const adjConsistent = adjMismatches.length === 0;
 
+  /* PR-4d — pola mustahil: neraca seimbang TANPA menutup laba (bsDiff ≈ 0 → ekuitas sudah
+     memuat laba) padahal akun L/R masih terbuka (Σ adj ≈ −laba). TB pra-tutup yang koheren
+     ber-Σ adj = 0 DAN bsDiff = laba; TB pasca-tutup ber-Σ adj = 0 DAN bsDiff = 0. Kombinasi
+     ini bukan keduanya → laba dihitung dua kali. */
+  const incomeDoubleCounted = Math.abs(netIncome) > tol
+    && Math.abs(bsDiff) <= tol
+    && footingExplainedByIncome
+    && !footed;
+
   const ajeBalanced = Math.abs(wtbAjeSum) <= tol;
   const reg = ajeRegisterByAccount(aje);
   const ajeMismatches: AjeMismatch[] = [];
@@ -129,6 +144,7 @@ export function checkWtbIntegrity(
   const messages: IntegrityMessage[] = [];
   // footing (info)
   if (footed) messages.push({ level: 'ok', text: 'Neraca saldo ter-foot (debit = kredit, Σ adjusted = 0).' });
+  else if (incomeDoubleCounted) messages.push({ level: 'warn', text: `Laba berjalan tampaknya TERCATAT DUA KALI: neraca sudah pas (saldo laba memuat laba ${fmtRp(netIncome)}) padahal akun laba-rugi masih terbuka. TB pra-tutup yang koheren ber-Σ adjusted = 0 dengan selisih neraca = laba; di sini keduanya tak terpenuhi. Periksa saldo laba & pos penutup.` });
   else if (footingExplainedByIncome) messages.push({ level: 'info', text: 'Σ adjusted ≠ 0 sebesar laba berjalan — normal untuk TB pra-tutup (laba belum ditutup ke saldo laba).' });
   else messages.push({ level: 'warn', text: 'Σ adjusted tidak nol dan tak setara laba berjalan — kemungkinan akun hilang atau salah tanda.' });
   // neraca (gate)
@@ -142,13 +158,20 @@ export function checkWtbIntegrity(
   if (!registerReconciled) messages.push({ level: 'warn', text: `${ajeMismatches.length} akun: kolom AJE WTB tak selaras dengan register AJE.` });
   if (ajeBalanced && registerReconciled) messages.push({ level: 'ok', text: 'AJE tersinkron dengan register (seimbang & tie per akun).' });
 
+  /* CATATAN KEPUTUSAN (PR-4d): `incomeDoubleCounted` SENGAJA belum ikut menentukan status.
+     `status === 'ok'` memberi makan `wtbIntegrityOk` pada gerbang finalisasi
+     (engagement_phase_gate), sehingga menjadikannya pemblokir akan langsung mengunci
+     finalisasi pada perikatan yang datanya berpola ini — termasuk seed demo. Temuannya
+     tetap ditegakkan sebagai peringatan menonjol di panel Integritas. Menjadikannya
+     pemblokir = tambahkan `&& !incomeDoubleCounted` di baris berikut (keputusan Ari,
+     PRD §11 Q3), sebaiknya bersamaan dengan pembenahan data seed. */
   const gatesPass = bsTied && adjConsistent && ajeBalanced && registerReconciled;
   const status: 'ok' | 'attention' = gatesPass ? 'ok' : 'attention';
 
   return {
     sumAdj, sumUnadj, footed, netIncome, footingExplainedByIncome,
     assets, liabilities, equity, bsDiff, bsTied, bsExplainedByIncome,
-    adjConsistent, adjMismatches,
+    adjConsistent, adjMismatches, incomeDoubleCounted,
     wtbAjeSum, ajeBalanced, registerReconciled, ajeMismatches,
     status, messages, tol,
   };

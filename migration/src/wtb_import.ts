@@ -99,6 +99,10 @@ export interface ParseOptions {
    *  Total aset yang lebih kecil dari materialitas praktis mustahil; rasio lazim
    *  total-aset : OM adalah puluhan hingga ratusan kali. */
   engMateriality?: number;
+  /** PR-4c — tegakkan Σ saldo = 0 sebagai ERROR (default true, untuk neraca saldo utuh).
+   *  Setel false bila masukan memang EKSTRAK SEBAGIAN — mis. sumber saldo audited TA-1
+   *  yang hanya memuat pos neraca; di sana ketidak-seimbangan adalah info, bukan cacat. */
+  requireBalanced?: boolean;
 }
 
 /* ---------- sinonim header (id + en) → kolom logis ---------- */
@@ -137,6 +141,43 @@ export function groupFromCode(code: string): string {
 }
 
 const ASSET_GROUPS = new Set(['Aset Lancar', 'Aset Tidak Lancar']);
+
+/* ---------- PR-4a · lead schedule untuk baris terimpor ----------
+   Dulu setiap baris hasil impor ber-`lead: ''`, dan lead hanya terisi bila baris melewati
+   pemetaan CoA (W-WTB·3) yang hanya memuat 28 akun standar. Untuk TB klien nyata (ratusan
+   akun) akibatnya berantai: kolom WP kosong · strip asersi SA 315 HILANG TOTAL (ia
+   mensyaratkan `lead`) · "Buka Lead Schedule" tanpa rujukan. Heuristik di bawah memberi
+   lead awal dari keluarga kode; ia TEBAKAN dan dapat disunting auditor di drawer pemetaan. */
+const LEAD_BY_PREFIX: { re: RegExp; lead: string }[] = [
+  { re: /^1-?11/, lead: 'A' },    // kas & setara kas
+  { re: /^1-?12/, lead: 'B' },    // piutang usaha & CKPN
+  { re: /^1-?13/, lead: 'C' },    // persediaan
+  { re: /^1-?1[45]/, lead: 'D' }, // pajak & biaya dibayar di muka
+  { re: /^1-?21/, lead: 'E' },    // aset tetap & akumulasi penyusutan
+  { re: /^1-?24/, lead: 'EI' },   // aset takberwujud
+  { re: /^1-?23/, lead: 'F' },    // aset hak-guna (PSAK 73)
+  { re: /^1-?25/, lead: 'G' },    // aset pajak tangguhan
+  { re: /^2-?11/, lead: 'AA' },   // utang usaha
+  { re: /^2-?12|^2-?21/, lead: 'BB' }, // utang bank jk pendek & panjang
+  { re: /^2-?13/, lead: 'CC' },   // beban akrual
+  { re: /^2-?14/, lead: 'DD' },   // utang pajak
+  { re: /^2-?15|^2-?22/, lead: 'F' },  // liabilitas sewa
+  { re: /^2-?23/, lead: 'H' },    // imbalan kerja
+  { re: /^3/, lead: 'K' },        // ekuitas
+  { re: /^4/, lead: 'R' },        // pendapatan
+  { re: /^5-?1/, lead: 'S' },     // beban pokok penjualan
+  { re: /^5-?2/, lead: 'T' },     // beban penjualan
+  { re: /^5-?3/, lead: 'U' },     // beban umum & administrasi
+  { re: /^5-?4/, lead: 'V' },     // beban keuangan
+  { re: /^5-?5/, lead: 'W' },     // beban pajak penghasilan
+];
+
+/** Lead schedule tebakan dari kode akun; '' bila keluarga kode tak dikenali. */
+export function leadFromCode(code: string): string {
+  const c = (code || '').replace(/\s/g, '');
+  for (const m of LEAD_BY_PREFIX) if (m.re.test(c)) return m.lead;
+  return '';
+}
 
 /* ---------- helper: parse angka lokal id-ID ----------
    Menerima: 'Rp 1.850.000.000', '(620.000.000)', '1.234,50', '—', '-'.
@@ -297,7 +338,7 @@ export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseR
     /* skala satuan diterapkan SEKALI di sini → seluruh hilir (canon/FSGEN/materialitas)
        selalu menerima Rupiah penuh, tanpa perlu tahu satuan sumber. */
     const sLy = ly * unitFactor, sUnadj = unadj * unitFactor, sAje = aje * unitFactor;
-    rows.push({ key: 'imp' + rows.length, code, name, group, ly: sLy, unadj: sUnadj, aje: sAje, adj: sUnadj + sAje, lead: '' });
+    rows.push({ key: 'imp' + rows.length, code, name, group, ly: sLy, unadj: sUnadj, aje: sAje, adj: sUnadj + sAje, lead: leadFromCode(code) });
   });
 
   if (rows.length === 0 && !issues.some(i => i.level === 'error')) {
@@ -311,10 +352,13 @@ export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseR
   const balanceTolerance = Math.max(toleranceFloor, Math.abs(totalAssets) * tolerancePct);
   const balanceDiff = totals.adj;
   const balanced = Math.abs(balanceDiff) <= balanceTolerance;
+  const requireBalanced = opts.requireBalanced !== false;
   if (rows.length > 0 && !balanced) {
     issues.push({
-      level: 'error', code: 'unbalanced',
-      message: `Neraca saldo tidak seimbang — Σ saldo adjusted = ${fmtRp(balanceDiff)} (toleransi ${fmtRp(balanceTolerance)}). Periksa konvensi tanda (Dr +, Cr −) atau akun hilang.`,
+      level: requireBalanced ? 'error' : 'warn', code: 'unbalanced',
+      message: requireBalanced
+        ? `Neraca saldo tidak seimbang — Σ saldo adjusted = ${fmtRp(balanceDiff)} (toleransi ${fmtRp(balanceTolerance)}). Periksa konvensi tanda (Dr +, Cr −) atau akun hilang.`
+        : `Σ saldo = ${fmtRp(balanceDiff)} ≠ 0 — wajar bila ini ekstrak sebagian (mis. pos neraca saja). Periksa konvensi tanda (Dr +, Cr −) bila seharusnya utuh.`,
     });
   }
 

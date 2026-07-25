@@ -30,6 +30,15 @@ describe('checkWtbIntegrity — SEED demo (ENG-2025-014) konsisten penuh (A2)', 
     expect(r.bsTied).toBe(true);
     expect(r.status).toBe('ok');
   });
+  /* PR-4d — seed demo BERPOLA laba-ganda (saldo laba sudah memuat laba berjalan sementara
+     akun L/R masih terbuka). Deteksi menyala, tetapi SENGAJA tidak membalik `status`
+     agar gerbang finalisasi (yang membaca status ini) tak terkunci pada data demo.
+     Bila seed dibenahi / kebijakan berubah, uji ini yang pertama harus diperbarui. */
+  it('seed berpola laba-ganda → terdeteksi, tanpa mengunci gerbang finalisasi', () => {
+    expect(r.incomeDoubleCounted).toBe(true);
+    expect(r.status).toBe('ok');
+    expect(r.messages.some(m => /TERCATAT DUA KALI/.test(m.text))).toBe(true);
+  });
   it('tak ada akun yang kolom AJE-nya menyimpang dari register', () => {
     expect(r.ajeMismatches).toHaveLength(0);
   });
@@ -78,14 +87,45 @@ describe('checkWtbIntegrity — demo-like: neraca pas tapi Σ≠0 (RE memuat lab
     { code: '5-1100', unadj: 2_900_000_000, aje: 100_000_000, adj: 3_000_000_000 },
   ];
   const r = checkWtbIntegrity(rows, []);
-  it('footing dijelaskan oleh laba (info), neraca pas, AJE tak seimbang → attention', () => {
+  /* PR-4d — pola ini DULU dinilai wajar (footing "dijelaskan laba" = info, neraca pas = ok)
+     sehingga laba yang tercatat dua kali lolos diam-diam. Kini dikenali eksplisit. */
+  it('neraca pas TANPA menutup laba + akun L/R terbuka → LABA TERCATAT GANDA', () => {
     expect(r.footed).toBe(false);
     expect(r.footingExplainedByIncome).toBe(true);
     expect(r.bsDiff).toBe(0);
-    expect(r.bsTied).toBe(true);
-    expect(r.ajeBalanced).toBe(false);
-    expect(r.status).toBe('attention');
-    expect(r.messages.some(m => m.level === 'info')).toBe(true);
+    expect(r.incomeDoubleCounted).toBe(true);
+    expect(r.status).toBe('attention'); // di sini karena AJE tak seimbang, bukan karena laba ganda
+    expect(r.messages.some(m => m.level === 'warn' && /TERCATAT DUA KALI/.test(m.text))).toBe(true);
+    /* pesan "normal untuk TB pra-tutup" TIDAK boleh muncul untuk pola ini */
+    expect(r.messages.some(m => /normal untuk TB pra-tutup/.test(m.text))).toBe(false);
+  });
+});
+
+describe('checkWtbIntegrity — laba ganda TIDAK menyala pada TB yang koheren (PR-4d)', () => {
+  it('TB pra-tutup koheren: Σ adj = 0 & selisih neraca = laba → bukan laba ganda', () => {
+    const rows: IntegrityWtbRow[] = [
+      { code: '1-1100', unadj: 7_000_000_000, aje: 0, adj: 7_000_000_000 },
+      { code: '2-1100', unadj: -2_000_000_000, aje: 0, adj: -2_000_000_000 },
+      { code: '3-2100', unadj: -4_000_000_000, aje: 0, adj: -4_000_000_000 }, // RE saldo AWAL
+      { code: '4-1100', unadj: -4_000_000_000, aje: 0, adj: -4_000_000_000 },
+      { code: '5-1100', unadj: 3_000_000_000, aje: 0, adj: 3_000_000_000 },
+    ];
+    const r = checkWtbIntegrity(rows, []);
+    expect(r.footed).toBe(true);
+    expect(r.incomeDoubleCounted).toBe(false);
+    expect(r.bsDiff).toBe(r.netIncome);
+  });
+
+  it('TB pasca-tutup (tanpa akun L/R): Σ adj = 0 & neraca pas → bukan laba ganda', () => {
+    const rows: IntegrityWtbRow[] = [
+      { code: '1-1100', unadj: 7_000_000_000, aje: 0, adj: 7_000_000_000 },
+      { code: '2-1100', unadj: -2_000_000_000, aje: 0, adj: -2_000_000_000 },
+      { code: '3-2100', unadj: -5_000_000_000, aje: 0, adj: -5_000_000_000 },
+    ];
+    const r = checkWtbIntegrity(rows, []);
+    expect(r.netIncome).toBe(0);
+    expect(r.incomeDoubleCounted).toBe(false);
+    expect(r.status).toBe('ok');
   });
 });
 

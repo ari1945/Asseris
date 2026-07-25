@@ -3,7 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { useAudit, useAuth, useFirm } from './contexts';
 import { materialityFor } from './canon_selectors';
-import { statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
+import { statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts, fluxStatusKind, fluxThresholds, isFluxFlagged, FLUX_STATUS_LABEL } from './flux_state';
 import type { FluxState, FluxStatus } from './flux_state';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -136,7 +136,7 @@ const VERDICT_COLOR = { good: 'var(--green)', ok: 'var(--ink-2)', watch: 'var(--
    ============================================================ */
 function AnalyticalReview() {
   const { fmt } = AMS;
-  const { wtb, risks, fluxState: flux } = useAudit();
+  const { wtb, risks, fluxState: flux, fluxThreshold } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
   /* PR-1b — PM & CT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
      Menghormati pmPct/cttPct + override "Terapkan ke Engagement" dari Materiality
@@ -151,6 +151,8 @@ function AnalyticalReview() {
 
   const [tab, setTab] = useStateAR('ringkasan');
   const der = useMemoAR(() => arDerive(wtb, pm), [wtb]);
+  /* satu ambang untuk seluruh tab modul ini — lihat flux_state.fluxThresholds */
+  const thr = useMemoAR(() => fluxThresholds(fluxThreshold, pm), [fluxThreshold, pm]);
 
   const TABS = [
     { id: 'ringkasan', label: 'Ringkasan' },
@@ -180,7 +182,7 @@ function AnalyticalReview() {
             </div>
           </div>
 
-          {tab === 'ringkasan' && <ARSummary der={der} pm={pm} ct={ct} risks={risks} eng={activeEngagement} client={activeClient} fmt={fmt} flux={flux} />}
+          {tab === 'ringkasan' && <ARSummary der={der} pm={pm} ct={ct} risks={risks} eng={activeEngagement} client={activeClient} fmt={fmt} flux={flux} thr={thr} />}
           {tab === 'rasio' && <RatioAnalysisTab der={der} fmt={fmt} />}
           {tab === 'fluktuasi' && <FluxTab der={der} pm={pm} fmt={fmt} />}
           {tab === 'tren' && <TrendCommonSizeTab der={der} fmt={fmt} />}
@@ -195,12 +197,14 @@ function AnalyticalReview() {
 /* ============================================================
    TAB · Ringkasan (overview, SA 520 stage tracker, risk signals)
    ============================================================ */
-function ARSummary({ der, pm, ct, risks, eng, client, fmt, flux }: any) {
+function ARSummary({ der, pm, ct, risks, eng, client, fmt, flux, thr }: any) {
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'arMemo.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [memo, setMemo] = window.useAmsPersist('arMemo.v1', '');
-  /* "unexpected" fluctuation = material AND unusual %  → genuine exceptions to investigate */
-  const rows = der.flux.map((r: any) => ({ ...r, flagged: pm != null && Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
+  /* Ambang & aturan dari SSOT bersama. Dulu baris ini memakai rumus sendiri (AND, 15% tetap)
+     sementara tab Flux di modul yang SAMA memakai (OR, ambang tersimpan) — satu perikatan
+     tampil "12 fluktuasi tak terduga" di sini dan "23 fluktuasi signifikan" di WTB/SA 520. */
+  const rows = der.flux.map((r: any) => ({ ...r, flagged: isFluxFlagged(r.dAbs, r.dPct, thr) }));
   const flagged = rows.filter((r: any) => r.flagged);
   /* PR-3a — dihitung dari telaah TERSIMPAN, bukan dari seed. Dulu ringkasan ini membaca
      `FLUX_SEED` langsung sehingga menampilkan "sudah dijelaskan" untuk perikatan yang
@@ -224,7 +228,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt, flux }: any) {
   ];
 
   const KPIS = [
-    { v: flagged.length, l: 'Fluktuasi tak terduga', sub: 'material & menyimpang > 15%', accent: 'var(--blue)' },
+    { v: flagged.length, l: 'Fluktuasi tak terduga', sub: (thr.absThr != null ? '≥ Rp ' + fmt(thr.absThr / 1e6, 0) + ' jt atau ' : '') + '≥ ' + thr.pctThr + '%', accent: 'var(--blue)' },
     { v: explained + '/' + flagged.length, l: 'Terjelaskan', sub: Math.round(explained / (flagged.length || 1) * 100) + '% selesai', accent: 'var(--green)' },
     { v: 'Rp ' + fmt(unexplainedAmt / 1e6, 0) + ' jt', l: 'Selisih belum dijelaskan', sub: pm != null ? 'vs PM Rp ' + fmt(pm / 1e6, 0) + ' jt' : 'PM belum ditetapkan', accent: (pm != null && unexplainedAmt > pm) ? 'var(--red)' : 'var(--amber)' },
     { v: adverseRatios, l: 'Rasio di luar tolok ukur', sub: 'dari ' + der.ratios.length + ' rasio industri', accent: adverseRatios ? 'var(--amber)' : 'var(--green)' },
@@ -319,6 +323,9 @@ function FluxTab({ der, pm, fmt }: any) {
      ter-flag & penyebut "x dari y terjelaskan" berbeda untuk perikatan yang sama). */
   const { fluxThreshold, setFluxThreshold } = useAudit();
   const thr: number = (fluxThreshold && typeof fluxThreshold.pctThr === 'number') ? fluxThreshold.pctThr : 20;
+  /* ambang nominal juga dari SSOT — dulu tab ini memakai PM langsung sementara tab WTB
+     memakai `absJt` tersimpan, sehingga keduanya berbeda begitu auditor menggesernya. */
+  const thrRes = fluxThresholds(fluxThreshold, pm);
   const setThr = (v: number) => setFluxThreshold((t: { absJt: number | null; pctThr: number }) => ({ ...t, pctThr: v }));
   const [flaggedOnly, setFlaggedOnly] = useStateAR(false);
   /* PR-3a — SSOT bersama lewat AuditContext (dulu `useAmsPersist('fluxState.v1')` di sini,
@@ -327,7 +334,7 @@ function FluxTab({ der, pm, fmt }: any) {
   const auth = useAuth();   // null di luar provider — hook TETAP dipanggil tanpa syarat
   const [selCode, setSelCode] = useStateAR('1-1300');
 
-  const rows = der.flux.map((r: any) => ({ ...r, flagged: (pm != null && Math.abs(r.dAbs) > pm) || Math.abs(r.dPct) > thr }));
+  const rows = der.flux.map((r: any) => ({ ...r, flagged: isFluxFlagged(r.dAbs, r.dPct, thrRes) }));
   const shown = flaggedOnly ? rows.filter((r: any) => r.flagged) : rows;
   const sel = rows.find((r: any) => r.code === selCode) || rows[0];
   const flaggedCount = rows.filter((r: any) => r.flagged).length;

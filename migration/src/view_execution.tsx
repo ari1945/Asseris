@@ -10,9 +10,11 @@ import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, D
 import { noteOf, statusOf, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
 import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
-import { parseTrialBalance, computeCoverage, UNIT_LABEL } from './wtb_import';
+import { parseTrialBalance, computeCoverage, UNIT_LABEL, leadFromCode } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow, TbUnit } from './wtb_import';
 import { diffWtb, summarizeImport, pushHistory } from './wtb_provenance';
+import { isTieException, tieOutPriorYear, tieStatusFor, TIE_LABEL } from './prior_year';
+import type { TieResult, TieRow, TieStatus } from './prior_year';
 import type { ImportDiff, ImportProvenance } from './wtb_provenance';
 import { sha256Hex } from './export_xlsx';
 import { checkWtbIntegrity } from './wtb_integrity';
@@ -38,7 +40,7 @@ const WTB_TABS = [
 
 function WTBView() {
   const { fmt, rp } = AMS;
-  const { wtb, ajeTotalPosted, wtbImport, aje, fluxState, fluxThreshold } = useAudit();
+  const { wtb, ajeTotalPosted, wtbImport, aje, fluxState, fluxThreshold, priorYearBalances } = useAudit();
   /* PR-2c — WTB tak pernah membaca `locked` padahal AJE di berkas yang sama melakukannya:
      di dalam jendela perakitan SA 230 ¶A21, TB perikatan terarsip bisa diimpor ulang tanpa
      banner & tanpa tombol nonaktif; setelah 60 hari server menolak dengan FORBIDDEN mentah
@@ -56,6 +58,7 @@ function WTBView() {
   const [importOpen, setImportOpen] = useStateX(false);
   const [mapOpen, setMapOpen] = useStateX(false);
   const [ledgerOpen, setLedgerOpen] = useStateX(false);
+  const [pyOpen, setPyOpen] = useStateX(false);   // PR-4c — sumber saldo audited TA-1
   const [showIntegrity, setShowIntegrity] = useStateX(false);
   const integrity: WtbIntegrityResult = useMemoX(() => checkWtbIntegrity(wtb, aje), [wtb, aje]);
 
@@ -148,6 +151,7 @@ function WTBView() {
           <span className="tiny muted mono">{pm != null ? `PM: Rp ${fmt(pm / 1e6, 0)} jt` : 'PM belum ditetapkan'}</span>
           <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export XLSX'}</Btn>
           {wtbImport && wtbImport.rows && <Btn sm onClick={() => !locked && setMapOpen(true)} disabled={locked} title={locked ? 'Berkas terarsip — pemetaan terkunci (SA 230 ¶A21)' : 'Petakan bagan akun klien ke CoA standar'}><I.target size={13} /> Petakan Akun</Btn>}
+          <Btn sm onClick={() => !locked && setPyOpen(true)} disabled={locked} title={locked ? 'Berkas terarsip — terkunci' : 'Sumber saldo audited TA-1 (SA 510) untuk menelusuri saldo awal'}><I.layers size={13} /> Saldo TA-1</Btn>
           <Btn sm onClick={() => !locked && setLedgerOpen(true)} disabled={locked} title={locked ? 'Berkas terarsip — impor terkunci (SA 230 ¶A21)' : 'Impor buku besar (GL) untuk detail sub-ledger nyata'}><I.table size={13} /> Impor GL</Btn>
           <Btn sm variant="primary" onClick={() => !locked && setImportOpen(true)} disabled={locked} style={{ opacity: locked ? .5 : 1 }} title={locked ? 'Berkas terarsip — impor TB terkunci (SA 230 ¶A21)' : undefined}><I.upload size={14} /> Impor TB</Btn>
         </div>
@@ -227,7 +231,22 @@ function WTBView() {
                                 </span>
                               </td>
                               <td><span className="chip tiny" style={{ height: 18, padding: '0 6px', fontFamily: 'var(--mono)' }}>{r.lead}</span></td>
-                              <td className="num muted">{num(r.ly)}</td>
+                              {/* PR-4c — "TA Lalu" bukan lagi klaim tak berdasar: bila ada sumber
+                                  audited TA-1, baris yang tak tertelusur ditandai (SA 510 ¶6). */}
+                              <td className="num muted">
+                                <span className="row ac gap5" style={{ justifyContent: 'flex-end' }}>
+                                  {(() => {
+                                    /* Hanya PENGECUALIAN sungguhan yang ditandai. Akun laba-rugi &
+                                       akun bersaldo awal nol tak punya saldo awal untuk ditelusuri —
+                                       menandainya membuat 21 dari 22 penanda jadi derau dan
+                                       mengubur satu-satunya selisih nyata. */
+                                    const ts = tieStatusFor(r, priorYearBalances);
+                                    if (!isTieException(ts)) return null;
+                                    return <span title={TIE_LABEL[ts]} style={{ color: ts === 'missing' ? 'var(--purple)' : 'var(--amber)' }}><I.alert size={11} /></span>;
+                                  })()}
+                                  {num(r.ly)}
+                                </span>
+                              </td>
                               <td className="num">{num(r.unadj)}</td>
                               <td className="num">{r.aje ? <span style={{ color: 'var(--blue)', fontWeight: 600 }}>{num(r.aje)}</span> : <span className="muted">—</span>}</td>
                               {showAdj && <td className="num" style={{ fontWeight: 600 }}>{num(r.adj)}</td>}
@@ -290,6 +309,7 @@ function WTBView() {
       {importOpen && <WtbImportDrawer onClose={() => setImportOpen(false)} />}
       {mapOpen && <WtbMappingDrawer onClose={() => setMapOpen(false)} />}
       {ledgerOpen && <WtbLedgerDrawer onClose={() => setLedgerOpen(false)} />}
+      {pyOpen && <WtbPriorYearDrawer onClose={() => setPyOpen(false)} />}
     </>
   );
 }
@@ -432,13 +452,176 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* ---------------- PR-4c · Drawer sumber saldo audited TA-1 (SA 510) ---------------- */
+function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
+  const { fmt } = AMS;
+  const { wtb, priorYearBalances, setPriorYearBalances } = useAudit();
+  const { activeEngagement, locked } = useFirm();
+  const auth = useAuth();
+  const canEdit = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked;
+  const [text, setText] = useStateX('');
+  const [unitPY, setUnitPY]: [TbUnit, (v: TbUnit) => void] = useStateX('full');
+  const [sourceName, setSourceName] = useStateX('');
+  const [busy, setBusy] = useStateX(false);
+  const m = (v: number) => fmt(v / 1e6, 1);
+
+  /* Bentuknya sama dengan neraca saldo, jadi parser W-WTB·1 dipakai ulang: kolom saldo
+     dibaca sebagai saldo AKHIR audited TA-1. Gerbang keseimbangan & skala ikut berlaku. */
+  const parsed: ParseResult | null = useMemoX(
+    /* requireBalanced:false — sumber TA-1 lazimnya EKSTRAK pos neraca dari LK audited,
+       bukan neraca saldo utuh; menuntut Σ = 0 di sini akan menolak masukan yang sah. */
+    () => (text.trim() ? parseTrialBalance(text, { unit: unitPY, engMateriality: activeEngagement?.materiality, requireBalanced: false }) : null),
+    [text, unitPY, activeEngagement?.materiality],
+  );
+  const errors = parsed ? parsed.issues.filter(i => i.level === 'error') : [];
+
+  const source = useMemoX(() => (parsed && parsed.ok
+    ? { rows: parsed.rows.map((r: ImportedWtbRow) => ({ code: r.code, name: r.name, amount: r.adj })) }
+    : null), [parsed]);
+  const preview: TieResult | null = useMemoX(
+    () => (source ? tieOutPriorYear(wtb || [], source) : null), [source, wtb]);
+  const current: TieResult = useMemoX(() => tieOutPriorYear(wtb || [], priorYearBalances), [wtb, priorYearBalances]);
+
+  const apply = async () => {
+    if (!parsed || !parsed.ok || !canEdit || busy || !source) return;
+    setBusy(true);
+    try {
+      let sha = '';
+      try { sha = await sha256Hex(text); } catch (e) { /* konteks non-secure */ }
+      setPriorYearBalances({
+        rows: source.rows,
+        provenance: summarizeImport({
+          importedAt: new Date().toISOString(),
+          user: auth && auth.user ? { id: auth.user.id, name: auth.user.name, role: auth.user.role } : null,
+          unit: unitPY, unitFactor: parsed.meta.unitFactor,
+          period: (activeEngagement?.fy || '').replace(/(\d{4})/, (y: string) => String(+y - 1)),
+          sourceName, sha256: sha,
+          rowCount: parsed.meta.rowCount, totalAssets: parsed.meta.totalAssets, balanced: parsed.meta.balanced,
+        }),
+      });
+      onClose();
+    } finally { setBusy(false); }
+  };
+
+  const badge = (s: TieStatus) => (s === 'tied' ? 'green' : s === 'no-source' ? undefined : s === 'missing' ? 'purple' : 'amber');
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
+      <div className="panel" style={{ width: 900, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
+          <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.layers size={18} /></span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Saldo Audited TA-1 (SA 510)</div>
+            <div className="tiny" style={{ color: '#bcd6e4' }}>Sumber INDEPENDEN untuk menelusuri saldo awal — tanpa ini, kolom "TA Lalu" tak dapat diverifikasi terhadap apa pun</div>
+          </div>
+          {locked ? <Badge kind="amber">Terkunci</Badge> : !canEdit ? <Badge kind="amber">Hanya-baca</Badge> : null}
+          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+        </div>
+
+        <div className="row ac gap12" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)', flexWrap: 'wrap' }}>
+          <div className="row ac gap6">
+            <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Satuan</span>
+            <Seg options={[{ value: 'full', label: 'Rupiah penuh' }, { value: 'thousand', label: 'Ribuan' }, { value: 'million', label: 'Jutaan' }]} value={unitPY} onChange={setUnitPY} />
+          </div>
+          <div className="row ac gap6" style={{ flex: 1, minWidth: 200 }}>
+            <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Sumber</span>
+            <input className="input" style={{ flex: 1, height: 26 }} value={sourceName} placeholder="mis. LK Audited 2024 — KAP Sutrisno (halaman 4)"
+              onChange={(e: { target: { value: string } }) => setSourceName(e.target.value)} />
+          </div>
+          {current.hasSource && <Badge kind="green">Sumber tersimpan · {current.tied} cocok / {current.untied} selisih</Badge>}
+        </div>
+
+        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1, minHeight: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--line)', minHeight: 0 }}>
+            <div className="row ac jb" style={{ padding: '8px 12px', borderBottom: '1px solid var(--line)' }}>
+              <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>1 · Tempel saldo akhir audited TA-1</span>
+              <button className="btn sm ghost" onClick={() => setText('')} disabled={!text}><I.x size={12} /> Kosongkan</button>
+            </div>
+            <textarea value={text} onChange={(e: { target: { value: string } }) => setText(e.target.value)} spellCheck={false}
+              placeholder={'Kode\tNama\tSaldo\n1-1100\tKas\t18.420.500.000\n…\n\nDari LK audited TA-1 / kertas kerja auditor pendahulu.\nKonvensi tanda: Debit (+), Kredit (−).'}
+              style={{ flex: 1, minHeight: 280, border: 'none', outline: 'none', padding: '10px 12px', fontSize: 12, fontFamily: 'var(--mono)', resize: 'none', color: 'var(--ink)', lineHeight: 1.5 }} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'auto' }}>
+            <div className="row ac jb" style={{ padding: '8px 12px', borderBottom: '1px solid var(--line)' }}>
+              <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>2 · Tie-out ke saldo awal TB berjalan</span>
+              {parsed && <Badge kind={parsed.ok ? 'green' : 'red'}>{parsed.ok ? 'Siap' : errors.length + ' error'}</Badge>}
+            </div>
+            <div style={{ padding: 12, flex: 1 }}>
+              {!parsed && !current.hasSource && <div className="tiny muted" style={{ padding: '24px 0', textAlign: 'center' }}>Belum ada sumber TA-1 — penelusuran saldo awal SA 510 tak dapat menyimpulkan apa pun.</div>}
+              {errors.map((i: WtbIssue, k: number) => (
+                <div key={'e' + k} className="row ac gap6 tiny" style={{ padding: '4px 8px', border: '1px solid var(--red)', borderRadius: 5, marginBottom: 4, color: 'var(--red)' }}>
+                  <I.alert size={12} /> <span>{i.line ? `Baris ${i.line}: ` : ''}{i.message}</span>
+                </div>
+              ))}
+              {(preview || (current.hasSource && !parsed)) && (() => {
+                const t = preview || current;
+                const shown = t.rows.filter((r: TieRow) => isTieException(r.status));
+                return (<>
+                  <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
+                    {[['Cocok', t.tied, 'var(--green)'], ['Selisih', t.untied, t.untied ? 'var(--amber)' : 'var(--ink-3)'],
+                      ['Belum tertelusur', t.missing, t.missing ? 'var(--purple)' : 'var(--ink-3)'], ['Hilang dari TB', t.orphan, t.orphan ? 'var(--red)' : 'var(--ink-3)']].map(([l, v, c]) => (
+                        <div key={String(l)} className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: 'var(--surface-2)' }}>
+                          <div className="tiny muted upper">{String(l)}</div>
+                          <div className="mono" style={{ fontWeight: 700, color: String(c) }}>{String(v)}</div>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.45 }}>
+                    Lingkup: pos neraca ({t.outOfScope} akun laba rugi & {t.nilOpening} akun bersaldo awal nol dikecualikan — tak punya saldo awal untuk ditelusuri).
+                    {t.missing > 0 && <> Nilai belum tertelusur <b className="mono">{m(t.untracedTotal)}</b> jt.</>}
+                  </div>
+                  {shown.length === 0
+                    ? <div className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> Seluruh saldo awal dalam lingkup tertelusur ke TA-1 audited.</div>
+                    : (
+                      <div style={{ border: '1px solid var(--line)', borderRadius: 6, overflow: 'auto', maxHeight: 260 }}>
+                        <table className="dtbl">
+                          <thead><tr><th>Akun</th><th className="num">TA-1 audited</th><th className="num">Saldo awal</th><th className="num">Selisih</th><th style={{ width: 120 }}>Status</th></tr></thead>
+                          <tbody>
+                            {shown.slice(0, 30).map((r: TieRow) => (
+                              <tr key={r.status + r.code}>
+                                <td><div className="truncate" style={{ maxWidth: 140 }}>{r.name}</div><div className="mono tiny muted">{r.code}</div></td>
+                                <td className="num muted">{r.priorClose != null ? m(r.priorClose) : '—'}</td>
+                                <td className="num">{m(r.opening)}</td>
+                                {/* "Selisih" hanya bermakna bila ada pembanding TA-1; untuk baris
+                                    yang belum tertelusur, kolom ini kosong — bukan angka sebesar saldo. */}
+                                <td className="num" style={{ fontWeight: 600, color: 'var(--amber)' }}>
+                                  {r.priorClose == null && r.status === 'missing' ? <span className="muted">—</span> : <span className={r.diff < 0 ? 'neg' : ''}>{m(r.diff)}</span>}
+                                </td>
+                                <td><Badge kind={badge(r.status)}>{TIE_LABEL[r.status]}</Badge></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                </>);
+              })()}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted" style={{ maxWidth: 520 }}>Dipakai modul Saldo Awal (SA 510) sebagai pembanding INDEPENDEN, dan menandai kolom "TA Lalu" di WTB yang tak tertelusur.</span>
+          <div className="row gap8">
+            {current.hasSource && <Btn sm onClick={() => { if (canEdit) { setPriorYearBalances(null); onClose(); } }} disabled={!canEdit}><I.trash size={13} /> Hapus sumber</Btn>}
+            <Btn sm onClick={onClose}>Batal</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canEdit || busy}><I.check size={14} /> {busy ? 'Menyimpan…' : 'Simpan sumber TA-1'}</Btn>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- W-WTB·3 · Drawer pemetaan bagan akun → CoA standar ---------------- */
 function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
   const { fmt } = AMS;
-  const { wtbImport, wtbMapping, setWtbMapping } = useAudit();
+  const { wtbImport, wtbMapping, setWtbMapping, wtbLeads, setWtbLeads } = useAudit();
   const { locked } = useFirm();
   const auth = useAuth();
   const canMap = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked; // PR-2c
+  const [leadDraft, setLeadDraft] = useStateX(() => ({ ...(wtbLeads || {}) }));   // PR-4a
   const srcRows = (wtbImport && Array.isArray(wtbImport.rows)) ? wtbImport.rows : [];
   const [draft, setDraft] = useStateX(() => ({ ...(wtbMapping || {}) }));
   const cov: MappingCoverageResult = useMemoX(() => mappingCoverage(srcRows, draft), [srcRows, draft]);
@@ -446,9 +629,21 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
   const setOne = (code: string, target: string) => setDraft((d: Record<string, string>) => {
     const n = { ...d }; if (target) n[code] = target; else delete n[code]; return n;
   });
-  const apply = () => { if (!canMap) return; setWtbMapping(draft); onClose(); };
+  const apply = () => {
+    if (!canMap) return;
+    setWtbMapping(draft);
+    /* PR-4a — hanya lead yang benar-benar diketik yang disimpan; sel kosong = ikut
+       tebakan heuristik/pemetaan, bukan lead kosong yang mengikat. */
+    const leads: Record<string, string> = {};
+    for (const code of Object.keys(leadDraft)) {
+      const v = (leadDraft[code] || '').trim();
+      if (v) leads[code] = v;
+    }
+    setWtbLeads(leads);
+    onClose();
+  };
   const hasMapping = !!(wtbMapping && Object.keys(wtbMapping).length);
-  const clearMapping = () => { if (!canMap) return; setWtbMapping({}); onClose(); };
+  const clearMapping = () => { if (!canMap) return; setWtbMapping({}); setWtbLeads({}); onClose(); };
 
   // opsi select dikelompokkan per seksi FS
   const groups = [...new Set(STANDARD_COA.map((a: CoaAccount) => a.group))];
@@ -484,7 +679,9 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
           <table className="dtbl">
             <thead><tr>
               <th>Akun Klien</th><th className="num" style={{ width: 120 }}>Unadjusted</th>
-              <th style={{ width: 320 }}>Petakan ke (CoA standar)</th><th style={{ width: 90 }}>Status</th>
+              <th style={{ width: 300 }}>Petakan ke (CoA standar)</th>
+              <th style={{ width: 88 }} title="Lead schedule — tebakan dari kode akun, dapat ditimpa">Lead</th>
+              <th style={{ width: 90 }}>Status</th>
             </tr></thead>
             <tbody>
               {srcRows.map((r: { code: string; name?: string; unadj?: number }) => {
@@ -507,6 +704,15 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
                           </optgroup>
                         ))}
                       </select>
+                    </td>
+                    {/* PR-4a — lead schedule: tebakan heuristik ditampilkan sebagai placeholder,
+                        nilai yang diketik auditor mengikat (store `wtbLeads.v1`). */}
+                    <td>
+                      <input className="input mono" disabled={!canMap} maxLength={3}
+                        style={{ width: 66, height: 26, textAlign: 'center', textTransform: 'uppercase' }}
+                        value={leadDraft[r.code] != null ? leadDraft[r.code] : ''}
+                        placeholder={(std && std.lead) || leadFromCode(r.code) || '—'}
+                        onChange={(e: { target: { value: string } }) => setLeadDraft((d: Record<string, string>) => ({ ...d, [r.code]: e.target.value.toUpperCase() }))} />
                     </td>
                     <td>
                       {std
@@ -878,6 +1084,18 @@ function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
             sub={r.ajeBalanced ? 'Σ AJE = 0 (jurnal seimbang)' : 'Σ AJE = ' + rp(r.wtbAjeSum)}
             bg={ajeOk ? 'var(--green-bg)' : 'var(--amber-bg)'} />
         </div>
+
+        {/* PR-4d — pola mustahil yang dulu lolos sebagai "OK": masing-masing kondisi tampak
+            wajar sendiri-sendiri, residunya diserap FSGEN ke baris plug. */}
+        {r.incomeDoubleCounted && (
+          <div className="row ac gap8" style={{ marginBottom: 10, padding: '8px 11px', border: '1px solid var(--amber)', background: 'var(--amber-bg)', borderRadius: 6 }}>
+            <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={16} /></span>
+            <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)' }}>
+              <b>Laba berjalan tampaknya tercatat dua kali.</b> Neraca sudah pas — artinya saldo laba memuat laba {rp(r.netIncome)} — padahal akun laba-rugi masih terbuka.
+              TB pra-tutup yang koheren ber-Σ adjusted = 0 dengan selisih neraca sebesar laba; di sini keduanya tak terpenuhi. Periksa saldo laba & pos penutup sebelum menyusun LK.
+            </span>
+          </div>
+        )}
 
         <div className="col" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {r.messages.map((m: IntegrityMessage, i: number) => (

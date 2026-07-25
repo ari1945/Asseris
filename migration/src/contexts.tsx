@@ -558,6 +558,13 @@ function AppProviders({ me, onLogout, children }: any) {
   const [wtbMapping, setWtbMapping] = useServerState('wtbMapping', {}, 'engagement', activeEngagementId);
   /* W-WTB·4 — buku besar (GL) detail per akun ({kode: [baris GL]}) untuk drill sub-ledger nyata. */
   const [wtbLedger, setWtbLedger] = useServerState('wtbLedger', {}, 'engagement', activeEngagementId);
+  /* PR-4a — penetapan lead schedule per akun ({kode: 'B'}). Heuristik `leadFromCode` hanya
+     TEBAKAN awal; auditor menetapkan yang mengikat di sini. Engagement + WP_EDIT (bukan
+     AJE_EDIT: menetapkan lead adalah penataan kertas kerja, bukan mengubah angka). */
+  const [wtbLeads, setWtbLeads] = useServerState('wtbLeads.v1', {}, 'engagement', activeEngagementId);
+  /* PR-4c — saldo akhir audited TA-1 sebagai sumber INDEPENDEN (SA 510 ¶6). Tanpa ini,
+     penelusuran saldo awal membandingkan `ly` dengan dirinya sendiri → selalu "Cocok". */
+  const [priorYearBalances, setPriorYearBalances] = useServerState('priorYearBalances.v1', null, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
@@ -597,8 +604,15 @@ function AppProviders({ me, onLogout, children }: any) {
   }, [wtbImport, wtbMapping]);
   // Override analitis di-key per KODE akun (identitas stabil) via overlayWtbOverrides —
   // bertahan saat WTB di-impor/petakan ulang (key posisi bergeser). SSOT `wtb` view.
-  const wtb = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),
+  const wtbBase = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),
     [baseWtb, wtbOverrides, userPostDeltas]);
+  /* PR-4a — penetapan lead auditor menimpa tebakan heuristik/pemetaan. */
+  const wtb = useMemo(() => {
+    if (!wtbLeads || !Object.keys(wtbLeads).length) return wtbBase;
+    return wtbBase.map((r: { code: string; lead?: string }) => (
+      wtbLeads[r.code] ? { ...r, lead: wtbLeads[r.code] } : r
+    ));
+  }, [wtbBase, wtbLeads]);
 
   const toggleAjeStatus = useCallback((id: any) => {
     setAje((list: any) => list.map((a: any) => a.id === id
@@ -627,7 +641,8 @@ function AppProviders({ me, onLogout, children }: any) {
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
-    fluxState, setFluxState, fluxThreshold, setFluxThreshold,
+    fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads,
+    priorYearBalances, setPriorYearBalances,
     wpState, setWp,
     reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
     noteThreads, addNoteReply,
@@ -635,7 +650,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

@@ -1,7 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useAmsPersist, useInitialTab } from './contexts';
+import { useAudit, useAuth, useFirm, useAmsPersist, useInitialTab, useNav } from './contexts';
+import { tieOutPriorYear, TIE_LABEL } from './prior_year';
+import type { TieResult, TieRow } from './prior_year';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -70,7 +72,8 @@ const defaultOB = (): OBState => ({ engType: 'lanjutan', factors: OB_RISK_FACTOR
 
 function OpeningBalance() {
   const { fmt } = AMS;
-  const { wtb } = useAudit();
+  const { wtb, priorYearBalances } = useAudit();
+  const nav = useNav();
   const auth = useAuth();
   const firm = useFirm();
   const [tab, setTab] = useInitialTab('opening', 'konteks');
@@ -83,6 +86,20 @@ function OpeningBalance() {
   const rv = openingVerdict(score);
   const readiness = predecessorReadiness(s.predSteps || {});
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.WP_EDIT));
+
+  /* Kesimpulan saldo awal DITURUNKAN — dulu badge ini hardcoded hijau "Dapat Diandalkan",
+     tampil sama persis baik ketika belum ada sumber TA-1 maupun ketika tie-out menyisakan
+     selisih tak dijelaskan. Hijau kini menuntut dua hal sekaligus: bukti tie-out bersih DAN
+     auditor menekan "Simpulkan" (pola PR-3 — status hanya dari auditor, bukan dari sistem). */
+  const obTie: TieResult = tieOutPriorYear((wtb || []) as { code: string; name?: string; ly?: number; group?: string }[], priorYearBalances);
+  const obExceptions = obTie.untied + obTie.missing + obTie.orphan;
+  const obVerdict: { k: string; l: string; t: string } = !obTie.hasSource
+    ? { k: 'amber', l: 'Belum Dapat Disimpulkan', t: 'Belum ada sumber saldo audited TA-1 — tak ada pembanding independen untuk menyimpulkan saldo awal (SA 510 ¶6).' }
+    : obExceptions > 0
+      ? { k: 'amber', l: 'Selisih Belum Dijelaskan', t: `${obTie.untied} selisih · ${obTie.missing} belum tertelusur · ${obTie.orphan} hilang dari TB berjalan.` }
+      : !s.concluded
+        ? { k: 'blue', l: 'Menunggu Simpulan Auditor', t: 'Tie-out bersih. Kesimpulan menanti tindakan auditor — tekan "Simpulkan".' }
+        : { k: 'green', l: 'Dapat Diandalkan', t: 'Tie-out bersih dan telah disimpulkan auditor.' };
 
   const setEngType = (v: 'lanjutan' | 'awal') => setSt((p: OBState) => ({ ...p, engType: v }));
   const patchFactor = (i: number, patch: Partial<AssessmentFactor>) => setSt((p: OBState) => {
@@ -164,7 +181,7 @@ function OpeningBalance() {
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Kesimpulan Saldo Awal</div>
-              <Badge kind="green" dot>Dapat Diandalkan</Badge>
+              <span title={obVerdict.t}><Badge kind={obVerdict.k} dot>{obVerdict.l}</Badge></span>
             </div>
           </div>
         </Panel>
@@ -173,7 +190,7 @@ function OpeningBalance() {
 
         {tab === 'konteks' && <OBContext engType={engType} predecessor={predecessor} predSteps={s.predSteps || {}} toggleStep={toggleStep} readiness={readiness} canEdit={canEdit} />}
         {tab === 'nilai' && <OBAssessment engType={engType} factors={factors} score={score} rv={rv} patchFactor={patchFactor} safeguards={s.safeguards} setSafeguards={setSafeguards} canEdit={canEdit} readiness={readiness} />}
-        {tab === 'trace' && <OBTrace wtb={wtb} fmt={fmt} />}
+        {tab === 'trace' && <OBTrace wtb={wtb} fmt={fmt} priorYearBalances={priorYearBalances} nav={nav} />}
         {tab === 'proc' && <OBProcedures fmt={fmt} />}
         {tab === 'policy' && <OBPolicy />}
         {tab === 'opini' && <OBConclusion concluded={s.concluded} verdict={rv} score={score} />}
@@ -362,15 +379,33 @@ function OBAssessment({ engType, factors, score, rv, patchFactor, safeguards, se
 }
 
 /* ---------------- Tab: Penelusuran Saldo ---------------- */
-function OBTrace({ wtb, fmt }: any) {
+function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
   const rows = wtb.filter((r: any) => OB_SOFP_GROUPS.includes(r.group));
   let totClose = 0, totOpen = 0, totDiff = 0;
   const grouped = OB_SOFP_GROUPS.map(g => ({ g, items: rows.filter((r: any) => r.group === g) })).filter(x => x.items.length);
   let matched = 0, transition = 0;
 
+  /* PR-4c — pembanding INDEPENDEN. Sebelumnya kolom "Saldo Akhir TA-1 (Audited)" dan
+     "Saldo Awal TA Kini" SAMA-SAMA dibaca dari `r.ly`, sehingga selisihnya nol secara
+     konstruksi dan setiap akun selalu "Cocok" — kertas kerja yang tak membuktikan apa pun
+     (SA 510 ¶6 menuntut bukti bahwa saldo awal dibawa dengan benar). */
+  const tie: TieResult = tieOutPriorYear(rows, priorYearBalances);
+  const bySrc = new Map<string, TieRow>();
+  for (const t of tie.rows) bySrc.set(t.code, t);
+
   return (
     <Panel noBody>
       <div className="panel-h"><h3>Penelusuran Saldo Akhir Audited TA-1 → Saldo Awal TA Kini</h3><div style={{ flex: 1 }} /><span className="tiny muted">Posisi keuangan · nilai Rp juta</span></div>
+      {!tie.hasSource && (
+        <div className="row ac gap8" style={{ margin: '10px 14px 0', padding: '9px 11px', border: '1px solid var(--amber)', background: 'var(--amber-bg)', borderRadius: 6 }}>
+          <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={16} /></span>
+          <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)', flex: 1 }}>
+            <b>Belum ada sumber saldo audited TA-1.</b> Tanpa pembanding independen, penelusuran ini hanya dapat menampilkan saldo yang dibawa TB berjalan —
+            ia tak dapat menyimpulkan bahwa saldo awal benar (SA 510 ¶6). Muat sumbernya dari LK audited TA-1 / kertas kerja auditor pendahulu.
+          </span>
+          <Btn sm variant="primary" onClick={() => nav && nav('wtb', { from: 'opening' })}><I.layers size={13} /> Muat Saldo TA-1</Btn>
+        </div>
+      )}
       <div className="panel" style={{ margin: '0', padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 18, fontSize: 12 }}>
         <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--green-solid)' }} /> Carry-forward cocok</span>
         <span className="row ac gap6"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--amber-solid)' }} /> Saldo timbul dari transisi PSAK 73 (1 Jan 2025)</span>
@@ -387,22 +422,34 @@ function OBTrace({ wtb, fmt }: any) {
               <tr className="group-row"><td colSpan={7}>{g}</td></tr>
               {items.map((r: any) => {
                 const isT = (OB_TRANSITION as any)[r.code] != null;
-                const priorClose = isT ? 0 : r.ly;
+                const t = bySrc.get(r.code);
+                /* Sumber ada → pakai saldo audited TA-1 yang sesungguhnya. Tanpa sumber,
+                   kolom kiri dikosongkan (—) alih-alih menyalin `ly` dan mengklaim cocok. */
+                const priorClose: number | null = tie.hasSource
+                  ? (t && t.priorClose != null ? t.priorClose : null)
+                  : (isT ? 0 : null);
                 const opening = isT ? (OB_TRANSITION as any)[r.code] : r.ly;
-                const diff = opening - priorClose;
-                totClose += priorClose; totOpen += opening; totDiff += diff;
-                if (isT) transition++; else matched++;
+                /* Selisih diambil dari mesin, tidak dihitung ulang di sini — dulu kedua
+                   permukaan memakai rumus sendiri dan menghasilkan angka berbeda untuk
+                   akun yang sama (drawer WTB: sebesar saldo; di sini: "—"). */
+                const diff = isT ? 0 : (t ? t.diff : 0);
+                totClose += priorClose || 0; totOpen += opening; totDiff += diff;
+                if (isT) transition++; else if (tie.hasSource && t && t.status === 'tied') matched++;
                 return (
                   <tr key={r.code}>
                     <td className="mono tiny muted">{r.code}</td>
                     <td className="truncate" style={{ maxWidth: 240 }}>{r.name}</td>
                     <td className="mono tiny" style={{ color: 'var(--blue)', fontWeight: 700 }}>{r.lead}</td>
-                    <td className="num mono">{fmt(priorClose / 1e6, 0)}</td>
+                    <td className="num mono">{priorClose != null ? fmt(priorClose / 1e6, 0) : <span className="muted">—</span>}</td>
                     <td className="num mono">{fmt(opening / 1e6, 0)}</td>
                     <td className="num mono" style={{ color: diff === 0 ? 'var(--ink-4)' : 'var(--amber)' }}>{diff === 0 ? '—' : fmt(diff / 1e6, 0)}</td>
                     <td>{isT
                       ? <Badge kind="amber">Transisi PSAK 73</Badge>
-                      : <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={13} /> Cocok</span>}
+                      : !tie.hasSource
+                        ? <span className="tiny muted">— tak dapat diverifikasi —</span>
+                        : t && t.status === 'tied'
+                          ? <span className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.check size={13} /> Cocok</span>
+                          : <Badge kind={t && t.status === 'missing' ? 'purple' : 'amber'}>{t ? TIE_LABEL[t.status] : TIE_LABEL['missing']}</Badge>}
                     </td>
                   </tr>
                 );
@@ -411,16 +458,37 @@ function OBTrace({ wtb, fmt }: any) {
           ))}
         </tbody>
         <tfoot><tr>
-          <td colSpan={3}>Total — {matched} cocok · {transition} transisi</td>
+          <td colSpan={3}>{tie.hasSource
+            ? `Total — ${matched} cocok · ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${transition} transisi`
+            : `Total — ${transition} transisi · sisanya TAK DAPAT DIVERIFIKASI (belum ada sumber TA-1)`}</td>
           <td className="num mono">{fmt(totClose / 1e6, 0)}</td>
           <td className="num mono">{fmt(totOpen / 1e6, 0)}</td>
           <td className="num mono" style={{ color: totDiff === 0 ? 'var(--ink-4)' : 'var(--amber)' }}>{fmt(totDiff / 1e6, 0)}</td>
           <td></td>
         </tr></tfoot>
       </table>
-      <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-        <div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Seluruh saldo akhir audited 2024 ditelusuri tepat ke saldo awal 2025. Selisih hanya berasal dari pengakuan transisi PSAK 73 yang telah diuji terpisah (lihat Prosedur Spesifik — Lead F).</span></div>
-      </div>
+      {/* Simpulan tab ini DITURUNKAN dari tie-out, bukan kalimat tetap. Sebelumnya paragraf
+          hijau "seluruh saldo ditelusuri tepat" tampil apa adanya — termasuk ketika belum ada
+          sumber TA-1 sama sekali, tepat di bawah banner yang menyatakan sebaliknya. */}
+      {(() => {
+        const clean = tie.hasSource && tie.untied === 0 && tie.missing === 0 && tie.orphan === 0;
+        const bg = !tie.hasSource ? 'var(--amber-bg)' : clean ? 'var(--green-bg)' : 'var(--amber-bg)';
+        const fg = !tie.hasSource || !clean ? 'var(--amber)' : 'var(--green)';
+        return (
+          <div className="panel" style={{ margin: 12, padding: '9px 11px', background: bg, borderColor: 'transparent' }}>
+            <div className="row ac gap8">
+              <span style={{ color: fg, flex: '0 0 auto' }}>{clean ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.4 }}>{
+                !tie.hasSource
+                  ? 'Penelusuran belum dapat disimpulkan — belum ada sumber saldo audited TA-1 sebagai pembanding independen (SA 510 ¶6). Saldo transisi PSAK 73 diuji terpisah (Prosedur Spesifik — Lead F).'
+                  : clean
+                    ? `Seluruh ${tie.tied} saldo awal dalam lingkup tertelusur ke TA-1 audited. Selisih tersisa hanya dari pengakuan transisi PSAK 73 yang diuji terpisah (Prosedur Spesifik — Lead F).`
+                    : `Penelusuran belum tuntas — ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${tie.orphan} hilang dari TB berjalan. Jelaskan atau selesaikan sebelum menyimpulkan saldo awal dapat diandalkan.`
+              }</span>
+            </div>
+          </div>
+        );
+      })()}
     </Panel>
   );
 }

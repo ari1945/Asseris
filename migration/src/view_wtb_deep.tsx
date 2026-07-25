@@ -6,7 +6,7 @@ import { assertionCoverage, groupForAccountCode, ASSERTION_STATUS_META } from '.
 import { wpProcedureInputs } from './view_wp';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Seg } from './ui';
-import { statusOf, noteOf, upsertFlux, fluxCounts, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
+import { statusOf, noteOf, upsertFlux, fluxCounts, fluxStatusKind, fluxThresholds, isFluxFlagged, FLUX_STATUS_LABEL } from './flux_state';
 import type { FluxState, FluxStatus } from './flux_state';
 
 /* ============================================================
@@ -58,9 +58,11 @@ const grpKind = (g: any) => g.startsWith('Aset') ? 'aset' : g.startsWith('Liabil
    selalu menghasilkan `false` diam-diam (nol akun > PM, nol fluktuasi ter-flag).
    `absThr <= 0` berarti kriteria nominal dimatikan; kriteria persentase tetap berlaku. */
 function computeWtbSummary(wtb: any, pm: number | null, opts?: any, fluxState?: FluxState) {
-  const absThrRaw = (opts && opts.absThr != null) ? opts.absThr : pm;     // Rupiah
-  const absThr: number | null = (typeof absThrRaw === 'number' && absThrRaw > 0) ? absThrRaw : null;
-  const pctThr = (opts && opts.pctThr != null) ? opts.pctThr : 20;        // %
+  const resolved = fluxThresholds(
+    { absJt: (opts && opts.absThr != null) ? opts.absThr / 1e6 : null, pctThr: (opts && opts.pctThr != null) ? opts.pctThr : null },
+    pm,
+  );
+  const { absThr, pctThr } = resolved;
   let totAset = 0, liabMag = 0, ekuMag = 0, revMag = 0, beban = 0, overPm = 0;
   const rows = wtb.map((r: any) => {
     const k = grpKind(r.group);
@@ -73,7 +75,7 @@ function computeWtbSummary(wtb: any, pm: number | null, opts?: any, fluxState?: 
     const delta = r.adj - r.ly;
     const isNew = r.ly === 0;
     const pct = isNew ? (delta !== 0 ? Infinity : 0) : (delta / Math.abs(r.ly)) * 100;
-    const flagged = (absThr != null && Math.abs(delta) >= absThr) || Math.abs(pct) >= pctThr;
+    const flagged = isFluxFlagged(delta, pct, resolved);
     /* PR-3: status HANYA dari telaah tersimpan; ketiadaannya = belum ditelaah.
        Saran seed dibawa terpisah (`suggestion`) agar dapat ditawarkan di editor
        tanpa pernah menyamar sebagai dokumentasi auditor. */
