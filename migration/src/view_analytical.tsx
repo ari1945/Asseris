@@ -1,8 +1,10 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm } from './contexts';
+import { useAudit, useAuth, useFirm } from './contexts';
 import { materialityFor } from './canon_selectors';
+import { statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
+import type { FluxState, FluxStatus } from './flux_state';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
@@ -16,7 +18,12 @@ import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab
    ============================================================ */
 const { useState: useStateAR, useMemo: useMemoAR } = React;
 
-/* ---- per-account flux narrative seed ---- */
+/* SARAN sistem atas fluktuasi (per kode GL) — BUKAN dokumentasi auditor.
+   PR-3b: dulu peta ini adalah NILAI AWAL store `fluxState.v1`, sehingga statusnya
+   ('explained'/'pending') langsung terhitung sebagai telaah yang sudah dilakukan —
+   dan narasinya bertentangan dengan `DEFAULT_EXPL` di tab WTB untuk akun yang sama
+   (4-1100: "harga jual rata-rata 5%" vs "6%"). Kini keduanya hanya saran; status
+   hanya berasal dari tindakan auditor pada SSOT bersama. */
 const FLUX_SEED = {
   '4-1100': { status: 'explained', note: 'Kenaikan 16,7% sejalan dengan ekspansi 3 distributor baru dan kenaikan harga jual rata-rata 6%. Konsisten dengan data volume penjualan.' },
   '5-1100': { status: 'explained', note: 'BPP naik proporsional dengan volume; rasio BPP/penjualan stabil di 70%. Termasuk AJE-01 cut-off Rp 2,34 M.' },
@@ -129,7 +136,7 @@ const VERDICT_COLOR = { good: 'var(--green)', ok: 'var(--ink-2)', watch: 'var(--
    ============================================================ */
 function AnalyticalReview() {
   const { fmt } = AMS;
-  const { wtb, risks } = useAudit();
+  const { wtb, risks, fluxState: flux } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
   /* PR-1b — PM & CT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
      Menghormati pmPct/cttPct + override "Terapkan ke Engagement" dari Materiality
@@ -173,7 +180,7 @@ function AnalyticalReview() {
             </div>
           </div>
 
-          {tab === 'ringkasan' && <ARSummary der={der} pm={pm} ct={ct} risks={risks} eng={activeEngagement} client={activeClient} fmt={fmt} />}
+          {tab === 'ringkasan' && <ARSummary der={der} pm={pm} ct={ct} risks={risks} eng={activeEngagement} client={activeClient} fmt={fmt} flux={flux} />}
           {tab === 'rasio' && <RatioAnalysisTab der={der} fmt={fmt} />}
           {tab === 'fluktuasi' && <FluxTab der={der} pm={pm} fmt={fmt} />}
           {tab === 'tren' && <TrendCommonSizeTab der={der} fmt={fmt} />}
@@ -188,15 +195,18 @@ function AnalyticalReview() {
 /* ============================================================
    TAB · Ringkasan (overview, SA 520 stage tracker, risk signals)
    ============================================================ */
-function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
+function ARSummary({ der, pm, ct, risks, eng, client, fmt, flux }: any) {
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'arMemo.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [memo, setMemo] = window.useAmsPersist('arMemo.v1', '');
   /* "unexpected" fluctuation = material AND unusual %  → genuine exceptions to investigate */
   const rows = der.flux.map((r: any) => ({ ...r, flagged: pm != null && Math.abs(r.dAbs) > pm && Math.abs(r.dPct) > 15 }));
   const flagged = rows.filter((r: any) => r.flagged);
-  const explained = flagged.filter((r: any) => (FLUX_SEED as any)[r.code]?.status === 'explained').length;
-  const unexplainedAmt = flagged.filter((r: any) => (FLUX_SEED as any)[r.code]?.status !== 'explained').reduce((s: any, r: any) => s + Math.abs(r.dAbs), 0);
+  /* PR-3a — dihitung dari telaah TERSIMPAN, bukan dari seed. Dulu ringkasan ini membaca
+     `FLUX_SEED` langsung sehingga menampilkan "sudah dijelaskan" untuk perikatan yang
+     belum ditelaah sama sekali, dan tak pernah berubah saat auditor bekerja. */
+  const explained = flagged.filter((r: any) => statusOf(flux, r.code) === 'explained').length;
+  const unexplainedAmt = flagged.filter((r: any) => statusOf(flux, r.code) !== 'explained').reduce((s: any, r: any) => s + Math.abs(r.dAbs), 0);
   const adverseRatios = der.ratios.filter((r: any) => benchVerdict(r.y[2], r.bench, r.good) === 'bad').length;
 
   /* link flagged accounts to RoMM register */
@@ -305,20 +315,32 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt }: any) {
    TAB · Fluktuasi (the classic flux table + expectation modeling)
    ============================================================ */
 function FluxTab({ der, pm, fmt }: any) {
-  const [thr, setThr] = useStateAR(15);
+  /* PR-3a — ambang % dari SSOT bersama (dulu 15% lokal vs 20% di tab WTB → himpunan
+     ter-flag & penyebut "x dari y terjelaskan" berbeda untuk perikatan yang sama). */
+  const { fluxThreshold, setFluxThreshold } = useAudit();
+  const thr: number = (fluxThreshold && typeof fluxThreshold.pctThr === 'number') ? fluxThreshold.pctThr : 20;
+  const setThr = (v: number) => setFluxThreshold((t: { absJt: number | null; pctThr: number }) => ({ ...t, pctThr: v }));
   const [flaggedOnly, setFlaggedOnly] = useStateAR(false);
-  const [state, setState] = window.useAmsPersist('fluxState.v1', () => FLUX_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
+  /* PR-3a — SSOT bersama lewat AuditContext (dulu `useAmsPersist('fluxState.v1')` di sini,
+     terpisah dari store tab WTB → dua hitungan "explained" atas akun yang sama). */
+  const { fluxState: state, setFluxState } = useAudit();
+  const auth = useAuth();   // null di luar provider — hook TETAP dipanggil tanpa syarat
   const [selCode, setSelCode] = useStateAR('1-1300');
 
   const rows = der.flux.map((r: any) => ({ ...r, flagged: (pm != null && Math.abs(r.dAbs) > pm) || Math.abs(r.dPct) > thr }));
   const shown = flaggedOnly ? rows.filter((r: any) => r.flagged) : rows;
   const sel = rows.find((r: any) => r.code === selCode) || rows[0];
   const flaggedCount = rows.filter((r: any) => r.flagged).length;
-  const explainedCount = rows.filter((r: any) => r.flagged && state[r.code]?.status === 'explained').length;
+  const explainedCount = fluxCounts(rows.filter((r: any) => r.flagged).map((r: any) => r.code), state).explained;
 
   const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 0)}</span>;
-  const setStatus = (code: any, status: any) => setState((s: any) => ({ ...s, [code]: { ...(s[code] || { note: '' }), status } }));
-  const setNote = (code: any, note: any) => setState((s: any) => ({ ...s, [code]: { ...(s[code] || { status: 'pending' }), note } }));
+  const actor = () => (auth && auth.user) ? { name: auth.user.name, role: auth.user.role } : null;
+  const setStatus = (code: string, status: FluxStatus) =>
+    setFluxState((s: FluxState) => upsertFlux(s, code, { status, note: noteOf(s, code) }, actor(), new Date().toISOString()));
+  const setNote = (code: string, note: string) =>
+    setFluxState((s: FluxState) => upsertFlux(s, code, { status: statusOf(s, code) || 'followup', note }, actor(), new Date().toISOString()));
+  const setExpectation = (code: string, patch: { exp?: number; tol?: number }) =>
+    setFluxState((s: FluxState) => setFluxExpectation(s, code, patch, actor(), new Date().toISOString()));
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
@@ -348,7 +370,7 @@ function FluxTab({ der, pm, fmt }: any) {
             </tr></thead>
             <tbody>
               {shown.map((r: any) => {
-                const st = state[r.code]?.status;
+                const st = statusOf(state, r.code);
                 return (
                   <tr key={r.code} className={r.code === selCode ? 'sel' : ''} onClick={() => setSelCode(r.code)} style={{ cursor: 'pointer' }}>
                     <td className="mono tiny muted">{r.code}</td>
@@ -357,7 +379,7 @@ function FluxTab({ der, pm, fmt }: any) {
                     <td className="num muted">{num(r.py)}</td>
                     <td className="num" style={{ color: r.flagged ? 'var(--ink)' : 'var(--ink-3)', fontWeight: r.flagged ? 600 : 400 }}>{num(r.dAbs)}</td>
                     <td className="num tiny" style={{ color: Math.abs(r.dPct) > thr ? 'var(--amber)' : 'var(--ink-3)', fontWeight: Math.abs(r.dPct) > thr ? 700 : 400 }}>{r.dPct > 0 ? '+' : ''}{r.dPct.toFixed(0)}%</td>
-                    <td>{!r.flagged ? <span className="tiny muted">—</span> : st === 'explained' ? <Badge kind="green">Explained</Badge> : st === 'unexplained' ? <Badge kind="red">Unexplained</Badge> : <Badge kind="amber">Pending</Badge>}</td>
+                    <td>{!r.flagged ? <span className="tiny muted">—</span> : st ? <Badge kind={fluxStatusKind(st)}>{FLUX_STATUS_LABEL[st]}</Badge> : <Badge>Belum ditelaah</Badge>}</td>
                   </tr>
                 );
               })}
@@ -382,10 +404,10 @@ function FluxTab({ der, pm, fmt }: any) {
             <div className="row jb ac" style={{ marginBottom: 5 }}>
               <span className="tiny muted upper">Ekspektasi Auditor</span>
               <div className="row ac gap4">
-                <input type="number" value={state[sel.code]?.exp ?? 8} onChange={(e: any) => setState((s: any) => ({ ...s, [sel.code]: { ...(s[sel.code] || { status: 'pending', note: '' }), exp: +e.target.value } }))} className="input mono" style={{ width: 56, height: 24, textAlign: 'right', padding: '0 6px' }} />
+                <input type="number" value={state[sel.code]?.exp ?? 8} onChange={(e: any) => setExpectation(sel.code, { exp: +e.target.value })} className="input mono" style={{ width: 56, height: 24, textAlign: 'right', padding: '0 6px' }} />
                 <span className="tiny" style={{ fontWeight: 700 }}>%</span>
                 <span className="tiny muted">± </span>
-                <input type="number" value={state[sel.code]?.tol ?? 5} onChange={(e: any) => setState((s: any) => ({ ...s, [sel.code]: { ...(s[sel.code] || { status: 'pending', note: '' }), tol: +e.target.value } }))} className="input mono" style={{ width: 46, height: 24, textAlign: 'right', padding: '0 6px' }} />
+                <input type="number" value={state[sel.code]?.tol ?? 5} onChange={(e: any) => setExpectation(sel.code, { tol: +e.target.value })} className="input mono" style={{ width: 46, height: 24, textAlign: 'right', padding: '0 6px' }} />
               </div>
             </div>
             {(() => {
@@ -400,12 +422,19 @@ function FluxTab({ der, pm, fmt }: any) {
             })()}
           </div>
           <div className="tiny muted upper" style={{ marginBottom: 5 }}>Penjelasan Manajemen / Auditor</div>
-          <textarea value={state[sel.code]?.note || ''} onChange={(e: any) => setNote(sel.code, e.target.value)} placeholder="Catat penjelasan dan bukti pendukung…" className="input" style={{ width: '100%', height: 92, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 12 }} />
+          <textarea value={noteOf(state, sel.code)} onChange={(e: any) => setNote(sel.code, e.target.value)} placeholder="Catat penjelasan dan bukti pendukung…" className="input" style={{ width: '100%', height: 92, padding: 9, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--ui)', marginBottom: 12 }} />
+          {/* PR-3b — saran sistem ditawarkan terpisah, tak pernah menyamar sebagai telaah */}
+          {!noteOf(state, sel.code) && (FLUX_SEED as any)[sel.code]?.note && (
+            <div className="tiny" style={{ marginTop: -6, marginBottom: 10, color: 'var(--ink-3)' }}>
+              <b style={{ color: 'var(--amber)' }}>Saran sistem:</b> {(FLUX_SEED as any)[sel.code].note}
+              <button className="btn sm ghost" style={{ marginLeft: 8 }} onClick={() => setNote(sel.code, (FLUX_SEED as any)[sel.code].note)}>Pakai sebagai draf</button>
+            </div>
+          )}
           <div className="tiny muted upper" style={{ marginBottom: 5 }}>Konklusi</div>
           <div className="row gap6">
-            <Btn sm onClick={() => setStatus(sel.code, 'explained')} style={state[sel.code]?.status === 'explained' ? { background: 'var(--green-solid)', color: '#fff', borderColor: 'var(--green)' } : {}}><I.check size={13} /> Explained</Btn>
-            <Btn sm onClick={() => setStatus(sel.code, 'pending')} style={state[sel.code]?.status === 'pending' ? { background: 'var(--amber-solid)', color: '#fff', borderColor: 'var(--amber)' } : {}}>Pending</Btn>
-            <Btn sm onClick={() => setStatus(sel.code, 'unexplained')} style={state[sel.code]?.status === 'unexplained' ? { background: 'var(--red-solid)', color: '#fff', borderColor: 'var(--red)' } : {}}>Unexpl.</Btn>
+            <Btn sm onClick={() => setStatus(sel.code, 'explained')} style={statusOf(state, sel.code) === 'explained' ? { background: 'var(--green-solid)', color: '#fff', borderColor: 'var(--green)' } : {}}><I.check size={13} /> Dijelaskan</Btn>
+            <Btn sm onClick={() => setStatus(sel.code, 'followup')} style={statusOf(state, sel.code) === 'followup' ? { background: 'var(--amber-solid)', color: '#fff', borderColor: 'var(--amber)' } : {}}>Perlu tindak lanjut</Btn>
+            <Btn sm onClick={() => setStatus(sel.code, 'unexplained')} style={statusOf(state, sel.code) === 'unexplained' ? { background: 'var(--red-solid)', color: '#fff', borderColor: 'var(--red)' } : {}}>Tak dapat dijelaskan</Btn>
           </div>
         </div>
       </Panel>

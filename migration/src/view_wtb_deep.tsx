@@ -1,11 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useAuth, useNav } from './contexts';
 import { assertionCoverage, groupForAccountCode, ASSERTION_STATUS_META } from './canon_selectors';
 import { wpProcedureInputs } from './view_wp';
 import { I } from './icons';
 import { Badge, Btn, Panel, Progress, Seg } from './ui';
+import { statusOf, noteOf, upsertFlux, fluxCounts, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
+import type { FluxState, FluxStatus } from './flux_state';
 
 /* ============================================================
    Asseris — WTB Deep modules
@@ -15,8 +17,13 @@ import { Badge, Btn, Panel, Progress, Seg } from './ui';
    ============================================================ */
 const { useState: useStateWD, useMemo: useMemoWD } = React;
 
-/* Seeded auditor explanations for expected fluctuations (by GL code).
-   A flagged account with no explanation here surfaces as "Perlu tindak lanjut". */
+/* SARAN sistem atas fluktuasi yang lazim (per kode GL) — BUKAN dokumentasi auditor.
+   PR-3b: dulu peta ini dipakai sebagai `note` fallback dan status diturunkan darinya
+   (`status = note ? 'explained' : 'followup'`), sehingga perikatan baru langsung
+   menampilkan akun "Dijelaskan" berikut narasi yang menyebut angka & referensi WP yang
+   tak pernah dikerjakan siapa pun — bukti audit fiktif (SA 520 ¶7 menempatkan investigasi
+   & dokumentasinya sebagai asersi AUDITOR). Kini hanya ditawarkan sebagai draf awal di
+   editor, dan TIDAK pernah menetapkan status. */
 const DEFAULT_EXPL = {
   '1-1100': 'Kenaikan kas dari percepatan penagihan akhir tahun & penarikan fasilitas modal kerja; rekonsiliasi bank cocok (WP A).',
   '1-1200': 'Sejalan pertumbuhan penjualan 16,7%. DSO 54→56 hari (wajar). Cut-off & konfirmasi piutang dijalankan (WP B).',
@@ -50,7 +57,7 @@ const grpKind = (g: any) => g.startsWith('Aset') ? 'aset' : g.startsWith('Liabil
    berbasis PM dinonaktifkan dengan jujur alih-alih membandingkan terhadap NaN, yang dulu
    selalu menghasilkan `false` diam-diam (nol akun > PM, nol fluktuasi ter-flag).
    `absThr <= 0` berarti kriteria nominal dimatikan; kriteria persentase tetap berlaku. */
-function computeWtbSummary(wtb: any, pm: number | null, opts?: any) {
+function computeWtbSummary(wtb: any, pm: number | null, opts?: any, fluxState?: FluxState) {
   const absThrRaw = (opts && opts.absThr != null) ? opts.absThr : pm;     // Rupiah
   const absThr: number | null = (typeof absThrRaw === 'number' && absThrRaw > 0) ? absThrRaw : null;
   const pctThr = (opts && opts.pctThr != null) ? opts.pctThr : 20;        // %
@@ -67,20 +74,28 @@ function computeWtbSummary(wtb: any, pm: number | null, opts?: any) {
     const isNew = r.ly === 0;
     const pct = isNew ? (delta !== 0 ? Infinity : 0) : (delta / Math.abs(r.ly)) * 100;
     const flagged = (absThr != null && Math.abs(delta) >= absThr) || Math.abs(pct) >= pctThr;
-    const noteText = (r.note != null && r.note !== '') ? r.note : ((DEFAULT_EXPL as any)[r.code] || '');
-    const status = r.revStatus || (noteText ? 'explained' : 'followup');
-    return { ...r, kind: k, delta, pct, isNew, flagged, noteText, status };
+    /* PR-3: status HANYA dari telaah tersimpan; ketiadaannya = belum ditelaah.
+       Saran seed dibawa terpisah (`suggestion`) agar dapat ditawarkan di editor
+       tanpa pernah menyamar sebagai dokumentasi auditor. */
+    const status = statusOf(fluxState, r.code);
+    const noteText = noteOf(fluxState, r.code);
+    const suggestion = (DEFAULT_EXPL as any)[r.code] || '';
+    return { ...r, kind: k, delta, pct, isNew, flagged, noteText, suggestion, status };
   });
   const laba = revMag - beban;
   const flagged = rows.filter((r: any) => r.flagged);
-  const explained = flagged.filter((r: any) => r.status === 'explained').length;
-  const followup = flagged.length - explained;
+  const counts = fluxCounts(flagged.map((r: any) => r.code), fluxState);
+  const explained = counts.explained;
+  /* `followup` = pekerjaan telaah yang BELUM tuntas (followup + unexplained + unreviewed).
+     Namanya warisan; komponen menampilkan rinciannya lewat `counts` agar "belum ditelaah"
+     tak lagi dilabeli "perlu tindak lanjut" — itu dua keadaan berbeda menurut SA 520. */
+  const followup = counts.outstanding;
   return {
     rows, totAset, liabMag, ekuMag, revMag, beban, laba,
     neracaDiff: totAset - (liabMag + ekuMag),
     margin: revMag ? (laba / revMag) * 100 : 0,
     overPm, absThr, pctThr, pmAvailable: pm != null,
-    flaggedCount: flagged.length, explained, followup,
+    flaggedCount: flagged.length, explained, followup, counts,
   };
 }
 window.computeWtbSummary = computeWtbSummary;
@@ -168,8 +183,15 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
         value={pm != null ? summary.overPm + ' akun' : '—'}
         accent={pm == null ? 'var(--ink-3)' : summary.overPm ? 'var(--amber)' : 'var(--green)'}
         sub={pm != null ? 'Performance Materiality Rp ' + fmt(pm / 1e6, 0) + ' jt' : 'Materialitas perikatan belum ditetapkan (SA 320)'} />
+      {/* Sub-label MERINCI sisa pekerjaan: "belum ditelaah" (tak ada yang melihat) berbeda
+          dari "perlu tindak lanjut" (auditor sudah melihat & menandai) — distingsi yang
+          justru dibangun `fluxCounts`, sempat dikaburkan menjadi satu angka. */}
       <Tile label="Telaah Pergerakan" value={summary.explained + ' / ' + summary.flaggedCount} accent={summary.followup ? 'var(--amber)' : 'var(--green)'} onClick={onGotoReview}
-        sub={(summary.followup ? summary.followup + ' perlu tindak lanjut' : 'Selesai') + ' · SA 520'}>
+        sub={(summary.followup
+          ? [summary.counts.unreviewed && summary.counts.unreviewed + ' belum ditelaah',
+            summary.counts.followup && summary.counts.followup + ' perlu tindak lanjut',
+            summary.counts.unexplained && summary.counts.unexplained + ' tak dapat dijelaskan'].filter(Boolean).join(' · ')
+          : 'Selesai') + ' · SA 520'}>
         <div className="pbar" style={{ marginTop: 2 }}><span style={{ width: reviewPct + '%', background: summary.followup ? 'var(--amber)' : 'var(--green)' }} /></div>
       </Tile>
     </div>
@@ -180,28 +202,46 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
 function WtbAnalytical({ pm, onOpenAccount }: any) {
   const { fmt } = AMS;
   const audit = useAudit();
-  const { wtb, setWtbOverrides, addReviewNote, aje } = audit;
+  const { wtb, fluxState, setFluxState, fluxThreshold, setFluxThreshold, addReviewNote, aje } = audit;
+  const auth = useAuth();   // null di luar provider — hook TETAP dipanggil tanpa syarat
   const nav = useNav();
-  const [absJt, setAbsJt] = useStateWD(pm != null ? Math.round(pm / 1e6) : 0);
-  const [pct, setPct] = useStateWD(20);
+  /* PR-3a — ambang dari SSOT bersama; `absJt` null = turunkan dari PM (perilaku lama). */
+  const absJt: number = (fluxThreshold && fluxThreshold.absJt != null) ? fluxThreshold.absJt : (pm != null ? Math.round(pm / 1e6) : 0);
+  const pct: number = (fluxThreshold && typeof fluxThreshold.pctThr === 'number') ? fluxThreshold.pctThr : 20;
+  const setAbsJt = (v: number) => setFluxThreshold((t: { absJt: number | null; pctThr: number }) => ({ ...t, absJt: v }));
+  const setPct = (v: number) => setFluxThreshold((t: { absJt: number | null; pctThr: number }) => ({ ...t, pctThr: v }));
   const [scope, setScope] = useStateWD('sig'); // sig | all
   const [selKey, setSelKey] = useStateWD(null);
   const [draft, setDraft] = useStateWD('');
 
-  const summary = useMemoWD(() => computeWtbSummary(wtb, pm, { absThr: absJt * 1e6, pctThr: pct }), [wtb, pm, absJt, pct]);
+  const summary = useMemoWD(() => computeWtbSummary(wtb, pm, { absThr: absJt * 1e6, pctThr: pct }, fluxState), [wtb, pm, absJt, pct, fluxState]);
   const list = scope === 'sig' ? summary.rows.filter((r: any) => r.flagged) : summary.rows;
   const sel = summary.rows.find((r: any) => r.key === selKey) || null;
 
-  React.useEffect(() => { setDraft(sel ? sel.noteText : ''); }, [selKey]);
+  /* Draf editor: catatan auditor bila ada, else SARAN sistem sebagai titik awal
+     (ditandai jelas di bawah kotak — lihat label "Saran sistem"). */
+  React.useEffect(() => { setDraft(sel ? (sel.noteText || sel.suggestion || '') : ''); }, [selKey]);
 
   const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
   const pctStr = (r: any) => r.isNew ? 'baru' : (r.pct > 0 ? '+' : '') + fmt(r.pct, 1) + '%';
+  /* jejak penyimpan telaah; entri warisan (pra-PR-3) tak punya penulis/waktu —
+     dinyatakan apa adanya alih-alih dikarang. */
+  const savedBy = (code: string) => {
+    const e = fluxState && fluxState[code];
+    if (!e) return '';
+    const who = e.by || 'penulis tak tercatat';
+    const when = e.at ? new Date(e.at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'waktu tak tercatat';
+    return who + ' · ' + when;
+  };
 
-  const save = (status: any) => {
+  /* PR-3: tulis ke SSOT `fluxState.v1` (engagement + WP_EDIT — Junior Auditor pun bisa
+     mendokumentasikan; store lama `wtbOverrides` ber-AJE_EDIT yang tak dipegang Junior).
+     Di-key per KODE akun agar bertahan saat WTB di-impor/petakan ulang, dan menstempel
+     penulis + waktu (SA 230) yang dulu tak ada sama sekali. */
+  const save = (status: FluxStatus) => {
     if (!sel) return;
-    // Override di-key per KODE akun (identitas stabil), bukan sel.key posisi — agar
-    // catatan/status reviu bertahan saat WTB di-impor/petakan ulang (sinkron contexts.jsx).
-    setWtbOverrides((o: any) => ({ ...o, [sel.code]: { ...(o[sel.code] || {}), note: draft, revStatus: status } }));
+    const actor = (auth && auth.user) ? { name: auth.user.name, role: auth.user.role } : null;
+    setFluxState((s: FluxState) => upsertFlux(s, sel.code, { status, note: draft }, actor, new Date().toISOString()));
   };
   const relAje = (code: any) => aje.filter((a: any) => Array.isArray(a.lines)
     ? a.lines.some((l: any) => l.code === code)
@@ -225,14 +265,16 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
             <span className="tiny muted">%</span>
           </div>
           <button className="btn sm" disabled={pm == null} title={pm == null ? 'Materialitas perikatan belum ditetapkan (SA 320)' : 'Kembalikan ambang ke performance materiality'}
-            onClick={() => { if (pm == null) return; setAbsJt(Math.round(pm / 1e6)); setPct(20); }}><I.sync size={12} /> Reset ke PM</button>
+            onClick={() => { if (pm == null) return; setFluxThreshold({ absJt: Math.round(pm / 1e6), pctThr: 20 }); }}><I.sync size={12} /> Reset ke PM</button>
           {absJt <= 0 && <span className="tiny muted">ambang nominal nonaktif — hanya kriteria %</span>}
         </div>
         <div className="vdivider" style={{ height: 26 }} />
         <div className="row ac gap12" style={{ flex: 1 }}>
           <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)' }}>{summary.flaggedCount}</div><div className="tiny muted">fluktuasi signifikan</div></div>
           <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--green)' }}>{summary.explained}</div><div className="tiny muted">dijelaskan</div></div>
-          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.followup ? 'var(--amber)' : 'var(--ink-3)' }}>{summary.followup}</div><div className="tiny muted">perlu tindak lanjut</div></div>
+          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.counts.followup ? 'var(--amber)' : 'var(--ink-3)' }}>{summary.counts.followup}</div><div className="tiny muted">perlu tindak lanjut</div></div>
+          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.counts.unexplained ? 'var(--red)' : 'var(--ink-3)' }}>{summary.counts.unexplained}</div><div className="tiny muted">tak dapat dijelaskan</div></div>
+          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.counts.unreviewed ? 'var(--amber)' : 'var(--ink-3)' }}>{summary.counts.unreviewed}</div><div className="tiny muted">belum ditelaah</div></div>
           <div style={{ flex: 1, maxWidth: 200 }}><Progress value={summary.flaggedCount ? (summary.explained / summary.flaggedCount) * 100 : 100} color={summary.followup ? 'var(--amber)' : 'var(--green)'} /></div>
         </div>
         <Seg options={[{ value: 'sig', label: 'Signifikan' }, { value: 'all', label: 'Semua akun' }]} value={scope} onChange={setScope} />
@@ -264,10 +306,14 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                     <td className="num" style={{ color: 'var(--ink-2)' }}>{r.delta > 0 ? '+' : ''}{num(r.delta)}</td>
                     <td className="num tiny" style={{ color: r.isNew ? 'var(--purple)' : Math.abs(r.pct) >= pct ? 'var(--amber)' : 'var(--ink-3)', fontWeight: 600 }}>{pctStr(r)}</td>
                     <td><TrendBars py={r.ly} cy={r.adj} /></td>
-                    <td className="truncate tiny" style={{ maxWidth: 260, color: r.noteText ? 'var(--ink-2)' : 'var(--ink-4)' }}>{r.noteText || (r.flagged ? '— belum dijelaskan —' : 'dalam ambang')}</td>
+                    <td className="truncate tiny" style={{ maxWidth: 260, color: r.noteText ? 'var(--ink-2)' : 'var(--ink-4)' }}>
+                      {r.noteText || (r.flagged ? (r.suggestion ? '— ada saran sistem, belum ditelaah —' : '— belum ditelaah —') : 'dalam ambang')}
+                    </td>
                     <td>
                       {r.flagged
-                        ? <Badge kind={r.status === 'explained' ? 'green' : 'amber'}>{r.status === 'explained' ? 'Dijelaskan' : 'Perlu tindak lanjut'}</Badge>
+                        ? (r.status
+                          ? <Badge kind={fluxStatusKind(r.status)}>{FLUX_STATUS_LABEL[r.status as FluxStatus]}</Badge>
+                          : <Badge>Belum ditelaah</Badge>)
                         : <span className="tiny muted">— wajar —</span>}
                     </td>
                   </tr>
@@ -332,12 +378,27 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
                   <textarea value={draft} onChange={(e: any) => setDraft(e.target.value)} rows={4}
                     placeholder="Jelaskan penyebab fluktuasi & prosedur yang dijalankan…"
                     style={{ width: '100%', border: '1px solid var(--line-strong)', borderRadius: 5, padding: '7px 9px', fontSize: 12, fontFamily: 'var(--ui)', resize: 'vertical', outline: 'none', color: 'var(--ink)' }} />
-                  {!sel.note && (DEFAULT_EXPL as any)[sel.code] && <span className="tiny muted" style={{ marginTop: 3 }}>Saran sistem dimuat — sunting bila perlu.</span>}
+                  {/* PR-3b — saran ditandai sebagai saran; status tetap "belum ditelaah"
+                      sampai auditor menekan salah satu tombol di bawah. */}
+                  {!sel.noteText && sel.suggestion && (
+                    <span className="tiny" style={{ marginTop: 3, color: 'var(--amber)' }}>
+                      Draf ini <b>saran sistem</b>, belum dokumentasi Anda — sunting & simpan untuk menjadikannya telaah.
+                    </span>
+                  )}
                 </div>
+
+                {/* jejak telaah tersimpan (SA 230) */}
+                {sel.status && (
+                  <div className="row ac jb tiny muted" style={{ marginBottom: 8, padding: '5px 8px', border: '1px solid var(--line)', borderRadius: 5 }}>
+                    <span><Badge kind={fluxStatusKind(sel.status)}>{FLUX_STATUS_LABEL[sel.status as FluxStatus]}</Badge></span>
+                    <span>{savedBy(sel.code)}</span>
+                  </div>
+                )}
 
                 <div className="row gap8" style={{ marginBottom: 8 }}>
                   <Btn sm variant="primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => save('explained')}><I.check size={13} /> Tandai Dijelaskan</Btn>
                   <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={() => save('followup')}><I.flag size={13} /> Perlu Tindak Lanjut</Btn>
+                  <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={() => save('unexplained')}><I.alert size={13} /> Tak Dapat Dijelaskan</Btn>
                 </div>
                 <div className="row gap8">
                   <Btn sm style={{ flex: 1, justifyContent: 'center' }} onClick={() => { addReviewNote({ text: `Telaah pergerakan ${sel.code} ${sel.name}: ${draft || 'mohon dokumentasikan penyebab fluktuasi.'}`, module: 'wtb', moduleLabel: 'Working Trial Balance', to: 'Dimas R.', priority: 'medium' }); nav('reviewnotes'); }}><I.doc size={13} /> Buat Review Note</Btn>

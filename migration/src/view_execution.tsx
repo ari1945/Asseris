@@ -1,12 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav, useInitialTab } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
-import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary } from './view_wtb_deep';
+import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, DEFAULT_EXPL } from './view_wtb_deep';
+import { noteOf, statusOf, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
 import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
 import { parseTrialBalance, computeCoverage, UNIT_LABEL } from './wtb_import';
@@ -37,14 +38,16 @@ const WTB_TABS = [
 
 function WTBView() {
   const { fmt, rp } = AMS;
-  const { wtb, ajeTotalPosted, wtbImport, aje } = useAudit();
+  const { wtb, ajeTotalPosted, wtbImport, aje, fluxState, fluxThreshold } = useAudit();
   /* PR-2c — WTB tak pernah membaca `locked` padahal AJE di berkas yang sama melakukannya:
      di dalam jendela perakitan SA 230 ¶A21, TB perikatan terarsip bisa diimpor ulang tanpa
      banner & tanpa tombol nonaktif; setelah 60 hari server menolak dengan FORBIDDEN mentah
      tanpa penjelasan UI. */
   const { activeEngagement, activeClient, locked } = useFirm();
   const nav = useNav();
-  const [tab, setTab] = useStateX('tb');
+  /* deep-link tab (PRD 2026-07-18): `nav('wtb', { tab: 'review' })` dari SA 520 membuka
+     langsung Telaah Pergerakan; tanpa deep-link perilaku lama (tab 'tb'). */
+  const [tab, setTab] = useInitialTab('wtb', 'tb');
   const [showAdj, setShowAdj] = useStateX(true);
   const [q, setQ] = useStateX('');
   const [collapsed, setCollapsed] = useStateX({});
@@ -98,7 +101,16 @@ function WTBView() {
   };
   /* PR-1b — impor ESM langsung (dulu `window.computeWtbSummary?.()`, sisa era buildless:
      bila global belum terpasang hasilnya `undefined` → WtbKpiBand crash di summary.neracaDiff). */
-  const summary = useMemoX(() => computeWtbSummary(wtb, pm), [wtb, pm]);
+  /* PR-3a — KPI band memakai ambang BERSAMA yang sama dengan tab & modul `analytical`;
+     sebelumnya ia diam-diam memakai default 20%/PM sehingga penyebut "x / y" di KPI
+     berbeda dari daftar di bawahnya begitu auditor menggeser ambang. */
+  const summary = useMemoX(
+    () => computeWtbSummary(wtb, pm, {
+      absThr: (fluxThreshold && fluxThreshold.absJt != null) ? fluxThreshold.absJt * 1e6 : pm,
+      pctThr: (fluxThreshold && typeof fluxThreshold.pctThr === 'number') ? fluxThreshold.pctThr : 20,
+    }, fluxState),
+    [wtb, pm, fluxState, fluxThreshold],
+  );
 
   // group rows
   const shown = useMemoX(
@@ -900,7 +912,7 @@ function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
 /* WTB account drill — synthetic sub-ledger transactions + lead schedule link */
 function WtbDrill({ row, onClose, nav }: any) {
   const { fmt } = AMS;
-  const { aje, wtbLedger } = useAudit();
+  const { aje, wtbLedger, fluxState } = useAudit();
   const [dtab, setDtab] = useStateX('ledger');
   // W-WTB·4 — detail GL nyata bila diimpor (tie-out ke unadj, sadar srcCodes); else sintetik
   const glTie: LedgerTieOut = ledgerForRow(wtbLedger || {}, row);
@@ -929,7 +941,13 @@ function WtbDrill({ row, onClose, nav }: any) {
     : ((a.dr && a.dr.split(' ')[0] === row.code) || (a.cr && a.cr.split(' ')[0] === row.code)));
   const delta = row.adj - row.ly;
   const pct = row.ly !== 0 ? (delta / Math.abs(row.ly)) * 100 : null;
-  const expl = (window.DEFAULT_EXPL || {})[row.code] || (row.note || '');
+  /* PR-3b — presedens DIPERBAIKI. Dulu `DEFAULT_EXPL[code] || row.note`: saran seed
+     mengalahkan catatan auditor sendiri (kebalikan dari computeWtbSummary), sehingga
+     setelah auditor menulis penjelasan, drill tetap menampilkan teks kaleng. Kini
+     dokumentasi auditor menang, dan saran ditampilkan sebagai saran. */
+  const explNote = noteOf(fluxState, row.code);
+  const explStatus = statusOf(fluxState, row.code);
+  const explSuggestion = (DEFAULT_EXPL as Record<string, string>)[row.code] || '';
   const DTABS = [
     { id: 'ledger', label: 'Buku Besar', n: glTie.hasDetail ? glTie.lines.length : txns.length },
     { id: 'move', label: 'Pergerakan' },
@@ -1023,8 +1041,18 @@ function WtbDrill({ row, onClose, nav }: any) {
                   <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3 }}>Unadjusted {fmt(row.unadj / 1e6, 1)} {row.aje ? <>+ AJE <b style={{ color: 'var(--blue)' }}>{fmt(row.aje / 1e6, 1)}</b></> : null} = <b>{fmt(row.adj / 1e6, 1)}</b> jt</div>
                 </div>
               </div>
-              <div className="tiny muted upper" style={{ marginBottom: 5 }}>Penjelasan Analitis (SA 520)</div>
-              <div style={{ padding: '9px 11px', border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', borderRadius: 5, fontSize: 12, lineHeight: 1.55, color: expl ? 'var(--ink-2)' : 'var(--ink-4)' }}>{expl || 'Belum ada penjelasan terdokumentasi — buka tab Analisis Pergerakan untuk mendokumentasikan.'}</div>
+              <div className="row ac jb" style={{ marginBottom: 5 }}>
+                <span className="tiny muted upper">Penjelasan Analitis (SA 520)</span>
+                {explStatus && <Badge kind={fluxStatusKind(explStatus)}>{FLUX_STATUS_LABEL[explStatus]}</Badge>}
+              </div>
+              {explNote ? (
+                <div style={{ padding: '9px 11px', border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', borderRadius: 5, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>{explNote}</div>
+              ) : (
+                <div style={{ padding: '9px 11px', border: '1px solid var(--line)', borderLeft: '3px solid var(--ink-4)', borderRadius: 5, fontSize: 12, lineHeight: 1.55, color: 'var(--ink-4)' }}>
+                  Belum ada penjelasan terdokumentasi — buka tab Analisis Pergerakan untuk mendokumentasikan.
+                  {explSuggestion && <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px dashed var(--line)' }}><b style={{ color: 'var(--amber)' }}>Saran sistem:</b> {explSuggestion}</div>}
+                </div>
+              )}
             </div>
           )}
 
