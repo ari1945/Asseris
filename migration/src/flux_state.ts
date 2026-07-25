@@ -191,6 +191,32 @@ export function fluxCounts(flaggedCodes: string[], state: FluxState | null | und
   return { explained, followup, unexplained, unreviewed, total, outstanding: total - explained };
 }
 
+/* ------------------------------------------------------------
+   Ambang fluktuasi — SATU aturan untuk semua permukaan.
+
+   PR-3a memindahkan ambang ke SSOT, tapi hanya SEBAGIAN konsumen diubah: KPI Ringkasan
+   `analytical` tetap memakai aturan lokal (AND, 15%) sementara tab Flux & WTB memakai
+   (OR, 20%/PM). Akibatnya satu perikatan menampilkan "23 fluktuasi signifikan" di WTB/SA 520
+   dan "12 fluktuasi tak terduga" di Ringkasan — modul yang sama bertentangan dengan dirinya.
+   Predikat di bawah ini adalah rumusnya; konsumen TIDAK boleh menulis ulang aturannya.
+   ------------------------------------------------------------ */
+export interface FluxThreshold { absJt?: number | null; pctThr?: number | null }
+export interface ResolvedFluxThreshold { absThr: number | null; pctThr: number }
+
+/** Ambang efektif: nominal Rupiah (absJt jutaan, fallback PM) + persentase (fallback 20%). */
+export function fluxThresholds(thr: FluxThreshold | null | undefined, pm: number | null | undefined): ResolvedFluxThreshold {
+  const raw = (thr && thr.absJt != null) ? thr.absJt * 1e6 : (pm != null ? pm : null);
+  return {
+    absThr: (typeof raw === 'number' && raw > 0) ? raw : null,
+    pctThr: (thr && typeof thr.pctThr === 'number') ? thr.pctThr : 20,
+  };
+}
+
+/** Signifikan bila melampaui ambang nominal ATAU ambang persentase (bukan keduanya). */
+export function isFluxFlagged(dAbs: number, dPct: number, t: ResolvedFluxThreshold): boolean {
+  return (t.absThr != null && Math.abs(dAbs) >= t.absThr) || Math.abs(dPct) >= t.pctThr;
+}
+
 export const FLUX_STATUS_LABEL: Record<FluxStatus, string> = {
   explained: 'Dijelaskan',
   followup: 'Perlu tindak lanjut',

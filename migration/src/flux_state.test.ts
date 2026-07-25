@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   mergeLegacyFlux, statusOf, noteOf, upsertFlux, setFluxExpectation, clearFlux, fluxCounts,
+  fluxThresholds, isFluxFlagged,
 } from './flux_state';
 import type { FluxState } from './flux_state';
 
@@ -124,5 +125,27 @@ describe('fluxCounts — akun tanpa telaah TIDAK dihitung dijelaskan', () => {
   it('telaah atas akun yang TIDAK ter-flag tak ikut terhitung', () => {
     const s = upsertFlux({}, 'z', { status: 'explained', note: '' }, ARI, AT);
     expect(fluxCounts(['a'], s)).toMatchObject({ explained: 0, unreviewed: 1 });
+  });
+});
+
+describe('ambang fluktuasi — SATU aturan untuk semua permukaan', () => {
+  it('ambang tersimpan menang atas PM; fallback ke PM lalu 20%', () => {
+    expect(fluxThresholds({ absJt: 500, pctThr: 15 }, 3_188_000_000)).toEqual({ absThr: 500_000_000, pctThr: 15 });
+    expect(fluxThresholds(null, 3_188_000_000)).toEqual({ absThr: 3_188_000_000, pctThr: 20 });
+    expect(fluxThresholds(null, null)).toEqual({ absThr: null, pctThr: 20 });
+  });
+
+  it('aturan OR — nominal ATAU persentase, bukan keduanya (dulu Ringkasan analytical memakai AND)', () => {
+    const t = fluxThresholds({ absJt: 1000, pctThr: 20 }, null);
+    expect(isFluxFlagged(2_000_000_000, 5, t)).toBe(true);    // nominal saja
+    expect(isFluxFlagged(10_000_000, 45, t)).toBe(true);      // persentase saja
+    expect(isFluxFlagged(10_000_000, 5, t)).toBe(false);
+  });
+
+  it('tanpa PM & tanpa ambang nominal, kriteria persentase tetap berlaku', () => {
+    const t = fluxThresholds({ absJt: null, pctThr: 20 }, null);
+    expect(t.absThr).toBe(null);
+    expect(isFluxFlagged(9_999_999_999, 3, t)).toBe(false);
+    expect(isFluxFlagged(1, 25, t)).toBe(true);
   });
 });

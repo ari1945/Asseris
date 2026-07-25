@@ -13,7 +13,7 @@ import { amsExportXlsx } from './export_xlsx';
 import { parseTrialBalance, computeCoverage, UNIT_LABEL, leadFromCode } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow, TbUnit } from './wtb_import';
 import { diffWtb, summarizeImport, pushHistory } from './wtb_provenance';
-import { tieOutPriorYear, tieStatusFor, TIE_LABEL } from './prior_year';
+import { isTieException, tieOutPriorYear, tieStatusFor, TIE_LABEL } from './prior_year';
 import type { TieResult, TieRow, TieStatus } from './prior_year';
 import type { ImportDiff, ImportProvenance } from './wtb_provenance';
 import { sha256Hex } from './export_xlsx';
@@ -236,8 +236,12 @@ function WTBView() {
                               <td className="num muted">
                                 <span className="row ac gap5" style={{ justifyContent: 'flex-end' }}>
                                   {(() => {
-                                    const ts = tieStatusFor(r.code, r.ly, priorYearBalances);
-                                    if (ts === 'no-source' || ts === 'tied') return null;
+                                    /* Hanya PENGECUALIAN sungguhan yang ditandai. Akun laba-rugi &
+                                       akun bersaldo awal nol tak punya saldo awal untuk ditelusuri —
+                                       menandainya membuat 21 dari 22 penanda jadi derau dan
+                                       mengubur satu-satunya selisih nyata. */
+                                    const ts = tieStatusFor(r, priorYearBalances);
+                                    if (!isTieException(ts)) return null;
                                     return <span title={TIE_LABEL[ts]} style={{ color: ts === 'missing' ? 'var(--purple)' : 'var(--amber)' }}><I.alert size={11} /></span>;
                                   })()}
                                   {num(r.ly)}
@@ -552,19 +556,23 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
               ))}
               {(preview || (current.hasSource && !parsed)) && (() => {
                 const t = preview || current;
-                const shown = t.rows.filter((r: TieRow) => r.status !== 'tied' && r.status !== 'no-source');
+                const shown = t.rows.filter((r: TieRow) => isTieException(r.status));
                 return (<>
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
                     {[['Cocok', t.tied, 'var(--green)'], ['Selisih', t.untied, t.untied ? 'var(--amber)' : 'var(--ink-3)'],
-                      ['Tak ada di TA-1', t.missing, t.missing ? 'var(--purple)' : 'var(--ink-3)'], ['Hilang dari TB', t.orphan, t.orphan ? 'var(--red)' : 'var(--ink-3)']].map(([l, v, c]) => (
+                      ['Belum tertelusur', t.missing, t.missing ? 'var(--purple)' : 'var(--ink-3)'], ['Hilang dari TB', t.orphan, t.orphan ? 'var(--red)' : 'var(--ink-3)']].map(([l, v, c]) => (
                         <div key={String(l)} className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: 'var(--surface-2)' }}>
                           <div className="tiny muted upper">{String(l)}</div>
                           <div className="mono" style={{ fontWeight: 700, color: String(c) }}>{String(v)}</div>
                         </div>
                       ))}
                   </div>
+                  <div className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.45 }}>
+                    Lingkup: pos neraca ({t.outOfScope} akun laba rugi & {t.nilOpening} akun bersaldo awal nol dikecualikan — tak punya saldo awal untuk ditelusuri).
+                    {t.missing > 0 && <> Nilai belum tertelusur <b className="mono">{m(t.untracedTotal)}</b> jt.</>}
+                  </div>
                   {shown.length === 0
-                    ? <div className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> Seluruh saldo awal tertelusur ke TA-1 audited.</div>
+                    ? <div className="row ac gap6 tiny" style={{ color: 'var(--green)', fontWeight: 600 }}><I.checkCircle size={14} /> Seluruh saldo awal dalam lingkup tertelusur ke TA-1 audited.</div>
                     : (
                       <div style={{ border: '1px solid var(--line)', borderRadius: 6, overflow: 'auto', maxHeight: 260 }}>
                         <table className="dtbl">
@@ -575,7 +583,11 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
                                 <td><div className="truncate" style={{ maxWidth: 140 }}>{r.name}</div><div className="mono tiny muted">{r.code}</div></td>
                                 <td className="num muted">{r.priorClose != null ? m(r.priorClose) : '—'}</td>
                                 <td className="num">{m(r.opening)}</td>
-                                <td className="num" style={{ fontWeight: 600, color: 'var(--amber)' }}><span className={r.diff < 0 ? 'neg' : ''}>{m(r.diff)}</span></td>
+                                {/* "Selisih" hanya bermakna bila ada pembanding TA-1; untuk baris
+                                    yang belum tertelusur, kolom ini kosong — bukan angka sebesar saldo. */}
+                                <td className="num" style={{ fontWeight: 600, color: 'var(--amber)' }}>
+                                  {r.priorClose == null && r.status === 'missing' ? <span className="muted">—</span> : <span className={r.diff < 0 ? 'neg' : ''}>{m(r.diff)}</span>}
+                                </td>
                                 <td><Badge kind={badge(r.status)}>{TIE_LABEL[r.status]}</Badge></td>
                               </tr>
                             ))}

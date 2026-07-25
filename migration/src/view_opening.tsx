@@ -87,6 +87,20 @@ function OpeningBalance() {
   const readiness = predecessorReadiness(s.predSteps || {});
   const canEdit = !!(auth && typeof auth.can === 'function' && auth.can(CAP.WP_EDIT));
 
+  /* Kesimpulan saldo awal DITURUNKAN — dulu badge ini hardcoded hijau "Dapat Diandalkan",
+     tampil sama persis baik ketika belum ada sumber TA-1 maupun ketika tie-out menyisakan
+     selisih tak dijelaskan. Hijau kini menuntut dua hal sekaligus: bukti tie-out bersih DAN
+     auditor menekan "Simpulkan" (pola PR-3 — status hanya dari auditor, bukan dari sistem). */
+  const obTie: TieResult = tieOutPriorYear((wtb || []) as { code: string; name?: string; ly?: number; group?: string }[], priorYearBalances);
+  const obExceptions = obTie.untied + obTie.missing + obTie.orphan;
+  const obVerdict: { k: string; l: string; t: string } = !obTie.hasSource
+    ? { k: 'amber', l: 'Belum Dapat Disimpulkan', t: 'Belum ada sumber saldo audited TA-1 — tak ada pembanding independen untuk menyimpulkan saldo awal (SA 510 ¶6).' }
+    : obExceptions > 0
+      ? { k: 'amber', l: 'Selisih Belum Dijelaskan', t: `${obTie.untied} selisih · ${obTie.missing} belum tertelusur · ${obTie.orphan} hilang dari TB berjalan.` }
+      : !s.concluded
+        ? { k: 'blue', l: 'Menunggu Simpulan Auditor', t: 'Tie-out bersih. Kesimpulan menanti tindakan auditor — tekan "Simpulkan".' }
+        : { k: 'green', l: 'Dapat Diandalkan', t: 'Tie-out bersih dan telah disimpulkan auditor.' };
+
   const setEngType = (v: 'lanjutan' | 'awal') => setSt((p: OBState) => ({ ...p, engType: v }));
   const patchFactor = (i: number, patch: Partial<AssessmentFactor>) => setSt((p: OBState) => {
     const base = (p.factors && p.factors.length) ? p.factors : OB_RISK_FACTORS();
@@ -167,7 +181,7 @@ function OpeningBalance() {
             <div style={{ flex: 1 }} />
             <div style={{ textAlign: 'right' }}>
               <div className="tiny muted upper" style={{ marginBottom: 3 }}>Kesimpulan Saldo Awal</div>
-              <Badge kind="green" dot>Dapat Diandalkan</Badge>
+              <span title={obVerdict.t}><Badge kind={obVerdict.k} dot>{obVerdict.l}</Badge></span>
             </div>
           </div>
         </Panel>
@@ -415,7 +429,10 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
                   ? (t && t.priorClose != null ? t.priorClose : null)
                   : (isT ? 0 : null);
                 const opening = isT ? (OB_TRANSITION as any)[r.code] : r.ly;
-                const diff = priorClose != null ? opening - priorClose : 0;
+                /* Selisih diambil dari mesin, tidak dihitung ulang di sini — dulu kedua
+                   permukaan memakai rumus sendiri dan menghasilkan angka berbeda untuk
+                   akun yang sama (drawer WTB: sebesar saldo; di sini: "—"). */
+                const diff = isT ? 0 : (t ? t.diff : 0);
                 totClose += priorClose || 0; totOpen += opening; totDiff += diff;
                 if (isT) transition++; else if (tie.hasSource && t && t.status === 'tied') matched++;
                 return (
@@ -442,7 +459,7 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
         </tbody>
         <tfoot><tr>
           <td colSpan={3}>{tie.hasSource
-            ? `Total — ${matched} cocok · ${tie.untied} selisih · ${tie.missing} tak ada di TA-1 · ${transition} transisi`
+            ? `Total — ${matched} cocok · ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${transition} transisi`
             : `Total — ${transition} transisi · sisanya TAK DAPAT DIVERIFIKASI (belum ada sumber TA-1)`}</td>
           <td className="num mono">{fmt(totClose / 1e6, 0)}</td>
           <td className="num mono">{fmt(totOpen / 1e6, 0)}</td>
@@ -450,9 +467,28 @@ function OBTrace({ wtb, fmt, priorYearBalances, nav }: any) {
           <td></td>
         </tr></tfoot>
       </table>
-      <div className="panel" style={{ margin: 12, padding: '9px 11px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-        <div className="row ac gap8"><span style={{ color: 'var(--green)' }}><I.checkCircle size={15} /></span><span style={{ fontSize: 12, lineHeight: 1.4 }}>Seluruh saldo akhir audited 2024 ditelusuri tepat ke saldo awal 2025. Selisih hanya berasal dari pengakuan transisi PSAK 73 yang telah diuji terpisah (lihat Prosedur Spesifik — Lead F).</span></div>
-      </div>
+      {/* Simpulan tab ini DITURUNKAN dari tie-out, bukan kalimat tetap. Sebelumnya paragraf
+          hijau "seluruh saldo ditelusuri tepat" tampil apa adanya — termasuk ketika belum ada
+          sumber TA-1 sama sekali, tepat di bawah banner yang menyatakan sebaliknya. */}
+      {(() => {
+        const clean = tie.hasSource && tie.untied === 0 && tie.missing === 0 && tie.orphan === 0;
+        const bg = !tie.hasSource ? 'var(--amber-bg)' : clean ? 'var(--green-bg)' : 'var(--amber-bg)';
+        const fg = !tie.hasSource || !clean ? 'var(--amber)' : 'var(--green)';
+        return (
+          <div className="panel" style={{ margin: 12, padding: '9px 11px', background: bg, borderColor: 'transparent' }}>
+            <div className="row ac gap8">
+              <span style={{ color: fg, flex: '0 0 auto' }}>{clean ? <I.checkCircle size={15} /> : <I.alert size={15} />}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.4 }}>{
+                !tie.hasSource
+                  ? 'Penelusuran belum dapat disimpulkan — belum ada sumber saldo audited TA-1 sebagai pembanding independen (SA 510 ¶6). Saldo transisi PSAK 73 diuji terpisah (Prosedur Spesifik — Lead F).'
+                  : clean
+                    ? `Seluruh ${tie.tied} saldo awal dalam lingkup tertelusur ke TA-1 audited. Selisih tersisa hanya dari pengakuan transisi PSAK 73 yang diuji terpisah (Prosedur Spesifik — Lead F).`
+                    : `Penelusuran belum tuntas — ${tie.untied} selisih · ${tie.missing} belum tertelusur · ${tie.orphan} hilang dari TB berjalan. Jelaskan atau selesaikan sebelum menyimpulkan saldo awal dapat diandalkan.`
+              }</span>
+            </div>
+          </div>
+        );
+      })()}
     </Panel>
   );
 }
