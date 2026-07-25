@@ -127,6 +127,75 @@ describe('parseTrialBalance — fallback posisional (tanpa header) & delimiter ;
   });
 });
 
+/* PR-2a — gerbang skala. Uji keseimbangan INVARIAN terhadap skala: TB "dalam ribuan"
+   lolos bersih dengan control total seimbang ✓ sambil understated 1.000×. */
+describe('parseTrialBalance — satuan penyajian (PR-2a)', () => {
+  /* TB yang sama, ditulis dalam RIBUAN (tiga nol dipangkas) */
+  const TB_RIBUAN = [
+    'Kode\tNama\tTA Lalu\tUnadjusted\tAJE',
+    '1-1100\tKas\t900.000\t1.000.000\t0',
+    '1-1200\tPiutang Usaha\t1.800.000\t2.000.000\t-100.000',
+    '2-1100\tUtang Usaha\t-1.200.000\t-1.500.000\t0',
+    '3-2100\tSaldo Laba\t-2.800.000\t-3.000.000\t0',
+    '4-1100\tPenjualan\t-1.800.000\t-2.000.000\t0',
+    '5-1100\tBeban Pokok\t3.000.000\t3.500.000\t100.000',
+  ].join('\n');
+
+  it('default = Rupiah penuh (nol regresi)', () => {
+    const r = parseTrialBalance(BALANCED_TB);
+    expect(r.meta.unit).toBe('full');
+    expect(r.meta.unitFactor).toBe(1);
+    expect(r.rows.find(x => x.code === '1-1100')!.unadj).toBe(1_000_000_000);
+  });
+
+  it('satuan ribuan dikalikan sekali di parser → hilir selalu Rupiah penuh', () => {
+    const r = parseTrialBalance(TB_RIBUAN, { unit: 'thousand' });
+    expect(r.ok).toBe(true);
+    expect(r.meta.unitFactor).toBe(1000);
+    expect(r.rows.find(x => x.code === '1-1100')!.unadj).toBe(1_000_000_000);
+    expect(r.rows.find(x => x.code === '1-1200')!.aje).toBe(-100_000_000);
+    // identik dengan TB Rupiah penuh
+    const full = parseTrialBalance(BALANCED_TB);
+    expect(r.meta.totalAssets).toBe(full.meta.totalAssets);
+  });
+
+  it('satuan jutaan dikalikan 1.000.000', () => {
+    const r = parseTrialBalance('1-1100\tKas\t0\t5\t0\n2-1100\tUtang\t0\t-5\t0', { unit: 'million' });
+    expect(r.rows[0].unadj).toBe(5_000_000);
+  });
+
+  it('SEIMBANG walau salah satuan — bukti gerbang balance tak bisa menangkapnya', () => {
+    const salah = parseTrialBalance(TB_RIBUAN); // seharusnya 'thousand', dibiarkan 'full'
+    expect(salah.meta.balanced).toBe(true);     // ← lolos bersih
+    // total aset = saldo ADJUSTED: 1.000.000 + (2.000.000 − 100.000)
+    expect(salah.meta.totalAssets).toBe(2_900_000);           // understated 1.000×…
+    expect(parseTrialBalance(BALANCED_TB).meta.totalAssets).toBe(2_900_000_000); // …vs yang benar
+  });
+
+  it('total aset < materialitas perikatan → BLOKIR (error), bukan sekadar peringatan', () => {
+    const salah = parseTrialBalance(TB_RIBUAN, { engMateriality: 150_000_000 });
+    expect(salah.ok).toBe(false);
+    expect(salah.issues.some(i => i.code === 'scale-below-materiality' && i.level === 'error')).toBe(true);
+  });
+
+  it('satuan benar + materialitas wajar → lolos tanpa isu skala', () => {
+    const benar = parseTrialBalance(TB_RIBUAN, { unit: 'thousand', engMateriality: 150_000_000 });
+    expect(benar.ok).toBe(true);
+    expect(benar.issues.some(i => i.code.startsWith('scale-'))).toBe(false);
+  });
+
+  it('rasio total aset : materialitas < 10× → peringatan (klien kecil sah tak diblokir)', () => {
+    const r = parseTrialBalance(BALANCED_TB, { engMateriality: 500_000_000 }); // aset 3 M → 6×
+    expect(r.ok).toBe(true);
+    expect(r.issues.some(i => i.code === 'scale-suspect' && i.level === 'warn')).toBe(true);
+  });
+
+  it('tanpa materialitas perikatan gerbang skala nonaktif (tak ada acuan → tak menuduh)', () => {
+    const r = parseTrialBalance(TB_RIBUAN);
+    expect(r.issues.some(i => i.code.startsWith('scale-'))).toBe(false);
+  });
+});
+
 describe('computeCoverage — kejujuran engine PSAK', () => {
   it('semua kode WTB_MAP hadir → seluruh engine menyala', () => {
     const full = new Set(['2-2300', '1-1210', '1-2100', '1-2110', '1-2400', '1-2410', '1-2300', '2-1500', '2-2200', '1-2500', '5-5100']);

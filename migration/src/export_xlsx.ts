@@ -25,7 +25,9 @@ async function loadXlsx() {
   return _xlsx;
 }
 
-async function sha256Hex(str: any) {
+/* Diekspor sejak PR-2b: provenance impor WTB memakai hash yang SAMA dengan segel ekspor,
+   agar tak ada dua implementasi hash yang bisa menyimpang. */
+export async function sha256Hex(str: any) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }

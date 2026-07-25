@@ -9,8 +9,11 @@ import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary } from './view_wtb_deep';
 import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
-import { parseTrialBalance } from './wtb_import';
-import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow } from './wtb_import';
+import { parseTrialBalance, computeCoverage, UNIT_LABEL } from './wtb_import';
+import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow, TbUnit } from './wtb_import';
+import { diffWtb, summarizeImport, pushHistory } from './wtb_provenance';
+import type { ImportDiff, ImportProvenance } from './wtb_provenance';
+import { sha256Hex } from './export_xlsx';
 import { checkWtbIntegrity } from './wtb_integrity';
 import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch } from './wtb_integrity';
 import { STANDARD_COA, autoMap, mappingCoverage } from './wtb_mapping';
@@ -35,7 +38,11 @@ const WTB_TABS = [
 function WTBView() {
   const { fmt, rp } = AMS;
   const { wtb, ajeTotalPosted, wtbImport, aje } = useAudit();
-  const { activeEngagement, activeClient } = useFirm();
+  /* PR-2c — WTB tak pernah membaca `locked` padahal AJE di berkas yang sama melakukannya:
+     di dalam jendela perakitan SA 230 ¶A21, TB perikatan terarsip bisa diimpor ulang tanpa
+     banner & tanpa tombol nonaktif; setelah 60 hari server menolak dengan FORBIDDEN mentah
+     tanpa penjelasan UI. */
+  const { activeEngagement, activeClient, locked } = useFirm();
   const nav = useNav();
   const [tab, setTab] = useStateX('tb');
   const [showAdj, setShowAdj] = useStateX(true);
@@ -128,13 +135,14 @@ function WTBView() {
         <div className="row gap8 ac">
           <span className="tiny muted mono">{pm != null ? `PM: Rp ${fmt(pm / 1e6, 0)} jt` : 'PM belum ditetapkan'}</span>
           <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export XLSX'}</Btn>
-          {wtbImport && wtbImport.rows && <Btn sm onClick={() => setMapOpen(true)} title="Petakan bagan akun klien ke CoA standar"><I.target size={13} /> Petakan Akun</Btn>}
-          <Btn sm onClick={() => setLedgerOpen(true)} title="Impor buku besar (GL) untuk detail sub-ledger nyata"><I.table size={13} /> Impor GL</Btn>
-          <Btn sm variant="primary" onClick={() => setImportOpen(true)}><I.upload size={14} /> Impor TB</Btn>
+          {wtbImport && wtbImport.rows && <Btn sm onClick={() => !locked && setMapOpen(true)} disabled={locked} title={locked ? 'Berkas terarsip — pemetaan terkunci (SA 230 ¶A21)' : 'Petakan bagan akun klien ke CoA standar'}><I.target size={13} /> Petakan Akun</Btn>}
+          <Btn sm onClick={() => !locked && setLedgerOpen(true)} disabled={locked} title={locked ? 'Berkas terarsip — impor terkunci (SA 230 ¶A21)' : 'Impor buku besar (GL) untuk detail sub-ledger nyata'}><I.table size={13} /> Impor GL</Btn>
+          <Btn sm variant="primary" onClick={() => !locked && setImportOpen(true)} disabled={locked} style={{ opacity: locked ? .5 : 1 }} title={locked ? 'Berkas terarsip — impor TB terkunci (SA 230 ¶A21)' : undefined}><I.upload size={14} /> Impor TB</Btn>
         </div>
       } />
       <div className="view-scroll">
         <div className="view-pad">
+          {locked && <LockBanner />}
           <WtbKpiBand summary={summary} pm={pm} onGotoReview={() => setTab('review')} />
           <div className="tabs" style={{ marginBottom: 12 }}>
             {WTB_TABS.map(t => <button key={t.id} className={'tab ' + (tab === t.id ? 'on' : '')} onClick={() => setTab(t.id)}>{t.label}{t.id === 'review' && summary.followup ? <span className="badge b-amber" style={{ marginLeft: 7, padding: '0 6px' }}>{summary.followup}</span> : null}</button>)}
@@ -287,8 +295,9 @@ const SAMPLE_GL = [
 function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
   const { fmt } = AMS;
   const { setWtbLedger, wtbLedger, wtb } = useAudit();
+  const { locked } = useFirm();
   const auth = useAuth();
-  const canImport = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const canImport = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked; // PR-2c
   const hasLedger = !!(wtbLedger && Object.keys(wtbLedger).length);
   const clearLedger = () => { if (!canImport) return; setWtbLedger({}); onClose(); };
   const [text, setText] = useStateX('');
@@ -415,8 +424,9 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
 function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
   const { fmt } = AMS;
   const { wtbImport, wtbMapping, setWtbMapping } = useAudit();
+  const { locked } = useFirm();
   const auth = useAuth();
-  const canMap = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const canMap = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked; // PR-2c
   const srcRows = (wtbImport && Array.isArray(wtbImport.rows)) ? wtbImport.rows : [];
   const [draft, setDraft] = useStateX(() => ({ ...(wtbMapping || {}) }));
   const cov: MappingCoverageResult = useMemoX(() => mappingCoverage(srcRows, draft), [srcRows, draft]);
@@ -532,25 +542,69 @@ const SAMPLE_TB = [
 ].join('\n');
 
 function WtbImportDrawer({ onClose }: { onClose: () => void }) {
-  const { fmt } = AMS;
-  const { setWtbImport, wtbImport } = useAudit();
+  const { fmt, rp } = AMS;
+  const { setWtbImport, wtbImport, wtb } = useAudit();
+  const { activeEngagement, locked } = useFirm();
   const auth = useAuth();
-  const canImport = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const hasCap = !auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT);
+  const canImport = hasCap && !locked;   // PR-2c — berkas terarsip tak boleh di-impor ulang
   const [text, setText] = useStateX('');
-  const parsed: ParseResult | null = useMemoX(() => (text.trim() ? parseTrialBalance(text) : null), [text]);
+  /* PR-2a — satuan DIDEKLARASIKAN (uji keseimbangan invarian skala, jadi TB "dalam ribuan"
+     lolos bersih sambil understated 1.000×). */
+  /* anotasi di LHS, bukan type-arg: `useStateX` untyped (tanpa @types/react) */
+  const [unit, setUnit]: [TbUnit, (v: TbUnit) => void] = useStateX('full');
+  /* PR-2b — provenance: periode diturunkan dari FY perikatan (dapat diubah bila berbeda). */
+  const [period, setPeriod] = useStateX(activeEngagement?.fy || '');
+  const [sourceName, setSourceName] = useStateX('');
+  const [confirming, setConfirming] = useStateX(false);
+  const [busy, setBusy] = useStateX(false);
+  const parsed: ParseResult | null = useMemoX(
+    () => (text.trim() ? parseTrialBalance(text, { unit, engMateriality: activeEngagement?.materiality }) : null),
+    [text, unit, activeEngagement?.materiality],
+  );
   const errors = parsed ? parsed.issues.filter(i => i.level === 'error') : [];
   const warns = parsed ? parsed.issues.filter(i => i.level === 'warn') : [];
   const m = (v: number) => fmt(v / 1e6, 1);
 
-  const apply = () => {
-    if (!parsed || !parsed.ok || !canImport) return;
-    setWtbImport({
-      rows: parsed.rows, meta: parsed.meta, coverage: parsed.coverage,
-      importedAt: new Date().toISOString(), source: 'paste-csv',
-    });
-    onClose();
+  /* PR-2b — dampak penggantian: impor kedua dulu mengganti SELURUH TB tanpa diff dan tanpa
+     konfirmasi, padahal setiap angka hilir ikut bergerak. */
+  const diff: ImportDiff | null = useMemoX(() => {
+    if (!parsed || !parsed.ok) return null;
+    const before = computeCoverage(new Set<string>((wtb || []).map((r: { code: string }) => r.code)));
+    return diffWtb(wtb || [], parsed.rows, { enginesBefore: before.engines, enginesAfter: parsed.coverage.engines });
+  }, [parsed, wtb]);
+
+  const history: ImportProvenance[] = (wtbImport && Array.isArray(wtbImport.history)) ? wtbImport.history : [];
+
+  const apply = async () => {
+    if (!parsed || !parsed.ok || !canImport || busy) return;
+    if (diff && diff.hasChanges && !confirming) { setConfirming(true); return; }
+    setBusy(true);
+    try {
+      let sha = '';
+      try { sha = await sha256Hex(text); } catch (e) { /* konteks non-secure: hash dilewati, bukan penghalang */ }
+      const prov = summarizeImport({
+        importedAt: new Date().toISOString(),
+        user: auth && auth.user ? { id: auth.user.id, name: auth.user.name, role: auth.user.role } : null,
+        unit, unitFactor: parsed.meta.unitFactor, period, sourceName, sha256: sha,
+        rowCount: parsed.meta.rowCount, totalAssets: parsed.meta.totalAssets, balanced: parsed.meta.balanced,
+      });
+      setWtbImport({
+        rows: parsed.rows, meta: parsed.meta, coverage: parsed.coverage,
+        importedAt: prov.importedAt, source: 'paste-csv',
+        provenance: prov,
+        /* teks mentah ditahan (dibatasi) agar impor dapat ditelusuri ulang, bukan hanya
+           hasil parse-nya — SA 500 keandalan sumber bukti. */
+        rawExcerpt: text.slice(0, 4000),
+        rawLength: text.length,
+        history: pushHistory(history, prov),
+      });
+      onClose();
+    } finally {
+      setBusy(false);
+    }
   };
-  const revert = () => { setWtbImport(null); onClose(); };
+  const revert = () => { if (!canImport) return; setWtbImport(null); onClose(); };
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
@@ -561,8 +615,31 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
             <div style={{ fontWeight: 700, fontSize: 15 }}>Impor Neraca Saldo Klien</div>
             <div className="tiny" style={{ color: '#bcd6e4' }}>Tempel dari Excel/CSV · tab/titik-koma/koma · kolom: Kode · Nama · TA Lalu · Unadjusted · AJE (atau Debit/Kredit)</div>
           </div>
-          {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
+          {locked ? <Badge kind="amber">Berkas terarsip — terkunci</Badge>
+            : !hasCap ? <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge> : null}
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+        </div>
+
+        {/* PR-2a/2b — satuan & identitas sumber ditetapkan SEBELUM parse: satuan mengubah
+            angka yang diimpor, periode & nama sumber masuk jejak provenance. */}
+        <div className="row ac gap12" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line)', flexWrap: 'wrap', background: 'var(--surface-2)' }}>
+          <div className="row ac gap6">
+            <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Satuan</span>
+            <Seg
+              options={[{ value: 'full', label: 'Rupiah penuh' }, { value: 'thousand', label: 'Ribuan' }, { value: 'million', label: 'Jutaan' }]}
+              value={unit} onChange={setUnit} />
+          </div>
+          <div className="row ac gap6">
+            <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Periode</span>
+            <input className="input" style={{ width: 96, height: 26 }} value={period} placeholder="FY2025"
+              onChange={(e: { target: { value: string } }) => setPeriod(e.target.value)} />
+          </div>
+          <div className="row ac gap6" style={{ flex: 1, minWidth: 200 }}>
+            <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Sumber</span>
+            <input className="input" style={{ flex: 1, height: 26 }} value={sourceName} placeholder="mis. TB-Sentosa-Des2025.xlsx (dari Bpk. Rudi, 12 Jan)"
+              onChange={(e: { target: { value: string } }) => setSourceName(e.target.value)} />
+          </div>
+          {unit !== 'full' && parsed && <Badge kind="blue">{UNIT_LABEL[unit]} → dikali {parsed.meta.unitFactor.toLocaleString('id-ID')}</Badge>}
         </div>
 
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1, minHeight: 0 }}>
@@ -650,17 +727,93 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
                     </tbody>
                   </table>
                 </div>
+                {/* PR-2b — dampak penggantian, wajib dilihat sebelum TB berjalan diganti */}
+                {diff && diff.hasChanges && (
+                  <div style={{ marginTop: 10, border: '1px solid ' + (confirming ? 'var(--amber)' : 'var(--line)'), borderRadius: 6, overflow: 'hidden' }}>
+                    <div className="row ac jb" style={{ padding: '7px 10px', background: confirming ? 'var(--amber-bg)' : 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
+                      <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>3 · Dampak terhadap TB berjalan</span>
+                      <Badge kind={diff.enginesLost.length ? 'amber' : undefined}>
+                        +{diff.added.length} / −{diff.removed.length} / ~{diff.changed.length}
+                      </Badge>
+                    </div>
+                    <div style={{ padding: 10 }}>
+                      <div className="grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 8 }}>
+                        <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: 'var(--surface-2)' }}>
+                          <div className="tiny muted upper">Δ Total Aset</div>
+                          <div className="mono" style={{ fontWeight: 700 }}><span className={diff.deltaAssets < 0 ? 'neg' : ''}>{m(diff.deltaAssets)}</span></div>
+                          <div className="tiny muted">{m(diff.assetsBefore)} → {m(diff.assetsAfter)} jt</div>
+                        </div>
+                        <div className="panel" style={{ padding: '7px 10px', boxShadow: 'none', background: 'var(--surface-2)' }}>
+                          <div className="tiny muted upper">Δ Laba Berjalan</div>
+                          <div className="mono" style={{ fontWeight: 700 }}><span className={diff.deltaProfit < 0 ? 'neg' : ''}>{m(diff.deltaProfit)}</span></div>
+                          <div className="tiny muted">{m(diff.profitBefore)} → {m(diff.profitAfter)} jt</div>
+                        </div>
+                      </div>
+                      {diff.enginesLost.length > 0 && (
+                        <div className="row ac gap6 tiny" style={{ padding: '5px 8px', border: '1px solid var(--amber)', background: 'var(--amber-bg)', borderRadius: 5, marginBottom: 6, color: 'var(--ink-2)' }}>
+                          <I.alert size={12} style={{ color: 'var(--amber)' }} />
+                          <span>Engine PSAK PADAM setelah impor: {diff.enginesLost.join(' · ')} — figur terkait menjadi 0 sampai akun dipetakan.</span>
+                        </div>
+                      )}
+                      <div className="tiny muted" style={{ marginBottom: 5 }}>
+                        {diff.unchangedCount} akun tak berubah · perubahan terbesar (Rp jt):
+                      </div>
+                      <div style={{ border: '1px solid var(--line)', borderRadius: 5, overflow: 'auto', maxHeight: 150 }}>
+                        <table className="dtbl">
+                          <thead><tr><th style={{ width: 60 }}>Jenis</th><th>Akun</th><th className="num">Dari</th><th className="num">Ke</th><th className="num">Δ</th></tr></thead>
+                          <tbody>
+                            {[...diff.changed.map(c => ({ ...c, k: 'ubah' })), ...diff.added.map(c => ({ ...c, k: 'baru' })), ...diff.removed.map(c => ({ ...c, k: 'hapus' }))]
+                              .slice(0, 12).map(c => (
+                                <tr key={c.k + c.code}>
+                                  <td><Badge kind={c.k === 'hapus' ? 'red' : c.k === 'baru' ? 'purple' : undefined}>{c.k}</Badge></td>
+                                  <td><div className="truncate" style={{ maxWidth: 150 }}>{c.name}</div><div className="mono tiny muted">{c.code}</div></td>
+                                  <td className="num muted">{m(c.from)}</td>
+                                  <td className="num">{m(c.to)}</td>
+                                  <td className="num" style={{ fontWeight: 600 }}><span className={c.delta < 0 ? 'neg' : ''}>{m(c.delta)}</span></td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>)}
+
+              {/* PR-2b — riwayat impor (header provenance, di dalam payload yang sama) */}
+              {history.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div className="tiny muted upper" style={{ marginBottom: 5 }}>Riwayat impor ({history.length} terakhir)</div>
+                  {history.map((h: ImportProvenance, i: number) => (
+                    <div key={i} style={{ padding: '5px 8px', border: '1px solid var(--line)', borderRadius: 5, marginBottom: 4 }}>
+                      <div className="row ac jb">
+                        <span className="tiny" style={{ fontWeight: 600 }}>{new Date(h.importedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                        <span className="tiny muted">{h.userName}{h.userRole ? ' · ' + h.userRole : ''}</span>
+                      </div>
+                      <div className="tiny muted">
+                        {h.rowCount} akun · {UNIT_LABEL[h.unit]}{h.period ? ' · ' + h.period : ''}{h.sourceName ? ' · ' + h.sourceName : ''}
+                        {h.sha256 ? <> · <span className="mono">sha256 {h.sha256.slice(0, 12)}…</span></> : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted">Disimpan per-perikatan (StateDoc · isolasi W7.5). Hilir (materialitas/GC/PSAK/FS) memakai saldo terimpor otomatis.</span>
+          <span className="tiny muted" style={{ maxWidth: 520 }}>
+            {confirming
+              ? <b style={{ color: 'var(--amber)' }}>Konfirmasi: TB berjalan akan DIGANTI seluruhnya. Periksa dampak di panel 3 sebelum melanjutkan.</b>
+              : 'Disimpan per-perikatan (StateDoc · isolasi W7.5) beserta jejak: pengimpor, waktu, satuan, periode, sumber & hash isi. Hilir (materialitas/GC/PSAK/FS) memakai saldo terimpor otomatis.'}
+          </span>
           <div className="row gap8">
             {wtbImport && wtbImport.rows && <Btn sm onClick={revert} disabled={!canImport}><I.sync size={13} /> Kembali ke demo</Btn>}
-            <Btn sm onClick={onClose}>Batal</Btn>
-            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport}><I.check size={14} /> Terapkan ke WTB</Btn>
+            <Btn sm onClick={confirming ? () => setConfirming(false) : onClose}>{confirming ? 'Kembali' : 'Batal'}</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport || busy}>
+              <I.check size={14} /> {busy ? 'Menyimpan…' : confirming ? 'Ya, ganti TB berjalan' : 'Terapkan ke WTB'}
+            </Btn>
           </div>
         </div>
       </div>

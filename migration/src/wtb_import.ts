@@ -38,6 +38,17 @@ export interface WtbIssue {
   account?: string;    // kode akun terkait bila relevan
 }
 
+/* W-WTB·2a — satuan penyajian TB. Praktik lazim di Indonesia menyajikan neraca saldo
+   "dalam ribuan Rupiah"; uji keseimbangan INVARIAN terhadap skala, jadi TB seperti itu
+   lolos dengan "control total seimbang ✓" sementara seluruh angka understated 1.000×.
+   Satuan karena itu DIDEKLARASIKAN, bukan ditebak. */
+export type TbUnit = 'full' | 'thousand' | 'million';
+
+export const UNIT_FACTOR: Record<TbUnit, number> = { full: 1, thousand: 1_000, million: 1_000_000 };
+export const UNIT_LABEL: Record<TbUnit, string> = {
+  full: 'Rupiah penuh', thousand: 'Ribuan Rupiah', million: 'Jutaan Rupiah',
+};
+
 export interface ParseMeta {
   delimiter: string;
   delimiterLabel: string;
@@ -50,6 +61,9 @@ export interface ParseMeta {
   balanceTolerance: number;
   balanced: boolean;
   source: string;
+  /** satuan yang dideklarasikan saat impor + pengalinya (jejak audit) */
+  unit: TbUnit;
+  unitFactor: number;
 }
 
 export interface CoverageEngine {
@@ -79,6 +93,12 @@ export interface ParseOptions {
   tolerancePct?: number;
   /** lantai toleransi balance dalam Rupiah penuh (default 1.000) */
   toleranceFloor?: number;
+  /** satuan penyajian TB sumber (default 'full' = Rupiah penuh) */
+  unit?: TbUnit;
+  /** materialitas keseluruhan perikatan (Rp penuh) — jaring pengaman skala.
+   *  Total aset yang lebih kecil dari materialitas praktis mustahil; rasio lazim
+   *  total-aset : OM adalah puluhan hingga ratusan kali. */
+  engMateriality?: number;
 }
 
 /* ---------- sinonim header (id + en) → kolom logis ---------- */
@@ -197,6 +217,8 @@ function positionalColumns(width: number): Record<string, number> {
 export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseResult {
   const tolerancePct = opts.tolerancePct != null ? opts.tolerancePct : 0.0001; // 0,01%
   const toleranceFloor = opts.toleranceFloor != null ? opts.toleranceFloor : 1000;
+  const unit: TbUnit = opts.unit || 'full';
+  const unitFactor = UNIT_FACTOR[unit];
   const issues: WtbIssue[] = [];
 
   const rawLines = (text || '').split(/\r?\n/).map(l => l.replace(/\s+$/, ''));
@@ -272,7 +294,10 @@ export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseR
       issues.push({ level: 'warn', code: 'unknown-group', message: `Grup FS tak dikenali untuk ${code} — tetapkan manual atau periksa kode.`, line: lineNo, account: code });
     }
 
-    rows.push({ key: 'imp' + rows.length, code, name, group, ly, unadj, aje, adj: unadj + aje, lead: '' });
+    /* skala satuan diterapkan SEKALI di sini → seluruh hilir (canon/FSGEN/materialitas)
+       selalu menerima Rupiah penuh, tanpa perlu tahu satuan sumber. */
+    const sLy = ly * unitFactor, sUnadj = unadj * unitFactor, sAje = aje * unitFactor;
+    rows.push({ key: 'imp' + rows.length, code, name, group, ly: sLy, unadj: sUnadj, aje: sAje, adj: sUnadj + sAje, lead: '' });
   });
 
   if (rows.length === 0 && !issues.some(i => i.level === 'error')) {
@@ -293,11 +318,39 @@ export function parseTrialBalance(text: string, opts: ParseOptions = {}): ParseR
     });
   }
 
+  /* ---- W-WTB·2a · jaring pengaman skala ----
+     Uji keseimbangan tak bisa menangkap kesalahan satuan (invarian skala), jadi kewajaran
+     magnitudo diuji terhadap acuan EKSTERNAL: materialitas keseluruhan perikatan. Total aset
+     yang lebih kecil dari materialitas praktis mustahil (rasio lazim puluhan–ratusan kali),
+     jadi itu dijadikan blokir; di bawah 10× hanya peringatan agar klien kecil yang sah tak
+     terhalang. Tanpa materialitas perikatan, gerbang ini tidak aktif — pratinjau tetap
+     menampilkan total aset dalam Rupiah penuh untuk diperiksa mata auditor. */
+  const om = opts.engMateriality;
+  const absAssets = Math.abs(totalAssets);
+  if (rows.length > 0 && typeof om === 'number' && om > 0 && absAssets > 0) {
+    const ratio = absAssets / om;
+    const hint = unit === 'full'
+      ? ' Bila TB disajikan dalam ribuan/jutaan, pilih satuan yang sesuai di atas.'
+      : ` Satuan terpilih: ${UNIT_LABEL[unit]}.`;
+    if (ratio < 1) {
+      issues.push({
+        level: 'error', code: 'scale-below-materiality',
+        message: `Total aset (${fmtRp(totalAssets)}) LEBIH KECIL dari materialitas perikatan (${fmtRp(om)}) — hampir pasti salah satuan.${hint}`,
+      });
+    } else if (ratio < 10) {
+      issues.push({
+        level: 'warn', code: 'scale-suspect',
+        message: `Total aset hanya ${ratio.toFixed(1)}× materialitas perikatan (lazimnya puluhan–ratusan kali) — periksa satuan penyajian.${hint}`,
+      });
+    }
+  }
+
   const coverage = computeCoverage(seen);
   const meta: ParseMeta = {
     delimiter: delim.ch, delimiterLabel: delim.label, hadHeader,
     rowCount: rows.length, columns: cols, totals, totalAssets,
     balanceDiff, balanceTolerance, balanced, source: 'paste-csv',
+    unit, unitFactor,
   };
   const ok = !issues.some(i => i.level === 'error');
   return { rows, issues, meta, coverage, ok };
@@ -336,6 +389,7 @@ function emptyResult(issues: WtbIssue[], delimiter: string, delimiterLabel: stri
       delimiter, delimiterLabel, hadHeader: false, rowCount: 0, columns: {},
       totals: { ly: 0, unadj: 0, aje: 0, adj: 0 }, totalAssets: 0,
       balanceDiff: 0, balanceTolerance: 0, balanced: false, source: 'paste-csv',
+      unit: 'full', unitFactor: 1,
     },
     coverage: computeCoverage(new Set<string>()),
     ok: false,
