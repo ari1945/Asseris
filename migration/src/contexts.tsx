@@ -214,6 +214,9 @@ const AMS_PERSIST_SCOPE = {
   'mat.tab': 'engagement',
   /* PR-3a — ambang investigasi analitis bersama (tab WTB ⟷ modul `analytical`). */
   'fluxThreshold.v1': 'engagement',
+  /* PR-3c — kertas kerja prosedur analitis substantif SA 520. Tanpa entri ini ia jatuh ke
+     default 'firm' → capForWrite = FIRM_ADMIN → suntingan Manajer/Senior/Junior gagal SENYAP. */
+  'sa520.v1': 'engagement',
   /* F2/PR-C (PRD 2026-07-19) — SA 580 Representasi Tertulis: status perolehan
      per-representasi (diminta/diterima/N-A), tanggal diterima, teks pengecualian,
      flag penolakan manajemen (¶20), + metadata surat (tanggal, penanda tangan) &

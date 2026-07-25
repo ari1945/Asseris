@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav, useInitialTab } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -45,7 +45,9 @@ function WTBView() {
      tanpa penjelasan UI. */
   const { activeEngagement, activeClient, locked } = useFirm();
   const nav = useNav();
-  const [tab, setTab] = useStateX('tb');
+  /* deep-link tab (PRD 2026-07-18): `nav('wtb', { tab: 'review' })` dari SA 520 membuka
+     langsung Telaah Pergerakan; tanpa deep-link perilaku lama (tab 'tb'). */
+  const [tab, setTab] = useInitialTab('wtb', 'tb');
   const [showAdj, setShowAdj] = useStateX(true);
   const [q, setQ] = useStateX('');
   const [collapsed, setCollapsed] = useStateX({});
