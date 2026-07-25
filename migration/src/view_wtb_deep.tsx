@@ -86,6 +86,9 @@ function computeWtbSummary(wtb: any, pm: number | null, opts?: any, fluxState?: 
   const flagged = rows.filter((r: any) => r.flagged);
   const counts = fluxCounts(flagged.map((r: any) => r.code), fluxState);
   const explained = counts.explained;
+  /* `followup` = pekerjaan telaah yang BELUM tuntas (followup + unexplained + unreviewed).
+     Namanya warisan; komponen menampilkan rinciannya lewat `counts` agar "belum ditelaah"
+     tak lagi dilabeli "perlu tindak lanjut" — itu dua keadaan berbeda menurut SA 520. */
   const followup = counts.outstanding;
   return {
     rows, totAset, liabMag, ekuMag, revMag, beban, laba,
@@ -180,8 +183,15 @@ function WtbKpiBand({ summary, pm, onGotoReview }: any) {
         value={pm != null ? summary.overPm + ' akun' : '—'}
         accent={pm == null ? 'var(--ink-3)' : summary.overPm ? 'var(--amber)' : 'var(--green)'}
         sub={pm != null ? 'Performance Materiality Rp ' + fmt(pm / 1e6, 0) + ' jt' : 'Materialitas perikatan belum ditetapkan (SA 320)'} />
+      {/* Sub-label MERINCI sisa pekerjaan: "belum ditelaah" (tak ada yang melihat) berbeda
+          dari "perlu tindak lanjut" (auditor sudah melihat & menandai) — distingsi yang
+          justru dibangun `fluxCounts`, sempat dikaburkan menjadi satu angka. */}
       <Tile label="Telaah Pergerakan" value={summary.explained + ' / ' + summary.flaggedCount} accent={summary.followup ? 'var(--amber)' : 'var(--green)'} onClick={onGotoReview}
-        sub={(summary.followup ? summary.followup + ' perlu tindak lanjut' : 'Selesai') + ' · SA 520'}>
+        sub={(summary.followup
+          ? [summary.counts.unreviewed && summary.counts.unreviewed + ' belum ditelaah',
+            summary.counts.followup && summary.counts.followup + ' perlu tindak lanjut',
+            summary.counts.unexplained && summary.counts.unexplained + ' tak dapat dijelaskan'].filter(Boolean).join(' · ')
+          : 'Selesai') + ' · SA 520'}>
         <div className="pbar" style={{ marginTop: 2 }}><span style={{ width: reviewPct + '%', background: summary.followup ? 'var(--amber)' : 'var(--green)' }} /></div>
       </Tile>
     </div>
@@ -262,7 +272,9 @@ function WtbAnalytical({ pm, onOpenAccount }: any) {
         <div className="row ac gap12" style={{ flex: 1 }}>
           <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)' }}>{summary.flaggedCount}</div><div className="tiny muted">fluktuasi signifikan</div></div>
           <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: 'var(--green)' }}>{summary.explained}</div><div className="tiny muted">dijelaskan</div></div>
-          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.followup ? 'var(--amber)' : 'var(--ink-3)' }}>{summary.followup}</div><div className="tiny muted">perlu tindak lanjut</div></div>
+          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.counts.followup ? 'var(--amber)' : 'var(--ink-3)' }}>{summary.counts.followup}</div><div className="tiny muted">perlu tindak lanjut</div></div>
+          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.counts.unexplained ? 'var(--red)' : 'var(--ink-3)' }}>{summary.counts.unexplained}</div><div className="tiny muted">tak dapat dijelaskan</div></div>
+          <div><div className="mono" style={{ fontWeight: 700, fontSize: 15, color: summary.counts.unreviewed ? 'var(--amber)' : 'var(--ink-3)' }}>{summary.counts.unreviewed}</div><div className="tiny muted">belum ditelaah</div></div>
           <div style={{ flex: 1, maxWidth: 200 }}><Progress value={summary.flaggedCount ? (summary.explained / summary.flaggedCount) * 100 : 100} color={summary.followup ? 'var(--amber)' : 'var(--green)'} /></div>
         </div>
         <Seg options={[{ value: 'sig', label: 'Signifikan' }, { value: 'all', label: 'Semua akun' }]} value={scope} onChange={setScope} />
