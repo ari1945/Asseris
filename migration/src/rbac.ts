@@ -40,6 +40,7 @@ export const CAP = {
   EXPORT: 'export.use', // W10.5 — hasilkan & segel artefak ekspor (deliverable/register). Baca-saja terhadap data yang sudah boleh dilihat; ekspor jejak audit tetap di-gate AUDIT_VIEW.
   INTEGRATION_VIEW: 'integration.view', // W9 — lihat status konektor & antrean impor (transparansi data yang dikonsumsi). Baca-saja.
   INTEGRATION_MANAGE: 'integration.manage', // W9 — kelola koneksi & picu sync (tarik data eksternal → posting ke SSOT). Sensitif: hanya oversight/firm-ops.
+  AJE_POST: 'aje.post', // PR-B — MEMPOSTING jurnal penyesuaian ke Working Trial Balance (langkah Engagement Partner pada rantai ISQM 1). SENGAJA TERPISAH dari OPINION_APPROVE: menyatukannya berarti setiap orang yang boleh memposting jurnal otomatis boleh menyetujui opini. Terpisah pula dari AJE_EDIT (menyusun/mengajukan) — penyusun bukan penyetuju.
   EQR_REVIEW: 'eqr.review', // penelaahan pengendalian mutu perikatan (ISQM 2 / SA 220.36) — penanda tangan slot EQR di opini. Penelaah independen ⇒ Partner-level.
   PHASE_OVERRIDE: 'phase.override', // override gerbang transisi fase MESKI ada blocker (mulai Eksekusi tanpa akseptasi/surat SA 210/220; arsip dgn WP belum lengkap/opini belum final). Tindakan otoritatif ⇒ Partner-only.
   HR_MANAGE: 'hr.manage', // 2026-07-01 — tulis dokumen People & Compliance firm-wide (payroll run, cuti, kinerja, SKP manual, deklarasi independensi/etik) ATAS NAMA siapa pun, bukan cuma milik-sendiri. Peran 'Admin & HR Firma' + Partner (oversight). Terpisah dari ENGAGEMENT_MANAGE (itu roster klien/perikatan, bukan data personal staf).
@@ -61,7 +62,7 @@ export const CAP = {
   PERSONAL_PROFILE_VIEW_UNIT: 'personal.profile.viewUnit',   PERSONAL_PROFILE_VIEW_FIRM: 'personal.profile.viewFirm',   // profil/PII (NIK, NPWP, kontak darurat)
 };
 
-const { WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE, HR_MODULE_VIEW } = CAP;
+const { WP_EDIT, AJE_EDIT, AJE_POST, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE, HR_MODULE_VIEW } = CAP;
 
 /* Bundel cap personal per-cakupan (menghemat pengulangan di GRANTS). */
 const PERSONAL_UNIT = [CAP.PERSONAL_PAYROLL_VIEW_UNIT, CAP.PERSONAL_LEAVE_VIEW_UNIT, CAP.PERSONAL_PERF_VIEW_UNIT, CAP.PERSONAL_CPE_VIEW_UNIT, CAP.PERSONAL_CONDUCT_VIEW_UNIT, CAP.PERSONAL_INDEP_VIEW_UNIT, CAP.PERSONAL_PROFILE_VIEW_UNIT];
@@ -95,7 +96,7 @@ const PERSONAL_FIRM = [CAP.PERSONAL_PAYROLL_VIEW_FIRM, CAP.PERSONAL_LEAVE_VIEW_F
  * (tak ada / viewUnit / viewFirm). FIRM_ADMIN & HR_MANAGE tetap di sini utk fungsi admin/tulis yang
  * TIDAK terkait privasi baca (akseptasi/opini/pengaturan) — jalur baca personal.get TAK lagi
  * memeriksanya (lihat komentar CAP personal). */
-const PARTNER_BASE = [WP_EDIT, AJE_EDIT, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE, HR_MODULE_VIEW];
+const PARTNER_BASE = [WP_EDIT, AJE_EDIT, AJE_POST, SIGNOFF_REVIEWER, OPINION_APPROVE, FIRMFIN_EDIT, ENGAGEMENT_MANAGE, FIRM_ADMIN, LLM_USE, ENGAGEMENT_VIEW_ALL, AUDIT_VIEW, EXPORT, INTEGRATION_VIEW, INTEGRATION_MANAGE, EQR_REVIEW, PHASE_OVERRIDE, HR_MANAGE, HR_MODULE_VIEW];
 
 const GRANTS = {
   // Managing Partner — kontrol penuh firma + lihat data personal SELURUH firma.

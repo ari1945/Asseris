@@ -174,3 +174,76 @@ describe('guardSignoffWrite — non-sensitif / no-op', () => {
     expect(guardSignoffWrite(JUNIOR, 'risks', { a: 1 }, { a: 2 })).toEqual([]);
   });
 });
+
+/* ============================================================
+   PR-B — penegakan SERVER atas posting jurnal & keputusan rantai.
+   Sebelum PR-B, `aje` maupun `approvals_ov_*` tidak ada di SIGNOFF_KEYS:
+   guard ini tak pernah berjalan untuk jurnal, sehingga satu-satunya gerbang
+   server adalah capForWrite=AJE_EDIT — yang dimiliki Senior Auditor.
+   ============================================================ */
+describe('guardSignoffWrite — transisi status AJE (PR-B)', () => {
+  const proposed = [{ id: 'AJE-09', status: 'Proposed', amount: 1_000_000 }];
+  const posted = [{ id: 'AJE-09', status: 'Posted', amount: 1_000_000 }];
+
+  it('Proposed → Posted menuntut AJE_POST', () => {
+    expect(() => guardSignoffWrite(JUNIOR, 'aje', proposed, posted)).toThrow(/requires:aje\.post/);
+    expect(() => guardSignoffWrite(SENIOR, 'aje', proposed, posted)).toThrow(/requires:aje\.post/);
+    expect(() => guardSignoffWrite(MANAGER, 'aje', proposed, posted)).toThrow(/requires:aje\.post/);
+    expect(guardSignoffWrite(PARTNER, 'aje', proposed, posted)).toEqual([{ what: 'aje:AJE-09.post', cap: CAP.AJE_POST }]);
+  });
+
+  /* Menarik kembali jurnal yang sudah diposting sama otoritatifnya: angkanya
+     sudah mengalir ke WTB dan mungkin sudah dirujuk SAD/opini. */
+  it('Posted → Proposed (membatalkan posting) juga menuntut AJE_POST', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'aje', posted, proposed)).toThrow(/requires:aje\.post/);
+    expect(guardSignoffWrite(PARTNER, 'aje', posted, proposed)).toEqual([{ what: 'aje:AJE-09.unpost', cap: CAP.AJE_POST }]);
+  });
+
+  it('mengubah isi jurnal TANPA mengubah status tidak menuntut AJE_POST', () => {
+    const edited = [{ id: 'AJE-09', status: 'Proposed', amount: 2_000_000 }];
+    expect(guardSignoffWrite(SENIOR, 'aje', proposed, edited)).toEqual([]);
+  });
+
+  it('jurnal baru yang lahir Proposed tidak menuntut apa pun', () => {
+    expect(guardSignoffWrite(SENIOR, 'aje', [], proposed)).toEqual([]);
+  });
+
+  it('jurnal baru yang lahir Posted DITOLAK bagi non-partner', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'aje', [], posted)).toThrow(/requires:aje\.post/);
+  });
+});
+
+describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
+  const dec = (stepRole: string) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole, name: 'X' }] } });
+
+  it('langkah Audit Manager menuntut SIGNOFF_REVIEWER', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'approvals_ov_v4', {}, dec('Audit Manager'))).toThrow(/requires:signoff\.reviewer/);
+    expect(guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, dec('Audit Manager')))
+      .toEqual([{ what: 'approval:APR-AJE-09.Audit Manager', cap: CAP.SIGNOFF_REVIEWER }]);
+  });
+
+  /* Inti otoritas per-langkah: Manager TIDAK dapat menyelesaikan langkah Partner. */
+  it('langkah Engagement Partner menuntut AJE_POST — Manager ditolak', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, dec('Engagement Partner'))).toThrow(/requires:aje\.post/);
+    expect(guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, dec('Engagement Partner')))
+      .toEqual([{ what: 'approval:APR-AJE-09.Engagement Partner', cap: CAP.AJE_POST }]);
+  });
+
+  it('langkah EQR menuntut EQR_REVIEW — Manager ditolak', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, dec('EQR Reviewer'))).toThrow(/requires:eqr\.review/);
+    expect(guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, dec('EQR Reviewer')))
+      .toEqual([{ what: 'approval:APR-AJE-09.EQR Reviewer', cap: CAP.EQR_REVIEW }]);
+  });
+
+  /* Fail-closed: keputusan yang tak menyebutkan langkahnya tak dapat diotorisasi. */
+  it('keputusan tanpa stepRole DITOLAK, bahkan bagi Partner', () => {
+    const noRole = { 'APR-AJE-09': { decisions: [{ idx: 1, name: 'X' }] } };
+    expect(() => guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, noRole)).toThrow(/FORBIDDEN|requires/);
+  });
+
+  it('komentar/thread tanpa keputusan baru tidak menuntut kapabilitas', () => {
+    const before = dec('Audit Manager');
+    const after = { 'APR-AJE-09': { ...before['APR-AJE-09'], thread: [{ text: 'catatan' }] } };
+    expect(guardSignoffWrite(SENIOR, 'approvals_ov_v4', before, after)).toEqual([]);
+  });
+});

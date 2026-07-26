@@ -1389,7 +1389,7 @@ function WtbDrill({ row, onClose, nav }: any) {
 /* ---------------- AJE ---------------- */
 function AJEViewLegacy() {
   const { fmt } = AMS;
-  const { aje, toggleAjeStatus, addAje, wtb } = useAudit();
+  const { aje, addAje, wtb } = useAudit();
   const { locked } = useFirm();
   const posted = aje.filter((a: any) => a.status === 'Posted');
   const proposed = aje.filter((a: any) => a.status === 'Proposed');
@@ -1428,7 +1428,8 @@ function AJEViewLegacy() {
                     <td className="tiny mono muted">{a.lines ? a.lines.filter((l: any) => +l.debit).map((l: any) => l.code).join(', ') : a.dr}</td>
                     <td className="tiny mono muted">{a.lines ? a.lines.filter((l: any) => +l.credit).map((l: any) => l.code).join(', ') : a.cr}</td>
                     <td className="num" style={{ fontWeight: 600 }}>{fmt(a.amount)}</td>
-                    <td><span onClick={(e: any) => { e.stopPropagation(); if (!locked) toggleAjeStatus(a.id); }} style={{ cursor: locked ? 'default' : 'pointer' }}><Badge>{a.status}</Badge></span></td>
+                    {/* PR-B - badge tidak lagi menjadi saklar posting (lihat view_aje.tsx). */}
+                    <td><Badge>{a.status}</Badge></td>
                   </tr>
                 ))}
               </tbody>
@@ -1502,7 +1503,7 @@ function AJEForm({ accounts, onClose, onPost }: any) {
       <div className="panel" style={{ width: 680, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Posting langsung ke Working Trial Balance · ENG-2025-014</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Diajukan untuk persetujuan · belum memengaruhi WTB</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto' }}>
@@ -1544,14 +1545,15 @@ function AJEForm({ accounts, onClose, onPost }: any) {
             <div className="row ac gap8">
               <span style={{ color: balanced ? 'var(--green)' : 'var(--amber)' }}>{balanced ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
               <span style={{ fontSize: 12, fontWeight: 600 }}>
-                {balanced ? 'Jurnal seimbang (Dr = Cr) — siap diposting ke WTB.' : (td || tc) ? `Belum seimbang: selisih Rp ${fmt(Math.abs(td - tc))}` : 'Masukkan minimal satu debit dan satu kredit yang seimbang.'}
+                {balanced ? 'Jurnal seimbang (Dr = Cr) — siap diajukan untuk persetujuan.' : (td || tc) ? `Belum seimbang: selisih Rp ${fmt(Math.abs(td - tc))}` : 'Masukkan minimal satu debit dan satu kredit yang seimbang.'}
               </span>
             </div>
           </div>
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={post}><I.check size={14} /> Posting ke WTB</Btn>
+          {/* PR-B - jurnal lahir 'Proposed'; posting hanya lewat rantai persetujuan. */}
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={post}><I.check size={14} /> Ajukan untuk Persetujuan</Btn>
         </div>
       </div>
     </div>

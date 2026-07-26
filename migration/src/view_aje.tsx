@@ -238,7 +238,6 @@ function AjeKpi({ value, label, accent }: any) {
    ============================================================ */
 function AjeRegister({ model, locked }: any) {
   const { fmt } = AMS;
-  const { toggleAjeStatus } = useAudit();
   const nav = useNav();
   const [selId, setSelId] = useStateAJ(model[0] ? model[0].id : null);
   const [filt, setFilt] = useStateAJ('all');
@@ -282,9 +281,10 @@ function AjeRegister({ model, locked }: any) {
                 <td className="num" style={{ fontWeight: 600, verticalAlign: 'top', paddingTop: 6 }}>{fmt(a.amount)}</td>
                 <td className="num" style={{ verticalAlign: 'top', paddingTop: 6, color: signColor(a.pbt) }}>{a.pbt === 0 ? '—' : fmt(a.pbt / 1e6, 0)}</td>
                 <td style={{ verticalAlign: 'top', paddingTop: 5 }}>
-                  <span onClick={(e: any) => { e.stopPropagation(); if (!locked) toggleAjeStatus(a.id); }} style={{ cursor: locked ? 'default' : 'pointer' }} title={locked ? '' : 'Klik untuk toggle status'}>
-                    <Badge>{a.status}</Badge>
-                  </span>
+                  {/* PR-B - badge TIDAK LAGI interaktif. Dulu satu klik di sini memposting
+                      jurnal ke WTB (atau menariknya kembali) tanpa persetujuan, alasan,
+                      maupun jejak - melewati rantai ISQM 1 yang dinyatakan tab sebelah. */}
+                  <Badge>{a.status}</Badge>
                 </td>
               </tr>
             ))}
@@ -369,6 +369,12 @@ function AjeDrill({ a, fmt, nav }: any) {
           {a.mis && <Btn sm style={{ flex: 1 }} onClick={() => nav('sad')}><I.scale size={13} /> Buka SAD {a.mis}</Btn>}
           <Btn sm style={{ flex: 1 }} onClick={() => nav('wtb')}><I.table size={13} /> Lihat di WTB</Btn>
         </div>
+        {/* PR-B - satu-satunya jalan menuju Posted: antrean persetujuan. */}
+        {a.status !== 'Posted' && (
+          <Btn sm variant="primary" style={{ width: '100%', marginTop: 8 }} onClick={() => nav('approvals', { from: 'aje' })}>
+            <I.check size={13} /> Buka Antrean Persetujuan
+          </Btn>
+        )}
       </Panel>
     </div>
   );
@@ -614,7 +620,7 @@ function AjeApprovals({ model }: any) {
             <div className="tiny" style={{ color: '#9fc0d2', marginTop: 2 }}>jurnal usulan dalam antrean</div>
           </div>
           <div style={{ padding: '10px 14px', display: 'grid', gap: 6 }}>
-            <div className="tiny muted" style={{ lineHeight: 1.5 }}>Jurnal hanya boleh diposting ke Working Trial Balance setelah disetujui Engagement Partner sesuai kebijakan otorisasi firma (ISQM 1).</div>
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>Jurnal hanya boleh diposting ke Working Trial Balance setelah disetujui Engagement Partner sesuai kebijakan otorisasi firma (ISQM 1). Rantai persetujuan ditegakkan di <b>Antrean Persetujuan</b> dan di server - status jurnal adalah hasil rantai itu, bukan saklar.</div>
           </div>
         </Panel>
 

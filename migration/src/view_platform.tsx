@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { useAmsPersist, useAudit, useAuth, useFirm, useNav } from './contexts';
+import { CAP, can as rbacCan } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
@@ -47,21 +48,72 @@ function applyOverlay(d: any, ov: any) {
   const status = ov.status || d.status;
   const decMap = {};
   (ov.decisions || []).forEach((x: any) => { (decMap as any)[x.idx] = x; });
+  /* PR-B - DULU baris terakhir berbunyi `i < step ? 'approved'`, sehingga langkah
+     di bawah penghitung ditandai disetujui MESKI tak ada keputusan untuknya. Itu
+     lapis kedua dari cacat yang sama seperti `doneTo` di buildApprovals. Kini
+     'approved' HANYA berasal dari keputusan tercatat (seed atau overlay). */
   const chain = d.chain.map((c: any, i: any) => {
     const dec = (decMap as any)[i];
     if (dec) return { ...c, status: 'approved', ts: dec.ts, name: dec.name, note: dec.note };
     if (status === 'rejected' && i === step) return { ...c, status: 'rejected', ts: ov.ts || d.step, name: ov.by, note: ov.note || 'Ditolak.' };
-    return { ...c, status: i < step ? 'approved' : i === step ? (status === 'pending' ? 'current' : status) : 'pending' };
+    /* pertahankan 'approved' yang sudah dibawa rantai dasar (keputusan seed) */
+    if (c.status === 'approved') return c;
+    return { ...c, status: i === step ? (status === 'pending' ? 'current' : status) : 'pending' };
   });
   return { ...d, chain, step, status, thread: [...d.thread, ...(ov.thread || [])] };
+}
+
+/* ============================================================
+   PR-B — OTORITAS PER-LANGKAH.
+   ------------------------------------------------------------
+   Gerbang lama `canApprove = role.includes('Partner') || role.includes('Manager')`
+   punya tiga cacat: mencocokkan STRING peran (di luar SSOT RBAC), tak membedakan
+   langkah (seorang Manager dapat menyelesaikan langkah Engagement Partner DAN
+   langkah EQR — rantai tiga-lapis runtuh jadi satu), dan tak menolak self-approval.
+
+   Peta di bawah mengikat tiap peran-langkah ke kapabilitas yang benar. Berlaku
+   untuk jenis 'AJE'; jenis lain masih memakai gerbang lama (di luar lingkup PR-B,
+   lihat PRD §5) — perbedaannya sengaja dibuat terlihat, bukan disamarkan.
+   ============================================================ */
+const STEP_CAP: Record<string, string> = {
+  'Audit Manager': CAP.SIGNOFF_REVIEWER,
+  'Engagement Partner': CAP.AJE_POST,
+  'EQR Reviewer': CAP.EQR_REVIEW,
+};
+
+/** Boleh-kah `user` menyelesaikan langkah `step` pada item ini? */
+interface ApprovalStep { role: string }
+interface ApprovalItemLite { kind: string; from?: string; step: number; chain: ApprovalStep[] }
+interface SessionUser { name?: string; role: string }
+
+function stepAuthority(it: ApprovalItemLite, user: SessionUser): { ok: boolean; reason: string } {
+  const step = it.chain[it.step];
+  if (!step) return { ok: false, reason: 'Rantai persetujuan sudah tuntas.' };
+  /* Self-approval: penyusun tak boleh menyetujui pengajuannya sendiri (SoD). */
+  if (user && user.name && it.from && user.name === it.from) {
+    return { ok: false, reason: 'Penyusun tidak dapat menyetujui pengajuannya sendiri (pemisahan tugas).' };
+  }
+  if (it.kind !== 'AJE') {
+    const legacy = user.role.includes('Partner') || user.role.includes('Manager');
+    return { ok: legacy, reason: legacy ? '' : 'Peran Anda tidak berwenang menyetujui.' };
+  }
+  const need = STEP_CAP[step.role];
+  if (!need) return { ok: false, reason: `Langkah "${step.role}" belum dipetakan ke kapabilitas.` };
+  const ok = rbacCan(user.role, need);
+  return { ok, reason: ok ? '' : `Langkah "${step.role}" memerlukan kapabilitas ${need}; peran ${user.role} tidak memilikinya.` };
 }
 
 function Approvals() {
   const nav = useNav();
   const { user } = useAuth();
-  const { engagements, clients } = useFirm();
+  const { engagements, clients, activeEngagementId } = useFirm();
   const { aje, toggleAjeStatus, logActivity } = useAudit();
-  const [overlay, setOverlay] = useAmsPersist('approvals_ov_v3', () => ({}));
+  /* PR-B — v3 (lingkup firma, tak terdaftar di AMS_PERSIST_SCOPE) → v4 berlingkup
+     perikatan. Rantai baca-lewat: pakai v4 bila sudah ada, else adopsi v3 sekali
+     sebagai nilai awal supaya keputusan lama tak menjadi yatim (kelas cacat #129). */
+  const [overlayV3] = useAmsPersist('approvals_ov_v3', () => ({}));
+  const [overlayV4, setOverlay] = useAmsPersist('approvals_ov_v4', () => ({}));
+  const overlay = (overlayV4 && Object.keys(overlayV4).length) ? overlayV4 : (overlayV3 || {});
   const [filter, setFilter] = useStatePF('pending');
   const [kindFilter, setKindFilter] = useStatePF('Semua');
   const [selId, setSelId] = useStatePF(null);
@@ -69,11 +121,12 @@ function Approvals() {
 
   /* === SUMBER KEBENARAN: turunkan antrean live dari entitas kanonik === */
   const derived = useMemoPF(
-    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients }),
-    [aje, engagements, clients]);
+    () => (AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId }),
+    [aje, engagements, clients, activeEngagementId]);
   const items = useMemoPF(() => derived.map((d: any) => applyOverlay(d, overlay[d.id])), [derived, overlay]);
 
-  const canApprove = user.role.includes('Partner') || user.role.includes('Manager');
+  /* PR-B — kewenangan kini per-ITEM & per-LANGKAH, bukan satu boolean global. */
+  const canApproveAny = user.role.includes('Partner') || user.role.includes('Manager') || rbacCan(user.role, CAP.SIGNOFF_REVIEWER);
   const pending = items.filter((i: any) => i.status === 'pending');
   const breached = pending.filter((i: any) => slaInfo(i.due).overdue);
   const kinds = ['Semua', ...Array.from(new Set(items.map((i: any) => i.kind)))];
@@ -93,17 +146,26 @@ function Approvals() {
     const it = items.find((x: any) => x.id === id);
     const d = derived.find((x: any) => x.id === id);
     if (!it || !d) return;
+    /* PR-B — gerbang otoritas ditegakkan di titik AKSI, bukan hanya di render tombol.
+       Server menegakkan ulang (guardSignoffWrite); ini lapis pertama dari dua. */
+    const gate = stepAuthority(it, user);
+    if (!gate.ok) { window.alert(gate.reason); return; }
     if (decision === 'approve') {
       const newStep = it.step + 1;
       const done = newStep >= it.chain.length;
       setOverlay((o: any) => {
         const prev = o[id] || {};
-        const decisions = [...(prev.decisions || []), { idx: it.step, name: user.name, ts: '2026-03-10 09:00', note: note || 'Disetujui.' }];
+        /* PR-B — `stepRole` WAJIB: server memakainya untuk menentukan kapabilitas yang
+           dituntut langkah ini. Keputusan tanpa stepRole ditolak (fail-closed). */
+        const stepRole = (it.chain[it.step] && it.chain[it.step].role) || '';
+        const decisions = [...(prev.decisions || []), { idx: it.step, stepRole, name: user.name, role: user.role, ts: PF_STAMP, note: note || 'Disetujui.' }];
         const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note, kind: 'approve' }] : (prev.thread || []);
         return { ...o, [id]: { ...prev, step: newStep, status: done ? 'approved' : 'pending', decisions, thread } };
       });
       /* === TULIS-BALIK SSOT: persetujuan final AJE memposting jurnal ke WTB === */
-      if (done && d.writesBack && d.sourceModule === 'aje' && toggleAjeStatus) toggleAjeStatus(d.sourceId);
+      if (done && d.writesBack && d.sourceModule === 'aje' && toggleAjeStatus) {
+        toggleAjeStatus(d.sourceId, { by: user.name, approvalId: id });
+      }
     } else if (decision === 'reject') {
       setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Ditolak.', kind: 'reject' }] } }));
     } else if (decision === 'revise') {
@@ -152,7 +214,7 @@ function Approvals() {
           </div>
         </div></Panel>
 
-        {!canApprove && <div className="panel" style={{ padding: '10px 14px', margin: '12px 0', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Peran Anda (<b>{user.role}</b>) hanya dapat melihat. Ganti ke Manager/Partner di menu pengguna untuk menyetujui.</span></div></div>}
+        {!canApproveAny && <div className="panel" style={{ padding: '10px 14px', margin: '12px 0', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Peran Anda (<b>{user.role}</b>) hanya dapat melihat. Ganti ke Manager/Partner di menu pengguna untuk menyetujui.</span></div></div>}
 
         <div className="grid" style={{ gridTemplateColumns: '0.92fr 1.25fr', gap: 12, alignItems: 'start', marginTop: 12 }}>
           {/* LIST */}
@@ -191,7 +253,7 @@ function Approvals() {
           </Panel>
 
           {/* DETAIL */}
-          {sel && <ApprovalDetail key={sel.id} it={sel} canApprove={canApprove} user={user} nav={nav} onDecide={decide} onComment={addComment} />}
+          {sel && <ApprovalDetail key={sel.id} it={sel} auth={stepAuthority(sel, user)} user={user} nav={nav} onDecide={decide} onComment={addComment} />}
         </div>
       </div></div>
       {showRules && <RoutingRulesModal onClose={() => setShowRules(false)} />}
@@ -199,7 +261,8 @@ function Approvals() {
   );
 }
 
-function ApprovalDetail({ it, canApprove, user, nav, onDecide, onComment }: any) {
+function ApprovalDetail({ it, auth, user, nav, onDecide, onComment }: any) {
+  const canApprove = auth.ok;
   const [note, setNote] = useStatePF('');
   const [comment, setComment] = useStatePF('');
   const sla = slaInfo(it.due);
