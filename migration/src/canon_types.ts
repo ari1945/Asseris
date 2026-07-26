@@ -184,7 +184,29 @@ export interface RestatementItem {
 }
 
 /* ---------- SA 320 · Materialitas (om/pm/ctt lintas-modul) ---------- */
+
+/** Konfigurasi materialitas yang DITETAPKAN auditan (PR-6b). Dikirim eksplisit oleh
+ *  pemanggil React (`useMateriality()`), yang menariknya dari state ter-hidrasi server.
+ *  Bila dikirim, `materiality()` jadi FUNGSI MURNI — tak menyentuh localStorage sama
+ *  sekali, sehingga hasilnya tak lagi bergantung pada modul mana yang sudah pernah
+ *  dibuka di browser itu (lihat `MaterialityResult.configSource`). */
+export interface MaterialityConfig {
+  benchId: string;
+  pct: number;
+  pmPct: number;
+  cttPct: number;
+  appliedOverride: number | null;
+}
+
+/** Dari mana konfigurasi yang dipakai berasal — membuat jalur basi DAPAT DIDETEKSI.
+ *  `args` = dikirim pemanggil (ter-hidrasi server, reaktif) · `cache` = dibaca dari cache
+ *  localStorage (jalur warisan; bisa basi bila cache dingin) · `default` = tak ada
+ *  konfigurasi sama sekali, memakai default 5%/75%/5% + benchmark pertama. */
+export type MaterialityConfigSource = 'args' | 'cache' | 'default';
+
 export interface MaterialityOpts {
+  /** konfigurasi eksplisit (PR-6b) — bila ada, tak ada pembacaan localStorage */
+  config?: MaterialityConfig;
   /** Nilai `materiality` pada baris perikatan (Rp penuh). **BUKAN sumber OM** sejak
    *  PR-6·0 — dipakai HANYA sebagai pembanding untuk mendeteksi *drift* terhadap
    *  materialitas yang ditetapkan. Lihat `MaterialityResult.drift`. */
@@ -223,6 +245,8 @@ export interface MaterialityResult {
   calcOM: number | null;
   /** basis OM yang berlaku (PR-6·0) — satu aturan untuk SELURUH permukaan */
   basis: MaterialityBasis;
+  /** asal konfigurasi (PR-6b) — `cache`/`default` pada pemanggil view = jalur basi */
+  configSource: MaterialityConfigSource;
   /** drift baris perikatan vs OM ditetapkan; `null` = tak ada pembanding */
   drift: MaterialityDrift | null;
   /** nilai penuh (Rp) */

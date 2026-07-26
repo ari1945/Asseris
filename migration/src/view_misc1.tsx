@@ -1,13 +1,12 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav, useMateriality } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { deriveWpStatus, WP_META, openCanonicalWp } from './view_wp';
-import { materialityFor } from './canon_selectors';
 import { APPROACHES, defaultApproach, reconcileRiskResponse, GAP_LABEL } from './canon_audit_plan';
 import type { ApproachId, PlanRow, PlanResult, RiskInput } from './canon_audit_plan';
 
@@ -50,7 +49,7 @@ function StrategyMemo() {
   const nav = useNav();
   /* PR-1b — OM/PM/CTT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
      Fallback ke materialitas perikatan bila workspace belum menetapkan apa pun. */
-  const _matS = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const _matS = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)
   const om = _matS.omFull != null ? _matS.omFull : activeEngagement.materiality;
   const pm = _matS.pmFull != null ? _matS.pmFull : 0;
   const ctt = _matS.cttFull != null ? _matS.cttFull : 0;

@@ -3,10 +3,9 @@ import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
 import { FSGEN } from './fsgen_model';
-import { useAudit, useFirm, useInitialTab, useNav } from './contexts';
+import { useAudit, useFirm, useInitialTab, useNav, useMateriality } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { materialityFor } from './canon_selectors';
 import { Badge, Btn, Panel } from './ui';
 import { NRVWorkingPaper } from './view_psak14_nrv';
 
@@ -106,6 +105,10 @@ function PSAK14View() {
 
   const toggleDisc = (id: any) => setDisc((list: any) => list.map((r: any) => r.id === id ? { ...r, ok: !r.ok } : r));
 
+  /* PR-6b — satu pintu materialitas (ter-hidrasi server, reaktif). WAJIB di atas
+     early-return di bawah: hook tak boleh dipanggil bersyarat (rules-of-hooks). */
+  const mat = useMateriality();
+
   if (!model || !inv) {
     return <><SubBar moduleId="psak14" /><div className="view-pad"><Panel title="PSAK 14"><div className="tiny muted">Mesin FS Generator / kanonik belum dimuat.</div></Panel></div></>;
   }
@@ -164,8 +167,6 @@ function PSAK14View() {
   /* ——— materialitas: SATU sumber dari SA 320 (Materiality Workspace) ———
      membaca konfigurasi benchmark/PM%/CTT% & override yang sama dipakai modul
      Materialitas & SAD — bukan lagi hardcode 75%. */
-  /** @type {import('./canon_selectors').MaterialityResult} */
-  const mat = materialityFor({ engMateriality: eng.materiality, engagementId: eng.id });
   const overMat  = inv.shortfallWD;                      // usulan penurunan belum dibukukan (juta)
   const pm  = mat.pm;                                     // materialitas pelaksanaan (juta)
   const ctt = mat.ctt;                                    // ambang jelas remeh (juta)

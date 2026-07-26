@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAuth, useFirm, useInitialTab } from './contexts';
+import { useAmsPersist, useAuth, useFirm, useInitialTab, useMateriality } from './contexts';
 import { amsExportPdf } from './export_pdf';
 import { I } from './icons';
 import { SACanonChips, SACanonicalStatus } from './sa_canonical';
@@ -9,7 +9,6 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan, type PopItem, type SelectedItem } from './sampling_select';
-import { materialityFor } from './canon_selectors';
 import { reconcileSamplingTolerance, type SamplingToleranceResult } from './canon_validation';
 import { WpPanel } from './wp_signoff';
 
@@ -82,7 +81,10 @@ function SA530View() {
      SamplingEngine memakai PM ini sebagai default; sa530 mewarisinya (fallback ke seed
      bila materialitas absen). Hanya memengaruhi seed awal — state ter-persist tetap menang. */
   const matRp = firm?.activeEngagement?.materiality;
-  const pmSeed = materialityFor({ engMateriality: matRp, engagementId: engId }).pm;
+  /* PR-6b — satu pintu `useMateriality()`; dipanggil SEKALI di atas dan dipakai untuk
+     seed maupun validasi silang (dulu dua panggilan `materialityFor` terpisah). */
+  const matCanon = useMateriality();
+  const pmSeed = matCanon.pm;
   const pmJuta = (typeof pmSeed === 'number' && pmSeed > 0) ? Math.round(pmSeed) : SAMPLING_SEED.params.tm;
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'sampling.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
@@ -108,7 +110,7 @@ function SA530View() {
      PM ditarik dari SSOT materialitas (menghormati pmPct workspace, BUKAN hardcode
      ×0.75). Proyeksi salah saji ke populasi (¶13–14) konsisten dgn exportMemo &
      F530Evaluation. `accepted` = kesimpulan modul (proyeksi < TM). */
-  const pmCanon: number | null = useMemo530(() => materialityFor({ engMateriality: matRp, engagementId: engId }).pm, [matRp, engId]);
+  const pmCanon: number | null = matCanon.pm;
   const totalProj = useMemo530(() => findings.reduce((s: number, f: SampleFinding) => {
     const taint = f.bv ? (f.bv - f.av) / f.bv : 0;
     return s + Math.round(taint * calc.interval);

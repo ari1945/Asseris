@@ -1,8 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { materialityFor } from './canon_selectors';
-import { useFirm, useNav } from './contexts';
+import type { MaterialityConfig } from './canon_types';
+import { useAudit, useFirm, useMateriality, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Tabs } from './ui';
@@ -44,12 +44,22 @@ function MaterialityCalc() {
   const { activeEngagement, locked } = useFirm();
 
   const [tab, setTab] = window.useAmsPersist('mat.tab', 'det');
-  const [benchId, setBenchId] = window.useAmsPersist('mat.benchId', 'pbt');
-  const [pct, setPct] = window.useAmsPersist('mat.pct', 5);
-  const [pmPct, setPmPct] = window.useAmsPersist('mat.pmPct', 75);
-  const [cttPct, setCttPct] = window.useAmsPersist('mat.cttPct', 5);
   const [quals, setQuals] = window.useAmsPersist('mat.quals', { listed: true, fraud: true });
-  const [appliedOverride, setAppliedOverride] = window.useAmsPersist('mat.appliedOverride', null);
+  /* PR-6b — konfigurasi materialitas kini dimiliki AuditProvider (dihidrasi saat boot,
+     jadi 8 modul hilir tak lagi memakai default pada cache dingin). Modul ini MENGIKAT
+     ke sana alih-alih membuka `useAmsPersist` sendiri: dua instance `useServerState` atas
+     satu kunci TIDAK saling sinkron dalam satu sesi, jadi menjadi pemilik kedua akan
+     membuat suntingan di sini tak terlihat oleh WTB/SA 530 sampai remount — split-brain
+     baru, kelas bug yang justru sedang diperbaiki. */
+  const { matConfig, setMatConfig } = useAudit() as {
+    matConfig: MaterialityConfig; setMatConfig: (p: Partial<MaterialityConfig>) => void;
+  };
+  const { benchId, pct, pmPct, cttPct, appliedOverride } = matConfig;
+  const setBenchId = (v: string) => setMatConfig({ benchId: v });
+  const setPct = (v: number) => setMatConfig({ pct: v });
+  const setPmPct = (v: number) => setMatConfig({ pmPct: v });
+  const setCttPct = (v: number) => setMatConfig({ cttPct: v });
+  const setAppliedOverride = (v: number | null) => setMatConfig({ appliedOverride: v });
 
   const bench = BENCHMARKS.find(b => b.id === benchId) || BENCHMARKS[0];
   /* PR-6·0 — OM/PM/CTT ditarik dari canon, BUKAN dihitung ulang di sini. Dulu modul ini
@@ -61,7 +71,7 @@ function MaterialityCalc() {
      "Terapkan ke Engagement", OM di rail tetap hitung benchmark; (b) rail berlabel
      "Terterapkan" menampilkan nilai baris perikatan walau tak ada yang pernah diterapkan.
      Canon adalah satu-satunya sumber presedens: override ?? benchmark × pct. */
-  const mat = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const mat = useMateriality();
   const calcOM = Math.round(bench.value * pct / 100);  // hitung benchmark live (pembanding editor)
   const om = mat.omFull != null ? mat.omFull : calcOM;
   const pm = mat.pmFull != null ? mat.pmFull : Math.round(om * pmPct / 100);

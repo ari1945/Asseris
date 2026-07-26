@@ -1,8 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm } from './contexts';
-import { materialityFor } from './canon_selectors';
+import { useAudit, useAuth, useFirm, useMateriality } from './contexts';
 import { statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts, fluxStatusKind, fluxThresholds, isFluxFlagged, FLUX_STATUS_LABEL } from './flux_state';
 import type { FluxState, FluxStatus } from './flux_state';
 import { I } from './icons';
@@ -142,10 +141,10 @@ function AnalyticalReview() {
      Menghormati pmPct/cttPct + override "Terapkan ke Engagement" dari Materiality
      Workspace. `null` = materialitas perikatan belum ditetapkan → kriteria berbasis PM
      dinonaktifkan & ditampilkan "—" (dulu NaN yang menyamar sebagai angka). */
-  const mat = useMemoAR(
-    () => materialityFor({ engMateriality: activeEngagement?.materiality, engagementId: activeEngagement?.id }),
-    [activeEngagement?.materiality, activeEngagement?.id],
-  );
+  /* PR-6b — satu pintu `useMateriality()`: konfigurasi ditarik dari state ter-hidrasi
+     server (reaktif), bukan dari cache localStorage yang hanya terisi bila modul
+     Materialitas pernah dibuka di browser ini. Hook sudah memoize di dalamnya. */
+  const mat = useMateriality();
   const pm: number | null = mat.pmFull;
   const ct: number | null = mat.cttFull;
 

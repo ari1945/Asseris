@@ -1,14 +1,13 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav, useInitialTab } from './contexts';
+import { useAudit, useAuth, useFirm, useNav, useInitialTab, useMateriality } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, DEFAULT_EXPL, LeadChip, LEAD_SRC_TITLE } from './view_wtb_deep';
 import { noteOf, statusOf, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
-import { materialityFor } from './canon_selectors';
 import { amsExportXlsx } from './export_xlsx';
 import { parseTrialBalance, computeCoverage, UNIT_LABEL, leadFromCode } from './wtb_import';
 import type { ParseResult, WtbIssue, CoverageEngine, ImportedWtbRow, TbUnit } from './wtb_import';
@@ -68,10 +67,8 @@ function WTBView() {
      jadi perubahan di sana mengalir serempak ke bendera per-baris, KPI "Akun > PM", ambang
      default fluktuasi, DAN header XLSX tersegel. `null` = materialitas perikatan belum
      ditetapkan → kriteria berbasis PM dinonaktifkan (dulu: NaN yang menyamar sebagai angka). */
-  const pm: number | null = useMemoX(
-    () => materialityFor({ engMateriality: activeEngagement?.materiality, engagementId: activeEngagement?.id }).pmFull,
-    [activeEngagement?.materiality, activeEngagement?.id],
-  );
+  /* PR-6b — satu pintu `useMateriality()` (ter-hidrasi server & reaktif). */
+  const pm: number | null = useMateriality().pmFull;
 
   // W10.5 Fase 2 — sealed XLSX register: the full Working Trial Balance, full-rupiah via rp()
   // (SSOT = the same wtb rows the table renders). Δ YoY mirrors the on-screen adjusted-vs-LY view.
