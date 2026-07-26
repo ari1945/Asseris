@@ -5,7 +5,7 @@ import { useAudit, useFirm, useNav, useAmsPersist, useMateriality } from './cont
 import { ajeEffect, entityFigures } from './canon_base';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { reconcileUncorrectedMisstatements, type UncorrResult } from './canon_validation';
+import { reconcileUncorrectedMisstatements, type UncorrResult, type SadEntry, type AjeEntry } from './canon_validation';
 import type { WTB } from './canon_types';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
@@ -20,23 +20,31 @@ const { useState: useStateSD, useMemo: useMemoSD } = React;
 /* effect figures in full Rupiah. pbt = efek laba sebelum pajak,
    na = efek aset neto (ekuitas). origin: tahun berjalan / lalu.
    disp: corrected | uncorrected | passed (diwaivekan) */
+/* PR-C — `bsEffect` melengkapi tiap salah saji dengan efek terhadap pos LANCAR neraca
+   (Rp penuh; aset naik positif, liabilitas naik positif). Tanpa field ini rasio lancar
+   proyeksi TIDAK dapat dihitung: M-07 (reklas utang bank JP→lancar) berefek NOL pada
+   laba sehingga `pbt`/`na` tak menangkapnya, dan besarannya dulu hanya hidup di dalam
+   string catatan kualitatif. Itulah sebabnya angka covenant di-hardcode. */
 const SAD_SEED = [
-  { id: 'M-01', desc: 'Piutang fiktif belum dibalik (channel stuffing kuartal IV)', type: 'Factual', fsli: 'Pendapatan / Piutang Usaha', assertion: 'Keterjadian', initiator: 'Tim — Dewi A.', pbt: -1_950_000_000, na: -1_950_000_000, origin: 'current', disp: 'uncorrected', aje: 'PAJE-03', qual: ['fraud', 'trend', 'covenant'] },
-  { id: 'M-02', desc: 'Koreksi penyusutan mesin produksi (umur manfaat terlalu panjang)', type: 'Factual', fsli: 'BPP / Akumulasi Penyusutan', assertion: 'Akurasi', initiator: 'Tim — Bagus P.', pbt: -1_120_000_000, na: -1_120_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-05', qual: [] },
-  { id: 'M-03', desc: 'Proyeksi salah saji hasil sampling piutang (SA 530)', type: 'Projected', fsli: 'Piutang Usaha', assertion: 'Keberadaan', initiator: 'Tim — Dewi A.', pbt: -640_000_000, na: -640_000_000, origin: 'current', disp: 'uncorrected', aje: 'SA 530', qual: ['estimate'] },
-  { id: 'M-04', desc: 'Selisih estimasi cadangan kerugian penurunan nilai (PSAK 71)', type: 'Judgmental', fsli: 'CKPN / Beban Penyisihan', assertion: 'Penilaian', initiator: 'Reviu — Mgr.', pbt: -680_000_000, na: -680_000_000, origin: 'current', disp: 'uncorrected', aje: 'PAJE-02', qual: ['estimate'] },
-  { id: 'M-05', desc: 'Cut-off persediaan akhir tahun (penerimaan barang 31 Des)', type: 'Factual', fsli: 'Persediaan / BPP', assertion: 'Pisah Batas', initiator: 'Tim — Rina S.', pbt: -2_340_000_000, na: -2_340_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-01', qual: [] },
-  { id: 'M-06', desc: 'Akrual bonus manajemen belum dicatat', type: 'Factual', fsli: 'Beban Gaji / Akrual', assertion: 'Kelengkapan', initiator: 'Tim — Bagus P.', pbt: -980_000_000, na: -980_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-04', qual: ['compensation'] },
-  { id: 'M-07', desc: 'Reklasifikasi utang bank jatuh tempo ≤1 thn ke liabilitas lancar', type: 'Factual', fsli: 'Liabilitas Jk. Panjang → Lancar', assertion: 'Klasifikasi', initiator: 'Reviu — Mgr.', pbt: 0, na: 0, origin: 'current', disp: 'uncorrected', aje: 'PAJE-06', qual: ['classification', 'covenant'] },
-  { id: 'M-08', desc: 'Beban dibayar di muka belum diamortisasi (carryover FY2024)', type: 'Judgmental', fsli: 'Beban Dibayar Dimuka', assertion: 'Penilaian', initiator: 'Saldo Awal', pbt: 0, na: -180_000_000, origin: 'prior', disp: 'uncorrected', aje: 'SUM-PY', qual: [] },
-  { id: 'M-09', desc: 'Akrual beban listrik Desember (di bawah ambang remeh)', type: 'Factual', fsli: 'Beban Utilitas / Akrual', assertion: 'Kelengkapan', initiator: 'Tim — Rina S.', pbt: -95_000_000, na: -95_000_000, origin: 'current', disp: 'passed', aje: 'CTT', qual: [] },
+  { id: 'M-01', desc: 'Piutang fiktif belum dibalik (channel stuffing kuartal IV)', type: 'Factual', fsli: 'Pendapatan / Piutang Usaha', assertion: 'Keterjadian', initiator: 'Tim — Dewi A.', pbt: -1_950_000_000, na: -1_950_000_000, origin: 'current', disp: 'uncorrected', aje: 'PAJE-03', qual: ['fraud', 'trend', 'covenant'], bsEffect: { curAssets: -1_950_000_000, curLiab: 0 } },
+  { id: 'M-02', desc: 'Koreksi penyusutan mesin produksi (umur manfaat terlalu panjang)', type: 'Factual', fsli: 'BPP / Akumulasi Penyusutan', assertion: 'Akurasi', initiator: 'Tim — Bagus P.', pbt: -1_120_000_000, na: -1_120_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-05', qual: [], bsEffect: { curAssets: 0, curLiab: 0 } },
+  { id: 'M-03', desc: 'Proyeksi salah saji hasil sampling piutang (SA 530)', type: 'Projected', fsli: 'Piutang Usaha', assertion: 'Keberadaan', initiator: 'Tim — Dewi A.', pbt: -640_000_000, na: -640_000_000, origin: 'current', disp: 'uncorrected', aje: 'SA 530', qual: ['estimate'], bsEffect: { curAssets: -640_000_000, curLiab: 0 } },
+  { id: 'M-04', desc: 'Selisih estimasi cadangan kerugian penurunan nilai (PSAK 71)', type: 'Judgmental', fsli: 'CKPN / Beban Penyisihan', assertion: 'Penilaian', initiator: 'Reviu — Mgr.', pbt: -680_000_000, na: -680_000_000, origin: 'current', disp: 'uncorrected', aje: 'PAJE-02', qual: ['estimate'], bsEffect: { curAssets: -680_000_000, curLiab: 0 } },
+  { id: 'M-05', desc: 'Cut-off persediaan akhir tahun (penerimaan barang 31 Des)', type: 'Factual', fsli: 'Persediaan / BPP', assertion: 'Pisah Batas', initiator: 'Tim — Rina S.', pbt: -2_340_000_000, na: -2_340_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-01', qual: [], bsEffect: { curAssets: -2_340_000_000, curLiab: 0 } },
+  { id: 'M-06', desc: 'Akrual bonus manajemen belum dicatat', type: 'Factual', fsli: 'Beban Gaji / Akrual', assertion: 'Kelengkapan', initiator: 'Tim — Bagus P.', pbt: -980_000_000, na: -980_000_000, origin: 'current', disp: 'corrected', aje: 'AJE-04', qual: ['compensation'], bsEffect: { curAssets: 0, curLiab: 980_000_000 } },
+  { id: 'M-07', desc: 'Reklasifikasi utang bank jatuh tempo ≤1 thn ke liabilitas lancar', type: 'Factual', fsli: 'Liabilitas Jk. Panjang → Lancar', assertion: 'Klasifikasi', initiator: 'Reviu — Mgr.', pbt: 0, na: 0, origin: 'current', disp: 'uncorrected', aje: 'PAJE-06', qual: ['classification', 'covenant'], bsEffect: { curAssets: 0, curLiab: 4_100_000_000 } },
+  { id: 'M-08', desc: 'Beban dibayar di muka belum diamortisasi (carryover FY2024)', type: 'Judgmental', fsli: 'Beban Dibayar Dimuka', assertion: 'Penilaian', initiator: 'Saldo Awal', pbt: 0, na: -180_000_000, origin: 'prior', disp: 'uncorrected', aje: 'SUM-PY', qual: [], bsEffect: { curAssets: -180_000_000, curLiab: 0 } },
+  { id: 'M-09', desc: 'Akrual beban listrik Desember (di bawah ambang remeh)', type: 'Factual', fsli: 'Beban Utilitas / Akrual', assertion: 'Kelengkapan', initiator: 'Tim — Rina S.', pbt: -95_000_000, na: -95_000_000, origin: 'current', disp: 'passed', aje: 'CTT', qual: [], bsEffect: { curAssets: 0, curLiab: 95_000_000 } },
 ];
 
 /* SA 450.A21 — daftar pertimbangan kualitatif */
 const QUAL_SEED = [
   { id: 'trend', text: 'Menutupi perubahan laba atau tren laba, khususnya terkait ekspektasi pasar', on: true, note: 'Reversal piutang fiktif M-01 menyembunyikan stagnasi pendapatan YoY (+0,4% vs klaim +9%).' },
   { id: 'losstoincome', text: 'Mengubah rugi menjadi laba (atau sebaliknya) untuk periode berjalan', on: false, note: '' },
-  { id: 'covenant', text: 'Memengaruhi rasio keuangan & kepatuhan terhadap covenant pinjaman', on: true, note: 'M-01 & M-07 menekan current ratio dari 1,38× menjadi 1,19× — di bawah ambang covenant 1,20×.' },
+  /* PR-C — catatan ini DULU memaku "1,38× → 1,19×", angka yang tak berasal dari mana pun
+     (turunan WTB memberi rasio kini 1,62×). Kini diisi dari hitungan; teks statis di sini
+     hanya menyatakan MENGAPA faktor ini relevan, bukan berapa angkanya. */
+  { id: 'covenant', text: 'Memengaruhi rasio keuangan & kepatuhan terhadap covenant pinjaman', on: true, note: 'M-01 (pembalikan piutang) & M-07 (reklas utang bank ke lancar) sama-sama menekan rasio lancar — lihat panel Likuiditas & Covenant untuk angka terhitung.' },
   { id: 'segment', text: 'Berdampak pada informasi segmen yang dilaporkan', on: false, note: '' },
   { id: 'compensation', text: 'Menaikkan kompensasi/insentif manajemen (bonus berbasis laba)', on: true, note: 'Bonus M-06 telah dikoreksi; namun laba yang dipertahankan masih memengaruhi pool insentif.' },
   { id: 'regulatory', text: 'Berdampak pada kepatuhan terhadap regulasi/perjanjian kontraktual', on: false, note: '' },
@@ -66,7 +74,7 @@ function SADLedger() {
   const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement } = useFirm();
-  const { wtb } = useAudit() as { wtb: WTB };
+  const { wtb, aje } = useAudit() as { wtb: WTB; aje: AjeEntry[] };
   const [items, setItems] = useAmsPersist('sadItems.v1', () => SAD_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [quals, setQuals] = useAmsPersist('sadQual.v1', () => QUAL_SEED);
   const [tab, setTab] = useStateSD('ledger');
@@ -101,13 +109,39 @@ function SADLedger() {
       equity: f.equity ?? 0,
     };
   }, [wtb]);
+  /* PR-C — DULU `aje: AMS.AJE` (seed modul, beku) dan `aje` tak ada di deps: setiap
+     perubahan status jurnal — termasuk persetujuan partner yang memposting lewat rantai
+     ISQM 1 — tidak menggerakkan rekonsiliasi ini, dan jurnal buatan auditor tak pernah
+     masuk hitungan sama sekali. Kelas cache-dingin yang sama dengan #129/PR-6b, tetapi
+     yang basi di sini adalah POPULASI SALAH SAJI YANG MENENTUKAN OPINI. */
   const recon: UncorrResult = useMemoSD(() => reconcileUncorrectedMisstatements({
-    aje: AMS.AJE || [],
+    aje: aje || [],
     sad: items,
     om,
     opinionType: (opinionDoc && opinionDoc.type) || 'unmodified',
     method,
-  }), [items, om, opinionDoc, method]);
+  }), [aje, items, om, opinionDoc, method]);
+
+  /* PR-C — RASIO LANCAR TERHITUNG, bukan narasi ter-hardcode.
+     Basis = WTB unadjusted + efek jurnal yang BENAR-BENAR diposting (helper `ajeEffect`
+     yang sama dipakai modul AJE, sehingga kedua modul menyebut satu angka).
+     Proyeksi = ditambah efek neraca seluruh salah saji tidak dikoreksi yang in-scope.
+     Bila ada satu saja item tanpa `bsEffect`, proyeksi TIDAK ditampilkan — menyebut
+     item mana yang belum lengkap lebih berguna daripada angka yang salah. */
+  const liquidity = useMemoSD(() => {
+    const f = entityFigures(wtb, 'unadj');
+    const posted = ajeEffect(aje, 'Posted');
+    const ca = (f.curAssets ?? 0) + posted.curAssets;
+    const cl = (f.curLiab ?? 0) + posted.curLiab;
+    const now = cl ? ca / cl : null;
+    const scope = items.filter((m: SadEntry) => (m.disp || '') === 'uncorrected'
+      && (method === 'ironcurtain' || (m.origin || 'current') === 'current'));
+    const missing = scope.filter((m: SadEntry) => !m.bsEffect).map((m: SadEntry) => m.id);
+    const dCa = scope.reduce((t: number, m: SadEntry) => t + ((m.bsEffect && m.bsEffect.curAssets) || 0), 0);
+    const dCl = scope.reduce((t: number, m: SadEntry) => t + ((m.bsEffect && m.bsEffect.curLiab) || 0), 0);
+    const after = (!missing.length && (cl + dCl)) ? (ca + dCa) / (cl + dCl) : null;
+    return { now, after, missing, covenant: 1.20 };
+  }, [wtb, aje, items, method]);
 
   const cycleDisp = (id: any) => setItems((list: any) => list.map((m: any) => m.id === id
     ? { ...m, disp: DISP_CYCLE[(DISP_CYCLE.indexOf(m.disp) + 1) % DISP_CYCLE.length] } : m));
@@ -210,7 +244,7 @@ function SADLedger() {
 
           <div style={{ marginTop: 12 }}>
             {tab === 'ledger' && <TabLedger items={items} cycleDisp={cycleDisp} calc={calc} fmt={fmt} ctt={ctt} />}
-            {tab === 'aggregate' && <TabAggregate {...{ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS }} />}
+            {tab === 'aggregate' && <TabAggregate {...{ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS, liquidity, recon }} />}
             {tab === 'qualitative' && <TabQualitative quals={quals} toggleQual={toggleQual} qualCount={qualCount} />}
             {tab === 'comms' && <TabComms {...{ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount }} />}
           </div>
@@ -324,7 +358,7 @@ function LegendRow({ color, label, v }: any) {
 /* ============================================================
    TAB 2 — Evaluasi Agregat
    ============================================================ */
-function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS }: any) {
+function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS, liquidity, recon }: any) {
   const maxScale = Math.max(om * 1.12, absNet * 1.12, evalGross * 1.12);
   const pctOf = (v: any) => (v / maxScale) * 100;
   const barColor = exceedsOM ? 'var(--red)' : exceedsPM ? 'var(--amber)' : 'var(--green)';
@@ -367,6 +401,47 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
         </Panel>
 
         {/* dampak terhadap subtotal */}
+        {/* PR-C — selisih besaran salah saji vs koreksi yang dijurnalkan. Sebelumnya
+            dimensi ini tak pernah diperiksa: jurnal yang lebih kecil dari salah sajinya
+            tetap mengeluarkan SELURUH salah saji dari agregat SA 450. */}
+        {recon && recon.valueDeltas && recon.valueDeltas.length > 0 && (
+          <Panel title="Selisih Salah Saji vs Koreksi Dijurnalkan" sub="SA 450 — koreksi sebagian meninggalkan residu">
+            <table className="dtbl">
+              <thead><tr>
+                <th>Salah Saji</th><th>Jurnal</th>
+                <th className="num">Nilai SAD</th><th className="num">Nilai Jurnal</th>
+                <th className="num">Selisih</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                {recon.valueDeltas.map((d: { sadId: string; ajeId: string; sadAmount: number; ajeAmount: number; delta: number; ajeStatus: string; residual: boolean }) => (
+                  <tr key={d.sadId + d.ajeId}>
+                    <td className="mono tiny" style={{ fontWeight: 700 }}>{d.sadId}</td>
+                    <td className="mono tiny" style={{ color: 'var(--blue)' }}>{d.ajeId}</td>
+                    <td className="num">{fmt(d.sadAmount / 1e6, 0)}</td>
+                    <td className="num">{fmt(d.ajeAmount / 1e6, 0)}</td>
+                    <td className="num" style={{ fontWeight: 700, color: d.residual ? 'var(--amber)' : 'var(--ink-3)' }}>
+                      {d.delta > 0 ? '+' : ''}{fmt(d.delta / 1e6, 0)}
+                    </td>
+                    <td>{d.residual
+                      ? <Badge kind="amber">Residu tak dikoreksi</Badge>
+                      : <span className="tiny muted">{
+                          d.delta < 0 ? 'koreksi melebihi salah saji'
+                            : d.ajeStatus === 'Posted' ? 'diposting · disposisi belum selaras'
+                            : 'usulan · belum diposting'
+                        }</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="tiny muted" style={{ padding: '8px 12px', lineHeight: 1.5 }}>
+              Selisih bukan otomatis kesalahan — koreksi sebagian adalah pertimbangan yang sah.
+              Yang ditandai <b>residu</b> adalah salah saji yang sudah dianggap dikoreksi padahal
+              jurnalnya tidak menutup seluruhnya; bagian itu tetap masuk agregat SA 450
+              {recon.residualUncorrected ? <> (<b className="mono">Rp {fmt(recon.residualUncorrected / 1e6, 0)} jt</b>)</> : null}.
+            </div>
+          </Panel>
+        )}
+
         <Panel title="Dampak terhadap Subtotal Laporan Keuangan">
           <table className="dtbl">
             <thead><tr><th>Pos</th><th className="num">Dilaporkan (Rp jt)</th><th className="num">Efek Uncorrected</th><th className="num">Setelah Koreksi</th><th className="num">Δ%</th></tr></thead>
@@ -380,7 +455,11 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
           <div className="panel" style={{ margin: '10px 12px 12px', padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
             <div className="row gap8 ac">
               <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>
-              <span className="tiny" style={{ lineHeight: 1.5 }}>Current ratio turun dari <b>1,38×</b> ke <b>1,19×</b> akibat M-01 & reklas M-07 — menembus ambang covenant <b>1,20×</b>. Lihat tab Pertimbangan Kualitatif.</span>
+              <span className="tiny" style={{ lineHeight: 1.5 }}>{liquidity.missing.length ? (
+                <>Rasio lancar kini <b>{liquidity.now != null ? liquidity.now.toFixed(2) + '×' : '—'}</b>. Proyeksi belum dapat dihitung: efek neraca belum dilengkapi untuk <b className="mono">{liquidity.missing.join(', ')}</b>.</>
+              ) : (
+                <>Rasio lancar <b>{liquidity.now != null ? liquidity.now.toFixed(2) + '×' : '—'}</b> → <b>{liquidity.after != null ? liquidity.after.toFixed(2) + '×' : '—'}</b> bila seluruh salah saji tidak dikoreksi dibukukan. Ambang covenant <b>{liquidity.covenant.toFixed(2)}×</b> — {liquidity.after != null && liquidity.after < liquidity.covenant ? <b>tertembus</b> : 'tidak tertembus'}. Lihat tab Pertimbangan Kualitatif.</>
+              )}</span>
             </div>
           </div>
         </Panel>
@@ -589,4 +668,4 @@ Object.assign(window, { SADLedger });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { SADLedger };
+export { SADLedger, SAD_SEED };
