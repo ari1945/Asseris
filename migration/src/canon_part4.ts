@@ -6,7 +6,7 @@ import { readPersisted } from './persist_scope';
 import { assetRegister, intangibles } from './canon_part1';
 import { GOODWILL } from './canon_part2';
 import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3';
-import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
+import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, MaterialityDrift } from './canon_types';
 
   interface JointArr {
     id: string; refId: string | null; type: string; name: string; partner: string; activity: string;
@@ -319,7 +319,29 @@ import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
      `readPersisted` (perikatan → firma → legacy → default), jadi kunci legacy tetap dihormati
      bila ada data pra-W6 dan test lama tetap sahih.
 
-     opts.engMateriality = materialitas engagement (Rp penuh) sbg basis bila tak ada override.
+     PR-6·0 — PRESEDENS OM DISATUKAN. Dulu `omFull = override ?? engMateriality ?? calcOM`,
+     sementara Modul Materialitas menampilkan `calcOM` sebagai headline OM-nya. Hasilnya
+     SATU perikatan dengan DUA nilai PM yang keduanya mengklaim otoritas SA 320: pada
+     ENG-2025-014 workspace berbunyi PM 3.195 jt (OM 4.260) sedangkan header WTB & "PM
+     kanon" SA 530 berbunyi PM 5.100 jt (OM 6.800 = `engMateriality`). Konsekuensinya
+     bukan kosmetik: kalkulator MUS SA 530 memakai TM = PM, jadi ukuran sampel berbeda
+     232 vs ~577 item — faktor 2,5× pada LUAS PROSEDUR AUDIT. Cacat ini lolos 646 test
+     karena oracle yang dipaku (OM 4260/PM 3195/CTT 213) menguji jalur ZERO-ARG, jalur
+     yang tak dipakai satu pun view.
+
+     Aturan tunggal sekarang (SA 320 ¶10-11: materialitas DITETAPKAN dari benchmark +
+     pertimbangan, lalu DITERAPKAN):
+
+         omFull = mat.appliedOverride  (bila ada — inilah arti "Terapkan ke Engagement")
+                  else benchmark × pct (hitung live dari tabel BENCHMARKS)
+
+     `engMateriality` (nilai kolom `materiality` di baris perikatan) **TIDAK PERNAH lagi
+     menjadi sumber OM** — ia angka administratif di daftar perikatan. Ia hanya dipakai
+     sebagai pembanding untuk melaporkan `drift`, agar UI bisa berkata "baris perikatan
+     6,8 M ≠ materialitas ditetapkan 4,26 M — perbarui atau terapkan" alih-alih dua
+     modul yang diam-diam saling bertentangan.
+
+     opts.engMateriality = nilai baris perikatan (Rp penuh) — HANYA untuk deteksi drift.
      opts.engagementId   = perikatan aktif; TANPA ini tier perikatan dilewati dan setelan
                            per-perikatan tak terbaca (pemanggil view WAJIB mengirimnya).
      Nilai penuh (Rp) & Rp juta. */
@@ -334,13 +356,25 @@ import type { WTB, MaterialityOpts, MaterialityResult } from './canon_types';
     const benches  = (typeof window !== 'undefined' && window.BENCHMARKS) || [];
     const bench    = benches.find(b => b.id === benchId) || benches[0] || null;
     const calcOM   = bench ? Math.round(bench.value * pct / 100) : null; // OM hitung benchmark (live)
-    /* materialitas yang BERLAKU: override workspace > materialitas engagement > hitung benchmark */
-    const omFull   = override != null ? override : (opts.engMateriality != null ? opts.engMateriality : calcOM);
+    /* materialitas yang BERLAKU: override "Terapkan ke Engagement" > hitung benchmark.
+       engMateriality SENGAJA tak ada di rantai ini (lihat catatan PR-6·0 di atas). */
+    const omFull: number | null = override != null ? override : calcOM;
+    const basis: MaterialityBasis = override != null ? 'override' : (calcOM != null ? 'benchmark' : 'none');
     const pmFull   = omFull != null ? Math.round(omFull * pmPct / 100) : null;
     const cttFull  = omFull != null ? Math.round(omFull * cttPct / 100) : null;
+    /* drift: apakah nilai administratif di baris perikatan masih sejalan dgn OM ditetapkan */
+    const engValue = opts.engMateriality;
+    const drift: MaterialityDrift | null = (engValue != null && omFull != null && omFull !== 0)
+      ? (() => {
+          const deltaFull = engValue - omFull;
+          const ratio = Math.abs(deltaFull) / omFull;
+          return { engValue, omFull, deltaFull, ratio, material: ratio > 0.005 };
+        })()
+      : null;
     return {
       benchId, benchLabel: bench ? bench.label : null, benchValue: bench ? bench.value : null,
       pct, pmPct, cttPct, applied: override != null, calcOM,
+      basis, drift,
       omFull, pmFull, cttFull,
       om:  omFull  != null ? jt(omFull)  : null,
       pm:  pmFull  != null ? jt(pmFull)  : null,

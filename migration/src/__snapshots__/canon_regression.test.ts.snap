@@ -2137,6 +2137,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
   },
   "materiality": {
     "applied": false,
+    "basis": "benchmark",
     "benchId": "pbt",
     "benchLabel": "Laba Sebelum Pajak",
     "benchValue": 85200000000,
@@ -2144,6 +2145,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "ctt": 213,
     "cttFull": 213000000,
     "cttPct": 5,
+    "drift": null,
     "om": 4260,
     "omFull": 4260000000,
     "pct": 5,

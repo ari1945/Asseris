@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { materialityFor } from './canon_selectors';
 import { useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -51,16 +52,32 @@ function MaterialityCalc() {
   const [appliedOverride, setAppliedOverride] = window.useAmsPersist('mat.appliedOverride', null);
 
   const bench = BENCHMARKS.find(b => b.id === benchId) || BENCHMARKS[0];
-  const om = Math.round(bench.value * pct / 100);
-  const pm = Math.round(om * pmPct / 100);
-  const ctt = Math.round(om * cttPct / 100);
+  /* PR-6·0 — OM/PM/CTT ditarik dari canon, BUKAN dihitung ulang di sini. Dulu modul ini
+     menghitung `om = bench.value × pct` sendiri sementara seluruh modul hilir memakai
+     `materialityFor().omFull` yang (dulu) mengembalikan `engMateriality` → SATU perikatan
+     menampilkan DUA PM (3.195 jt di sini vs 5.100 jt di WTB/SA 530), dan ukuran sampel
+     SA 530 ikut berbeda 232 vs ~577 item. Dua akibat lain dari hitung-sendiri itu:
+     (a) `mat.appliedOverride` DIABAIKAN di modul yang justru menerbitkannya — setelah
+     "Terapkan ke Engagement", OM di rail tetap hitung benchmark; (b) rail berlabel
+     "Terterapkan" menampilkan nilai baris perikatan walau tak ada yang pernah diterapkan.
+     Canon adalah satu-satunya sumber presedens: override ?? benchmark × pct. */
+  const mat = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const calcOM = Math.round(bench.value * pct / 100);  // hitung benchmark live (pembanding editor)
+  const om = mat.omFull != null ? mat.omFull : calcOM;
+  const pm = mat.pmFull != null ? mat.pmFull : Math.round(om * pmPct / 100);
+  const ctt = mat.cttFull != null ? mat.cttFull : Math.round(om * cttPct / 100);
+  /* `applied` = angka yang dipakai sbg PEMBANDING drift oleh tab Penentuan/Revisi/Memo:
+     override bila ada, else nilai administratif di baris perikatan. Tetap seperti dulu —
+     yang berubah hanya bahwa ia TIDAK LAGI menjadi OM di modul hilir. */
   const applied = appliedOverride != null ? appliedOverride : activeEngagement.materiality;
   const priorOM = 3_900_000_000;
 
   const rp = (n: any) => 'Rp ' + fmt(n);
   const pickBench = (id: any) => { const b = BENCHMARKS.find((x: any) => x.id === id); setBenchId(id); if (b) setPct(b.def); };
   const activeQuals = Object.keys(quals).filter(k => quals[k]).length;
-  const onApply = () => setAppliedOverride(om);
+  /* menerapkan = memaku hitung benchmark saat ini sbg override otoritatif (bukan `om`,
+     yang bisa sudah berupa override lama → tombol jadi no-op senyap) */
+  const onApply = () => setAppliedOverride(calcOM);
 
   return (
     <>
@@ -78,12 +95,20 @@ function MaterialityCalc() {
             <Tabs tabs={TABS} active={tab} onChange={setTab} />
           </div>
           <div className="row ac" style={{ gap: 0, padding: '0 14px', background: 'var(--surface-2)', borderTop: '1px solid var(--line-soft)' }}>
-            <RailChip label="Overall (OM)" value={rp(om)} strong />
+            {/* PR-6·0 · K0c — rail menyatakan BASIS OM yang berlaku, dan bila basisnya
+                override maka hitung benchmark tetap ditampilkan agar selisihnya terlihat
+                (bukan dua angka tanpa penjelasan di dua modul berbeda). */}
+            <RailChip label={mat.basis === 'override' ? 'Overall (OM) · terterapkan' : 'Overall (OM) · hitung benchmark'} value={rp(om)} strong />
             <RailChip label={`Performance · ${pmPct}%`} value={rp(pm)} />
             <RailChip label={`Jelas Remeh · ${cttPct}%`} value={rp(ctt)} />
             <RailChip label="Benchmark" value={`${bench.label} · ${pct}%`} />
+            {mat.basis === 'override' && calcOM !== om && (
+              <RailChip label="Hitung benchmark kini" value={rp(calcOM)} />
+            )}
             <div style={{ flex: 1 }} />
-            <RailChip label="Terterapkan" value={rp(applied)} align="right" last />
+            <RailChip
+              label={appliedOverride != null ? 'Terterapkan' : 'Baris perikatan · belum diterapkan'}
+              value={rp(applied)} align="right" last />
           </div>
         </div>
 
@@ -95,7 +120,8 @@ function MaterialityCalc() {
               bench={bench} benchId={benchId} pickBench={pickBench}
               pct={pct} setPct={setPct} pmPct={pmPct} setPmPct={setPmPct} cttPct={cttPct} setCttPct={setCttPct}
               quals={quals} setQuals={setQuals} activeQuals={activeQuals}
-              om={om} pm={pm} ctt={ctt} applied={applied} priorOM={priorOM} rp={rp} locked={locked} />
+              om={om} pm={pm} ctt={ctt} applied={applied} hasOverride={appliedOverride != null}
+              priorOM={priorOM} rp={rp} locked={locked} />
           )}
           {tab === 'spec' && <MatSpecific om={om} pmPct={pmPct} locked={locked} />}
           {tab === 'comp' && <MatComponent om={om} cttPct={cttPct} locked={locked} />}
@@ -109,7 +135,7 @@ function MaterialityCalc() {
 }
 
 /* ---------- Determination tab ---------- */
-function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, priorOM, rp, locked }: any) {
+function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, hasOverride, priorOM, rp, locked }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const toggleQ = (id: any) => setQuals((q: any) => ({ ...q, [id]: !q[id] }));
@@ -195,8 +221,8 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
 
         <Panel title="Perbandingan & Validasi">
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-            <Compare label="OM Diusulkan" a={om} />
-            <Compare label="OM Terterapkan (locked)" a={applied} />
+            <Compare label="OM Berlaku (dipakai seluruh modul)" a={om} />
+            <Compare label={hasOverride ? 'OM Terterapkan (locked)' : 'Nilai di baris perikatan'} a={applied} />
             <Compare label="OM Tahun Lalu" a={priorOM} />
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 2 }}>Perubahan YoY</div>
@@ -212,9 +238,17 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
                 {Math.abs(om - applied) / applied > 0.1 ? <I.alert size={16} /> : <I.checkCircle size={16} />}
               </span>
               <span style={{ fontSize: 12, fontWeight: 600 }}>
+                {/* PR-6·0 — teks dibedakan: "menyimpang dari yang diterapkan" hanya benar
+                    bila memang ADA override terterapkan. Tanpa override, pembandingnya
+                    adalah nilai administratif di baris perikatan yang belum pernah
+                    diterapkan — dan nilai itu TIDAK dipakai sebagai OM oleh modul mana pun. */}
                 {Math.abs(om - applied) / applied > 0.1
-                  ? `OM usulan menyimpang ${(Math.abs(om - applied) / applied * 100).toFixed(0)}% dari yang diterapkan — perlu dokumentasi & persetujuan partner.`
-                  : 'OM usulan konsisten dengan nilai yang diterapkan pada engagement.'}
+                  ? (hasOverride
+                      ? `OM usulan menyimpang ${(Math.abs(om - applied) / applied * 100).toFixed(0)}% dari yang diterapkan — perlu dokumentasi & persetujuan partner.`
+                      : `Nilai di baris perikatan (${rp(applied)}) menyimpang ${(Math.abs(om - applied) / applied * 100).toFixed(0)}% dari OM yang berlaku — belum ada yang diterapkan. Tekan "Terapkan ke Engagement" atau perbarui baris perikatan.`)
+                  : (hasOverride
+                      ? 'OM usulan konsisten dengan nilai yang diterapkan pada engagement.'
+                      : 'Nilai di baris perikatan konsisten dengan OM yang berlaku.')}
               </span>
             </div>
           </div>

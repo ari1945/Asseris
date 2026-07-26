@@ -66,10 +66,16 @@ describe('materialityFor() — SA 320 single source', () => {
     expect(m.calcOM).not.toBeNull();
     expect(m.applied).toBe(false);
   });
-  it('engagement materiality overrides the benchmark calc when no workspace override', () => {
+  /* PR-6·0 — dulu uji ini memaku `engMateriality` sebagai OM. Itu presedens yang
+     membuat satu perikatan punya dua PM (workspace pakai calcOM, hilir pakai
+     engMateriality). Aturan tunggal sekarang: engMateriality hanya pembanding drift. */
+  it('engagement materiality does NOT become OM — it is reported as drift', () => {
     const m = materialityFor({ engMateriality: 7_000_000_000 });
-    expect(m.omFull).toBe(7_000_000_000);
-    expect(m.pmFull).toBe(Math.round(7_000_000_000 * m.pmPct / 100));
+    expect(m.omFull).toBe(m.calcOM);
+    expect(m.omFull).not.toBe(7_000_000_000);
+    expect(m.pmFull).toBe(Math.round(m.omFull! * m.pmPct / 100));
+    expect(m.drift!.engValue).toBe(7_000_000_000);
+    expect(m.drift!.material).toBe(true);
   });
   it('no benchmark table → OM/PM/CTT collapse to null (no crash)', () => {
     const g = globalThis as { BENCHMARKS?: unknown };
