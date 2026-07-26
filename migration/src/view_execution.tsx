@@ -744,22 +744,35 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
 }
 
 /* ---------------- W-WTB·1 · Drawer Impor Neraca Saldo (paste/CSV) ---------------- */
+/* PR-6c — SKALA CONTOH DINAIKKAN 10×. Nilai lama membuat total aset hanya ~8× OM,
+   sehingga tombol "Muat contoh" bawaan SELALU memicu gerbang skala ingress (#130):
+   "Total aset hanya 8.3× materialitas perikatan (lazimnya puluhan–ratusan kali) —
+   periksa satuan penyajian." Data contoh yang menyalakan gerbang integritasnya sendiri
+   mengajari pengguna baru bahwa peringatan itu boleh diabaikan — justru kebalikan dari
+   tujuan gerbang. Kini total aset 275.000 jt ⇒ ~83× OM 3.319 jt, sebanding TB seed
+   nyata (316.558 jt ⇒ ~95×), jadi contoh LULUS gerbangnya sendiri.
+   Faktor 10 dipilih karena ia mempertahankan setiap invarian apa adanya: keseimbangan
+   control total (Σ adjusted = 0) bersifat homogen terhadap skala, dan proporsi
+   antar-pos — termasuk selisih kolom TA Lalu yang memang ada di contoh ini — tak
+   bergeser sedikit pun. CATATAN: rasio ini dibagi dengan OM, jadi ia bergerak bila
+   presedens materialitas berubah (PR-6·0 & PR-6b masing-masing menggesernya:
+   4,0× → 6,5× → 8,3×). Bila OM berubah drastis lagi, kalibrasi ulang di sini. */
 const SAMPLE_TB = [
   'Kode\tNama\tTA Lalu\tUnadjusted\tAJE',
-  '1-1100\tKas dan Setara Kas\t4.500.000.000\t5.000.000.000\t0',
-  '1-1200\tPiutang Usaha\t7.200.000.000\t8.000.000.000\t0',
-  '1-1210\tCKPN Piutang\t-400.000.000\t-500.000.000\t0',
-  '1-2100\tAset Tetap — Harga Perolehan\t18.000.000.000\t20.000.000.000\t0',
-  '1-2110\tAkumulasi Penyusutan\t-5.000.000.000\t-6.000.000.000\t0',
-  '1-2500\tAset Pajak Tangguhan\t900.000.000\t1.000.000.000\t0',
-  '2-1100\tUtang Usaha\t-3.500.000.000\t-4.000.000.000\t0',
-  '2-2300\tLiabilitas Imbalan Kerja\t-1.800.000.000\t-2.000.000.000\t0',
-  '3-1100\tModal Saham\t-10.000.000.000\t-10.000.000.000\t0',
-  '3-2100\tSaldo Laba\t-10.300.000.000\t-11.500.000.000\t0',
-  '4-1100\tPenjualan Bersih\t-27.000.000.000\t-30.000.000.000\t0',
-  '5-1100\tBeban Pokok Penjualan\t18.000.000.000\t20.000.000.000\t0',
-  '5-3100\tBeban Umum & Administrasi\t4.000.000.000\t4.500.000.000\t0',
-  '5-5100\tBeban Pajak Penghasilan\t5.000.000.000\t5.500.000.000\t0',
+  '1-1100\tKas dan Setara Kas\t45.000.000.000\t50.000.000.000\t0',
+  '1-1200\tPiutang Usaha\t72.000.000.000\t80.000.000.000\t0',
+  '1-1210\tCKPN Piutang\t-4.000.000.000\t-5.000.000.000\t0',
+  '1-2100\tAset Tetap — Harga Perolehan\t180.000.000.000\t200.000.000.000\t0',
+  '1-2110\tAkumulasi Penyusutan\t-50.000.000.000\t-60.000.000.000\t0',
+  '1-2500\tAset Pajak Tangguhan\t9.000.000.000\t10.000.000.000\t0',
+  '2-1100\tUtang Usaha\t-35.000.000.000\t-40.000.000.000\t0',
+  '2-2300\tLiabilitas Imbalan Kerja\t-18.000.000.000\t-20.000.000.000\t0',
+  '3-1100\tModal Saham\t-100.000.000.000\t-100.000.000.000\t0',
+  '3-2100\tSaldo Laba\t-103.000.000.000\t-115.000.000.000\t0',
+  '4-1100\tPenjualan Bersih\t-270.000.000.000\t-300.000.000.000\t0',
+  '5-1100\tBeban Pokok Penjualan\t180.000.000.000\t200.000.000.000\t0',
+  '5-3100\tBeban Umum & Administrasi\t40.000.000.000\t45.000.000.000\t0',
+  '5-5100\tBeban Pajak Penghasilan\t50.000.000.000\t55.000.000.000\t0',
 ].join('\n');
 
 function WtbImportDrawer({ onClose }: { onClose: () => void }) {
