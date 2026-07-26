@@ -281,7 +281,7 @@
   },
   "src/view_aje.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 73
+      "count": 65
     }
   },
   "src/view_analytical.tsx": {
