@@ -10,7 +10,13 @@ import { mergeLegacyFlux } from './flux_state';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 import { materialityFor } from './canon_selectors';
 import { benchmarksFromWTB } from './canon_base';
-import type { MaterialityConfig, MaterialityResult, WTB } from './canon_types';
+import type { AjeRow, MaterialityConfig, MaterialityResult, WTB, WtbRow } from './canon_types';
+import type { ActivityItem, DeadlineRow, ReviewNote, RiskRow, TeamMember, TimeEntry, WorkpaperRow } from './ams_types';
+import type { WtbOverrideEntry } from './wtb_overrides';
+import type { FluxState } from './flux_state';
+import type { PriorYearSource } from './prior_year';
+import type { ImportedWtbRow } from './wtb_import';
+import type { LedgerLine } from './wtb_ledger';
 
 /* ============================================================
    Asseris — React Context providers
@@ -31,6 +37,102 @@ const { createContext, useContext, useState, useCallback, useMemo, useEffect, us
    `useAudit()` sengaja TETAP longgar agar ~100 call-site tak perlu disentuh di PR
    ini. Mengetik nilainya secara presisi (Q1) adalah pekerjaan tersendiri —
    dengan `unknown` ia akan menyebar ke seluruh konsumen. */
+/** setter `useServerState` — menerima nilai ATAU pembaruan fungsional. */
+type Setter<T> = (next: T | ((prev: T) => T)) => void;
+
+/* Bentuk baris WTB seperti yang BENAR-BENAR dipakai view: `WtbRow` kanonik hanya
+   mendeklarasikan field yang dibaca canon (code/adj/unadj/ly/aje), sementara view juga
+   membaca `group`/`lead`/`leadSrc`/`fs`. Tanpa perluasan ini, mengetik `wtb: WTB` akan
+   menggagalkan ratusan akses field yang sah. */
+interface AuditWtbRow extends WtbRow {
+  group?: string;
+  lead?: string;
+  leadSrc?: string;
+  fs?: string;
+  [k: string]: unknown;
+}
+
+interface WpStateEntry { [k: string]: unknown }
+interface NoteReply { when?: string; [k: string]: unknown }
+interface LogEntry { ts?: string; [k: string]: unknown }
+
+/* Jurnal penyesuaian seperti dipakai view: `AjeRow` kanonik hanya mendeklarasikan
+   id/amount/status/desc, sementara view juga membaca baris jurnal & referensi. */
+interface AuditAjeRow extends AjeRow {
+  dr?: string;
+  cr?: string;
+  ref?: string;
+  lines?: { code: string; debit?: number; credit?: number; [k: string]: unknown }[];
+  [k: string]: unknown;
+}
+
+/* Dokumen impor neraca saldo (W-WTB·1 + provenans PR-5). Field disebut eksplisit
+   supaya konsumen tak jatuh ke `unknown` pada akses yang sah. */
+interface WtbImportDoc {
+  rows?: ImportedWtbRow[];
+  source?: string;
+  unit?: string;
+  period?: string;
+  balanced?: boolean;
+  sha256?: string;
+  sha256Excerpt?: string;
+  rawExcerpt?: string;
+  rawLength?: number;
+  excerptLength?: number;
+  by?: string;
+  at?: string;
+  [k: string]: unknown;
+}
+
+/** PR-6d — nilai `AuditContext` yang BERTIPE (menggantikan pemaku bentuk PR-6b). */
+export interface AuditContextValue {
+  matConfig: MaterialityConfig;
+  setMatConfig: (patch: Partial<MaterialityConfig>) => void;
+  aje: AuditAjeRow[];
+  setAje: Setter<AuditAjeRow[]>;
+  toggleAjeStatus: (id: string) => void;
+  addAje: (entry: Partial<AuditAjeRow>) => void;
+  ajeTotalPosted: number;
+  risks: RiskRow[];
+  updateRisk: (id: string, patch: Partial<RiskRow>) => void;
+  wtb: AuditWtbRow[];
+  wtbOverrides: Record<string, WtbOverrideEntry>;
+  setWtbOverrides: Setter<Record<string, WtbOverrideEntry>>;
+  wtbImport: WtbImportDoc | null;
+  setWtbImport: Setter<WtbImportDoc | null>;
+  wtbMapping: Record<string, string>;
+  setWtbMapping: Setter<Record<string, string>>;
+  wtbLedger: Record<string, LedgerLine[]>;
+  setWtbLedger: Setter<Record<string, LedgerLine[]>>;
+  fluxState: FluxState;
+  setFluxState: Setter<FluxState>;
+  fluxThreshold: { absJt: number | null; pctThr: number };
+  setFluxThreshold: Setter<{ absJt: number | null; pctThr: number }>;
+  wtbLeads: Record<string, string>;
+  setWtbLeads: Setter<Record<string, string>>;
+  priorYearBalances: PriorYearSource | null;
+  setPriorYearBalances: Setter<PriorYearSource | null>;
+  wpState: Record<string, WpStateEntry>;
+  setWp: (ref: string, patch: Record<string, unknown>) => void;
+  reviewNotes: ReviewNote[];
+  reviewNotesActive: ReviewNote[];
+  addReviewNote: (note: Partial<ReviewNote>) => void;
+  resolveReviewNote: (id: string) => void;
+  updateReviewNote: (id: string, patch: Partial<ReviewNote>) => void;
+  noteThreads: Record<string, NoteReply[]>;
+  addNoteReply: (id: string, reply: Partial<NoteReply>) => void;
+  timeEntries: TimeEntry[];
+  addTimeEntry: (entry: Partial<TimeEntry>) => void;
+  taskState: Record<string, boolean>;
+  toggleTask: (id: string) => void;
+  logEntries: LogEntry[];
+  logActivity: (e: Partial<LogEntry>) => void;
+  workpapers: WorkpaperRow[];
+  team: TeamMember[];
+  activity: ActivityItem[];
+  deadlines: DeadlineRow[];
+}
+
 type AuditContextShape = { [K in
   | 'matConfig' | 'setMatConfig'
   | 'aje' | 'setAje' | 'toggleAjeStatus' | 'setAjeStatus' | 'addAje' | 'ajeTotalPosted'
@@ -56,7 +158,12 @@ const NavFromContext = createContext(null);
 
 const useAuth  = () => useContext(AuthContext);
 const useFirm  = () => useContext(FirmContext);
-const useAudit = () => useContext(AuditContext);
+/* PR-6d — nilai konteks kini BERTIPE bagi konsumen. Cast eksplisit dipakai (bukan
+   `AuditContextValue | null`) agar ~100 call-site tak perlu guard baru: risiko runtime
+   TIDAK berubah dari sebelumnya — akses tanpa guard sudah jadi praktik di seluruh view,
+   dan modul yang dirender di luar provider tetap gagal seperti dulu. Yang berubah:
+   salah-ketik nama field & salah-pakai tipe kini gagal di gerbang, bukan saat runtime. */
+const useAudit = (): AuditContextValue => useContext(AuditContext) as unknown as AuditContextValue;
 
 /**
  * PR-6b — SATU pintu materialitas untuk view (SA 320).
