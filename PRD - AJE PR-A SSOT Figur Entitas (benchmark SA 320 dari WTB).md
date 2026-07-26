@@ -1,6 +1,6 @@
 # PRD — AJE PR-A: SSOT Figur Entitas (benchmark SA 320 ditarik dari WTB)
 
-**Tanggal:** 2026-07-26 · **Status:** MENUNGGU SIGN-OFF ("Proceed.")
+**Tanggal:** 2026-07-26 · **Status:** ✅ **TERIMPLEMENTASI** — commit `db41dca`, branch `feat/aje-pr-a-entity-figures` (belum di-push)
 **Q1 DIPUTUSKAN (Ari, 2026-07-26): koherensi** — konstanta modul yang dikoreksi,
 seed WTB TIDAK diskalakan. Konsekuensi diterima: OM turun, tampilan demo bergeser.
 Keputusan ini merambat ke Q2 (§11) — rekomendasi Q2 saya **ubah** karenanya.
@@ -184,8 +184,12 @@ otomatis. Alasan penuh di §11 Q2.
 
 ## 6 · Constraints
 
-- **Tak boleh mendahului PR-6.** Keduanya menyentuh `canon_part4.ts` `calcOM`.
-  PR-A merebase di atas PR-6 setelah #138 merge.
+- ~~**Tak boleh mendahului PR-6.**~~ **DIKOREKSI saat implementasi:** footprint #138
+  (PR-6d) ternyata `contexts.tsx` · `view_evidence` · `view_execution` · `view_psak71` ·
+  `view_risk` · `view_wp` — **nol overlap** dengan berkas PR-A. Kendala ini ditulis
+  sebelum footprint-nya diperiksa; PR-A dicabang dari `master` `31e2ef2` dan berdiri
+  sendiri. `contexts.tsx` disentuh keduanya tetapi pada fungsi berbeda (`useMateriality`
+  vs `AuditContextValue`) — konflik rebase, kalau ada, remeh.
 - `window.BENCHMARKS` masih kontrak window (W3 Fase 4 belum tuntas) — pelepasannya
   harus mempertahankan jembatan `window` sampai konsumen terakhir pindah.
 - Hanya ENG-2025-014 yang punya WTB bermakna; empat perikatan lain harus

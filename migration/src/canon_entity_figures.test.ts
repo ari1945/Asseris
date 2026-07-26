@@ -259,3 +259,22 @@ describe('kriteria sukses PR-A', () => {
     expect(eng.materiality).toBe(1_485_000_000);
   });
 });
+
+/* Basis `ly` (komparatif TA-1) — dipakai menurunkan OM tahun lalu untuk
+   perbandingan YoY, menggantikan konstanta `priorOM = 3_900_000_000`. */
+describe('basis ly — komparatif tahun lalu', () => {
+  const SEED = AMS.WTB as unknown as WTB;
+
+  it('PBT TA-1 seed = 24.690 jt, dan OM TA-1 @5% = 1.234,5 jt', () => {
+    const pbtLy = entityFigures(SEED, 'ly').pbt!;
+    expect(Math.round(pbtLy / 1e6)).toBe(24_690);
+    expect(Math.round(pbtLy * 0.05)).toBe(1_234_500_000);
+  });
+
+  it('benchmarksFromWTB menerima basis ly dan menghasilkan tabel sebanding', () => {
+    const ly = benchmarksFromWTB(SEED, 'ly');
+    const cy = benchmarksFromWTB(SEED, 'unadj');
+    expect(ly.map(b => b.id)).toEqual(cy.map(b => b.id));
+    expect(ly.find(b => b.id === 'pbt')!.value).toBeLessThan(cy.find(b => b.id === 'pbt')!.value);
+  });
+});

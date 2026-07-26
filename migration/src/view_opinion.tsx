@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAmsPersist, useFirm } from './contexts';
+import { useAmsPersist, useFirm, useMateriality } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
@@ -168,13 +168,19 @@ function AuditOpinionGen() {
   const o = O.OPINIONS[doc.type];
   const client = activeClient?.name || 'PT Sentosa Makmur Tbk';
   const kamCount = doc.opts.kam && doc.type !== 'disclaimer' ? doc.kams.filter((k: { include?: boolean }) => k.include !== false).length : 0;
+  const _mat = useMateriality();
   const signedCount = Object.values(doc.signoff).filter(Boolean).length;
 
   /* SA 705 — konsistensi opini (guardrail level-modul). `rec` dihitung SAMA
      seperti DeterminationPanel/OpinionFlowBar (via window.AMSOpinion) agar banner
      selaras dgn rekomendasi yang ditampilkan; pure fn menilai divergensi +
      kelengkapan (Basis SA 705.20, seksi GC SA 570.22) + gerbang finalisasi. */
-  const _om = activeEngagement?.materiality || 4_250_000_000;
+  /* PR-A - OM dari canon (satu pintu), BUKAN `activeEngagement.materiality`.
+     Dua cacat sekaligus di baris lama: (a) fallback `|| 4_250_000_000` memaku OM
+     fantasi pra-PR-A bila perikatan tak ada; (b) sejak PR-6.0 nilai baris perikatan
+     TIDAK PERNAH menjadi OM - ia angka administratif. Modul yang menentukan OPINI
+     tak boleh memakai angka administratif sebagai ambang klasifikasi salah saji. */
+  const _om = _mat.omFull ?? 0;
   const _rec = O.recommendOpinion({
     misSev: doc.misOverride === 'auto' ? O.classifyMis(O.aggUncorr(doc.method), _om).sev : doc.misOverride,
     scope: doc.scope, gc: doc.gcStatus,
@@ -210,7 +216,7 @@ function AuditOpinionGen() {
       } />
       <div className="view-scroll">
         <div className="view-pad" style={{ display: 'grid', gap: 12 }}>
-          <OpinionFlowBar tab={tab} doc={doc} O={O} />
+          <OpinionFlowBar tab={tab} doc={doc} O={O} om={_om} />
           {con.count > 0 && (
             <div className="panel" style={{ padding: '11px 13px', background: con.severe ? 'var(--red-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
               <div className="row gap8" style={{ alignItems: 'flex-start' }}>
@@ -245,9 +251,13 @@ function AuditOpinionGen() {
 }
 
 /* progress strip across the 4 stages */
-function OpinionFlowBar({ doc, O }: any) {
+/* PR-A - `om` kini DITERIMA dari induk. Dulu baris di bawah memaku 4_250_000_000
+   TANPA fallback, sementara banner konsistensi di induk memakai `_om` - dua nilai
+   materialitas berbeda di dalam SATU modul, satu di antaranya beku. Persis kelas
+   cacat PR-6.0 (dua PM pada satu perikatan), kali ini di modul penentu opini. */
+function OpinionFlowBar({ doc, O, om }: any) {
   const rec = O.recommendOpinion({
-    misSev: doc.misOverride === 'auto' ? O.classifyMis(O.aggUncorr(doc.method), 4_250_000_000).sev : doc.misOverride,
+    misSev: doc.misOverride === 'auto' ? O.classifyMis(O.aggUncorr(doc.method), om).sev : doc.misOverride,
     scope: doc.scope, gc: doc.gcStatus,
   });
   const aligned = rec.opinion === doc.type;

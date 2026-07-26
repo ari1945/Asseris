@@ -86,7 +86,12 @@ function MaterialityCalc() {
      override bila ada, else nilai administratif di baris perikatan. Tetap seperti dulu —
      yang berubah hanya bahwa ia TIDAK LAGI menjadi OM di modul hilir. */
   const applied = appliedOverride != null ? appliedOverride : activeEngagement.materiality;
-  const priorOM = 3_900_000_000;
+  /* PR-A - OM tahun lalu DULU di-hardcode 3_900_000_000. Kini diturunkan dari kolom
+     `ly` WTB memakai benchmark & persentase yang SAMA, sehingga perbandingan YoY
+     membandingkan dua angka yang benar-benar sebanding (bukan satu angka turunan
+     melawan satu konstanta). null bila komparatif tak tersedia. */
+  const priorBench = useMemoM(() => benchmarksFromWTB(wtb, 'ly').find((b: Benchmark) => b.id === benchId), [wtb, benchId]);
+  const priorOM = priorBench ? Math.round(priorBench.value * pct / 100) : null;
 
   const rp = (n: any) => 'Rp ' + fmt(n);
   const pickBench = (id: any) => { const b = BENCHMARKS.find((x: any) => x.id === id); setBenchId(id); if (b) setPct(b.def); };
@@ -262,9 +267,13 @@ function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, 
             <Compare label="OM Tahun Lalu" a={priorOM} />
             <div>
               <div className="tiny muted upper" style={{ marginBottom: 2 }}>Perubahan YoY</div>
-              <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: om > priorOM ? 'var(--amber)' : 'var(--green)' }}>
-                {om > priorOM ? '+' : ''}{((om - priorOM) / priorOM * 100).toFixed(1)}%
-              </div>
+              {priorOM ? (
+                <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: om > priorOM ? 'var(--amber)' : 'var(--green)' }}>
+                  {om > priorOM ? '+' : ''}{((om - priorOM) / priorOM * 100).toFixed(1)}%
+                </div>
+              ) : (
+                <div className="tiny muted">komparatif TA-1 tak tersedia</div>
+              )}
             </div>
           </div>
           <div className="divider" />
@@ -324,7 +333,7 @@ function Compare({ label, a }: any) {
   return (
     <div>
       <div className="tiny muted upper" style={{ marginBottom: 2 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>Rp {fmt(a)}</div>
+      <div className="mono" style={{ fontSize: 15, fontWeight: 700 }}>{a != null ? 'Rp ' + fmt(a) : '—'}</div>
     </div>
   );
 }

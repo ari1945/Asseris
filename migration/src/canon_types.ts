@@ -56,8 +56,10 @@ export interface Figures {
 /* ---------- figur entitas tingkat-atas (PR-A · SSOT benchmark SA 320) ----------
    Basis penyajian. `unadj` = figur dilaporkan klien (dasar penetapan materialitas
    saat perencanaan, SA 320 ¶10); `adj` = setelah penyesuaian audit (dipakai sebagai
-   PEMICU REVISI SA 320 ¶12-13, bukan untuk menghitung ulang OM — lihat PRD PR-A §11 Q2). */
-export type FigureBasis = 'unadj' | 'adj';
+   PEMICU REVISI SA 320 ¶12-13, bukan untuk menghitung ulang OM — lihat PRD PR-A §11 Q2).
+   `ly` = komparatif tahun lalu (PY teraudit) — dipakai menurunkan OM tahun lalu untuk
+   perbandingan YoY, sehingga angka itu pun tak lagi di-hardcode. */
+export type FigureBasis = 'unadj' | 'adj' | 'ly';
 
 /** Figur entitas tingkat-atas diturunkan dari WTB. **Rp PENUH**, bukan juta —
     konsumennya (BENCHMARKS SA 320, jembatan laba AJE, rasio lancar) semua rupiah penuh.

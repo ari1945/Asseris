@@ -88,7 +88,7 @@ import { AMS } from './data';
     const rows = (wtb && wtb.length) ? wtb : [];
     if (!rows.length) return EMPTY_FIGURES(basis);
 
-    const amt = (r: { adj?: number; unadj?: number }) => { const v = r[basis]; return v != null ? v : 0; };
+    const amt = (r: { adj?: number; unadj?: number; ly?: number }) => { const v = r[basis]; return v != null ? v : 0; };
     const sum = (prefix: string) => rows
       .filter(r => String(r.code || '').startsWith(prefix))
       .reduce((s, r) => s + amt(r), 0);
