@@ -1,10 +1,12 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm, useNav, useAmsPersist, useMateriality } from './contexts';
+import { useAudit, useFirm, useNav, useAmsPersist, useMateriality } from './contexts';
+import { ajeEffect, entityFigures } from './canon_base';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { reconcileUncorrectedMisstatements, type UncorrResult } from './canon_validation';
+import type { WTB } from './canon_types';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
 
@@ -54,12 +56,17 @@ const DISP_CYCLE = ['uncorrected', 'corrected', 'passed'];
 const TYPE_KIND = { Factual: 'blue', Judgmental: 'purple', Projected: 'teal' };
 
 /* ---- entity subtotals (FY2025, dilaporkan) ---- */
-const FS = { pbt: 85_200_000_000, revenue: 331_900_000_000, assets: 316_558_000_000, equity: 160_456_000_000 };
+/* PR-A - `FS` DULU konstanta di sini (pbt 85.200 / revenue 331.900 / assets 316.558 /
+   equity 160.456). Hanya tiga yang tie ke WTB, dan itu pun ke KOLOM BERBEDA: pendapatan
+   ke `unadj`, total aset ke `adj`. PBT 85.200 tak tie ke mana pun (turunan WTB: unadj
+   29.690). Kini ditarik dari `entityFigures()` + efek jurnal yang benar-benar diposting,
+   memakai helper yang SAMA dengan modul AJE supaya "PBT dilaporkan" hanya ada satu. */
 
 function SADLedger() {
   const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement } = useFirm();
+  const { wtb } = useAudit() as { wtb: WTB };
   const [items, setItems] = useAmsPersist('sadItems.v1', () => SAD_SEED); // F1/PR-3: persist (dulu useState → hilang saat reload)
   const [quals, setQuals] = useAmsPersist('sadQual.v1', () => QUAL_SEED);
   const [tab, setTab] = useStateSD('ledger');
@@ -77,6 +84,23 @@ function SADLedger() {
      opinionDoc.v1 dibaca read-only; useServerState tak menulis saat mount →
      tak menyemai/merusak dokumen opini (default minimal hanya .type). */
   const [opinionDoc] = useAmsPersist('opinionDoc.v1', () => ({ type: 'unmodified' }));
+
+  /* Figur dilaporkan = WTB `unadj` + efek jurnal BERSTATUS POSTED. Sengaja BUKAN
+     kolom `adj`: kolom itu memuat AJE-03 & AJE-05 yang masih Proposed, sehingga
+     memakainya akan menyatakan salah saji sudah dikoreksi padahal partner belum
+     menyetujui jurnalnya. Register AJE adalah otoritas atas status posting.
+     CATATAN: sumber register di sini masih `AMS.AJE` (seed beku) - sama seperti
+     rekonsiliasi di bawah; menyambungkannya ke state live adalah PR-C. */
+  const FS = useMemoSD(() => {
+    const f = entityFigures(wtb, 'unadj');
+    const eff = ajeEffect(AMS.AJE, 'Posted');
+    return {
+      pbt: (f.pbt ?? 0) + eff.pbt,
+      revenue: f.revenue ?? 0,
+      assets: f.totalAssets ?? 0,
+      equity: f.equity ?? 0,
+    };
+  }, [wtb]);
   const recon: UncorrResult = useMemoSD(() => reconcileUncorrectedMisstatements({
     aje: AMS.AJE || [],
     sad: items,
@@ -186,7 +210,7 @@ function SADLedger() {
 
           <div style={{ marginTop: 12 }}>
             {tab === 'ledger' && <TabLedger items={items} cycleDisp={cycleDisp} calc={calc} fmt={fmt} ctt={ctt} />}
-            {tab === 'aggregate' && <TabAggregate {...{ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav }} />}
+            {tab === 'aggregate' && <TabAggregate {...{ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS }} />}
             {tab === 'qualitative' && <TabQualitative quals={quals} toggleQual={toggleQual} qualCount={qualCount} />}
             {tab === 'comms' && <TabComms {...{ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, nav, qualCount }} />}
           </div>
@@ -300,7 +324,7 @@ function LegendRow({ color, label, v }: any) {
 /* ============================================================
    TAB 2 — Evaluasi Agregat
    ============================================================ */
-function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav }: any) {
+function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om, pm, ctt, exceedsOM, exceedsPM, concl, fmt, nav, FS }: any) {
   const maxScale = Math.max(om * 1.12, absNet * 1.12, evalGross * 1.12);
   const pctOf = (v: any) => (v / maxScale) * 100;
   const barColor = exceedsOM ? 'var(--red)' : exceedsPM ? 'var(--amber)' : 'var(--green)';

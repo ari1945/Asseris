@@ -7,6 +7,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui';
 import { assertionDef, groupForAccountCode } from './canon_selectors';
+import { entityFigures } from './canon_base';
 import type { AssertionId } from './canon_selectors';
 import { AJEForm } from './view_execution';
 import { DiagnosticPanel } from './diagnostics_panel';
@@ -21,10 +22,12 @@ const { useState: useStateAJ, useMemo: useMemoAJ } = React;
 
 /* corporate income-tax rate (UU HPP) for deferred/current tax effect */
 const AJE_TAX = 0.22;
-/* unadjusted FY2025 PBT per klien — reported (adjusted) PBT lands at Rp 85,2 M
-   once the three posted entries (−3,94 M) are applied */
-const AJE_PBT_UNADJ = 89_140_000_000;
-const AJE_FS = { equity: 160_456_000_000, curAssets: 112_300_000_000, curLiab: 81_400_000_000 };
+/* PR-A - PBT unadjusted & pos likuiditas DULU konstanta di sini:
+   `AJE_PBT_UNADJ = 89_140_000_000` (turunan WTB: 29.690 jt - meleset 3,0x) dan
+   `AJE_FS = { equity 160.456, curAssets 112.300, curLiab 81.400 }` (turunan WTB
+   unadj: 160.457 / 156.808 / 93.921 - hanya ekuitas yang tie). Konstanta itu
+   mengalir ke view_sad `FS.pbt` lalu ke benchmark materialitas, sehingga OM
+   kelebihan 2,87x. Kini SELURUHNYA ditarik dari `entityFigures(wtb,'unadj')`. */
 const COVENANT = 1.20;
 
 /* per-entry audit metadata (keyed to seed AJEs). User-added entries derive
@@ -142,12 +145,18 @@ function AJEView() {
   const [showForm, setShowForm] = useStateAJ(false);
 
   const model = useMemoAJ(() => buildAjeModel(aje), [aje]);
+  /* Basis `unadj` - figur dilaporkan klien SEBELUM penyesuaian audit. Efek jurnal
+     ditambahkan dari register di bawah, bukan dari kolom `aje` WTB: kolom itu
+     memuat AJE-03 & AJE-05 yang masih Proposed, jadi memakainya akan menghitung
+     jurnal yang belum disetujui partner sebagai sudah diposting (dibereskan PR-B/C). */
+  const fig = useMemoAJ(() => entityFigures(wtb, 'unadj'), [wtb]);
   const posted = model.filter((a: any) => a.status === 'Posted');
   const proposed = model.filter((a: any) => a.status === 'Proposed');
   const reclass = model.filter((a: any) => a.kind === 'reclass');
   const pbtPosted = posted.reduce((s: any, a: any) => s + a.pbt, 0);
   const pbtProposed = proposed.reduce((s: any, a: any) => s + a.pbt, 0);
-  const reportedPbt = AJE_PBT_UNADJ + pbtPosted;
+  const pbtUnadj = fig.pbt ?? 0;
+  const reportedPbt = pbtUnadj + pbtPosted;
   const accounts = wtb.map((r: any) => ({ code: r.code, name: r.name }));
 
   // W10.5 Fase 2 — sealed XLSX register: AJE list + every journal line, full-rupiah via rp().
@@ -220,7 +229,7 @@ function AJEView() {
           </Panel>
 
           {tab === 'register' && <AjeRegister model={model} locked={writeLocked} />}
-          {tab === 'impact' && <AjeImpact model={model} posted={posted} proposed={proposed} reportedPbt={reportedPbt} pbtPosted={pbtPosted} pbtProposed={pbtProposed} />}
+          {tab === 'impact' && <AjeImpact model={model} posted={posted} proposed={proposed} fig={fig} pbtUnadj={pbtUnadj} reportedPbt={reportedPbt} pbtPosted={pbtPosted} pbtProposed={pbtProposed} />}
           {tab === 'approvals' && <AjeApprovals model={model} />}
         </div>
       </div>
@@ -383,7 +392,7 @@ function AjeDrill({ a, fmt, nav }: any) {
 /* ============================================================
    TAB 2 — Dampak Laba & Neraca
    ============================================================ */
-function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtProposed }: any) {
+function AjeImpact({ model, posted, proposed, fig, pbtUnadj, reportedPbt, pbtPosted, pbtProposed }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const jt = (n: any) => fmt(n / 1e6, 0);
@@ -394,10 +403,18 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
   const tax = Math.round(totalPbt * AJE_TAX);
   const netInc = totalPbt - tax;
 
-  // liquidity / covenant — proposed entries' effect on current assets
+  /* liquidity / covenant - PR-A: saldo dasar dari WTB (unadj), efek jurnal dari
+     register. "Kini" = setelah yang sudah diposting; "jika disetujui" menambah usulan.
+     BATAS JUJUR: hanya efek terhadap ASET lancar yang dimodelkan (`curEff`); efek
+     terhadap LIABILITAS lancar (mis. AJE-04 akrual) belum - `curEff` sendiri masih
+     hardcode per-id dan diperbaiki di PR-D. Rasio ini karenanya mendekati, bukan menutup. */
+  const curEffPosted = posted.reduce((s: number, a: { curEff?: number }) => s + (a.curEff || 0), 0);
   const curEffProposed = proposed.reduce((s: any, a: any) => s + (a.curEff || 0), 0);
-  const ratioNow = AJE_FS.curAssets / AJE_FS.curLiab;
-  const ratioAfter = (AJE_FS.curAssets + curEffProposed) / AJE_FS.curLiab;
+  const curAssetsBase = fig.curAssets ?? 0;
+  const curLiabBase = fig.curLiab ?? 0;
+  const ratioNow = curLiabBase ? (curAssetsBase + curEffPosted) / curLiabBase : null;
+  const ratioAfter = curLiabBase ? (curAssetsBase + curEffPosted + curEffProposed) / curLiabBase : null;
+  const breach = ratioAfter != null && ratioAfter < COVENANT;
 
   return (
     <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 12, alignItems: 'start' }}>
@@ -409,7 +426,7 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
             <span className="tiny muted">Unadjusted → Posted → Usulan · Rp jt</span>
           </div>
           <div style={{ padding: '16px 18px 12px' }}>
-            <AjeWaterfall unadj={AJE_PBT_UNADJ} posted={posted} reported={reportedPbt} proposed={proposed} ifPosted={ifPosted} jt={jt} />
+            <AjeWaterfall unadj={pbtUnadj} posted={posted} reported={reportedPbt} proposed={proposed} ifPosted={ifPosted} jt={jt} />
             <div className="tiny muted" style={{ marginTop: 22, lineHeight: 1.5 }}>Skala vertikal dipersempit untuk menonjolkan selisih. Batang biru = penyesuaian telah diposting; batang kuning = usulan yang menunggu persetujuan.</div>
           </div>
         </Panel>
@@ -418,10 +435,10 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
           <table className="dtbl">
             <thead><tr><th>Pos</th><th className="num">Unadjusted</th><th className="num">Posted</th><th className="num">Dilaporkan</th><th className="num">Usulan</th><th className="num">Jika Disetujui</th></tr></thead>
             <tbody>
-              <FsRow label="Laba Sebelum Pajak" unadj={AJE_PBT_UNADJ} posted={pbtPosted} proposed={pbtProposed} jt={jt} bold />
-              <FsRow label={`Beban Pajak (${(AJE_TAX * 100).toFixed(0)}%)`} unadj={-Math.round(AJE_PBT_UNADJ * AJE_TAX)} posted={-Math.round(pbtPosted * AJE_TAX)} proposed={-Math.round(pbtProposed * AJE_TAX)} jt={jt} />
-              <FsRow label="Laba Neto" unadj={AJE_PBT_UNADJ - Math.round(AJE_PBT_UNADJ * AJE_TAX)} posted={pbtPosted - Math.round(pbtPosted * AJE_TAX)} proposed={pbtProposed - Math.round(pbtProposed * AJE_TAX)} jt={jt} bold />
-              <FsRow label="Total Ekuitas" unadj={AJE_FS.equity} posted={pbtPosted - Math.round(pbtPosted * AJE_TAX)} proposed={pbtProposed - Math.round(pbtProposed * AJE_TAX)} jt={jt} />
+              <FsRow label="Laba Sebelum Pajak" unadj={pbtUnadj} posted={pbtPosted} proposed={pbtProposed} jt={jt} bold />
+              <FsRow label={`Beban Pajak (${(AJE_TAX * 100).toFixed(0)}%)`} unadj={-Math.round(pbtUnadj * AJE_TAX)} posted={-Math.round(pbtPosted * AJE_TAX)} proposed={-Math.round(pbtProposed * AJE_TAX)} jt={jt} />
+              <FsRow label="Laba Neto" unadj={pbtUnadj - Math.round(pbtUnadj * AJE_TAX)} posted={pbtPosted - Math.round(pbtPosted * AJE_TAX)} proposed={pbtProposed - Math.round(pbtProposed * AJE_TAX)} jt={jt} bold />
+              <FsRow label="Total Ekuitas" unadj={fig.equity ?? 0} posted={pbtPosted - Math.round(pbtPosted * AJE_TAX)} proposed={pbtProposed - Math.round(pbtProposed * AJE_TAX)} jt={jt} />
             </tbody>
           </table>
         </Panel>
@@ -430,21 +447,21 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
           <div className="row gap10" style={{ alignItems: 'stretch' }}>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
               <div className="tiny muted upper">Rasio Lancar (kini)</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--navy)' }}>{ratioNow.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--navy)' }}>{ratioNow != null ? ratioNow.toFixed(2) + '×' : '—'}</div>
             </div>
-            <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: ratioAfter < COVENANT ? 'var(--red-bg)' : 'var(--surface-2)' }}>
+            <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: breach ? 'var(--red-bg)' : 'var(--surface-2)' }}>
               <div className="tiny muted upper">Jika usulan diposting</div>
-              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: ratioAfter < COVENANT ? 'var(--red)' : 'var(--navy)' }}>{ratioAfter.toFixed(2)}×</div>
+              <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: breach ? 'var(--red)' : 'var(--navy)' }}>{ratioAfter != null ? ratioAfter.toFixed(2) + '×' : '—'}</div>
             </div>
             <div className="panel" style={{ flex: 1, padding: '11px 13px', boxShadow: 'none', background: 'var(--surface-2)' }}>
               <div className="tiny muted upper">Ambang Covenant</div>
               <div className="mono" style={{ fontWeight: 700, fontSize: 19, color: 'var(--ink-3)' }}>{COVENANT.toFixed(2)}×</div>
             </div>
           </div>
-          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: ratioAfter < COVENANT ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
+          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: breach ? 'var(--amber-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
             <div className="row gap8 ac">
-              <span style={{ color: ratioAfter < COVENANT ? 'var(--amber)' : 'var(--green)' }}>{ratioAfter < COVENANT ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
-              <span className="tiny" style={{ lineHeight: 1.5 }}>{ratioAfter < COVENANT
+              <span style={{ color: breach ? 'var(--amber)' : 'var(--green)' }}>{breach ? <I.alert size={15} /> : <I.checkCircle size={15} />}</span>
+              <span className="tiny" style={{ lineHeight: 1.5 }}>{breach
                 ? <>Memposting AJE-03 (pembalikan piutang fiktif) menekan rasio lancar di bawah ambang covenant <b>{COVENANT.toFixed(2)}×</b>. Pertimbangan kualitatif SA 450 — eskalasi ke TCWG.</>
                 : <>Rasio lancar tetap di atas ambang covenant meski seluruh usulan diposting.</>}</span>
             </div>
@@ -458,7 +475,7 @@ function AjeImpact({ model, posted, proposed, reportedPbt, pbtPosted, pbtPropose
           <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
             <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Laba Sebelum Pajak (Dilaporkan)</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Unadjusted Rp {jt(AJE_PBT_UNADJ)} jt · {posted.length} penyesuaian posted</div>
+            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Unadjusted Rp {jt(pbtUnadj)} jt · {posted.length} penyesuaian posted</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>
             <AjeKv label="Efek posted ke laba" v={(pbtPosted < 0 ? '' : '+') + jt(pbtPosted) + ' jt'} accent={signColor(pbtPosted)} />

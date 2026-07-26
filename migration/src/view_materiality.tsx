@@ -1,7 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import type { MaterialityConfig } from './canon_types';
+import type { Benchmark, MaterialityConfig, WTB } from './canon_types';
+import { benchmarksFromWTB } from './canon_base';
 import { useAudit, useFirm, useMateriality, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -15,13 +16,11 @@ import { MatComponent, MatImpact, MatMemo, MatRevision, MatSpecific } from './vi
    ============================================================ */
 const { useState: useStateM, useMemo: useMemoM } = React;
 
-const BENCHMARKS = [
-  { id: 'pbt',    label: 'Laba Sebelum Pajak',  value: 85_200_000_000,  lo: 5,   hi: 10,  def: 5,   note: 'Lazim untuk entitas berorientasi laba' },
-  { id: 'rev',    label: 'Total Pendapatan',    value: 331_900_000_000, lo: 0.5, hi: 1,   def: 1,   note: 'Untuk entitas volume tinggi / margin tipis' },
-  { id: 'gp',     label: 'Laba Bruto',          value: 99_420_000_000,  lo: 1,   hi: 3,   def: 2,   note: 'Alternatif bila laba bersih fluktuatif' },
-  { id: 'assets', label: 'Total Aset',          value: 316_558_000_000, lo: 1,   hi: 2,   def: 1,   note: 'Untuk entitas padat aset' },
-  { id: 'equity', label: 'Total Ekuitas',       value: 160_456_000_000, lo: 2,   hi: 5,   def: 3,   note: 'Untuk entitas dengan fokus permodalan' },
-];
+/* PR-A — tabel benchmark SA 320 DULU konstanta di sini, dan itulah akar cacatnya:
+   PBT 85.200 jt tak pernah menyentuh buku besar (turunan WTB: 29.690 jt) sehingga
+   OM kelebihan 2,87×, sementara tabel yang sama mencampur basis — pendapatan dari
+   kolom unadjusted, total aset dari kolom adjusted. Kini diturunkan dari WTB
+   perikatan aktif lewat `benchmarksFromWTB()`. Lihat PRD PR-A. */
 
 const QUAL_FACTORS = [
   { id: 'listed', label: 'Entitas tercatat (publik)', note: 'Perhatian investor & OJK → cenderung lebih konservatif' },
@@ -51,9 +50,13 @@ function MaterialityCalc() {
      satu kunci TIDAK saling sinkron dalam satu sesi, jadi menjadi pemilik kedua akan
      membuat suntingan di sini tak terlihat oleh WTB/SA 530 sampai remount — split-brain
      baru, kelas bug yang justru sedang diperbaiki. */
-  const { matConfig, setMatConfig } = useAudit() as {
-    matConfig: MaterialityConfig; setMatConfig: (p: Partial<MaterialityConfig>) => void;
+  const { matConfig, setMatConfig, wtb } = useAudit() as {
+    matConfig: MaterialityConfig; setMatConfig: (p: Partial<MaterialityConfig>) => void; wtb: WTB;
   };
+  /* Basis `unadj` — SAMA dengan yang dikirim `useMateriality()` ke canon. Keduanya
+     memanggil fungsi murni yang sama atas WTB yang sama, jadi tak ada split-brain:
+     editor di modul ini dan OM yang dipakai modul hilir selalu satu tabel. */
+  const BENCHMARKS = useMemoM(() => benchmarksFromWTB(wtb, 'unadj'), [wtb]);
   const { benchId, pct, pmPct, cttPct, appliedOverride } = matConfig;
   const setBenchId = (v: string) => setMatConfig({ benchId: v });
   const setPct = (v: number) => setMatConfig({ pct: v });
@@ -61,7 +64,10 @@ function MaterialityCalc() {
   const setCttPct = (v: number) => setMatConfig({ cttPct: v });
   const setAppliedOverride = (v: number | null) => setMatConfig({ appliedOverride: v });
 
-  const bench = BENCHMARKS.find(b => b.id === benchId) || BENCHMARKS[0];
+  /* Tanpa WTB, tabel kosong → tak ada benchmark. `null` (bukan baris nol) supaya
+     UI dapat menyatakan "TB belum diimpor" alih-alih memamerkan OM Rp 0 yang
+     tampak otoritatif. */
+  const bench = BENCHMARKS.find((b: Benchmark) => b.id === benchId) || BENCHMARKS[0] || null;
   /* PR-6·0 — OM/PM/CTT ditarik dari canon, BUKAN dihitung ulang di sini. Dulu modul ini
      menghitung `om = bench.value × pct` sendiri sementara seluruh modul hilir memakai
      `materialityFor().omFull` yang (dulu) mengembalikan `engMateriality` → SATU perikatan
@@ -72,8 +78,8 @@ function MaterialityCalc() {
      "Terterapkan" menampilkan nilai baris perikatan walau tak ada yang pernah diterapkan.
      Canon adalah satu-satunya sumber presedens: override ?? benchmark × pct. */
   const mat = useMateriality();
-  const calcOM = Math.round(bench.value * pct / 100);  // hitung benchmark live (pembanding editor)
-  const om = mat.omFull != null ? mat.omFull : calcOM;
+  const calcOM = bench ? Math.round(bench.value * pct / 100) : null;  // hitung benchmark live (pembanding editor)
+  const om = mat.omFull != null ? mat.omFull : (calcOM ?? 0);
   const pm = mat.pmFull != null ? mat.pmFull : Math.round(om * pmPct / 100);
   const ctt = mat.cttFull != null ? mat.cttFull : Math.round(om * cttPct / 100);
   /* `applied` = angka yang dipakai sbg PEMBANDING drift oleh tab Penentuan/Revisi/Memo:
@@ -87,7 +93,7 @@ function MaterialityCalc() {
   const activeQuals = Object.keys(quals).filter(k => quals[k]).length;
   /* menerapkan = memaku hitung benchmark saat ini sbg override otoritatif (bukan `om`,
      yang bisa sudah berupa override lama → tombol jadi no-op senyap) */
-  const onApply = () => setAppliedOverride(calcOM);
+  const onApply = () => { if (calcOM != null) setAppliedOverride(calcOM); };
 
   return (
     <>
@@ -111,8 +117,8 @@ function MaterialityCalc() {
             <RailChip label={mat.basis === 'override' ? 'Overall (OM) · terterapkan' : 'Overall (OM) · hitung benchmark'} value={rp(om)} strong />
             <RailChip label={`Performance · ${pmPct}%`} value={rp(pm)} />
             <RailChip label={`Jelas Remeh · ${cttPct}%`} value={rp(ctt)} />
-            <RailChip label="Benchmark" value={`${bench.label} · ${pct}%`} />
-            {mat.basis === 'override' && calcOM !== om && (
+            <RailChip label="Benchmark" value={bench ? `${bench.label} · ${pct}%` : 'TB belum diimpor'} />
+            {mat.basis === 'override' && calcOM != null && calcOM !== om && (
               <RailChip label="Hitung benchmark kini" value={rp(calcOM)} />
             )}
             <div style={{ flex: 1 }} />
@@ -127,7 +133,7 @@ function MaterialityCalc() {
 
           {tab === 'det' && (
             <MatDetermination
-              bench={bench} benchId={benchId} pickBench={pickBench}
+              bench={bench} benchmarks={BENCHMARKS} benchId={benchId} pickBench={pickBench}
               pct={pct} setPct={setPct} pmPct={pmPct} setPmPct={setPmPct} cttPct={cttPct} setCttPct={setCttPct}
               quals={quals} setQuals={setQuals} activeQuals={activeQuals}
               om={om} pm={pm} ctt={ctt} applied={applied} hasOverride={appliedOverride != null}
@@ -145,10 +151,30 @@ function MaterialityCalc() {
 }
 
 /* ---------- Determination tab ---------- */
-function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, hasOverride, priorOM, rp, locked }: any) {
+function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, hasOverride, priorOM, rp, locked }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const toggleQ = (id: any) => setQuals((q: any) => ({ ...q, [id]: !q[id] }));
+
+  /* PR-A · Q4 — tanpa neraca saldo tak ada benchmark, jadi tak ada materialitas
+     yang dapat DITETAPKAN. Menyatakannya terbuka; jangan render kalkulator di atas
+     angka nol yang tampak otoritatif. */
+  if (!bench) {
+    return (
+      <Panel title="1 · Pemilihan Benchmark" sub="Dasar penentuan materialitas keseluruhan">
+        <div className="panel" style={{ padding: '12px 14px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+          <div className="row gap8 ac">
+            <span style={{ color: 'var(--amber)' }}><I.alert size={16} /></span>
+            <span className="tiny" style={{ lineHeight: 1.5 }}>
+              Neraca saldo perikatan ini belum diimpor, sehingga benchmark SA 320 tak dapat
+              diturunkan. Angka pada baris perikatan adalah <b>nilai administratif</b>, bukan
+              materialitas yang ditetapkan. Impor TB lebih dulu di modul Working Trial Balance.
+            </span>
+          </div>
+        </div>
+      </Panel>
+    );
+  }
 
   return (
     <div className="grid" style={{ gridTemplateColumns: '1.15fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -158,7 +184,7 @@ function MatDetermination({ bench, benchId, pickBench, pct, setPct, pmPct, setPm
           <table className="dtbl">
             <thead><tr><th style={{ width: 28 }}></th><th>Benchmark</th><th className="num">Nilai (Rp)</th><th className="num" style={{ width: 90 }}>Kisaran %</th></tr></thead>
             <tbody>
-              {BENCHMARKS.map(b => (
+              {benchmarks.map((b: Benchmark) => (
                 <tr key={b.id} className={b.id === benchId ? 'sel' : ''} onClick={() => !locked && pickBench(b.id)} style={{ cursor: locked ? 'default' : 'pointer' }}>
                   <td><span style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid ' + (b.id === benchId ? 'var(--blue)' : 'var(--line-strong)'), display: 'grid', placeItems: 'center' }}>{b.id === benchId && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blue-solid)' }} />}</span></td>
                   <td><div style={{ fontWeight: 600 }}>{b.label}</div><div className="tiny muted">{b.note}</div></td>
@@ -312,8 +338,11 @@ function RailChip({ label, value, strong, align, last }: any) {
   );
 }
 
-Object.assign(window, { MaterialityCalc, SliderRow, Compare, BENCHMARKS });
+/* PR-A — `BENCHMARKS` TIDAK lagi dipublikasikan ke window: tabelnya kini turunan
+   WTB per-perikatan, sementara window bersifat global & statis. Fallback
+   `window.BENCHMARKS` di canon_part4 kini hanya terpakai oleh stub uji. */
+Object.assign(window, { MaterialityCalc, SliderRow, Compare });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { BENCHMARKS, Compare, MaterialityCalc, SliderRow };
+export { Compare, MaterialityCalc, SliderRow };
