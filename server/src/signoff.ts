@@ -42,10 +42,29 @@ const OPINION_SLOT_CAP: Record<string, string> = {
   eqr: CAP.EQR_REVIEW,
 };
 
+/* PR-6a — slot persetujuan memo materialitas (`mat.memo.signoff`, SA 320 + SA 230).
+   Sebelum ini `view_materiality_parts.tsx` TAK punya satu pun gate `can()`: peran apa pun
+   (termasuk Junior Auditor) dapat mengisi slot "Disetujui — Partner", dan tanda tangan itu
+   ikut ke PDF memo yang TERSEGEL Ed25519 sebagai persetujuan Rekan Perikatan. `preparer`
+   SENGAJA absen di sini — itu WP_EDIT (semua auditor), sudah di-gate capForWrite. */
+const MAT_MEMO_SLOT_CAP: Record<string, string> = {
+  manager: CAP.SIGNOFF_REVIEWER,   // Reviu Manajer — Partner + Manajer
+  partner: CAP.OPINION_APPROVE,    // Persetujuan Rekan Perikatan — Partner saja
+};
+
+/* Tanda tangan memo memakai bentuk {name, role, at} (bukan {by, at} seperti wpState),
+   jadi ia butuh tanda-tangan kanonik sendiri: memakai `sig()` akan membuat pergantian
+   NAMA penanda tangan pada `at` yang sama lolos tanpa terdeteksi. */
+function sigNamed(v: unknown): string {
+  if (!v || typeof v !== 'object') return v ? String(v) : '';
+  const o = v as Record<string, unknown>;
+  return `${o.name ?? ''}~${o.role ?? ''}~${o.at ?? ''}`;
+}
+
 /* Key yang membawa aksi otoritatif intra-dokumen (engagement: wpState/opinionDoc/reviewNotes;
    firm: prospects → keputusan akseptasi & penerbitan surat perikatan). Nama key unik antar-scope
    (tak ada tabrakan), jadi guard di-dispatch by key. */
-export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 'prospects', 'strategyApproved.v1']);
+export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 'prospects', 'strategyApproved.v1', 'mat.memo.signoff']);
 
 /* Status surat perikatan yang berarti DITERBITKAN (vs intake/draft). */
 const LETTER_ISSUED = new Set(['sent', 'signed']);
@@ -77,6 +96,15 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
       if (sig(ps[slot]) !== sig(ns[slot])) need(OPINION_SLOT_CAP[slot], `opini:${slot}`);
     }
     if (!!p.finalized !== !!n.finalized) need(CAP.OPINION_APPROVE, 'opini:finalized');
+  } else if (key === 'mat.memo.signoff') {
+    /* PR-6a — dokumen ini SENDIRI adalah objek slot ({preparer, manager, partner}),
+       bukan peta ber-id seperti wpState. Menandatangani DAN mencabut sama-sama
+       otoritatif (`doSign` di UI adalah toggle), jadi cukup bandingkan tanda-tangan
+       kanoniknya tanpa peduli arah perubahan. */
+    const p = asObj(prev), n = asObj(next);
+    for (const slot of Object.keys(MAT_MEMO_SLOT_CAP)) {
+      if (sigNamed(p[slot]) !== sigNamed(n[slot])) need(MAT_MEMO_SLOT_CAP[slot], `matMemo:${slot}`);
+    }
   } else if (key === 'reviewNotes') {
     const idx = (v: unknown): Record<string, any> => {
       const m: Record<string, any> = {};

@@ -1,8 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useAuth, useFirm, useNav } from './contexts';
 import { I } from './icons';
+import { CAP } from './rbac';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui';
 import { amsExportPdf } from './export_pdf';
 
@@ -454,12 +455,28 @@ function MatRevision({ om, applied, locked }: any) {
    ============================================================ */
 function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, locked }: any) {
   const { activeEngagement, activeClient } = useFirm();
+  const auth = useAuth();
   const [sign, setSign] = window.useAmsPersist('mat.memo.signoff', {
     preparer: { name: 'Anindya Pramesti', role: 'Audit Manager', at: '2026-02-18 09:40' },
     manager: null, partner: null,
   });
+  /* PR-6a — OTORITAS SLOT (SoD). Sebelum ini berkas ini tak memanggil `can()` sama sekali:
+     peran apa pun dapat menekan "Telaah"/"Setujui", DAN nama penanda tangan di-hardcode
+     ('Anindya Pramesti' / 'Hartono Wijaya, CPA') sehingga Junior Auditor yang menekan
+     "Setujui" merekam identitas Rekan Perikatan — pemalsuan identitas, bukan sekadar
+     tanda tangan tanpa wewenang — lalu ikut ke PDF memo yang tersegel Ed25519.
+     Pola identik `view_opinion_parts.tsx`; penegakan server ada di
+     `server/src/signoff.ts` (MAT_MEMO_SLOT_CAP), jadi request termodifikasi pun ditolak. */
+  const MAT_SLOT_CAP: Record<string, string> = { manager: CAP.SIGNOFF_REVIEWER, partner: CAP.OPINION_APPROVE };
+  const canSignSlot = (slot: string) => !auth || typeof auth.can !== 'function' || auth.can(MAT_SLOT_CAP[slot]);
+  /* penanda tangan SEBENARNYA dari sesi — bukan nama slot hardcode */
+  const me = (auth && auth.user && auth.user.name) || 'Auditor';
+  const myRole = (auth && auth.user && auth.user.role) || '';
   const now = () => new Date().toISOString().slice(0, 16).replace('T', ' ');
-  const doSign = (key: any, name: any, role: any) => setSign((s: any) => ({ ...s, [key]: s[key] ? null : { name, role, at: now() } }));
+  const doSign = (key: string) => {
+    if (!canSignSlot(key)) return;   // gate UI; server tetap menegakkan (dua lapis)
+    setSign((s: any) => ({ ...s, [key]: s[key] ? null : { name: me, role: myRole, at: now() } }));
+  };
   const fullySigned = sign.preparer && sign.manager && sign.partner;
   const diff = Math.abs(om - applied) / applied;
   const [exporting, setExporting] = useStateMP(false);
@@ -580,10 +597,31 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
             <SignBox k="partner" title="Disetujui oleh (Partner)" />
           </div>
           {!locked && (
-            <div className="row gap8" style={{ marginTop: 11 }}>
-              <Btn sm style={{ flex: 1 }} onClick={() => doSign('manager', 'Anindya Pramesti', 'Audit Manager')}>{sign.manager ? 'Batalkan' : 'Telaah'}</Btn>
-              <Btn sm variant={sign.partner ? '' : 'navy'} style={{ flex: 1 }} onClick={() => doSign('partner', 'Hartono Wijaya, CPA', 'Engagement Partner')}>{sign.partner ? 'Batalkan' : 'Setujui'}</Btn>
-            </div>
+            <>
+              <div className="row gap8" style={{ marginTop: 11 }}>
+                <Btn sm style={{ flex: 1 }} disabled={!canSignSlot('manager')} onClick={() => doSign('manager')}
+                  title={!canSignSlot('manager') ? 'Hanya Rekan atau Manajer Audit dapat menelaah slot ini' : undefined}>
+                  {sign.manager ? 'Batalkan' : 'Telaah'}
+                </Btn>
+                <Btn sm variant={sign.partner ? '' : 'navy'} style={{ flex: 1 }} disabled={!canSignSlot('partner')} onClick={() => doSign('partner')}
+                  title={!canSignSlot('partner') ? 'Hanya Rekan Perikatan dapat menyetujui memo materialitas' : undefined}>
+                  {sign.partner ? 'Batalkan' : 'Setujui'}
+                </Btn>
+              </div>
+              {/* alasan terlihat — tombol mati tanpa penjelasan membaca sebagai kerusakan */}
+              {(!canSignSlot('manager') || !canSignSlot('partner')) && (
+                <div className="tiny" style={{ marginTop: 7, color: 'var(--ink-3)', display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                  <I.shield size={12} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>
+                    Peran Anda{myRole ? ` (${myRole})` : ''} tak berwenang atas
+                    {!canSignSlot('manager') ? ' slot Telaah Manajer' : ''}
+                    {(!canSignSlot('manager') && !canSignSlot('partner')) ? ' maupun' : ''}
+                    {!canSignSlot('partner') ? ' slot Persetujuan Rekan' : ''} — SA 220 segregation of duties.
+                    Tanda tangan direkam dari sesi Anda, jadi slot ini tak dapat diisi atas nama orang lain.
+                  </span>
+                </div>
+              )}
+            </>
           )}
           {fullySigned && <div className="row ac gap8" style={{ marginTop: 10, color: 'var(--green)', fontWeight: 700, fontSize: 12 }}><I.lock size={14} /> Memo lengkap & terkunci</div>}
         </Panel>

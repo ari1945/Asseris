@@ -122,6 +122,53 @@ describe('guardSignoffWrite — strategyApproved.v1 (persetujuan strategi SA 300
   });
 });
 
+/* PR-6a — sebelum ini `mat.memo.signoff` tak ada di SIGNOFF_KEYS DAN UI-nya tak punya
+   satu pun gate `can()`, sehingga Junior Auditor dapat mengisi slot "Disetujui — Partner"
+   dan tanda tangan itu ikut ke PDF memo yang tersegel Ed25519. */
+describe('guardSignoffWrite — mat.memo.signoff (memo materialitas SA 320/230)', () => {
+  const KEY = 'mat.memo.signoff';
+  const prep = { name: 'Anindya Pramesti', role: 'Audit Manager', at: '2026-02-18 09:40' };
+  const base = { preparer: prep, manager: null, partner: null };
+  const mgrSign = { name: 'Anindya Pramesti', role: 'Audit Manager', at: '2026-02-19 10:00' };
+  const ptrSign = { name: 'Hartono Wijaya', role: 'Rekan Pemimpin', at: '2026-02-20 11:00' };
+
+  it('slot partner butuh OPINION_APPROVE — Junior/Senior/Manager ditolak, Partner boleh', () => {
+    const next = { ...base, partner: ptrSign };
+    expect(() => guardSignoffWrite(JUNIOR, KEY, base, next)).toThrow(/requires:opinion\.approve/);
+    expect(() => guardSignoffWrite(SENIOR, KEY, base, next)).toThrow(/opinion\.approve/);
+    expect(() => guardSignoffWrite(MANAGER, KEY, base, next)).toThrow(/opinion\.approve/);
+    expect(guardSignoffWrite(PARTNER, KEY, base, next)).toEqual([{ what: 'matMemo:partner', cap: CAP.OPINION_APPROVE }]);
+  });
+
+  it('slot manager butuh SIGNOFF_REVIEWER — Junior/Senior ditolak, Manager & Partner boleh', () => {
+    const next = { ...base, manager: mgrSign };
+    expect(() => guardSignoffWrite(JUNIOR, KEY, base, next)).toThrow(/requires:signoff\.reviewer/);
+    expect(() => guardSignoffWrite(SENIOR, KEY, base, next)).toThrow(/signoff\.reviewer/);
+    expect(() => guardSignoffWrite(MANAGER, KEY, base, next)).not.toThrow();
+    expect(() => guardSignoffWrite(PARTNER, KEY, base, next)).not.toThrow();
+  });
+
+  it('MENCABUT tanda tangan sama otoritatifnya dengan memberi (doSign adalah toggle)', () => {
+    const signed = { ...base, partner: ptrSign };
+    expect(() => guardSignoffWrite(MANAGER, KEY, signed, base)).toThrow(/opinion\.approve/);
+    expect(() => guardSignoffWrite(PARTNER, KEY, signed, base)).not.toThrow();
+  });
+
+  it('mengganti NAMA penanda tangan pada `at` yang sama tetap terdeteksi (bukan lolos)', () => {
+    const signed = { ...base, partner: ptrSign };
+    const forged = { ...base, partner: { ...ptrSign, name: 'Fajar Nugraha', role: 'Junior Auditor' } };
+    expect(() => guardSignoffWrite(JUNIOR, KEY, signed, forged)).toThrow(/opinion\.approve/);
+  });
+
+  it('slot preparer TIDAK di-gate di sini (WP_EDIT, sudah lewat capForWrite)', () => {
+    expect(guardSignoffWrite(JUNIOR, KEY, { preparer: null, manager: null, partner: null }, base)).toEqual([]);
+  });
+
+  it('menyunting isi memo tanpa menyentuh slot → tanpa requirement', () => {
+    expect(guardSignoffWrite(JUNIOR, KEY, base, { ...base })).toEqual([]);
+  });
+});
+
 describe('guardSignoffWrite — non-sensitif / no-op', () => {
   it('key tak dikenal → tanpa requirement', () => {
     expect(guardSignoffWrite(JUNIOR, 'risks', { a: 1 }, { a: 2 })).toEqual([]);

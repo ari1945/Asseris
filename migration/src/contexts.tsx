@@ -198,10 +198,22 @@ const AMS_PERSIST_SCOPE = {
      Setelan lama yang tersimpan firm-scope tetap terbaca lewat rantai baca-lewat
      `readPersisted` (perikatan → firma → legacy) di persist_scope.ts — tanpa tulisan
      destruktif; tersalin ke tier perikatan saat pengguna menyimpan berikutnya.
-     CATATAN: `mat.memo.signoff` SENGAJA TIDAK ikut pindah — ia slot persetujuan, dan
-     memindahkannya ke engagement-scope tanpa entri `guardSignoffWrite` akan melonggarkan
-     otoritasnya dari Rekan (FIRM_ADMIN) menjadi WP_EDIT (semua auditor). Pemindahannya
-     butuh guard server terlebih dulu — keputusan terpisah, lihat PRD §11 Q2. */
+     PR-6a — `mat.memo.signoff` KINI ikut pindah. #129 sengaja menahannya karena
+     engagement-scope menurunkan capForWrite dari FIRM_ADMIN ke WP_EDIT, dan tanpa guard
+     server itu berarti setiap auditor boleh menulis slot persetujuan. Prasyarat itu kini
+     dipenuhi: `server/src/signoff.ts` punya entri `mat.memo.signoff` (SIGNOFF_KEYS +
+     MAT_MEMO_SLOT_CAP) yang mem-diff per slot dan menuntut SIGNOFF_REVIEWER (manager) /
+     OPINION_APPROVE (partner); `view_materiality_parts.tsx` men-gate tombolnya dgn
+     `can()`. Yang firm-scope justru CACAT: satu nilai dipakai SEMUA perikatan, jadi
+     menandatangani memo satu perikatan membuat memo perikatan lain tampak
+     tertandatangani.
+     BATAS JUJUR: tanda tangan firm-scope lama TIDAK terbawa. Rantai baca-lewat
+     `readPersisted` hanya dipakai pembaca NON-REACT (canon) dan kunci ini tak punya
+     pembaca canon; `useServerState` hanya membaca kunci lingkupnya sendiri + legacy
+     tak-berlingkup. Itu justru perilaku yang benar: tanda tangan firm-scope tak dapat
+     diatribusikan ke satu perikatan tertentu — itulah cacatnya — jadi ia harus
+     ditandatangani ulang per perikatan oleh pemegang otoritas. Pada repo ini tak ada
+     yang hilang: nilai firm-scope di server memang kosong (diverifikasi live). */
   'mat.benchId': 'engagement',
   'mat.pct': 'engagement',
   'mat.pmPct': 'engagement',
@@ -212,6 +224,7 @@ const AMS_PERSIST_SCOPE = {
   'mat.components': 'engagement',
   'mat.revisions': 'engagement',
   'mat.tab': 'engagement',
+  'mat.memo.signoff': 'engagement',
   /* PR-3a — ambang investigasi analitis bersama (tab WTB ⟷ modul `analytical`). */
   'fluxThreshold.v1': 'engagement',
   /* PR-3c — kertas kerja prosedur analitis substantif SA 520. Tanpa entri ini ia jatuh ke
