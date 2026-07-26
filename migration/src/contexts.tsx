@@ -8,12 +8,44 @@ import { applyMapping } from './wtb_mapping';
 import { overlayWtbOverrides } from './wtb_overrides';
 import { mergeLegacyFlux } from './flux_state';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
+import { materialityFor } from './canon_selectors';
+import type { MaterialityConfig, MaterialityResult } from './canon_types';
 
 /* ============================================================
    Asseris — React Context providers
    AuthContext · FirmContext · AuditContext
    ============================================================ */
 const { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } = React;
+
+/* ============================================================
+   PR-6b · K9 — BENTUK nilai AuditContext dipaku saat compile.
+   ------------------------------------------------------------
+   Nilai konteks ini tak bertipe, dan field yang lupa dimasukkan ke objek nilai
+   (tetapi sudah masuk array deps `useMemo`) LOLOS typecheck + lint lalu gagal
+   SENYAP saat runtime — sudah dua kali menggigit (PR-4 dan PR-5).
+   Daftar di bawah memaku KEBERADAAN setiap field: objek nilai di-annotate
+   `(): AuditContextShape`, jadi field yang hilang ATAU field baru yang belum
+   didaftarkan = typecheck GAGAL.
+   BATAS JUJUR: yang dipaku baru nama field, bukan tipe nilainya (`unknown`), dan
+   `useAudit()` sengaja TETAP longgar agar ~100 call-site tak perlu disentuh di PR
+   ini. Mengetik nilainya secara presisi (Q1) adalah pekerjaan tersendiri —
+   dengan `unknown` ia akan menyebar ke seluruh konsumen. */
+type AuditContextShape = { [K in
+  | 'matConfig' | 'setMatConfig'
+  | 'aje' | 'setAje' | 'toggleAjeStatus' | 'addAje' | 'ajeTotalPosted'
+  | 'risks' | 'updateRisk'
+  | 'wtb' | 'wtbOverrides' | 'setWtbOverrides' | 'wtbImport' | 'setWtbImport'
+  | 'wtbMapping' | 'setWtbMapping' | 'wtbLedger' | 'setWtbLedger'
+  | 'fluxState' | 'setFluxState' | 'fluxThreshold' | 'setFluxThreshold'
+  | 'wtbLeads' | 'setWtbLeads' | 'priorYearBalances' | 'setPriorYearBalances'
+  | 'wpState' | 'setWp'
+  | 'reviewNotes' | 'reviewNotesActive' | 'addReviewNote' | 'resolveReviewNote' | 'updateReviewNote'
+  | 'noteThreads' | 'addNoteReply'
+  | 'timeEntries' | 'addTimeEntry'
+  | 'taskState' | 'toggleTask'
+  | 'logEntries' | 'logActivity'
+  | 'workpapers' | 'team' | 'activity' | 'deadlines'
+]: unknown };
 
 const AuthContext  = createContext(null);
 const FirmContext  = createContext(null);
@@ -24,6 +56,28 @@ const NavFromContext = createContext(null);
 const useAuth  = () => useContext(AuthContext);
 const useFirm  = () => useContext(FirmContext);
 const useAudit = () => useContext(AuditContext);
+
+/**
+ * PR-6b — SATU pintu materialitas untuk view (SA 320).
+ *
+ * Mengirim konfigurasi yang SUDAH ter-hidrasi dari server ke canon secara eksplisit,
+ * sehingga hasilnya (a) tak bergantung pada modul mana yang sudah pernah dibuka di
+ * browser itu, dan (b) REAKTIF — begitu hidrasi/suntingan mendarat, seluruh permukaan
+ * ikut berubah tanpa reload. Konsumen JANGAN memanggil `materialityFor()` langsung
+ * (jalur cache; lihat uji invarian `materiality_single_door.test.ts`).
+ */
+function useMateriality(): MaterialityResult {
+  /* tipe struktural minimal — BUKAN `any`: satu `any` baru di berkas ini
+     meng-un-suppress seluruh berkas pada ratchet ESLint. */
+  const firm = useFirm() as { activeEngagement?: { id?: string; materiality?: number } | null } | null;
+  const audit = useAudit() as { matConfig?: MaterialityConfig } | null;
+  const eng = (firm && firm.activeEngagement) || null;
+  const cfg = (audit && audit.matConfig) || undefined;
+  return useMemo(
+    () => materialityFor({ engMateriality: eng ? eng.materiality : undefined, engagementId: eng ? eng.id : undefined, config: cfg }),
+    [eng, cfg],
+  );
+}
 const useNav   = () => useContext(NavContext);
 const useNavFrom = () => useContext(NavFromContext);
 
@@ -271,6 +325,23 @@ function emptyLike(initial: any) {
   return Array.isArray(v) ? [] : {};
 }
 
+/* PR-6b — BACA-LEWAT DI SISI SERVER untuk keluarga konfigurasi materialitas.
+   #129 memindahkan `mat.*` ke lingkup perikatan dan menyediakan rantai baca-lewat
+   (perikatan→firma→legacy) — tetapi HANYA di lapisan cache localStorage
+   (`readPersisted`). Server tak punya rantai itu: `useServerState` menanyakan SATU
+   `(scope, scopeId)` dan mengadopsi nilainya hanya bila `version > 0`. Akibatnya
+   konfigurasi yang tersimpan SEBELUM #129 (lingkup firma di server) menjadi YATIM:
+   pada browser dengan cache dingin, kueri lingkup-perikatan mengembalikan version 0 →
+   UI jatuh ke default (`pbt` 5%/75%/5%) dan keputusan benchmark auditor hilang tanpa
+   jejak. Diverifikasi live 2026-07-26: server firma menyimpan benchId="rev", pct=1
+   sementara modul Materialitas menampilkan "Laba Sebelum Pajak · 5%".
+   Perbaikannya menutup rantai itu di lapisan yang benar — hanya BACA, tak ada tulisan
+   destruktif; nilai tersalin ke tier perikatan pada penyimpanan berikutnya. */
+const SERVER_READ_THROUGH_FIRM = new Set([
+  'mat.benchId', 'mat.pct', 'mat.pmPct', 'mat.cttPct', 'mat.appliedOverride',
+  'mat.quals', 'mat.specifics', 'mat.components', 'mat.revisions',
+]);
+
 const SYNC_DEBOUNCE_MS = 400;
 
 /* W6 Fase 2 — surface optimistic-concurrency conflicts (no silent clobber).
@@ -324,6 +395,21 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any) {
       // ter-filter) — menutup lubang version-0. Jangan tulis ke cache bersama (hindari bocor lintas-user).
       if (isPersonal) { setValRaw(res.value); }
       else if (res.version > 0) { setValRaw(res.value); cacheWrite(cacheKey, res.value); }
+      else if (scope === 'engagement' && SERVER_READ_THROUGH_FIRM.has(key)) {
+        /* PR-6b — tier perikatan belum pernah ditulis di server; coba tier FIRMA
+           (setelan pra-#129). Cache ditulis ke kunci PERIKATAN agar canon
+           (`readPersisted`) melihat nilai yang sama, tanpa menulis apa pun ke server. */
+        /* tipe struktural, BUKAN `any`: satu `any` baru di berkas ini meng-un-suppress
+           SELURUH berkas pada ratchet ESLint (gotcha yang sudah tercatat). */
+        const stateGet = (api as unknown as {
+          state: { get: { query: (a: { scope: string; scopeId: string; key: string }) => Promise<{ value: unknown; version: number }> } };
+        }).state.get;
+        stateGet.query({ scope: 'firm', scopeId: FIRM_SCOPE_ID, key }).then((f) => {
+          if (cancelled || !f || f.version <= 0) return;
+          setValRaw(f.value);
+          cacheWrite(cacheKey, f.value);
+        }).catch(() => {});
+      }
     }).catch(() => { /* offline / no server: keep the cache (personal: kosong-aman) */ });
     return () => { cancelled = true; };
   }, [scope, scopeId, key]);
@@ -578,6 +664,18 @@ function AppProviders({ me, onLogout, children }: any) {
   /* PR-4c — saldo akhir audited TA-1 sebagai sumber INDEPENDEN (SA 510 ¶6). Tanpa ini,
      penelusuran saldo awal membandingkan `ly` dengan dirinya sendiri → selalu "Cocok". */
   const [priorYearBalances, setPriorYearBalances] = useServerState('priorYearBalances.v1', null, 'engagement', activeEngagementId);
+  /* PR-6b — konfigurasi materialitas SA 320 dihidrasi DI SINI (bukan hanya saat modul
+     Materialitas dirender). Dulu `view_materiality` satu-satunya penulis cache `mat.*`,
+     sehingga `materialityFor()` di 8 modul hilir memakai default 75% pada browser bersih
+     walau server menyimpan setelan auditor — senyap, dan berbeda antar-mesin.
+     AuditProvider kini PEMILIK TUNGGAL kunci ini; modul Materialitas mengikat ke sini
+     (dua pemilik `useServerState` atas satu kunci TIDAK saling sinkron dalam satu sesi →
+     itu akan jadi split-brain baru, kelas bug yang sedang diperbaiki). */
+  const [matBenchId, setMatBenchId] = useServerState('mat.benchId', 'pbt', 'engagement', activeEngagementId);
+  const [matPct, setMatPct] = useServerState('mat.pct', 5, 'engagement', activeEngagementId);
+  const [matPmPct, setMatPmPct] = useServerState('mat.pmPct', 75, 'engagement', activeEngagementId);
+  const [matCttPct, setMatCttPct] = useServerState('mat.cttPct', 5, 'engagement', activeEngagementId);
+  const [matOverride, setMatOverride] = useServerState('mat.appliedOverride', null, 'engagement', activeEngagementId);
   const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
   const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
@@ -652,7 +750,22 @@ function AppProviders({ me, onLogout, children }: any) {
   const ajeTotalPosted = useMemo(
     () => aje.filter((a: any) => a.status === 'Posted').reduce((s: any, a: any) => s + a.amount, 0), [aje]);
 
-  const audit = useMemo(() => ({
+  /* PR-6b — konfigurasi materialitas sebagai satu objek reaktif + satu setter ber-patch.
+     Dipakai `useMateriality()` untuk memanggil canon dengan argumen EKSPLISIT (murni),
+     dan oleh modul Materialitas sebagai editor. */
+  const matConfig: MaterialityConfig = useMemo(() => ({
+    benchId: matBenchId, pct: matPct, pmPct: matPmPct, cttPct: matCttPct, appliedOverride: matOverride,
+  }), [matBenchId, matPct, matPmPct, matCttPct, matOverride]);
+  const setMatConfig = useCallback((patch: Partial<MaterialityConfig>) => {
+    if (patch.benchId !== undefined) setMatBenchId(patch.benchId);
+    if (patch.pct !== undefined) setMatPct(patch.pct);
+    if (patch.pmPct !== undefined) setMatPmPct(patch.pmPct);
+    if (patch.cttPct !== undefined) setMatCttPct(patch.cttPct);
+    if (patch.appliedOverride !== undefined) setMatOverride(patch.appliedOverride);
+  }, []);
+
+  const audit = useMemo((): AuditContextShape => ({
+    matConfig, setMatConfig,
     aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
@@ -665,7 +778,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [matConfig, setMatConfig, aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>
@@ -688,5 +801,5 @@ window.clearPersisted = clearPersisted;
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useNav, useNavFrom, amsShortName, useCurrentAuditor, useInitialTab, useInitialSelection };
+export { AppProviders, AuditContext, AuthContext, FirmContext, NavContext, NavFromContext, clearPersisted, notesForEngagement, useAudit, useAuth, useFirm, useMateriality, useNav, useNavFrom, amsShortName, useCurrentAuditor, useInitialTab, useInitialSelection };
 export { useAmsPersist };

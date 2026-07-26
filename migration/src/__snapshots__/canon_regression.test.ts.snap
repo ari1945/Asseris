@@ -2142,6 +2142,7 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
     "benchLabel": "Laba Sebelum Pajak",
     "benchValue": 85200000000,
     "calcOM": 4260000000,
+    "configSource": "default",
     "ctt": 213,
     "cttFull": 213000000,
     "cttPct": 5,

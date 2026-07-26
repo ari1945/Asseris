@@ -79,6 +79,38 @@ describe('materiality() — presedens OM (PR-6·0, jalur yang dipakai view)', ()
     expect(dekat.drift!.material).toBe(false); // 0,023% → pembulatan, bukan drift
   });
 
+  /* PR-6b · K7 — jalur argumen (dipakai `useMateriality()`): MURNI, tak menyentuh cache. */
+  it('opts.config dipakai apa adanya & configSource = "args" (tanpa baca localStorage)', () => {
+    localStorage.setItem(persistCacheKey('engagement', ENG, 'mat.pmPct'), JSON.stringify(30));
+    const m = materiality({
+      engagementId: ENG,
+      config: { benchId: 'pbt', pct: 1, pmPct: 60, cttPct: 4, appliedOverride: null },
+    });
+    expect(m.configSource).toBe('args');
+    expect(m.pmPct).toBe(60);                                        // dari args, BUKAN 30 dari cache
+    expect(m.pct).toBe(1);
+    /* relasional terhadap tabel benchmark (stub uji hanya memuat `pbt`) */
+    expect(m.omFull).toBe(Math.round(m.benchValue! * 1 / 100));
+    expect(m.pmFull).toBe(Math.round(m.omFull! * 60 / 100));
+    expect(m.cttFull).toBe(Math.round(m.omFull! * 4 / 100));
+  });
+
+  it('configSource membedakan cache vs default — jalur basi jadi DAPAT DIDETEKSI', () => {
+    expect(materiality({ engagementId: ENG }).configSource).toBe('default');
+    localStorage.setItem(persistCacheKey('engagement', ENG, 'mat.pmPct'), JSON.stringify(60));
+    expect(materiality({ engagementId: ENG }).configSource).toBe('cache');
+  });
+
+  it('config eksplisit dengan override tetap menang atas benchmark', () => {
+    const m = materiality({
+      engagementId: ENG,
+      config: { benchId: 'pbt', pct: 5, pmPct: 75, cttPct: 5, appliedOverride: 2_000_000_000 },
+    });
+    expect(m.basis).toBe('override');
+    expect(m.om).toBe(2_000);
+    expect(m.configSource).toBe('args');
+  });
+
   it('basis = "none" bila tabel benchmark kosong dan tanpa override (jujur, bukan menebak)', () => {
     const g = globalThis as { BENCHMARKS?: unknown };
     const saved = g.BENCHMARKS;

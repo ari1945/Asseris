@@ -2,11 +2,10 @@
 import React from 'react';
 import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
-import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor } from './contexts';
+import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor, useMateriality } from './contexts';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan } from './sampling_select';
 import {
   assertionCoverage, groupForAccountCode, ASSERTION_RELEVANCE, ASSERTION_STATUS_META, assertionDef,
-  materialityFor,
 } from './canon_selectors';
 import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } from './canon_selectors';
 import { I } from './icons';
@@ -151,7 +150,7 @@ function WorkingPapers() {
 
   /* PR-1b — OM/PM/ambang sepele dari SSOT materialitas (SA 320), bukan hardcode
      ×0,75 / ×0,05; badge cakupan lead schedule kini ikut pmPct/cttPct workspace. */
-  const _matW = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const _matW = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)
   const om = _matW.omFull != null ? _matW.omFull : activeEngagement.materiality;
   const pm = _matW.pmFull != null ? _matW.pmFull : 0;
   const triv = _matW.cttFull != null ? _matW.cttFull : 0;
@@ -332,7 +331,7 @@ function WPDrill({ it, onClose }: any) {
   const bal = hasLead ? leadRows.reduce((a: any, r: any) => a + r.adj, 0) : null;
   /* PR-1b — OM/PM/ambang sepele dari SSOT materialitas (SA 320), bukan hardcode
      ×0,75 / ×0,05; badge cakupan lead schedule kini ikut pmPct/cttPct workspace. */
-  const _matW = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const _matW = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)
   const om = _matW.omFull != null ? _matW.omFull : activeEngagement.materiality;
   const pm = _matW.pmFull != null ? _matW.pmFull : 0;
   const triv = _matW.cttFull != null ? _matW.cttFull : 0;

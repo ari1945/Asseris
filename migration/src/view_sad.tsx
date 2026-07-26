@@ -1,10 +1,9 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useFirm, useNav, useAmsPersist } from './contexts';
+import { useFirm, useNav, useAmsPersist, useMateriality } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { materialityFor } from './canon_selectors';
 import { reconcileUncorrectedMisstatements, type UncorrResult } from './canon_validation';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
@@ -68,7 +67,7 @@ function SADLedger() {
 
   /* materialitas: SATU sumber dari SA 320 (Materiality Workspace) — PM%/CTT% & override
      yang sama dipakai PSAK 14 dkk., bukan lagi hardcode 75%/5%. */
-  const _mat = materialityFor({ engMateriality: activeEngagement.materiality, engagementId: activeEngagement.id });
+  const _mat = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)
   const om = (_mat && _mat.omFull != null) ? _mat.omFull : activeEngagement.materiality;
   const pm = (_mat && _mat.pmFull != null) ? _mat.pmFull : Math.round(om * 0.75);
   const ctt = (_mat && _mat.cttFull != null) ? _mat.cttFull : Math.round(om * 0.05);

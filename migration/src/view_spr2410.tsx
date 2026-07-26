@@ -2,10 +2,9 @@
 import React from 'react';
 import { AMS } from './data';
 import { FSGEN } from './fsgen_model';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useFirm, useNav, useMateriality } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { materialityFor } from './canon_selectors';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { RowKv } from './view_calc';
@@ -73,7 +72,7 @@ function SPR2410View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025', materiality: 4_250_000_000 };
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   /** @type {import('./canon_selectors').MaterialityResult} */
-  const mat = materialityFor({ engMateriality: eng.materiality, engagementId: eng.id });
+  const mat = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)
   const risks = (audit && audit.risks) ? audit.risks : ((AMS && AMS.RISKS) || []);
 
   const [tab, setTab] = useState2410(() => loader('ams.spr2410.tab', 'ikhtisar'));

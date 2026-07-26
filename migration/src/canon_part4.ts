@@ -2,11 +2,11 @@
    Asseris — canon part4 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import { RATE, jt } from './canon_base';
-import { readPersisted } from './persist_scope';
+import { readPersistedWithHit } from './persist_scope';
 import { assetRegister, intangibles } from './canon_part1';
 import { GOODWILL } from './canon_part2';
 import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3';
-import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, MaterialityDrift } from './canon_types';
+import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, MaterialityConfigSource, MaterialityDrift } from './canon_types';
 
   interface JointArr {
     id: string; refId: string | null; type: string; name: string; partner: string; activity: string;
@@ -348,11 +348,27 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
   function materiality(opts?: MaterialityOpts): MaterialityResult {
     opts = opts || {};
     const engId    = opts.engagementId;
-    const benchId  = readPersisted('mat.benchId', 'pbt', engId);
-    const pct      = readPersisted('mat.pct', 5, engId);
-    const pmPct    = readPersisted('mat.pmPct', 75, engId);
-    const cttPct   = readPersisted('mat.cttPct', 5, engId);
-    const override = readPersisted<number | null>('mat.appliedOverride', null, engId);
+    /* PR-6b — JALUR ARGUMEN LEBIH DULU. Rantai `readPersisted` hanya membaca cache
+       localStorage yang ditulis `useServerState`, dan cache `mat.*` HANYA ditulis saat
+       modul Materialitas dirender. Di browser bersih / storage terhapus / mesin auditor
+       kedua, seluruh konsumen hilir karena itu memakai default 75% & mengabaikan
+       `appliedOverride` walau server menyimpan setelan auditor — senyap dan bergantung
+       keadaan cache. Pemanggil React kini mengirim `opts.config` dari state ter-hidrasi
+       server (`useMateriality()`), sehingga fungsi ini MURNI. Rantai cache dipertahankan
+       untuk pemanggil non-React & uji lama; `configSource` membuat jalur basi terdeteksi. */
+    const cfg = opts.config;
+    const benchIdR  = cfg ? { value: cfg.benchId, hit: true } : readPersistedWithHit('mat.benchId', 'pbt', engId);
+    const pctR      = cfg ? { value: cfg.pct, hit: true } : readPersistedWithHit('mat.pct', 5, engId);
+    const pmPctR    = cfg ? { value: cfg.pmPct, hit: true } : readPersistedWithHit('mat.pmPct', 75, engId);
+    const cttPctR   = cfg ? { value: cfg.cttPct, hit: true } : readPersistedWithHit('mat.cttPct', 5, engId);
+    const overrideR = cfg ? { value: cfg.appliedOverride, hit: true } : readPersistedWithHit<number | null>('mat.appliedOverride', null, engId);
+    const benchId  = benchIdR.value;
+    const pct      = pctR.value;
+    const pmPct    = pmPctR.value;
+    const cttPct   = cttPctR.value;
+    const override = overrideR.value;
+    const anyHit   = benchIdR.hit || pctR.hit || pmPctR.hit || cttPctR.hit || overrideR.hit;
+    const configSource: MaterialityConfigSource = cfg ? 'args' : (anyHit ? 'cache' : 'default');
     const benches  = (typeof window !== 'undefined' && window.BENCHMARKS) || [];
     const bench    = benches.find(b => b.id === benchId) || benches[0] || null;
     const calcOM   = bench ? Math.round(bench.value * pct / 100) : null; // OM hitung benchmark (live)
@@ -374,7 +390,7 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
     return {
       benchId, benchLabel: bench ? bench.label : null, benchValue: bench ? bench.value : null,
       pct, pmPct, cttPct, applied: override != null, calcOM,
-      basis, drift,
+      basis, configSource, drift,
       omFull, pmFull, cttFull,
       om:  omFull  != null ? jt(omFull)  : null,
       pm:  pmFull  != null ? jt(pmFull)  : null,

@@ -55,13 +55,32 @@ function rawRead(k: string): { hit: boolean; value: unknown } {
  * bukan "jatuh ke tier berikutnya").
  */
 export function readPersisted<T,>(key: string, fallback: T, engagementId?: string | null): T {
+  return readPersistedWithHit(key, fallback, engagementId).value;
+}
+
+/** Hasil baca + apakah nilainya benar-benar ADA di salah satu tier (bukan fallback). */
+export interface PersistedRead<T> {
+  value: T;
+  /** true = ditemukan di cache; false = memakai `fallback` */
+  hit: boolean;
+}
+
+/**
+ * Sama seperti `readPersisted`, tetapi MELAPORKAN apakah nilainya ditemukan.
+ *
+ * PR-6b — dibutuhkan agar `materiality()` dapat mengembalikan `configSource`
+ * (`cache` vs `default`). Tanpa ini, "konfigurasi auditor" dan "default 75%" tak
+ * dapat dibedakan oleh pemanggil, sehingga jalur basi tak terdeteksi — persis cara
+ * cacat #129 bertahan lama tanpa terlihat.
+ */
+export function readPersistedWithHit<T,>(key: string, fallback: T, engagementId?: string | null): PersistedRead<T> {
   const tiers: string[] = [];
   if (engagementId) tiers.push(persistCacheKey('engagement', engagementId, key));
   tiers.push(persistCacheKey('firm', FIRM_SCOPE_ID, key));
   tiers.push(legacyCacheKey(key));
   for (const k of tiers) {
     const r = rawRead(k);
-    if (r.hit) return r.value as T;
+    if (r.hit) return { value: r.value as T, hit: true };
   }
-  return fallback;
+  return { value: fallback, hit: false };
 }
