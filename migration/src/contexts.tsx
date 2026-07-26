@@ -15,7 +15,7 @@ import type { ActivityItem, DeadlineRow, ReviewNote, RiskRow, TeamMember, TimeEn
 import type { WtbOverrideEntry } from './wtb_overrides';
 import type { FluxState } from './flux_state';
 import type { PriorYearSource } from './prior_year';
-import type { ImportedWtbRow } from './wtb_import';
+import type { ImportedWtbRow, ParseMeta } from './wtb_import';
 import type { LedgerLine } from './wtb_ledger';
 
 /* ============================================================
@@ -52,7 +52,28 @@ interface AuditWtbRow extends WtbRow {
   [k: string]: unknown;
 }
 
-interface WpStateEntry { [k: string]: unknown }
+/* PR-6d — status per kertas kerja. Field daun DIDEKLARASIKAN: dengan `[k: string]: unknown`
+   saja, `st.chain.preparer` tetap gagal karena `st.chain` bertipe `unknown`. Ini bentuk yang
+   benar-benar ditulis `setWp()` & dibaca wp_signoff/view_wp/view_workspace. */
+interface WpSignEntry { by?: string; at?: string; [k: string]: unknown }
+interface WpNote { id?: string; text?: string; disposition?: string; by?: string; at?: string; status?: string; [k: string]: unknown }
+interface WpExecStep { items?: { result?: string; [k: string]: unknown }[]; concl?: string; [k: string]: unknown }
+interface WpStateEntry {
+  chain?: { preparer?: WpSignEntry | null; reviewer?: WpSignEntry | null; partner?: WpSignEntry | null; eqr?: WpSignEntry | null; [k: string]: WpSignEntry | null | undefined };
+  procs?: Record<string, unknown>;
+  noteStatus?: Record<string, string>;
+  ticks?: Record<string, string>;
+  exec?: Record<string, WpExecStep>;
+  asrConcl?: Record<string, { by?: string; at?: string; [k: string]: unknown }>;
+  evidence?: unknown[];
+  notes?: WpNote[];
+  /** kesimpulan auditor (P1) — dipersist ke `wpState[ref].conclusion` */
+  conclusion?: { text?: string; disposition?: string; by?: string; at?: string } | null;
+  status?: string;
+  reviewer?: string | null;
+  signedAt?: string | null;
+  [k: string]: unknown;
+}
 interface NoteReply { when?: string; [k: string]: unknown }
 interface LogEntry { ts?: string; [k: string]: unknown }
 
@@ -81,6 +102,8 @@ interface WtbImportDoc {
   excerptLength?: number;
   by?: string;
   at?: string;
+  importedAt?: string;
+  meta?: ParseMeta;
   [k: string]: unknown;
 }
 
@@ -90,7 +113,10 @@ export interface AuditContextValue {
   setMatConfig: (patch: Partial<MaterialityConfig>) => void;
   aje: AuditAjeRow[];
   setAje: Setter<AuditAjeRow[]>;
-  toggleAjeStatus: (id: string) => void;
+  /* PR-B — antrean persetujuan meneruskan jejak keputusan (`by`/`approvalId`)
+     agar tulis-balik status jurnal dapat dicatat; tanda tangan mengikuti
+     implementasi, bukan sebaliknya. */
+  toggleAjeStatus: (id: string, meta?: { by?: string; approvalId?: string }) => void;
   addAje: (entry: Partial<AuditAjeRow>) => void;
   ajeTotalPosted: number;
   risks: RiskRow[];

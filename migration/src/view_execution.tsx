@@ -140,7 +140,8 @@ function WTBView() {
     { ly: 0, unadj: 0, aje: 0, adj: 0 },
   );
   const totals = useMemoX(() => sumRows(shown), [shown]);
-  const totalsAll = useMemoX(() => sumRows(wtb), [wtb]);
+  /* PR-6d — `WtbRow` mendeklarasikan field angka sebagai OPSIONAL (kanon menoleransi baris tak lengkap), sementara `sumRows` menuntutnya ada. Cast dipertahankan eksplisit di batas ini alih-alih melonggarkan tipe kanon. */
+  const totalsAll = useMemoX(() => sumRows(wtb as unknown as WtbTotals[]), [wtb]);
   const filtered = shown.length !== wtb.length;
 
   const num = (n: any) => <span className={n < 0 ? 'neg' : ''}>{fmt(n / 1e6, 1)}</span>;
@@ -1437,10 +1438,13 @@ function AJEViewLegacy() {
           </Panel>
 
           {selId && (() => {
-            const a = aje.find((x: any) => x.id === selId);
+            const a = aje.find((x) => x.id === selId);
+            /* PR-6d — dulu `a` bertipe `any`, jadi AJE yang tak ditemukan akan melempar
+               saat runtime. Kini eksplisit: tak ada baris = tak ada panel. */
+            if (!a) return null;
             const lines = a.lines || [
-              { code: a.dr.split(' ')[0], name: a.dr, debit: a.amount, credit: 0 },
-              { code: a.cr.split(' ')[0], name: a.cr, debit: 0, credit: a.amount },
+              { code: (a.dr || '').split(' ')[0], name: a.dr, debit: a.amount, credit: 0 },
+              { code: (a.cr || '').split(' ')[0], name: a.cr, debit: 0, credit: a.amount },
             ];
             const td = lines.reduce((s: any, l: any) => s + (+l.debit || 0), 0), tc = lines.reduce((s: any, l: any) => s + (+l.credit || 0), 0);
             return (

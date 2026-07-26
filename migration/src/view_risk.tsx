@@ -227,9 +227,9 @@ function RiskAssessment() {
                         <div key={key} style={{ marginBottom: 14 }}>
                           <div className="row jb ac" style={{ marginBottom: 4 }}>
                             <span style={{ fontSize: 12, fontWeight: 600 }}>{lbl}</span>
-                            <span className="mono" style={{ fontWeight: 700 }}>{sel[key]}/5</span>
+                            <span className="mono" style={{ fontWeight: 700 }}>{(sel as unknown as Record<string, number>)[key]}/5</span>
                           </div>
-                          <input type="range" min="1" max="5" value={sel[key]} onChange={(e: any) => updateRisk(sel.id, { [key]: +e.target.value })} style={{ width: '100%', accentColor: 'var(--blue)' }} />
+                          <input type="range" min="1" max="5" value={(sel as unknown as Record<string, number>)[key]} onChange={(e: any) => updateRisk(sel.id, { [key]: +e.target.value })} style={{ width: '100%', accentColor: 'var(--blue)' }} />
                         </div>
                       ))}
                       <div className="divider" />

@@ -353,7 +353,7 @@ function PSAK71View() {
      Tidak ada lagi angka FV ganda yang di-hardcode di modul ini. */
   const p68 = useMemoP71(() => canon.psak68(wtb), [wtb]);
   const fvById = useMemoP71(() => Object.fromEntries(p68.items.filter((i: any) => i.p71id).map((i: any) => [i.p71id, i])), [p68]);
-  const wadj = (code: any) => { const r = wtb.find((x: any) => x.code === code); return r ? Math.round(r.adj / 1e6) : 0; };
+  const wadj = (code: any) => { const r = wtb.find((x: any) => x.code === code); return r ? Math.round((r.adj || 0) / 1e6) : 0; };
 
   const [tab, setTab] = useStateP71(() => loader('ams.psak71.tab', 'klasifikasi'));
   const [done, setDone] = window.useAmsPersist('psak71.done.v1', () => ({}));
