@@ -185,11 +185,31 @@ export interface RestatementItem {
 
 /* ---------- SA 320 · Materialitas (om/pm/ctt lintas-modul) ---------- */
 export interface MaterialityOpts {
-  /** materialitas engagement (Rp penuh) sbg basis bila tak ada override */
+  /** Nilai `materiality` pada baris perikatan (Rp penuh). **BUKAN sumber OM** sejak
+   *  PR-6·0 — dipakai HANYA sebagai pembanding untuk mendeteksi *drift* terhadap
+   *  materialitas yang ditetapkan. Lihat `MaterialityResult.drift`. */
   engMateriality?: number;
   /** perikatan aktif — kunci `mat.*` berlingkup perikatan (PR-1a). Tanpa ini
    *  tier perikatan dilewati & hanya setelan firma/legacy yang terbaca. */
   engagementId?: string | null;
+}
+
+/** Dari mana OM yang berlaku berasal — dipakai UI untuk menyatakan basisnya (PR-6·0). */
+export type MaterialityBasis = 'override' | 'benchmark' | 'none';
+
+/** Selisih antara nilai `materiality` di baris perikatan dan OM yang ditetapkan.
+ *  `null` bila salah satunya tak tersedia (tak ada yang bisa dibandingkan). */
+export interface MaterialityDrift {
+  /** nilai di baris perikatan (Rp penuh) */
+  engValue: number;
+  /** OM yang ditetapkan (Rp penuh) */
+  omFull: number;
+  /** engValue − omFull (Rp penuh); positif = baris perikatan lebih tinggi */
+  deltaFull: number;
+  /** |delta| ÷ omFull */
+  ratio: number;
+  /** true bila |ratio| > 0,005 (0,5%) — di bawah itu dianggap pembulatan */
+  material: boolean;
 }
 
 export interface MaterialityResult {
@@ -201,6 +221,10 @@ export interface MaterialityResult {
   cttPct: number;
   applied: boolean;
   calcOM: number | null;
+  /** basis OM yang berlaku (PR-6·0) — satu aturan untuk SELURUH permukaan */
+  basis: MaterialityBasis;
+  /** drift baris perikatan vs OM ditetapkan; `null` = tak ada pembanding */
+  drift: MaterialityDrift | null;
   /** nilai penuh (Rp) */
   omFull: number | null;
   pmFull: number | null;
