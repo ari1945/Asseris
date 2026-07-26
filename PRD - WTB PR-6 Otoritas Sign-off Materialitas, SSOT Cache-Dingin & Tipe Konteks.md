@@ -193,7 +193,7 @@ skalanya.
 | K1 | Junior/Senior **tak bisa** menandatangani slot manager/partner memo materialitas (tombol tergate) | live, login Junior |
 | K2 | Request `state.set` termodifikasi yang menyisipkan slot partner **ditolak server** (FORBIDDEN) | test integrasi `server/src/signoff.test.ts` |
 | K3 | Tanda tangan memo ENG-2025-040 **tidak** muncul di ENG-2025-031 | live, ganti perikatan |
-| K4 | Tanda tangan firm-scope lama tetap **terbaca** (rantai baca-lewat), tak ada tulisan destruktif | test unit |
+| K4 | ~~Tanda tangan firm-scope lama tetap **terbaca**~~ → **DIREVISI saat implementasi:** tanda tangan firm-scope lama **sengaja tidak dibawa**. `readPersisted` (rantai baca-lewat) hanya dipakai pembaca non-React (canon) dan kunci ini tak punya pembaca canon; `useServerState` hanya membaca kunci lingkupnya sendiri. Membawanya juga **salah secara substansi** — tanda tangan firm-wide tak dapat diatribusikan ke satu perikatan (itulah cacatnya), jadi harus ditandatangani ulang per perikatan oleh pemegang otoritas. Nol kehilangan di repo ini: nilai firm-scope di server kosong (diverifikasi live) | live + komentar kode |
 | K5 | Dengan `localStorage` kosong + server menyimpan `pmPct = 60`, **kedelapan** konsumen menampilkan PM turunan 60 — sebelum modul Materialitas dibuka | live + test |
 | K6 | Menyunting pmPct di Materiality Workspace mengubah PM di WTB/SA 530 **tanpa reload** (satu pemilik, bukan dua salinan) | live |
 | K7 | `materiality()` tanpa argumen konfigurasi mengembalikan `configSource` eksplisit (`'args' \| 'cache' \| 'default'`) sehingga jalur basi dapat dideteksi | test unit |

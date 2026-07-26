@@ -661,7 +661,7 @@
   },
   "src/view_materiality_parts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 60
+      "count": 57
     }
   },
   "src/view_misc1.tsx": {
