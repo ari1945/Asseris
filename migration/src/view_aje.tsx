@@ -7,10 +7,11 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui';
 import { assertionDef, groupForAccountCode } from './canon_selectors';
-import { entityFigures } from './canon_base';
+import { ajeEffect, entityFigures } from './canon_base';
 import type { AssertionId } from './canon_selectors';
 import { AJEForm } from './view_execution';
 import { DiagnosticPanel } from './diagnostics_panel';
+import { SAD_SEED } from './view_sad';
 import { amsExportXlsx } from './export_xlsx';
 
 /* ============================================================
@@ -369,11 +370,7 @@ function AjeDrill({ a, fmt, nav }: any) {
             <AjeAsrChips ids={a.assertions} />
           </div>
         ) : null}
-        {a.mis && (
-          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent', borderLeft: '3px solid var(--blue)' }}>
-            <div className="tiny" style={{ lineHeight: 1.5 }}>Mengoreksi salah saji <b className="mono">{a.mis}</b> pada Summary of Audit Differences (SA 450). {a.status === 'Posted' ? 'Salah saji ini telah berstatus dikoreksi.' : 'Posting jurnal untuk menandai dikoreksi.'}</div>
-          </div>
-        )}
+        {a.mis && <AjeSadLink a={a} nav={nav} />}
         <div className="row gap8" style={{ marginTop: 12 }}>
           {a.mis && <Btn sm style={{ flex: 1 }} onClick={() => nav('sad')}><I.scale size={13} /> Buka SAD {a.mis}</Btn>}
           <Btn sm style={{ flex: 1 }} onClick={() => nav('wtb')}><I.table size={13} /> Lihat di WTB</Btn>
@@ -385,6 +382,55 @@ function AjeDrill({ a, fmt, nav }: any) {
           </Btn>
         )}
       </Panel>
+    </div>
+  );
+}
+
+/* PR-C — BANNER BALIKAN SAD→AJE.
+   Panel ini DULU menyatakan "Salah saji ini telah berstatus dikoreksi" semata dari
+   `a.status === 'Posted'`, tanpa pernah membaca disposisi item SAD-nya. SAD menyimpan
+   `disp` sendiri (persist `sadItems.v1`, diubah manual oleh auditor), jadi modul AJE
+   bisa mengklaim "dikoreksi" untuk salah saji yang di SAD masih `uncorrected` — dua
+   modul, satu fakta, dua jawaban. Rekonsiliasi yang ada hanya berjalan satu arah.
+   Kini disposisinya DIBACA, dan ketidaksesuaian ditampilkan sebagai kontradiksi. */
+function AjeSadLink({ a, nav }: { a: { mis: string; status: string }; nav: (id: string, o?: unknown) => void }) {
+  /* Baca-saja: kunci ini dimiliki modul SAD. Dua penulis atas satu kunci tidak saling
+     sinkron dalam satu sesi (lihat catatan `matConfig` di contexts.tsx). */
+  /* Seed default HARUS sama dengan milik modul SAD. Menginisialisasi dengan []
+     membuat banner ini mengklaim "belum ada di ledger SAD" untuk setiap item sampai
+     SAD kebetulan pernah menulis — salah, dan persis kelas kesalahan yang sedang
+     diperbaiki (satu fakta, dua jawaban, karena dua default berbeda). */
+  const [sadItems] = window.useAmsPersist('sadItems.v1', () => SAD_SEED);
+  const item = (sadItems || []).find((m: { id: string }) => m.id === a.mis);
+  const disp = item ? String(item.disp || '') : null;
+  const posted = a.status === 'Posted';
+  const agree = disp == null || (posted ? disp === 'corrected' : disp !== 'corrected');
+
+  if (!agree) {
+    return (
+      <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', borderLeft: '3px solid var(--amber)' }}>
+        <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+          <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>
+          <div className="tiny" style={{ lineHeight: 1.5 }}>
+            Bertentangan dengan SAD: jurnal ini <b>{posted ? 'sudah diposting' : 'belum diposting'}</b>,
+            tetapi salah saji <b className="mono">{a.mis}</b> berdisposisi <b>{disp}</b>.
+            Selaraskan sebelum agregat SA 450 dipakai menyimpulkan opini.
+            <div style={{ marginTop: 6 }}><Btn sm onClick={() => nav('sad', { from: 'aje' })}><I.scale size={12} /> Buka SAD {a.mis}</Btn></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--blue-050)', borderColor: 'transparent', borderLeft: '3px solid var(--blue)' }}>
+      <div className="tiny" style={{ lineHeight: 1.5 }}>
+        Mengoreksi salah saji <b className="mono">{a.mis}</b> pada Summary of Audit Differences (SA 450).
+        {disp == null
+          ? ' Item ini belum ada di ledger SAD.'
+          : disp === 'corrected'
+            ? ' SAD mencatatnya berdisposisi dikoreksi.'
+            : ' SAD masih mencatatnya belum dikoreksi — posting jurnal lalu perbarui disposisi.'}
+      </div>
     </div>
   );
 }
@@ -408,12 +454,20 @@ function AjeImpact({ model, posted, proposed, fig, pbtUnadj, reportedPbt, pbtPos
      BATAS JUJUR: hanya efek terhadap ASET lancar yang dimodelkan (`curEff`); efek
      terhadap LIABILITAS lancar (mis. AJE-04 akrual) belum - `curEff` sendiri masih
      hardcode per-id dan diperbaiki di PR-D. Rasio ini karenanya mendekati, bukan menutup. */
-  const curEffPosted = posted.reduce((s: number, a: { curEff?: number }) => s + (a.curEff || 0), 0);
-  const curEffProposed = proposed.reduce((s: any, a: any) => s + (a.curEff || 0), 0);
+  /* PR-C — efek jurnal kini dari `ajeEffect` (helper canon yang SAMA dipakai modul SAD),
+     bukan `curEff` yang di-hardcode per-id di AJE_META. Dua akibat: (a) SAD dan AJE
+     menyebut SATU rasio lancar, bukan dua; (b) efek terhadap LIABILITAS lancar ikut
+     terhitung (AJE-04 akrual) dan bug `curEff` AJE-02 (CKPN −620 jt ditulis 0) hilang
+     dengan sendirinya karena angkanya diturunkan dari baris jurnal. */
+  const effPosted = ajeEffect(posted, 'Posted');
+  const effProposed = ajeEffect(proposed, 'Proposed');
   const curAssetsBase = fig.curAssets ?? 0;
   const curLiabBase = fig.curLiab ?? 0;
-  const ratioNow = curLiabBase ? (curAssetsBase + curEffPosted) / curLiabBase : null;
-  const ratioAfter = curLiabBase ? (curAssetsBase + curEffPosted + curEffProposed) / curLiabBase : null;
+  const caNow = curAssetsBase + effPosted.curAssets;
+  const clNow = curLiabBase + effPosted.curLiab;
+  const ratioNow = clNow ? caNow / clNow : null;
+  const ratioAfter = (clNow + effProposed.curLiab)
+    ? (caNow + effProposed.curAssets) / (clNow + effProposed.curLiab) : null;
   const breach = ratioAfter != null && ratioAfter < COVENANT;
 
   return (

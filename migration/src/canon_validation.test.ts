@@ -415,3 +415,103 @@ describe('reconcileOpinionConsistency — SA 705 konsistensi opini', () => {
     expect(r.diverges).toBe(true); // tetap berbeda jenis
   });
 });
+
+/* ============================================================
+   PR-C — dimensi NILAI pada rekonsiliasi SA 450.
+   Rekonsiliasi lama hanya memeriksa kelengkapan & kemutakhiran disposisi;
+   besaran salah saji vs besaran koreksi tak pernah dibandingkan. Pada seed,
+   M-01 (1.950 jt) tertaut AJE-03 (1.850 jt) dan M-04 (680 jt) tertaut AJE-02
+   (620 jt) — keduanya lolos senyap.
+   ============================================================ */
+describe('reconcileUncorrectedMisstatements — selisih nilai & residu (PR-C)', () => {
+  const OM = 4_250_000_000;
+  const aje = (status: string, amount: number) => [{ id: 'AJE-03', status, amount }];
+  const sad = (disp: string, pbt: number) =>
+    [{ id: 'M-01', disp, aje: 'PAJE-03', pbt, na: pbt, origin: 'current', qual: [] }];
+
+  it('mendeteksi selisih SAD vs jurnal, dan menghitungnya bertanda', () => {
+    const r = reconcileUncorrectedMisstatements({
+      aje: aje('Proposed', 1_850_000_000), sad: sad('uncorrected', -1_950_000_000),
+      om: OM, opinionType: 'unmodified',
+    });
+    expect(r.valueDeltas).toHaveLength(1);
+    expect(r.valueDeltas[0]).toMatchObject({
+      sadId: 'M-01', ajeId: 'AJE-03', sadAmount: 1_950_000_000, ajeAmount: 1_850_000_000,
+      delta: 100_000_000, residual: false,
+    });
+  });
+
+  it('nilai yang cocok tidak menghasilkan selisih', () => {
+    const r = reconcileUncorrectedMisstatements({
+      aje: aje('Posted', 1_950_000_000), sad: sad('corrected', -1_950_000_000),
+      om: OM, opinionType: 'unmodified',
+    });
+    expect(r.valueDeltas).toEqual([]);
+    expect(r.residualUncorrected).toBe(0);
+  });
+
+  /* Inti PR-C: item dianggap selesai, jurnalnya diposting, tetapi jurnal itu
+     lebih kecil dari salah sajinya — selisihnya NYATANYA belum dikoreksi. */
+  it('koreksi sebantar: disp=corrected + jurnal Posted lebih kecil → residu masuk agregat', () => {
+    const r = reconcileUncorrectedMisstatements({
+      aje: aje('Posted', 1_850_000_000), sad: sad('corrected', -1_950_000_000),
+      om: OM, opinionType: 'unmodified',
+    });
+    expect(r.valueDeltas[0].residual).toBe(true);
+    expect(r.residualUncorrected).toBe(100_000_000);
+    /* tanpa PR-C agregat = 0 (item corrected keluar seluruhnya) */
+    expect(r.aggAbs).toBe(100_000_000);
+    expect(r.issues).toBe(1);
+  });
+
+  it('selisih pada item yang masih uncorrected BUKAN isu — salah sajinya utuh di agregat', () => {
+    const r = reconcileUncorrectedMisstatements({
+      aje: aje('Proposed', 1_850_000_000), sad: sad('uncorrected', -1_950_000_000),
+      om: OM, opinionType: 'unmodified',
+    });
+    expect(r.residualUncorrected).toBe(0);
+    expect(r.aggAbs).toBe(1_950_000_000);
+    expect(r.issues).toBe(0);
+  });
+
+  /* Koreksi LEBIH BESAR dari salah saji (delta negatif) dilaporkan tetapi tak
+     pernah menjadi residu — ia tak understate apa pun. */
+  it('jurnal lebih besar dari salah saji: dilaporkan, tidak menjadi residu', () => {
+    const r = reconcileUncorrectedMisstatements({
+      aje: aje('Posted', 2_100_000_000), sad: sad('corrected', -1_950_000_000),
+      om: OM, opinionType: 'unmodified',
+    });
+    expect(r.valueDeltas[0].delta).toBe(-150_000_000);
+    expect(r.valueDeltas[0].residual).toBe(false);
+    expect(r.residualUncorrected).toBe(0);
+  });
+
+  it('ref non-jurnal (SA 530 / SUM-PY / CTT) dikecualikan dari perbandingan nilai', () => {
+    const r = reconcileUncorrectedMisstatements({
+      aje: aje('Posted', 1_850_000_000),
+      sad: [{ id: 'M-03', disp: 'uncorrected', aje: 'SA 530', pbt: -640_000_000, na: -640_000_000, origin: 'current', qual: [] }],
+      om: OM, opinionType: 'unmodified',
+    });
+    expect(r.valueDeltas).toEqual([]);
+  });
+
+  /* Nilai seed nyata — dua pasangan meleset, tiga lainnya tidak. */
+  it('seed nyata: tepat dua pasangan meleset (M-01 100 jt · M-04 60 jt)', () => {
+    const seedAje = [
+      { id: 'AJE-01', status: 'Posted', amount: 2_340_000_000 },
+      { id: 'AJE-02', status: 'Posted', amount: 620_000_000 },
+      { id: 'AJE-03', status: 'Proposed', amount: 1_850_000_000 },
+      { id: 'AJE-04', status: 'Posted', amount: 980_000_000 },
+      { id: 'AJE-05', status: 'Proposed', amount: 1_120_000_000 },
+    ];
+    const seedSad = [
+      { id: 'M-01', disp: 'uncorrected', aje: 'PAJE-03', pbt: -1_950_000_000, na: -1_950_000_000, origin: 'current', qual: [] },
+      { id: 'M-02', disp: 'corrected', aje: 'AJE-05', pbt: -1_120_000_000, na: -1_120_000_000, origin: 'current', qual: [] },
+      { id: 'M-04', disp: 'uncorrected', aje: 'PAJE-02', pbt: -680_000_000, na: -680_000_000, origin: 'current', qual: [] },
+      { id: 'M-05', disp: 'corrected', aje: 'AJE-01', pbt: -2_340_000_000, na: -2_340_000_000, origin: 'current', qual: [] },
+      { id: 'M-06', disp: 'corrected', aje: 'AJE-04', pbt: -980_000_000, na: -980_000_000, origin: 'current', qual: [] },
+    ];
+    const r = reconcileUncorrectedMisstatements({ aje: seedAje, sad: seedSad, om: OM, opinionType: 'unmodified' });
+    expect(r.valueDeltas.map(d => [d.sadId, d.delta])).toEqual([['M-01', 100_000_000], ['M-04', 60_000_000]]);
+  });
+});

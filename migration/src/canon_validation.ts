@@ -110,7 +110,13 @@ export const SAD_CORRECTED = 'corrected';
 export const OPINION_UNMODIFIED = 'unmodified';
 
 export interface AjeEntry { id: string; status?: string; amount?: number }
-export interface SadEntry { id: string; disp?: string; aje?: string; pbt?: number; na?: number; origin?: string; qual?: string[] }
+/** PR-C — `bsEffect` = efek salah saji terhadap pos LANCAR neraca (Rp penuh, bertanda:
+ *  aset naik positif, liabilitas naik positif). Sebelumnya item SAD hanya membawa efek
+ *  LABA (`pbt`/`na`), sehingga rasio lancar proyeksi tak dapat dihitung sama sekali —
+ *  itulah sebabnya angkanya di-hardcode. Item reklasifikasi murni (M-07: utang bank
+ *  jangka panjang → lancar) berefek NOL pada laba tetapi menentukan rasio lancar. */
+export interface SadBsEffect { curAssets?: number; curLiab?: number }
+export interface SadEntry { id: string; disp?: string; aje?: string; pbt?: number; na?: number; origin?: string; qual?: string[]; bsEffect?: SadBsEffect }
 
 /* Normalisasi ref `aje` di ledger SAD → id jurnal AMS.AJE (AJE-NN).
    'PAJE-03' (proposed AJE) & 'AJE-03' sama-sama merujuk jurnal AJE-03;
@@ -122,6 +128,21 @@ export function ajeRefKey(ref: string): string | null {
 }
 
 export interface UncorrStale { sadId: string; ajeId: string; sadDisp: string; ajeStatus: string; reason: string }
+
+/** PR-C — selisih besaran antara salah saji (SAD) dan koreksi yang dijurnalkan (AJE).
+ *  BUKAN otomatis kesalahan: auditor sah mengusulkan koreksi sebagian. Yang salah adalah
+ *  MENGABAIKANNYA — bila item ditandai `corrected` sementara jurnalnya lebih kecil,
+ *  selisihnya tetap tidak dikoreksi dan harus tetap masuk agregat SA 450. */
+export interface UncorrValueDelta {
+  sadId: string;
+  ajeId: string;
+  sadAmount: number;   // |pbt| item SAD
+  ajeAmount: number;   // nilai jurnal
+  delta: number;       // sadAmount − ajeAmount (positif = koreksi lebih kecil dari salah saji)
+  ajeStatus: string;
+  /** true bila item ditandai dikoreksi & jurnal sudah diposting, tetapi delta ≠ 0 */
+  residual: boolean;
+}
 export interface UncorrResult {
   proposed: number;              // jumlah AJE berstatus Proposed (tidak dikoreksi di jurnal)
   missingFromSad: string[];      // id AJE Proposed tanpa item di ledger SAD (understate agregat)
@@ -132,6 +153,8 @@ export interface UncorrResult {
   pctOfOm: number;
   exceedsOm: boolean;
   qualFlags: string[];           // faktor kualitatif (SA 450.A21) pada item uncorrected
+  valueDeltas: UncorrValueDelta[];   // PR-C — selisih SAD vs jurnal per pasangan
+  residualUncorrected: number;       // PR-C — bagian yang NYATANYA belum dikoreksi meski disp='corrected'
   opinionType: string;
   opinionModified: boolean;
   opinionInconsistent: boolean;  // agregat > OM tetapi opini belum dimodifikasi (SA 705)
@@ -179,10 +202,41 @@ export function reconcileUncorrectedMisstatements(input: {
     }
   });
 
+  /* PR-C — dimensi NILAI. Rekonsiliasi lama hanya memeriksa kelengkapan (AJE Proposed
+     tanpa item SAD) dan kemutakhiran disposisi; besarannya tak pernah dibandingkan.
+     Pada seed: M-01 1.950 jt vs AJE-03 1.850 jt, dan M-04 680 jt vs AJE-02 620 jt —
+     keduanya lolos senyap. */
+  const ajeById = new Map<string, AjeEntry>();
+  for (const a of aje) if (a && a.id) ajeById.set(a.id, a);
+  const valueDeltas: UncorrValueDelta[] = [];
+  sadByAje.forEach((sadItems, ajeId) => {
+    const a = ajeById.get(ajeId);
+    if (!a) return;
+    const ajeAmount = Math.abs(a.amount || 0);
+    for (const s of sadItems) {
+      const sadAmount = Math.abs(s.pbt || 0);
+      const delta = sadAmount - ajeAmount;
+      if (delta === 0) continue;
+      const status = (a.status || '').trim();
+      valueDeltas.push({
+        sadId: s.id, ajeId, sadAmount, ajeAmount, delta, ajeStatus: status,
+        /* residu = item dianggap selesai (corrected) & jurnalnya benar-benar diposting,
+           namun jurnal itu tak menutup seluruh salah saji. */
+        residual: (s.disp || '').trim() === SAD_CORRECTED && status === AJE_POSTED && delta > 0,
+      });
+    }
+  });
+  const residualUncorrected = valueDeltas.filter(d => d.residual).reduce((t, d) => t + d.delta, 0);
+
   // agregat uncorrected dari ledger SAD (populasi SA 450 terlengkap)
   const uncorr = sad.filter(s => (s.disp || '').trim() === SAD_UNCORRECTED);
   const inScope = method === 'ironcurtain' ? uncorr : uncorr.filter(s => (s.origin || 'current') === 'current');
-  const aggNet = inScope.reduce((t, s) => t + (method === 'ironcurtain' ? (s.na || 0) : (s.pbt || 0)), 0);
+  const aggNetSad = inScope.reduce((t, s) => t + (method === 'ironcurtain' ? (s.na || 0) : (s.pbt || 0)), 0);
+  /* PR-C — residu koreksi-sebagian MASUK agregat. Tanpa ini, memposting jurnal yang
+     lebih kecil dari salah sajinya akan mengeluarkan SELURUH salah saji dari agregat
+     SA 450 — understating angka yang justru dibandingkan terhadap materialitas.
+     Tandanya mengikuti arah salah saji SAD (yang seluruhnya negatif = menurunkan laba). */
+  const aggNet = aggNetSad - residualUncorrected;
   const aggAbs = Math.abs(aggNet);
   const om = input.om > 0 ? input.om : 0;
   const exceedsOm = om > 0 && aggAbs > om;
@@ -197,13 +251,18 @@ export function reconcileUncorrectedMisstatements(input: {
     missingFromSad,
     stale,
     aggNet, aggAbs, om,
+    valueDeltas, residualUncorrected,
     pctOfOm: om > 0 ? Math.round((aggAbs / om) * 100) : 0,
     exceedsOm,
     qualFlags,
     opinionType,
     opinionModified,
     opinionInconsistent,
-    issues: missingFromSad.length + stale.length + (opinionInconsistent ? 1 : 0),
+    /* PR-C — hanya selisih yang RESIDUAL yang dihitung sebagai isu. Selisih pada item
+       yang masih uncorrected bukan kesalahan: seluruh salah saji masih ada di agregat,
+       dan koreksi sebagian yang diusulkan adalah pertimbangan sah. Yang menuntut
+       tindakan adalah selisih yang sudah dianggap selesai padahal belum. */
+    issues: missingFromSad.length + stale.length + valueDeltas.filter(d => d.residual).length + (opinionInconsistent ? 1 : 0),
   };
 }
 
