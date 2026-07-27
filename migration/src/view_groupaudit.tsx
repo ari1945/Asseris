@@ -18,9 +18,12 @@ import { GAConsol, GAElimReview, GAPackages } from './view_groupaudit_parts';
    ============================================================ */
 const { useState: useStateGA, useMemo: useMemoGA } = React;
 
-const GROUP_MAT = 6_200_000_000;
-const GROUP_PM = 4_650_000_000;
-const GROUP_CTT = 310_000_000; // clearly trivial threshold
+/* SA 600 PR-2 — GROUP_MAT 6,2 M · GROUP_PM 4,65 M · GROUP_CTT 310 jt DIBUANG dari sini.
+   Ketiganya konstanta telanjang: PM & CTT rapi 75%/5% di atas fondasi yang tak pernah
+   dihitung dari apa pun — kelas cacat yang sama dengan PBT 85,2 M yang dicabut PR-A.
+   Materialitas komponen pun lima konstanta terpisah (CP-01 4,25 M adalah warisan OM
+   fantasi pra-PR-A), plus faktor ajaib `GROUP_MAT * 0.35` saat lingkup dinaikkan.
+   Kini seluruhnya dari `AMS_CANON.groupMateriality(consolPbt)` — lihat canon_part3. */
 
 const GA_COMPONENTS = [
   { id: 'CP-01', name: 'PT Sentosa Makmur', role: 'Induk / Holding', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 100, revPct: 58, astPct: 55, npat: 14_660_000_000, sig: 'Signifikan (ukuran)', scope: 'Full', mat: 4_250_000_000, auditor: 'Tim Grup (WHR)', kap: false, status: 'Reporting', risk: 'High', instr: '—', step: 5, evInd: 5, evComp: 5, evReg: 5, sad: 410_000_000 },
@@ -65,7 +68,10 @@ const PKG_STATUS_KIND = { Disetujui: 'green', Direkonsiliasi: 'blue', Diterima: 
 const PKG_STATUS_ORDER = ['Diterima', 'Direkonsiliasi', 'Disetujui'];
 /* field paket yang dapat diimpor/disunting — dikelompokkan untuk editor & validasi neraca */
 const PKG_FIELDS = [
-  { sec: 'Laba rugi', items: [['rev', 'Pendapatan'], ['npat', 'Laba bersih (NPAT)']] },
+  /* SA 600 PR-1/PR-2 — `pbt` & `tax` dapat disunting auditor komponen. Tanpa keduanya
+     benchmark grup pada Laba Sebelum Pajak tak dapat dihitung tanpa mengasumsikan tarif
+     seragam — asumsi yang salah untuk CP-05 (Singapura 17%, bukan 22%). */
+  { sec: 'Laba rugi', items: [['rev', 'Pendapatan'], ['pbt', 'Laba sebelum pajak (PBT)'], ['tax', 'Beban pajak'], ['npat', 'Laba bersih (NPAT)']] },
   { sec: 'Aset', items: [['kas', 'Kas & setara'], ['piutang', 'Piutang usaha'], ['persediaan', 'Persediaan'], ['asetTetap', 'Aset tetap — neto'], ['asetLain', 'Aset lain']] },
   { sec: 'Liabilitas', items: [['utangUsaha', 'Utang usaha'], ['utangBank', 'Utang bank'], ['liabLain', 'Liabilitas lain']] },
   { sec: 'Ekuitas', items: [['modal', 'Modal saham'], ['rePre', 'Saldo laba pra-akuisisi'], ['rePost', 'Saldo laba pasca-akuisisi']] },
@@ -134,7 +140,17 @@ function GroupAudit() {
   const pkgApproved = p65 ? p65.pkgApproved : 0;
   const pkgTotal = p65 ? p65.subs.length : 0;
 
-  const setScope = (id: any, scope: any) => setComps((list: any) => list.map((c: any) => c.id === id ? { ...c, scope, mat: scope === 'Analytical' ? 0 : (c.mat || Math.round(GROUP_MAT * 0.35)) } : c));
+  /* SA 600 PR-2 — materialitas grup & alokasi komponen diturunkan dari PBT konsolidasian.
+     `matById` menimpa nilai `mat` yang tersimpan di state persist: konstanta lama masih
+     hidup di localStorage pengguna lama, dan angka terderivasi harus menang atasnya. */
+  const gm = useMemoGA(
+    () => AMS_CANON.groupMateriality({ consolPbt: p65 ? p65.consolPbt : 0, components: comps }),
+    [p65, comps]);
+  const matById: Record<string, number> = useMemoGA(
+    () => Object.fromEntries(gm.comps.map((c: { id: string; mat: number }) => [c.id, c.mat])),
+    [gm]);
+
+  const setScope = (id: any, scope: any) => setComps((list: any) => list.map((c: any) => c.id === id ? { ...c, scope, mat: scope === 'Analytical' ? 0 : (matById[id] || 0) } : c));
   const setComp = (id: any, patch: any) => setComps((list: any) => list.map((c: any) => c.id === id ? { ...c, ...patch } : c));
 
   const tabs = [
@@ -165,19 +181,19 @@ function GroupAudit() {
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={revCoverage + '%'} label="Cakupan Pendapatan" accent={revCoverage >= 90 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={astCoverage + '%'} label="Cakupan Aset" accent={astCoverage >= 85 ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={pkgApproved + '/' + pkgTotal} label="Paket Disetujui" accent={pkgApproved === pkgTotal ? 'var(--green)' : 'var(--amber)'} /></div></Panel>
-            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalSad / 1e6, 0) + ' jt'} label="SAD Grup Terbuka" accent={totalSad > GROUP_MAT ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
+            <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(totalSad / 1e6, 0) + ' jt'} label="SAD Grup Terbuka" accent={totalSad > gm.om ? 'var(--red)' : 'var(--amber)'} /></div></Panel>
           </div>
 
           <Panel noBody>
             <div className="panel-h" style={{ padding: 0, background: 'var(--surface-2)' }}><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
 
-            {tab === 'scope' && <GAScope {...{ comps, fmt, selId, setSelId, sel, setScope, setComp, revCoverage, astCoverage }} />}
+            {tab === 'scope' && <GAScope {...{ comps, fmt, selId, setSelId, sel, setScope, setComp, revCoverage, astCoverage, gm, matById }} />}
             {tab === 'instr' && <GAInstr {...{ comps: kapComps, setComp, fmt }} />}
             {tab === 'auditor' && <GAAuditor {...{ comps: kapComps, setComp }} />}
             {tab === 'packages' && <GAPackages {...{ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab: setTab }} />}
             {tab === 'consol' && <GAConsol {...{ p65, fmt, nav, gotoTab: setTab }} />}
             {tab === 'elimwp' && <GAElimReview {...{ p65, fmt, nav, elimVerify, setElimVerify, procDone, setProcDone }} />}
-            {tab === 'findings' && <GAFindings {...{ findings, totalSad, fmt }} />}
+            {tab === 'findings' && <GAFindings {...{ findings, totalSad, fmt, groupMat: gm.om }} />}
           </Panel>
 
           <div className="tiny muted" style={{ marginTop: 8, lineHeight: 1.5 }}>
@@ -190,7 +206,7 @@ function GroupAudit() {
 }
 
 /* ===== TAB 1 — STRUKTUR & LINGKUP ============================== */
-function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCoverage, astCoverage }: any) {
+function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCoverage, astCoverage, gm, matById }: any) {
   return (
     <div style={{ padding: 14 }}>
       <StdVersionStrip highlight="SA 600" />
@@ -218,7 +234,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
 
       <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
-          <div className="panel-h"><h3>Penentuan Lingkup (Scoping) Berbasis Risiko</h3><div style={{ flex: 1 }} /><span className="tiny muted">Group materiality Rp {fmt(GROUP_MAT / 1e9, 1)} M · PM Rp {fmt(GROUP_PM / 1e9, 1)} M</span></div>
+          <div className="panel-h"><h3>Penentuan Lingkup (Scoping) Berbasis Risiko</h3><div style={{ flex: 1 }} /><span className="tiny muted">Group materiality Rp {fmt(gm.om / 1e9, 2)} M · PM Rp {fmt(gm.pm / 1e9, 2)} M · dari PBT konsolidasian</span></div>
           <table className="dtbl">
             <thead><tr>
               <th>Komponen</th><th className="num">% Pdpt</th><th className="num">% Aset</th><th>Signifikansi</th><th style={{ width: 100 }}>Lingkup</th><th className="num">Komp. Mat.</th><th style={{ width: 100 }}>Status</th>
@@ -236,7 +252,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
                   <td className="num">{c.astPct}%</td>
                   <td><span className="tiny" style={{ color: c.sig.includes('risiko') ? 'var(--red)' : c.sig.includes('ukuran') ? 'var(--blue)' : 'var(--ink-3)', fontWeight: 600 }}>{c.sig}</span></td>
                   <td><Badge kind={(SCOPE_KIND as any)[c.scope]}>{c.scope}</Badge></td>
-                  <td className="num">{c.mat ? fmt(c.mat / 1e6, 0) + ' jt' : '—'}</td>
+                  <td className="num">{matById[c.id] ? fmt(matById[c.id] / 1e6, 0) + ' jt' : '—'}</td>
                   <td><Badge kind={(STATUS_KIND_GA as any)[c.status]}>{c.status}</Badge></td>
                 </tr>
               ))}
@@ -269,7 +285,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
               <div style={{ padding: 14 }}>
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                   <KvBox label="Kepemilikan" v={sel.own + '%'} />
-                  <KvBox label="Komp. Materiality" v={sel.mat ? 'Rp ' + fmt(sel.mat / 1e6, 0) + ' jt' : '—'} />
+                  <KvBox label="Komp. Materiality" v={matById[sel.id] ? 'Rp ' + fmt(matById[sel.id] / 1e6, 0) + ' jt' : '—'} />
                   <KvBox label="Auditor" v={sel.auditor} />
                   <KvBox label="Tingkat Risiko" v={sel.risk} accent={gaRisk(sel.risk)} />
                 </div>
@@ -414,9 +430,9 @@ function GAAuditor({ comps, setComp }: any) {
 }
 
 /* ===== TAB 3.5 (BARU) — PAKET PELAPORAN KOMPONEN (IMPOR) ====== */
-function GAFindings({ findings, totalSad, fmt }: any) {
-  const pct = Math.min(100, totalSad / GROUP_MAT * 100);
-  const exceeds = totalSad > GROUP_MAT;
+function GAFindings({ findings, totalSad, fmt, groupMat }: any) {
+  const pct = Math.min(100, groupMat ? totalSad / groupMat * 100 : 0);
+  const exceeds = groupMat > 0 && totalSad > groupMat;
   return (
     <div style={{ padding: 14 }}>
       <div className="grid" style={{ gridTemplateColumns: '1.5fr 1fr', gap: 12, alignItems: 'start' }}>
@@ -453,7 +469,7 @@ function GAFindings({ findings, totalSad, fmt }: any) {
             </div>
             <div className="row jb tiny muted">
               <span>0</span>
-              <span>Group materiality Rp {fmt(GROUP_MAT / 1e9, 1)} M</span>
+              <span>Group materiality Rp {fmt(groupMat / 1e9, 2)} M</span>
             </div>
             <div className="divider" />
             <div className="panel" style={{ padding: '8px 11px', background: exceeds ? 'var(--red-bg)' : 'var(--green-bg)', borderColor: 'transparent' }}>
