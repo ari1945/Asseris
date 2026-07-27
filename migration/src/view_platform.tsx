@@ -82,7 +82,7 @@ const STEP_CAP: Record<string, string> = {
 };
 
 /** Boleh-kah `user` menyelesaikan langkah `step` pada item ini? */
-interface ApprovalStep { role: string }
+interface ApprovalStep { role: string; name?: string; status?: string }
 interface ApprovalItemLite { kind: string; from?: string; step: number; chain: ApprovalStep[] }
 interface SessionUser { name?: string; role: string }
 
@@ -92,6 +92,29 @@ function stepAuthority(it: ApprovalItemLite, user: SessionUser): { ok: boolean; 
   /* Self-approval: penyusun tak boleh menyetujui pengajuannya sendiri (SoD). */
   if (user && user.name && it.from && user.name === it.from) {
     return { ok: false, reason: 'Penyusun tidak dapat menyetujui pengajuannya sendiri (pemisahan tugas).' };
+  }
+  /* ============================================================
+     PR-E — SATU ORANG, SATU LANGKAH.
+     ------------------------------------------------------------
+     PR-B mengikat tiap langkah ke kapabilitas, tetapi kapabilitas bukan
+     identitas: `EQR_REVIEW` ada pada PARTNER_BASE, sehingga partner yang
+     telah menandatangani langkah Engagement Partner masih lolos di langkah
+     EQR pada jurnal yang SAMA. Itu menghapus arti penelaahan pengendalian
+     mutu — ISQM 2 / SA 220.36 menuntut penelaah yang independen dari tim
+     perikatan, dan yang paling tidak independen adalah orang yang baru saja
+     menyetujuinya sendiri.
+
+     Hanya langkah ber-status `approved` yang dihitung: rantai seed membawa
+     NAMA penerima tugas pada langkah yang masih menunggu, dan nama itu
+     bukan tanda tangan. */
+  const priorSignature = user && user.name
+    ? it.chain.slice(0, it.step).find(c => c && c.status === 'approved' && c.name === user.name)
+    : undefined;
+  if (priorSignature) {
+    return {
+      ok: false,
+      reason: `Anda telah menandatangani langkah "${priorSignature.role}" pada rantai ini; satu orang tidak dapat mengisi dua langkah (ISQM 2 / SA 220.36).`,
+    };
   }
   if (it.kind !== 'AJE') {
     const legacy = user.role.includes('Partner') || user.role.includes('Manager');
@@ -214,7 +237,7 @@ function Approvals() {
           </div>
         </div></Panel>
 
-        {!canApproveAny && <div className="panel" style={{ padding: '10px 14px', margin: '12px 0', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Peran Anda (<b>{user.role}</b>) hanya dapat melihat. Ganti ke Manager/Partner di menu pengguna untuk menyetujui.</span></div></div>}
+        {!canApproveAny && <div className="panel" style={{ padding: '10px 14px', margin: '12px 0', background: 'var(--amber-bg)', borderColor: 'transparent' }}><div className="row ac gap8"><span style={{ color: 'var(--amber)' }}><I.lock size={15} /></span><span className="tiny" style={{ fontWeight: 600 }}>Peran Anda (<b>{user.role}</b>) hanya dapat melihat antrean ini; persetujuan dilakukan oleh Manajer, Partner, atau Penelaah EQR sesuai langkahnya.</span></div></div>}
 
         <div className="grid" style={{ gridTemplateColumns: '0.92fr 1.25fr', gap: 12, alignItems: 'start', marginTop: 12 }}>
           {/* LIST */}
@@ -421,4 +444,6 @@ Object.assign(window, { Approvals });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { Approvals };
+/* `stepAuthority` diekspor untuk diuji langsung: gerbang otorisasi adalah
+   kontrol audit, dan kontrol yang hanya teruji lewat render UI tidak teruji. */
+export { Approvals, stepAuthority };

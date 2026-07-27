@@ -1,8 +1,15 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav, useInitialTab, useMateriality } from './contexts';
+import { useAudit, useAuth, useFirm, useNav, useInitialTab, useMateriality, useAmsPersist } from './contexts';
 import { CAP } from './rbac';
+/* PR-E — pilihan klasifikasi jurnal ditarik dari sumbernya masing-masing.
+   CATATAN LINGKAR: `view_aje` mengimpor `AJEForm` dari berkas ini, jadi
+   `view_aje` TIDAK boleh diimpor balik ke sini. `kind` karenanya menjadi
+   pilihan eksplisit auditor — yang juga sesuai doktrin PR-D: `kind` adalah
+   klasifikasi auditor, bukan turunan baris jurnal. */
+import { SAD_SEED } from './view_sad';
+import { ASSERTIONS } from './canon_assertions';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
@@ -1473,14 +1480,30 @@ function AJEViewLegacy() {
 }
 
 /* ---- AJE double-entry form (modal) ---- */
+/** PR-E — bentuk minimal item SAD yang dipakai pemilih salah saji. */
+interface SadPickItem { id: string; desc?: string }
+
 function AJEForm({ accounts, onClose, onPost }: any) {
   const { fmt } = AMS;
+  const { user } = useAuth();
   const [desc, setDesc] = useStateX('');
   const [ref, setRef] = useStateX('');
+  /* PR-E — klasifikasi yang selama ini tak pernah ditanyakan, sehingga entri
+     buatan auditor tak pernah sampai ke ledger SAD (SA 450) maupun Matriks
+     Asersi (SA 315). Model sudah menerimanya; hanya formulirnya yang diam. */
+  const [kind, setKind] = useStateX('adjusting');
+  const [misId, setMisId] = useStateX('');
+  const [assertions, setAssertions] = useStateX([] as string[]);
+  /* Default BERSAMA dengan modul SAD & AJE atas satu kunci persist — dua default
+     berbeda untuk satu kunci adalah kelas cacat yang diperbaiki PR-C. */
+  const [sadItems] = useAmsPersist('sadItems.v1', () => SAD_SEED) as [SadPickItem[], unknown];
   const [lines, setLines] = useStateX([
     { code: '', debit: '', credit: '' },
     { code: '', debit: '', credit: '' },
   ]);
+
+  const toggleAssertion = (id: string) =>
+    setAssertions((cur: string[]) => cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]);
 
   const setLine = (i: any, patch: any) => setLines((ls: any) => ls.map((l: any, idx: any) => idx === i ? { ...l, ...patch } : l));
   const addLine = () => setLines((ls: any) => [...ls, { code: '', debit: '', credit: '' }]);
@@ -1497,6 +1520,13 @@ function AJEForm({ accounts, onClose, onPost }: any) {
     const entry = {
       desc: desc.trim(), ref: ref.trim() || 'JE',
       amount: Math.max(td, tc),
+      /* PR-E — klasifikasi auditor ikut serta, sehingga entri ini terlihat oleh
+         rekonsiliasi SA 450 & Lensa Asersi seperti entri seed. `preparer` diambil
+         dari sesi: sebelum ini reviewer/partner dipalsukan ke nama seed. */
+      kind,
+      mis: misId || undefined,
+      assertions: assertions.length ? assertions : undefined,
+      preparer: user?.name,
       lines: filledLines.map((l: any) => ({ code: l.code, name: accounts.find((a: any) => a.code === l.code)?.name || l.code, debit: +l.debit || 0, credit: +l.credit || 0 })),
     };
     onPost(entry);
@@ -1505,15 +1535,57 @@ function AJEForm({ accounts, onClose, onPost }: any) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
       <div className="panel" style={{ width: 680, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+        {/* PR-E — gradient & heksa ter-hardcode diganti token (mematahkan tema gelap; sekelas perbaikan PR-D di view_aje). */}
+        <div style={{ background: 'var(--navy-solid)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Diajukan untuk persetujuan · belum memengaruhi WTB</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ opacity: .82 }}>Diajukan untuk persetujuan · belum memengaruhi WTB</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
         <div style={{ padding: 16, overflow: 'auto' }}>
           <div className="grid" style={{ gridTemplateColumns: '1fr 130px', gap: 10, marginBottom: 14 }}>
             <div className="field"><label>Deskripsi Penyesuaian</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
             <div className="field"><label>Ref. WP</label><input className="input mono" value={ref} onChange={(e: any) => setRef(e.target.value)} placeholder="D-4" /></div>
+          </div>
+
+          {/* PR-E — klasifikasi auditor: tanpa ini entri tak pernah sampai ke SAD (SA 450) & Matriks Asersi (SA 315). */}
+          <div className="grid" style={{ gridTemplateColumns: '190px 1fr', gap: 10, marginBottom: 12 }}>
+            <div className="field">
+              <label>Jenis</label>
+              <select className="select" value={kind} onChange={(e: { target: { value: string } }) =>setKind(e.target.value)}>
+                <option value="adjusting">Penyesuaian</option>
+                <option value="reclass">Reklasifikasi</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Mengoreksi Salah Saji (SAD · SA 450)</label>
+              <select className="select" value={misId} onChange={(e: { target: { value: string } }) =>setMisId(e.target.value)}>
+                <option value="">— tidak terkait item SAD —</option>
+                {sadItems.map(s => <option key={s.id} value={s.id}>{s.id} · {s.desc}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="tiny muted upper" style={{ marginBottom: 6 }}>Asersi yang Dikoreksi <span style={{ textTransform: 'none' }}>(SA 315 — opsional, boleh lebih dari satu)</span></div>
+          <div className="row gap6" style={{ flexWrap: 'wrap', marginBottom: 14 }}>
+            {ASSERTIONS.map(a => {
+              const on = assertions.includes(a.id);
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  title={a.desc}
+                  onClick={() => toggleAssertion(a.id)}
+                  aria-pressed={on}
+                  className="btn sm"
+                  style={{
+                    borderColor: on ? 'var(--blue)' : 'var(--line)',
+                    background: on ? 'var(--surface-2)' : 'transparent',
+                    color: on ? 'var(--blue)' : 'var(--ink-2)',
+                    fontWeight: on ? 700 : 500,
+                  }}
+                >{a.label}</button>
+              );
+            })}
           </div>
 
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Baris Jurnal</div>
