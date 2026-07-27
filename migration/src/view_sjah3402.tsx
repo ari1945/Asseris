@@ -238,7 +238,7 @@ function SocMatrix({ E }: any) {
 function SocTesting({ E, toggle }: any) {
   const natColor = { 'Inspeksi': 'blue', 'Reperformance': 'purple', 'Observasi': 'teal', 'Inquiry': 'amber' };
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Pengujian Pengendalian — Efektivitas Operasi (Type 2)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700 }}>{E.counts.controlsTested}/{E.counts.controls} diuji{E.counts.deviationsNoted ? ' · ' + E.counts.deviationsNoted + ' deviasi' : ''}</span></div>
@@ -333,7 +333,7 @@ function SocReport({ E, A }: any) {
   const O = E.opinion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Opini Tiga-Bagian (¶52)">
           <div style={{ display: 'grid', gap: 8 }}>

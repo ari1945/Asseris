@@ -168,7 +168,7 @@ function PSAK22View() {
 
           {/* ================= TAB · IDENTIFIKASI ================= */}
           {tab === 'akuisisi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Identifikasi Kombinasi Bisnis</h3><span className="sub mono">pengakuisisi · tanggal akuisisi · uji bisnis (¶3 · B7)</span></div>
@@ -240,7 +240,7 @@ function PSAK22View() {
           {tab === 'imbalan' && (
             <div className="grid" style={{ gap: 12 }}>
               <DealPills />
-              <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+              <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Imbalan Dialihkan — {deal.acquiree}</h3><span className="sub mono">nilai wajar ¶37 · imbalan kontinjensi ¶39</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                   <table className="dtbl" style={{ width: '100%' }}>
@@ -296,7 +296,7 @@ function PSAK22View() {
           {tab === 'ppa' && (
             <div className="grid" style={{ gap: 12 }}>
               <DealPills />
-              <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+              <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
                 <div className="grid" style={{ gap: 12 }}>
                   <Panel noBody>
                     <div className="panel-h"><h3>Alokasi Harga Akuisisi (PPA) — {deal.acquiree}</h3><span className="sub mono">aset neto teridentifikasi pd nilai wajar (¶18)</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -358,7 +358,7 @@ function PSAK22View() {
 
           {/* ================= TAB · GOODWILL & NCI ================= */}
           {tab === 'goodwill' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Goodwill per Akuisisi (¶32)</h3><span className="sub mono">imbalan + NCI − aset neto NW</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -458,7 +458,7 @@ function PSAK22View() {
 
           {/* ================= TAB · PERIODE PENGUKURAN ================= */}
           {tab === 'periode' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Periode Pengukuran (¶45)</h3><span className="sub mono">jendela ≤ 12 bulan sejak tanggal akuisisi</span></div>
@@ -532,7 +532,7 @@ function PSAK22View() {
 
           {/* ================= TAB · REKONSILIASI ================= */}
           {tab === 'rekonsiliasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Rekonsiliasi Angka — Satu Sumber Kebenaran</h3><span className="sub mono">model PSAK 22 ↔ modul konsumen</span></div>
@@ -609,7 +609,7 @@ function PSAK22View() {
 
           {/* ================= TAB · AUDIT ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Program Audit — Kombinasi Bisnis</h3><span className="sub mono">SA 540 · SA 600 · SA 500 (pakar)</span><div style={{ flex: 1 }} /><span className="tiny muted">{doneCount}/{p22.proc.length}</span></div>
                 <table className="dtbl" style={{ width: '100%' }}>

@@ -253,7 +253,7 @@ function ServiceOrg() {
 function SOImpact({ orgs }: { orgs: ServiceOrgRow[] }) {
   const sigBadge = (s: string) => s === 'Tinggi' ? 'red' : s === 'Moderat' ? 'amber' : 'gray';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Lingkup (SA 402)</h3><div style={{ flex: 1 }} /></div>
@@ -368,7 +368,7 @@ function SORegister({ orgs, setOrgs, me, locked }: { orgs: ServiceOrgRow[]; setO
   };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Register Laporan Auditor Jasa</h3><div style={{ flex: 1 }} /><span className="tiny muted">Type 1/2 · ISAE 3402 / SOC 1</span></div>
         <table className="dtbl">
@@ -622,7 +622,7 @@ function SOConclusion({ orgs }: { orgs: ServiceOrgRow[] }) {
   const totalExc = orgs.reduce((s, o) => s + (o.exc || 0), 0);
   const allClear = cNone === 0 && totalExc === 0;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Keputusan Pengandalan & Respons per Organisasi Jasa</h3><div style={{ flex: 1 }} /></div>

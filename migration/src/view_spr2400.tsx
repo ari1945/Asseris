@@ -170,7 +170,7 @@ function F2400Continuum() {
 function F2400Proc() {
   const tk = (t: any) => t === 'Analitis' ? 'purple' : 'teal';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Desain Prosedur Reviu (¶45–57)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{REV_PROC.length} area</span></div>
         <table className="dtbl">
@@ -227,7 +227,7 @@ function NavRow2400({ to, label }: any) {
 /* ---------------- Tab: Materialitas & Bukti ---------------- */
 function F2400Evidence() {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Materialitas dalam Reviu (¶43–44)</h3></div>

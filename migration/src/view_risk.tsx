@@ -122,7 +122,7 @@ function RiskAssessment() {
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={risks.filter((r: any) => r.assertionLvl).length} label="Level Asersi" /></div></Panel>
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
             {/* Heatmap */}
             <Panel title="Matriks Risiko" sub="Dampak × Kemungkinan">
               <div style={{ padding: '14px 14px 10px' }}>

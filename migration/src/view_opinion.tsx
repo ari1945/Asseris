@@ -298,7 +298,7 @@ function ReportBuilder({ doc, patch, client, O }: any) {
   const DocH = O.DocH;
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       {/* config column */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Jenis Opini" sub="SA 705">

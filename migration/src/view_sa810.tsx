@@ -170,7 +170,7 @@ function F810Registri({ selId, setSelId, sel }: any) {
         </div>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 384px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 384px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Registri Perikatan Ringkasan LK</h3><div style={{ flex: 1 }} /><span className="tiny muted">{RIN_ENG.length} perikatan</span></div>
           <table className="dtbl">
@@ -224,7 +224,7 @@ function F810Proc({ sel }: any) {
   if (!sel) return null;
   const done = sel.procedures.filter((p: any) => p[1]).length;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Prosedur Evaluasi Ringkasan LK (¶8)</h3><div style={{ flex: 1 }} /><Badge kind={done === sel.procedures.length ? 'green' : 'amber'}>{done}/{sel.procedures.length} selesai</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
@@ -293,7 +293,7 @@ function F810Impact({ sel }: any) {
     { active: sel.summaryOpinion.startsWith('Tidak Wajar'), t: '¶15 — Ringkasan menyesatkan / tidak konsisten', d: 'Bila ringkasan tidak konsisten atau bukan ringkasan yang wajar dan manajemen menolak memperbaikinya, auditor menyatakan opini tidak wajar (adverse) atas ringkasan.' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Penelusuran Opini LK Auditan → Ringkasan</h3></div>
@@ -363,7 +363,7 @@ function F810Report({ sel }: any) {
   const adverse = sel.summaryOpinion.startsWith('Tidak Wajar');
   const modified = sel.auditOpinion.startsWith('WDP') || sel.auditOpinion.startsWith('TW') || sel.auditOpinion.startsWith('TMP');
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Elemen Wajib Laporan SA 810">
           <div style={{ display: 'grid', gap: 7 }}>

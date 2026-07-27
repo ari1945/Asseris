@@ -121,7 +121,7 @@ function F501Overview({ invTotal, litExposure }: any) {
     { ic: 'columns', k: 'purple', t: 'Informasi Segmen (¶13)', sub: 'Evaluasi penyajian & pengungkapan informasi segmen sesuai kerangka pelaporan (PSAK 5).', m1: ['Segmen dilaporkan', '3 segmen'], m2: ['Rekonsiliasi total', 'Cocok'], status: 'Selesai', sk: 'green' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Tiga Area Bukti Spesifik SA 501</h3><div style={{ flex: 1 }} /><Badge kind="blue">Ruang Lingkup</Badge></div>
@@ -187,7 +187,7 @@ function F501Inventory({ invTotal }: any) {
         </div>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Lokasi & Hasil Perhitungan Fisik</h3><div style={{ flex: 1 }} /><span className="tiny muted">Klik baris untuk rincian</span></div>
           <table className="dtbl">
@@ -256,7 +256,7 @@ function F501Litigation() {
   const likKind = (l: any) => l === 'Besar Kemungkinan' ? 'red' : l === 'Mungkin' ? 'amber' : 'gray';
   return (
     <div className="grid" style={{ gap: 12 }}>
-      <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Register Litigasi, Klaim & Penilaian (¶9)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{LIT_CASES.length} perkara</span></div>
           <table className="dtbl">
@@ -356,7 +356,7 @@ function F501Segment() {
   ];
   const totRev = SEG.reduce((s, x) => s + x.rev, 0);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Informasi Segmen Dilaporkan (PSAK 5)</h3><div style={{ flex: 1 }} /><Badge kind="green">Rekonsiliasi cocok</Badge></div>

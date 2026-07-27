@@ -81,7 +81,7 @@ function LeaseCalculator() {
             <Panel><div style={{ padding: '15px 18px' }}><Stat value={'Rp ' + fmt(rows.reduce((s: any, x: any) => s + x.interest, 0) / 1e6, 0) + ' jt'} label="Total Beban Bunga (kontrak ini)" accent="var(--amber)" /></div></Panel>
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
             {/* contracts + inputs */}
             <div className="grid" style={{ gap: 12 }}>
               <Panel title="Kontrak Sewa">

@@ -310,7 +310,7 @@ function CfWorklist(props: any) {
   });
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         {/* discrepancies */}
         <Panel title="Diskrepansi — Rekonsiliasi" sub={discs.length + ' butir · selisih bruto Rp ' + fmt(grossDiff / 1e6, 1) + ' jt'} actions={<Badge kind="red">{discs.length} terbuka</Badge>}>
@@ -553,7 +553,7 @@ function ConfirmationHub() {
                   <Seg options={['All', 'Received', 'Sent', 'Discrepancy', 'No Reply']} value={fStatus} onChange={setFStatus} />
                 </div>
               </div>
-              <div className="grid" style={{ gridTemplateColumns: '1fr 384px', gap: 12, alignItems: 'start' }}>
+              <div className="grid split" style={{ gridTemplateColumns: '1fr 384px', gap: 12, alignItems: 'start' }}>
                 <Panel noBody>
                   <div style={{ maxHeight: 'calc(100vh - 360px)', overflow: 'auto' }}>
                     <table className="dtbl">

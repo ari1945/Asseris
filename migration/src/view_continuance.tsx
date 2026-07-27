@@ -346,7 +346,7 @@ function ContinuanceRegister() {
             </div>
           </Panel>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
             {/* Register */}
             <Panel noBody>
               <div className="panel-h"><h3>Register Keberlanjutan — Portofolio Aktif</h3><div style={{ flex: 1 }} /><span className="tiny muted">Klik baris untuk kertas kerja & keputusan</span></div>

@@ -242,7 +242,7 @@ function PSAK2View() {
             <P2Card value={tiePass + '/' + tieRows.length} label="Tie-out lintas-laporan" sub={tiePass === tieRows.length ? 'seluruh rekonsiliasi menutup' : 'perlu ditelusuri'} accent={tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)'} />
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
             {/* ============ LEFT ============ */}
             <div className="grid" style={{ gap: 12 }}>
 

@@ -184,7 +184,7 @@ function SAKRoadmapView() {
                 </div>
               </Panel>
 
-              <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+              <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
                 {/* horizon — terbit belum efektif */}
                 <Panel noBody>
                   <div className="panel-h"><h3>Terbit, Belum Efektif</h3><span className="sub mono">PSAK 25 ¶30–31 — wajib diungkap</span><div style={{ flex: 1 }} /><Badge kind="amber">{H.counts.horizon}</Badge></div>
@@ -240,7 +240,7 @@ function SAKRoadmapView() {
 
           {/* ================= TAB · PELACAK ISAK ================= */}
           {tab === 'isak' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Registri Interpretasi (ISAK)</h3><span className="sub mono">dilacak terpisah dari PSAK induk</span></div>
                 <div className="row ac gap8" style={{ padding: '10px 14px', flexWrap: 'wrap' }}>
@@ -314,7 +314,7 @@ function SAKRoadmapView() {
 
           {/* ================= TAB · DAMPAK PERIKATAN ================= */}
           {tab === 'dampak' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Kesiapan PSAK 118 (IFRS 18)</h3><span className="sub mono">daftar-uji transisi</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{H.readiness207.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>
@@ -387,7 +387,7 @@ function SAKRoadmapView() {
 
           {/* ================= TAB · KELENGKAPAN KERANGKA ================= */}
           {tab === 'lengkap' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Audit-Trail Kelengkapan Kerangka</h3><span className="sub mono">SA 700 · PSAK 25</span></div>

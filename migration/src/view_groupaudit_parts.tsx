@@ -93,7 +93,7 @@ function GAPackages({ p65, packages, setPackages, seedSubs, fmt, nav, gotoTab }:
         <Btn sm onClick={resetAll}><I.upload size={12} /> Reset figur ke seed</Btn>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
         {/* daftar paket + editor/impor */}
         <Panel noBody>
           <div className="panel-h"><h3>Paket Pelaporan Komponen</h3><span className="sub mono">SA 600 ¶B86 · alur Diterima → Direkonsiliasi → Disetujui</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -263,7 +263,7 @@ function GAConsol({ p65, fmt, nav, gotoTab }: any) {
         <KvBox label="Goodwill konsolidasi" v={rp(p65.goodwillTotal) + ' jt'} accent={gwTie ? 'var(--navy)' : 'var(--red)'} />
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
         {/* worksheet — re-performance LPK */}
         <Panel noBody>
           <div className="panel-h"><h3>Kertas Kerja Konsolidasi — Re-performance (LPK)</h3><div style={{ flex: 1 }} /><span className="tiny muted">Induk + Σ Anak − Eliminasi = Konsolidasian · Rp juta</span></div>
@@ -416,7 +416,7 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
         <KvBox label="Prosedur reviu selesai" v={procPct + '%'} accent={procPct === 100 ? 'var(--green)' : 'var(--amber)'} />
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
         <div className="grid" style={{ gap: 12 }}>
           {/* eliminasi investasi (PSAK 22) */}
           <Panel noBody>

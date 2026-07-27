@@ -228,7 +228,7 @@ function F3000Anatomy() {
 /* ---------------- Tab: Hal Pokok & Kriteria ---------------- */
 function F3000Subject({ selId, setSelId, sel }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Registri Hal Pokok & Kriteria</h3><div style={{ flex: 1 }} /><span className="tiny muted">{ASR_ENG.length} perikatan</span></div>
         <table className="dtbl">
@@ -285,7 +285,7 @@ function F3000Evidence({ sel }: any) {
   if (!sel) return null;
   const limited = sel.level === 'Terbatas';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Prosedur Asurans — {sel.id}</h3><div style={{ flex: 1 }} /><Badge kind={limited ? 'teal' : 'blue'}>{sel.level}</Badge></div>
@@ -356,7 +356,7 @@ function F3000Report({ sel }: any) {
   if (!sel) return null;
   const limited = sel.level === 'Terbatas';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Elemen Wajib Laporan (¶69)">
           <div style={{ display: 'grid', gap: 7 }}>

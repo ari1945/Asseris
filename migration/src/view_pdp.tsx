@@ -79,7 +79,7 @@ function PDPView() {
 
           {/* ===== TAB · RoPA ===== */}
           {tab === 'ropa' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Registri Aktivitas Pemrosesan Data Pribadi</h3><span className="sub mono">Ps. 31 — RoPA</span></div>
                 <table className="dtbl">
@@ -123,7 +123,7 @@ function PDPView() {
 
           {/* ===== TAB · DSR ===== */}
           {tab === 'dsr' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Permintaan Hak Subjek Data</h3><span className="sub mono">SLA penyelesaian {P.summary.respSla} hari · konfirmasi 3×24 jam</span></div>
                 <table className="dtbl">
@@ -211,7 +211,7 @@ function PDPView() {
 
           {/* ===== TAB · POSTUR ===== */}
           {tab === 'postur' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Postur Kepatuhan — Prinsip Pelindungan (Ps. 16)</h3></div>
                 <div>

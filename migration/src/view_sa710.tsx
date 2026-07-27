@@ -207,7 +207,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
   const cat = PROCS_710.find(p => p.id === selId) || PROCS_710[0];
   const st = wp.procs[cat.id] || EMPTY_PROC;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Prosedur Audit atas Informasi Komparatif (¶7–9)</h3><div style={{ flex: 1 }} /><Badge kind={procDone === PROCS_710.length ? 'green' : 'blue'}>{procDone}/{PROCS_710.length}</Badge></div>
@@ -278,7 +278,7 @@ function F710Procedures({ wp, setProc, procDone }: { wp: Comp710Doc; setProc: (i
 function F710Special({ comp, patchComp, wp, setSitu, compActive, setCompActive }: { comp: CompFacts; patchComp: (p: Partial<CompFacts>) => void; wp: Comp710Doc; setSitu: (id: string, p: Partial<SituState>) => void; compActive: boolean; setCompActive: (on: boolean) => void }) {
   const activeCount = SITU_710.filter(s => s.id === 'predPY' ? compActive : (wp.situations[s.id] || EMPTY_SITU).active).length;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Situasi Khusus & Konsekuensinya (¶11–14)</h3><div style={{ flex: 1 }} /><Badge kind="blue">{activeCount} aktif</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
@@ -344,7 +344,7 @@ function F710Special({ comp, patchComp, wp, setSitu, compActive, setCompActive }
 /* ---------------- Tab: Dampak pada Laporan (paragraf diturunkan SSOT + sign-off nyata) ---------------- */
 function F710Impact({ client, mode, comp, compActive }: { client: string; mode: string; comp: CompFacts; compActive: boolean }) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Paragraf Hal Lain — Auditor Pendahulu</h3><div style={{ flex: 1 }} /><Badge kind="teal">SA 710 ¶13 → SA 706</Badge></div>
         <div style={{ padding: 22 }}>

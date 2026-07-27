@@ -264,7 +264,7 @@ function KpiCard({ value, label, accent }: any) {
    ============================================================ */
 function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 268px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 268px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Akumulasi Salah Saji Teridentifikasi</h3>
@@ -367,7 +367,7 @@ function TabAggregate({ calc, method, setMethod, evalNet, evalGross, absNet, om,
   const afterEquity = FS.equity + calc.ironNet;
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         {/* method switch + bars */}
         <Panel noBody>
@@ -516,7 +516,7 @@ function SubtotalRow({ label, base, eff, fmt }: any) {
    ============================================================ */
 function TabQualitative({ quals, toggleQual, qualCount }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Pertimbangan Kualitatif atas Salah Saji</h3>
@@ -593,7 +593,7 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
   const statusKind = { 'Direspons': 'green', 'Menolak': 'red', 'Terjadwal': 'amber' };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Riwayat Komunikasi</h3><div style={{ flex: 1 }} /><Badge kind="blue">SA 260 · SA 450.12</Badge></div>

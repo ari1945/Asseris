@@ -37,7 +37,7 @@ function NoclarEthics() {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={discl} label="Pertimbangan Pengungkapan" accent={discl ? 'var(--red)' : 'var(--green)'} /></div></Panel>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Register NOCLAR Profesi</h3><div style={{ flex: 1 }} /><span className="tiny muted">Kode Etik §360</span></div>
           <table className="dtbl">

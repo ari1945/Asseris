@@ -127,7 +127,7 @@ function ForensicCashFlow() {
             <FCStat value={tiePass + '/' + tieRows.length} label="Tie-out Lintas-Laporan" sub={tiePass === tieRows.length ? 'seluruh rekonsiliasi menutup' : 'perlu ditelusuri'} accent={tiePass === tieRows.length ? 'var(--green)' : 'var(--amber)'} />
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
             {/* ============ LEFT ============ */}
             <div className="grid" style={{ gap: 12 }}>
 

@@ -30,7 +30,7 @@ function CRM360() {
 
   return (
     <div className="view-scroll"><div className="view-pad">
-      <div className="grid" style={{ gridTemplateColumns: '270px 1fr', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '270px 1fr', gap: 12, alignItems: 'start' }}>
         {/* client rail */}
         <Panel noBody>
           <div className="panel-h"><h3>Portofolio</h3><div style={{ flex: 1 }} /><span className="chip tiny">{withData.length}</span></div>

@@ -385,7 +385,7 @@ function ExpContext({ experts, avgOf }: any) {
     { q: 'Apakah lingkup & kesepakatan pakar didokumentasikan? (¶11)', a: 'Ya untuk pakar manajemen; engagement letter pakar auditor menunggu finalisasi.', ok: false },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Penentuan Kebutuhan Pakar (SA 620)</h3><div style={{ flex: 1 }} /></div>
@@ -499,7 +499,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
   const [selF, setSelF] = useStateSP2('comp');
   const f = exp.factors.find((x: any) => x.id === selF) || exp.factors[0];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
       <Panel title="Faktor Evaluasi Pakar" sub="SA 620 ¶9 · skala 1–5">
         {exp.factors.map((fc: any) => (
           <div key={fc.id} onClick={() => setSelF(fc.id)}
@@ -569,7 +569,7 @@ function ExpEvaluation({ exp, setV, avg, verdict }: any) {
 function ExpAgreement({ exp }: any) {
   const u = exp.understanding;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Pemahaman atas Bidang Keahlian Pakar</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 620 ¶10</span></div>
@@ -656,7 +656,7 @@ function ExpWorkEval({ exp }: any) {
   ];
   const assessKind = (a: any) => a === 'Wajar' ? 'green' : a === 'Ditantang' ? 'amber' : a === 'Proses' ? 'blue' : 'red';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Evaluasi Kecukupan Pekerjaan Pakar</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 620 ¶12 · {exp.name}</span></div>
@@ -745,7 +745,7 @@ function ExpConclusion({ experts, avgOf }: any) {
   const adequate = exps.filter(e => /^memadai/i.test((e.workEval && e.workEval.adequacy) || ''));
   const mgmtCount = exps.filter(e => e.type === 'Pakar Manajemen').length;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Ringkasan Penggunaan Pakar & Dampak terhadap Bukti</h3><div style={{ flex: 1 }} /></div>

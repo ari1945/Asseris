@@ -198,7 +198,7 @@ function S250Register({ items, setItems, me, locked }: { items: NoclarItem[]; se
   const delItem = (id: string) => { setItems((l: NoclarItem[]) => l.filter(it => it.id !== id)); setSelId(null); };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Register Ketidakpatuhan</h3><div style={{ flex: 1 }} />
           <span className="tiny muted" style={{ marginRight: 8 }}>{list.length} pos</span>
@@ -271,7 +271,7 @@ function S250Reporting({ report, setReport, me, locked }: { report: ReportTier[]
   const setStatus = (id: string, status: string) =>
     setReport((l: ReportTier[]) => l.map(r => r.id === id ? { ...r, status, by: me, at: nocToday() } : r));
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Jenjang Pelaporan Ketidakpatuhan</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 250 ¶22–29</span></div>
         <table className="dtbl">
@@ -505,7 +505,7 @@ function S260Findings({ findings, setFindings, me, locked }: { findings: TcwgFin
   const addF = () => { const id = nextTfId(findings); setFindings(l => [...l, { id, t: '', area: '', sev: 'Sedang', link: '', by: me, at: nocToday() }]); };
   const delF = (id: string) => setFindings(l => l.filter(f => f.id !== id));
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Temuan Signifikan dari Audit (¶16)</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ marginRight: 8 }}>{findings.length} hal</span>{!locked && <Btn sm onClick={addF}><I.plus size={12} /> Tambah</Btn>}</div>
         <div style={{ padding: '4px 0' }}>
@@ -654,7 +654,7 @@ function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDe
   };
   const delD = (id: string) => { setDefs(list.filter(d => d.id !== id)); setSelId(null); };
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Register Defisiensi Pengendalian</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ marginRight: 8 }}>{list.length} pos · {list.filter(d => d.sig).length} signifikan</span>{!locked && <Btn sm onClick={addD}><I.plus size={12} /> Tambah</Btn>}</div>
         <table className="dtbl">
@@ -713,7 +713,7 @@ function S265Register({ defs, setDefs, me, locked }: { defs: Deficiency[]; setDe
 
 function S265Indicators() {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Indikator Defisiensi Signifikan (¶A7)</h3><div style={{ flex: 1 }} /><Badge kind="amber">Pertimbangan auditor</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
@@ -758,7 +758,7 @@ function S265Comms({ sig, defs }: { sig: number; defs: Deficiency[] }) {
   const firmName = (AMS.FIRM as { name?: string }).name || 'KAP';
   const sigDefs = (defs || []).filter(d => d.sig);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Draf Surat Defisiensi Signifikan kepada TCWG</h3><div style={{ flex: 1 }} /><Badge kind="red">¶9–¶11</Badge></div>
         <div style={{ padding: 20, background: 'var(--surface-2)' }}>

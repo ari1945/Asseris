@@ -534,7 +534,7 @@ function PSAK16View() {
           <button className={regTab === 'import' ? 'on' : ''} onClick={() => setRegTab('import')}>Pemetaan Impor Excel</button>
         </div>
       </div>
-      <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
         <div className="grid" style={{ gap: 12 }}>
           {regTab === 'register'
             ? <AssetRegisterTable reg={reg} sc={sc} fmt={fmt} />
@@ -603,7 +603,7 @@ function PSAK16View() {
 
           {/* ============ TAB: IKHTISAR ============ */}
           {tab === 'ikhtisar' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>{rollforwardPanel}{klasifikasiPanel}</div>
               {tieoutPanel}
             </div>
@@ -611,7 +611,7 @@ function PSAK16View() {
 
           {/* ============ TAB: PENYUSUTAN ============ */}
           {tab === 'penyusutan' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               {ujiPanel}
               {pengukuranPanel}
             </div>

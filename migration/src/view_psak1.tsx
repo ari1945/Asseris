@@ -174,7 +174,7 @@ function PSAK1View() {
             <P1Card value={score + '%'} label="Skor kepatuhan penyajian" sub={attention ? attention + ' butuh perhatian' : 'tanpa pengecualian'} accent={score === 100 ? 'var(--green)' : 'var(--navy)'} />
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
             {/* ============ LEFT ============ */}
             <div className="grid" style={{ gap: 12 }}>
 

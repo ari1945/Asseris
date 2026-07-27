@@ -287,7 +287,7 @@ function PSAK117View() {
 
           {/* ================= TAB · MODEL PENGUKURAN ================= */}
           {tab === 'model' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Pemilihan Model Pengukuran per Portofolio</h3><span className="sub mono">¶29 · ¶53 · ¶B101</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -497,7 +497,7 @@ function PSAK117View() {
 
           {/* ================= TAB · TRANSISI ================= */}
           {tab === 'transisi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Pendekatan Transisi per Portofolio</h3><span className="sub mono">DOT {p117.dot} · ¶C3–C24</span></div>
                 <div style={{ overflowX: 'auto' }}>
@@ -597,7 +597,7 @@ function PSAK117View() {
 
           {/* ================= TAB · AUDIT SA 540 ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Prosedur Audit — Estimasi Aktuaria (SA 540 · SA 620)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{p117.proc.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>

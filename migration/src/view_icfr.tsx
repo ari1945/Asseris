@@ -231,7 +231,7 @@ function ICEntityLevel({ data }: any) {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value="Andalkan" label="Strategi kontrol" accent="var(--blue)" /></div></Panel>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '260px 1fr', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '260px 1fr', gap: 12, alignItems: 'start' }}>
         {/* component rail */}
         <Panel title="Komponen COSO 2013">
           <div style={{ display: 'grid', gap: 4 }}>
@@ -512,7 +512,7 @@ function ICITGC({ data }: any) {
         </div>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '280px 1fr', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '280px 1fr', gap: 12, alignItems: 'start' }}>
         <Panel title="Domain ITGC">
           <div style={{ display: 'grid', gap: 4 }}>
             {ITGC.map(d => {

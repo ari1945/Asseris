@@ -121,7 +121,7 @@ function DeterminationPanel({ doc, patch }: any) {
   };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
 
         <Panel title="Salah Saji Tidak Dikoreksi" sub="Diteruskan dari SAD Ledger — SA 450">
@@ -391,7 +391,7 @@ function KAMWorkshop({ doc, patch }: any) {
   const addBlank = () => { const id = 'k' + Date.now(); setKams((ks: any) => [...ks, { id, risk: null, title: 'Hal Audit Utama Baru', why: '', how: '', wpRef: '', fsRef: '', include: true }]); setOpen(id); };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
       <Panel title="Kandidat dari Register Risiko" sub="Risiko signifikan — SA 701.9">
         <div className="tiny muted" style={{ marginBottom: 9, lineHeight: 1.55 }}>Hal audit utama dipilih dari hal-hal yang dikomunikasikan kepada TCWG, dengan fokus pada area berisiko signifikan & pertimbangan auditor tertinggi.</div>
         <div style={{ display: 'grid', gap: 7 }}>

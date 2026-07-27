@@ -151,7 +151,7 @@ function RestatementView() {
             <RSCard value={score + '%'} label="Prosedur audit selesai" sub={procDone + '/' + RS_PROC.length + ' langkah'} accent={score === 100 ? 'var(--green)' : 'var(--navy)'} />
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
             {/* ============ LEFT ============ */}
             <div className="grid" style={{ gap: 12 }}>
               <Tabs tabs={TABS} active={tab} onChange={setTab} />

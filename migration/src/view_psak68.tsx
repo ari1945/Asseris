@@ -189,7 +189,7 @@ function PSAK68View() {
 
           {/* ================= TAB · HIERARKI & INVENTARIS ================= */}
           {tab === 'hierarki' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Inventaris Pos Diukur pada Nilai Wajar</h3><span className="sub mono">pengukuran berulang · ¶93a-b</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -302,7 +302,7 @@ function PSAK68View() {
 
           {/* ================= TAB · TEKNIK VALUASI ================= */}
           {tab === 'teknik' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Teknik Valuasi & Input per Pos</h3><span className="sub mono">¶61-66 · ¶93d</span></div>
@@ -376,7 +376,7 @@ function PSAK68View() {
 
           {/* ================= TAB · LEVEL 3 ================= */}
           {tab === 'level3' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Rekonsiliasi Saldo Level 3 (Roll-Forward)</h3><span className="sub mono">¶93e · menutup ke saldo akhir Level 3</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -455,7 +455,7 @@ function PSAK68View() {
 
           {/* ================= TAB · PENGUNGKAPAN CALK ================= */}
           {tab === 'pengungkapan' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Pengungkapan Hierarki Nilai Wajar</h3><span className="sub mono">CALK · ¶93b · pengukuran berulang</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -548,7 +548,7 @@ function PSAK68View() {
 
           {/* ================= TAB · REKONSILIASI ================= */}
           {tab === 'rekonsiliasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Rekonsiliasi Angka — Satu Sumber Kebenaran</h3><span className="sub mono">PSAK 68 ↔ modul sumber ↔ konsumen</span></div>
@@ -635,7 +635,7 @@ function PSAK68View() {
 
           {/* ================= TAB · AUDIT SA 540/500 ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Prosedur Audit — Estimasi Nilai Wajar (SA 540 · SA 500)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P68_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>

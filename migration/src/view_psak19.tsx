@@ -595,7 +595,7 @@ function PSAK19View() {
 
           {/* ============ TAB: IKHTISAR ============ */}
           {tab === 'ikhtisar' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>{reclassCallout}{rollforwardPanel}{klasifikasiPanel}</div>
               {tieoutPanel}
             </div>
@@ -603,7 +603,7 @@ function PSAK19View() {
 
           {/* ============ TAB: AMORTISASI ============ */}
           {tab === 'amortisasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               {ujiPanel}
               {pengukuranPanel}
             </div>

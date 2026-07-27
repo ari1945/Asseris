@@ -292,7 +292,7 @@ function SyariahView() {
 
           {/* ================= TAB · PENYAJIAN (PSAK 101) ================= */}
           {tab === 'penyajian' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Komponen Laporan Keuangan Syariah</h3><span className="sub mono">PSAK 101 ¶11</span></div>
@@ -458,7 +458,7 @@ function SyariahView() {
 
           {/* ================= TAB · SUKUK · WAKAF · TAKAFUL ================= */}
           {tab === 'sukuk' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Sukuk</h3><span className="sub mono">PSAK 110</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -509,7 +509,7 @@ function SyariahView() {
 
           {/* ================= TAB · AUDIT & DPS ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Prosedur Audit — Entitas Syariah</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{sy.proc.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>

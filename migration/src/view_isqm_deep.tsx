@@ -401,7 +401,7 @@ function SoqmAnnualEval({ risks, inspections, inspFindings, complaints, nav }: a
   };
 
   return (
-    <div style={{ padding: 14, display: 'grid', gridTemplateColumns: '1fr 360px', gap: 14, alignItems: 'start' }}>
+    <div className="split" style={{ padding: 14, display: 'grid', gridTemplateColumns: '1fr 360px', gap: 14, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 14 }}>
         {/* hero kesimpulan */}
         <Panel noBody>

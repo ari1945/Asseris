@@ -330,7 +330,7 @@ function TBTimesheet({ m, timeEntries, addTimeEntry, team, locked }: any) {
   const phaseOpts = ['Perencanaan', 'Eksekusi', 'Finalisasi', 'Pelaporan'];
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Catatan Waktu (Timesheet)</h3>

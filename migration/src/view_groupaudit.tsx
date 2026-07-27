@@ -232,7 +232,7 @@ function GAScope({ comps, fmt, selId, setSelId, sel, setScope, setComp, revCover
         ))}
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Penentuan Lingkup (Scoping) Berbasis Risiko</h3><div style={{ flex: 1 }} /><span className="tiny muted">Group materiality Rp {fmt(gm.om / 1e9, 2)} M · PM Rp {fmt(gm.pm / 1e9, 2)} M · dari PBT konsolidasian</span></div>
           <table className="dtbl">

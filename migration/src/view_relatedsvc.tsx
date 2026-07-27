@@ -452,7 +452,7 @@ function OtherAssurance() {
     <>
       <SubBar moduleId="assurance" right={<div className="row gap8 ac"><Badge kind="blue">{e.std} · Keyakinan {e.level}</Badge></div>} />
       <div className="view-scroll"><div className="view-pad">
-        <div className="grid" style={{ gridTemplateColumns: '260px 1fr', gap: 12, alignItems: 'start' }}>
+        <div className="grid split" style={{ gridTemplateColumns: '260px 1fr', gap: 12, alignItems: 'start' }}>
           <Panel noBody>
             <div className="panel-h"><h3>Perikatan Asurans</h3></div>
             <div>

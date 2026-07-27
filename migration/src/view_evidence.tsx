@@ -224,7 +224,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
     { ic: 'flask', t: 'Skeptisisme Profesional', d: 'Pertimbangkan relevansi & keandalan informasi; evaluasi konsistensi bukti dari berbagai sumber serta indikasi kontradiksi.', ref: '¶7, ¶11' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Strategi Perolehan & Evaluasi Bukti</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 · SA 330</span></div>
@@ -302,7 +302,7 @@ function EvStrategy({ items, verdict, avgScore, coverage }: any) {
 /* ---------------- Tab 2: Matriks Kecukupan & Ketepatan ---------------- */
 function EvMatrix({ items, sel, selId, setSelId, setVal, cycleAsr }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Matriks Kecukupan & Ketepatan Bukti</h3><div style={{ flex: 1 }} /><span className="tiny muted">klik baris untuk evaluasi · skala 1–5</span></div>
@@ -475,7 +475,7 @@ function EvProcedures({ items }: any) {
   const inquiryAreas = items.filter((i: any) => i.procs.includes('inquiry'));
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Delapan Prosedur Perolehan Bukti</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 ¶A14–A25 · keandalan & frekuensi</span></div>
@@ -636,7 +636,7 @@ function EvConsistency({ openContra }: any) {
 function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: any) {
   const partner = firm?.activeEngagement?.partner || 'Hartono Wijaya, CPA';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Kesimpulan Kecukupan & Ketepatan per Area</h3></div>

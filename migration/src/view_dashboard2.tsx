@@ -219,7 +219,7 @@ function DashMutu() {
         <Panel><div style={{ padding: '15px 18px' }}><Stat value={openNotes.length} label="Catatan Reviu Terbuka" accent={openNotes.length ? 'var(--amber)' : 'var(--green)'} /></div></Panel>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
+      <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start', marginBottom: 12 }}>
         <Panel title="Heatmap Risiko Firma" sub="Dampak × Kemungkinan" actions={<Btn sm variant="ghost" onClick={() => nav('risk')}><I.arrowRight size={13} /></Btn>}>
           <div style={{ padding: '14px 14px 10px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4 }}>

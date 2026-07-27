@@ -211,7 +211,7 @@ function F240Risk({ client }: any) {
     { ic: 'target', t: 'Penetapan Risiko Signifikan (¶25–27)', d: 'Pendapatan dianggap berisiko fraud (presumsi); override manajemen selalu risiko signifikan.', tag: '2 presumsi', ok: true },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Proses Penilaian Risiko Kecurangan</h3><div style={{ flex: 1 }} /><Badge kind="blue">SA 240 · SA 315</Badge></div>
@@ -365,7 +365,7 @@ function F240Register({ register, setRegister, me, locked }: { register: FraudRi
   };
   const del = (id: string) => { setRegister(l => l.filter(r => r.id !== id)); setSelId(null); };
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Register Risiko Kecurangan</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ marginRight: 8 }}>{register.length} risiko · {register.filter(r => r.presumed).length} presumsi</span>{!locked && <Btn sm onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>
         <table className="dtbl">
@@ -523,7 +523,7 @@ function F240Response() {
     { t: 'Unsur ketidakterdugaan (unpredictability) — variasikan sifat, saat, & luas prosedur', ref: '¶29(c)' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Respons Keseluruhan (¶28–29)</h3><div style={{ flex: 1 }} /></div>
@@ -597,7 +597,7 @@ function F240Response() {
 /* ---------------- Tab: Komunikasi ---------------- */
 function F240Comms({ client }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Komunikasi Kecurangan (¶40–43)</h3><div style={{ flex: 1 }} /></div>

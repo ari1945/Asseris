@@ -178,7 +178,7 @@ function PSAK65View() {
 
           {/* ================= TAB · KENDALI (IFRS 10) ================= */}
           {tab === 'kendali' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Penilaian Pengendalian — Tiga Elemen (¶7)</h3><span className="sub mono">kuasa × imbal hasil × keterkaitan</span></div>
@@ -419,7 +419,7 @@ function PSAK65View() {
 
           {/* ================= TAB · ELIMINASI & NCI ================= */}
           {tab === 'eliminasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Eliminasi Investasi vs Ekuitas Anak</h3><span className="sub mono">metode akuisisi · PSAK 22 ¶32</span></div>
@@ -505,7 +505,7 @@ function PSAK65View() {
 
           {/* ================= TAB · GOODWILL & TRANSLASI ================= */}
           {tab === 'goodwill' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Goodwill per Akuisisi (Alokasi PPA)</h3><span className="sub mono">PSAK 22 · biaya − bagian aset neto</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -578,7 +578,7 @@ function PSAK65View() {
 
           {/* ================= TAB · REKONSILIASI ================= */}
           {tab === 'rekonsiliasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Rekonsiliasi Angka — Satu Sumber Kebenaran</h3><span className="sub mono">model PSAK 65 ↔ WTB ↔ modul konsumen</span></div>
@@ -641,7 +641,7 @@ function PSAK65View() {
 
           {/* ================= TAB · AUDIT SA 600 ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Prosedur Audit — Konsolidasi (SA 600 Revisi · PSAK 65)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P65_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>

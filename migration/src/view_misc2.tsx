@@ -65,7 +65,7 @@ function Templates() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={instans} label="Instans di Engagement" accent="var(--blue)" /></div></Panel>
         </div>
 
-        <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+        <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
           <div>
             <div className="row jb ac wrap gap8" style={{ marginBottom: 12 }}>
               <div className="row gap6 wrap">
@@ -211,7 +211,7 @@ function TemplateDetail({ t, onClose }: any) {
           <button className="top-btn" onClick={onClose}><I.x size={20} /></button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', overflow: 'hidden', flex: 1 }}>
+        <div className="split" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', overflow: 'hidden', flex: 1 }}>
           <div style={{ background: '#e7eaef', padding: 22, overflow: 'auto' }}>
             <TplDocPreview t={t} />
             <div className="tiny" style={{ textAlign: 'center', color: '#7a8893', marginTop: 12 }}>Pratinjau — isi terisi otomatis dari konteks engagement saat digunakan.</div>

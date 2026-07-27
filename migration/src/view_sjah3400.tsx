@@ -158,7 +158,7 @@ function PfiAcceptance({ E, A }: any) {
 function PfiAssumptions({ E }: any) {
   const KIND = { best: ['Terbaik (best-estimate)', 'teal'], hypo: ['Hipotetis (andaikan)', 'purple'] };
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Registri Asumsi & Penilaian Kewajaran (¶17)</h3><div style={{ flex: 1 }} /><Badge kind={E.reasonableAll ? 'green' : 'amber'}>{E.reasonableAll ? 'Seluruh asumsi wajar' : 'Perlu perhatian'}</Badge></div>
         <table className="dtbl">
@@ -280,7 +280,7 @@ function PfiReport({ E, A }: any) {
   const C = E.conclusion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Bentuk Simpulan (¶27)">
           <div style={{ display: 'grid', gap: 8 }}>
