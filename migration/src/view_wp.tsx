@@ -511,7 +511,14 @@ function execStatus(ep: ExecP | undefined): string | null {
 }
 
 /* Evaluasi kecukupan & ketepatan bukti tingkat WP (SA 500). */
-function wpEvidenceEval(evidence: EvRec[], exec: Record<string, ExecP>) {
+/* PR-6d — parameter DILONGGARKAN ke bentuk yang benar-benar dibaca fungsi ini (`tier` pada
+   bukti, `items[].result` pada langkah eksekusi). `wpState` kini bertipe, dan memaksakan
+   `EvRec`/`ExecP` penuh di sini hanya memindahkan cast ke pemanggil (view_evidence) tanpa
+   menambah jaminan apa pun — fungsi ini tak menyentuh field lainnya. */
+function wpEvidenceEval(
+  evidence: { tier?: number }[],
+  exec: Record<string, { items?: { result?: string }[] }>,
+) {
   const ev = evidence || [];
   const items = Object.values(exec || {}).flatMap(p => (p && p.items) || []);
   const tested = items.filter(it => it.result);

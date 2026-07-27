@@ -125,7 +125,7 @@ function EvidenceEvaluation() {
   const live = useMemoEV(() => items.map((s: EvArea) => {
     const wst = wpState[s.wp];
     if (!wst) return s;
-    const e = wpEvidenceEval(wst.evidence || [], wst.exec || {});
+    const e = wpEvidenceEval((wst.evidence || []) as { tier?: number }[], wst.exec || {});
     if (!e.evCount && !e.itemCount) return s;
     const approp = e.appr ? Math.round(e.appr) : s.approp;
     const suff = e.itemCount ? Math.max(1, Math.min(5, Math.round((e.suffPct / 100) * 5))) : s.suff;
