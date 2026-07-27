@@ -70,6 +70,18 @@ Dua jalan keluar, dan ini **pertanyaan ketiga untuk Anda**:
 - **A-1 — perluas paket pelaporan komponen dengan PBT & beban pajak per anak.** Benar secara metodologi (itu memang isi paket pelaporan komponen yang diminta SA 600), sedikit pekerjaan seed + satu kolom impor. **Rekomendasi saya.**
 - **A-2 — pindah benchmark grup ke Total Aset atau Pendapatan konsolidasian.** Keduanya sudah dapat diturunkan hari ini (`totals.aset.konsol`; pendapatan = induk + Σ anak − ELM-01). Nol perubahan data, tetapi benchmark grup lalu berbeda jenis dari benchmark perikatan — perbedaan yang harus didokumentasikan, bukan disembunyikan.
 
+### KEPUTUSAN: A-1 (didelegasikan Ari, 2026-07-27)
+
+Ari meminta pilihan diambilkan. **A-1.** Tiga alasan, urut kekuatan:
+
+1. **Data yang hilang adalah data yang memang seharusnya ada di paket.** SA 600 menuntut paket pelaporan komponen memuat apa yang dibutuhkan auditor grup untuk kesimpulannya. PBT dan beban pajak per komponen bukan tambahan mewah — ketiadaannya adalah **cacat paket**, bukan alasan mengganti metodologi. A-2 memperbaiki gejala dengan memilih benchmark yang kebetulan bisa dihitung.
+2. **A-2 menciptakan asimetri permanen.** Benchmark perikatan adalah Laba Sebelum Pajak; bila benchmark grup menjadi Total Aset, kedua ambang tak lagi setara jenis — padahal justru hubungan antar keduanya yang ingin ditegakkan SA 600 (komponen < grup, dan komponen selaras dgn audit standalone-nya). Menyimpan dua jenis benchmark demi menghindari empat isian data adalah pertukaran yang buruk.
+3. **Entitas Singapura menjadi benar dengan sendirinya.** Dengan PBT + beban pajak per komponen, tarif efektif Sentosa Trading Pte Ltd terbawa dari paketnya sendiri. Di bawah A-2 masalah itu hanya tersembunyi, tak terselesaikan.
+
+Biaya A-1: dua field pada empat seed anak (`GROUP_SUBS`) + dua kolom pada impor paket (`PKG_NUMF`) + roll-up PBT konsolidasian di `psak65`. Kecil, dan seluruhnya di jalur yang sudah ada.
+
+**Tetap memblokir:** Opsi A vs B (populasi ENG-2025-014). A-1 adalah pilihan *di dalam* Opsi A; bila populasinya ternyata induk-standalone (Opsi B), pekerjaan ini tidak diperlukan.
+
 ## Cacat tambahan yang tersingkap saat memeriksa prasyarat
 
 `view_groupaudit.tsx` menyimpan **CP-01 sebagai baris hardcode** (`npat: 14_660_000_000`) di `GA_COMPONENTS`, padahal induk semestinya berasal dari WTB lewat `psak65` seperti yang sudah dilakukan `canon_part3`. Jadi modul grup memegang salinan mati entitas yang datanya hidup di modul sebelahnya — kelas cacat yang sama dengan `AJE_META.pbt` yang dibuang PR-D.
