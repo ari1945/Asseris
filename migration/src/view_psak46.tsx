@@ -2,7 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useFirm, useNav } from './contexts';
+import { fiscalReconciliation } from './canon_base';
+import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel } from './ui';
@@ -24,17 +25,21 @@ const { useState: useStateP46, useMemo: useMemoP46 } = React;
 
 const P46_RATE = 0.22;
 
-/* ---- rekonsiliasi fiskal: laba komersial → PKP, Rp juta ---- */
-const P46_FISCAL = [
-  { id: 'pbt',  t: 'Laba sebelum pajak — komersial',                 v: 48500, bucket: 'open' },
-  { id: 'perm+',t: 'Beban yang tidak dapat dikurangkan (natura lama, sumbangan, sanksi)', v: 1200, bucket: 'perm' },
-  { id: 'perm-',t: 'Penghasilan dikenakan PPh final & dividen dikecualikan', v: -3000, bucket: 'perm' },
-  { id: 't1',   t: 'Penyisihan imbalan kerja belum direalisasi (PSAK 24)', v: 1860, bucket: 'temp' },
-  { id: 't2',   t: 'Beban CKPN / kerugian ekspektasian (PSAK 71)',    v: 2400, bucket: 'temp' },
-  { id: 't3',   t: 'Provisi garansi & liabilitas lain',               v: 900,  bucket: 'temp' },
-  { id: 't4',   t: 'Selisih penyusutan komersial di atas fiskal',     v: 1640, bucket: 'temp' },
-  { id: 'pkp',  t: 'Penghasilan kena pajak (PKP)',                    v: 53500, bucket: 'close' },
-];
+/* ---- rekonsiliasi fiskal: laba komersial → PKP, Rp juta ----
+   PR-F: baris ini DITURUNKAN dari `fiscalReconciliation()`, tidak lagi diketik
+   ulang. Sebelumnya tabel ini menyimpan salinannya sendiri (48.500 · 53.500 dan
+   rincian empat beda temporer) — dua sumber untuk satu kertas kerja, sehingga
+   memperbaiki canon saja akan membuat modul membantah dirinya di layar yang
+   sama. Label tinggal di view; angka datang dari canon. */
+function p46FiscalRows(fr: ReturnType<typeof fiscalReconciliation>) {
+  return [
+    { id: 'pbt',   t: 'Laba sebelum pajak — komersial (dilaporkan)', v: fr.pbt, bucket: 'open' },
+    { id: 'perm+', t: 'Beban yang tidak dapat dikurangkan (natura lama, sumbangan, sanksi)', v: fr.permAdd, bucket: 'perm' },
+    { id: 'perm-', t: 'Penghasilan dikenakan PPh final & dividen dikecualikan', v: -fr.permLess, bucket: 'perm' },
+    ...AMS_CANON.FISCAL.tempMovementItems.map(x => ({ id: x.id, t: x.label, v: x.v, bucket: 'temp' })),
+    { id: 'pkp',   t: 'Penghasilan kena pajak (PKP)', v: fr.pkp, bucket: 'close' },
+  ];
+}
 const P46_FBUCKET = {
   open:  { lbl: '—',            kind: 'gray' },
   perm:  { lbl: 'Beda Permanen', kind: 'amber' },
@@ -81,7 +86,7 @@ const P46_MBUCKET = {
 const P46_PRESENT_META = [
   { id: 'p1', stmt: 'sofp', ref: '¶74', key: 'closing',    line: 'Aset pajak tangguhan — neto (tidak lancar)', note: 'DTA/DTL disaling-hapus: hak hukum & otoritas pajak yang sama.' },
   { id: 'p2', stmt: 'sofp', ref: '¶12', key: 'currentTax', line: 'Utang pajak kini (PPh Badan terutang)', note: 'Dikurangi angsuran PPh 25 & kredit pajak untuk utang neto.' },
-  { id: 'p3', stmt: 'pl',   ref: '¶79', key: 'currentTax', line: 'Beban pajak kini', note: 'PKP 53.500 × 22%.' },
+  { id: 'p3', stmt: 'pl',   ref: '¶79', key: 'currentTax', line: 'Beban pajak kini', note: 'PKP × 22% (lihat Rekonsiliasi Fiskal).' },
   { id: 'p4', stmt: 'pl',   ref: '¶79', key: 'deferredNeg', line: 'Manfaat pajak tangguhan', note: 'Kenaikan aset pajak tangguhan neto via laba rugi.' },
   { id: 'p5', stmt: 'oci',  ref: '¶62', key: 'oci',        line: 'Pajak penghasilan terkait pengukuran kembali', note: 'Mengikuti pos OCI imbalan kerja (PSAK 24).' },
 ];
@@ -136,6 +141,11 @@ function PSAK46View() {
   const { fmt } = AMS;
   const firm = useFirm();
   const nav = useNav();
+  /* PR-F: modul ini dulu memanggil `deferredTax()` TANPA argumen — satu-satunya
+     konsumen PSAK 46 yang tak membaca WTB perikatan (bandingkan view_psak71).
+     Karena rekonsiliasi fiskal kini berangkat dari laba DILAPORKAN, memposting
+     atau mencabut jurnal harus menggerakkan panel ini. */
+  const { wtb, aje } = useAudit();
   const loader = window.loadLS || ((k, d) => d);
 
   const [scenario, setScenario] = useStateP46(() => loader('ams.psak46.scenario', 'support'));
@@ -157,7 +167,11 @@ function PSAK46View() {
 
   /* derive deferred tax per row + totals — ditarik dari AMS_CANON (satu sumber kebenaran) */
   const canon = AMS_CANON;
-  const DT = useMemoP46(() => canon.deferredTax(), []);
+  const DT = useMemoP46(() => canon.deferredTax(wtb, aje), [wtb, aje]);
+  const FR = useMemoP46(() => fiscalReconciliation(wtb, aje), [wtb, aje]);
+  /* anotasi di LHS: hook React yang di-destructure tak bertipe di repo ini,
+     jadi `useMemoP46<T>()` tidak tersedia. */
+  const P46_FISCAL: ReturnType<typeof p46FiscalRows> = useMemoP46(() => p46FiscalRows(FR), [FR]);
   const tempRows = useMemoP46(() => DT.items.map((it: any) => ({ ...it, ...(P46_TEMP_META as any)[it.id] })), [DT]);
   const dtaTotal = tempRows.filter((r: any) => r.dt > 0).reduce((a: any, r: any) => a + r.dt, 0);
   const dtlTotal = tempRows.filter((r: any) => r.dt < 0).reduce((a: any, r: any) => a + r.dt, 0);
@@ -167,7 +181,10 @@ function PSAK46View() {
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
 
   const currentTax = DT.currentTax, deferredPL = DT.deferredPL, taxExpense = DT.taxExpense, pbt = DT.pbt;
-  const etr = DT.etr * 100;
+  /* ETR tak terdefinisi bila PBT nol (canon mengembalikan null, bukan Infinity).
+     Persentase ditampilkan "—", bukan "NaN%". */
+  const etrPct: number | null = DT.etr == null ? null : DT.etr * 100;
+  const pctOf = (v: number) => pbt !== 0 ? ((v / pbt * 100 >= 0 ? '+' : '') + (v / pbt * 100).toFixed(1) + '%') : '—';
 
   /* roll-forward pajak tangguhan neto — disusun dari canon agar foot otomatis */
   const P46_MOVE = [
@@ -212,7 +229,7 @@ function PSAK46View() {
           {/* summary */}
           <div className="grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
             <P46Card value={'Rp ' + fmt(taxExpense) + ' jt'} label="Beban pajak penghasilan" sub="¶79 · Laba Rugi (kini − tangguhan)" accent="var(--navy)" />
-            <P46Card value={'Rp ' + fmt(currentTax) + ' jt'} label="Beban pajak kini" sub="PKP 53.500 × 22%" accent="var(--blue)" />
+            <P46Card value={'Rp ' + fmt(currentTax) + ' jt'} label="Beban pajak kini" sub={'PKP ' + fmt(FR.pkp) + ' × 22%'} accent="var(--blue)" />
             <P46Card value={'Rp ' + fmt(deferredPL) + ' jt'} label="Manfaat pajak tangguhan — L/R" sub="kenaikan DTA neto via laba rugi" accent="var(--purple)" />
             <P46Card value={'Rp ' + fmt(netDT) + ' jt'} label="Aset pajak tangguhan neto" sub={supp ? '¶74 · pemulihan didukung' : '¶56 · recoverability diragukan'} accent={supp ? 'var(--green)' : 'var(--amber)'} />
             <P46Card value={score + '%'} label="Prosedur audit selesai" sub={doneCount + '/' + procs.length + ' langkah'} accent={score === 100 ? 'var(--green)' : 'var(--navy)'} />
@@ -225,6 +242,46 @@ function PSAK46View() {
               {/* rekonsiliasi fiskal */}
               <Panel noBody>
                 <div className="panel-h"><h3>Rekonsiliasi Fiskal</h3><span className="sub mono">laba komersial → PKP</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
+
+                {/* Populasi (D-1) — PPh Badan dinilai per ENTITAS HUKUM, jadi kertas
+                    kerja ini berdiri di atas laba induk standalone sementara
+                    materialitas SA 320/600 berdiri di atas figur konsolidasian.
+                    Dua populasi berdampingan; menyatakannya mencegah pembaca
+                    menyimpulkan salah satunya cacat. */}
+                <div className="tiny muted" style={{ padding: '8px 14px', borderBottom: '1px solid var(--line-soft)', lineHeight: 1.5 }}>
+                  Basis: laba komersial <b>{client.name} — entitas induk standalone</b> (WTB perikatan), bukan konsolidasian. PPh Badan dinilai per entitas hukum (satu SPT per entitas); materialitas grup memakai populasi konsolidasian.
+                </div>
+
+                {/* Jembatan PBT — tanpa ini angka pembuka muncul tanpa asal-usul.
+                    Rekonsiliasi fiskal berangkat dari laba komersial DILAPORKAN,
+                    yaitu WTB unadjusted + jurnal yang benar-benar diposting. */}
+                <div style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: 'var(--surface-2)', display: 'grid', gap: 4 }}>
+                  {[
+                    { k: 'PBT per WTB — sebelum penyesuaian audit', v: FR.pbtUnadj, strong: false },
+                    { k: 'Efek jurnal penyesuaian TERPOSTING', v: FR.ajePosted, strong: false },
+                    { k: 'PBT dilaporkan — dasar rekonsiliasi fiskal', v: FR.pbt, strong: true },
+                  ].map(x => (
+                    <div key={x.k} className="row ac gap10">
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: x.strong ? 700 : 500, color: x.strong ? 'var(--navy)' : 'var(--ink-3)' }}>{x.k}</div>
+                      <div className="mono" style={{ width: 84, textAlign: 'right', fontSize: 11, fontWeight: 700, color: x.v < 0 ? 'var(--num-neg)' : x.strong ? 'var(--navy)' : 'var(--ink-3)' }}>{fmt(x.v)}</div>
+                    </div>
+                  ))}
+                  <div className="tiny" style={{ color: 'var(--ink-4)', lineHeight: 1.45 }}>
+                    Bukan kolom <span className="mono">adj</span> WTB — kolom itu memuat usulan yang belum diputuskan partner. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => nav('aje', { from: 'psak46' })}>Buka register AJE</span>
+                  </div>
+                </div>
+
+                {/* Gerbang urutan — rekonsiliasi fiskal berada DI HILIR finalisasi
+                    AJE. Selama masih ada usulan, hasilnya belum final. */}
+                {FR.pendingAje.length > 0 && (
+                  <div className="row gap8" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: 'var(--amber-bg)', alignItems: 'flex-start' }}>
+                    <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={14} /></span>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      <b>Rekonsiliasi fiskal belum final</b> — {FR.pendingAje.length} jurnal penyesuaian masih berstatus usulan ({FR.pendingAje.join(', ')}). PKP dan pajak kini akan bergeser bila usulan tersebut diposting.
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   {P46_FISCAL.map((r, i) => {
                     const b = (P46_FBUCKET as any)[r.bucket];
@@ -316,18 +373,18 @@ function PSAK46View() {
 
               {/* rekonsiliasi tarif pajak efektif */}
               <Panel noBody>
-                <div className="panel-h"><h3>Rekonsiliasi Tarif Pajak Efektif</h3><span className="sub mono">¶81(c) · ETR</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>ETR {etr.toFixed(1)}%</span></div>
+                <div className="panel-h"><h3>Rekonsiliasi Tarif Pajak Efektif</h3><span className="sub mono">¶81(c) · ETR</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>ETR {etrPct == null ? '—' : etrPct.toFixed(1) + '%'}</span></div>
                 <div>
                   {P46_ETR.map((r, i) => (
                     <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_ETR.length - 1 ? '1px solid var(--line-soft)' : 0, background: r.head ? 'var(--surface-2)' : 'transparent' }}>
                       <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: r.head ? 700 : 500, color: r.head ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
-                      <div className="mono tiny" style={{ width: 60, textAlign: 'right', color: 'var(--ink-4)' }}>{r.head ? (r.id === 'stat' ? '22,0%' : etr.toFixed(1) + '%') : ((r.v / pbt * 100 >= 0 ? '+' : '') + (r.v / pbt * 100).toFixed(1) + '%')}</div>
+                      <div className="mono tiny" style={{ width: 60, textAlign: 'right', color: 'var(--ink-4)' }}>{r.head ? (r.id === 'stat' ? '22,0%' : (etrPct == null ? '—' : etrPct.toFixed(1) + '%')) : pctOf(r.v)}</div>
                       <div className="mono" style={{ width: 78, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : r.head ? 'var(--navy)' : 'var(--ink)' }}>{fmt(r.v)}</div>
                     </div>
                   ))}
                 </div>
                 <div className="tiny muted" style={{ padding: '9px 14px 12px', lineHeight: 1.5 }}>
-                  ETR <b>{etr.toFixed(1)}%</b> di bawah tarif statutori 22% — selisih terutama dari penghasilan PPh final/dividen yang dikecualikan, sebagian diimbangi beban non-deductible.
+                  ETR <b>{etrPct == null ? '—' : etrPct.toFixed(1) + '%'}</b> di bawah tarif statutori 22% — selisih terutama dari penghasilan PPh final/dividen yang dikecualikan, sebagian diimbangi beban non-deductible.
                 </div>
               </Panel>
 

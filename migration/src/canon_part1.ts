@@ -1,14 +1,24 @@
 /* ============================================================
    Asseris — canon part1 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, FIG, RATE, figuresFromWTB, jt, leasePortfolio, wtbVal } from './canon_base';
+import { ASOF, FIG, RATE, figuresFromWTB, fiscalReconciliation, jt, leasePortfolio, wtbVal } from './canon_base';
+import type { AjeLike } from './canon_base';
 import type { WTB, AjeRow } from './canon_types';
 import { AMS } from './data';
 
-  function deferredTax(wtb?: WTB) {
-    const f = wtb ? (() => {
+  /* `wtb`/`aje` opsional → bila diberi, angka mengikuti perikatan yang sedang
+     dibuka (WTB reaktif + register AJE hidup) alih-alih memo FIG singleton.
+     `aje` menentukan PBT DILAPORKAN: rekonsiliasi fiskal berangkat dari laba
+     komersial setelah jurnal yang benar-benar diposting (lihat
+     fiscalReconciliation). Tanpa argumen → kontrak zero-arg kanon tetap utuh. */
+  function deferredTax(wtb?: WTB, aje?: AjeLike[]) {
+    const f = (wtb || aje) ? (() => {
       const s = figuresFromWTB(wtb);
-      return Object.assign({}, FIG, { dbo: s.dboBooked, ckpn: s.ckpnBooked, dtaReported: s.dtaReported });
+      const fisc = fiscalReconciliation(wtb, aje);
+      return Object.assign({}, FIG, {
+        dbo: s.dboBooked, ckpn: s.ckpnBooked, dtaReported: s.dtaReported,
+        pbt: fisc.pbt, pkp: fisc.pkp,
+      });
     })() : FIG;
     const lease = leasePortfolio();
     const mk = (id: string, diff: number, type: string) => {
@@ -31,8 +41,13 @@ import { AMS } from './data';
     const taxExpense = currentTax - deferredPL;                     // beban pajak penghasilan
     const dtaReported = f.dtaReported;                              // DTA per buku besar (WTB)
     const dtaVariance = closing - dtaReported;                      // selisih model vs buku besar
+    /* ETR tak terdefinisi bila PBT nol. Dulu mustahil (pbt konstanta 48.500);
+       kini pbt turunan WTB, dan neraca saldo tanpa akun laba-rugi memberi nol →
+       `taxExpense / 0` akan mengalirkan Infinity ke layar. null, bukan 0:
+       "tak dapat dihitung" bukan "nol persen". */
     return { items, lease, closing, opening, currentTax, deferredPL, oci, taxExpense,
-             pbt: f.pbt, pkp: f.pkp, rate: RATE, etr: taxExpense / f.pbt,
+             pbt: f.pbt, pkp: f.pkp, rate: RATE,
+             etr: f.pbt !== 0 ? taxExpense / f.pbt : null,
              dtaReported, dtaVariance };
   }
 
