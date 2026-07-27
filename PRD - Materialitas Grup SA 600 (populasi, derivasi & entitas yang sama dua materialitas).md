@@ -51,7 +51,28 @@ Ini menentukan seluruh sisa desain, dan bukan keputusan saya.
 ## Non-Scope
 
 - Mengubah mesin konsolidasi PSAK 65 itu sendiri.
-- Menyelaraskan `npat` komponen dengan laba WTB. Jumlah `npat` komponen = 40,41 M sedangkan laba neto WTB = 23,158 M; selisihnya wajar bila ada eliminasi intragrup, tetapi angka-angka itu **tidak pernah direkonsiliasi** di mana pun. Itu temuan tersendiri, bukan bagian PRD ini.
+- Mesin konsolidasi `psak65` itu sendiri — ia sudah sehat (lihat prasyarat di bawah).
+
+## Prasyarat Opsi A — DIPERIKSA, dan sebagian besar sudah ada
+
+Sebelum memilih Opsi A perlu dipastikan figur konsolidasian benar-benar ada dan **tie**; membangun materialitas di atas angka yang tak tie hanya akan melahirkan PBT kelima. Hasil pemeriksaan `canon_part3.ts:387-528`:
+
+- **`psak65(wtb)` menarik induk LANGSUNG dari WTB** (`aj()` basis adjusted) dan mengonsolidasikannya dengan empat anak + lima jurnal eliminasi. Ia bukan seed beku.
+- **Neraca konsolidasian menutup**: `balCheck === 0` diuji eksplisit, dan `goodwillTotal` di-tie ke `AMS_CANON.GOODWILL`.
+- **Laba neto konsolidasian terderivasi**: `consolNpat = indukSeparate + subsNpat − elimLaba`, lengkap dengan `nciProfit` dan `ownersProfit`.
+
+**Koreksi atas draf pertama PRD ini.** Draf pertama menyatakan jumlah `npat` komponen 40,41 M "tidak pernah direkonsiliasi" dengan laba neto WTB 23,158 M. **Keliru:** `GROUP_SUBS` berisi CP-02…CP-05 saja — **induk sengaja tidak ada di sana** karena ia berasal dari WTB. Draf itu menjumlahkan CP-01 ke dalam komponen padahal CP-01 *adalah* entitas WTB — menghitung induk dua kali. Tidak ada rekonsiliasi yang hilang.
+
+**Satu prasyarat yang BENAR-BENAR kurang: PBT konsolidasian tidak dapat diturunkan.** Paket pelaporan komponen (`GROUP_SUBS`) membawa `rev` dan `npat`, tetapi **tidak** membawa PBT maupun beban pajak per anak. Karena itu benchmark PBT — benchmark yang dipakai perikatan ini — tak dapat dihitung untuk grup tanpa mengasumsikan tarif seragam, dan mengasumsikan tarif atas entitas Singapura jelas salah.
+
+Dua jalan keluar, dan ini **pertanyaan ketiga untuk Anda**:
+
+- **A-1 — perluas paket pelaporan komponen dengan PBT & beban pajak per anak.** Benar secara metodologi (itu memang isi paket pelaporan komponen yang diminta SA 600), sedikit pekerjaan seed + satu kolom impor. **Rekomendasi saya.**
+- **A-2 — pindah benchmark grup ke Total Aset atau Pendapatan konsolidasian.** Keduanya sudah dapat diturunkan hari ini (`totals.aset.konsol`; pendapatan = induk + Σ anak − ELM-01). Nol perubahan data, tetapi benchmark grup lalu berbeda jenis dari benchmark perikatan — perbedaan yang harus didokumentasikan, bukan disembunyikan.
+
+## Cacat tambahan yang tersingkap saat memeriksa prasyarat
+
+`view_groupaudit.tsx` menyimpan **CP-01 sebagai baris hardcode** (`npat: 14_660_000_000`) di `GA_COMPONENTS`, padahal induk semestinya berasal dari WTB lewat `psak65` seperti yang sudah dilakukan `canon_part3`. Jadi modul grup memegang salinan mati entitas yang datanya hidup di modul sebelahnya — kelas cacat yang sama dengan `AJE_META.pbt` yang dibuang PR-D.
 
 ## Risks
 
