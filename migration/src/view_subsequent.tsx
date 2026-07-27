@@ -132,7 +132,7 @@ function SubsequentEvents() {
             </div>
           </Panel>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
             <div className="grid" style={{ gap: 12 }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Daftar Peristiwa Kemudian</h3><div style={{ flex: 1 }} /><span className="tiny muted">{adjusting} penyesuai · {events.length - adjusting} non-penyesuai</span></div>

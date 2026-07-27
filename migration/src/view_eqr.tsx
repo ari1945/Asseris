@@ -45,7 +45,7 @@ function EQRWorkflow() {
           <Panel><div style={{ padding: '15px 18px' }}><Stat value={reviews.reduce((s: any, x: any) => s + x.findings.filter((f: any) => f.status === 'Terbuka').length, 0)} label="Temuan Terbuka" accent="var(--amber)" /></div></Panel>
         </div>
 
-        <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
+        <div className="grid split" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
           {/* list */}
           <Panel noBody>
             <div className="panel-h"><h3>Daftar EQR</h3></div>

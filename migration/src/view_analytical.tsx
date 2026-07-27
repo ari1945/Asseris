@@ -247,7 +247,7 @@ function ARSummary({ der, pm, ct, risks, eng, client, fmt, flux, thr }: any) {
         ))}
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
         <div style={{ display: 'grid', gap: 12 }}>
           {/* SA 520 stage tracker */}
           <Panel noBody>
@@ -349,7 +349,7 @@ function FluxTab({ der, pm, fmt }: any) {
     setFluxState((s: FluxState) => setFluxExpectation(s, code, patch, actor(), new Date().toISOString()));
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Analisis Fluktuasi (CY vs PY)</h3>

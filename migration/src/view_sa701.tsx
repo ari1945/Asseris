@@ -118,7 +118,7 @@ function F701Funnel({ doc }: { doc: ODoc }) {
   ];
   const sigRisks = (AMS.RISKS || []).filter((r) => r.inherent === 'Significant');
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Corong Penentuan Hal Audit Utama (¶9–10)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Diturunkan dari register</Badge></div>
         <div style={{ padding: 18 }}>
@@ -198,7 +198,7 @@ function F701Register({ doc, patch }: { doc: ODoc; patch: Patch }) {
 function F701Report({ client, doc, suppressed }: { client: string; doc: ODoc; suppressed: boolean }) {
   const kams: Kam[] = (doc.kams || []).filter((k) => k.include !== false);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Draf Bagian "Hal Audit Utama" — Laporan Auditor</h3><div style={{ flex: 1 }} /><Badge kind="blue">Pratinjau</Badge></div>
         <div style={{ padding: 22 }}>

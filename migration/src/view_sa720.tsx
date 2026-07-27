@@ -157,7 +157,7 @@ function SA720View() {
 function F720Scope({ docs, selId, setSelId, setOi, addOi, removeOi }: { docs: OiDoc[]; selId: string; setSelId: (id: string) => void; setOi: (id: string, p: Partial<OiDoc>) => void; addOi: () => void; removeOi: (id: string) => void }) {
   const sel = docs.find(d => d.id === selId) || docs[0];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Komponen Informasi Lain dalam Laporan Tahunan (¶12)</h3><div style={{ flex: 1 }} /><Btn sm onClick={addOi}><I.plus size={13} /> Tambah Dokumen</Btn></div>
         <table className="dtbl">
@@ -215,7 +215,7 @@ function F720Scope({ docs, selId, setSelId, setOi, addOi, removeOi }: { docs: Oi
 /* ---------------- Tab: Telaah Inkonsistensi (temuan + disposisi + catatan + lampiran) ---------------- */
 function F720Review({ docs, sel, selId, setSelId, setOi, onFiles, removeAttach }: { docs: OiDoc[]; sel: OiDoc | undefined; selId: string; setSelId: (id: string) => void; setOi: (id: string, p: Partial<OiDoc>) => void; onFiles: (id: string) => (m: DropMeta[]) => void; removeAttach: (id: string, attId: string) => void }) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Hasil Telaah per Dokumen (¶14–15)</h3><div style={{ flex: 1 }} /><span className="tiny muted">Klik untuk sunting</span></div>
         <table className="dtbl">
@@ -377,7 +377,7 @@ function F720Status({ docs }: { docs: OiDoc[] }) {
   const pendingAfter = afterDocs.filter(d => !d.got);
   const inconsAny = docs.some(d => d.consistency === 'inconsistent-fs' || d.consistency === 'inconsistent-knowledge' || d.consistency === 'misstatement');
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Informasi Lain Diperoleh Setelah Tanggal Laporan (¶ A52)</h3><div style={{ flex: 1 }} /><Badge kind={pendingAfter.length ? 'amber' : 'green'}>{pendingAfter.length} menunggu</Badge></div>

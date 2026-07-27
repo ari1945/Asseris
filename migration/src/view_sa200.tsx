@@ -94,7 +94,7 @@ function S200Objectives() {
     { ic: 'report', t: 'Melaporkan & mengomunikasikan', d: 'Menyatakan opini atas laporan keuangan dan berkomunikasi sebagaimana disyaratkan SA, sesuai temuan auditor.', ref: '¶11(b)' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan Keseluruhan Auditor (¶11)</h3><div style={{ flex: 1 }} /></div>
@@ -242,7 +242,7 @@ function S200RiskModel() {
   const drLvl = drPct <= 30 ? { k: 'red', t: 'Rendah — perluas substantif' } : drPct <= 60 ? { k: 'amber', t: 'Sedang' } : { k: 'green', t: 'Tinggi — substantif terbatas' };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Model Risiko Audit</h3><div style={{ flex: 1 }} /><span className="mono tiny muted">AR = IR × CR × DR</span></div>
@@ -338,7 +338,7 @@ function S200Assurance() {
     { t: 'Ketepatan waktu & biaya', d: 'Audit diselesaikan dalam kerangka waktu & biaya yang wajar — bukan tanpa batas.', ref: '¶A48' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Keterbatasan Bawaan Audit (¶A45–A52)</h3><div style={{ flex: 1 }} /><Badge kind="amber">Mengapa bukan absolut</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>

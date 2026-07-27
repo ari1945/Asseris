@@ -206,7 +206,7 @@ function D2Ikhtisar({ C }: any) {
   ];
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         {/* uji auditor berpengalaman */}
         <Panel noBody>
@@ -471,7 +471,7 @@ function D2Signifikan({ C }: any) {
   ];
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Register Hal Signifikan</h3><div style={{ flex: 1 }} /><span className="tiny muted">Risiko signifikan (RoMM) → tempat & status dokumentasi</span></div>
@@ -590,7 +590,7 @@ function D2Penyimpangan({ C, doc }: { C: any; doc: Sa230Doc }) {
   ];
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         {cards.map(c => {
           const CIcon = (I as any)[c.icon] || I.book;
@@ -688,7 +688,7 @@ function D2Perakitan({ C, doc, patch }: { C: any; doc: Sa230Doc; patch: Patch230
   const postAssembly: never[] = []; // belum ada — berkas belum dirakit
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         {/* lini masa perakitan */}
         <Panel noBody>

@@ -101,7 +101,7 @@ function KnowledgeBase() {
           </div>
         </Panel>
 
-        <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+        <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
           {/* KOLOM UTAMA */}
           <div style={{ display: 'grid', gap: 12 }}>
             <div className="row gap6 wrap">

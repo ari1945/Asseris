@@ -217,7 +217,7 @@ function F520Substantive({ rows, thr, setThr, flagged, patchRow, canEdit }: any)
       </Panel>
 
       {sel && (
-        <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+        <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
           <Panel noBody>
             <div className="panel-h"><h3>{sel.id} · {sel.acct} — Telaah Selisih</h3><div style={{ flex: 1 }} /><Badge kind={sel.flag ? 'amber' : 'green'}>{sel.flag ? 'Di atas ambang' : 'Dalam ambang'}</Badge></div>
             <div style={{ padding: 14 }}>
@@ -364,7 +364,7 @@ function F520Final() {
     { k: 'DER', py: '1,1×', cy: '1,2×', v: 'Naik tipis', ok: true },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Prosedur Analitis Mendekati Akhir Audit (¶6)</h3><div style={{ flex: 1 }} /><Badge kind="amber">1 dalam proses</Badge></div>

@@ -270,7 +270,7 @@ function FrameworkView() {
           </div>
 
           {/* ---------- penentu interaktif + verdict ---------- */}
-          <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
 
             {/* KIRI — input keputusan */}
             <div style={{ display: 'grid', gap: 12 }}>

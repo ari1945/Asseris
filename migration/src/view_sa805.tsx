@@ -170,7 +170,7 @@ function F805Registri({ selId, setSelId, sel }: any) {
         </div>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 384px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 384px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Registri Perikatan LK Tunggal & Elemen</h3><div style={{ flex: 1 }} /><span className="tiny muted">{SPE_ENG.length} perikatan</span></div>
           <table className="dtbl">
@@ -224,7 +224,7 @@ function F805Accept({ sel }: any) {
   if (!sel) return null;
   const done = sel.accept.filter((a: any) => a[1]).length;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Penerimaan Perikatan & Keberterimaan Kerangka (¶6–9)</h3><div style={{ flex: 1 }} /><Badge kind={done === sel.accept.length ? 'green' : 'amber'}>{done}/{sel.accept.length} terpenuhi</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
@@ -269,7 +269,7 @@ function F805Link({ sel }: any) {
   if (!sel) return null;
   const adverse = sel.completeOpinion.startsWith('TMP') || sel.completeOpinion.startsWith('TW');
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Keterkaitan dengan Opini atas LK Lengkap</h3><div style={{ flex: 1 }} /><Badge kind={adverse ? 'red' : 'green'}>{sel.completeOpinion}</Badge></div>
@@ -350,7 +350,7 @@ function F805Report({ sel }: any) {
   const constrained = sel.opinion === 'Terkendala';
   const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Terkendala (¶15)';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Elemen Wajib Laporan SA 805">
           <div style={{ display: 'grid', gap: 7 }}>

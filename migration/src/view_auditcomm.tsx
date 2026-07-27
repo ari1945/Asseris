@@ -83,7 +83,7 @@ function AuditCommitteeView() {
 
           {/* ===== TAB · TUGAS ===== */}
           {tab === 'tugas' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Daftar-Uji Tugas Komite Audit</h3><span className="sub mono">POJK 55/2015 Ps. 4</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{A.duties.length}</span></div>
                 <div>
@@ -159,7 +159,7 @@ function AuditCommitteeView() {
 
           {/* ===== TAB · KOMPOSISI ===== */}
           {tab === 'komposisi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Komposisi Komite Audit</h3><span className="sub mono">POJK 55/2015 Ps. 4–10</span></div>
                 <div>

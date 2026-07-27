@@ -304,7 +304,7 @@ function Tab2410Overview({ sigRisks, risks, nav }: any) {
 function Tab2410Proc({ nav }: any) {
   const tk = (t: any) => t === 'Analitis' ? 'purple' : t === 'Lainnya' ? 'gray' : 'teal';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Desain Prosedur Reviu Interim (¶15–21)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{PROC_2410.length} area</span></div>
         <table className="dtbl">
@@ -463,7 +463,7 @@ function Tab2410Materiality({ mat, interimPM, interimOM, act, sc, nav }: any) {
   const total = miss.reduce((a, m) => a + m.amt, 0);
   const overOM = total > interimOM;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Materialitas untuk Reviu Interim (¶24 → SA 320)</h3><div style={{ flex: 1 }} /><Badge kind="blue">{mat.benchLabel || 'PBT'}</Badge></div>

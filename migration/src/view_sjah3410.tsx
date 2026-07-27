@@ -323,7 +323,7 @@ function GhgProcedures({ E, toggle }: any) {
   const { fmt } = AMS;
   const M = E.misstatement;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Prosedur Asurans — Keyakinan Terbatas (¶23–47)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700 }}>{E.counts.proceduresDone}/{E.counts.procedures} selesai</span></div>
@@ -393,7 +393,7 @@ function GhgReport({ E, A }: any) {
   const C = E.conclusion;
   const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Bentuk Simpulan (¶ Negatif)">
           <div style={{ display: 'grid', gap: 8 }}>

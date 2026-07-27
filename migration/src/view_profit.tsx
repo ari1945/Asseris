@@ -244,7 +244,7 @@ function LeverageRecovery({ rows, fmt, marginColor }: any) {
   const GRADE_C = { Partner: '#013a52', Manager: '#005085', Senior: '#0a6b8a', Junior: '#5b9bb5' };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <Panel title="Piramida Leverage Tim" sub={'rasio ' + leverage.toFixed(1) + ' : 1 (staf : pemimpin)'}>
           <div style={{ display: 'grid', gap: 8 }}>

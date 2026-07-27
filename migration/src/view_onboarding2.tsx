@@ -209,7 +209,7 @@ function StepLetter({ p, onPatch }: any) {
   ];
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 14, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 14, alignItems: 'start' }}>
       {/* paper preview */}
       <div style={{ background: '#e7eaef', padding: 16, borderRadius: 8 }}>
         {L.version === 0 ? (

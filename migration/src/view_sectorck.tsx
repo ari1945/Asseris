@@ -82,7 +82,7 @@ function SectorChecklistView() {
             })}
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
             {/* checklist */}
             <Panel noBody>
               <div className="panel-h"><h3>Daftar-Uji Regulatori — {cur.label}</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{curDone}/{cur.checks.length}</span></div>

@@ -1173,7 +1173,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
   trail.push({ at: '04 Mar 2026', who: 'Sistem', what: 'WP dibuat dari template metodologi v4.2', ic: 'layers', col: 'var(--ink-3)' });
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="split" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Rantai Sign-off</h3><div style={{ flex: 1 }} /><span className="tiny muted">Berurutan: preparer → reviewer → partner{eqrReq ? ' → EQR' : ''}</span></div>
         <div style={{ padding: '4px 0' }}>

@@ -86,7 +86,7 @@ function SustainabilityView() {
 
           {/* ===== TAB · MUATAN WAJIB ===== */}
           {tab === 'muatan' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Muatan Minimum Laporan Keberlanjutan</h3><span className="sub mono">Lampiran II · SEOJK 16/2021</span><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{reqItems.length}</span></div>
                 <div>

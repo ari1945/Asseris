@@ -506,7 +506,7 @@ function PSAK14View() {
 
           {/* ============ TAB: IKHTISAR ============ */}
           {tab === 'ikhtisar' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>{rollforwardPanel}{klasifikasiPanel}</div>
               {tieoutPanel}
             </div>
@@ -515,7 +515,7 @@ function PSAK14View() {
           {/* ============ TAB: UJI NRV (per-SKU) ============ */}
           {tab === 'nrv' && (
             <div className="grid" style={{ gap: 12 }}>
-              <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+              <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
                 <div className="grid" style={{ gap: 12 }}>{ujiNrvPanel}{agingPanel}</div>
                 {pengukuranPanel}
               </div>
@@ -525,7 +525,7 @@ function PSAK14View() {
 
           {/* ============ TAB: ANALITIS & ASERSI ============ */}
           {tab === 'analitis' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               {asersiPanel}
               {analitisPanel}
             </div>

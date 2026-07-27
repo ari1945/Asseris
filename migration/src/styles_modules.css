@@ -83,8 +83,27 @@
    Laba & Neraca" pada lebar 750px (panel 567px di dalam induk 127px, tepi kanan 813px).
    `!important` DISENGAJA: aturan ini harus mengalahkan style inline, dan itulah
    satu-satunya cara menambahkan titik henti tanpa memindahkan 178 definisi kolom.
-   Dipakai secara ADITIF — cukup tambahkan `split` ke className, kolomnya tak diubah. */
-@media (max-width: 1100px) { .split { grid-template-columns: 1fr !important; } }
+   Dipakai secara ADITIF — cukup tambahkan `split` ke className, kolomnya tak diubah.
+
+   `minmax(0,1fr)`, BUKAN `1fr`: `1fr` berarti `minmax(auto,1fr)`, dan ukuran-min
+   `auto` sebuah item grid adalah lebar max-content-nya — sehingga satu tabel lebar
+   di dalamnya tetap merentangkan kolom melewati induk, dan titik hentinya tak
+   menghasilkan apa-apa. Luput saat #145 karena tiga tempat yang diukur di
+   view_aje.tsx kebetulan sudah ditulis `minmax(0,1fr) 340px` inline; 209 tempat
+   sisanya ditulis `1fr 332px` polos. Terukur di psak46 pada viewport 1024px:
+   `1fr` → grid 1151px di dalam induk 781px (meluber 370px); `minmax(0,1fr)` →
+   753px, muat. */
+@media (max-width: 1100px) { .split { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* Pendamping `.split`: pembungkus kolom `<div className="grid" style={{gap:12}}>`
+   TIDAK menyatakan kolom, sehingga kolom implisitnya `auto` = max-content — ia
+   melar mengikuti baris terpanjang di dalamnya alih-alih mengikuti induk. Efeknya
+   `.split` boleh saja menumpuk kolom sampingnya, panel di dalamnya tetap meluber.
+   Terukur di psak46 pada 1024px: `.split` sendirian menyisakan luberan 384px;
+   dengan aturan ini 0. Hanya berdampak pada `.grid` yang TIDAK punya
+   `gridTemplateColumns` inline (inline selalu menang), dan nol `.grid` di app
+   memakai `grid-auto-flow: column`. Sengaja tanpa `!important`. */
+@media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .pdms-detail { position: sticky; top: 0; }
 
 /* ---- Request list (PBC) ---- */

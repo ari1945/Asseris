@@ -221,7 +221,7 @@ function F530Design({ bv, design, setDesign, locked }: { bv: number; design: Sam
   const top = pop.filter(p => p.bv >= design.topThreshold);
   const samp = pop.filter(p => p.bv < design.topThreshold);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Desain Sampel (¶6–7)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Keberadaan & Keakuratan</Badge></div>
@@ -311,7 +311,7 @@ function F530Calc({ bv, setBv, conf, setConf, tm, setTm, em, setEm, calc, locked
         </div>
       </div>
     )}
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Kalkulator Ukuran Sampel — Monetary Unit Sampling</h3><div style={{ flex: 1 }} /><Badge kind="purple">PPS</Badge></div>
         <div style={{ padding: 18 }}>
@@ -519,7 +519,7 @@ function F530Evaluation({ interval, tm, findings, setFindings, me, locked }: any
         </table>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Kesimpulan Sampel (¶15)</h3><div style={{ flex: 1 }} /></div>
           <div style={{ padding: 14 }}>

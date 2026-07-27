@@ -516,7 +516,7 @@ function PSAK58View() {
 
           {/* ============ TAB: IKHTISAR ============ */}
           {tab === 'ikhtisar' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>{criteriaPanel}{carveOutPanel}</div>
               {tieoutPanel}
             </div>

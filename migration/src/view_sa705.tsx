@@ -138,7 +138,7 @@ function F705Decider({ doc, patch }: { doc: ODoc; patch: Patch }) {
   const out = opinionFor(nature, perv);
   const modified = out.key !== 'wtp';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Alat Penentu Jenis Opini (SA 705 ¶2–10)</h3><div style={{ flex: 1 }} /><Badge kind="blue">Interaktif</Badge></div>
         <div style={{ padding: 18 }}>
@@ -219,7 +219,7 @@ function F705Matrix() {
     </td>
   );
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Matriks Jenis Opini — Sifat × Pervasif (¶ A1)</h3><div style={{ flex: 1 }} /></div>
         <div style={{ padding: 14 }}>
@@ -303,7 +303,7 @@ function F705Wording({ client, doc, patch }: { client: string; doc: ODoc; patch:
           </div>
         )}
       </Panel>
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Contoh Rumusan Basis & Opini (¶16–27)</h3><div style={{ flex: 1 }} />
           {modified && <Btn sm onClick={() => patch({ basisText: s.basis })}><I.check size={12} /> Gunakan contoh ini</Btn>}

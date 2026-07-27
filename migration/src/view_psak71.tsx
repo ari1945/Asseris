@@ -423,7 +423,7 @@ function PSAK71View() {
 
           {/* ================= TAB · KLASIFIKASI & SPPI ================= */}
           {tab === 'klasifikasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Klasifikasi & Pengukuran Instrumen Keuangan</h3><span className="sub mono">model bisnis × uji SPPI (¶4.1)</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
@@ -586,7 +586,7 @@ function PSAK71View() {
 
           {/* ================= TAB · FORWARD-LOOKING ================= */}
           {tab === 'overlay' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Overlay Makroekonomi Forward-Looking</h3><span className="sub mono">¶5.5.17 · skenario berbobot probabilitas</span><div style={{ flex: 1 }} /><Btn sm onClick={() => setProbs(Object.fromEntries(p71.scenarios.map((s: any) => [s.id, s.prob])))}><I.sync size={12} /> Reset</Btn></div>
@@ -670,7 +670,7 @@ function PSAK71View() {
 
           {/* ================= TAB · MUTASI CKPN ================= */}
           {tab === 'mutasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Mutasi Cadangan Kerugian Penurunan Nilai (CKPN)</h3><span className="sub mono">roll-forward · menutup ke WTB 1-1210</span><div style={{ flex: 1 }} /><span className="tiny muted">Rp juta</span></div>
                 <div>
@@ -724,7 +724,7 @@ function PSAK71View() {
 
           {/* ================= TAB · REKONSILIASI ================= */}
           {tab === 'rekonsiliasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Rekonsiliasi Angka — Satu Sumber Kebenaran</h3><span className="sub mono">model PSAK 71 ↔ WTB ↔ modul konsumen</span></div>
@@ -806,7 +806,7 @@ function PSAK71View() {
 
           {/* ================= TAB · AUDIT SA 540 ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Prosedur Audit — Estimasi ECL (SA 540)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P71_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>

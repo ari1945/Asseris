@@ -186,7 +186,7 @@ function F580List({ doc, setItem, received, applicable }: { doc: Rep580Doc; setI
         </div>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Daftar Representasi & Peta ke Standar</h3><div style={{ flex: 1 }} /><span className="tiny muted">Klik untuk sunting status</span></div>
           <table className="dtbl">
@@ -257,7 +257,7 @@ function F580List({ doc, setItem, received, applicable }: { doc: Rep580Doc; setI
 function F580Letter({ client, doc, patchLetter, onLetterFiles, removeLetter }: { client: string; doc: Rep580Doc; patchLetter: PatchLetter; onLetterFiles: (m: DropMeta[]) => void; removeLetter: () => void }) {
   const L = doc.letter;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Draf Surat Representasi Manajemen</h3><div style={{ flex: 1 }} /><Badge kind="blue">Kop Surat Klien</Badge></div>
         <div style={{ padding: 22, background: 'var(--surface-1, #fff)' }}>
@@ -383,7 +383,7 @@ function F580Reliability({ doc, refusedCount }: { doc: Rep580Doc; refusedCount: 
   const MIc = (I as Record<string, (p: { size?: number }) => JSX.Element>)[modImpact.ic] || I.gavel;
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Evaluasi Keandalan Representasi (¶18–20)</h3><div style={{ flex: 1 }} /></div>

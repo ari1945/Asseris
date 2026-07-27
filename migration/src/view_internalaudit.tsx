@@ -176,7 +176,7 @@ function IAContext() {
     { q: 'Apakah penggunaan akan menyisakan keterlibatan auditor memadai? (¶18)', a: 'Ya — auditor tetap melaksanakan prosedur signifikan & reperformansi.', ok: true },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Lingkup (SA 610)</h3><div style={{ flex: 1 }} /></div>
@@ -261,7 +261,7 @@ function IAEvaluation({ factors, setV, avg, verdict }: any) {
   const [selId, setSelId] = useStateIA('obj');
   const sel = factors.find((f: any) => f.id === selId);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '360px 1fr', gap: 12, alignItems: 'start' }}>
       <Panel title="Tiga Faktor Evaluasi" sub="SA 610 ¶16 · skala 1–5">
         {factors.map((f: any) => (
           <div key={f.id} onClick={() => setSelId(f.id)}
@@ -334,7 +334,7 @@ function IAUsage() {
   const judgKind = (j: any) => j === 'Tinggi' ? 'red' : j === 'Sedang' ? 'amber' : 'green';
   const natKind = (n: any) => n.startsWith('Tidak') ? 'gray' : n.startsWith('Bantuan') ? 'purple' : 'blue';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Area Penggunaan Pekerjaan Audit Internal</h3><div style={{ flex: 1 }} /><span className="tiny muted">{IA_USE_AREAS.length} area</span></div>
         <div className="panel" style={{ margin: 0, padding: '8px 14px', borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0, background: 'var(--blue-050)', display: 'flex', gap: 16, fontSize: 11 }}>
@@ -439,7 +439,7 @@ function IAReperform() {
 function IADirect() {
   const totHrs = IA_DIRECT.reduce((s, d) => s + d.hours, 0);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Individu yang Memberikan Bantuan Langsung (¶26–33)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{totHrs} jam</span></div>
@@ -508,7 +508,7 @@ function IADirect() {
 /* ---------------- Tab: Kesimpulan & Dampak ---------------- */
 function IAConclusion({ verdict }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Dampak terhadap Strategi & Lingkup Audit (¶18)</h3><div style={{ flex: 1 }} /></div>

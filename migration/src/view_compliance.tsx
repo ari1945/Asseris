@@ -289,7 +289,7 @@ function ComplianceView({ stdId }: any) {
       } />
       <div className="view-scroll">
         <div className="view-pad">
-          <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '300px 1fr', gap: 12, alignItems: 'start' }}>
             {/* meta + progress */}
             <div className="grid" style={{ gap: 12 }}>
               <Panel noBody>

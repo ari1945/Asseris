@@ -483,7 +483,7 @@ function PSAK66View() {
 
           {/* ============ TAB: IKHTISAR & KLASIFIKASI ============ */}
           {tab === 'ikhtisar' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>{p66.arrangements.map((a: any) => classifyPanel(a))}</div>
               {tieoutPanel}
             </div>
@@ -491,7 +491,7 @@ function PSAK66View() {
 
           {/* ============ TAB: PENGENDALIAN BERSAMA ============ */}
           {tab === 'kendali' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               {controlPanel}
               {asersiPanel}
             </div>
@@ -504,7 +504,7 @@ function PSAK66View() {
 
           {/* ============ TAB: OPERASI BERSAMA ============ */}
           {tab === 'operasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 336px', gap: 12, alignItems: 'start' }}>
               {joPanel}
               {asersiPanel}
             </div>

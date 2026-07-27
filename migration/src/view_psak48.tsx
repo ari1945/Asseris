@@ -169,7 +169,7 @@ function PSAK48View() {
 
           {/* ================= TAB · PENURUNAN NILAI (PSAK 48) ================= */}
           {tab === 'impair' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
 
                 <Panel noBody>
@@ -324,7 +324,7 @@ function PSAK48View() {
 
           {/* ================= TAB · PROVISI & KONTINJENSI (PSAK 57) ================= */}
           {tab === 'provisi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Register Provisi, Klaim & Litigasi</h3><span className="sub mono">klasifikasi diturunkan dari ¶14/27/86</span><div style={{ flex: 1 }} /><span className="tiny muted">{p57.items.length} pos · Rp juta</span></div>
@@ -464,7 +464,7 @@ function PSAK48View() {
 
           {/* ================= TAB · REKONSILIASI ================= */}
           {tab === 'rekonsiliasi' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <div className="grid" style={{ gap: 12 }}>
                 <Panel noBody>
                   <div className="panel-h"><h3>Rekonsiliasi Angka — Satu Sumber Kebenaran</h3><span className="sub mono">PSAK 48/57 ↔ modul sumber ↔ konsumen</span></div>
@@ -537,7 +537,7 @@ function PSAK48View() {
 
           {/* ================= TAB · AUDIT ================= */}
           {tab === 'audit' && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
+            <div className="grid split" style={{ gridTemplateColumns: '1fr 332px', gap: 12, alignItems: 'start' }}>
               <Panel noBody>
                 <div className="panel-h"><h3>Prosedur Audit — Penurunan Nilai & Provisi (SA 540 · 501 · 500)</h3><div style={{ flex: 1 }} /><span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{doneCount}/{P48_PROC.length}</span></div>
                 <div className="row gap8" style={{ padding: '10px 14px', alignItems: 'flex-start', background: 'var(--blue-050)' }}>

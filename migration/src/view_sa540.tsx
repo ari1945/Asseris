@@ -195,7 +195,7 @@ function F540Register({ register, setRegister, me, locked }: { register: Estimat
   };
   const del = (id: string) => { setRegister(l => l.filter(e => e.id !== id)); setSelId(null); };
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Inventaris Estimasi Akuntansi</h3><div style={{ flex: 1 }} /><span className="tiny muted" style={{ marginRight: 8 }}>{register.length} estimasi</span>{!locked && <Btn sm onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>
         <table className="dtbl">
@@ -358,7 +358,7 @@ function F540Response({ register, sensitivity, setSensitivity, locked }: { regis
   const addD = () => setDrivers(l => [...l, { id: 'd' + (l.reduce((m, d) => Math.max(m, +(/(\d+)$/.exec(d.id)?.[1] || 0)), 0) + 1), label: 'Asumsi baru', deltaPct: 0, perPct: 0 }]);
   const delD = (id: string) => setDrivers(l => l.filter(d => d.id !== id));
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Respons Audit atas Estimasi (¶18–21)</h3><div style={{ flex: 1 }} /></div>
@@ -448,7 +448,7 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
   const del = (id: string) => setBias(l => l.filter(b => b.id !== id));
   const perhatian = bias.filter(b => b.flag !== 'green').length;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Indikator Kemungkinan Bias Manajemen (¶32)</h3><div style={{ flex: 1 }} /><Badge kind="amber">{perhatian} perhatian</Badge>{!locked && <Btn sm style={{ marginLeft: 8 }} onClick={add}><I.plus size={12} /> Tambah</Btn>}</div>

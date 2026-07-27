@@ -59,7 +59,7 @@ function MatSpecific({ om, pmPct, locked }: any) {
   const overOM = rows.filter((r: any) => r.value >= om).length;
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Materialitas Spesifik</h3>
@@ -144,7 +144,7 @@ function MatComponent({ om, cttPct, locked }: any) {
   const ctThreshold = Math.round(om * ((typeof cttPct === 'number' ? cttPct : 5) / 100));
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Materialitas Komponen</h3>
@@ -289,7 +289,7 @@ function MatImpact({ om, pm, ctt, locked }: any) {
       </Panel>
 
       {/* SAD — uncorrected misstatements */}
-      <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h">
             <h3>Ikhtisar Salah Saji (SAD)</h3>
@@ -382,7 +382,7 @@ function MatRevision({ om, applied, locked }: any) {
   }]);
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Riwayat Revisi Materialitas</h3>
@@ -549,7 +549,7 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
   };
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 330px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Memo Penetapan Materialitas</h3>

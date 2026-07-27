@@ -164,7 +164,7 @@ function F800Registri({ selId, setSelId, sel }: any) {
         </div>
       </Panel>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 380px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h"><h3>Registri Perikatan Kerangka Khusus</h3><div style={{ flex: 1 }} /><span className="tiny muted">{SPF_ENG.length} perikatan</span></div>
           <table className="dtbl">
@@ -217,7 +217,7 @@ function F800Accept({ sel }: any) {
   if (!sel) return null;
   const done = sel.accept.filter((a: any) => a[1]).length;
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Penilaian Keberterimaan Kerangka (¶8)</h3><div style={{ flex: 1 }} /><Badge kind={done === sel.accept.length ? 'green' : 'amber'}>{done}/{sel.accept.length} terpenuhi</Badge></div>
         <div style={{ padding: '6px 14px 14px' }}>
@@ -273,7 +273,7 @@ function F800Consider({ sel }: any) {
     { t: 'Materialitas dalam konteks pengguna khusus', ref: 'SA 320', d: 'Tolok ukur materialitas mempertimbangkan kebutuhan informasi pengguna yang dituju.', ic: 'scale' },
   ];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Pertimbangan Audit Khusus (¶11–14)</h3><div style={{ flex: 1 }} /><span className="tiny muted">{sel ? sel.client : ''}</span></div>
         <div style={{ padding: '6px 14px 14px' }}>
@@ -336,7 +336,7 @@ function F800Report({ sel }: any) {
   const compliance = sel.type === 'Basis Regulatori' || sel.type === 'Basis Kontraktual';
   const opLabel = sel.opinion === 'Wajar' ? 'Tanpa Modifikasian' : sel.opinion === 'WDP' ? 'Dengan Pengecualian (WDP)' : 'Tidak Wajar';
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '320px 1fr', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel title="Elemen Wajib Laporan SA 800">
           <div style={{ display: 'grid', gap: 7 }}>

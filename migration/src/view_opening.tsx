@@ -203,7 +203,7 @@ function OpeningBalance() {
 /* ---------------- Tab: Konteks & Strategi ---------------- */
 function OBContext({ engType, predecessor, predSteps, toggleStep, readiness, canEdit }: any) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Tujuan & Lingkup (SA 510)</h3><div style={{ flex: 1 }} /></div>
@@ -498,7 +498,7 @@ function OBProcedures({ fmt }: any) {
   const [selId, setSelId] = useStateOPN('C');
   const sel = OB_SPECIFIC.find(s => s.id === selId);
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Prosedur Audit Spesifik atas Saldo Awal Signifikan</h3><div style={{ flex: 1 }} /><span className="tiny muted">{OB_SPECIFIC.length} akun</span></div>
         <table className="dtbl">
@@ -575,7 +575,7 @@ function OBPolicy() {
 /* ---------------- Tab: Kesimpulan & Opini ---------------- */
 function OBConclusion({ concluded, verdict, score }: { concluded: boolean; verdict: { k: string; l: string }; score: number }) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Matriks Dampak terhadap Opini (SA 510 ¶10–13)</h3><div style={{ flex: 1 }} /></div>

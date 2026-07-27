@@ -314,7 +314,7 @@ function GoingConcern() {
           </div>
 
           {/* cash flow projection + stress test */}
-          <div className="grid" style={{ gridTemplateColumns: '300px 1fr', gap: 12, marginBottom: 12, alignItems: 'start' }}>
+          <div className="grid split" style={{ gridTemplateColumns: '300px 1fr', gap: 12, marginBottom: 12, alignItems: 'start' }}>
             <Panel title="Asumsi & Stress Test" sub="Input klien · skenario 12 bulan">
               {/* pemilih multi-skenario tersimpan */}
               <div className="tiny muted upper" style={{ marginBottom: 6 }}>Skenario Stress ({scenarios.length})</div>

@@ -127,7 +127,7 @@ function EvSelection() {
         ))}
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
+      <div className="grid split" style={{ gridTemplateColumns: '1fr 320px', gap: 12, alignItems: 'start' }}>
         <Panel noBody>
           <div className="panel-h">
             <h3>Strategi Seleksi Item per Area</h3><div style={{ flex: 1 }} />
@@ -202,7 +202,7 @@ function EvDirection() {
   const [dir, setDir] = useStateE2('over');
   const d = (EV2_DIR as any)[dir];
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: '1fr 360px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h"><h3>Relevansi Bukti Bergantung pada Arah Pengujian</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 500 ¶A27–A30</span></div>
