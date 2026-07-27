@@ -270,7 +270,7 @@ function AjeRegister({ model, locked }: any) {
   const sel = model.find((a: any) => a.id === selId) || null;
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
           <h3>Daftar Adjusting & Reclassifying Entries</h3>
@@ -489,7 +489,7 @@ function AjeImpact({ model, posted, proposed, fig, pbtUnadj, reportedPbt, pbtPos
   const breach = ratioAfter != null && ratioAfter < COVENANT;
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 12, alignItems: 'start' }}>
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div className="panel-h">
@@ -699,7 +699,7 @@ function AjeApprovals({ model }: any) {
   trail.sort((a, b) => ordKey(b.on).localeCompare(ordKey(a.on)));
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 360px', gap: 12, alignItems: 'start' }}>
+    <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Alur Persetujuan Jurnal</h3><div style={{ flex: 1 }} /><span className="tiny muted">Penyusun → Manajer → Partner</span></div>
         <div style={{ padding: '4px 0' }}>

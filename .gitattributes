@@ -15,3 +15,11 @@
 # precautionary rule, cheap insurance against the identical class of bug even though Python's
 # tokenizer tolerates CRLF better than a shell shebang does.
 *.py text eol=lf
+
+# Snapshot vitest ditulis ULANG dengan LF setiap `npm test`, sementara checkout Windows
+# menormalkan ke CRLF — sehingga menjalankan uji SELALU mengotori pohon kerja meski nol
+# perubahan isi. Ditemukan 2026-07-27: churn ini memblokir `git checkout`/`git rebase`
+# tiga kali dalam satu sesi. Bahayanya bukan gangguannya, melainkan kebiasaan yang
+# ditimbulkannya — membuang berkas snapshot "yang biasanya kosong" tanpa melihat adalah
+# cara yang bagus untuk suatu hari membuang perubahan snapshot yang SUNGGUHAN.
+*.snap text eol=lf

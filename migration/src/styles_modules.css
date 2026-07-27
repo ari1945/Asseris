@@ -75,6 +75,16 @@
 /* ---- Master-detail split ---- */
 .pdms-split { display: grid; grid-template-columns: minmax(0,1fr) 380px; gap: 12px; align-items: start; }
 @media (max-width: 1180px) { .pdms-split { grid-template-columns: 1fr; } }
+
+/* Titik henti untuk tata letak "isi + kolom samping berlebar tetap".
+   Pola `gridTemplateColumns: '1fr <N>px'` ditulis INLINE di 178 tempat pada 72 berkas
+   view, sehingga tak satu pun pernah runtuh: di bawah ~1100px kolom samping melebihi
+   viewport dan MENIMPA tabel di sebelahnya — terverifikasi di modul AJE tab "Dampak
+   Laba & Neraca" pada lebar 750px (panel 567px di dalam induk 127px, tepi kanan 813px).
+   `!important` DISENGAJA: aturan ini harus mengalahkan style inline, dan itulah
+   satu-satunya cara menambahkan titik henti tanpa memindahkan 178 definisi kolom.
+   Dipakai secara ADITIF — cukup tambahkan `split` ke className, kolomnya tak diubah. */
+@media (max-width: 1100px) { .split { grid-template-columns: 1fr !important; } }
 .pdms-detail { position: sticky; top: 0; }
 
 /* ---- Request list (PBC) ---- */
