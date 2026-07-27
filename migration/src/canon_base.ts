@@ -1,7 +1,7 @@
 /* ============================================================
    Asseris — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import type { WTB, WtbAmountField, Figures, Fig, FsModel } from './canon_types';
+import type { WTB, WtbAmountField, Figures, Fig, FsModel, EntityFigures, FigureBasis, Benchmark } from './canon_types';
 import { AMS } from './data';
 
   const RATE = 0.22;
@@ -9,9 +9,12 @@ import { AMS } from './data';
 
   /* ---------- helper: tarik saldo akun dari WTB (by code) ---------- */
   const jt = (n: number) => Math.round((n || 0) / 1e6);                 // rupiah penuh → juta
+  /* Satu aturan fallback WTB, dipakai wtbRow() maupun entityFigures(). */
+  function wtbRows(wtb: WTB | undefined): WTB {
+    return (wtb && wtb.length) ? wtb : ((AMS && AMS.WTB) || []);
+  }
   function wtbRow(wtb: WTB | undefined, code: string) {
-    const W = (wtb && wtb.length) ? wtb : ((AMS && AMS.WTB) || []);
-    return W.find(r => r.code === code) || null;
+    return wtbRows(wtb).find(r => r.code === code) || null;
   }
   function wtbVal(wtb: WTB | undefined, code: string, field: WtbAmountField) {
     const r = wtbRow(wtb, code);
@@ -53,6 +56,131 @@ import { AMS } from './data';
     return { dboBooked, ckpnBooked, ckpnAudited, ppeGross, ppeAccum, ppeNetCarry,
              intanGross, intanAccum, intanNetCarry,
              rouCarry, leaseLiab, dtaReported, taxExpBooked };
+  }
+
+  /* ============================================================
+     PR-A · FIGUR ENTITAS TINGKAT-ATAS — SSOT benchmark SA 320
+     ------------------------------------------------------------
+     Sebelum PR-A, PBT / aset lancar / liabilitas lancar entitas TIDAK punya
+     selector: tiap modul mengarangnya sebagai konstanta (view_aje `AJE_PBT_UNADJ`
+     89,14 M · view_sad `FS.pbt` 85,2 M · view_materiality `BENCHMARKS.pbt` 85,2 M),
+     sementara turunan WTB memberi 29,69 M. Materialitas berdiri di atas angka
+     yang tak pernah menyentuh buku besar. Fungsi ini menutup lubang itu.
+
+     Agregasi memakai PREFIKS KODE, bukan daftar akun tetap: akun 5-xxxx yang tak
+     dikenal jatuh ke `opex` dan TETAP mengalir ke PBT. Daftar tetap akan
+     menjatuhkannya diam-diam — persis kelas kegagalan yang sedang diperbaiki.
+
+     Satuan: **Rp PENUH** (bukan juta seperti FIG/figuresFromWTB) — konsumennya
+     BENCHMARKS, jembatan laba AJE, dan rasio lancar semuanya rupiah penuh.
+     ============================================================ */
+  const EMPTY_FIGURES = (basis: FigureBasis): EntityFigures => ({
+    basis, available: false,
+    revenue: null, cogs: null, grossProfit: null, opex: null, financeCost: null,
+    pbt: null, taxExpense: null, netIncome: null,
+    curAssets: null, curLiab: null, currentRatio: null, totalAssets: null, equity: null,
+  });
+
+  /* SENGAJA tanpa fallback ke AMS.WTB (beda dari wtbRow/wtbVal yang mempertahankannya
+     demi kompatibilitas pemanggil lama). Fungsi baru ini murni terhadap argumennya:
+     fallback singleton adalah mekanisme cache-dingin yang justru ditutup PR-6b. */
+  function entityFigures(wtb: WTB | undefined, basis: FigureBasis = 'unadj'): EntityFigures {
+    const rows = (wtb && wtb.length) ? wtb : [];
+    if (!rows.length) return EMPTY_FIGURES(basis);
+
+    const amt = (r: { adj?: number; unadj?: number; ly?: number }) => { const v = r[basis]; return v != null ? v : 0; };
+    const sum = (prefix: string) => rows
+      .filter(r => String(r.code || '').startsWith(prefix))
+      .reduce((s, r) => s + amt(r), 0);
+
+    /* Pendapatan & ekuitas & liabilitas tersimpan sebagai KREDIT (negatif) di WTB. */
+    const revenue     = -sum('4');
+    const cogs        =  sum('5-1');
+    const financeCost =  sum('5-4');
+    /* Beban pajak diambil lewat kode terpetakan (WTB_MAP), bukan prefiks — supaya
+       lineage-nya sama dengan yang dipakai PSAK 46. */
+    const taxRow      = rows.find(r => r.code === WTB_MAP.taxExp.code);
+    const taxExpense  = taxRow ? amt(taxRow) : 0;
+    const allExpense  = sum('5');
+    /* Sisa beban (termasuk akun tak dikenal) → opex. PBT karenanya = pendapatan
+       dikurangi SELURUH beban selain pajak, apa pun bagan akunnya. */
+    const opex        = allExpense - cogs - financeCost - taxExpense;
+    const pbt         = revenue - cogs - opex - financeCost;
+
+    const curAssets   =  sum('1-1');
+    const curLiab     = -sum('2-1');
+
+    return {
+      basis, available: true,
+      revenue, cogs, grossProfit: revenue - cogs, opex, financeCost,
+      pbt, taxExpense, netIncome: pbt - taxExpense,
+      curAssets, curLiab,
+      currentRatio: curLiab !== 0 ? curAssets / curLiab : null,
+      totalAssets: sum('1'),
+      equity: -sum('3'),
+    };
+  }
+
+  /* Tabel benchmark SA 320 diturunkan dari WTB. `id`/`lo`/`hi`/`def`/`note`
+     dipertahankan persis dari konstanta lama agar `mat.benchId` yang sudah
+     terpersist tetap resolve. Benchmark yang figurnya null DIHILANGKAN — lebih
+     baik hilang daripada muncul bernilai nol dan tampak otoritatif. */
+  function benchmarksFromWTB(wtb: WTB | undefined, basis: FigureBasis = 'unadj'): Benchmark[] {
+    const f = entityFigures(wtb, basis);
+    if (!f.available) return [];
+    const spec: Array<[string, string, number | null, number, number, number, string]> = [
+      ['pbt',    'Laba Sebelum Pajak', f.pbt,         5,   10, 5, 'Lazim untuk entitas berorientasi laba'],
+      ['rev',    'Total Pendapatan',   f.revenue,     0.5, 1,  1, 'Untuk entitas volume tinggi / margin tipis'],
+      ['gp',     'Laba Bruto',         f.grossProfit, 1,   3,  2, 'Alternatif bila laba bersih fluktuatif'],
+      ['assets', 'Total Aset',         f.totalAssets, 1,   2,  1, 'Untuk entitas padat aset'],
+      ['equity', 'Total Ekuitas',      f.equity,      2,   5,  3, 'Untuk entitas dengan fokus permodalan'],
+    ];
+    return spec
+      .filter((s): s is [string, string, number, number, number, number, string] => s[2] != null)
+      .map(([id, label, value, lo, hi, def, note]) => ({ id, label, value, lo, hi, def, note }));
+  }
+
+  /* Efek jurnal penyesuaian BERSTATUS TERTENTU terhadap figur entitas.
+     ------------------------------------------------------------
+     Mengapa ada: kolom `aje` di WTB memuat SELURUH jurnal, termasuk yang masih
+     berstatus Proposed (AJE-03 & AJE-05 pada seed). Karena itu `entityFigures(…,'adj')`
+     BUKAN "figur dilaporkan" — ia figur seandainya semua usulan disetujui. Figur
+     dilaporkan = `unadj` + efek jurnal yang benar-benar DIPOSTING, dan register AJE
+     (yang punya field `status`) adalah satu-satunya otoritas atas status itu.
+
+     Tanpa fungsi ini modul AJE dan modul SAD akan menyebut dua "PBT dilaporkan"
+     berbeda — persis penyakit yang sedang diobati.
+
+     Baris jurnal ditarik dari `lines` bila ada; entri seed lama hanya punya string
+     `dr`/`cr` sehingga di-parse ke bentuk yang sama (satu jalur, bukan dua). */
+  interface AjeLine { code: string; debit: number; credit: number }
+  interface AjeLike { status?: string; lines?: Array<{ code?: string; debit?: number; credit?: number }>; dr?: string; cr?: string; amount?: number }
+
+  function ajeLinesOf(a: AjeLike): AjeLine[] {
+    if (Array.isArray(a.lines) && a.lines.length) {
+      return a.lines.map(l => ({ code: String(l.code || ''), debit: +(l.debit || 0), credit: +(l.credit || 0) }));
+    }
+    const amt = +(a.amount || 0);
+    if (!a.dr || !a.cr || !amt) return [];
+    return [
+      { code: String(a.dr).split(' ')[0], debit: amt, credit: 0 },
+      { code: String(a.cr).split(' ')[0], debit: 0, credit: amt },
+    ];
+  }
+
+  /** Efek agregat jurnal berstatus `status` (default 'Posted') — Rp PENUH, bertanda
+      searah `EntityFigures` (pbt naik = laba naik; curLiab naik = liabilitas naik). */
+  function ajeEffect(aje: AjeLike[] | undefined, status = 'Posted') {
+    const list = (aje || []).filter(a => String(a.status || '').trim() === status);
+    let pbt = 0, curAssets = 0, curLiab = 0;
+    list.forEach(a => ajeLinesOf(a).forEach(l => {
+      const net = l.debit - l.credit;                 // debit positif
+      const c = l.code;
+      if (c[0] === '4' || c[0] === '5') pbt -= net;   // beban debit / pendapatan debit → laba turun
+      if (c.startsWith('1-1')) curAssets += net;
+      if (c.startsWith('2-1')) curLiab -= net;        // liabilitas tersimpan kredit
+    }));
+    return { pbt, curAssets, curLiab };
   }
 
   /* ---------- PSAK 73 · portofolio sewa (sumber kebenaran kalkulasi sewa) ---------- */
@@ -183,4 +311,4 @@ import { AMS } from './data';
   function setFsgenBuilder(fn: ((wtb?: WTB) => FsModel) | null): void { _fsgenBuildModel = fn; }
   function fsgenModel(wtb?: WTB): FsModel | null { return _fsgenBuildModel ? _fsgenBuildModel(wtb) : null; }
 
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };
+export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };

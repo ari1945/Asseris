@@ -19,10 +19,29 @@ angka ini **identik dengan versi root buildless secara konstruksi**. Pakai sebag
 patokan regresi-nol untuk W2/W3/W6 dan fixture uji W4.
 
 **Materialitas** (benchmark = Laba Sebelum Pajak)
-- Bench PBT: `Rp 85.200.000.000`
-- Overall Materiality (OM, 5%): `Rp 4.260.000.000`
-- Performance Materiality (PM, 75% OM): `Rp 3.195.000.000`
-- Clearly Trivial Threshold (CTT): `Rp 213.000.000`
+
+> ⚠️ **DIPERBARUI PR-A (2026-07-26) — angka lama BUKAN regresi, melainkan koreksi.**
+> Baseline ini mengunci `Bench PBT Rp 85.200.000.000`, konstanta yang **tak pernah
+> menyentuh buku besar**: turunan WTB memberi PBT unadjusted `Rp 29.690.000.000`.
+> Selisihnya mengalir ke OM/PM/CTT, jadi ketiganya kelebihan **2,87×** — yakni pada
+> ambang lolos SA 450 dan ukuran sampel SA 530. Sejak PR-A benchmark diturunkan dari
+> WTB via `benchmarksFromWTB()`, basis `unadj` (SA 320 ¶10).
+>
+> Catatan penting soal cara oracle lama lolos: nilai di bawah ditarik lewat jalur
+> **zero-arg** `materiality()` yang jatuh ke `window.BENCHMARKS`. Jalur itu **tidak
+> dipakai satu pun view** — cacat yang sama sudah menjatuhkan PR-6 P-0. Oracle jalur
+> aplikasi sekarang ada di `canon_entity_figures.test.ts`, bukan di sini.
+
+| | Sebelum PR-A (konstanta) | Sejak PR-A (turunan WTB) |
+|---|---|---|
+| Bench PBT | `Rp 85.200.000.000` | `Rp 29.690.000.000` |
+| Overall Materiality (OM, 5%) | `Rp 4.260.000.000` | `Rp 1.484.500.000` |
+| Performance Materiality (PM, 75% OM) | `Rp 3.195.000.000` | `Rp 1.113.375.000` |
+| Clearly Trivial Threshold (CTT, 5% OM) | `Rp 213.000.000` | `Rp 74.225.000` |
+
+Nilai administratif `ENGAGEMENTS['ENG-2025-014'].materiality` ikut diselaraskan
+`4.250.000.000` → `1.485.000.000`. Angka lama ditala tepat di bawah ambang drift
+0,5% terhadap OM fantasi, sehingga detektor drift dibungkam; kini ia jujur.
 
 **PSAK 46 — Pajak Tangguhan** (`deferredTax()`, satuan juta Rp)
 - DTA reported: `4.980` · tax expense: `10.274` · ETR: `21,18%`

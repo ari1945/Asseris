@@ -69,7 +69,10 @@ function SPR2410View() {
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
   const model = useMemo2410(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025', materiality: 4_250_000_000 };
+  /* PR-A - `materiality` dibuang dari stub fallback: berkas ini menarik OM dari
+     `useMateriality()` (baris di bawah), jadi angka di sini tak pernah dibaca dan
+     hanya menjadi konstanta basi yang menunggu dipakai orang berikutnya. */
+  const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   /** @type {import('./canon_selectors').MaterialityResult} */
   const mat = useMateriality();   // PR-6b — satu pintu (ter-hidrasi server, reaktif)

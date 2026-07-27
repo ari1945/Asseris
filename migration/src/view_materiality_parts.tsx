@@ -361,9 +361,13 @@ function MatImpact({ om, pm, ctt, locked }: any) {
 /* ============================================================
    TAB 5 — Revisi & Riwayat (SA 320.12–13)
    ============================================================ */
+/* PR-A - riwayat revisi diselaraskan ke basis yang benar. Seed lama menarasikan
+   "PBT estimasi awal Rp 78,0 M" lalu "naik ke Rp 85,0 M" - dua angka yang tak pernah
+   ada di buku besar (PBT PY teraudit Rp 24,69 M; PBT TB Rp 29,69 M). Riwayat yang
+   mengarang dasar penetapan adalah kertas kerja SA 320.12-13 yang menyesatkan. */
 const DEFAULT_REVISIONS = [
-  { id: 'V1', date: '2025-11-04', phase: 'Perencanaan', from: 0, to: 3_900_000_000, basis: 'PBT estimasi awal Rp 78,0 M × 5%', by: 'Anindya P.', appr: 'Hartono W.' },
-  { id: 'V2', date: '2026-01-22', phase: 'Interim', from: 3_900_000_000, to: 4_250_000_000, basis: 'PBT interim teraudit naik ke Rp 85,0 M; benchmark disesuaikan', by: 'Anindya P.', appr: 'Hartono W.' },
+  { id: 'V1', date: '2025-11-04', phase: 'Perencanaan', from: 0, to: 1_235_000_000, basis: 'PBT TA-1 teraudit Rp 24,69 M × 5% (dasar perencanaan)', by: 'Anindya P.', appr: 'Hartono W.' },
+  { id: 'V2', date: '2026-01-22', phase: 'Interim', from: 1_235_000_000, to: 1_484_500_000, basis: 'PBT unadjusted TB berjalan Rp 29,69 M × 5%; benchmark disesuaikan', by: 'Anindya P.', appr: 'Hartono W.' },
 ];
 
 function MatRevision({ om, applied, locked }: any) {

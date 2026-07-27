@@ -53,6 +53,48 @@ export interface Figures {
   taxExpBooked: number;
 }
 
+/* ---------- figur entitas tingkat-atas (PR-A · SSOT benchmark SA 320) ----------
+   Basis penyajian. `unadj` = figur dilaporkan klien (dasar penetapan materialitas
+   saat perencanaan, SA 320 ¶10); `adj` = setelah penyesuaian audit (dipakai sebagai
+   PEMICU REVISI SA 320 ¶12-13, bukan untuk menghitung ulang OM — lihat PRD PR-A §11 Q2).
+   `ly` = komparatif tahun lalu (PY teraudit) — dipakai menurunkan OM tahun lalu untuk
+   perbandingan YoY, sehingga angka itu pun tak lagi di-hardcode. */
+export type FigureBasis = 'unadj' | 'adj' | 'ly';
+
+/** Figur entitas tingkat-atas diturunkan dari WTB. **Rp PENUH**, bukan juta —
+    konsumennya (BENCHMARKS SA 320, jembatan laba AJE, rasio lancar) semua rupiah penuh.
+    `null` bila WTB tak tersedia; JANGAN diganti 0 — nol adalah angka, ketiadaan bukan. */
+export interface EntityFigures {
+  basis: FigureBasis;
+  /** false bila tak ada baris WTB sama sekali → seluruh field numerik null */
+  available: boolean;
+  revenue: number | null;
+  cogs: number | null;
+  grossProfit: number | null;
+  opex: number | null;
+  financeCost: number | null;
+  pbt: number | null;
+  taxExpense: number | null;
+  netIncome: number | null;
+  curAssets: number | null;
+  curLiab: number | null;
+  currentRatio: number | null;
+  totalAssets: number | null;
+  equity: number | null;
+}
+
+/** Baris tabel benchmark SA 320 — bentuknya dipertahankan dari `view_materiality.BENCHMARKS`
+    agar `calcOM` dan UI Materialitas tak perlu berubah bentuk. */
+export interface Benchmark {
+  id: string;
+  label: string;
+  value: number;
+  lo: number;
+  hi: number;
+  def: number;
+  note: string;
+}
+
 /* ---------- FIG: saldo akhir kanonik tiap pos (Rp juta) ---------- */
 export interface Fig {
   dbo: number;
@@ -204,6 +246,10 @@ export interface MaterialityConfig {
  *  konfigurasi sama sekali, memakai default 5%/75%/5% + benchmark pertama. */
 export type MaterialityConfigSource = 'args' | 'cache' | 'default';
 
+/** PR-A — dari mana tabel benchmark SA 320 berasal. `window` menandai jalur statis
+ *  buta-perikatan yang masih tersisa; `none` = tak ada benchmark → OM tak terhitung. */
+export type MaterialityBenchSource = 'args' | 'window' | 'none';
+
 export interface MaterialityOpts {
   /** konfigurasi eksplisit (PR-6b) — bila ada, tak ada pembacaan localStorage */
   config?: MaterialityConfig;
@@ -214,6 +260,11 @@ export interface MaterialityOpts {
   /** perikatan aktif — kunci `mat.*` berlingkup perikatan (PR-1a). Tanpa ini
    *  tier perikatan dilewati & hanya setelan firma/legacy yang terbaca. */
   engagementId?: string | null;
+  /** PR-A — tabel benchmark SA 320 EKSPLISIT, lazimnya `benchmarksFromWTB(wtb)`.
+   *  Bila ada, `window.BENCHMARKS` tidak dibaca sama sekali. Jalur window
+   *  dipertahankan sebagai fallback untuk pemanggil non-React & uji lama, tapi
+   *  ia statis & buta-perikatan — pemanggil view WAJIB mengirim ini. */
+  benchmarks?: Benchmark[];
 }
 
 /** Dari mana OM yang berlaku berasal — dipakai UI untuk menyatakan basisnya (PR-6·0). */
@@ -247,6 +298,8 @@ export interface MaterialityResult {
   basis: MaterialityBasis;
   /** asal konfigurasi (PR-6b) — `cache`/`default` pada pemanggil view = jalur basi */
   configSource: MaterialityConfigSource;
+  /** PR-A — asal tabel benchmark: 'args' (dari WTB) / 'window' (statis, basi) / 'none'. */
+  benchSource: MaterialityBenchSource;
   /** drift baris perikatan vs OM ditetapkan; `null` = tak ada pembanding */
   drift: MaterialityDrift | null;
   /** nilai penuh (Rp) */

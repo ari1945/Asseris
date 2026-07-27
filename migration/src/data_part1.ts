@@ -39,7 +39,11 @@
 
   /* ---- Engagements ---- */
   const ENGAGEMENTS = [
-    { id: 'ENG-2025-014', clientId: 'C-014', type: 'Audit Laporan Keuangan', fy: 'FY2025', standard: 'SA (ISA-converged)', status: 'Fieldwork', phase: 'Eksekusi', progress: 62, partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-03-31', budgetHrs: 1840, actualHrs: 1146, risk: 'High', materiality: 4_250_000_000 },
+    { id: 'ENG-2025-014', clientId: 'C-014', type: 'Audit Laporan Keuangan', fy: 'FY2025', standard: 'SA (ISA-converged)', status: 'Fieldwork', phase: 'Eksekusi', progress: 62, partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', /* PR-A — 4_250_000_000 ditala ke OM fantasi 4.260 jt (5% × PBT 85.200 jt yang
+        di-hardcode), selisih 0,235% → tepat di bawah ambang drift 0,5%, sehingga
+        satu-satunya alarm yang bisa menangkap cacat itu dibungkam. Benchmark kini
+        turunan WTB: 5% × PBT unadj 29.690 jt = 1.484,5 jt → dibulatkan 1.485 jt. */
+      deadline: '2026-03-31', budgetHrs: 1840, actualHrs: 1146, risk: 'High', materiality: 1_485_000_000 },
     { id: 'ENG-2025-040', clientId: 'C-040', type: 'Audit Laporan Keuangan', fy: 'FY2025', standard: 'SA + PSAK 71', status: 'Planning', phase: 'Perencanaan', progress: 28, partner: 'Rudi Gunawan, CPA', manager: 'Bayu Saputra', deadline: '2026-04-15', budgetHrs: 2200, actualHrs: 615, risk: 'High', materiality: 6_800_000_000 },
     { id: 'ENG-2025-031', clientId: 'C-031', type: 'Audit Laporan Keuangan', fy: 'FY2025', standard: 'SA + PSAK 73', status: 'Fieldwork', phase: 'Eksekusi', progress: 54, partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-04-30', budgetHrs: 1480, actualHrs: 812, risk: 'High', materiality: 3_100_000_000 },
     { id: 'ENG-2025-063', clientId: 'C-063', type: 'Audit Laporan Keuangan', fy: 'FY2025', standard: 'SA', status: 'Review', phase: 'Finalisasi', progress: 88, partner: 'Rudi Gunawan, CPA', manager: 'Citra Halim', deadline: '2026-03-15', budgetHrs: 1660, actualHrs: 1588, risk: 'High', materiality: 5_200_000_000 },

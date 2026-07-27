@@ -9,7 +9,8 @@ import { overlayWtbOverrides } from './wtb_overrides';
 import { mergeLegacyFlux } from './flux_state';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 import { materialityFor } from './canon_selectors';
-import type { MaterialityConfig, MaterialityResult } from './canon_types';
+import { benchmarksFromWTB } from './canon_base';
+import type { MaterialityConfig, MaterialityResult, WTB } from './canon_types';
 
 /* ============================================================
    Asseris — React Context providers
@@ -70,12 +71,20 @@ function useMateriality(): MaterialityResult {
   /* tipe struktural minimal — BUKAN `any`: satu `any` baru di berkas ini
      meng-un-suppress seluruh berkas pada ratchet ESLint. */
   const firm = useFirm() as { activeEngagement?: { id?: string; materiality?: number } | null } | null;
-  const audit = useAudit() as { matConfig?: MaterialityConfig } | null;
+  const audit = useAudit() as { matConfig?: MaterialityConfig; wtb?: WTB } | null;
   const eng = (firm && firm.activeEngagement) || null;
   const cfg = (audit && audit.matConfig) || undefined;
+  /* PR-A — tabel benchmark SA 320 ditarik dari WTB perikatan aktif, bukan lagi
+     konstanta `window.BENCHMARKS` (PBT 85.200 jt yang tak pernah menyentuh buku
+     besar; turunan WTB memberi 29.690 jt → OM kelebihan 2,87×). Basis `unadj` =
+     figur dilaporkan klien, dasar penetapan SA 320 ¶10; basis `adj` sengaja TIDAK
+     dipakai agar memposting AJE tidak menggeser ambang yang menilai AJE itu sendiri
+     (sirkularitas — lihat PRD PR-A §11 Q2). */
+  const wtb = (audit && audit.wtb) || undefined;
+  const benchmarks = useMemo(() => benchmarksFromWTB(wtb, 'unadj'), [wtb]);
   return useMemo(
-    () => materialityFor({ engMateriality: eng ? eng.materiality : undefined, engagementId: eng ? eng.id : undefined, config: cfg }),
-    [eng, cfg],
+    () => materialityFor({ engMateriality: eng ? eng.materiality : undefined, engagementId: eng ? eng.id : undefined, config: cfg, benchmarks }),
+    [eng, cfg, benchmarks],
   );
 }
 const useNav   = () => useContext(NavContext);

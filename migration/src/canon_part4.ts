@@ -6,7 +6,7 @@ import { readPersistedWithHit } from './persist_scope';
 import { assetRegister, intangibles } from './canon_part1';
 import { GOODWILL } from './canon_part2';
 import { GROUP_ASSOCIATES, GROUP_CONTROL, GROUP_SUBS } from './canon_part3';
-import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, MaterialityConfigSource, MaterialityDrift } from './canon_types';
+import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, MaterialityConfigSource, MaterialityBenchSource, MaterialityDrift, Benchmark } from './canon_types';
 
   interface JointArr {
     id: string; refId: string | null; type: string; name: string; partner: string; activity: string;
@@ -369,7 +369,17 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
     const override = overrideR.value;
     const anyHit   = benchIdR.hit || pctR.hit || pmPctR.hit || cttPctR.hit || overrideR.hit;
     const configSource: MaterialityConfigSource = cfg ? 'args' : (anyHit ? 'cache' : 'default');
-    const benches  = (typeof window !== 'undefined' && window.BENCHMARKS) || [];
+    /* PR-A — benchmark dari ARGUMEN lebih dulu (`benchmarksFromWTB(wtb)`), jatuh ke
+       `window.BENCHMARKS` hanya untuk pemanggil non-React & uji lama. Tabel window
+       dulunya konstanta ter-hardcode (PBT 85.200 jt) yang tak pernah menyentuh buku
+       besar — turunan WTB memberi 29.690 jt. Selama fallback ini masih ada, jalur
+       window tetap statis dan buta-perikatan; `benchSource` membuatnya terdeteksi. */
+    const benchArg = opts.benchmarks;
+    const benches: Benchmark[] = (benchArg && benchArg.length)
+      ? benchArg
+      : ((typeof window !== 'undefined' && window.BENCHMARKS) || []);
+    const benchSource: MaterialityBenchSource = (benchArg && benchArg.length)
+      ? 'args' : (benches.length ? 'window' : 'none');
     const bench    = benches.find(b => b.id === benchId) || benches[0] || null;
     const calcOM   = bench ? Math.round(bench.value * pct / 100) : null; // OM hitung benchmark (live)
     /* materialitas yang BERLAKU: override "Terapkan ke Engagement" > hitung benchmark.
@@ -390,7 +400,7 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
     return {
       benchId, benchLabel: bench ? bench.label : null, benchValue: bench ? bench.value : null,
       pct, pmPct, cttPct, applied: override != null, calcOM,
-      basis, configSource, drift,
+      basis, configSource, benchSource, drift,
       omFull, pmFull, cttFull,
       om:  omFull  != null ? jt(omFull)  : null,
       pm:  pmFull  != null ? jt(pmFull)  : null,

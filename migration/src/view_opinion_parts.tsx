@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm } from './contexts';
+import { useAudit, useAuth, useFirm, useMateriality } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
@@ -92,7 +92,9 @@ function DocH({ children }: any) {
 function DeterminationPanel({ doc, patch }: any) {
   const { fmt } = AMS;
   const { activeEngagement } = useFirm();
-  const om = activeEngagement?.materiality || 4_250_000_000;
+  /* PR-A - OM dari canon (satu pintu). Nilai baris perikatan adalah angka
+     administratif dan sejak PR-6.0 bukan sumber OM; fallback lama memaku OM fantasi. */
+  const om = useMateriality().omFull ?? 0;
   const pm = Math.round(om * 0.75);
 
   const agg = aggUncorr(doc.method);
@@ -267,7 +269,9 @@ function OpinionDecisionTree({ doc, patch }: any) {
   const audit = useAudit();
   const { activeEngagement } = useFirm();
   const USER: any = (AMS && AMS.USER) || { name: 'Anindya Pramesti', role: 'Audit Manager' };
-  const om = activeEngagement?.materiality || 4_250_000_000;
+  /* PR-A - OM dari canon (satu pintu). Nilai baris perikatan adalah angka
+     administratif dan sejak PR-6.0 bukan sumber OM; fallback lama memaku OM fantasi. */
+  const om = useMateriality().omFull ?? 0;
   const agg = aggUncorr(doc.method);
   const auto = classifyMis(agg, om);
   const misSev = doc.misOverride === 'auto' ? auto.sev : doc.misOverride;
