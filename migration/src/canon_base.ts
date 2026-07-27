@@ -230,19 +230,89 @@ import { AMS } from './data';
 
   /* ---------- input non-WTB (rekonsiliasi fiskal & dasar pajak) ----------
      Pos berikut TIDAK ada sebagai saldo tunggal di buku besar komersial:
-     dasar pajak aset tetap, rugi fiskal, beda permanen, PKP — berasal dari
-     SPT / rekonsiliasi fiskal. Dipisah agar jelas mana yang ber-sumber WTB. */
+     dasar pajak aset tetap, rugi fiskal, beda permanen — berasal dari
+     SPT / rekonsiliasi fiskal. Dipisah agar jelas mana yang ber-sumber WTB.
+
+     `pbt` dan `pkp` TIDAK ADA DI SINI (dulu 48.500 & 53.500): keduanya kini
+     DITURUNKAN — lihat fiscalReconciliation(). PBT adalah laba komersial, jadi
+     ia milik buku besar; PKP adalah hasil identitas rekonsiliasi, jadi ia
+     hitungan. Menyimpannya sebagai konstanta adalah cara sebuah angka yang tak
+     pernah menyentuh WTB bertahan lima kali evaluasi. */
   const FISCAL = {
     ppeTaxBaseDelta: 5500,   // beda temporer aset tetap (tercatat − dasar pajak) per kertas kerja fiskal
     provisi: 900,            // PSAK 57 · provisi garansi & lainnya (beda temporer)
     taxLoss: 3000,           // rugi fiskal entitas anak dapat dikompensasi
     ociRemeasure: 270,       // PSAK 24 · pengukuran kembali (OCI) → pajak OCI
-    pbt: 48500,              // laba sebelum pajak komersial (Laba Rugi)
-    pkp: 53500,              // penghasilan kena pajak (hasil rekonsiliasi fiskal)
     permAdd: 1200,           // beda permanen — beban tidak dapat dikurangkan
     permLess: 3000,          // beda permanen — penghasilan dikecualikan / final
-    fiscalTempMovement: 1860 + 2400 + 900 + 1640,  // movement beda temporer th berjalan = 6800
+    /* Movement beda temporer tahun berjalan, per pos (kertas kerja fiskal).
+       Larik — bukan penjumlahan telanjang — karena view PSAK 46 dulu mengetik
+       ulang keempat angka ini untuk menampilkan rinciannya. Satu daftar, dua
+       konsumen: total di sini, baris tabel di sana. */
+    tempMovementItems: [
+      { id: 't1', label: 'Penyisihan imbalan kerja belum direalisasi (PSAK 24)', v: 1860 },
+      { id: 't2', label: 'Beban CKPN / kerugian ekspektasian (PSAK 71)',         v: 2400 },
+      { id: 't3', label: 'Provisi garansi & liabilitas lain',                    v: 900  },
+      { id: 't4', label: 'Selisih penyusutan komersial di atas fiskal',          v: 1640 },
+    ],
+    /* movement beda temporer th berjalan = 6800 */
+    get fiscalTempMovement(): number { return this.tempMovementItems.reduce((s, x) => s + x.v, 0); },
   };
+
+  /* ============================================================
+     REKONSILIASI FISKAL (PSAK 46) — laba komersial → PKP
+     ------------------------------------------------------------
+     POPULASI: laba komersial entitas INDUK STANDALONE. Bukan konsolidasian.
+     PPh Badan dinilai per ENTITAS HUKUM (satu SPT per entitas), sedangkan
+     materialitas SA 320/600 sejak arc SA 600 berdiri di atas figur
+     KONSOLIDASIAN. Dua populasi, dua tujuan, keduanya benar — jangan
+     "selaraskan" salah satunya ke yang lain.
+
+     BASIS PBT: figur DILAPORKAN = WTB unadjusted + efek jurnal yang benar-benar
+     DIPOSTING. Bukan kolom `adj` WTB — kolom itu memuat usulan yang partner
+     belum putuskan, dan memakainya membuat rekonsiliasi fiskal mengandaikan
+     keputusan yang belum diambil (sirkularitas yang sama yang ditolak PR-A).
+
+     Rekonsiliasi fiskal karenanya berada DI HILIR finalisasi AJE. Selama masih
+     ada jurnal berstatus usulan, hasil fungsi ini belum final — `pendingAje`
+     membawa fakta itu agar view dapat menyatakannya, bukan menyembunyikannya.
+
+     Satuan: Rp JUTA (konsumennya FIG & deferredTax), sedangkan entityFigures
+     memberi rupiah penuh → pembulatan dilakukan SETELAH penjumlahan.
+     ============================================================ */
+  interface FiscalReconciliation {
+    available: boolean;
+    pbtUnadj: number; ajePosted: number; pbt: number;
+    permAdd: number; permLess: number; tempMovement: number; pkp: number;
+    pendingAje: string[];
+  }
+
+  function fiscalReconciliation(wtb?: WTB, aje?: AjeLike[]): FiscalReconciliation {
+    /* Fallback singleton DIPERTAHANKAN di sini (beda dari entityFigures): kanon
+       punya kontrak "setiap fungsi dapat dipanggil tanpa argumen", dan FIG
+       dibangun lewat jalur zero-arg itu. */
+    const rows = wtbRows(wtb);
+    const list = aje || ((AMS && (AMS.AJE as unknown as AjeLike[])) || []);
+    const f = entityFigures(rows, 'unadj');
+    const permAdd = FISCAL.permAdd;
+    const permLess = FISCAL.permLess;
+    const tempMovement = FISCAL.fiscalTempMovement;
+    if (!f.available) {
+      return { available: false, pbtUnadj: 0, ajePosted: 0, pbt: 0,
+               permAdd, permLess, tempMovement, pkp: 0, pendingAje: [] };
+    }
+    const pbtUnadj = jt(f.pbt!);
+    const posted = ajeEffect(list, 'Posted').pbt;
+    const pbt = jt(f.pbt! + posted);
+    return {
+      available: true,
+      pbtUnadj, ajePosted: pbt - pbtUnadj, pbt,
+      permAdd, permLess, tempMovement,
+      pkp: pbt + permAdd - permLess + tempMovement,
+      pendingAje: list.filter(a => String(a.status || '').trim() === 'Proposed')
+                      .map(a => String((a as { id?: string }).id || '')).filter(Boolean),
+    };
+  }
 
   /* ---------- FIG / SRC: saldo akhir kanonik tiap pos (Rp juta) ----------
      W6 Fase 3 (W6·2) — dihitung LAZY (saat akses properti pertama), BUKAN saat
@@ -257,6 +327,7 @@ import { AMS } from './data';
   let _fig: Fig | null = null;
   function buildFigures(): void {
     const s = figuresFromWTB();
+    const fisc = fiscalReconciliation();
     _src = s;
     _fig = {
       // —— ditarik dari WTB (buku besar) ——
@@ -274,8 +345,8 @@ import { AMS } from './data';
       provisi:      FISCAL.provisi,
       taxLoss:      FISCAL.taxLoss,
       ociRemeasure: FISCAL.ociRemeasure,
-      pbt:          FISCAL.pbt,
-      pkp:          FISCAL.pkp,
+      pbt:          fisc.pbt,          // laba komersial DILAPORKAN (WTB unadj + AJE terposting)
+      pkp:          fisc.pkp,          // hasil identitas rekonsiliasi — bukan konstanta
       permAdd:      FISCAL.permAdd,
       permLess:     FISCAL.permLess,
       fiscalTempMovement: FISCAL.fiscalTempMovement,
@@ -311,4 +382,5 @@ import { AMS } from './data';
   function setFsgenBuilder(fn: ((wtb?: WTB) => FsModel) | null): void { _fsgenBuildModel = fn; }
   function fsgenModel(wtb?: WTB): FsModel | null { return _fsgenBuildModel ? _fsgenBuildModel(wtb) : null; }
 
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };
+export type { FiscalReconciliation, AjeLike };
+export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };

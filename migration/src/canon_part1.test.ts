@@ -10,19 +10,24 @@ import { FIXTURE_WTB } from './__fixtures__/wtb';
 describe('deferredTax() — PSAK 46 (patokan W0-BASELINE)', () => {
   const dt = deferredTax();
 
+  /* PR-F: PBT & PKP tak lagi konstanta (dulu 48.500 & 53.500 — angka yang tak
+     pernah menyentuh buku besar). Oracle di bawah TURUNAN: PBT = WTB unadj
+     29.690 + AJE terposting −3.940; PKP = identitas rekonsiliasi. Nilai lama
+     SENGAJA tidak dipertahankan — memakainya sebagai oracle justru yang
+     membuatnya bertahan lima kali evaluasi. */
   it('beban pajak, ETR, dan DTA cocok dengan baseline (juta)', () => {
-    expect(dt.taxExpense).toBe(10_274);
-    expect(dt.currentTax).toBe(11_770);   // round(PKP 53.500 × 22%)
+    expect(dt.taxExpense).toBe(5_269);
+    expect(dt.currentTax).toBe(6_765);    // round(PKP 30.750 × 22%)
     expect(dt.deferredPL).toBe(1_496);    // round(6.800 × 22%)
     expect(dt.dtaReported).toBe(4_980);
-    expect(dt.dtaVariance).toBe(-1_914);
-    expect(dt.pbt).toBe(48_500);
-    expect(dt.pkp).toBe(53_500);
+    expect(dt.dtaVariance).toBe(-1_914);  // pajak tangguhan tak bergantung PBT
+    expect(dt.pbt).toBe(25_750);
+    expect(dt.pkp).toBe(30_750);
     expect(dt.rate).toBe(0.22);
   });
 
-  it('ETR = beban pajak / PBT ≈ 21,18%', () => {
-    expect(dt.etr).toBeCloseTo(0.2118, 4);
+  it('ETR = beban pajak / PBT ≈ 20,46%', () => {
+    expect(dt.etr).toBeCloseTo(0.2046, 4);
   });
 
   it('identitas pembukuan: taxExpense = currentTax − deferredPL', () => {
