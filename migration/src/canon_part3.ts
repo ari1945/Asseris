@@ -1,7 +1,7 @@
 /* ============================================================
    Asseris — canon part3 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, RATE, figuresFromWTB, fsgenModel, jt, wtbVal } from './canon_base';
+import { ASOF, RATE, benchmarksFromWTB, figuresFromWTB, fsgenModel, jt, wtbVal } from './canon_base';
 import { assetRegister, deferredTax, fixedAssets, intangibles, inventory, revenue } from './canon_part1';
 import { GOODWILL, psak48, psak57, psak68, psak71 } from './canon_part2';
 import { psak66 } from './canon_part4';
@@ -389,9 +389,20 @@ import type { WTB } from './canon_types';
 
   interface PkgData { status?: string; received?: string; [field: string]: unknown }
 
-  function psak65(wtb?: WTB, pkgOverride?: Record<string, PkgData> | null) {
+  /* SA 600 PR-3b — `basis` dapat dipilih pemanggil, default 'adj' (perilaku lama,
+     nol pergeseran bagi seluruh konsumen yang ada).
+
+     Mengapa perlu: materialitas SA 320 ditetapkan atas figur DILAPORKAN klien, dan
+     PR-A sengaja memakai basis `unadj` supaya memposting AJE tidak menggeser ambang
+     yang menilai AJE itu sendiri (sirkularitas — PRD PR-A §11 Q2). Konsolidasi yang
+     terkunci di `adj` karena itu tak dapat menjadi basis benchmark grup.
+
+     Alternatifnya adalah menyusun ulang eliminasi di luar sini demi versi unadj —
+     yaitu menduplikasi mesin konsolidasi, persis penyakit yang diobati arc ini.
+     Satu parameter jauh lebih murah daripada sumber kebenaran kedua. */
+  function psak65(wtb?: WTB, pkgOverride?: Record<string, PkgData> | null, basis: 'unadj' | 'adj' = 'adj') {
     const R = Math.round;
-    const aj = (code: string) => jt(wtbVal(wtb, code, 'adj'));
+    const aj = (code: string) => jt(wtbVal(wtb, code, basis));
 
     /* —— paket pelaporan komponen (impor) ——
        Status & figur tiap anak dapat diimpor/disunting di modul Group Audit
@@ -605,6 +616,50 @@ import type { WTB } from './canon_types';
     return { om, pm, ctt, pct, pmPct, cttPct, basis: 'consolidated_pbt', consolPbt, comps };
   }
 
+  /* ============================================================
+     SA 600 PR-3b — TABEL BENCHMARK SA 320 UNTUK GRUP.
+     ------------------------------------------------------------
+     Perikatan ini mengaudit laporan keuangan KONSOLIDASIAN (Opsi A), sehingga
+     materialitas keseluruhan harus ditetapkan atas figur konsolidasian — bukan
+     atas saldo standalone induk seperti sebelumnya.
+
+     Basis `unadj` DIPERTAHANKAN sampai ke dasar: figur dilaporkan klien adalah
+     dasar penetapan SA 320 ¶10, dan memakai `adj` akan membuat posting AJE
+     menggeser ambang yang menilai AJE itu sendiri.
+
+     Laba Bruto SENGAJA TIDAK ADA di sini: paket pelaporan komponen tidak membawa
+     beban pokok, sehingga laba bruto konsolidasian tak dapat diturunkan. Mengikuti
+     konvensi `benchmarksFromWTB` — benchmark yang figurnya tak tersedia DIHILANGKAN,
+     karena lebih baik hilang daripada muncul bernilai nol dan tampak otoritatif.
+     (Menambahkannya kembali = tambahkan `cogs` ke paket komponen, seperti PR-1
+     menambahkan `pbt`/`tax`.)
+
+     Nilai canon dalam Rp JUTA → dikembalikan dalam rupiah penuh agar sebentuk
+     dengan `benchmarksFromWTB`. */
+  function consolidatedBenchmarks(wtb?: WTB) {
+    const g = psak65(wtb, null, 'unadj');
+    const spec: Array<[string, string, number | null, number, number, number, string]> = [
+      ['pbt',    'Laba Sebelum Pajak (konsolidasian)', g.consolPbt,             5,   10, 5, 'Lazim untuk entitas berorientasi laba — figur grup'],
+      ['rev',    'Total Pendapatan (konsolidasian)',   g.consolRev,             0.5, 1,  1, 'Setelah eliminasi penjualan antar-perusahaan'],
+      ['assets', 'Total Aset (konsolidasian)',         g.totals.aset.konsol,    1,   2,  1, 'Untuk entitas padat aset — figur grup'],
+      ['equity', 'Total Ekuitas (konsolidasian)',      g.totals.ekuitas.konsol, 2,   5,  3, 'Termasuk kepentingan nonpengendali (NCI)'],
+    ];
+    return spec
+      .filter((s): s is [string, string, number, number, number, number, string] => s[2] != null && isFinite(s[2]))
+      .map(([id, label, value, lo, hi, def, note]) => ({ id, label, value: Math.round(value * 1e6), lo, hi, def, note }));
+  }
+
+  /* SA 600 PR-3b — SATU pintu benchmark bagi perikatan.
+     `useMateriality` (contexts) dan tabel benchmark (view_materiality) DULU
+     masing-masing memanggil `benchmarksFromWTB` sendiri. Begitu satu pindah ke
+     figur grup dan yang lain tidak, KPI menampilkan OM konsolidasian di atas tabel
+     standalone — modul membantah dirinya sendiri di layar yang sama. Ditemukan
+     saat verifikasi live PR-3b; fungsi ini menutup kemungkinan itu. */
+  function engagementBenchmarks(wtb?: WTB) {
+    const grup = consolidatedBenchmarks(wtb);
+    return grup.length ? grup : benchmarksFromWTB(wtb, 'unadj');
+  }
+
   /* ---------- PSAK 66 · Pengaturan Bersama (Joint Arrangements / IFRS 11) ----------
      Modul ini TIDAK menyimpan saldo sendiri — seluruh angka ditarik dari SATU
      sumber kebenaran yang SAMA dipakai modul lain, sehingga klasifikasi & nilai
@@ -627,4 +682,4 @@ import type { WTB } from './canon_types';
      (ekuitas). Hak atas aset & kewajiban atas liabilitas ⇒ operasi bersama
      (bagian proporsional). Rp juta. */
 
-export { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65, groupMateriality };
+export { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65, groupMateriality, consolidatedBenchmarks, engagementBenchmarks };

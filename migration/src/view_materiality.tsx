@@ -3,6 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import type { Benchmark, MaterialityConfig, WTB } from './canon_types';
 import { benchmarksFromWTB } from './canon_base';
+import { consolidatedBenchmarks, engagementBenchmarks } from './canon_part3';
 import { useAudit, useFirm, useMateriality, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -56,7 +57,7 @@ function MaterialityCalc() {
   /* Basis `unadj` — SAMA dengan yang dikirim `useMateriality()` ke canon. Keduanya
      memanggil fungsi murni yang sama atas WTB yang sama, jadi tak ada split-brain:
      editor di modul ini dan OM yang dipakai modul hilir selalu satu tabel. */
-  const BENCHMARKS = useMemoM(() => benchmarksFromWTB(wtb, 'unadj'), [wtb]);
+  const BENCHMARKS = useMemoM(() => engagementBenchmarks(wtb), [wtb]);
   const { benchId, pct, pmPct, cttPct, appliedOverride } = matConfig;
   const setBenchId = (v: string) => setMatConfig({ benchId: v });
   const setPct = (v: number) => setMatConfig({ pct: v });
@@ -90,7 +91,17 @@ function MaterialityCalc() {
      `ly` WTB memakai benchmark & persentase yang SAMA, sehingga perbandingan YoY
      membandingkan dua angka yang benar-benar sebanding (bukan satu angka turunan
      melawan satu konstanta). null bila komparatif tak tersedia. */
-  const priorBench = useMemoM(() => benchmarksFromWTB(wtb, 'ly').find((b: Benchmark) => b.id === benchId), [wtb, benchId]);
+  /* SA 600 PR-3b — komparatif tahun lalu HANYA sah bila populasinya sama. Sejak
+     benchmark ditarik dari figur KONSOLIDASIAN, kolom `ly` WTB (saldo standalone
+     induk) bukan pembanding yang sah: menampilkannya menghasilkan "+150%" yang
+     sepenuhnya artefak perpindahan populasi, bukan perubahan materialitas.
+     Paket pelaporan komponen tak membawa figur tahun lalu, sehingga OM grup TL
+     memang belum dapat diturunkan → komparatif disembunyikan, bukan dikarang.
+     (Mengaktifkannya kembali = tambahkan figur komparatif ke paket komponen.) */
+  const konsolidasi = useMemoM(() => consolidatedBenchmarks(wtb).length > 0, [wtb]);
+  const priorBench = useMemoM(
+    () => (konsolidasi ? undefined : benchmarksFromWTB(wtb, 'ly').find((b: Benchmark) => b.id === benchId)),
+    [wtb, benchId, konsolidasi]);
   const priorOM = priorBench ? Math.round(priorBench.value * pct / 100) : null;
 
   const rp = (n: any) => 'Rp ' + fmt(n);

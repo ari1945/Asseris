@@ -10,6 +10,7 @@ import { mergeLegacyFlux } from './flux_state';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 import { materialityFor } from './canon_selectors';
 import { benchmarksFromWTB } from './canon_base';
+import { engagementBenchmarks } from './canon_part3';
 import type { AjeRow, MaterialityConfig, MaterialityResult, WTB, WtbRow } from './canon_types';
 import type { ActivityItem, DeadlineRow, ReviewNote, RiskRow, TeamMember, TimeEntry, WorkpaperRow } from './ams_types';
 import type { WtbOverrideEntry } from './wtb_overrides';
@@ -214,7 +215,14 @@ function useMateriality(): MaterialityResult {
      dipakai agar memposting AJE tidak menggeser ambang yang menilai AJE itu sendiri
      (sirkularitas — lihat PRD PR-A §11 Q2). */
   const wtb = (audit && audit.wtb) || undefined;
-  const benchmarks = useMemo(() => benchmarksFromWTB(wtb, 'unadj'), [wtb]);
+  /* SA 600 PR-3b — perikatan ini mengaudit LK KONSOLIDASIAN (Opsi A), sehingga
+     benchmark SA 320 ditarik dari figur GRUP, bukan saldo standalone induk.
+     Basis `unadj` dipertahankan sampai ke dasar konsolidasi (`psak65(…, 'unadj')`),
+     sehingga sifat anti-sirkularitas PR-A tetap berlaku: memposting AJE tidak
+     menggeser ambang yang menilai AJE itu sendiri.
+     Fallback ke figur induk bila konsolidasi tak tersedia (WTB kosong/headless) —
+     lebih baik ambang standalone daripada tanpa ambang sama sekali. */
+  const benchmarks = useMemo(() => engagementBenchmarks(wtb), [wtb]);
   return useMemo(
     () => materialityFor({ engMateriality: eng ? eng.materiality : undefined, engagementId: eng ? eng.id : undefined, config: cfg, benchmarks }),
     [eng, cfg, benchmarks],
