@@ -558,6 +558,53 @@ import type { WTB } from './canon_types';
     };
   }
 
+  /* ============================================================
+     SA 600 ¶21-23 — MATERIALITAS GRUP & ALOKASI KE KOMPONEN.
+     ------------------------------------------------------------
+     DULU tiga konstanta telanjang di `view_groupaudit.tsx`:
+     GROUP_MAT 6,2 M · GROUP_PM 4,65 M · GROUP_CTT 310 jt. PM & CTT rapi
+     75%/5% DI ATAS fondasi yang tak pernah dihitung dari apa pun — kelas
+     cacat yang persis sama dengan PBT 85,2 M yang dicabut PR-A. Materialitas
+     komponen pun lima konstanta terpisah, plus faktor ajaib `GROUP_MAT * 0.35`
+     untuk komponen yang naik lingkup.
+
+     Kini SELURUHNYA diturunkan dari PBT konsolidasian (PR-1).
+
+     KEBIJAKAN ALOKASI (SA 600 ¶21 memberi ruang pertimbangan; firma wajib
+     memilih SATU dan menuliskannya — ini tempatnya):
+       · Signifikan (ukuran) → 50% materialitas grup
+       · Signifikan (risiko) → 35%
+       · Tidak signifikan / lingkup Analytical → tidak diberi materialitas
+     Batas atas 50% menjamin syarat SA 600 ¶21 terpenuhi SECARA STRUKTURAL —
+     materialitas komponen selalu LEBIH RENDAH dari materialitas grup, apa pun
+     angkanya, sehingga risiko agregasi tak pernah bocor lewat konstanta baru. */
+  const GROUP_TIER: Record<string, number> = {
+    'Signifikan (ukuran)': 0.50,
+    'Signifikan (risiko)': 0.35,
+    'Tidak signifikan': 0,
+  };
+
+  interface GroupMatComponent { id: string; sig?: string; scope?: string }
+
+  /* Kontrak kanon: setiap fungsi harus dapat dipanggil TANPA argumen (dijaga
+     `canon_regression`). Tanpa default, pemanggilan kosong melempar saat destrukturisasi. */
+  function groupMateriality(opts: {
+    consolPbt?: number; pct?: number; pmPct?: number; cttPct?: number;
+    components?: GroupMatComponent[];
+  } = {}) {
+    const { consolPbt = 0, pct = 5, pmPct = 75, cttPct = 5, components = [] } = opts;
+    const R = Math.round;
+    /* `consolPbt` dalam Rp JUTA (konvensi canon); ambang dikembalikan dalam rupiah penuh. */
+    const om = R(consolPbt * 1e6 * (pct / 100));
+    const pm = R(om * (pmPct / 100));
+    const ctt = R(om * (cttPct / 100));
+    const comps = components.map(c => {
+      const tier = c.scope === 'Analytical' ? 0 : (GROUP_TIER[String(c.sig)] ?? 0.35);
+      return { id: c.id, sig: c.sig, scope: c.scope, tier, mat: R(om * tier) };
+    });
+    return { om, pm, ctt, pct, pmPct, cttPct, basis: 'consolidated_pbt', consolPbt, comps };
+  }
+
   /* ---------- PSAK 66 · Pengaturan Bersama (Joint Arrangements / IFRS 11) ----------
      Modul ini TIDAK menyimpan saldo sendiri — seluruh angka ditarik dari SATU
      sumber kebenaran yang SAMA dipakai modul lain, sehingga klasifikasi & nilai
@@ -580,4 +627,4 @@ import type { WTB } from './canon_types';
      (ekuitas). Hak atas aset & kewajiban atas liabilitas ⇒ operasi bersama
      (bagian proporsional). Rp juta. */
 
-export { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65 };
+export { P58_GROUP, psak58, reconcile, GROUP_SUBS, GROUP_ASSOCIATES, GROUP_CONTROL, INTERCO, psak65, groupMateriality };

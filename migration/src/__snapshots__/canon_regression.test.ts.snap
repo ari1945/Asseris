@@ -810,6 +810,17 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "workingCapital": 54083.9,
     },
   },
+  "groupMateriality": {
+    "basis": "consolidated_pbt",
+    "comps": [],
+    "consolPbt": 0,
+    "ctt": 0,
+    "cttPct": 5,
+    "om": 0,
+    "pct": 5,
+    "pm": 0,
+    "pmPct": 75,
+  },
   "intangibles": {
     "accumAudit": 4700,
     "accumClient": 4700,
