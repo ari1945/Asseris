@@ -32,7 +32,7 @@ const { createContext, useContext, useState, useCallback, useMemo, useEffect, us
    dengan `unknown` ia akan menyebar ke seluruh konsumen. */
 type AuditContextShape = { [K in
   | 'matConfig' | 'setMatConfig'
-  | 'aje' | 'setAje' | 'toggleAjeStatus' | 'addAje' | 'ajeTotalPosted'
+  | 'aje' | 'setAje' | 'toggleAjeStatus' | 'setAjeStatus' | 'addAje' | 'ajeTotalPosted'
   | 'risks' | 'updateRisk'
   | 'wtb' | 'wtbOverrides' | 'setWtbOverrides' | 'wtbImport' | 'setWtbImport'
   | 'wtbMapping' | 'setWtbMapping' | 'wtbLedger' | 'setWtbLedger'
@@ -194,6 +194,11 @@ const AMS_PERSIST_SCOPE = {
   'experts.v1': 'engagement',
   /* Lanjutan migrasi yg sama untuk situs yg memakai ekspresi engId berbeda
      (eng.id / activeEngagement.id, bukan literal `engId`) → tak tertangkap grep awal. */
+  /* PR-B — keputusan persetujuan (termasuk posting AJE ke WTB) BERLINGKUP PERIKATAN.
+     Kunci lama `approvals_ov_v3` tak pernah terdaftar di sini sehingga jatuh ke lingkup
+     FIRMA: keputusan atas jurnal satu klien tersimpan lintas-perikatan, tanpa isolasi
+     W7.5. Dinaikkan ke v4 sekaligus agar migrasi lingkup tak menabrak data lama. */
+  'approvals_ov_v4': 'engagement',
   'strategyTab.v1': 'engagement',
   'strategyApproach.v1': 'engagement',
   /* Persetujuan strategi (SA 300). Engagement-scope → capForWrite=WP_EDIT (semua auditor)
@@ -681,8 +686,17 @@ function AppProviders({ me, onLogout, children }: any) {
   const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
   const [timeEntries, setTimeEntries] = useServerState('timeEntries', D.TIME_ENTRIES || [], 'engagement', activeEngagementId);
   const [taskState, setTaskState] = useServerState('taskState', {}, 'engagement', activeEngagementId); // taskId -> done
+  /* PR-B - jembatan jejak untuk setAjeStatus/toggleAjeStatus. Dideklarasikan di sini
+     (sebelum logActivity) karena keduanya memakainya lewat `.current`. */
+  const logRef: { current: ((e: unknown) => void) | null } = useRef(null);
+  /* Bentuk minimal baris jurnal yang disentuh transisi status (BUKAN `any`:
+     satu `any` baru meng-un-suppress seluruh berkas pada ratchet ESLint). */
+  type AjeStatusRow = { id: string; status: string };
   const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId);
   const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
+  /* PR-B - jembatan agar setAjeStatus/toggleAjeStatus dapat mencatat jejak tanpa
+     menjadikan `logActivity` dependensi yang memutus memo mereka tiap jejak bertambah. */
+  logRef.current = logActivity;
 
   const addReviewNote = useCallback((note: any) => setReviewNotes((list: any) => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
   const resolveReviewNote = useCallback((id: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, status: n.status === 'open' ? 'resolved' : 'open' } : n)), []);
@@ -727,16 +741,66 @@ function AppProviders({ me, onLogout, children }: any) {
     ));
   }, [wtbBase, wtbLeads]);
 
-  const toggleAjeStatus = useCallback((id: any) => {
-    setAje((list: any) => list.map((a: any) => a.id === id
-      ? { ...a, status: a.status === 'Posted' ? 'Proposed' : 'Posted' } : a));
+  /* ============================================================
+     PR-B - STATUS JURNAL ADALAH KELUARAN RANTAI PERSETUJUAN, BUKAN MASUKAN.
+     ------------------------------------------------------------
+     `toggleAjeStatus` DIPERTAHANKAN sebagai jalur tulis-balik yang dipanggil
+     antrean persetujuan (`view_platform.decide()`), tetapi TIDAK BOLEH lagi
+     dipanggil langsung dari UI register: itulah jalan pintas yang membuat
+     seorang Senior Auditor dapat memposting jurnal ke WTB tanpa persetujuan
+     Partner, tanpa alasan, dan tanpa jejak.
+
+     Setiap perubahan status kini mencatat jejak. `logActivity` dirujuk lewat
+     ref agar callback ini tak perlu dibuat ulang tiap perubahan daftar jejak
+     (yang akan memutus memo di seluruh konsumen). */
+  const setAjeStatus = useCallback((id: string, next: 'Posted' | 'Proposed', meta?: { by?: string; reason?: string; approvalId?: string }) => {
+    setAje((list: AjeStatusRow[]) => list.map((a: AjeStatusRow) => {
+      if (a.id !== id || a.status === next) return a;
+      if (logRef.current) {
+        logRef.current({
+          who: (meta && meta.by) || 'Sistem',
+          action: next === 'Posted' ? 'APPROVE' : 'EDIT',
+          module: 'AJE', sourceModule: 'aje', target: id,
+          detail: next === 'Posted'
+            ? `${id} diposting ke WTB` + (meta && meta.approvalId ? ` (persetujuan ${meta.approvalId})` : '')
+            : `${id} dibatalkan postingnya` + (meta && meta.reason ? ` - ${meta.reason}` : ''),
+          before: 'Status: ' + a.status, after: 'Status: ' + next,
+        });
+      }
+      return { ...a, status: next };
+    }));
   }, []);
 
+  /* Dipanggil HANYA oleh antrean persetujuan pada keputusan final. */
+  const toggleAjeStatus = useCallback((id: string, meta?: { by?: string; approvalId?: string }) => {
+    setAje((list: AjeStatusRow[]) => {
+      const cur = list.find((a: AjeStatusRow) => a.id === id);
+      if (!cur) return list;
+      const next = cur.status === 'Posted' ? 'Proposed' : 'Posted';
+      return list.map((a: AjeStatusRow) => {
+        if (a.id !== id) return a;
+        if (logRef.current) {
+          logRef.current({
+            who: (meta && meta.by) || 'Sistem', action: next === 'Posted' ? 'APPROVE' : 'EDIT',
+            module: 'AJE', sourceModule: 'aje', target: id,
+            detail: `${id} ${next === 'Posted' ? 'diposting ke' : 'ditarik dari'} WTB`
+              + (meta && meta.approvalId ? ` (persetujuan ${meta.approvalId})` : ''),
+            before: 'Status: ' + cur.status, after: 'Status: ' + next,
+          });
+        }
+        return { ...a, status: next };
+      });
+    });
+  }, []);
+
+  /* PR-B - entri baru lahir 'Proposed'. DULU 'Posted': satu tombol di form AJE
+     langsung mengubah angka WTB, dan `buildApprovals` lalu menerbitkan jejak
+     bahwa Manager, Partner, dan EQR telah menyetujui. */
   const addAje = useCallback((entry: any) => {
     setAje((list: any) => {
       const n = list.length + 1;
       const id = 'AJE-' + String(n).padStart(2, '0');
-      return [...list, { id, status: 'Posted', ...entry }];
+      return [...list, { id, status: 'Proposed', ...entry, }];
     });
   }, []);
 
@@ -766,7 +830,7 @@ function AppProviders({ me, onLogout, children }: any) {
 
   const audit = useMemo((): AuditContextShape => ({
     matConfig, setMatConfig,
-    aje, setAje, toggleAjeStatus, addAje, ajeTotalPosted,
+    aje, setAje, toggleAjeStatus, setAjeStatus, addAje, ajeTotalPosted,
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
     fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads,
@@ -778,7 +842,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [matConfig, setMatConfig, aje, toggleAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [matConfig, setMatConfig, aje, toggleAjeStatus, setAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

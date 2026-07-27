@@ -31,7 +31,7 @@
   },
   "src/contexts.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 105
+      "count": 102
     }
   },
   "src/copilot.tsx": {
@@ -281,7 +281,7 @@
   },
   "src/view_aje.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 76
+      "count": 75
     }
   },
   "src/view_analytical.tsx": {
@@ -471,7 +471,7 @@
   },
   "src/view_execution.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 78
+      "count": 77
     }
   },
   "src/view_facilities.tsx": {

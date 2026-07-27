@@ -45,7 +45,45 @@ import { AMS } from './data';
     { kind: 'Independensi & Rotasi', t1: 'Deklarasi', a1: 'Quality Partner', t2: 'Konflik', a2: 'QP → MP', t3: 'Rotasi wajib', a3: 'QP → MP → Komite Etika' },
   ];
 
-  /* bangun rantai: steps = [[role,name,ts?,note?]], doneTo = jumlah langkah selesai */
+  /** [peran, nama, ts?, catatan?] — bentuk langkah rantai persetujuan. */
+  type ChainStep = [string, string, string?, string?];
+  /** Satu keputusan yang benar-benar tercatat pada sebuah langkah. */
+  interface ApprovalDecision { role?: string; name?: string; ts?: string; note?: string }
+
+  /* ============================================================
+     PR-B - KEPUTUSAN PERSETUJUAN YANG BENAR-BENAR TERCATAT.
+     ------------------------------------------------------------
+     Sumbernya sama dengan metadata reviu di modul AJE (reviewer/partner +
+     tanggal reviu/posting). Jurnal yang TIDAK ada di sini berarti belum ada
+     yang menyetujui - apa pun status postingnya. Itulah intinya: status
+     bukan lagi bukti persetujuan.
+     ============================================================ */
+  const AJE_DECISIONS_SEED: Record<string, Array<{ role: string; name: string; ts: string; note: string }>> = {
+    'AJE-01': [
+      { role: 'Audit Manager',      name: 'Anindya Pramesti', ts: '2026-05-06 10:20', note: 'Reviu manajer - pendukung pisah batas memadai (WP B-3).' },
+      { role: 'Engagement Partner', name: 'Hartono Wijaya',   ts: '2026-05-08 14:05', note: 'Disetujui & diposting ke WTB.' },
+    ],
+    'AJE-02': [
+      { role: 'Audit Manager',      name: 'Anindya Pramesti', ts: '2026-05-10 09:15', note: 'Reviu manajer - model ECL ditelaah (WP B-7).' },
+      { role: 'Engagement Partner', name: 'Hartono Wijaya',   ts: '2026-05-12 16:40', note: 'Disetujui & diposting ke WTB.' },
+    ],
+    /* AJE-03: direviu manajer 30 Mei, BELUM disetujui partner - status Proposed. */
+    'AJE-03': [
+      { role: 'Audit Manager',      name: 'Anindya Pramesti', ts: '2026-05-30 11:00', note: 'Reviu manajer - eskalasi SA 240; menunggu keputusan partner.' },
+    ],
+    'AJE-04': [
+      { role: 'Audit Manager',      name: 'Anindya Pramesti', ts: '2026-05-11 13:30', note: 'Reviu manajer - dasar akrual bonus memadai (WP CC-1).' },
+      { role: 'Engagement Partner', name: 'Hartono Wijaya',   ts: '2026-05-13 10:05', note: 'Disetujui & diposting ke WTB.' },
+    ],
+    /* AJE-05: baru diajukan 30 Mei, belum direviu siapa pun. */
+    'AJE-05': [],
+  };
+
+  /* LEGACY - rantai dari penghitung. Masih dipakai jenis persetujuan selain AJE
+     (Faktur, Penerimaan Klien, WIP, Independensi), yang SENGAJA di luar lingkup PR-B:
+     cacat "menyimpulkan persetujuan dari penghitung" berlaku untuk semuanya, tetapi
+     memperbaiki lima jenis sekaligus menjadikan PR ini tak dapat ditinjau. AJE lebih
+     dulu karena ia satu-satunya yang MENULIS BALIK ke SSOT angka. */
   function chain(steps: any, doneTo: any) {
     return steps.map((s: any, i: any) => ({
       role: s[0], name: s[1],
@@ -53,6 +91,21 @@ import { AMS } from './data';
       ts: i < doneTo ? (s[2] || NOW) : null,
       note: i < doneTo ? (s[3] || 'Disetujui.') : null,
     }));
+  }
+
+  /* PR-B - rantai dari KEPUTUSAN TERCATAT, bukan dari penghitung.
+     steps = [[role,name]]; decisions = keputusan berurutan setelah langkah Penyusun.
+     Sebuah langkah berstatus 'approved' HANYA bila ada keputusan untuknya. */
+  function chainFromDecisions(steps: ChainStep[], decisions: ApprovalDecision[]) {
+    const decs = decisions || [];
+    return steps.map((s: ChainStep, i: number) => {
+      /* langkah 0 = Penyusun: selesai secara definisi saat jurnal diajukan */
+      if (i === 0) return { role: s[0], name: s[1], status: 'approved', ts: s[2] || NOW, note: s[3] || 'Diajukan.' };
+      const d = decs[i - 1];
+      if (d) return { role: s[0], name: d.name || s[1], status: 'approved', ts: d.ts, note: d.note || 'Disetujui.' };
+      const isNext = decs.length === i - 1;
+      return { role: s[0], name: s[1], status: isNext ? 'current' : 'pending', ts: null, note: null };
+    });
   }
 
   /* ============================================================
@@ -72,7 +125,11 @@ import { AMS } from './data';
     const out: any[] = [];
 
     /* ---- 1. AJE — sumber: useAudit().aje (ledger penyesuaian) ---- */
-    const engA = engById('ENG-2025-014');
+    /* PR-B — DULU dipaku 'ENG-2025-014': setiap AJE, dari perikatan mana pun,
+       diatribusikan ke manager & partner perikatan itu — rantai persetujuan
+       menyebut nama orang yang salah. Kini perikatan AKTIF, dengan fallback ke
+       perikatan pertama agar pemanggil non-React (uji/seed) tetap berjalan. */
+    const engA = (ctx.activeEngagement && engById(ctx.activeEngagement)) || engById('ENG-2025-014') || engs[0];
     const cliA = engA ? cliById(engA.clientId) : null;
     aje.forEach((a: any) => {
       const posted = a.status === 'Posted';
@@ -80,16 +137,30 @@ import { AMS } from './data';
       const ref = a.ref || (a.lines ? 'JE' : a.id);
       const drCode = a.dr ? a.dr.split(' ')[0] : (a.lines || []).filter((l: any) => (+l.debit || 0) > 0).map((l: any) => l.code)[0] || 'DR';
       const crCode = a.cr ? a.cr.split(' ')[0] : (a.lines || []).filter((l: any) => (+l.credit || 0) > 0).map((l: any) => l.code)[0] || 'CR';
-      const steps = [['Penyusun', PREPARER, '2026-03-09 16:40', 'AJE diajukan dari kertas kerja ' + ref + '.'],
+      const steps: ChainStep[] = [['Penyusun', PREPARER, '2026-03-09 16:40', 'AJE diajukan dari kertas kerja ' + ref + '.'],
         ['Audit Manager', engA.manager], ['Engagement Partner', engA.partner]];
       if (hi) steps.push(['EQR Reviewer', EQR_REV]);
-      const doneTo = posted ? steps.length : 1;
+      /* PR-B - DULU: `doneTo = posted ? steps.length : 1`. Satu baris itu membuat
+         sistem menerbitkan jejak bahwa Manager, Partner, dan EQR telah menyetujui
+         begitu seseorang menekan "Posting ke WTB" - bukti audit palsu atas nama
+         partner. Kini rantai dibangun dari keputusan yang benar-benar tercatat. */
+      const decisions = AJE_DECISIONS_SEED[a.id] || [];
+      const required = steps.length - 1;                 // langkah setelah Penyusun
+      const chainComplete = decisions.length >= required;
+      /* Jurnal berstatus Posted yang rantainya BELUM lengkap adalah eksepsi kontrol
+         yang harus terlihat, bukan disembunyikan dengan menganggapnya disetujui.
+         Contoh nyata pada seed: AJE-01 (Rp 2,34 M) melewati ambang EQR ROUTING_RULES
+         namun hanya memiliki persetujuan Manager & Partner. */
+      const postedWithoutFullChain = posted && !chainComplete;
+      const doneTo = 1 + decisions.length;
       out.push({
         id: 'APR-' + a.id, kind: 'AJE', sourceModule: 'aje', sourceRoute: 'aje', sourceId: a.id,
         ref: a.id, title: (a.desc || 'Jurnal penyesuaian') + ' · ' + jt(a.amount), from: PREPARER, role: 'Senior Auditor',
-        amount: a.amount, status: posted ? 'approved' : 'pending', priority: hi ? 'high' : mid ? 'medium' : 'low',
+        /* status antrean mengikuti RANTAI, bukan status posting jurnal */
+        amount: a.amount, status: chainComplete ? 'approved' : 'pending', priority: hi ? 'high' : mid ? 'medium' : 'low',
         submitted: '2026-03-09 16:40', due: '2026-03-10 17:00', eng: engA.id, engId: engA.id,
-        clientId: cliA.id, client: cliA.name, step: doneTo, chain: chain(steps, doneTo),
+        clientId: cliA.id, client: cliA.name, step: doneTo, chain: chainFromDecisions(steps, decisions),
+        required, chainComplete, postedWithoutFullChain,
         prov: 'Jurnal ' + a.id + ' · ' + drCode + ' ⇄ ' + crCode + ' · WP ' + ref,
         writesBack: !posted, // approval final akan memposting AJE ke WTB (SSOT)
         thread: posted ? [] : [{ who: PREPARER, role: 'Senior', when: '09 Mar 16:42', text: 'Pendukung terlampir di WP ' + ref + ' (' + engA.id + ').' }],
