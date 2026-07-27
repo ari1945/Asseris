@@ -336,23 +336,28 @@ import type { WTB } from './canon_types';
      anak pada tanggal akuisisi; selisih = goodwill; NCI diukur proporsional atas
      aset neto teridentifikasi (¶19). Rp juta. */
 
-  /* entitas ANAK — buku besar pembantu komponen (seed kanonik, neraca menutup) */
+  /* entitas ANAK — buku besar pembantu komponen (seed kanonik, neraca menutup).
+     SA 600 PR-1 — tiap paket kini membawa `pbt` & `tax`, bukan `npat` saja. Nilai seed
+     dipilih agar tiap paket MENUTUP SENDIRI (pbt − tax = npat) dan agar tarif efektif
+     terbaca dari paketnya masing-masing: CP-02/03/04 = 22% (UU HPP), **CP-05 = 17%
+     (Singapura)**. Perbedaan tarif itu justru alasan field ini harus ada — membagi
+     `npat` dengan satu tarif seragam akan salah untuk entitas asing, diam-diam. */
   const GROUP_SUBS = [
     { id: 'CP-02', name: 'PT Sentosa Logistik', role: 'Anak — Distribusi', country: 'Indonesia', ccy: 'IDR', fx: 1,
       own: 99, acq: '2017', sig: 'Signifikan (ukuran)', scope: 'Full', risk: 'Medium', auditor: 'Tim Grup (WHR)',
-      rev: 60000, npat: 11900, kas: 6000, piutang: 14000, persediaan: 4000, asetTetap: 28000, asetLain: 3000,
+      rev: 60000, pbt: 15257, tax: 3357, npat: 11900, kas: 6000, piutang: 14000, persediaan: 4000, asetTetap: 28000, asetLain: 3000,
       utangUsaha: 9000, utangBank: 14000, liabLain: 3000, modal: 12000, rePre: 6000, rePost: 11000, cost: 18000 },
     { id: 'CP-03', name: 'PT Sentosa Pangan', role: 'Anak — Manufaktur F&B', country: 'Indonesia', ccy: 'IDR', fx: 1,
       own: 80, acq: '2019', sig: 'Signifikan (risiko)', scope: 'Specific', risk: 'High', auditor: 'KAP Mitra Selaras',
-      rev: 47000, npat: 7200, kas: 4000, piutang: 11000, persediaan: 9000, asetTetap: 20000, asetLain: 3000,
+      rev: 47000, pbt: 9231, tax: 2031, npat: 7200, kas: 4000, piutang: 11000, persediaan: 9000, asetTetap: 20000, asetLain: 3000,
       utangUsaha: 8000, utangBank: 12000, liabLain: 4800, modal: 10000, rePre: 4000, rePost: 8200, cost: 14000 },
     { id: 'CP-04', name: 'PT Sentosa Retail', role: 'Anak — Ritel', country: 'Indonesia', ccy: 'IDR', fx: 1,
       own: 75, acq: '2020', sig: 'Tidak signifikan', scope: 'Analytical', risk: 'Low', auditor: 'Tim Grup (WHR)',
-      rev: 20000, npat: 2600, kas: 2000, piutang: 5000, persediaan: 8000, asetTetap: 8000, asetLain: 2000,
+      rev: 20000, pbt: 3333, tax: 733, npat: 2600, kas: 2000, piutang: 5000, persediaan: 8000, asetTetap: 8000, asetLain: 2000,
       utangUsaha: 5000, utangBank: 6000, liabLain: 2400, modal: 6000, rePre: 2000, rePost: 3600, cost: 7220 },
     { id: 'CP-05', name: 'Sentosa Trading Pte Ltd', role: 'Anak — Perdagangan', country: 'Singapura', ccy: 'SGD', fx: 11950,
       own: 100, acq: '2018', sig: 'Signifikan (risiko)', scope: 'Full', risk: 'Medium', auditor: 'KAP Lim & Tan (SG)',
-      rev: 13000, npat: 4050, kas: 5000, piutang: 9000, persediaan: 6000, asetTetap: 4000, asetLain: 2000,
+      rev: 13000, pbt: 4880, tax: 830, npat: 4050, kas: 5000, piutang: 9000, persediaan: 6000, asetTetap: 4000, asetLain: 2000,
       utangUsaha: 4000, utangBank: 5000, liabLain: 2500, modal: 5000, rePre: 3000, rePost: 6500, cost: 10600 },
   ];
 
@@ -398,7 +403,10 @@ import type { WTB } from './canon_types';
       try { const s = localStorage.getItem('ams.v1.gaPackages'); return s ? JSON.parse(s) : null; }
       catch (e) { return null; }
     })();
-    const PKG_NUMF = ['rev', 'npat', 'kas', 'piutang', 'persediaan', 'asetTetap', 'asetLain', 'utangUsaha', 'utangBank', 'liabLain', 'modal', 'rePre', 'rePost', 'cost'];
+    /* SA 600 PR-1 — `pbt` & `tax` ikut dapat diimpor/disunting. Tanpa keduanya,
+       benchmark Laba Sebelum Pajak tak dapat dihitung untuk grup tanpa MENGASUMSIKAN
+       tarif seragam — dan asumsi itu salah untuk CP-05 (Singapura, 17%). */
+    const PKG_NUMF = ['rev', 'pbt', 'tax', 'npat', 'kas', 'piutang', 'persediaan', 'asetTetap', 'asetLain', 'utangUsaha', 'utangBank', 'liabLain', 'modal', 'rePre', 'rePost', 'cost'];
     const effSubs = GROUP_SUBS.map(s => {
       const p = PKG_OVR && PKG_OVR[s.id];
       if (!p) return { ...s, pkgStatus: 'Seed', pkgReceived: null as string | null };
@@ -494,6 +502,26 @@ import type { WTB } from './canon_types';
     const nciProfit = nciProfitTotal;
     const ownersProfit = consolNpat - nciProfit;
 
+    /* ============================================================
+       SA 600 PR-1 — PENDAPATAN & LABA SEBELUM PAJAK KONSOLIDASIAN.
+       ------------------------------------------------------------
+       Roll-up ini DULU tidak ada: paket komponen hanya membawa `rev` & `npat`,
+       sehingga benchmark grup pada Laba Sebelum Pajak — benchmark yang dipakai
+       perikatan ini — tak dapat dihitung sama sekali. Satu-satunya jalan pintas
+       adalah membagi npat dengan tarif seragam, dan itu salah untuk CP-05
+       (Singapura). Karena itu `pbt` & `tax` kini menjadi isi paket, bukan asumsi.
+
+       Bentuknya sengaja MENGIKUTI roll-up laba di atas persis: induk (dari WTB)
+       + penghasilan dividen + Σ anak − eliminasi laba. Dengan begitu identitas
+       `consolPbt − consolTax === consolNpat` tertutup secara aljabar selama tiap
+       paket komponen menutup sendiri (pbt − tax = npat) — dan itu diuji. */
+    const parentPbtSeparate = pPbt + dividendIncome;
+    const subsPbt = sum('pbt');
+    const subsTax = sum('tax');
+    const consolRev = pSales + sum('rev') - INTERCO.find(e => e.id === 'ELM-01')!.amount;
+    const consolPbt = parentPbtSeparate + subsPbt - elimLaba;
+    const consolTax = pTax + subsTax;
+
     /* —— translasi entitas asing (PSAK 10) — Sentosa Trading —— */
     const trad = subs.find(s => s.id === 'CP-05')!;
     const translation = { name: trad.name, ccy: 'SGD', closeRate: 11950, avgRate: 11720,
@@ -521,6 +549,8 @@ import type { WTB } from './canon_types';
       goodwillTotal, costTotal, nciAcqTotal, nciPostTotal, nciCloseTotal, nciProfitTotal,
       ws, totals, balCheck,
       subsNpat, elimLaba, consolNpat, nciProfit, ownersProfit,
+      /* SA 600 PR-1 — basis benchmark materialitas GRUP (dipakai PR-2). */
+      parentPbtSeparate, subsPbt, subsTax, consolRev, consolPbt, consolTax,
       translation, recon,
       goodwillTie: GOODWILL,
       pkgApproved, pkgAllApproved, pkgAllBalanced, pkgCounts,
