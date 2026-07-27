@@ -31,37 +31,45 @@ const AJE_TAX = 0.22;
    kelebihan 2,87x. Kini SELURUHNYA ditarik dari `entityFigures(wtb,'unadj')`. */
 const COVENANT = 1.20;
 
-/* per-entry audit metadata (keyed to seed AJEs). User-added entries derive
-   their kind/PBT effect from posted journal lines. */
+/* per-entry audit metadata (keyed to seed AJEs).
+   PR-D — `pbt` DIBUANG dari sini. Kelimanya persis sama dengan hasil
+   `ajeDerivePbt(ajeLines(a))`; menyimpannya dua kali berarti mengubah `amount`
+   di seed akan membuat META menang dan register membantah baris jurnalnya sendiri.
+   `kind` tetap ada karena ia KLASIFIKASI AUDITOR, bukan turunan (lihat ajeKindSuggestion).
+   Tanggal kini ISO — `ord()` lama hanya mengenal 'Mei'/'Jun' sehingga bulan lain
+   tersortir ke 0, dan entri baru ('baru saja') tenggelam ke dasar padahal terbaru. */
 const AJE_META = {
-  'AJE-01': { kind: 'adjusting', mis: 'M-05', pbt: -2_340_000_000, std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], preparer: 'Rina Kusuma', role: 'Junior Auditor', proposedOn: '04 Mei', reviewedOn: '06 Mei', postedOn: '08 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-02': { kind: 'adjusting', mis: 'M-04', pbt: -620_000_000, std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '06 Mei', reviewedOn: '10 Mei', postedOn: '12 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-03': { kind: 'adjusting', mis: 'M-01', pbt: -1_850_000_000, std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '28 Mei', reviewedOn: '30 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
-  'AJE-04': { kind: 'adjusting', mis: 'M-06', pbt: -980_000_000, std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], preparer: 'Sinta Wulandari', role: 'Senior Auditor', proposedOn: '09 Mei', reviewedOn: '11 Mei', postedOn: '13 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-05': { kind: 'adjusting', mis: 'M-02', pbt: -1_120_000_000, std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '30 Mei', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-01': { kind: 'adjusting', mis: 'M-05', std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], preparer: 'Rina Kusuma', role: 'Junior Auditor', proposedOn: '2026-05-04', reviewedOn: '2026-05-06', postedOn: '2026-05-08', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-02': { kind: 'adjusting', mis: 'M-04', std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '2026-05-06', reviewedOn: '2026-05-10', postedOn: '2026-05-12', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-03': { kind: 'adjusting', mis: 'M-01', std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '2026-05-28', reviewedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
+  'AJE-04': { kind: 'adjusting', mis: 'M-06', std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], preparer: 'Sinta Wulandari', role: 'Senior Auditor', proposedOn: '2026-05-09', reviewedOn: '2026-05-11', postedOn: '2026-05-13', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-05': { kind: 'adjusting', mis: 'M-02', std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
 };
 
 const KIND_LABEL = { adjusting: 'Penyesuaian', reclass: 'Reklasifikasi' };
 const KIND_KIND = { adjusting: 'blue', reclass: 'teal' };
 
-/* derive signed PBT effect from structured lines: P&L accounts (4-/5-) only,
-   profit += credit − debit (revenue credit ↑profit; expense credit ↑profit) */
+/* PR-D — SATU jalur turunan efek laba, untuk entri seed MAUPUN buatan auditor.
+   Sebelumnya `ajeDerivePbt` hanya bekerja bila `a.lines` ada (entri baru), sedangkan
+   entri seed memakai `AJE_META.pbt` yang di-hardcode — dua sumber untuk satu angka.
+   `ajeLines()` menormalkan keduanya lebih dulu, jadi tak ada lagi cabang. */
 function ajeDerivePbt(a: any) {
-  if (!Array.isArray(a.lines)) return 0;
-  return a.lines.reduce((s: any, l: any) => {
+  return ajeLines(a).reduce((s: number, l: { code?: string; debit?: number; credit?: number }) => {
     const c = String(l.code || '');
-    if (c[0] === '4' || c[0] === '5') return s + ((+l.credit || 0) - (+l.debit || 0));
+    if (c[0] === '4' || c[0] === '5') return s + ((+(l.credit || 0)) - (+(l.debit || 0)));
     return s;
   }, 0);
 }
-function ajeDeriveKind(a: any) {
-  if (!Array.isArray(a.lines)) return 'adjusting';
-  return a.lines.some((l: any) => { const c = String(l.code || '')[0]; return c === '4' || c === '5'; }) ? 'adjusting' : 'reclass';
-}
-/* current-asset effect (codes 1-1xxx) from structured lines */
-function ajeCurAssetEffect(a: any) {
-  if (!Array.isArray(a.lines)) return 0;
-  return a.lines.reduce((s: any, l: any) => String(l.code || '').startsWith('1-1') ? s + ((+l.debit || 0) - (+l.credit || 0)) : s, 0);
+
+/* PR-D — SARAN klasifikasi, bukan penentuan.
+   Heuristik lama ("menyentuh akun laba-rugi ⇒ penyesuaian") salah DUA ARAH:
+   reklasifikasi antar akun beban (5-2100→5-3100) dilabeli Penyesuaian, dan koreksi
+   neraca-saja (mis. Piutang vs Utang) dilabeli Reklasifikasi. Padahal legenda tabel
+   menjanjikan "Reklasifikasi tidak berdampak pada laba" — janji yang tak dijamin.
+   Jenis jurnal adalah PERTIMBANGAN auditor; di sini hanya disarankan (efek laba nol
+   ⇒ kemungkinan reklasifikasi) dan auditor menetapkannya di formulir. */
+function ajeKindSuggestion(a: any) {
+  return ajeDerivePbt(a) === 0 ? 'reclass' : 'adjusting';
 }
 
 /* Asersi yang dikoreksi entri user-added (di luar seed): reklas → klasifikasi
@@ -77,24 +85,30 @@ function ajeDeriveAssertions(a: any, kind: string): AssertionId[] {
 /* Asersi yang dikoreksi sebuah AJE — SSOT dipakai Matriks Asersi lintas-modul. */
 function ajeAssertionIds(a: any): AssertionId[] {
   const m = (AJE_META as any)[a.id] || {};
-  const kind = m.kind || ajeDeriveKind(a);
+  const kind = m.kind || a.kind || ajeKindSuggestion(a);
   return (m.assertions as AssertionId[] | undefined) || ajeDeriveAssertions(a, kind);
 }
 
 function buildAjeModel(aje: any) {
   return aje.map((a: any) => {
     const m = (AJE_META as any)[a.id] || {};
-    const kind = m.kind || ajeDeriveKind(a);
+    const kind = m.kind || a.kind || ajeKindSuggestion(a);
     return {
       ...a,
       kind,
       assertions: (m.assertions as AssertionId[] | undefined) || ajeDeriveAssertions(a, kind),
-      pbt: m.pbt != null ? m.pbt : ajeDerivePbt(a),
-      curEff: a.id in AJE_META ? (a.id === 'AJE-01' ? -2_340_000_000 : a.id === 'AJE-03' ? -1_850_000_000 : 0) : ajeCurAssetEffect(a),
-      mis: m.mis || null, std: m.std || '—', cycle: m.cycle || '—',
-      preparer: m.preparer || 'Saya', role: m.role || 'Auditor',
-      proposedOn: m.proposedOn || 'baru saja', reviewedOn: m.reviewedOn || null, postedOn: m.postedOn || null,
-      reviewer: m.reviewer || 'Anindya Pramesti', partner: m.partner || 'Hartono Wijaya',
+      /* PR-D — SELALU diturunkan dari baris jurnal. `curEff` dibuang: sejak PR-C
+         rasio lancar memakai `ajeEffect` canon, sehingga field ini tak punya konsumen
+         lagi — dan nilainya memang salah untuk AJE-02 (CKPN −620 jt ditulis 0). */
+      pbt: ajeDerivePbt(a),
+      mis: m.mis || a.mis || null, std: m.std || '—', cycle: m.cycle || '—',
+      preparer: m.preparer || a.preparer || 'Saya', role: m.role || 'Auditor',
+      proposedOn: m.proposedOn || a.proposedOn || null, reviewedOn: m.reviewedOn || null, postedOn: m.postedOn || null,
+      /* PR-D — DULU jatuh ke 'Anindya Pramesti'/'Hartono Wijaya'. Jurnal buatan auditor
+         karena itu menampilkan nama penelaah & rekan yang tak pernah menyentuhnya —
+         jejak audit fiktif, kelas yang sama dengan pemalsuan persetujuan di PR-B.
+         Penelaah sesungguhnya ditetapkan rantai persetujuan, bukan nilai default. */
+      reviewer: m.reviewer || null, partner: m.partner || null,
       taxEffect: m.taxEffect !== false, fraud: !!m.fraud,
     };
   });
@@ -330,7 +344,7 @@ function AjeDrill({ a, fmt, nav }: any) {
   return (
     <div className="grid" style={{ gap: 12 }}>
       <Panel noBody>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
+        <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '13px 15px', borderRadius: '4px 4px 0 0' }}>
           <div className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{a.id}</span>
             <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
@@ -338,7 +352,11 @@ function AjeDrill({ a, fmt, nav }: any) {
             <Badge>{a.status}</Badge>
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{a.desc}</div>
-          <div className="tiny" style={{ color: '#bcd6e4', marginTop: 4 }}>{a.std} · WP {a.ref}</div>
+          {/* PR-D — ref WP dulu teks polos; `openCanonicalWp` sudah ada & dipakai modul lain. */}
+          <div className="tiny" style={{ color: 'var(--on-navy)', marginTop: 4 }}>{a.std} · <button
+            onClick={() => window.openCanonicalWp && window.openCanonicalWp(nav, a.ref)}
+            style={{ background: 'none', border: 0, padding: 0, color: 'inherit', textDecoration: 'underline', font: 'inherit', cursor: 'pointer' }}
+            title="Buka kertas kerja">WP {a.ref}</button></div>
         </div>
         <table className="dtbl">
           <thead><tr><th>Akun</th><th className="num" style={{ width: 80 }}>Debit (jt)</th><th className="num" style={{ width: 80 }}>Kredit (jt)</th></tr></thead>
@@ -526,10 +544,10 @@ function AjeImpact({ model, posted, proposed, fig, pbtUnadj, reportedPbt, pbtPos
       {/* right — summary + tax + conclusion */}
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '16px 18px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Laba Sebelum Pajak (Dilaporkan)</div>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '16px 18px' }}>
+            <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>Laba Sebelum Pajak (Dilaporkan)</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>Rp {jt(reportedPbt)} jt</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 5 }}>Unadjusted Rp {jt(pbtUnadj)} jt · {posted.length} penyesuaian posted</div>
+            <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 5 }}>Unadjusted Rp {jt(pbtUnadj)} jt · {posted.length} penyesuaian posted</div>
           </div>
           <div style={{ padding: '12px 16px', display: 'grid', gap: 7 }}>
             <AjeKv label="Efek posted ke laba" v={(pbtPosted < 0 ? '' : '+') + jt(pbtPosted) + ' jt'} accent={signColor(pbtPosted)} />
@@ -559,7 +577,8 @@ function AjeImpact({ model, posted, proposed, fig, pbtUnadj, reportedPbt, pbtPos
           </div>
           <div className="row gap8" style={{ marginTop: 12 }}>
             <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => nav('sad')}><I.scale size={14} /> Buka SAD</Btn>
-            <Btn sm style={{ flex: 1 }}><I.sparkle size={14} /> Telaah AI</Btn>
+            {/* PR-D — dulu tombol ini tanpa onClick sama sekali. */}
+            <Btn sm style={{ flex: 1 }} onClick={() => window.__amsOpenCopilot && window.__amsOpenCopilot()}><I.sparkle size={14} /> Telaah AI</Btn>
           </div>
         </Panel>
       </div>
@@ -671,8 +690,13 @@ function AjeApprovals({ model }: any) {
     if (a.reviewedOn) trail.push({ on: a.reviewedOn, id: a.id, who: a.reviewer, act: 'mereviu & menyetujui (manajer)', icon: 'check', tone: 'green' });
     if (a.postedOn) trail.push({ on: a.postedOn, id: a.id, who: a.partner, act: 'menyetujui & memposting ke WTB', icon: 'lock', tone: 'navy' });
   });
-  const ord = (d: any) => { const m = { 'Mei': 5, 'Jun': 6 }; const p = String(d).split(' '); return ((m as any)[p[1]] || 0) * 100 + (+p[0] || 0); };
-  trail.sort((a, b) => ord(b.on) - ord(a.on));
+  /* PR-D — urut berdasarkan tanggal ISO. `ord()` lama memetakan nama bulan lewat peta
+     dua entri ('Mei','Jun'); bulan lain jatuh ke 0, dan entri baru berlabel 'baru saja'
+     tenggelam ke dasar justru karena ia yang terbaru. */
+  /* Entri tanpa tanggal ISO (jurnal yang baru saja diajukan) adalah yang TERBARU,
+     jadi ia naik ke atas — bukan tenggelam ke dasar seperti pada `ord()` lama. */
+  const ordKey = (d: unknown) => /^\d{4}-/.test(String(d || '')) ? String(d) : '9999';
+  trail.sort((a, b) => ordKey(b.on).localeCompare(ordKey(a.on)));
 
   return (
     <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 360px', gap: 12, alignItems: 'start' }}>
@@ -685,10 +709,10 @@ function AjeApprovals({ model }: any) {
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
-          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 16px' }}>
-            <div className="tiny" style={{ color: '#bcd6e4', textTransform: 'uppercase', letterSpacing: '.08em' }}>Menunggu Persetujuan Partner</div>
+          <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '14px 16px' }}>
+            <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Menunggu Persetujuan Partner</div>
             <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1, marginTop: 3 }}>{proposed.length}</div>
-            <div className="tiny" style={{ color: '#9fc0d2', marginTop: 2 }}>jurnal usulan dalam antrean</div>
+            <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 2 }}>jurnal usulan dalam antrean</div>
           </div>
           <div style={{ padding: '10px 14px', display: 'grid', gap: 6 }}>
             <div className="tiny muted" style={{ lineHeight: 1.5 }}>Jurnal hanya boleh diposting ke Working Trial Balance setelah disetujui Engagement Partner sesuai kebijakan otorisasi firma (ISQM 1). Rantai persetujuan ditegakkan di <b>Antrean Persetujuan</b> dan di server - status jurnal adalah hasil rantai itu, bukan saklar.</div>
@@ -704,7 +728,7 @@ function AjeApprovals({ model }: any) {
                 </span>
                 <div style={{ flex: 1 }}>
                   <div className="tiny" style={{ lineHeight: 1.4 }}><b>{t.who}</b> {t.act} <span className="mono" style={{ color: 'var(--blue)' }}>{t.id}</span></div>
-                  <div className="tiny muted" style={{ marginTop: 1 }}>{t.on} 2026</div>
+                  <div className="tiny muted" style={{ marginTop: 1 }}>{/^\d{4}-/.test(String(t.on || '')) ? t.on : 'baru saja'}</div>
                 </div>
               </div>
             ))}
@@ -751,7 +775,7 @@ function WorkflowTrack({ steps }: any) {
                 {s.done ? <I.check size={13} /> : <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--amber-solid)' }} />}
               </div>
               <div className="tiny" style={{ fontWeight: 600, marginTop: 4, color: pending ? 'var(--ink-3)' : 'var(--ink)' }}>{s.role}</div>
-              <div className="tiny muted" style={{ lineHeight: 1.3 }}>{s.who.split(' ')[0]}</div>
+              <div className="tiny muted" style={{ lineHeight: 1.3 }}>{s.who ? String(s.who).split(' ')[0] : '—'}</div>
               <div className="tiny mono" style={{ color: s.done ? 'var(--green)' : 'var(--amber)', fontWeight: 600 }}>{s.done ? s.on || 'selesai' : 'menunggu'}</div>
             </div>
             {i < steps.length - 1 && <div style={{ flex: '0 0 auto', height: 2, width: 18, background: steps[i + 1].done ? 'var(--green)' : 'var(--line-strong)', marginTop: 12 }} />}
@@ -766,4 +790,4 @@ Object.assign(window, { AJEView, ajeAssertionIds });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AJEView, ajeAssertionIds };
+export { AJEView, ajeAssertionIds, ajeDerivePbt, ajeKindSuggestion, ajeLines };
