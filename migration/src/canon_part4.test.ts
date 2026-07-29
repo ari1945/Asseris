@@ -3,6 +3,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { materiality, psak22, psak66 } from './canon_part4';
 import { persistCacheKey, FIRM_SCOPE_ID } from './persist_scope';
+import type { MaterialityConfig } from './canon_types';
 
 describe('materiality() — penentuan materialitas (patokan W0-BASELINE)', () => {
   beforeEach(() => localStorage.clear()); // pakai default (benchId pbt, 5% / 75% / 5%)
@@ -99,6 +100,49 @@ describe('materiality() — presedens OM (PR-6·0, jalur yang dipakai view)', ()
     expect(materiality({ engagementId: ENG }).configSource).toBe('default');
     localStorage.setItem(persistCacheKey('engagement', ENG, 'mat.pmPct'), JSON.stringify(60));
     expect(materiality({ engagementId: ENG }).configSource).toBe('cache');
+  });
+
+  /* ---- PR-H2 — default dilewati oleh NILAI, bukan oleh keberadaan record ---- */
+  it('config dengan pmPct null jatuh ke default 75 — BUKAN PM Rp 0', () => {
+    const m = materiality({
+      engagementId: ENG,
+      /* bentuk yang benar-benar tersimpan untuk ENG-2025-040; tipe menyatakan
+         `pmPct: number`, jadi datanya yang melanggar tipe — cast disengaja. */
+      config: { benchId: 'pbt', pct: 5, pmPct: null, cttPct: 5, appliedOverride: null } as unknown as MaterialityConfig,
+    });
+    expect(m.pmPct).toBe(75);
+    expect(m.pmFull).toBe(Math.round(m.omFull! * 75 / 100));
+    expect(m.pmFull).not.toBe(0);
+    expect(m.configDefects).toEqual(['pmPct']);
+  });
+
+  it('setiap field laju dilindungi sendiri-sendiri, dan cacatnya dilaporkan', () => {
+    const m = materiality({
+      engagementId: ENG,
+      config: { benchId: '', pct: null, pmPct: undefined, cttPct: NaN, appliedOverride: null } as unknown as MaterialityConfig,
+    });
+    expect(m.benchId).toBe('pbt');
+    expect(m.pct).toBe(5);
+    expect(m.pmPct).toBe(75);
+    expect(m.cttPct).toBe(5);
+    expect(m.configDefects.sort()).toEqual(['benchId', 'cttPct', 'pct', 'pmPct']);
+  });
+
+  it('appliedOverride null TETAP berarti "tanpa override", bukan cacat', () => {
+    const m = materiality({
+      engagementId: ENG,
+      config: { benchId: 'pbt', pct: 5, pmPct: 75, cttPct: 5, appliedOverride: null },
+    });
+    expect(m.applied).toBe(false);
+    expect(m.basis).toBe('benchmark');
+    expect(m.configDefects).toEqual([]);
+  });
+
+  it('cache yang menyimpan null diperlakukan sbg tak-ada (jalur non-config)', () => {
+    localStorage.setItem(persistCacheKey('engagement', ENG, 'mat.pmPct'), JSON.stringify(null));
+    const m = materiality({ engagementId: ENG });
+    expect(m.pmPct).toBe(75);
+    expect(m.configDefects).toEqual(['pmPct']);
   });
 
   it('config eksplisit dengan override tetap menang atas benchmark', () => {
