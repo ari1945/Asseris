@@ -427,6 +427,41 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: any) {
   );
 }
 
+/* ============================================================
+   PR-H2 · CHIP BASIS SALDO
+   ------------------------------------------------------------
+   Modul di bawah menampilkan saldo akun yang bergantung pada STATUS jurnal
+   audit. Sejak PR-H1 basisnya DILAPORKAN (dibukukan + jurnal terposting),
+   bukan lagi kolom `adj` yang memuat usulan.
+
+   Chip ini WAJIB muncul juga pada modul yang angkanya TIDAK berubah. Label
+   yang hanya dipasang di tempat yang bergerak justru menyesatkan: pembaca
+   menyimpulkan modul tanpa label tidak punya basis, padahal setiap saldo
+   punya. Yang membuat keadaan lama berbahaya bukan pilihan basisnya melainkan
+   bahwa pilihan itu tak pernah dinyatakan di layar — auditor yang membaca
+   "Nilai tercatat neto 142.040" tak punya cara tahu angka itu memuat koreksi
+   yang partner belum setujui.
+
+   Ditempatkan di SubBar (satu tempat) alih-alih di tiap view, supaya modul
+   baru tak bisa lupa memasangnya dan bunyinya tak bisa menyimpang. */
+const BASIS_MODULES: Record<string, string> = {
+  psak2: 'Arus kas', psak14: 'Persediaan & BPP', psak16: 'Aset tetap',
+  psak19: 'Aset takberwujud', psak25: 'Estimasi & saldo laba', psak46: 'Beda temporer',
+  psak48: 'Nilai tercatat UPK', psak58: 'Aset dijual', psak71: 'Piutang & CKPN',
+  psak72: 'Pendapatan & piutang', ecl: 'Piutang & CKPN', fsgen: 'Seluruh pos LK',
+  dataflow: 'Tie-out lintas-modul', forensic: 'Jembatan arus kas', segmen: 'Pendapatan',
+};
+function BasisChip({ moduleId }: { moduleId: string }) {
+  const scope = BASIS_MODULES[moduleId];
+  if (!scope) return null;
+  return (
+    <span className="badge b-blue" title={scope + ' disajikan pada basis DILAPORKAN: saldo dibukukan klien + jurnal audit yang benar-benar berstatus Posted. Jurnal yang masih usulan DIKECUALIKAN — ia hidup sebagai salah saji tidak dikoreksi di Ikhtisar Salah Saji (SAD), bukan sebagai angka laporan.'}
+      style={{ whiteSpace: 'nowrap' }}>
+      Basis: DILAPORKAN
+    </span>
+  );
+}
+
 /* Breadcrumb / view toolbar */
 function SubBar({ moduleId, right }: any) {
   const m = (MODULE_INDEX as any)[moduleId] || { label: moduleId, group: '' };
@@ -454,6 +489,7 @@ function SubBar({ moduleId, right }: any) {
         </div>
         <div className="pagehead-spacer" />
         <div className="pagehead-actions">
+          <BasisChip moduleId={moduleId} />
           {typeof WpSubBarControl !== 'undefined' && <WpSubBarControl moduleId={moduleId} />}
           {typeof EvidenceControl !== 'undefined' && <EvidenceControl moduleId={moduleId} />}
           {right}
