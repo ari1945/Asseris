@@ -13,6 +13,7 @@
 import { describe, it, expect } from 'vitest';
 import { AMS_CANON } from './canon';
 import { SAMPLE_WTB } from './__fixtures__/wtb';
+import { AMS } from './data';
 
 const p65 = () => AMS_CANON.psak65(SAMPLE_WTB, null);
 
@@ -68,5 +69,61 @@ describe('SA 600 PR-1 — identitas laba konsolidasian', () => {
     expect(s.tax).toBe(4400);
     expect(ov.consolPbt).not.toBe(base.consolPbt);
     expect(ov.consolPbt - ov.consolTax).toBe(ov.consolNpat);
+  });
+});
+
+/* ============================================================
+   PR-H1 — figur induk sebagai KOMPONEN audit grup.
+
+   `view_groupaudit` dulu mengetik ulang tiga figur induk sebagai konstanta
+   (`npat` 14.660 jt · `revPct` 58 · `astPct` 55) padahal induk hidup di WTB
+   lewat psak65. Yang merugikan bukan `npat` (tanpa konsumen) melainkan kedua
+   persentase: keduanya menyusun KPI CAKUPAN LINGKUP SA 600.
+
+   Uji di bawah memaku kontrak yang dipakai view untuk menurunkannya.
+   ============================================================ */
+describe('PR-H1 — figur induk dapat diturunkan untuk baris komponen', () => {
+  /* CATATAN saat menulis PR-H1: `SAMPLE_WTB` TIDAK PERNAH diekspor oleh
+     `__fixtures__/wtb.ts` (yang ada: FIXTURE_WTB / FIXTURE_TB_FULL). Impornya karena
+     itu `undefined`, dan `psak65(undefined, …)` jatuh ke singleton `AMS.WTB` — jadi
+     seluruh uji di berkas ini sebenarnya berjalan atas singleton, bukan fixture.
+     Lolos karena test-tier di-EXCLUDE dari `tsc` sejak W15. Uji di bawah karena itu
+     membandingkan ke WTB yang BENAR-BENAR dipakai, bukan ke nama yang menyesatkan. */
+  it('parentRev diekspor & TIE ke WTB 4-1100 (basis adj, sama dengan psak65)', () => {
+    const sales = AMS.WTB.find((r: { code: string }) => r.code === '4-1100')!;
+    const expected = -Math.round((sales.adj ?? 0) / 1e6);
+    expect(p65().parentRev).toBe(expected);
+  });
+
+  it('identitas penyebut: parentRev + Σ anak − eliminasi pendapatan = consolRev', () => {
+    const r = p65();
+    const subsRev = r.subs.reduce((a, s) => a + s.rev, 0);
+    const elm01 = r.interco.find(e => e.id === 'ELM-01')!;
+    expect(r.parentRev + subsRev - elm01.amount).toBe(r.consolRev);
+  });
+
+  /* Mengapa penyebutnya AGREGAT KOMPONEN, bukan figur konsolidasian: memakai
+     consolRev atas pendapatan komponen BRUTO membuat cakupan penuh melewati 100%
+     — artefak eliminasi, bukan cakupan berlebih. */
+  it('agregat komponen > konsolidasian, sehingga konsolidasian bukan penyebut yang sah', () => {
+    const r = p65();
+    const grossRev = r.parentRev + r.subs.reduce((a, s) => a + s.rev, 0);
+    expect(grossRev).toBeGreaterThan(r.consolRev);
+    expect(grossRev / r.consolRev).toBeGreaterThan(1);
+  });
+
+  it('bagian setiap komponen atas agregat berjumlah 100%', () => {
+    const r = p65();
+    const grossRev = r.parentRev + r.subs.reduce((a, s) => a + s.rev, 0);
+    const grossAst = r.totals.aset.induk + r.subs.reduce((a, s) => a + s.assets, 0);
+    const revShares = [r.parentRev, ...r.subs.map(s => s.rev)].map(v => v / grossRev * 100);
+    const astShares = [r.totals.aset.induk, ...r.subs.map(s => s.assets)].map(v => v / grossAst * 100);
+    expect(revShares.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 6);
+    expect(astShares.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 6);
+  });
+
+  /* Konstanta lama vs turunan: 14.660 jt tak pernah tie ke laba induk mana pun. */
+  it('npat induk turunan TIDAK sama dengan konstanta 14.660 jt yang dibuang', () => {
+    expect(p65().npatParent).not.toBe(14_660);
   });
 });

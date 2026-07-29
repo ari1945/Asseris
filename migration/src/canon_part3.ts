@@ -562,6 +562,11 @@ import type { WTB } from './canon_types';
       subsNpat, elimLaba, consolNpat, nciProfit, ownersProfit,
       /* SA 600 PR-1 — basis benchmark materialitas GRUP (dipakai PR-2). */
       parentPbtSeparate, subsPbt, subsTax, consolRev, consolPbt, consolTax,
+      /* PR-H1 — pendapatan induk standalone. DIEKSPOR karena dua konsumen sudah
+         menghitungnya ulang sendiri dari WTB (`view_psak65.tsx:336` inline, dan
+         Group Audit dulu memakai konstanta `revPct: 58`). Kelas yang sama dengan
+         `AJE_META.pbt` & `P46_FISCAL`: turunan yang diketik ulang di hilir. */
+      parentRev: pSales,
       translation, recon,
       goodwillTie: GOODWILL,
       pkgApproved, pkgAllApproved, pkgAllBalanced, pkgCounts,

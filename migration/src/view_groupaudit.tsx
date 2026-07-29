@@ -25,12 +25,31 @@ const { useState: useStateGA, useMemo: useMemoGA } = React;
    fantasi pra-PR-A), plus faktor ajaib `GROUP_MAT * 0.35` saat lingkup dinaikkan.
    Kini seluruhnya dari `AMS_CANON.groupMateriality(consolPbt)` — lihat canon_part3. */
 
+/* PR-H1 — `revPct` · `astPct` · `npat` DIBUANG dari kelima baris; ketiganya kini
+   diturunkan dari `psak65()` di dalam komponen (lihat `comps`).
+
+   Yang paling merugikan ternyata BUKAN `npat`: field itu tak punya konsumen sama sekali
+   (satu-satunya laba yang tampil di layar datang dari `p65.indukSeparate` dan
+   `p65.subs[].npat`). Yang merugikan adalah `revPct`/`astPct` — keduanya menyusun KPI
+   **cakupan lingkup SA 600** (¶26-29), angka yang dipakai menyimpulkan bahwa prosedur
+   atas komponen mencakup porsi grup yang memadai. Lima persentase karangan yang
+   kebetulan berjumlah 100 menyanggah kesimpulan itu, dan tak ada yang dapat melihatnya.
+
+   Bukti bahwa hanya baris INDUK yang liar: `npat` CP-02..CP-05 cocok PERSIS dengan
+   `p65.subs[].npat`, sedangkan CP-01 14.660 jt tak tie ke apa pun (laba induk turunan
+   WTB = 11.540 jt; +27%). Satu-satunya baris yang bisa diturunkan dari buku besar
+   sendiri justru satu-satunya yang diketik tangan — pola yang sama dengan
+   `AJE_META.pbt` (PR-D) & `P46_FISCAL` (PR-F).
+
+   `mat` SENGAJA dibiarkan: SA 600 PR-2 sudah menetralkannya lewat `matById` (turunan
+   menang atas state) dan `setScope` masih menulis field itu. Membongkarnya di sini
+   memperluas cakupan tanpa menambah kebenaran. */
 const GA_COMPONENTS = [
-  { id: 'CP-01', name: 'PT Sentosa Makmur', role: 'Induk / Holding', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 100, revPct: 58, astPct: 55, npat: 14_660_000_000, sig: 'Signifikan (ukuran)', scope: 'Full', mat: 4_250_000_000, auditor: 'Tim Grup (WHR)', kap: false, status: 'Reporting', risk: 'High', instr: '—', step: 5, evInd: 5, evComp: 5, evReg: 5, sad: 410_000_000 },
-  { id: 'CP-02', name: 'PT Sentosa Logistik', role: 'Anak (Distribusi)', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 99, revPct: 18, astPct: 16, npat: 11_900_000_000, sig: 'Signifikan (ukuran)', scope: 'Full', mat: 2_100_000_000, auditor: 'Tim Grup (WHR)', kap: false, status: 'Reporting', risk: 'Medium', instr: '—', step: 5, evInd: 5, evComp: 5, evReg: 5, sad: 150_000_000 },
-  { id: 'CP-03', name: 'PT Sentosa Pangan', role: 'Anak (Manufaktur)', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 80, revPct: 14, astPct: 15, npat: 7_200_000_000, sig: 'Signifikan (risiko)', scope: 'Specific', mat: 1_650_000_000, auditor: 'KAP Mitra Selaras', kap: true, status: 'Instructions', risk: 'High', instr: 'Terkirim', step: 1, evInd: 4, evComp: 3, evReg: 4, sad: 880_000_000 },
-  { id: 'CP-04', name: 'PT Sentosa Retail', role: 'Anak (Ritel)', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 75, revPct: 6, astPct: 8, npat: 2_600_000_000, sig: 'Tidak signifikan', scope: 'Analytical', mat: 0, auditor: 'Tim Grup (WHR)', kap: false, status: 'Pending', risk: 'Low', instr: '—', step: 0, evInd: 5, evComp: 5, evReg: 5, sad: 0 },
-  { id: 'CP-05', name: 'Sentosa Trading Pte Ltd', role: 'Anak (Perdagangan)', country: 'Singapura', ccy: 'SGD', fx: 11_950, own: 100, revPct: 4, astPct: 6, npat: 4_050_000_000, sig: 'Signifikan (risiko)', scope: 'Full', mat: 1_400_000_000, auditor: 'KAP Lim & Tan (SG)', kap: true, status: 'Reviewed', risk: 'Medium', instr: 'Diterima', step: 4, evInd: 5, evComp: 4, evReg: 3, sad: 320_000_000 },
+  { id: 'CP-01', name: 'PT Sentosa Makmur', role: 'Induk / Holding', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 100, derived: 'parent', sig: 'Signifikan (ukuran)', scope: 'Full', mat: 4_250_000_000, auditor: 'Tim Grup (WHR)', kap: false, status: 'Reporting', risk: 'High', instr: '—', step: 5, evInd: 5, evComp: 5, evReg: 5, sad: 410_000_000 },
+  { id: 'CP-02', name: 'PT Sentosa Logistik', role: 'Anak (Distribusi)', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 99, derived: 'sub', sig: 'Signifikan (ukuran)', scope: 'Full', mat: 2_100_000_000, auditor: 'Tim Grup (WHR)', kap: false, status: 'Reporting', risk: 'Medium', instr: '—', step: 5, evInd: 5, evComp: 5, evReg: 5, sad: 150_000_000 },
+  { id: 'CP-03', name: 'PT Sentosa Pangan', role: 'Anak (Manufaktur)', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 80, derived: 'sub', sig: 'Signifikan (risiko)', scope: 'Specific', mat: 1_650_000_000, auditor: 'KAP Mitra Selaras', kap: true, status: 'Instructions', risk: 'High', instr: 'Terkirim', step: 1, evInd: 4, evComp: 3, evReg: 4, sad: 880_000_000 },
+  { id: 'CP-04', name: 'PT Sentosa Retail', role: 'Anak (Ritel)', country: 'Indonesia', ccy: 'IDR', fx: 1, own: 75, derived: 'sub', sig: 'Tidak signifikan', scope: 'Analytical', mat: 0, auditor: 'Tim Grup (WHR)', kap: false, status: 'Pending', risk: 'Low', instr: '—', step: 0, evInd: 5, evComp: 5, evReg: 5, sad: 0 },
+  { id: 'CP-05', name: 'Sentosa Trading Pte Ltd', role: 'Anak (Perdagangan)', country: 'Singapura', ccy: 'SGD', fx: 11_950, own: 100, derived: 'sub', sig: 'Signifikan (risiko)', scope: 'Full', mat: 1_400_000_000, auditor: 'KAP Lim & Tan (SG)', kap: true, status: 'Reviewed', risk: 'Medium', instr: 'Diterima', step: 4, evInd: 5, evComp: 4, evReg: 3, sad: 320_000_000 },
 ];
 
 /* Prosedur reviu proses konsolidasi (tim audit grup · SA 600 / PSAK 65) */
@@ -119,17 +138,50 @@ function GroupAudit() {
   const [packages, setPackages] = useAmsPersist('gaPackages', () => gaDefaultPackages(wtb));
   const p65 = useMemoGA(() => (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, packages) : null, [wtb, packages]);
   const seedSubs = useMemoGA(() => (AMS_CANON && AMS_CANON.psak65) ? AMS_CANON.psak65(wtb, {}).subs : [], [wtb]);
-  const [comps, setComps] = useAmsPersist('gaComps', () => GA_COMPONENTS);
+  const [rawComps, setComps] = useAmsPersist('gaComps', () => GA_COMPONENTS);
   const [findings] = useAmsPersist('gaFindings', () => GA_FINDINGS);
   const [elimVerify, setElimVerify] = useAmsPersist('gaElimVerify', () => ({}));
   const [procDone, setProcDone] = useAmsPersist('gaConsolProc', () => ({}));
   const [tab, setTab] = useStateGA('scope');
   const [selId, setSelId] = useStateGA('CP-03');
+  /* PR-H1 — figur komponen DITURUNKAN dari kertas kerja konsolidasi, lalu ditimpakan
+     ke state persist (pola `matById` SA 600 PR-2: turunan menang atas konstanta yang
+     masih hidup di localStorage pengguna lama).
+
+     Penyebutnya adalah AGREGAT KOMPONEN (induk + Σ anak), bukan figur konsolidasian.
+     Alasannya bukan selera: memakai pendapatan konsolidasian (461.650) sebagai penyebut
+     atas pendapatan komponen BRUTO (471.900) membuat cakupan penuh berbunyi 102,2% —
+     artefak eliminasi antar-perusahaan, bukan cakupan berlebih. Dengan agregat komponen,
+     persentase menjadi dekomposisi populasi yang benar-benar diaudit dan berjumlah 100%.
+
+     `revPct`/`astPct` dibulatkan ke bilangan bulat agar bentuknya persis seperti dulu
+     (tabel & Donut tak perlu berubah), sementara KPI cakupan dijumlahkan dari nilai
+     EKSAK lalu dibulatkan sekali — menjumlahkan angka yang sudah dibulatkan akan
+     menyeret galat pembulatan ke dalam kesimpulan lingkup. */
+  const comps = useMemoGA(() => {
+    if (!p65) return rawComps;
+    const subById: Record<string, { rev: number; assets: number; npat: number }> =
+      Object.fromEntries(p65.subs.map((s: { id: string }) => [s.id, s]));
+    const parent = { rev: p65.parentRev, assets: p65.totals.aset.induk, npat: p65.npatParent };
+    const grossRev = parent.rev + p65.subs.reduce((a: number, s: { rev: number }) => a + s.rev, 0);
+    const grossAst = parent.assets + p65.subs.reduce((a: number, s: { assets: number }) => a + s.assets, 0);
+    return rawComps.map((c: any) => {
+      const f = c.derived === 'parent' ? parent : subById[c.id];
+      if (!f) return c;                                  // komponen buatan pengguna: biarkan apa adanya
+      const revPctExact = grossRev ? f.rev / grossRev * 100 : 0;
+      const astPctExact = grossAst ? f.assets / grossAst * 100 : 0;
+      return { ...c,
+        npat: Math.round(f.npat * 1e6),                  // p65 dalam Rp juta, baris komponen Rp penuh
+        revPct: Math.round(revPctExact), astPct: Math.round(astPctExact),
+        revPctExact, astPctExact };
+    });
+  }, [rawComps, p65]);
+
   const sel = comps.find((c: any) => c.id === selId);
 
   const covered = comps.filter((c: any) => c.scope !== 'Analytical');
-  const revCoverage = covered.reduce((s: any, c: any) => s + c.revPct, 0);
-  const astCoverage = covered.reduce((s: any, c: any) => s + c.astPct, 0);
+  const revCoverage = Math.round(covered.reduce((s: number, c: any) => s + (c.revPctExact ?? c.revPct ?? 0), 0));
+  const astCoverage = Math.round(covered.reduce((s: number, c: any) => s + (c.astPctExact ?? c.astPct ?? 0), 0));
   const compAuditors = new Set(comps.filter((c: any) => c.kap).map((c: any) => c.auditor)).size;
   const kapComps = comps.filter((c: any) => c.kap);
   const pkgReceived = kapComps.filter((c: any) => c.instr === 'Diterima').length;
