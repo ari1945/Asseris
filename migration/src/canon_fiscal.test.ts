@@ -192,6 +192,56 @@ describe('deferredTax() — konsumen rekonsiliasi fiskal', () => {
   });
 });
 
+/* ============================================================
+   PR-H0 — GERBANG KESETARAAN JALUR.
+
+   PR-G1 lolos seluruh gerbang (typecheck 0 · lint 0 · 755 test) sambil hanya
+   terpasang pada SATU dari tiga bentuk pemanggilan, karena setiap uji yang ada
+   memakai `deferredTax()` zero-arg atau `deferredTax(SEED, SEED_AJE)` — dan
+   keduanya kebetulan benar. Bentuk yang salah, `deferredTax(wtb)`, justru yang
+   dipakai `view_psak71` dan `view_reconcile`.
+
+   Ini kelas kegagalan yang sama dengan oracle materialitas (#138): uji memaku
+   jalur yang tak dipakai satu view pun. Karena itu penjaganya bukan "angka X
+   benar" melainkan "KETIGA jalur menjawab sama" — pernyataan yang tak dapat
+   dipenuhi oleh perbaikan separuh.
+   ============================================================ */
+describe('PR-H0 — ketiga bentuk pemanggilan deferredTax() menjawab satu basis', () => {
+  const zero = deferredTax();
+  const wtbOnly = deferredTax(SEED);
+  const both = deferredTax(SEED, SEED_AJE);
+  const bucket = (d: ReturnType<typeof deferredTax>, id: string) =>
+    d.items.find(i => i.id === id)!;
+
+  it.each(['ecl', 'ppe', 'eb', 'lse', 'prv', 'tlc'])(
+    'saldo ember %s identik pada zero-arg / (wtb) / (wtb, aje)', (id) => {
+      expect(bucket(wtbOnly, id).diff).toBe(bucket(zero, id).diff);
+      expect(bucket(wtbOnly, id).diff).toBe(bucket(both, id).diff);
+      expect(bucket(wtbOnly, id).car).toBe(bucket(both, id).car);
+    });
+
+  it('agregat DTA & suku identitas juga identik', () => {
+    for (const k of ['closing', 'opening', 'currentTax', 'deferredPL', 'taxExpense', 'pbt', 'pkp'] as const) {
+      expect([k, wtbOnly[k]]).toEqual([k, zero[k]]);
+      expect([k, wtbOnly[k]]).toEqual([k, both[k]]);
+    }
+  });
+
+  /* Penjaga arah: nilai yang dulu bocor. Bila `reportedBalance` kehilangan
+     fallback-nya lagi, ember `ecl` kembali ke 1.980 (kolom `unadj` mentah) dan
+     baris ini gagal lebih dulu — sebelum snapshot manapun bergerak. */
+  it('saldo ember ecl = basis DILAPORKAN (2.600), bukan unadj mentah (1.980)', () => {
+    expect(bucket(wtbOnly, 'ecl').diff).toBe(2_600);
+    expect(bucket(wtbOnly, 'ecl').diff).not.toBe(1_980);
+  });
+
+  /* `[]` eksplisit BUKAN "tak diisi": nol jurnal terposting adalah pernyataan,
+     dan fallback tidak boleh menimpanya. */
+  it('larik kosong eksplisit tidak jatuh ke register singleton', () => {
+    expect(bucket(deferredTax(SEED, []), 'ecl').diff).toBe(1_980);
+  });
+});
+
 describe('penjaga anti-kambuh — angka fantasi tidak boleh kembali', () => {
   it('tak ada 48.500 / 53.500 / 11.770 di jalur perhitungan PSAK 46', () => {
     const dt = deferredTax();
