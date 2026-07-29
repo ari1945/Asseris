@@ -96,3 +96,60 @@ describe('PR-H1 — basis mengubah angka ke arah yang benar', () => {
     expect(jt(m.ifAllProposed.is.cogs.cy)).toBe(233_600);
   });
 });
+
+/* ============================================================
+   REAKTIVITAS — kriteria yang membuat seluruh perubahan ini ada gunanya.
+
+   Basis DILAPORKAN ditentukan STATUS POSTING. Bila angka modul tidak bergerak
+   saat partner memposting jurnal, maka "dilaporkan" hanya label baru untuk
+   konstanta — dan cacatnya lebih halus daripada sebelumnya, karena kini ia
+   MENGAKU reaktif. Diuji dengan menggerakkan status, bukan dengan mengubah WTB.
+   ============================================================ */
+describe('PR-H1 — angka bergerak saat status jurnal berubah', () => {
+  const jt = (n: number) => Math.round(n / 1e6);
+  const withStatus = (id: string, status: string) =>
+    (AMS.AJE as Array<{ id: string; status: string }>).map(a => (a.id === id ? { ...a, status } : a));
+
+  const view = (aje: unknown) => {
+    const m = FSGEN.buildModel(WTB_SEED, aje as never, 'reported');
+    return {
+      ppe: jt(m.bs.nca.find(l => l.key === 'asettetap')!.cy),
+      piutang: jt(m.bs.ca.find(l => l.key === 'piutang')!.cy),
+      laba: jt(m.is.netIncome.cy),
+      seimbang: m.bs.balanced, kasTie: m.cf.ties,
+    };
+  };
+
+  it('memposting AJE-05 menurunkan aset tetap 1.120 jt', () => {
+    const before = view(AMS.AJE);
+    const after = view(withStatus('AJE-05', 'Posted'));
+    expect(before.ppe - after.ppe).toBe(1_120);
+    expect(before.laba - after.laba).toBe(1_120);
+    /* neraca & arus kas TETAP menutup sesudah status berubah — penutupan saldo
+       laba ikut bergerak, bukan dipatok ke satu status tertentu. */
+    expect(after.seimbang).toBe(true);
+    expect(after.kasTie).toBe(true);
+  });
+
+  it('memposting AJE-03 menurunkan piutang neto & laba 1.850 jt', () => {
+    const before = view(AMS.AJE);
+    const after = view(withStatus('AJE-03', 'Posted'));
+    expect(before.piutang - after.piutang).toBe(1_850);
+    expect(before.laba - after.laba).toBe(1_850);
+    expect(after.seimbang).toBe(true);
+    expect(after.kasTie).toBe(true);
+  });
+
+  /* Titik temu dua basis: bila SEMUA usulan diposting, basis `reported` wajib
+     mendarat PERSIS di `ifAllProposed`. Bila tidak, kedua jalur menghitung hal
+     berbeda dan sakelar di layar akan menampilkan dua angka yang tak pernah
+     bertemu. */
+  it('semua usulan diposting → reported == ifAllProposed', () => {
+    const semua = (AMS.AJE as Array<{ status: string }>).map(a => ({ ...a, status: 'Posted' }));
+    const rep = FSGEN.buildModel(WTB_SEED, semua as never, 'reported');
+    const all = FSGEN.buildModel(WTB_SEED, undefined, 'ifAllProposed');
+    expect(jt(rep.bs.totalAssets.cy)).toBe(jt(all.bs.totalAssets.cy));
+    expect(jt(rep.is.netIncome.cy)).toBe(jt(all.is.netIncome.cy));
+    expect(jt(rep.bs.totalEq.cy)).toBe(jt(all.bs.totalEq.cy));
+  });
+});
