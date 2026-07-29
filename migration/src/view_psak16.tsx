@@ -121,6 +121,23 @@ function PSAK16View() {
   const model = useMemoP16(() => (FSGEN ? FSGEN.buildModel(wtb, aje) : null), [wtb, aje]);
   const fa = useMemoP16(() => (AMS_CANON ? AMS_CANON.fixedAssets(wtb, aje) : null), [wtb, aje]);
   const reg = useMemoP16(() => (AMS_CANON ? AMS_CANON.assetRegister(wtb, aje) : null), [wtb, aje]);
+  /* PR-H3 — pisahkan koreksi penyusutan menurut STATUS, ditarik dari register HIDUP
+     (bukan `AMS.AJE` beku, bukan pula konstanta AJE-05): sejak modul memakai basis
+     DILAPORKAN, "koreksi yang tercermin" dan "koreksi yang diusulkan" adalah dua angka
+     berbeda, dan menyamakannya membuat tie-out memerah justru saat sistem benar. */
+  const deprAje = useMemoP16(() => {
+    const rows = (aje && aje.length ? aje : ((AMS && AMS.AJE) || [])) as Array<{ id?: string; status?: string; cr?: string; dr?: string; amount?: number }>;
+    let posted = 0, pending = 0; const ids: string[] = [];
+    rows.forEach(a => {
+      const hits = [a.dr, a.cr].filter(x => String(x || '').startsWith('1-2110')).length;
+      if (!hits) return;
+      const amt = (a.amount || 0) / 1e6;   /* `M` dideklarasikan setelah blok ini — TDZ */
+      if (String(a.status || '').trim() === 'Posted') posted += amt;
+      else { pending += amt; if (a.id) ids.push(a.id); }
+    });
+    return { posted, pending, ids: ids.join(', ') || '—' };
+  }, [aje]);
+  const deprAjePosted = deprAje.posted, deprAjePending = deprAje.pending, deprAjePendingIds = deprAje.ids;
 
   const [unit, setUnit] = useStateP16(() => loader('ams.psak16.unit', 'jutaan'));
   const [measure, setMeasure] = window.useAmsPersist('psak16.measure.v1', () => ('cost'));
@@ -190,8 +207,12 @@ function PSAK16View() {
     { label: 'Pelepasan / penghentian (¶67)', hp: 0, ak: 0, net: 0, memo: 'nihil tercatat' },
     { label: 'Beban penyusutan — dibukukan klien', hp: 0, ak: -fa.deprClient, net: -fa.deprClient },
     { label: 'Saldo akhir — sebelum audit', hp: fa.grossClose, ak: -fa.accumClient, net: closeUnauditedNet, sub: true },
-    { label: 'Koreksi audit · penyusutan (AJE-05)', hp: 0, ak: -fa.ajeDepr, net: -fa.ajeDepr, memo: aje05 ? aje05.status : 'Proposed' },
+    { label: 'Koreksi audit · penyusutan — TERPOSTING', hp: 0, ak: -fa.ajeDepr, net: -fa.ajeDepr, memo: 'masuk nilai tercatat' },
     { label: 'Saldo akhir — audited (31 Des 2025)', hp: fa.grossClose, ak: -fa.accumAudit, net: fa.netClose, total: true },
+    /* PR-H3 — usulan ditampilkan DI BAWAH total, sebagai memo. Menaruhnya di dalam
+       roll-forward akan mengulang cacat lama: angka yang belum diputuskan ikut membentuk
+       saldo yang disebut "audited". Di sini ia terlihat tanpa ikut menghitung. */
+    ...(deprAjePending ? [{ label: 'Usulan belum diputuskan (' + deprAjePendingIds + ')', hp: 0, ak: -deprAjePending, net: -deprAjePending, memo: 'DIKECUALIKAN — salah saji tidak dikoreksi (SAD)', muted: true }] : []),
   ];
 
   /* ——— tie-out lintas-laporan (semua ditarik live, dalam Rp juta) ——— */
@@ -207,7 +228,20 @@ function PSAK16View() {
     { id: 't4', label: 'Penyusutan = add-back Arus Kas (PSAK 2)', std: 'PSAK 2', a: fa.deprAudited, b: M(model.meta.depreciation), note: 'Beban penyusutan audited = kenaikan akumulasi penyusutan (add-back non-kas).' },
     { id: 't5', label: 'Belanja modal neto = arus kas investasi', std: 'PSAK 2', a: fa.capexNet, b: M(-model.meta.capex), note: 'Mutasi neto harga perolehan = perolehan aset tetap pada Arus Kas Investasi.' },
     { id: 't6', label: 'Saldo awal = komparatif WTB 2024', std: '¶73(d)', a: fa.netOpen, b: M(((wtb.find((r: any) => r.code === '1-2100') || {}).ly || 0) + ((wtb.find((r: any) => r.code === '1-2110') || {}).ly || 0)), note: 'Nilai tercatat neto awal = saldo audited periode lalu (kolom komparatif WTB).' },
-    { id: 't7', label: 'Koreksi penyusutan terposting = AJE-05', std: 'SA 450', a: fa.ajeDepr, b: -M((wtb.find((r: any) => r.code === '1-2110') || {}).aje || 0), note: 'AJE-05 (' + (aje05 ? aje05.status : '—') + ') Rp ' + fmt(Math.abs(fa.ajeDepr)) + ' jt tercermin pada saldo adjusted.' },
+    /* PR-H3 — baris ini dulu menuntut koreksi penyusutan yang TERCERMIN sama dengan
+       kolom `aje` WTB, dan menyebut hasilnya "tercermin pada saldo adjusted". Sejak modul
+       pindah ke basis DILAPORKAN, tuntutan itu TERBALIK: jurnal berstatus usulan justru
+       WAJIB dikecualikan, sehingga baris ini memerah tepat ketika sistem berperilaku benar
+       (A 0 vs B 1.120) sambil catatannya menyatakan yang sebaliknya.
+
+       Kini yang diuji adalah pernyataan yang memang harus benar: koreksi yang tercermin =
+       koreksi dari jurnal TERPOSTING saja. Usulan yang tertahan tidak dihilangkan dari
+       layar — ia pindah ke `pending`, tempat ia dapat dibaca sebagai apa adanya: salah saji
+       yang belum dikoreksi, bukan tie-out yang putus. */
+    { id: 't7', label: 'Koreksi penyusutan tercermin = jurnal TERPOSTING', std: 'SA 450', a: fa.ajeDepr, b: deprAjePosted,
+      note: deprAjePending
+        ? 'Koreksi terposting Rp ' + fmt(Math.abs(deprAjePosted)) + ' jt tercermin. ' + deprAjePendingIds + ' (usulan) Rp ' + fmt(Math.abs(deprAjePending)) + ' jt DIKECUALIKAN dari nilai tercatat — tercatat sebagai salah saji tidak dikoreksi di SAD sampai partner memutuskan.'
+        : 'Seluruh koreksi penyusutan berstatus terposting dan tercermin pada nilai tercatat.' },
   ].map(r => ({ ...r, diff: r.a - r.b, ok: Math.abs(r.a - r.b) < 1.5 }));
   const tiePass = tieRows.filter(r => r.ok).length;
 
@@ -257,7 +291,7 @@ function PSAK16View() {
           <div className="row gap8" style={{ alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--green)', marginTop: 1 }}><I.checkCircle size={15} /></span>
             <span style={{ fontSize: 12, lineHeight: 1.45 }}>
-              <b>Penambahan</b> Rp {sc(fa.additions)} {UN.short} = mutasi neto harga perolehan WTB (belanja modal {eng.fy}); tidak ada pelepasan dibukukan klien — keberadaan diuji terpisah (R-04). Koreksi audit <b>AJE-05</b> Rp {fmt(Math.abs(fa.ajeDepr))} jt menaikkan penyusutan — saldo akhir neto menutup persis ke <b>WTB 1-2100 + 1-2110</b> (= Aset tetap neto pada Neraca).
+              <b>Penambahan</b> Rp {sc(fa.additions)} {UN.short} = mutasi neto harga perolehan WTB (belanja modal {eng.fy}); tidak ada pelepasan dibukukan klien — keberadaan diuji terpisah (R-04). {deprAjePosted ? <>Koreksi audit terposting Rp {fmt(Math.abs(deprAjePosted))} jt menaikkan penyusutan. </> : null}{deprAjePending ? <>Usulan <b>{deprAjePendingIds}</b> Rp {fmt(Math.abs(deprAjePending))} jt <b>tidak</b> menaikkan penyusutan di sini — basis DILAPORKAN mengecualikan jurnal yang belum diposting. </> : null}Saldo akhir neto menutup persis ke <b>WTB 1-2100 + 1-2110</b> basis dilaporkan (= Aset tetap neto pada Neraca).
             </span>
           </div>
         </div>
@@ -641,7 +675,7 @@ function PSAK16View() {
           )}
 
           <div className="tiny muted" style={{ padding: '0 2px 4px', lineHeight: 1.5 }}>
-            Kertas kerja aset tetap <b>{client.name}</b> ({eng.id} · {eng.fy}) disusun sesuai PSAK 16 dan ditarik penuh dari Working Trial Balance (1-2100 & 1-2110) melalui mesin kanonik yang sama dipakai FS Generator (CALK 7), PSAK 46 (beda temporer), Arus Kas (add-back penyusutan), & tab Rekonsiliasi Angka. {aje05 ? <>Koreksi <b>{aje05.id}</b> ({aje05.desc}) berstatus {aje05.status} telah tercermin pada saldo adjusted.</> : null} Status & pilihan tersimpan otomatis untuk jejak audit.
+            Kertas kerja aset tetap <b>{client.name}</b> ({eng.id} · {eng.fy}) disusun sesuai PSAK 16 dan ditarik penuh dari Working Trial Balance (1-2100 & 1-2110) melalui mesin kanonik yang sama dipakai FS Generator (CALK 7), PSAK 46 (beda temporer), Arus Kas (add-back penyusutan), & tab Rekonsiliasi Angka. {deprAjePending ? <>Koreksi penyusutan berstatus <b>usulan</b> ({deprAjePendingIds}) Rp {fmt(Math.abs(deprAjePending))} jt <b>dikecualikan</b> dari nilai tercatat — basis DILAPORKAN hanya memuat jurnal yang benar-benar diposting; usulan hidup sebagai salah saji tidak dikoreksi di Ikhtisar Salah Saji (SAD).</> : null} Status & pilihan tersimpan otomatis untuk jejak audit.
           </div>
         </div>
       </div>

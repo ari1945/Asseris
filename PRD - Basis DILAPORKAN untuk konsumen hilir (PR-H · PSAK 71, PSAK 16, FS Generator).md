@@ -1,9 +1,38 @@
 # PRD — Basis DILAPORKAN untuk konsumen hilir (PR-H · PSAK 71, PSAK 16, FS Generator)
 
-**Status:** ⏸️ **MENUNGGU KEPUTUSAN** — evaluasi selesai, implementasi belum dimulai.
+**Status:** ✅ **TERIMPLEMENTASI** — 2026-07-29, Opsi C dikerjakan penuh (H0 · H1 · H2 · H3).
+Ari mendelegasikan ketiga keputusan metodologi ("Proceed" tanpa memilih); §8 diisi oleh saya
+dengan alasan tertulis per keputusan, sehingga masing-masing dapat dibatalkan sendiri-sendiri —
+mengikuti pola PR-G.
 **Basis:** `feat/psak46-pr-g1-temp-diff` @ `78afe2b` (PR-G1 #154, di atas master `d7a2913`).
 **Pendahulu:** `PRD - PSAK 46 PR-G Movement Beda Temporer (pemetaan jurnal audit ke ember fiskal).md`.
 **Gerbang baseline terukur:** `npm run typecheck` 0 · `npm run lint` 0 · **755 test hijau** (60 berkas).
+**Gerbang akhir:** typecheck 0 · lint 0 · **795 test hijau** (62 berkas) · ratchet ESLint MENGETAT
+(fsgen_model 33→30, view_psak16 39→37).
+
+> ### ⚠️ KOREKSI TERHADAP PRD INI (§4.3) — ditemukan saat mengerjakan, bukan saat menilai
+>
+> §4.3 menyatakan: *"memindahkan SELURUH akun sekaligus tetap seimbang, karena `unadj +
+> Posted` juga jumlah dari jurnal-jurnal berpasangan."* **Itu KELIRU.** Benar untuk neraca
+> saldo; **salah** untuk penyajian FS Generator.
+>
+> Sebabnya: WTB mempertahankan akun 4-/5- **terbuka**, sedangkan `3-2100 Saldo Laba` adalah
+> saldo **penutup** yang sudah memuat laba basis `ifAllProposed`. Jurnal audit menyentuh satu
+> kaki laba-rugi dan satu kaki neraca, tetapi kaki laba-ruginya tak pernah ditutup ke ekuitas
+> di kolom WTB mana pun. Terukur: `bsDiff` = 6.910 / **2.970** / 0 untuk
+> `unadj` / `reported` / `ifAllProposed`.
+>
+> Yang menangkapnya adalah uji `cashTies`, **bukan penalaran** — penalarannya terdengar
+> meyakinkan dan salah. Diperbaiki dengan penutupan laba ke saldo laba (`reShift`) yang
+> menyatakan ulang saldo laba ke basis tersaji tanpa mendaftar status jurnal apa pun.
+> Bukti bahwa itu BENAR dan bukan sekadar "membuat angka menutup": plug OCI kini **konstan**
+> lintas-basis (sebelumnya −356 / 3.584 / 6.554, yakni sedang menyerap ketidakseimbangan
+> basis alih-alih melaporkan OCI).
+>
+> Temuan kedua yang juga hanya muncul saat dikerjakan: `forensic_canon.dmod` membaca `r.adj`
+> lewat **akses-properti**, sehingga lolos dari sapuan `wtbVal(…, 'adj')` di §1.3. Jembatan
+> arus kas forensiknya lalu membandingkan dua basis dan `cfoTies` — jaminan yang menjadi
+> alasan modul itu ada — menjadi false.
 
 ---
 
@@ -357,21 +386,103 @@ angka (FS Generator) tidak boleh punya default lain, dan setiap surface yang
 
 ---
 
-## 8. Pertanyaan terbuka (butuh keputusan Ari)
+## 7b. Hasil — apa yang benar-benar dikerjakan
 
-1. **H1 default:** setuju `'reported'` sebagai default kanon? Atau tahan default `adj`
-   dan hanya pindahkan FS Generator + PSAK 48/58 (yang menyimpulkan), membiarkan
-   kertas kerja PSAK 16/71 pada `adj`?
-2. **Dasar matriks ECL (§3.1):** piutang fiktif AJE-03 — apakah eksposur ECL diukur atas
-   piutang **sebagaimana akan tersaji di LK** (termasuk yang fiktif, karena AJE-03 belum
-   disetujui) atau atas piutang **yang secara substansi nyata** (tidak termasuk)? Keduanya
-   punya dasar; yang tak punya dasar adalah keadaan sekarang, di mana tak seorang pun
-   memilih. **Ini satu-satunya pertanyaan di PRD ini yang murni metodologi audit, bukan
-   rekayasa.**
-3. **Cakupan:** apakah empat akun terkontaminasi lain (`revenue`, `inventory.cogsAdj`,
-   `psak25.grossAr`, `receivables.recvClose`) masuk PR-H1, atau dipisah ke PR-H4?
-   Rekomendasi saya: **masuk H1** — memindahkan sebagian adalah pola kegagalan yang
-   sudah dua kali tercatat di arc ini.
-4. **Verifikasi live:** perlu Anda membuka panel Browser (utang tinjauan piksel dari
-   sesi-sesi sebelumnya masih terbuka). KPI **dan** tabel pada modul yang sama akan
-   diperiksa, sesuai gerbang.
+| PR | Cabang | Isi |
+|---|---|---|
+| **H0** | `feat/psak46-pr-h0-basis-symmetry` | `reportedBalance` diberi fallback `AMS.AJE`; gerbang kesetaraan tiga jalur. Snapshot **tidak bergerak** — bukti tambahan jalur rusak itu tak pernah disentuh oracle. |
+| **H1** | `feat/psak46-pr-h1-basis-dilaporkan` | `WtbBasis` + `wtbOn()`; sepuluh konsumen pindah; penutupan laba ke saldo laba; `forensic_canon` ikut basis; view menerima register AJE **hidup**; baris rekonsiliasi `ckpn`/`ppe` jadi variance 0. |
+| **H2** | `feat/psak46-pr-h2-label-basis` | Chip *Basis: DILAPORKAN* di `SubBar` (15 modul, satu tempat); sakelar `Dilaporkan ⇄ Bila semua usulan diterima` di FS Generator + selisih laba dinyatakan. |
+| **H3** | `feat/psak46-pr-h3-gerbang-integritas` | Tiga tie-out tautologis diganti perbandingan dua-sumber; uji yang **merusak model lalu menuntut tie-out menyala**. |
+
+**Rantai bertumpuk:** `H0 ← H1 ← H2 ← H3`. Squash-merge tidak me-retarget PR bertumpuk —
+ikuti resep 6 langkah di memori `asseris-wtb-eval-pr1-pr2`.
+
+### Verifikasi
+
+Seluruh angka §3 **cocok persis**, diperiksa dua kali: di vitest, dan di **bundel browser**
+(Vite, `http://localhost:5182`) dengan mengimpor `canon_part1/2/3` + `fsgen_model` langsung —
+netClose 143.160 · eclModel 2.700,4 · auditVariance 100,4 · PSAK 48 headroom 6.306 dengan
+`impairLoss` tetap 0 · FS Generator seimbang & arus kas tie · kedua baris rekonsiliasi
+variance 0 status ok.
+
+Snapshot diperiksa **baris demi baris** (434 pasangan, tanpa `-u` buta): seluruh kunci yang
+berubah berada dalam famili PPE / ECL / persediaan / pendapatan / PSAK 48 / 58 / 66 / 25.
+Suku identitas PSAK 46 (`pbt`/`pkp`/`currentTax`/`taxExpense`/DTA) **nihil pergerakan** —
+sesuai harapan, sudah basis dilaporkan sejak PR-G1. Dua kunci yang semula tak terduga
+ditelusuri sampai tuntas: `psak58.accumTot` 5.824,035 × (57.180/58.300) = 5.712,149 persis,
+dan `psak66.ppeShare` adalah bagian aset ber-tag atas penurunan akumulasi 1.120 yang sama.
+
+### ✅ VERIFIKASI LIVE — TUNTAS (Ari login, panel Browser terbuka)
+
+Dijalankan pada `localhost:5182` sebagai **Rekan Pemimpin**, KPI **dan** tabel pada modul
+yang sama, sesuai gerbang:
+
+| Modul | Hasil |
+|---|---|
+| **PSAK 16** | KPI 143,2 M & 6,3 M cocok tabel roll-forward (143.160 / 6.320); nilai lama 142.040 / 7.440 / 58.300 **nol kemunculan**; tie-out **7/7** |
+| **PSAK 71** | Piutang bruto **51.322**, ECL model **2.700**, kurang saji **+720**; nilai lama 49.472 / 2.603 / 623 **nol kemunculan** |
+| **FS Generator** | Dilaporkan **319,5 M** ⇄ Bila semua usulan diterima **316,6 M**; **8/8 tie-out & neraca seimbang pada KEDUA basis**; label amber "Laba −Rp 3,0 M vs dilaporkan" muncul & hilang dengan benar; pilihan bertahan setelah reload |
+| **Alur Data** | Baris `ckpn` **selisih Rp 0 · COCOK** (2.600 × 3) dengan "Selisih audit thd model ECL Rp 100 jt" sebagai baris tersendiri; baris `ppe` **selisih Rp 0 · COCOK** (143.160 × 3) |
+| **Header** | Baris aksi tetap SATU baris (28px) pada 1440px — tak ada pembungkusan |
+
+**Tiga cacat ditemukan HANYA oleh tinjauan live**, semuanya sudah diperbaiki:
+
+1. **PSAK 16 tie-out `t7` menuntut yang terbalik** — memerah (6/7) tepat ketika sistem
+   berperilaku benar, sambil catatannya menyatakan sebaliknya. Vitest tak pernah merender
+   view ini.
+2. **Chip basis membantah sakelar FS Generator** — "Basis: DILAPORKAN" tampil bersama
+   sakelar yang menunjuk "Bila semua usulan diterima". Cacat yang diperkenalkan PR-H2
+   sendiri, kelas yang sama dengan yang ditutup arc ini.
+3. **TDZ + rules-of-hooks** pada perbaikan pertama — **lolos typecheck**, hanya muncul
+   sebagai layar crash.
+
+Dicatat, bukan diperbaiki: uji kewajaran penyusutan SA 520 bergerak −1.403 jt (−15,9%) →
+**−2.523 jt (−28,5%)**. Itu pemulihan alarm, bukan regresi — AJE-05 diusulkan PERSIS karena
+penyusutan kurang saji, dan basis `adj` selama ini membungkam analitik yang menjadi alasan
+jurnal itu ada. Pola sama dengan `bt-etr` di PR-F.
+
+**Catatan alat (bukan produk):** klik `computer` berbasis koordinat tidak menggerakkan `Seg`
+mana pun — termasuk "Ribuan" yang sudah ada sebelum PR ini. `element.click()` bekerja normal.
+Dikonfirmasi lewat kontrol pada kontrol lama, jadi bukan cacat aplikasi.
+
+---
+
+## 8. Keputusan metodologi — DIISI (didelegasikan Ari)
+
+**1. Default kanon = `'reported'`.** LK yang diaudit menyajikan koreksi yang DITERIMA;
+yang tidak diterima menjadi salah saji tidak dikoreksi (SA 450), bukan angka laporan. Tak
+ada kategori ketiga "usulan yang sudah dimasukkan ke laporan sambil menunggu keputusan" —
+yang justru ditempati FS Generator selama ini, bertentangan dengan modul SAD di sebelahnya.
+*Membatalkan:* ubah nilai default pada tanda tangan `wtbOn`-consumer; `ifAllProposed` sudah
+tersedia sebagai basis kelas satu.
+
+**2. Eksposur ECL = piutang basis DILAPORKAN** (termasuk yang fiktif, karena AJE-03 belum
+disetujui). PSAK 71 ¶5.5.1 mengukur penyisihan atas aset keuangan yang **diakui**; selama
+AJE-03 belum diposting, piutang itu diakui sebesar 51.322 jt dan wajib bercadangan. Bahwa
+sebagian fiktif adalah salah saji **keterjadian** yang terpisah — sudah dicatat sebagai
+`M-01` di ledger SAD dan dievaluasi di sana. Mengukur ECL di atas piutang neto-AJE-03
+berarti menghitung koreksi yang sama **dua kali** (sekali lewat AJE-03, sekali lewat
+cadangan yang lebih kecil), sekaligus mendahului keputusan partner.
+*Membatalkan:* panggil `psak71(wtb, aje, 'ifAllProposed')`; uji
+`eksposur bruto = piutang basis DILAPORKAN` akan gagal lebih dulu dan menunjukkan tempatnya.
+
+**3. Cakupan penuh** — empat akun terkontaminasi lain masuk H1, plus dua yang ditemukan
+saat mengerjakan (`figuresFromWTB`, `forensic_canon.dmod`) dan satu yang nol-dampak hari ini
+(`intangibles`). Memindahkan sebagian adalah pola kegagalan yang sudah dua kali tercatat
+di arc ini.
+
+### Sisa yang SENGAJA tidak dikerjakan (bukan terlewat)
+
+Enam pembaca `.adj` tingkat-view masih ada dan **tidak** disentuh:
+`ai_insights.tsx:53` · `view_analytical.tsx:50,116` · `view_assertions.tsx:53` ·
+`view_dataflow.tsx:83-84` · `view_materiality.tsx:316` · `view_misc1.tsx:345`.
+
+Alasannya bukan kelelahan melainkan pembeda yang sama dengan §4.2: semuanya analitik
+atas SELURUH neraca saldo (skrining flux, konsentrasi asersi, hitungan akun di atas PM),
+bukan surface yang menerbitkan saldo pos. `view_execution.tsx` (modul WTB) juga dibiarkan
+— menampilkan kolom `adj` sebagai kolom memang tugasnya.
+
+Keduanya tetap layak ditinjau tersendiri sebagai **PR-H4**, terutama `view_materiality.tsx:316`
+dan `view_misc1.tsx:345` yang menghitung "akun melampaui PM" — populasi itu bergeser bila
+basisnya berubah. Dicatat di sini supaya tidak terbaca sebagai sudah tercakup.

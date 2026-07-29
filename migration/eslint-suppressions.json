@@ -216,7 +216,7 @@
   },
   "src/fsgen_model.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 32
+      "count": 30
     }
   },
   "src/icons.tsx": {
@@ -841,7 +841,7 @@
   },
   "src/view_psak16.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 37
+      "count": 36
     }
   },
   "src/view_psak16_register.tsx": {
