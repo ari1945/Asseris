@@ -224,6 +224,7 @@ function FSGenerator() {
     <>
       <SubBar moduleId="fsgen" right={
         <div className="row gap8 ac">
+          <span className="tiny muted" style={{ whiteSpace: 'nowrap' }}>Basis</span>
           <Seg value={basis} onChange={setBasis} options={[
             { value: 'reported', label: 'Dilaporkan' },
             { value: 'ifAllProposed', label: 'Bila semua usulan diterima' },

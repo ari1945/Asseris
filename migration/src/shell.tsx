@@ -448,8 +448,13 @@ const BASIS_MODULES: Record<string, string> = {
   psak2: 'Arus kas', psak14: 'Persediaan & BPP', psak16: 'Aset tetap',
   psak19: 'Aset takberwujud', psak25: 'Estimasi & saldo laba', psak46: 'Beda temporer',
   psak48: 'Nilai tercatat UPK', psak58: 'Aset dijual', psak71: 'Piutang & CKPN',
-  psak72: 'Pendapatan & piutang', ecl: 'Piutang & CKPN', fsgen: 'Seluruh pos LK',
+  psak72: 'Pendapatan & piutang', ecl: 'Piutang & CKPN',
   dataflow: 'Tie-out lintas-modul', forensic: 'Jembatan arus kas', segmen: 'Pendapatan',
+  /* `fsgen` SENGAJA TIDAK di sini: FS Generator punya sakelar basis sendiri yang HIDUP,
+     sehingga chip statis di header akan membantahnya begitu pengguna memilih basis kerja
+     ("Basis: DILAPORKAN" bersanding dengan sakelar bertanda "Bila semua usulan diterima").
+     Dua label untuk satu fakta, dan yang satu bisa salah — kelas cacat yang sama dengan
+     yang ditutup arc ini. Sakelarnya sendiri adalah labelnya. */
 };
 function BasisChip({ moduleId }: { moduleId: string }) {
   const scope = BASIS_MODULES[moduleId];
