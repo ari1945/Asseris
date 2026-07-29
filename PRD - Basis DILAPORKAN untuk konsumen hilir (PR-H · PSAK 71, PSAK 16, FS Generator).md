@@ -29,6 +29,21 @@ mengikuti pola PR-G.
 > lintas-basis (sebelumnya −356 / 3.584 / 6.554, yakni sedang menyerap ketidakseimbangan
 > basis alih-alih melaporkan OCI).
 >
+> ### ℹ️ TABRAKAN NAMA — DIPUTUSKAN: TETAP "PR-H"
+>
+> master sudah memuat **PR-H1 (#153, groupaudit CP-01)** dan **PR-H2 (#152, materialitas
+> per-field)** dari arc SA 600 — tak berhubungan dengan seri ini. `git log --grep "PR-H1"`
+> karenanya memberi dua hasil berbeda.
+>
+> **Tidak di-rename.** Label "PR-H" tertanam sebagai penanda provenans di **63 komentar
+> pada 28 berkas**. Rename penuh berarti menyentuh ulang seluruh 28 berkas beserta
+> verifikasinya — churn dengan risiko regresi nyata demi kerapian dokumentasi; rename
+> separuh (pesan commit saja, komentar tetap "PR-H") justru LEBIH buruk daripada keduanya.
+>
+> Disambiguasi ditempuh lewat dokumentasi, bukan penulisan ulang sejarah: nama cabang
+> (`feat/psak46-pr-h*`), scope commit (`feat(canon)`/`feat(ui)`/`fix(fsgen)` vs
+> `fix(groupaudit)`/`fix(materiality)`), catatan di setiap badan PR, dan memory.
+
 > Temuan kedua yang juga hanya muncul saat dikerjakan: `forensic_canon.dmod` membaca `r.adj`
 > lewat **akses-properti**, sehingga lolos dari sapuan `wtbVal(…, 'adj')` di §1.3. Jembatan
 > arus kas forensiknya lalu membandingkan dua basis dan `cfoTies` — jaminan yang menjadi
@@ -472,17 +487,24 @@ saat mengerjakan (`figuresFromWTB`, `forensic_canon.dmod`) dan satu yang nol-dam
 (`intangibles`). Memindahkan sebagian adalah pola kegagalan yang sudah dua kali tercatat
 di arc ini.
 
-### Sisa yang SENGAJA tidak dikerjakan (bukan terlewat)
+### PR-H4 — SELESAI (bukan lagi sisa)
 
-Enam pembaca `.adj` tingkat-view masih ada dan **tidak** disentuh:
-`ai_insights.tsx:53` · `view_analytical.tsx:50,116` · `view_assertions.tsx:53` ·
-`view_dataflow.tsx:83-84` · `view_materiality.tsx:316` · `view_misc1.tsx:345`.
+Enam pembaca `.adj` tingkat-view kini ikut basis DILAPORKAN:
+`ai_insights.tsx` · `view_analytical.tsx` (flux & riwayat) · `view_assertions.tsx` ·
+`view_dataflow.tsx` · `view_materiality.tsx` · `view_misc1.tsx`.
 
-Alasannya bukan kelelahan melainkan pembeda yang sama dengan §4.2: semuanya analitik
-atas SELURUH neraca saldo (skrining flux, konsentrasi asersi, hitungan akun di atas PM),
-bukan surface yang menerbitkan saldo pos. `view_execution.tsx` (modul WTB) juga dibiarkan
-— menampilkan kolom `adj` sebagai kolom memang tugasnya.
+Dua di antaranya membawa cacat KEDUA yang tak terduga: `view_materiality` dan `view_misc1`
+membaca **`AMS.WTB` singleton BEKU**, sehingga "akun melampaui PM" tak bergerak saat WTB
+perikatan berubah — pola cache-dingin yang sama dengan #129/PR-6b. Ambangnya PM, yakni
+keputusan tentang **luas pengujian**, jadi salah populasi berarti salah ruang lingkup.
+Keduanya kini reaktif dan menyebut angka yang sama (27 akun).
 
-Keduanya tetap layak ditinjau tersendiri sebagai **PR-H4**, terutama `view_materiality.tsx:316`
-dan `view_misc1.tsx:345` yang menghitung "akun melampaui PM" — populasi itu bergeser bila
-basisnya berubah. Dicatat di sini supaya tidak terbaca sebagai sudah tercakup.
+`view_dataflow` dipindahkan meski **invarian terhadap basis secara konstruksi**; invarian
+itu **dipaku uji**, bukan dipercaya, dan Σ ≠ 0 dinyatakan sebagai SIFAT WTB (akun 4-/5-
+terbuka, saldo laba adalah saldo penutup) supaya tak ada yang "memperbaikinya" jadi nol
+dan membatalkan penutupan laba di `fsgen_model`.
+
+`view_execution.tsx` (modul WTB) **sengaja dibiarkan**: menampilkan kolom `adj` sebagai
+kolom memang tugasnya.
+
+Terverifikasi live pada keenam modul. Gerbang: typecheck 0 · lint 0 · **806 test hijau**.
