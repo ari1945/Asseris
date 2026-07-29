@@ -1,7 +1,7 @@
 /* ============================================================
    Asseris — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import type { WTB, WtbAmountField, Figures, Fig, FsModel, EntityFigures, FigureBasis, Benchmark } from './canon_types';
+import type { WTB, WtbAmountField, Figures, Fig, FsModel, EntityFigures, FigureBasis, Benchmark, AjeTaxEffect, TempBucket } from './canon_types';
 import { AMS } from './data';
 
   const RATE = 0.22;
@@ -154,7 +154,7 @@ import { AMS } from './data';
      Baris jurnal ditarik dari `lines` bila ada; entri seed lama hanya punya string
      `dr`/`cr` sehingga di-parse ke bentuk yang sama (satu jalur, bukan dua). */
   interface AjeLine { code: string; debit: number; credit: number }
-  interface AjeLike { status?: string; lines?: Array<{ code?: string; debit?: number; credit?: number }>; dr?: string; cr?: string; amount?: number }
+  interface AjeLike { id?: string; status?: string; lines?: Array<{ code?: string; debit?: number; credit?: number }>; dr?: string; cr?: string; amount?: number; taxEffect?: AjeTaxEffect }
 
   function ajeLinesOf(a: AjeLike): AjeLine[] {
     if (Array.isArray(a.lines) && a.lines.length) {
@@ -248,16 +248,64 @@ import { AMS } from './data';
     /* Movement beda temporer tahun berjalan, per pos (kertas kerja fiskal).
        Larik — bukan penjumlahan telanjang — karena view PSAK 46 dulu mengetik
        ulang keempat angka ini untuk menampilkan rinciannya. Satu daftar, dua
-       konsumen: total di sini, baris tabel di sana. */
+       konsumen: total di sini, baris tabel di sana.
+
+       PR-G1 · BASIS (keputusan yang dulu tak pernah dinyatakan): daftar ini adalah
+       kertas kerja fiskal klien atas bukunya SENDIRI, disusun SEBELUM audit — itulah
+       dasar SPT-nya. Konsekuensinya efek jurnal audit DILAPISKAN di atasnya, bukan
+       sudah termasuk. Buktinya bukan asumsi: tak satu pun dari keempat baris ini tie
+       ke kolom `adj` WTB, sementara t1 tie PERSIS ke mutasi `unadj − ly` akun 2-2300.
+
+       `source` membuat provenans tiap baris terbaca auditor:
+         `ledger` = dapat diturunkan dari buku besar (dan diuji demikian)
+         `wp`     = hanya ada di kertas kerja fiskal — tak terverifikasi dari WTB
+       Baris `wp` bukan dosa; yang berbahaya adalah `wp` yang tak dapat dibedakan
+       dari `ledger`. */
     tempMovementItems: [
-      { id: 't1', label: 'Penyisihan imbalan kerja belum direalisasi (PSAK 24)', v: 1860 },
-      { id: 't2', label: 'Beban CKPN / kerugian ekspektasian (PSAK 71)',         v: 2400 },
-      { id: 't3', label: 'Provisi garansi & liabilitas lain',                    v: 900  },
-      { id: 't4', label: 'Selisih penyusutan komersial di atas fiskal',          v: 1640 },
-    ],
-    /* movement beda temporer th berjalan = 6800 */
+      { id: 't1', label: 'Penyisihan imbalan kerja belum direalisasi (PSAK 24)', v: 1860, source: 'ledger', ref: 'WTB 2-2300 · mutasi unadj − ly' },
+      { id: 't2', label: 'Beban CKPN / kerugian ekspektasian (PSAK 71)',         v: 2400, source: 'wp',     ref: 'Kertas kerja fiskal klien — tak tie ke mutasi 1-1210' },
+      { id: 't3', label: 'Provisi garansi & liabilitas lain',                    v: 900,  source: 'wp',     ref: 'Kertas kerja fiskal klien — sama dgn SALDO provisi; menyiratkan saldo awal nol' },
+      { id: 't4', label: 'Selisih penyusutan komersial di atas fiskal',          v: 1640, source: 'wp',     ref: 'Kertas kerja fiskal klien — tak tie ke mutasi 1-2110' },
+    ] as Array<{ id: string; label: string; v: number; source: 'ledger' | 'wp'; ref: string }>,
+    /* movement beda temporer th berjalan per kertas kerja klien = 6800 (PRA-AUDIT).
+       Efek jurnal audit ditambahkan di `fiscalReconciliation`, bukan di sini: nilai ini
+       harus tetap dapat dibaca sebagai "apa yang klien laporkan". */
     get fiscalTempMovement(): number { return this.tempMovementItems.reduce((s, x) => s + x.v, 0); },
   };
+
+  /* PR-G1 — SALDO AKUN PADA BASIS DILAPORKAN (Rp PENUH): kolom `unadj` + mutasi jurnal
+     yang benar-benar TERPOSTING.
+
+     Kolom `adj` WTB tidak dapat dipakai untuk ini: ia memuat SELURUH jurnal termasuk yang
+     masih usulan. Memakainya membuat nilai tercatat aset tetap yang tampil di PSAK 46
+     sudah memperhitungkan AJE-05 (Rp 1.120 jt) yang partner belum putuskan — angka
+     audited yang diterbitkan atas keputusan yang belum diambil.
+
+     Konvensi tanda mengikuti kolom `aje` WTB: debit − kredit. */
+  function reportedBalance(wtb: WTB | undefined, aje: AjeLike[] | undefined, code: string): number {
+    const base = wtbVal(wtb, code, 'unadj');
+    let delta = 0;
+    (aje || []).filter(a => String(a.status || '').trim() === 'Posted')
+      .forEach(a => ajeLinesOf(a).forEach(l => { if (l.code === code) delta += l.debit - l.credit; }));
+    return base + delta;
+  }
+
+  /* PR-G1 — koreksi fiskal yang dibawa SATU jurnal audit (Rp juta, positif = menambah PKP).
+     Bila `amount` tak diisi auditor, diturunkan dari efek laba jurnal: beban komersial
+     yang dikoreksi fiskal menaikkan PKP sebesar penurunan laba yang ditimbulkannya.
+     Menurunkannya (alih-alih mewajibkan angka) menjaga agar klasifikasi tetap murah
+     ditulis; menyimpannya (bila diisi) menjaga agar koreksi parsial tetap mungkin. */
+  function ajeTaxCorrection(a: AjeLike): number {
+    const te = a.taxEffect;
+    if (!te || te.kind !== 'temporary') return 0;
+    if (typeof te.amount === 'number' && Number.isFinite(te.amount)) return te.amount;
+    let pbt = 0;
+    ajeLinesOf(a).forEach(l => {
+      const net = l.debit - l.credit;
+      if (l.code[0] === '4' || l.code[0] === '5') pbt -= net;
+    });
+    return jt(-pbt);                       // laba turun ⇒ koreksi fiskal positif
+  }
 
   /* ============================================================
      REKONSILIASI FISKAL (PSAK 46) — laba komersial → PKP
@@ -285,6 +333,17 @@ import { AMS } from './data';
     pbtUnadj: number; ajePosted: number; pbt: number;
     permAdd: number; permLess: number; tempMovement: number; pkp: number;
     pendingAje: string[];
+    /* PR-G1 — movement dipecah menurut ASALNYA. Sebelum ini keduanya menyatu dalam satu
+       konstanta, sehingga tak ada cara membedakan "yang klien laporkan" dari "yang
+       auditor koreksi" — padahal keduanya punya derajat keyakinan yang sama sekali beda. */
+    tempMovementWp: number;      // kertas kerja fiskal klien (pra-audit)
+    tempMovementAje: number;     // koreksi dari jurnal audit TERPOSTING
+    /** rincian per jurnal terposting yang membawa koreksi fiskal */
+    taxEffectItems: Array<{ id: string; bucket: TempBucket; amount: number; basis: string; by?: string; condition?: string }>;
+    /** jurnal terposting yang BELUM diklasifikasi fiskal — diamnya tak boleh dibaca "nol beda" */
+    unclassifiedAje: string[];
+    /** jurnal ber-konsekuensi di luar rekonsiliasi tahun berjalan (mis. pembetulan SPT) */
+    taxNotes: Array<{ id: string; note: string }>;
   }
 
   function fiscalReconciliation(wtb?: WTB, aje?: AjeLike[]): FiscalReconciliation {
@@ -296,10 +355,32 @@ import { AMS } from './data';
     const f = entityFigures(rows, 'unadj');
     const permAdd = FISCAL.permAdd;
     const permLess = FISCAL.permLess;
-    const tempMovement = FISCAL.fiscalTempMovement;
+    const tempMovementWp = FISCAL.fiscalTempMovement;
+
+    /* PR-G1 — koreksi fiskal dari jurnal TERPOSTING dilapiskan di atas kertas kerja klien.
+       Basis "terposting" (bukan kolom `adj` WTB) mengikuti PR-F: usulan yang partner belum
+       putuskan tak boleh menggerakkan kewajiban pajak. */
+    const postedList = list.filter(a => String(a.status || '').trim() === 'Posted');
+    const taxEffectItems = postedList
+      .map(a => ({ a, amt: ajeTaxCorrection(a) }))
+      .filter(x => x.amt !== 0 && x.a.taxEffect)
+      .map(x => ({
+        id: String(x.a.id || ''), bucket: (x.a.taxEffect!.bucket || 'other') as TempBucket,
+        amount: x.amt, basis: x.a.taxEffect!.basis,
+        by: x.a.taxEffect!.by, condition: x.a.taxEffect!.condition,
+      }));
+    const tempMovementAje = taxEffectItems.reduce((s, x) => s + x.amount, 0);
+    const tempMovement = tempMovementWp + tempMovementAje;
+    /* Diam BUKAN "nol beda": jurnal tanpa klasifikasi dilaporkan agar dapat ditagih. */
+    const unclassifiedAje = postedList.filter(a => !a.taxEffect)
+      .map(a => String(a.id || '')).filter(Boolean);
+    const taxNotes = list.filter(a => a.taxEffect && a.taxEffect.note)
+      .map(a => ({ id: String(a.id || ''), note: a.taxEffect!.note! }));
+
     if (!f.available) {
       return { available: false, pbtUnadj: 0, ajePosted: 0, pbt: 0,
-               permAdd, permLess, tempMovement, pkp: 0, pendingAje: [] };
+               permAdd, permLess, tempMovement, pkp: 0, pendingAje: [],
+               tempMovementWp, tempMovementAje, taxEffectItems, unclassifiedAje, taxNotes };
     }
     const pbtUnadj = jt(f.pbt!);
     const posted = ajeEffect(list, 'Posted').pbt;
@@ -311,6 +392,7 @@ import { AMS } from './data';
       pkp: pbt + permAdd - permLess + tempMovement,
       pendingAje: list.filter(a => String(a.status || '').trim() === 'Proposed')
                       .map(a => String((a as { id?: string }).id || '')).filter(Boolean),
+      tempMovementWp, tempMovementAje, taxEffectItems, unclassifiedAje, taxNotes,
     };
   }
 
@@ -328,19 +410,30 @@ import { AMS } from './data';
   function buildFigures(): void {
     const s = figuresFromWTB();
     const fisc = fiscalReconciliation();
+    /* PR-G1 — saldo beda temporer pada basis DILAPORKAN, sama seperti jalur reaktif
+       `deferredTax(wtb, aje)`. Membiarkan jalur zero-arg memakai basis lama akan membuat
+       movement (yang kini terlapis) dan saldo penutup (yang belum) berjalan pada dua
+       basis — dan karena saldo awal adalah plug, selisihnya diserap DIAM-DIAM sebesar
+       136 jt alih-alih memunculkan alarm. Terverifikasi: dengan perbaikan ini saldo awal
+       tersirat tetap 1.511 jt sebelum & sesudah, yaitu tanda bahwa kedua sisi bergerak
+       bersama. */
+    const ajeList: AjeLike[] = (AMS && (AMS.AJE as unknown as AjeLike[])) || [];
+    const ppeReported = jt(reportedBalance(undefined, ajeList, WTB_MAP.ppeGross.code))
+                      + jt(reportedBalance(undefined, ajeList, WTB_MAP.ppeAccum.code));
+    const ckpnReported = -jt(reportedBalance(undefined, ajeList, WTB_MAP.ckpn.code));
     _src = s;
     _fig = {
       // —— ditarik dari WTB (buku besar) ——
       dbo:          s.dboBooked,        // 13.080 — WTB 2-2300 (nilai tercatat; dasar pajak 0)
-      ckpn:         s.ckpnBooked,       // 1.980  — WTB 1-1210 (saldo dibukukan klien)
+      ckpn:         ckpnReported,       // WTB 1-1210 basis DILAPORKAN (unadj + jurnal terposting)
       ckpnAudited:  s.ckpnAudited,      // 2.600  — WTB 1-1210 setelah AJE PSAK 71
-      ppeCarry:     s.ppeNetCarry,      // nilai tercatat neto aset tetap per WTB
+      ppeCarry:     ppeReported,        // nilai tercatat neto aset tetap, basis DILAPORKAN per WTB
       rouCarry:     s.rouCarry,         // 12.640 — WTB 1-2300
       leaseLiabWTB: s.leaseLiab,        // 12.800 — WTB 2-1500 + 2-2200
       dtaReported:  s.dtaReported,      // 4.980  — WTB 1-2500 (DTA per buku besar)
       taxExpBooked: s.taxExpBooked,     // beban pajak dibukukan (WTB 5-5100)
       // —— dasar pajak / rekonsiliasi fiskal (non-WTB) ——
-      ppeBase:      s.ppeNetCarry - FISCAL.ppeTaxBaseDelta, // dasar pajak aset tetap (tercatat − beda temporer)
+      ppeBase:      ppeReported - FISCAL.ppeTaxBaseDelta, // dasar pajak aset tetap (tercatat − beda temporer)
       ppeTempDiff:  FISCAL.ppeTaxBaseDelta,
       provisi:      FISCAL.provisi,
       taxLoss:      FISCAL.taxLoss,
@@ -349,7 +442,12 @@ import { AMS } from './data';
       pkp:          fisc.pkp,          // hasil identitas rekonsiliasi — bukan konstanta
       permAdd:      FISCAL.permAdd,
       permLess:     FISCAL.permLess,
-      fiscalTempMovement: FISCAL.fiscalTempMovement,
+      /* PR-G1 — movement TERLAPIS (kertas kerja klien + koreksi jurnal terposting),
+         BUKAN `FISCAL.fiscalTempMovement` yang hanya sisi klien. Memakai yang mentah di
+         sini akan membuat `deferredPL` memakai movement pra-audit sementara `currentTax`
+         memakai PKP pasca-audit — dua suku dari satu identitas pada dua basis, persis
+         cacat yang PR ini tutup. */
+      fiscalTempMovement: fisc.tempMovement,
     };
   }
   /* Buang memo agar akses berikutnya membangun ulang dari AMS.WTB terbaru.
@@ -383,4 +481,4 @@ import { AMS } from './data';
   function fsgenModel(wtb?: WTB): FsModel | null { return _fsgenBuildModel ? _fsgenBuildModel(wtb) : null; }
 
 export type { FiscalReconciliation, AjeLike };
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };
+export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, reportedBalance, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };

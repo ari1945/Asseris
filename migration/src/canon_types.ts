@@ -27,6 +27,44 @@ export interface WtbRow {
 
 export type WTB = WtbRow[];
 
+/* ---------- PR-G1 · konsekuensi fiskal sebuah jurnal audit ----------
+   Ember beda temporer. Sengaja MENGIKUTI id item `deferredTax()` yang sudah ada
+   (`ppe` · `eb` · `ecl` · `lse` · `prv` · `tlc`), supaya movement tahun berjalan dan
+   saldo beda temporer berbicara dalam kosakata yang sama. `other` untuk pos yang
+   belum punya ember — sengaja ada agar auditor tak terpaksa salah-mengelompokkan. */
+export type TempBucket = 'ppe' | 'eb' | 'ecl' | 'lse' | 'prv' | 'tlc' | 'other';
+
+/** Klasifikasi fiskal sebuah jurnal audit.
+ *
+ *  PR-G1 — pertimbangan pajak DITEMPATKAN pada jurnalnya, bukan disembunyikan
+ *  sebagai aturan pemetaan akun di dalam kode. Alasannya bukan gaya: satu akun dapat
+ *  memuat pergerakan yang deductible dan yang tidak (`2-1300 Beban Akrual` memuat
+ *  bonus, jasa, dan denda sekaligus), sehingga pemetaan tingkat-akun memaksa satu
+ *  jawaban untuk transaksi yang jawabannya berbeda — dan salahnya tak terlihat karena
+ *  hasilnya tetap berupa angka yang wajar.
+ *
+ *  `basis` & `by` bukan hiasan: SA 230 menuntut pertimbangan signifikan terdokumentasi
+ *  dengan dasar dan pembuatnya. Klasifikasi tanpa keduanya adalah opini tanpa penulis. */
+export interface AjeTaxEffect {
+  /** `none` = tak ada beda (fiskal mengikuti komersial) · `permanent` = beda tetap ·
+   *  `temporary` = beda waktu, masuk movement beda temporer. */
+  kind: 'none' | 'permanent' | 'temporary';
+  /** wajib bila kind = 'temporary' */
+  bucket?: TempBucket;
+  /** Nilai koreksi fiskal (Rp JUTA), bertanda searah rekonsiliasi: POSITIF = menambah
+   *  PKP (mis. beban komersial yang dikoreksi fiskal). Bila kosong, diturunkan dari
+   *  efek laba jurnal — beban komersial naik ⇒ koreksi positif sebesar itu. */
+  amount?: number;
+  /** dasar hukum / kebijakan yang dikutip (mis. "Ps. 9(1)(c) UU PPh") */
+  basis: string;
+  /** auditor yang menetapkan */
+  by?: string;
+  /** syarat yang membuat klasifikasi ini dapat berbalik (mis. PPh 21 belum dipotong) */
+  condition?: string;
+  /** konsekuensi di luar rekonsiliasi tahun berjalan (mis. pembetulan SPT Ps. 8 UU KUP) */
+  note?: string;
+}
+
 /** Jurnal penyesuaian audit (AMS.AJE) yang dirujuk canon. */
 export interface AjeRow {
   id: string;
@@ -34,6 +72,8 @@ export interface AjeRow {
   status?: string;
   /** Deskripsi/memo jurnal — dipakai narasi view (psak14/16/58). */
   desc?: string;
+  /** PR-G1 — klasifikasi fiskal; tak ada = BELUM DIKLASIFIKASI (bukan "nol beda"). */
+  taxEffect?: AjeTaxEffect;
 }
 
 /* ---------- figur akuntansi entitas ditarik dari WTB (Rp juta) ---------- */

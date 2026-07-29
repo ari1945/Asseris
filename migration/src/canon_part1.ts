@@ -1,7 +1,7 @@
 /* ============================================================
    Asseris — canon part1 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, FIG, RATE, figuresFromWTB, fiscalReconciliation, jt, leasePortfolio, wtbVal } from './canon_base';
+import { ASOF, FIG, RATE, WTB_MAP, figuresFromWTB, fiscalReconciliation, jt, leasePortfolio, reportedBalance, wtbVal } from './canon_base';
 import type { AjeLike } from './canon_base';
 import type { WTB, AjeRow } from './canon_types';
 import { AMS } from './data';
@@ -15,9 +15,26 @@ import { AMS } from './data';
     const f = (wtb || aje) ? (() => {
       const s = figuresFromWTB(wtb);
       const fisc = fiscalReconciliation(wtb, aje);
+      /* nilai tercatat aset tetap pada basis DILAPORKAN — bukan kolom `adj` yang
+         memasukkan AJE-05 (usulan). Lihat `reportedBalance`. */
+      const ppeReported = jt(reportedBalance(wtb, aje, WTB_MAP.ppeGross.code))
+                        + jt(reportedBalance(wtb, aje, WTB_MAP.ppeAccum.code));
+      const ckpnReported = -jt(reportedBalance(wtb, aje, WTB_MAP.ckpn.code));
       return Object.assign({}, FIG, {
-        dbo: s.dboBooked, ckpn: s.ckpnBooked, dtaReported: s.dtaReported,
-        pbt: fisc.pbt, pkp: fisc.pkp,
+        dbo: s.dboBooked, dtaReported: s.dtaReported,
+        ppeCarry: ppeReported, ppeBase: ppeReported - FIG.ppeTempDiff,
+        /* PR-G1 · BASIS SALDO BEDA TEMPORER — `ckpnAudited`, bukan `ckpnBooked`.
+           Dulu saldo ember `ecl` memakai kolom `unadj` (saldo klien) sementara PBT sudah
+           basis DILAPORKAN (unadj + jurnal terposting): satu modul, dua basis. Lebih buruk
+           lagi ke arah sebaliknya — nilai tercatat aset tetap memakai kolom `adj` sehingga
+           MEMASUKKAN AJE-05 yang masih USULAN. Terbalik pada keduanya.
+
+           Keduanya kini basis DILAPORKAN, dan itu bukan sekadar kerapian: koreksi CKPN 620
+           menaikkan movement (via taxEffect) DAN saldo penutup dalam jumlah yang sama, jadi
+           saldo AWAL tidak bergeser. Memperbaiki hanya salah satunya justru akan menggeser
+           saldo awal 136 jt secara senyap — plug menyerapnya tanpa alarm. */
+        ckpn: ckpnReported,
+        pbt: fisc.pbt, pkp: fisc.pkp, fiscalTempMovement: fisc.tempMovement,
       });
     })() : FIG;
     const lease = leasePortfolio();
@@ -38,6 +55,18 @@ import { AMS } from './data';
     const deferredPL = Math.round(f.fiscalTempMovement * RATE);     // manfaat pajak tangguhan L/R
     const oci = Math.round(f.ociRemeasure * RATE);                  // pajak diakui di OCI
     const opening = closing - deferredPL - oci;                     // saldo awal (PY) — penyeimbang
+    /* PR-G1 · GERBANG FALSIFIKASI. `opening` adalah PLUG: berapa pun `tempMovement`
+       diisi, model tetap "menutup" karena saldo awal diam-diam menulis ulang sejarah.
+       Itulah sebabnya movement 6.800 dapat bertahan lima kali evaluasi tanpa tertangkap —
+       tak ada satu pun pemeriksaan yang dapat menyatakannya salah.
+
+       DTA per buku besar TAHUN LALU (WTB 1-2500 kolom `ly`) adalah pembanding yang sudah
+       tersedia selama ini dan tak pernah dipakai. `dtaVariance` yang ada hanya menguji
+       ujung AKHIR (model vs buku besar tahun berjalan); ujung AWAL tak pernah diuji.
+       Selisihnya dilaporkan, bukan dipaksa nol: bila model dan buku besar memang berbeda,
+       itu temuan audit atas saldo DTA klien — persis yang seharusnya terlihat. */
+    const openingBooks = jt(wtbVal(wtb, WTB_MAP.dta.code, 'ly')) * WTB_MAP.dta.sign;
+    const openingVariance = openingBooks !== 0 ? opening - openingBooks : null;
     const taxExpense = currentTax - deferredPL;                     // beban pajak penghasilan
     const dtaReported = f.dtaReported;                              // DTA per buku besar (WTB)
     const dtaVariance = closing - dtaReported;                      // selisih model vs buku besar
@@ -48,7 +77,9 @@ import { AMS } from './data';
     return { items, lease, closing, opening, currentTax, deferredPL, oci, taxExpense,
              pbt: f.pbt, pkp: f.pkp, rate: RATE,
              etr: f.pbt !== 0 ? taxExpense / f.pbt : null,
-             dtaReported, dtaVariance };
+             dtaReported, dtaVariance, openingBooks, openingVariance,
+             /* rincian rekonsiliasi fiskal agar view tak menghitung ulang apa pun */
+             fiscal: fiscalReconciliation(wtb, aje) };
   }
 
   /* ---------- PSAK 14 · Persediaan (sumber kebenaran kalkulasi persediaan) ----------

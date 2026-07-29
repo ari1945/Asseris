@@ -149,7 +149,12 @@ import type { WTB } from './canon_types';
         id: 'ckpn', pos: 'CKPN / ECL Piutang', unit: 'Rp juta',
         sourceLabel: 'WTB · 1-1210', sourceRoute: 'wtb', source: s.ckpnBooked, ref: 'PSAK 71',
         warnOnly: true,
-        note: 'PSAK 46 memakai saldo dibukukan klien (Rp ' + s.ckpnBooked + ' jt). Model ECL Rp ' + eclModel + ' jt → AJE menaikkan ke saldo audited Rp ' + s.ckpnAudited + ' jt. Pertimbangkan dasar audited untuk beda temporer.',
+        /* PR-G1 — saran lama pada catatan ini ("pertimbangkan dasar audited untuk beda
+           temporer") SUDAH DIJALANKAN: PSAK 46 kini memakai basis DILAPORKAN. Selisih
+           yang tersisa karena itu bukan lagi kekeliruan PSAK 46, melainkan penanda bahwa
+           Kalkulator ECL masih menyajikan saldo dibukukan klien. Dinyatakan apa adanya —
+           menyamarkannya justru mengembalikan cacat "modul membantah dirinya". */
+        note: 'Beda basis yang DISENGAJA: PSAK 46 memakai saldo DILAPORKAN Rp ' + dt.items.find(i => i.id === 'ecl')!.diff + ' jt (dibukukan + jurnal TERPOSTING) karena beda temporer harus diukur atas saldo yang akan tersaji di LK. Kalkulator ECL menampilkan saldo dibukukan klien Rp ' + s.ckpnBooked + ' jt. Model ECL Rp ' + eclModel + ' jt.',
         consumers: [
           { module: 'ecl', label: 'Kalkulator ECL · dibukukan', val: s.ckpnBooked },
           { module: 'psak46', label: 'PSAK 46 · beda temporer (ecl)', val: dt.items.find(i => i.id === 'ecl')!.diff },
@@ -163,7 +168,10 @@ import type { WTB } from './canon_types';
         id: 'ppe', pos: 'Aset Tetap — nilai tercatat neto', unit: 'Rp juta',
         sourceLabel: 'WTB · 1-2100 + 1-2110', sourceRoute: 'wtb', source: s.ppeNetCarry, ref: 'PSAK 16',
         warnOnly: true,
-        note: 'Beda temporer aset tetap (Rp ' + dt.items.find(i => i.id === 'ppe')!.diff + ' jt) berasal dari selisih dengan dasar pajak (kertas kerja fiskal), bukan seluruh nilai tercatat. Carrying per WTB ditunjukkan untuk ketertelusuran.',
+        /* PR-G1 — selisih carrying PSAK 46 vs PSAK 16 kini punya sebab yang dapat
+           dinamai: PSAK 46 mengecualikan jurnal yang masih USULAN, PSAK 16 & FS
+           Generator masih membaca kolom `adj` WTB yang memuatnya. */
+        note: 'Beda temporer aset tetap (Rp ' + dt.items.find(i => i.id === 'ppe')!.diff + ' jt) berasal dari selisih dengan dasar pajak (kertas kerja fiskal), bukan seluruh nilai tercatat. Selisih carrying antar-modul BERSEBAB: PSAK 46 memakai basis DILAPORKAN (mengecualikan jurnal usulan), sedangkan PSAK 16 & FS Generator membaca kolom `adj` WTB yang memuat usulan. Selisihnya = nilai jurnal aset tetap yang belum diposting.',
         consumers: [
           { module: 'psak16', label: 'PSAK 16 · nilai tercatat neto', val: Math.round(fa.netClose) },
           { module: 'fsgen', label: 'FS Generator · Aset tetap (Neraca)', val: Math.round(fa.netClose) },

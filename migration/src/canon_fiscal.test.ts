@@ -39,19 +39,53 @@ describe('fiscalReconciliation() — basis PBT dilaporkan (Opsi 1)', () => {
 
   it('PKP adalah identitas rekonsiliasi, bukan nilai tersimpan', () => {
     expect(fr.pkp).toBe(fr.pbt + fr.permAdd - fr.permLess + fr.tempMovement);
-    expect(fr.pkp).toBe(30_750);                    // 25.750 + 1.200 − 3.000 + 6.800
+    /* PR-G1 — 25.750 + 1.200 − 3.000 + 7.420. Movement naik 6.800 → 7.420 karena
+       koreksi fiskal AJE-02 (CKPN 620 jt, Ps. 9(1)(c) UU PPh) kini terhitung. */
+    expect(fr.pkp).toBe(31_370);
     expect(FISCAL).not.toHaveProperty('pkp');       // tak boleh kembali jadi konstanta
     expect(FISCAL).not.toHaveProperty('pbt');
   });
 
-  it('beda permanen & movement beda temporer TETAP input kertas kerja fiskal', () => {
+  /* PR-G1 — KONTRAK BARU. Beda permanen tetap murni input kertas kerja fiskal, tetapi
+     movement beda temporer kini DUA LAPIS: kertas kerja klien (pra-audit) + koreksi dari
+     jurnal audit terposting. Uji lama memaku lapis pertama sebagai keseluruhan — yaitu
+     persis cacatnya: laba komersial bergerak mengikuti jurnal audit, koreksi fiskalnya
+     tidak. */
+  it('beda permanen TETAP input kertas kerja fiskal', () => {
     expect(fr.permAdd).toBe(1_200);
     expect(fr.permLess).toBe(3_000);
-    expect(fr.tempMovement).toBe(6_800);
-    /* total movement = jumlah rinciannya (satu daftar, dua konsumen: total di
-       canon, baris tabel di view PSAK 46) */
-    expect(FISCAL.tempMovementItems.reduce((s, x) => s + x.v, 0)).toBe(fr.tempMovement);
+  });
+
+  it('movement beda temporer = kertas kerja klien + koreksi jurnal terposting', () => {
+    expect(fr.tempMovementWp).toBe(6_800);
+    expect(fr.tempMovementAje).toBe(620);
+    expect(fr.tempMovement).toBe(fr.tempMovementWp + fr.tempMovementAje);
+    /* lapis pertama = jumlah rinciannya (satu daftar, dua konsumen: total di canon,
+       baris tabel di view PSAK 46) */
+    expect(FISCAL.tempMovementItems.reduce((s, x) => s + x.v, 0)).toBe(fr.tempMovementWp);
     expect(FISCAL.tempMovementItems).toHaveLength(4);
+  });
+
+  it('hanya jurnal TERPOSTING & berklasifikasi temporer yang menggerakkan movement', () => {
+    /* AJE-05 (koreksi penyusutan, Ps. 11 UU PPh) berklasifikasi temporer TETAPI masih
+       usulan → tak boleh terhitung. AJE-01/03/04 terposting tetapi nol beda. */
+    expect(fr.taxEffectItems.map(x => x.id)).toEqual(['AJE-02']);
+    expect(fr.taxEffectItems[0].bucket).toBe('ecl');
+    expect(fr.taxEffectItems[0].basis).toMatch(/9\(1\)\(c\)/);
+  });
+
+  it('jurnal terposting tanpa klasifikasi fiskal DILAPORKAN, bukan dianggap nol beda', () => {
+    expect(fr.unclassifiedAje).toEqual([]);          // seluruh seed sudah diklasifikasi
+    const tanpa = fiscalReconciliation(SEED, [
+      { id: 'AJE-X', status: 'Posted', dr: '5-3100 Beban', cr: '2-1300 Akrual', amount: 500_000_000 },
+    ]);
+    expect(tanpa.unclassifiedAje).toEqual(['AJE-X']);
+    expect(tanpa.tempMovementAje).toBe(0);           // diam TIDAK menambah koreksi
+  });
+
+  it('konsekuensi di luar tahun berjalan dibawa sebagai catatan (mis. pembetulan SPT)', () => {
+    expect(fr.taxNotes.map(n => n.id)).toContain('AJE-03');
+    expect(fr.taxNotes.find(n => n.id === 'AJE-03')!.note).toMatch(/Ps\. 8 UU KUP/);
   });
 
   it('membawa daftar jurnal yang masih usulan — rekonsiliasi fiskal di hilir AJE', () => {
@@ -85,9 +119,48 @@ describe('fiscalReconciliation() — basis PBT dilaporkan (Opsi 1)', () => {
 describe('deferredTax() — konsumen rekonsiliasi fiskal', () => {
   it('pajak kini = PKP × 22%, dan identitas pembukuan tetap tertutup', () => {
     const dt = deferredTax();
-    expect(dt.pkp).toBe(30_750);
-    expect(dt.currentTax).toBe(Math.round(30_750 * 0.22));          // 6.765
+    expect(dt.pkp).toBe(31_370);
+    expect(dt.currentTax).toBe(Math.round(31_370 * 0.22));          // 6.901
     expect(dt.taxExpense).toBe(dt.currentTax - dt.deferredPL);      // 5.269
+  });
+
+  /* PR-G1 — INVARIANS YANG MENJELASKAN MENGAPA CACAT INI BERTAHAN LIMA EVALUASI.
+     `tempMovement` masuk `currentTax` (+) dan `deferredPL` (−) dengan bobot yang sama,
+     sehingga LENYAP dari beban pajak: taxExpense = (pbt + permAdd − permLess) × tarif.
+     Akibatnya movement yang salah tak pernah menggerakkan angka yang paling banyak
+     dilihat orang — hanya PEMISAHAN pajak kini vs tangguhan yang salah, yaitu justru
+     yang menentukan angka SPT dan pos DTA di neraca. */
+  it('beban yang seluruhnya dikoreksi fiskal TIDAK menggerakkan pajak kini — seluruhnya ke tangguhan', () => {
+    const base = deferredTax();
+    const naik = deferredTax(SEED, [
+      ...SEED_AJE,
+      { id: 'AJE-Z', status: 'Posted', dr: '5-3100 Beban', cr: '1-1210 CKPN', amount: 1_000_000_000,
+        taxEffect: { kind: 'temporary' as const, bucket: 'ecl' as const, amount: 1_000, basis: 'uji' } },
+    ]);
+    /* Beban komersial turun 1.000 (PBT −1.000) tetapi dikoreksi kembali 1.000 di
+       movement → PKP dan pajak kini TIDAK bergerak sedikit pun. Itulah arti "beda
+       temporer": kewajiban pajak tahun berjalan tak tersentuh. */
+    expect(naik.pbt).toBe(base.pbt - 1_000);
+    expect(naik.pkp).toBe(base.pkp);
+    expect(naik.currentTax).toBe(base.currentTax);
+    /* Seluruh efeknya mendarat di pajak tangguhan… */
+    expect(naik.deferredPL - base.deferredPL).toBe(Math.round(1_000 * 0.22));
+    /* …dan beban pajak turun persis sebesar tarif × beban, bukan lebih. */
+    expect(base.taxExpense - naik.taxExpense).toBe(Math.round(1_000 * 0.22));
+  });
+
+  /* Kontrol negatif: jurnal dengan beban yang SAMA tetapi berklasifikasi `none`
+     justru menurunkan pajak kini — pembeda yang dulu tak ada sama sekali. */
+  it('beban yang deductible menurunkan pajak kini; klasifikasi fiskal yang membedakannya', () => {
+    const ded = deferredTax(SEED, [
+      ...SEED_AJE,
+      { id: 'AJE-Y', status: 'Posted', dr: '5-3100 Beban', cr: '2-1300 Akrual', amount: 1_000_000_000,
+        taxEffect: { kind: 'none' as const, basis: 'uji — deductible akrual' } },
+    ]);
+    const base = deferredTax();
+    expect(ded.pkp).toBe(base.pkp - 1_000);
+    expect(base.currentTax - ded.currentTax).toBe(Math.round(1_000 * 0.22));
+    expect(ded.deferredPL).toBe(base.deferredPL);
   });
 
   it('identitas ETR: beban pajak = (PBT + permAdd − permLess) × tarif', () => {

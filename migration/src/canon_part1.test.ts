@@ -17,13 +17,32 @@ describe('deferredTax() — PSAK 46 (patokan W0-BASELINE)', () => {
      membuatnya bertahan lima kali evaluasi. */
   it('beban pajak, ETR, dan DTA cocok dengan baseline (juta)', () => {
     expect(dt.taxExpense).toBe(5_269);
-    expect(dt.currentTax).toBe(6_765);    // round(PKP 30.750 × 22%)
-    expect(dt.deferredPL).toBe(1_496);    // round(6.800 × 22%)
+    /* PR-G1 — round(PKP 31.370 × 22%). PKP naik 620 jt karena koreksi fiskal AJE-02
+       (CKPN, Ps. 9(1)(c) UU PPh) kini terhitung di movement beda temporer. Beban pajak
+       TIDAK bergerak — hanya pemisahan kini vs tangguhan; lihat uji invarians di
+       canon_fiscal.test.ts. */
+    expect(dt.currentTax).toBe(6_901);
+    expect(dt.deferredPL).toBe(1_632);    // round(7.420 × 22%)
     expect(dt.dtaReported).toBe(4_980);
-    expect(dt.dtaVariance).toBe(-1_914);  // pajak tangguhan tak bergantung PBT
+    /* PR-G1 — saldo penutup naik 136 jt (620 × 22%) karena saldo ember `ecl` kini basis
+       DILAPORKAN. Naiknya SAMA dengan naiknya `deferredPL`, sehingga saldo AWAL tersirat
+       tidak bergeser sedikit pun (1.511 jt sebelum & sesudah) — itulah tanda kedua sisi
+       identitas bergerak bersama. Memperbaiki salah satu saja akan menggeser saldo awal
+       secara senyap, karena saldo awal adalah angka penyeimbang. */
+    expect(dt.dtaVariance).toBe(-1_778);
+    expect(dt.opening).toBe(1_511);
     expect(dt.pbt).toBe(25_750);
-    expect(dt.pkp).toBe(30_750);
+    expect(dt.pkp).toBe(31_370);
     expect(dt.rate).toBe(0.22);
+  });
+
+  /* PR-G1 — GERBANG FALSIFIKASI. Sebelum ini `opening` adalah plug murni: tak ada apa pun
+     yang dapat menyatakan movement beda temporer salah. Pembanding sudah tersedia sejak
+     awal di WTB 1-2500 kolom `ly` dan tak pernah dipakai. */
+  it('saldo awal model dibandingkan ke DTA buku besar tahun lalu — selisih DILAPORKAN', () => {
+    expect(dt.openingBooks).toBe(4_110);            // WTB 1-2500 kolom `ly`
+    expect(dt.openingVariance).toBe(dt.opening - dt.openingBooks);
+    expect(dt.openingVariance).toBe(-2_599);        // nyata & belum terjelaskan
   });
 
   it('ETR = beban pajak / PBT ≈ 20,46%', () => {
