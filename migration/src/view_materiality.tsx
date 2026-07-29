@@ -2,7 +2,8 @@
 import React from 'react';
 import { AMS } from './data';
 import type { Benchmark, MaterialityConfig, WTB } from './canon_types';
-import { benchmarksFromWTB } from './canon_base';
+import { benchmarksFromWTB, wtbOn } from './canon_base';
+import type { AjeLike } from './canon_base';
 import { consolidatedBenchmarks, engagementBenchmarks } from './canon_part3';
 import { useAudit, useFirm, useMateriality, useNav } from './contexts';
 import { I } from './icons';
@@ -59,8 +60,8 @@ function MaterialityCalc() {
      satu kunci TIDAK saling sinkron dalam satu sesi, jadi menjadi pemilik kedua akan
      membuat suntingan di sini tak terlihat oleh WTB/SA 530 sampai remount — split-brain
      baru, kelas bug yang justru sedang diperbaiki. */
-  const { matConfig, setMatConfig, wtb } = useAudit() as {
-    matConfig: MaterialityConfig; setMatConfig: (p: Partial<MaterialityConfig>) => void; wtb: WTB;
+  const { matConfig, setMatConfig, wtb, aje } = useAudit() as {
+    matConfig: MaterialityConfig; setMatConfig: (p: Partial<MaterialityConfig>) => void; wtb: WTB; aje: AjeLike[];
   };
   /* Basis `unadj` — SAMA dengan yang dikirim `useMateriality()` ke canon. Keduanya
      memanggil fungsi murni yang sama atas WTB yang sama, jadi tak ada split-brain:
@@ -100,6 +101,13 @@ function MaterialityCalc() {
   const calcOM = bench ? Math.round(bench.value * pct / 100) : null;  // hitung benchmark live (pembanding editor)
   const om = mat.omFull != null ? mat.omFull : (calcOM ?? 0);
   const pm = mat.pmFull != null ? mat.pmFull : Math.round(om * pmPct / 100);
+  /* PR-H4 · BASIS + REGISTER REAKTIF. Dulu `AMS.WTB.filter(r => Math.abs(r.adj) > pm)`:
+     dua cacat sekaligus — (1) `AMS.WTB` adalah singleton BEKU, jadi hitungan ini tak
+     bergerak saat WTB perikatan berubah (pola cache-dingin yang sama dgn #129/PR-6b);
+     (2) kolom `adj` memuat usulan, sehingga "akun melampaui PM" menyaring populasi yang
+     berbeda dari saldo yang akan tersaji di LK. Ambangnya PM — keputusan tentang LUAS
+     PENGUJIAN — jadi salah populasi berarti salah ruang lingkup. */
+  const akunDiAtasPm = useMemoM(() => (wtb || []).filter(r => Math.abs(wtbOn(wtb, aje, r.code, 'reported')) > pm).length, [wtb, aje, pm]);
   const ctt = mat.cttFull != null ? mat.cttFull : Math.round(om * cttPct / 100);
   /* `applied` = angka yang dipakai sbg PEMBANDING drift oleh tab Penentuan/Revisi/Memo:
      override bila ada, else nilai administratif di baris perikatan. Tetap seperti dulu —
@@ -185,7 +193,7 @@ function MaterialityCalc() {
               pct={pct} setPct={setPct} pmPct={pmPct} setPmPct={setPmPct} cttPct={cttPct} setCttPct={setCttPct}
               quals={quals} setQuals={setQuals} activeQuals={activeQuals}
               om={om} pm={pm} ctt={ctt} applied={applied} hasOverride={appliedOverride != null}
-              priorOM={priorOM} rp={rp} locked={locked} />
+              priorOM={priorOM} rp={rp} locked={locked} akunDiAtasPm={akunDiAtasPm} />
           )}
           {tab === 'spec' && <MatSpecific om={om} pmPct={pmPct} locked={locked} />}
           {tab === 'comp' && <MatComponent om={om} cttPct={cttPct} locked={locked} />}
@@ -199,7 +207,7 @@ function MaterialityCalc() {
 }
 
 /* ---------- Determination tab ---------- */
-function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, hasOverride, priorOM, rp, locked }: any) {
+function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, pmPct, setPmPct, cttPct, setCttPct, quals, setQuals, activeQuals, om, pm, ctt, applied, hasOverride, priorOM, rp, locked, akunDiAtasPm }: any) {
   const { fmt } = AMS;
   const nav = useNav();
   const toggleQ = (id: any) => setQuals((q: any) => ({ ...q, [id]: !q[id] }));
@@ -345,7 +353,7 @@ function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, 
         <Panel title="Dampak ke Working Trial Balance">
           <div className="row jb ac">
             <span className="tiny muted">Akun melebihi Performance Materiality ({rp(pm)})</span>
-            <Badge kind="red">{AMS.WTB.filter(r => Math.abs(r.adj ?? 0) > pm).length} akun</Badge>
+            <Badge kind="red">{akunDiAtasPm} akun</Badge>
           </div>
           <div className="divider" />
           <div className="row gap8">

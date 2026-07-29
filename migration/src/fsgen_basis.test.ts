@@ -21,6 +21,7 @@ import { describe, it, expect } from 'vitest';
 import { FSGEN } from './fsgen_model';
 import { AMS_FORENSIC } from './forensic_canon';
 import { AMS } from './data';
+import { wtbOn } from './canon_base';
 import type { WTB, WtbBasis } from './canon_types';
 
 const BASES: WtbBasis[] = ['unadj', 'reported', 'ifAllProposed'];
@@ -151,5 +152,34 @@ describe('PR-H1 — angka bergerak saat status jurnal berubah', () => {
     expect(jt(rep.bs.totalAssets.cy)).toBe(jt(all.bs.totalAssets.cy));
     expect(jt(rep.is.netIncome.cy)).toBe(jt(all.is.netIncome.cy));
     expect(jt(rep.bs.totalEq.cy)).toBe(jt(all.bs.totalEq.cy));
+  });
+});
+
+/* ============================================================
+   PR-H4 — INVARIAN yang dipakai konsumen tingkat-view.
+
+   `view_dataflow` menyimpulkan "neraca saldo seimbang" dari Σ seluruh baris.
+   Klaim yang dipegang saat memindahkannya ke basis DILAPORKAN: jumlah itu
+   INVARIAN terhadap basis, karena tiap jurnal berpasangan debit=kredit sehingga
+   Σ efeknya nol. Klaim itu dipaku di sini alih-alih dipercaya — kalau suatu
+   ketika ada jurnal tak-seimbang masuk register, uji ini yang gagal lebih dulu,
+   bukan indikator "seimbang" di layar yang diam-diam berubah arti.
+   ============================================================ */
+describe('PR-H4 — Σ neraca saldo invarian terhadap basis', () => {
+  const total = (basis: WtbBasis) =>
+    WTB_SEED.reduce((a, r) => a + wtbOn(WTB_SEED, AMS.AJE as never, r.code, basis), 0);
+
+  it('Σ identik pada unadj / reported / ifAllProposed', () => {
+    const [u, r, p] = BASES.map(total);
+    expect(Math.round(r)).toBe(Math.round(u));
+    expect(Math.round(p)).toBe(Math.round(u));
+  });
+
+  /* Σ ≠ 0 pada seed: WTB mempertahankan akun 4-/5- terbuka sementara saldo laba
+     adalah saldo penutup. Dinyatakan agar tak ada yang "memperbaiki" jadi nol —
+     lihat penutupan laba (`reShift`) di fsgen_model. */
+  it('Σ = −laba neto basis ifAllProposed (bukan nol) — sifat WTB, bukan cacat', () => {
+    const m = FSGEN.buildModel(WTB_SEED, undefined, 'ifAllProposed');
+    expect(Math.round(total('unadj') / 1e6)).toBe(-Math.round(m.is.netIncome.cy / 1e6));
   });
 });

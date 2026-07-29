@@ -4,6 +4,7 @@ import { useAudit, useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
 import { PROGRAMME } from './view_cockpit';
 import { AMS } from './data';
+import { wtbOn } from './canon_base';
 
 /* ============================================================
    Asseris — AI Insights (Tier 2)
@@ -48,9 +49,14 @@ function amsCrossChecks(ctx: any) {
   const confs = ctx.confirmations || [];
   const out = [];
 
+  /* PR-H4 · BASIS. Insight yang menyebut "saldo saat ini" harus memakai saldo yang AKAN
+     TERSAJI di LK, bukan kolom `adj` yang memuat usulan — kalau tidak, mesin ini dapat
+     menyimpulkan sebuah pos sudah beres justru karena mengandaikan jurnal yang belum
+     disetujui. `unadj` tetap fallback bila baris tak punya kolom basis. */
   const wtbVal = (code: any, field?: any) => {
     const r = wtb.find((x: any) => x.code === code) || {};
-    return (field === 'ly' ? r.ly : (r.adj != null ? r.adj : r.unadj)) || 0;
+    if (field === 'ly') return r.ly || 0;
+    return (r.code != null ? wtbOn(wtb, aje, code, 'reported') : (r.unadj || 0)) || 0;
   };
   const progArea = (match: any) => prog.find((p: any) => p.area && match.test(p.area));
 

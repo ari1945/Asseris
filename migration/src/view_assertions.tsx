@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { wtbOn } from './canon_base';
 import { useAudit, useFirm, useNav } from './contexts';
 import {
   assertionCoverage, assertionsByGroup, groupForAccountCode, ASSERTION_STATUS_META,
@@ -50,7 +51,10 @@ function AssertionMatrix() {
         e = { lead: r.lead, group: groupForAccountCode(r.code), section: r.group, title: (WP_META as any)[r.lead]?.title || r.name, bal: 0, maxAbs: 0, hasAsrRisk: false, codes: [] };
         map.set(r.lead, e);
       }
-      e.bal += r.adj; e.maxAbs = Math.max(e.maxAbs, Math.abs(r.adj)); e.codes.push(r.code);
+      /* PR-H4 — saldo per lead pada basis DILAPORKAN: ukuran pos yang menentukan
+         signifikansi asersi harus sama dengan pos yang akan tersaji di LK. */
+      const bal = wtbOn(wtb, aje, r.code, 'reported');
+      e.bal += bal; e.maxAbs = Math.max(e.maxAbs, Math.abs(bal)); e.codes.push(r.code);
     });
     (risks || []).forEach((r: any) => {
       const ref = String(r.wp || '').split('-')[0];

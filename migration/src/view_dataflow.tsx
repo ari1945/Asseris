@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { wtbOn } from './canon_base';
 import { useAudit, useFirm, useNav } from './contexts';
 import { useEvidence } from './evidence';
 import { I, MODULE_INDEX } from './icons';
@@ -80,8 +81,12 @@ function DataFlow() {
   const client = eng ? clientById(eng.clientId) : null;
 
   /* ---- working-data rollups (represent the active engagement) ---- */
-  const tbSum = wtb.reduce((s: any, r: any) => s + (r.adj || 0), 0);
-  const tbTotal = wtb.reduce((s: any, r: any) => s + Math.abs(r.adj || 0), 0) || 1;
+  /* PR-H4 · BASIS. Secara konstruksi INVARIAN terhadap basis — tiap jurnal berpasangan,
+     jadi Σ(saldo basis) identik untuk unadj/reported/ifAllProposed (dipaku uji). Tetap
+     dipindahkan supaya modul Alur Data, yang kini memasang chip "Basis: DILAPORKAN",
+     tidak menyisakan satu-satunya pembaca kolom `adj` di dalam dirinya sendiri. */
+  const tbSum = wtb.reduce((s: any, r: any) => s + wtbOn(wtb, aje, r.code, 'reported'), 0);
+  const tbTotal = wtb.reduce((s: any, r: any) => s + Math.abs(wtbOn(wtb, aje, r.code, 'reported')), 0) || 1;
   const tbBalanced = Math.abs(tbSum) / tbTotal < 0.005;
   const significant = risks.filter((r: any) => (r.likelihood * r.impact) >= 12).length;
   const postedAje = aje.filter((a: any) => a.status === 'Posted').length;
