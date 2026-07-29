@@ -5,7 +5,7 @@ import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Btn, LockBanner, Panel, Tabs } from './ui';
+import { Btn, LockBanner, Panel, Seg, Tabs } from './ui';
 import { FSDisclosurePanel, FSMappingPanel, FSPresentation, FSSignoff, FSStatementNav, FSValidationPanel } from './view_fsgen_panels';
 import { useWpSignoff } from './wp_signoff';
 import { amsExportPdf } from './export_pdf';
@@ -125,8 +125,20 @@ function FSGenerator() {
   /* Emiten/entitas tercatat → OJK mewajibkan metode langsung; jika belum dipilih, ikuti status klien. */
   const cfMethod = cfMethodPref === 'auto' ? (activeClient?.listed ? 'direct' : 'indirect') : cfMethodPref;
 
-  const model = useMemoFS(() => FSGEN.buildModel(wtb, aje), [wtb, aje]);
+  /* PR-H2 · SAKELAR BASIS. Default DILAPORKAN — modul ini MENERBITKAN laporan
+     keuangan, dan LK yang diaudit menyajikan koreksi yang DITERIMA (SA 450).
+     `ifAllProposed` dipertahankan karena pertanyaan "bagaimana bila seluruh usulan
+     diterima" memang sah dan sering ditanyakan sebelum rapat penutupan — tetapi ia
+     pertanyaan KERJA, bukan laporan, jadi ia pilihan eksplisit dan bukan default.
+     Keduanya dibangun mesin yang SAMA, sehingga kedua angka tak pernah dapat
+     menyimpang (diuji: semua usulan diposting → reported == ifAllProposed). */
+  const [basis, setBasis] = window.useAmsPersist('fsgen.basis', 'reported');
+  const model = useMemoFS(() => FSGEN.buildModel(wtb, aje, basis), [wtb, aje, basis]);
+  const modelReported = useMemoFS(() => (basis === 'reported' ? model : FSGEN.buildModel(wtb, aje, 'reported')), [wtb, aje, basis, model]);
   const checks = useMemoFS(() => FSGEN.buildTieOuts(model, ajeTotalPosted), [model, ajeTotalPosted]);
+  /* Selisih dinyatakan, bukan disembunyikan: berapa laba yang bergantung pada
+     keputusan yang belum diambil. Nol saat basis DILAPORKAN. */
+  const basisDelta = model.is.netIncome.cy - modelReported.is.netIncome.cy;
 
   const U = (FSGEN.UNITS as any)[unit];
   const sc = (n: any) => { const x = n / U.div; const a = fmt(Math.abs(x), U.dp); return x < 0 ? '(' + a + ')' : a; };
@@ -212,6 +224,16 @@ function FSGenerator() {
     <>
       <SubBar moduleId="fsgen" right={
         <div className="row gap8 ac">
+          <span className="tiny muted" style={{ whiteSpace: 'nowrap' }}>Basis</span>
+          <Seg value={basis} onChange={setBasis} options={[
+            { value: 'reported', label: 'Dilaporkan' },
+            { value: 'ifAllProposed', label: 'Bila semua usulan diterima' },
+          ]} />
+          {basis !== 'reported' && (
+            <span className="tiny mono" style={{ color: 'var(--amber)' }} title="Basis kerja — bukan laporan keuangan yang diterbitkan.">
+              ● Laba {basisDelta < 0 ? '−' : '+'}{M(Math.abs(basisDelta))} vs dilaporkan
+            </span>
+          )}
           <span className="tiny mono" style={{ color: model.bs.balanced ? 'var(--green)' : 'var(--red)' }}>{model.bs.balanced ? '● Neraca seimbang' : '● Tidak seimbang'}</span>
           <span className="tiny mono" style={{ color: passed === checks.length ? 'var(--green)' : 'var(--amber)' }}>● {passed}/{checks.length} tie-out</span>
           <Btn sm onClick={() => nav('wtb')}><I.table size={13} /> Buka WTB</Btn>
