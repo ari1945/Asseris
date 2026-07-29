@@ -101,10 +101,10 @@ function RCRow({ r, nav }: any) {
 
 function DFRekonsiliasi() {
   const nav = useNav();
-  const { wtb } = useAudit();
+  const { wtb, aje } = useAudit();
   const canon = AMS_CANON;
 
-  const R = useMemoRC(() => canon.reconcile(wtb), [wtb]);
+  const R = useMemoRC(() => canon.reconcile(wtb, aje), [wtb, aje]);
   const rows = R.accounting;
 
   const ok = rows.filter((r: any) => r.status === 'ok').length;

@@ -103,7 +103,7 @@ const { useState: useStateFS, useMemo: useMemoFS } = React;
 
 function FSGenerator() {
   const { fmt } = AMS;
-  const { wtb, ajeTotalPosted } = useAudit();
+  const { wtb, aje, ajeTotalPosted } = useAudit();
   const { activeClient, activeEngagement, locked } = useFirm();
   const nav = useNav();
   const [exporting, setExporting] = useStateFS(false);
@@ -125,7 +125,7 @@ function FSGenerator() {
   /* Emiten/entitas tercatat → OJK mewajibkan metode langsung; jika belum dipilih, ikuti status klien. */
   const cfMethod = cfMethodPref === 'auto' ? (activeClient?.listed ? 'direct' : 'indirect') : cfMethodPref;
 
-  const model = useMemoFS(() => FSGEN.buildModel(wtb), [wtb]);
+  const model = useMemoFS(() => FSGEN.buildModel(wtb, aje), [wtb, aje]);
   const checks = useMemoFS(() => FSGEN.buildTieOuts(model, ajeTotalPosted), [model, ajeTotalPosted]);
 
   const U = (FSGEN.UNITS as any)[unit];

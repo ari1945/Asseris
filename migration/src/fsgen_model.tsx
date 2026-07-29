@@ -1,5 +1,7 @@
 /* [codemod] ESM imports */
-import { setFsgenBuilder } from './canon_base';
+import { setFsgenBuilder, wtbOn } from './canon_base';
+import type { AjeLike } from './canon_base';
+import type { WtbBasis } from './canon_types';
 
 /* ============================================================
    Asseris — Financial Statement Generator · Model & Engine
@@ -47,20 +49,64 @@ const FSGEN = (function () {
 
   const SHARES = 600_000_000; // issued shares for EPS
 
-  function buildModel(wtb: any) {
+  /* PR-H1 · BASIS LAPORAN KEUANGAN — default DILAPORKAN (`unadj` + jurnal Posted).
+
+     Modul ini MENERBITKAN, bukan menimbang: keluarannya adalah draf laporan keuangan.
+     Membaca kolom `adj` berarti mencetak neraca & laba rugi di mana AJE-03 (1.850 jt)
+     dan AJE-05 (1.120 jt) sudah dikoreksi, padahal partner belum memutuskannya —
+     sementara modul SAD di sebelahnya (`view_sad.tsx`) sudah memakai basis DILAPORKAN
+     dan mengevaluasi keduanya sebagai salah saji TIDAK DIKOREKSI terhadap materialitas.
+     Satu perikatan, dua laporan keuangan. Itu yang ditutup di sini.
+
+     SEMUA-ATAU-TIDAK-SAMA-SEKALI: neraca menutup karena setiap akun dibaca pada kolom
+     yang sama dan tiap jurnal berpasangan seimbang. Memindahkan sebagian akun (mis.
+     hanya aset tetap agar cocok dengan PSAK 16) membuat `bsDiff` 1.120 jt vs toleransi
+     Rp 1 jt → `balanced: false`. Memindahkan seluruhnya tetap seimbang, karena
+     `unadj + Posted` juga jumlah dari jurnal-jurnal berpasangan — diuji, bukan
+     diandaikan (lihat fsgen_basis.test.ts).
+
+     `ifAllProposed` tetap tersedia agar tampilan "bila semua usulan diterima" dapat
+     dibangun dari mesin yang SAMA, sehingga kedua angka tak pernah dapat menyimpang. */
+  function buildModel(wtb: any, aje?: AjeLike[], basis: WtbBasis = 'reported') {
     const by = {};
     wtb.forEach((r: any) => { (by as any)[r.code] = r; });
-    const cy = (c: any) => ((by as any)[c] ? (by as any)[c].adj : 0);
+    const cy = (c: any) => ((by as any)[c] ? wtbOn(wtb, aje, c, basis) : 0);
     const py = (c: any) => ((by as any)[c] ? (by as any)[c].ly : 0);
     const sumCY = (codes: any) => codes.reduce((a: any, c: any) => a + cy(c), 0);
     const sumPY = (codes: any) => codes.reduce((a: any, c: any) => a + py(c), 0);
+
+    /* ---- PR-H1 · PENUTUPAN LABA KE SALDO LABA (syarat agar neraca seimbang) ----
+       Temuan yang hanya muncul setelah basis dapat dipilih: saldo laba 3-2100 pada WTB
+       SUDAH memuat laba tahun berjalan basis `ifAllProposed` — yakni seolah AJE-03 &
+       AJE-05 diterima. Buktinya aritmetis, bukan tafsiran: Σ seluruh baris WTB =
+       −11.540 = −laba neto basis `ifAllProposed`, dan bsDiff terukur 0 / 2.970 / 6.910
+       untuk `ifAllProposed` / `reported` / `unadj`.
+
+       Sebabnya: WTB mempertahankan akun 4-/5- tetap TERBUKA, sedangkan 3-2100 adalah
+       saldo PENUTUP. Jurnal audit menyentuh satu kaki laba-rugi dan satu kaki neraca,
+       tetapi kaki laba-ruginya tidak pernah ditutup ke ekuitas di kolom WTB mana pun.
+       Karena itu memindahkan seluruh akun ke basis lain TIDAK cukup untuk menjaga
+       neraca seimbang — bertentangan dengan dugaan awal PRD, dan ditangkap oleh uji
+       `cashTies`, bukan oleh penalaran.
+
+       Penutupan di bawah menyatakan ulang saldo laba ke basis yang DISAJIKAN. Ia tidak
+       mendaftar status jurnal apa pun — cukup selisih akun laba-rugi antara basis
+       tersaji dan basis yang tertanam di 3-2100. Nol secara identik pada
+       `ifAllProposed`, sehingga perilaku lama utuh persis. */
+    const reShift = (wtb as Array<{ code: string; adj: number }>)
+      .filter(r => r.code[0] === '4' || r.code[0] === '5')
+      .reduce((a, r) => a - (cy(r.code) - (r.adj || 0)), 0);
 
     /* asset captions present natural (positive); liability/equity flipped positive */
     const assetLine = (cap: any) => ({ ...cap, cy: sumCY(cap.codes), py: sumPY(cap.codes) });
     const negLine   = (cap: any) => ({ ...cap, cy: -sumCY(cap.codes), py: -sumPY(cap.codes) });
 
     const ca = CA.map(assetLine),  nca = NCA.map(assetLine);
-    const cl = CL.map(negLine),    ncl = NCL.map(negLine),  eq = EQ.map(negLine);
+    /* saldo laba memikul penutupan; kapital saham tidak tersentuh laba-rugi */
+    const eqLine = (cap: { key: string; codes: string[] }) => (cap.key === 'saldolaba'
+      ? { ...negLine(cap), cy: -sumCY(cap.codes) + reShift }
+      : negLine(cap));
+    const cl = CL.map(negLine),    ncl = NCL.map(negLine),  eq = EQ.map(eqLine);
 
     const tot = (lines: any, k: any) => lines.reduce((a: any, l: any) => a + l[k], 0);
     const totalCA = { cy: tot(ca, 'cy'), py: tot(ca, 'py') };
@@ -87,7 +133,7 @@ const FSGEN = (function () {
     const eps = { cy: netIncome.cy / SHARES, py: netIncome.py / SHARES };
 
     /* ---- Statement of changes in equity (rollforward of saldo laba) ---- */
-    const beginRE = -py('3-2100'), endRE = -cy('3-2100');
+    const beginRE = -py('3-2100'), endRE = -cy('3-2100') + reShift;
     const oci = endRE - beginRE - netIncome.cy;   // remeasurement / OCI plug to tie RE
     const beginModal = -py('3-1100'), endModal = -cy('3-1100');
 
@@ -106,7 +152,7 @@ const FSGEN = (function () {
     const dBankS = -d('2-1200'), dBankL = -d('2-2100');
     const dLease = -(d('2-1500') + d('2-2200'));   // ↑ lease liabilities
     const dModal = -d('3-1100');
-    const ociFin = (-d('3-2100')) - netIncome.cy;  // RE movement not from current-year profit
+    const ociFin = (endRE - beginRE) - netIncome.cy;  // RE movement not from current-year profit
 
     const cfo = [
       { label: 'Laba tahun berjalan', v: netIncome.cy, strong: false },

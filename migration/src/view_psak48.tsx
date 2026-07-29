@@ -101,8 +101,11 @@ function PSAK48View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
   const canon = AMS_CANON;
-  const p48 = useMemoP48(() => canon.psak48(wtb), [wtb]);
+  const p48 = useMemoP48(() => canon.psak48(wtb, aje), [wtb, aje]);
   const p57 = useMemoP48(() => canon.psak57(wtb), [wtb]);
 
   const [tab, setTab] = useStateP48(() => loader('ams.psak48.tab', 'impair'));

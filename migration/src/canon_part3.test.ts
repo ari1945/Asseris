@@ -24,7 +24,7 @@ describe('reconcile() — tie-out lintas-modul', () => {
 
   it('engine bersarang konsisten dengan baseline: dt.taxExpense & p71.eclModel', () => {
     expect(r.dt.taxExpense).toBe(5_269);   // PR-F: PKP kini turunan (30.750), bukan konstanta 53.500
-    expect(r.p71.eclModel).toBeCloseTo(2_603.014, 2);
+    expect(r.p71.eclModel).toBeCloseTo(2_700.354, 2);   // PR-H1: eksposur ECL basis DILAPORKAN
     expect(Math.abs(r.eclModel - r.p71.eclModel)).toBeLessThan(1); // reconcile membulatkan
   });
 });

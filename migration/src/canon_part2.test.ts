@@ -11,12 +11,30 @@ describe('psak71() — ECL / staging (patokan W0-BASELINE)', () => {
     expect(p.ckpnAudited).toBe(2_600);
   });
 
+  /* PR-H1 · BASIS EKSPOSUR. Angka-angka ini bergerak karena dasar matriks provisi
+     pindah dari kolom `adj` (piutang neto-AJE-03, padahal AJE-03 masih USULAN) ke basis
+     DILAPORKAN. Bukan penalaan: seluruhnya turunan dari satu perubahan eksposur
+     49.472,4 → 51.322,4 jt, dan setiap baris di bawah tetap terikat identitasnya.
+
+     Yang paling perlu dibaca auditor adalah `auditVariance`. Nilai lamanya 3,014 jt
+     terbaca "model menutup ke cadangan audited, dalam toleransi" — padahal itu ARTEFAK
+     beda basis: modelnya dihitung atas piutang neto-usulan sementara cadangannya tidak.
+     Pada satu basis nilainya 100,4 jt: di bawah OM (1.485) tetapi di atas CTT, sehingga
+     wajib diakumulasi ke SAD alih-alih diabaikan sebagai clearly trivial. */
   it('model ECL, overlay, coverage, gap, variance cocok baseline', () => {
-    expect(p.eclModel).toBeCloseTo(2_603.014, 2);
-    expect(p.overlayAmt).toBeCloseTo(141.535, 2);
-    expect(p.coverage).toBeCloseTo(0.0526, 3);
-    expect(p.gap).toBeCloseTo(623.014, 2);          // model − dibukukan klien (dasar AJE-02)
-    expect(p.auditVariance).toBeCloseTo(3.014, 2);  // model vs audited (≈0)
+    expect(p.eclModel).toBeCloseTo(2_700.354, 2);
+    expect(p.overlayAmt).toBeCloseTo(146.828, 2);
+    expect(p.coverage).toBeCloseTo(0.0526, 3);      // rasio tak bergerak — eksposur & ECL naik searah
+    expect(p.gap).toBeCloseTo(720.354, 2);          // model − dibukukan klien (dasar AJE-02)
+    expect(p.auditVariance).toBeCloseTo(100.354, 2);// model vs audited — BUKAN lagi ≈0
+  });
+
+  /* Penjaga arah: bila dasar matriks kembali ke kolom `adj`, eksposur turun 1.850 jt
+     dan `auditVariance` merosot ke ≈3 — kembali membungkam dirinya sendiri. */
+  it('eksposur bruto = piutang basis DILAPORKAN, bukan neto-usulan', () => {
+    expect(p.grossTot).toBe(51_322);            // `jt()` membulatkan ke juta penuh
+    expect(p.grossTot).not.toBe(49_472);
+    expect(p.auditVariance).toBeGreaterThan(50);
   });
 
   it('identitas: gap = eclModel − ckpnBooked; auditVariance = eclModel − ckpnAudited', () => {

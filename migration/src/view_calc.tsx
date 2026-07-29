@@ -23,9 +23,12 @@ function ECLCalculator() {
   const nav = useNav();
   const audit = useAudit();
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
   /* SATU sumber: matriks bucket, gross & loss-rate efektif ditarik dari AMS_CANON.psak71(wtb).
      Tidak ada lagi angka hardcode — konsisten dengan modul PSAK 71 & tab Rekonsiliasi. */
-  const p71 = (AMS_CANON ? AMS_CANON.psak71(wtb) : null);
+  const p71 = (AMS_CANON ? AMS_CANON.psak71(wtb, aje) : null);
   const [buckets, setBuckets] = useAmsPersist('eclInputs.v1', () => (p71 ? p71.buckets.map(b => ({
     id: b.id, label: b.label, stage: b.stage, gross: Math.round(b.gross) * 1e6, rate: +b.rate.toFixed(1),
   })) : [])); // F1/PR-3: persist loss-rate (dulu useState → hilang saat reload)

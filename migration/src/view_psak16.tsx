@@ -2,6 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
+import { reportedBalance } from './canon_base';
 import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useInitialTab, useNav } from './contexts';
 import { I } from './icons';
@@ -114,9 +115,12 @@ function PSAK16View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
-  const model = useMemoP16(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const fa = useMemoP16(() => (AMS_CANON ? AMS_CANON.fixedAssets(wtb) : null), [wtb]);
-  const reg = useMemoP16(() => (AMS_CANON ? AMS_CANON.assetRegister(wtb) : null), [wtb]);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
+  const model = useMemoP16(() => (FSGEN ? FSGEN.buildModel(wtb, aje) : null), [wtb, aje]);
+  const fa = useMemoP16(() => (AMS_CANON ? AMS_CANON.fixedAssets(wtb, aje) : null), [wtb, aje]);
+  const reg = useMemoP16(() => (AMS_CANON ? AMS_CANON.assetRegister(wtb, aje) : null), [wtb, aje]);
 
   const [unit, setUnit] = useStateP16(() => loader('ams.psak16.unit', 'jutaan'));
   const [measure, setMeasure] = window.useAmsPersist('psak16.measure.v1', () => ('cost'));
@@ -195,8 +199,11 @@ function PSAK16View() {
   const asetBS = model.bs.nca.find((l: any) => l.key === 'asettetap');
   const tieRows = [
     { id: 't1', label: 'Roll-forward menutup ke saldo neraca', std: '¶73(e)', a: fa.netClose, b: M(asetBS.cy), note: 'Awal + penambahan − pelepasan − penyusutan ± AJE = Aset tetap neto (WTB 1-2100 + 1-2110 adjusted).' },
-    { id: 't2', label: 'Harga perolehan = WTB 1-2100', std: '¶73(d)', a: fa.grossClose, b: M((wtb.find((r: any) => r.code === '1-2100') || {}).adj || 0), note: 'Jumlah tercatat bruto menutup ke buku besar harga perolehan.' },
-    { id: 't3', label: 'Akumulasi penyusutan = WTB 1-2110', std: '¶73(d)', a: -fa.accumAudit, b: M((wtb.find((r: any) => r.code === '1-2110') || {}).adj || 0), note: 'Akumulasi penyusutan (kontra-aset) menutup ke buku besar 1-2110 adjusted.' },
+    /* PR-H1 — pembanding memakai basis DILAPORKAN (`reportedBalance`), bukan kolom
+       `adj`. Sejak roll-forward pindah basis, membandingkannya ke `adj` berarti menguji
+       dua pertanyaan berbeda dan melaporkan selisih 1.120 sebagai kegagalan tie-out. */
+    { id: 't2', label: 'Harga perolehan = WTB 1-2100', std: '¶73(d)', a: fa.grossClose, b: M(reportedBalance(wtb, aje, '1-2100')), note: 'Jumlah tercatat bruto menutup ke buku besar harga perolehan (dibukukan + jurnal terposting).' },
+    { id: 't3', label: 'Akumulasi penyusutan = WTB 1-2110', std: '¶73(d)', a: -fa.accumAudit, b: M(reportedBalance(wtb, aje, '1-2110')), note: 'Akumulasi penyusutan (kontra-aset) menutup ke buku besar 1-2110 basis dilaporkan.' },
     { id: 't4', label: 'Penyusutan = add-back Arus Kas (PSAK 2)', std: 'PSAK 2', a: fa.deprAudited, b: M(model.meta.depreciation), note: 'Beban penyusutan audited = kenaikan akumulasi penyusutan (add-back non-kas).' },
     { id: 't5', label: 'Belanja modal neto = arus kas investasi', std: 'PSAK 2', a: fa.capexNet, b: M(-model.meta.capex), note: 'Mutasi neto harga perolehan = perolehan aset tetap pada Arus Kas Investasi.' },
     { id: 't6', label: 'Saldo awal = komparatif WTB 2024', std: '¶73(d)', a: fa.netOpen, b: M(((wtb.find((r: any) => r.code === '1-2100') || {}).ly || 0) + ((wtb.find((r: any) => r.code === '1-2110') || {}).ly || 0)), note: 'Nilai tercatat neto awal = saldo audited periode lalu (kolom komparatif WTB).' },

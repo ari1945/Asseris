@@ -346,9 +346,12 @@ function PSAK71View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
   const canon = AMS_CANON;
-  const p71 = useMemoP71(() => canon.psak71(wtb), [wtb]);
-  const dt = useMemoP71(() => canon.deferredTax(wtb), [wtb]);
+  const p71 = useMemoP71(() => canon.psak71(wtb, aje), [wtb, aje]);
+  const dt = useMemoP71(() => canon.deferredTax(wtb, aje), [wtb, aje]);
   /* nilai wajar pos non-WTB (obligasi/forward/saham) DITARIK dari satu sumber: PSAK 68.
      Tidak ada lagi angka FV ganda yang di-hardcode di modul ini. */
   const p68 = useMemoP71(() => canon.psak68(wtb), [wtb]);

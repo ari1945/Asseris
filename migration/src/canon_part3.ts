@@ -2,10 +2,11 @@
    Asseris — canon part3 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
 import { ASOF, RATE, benchmarksFromWTB, figuresFromWTB, fsgenModel, jt, wtbVal } from './canon_base';
+import type { AjeLike } from './canon_base';
 import { assetRegister, deferredTax, fixedAssets, intangibles, inventory, revenue } from './canon_part1';
 import { GOODWILL, psak48, psak57, psak68, psak71 } from './canon_part2';
 import { psak66 } from './canon_part4';
-import type { WTB } from './canon_types';
+import type { WTB, WtbBasis } from './canon_types';
 
   const P58_GROUP = {
     id: 'logistik',
@@ -21,11 +22,11 @@ import type { WTB } from './canon_types';
     costToSellPct: 0.028,             // biaya menjual: broker, notaris, balik nama HGB
   };
 
-  function psak58(wtb?: WTB) {
+  function psak58(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
     const R = Math.round;
-    const reg = assetRegister(wtb);
-    const rev = revenue(wtb);
-    const fa  = reg.fa;                                       // = fixedAssets(wtb)
+    const reg = assetRegister(wtb, aje, basis);
+    const rev = revenue(wtb, aje, basis);
+    const fa  = reg.fa;                                       // = fixedAssets(wtb, aje, basis)
 
     /* anggota disposal group ditarik dari Register Aset Tetap (sub-ledger ber-WTB) */
     const members = P58_GROUP.tags.map(tag => {
@@ -68,7 +69,7 @@ import type { WTB } from './canon_types';
     /* jembatan laba: total (FSGEN) = dilanjutkan + dihentikan (penyajian-ulang, total tetap).
        fsgenModel() = null di headless/test (DI seam belum didaftarkan) — perilaku identik dgn
        guard `window.FSGEN ?` sebelumnya; di app, fsgen_model mendaftarkan buildModel saat boot. */
-    const model     = fsgenModel(wtb);
+    const model     = fsgenModel(wtb, aje, basis);
     const netTotal  = model ? R(model.is.netIncome.cy / 1e6) : 0;
     const salesTot  = model ? R(model.is.sales.cy / 1e6) : 0;
     const contProfit = netTotal - postTaxDisc;                   // laba dari operasi dilanjutkan
@@ -106,14 +107,14 @@ import type { WTB } from './canon_types';
      modul) lalu mencocokkan nilai yang dipakai modul-modul konsumen.
      Dipakai oleh tab "Rekonsiliasi Angka" di modul Alur Data.
      ============================================================ */
-  function reconcile(wtb?: WTB) {
-    const s = figuresFromWTB(wtb);
-    const dt = deferredTax(wtb);
-    const inv = inventory(wtb);
-    const fa = fixedAssets(wtb);
-    const intan = intangibles(wtb);
+  function reconcile(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const s = figuresFromWTB(wtb, aje, basis);
+    const dt = deferredTax(wtb, aje);
+    const inv = inventory(wtb, aje, basis);
+    const fa = fixedAssets(wtb, aje, basis);
+    const intan = intangibles(wtb, aje, basis);
     const p68 = psak68(wtb);
-    const p48 = psak48(wtb);
+    const p48 = psak48(wtb, aje, basis);
     const p57 = psak57(wtb);
     const tol = 1; // toleransi Rp 1 jt (pembulatan)
     interface ReconInput {
@@ -132,7 +133,7 @@ import type { WTB } from './canon_types';
 
     /* ECL model (PSAK 71) — ditarik dari SATU sumber: psak71(wtb). Tidak ada lagi
        duplikasi loss-rate di reconcile maupun view_calc. */
-    const p71 = psak71(wtb);
+    const p71 = psak71(wtb, aje, basis);
     const eclModel = Math.round(p71.eclModel);
 
     const accounting = [
@@ -147,31 +148,35 @@ import type { WTB } from './canon_types';
       }),
       row({
         id: 'ckpn', pos: 'CKPN / ECL Piutang', unit: 'Rp juta',
-        sourceLabel: 'WTB · 1-1210', sourceRoute: 'wtb', source: s.ckpnBooked, ref: 'PSAK 71',
+        sourceLabel: 'WTB · 1-1210', sourceRoute: 'wtb', source: s.ckpnAudited, ref: 'PSAK 71',
         warnOnly: true,
-        /* PR-G1 — saran lama pada catatan ini ("pertimbangkan dasar audited untuk beda
-           temporer") SUDAH DIJALANKAN: PSAK 46 kini memakai basis DILAPORKAN. Selisih
-           yang tersisa karena itu bukan lagi kekeliruan PSAK 46, melainkan penanda bahwa
-           Kalkulator ECL masih menyajikan saldo dibukukan klien. Dinyatakan apa adanya —
-           menyamarkannya justru mengembalikan cacat "modul membantah dirinya". */
-        note: 'Beda basis yang DISENGAJA: PSAK 46 memakai saldo DILAPORKAN Rp ' + dt.items.find(i => i.id === 'ecl')!.diff + ' jt (dibukukan + jurnal TERPOSTING) karena beda temporer harus diukur atas saldo yang akan tersaji di LK. Kalkulator ECL menampilkan saldo dibukukan klien Rp ' + s.ckpnBooked + ' jt. Model ECL Rp ' + eclModel + ' jt.',
+        /* PR-H1 — baris ini dulu MEMBANDINGKAN DUA PERTANYAAN BERBEDA: saldo dibukukan
+           klien (pra-audit) di sisi Kalkulator ECL versus saldo dilaporkan di sisi PSAK 46.
+           Selisih 620 yang muncul karenanya bukan ketidaksepakatan — ia definisi. Baris
+           tie-out yang selamanya `warn` karena rancangannya adalah alarm yang mengajari
+           pembacanya mengabaikan alarm.
+           Kini ketiganya menjawab satu pertanyaan: berapa saldo CKPN yang akan tersaji
+           di LK. Saldo dibukukan klien turun ke `extra`, tempat pembanding memang berada. */
+        note: 'Satu basis: saldo CKPN yang akan tersaji di LK (dibukukan + jurnal TERPOSTING). Dibukukan klien Rp ' + s.ckpnBooked + ' jt naik ke Rp ' + s.ckpnAudited + ' jt lewat AJE-02 yang sudah diposting. Model ECL auditor Rp ' + eclModel + ' jt — selisihnya terhadap saldo tercatat adalah SELISIH AUDIT yang wajib diakumulasi ke SAD, bukan beda basis.',
         consumers: [
-          { module: 'ecl', label: 'Kalkulator ECL · dibukukan', val: s.ckpnBooked },
+          { module: 'ecl', label: 'Kalkulator ECL · saldo tercatat', val: p71.ckpnAudited },
           { module: 'psak46', label: 'PSAK 46 · beda temporer (ecl)', val: dt.items.find(i => i.id === 'ecl')!.diff },
         ],
         extra: [
           { label: 'Model ECL (PSAK 71)', val: eclModel },
-          { label: 'Saldo audited (stlh AJE)', val: s.ckpnAudited },
+          { label: 'Dibukukan klien (pra-audit)', val: s.ckpnBooked },
+          { label: 'Selisih audit thd model ECL', val: Math.round(p71.auditVariance) },
         ],
       }),
       row({
         id: 'ppe', pos: 'Aset Tetap — nilai tercatat neto', unit: 'Rp juta',
         sourceLabel: 'WTB · 1-2100 + 1-2110', sourceRoute: 'wtb', source: s.ppeNetCarry, ref: 'PSAK 16',
         warnOnly: true,
-        /* PR-G1 — selisih carrying PSAK 46 vs PSAK 16 kini punya sebab yang dapat
-           dinamai: PSAK 46 mengecualikan jurnal yang masih USULAN, PSAK 16 & FS
-           Generator masih membaca kolom `adj` WTB yang memuatnya. */
-        note: 'Beda temporer aset tetap (Rp ' + dt.items.find(i => i.id === 'ppe')!.diff + ' jt) berasal dari selisih dengan dasar pajak (kertas kerja fiskal), bukan seluruh nilai tercatat. Selisih carrying antar-modul BERSEBAB: PSAK 46 memakai basis DILAPORKAN (mengecualikan jurnal usulan), sedangkan PSAK 16 & FS Generator membaca kolom `adj` WTB yang memuat usulan. Selisihnya = nilai jurnal aset tetap yang belum diposting.',
+        /* PR-H1 — selisih 1.120 yang dinamai PR-G1 kini TERTUTUP, bukan sekadar
+           terjelaskan: PSAK 16 & FS Generator ikut basis DILAPORKAN. Catatan ini
+           karenanya berhenti menerangkan selisih dan kembali ke tugas aslinya —
+           menegaskan bahwa beda temporer bukan seluruh nilai tercatat. */
+        note: 'Beda temporer aset tetap (Rp ' + dt.items.find(i => i.id === 'ppe')!.diff + ' jt) berasal dari selisih dengan dasar pajak (kertas kerja fiskal), bukan seluruh nilai tercatat. Ketiga modul kini satu basis DILAPORKAN: AJE-05 (Rp 1.120 jt) masih USULAN sehingga dikecualikan dari nilai tercatat mana pun, dan tetap hidup sebagai salah saji tidak dikoreksi di SAD.',
         consumers: [
           { module: 'psak16', label: 'PSAK 16 · nilai tercatat neto', val: Math.round(fa.netClose) },
           { module: 'fsgen', label: 'FS Generator · Aset tetap (Neraca)', val: Math.round(fa.netClose) },
