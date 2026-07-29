@@ -18,11 +18,13 @@ describe('forensic_canon — seed', () => {
 
 describe('score() — skoring kriteria JET', () => {
   it('skor = jumlah flag aktif yang cocok', () => {
+    /* Hanya `id` & `flags` yang disentuh score(); sisa field JournalEntry sengaja
+       dihilangkan agar uji ini menyoroti mekanisme skor, bukan bentuk jurnal. */
     const pop = [
       { id: 'J1', flags: ['round', 'weekend'] },
       { id: 'J2', flags: ['round'] },
       { id: 'J3', flags: [] },
-    ];
+    ] as unknown as Parameters<typeof score>[0];
     const out = score(pop, ['round']);
     expect(out.map(j => j.score)).toEqual([1, 1, 0]);
     expect(out[0].hit).toEqual(['round']);
@@ -36,7 +38,7 @@ describe('score() — skoring kriteria JET', () => {
 
 describe('dmod() — efek kas mutasi neraca (−Δsaldo)', () => {
   it('= −(adj − ly)', () => {
-    const by = { '1-1200': { adj: 50, ly: 40 } };
+    const by = { '1-1200': { adj: 50, ly: 40 } } as unknown as Parameters<typeof dmod>[0];
     expect(dmod(by, '1-1200')).toBe(-10);
   });
   it('kode tak ada → 0', () => {

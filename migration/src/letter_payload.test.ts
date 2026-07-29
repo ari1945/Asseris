@@ -39,7 +39,10 @@ describe('buildLetterPayload()', () => {
 
   it('the fee is formatted as Indonesian-locale thousands (no raw float leaking into the letter)', () => {
     const blocks = buildLetterPayload(PROSPECT, LETTER);
-    const feePara = blocks.find((b) => b.type === 'para' && typeof b.text === 'string' && b.text.includes('Imbalan jasa'));
+    /* Predikat-tipe, bukan boolean: `LetterBlock` adalah union dan varian
+       'signature' tak punya `text` — tanpa penyempitan, `feePara.text` tak sah. */
+    const feePara = blocks.find((b): b is Extract<typeof b, { type: 'para' }> =>
+      b.type === 'para' && typeof b.text === 'string' && b.text.includes('Imbalan jasa'));
     expect(feePara.text).toContain('250.000.000');
   });
 });

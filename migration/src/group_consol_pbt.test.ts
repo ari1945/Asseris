@@ -12,12 +12,33 @@
    ============================================================ */
 import { describe, it, expect } from 'vitest';
 import { AMS_CANON } from './canon';
-import { SAMPLE_WTB } from './__fixtures__/wtb';
-import { AMS } from './data';
+/* Neraca saldo INDUK diambil dari fixture — bukan singleton AMS.WTB. `psak65`
+   jatuh ke singleton bila argumen `wtb` kosong (canon_base · wtbRows), sehingga
+   memanggilnya dengan nilai tak-terdefinisi diam-diam menguji seed produksi dan
+   bukan kemurnian mesinnya. FIXTURE_TB_FULL dipilih (bukan FIXTURE_WTB) karena
+   ia satu-satunya fixture yang memuat akun 3-/4-/5- yang dibutuhkan roll-up laba
+   induk — dan ia SEIMBANG, sehingga kertas kerja konsolidasi menutup (balCheck 0). */
+import { FIXTURE_TB_FULL, FIXTURE_TB_FIGURES } from './__fixtures__/wtb';
 
-const p65 = () => AMS_CANON.psak65(SAMPLE_WTB, null);
+const p65 = () => AMS_CANON.psak65(FIXTURE_TB_FULL, null);
 
 describe('SA 600 PR-1 — identitas laba konsolidasian', () => {
+  /* GERBANG KEMURNIAN. Seluruh uji di bawah lulus baik atas fixture maupun atas
+     singleton AMS.WTB — sifatnya struktural, tak menyebut angka. Karena itu uji
+     ini diperlukan: ia SATU-SATUNYA yang gagal bila argumen `wtb` tak pernah
+     sampai ke mesin (mis. nama impor salah → `undefined` → fallback singleton).
+     Justru begitulah cacat ini bertahan tanpa terdeteksi. */
+  it('figur induk berasal dari WTB yang DIBERIKAN, bukan singleton AMS.WTB', () => {
+    const fix = p65();
+    const singleton = AMS_CANON.psak65(undefined, null);
+    expect(fix.npatParent).not.toBe(singleton.npatParent);
+    /* Tie silang ke entityFigures atas fixture yang sama: PBT induk yang dihitung
+       psak65 dari WTB harus sama dengan PBT yang dipaku tangan di fixture. */
+    expect(fix.parentPbtSeparate).toBe(FIXTURE_TB_FIGURES.adj.pbt / 1e6 + fix.dividendIncome);
+    /* Alasan FIXTURE_TB_FULL yang dipakai: ia seimbang, jadi A = L + E menutup. */
+    expect(fix.balCheck).toBe(0);
+  });
+
   /* Inti PR-1: PBT baru tak boleh membantah NPAT yang sudah dipakai modul lain. */
   it('consolPbt − consolTax === consolNpat', () => {
     const r = p65();
@@ -63,7 +84,7 @@ describe('SA 600 PR-1 — identitas laba konsolidasian', () => {
      dari auditor komponen tak pernah menggantikan seed. */
   it('pbt & tax dapat ditimpa lewat paket pelaporan komponen', () => {
     const base = p65();
-    const ov = AMS_CANON.psak65(SAMPLE_WTB, { 'CP-02': { status: 'Diterima', pbt: 20000, tax: 4400, npat: 15600 } });
+    const ov = AMS_CANON.psak65(FIXTURE_TB_FULL, { 'CP-02': { status: 'Diterima', pbt: 20000, tax: 4400, npat: 15600 } });
     const s = ov.subs.find(x => x.id === 'CP-02')!;
     expect(s.pbt).toBe(20000);
     expect(s.tax).toBe(4400);
@@ -83,14 +104,15 @@ describe('SA 600 PR-1 — identitas laba konsolidasian', () => {
    Uji di bawah memaku kontrak yang dipakai view untuk menurunkannya.
    ============================================================ */
 describe('PR-H1 — figur induk dapat diturunkan untuk baris komponen', () => {
-  /* CATATAN saat menulis PR-H1: `SAMPLE_WTB` TIDAK PERNAH diekspor oleh
-     `__fixtures__/wtb.ts` (yang ada: FIXTURE_WTB / FIXTURE_TB_FULL). Impornya karena
-     itu `undefined`, dan `psak65(undefined, …)` jatuh ke singleton `AMS.WTB` — jadi
-     seluruh uji di berkas ini sebenarnya berjalan atas singleton, bukan fixture.
-     Lolos karena test-tier di-EXCLUDE dari `tsc` sejak W15. Uji di bawah karena itu
-     membandingkan ke WTB yang BENAR-BENAR dipakai, bukan ke nama yang menyesatkan. */
+  /* CATATAN PR-H1 (kini TERTUTUP): `SAMPLE_WTB` tak pernah diekspor fixture, jadi
+     `psak65(undefined, …)` jatuh ke singleton `AMS.WTB` dan uji ini terpaksa
+     membandingkan ke singleton itu — satu-satunya WTB yang benar-benar dipakai saat
+     itu. Sejak berkas ini beralih ke FIXTURE_TB_FULL, pembandingnya ikut pindah ke
+     fixture yang sama, sehingga uji ini kembali menjadi uji KEMURNIAN: `parentRev`
+     harus mengikuti WTB yang DIBERIKAN. Kelas cacatnya dijaga `npm run
+     typecheck:test` (tsconfig.test.json). */
   it('parentRev diekspor & TIE ke WTB 4-1100 (basis adj, sama dengan psak65)', () => {
-    const sales = AMS.WTB.find((r: { code: string }) => r.code === '4-1100')!;
+    const sales = FIXTURE_TB_FULL.find(r => r.code === '4-1100')!;
     const expected = -Math.round((sales.adj ?? 0) / 1e6);
     expect(p65().parentRev).toBe(expected);
   });

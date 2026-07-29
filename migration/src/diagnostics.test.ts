@@ -101,7 +101,7 @@ describe('amsDiagnostics() — orkestrator (ctx sintetik, hermetik)', () => {
   });
 
   it('menggabung extraFindings', () => {
-    const extra = [{ id: 'x1', detector: 'crossChecks', sev: 'low', std: 'SA 230', title: 't', detail: 'd', modules: [] }];
+    const extra = [{ id: 'x1', detector: 'crossChecks', sev: 'low' as const, std: 'SA 230', title: 't', detail: 'd', modules: [] }];
     const f = amsDiagnostics({ ...ctx, extraFindings: extra });
     expect(f.find(x => x.id === 'x1')).toBeTruthy();
   });

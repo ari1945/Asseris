@@ -143,7 +143,10 @@ describe('engagementEntryContext — seam engagement→gerbang (M2)', () => {
   });
 
   it('FAIL-SAFE: engagement legacy/seed (tanpa field warisan) → Pra-akseptasi, tanpa throw', () => {
-    const legacy = { id: 'ENG-2025-014', clientId: 'CLI-01', phase: 'Eksekusi' };
+    /* Sengaja TANPA satu pun field warisan — itulah yang diuji. Cast diperlukan
+       karena tipe parameternya seluruhnya opsional, sehingga objek tanpa irisan
+       properti ditolak tsc (TS2559), bukan karena bentuknya keliru. */
+    const legacy = { id: 'ENG-2025-014', clientId: 'CLI-01', phase: 'Eksekusi' } as Parameters<typeof engagementEntryContext>[0];
     const g = engagementEntryGate(engagementEntryContext(legacy));
     expect(g.ok).toBe(false);
     expect(g.blockers).toHaveLength(2);

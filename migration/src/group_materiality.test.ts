@@ -13,7 +13,8 @@
    ============================================================ */
 import { describe, it, expect } from 'vitest';
 import { AMS_CANON } from './canon';
-import { SAMPLE_WTB } from './__fixtures__/wtb';
+/* Lihat catatan di group_consol_pbt.test.ts: fixture, bukan singleton AMS.WTB. */
+import { FIXTURE_TB_FULL } from './__fixtures__/wtb';
 
 const COMPS = [
   { id: 'CP-01', sig: 'Signifikan (ukuran)', scope: 'Full' },
@@ -24,7 +25,7 @@ const COMPS = [
 ];
 
 const gm = (over: Record<string, unknown> = {}) => {
-  const p65 = AMS_CANON.psak65(SAMPLE_WTB, null);
+  const p65 = AMS_CANON.psak65(FIXTURE_TB_FULL, null);
   return AMS_CANON.groupMateriality({ consolPbt: p65.consolPbt, components: COMPS, ...over });
 };
 

@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { wtbOutliers } from './wedge_detectors';
 
-const row = (code, name, unadj, ly, adj) => ({ code, name, unadj, ly, adj: adj == null ? unadj : adj });
+const row = (code, name, unadj, ly, adj = null) => ({ code, name, unadj, ly, adj: adj == null ? unadj : adj });
 
 describe('wtbOutliers', () => {
   it('deteksi swing YoY & sign-flip, abaikan akun stabil', () => {
