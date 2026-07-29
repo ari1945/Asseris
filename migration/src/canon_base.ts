@@ -281,11 +281,29 @@ import { AMS } from './data';
      sudah memperhitungkan AJE-05 (Rp 1.120 jt) yang partner belum putuskan — angka
      audited yang diterbitkan atas keputusan yang belum diambil.
 
-     Konvensi tanda mengikuti kolom `aje` WTB: debit − kredit. */
+     Konvensi tanda mengikuti kolom `aje` WTB: debit − kredit.
+
+     PR-H0 · FALLBACK REGISTER — `aje` yang tak diisi HARUS jatuh ke `AMS.AJE`, sama
+     seperti `fiscalReconciliation` (canon_base.ts · `list = aje || AMS.AJE`). Tanpa itu
+     PR-G1 hanya terpasang pada pemanggil yang kebetulan menyerahkan register.
+
+     Mengapa asimetri itu berbahaya, bukan sekadar tak rapi: `deferredTax(wtb)` melapisi
+     PBT dengan jurnal terposting (lewat fiscalReconciliation yang PUNYA fallback) sambil
+     mengambil saldo ember dari `unadj` mentah (lewat fungsi ini yang TIDAK punya) — satu
+     fungsi, dua basis, persis penyakit yang PR-G1 obati. Terukur pada seed: saldo ember
+     `ecl` memberi 2.600 lewat `deferredTax()` & `deferredTax(wtb, aje)` tetapi 1.980 lewat
+     `deferredTax(wtb)` — dan DUA dari tiga view hidup memakai bentuk yang terakhir
+     (`view_psak71`, `view_reconcile` → `reconcile(wtb)`).
+
+     Akibat yang paling menipu: baris rekonsiliasi `ckpn` — yang tugasnya MELAPORKAN beda
+     basis ini — menjadi `variance 0 / ok` di aplikasi sambil catatannya tetap berbunyi
+     "beda basis yang DISENGAJA". Alarm yang padam persis di tempat ia paling dibutuhkan;
+     `warn` 620 hanya hidup di jalur zero-arg yang tak disentuh satu view pun. */
   function reportedBalance(wtb: WTB | undefined, aje: AjeLike[] | undefined, code: string): number {
     const base = wtbVal(wtb, code, 'unadj');
+    const list = aje || ((AMS && (AMS.AJE as unknown as AjeLike[])) || []);
     let delta = 0;
-    (aje || []).filter(a => String(a.status || '').trim() === 'Posted')
+    list.filter(a => String(a.status || '').trim() === 'Posted')
       .forEach(a => ajeLinesOf(a).forEach(l => { if (l.code === code) delta += l.debit - l.credit; }));
     return base + delta;
   }
