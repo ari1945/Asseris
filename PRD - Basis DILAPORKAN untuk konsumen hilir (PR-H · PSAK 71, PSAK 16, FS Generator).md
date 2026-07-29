@@ -413,21 +413,38 @@ sesuai harapan, sudah basis dilaporkan sejak PR-G1. Dua kunci yang semula tak te
 ditelusuri sampai tuntas: `psak58.accumTot` 5.824,035 × (57.180/58.300) = 5.712,149 persis,
 dan `psak66.ppeShare` adalah bagian aset ber-tag atas penurunan akumulasi 1.120 yang sama.
 
-### ⛔ YANG BELUM DIVERIFIKASI — utang, bukan kelalaian
+### ✅ VERIFIKASI LIVE — TUNTAS (Ari login, panel Browser terbuka)
 
-**Tinjauan piksel belum terjadi.** Panel Browser tak dapat ditampilkan di sesi ini
-(viewport 0×0), sehingga `read_page` dan screenshot tak tersedia; dan server dev di
-worktree ini butuh login, yang tak saya lakukan (memasukkan kata sandi di luar batas
-yang saya jalankan). Konsekuensinya:
+Dijalankan pada `localhost:5182` sebagai **Rekan Pemimpin**, KPI **dan** tabel pada modul
+yang sama, sesuai gerbang:
 
-- **Chip basis dan sakelar FS Generator belum pernah dilihat manusia.** Keduanya memakai
-  primitif yang ada (`badge b-blue`, `Seg`) sehingga risikonya rendah, tetapi penempatan
-  di `pagehead-actions` yang sudah padat **belum diuji terhadap pembungkusan baris**.
-- KPI **dan** tabel pada modul yang sama belum dibandingkan di layar — yang terverifikasi
-  adalah mesin yang memasok keduanya, bukan hasil render-nya.
+| Modul | Hasil |
+|---|---|
+| **PSAK 16** | KPI 143,2 M & 6,3 M cocok tabel roll-forward (143.160 / 6.320); nilai lama 142.040 / 7.440 / 58.300 **nol kemunculan**; tie-out **7/7** |
+| **PSAK 71** | Piutang bruto **51.322**, ECL model **2.700**, kurang saji **+720**; nilai lama 49.472 / 2.603 / 623 **nol kemunculan** |
+| **FS Generator** | Dilaporkan **319,5 M** ⇄ Bila semua usulan diterima **316,6 M**; **8/8 tie-out & neraca seimbang pada KEDUA basis**; label amber "Laba −Rp 3,0 M vs dilaporkan" muncul & hilang dengan benar; pilihan bertahan setelah reload |
+| **Alur Data** | Baris `ckpn` **selisih Rp 0 · COCOK** (2.600 × 3) dengan "Selisih audit thd model ECL Rp 100 jt" sebagai baris tersendiri; baris `ppe` **selisih Rp 0 · COCOK** (143.160 × 3) |
+| **Header** | Baris aksi tetap SATU baris (28px) pada 1440px — tak ada pembungkusan |
 
-Yang dibutuhkan: Ari membuka panel Browser dan login, lalu saya selesaikan pemeriksaan
-KPI-dan-tabel pada PSAK 16, PSAK 71/ECL, FS Generator, dan Alur Data.
+**Tiga cacat ditemukan HANYA oleh tinjauan live**, semuanya sudah diperbaiki:
+
+1. **PSAK 16 tie-out `t7` menuntut yang terbalik** — memerah (6/7) tepat ketika sistem
+   berperilaku benar, sambil catatannya menyatakan sebaliknya. Vitest tak pernah merender
+   view ini.
+2. **Chip basis membantah sakelar FS Generator** — "Basis: DILAPORKAN" tampil bersama
+   sakelar yang menunjuk "Bila semua usulan diterima". Cacat yang diperkenalkan PR-H2
+   sendiri, kelas yang sama dengan yang ditutup arc ini.
+3. **TDZ + rules-of-hooks** pada perbaikan pertama — **lolos typecheck**, hanya muncul
+   sebagai layar crash.
+
+Dicatat, bukan diperbaiki: uji kewajaran penyusutan SA 520 bergerak −1.403 jt (−15,9%) →
+**−2.523 jt (−28,5%)**. Itu pemulihan alarm, bukan regresi — AJE-05 diusulkan PERSIS karena
+penyusutan kurang saji, dan basis `adj` selama ini membungkam analitik yang menjadi alasan
+jurnal itu ada. Pola sama dengan `bt-etr` di PR-F.
+
+**Catatan alat (bukan produk):** klik `computer` berbasis koordinat tidak menggerakkan `Seg`
+mana pun — termasuk "Ribuan" yang sudah ada sebelum PR ini. `element.click()` bekerja normal.
+Dikonfirmasi lewat kontrol pada kontrol lama, jadi bukan cacat aplikasi.
 
 ---
 
