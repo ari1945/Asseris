@@ -76,7 +76,12 @@ describe('canon_base — leasePortfolio() (PSAK 73, patokan W0)', () => {
 describe('canon_base — FIG (figur kanonik dari WTB live)', () => {
   it('figur ber-sumber WTB cocok dengan baseline (juta)', () => {
     expect(FIG.dbo).toBe(13_080);
-    expect(FIG.ckpn).toBe(1_980);
+    /* PR-G1 — saldo beda temporer kini basis DILAPORKAN (unadj + jurnal TERPOSTING),
+       bukan kolom `unadj` mentah. AJE-02 (CKPN 620 jt) sudah terposting, jadi saldo yang
+       dipakai PSAK 46 adalah 2.600. Dulu 1.980 sementara PBT sudah basis dilaporkan —
+       satu modul, dua basis. `ckpnAudited` (kolom `adj`) kebetulan bernilai sama di sini
+       karena AJE-02 adalah satu-satunya jurnal yang menyentuh 1-1210. */
+    expect(FIG.ckpn).toBe(2_600);
     expect(FIG.ckpnAudited).toBe(2_600);
     expect(FIG.dtaReported).toBe(4_980);
   });

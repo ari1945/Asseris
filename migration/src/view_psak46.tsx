@@ -31,15 +31,40 @@ const P46_RATE = 0.22;
    rincian empat beda temporer) — dua sumber untuk satu kertas kerja, sehingga
    memperbaiki canon saja akan membuat modul membantah dirinya di layar yang
    sama. Label tinggal di view; angka datang dari canon. */
-function p46FiscalRows(fr: ReturnType<typeof fiscalReconciliation>) {
+interface P46FiscalRow {
+  id: string; t: string; v: number; bucket: string;
+  /** PR-G1 — provenans baris; absen pada baris total. */
+  prov?: 'ledger' | 'wp' | 'aje';
+  provRef?: string;
+}
+
+function p46FiscalRows(fr: ReturnType<typeof fiscalReconciliation>): P46FiscalRow[] {
   return [
     { id: 'pbt',   t: 'Laba sebelum pajak — komersial (dilaporkan)', v: fr.pbt, bucket: 'open' },
     { id: 'perm+', t: 'Beban yang tidak dapat dikurangkan (natura lama, sumbangan, sanksi)', v: fr.permAdd, bucket: 'perm' },
     { id: 'perm-', t: 'Penghasilan dikenakan PPh final & dividen dikecualikan', v: -fr.permLess, bucket: 'perm' },
-    ...AMS_CANON.FISCAL.tempMovementItems.map(x => ({ id: x.id, t: x.label, v: x.v, bucket: 'temp' })),
+    /* PR-G1 — dua lapis, dipisah dengan sengaja. Lapis pertama: kertas kerja fiskal
+       KLIEN (pra-audit, dasar SPT-nya). Lapis kedua: koreksi yang lahir dari jurnal
+       audit TERPOSTING. Menyatukannya dalam satu angka — seperti sebelum ini — membuat
+       "yang klien laporkan" tak dapat dibedakan dari "yang auditor koreksi", padahal
+       derajat keyakinan keduanya sama sekali berbeda.
+       `prov` = provenans baris: dapat diturunkan dari buku besar, atau hanya ada di
+       kertas kerja fiskal, atau berasal dari jurnal audit. */
+    ...AMS_CANON.FISCAL.tempMovementItems.map(x => ({
+      id: x.id, t: x.label, v: x.v, bucket: 'temp', prov: x.source, provRef: x.ref })),
+    ...fr.taxEffectItems.map(x => ({
+      id: 'te-' + x.id, t: `Koreksi fiskal ${x.id} — ${x.basis}`, v: x.amount, bucket: 'temp',
+      prov: 'aje' as const, provRef: x.by ? `Ditetapkan ${x.by}` : 'Jurnal audit terposting' })),
     { id: 'pkp',   t: 'Penghasilan kena pajak (PKP)', v: fr.pkp, bucket: 'close' },
   ];
 }
+
+/* PR-G1 — provenans baris rekonsiliasi, dalam bahasa auditor. */
+const P46_PROV: Record<string, { lbl: string; kind: string; hint: string }> = {
+  ledger: { lbl: 'Buku besar', kind: 'green', hint: 'Dapat diturunkan & diuji dari WTB' },
+  wp:     { lbl: 'KK fiskal klien', kind: 'amber', hint: 'Hanya ada di kertas kerja fiskal — tak terverifikasi dari WTB' },
+  aje:    { lbl: 'Jurnal audit', kind: 'blue', hint: 'Koreksi fiskal dari jurnal audit terposting' },
+};
 const P46_FBUCKET = {
   open:  { lbl: '—',            kind: 'gray' },
   perm:  { lbl: 'Beda Permanen', kind: 'amber' },
@@ -52,8 +77,12 @@ const P46_FBUCKET = {
    Map ini hanya menyimpan label/ref/sumber (lineage) per pos. */
 const P46_TEMP_META = {
   ppe: { pos: 'Aset tetap (penyusutan)',        ref: 'PSAK 16', src: 'wtb',    srcLbl: 'Working Trial Balance', note: 'Penyusutan fiskal lebih cepat → nilai tercatat > dasar pajak.' },
-  eb:  { pos: 'Liabilitas imbalan kerja',       ref: 'PSAK 24', src: 'psak24', srcLbl: 'PSAK 24 · Imbalan Kerja', note: 'DBO Rp 13.080 jt; dikurangkan saat dibayar (dasar pajak 0).' },
-  ecl: { pos: 'Penyisihan CKPN piutang',        ref: 'PSAK 71', src: 'ecl',    srcLbl: 'Kalkulator ECL (PSAK 71)', note: 'Saldo CKPN Rp 1.980 jt belum dapat dikurangkan fiskal.' },
+  /* PR-G1 — angka DIBUANG dari kedua catatan ini. Keduanya salinan mati: "DBO Rp 13.080 jt"
+     dan "Saldo CKPN Rp 1.980 jt" diketik tangan sementara nilainya hidup di kolom `diff`
+     tabel yang sama. Yang kedua bahkan sudah basi sejak basis saldo pindah ke figur
+     DILAPORKAN (2.600, bukan 1.980) — satu baris tabel akan menyebut dua angka. */
+  eb:  { pos: 'Liabilitas imbalan kerja',       ref: 'PSAK 24', src: 'psak24', srcLbl: 'PSAK 24 · Imbalan Kerja', note: 'Dikurangkan saat dibayar — dasar pajak nol.' },
+  ecl: { pos: 'Penyisihan CKPN piutang',        ref: 'PSAK 71', src: 'ecl',    srcLbl: 'Kalkulator ECL (PSAK 71)', note: 'Pembentukan cadangan tidak dapat dikurangkan (Ps. 9(1)(c) UU PPh); deductible saat dihapuskan (Ps. 6(1)(h)).' },
   lse: { pos: 'Liabilitas sewa neto (ROU)',     ref: 'PSAK 73', src: 'psak73', srcLbl: 'PSAK 73 · Sewa', note: 'Neto liabilitas sewa − aset hak-guna portofolio per 31 Des 2025.' },
   prv: { pos: 'Provisi garansi & lainnya',      ref: 'PSAK 57', src: (null as any),     srcLbl: (null as any), note: 'Dikurangkan saat realisasi/terjadi.' },
   tlc: { pos: 'Rugi fiskal dapat dikompensasi', ref: '¶34',     src: 'tax',    srcLbl: 'Modul Pajak · PPh Badan', note: 'Atribut pajak entitas anak — pemulihan bergantung laba masa depan.' },
@@ -168,7 +197,10 @@ function PSAK46View() {
   /* derive deferred tax per row + totals — ditarik dari AMS_CANON (satu sumber kebenaran) */
   const canon = AMS_CANON;
   const DT = useMemoP46(() => canon.deferredTax(wtb, aje), [wtb, aje]);
-  const FR = useMemoP46(() => fiscalReconciliation(wtb, aje), [wtb, aje]);
+  /* Anotasi di LHS, bukan `useMemoP46<T>()`: hook React yang di-destructure di repo ini
+     TIDAK bertipe, sehingga tanpa anotasi seluruh turunannya jatuh ke `any` — dan satu
+     `any` baru meng-un-suppress berkas ini pada ratchet ESLint. */
+  const FR: ReturnType<typeof fiscalReconciliation> = useMemoP46(() => fiscalReconciliation(wtb, aje), [wtb, aje]);
   /* anotasi di LHS: hook React yang di-destructure tak bertipe di repo ini,
      jadi `useMemoP46<T>()` tidak tersedia. */
   const P46_FISCAL: ReturnType<typeof p46FiscalRows> = useMemoP46(() => p46FiscalRows(FR), [FR]);
@@ -282,13 +314,43 @@ function PSAK46View() {
                   </div>
                 )}
 
+                {/* PR-G1 — diam BUKAN "nol beda". Jurnal terposting tanpa klasifikasi
+                    fiskal harus ditagih, bukan diperlakukan sebagai tak berkonsekuensi. */}
+                {FR.unclassifiedAje.length > 0 && (
+                  <div className="row gap8" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: 'var(--red-bg)', alignItems: 'flex-start' }}>
+                    <span style={{ color: 'var(--red)', marginTop: 1 }}><I.alert size={14} /></span>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      <b>{FR.unclassifiedAje.length} jurnal terposting belum diklasifikasi fiskal</b> ({FR.unclassifiedAje.join(', ')}). Rekonsiliasi ini memperlakukannya sebagai tanpa konsekuensi pajak — asumsi yang belum diputuskan siapa pun. Tetapkan klasifikasinya di register AJE.
+                    </div>
+                  </div>
+                )}
+
+                {/* Konsekuensi di luar rekonsiliasi tahun berjalan (mis. pembetulan SPT). */}
+                {FR.taxNotes.length > 0 && FR.taxNotes.map(n => (
+                  <div key={n.id} className="row gap8" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)', background: 'var(--amber-bg)', alignItems: 'flex-start' }}>
+                    <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={14} /></span>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}><b>{n.id}</b> — {n.note}</div>
+                  </div>
+                ))}
+
                 <div>
                   {P46_FISCAL.map((r, i) => {
                     const b = (P46_FBUCKET as any)[r.bucket];
                     const isTot = r.bucket === 'open' || r.bucket === 'close';
                     return (
                       <div key={r.id} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: i < P46_FISCAL.length - 1 ? '1px solid var(--line-soft)' : 0, background: isTot ? 'var(--surface-2)' : 'transparent' }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: isTot ? 700 : 500, color: isTot ? 'var(--navy)' : 'var(--ink)' }}>{r.t}</div>
+                          {/* PR-G1 — provenans baris. Baris kertas kerja klien bukan dosa;
+                              yang berbahaya adalah baris kertas kerja yang TAK DAPAT
+                              dibedakan dari baris turunan buku besar. */}
+                          {r.prov && P46_PROV[r.prov] && (
+                            <div className="tiny muted" style={{ marginTop: 1 }}>
+                              <span style={{ color: `var(--${P46_PROV[r.prov].kind})`, fontWeight: 600 }}>{P46_PROV[r.prov].lbl}</span>
+                              {r.provRef ? ' · ' + r.provRef : ''}
+                            </div>
+                          )}
+                        </div>
                         {!isTot ? <Badge kind={b.kind}>{b.lbl}</Badge> : <span style={{ width: 86 }} />}
                         <div className="mono" style={{ width: 84, textAlign: 'right', fontWeight: 700, color: r.v < 0 ? 'var(--red)' : isTot ? 'var(--navy)' : 'var(--ink)' }}>{fmt(r.v)}</div>
                       </div>
@@ -362,6 +424,23 @@ function PSAK46View() {
                     );
                   })}
                 </div>
+                {/* PR-G1 · GERBANG FALSIFIKASI SALDO AWAL.
+                    `opening` adalah PENYEIMBANG: berapa pun movement beda temporer diisi,
+                    model tetap "menutup" karena saldo awal menyesuaikan diri. Itulah
+                    sebabnya movement 6.800 jt bertahan lima kali evaluasi — tak ada satu
+                    pun pemeriksaan yang dapat menyatakannya salah. Pembanding yang sah
+                    sudah tersedia sejak awal di WTB 1-2500 kolom `ly` dan tak pernah
+                    dipakai. Selisih dilaporkan, bukan dipaksa nol. */}
+                {DT.openingVariance != null && Math.abs(DT.openingVariance) > 1 && (
+                  <div className="row gap8" style={{ margin: '10px 14px 0', padding: '9px 11px', background: 'var(--amber-bg)', borderRadius: 6, alignItems: 'flex-start' }}>
+                    <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={14} /></span>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      <b>Saldo awal model tidak menutup ke buku besar</b> — model menyiratkan Rp {fmt(DT.opening)} jt, sedangkan DTA per buku besar tahun lalu (WTB 1-2500 · komparatif) Rp {fmt(DT.openingBooks)} jt. Selisih <b>Rp {fmt(Math.abs(DT.openingVariance))} jt</b>.
+                      <div className="tiny muted" style={{ marginTop: 2 }}>Saldo awal di sini adalah angka penyeimbang, bukan angka yang ditarik — sehingga kesalahan pada movement beda temporer selama ini diserap tanpa alarm. Selisih ini perlu direkonsiliasi atau dijelaskan.</div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="row gap14" style={{ padding: '10px 14px 4px' }}>
                   <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--blue-solid)' }} /> Manfaat ke L/R: <b style={{ color: 'var(--ink)' }}>Rp {fmt(deferredPL)} jt</b></div>
                   <div className="row ac gap6 tiny muted"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--purple-solid)' }} /> Ke OCI: <b style={{ color: 'var(--ink)' }}>Rp {fmt(DT.oci)} jt</b></div>
