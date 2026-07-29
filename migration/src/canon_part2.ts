@@ -1,9 +1,10 @@
 /* ============================================================
    Asseris — canon part2 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { FIG, FISCAL, RATE, figuresFromWTB, jt, wtbVal } from './canon_base';
+import { FIG, FISCAL, RATE, figuresFromWTB, jt, wtbOn, wtbVal } from './canon_base';
+import type { AjeLike } from './canon_base';
 import { deferredTax, fixedAssets, intangibles, inventory } from './canon_part1';
-import type { WTB, RestatementItem } from './canon_types';
+import type { WTB, WtbBasis, RestatementItem } from './canon_types';
 
   const RESTATE = {
     // Kesalahan periode lalu (prior period error) — penjualan & piutang fiktif FY2024
@@ -13,18 +14,19 @@ import type { WTB, RestatementItem } from './canon_types';
     parValue: 100,   // nilai nominal saham (Rp) untuk EPS dasar
   };
 
-  function psak25(wtb?: WTB) {
-    const s   = figuresFromWTB(wtb);
-    const inv = inventory(wtb);
-    const fa  = fixedAssets(wtb);
-    const intan = intangibles(wtb);
-    const dt  = deferredTax(wtb);
+  function psak25(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const s   = figuresFromWTB(wtb, aje, basis);
+    const inv = inventory(wtb, aje, basis);
+    const fa  = fixedAssets(wtb, aje, basis);
+    const intan = intangibles(wtb, aje, basis);
+    const dt  = deferredTax(wtb, aje);
 
     /* ——— nilai PY (audited) yang ditarik dari WTB kolom `ly` ——— */
     const prevCkpn = -jt(wtbVal(wtb, '1-1210', 'ly'));   // 2.109
     const prevDbo  = -jt(wtbVal(wtb, '2-2300', 'ly'));   // 11.220
     const prevDta  =  jt(wtbVal(wtb, '1-2500', 'ly'));   // 4.110
-    const grossAr  =  jt(wtbVal(wtb, '1-1200', 'adj'));  // piutang bruto audited
+    /* PR-H1 — basis in-scope, bukan kolom `adj` yang membalik AJE-03 (usulan). */
+    const grossAr  =  jt(wtbOn(wtb, aje, '1-1200', basis));  // piutang bruto in-scope basis
 
     /* === REGISTER ESTIMASI AKUNTANSI (perubahan estimasi → prospektif ¶36) ===
        Tiap baris menelusuri SATU estimasi ke modul sumbernya — nilai tercatat
@@ -243,14 +245,39 @@ import type { WTB, RestatementItem } from './canon_types';
     { y: 2025, writeOff: 1485, recovery: 165, current: true },
   ];
 
-  function psak71(wtb?: WTB) {
-    const grossAudited = jt(wtbVal(wtb, '1-1200', 'adj'));     // piutang bruto audited (= dasar matriks)
+  /* PR-H1 · BASIS EKSPOSUR ECL — keputusan metodologi, dicatat agar dapat dibatalkan.
+
+     Dasar matriks provisi kini piutang bruto basis DILAPORKAN, bukan kolom `adj`.
+     Pertanyaannya nyata: AJE-03 membalik piutang FIKTIF Rp 1.850 jt — apakah eksposur
+     ECL diukur atas piutang yang akan tersaji di LK (termasuk yang fiktif, karena
+     jurnalnya belum disetujui) atau atas piutang yang secara substansi nyata?
+
+     DIPUTUSKAN: basis DILAPORKAN. PSAK 71 ¶5.5.1 mengukur penyisihan atas aset keuangan
+     yang DIAKUI. Selama AJE-03 belum diposting, piutang itu diakui sebesar 51.322 jt dan
+     wajib punya cadangan. Bahwa sebagian fiktif adalah salah saji KETERJADIAN yang
+     terpisah — sudah dicatat sebagai `M-01` di ledger SAD dan dievaluasi di sana.
+     Mengukur ECL di atas piutang neto-AJE-03 berarti menghitung koreksi yang sama DUA
+     KALI (sekali lewat AJE-03, sekali lewat cadangan yang lebih kecil), sekaligus
+     mendahului keputusan partner.
+
+     Yang diungkap oleh perpindahan ini, dan inilah alasan sesungguhnya ia penting:
+     `auditVariance` (model − cadangan audited) selama ini 3 jt dan terbaca "menutup,
+     dalam toleransi". Angka itu ARTEFAK beda basis — model dihitung atas piutang
+     neto-usulan sementara cadangannya tidak. Pada satu basis nilainya 100 jt: di bawah
+     OM (1.485) tetapi DI ATAS CTT, jadi wajib diakumulasi ke SAD, bukan diabaikan.
+     `gap` yang menjadi dasar AJE-02 ikut bergerak 623 → 720.
+
+     `ckpnAje` diturunkan dari selisih dua saldo, bukan dibaca kolom `aje` yang tak tahu
+     status — roll-forward CKPN karenanya menutup ke saldonya sendiri pada basis apa pun. */
+  function psak71(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const on = (code: string) => jt(wtbOn(wtb, aje, code, basis));
+    const grossAudited = on('1-1200');                         // piutang bruto in-scope (= dasar matriks)
     const grossUnadj   = jt(wtbVal(wtb, '1-1200', 'unadj'));   // bruto pra-audit (sebelum AJE-03 piutang fiktif)
     const grossPy      = jt(wtbVal(wtb, '1-1200', 'ly'));      // bruto PY audited
     const ckpnBooked   = -jt(wtbVal(wtb, '1-1210', 'unadj'));  // CKPN dibukukan klien (magnitudo)
-    const ckpnAudited  = -jt(wtbVal(wtb, '1-1210', 'adj'));    // CKPN audited (setelah AJE-02)
+    const ckpnAudited  = -on('1-1210');                        // CKPN in-scope basis (AJE-02 Posted)
     const ckpnPy       = -jt(wtbVal(wtb, '1-1210', 'ly'));     // CKPN awal (PY audited)
-    const ckpnAje      = -jt(wtbVal(wtb, '1-1210', 'aje'));    // tambahan via AJE-02 (magnitudo, +)
+    const ckpnAje      = ckpnAudited - ckpnBooked;             // tambahan via AJE-02 (magnitudo, +)
 
     const overlay = ECL_SCENARIOS.reduce((a, s) => a + s.prob * s.mult, 0);
 
@@ -431,10 +458,15 @@ import type { WTB, RestatementItem } from './canon_types';
     return { pv: pv + tvPv, explicitPv: pv, tv, tvPv, flows };
   }
 
-  function psak48(wtb?: WTB) {
-    const s = figuresFromWTB(wtb);
-    const fa = fixedAssets(wtb);
-    const intan = intangibles(wtb);
+  /* PR-H1 · BASIS. Nilai tercatat UPK yang diuji penurunan nilai kini basis DILAPORKAN.
+     Terukur: carry 162.098 → 163.218, headroom 7.426 (4,6%) → 6.306 (3,9%). KESIMPULAN
+     TIDAK BERBALIK — `impairLoss` tetap 0, dan keempat skenario sensitivitas (¶134f)
+     mempertahankan tandanya (WACC+1% & CF−5% sudah negatif pada KEDUA basis). Yang
+     berubah adalah angka pengungkapan headroom, bukan simpulan audit. */
+  function psak48(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const s = figuresFromWTB(wtb, aje, basis);
+    const fa = fixedAssets(wtb, aje, basis);
+    const intan = intangibles(wtb, aje, basis);
     const R = Math.round;
 
     /* —— komposisi nilai tercatat UPK Operasi Inti — tiap baris ditarik dari sumbernya —— */

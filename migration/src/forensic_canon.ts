@@ -13,7 +13,9 @@
    kanonik SA 550 / PSAK 7 (window.RP_PARTIES / RP_TXN) bila tersedia.
    Semua nilai dalam Rupiah penuh.
    ============================================================ */
-import type { WTB, WtbRow, FsModel } from './canon_types';
+import { wtbOn } from './canon_base';
+import type { AjeLike } from './canon_base';
+import type { WTB, WtbRow, WtbBasis, FsModel } from './canon_types';
 
 interface JournalEntry {
   id: string; date: string; time: string; user: string; amount: number;
@@ -106,9 +108,18 @@ const AMS_FORENSIC = (function () {
      buildCash(model, wtb) — jembatan arus kas bruto + waterfall,
      SELURUHNYA diturunkan dari FSGEN model (single source of truth).
      ============================================================ */
-  function buildCash(model: FsModel | null, wtb?: WTB) {
+  /* PR-H1 · BASIS. `dmod` di atas membaca kolom `adj` langsung dari baris WTB — bentuk
+     AKSES-PROPERTI, sehingga ia lolos dari sapuan `wtbVal(…, 'adj')` yang menemukan
+     konsumen lain. Rekonstruksi metode langsung di bawah HARUS memakai basis yang sama
+     dengan model FSGEN yang dibandingkannya; begitu FS Generator pindah ke basis
+     DILAPORKAN sementara jembatan ini tidak, `cfoTies` menjadi false — jaminan forensik
+     yang justru menjadi alasan modul ini ada. Ditangkap oleh uji, bukan oleh sapuan. */
+  function buildCash(model: FsModel | null, wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
     if (!model) return null;
     const by: Record<string, WtbRow> = {}; (wtb || []).forEach(r => { by[r.code] = r; });
+    /* varian `dmod` yang sadar-basis; `dmod` sendiri dipertahankan apa adanya karena
+       ia menguji SEMANTIK −Δsaldo dan dipakai langsung oleh unit test. */
+    const dm = (c: string) => (by[c] ? -(wtbOn(wtb, aje, c, basis) - (by[c].ly || 0)) : 0);
     const cf = model.cf;
 
     /* —— waterfall: stage = saldo & aktivitas dari laporan arus kas —— */
@@ -122,11 +133,11 @@ const AMS_FORENSIC = (function () {
 
     /* —— metode langsung (¶18a) — direkonstruksi dari mutasi WTB, tie ke CFO —— */
     const S = model.is.sales.cy, COGS = model.is.cogs.cy, SELL = model.is.sell.cy, ADMIN = model.is.admin.cy, FIN = model.is.finCost.cy, TAX = model.is.tax.cy;
-    const recCust = S + dmod(by, '1-1200');
-    const paySupp = -COGS + dmod(by, '1-1300') + dmod(by, '2-1100');
-    const payOpex = -(SELL + ADMIN) + model.meta.depreciation + model.meta.amortization + model.meta.eclProv + dmod(by, '2-2300') + dmod(by, '2-1300') + dmod(by, '1-1500') + dmod(by, '1-1400') + dmod(by, '1-2500');
+    const recCust = S + dm('1-1200');
+    const paySupp = -COGS + dm('1-1300') + dm('2-1100');
+    const payOpex = -(SELL + ADMIN) + model.meta.depreciation + model.meta.amortization + model.meta.eclProv + dm('2-2300') + dm('2-1300') + dm('1-1500') + dm('1-1400') + dm('1-2500');
     const intPaid = -FIN;
-    const taxPaid = -TAX + dmod(by, '2-1400');
+    const taxPaid = -TAX + dm('2-1400');
     const cfoDirect = recCust + paySupp + payOpex + intPaid + taxPaid;
 
     /* —— komponen arus kas bruto (setiap pos diklasifikasi O/I/F) —— */

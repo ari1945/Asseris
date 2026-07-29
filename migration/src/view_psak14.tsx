@@ -92,8 +92,11 @@ function PSAK14View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
-  const model = useMemoP14(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const inv = useMemoP14(() => (AMS_CANON ? AMS_CANON.inventory(wtb) : null), [wtb]);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
+  const model = useMemoP14(() => (FSGEN ? FSGEN.buildModel(wtb, aje) : null), [wtb, aje]);
+  const inv = useMemoP14(() => (AMS_CANON ? AMS_CANON.inventory(wtb, aje) : null), [wtb, aje]);
 
   const [unit, setUnit] = useStateP14(() => loader('ams.psak14.unit', 'jutaan'));
   const [tab, setTab] = useInitialTab('psak14', () => loader('ams.psak14.tab', 'ikhtisar'));

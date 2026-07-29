@@ -129,7 +129,10 @@ function PSAK19View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
-  const model = useMemoP19(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
+  const model = useMemoP19(() => (FSGEN ? FSGEN.buildModel(wtb, aje) : null), [wtb, aje]);
   const it = useMemoP19(() => (AMS_CANON ? AMS_CANON.intangibles(wtb) : null), [wtb]);
 
   const [unit, setUnit] = useStateP19(() => loader('ams.psak19.unit', 'jutaan'));

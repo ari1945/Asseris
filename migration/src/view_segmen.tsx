@@ -39,12 +39,12 @@ const SEG_MAJOR_CUSTOMER = 0.11; // satu pelanggan (Modern Trade) > 10% → ¶34
 
 function SegmentInfo() {
   const { fmt } = AMS;
-  const { wtb } = useAudit();
+  const { wtb, aje } = useAudit();
   const nav = useNav();
   const [tab, setTab] = useStateSG('ikhtisar');
 
   const D = useMemoSG(() => {
-    const rev = AMS_CANON.revenue(wtb);
+    const rev = AMS_CANON.revenue(wtb, aje);
     const model = FSGEN.buildModel(wtb);
     const J = (n: any) => n / 1e6; // full → juta
     const totalRev = rev.revBooked;                  // juta

@@ -45,8 +45,11 @@ function ForensicCashFlow() {
   const firm = useFirm();
 
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
-  const model = useMemoFC(() => (FSGEN ? FSGEN.buildModel(wtb) : null), [wtb]);
-  const B = useMemoFC(() => (AMS_FORENSIC ? AMS_FORENSIC.buildCash(model, wtb) : null), [model, wtb]);
+  /* PR-H1 — register AJE hidup: jembatan arus kas forensik HARUS memakai basis yang
+     sama dengan model FSGEN yang dibandingkannya, kalau tidak `cfoTies` menjadi palsu. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
+  const model = useMemoFC(() => (FSGEN ? FSGEN.buildModel(wtb, aje) : null), [wtb, aje]);
+  const B = useMemoFC(() => (AMS_FORENSIC ? AMS_FORENSIC.buildCash(model, wtb, aje) : null), [model, wtb, aje]);
 
   const [unit, setUnit] = window.useAmsPersist('forensic.unit', 'M');
   const [onlyRisk, setOnlyRisk] = useStateFC(false);

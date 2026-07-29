@@ -101,6 +101,24 @@ export interface Figures {
    perbandingan YoY, sehingga angka itu pun tak lagi di-hardcode. */
 export type FigureBasis = 'unadj' | 'adj' | 'ly';
 
+/* ---------- PR-H1 · BASIS SALDO AKUN (untuk modul pengukuran & penyajian) ----------
+   Berbeda dari `FigureBasis` di atas, yang menamai KOLOM WTB. Tipe ini menamai
+   PERTANYAAN yang sedang dijawab, dan itulah sebabnya `adj` tidak ada di sini:
+
+     `unadj`         — saldo dibukukan klien. Titik berangkat, dasar materialitas
+                       perencanaan, dan pembanding "sebelum audit".
+     `reported`      — saldo yang AKAN TERSAJI di laporan keuangan: `unadj` + mutasi
+                       jurnal yang benar-benar berstatus Posted. Inilah basis LK yang
+                       diaudit (SA 450: koreksi yang diterima masuk laporan; yang tidak
+                       diterima menjadi salah saji tidak dikoreksi, bukan angka laporan).
+     `ifAllProposed` — kolom `adj` WTB, yaitu `unadj` + SELURUH jurnal termasuk usulan.
+                       Sah untuk surface yang MENIMBANG ("bila semua usulan diterima"),
+                       TIDAK sah untuk surface yang MENERBITKAN atau MENYIMPULKAN.
+
+   Nama lamanya (`adj`) menyembunyikan seluruh perbedaan itu di balik satu kata yang
+   terbaca seperti "audited". Ia bukan audited; ia pengandaian. */
+export type WtbBasis = 'unadj' | 'reported' | 'ifAllProposed';
+
 /** Figur entitas tingkat-atas diturunkan dari WTB. **Rp PENUH**, bukan juta —
     konsumennya (BENCHMARKS SA 320, jembatan laba AJE, rasio lancar) semua rupiah penuh.
     `null` bila WTB tak tersedia; JANGAN diganti 0 — nol adalah angka, ketiadaan bukan. */

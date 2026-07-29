@@ -1,7 +1,7 @@
 /* ============================================================
    Asseris — canon base (foundation: helper + konstanta + lease/figures) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import type { WTB, WtbAmountField, Figures, Fig, FsModel, EntityFigures, FigureBasis, Benchmark, AjeTaxEffect, TempBucket } from './canon_types';
+import type { WTB, WtbAmountField, WtbBasis, Figures, Fig, FsModel, EntityFigures, FigureBasis, Benchmark, AjeTaxEffect, TempBucket } from './canon_types';
 import { AMS } from './data';
 
   const RATE = 0.22;
@@ -38,21 +38,27 @@ import { AMS } from './data';
 
   /* figur akuntansi entitas yang ditarik dari WTB (Rp juta). `wtb` opsional:
      bila diberi (mis. dari useAudit().wtb yang reaktif) → angka mengikuti AJE live. */
-  function figuresFromWTB(wtb?: WTB): Figures {
+  /* PR-H1 · BASIS. Default `reported`. Pada seed hanya `ppeGross`/`ppeAccum` yang
+     benar-benar bergerak (AJE-05 usulan); sisanya tak punya jurnal atau jurnalnya sudah
+     Posted, sehingga ketiga basis memberi angka sama. Dikerjakan menyeluruh justru
+     KARENA itu: yang berbahaya bukan pos yang bergerak hari ini, melainkan pos yang
+     akan bergerak diam-diam pada perikatan berikutnya. */
+  function figuresFromWTB(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported'): Figures {
     const v = (k: keyof typeof WTB_MAP, field: WtbAmountField) => WTB_MAP[k].sign * jt(wtbVal(wtb, WTB_MAP[k].code, field));
-    const dboBooked     = v('dbo', 'adj');
+    const b = (k: keyof typeof WTB_MAP) => WTB_MAP[k].sign * jt(wtbOn(wtb, aje, WTB_MAP[k].code, basis));
+    const dboBooked     = b('dbo');
     const ckpnBooked    = v('ckpn', 'unadj');          // saldo dibukukan klien (sebelum AJE audit)
-    const ckpnAudited   = v('ckpn', 'adj');            // setelah AJE PSAK 71
-    const ppeGross      = v('ppeGross', 'adj');
-    const ppeAccum      = v('ppeAccum', 'adj');        // (negatif)
+    const ckpnAudited   = b('ckpn');                   // setelah AJE PSAK 71 (in-scope basis)
+    const ppeGross      = b('ppeGross');
+    const ppeAccum      = b('ppeAccum');               // (negatif)
     const ppeNetCarry   = ppeGross + ppeAccum;         // nilai tercatat neto aset tetap
-    const intanGross    = v('intanGross', 'adj');
-    const intanAccum    = v('intanAccum', 'adj');      // (negatif)
+    const intanGross    = b('intanGross');
+    const intanAccum    = b('intanAccum');             // (negatif)
     const intanNetCarry = intanGross + intanAccum;     // nilai tercatat neto aset takberwujud
-    const rouCarry      = v('rou', 'adj');
-    const leaseLiab     = v('leaseST', 'adj') + v('leaseLT', 'adj');
-    const dtaReported   = v('dta', 'adj');             // DTA per buku besar
-    const taxExpBooked  = v('taxExp', 'adj');          // beban pajak dibukukan
+    const rouCarry      = b('rou');
+    const leaseLiab     = b('leaseST') + b('leaseLT');
+    const dtaReported   = b('dta');                    // DTA per buku besar
+    const taxExpBooked  = b('taxExp');                 // beban pajak dibukukan
     return { dboBooked, ckpnBooked, ckpnAudited, ppeGross, ppeAccum, ppeNetCarry,
              intanGross, intanAccum, intanNetCarry,
              rouCarry, leaseLiab, dtaReported, taxExpBooked };
@@ -308,6 +314,27 @@ import { AMS } from './data';
     return base + delta;
   }
 
+  /* PR-H1 — SATU PEMBACA SALDO BERBASIS, menggantikan `wtbVal(…, 'adj')` yang tersebar.
+     Rp PENUH, tanda mengikuti WTB.
+
+     Mengapa pembaca dan bukan penggantian nilai satu per satu: kolom `adj` dibaca di
+     sembilan tempat pada kanon (aset tetap, ECL, persediaan, pendapatan, piutang,
+     estimasi PSAK 25, dan SELURUH akun di FS Generator). Mengganti sebagian dari
+     sembilan itu adalah pola kegagalan yang sudah dua kali tercatat di arc ini —
+     `analytical` yang membantah dirinya sendiri (23 vs 12) lahir dari perbaikan SSOT
+     yang hanya menyentuh sebagian konsumennya.
+
+     `ifAllProposed` SENGAJA dipertahankan sebagai basis kelas satu, bukan dibuang:
+     modul AJE tab Dampak memang perlu menjawab "bila semua usulan diterima", dan
+     jawabannya harus datang dari mekanisme yang sama agar kedua angka tak pernah
+     dapat menyimpang. Yang salah selama ini bukan keberadaan `adj`, melainkan bahwa
+     ia menjadi DEFAULT bagi surface yang menerbitkan angka. */
+  function wtbOn(wtb: WTB | undefined, aje: AjeLike[] | undefined, code: string, basis: WtbBasis): number {
+    if (basis === 'unadj') return wtbVal(wtb, code, 'unadj');
+    if (basis === 'ifAllProposed') return wtbVal(wtb, code, 'adj');
+    return reportedBalance(wtb, aje, code);
+  }
+
   /* PR-G1 — koreksi fiskal yang dibawa SATU jurnal audit (Rp juta, positif = menambah PKP).
      Bila `amount` tak diisi auditor, diturunkan dari efek laba jurnal: beban komersial
      yang dikoreksi fiskal menaikkan PKP sebesar penurunan laba yang ditimbulkannya.
@@ -494,9 +521,12 @@ import { AMS } from './data';
      Di headless/test tidak ada yang mendaftar → fsgenModel() = null → jembatan LK kanon inert
      (fingerprint regresi stabil). Menjaga kanon independen dari lapisan view-model — tanpa ini
      canon harus mengimpor view-model (.jsx) dan membalik arah lapisan. ---------- */
-  let _fsgenBuildModel: ((wtb?: WTB) => FsModel) | null = null;
-  function setFsgenBuilder(fn: ((wtb?: WTB) => FsModel) | null): void { _fsgenBuildModel = fn; }
-  function fsgenModel(wtb?: WTB): FsModel | null { return _fsgenBuildModel ? _fsgenBuildModel(wtb) : null; }
+  type FsgenBuilder = (wtb?: WTB, aje?: AjeLike[], basis?: WtbBasis) => FsModel;
+  let _fsgenBuildModel: FsgenBuilder | null = null;
+  function setFsgenBuilder(fn: FsgenBuilder | null): void { _fsgenBuildModel = fn; }
+  function fsgenModel(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported'): FsModel | null {
+    return _fsgenBuildModel ? _fsgenBuildModel(wtb, aje, basis) : null;
+  }
 
 export type { FiscalReconciliation, AjeLike };
-export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, reportedBalance, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };
+export { RATE, ASOF, jt, wtbRow, wtbVal, WTB_MAP, figuresFromWTB, entityFigures, benchmarksFromWTB, ajeEffect, fiscalReconciliation, reportedBalance, wtbOn, LEASES, leaseCalc, elapsedMonths, leasePortfolio, FISCAL, SRC, FIG, resetFigures, setFsgenBuilder, fsgenModel };

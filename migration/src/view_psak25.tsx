@@ -94,7 +94,10 @@ function PSAK25View() {
 
   /* ——— SUMBER KEBENARAN ——— */
   const wtb = (audit && audit.wtb && audit.wtb.length) ? audit.wtb : ((AMS && AMS.WTB) || []);
-  const M = useMemoP25(() => (AMS_CANON ? AMS_CANON.psak25(wtb) : null), [wtb]);
+  /* PR-H1 — register AJE HIDUP, bukan seed beku: basis DILAPORKAN ditentukan status
+     posting, jadi angka modul ini harus bergerak saat partner memposting jurnal. */
+  const aje = (audit && audit.aje) ? audit.aje : undefined;
+  const M = useMemoP25(() => (AMS_CANON ? AMS_CANON.psak25(wtb, aje) : null), [wtb, aje]);
 
   const [tab, setTab] = useStateP25(() => loader('ams.psak25.tab', 'klasifikasi'));
   const [proc, setProc] = window.useAmsPersist('psak25.proc.v1', () => ({}));

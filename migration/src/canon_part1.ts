@@ -1,9 +1,9 @@
 /* ============================================================
    Asseris — canon part1 (engine + seed) (W3 split dari canon.js; perilaku identik).
    ============================================================ */
-import { ASOF, FIG, RATE, WTB_MAP, figuresFromWTB, fiscalReconciliation, jt, leasePortfolio, reportedBalance, wtbVal } from './canon_base';
+import { ASOF, FIG, RATE, WTB_MAP, figuresFromWTB, fiscalReconciliation, jt, leasePortfolio, reportedBalance, wtbOn, wtbVal } from './canon_base';
 import type { AjeLike } from './canon_base';
-import type { WTB, AjeRow } from './canon_types';
+import type { WTB, WtbBasis, AjeRow } from './canon_types';
 import { AMS } from './data';
 
   /* `wtb`/`aje` opsional → bila diberi, angka mengikuti perikatan yang sedang
@@ -137,13 +137,19 @@ import { AMS } from './data';
     { code: 'SP-OBS05', label: 'Cadangan mesin telah afkir',    cls: 'spare', w: 0.08, qty: 28000,   bookedWD: 240, reqWD: 380, compR: 0, sellcR: 0.10 },
   ];
 
-  function inventory(wtb?: WTB) {
+  /* PR-H1 · BASIS. Saldo persediaan sendiri tidak berubah (AJE-01 sudah Posted), tetapi
+     BPP berubah: kolom `aje` 5-1100 berisi 3.460 = AJE-01 (2.340, Posted) + AJE-05
+     (1.120, usulan). Membaca `adj` membuat "BPP audited" memuat koreksi penyusutan yang
+     belum disetujui, lalu mengalir ke marjin bruto & perputaran persediaan (SA 520).
+     `ajeInv` diturunkan dari selisih saldo agar roll-forward menutup pada basis apa pun. */
+  function inventory(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const on = (code: string) => jt(wtbOn(wtb, aje, code, basis));
     const openingCost = jt(wtbVal(wtb, '1-1300', 'ly'));    // saldo awal audited
     const closeUnadj  = jt(wtbVal(wtb, '1-1300', 'unadj')); // saldo akhir per klien (pra-audit)
-    const ajeInv      = jt(wtbVal(wtb, '1-1300', 'aje'));   // AJE pisah batas (negatif)
-    const closeNet    = jt(wtbVal(wtb, '1-1300', 'adj'));   // saldo akhir audited (= unadj + aje)
+    const closeNet    = on('1-1300');                       // saldo akhir in-scope basis
+    const ajeInv      = closeNet - closeUnadj;              // AJE pisah batas (negatif)
     const cogsUnadj   = jt(wtbVal(wtb, '5-1100', 'unadj')); // BPP per klien
-    const cogsAdj     = jt(wtbVal(wtb, '5-1100', 'adj'));   // BPP audited
+    const cogsAdj     = on('5-1100');                       // BPP in-scope basis
     const purchases   = closeUnadj - openingCost + cogsUnadj; // pembelian & biaya konversi (derivasi)
     const goodsAvail  = openingCost + purchases;             // barang tersedia untuk dijual
 
@@ -197,7 +203,7 @@ import { AMS } from './data';
     const avgInv   = (openingCost + closeNet) / 2;
     const turnover = avgInv ? cogsAdj / avgInv : 0;
     const dio      = turnover ? 365 / turnover : 0;
-    const sales    = -jt(wtbVal(wtb, '4-1100', 'adj'));
+    const sales    = -on('4-1100');
     const gm       = sales - cogsAdj;
     const gmPct    = sales ? gm / sales : 0;
 
@@ -223,13 +229,27 @@ import { AMS } from './data';
     { id: 'inventaris',label: 'Inventaris & peralatan kantor', pct: 0.06, life: 8,    residual: 0.05, mature: 0.62 },
   ];
 
-  function fixedAssets(wtb?: WTB) {
+  /* PR-H1 · BASIS. Default `reported` — nilai tercatat yang AKAN TERSAJI di laporan
+     keuangan, yaitu `unadj` + jurnal berstatus Posted. Sebelumnya fungsi ini membaca
+     kolom `adj`, sehingga "nilai tercatat neto audited" MEMASUKKAN AJE-05 (Rp 1.120 jt)
+     yang partner belum putuskan — dan angka itu mengalir ke PSAK 48 (nilai tercatat UPK
+     yang diuji penurunan nilai), PSAK 58, register aset, dan PSAK 25.
+
+     Terukur: netClose 142.040 (`ifAllProposed`) → 143.160 (`reported`); penyusutan
+     audited 7.440 → 6.320. Kesimpulan penurunan nilai PSAK 48 DIPERIKSA tidak berbalik
+     (headroom 7.426 → 6.306, `impairLoss` tetap 0 pada keempat sensitivitas).
+
+     `ajeDepr` kini DITURUNKAN dari selisih dua saldo, bukan dibaca dari kolom `aje`.
+     Kolom itu tak tahu status; membacanya akan melaporkan koreksi 1.120 pada basis yang
+     justru mengecualikannya — roll-forward yang tak menutup ke saldonya sendiri. */
+  function fixedAssets(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const on = (code: string) => jt(wtbOn(wtb, aje, code, basis));
     const grossOpen   = jt(wtbVal(wtb, '1-2100', 'ly'));
-    const grossClose  = jt(wtbVal(wtb, '1-2100', 'adj'));
+    const grossClose  = on('1-2100');
     const accumOpen   = -jt(wtbVal(wtb, '1-2110', 'ly'));      // magnitudo (tersimpan negatif)
     const accumClient = -jt(wtbVal(wtb, '1-2110', 'unadj'));   // akumulasi dibukukan klien
-    const accumAudit  = -jt(wtbVal(wtb, '1-2110', 'adj'));     // setelah koreksi AJE-05
-    const ajeDepr     = -jt(wtbVal(wtb, '1-2110', 'aje'));     // koreksi penyusutan (magnitudo, +)
+    const accumAudit  = -on('1-2110');                         // setelah koreksi in-scope basis
+    const ajeDepr     = accumAudit - accumClient;              // koreksi penyusutan (magnitudo, +)
 
     /* uji pelepasan tak-tercatat (R-04 · keberadaan) — hasil prosedur, bukan saldo GL */
     const disposalTested   = 4180;   // nilai tercatat aset diuji keberadaannya (sampling fisik)
@@ -323,8 +343,8 @@ import { AMS } from './data';
     { col: 'H', xls: 'No. Dokumen / Bukti',     field: 'doc',      type: 'teks' },
   ];
 
-  function assetRegister(wtb?: WTB) {
-    const fa = fixedAssets(wtb);
+  function assetRegister(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const fa = fixedAssets(wtb, aje, basis);
     type PpeClass = (typeof fa.classes)[number];
     const byCls: Record<string, PpeClass> = {}; fa.classes.forEach(c => { byCls[c.id] = c; });
     const baseRows = REGISTER_SEED.map(s => {
@@ -406,15 +426,23 @@ import { AMS } from './data';
   /* roll-forward saldo kontrak (¶116) — sub-ledger kontrak, Rp juta */
   const REV_CONTRACT_BAL = { caOpen: 3200, caAdd: 6100, caReclass: 4650, clOpen: 5400, clAdd: 9250, clRecog: 7400 };
 
-  function revenue(wtb?: WTB) {
+  /* PR-H1 · BASIS. `revAdjWTB` adalah angka yang mengalir ke Laba Rugi; pada kolom `adj`
+     ia sudah membalik AJE-03 (Rp 1.850 jt) yang masih USULAN — pendapatan dilaporkan
+     turun atas keputusan yang belum diambil. Perhatikan fungsi ini SUDAH memisahkan
+     "simpulan auditor bila AJE-03 diposting" sebagai `revAudited`; `revAdjWTB` yang
+     memakai `adj` menjadikannya angka KETIGA yang tak jelas menjawab pertanyaan apa. */
+  function revenue(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const on = (code: string) => jt(wtbOn(wtb, aje, code, basis));
     const revBooked  = -jt(wtbVal(wtb, '4-1100', 'unadj'));     // dibukukan klien (sebelum AJE audit)
-    const revAdjWTB  = -jt(wtbVal(wtb, '4-1100', 'adj'));       // per WTB adjusted → Laba Rugi
+    const revAdjWTB  = -on('4-1100');                           // per basis in-scope → Laba Rugi
     const revPY      = -jt(wtbVal(wtb, '4-1100', 'ly'));        // komparatif 2024 (audited)
 
     /* koreksi cut-off occurrence — ditarik dari AJE-03 (dr 4-1100), kunci tunggal */
-    const AJE = (AMS && AMS.AJE) || [];
+    const AJE = aje || (AMS && AMS.AJE) || [];
     const aje03 = AJE.find(a => a.id === 'AJE-03') || null;
-    const cutoffRev = aje03 ? Math.round(aje03.amount / 1e6) : 0;       // 1.850 jt
+    /* `amount` opsional pada AjeLike (jurnal buatan auditor memakai `lines`), jadi
+       tak boleh diasumsikan ada begitu register hidup ikut menjadi sumber. */
+    const cutoffRev = aje03 ? Math.round((aje03.amount || 0) / 1e6) : 0;   // 1.850 jt
     const cutoffPosted = aje03 ? (aje03.status === 'Posted') : false;
     const revAudited = revBooked - cutoffRev;                  // simpulan auditor bila AJE-03 di-posting
 
@@ -453,7 +481,7 @@ import { AMS } from './data';
 
     /* saldo kontrak (¶105, ¶116) — piutang ditambatkan ke WTB 1-1200, sisanya sub-ledger */
     const recvOpen  = jt(wtbVal(wtb, '1-1200', 'ly'));
-    const recvClose = jt(wtbVal(wtb, '1-1200', 'adj'));
+    const recvClose = on('1-1200');
     const B = REV_CONTRACT_BAL;
     const caClose = B.caOpen + B.caAdd - B.caReclass;
     const clClose = B.clOpen + B.clAdd - B.clRecog;
@@ -490,13 +518,19 @@ import { AMS } from './data';
     { id: 'license',  label: 'Lisensi operasi \u2014 umur tak terbatas',  pct: 0.12, life: null, mature: 0.00, internal: false, note: '\u00b6107 \u00b7 tdk diamortisasi' },
   ];
 
-  function intangibles(wtb?: WTB) {
+  /* PR-H1 · BASIS. Pada seed, 1-2400/1-2410 tak punya jurnal sama sekali sehingga
+     ketiga basis memberi angka identik — perubahan ini NOL-DAMPAK hari ini. Tetap
+     dikerjakan supaya PSAK 19 tidak menjadi satu-satunya modul aset yang tertinggal di
+     kolom `adj`: jurnal amortisasi berstatus usulan pada perikatan lain akan menyelinap
+     ke "nilai tercatat audited" tanpa alarm apa pun, persis mekanisme AJE-05 di PSAK 16. */
+  function intangibles(wtb?: WTB, aje?: AjeLike[], basis: WtbBasis = 'reported') {
+    const on = (code: string) => jt(wtbOn(wtb, aje, code, basis));
     const grossOpen   = jt(wtbVal(wtb, '1-2400', 'ly'));
-    const grossClose  = jt(wtbVal(wtb, '1-2400', 'adj'));
+    const grossClose  = on('1-2400');
     const accumOpen   = -jt(wtbVal(wtb, '1-2410', 'ly'));      // magnitudo (tersimpan negatif)
     const accumClient = -jt(wtbVal(wtb, '1-2410', 'unadj'));   // amortisasi dibukukan klien
-    const accumAudit  = -jt(wtbVal(wtb, '1-2410', 'adj'));     // setelah koreksi (jika ada AJE)
-    const ajeAmort    = -jt(wtbVal(wtb, '1-2410', 'aje'));     // koreksi amortisasi (magnitudo, +)
+    const accumAudit  = -on('1-2410');                         // setelah koreksi in-scope basis
+    const ajeAmort    = accumAudit - accumClient;              // koreksi amortisasi (magnitudo, +)
 
     /* roll-forward bruto: penambahan menutup ke mutasi neto WTB (perolehan + pengembangan
        dikapitalisasi). Tidak ada pelepasan dibukukan klien th berjalan; KEBERADAAN diuji
