@@ -661,6 +661,25 @@ import type { WTB, WtbBasis } from './canon_types';
      Nilai canon dalam Rp JUTA → dikembalikan dalam rupiah penuh agar sebentuk
      dengan `benchmarksFromWTB`. */
   function consolidatedBenchmarks(wtb?: WTB) {
+    /* PR-I — WTB KOSONG YANG DIBERIKAN SECARA EKSPLISIT ≠ TANPA ARGUMEN.
+       `psak65` menarik saldo induk lewat `wtbVal`, dan `wtbVal` masih jatuh ke singleton
+       `AMS.WTB` bila barisnya kosong. Akibatnya perikatan yang BELUM mengimpor neraca
+       saldo (mis. ENG-2025-040 · PT Mandiri Sejahtera Finance) memperoleh konsolidasi
+       PT Sentosa Makmur — dan modul Materialitas menyajikannya berlabel "HITUNG
+       BENCHMARK", yaitu menyatakan diri otoritatif. OM Rp 3.087.550.000 milik klien lain
+       menjadi ambang perikatan ini, dan sejak PR-6·0 OM itulah yang menentukan ukuran
+       sampel SA 530 serta kesimpulan SA 450.
+
+       `entityFigures` sudah menolak fallback ini sejak PR-A dengan alasan yang sama;
+       `psak65` tak pernah ikut dibersihkan, sehingga SA 600 PR-3b memasukkannya kembali
+       lewat pintu konsolidasi. Guard di sini, BUKAN di `wtbVal`: kontrak kanon menuntut
+       setiap fungsi dapat dipanggil TANPA argumen, dan jalur zero-arg itu memang harus
+       memakai singleton. Yang harus dibedakan adalah "tidak memberi argumen" (kontrak)
+       dari "memberi WTB kosong" (perikatan tanpa TB) — dan hanya yang kedua yang keliru.
+
+       Perikatan tanpa neraca saldo TIDAK punya materialitas. Meminjam milik klien lain
+       jauh lebih berbahaya daripada tak punya, karena yang kedua terlihat. */
+    if (wtb && !wtb.length) return [];
     const g = psak65(wtb, null, 'unadj');
     const spec: Array<[string, string, number | null, number, number, number, string]> = [
       ['pbt',    'Laba Sebelum Pajak (konsolidasian)', g.consolPbt,             5,   10, 5, 'Lazim untuk entitas berorientasi laba — figur grup'],

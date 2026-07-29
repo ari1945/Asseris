@@ -15,6 +15,9 @@ import { describe, it, expect } from 'vitest';
 import { AMS_CANON } from './canon';
 /* Lihat catatan di group_consol_pbt.test.ts: fixture, bukan singleton AMS.WTB. */
 import { FIXTURE_TB_FULL } from './__fixtures__/wtb';
+import { AMS } from './data';
+import { consolidatedBenchmarks, engagementBenchmarks } from './canon_part3';
+import { materiality } from './canon_part4';
 
 const COMPS = [
   { id: 'CP-01', sig: 'Signifikan (ukuran)', scope: 'Full' },
@@ -76,5 +79,48 @@ describe('SA 600 PR-2 — ambang grup diturunkan, bukan dikonstankan', () => {
     const cp1 = gm().comps.find(c => c.id === 'CP-01')!;
     expect(cp1.mat).not.toBe(4_250_000_000);
     expect(cp1.mat).toBeGreaterThan(0);
+  });
+});
+
+/* ============================================================
+   PR-I — perikatan TANPA neraca saldo tidak boleh meminjam milik klien lain.
+
+   `psak65` menarik saldo induk lewat `wtbVal`, yang masih jatuh ke singleton
+   `AMS.WTB` bila barisnya kosong. Akibatnya ENG-2025-040 (PT Mandiri Sejahtera
+   Finance — tanpa TB) memperoleh konsolidasi PT Sentosa Makmur, dan modul
+   Materialitas menyajikannya berlabel "hitung benchmark": OM Rp 3.087.550.000
+   milik klien lain menjadi ambang perikatan ini. Sejak PR-6·0, OM itu yang
+   menentukan ukuran sampel SA 530 & kesimpulan SA 450.
+
+   `entityFigures` sudah menolak fallback yang sama sejak PR-A.
+   ============================================================ */
+describe('PR-I — WTB kosong eksplisit ≠ tanpa argumen', () => {
+  it('WTB kosong yang DIBERIKAN menghasilkan nol benchmark konsolidasian', () => {
+    expect(consolidatedBenchmarks([])).toEqual([]);
+  });
+
+  it('dan nol benchmark perikatan — bukan benchmark klien lain', () => {
+    expect(engagementBenchmarks([])).toEqual([]);
+  });
+
+  it('materialitas atas WTB kosong = basis "none", BUKAN angka', () => {
+    const m = materiality({ engagementId: 'ENG-2025-040', benchmarks: engagementBenchmarks([]) });
+    expect(m.basis).toBe('none');
+    expect(m.omFull).toBeNull();
+    expect(m.pmFull).toBeNull();
+    expect(m.cttFull).toBeNull();
+  });
+
+  /* Kontrol positif: WTB nyata tetap memberi benchmark — guard tidak mematikan
+     jalur yang benar. */
+  it('WTB berisi tetap menghasilkan benchmark konsolidasian', () => {
+    const real = engagementBenchmarks(AMS.WTB);
+    expect(real.length).toBeGreaterThan(0);
+    expect(real.find(b => b.id === 'pbt')).toBeTruthy();
+  });
+
+  /* Kontrak zero-arg kanon TIDAK boleh ikut mati: tanpa argumen tetap singleton. */
+  it('tanpa argumen tetap memakai singleton (kontrak zero-arg kanon)', () => {
+    expect(consolidatedBenchmarks().length).toBeGreaterThan(0);
   });
 });
