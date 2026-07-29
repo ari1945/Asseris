@@ -135,7 +135,16 @@ function FSGenerator() {
   const [basis, setBasis] = window.useAmsPersist('fsgen.basis', 'reported');
   const model = useMemoFS(() => FSGEN.buildModel(wtb, aje, basis), [wtb, aje, basis]);
   const modelReported = useMemoFS(() => (basis === 'reported' ? model : FSGEN.buildModel(wtb, aje, 'reported')), [wtb, aje, basis, model]);
-  const checks = useMemoFS(() => FSGEN.buildTieOuts(model, ajeTotalPosted), [model, ajeTotalPosted]);
+  /* PR-H3 — total register HARUS sepadan dengan basis model. Pada basis kerja
+     `ifAllProposed` laporan mencerminkan SELURUH jurnal, jadi membandingkannya ke
+     total Posted saja akan memerahkan tie-out `aje` karena beda definisi, bukan
+     karena ada yang putus. */
+  const ajeTotalForBasis = useMemoFS(
+    () => (basis === 'ifAllProposed'
+      ? (aje || []).reduce((t: number, a: { amount?: number }) => t + (a.amount || 0), 0)
+      : ajeTotalPosted),
+    [basis, aje, ajeTotalPosted]);
+  const checks = useMemoFS(() => FSGEN.buildTieOuts(model, ajeTotalForBasis), [model, ajeTotalForBasis]);
   /* Selisih dinyatakan, bukan disembunyikan: berapa laba yang bergantung pada
      keputusan yang belum diambil. Nol saat basis DILAPORKAN. */
   const basisDelta = model.is.netIncome.cy - modelReported.is.netIncome.cy;

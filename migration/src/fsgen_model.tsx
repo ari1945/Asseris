@@ -214,6 +214,22 @@ const FSGEN = (function () {
 
     return {
       struct: { CA, NCA, CL, NCL, EQ },
+      /* PR-H3 — saldo sumber yang DIPAKAI model, diekspos agar tie-out dapat
+         membandingkan laporan terhadap sumbernya alih-alih terhadap dirinya sendiri.
+         `ajePostedAbs` memakai konvensi register (Σ nominal jurnal Posted, satu sisi)
+         supaya sebanding dengan `ajeTotalPosted` dari AuditContext. */
+      src: {
+        cy: Object.fromEntries((wtb as Array<{ code: string }>).map(r => [r.code, cy(r.code)])),
+        py: Object.fromEntries((wtb as Array<{ code: string }>).map(r => [r.code, py(r.code)])),
+        /* Σ|saldo basis − saldo dibukukan| ÷ 2. Tiap jurnal berpasangan menyumbang
+           nominalnya DUA kali (sisi debit & kredit), jadi separuhnya = Σ nominal
+           jurnal yang tercermin di laporan — sebanding langsung dengan total
+           register. BATAS YANG DIKETAHUI: bila dua jurnal in-scope saling
+           meniadakan pada satu akun, Σ|Δ| menghitung kurang dan tie-out MENYALA.
+           Itu disengaja: lebih baik memicu penelusuran daripada mendiamkannya. */
+        ajeInStatements: (wtb as Array<{ code: string; unadj: number }>)
+          .reduce((a, r) => a + Math.abs(cy(r.code) - (r.unadj || 0)), 0) / 2,
+      },
       bs: {
         ca, nca, cl, ncl, eq,
         totalCA, totalNCA, totalAssets, totalCL, totalNCL, totalLiab, totalEq, totalLE,
@@ -233,6 +249,17 @@ const FSGEN = (function () {
   /* ---- Cross-statement tie-out / diagnostics ---- */
   function buildTieOuts(m: any, ajeTotalPosted: any) {
     const T = 1e6; // Rp 1 jt tolerance
+    /* PR-H3 — pembanding independen ditarik dari `m.src` (saldo per basis & komparatif
+       yang dipakai model), sehingga tie-out membandingkan laporan terhadap SUMBERNYA
+       alih-alih terhadap dirinya sendiri. */
+    const cy = (c: string) => (m.src?.cy?.[c] ?? 0);
+    const py = (c: string) => (m.src?.py?.[c] ?? 0);
+    /* Efek jurnal SEBAGAIMANA TERCERMIN di laporan, diturunkan dari SALDO (bukan dari
+       register), lalu dibandingkan terhadap total register. Dua sumber independen:
+       satu dari daftar jurnal, satu dari neraca saldo. Pemanggil bertanggung jawab
+       menyerahkan total register yang SESUAI dengan basis model (Posted saja untuk
+       basis dilaporkan; seluruh jurnal untuk `ifAllProposed`). */
+    const ajePostedInModel = m.src?.ajeInStatements ?? ajeTotalPosted;
     const chk = (id: any, label: any, ref: any, a: any, b: any, std: any, note: any) => ({
       id, label, ref, std, note, a, b, diff: a - b, ok: Math.abs(a - b) < T,
     });
@@ -245,18 +272,29 @@ const FSGEN = (function () {
       chk('cf', 'Arus kas menutup ke saldo kas', 'Arus Kas → Posisi Keuangan',
         m.cf.cashClose, m.cf.cashBS, 'PSAK 2',
         'Kas awal + kenaikan kas neto = Kas dan setara kas'),
+      /* PR-H3 — tiga tie-out di bawah dulu MEMBANDINGKAN SEBUAH NILAI DENGAN DIRINYA
+         SENDIRI (`m.meta.depreciation` vs `m.meta.depreciation`, piutang vs piutang,
+         `ajeTotalPosted` vs `ajeTotalPosted`). Ketiganya karena itu MUSTAHIL gagal:
+         tiga lampu hijau yang tak dapat menjadi merah, di panel yang tugasnya
+         meyakinkan pembaca bahwa laporan sudah direkonsiliasi.
+
+         Itu lebih buruk daripada tak ada pemeriksaan. Tie-out yang selalu lolos
+         mengajari pembacanya bahwa panel ini tak perlu dibaca — dan pada saat ada
+         yang benar-benar putus, kebiasaan itu sudah terbentuk. Kini masing-masing
+         membandingkan DUA SUMBER BERBEDA. */
       chk('dep', 'Penyusutan ↔ akumulasi penyusutan', 'Arus Kas → Posisi Keuangan',
-        m.meta.depreciation, m.meta.depreciation, 'PSAK 16',
-        'Add-back penyusutan = kenaikan akumulasi penyusutan'),
-      chk('ar', 'Piutang neto ↔ CALK 5', 'Posisi Keuangan → CALK',
-        m.bs.ca.find((l: any) => l.key === 'piutang').cy, m.bs.ca.find((l: any) => l.key === 'piutang').cy, 'PSAK 71',
-        'Piutang bruto − cadangan ECL = nilai tercatat neto'),
+        m.meta.depreciation, -(cy('1-2110') - py('1-2110')), 'PSAK 16',
+        'Add-back penyusutan (Arus Kas) = kenaikan akumulasi penyusutan (WTB 1-2110)'),
+      chk('ar', 'Piutang neto ↔ bruto − cadangan ECL', 'Posisi Keuangan → CALK',
+        m.bs.ca.find((l: { key: string; cy: number }) => l.key === 'piutang')!.cy,
+        cy('1-1200') + cy('1-1210'), 'PSAK 71',
+        'Piutang neto pada Neraca = WTB 1-1200 (bruto) + 1-1210 (cadangan, kredit)'),
       chk('pycomp', 'Komparatif 2024 seimbang', 'Posisi Keuangan',
         m.bs.totalAssets.py, m.bs.totalLE.py, 'PSAK 1',
         'Saldo komparatif diperiksa kesesuaiannya'),
       chk('aje', 'Penyesuaian audit terposting tercermin', 'WTB → Laporan Keuangan',
-        ajeTotalPosted, ajeTotalPosted, 'SA 330',
-        'Seluruh AJE berstatus Posted telah masuk saldo adjusted'),
+        ajeTotalPosted, ajePostedInModel, 'SA 330',
+        'Total AJE berstatus Posted (register) = selisih saldo dilaporkan vs dibukukan klien pada laporan ini'),
       chk('cfmethod', 'Arus kas operasi konsisten (langsung ↔ tidak langsung)', 'Arus Kas',
         m.cf.cfoDirectTotal, m.cf.cfoTotal, 'PSAK 2',
         'Total arus kas operasi metode langsung = metode tidak langsung'),

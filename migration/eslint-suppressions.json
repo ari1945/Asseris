@@ -216,7 +216,7 @@
   },
   "src/fsgen_model.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 32
+      "count": 30
     }
   },
   "src/icons.tsx": {
