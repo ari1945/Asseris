@@ -357,10 +357,46 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
        server (`useMateriality()`), sehingga fungsi ini MURNI. Rantai cache dipertahankan
        untuk pemanggil non-React & uji lama; `configSource` membuat jalur basi terdeteksi. */
     const cfg = opts.config;
-    const benchIdR  = cfg ? { value: cfg.benchId, hit: true } : readPersistedWithHit('mat.benchId', 'pbt', engId);
-    const pctR      = cfg ? { value: cfg.pct, hit: true } : readPersistedWithHit('mat.pct', 5, engId);
-    const pmPctR    = cfg ? { value: cfg.pmPct, hit: true } : readPersistedWithHit('mat.pmPct', 75, engId);
-    const cttPctR   = cfg ? { value: cfg.cttPct, hit: true } : readPersistedWithHit('mat.cttPct', 5, engId);
+    /* PR-H2 — DEFAULT DILEWATI OLEH NILAI, BUKAN OLEH KEBERADAAN RECORD.
+       Dulu cabangnya per-OBJEK (`cfg ? cfg.pmPct : default`), sehingga satu record
+       konfigurasi server yang menyimpan `pmPct: null` (ENG-2025-040) mematikan default
+       untuk field itu: `omFull * null / 100` = **PM Rp 0**, tanpa alarm, dan `value={null}`
+       ikut mengalir ke input React. Tipe `MaterialityConfig` menyatakan `pmPct: number`,
+       jadi tsc tak pernah dapat menangkapnya — DATANYA yang melanggar tipe, bukan kodenya;
+       satu-satunya pertahanan yang mungkin adalah pertahanan runtime.
+
+       Kini tiap field diselesaikan sendiri. Field yang tak terpakai jatuh LANGSUNG ke
+       default literal, BUKAN ke rantai cache: jalur `config` sengaja murni sejak PR-6b,
+       dan menariknya kembali ke localStorage untuk satu field akan memasang ulang persis
+       mekanisme cache-dingin yang ditutup PR-6b — kali ini hanya pada perikatan yang
+       datanya rusak, yaitu tempat yang paling sulit diperhatikan.
+
+       `appliedOverride` SENGAJA dikecualikan: di sana `null` adalah NILAI yang berarti
+       "tanpa override", bukan ketiadaan nilai. */
+    const usableRate = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+    const configDefects: string[] = [];
+    const fromCfg = (field: 'pct' | 'pmPct' | 'cttPct', dflt: number) => {
+      const v = cfg ? (cfg as unknown as Record<string, unknown>)[field] : undefined;
+      if (usableRate(v)) return { value: v, hit: true };
+      configDefects.push(field);
+      return { value: dflt, hit: true };
+    };
+    /* Cache mengidap penyakit yang sama: `useServerState` mencerminkan record server apa
+       adanya, jadi `pmPct: null` juga mendarat di localStorage — dan `readPersistedWithHit`
+       sengaja memenangkan tier yang HADIR walau nilainya null (perilaku yang benar untuk
+       `appliedOverride`). Untuk field laju, tier semacam itu diperlakukan sbg tak-ada. */
+    const fromCache = (key: string, dflt: number, field: string) => {
+      const r = readPersistedWithHit<unknown>(key, dflt, engId);
+      if (usableRate(r.value)) return { value: r.value, hit: r.hit };
+      configDefects.push(field);
+      return { value: dflt, hit: false };
+    };
+    const cfgBenchOk = cfg ? (typeof cfg.benchId === 'string' && cfg.benchId !== '') : false;
+    if (cfg && !cfgBenchOk) configDefects.push('benchId');
+    const benchIdR  = cfg ? { value: cfgBenchOk ? cfg.benchId : 'pbt', hit: true } : readPersistedWithHit('mat.benchId', 'pbt', engId);
+    const pctR      = cfg ? fromCfg('pct', 5) : fromCache('mat.pct', 5, 'pct');
+    const pmPctR    = cfg ? fromCfg('pmPct', 75) : fromCache('mat.pmPct', 75, 'pmPct');
+    const cttPctR   = cfg ? fromCfg('cttPct', 5) : fromCache('mat.cttPct', 5, 'cttPct');
     const overrideR = cfg ? { value: cfg.appliedOverride, hit: true } : readPersistedWithHit<number | null>('mat.appliedOverride', null, engId);
     const benchId  = benchIdR.value;
     const pct      = pctR.value;
@@ -400,7 +436,7 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
     return {
       benchId, benchLabel: bench ? bench.label : null, benchValue: bench ? bench.value : null,
       pct, pmPct, cttPct, applied: override != null, calcOM,
-      basis, configSource, benchSource, drift,
+      basis, configSource, benchSource, configDefects, drift,
       omFull, pmFull, cttFull,
       om:  omFull  != null ? jt(omFull)  : null,
       pm:  pmFull  != null ? jt(pmFull)  : null,

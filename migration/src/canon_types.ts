@@ -300,6 +300,11 @@ export interface MaterialityResult {
   configSource: MaterialityConfigSource;
   /** PR-A — asal tabel benchmark: 'args' (dari WTB) / 'window' (statis, basi) / 'none'. */
   benchSource: MaterialityBenchSource;
+  /** PR-H2 — field konfigurasi yang ADA tetapi tak terpakai (null / bukan angka
+   *  berhingga / benchId kosong), sehingga default literal dipakai untuk field itu.
+   *  Kosong = konfigurasi sehat. Non-kosong WAJIB dinyatakan di UI: ambang yang
+   *  diam-diam memakai default adalah ambang yang tak seorang pun tetapkan. */
+  configDefects: string[];
   /** drift baris perikatan vs OM ditetapkan; `null` = tak ada pembanding */
   drift: MaterialityDrift | null;
   /** nilai penuh (Rp) */

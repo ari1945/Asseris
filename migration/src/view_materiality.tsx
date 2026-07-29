@@ -30,6 +30,14 @@ const QUAL_FACTORS = [
   { id: 'fraud', label: 'Indikasi risiko kecurangan', note: 'SA 240 — turunkan ambang' },
 ];
 
+/* PR-H2 — nama field konfigurasi dalam bahasa auditor, untuk banner cacat konfigurasi. */
+const MAT_FIELD_LABEL: Record<string, string> = {
+  benchId: 'benchmark',
+  pct:     'persentase benchmark',
+  pmPct:   'performance materiality (%)',
+  cttPct:  'ambang jelas remeh (%)',
+};
+
 const TABS = [
   { id: 'det',  label: 'Penentuan' },
   { id: 'spec', label: 'Materialitas Spesifik' },
@@ -58,7 +66,13 @@ function MaterialityCalc() {
      memanggil fungsi murni yang sama atas WTB yang sama, jadi tak ada split-brain:
      editor di modul ini dan OM yang dipakai modul hilir selalu satu tabel. */
   const BENCHMARKS = useMemoM(() => engagementBenchmarks(wtb), [wtb]);
-  const { benchId, pct, pmPct, cttPct, appliedOverride } = matConfig;
+  /* PR-H2 — laju (pct/pmPct/cttPct) TIDAK lagi diambil mentah dari `matConfig`; lihat
+     di bawah setelah `useMateriality()`. Konfigurasi server dapat menyimpan `null`
+     (ENG-2025-040), dan nilai itu dulu mengalir apa adanya ke slider (`value={null}`
+     → peringatan React) serta ke label rail ("Performance · null%"). `benchId` &
+     `appliedOverride` tetap dari config: yang pertama sudah punya fallback via
+     `find(...) || BENCHMARKS[0]`, yang kedua `null`-nya BERARTI "tanpa override". */
+  const { benchId, appliedOverride } = matConfig;
   const setBenchId = (v: string) => setMatConfig({ benchId: v });
   const setPct = (v: number) => setMatConfig({ pct: v });
   const setPmPct = (v: number) => setMatConfig({ pmPct: v });
@@ -79,6 +93,10 @@ function MaterialityCalc() {
      "Terterapkan" menampilkan nilai baris perikatan walau tak ada yang pernah diterapkan.
      Canon adalah satu-satunya sumber presedens: override ?? benchmark × pct. */
   const mat = useMateriality();
+  /* Laju TERSELESAIKAN dari canon — satu resolusi, dipakai editor DAN modul hilir.
+     Membaca `matConfig` mentah di sini akan membuat slider menampilkan nilai yang
+     berbeda dari ambang yang benar-benar berlaku begitu canon memakai default. */
+  const { pct, pmPct, cttPct } = mat;
   const calcOM = bench ? Math.round(bench.value * pct / 100) : null;  // hitung benchmark live (pembanding editor)
   const om = mat.omFull != null ? mat.omFull : (calcOM ?? 0);
   const pm = mat.pmFull != null ? mat.pmFull : Math.round(om * pmPct / 100);
@@ -146,6 +164,20 @@ function MaterialityCalc() {
 
         <div className="view-pad">
           {locked && <LockBanner />}
+
+          {/* PR-H2 — ambang yang diam-diam memakai default adalah ambang yang tak
+              seorang pun tetapkan. Sebelum ini, konfigurasi ber-`null` menghasilkan
+              PM Rp 0 tanpa satu pun pernyataan di layar. */}
+          {mat.configDefects.length > 0 && (
+            <div className="panel" style={{ padding: '8px 11px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 10 }}>
+              <div className="tiny" style={{ fontWeight: 600, color: 'var(--amber)', lineHeight: 1.4 }}>
+                <I.alert size={12} style={{ verticalAlign: 'middle' }} /> Konfigurasi materialitas perikatan ini tidak memuat nilai untuk{' '}
+                {mat.configDefects.map((f: string) => MAT_FIELD_LABEL[f] || f).join(' · ')} — default dipakai
+                (benchmark {pct}% · PM {pmPct}% · jelas remeh {cttPct}%). Setel lalu simpan agar ambang ini
+                menjadi keputusan yang tercatat (SA 320 ¶10-11), bukan warisan default.
+              </div>
+            </div>
+          )}
 
           {tab === 'det' && (
             <MatDetermination
@@ -327,13 +359,17 @@ function MatDetermination({ bench, benchmarks, benchId, pickBench, pct, setPct, 
 }
 
 function SliderRow({ label, value, min, max, step, suffix, onChange, hint, disabled }: any) {
+  /* PR-H2 — pertahanan lapis terakhir: nilai tak terpakai (mis. `null` dari konfigurasi
+     materialitas server) tak boleh mencapai DOM. React memperingatkan `value` null pada
+     input terkendali, dan slider-nya melompat ke `min` tanpa satu pun penjelasan. */
+  const v = (typeof value === 'number' && Number.isFinite(value)) ? value : min;
   return (
     <div style={{ marginBottom: 15 }}>
       <div className="row jb ac" style={{ marginBottom: 5 }}>
         <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
-        <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{value}{suffix}</span>
+        <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{v}{suffix}</span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e: any) => onChange(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)', opacity: disabled ? .5 : 1 }} />
+      <input type="range" min={min} max={max} step={step} value={v} disabled={disabled} onChange={(e: any) => onChange(+e.target.value)} style={{ width: '100%', accentColor: 'var(--blue)', opacity: disabled ? .5 : 1 }} />
       {hint && <div className="tiny muted" style={{ marginTop: 2 }}>{hint}</div>}
     </div>
   );
