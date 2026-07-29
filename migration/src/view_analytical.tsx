@@ -1,6 +1,8 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { wtbOn } from './canon_base';
+import type { AjeLike } from './canon_base';
 import { useAudit, useAuth, useFirm, useMateriality } from './contexts';
 import { statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts, fluxStatusKind, fluxThresholds, isFluxFlagged, FLUX_STATUS_LABEL } from './flux_state';
 import type { FluxState, FluxStatus } from './flux_state';
@@ -40,14 +42,20 @@ const HIST_FACTOR = {
 /* ============================================================
    Shared derivation: 3-year statements, aggregates, ratios, flux
    ============================================================ */
-function arDerive(wtb: any, pm: any) {
+/* PR-H4 · BASIS. Prosedur analitis SA 520 membandingkan periode berjalan terhadap
+   komparatif; "periode berjalan" harus angka yang AKAN TERSAJI di laporan, bukan kolom
+   `adj` yang memuat usulan. Kalau tidak, flux & rasio menyaring populasi yang berbeda
+   dari laporan yang sedang diaudit — dan `analytical` pernah membantah dirinya sendiri
+   persis karena perbaikan SSOT yang menyentuh sebagian konsumen saja. */
+function arDerive(wtb: any, pm: any, aje?: AjeLike[]) {
   const byCode = {};
   wtb.forEach((r: any) => { (byCode as any)[r.code] = r; });
-  /* y24 = prior audited (ly), y25 = current adjusted (adj), y23 = derived */
+  const cyOn = (code: string) => wtbOn(wtb, aje, code, 'reported');
+  /* y24 = prior audited (ly), y25 = DILAPORKAN (unadj + jurnal terposting), y23 = derived */
   const hist = {};
   wtb.forEach((r: any) => {
     const f = (HIST_FACTOR as any)[r.group] ?? 0.88;
-    const y24 = r.ly, y25 = r.adj;
+    const y24 = r.ly, y25 = cyOn(r.code);
     const y23 = r.ly === 0 ? 0 : Math.round(r.ly * f);
     (hist as any)[r.code] = { code: r.code, name: r.name, group: r.group, y: [y23, y24, y25] };
   });
@@ -113,7 +121,7 @@ function arDerive(wtb: any, pm: any) {
 
   /* flux (CY adj vs PY ly) */
   const flux = wtb.map((r: any) => {
-    const cy = r.adj, py = r.ly;
+    const cy = cyOn(r.code), py = r.ly;
     const dAbs = cy - py;
     const dPct = py !== 0 ? (dAbs / Math.abs(py)) * 100 : 100;
     return { code: r.code, name: r.name, group: r.group, cy, py, dAbs, dPct };
@@ -135,7 +143,7 @@ const VERDICT_COLOR = { good: 'var(--green)', ok: 'var(--ink-2)', watch: 'var(--
    ============================================================ */
 function AnalyticalReview() {
   const { fmt } = AMS;
-  const { wtb, risks, fluxState: flux, fluxThreshold } = useAudit();
+  const { wtb, risks, aje, fluxState: flux, fluxThreshold } = useAudit();
   const { activeEngagement, activeClient } = useFirm();
   /* PR-1b — PM & CT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
      Menghormati pmPct/cttPct + override "Terapkan ke Engagement" dari Materiality
@@ -149,7 +157,7 @@ function AnalyticalReview() {
   const ct: number | null = mat.cttFull;
 
   const [tab, setTab] = useStateAR('ringkasan');
-  const der = useMemoAR(() => arDerive(wtb, pm), [wtb]);
+  const der = useMemoAR(() => arDerive(wtb, pm, aje), [wtb, pm, aje]);
   /* satu ambang untuk seluruh tab modul ini — lihat flux_state.fluxThresholds */
   const thr = useMemoAR(() => fluxThresholds(fluxThreshold, pm), [fluxThreshold, pm]);
 

@@ -1,6 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
+import { wtbOn } from './canon_base';
 import { useAudit, useAuth, useFirm, useNav, useMateriality } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
@@ -45,7 +46,7 @@ function StrategyMemo() {
   const firm = useFirm();
   const { activeClient, activeEngagement } = firm;
   const audit = useAudit();
-  const { risks } = audit;
+  const { risks, wtb, aje } = audit;
   const nav = useNav();
   /* PR-1b — OM/PM/CTT dari SSOT materialitas (SA 320), bukan hardcode ×0,75 / ×0,05.
      Fallback ke materialitas perikatan bila workspace belum menetapkan apa pun. */
@@ -53,6 +54,13 @@ function StrategyMemo() {
   const om = _matS.omFull != null ? _matS.omFull : activeEngagement.materiality;
   const pm = _matS.pmFull != null ? _matS.pmFull : 0;
   const ctt = _matS.cttFull != null ? _matS.cttFull : 0;
+  /* PR-H4 · BASIS + REGISTER REAKTIF. Dulu `AMS.WTB.filter(r => Math.abs(r.adj) > pm)`:
+     dua cacat sekaligus — (1) `AMS.WTB` adalah singleton BEKU, jadi hitungan ini tak
+     bergerak saat WTB perikatan berubah (pola cache-dingin yang sama dgn #129/PR-6b);
+     (2) kolom `adj` memuat usulan, sehingga "akun melampaui PM" menyaring populasi yang
+     berbeda dari saldo yang akan tersaji di LK. Ambangnya PM — keputusan tentang LUAS
+     PENGUJIAN — jadi salah populasi berarti salah ruang lingkup. */
+  const akunDiAtasPm = React.useMemo(() => (wtb || []).filter((r: { code: string }) => Math.abs(wtbOn(wtb, aje, r.code, 'reported')) > pm).length, [wtb, aje, pm]);
   const sigRisks = risks.filter((r: any) => r.inherent === 'Significant');
   const fraudRisks = risks.filter((r: any) => r.fraud);
 
@@ -95,7 +103,7 @@ function StrategyMemo() {
       </div>
       <div className="view-scroll"><div className="view-pad">
         {tab === 'strategi' && <SmOverview {...{ fmt, activeClient, activeEngagement, risks, sigRisks, fraudRisks, om, pm, ctt, nav, setTab }} />}
-        {tab === 'pendekatan' && <SmApproach {...{ fmt, risks, pm, activeEngagement, nav, audit, firm }} />}
+        {tab === 'pendekatan' && <SmApproach {...{ fmt, risks, pm, activeEngagement, nav, audit, firm, akunDiAtasPm }} />}
         {tab === 'jadwal' && <SmSchedule {...{ fmt, activeEngagement }} />}
         {tab === 'memo' && <SmMemo {...{ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, ctt, audit, firm }} />}
       </div></div>
@@ -222,7 +230,7 @@ function SmOverview({ fmt, activeClient, activeEngagement, risks, sigRisks, frau
 }
 
 /* ---- Tab 2 · Audit approach by area (editable response per RoMM) ---- */
-function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any) {
+function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm, akunDiAtasPm }: any) {
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'strategyApproach.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [over, setOver] = window.useAmsPersist('strategyApproach.v1', {});
@@ -342,7 +350,7 @@ function SmApproach({ fmt, risks, pm, activeEngagement, nav, audit, firm }: any)
           <div style={{ padding: '15px 18px', background: 'var(--amber-bg)', borderRadius: 'var(--radius)' }}>
             <div className="row ac gap8" style={{ marginBottom: 5 }}><span style={{ color: 'var(--amber)' }}><I.scale size={16} /></span><span style={{ fontSize: 12, fontWeight: 700 }}>Tautan ke Materialitas</span></div>
             <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)' }}>
-              Performance Materiality <b className="mono">Rp {fmt(pm / 1e6, 0)} jt</b> menjadi ambang penentuan luas sampel & pemilihan item kunci. {AMS.WTB.filter(r => Math.abs(r.adj ?? 0) > pm).length} akun WTB melampaui PM dan diperlakukan sebagai area fokus.
+              Performance Materiality <b className="mono">Rp {fmt(pm / 1e6, 0)} jt</b> menjadi ambang penentuan luas sampel & pemilihan item kunci. {akunDiAtasPm} akun WTB melampaui PM dan diperlakukan sebagai area fokus.
             </div>
           </div>
         </Panel>
