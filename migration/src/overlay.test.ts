@@ -292,12 +292,18 @@ describe('geometri & skala z', () => {
     expect(g.height).toBeUndefined();
   });
 
-  it('ukuran modal sm/md/lg berbeda dan naik', () => {
-    const sm = panelGeometry('modal', 'sm').width as number;
-    const md = panelGeometry('modal', 'md').width as number;
-    const lg = panelGeometry('modal', 'lg').width as number;
-    expect(sm).toBeLessThan(md);
-    expect(md).toBeLessThan(lg);
+  it('ukuran modal sm/md/lg/xl menaik ketat', () => {
+    const w = (s: 'sm' | 'md' | 'lg' | 'xl'): number => panelGeometry('modal', s).width as number;
+    expect(w('sm')).toBeLessThan(w('md'));
+    expect(w('md')).toBeLessThan(w('lg'));
+    expect(w('lg')).toBeLessThan(w('xl'));
+  });
+
+  it('sheet: lebar berskala & tinggi penuh (bukan modal terpusat)', () => {
+    const g = panelGeometry('sheet', 'sm');
+    expect(String(g.width)).toContain('440px');
+    expect(g.height).toBe('100%');
+    expect(panelGeometry('sheet', 'lg').width).not.toBe(g.width);
   });
 
   it('varian page (DEPRECATED) mempertahankan bentuk warisan 92vh', () => {

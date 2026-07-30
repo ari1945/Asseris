@@ -39,7 +39,7 @@ type OvNode = unknown;
 type OvStyle = Record<string, string | number | undefined>;
 
 export type OverlayVariant = 'modal' | 'sheet' | 'page';
-export type OverlaySize = 'sm' | 'md' | 'lg';
+export type OverlaySize = 'sm' | 'md' | 'lg' | 'xl';
 export type ZLayer = 'sheet' | 'modal' | 'confirm' | 'toast';
 
 /* ------------------------------------------------------------
@@ -126,11 +126,16 @@ export function focusableWithin(root: HTMLElement | null): HTMLElement[] {
 /* ------------------------------------------------------------
    Geometri per varian
    ------------------------------------------------------------ */
-const MODAL_W: Record<OverlaySize, number> = { sm: 460, md: 640, lg: 940 };
+/* Skala lebar diturunkan dari korpus 47 situs, bukan dikarang: lebar yang
+   benar-benar dipakai mengelompok di {460} {560,560} {680,720} {900,920,940,940}.
+   Empat langkah ini membuat simpangan maksimum hanya +40px dan TAK PERNAH
+   menyempitkan panel bertabel lebar (penyempitan = satu-satunya arah berisiko). */
+const MODAL_W: Record<OverlaySize, number> = { sm: 460, md: 560, lg: 720, xl: 940 };
+const SHEET_W: Record<OverlaySize, number> = { sm: 440, md: 600, lg: 780, xl: 940 };
 
 export function panelGeometry(variant: OverlayVariant, size: OverlaySize): OvStyle {
   if (variant === 'sheet') {
-    return { width: 'min(780px, 94vw)', height: '100%', maxHeight: '100%', borderRadius: 0 };
+    return { width: `min(${SHEET_W[size]}px, 94vw)`, height: '100%', maxHeight: '100%', borderRadius: 0 };
   }
   if (variant === 'page') {
     /* DEPRECATED — bentuk warisan "halaman menyamar modal". Ada HANYA agar
