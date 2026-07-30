@@ -631,7 +631,7 @@
   },
   "src/view_kb.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 44
+      "count": 42
     }
   },
   "src/view_lease.tsx": {
@@ -1116,7 +1116,7 @@
   },
   "src/view_wp.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 117
+      "count": 116
     }
   },
   "src/view_wtb_deep.tsx": {
@@ -1166,7 +1166,7 @@
   },
   "src/wp_signoff.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 50
+      "count": 49
     }
   }
 }

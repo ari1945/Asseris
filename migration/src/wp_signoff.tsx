@@ -16,7 +16,7 @@ import { useAudit, useAuth, useFirm, useNav } from './contexts';
 import { engagementEntryGate, engagementEntryContext } from './engagement_entry_gate';
 import { CAP } from './rbac';
 import { I } from './icons';
-import { Badge, Btn, Panel, Avatar, Progress } from './ui';
+import { Badge, Btn, Panel, Avatar, Progress, Overlay } from './ui';
 import { amsEvidenceCount } from './evidence';
 import { finalisationGateCriteria } from './engagement_phase_gate';
 import { checkWtbIntegrity } from './wtb_integrity';
@@ -658,9 +658,15 @@ function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any)
   const canOverride = !auth || typeof auth.can !== 'function' || auth.can(CAP.PHASE_OVERRIDE);
   const overrideBlocked = blocked && !canOverride;
   const accent = isConfirm ? 'var(--red)' : 'var(--amber)';
+  /* PRD Fase A — lewat primitif <Overlay>: lapis `confirm` (95, sama seperti
+     sebelumnya) + Escape/focus-trap/scroll-lock yang dulu tak ada di sini. */
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 95, display: 'grid', placeItems: 'center' }} onClick={onCancel}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', padding: 0, overflow: 'hidden' }} onClick={(ev: any) => ev.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="sm"
+      zLayer="confirm"
+      onClose={onCancel}
+      header={(
         <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', borderTop: `3px solid ${accent}` }}>
           <div className="row ac gap8" style={{ fontWeight: 700, fontSize: 15 }}>
             <span style={{ color: accent }}><I.alert size={15} /></span>
@@ -674,14 +680,8 @@ function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any)
               : 'Beberapa prasyarat belum terpenuhi. Anda tetap dapat melanjutkan:'}
           </div>
         </div>
-        <div style={{ padding: '12px 16px' }}>
-          <EngagementGateSummary gate={gate} compact />
-        </div>
-        {overrideBlocked && (
-          <div className="tiny" style={{ padding: '8px 16px', background: 'var(--red-bg)', color: 'var(--red)', fontWeight: 600 }}>
-            <I.lock size={11} /> Hanya Partner yang dapat menembus prasyarat (override). Selesaikan prasyarat di atas, atau minta Partner.
-          </div>
-        )}
+      )}
+      footer={(
         <div className="row jb ac" style={{ padding: '11px 16px', borderTop: '1px solid var(--line)', background: 'var(--surface-2)' }}>
           <button className="btn sm" onClick={onCancel}>Batal</button>
           <Btn sm variant="primary" disabled={overrideBlocked} style={{ background: accent, borderColor: accent, opacity: overrideBlocked ? 0.5 : 1 }} onClick={overrideBlocked ? undefined : onConfirm}>
@@ -690,8 +690,17 @@ function PhaseGateDialog({ gate, fromPhase, toPhase, onConfirm, onCancel }: any)
               : <>Lanjutkan</>}
           </Btn>
         </div>
+      )}
+    >
+      <div style={{ padding: '12px 16px' }}>
+        <EngagementGateSummary gate={gate} compact />
       </div>
-    </div>
+      {overrideBlocked && (
+        <div className="tiny" style={{ padding: '8px 16px', background: 'var(--red-bg)', color: 'var(--red)', fontWeight: 600 }}>
+          <I.lock size={11} /> Hanya Partner yang dapat menembus prasyarat (override). Selesaikan prasyarat di atas, atau minta Partner.
+        </div>
+      )}
+    </Overlay>
   );
 }
 

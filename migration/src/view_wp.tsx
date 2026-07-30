@@ -10,7 +10,7 @@ import {
 import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } from './canon_selectors';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
+import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
 
 /* ============================================================
    Asseris — Working Papers (audit file workspace)
@@ -325,6 +325,8 @@ function WPDrill({ it, onClose }: any) {
   const status = st.status || it[4];
   const defs = procsFor(ref);
   const [tab, setTab] = useStateWP('lead');
+  /* draft catatan review — diangkat dari NotesTab agar guard draft <Overlay> melihatnya */
+  const [noteDraft, setNoteDraft] = useStateWP('');
 
   const leadRows = wtb.filter((r: any) => r.lead === ref);
   const hasLead = leadRows.length > 0;
@@ -363,42 +365,45 @@ function WPDrill({ it, onClose }: any) {
 
   const covLabel = bal == null ? null : Math.abs(bal) >= pm ? { t: '≥ Performance Materiality · pengujian rinci penuh', k: 'teal' } : Math.abs(bal) >= triv ? { t: 'Di atas clearly-trivial · cakupan parsial', k: 'blue' } : { t: 'Di bawah clearly-trivial', k: 'gray' };
 
+  /* PRD Fase A — lewat <Overlay variant="page">. Varian `page` sengaja
+     mempertahankan bentuk warisan 1000×92vh agar PR ini NOL perubahan piksel;
+     varian itu DEPRECATED dan objek ini dipindah ke rute beralamat di Fase C
+     (`#/workpapers/<ref>?tab=…`), tempat 5-tab & tabel input memang berada. */
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.45)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 1000, maxWidth: '96vw', height: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }} onClick={(e: any) => e.stopPropagation()}>
-        {/* header */}
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
-          <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 15 }}>{ref}</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>{it[1]}</div>
-            <div className="tiny" style={{ color: '#bcd6e4' }}>{activeEngagement.id} · {activeClient?.name?.replace('PT ', '')} · {activeEngagement.fy} &nbsp;/&nbsp; Preparer {it[2]}</div>
+    <Overlay
+      variant="page"
+      onClose={onClose}
+      isDirty={() => noteDraft.trim().length > 0}
+      discardPrompt="Catatan review pada tab Catatan Review belum ditambahkan. Tutup kertas kerja dan buang catatan tersebut?"
+      bodyStyle={{ background: 'var(--surface-2)' }}
+      header={(
+        <>
+          <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+            <span style={{ width: 42, height: 42, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 15 }}>{ref}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>{it[1]}</div>
+              <div className="tiny" style={{ color: '#bcd6e4' }}>{activeEngagement.id} · {activeClient?.name?.replace('PT ', '')} · {activeEngagement.fy} &nbsp;/&nbsp; Preparer {it[2]}</div>
+            </div>
+            <div className="row ac gap8">
+              <Badge kind={status === 'Reviewed' ? 'green' : status === 'In Review' ? 'blue' : status === 'In Progress' ? 'amber' : 'gray'}>{status}</Badge>
+              <button className="top-btn" aria-label="Tutup kertas kerja" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
+            </div>
           </div>
-          <div className="row ac gap8">
-            <Badge kind={status === 'Reviewed' ? 'green' : status === 'In Review' ? 'blue' : status === 'In Progress' ? 'amber' : 'gray'}>{status}</Badge>
-            <button className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={18} /></button>
+          <div style={{ padding: '0 16px', background: 'var(--surface)', borderBottom: '1px solid var(--line)', flex: '0 0 auto' }}>
+            <Tabs tabs={tabs} active={tab} onChange={setTab} />
           </div>
-        </div>
-
-        {/* tabs */}
-        <div style={{ padding: '0 16px', background: 'var(--surface)', borderBottom: '1px solid var(--line)', flex: '0 0 auto' }}>
-          <Tabs tabs={tabs} active={tab} onChange={setTab} />
-        </div>
-
-        {/* body */}
-        <div style={{ flex: 1, overflow: 'auto', background: 'var(--surface-2)' }}>
-          <div style={{ padding: 16 }}>
-            {tab === 'lead' && <LeadTab ref_={ref} it={it} leadRows={leadRows} hasLead={hasLead} bal={bal} covLabel={covLabel} st={st} setWp={setWp} locked={locked} fmt={fmt} />}
-            {tab === 'procs' && <ProcsTab ref_={ref} defs={defs} procState={procState} setWp={setWp} st={st} locked={locked} doneCount={doneCount} excCount={excCount} leadRows={leadRows} relRisks={relRisks} />}
-            {tab === 'xref' && <XrefTab ref_={ref} relRisks={relRisks} relAje={relAje} fmt={fmt} st={st} setWp={setWp} locked={locked} />}
-            {tab === 'notes' && <NotesTab ref_={ref} allNotes={allNotes} effNoteStatus={effNoteStatus} setWp={setWp} st={st} locked={locked} />}
-            {tab === 'signoff' && <SignoffTab ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} activeClient={activeClient} />}
-          </div>
-        </div>
-
-        {/* footer */}
-        <WPFooter ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} doneCount={doneCount} totalProcs={defs.length} />
+        </>
+      )}
+      footer={<WPFooter ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} doneCount={doneCount} totalProcs={defs.length} />}
+    >
+      <div style={{ padding: 16 }}>
+        {tab === 'lead' && <LeadTab ref_={ref} it={it} leadRows={leadRows} hasLead={hasLead} bal={bal} covLabel={covLabel} st={st} setWp={setWp} locked={locked} fmt={fmt} />}
+        {tab === 'procs' && <ProcsTab ref_={ref} defs={defs} procState={procState} setWp={setWp} st={st} locked={locked} doneCount={doneCount} excCount={excCount} leadRows={leadRows} relRisks={relRisks} />}
+        {tab === 'xref' && <XrefTab ref_={ref} relRisks={relRisks} relAje={relAje} fmt={fmt} st={st} setWp={setWp} locked={locked} />}
+        {tab === 'notes' && <NotesTab ref_={ref} allNotes={allNotes} effNoteStatus={effNoteStatus} setWp={setWp} st={st} locked={locked} draft={noteDraft} setDraft={setNoteDraft} />}
+        {tab === 'signoff' && <SignoffTab ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} activeClient={activeClient} />}
       </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -1071,8 +1076,11 @@ function XrefTab({ ref_, relRisks, relAje, fmt, st, setWp, locked }: any) {
 }
 
 /* ---- Review notes tab ---- */
-function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked }: any) {
-  const [draft, setDraft] = useStateWP('');
+/* PRD Fase A — `draft` DIANGKAT ke WPDrill (props `draft`/`setDraft`) supaya
+   guard <Overlay isDirty> dapat melihatnya. Sebelumnya draft adalah state lokal
+   di sini, jadi satu klik backdrop membuang catatan review setengah tertulis
+   tanpa peringatan (docs/prd-overlay-contract-and-addressable-objects.md §1 P2). */
+function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, setDraft }: any) {
   const [to, setTo] = useStateWP('Dimas R.');
   const [prio, setPrio] = useStateWP('medium');
   const prioK = { high: 'red', medium: 'amber', low: 'gray' };
