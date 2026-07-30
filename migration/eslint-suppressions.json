@@ -471,7 +471,7 @@
   },
   "src/view_execution.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 76
+      "count": 74
     }
   },
   "src/view_facilities.tsx": {
@@ -491,7 +491,7 @@
   },
   "src/view_firm.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 58
+      "count": 55
     }
   },
   "src/view_firmfinance.tsx": {

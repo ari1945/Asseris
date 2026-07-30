@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat, Tabs } from './ui';
+import { Avatar, Badge, Btn, Overlay, Panel, Progress, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { CRM360, CRMAktivitas, CRMPeluang, CRMSegmentasi } from './view_crm2';
 import { EngAnggaran, EngJadwal, EngPortofolio, EngStaffing } from './view_eng2';
@@ -228,14 +228,29 @@ function ClientForm({ form, onClose, onSave }: any) {
   const partners = ['Hartono Wijaya, CPA', 'Rudi Gunawan, CPA', 'Sari Dewanti, CPA'];
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 560, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      /* Draft dibandingkan terhadap nilai awal formulir: "kotor" = benar-benar
+         disunting, bukan sekadar dibuka (mode edit selalu punya isi). */
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(form.data)}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} />
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{form.mode === 'add' ? 'Klien Baru' : 'Edit Klien'}</div><div className="tiny" style={{ color: '#bcd6e4' }}>{form.mode === 'add' ? 'Tambahkan klien ke direktori KAP' : d.id}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, overflow: 'auto', display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onSave(d)}><I.check size={14} /> {form.mode === 'add' ? 'Tambah Klien' : 'Simpan'}</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="grid" style={{ gridTemplateColumns: '2fr 1fr', gap: 10 }}>
             <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Contoh Sejahtera Tbk" /></div>
             <div className="field"><label>ID Klien</label><input className="input mono" value={d.id} onChange={(e: any) => set('id', e.target.value)} /></div>
@@ -260,12 +275,7 @@ function ClientForm({ form, onClose, onSave }: any) {
             Emiten tercatat di Bursa Efek Indonesia (IDX)
           </label>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onSave(d)}><I.check size={14} /> {form.mode === 'add' ? 'Tambah Klien' : 'Simpan'}</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -394,8 +404,15 @@ function EngagementDetail({ e, client, onClose }: any) {
 
   return (
     <>
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 440, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(ev: any) => ev.stopPropagation()}>
+    {/* Varian `sheet`: konteks pendamping bertepi kanan, BUKAN modal terpusat —
+        satu-satunya pemakai sheet di PR-2a (lebar 440 = SHEET_W.sm, sama persis). */}
+    <Overlay
+      variant="sheet"
+      size="sm"
+      onClose={onClose}
+      bodyStyle={{ padding: 0 }}
+      panelStyle={{ background: 'var(--surface)' }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}>
             <span className="mono tiny" style={{ fontWeight: 700, color: '#bcd6e4' }}>{e.id}</span>
@@ -409,7 +426,15 @@ function EngagementDetail({ e, client, onClose }: any) {
             {isEngagementPreAcceptance(e) && <span className="badge b-amber" title="Akseptasi/surat perikatan belum lengkap (SA 210/220)"><I.lock size={10} /> Pra-akseptasi</span>}
           </div>
         </div>
-        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
+          <Btn variant="primary" style={{ flex: 1 }}><I.briefcase size={14} /> Buka Workspace</Btn>
+          <Btn icon><I.sparkle size={14} /></Btn>
+        </div>
+      )}
+    >
+        <div style={{ padding: 16 }}>
           {/* phase switcher */}
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Fase Engagement</div>
           <div className="seg" style={{ width: '100%', marginBottom: 16 }}>
@@ -450,29 +475,39 @@ function EngagementDetail({ e, client, onClose }: any) {
             })}
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
-          <Btn variant="primary" style={{ flex: 1 }}><I.briefcase size={14} /> Buka Workspace</Btn>
-          <Btn icon><I.sparkle size={14} /></Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
     {pg.pending && <PhaseGateDialog gate={pg.pending.gate} fromPhase={pg.pending.fromPhase} toPhase={pg.pending.toPhase} onConfirm={pg.confirm} onCancel={pg.cancel} />}
     </>
   );
 }
 
+const ENGAGEMENT_FORM_INIT = { clientId: '', type: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-04-30', budgetHrs: 1200, materiality: 2000000000, risk: 'Medium' };
+
 function EngagementForm({ clients, onClose, onAdd }: any) {
-  const [d, setD] = useStateF({ clientId: clients[0].id, type: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', deadline: '2026-04-30', budgetHrs: 1200, materiality: 2000000000, risk: 'Medium' });
+  const [d, setD] = useStateF({ ...ENGAGEMENT_FORM_INIT, clientId: clients[0].id });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.clientId && +d.budgetHrs > 0;
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify({ ...ENGAGEMENT_FORM_INIT, clientId: clients[0].id })}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.briefcase size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Engagement Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai perikatan audit baru (fase Perencanaan)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d)}><I.check size={14} /> Buat Engagement</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
             <div className="field"><label>Jenis Perikatan</label><select className="select" value={d.type} onChange={(e: any) => set('type', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures'].map(s => <option key={s}>{s}</option>)}</select></div>
@@ -488,12 +523,7 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
             <div className="field"><label>Tenggat</label><input className="input" type="date" value={d.deadline} onChange={(e: any) => set('deadline', e.target.value)} /></div>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d)}><I.check size={14} /> Buat Engagement</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
