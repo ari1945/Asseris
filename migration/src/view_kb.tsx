@@ -4,7 +4,7 @@ import { AMS } from './data';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Progress } from './ui';
+import { Badge, Btn, Panel, Progress, Overlay } from './ui';
 
 /* ============================================================
    Asseris — Knowledge Base (modul mendalam)
@@ -224,11 +224,8 @@ function KBCard({ a, onOpen }: any) {
 function ArticleReader({ code, onClose, onOpenCode }: any) {
   const nav = useNav();
   const reg = (window.STANDARDS_REGISTRY || []).find((r: any) => r.code === code);
-  React.useEffect(() => {
-    const onKey = (e: any) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  /* PRD Fase A — handler Escape lokal DICABUT: kini disediakan <Overlay>
+     (bersama focus trap, restore fokus, scroll lock, dan semantik dialog). */
   if (!reg) return null;
 
   const c = (AMS as any).kbResolve(reg);
@@ -271,9 +268,11 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   );
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.42)', zIndex: 90, display: 'grid', placeItems: 'center', padding: 24 }} onClick={onClose}>
-      <div className="panel" style={{ width: 940, maxWidth: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        {/* header */}
+    <Overlay
+      variant="modal"
+      size="lg"
+      onClose={onClose}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', flex: '0 0 48px' }}><I.book size={24} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -286,8 +285,16 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
           </div>
           <button className="top-btn" onClick={onClose} style={{ color: '#fff' }}><I.x size={20} /></button>
         </div>
-
-        <div style={{ padding: '24px 32px', overflowY: 'auto', overflowX: 'hidden', fontSize: 15, lineHeight: 1.78, color: 'var(--ink)' }}>
+      )}
+      footer={(
+        <div style={{ padding: '14px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="muted" style={{ fontSize: 12 }}>Asseris Knowledge Base · diindeks dari Registri Standar · {AMS.KB_UPDATED}</span>
+          <div className="row gap8"><Btn onClick={onClose}>Tutup</Btn><Btn variant="primary"><I.download size={14} /> Simpan PDF</Btn></div>
+        </div>
+      )}
+    >
+        {/* overflowY dilepas: penggulir kini .ov-body milik <Overlay> (hindari dua penggulir bersarang) */}
+        <div style={{ padding: '24px 32px', overflowX: 'hidden', fontSize: 15, lineHeight: 1.78, color: 'var(--ink)' }}>
           {/* SUMBER KEBENARAN — provenance strip */}
           <div className="row gap8 wrap" style={{ marginBottom: 16 }}>
             <Src ic={<I.shield size={12} />} lbl="Registri Standar" val={reg.code} onClick={() => { onClose(); nav('compmatrix', { from: 'kb' }); }} />
@@ -383,14 +390,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
             </div>
           )}
         </div>
-
-        {/* footer */}
-        <div style={{ padding: '14px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="muted" style={{ fontSize: 12 }}>Asseris Knowledge Base · diindeks dari Registri Standar · {AMS.KB_UPDATED}</span>
-          <div className="row gap8"><Btn onClick={onClose}>Tutup</Btn><Btn variant="primary"><I.download size={14} /> Simpan PDF</Btn></div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 

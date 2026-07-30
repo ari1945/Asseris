@@ -146,6 +146,24 @@ body.dense .pagehead-titles { min-width: 120px; }
 .sa-drawer-backdrop { animation: saBackdropIn .2s ease; }
 @keyframes saBackdropIn { from { background: rgba(15,23,42,0); } to { background: rgba(15,23,42,.34); } }
 
+/* ---------- Overlay (primitif <Overlay>, PRD Fase A) ---------- */
+/* Bentuk & z-index datang dari overlay.tsx (skala `Z` bernama); di sini HANYA
+   gerak masuk. Basis = keadaan akhir di layar, sama seperti .sa-drawer di atas:
+   timeline rAF yang di-throttle tak boleh menjebak panel transparan/di luar layar. */
+.ov-backdrop { animation: ovBackdropIn .18s ease; }
+@keyframes ovBackdropIn { from { background: rgba(0,20,30,0); } to { background: rgba(0,20,30,.42); } }
+.ov-backdrop.ov-modal > .ov-panel,
+.ov-backdrop.ov-page  > .ov-panel { animation: ovPanelIn .19s cubic-bezier(.4,0,.2,1); }
+@keyframes ovPanelIn { from { transform: translateY(8px); } to { transform: translateY(0); } }
+.ov-backdrop.ov-sheet > .ov-panel { animation: saDrawerIn .24s cubic-bezier(.4,0,.2,1); }
+/* Panel overlay fokusable secara programatik (tabIndex -1) — cincin fokus
+   browser di kontainer tak informatif, sedangkan fokus di dalamnya tetap terlihat. */
+.ov-panel:focus { outline: none; }
+.ov-panel:focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ov-backdrop, .ov-backdrop > .ov-panel { animation: none; }
+}
+
 /* ---------- Sidebar ---------- */
 /* Warna teks sidebar: PUTIH SERAGAM (keputusan Ari 2026-07-25). Tidak ada label
    abu-abu (--on-navy / --on-navy-dim) di dalam .sidebar. Hierarki visual dibawa

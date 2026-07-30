@@ -1,6 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { I, MODULE_INDEX } from './icons';
+/* Primitif <Overlay> tinggal di overlay.tsx (berkas sendiri agar dapat diuji
+   terpisah di jsdom) tetapi DI-RE-EKSPOR di sini, karena `ui.tsx` adalah
+   permukaan primitif bersama yang didokumentasikan (CLAUDE.md §1/§4).
+   overlay.tsx sengaja TIDAK mengimpor apa pun dari ui.tsx → tak ada siklus. */
+import { Overlay, Z } from './overlay';
 
 /* ============================================================
    Asseris — Shared UI primitives
@@ -288,4 +293,6 @@ Object.assign(window, {
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { AccessDenied, Avatar, Badge, Btn, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Tabs };
+/* re-ekspor primitif overlay (implementasi di overlay.tsx) */
+export { Overlay, Z };
 export const amsPrintDoc = window.amsPrintDoc;
