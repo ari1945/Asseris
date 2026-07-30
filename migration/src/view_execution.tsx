@@ -12,7 +12,7 @@ import { SAD_SEED } from './view_sad';
 import { ASSERTIONS } from './canon_assertions';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, LockBanner, Panel, Seg, Stat } from './ui';
+import { Badge, Btn, LockBanner, Overlay, Panel, Seg, Stat } from './ui';
 import { TrendBars, WtbAnalytical, WtbGrouping, WtbKpiBand, computeWtbSummary, DEFAULT_EXPL, LeadChip, LEAD_SRC_TITLE } from './view_wtb_deep';
 import { noteOf, statusOf, fluxStatusKind, FLUX_STATUS_LABEL } from './flux_state';
 import { amsExportXlsx } from './export_xlsx';
@@ -34,6 +34,13 @@ import type { LedgerParseResult, LedgerLine, LedgerTieOut } from './wtb_ledger';
    Asseris — Working Trial Balance (WTB) + AJE
    ============================================================ */
 const { useState: useStateX, useMemo: useMemoX } = React;
+
+/* PRD Fase A — badan overlay yang MENGISI tinggi panel (bukan menggulir sendiri).
+   Drawer WTB di berkas ini berisi tata letak dua-panel dengan anak `flex:1`;
+   `.ov-body` default adalah blok ber-overflow, sehingga `flex:1` anak itu akan
+   mati dan textarea runtuh ke minHeight-nya. Menjadikan .ov-body flex-column
+   mempertahankan geometri lama persis. */
+const OV_FILL: Record<string, string | number> = { display: 'flex', flexDirection: 'column', overflow: 'hidden' };
 
 /** Empat kolom saldo WTB yang dijumlahkan di tfoot (PR-1b). */
 interface WtbTotals { ly: number; unadj: number; aje: number; adj: number }
@@ -366,8 +373,13 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
   const apply = () => { if (!parsed || !parsed.ok || !canImport) return; setWtbLedger(parsed.byCode); onClose(); };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 900, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="xl"
+      onClose={onClose}
+      isDirty={() => text.trim() !== ''}
+      bodyStyle={OV_FILL}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}>
@@ -377,7 +389,18 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
           {!canImport && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted">Disimpan per-perikatan. Drill akun akan menampilkan detail GL nyata + tie-out ke saldo.</span>
+          <div className="row gap8">
+            {hasLedger && <Btn sm onClick={clearLedger} disabled={!canImport} title="Hapus buku besar terimpor → drill kembali ke ilustrasi sintetik"><I.trash size={13} /> Hapus GL terimpor</Btn>}
+            <Btn sm onClick={onClose}>Batal</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport}><I.check size={14} /> Terapkan GL</Btn>
+          </div>
+        </div>
+      )}
+    >
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1, minHeight: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--line)', minHeight: 0 }}>
             <div className="row ac jb" style={{ padding: '8px 12px', borderBottom: '1px solid var(--line)' }}>
@@ -447,17 +470,7 @@ function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted">Disimpan per-perikatan. Drill akun akan menampilkan detail GL nyata + tie-out ke saldo.</span>
-          <div className="row gap8">
-            {hasLedger && <Btn sm onClick={clearLedger} disabled={!canImport} title="Hapus buku besar terimpor → drill kembali ke ilustrasi sintetik"><I.trash size={13} /> Hapus GL terimpor</Btn>}
-            <Btn sm onClick={onClose}>Batal</Btn>
-            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport}><I.check size={14} /> Terapkan GL</Btn>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -517,8 +530,13 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
   const badge = (s: TieStatus) => (s === 'tied' ? 'green' : s === 'no-source' ? undefined : s === 'missing' ? 'purple' : 'amber');
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 900, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="xl"
+      onClose={onClose}
+      isDirty={() => text.trim() !== '' || sourceName.trim() !== ''}
+      bodyStyle={OV_FILL}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.layers size={18} /></span>
           <div style={{ flex: 1 }}>
@@ -528,7 +546,18 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
           {locked ? <Badge kind="amber">Terkunci</Badge> : !canEdit ? <Badge kind="amber">Hanya-baca</Badge> : null}
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted" style={{ maxWidth: 520 }}>Dipakai modul Saldo Awal (SA 510) sebagai pembanding INDEPENDEN, dan menandai kolom "TA Lalu" di WTB yang tak tertelusur.</span>
+          <div className="row gap8">
+            {current.hasSource && <Btn sm onClick={() => { if (canEdit) { setPriorYearBalances(null); onClose(); } }} disabled={!canEdit}><I.trash size={13} /> Hapus sumber</Btn>}
+            <Btn sm onClick={onClose}>Batal</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canEdit || busy}><I.check size={14} /> {busy ? 'Menyimpan…' : 'Simpan sumber TA-1'}</Btn>
+          </div>
+        </div>
+      )}
+    >
         <div className="row ac gap12" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)', flexWrap: 'wrap' }}>
           <div className="row ac gap6">
             <span className="tiny upper" style={{ fontWeight: 700, color: 'var(--ink-3)' }}>Satuan</span>
@@ -611,17 +640,7 @@ function WtbPriorYearDrawer({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted" style={{ maxWidth: 520 }}>Dipakai modul Saldo Awal (SA 510) sebagai pembanding INDEPENDEN, dan menandai kolom "TA Lalu" di WTB yang tak tertelusur.</span>
-          <div className="row gap8">
-            {current.hasSource && <Btn sm onClick={() => { if (canEdit) { setPriorYearBalances(null); onClose(); } }} disabled={!canEdit}><I.trash size={13} /> Hapus sumber</Btn>}
-            <Btn sm onClick={onClose}>Batal</Btn>
-            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canEdit || busy}><I.check size={14} /> {busy ? 'Menyimpan…' : 'Simpan sumber TA-1'}</Btn>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -661,8 +680,23 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
   const litCount = cov.psak.engines.filter(e => e.lit).length;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 920, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="xl"
+      onClose={onClose}
+      isDirty={() => Object.keys(draft).length > 0 || Object.keys(leadDraft).length > 0}
+      bodyStyle={OV_FILL}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted">Disimpan per-perikatan. Saat diterapkan, WTB di-relabel ke kode standar → canon/FSGEN/cakupan otomatis selaras.</span>
+          <div className="row gap8">
+            {hasMapping && <Btn sm onClick={clearMapping} disabled={!canMap} title="Hapus pemetaan tersimpan → WTB kembali ke kode klien"><I.trash size={13} /> Hapus pemetaan</Btn>}
+            <Btn sm onClick={onClose}>Batal</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!canMap}><I.check size={14} /> Terapkan Pemetaan</Btn>
+          </div>
+        </div>
+      )}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.target size={18} /></span>
           <div style={{ flex: 1 }}>
@@ -672,7 +706,8 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
           {!canMap && <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge>}
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-
+      )}
+    >
         {/* coverage strip */}
         <div className="row ac jb" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line)', gap: 12, flexWrap: 'wrap' }}>
           <div className="row ac gap14">
@@ -737,17 +772,7 @@ function WtbMappingDrawer({ onClose }: { onClose: () => void }) {
           </table>
           <div className="tiny muted" style={{ padding: '8px 14px' }}>◆ = akun pemicu engine PSAK (CKPN, imbalan kerja, aset tetap, sewa, pajak tangguhan, dst). Akun belum dipetakan tetap masuk total namun tak mengisi baris FS spesifik.</div>
         </div>
-
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted">Disimpan per-perikatan. Saat diterapkan, WTB di-relabel ke kode standar → canon/FSGEN/cakupan otomatis selaras.</span>
-          <div className="row gap8">
-            {hasMapping && <Btn sm onClick={clearMapping} disabled={!canMap} title="Hapus pemetaan tersimpan → WTB kembali ke kode klien"><I.trash size={13} /> Hapus pemetaan</Btn>}
-            <Btn sm onClick={onClose}>Batal</Btn>
-            <Btn sm variant="primary" onClick={apply} disabled={!canMap}><I.check size={14} /> Terapkan Pemetaan</Btn>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -859,8 +884,13 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
   const revert = () => { if (!canImport) return; setWtbImport(null); onClose(); };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 940, maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="xl"
+      onClose={onClose}
+      isDirty={() => text.trim() !== '' || sourceName.trim() !== ''}
+      bodyStyle={OV_FILL}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.upload size={18} /></span>
           <div style={{ flex: 1 }}>
@@ -871,6 +901,24 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
             : !hasCap ? <Badge kind="amber">Hanya-baca (butuh WP_EDIT)</Badge> : null}
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted" style={{ maxWidth: 520 }}>
+            {confirming
+              ? <b style={{ color: 'var(--amber)' }}>Konfirmasi: TB berjalan akan DIGANTI seluruhnya. Periksa dampak di panel 3 sebelum melanjutkan.</b>
+              : 'Disimpan per-perikatan (StateDoc · isolasi W7.5) beserta jejak: pengimpor, waktu, satuan, periode, sumber & hash isi. Hilir (materialitas/GC/PSAK/FS) memakai saldo terimpor otomatis.'}
+          </span>
+          <div className="row gap8">
+            {wtbImport && wtbImport.rows && <Btn sm onClick={revert} disabled={!canImport}><I.sync size={13} /> Kembali ke demo</Btn>}
+            <Btn sm onClick={confirming ? () => setConfirming(false) : onClose}>{confirming ? 'Kembali' : 'Batal'}</Btn>
+            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport || busy}>
+              <I.check size={14} /> {busy ? 'Menyimpan…' : confirming ? 'Ya, ganti TB berjalan' : 'Terapkan ke WTB'}
+            </Btn>
+          </div>
+        </div>
+      )}
+    >
 
         {/* PR-2a/2b — satuan & identitas sumber ditetapkan SEBELUM parse: satuan mengubah
             angka yang diimpor, periode & nama sumber masuk jejak provenance. */}
@@ -1087,23 +1135,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted" style={{ maxWidth: 520 }}>
-            {confirming
-              ? <b style={{ color: 'var(--amber)' }}>Konfirmasi: TB berjalan akan DIGANTI seluruhnya. Periksa dampak di panel 3 sebelum melanjutkan.</b>
-              : 'Disimpan per-perikatan (StateDoc · isolasi W7.5) beserta jejak: pengimpor, waktu, satuan, periode, sumber & hash isi. Hilir (materialitas/GC/PSAK/FS) memakai saldo terimpor otomatis.'}
-          </span>
-          <div className="row gap8">
-            {wtbImport && wtbImport.rows && <Btn sm onClick={revert} disabled={!canImport}><I.sync size={13} /> Kembali ke demo</Btn>}
-            <Btn sm onClick={confirming ? () => setConfirming(false) : onClose}>{confirming ? 'Kembali' : 'Batal'}</Btn>
-            <Btn sm variant="primary" onClick={apply} disabled={!parsed || !parsed.ok || !canImport || busy}>
-              <I.check size={14} /> {busy ? 'Menyimpan…' : confirming ? 'Ya, ganti TB berjalan' : 'Terapkan ke WTB'}
-            </Btn>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -1241,8 +1273,11 @@ function WtbDrill({ row, onClose, nav }: any) {
   ];
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 720, maxWidth: '94vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="lg"
+      onClose={onClose}
+      header={(<>
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, borderRadius: '4px 4px 0 0' }}>
           <span style={{ width: 38, height: 38, borderRadius: 9, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}><I.table size={18} /></span>
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>{row.code} · {row.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Buku besar pembantu (sub-ledger) · {row.group}</div></div>
@@ -1260,7 +1295,37 @@ function WtbDrill({ row, onClose, nav }: any) {
             {DTABS.map(t => <button key={t.id} className={'tab ' + (dtab === t.id ? 'on' : '')} onClick={() => setDtab(t.id)}>{t.label}{t.n != null && <span className="muted" style={{ marginLeft: 6, fontWeight: 500 }}>{t.n}</span>}</button>)}
           </div>
         </div>
-        <div style={{ padding: '10px 16px', overflow: 'auto', flex: 1 }}>
+      </>)}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="tiny muted">{glTie.hasDetail ? (glTie.tied ? 'Detail GL nyata · tie-out ke saldo unadjusted cocok ✓' : 'Detail GL nyata · tie-out selisih — periksa kelengkapan GL') : 'Detail ilustratif (sintetik) — impor GL untuk sub-ledger nyata'}</span>
+          {/* PR-4d menjanjikan kedua tombol ini MEMBAWA konteks; yang terkirim dulu hanya
+              `nav()` telanjang, sehingga "Buka Lead Schedule E" mendarat di daftar WP tanpa
+              membuka E, dan "Sampling Akun Ini" membuka SA 530 tanpa tahu akun mana.
+              `ams.wpOpen` = kunci one-shot yang sudah dipakai My Tasks/Beranda/Workspace. */}
+          <div className="row gap8">
+            <Btn sm disabled={!row.lead}
+              title={row.lead ? `Buka kertas kerja lead ${row.lead}` : 'Akun ini belum punya lead schedule — tetapkan di Pemetaan CoA'}
+              onClick={() => {
+                if (!row.lead) return;
+                try { localStorage.setItem('ams.wpOpen', row.lead); } catch (e) { /* storage tertutup */ }
+                onClose(); nav('workpapers', { from: 'wtb' });
+              }}><I.layers size={13} /> Buka Lead Schedule {row.lead || '—'}</Btn>
+            <Btn sm variant="primary"
+              title={`Buka SA 530 dengan konteks akun ${row.code} — ${row.name}`}
+              onClick={() => {
+                try {
+                  localStorage.setItem('ams.samplingAccount', JSON.stringify({
+                    code: row.code, name: row.name, lead: row.lead || '', balance: row.adj,
+                  }));
+                } catch (e) { /* storage tertutup */ }
+                onClose(); nav('sa530', { from: 'wtb', tab: 'desain' });
+              }}><I.dice size={13} /> Sampling Akun Ini</Btn>
+          </div>
+        </div>
+      )}
+    >
+        <div style={{ padding: '10px 16px' }}>
           {dtab === 'ledger' && glTie.hasDetail && (<>
           <div className="row ac jb" style={{ margin: '2px 0 6px' }}>
             <span className="tiny muted">{glTie.lines.length} baris buku besar (GL) nyata · Rp jt</span>
@@ -1363,34 +1428,7 @@ function WtbDrill({ row, onClose, nav }: any) {
             </div>
           )}
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="tiny muted">{glTie.hasDetail ? (glTie.tied ? 'Detail GL nyata · tie-out ke saldo unadjusted cocok ✓' : 'Detail GL nyata · tie-out selisih — periksa kelengkapan GL') : 'Detail ilustratif (sintetik) — impor GL untuk sub-ledger nyata'}</span>
-          {/* PR-4d menjanjikan kedua tombol ini MEMBAWA konteks; yang terkirim dulu hanya
-              `nav()` telanjang, sehingga "Buka Lead Schedule E" mendarat di daftar WP tanpa
-              membuka E, dan "Sampling Akun Ini" membuka SA 530 tanpa tahu akun mana.
-              `ams.wpOpen` = kunci one-shot yang sudah dipakai My Tasks/Beranda/Workspace. */}
-          <div className="row gap8">
-            <Btn sm disabled={!row.lead}
-              title={row.lead ? `Buka kertas kerja lead ${row.lead}` : 'Akun ini belum punya lead schedule — tetapkan di Pemetaan CoA'}
-              onClick={() => {
-                if (!row.lead) return;
-                try { localStorage.setItem('ams.wpOpen', row.lead); } catch (e) { /* storage tertutup */ }
-                onClose(); nav('workpapers', { from: 'wtb' });
-              }}><I.layers size={13} /> Buka Lead Schedule {row.lead || '—'}</Btn>
-            <Btn sm variant="primary"
-              title={`Buka SA 530 dengan konteks akun ${row.code} — ${row.name}`}
-              onClick={() => {
-                try {
-                  localStorage.setItem('ams.samplingAccount', JSON.stringify({
-                    code: row.code, name: row.name, lead: row.lead || '', balance: row.adj,
-                  }));
-                } catch (e) { /* storage tertutup */ }
-                onClose(); nav('sa530', { from: 'wtb', tab: 'desain' });
-              }}><I.dice size={13} /> Sampling Akun Ini</Btn>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -1533,15 +1571,32 @@ function AJEForm({ accounts, onClose, onPost }: any) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 680, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
-        {/* PR-E — gradient & heksa ter-hardcode diganti token (mematahkan tema gelap; sekelas perbaikan PR-D di view_aje). */}
+    <Overlay
+      variant="modal"
+      size="lg"
+      onClose={onClose}
+      /* Formulir jurnal: draft di sini paling mahal untuk hilang (deskripsi + baris
+         debit/kredit yang sudah diketik). Guard menutup jalur yang selama ini diam. */
+      isDirty={() => desc.trim() !== '' || ref.trim() !== ''
+        || lines.some((l: { code: string; debit: string; credit: string }) => l.code !== '' || l.debit !== '' || l.credit !== '')}
+      bodyStyle={{ padding: 16 }}
+      header={(
+        /* PR-E — gradient & heksa ter-hardcode diganti token (mematahkan tema gelap; sekelas perbaikan PR-D di view_aje). */
         <div style={{ background: 'var(--navy-solid)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.ledger size={18} />
           <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>Adjusting Journal Entry Baru</div><div className="tiny" style={{ opacity: .82 }}>Diajukan untuk persetujuan · belum memengaruhi WTB</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, overflow: 'auto' }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          {/* PR-B - jurnal lahir 'Proposed'; posting hanya lewat rantai persetujuan. */}
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={post}><I.check size={14} /> Ajukan untuk Persetujuan</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 130px', gap: 10, marginBottom: 14 }}>
             <div className="field"><label>Deskripsi Penyesuaian</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
             <div className="field"><label>Ref. WP</label><input className="input mono" value={ref} onChange={(e: any) => setRef(e.target.value)} placeholder="D-4" /></div>
@@ -1626,13 +1681,7 @@ function AJEForm({ accounts, onClose, onPost }: any) {
             </div>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          {/* PR-B - jurnal lahir 'Proposed'; posting hanya lewat rantai persetujuan. */}
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={post}><I.check size={14} /> Ajukan untuk Persetujuan</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 

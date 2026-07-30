@@ -270,7 +270,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   return (
     <Overlay
       variant="modal"
-      size="lg"
+      size="xl"
       onClose={onClose}
       header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '20px 28px', display: 'flex', alignItems: 'flex-start', gap: 15, borderRadius: '4px 4px 0 0' }}>
