@@ -5,7 +5,7 @@ import { useAmsPersist, useNav } from './contexts';
 import { capacityProjection } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Btn, Panel, Stat } from './ui';
+import { Avatar, Btn, Overlay, Panel, Stat } from './ui';
 
 /* ============================================================
    Asseris — Resource Scheduler (Package D)
@@ -133,7 +133,8 @@ function ResourceScheduler() {
 function BookingForm({ schedule, onClose, onAdd }: any) {
   const engs: any = AMS.ENGAGEMENTS, cl: any = AMS.CLIENTS;
   const colors = ['#005085', '#1f7a4d', '#5b3fa6', '#0a6b73', '#9a6a00'];
-  const [d, setD] = useStateD3({ member: schedule[0].member, eng: engs[0].id, hrs: 8 });
+  const initial = { member: schedule[0].member, eng: engs[0].id, hrs: 8 };
+  const [d, setD] = useStateD3({ ...initial });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const member = schedule.find((m: { member: string }) => m.member === d.member) || schedule[0];
   const used = member.alloc.reduce((a: number, x: { hrs: number }) => a + x.hrs, 0);
@@ -144,13 +145,26 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
     onAdd({ member: d.member, eng: d.eng, client: (c?.name || '').replace('PT ', '').replace(' Tbk', ''), hrs: +d.hrs, color: colors[engs.indexOf(e) % colors.length] });
   };
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="sm"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(initial)}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.calendar size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Booking Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Alokasikan anggota ke engagement</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={submit}><I.check size={14} /> Tambah Booking</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Anggota Tim</label><select className="select" value={d.member} onChange={(e: any) => set('member', e.target.value)}>{schedule.map((m: any) => <option key={m.member} value={m.member}>{m.member} ({m.role})</option>)}</select></div>
           <div className="field"><label>Engagement</label><select className="select" value={d.eng} onChange={(e: any) => set('eng', e.target.value)}>{engs.map((x: any) => { const c = cl.find((y: any) => y.id === x.clientId); return <option key={x.id} value={x.id}>{x.id} · {(c?.name || '').replace('PT ', '')}</option>; })}</select></div>
           <div className="field"><label>Jam / Minggu</label><input className="input mono" type="number" min={0} value={d.hrs} onChange={(e: any) => set('hrs', +e.target.value)} style={{ textAlign: 'right' }} /></div>
@@ -160,12 +174,7 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
               : <>Proyeksi alokasi {member.member.split(',')[0]}: <b>{proj.projected}h</b> / {member.capacity}h (util {proj.pct}%).</>}
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={submit}><I.check size={14} /> Tambah Booking</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 

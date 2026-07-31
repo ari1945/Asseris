@@ -5,7 +5,7 @@ import { useAmsPersist, useAuth, useFirm, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel, Progress, Stat } from './ui';
+import { Badge, Btn, Overlay, Panel, Progress, Stat } from './ui';
 import { MSub } from './view_fpm_parts';
 import { StepLetter, StepPMPJ } from './view_onboarding2';
 import { OBAcceptance, OBAml, OBAnalitik } from './view_onboarding3';
@@ -497,9 +497,11 @@ function StepConvert({ p, onPatch, onClose, goStep }: any) {
 /* ============================================================
    New prospect form
    ============================================================ */
+const PROSPECT_FORM_INIT = { name: '', industry: '', city: '', kind: 'Klien Baru', service: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', fee: 600000000, materiality: 1500000000, npwp: '', fyEnd: '31 Desember 2025', deadline: '2026-04-30', budgetHrs: 900, listed: false };
+
 function ProspectForm({ onClose, onAdd }: any) {
   const blankFactors = (AMS.PROSPECTS as any)[1].acceptance.factors.map((f: any) => ({ ...f, s: 3, note: '' }));
-  const [d, setD] = useStateOB({ name: '', industry: '', city: '', kind: 'Klien Baru', service: 'Audit Laporan Keuangan', standard: 'SA', partner: 'Hartono Wijaya, CPA', manager: 'Anindya Pramesti', fee: 600000000, materiality: 1500000000, npwp: '', fyEnd: '31 Desember 2025', deadline: '2026-04-30', budgetHrs: 900, listed: false });
+  const [d, setD] = useStateOB({ ...PROSPECT_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim() && d.industry.trim();
   const submit = () => onAdd({
@@ -509,13 +511,29 @@ function ProspectForm({ onClose, onAdd }: any) {
     letter: { version: 0, status: 'draft', scope: 'Perikatan ' + d.service + ' FY2025 sesuai ' + d.standard + '.', esign: [] },
   });
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 92, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 560, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      /* zIndex 92 sebelumnya = "di atas OnboardingDrawer" yang dirakit tangan.
+         Kini eksplisit lewat lapis bernama, bukan angka ajaib. */
+      zLayer="confirm"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(PROSPECT_FORM_INIT)}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.flag size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Prospek Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Mulai proses onboarding klien & perikatan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={submit}><I.check size={14} /> Mulai Onboarding</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Nama Entitas</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
             <div className="field"><label>Industri</label><input className="input" value={d.industry} onChange={(e: any) => set('industry', e.target.value)} placeholder="Manufaktur · Consumer Goods" /></div>
@@ -537,12 +555,7 @@ function ProspectForm({ onClose, onAdd }: any) {
           </div>
           <div className="field"><label>NPWP</label><input className="input mono" value={d.npwp} onChange={(e: any) => set('npwp', e.target.value)} placeholder="01.234.567.8-000.000" /></div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={submit}><I.check size={14} /> Mulai Onboarding</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 

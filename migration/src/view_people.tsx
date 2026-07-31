@@ -5,7 +5,7 @@ import { useAmsPersist, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { AccessDenied, Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
+import { AccessDenied, Avatar, Badge, Btn, Donut, Overlay, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { FeeDependencyTab, LongAssociationTab, NASPreApprovalTab } from './view_independence_parts';
 import { HCMAnalytics, Profile360Drawer } from './view_pc_hcm';
@@ -123,19 +123,34 @@ function HCM() {
   );
 }
 
+const STAFF_FORM_INIT = { name: '', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', email: '' };
+
 function StaffForm({ onClose, onAdd }: any) {
-  const [d, setD] = useStateE({ name: '', role: 'Junior Auditor', grade: 'Junior', cert: 'S.Ak', email: '' });
+  const [d, setD] = useStateE({ ...STAFF_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.name.trim();
   const ROLE_BY_GRADE = { Partner: 'Engagement Partner', Manager: 'Audit Manager', Senior: 'Senior Auditor', Junior: 'Junior Auditor' };
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(STAFF_FORM_INIT)}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.users size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Karyawan Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke direktori SDM</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd({ ...d, role: (ROLE_BY_GRADE as any)[d.grade] })}><I.check size={14} /> Tambah Karyawan</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Nama Lengkap</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="Nama karyawan" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div className="field"><label>Jenjang</label><select className="select" value={d.grade} onChange={(e: any) => set('grade', e.target.value)}>{['Partner', 'Manager', 'Senior', 'Junior'].map(g => <option key={g}>{g}</option>)}</select></div>
@@ -143,12 +158,7 @@ function StaffForm({ onClose, onAdd }: any) {
           </div>
           <div className="field"><label>Email</label><input className="input" value={d.email} onChange={(e: any) => set('email', e.target.value)} placeholder="nama@whr-cpa.id" /></div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd({ ...d, role: (ROLE_BY_GRADE as any)[d.grade] })}><I.check size={14} /> Tambah Karyawan</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -256,18 +266,33 @@ function CPETracker() {
   );
 }
 
+const SKP_FORM_INIT = { id: 'EMP-007', t: '', type: 'Terstruktur', skp: 4 };
+
 function SkpForm({ staff, onClose, onAdd }: any) {
-  const [d, setD] = useStateE({ id: 'EMP-007', t: '', type: 'Terstruktur', skp: 4 });
+  const [d, setD] = useStateE({ ...SKP_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const valid = d.t.trim() && +d.skp > 0;
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 460, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="sm"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(SKP_FORM_INIT)}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.book size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Catat SKP (PPL)</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah satuan kredit pendidikan profesional</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d.id, { t: d.t, type: d.type, skp: +d.skp })}><I.check size={14} /> Catat SKP</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Karyawan</label><select className="select" value={d.id} onChange={(e: any) => set('id', e.target.value)}>{staff.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
           <div className="field"><label>Kegiatan / Pelatihan</label><input className="input" value={d.t} onChange={(e: any) => set('t', e.target.value)} placeholder="mis. Workshop SA Terkini IAPI" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
@@ -275,12 +300,7 @@ function SkpForm({ staff, onClose, onAdd }: any) {
             <div className="field"><label>SKP</label><input className="input mono" type="number" value={d.skp} onChange={(e: any) => set('skp', +e.target.value)} style={{ textAlign: 'right' }} /></div>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d.id, { t: d.t, type: d.type, skp: +d.skp })}><I.check size={14} /> Catat SKP</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -447,14 +467,28 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
   const rotRelevant = d.rotationClient !== '—' && d.tenure >= d.rotationLimit - 1;
   const [rotDraft, setRotDraft] = useStateE('');
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div className="panel" style={{ width: 480, maxWidth: '95vw', height: '100%', borderRadius: 0, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
-        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+    <Overlay
+      variant="sheet"
+      size="sm"
+      onClose={onClose}
+      /* `rotDraft` = catatan rotasi yang sedang diketik, belum tersimpan. */
+      isDirty={() => rotDraft.trim() !== ''}
+      bodyStyle={{ padding: 18 }}
+      header={(
+        <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <Avatar name={d.name} size={42} />
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }} className="truncate">{d.name}</div><div className="tiny" style={{ color: '#bcd6e4' }}>Deklarasi Independensi · {per}</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8 }}>
+          {lvl > 0 && <Btn style={{ flex: 1 }} onClick={() => onApprove(0)}><I.sync size={13} /> Reset</Btn>}
+          <Btn variant="primary" style={{ flex: 1 }}><I.download size={13} /> Unduh Deklarasi</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="tiny muted upper" style={{ marginBottom: 8 }}>Kuesioner Independensi (SA 220 · Kode Etik IAPI)</div>
           <div style={{ display: 'grid', gap: 7, marginBottom: 18 }}>
             {INDEP_Q.map((q, i) => (
@@ -539,12 +573,7 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
           </div>
           {lvl >= 3 && <div className="panel" style={{ padding: '9px 12px', marginTop: 16, background: 'var(--green-bg)', borderColor: 'transparent', boxShadow: 'none' }}><div className="tiny" style={{ fontWeight: 600 }}><I.check size={12} /> Deklarasi independensi disetujui penuh & terarsip untuk {per}.</div></div>}
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, flex: '0 0 auto' }}>
-          {lvl > 0 && <Btn style={{ flex: 1 }} onClick={() => onApprove(0)}><I.sync size={13} /> Reset</Btn>}
-          <Btn variant="primary" style={{ flex: 1 }}><I.download size={13} /> Unduh Deklarasi</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
