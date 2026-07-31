@@ -7,6 +7,7 @@ import { ENG_RISK_SEED } from './data_part1';
 import { applyMapping } from './wtb_mapping';
 import { overlayWtbOverrides } from './wtb_overrides';
 import { mergeLegacyFlux } from './flux_state';
+import { parseHash } from './route_hash';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 import { materialityFor } from './canon_selectors';
 import { benchmarksFromWTB } from './canon_base';
@@ -263,6 +264,16 @@ function useCurrentAuditor() {
    `fallback` boleh nilai atau fungsi lazy (dievaluasi bila tak ada tab diminta). */
 function useInitialTab(moduleId: string, fallback: unknown) {
   return useState(() => {
+    /* PRD Fase B — URL lebih dulu: tautan yang dibagikan (`#/wtb?tab=drill`)
+       harus membuka tab yang dimaksud, dan TIDAK dikonsumsi (alamat itu
+       menetap, bukan sekali-pakai). Hanya berlaku bila hash menunjuk modul
+       INI — supaya `?tab=` milik modul lain tak bocor ke sini.
+       sessionStorage one-shot tetap ada sebagai jalur kedua: ia dipakai
+       navigasi internal dan sudah teruji sejak PRD 2026-07-18. */
+    try {
+      const loc = parseHash(typeof location === 'undefined' ? '' : location.hash);
+      if (loc && loc.route === moduleId && loc.tab != null) return loc.tab;
+    } catch (e) { /* URL tak terbaca */ }
     try {
       const k = 'ams.navtab.' + moduleId;
       const v = sessionStorage.getItem(k);
@@ -279,6 +290,12 @@ function useInitialTab(moduleId: string, fallback: unknown) {
    Kembalikan id terpilih (string) atau null bila bukan datang dari deep-link. */
 function useInitialSelection(moduleId: string): string | null {
   const [v] = useState(() => {
+    /* PRD Fase B — mengikuti presedens yang sama dengan useInitialTab: URL
+       dulu (`#/continuance/CL-014`), lalu one-shot sessionStorage. */
+    try {
+      const loc = parseHash(typeof location === 'undefined' ? '' : location.hash);
+      if (loc && loc.route === moduleId && loc.sel != null) return loc.sel;
+    } catch (e) { /* URL tak terbaca */ }
     try {
       const k = 'ams.navsel.' + moduleId;
       const s = sessionStorage.getItem(k);
