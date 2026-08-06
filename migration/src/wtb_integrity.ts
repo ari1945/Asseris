@@ -55,6 +55,13 @@ export interface WtbIntegrityResult {
   ajeMismatches: AjeMismatch[];
   /* ringkasan graduated */
   status: 'ok' | 'attention';
+  /* PR-I1 — ADA peringatan yang belum dijawab, terlepas dari lolos-tidaknya gerbang.
+     `status` menjawab "boleh finalisasi?"; `hasWarn` menjawab "ada yang perlu dilihat?".
+     Keduanya BEDA pertanyaan, dan indikator visual harus memakai yang kedua — lihat
+     catatan di dekat `gatesPass`. Secara konstruksi hasWarn ⊇ (status === 'attention'):
+     setiap kriteria gerbang yang gagal juga menerbitkan pesan `warn`, sedangkan
+     sebaliknya tidak berlaku (mis. `incomeDoubleCounted`). */
+  hasWarn: boolean;
   messages: IntegrityMessage[];
   tol: number;
 }
@@ -164,16 +171,28 @@ export function checkWtbIntegrity(
      finalisasi pada perikatan yang datanya berpola ini — termasuk seed demo. Temuannya
      tetap ditegakkan sebagai peringatan menonjol di panel Integritas. Menjadikannya
      pemblokir = tambahkan `&& !incomeDoubleCounted` di baris berikut (keputusan Ari,
-     PRD §11 Q3), sebaiknya bersamaan dengan pembenahan data seed. */
+     PRD §11 Q3), sebaiknya bersamaan dengan pembenahan data seed.
+     PR-I1 — sampai itu terjadi, kondisi ini TIDAK LAGI tersembunyi: `hasWarn` di bawah
+     memisahkan "boleh finalisasi" dari "ada yang perlu dilihat", dan indikator visual
+     memakai yang kedua. Rencana penuh: docs/prd-wtb-integrity-falsifiable-gates.md
+     (Fase D menyalakan pemblokir SETELAH seed dibereskan — urutan sebaliknya mengunci
+     finalisasi pada perikatan demo). */
   const gatesPass = bsTied && adjConsistent && ajeBalanced && registerReconciled;
   const status: 'ok' | 'attention' = gatesPass ? 'ok' : 'attention';
+
+  /* PR-I1 — sinyal yang DITAMPILKAN diturunkan dari sini, bukan dari `status`. Dulu chip
+     & badge memakai `status`, sehingga TB yang memicu `incomeDoubleCounted` — atau footing
+     yang anomali, yang memang tak pernah masuk gerbang — tampil HIJAU "Integritas OK" di
+     atas panel yang tepat di bawahnya memuat peringatan material. Satu keadaan, dua sinyal
+     berlawanan; auditor yang tak membuka panel hanya melihat yang hijau. */
+  const hasWarn = messages.some(m => m.level === 'warn');
 
   return {
     sumAdj, sumUnadj, footed, netIncome, footingExplainedByIncome,
     assets, liabilities, equity, bsDiff, bsTied, bsExplainedByIncome,
     adjConsistent, adjMismatches, incomeDoubleCounted,
     wtbAjeSum, ajeBalanced, registerReconciled, ajeMismatches,
-    status, messages, tol,
+    status, hasWarn, messages, tol,
   };
 }
 
