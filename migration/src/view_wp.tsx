@@ -3,6 +3,7 @@ import React from 'react';
 import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
 import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor, useMateriality, useAuth, amsShortName } from './contexts';
+import { CAP } from './rbac';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan } from './sampling_select';
 import {
   assertionCoverage, groupForAccountCode, ASSERTION_RELEVANCE, ASSERTION_STATUS_META, assertionDef,
@@ -28,6 +29,15 @@ const TICKMARKS = [
   { sym: '^', label: 'Ditelusuri ke buku besar', color: 'var(--amber)' },
   { sym: '∆', label: 'Selisih — lihat catatan', color: 'var(--red)' },
 ];
+
+/* Otoritas slot rantai sign-off WP — SELARAS dengan server/src/signoff.ts
+   (WP_CHAIN_CAP) dan wp_signoff.tsx. `preparer` = WP_EDIT (semua auditor). */
+const WP_SLOT_CAP: Record<string, string> = {
+  preparer: CAP.WP_EDIT,
+  reviewer: CAP.SIGNOFF_REVIEWER,
+  partner: CAP.OPINION_APPROVE,
+  eqr: CAP.EQR_REVIEW,
+};
 
 /* ---- Attachments per WP ---- */
 const WP_ATTACH = {
@@ -1046,6 +1056,9 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, set
 /* ---- Sign-off & audit trail tab ---- */
 function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) {
   const today = wpToday();
+  const auth = useAuth();
+  const me = (auth && auth.user && auth.user.name) ? amsShortName(auth.user.name) : it[2];
+  const can = (cap: string) => !auth || typeof auth.can !== 'function' || auth.can(cap);
   const chain = st.chain || {};
   /* derive defaults */
   const preparer = chain.preparer || null;
@@ -1055,17 +1068,17 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
   const eqr = chain.eqr || null;
 
   const levels = [
-    { key: 'preparer', role: 'Preparer', who: it[2], desc: 'Menyiapkan kertas kerja & prosedur', signed: preparer },
-    { key: 'reviewer', role: 'Reviewer (Manager)', who: 'Anindya P.', desc: 'Review detail & kecukupan bukti', signed: reviewer },
-    { key: 'partner', role: 'Engagement Partner', who: 'Hartono W.', desc: 'Persetujuan akhir partner', signed: partner },
+    { key: 'preparer', role: 'Preparer', who: it[2], cap: WP_SLOT_CAP.preparer, desc: 'Menyiapkan kertas kerja & prosedur', signed: preparer },
+    { key: 'reviewer', role: 'Reviewer (Manager)', who: 'Anindya P.', cap: WP_SLOT_CAP.reviewer, desc: 'Review detail & kecukupan bukti', signed: reviewer },
+    { key: 'partner', role: 'Engagement Partner', who: 'Hartono W.', cap: WP_SLOT_CAP.partner, desc: 'Persetujuan akhir partner', signed: partner },
   ];
-  if (eqrReq) levels.push({ key: 'eqr', role: 'EQR (Penelaah Mutu)', who: 'Sari Dewanti', desc: 'Telaah pengendalian mutu perikatan (PIE)', signed: eqr });
+  if (eqrReq) levels.push({ key: 'eqr', role: 'EQR (Penelaah Mutu)', who: 'Sari Dewanti', cap: WP_SLOT_CAP.eqr, desc: 'Telaah pengendalian mutu perikatan (PIE)', signed: eqr });
 
-  const canSign = (idx: any) => !locked && !levels[idx].signed && (idx === 0 || !!levels[idx - 1].signed);
+  const canSign = (idx: any) => !locked && !levels[idx].signed && can(levels[idx].cap) && (idx === 0 || !!levels[idx - 1].signed);
   const sign = (idx: any) => {
     const lvl = levels[idx];
-    const patch: any = { chain: { ...chain, [lvl.key]: { by: lvl.who, at: today } } };
-    if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = lvl.who; patch.signedAt = today; }
+    const patch: any = { chain: { ...chain, [lvl.key]: { by: me, at: today } } };
+    if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = me; patch.signedAt = today; }
     if (lvl.key === 'preparer' && (status === 'Not Started' || status === 'In Progress')) patch.status = 'In Review';
     setWp(ref_, patch);
   };
@@ -1107,8 +1120,8 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
                 ) : <span className="tiny muted">{l.key === 'preparer' ? `Ditugaskan: ${l.who} · belum menandatangani` : 'belum ditandatangani'}</span>}
               </div>
               {l.signed
-                ? <button className="btn sm" disabled={locked} onClick={() => unsign(i)} style={{ flex: '0 0 auto' }}><I.sync size={12} /> Batalkan</button>
-                : <Btn sm variant={canSign(i) ? 'primary' : ''} disabled={!canSign(i)} onClick={() => sign(i)} style={{ flex: '0 0 auto' }}><I.check size={13} /> Sign-off</Btn>}
+                ? <button className="btn sm" disabled={locked || (l.key === 'preparer' ? !can(WP_SLOT_CAP.reviewer) : !can(l.cap))} title={locked || (l.key === 'preparer' ? !can(WP_SLOT_CAP.reviewer) : !can(l.cap)) ? 'Peran Anda tidak berwenang untuk slot ini' : undefined} onClick={() => unsign(i)} style={{ flex: '0 0 auto' }}><I.sync size={12} /> Batalkan</button>
+                : <Btn sm variant={canSign(i) ? 'primary' : ''} disabled={!canSign(i)} title={canSign(i) ? undefined : 'Peran Anda tidak berwenang untuk slot ini'} onClick={() => sign(i)} style={{ flex: '0 0 auto' }}><I.check size={13} /> Sign-off</Btn>}
             </div>
           ))}
         </div>
@@ -1134,6 +1147,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
 /* ---- Footer (persistent quick sign-off) ---- */
 function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }: any) {
   const auth = useAuth(); const me = (auth && auth.user && auth.user.name) ? amsShortName(auth.user.name) : (it[2]);
+  const canReview = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
   const reviewer = st.reviewer || (status === 'Reviewed' ? it[3] : null);
   const quickSign = () => setWp(ref_, { status: 'Reviewed', reviewer: me, signedAt: wpToday(), chain: { ...(st.chain || {}), preparer: (st.chain && st.chain.preparer) || { by: it[2], at: wpToday() }, reviewer: { by: me, at: wpToday() } } });
   const reopen = () => { const nc = { ...(st.chain || {}) }; delete nc.reviewer; delete nc.partner; delete nc.eqr; setWp(ref_, { status: 'In Review', reviewer: null, signedAt: null, chain: nc }); };
@@ -1149,8 +1163,12 @@ function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }
       {locked
         ? <Badge kind="gray"><I.lock size={12} /> Read-only</Badge>
         : status !== 'Reviewed'
-          ? <Btn variant="primary" onClick={quickSign}><I.check size={14} /> Sign-off Review</Btn>
-          : <Btn onClick={reopen}><I.sync size={14} /> Buka Kembali</Btn>}
+          ? canReview
+            ? <Btn variant="primary" onClick={quickSign}><I.check size={14} /> Sign-off Review</Btn>
+            : <span className="tiny muted" style={{ color: 'var(--ink-3)' }}><I.lock size={11} /> Sign-off review hanya oleh Reviewer berwenang</span>
+          : canReview
+            ? <Btn onClick={reopen}><I.sync size={14} /> Buka Kembali</Btn>
+            : <span className="tiny muted" style={{ color: 'var(--ink-3)' }}><I.lock size={11} /> Hanya Reviewer berwenang</span>}
     </div>
   );
 }
