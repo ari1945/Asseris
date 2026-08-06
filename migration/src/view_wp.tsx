@@ -12,7 +12,7 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpChainSelfReview } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpChainSelfReview, wpSeedReviewSignature } from './wp_canon';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
 
 /* ============================================================
@@ -1060,7 +1060,9 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
   const chain = st.chain || {};
   /* derive defaults */
   const preparer = chain.preparer || null;
-  const reviewer = chain.reviewer || (status === 'Reviewed' ? { by: st.reviewer || it[3] || 'Anindya P.', at: st.signedAt || wpToday() } : null);
+  /* SSOT: tanda tangan reviewer HANYA dari chain (tercatat) atau tanggal reviu yang
+     dideklarasikan di seed — status tidak pernah melahirkannya (lihat wp_canon). */
+  const reviewer = chain.reviewer || wpSeedReviewSignature(ref_);
   const partner = chain.partner || null;
   const eqrReq = !!activeClient?.listed;
   const eqr = chain.eqr || null;
@@ -1105,8 +1107,13 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
   const trail = [];
   levels.forEach(l => { if (l.signed) trail.push({ at: l.signed.at, who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' }); });
   (st.log || []).forEach((e: any) => trail.push(e));
-  trail.push({ at: today, who: it[2], what: 'Kertas kerja dibuat & prosedur diunggah', ic: 'doc', col: 'var(--blue)' });
-  trail.push({ at: '04 Mar 2026', who: 'Sistem', what: 'WP dibuat dari template metodologi v4.2', ic: 'layers', col: 'var(--ink-3)' });
+  /* Dua peristiwa seed di bawah DIDEKLARASIKAN tanggalnya. Yang pertama dulu memakai
+     `today`, sehingga jejak audit menyatakan kertas kerja ini dibuat HARI INI oleh
+     preparer yang ditugaskan — setiap kali layar dibuka, dan bertanggal setelah
+     tanda tangan reviu yang ada di atasnya. Jejak audit tidak boleh bergerak mengikuti
+     jam dinding pembacanya. Urutan kini koheren: template → dibuat → sign-off. */
+  trail.push({ at: '2026-01-05', who: it[2], what: 'Kertas kerja dibuat & prosedur diunggah', ic: 'doc', col: 'var(--blue)' });
+  trail.push({ at: '2026-01-02', who: 'Sistem', what: 'WP dibuat dari template metodologi v4.2', ic: 'layers', col: 'var(--ink-3)' });
 
   return (
     <div className="split" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
@@ -1159,13 +1166,18 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
 function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }: any) {
   const auth = useAuth(); const me = (auth && auth.user && auth.user.name) ? amsShortName(auth.user.name) : (it[2]);
   const canReview = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
-  const reviewer = st.reviewer || (status === 'Reviewed' ? it[3] : null);
+  /* idem SignoffTab — footer tak boleh menampilkan penanda tangan yang tak pernah ada. */
+  const chainRev = (st.chain && st.chain.reviewer) || wpSeedReviewSignature(ref_);
+  const reviewer = chainRev ? chainRev.by : null;
+  const preparerSigned = !!(st.chain && st.chain.preparer);
   const quickSign = () => setWp(ref_, { status: 'Reviewed', reviewer: me, signedAt: wpToday(), chain: { ...(st.chain || {}), preparer: (st.chain && st.chain.preparer) || { by: it[2], at: wpToday() }, reviewer: { by: me, at: wpToday() } } });
   const reopen = () => { const nc = { ...(st.chain || {}) }; delete nc.reviewer; delete nc.partner; delete nc.eqr; setWp(ref_, { status: 'In Review', reviewer: null, signedAt: null, chain: nc }); };
   return (
     <div style={{ padding: '11px 16px', borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto', background: 'var(--surface)' }}>
       <div className="row ac gap10" style={{ flex: 1 }}>
-        <span className="row ac gap6 tiny"><span className="muted">Preparer</span><Avatar name={it[2]} size={20} /><span style={{ fontWeight: 600 }}>{it[2]}</span><span style={{ color: 'var(--green)' }}><I.check size={12} /></span></span>
+        {/* "assigned ≠ signed" juga berlaku di footer: centang hijau dulu tampil tanpa
+            syarat, sehingga Preparer selalu terlihat sudah menandatangani. */}
+        <span className="row ac gap6 tiny"><span className="muted">Preparer</span><Avatar name={it[2]} size={20} /><span style={{ fontWeight: 600 }}>{it[2]}</span>{preparerSigned ? <span style={{ color: 'var(--green)' }}><I.check size={12} /></span> : <span className="muted">menunggu</span>}</span>
         <span className="vdivider" style={{ height: 20 }} />
         <span className="row ac gap6 tiny"><span className="muted">Reviewer</span>{reviewer ? <><Avatar name={reviewer} size={20} /><span style={{ fontWeight: 600 }}>{reviewer}</span><span style={{ color: 'var(--green)' }}><I.checkCircle size={13} /></span></> : <span className="muted">menunggu</span>}</span>
         <span className="vdivider" style={{ height: 20 }} />

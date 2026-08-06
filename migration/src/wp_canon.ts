@@ -7,11 +7,14 @@
    ============================================================ */
 import type { ProcedureInput } from './canon_selectors';
 
-/* ---- File index (ref, title, preparer, reviewer, status) ---- */
+/* ---- File index (ref, title, preparer, reviewer, status, tanggalReviu?) ----
+   Elemen ke-6 = TANGGAL REVIU yang DIDEKLARASIKAN sebagai data seed. Ia ada hanya
+   pada kertas kerja yang memang sudah direviu, dan nilainya tetap (historis) — bukan
+   diturunkan dari jam dinding. Lihat `wpSeedReviewSignature` di bawah untuk alasannya. */
 const WP_INDEX = [
-  { sec: 'Perencanaan', items: [['100', 'Memorandum Strategi Audit', 'Anindya P.', 'Hartono W.', 'Reviewed'], ['200', 'Penilaian Risiko & RoMM', 'Anindya P.', 'Hartono W.', 'Reviewed'], ['300', 'Perhitungan Materialitas', 'Dimas R.', 'Anindya P.', 'Reviewed']] },
-  { sec: 'Aset', items: [['A', 'Kas dan Setara Kas', 'Fajar N.', 'Anindya P.', 'Reviewed'], ['B', 'Piutang Usaha & ECL', 'Dimas R.', 'Anindya P.', 'In Review'], ['C', 'Persediaan', 'Rina K.', '—', 'In Progress'], ['E', 'Aset Tetap', 'Dimas R.', 'Anindya P.', 'In Review'], ['F', 'Sewa PSAK 73', 'Sinta W.', '—', 'In Progress']] },
-  { sec: 'Liabilitas & Ekuitas', items: [['AA', 'Utang Usaha', 'Fajar N.', 'Anindya P.', 'Reviewed'], ['BB', 'Utang Bank', 'Rina K.', 'Anindya P.', 'Reviewed'], ['H', 'Imbalan Kerja', 'Sinta W.', '—', 'In Progress'], ['K', 'Ekuitas', 'Fajar N.', 'Anindya P.', 'Reviewed']] },
+  { sec: 'Perencanaan', items: [['100', 'Memorandum Strategi Audit', 'Anindya P.', 'Hartono W.', 'Reviewed', '2026-01-14'], ['200', 'Penilaian Risiko & RoMM', 'Anindya P.', 'Hartono W.', 'Reviewed', '2026-01-16'], ['300', 'Perhitungan Materialitas', 'Dimas R.', 'Anindya P.', 'Reviewed', '2026-01-19']] },
+  { sec: 'Aset', items: [['A', 'Kas dan Setara Kas', 'Fajar N.', 'Anindya P.', 'Reviewed', '2026-02-06'], ['B', 'Piutang Usaha & ECL', 'Dimas R.', 'Anindya P.', 'In Review'], ['C', 'Persediaan', 'Rina K.', '—', 'In Progress'], ['E', 'Aset Tetap', 'Dimas R.', 'Anindya P.', 'In Review'], ['F', 'Sewa PSAK 73', 'Sinta W.', '—', 'In Progress']] },
+  { sec: 'Liabilitas & Ekuitas', items: [['AA', 'Utang Usaha', 'Fajar N.', 'Anindya P.', 'Reviewed', '2026-02-11'], ['BB', 'Utang Bank', 'Rina K.', 'Anindya P.', 'Reviewed', '2026-02-12'], ['H', 'Imbalan Kerja', 'Sinta W.', '—', 'In Progress'], ['K', 'Ekuitas', 'Fajar N.', 'Anindya P.', 'Reviewed', '2026-02-17']] },
   { sec: 'Laba Rugi', items: [['R', 'Pendapatan', 'Dimas R.', '—', 'In Progress'], ['S', 'Beban Pokok Penjualan', 'Rina K.', '—', 'In Progress'], ['U', 'Beban Operasi', 'Fajar N.', 'Anindya P.', 'In Review']] },
   { sec: 'Penyelesaian', items: [['810', 'SAD Ledger & Evaluasi', 'Anindya P.', 'Hartono W.', 'Not Started'], ['820', 'Subsequent Events', 'Sinta W.', '—', 'Not Started'], ['900', 'Draft Laporan & Opini', 'Anindya P.', 'Hartono W.', 'Not Started']] },
 ];
@@ -131,7 +134,36 @@ const WP_REFS = WP_INDEX.flatMap(s => s.items.map(it => ({ ref: it[0], title: it
    metrics + sign-off logic used by the WP index & WPDrill above, so SA 5xx
    pages never keep a private copy of engagement status — they read this. */
 const WP_META = {};
-WP_INDEX.forEach(s => s.items.forEach(it => { (WP_META as any)[it[0]] = { title: it[1], preparer: it[2], reviewer: it[3], statusDefault: it[4], section: s.sec }; }));
+WP_INDEX.forEach(s => s.items.forEach(it => { (WP_META as any)[it[0]] = { title: it[1], preparer: it[2], reviewer: it[3], statusDefault: it[4], reviewedAt: it[5] || null, section: s.sec }; }));
+
+/* ============================================================
+   TANDA TANGAN REVIEWER — DATA, BUKAN TURUNAN DARI STATUS.
+   ------------------------------------------------------------
+   Sebelumnya tiga tempat menurunkan tanda tangan Reviewer dari `status`:
+
+     chain.reviewer || (status === 'Reviewed'
+       ? { by: st.reviewer || meta.reviewer || 'Anindya P.', at: st.signedAt || wpToday() } : null)
+
+   `st.reviewer`/`st.signedAt` tidak pernah ditulis siapa pun untuk kertas kerja, jadi
+   kedua cabang itu selalu jatuh ke fallback: nama yang DITUGASKAN (atau literal
+   'Anindya P.') dan TANGGAL HARI INI. Akibatnya menandai sebuah kertas kerja
+   "Reviewed" — termasuk lewat impor/seed atau perubahan status massal — MENERBITKAN
+   tanda tangan atas nama orang yang tidak pernah menandatanganinya, bertanggal hari
+   layar itu dibuka, lalu mengalir ke `signedCount`/`fullySigned`, ke dasbor SA 230,
+   dan ke jejak audit. Persis kelas cacat yang ditutup commit 2551ed5 untuk Preparer
+   ("assigned ≠ signed"), tetapi slot Reviewer terlewat.
+
+   Aturannya kini: satu-satunya tanda tangan yang sah adalah yang TERCATAT — entah di
+   `chain` (ditulis saat orang menekan sign-off, dengan identitas sesi) atau sebagai
+   tanggal reviu yang dideklarasikan di WP_INDEX untuk data demo. Status tidak pernah
+   melahirkan tanda tangan, dan `wpToday()` tidak muncul di jalur ini sama sekali. */
+function wpSeedReviewSignature(ref: string): { by: string; at: string } | null {
+  const meta = (WP_META as Record<string, { reviewer?: string; reviewedAt?: string | null }>)[ref];
+  if (!meta || !meta.reviewedAt) return null;
+  const by = meta.reviewer;
+  if (!by || by === '—') return null;
+  return { by, at: meta.reviewedAt };
+}
 
 function deriveWpStatus(ref: any, audit: any, firm: any) {
   const wpState = (audit && audit.wpState) || {};
@@ -162,7 +194,7 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   const chain = st.chain || {};
   const listed = !!(firm && firm.activeClient && firm.activeClient.listed);
   const preparer = chain.preparer || null;                       // assigned ≠ signed
-  const reviewer = chain.reviewer || (status === 'Reviewed' ? { by: st.reviewer || meta.reviewer || 'Anindya P.', at: st.signedAt || wpToday() } : null);
+  const reviewer = chain.reviewer || wpSeedReviewSignature(ref);
   const partner = chain.partner || null;
   const eqr = chain.eqr || null;
   const signoff = [
@@ -242,5 +274,5 @@ export {
   WP_INDEX, WP_TITLE, WP_REFS, WP_META,
   WP_PROCS, procsFor, PROC_EXC_SEED, defaultProcState, WP_SEED_NOTES,
   execStatus, procStatusAt, procStatesFor, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
-  wpToday, WP_SLOT_LABEL, wpChainSelfReview,
+  wpToday, WP_SLOT_LABEL, wpChainSelfReview, wpSeedReviewSignature,
 };

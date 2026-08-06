@@ -160,3 +160,56 @@ describe('wpChainSelfReview — satu orang, satu langkah (ISQM 2 / SA 220.36)', 
     expect(wpChainSelfReview(chain, 'partner', HW).blocked).toBe(true);
   });
 });
+
+/* ============================================================
+   Tanda tangan Reviewer TIDAK LAGI LAHIR DARI STATUS.
+   ------------------------------------------------------------
+   Cacat yang ditutup: `status === 'Reviewed'` dulu menerbitkan
+   { by: nama yang DITUGASKAN, at: HARI INI } — tanda tangan atas nama orang yang
+   tak pernah menandatangani, bertanggal hari layar dibuka, lalu mengalir ke
+   signedCount/fullySigned, dasbor SA 230, dan jejak audit. 924 uji melewatkannya
+   karena semuanya menguji seed, tempat status dan tanggal kebetulan sejalan.
+   ============================================================ */
+describe('deriveWpStatus — status tidak melahirkan tanda tangan (SA 230/ISQM)', () => {
+  interface Sig { by: string; at: string }
+  interface WpSt { status?: string; reviewer?: string; signedAt?: string; chain?: { reviewer?: Sig } }
+  const SEED = AMS as unknown as { WTB: unknown[]; RISKS: unknown[] };
+  const audit = (wpState: Record<string, WpSt>) => ({ wtb: SEED.WTB, risks: SEED.RISKS, wpState });
+  const firm = { activeEngagement: { materiality: 4260000000 }, activeClient: { listed: true } };
+  const revOf = (r: { signoff: { key: string; signed: Sig | null }[] }): Sig | null => {
+    const slot = r.signoff.find(l => l.key === 'reviewer');
+    return slot ? slot.signed : null;
+  };
+
+  it('status disetel "Reviewed" tanpa chain → TIDAK ada tanda tangan reviewer', () => {
+    /* B tak punya tanggal reviu terdeklarasi; menaikkan statusnya tak boleh memalsukan apa pun. */
+    const r = deriveWpStatus('B', audit({ B: { status: 'Reviewed' } }), firm);
+    expect(r.status).toBe('Reviewed');
+    expect(revOf(r)).toBeNull();
+    expect(r.signedCount).toBe(0);
+    expect(r.fullySigned).toBe(false);
+  });
+
+  it('legacy st.reviewer/st.signedAt tidak lagi menjadi tanda tangan', () => {
+    const r = deriveWpStatus('B', audit({ B: { status: 'Reviewed', reviewer: 'Dimas R.', signedAt: '2026-03-01' } }), firm);
+    expect(revOf(r)).toBeNull();
+  });
+
+  it('tanda tangan seed memakai TANGGAL TERDEKLARASI, bukan tanggal hari ini', () => {
+    expect(revOf(deriveWpStatus('A', audit({}), firm))).toEqual({ by: 'Anindya P.', at: '2026-02-06' });
+  });
+
+  it('chain yang tercatat tetap menang atas seed', () => {
+    const chain = { reviewer: { by: 'Hartono W.', at: '2026-03-09' } };
+    const r = deriveWpStatus('A', audit({ A: { status: 'Reviewed', chain } }), firm);
+    expect(revOf(r)).toEqual(chain.reviewer);
+  });
+
+  it('tak ada tanda tangan yang bertanggal hari ini pada seed kosong', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    for (const ref of ['100', '200', '300', 'A', 'AA', 'BB', 'K', 'B', 'C', '810']) {
+      const r = deriveWpStatus(ref, audit({}), firm);
+      for (const l of r.signoff as { signed: Sig | null }[]) if (l.signed) expect(l.signed.at).not.toBe(today);
+    }
+  });
+});
