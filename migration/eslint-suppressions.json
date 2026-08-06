@@ -1166,12 +1166,12 @@
   },
   "src/wp_canon.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 3
+      "count": 5
     }
   },
   "src/wp_canon.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 30
+      "count": 32
     }
   },
   "src/wp_signoff.tsx": {

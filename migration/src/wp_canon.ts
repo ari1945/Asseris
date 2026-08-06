@@ -58,6 +58,16 @@ function procStatusAt(ref: any, st: any, status: any, defs: any, i: any) {
   return (st.procs && st.procs['p' + i] != null) ? st.procs['p' + i] : defaultProcState(ref, status, i, defs.length);
 }
 
+/* Status per-prosedur (exec-aware) untuk satu WP + agregat done/exc.
+   SUMBER TUNGGAL: dipakai deriveWpStatus, metrics indeks & WPDrill. */
+function procStatesFor(ref: any, st: any, status: any): { statuses: string[]; done: number; exc: number } {
+  const defs = procsFor(ref);
+  const statuses = defs.map((_: any, i: number) => procStatusAt(ref, st || {}, status, defs, i));
+  const done = statuses.filter((s: string) => s === 'Selesai').length;
+  const exc = statuses.filter((s: string) => s === 'Pengecualian').length;
+  return { statuses, done, exc };
+}
+
 /* ---- Seed review notes pinned to specific WPs ---- */
 const WP_SEED_NOTES = {
   B: [
@@ -132,13 +142,7 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   const status = st.status || meta.statusDefault;
 
   /* procedures — identical derivation to ProcsTab / index metrics */
-  const defs = procsFor(ref);
-  const saved = st.procs || {};
-  let done = 0, exc = 0;
-  defs.forEach((_: any, i: any) => {
-    const s = saved['p' + i] != null ? saved['p' + i] : defaultProcState(ref, status, i, defs.length);
-    if (s === 'Selesai') done++; else if (s === 'Pengecualian') exc++;
-  });
+  const { statuses, done, exc } = procStatesFor(ref, st, status);
 
   /* open review notes — seed + user-added, honoring status overrides */
   const base = (WP_SEED_NOTES as any)[ref] || [];
@@ -170,7 +174,7 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   const signedCount = signoff.filter(l => l.signed).length;
 
   const relRisks = risks.filter((r: any) => (r.wp || '').split('-')[0] === ref);
-  return { ref, title: meta.title, section: meta.section, status, done, total: defs.length, exc, openNotes, coverage, pm, triv, signoff, signedCount, fullySigned: signedCount === signoff.length, relRisks, hasLead: leadRows.length > 0 };
+  return { ref, title: meta.title, section: meta.section, status, done, total: statuses.length, exc, openNotes, coverage, pm, triv, signoff, signedCount, fullySigned: signedCount === signoff.length, relRisks, hasLead: leadRows.length > 0 };
 }
 
 /* Prosedur + status (exec-aware) satu lead schedule → input mesin cakupan asersi.
@@ -188,6 +192,6 @@ export type { EvRec, TestItem, ExecP };
 export {
   WP_INDEX, WP_TITLE, WP_REFS, WP_META,
   WP_PROCS, procsFor, PROC_EXC_SEED, defaultProcState, WP_SEED_NOTES,
-  execStatus, procStatusAt, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
+  execStatus, procStatusAt, procStatesFor, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
   wpToday,
 };

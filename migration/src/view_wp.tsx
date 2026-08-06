@@ -11,7 +11,7 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, defaultProcState, procStatusAt, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS } from './wp_canon';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
 
 /* ============================================================
@@ -69,12 +69,7 @@ function WorkingPapers() {
     all.forEach(it => {
       const ref = it[0], st = statusOf(it);
       const defs = procsFor(ref);
-      const saved = (wpState[ref] && wpState[ref].procs) || {};
-      let done = 0, exc = 0;
-      defs.forEach((_: any, i: any) => {
-        const s = saved['p' + i] != null ? saved['p' + i] : defaultProcState(ref, st, i, defs.length);
-        if (s === 'Selesai') done++; if (s === 'Pengecualian') exc++;
-      });
+      const { done, exc } = procStatesFor(ref, (wpState[ref] || {}), st);
       const base = (WP_SEED_NOTES as any)[ref] || [];
       const added = (wpState[ref] && wpState[ref].notes) || [];
       const ov = (wpState[ref] && wpState[ref].noteStatus) || {};

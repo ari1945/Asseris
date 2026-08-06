@@ -98,3 +98,17 @@ describe('deriveWpStatus — SEED ENG-2025-014, wpState kosong (characterization
   it('810 — Not Started, 0/3, signedCount 1 MESKI belum ada tanda tangan (bug yang akan diperbaiki plan 003)', () =>
     expectSeed('810', { status: 'Not Started', done: 0, total: 3, exc: 0, openNotes: 0, coverage: null, signedCount: 1, fullySigned: false, hasLead: false }));
 });
+
+describe('deriveWpStatus — exec-aware setelah unifikasi (plan 002)', () => {
+  const audit = { wtb: (AMS as any).WTB, risks: (AMS as any).RISKS, wpState: {
+    B: { exec: { p0: { items: [{ result: 'tie' }] }, p1: { items: [{ result: 'exc' }] } } },
+  } };
+  const firm = { activeEngagement: { materiality: 4260000000 }, activeClient: { listed: true } };
+  it('done/exc dihitung dari st.exec, bukan heuristik', () => {
+    const r = deriveWpStatus('B', audit, firm);
+    // B punya 6 prosedur: p0 Selesai (exec tie), p1 Pengecualian (exec exc),
+    // p2..p4 jatuh ke heuristic In Review (Selesai), p5 seed Pengecualian.
+    expect(r.done).toBe(4); // p0 + p2 + p3 + p4
+    expect(r.exc).toBe(2);  // p1 + p5
+  });
+});
