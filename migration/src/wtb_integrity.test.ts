@@ -30,14 +30,33 @@ describe('checkWtbIntegrity — SEED demo (ENG-2025-014) konsisten penuh (A2)', 
     expect(r.bsTied).toBe(true);
     expect(r.status).toBe('ok');
   });
-  /* PR-4d — seed demo BERPOLA laba-ganda (saldo laba sudah memuat laba berjalan sementara
-     akun L/R masih terbuka). Deteksi menyala, tetapi SENGAJA tidak membalik `status`
-     agar gerbang finalisasi (yang membaca status ini) tak terkunci pada data demo.
-     Bila seed dibenahi / kebijakan berubah, uji ini yang pertama harus diperbarui. */
-  it('seed berpola laba-ganda → terdeteksi, tanpa mengunci gerbang finalisasi', () => {
-    expect(r.incomeDoubleCounted).toBe(true);
+  /* PR-I3 Fase D — uji ini DIBALIK, sebagaimana diramalkan pendahulunya ("bila seed
+     dibenahi, uji ini yang pertama harus diperbarui"). Seed dulu berpola laba-ganda dan
+     `status` sengaja tidak dibalik agar demo tak terkunci. Kini seed pra-tutup yang
+     koheren: Σ adjusted = 0 dan selisih neraca = laba berjalan, sehingga demo lolos
+     KARENA DATANYA BENAR — bukan karena gerbangnya dilonggarkan. */
+  it('seed TIDAK lagi berpola laba-ganda — ter-foot & selisih neraca = laba', () => {
+    expect(r.incomeDoubleCounted).toBe(false);
+    expect(r.footed).toBe(true);
+    expect(Math.round(r.sumAdj / 1e6)).toBe(0);
+    expect(Math.round(r.bsDiff / 1e6)).toBe(Math.round(r.netIncome / 1e6));
+    expect(r.bsExplainedByIncome).toBe(true);
     expect(r.status).toBe('ok');
-    expect(r.messages.some(m => /TERCATAT DUA KALI/.test(m.text))).toBe(true);
+    expect(r.hasWarn).toBe(false);
+  });
+
+  /* Pemblokirnya sendiri: TB berpola laba-ganda kini DITOLAK gerbang. */
+  it('TB berpola laba-ganda → status attention (pemblokir menyala)', () => {
+    const rows: IntegrityWtbRow[] = [
+      { code: '1-1100', unadj: 10_000_000_000, aje: 0, adj: 10_000_000_000 },
+      { code: '2-1100', unadj: -3_000_000_000, aje: 0, adj: -3_000_000_000 },
+      { code: '3-2100', unadj: -7_000_000_000, aje: 0, adj: -7_000_000_000 },
+      { code: '4-1100', unadj: -5_000_000_000, aje: 0, adj: -5_000_000_000 },
+      { code: '5-1100', unadj: 3_000_000_000, aje: 0, adj: 3_000_000_000 },
+    ];
+    const d = checkWtbIntegrity(rows, []);
+    expect(d.incomeDoubleCounted).toBe(true);
+    expect(d.status).toBe('attention');
   });
   it('tak ada akun yang kolom AJE-nya menyimpang dari register', () => {
     expect(r.ajeMismatches).toHaveLength(0);
@@ -197,17 +216,21 @@ describe('checkWtbIntegrity — hasWarn: sinyal tampil ≠ gerbang finalisasi (P
     { code: '5-1100', unadj: 3_000_000_000, aje: 0, adj: 3_000_000_000 },
   ];
 
-  it('laba ganda: gerbang lolos (status ok) TAPI indikator tidak hijau', () => {
+  /* PR-I3 Fase D mengubah jawaban `status` untuk pola ini (kini memblok), tetapi TIDAK
+     mengubah hal yang dijaga PR-I1: indikator visual mengikuti ADA-TIDAKNYA peringatan,
+     bukan lolos-tidaknya gerbang. Invarian itu diuji di bawah dengan pola yang lolos
+     gerbang namun tetap berpesan `warn`. */
+  it('laba ganda: memblok gerbang DAN menyalakan indikator', () => {
     const r = checkWtbIntegrity(doubleCounted, []);
     expect(r.incomeDoubleCounted).toBe(true);
-    expect(r.status).toBe('ok');        // gerbang finalisasi tak terkunci — perilaku Fase A utuh
-    expect(r.hasWarn).toBe(true);       // …namun chip & badge menampilkan "Perlu perhatian"
+    expect(r.status).toBe('attention');
+    expect(r.hasWarn).toBe(true);
   });
 
-  it('seed demo: status ok, indikator tetap menandai peringatan', () => {
+  it('seed demo kini bersih: gerbang lolos dan indikator hijau', () => {
     const r = checkWtbIntegrity(AMS.WTB, AMS.AJE);
     expect(r.status).toBe('ok');
-    expect(r.hasWarn).toBe(true);
+    expect(r.hasWarn).toBe(false);
   });
 
   it('TB bersih: tak ada peringatan → indikator hijau', () => {

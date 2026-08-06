@@ -450,6 +450,11 @@ import type { WTB, WtbBasis } from './canon_types';
       liabLain: -(aj('2-1300') + aj('2-1400') + aj('2-1500') + aj('2-2200') + aj('2-2300')),
       modal: -aj('3-1100'),
       saldoLabaWTB: -aj('3-2100'),
+      /* PR-I3 — akumulasi PKL (PSAK 24) kini akun ekuitas tersendiri; tanpa baris ini ia
+         hilang dari ekuitas konsolidasian, dan `equity` adalah salah satu TOLOK UKUR
+         MATERIALITAS — jadi kelalaian di sini menggeser materialitas, bukan sekadar
+         penyajian. Dulu nilainya mengendap di dalam 3-2100 sebagai residu. */
+      pklWTB: -aj('3-3100'),
     };
     const pSales = -aj('4-1100'), pCogs = aj('5-1100'),
           pOpex = aj('5-2100') + aj('5-3100'), pFin = aj('5-4100'), pTax = aj('5-5100');
@@ -506,6 +511,7 @@ import type { WTB, WtbBasis } from './canon_types';
       { sec: 'Liabilitas', cap: 'liabLain',   label: 'Liabilitas lain',       induk: par.liabLain,   anak: sum('liabLain'),   elim: 0 },
       { sec: 'Ekuitas', cap: 'modal',     label: 'Modal saham',               induk: par.modal,        anak: subModalTotal,   elim: -subModalTotal },
       { sec: 'Ekuitas', cap: 'saldoLaba', label: 'Saldo laba',                induk: indukSaldoLaba,   anak: subRePreTotal + subRePostTotal, elim: -(subRePreTotal) - unrInv - nciPostTotal },
+      { sec: 'Ekuitas', cap: 'pkl',       label: 'Penghasilan komprehensif lain', induk: par.pklWTB,   anak: 0,             elim: 0 },
       { sec: 'Ekuitas', cap: 'invSeed',   label: 'Saldo laba — pendanaan investasi induk', induk: costTotal, anak: 0,        elim: 0, seed: true },
       { sec: 'Ekuitas', cap: 'nci',       label: 'Kepentingan nonpengendali (NCI)', induk: 0,           anak: 0,             elim: nciAcqTotal + nciPostTotal, nci: true },
     ].map(r => ({ ...r, konsol: r.induk + r.anak + r.elim }));

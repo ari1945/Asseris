@@ -175,11 +175,24 @@ describe('PR-H4 — Σ neraca saldo invarian terhadap basis', () => {
     expect(Math.round(p)).toBe(Math.round(u));
   });
 
-  /* Σ ≠ 0 pada seed: WTB mempertahankan akun 4-/5- terbuka sementara saldo laba
-     adalah saldo penutup. Dinyatakan agar tak ada yang "memperbaiki" jadi nol —
-     lihat penutupan laba (`reShift`) di fsgen_model. */
-  it('Σ = −laba neto basis ifAllProposed (bukan nol) — sifat WTB, bukan cacat', () => {
-    const m = FSGEN.buildModel(WTB_SEED, undefined, 'ifAllProposed');
-    expect(Math.round(total('unadj') / 1e6)).toBe(-Math.round(m.is.netIncome.cy / 1e6));
+  /* PR-I3 Fase D — DIBALIK, dan itu inti perubahannya.
+     Uji ini dulu berbunyi "Σ = −laba neto (bukan nol) — sifat WTB, bukan cacat", ditulis
+     justru agar tak ada yang "memperbaiki jadi nol". Tetapi Σ ≠ 0 berarti neraca saldo
+     tidak ter-foot: saldo laba memuat laba berjalan sementara akun 4-/5- masih terbuka —
+     laba tercatat dua kali, yang `incomeDoubleCounted` memang tandai pada data demo
+     sendiri. Seed kini pra-tutup yang koheren (3-2100 = saldo laba awal; PKL berdiri
+     sebagai akun 3-3100), sehingga Σ = 0 pada SETIAP basis — sifat yang harus dipenuhi
+     neraca saldo mana pun, bukan kekhasan seed. */
+  it('Σ = 0 pada setiap basis — neraca saldo ter-foot', () => {
+    for (const b of BASES) expect(Math.round(total(b) / 1e6)).toBe(0);
+  });
+
+  /* Penutupan laba kini eksplisit: saldo laba DISAJIKAN = akun + laba periode. */
+  it('saldo laba disajikan = saldo akun + laba periode (penutupan eksplisit)', () => {
+    for (const b of BASES) {
+      const m = FSGEN.buildModel(WTB_SEED, AMS.AJE as never, b);
+      const akun = -wtbOn(WTB_SEED, AMS.AJE as never, '3-2100', b);
+      expect(Math.round(m.eqr.endRE / 1e6)).toBe(Math.round((akun + m.is.netIncome.cy) / 1e6));
+    }
   });
 });

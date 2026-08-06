@@ -77,7 +77,26 @@
     ['Liabilitas Jk. Panjang', '2-2200', 'Liabilitas Sewa — Jk. Panjang', 0, -9_620_000_000, 0, 'F'],
     ['Liabilitas Jk. Panjang', '2-2300', 'Liabilitas Imbalan Kerja', -11_220_000_000, -13_080_000_000, 0, 'H'],
     ['Ekuitas', '3-1100', 'Modal Saham', -60_000_000_000, -60_000_000_000, 0, 'K'],
-    ['Ekuitas', '3-2100', 'Saldo Laba', -82_362_900_000, -100_456_600_000, 0, 'K'],
+    /* PR-I3 Fase D — saldo laba dulu −100.456,6 jt: saldo PENUTUP (sudah memuat laba
+       berjalan) sementara akun 4-/5- tetap TERBUKA. Neraca saldo karena itu tidak
+       ter-foot (Σ adjusted = −11.540 jt = −laba) dan `incomeDoubleCounted` menyala pada
+       data demo sendiri — yang memaksa gerbang dilonggarkan agar demo tak terkunci.
+       Kini 3-2100 = saldo laba AWAL murni (= kolom TA lalu), dan selisih Rp 6.553,7 jt
+       yang selama ini tak terjelaskan diakui sebagai apa adanya: PKL PSAK 24 pada akun
+       ekuitasnya sendiri di bawah. Σ adjusted = 0, selisih neraca = laba berjalan —
+       neraca saldo pra-tutup yang koheren. Aset & pendapatan TIDAK tersentuh, jadi
+       tolok ukur materialitas tidak bergeser. */
+    /* KEDUA kolom pra-tutup, supaya aturannya SERAGAM: saldo laba yang DISAJIKAN untuk
+       sebuah kolom = saldo akun + laba kolom itu. TA lalu −66.852,9 + laba TA lalu
+       15.510 = 82.362,9 — saldo penutup TA lalu, persis seperti sebelumnya, sehingga
+       neraca komparatif tak bergeser satu rupiah pun. Kolom asimetris (satu pra-tutup,
+       satu penutup) akan memaksa tiap konsumen menebak kolom mana yang perlu ditutup. */
+    ['Ekuitas', '3-2100', 'Saldo Laba', -66_852_900_000, -82_362_900_000, 0, 'K'],
+    /* Akumulasi PKL — pengukuran kembali imbalan kerja (PSAK 24 ¶120(c)). Dibawa sebagai
+       AKUN, bukan parameter, supaya angkanya ikut bersama neraca saldo ke setiap konsumen
+       FSGEN; TB klien yang tak punya akun ini ber-PKL 0, dan mutasi saldo laba di luar
+       laba berjalan akan MENGGAGALKAN tie-out ekuitas alih-alih diam-diam dilabeli PKL. */
+    ['Ekuitas', '3-3100', 'Penghasilan Komprehensif Lain — Pengukuran Kembali Imbalan Kerja', 0, -6_553_700_000, 0, 'K'],
     ['Pendapatan', '4-1100', 'Penjualan Bersih', -284_500_000_000, -331_900_000_000, 1_850_000_000, 'R'],
     ['Beban', '5-1100', 'Beban Pokok Penjualan', 198_420_000_000, 230_140_000_000, 3_460_000_000, 'S'],
     ['Beban', '5-2100', 'Beban Penjualan', 22_180_000_000, 26_440_000_000, 0, 'T'],

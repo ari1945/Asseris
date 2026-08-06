@@ -190,18 +190,18 @@ export function checkWtbIntegrity(
      `status === 'ok'` memberi makan `wtbIntegrityOk` pada gerbang finalisasi
      (engagement_phase_gate), sehingga menjadikannya pemblokir akan langsung mengunci
      finalisasi pada perikatan yang datanya berpola ini — termasuk seed demo. Temuannya
-     tetap ditegakkan sebagai peringatan menonjol di panel Integritas. Menjadikannya
-     pemblokir = tambahkan `&& !incomeDoubleCounted` di baris berikut (keputusan Ari,
-     PRD §11 Q3), sebaiknya bersamaan dengan pembenahan data seed.
-     PR-I1 — sampai itu terjadi, kondisi ini TIDAK LAGI tersembunyi: `hasWarn` di bawah
-     memisahkan "boleh finalisasi" dari "ada yang perlu dilihat", dan indikator visual
-     memakai yang kedua. Rencana penuh: docs/prd-wtb-integrity-falsifiable-gates.md
-     (Fase D menyalakan pemblokir SETELAH seed dibereskan — urutan sebaliknya mengunci
-     finalisasi pada perikatan demo). */
+     tetap ditegakkan sebagai peringatan menonjol di panel Integritas.
+     PR-I1 memisahkan "boleh finalisasi" dari "ada yang perlu dilihat" (`hasWarn`), dan
+     PR-I3 Fase D KINI MENYALAKAN pemblokirnya — setelah seed dibereskan lebih dulu
+     (3-2100 jadi saldo laba awal, PKL berdiri sebagai akun 3-3100), sehingga perikatan
+     demo lolos karena datanya benar, bukan karena gerbangnya dilonggarkan. Urutan
+     terbalik akan mengunci finalisasi pada demo dan mengajari pengguna mengabaikan
+     gerbang — pelajaran PR-6c. Rencana penuh: docs/prd-wtb-integrity-falsifiable-gates.md */
   /* PR-I2 — `allClassified` IKUT MEMBLOK (keputusan Ari, PRD §11 Q2): saldo yang tak dapat
      diklasifikasikan tidak dapat diaudit, dan membiarkannya lolos berarti menerbitkan
      "neraca seimbang" atas TB yang tidak dijumlah seluruhnya. */
-  const gatesPass = bsTied && adjConsistent && ajeBalanced && registerReconciled && allClassified;
+  const gatesPass = bsTied && adjConsistent && ajeBalanced && registerReconciled && allClassified
+    && !incomeDoubleCounted;
   const status: 'ok' | 'attention' = gatesPass ? 'ok' : 'attention';
 
   /* PR-I1 — sinyal yang DITAMPILKAN diturunkan dari sini, bukan dari `status`. Dulu chip
