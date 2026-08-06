@@ -5,7 +5,7 @@ import { useAmsPersist, useNav } from './contexts';
 import { probError, dueBeforeIssued } from './canon_validation';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
+import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 
 /* ============================================================
@@ -99,20 +99,35 @@ function SalesPipeline() {
   );
 }
 
+const OPP_FORM_INIT = { name: '', service: 'Audit Laporan Keuangan', industry: '', value: 500000000, prob: 25, owner: 'Hartono Wijaya', close: '2026-06-30' };
+
 function OppForm({ onClose, onAdd }: any) {
   const { fmt } = AMS;
-  const [d, setD] = useStateD1({ name: '', service: 'Audit Laporan Keuangan', industry: '', value: 500000000, prob: 25, owner: 'Hartono Wijaya', close: '2026-06-30' });
+  const [d, setD] = useStateD1({ ...OPP_FORM_INIT });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const probErr = probError(+d.prob);
   const valid = d.name.trim() && d.industry.trim() && +d.value > 0 && !probErr;
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 540, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify(OPP_FORM_INIT)}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.trend size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Peluang Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Tambah ke pipeline penjualan</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d)}><I.check size={14} /> Tambah Peluang</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Nama Calon Klien</label><input className="input" value={d.name} onChange={(e: any) => set('name', e.target.value)} placeholder="PT Calon Klien Sejahtera" /></div>
           <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
             <div className="field"><label>Jasa</label><select className="select" value={d.service} onChange={(e: any) => set('service', e.target.value)}>{['Audit Laporan Keuangan', 'Review (SPR 2400)', 'Agreed-Upon Procedures', 'Due Diligence', 'Audit + Tax', 'Advisory'].map(s => <option key={s}>{s}</option>)}</select></div>
@@ -127,12 +142,7 @@ function OppForm({ onClose, onAdd }: any) {
             <div className="field"><label>Target Close</label><input className="input" type="date" value={d.close} onChange={(e: any) => set('close', e.target.value)} /></div>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={() => onAdd(d)}><I.check size={14} /> Tambah Peluang</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -162,14 +172,30 @@ function OppDetail({ o, onClose, onMove }: any) {
     { t: 'Penilaian risiko perikatan & fee proporsional', ok: o.prob >= 50 },
   ];
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.32)', zIndex: 88 }} onClick={onClose}>
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '94vw', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="sheet"
+      size="sm"
+      onClose={onClose}
+      panelStyle={{ background: 'var(--surface)' }}
+      bodyStyle={{ padding: 16 }}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Btn variant="primary" onClick={toOnboarding}><I.arrowRight size={14} /> Kirim ke Onboarding Klien</Btn>
+          <div className="row gap8">
+            <Btn style={{ flex: 1 }} onClick={() => { onMove(o.id, 'Won'); onClose(); }}><I.check size={14} /> Tandai Menang</Btn>
+            <Btn onClick={() => { onMove(o.id, 'Lost'); onClose(); }}>Kalah</Btn>
+          </div>
+        </div>
+      )}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '15px 18px' }}>
           <div className="row jb ac" style={{ marginBottom: 8 }}><span className="mono tiny" style={{ color: '#bcd6e4', fontWeight: 700 }}>{o.id}</span><button className="top-btn" onClick={onClose}><I.x size={18} /></button></div>
           <div style={{ fontSize: 15, fontWeight: 700 }}>{o.name}</div>
           <div className="tiny" style={{ color: '#bcd6e4' }}>{o.service} · {o.industry}</div>
         </div>
-        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+      )}
+    >
+        <div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
             <KvBox label="Nilai Estimasi" v={'Rp ' + fmt(o.value / 1e6, 0) + ' jt'} />
             <KvBox label="Probabilitas" v={o.prob + '%'} accent={o.prob >= 70 ? 'var(--green)' : 'var(--amber)'} />
@@ -189,15 +215,7 @@ function OppDetail({ o, onClose, onMove }: any) {
             <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.4 }}>{o.prob >= 50 ? 'Penilaian penerimaan memadai — siap terbitkan engagement letter & konversi ke perikatan.' : 'Lengkapi penilaian penerimaan sebelum mengirim proposal.'}</div>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Btn variant="primary" onClick={toOnboarding}><I.arrowRight size={14} /> Kirim ke Onboarding Klien</Btn>
-          <div className="row gap8">
-            <Btn style={{ flex: 1 }} onClick={() => { onMove(o.id, 'Won'); onClose(); }}><I.check size={14} /> Tandai Menang</Btn>
-            <Btn onClick={() => { onMove(o.id, 'Lost'); onClose(); }}>Kalah</Btn>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 
@@ -292,22 +310,37 @@ function Billing() {
   );
 }
 
+const INV_FORM_INIT = { clientId: '', milestone: 'Termin 1 (50%)', amount: 500000000, issued: '2026-03-09', due: '2026-04-15', eng: '' };
+
 function InvForm({ onClose, onAdd }: any) {
   const { fmt } = AMS;
   const clients: any = AMS.CLIENTS;
-  const [d, setD] = useStateD1({ clientId: clients[0].id, milestone: 'Termin 1 (50%)', amount: 500000000, issued: '2026-03-09', due: '2026-04-15', eng: '' });
+  const [d, setD] = useStateD1({ ...INV_FORM_INIT, clientId: clients[0].id });
   const set = (k: any, v: any) => setD((s: any) => ({ ...s, [k]: v }));
   const dueErr = dueBeforeIssued(d.issued, d.due);
   const valid = +d.amount > 0 && !!d.issued && !!d.due && !dueErr;
   const submit = () => { const c = clients.find((x: any) => x.id === d.clientId); onAdd({ clientId: d.clientId, client: c.name, eng: d.eng || '—', milestone: d.milestone, amount: +d.amount, issued: d.issued, due: d.due }); };
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,20,30,.4)', zIndex: 90, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div className="panel" style={{ width: 500, maxWidth: '94vw', boxShadow: 'var(--shadow-lg)' }} onClick={(e: any) => e.stopPropagation()}>
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      isDirty={() => JSON.stringify(d) !== JSON.stringify({ ...INV_FORM_INIT, clientId: clients[0].id })}
+      bodyStyle={{ padding: 16, display: 'grid', gap: 12 }}
+      header={(
         <div style={{ background: 'linear-gradient(125deg,#013a52,#005085)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
           <I.receipt size={18} /><div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Faktur Baru</div><div className="tiny" style={{ color: '#bcd6e4' }}>Terbitkan tagihan ke klien (status awal Draft)</div></div>
           <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
         </div>
-        <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={submit}><I.check size={14} /> Terbitkan Faktur</Btn>
+        </div>
+      )}
+    >
+        <div>
           <div className="field"><label>Klien</label><select className="select" value={d.clientId} onChange={(e: any) => set('clientId', e.target.value)}>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div className="field"><label>Termin</label><select className="select" value={d.milestone} onChange={(e: any) => set('milestone', e.target.value)}>{['Termin 1 (50%)', 'Termin 2 (30%)', 'Termin 3 (20%)', 'Final (100%)'].map(s => <option key={s}>{s}</option>)}</select></div>
@@ -321,12 +354,7 @@ function InvForm({ onClose, onAdd }: any) {
           {dueErr && <div className="tiny" style={{ color: 'var(--red)' }}>Tanggal jatuh tempo tidak boleh sebelum tanggal terbit.</div>}
           <div className="tiny muted mono">Total: Rp {fmt(+d.amount || 0)}</div>
         </div>
-        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn onClick={onClose}>Batal</Btn>
-          <Btn variant="primary" disabled={!valid} style={{ opacity: valid ? 1 : .5 }} onClick={submit}><I.check size={14} /> Terbitkan Faktur</Btn>
-        </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 

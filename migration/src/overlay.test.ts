@@ -299,11 +299,35 @@ describe('geometri & skala z', () => {
     expect(w('lg')).toBeLessThan(w('xl'));
   });
 
-  it('sheet: lebar berskala & tinggi penuh (bukan modal terpusat)', () => {
+  it('sheet: tinggi penuh & lebar berskala (bukan modal terpusat)', () => {
     const g = panelGeometry('sheet', 'sm');
-    expect(String(g.width)).toContain('440px');
     expect(g.height).toBe('100%');
     expect(panelGeometry('sheet', 'lg').width).not.toBe(g.width);
+  });
+
+  /* Invarian yang menjadi DASAR skala ini (lihat komentar MODAL_W/SHEET_W):
+     skala boleh MELEBARKAN panel warisan, tak pernah MENYEMPITKAN — penyempitan
+     satu-satunya arah yang dapat memecah tabel/formulir yang sudah muat.
+     Memaku angka ajaib (mis. "sheet sm = 440px") membuat uji ini gagal setiap
+     kali skala digeser secara SENGAJA, tanpa pernah menangkap penyempitan yang
+     tak disengaja. Yang dipaku di sini adalah aturannya, bukan nilainya. */
+  /* Ambil angka PERTAMA, bukan buang semua non-digit: `min(480px, 94vw)` punya
+     DUA angka, dan menyapu non-digit menghasilkan 44094 — assertion jadi selalu
+     lolos. Versi pertama uji ini memang begitu, dan probe mutasi yang
+     menemukannya (uji hijau atas skala yang sengaja dirusak). */
+  const px = (v: string | number | undefined): number => {
+    if (typeof v === 'number') return v;
+    const m = String(v).match(/\d+/);
+    return m ? Number(m[0]) : NaN;
+  };
+
+  it.each([
+    ['modal', 460, 'sm'], ['modal', 500, 'md'], ['modal', 540, 'md'], ['modal', 560, 'md'],
+    ['modal', 680, 'lg'], ['modal', 720, 'lg'], ['modal', 900, 'xl'], ['modal', 920, 'xl'], ['modal', 940, 'xl'],
+    ['sheet', 420, 'sm'], ['sheet', 440, 'sm'], ['sheet', 460, 'sm'], ['sheet', 480, 'sm'],
+    ['sheet', 540, 'md'], ['sheet', 760, 'lg'], ['sheet', 780, 'lg'],
+  ] as const)('%s %ipx → %s tidak menyempit', (variant, corpusWidth, size) => {
+    expect(px(panelGeometry(variant, size).width)).toBeGreaterThanOrEqual(corpusWidth);
   });
 
   it('varian page (DEPRECATED) mempertahankan bentuk warisan 92vh', () => {

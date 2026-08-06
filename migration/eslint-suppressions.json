@@ -706,7 +706,7 @@
   },
   "src/view_onboarding.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 70
+      "count": 69
     }
   },
   "src/view_onboarding2.tsx": {
@@ -771,12 +771,12 @@
   },
   "src/view_people.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 67
+      "count": 64
     }
   },
   "src/view_pipeline.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 80
+      "count": 77
     }
   },
   "src/view_platform.tsx": {
@@ -1016,7 +1016,7 @@
   },
   "src/view_scheduler.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 66
+      "count": 65
     }
   },
   "src/view_sectorck.tsx": {
@@ -1036,7 +1036,7 @@
   },
   "src/view_settings.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 138
+      "count": 137
     }
   },
   "src/view_sjah3000.tsx": {

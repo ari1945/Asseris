@@ -131,7 +131,12 @@ export function focusableWithin(root: HTMLElement | null): HTMLElement[] {
    Empat langkah ini membuat simpangan maksimum hanya +40px dan TAK PERNAH
    menyempitkan panel bertabel lebar (penyempitan = satu-satunya arah berisiko). */
 const MODAL_W: Record<OverlaySize, number> = { sm: 460, md: 560, lg: 720, xl: 940 };
-const SHEET_W: Record<OverlaySize, number> = { sm: 440, md: 600, lg: 780, xl: 940 };
+/* Sheet punya korpusnya SENDIRI: 420 · 440 · 460 · 480 · 540 · 760 · 780.
+   `sm` dinaikkan 440→480 di PR-2b karena 440 akan MENYEMPITKAN drawer 480px —
+   melanggar aturan "tak pernah menyempitkan" yang jadi dasar skala ini.
+   Dengan 480/600/780 seluruh korpus sheet hanya melebar (maks +60), nol menyempit.
+   Efek: EngagementDetail (PR-2a, 440) melebar ke 480. */
+const SHEET_W: Record<OverlaySize, number> = { sm: 480, md: 600, lg: 780, xl: 940 };
 
 export function panelGeometry(variant: OverlayVariant, size: OverlaySize): OvStyle {
   if (variant === 'sheet') {

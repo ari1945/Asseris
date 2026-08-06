@@ -4,7 +4,7 @@ import { api } from './api';
 import { CAP } from './rbac';
 import { useAuth, useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
+import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
 
 /* ============================================================
    Asseris — Pengaturan (full settings workspace)
@@ -971,9 +971,17 @@ function SecAksesAdmin({ flash }: any) {
       </Panel>
 
       {modal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', zIndex: 100, display: 'grid', placeItems: 'center' }} onClick={() => !busy && setModal(false)}>
-          <div className="panel" style={{ width: 440, maxHeight: '80vh', overflow: 'auto', padding: 18 }} onClick={(e: any) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>Peran Baru</h3>
+        <Overlay
+          variant="modal"
+          size="sm"
+          onClose={() => setModal(false)}
+          title="Peran Baru"
+          /* Sedang menyimpan ke server: jangan biarkan Escape/backdrop membatalkan
+             di tengah jalan (dulu dijaga `!busy &&` pada backdrop saja). */
+          dismissable={!busy}
+          isDirty={() => newName.trim() !== '' || newCaps.length > 0}
+          bodyStyle={{ padding: 18 }}
+        >
             <div className="field" style={{ marginBottom: 12 }}>
               <label>Nama Peran</label>
               <input className="input" value={newName} onChange={(e: any) => setNewName(e.target.value)} placeholder="mis. Tax Consultant Internal" style={{ height: 32 }} autoFocus />
@@ -992,8 +1000,7 @@ function SecAksesAdmin({ flash }: any) {
               <Btn sm onClick={() => setModal(false)} disabled={busy}>Batal</Btn>
               <Btn sm variant="primary" disabled={busy || !newName.trim()} onClick={createRole}><I.check size={13} /> Buat Peran</Btn>
             </div>
-          </div>
-        </div>
+        </Overlay>
       )}
     </>
   );
