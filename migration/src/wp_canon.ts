@@ -161,16 +161,16 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   /* sign-off chain — identical default logic to SignoffTab */
   const chain = st.chain || {};
   const listed = !!(firm && firm.activeClient && firm.activeClient.listed);
-  const preparer = chain.preparer || { by: meta.preparer, at: '05 Mar 2026' };
-  const reviewer = chain.reviewer || (status === 'Reviewed' ? { by: st.reviewer || meta.reviewer || 'Anindya P.', at: st.signedAt || '08 Mar 2026' } : null);
+  const preparer = chain.preparer || null;                       // assigned ≠ signed
+  const reviewer = chain.reviewer || (status === 'Reviewed' ? { by: st.reviewer || meta.reviewer || 'Anindya P.', at: st.signedAt || wpToday() } : null);
   const partner = chain.partner || null;
   const eqr = chain.eqr || null;
   const signoff = [
-    { key: 'preparer', role: 'Preparer', signed: preparer },
-    { key: 'reviewer', role: 'Reviewer', signed: reviewer },
-    { key: 'partner', role: 'Partner', signed: partner },
+    { key: 'preparer', role: 'Preparer', signed: preparer, assigned: meta.preparer },
+    { key: 'reviewer', role: 'Reviewer', signed: reviewer, assigned: meta.reviewer },
+    { key: 'partner', role: 'Partner', signed: partner, assigned: '' },
   ];
-  if (listed) signoff.push({ key: 'eqr', role: 'EQR', signed: eqr });
+  if (listed) signoff.push({ key: 'eqr', role: 'EQR', signed: eqr, assigned: '' });
   const signedCount = signoff.filter(l => l.signed).length;
 
   const relRisks = risks.filter((r: any) => (r.wp || '').split('-')[0] === ref);

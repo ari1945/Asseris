@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { WpExtractions } from './ai_extract';
-import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor, useMateriality } from './contexts';
+import { useAudit, useFirm, useAmsPersist, useNav, useCurrentAuditor, useMateriality, useAuth, amsShortName } from './contexts';
 import { SA530_POPULATION, scalePopulation, selectMus, musPlan } from './sampling_select';
 import {
   assertionCoverage, groupForAccountCode, ASSERTION_RELEVANCE, ASSERTION_STATUS_META, assertionDef,
@@ -11,7 +11,7 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday } from './wp_canon';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
 
 /* ============================================================
@@ -629,6 +629,7 @@ const ASR_CONCL_OPTS: Array<{ v: string; l: string }> = [
   { v: '', l: '—' }, { v: 'clean', l: 'Bersih (cukup)' }, { v: 'exception', l: 'Pengecualian' }, { v: 'pending', l: 'Belum simpul' },
 ];
 function AssertionRollup({ ref_, defs, procState, st, setWp, locked, leadRows, relRisks, evidence }: any) {
+  const { short: me } = useCurrentAuditor();
   /* hanya bermakna untuk WP berbasis akun (punya lead/relevansi terkurasi);
      WP perencanaan/penyelesaian (100/810/…) tak punya asersi → panel disembunyikan. */
   const hasSeed = !!ASSERTION_RELEVANCE[ref_];
@@ -642,8 +643,7 @@ function AssertionRollup({ ref_, defs, procState, st, setWp, locked, leadRows, r
 
   const setConcl = (id: string, patch: AssertionConclInput) => {
     const prev = (st.asrConcl || {})[id] || {};
-    const u = (AMS as { USER?: { name?: string } }).USER;
-    setWp(ref_, { asrConcl: { ...(st.asrConcl || {}), [id]: { ...prev, ...patch, by: (u && u.name) || 'Auditor', at: new Date().toISOString().slice(0, 10) } } });
+    setWp(ref_, { asrConcl: { ...(st.asrConcl || {}), [id]: { ...prev, ...patch, by: me || 'Auditor', at: new Date().toISOString().slice(0, 10) } } });
   };
 
   return (
@@ -710,6 +710,7 @@ function EvidenceRegister({ ref_, st, setWp, locked }: {
   setWp: (ref: string, patch: { evidence?: EvRec[] }) => void; locked: boolean;
 }) {
   const evidence: EvRec[] = st.evidence || [];
+  const { short: me } = useCurrentAuditor();
   const meter = wpEvidenceEval(evidence, st.exec || {});
   const [name, setName] = useStateWP('');
   const [source, setSource] = useStateWP('eksternal');
@@ -719,8 +720,7 @@ function EvidenceRegister({ ref_, st, setWp, locked }: {
   const nextId = () => 'EV' + (evidence.reduce((m: number, e: EvRec) => Math.max(m, parseInt(String(e.id).replace(/\D/g, ''), 10) || 0), 0) + 1);
   const add = () => {
     if (!name.trim()) return;
-    const u = (AMS as { USER?: { name?: string } }).USER;
-    const rec: EvRec = { id: nextId(), name: name.trim(), source, tier: evSource(source).tier, type, asr, by: (u && u.name) || 'Auditor', at: new Date().toISOString().slice(0, 10) };
+    const rec: EvRec = { id: nextId(), name: name.trim(), source, tier: evSource(source).tier, type, asr, by: me || 'Auditor', at: new Date().toISOString().slice(0, 10) };
     setWp(ref_, { evidence: [...evidence, rec] });
     setName(''); setAsr([]);
   };
@@ -984,6 +984,7 @@ function XrefTab({ ref_, relRisks, relAje, fmt, st, setWp, locked }: any) {
    di sini, jadi satu klik backdrop membuang catatan review setengah tertulis
    tanpa peringatan (docs/prd-overlay-contract-and-addressable-objects.md §1 P2). */
 function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, setDraft }: any) {
+  const { short: me } = useCurrentAuditor();
   const [to, setTo] = useStateWP('Dimas R.');
   const [prio, setPrio] = useStateWP('medium');
   const prioK = { high: 'red', medium: 'amber', low: 'gray' };
@@ -991,7 +992,7 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, set
 
   const add = () => {
     if (!draft.trim()) return;
-    const note = { id: 'wn-' + Date.now(), author: 'Anindya P.', to, text: draft.trim(), priority: prio, status: 'open', created: 'baru saja' };
+    const note = { id: 'wn-' + Date.now(), author: me, to, text: draft.trim(), priority: prio, status: 'open', created: 'baru saja' };
     setWp(ref_, { notes: [...(st.notes || []), note] });
     setDraft('');
   };
@@ -1044,11 +1045,11 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, set
 
 /* ---- Sign-off & audit trail tab ---- */
 function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) {
-  const today = '09 Mar 2026';
+  const today = wpToday();
   const chain = st.chain || {};
   /* derive defaults */
-  const preparer = chain.preparer || { by: it[2], at: '05 Mar 2026' };
-  const reviewer = chain.reviewer || (status === 'Reviewed' ? { by: st.reviewer || it[3] || 'Anindya P.', at: st.signedAt || '08 Mar 2026' } : null);
+  const preparer = chain.preparer || null;
+  const reviewer = chain.reviewer || (status === 'Reviewed' ? { by: st.reviewer || it[3] || 'Anindya P.', at: st.signedAt || wpToday() } : null);
   const partner = chain.partner || null;
   const eqrReq = !!activeClient?.listed;
   const eqr = chain.eqr || null;
@@ -1080,7 +1081,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
   const trail = [];
   levels.forEach(l => { if (l.signed) trail.push({ at: l.signed.at, who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' }); });
   (st.log || []).forEach((e: any) => trail.push(e));
-  trail.push({ at: '05 Mar 2026', who: it[2], what: 'Kertas kerja dibuat & prosedur diunggah', ic: 'doc', col: 'var(--blue)' });
+  trail.push({ at: today, who: it[2], what: 'Kertas kerja dibuat & prosedur diunggah', ic: 'doc', col: 'var(--blue)' });
   trail.push({ at: '04 Mar 2026', who: 'Sistem', what: 'WP dibuat dari template metodologi v4.2', ic: 'layers', col: 'var(--ink-3)' });
 
   return (
@@ -1103,7 +1104,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
                     <div className="row ac gap6 je"><Avatar name={l.signed.by} size={20} /><span className="tiny" style={{ fontWeight: 600 }}>{l.signed.by}</span></div>
                     <div className="tiny muted mono" style={{ marginTop: 2 }}>{l.signed.at}</div>
                   </>
-                ) : <span className="tiny muted">belum ditandatangani</span>}
+                ) : <span className="tiny muted">{l.key === 'preparer' ? `Ditugaskan: ${l.who} · belum menandatangani` : 'belum ditandatangani'}</span>}
               </div>
               {l.signed
                 ? <button className="btn sm" disabled={locked} onClick={() => unsign(i)} style={{ flex: '0 0 auto' }}><I.sync size={12} /> Batalkan</button>
@@ -1132,8 +1133,9 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
 
 /* ---- Footer (persistent quick sign-off) ---- */
 function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }: any) {
+  const auth = useAuth(); const me = (auth && auth.user && auth.user.name) ? amsShortName(auth.user.name) : (it[2]);
   const reviewer = st.reviewer || (status === 'Reviewed' ? it[3] : null);
-  const quickSign = () => setWp(ref_, { status: 'Reviewed', reviewer: 'Anindya P.', signedAt: '09 Mar 2026', chain: { ...(st.chain || {}), preparer: (st.chain && st.chain.preparer) || { by: it[2], at: '05 Mar 2026' }, reviewer: { by: 'Anindya P.', at: '09 Mar 2026' } } });
+  const quickSign = () => setWp(ref_, { status: 'Reviewed', reviewer: me, signedAt: wpToday(), chain: { ...(st.chain || {}), preparer: (st.chain && st.chain.preparer) || { by: it[2], at: wpToday() }, reviewer: { by: me, at: wpToday() } } });
   const reopen = () => { const nc = { ...(st.chain || {}) }; delete nc.reviewer; delete nc.partner; delete nc.eqr; setWp(ref_, { status: 'In Review', reviewer: null, signedAt: null, chain: nc }); };
   return (
     <div style={{ padding: '11px 16px', borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto', background: 'var(--surface)' }}>

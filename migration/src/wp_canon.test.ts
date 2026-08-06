@@ -83,20 +83,20 @@ describe('deriveWpStatus — SEED ENG-2025-014, wpState kosong (characterization
     expect(r.fullySigned).toBe(want.fullySigned);
     expect(r.hasLead).toBe(want.hasLead);
   };
-  it('A — Reviewed, 5/5, coverage full, reviewer default saja', () =>
-    expectSeed('A', { status: 'Reviewed', done: 5, total: 5, exc: 0, openNotes: 0, coverage: { bal: 21905300000, level: 'full' }, signedCount: 2, fullySigned: false, hasLead: true }));
+  it('A — Reviewed, 5/5, coverage full, hanya reviewer default yang ditandatangani (preparer assigned ≠ signed)', () =>
+    expectSeed('A', { status: 'Reviewed', done: 5, total: 5, exc: 0, openNotes: 0, coverage: { bal: 21905300000, level: 'full' }, signedCount: 1, fullySigned: false, hasLead: true }));
   it('B — In Review, 5/6, 1 exc seed, 2 catatan terbuka', () =>
-    expectSeed('B', { status: 'In Review', done: 5, total: 6, exc: 1, openNotes: 2, coverage: { bal: 46872400000, level: 'full' }, signedCount: 1, fullySigned: false, hasLead: true }));
+    expectSeed('B', { status: 'In Review', done: 5, total: 6, exc: 1, openNotes: 2, coverage: { bal: 46872400000, level: 'full' }, signedCount: 0, fullySigned: false, hasLead: true }));
   it('C — In Progress, 2/5, 1 exc seed, 1 catatan terbuka', () =>
-    expectSeed('C', { status: 'In Progress', done: 2, total: 5, exc: 1, openNotes: 1, coverage: { bal: 76564100000, level: 'full' }, signedCount: 1, fullySigned: false, hasLead: true }));
+    expectSeed('C', { status: 'In Progress', done: 2, total: 5, exc: 1, openNotes: 1, coverage: { bal: 76564100000, level: 'full' }, signedCount: 0, fullySigned: false, hasLead: true }));
   it('E — In Review, 4/5, catatan seed resolved → 0 terbuka', () =>
-    expectSeed('E', { status: 'In Review', done: 4, total: 5, exc: 0, openNotes: 0, coverage: { bal: 142039700000, level: 'full' }, signedCount: 1, fullySigned: false, hasLead: true }));
+    expectSeed('E', { status: 'In Review', done: 4, total: 5, exc: 0, openNotes: 0, coverage: { bal: 142039700000, level: 'full' }, signedCount: 0, fullySigned: false, hasLead: true }));
   it('R — In Progress, 3/5, saldo negatif → abs full, 1 catatan terbuka', () =>
-    expectSeed('R', { status: 'In Progress', done: 3, total: 5, exc: 0, openNotes: 1, coverage: { bal: -330050000000, level: 'full' }, signedCount: 1, fullySigned: false, hasLead: true }));
+    expectSeed('R', { status: 'In Progress', done: 3, total: 5, exc: 0, openNotes: 1, coverage: { bal: -330050000000, level: 'full' }, signedCount: 0, fullySigned: false, hasLead: true }));
   it('300 — Reviewed, 3/3, tanpa lead → coverage null', () =>
-    expectSeed('300', { status: 'Reviewed', done: 3, total: 3, exc: 0, openNotes: 0, coverage: null, signedCount: 2, fullySigned: false, hasLead: false }));
-  it('810 — Not Started, 0/3, signedCount 1 MESKI belum ada tanda tangan (bug yang akan diperbaiki plan 003)', () =>
-    expectSeed('810', { status: 'Not Started', done: 0, total: 3, exc: 0, openNotes: 0, coverage: null, signedCount: 1, fullySigned: false, hasLead: false }));
+    expectSeed('300', { status: 'Reviewed', done: 3, total: 3, exc: 0, openNotes: 0, coverage: null, signedCount: 1, fullySigned: false, hasLead: false }));
+  it('810 — Not Started, 0/3, signedCount 0 (assigned ≠ signed; belum ada tanda tangan)', () =>
+    expectSeed('810', { status: 'Not Started', done: 0, total: 3, exc: 0, openNotes: 0, coverage: null, signedCount: 0, fullySigned: false, hasLead: false }));
 });
 
 describe('deriveWpStatus — exec-aware setelah unifikasi (plan 002)', () => {
