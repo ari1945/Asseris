@@ -21,6 +21,7 @@ import { amsEvidenceCount } from './evidence';
 import { finalisationGateCriteria } from './engagement_phase_gate';
 import { checkWtbIntegrity } from './wtb_integrity';
 import { useEthicsGate } from './ethics_gate';
+import { wpToday } from './wp_canon';
 
 const { useState: useStateWPS } = React;
 
@@ -129,10 +130,6 @@ function wpKeyFor(moduleId: any) {
 function requiredEvidenceFor(moduleId: any) {
   const m = (WP_MODULE_MAP as any)[moduleId];
   return (m && m.requiredEvidence) || [];
-}
-function wpToday() {
-  try { return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }); }
-  catch (e) { return ''; }
 }
 
 /* ---- Penanda tangan kanonik untuk blok tanda tangan kertas kerja CETAK ----

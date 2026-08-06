@@ -1116,7 +1116,7 @@
   },
   "src/view_wp.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 116
+      "count": 84
     }
   },
   "src/view_wtb_deep.tsx": {
@@ -1162,6 +1162,16 @@
   "src/wedge/use_persist.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
+    }
+  },
+  "src/wp_canon.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "src/wp_canon.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 32
     }
   },
   "src/wp_signoff.tsx": {
