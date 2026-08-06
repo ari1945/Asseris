@@ -182,3 +182,64 @@ describe('checkWtbIntegrity — anomali terdeteksi', () => {
     expect(r.ajeMismatches.some(mm => mm.code === '1-1200' || mm.code === '1-1300')).toBe(true);
   });
 });
+
+/* PR-I1 — SC-1: indikator visual tak boleh hijau saat panel memuat peringatan.
+   Chip & badge di view_execution kini memakai `hasWarn`, jadi invarian yang diuji di sini
+   ADALAH yang dilihat auditor. `status` sengaja tak ikut berubah — ia menjawab pertanyaan
+   lain (boleh finalisasi), dan Fase D-lah yang mengubahnya (PRD §8). */
+describe('checkWtbIntegrity — hasWarn: sinyal tampil ≠ gerbang finalisasi (PR-I1)', () => {
+  /* Skenario ini persis kasus yang dulu tampil HIJAU: gerbang lolos, peringatan ada. */
+  const doubleCounted: IntegrityWtbRow[] = [
+    { code: '1-1100', unadj: 10_000_000_000, aje: 0, adj: 10_000_000_000 },
+    { code: '2-1100', unadj: -3_000_000_000, aje: 0, adj: -3_000_000_000 },
+    { code: '3-2100', unadj: -7_000_000_000, aje: 0, adj: -7_000_000_000 },  // RE sudah memuat laba
+    { code: '4-1100', unadj: -5_000_000_000, aje: 0, adj: -5_000_000_000 },  // L/R masih terbuka
+    { code: '5-1100', unadj: 3_000_000_000, aje: 0, adj: 3_000_000_000 },
+  ];
+
+  it('laba ganda: gerbang lolos (status ok) TAPI indikator tidak hijau', () => {
+    const r = checkWtbIntegrity(doubleCounted, []);
+    expect(r.incomeDoubleCounted).toBe(true);
+    expect(r.status).toBe('ok');        // gerbang finalisasi tak terkunci — perilaku Fase A utuh
+    expect(r.hasWarn).toBe(true);       // …namun chip & badge menampilkan "Perlu perhatian"
+  });
+
+  it('seed demo: status ok, indikator tetap menandai peringatan', () => {
+    const r = checkWtbIntegrity(AMS.WTB, AMS.AJE);
+    expect(r.status).toBe('ok');
+    expect(r.hasWarn).toBe(true);
+  });
+
+  it('TB bersih: tak ada peringatan → indikator hijau', () => {
+    const rows: IntegrityWtbRow[] = [
+      { code: '1-1100', unadj: 3_000_000_000, aje: 0, adj: 3_000_000_000 },
+      { code: '2-1100', unadj: -1_000_000_000, aje: 0, adj: -1_000_000_000 },
+      { code: '3-2100', unadj: -2_000_000_000, aje: 0, adj: -2_000_000_000 },
+    ];
+    const r = checkWtbIntegrity(rows, []);
+    expect(r.hasWarn).toBe(false);
+    expect(r.status).toBe('ok');
+  });
+
+  /* Invarian menyeluruh atas matriks kondisi: hijau ⟺ tanpa pesan warn, dan setiap
+     kegagalan gerbang selalu ikut menyalakan indikator (hasWarn ⊇ status 'attention').
+     Inilah yang membuat SC-1 tak dapat diakali oleh cabang pesan baru di masa depan. */
+  it('invarian: hasWarn ≡ ada pesan warn, dan status attention ⇒ hasWarn', () => {
+    const matrix: IntegrityWtbRow[][] = [
+      doubleCounted,
+      [{ code: '1-1100', unadj: 5_000_000_000, aje: 0, adj: 5_000_000_000 },
+        { code: '2-1100', unadj: -1_000_000_000, aje: 0, adj: -1_000_000_000 }],            // neraca timpang
+      [{ code: '1-1100', unadj: 1_000_000_000, aje: 0, adj: 2_000_000_000 }],                // adj ≠ unadj + aje
+      [{ code: '1-1100', unadj: 2_000_000_000, aje: 500_000_000, adj: 2_500_000_000 },
+        { code: '3-2100', unadj: -2_000_000_000, aje: 0, adj: -2_000_000_000 }],             // kolom AJE tak seimbang
+      [{ code: '1-1100', unadj: 3_000_000_000, aje: 0, adj: 3_000_000_000 },
+        { code: '3-2100', unadj: -3_000_000_000, aje: 0, adj: -3_000_000_000 }],             // bersih
+      [],                                                                                     // kosong
+    ];
+    for (const rows of matrix) {
+      const r = checkWtbIntegrity(rows, []);
+      expect(r.hasWarn).toBe(r.messages.some(m => m.level === 'warn'));
+      if (r.status === 'attention') expect(r.hasWarn).toBe(true);
+    }
+  });
+});

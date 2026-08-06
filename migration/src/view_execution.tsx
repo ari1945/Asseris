@@ -189,10 +189,13 @@ function WTBView() {
                 <I.search2 size={14} style={{ color: 'var(--ink-4)' }} />
                 <input style={{ color: 'var(--ink)' }} placeholder="Cari akun / kode…" value={q} onChange={(e: any) => setQ(e.target.value)} />
               </div>
+              {/* PR-I1 — warna & label dari `hasWarn`, BUKAN dari `status`. `status` menjawab
+                  "boleh finalisasi"; chip menjawab "ada yang perlu dilihat". Memakai `status`
+                  membuat chip hijau berdampingan dengan peringatan di panel yang dibukanya. */}
               <button className="chip" onClick={() => setShowIntegrity((s: boolean) => !s)} title="Integritas neraca saldo — footing, rekonsiliasi neraca & AJE (SA 330/500)"
-                style={{ cursor: 'pointer', border: '1px solid var(--line)', background: integrity.status === 'ok' ? 'var(--green-bg)' : 'var(--amber-bg)' }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: integrity.status === 'ok' ? 'var(--green)' : 'var(--amber)' }} />
-                {integrity.status === 'ok' ? 'Integritas OK' : 'Perlu perhatian'}
+                style={{ cursor: 'pointer', border: '1px solid var(--line)', background: !integrity.hasWarn ? 'var(--green-bg)' : 'var(--amber-bg)' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: !integrity.hasWarn ? 'var(--green)' : 'var(--amber)' }} />
+                {!integrity.hasWarn ? 'Integritas OK' : 'Perlu perhatian'}
                 <I.chevDown size={11} style={{ transform: showIntegrity ? 'rotate(180deg)' : 'none' }} />
               </button>
             </div>
@@ -1164,7 +1167,8 @@ function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
         <h3>Integritas Neraca Saldo</h3>
         <span className="sub">Footing · rekonsiliasi neraca · rekonsiliasi AJE (SA 330/500)</span>
         <div style={{ flex: 1 }} />
-        <Badge kind={r.status === 'ok' ? 'green' : 'amber'}>{r.status === 'ok' ? 'OK' : 'Perlu perhatian'}</Badge>
+        {/* PR-I1 — idem chip: badge mengikuti ada-tidaknya peringatan, bukan gerbang finalisasi. */}
+        <Badge kind={!r.hasWarn ? 'green' : 'amber'}>{!r.hasWarn ? 'OK' : 'Perlu perhatian'}</Badge>
       </div>
       <div style={{ padding: '10px 14px' }}>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 10 }}>
