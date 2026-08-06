@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultProcState, procStatusAt, execStatus, wpEvidenceEval, deriveWpStatus } from './wp_canon';
+import { defaultProcState, procStatusAt, execStatus, wpEvidenceEval, deriveWpStatus, wpChainSelfReview } from './wp_canon';
 import { AMS } from './data';
 
 describe('defaultProcState — heuristic per WP-level status (characterization)', () => {
@@ -110,5 +110,53 @@ describe('deriveWpStatus — exec-aware setelah unifikasi (plan 002)', () => {
     // p2..p4 jatuh ke heuristic In Review (Selesai), p5 seed Pengecualian.
     expect(r.done).toBe(4); // p0 + p2 + p3 + p4
     expect(r.exc).toBe(2);  // p1 + p5
+  });
+});
+
+describe('wpChainSelfReview — satu orang, satu langkah (ISQM 2 / SA 220.36)', () => {
+  const HW = 'Hartono W.';
+
+  it('rantai kosong → tidak memblokir siapa pun', () => {
+    expect(wpChainSelfReview({}, 'partner', HW).blocked).toBe(false);
+    expect(wpChainSelfReview({}, 'eqr', HW).blocked).toBe(false);
+  });
+
+  it('partner yang sudah tanda tangan slot partner TERTUTUP dari slot EQR', () => {
+    const chain = { partner: { by: HW, at: '06 Agu 2026' } };
+    const r = wpChainSelfReview(chain, 'eqr', HW);
+    expect(r.blocked).toBe(true);
+    expect(r.priorSlot).toBe('partner');
+    expect(r.reason).toContain('Engagement Partner');
+  });
+
+  it('simetris terhadap urutan — EQR lebih dulu pun menutup slot partner', () => {
+    const chain = { eqr: { by: HW, at: '06 Agu 2026' } };
+    expect(wpChainSelfReview(chain, 'partner', HW).blocked).toBe(true);
+  });
+
+  it('orang LAIN tidak terblokir oleh tanda tangan partner', () => {
+    const chain = { partner: { by: HW, at: '06 Agu 2026' } };
+    expect(wpChainSelfReview(chain, 'eqr', 'Sari D.').blocked).toBe(false);
+  });
+
+  it('slot yang sedang ditandatangani ulang oleh penandatangannya sendiri tidak memblokir dirinya', () => {
+    const chain = { partner: { by: HW, at: '06 Agu 2026' } };
+    expect(wpChainSelfReview(chain, 'partner', HW).blocked).toBe(false);
+  });
+
+  it('slot MENUNGGU tanpa tanda tangan tidak dihitung (assigned ≠ signed)', () => {
+    // `who` penerima tugas tidak pernah masuk `chain`; slot kosong/null diabaikan.
+    expect(wpChainSelfReview({ partner: null, reviewer: undefined }, 'eqr', HW).blocked).toBe(false);
+    expect(wpChainSelfReview({ partner: {} }, 'eqr', HW).blocked).toBe(false);
+  });
+
+  it('identitas sesi kosong → tak memblokir (jangan kunci app saat auth belum siap)', () => {
+    const chain = { partner: { by: HW, at: '06 Agu 2026' } };
+    expect(wpChainSelfReview(chain, 'eqr', '').blocked).toBe(false);
+  });
+
+  it('perbandingan nama tahan spasi & besar-kecil huruf', () => {
+    const chain = { reviewer: { by: '  hartono w.  ', at: '06 Agu 2026' } };
+    expect(wpChainSelfReview(chain, 'partner', HW).blocked).toBe(true);
   });
 });

@@ -188,10 +188,59 @@ function wpProcedureInputs(ref: any, audit: any): ProcedureInput[] {
   return defs.map(([text, assertion]: any, i: number) => ({ text, assertionLabel: assertion, status: procStatusAt(ref, st, status, defs, i) }));
 }
 
+/* ============================================================
+   SATU ORANG, SATU LANGKAH — rantai sign-off kertas kerja.
+   ------------------------------------------------------------
+   Gate SoD per-slot mengikat tiap slot ke KAPABILITAS, tetapi kapabilitas
+   bukan identitas: `PARTNER_BASE` memegang OPINION_APPROVE dan EQR_REVIEW
+   sekaligus, sehingga partner yang baru menandatangani slot Engagement
+   Partner masih lolos di slot EQR pada kertas kerja yang SAMA. Itu
+   menghapus arti penelaahan pengendalian mutu — ISQM 2 / SA 220.36
+   menuntut penelaah yang independen dari tim perikatan, dan yang paling
+   tidak independen adalah orang yang baru saja menyetujuinya sendiri.
+
+   Pola & alasan mengikuti `stepAuthority` (PR-E) yang menutup lubang yang
+   sama pada rantai persetujuan AJE — perbedaannya hanya permukaan.
+
+   HANYA TANDA TANGAN yang dihitung. `who` pada slot yang masih menunggu
+   adalah nama PENERIMA TUGAS, bukan tanda tangan; menghitungnya akan
+   memblokir orang yang belum menandatangani apa pun (lih. "assigned ≠
+   signed" pada rantai ini).
+
+   Aturannya simetris terhadap urutan: siapa pun yang sudah memegang satu
+   slot tertutup dari slot lain, tak peduli slot mana yang lebih dulu. */
+const WP_SLOT_LABEL: Record<string, string> = {
+  preparer: 'Preparer',
+  reviewer: 'Reviewer (Manager)',
+  partner: 'Engagement Partner',
+  eqr: 'EQR (Penelaah Mutu)',
+};
+
+type WpChainSlot = { by?: string; at?: string } | null | undefined;
+
+function wpChainSelfReview(
+  chain: Record<string, WpChainSlot>,
+  slotKey: string,
+  me: string,
+): { blocked: boolean; priorSlot: string; reason: string } {
+  const norm = (s: unknown) => String(s == null ? '' : s).trim().toLowerCase();
+  const meN = norm(me);
+  const free = { blocked: false, priorSlot: '', reason: '' };
+  if (!meN) return free;
+  const src = chain || {};
+  const prior = Object.keys(src).find(k => k !== slotKey && !!src[k] && norm(src[k]!.by) === meN);
+  if (!prior) return free;
+  return {
+    blocked: true,
+    priorSlot: prior,
+    reason: `Anda sudah menandatangani slot ${WP_SLOT_LABEL[prior] || prior} pada kertas kerja ini — satu orang, satu langkah (ISQM 2 / SA 220.36).`,
+  };
+}
+
 export type { EvRec, TestItem, ExecP };
 export {
   WP_INDEX, WP_TITLE, WP_REFS, WP_META,
   WP_PROCS, procsFor, PROC_EXC_SEED, defaultProcState, WP_SEED_NOTES,
   execStatus, procStatusAt, procStatesFor, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
-  wpToday,
+  wpToday, WP_SLOT_LABEL, wpChainSelfReview,
 };

@@ -12,7 +12,7 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpChainSelfReview } from './wp_canon';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
 
 /* ============================================================
@@ -1072,9 +1072,22 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
   ];
   if (eqrReq) levels.push({ key: 'eqr', role: 'EQR (Penelaah Mutu)', who: 'Sari Dewanti', cap: WP_SLOT_CAP.eqr, desc: 'Telaah pengendalian mutu perikatan (PIE)', signed: eqr });
 
-  const canSign = (idx: any) => !locked && !levels[idx].signed && can(levels[idx].cap) && (idx === 0 || !!levels[idx - 1].signed);
+  /* Alasan KONKRET sebuah slot tak dapat ditandatangani — dipakai untuk mematikan
+     tombol DAN menjelaskan sebabnya. Sebelumnya setiap sebab (urutan rantai,
+     berkas terkunci) muncul sebagai "tidak berwenang", yang menyesatkan. */
+  const signBlock = (idx: number): string => {
+    const l = levels[idx];
+    if (l.signed) return '';
+    if (locked) return 'Berkas perikatan terkunci.';
+    if (!can(l.cap)) return 'Peran Anda tidak berwenang untuk slot ini';
+    if (idx > 0 && !levels[idx - 1].signed) return `Menunggu tanda tangan ${levels[idx - 1].role} lebih dulu.`;
+    return wpChainSelfReview(chain, l.key, me).reason;
+  };
+  const canSign = (idx: any) => !levels[idx].signed && !signBlock(idx);
   const sign = (idx: any) => {
     const lvl = levels[idx];
+    /* Tombol yang mati bukan gerbang — handler menolak sendiri. */
+    if (signBlock(idx)) return;
     const patch: any = { chain: { ...chain, [lvl.key]: { by: me, at: today } } };
     if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = me; patch.signedAt = today; }
     if (lvl.key === 'preparer' && (status === 'Not Started' || status === 'In Progress')) patch.status = 'In Review';
@@ -1119,7 +1132,7 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
               </div>
               {l.signed
                 ? <button className="btn sm" disabled={locked || (l.key === 'preparer' ? !can(WP_SLOT_CAP.reviewer) : !can(l.cap))} title={locked || (l.key === 'preparer' ? !can(WP_SLOT_CAP.reviewer) : !can(l.cap)) ? 'Peran Anda tidak berwenang untuk slot ini' : undefined} onClick={() => unsign(i)} style={{ flex: '0 0 auto' }}><I.sync size={12} /> Batalkan</button>
-                : <Btn sm variant={canSign(i) ? 'primary' : ''} disabled={!canSign(i)} title={canSign(i) ? undefined : 'Peran Anda tidak berwenang untuk slot ini'} onClick={() => sign(i)} style={{ flex: '0 0 auto' }}><I.check size={13} /> Sign-off</Btn>}
+                : <Btn sm variant={canSign(i) ? 'primary' : ''} disabled={!canSign(i)} title={signBlock(i) || undefined} onClick={() => sign(i)} style={{ flex: '0 0 auto' }}><I.check size={13} /> Sign-off</Btn>}
             </div>
           ))}
         </div>
