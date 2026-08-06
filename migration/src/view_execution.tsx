@@ -26,7 +26,7 @@ import { sha256Hex } from './export_xlsx';
 import { checkWtbIntegrity } from './wtb_integrity';
 /* PR-5 — kelayakan pengajuan jurnal adalah aturan, bukan ekspresi di komponen. */
 import { validateAjeDraft } from './aje_contract';
-import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch } from './wtb_integrity';
+import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch, UnclassifiedRow } from './wtb_integrity';
 import { STANDARD_COA, autoMap, mappingCoverage } from './wtb_mapping';
 import type { CoaAccount, MappingCoverageResult } from './wtb_mapping';
 import { parseLedger, ledgerForRow } from './wtb_ledger';
@@ -207,7 +207,7 @@ function WTBView() {
             </div>
           </div>
 
-          {showIntegrity && <WtbIntegrityPanel r={integrity} />}
+          {showIntegrity && <WtbIntegrityPanel r={integrity} onOpenMapping={(wtbImport && wtbImport.rows && !locked) ? () => setMapOpen(true) : null} />}
 
           <Panel noBody style={{ overflow: 'hidden' }}>
             <div style={{ maxHeight: 'calc(100vh - 306px)', overflow: 'auto' }}>
@@ -1147,7 +1147,7 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
 Object.assign(window, { WtbImportDrawer });
 
 /* ---------------- W-WTB·2 · Panel integritas neraca saldo ---------------- */
-function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
+function WtbIntegrityPanel({ r, onOpenMapping }: { r: WtbIntegrityResult; onOpenMapping?: (() => void) | null }) {
   const { rp } = AMS;
   const bsExact = Math.abs(r.bsDiff) <= r.tol;
   const ajeOk = r.ajeBalanced && r.registerReconciled;
@@ -1200,6 +1200,36 @@ function WtbIntegrityPanel({ r }: { r: WtbIntegrityResult }) {
               <b>Laba berjalan tampaknya tercatat dua kali.</b> Neraca sudah pas — artinya saldo laba memuat laba {rp(r.netIncome)} — padahal akun laba-rugi masih terbuka.
               TB pra-tutup yang koheren ber-Σ adjusted = 0 dengan selisih neraca sebesar laba; di sini keduanya tak terpenuhi. Periksa saldo laba & pos penutup sebelum menyusun LK.
             </span>
+          </div>
+        )}
+
+        {/* PR-I2 — saldo yang tak dapat diklasifikasikan: dulu lenyap tanpa jejak dari
+            rekonsiliasi neraca. Ditampilkan per-akun agar dapat ditindaklanjuti, bukan
+            sekadar dihitung. */}
+        {!r.allClassified && (
+          <div style={{ marginBottom: 10, border: '1px solid var(--amber)', background: 'var(--amber-bg)', borderRadius: 6, overflow: 'hidden' }}>
+            <div className="row ac gap8" style={{ padding: '8px 11px' }}>
+              <span style={{ color: 'var(--amber)', flex: '0 0 auto' }}><I.alert size={16} /></span>
+              <span style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink-2)', flex: 1 }}>
+                <b>{r.unclassified.length} akun tak dapat diklasifikasikan — Σ {rp(r.unclassifiedTotal)}.</b> Kodenya tidak diawali 1–6,
+                sehingga saldonya tidak masuk aset/liabilitas/ekuitas maupun laba-rugi. Selama ini belum dipetakan,
+                rekonsiliasi neraca di atas tidak menjumlahkan seluruh neraca saldo.
+              </span>
+              {onOpenMapping && <Btn sm onClick={onOpenMapping}><I.target size={13} /> Petakan Akun</Btn>}
+            </div>
+            <table className="dtbl">
+              <thead><tr><th style={{ width: 110 }}>Kode</th><th>Nama Akun</th><th className="num" style={{ width: 150 }}>Adjusted</th></tr></thead>
+              <tbody>
+                {r.unclassified.slice(0, 8).map((u: UnclassifiedRow, i: number) => (
+                  <tr key={i}>
+                    <td className="mono tiny">{u.code || <span className="muted">(kode kosong)</span>}</td>
+                    <td className="tiny">{u.name || <span className="muted">—</span>}</td>
+                    <td className="num" style={{ fontWeight: 600 }}><span className={u.adj < 0 ? 'neg' : ''}>{rp(u.adj)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {r.unclassified.length > 8 && <div className="tiny muted" style={{ padding: '6px 11px' }}>…{r.unclassified.length - 8} akun lainnya — buka Petakan Akun untuk daftar penuh.</div>}
           </div>
         )}
 

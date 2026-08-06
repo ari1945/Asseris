@@ -243,3 +243,71 @@ describe('checkWtbIntegrity — hasWarn: sinyal tampil ≠ gerbang finalisasi (P
     }
   });
 });
+
+/* ============================================================
+   PR-I2 — SC-2: saldo yang tak dapat diklasifikasikan tak lagi menguap.
+   ------------------------------------------------------------
+   `lead()` mengenali kelas dari karakter pertama kode. Baris di luar 1–6 dulu
+   dilewati tanpa jejak: tidak masuk assets/liabilities/equity, `bsDiff` tetap 0,
+   `bsTied` true, status `ok` — chip hijau di atas TB yang tidak dijumlah seluruhnya.
+   Pemetaan CoA membiarkan kode klien apa adanya selama belum dipetakan, jadi ini
+   keadaan BAWAAN pada TB klien nyata sepanjang onboarding.
+   ============================================================ */
+describe('checkWtbIntegrity — saldo tak terklasifikasi memblok gerbang (PR-I2)', () => {
+  const withAlpha: IntegrityWtbRow[] = [
+    { code: '1-1100', name: 'Kas', unadj: 100_000_000_000, aje: 0, adj: 100_000_000_000 },
+    { code: '2-1100', name: 'Utang Usaha', unadj: -60_000_000_000, aje: 0, adj: -60_000_000_000 },
+    { code: '3-1100', name: 'Modal Saham', unadj: -40_000_000_000, aje: 0, adj: -40_000_000_000 },
+    { code: 'AC-900', name: 'Akun Klien Tak Terpeta', unadj: 25_000_000_000, aje: 0, adj: 25_000_000_000 },
+  ];
+
+  it('akun ber-kode alfabet: terdeteksi, terhitung, dan MEMBLOK — dulu status ok', () => {
+    const r = checkWtbIntegrity(withAlpha, []);
+    /* neraca masih "pas" justru karena barisnya diabaikan — itulah jebakannya */
+    expect(r.bsDiff).toBe(0);
+    expect(r.bsTied).toBe(true);
+    /* …tetapi kini tidak lagi lolos */
+    expect(r.allClassified).toBe(false);
+    expect(r.unclassified).toHaveLength(1);
+    expect(r.unclassified[0]).toEqual({ code: 'AC-900', name: 'Akun Klien Tak Terpeta', adj: 25_000_000_000 });
+    expect(r.unclassifiedTotal).toBe(25_000_000_000);
+    expect(r.status).toBe('attention');
+    expect(r.hasWarn).toBe(true);
+    expect(r.messages.some(m => m.level === 'warn' && /tak dapat diklasifikasikan/.test(m.text))).toBe(true);
+  });
+
+  it('kode kosong ikut terhitung — bukan hanya alfabet', () => {
+    const r = checkWtbIntegrity([{ code: '', adj: 5_000_000_000 }], []);
+    expect(r.unclassified).toHaveLength(1);
+    expect(r.allClassified).toBe(false);
+    expect(r.status).toBe('attention');
+  });
+
+  it('daftar diurutkan menurun berdasarkan besaran mutlak', () => {
+    const r = checkWtbIntegrity([
+      { code: 'X-1', adj: 1_000_000_000 },
+      { code: 'Y-2', adj: -9_000_000_000 },
+      { code: 'Z-3', adj: 4_000_000_000 },
+    ], []);
+    expect(r.unclassified.map(u => u.code)).toEqual(['Y-2', 'Z-3', 'X-1']);
+    expect(r.unclassifiedTotal).toBe(-4_000_000_000);
+  });
+
+  it('kode 1–6 seluruhnya terklasifikasi → gerbang tak terpengaruh', () => {
+    const r = checkWtbIntegrity([
+      { code: '1-1100', adj: 3_000_000_000 },
+      { code: '6-1000', adj: 1_000_000_000 },
+      { code: '2-1100', adj: -1_000_000_000 },
+      { code: '3-2100', adj: -3_000_000_000 },
+    ], []);
+    expect(r.allClassified).toBe(true);
+    expect(r.unclassified).toHaveLength(0);
+    expect(r.unclassifiedTotal).toBe(0);
+  });
+
+  it('seed demo tetap terklasifikasi penuh — gerbang tidak mengunci demo', () => {
+    const r = checkWtbIntegrity(AMS.WTB, AMS.AJE);
+    expect(r.allClassified).toBe(true);
+    expect(r.status).toBe('ok');
+  });
+});

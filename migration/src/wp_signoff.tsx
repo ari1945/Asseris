@@ -537,6 +537,9 @@ function engagementGate(audit: any, firm: any, opts: any) {
       !integ.adjConsistent && `${integ.adjMismatches.length} akun adjusted ≠ unadj+AJE`,
       !integ.ajeBalanced && 'kolom AJE tak seimbang',
       !integ.registerReconciled && `${integ.ajeMismatches.length} akun AJE WTB ≠ register`,
+      /* PR-I2 — tanpa baris ini gerbang MEMBLOK dengan alasan kosong: kriteria baru
+         membalik `status` sementara detailnya tak menyebutkannya sama sekali. */
+      !integ.allClassified && `${integ.unclassified.length} akun tak terklasifikasi — saldonya di luar rekonsiliasi neraca`,
     ].filter(Boolean).join('; ');
     criteria = finalisationGateCriteria({
       conclusionPct: recap.conclusionPct,
