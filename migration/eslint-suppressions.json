@@ -1116,7 +1116,7 @@
   },
   "src/view_wp.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 116
+      "count": 84
     }
   },
   "src/view_wtb_deep.tsx": {

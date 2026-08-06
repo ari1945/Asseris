@@ -135,7 +135,6 @@ function WorkingPapers() {
             <input className="input" value={q} onChange={(e: any) => setQ(e.target.value)} placeholder="Cari ref / judul…" style={{ width: 150, paddingLeft: 26, height: 26 }} />
           </div>
           <Seg options={['All', 'Reviewed', 'In Review', 'In Progress', 'Not Started']} value={filter} onChange={setFilter} />
-          <Btn sm variant="primary" disabled={locked}><I.plus size={14} /> WP Baru</Btn>
         </div>
       } />
       <div className="view-scroll"><div className="view-pad">
@@ -969,14 +968,13 @@ function XrefTab({ ref_, relRisks, relAje, fmt, st, setWp, locked }: any) {
 
       {/* attachments */}
       <Panel noBody>
-        <div className="panel-h"><h3 style={{ whiteSpace: 'nowrap' }}>Lampiran & Bukti</h3><div style={{ flex: 1 }} /><Btn sm><I.plus size={13} /> Unggah</Btn></div>
+        <div className="panel-h"><h3 style={{ whiteSpace: 'nowrap' }}>Lampiran & Bukti</h3></div>
         <div>
           {atts.map(([name, type, by, kb]: any, i: any) => (
             <div key={i} className="row ac gap10" style={{ padding: '9px 14px', borderBottom: '1px solid var(--line-soft)' }}>
               <span style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--blue-050)', color: 'var(--blue)', display: 'grid', placeItems: 'center', flex: '0 0 30px' }}>{React.createElement(I[fileIcon(type)], { size: 15 })}</span>
               <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }} className="truncate">{name}</div><div className="tiny muted">Diunggah oleh {by} · {kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB'}</div></div>
               <span className="chip tiny">{type}</span>
-              <button className="btn sm icon" title="Lihat"><I.search2 size={13} /></button>
             </div>
           ))}
         </div>
