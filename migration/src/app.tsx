@@ -8,6 +8,7 @@ import { Copilot } from './copilot';
 import { I, MODULE_INDEX } from './icons';
 import { MiniMap } from './minimap';
 import { ModuleLineage, StandardLinkback } from './related_modules';
+import { buildHash, initialLocation, parseHash } from './route_hash';
 import { Sidebar, SubBar, TopBar } from './shell';
 import { Btn, StubView } from './ui';
 import { AJEView } from './view_aje';
@@ -419,7 +420,17 @@ function App() {
   /* Fase 7 — default landing berbasis peran = Beranda (bukan lagi 'dashboard' statis).
      Rute terakhir tetap dipulihkan saat reload (lihat Root.enter: hanya login EKSPLISIT
      yang memaksa 'home'); Firm Dashboard tetap 1 klik bagi Partner/Manager. */
-  const [route, setRoute] = useStateApp(() => localStorage.getItem('ams.route') || 'home');
+  /* PRD Fase B — rute kini punya ALAMAT. Presedens saat boot:
+     hash (tautan dibagikan / reload / Back-Forward) > `ams.route` (sesi
+     terakhir di peramban ini) > 'home'. Rute tak dikenal dibuang di
+     `initialLocation`, jadi tautan busuk mendarat di sesi terakhir/home —
+     tak pernah layar putih. */
+  const [route, setRoute] = useStateApp(() => {
+    const known = (id: string): boolean => id === 'home' || !!(MODULE_INDEX as Record<string, unknown>)[id];
+    let last: string | null = null;
+    try { last = localStorage.getItem('ams.route'); } catch (e) { /* private mode */ }
+    return initialLocation(typeof location === 'undefined' ? '' : location.hash, last, known).loc.route;
+  });
   const [collapsed, setCollapsed] = useStateApp(() => localStorage.getItem('ams.sidebarCollapsed') === '1');
   const [copilot, setCopilot] = useStateApp(false);
   const [palette, setPalette] = useStateApp(false);
@@ -447,8 +458,51 @@ function App() {
         window.dispatchEvent(new Event('ams:recent'));
       }
     } catch (e) {}
+    /* Tulis alamatnya. Pindah MODUL = push (Back kembali ke modul sebelumnya);
+       ganti tab/seleksi DI DALAM modul yang sama = replace, supaya riwayat tak
+       dibanjiri langkah-langkah kecil yang tak berarti bagi pengguna.
+       `setRoute` tetap dipanggil SINKRON di bawah: hash adalah cerminan state,
+       bukan pemicunya. Pembaca `hashchange` di bawah sengaja no-op bila hash
+       sudah cocok dengan state — itulah penjaga anti-gelungnya. */
+    try {
+      const next = buildHash({ route: id, sel: opts && opts.sel, tab: opts && opts.tab });
+      if (typeof location !== 'undefined' && location.hash !== next) {
+        const sameModule = parseHash(location.hash)?.route === id;
+        if (sameModule && typeof history !== 'undefined' && history.replaceState) {
+          history.replaceState(null, '', location.pathname + location.search + next);
+        } else {
+          location.hash = next;
+        }
+      }
+    } catch (e) { /* URL tak dapat ditulis — navigasi tetap jalan tanpa alamat */ }
     setRoute(id); setPalette(false); setSaRef(null);
   }, []);
+
+  /* Pembaca TUNGGAL: Back/Forward peramban & URL yang ditempel di tab berjalan.
+     Hanya bertindak bila rutenya benar-benar berbeda dari state — navigasi
+     lewat `navigate()` sudah menulis hash sendiri, jadi event yang lahir dari
+     situ berakhir di sini sebagai no-op. */
+  useEffectApp(() => {
+    const onHash = (): void => {
+      const loc = parseHash(location.hash);
+      if (!loc) return;
+      const known = loc.route === 'home' || !!(MODULE_INDEX as Record<string, unknown>)[loc.route];
+      if (!known) return;                     // tautan busuk: diamkan, jangan buang halaman
+      setRoute((cur: string) => (cur === loc.route ? cur : loc.route));
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  /* Alamat harus benar sejak muat pertama, termasuk saat rute datang dari
+     `ams.route` (sesi terakhir) dan hash masih kosong. */
+  useEffectApp(() => {
+    try {
+      if (typeof location === 'undefined') return;
+      if (parseHash(location.hash)?.route === route) return;
+      history.replaceState(null, '', location.pathname + location.search + buildHash({ route }));
+    } catch (e) { /* abaikan */ }
+  }, [route]);
   useEffectApp(() => { window.__amsOpenSA = setSaRef; return () => { delete window.__amsOpenSA; }; }, []);
 
   useEffectApp(() => { localStorage.setItem('ams.route', route); }, [route]);
@@ -526,7 +580,13 @@ function Root() {
     setMe(user);
     // Fase 7 — login EKSPLISIT (via LoginScreen) selalu mendarat di Beranda berbasis peran;
     // reload sesi (auth.me, fresh=false) TIDAK menyentuh rute → pengguna kembali ke tempatnya.
-    if (fresh) { try { localStorage.setItem('ams.route', 'home'); } catch (e) { /* private mode */ } }
+    /* PRD Fase B — hash kini LEBIH otoritatif daripada `ams.route` saat <App>
+       mount, jadi menyetel storage saja tak lagi cukup: tanpa membersihkan
+       alamatnya, login eksplisit akan mendarat di rute milik sesi sebelumnya. */
+    if (fresh) {
+      try { localStorage.setItem('ams.route', 'home'); } catch (e) { /* private mode */ }
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* abaikan */ }
+    }
     try { await hydrateCoreFromApi(DEFAULT_ENG_ID, user.id); } catch (e) { /* offline: data.js fallback */ }
     setPhase('ready');
   }, []);
