@@ -1164,6 +1164,16 @@
       "count": 7
     }
   },
+  "src/wp_canon.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/wp_canon.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 30
+    }
+  },
   "src/wp_signoff.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 49
