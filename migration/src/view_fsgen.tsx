@@ -59,17 +59,13 @@ function buildFsBlocks(model: any, sc: any, comparative: any) {
     { l: 'Penghasilan komprehensif lain — pengukuran kembali imbalan kerja', cy: e.oci, py: 0 },
     { l: 'TOTAL LABA KOMPREHENSIF TAHUN BERJALAN', cy: is.netIncome.cy + e.oci, py: is.netIncome.py, b: 1 },
   ];
-  const eqRows = [
-    { l: 'Saldo per 1 Januari 2025', m: e.beginModal, re: e.beginRE, b: 1 },
-    { l: 'Laba tahun berjalan', m: 0, re: e.netIncome },
-    { l: 'Penghasilan komprehensif lain — neto', m: 0, re: e.oci },
-    { l: 'Dividen tunai', m: 0, re: 0 },
-    { l: 'Saldo per 31 Desember 2025', m: e.endModal, re: e.endRE, b: 1 },
-  ];
+  /* Muatan ekspor memakai SUMBER BARIS YANG SAMA dengan layar (FSGEN.equityRows):
+     dokumen yang diterbitkan tak boleh menjumlah berbeda dari yang direviu. */
+  const eqRows = FSGEN.equityRows(e);
   const eqBold: any[] = [];
-  const eqBody = eqRows.map((r, i) => { if (r.b) eqBold.push(i); return [r.l, num(r.m), num(r.re), num(r.m + r.re)]; });
-  const ekuitas = { type: 'table', head: ['', 'Modal Saham', 'Saldo Laba', 'Total Ekuitas'], body: eqBody, boldRows: eqBold,
-    columnStyles: { 1: { halign: 'right', font: 'courier' }, 2: { halign: 'right', font: 'courier' }, 3: { halign: 'right', font: 'courier' } } };
+  const eqBody = eqRows.map((r, i) => { if (r.strong || r.total) eqBold.push(i); return [r.label, num(r.modal), num(r.re), num(r.oci), num(r.modal + r.re + r.oci)]; });
+  const ekuitas = { type: 'table', head: ['', 'Modal Saham', 'Saldo Laba', 'Penghasilan Komprehensif Lain', 'Total Ekuitas'], body: eqBody, boldRows: eqBold,
+    columnStyles: { 1: { halign: 'right', font: 'courier' }, 2: { halign: 'right', font: 'courier' }, 3: { halign: 'right', font: 'courier' }, 4: { halign: 'right', font: 'courier' } } };
   const ak = [
     { l: 'ARUS KAS DARI AKTIVITAS OPERASI', b: 1 },
     ...cf.cfo.map((x: any) => (x.head ? { l: x.label, b: 1 } : { l: '   ' + x.label, cy: x.v })),
@@ -424,33 +420,37 @@ function KpiTile({ label, value, sub, accent, onClick, children }: any) {
 /* ---- Statement of changes in equity (column rollforward) ---- */
 function EquityStatement({ model, sc }: any) {
   const e = model.eqr;
-  const rows = [
-    { l: 'Saldo per 1 Januari 2025', modal: e.beginModal, re: e.beginRE, strong: true },
-    { l: 'Laba tahun berjalan', modal: 0, re: e.netIncome },
-    { l: 'Penghasilan komprehensif lain — neto', modal: 0, re: e.oci, note: '13' },
-    { l: 'Dividen tunai', modal: 0, re: 0 },
-    { l: 'Saldo per 31 Desember 2025', modal: e.endModal, re: e.endRE, total: true },
-  ];
+  /* PKL punya KOLOMNYA SENDIRI (PSAK 1 ¶106 — rekonsiliasi per KOMPONEN ekuitas).
+     Dulu tabel ini hanya Modal|Saldo Laba|Total, dan baris PKL ditaruh di kolom
+     Saldo Laba. Itu foot selama `oci` masih residu DI DALAM saldo laba, karena
+     `endRE` memuatnya. Sejak PR-I3 (#175) PKL adalah akun 3-3100 dan `endRE` tak
+     lagi memuatnya, sehingga kolom meleset persis sebesar PKL (Rp 6.554 jt pada
+     seed) dan total penutupnya bertentangan dengan Posisi Keuangan — di bawah
+     panel yang menyatakan seluruh tie-out lolos. Tie-out `eqroll` kini menjaga
+     sisi itu; kolom ini menjaga penyajiannya. */
+  const rows = FSGEN.equityRows(e);
   const cell = (v: any, bold: any) => <td className="num" style={{ padding: '5px 0', fontFamily: 'var(--mono)', fontWeight: bold ? 800 : 500 }}>{sc(v)}</td>;
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
       <thead>
         <tr style={{ borderBottom: '1.5px solid #2a3f4a' }}>
           <th style={{ textAlign: 'left', padding: '4px 0' }}></th>
-          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 130 }}>Modal Saham</th>
-          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 130 }}>Saldo Laba</th>
-          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 130 }}>Total Ekuitas</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 120 }}>Modal Saham</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 120 }}>Saldo Laba</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 120 }}>Penghasilan Komprehensif Lain</th>
+          <th style={{ textAlign: 'right', padding: '4px 0', fontSize: 11, width: 120 }}>Total Ekuitas</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((r, i) => (
           <tr key={i} style={{ borderTop: r.total ? '2px solid #2a3f4a' : r.strong ? 'none' : '1px solid #eef1f4', borderBottom: r.total ? '1px solid #2a3f4a' : 'none' }}>
             <td style={{ padding: '5px 0', fontWeight: r.total || r.strong ? 700 : 400, color: r.total || r.strong ? '#0c2430' : '#28414e' }}>
-              {r.l}{r.note && <sup style={{ color: '#7a8893', marginLeft: 3 }}>{r.note}</sup>}
+              {r.label}{r.note && <sup style={{ color: '#7a8893', marginLeft: 3 }}>{r.note}</sup>}
             </td>
             {cell(r.modal, r.total)}
             {cell(r.re, r.total)}
-            {cell(r.modal + r.re, r.total)}
+            {cell(r.oci, r.total)}
+            {cell(r.modal + r.re + r.oci, r.total)}
           </tr>
         ))}
       </tbody>

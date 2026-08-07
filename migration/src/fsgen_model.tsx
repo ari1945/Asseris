@@ -15,6 +15,28 @@ import type { WtbBasis } from './canon_types';
    Diekspor sebagai ESM untuk view + panel; buildModel didaftarkan ke canon (DI seam)
    agar canon_part3 bisa menyusun jembatan laba operasi-dihentikan tanpa impor view-model.
    ============================================================ */
+/** Angka rollforward ekuitas yang dibutuhkan LPE (irisan dari `model.eqr`). */
+export interface FsEquityInput {
+  beginModal: number; endModal: number;
+  beginRE: number; endRE: number;
+  beginOci: number; endOci: number;
+  netIncome: number; oci: number;
+}
+
+/** Satu baris Laporan Perubahan Ekuitas — dipakai layar DAN muatan ekspor. */
+export interface FsEquityRow {
+  key: 'awal' | 'laba' | 'pkl' | 'dividen' | 'akhir';
+  label: string;
+  modal: number;
+  /** Saldo laba — TIDAK memuat PKL sejak PR-I3 (#175); PKL punya kolomnya sendiri. */
+  re: number;
+  /** Penghasilan komprehensif lain (akun 3-3100), kolom tersendiri per PSAK 1 ¶106. */
+  oci: number;
+  note?: string;
+  strong?: boolean;
+  total?: boolean;
+}
+
 const FSGEN = (function () {
   /* ---- FS structure: caption -> contributing WTB codes (display order) ---- */
   const CA  = [
@@ -322,6 +344,19 @@ const FSGEN = (function () {
       chk('cfmethod', 'Arus kas operasi konsisten (langsung ↔ tidak langsung)', 'Arus Kas',
         m.cf.cfoDirectTotal, m.cf.cfoTotal, 'PSAK 2',
         'Total arus kas operasi metode langsung = metode tidak langsung'),
+      /* Sisi yang selama ini TAK DIJAGA: Perubahan Ekuitas terhadap Posisi Keuangan.
+         Ketiadaannya membuat LPE menyajikan total ekuitas Rp 6.554 jt lebih rendah
+         daripada neracanya sendiri tanpa satu lampu pun menyala.
+
+         Pembandingnya sengaja BUKAN `eqr.totalEqCY` vs `bs.totalEq.cy` — keduanya
+         dijumlahkan dari akun yang sama, jadi itu identitas: tie-out kesembilan yang
+         mustahil gagal, persis penyakit yang PR-H3 cabut. Yang dibandingkan adalah
+         ROLLFORWARD (ekuitas awal + laba + PKL − dividen) terhadap SALDO AKHIR.
+         Ia menyala bila ekuitas bergerak karena hal yang tak punya barisnya di LPE:
+         penerbitan/penarikan modal, dividen, atau penyajian kembali saldo awal. */
+      chk('eqroll', 'Perubahan ekuitas menutup ke Posisi Keuangan', 'Perubahan Ekuitas → Posisi Keuangan',
+        m.eqr.totalEqPY + m.eqr.netIncome + m.eqr.oci, m.bs.totalEq.cy, 'PSAK 1',
+        'Ekuitas awal + laba tahun berjalan + PKL (− dividen) = Total Ekuitas pada Posisi Keuangan'),
     ];
   }
 
@@ -349,7 +384,23 @@ const FSGEN = (function () {
     penuh:  { div: 1,   dp: 0, label: 'Rupiah penuh',  short: 'Rp' },
   };
 
-  return { buildModel, buildTieOuts, DISCLOSURES, UNITS, SHARES };
+  /* ---- Baris Laporan Perubahan Ekuitas — SATU sumber untuk layar & ekspor ----
+     Sebelumnya spesifikasi baris ini ditulis DUA KALI di view_fsgen (komponen
+     <EquityStatement> dan muatan ekspor PDF/XLSX). Dua salinan berarti dokumen
+     terbitan dapat menjumlah berbeda dari yang direviu di layar — dan hanya satu
+     salinan yang akan diperbaiki ketika bentuk ekuitas berubah. Kolom PKL berdiri
+     sendiri sesuai PSAK 1 ¶106 (rekonsiliasi per KOMPONEN ekuitas). */
+  function equityRows(e: FsEquityInput): FsEquityRow[] {
+    return [
+      { key: 'awal',     label: 'Saldo per 1 Januari 2025',            modal: e.beginModal, re: e.beginRE,   oci: e.beginOci, strong: true },
+      { key: 'laba',     label: 'Laba tahun berjalan',                 modal: 0,            re: e.netIncome, oci: 0 },
+      { key: 'pkl',      label: 'Penghasilan komprehensif lain — neto', modal: 0,           re: 0,           oci: e.oci, note: '13' },
+      { key: 'dividen',  label: 'Dividen tunai',                       modal: 0,            re: 0,           oci: 0 },
+      { key: 'akhir',    label: 'Saldo per 31 Desember 2025',          modal: e.endModal,   re: e.endRE,     oci: e.endOci, total: true },
+    ];
+  }
+
+  return { buildModel, buildTieOuts, equityRows, DISCLOSURES, UNITS, SHARES };
 })();
 
 /* [codemod] ESM export (window.FSGEN dilucuti — konsumen pakai named import) */
