@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useFirm, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -10,6 +10,14 @@ import { assertionDef, groupForAccountCode } from './canon_selectors';
 import { ajeEffect, entityFigures } from './canon_base';
 import type { AssertionId } from './canon_selectors';
 import { AJEForm } from './view_execution';
+/* PR-4 — tab Review & Persetujuan adalah TAMPILAN HIDUP dari antrean yang sama:
+   penghasil rantai, gerbang otoritas, dan bentuk tulisan keputusan diimpor dari
+   modul murni yang juga dipakai modul Approvals. */
+import {
+  ajeApproveOverlay, ajeRejectOverlay, ajeReviseOverlay, applyAjeOverlay,
+  nowStamp, parseStamp, stepAuthority,
+} from './aje_approval';
+import type { AjeChainLink, AjeOverlayEntry, AjeQueueItem } from './aje_approval';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { SAD_SEED } from './view_sad';
 import { amsExportXlsx } from './export_xlsx';
@@ -249,7 +257,7 @@ function AJEView() {
 
           {tab === 'register' && <AjeRegister model={model} locked={writeLocked} />}
           {tab === 'impact' && <AjeImpact model={model} posted={posted} proposed={proposed} fig={fig} pbtUnadj={pbtUnadj} reportedPbt={reportedPbt} pbtPosted={pbtPosted} pbtProposed={pbtProposed} />}
-          {tab === 'approvals' && <AjeApprovals model={model} />}
+          {tab === 'approvals' && <AjeApprovals />}
         </div>
       </div>
       {showForm && <AJEForm accounts={accounts} onClose={() => setShowForm(false)} onPost={(entry: any) => { addAje(entry); setShowForm(false); }} />}
@@ -789,61 +797,170 @@ function AjeWaterfall({ unadj, posted, reported, proposed, ifPosted, jt }: any) 
 }
 
 /* ============================================================
-   TAB 3 — Persetujuan & Jejak Audit
-   ============================================================ */
-function AjeApprovals({ model }: any) {
-  const proposed = model.filter((a: any) => a.status === 'Proposed');
-  const posted = model.filter((a: any) => a.status === 'Posted');
+   TAB 3 — Review & Persetujuan (PR-4)
+   ------------------------------------------------------------
+   DULU tab ini membaca `AJE_META` (reviewer/partner/reviewedOn/postedOn) dan
+   menandai langkah Partner selesai semata dari `status === 'Posted'`. Ia tak
+   pernah menyentuh `approvals_ov_v4` — dokumen tempat keputusan nyata hidup.
+   Akibatnya jurnal yang baru disetujui tampil tanpa penyetuju, jurnal buatan
+   auditor tampil reviewer '—' selamanya, dan AJE-01 (Rp 2,34 M, Posted)
+   tampil "selesai" dalam 3 langkah sementara antrean menyebut 4 langkah
+   dengan EQR yang belum menelaah.
 
-  // build chronological trail from metadata
-  const trail: any[] = [];
-  model.forEach((a: any) => {
-    if (a.proposedOn) trail.push({ on: a.proposedOn, id: a.id, who: a.preparer, act: 'menyiapkan usulan jurnal', icon: 'ledger', tone: 'blue' });
-    if (a.reviewedOn) trail.push({ on: a.reviewedOn, id: a.id, who: a.reviewer, act: 'mereviu & menyetujui (manajer)', icon: 'check', tone: 'green' });
-    if (a.postedOn) trail.push({ on: a.postedOn, id: a.id, who: a.partner, act: 'menyetujui & memposting ke WTB', icon: 'lock', tone: 'navy' });
+   Kini ia TAMPILAN HIDUP dari antrean yang sama: sumber data sama, penghasil
+   rantai sama, gerbang otoritas sama (`stepAuthority`), bentuk tulisan
+   keputusan sama (`ajeApproveOverlay`). Yang berbeda hanya lensanya.
+   ============================================================ */
+
+/** Antrean AJE + aksi keputusan — dipakai tab Review & tab Jejak Audit. */
+function useAjeQueue() {
+  const { aje, toggleAjeStatus, logActivity } = useAudit();
+  const { engagements, clients, activeEngagementId } = useFirm();
+  /* Kunci & rantai baca-lewat v3→v4 PERSIS seperti modul Approvals: dua
+     default berbeda atas satu kunci adalah kelas cacat yang sudah pernah
+     menggigit (lihat catatan `sadItems.v1`). */
+  const [overlayV3] = useAmsPersist('approvals_ov_v3', () => ({}));
+  const [overlayV4, setOverlay] = useAmsPersist('approvals_ov_v4', () => ({}));
+  const overlay = (overlayV4 && Object.keys(overlayV4).length) ? overlayV4 : (overlayV3 || {});
+
+  const derived: AjeQueueItem[] = useMemoAJ(
+    () => ((AMS as any).PLATFORM.buildApprovals({ aje, engagements, clients, activeEngagement: activeEngagementId }) as AjeQueueItem[])
+      .filter((i: AjeQueueItem) => i.kind === 'AJE'),
+    [aje, engagements, clients, activeEngagementId]);
+  const items: AjeQueueItem[] = useMemoAJ(
+    () => derived.map((d: AjeQueueItem) => applyAjeOverlay(d, (overlay as Record<string, AjeOverlayEntry>)[d.id])),
+    [derived, overlay]);
+
+  const decide = (item: AjeQueueItem, kind: 'approve' | 'reject' | 'revise', note: string, user: { name?: string; role: string }) => {
+    const ts = nowStamp();
+    if (kind === 'approve') {
+      const applied = ajeApproveOverlay({ item, prevEntry: (overlay as Record<string, AjeOverlayEntry>)[item.id], user, ts, note });
+      setOverlay((o: Record<string, AjeOverlayEntry>) => ({ ...o, [item.id]: ajeApproveOverlay({ item, prevEntry: o[item.id], user, ts, note }).entry }));
+      /* TULIS-BALIK SSOT: persetujuan final memposting jurnal ke WTB. */
+      if (applied.done && item.writesBack && toggleAjeStatus) {
+        toggleAjeStatus(item.sourceId, { by: user.name, approvalId: item.id });
+      }
+    } else if (kind === 'reject') {
+      setOverlay((o: Record<string, AjeOverlayEntry>) => ({ ...o, [item.id]: ajeRejectOverlay({ prevEntry: o[item.id], user, ts, note }) }));
+    } else {
+      setOverlay((o: Record<string, AjeOverlayEntry>) => ({ ...o, [item.id]: ajeReviseOverlay({ prevEntry: o[item.id], user, ts, note }) }));
+    }
+    if (logActivity) {
+      logActivity({
+        who: user.name, action: kind === 'approve' ? 'APPROVE' : kind === 'reject' ? 'REJECT' : 'EDIT',
+        module: 'AJE', sourceModule: 'aje', target: item.sourceId,
+        detail: `${item.sourceId} — langkah ${(item.chain[item.step] && item.chain[item.step].role) || '—'} ${kind === 'approve' ? 'disetujui' : kind === 'reject' ? 'ditolak' : 'diminta revisi'}`,
+      });
+    }
+  };
+
+  return { items, decide };
+}
+
+interface AjeTrailRow { on: string | null; id: string; who: string; act: string; icon: string; tone: string }
+
+/** Jejak kronologis dari KEPUTUSAN NYATA — bukan dari metadata seed. */
+function ajeTrailFrom(items: AjeQueueItem[]): AjeTrailRow[] {
+  const trail: AjeTrailRow[] = [];
+  items.forEach((it) => {
+    const j = it.journal || {};
+    if (j.proposedOn) trail.push({ on: String(j.proposedOn), id: it.sourceId, who: String(j.preparer || it.from || '—'), act: 'menyiapkan usulan jurnal', icon: 'ledger', tone: 'blue' });
+    it.chain.forEach((c, i) => {
+      if (i === 0) return;
+      if (c.status === 'approved') {
+        trail.push({
+          on: c.ts, id: it.sourceId, who: c.name,
+          act: `menyetujui langkah ${c.role}` + (c.legacy ? ' (jejak warisan — tak terverifikasi terhadap isi jurnal)' : ''),
+          icon: c.role === 'EQR Reviewer' ? 'shield' : 'check', tone: 'green',
+        });
+      } else if (c.voided && c.voidedBy) {
+        trail.push({
+          on: c.voidedBy.ts, id: it.sourceId, who: c.voidedBy.name,
+          act: `persetujuan langkah ${c.role} GUGUR — isi jurnal berubah setelah disetujui`,
+          icon: 'alert', tone: 'amber',
+        });
+      } else if (c.status === 'rejected') {
+        trail.push({ on: c.ts, id: it.sourceId, who: c.name, act: `menolak pada langkah ${c.role}`, icon: 'x', tone: 'red' });
+      }
+    });
+    if (String(j.status) === 'Posted') {
+      trail.push({ on: it.chain[it.chain.length - 1]?.ts || null, id: it.sourceId, who: 'Sistem', act: 'jurnal diposting ke Working Trial Balance', icon: 'lock', tone: 'navy' });
+    }
   });
-  /* PR-D — urut berdasarkan tanggal ISO. `ord()` lama memetakan nama bulan lewat peta
-     dua entri ('Mei','Jun'); bulan lain jatuh ke 0, dan entri baru berlabel 'baru saja'
-     tenggelam ke dasar justru karena ia yang terbaru. */
-  /* Entri tanpa tanggal ISO (jurnal yang baru saja diajukan) adalah yang TERBARU,
-     jadi ia naik ke atas — bukan tenggelam ke dasar seperti pada `ord()` lama. */
-  const ordKey = (d: unknown) => /^\d{4}-/.test(String(d || '')) ? String(d) : '9999';
-  trail.sort((a, b) => ordKey(b.on).localeCompare(ordKey(a.on)));
+  const key = (d: unknown) => (parseStamp(d) ?? Number.MAX_SAFE_INTEGER);
+  return trail.sort((a, b) => key(b.on) - key(a.on));
+}
+
+function AjeApprovals() {
+  const { fmt } = AMS;
+  const nav = useNav();
+  const auth = useAuth();
+  const user = auth?.user || { name: undefined, role: '' };
+  const { items, decide } = useAjeQueue();
+
+  const pending = items.filter((i: AjeQueueItem) => i.status === 'pending');
+  const exceptions = items.filter((i: AjeQueueItem) => i.postedWithoutFullChain || i.hasVoided);
+  const trail = ajeTrailFrom(items);
+  const mine = pending.filter((i: AjeQueueItem) => stepAuthority(i, user).ok);
 
   return (
     <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 360px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
-        <div className="panel-h"><h3>Alur Persetujuan Jurnal</h3><div style={{ flex: 1 }} /><span className="tiny muted">Penyusun → Manajer → Partner</span></div>
+        <div className="panel-h">
+          <h3>Review &amp; Persetujuan</h3>
+          <div style={{ flex: 1 }} />
+          <span className="tiny muted">tampilan hidup dari antrean yang sama</span>
+        </div>
         <div style={{ padding: '4px 0' }}>
-          {[...proposed, ...posted].map(a => <ApprovalCard key={a.id} a={a} />)}
+          {items.map((it: AjeQueueItem) => (
+            <AjeApprovalRow key={it.id} it={it} fmt={fmt} user={user} onDecide={decide} />
+          ))}
+          {!items.length && <div className="tiny muted" style={{ padding: 24, textAlign: 'center' }}>Belum ada jurnal dalam antrean.</div>}
         </div>
       </Panel>
 
       <div className="grid" style={{ gap: 12 }}>
         <Panel noBody>
           <div style={{ background: 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '14px 16px' }}>
-            <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Menunggu Persetujuan Partner</div>
-            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1, marginTop: 3 }}>{proposed.length}</div>
-            <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 2 }}>jurnal usulan dalam antrean</div>
+            <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Menunggu Keputusan</div>
+            <div className="mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1, marginTop: 3 }}>{pending.length}</div>
+            <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 2 }}>
+              {mine.length ? `${mine.length} menunggu Anda` : 'tak ada yang menunggu peran Anda'}
+            </div>
           </div>
-          <div style={{ padding: '10px 14px', display: 'grid', gap: 6 }}>
-            <div className="tiny muted" style={{ lineHeight: 1.5 }}>Jurnal hanya boleh diposting ke Working Trial Balance setelah disetujui Engagement Partner sesuai kebijakan otorisasi firma (ISQM 1). Rantai persetujuan ditegakkan di <b>Antrean Persetujuan</b> dan di server - status jurnal adalah hasil rantai itu, bukan saklar.</div>
+          <div style={{ padding: '10px 14px', display: 'grid', gap: 8 }}>
+            {exceptions.length > 0 && (
+              <div className="panel" style={{ padding: '8px 10px', background: 'var(--red-bg)', borderColor: 'transparent' }}>
+                <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+                  <span style={{ color: 'var(--red)' }}><I.alert size={14} /></span>
+                  <span className="tiny" style={{ lineHeight: 1.5 }}>
+                    <b>{exceptions.length} eksepsi kontrol</b>: {exceptions.map((e: AjeQueueItem) => e.sourceId).join(', ')} — diposting tanpa rantai lengkap, atau berubah setelah disetujui.
+                  </span>
+                </div>
+              </div>
+            )}
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+              Panjang rantai mengikuti nilai jurnal: di atas Rp 2 M diperlukan langkah <b>EQR</b> (ISQM 2 / SA 220.36).
+              Status jurnal adalah HASIL rantai ini, bukan saklar — dan keputusan mengikat versi jurnal yang disetujuinya.
+            </div>
+            <Btn sm onClick={() => nav('approvals', { from: 'aje' })}><I.arrowRight size={12} /> Antrean lintas-modul</Btn>
           </div>
         </Panel>
 
-        <Panel title="Jejak Audit" sub="kronologis · tak terhapus">
+        <Panel title="Jejak Audit" sub="dari keputusan nyata · kronologis">
           <div style={{ display: 'grid', gap: 0 }}>
-            {trail.map((t, i) => (
+            {trail.map((t: AjeTrailRow, i: number) => (
               <div key={i} className="row gap10" style={{ padding: '8px 0', borderBottom: i < trail.length - 1 ? '1px solid var(--line-soft)' : 'none', alignItems: 'flex-start' }}>
                 <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 7, background: `var(--${t.tone === 'navy' ? 'surface-3' : t.tone + '-bg'})`, color: `var(--${t.tone === 'navy' ? 'navy' : t.tone})`, display: 'grid', placeItems: 'center', marginTop: 1 }}>
                   {React.createElement((I as any)[t.icon] || I.ledger, { size: 13 })}
                 </span>
                 <div style={{ flex: 1 }}>
                   <div className="tiny" style={{ lineHeight: 1.4 }}><b>{t.who}</b> {t.act} <span className="mono" style={{ color: 'var(--blue)' }}>{t.id}</span></div>
-                  <div className="tiny muted" style={{ marginTop: 1 }}>{/^\d{4}-/.test(String(t.on || '')) ? t.on : 'baru saja'}</div>
+                  <div className="tiny muted" style={{ marginTop: 1 }}>{ajeStampLabel(t.on)}</div>
                 </div>
               </div>
             ))}
+            {!trail.length && <div className="tiny muted">Belum ada keputusan tercatat.</div>}
           </div>
         </Panel>
       </div>
@@ -851,46 +968,107 @@ function AjeApprovals({ model }: any) {
   );
 }
 
-function ApprovalCard({ a }: any) {
-  const { fmt } = AMS;
-  const isPosted = a.status === 'Posted';
-  const steps = [
-    { role: 'Penyusun', who: a.preparer, on: a.proposedOn, done: true },
-    { role: 'Manajer (Reviu)', who: a.reviewer, on: a.reviewedOn, done: !!a.reviewedOn },
-    { role: 'Partner (Otorisasi)', who: a.partner, on: a.postedOn, done: isPosted },
-  ];
+/** Tanggal-waktu ringkas; '—' bila stempelnya tak terbaca. */
+function ajeStampLabel(ts: unknown) {
+  const t = parseStamp(ts);
+  return t == null ? '—' : new Date(t).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+interface AjeApprovalRowProps {
+  it: AjeQueueItem;
+  fmt: (n: number, d?: number) => string;
+  user: { name?: string; role: string };
+  onDecide: (item: AjeQueueItem, kind: 'approve' | 'reject' | 'revise', note: string, user: { name?: string; role: string }) => void;
+}
+
+function AjeApprovalRow({ it, fmt, user, onDecide }: AjeApprovalRowProps) {
+  const [note, setNote] = useStateAJ('');
+  const [open, setOpen] = useStateAJ(false);
+  const auth = stepAuthority(it, user);
+  const blocker = it.chain[it.step] || null;
+  const dueMs = parseStamp(it.due);
+  const overdue = dueMs != null && dueMs < Date.now();
+  const isPend = it.status === 'pending';
+  const j = it.journal || {};
+
   return (
     <div style={{ padding: '15px 18px', borderBottom: '1px solid var(--line)' }}>
       <div className="row ac gap8" style={{ marginBottom: 9 }}>
-        <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{a.id}</span>
-        <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
-        <span className="tiny" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.desc}</span>
-        <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(a.amount)}</span>
-        <Badge>{a.status}</Badge>
+        <span className="mono" style={{ fontWeight: 700, color: 'var(--blue)' }}>{it.sourceId}</span>
+        <span className="tiny" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(j.desc || '')}</span>
+        <span className="mono tiny" style={{ fontWeight: 700 }}>Rp {fmt(Number(j.amount || 0))}</span>
+        {it.postedWithoutFullChain && <Badge kind="red">Posted tanpa rantai lengkap</Badge>}
+        {it.hasVoided && <Badge kind="amber">Persetujuan gugur</Badge>}
+        <Badge kind={it.status === 'approved' ? 'green' : it.status === 'rejected' ? 'red' : it.status === 'revision' ? 'amber' : 'blue'}>
+          {it.status === 'approved' ? 'Rantai lengkap' : it.status === 'rejected' ? 'Ditolak' : it.status === 'revision' ? 'Perlu revisi' : 'Berjalan'}
+        </Badge>
       </div>
-      <WorkflowTrack steps={steps} />
+
+      <AjeChainTrack chain={it.chain} />
+
+      {/* penghambat saat ini — pertanyaan pertama auditor: menunggu siapa? */}
+      <div className="row ac jb" style={{ marginTop: 10, gap: 8, flexWrap: 'wrap' }}>
+        <span className="tiny" style={{ color: 'var(--ink-2)' }}>
+          {isPend && blocker
+            ? <>Menunggu <b>{blocker.name}</b> · {blocker.role}{it.due ? <> · SLA {ajeStampLabel(it.due)} <span style={{ color: overdue ? 'var(--red)' : 'var(--ink-3)', fontWeight: 700 }}>{overdue ? '(lewat)' : ''}</span></> : null}</>
+            : it.status === 'approved' ? <>Rantai persetujuan lengkap.</>
+              : it.status === 'rejected' ? <>Ditolak — perlu jurnal pengganti.</>
+                : <>Dikembalikan untuk revisi.</>}
+        </span>
+        {isPend && (
+          auth.ok
+            ? <Btn sm variant="primary" onClick={() => setOpen((v: boolean) => !v)}><I.check size={12} /> {open ? 'Tutup' : 'Ambil Keputusan'}</Btn>
+            : <span className="tiny muted row ac gap6" title={auth.reason} style={{ maxWidth: 420 }}><I.lock size={12} /> {auth.reason}</span>
+        )}
+      </div>
+
+      {isPend && auth.ok && open && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line-soft)' }}>
+          <textarea
+            className="input"
+            style={{ width: '100%', height: 44, padding: '7px 9px', resize: 'none', marginBottom: 8, fontFamily: 'inherit' }}
+            placeholder="Catatan keputusan (opsional, tercatat di jejak audit)…"
+            value={note}
+            onChange={(e: { target: { value: string } }) => setNote(e.target.value)}
+          />
+          <div className="row gap8">
+            <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => { onDecide(it, 'approve', note.trim(), user); setNote(''); setOpen(false); }}>
+              <I.check size={13} /> {it.step === it.chain.length - 1 ? 'Setujui & Posting ke WTB' : `Setujui Langkah ${blocker ? blocker.role : ''}`}
+            </Btn>
+            <Btn sm style={{ color: 'var(--amber)', borderColor: 'var(--amber)' }} onClick={() => { onDecide(it, 'revise', note.trim(), user); setNote(''); setOpen(false); }}>Minta Revisi</Btn>
+            <Btn sm style={{ color: 'var(--red)', borderColor: 'var(--red)' }} onClick={() => { onDecide(it, 'reject', note.trim(), user); setNote(''); setOpen(false); }}>Tolak</Btn>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function WorkflowTrack({ steps }: any) {
+/** Rel langkah — panjangnya MENGIKUTI rantai, tidak pernah dipaku tiga. */
+function AjeChainTrack({ chain }: { chain: AjeChainLink[] }) {
   return (
     <div className="row" style={{ alignItems: 'flex-start' }}>
-      {steps.map((s: any, i: any) => {
-        const pending = !s.done;
+      {chain.map((c, i) => {
+        const done = c.status === 'approved';
+        const cur = c.status === 'current';
+        const rej = c.status === 'rejected';
+        const col = done ? 'var(--green)' : rej ? 'var(--red)' : c.voided ? 'var(--amber)' : cur ? 'var(--blue)' : 'var(--line-strong)';
         return (
           <React.Fragment key={i}>
-            <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
               <div style={{ width: 24, height: 24, borderRadius: '50%', margin: '0 auto', display: 'grid', placeItems: 'center',
-                background: s.done ? 'var(--green)' : '#fff', border: '2px solid ' + (s.done ? 'var(--green)' : 'var(--line-strong)'),
-                color: s.done ? '#fff' : 'var(--ink-4)' }}>
-                {s.done ? <I.check size={13} /> : <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--amber-solid)' }} />}
+                background: done || rej ? col : 'var(--surface)', border: '2px solid ' + col,
+                color: done || rej ? '#fff' : 'var(--ink-4)' }}>
+                {done ? <I.check size={13} /> : rej ? <I.x size={13} /> : c.voided ? <I.alert size={12} /> : <span style={{ width: 6, height: 6, borderRadius: '50%', background: cur ? 'var(--blue-solid)' : 'var(--line-strong)' }} />}
               </div>
-              <div className="tiny" style={{ fontWeight: 600, marginTop: 4, color: pending ? 'var(--ink-3)' : 'var(--ink)' }}>{s.role}</div>
-              <div className="tiny muted" style={{ lineHeight: 1.3 }}>{s.who ? String(s.who).split(' ')[0] : '—'}</div>
-              <div className="tiny mono" style={{ color: s.done ? 'var(--green)' : 'var(--amber)', fontWeight: 600 }}>{s.done ? s.on || 'selesai' : 'menunggu'}</div>
+              <div className="tiny" style={{ fontWeight: 600, marginTop: 4, color: done ? 'var(--ink)' : 'var(--ink-3)' }}>{c.role}</div>
+              <div className="tiny muted truncate" style={{ lineHeight: 1.3 }}>{c.name ? String(c.name).split(' ')[0] : '—'}</div>
+              <div className="tiny mono" style={{ color: done ? 'var(--green)' : c.voided ? 'var(--amber)' : cur ? 'var(--blue)' : 'var(--ink-4)', fontWeight: 600 }}>
+                {done ? ajeStampLabel(c.ts) : c.voided ? 'gugur' : cur ? 'menunggu' : rej ? 'ditolak' : '—'}
+              </div>
+              {c.legacy && done && <div className="tiny muted" title="Keputusan tercatat sebelum pengikatan hash — tak dapat diverifikasi terhadap isi jurnal">warisan</div>}
             </div>
-            {i < steps.length - 1 && <div style={{ flex: '0 0 auto', height: 2, width: 18, background: steps[i + 1].done ? 'var(--green)' : 'var(--line-strong)', marginTop: 12 }} />}
+            {i < chain.length - 1 && <div style={{ flex: '0 0 auto', height: 2, width: 18, background: chain[i + 1].status === 'approved' ? 'var(--green)' : 'var(--line-strong)', marginTop: 12 }} />}
           </React.Fragment>
         );
       })}
@@ -902,4 +1080,4 @@ Object.assign(window, { AJEView, ajeAssertionIds });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AJEView, ajeAssertionIds, ajeDerivePbt, ajeKindSuggestion, ajeLines };
+export { AJEView, ajeAssertionIds, ajeDerivePbt, ajeKindSuggestion, ajeLines, ajeTrailFrom };

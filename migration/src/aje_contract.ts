@@ -49,6 +49,10 @@ export interface AjeContractEntry {
   misNoneReason?: string | null;
   assertions?: readonly string[] | null;
   effectiveDate?: string | null;
+  /** Waktu pengajuan jurnal (ISO / 'YYYY-MM-DD HH:mm'). Milik JURNAL sejak PR-3 —
+   *  dulu hanya ada di tabel metadata sebuah view, sementara antrean memakai
+   *  konstanta untuk semua jurnal. Di luar hash: ia fakta pengajuan, bukan isi. */
+  proposedOn?: string | null;
   evidenceSource?: string | null;
   dmsLink?: string | null;
   preparer?: string | null;

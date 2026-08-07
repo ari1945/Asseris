@@ -8,8 +8,7 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 /* PR-2 — rantai AJE punya satu penghasil; antrean ini hanya memanggilnya. */
-import { AJE_SLA_HOURS, buildAjeChain, makeAjeDecision, nowStamp, parseStamp } from './aje_approval';
-import type { AjeChainLink } from './aje_approval';
+import { AJE_SLA_HOURS, ajeApproveOverlay, ajeRejectOverlay, ajeReviseOverlay, applyAjeOverlay, nowStamp, parseStamp, stepAuthority } from './aje_approval';
 
 /* ============================================================
    Asseris — Firm Platform · Approvals (Bagian D-1)
@@ -70,24 +69,7 @@ function applyOverlay(d: any, ov: any) {
      ditambal per-indeks di sini. Menambal berarti dua implementasi aturan
      "kapan sebuah langkah disetujui" — dan yang di sini tak akan pernah tahu
      bahwa jurnalnya berubah setelah ditandatangani. */
-  if (d.kind === 'AJE' && Array.isArray(d.steps)) {
-    const built = buildAjeChain(d.journal, d.steps, [...(d.decisions || []), ...(ov.decisions || [])]);
-    const rejected = ov.status === 'rejected';
-    const chain: AjeChainLink[] = rejected
-      ? built.chain.map((c, i) => (i === built.step
-        ? { ...c, status: 'rejected' as const, ts: ov.ts || null, name: ov.by || c.name, note: ov.note || 'Ditolak.' }
-        : c))
-      : built.chain;
-    const status = rejected ? 'rejected'
-      : ov.status === 'revision' ? 'revision'
-        : built.chainComplete ? 'approved' : 'pending';
-    return {
-      ...d, chain, step: built.step, status,
-      chainComplete: built.chainComplete, hasVoided: built.hasVoided,
-      postedWithoutFullChain: built.postedWithoutFullChain,
-      thread: [...d.thread, ...(ov.thread || [])],
-    };
-  }
+  if (d.kind === 'AJE' && Array.isArray(d.steps)) return applyAjeOverlay(d, ov);
   /* LEGACY — jenis persetujuan selain AJE (Faktur/Penerimaan/Opini/Independensi/
      WIP) masih memakai rantai dari penghitung; lihat PRD §5 (di luar lingkup). */
   const step = ov.step != null ? ov.step : d.step;
@@ -105,68 +87,11 @@ function applyOverlay(d: any, ov: any) {
   return { ...d, chain, step, status, thread: [...d.thread, ...(ov.thread || [])] };
 }
 
-/* ============================================================
-   PR-B — OTORITAS PER-LANGKAH.
-   ------------------------------------------------------------
-   Gerbang lama `canApprove = role.includes('Partner') || role.includes('Manager')`
-   punya tiga cacat: mencocokkan STRING peran (di luar SSOT RBAC), tak membedakan
-   langkah (seorang Manager dapat menyelesaikan langkah Engagement Partner DAN
-   langkah EQR — rantai tiga-lapis runtuh jadi satu), dan tak menolak self-approval.
-
-   Peta di bawah mengikat tiap peran-langkah ke kapabilitas yang benar. Berlaku
-   untuk jenis 'AJE'; jenis lain masih memakai gerbang lama (di luar lingkup PR-B,
-   lihat PRD §5) — perbedaannya sengaja dibuat terlihat, bukan disamarkan.
-   ============================================================ */
-const STEP_CAP: Record<string, string> = {
-  'Audit Manager': CAP.SIGNOFF_REVIEWER,
-  'Engagement Partner': CAP.AJE_POST,
-  'EQR Reviewer': CAP.EQR_REVIEW,
-};
-
-/** Boleh-kah `user` menyelesaikan langkah `step` pada item ini? */
-interface ApprovalStep { role: string; name?: string; status?: string }
-interface ApprovalItemLite { kind: string; from?: string; step: number; chain: ApprovalStep[] }
-interface SessionUser { name?: string; role: string }
-
-function stepAuthority(it: ApprovalItemLite, user: SessionUser): { ok: boolean; reason: string } {
-  const step = it.chain[it.step];
-  if (!step) return { ok: false, reason: 'Rantai persetujuan sudah tuntas.' };
-  /* Self-approval: penyusun tak boleh menyetujui pengajuannya sendiri (SoD). */
-  if (user && user.name && it.from && user.name === it.from) {
-    return { ok: false, reason: 'Penyusun tidak dapat menyetujui pengajuannya sendiri (pemisahan tugas).' };
-  }
-  /* ============================================================
-     PR-E — SATU ORANG, SATU LANGKAH.
-     ------------------------------------------------------------
-     PR-B mengikat tiap langkah ke kapabilitas, tetapi kapabilitas bukan
-     identitas: `EQR_REVIEW` ada pada PARTNER_BASE, sehingga partner yang
-     telah menandatangani langkah Engagement Partner masih lolos di langkah
-     EQR pada jurnal yang SAMA. Itu menghapus arti penelaahan pengendalian
-     mutu — ISQM 2 / SA 220.36 menuntut penelaah yang independen dari tim
-     perikatan, dan yang paling tidak independen adalah orang yang baru saja
-     menyetujuinya sendiri.
-
-     Hanya langkah ber-status `approved` yang dihitung: rantai seed membawa
-     NAMA penerima tugas pada langkah yang masih menunggu, dan nama itu
-     bukan tanda tangan. */
-  const priorSignature = user && user.name
-    ? it.chain.slice(0, it.step).find(c => c && c.status === 'approved' && c.name === user.name)
-    : undefined;
-  if (priorSignature) {
-    return {
-      ok: false,
-      reason: `Anda telah menandatangani langkah "${priorSignature.role}" pada rantai ini; satu orang tidak dapat mengisi dua langkah (ISQM 2 / SA 220.36).`,
-    };
-  }
-  if (it.kind !== 'AJE') {
-    const legacy = user.role.includes('Partner') || user.role.includes('Manager');
-    return { ok: legacy, reason: legacy ? '' : 'Peran Anda tidak berwenang menyetujui.' };
-  }
-  const need = STEP_CAP[step.role];
-  if (!need) return { ok: false, reason: `Langkah "${step.role}" belum dipetakan ke kapabilitas.` };
-  const ok = rbacCan(user.role, need);
-  return { ok, reason: ok ? '' : `Langkah "${step.role}" memerlukan kapabilitas ${need}; peran ${user.role} tidak memilikinya.` };
-}
+/* PR-4 — `stepAuthority` & `STEP_CAP` DIPINDAH ke `aje_approval.ts`.
+   Antrean persetujuan kini punya DUA permukaan (modul ini dan tab AJE);
+   gerbang otorisasi yang tinggal di salah satu view berarti permukaan yang
+   lain memakai gerbangnya sendiri. Diekspor ulang di bawah agar pemanggil
+   & uji lama tak perlu berubah. */
 
 function Approvals() {
   const nav = useNav();
@@ -216,28 +141,23 @@ function Approvals() {
     const gate = stepAuthority(it, user);
     if (!gate.ok) { window.alert(gate.reason); return; }
     if (decision === 'approve') {
-      /* PR-B — `stepRole` WAJIB: server memakainya untuk menentukan kapabilitas yang
-         dituntut langkah ini. Keputusan tanpa stepRole ditolak (fail-closed).
-         PR-2 — keputusan juga membawa HASH isi jurnal yang disetujuinya, sehingga
-         menyunting jurnal setelah ini menggugurkan tanda tangannya dengan
-         sendirinya (tanpa memerlukan tulisan kedua yang bisa gagal). */
-      const stepRole = (it.chain[it.step] && it.chain[it.step].role) || '';
+      /* PR-4 — bentuk tulisan keputusan ditetapkan `ajeApproveOverlay` (murni,
+         dipakai juga tab AJE), bukan disusun di sini. `stepRole` WAJIB (server
+         memakainya untuk menentukan kapabilitas langkah; fail-closed), keputusan
+         membawa HASH isi jurnal, dan `done` dihitung penghasil rantai — bukan
+         `step + 1`, yang dengan pengikatan hash bisa berbohong. */
+      const ts = nowStamp();
       const isAje = d.kind === 'AJE';
-      const newDec = isAje
-        ? makeAjeDecision({ a: d.journal, idx: it.step, stepRole, name: user.name, role: user.role, ts: nowStamp(), note })
-        : { idx: it.step, stepRole, name: user.name, role: user.role, ts: nowStamp(), note: note || 'Disetujui.' };
-      /* Rantai final dihitung dari penghasil yang sama, bukan dari penghitung
-         `step + 1`: dengan pengikatan hash, "langkah berikutnya" belum tentu
-         berarti "rantai lengkap" (bisa ada tanda tangan yang gugur di belakang). */
-      const prevOv = overlay[id] || {};
-      const allDecisions = [...(d.decisions || []), ...(prevOv.decisions || []), newDec];
-      const done = isAje
-        ? buildAjeChain(d.journal, d.steps, allDecisions).chainComplete
-        : it.step + 1 >= it.chain.length;
+      const applied = isAje
+        ? ajeApproveOverlay({ item: d, prevEntry: overlay[id], user, ts, note })
+        : null;
+      const done = applied ? applied.done : it.step + 1 >= it.chain.length;
       setOverlay((o: any) => {
         const prev = o[id] || {};
-        const decisions = [...(prev.decisions || []), newDec];
-        const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: nowStamp(), text: note, kind: 'approve' }] : (prev.thread || []);
+        if (applied) return { ...o, [id]: ajeApproveOverlay({ item: d, prevEntry: prev, user, ts, note }).entry };
+        const stepRole = (it.chain[it.step] && it.chain[it.step].role) || '';
+        const decisions = [...(prev.decisions || []), { idx: it.step, stepRole, name: user.name, role: user.role, ts, note: note || 'Disetujui.' }];
+        const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: ts, text: note, kind: 'approve' }] : (prev.thread || []);
         return { ...o, [id]: { ...prev, step: it.step + 1, status: done ? 'approved' : 'pending', decisions, thread } };
       });
       /* === TULIS-BALIK SSOT: persetujuan final AJE memposting jurnal ke WTB === */
@@ -245,9 +165,11 @@ function Approvals() {
         toggleAjeStatus(d.sourceId, { by: user.name, approvalId: id });
       }
     } else if (decision === 'reject') {
-      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: nowStamp(), text: note || 'Ditolak.', kind: 'reject' }] } }));
+      const ts = nowStamp();
+      setOverlay((o: any) => ({ ...o, [id]: ajeRejectOverlay({ prevEntry: o[id], user, ts, note }) }));
     } else if (decision === 'revise') {
-      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'revision', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: nowStamp(), text: note || 'Mohon revisi & ajukan ulang.', kind: 'revise' }] } }));
+      const ts = nowStamp();
+      setOverlay((o: any) => ({ ...o, [id]: ajeReviseOverlay({ prevEntry: o[id], user, ts, note }) }));
     }
     logActivity && logActivity({ who: user.name, action: decision === 'approve' ? 'APPROVE' : decision === 'reject' ? 'REJECT' : 'EDIT', detail: `${it.kind} ${it.ref} — ${it.title.slice(0, 40)}` });
   };
