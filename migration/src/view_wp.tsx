@@ -12,9 +12,9 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpSeedReviewSignature } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpSeedReviewSignature, wpEffectiveChain } from './wp_canon';
 /* PRD prd-wp-signoff-integrity — aturan rantai tanda tangan (dipakai bersama server). */
-import { WP_SLOT_ORDER, WP_SLOT_LABEL, wpChainSelfReviewBy, wpContentHash, wpSignatureStamp, wpFormatSignedAt, signedByActor } from './wp_chain';
+import { WP_SLOT_ORDER, WP_SLOT_LABEL, wpChainSelfReviewBy, wpChainLinks, wpContentHash, wpSignatureStamp, wpFormatSignedAt, signedByActor } from './wp_chain';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
 
 /* ============================================================
@@ -1076,22 +1076,24 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
      membuka SEMUA slot ketika modul dirender di luar AuthProvider — kebalikan
      dari yang seharusnya terjadi saat identitas tak diketahui. */
   const can = (cap: string) => !!(auth && typeof auth.can === 'function' && auth.can(cap));
-  const chain = st.chain || {};
-  /* derive defaults */
-  const preparer = chain.preparer || null;
-  /* SSOT: tanda tangan reviewer HANYA dari chain (tercatat) atau tanggal reviu yang
-     dideklarasikan di seed — status tidak pernah melahirkannya (lihat wp_canon). */
-  const reviewer = chain.reviewer || wpSeedReviewSignature(ref_);
-  const partner = chain.partner || null;
+  /* SSOT: rantai dibaca lewat `wpChainLinks` — penghasil yang SAMA dengan
+     `deriveWpStatus`/SA 230. Sebuah tanda tangan berlaku hanya bila `contentHash`-nya
+     cocok dengan isi kertas kerja SAAT INI; bila isi berubah setelah ditandatangani,
+     ia GUGUR — dan gugurnya tidak memerlukan tulisan apa pun. */
+  const chain = wpEffectiveChain(ref_, st);
   const eqrReq = !!activeClient?.listed;
-  const eqr = chain.eqr || null;
-
-  const levels = [
-    { key: 'preparer', role: 'Preparer', who: it[2], cap: WP_SLOT_CAP.preparer, desc: 'Menyiapkan kertas kerja & prosedur', signed: preparer },
-    { key: 'reviewer', role: 'Reviewer (Manager)', who: 'Anindya P.', cap: WP_SLOT_CAP.reviewer, desc: 'Review detail & kecukupan bukti', signed: reviewer },
-    { key: 'partner', role: 'Engagement Partner', who: 'Hartono W.', cap: WP_SLOT_CAP.partner, desc: 'Persetujuan akhir partner', signed: partner },
-  ];
-  if (eqrReq) levels.push({ key: 'eqr', role: 'EQR (Penelaah Mutu)', who: 'Sari Dewanti', cap: WP_SLOT_CAP.eqr, desc: 'Telaah pengendalian mutu perikatan (PIE)', signed: eqr });
+  const links = wpChainLinks(chain, wpContentHash(st), eqrReq ? WP_SLOT_ORDER : WP_SLOT_ORDER.slice(0, 3));
+  const LVL_META: Record<string, { role: string; who: string; desc: string }> = {
+    preparer: { role: 'Preparer', who: it[2], desc: 'Menyiapkan kertas kerja & prosedur' },
+    reviewer: { role: 'Reviewer (Manager)', who: 'Anindya P.', desc: 'Review detail & kecukupan bukti' },
+    partner: { role: 'Engagement Partner', who: 'Hartono W.', desc: 'Persetujuan akhir partner' },
+    eqr: { role: 'EQR (Penelaah Mutu)', who: 'Sari Dewanti', desc: 'Telaah pengendalian mutu perikatan (PIE)' },
+  };
+  const levels = links.map(l => ({
+    key: l.slot, ...LVL_META[l.slot], cap: WP_SLOT_CAP[l.slot],
+    signed: l.signed, status: l.status, voidedBy: l.voidedBy || null,
+  }));
+  const voidedLinks = levels.filter(l => l.status === 'voided');
 
   /* Alasan KONKRET sebuah slot tak dapat ditandatangani — dipakai untuk mematikan
      tombol DAN menjelaskan sebabnya. Sebelumnya setiap sebab (urutan rantai,
@@ -1145,7 +1147,12 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
 
   /* audit trail */
   const trail = [];
-  levels.forEach(l => { if (l.signed) trail.push({ at: wpFormatSignedAt(l.signed.at), who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' }); });
+  levels.forEach(l => {
+    if (l.signed) trail.push({ at: wpFormatSignedAt(l.signed.at), who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' });
+    /* Tanda tangan yang gugur TIDAK dihapus dari jejak — pembatalannya justru harus
+       dapat ditelusuri: siapa menandatangani, kapan, dan bahwa isinya lalu berubah. */
+    else if (l.voidedBy) trail.push({ at: wpFormatSignedAt(l.voidedBy.at), who: l.voidedBy.by, what: `Sign-off ${l.role} — GUGUR (isi kertas kerja berubah setelah ditandatangani)`, ic: 'alert', col: 'var(--amber)' });
+  });
   (st.log || []).forEach((e: any) => trail.push(e));
   /* Dua peristiwa seed di bawah DIDEKLARASIKAN tanggalnya. Yang pertama dulu memakai
      `today`, sehingga jejak audit menyatakan kertas kerja ini dibuat HARI INI oleh
@@ -1159,14 +1166,40 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
     <div className="split" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h"><h3>Rantai Sign-off</h3><div style={{ flex: 1 }} /><span className="tiny muted">Berurutan: preparer → reviewer → partner{eqrReq ? ' → EQR' : ''}</span></div>
+        {/* Tanda tangan tidak hilang diam-diam: bila isi kertas kerja berubah setelah
+            ditandatangani, sebutkan siapa yang gugur dan mengapa. Tanpa penjelasan ini,
+            tanda tangan yang lenyap akan dibaca sebagai bug — dan auditor berhenti
+            memercayai layarnya. */}
+        {!!voidedLinks.length && (
+          <div style={{ padding: '11px 14px', borderBottom: '1px solid var(--line)', background: 'var(--amber-bg)' }}>
+            <div className="row ac gap8" style={{ marginBottom: 4 }}>
+              <span style={{ color: 'var(--amber)', display: 'inline-flex' }}><I.alert size={15} /></span>
+              <span style={{ fontSize: 12, fontWeight: 700 }}>
+                {voidedLinks.length} tanda tangan gugur — isi kertas kerja berubah setelah ditandatangani
+              </span>
+            </div>
+            <div className="tiny" style={{ lineHeight: 1.55, color: 'var(--ink-2)' }}>
+              {voidedLinks.map(l => `${l.role} (${l.voidedBy?.by}, ${wpFormatSignedAt(l.voidedBy?.at)})`).join(' · ')}
+              {' — '}prosedur, bukti, atau kesimpulan telah disunting sejak itu, sehingga persetujuannya
+              tidak lagi menunjuk dokumen yang tersimpan. Slot terkait kembali menunggu tanda tangan
+              (SA 230 ¶A23: perubahan sebelum perakitan diperkenankan, tetapi harus ditelaah ulang).
+            </div>
+          </div>
+        )}
         <div style={{ padding: '4px 0' }}>
           {levels.map((l, i) => (
             <div key={l.key} className="row gap12" style={{ padding: '12px 14px', borderBottom: i < levels.length - 1 ? '1px solid var(--line-soft)' : 0, alignItems: 'center' }}>
-              <span style={{ width: 30, height: 30, borderRadius: '50%', flex: '0 0 30px', display: 'grid', placeItems: 'center', background: l.signed ? 'var(--green-bg)' : 'var(--surface-3)', color: l.signed ? 'var(--green)' : 'var(--ink-4)' }}>
-                {l.signed ? <I.check size={15} /> : <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{i + 1}</span>}
+              <span style={{ width: 30, height: 30, borderRadius: '50%', flex: '0 0 30px', display: 'grid', placeItems: 'center', background: l.signed ? 'var(--green-bg)' : l.status === 'voided' ? 'var(--amber-bg)' : 'var(--surface-3)', color: l.signed ? 'var(--green)' : l.status === 'voided' ? 'var(--amber)' : 'var(--ink-4)' }}>
+                {l.signed ? <I.check size={15} /> : l.status === 'voided' ? <I.alert size={14} /> : <span className="mono" style={{ fontWeight: 700, fontSize: 12 }}>{i + 1}</span>}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="row ac gap8"><span style={{ fontSize: 12, fontWeight: 700 }}>{l.role}</span>{l.key === 'eqr' && <Badge kind="purple">PIE</Badge>}</div>
+                <div className="row ac gap8">
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>{l.role}</span>
+                  {l.key === 'eqr' && <Badge kind="purple">PIE</Badge>}
+                  {l.status === 'voided' && <Badge kind="amber">GUGUR</Badge>}
+                  {/* Tanda tangan warisan: tak diklaim terverifikasi, tak pula dihapus. */}
+                  {l.status === 'legacy' && <Badge kind="gray">warisan</Badge>}
+                </div>
                 <div className="tiny muted">{l.desc}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -1174,6 +1207,14 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
                   <>
                     <div className="row ac gap6 je"><Avatar name={l.signed.by} size={20} /><span className="tiny" style={{ fontWeight: 600 }}>{l.signed.by}</span></div>
                     <div className="tiny muted mono" style={{ marginTop: 2 }}>{wpFormatSignedAt(l.signed.at)}</div>
+                  </>
+                ) : l.voidedBy ? (
+                  <>
+                    <div className="row ac gap6 je" style={{ opacity: 0.6 }}>
+                      <Avatar name={l.voidedBy.by} size={20} />
+                      <span className="tiny" style={{ fontWeight: 600, textDecoration: 'line-through' }}>{l.voidedBy.by}</span>
+                    </div>
+                    <div className="tiny mono" style={{ marginTop: 2, color: 'var(--amber)' }}>gugur · ditandatangani {wpFormatSignedAt(l.voidedBy.at)}</div>
                   </>
                 ) : <span className="tiny muted">{l.key === 'preparer' ? `Ditugaskan: ${l.who} · belum menandatangani` : 'belum ditandatangani'}</span>}
               </div>
@@ -1208,10 +1249,15 @@ function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs, 
   /* FAIL-CLOSED, idem SignoffTab. */
   const can = (cap: string) => !!(auth && typeof auth.can === 'function' && auth.can(cap));
   const canReview = can(CAP.SIGNOFF_REVIEWER);
-  /* idem SignoffTab — footer tak boleh menampilkan penanda tangan yang tak pernah ada. */
-  const chainRev = (st.chain && st.chain.reviewer) || wpSeedReviewSignature(ref_);
-  const reviewer = chainRev ? chainRev.by : null;
-  const preparerSigned = !!(st.chain && st.chain.preparer);
+  /* Penghasil yang SAMA dengan SignoffTab & deriveWpStatus — footer tak boleh
+     menampilkan penanda tangan yang tak pernah ada, maupun yang sudah gugur. */
+  const fLinks = wpChainLinks(wpEffectiveChain(ref_, st), wpContentHash(st));
+  const bySlot = (k: string) => fLinks.find(l => l.slot === k);
+  const revLink = bySlot('reviewer');
+  const reviewer = revLink && revLink.signed ? revLink.signed.by : null;
+  const prepLink = bySlot('preparer');
+  const preparerSigned = !!(prepLink && prepLink.signed);
+  const voidedCount = fLinks.filter(l => l.status === 'voided').length;
 
   /* `quickSign` DIHAPUS (PRD prd-wp-signoff-integrity, PR-2).
      Ia menulis DUA tanda tangan sekaligus: reviewer dari sesi, dan preparer dari
@@ -1256,6 +1302,12 @@ function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs, 
         <span className="row ac gap6 tiny"><span className="muted">Reviewer</span>{reviewer ? <><Avatar name={reviewer} size={20} /><span style={{ fontWeight: 600 }}>{reviewer}</span><span style={{ color: 'var(--green)' }}><I.checkCircle size={13} /></span></> : <span className="muted">menunggu</span>}</span>
         <span className="vdivider" style={{ height: 20 }} />
         <span className="row ac gap6 tiny"><span className="muted">Prosedur</span><span className="mono" style={{ fontWeight: 700 }}>{doneCount}/{totalProcs}</span></span>
+        {voidedCount > 0 && <>
+          <span className="vdivider" style={{ height: 20 }} />
+          <span className="row ac gap6 tiny" style={{ color: 'var(--amber)', fontWeight: 600 }} title="Isi kertas kerja berubah setelah ditandatangani — lihat tab Sign-off">
+            <I.alert size={12} /> {voidedCount} tanda tangan gugur
+          </span>
+        </>}
       </div>
       {locked
         ? <Badge kind="gray"><I.lock size={12} /> Read-only</Badge>

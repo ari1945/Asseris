@@ -6,7 +6,8 @@
    FUNGSI MURNI — tanpa import React/.tsx; hanya tipe dari selektor kanon.
    ============================================================ */
 import type { ProcedureInput } from './canon_selectors';
-import { WP_SLOT_LABEL, wpChainSelfReview } from './wp_chain';
+import { WP_SLOT_LABEL, WP_SLOT_ORDER, wpChainSelfReview, wpChainLinks, wpChainComplete, wpContentHash } from './wp_chain';
+import type { WpChain } from './wp_chain';
 
 /* ---- File index (ref, title, preparer, reviewer, status, tanggalReviu?) ----
    Elemen ke-6 = TANGGAL REVIU yang DIDEKLARASIKAN sebagai data seed. Ia ada hanya
@@ -191,23 +192,44 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   let coverage = null;
   if (bal != null) { const a = Math.abs(bal); coverage = { bal, level: a >= pm ? 'full' : a >= triv ? 'partial' : 'trivial' }; }
 
-  /* sign-off chain — identical default logic to SignoffTab */
-  const chain = st.chain || {};
+  /* Rantai sign-off — SATU penghasil (`wpChainLinks`), dipakai juga SignoffTab &
+     WPFooter, sehingga tanda tangan yang gugur tak bisa tampil gugur di satu layar
+     dan hijau di layar lain. `assigned` tetap terpisah: nama penerima tugas bukan
+     tanda tangan. */
   const listed = !!(firm && firm.activeClient && firm.activeClient.listed);
-  const preparer = chain.preparer || null;                       // assigned ≠ signed
-  const reviewer = chain.reviewer || wpSeedReviewSignature(ref);
-  const partner = chain.partner || null;
-  const eqr = chain.eqr || null;
-  const signoff = [
-    { key: 'preparer', role: 'Preparer', signed: preparer, assigned: meta.preparer },
-    { key: 'reviewer', role: 'Reviewer', signed: reviewer, assigned: meta.reviewer },
-    { key: 'partner', role: 'Partner', signed: partner, assigned: '' },
-  ];
-  if (listed) signoff.push({ key: 'eqr', role: 'EQR', signed: eqr, assigned: '' });
+  const slots = listed ? WP_SLOT_ORDER : WP_SLOT_ORDER.slice(0, 3);
+  const links = wpChainLinks(wpEffectiveChain(ref, st), wpContentHash(st), slots);
+  const ASSIGNED: Record<string, string> = { preparer: meta.preparer, reviewer: meta.reviewer };
+  const ROLE: Record<string, string> = { preparer: 'Preparer', reviewer: 'Reviewer', partner: 'Partner', eqr: 'EQR' };
+  const signoff = links.map(l => ({
+    key: l.slot, role: ROLE[l.slot], signed: l.signed, assigned: ASSIGNED[l.slot] || '',
+    status: l.status, voidedBy: l.voidedBy || null,
+  }));
+  /* Tanda tangan yang GUGUR tidak dihitung: isinya sudah bukan yang disetujui. */
   const signedCount = signoff.filter(l => l.signed).length;
+  const voided = signoff.filter(l => l.status === 'voided');
 
   const relRisks = risks.filter((r: any) => (r.wp || '').split('-')[0] === ref);
-  return { ref, title: meta.title, section: meta.section, status, done, total: statuses.length, exc, openNotes, coverage, pm, triv, signoff, signedCount, fullySigned: signedCount === signoff.length, relRisks, hasLead: leadRows.length > 0 };
+  return {
+    ref, title: meta.title, section: meta.section, status, done, total: statuses.length, exc, openNotes,
+    coverage, pm, triv, signoff, signedCount, fullySigned: wpChainComplete(links),
+    voided, hasVoided: voided.length > 0,
+    relRisks, hasLead: leadRows.length > 0,
+  };
+}
+
+/**
+ * Rantai efektif sebuah kertas kerja: yang TERCATAT di `chain`, ditambah tanda
+ * tangan reviu yang DIDEKLARASIKAN di seed untuk WP yang memang sudah direviu.
+ * Satu tempat, karena tiga pembaca dulu menurunkannya masing-masing.
+ */
+function wpEffectiveChain(ref: string, st: { chain?: WpChain } | null | undefined): WpChain {
+  const chain: WpChain = { ...((st && st.chain) || {}) };
+  if (!chain.reviewer) {
+    const seed = wpSeedReviewSignature(ref);
+    if (seed) chain.reviewer = seed;
+  }
+  return chain;
 }
 
 /* Prosedur + status (exec-aware) satu lead schedule → input mesin cakupan asersi.
@@ -238,5 +260,5 @@ export {
   WP_INDEX, WP_TITLE, WP_REFS, WP_META,
   WP_PROCS, procsFor, PROC_EXC_SEED, defaultProcState, WP_SEED_NOTES,
   execStatus, procStatusAt, procStatesFor, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
-  wpToday, WP_SLOT_LABEL, wpChainSelfReview, wpSeedReviewSignature,
+  wpToday, WP_SLOT_LABEL, wpChainSelfReview, wpSeedReviewSignature, wpEffectiveChain,
 };
