@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuth, useFirm, useInitialTab, useMateriality, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -18,6 +18,9 @@ import {
   nowStamp, parseStamp, stepAuthority,
 } from './aje_approval';
 import type { AjeChainLink, AjeOverlayEntry, AjeQueueItem } from './aje_approval';
+import { ajeDistinct, filterAjeRows, sortAjeRows } from './aje_register';
+import type { AjeRegisterRow } from './aje_register';
+import { checkWtbIntegrity } from './wtb_integrity';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { SAD_SEED } from './view_sad';
 import { amsExportXlsx } from './export_xlsx';
@@ -47,11 +50,11 @@ const COVENANT = 1.20;
    Tanggal kini ISO — `ord()` lama hanya mengenal 'Mei'/'Jun' sehingga bulan lain
    tersortir ke 0, dan entri baru ('baru saja') tenggelam ke dasar padahal terbaru. */
 const AJE_META = {
-  'AJE-01': { kind: 'adjusting', mis: 'M-05', std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], preparer: 'Rina Kusuma', role: 'Junior Auditor', reviewedOn: '2026-05-06', postedOn: '2026-05-08', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-02': { kind: 'adjusting', mis: 'M-04', std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', reviewedOn: '2026-05-10', postedOn: '2026-05-12', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-03': { kind: 'adjusting', mis: 'M-01', std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', reviewedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
-  'AJE-04': { kind: 'adjusting', mis: 'M-06', std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], preparer: 'Sinta Wulandari', role: 'Senior Auditor', reviewedOn: '2026-05-11', postedOn: '2026-05-13', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-05': { kind: 'adjusting', mis: 'M-02', std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-01': { kind: 'adjusting', mis: 'M-05', std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], role: 'Junior Auditor', reviewedOn: '2026-05-06', postedOn: '2026-05-08', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-02': { kind: 'adjusting', mis: 'M-04', std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], role: 'Senior Auditor', reviewedOn: '2026-05-10', postedOn: '2026-05-12', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-03': { kind: 'adjusting', mis: 'M-01', std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], role: 'Senior Auditor', reviewedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
+  'AJE-04': { kind: 'adjusting', mis: 'M-06', std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], role: 'Senior Auditor', reviewedOn: '2026-05-11', postedOn: '2026-05-13', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-05': { kind: 'adjusting', mis: 'M-02', std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], role: 'Senior Auditor', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
 };
 
 const KIND_LABEL = { adjusting: 'Penyesuaian', reclass: 'Reklasifikasi' };
@@ -110,7 +113,11 @@ function buildAjeModel(aje: any) {
          lagi — dan nilainya memang salah untuk AJE-02 (CKPN −620 jt ditulis 0). */
       pbt: ajeDerivePbt(a),
       mis: m.mis || a.mis || null, std: m.std || '—', cycle: m.cycle || '—',
-      preparer: m.preparer || a.preparer || 'Saya', role: m.role || 'Auditor',
+      /* PR-6 — `preparer` milik JURNAL (data_part1), sebagaimana `proposedOn`.
+         Tinjauan hidup menangkapnya: register menyebut "Rina Kusuma" (dari tabel
+         metadata view ini) sementara tab Review menyebut "Dimas" (default antrean)
+         untuk jurnal yang SAMA. Satu fakta, dua jawaban — kelas yang sedang ditutup. */
+      preparer: a.preparer || m.preparer || 'Saya', role: m.role || 'Auditor',
       /* PR-3 — `proposedOn` kini milik JURNAL (data_part1), bukan tabel metadata
          view ini. Dulu ia hanya ada di sini, sementara antrean persetujuan memakai
          konstanta `'2026-03-09 16:40'` untuk kelima jurnal — dua modul, satu fakta,
@@ -168,7 +175,8 @@ function AJEView() {
   // A Junior Auditor sees the data read-only. Combine with the archive lock.
   const canEditAje = !auth || typeof auth.can !== 'function' || auth.can(CAP.AJE_EDIT);
   const writeLocked = locked || !canEditAje;
-  const [tab, setTab] = useStateAJ('register');
+  /* PR-6 — tab awal dapat ditentukan deep-link (`nav('aje', { tab })`). */
+  const [tab, setTab] = useInitialTab('aje', 'register');
   const [showForm, setShowForm] = useStateAJ(false);
 
   const model = useMemoAJ(() => buildAjeModel(aje), [aje]);
@@ -215,10 +223,16 @@ function AJEView() {
     }
   };
 
+  /* PR-6 — lima tab yang mengikuti alur kerja auditor, bukan tiga yang
+     mencampur "apa yang terjadi" dengan "apa yang harus saya putuskan".
+     Persetujuan tidak lagi di modul terpisah yang memecah konteks: ia tab
+     di sini, membaca antrean yang sama. */
   const tabs = [
-    { id: 'register', label: 'Daftar Jurnal', count: model.length },
-    { id: 'impact', label: 'Dampak Laba & Neraca' },
-    { id: 'approvals', label: 'Persetujuan & Jejak Audit', count: proposed.length || null },
+    { id: 'register', label: 'Register Jurnal', count: model.length },
+    { id: 'impact', label: 'Dampak & Rekonsiliasi' },
+    { id: 'review', label: 'Review & Persetujuan', count: proposed.length || null },
+    { id: 'trail', label: 'Jejak Audit' },
+    { id: 'export', label: 'Ekspor & Finalisasi' },
   ];
 
   return (
@@ -226,7 +240,6 @@ function AJEView() {
       <SubBar moduleId="aje" right={
         <div className="row gap8 ac">
           <Badge kind="blue">SA 450</Badge>
-          <Btn sm onClick={onExportXlsx} disabled={exporting}><I.download size={13} /> {exporting ? 'Menyiapkan…' : 'Export Jurnal (XLSX)'}</Btn>
           <Btn sm variant="primary" disabled={writeLocked} style={{ opacity: writeLocked ? .5 : 1 }} title={!canEditAje && !locked ? 'Peran Anda tidak berhak mengubah AJE' : ''} onClick={() => !writeLocked && setShowForm(true)}><I.plus size={14} /> AJE Baru</Btn>
         </div>
       } />
@@ -257,7 +270,9 @@ function AJEView() {
 
           {tab === 'register' && <AjeRegister model={model} locked={writeLocked} />}
           {tab === 'impact' && <AjeImpact model={model} posted={posted} proposed={proposed} fig={fig} pbtUnadj={pbtUnadj} reportedPbt={reportedPbt} pbtPosted={pbtPosted} pbtProposed={pbtProposed} />}
-          {tab === 'approvals' && <AjeApprovals />}
+          {tab === 'review' && <AjeApprovals />}
+          {tab === 'trail' && <AjeTrail />}
+          {tab === 'export' && <AjeFinalisation model={model} wtb={wtb} onExportXlsx={onExportXlsx} exporting={exporting} />}
         </div>
       </div>
       {showForm && <AJEForm accounts={accounts} onClose={() => setShowForm(false)} onPost={(entry: any) => { addAje(entry); setShowForm(false); }} />}
@@ -275,28 +290,95 @@ function AjeKpi({ value, label, accent }: any) {
 function AjeRegister({ model, locked }: any) {
   const { fmt } = AMS;
   const nav = useNav();
+  const mat = useMateriality();
+  const { items } = useAjeQueue();
   const [selId, setSelId] = useStateAJ(model[0] ? model[0].id : null);
   const [filt, setFilt] = useStateAJ('all');
+  /* PR-6 — pencarian & penyaringan yang menjawab pertanyaan penelaah:
+     "mana yang di atas PM", "mana yang belum tertaut SAD", "mana yang
+     menunggu saya". Logikanya di `aje_register` (murni & teruji). */
+  const [q, setQ] = useStateAJ('');
+  const [band, setBand] = useStateAJ('all');
+  const [sad, setSad] = useStateAJ('all');
+  const [cycle, setCycle] = useStateAJ('all');
+  const [preparer, setPreparer] = useStateAJ('all');
+  const [owner, setOwner] = useStateAJ('all');
+  const [sortKey, setSortKey] = useStateAJ('id');
+  const [sortDir, setSortDir] = useStateAJ('asc');
+  const [showMore, setShowMore] = useStateAJ(false);
 
-  const rows = model.filter((a: any) => filt === 'all' || (filt === 'posted' && a.status === 'Posted') || (filt === 'proposed' && a.status === 'Proposed') || (filt === 'reclass' && a.kind === 'reclass'));
+  /* Pemilik langkah berjalan diambil dari rantai persetujuan — bukan dari
+     tebakan atas status. Tanpa peta ini filter "menunggu siapa" tak berlaku. */
+  const ownerById: Record<string, string> = {};
+  items.forEach((it) => {
+    const cur = it.chain[it.step];
+    if (it.status === 'pending' && cur) ownerById[it.sourceId] = cur.name;
+  });
+
+  /* `mat.pm`/`mat.ctt` bersatuan Rp JUTA; `amount` register bersatuan Rp PENUH.
+     Memakai yang salah membuat setiap jurnal jatuh di atas PM. */
+  const bands = { pm: Number(mat?.pmFull || 0), ctt: Number(mat?.cttFull || 0) };
+  const legacyStatus = filt === 'posted' ? 'Posted' : filt === 'proposed' ? 'Proposed' : 'all';
+  const rows = sortAjeRows(
+    filterAjeRows(model as AjeRegisterRow[],
+      { q, status: legacyStatus, kind: filt === 'reclass' ? 'reclass' : 'all', band: band as never, sad: sad as never, cycle, preparer, owner },
+      { bands, ownerById }),
+    sortKey as never, sortDir as never);
   const sel = model.find((a: any) => a.id === selId) || null;
+  const sortBtn = (key: string, label: string, width?: number) => (
+    <th style={width ? { width } : undefined} className={key === 'amount' || key === 'pbt' ? 'num' : undefined}>
+      <button
+        onClick={() => { if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDir(key === 'id' ? 'asc' : 'desc'); } }}
+        style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: sortKey === key ? 'var(--blue)' : 'inherit', cursor: 'pointer', fontWeight: sortKey === key ? 700 : undefined }}
+        title="Urutkan"
+      >{label}{sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</button>
+    </th>
+  );
 
   return (
     <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 12, alignItems: 'start' }}>
       <Panel noBody>
         <div className="panel-h">
-          <h3>Daftar Adjusting & Reclassifying Entries</h3>
+          <h3>Register Jurnal</h3>
           <div style={{ flex: 1 }} />
+          <input className="input" style={{ height: 26, width: 210, marginRight: 8 }} placeholder="Cari no., akun, WP, SAD, penyusun…"
+            value={q} onChange={(e: { target: { value: string } }) => setQ(e.target.value)} />
           <Seg value={filt} onChange={setFilt} options={[{ value: 'all', label: 'Semua' }, { value: 'posted', label: 'Posted' }, { value: 'proposed', label: 'Usulan' }, { value: 'reclass', label: 'Reklas' }]} />
+        </div>
+        <div className="row gap6 ac" style={{ padding: '8px 12px', flexWrap: 'wrap', borderBottom: '1px solid var(--line-soft)' }}>
+          <AjeFilterSelect label="Materialitas" value={band} onChange={setBand} options={[
+            { value: 'all', label: 'Semua nilai' },
+            { value: 'above-pm', label: `≥ PM (${fmt(bands.pm / 1e6, 0)} jt)` },
+            { value: 'pm-ctt', label: 'Antara CTT–PM' },
+            { value: 'below-ctt', label: `< CTT (${fmt(bands.ctt / 1e6, 0)} jt)` },
+          ]} />
+          <AjeFilterSelect label="SAD" value={sad} onChange={setSad} options={[
+            { value: 'all', label: 'Semua' }, { value: 'linked', label: 'Tertaut SAD' }, { value: 'unlinked', label: 'Belum tertaut' },
+          ]} />
+          <button className="chip x" style={{ height: 24 }} onClick={() => setShowMore((v: boolean) => !v)}>{showMore ? 'Sembunyikan filter' : 'Filter lain'}</button>
+          {showMore && (
+            <>
+              <AjeFilterSelect label="Siklus" value={cycle} onChange={setCycle} options={[{ value: 'all', label: 'Semua siklus' },
+                ...ajeDistinct(model as AjeRegisterRow[], (r) => r.cycle).map((v) => ({ value: v, label: v }))]} />
+              <AjeFilterSelect label="Penyusun" value={preparer} onChange={setPreparer} options={[{ value: 'all', label: 'Semua penyusun' },
+                ...ajeDistinct(model as AjeRegisterRow[], (r) => r.preparer).map((v) => ({ value: v, label: v }))]} />
+              <AjeFilterSelect label="Menunggu" value={owner} onChange={setOwner} options={[{ value: 'all', label: 'Siapa pun' },
+                ...[...new Set(Object.values(ownerById))].sort().map((v) => ({ value: v, label: v }))]} />
+            </>
+          )}
+          <div style={{ flex: 1 }} />
+          {/* Jumlah yang DISEMBUNYIKAN dinyatakan — penyaringan senyap membuat
+              register tampak lebih pendek daripada kenyataannya. */}
+          <span className="tiny muted">{rows.length} dari {model.length}{rows.length < model.length ? ` · ${model.length - rows.length} tersaring` : ''}</span>
         </div>
         <table className="dtbl">
           <thead><tr>
-            <th style={{ width: 64 }}>No.</th>
+            {sortBtn('id', 'No.', 64)}
             <th>Deskripsi</th>
-            <th style={{ width: 92 }}>Jenis</th>
+            {sortBtn('status', 'Jenis', 92)}
             <th style={{ width: 58 }}>Salah Saji</th>
-            <th className="num" style={{ width: 110 }}>Nilai (Rp)</th>
-            <th className="num" style={{ width: 96 }}>Efek Laba</th>
+            {sortBtn('amount', 'Nilai (Rp)', 110)}
+            {sortBtn('pbt', 'Efek Laba', 96)}
             <th style={{ width: 92 }}>Status</th>
           </tr></thead>
           <tbody>
@@ -331,10 +413,15 @@ function AjeRegister({ model, locked }: any) {
             ))}
           </tbody>
         </table>
+        {!rows.length && (
+          <div className="tiny muted" style={{ padding: 24, textAlign: 'center' }}>
+            Tak ada jurnal yang cocok dengan penyaring. <button className="btn sm" style={{ marginLeft: 6 }} onClick={() => { setQ(''); setFilt('all'); setBand('all'); setSad('all'); setCycle('all'); setPreparer('all'); setOwner('all'); }}>Bersihkan penyaring</button>
+          </div>
+        )}
         <div className="row gap8 tiny muted" style={{ padding: '8px 12px' }}>
           <span className="row ac gap6"><span style={{ color: 'var(--red)' }}>⚑</span> Terkait kecurangan</span>
           <span>·</span>
-          <span>Reklasifikasi tidak berdampak pada laba</span>
+          <span className="row ac gap6"><span style={{ color: 'var(--purple)' }}>⟲</span> Pembalikan</span>
           <span>·</span>
           <span>Efek laba dalam Rp jt</span>
         </div>
@@ -345,6 +432,21 @@ function AjeRegister({ model, locked }: any) {
         <Panel><div className="tiny muted" style={{ padding: 16, textAlign: 'center' }}>Pilih jurnal untuk melihat detail.</div></Panel>
       )}
     </div>
+  );
+}
+
+/** Penyaring ringkas: label + select, sejajar tinggi chip filter lain. */
+function AjeFilterSelect({ label, value, onChange, options }: {
+  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="row ac gap4 tiny muted" style={{ gap: 4 }}>
+      {label}
+      <select className="select" style={{ height: 24, fontSize: 'var(--fs-sm)' }} value={value}
+        onChange={(e: { target: { value: string } }) => onChange(e.target.value)}>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </label>
   );
 }
 
@@ -958,20 +1060,173 @@ function AjeApprovals() {
           </div>
         </Panel>
 
-        <Panel title="Jejak Audit" sub="dari keputusan nyata · kronologis">
-          <div style={{ display: 'grid', gap: 0 }}>
-            {trail.map((t: AjeTrailRow, i: number) => (
-              <div key={i} className="row gap10" style={{ padding: '8px 0', borderBottom: i < trail.length - 1 ? '1px solid var(--line-soft)' : 'none', alignItems: 'flex-start' }}>
-                <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 7, background: `var(--${t.tone === 'navy' ? 'surface-3' : t.tone + '-bg'})`, color: `var(--${t.tone === 'navy' ? 'navy' : t.tone})`, display: 'grid', placeItems: 'center', marginTop: 1 }}>
-                  {React.createElement((I as any)[t.icon] || I.ledger, { size: 13 })}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <div className="tiny" style={{ lineHeight: 1.4 }}><b>{t.who}</b> {t.act} <span className="mono" style={{ color: 'var(--blue)' }}>{t.id}</span></div>
-                  <div className="tiny muted" style={{ marginTop: 1 }}>{ajeStampLabel(t.on)}</div>
-                </div>
+        <Panel title="Keputusan Terakhir" sub="lima teratas · tab Jejak Audit memuat semuanya">
+          <AjeTrailList rows={trail.slice(0, 5)} />
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   TAB 4 — Jejak Audit (PR-6)
+   ------------------------------------------------------------
+   Jejak dipisahkan dari tab keputusan: yang satu menjawab "apa yang harus
+   saya putuskan", yang lain "apa yang sudah terjadi". Mencampurnya membuat
+   keduanya sempit — dan jejak audit yang dipangkas jadi kotak kecil di
+   pinggir adalah jejak yang tak pernah benar-benar dibaca.
+   ============================================================ */
+function AjeTrail() {
+  const { items } = useAjeQueue();
+  const { logEntries } = useAudit();
+  const [q, setQ] = useStateAJ('');
+  const rows = ajeTrailFrom(items);
+  /* Jejak aktivitas sesi (`logEntries`) memuat kejadian di luar rantai —
+     posting, pembalikan, penarikan. Digabung agar satu halaman menjawab
+     "apa yang terjadi pada jurnal", bukan hanya "siapa menyetujui apa". */
+  const activity: AjeTrailRow[] = ((logEntries || []) as { ts?: string; who?: string; detail?: string; target?: string; sourceModule?: string; module?: string }[])
+    .filter((e) => e && (e.sourceModule === 'aje' || e.module === 'AJE'))
+    .map((e) => ({ on: e.ts || null, id: String(e.target || '—'), who: String(e.who || 'Sistem'), act: String(e.detail || ''), icon: 'ledger', tone: 'blue' }));
+  const all = [...rows, ...activity]
+    .filter((r) => !q.trim() || `${r.who} ${r.act} ${r.id}`.toLowerCase().includes(q.trim().toLowerCase()))
+    .sort((a, b) => (parseStamp(b.on) ?? Number.MAX_SAFE_INTEGER) - (parseStamp(a.on) ?? Number.MAX_SAFE_INTEGER));
+
+  return (
+    <Panel noBody>
+      <div className="panel-h">
+        <h3>Jejak Audit Jurnal</h3>
+        <div style={{ flex: 1 }} />
+        <input className="input" style={{ height: 26, width: 240 }} placeholder="Cari nama, jurnal, atau tindakan…"
+          value={q} onChange={(e: { target: { value: string } }) => setQ(e.target.value)} />
+        <span className="tiny muted" style={{ marginLeft: 8 }}>{all.length} baris</span>
+      </div>
+      <div style={{ padding: '10px 16px' }}>
+        <div className="tiny muted" style={{ marginBottom: 10, lineHeight: 1.5 }}>
+          Disusun dari <b>keputusan yang benar-benar tercatat</b> dan jejak aktivitas — bukan dari metadata seed.
+          Persetujuan yang gugur karena jurnalnya berubah tetap muncul sebagai barisnya sendiri.
+        </div>
+        <AjeTrailList rows={all} />
+      </div>
+    </Panel>
+  );
+}
+
+function AjeTrailList({ rows }: { rows: AjeTrailRow[] }) {
+  if (!rows.length) return <div className="tiny muted">Belum ada keputusan tercatat.</div>;
+  return (
+    <div style={{ display: 'grid', gap: 0 }}>
+      {rows.map((t: AjeTrailRow, i: number) => (
+        <div key={i} className="row gap10" style={{ padding: '8px 0', borderBottom: i < rows.length - 1 ? '1px solid var(--line-soft)' : 'none', alignItems: 'flex-start' }}>
+          <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 7, background: `var(--${t.tone === 'navy' ? 'surface-3' : t.tone + '-bg'})`, color: `var(--${t.tone === 'navy' ? 'navy' : t.tone})`, display: 'grid', placeItems: 'center', marginTop: 1 }}>
+            {React.createElement((I as any)[t.icon] || I.ledger, { size: 13 })}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="tiny" style={{ lineHeight: 1.4 }}><b>{t.who}</b> {t.act} <span className="mono" style={{ color: 'var(--blue)' }}>{t.id}</span></div>
+            <div className="tiny muted" style={{ marginTop: 1 }}>{ajeStampLabel(t.on)}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   TAB 5 — Ekspor & Finalisasi (PR-6)
+   ------------------------------------------------------------
+   Ekspor tanpa daftar kesiapan adalah ekspor yang menyegel keadaan tanpa
+   menanyakan apakah keadaan itu layak disegel. Setiap butir di bawah DAPAT
+   GAGAL dan menyebut jurnal penyebabnya — sebuah daftar yang selalu hijau
+   tak menambah apa pun pada keputusan siapa pun.
+   ============================================================ */
+function AjeFinalisation({ model, wtb, onExportXlsx, exporting }: any) {
+  const { fmt } = AMS;
+  const { items } = useAjeQueue();
+  const integrity = checkWtbIntegrity(wtb || [], (model || []) as never[]);
+
+  const postedNoChain = items.filter((i) => i.postedWithoutFullChain);
+  const voided = items.filter((i) => i.hasVoided);
+  const overdue = items.filter((i) => i.status === 'pending' && (parseStamp(i.due) ?? Infinity) < Date.now());
+  const proposedNoSad = (model || []).filter((a: { status?: string; kind?: string; mis?: string | null; misNoneReason?: string | null }) =>
+    a.status === 'Proposed' && a.kind === 'adjusting' && !a.mis && !a.misNoneReason);
+
+  const checks = [
+    {
+      ok: postedNoChain.length === 0,
+      label: 'Setiap jurnal yang diposting punya rantai persetujuan lengkap',
+      fail: `${postedNoChain.length} jurnal diposting tanpa rantai lengkap: ${postedNoChain.map((i) => i.sourceId).join(', ')}`,
+      blocking: true,
+    },
+    {
+      ok: voided.length === 0,
+      label: 'Tak ada persetujuan yang gugur karena jurnalnya berubah',
+      fail: `${voided.length} jurnal berubah setelah disetujui: ${voided.map((i) => i.sourceId).join(', ')}`,
+      blocking: true,
+    },
+    {
+      ok: integrity.registerReconciled && integrity.ajeBalanced,
+      label: 'Register jurnal tie-out ke kolom AJE pada Working Trial Balance',
+      fail: integrity.ajeMismatches.length
+        ? `${integrity.ajeMismatches.length} akun tak cocok (mis. ${integrity.ajeMismatches[0].code}: WTB ${fmt(integrity.ajeMismatches[0].wtb / 1e6, 0)} jt vs register ${fmt(integrity.ajeMismatches[0].register / 1e6, 0)} jt)`
+        : `Σ kolom AJE ≠ 0 (${fmt(integrity.wtbAjeSum / 1e6, 0)} jt)`,
+      blocking: true,
+    },
+    {
+      ok: proposedNoSad.length === 0,
+      label: 'Setiap usulan penyesuaian tertaut item SAD atau menyatakan alasannya',
+      fail: `${proposedNoSad.length} usulan tanpa jawaban SAD: ${proposedNoSad.map((a: { id?: string }) => a.id).join(', ')}`,
+      blocking: false,
+    },
+    {
+      ok: overdue.length === 0,
+      /* "menunggu keputusan", bukan "usulan": sebuah jurnal Posted yang rantainya
+         belum lengkap juga menunggu keputusan (AJE-01), dan menyebutnya usulan
+         akan membuat daftar ini membantah kolom status di register. */
+      label: 'Tak ada langkah persetujuan yang menggantung melewati SLA',
+      fail: `${overdue.length} jurnal menunggu keputusan melewati SLA: ${overdue.map((i) => i.sourceId).join(', ')}`,
+      blocking: false,
+    },
+  ];
+  const blockers = checks.filter((c) => !c.ok && c.blocking);
+
+  return (
+    <div className="grid split" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 12, alignItems: 'start' }}>
+      <Panel noBody>
+        <div className="panel-h"><h3>Kesiapan Finalisasi Register</h3><div style={{ flex: 1 }} /><span className="tiny muted">SA 450 · ISQM 1</span></div>
+        <div style={{ padding: '12px 16px', display: 'grid', gap: 9 }}>
+          {checks.map((c, i) => (
+            <div key={i} className="row gap8" style={{ alignItems: 'flex-start' }}>
+              <span style={{ color: c.ok ? 'var(--green)' : c.blocking ? 'var(--red)' : 'var(--amber)', marginTop: 1 }}>
+                {c.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{c.label}</div>
+                {!c.ok && <div className="tiny" style={{ color: c.blocking ? 'var(--red)' : 'var(--amber)', marginTop: 2, lineHeight: 1.45 }}>{c.fail}</div>}
               </div>
-            ))}
-            {!trail.length && <div className="tiny muted">Belum ada keputusan tercatat.</div>}
+              {!c.ok && <Badge kind={c.blocking ? 'red' : 'amber'}>{c.blocking ? 'Pemblokir' : 'Perhatian'}</Badge>}
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <div className="grid" style={{ gap: 12 }}>
+        <Panel noBody>
+          <div style={{ background: blockers.length ? 'var(--red-solid)' : 'linear-gradient(125deg,var(--navy-700),var(--blue-solid))', color: '#fff', padding: '14px 16px' }}>
+            <div className="tiny" style={{ color: 'var(--on-navy)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Status Kesiapan</div>
+            <div style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.2, marginTop: 3 }}>
+              {blockers.length ? `${blockers.length} pemblokir` : 'Tak ada pemblokir'}
+            </div>
+            <div className="tiny" style={{ color: 'var(--on-navy-dim)', marginTop: 2 }}>
+              {blockers.length ? 'register belum layak difinalisasi' : 'register dapat diekspor & disegel'}
+            </div>
+          </div>
+          <div style={{ padding: '12px 16px', display: 'grid', gap: 8 }}>
+            <Btn variant="primary" onClick={onExportXlsx} disabled={exporting}>
+              <I.download size={14} /> {exporting ? 'Menyiapkan…' : 'Ekspor Register (XLSX tersegel)'}
+            </Btn>
+            <div className="tiny muted" style={{ lineHeight: 1.5 }}>
+              Ekspor tetap diizinkan meski ada pemblokir — auditor berhak mengeluarkan keadaan apa adanya.
+              Yang tidak boleh adalah mengekspornya <b>tanpa tahu</b> bahwa ada pemblokir.
+            </div>
           </div>
         </Panel>
       </div>

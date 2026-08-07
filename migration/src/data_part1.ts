@@ -103,12 +103,12 @@
      Jurnal TANPA `taxEffect` diperlakukan BELUM DIKLASIFIKASI dan dilaporkan sebagai
      demikian — bukan diam-diam dianggap "nol beda". */
   const AJE = [
-    { id: 'AJE-01', desc: 'Penyesuaian cut-off penjualan akhir tahun', ref: 'B-3', status: 'Posted', dr: '5-1100 BPP', cr: '1-1300 Persediaan', amount: 2_340_000_000, proposedOn: '2026-05-04 16:40',
+    { id: 'AJE-01', desc: 'Penyesuaian cut-off penjualan akhir tahun', ref: 'B-3', status: 'Posted', dr: '5-1100 BPP', cr: '1-1300 Persediaan', amount: 2_340_000_000, proposedOn: '2026-05-04 16:40', preparer: 'Rina Kusuma',
       /* Koreksi pisah batas berlaku SAMA untuk komersial & fiskal: penghasilan diakui
          atas dasar akrual (Ps. 28(5) UU KUP) dan penilaian persediaan fiskal (Ps. 10(6)
          UU PPh) sejalan dengan komersial. Laba komersial dan PKP bergerak bersama. */
       taxEffect: { kind: 'none' as const, basis: 'Ps. 10(6) UU PPh + basis akrual Ps. 28(5) UU KUP', by: 'Anindya Pramesti' } },
-    { id: 'AJE-02', desc: 'Tambahan CKPN piutang sesuai PSAK 71 (ECL)', ref: 'B-7', status: 'Posted', dr: '5-3100 Beban Umum', cr: '1-1210 CKPN', amount: 620_000_000, proposedOn: '2026-05-06 09:20',
+    { id: 'AJE-02', desc: 'Tambahan CKPN piutang sesuai PSAK 71 (ECL)', ref: 'B-7', status: 'Posted', dr: '5-3100 Beban Umum', cr: '1-1210 CKPN', amount: 620_000_000, proposedOn: '2026-05-06 09:20', preparer: 'Dimas Raharjo',
       /* Pembentukan cadangan TIDAK boleh dikurangkan (Ps. 9(1)(c) UU PPh). Pengecualian
          pasal itu terbatas pada bank, lembaga pembiayaan, asuransi, penjaminan,
          pertambangan, kehutanan, dan pengolahan limbah — PT Sentosa Makmur adalah
@@ -118,7 +118,7 @@
       taxEffect: { kind: 'temporary' as const, bucket: 'ecl' as const, amount: 620,
                    basis: 'Ps. 9(1)(c) UU PPh — cadangan tak boleh dikurangkan; realisasi Ps. 6(1)(h)',
                    by: 'Anindya Pramesti' } },
-    { id: 'AJE-03', desc: 'Pembalikan piutang fiktif teridentifikasi', ref: 'B-2', status: 'Proposed', dr: '4-1100 Penjualan', cr: '1-1200 Piutang', amount: 1_850_000_000, proposedOn: '2026-05-28 15:10',
+    { id: 'AJE-03', desc: 'Pembalikan piutang fiktif teridentifikasi', ref: 'B-2', status: 'Proposed', dr: '4-1100 Penjualan', cr: '1-1200 Piutang', amount: 1_850_000_000, proposedOn: '2026-05-28 15:10', preparer: 'Dimas Raharjo',
       /* Penghasilan fiktif bukan objek pajak (Ps. 4(1) UU PPh — objek adalah tambahan
          kemampuan ekonomis yang BENAR-BENAR diterima/diperoleh). Pembalikannya berlaku
          untuk kedua basis, jadi nol beda. Konsekuensi sesungguhnya ada di tempat lain:
@@ -126,7 +126,7 @@
       taxEffect: { kind: 'none' as const, basis: 'Ps. 4(1) UU PPh — penghasilan fiktif bukan objek pajak',
                    by: 'Anindya Pramesti',
                    note: 'Bila SPT Badan sudah dilaporkan atas angka pra-audit, koreksi ini menuntut pembetulan SPT (Ps. 8 UU KUP), bukan penyesuaian rekonsiliasi tahun berjalan.' } },
-    { id: 'AJE-04', desc: 'Akrual bonus manajemen belum dicatat', ref: 'CC-1', status: 'Posted', dr: '5-3100 Beban Umum', cr: '2-1300 Akrual', amount: 980_000_000, proposedOn: '2026-05-09 11:05',
+    { id: 'AJE-04', desc: 'Akrual bonus manajemen belum dicatat', ref: 'CC-1', status: 'Posted', dr: '5-3100 Beban Umum', cr: '2-1300 Akrual', amount: 980_000_000, proposedOn: '2026-05-09 11:05', preparer: 'Sinta Wulandari',
       /* Biaya untuk mendapatkan, menagih & memelihara penghasilan dikurangkan atas dasar
          AKRUAL (Ps. 6(1)(a) UU PPh; Ps. 28(5) UU KUP). Bonus yang sudah menjadi kewajiban
          pasti pada tanggal neraca karena itu deductible pada tahun diakrualkan → nol beda.
@@ -136,7 +136,7 @@
       taxEffect: { kind: 'none' as const, basis: 'Ps. 6(1)(a) UU PPh + basis akrual Ps. 28(5) UU KUP',
                    by: 'Anindya Pramesti',
                    condition: 'Sepanjang PPh 21 atas bonus dipotong & dilaporkan pada masa yang sesuai. Bila belum, menjadi beda temporer sampai bonus dibayarkan.' } },
-    { id: 'AJE-05', desc: 'Koreksi penyusutan mesin produksi', ref: 'E-4', status: 'Proposed', dr: '5-1100 BPP', cr: '1-2110 Ak. Penyusutan', amount: 1_120_000_000, proposedOn: '2026-05-30 08:45',
+    { id: 'AJE-05', desc: 'Koreksi penyusutan mesin produksi', ref: 'E-4', status: 'Proposed', dr: '5-1100 BPP', cr: '1-2110 Ak. Penyusutan', amount: 1_120_000_000, proposedOn: '2026-05-30 08:45', preparer: 'Dimas Raharjo',
       /* Masa manfaat komersial mesin lini-2 direvisi 10 → 8 tahun (kajian teknis, WP E-4).
          Penyusutan FISKAL tidak ikut: Ps. 11 UU PPh menetapkan kelompok & tarif secara
          undang-undang, bukan mengikuti estimasi manajemen. Selisih penyusutan komersial
