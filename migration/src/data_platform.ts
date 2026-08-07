@@ -15,6 +15,10 @@
      AMS.PLATFORM.ROUTING_RULES         → matriks otorisasi
    ============================================================ */
 import { AMS } from './data';
+/* PR-2 — rantai persetujuan AJE punya SATU penghasil (`aje_approval`), dipakai
+   antrean ini maupun tab AJE. Dulu keduanya menyusun rantainya sendiri dengan
+   aturan berbeda, dan pada AJE-01 keduanya menjawab berlainan. */
+import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, buildAjeChain } from './aje_approval';
 (function () {
   const A: any = AMS;
   if (!A) return;
@@ -45,10 +49,8 @@ import { AMS } from './data';
     { kind: 'Independensi & Rotasi', t1: 'Deklarasi', a1: 'Quality Partner', t2: 'Konflik', a2: 'QP → MP', t3: 'Rotasi wajib', a3: 'QP → MP → Komite Etika' },
   ];
 
-  /** [peran, nama, ts?, catatan?] — bentuk langkah rantai persetujuan. */
+  /** [peran, nama, ts?, catatan?] — bentuk langkah rantai persetujuan (jenis LEGACY). */
   type ChainStep = [string, string, string?, string?];
-  /** Satu keputusan yang benar-benar tercatat pada sebuah langkah. */
-  interface ApprovalDecision { role?: string; name?: string; ts?: string; note?: string }
 
   /* ============================================================
      PR-B - KEPUTUSAN PERSETUJUAN YANG BENAR-BENAR TERCATAT.
@@ -93,20 +95,10 @@ import { AMS } from './data';
     }));
   }
 
-  /* PR-B - rantai dari KEPUTUSAN TERCATAT, bukan dari penghitung.
-     steps = [[role,name]]; decisions = keputusan berurutan setelah langkah Penyusun.
-     Sebuah langkah berstatus 'approved' HANYA bila ada keputusan untuknya. */
-  function chainFromDecisions(steps: ChainStep[], decisions: ApprovalDecision[]) {
-    const decs = decisions || [];
-    return steps.map((s: ChainStep, i: number) => {
-      /* langkah 0 = Penyusun: selesai secara definisi saat jurnal diajukan */
-      if (i === 0) return { role: s[0], name: s[1], status: 'approved', ts: s[2] || NOW, note: s[3] || 'Diajukan.' };
-      const d = decs[i - 1];
-      if (d) return { role: s[0], name: d.name || s[1], status: 'approved', ts: d.ts, note: d.note || 'Disetujui.' };
-      const isNext = decs.length === i - 1;
-      return { role: s[0], name: s[1], status: isNext ? 'current' : 'pending', ts: null, note: null };
-    });
-  }
+  /* PR-2 - `chainFromDecisions` DIBUANG dari sini. Rantai AJE kini dibangun
+     `aje_approval.buildAjeChain`, yang juga dipakai tab AJE: satu penghasil,
+     satu jawaban. Ia sekaligus menambahkan pengikatan hash — sesuatu yang
+     tak dapat ditiru dua implementasi tanpa cepat menyimpang. */
 
   /* ============================================================
      buildApprovals — antrean persetujuan DITURUNKAN dari kanonik.
@@ -133,34 +125,39 @@ import { AMS } from './data';
     const cliA = engA ? cliById(engA.clientId) : null;
     aje.forEach((a: any) => {
       const posted = a.status === 'Posted';
-      const hi = a.amount >= 2e9, mid = a.amount >= 5e8;
+      const hi = a.amount >= AJE_EQR_THRESHOLD, mid = a.amount >= AJE_MID_THRESHOLD;
       const ref = a.ref || (a.lines ? 'JE' : a.id);
       const drCode = a.dr ? a.dr.split(' ')[0] : (a.lines || []).filter((l: any) => (+l.debit || 0) > 0).map((l: any) => l.code)[0] || 'DR';
       const crCode = a.cr ? a.cr.split(' ')[0] : (a.lines || []).filter((l: any) => (+l.credit || 0) > 0).map((l: any) => l.code)[0] || 'CR';
-      const steps: ChainStep[] = [['Penyusun', PREPARER, '2026-03-09 16:40', 'AJE diajukan dari kertas kerja ' + ref + '.'],
-        ['Audit Manager', engA.manager], ['Engagement Partner', engA.partner]];
-      if (hi) steps.push(['EQR Reviewer', EQR_REV]);
       /* PR-B - DULU: `doneTo = posted ? steps.length : 1`. Satu baris itu membuat
          sistem menerbitkan jejak bahwa Manager, Partner, dan EQR telah menyetujui
          begitu seseorang menekan "Posting ke WTB" - bukti audit palsu atas nama
-         partner. Kini rantai dibangun dari keputusan yang benar-benar tercatat. */
+         partner. Kini rantai dibangun dari keputusan yang benar-benar tercatat.
+         PR-2 - dan dibangun oleh `aje_approval`, penghasil yang sama dengan tab AJE,
+         dengan keputusan yang TERIKAT pada versi jurnal yang disetujuinya. */
+      const steps = ajeChainSteps(a, {
+        preparer: PREPARER, manager: engA.manager, partner: engA.partner, eqr: EQR_REV,
+        submittedAt: '2026-03-09 16:40', submitNote: 'AJE diajukan dari kertas kerja ' + ref + '.',
+      });
       const decisions = AJE_DECISIONS_SEED[a.id] || [];
-      const required = steps.length - 1;                 // langkah setelah Penyusun
-      const chainComplete = decisions.length >= required;
       /* Jurnal berstatus Posted yang rantainya BELUM lengkap adalah eksepsi kontrol
          yang harus terlihat, bukan disembunyikan dengan menganggapnya disetujui.
          Contoh nyata pada seed: AJE-01 (Rp 2,34 M) melewati ambang EQR ROUTING_RULES
          namun hanya memiliki persetujuan Manager & Partner. */
-      const postedWithoutFullChain = posted && !chainComplete;
-      const doneTo = 1 + decisions.length;
+      const built = buildAjeChain(a, steps, decisions);
       out.push({
         id: 'APR-' + a.id, kind: 'AJE', sourceModule: 'aje', sourceRoute: 'aje', sourceId: a.id,
         ref: a.id, title: (a.desc || 'Jurnal penyesuaian') + ' · ' + jt(a.amount), from: PREPARER, role: 'Senior Auditor',
         /* status antrean mengikuti RANTAI, bukan status posting jurnal */
-        amount: a.amount, status: chainComplete ? 'approved' : 'pending', priority: hi ? 'high' : mid ? 'medium' : 'low',
+        amount: a.amount, status: built.chainComplete ? 'approved' : 'pending', priority: hi ? 'high' : mid ? 'medium' : 'low',
         submitted: '2026-03-09 16:40', due: '2026-03-10 17:00', eng: engA.id, engId: engA.id,
-        clientId: cliA.id, client: cliA.name, step: doneTo, chain: chainFromDecisions(steps, decisions),
-        required, chainComplete, postedWithoutFullChain,
+        clientId: cliA.id, client: cliA.name, step: built.step, chain: built.chain,
+        required: built.required, chainComplete: built.chainComplete,
+        postedWithoutFullChain: built.postedWithoutFullChain, hasVoided: built.hasVoided,
+        /* Bahan agar lapisan overlay dapat MEMBANGUN ULANG rantai (bukan menambalnya):
+           keputusan pengguna digabung dengan keputusan seed lalu dijalankan lewat
+           penghasil yang sama. Menambal rantai jadi = cara lama dua-implementasi. */
+        journal: a, steps, decisions, contentHash: built.contentHash,
         prov: 'Jurnal ' + a.id + ' · ' + drCode + ' ⇄ ' + crCode + ' · WP ' + ref,
         writesBack: !posted, // approval final akan memposting AJE ke WTB (SSOT)
         thread: posted ? [] : [{ who: PREPARER, role: 'Senior', when: '09 Mar 16:42', text: 'Pendukung terlampir di WP ' + ref + ' (' + engA.id + ').' }],
