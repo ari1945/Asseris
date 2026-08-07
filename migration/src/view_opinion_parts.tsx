@@ -6,6 +6,7 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { usePhaseGate, PhaseGateDialog, eqrStatusFor } from './wp_signoff';
+import { wpSignatureStamp } from './wp_chain';
 import { useEthicsGate } from './ethics_gate';
 import { useMemberIndependenceGate } from './view_independence';
 
@@ -495,7 +496,12 @@ function OpinionSignoff({ doc, patch }: any) {
   const eqrGate = eqrStatusFor(activeEngagement?.id);
   const eqrEnforced = eqrRequired || eqrGate.applicable;
   const eqrSubstantiveDone = !eqrEnforced || eqrGate.cleared;
-  const today = '2026-03-14';
+  /* `today` dulu konstanta '2026-03-14': SETIAP tanda tangan opini — dan setiap
+     tanggal finalisasi — tercatat 14 Maret 2026, kapan pun ia dibubuhkan, oleh
+     siapa pun. Kelas cacat yang sama sudah ditutup untuk rantai AJE (konstanta
+     '10 Mar 09:00'); dokumen yang justru KELUAR dari firma masih memakainya.
+     Tanda tangan kini memakai stempel ISO nyata yang divalidasi server. */
+  const today = wpSignatureStamp();
 
   /* SA 700 required-element completeness — auto + manual */
   const autoChecks = [
@@ -522,13 +528,20 @@ function OpinionSignoff({ doc, patch }: any) {
   const manualDone = manualChecks.every((c: any) => doc.checklist[c.id]);
 
   const sign = (role: any) => {
-    const next = doc.signoff[role] ? null : { date: today, by: me };
+    const myId = (auth && auth.user && auth.user.id) ? String(auth.user.id) : '';
+    if (!doc.signoff[role] && !myId) return;   // tanpa identitas sesi, tak ada tanda tangan
+    const next = doc.signoff[role] ? null : { date: today, by: me, byUserId: myId };
     patch({ signoff: { ...doc.signoff, [role]: next } });
     /* mirror ke chain kanonik wpState['900']: manager→reviewer, partner→partner, eqr→eqr.
        Q4: rekam penanda tangan SEBENARNYA (me), bukan nama slot yang diharapkan. */
     const slot = role === 'manager' ? 'reviewer' : role;
     const curChain = { ...(((wpState || {})['900'] || {}).chain || {}) };
-    if (next) { curChain[slot] = { by: me, at: today }; if (!curChain.preparer) curChain.preparer = { by: 'Generator Laporan', at: today }; }
+    /* Tanda tangan preparer fiktif 'Generator Laporan' DIHAPUS. Ia ditempelkan
+       semata agar rantai kertas kerja tampak berurutan — sebuah tanda tangan
+       yang tak pernah dibubuhkan siapa pun, pada dokumen yang menjadi laporan
+       auditor. Urutan rantai untuk ref '900' kini dikecualikan di server
+       (WP_MIRROR_REFS): urutannya memang milik rantai opini, bukan milik cermin. */
+    if (next) curChain[slot] = { by: me, byUserId: myId, at: today };
     else delete curChain[slot];
     const wpPatch: any = { chain: curChain };
     if (slot === 'reviewer') { wpPatch.status = next ? 'Reviewed' : 'In Review'; wpPatch.reviewer = next ? me : null; wpPatch.signedAt = next ? today : null; }

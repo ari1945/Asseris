@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { defaultProcState, procStatusAt, execStatus, wpEvidenceEval, deriveWpStatus, wpChainSelfReview } from './wp_canon';
+import { wpContentHash } from './wp_chain';
 import { AMS } from './data';
 
 describe('defaultProcState — heuristic per WP-level status (characterization)', () => {
@@ -211,5 +212,68 @@ describe('deriveWpStatus — status tidak melahirkan tanda tangan (SA 230/ISQM)'
       const r = deriveWpStatus(ref, audit({}), firm);
       for (const l of r.signoff as { signed: Sig | null }[]) if (l.signed) expect(l.signed.at).not.toBe(today);
     }
+  });
+});
+
+/* ============================================================
+   K5 — tanda tangan GUGUR secara TURUNAN saat isi kertas kerja berubah.
+   ------------------------------------------------------------
+   Tak ada tulisan yang perlu berhasil agar sebuah persetujuan gugur: penggugur
+   yang harus DITULIS bisa gagal, offline, atau kalah CAS. Karena itu ia dihitung
+   ulang dari `contentHash` setiap kali rantai dibaca — di SEMUA pembaca sekaligus,
+   sebab satu penghasil yang sama melayani SignoffTab, WPFooter, dan SA 230.
+   ============================================================ */
+describe('deriveWpStatus — pengikatan isi (K5)', () => {
+  const SEED = AMS as unknown as { WTB: unknown[]; RISKS: unknown[] };
+  const firm = { activeEngagement: { materiality: 4260000000 }, activeClient: { listed: false } };
+  const st = (extra: object = {}) => ({
+    status: 'In Review',
+    exec: { p0: { items: [{ id: 'it1', desc: 'Uji A', ev: 'EV1', tick: '✓', result: 'ok', note: '' }] } },
+    ...extra,
+  });
+  const withChain = (base: object, hash: string) => ({
+    ...base,
+    chain: {
+      preparer: { by: 'Dimas R.', byUserId: 'u-dr', at: '2026-03-01T00:00:00.000Z', contentHash: hash },
+      reviewer: { by: 'Anindya P.', byUserId: 'u-ap', at: '2026-03-02T00:00:00.000Z', contentHash: hash },
+    },
+  });
+  const run = (wp: object) => deriveWpStatus('B', { wtb: SEED.WTB, risks: SEED.RISKS, wpState: { B: wp } }, firm);
+
+  it('hash cocok → kedua tanda tangan berlaku', () => {
+    const base = st();
+    const r = run(withChain(base, wpContentHash(base)));
+    expect(r.signoff.map((l: { status: string }) => l.status)).toEqual(['signed', 'signed', 'pending']);
+    expect(r.signedCount).toBe(2);
+    expect(r.hasVoided).toBe(false);
+  });
+
+  it('mengubah HASIL item uji menggugurkan keduanya — tanpa tulisan apa pun ke rantai', () => {
+    const base = st();
+    const signed = withChain(base, wpContentHash(base));
+    // preparer menyunting hasil; rantai TIDAK disentuh
+    const edited = { ...signed, exec: { p0: { items: [{ ...base.exec.p0.items[0], result: 'exc' }] } } };
+    const r = run(edited);
+    expect(r.signoff.map((l: { status: string }) => l.status)).toEqual(['voided', 'voided', 'pending']);
+    expect(r.signedCount).toBe(0);
+    expect(r.fullySigned).toBe(false);
+    expect(r.hasVoided).toBe(true);
+    // siapa yang gugur tetap dapat ditelusuri
+    expect(r.voided.map((l: { voidedBy: { by: string } | null }) => l.voidedBy?.by)).toEqual(['Dimas R.', 'Anindya P.']);
+  });
+
+  it('menghapus BUKTI juga menggugurkan; menambah CATATAN REVIU tidak (keputusan Q3)', () => {
+    const base = st({ evidence: [{ id: 'EV1', name: 'rekening.pdf', source: 'eksternal', tier: 5, type: 'PDF', asr: ['E'], by: 'Dimas R.', at: '2026-02-01' }] });
+    const signed = withChain(base, wpContentHash(base));
+    expect(run({ ...signed, evidence: [] }).hasVoided).toBe(true);
+    expect(run({ ...signed, notes: [{ id: 'n9', text: 'tolong perluas', status: 'open' }] }).hasVoided).toBe(false);
+  });
+
+  it('tanda tangan WARISAN (tanpa contentHash) tidak digugurkan — ia `legacy`', () => {
+    const base = st();
+    const legacy = { ...base, chain: { preparer: { by: 'Dimas R.', at: '2026-03-01' } } };
+    const r = run(legacy);
+    expect(r.signoff[0].status).toBe('legacy');
+    expect(r.signedCount).toBe(1);
   });
 });

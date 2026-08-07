@@ -24,7 +24,13 @@
    (`approvals_ov_v4` vs `aje`): pembatalan lintas-dokumen tak dapat dijamin
    atomik, jadi ia harus menjadi turunan — tak ada tulisan yang perlu
    berhasil agar persetujuan gugur.
+
+   PR-1 (PRD prd-wp-signoff-integrity): primitif hash-nya dipindah ke
+   `content_hash.ts` agar rantai kertas kerja memakai fungsi yang SAMA, bukan
+   salinan. Serialisasi kanonik di bawah tetap milik jurnal — yang dibagi
+   hanyalah cara mengubah string kanonik menjadi sidik jari.
    ============================================================ */
+import { fingerprint } from './content_hash';
 
 /** Baris jurnal ternormalisasi — hanya kode & angka yang mengikat. */
 export interface AjeContractLine {
@@ -101,24 +107,6 @@ export function ajeNormalizedLines(a: AjeContractEntry | null | undefined): AjeC
   ];
 }
 
-/* FNV-1a 32-bit, dijalankan dua kali dengan offset-basis berbeda lalu
-   digabung → 16 hex. Deterministik, sinkron, tanpa dependensi: klien dan
-   server WAJIB menghitung nilai yang identik, jadi tak boleh ada
-   `crypto.subtle` (async, hanya browser) maupun `node:crypto` (hanya server). */
-function fnv1a(s: string, basis: number): number {
-  let h = basis >>> 0;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    /* h *= 16777619 dalam aritmetika 32-bit tanpa kehilangan presisi float */
-    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
-  }
-  return h >>> 0;
-}
-
-function hex8(n: number): string {
-  return (n >>> 0).toString(16).padStart(8, '0');
-}
-
 /**
  * Serialisasi KANONIK atas isi jurnal yang mengikat persetujuan.
  *
@@ -161,7 +149,7 @@ export function ajeCanonicalContent(a: AjeContractEntry | null | undefined): str
  */
 export function ajeContentHash(a: AjeContractEntry | null | undefined): string {
   const s = ajeCanonicalContent(a);
-  return hex8(fnv1a(s, 0x811c9dc5)) + hex8(fnv1a(s + '' + s.length, 0x01000193));
+  return fingerprint(s);
 }
 
 /* ============================================================

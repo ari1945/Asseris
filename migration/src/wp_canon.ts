@@ -6,6 +6,8 @@
    FUNGSI MURNI — tanpa import React/.tsx; hanya tipe dari selektor kanon.
    ============================================================ */
 import type { ProcedureInput } from './canon_selectors';
+import { WP_SLOT_LABEL, WP_SLOT_ORDER, wpChainSelfReview, wpChainLinks, wpChainComplete, wpContentHash } from './wp_chain';
+import type { WpChain } from './wp_chain';
 
 /* ---- File index (ref, title, preparer, reviewer, status, tanggalReviu?) ----
    Elemen ke-6 = TANGGAL REVIU yang DIDEKLARASIKAN sebagai data seed. Ia ada hanya
@@ -190,23 +192,44 @@ function deriveWpStatus(ref: any, audit: any, firm: any) {
   let coverage = null;
   if (bal != null) { const a = Math.abs(bal); coverage = { bal, level: a >= pm ? 'full' : a >= triv ? 'partial' : 'trivial' }; }
 
-  /* sign-off chain — identical default logic to SignoffTab */
-  const chain = st.chain || {};
+  /* Rantai sign-off — SATU penghasil (`wpChainLinks`), dipakai juga SignoffTab &
+     WPFooter, sehingga tanda tangan yang gugur tak bisa tampil gugur di satu layar
+     dan hijau di layar lain. `assigned` tetap terpisah: nama penerima tugas bukan
+     tanda tangan. */
   const listed = !!(firm && firm.activeClient && firm.activeClient.listed);
-  const preparer = chain.preparer || null;                       // assigned ≠ signed
-  const reviewer = chain.reviewer || wpSeedReviewSignature(ref);
-  const partner = chain.partner || null;
-  const eqr = chain.eqr || null;
-  const signoff = [
-    { key: 'preparer', role: 'Preparer', signed: preparer, assigned: meta.preparer },
-    { key: 'reviewer', role: 'Reviewer', signed: reviewer, assigned: meta.reviewer },
-    { key: 'partner', role: 'Partner', signed: partner, assigned: '' },
-  ];
-  if (listed) signoff.push({ key: 'eqr', role: 'EQR', signed: eqr, assigned: '' });
+  const slots = listed ? WP_SLOT_ORDER : WP_SLOT_ORDER.slice(0, 3);
+  const links = wpChainLinks(wpEffectiveChain(ref, st), wpContentHash(st), slots);
+  const ASSIGNED: Record<string, string> = { preparer: meta.preparer, reviewer: meta.reviewer };
+  const ROLE: Record<string, string> = { preparer: 'Preparer', reviewer: 'Reviewer', partner: 'Partner', eqr: 'EQR' };
+  const signoff = links.map(l => ({
+    key: l.slot, role: ROLE[l.slot], signed: l.signed, assigned: ASSIGNED[l.slot] || '',
+    status: l.status, voidedBy: l.voidedBy || null,
+  }));
+  /* Tanda tangan yang GUGUR tidak dihitung: isinya sudah bukan yang disetujui. */
   const signedCount = signoff.filter(l => l.signed).length;
+  const voided = signoff.filter(l => l.status === 'voided');
 
   const relRisks = risks.filter((r: any) => (r.wp || '').split('-')[0] === ref);
-  return { ref, title: meta.title, section: meta.section, status, done, total: statuses.length, exc, openNotes, coverage, pm, triv, signoff, signedCount, fullySigned: signedCount === signoff.length, relRisks, hasLead: leadRows.length > 0 };
+  return {
+    ref, title: meta.title, section: meta.section, status, done, total: statuses.length, exc, openNotes,
+    coverage, pm, triv, signoff, signedCount, fullySigned: wpChainComplete(links),
+    voided, hasVoided: voided.length > 0,
+    relRisks, hasLead: leadRows.length > 0,
+  };
+}
+
+/**
+ * Rantai efektif sebuah kertas kerja: yang TERCATAT di `chain`, ditambah tanda
+ * tangan reviu yang DIDEKLARASIKAN di seed untuk WP yang memang sudah direviu.
+ * Satu tempat, karena tiga pembaca dulu menurunkannya masing-masing.
+ */
+function wpEffectiveChain(ref: string, st: { chain?: WpChain } | null | undefined): WpChain {
+  const chain: WpChain = { ...((st && st.chain) || {}) };
+  if (!chain.reviewer) {
+    const seed = wpSeedReviewSignature(ref);
+    if (seed) chain.reviewer = seed;
+  }
+  return chain;
 }
 
 /* Prosedur + status (exec-aware) satu lead schedule → input mesin cakupan asersi.
@@ -223,56 +246,19 @@ function wpProcedureInputs(ref: any, audit: any): ProcedureInput[] {
 /* ============================================================
    SATU ORANG, SATU LANGKAH — rantai sign-off kertas kerja.
    ------------------------------------------------------------
-   Gate SoD per-slot mengikat tiap slot ke KAPABILITAS, tetapi kapabilitas
-   bukan identitas: `PARTNER_BASE` memegang OPINION_APPROVE dan EQR_REVIEW
-   sekaligus, sehingga partner yang baru menandatangani slot Engagement
-   Partner masih lolos di slot EQR pada kertas kerja yang SAMA. Itu
-   menghapus arti penelaahan pengendalian mutu — ISQM 2 / SA 220.36
-   menuntut penelaah yang independen dari tim perikatan, dan yang paling
-   tidak independen adalah orang yang baru saja menyetujuinya sendiri.
+   PINDAH ke `wp_chain.ts` (PRD prd-wp-signoff-integrity, PR-1). Alasannya:
+   aturan ini kini juga ditegakkan SERVER, dan berkas ini membawa serta seluruh
+   data seed kertas kerja (WP_INDEX, WP_PROCS, WP_SEED_NOTES) yang tak ada
+   urusannya dengan `server/src/signoff.ts`.
 
-   Pola & alasan mengikuti `stepAuthority` (PR-E) yang menutup lubang yang
-   sama pada rantai persetujuan AJE — perbedaannya hanya permukaan.
-
-   HANYA TANDA TANGAN yang dihitung. `who` pada slot yang masih menunggu
-   adalah nama PENERIMA TUGAS, bukan tanda tangan; menghitungnya akan
-   memblokir orang yang belum menandatangani apa pun (lih. "assigned ≠
-   signed" pada rantai ini).
-
-   Aturannya simetris terhadap urutan: siapa pun yang sudah memegang satu
-   slot tertutup dari slot lain, tak peduli slot mana yang lebih dulu. */
-const WP_SLOT_LABEL: Record<string, string> = {
-  preparer: 'Preparer',
-  reviewer: 'Reviewer (Manager)',
-  partner: 'Engagement Partner',
-  eqr: 'EQR (Penelaah Mutu)',
-};
-
-type WpChainSlot = { by?: string; at?: string } | null | undefined;
-
-function wpChainSelfReview(
-  chain: Record<string, WpChainSlot>,
-  slotKey: string,
-  me: string,
-): { blocked: boolean; priorSlot: string; reason: string } {
-  const norm = (s: unknown) => String(s == null ? '' : s).trim().toLowerCase();
-  const meN = norm(me);
-  const free = { blocked: false, priorSlot: '', reason: '' };
-  if (!meN) return free;
-  const src = chain || {};
-  const prior = Object.keys(src).find(k => k !== slotKey && !!src[k] && norm(src[k]!.by) === meN);
-  if (!prior) return free;
-  return {
-    blocked: true,
-    priorSlot: prior,
-    reason: `Anda sudah menandatangani slot ${WP_SLOT_LABEL[prior] || prior} pada kertas kerja ini — satu orang, satu langkah (ISQM 2 / SA 220.36).`,
-  };
-}
+   Di-re-export dari sini supaya seluruh pengimpor lama (`view_wp.tsx`,
+   `wp_canon.test.ts`) tidak berubah sama sekali.
+   ============================================================ */
 
 export type { EvRec, TestItem, ExecP };
 export {
   WP_INDEX, WP_TITLE, WP_REFS, WP_META,
   WP_PROCS, procsFor, PROC_EXC_SEED, defaultProcState, WP_SEED_NOTES,
   execStatus, procStatusAt, procStatesFor, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
-  wpToday, WP_SLOT_LABEL, wpChainSelfReview, wpSeedReviewSignature,
+  wpToday, WP_SLOT_LABEL, wpChainSelfReview, wpSeedReviewSignature, wpEffectiveChain,
 };

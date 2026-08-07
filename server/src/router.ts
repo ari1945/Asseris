@@ -741,7 +741,10 @@ export const appRouter = router({
         if (SIGNOFF_KEYS.has(key)) {
           const prevDoc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
           const prevValue = prevDoc ? (JSON.parse(prevDoc.valueJson) as unknown) : null;
-          signoffChanges = guardSignoffWrite(ctx.user.role, key, prevValue, input.value);
+          signoffChanges = guardSignoffWrite(
+            { id: ctx.user.id, name: ctx.user.name, role: ctx.user.role },
+            key, prevValue, input.value,
+          );
         }
         // Metadata-saja (slot+cap, BUKAN isi WP) untuk jejak audit reviu mutu.
         const signoffDetail = signoffChanges.length ? ' signoff[' + signoffChanges.map((c) => c.what).join(',') + ']' : '';
@@ -754,19 +757,52 @@ export const appRouter = router({
             // never drift from what StateDoc actually holds, and this closes the earlier
             // read-then-write-without-$transaction gap on the CAS path too (below).
             const created = await prisma.$transaction(async (tx) => {
-              const row = await tx.stateDoc.create({ data: { scope, scopeId, key, valueJson, version: 1, updatedBy } });
-              await tx.stateDocHistory.create({ data: { scope, scopeId, key, version: 1, valueJson, updatedBy } });
+              // NOMOR VERSI TIDAK PERNAH DIPAKAI ULANG.
+              // ------------------------------------------------------------------
+              // StateDocHistory menyimpan satu baris per versi yang PERNAH ditulis dan
+              // sengaja tak pernah dihapus (itulah gunanya). StateDoc, sebaliknya, DAPAT
+              // lenyap — reset basis data, seed ulang, pembersihan uji yang hanya
+              // menghapus satu dari dua tabel. Ketika itu terjadi, klien membaca
+              // version 0 dan mengirim baseVersion 0, lalu jalur ini dulu memaksakan
+              // `version: 1` — yang menabrak @@unique([scope,scopeId,key,version])
+              // pada riwayat yang selamat, membatalkan seluruh transaksi, dan membuat
+              // dokumen itu MUSTAHIL dibuat kembali: setiap tulisan berikutnya gagal
+              // dengan cara yang sama, selamanya.
+              //
+              // Probe pada dev.db (2026-08-07): 36 dokumen dalam keadaan itu, termasuk
+              // `wpState` (SELURUH kertas kerja) dan `prospects` (keputusan akseptasi
+              // klien). Pekerjaan auditor tak pernah sampai ke server, dan satu-satunya
+              // gejalanya adalah 409 di konsol.
+              //
+              // Versi karenanya dilanjutkan dari riwayat, bukan dimulai ulang. Itu juga
+              // yang benar bagi sistem audit: satu nomor versi harus menunjuk pada satu
+              // isi, selamanya — memakai ulang v1 untuk isi yang berbeda akan membuat
+              // riwayat berbohong.
+              const last = await tx.stateDocHistory.findFirst({
+                where: { scope, scopeId, key },
+                orderBy: { version: 'desc' },
+                select: { version: true },
+              });
+              const version = (last?.version ?? 0) + 1;
+              const row = await tx.stateDoc.create({ data: { scope, scopeId, key, valueJson, version, updatedBy } });
+              await tx.stateDocHistory.create({ data: { scope, scopeId, key, version, valueJson, updatedBy } });
               return row;
             });
             await appendAudit({
               actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-              scope, scopeId, key, detail: 'v0->v1' + signoffDetail + lockDetail,
+              scope, scopeId, key, detail: `v0->v${created.version}` + signoffDetail + lockDetail,
             });
             return { version: created.version };
           } catch (e) {
             if (isUniqueViolation(e)) {
               const current = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
-              throw new TRPCError({ code: 'CONFLICT', message: `already-exists:server=${current?.version ?? '?'}` });
+              // Hanya laporkan "sudah ada" bila dokumennya MEMANG ada. Bentuk lama
+              // mengeluarkan `server=?` untuk tabrakan constraint apa pun — pesan yang
+              // menuduh dokumen yang tidak ada, dan menyembunyikan sebab sebenarnya.
+              if (current) {
+                throw new TRPCError({ code: 'CONFLICT', message: `already-exists:server=${current.version}` });
+              }
+              throw new TRPCError({ code: 'CONFLICT', message: 'create-race:refetch-and-retry' });
             }
             throw e;
           }
