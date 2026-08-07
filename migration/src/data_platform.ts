@@ -41,7 +41,14 @@ import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, ajeDueAt, buildAje
 
   /* ---------- matriks routing (otorisasi berbasis jenis & nilai) ---------- */
   const ROUTING_RULES = [
-    { kind: 'AJE / Penyesuaian', t1: '< Rp 500 jt', a1: 'Manager', t2: 'Rp 0,5–2 M', a2: 'Manager → Partner', t3: '> Rp 2 M', a3: 'Manager → Partner → EQR' },
+    /* PR-6 · keputusan Q1 — DULU tertulis 'Manager' untuk ambang terendah, sebuah
+       rute yang tak dapat dijalankan: memposting jurnal ke WTB menuntut AJE_POST,
+       dan hanya peran tingkat-partner yang memilikinya. Matriks yang dipublikasikan
+       menjanjikan otorisasi yang sistemnya sendiri tolak. Teks diselaraskan dengan
+       rantai yang benar-benar dibangun `ajeChainSteps`; memberi Manager kewenangan
+       posting untuk nilai kecil adalah perluasan otoritas yang menuntut kebijakan
+       firma tertulis, bukan penyesuaian teks. */
+    { kind: 'AJE / Penyesuaian', t1: '< Rp 500 jt', a1: 'Manager → Partner', t2: 'Rp 0,5–2 M', a2: 'Manager → Partner', t3: '> Rp 2 M', a3: 'Manager → Partner → EQR' },
     { kind: 'Faktur / Billing', t1: '< Rp 250 jt', a1: 'Manager', t2: 'Rp 0,25–1 M', a2: 'Manager → Finance → Partner', t3: '> Rp 1 M', a3: 'Finance → Managing Partner' },
     { kind: 'Penerimaan Klien', t1: 'Risiko Rendah', a1: 'Quality Partner', t2: 'Risiko Sedang', a2: 'QP → Managing Partner', t3: 'PIE / Tinggi', a3: 'QP → MP → Komite Risiko' },
     { kind: 'Penerbitan Opini', t1: 'Non-PIE WTP', a1: 'Engagement Partner', t2: 'Modifikasi', a2: 'EP → EQR', t3: 'PIE', a3: 'EP → EQR → Managing Partner' },

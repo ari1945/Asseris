@@ -7,7 +7,7 @@
 |---|---|
 | Tanggal | 2026-08-07 |
 | Pemilik | Ari Widodo |
-| Status | **Menunggu sign-off** |
+| Status | **Disetujui & DIIMPLEMENTASIKAN 2026-08-07** — sign-off "Proceed" tanpa menyebut nomor ⇒ seluruh rekomendasi §11 diadopsi (Q1=a · Q2=a · Q3=a · Q4=a · Q5=a · Q6=a). Enam PR di branch `feat/aje-immutability-live-approvals` |
 | Engagement ID terkait | — (produk Asseris, bukan perikatan klien) |
 | Pemicu | Evaluasi modul AJE 2026-08-07 (6 temuan: 2×P0, 3×P1, 1×P2). Setiap klaim di §1 diverifikasi dengan probe eksekusi, bukan pembacaan kode (Lampiran A) |
 | Arc terkait | PR-A…PR-E AJE (MERGED), PR-B gerbang otorisasi posting, #169 rantai sign-off WP, `docs/prd-wtb-integrity-falsifiable-gates.md` |
@@ -334,6 +334,38 @@ prosedur.
 akuntansi baku, jejak lengkap.
 (b) `unpost` lalu edit lalu ajukan ulang. Lebih sedikit baris, tetapi menghapus fakta bahwa angka
 lama pernah masuk ke LK.
+
+---
+
+## 12. Hasil (diisi 2026-08-07, setelah implementasi)
+
+| PR | Commit | Bukti |
+|---|---|---|
+| PR-1 | `aa1a592` | 37 uji kontrak + 8 uji server; 3 uji imutabilitas GAGAL pada kode lama |
+| PR-2 | `56f7d6a` | 21 uji rantai + 8 uji jalur antrean |
+| PR-3 | `83be93f` | jendela kesegaran server; snapshot canon +1 field, nol angka berubah |
+| PR-4 | `df3c330` | tab hidup; `stepAuthority` pindah ke modul murni; ratchet view_aje 65→55 `any` |
+| PR-5 | `731e8e9` | `validateAjeDraft` + field baru |
+| PR-6 | `b03070f` | `aje_register.ts` (19 uji) + lima tab + daftar kesiapan |
+
+Gerbang akhir: **klien 1046 uji (dari 933) · server 313 (dari 299) · `tsc` 0 · ESLint 0.**
+
+**Terverifikasi hidup** (peran Engagement Partner, ENG-2025-014, dev server):
+AJE-01 tampil 4 langkah dengan EQR menunggu + chip "Posted tanpa rantai lengkap";
+gerbang satu-orang-satu-langkah menolak partner yang sudah menandatangani, dengan
+alasannya; daftar kesiapan melaporkan 1 pemblokir; "Balik & Ganti" menghasilkan
+AJE-06 Proposed berdebit-kredit terbalik + chip ⟲ AJE-01.
+
+**Ditemukan tinjauan hidup, di luar lingkup** — tulisan `state.set` PERTAMA atas
+kunci berlingkup perikatan gagal 409 `already-exists:server=?` pada basis data dev
+ini karena `StateDocHistory` menyimpan baris versi-1 sementara `StateDoc` tidak;
+diagnosis server salah (mengira dokumennya sudah ada) dan `ConflictToaster` tak
+punya jalan pulih. Bukan akibat PRD ini; dicatat sebagai tugas terpisah.
+
+**Sisa yang TIDAK dikerjakan** (sesuai §5): jenis persetujuan selain AJE masih
+memakai rantai dari penghitung; tanda tangan waktu kriptografis tidak dibuat;
+lampiran berkas per-jurnal (`attachmentUpload` collection `aje`) belum dipasang —
+formulir menyediakan tautan DMS bertekst, bukan unggahan.
 
 ---
 
