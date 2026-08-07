@@ -1,6 +1,6 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { api, isConflict } from './api';
+import { api, isConflict, hydrateCoreFromApi } from './api';
 import { can as rbacCan } from './rbac';
 import { AMS } from './data';
 import { ENG_RISK_SEED } from './data_part1';
@@ -770,6 +770,41 @@ function AppProviders({ me, onLogout, children }: any) {
     }
   }, [accessibleEngIds, activeEngagementId, setActiveEngagementId]);
 
+  /* ============================================================
+     PR-J — NERACA SALDO MENJADI SADAR-PERIKATAN.
+     ------------------------------------------------------------
+     `hydrateCoreFromApi` DULU hanya dipanggil sekali saat login, dengan
+     `DEFAULT_ENG_ID` yang dipaku (app.tsx). Ia tak pernah dijalankan ulang saat
+     pengguna berganti perikatan, sehingga singleton `AMS.WTB` SELALU berisi neraca
+     saldo perikatan default — dan karena `D = AMS`, `baseWtb` menyalurkannya ke
+     SELURUH modul.
+
+     Akibatnya bukan angka yang salah, melainkan DATA KLIEN LAIN: ENG-2025-040
+     (PT Mandiri Sejahtera Finance, multifinance) menampilkan bagan akun PT Sentosa
+     Makmur lengkap dengan Beban Pokok Penjualan, persediaan, dan aset hak-guna.
+     Kegagalan kerahasiaan sekaligus integritas.
+
+     Efek ini menjadikan hidrasi mengikuti perikatan aktif — termasuk saat boot,
+     sehingga `activeEng` yang dipulihkan dari sesi pengguna dihormati alih-alih
+     ditimpa DEFAULT_ENG_ID. `wtbEpoch` naik setelah tiap hidrasi karena `AMS.WTB`
+     adalah singleton yang dimutasi di luar React: tanpa penanda ini, memo `baseWtb`
+     tak punya alasan untuk menghitung ulang dan layar akan tetap menampilkan
+     neraca saldo perikatan sebelumnya meski datanya sudah berganti. */
+  const [wtbEpoch, setWtbEpoch] = useState(0);
+  useEffect(() => {
+    if (!activeEngagementId) return;
+    let live = true;
+    (async () => {
+      try { await hydrateCoreFromApi(activeEngagementId); } catch (e) { /* offline: seed data.js */ }
+      /* Memo FIG/SRC kanon dibangun dari WTB lama → harus dibuang sebelum konsumen
+         mana pun membacanya kembali. `hydrateCoreFromApi` sudah melakukannya, tetapi
+         diulang di sini agar jalur gagal (offline) pun tak meninggalkan memo basi. */
+      try { (window as unknown as { amsResetFigures?: () => void }).amsResetFigures?.(); } catch (e) { /* noop */ }
+      if (live) setWtbEpoch((n: number) => n + 1);
+    })();
+    return () => { live = false; };
+  }, [activeEngagementId]);
+
   const PHASE_STATUS = { Perencanaan: 'Planning', Eksekusi: 'Fieldwork', Finalisasi: 'Review', Arsip: 'Completed' };
   const setEngagementPhase = useCallback((id: any, phase: any) => setEngagements((list: any) => list.map((e: any) =>
     e.id === id ? { ...e, phase, status: (PHASE_STATUS as any)[phase] || e.status,
@@ -895,11 +930,15 @@ function AppProviders({ me, onLogout, children }: any) {
   /* base WTB = neraca saldo terimpor (per-engagement) bila ada, else seed demo D.WTB.
      W-WTB·3: bila ada pemetaan akun, relabel+merge ke CoA standar dulu agar canon/FSGEN
      mengenali bagan akun klien. Lapisan override analitis + delta AJE tetap di atasnya (SSOT). */
+  /* PR-J — `wtbEpoch` ada di deps KARENA `D.WTB` (= `AMS.WTB`) adalah singleton yang
+     dimutasi di luar React oleh hidrasi. Tanpa penanda itu memo ini tak pernah
+     menghitung ulang saat perikatan berganti. */
   const baseWtb = useMemo(() => {
     const imported = (wtbImport && Array.isArray(wtbImport.rows) && wtbImport.rows.length) ? wtbImport.rows : null;
     if (!imported) return D.WTB;
     return (wtbMapping && Object.keys(wtbMapping).length) ? applyMapping(imported, wtbMapping) : imported;
-  }, [wtbImport, wtbMapping]);
+
+  }, [wtbImport, wtbMapping, wtbEpoch]);
   // Override analitis di-key per KODE akun (identitas stabil) via overlayWtbOverrides —
   // bertahan saat WTB di-impor/petakan ulang (key posisi bergeser). SSOT `wtb` view.
   const wtbBase = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),

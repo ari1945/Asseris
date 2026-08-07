@@ -321,7 +321,23 @@ export async function hydrateCoreFromApi(engagementId?: any, userId?: any) {
   if (Array.isArray(b.team) && b.team.length) {
     AMS.TEAM = b.team.map((t: any) => ({ name: t.name, role: t.role, util: t.util }));
   }
-  if (Array.isArray(b.wtb) && b.wtb.length) {
+  /* PR-I — BUNDLE PERIKATAN TANPA BARIS WTB HARUS MENGOSONGKAN, BUKAN MEMBIARKAN.
+     Penjaga lama `&& b.wtb.length` membuat perikatan yang belum mengimpor neraca saldo
+     tidak menimpa apa pun, sehingga `AMS.WTB` MEMPERTAHANKAN neraca saldo perikatan yang
+     dibuka sebelumnya. Terbukti di layar: ENG-2025-040 (PT Mandiri Sejahtera Finance,
+     multifinance) menampilkan bagan akun PT Sentosa Makmur lengkap dengan Beban Pokok
+     Penjualan, persediaan, dan aset hak-guna — akun yang tak mungkin dimiliki entitas
+     pembiayaan. Karena `contexts.tsx` memakai `D = AMS`, seluruh modul ikut: materialitas,
+     PSAK 46, aset tetap, ECL, going concern, FS Generator.
+
+     Satu klien menampilkan buku besar klien lain adalah kegagalan kerahasiaan sekaligus
+     integritas — bukan sekadar angka salah. Perikatan tanpa TB harus terlihat KOSONG.
+
+     Ini kemunculan KETIGA dari kesalahan yang sama dalam satu rantai: "larik kosong yang
+     diberikan" diperlakukan sebagai "tidak diberi". Dua lainnya (`consolidatedBenchmarks`
+     lewat `wtbVal`, dan `materiality(benchmarks: [])` lewat `window.BENCHMARKS`) ditutup
+     di commit yang sama. */
+  if (Array.isArray(b.wtb)) {
     // Reconstruct the runtime row shape (key + derived adj) the app/canon expect.
     AMS.WTB = b.wtb.map((w: any) => ({ key: 'wtb' + w.ord, group: w.group, code: w.code, name: w.name,
       ly: w.ly, unadj: w.unadj, aje: w.aje, adj: w.unadj + w.aje, lead: w.lead }));

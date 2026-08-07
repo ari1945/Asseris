@@ -45,6 +45,7 @@ vi.mock('@trpc/client', () => {
 });
 
 const api = await import('./api');
+const { AMS } = await import('./data');
 
 type Narration = { task: string; findings: Array<Record<string, unknown>> };
 
@@ -176,5 +177,46 @@ describe('llmNarrateDiagnostics() — defence-in-depth redaction before egress',
     trpc.resolveValue = (arg: unknown) => arg;
     const sent = (await api.llmNarrateDiagnostics(null)) as Narration;
     expect(sent.findings).toEqual([]);
+  });
+});
+
+/* ============================================================
+   PR-I — hidrasi bundle perikatan: larik KOSONG harus mengosongkan.
+
+   Penjaga lama `Array.isArray(b.wtb) && b.wtb.length` membuat perikatan yang
+   belum mengimpor neraca saldo tidak menimpa apa pun, sehingga `AMS.WTB`
+   MEMPERTAHANKAN neraca saldo perikatan yang dibuka sebelumnya. Terbukti di
+   layar sebelum perbaikan: ENG-2025-040 (PT Mandiri Sejahtera Finance,
+   multifinance) menampilkan bagan akun PT Sentosa Makmur — lengkap dengan
+   Beban Pokok Penjualan dan persediaan.
+
+   Satu klien menampilkan buku besar klien lain adalah kegagalan kerahasiaan
+   sekaligus integritas, bukan sekadar angka salah.
+   ============================================================ */
+describe('PR-I — hidrasi WTB: bundle tanpa baris mengosongkan singleton', () => {
+  const ROW = { ord: 0, group: 'Aset Lancar', code: '1-1100', name: 'Kas', ly: 1, unadj: 2, aje: 0, lead: 'A' };
+
+  it('bundle berisi baris → AMS.WTB terisi dari bundle', async () => {
+    trpc.resolveValue = { wtb: [ROW] };
+    await api.hydrateCoreFromApi('ENG-A');
+    expect(AMS.WTB).toHaveLength(1);
+    expect(AMS.WTB[0].code).toBe('1-1100');
+  });
+
+  it('bundle perikatan BERIKUTNYA tanpa baris → singleton DIKOSONGKAN, bukan dibiarkan', async () => {
+    trpc.resolveValue = { wtb: [ROW] };
+    await api.hydrateCoreFromApi('ENG-A');
+    expect(AMS.WTB.length).toBeGreaterThan(0);
+    trpc.resolveValue = { wtb: [] };
+    await api.hydrateCoreFromApi('ENG-B');
+    expect(AMS.WTB).toEqual([]);          // BUKAN neraca saldo klien sebelumnya
+  });
+
+  it('bundle tanpa field wtb sama sekali tidak menyentuh singleton (absen ≠ kosong)', async () => {
+    trpc.resolveValue = { wtb: [ROW] };
+    await api.hydrateCoreFromApi('ENG-A');
+    trpc.resolveValue = {};
+    await api.hydrateCoreFromApi('ENG-C');
+    expect(AMS.WTB).toHaveLength(1);
   });
 });

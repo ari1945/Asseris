@@ -410,11 +410,20 @@ import type { WTB, MaterialityOpts, MaterialityResult, MaterialityBasis, Materia
        dulunya konstanta ter-hardcode (PBT 85.200 jt) yang tak pernah menyentuh buku
        besar — turunan WTB memberi 29.690 jt. Selama fallback ini masih ada, jalur
        window tetap statis dan buta-perikatan; `benchSource` membuatnya terdeteksi. */
+    /* PR-I — TABEL KOSONG YANG DIBERIKAN ≠ TIDAK DIBERI. Dulu `benchmarks: []` ikut
+       jatuh ke `window.BENCHMARKS`, yaitu tabel statis & buta-perikatan yang PR-A
+       sendiri sebut sebagai jalur basi. Padahal tabel kosong adalah JAWABAN: perikatan
+       yang belum mengimpor neraca saldo memang tidak punya benchmark, dan ambangnya
+       harus berbunyi "belum ditetapkan" — bukan meminjam angka dari tempat lain.
+
+       Saat ini tak ada yang menulis `window.BENCHMARKS` di aplikasi (hanya stub uji),
+       sehingga cacat ini laten. Ditutup di sini justru karena laten: ia akan menyala
+       diam-diam pada hari seseorang mengembalikan tabel window itu. */
     const benchArg = opts.benchmarks;
-    const benches: Benchmark[] = (benchArg && benchArg.length)
+    const benches: Benchmark[] = benchArg
       ? benchArg
       : ((typeof window !== 'undefined' && window.BENCHMARKS) || []);
-    const benchSource: MaterialityBenchSource = (benchArg && benchArg.length)
+    const benchSource: MaterialityBenchSource = benchArg
       ? 'args' : (benches.length ? 'window' : 'none');
     const bench    = benches.find(b => b.id === benchId) || benches[0] || null;
     const calcOM   = bench ? Math.round(bench.value * pct / 100) : null; // OM hitung benchmark (live)

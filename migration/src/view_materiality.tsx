@@ -51,6 +51,7 @@ const TABS = [
 function MaterialityCalc() {
   const { fmt } = AMS;
   const { activeEngagement, locked } = useFirm();
+  const nav = useNav();
 
   const [tab, setTab] = window.useAmsPersist('mat.tab', 'det');
   const [quals, setQuals] = window.useAmsPersist('mat.quals', { listed: true, fraud: true });
@@ -156,9 +157,15 @@ function MaterialityCalc() {
             {/* PR-6·0 · K0c — rail menyatakan BASIS OM yang berlaku, dan bila basisnya
                 override maka hitung benchmark tetap ditampilkan agar selisihnya terlihat
                 (bukan dua angka tanpa penjelasan di dua modul berbeda). */}
-            <RailChip label={mat.basis === 'override' ? 'Overall (OM) · terterapkan' : 'Overall (OM) · hitung benchmark'} value={rp(om)} strong />
-            <RailChip label={`Performance · ${pmPct}%`} value={rp(pm)} />
-            <RailChip label={`Jelas Remeh · ${cttPct}%`} value={rp(ctt)} />
+            {/* PR-I — tanpa benchmark, ambang TIDAK ADA; menampilkan "Rp 0" memberi angka
+                yang tampak otoritatif untuk sesuatu yang belum pernah ditetapkan. Komentar
+                di atas `bench` sudah menyatakan niat ini sejak PR-A ("bukan baris nol"),
+                tetapi rail tetap jatuh ke 0 karena `om = mat.omFull ?? (calcOM ?? 0)`. */}
+            <RailChip
+              label={mat.basis === 'none' ? 'Overall (OM) · belum ditetapkan' : (mat.basis === 'override' ? 'Overall (OM) · terterapkan' : 'Overall (OM) · hitung benchmark')}
+              value={mat.basis === 'none' ? 'TB belum diimpor' : rp(om)} strong />
+            <RailChip label={`Performance · ${pmPct}%`} value={mat.basis === 'none' ? '—' : rp(pm)} />
+            <RailChip label={`Jelas Remeh · ${cttPct}%`} value={mat.basis === 'none' ? '—' : rp(ctt)} />
             <RailChip label="Benchmark" value={bench ? `${bench.label} · ${pct}%` : 'TB belum diimpor'} />
             {mat.basis === 'override' && calcOM != null && calcOM !== om && (
               <RailChip label="Hitung benchmark kini" value={rp(calcOM)} />
@@ -172,6 +179,19 @@ function MaterialityCalc() {
 
         <div className="view-pad">
           {locked && <LockBanner />}
+
+          {/* PR-I — perikatan tanpa neraca saldo TIDAK punya materialitas. Dulu ia
+              diam-diam memakai konsolidasi klien lain (singleton `AMS.WTB`) dan
+              menyajikannya berlabel "hitung benchmark". Kini dinyatakan, dan diberi
+              jalan keluarnya. */}
+          {mat.basis === 'none' && (
+            <div className="panel" style={{ padding: '9px 12px', background: 'var(--amber-bg)', borderColor: 'transparent', marginBottom: 10 }}>
+              <div className="tiny" style={{ fontWeight: 600, color: 'var(--amber)', lineHeight: 1.45 }}>
+                <I.alert size={12} style={{ verticalAlign: 'middle' }} /> Neraca saldo perikatan ini belum diimpor, sehingga benchmark SA 320 tidak dapat diturunkan dan materialitas <b>belum ditetapkan</b>. Angka apa pun yang ditampilkan sebagai ambang tanpa TB akan berasal dari perikatan lain — karena itu tidak ditampilkan.
+                <span style={{ textDecoration: 'underline', cursor: 'pointer', marginLeft: 6 }} onClick={() => nav('wtb', { from: 'materiality' })}>Impor neraca saldo</span>
+              </div>
+            </div>
+          )}
 
           {/* PR-H2 — ambang yang diam-diam memakai default adalah ambang yang tak
               seorang pun tetapkan. Sebelum ini, konfigurasi ber-`null` menghasilkan

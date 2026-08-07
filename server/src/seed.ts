@@ -174,6 +174,35 @@ async function main() {
     });
   }
 
+  /* PR-J — NERACA SALDO UNTUK SETIAP PERIKATAN, bukan hanya yang aktif.
+     Sebelumnya hanya ENG-2025-014 yang punya baris WTB, sehingga bundle perikatan lain
+     mengembalikan larik kosong — dan klien (yang tak pernah menghidrasi ulang saat ganti
+     perikatan) menyalurkan neraca saldo perikatan default ke seluruh modul. Akibatnya
+     satu klien menampilkan buku besar klien lain. Bagan akun tiap perikatan sengaja
+     BERBEDA menurut industrinya, supaya kebocoran serupa terlihat seketika bila terulang. */
+  // @ts-ignore — modul data ESM migration tidak bertipe di sisi server.
+  const { WTB_BY_ENGAGEMENT } = (await import('../../migration/src/data_wtb_eng.js')) as {
+    WTB_BY_ENGAGEMENT: Record<string, Array<Record<string, unknown>>>;
+  };
+  for (const [engId, rows] of Object.entries(WTB_BY_ENGAGEMENT)) {
+    let o = 0;
+    for (const w of rows) {
+      await prisma.wtbRow.create({
+        data: {
+          engagementId: engId,
+          ord: o++,
+          group: w.group as string,
+          code: w.code as string,
+          name: w.name as string,
+          ly: (w.ly as number) ?? 0,
+          unadj: (w.unadj as number) ?? 0,
+          aje: (w.aje as number) ?? 0,
+          lead: (w.lead as string) ?? null,
+        },
+      });
+    }
+  }
+
   let ord = 0;
   for (const w of A.WTB) {
     await prisma.wtbRow.create({
