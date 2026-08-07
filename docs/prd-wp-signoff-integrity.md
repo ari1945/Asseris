@@ -313,7 +313,58 @@ retarget manual setiap kali PR di bawahnya merged (pelajaran #129/#130).
 | **PR-1** ✅ | `content_hash.ts` (ekstraksi FNV-1a) · `identity.ts` (ekstraksi `amsShortName`) · `wp_chain.ts` (pindahkan `wpChainSelfReview`, tambah `WP_SLOT_ORDER`, `wpContentHash`, `wpChainViolations`, `wpChainLinks`) + 37 uji murni | **Tidak** — refactor + modul baru yang belum dipanggil |
 | **PR-2** | **Klien** menulis `byUserId` + `at` ISO + `contentHash`; **hapus `quickSign`** (footer → tab Sign-off); fail-closed `can()`; `reopen()` selektif; uji K3/K7/K8 | **Ya** |
 | **PR-3** | **Server** `guardSignoffWrite(user, …)`; `preparer` masuk slot terjaga; tegakkan R1–R7 untuk `wpState` **+ R1/R2 untuk `opinionDoc.v1` & `mat.memo.signoff`** (Q4); **balik** oracle `signoff.test.ts:35-43`; uji K1/K2/K4/K6/K11/K12 | **Ya** — server mulai menolak |
-| **PR-4** | `wpChainLinks` menggantikan pembacaan `chain` langsung di 4 pemanggil; tampilan `voided`/`legacy` + banner; uji K5/K9 | **Ya** — penggugur turunan aktif |
+| **PR-4** ✅ | `wpChainLinks` menggantikan pembacaan `chain` langsung di 4 pemanggil; tampilan `voided`/`legacy` + banner; uji K5/K9 | **Ya** — penggugur turunan aktif |
+
+## 12. Hasil (diisi 2026-08-07, setelah implementasi)
+
+**Paket TUNTAS.** Lima commit di `feat/wp-signoff-integrity`:
+`c08fb20` PR-1 · `764c632` PR-2 · `ff8ea67` prasyarat · `700932e` PR-3 · `e819014` PR-4.
+migration 1087 uji · server 327 uji · typecheck & lint hijau di kedua paket.
+
+**Kriteria keberhasilan — seluruhnya terpenuhi dan diverifikasi HIDUP**, lewat panggilan
+tRPC langsung yang melewati UI sepenuhnya (peran Rekan Pemimpin, WP B):
+
+| Probe | Hasil |
+|---|---|
+| K1 · memalsukan preparer atas nama Dimas R. | **403** `signature-identity-mismatch` |
+| K2 · tanpa `byUserId` (bentuk `quickSign` lama) | **403** `signature-missing-identity` |
+| K4 · back-dating setahun | **403** `signature-stale-timestamp` |
+| K3 · reviewer tanpa preparer | **403** `signature-out-of-order` |
+| K3 · satu orang dua slot | **403** `signature-self-review` |
+| — · tanda tangan sendiri yang sah | **200** diterima |
+| K5 · sunting hasil item uji tanpa menyentuh rantai | tanda tangan **GUGUR** di SignoffTab, footer, dan SA 230 (2/5 → 1/5) |
+| K8 · `grep -c quickSign` pada kode | **0** |
+
+**Tiga cacat yang tidak ada di temuan awal, ditemukan saat mengerjakan:**
+
+1. **Pemisah `\x01` LITERAL** di dalam `ajeContentHash` — karakter kontrol mentah, tak
+   terlihat di editor maupun diff. Menyalinnya dengan mata menghasilkan rumus berbeda →
+   SELURUH persetujuan AJE tercatat gugur secara senyap. Kini escape bernama, ekstraksi
+   diverifikasi byte-identik.
+2. **36 dokumen terkunci permanen** (`ff8ea67`) — `StateDocHistory` yang selamat membuat
+   jalur create menabrak unique constraint, dan dokumennya mustahil dibuat kembali.
+   Termasuk `wpState` (seluruh kertas kerja) dan `prospects` (akseptasi klien). Gejalanya
+   hanya 409 di konsol; UI diam. Pekerjaan auditor tidak tersimpan.
+3. **`const today = '2026-03-14'`** di generator opini — setiap tanda tangan opini dan
+   setiap tanggal finalisasi tercatat 14 Maret 2026, kapan pun, oleh siapa pun. Kelas
+   cacat yang sama sudah ditutup untuk AJE; laporan auditor masih memakainya. Ditambah
+   tanda tangan preparer **fiktif** `'Generator Laporan'` yang ditempelkan ke
+   `wpState['900']` semata agar rantai tampak berurutan.
+
+**Keputusan desain yang berbeda dari arc AJE (disengaja):** kertas kerja memakai
+**penggugur turunan**, bukan penolakan keras. SA 230 ¶A23 memperkenankan perubahan
+sebelum perakitan; yang gugur adalah tanda tangannya, bukan pekerjaannya.
+
+**Batas jujur:** ini bukan tanda tangan kriptografis (§8.5). Yang dipersempit adalah
+pemalsuan lewat aplikasi — permukaan yang nyata dipakai auditor.
+
+**Terbuka setelah paket ini:**
+- `wpState['900']` dikecualikan dari aturan urutan (R3) sebagai cermin `opinionDoc.v1`.
+  Apakah rantai opini sendiri perlu R3/R4 adalah pertanyaan terpisah yang belum dianalisis.
+- Langkah 4–6 evaluasi (readiness gate · integrasi DMS bukti · panel readiness + pemisahan
+  tab di atas rute Fase C) — PRD tersendiri.
+- Branch di-stack di atas `feat/aje-immutability-live-approvals` (PR #176); **wajib
+  di-retarget ke master** setelah #176 merged.
 
 **Gerbang tiap PR** — dua paket, keduanya wajib hijau sebelum review:
 `migration/`: `npm test` · `npm run typecheck` · `npm run lint` (pakai `--prune-suppressions` bila
