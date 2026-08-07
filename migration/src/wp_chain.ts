@@ -39,7 +39,31 @@ import { amsShortName, normalizeDisplayName } from './identity';
    prd-aje-immutability-live-approvals PR-3). Ia generik — tak ada apa pun di
    dalamnya yang khas jurnal — jadi kertas kerja MEMAKAINYA, bukan menyalinnya.
    Hanya nilai skew baku yang berbeda, dan itu parameter. */
-import { decisionTimestampError } from './aje_approval';
+import { decisionTimestampError, nowStamp } from './aje_approval';
+
+/** Stempel waktu sebuah tanda tangan: ISO 8601 dari jam mesin penandatangan. */
+export { nowStamp as wpSignatureStamp };
+
+/**
+ * Tampilan sebuah `at` tanda tangan.
+ *
+ * TIGA bentuk sudah hidup berdampingan di data ini: ISO (baru),
+ * 'YYYY-MM-DD' (tanggal reviu yang dideklarasikan di WP_INDEX), dan
+ * '07 Agu 2026' (keluaran `wpToday()` lama). Fungsi ini menerima ketiganya
+ * dan mengembalikan bentuk Indonesia yang seragam; yang tak terbaca
+ * dikembalikan apa adanya, bukan diganti tanggal hari ini.
+ */
+export function wpFormatSignedAt(at: unknown): string {
+  const s = String(at ?? '').trim();
+  if (!s) return '';
+  const t = Date.parse(s.includes('T') ? s : s.replace(' ', 'T'));
+  if (!Number.isFinite(t)) return s;
+  try {
+    return new Date(t).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return s;
+  }
+}
 
 /* ============================================================
    BENTUK

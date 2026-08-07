@@ -12,7 +12,9 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpChainSelfReview, wpSeedReviewSignature } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpSeedReviewSignature } from './wp_canon';
+/* PRD prd-wp-signoff-integrity — aturan rantai tanda tangan (dipakai bersama server). */
+import { WP_SLOT_ORDER, WP_SLOT_LABEL, wpChainSelfReviewBy, wpContentHash, wpSignatureStamp, wpFormatSignedAt, signedByActor } from './wp_chain';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
 
 /* ============================================================
@@ -342,7 +344,7 @@ function WPDrill({ it, onClose }: any) {
           </div>
         </>
       )}
-      footer={<WPFooter ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} doneCount={doneCount} totalProcs={defs.length} />}
+      footer={<WPFooter ref_={ref} it={it} status={status} st={st} setWp={setWp} locked={locked} doneCount={doneCount} totalProcs={defs.length} onGoSignoff={() => setTab('signoff')} />}
     >
       <div style={{ padding: 16 }}>
         {tab === 'lead' && <LeadTab ref_={ref} it={it} leadRows={leadRows} hasLead={hasLead} bal={bal} covLabel={covLabel} st={st} setWp={setWp} locked={locked} fmt={fmt} />}
@@ -1051,12 +1053,29 @@ function NotesTab({ ref_, allNotes, effNoteStatus, setWp, st, locked, draft, set
   );
 }
 
+/* Tulisan yang menyentuh rantai sign-off. Bertipe (bukan `any`) karena inilah
+   bentuk yang server validasi — salah ketik di sini menjadi 403 di sana. */
+type WpSignPatch = {
+  chain: Record<string, unknown>;
+  status?: string;
+  reviewer?: string | null;
+  signedAt?: string | null;
+};
+
 /* ---- Sign-off & audit trail tab ---- */
 function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) {
-  const today = wpToday();
   const auth = useAuth();
-  const me = (auth && auth.user && auth.user.name) ? amsShortName(auth.user.name) : it[2];
-  const can = (cap: string) => !auth || typeof auth.can !== 'function' || auth.can(cap);
+  /* Identitas sesi — `null` bila belum ada. Sebelumnya `me` jatuh ke `it[2]`
+     (nama preparer yang DITUGASKAN), sehingga tanda tangan yang dibubuhkan di
+     luar provider tercatat atas nama orang yang tidak menekan tombolnya. */
+  const actor = (auth && auth.user && auth.user.id && auth.user.name)
+    ? { id: String(auth.user.id), name: String(auth.user.name) }
+    : null;
+  const me = actor ? amsShortName(actor.name) : it[2];
+  /* FAIL-CLOSED. Bentuk lama (`!auth || typeof auth.can !== 'function' || …`)
+     membuka SEMUA slot ketika modul dirender di luar AuthProvider — kebalikan
+     dari yang seharusnya terjadi saat identitas tak diketahui. */
+  const can = (cap: string) => !!(auth && typeof auth.can === 'function' && auth.can(cap));
   const chain = st.chain || {};
   /* derive defaults */
   const preparer = chain.preparer || null;
@@ -1081,31 +1100,52 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
     const l = levels[idx];
     if (l.signed) return '';
     if (locked) return 'Berkas perikatan terkunci.';
+    if (!actor) return 'Identitas sesi belum diketahui — tanda tangan tidak dapat dibubuhkan.';
     if (!can(l.cap)) return 'Peran Anda tidak berwenang untuk slot ini';
     if (idx > 0 && !levels[idx - 1].signed) return `Menunggu tanda tangan ${levels[idx - 1].role} lebih dulu.`;
-    return wpChainSelfReview(chain, l.key, me).reason;
+    return wpChainSelfReviewBy(chain, l.key, actor).reason;
   };
   const canSign = (idx: any) => !levels[idx].signed && !signBlock(idx);
   const sign = (idx: any) => {
     const lvl = levels[idx];
     /* Tombol yang mati bukan gerbang — handler menolak sendiri. */
-    if (signBlock(idx)) return;
-    const patch: any = { chain: { ...chain, [lvl.key]: { by: me, at: today } } };
-    if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = me; patch.signedAt = today; }
+    if (signBlock(idx) || !actor) return;
+    /* Tanda tangan menyebut SIAPA (id, bukan nama tampilan yang lossy), KAPAN
+       (ISO dari jam nyata — server menolak yang menyimpang), dan ATAS APA
+       (hash isi kertas kerja saat ini). Ketiganya divalidasi server sejak PR-3. */
+    const at = wpSignatureStamp();
+    const sig = { by: me, byUserId: actor.id, at, contentHash: wpContentHash(st) };
+    const patch: WpSignPatch = { chain: { ...chain, [lvl.key]: sig } };
+    if (lvl.key === 'reviewer') { patch.status = 'Reviewed'; patch.reviewer = me; patch.signedAt = at; }
     if (lvl.key === 'preparer' && (status === 'Not Started' || status === 'In Progress')) patch.status = 'In Review';
     setWp(ref_, patch);
   };
+  /* Menarik tanda tangan PREPARER adalah hak penandatangannya sendiri, dan hanya
+     selama rantai belum berlanjut — bukan kewenangan reviewer seperti sebelumnya. */
+  const unsignBlock = (idx: number): string => {
+    const l = levels[idx];
+    if (!l.signed) return 'Belum ada tanda tangan pada slot ini.';
+    if (locked) return 'Berkas perikatan terkunci.';
+    if (!actor) return 'Identitas sesi belum diketahui.';
+    if (l.key !== 'preparer') {
+      return can(l.cap) ? '' : 'Peran Anda tidak berwenang untuk slot ini';
+    }
+    if (!signedByActor(l.signed, actor)) return 'Hanya penandatangannya sendiri yang dapat menarik tanda tangan Preparer.';
+    if (levels.slice(1).some(x => x.signed)) return 'Rantai sudah berlanjut — buka dari slot teratas lebih dulu.';
+    return '';
+  };
   const unsign = (idx: any) => {
     const lvl = levels[idx];
+    if (unsignBlock(idx)) return;
     const nc = { ...chain }; delete nc[lvl.key];
-    const patch: any = { chain: nc };
+    const patch: WpSignPatch = { chain: nc };
     if (lvl.key === 'reviewer') { patch.status = 'In Review'; patch.reviewer = null; patch.signedAt = null; }
     setWp(ref_, patch);
   };
 
   /* audit trail */
   const trail = [];
-  levels.forEach(l => { if (l.signed) trail.push({ at: l.signed.at, who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' }); });
+  levels.forEach(l => { if (l.signed) trail.push({ at: wpFormatSignedAt(l.signed.at), who: l.signed.by, what: `Sign-off ${l.role}`, ic: 'checkCircle', col: 'var(--green)' }); });
   (st.log || []).forEach((e: any) => trail.push(e));
   /* Dua peristiwa seed di bawah DIDEKLARASIKAN tanggalnya. Yang pertama dulu memakai
      `today`, sehingga jejak audit menyatakan kertas kerja ini dibuat HARI INI oleh
@@ -1133,12 +1173,12 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
                 {l.signed ? (
                   <>
                     <div className="row ac gap6 je"><Avatar name={l.signed.by} size={20} /><span className="tiny" style={{ fontWeight: 600 }}>{l.signed.by}</span></div>
-                    <div className="tiny muted mono" style={{ marginTop: 2 }}>{l.signed.at}</div>
+                    <div className="tiny muted mono" style={{ marginTop: 2 }}>{wpFormatSignedAt(l.signed.at)}</div>
                   </>
                 ) : <span className="tiny muted">{l.key === 'preparer' ? `Ditugaskan: ${l.who} · belum menandatangani` : 'belum ditandatangani'}</span>}
               </div>
               {l.signed
-                ? <button className="btn sm" disabled={locked || (l.key === 'preparer' ? !can(WP_SLOT_CAP.reviewer) : !can(l.cap))} title={locked || (l.key === 'preparer' ? !can(WP_SLOT_CAP.reviewer) : !can(l.cap)) ? 'Peran Anda tidak berwenang untuk slot ini' : undefined} onClick={() => unsign(i)} style={{ flex: '0 0 auto' }}><I.sync size={12} /> Batalkan</button>
+                ? <button className="btn sm" disabled={!!unsignBlock(i)} title={unsignBlock(i) || undefined} onClick={() => unsign(i)} style={{ flex: '0 0 auto' }}><I.sync size={12} /> Batalkan</button>
                 : <Btn sm variant={canSign(i) ? 'primary' : ''} disabled={!canSign(i)} title={signBlock(i) || undefined} onClick={() => sign(i)} style={{ flex: '0 0 auto' }}><I.check size={13} /> Sign-off</Btn>}
             </div>
           ))}
@@ -1163,15 +1203,49 @@ function SignoffTab({ ref_, it, status, st, setWp, locked, activeClient }: any) 
 }
 
 /* ---- Footer (persistent quick sign-off) ---- */
-function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }: any) {
-  const auth = useAuth(); const me = (auth && auth.user && auth.user.name) ? amsShortName(auth.user.name) : (it[2]);
-  const canReview = !auth || typeof auth.can !== 'function' || auth.can(CAP.SIGNOFF_REVIEWER);
+function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs, onGoSignoff }: any) {
+  const auth = useAuth();
+  /* FAIL-CLOSED, idem SignoffTab. */
+  const can = (cap: string) => !!(auth && typeof auth.can === 'function' && auth.can(cap));
+  const canReview = can(CAP.SIGNOFF_REVIEWER);
   /* idem SignoffTab — footer tak boleh menampilkan penanda tangan yang tak pernah ada. */
   const chainRev = (st.chain && st.chain.reviewer) || wpSeedReviewSignature(ref_);
   const reviewer = chainRev ? chainRev.by : null;
   const preparerSigned = !!(st.chain && st.chain.preparer);
-  const quickSign = () => setWp(ref_, { status: 'Reviewed', reviewer: me, signedAt: wpToday(), chain: { ...(st.chain || {}), preparer: (st.chain && st.chain.preparer) || { by: it[2], at: wpToday() }, reviewer: { by: me, at: wpToday() } } });
-  const reopen = () => { const nc = { ...(st.chain || {}) }; delete nc.reviewer; delete nc.partner; delete nc.eqr; setWp(ref_, { status: 'In Review', reviewer: null, signedAt: null, chain: nc }); };
+
+  /* `quickSign` DIHAPUS (PRD prd-wp-signoff-integrity, PR-2).
+     Ia menulis DUA tanda tangan sekaligus: reviewer dari sesi, dan preparer dari
+     `it[2]` — nama auditor yang DITUGASKAN, yang tidak pernah menekan tombol itu.
+     Sekaligus ia menembus tiga gerbang yang sudah ada di tab Sign-off: urutan
+     rantai, satu-orang-satu-langkah (WP '100' ber-preparer 'Anindya P.' yang juga
+     Audit Manager), dan — tanpa sesi — bahkan slot reviewer pun tertulis atas nama
+     preparer. Tanda tangan kini hanya lahir di satu tempat: tab Sign-off. */
+
+  /* Membuka kembali = mencabut tanda tangan, dan mencabut menuntut kewenangan atas
+     slot yang dicabut. Bentuk lama menghapus reviewer+partner+EQR sekaligus tanpa
+     memeriksa satu pun — dan karena `PARTNER_BASE` memegang OPINION_APPROVE DAN
+     EQR_REVIEW, seorang Partner dapat menghapus tanda tangan EQR. Kini rantai
+     dibuka DARI ATAS dan berhenti pada slot pertama yang tak berwenang dibuka. */
+  const reopenPlan = (): string[] => {
+    const chain = st.chain || {};
+    const out: string[] = [];
+    for (let i = WP_SLOT_ORDER.length - 1; i >= 1; i--) {
+      const k = WP_SLOT_ORDER[i];
+      if (!chain[k]) continue;
+      if (!can(WP_SLOT_CAP[k])) break;
+      out.push(k);
+    }
+    return out;
+  };
+  const reopen = () => {
+    const plan = reopenPlan();
+    if (!plan.length) return;
+    const nc = { ...(st.chain || {}) };
+    plan.forEach(k => { delete nc[k]; });
+    const patch: WpSignPatch = { chain: nc };
+    if (plan.includes('reviewer')) { patch.status = 'In Review'; patch.reviewer = null; patch.signedAt = null; }
+    setWp(ref_, patch);
+  };
   return (
     <div style={{ padding: '11px 16px', borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto', background: 'var(--surface)' }}>
       <div className="row ac gap10" style={{ flex: 1 }}>
@@ -1186,12 +1260,10 @@ function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs }
       {locked
         ? <Badge kind="gray"><I.lock size={12} /> Read-only</Badge>
         : status !== 'Reviewed'
-          ? canReview
-            ? <Btn variant="primary" onClick={quickSign}><I.check size={14} /> Sign-off Review</Btn>
-            : <span className="tiny muted" style={{ color: 'var(--ink-3)' }}><I.lock size={11} /> Sign-off review hanya oleh Reviewer berwenang</span>
-          : canReview
-            ? <Btn onClick={reopen}><I.sync size={14} /> Buka Kembali</Btn>
-            : <span className="tiny muted" style={{ color: 'var(--ink-3)' }}><I.lock size={11} /> Hanya Reviewer berwenang</span>}
+          ? <Btn variant={canReview ? 'primary' : ''} onClick={onGoSignoff} title="Tanda tangan dibubuhkan di tab Sign-off, per slot rantai"><I.check size={14} /> Buka Rantai Sign-off</Btn>
+          : reopenPlan().length
+            ? <Btn onClick={reopen} title={`Mencabut: ${reopenPlan().map(k => WP_SLOT_LABEL[k]).join(', ')}`}><I.sync size={14} /> Buka Kembali</Btn>
+            : <span className="tiny muted" style={{ color: 'var(--ink-3)' }}><I.lock size={11} /> Peran Anda tidak berwenang membuka rantai ini</span>}
     </div>
   );
 }
