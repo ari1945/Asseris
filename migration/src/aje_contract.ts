@@ -269,6 +269,100 @@ export function isReversal(a: AjeContractEntry | null | undefined): boolean {
   return !!(a && a.reverses);
 }
 
+/* ============================================================
+   VALIDASI FORMULIR (PR-5)
+   ------------------------------------------------------------
+   Formulir lama menuntut tiga hal saja: deskripsi, dua baris terisi, dan
+   seimbang. Ref. WP opsional dan jatuh ke literal `'JE'`; tautan SAD dan
+   asersi opsional; tanggal efektif, sumber bukti, dan lampiran tak ada.
+   Sebuah jurnal karenanya dapat diajukan — dan disetujui — tanpa satu pun
+   jangkar ke prosedur, bukti, atau salah saji. Hilirnya nyata: entri tanpa
+   `mis` tak pernah sampai ke agregasi SA 450, dan "WP JE" tak dapat dibuka
+   `openCanonicalWp` karena ia bukan referensi apa pun.
+
+   Aturan hidup di fungsi MURNI ini, bukan di dalam komponen: aturan yang
+   hanya ada di JSX hanya teruji lewat render.
+   ============================================================ */
+
+export interface AjeDraftLine { code?: string; debit?: number | string; credit?: number | string }
+
+export interface AjeDraft {
+  desc?: string;
+  ref?: string;
+  kind?: string;
+  mis?: string | null;
+  misNoneReason?: string | null;
+  effectiveDate?: string | null;
+  evidenceSource?: string | null;
+  dmsLink?: string | null;
+  assertions?: readonly string[] | null;
+  lines?: readonly AjeDraftLine[] | null;
+}
+
+export interface AjeDraftIssue { field: string; message: string }
+
+/** Ref. WP yang sebenarnya bukan referensi — nilai jatuh-tempo formulir lama. */
+const REF_PLACEHOLDERS = new Set(['', 'JE', 'je', '-', '—', 'N/A', 'n/a', 'TBD', 'tbd']);
+
+/**
+ * Masalah yang menghalangi pengajuan sebuah jurnal. Kosong = boleh diajukan.
+ *
+ * Keputusan Q5 (PRD §11): Ref. WP wajib untuk SEMUA jenis — reklasifikasi pun
+ * harus berasal dari sebuah prosedur. Item SAD wajib untuk `adjusting`, dengan
+ * jalan keluar yang EKSPLISIT (alasan tertulis), bukan diam-diam kosong:
+ * yang dilarang bukan "tak ada item SAD", melainkan tak ada jawabannya.
+ */
+export function validateAjeDraft(d: AjeDraft | null | undefined): AjeDraftIssue[] {
+  const e = d || {};
+  const out: AjeDraftIssue[] = [];
+  const t = (v: unknown) => String(v ?? '').trim();
+
+  if (t(e.desc).length < 5) out.push({ field: 'desc', message: 'Deskripsi penyesuaian wajib diisi (minimal 5 karakter).' });
+
+  const ref = t(e.ref);
+  if (REF_PLACEHOLDERS.has(ref)) {
+    out.push({ field: 'ref', message: 'Ref. kertas kerja wajib — jurnal harus dapat ditelusuri ke prosedur yang menghasilkannya.' });
+  }
+
+  const kind = t(e.kind);
+  if (kind !== 'adjusting' && kind !== 'reclass') {
+    out.push({ field: 'kind', message: 'Jenis jurnal wajib dipilih (penyesuaian atau reklasifikasi).' });
+  }
+
+  if (!parseableDate(e.effectiveDate)) {
+    out.push({ field: 'effectiveDate', message: 'Tanggal efektif wajib — periode yang terpengaruh menentukan apakah jurnal ini masuk tahun buku yang diaudit.' });
+  }
+
+  if (t(e.evidenceSource).length < 5) {
+    out.push({ field: 'evidenceSource', message: 'Sumber bukti wajib disebutkan (mis. "Buku besar 5-3100 + faktur vendor Mar-2026").' });
+  }
+
+  if (kind === 'adjusting' && !t(e.mis) && t(e.misNoneReason).length < 10) {
+    out.push({
+      field: 'mis',
+      message: 'Penyesuaian harus menunjuk item SAD (SA 450) — atau menyatakan alasan eksplisit mengapa tidak ada (minimal 10 karakter).',
+    });
+  }
+
+  const lines = (e.lines || []).filter((l) => t(l && l.code) && (num(l && l.debit) + num(l && l.credit)) > 0);
+  if (lines.length < 2) {
+    out.push({ field: 'lines', message: 'Jurnal memerlukan minimal dua baris berkode akun dengan nilai.' });
+  } else {
+    const dr = lines.reduce((s, l) => s + num(l.debit), 0);
+    const cr = lines.reduce((s, l) => s + num(l.credit), 0);
+    if (dr <= 0) out.push({ field: 'lines', message: 'Jurnal bernilai nol tidak dapat diajukan.' });
+    else if (dr !== cr) out.push({ field: 'lines', message: `Debit dan kredit belum seimbang (selisih ${Math.abs(dr - cr)}).` });
+  }
+
+  return out;
+}
+
+function parseableDate(v: unknown): boolean {
+  const s = String(v ?? '').trim();
+  if (!s) return false;
+  return Number.isFinite(Date.parse(s.includes('T') ? s : s.replace(' ', 'T')));
+}
+
 /**
  * Id jurnal berikutnya: satu di atas sufiks numerik TERTINGGI yang ada.
  *

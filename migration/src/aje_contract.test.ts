@@ -12,9 +12,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   ajeCanonicalContent, ajeContentHash, ajeImmutabilityViolations,
-  ajeNormalizedLines, isReversal, nextAjeId, reverseEntryFrom,
+  ajeNormalizedLines, isReversal, nextAjeId, reverseEntryFrom, validateAjeDraft,
 } from './aje_contract';
-import type { AjeContractEntry } from './aje_contract';
+import type { AjeContractEntry, AjeDraft } from './aje_contract';
 
 /** Jurnal seed: memakai `dr`/`cr` + `amount` (tanpa `lines`). */
 const SEED: AjeContractEntry = {
@@ -161,6 +161,76 @@ describe('ajeImmutabilityViolations — INTI PR-1', () => {
     const two = [SEED, { ...SEED, id: 'AJE-02' }];
     const both = [{ ...SEED, amount: 1 }, { ...SEED, id: 'AJE-02', amount: 2 }];
     expect(ajeImmutabilityViolations(two, both).map((x) => x.id)).toEqual(['AJE-01', 'AJE-02']);
+  });
+});
+
+describe('validateAjeDraft — formulir menuntut keterkaitan (PRD §S6)', () => {
+  const ok = (): AjeDraft => ({
+    desc: 'Koreksi beban dibayar di muka', ref: 'D-4', kind: 'adjusting',
+    mis: 'M-05', effectiveDate: '2025-12-31', evidenceSource: 'Buku besar 5-3100 + faktur vendor Mar-2026',
+    lines: [{ code: '5-3100', debit: 250_000_000, credit: 0 }, { code: '1-1500', debit: 0, credit: 250_000_000 }],
+  });
+  const fieldsOf = (d: AjeDraft) => validateAjeDraft(d).map((i) => i.field);
+
+  it('draft lengkap boleh diajukan', () => {
+    expect(validateAjeDraft(ok())).toEqual([]);
+  });
+
+  /* Inti PR-5: sebelum ini SEMUA hal di bawah lolos. */
+  it('Ref. WP kosong DITOLAK — untuk penyesuaian MAUPUN reklasifikasi (Q5)', () => {
+    expect(fieldsOf({ ...ok(), ref: '' })).toContain('ref');
+    expect(fieldsOf({ ...ok(), kind: 'reclass', mis: null, ref: '' })).toContain('ref');
+  });
+
+  it('Ref. WP berisi nilai jatuh-tempo lama (`JE`, `-`, `TBD`) DITOLAK', () => {
+    ['JE', '-', '—', 'TBD', 'n/a'].forEach((r) => expect(fieldsOf({ ...ok(), ref: r })).toContain('ref'));
+  });
+
+  it('penyesuaian tanpa item SAD DITOLAK kecuali ada alasan eksplisit', () => {
+    expect(fieldsOf({ ...ok(), mis: null })).toContain('mis');
+    /* alasan terlalu pendek = bukan alasan */
+    expect(fieldsOf({ ...ok(), mis: null, misNoneReason: 'lupa' })).toContain('mis');
+    expect(fieldsOf({ ...ok(), mis: null, misNoneReason: 'Reklasifikasi internal antar akun beban, bukan salah saji.' })).toEqual([]);
+  });
+
+  it('REKLASIFIKASI tidak dituntut item SAD', () => {
+    expect(validateAjeDraft({ ...ok(), kind: 'reclass', mis: null })).toEqual([]);
+  });
+
+  it('tanggal efektif wajib & harus terbaca', () => {
+    expect(fieldsOf({ ...ok(), effectiveDate: '' })).toContain('effectiveDate');
+    expect(fieldsOf({ ...ok(), effectiveDate: 'akhir tahun' })).toContain('effectiveDate');
+  });
+
+  it('sumber bukti wajib', () => {
+    expect(fieldsOf({ ...ok(), evidenceSource: '' })).toContain('evidenceSource');
+    expect(fieldsOf({ ...ok(), evidenceSource: 'GL' })).toContain('evidenceSource');
+  });
+
+  it('deskripsi kosong/terlalu pendek ditolak', () => {
+    expect(fieldsOf({ ...ok(), desc: 'x' })).toContain('desc');
+  });
+
+  it('jenis yang tak dikenal ditolak', () => {
+    expect(fieldsOf({ ...ok(), kind: '' })).toContain('kind');
+  });
+
+  it('baris: kurang dari dua, nol, atau tak seimbang ditolak', () => {
+    expect(fieldsOf({ ...ok(), lines: [{ code: '5-3100', debit: 100 }] })).toContain('lines');
+    expect(fieldsOf({ ...ok(), lines: [{ code: '5-3100', debit: 0, credit: 0 }, { code: '1-1500', debit: 0, credit: 0 }] })).toContain('lines');
+    expect(fieldsOf({ ...ok(), lines: [{ code: '5-3100', debit: 100 }, { code: '1-1500', credit: 90 }] })).toContain('lines');
+  });
+
+  it('baris tanpa kode akun tidak dihitung sebagai baris', () => {
+    expect(fieldsOf({ ...ok(), lines: [{ code: '', debit: 100 }, { code: '1-1500', credit: 100 }] })).toContain('lines');
+  });
+
+  it('draft kosong menghasilkan daftar masalah, bukan lemparan', () => {
+    expect(validateAjeDraft(null).length).toBeGreaterThan(3);
+  });
+
+  it('setiap masalah membawa pesan yang menjelaskan MENGAPA, bukan sekadar "wajib"', () => {
+    validateAjeDraft(null).forEach((i) => expect(i.message.length).toBeGreaterThan(20));
   });
 });
 

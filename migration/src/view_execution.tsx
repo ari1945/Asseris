@@ -24,6 +24,8 @@ import type { TieResult, TieRow, TieStatus } from './prior_year';
 import type { ImportDiff, ImportProvenance } from './wtb_provenance';
 import { sha256Hex } from './export_xlsx';
 import { checkWtbIntegrity } from './wtb_integrity';
+/* PR-5 — kelayakan pengajuan jurnal adalah aturan, bukan ekspresi di komponen. */
+import { validateAjeDraft } from './aje_contract';
 import type { WtbIntegrityResult, IntegrityMessage, AjeMismatch } from './wtb_integrity';
 import { STANDARD_COA, autoMap, mappingCoverage } from './wtb_mapping';
 import type { CoaAccount, MappingCoverageResult } from './wtb_mapping';
@@ -1522,12 +1524,20 @@ function AJEViewLegacy() {
 }
 
 /* ---- AJE double-entry form (modal) ---- */
+/** Akhir tahun buku perikatan aktif sebagai default tanggal efektif ('FY2025'
+ *  → '2025-12-31'). Bila tak dapat diturunkan, kosong — pengguna wajib mengisi. */
+function fyEndDefault(eng: { fy?: string } | null | undefined): string {
+  const m = /(\d{4})/.exec(String((eng && eng.fy) || ''));
+  return m ? `${m[1]}-12-31` : '';
+}
+
 /** PR-E — bentuk minimal item SAD yang dipakai pemilih salah saji. */
 interface SadPickItem { id: string; desc?: string }
 
 function AJEForm({ accounts, onClose, onPost }: any) {
   const { fmt } = AMS;
   const { user } = useAuth();
+  const { activeEngagement } = useFirm();
   const [desc, setDesc] = useStateX('');
   const [ref, setRef] = useStateX('');
   /* PR-E — klasifikasi yang selama ini tak pernah ditanyakan, sehingga entri
@@ -1535,6 +1545,15 @@ function AJEForm({ accounts, onClose, onPost }: any) {
      Asersi (SA 315). Model sudah menerimanya; hanya formulirnya yang diam. */
   const [kind, setKind] = useStateX('adjusting');
   const [misId, setMisId] = useStateX('');
+  /* PR-5 — jalan keluar EKSPLISIT dari kewajiban item SAD: yang dilarang bukan
+     "tak ada item SAD", melainkan tak ada jawabannya. */
+  const [misNoneReason, setMisNoneReason] = useStateX('');
+  /* PR-5 — tanggal efektif menentukan apakah jurnal masuk tahun buku yang
+     diaudit; sumber bukti & tautan DMS menjadikan jurnal dapat ditelusuri ke
+     bukti, bukan hanya ke prosedur. Default tanggal = akhir tahun buku aktif. */
+  const [effectiveDate, setEffectiveDate] = useStateX(() => fyEndDefault(activeEngagement));
+  const [evidenceSource, setEvidenceSource] = useStateX('');
+  const [dmsLink, setDmsLink] = useStateX('');
   const [assertions, setAssertions] = useStateX([] as string[]);
   /* Default BERSAMA dengan modul SAD & AJE atas satu kunci persist — dua default
      berbeda untuk satu kunci adalah kelas cacat yang diperbaiki PR-C. */
@@ -1556,17 +1575,30 @@ function AJEForm({ accounts, onClose, onPost }: any) {
   const balanced = td > 0 && td === tc;
   const allCoded = lines.every((l: any) => !l.code || accounts.find((a: any) => a.code === l.code));
   const filledLines = lines.filter((l: any) => l.code && ((+l.debit || 0) + (+l.credit || 0)) > 0);
-  const valid = balanced && desc.trim() && filledLines.length >= 2;
+  /* PR-5 — kelayakan pengajuan ditentukan fungsi MURNI yang teruji
+     (`validateAjeDraft`), bukan ekspresi di dalam komponen. Aturan yang hanya
+     ada di JSX hanya teruji lewat render. */
+  const issues = validateAjeDraft({
+    desc, ref, kind, mis: misId || null, misNoneReason, effectiveDate, evidenceSource, dmsLink,
+    assertions, lines: filledLines.map((l: any) => ({ code: l.code, debit: l.debit, credit: l.credit })),
+  });
+  const issueFor = (f: string) => issues.find((i) => i.field === f);
+  const valid = issues.length === 0;
 
   const post = () => {
+    if (!valid) return;
     const entry = {
-      desc: desc.trim(), ref: ref.trim() || 'JE',
+      desc: desc.trim(), ref: ref.trim(),
       amount: Math.max(td, tc),
       /* PR-E — klasifikasi auditor ikut serta, sehingga entri ini terlihat oleh
          rekonsiliasi SA 450 & Lensa Asersi seperti entri seed. `preparer` diambil
          dari sesi: sebelum ini reviewer/partner dipalsukan ke nama seed. */
       kind,
       mis: misId || undefined,
+      misNoneReason: !misId && misNoneReason.trim() ? misNoneReason.trim() : undefined,
+      effectiveDate,
+      evidenceSource: evidenceSource.trim(),
+      dmsLink: dmsLink.trim() || undefined,
       assertions: assertions.length ? assertions : undefined,
       preparer: user?.name,
       lines: filledLines.map((l: any) => ({ code: l.code, name: accounts.find((a: any) => a.code === l.code)?.name || l.code, debit: +l.debit || 0, credit: +l.credit || 0 })),
@@ -1601,9 +1633,35 @@ function AJEForm({ accounts, onClose, onPost }: any) {
       )}
     >
         <div>
-          <div className="grid" style={{ gridTemplateColumns: '1fr 130px', gap: 10, marginBottom: 14 }}>
+          <div className="grid" style={{ gridTemplateColumns: '1fr 130px', gap: 10, marginBottom: 10 }}>
             <div className="field"><label>Deskripsi Penyesuaian</label><input className="input" value={desc} onChange={(e: any) => setDesc(e.target.value)} placeholder="mis. Koreksi beban dibayar di muka" /></div>
-            <div className="field"><label>Ref. WP</label><input className="input mono" value={ref} onChange={(e: any) => setRef(e.target.value)} placeholder="D-4" /></div>
+            {/* PR-5 — Ref. WP WAJIB (Q5: untuk semua jenis). Dulu ia opsional dan
+                jatuh ke literal 'JE' — sebuah "referensi" yang tak merujuk apa pun
+                dan tak dapat dibuka `openCanonicalWp`. */}
+            <div className="field">
+              <label>Ref. WP <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input className="input mono" value={ref} onChange={(e: { target: { value: string } }) => setRef(e.target.value)} placeholder="D-4"
+                style={issueFor('ref') ? { borderColor: 'var(--red)' } : undefined} />
+            </div>
+          </div>
+
+          {/* PR-5 — tanggal efektif & sumber bukti: jangkar ke periode dan ke bukti. */}
+          <div className="grid" style={{ gridTemplateColumns: '150px 1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div className="field">
+              <label>Tanggal Efektif <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input className="input mono" type="date" value={effectiveDate} onChange={(e: { target: { value: string } }) => setEffectiveDate(e.target.value)}
+                style={issueFor('effectiveDate') ? { borderColor: 'var(--red)' } : undefined} />
+            </div>
+            <div className="field">
+              <label>Sumber Bukti <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input className="input" value={evidenceSource} onChange={(e: { target: { value: string } }) => setEvidenceSource(e.target.value)}
+                placeholder="mis. Buku besar 5-3100 + faktur vendor Mar-2026"
+                style={issueFor('evidenceSource') ? { borderColor: 'var(--red)' } : undefined} />
+            </div>
+            <div className="field">
+              <label>Tautan DMS / Dokumen <span className="muted">(opsional)</span></label>
+              <input className="input mono" value={dmsLink} onChange={(e: { target: { value: string } }) => setDmsLink(e.target.value)} placeholder="DMS-2026-0142 atau URL" />
+            </div>
           </div>
 
           {/* PR-E — klasifikasi auditor: tanpa ini entri tak pernah sampai ke SAD (SA 450) & Matriks Asersi (SA 315). */}
@@ -1616,13 +1674,26 @@ function AJEForm({ accounts, onClose, onPost }: any) {
               </select>
             </div>
             <div className="field">
-              <label>Mengoreksi Salah Saji (SAD · SA 450)</label>
-              <select className="select" value={misId} onChange={(e: { target: { value: string } }) =>setMisId(e.target.value)}>
+              <label>Mengoreksi Salah Saji (SAD · SA 450){kind === 'adjusting' ? <span style={{ color: 'var(--red)' }}> *</span> : null}</label>
+              <select className="select" value={misId} onChange={(e: { target: { value: string } }) =>setMisId(e.target.value)}
+                style={issueFor('mis') ? { borderColor: 'var(--red)' } : undefined}>
                 <option value="">— tidak terkait item SAD —</option>
                 {sadItems.map(s => <option key={s.id} value={s.id}>{s.id} · {s.desc}</option>)}
               </select>
             </div>
           </div>
+
+          {/* PR-5 — penyesuaian tanpa item SAD harus MENYATAKAN alasannya. Tanpa
+              gerbang ini entri buatan auditor tak pernah sampai ke agregasi SA 450,
+              dan ketiadaannya tak pernah menjadi keputusan siapa pun. */}
+          {kind === 'adjusting' && !misId && (
+            <div className="field" style={{ marginBottom: 12 }}>
+              <label>Alasan tidak terkait item SAD <span style={{ color: 'var(--red)' }}>*</span></label>
+              <input className="input" value={misNoneReason} onChange={(e: { target: { value: string } }) => setMisNoneReason(e.target.value)}
+                placeholder="mis. Reklasifikasi internal antar akun beban — tidak menimbulkan salah saji terhadap LK."
+                style={issueFor('mis') ? { borderColor: 'var(--red)' } : undefined} />
+            </div>
+          )}
 
           <div className="tiny muted upper" style={{ marginBottom: 6 }}>Asersi yang Dikoreksi <span style={{ textTransform: 'none' }}>(SA 315 — opsional, boleh lebih dari satu)</span></div>
           <div className="row gap6" style={{ flexWrap: 'wrap', marginBottom: 14 }}>
@@ -1676,12 +1747,21 @@ function AJEForm({ accounts, onClose, onPost }: any) {
           </table>
           <Btn sm onClick={addLine}><I.plus size={13} /> Tambah Baris</Btn>
 
-          <div className="panel" style={{ marginTop: 14, padding: '10px 12px', background: balanced ? 'var(--green-bg)' : td || tc ? 'var(--amber-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
-            <div className="row ac gap8">
-              <span style={{ color: balanced ? 'var(--green)' : 'var(--amber)' }}>{balanced ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
-              <span style={{ fontSize: 12, fontWeight: 600 }}>
-                {balanced ? 'Jurnal seimbang (Dr = Cr) — siap diajukan untuk persetujuan.' : (td || tc) ? `Belum seimbang: selisih Rp ${fmt(Math.abs(td - tc))}` : 'Masukkan minimal satu debit dan satu kredit yang seimbang.'}
-              </span>
+          {/* PR-5 — daftar SYARAT yang belum terpenuhi, bukan tombol mati tanpa
+              penjelasan. Auditor harus tahu apa yang kurang, bukan menebak. */}
+          <div className="panel" style={{ marginTop: 14, padding: '10px 12px', background: valid ? 'var(--green-bg)' : 'var(--amber-bg)', borderColor: 'transparent' }}>
+            <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+              <span style={{ color: valid ? 'var(--green)' : 'var(--amber)' }}>{valid ? <I.checkCircle size={16} /> : <I.alert size={16} />}</span>
+              <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.5 }}>
+                {valid ? 'Lengkap & seimbang — siap diajukan untuk persetujuan.' : (
+                  <>
+                    Belum dapat diajukan:
+                    <ul style={{ margin: '5px 0 0', paddingLeft: 18, fontWeight: 500 }}>
+                      {issues.map((i, k) => <li key={k} style={{ marginBottom: 2 }}>{i.message}</li>)}
+                    </ul>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

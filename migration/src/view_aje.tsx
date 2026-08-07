@@ -402,6 +402,17 @@ function AjeDrill({ a, fmt, nav, locked, onSelect }: any) {
           <div style={{ borderTop: '1px solid var(--line)', margin: '3px 0' }} />
           <AjeKv label="Siklus / Lead schedule" v={a.cycle} />
           <AjeKv label="Disiapkan oleh" v={a.preparer} />
+          {/* PR-5 — jangkar ke periode & bukti. Jurnal seed belum memilikinya;
+              ditampilkan apa adanya ('—') alih-alih disembunyikan, supaya yang
+              belum terisi terlihat sebagai yang belum terisi. */}
+          <AjeKv label="Tanggal efektif" v={a.effectiveDate || '—'} />
+          <AjeKv label="Sumber bukti" v={a.evidenceSource || '—'} />
+          {a.dmsLink ? <AjeKv label="Tautan DMS" v={a.dmsLink} /> : null}
+          {a.misNoneReason ? (
+            <div className="tiny muted" style={{ lineHeight: 1.45, marginTop: 2 }}>
+              Tanpa item SAD — alasan: “{a.misNoneReason}”
+            </div>
+          ) : null}
         </div>
         {a.assertions?.length ? (
           <div className="row ac jb" style={{ marginTop: 9, gap: 8 }}>
