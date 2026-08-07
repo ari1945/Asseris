@@ -10194,6 +10194,8 @@ exports[`AMS_CANON — fingerprint regresi > fingerprint seluruh engine stabil t
       "desc": "Pembalikan piutang fiktif teridentifikasi",
       "dr": "4-1100 Penjualan",
       "id": "AJE-03",
+      "preparer": "Dimas Raharjo",
+      "proposedOn": "2026-05-28 15:10",
       "ref": "B-2",
       "status": "Proposed",
       "taxEffect": {

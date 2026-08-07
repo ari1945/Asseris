@@ -10,6 +10,11 @@ import { mergeLegacyFlux } from './flux_state';
 import { parseHash } from './route_hash';
 import { DEFAULT_ENG_ID, FIRM_SCOPE_ID } from './persist_scope';
 import { materialityFor } from './canon_selectors';
+/* PR-1 — kontrak jurnal (imutabilitas Posted, pembalikan, penomoran id).
+   Modul yang SAMA dipakai server (`server/src/signoff.ts`). */
+import { nextAjeId, reverseEntryFrom } from './aje_contract';
+import type { AjeContractEntry } from './aje_contract';
+import { nowStamp } from './aje_approval';
 import { benchmarksFromWTB } from './canon_base';
 import { engagementBenchmarks } from './canon_part3';
 import type { AjeRow, MaterialityConfig, MaterialityResult, WTB, WtbRow } from './canon_types';
@@ -120,6 +125,12 @@ export interface AuditContextValue {
      implementasi, bukan sebaliknya. */
   toggleAjeStatus: (id: string, meta?: { by?: string; approvalId?: string }) => void;
   addAje: (entry: Partial<AuditAjeRow>) => void;
+  /* PR-1 — menyunting jurnal ditolak bila ia sudah `Posted` (mengembalikan
+     false); koreksi ditempuh lewat `reverseAje`, yang mengembalikan id jurnal
+     balik yang baru diajukan. Keduanya lapis klien dari aturan server
+     `posted-immutable` — bukan penggantinya. */
+  updateAje: (id: string, patch: Record<string, unknown>) => boolean;
+  reverseAje: (id: string, meta: { reason: string; by?: string }) => string | null;
   ajeTotalPosted: number;
   risks: RiskRow[];
   updateRisk: (id: string, patch: Partial<RiskRow>) => void;
@@ -164,6 +175,7 @@ export interface AuditContextValue {
 type AuditContextShape = { [K in
   | 'matConfig' | 'setMatConfig'
   | 'aje' | 'setAje' | 'toggleAjeStatus' | 'setAjeStatus' | 'addAje' | 'ajeTotalPosted'
+  | 'updateAje' | 'reverseAje'
   | 'risks' | 'updateRisk'
   | 'wtb' | 'wtbOverrides' | 'setWtbOverrides' | 'wtbImport' | 'setWtbImport'
   | 'wtbMapping' | 'setWtbMapping' | 'wtbLedger' | 'setWtbLedger'
@@ -962,14 +974,57 @@ function AppProviders({ me, onLogout, children }: any) {
 
   /* PR-B - entri baru lahir 'Proposed'. DULU 'Posted': satu tombol di form AJE
      langsung mengubah angka WTB, dan `buildApprovals` lalu menerbitkan jejak
-     bahwa Manager, Partner, dan EQR telah menyetujui. */
+     bahwa Manager, Partner, dan EQR telah menyetujui.
+     PR-1 - id dari `nextAjeId` (sufiks tertinggi + 1), bukan `length + 1` yang
+     menghasilkan id GANDA begitu sebuah entri pernah dihapus. */
   const addAje = useCallback((entry: any) => {
-    setAje((list: any) => {
-      const n = list.length + 1;
-      const id = 'AJE-' + String(n).padStart(2, '0');
-      return [...list, { id, status: 'Proposed', ...entry, }];
-    });
+    /* PR-3 - `proposedOn` distempel di sini dengan jam NYATA. Dulu jurnal buatan
+       auditor tak punya tanggal pengajuan sama sekali: jejak audit menampilkannya
+       sebagai "baru saja" selamanya, dan antrean persetujuan memberinya konstanta
+       '2026-03-09 16:40' seperti semua jurnal lain. */
+    setAje((list: any) => [...list, { id: nextAjeId(list), status: 'Proposed', proposedOn: nowStamp(), ...entry }]);
   }, []);
+
+  /* ============================================================
+     PR-1 - JURNAL POSTED TIDAK DAPAT DISUNTING (PRD §S1).
+     ------------------------------------------------------------
+     Lapis KLIEN dari aturan yang ditegakkan server (`posted-immutable`).
+     Ia ada bukan sebagai pengaman - server yang menjaga - melainkan supaya UI
+     tak pernah menawarkan aksi yang pasti ditolak, lalu menampilkan nilai baru
+     sesaat sebelum sinkronisasi mengembalikannya. Mengembalikan false bila
+     ditolak; pemanggil menawarkan "Balik & Ganti" sebagai gantinya. */
+  const updateAje = useCallback((id: string, patch: Record<string, unknown>): boolean => {
+    /* Keputusan diambil dari nilai state SEKARANG, bukan dari dalam updater:
+       updater React tidak dijalankan sinkron, jadi nilai balik yang disusun di
+       dalamnya akan selalu terbaca sebagai "belum terjadi" oleh pemanggil. */
+    const cur = (aje as AjeContractEntry[]).find((a) => a.id === id);
+    if (!cur || cur.status === 'Posted') return false;
+    setAje((list: AjeContractEntry[]) => list.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+    return true;
+  }, [aje]);
+
+  /* Satu-satunya jalan koreksi atas jurnal yang sudah diposting: jurnal BALIK
+     baru yang menempuh rantai persetujuan yang sama. Jurnal asal tetap utuh -
+     angkanya sudah mengalir ke WTB/SAD/opini, jadi fakta bahwa ia pernah ada
+     tak boleh dapat dihapus. Mengembalikan id jurnal balik, atau null. */
+  const reverseAje = useCallback((id: string, meta: { reason: string; by?: string }): string | null => {
+    const list = aje as AjeContractEntry[];
+    const cur = list.find((a) => a.id === id);
+    if (!cur || cur.status !== 'Posted') return null;
+    const reason = String(meta.reason || '').trim();
+    if (!reason) return null;                       // pembalikan tanpa alasan bukan jejak audit
+    const newId = nextAjeId(list);
+    const rev = reverseEntryFrom(cur, { id: newId, reason, preparer: meta.by ?? null });
+    setAje((prev: AjeContractEntry[]) => [...prev, rev]);
+    if (logRef.current) {
+      logRef.current({
+        who: meta.by || 'Sistem', action: 'CREATE', module: 'AJE', sourceModule: 'aje', target: newId,
+        detail: `${newId} diajukan sebagai pembalikan ${id} - ${reason}`,
+        before: `${id}: Posted (tidak diubah)`, after: `${newId}: Proposed`,
+      });
+    }
+    return newId;
+  }, [aje]);
 
   const updateRisk = useCallback((id: any, patch: any) => {
     setRisks((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
@@ -997,7 +1052,7 @@ function AppProviders({ me, onLogout, children }: any) {
 
   const audit = useMemo((): AuditContextShape => ({
     matConfig, setMatConfig,
-    aje, setAje, toggleAjeStatus, setAjeStatus, addAje, ajeTotalPosted,
+    aje, setAje, toggleAjeStatus, setAjeStatus, addAje, updateAje, reverseAje, ajeTotalPosted,
     risks, updateRisk,
     wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
     fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads,
@@ -1009,7 +1064,7 @@ function AppProviders({ me, onLogout, children }: any) {
     taskState, toggleTask,
     logEntries, logActivity,
     workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [matConfig, setMatConfig, aje, toggleAjeStatus, setAjeStatus, addAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+  }), [matConfig, setMatConfig, aje, toggleAjeStatus, setAjeStatus, addAje, updateAje, reverseAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
 
   return (
     <AuthContext.Provider value={auth}>

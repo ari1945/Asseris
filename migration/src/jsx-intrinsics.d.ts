@@ -11,6 +11,14 @@ declare namespace JSX {
   }
   interface Element extends Record<string, any> {}
   interface ElementClass extends Record<string, any> {}
+  // PR-4 — atribut yang berlaku untuk SETIAP elemen JSX, apa pun tipe propsnya.
+  // Tanpa ini `<Row key={x} …/>` gagal pada komponen ber-props BERTIPE ("Property
+  // 'key' does not exist on type 'RowProps'"), sehingga satu-satunya cara memberi
+  // key adalah menjadikan props `any` — persis yang dicegah ratchet. Kontrak ini
+  // biasanya datang dari @types/react, yang sengaja tak dipasang di sini.
+  interface IntrinsicAttributes {
+    key?: string | number | null;
+  }
 }
 
 // React dipin via CDN tanpa @types/react. Di bawah `noImplicitAny:true`, impor

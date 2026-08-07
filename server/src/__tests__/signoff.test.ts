@@ -199,7 +199,7 @@ describe('guardSignoffWrite — transisi status AJE (PR-B)', () => {
     expect(guardSignoffWrite(PARTNER, 'aje', posted, proposed)).toEqual([{ what: 'aje:AJE-09.unpost', cap: CAP.AJE_POST }]);
   });
 
-  it('mengubah isi jurnal TANPA mengubah status tidak menuntut AJE_POST', () => {
+  it('mengubah isi jurnal yang masih Proposed tidak menuntut AJE_POST', () => {
     const edited = [{ id: 'AJE-09', status: 'Proposed', amount: 2_000_000 }];
     expect(guardSignoffWrite(SENIOR, 'aje', proposed, edited)).toEqual([]);
   });
@@ -213,8 +213,94 @@ describe('guardSignoffWrite — transisi status AJE (PR-B)', () => {
   });
 });
 
+/* ============================================================
+   PR-1 — IMUTABILITAS JURNAL POSTED.
+   ------------------------------------------------------------
+   Uji lama di blok atas berbunyi "mengubah isi jurnal TANPA mengubah status
+   tidak menuntut AJE_POST" dan memaku perilaku itu sebagai BENAR. Probe (PRD
+   Lampiran A.1) menunjukkan artinya: satu tulisan `state.set` mengganti nilai
+   2.340 jt → 9.999 jt dan KEDUA akun sebuah jurnal `Posted`, guard menuntut
+   nol kapabilitas, jurnal tetap `Posted` dengan tanda tangan Partner utuh, dan
+   baris barunya mengalir ke WTB lewat `userPostDeltas`.
+
+   Gerbang yang tersisa hanyalah capForWrite = AJE_EDIT — dimiliki Senior
+   Auditor. Jadi yang dijaga bukan hipotesis "klien dimodifikasi", melainkan
+   peran yang memang ada di setiap tim lapangan.
+   ============================================================ */
+describe('guardSignoffWrite — jurnal Posted IMUTABEL (PR-1)', () => {
+  const base = {
+    id: 'AJE-01', status: 'Posted', desc: 'Koreksi pisah batas', ref: 'B-3',
+    kind: 'adjusting', amount: 2_340_000_000, mis: 'M-05',
+    dr: '5-3100 Beban Pokok', cr: '1-1400 Persediaan',
+  };
+  const postedLedger = [base];
+  const tampered = [{ ...base, amount: 9_999_000_000, desc: 'diubah setelah disetujui partner', dr: '1-1100 Kas', cr: '4-1000 Pendapatan' }];
+
+  /* Inti PR-1: ini ATURAN, bukan otoritas. Tak ada kapabilitas yang dapat
+     memuaskannya — termasuk milik peran tertinggi. Koreksi lewat pembalikan. */
+  it('SETIAP peran ditolak — termasuk Rekan Pemimpin & Engagement Partner', () => {
+    [JUNIOR, SENIOR, MANAGER, PARTNER, 'Rekan Pemimpin'].forEach((role) => {
+      expect(() => guardSignoffWrite(role, 'aje', postedLedger, tampered)).toThrow(/posted-immutable:AJE-01/);
+    });
+  });
+
+  it('perubahan sekecil apa pun pada jurnal Posted ditolak (deskripsi saja)', () => {
+    const reworded = [{ ...base, desc: 'redaksional' }];
+    expect(() => guardSignoffWrite(PARTNER, 'aje', postedLedger, reworded)).toThrow(/posted-immutable/);
+  });
+
+  it('memindahkan ref WP atau tautan SAD jurnal Posted juga ditolak', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'aje', postedLedger, [{ ...base, ref: 'Z-9' }])).toThrow(/posted-immutable/);
+    expect(() => guardSignoffWrite(PARTNER, 'aje', postedLedger, [{ ...base, mis: 'M-01' }])).toThrow(/posted-immutable/);
+  });
+
+  /* Batas yang harus dijaga agar aturan ini tidak melumpuhkan kerja sah. */
+  it('tulisan yang TIDAK mengubah isi tetap lolos (simpan ulang dokumen)', () => {
+    expect(guardSignoffWrite(SENIOR, 'aje', postedLedger, [{ ...base }])).toEqual([]);
+  });
+
+  it('menulis ulang jurnal Posted dalam bentuk lines[] yang setara TIDAK ditolak', () => {
+    const asLines = [{
+      ...base, dr: undefined, cr: undefined,
+      lines: [{ code: '5-3100', name: 'Beban Pokok', debit: 2_340_000_000, credit: 0 },
+        { code: '1-1400', name: 'Persediaan', debit: 0, credit: 2_340_000_000 }],
+    }];
+    expect(guardSignoffWrite(SENIOR, 'aje', postedLedger, asLines)).toEqual([]);
+  });
+
+  it('menyunting jurnal yang masih Proposed tetap bebas', () => {
+    const prop = [{ ...base, status: 'Proposed' }];
+    const edited = [{ ...base, status: 'Proposed', amount: 5 }];
+    expect(guardSignoffWrite(SENIOR, 'aje', prop, edited)).toEqual([]);
+  });
+
+  /* Unpost + sunting dalam satu tulisan: yang berlaku adalah gerbang AJE_POST,
+     bukan imutabilitas — jurnal tak lagi Posted saat isinya berubah. Persetujuan
+     lamanya gugur lewat pengikatan hash (PR-2), bukan lewat aturan ini. */
+  it('menarik posting sambil menyunting = gerbang AJE_POST (Senior ditolak, Partner boleh)', () => {
+    const unpostedEdit = [{ ...base, status: 'Proposed', amount: 1 }];
+    expect(() => guardSignoffWrite(SENIOR, 'aje', postedLedger, unpostedEdit)).toThrow(/requires:aje\.post/);
+    expect(guardSignoffWrite(PARTNER, 'aje', postedLedger, unpostedEdit))
+      .toEqual([{ what: 'aje:AJE-01.unpost', cap: CAP.AJE_POST }]);
+  });
+
+  /* Pembalikan: jurnal asal utuh + satu jurnal baru Proposed. Inilah jalan
+     koreksi yang sah, dan ia harus lolos tanpa menuntut AJE_POST. */
+  it('PEMBALIKAN lolos: jurnal asal utuh, jurnal balik lahir Proposed', () => {
+    const withReversal = [base, {
+      id: 'AJE-06', status: 'Proposed', desc: 'Pembalikan AJE-01 — salah akun', ref: 'B-3',
+      reverses: 'AJE-01', amount: 2_340_000_000,
+      lines: [{ code: '5-3100', debit: 0, credit: 2_340_000_000 }, { code: '1-1400', debit: 2_340_000_000, credit: 0 }],
+    }];
+    expect(guardSignoffWrite(SENIOR, 'aje', postedLedger, withReversal)).toEqual([]);
+  });
+});
+
 describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
-  const dec = (stepRole: string) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole, name: 'X' }] } });
+  /* PR-3 — keputusan kini WAJIB bertanggal nyata; `ts` ditambahkan agar uji ini
+     tetap menguji hal yang dimaksudnya (kapabilitas per-langkah), bukan tersandung
+     gerbang waktu. Gerbang waktu itu sendiri diuji di blok berikutnya. */
+  const dec = (stepRole: string) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole, name: 'X', ts: new Date().toISOString() }] } });
 
   it('langkah Audit Manager menuntut SIGNOFF_REVIEWER', () => {
     expect(() => guardSignoffWrite(SENIOR, 'approvals_ov_v4', {}, dec('Audit Manager'))).toThrow(/requires:signoff\.reviewer/);
@@ -237,7 +323,7 @@ describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
 
   /* Fail-closed: keputusan yang tak menyebutkan langkahnya tak dapat diotorisasi. */
   it('keputusan tanpa stepRole DITOLAK, bahkan bagi Partner', () => {
-    const noRole = { 'APR-AJE-09': { decisions: [{ idx: 1, name: 'X' }] } };
+    const noRole = { 'APR-AJE-09': { decisions: [{ idx: 1, name: 'X', ts: new Date().toISOString() }] } };
     expect(() => guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, noRole)).toThrow(/FORBIDDEN|requires/);
   });
 
@@ -245,5 +331,59 @@ describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
     const before = dec('Audit Manager');
     const after = { 'APR-AJE-09': { ...before['APR-AJE-09'], thread: [{ text: 'catatan' }] } };
     expect(guardSignoffWrite(SENIOR, 'approvals_ov_v4', before, after)).toEqual([]);
+  });
+});
+
+/* ============================================================
+   PR-3 — WAKTU KEPUTUSAN.
+   ------------------------------------------------------------
+   Klien lama mencap SETIAP keputusan dengan konstanta `'10 Mar 09:00'`
+   (view_platform.tsx:20) — persetujuan yang diberikan hari ini tercatat
+   "10 Mar 09:00", selamanya, untuk semua orang, untuk semua jurnal. Jejak
+   keputusan yang salah tanggal bukan bukti audit (SA 230 ¶8-11).
+   ============================================================ */
+describe('guardSignoffWrite — stempel waktu keputusan (PR-3)', () => {
+  const NOW = Date.parse('2026-08-07T09:00:00.000Z');
+  const at = (ts: unknown) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole: 'Audit Manager', name: 'Anindya P.', ts }] } });
+
+  it('stempel nyata di dalam jendela diterima', () => {
+    expect(guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at(new Date(NOW - 60_000).toISOString()), NOW))
+      .toEqual([{ what: 'approval:APR-AJE-09.Audit Manager', cap: CAP.SIGNOFF_REVIEWER }]);
+  });
+
+  /* Inti PR-3: bentuk stempel lama tak lagi dapat masuk. */
+  it('konstanta lama `10 Mar 09:00` DITOLAK — tak terbaca sebagai waktu', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at('10 Mar 09:00'), NOW))
+      .toThrow(/decision-missing-timestamp/);
+  });
+
+  it('keputusan tanpa stempel DITOLAK (fail-closed) — juga bagi Partner', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, at(undefined), NOW))
+      .toThrow(/decision-missing-timestamp/);
+  });
+
+  it('BACK-DATING di luar jendela DITOLAK', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at(new Date(NOW - 3 * 3.6e6).toISOString()), NOW))
+      .toThrow(/decision-stale-timestamp/);
+  });
+
+  it('FORWARD-DATING di luar jendela DITOLAK', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at(new Date(NOW + 3 * 3.6e6).toISOString()), NOW))
+      .toThrow(/decision-future-timestamp/);
+  });
+
+  /* Keputusan yang SUDAH tersimpan tidak divalidasi ulang: yang diperiksa hanya
+     yang baru. Jejak historis tak boleh menjadi tak-dapat-ditulis hanya karena
+     aturan baru — yang penting adalah keputusan berikutnya jujur. */
+  it('keputusan lama yang sudah tersimpan tidak diperiksa ulang', () => {
+    const before = at('10 Mar 09:00');
+    const after = {
+      'APR-AJE-09': {
+        decisions: [...before['APR-AJE-09'].decisions,
+          { idx: 2, stepRole: 'Engagement Partner', name: 'Hartono W.', ts: new Date(NOW).toISOString() }],
+      },
+    };
+    expect(guardSignoffWrite(PARTNER, 'approvals_ov_v4', before, after, NOW))
+      .toEqual([{ what: 'approval:APR-AJE-09.Engagement Partner', cap: CAP.AJE_POST }]);
   });
 });

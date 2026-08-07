@@ -7,6 +7,8 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
+/* PR-2 — rantai AJE punya satu penghasil; antrean ini hanya memanggilnya. */
+import { AJE_SLA_HOURS, ajeApproveOverlay, ajeRejectOverlay, ajeReviseOverlay, applyAjeOverlay, nowStamp, parseStamp, stepAuthority } from './aje_approval';
 
 /* ============================================================
    Asseris — Firm Platform · Approvals (Bagian D-1)
@@ -17,17 +19,35 @@ import { KvBox } from './view_analytical';
    ============================================================ */
 const { useState: useStatePF, useMemo: useMemoPF } = React;
 
-const PF_NOW = new Date('2026-03-10T09:00:00');
-const PF_STAMP = '10 Mar 09:00';
+/* ============================================================
+   PR-3 — JAM NYATA.
+   ------------------------------------------------------------
+   DULU: `PF_NOW = new Date('2026-03-10T09:00:00')` dan
+   `PF_STAMP = '10 Mar 09:00'`. Setiap keputusan yang diambil pengguna dicap
+   konstanta itu — persetujuan hari ini tercatat "10 Mar 09:00", selamanya,
+   untuk semua orang, untuk semua jurnal. SLA pun tak pernah bergerak:
+   "Sisa 8 jam" adalah angka mati.
 
-/* hours-until helper -> {h, overdue, label, pct} relative to a 48h window */
+   Konsekuensi yang disengaja & jujur (PRD §8.3, keputusan Q3): jurnal seed
+   yang diajukan Mei dan belum diputuskan memang tampil lewat SLA berbulan-
+   bulan. Itu keadaannya, bukan cacat tampilan.
+   ============================================================ */
+
+/* hours-until helper -> {h, overdue, label, pct} relative to the SLA window */
 function slaInfo(dueStr: any) {
-  const due = new Date(String(dueStr).replace(' ', 'T'));
-  const diffH = (+due - +PF_NOW) / 3.6e6;
+  const dueMs = parseStamp(dueStr);
+  if (dueMs == null) return { diffH: 0, overdue: false, label: '—', pct: 0 };
+  const diffH = (dueMs - Date.now()) / 3.6e6;
   const overdue = diffH < 0;
   const abs = Math.abs(diffH);
   const unit = abs >= 24 ? Math.round(abs / 24) + ' hari' : Math.round(abs) + ' jam';
-  return { diffH, overdue, label: overdue ? 'Lewat ' + unit : 'Sisa ' + unit, pct: Math.max(0, Math.min(100, (1 - diffH / 48) * 100)) };
+  return { diffH, overdue, label: overdue ? 'Lewat ' + unit : 'Sisa ' + unit, pct: Math.max(0, Math.min(100, (1 - diffH / AJE_SLA_HOURS) * 100)) };
+}
+
+/** Tanggal-waktu lokal ringkas; '—' bila stempelnya tak terbaca. */
+function stampLabel(ts: unknown) {
+  const t = parseStamp(ts);
+  return t == null ? '—' : new Date(t).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 const APPR_KIND = { AJE: 'blue', 'Faktur': 'teal', Engagement: 'purple', Opini: 'red', 'WIP Write-off': 'amber', 'Independensi': 'purple' };
@@ -44,14 +64,18 @@ const APPR_SRC = {
 /* terapkan overlay keputusan pengguna di atas item kanonik terderivasi */
 function applyOverlay(d: any, ov: any) {
   if (!ov) return d;
+  /* PR-2 — untuk AJE rantai DIBANGUN ULANG dari gabungan keputusan seed +
+     keputusan pengguna lewat penghasil yang sama (`buildAjeChain`), bukan
+     ditambal per-indeks di sini. Menambal berarti dua implementasi aturan
+     "kapan sebuah langkah disetujui" — dan yang di sini tak akan pernah tahu
+     bahwa jurnalnya berubah setelah ditandatangani. */
+  if (d.kind === 'AJE' && Array.isArray(d.steps)) return applyAjeOverlay(d, ov);
+  /* LEGACY — jenis persetujuan selain AJE (Faktur/Penerimaan/Opini/Independensi/
+     WIP) masih memakai rantai dari penghitung; lihat PRD §5 (di luar lingkup). */
   const step = ov.step != null ? ov.step : d.step;
   const status = ov.status || d.status;
   const decMap = {};
   (ov.decisions || []).forEach((x: any) => { (decMap as any)[x.idx] = x; });
-  /* PR-B - DULU baris terakhir berbunyi `i < step ? 'approved'`, sehingga langkah
-     di bawah penghitung ditandai disetujui MESKI tak ada keputusan untuknya. Itu
-     lapis kedua dari cacat yang sama seperti `doneTo` di buildApprovals. Kini
-     'approved' HANYA berasal dari keputusan tercatat (seed atau overlay). */
   const chain = d.chain.map((c: any, i: any) => {
     const dec = (decMap as any)[i];
     if (dec) return { ...c, status: 'approved', ts: dec.ts, name: dec.name, note: dec.note };
@@ -63,68 +87,11 @@ function applyOverlay(d: any, ov: any) {
   return { ...d, chain, step, status, thread: [...d.thread, ...(ov.thread || [])] };
 }
 
-/* ============================================================
-   PR-B — OTORITAS PER-LANGKAH.
-   ------------------------------------------------------------
-   Gerbang lama `canApprove = role.includes('Partner') || role.includes('Manager')`
-   punya tiga cacat: mencocokkan STRING peran (di luar SSOT RBAC), tak membedakan
-   langkah (seorang Manager dapat menyelesaikan langkah Engagement Partner DAN
-   langkah EQR — rantai tiga-lapis runtuh jadi satu), dan tak menolak self-approval.
-
-   Peta di bawah mengikat tiap peran-langkah ke kapabilitas yang benar. Berlaku
-   untuk jenis 'AJE'; jenis lain masih memakai gerbang lama (di luar lingkup PR-B,
-   lihat PRD §5) — perbedaannya sengaja dibuat terlihat, bukan disamarkan.
-   ============================================================ */
-const STEP_CAP: Record<string, string> = {
-  'Audit Manager': CAP.SIGNOFF_REVIEWER,
-  'Engagement Partner': CAP.AJE_POST,
-  'EQR Reviewer': CAP.EQR_REVIEW,
-};
-
-/** Boleh-kah `user` menyelesaikan langkah `step` pada item ini? */
-interface ApprovalStep { role: string; name?: string; status?: string }
-interface ApprovalItemLite { kind: string; from?: string; step: number; chain: ApprovalStep[] }
-interface SessionUser { name?: string; role: string }
-
-function stepAuthority(it: ApprovalItemLite, user: SessionUser): { ok: boolean; reason: string } {
-  const step = it.chain[it.step];
-  if (!step) return { ok: false, reason: 'Rantai persetujuan sudah tuntas.' };
-  /* Self-approval: penyusun tak boleh menyetujui pengajuannya sendiri (SoD). */
-  if (user && user.name && it.from && user.name === it.from) {
-    return { ok: false, reason: 'Penyusun tidak dapat menyetujui pengajuannya sendiri (pemisahan tugas).' };
-  }
-  /* ============================================================
-     PR-E — SATU ORANG, SATU LANGKAH.
-     ------------------------------------------------------------
-     PR-B mengikat tiap langkah ke kapabilitas, tetapi kapabilitas bukan
-     identitas: `EQR_REVIEW` ada pada PARTNER_BASE, sehingga partner yang
-     telah menandatangani langkah Engagement Partner masih lolos di langkah
-     EQR pada jurnal yang SAMA. Itu menghapus arti penelaahan pengendalian
-     mutu — ISQM 2 / SA 220.36 menuntut penelaah yang independen dari tim
-     perikatan, dan yang paling tidak independen adalah orang yang baru saja
-     menyetujuinya sendiri.
-
-     Hanya langkah ber-status `approved` yang dihitung: rantai seed membawa
-     NAMA penerima tugas pada langkah yang masih menunggu, dan nama itu
-     bukan tanda tangan. */
-  const priorSignature = user && user.name
-    ? it.chain.slice(0, it.step).find(c => c && c.status === 'approved' && c.name === user.name)
-    : undefined;
-  if (priorSignature) {
-    return {
-      ok: false,
-      reason: `Anda telah menandatangani langkah "${priorSignature.role}" pada rantai ini; satu orang tidak dapat mengisi dua langkah (ISQM 2 / SA 220.36).`,
-    };
-  }
-  if (it.kind !== 'AJE') {
-    const legacy = user.role.includes('Partner') || user.role.includes('Manager');
-    return { ok: legacy, reason: legacy ? '' : 'Peran Anda tidak berwenang menyetujui.' };
-  }
-  const need = STEP_CAP[step.role];
-  if (!need) return { ok: false, reason: `Langkah "${step.role}" belum dipetakan ke kapabilitas.` };
-  const ok = rbacCan(user.role, need);
-  return { ok, reason: ok ? '' : `Langkah "${step.role}" memerlukan kapabilitas ${need}; peran ${user.role} tidak memilikinya.` };
-}
+/* PR-4 — `stepAuthority` & `STEP_CAP` DIPINDAH ke `aje_approval.ts`.
+   Antrean persetujuan kini punya DUA permukaan (modul ini dan tab AJE);
+   gerbang otorisasi yang tinggal di salah satu view berarti permukaan yang
+   lain memakai gerbangnya sendiri. Diekspor ulang di bawah agar pemanggil
+   & uji lama tak perlu berubah. */
 
 function Approvals() {
   const nav = useNav();
@@ -174,31 +141,41 @@ function Approvals() {
     const gate = stepAuthority(it, user);
     if (!gate.ok) { window.alert(gate.reason); return; }
     if (decision === 'approve') {
-      const newStep = it.step + 1;
-      const done = newStep >= it.chain.length;
+      /* PR-4 — bentuk tulisan keputusan ditetapkan `ajeApproveOverlay` (murni,
+         dipakai juga tab AJE), bukan disusun di sini. `stepRole` WAJIB (server
+         memakainya untuk menentukan kapabilitas langkah; fail-closed), keputusan
+         membawa HASH isi jurnal, dan `done` dihitung penghasil rantai — bukan
+         `step + 1`, yang dengan pengikatan hash bisa berbohong. */
+      const ts = nowStamp();
+      const isAje = d.kind === 'AJE';
+      const applied = isAje
+        ? ajeApproveOverlay({ item: d, prevEntry: overlay[id], user, ts, note })
+        : null;
+      const done = applied ? applied.done : it.step + 1 >= it.chain.length;
       setOverlay((o: any) => {
         const prev = o[id] || {};
-        /* PR-B — `stepRole` WAJIB: server memakainya untuk menentukan kapabilitas yang
-           dituntut langkah ini. Keputusan tanpa stepRole ditolak (fail-closed). */
+        if (applied) return { ...o, [id]: ajeApproveOverlay({ item: d, prevEntry: prev, user, ts, note }).entry };
         const stepRole = (it.chain[it.step] && it.chain[it.step].role) || '';
-        const decisions = [...(prev.decisions || []), { idx: it.step, stepRole, name: user.name, role: user.role, ts: PF_STAMP, note: note || 'Disetujui.' }];
-        const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note, kind: 'approve' }] : (prev.thread || []);
-        return { ...o, [id]: { ...prev, step: newStep, status: done ? 'approved' : 'pending', decisions, thread } };
+        const decisions = [...(prev.decisions || []), { idx: it.step, stepRole, name: user.name, role: user.role, ts, note: note || 'Disetujui.' }];
+        const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: ts, text: note, kind: 'approve' }] : (prev.thread || []);
+        return { ...o, [id]: { ...prev, step: it.step + 1, status: done ? 'approved' : 'pending', decisions, thread } };
       });
       /* === TULIS-BALIK SSOT: persetujuan final AJE memposting jurnal ke WTB === */
       if (done && d.writesBack && d.sourceModule === 'aje' && toggleAjeStatus) {
         toggleAjeStatus(d.sourceId, { by: user.name, approvalId: id });
       }
     } else if (decision === 'reject') {
-      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Ditolak.', kind: 'reject' }] } }));
+      const ts = nowStamp();
+      setOverlay((o: any) => ({ ...o, [id]: ajeRejectOverlay({ prevEntry: o[id], user, ts, note }) }));
     } else if (decision === 'revise') {
-      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'revision', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Mohon revisi & ajukan ulang.', kind: 'revise' }] } }));
+      const ts = nowStamp();
+      setOverlay((o: any) => ({ ...o, [id]: ajeReviseOverlay({ prevEntry: o[id], user, ts, note }) }));
     }
     logActivity && logActivity({ who: user.name, action: decision === 'approve' ? 'APPROVE' : decision === 'reject' ? 'REJECT' : 'EDIT', detail: `${it.kind} ${it.ref} — ${it.title.slice(0, 40)}` });
   };
 
   const addComment = (id: any, text: any) => {
-    setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text }] } }));
+    setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: nowStamp(), text }] } }));
   };
 
   return (
@@ -327,15 +304,33 @@ function ApprovalDetail({ it, auth, user, nav, onDecide, onComment }: any) {
         {/* meta + SLA */}
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '9px 14px', marginBottom: 14 }}>
           <KvBox label="Pengaju" v={it.from} />
-          <KvBox label="Diajukan" v={new Date(String(it.submitted).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} />
+          <KvBox label="Diajukan" v={stampLabel(it.submitted)} />
         </div>
         {isPend && <div className="panel" style={{ padding: 11, marginBottom: 14, background: sla.overdue ? 'var(--red-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="row jb ac" style={{ marginBottom: 6 }}>
-            <span className="tiny" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : 'var(--ink-2)' }}><I.clock size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Batas SLA · {new Date(String(it.due).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+            <span className="tiny" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : 'var(--ink-2)' }}><I.clock size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Batas SLA · {stampLabel(it.due)}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : 'var(--ink-2)' }}>{sla.label}</span>
           </div>
           <Progress value={sla.pct} color={sla.overdue ? 'var(--red)' : sla.diffH < 12 ? 'var(--amber)' : 'var(--green)'} />
         </div>}
+
+        {/* PR-2 — eksepsi kontrol di kepala detail, bukan tersembunyi di rantai. */}
+        {it.hasVoided && (
+          <div className="panel" style={{ padding: '9px 11px', marginBottom: 14, boxShadow: 'none', background: 'var(--amber-bg)', borderColor: 'transparent', borderLeft: '3px solid var(--amber)' }}>
+            <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+              <span style={{ color: 'var(--amber)' }}><I.alert size={15} /></span>
+              <span className="tiny" style={{ lineHeight: 1.5 }}>Jurnal ini <b>berubah setelah disetujui</b>. Persetujuan atas versi lama gugur dan rantai kembali berjalan dari langkah yang tertandai — persetujuan mengikat versi jurnal, bukan nomornya.</span>
+            </div>
+          </div>
+        )}
+        {it.postedWithoutFullChain && (
+          <div className="panel" style={{ padding: '9px 11px', marginBottom: 14, boxShadow: 'none', background: 'var(--red-bg)', borderColor: 'transparent', borderLeft: '3px solid var(--red)' }}>
+            <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+              <span style={{ color: 'var(--red)' }}><I.alert size={15} /></span>
+              <span className="tiny" style={{ lineHeight: 1.5 }}>Eksepsi kontrol: jurnal <b>sudah diposting ke WTB</b> tetapi rantai persetujuannya belum lengkap.</span>
+            </div>
+          </div>
+        )}
 
         {/* approval chain */}
         <div className="tiny muted upper" style={{ marginBottom: 10, letterSpacing: '.05em' }}>Alur Persetujuan</div>
@@ -351,8 +346,16 @@ function ApprovalDetail({ it, auth, user, nav, onDecide, onComment }: any) {
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</span>{c.status === 'current' && <Badge kind="blue">Menunggu</Badge>}</div>
-                  <div className="tiny muted">{c.role}{c.ts ? ' · ' + new Date(String(c.ts).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                  <div className="tiny muted">{c.role}{c.ts ? ' · ' + stampLabel(c.ts) : ''}</div>
                   {c.note && <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3, fontStyle: 'italic' }}>“{c.note}”</div>}
+                  {/* PR-2 — tanda tangan yang GUGUR tetap terlihat: pembatalan yang
+                      tak dapat ditelusuri sama tak berguna dengan tak ada pembatalan. */}
+                  {c.voided && c.voidedBy && (
+                    <div className="tiny" style={{ color: 'var(--amber)', marginTop: 3, lineHeight: 1.45 }}>
+                      <I.alert size={11} style={{ verticalAlign: -1, marginRight: 3 }} />
+                      Persetujuan <b>{c.voidedBy.name}</b>{c.voidedBy.ts ? ' (' + stampLabel(c.voidedBy.ts) + ')' : ''} <b>gugur</b> — isi jurnal berubah setelah disetujui.
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -445,5 +448,7 @@ Object.assign(window, { Approvals });
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 /* `stepAuthority` diekspor untuk diuji langsung: gerbang otorisasi adalah
-   kontrol audit, dan kontrol yang hanya teruji lewat render UI tidak teruji. */
-export { Approvals, stepAuthority };
+   kontrol audit, dan kontrol yang hanya teruji lewat render UI tidak teruji.
+   PR-2 — `applyOverlay` ikut, dengan alasan yang sama: ia titik temu antara
+   keputusan tersimpan dan jurnal, tempat pengikatan hash benar-benar berlaku. */
+export { Approvals, applyOverlay, stepAuthority };
