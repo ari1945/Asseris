@@ -19,11 +19,13 @@
 
 export interface IntegrityAjeLine { code: string; debit?: number; credit?: number; }
 export interface IntegrityAjeEntry { id?: string; amount?: number; status?: string; dr?: string; cr?: string; lines?: IntegrityAjeLine[]; }
-export interface IntegrityWtbRow { code: string; group?: string; unadj?: number; aje?: number; adj?: number; }
+export interface IntegrityWtbRow { code: string; name?: string; group?: string; unadj?: number; aje?: number; adj?: number; }
 
 export interface IntegrityMessage { level: 'ok' | 'warn' | 'info'; text: string; }
 export interface AjeMismatch { code: string; wtb: number; register: number; diff: number; }
 export interface AdjMismatch { code: string; expected: number; actual: number; }
+/** PR-I2 — baris yang kode-nya tak jatuh ke kelas 1–6 (lihat `lead`). */
+export interface UnclassifiedRow { code: string; name?: string; adj: number; }
 
 export interface WtbIntegrityResult {
   /* footing — informasional */
@@ -42,6 +44,16 @@ export interface WtbIntegrityResult {
   /* adj = unadj + aje — gerbang */
   adjConsistent: boolean;
   adjMismatches: AdjMismatch[];
+  /* PR-I2 — saldo yang TIDAK MASUK klasifikasi apa pun — gerbang.
+     `lead()` mengenali kelas dari karakter pertama kode; baris di luar 1–6 tidak
+     ditambahkan ke assets/liabilities/equity/revenue/expenses, sehingga ia lenyap dari
+     rekonsiliasi neraca tanpa jejak: `bsDiff` tetap 0 dan status dulu terbaca `ok`
+     meski nilainya besar. Pemetaan CoA membiarkan kode klien apa adanya bila belum
+     dipetakan (wtb_mapping.applyMapping), jadi pada TB klien nyata inilah keadaan
+     bawaan sepanjang onboarding — bukan kasus tepi. */
+  unclassified: UnclassifiedRow[];
+  unclassifiedTotal: number;       // Σ adj baris tak terklasifikasi (bertanda)
+  allClassified: boolean;
   /* PR-4d — laba berjalan tercatat ganda: neraca PAS (saldo laba sudah menyerap laba)
      SEKALIGUS Σ adjusted = −laba (akun L/R masih terbuka). Dua kondisi ini tak bisa
      benar bersamaan pada TB yang koheren; masing-masing tampak wajar bila dinilai
@@ -98,6 +110,7 @@ export function checkWtbIntegrity(
   let assets = 0, liabilities = 0, equity = 0, revMag = 0, expenses = 0;
   let sumAdj = 0, sumUnadj = 0, wtbAjeSum = 0;
   const adjMismatches: AdjMismatch[] = [];
+  const unclassified: UnclassifiedRow[] = [];
   const wtbAjeByAccount = new Map<string, number>();
 
   for (const r of rows) {
@@ -113,6 +126,8 @@ export function checkWtbIntegrity(
     else if (k === '3') equity += -adj;
     else if (k === '4') revMag += -adj;
     else if (k === '5' || k === '6') expenses += adj;
+    /* PR-I2 — sisanya TIDAK diam-diam diabaikan lagi. */
+    else unclassified.push({ code: r.code, name: r.name, adj });
   }
 
   const netIncome = revMag - expenses;
@@ -126,6 +141,10 @@ export function checkWtbIntegrity(
   const bsTied = Math.abs(bsDiff) <= tol || bsExplainedByIncome;
 
   const adjConsistent = adjMismatches.length === 0;
+
+  unclassified.sort((a, b) => Math.abs(b.adj) - Math.abs(a.adj));
+  const unclassifiedTotal = unclassified.reduce((a, r) => a + r.adj, 0);
+  const allClassified = unclassified.length === 0;
 
   /* PR-4d — pola mustahil: neraca seimbang TANPA menutup laba (bsDiff ≈ 0 → ekuitas sudah
      memuat laba) padahal akun L/R masih terbuka (Σ adj ≈ −laba). TB pra-tutup yang koheren
@@ -158,6 +177,8 @@ export function checkWtbIntegrity(
   if (Math.abs(bsDiff) <= tol) messages.push({ level: 'ok', text: 'Neraca seimbang — aset = liabilitas + ekuitas.' });
   else if (bsExplainedByIncome) messages.push({ level: 'info', text: 'Selisih neraca ≈ laba berjalan (wajar untuk TB pra-tutup; ditutup ke ekuitas pada penyajian LK).' });
   else messages.push({ level: 'warn', text: 'Neraca tidak seimbang — periksa pemetaan/akun.' });
+  // saldo tak terklasifikasi (gate) — PR-I2
+  if (!allClassified) messages.push({ level: 'warn', text: `${unclassified.length} akun tak dapat diklasifikasikan (Σ ${fmtRp(unclassifiedTotal)}) — kodenya tidak diawali 1–6, sehingga saldonya TIDAK masuk rekonsiliasi neraca. Petakan ke CoA standar sebelum menyimpulkan; selama belum, neraca yang "seimbang" tidak menjumlahkan seluruh TB.` });
   // adj consistency (gate)
   if (!adjConsistent) messages.push({ level: 'warn', text: `${adjMismatches.length} akun: adjusted ≠ unadjusted + AJE.` });
   // aje recon (gate)
@@ -177,7 +198,10 @@ export function checkWtbIntegrity(
      memakai yang kedua. Rencana penuh: docs/prd-wtb-integrity-falsifiable-gates.md
      (Fase D menyalakan pemblokir SETELAH seed dibereskan — urutan sebaliknya mengunci
      finalisasi pada perikatan demo). */
-  const gatesPass = bsTied && adjConsistent && ajeBalanced && registerReconciled;
+  /* PR-I2 — `allClassified` IKUT MEMBLOK (keputusan Ari, PRD §11 Q2): saldo yang tak dapat
+     diklasifikasikan tidak dapat diaudit, dan membiarkannya lolos berarti menerbitkan
+     "neraca seimbang" atas TB yang tidak dijumlah seluruhnya. */
+  const gatesPass = bsTied && adjConsistent && ajeBalanced && registerReconciled && allClassified;
   const status: 'ok' | 'attention' = gatesPass ? 'ok' : 'attention';
 
   /* PR-I1 — sinyal yang DITAMPILKAN diturunkan dari sini, bukan dari `status`. Dulu chip
@@ -191,6 +215,7 @@ export function checkWtbIntegrity(
     sumAdj, sumUnadj, footed, netIncome, footingExplainedByIncome,
     assets, liabilities, equity, bsDiff, bsTied, bsExplainedByIncome,
     adjConsistent, adjMismatches, incomeDoubleCounted,
+    unclassified, unclassifiedTotal, allClassified,
     wtbAjeSum, ajeBalanced, registerReconciled, ajeMismatches,
     status, hasWarn, messages, tol,
   };
