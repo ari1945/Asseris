@@ -5,7 +5,7 @@ import { useAudit, useAuth, useFirm, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, LockBanner, Panel, Seg, Stat, Tabs } from './ui';
+import { Badge, Btn, LockBanner, Overlay, Panel, Seg, Stat, Tabs } from './ui';
 import { assertionDef, groupForAccountCode } from './canon_selectors';
 import { ajeEffect, entityFigures } from './canon_base';
 import type { AssertionId } from './canon_selectors';
@@ -295,7 +295,12 @@ function AjeRegister({ model, locked }: any) {
                 </td>
                 <td style={{ maxWidth: 240, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12, padding: '6px 9px' }}>
                   {a.desc}
-                  <div className="tiny muted" style={{ marginTop: 2 }}>{a.cycle} · <span className="mono">WP {a.ref}</span> · {a.std}</div>
+                  <div className="tiny muted" style={{ marginTop: 2 }}>
+                    {a.cycle} · <span className="mono">WP {a.ref}</span> · {a.std}
+                    {/* PR-1 — pasangan pembalikan terlihat di daftar: dua baris yang
+                        saling meniadakan lebih jujur daripada satu baris yang berubah. */}
+                    {a.reverses ? <> · <span className="mono" title={'Pembalikan atas ' + a.reverses} style={{ color: 'var(--purple)', fontWeight: 700 }}>⟲ {a.reverses}</span></> : null}
+                  </div>
                   {a.assertions?.length ? <div style={{ marginTop: 3 }}><AjeAsrChips ids={a.assertions} /></div> : null}
                 </td>
                 <td style={{ verticalAlign: 'top', paddingTop: 6 }}><Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge></td>
@@ -324,14 +329,17 @@ function AjeRegister({ model, locked }: any) {
       </Panel>
 
       {/* journal drill — right column */}
-      {sel ? <AjeDrill a={sel} fmt={fmt} nav={nav} /> : (
+      {sel ? <AjeDrill a={sel} fmt={fmt} nav={nav} locked={locked} onSelect={setSelId} /> : (
         <Panel><div className="tiny muted" style={{ padding: 16, textAlign: 'center' }}>Pilih jurnal untuk melihat detail.</div></Panel>
       )}
     </div>
   );
 }
 
-function AjeDrill({ a, fmt, nav }: any) {
+function AjeDrill({ a, fmt, nav, locked, onSelect }: any) {
+  const { reverseAje } = useAudit();
+  const auth = useAuth();
+  const [revOpen, setRevOpen] = useStateAJ(false);
   const lines = a.lines || [
     { code: a.dr.split(' ')[0], name: a.dr.split(' ').slice(1).join(' ') || a.dr, debit: a.amount, credit: 0 },
     { code: a.cr.split(' ')[0], name: a.cr.split(' ').slice(1).join(' ') || a.cr, debit: 0, credit: a.amount },
@@ -348,6 +356,7 @@ function AjeDrill({ a, fmt, nav }: any) {
           <div className="row ac gap8">
             <span className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{a.id}</span>
             <Badge kind={(KIND_KIND as any)[a.kind]}>{(KIND_LABEL as any)[a.kind]}</Badge>
+            {a.reverses ? <Badge kind="purple">⟲ {a.reverses}</Badge> : null}
             <div style={{ flex: 1 }} />
             <Badge>{a.status}</Badge>
           </div>
@@ -399,8 +408,107 @@ function AjeDrill({ a, fmt, nav }: any) {
             <I.check size={13} /> Buka Antrean Persetujuan
           </Btn>
         )}
+        {/* PR-1 — aturan imutabilitas dibuat TERLIHAT, bukan hanya ditegakkan.
+            Auditor yang menemukan kesalahan pada jurnal terposting perlu tahu
+            jalan koreksinya di tempat ia menemukannya. */}
+        {a.status === 'Posted' && (
+          <div className="panel" style={{ marginTop: 10, padding: '9px 11px', background: 'var(--surface-2)', borderColor: 'transparent', borderLeft: '3px solid var(--navy)' }}>
+            <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+              <span style={{ color: 'var(--navy)' }}><I.lock size={15} /></span>
+              <div className="tiny" style={{ lineHeight: 1.5 }}>
+                Jurnal ini sudah diposting dan <b>tidak dapat disunting</b> — angkanya sudah mengalir ke WTB,
+                SAD, dan materialitas. Koreksi ditempuh lewat jurnal pembalikan yang menempuh rantai
+                persetujuan yang sama (ditegakkan di server).
+                <div style={{ marginTop: 7 }}>
+                  <Btn sm disabled={locked} style={{ opacity: locked ? .5 : 1 }} onClick={() => !locked && setRevOpen(true)}>
+                    <I.sync size={12} /> Balik &amp; Ganti
+                  </Btn>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </Panel>
+
+      {revOpen && (
+        <AjeReverseModal
+          a={a}
+          fmt={fmt}
+          onClose={() => setRevOpen(false)}
+          onConfirm={(reason: string) => {
+            const newId = reverseAje(a.id, { reason, by: auth?.user?.name });
+            setRevOpen(false);
+            if (newId && onSelect) onSelect(newId);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+/* PR-1 — pembalikan menuntut ALASAN. Sebuah jurnal balik tanpa alasan adalah
+   angka yang muncul di ledger tanpa sebab; alasan itulah yang dibaca penelaah
+   ketika ia bertanya mengapa satu jurnal terposting dibatalkan efeknya. */
+interface AjeReverseModalProps {
+  a: { id: string; amount: number };
+  fmt: (n: number, d?: number) => string;
+  onClose: () => void;
+  onConfirm: (reason: string) => void;
+}
+
+function AjeReverseModal({ a, fmt, onClose, onConfirm }: AjeReverseModalProps) {
+  const [reason, setReason] = useStateAJ('');
+  const ok = reason.trim().length >= 10;
+  return (
+    <Overlay
+      variant="modal"
+      size="md"
+      onClose={onClose}
+      isDirty={() => reason.trim() !== ''}
+      bodyStyle={{ padding: 16 }}
+      header={(
+        <div style={{ background: 'var(--navy-solid)', color: '#fff', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, borderRadius: '4px 4px 0 0' }}>
+          <I.sync size={18} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--fs-lg)' }}>Balik &amp; Ganti {a.id}</div>
+            <div className="tiny" style={{ opacity: .82 }}>Jurnal asal tetap utuh · jurnal balik diajukan untuk persetujuan</div>
+          </div>
+          <button className="top-btn" onClick={onClose}><I.x size={18} /></button>
+        </div>
+      )}
+      footer={(
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Btn onClick={onClose}>Batal</Btn>
+          <Btn variant="primary" disabled={!ok} style={{ opacity: ok ? 1 : .5 }} onClick={() => ok && onConfirm(reason.trim())}>
+            <I.check size={14} /> Ajukan Pembalikan
+          </Btn>
+        </div>
+      )}
+    >
+      <div>
+        <div className="panel" style={{ padding: '10px 12px', marginBottom: 12, background: 'var(--surface-2)', borderColor: 'transparent' }}>
+          <div className="tiny" style={{ lineHeight: 1.55 }}>
+            Yang akan terjadi:
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              <li><b className="mono">{a.id}</b> tetap berstatus <b>Posted</b> dan tidak diubah sedikit pun.</li>
+              <li>Satu jurnal baru lahir <b>Proposed</b> dengan debit &amp; kredit terbalik senilai Rp {fmt(a.amount)}.</li>
+              <li>Jurnal balik itu menempuh rantai persetujuan yang sama — ia belum memengaruhi WTB.</li>
+              <li>Penggantinya (bila ada) disusun terpisah lewat “AJE Baru”.</li>
+            </ul>
+          </div>
+        </div>
+        <div className="field">
+          <label>Alasan pembalikan <span className="muted">(wajib, minimal 10 karakter — masuk jejak audit)</span></label>
+          <textarea
+            className="input"
+            style={{ width: '100%', height: 68, padding: '7px 9px', resize: 'none', fontFamily: 'inherit' }}
+            placeholder="mis. Akun beban salah — seharusnya 5-2100 Beban Penjualan, bukan 5-3100."
+            value={reason}
+            onChange={(e: { target: { value: string } }) => setReason(e.target.value)}
+          />
+        </div>
+      </div>
+    </Overlay>
   );
 }
 

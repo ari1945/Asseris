@@ -199,7 +199,7 @@ describe('guardSignoffWrite — transisi status AJE (PR-B)', () => {
     expect(guardSignoffWrite(PARTNER, 'aje', posted, proposed)).toEqual([{ what: 'aje:AJE-09.unpost', cap: CAP.AJE_POST }]);
   });
 
-  it('mengubah isi jurnal TANPA mengubah status tidak menuntut AJE_POST', () => {
+  it('mengubah isi jurnal yang masih Proposed tidak menuntut AJE_POST', () => {
     const edited = [{ id: 'AJE-09', status: 'Proposed', amount: 2_000_000 }];
     expect(guardSignoffWrite(SENIOR, 'aje', proposed, edited)).toEqual([]);
   });
@@ -210,6 +210,89 @@ describe('guardSignoffWrite — transisi status AJE (PR-B)', () => {
 
   it('jurnal baru yang lahir Posted DITOLAK bagi non-partner', () => {
     expect(() => guardSignoffWrite(SENIOR, 'aje', [], posted)).toThrow(/requires:aje\.post/);
+  });
+});
+
+/* ============================================================
+   PR-1 — IMUTABILITAS JURNAL POSTED.
+   ------------------------------------------------------------
+   Uji lama di blok atas berbunyi "mengubah isi jurnal TANPA mengubah status
+   tidak menuntut AJE_POST" dan memaku perilaku itu sebagai BENAR. Probe (PRD
+   Lampiran A.1) menunjukkan artinya: satu tulisan `state.set` mengganti nilai
+   2.340 jt → 9.999 jt dan KEDUA akun sebuah jurnal `Posted`, guard menuntut
+   nol kapabilitas, jurnal tetap `Posted` dengan tanda tangan Partner utuh, dan
+   baris barunya mengalir ke WTB lewat `userPostDeltas`.
+
+   Gerbang yang tersisa hanyalah capForWrite = AJE_EDIT — dimiliki Senior
+   Auditor. Jadi yang dijaga bukan hipotesis "klien dimodifikasi", melainkan
+   peran yang memang ada di setiap tim lapangan.
+   ============================================================ */
+describe('guardSignoffWrite — jurnal Posted IMUTABEL (PR-1)', () => {
+  const base = {
+    id: 'AJE-01', status: 'Posted', desc: 'Koreksi pisah batas', ref: 'B-3',
+    kind: 'adjusting', amount: 2_340_000_000, mis: 'M-05',
+    dr: '5-3100 Beban Pokok', cr: '1-1400 Persediaan',
+  };
+  const postedLedger = [base];
+  const tampered = [{ ...base, amount: 9_999_000_000, desc: 'diubah setelah disetujui partner', dr: '1-1100 Kas', cr: '4-1000 Pendapatan' }];
+
+  /* Inti PR-1: ini ATURAN, bukan otoritas. Tak ada kapabilitas yang dapat
+     memuaskannya — termasuk milik peran tertinggi. Koreksi lewat pembalikan. */
+  it('SETIAP peran ditolak — termasuk Rekan Pemimpin & Engagement Partner', () => {
+    [JUNIOR, SENIOR, MANAGER, PARTNER, 'Rekan Pemimpin'].forEach((role) => {
+      expect(() => guardSignoffWrite(role, 'aje', postedLedger, tampered)).toThrow(/posted-immutable:AJE-01/);
+    });
+  });
+
+  it('perubahan sekecil apa pun pada jurnal Posted ditolak (deskripsi saja)', () => {
+    const reworded = [{ ...base, desc: 'redaksional' }];
+    expect(() => guardSignoffWrite(PARTNER, 'aje', postedLedger, reworded)).toThrow(/posted-immutable/);
+  });
+
+  it('memindahkan ref WP atau tautan SAD jurnal Posted juga ditolak', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'aje', postedLedger, [{ ...base, ref: 'Z-9' }])).toThrow(/posted-immutable/);
+    expect(() => guardSignoffWrite(PARTNER, 'aje', postedLedger, [{ ...base, mis: 'M-01' }])).toThrow(/posted-immutable/);
+  });
+
+  /* Batas yang harus dijaga agar aturan ini tidak melumpuhkan kerja sah. */
+  it('tulisan yang TIDAK mengubah isi tetap lolos (simpan ulang dokumen)', () => {
+    expect(guardSignoffWrite(SENIOR, 'aje', postedLedger, [{ ...base }])).toEqual([]);
+  });
+
+  it('menulis ulang jurnal Posted dalam bentuk lines[] yang setara TIDAK ditolak', () => {
+    const asLines = [{
+      ...base, dr: undefined, cr: undefined,
+      lines: [{ code: '5-3100', name: 'Beban Pokok', debit: 2_340_000_000, credit: 0 },
+        { code: '1-1400', name: 'Persediaan', debit: 0, credit: 2_340_000_000 }],
+    }];
+    expect(guardSignoffWrite(SENIOR, 'aje', postedLedger, asLines)).toEqual([]);
+  });
+
+  it('menyunting jurnal yang masih Proposed tetap bebas', () => {
+    const prop = [{ ...base, status: 'Proposed' }];
+    const edited = [{ ...base, status: 'Proposed', amount: 5 }];
+    expect(guardSignoffWrite(SENIOR, 'aje', prop, edited)).toEqual([]);
+  });
+
+  /* Unpost + sunting dalam satu tulisan: yang berlaku adalah gerbang AJE_POST,
+     bukan imutabilitas — jurnal tak lagi Posted saat isinya berubah. Persetujuan
+     lamanya gugur lewat pengikatan hash (PR-2), bukan lewat aturan ini. */
+  it('menarik posting sambil menyunting = gerbang AJE_POST (Senior ditolak, Partner boleh)', () => {
+    const unpostedEdit = [{ ...base, status: 'Proposed', amount: 1 }];
+    expect(() => guardSignoffWrite(SENIOR, 'aje', postedLedger, unpostedEdit)).toThrow(/requires:aje\.post/);
+    expect(guardSignoffWrite(PARTNER, 'aje', postedLedger, unpostedEdit))
+      .toEqual([{ what: 'aje:AJE-01.unpost', cap: CAP.AJE_POST }]);
+  });
+
+  /* Pembalikan: jurnal asal utuh + satu jurnal baru Proposed. Inilah jalan
+     koreksi yang sah, dan ia harus lolos tanpa menuntut AJE_POST. */
+  it('PEMBALIKAN lolos: jurnal asal utuh, jurnal balik lahir Proposed', () => {
+    const withReversal = [base, {
+      id: 'AJE-06', status: 'Proposed', desc: 'Pembalikan AJE-01 — salah akun', ref: 'B-3',
+      reverses: 'AJE-01', amount: 2_340_000_000,
+      lines: [{ code: '5-3100', debit: 0, credit: 2_340_000_000 }, { code: '1-1400', debit: 2_340_000_000, credit: 0 }],
+    }];
+    expect(guardSignoffWrite(SENIOR, 'aje', postedLedger, withReversal)).toEqual([]);
   });
 });
 

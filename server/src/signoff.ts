@@ -13,6 +13,10 @@
    ============================================================ */
 import { TRPCError } from '@trpc/server';
 import { can, CAP } from './rbac';
+/* PR-1 — kontrak jurnal (hash isi) dibagi dengan klien lintas paket, pola yang
+   sama dengan `rbac`: satu definisi "isi jurnal yang mengikat persetujuan",
+   bukan dua yang berpeluang menyimpang. Modulnya MURNI (tanpa React/DOM). */
+import { ajeImmutabilityViolations } from '../../migration/src/aje_contract';
 
 export type SignoffChange = { what: string; cap: string };
 
@@ -127,10 +131,29 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
       if (sigNamed(p[slot]) !== sigNamed(n[slot])) need(MAT_MEMO_SLOT_CAP[slot], `matMemo:${slot}`);
     }
   } else if (key === 'aje') {
+    /* PR-1 — JURNAL YANG SUDAH DIPOSTING TIDAK DAPAT DITULIS ULANG.
+       ------------------------------------------------------------
+       Ini ATURAN, bukan otoritas: ia tidak memanggil `need()`, karena tak ada
+       kapabilitas yang boleh memuaskannya — Rekan Pemimpin sekalipun. Alasannya
+       bukan hierarki melainkan fakta: angka jurnal Posted sudah mengalir ke WTB,
+       SAD, materialitas, dan opini, jadi "pernah ada" tak boleh dapat dihapus.
+       Koreksi ditempuh lewat PEMBALIKAN (jurnal balik baru yang menempuh rantai
+       persetujuan yang sama), yang lolos guard ini karena jurnal asal utuh.
+
+       Menarik posting (Posted → Proposed) TIDAK tertangkap aturan ini — itu
+       gerbang AJE_POST di bawah, dan setelahnya jurnal memang boleh disunting;
+       persetujuan lamanya gugur lewat pengikatan hash pada rantai (PR-2). */
+    for (const v of ajeImmutabilityViolations(prev, next)) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `posted-immutable:${v.id}`,
+      });
+    }
     /* PR-B — memposting jurnal ke WTB adalah aksi otoritatif: ia mengubah angka yang
        dipakai seluruh modul hilir. Menariknya kembali sama otoritatifnya (jurnal yang
        sudah diposting mungkin sudah dirujuk SAD/opini). Keduanya menuntut AJE_POST.
-       Menyusun/mengubah isi jurnal TIDAK dijaga di sini — itu tetap capForWrite=AJE_EDIT. */
+       Menyusun/mengubah isi jurnal yang masih Proposed TIDAK dijaga di sini — itu
+       tetap capForWrite=AJE_EDIT. */
     const p = ajeStatusMap(prev), n = ajeStatusMap(next);
     for (const id of new Set([...Object.keys(p), ...Object.keys(n)])) {
       const was = p[id] ?? '', now = n[id] ?? '';
