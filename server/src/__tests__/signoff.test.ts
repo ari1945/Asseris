@@ -297,7 +297,10 @@ describe('guardSignoffWrite — jurnal Posted IMUTABEL (PR-1)', () => {
 });
 
 describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
-  const dec = (stepRole: string) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole, name: 'X' }] } });
+  /* PR-3 — keputusan kini WAJIB bertanggal nyata; `ts` ditambahkan agar uji ini
+     tetap menguji hal yang dimaksudnya (kapabilitas per-langkah), bukan tersandung
+     gerbang waktu. Gerbang waktu itu sendiri diuji di blok berikutnya. */
+  const dec = (stepRole: string) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole, name: 'X', ts: new Date().toISOString() }] } });
 
   it('langkah Audit Manager menuntut SIGNOFF_REVIEWER', () => {
     expect(() => guardSignoffWrite(SENIOR, 'approvals_ov_v4', {}, dec('Audit Manager'))).toThrow(/requires:signoff\.reviewer/);
@@ -320,7 +323,7 @@ describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
 
   /* Fail-closed: keputusan yang tak menyebutkan langkahnya tak dapat diotorisasi. */
   it('keputusan tanpa stepRole DITOLAK, bahkan bagi Partner', () => {
-    const noRole = { 'APR-AJE-09': { decisions: [{ idx: 1, name: 'X' }] } };
+    const noRole = { 'APR-AJE-09': { decisions: [{ idx: 1, name: 'X', ts: new Date().toISOString() }] } };
     expect(() => guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, noRole)).toThrow(/FORBIDDEN|requires/);
   });
 
@@ -328,5 +331,59 @@ describe('guardSignoffWrite — keputusan rantai persetujuan (PR-B)', () => {
     const before = dec('Audit Manager');
     const after = { 'APR-AJE-09': { ...before['APR-AJE-09'], thread: [{ text: 'catatan' }] } };
     expect(guardSignoffWrite(SENIOR, 'approvals_ov_v4', before, after)).toEqual([]);
+  });
+});
+
+/* ============================================================
+   PR-3 — WAKTU KEPUTUSAN.
+   ------------------------------------------------------------
+   Klien lama mencap SETIAP keputusan dengan konstanta `'10 Mar 09:00'`
+   (view_platform.tsx:20) — persetujuan yang diberikan hari ini tercatat
+   "10 Mar 09:00", selamanya, untuk semua orang, untuk semua jurnal. Jejak
+   keputusan yang salah tanggal bukan bukti audit (SA 230 ¶8-11).
+   ============================================================ */
+describe('guardSignoffWrite — stempel waktu keputusan (PR-3)', () => {
+  const NOW = Date.parse('2026-08-07T09:00:00.000Z');
+  const at = (ts: unknown) => ({ 'APR-AJE-09': { decisions: [{ idx: 1, stepRole: 'Audit Manager', name: 'Anindya P.', ts }] } });
+
+  it('stempel nyata di dalam jendela diterima', () => {
+    expect(guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at(new Date(NOW - 60_000).toISOString()), NOW))
+      .toEqual([{ what: 'approval:APR-AJE-09.Audit Manager', cap: CAP.SIGNOFF_REVIEWER }]);
+  });
+
+  /* Inti PR-3: bentuk stempel lama tak lagi dapat masuk. */
+  it('konstanta lama `10 Mar 09:00` DITOLAK — tak terbaca sebagai waktu', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at('10 Mar 09:00'), NOW))
+      .toThrow(/decision-missing-timestamp/);
+  });
+
+  it('keputusan tanpa stempel DITOLAK (fail-closed) — juga bagi Partner', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'approvals_ov_v4', {}, at(undefined), NOW))
+      .toThrow(/decision-missing-timestamp/);
+  });
+
+  it('BACK-DATING di luar jendela DITOLAK', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at(new Date(NOW - 3 * 3.6e6).toISOString()), NOW))
+      .toThrow(/decision-stale-timestamp/);
+  });
+
+  it('FORWARD-DATING di luar jendela DITOLAK', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'approvals_ov_v4', {}, at(new Date(NOW + 3 * 3.6e6).toISOString()), NOW))
+      .toThrow(/decision-future-timestamp/);
+  });
+
+  /* Keputusan yang SUDAH tersimpan tidak divalidasi ulang: yang diperiksa hanya
+     yang baru. Jejak historis tak boleh menjadi tak-dapat-ditulis hanya karena
+     aturan baru — yang penting adalah keputusan berikutnya jujur. */
+  it('keputusan lama yang sudah tersimpan tidak diperiksa ulang', () => {
+    const before = at('10 Mar 09:00');
+    const after = {
+      'APR-AJE-09': {
+        decisions: [...before['APR-AJE-09'].decisions,
+          { idx: 2, stepRole: 'Engagement Partner', name: 'Hartono W.', ts: new Date(NOW).toISOString() }],
+      },
+    };
+    expect(guardSignoffWrite(PARTNER, 'approvals_ov_v4', before, after, NOW))
+      .toEqual([{ what: 'approval:APR-AJE-09.Engagement Partner', cap: CAP.AJE_POST }]);
   });
 });

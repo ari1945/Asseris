@@ -14,7 +14,8 @@ import { describe, it, expect } from 'vitest';
 import { ajeContentHash } from './aje_contract';
 import type { AjeContractEntry } from './aje_contract';
 import {
-  AJE_EQR_THRESHOLD, ajeChainBlocker, ajeChainSteps, buildAjeChain, makeAjeDecision,
+  AJE_EQR_THRESHOLD, ajeChainBlocker, ajeChainSteps, ajeDueAt, buildAjeChain,
+  decisionTimestampError, makeAjeDecision, nowStamp, parseStamp,
 } from './aje_approval';
 import type { AjeDecision } from './aje_approval';
 
@@ -183,6 +184,48 @@ describe('keputusan WARISAN tanpa hash (migrasi)', () => {
     const r = buildAjeChain(a, ajeChainSteps(a, ROLES), seedStyle);
     expect(r.chain.map((c) => c.status)).toEqual(['approved', 'approved', 'approved']);
     expect(r.chainComplete).toBe(true);
+  });
+});
+
+describe('waktu keputusan (PR-3) — stempel konstanta berhenti diterima', () => {
+  const NOW = Date.parse('2026-08-07T09:00:00.000Z');
+
+  it('stempel nyata dalam jendela kesegaran diterima', () => {
+    expect(decisionTimestampError(new Date(NOW - 60_000).toISOString(), NOW)).toBeNull();
+    expect(decisionTimestampError(new Date(NOW + 60_000).toISOString(), NOW)).toBeNull();
+  });
+
+  /* Justru bentuk lama itulah yang harus tertolak: '10 Mar 09:00' tak
+     bertahun, jadi ia bahkan tak dapat dibaca sebagai waktu. */
+  it('stempel konstanta lama (`10 Mar 09:00`) DITOLAK — tak terbaca', () => {
+    expect(decisionTimestampError('10 Mar 09:00', NOW)).toBe('missing-timestamp');
+  });
+
+  it('stempel kosong/hilang DITOLAK (fail-closed)', () => {
+    expect(decisionTimestampError(undefined, NOW)).toBe('missing-timestamp');
+    expect(decisionTimestampError('', NOW)).toBe('missing-timestamp');
+  });
+
+  it('back-dating di luar jendela DITOLAK', () => {
+    expect(decisionTimestampError(new Date(NOW - 2 * 3.6e6).toISOString(), NOW)).toBe('stale-timestamp');
+  });
+
+  it('forward-dating di luar jendela DITOLAK', () => {
+    expect(decisionTimestampError(new Date(NOW + 2 * 3.6e6).toISOString(), NOW)).toBe('future-timestamp');
+  });
+
+  it('gaya seed (`2026-05-06 10:20`) terbaca — dipakai jejak historis', () => {
+    expect(parseStamp('2026-05-06 10:20')).toBe(Date.parse('2026-05-06T10:20'));
+  });
+
+  it('nowStamp menghasilkan ISO, bukan konstanta', () => {
+    expect(nowStamp(NOW)).toBe('2026-08-07T09:00:00.000Z');
+    expect(nowStamp(NOW + 1000)).not.toBe(nowStamp(NOW));
+  });
+
+  it('ajeDueAt = pengajuan + SLA', () => {
+    expect(ajeDueAt('2026-05-04 16:40', 48)).toBe(new Date(Date.parse('2026-05-04T16:40') + 48 * 3.6e6).toISOString());
+    expect(ajeDueAt(null)).toBeNull();
   });
 });
 

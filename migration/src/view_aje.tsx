@@ -39,11 +39,11 @@ const COVENANT = 1.20;
    Tanggal kini ISO — `ord()` lama hanya mengenal 'Mei'/'Jun' sehingga bulan lain
    tersortir ke 0, dan entri baru ('baru saja') tenggelam ke dasar padahal terbaru. */
 const AJE_META = {
-  'AJE-01': { kind: 'adjusting', mis: 'M-05', std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], preparer: 'Rina Kusuma', role: 'Junior Auditor', proposedOn: '2026-05-04', reviewedOn: '2026-05-06', postedOn: '2026-05-08', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-02': { kind: 'adjusting', mis: 'M-04', std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '2026-05-06', reviewedOn: '2026-05-10', postedOn: '2026-05-12', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-03': { kind: 'adjusting', mis: 'M-01', std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '2026-05-28', reviewedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
-  'AJE-04': { kind: 'adjusting', mis: 'M-06', std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], preparer: 'Sinta Wulandari', role: 'Senior Auditor', proposedOn: '2026-05-09', reviewedOn: '2026-05-11', postedOn: '2026-05-13', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
-  'AJE-05': { kind: 'adjusting', mis: 'M-02', std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', proposedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-01': { kind: 'adjusting', mis: 'M-05', std: 'PSAK 23 · Pisah Batas', cycle: 'Persediaan / BPP', assertions: ['cutoff'] as AssertionId[], preparer: 'Rina Kusuma', role: 'Junior Auditor', reviewedOn: '2026-05-06', postedOn: '2026-05-08', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-02': { kind: 'adjusting', mis: 'M-04', std: 'PSAK 71 · ECL', cycle: 'Piutang / CKPN', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', reviewedOn: '2026-05-10', postedOn: '2026-05-12', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-03': { kind: 'adjusting', mis: 'M-01', std: 'SA 240 · Kecurangan', cycle: 'Pendapatan / Piutang', assertions: ['occurrence', 'existence'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', reviewedOn: '2026-05-30', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true, fraud: true },
+  'AJE-04': { kind: 'adjusting', mis: 'M-06', std: 'PSAK 57 · Akrual', cycle: 'Beban Gaji / Akrual', assertions: ['completeness_bal', 'cutoff'] as AssertionId[], preparer: 'Sinta Wulandari', role: 'Senior Auditor', reviewedOn: '2026-05-11', postedOn: '2026-05-13', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
+  'AJE-05': { kind: 'adjusting', mis: 'M-02', std: 'PSAK 16 · Penyusutan', cycle: 'BPP / Ak. Penyusutan', assertions: ['valuation'] as AssertionId[], preparer: 'Dimas Raharjo', role: 'Senior Auditor', reviewer: 'Anindya Pramesti', partner: 'Hartono Wijaya', taxEffect: true },
 };
 
 const KIND_LABEL = { adjusting: 'Penyesuaian', reclass: 'Reklasifikasi' };
@@ -103,7 +103,11 @@ function buildAjeModel(aje: any) {
       pbt: ajeDerivePbt(a),
       mis: m.mis || a.mis || null, std: m.std || '—', cycle: m.cycle || '—',
       preparer: m.preparer || a.preparer || 'Saya', role: m.role || 'Auditor',
-      proposedOn: m.proposedOn || a.proposedOn || null, reviewedOn: m.reviewedOn || null, postedOn: m.postedOn || null,
+      /* PR-3 — `proposedOn` kini milik JURNAL (data_part1), bukan tabel metadata
+         view ini. Dulu ia hanya ada di sini, sementara antrean persetujuan memakai
+         konstanta `'2026-03-09 16:40'` untuk kelima jurnal — dua modul, satu fakta,
+         dua jawaban, dan yang satu menyatakan kelimanya diajukan pada menit yang sama. */
+      proposedOn: a.proposedOn || m.proposedOn || null, reviewedOn: m.reviewedOn || null, postedOn: m.postedOn || null,
       /* PR-D — DULU jatuh ke 'Anindya Pramesti'/'Hartono Wijaya'. Jurnal buatan auditor
          karena itu menampilkan nama penelaah & rekan yang tak pernah menyentuhnya —
          jejak audit fiktif, kelas yang sama dengan pemalsuan persetujuan di PR-B.

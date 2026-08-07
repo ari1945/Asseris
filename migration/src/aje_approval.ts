@@ -244,3 +244,62 @@ export function ajeChainBlocker(r: AjeChainResult): { role: string; name: string
   const cur = r.chain[r.step];
   return cur ? { role: cur.role, name: cur.name } : null;
 }
+
+/* ============================================================
+   WAKTU KEPUTUSAN (PR-3)
+   ------------------------------------------------------------
+   Setiap keputusan dulu dicap konstanta `PF_STAMP = '10 Mar 09:00'`:
+   persetujuan yang diberikan hari ini tercatat "10 Mar 09:00" — selamanya,
+   untuk semua orang, untuk semua jurnal. Jejak keputusan yang salah tanggal
+   bukan bukti audit (SA 230 ¶8-11 menuntut KAPAN prosedur dilaksanakan).
+
+   Keputusan Q2 (PRD §11): klien menulis ISO nyata, server MENOLAK yang
+   menyimpang lebih dari jendela kesegaran dari jamnya sendiri. Kontrak
+   `state.set` tak berubah. BATAS JUJUR: ini bukan tanda tangan waktu
+   kriptografis — ia mempersempit pemalsuan ke lebar jendela, dan baris
+   `appendAudit` (jam server, hash-chained) tetap jadi rekaman pendamping.
+   ============================================================ */
+
+/** Selisih maksimum antara `ts` keputusan dan jam server. */
+export const AJE_DECISION_SKEW_MS = 10 * 60 * 1000;
+/** Jendela SLA baku sebuah langkah persetujuan jurnal (jam). */
+export const AJE_SLA_HOURS = 48;
+
+/** Stempel waktu keputusan: ISO 8601 dari jam mesin pengambil keputusan. */
+export function nowStamp(now: number = Date.now()): string {
+  return new Date(now).toISOString();
+}
+
+/**
+ * Parse stempel waktu yang toleran terhadap dua bentuk yang hidup di data ini:
+ * ISO ('2026-08-07T09:00:00.000Z') dan gaya seed ('2026-05-06 10:20').
+ * Mengembalikan epoch ms, atau null bila tak dapat dibaca.
+ */
+export function parseStamp(ts: unknown): number | null {
+  const s = String(ts ?? '').trim();
+  if (!s) return null;
+  const t = Date.parse(s.includes('T') ? s : s.replace(' ', 'T'));
+  return Number.isFinite(t) ? t : null;
+}
+
+/**
+ * Alasan penolakan sebuah stempel keputusan, atau null bila sah.
+ *
+ * Fail-closed: stempel yang hilang atau tak terbaca DITOLAK. Keputusan tanpa
+ * waktu yang dapat dibaca tidak dapat menjadi bukti kapan ia diambil — dan
+ * bentuk lama (`'10 Mar 09:00'`, tanpa tahun) justru contohnya.
+ */
+export function decisionTimestampError(ts: unknown, now: number, skewMs: number = AJE_DECISION_SKEW_MS): string | null {
+  const t = parseStamp(ts);
+  if (t == null) return 'missing-timestamp';
+  const drift = t - now;
+  if (drift > skewMs) return 'future-timestamp';
+  if (-drift > skewMs) return 'stale-timestamp';
+  return null;
+}
+
+/** Batas SLA sebuah pengajuan (ISO), dari waktu pengajuannya. */
+export function ajeDueAt(submittedAt: unknown, hours: number = AJE_SLA_HOURS): string | null {
+  const t = parseStamp(submittedAt);
+  return t == null ? null : new Date(t + hours * 3.6e6).toISOString();
+}

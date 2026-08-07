@@ -18,7 +18,7 @@ import { AMS } from './data';
 /* PR-2 — rantai persetujuan AJE punya SATU penghasil (`aje_approval`), dipakai
    antrean ini maupun tab AJE. Dulu keduanya menyusun rantainya sendiri dengan
    aturan berbeda, dan pada AJE-01 keduanya menjawab berlainan. */
-import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, buildAjeChain } from './aje_approval';
+import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, ajeDueAt, buildAjeChain } from './aje_approval';
 (function () {
   const A: any = AMS;
   if (!A) return;
@@ -135,9 +135,14 @@ import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, buildAjeChain } fr
          partner. Kini rantai dibangun dari keputusan yang benar-benar tercatat.
          PR-2 - dan dibangun oleh `aje_approval`, penghasil yang sama dengan tab AJE,
          dengan keputusan yang TERIKAT pada versi jurnal yang disetujuinya. */
+      /* PR-3 — waktu pengajuan dari JURNAL, bukan konstanta. Dulu kelima AJE
+         mengaku diajukan pada menit yang sama ('2026-03-09 16:40') sementara
+         tanggal usulannya tersebar 4-30 Mei. */
+      const submittedAt = a.proposedOn || null;
+      const due = ajeDueAt(submittedAt);
       const steps = ajeChainSteps(a, {
-        preparer: PREPARER, manager: engA.manager, partner: engA.partner, eqr: EQR_REV,
-        submittedAt: '2026-03-09 16:40', submitNote: 'AJE diajukan dari kertas kerja ' + ref + '.',
+        preparer: a.preparer || PREPARER, manager: engA.manager, partner: engA.partner, eqr: EQR_REV,
+        submittedAt, submitNote: 'AJE diajukan dari kertas kerja ' + ref + '.',
       });
       const decisions = AJE_DECISIONS_SEED[a.id] || [];
       /* Jurnal berstatus Posted yang rantainya BELUM lengkap adalah eksepsi kontrol
@@ -147,10 +152,10 @@ import { AJE_EQR_THRESHOLD, AJE_MID_THRESHOLD, ajeChainSteps, buildAjeChain } fr
       const built = buildAjeChain(a, steps, decisions);
       out.push({
         id: 'APR-' + a.id, kind: 'AJE', sourceModule: 'aje', sourceRoute: 'aje', sourceId: a.id,
-        ref: a.id, title: (a.desc || 'Jurnal penyesuaian') + ' · ' + jt(a.amount), from: PREPARER, role: 'Senior Auditor',
+        ref: a.id, title: (a.desc || 'Jurnal penyesuaian') + ' · ' + jt(a.amount), from: a.preparer || PREPARER, role: 'Senior Auditor',
         /* status antrean mengikuti RANTAI, bukan status posting jurnal */
         amount: a.amount, status: built.chainComplete ? 'approved' : 'pending', priority: hi ? 'high' : mid ? 'medium' : 'low',
-        submitted: '2026-03-09 16:40', due: '2026-03-10 17:00', eng: engA.id, engId: engA.id,
+        submitted: submittedAt, due, eng: engA.id, engId: engA.id,
         clientId: cliA.id, client: cliA.name, step: built.step, chain: built.chain,
         required: built.required, chainComplete: built.chainComplete,
         postedWithoutFullChain: built.postedWithoutFullChain, hasVoided: built.hasVoided,

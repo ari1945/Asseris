@@ -14,6 +14,7 @@ import { materialityFor } from './canon_selectors';
    Modul yang SAMA dipakai server (`server/src/signoff.ts`). */
 import { nextAjeId, reverseEntryFrom } from './aje_contract';
 import type { AjeContractEntry } from './aje_contract';
+import { nowStamp } from './aje_approval';
 import { benchmarksFromWTB } from './canon_base';
 import { engagementBenchmarks } from './canon_part3';
 import type { AjeRow, MaterialityConfig, MaterialityResult, WTB, WtbRow } from './canon_types';
@@ -977,7 +978,11 @@ function AppProviders({ me, onLogout, children }: any) {
      PR-1 - id dari `nextAjeId` (sufiks tertinggi + 1), bukan `length + 1` yang
      menghasilkan id GANDA begitu sebuah entri pernah dihapus. */
   const addAje = useCallback((entry: any) => {
-    setAje((list: any) => [...list, { id: nextAjeId(list), status: 'Proposed', ...entry }]);
+    /* PR-3 - `proposedOn` distempel di sini dengan jam NYATA. Dulu jurnal buatan
+       auditor tak punya tanggal pengajuan sama sekali: jejak audit menampilkannya
+       sebagai "baru saja" selamanya, dan antrean persetujuan memberinya konstanta
+       '2026-03-09 16:40' seperti semua jurnal lain. */
+    setAje((list: any) => [...list, { id: nextAjeId(list), status: 'Proposed', proposedOn: nowStamp(), ...entry }]);
   }, []);
 
   /* ============================================================

@@ -8,7 +8,7 @@ import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Seg, Stat } from './ui';
 import { KvBox } from './view_analytical';
 /* PR-2 — rantai AJE punya satu penghasil; antrean ini hanya memanggilnya. */
-import { buildAjeChain, makeAjeDecision } from './aje_approval';
+import { AJE_SLA_HOURS, buildAjeChain, makeAjeDecision, nowStamp, parseStamp } from './aje_approval';
 import type { AjeChainLink } from './aje_approval';
 
 /* ============================================================
@@ -20,17 +20,35 @@ import type { AjeChainLink } from './aje_approval';
    ============================================================ */
 const { useState: useStatePF, useMemo: useMemoPF } = React;
 
-const PF_NOW = new Date('2026-03-10T09:00:00');
-const PF_STAMP = '10 Mar 09:00';
+/* ============================================================
+   PR-3 — JAM NYATA.
+   ------------------------------------------------------------
+   DULU: `PF_NOW = new Date('2026-03-10T09:00:00')` dan
+   `PF_STAMP = '10 Mar 09:00'`. Setiap keputusan yang diambil pengguna dicap
+   konstanta itu — persetujuan hari ini tercatat "10 Mar 09:00", selamanya,
+   untuk semua orang, untuk semua jurnal. SLA pun tak pernah bergerak:
+   "Sisa 8 jam" adalah angka mati.
 
-/* hours-until helper -> {h, overdue, label, pct} relative to a 48h window */
+   Konsekuensi yang disengaja & jujur (PRD §8.3, keputusan Q3): jurnal seed
+   yang diajukan Mei dan belum diputuskan memang tampil lewat SLA berbulan-
+   bulan. Itu keadaannya, bukan cacat tampilan.
+   ============================================================ */
+
+/* hours-until helper -> {h, overdue, label, pct} relative to the SLA window */
 function slaInfo(dueStr: any) {
-  const due = new Date(String(dueStr).replace(' ', 'T'));
-  const diffH = (+due - +PF_NOW) / 3.6e6;
+  const dueMs = parseStamp(dueStr);
+  if (dueMs == null) return { diffH: 0, overdue: false, label: '—', pct: 0 };
+  const diffH = (dueMs - Date.now()) / 3.6e6;
   const overdue = diffH < 0;
   const abs = Math.abs(diffH);
   const unit = abs >= 24 ? Math.round(abs / 24) + ' hari' : Math.round(abs) + ' jam';
-  return { diffH, overdue, label: overdue ? 'Lewat ' + unit : 'Sisa ' + unit, pct: Math.max(0, Math.min(100, (1 - diffH / 48) * 100)) };
+  return { diffH, overdue, label: overdue ? 'Lewat ' + unit : 'Sisa ' + unit, pct: Math.max(0, Math.min(100, (1 - diffH / AJE_SLA_HOURS) * 100)) };
+}
+
+/** Tanggal-waktu lokal ringkas; '—' bila stempelnya tak terbaca. */
+function stampLabel(ts: unknown) {
+  const t = parseStamp(ts);
+  return t == null ? '—' : new Date(t).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 const APPR_KIND = { AJE: 'blue', 'Faktur': 'teal', Engagement: 'purple', Opini: 'red', 'WIP Write-off': 'amber', 'Independensi': 'purple' };
@@ -206,8 +224,8 @@ function Approvals() {
       const stepRole = (it.chain[it.step] && it.chain[it.step].role) || '';
       const isAje = d.kind === 'AJE';
       const newDec = isAje
-        ? makeAjeDecision({ a: d.journal, idx: it.step, stepRole, name: user.name, role: user.role, ts: PF_STAMP, note })
-        : { idx: it.step, stepRole, name: user.name, role: user.role, ts: PF_STAMP, note: note || 'Disetujui.' };
+        ? makeAjeDecision({ a: d.journal, idx: it.step, stepRole, name: user.name, role: user.role, ts: nowStamp(), note })
+        : { idx: it.step, stepRole, name: user.name, role: user.role, ts: nowStamp(), note: note || 'Disetujui.' };
       /* Rantai final dihitung dari penghasil yang sama, bukan dari penghitung
          `step + 1`: dengan pengikatan hash, "langkah berikutnya" belum tentu
          berarti "rantai lengkap" (bisa ada tanda tangan yang gugur di belakang). */
@@ -219,7 +237,7 @@ function Approvals() {
       setOverlay((o: any) => {
         const prev = o[id] || {};
         const decisions = [...(prev.decisions || []), newDec];
-        const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note, kind: 'approve' }] : (prev.thread || []);
+        const thread = note ? [...(prev.thread || []), { who: user.name, role: user.role, when: nowStamp(), text: note, kind: 'approve' }] : (prev.thread || []);
         return { ...o, [id]: { ...prev, step: it.step + 1, status: done ? 'approved' : 'pending', decisions, thread } };
       });
       /* === TULIS-BALIK SSOT: persetujuan final AJE memposting jurnal ke WTB === */
@@ -227,15 +245,15 @@ function Approvals() {
         toggleAjeStatus(d.sourceId, { by: user.name, approvalId: id });
       }
     } else if (decision === 'reject') {
-      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Ditolak.', kind: 'reject' }] } }));
+      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'rejected', by: user.name, note: note || 'Ditolak.', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: nowStamp(), text: note || 'Ditolak.', kind: 'reject' }] } }));
     } else if (decision === 'revise') {
-      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'revision', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text: note || 'Mohon revisi & ajukan ulang.', kind: 'revise' }] } }));
+      setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), status: 'revision', thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: nowStamp(), text: note || 'Mohon revisi & ajukan ulang.', kind: 'revise' }] } }));
     }
     logActivity && logActivity({ who: user.name, action: decision === 'approve' ? 'APPROVE' : decision === 'reject' ? 'REJECT' : 'EDIT', detail: `${it.kind} ${it.ref} — ${it.title.slice(0, 40)}` });
   };
 
   const addComment = (id: any, text: any) => {
-    setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: PF_STAMP, text }] } }));
+    setOverlay((o: any) => ({ ...o, [id]: { ...(o[id] || {}), thread: [...((o[id] || {}).thread || []), { who: user.name, role: user.role, when: nowStamp(), text }] } }));
   };
 
   return (
@@ -364,11 +382,11 @@ function ApprovalDetail({ it, auth, user, nav, onDecide, onComment }: any) {
         {/* meta + SLA */}
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '9px 14px', marginBottom: 14 }}>
           <KvBox label="Pengaju" v={it.from} />
-          <KvBox label="Diajukan" v={new Date(String(it.submitted).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} />
+          <KvBox label="Diajukan" v={stampLabel(it.submitted)} />
         </div>
         {isPend && <div className="panel" style={{ padding: 11, marginBottom: 14, background: sla.overdue ? 'var(--red-bg)' : 'var(--surface-2)', borderColor: 'transparent' }}>
           <div className="row jb ac" style={{ marginBottom: 6 }}>
-            <span className="tiny" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : 'var(--ink-2)' }}><I.clock size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Batas SLA · {new Date(String(it.due).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+            <span className="tiny" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : 'var(--ink-2)' }}><I.clock size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Batas SLA · {stampLabel(it.due)}</span>
             <span className="mono tiny" style={{ fontWeight: 700, color: sla.overdue ? 'var(--red)' : 'var(--ink-2)' }}>{sla.label}</span>
           </div>
           <Progress value={sla.pct} color={sla.overdue ? 'var(--red)' : sla.diffH < 12 ? 'var(--amber)' : 'var(--green)'} />
@@ -406,14 +424,14 @@ function ApprovalDetail({ it, auth, user, nav, onDecide, onComment }: any) {
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="row ac gap6"><span style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</span>{c.status === 'current' && <Badge kind="blue">Menunggu</Badge>}</div>
-                  <div className="tiny muted">{c.role}{c.ts ? ' · ' + new Date(String(c.ts).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                  <div className="tiny muted">{c.role}{c.ts ? ' · ' + stampLabel(c.ts) : ''}</div>
                   {c.note && <div className="tiny" style={{ color: 'var(--ink-2)', marginTop: 3, fontStyle: 'italic' }}>“{c.note}”</div>}
                   {/* PR-2 — tanda tangan yang GUGUR tetap terlihat: pembatalan yang
                       tak dapat ditelusuri sama tak berguna dengan tak ada pembatalan. */}
                   {c.voided && c.voidedBy && (
                     <div className="tiny" style={{ color: 'var(--amber)', marginTop: 3, lineHeight: 1.45 }}>
                       <I.alert size={11} style={{ verticalAlign: -1, marginRight: 3 }} />
-                      Persetujuan <b>{c.voidedBy.name}</b>{c.voidedBy.ts ? ' (' + new Date(String(c.voidedBy.ts).replace(' ', 'T')).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ')' : ''} <b>gugur</b> — isi jurnal berubah setelah disetujui.
+                      Persetujuan <b>{c.voidedBy.name}</b>{c.voidedBy.ts ? ' (' + stampLabel(c.voidedBy.ts) + ')' : ''} <b>gugur</b> — isi jurnal berubah setelah disetujui.
                     </div>
                   )}
                 </div>

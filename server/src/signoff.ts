@@ -17,6 +17,7 @@ import { can, CAP } from './rbac';
    sama dengan `rbac`: satu definisi "isi jurnal yang mengikat persetujuan",
    bukan dua yang berpeluang menyimpang. Modulnya MURNI (tanpa React/DOM). */
 import { ajeImmutabilityViolations } from '../../migration/src/aje_contract';
+import { decisionTimestampError } from '../../migration/src/aje_approval';
 
 export type SignoffChange = { what: string; cap: string };
 
@@ -99,7 +100,7 @@ const LETTER_ISSUED = new Set(['sent', 'signed']);
  * Mengembalikan daftar perubahan otoritatif terdeteksi (untuk detail jejak audit).
  * THROW `FORBIDDEN requires:<cap>` bila peran tak berwenang atas salah satu perubahan.
  */
-export function guardSignoffWrite(role: string, key: string, prev: unknown, next: unknown): SignoffChange[] {
+export function guardSignoffWrite(role: string, key: string, prev: unknown, next: unknown, now: number = Date.now()): SignoffChange[] {
   const changes: SignoffChange[] = [];
   const need = (cap: string, what: string) => {
     changes.push({ what, cap });
@@ -171,6 +172,15 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
       const nd = Array.isArray(asObj(n[itemId]).decisions) ? (asObj(n[itemId]).decisions as unknown[]) : [];
       if (nd.length <= pd.length) continue;
       for (const d of nd.slice(pd.length)) {
+        /* PR-3 — WAKTU KEPUTUSAN HARUS NYATA.
+           Klien lama mencap setiap keputusan dengan konstanta '10 Mar 09:00'.
+           Server kini menolak stempel yang tak terbaca, hilang, atau menyimpang
+           lebih dari jendela kesegaran dari jamnya sendiri — back-dating dan
+           forward-dating tak mungkin melampaui skew wajar. Batas jujurnya: ini
+           bukan tanda tangan waktu kriptografis; baris `appendAudit` (jam server,
+           hash-chained) tetap menjadi rekaman pendamping. */
+        const tsErr = decisionTimestampError(asObj(d).ts, now);
+        if (tsErr) throw new TRPCError({ code: 'FORBIDDEN', message: `decision-${tsErr}` });
         const role = String(asObj(d).stepRole ?? '');
         const cap = AJE_STEP_CAP[role];
         /* Langkah tanpa peran terpetakan ditolak — fail-closed. Keputusan yang tak
