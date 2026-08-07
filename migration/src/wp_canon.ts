@@ -6,6 +6,7 @@
    FUNGSI MURNI — tanpa import React/.tsx; hanya tipe dari selektor kanon.
    ============================================================ */
 import type { ProcedureInput } from './canon_selectors';
+import { WP_SLOT_LABEL, wpChainSelfReview } from './wp_chain';
 
 /* ---- File index (ref, title, preparer, reviewer, status, tanggalReviu?) ----
    Elemen ke-6 = TANGGAL REVIU yang DIDEKLARASIKAN sebagai data seed. Ia ada hanya
@@ -223,51 +224,14 @@ function wpProcedureInputs(ref: any, audit: any): ProcedureInput[] {
 /* ============================================================
    SATU ORANG, SATU LANGKAH — rantai sign-off kertas kerja.
    ------------------------------------------------------------
-   Gate SoD per-slot mengikat tiap slot ke KAPABILITAS, tetapi kapabilitas
-   bukan identitas: `PARTNER_BASE` memegang OPINION_APPROVE dan EQR_REVIEW
-   sekaligus, sehingga partner yang baru menandatangani slot Engagement
-   Partner masih lolos di slot EQR pada kertas kerja yang SAMA. Itu
-   menghapus arti penelaahan pengendalian mutu — ISQM 2 / SA 220.36
-   menuntut penelaah yang independen dari tim perikatan, dan yang paling
-   tidak independen adalah orang yang baru saja menyetujuinya sendiri.
+   PINDAH ke `wp_chain.ts` (PRD prd-wp-signoff-integrity, PR-1). Alasannya:
+   aturan ini kini juga ditegakkan SERVER, dan berkas ini membawa serta seluruh
+   data seed kertas kerja (WP_INDEX, WP_PROCS, WP_SEED_NOTES) yang tak ada
+   urusannya dengan `server/src/signoff.ts`.
 
-   Pola & alasan mengikuti `stepAuthority` (PR-E) yang menutup lubang yang
-   sama pada rantai persetujuan AJE — perbedaannya hanya permukaan.
-
-   HANYA TANDA TANGAN yang dihitung. `who` pada slot yang masih menunggu
-   adalah nama PENERIMA TUGAS, bukan tanda tangan; menghitungnya akan
-   memblokir orang yang belum menandatangani apa pun (lih. "assigned ≠
-   signed" pada rantai ini).
-
-   Aturannya simetris terhadap urutan: siapa pun yang sudah memegang satu
-   slot tertutup dari slot lain, tak peduli slot mana yang lebih dulu. */
-const WP_SLOT_LABEL: Record<string, string> = {
-  preparer: 'Preparer',
-  reviewer: 'Reviewer (Manager)',
-  partner: 'Engagement Partner',
-  eqr: 'EQR (Penelaah Mutu)',
-};
-
-type WpChainSlot = { by?: string; at?: string } | null | undefined;
-
-function wpChainSelfReview(
-  chain: Record<string, WpChainSlot>,
-  slotKey: string,
-  me: string,
-): { blocked: boolean; priorSlot: string; reason: string } {
-  const norm = (s: unknown) => String(s == null ? '' : s).trim().toLowerCase();
-  const meN = norm(me);
-  const free = { blocked: false, priorSlot: '', reason: '' };
-  if (!meN) return free;
-  const src = chain || {};
-  const prior = Object.keys(src).find(k => k !== slotKey && !!src[k] && norm(src[k]!.by) === meN);
-  if (!prior) return free;
-  return {
-    blocked: true,
-    priorSlot: prior,
-    reason: `Anda sudah menandatangani slot ${WP_SLOT_LABEL[prior] || prior} pada kertas kerja ini — satu orang, satu langkah (ISQM 2 / SA 220.36).`,
-  };
-}
+   Di-re-export dari sini supaya seluruh pengimpor lama (`view_wp.tsx`,
+   `wp_canon.test.ts`) tidak berubah sama sekali.
+   ============================================================ */
 
 export type { EvRec, TestItem, ExecP };
 export {
