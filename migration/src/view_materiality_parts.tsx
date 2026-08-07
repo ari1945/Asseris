@@ -6,6 +6,7 @@ import { I } from './icons';
 import { CAP } from './rbac';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Spark } from './ui';
 import { amsExportPdf } from './export_pdf';
+import { wpSignatureStamp } from './wp_chain';
 
 /* ============================================================
    Asseris — Materiality (SA 320 / SA 450) — heavy tab panels
@@ -476,10 +477,14 @@ function MatMemo({ bench, pct, pmPct, cttPct, om, pm, ctt, applied, onApply, loc
   /* penanda tangan SEBENARNYA dari sesi — bukan nama slot hardcode */
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
   const myRole = (auth && auth.user && auth.user.role) || '';
-  const now = () => new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const myId = (auth && auth.user && auth.user.id) ? String(auth.user.id) : '';
   const doSign = (key: string) => {
     if (!canSignSlot(key)) return;   // gate UI; server tetap menegakkan (dua lapis)
-    setSign((s: any) => ({ ...s, [key]: s[key] ? null : { name: me, role: myRole, at: now() } }));
+    /* `byUserId` + stempel ISO penuh — server memvalidasi keduanya sejak PRD
+       prd-wp-signoff-integrity. Bentuk lama ('YYYY-MM-DD HH:mm' tanpa zona, tanpa
+       identitas) menyatakan SIAPA hanya lewat nama tampilan, dan memo ini ikut ke
+       PDF tersegel Ed25519 sebagai persetujuan Rekan Perikatan. */
+    setSign((s: any) => ({ ...s, [key]: s[key] ? null : { name: me, role: myRole, byUserId: myId, at: wpSignatureStamp() } }));
   };
   const fullySigned = sign.preparer && sign.manager && sign.partner;
   const diff = Math.abs(om - applied) / applied;

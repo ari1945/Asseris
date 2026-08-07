@@ -4,41 +4,81 @@
 import { describe, it, expect } from 'vitest';
 import { guardSignoffWrite } from '../signoff';
 import { CAP } from '../rbac';
+import { amsShortName } from '../../../migration/src/identity';
 
-const PARTNER = 'Engagement Partner';
-const MANAGER = 'Audit Manager';
-const SENIOR = 'Senior Auditor';
-const JUNIOR = 'Junior Auditor';
-const SIG = { by: 'Anindya P.', at: '2026-03-14' };
+/* PRD prd-wp-signoff-integrity — `guardSignoffWrite` kini menerima IDENTITAS, bukan
+   hanya peran. Konstanta di bawah menjadi aktor sehingga seluruh pemanggilan lama
+   tetap terbaca sama; yang berubah adalah bahwa tanda tangan harus menyebut aktornya. */
+const PARTNER = { id: 'u-hw', name: 'Hartono Wijaya, CPA', role: 'Engagement Partner' };
+const MANAGER = { id: 'u-ap', name: 'Anindya Pramesti', role: 'Audit Manager' };
+const SENIOR = { id: 'u-dr', name: 'Dimas Raharja', role: 'Senior Auditor' };
+const JUNIOR = { id: 'u-fn', name: 'Fajar Nugraha', role: 'Junior Auditor' };
+
+const NOW = Date.now();
+const AT = new Date(NOW).toISOString();
+type Actor = typeof PARTNER;
+
+/** Tanda tangan SAH oleh `a` dalam bentuk `wpState.chain` (`{by, at}`). */
+const sigBy = (a: Actor, at: string = AT) => ({ by: amsShortName(a.name), byUserId: a.id, at });
+/** Bentuk slot opini (`{by, date}`). */
+const opinionSigBy = (a: Actor, date: string = AT) => ({ by: amsShortName(a.name), byUserId: a.id, date });
+/** Bentuk slot memo materialitas (`{name, role, at}` — nama PENUH). */
+const memoSigBy = (a: Actor, at: string = AT) => ({ name: a.name, role: a.role, byUserId: a.id, at });
+
+/* Tanda tangan WARISAN — tanpa `byUserId`, bentuk yang ada di data sebelum PRD ini. */
+const SIG = { by: 'Rina K.', at: '2026-03-14' };   // bukan salah satu aktor uji di atas
 
 describe('guardSignoffWrite — wpState rantai sign-off', () => {
   it('tanda tangan REVIEWER butuh SIGNOFF_REVIEWER (Junior/Senior ditolak)', () => {
     const prev = { B: { chain: { preparer: SIG } } };
-    const next = { B: { chain: { preparer: SIG, reviewer: SIG } } };
-    expect(() => guardSignoffWrite(JUNIOR, 'wpState', prev, next)).toThrow(/requires:signoff\.reviewer/);
-    expect(() => guardSignoffWrite(SENIOR, 'wpState', prev, next)).toThrow(/requires/);
-    expect(guardSignoffWrite(MANAGER, 'wpState', prev, next)).toEqual([{ what: 'wp:B.reviewer', cap: CAP.SIGNOFF_REVIEWER }]);
-    expect(() => guardSignoffWrite(PARTNER, 'wpState', prev, next)).not.toThrow();
+    const mgr = { B: { chain: { preparer: SIG, reviewer: sigBy(MANAGER) } } };
+    expect(() => guardSignoffWrite(JUNIOR, 'wpState', prev, mgr)).toThrow(/requires:signoff\.reviewer/);
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', prev, mgr)).toThrow(/requires/);
+    expect(guardSignoffWrite(MANAGER, 'wpState', prev, mgr, NOW)).toEqual([{ what: 'wp:B.reviewer', cap: CAP.SIGNOFF_REVIEWER }]);
+    const ptr = { B: { chain: { preparer: SIG, reviewer: sigBy(PARTNER) } } };
+    expect(() => guardSignoffWrite(PARTNER, 'wpState', prev, ptr, NOW)).not.toThrow();
   });
 
   it('slot partner/eqr (wpState["900"] mirror opini) butuh OPINION_APPROVE/EQR_REVIEW (Manager ditolak)', () => {
     const pPartner = { '900': { chain: { reviewer: SIG } } };
-    const nPartner = { '900': { chain: { reviewer: SIG, partner: SIG } } };
+    const nPartner = { '900': { chain: { reviewer: SIG, partner: sigBy(PARTNER) } } };
     expect(() => guardSignoffWrite(MANAGER, 'wpState', pPartner, nPartner)).toThrow(/requires:opinion\.approve/);
-    expect(() => guardSignoffWrite(PARTNER, 'wpState', pPartner, nPartner)).not.toThrow();
+    expect(() => guardSignoffWrite(PARTNER, 'wpState', pPartner, nPartner, NOW)).not.toThrow();
 
-    const nEqr = { '900': { chain: { reviewer: SIG, eqr: SIG } } };
+    const nEqr = { '900': { chain: { reviewer: SIG, eqr: sigBy(PARTNER) } } };
     expect(() => guardSignoffWrite(MANAGER, 'wpState', pPartner, nEqr)).toThrow(/requires:eqr\.review/);
-    expect(() => guardSignoffWrite(PARTNER, 'wpState', pPartner, nEqr)).not.toThrow();
+    expect(() => guardSignoffWrite(PARTNER, 'wpState', pPartner, nEqr, NOW)).not.toThrow();
   });
 
-  it('PREPARER & perubahan non-slot (tickmark) = WP_EDIT — Junior boleh, tanpa requirement', () => {
-    const prep = guardSignoffWrite(JUNIOR, 'wpState', { B: { chain: {} } }, { B: { chain: { preparer: SIG } } });
-    expect(prep).toEqual([]);
-    // reviewer TAK berubah; field lain berubah → tak memicu guard
+  /* ORACLE DIBALIK (PRD prd-wp-signoff-integrity, Lampiran A.4).
+     Bentuk lama menyatakan bahwa seorang Junior menulis tanda tangan Preparer atas nama
+     'Anindya P.' — seorang Audit Manager — adalah SAH, dan mengembalikan []. Itu persis
+     yang dilakukan `quickSign` pada setiap kertas kerja. Kapabilitas memang cukup
+     (WP_EDIT dimiliki semua auditor); yang tak pernah ditanyakan adalah apakah tanda
+     tangan itu menyebut orang yang membubuhkannya. */
+  it('PREPARER: Junior TIDAK dapat menandatangani atas nama auditor lain', () => {
+    expect(() => guardSignoffWrite(
+      JUNIOR, 'wpState', { B: { chain: {} } }, { B: { chain: { preparer: sigBy(MANAGER) } } }, NOW,
+    )).toThrow(/signature-identity-mismatch/);
+  });
+
+  it('PREPARER: tanda tangan atas nama SENDIRI lolos, tanpa requirement kapabilitas', () => {
+    expect(guardSignoffWrite(
+      JUNIOR, 'wpState', { B: { chain: {} } }, { B: { chain: { preparer: sigBy(JUNIOR) } } }, NOW,
+    )).toEqual([{ what: 'wp:B.preparer', cap: CAP.WP_EDIT }]);
+  });
+
+  it('PREPARER: tanda tangan tanpa identitas (bentuk warisan) ditolak untuk tulisan BARU', () => {
+    expect(() => guardSignoffWrite(
+      JUNIOR, 'wpState', { B: { chain: {} } }, { B: { chain: { preparer: SIG } } }, NOW,
+    )).toThrow(/signature-missing-identity/);
+  });
+
+  it('perubahan non-slot (tickmark) tak memicu guard, dan tanda tangan warisan yang TAK TERSENTUH aman', () => {
+    const chain = { preparer: SIG, reviewer: SIG };
     const tick = guardSignoffWrite(JUNIOR, 'wpState',
-      { B: { chain: { preparer: SIG, reviewer: SIG }, tickmarks: {} } },
-      { B: { chain: { preparer: SIG, reviewer: SIG }, tickmarks: { a: 1 } } });
+      { B: { chain, tickmarks: {} } },
+      { B: { chain, tickmarks: { a: 1 } } }, NOW);
     expect(tick).toEqual([]);
   });
 
@@ -47,16 +87,57 @@ describe('guardSignoffWrite — wpState rantai sign-off', () => {
     const next = { B: { chain: { preparer: SIG } } };
     expect(() => guardSignoffWrite(JUNIOR, 'wpState', prev, next)).toThrow(/requires:signoff\.reviewer/);
   });
+
+  it('K4 — back-dating tanda tangan ditolak', () => {
+    const stale = sigBy(MANAGER, '2025-03-14T00:00:00.000Z');
+    expect(() => guardSignoffWrite(
+      MANAGER, 'wpState', { B: { chain: { preparer: SIG } } }, { B: { chain: { preparer: SIG, reviewer: stale } } }, NOW,
+    )).toThrow(/signature-stale-timestamp/);
+  });
+
+  it('urutan rantai ditegakkan server — kecuali pada cermin opini wpState["900"]', () => {
+    // ref biasa: reviewer tanpa preparer → ditolak
+    expect(() => guardSignoffWrite(
+      MANAGER, 'wpState', { B: { chain: {} } }, { B: { chain: { reviewer: sigBy(MANAGER) } } }, NOW,
+    )).toThrow(/signature-out-of-order/);
+    // '900' mencerminkan rantai opini, yang urutannya dimiliki dokumen itu sendiri
+    expect(() => guardSignoffWrite(
+      MANAGER, 'wpState', { '900': { chain: {} } }, { '900': { chain: { reviewer: sigBy(MANAGER) } } }, NOW,
+    )).not.toThrow();
+  });
+
+  it('satu orang tak dapat mengisi dua slot pada kertas kerja yang sama', () => {
+    const prev = { '100': { chain: { preparer: sigBy(PARTNER) } } };
+    const next = { '100': { chain: { preparer: sigBy(PARTNER), reviewer: sigBy(PARTNER) } } };
+    expect(() => guardSignoffWrite(PARTNER, 'wpState', prev, next, NOW)).toThrow(/signature-self-review/);
+  });
 });
 
 describe('guardSignoffWrite — opinionDoc.v1 slot & finalisasi', () => {
   it('slot manager→SIGNOFF_REVIEWER, partner→OPINION_APPROVE, eqr→EQR_REVIEW', () => {
     const base = { signoff: {} };
-    expect(() => guardSignoffWrite(SENIOR, 'opinionDoc.v1', base, { signoff: { manager: { date: 'x' } } })).toThrow(/signoff\.reviewer/);
-    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', base, { signoff: { manager: { date: 'x' } } })).not.toThrow();
-    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', base, { signoff: { partner: { date: 'x' } } })).toThrow(/opinion\.approve/);
-    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', base, { signoff: { eqr: { date: 'x' } } })).toThrow(/eqr\.review/);
-    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', base, { signoff: { partner: { date: 'x' }, eqr: { date: 'x' } } })).not.toThrow();
+    expect(() => guardSignoffWrite(SENIOR, 'opinionDoc.v1', base, { signoff: { manager: opinionSigBy(SENIOR) } })).toThrow(/signoff\.reviewer/);
+    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', base, { signoff: { manager: opinionSigBy(MANAGER) } }, NOW)).not.toThrow();
+    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', base, { signoff: { partner: opinionSigBy(MANAGER) } })).toThrow(/opinion\.approve/);
+    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', base, { signoff: { eqr: opinionSigBy(MANAGER) } })).toThrow(/eqr\.review/);
+    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', base, { signoff: { partner: opinionSigBy(PARTNER), eqr: opinionSigBy(PARTNER) } }, NOW)).not.toThrow();
+  });
+
+  /* Q4 — tanda tangan opini KELUAR dari firma. Menutup pemalsuan pada kertas kerja
+     sambil membiarkannya di sini adalah setengah pekerjaan. */
+  it('K11 — Partner tak dapat menandatangani slot opini atas nama Manager', () => {
+    expect(() => guardSignoffWrite(
+      PARTNER, 'opinionDoc.v1', { signoff: {} }, { signoff: { partner: opinionSigBy(MANAGER) } }, NOW,
+    )).toThrow(/signature-identity-mismatch/);
+  });
+
+  it('tanggal opini konstanta (bentuk lama "2026-03-14" & "x") ditolak', () => {
+    const konstanta = { ...opinionSigBy(PARTNER), date: '2026-03-14' };
+    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', { signoff: {} }, { signoff: { partner: konstanta } }, NOW))
+      .toThrow(/signature-stale-timestamp/);
+    const takTerbaca = { ...opinionSigBy(PARTNER), date: 'x' };
+    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', { signoff: {} }, { signoff: { partner: takTerbaca } }, NOW))
+      .toThrow(/signature-missing-timestamp/);
   });
 
   it('finalisasi opini butuh OPINION_APPROVE', () => {
@@ -129,23 +210,31 @@ describe('guardSignoffWrite — mat.memo.signoff (memo materialitas SA 320/230)'
   const KEY = 'mat.memo.signoff';
   const prep = { name: 'Anindya Pramesti', role: 'Audit Manager', at: '2026-02-18 09:40' };
   const base = { preparer: prep, manager: null, partner: null };
-  const mgrSign = { name: 'Anindya Pramesti', role: 'Audit Manager', at: '2026-02-19 10:00' };
-  const ptrSign = { name: 'Hartono Wijaya', role: 'Rekan Pemimpin', at: '2026-02-20 11:00' };
+  const mgrSign = memoSigBy(MANAGER);
+  const ptrSign = memoSigBy(PARTNER);
 
   it('slot partner butuh OPINION_APPROVE — Junior/Senior/Manager ditolak, Partner boleh', () => {
     const next = { ...base, partner: ptrSign };
     expect(() => guardSignoffWrite(JUNIOR, KEY, base, next)).toThrow(/requires:opinion\.approve/);
     expect(() => guardSignoffWrite(SENIOR, KEY, base, next)).toThrow(/opinion\.approve/);
     expect(() => guardSignoffWrite(MANAGER, KEY, base, next)).toThrow(/opinion\.approve/);
-    expect(guardSignoffWrite(PARTNER, KEY, base, next)).toEqual([{ what: 'matMemo:partner', cap: CAP.OPINION_APPROVE }]);
+    expect(guardSignoffWrite(PARTNER, KEY, base, next, NOW)).toEqual([{ what: 'matMemo:partner', cap: CAP.OPINION_APPROVE }]);
   });
 
-  it('slot manager butuh SIGNOFF_REVIEWER — Junior/Senior ditolak, Manager & Partner boleh', () => {
+  it('slot manager butuh SIGNOFF_REVIEWER — Junior/Senior ditolak, Manager boleh', () => {
     const next = { ...base, manager: mgrSign };
     expect(() => guardSignoffWrite(JUNIOR, KEY, base, next)).toThrow(/requires:signoff\.reviewer/);
     expect(() => guardSignoffWrite(SENIOR, KEY, base, next)).toThrow(/signoff\.reviewer/);
-    expect(() => guardSignoffWrite(MANAGER, KEY, base, next)).not.toThrow();
-    expect(() => guardSignoffWrite(PARTNER, KEY, base, next)).not.toThrow();
+    expect(() => guardSignoffWrite(MANAGER, KEY, base, next, NOW)).not.toThrow();
+  });
+
+  /* K12 — memo ini ikut ke PDF TERSEGEL Ed25519 sebagai persetujuan Rekan Perikatan. */
+  it('K12 — Partner tak dapat menandatangani slot memo atas nama orang lain, atau dengan tanggal mundur', () => {
+    expect(() => guardSignoffWrite(PARTNER, KEY, base, { ...base, partner: memoSigBy(MANAGER) }, NOW))
+      .toThrow(/signature-identity-mismatch/);
+    const mundur = { ...memoSigBy(PARTNER), at: '2026-02-20 11:00' };
+    expect(() => guardSignoffWrite(PARTNER, KEY, base, { ...base, partner: mundur }, NOW))
+      .toThrow(/signature-stale-timestamp/);
   });
 
   it('MENCABUT tanda tangan sama otoritatifnya dengan memberi (doSign adalah toggle)', () => {
@@ -239,7 +328,7 @@ describe('guardSignoffWrite — jurnal Posted IMUTABEL (PR-1)', () => {
   /* Inti PR-1: ini ATURAN, bukan otoritas. Tak ada kapabilitas yang dapat
      memuaskannya — termasuk milik peran tertinggi. Koreksi lewat pembalikan. */
   it('SETIAP peran ditolak — termasuk Rekan Pemimpin & Engagement Partner', () => {
-    [JUNIOR, SENIOR, MANAGER, PARTNER, 'Rekan Pemimpin'].forEach((role) => {
+    [JUNIOR, SENIOR, MANAGER, PARTNER, { ...PARTNER, role: 'Rekan Pemimpin' }].forEach((role) => {
       expect(() => guardSignoffWrite(role, 'aje', postedLedger, tampered)).toThrow(/posted-immutable:AJE-01/);
     });
   });

@@ -299,6 +299,56 @@ export interface WpChainViolation {
 /** Selisih maksimum antara `at` tanda tangan dan jam server. */
 export const WP_SIGNATURE_SKEW_MS = 10 * 60 * 1000;
 
+/**
+ * R1 + R2 atas SATU tanda tangan, apa pun bentuk simpanannya.
+ *
+ * Tiga dokumen menyimpan tanda tangan dengan bentuk berbeda — `wpState.chain`
+ * (`{by, at}`), `opinionDoc.v1.signoff` (`{by, date}`), dan `mat.memo.signoff`
+ * (`{name, role, at}`) — tetapi pertanyaannya identik: benarkah ini dibubuhkan
+ * oleh pengguna sesi, pada waktu yang nyata? Pemanggil menormalkan bentuknya;
+ * aturannya hidup sekali di sini.
+ *
+ * Nama dibandingkan lewat `amsShortName` di KEDUA sisi, sehingga bentuk penuh
+ * ('Hartono Wijaya, CPA') dan singkat ('Hartono W.') sama-sama diterima —
+ * keduanya memang dipakai oleh dokumen yang berbeda.
+ */
+export function signatureAttributionViolations(
+  s: { byUserId?: unknown; display?: unknown; at?: unknown },
+  label: string,
+  actor: WpActor,
+  now: number,
+  skewMs: number = WP_SIGNATURE_SKEW_MS,
+): { code: WpViolationCode; message: string }[] {
+  const out: { code: WpViolationCode; message: string }[] = [];
+
+  if (!str(s.byUserId)) {
+    out.push({ code: 'signature-missing-identity', message: `Tanda tangan ${label} tanpa identitas penanda tangan.` });
+  } else if (str(s.byUserId) !== str(actor.id)) {
+    out.push({
+      code: 'signature-identity-mismatch',
+      message: `Tanda tangan ${label} mengatasnamakan pengguna lain — tanda tangan hanya dapat dibubuhkan oleh dirinya sendiri.`,
+    });
+  }
+
+  if (normalizeDisplayName(amsShortName(s.display)) !== normalizeDisplayName(amsShortName(actor.name))) {
+    out.push({
+      code: 'signature-name-mismatch',
+      message: `Nama pada tanda tangan ${label} ("${str(s.display)}") bukan nama pengguna sesi.`,
+    });
+  }
+
+  const tsErr = decisionTimestampError(s.at, now, skewMs);
+  if (tsErr === 'missing-timestamp') {
+    out.push({ code: 'signature-missing-timestamp', message: `Tanda tangan ${label} tanpa waktu yang dapat dibaca.` });
+  } else if (tsErr === 'future-timestamp') {
+    out.push({ code: 'signature-future-timestamp', message: `Waktu tanda tangan ${label} mendahului jam server.` });
+  } else if (tsErr === 'stale-timestamp') {
+    out.push({ code: 'signature-stale-timestamp', message: `Waktu tanda tangan ${label} menyimpang terlalu jauh dari jam server (back-dating).` });
+  }
+
+  return out;
+}
+
 function asChain(v: unknown): WpChain {
   if (!v || typeof v !== 'object') return {};
   const o = v as { chain?: unknown };
@@ -326,13 +376,15 @@ export function wpChainViolations(input: {
   actor: WpActor;
   now: number;
   skewMs?: number;
+  /** Ref yang urutan rantainya (R3) DIMILIKI dokumen lain — lihat catatan di bawah. */
+  skipOrderRefs?: ReadonlySet<string>;
 }): WpChainViolation[] {
   const { prev, next, actor, now } = input;
+  const skipOrder = input.skipOrderRefs;
   const skewMs = input.skewMs ?? WP_SIGNATURE_SKEW_MS;
   const p = asRefMap(prev);
   const n = asRefMap(next);
   const out: WpChainViolation[] = [];
-  const actorShort = normalizeDisplayName(amsShortName(actor.name));
 
   for (const ref of new Set([...Object.keys(p), ...Object.keys(n)])) {
     const pc = asChain(p[ref]);
@@ -349,33 +401,21 @@ export function wpChainViolations(input: {
       if (isSig(after)) {
         /* --- tanda tangan BARU atau BERUBAH --- */
 
-        // R1 — identitas otoritatif
-        if (!str(after.byUserId)) {
-          add('signature-missing-identity',
-            `Tanda tangan ${WP_SLOT_LABEL[slot]} tanpa identitas penanda tangan.`);
-        } else if (str(after.byUserId) !== str(actor.id)) {
-          add('signature-identity-mismatch',
-            `Tanda tangan ${WP_SLOT_LABEL[slot]} mengatasnamakan pengguna lain — tanda tangan hanya dapat dibubuhkan oleh dirinya sendiri.`);
-        }
+        // R1 + R2 — identitas & waktu (aturan bersama lintas-dokumen)
+        for (const v of signatureAttributionViolations(
+          { byUserId: after.byUserId, display: after.by, at: after.at },
+          WP_SLOT_LABEL[slot], actor, now, skewMs,
+        )) add(v.code, v.message);
 
-        // R1b — label tampilan harus milik penanda tangan yang sama
-        if (normalizeDisplayName(after.by) !== actorShort) {
-          add('signature-name-mismatch',
-            `Nama pada tanda tangan ${WP_SLOT_LABEL[slot]} ("${str(after.by)}") bukan nama pengguna sesi.`);
-        }
-
-        // R2 — waktu nyata
-        const tsErr = decisionTimestampError(after.at, now, skewMs);
-        if (tsErr === 'missing-timestamp') {
-          add('signature-missing-timestamp', `Tanda tangan ${WP_SLOT_LABEL[slot]} tanpa waktu yang dapat dibaca.`);
-        } else if (tsErr === 'future-timestamp') {
-          add('signature-future-timestamp', `Waktu tanda tangan ${WP_SLOT_LABEL[slot]} mendahului jam server.`);
-        } else if (tsErr === 'stale-timestamp') {
-          add('signature-stale-timestamp', `Waktu tanda tangan ${WP_SLOT_LABEL[slot]} menyimpang terlalu jauh dari jam server (back-dating).`);
-        }
-
-        // R3 — urutan rantai
-        if (i > 0 && !isSig(nc[WP_SLOT_ORDER[i - 1]])) {
+        /* R3 — urutan rantai.
+           DIKECUALIKAN untuk ref yang rantainya hanyalah CERMIN dari dokumen lain.
+           `wpState['900']` adalah cermin `opinionDoc.v1`: urutannya (manager →
+           partner → EQR) sudah ditegakkan oleh rantai opini itu sendiri, dan
+           memaksakan urutan kertas kerja di atasnya berarti menuntut sebuah slot
+           preparer yang tak dimiliki siapa pun — persis yang dulu dijawab dengan
+           menempelkan tanda tangan fiktif 'Generator Laporan'. Aturan lain
+           (identitas, waktu, satu-orang-satu-langkah) TETAP berlaku pada cermin. */
+        if (i > 0 && !(skipOrder && skipOrder.has(ref)) && !isSig(nc[WP_SLOT_ORDER[i - 1]])) {
           add('signature-out-of-order',
             `Slot ${WP_SLOT_LABEL[slot]} tidak dapat ditandatangani sebelum ${WP_SLOT_LABEL[WP_SLOT_ORDER[i - 1]]}.`);
         }

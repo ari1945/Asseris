@@ -741,7 +741,10 @@ export const appRouter = router({
         if (SIGNOFF_KEYS.has(key)) {
           const prevDoc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
           const prevValue = prevDoc ? (JSON.parse(prevDoc.valueJson) as unknown) : null;
-          signoffChanges = guardSignoffWrite(ctx.user.role, key, prevValue, input.value);
+          signoffChanges = guardSignoffWrite(
+            { id: ctx.user.id, name: ctx.user.name, role: ctx.user.role },
+            key, prevValue, input.value,
+          );
         }
         // Metadata-saja (slot+cap, BUKAN isi WP) untuk jejak audit reviu mutu.
         const signoffDetail = signoffChanges.length ? ' signoff[' + signoffChanges.map((c) => c.what).join(',') + ']' : '';

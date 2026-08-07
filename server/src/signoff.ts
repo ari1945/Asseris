@@ -18,6 +18,10 @@ import { can, CAP } from './rbac';
    bukan dua yang berpeluang menyimpang. Modulnya MURNI (tanpa React/DOM). */
 import { ajeImmutabilityViolations } from '../../migration/src/aje_contract';
 import { decisionTimestampError } from '../../migration/src/aje_approval';
+/* PRD prd-wp-signoff-integrity — aturan rantai kertas kerja, modul yang SAMA
+   dengan yang dipakai UI. Gerbang yang hidup di satu sisi saja adalah cara
+   paling andal melahirkan celah (pelajaran #23, lalu quickSign). */
+import { wpChainViolations, signatureAttributionViolations } from '../../migration/src/wp_chain';
 
 export type SignoffChange = { what: string; cap: string };
 
@@ -34,13 +38,26 @@ function asObj(v: unknown): Record<string, any> {
 }
 
 /* Slot rantai kertas kerja (wpState[ref].chain) & slot opini (opinionDoc.signoff)
-   → kapabilitas. `preparer` SENGAJA absen: itu WP_EDIT (semua auditor), sudah
-   di-gate capForWrite. */
+   → kapabilitas.
+
+   `preparer` KINI ADA di sini (PRD prd-wp-signoff-integrity). Ia dulu sengaja
+   dikecualikan dengan alasan "itu WP_EDIT, semua auditor, sudah di-gate
+   capForWrite" — alasan yang benar tentang OTORITAS dan salah tentang segalanya
+   yang lain. Kapabilitas menjawab "bolehkah peran ini menandatangani slot ini";
+   ia tidak menjawab "apakah tanda tangan ini menyebut orang yang membubuhkannya".
+   Selama slot ini absen, `guardSignoffWrite` mengembalikan [] untuk sebuah
+   tulisan yang menaruh nama auditor lain di slot Preparer — dan itulah yang
+   dilakukan `quickSign` pada setiap kertas kerja. */
 const WP_CHAIN_CAP: Record<string, string> = {
+  preparer: CAP.WP_EDIT,
   reviewer: CAP.SIGNOFF_REVIEWER, // = slot Reviu Manajer opini (di-mirror ke wpState['900'])
   partner: CAP.OPINION_APPROVE,
   eqr: CAP.EQR_REVIEW,
 };
+
+/* Ref yang rantainya adalah CERMIN dokumen lain — urutannya (R3) dimiliki di sana.
+   `wpState['900']` mencerminkan `opinionDoc.v1`; lihat catatan di wp_chain.ts. */
+const WP_MIRROR_REFS: ReadonlySet<string> = new Set(['900']);
 const OPINION_SLOT_CAP: Record<string, string> = {
   manager: CAP.SIGNOFF_REVIEWER,
   partner: CAP.OPINION_APPROVE,
@@ -95,19 +112,49 @@ function ajeStatusMap(v: unknown): Record<string, string> {
 /* Status surat perikatan yang berarti DITERBITKAN (vs intake/draft). */
 const LETTER_ISSUED = new Set(['sent', 'signed']);
 
+/** Pengguna sesi — identitas OTORITATIF, bukan hanya perannya. */
+export interface SignoffActor {
+  id: string;
+  name: string;
+  role: string;
+}
+
 /**
- * Tegakkan otoritas per-slot atas sebuah tulisan StateDoc.
+ * Tegakkan otoritas DAN integritas per-slot atas sebuah tulisan StateDoc.
  * Mengembalikan daftar perubahan otoritatif terdeteksi (untuk detail jejak audit).
- * THROW `FORBIDDEN requires:<cap>` bila peran tak berwenang atas salah satu perubahan.
+ *
+ * Dua jenis penolakan, dan bedanya penting:
+ *  · `requires:<cap>` — OTORITAS. Peran ini tak berwenang atas perubahan itu.
+ *    Peran lain boleh.
+ *  · `signature-*` / `posted-immutable:*` — ATURAN. Tak ada kapabilitas yang
+ *    dapat memuaskannya; Rekan Pemimpin sekalipun ditolak.
+ *
+ * Sebelum PRD prd-wp-signoff-integrity fungsi ini hanya menerima `role`, sehingga
+ * pertanyaan "apakah tanda tangan ini menyebut orang yang membubuhkannya" tak
+ * dapat ditanyakan sama sekali — untuk slot MANA PUN, bukan hanya preparer.
  */
-export function guardSignoffWrite(role: string, key: string, prev: unknown, next: unknown, now: number = Date.now()): SignoffChange[] {
+export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknown, next: unknown, now: number = Date.now()): SignoffChange[] {
+  const role = actor.role;
   const changes: SignoffChange[] = [];
   const need = (cap: string, what: string) => {
     changes.push({ what, cap });
     if (!can(role, cap)) throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${cap}` });
   };
+  /* Aturan integritas tanda tangan — dipakai bertiga (wpState, opini, memo).
+     Pesan dikirim apa adanya ke klien: ia menjelaskan sebab, bukan sekadar menolak. */
+  const attribution = (s: { byUserId?: unknown; display?: unknown; at?: unknown }, label: string) => {
+    for (const v of signatureAttributionViolations(s, label, { id: actor.id, name: actor.name }, now)) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: `${v.code}: ${v.message}` });
+    }
+  };
 
   if (key === 'wpState') {
+    /* OTORITAS lebih dulu, ATURAN sesudahnya — urutan ini disengaja.
+       "Peran Anda tak berwenang atas slot ini" adalah penolakan yang lebih
+       mendasar dan lebih dapat ditindaklanjuti daripada "tanda tangan Anda cacat
+       bentuk". Yang penting bukan mana yang lebih dulu, melainkan bahwa TAK ADA
+       yang dapat lolos: setiap tulisan yang melewati kapabilitas tetap harus
+       melewati aturan. */
     const p = asObj(prev), n = asObj(next);
     for (const ref of new Set([...Object.keys(p), ...Object.keys(n)])) {
       const pc = asObj(p[ref] && p[ref].chain), nc = asObj(n[ref] && n[ref].chain);
@@ -115,11 +162,21 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
         if (sig(pc[slot]) !== sig(nc[slot])) need(WP_CHAIN_CAP[slot], `wp:${ref}.${slot}`);
       }
     }
+    for (const v of wpChainViolations({
+      prev, next, actor: { id: actor.id, name: actor.name }, now, skipOrderRefs: WP_MIRROR_REFS,
+    })) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: `${v.code}:wp:${v.ref}.${v.slot}: ${v.message}` });
+    }
   } else if (key === 'opinionDoc.v1') {
     const p = asObj(prev), n = asObj(next);
     const ps = asObj(p.signoff), ns = asObj(n.signoff);
     for (const slot of Object.keys(OPINION_SLOT_CAP)) {
-      if (sig(ps[slot]) !== sig(ns[slot])) need(OPINION_SLOT_CAP[slot], `opini:${slot}`);
+      if (sig(ps[slot]) === sig(ns[slot])) continue;
+      /* Q4 — R1/R2 juga di sini. Tanda tangan opini KELUAR dari firma; membiarkannya
+         dapat dipalsukan sementara kertas kerja ditutup adalah setengah pekerjaan.
+         R3/R4 TIDAK ikut: rantai opini punya bentuk & urutannya sendiri. */
+      need(OPINION_SLOT_CAP[slot], `opini:${slot}`);
+      if (ns[slot]) attribution({ byUserId: ns[slot].byUserId, display: ns[slot].by, at: ns[slot].date }, `opini ${slot}`);
     }
     if (!!p.finalized !== !!n.finalized) need(CAP.OPINION_APPROVE, 'opini:finalized');
   } else if (key === 'mat.memo.signoff') {
@@ -129,7 +186,11 @@ export function guardSignoffWrite(role: string, key: string, prev: unknown, next
        kanoniknya tanpa peduli arah perubahan. */
     const p = asObj(prev), n = asObj(next);
     for (const slot of Object.keys(MAT_MEMO_SLOT_CAP)) {
-      if (sigNamed(p[slot]) !== sigNamed(n[slot])) need(MAT_MEMO_SLOT_CAP[slot], `matMemo:${slot}`);
+      if (sigNamed(p[slot]) === sigNamed(n[slot])) continue;
+      /* Q4 — memo materialitas ikut ke PDF TERSEGEL Ed25519 sebagai persetujuan
+         Rekan Perikatan. Bentuknya `{name, role, at}`: `name` adalah nama PENUH. */
+      need(MAT_MEMO_SLOT_CAP[slot], `matMemo:${slot}`);
+      if (n[slot]) attribution({ byUserId: n[slot].byUserId, display: n[slot].name, at: n[slot].at }, `memo materialitas ${slot}`);
     }
   } else if (key === 'aje') {
     /* PR-1 — JURNAL YANG SUDAH DIPOSTING TIDAK DAPAT DITULIS ULANG.
