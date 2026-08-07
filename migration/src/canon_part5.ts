@@ -60,8 +60,6 @@ function aggregate(W: WTB, field: WtbAmountField, ocf: number | null): GcAggrega
   const inventory = jtP5(valByCode(W, field, '1-1300'));
   const totalAssets = currentAssets + nonCurrentAssets;
   const totalLiab = currentLiab + nonCurrentLiab;
-  const equity = jtP5(-sumByPrefix(W, field, '3-'));
-  const retainedEarnings = jtP5(-valByCode(W, field, '3-2100'));
   const sales = jtP5(-valByCode(W, field, '4-1100'));
   const cogs = jtP5(valByCode(W, field, '5-1100'));
   const sell = jtP5(valByCode(W, field, '5-2100'));
@@ -70,6 +68,13 @@ function aggregate(W: WTB, field: WtbAmountField, ocf: number | null): GcAggrega
   const tax = jtP5(valByCode(W, field, '5-5100'));
   const ebit = sales - cogs - sell - admin;                  // laba usaha sebelum bunga & pajak
   const netIncome = ebit - interest - tax;
+  /* PR-I3 — PENUTUPAN LABA. Neraca saldo bersifat pra-tutup: akun 3-2100 memuat saldo
+     laba AWAL kolom itu sementara akun 4-/5- masih terbuka. Ekuitas yang DISAJIKAN
+     karena itu = saldo akun ekuitas + laba kolom tersebut; tanpa penutupan ini,
+     `equity` understated sebesar laba dan DER/Altman Z ikut salah. Aturan yang sama
+     dipakai FSGEN (`eqLine`) — satu perlakuan, bukan dua. */
+  const equity = jtP5(-sumByPrefix(W, field, '3-')) + netIncome;
+  const retainedEarnings = jtP5(-valByCode(W, field, '3-2100')) + netIncome;
   const workingCapital = currentAssets - currentLiab;
   return {
     currentAssets, currentLiab, inventory, totalAssets, totalLiab, equity,

@@ -192,7 +192,13 @@ function FSGenerator() {
   const navItems = [
     { id: 'neraca',  label: 'Posisi Keuangan', tag: 'L1', status: model.bs.balanced ? 'ok' : 'warn', statusLabel: model.bs.balanced ? 'Seimbang' : 'Selisih' },
     { id: 'labarugi', label: 'Laba Rugi & PKL', tag: 'L2', status: 'ok' },
-    { id: 'ekuitas', label: 'Perubahan Ekuitas', tag: 'L3', status: Math.abs((model.eqr.netIncome + model.eqr.oci) - (model.eqr.endRE - model.eqr.beginRE)) < 1e6 ? 'ok' : 'warn' },
+    /* PR-I3 — badge ini dulu menghitung ulang identitas yang sama dengan tie-out `re`
+       (`oci` adalah residu, jadi ruas kiri ≡ ruas kanan) sehingga selalu 'ok'. Kini ia
+       mengikuti sisa mutasi saldo laba yang TAK TERJELASKAN — satu-satunya besaran di
+       sini yang bisa tidak nol. */
+    { id: 'ekuitas', label: 'Perubahan Ekuitas', tag: 'L3',
+      status: Math.abs(model.eqr.reUnexplained) < 1e6 ? 'ok' : 'warn',
+      statusLabel: Math.abs(model.eqr.reUnexplained) < 1e6 ? undefined : 'Mutasi tak terjelaskan' },
     { id: 'aruskas', label: 'Arus Kas', tag: 'L4', status: model.cf.ties ? 'ok' : 'warn', statusLabel: model.cf.ties ? 'Menutup ke saldo kas' : 'Tidak menutup' },
     { id: 'calk',    label: 'Catatan (CALK)', tag: 'L5', status: discPct === 100 ? 'ok' : 'warn', statusLabel: discPct + '% lengkap' },
   ];

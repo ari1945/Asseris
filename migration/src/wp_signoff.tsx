@@ -540,6 +540,7 @@ function engagementGate(audit: any, firm: any, opts: any) {
       /* PR-I2 — tanpa baris ini gerbang MEMBLOK dengan alasan kosong: kriteria baru
          membalik `status` sementara detailnya tak menyebutkannya sama sekali. */
       !integ.allClassified && `${integ.unclassified.length} akun tak terklasifikasi — saldonya di luar rekonsiliasi neraca`,
+      integ.incomeDoubleCounted && 'laba berjalan tercatat dua kali (saldo laba memuat laba padahal akun L/R terbuka)',
     ].filter(Boolean).join('; ');
     criteria = finalisationGateCriteria({
       conclusionPct: recap.conclusionPct,

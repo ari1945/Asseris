@@ -45,6 +45,8 @@ const FSGEN = (function () {
   const EQ  = [
     { key: 'modal',    label: 'Modal saham',                 codes: ['3-1100'], note: '14' },
     { key: 'saldolaba',label: 'Saldo laba',                  codes: ['3-2100'], note: '' },
+    /* PR-I3 — akumulasi PKL sebagai komponen ekuitas tersendiri (PSAK 1 ¶108). */
+    { key: 'akumoci', label: 'Penghasilan komprehensif lain', codes: ['3-3100'], note: '13' },
   ];
 
   const SHARES = 600_000_000; // issued shares for EPS
@@ -93,18 +95,34 @@ const FSGEN = (function () {
        mendaftar status jurnal apa pun — cukup selisih akun laba-rugi antara basis
        tersaji dan basis yang tertanam di 3-2100. Nol secara identik pada
        `ifAllProposed`, sehingga perilaku lama utuh persis. */
-    const reShift = (wtb as Array<{ code: string; adj: number }>)
-      .filter(r => r.code[0] === '4' || r.code[0] === '5')
-      .reduce((a, r) => a - (cy(r.code) - (r.adj || 0)), 0);
+    /* ---- Laba rugi (dihitung LEBIH DULU: penutupan ekuitas memerlukannya) ---- */
+    const sales = { cy: -cy('4-1100'), py: -py('4-1100') };
+    const cogs  = { cy: cy('5-1100'), py: py('5-1100') };
+    const gross = { cy: sales.cy - cogs.cy, py: sales.py - cogs.py };
+    const sell  = { cy: cy('5-2100'), py: py('5-2100') };
+    const admin = { cy: cy('5-3100'), py: py('5-3100') };
+    const opProfit = { cy: gross.cy - sell.cy - admin.cy, py: gross.py - sell.py - admin.py };
+    const finCost = { cy: cy('5-4100'), py: py('5-4100') };
+    const pbt = { cy: opProfit.cy - finCost.cy, py: opProfit.py - finCost.py };
+    const tax = { cy: cy('5-5100'), py: py('5-5100') };
+    const netIncome = { cy: pbt.cy - tax.cy, py: pbt.py - tax.py };
+    const eps = { cy: netIncome.cy / SHARES, py: netIncome.py / SHARES };
 
     /* asset captions present natural (positive); liability/equity flipped positive */
     const assetLine = (cap: any) => ({ ...cap, cy: sumCY(cap.codes), py: sumPY(cap.codes) });
     const negLine   = (cap: any) => ({ ...cap, cy: -sumCY(cap.codes), py: -sumPY(cap.codes) });
 
     const ca = CA.map(assetLine),  nca = NCA.map(assetLine);
-    /* saldo laba memikul penutupan; kapital saham tidak tersentuh laba-rugi */
+    /* PR-I3 — PENUTUPAN LABA, eksplisit. Akun 3-2100 pada TB pra-tutup memuat saldo laba
+       AWAL saja; laba berjalan masih terbuka di akun 4-/5-. Saldo laba yang DISAJIKAN
+       karena itu = akun + laba periode. Dulu perannya dipegang `reShift`, yang hanya
+       menyatakan ulang antar-basis karena 3-2100 kebetulan memuat laba basis
+       `ifAllProposed` — konstruksi yang menuntut seed berpola laba-ganda agar neraca
+       menutup. Bentuk ini benar untuk TB pra-tutup mana pun, tanpa syarat itu.
+       Aturannya SERAGAM untuk kedua kolom — saldo laba disajikan = akun + laba kolom
+       itu — karena seed kini pra-tutup di kolom berjalan MAUPUN komparatif. */
     const eqLine = (cap: { key: string; codes: string[] }) => (cap.key === 'saldolaba'
-      ? { ...negLine(cap), cy: -sumCY(cap.codes) + reShift }
+      ? { ...negLine(cap), cy: -sumCY(cap.codes) + netIncome.cy, py: -sumPY(cap.codes) + netIncome.py }
       : negLine(cap));
     const cl = CL.map(negLine),    ncl = NCL.map(negLine),  eq = EQ.map(eqLine);
 
@@ -119,22 +137,21 @@ const FSGEN = (function () {
     const totalLE = { cy: totalLiab.cy + totalEq.cy, py: totalLiab.py + totalEq.py };
     const bsDiff = { cy: totalAssets.cy - totalLE.cy, py: totalAssets.py - totalLE.py };
 
-    /* ---- Income statement ---- */
-    const sales = { cy: -cy('4-1100'), py: -py('4-1100') };
-    const cogs  = { cy: cy('5-1100'), py: py('5-1100') };
-    const gross = { cy: sales.cy - cogs.cy, py: sales.py - cogs.py };
-    const sell  = { cy: cy('5-2100'), py: py('5-2100') };
-    const admin = { cy: cy('5-3100'), py: py('5-3100') };
-    const opProfit = { cy: gross.cy - sell.cy - admin.cy, py: gross.py - sell.py - admin.py };
-    const finCost = { cy: cy('5-4100'), py: py('5-4100') };
-    const pbt = { cy: opProfit.cy - finCost.cy, py: opProfit.py - finCost.py };
-    const tax = { cy: cy('5-5100'), py: py('5-5100') };
-    const netIncome = { cy: pbt.cy - tax.cy, py: pbt.py - tax.py };
-    const eps = { cy: netIncome.cy / SHARES, py: netIncome.py / SHARES };
-
-    /* ---- Statement of changes in equity (rollforward of saldo laba) ---- */
-    const beginRE = -py('3-2100'), endRE = -cy('3-2100') + reShift;
-    const oci = endRE - beginRE - netIncome.cy;   // remeasurement / OCI plug to tie RE
+    /* ---- Laporan perubahan ekuitas (rollforward saldo laba) ----
+       PR-I3 — `oci` DIBACA DARI AKUN, bukan disisakan. Dulu:
+         const oci = endRE - beginRE - netIncome.cy;
+       yakni definisi residu; tie-out di bawah lalu membandingkan `netIncome + oci`
+       terhadap `endRE - beginRE` — substitusi menghasilkan identitas, sehingga
+       pemeriksaan "Laba bersih mengalir ke Saldo Laba" MUSTAHIL GAGAL (terukur
+       diff = 0 persis pada kedua basis). Residunya — Rp 6.553,7 jt pada seed, 2,8× PM —
+       tetap disajikan di LK dengan label PSAK 24 "pengukuran kembali imbalan kerja"
+       beserta rujukan catatan 13: angka sisa mengenakan asersi akuntansi bernama.
+       Kini PKL adalah saldo akun 3-3100, dan apa pun yang TETAP tak terjelaskan menjadi
+       `reUnexplained` — ditampilkan sebagai selisih dan menggagalkan tie-out. */
+    const beginRE = -py('3-2100') + netIncome.py, endRE = -cy('3-2100') + netIncome.cy;
+    const beginOci = -py('3-3100'), endOci = -cy('3-3100');
+    const oci = endOci - beginOci;                      // PKL periode berjalan — DATA
+    const reUnexplained = (endRE - beginRE) - netIncome.cy;
     const beginModal = -py('3-1100'), endModal = -cy('3-1100');
 
     /* ---- Cash flow (indirect) — every non-cash B/S movement classified so Σ = ΔCash ---- */
@@ -152,7 +169,11 @@ const FSGEN = (function () {
     const dBankS = -d('2-1200'), dBankL = -d('2-2100');
     const dLease = -(d('2-1500') + d('2-2200'));   // ↑ lease liabilities
     const dModal = -d('3-1100');
-    const ociFin = (endRE - beginRE) - netIncome.cy;  // RE movement not from current-year profit
+    /* Mutasi ekuitas non-kas yang harus dinetralkan agar arus kas menutup: PKL periode
+       + sisa mutasi saldo laba yang tak terjelaskan. Yang kedua idealnya nol; bila tidak,
+       arus kas tetap menutup secara mekanis sementara ALARM-nya dibunyikan tie-out
+       ekuitas — bukan disembunyikan di sini. */
+    const ociFin = oci + reUnexplained;
 
     const cfo = [
       { label: 'Laba tahun berjalan', v: netIncome.cy, strong: false },
@@ -236,7 +257,7 @@ const FSGEN = (function () {
         bsDiff, balanced: Math.abs(bsDiff.cy) < 1e6, balancedPY: Math.abs(bsDiff.py) < 1e6,
       },
       is: { sales, cogs, gross, sell, admin, opProfit, finCost, pbt, tax, netIncome, eps },
-      eqr: { beginRE, endRE, oci, beginModal, endModal, netIncome: netIncome.cy, totalEqCY: totalEq.cy, totalEqPY: totalEq.py },
+      eqr: { beginRE, endRE, oci, beginOci, endOci, reUnexplained, beginModal, endModal, netIncome: netIncome.cy, totalEqCY: totalEq.cy, totalEqPY: totalEq.py },
       cf: { cfo, cfoTotal, cfi, cfiTotal, cff, cffTotal, netChange, cashOpen, cashClose, cashBS,
             cfoDirect, cfoDirectTotal, cashFromOps,
             ties: Math.abs(cashClose - cashBS) < 1e6,
@@ -266,9 +287,12 @@ const FSGEN = (function () {
     return [
       chk('bs', 'Neraca seimbang', 'Posisi Keuangan', m.bs.totalAssets.cy, m.bs.totalLE.cy, 'PSAK 1',
         'Total Aset = Total Liabilitas + Ekuitas'),
+      /* PR-I3 — pembanding kini INDEPENDEN. `oci` tak lagi muncul di kedua ruas sebagai
+         residu, sehingga tie-out ini DAPAT gagal: mutasi saldo laba yang bukan berasal
+         dari laba periode akan menyisakan `reUnexplained` dan menyalakannya. */
       chk('re', 'Laba bersih mengalir ke Saldo Laba', 'Laba Rugi → Ekuitas',
-        m.eqr.netIncome + m.eqr.oci, m.eqr.endRE - m.eqr.beginRE, 'PSAK 1',
-        'Laba bersih + PKL = mutasi saldo laba periode'),
+        m.eqr.netIncome, m.eqr.endRE - m.eqr.beginRE, 'PSAK 1',
+        'Mutasi saldo laba periode = laba bersih (PKL disajikan pada komponen ekuitasnya sendiri)'),
       chk('cf', 'Arus kas menutup ke saldo kas', 'Arus Kas → Posisi Keuangan',
         m.cf.cashClose, m.cf.cashBS, 'PSAK 2',
         'Kas awal + kenaikan kas neto = Kas dan setara kas'),

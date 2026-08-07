@@ -171,11 +171,25 @@ describe('oracle seed nyata — figur entitas ENG-2025-014', () => {
     expect(jtOf(entityFigures(SEED, 'adj').pbt)).toBe(22_780);
   });
 
-  it('artikulasi seed: laba neto unadj ≈ pergerakan saldo laba (toleransi 2%)', () => {
-    const ni = entityFigures(SEED, 'unadj').netIncome!;
+  /* PR-I3 — dulu "toleransi 2%", karena saldo laba mencampur tiga hal sekaligus: saldo
+     awal, laba berjalan (tercatat dua kali), dan PKL Rp 6.553,7 jt yang tak terjelaskan.
+     Seed kini pra-tutup di kedua kolom dan PKL berdiri sebagai akun 3-3100, sehingga
+     artikulasinya EKSAK — bukan lagi "kira-kira". Saldo laba disajikan per kolom =
+     saldo akun + laba kolom itu; mutasinya harus PERSIS laba berjalan. */
+  it('artikulasi seed: mutasi saldo laba = laba neto unadj, PERSIS', () => {
+    const niCy = entityFigures(SEED, 'unadj').netIncome!;
+    const niPy = entityFigures(SEED, 'ly').netIncome!;
     const re = SEED.find(r => r.code === '3-2100')!;
-    const movement = -((re.unadj ?? 0) - (re.ly ?? 0));
-    expect(Math.abs(ni - movement) / Math.abs(ni)).toBeLessThan(0.02);
+    const closeCy = -(re.unadj ?? 0) + niCy;
+    const closePy = -(re.ly ?? 0) + niPy;
+    expect(Math.round((closeCy - closePy) / 1e6)).toBe(Math.round(niCy / 1e6));
+  });
+
+  /* PKL tak lagi bersembunyi di dalam saldo laba: ia punya akunnya sendiri. */
+  it('PKL PSAK 24 adalah akun ekuitas tersendiri, bukan residu saldo laba', () => {
+    const oci = SEED.find(r => r.code === '3-3100')!;
+    expect(jtOf(-(oci.unadj ?? 0))).toBe(6_554);
+    expect(jtOf(-(oci.ly ?? 0))).toBeCloseTo(0, 6);   // akumulasi PKL awal nihil
   });
 
   /* Dua benchmark lama TERNYATA tie ke WTB — tapi ke kolom yang BERBEDA.

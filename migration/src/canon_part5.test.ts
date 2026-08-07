@@ -31,7 +31,12 @@ describe('goingConcern() — rasio & Altman Z dari WTB (SSOT)', () => {
     // nilai turunan-WTB presisi (hardcoded lama 0.18/0.31/0.11/1.03/1.05 = display-rounded)
     const { altman } = goingConcern();
     expect(altman.x1).toBeCloseTo(0.180, 2);
-    expect(altman.x2).toBeCloseTo(0.317, 2);
+    /* PR-I3 — 0,317 → 0,297. X2 = saldo laba / total aset. Angka lama memuat PKL
+       Rp 6.553,7 jt yang dulu mengendap di dalam saldo laba sebagai residu; kini PKL
+       berdiri sebagai akun ekuitas sendiri, sehingga X2 mengukur saldo laba saja —
+       sebagaimana dimaksud Altman (akumulasi laba ditahan, bukan seluruh ekuitas
+       selain modal). Total aset tak bergeser, jadi X1/X3/X5 tetap. */
+    expect(altman.x2).toBeCloseTo(0.297, 2);
     expect(altman.x3).toBeCloseTo(0.100, 2);   // A2: EBIT/TA (EBIT turun pasca koreksi AJE)
     expect(altman.x4).toBeCloseTo(1.028, 2);
     expect(altman.x5).toBeCloseTo(1.043, 2);   // A2: sales/TA (penjualan −1.850 dari AJE-03)
