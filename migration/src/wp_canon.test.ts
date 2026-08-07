@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { defaultProcState, procStatusAt, execStatus, wpEvidenceEval, deriveWpStatus, wpChainSelfReview } from './wp_canon';
 import { wpContentHash } from './wp_chain';
+import type { WpSignature } from './wp_chain';
 import { AMS } from './data';
+
+/* Baris sign-off yang DIKEMBALIKAN deriveWpStatus adalah bentuk hasil map (ber-`key`),
+   bukan WpChainLink (ber-`slot`). Diturunkan dari fungsinya, bukan ditulis ulang, agar
+   uji tak bisa menyimpang dari bentuk yang sebenarnya beredar. */
+type SignoffRow = ReturnType<typeof deriveWpStatus>['signoff'][number];
 
 describe('defaultProcState — heuristic per WP-level status (characterization)', () => {
   it('Reviewed → semua Selesai', () => {
@@ -27,15 +33,19 @@ describe('defaultProcState — heuristic per WP-level status (characterization)'
 });
 
 describe('execStatus — derive dari item uji (characterization)', () => {
+  /* Hanya `result` yang dibaca execStatus(); sisa field TestItem (id/desc/ev/tick/note)
+     sengaja dihilangkan agar uji ini menyoroti aturan status, bukan bentuk item. */
+  const ep = (...results: string[]) =>
+    ({ items: results.map(result => ({ result })) }) as unknown as Parameters<typeof execStatus>[0];
   it('kosong → null', () => expect(execStatus(undefined)).toBeNull());
   it('ada pengecualian → Pengecualian', () =>
-    expect(execStatus({ items: [{ result: 'exc' }] })).toBe('Pengecualian'));
+    expect(execStatus(ep('exc'))).toBe('Pengecualian'));
   it('belum semua diuji → Berjalan', () =>
-    expect(execStatus({ items: [{ result: 'tie' }, { result: '' }] })).toBe('Berjalan'));
+    expect(execStatus(ep('tie', ''))).toBe('Berjalan'));
   it('semua N/A → N/A', () =>
-    expect(execStatus({ items: [{ result: 'na' }, { result: 'na' }] })).toBe('N/A'));
+    expect(execStatus(ep('na', 'na'))).toBe('N/A'));
   it('semua dinilai (non-exc, non-na) → Selesai', () =>
-    expect(execStatus({ items: [{ result: 'tie' }, { result: 'tie' }] })).toBe('Selesai'));
+    expect(execStatus(ep('tie', 'tie'))).toBe('Selesai'));
 });
 
 describe('procStatusAt — prioritas exec → procs manual → heuristic (characterization)', () => {
@@ -58,12 +68,16 @@ describe('wpEvidenceEval — kecukupan & ketepatan (characterization)', () => {
     const r = wpEvidenceEval([], {});
     expect(r.verdict.l).toBe('Belum Memadai'); expect(r.suffPct).toBe(0);
   });
+  /* Variabel, bukan literal inline: wpEvidenceEval hanya membaca `tier`, sementara
+     `id` dipertahankan agar fixture-nya terbaca. Literal segar akan ditolak tsc
+     sebagai properti berlebih (TS2353) — bukan karena bentuknya keliru. */
+  const evTier5 = [{ id: 'E1', tier: 5 }];
   it('bukti tier-5 + semua teruji → Cukup & Tepat', () => {
-    const r = wpEvidenceEval([{ id: 'E1', tier: 5 }], { p0: { items: [{ result: 'tie' }, { result: 'tie' }] } });
+    const r = wpEvidenceEval(evTier5, { p0: { items: [{ result: 'tie' }, { result: 'tie' }] } });
     expect(r.appr).toBe(5); expect(r.suffPct).toBe(100); expect(r.verdict.l).toBe('Bukti Cukup & Tepat');
   });
   it('ada pengecualian → tidak pernah Cukup & Tepat', () => {
-    const r = wpEvidenceEval([{ id: 'E1', tier: 5 }], { p0: { items: [{ result: 'exc' }, { result: 'tie' }] } });
+    const r = wpEvidenceEval(evTier5, { p0: { items: [{ result: 'exc' }, { result: 'tie' }] } });
     expect(r.exc).toBe(1); expect(r.verdict.l).not.toBe('Bukti Cukup & Tepat');
   });
 });
@@ -172,12 +186,14 @@ describe('wpChainSelfReview — satu orang, satu langkah (ISQM 2 / SA 220.36)', 
    karena semuanya menguji seed, tempat status dan tanggal kebetulan sejalan.
    ============================================================ */
 describe('deriveWpStatus — status tidak melahirkan tanda tangan (SA 230/ISQM)', () => {
-  interface Sig { by: string; at: string }
-  interface WpSt { status?: string; reviewer?: string; signedAt?: string; chain?: { reviewer?: Sig } }
+  /* Tipe rantai ditarik dari sumbernya (wp_chain), bukan ditulis ulang di sini:
+     `WpSignature.by` OPSIONAL karena tanda tangan warisan bisa tak beridentitas.
+     Menyalinnya sebagai wajib membuat uji ini berbohong tentang tipe yang diuji. */
+  interface WpSt { status?: string; reviewer?: string; signedAt?: string; chain?: { reviewer?: WpSignature } }
   const SEED = AMS as unknown as { WTB: unknown[]; RISKS: unknown[] };
   const audit = (wpState: Record<string, WpSt>) => ({ wtb: SEED.WTB, risks: SEED.RISKS, wpState });
   const firm = { activeEngagement: { materiality: 4260000000 }, activeClient: { listed: true } };
-  const revOf = (r: { signoff: { key: string; signed: Sig | null }[] }): Sig | null => {
+  const revOf = (r: { signoff: SignoffRow[] }): WpSignature | null => {
     const slot = r.signoff.find(l => l.key === 'reviewer');
     return slot ? slot.signed : null;
   };
@@ -210,7 +226,7 @@ describe('deriveWpStatus — status tidak melahirkan tanda tangan (SA 230/ISQM)'
     const today = new Date().toISOString().slice(0, 10);
     for (const ref of ['100', '200', '300', 'A', 'AA', 'BB', 'K', 'B', 'C', '810']) {
       const r = deriveWpStatus(ref, audit({}), firm);
-      for (const l of r.signoff as { signed: Sig | null }[]) if (l.signed) expect(l.signed.at).not.toBe(today);
+      for (const l of r.signoff) if (l.signed) expect(l.signed.at).not.toBe(today);
     }
   });
 });
@@ -259,7 +275,7 @@ describe('deriveWpStatus — pengikatan isi (K5)', () => {
     expect(r.fullySigned).toBe(false);
     expect(r.hasVoided).toBe(true);
     // siapa yang gugur tetap dapat ditelusuri
-    expect(r.voided.map((l: { voidedBy: { by: string } | null }) => l.voidedBy?.by)).toEqual(['Dimas R.', 'Anindya P.']);
+    expect(r.voided.map((l: SignoffRow) => l.voidedBy?.by)).toEqual(['Dimas R.', 'Anindya P.']);
   });
 
   it('menghapus BUKTI juga menggugurkan; menambah CATATAN REVIU tidak (keputusan Q3)', () => {

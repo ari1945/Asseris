@@ -1,0 +1,20 @@
+{
+  "//": "Asseris — gate TIPIS untuk TEST-TIER (.test.ts + __fixtures__ + __tests__), yang di-EXCLUDE dari tsconfig.json sejak W15. Pengecualian itu masuk akal — kode uji bukan permukaan-tipe produksi — tetapi ia juga membutakan tsc terhadap kesalahan yang TAK ADA HUBUNGANNYA dengan strictness: impor nama yang tidak pernah diekspor. `SAMPLE_WTB` diimpor dua berkas uji arc SA 600 selama dua PR tanpa pernah ada di fixture; nilainya `undefined`, `psak65` jatuh ke singleton AMS.WTB, dan kedua berkas diam-diam menguji seed produksi alih-alih fixture. Config ini SENGAJA non-strict: yang dijaga hanyalah resolusi modul & keberadaan ekspor (TS2305/TS2307/TS2339), BUKAN disiplin null. Menaikkannya ke strict penuh adalah pekerjaan terpisah — lihat catatan di bawah.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "//exclude": "BASELINE (ratchet — kecilkan, jangan besarkan). setup.ts SENGAJA memalsukan env browser di node (globalThis.window = globalThis) sehingga tak akan pernah lolos tsc; tiga sisanya mengimpor builtin node ('node:crypto'/'node:fs'/'node:path'/'node:url') dan hanya butuh devDependency @types/node — keputusan dependensi, bukan cacat. Menambah berkas ke daftar ini berarti membutakan gerbang; utamakan memperbaiki berkasnya.",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/__tests__/setup.ts",
+    "src/export_pdf.test.ts",
+    "src/export_xlsx.test.ts",
+    "src/materiality_single_door.test.ts"
+  ]
+}

@@ -43,5 +43,11 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      # Test-tier di-EXCLUDE dari `typecheck` sejak W15, sehingga tsc buta terhadap
+      # impor nama yang tak pernah diekspor di berkas uji — `SAMPLE_WTB` bertahan dua
+      # PR sebagai `undefined`, membuat dua uji arc SA 600 diam-diam berjalan atas
+      # singleton AMS.WTB alih-alih fixture. Gerbang tipis ini (non-strict, hanya
+      # resolusi & ekspor) menutup kelas itu. Lihat migration/tsconfig.test.json.
+      - run: npm run typecheck:test
       - run: npm test
       - run: npm run build
