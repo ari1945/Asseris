@@ -14,11 +14,17 @@ describe('StateDoc optimistic-concurrency (compare-and-swap)', () => {
   const scopeId = 'TEST-ENG';
   const key = 'cas-probe';
 
-  beforeAll(async () => {
+  // Riwayat IKUT dibersihkan. Sebelumnya hanya `stateDoc` yang dihapus, sehingga
+  // menjalankan suite ini dua kali meninggalkan StateDocHistory v1..v3 tanpa StateDoc —
+  // keadaan yang dulu MENGUNCI dokumen itu selamanya (lihat regresi di bawah). Pembersihan
+  // uji yang setengah inilah cara paling mungkin dev.db sampai pada 36 dokumen terkunci.
+  const wipe = async () => {
     await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
-  });
+    await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId } });
+  };
+  beforeAll(wipe);
   afterAll(async () => {
-    await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
+    await wipe();
     await prisma.$disconnect();
   });
 
@@ -69,6 +75,67 @@ describe('StateDoc optimistic-concurrency (compare-and-swap)', () => {
   it('get on a missing key returns version 0 / null', async () => {
     const got = await caller.state.get({ scope, scopeId, key: 'does-not-exist' });
     expect(got).toEqual({ value: null, version: 0 });
+  });
+});
+
+/* ============================================================
+   REGRESI — dokumen yang StateDoc-nya lenyap tetapi riwayatnya selamat.
+   ------------------------------------------------------------
+   Terjadi pada reset/seed ulang basis data dan pembersihan uji yang hanya
+   menghapus satu dari dua tabel. Klien lalu membaca version 0 dan mengirim
+   baseVersion 0; jalur create dulu memaksakan `version: 1`, yang menabrak
+   @@unique([scope,scopeId,key,version]) pada riwayat yang selamat.
+
+   Akibatnya bukan satu tulisan yang gagal, melainkan dokumen yang MUSTAHIL
+   dibuat kembali — setiap tulisan berikutnya gagal dengan cara yang sama.
+   Probe dev.db 2026-08-07: 36 dokumen, termasuk `wpState` (seluruh kertas
+   kerja) dan `prospects` (keputusan akseptasi klien).
+   ============================================================ */
+describe('StateDoc — riwayat yatim tidak boleh mengunci dokumen', () => {
+  const scope = 'engagement' as const;
+  const scopeId = 'TEST-ENG-ORPHAN';
+  const key = 'orphan-probe';
+
+  beforeAll(async () => {
+    await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId } });
+    // Riwayat v1..v4 tanpa StateDoc — persis keadaan `wpState` di dev.db.
+    for (const version of [1, 2, 3, 4]) {
+      await prisma.stateDocHistory.create({
+        data: { scope, scopeId, key, version, valueJson: JSON.stringify({ v: version }), updatedBy: 'seed' },
+      });
+    }
+  });
+  afterAll(async () => {
+    await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId } });
+  });
+
+  it('tulisan baru BERHASIL dan melanjutkan penomoran dari riwayat (bukan mengulang v1)', async () => {
+    const r = await caller.state.set({ scope, scopeId, key, value: { a: 'pulih' }, baseVersion: 0 });
+    expect(r.version).toBe(5);
+    const got = await caller.state.get({ scope, scopeId, key });
+    expect(got).toEqual({ value: { a: 'pulih' }, version: 5 });
+  });
+
+  it('riwayat lama UTUH — pemulihan tidak menimpa versi yang pernah ada', async () => {
+    const hist = await prisma.stateDocHistory.findMany({
+      where: { scope, scopeId, key }, orderBy: { version: 'asc' }, select: { version: true, valueJson: true },
+    });
+    expect(hist.map(h => h.version)).toEqual([1, 2, 3, 4, 5]);
+    expect(JSON.parse(hist[0].valueJson)).toEqual({ v: 1 });
+    expect(JSON.parse(hist[4].valueJson)).toEqual({ a: 'pulih' });
+  });
+
+  it('dokumen tetap dapat ditulis setelah pulih (CAS normal dari versi barunya)', async () => {
+    const r = await caller.state.set({ scope, scopeId, key, value: { a: 'lagi' }, baseVersion: 5 });
+    expect(r.version).toBe(6);
+  });
+
+  it('membuat di atas dokumen yang MEMANG ada tetap CONFLICT — dan menyebut versinya', async () => {
+    await expect(
+      caller.state.set({ scope, scopeId, key, value: { a: 0 }, baseVersion: 0 }),
+    ).rejects.toMatchObject({ code: 'CONFLICT', message: 'already-exists:server=6' });
   });
 });
 
