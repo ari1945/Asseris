@@ -20,9 +20,9 @@
 import React from 'react';
 import { useAmsPersist, useFirm } from './contexts';
 import { api } from './api';
-import { amsEvidenceFor } from './evidence';
 import { EST_SEED, type Estimate, type EstState } from './canon_estimates';
 import { expertGateBlockers, type ExpertEvalState, type ExpertGateBlocker } from './canon_expert_eval';
+import { useExpertDocs } from './expert_docs';
 
 export interface EstimateExpertGate {
   blocked: boolean;
@@ -64,24 +64,26 @@ function useRegisterOnServer(active: boolean): boolean | null {
   return onServer as boolean | null;
 }
 
-/** uid dokumen yang BENAR-BENAR terlampir pada modul kertas kerja SA 540. */
-function evidenceUidsFor(moduleId: string): string[] {
-  try {
-    const list = amsEvidenceFor(moduleId) as Array<{ uid?: string }> | undefined;
-    return (list || []).map(d => d && d.uid).filter((u): u is string => !!u);
-  } catch (e) { return []; }
-}
-
 export function useEstimateExpertGate(moduleId: string): EstimateExpertGate {
   const gated = moduleId === 'sa540';
   const [est] = useAmsPersist('estimates.v1', () => EST_SEED);
   const [expertEval] = useAmsPersist('expertEval.v1', () => ({} as ExpertEvalState));
   /* Hook dipanggil TANPA SYARAT (aturan hooks); `gated` yang mematikan kuerinya. */
   const onServer = useRegisterOnServer(gated);
+  /* PR-2 — dokumen pakar kini dibaca dari DMS SERVER, bukan `localStorage`. Daftar
+     yang SAMA dengan yang ditampilkan pemilih di view_sa540; bila keduanya berbeda,
+     gerbang akan memblokir dokumen yang tampak ada di layar. */
+  const { docs, ready } = useExpertDocs();
   /* gerbang ini hanya relevan bagi kertas kerja estimasi */
   if (!gated) return { blocked: false, blockers: [], serverBlind: false };
   const register: Estimate[] = (est && (est as EstState).register) || [];
-  const blockers = expertGateBlockers(register, expertEval as ExpertEvalState, evidenceUidsFor(moduleId));
+  /* Limb DOKUMEN hanya ditegakkan bila daftar DMS benar-benar sampai. Saat server tak
+     terjangkau, menyimpulkan "tak ada dokumen" akan memblokir seluruh sign-off SA 540
+     setiap kali jaringan terputus — kegagalan yang jauh lebih besar daripada yang
+     dicegahnya, dan server (PR-3) tetap menjadi otoritas akhirnya. */
+  const blockers = expertGateBlockers(
+    register, expertEval as ExpertEvalState, docs.map(d => d.id), { requireDocument: ready },
+  );
   /* Buta hanya bila server MENJAWAB bahwa dokumennya belum ada (`false`), tidak saat
      jawabannya belum tiba (`null`) — banner yang berkedip pada setiap muat akan
      dianggap derau, dan peringatan yang dianggap derau tak dibaca. */

@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import {
   EXPERT_EVAL_STEPS, EXPERT_APPROACH, expertEvalComplete, expertEvalDone, expertEvalMissing,
   expertGateBlockers, expertRefsOf,
-  expertGateSignatureSlots, expertGateSignatureViolations,
+  expertGateSignatureSlots, expertGateSignatureViolations, isLegacyDocUid,
   type ExpertEvalState,
 } from './canon_expert_eval';
 
@@ -89,11 +89,11 @@ describe('expertGateBlockers — gerbang sign-off SA 620 (K11)', () => {
 
   it('evaluasi tuntas tetapi dokumen belum ditautkan → tetap terblokir', () => {
     const b = expertGateBlockers(est, { 'E-04': full }, ['ev-1']);
-    expect(b[0].reasons).toEqual(['Laporan pakar belum ditautkan dari bukti kertas kerja']);
+    expect(b[0].reasons).toEqual(['Laporan pakar belum ditautkan dari DMS perikatan']);
   });
 
   it('dokumen ditautkan tetapi sudah dicabut dari DMS → tautan putus dilaporkan', () => {
-    const b = expertGateBlockers(est, { 'E-04': { ...full, docUid: 'ev-hilang' } }, ['ev-1']);
+    const b = expertGateBlockers(est, { 'E-04': { ...full, docUid: 'att-hilang' } }, ['att-1']);
     expect(b[0].reasons[0]).toContain('tidak lagi ada');
   });
 
@@ -221,6 +221,63 @@ describe('expertGateSignatureViolations — penegakan server', () => {
     const b = expertGateBlockers(est, {}, [], { requireDocument: false });
     const v = expertGateSignatureViolations({ ...signWrite, estimates: est, expertEval: {}, requireDocument: false });
     expect(v[0].message).toBe(`${b[0].name} — ${b[0].reasons.join('; ')}`);
+  });
+});
+
+/* PR-2 — `docUid` pindah dari uid localStorage ke id lampiran DMS. */
+describe('isLegacyDocUid — tautan warisan vs id lampiran DMS', () => {
+  it('uid localStorage lama dikenali', () => {
+    expect(isLegacyDocUid('ev-1754976000000-4821')).toBe(true);
+    expect(isLegacyDocUid('ev-1')).toBe(true);
+  });
+
+  it('id lampiran DMS BUKAN warisan', () => {
+    expect(isLegacyDocUid('att_9f2c1b')).toBe(false);
+    expect(isLegacyDocUid('cuid-abc123')).toBe(false);
+  });
+
+  it('kosong / null aman', () => {
+    expect(isLegacyDocUid('')).toBe(false);
+    expect(isLegacyDocUid(null)).toBe(false);
+    expect(isLegacyDocUid(undefined)).toBe(false);
+  });
+
+  /* Keduanya sama-sama tak resolve; tindakan yang dituntut BERBEDA, jadi pesannya
+     harus berbeda — pesan yang menyuruh menelusuri dokumen yang tak pernah ada di
+     server akan membuang waktu auditor. */
+  it('tautan WARISAN → pesan "unggah ulang", bukan "dicabut"', () => {
+    const est = [{ id: 'E-04', name: 'Imbalan Kerja', approach: EXPERT_APPROACH }];
+    const full = { competence: true, objectivity: true, scope: true, findings: true };
+    const b = expertGateBlockers(est, { 'E-04': { ...full, docUid: 'ev-lama' } }, ['att-baru']);
+    expect(b[0].reasons[0]).toContain('Tautan warisan');
+    expect(b[0].reasons[0]).toContain('unggah ulang');
+  });
+
+  it('tautan DMS yang DICABUT → pesan "dicabut", bukan "warisan"', () => {
+    const est = [{ id: 'E-04', name: 'Imbalan Kerja', approach: EXPERT_APPROACH }];
+    const full = { competence: true, objectivity: true, scope: true, findings: true };
+    const b = expertGateBlockers(est, { 'E-04': { ...full, docUid: 'att-hilang' } }, ['att-lain']);
+    expect(b[0].reasons[0]).toContain('tidak lagi ada');
+    expect(b[0].reasons[0]).not.toContain('warisan');
+  });
+});
+
+describe('expertGateBlockers — opsi requireDocument (PR-1 server & mode offline UI)', () => {
+  const est = [{ id: 'E-04', name: 'Imbalan Kerja', approach: EXPERT_APPROACH }];
+  const full = { competence: true, objectivity: true, scope: true, findings: true };
+
+  it('requireDocument:false — evaluasi tuntas cukup, dokumen tak dituntut', () => {
+    expect(expertGateBlockers(est, { 'E-04': full }, [], { requireDocument: false })).toEqual([]);
+  });
+
+  it('requireDocument:false tidak melonggarkan limb EVALUASI', () => {
+    const b = expertGateBlockers(est, {}, [], { requireDocument: false });
+    expect(b[0].reasons).toEqual(['Evaluasi SA 500 ¶8 belum tuntas (0/4)']);
+  });
+
+  it('baku (tanpa opsi) tetap menuntut dokumen — perilaku UI tak berubah diam-diam', () => {
+    const b = expertGateBlockers(est, { 'E-04': full }, []);
+    expect(b[0].reasons[0]).toContain('belum ditautkan');
   });
 });
 

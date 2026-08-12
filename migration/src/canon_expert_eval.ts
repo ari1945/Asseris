@@ -134,8 +134,16 @@ export function expertGateBlockers(
     if (!expertEvalComplete(ev)) reasons.push(`Evaluasi SA 500 ¶8 belum tuntas (${done}/${EXPERT_EVAL_STEPS.length})`);
     if (requireDocument) {
       const uid = ev && ev.docUid;
-      if (!uid) reasons.push('Laporan pakar belum ditautkan dari bukti kertas kerja');
-      else if (!uids.has(uid)) reasons.push('Dokumen pakar yang ditautkan tidak lagi ada di bukti kertas kerja');
+      if (!uid) reasons.push('Laporan pakar belum ditautkan dari DMS perikatan');
+      else if (!uids.has(uid)) {
+        /* PR-2 — tautan WARISAN dibedakan dari tautan PUTUS. Keduanya sama-sama tak
+           resolve, tetapi tindakan yang dituntut berbeda, dan pesan yang menyuruh
+           auditor mencari dokumen yang tak pernah ada di server akan membuang waktunya:
+           yang warisan harus DIUNGGAH, yang putus harus ditelusuri (siapa mencabutnya). */
+        reasons.push(isLegacyDocUid(uid)
+          ? 'Tautan warisan ke bukti lokal perangkat lama — unggah ulang laporan pakar ke DMS perikatan, lalu tautkan kembali'
+          : 'Dokumen pakar yang ditautkan tidak lagi ada di DMS perikatan (dicabut)');
+      }
     }
     if (reasons.length) out.push({ id: e.id, name: e.name, reasons });
   }
@@ -159,6 +167,22 @@ export function expertGateBlockers(
 
 /** Ref `wpState` yang tanda tangannya tunduk pada gerbang SA 620. */
 export const EXPERT_GATED_REFS: ReadonlySet<string> = new Set(['sa540']);
+
+/**
+ * `docUid` WARISAN — uid `localStorage` dari sebelum PR-2 (`ev-<ms>-<rand>`,
+ * lihat `amsAttachEvidence` di evidence.tsx). Sejak PR-2 `docUid` adalah id
+ * lampiran DMS server.
+ *
+ * Predikat ini MURNI dan sengaja hidup di sini karena dipakai dua sisi: UI
+ * menandainya (PR-2) dan server menolaknya dengan sebab yang TEPAT (PR-3,
+ * keputusan Q1 = blokir tanpa grandfathering). Tanpa predikat ini, tautan
+ * warisan akan ditolak sebagai "dokumen tidak lagi ada" — pesan yang benar
+ * secara teknis dan menyesatkan secara praktis: dokumennya tak pernah ada
+ * di server, dan yang dituntut adalah mengunggahnya, bukan mencarinya.
+ */
+export function isLegacyDocUid(uid: string | null | undefined): boolean {
+  return !!uid && /^ev-/.test(uid);
+}
 
 export interface ExpertGateSlot { ref: string; slot: string }
 
