@@ -2,10 +2,10 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — PR-1·PR-2·PR-3 terkirim & live-verified; **Q1–Q4 semua terjawab**; menunggu merge & tinjauan visual |
+| Status | Implemented — PR-1..PR-3 (#188·#189·#190) merged 2026-08-12; Q1–Q4 terjawab; K1–K12 tertutup. Utang: tinjauan visual Ari |
 | Tanggal | 2026-08-12 |
 | Arc | Lanjutan arc estimasi terfalsifikasi ([`prd-estimasi-terfalsifikasi.md`](prd-estimasi-terfalsifikasi.md), #182–#187) — menutup utang yang PRD itu catat sendiri di §9a |
-| Basis | master `774412a` · 8/8 gerbang hijau · nol PR terbuka · 1.250 uji frontend |
+| Basis | master `774412a` → **mendarat di `ae490d7`** · 8/8 gerbang hijau · nol PR terbuka |
 | Kelas cacat | Gerbang satu-lapis (UI saja) — sama dengan #23 (SoD sign-off), PR-B (overlay persetujuan AJE), PR-6a (memo materialitas) |
 
 ---
