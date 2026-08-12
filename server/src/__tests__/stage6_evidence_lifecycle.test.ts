@@ -167,6 +167,38 @@ describe('Tahap 6 — lifecycle bukti audit', () => {
     expect(stillThere?.purgedAt).toBeNull();
   });
 
+  /* R-3 — gerbang kapabilitas ada di approvePurge() sendiri, bukan hanya di prosedur tRPC.
+     Sebelumnya CLI `retention-worker approve --by <userId>` cuma memastikan user-nya ADA,
+     sehingga persetujuan pemusnahan bukti audit bisa distempel atas nama peran mana pun dan
+     masuk ke jejak audit sebagai persetujuan yang tak pernah terjadi. Uji ini memanggil
+     fungsinya LANGSUNG — jalur yang dipakai CLI — bukan lewat prosedur tRPC yang sudah
+     ter-gate di lapisan atasnya. */
+  it('approvePurge menolak penyetuju tanpa FIRM_ADMIN, walau identitasnya nyata (jalur CLI)', async () => {
+    const content = 'bukti yang tak boleh dimusnahkan sembarang orang';
+    const up = await callerAs('Junior Auditor', JR).attachment.upload({
+      scope: 'engagement', scopeId: ENG, collection: 'aup',
+      name: 'r3-guard.txt', sha256: sha(content), dataBase64: b64(content),
+    });
+    await callerAs('Junior Auditor', JR).attachment.remove({ id: up.id });
+    await prisma.attachment.update({
+      where: { id: up.id },
+      data: { createdAt: new Date(Date.now() - 8 * 365.25 * 864e5) },   // retensi 7 thn habis
+    });
+    // Kandidat memang sudah layak — jadi kegagalan di bawah murni soal OTORISASI.
+    expect((await listPurgeCandidates(new Date(), false)).some((c) => c.id === up.id)).toBe(true);
+
+    // Finance Firma: user NYATA, peran nyata, tetapi tak memegang FIRM_ADMIN.
+    await expect(approvePurge([up.id], NON_ADMIN)).rejects.toThrow(/purge-approver-forbidden/);
+    expect((await prisma.attachment.findUnique({ where: { id: up.id } }))?.purgeApprovedAt).toBeNull();
+
+    // Identitas yang tidak ada sama sekali juga ditolak — dan dibedakan dari penolakan peran.
+    await expect(approvePurge([up.id], 'S6-hantu')).rejects.toThrow(/purge-approver-unknown/);
+
+    // FIRM_ADMIN tetap bisa — gerbangnya menyaring, bukan memblokir semuanya.
+    expect(await approvePurge([up.id], ADMIN)).toBe(1);
+    expect((await prisma.attachment.findUnique({ where: { id: up.id } }))?.purgeApprovedBy).toBe(ADMIN);
+  });
+
   it('download re-verifies SHA-256 post-decryption (tampered blob fails closed)', async () => {
     const content = 'integritas saat download';
     const up = await callerAs('Junior Auditor', JR).attachment.upload({

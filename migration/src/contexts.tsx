@@ -573,6 +573,11 @@ function cacheWrite(cacheKey: any, val: any) { try { localStorage.setItem(cacheK
    berubah-ubah. */
 const deferredHydrators = new Map<string, () => void>();
 
+/* R-1 — alamat tujuan satu tulisan. Dibekukan SAAT EDIT dan dibawa oleh tulisan yang
+   tertunda, BUKAN dibaca ulang saat debounce menyala. Lihat komentar di `pendingRef`. */
+interface WriteTarget { scope: string; scopeId: string; key: string; cacheKey: string }
+interface PendingWrite { target: WriteTarget; value: unknown; baseVersion: number }
+
 /* The engine. Returns [val, setVal] with the SAME contract as the old hook,
    including functional updates (setVal(prev => next)), which the app uses widely. */
 function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?: { defer?: boolean }) {
@@ -584,8 +589,27 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
   const [val, setValRaw] = React.useState(() => isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial));
   const versionRef = React.useRef(0);
   const timerRef = React.useRef(null);
-  const targetRef = React.useRef(null);
+  /* Argumen tipe generik TIDAK bisa dipakai pada hook React di repo ini (tak ada
+     @types/react → `React.useRef` untyped, TS2347). Tipe dinyatakan lewat `as` di titik
+     baca; lihat WriteTarget / PendingWrite di atas. */
+  const targetRef = React.useRef(null);   // WriteTarget | null
   targetRef.current = { scope, scopeId, key, cacheKey };
+
+  /* R-1 — TULISAN TERTUNDA MEMBAWA ALAMATNYA SENDIRI.
+     `targetRef.current` ditugaskan ulang pada SETIAP render; `flush()` dulu membacanya
+     saat timer 400 ms menyala. Bila pengguna mengedit lalu berpindah perikatan di dalam
+     jendela itu, tulisan tersebut mendarat di PERIKATAN BARU.
+
+     Terverifikasi HIDUP 2026-08-12 (bukan uji bermock): materialitas digeser 9% → 7%
+     dengan ENG-2025-014 (PT Sentosa Makmur Tbk) aktif, perikatan diganti 1 ms kemudian —
+     server menyimpan `mat.pct`=9 pada ENG-2025-014 (edit auditor HILANG) dan `mat.pct`=7
+     pada ENG-2025-031 (PT Bumi Hijau Agrindo). Isolasi W7.5 tak menangkapnya dan memang
+     tak bisa: penulisnya BERHAK atas kedua perikatan. Kontrolnya benar; kliennya yang
+     mengirim ke alamat salah.
+
+     `versionRef` ikut dibekukan karena hidrasi target baru mereset-nya ke 0 — tulisan
+     yang tertunda harus tetap memakai baseVersion milik target LAMA agar CAS-nya sah. */
+  const pendingRef = React.useRef(null);   // PendingWrite | null
 
   const hydrate = React.useCallback(() => {
     let cancelled = false;
@@ -629,10 +653,19 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
     return hydrate();
   }, [hydrate, cacheKey, opts]);
 
-  const flush = React.useCallback((value: any) => {
-    const t = targetRef.current;
-    (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: versionRef.current })
-      .then((res: any) => { versionRef.current = res.version; })
+  /* R-1 — `pending` membawa target + baseVersion-nya sendiri; TIDAK ada pembacaan
+     `targetRef`/`versionRef` di sini. `versionRef` hanya boleh maju bila hook MASIH
+     menunjuk target yang barusan ditulis — sesudah pindah perikatan, versi milik target
+     lama tak berarti apa-apa bagi target baru dan menuliskannya akan merusak CAS. */
+  const flush = React.useCallback((pending: PendingWrite) => {
+    const t = pending.target;
+    const value = pending.value;
+    const stillCurrent = () => {
+      const now = targetRef.current as WriteTarget | null;
+      return now !== null && now.cacheKey === t.cacheKey;
+    };
+    (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value, baseVersion: pending.baseVersion })
+      .then((res: any) => { if (stillCurrent()) versionRef.current = res.version; })
       .catch((err: any) => {
         // Lost an optimistic-concurrency race. Don't silently clobber EITHER side:
         // keep the user's local value, sync versionRef to the server's latest, and
@@ -640,14 +673,23 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
         if (isConflict(err)) {
           const attempted = value;
           (api as any).state.get.query({ scope: t.scope, scopeId: t.scopeId, key: t.key }).then((res: any) => {
-            versionRef.current = res.version;
+            /* R-1 — versi ini milik `t`. Diadopsi ke `versionRef`/`val` HANYA bila hook
+               masih menunjuk `t`; untuk target yang sudah ditinggalkan versinya disimpan
+               lokal saja, supaya "pertahankan milik saya" tetap punya baseVersion sah
+               tanpa menampilkan nilai perikatan lama di layar perikatan baru. */
+            let latestVersion = res.version;
+            if (stillCurrent()) versionRef.current = res.version;
             const serverVal = res.version > 0 ? res.value : value;
             emitConflict({
               scope: t.scope, key: t.key, label: conflictLabel(t.key),
-              adopt: () => { setValRaw(serverVal); cacheWrite(t.cacheKey, serverVal); },
+              adopt: () => { if (stillCurrent()) setValRaw(serverVal); cacheWrite(t.cacheKey, serverVal); },
               keepMine: () => {
-                (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: versionRef.current })
-                  .then((r: any) => { versionRef.current = r.version; cacheWrite(t.cacheKey, attempted); })
+                (api as any).state.set.mutate({ scope: t.scope, scopeId: t.scopeId, key: t.key, value: attempted, baseVersion: latestVersion })
+                  .then((r: any) => {
+                    latestVersion = r.version;
+                    if (stillCurrent()) versionRef.current = r.version;
+                    cacheWrite(t.cacheKey, attempted);
+                  })
                   .catch(() => {});
               },
             });
@@ -657,15 +699,40 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?:
       });
   }, []);
 
+  /* Kirim tulisan tertunda SEKARANG (timer dibatalkan). Dipanggil oleh debounce dan oleh
+     cleanup efek di bawah saat target berpindah / hook di-unmount. */
+  const flushPending = React.useCallback(() => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    const pending = pendingRef.current as PendingWrite | null;
+    if (!pending) return;
+    pendingRef.current = null;
+    flush(pending);
+  }, [flush]);
+
   const setVal = React.useCallback((next: any) => {
     setValRaw((prev: any) => {
       const value = typeof next === 'function' ? next(prev) : next;
-      cacheWrite(targetRef.current.cacheKey, value);
+      const target = targetRef.current as WriteTarget;   // alamat SAAT EDIT, bukan saat flush
+      cacheWrite(target.cacheKey, value);
+      /* Edit beruntun ke target yang sama menumpuk di atas baseVersion yang sama —
+         belum ada satu pun yang di-commit, jadi versinya belum bergerak. */
+      const prevPending = pendingRef.current as PendingWrite | null;
+      const baseVersion = prevPending && prevPending.target.cacheKey === target.cacheKey
+        ? prevPending.baseVersion
+        : versionRef.current;
+      pendingRef.current = { target, value, baseVersion };
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => flush(value), SYNC_DEBOUNCE_MS);
+      timerRef.current = setTimeout(flushPending, SYNC_DEBOUNCE_MS);
       return value;
     });
-  }, [flush]);
+  }, [flushPending]);
+
+  /* R-1, keputusan Ari 2026-08-12 (opsi a) — saat target berpindah (ganti perikatan) atau
+     hook di-unmount, tulisan yang masih tertunda DIKIRIM DULU ke target LAMANYA. Auditor
+     mengharapkan yang ia ketik tersimpan; membuangnya diam-diam adalah kehilangan data
+     yang sama saja. React menjalankan SELURUH cleanup sebelum SELURUH body efek, jadi ini
+     mendahului `hydrate()` target baru yang mereset `versionRef`. */
+  React.useEffect(() => flushPending, [cacheKey, flushPending]);
 
   return [val, setVal];
 }

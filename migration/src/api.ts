@@ -297,9 +297,25 @@ Object.assign(window, {
    first FIG/SRC access). On any failure we keep the fallback and let the app run.
    WTB is seeded only for the active engagement (ENG-2025-014, == DEFAULT_ENG_ID),
    matching today's single-WTB reality; other engagements return [] → fallback. ============================================================ */
+/* R-2 — HIDRASI ADALAH LAST-REQUEST-WINS, BUKAN LAST-RESPONSE-WINS.
+   `AMS.*` adalah singleton yang dimutasi di luar React. Tanpa penjaga ini, dua hidrasi
+   yang tumpang-tindih (pengguna berpindah perikatan sementara bundle sebelumnya masih
+   terbang) diselesaikan menurut urutan KEDATANGAN: respons perikatan LAMA yang tiba
+   belakangan menimpa neraca saldo perikatan yang sedang dibuka. Akibatnya identik dengan
+   PR-I — satu klien menampilkan buku besar klien lain — hanya dipicu oleh waktu, bukan
+   oleh bundle kosong.
+
+   Tiket monoton: setiap panggilan mengambil nomor; setelah `await`, respons yang tiketnya
+   sudah kedaluwarsa dibuang TANPA menyentuh satu pun singleton. Penjaga ada di sini,
+   bukan di pemanggil, karena di sinilah mutasinya terjadi — jadi SEMUA pemanggil ikut
+   terlindungi. */
+let hydrateSeq = 0;
+
 export async function hydrateCoreFromApi(engagementId?: any, userId?: any) {
   if (!AMS) return false;
+  const ticket = ++hydrateSeq;
   const b = await api.bootstrap.query({ engagementId });
+  if (ticket !== hydrateSeq) return false;   // hidrasi yang lebih baru sudah dimulai — buang
   if (!b) return false;
 
   if (b.firm) {
