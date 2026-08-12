@@ -46,7 +46,13 @@ export function resolveEmpId(user: EthicsUser | null | undefined): string | null
 }
 
 /* Evaluasi kepatuhan MURNI (tanpa hook) — dipakai UI, hook & uji.
-   Fail-open bila pengguna tak terpetakan (empId null): tak ada dasar menilai → jangan kunci. */
+
+   GAGAL-TERTUTUP bila pengguna tak terpetakan (empId null). Bentuk lama
+   fail-OPEN dengan alasan "tak ada dasar menilai → jangan kunci": akun apa pun
+   di luar roster `STAFF ∪ FIRM_STAFF` melewati gerbang Kode Etik/AML tanpa
+   jejak, dan `resolveEmpId` mencocokkan email LALU nama — sehingga selisih
+   ejaan nama saja sudah cukup membuka gerbang. Untuk gerbang asurans,
+   "tak dapat dinilai" tidak boleh berarti "lolos". */
 export function ethicsComplianceOf(
   decl: Record<string, EthicsDeclRec> | undefined,
   aml: AmlRec[] | undefined,
@@ -55,7 +61,10 @@ export function ethicsComplianceOf(
   period: string,
 ): EthicsCompliance {
   if (!empId) {
-    return { empId: null, signed: true, amlOk: true, overridden: false, ok: true, blocked: false, reason: '' };
+    return {
+      empId: null, signed: false, amlOk: false, overridden: false, ok: false, blocked: true,
+      reason: 'Identitas pengguna tidak terpetakan ke personel firma — kepatuhan Kode Etik & AML/PMPJ tak dapat dinilai',
+    };
   }
   const d = (decl || {})[empId];
   const signed = !!(d && d.signed);

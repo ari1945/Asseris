@@ -119,7 +119,12 @@ export async function declareSelf(user: Principal, kind: 'independence' | 'ethic
       const obj = current && typeof current === 'object' ? (current as Record<string, { items?: number[] }>) : {};
       const prev = obj[empId] || { items: [] };
       const items = (prev.items && prev.items.length ? prev.items : [1, 1, 1, 1, 1, 1]).map(() => 1);
-      return { ...obj, [empId]: { ...prev, signed: true, date: today, exceptions: 0, items } };
+      /* PR-2b — rekam PEMBUBUH. Jalur ini sudah menurunkan `empId` dari sesi
+         (jadi tak dapat dipalsukan), tetapi rekamannya dulu tak menyebut siapa
+         pun — dan sebuah deklarasi tanpa atribusi adalah persis artefak yang
+         tak dapat dipertahankan di hadapan pemeriksa. */
+      return { ...obj, [empId]: { ...prev, signed: true, date: today, exceptions: 0, items,
+        by: user.name || empId, byUserId: user.id } };
     },
     'declare:ethics',
   );

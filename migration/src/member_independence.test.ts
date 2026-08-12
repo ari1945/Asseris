@@ -89,11 +89,32 @@ describe('rosterForEngagement & seed — SSOT SCHEDULE', () => {
     expect(rosterForEngagement(SCHEDULE, 'ENG-XXXX')).toEqual([]);
   });
 
-  it('seed menandatangani semua & tetap clear (satu Senior ter-safeguard)', () => {
+  /* ORACLE DIBALIK (PRD Kesiapan P2PK · PR-2, cacat A-6).
+     Bentuk lama menyatakan bahwa seed menandatangani SELURUH roster dan gerbang
+     tetap `clear` — komentar seed-nya bahkan menyebut maksudnya: "tanpa memblok
+     penerbitan opini". Artinya gerbang independensi tim hijau di setiap perikatan
+     sebelum satu orang pun menyatakan apa pun.
+
+     Keputusan Ari (2026-08-12): data seed DIPERTAHANKAN agar matriks demo terisi,
+     tetapi ia tidak lagi memuaskan gerbang — ditandai `seeded`. */
+  it('seed mengisi matriks tetapi TIDAK memuaskan gerbang', () => {
     const roster = rosterForEngagement(SCHEDULE, 'ENG-2025-014');
     const e = engagementIndependence(roster, seedDeclarations(roster));
+    expect(e.total).toBeGreaterThan(0);
+    expect(e.clear).toBe(false);                       // dulu true
+    expect(e.blockers).toBe(e.total);                  // seluruhnya menunggu pernyataan nyata
+    expect(e.rows.every((r) => r.status === 'seeded')).toBe(true);
+    expect(e.withThreat).toBeGreaterThanOrEqual(1);    // Senior ter-safeguard tetap tampil
+  });
+
+  it('tanda tangan NYATA mencabut penanda seed dan membuka gerbang', () => {
+    const roster = rosterForEngagement(SCHEDULE, 'ENG-2025-014');
+    const decls = seedDeclarations(roster);
+    for (const m of roster) {
+      decls[m.member] = { ...decls[m.member], seeded: false, by: 'Dimas Raharja', byUserId: 'u-dr' };
+    }
+    const e = engagementIndependence(roster, decls);
     expect(e.clear).toBe(true);
-    expect(e.signed).toBe(e.total);
-    expect(e.withThreat).toBeGreaterThanOrEqual(1); // Senior ter-safeguard
+    expect(e.rows.some((r) => r.status === 'seeded')).toBe(false);
   });
 });
