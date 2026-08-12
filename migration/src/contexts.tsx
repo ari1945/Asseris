@@ -436,6 +436,10 @@ const AMS_PERSIST_SCOPE = {
   'sadItems.v1': 'engagement',
   'sadQual.v1': 'engagement',
   'sadMethod.v1': 'engagement',
+  /* expertEval.v1 = evaluasi pekerjaan pakar SA 500 ¶8 / SA 620, dikunci per
+     rujukan ('V-2' KJPP, 'V-3' derivatif, atau id estimasi SA 540 mis. 'E-04').
+     Satu ruang nama karena pertanyaannya identik; yang beda hanya objeknya. */
+  'expertEval.v1': 'engagement',
   'internalAudit.v1': 'engagement',
   'fluxState.v1': 'engagement',
   'leaseOverride.v1': 'engagement',

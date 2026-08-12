@@ -2,10 +2,15 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAmsPersist, useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Donut, Panel } from './ui';
+import { Badge, Btn, Check, Donut, Panel } from './ui';
+import { fvDisclosureSummary, type DisclosureSummary, type Psak68Like } from './canon_fv_disclosure';
+import {
+  EXPERT_EVAL_STEPS, expertEvalComplete, expertEvalDone, expertEvalMissing, expertRefsOf,
+  type ExpertEvalState, type ExpertEvalStepKey,
+} from './canon_expert_eval';
 
 /* ============================================================
    Asseris — PSAK 68 · Pengukuran Nilai Wajar (IFRS 13)
@@ -67,6 +72,13 @@ const P68_PROC = [
   { ref: 'PSAK 68 ¶91', t: 'Telaah kecukupan pengungkapan CALK: tabel hierarki, roll-forward Level 3, sensitivitas & teknik valuasi' },
   { ref: 'SA 230',     t: 'Dokumentasikan dasar kesimpulan & jejak audit pengukuran nilai wajar (WP V-1)' },
 ];
+
+/* ---- identitas pakar yang dirujuk portofolio (deskriptif; daftar RUJUKANNYA
+       diturunkan dari `expertRefsOf(p68.items)`, bukan dari tabel ini) ---- */
+const P68_EXPERT_META: Record<string, { t: string; s: string }> = {
+  'V-2': { t: 'KJPP Mitra — tanah & bangunan', s: 'Penilaian SPI/IVS atas aset model revaluasi' },
+  'V-3': { t: 'Pakar auditor — forward valas', s: 'Kurva forward, OIS & CVA/DVA (IFRS 13 ¶42)' },
+};
 
 /* ---- keterkaitan kertas kerja (lineage dua arah) ---- */
 const P68_UPSTREAM = [
@@ -130,6 +142,25 @@ function PSAK68View() {
   const toggle = (id: any) => setDone((m: any) => ({ ...m, [id]: !m[id] }));
   const doneCount = P68_PROC.filter((p, i) => done[p.ref + i]).length;
   const score = Math.round(doneCount / P68_PROC.length * 100);
+
+  /* ARC ESTIMASI PR-2 — KESIMPULAN & CHECKLIST BERGANTUNG PADA BUKTI.
+     Sebelumnya kedua panel adalah literal: checklist ¶91-99 di-hardcode
+     `ok: true` untuk ketujuh butir, dan panel kesimpulan menyatakan
+     "dinilai wajar … tidak ada usulan AJE" bahkan pada 0/11 prosedur.
+     Kini keduanya turunan:
+       · kecukupan pengungkapan  → `fvDisclosureSummary(p68)` (murni, ber-uji)
+       · evaluasi pakar          → `expertEval.v1` (SA 500 ¶8 / SA 620)
+     Ambang kesimpulan positif = 11/11 prosedur DAN seluruh butir
+     pengungkapan terpenuhi DAN seluruh pakar yang dirujuk portofolio
+     (V-2 KJPP · V-3 derivatif) tuntas dievaluasi — keputusan Q2 PRD. */
+  const disclosure: DisclosureSummary = useMemoP68(() => fvDisclosureSummary(p68 as unknown as Psak68Like), [p68]);
+  const [expertEval, setExpertEval] = useAmsPersist('expertEval.v1', () => ({} as ExpertEvalState));
+  const expertRefs: string[] = useMemoP68(() => expertRefsOf(p68.items), [p68]);
+  const expertsMissing = expertEvalMissing(expertEval, expertRefs);
+  const proceduresOk = doneCount === P68_PROC.length;
+  const canConclude = proceduresOk && disclosure.ok && expertsMissing.length === 0;
+  const toggleExpert = (ref: string, key: ExpertEvalStepKey, on: boolean) =>
+    setExpertEval((m: ExpertEvalState) => ({ ...m, [ref]: { ...(m && m[ref]), [key]: on } }));
 
   const client = firm.activeClient || { name: 'PT Sentosa Makmur Tbk' };
   const eng = firm.activeEngagement || { id: 'ENG-2025-014', fy: 'FY2025' };
@@ -496,22 +527,24 @@ function PSAK68View() {
                 </Panel>
 
                 <Panel noBody>
-                  <div className="panel-h"><h3>Daftar Pengungkapan Wajib (¶91-99)</h3><span className="sub mono">checklist kecukupan CALK</span></div>
+                  <div className="panel-h"><h3>Daftar Pengungkapan Wajib (¶91-99)</h3><span className="sub mono">diturunkan dari portofolio — bukan checklist manual</span><div style={{ flex: 1 }} />
+                    <Badge kind={disclosure.ok ? 'green' : 'amber'}>{disclosure.checks.length - disclosure.open.length}/{disclosure.checks.length} terpenuhi</Badge>
+                  </div>
                   <div style={{ display: 'grid', gap: 0 }}>
-                    {[
-                      { t: 'Tabel hierarki nilai wajar per level (¶93b)', ok: true },
-                      { t: 'Teknik valuasi & input yang digunakan (¶93d)', ok: true },
-                      { t: 'Rekonsiliasi saldo Level 3 / roll-forward (¶93e)', ok: true },
-                      { t: 'Informasi kuantitatif input tak teramati signifikan (¶93d)', ok: true },
-                      { t: 'Narasi sensitivitas Level 3 terhadap input (¶93h)', ok: true },
-                      { t: 'Kebijakan & jumlah transfer antar level (¶93c)', ok: true },
-                      { t: 'Penggunaan tertinggi & terbaik aset non-keuangan (¶93i)', ok: true },
-                    ].map((d, i) => (
-                      <div key={i} className="row ac gap10" style={{ padding: '8px 14px', borderBottom: i < 6 ? '1px solid var(--line-soft)' : 0 }}>
-                        <span style={{ color: 'var(--green)', flex: '0 0 auto' }}><I.checkCircle size={15} /></span>
-                        <span style={{ fontSize: 12, lineHeight: 1.4 }}>{d.t}</span>
+                    {disclosure.checks.map((d, i) => (
+                      <div key={d.id} className="row gap10" style={{ padding: '8px 14px', alignItems: 'flex-start', borderBottom: i < disclosure.checks.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+                        <span style={{ color: d.ok ? 'var(--green)' : 'var(--amber)', flex: '0 0 auto', marginTop: 1 }}>
+                          {d.ok ? <I.checkCircle size={15} /> : <I.alert size={15} />}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, lineHeight: 1.4 }}>{d.t} <span className="mono tiny muted">{d.ref}</span></div>
+                          {!d.ok && <div className="tiny" style={{ color: 'var(--amber)', lineHeight: 1.4, marginTop: 2 }}>{d.why}</div>}
+                        </div>
                       </div>
                     ))}
+                  </div>
+                  <div className="tiny muted" style={{ padding: '9px 14px 12px', lineHeight: 1.5 }}>
+                    Tiap butir dinilai dari <b>isi portofolio nilai wajar</b>: roll-forward yang tak menutup ke saldo Level 3, pos Level 3 tanpa sensitivitas, atau aset non-keuangan tanpa pernyataan penggunaan tertinggi &amp; terbaik akan <b>membuka</b> butirnya — bukan sekadar menandainya hijau.
                   </div>
                 </Panel>
               </div>
@@ -670,12 +703,28 @@ function PSAK68View() {
                     </div>
                   </div>
                   <div style={{ padding: 14 }}>
-                    <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
-                      <div className="row gap8" style={{ alignItems: 'flex-start' }}>
-                        <span style={{ color: 'var(--green)', marginTop: 1 }}><I.check size={15} /></span>
-                        <div style={{ fontSize: 12, lineHeight: 1.5 }}>Penetapan level, teknik & input dinilai <b>wajar</b>. Re-perform independen atas DCF saham privat & DRC bangunan berada dalam rentang dapat diterima; tidak ada usulan AJE atas pengukuran NW.</div>
+                    {canConclude ? (
+                      <div className="panel" style={{ padding: '10px 12px', background: 'var(--green-bg)', borderColor: 'transparent' }}>
+                        <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+                          <span style={{ color: 'var(--green)', marginTop: 1 }}><I.check size={15} /></span>
+                          <div style={{ fontSize: 12, lineHeight: 1.5 }}>Penetapan level, teknik & input dinilai <b>wajar</b>. Re-perform independen atas DCF saham privat & DRC bangunan berada dalam rentang dapat diterima; tidak ada usulan AJE atas pengukuran NW.</div>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="panel" style={{ padding: '10px 12px', background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+                        <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+                          <span style={{ color: 'var(--amber)', marginTop: 1 }}><I.alert size={15} /></span>
+                          <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                            <b>Kesimpulan belum dapat ditarik.</b> Dasar yang diperlukan belum lengkap:
+                            <ul style={{ margin: '5px 0 0', paddingLeft: 16 }}>
+                              {!proceduresOk && <li>Prosedur audit <b>{doneCount}/{P68_PROC.length}</b> selesai.</li>}
+                              {!disclosure.ok && <li><b>{disclosure.open.length}</b> butir pengungkapan ¶91-99 masih terbuka ({disclosure.open.map(c => c.ref).join(', ')}).</li>}
+                              {expertsMissing.length > 0 && <li>Pekerjaan pakar belum tuntas dievaluasi: <b>{expertsMissing.join(', ')}</b> (SA 500 ¶8).</li>}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="row gap8" style={{ marginTop: 12 }}>
                       <Btn sm variant="primary" style={{ flex: 1 }} onClick={() => nav('expert', { from: 'psak68' })}><I.flask size={14} /> Evaluasi Pakar</Btn>
                       <Btn sm style={{ flex: 1 }} onClick={() => nav('sad', { from: 'psak68' })}><I.scale size={14} /> SAD Ledger</Btn>
@@ -683,18 +732,38 @@ function PSAK68View() {
                   </div>
                 </Panel>
 
-                <Panel title="Pekerjaan Penilai (SA 500)" sub="WP V-2 · V-3">
-                  <div style={{ display: 'grid', gap: 9 }}>
-                    {[
-                      { wp: 'V-2', t: 'KJPP Mitra — tanah & bangunan', s: 'Kompetensi, objektivitas & kewajaran metode (SPI/IVS) memadai.' },
-                      { wp: 'V-3', t: 'Pakar auditor — forward valas', s: 'Re-valuasi kurva forward, OIS & CVA/DVA (IFRS 13 ¶42) memadai.' },
-                    ].map((e, i) => (
-                      <button key={i} onClick={() => nav('expert', { from: 'psak68' })} className="row ac gap9" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', borderLeft: '3px solid var(--amber)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-                        <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)', flex: '0 0 auto' }}>{e.wp}</span>
-                        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600 }}>{e.t}</div><div className="tiny muted" style={{ lineHeight: 1.35 }}>{e.s}</div></div>
-                        <I.arrowRight size={13} style={{ color: 'var(--ink-4)', flex: '0 0 auto' }} />
-                      </button>
-                    ))}
+                <Panel title="Evaluasi Pekerjaan Pakar (SA 500 ¶8 · SA 620)" sub="tersimpan per-perikatan — bukan lagi centang tetap">
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    {expertRefs.map(ref => {
+                      const meta = P68_EXPERT_META[ref] || { t: 'Pakar ' + ref, s: '' };
+                      const ev = (expertEval && expertEval[ref]) || {};
+                      const n = expertEvalDone(ev);
+                      const full = expertEvalComplete(ev);
+                      return (
+                        <div key={ref} className="panel" style={{ padding: '9px 11px', borderColor: 'var(--line)', borderLeft: '3px solid ' + (full ? 'var(--green)' : 'var(--amber)') }}>
+                          <div className="row ac gap8" style={{ marginBottom: 6 }}>
+                            <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>{ref}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.25 }}>{meta.t}</div>
+                              <div className="tiny muted" style={{ lineHeight: 1.35 }}>{meta.s}</div>
+                            </div>
+                            <Badge kind={full ? 'green' : 'amber'}>{n}/{EXPERT_EVAL_STEPS.length}</Badge>
+                          </div>
+                          <div style={{ display: 'grid', gap: 4 }}>
+                            {EXPERT_EVAL_STEPS.map(s => (
+                              <Check key={s.key} on={ev[s.key] === true} label={s.t}
+                                title={s.ref}
+                                onChange={(on: boolean) => toggleExpert(ref, s.key, on)} />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {!expertRefs.length && <div className="tiny muted">Tak ada pos nilai wajar yang bergantung pada pekerjaan pakar.</div>}
+                    <button onClick={() => nav('expert', { from: 'psak68' })} className="row ac jb" style={{ padding: '8px 10px', borderRadius: 7, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                      <span style={{ fontSize: 12, fontWeight: 600 }}>Buka modul Penggunaan Pakar</span>
+                      <I.arrowRight size={13} style={{ color: 'var(--ink-4)' }} />
+                    </button>
                   </div>
                 </Panel>
               </div>
