@@ -7,6 +7,8 @@ import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
+import { createAttachment, softRemove } from '../attachments/store';
+import { createHash } from 'node:crypto';
 
 /* PRD prd-wp-signoff-integrity — sesi kini membawa NAMA, dan tanda tangan harus
    menyebut penulisnya. `mk` karenanya menyuntikkan nama juga; tanpa itu tulisan
@@ -16,6 +18,23 @@ const mk = (id: string, role: string, name: string) =>
 const manager = mk('TEST-MGR', 'Audit Manager', 'Mira Gunawan');
 const partner = mk('TEST-PTR', 'Engagement Partner', 'Toni Prasetyo');
 const senior = mk('TEST-SNR', 'Senior Auditor', 'Bagas Winata');
+
+
+/* ============================================================
+   `expect(p).rejects.toMatchObject({ message })` adalah ASSERTION VAKUM di sini:
+   `message` bersifat NON-ENUMERABLE pada Error, sehingga `toMatchObject` tak pernah
+   memeriksanya dan pesan apa pun lolos. Ditemukan lewat probe hidup — uji K4 di bawah
+   "lulus" padahal tulisannya ditolak `signature-self-review`, bukan oleh gerbang pakar
+   yang sedang diuji. Helper ini memeriksa KODE dan PESAN secara eksplisit, dan gagal
+   bila tulisan justru BERHASIL.
+   ============================================================ */
+async function expectRejected(p: Promise<unknown>, code: string, message: RegExp) {
+  let err: unknown;
+  try { await p; } catch (e) { err = e; }
+  expect(err, 'tulisan seharusnya DITOLAK, tetapi berhasil').toBeTruthy();
+  expect((err as { code?: string }).code).toBe(code);
+  expect(String((err as Error).message)).toMatch(message);
+}
 
 const at = () => new Date().toISOString();
 const sigPrep = { by: 'Bagas W.', byUserId: 'TEST-SNR', at: at() };
@@ -50,10 +69,10 @@ describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
      seorang reviewer menerbitkan tanda tangan Preparer atas nama auditor yang
      DITUGASKAN. Kapabilitasnya cukup (WP_EDIT); identitasnya tidak. */
   it('Manager DITOLAK menerbitkan tanda tangan Preparer atas nama Senior — via tRPC', async () => {
-    await expect(
+    await expectRejected(
       manager.state.set({ scope, scopeId, key, baseVersion: 1,
         value: { B: { chain: { preparer: sigPrep } }, C: { chain: { preparer: sigPrep } } } }),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: /signature-identity-mismatch/ });
+      'FORBIDDEN', /signature-identity-mismatch/);
     const got = await partner.state.get({ scope, scopeId, key });
     expect(got.version).toBe(1);
   });
@@ -65,10 +84,10 @@ describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
   });
 
   it('Manager DITOLAK menambah slot Partner (butuh OPINION_APPROVE) — guard via tRPC', async () => {
-    await expect(
+    await expectRejected(
       manager.state.set({ scope, scopeId, key, baseVersion: 2,
         value: { B: { chain: { preparer: sigPrep, reviewer: sigRev, partner: sigPtr } } } }),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'requires:opinion.approve' });
+      'FORBIDDEN', /requires:opinion\.approve/);
     // tulisan ditolak → versi tetap 2
     const got = await partner.state.get({ scope, scopeId, key });
     expect(got.version).toBe(2);
@@ -91,9 +110,9 @@ describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
   });
 
   it('Manager DITOLAK menyetujui akseptasi (butuh FIRM_ADMIN)', async () => {
-    await expect(
+    await expectRejected(
       manager.state.set({ ...fp, baseVersion: 1, value: prospect(true) }),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'requires:firm.admin' });
+      'FORBIDDEN', /requires:firm\.admin/);
     const got = await partner.state.get(fp);
     expect(got.version).toBe(1);
   });
@@ -130,6 +149,21 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
   };
   const FULL = { competence: true, objectivity: true, scope: true, findings: true };
 
+  /* Lampiran DMS NYATA (byte + SHA-256 diverifikasi store) — bukan baris palsu.
+     Inilah yang membuktikan `loadSignoffContext` benar-benar membaca DMS. */
+  const seedDoc540 = async (scopeId: string, estimateId: string) => {
+    const bytes = Buffer.from(`%PDF-1.4 laporan pakar ${estimateId}
+`);
+    const meta = await createAttachment({
+      scope, scopeId, collection: 'sa540', refId: estimateId,
+      name: `Laporan Pakar ${estimateId}.pdf`, mime: 'application/pdf',
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+      bytes, uploadedBy: 'TEST-MGR',
+    });
+    return meta.id;
+  };
+  const evalWithDoc = (docUid: string) => ({ 'E-04': { ...FULL, docUid } });
+
   const seedDoc = async (scopeId: string, k: string, value: unknown) => {
     const valueJson = JSON.stringify(value);
     await prisma.stateDoc.create({ data: { scope, scopeId, key: k, valueJson, version: 1, updatedBy: 'TEST-MGR' } });
@@ -140,6 +174,7 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
     const scopeId = XPREFIX + name;
     await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
     await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId } });
+    await prisma.attachment.deleteMany({ where: { scope, scopeId } });
     if (opts.register) await seedDoc(scopeId, 'estimates.v1', REGISTER);
     if (opts.eval !== undefined) await seedDoc(scopeId, 'expertEval.v1', opts.eval);
     return scopeId;
@@ -148,28 +183,72 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
   afterAll(async () => {
     await prisma.stateDoc.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
     await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
+    await prisma.attachment.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
   });
 
   it('K1 — Manager DITOLAK menandatangani sa540 saat evaluasi pakar kosong', async () => {
     const scopeId = await engFor('k1', { register: true });
-    await expect(
+    await expectRejected(
       manager.state.set({ scope, scopeId, key, baseVersion: 0,
         value: { sa540: { chain: { preparer: sigMgr() } } } }),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: /expert-gate:E-04/ });
+      'FORBIDDEN', /expert-gate:E-04/);
     // tulisan ditolak → dokumen tak pernah dibuat
     const got = await manager.state.get({ scope, scopeId, key });
     expect(got.version).toBe(0);
   });
 
-  it('evaluasi 4/4 tersimpan → tanda tangan yang SAMA diterima', async () => {
-    const scopeId = await engFor('ok', { register: true, eval: { 'E-04': FULL } });
+  it('evaluasi 4/4 + laporan pakar di DMS → tanda tangan yang SAMA diterima', async () => {
+    const scopeId = await engFor('ok', { register: true });
+    const docId = await seedDoc540(scopeId, 'E-04');
+    await seedDoc(scopeId, 'expertEval.v1', evalWithDoc(docId));
     const r = await manager.state.set({ scope, scopeId, key, baseVersion: 0,
       value: { sa540: { chain: { preparer: sigMgr() } } } });
     expect(r.version).toBe(1);
   });
 
+  /* PR-3 — limb DOKUMEN lewat jalur tRPC + Prisma nyata. Ini yang membuktikan
+     router benar-benar memuat daftar lampiran, bukan hanya guard-nya benar. */
+  it('K3 — evaluasi 4/4 tetapi laporan pakar tak ditautkan → DITOLAK', async () => {
+    const scopeId = await engFor('nodoc', { register: true, eval: { 'E-04': FULL } });
+    await expectRejected(
+      manager.state.set({ scope, scopeId, key, baseVersion: 0,
+        value: { sa540: { chain: { preparer: sigMgr() } } } }),
+      'FORBIDDEN', /belum ditautkan dari DMS/);
+  });
+
+  it('K4 — laporan pakar DICABUT dari DMS → tanda tangan berikutnya DITOLAK', async () => {
+    const scopeId = await engFor('revoked', { register: true });
+    const docId = await seedDoc540(scopeId, 'E-04');
+    await seedDoc(scopeId, 'expertEval.v1', evalWithDoc(docId));
+    // sah selagi dokumennya hidup
+    await manager.state.set({ scope, scopeId, key, baseVersion: 0,
+      value: { sa540: { chain: { preparer: sigMgr() } } } });
+    await softRemove(docId, 'TEST-MGR');
+    /* Tanda tangan DICABUT lebih dulu (K5: pencabutan tak pernah digerbang), lalu slot
+       yang SAMA dicoba lagi. Memakai slot reviewer di sini akan ditolak aturan
+       satu-orang-satu-langkah SEBELUM gerbang pakar sempat bicara — dan uji yang
+       ditolak oleh aturan lain tidak menguji apa pun tentang gerbang ini. */
+    const cur = await manager.state.get({ scope, scopeId, key });
+    const cleared = await manager.state.set({ scope, scopeId, key, baseVersion: cur.version, value: { sa540: { chain: {} } } });
+    await expectRejected(
+      manager.state.set({ scope, scopeId, key, baseVersion: cleared.version,
+        value: { sa540: { chain: { preparer: sigMgr() } } } }),
+      'FORBIDDEN', /tidak lagi ada di DMS/);
+  });
+
+  it('Q1 — tautan WARISAN (uid localStorage) ditolak dengan sebabnya sendiri', async () => {
+    const scopeId = await engFor('legacy', {
+      register: true, eval: { 'E-04': { ...FULL, docUid: 'ev-1754976000000-4821' } },
+    });
+    await expectRejected(
+      manager.state.set({ scope, scopeId, key, baseVersion: 0,
+        value: { sa540: { chain: { preparer: sigMgr() } } } }),
+      'FORBIDDEN', /Tautan warisan/);
+  });
+
   it('K8 — hasil gerbang tercatat di jejak audit', async () => {
-    const scopeId = await engFor('audit', { register: true, eval: { 'E-04': FULL } });
+    const scopeId = await engFor('audit', { register: true });
+    await seedDoc(scopeId, 'expertEval.v1', evalWithDoc(await seedDoc540(scopeId, 'E-04')));
     await manager.state.set({ scope, scopeId, key, baseVersion: 0,
       value: { sa540: { chain: { preparer: sigMgr() } } } });
     const row = await prisma.auditLog.findFirst({ where: { scopeId, key }, orderBy: { seq: 'desc' } });
@@ -186,7 +265,8 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
   });
 
   it('K5 — pencabutan tanda tangan lolos meski gerbang aktif', async () => {
-    const scopeId = await engFor('revoke', { register: true, eval: { 'E-04': FULL } });
+    const scopeId = await engFor('revoke', { register: true });
+    await seedDoc(scopeId, 'expertEval.v1', evalWithDoc(await seedDoc540(scopeId, 'E-04')));
     await manager.state.set({ scope, scopeId, key, baseVersion: 0,
       value: { sa540: { chain: { preparer: sigMgr() } } } });
     /* evaluasi dicabut → gerbang kini aktif; pencabutan tanda tangan harus tetap bisa */
@@ -200,7 +280,8 @@ describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)
   });
 
   it('K7 — suntingan isi kertas kerja sa540 tidak digerbang', async () => {
-    const scopeId = await engFor('edit', { register: true, eval: { 'E-04': FULL } });
+    const scopeId = await engFor('edit', { register: true });
+    await seedDoc(scopeId, 'expertEval.v1', evalWithDoc(await seedDoc540(scopeId, 'E-04')));
     const sig = sigMgr();
     await manager.state.set({ scope, scopeId, key, baseVersion: 0,
       value: { sa540: { chain: { preparer: sig } } } });

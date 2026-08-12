@@ -25,7 +25,7 @@ on:
 
 jobs:
   e2e-postgres:
-    name: playwright × postgres:16 (5 perjalanan)
+    name: playwright × postgres:16
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -64,7 +64,7 @@ jobs:
 
       # webServer stack:api melakukan generate + migrate deploy + seed DESTRUKTIF
       # atas DB service, lalu menjalankan server tRPC. stack:web build + preview SPA.
-      - name: run Playwright (5 perjalanan atas Postgres)
+      - name: run Playwright (seluruh perjalanan atas Postgres)
         run: npm test
         working-directory: e2e
 

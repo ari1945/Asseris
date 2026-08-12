@@ -26,7 +26,7 @@ import { wpChainViolations, signatureAttributionViolations } from '../../migrati
    SAMA dengan yang dibaca `useEstimateExpertGate`; alasan penolakan server dan hint
    UI karenanya tak dapat menyimpang (K9). */
 import {
-  expertGateSignatureSlots, expertGateSignatureViolations,
+  expertGateSignatureSlots, expertGateSignatureViolations, EXPERT_DOC_COLLECTION,
   type ExpertGateBearer,
 } from '../../migration/src/canon_expert_eval';
 import type { ExpertEvalState } from '../../migration/src/canon_expert_eval';
@@ -69,9 +69,10 @@ const EXPERT_GATE_SIBLINGS = ['estimates.v1', 'expertEval.v1'] as const;
 export function signoffContextNeeds(key: string, prev: unknown, next: unknown): SignoffContextNeeds | null {
   if (key !== 'wpState') return null;
   if (!expertGateSignatureSlots({ prev, next }).length) return null;
-  /* PR-1 menegakkan limb EVALUASI saja; limb dokumen menyala di PR-3 bersama
-     `attachmentCollections: ['sa540']`, sesudah `docUid` pindah ke DMS (PR-2). */
-  return { siblingKeys: EXPERT_GATE_SIBLINGS, attachmentCollections: [] };
+  /* PR-3 — limb DOKUMEN kini menyala: `docUid` menunjuk id lampiran DMS (PR-2),
+     jadi "laporan pakar itu ada" dapat diperiksa server. Daftar id hidup diambil
+     dari koleksi yang SAMA dengan yang ditulis pemilih di UI. */
+  return { siblingKeys: EXPERT_GATE_SIBLINGS, attachmentCollections: [EXPERT_DOC_COLLECTION] };
 }
 
 /** Registri estimasi dari `estimates.v1` — `null` berarti dokumennya TAK ADA di server. */
@@ -249,9 +250,11 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
           prev, next,
           estimates: register,
           expertEval: ctx.siblings['expertEval.v1'] as ExpertEvalState | undefined,
-          liveDocIds: ctx.liveAttachmentIds['sa540'],
-          /* PR-1: limb dokumen BELUM ditegakkan — lihat ExpertGateOptions.requireDocument. */
-          requireDocument: false,
+          liveDocIds: ctx.liveAttachmentIds[EXPERT_DOC_COLLECTION],
+          /* PR-3 — limb dokumen DITEGAKKAN. Tautan warisan (`ev-…`) ditolak tanpa
+             grandfathering (keputusan Q1) dengan sebabnya sendiri: yang dituntut
+             adalah mengunggah ulang, bukan menelusuri dokumen yang tak pernah ada. */
+          requireDocument: true,
         })) {
           throw new TRPCError({ code: 'FORBIDDEN', message: `${v.code}:${v.estimateId}: ${v.message}` });
         }

@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — "Proceed." 2026-08-12; **PR-1 & PR-2 terkirim & terverifikasi hidup**; PR-3 belum |
+| Status | In Progress — PR-1·PR-2·PR-3 terkirim & terverifikasi hidup; **Q4 (batas ukuran DMS) menunggu keputusan** sebelum arc ditutup |
 | Tanggal | 2026-08-12 |
 | Arc | Lanjutan arc estimasi terfalsifikasi ([`prd-estimasi-terfalsifikasi.md`](prd-estimasi-terfalsifikasi.md), #182–#187) — menutup utang yang PRD itu catat sendiri di §9a |
 | Basis | master `774412a` · 8/8 gerbang hijau · nol PR terbuka · 1.250 uji frontend |
@@ -322,6 +322,57 @@ bukan panggilan API):
 Keadaan perikatan dipulihkan (E-04 tanpa `docUid`, nol lampiran hidup).
 
 **Utang PR-2:** tinjauan visual Ari atas panel "Penggunaan Pakar" yang berubah.
+
+---
+
+## 10c. Hasil pelaksanaan PR-3 (2026-08-12)
+
+`npm run verify` 8/8 hijau. Uji server 391 → **397**.
+
+Limb dokumen dinyalakan: `signoffContextNeeds` kini meminta koleksi lampiran `sa540`,
+`loadSignoffContext` membaca DMS lewat `listAttachments` (yang menyaring `deletedAt`), dan
+`requireDocument` menjadi `true` di server. Keputusan **Q1 terpasang tanpa grandfathering**:
+tautan warisan ditolak dengan sebabnya sendiri — "unggah ulang", bukan "dokumen tak
+ditemukan", karena tindakan yang dituntut berbeda.
+
+Spek e2e baru [`08-sa620-expert-gate.spec.ts`](../e2e/tests/08-sa620-expert-gate.spec.ts)
+menembak `state.set` **tanpa menyentuh UI sama sekali**.
+
+### Dua cacat UJI yang ditemukan probe hidup, bukan oleh suite
+
+**1. Assertion penolakan yang VAKUM.** `expect(p).rejects.toMatchObject({ code, message })`
+tidak pernah memeriksa `message`: properti itu **non-enumerable** pada `Error`. Dibuktikan
+dengan menyetel regex ke `/PROBE-SENGAJA-SALAH/` — uji tetap **lulus**. Pola ini dipakai di
+seluruh `signoff_integration.test.ts`, termasuk uji-uji yang sudah ada sebelum arc ini.
+Diganti helper `expectRejected(p, code, message)` yang memeriksa keduanya secara eksplisit
+dan gagal bila tulisannya justru berhasil. Setelah dikonversi, seluruh assertian lama tetap
+lulus — jadi substansinya benar; yang salah adalah bahwa ia tak pernah benar-benar diuji.
+
+**2. Uji K4 ditolak oleh aturan yang SALAH.** Ia menandatangani `preparer` lalu `reviewer`
+dengan aktor yang sama, sehingga ditolak `signature-self-review` (ISQM 2) **sebelum** gerbang
+pakar sempat bicara — uji yang lulus tanpa pernah menguji hal yang diklaimnya. Tertutup rapat
+oleh cacat (1). Diperbaiki dengan mencabut tanda tangan lebih dulu lalu mencoba slot yang
+SAMA. Jebakan yang sama sudah ada di spek e2e yang saya tulis dan ikut diperbaiki sebelum
+dikirim.
+
+### Verifikasi hidup (ENG-2025-014, tRPC melewati UI)
+
+| Probe | Hasil |
+|---|---|
+| K3 — evaluasi 4/4, dokumen tak ditautkan | **403** `… Laporan pakar belum ditautkan dari DMS perikatan` |
+| Q1 — `docUid` warisan `ev-…` | **403** `… Tautan warisan … unggah ulang laporan pakar ke DMS perikatan` |
+| Dokumen HIDUP di DMS → tanda tangan | **200** |
+| K5 — cabut tanda tangan saat dokumen sudah dicabut | **200** — gerbang tak menjebak WP |
+| K4 — tanda tangan BARU sesudah dokumen dicabut | **403** `… tidak lagi ada di DMS perikatan (dicabut)` |
+
+Keadaan perikatan dipulihkan (E-04 0/4, tanpa `docUid`, rantai kosong, nol lampiran hidup).
+
+**Batas jujur:** spek e2e **belum pernah dijalankan** di mesin ini — Postgres/Docker tak
+tersedia. Kebenarannya diperiksa terhadap tanda tangan helper & skema `attachment.upload`,
+dan jebakan self-review-nya diperbaiki berkat probe hidup; validasi sesungguhnya terjadi di
+CI job Playwright.
+
+**Utang PR-3:** tinjauan visual Ari belum dilakukan untuk keseluruhan arc.
 
 ---
 

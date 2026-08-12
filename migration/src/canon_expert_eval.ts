@@ -15,9 +15,9 @@
    ('V-2') maupun kunci estimasi ('E-04') hidup di ruang nama yang sama
    karena pertanyaannya identik; yang berbeda hanya objeknya.
 
-   CATATAN LINGKUP: modul ini merekam BAHWA evaluasi dilakukan. Gerbang
-   yang menuntut DOKUMEN pakar ber-hash di DMS sebelum sign-off adalah
-   PR-5 pada arc yang sama.
+   CATATAN LINGKUP: modul ini merekam BAHWA evaluasi dilakukan. Gerbang yang
+   menuntut DOKUMEN pakar ber-hash di DMS sebelum sign-off KINI ADA di sini
+   (`expertGateBlockers` + `expertGateSignatureViolations`), ditegakkan server.
 
    PRD prd-sa620-expert-gate-server PR-1 — modul ini KINI diimpor server
    (`server/src/signoff.ts`), pola yang sama dengan `wp_chain`/`aje_contract`:
@@ -100,12 +100,13 @@ export const EXPERT_APPROACH = 'Gunakan pakar (SA 620)';
 export interface ExpertGateOptions {
   approach?: string;
   /**
-   * Tuntut laporan pakar tertaut & masih hidup. Baku `true` (perilaku UI).
+   * Tuntut laporan pakar tertaut & masih hidup di DMS. Baku `true`.
    *
-   * Server memasang `false` selama PR-1: tautan `docUid` hari ini menunjuk uid
-   * `localStorage` yang TAK PERNAH sampai ke server, jadi menegakkan limb ini
-   * sebelum identifiernya pindah ke DMS (PR-2) akan menolak setiap tanda tangan
-   * SA 540 atas dokumen yang sebetulnya ada. Dinyalakan di PR-3.
+   * Dimatikan hanya bila daftar dokumen TAK DAPAT DIKETAHUI: UI memasang `false`
+   * saat server tak terjangkau, karena menyimpulkan "tak ada dokumen" dari
+   * kegagalan jaringan akan memblokir seluruh sign-off SA 540 setiap kali koneksi
+   * putus — kegagalan yang lebih besar daripada yang dicegahnya. Server (yang
+   * SELALU dapat membaca DMS-nya sendiri) memakai baku `true`.
    */
   requireDocument?: boolean;
 }
@@ -167,6 +168,9 @@ export function expertGateBlockers(
 
 /** Ref `wpState` yang tanda tangannya tunduk pada gerbang SA 620. */
 export const EXPERT_GATED_REFS: ReadonlySet<string> = new Set(['sa540']);
+
+/** Koleksi lampiran DMS tempat laporan pakar SA 540 hidup — dibaca UI dan server. */
+export const EXPERT_DOC_COLLECTION = 'sa540';
 
 /**
  * `docUid` WARISAN — uid `localStorage` dari sebelum PR-2 (`ev-<ms>-<rand>`,

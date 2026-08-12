@@ -25,11 +25,10 @@
 import React from 'react';
 import { useFirm } from './contexts';
 import { attachmentList, attachmentUpload } from './api';
-/* Predikat tautan warisan hidup di modul MURNI — server memakainya juga (PR-3). */
-export { isLegacyDocUid } from './canon_expert_eval';
-
-/** Koleksi lampiran DMS untuk kertas kerja SA 540 — dibaca juga oleh server (PR-3). */
-export const EXPERT_DOC_COLLECTION = 'sa540';
+/* Predikat tautan warisan & nama koleksi hidup di modul MURNI — server memakai
+   keduanya juga (PR-3), dan berkas ini mengimpor React sehingga tak dapat diimpor server. */
+export { isLegacyDocUid, EXPERT_DOC_COLLECTION } from './canon_expert_eval';
+import { EXPERT_DOC_COLLECTION } from './canon_expert_eval';
 
 export interface ExpertDoc {
   id: string;
