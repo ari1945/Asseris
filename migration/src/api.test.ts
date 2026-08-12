@@ -214,3 +214,49 @@ describe('PR-I — hidrasi WTB: bundle tanpa baris mengosongkan singleton', () =
     expect(AMS.WTB).toHaveLength(1);
   });
 });
+
+/* ============================================================
+   R-2 (Tahap 0 repro #2) — HIDRASI YANG TUMPANG-TINDIH: LAST-REQUEST-WINS.
+
+   Asalnya uji ini hidup di `stage0_context_races_repro.test.ts`, tetapi di sana
+   `hydrateCoreFromApi` DI-MOCK — padahal fungsi itulah yang memiliki penjaganya.
+   Mock-nya memutasi `AMS.WTB` tanpa syarat, jadi properti yang diuji dilanggar oleh
+   konstruksi harness-nya sendiri dan tak ada perbaikan di `contexts.tsx` yang bisa
+   membuatnya hijau. Di sini seam-nya benar: transport tRPC yang di-mock, dan
+   `hydrateCoreFromApi` yang NYATA yang dieksekusi — sehingga uji ini merah tanpa
+   penjaga tiket di api.ts dan hijau dengannya.
+
+   Skenario nyatanya: auditor membuka perikatan A, lalu berpindah ke B sebelum bundle A
+   tiba. Tanpa penjaga, respons A yang datang belakangan menimpa neraca saldo B.
+   ============================================================ */
+describe('R-2 — hidrasi kedaluwarsa tidak boleh menimpa perikatan yang sedang aktif', () => {
+  const rowFor = (code: string) => ({ ord: 0, group: 'Aset Lancar', code, name: 'Kas', ly: 1, unadj: 2, aje: 0, lead: 'A' });
+
+  it('respons perikatan A yang tiba SETELAH B tidak mengganti WTB milik B', async () => {
+    const release = new Map<string, () => void>();
+    // Tiap panggilan bootstrap menggantung sampai dilepas manual → kita kendalikan urutannya.
+    trpc.resolveValue = (arg: unknown) => {
+      const id = String((arg as { engagementId?: string }).engagementId);
+      return new Promise((resolve) => release.set(id, () => resolve({ wtb: [rowFor(id)] })));
+    };
+
+    const hydrA = api.hydrateCoreFromApi('ENG-A');   // dimulai lebih dulu…
+    const hydrB = api.hydrateCoreFromApi('ENG-B');   // …lalu pengguna pindah ke B
+
+    release.get('ENG-B')!();                          // B tiba duluan
+    await expect(hydrB).resolves.toBe(true);
+    expect(AMS.WTB[0].code).toBe('ENG-B');
+
+    release.get('ENG-A')!();                          // A tiba TERLAMBAT
+    await expect(hydrA).resolves.toBe(false);         // dibuang, bukan diterapkan
+    expect(AMS.WTB[0].code).toBe('ENG-B');            // BUKAN neraca saldo klien sebelumnya
+  });
+
+  it('hidrasi berurutan (tanpa tumpang-tindih) tetap diterapkan seperti biasa', async () => {
+    trpc.resolveValue = (arg: unknown) => ({ wtb: [rowFor(String((arg as { engagementId?: string }).engagementId))] });
+    await api.hydrateCoreFromApi('ENG-A');
+    expect(AMS.WTB[0].code).toBe('ENG-A');
+    await api.hydrateCoreFromApi('ENG-B');
+    expect(AMS.WTB[0].code).toBe('ENG-B');            // penjaga tidak boleh memblokir jalur normal
+  });
+});

@@ -69,8 +69,15 @@ deferred (`useAuditHeavy`). Gerbang budget bundle & hidrasi ada di CI.
 Gerbang repo lengkap (frontend + backend, tidak berhenti di kegagalan pertama):
 
 ```powershell
-npm run verify          # dari root — menjalankan migration lint/typecheck/test/build + server
+npm run verify          # dari root — CERMIN PERSIS gerbang CI: prisma generate (sqlite) ·
+                        #   migration lint/typecheck/typecheck:test/ratchet-any/test/build/
+                        #   budget-bundle · server typecheck/test
 ```
+
+> **`master` SELALU HIJAU (R-7).** `npm run verify` menjalankan gerbang yang sama persis
+> dengan `.github/workflows/ci.yml`; kalau berbeda, `tools/verify.mjs` yang salah. Repro
+> cacat yang belum ditutup TIDAK boleh dikirim dalam keadaan merah — pakai `it.fails()`
+> atau `it.skip()` + `// KARANTINA s/d <tanggal>`. Rinciannya: BUILD.md §R-7.
 
 Di `migration/`:
 

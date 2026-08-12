@@ -10,6 +10,8 @@
 import './env';
 import { prisma } from './db';
 import { appendAudit } from './audit/log';
+import { can, CAP } from './rbac';
+import { refreshRoleCache } from './roleStore';
 import { listPurgeCandidates, schedulePurgeCandidates, approvePurge, runPurge } from './attachments/retention';
 
 function usage(): never {
@@ -46,6 +48,24 @@ async function main(): Promise<void> {
     const approver = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true, name: true } });
     if (!approver) {
       console.error(`User ${userId} tidak ditemukan — approval harus memakai identitas user nyata (FIRM_ADMIN).`);
+      process.exit(1);
+    }
+    /* R-3 — IDENTITAS SAJA BUKAN OTORISASI.
+       Jalur ini dulu hanya memastikan user-nya ADA, lalu menstempel `purgeApprovedBy` dan
+       satu baris audit ATTACH_PURGE_APPROVE dengan peran user itu apa pun peran-nya. Artinya
+       persetujuan pemusnahan BUKTI AUDIT bisa dicatatkan atas nama Junior Auditor — atau atas
+       nama Rekan yang tak pernah menyetujui apa pun. Jejak audit lalu menunjukkan persetujuan
+       yang tak pernah terjadi, kelas cacat yang sama dengan #169 (tanda tangan Reviewer
+       fiktif), #176 (persetujuan AJE dipalsukan) dan #177 (identitas sign-off).
+       Jalur tRPC `attachment.purge.approve` SUDAH menuntut CAP.FIRM_ADMIN; CLI ini tidak.
+       refreshRoleCache() dipanggil lebih dulu agar peran dari DB (konsol RBAC) yang berlaku,
+       bukan katalog statis. */
+    await refreshRoleCache();
+    if (!can(approver.role, CAP.FIRM_ADMIN)) {
+      console.error(
+        `Ditolak: ${approver.name} (${approver.id}) berperan "${approver.role}" yang tidak memegang ` +
+        `${CAP.FIRM_ADMIN}. Pemusnahan bukti audit hanya boleh disetujui FIRM_ADMIN.`,
+      );
       process.exit(1);
     }
     const ids = arg === 'all' ? (await listPurgeCandidates(new Date(), false)).map((c) => c.id) : [arg];

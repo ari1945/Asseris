@@ -11,6 +11,8 @@
 // the tRPC surface (router.ts attachment.purge.*) exposes list + approve so approval can be done
 // in-app with the approver's session identity, while the byte-deletion stays worker-side.
 import { prisma } from '../db';
+import { can, CAP } from '../rbac';
+import { refreshRoleCache } from '../roleStore';
 import { purgeBlob } from './blobStore';
 
 // Server-side mirror of the client retention registry (migration/src/data_records.ts
@@ -95,10 +97,30 @@ export async function schedulePurgeCandidates(now = new Date()): Promise<number>
   return ids.length;
 }
 
-/** Phase 2 — a FIRM_ADMIN approver grants deletion. Only rows that are still eligible (retention
- *  elapsed, not held) may be approved; returns the number approved. Caller appends the audit. */
+/**
+ * Phase 2 — a FIRM_ADMIN approver grants deletion. Only rows that are still eligible (retention
+ * elapsed, not held) may be approved; returns the number approved. Caller appends the audit.
+ *
+ * R-3 — OTORISASI DITEGAKKAN DI SINI, di fungsi yang MENULIS, bukan diserahkan ke tiap pemanggil.
+ * Jalur tRPC `attachment.purge.approve` memang sudah menuntut CAP.FIRM_ADMIN, tetapi CLI
+ * `retention-worker approve --by <userId>` hanya memastikan user-nya ADA — sehingga persetujuan
+ * pemusnahan BUKTI AUDIT bisa distempel atas nama siapa pun, termasuk Junior Auditor, dan masuk
+ * ke jejak audit sebagai persetujuan yang tak pernah terjadi. Itu kelas cacat yang sudah tiga
+ * kali ditutup di tempat lain (#169 tanda tangan Reviewer fiktif · #176 persetujuan AJE
+ * dipalsukan · #177 identitas sign-off). Menaruh gerbangnya di sini menutup SETIAP pemanggil,
+ * termasuk yang belum ditulis.
+ *
+ * Melempar (bukan mengembalikan 0) supaya penolakan otorisasi tak bisa disalahbaca sebagai
+ * "tidak ada kandidat yang memenuhi syarat".
+ */
 export async function approvePurge(ids: string[], approvedBy: string, now = new Date()): Promise<number> {
   if (ids.length === 0) return 0;
+  const approver = await prisma.user.findUnique({ where: { id: approvedBy }, select: { id: true, role: true } });
+  if (!approver) throw new Error(`purge-approver-unknown:${approvedBy}`);
+  await refreshRoleCache();          // peran dari DB (konsol RBAC), bukan katalog statis
+  if (!can(approver.role, CAP.FIRM_ADMIN)) {
+    throw new Error(`purge-approver-forbidden:${approvedBy}:${approver.role}:requires:${CAP.FIRM_ADMIN}`);
+  }
   const eligible = await listPurgeCandidates(now, false);
   const eligibleIds = new Set(eligible.map((c) => c.id));
   const approvable = ids.filter((id) => eligibleIds.has(id));

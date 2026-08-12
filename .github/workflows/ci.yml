@@ -49,6 +49,10 @@ jobs:
       # singleton AMS.WTB alih-alih fixture. Gerbang tipis ini (non-strict, hanya
       # resolusi & ekspor) menutup kelas itu. Lihat migration/tsconfig.test.json.
       - run: npm run typecheck:test
+      # R-4 — ratchet `:any` sekarang punya GERBANG. `eslint-suppressions.json` hanyalah data;
+      # `eslint --suppress-rule` menaikkannya tanpa protes, dan pada 18d6e69 totalnya naik
+      # diam-diam 8.155 → 8.175. Langit-langitnya hidup di scripts/check-any-ratchet.mjs.
+      - run: node scripts/check-any-ratchet.mjs
       - run: npm test
       - run: npm run build
       # Tahap 8 — gerbang budget bundle: entry utama ≤ 1.500 KB pre-gzip,

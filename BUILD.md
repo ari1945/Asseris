@@ -27,8 +27,32 @@ exit code non-zero bila salah satu gate gagal:
 npm run verify
 ```
 
-Pada baseline Tahap 0, perintah ini **sengaja merah** pada lima test reproduksi di
-`stage0_*_repro.test.ts`; test tersebut menjadi bukti perbaikan pada tahap berikutnya.
+### R-7 — `master` SELALU HIJAU (aturan, bukan anjuran)
+
+Perintah di atas harus hijau di `master` setiap saat, dan ia menjalankan gerbang yang **sama
+persis** dengan CI (lint · typecheck · typecheck:test · ratchet `:any` · test · build ·
+budget bundle · server typecheck & test). Kalau berbeda, `tools/verify.mjs` yang salah —
+perbaiki di sana.
+
+Selama Tahap 0–6, lima test reproduksi `stage0_*_repro.test.ts` dikirim ke `master` dalam
+keadaan **gagal**, dengan alasan "bukti perbaikan pada tahap berikutnya". Biayanya lebih
+besar daripada manfaatnya: sejak saat itu CI merah menjadi normal, dan regresi nyata tidak
+bisa dibedakan dari baseline yang disengaja. Kelimanya kini hijau (tiga di server sejak
+Tahap 1–3; dua sisanya lewat R-1/R-2 — yang kedua pindah ke `api.test.ts` karena seam mock
+lamanya salah).
+
+Untuk cacat yang direpro tetapi **belum** ditutup, jangan pernah mengirim test merah. Pakai
+salah satu:
+
+| Cara | Kapan | Konsekuensi |
+|---|---|---|
+| `it.fails('…')` | perilaku salahnya sudah dipaku dan akan dibalik pada PR berikutnya | Suite tetap hijau; test berbunyi justru saat cacatnya diperbaiki, memaksa penulisnya membalik anotasi |
+| `it.skip('…')` + `// KARANTINA s/d <YYYY-MM-DD> — <alasan> — <PRD/issue>` | perbaikannya belum dijadwalkan | Wajib bertanggal; karantina lewat tanggal = utang yang harus ditutup atau dijadwalkan ulang secara sadar |
+
+Yang **tidak** boleh: mengirim test gagal apa adanya, atau menghapus test yang merah. Bila
+sebuah repro terbukti berada di seam yang salah (mock-nya menggantikan justru unit yang
+memiliki penjaganya — persis kasus repro #2), pindahkan ke seam yang benar dan **tulis
+alasannya di kedua berkas**, jangan hapus diam-diam.
 
 ```powershell
 cd migration

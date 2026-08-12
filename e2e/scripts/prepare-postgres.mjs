@@ -46,7 +46,23 @@ export function writePostgresSchema() {
   return SCHEMA_PG;
 }
 
-/** generate + migrate deploy atas skema Postgres turunan. IDEMPOTEN. */
+/** generate + migrate deploy atas skema Postgres turunan. IDEMPOTEN.
+ *
+ * R-6 — PERINGATAN EFEK SAMPING: `prisma generate` di bawah menimpa `@prisma/client` BERSAMA
+ * di `server/node_modules` dengan client ber-provider Postgres, dan TIDAK memulihkannya.
+ * Komentar di kepala berkas ini benar untuk SKEMA (worktree tetap sqlite) tetapi tidak untuk
+ * CLIENT-nya — itulah artefak yang sebenarnya dipakai saat runtime. Sesudah satu kali e2e
+ * lokal, perintah apa pun yang memakai client tanpa regenerasi akan gagal dengan
+ * "the URL must start with postgresql://".
+ *
+ * Yang sudah aman: `cd server && npm test` (lifecycle `pretest: prisma generate`) dan
+ * `npm run dev|start` (`predev`/`prestart`). Yang dulu bocor: `npm run verify` di root —
+ * runner-nya memanggil binary langsung sehingga melewati lifecycle npm; kini ia melakukan
+ * generate sqlite sebagai langkah pertama (lihat tools/verify.mjs).
+ *
+ * Memberi skema turunan `generator client { output = … }` sendiri akan menghapus tabrakan
+ * ini di akarnya, tetapi menuntut server memilih client saat runtime — perubahan yang lebih
+ * besar daripada masalahnya. Dicatat, tidak dikerjakan. */
 export function preparePostgres() {
   assertPrismaAvailable();
   const schema = writePostgresSchema();
