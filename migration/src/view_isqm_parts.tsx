@@ -4,6 +4,7 @@ import { AMS } from './data';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import { I } from './icons';
 import { Badge } from './ui';
+import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
 
 /* ============================================================
    Asseris — SOQM Operasional (ISQM 1) · Komponen Pendalaman
@@ -39,7 +40,7 @@ function soqmPull() {
   const undeclared = (A.INDEPENDENCE || []).filter((i: any) => !i.declared);
 
   /* Sumber Daya · realisasi PPL terstruktur dari PPPK */
-  const pplShort = (A.PPPK_PPL || []).filter((p: any) => p.structured < p.reqStr);
+  const pplShort = (A.PPPK_PPL || []).filter((p: any) => !pplStatus({ structured: p.structured, unstructured: p.unstructured }).compliant);
 
   /* Penyedia jasa eksternal & teknologi dari register penyedia */
   const providerWatch = (A.QM_PROVIDERS || []).filter((p: any) => p.status !== 'Memadai');
@@ -182,7 +183,7 @@ function SoqmLineage({ nav }: any) {
       ok: P.pplShort.length === 0,
       input: 'Realisasi PPL terstruktur AP', ref_: 'Komponen Sumber Daya · kompetensi',
       source: 'PPPK_PPL · Pelaporan PPPK', sourceMod: 'pppk',
-      value: P.pplShort.length ? P.pplShort.length + ' AP < ' + (A.PPPK_PPL[0] || {}).reqStr + ' SKP terstruktur' : 'Seluruh AP memenuhi', warn: P.pplShort.length > 0,
+      value: P.pplShort.length ? P.pplShort.length + ' AP < ' + PPL_REQ_PMK186.structuredMin + ' SKP terstruktur' : 'Seluruh AP memenuhi', warn: P.pplShort.length > 0,
     },
     {
       ok: P.providerWatch.length === 0,

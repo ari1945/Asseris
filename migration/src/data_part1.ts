@@ -373,7 +373,12 @@
   ];
 
   /* ---- E: CPE/PPL requirement & records (annual 40 SKP; 20 terstruktur) ---- */
-  const CPE_REQ = { annual: 40, structured: 20, year: 2026 };
+  /* PMK 186/2021 Pasal 37 — ambang SSOT ada di `canon_ppl.PPL_REQ_PMK186`.
+     Nilai di sini adalah cermin untuk konsumen lama; `structured` dikoreksi
+     20 → 30 (angka 20 adalah materi wajib 4+16 DI DALAM yang terstruktur,
+     bukan minimum terstrukturnya). `unstructuredCap` sebelumnya tak ada
+     sama sekali, sehingga SKP tidak terstruktur berlebih ikut dihitung. */
+  const CPE_REQ = { annual: 40, structured: 30, unstructuredCap: 10, year: 2026 };
   /* per staff: structured + unstructured hours logged this year */
   const CPE_LOG = {
     'EMP-001': [{ t: 'Update SA Terkini (IAPI)', type: 'Terstruktur', skp: 8, date: '2026-02-10' }, { t: 'ISQM 1 Implementation Workshop', type: 'Terstruktur', skp: 6, date: '2026-01-22' }, { t: 'Pembacaan jurnal teknis', type: 'Tidak Terstruktur', skp: 10, date: '2026-03-01' }],

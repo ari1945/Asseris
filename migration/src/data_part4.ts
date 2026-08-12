@@ -265,11 +265,16 @@ import { NONAUDIT } from './data_part2';
     { id: 'C-052', client: 'PT Karya Beton Perkasa', service: 'Audit LK', std: 'SA', ap: 'Hartono Wijaya', emiten: false, opinion: 'WTM', fee: 640, reportDate: '2026-04-02', tenure: 3 },
   ];
   const PPPK_PPL = [
-    { ap: 'Hartono Wijaya', grade: 'Partner · AP', structured: 22, total: 44, req: 40, reqStr: 20 },
-    { ap: 'Rudi Gunawan', grade: 'Partner · AP', structured: 20, total: 41, req: 40, reqStr: 20 },
-    { ap: 'Sari Dewanti', grade: 'Partner · AP', structured: 18, total: 38, req: 40, reqStr: 20 },
-    { ap: 'Anindya Pramesti', grade: 'Manager', structured: 22, total: 32, req: 40, reqStr: 20 },
-    { ap: 'Bayu Saputra', grade: 'Manager', structured: 14, total: 24, req: 40, reqStr: 20 },
+    /* Realisasi dinyatakan sebagai terstruktur + TIDAK terstruktur, bukan
+       `total`. `total` menyembunyikan batas atas 10 SKP tidak terstruktur
+       (PMK 186/2021 Ps. 37): "44 SKP" milik Hartono sesungguhnya bernilai
+       22 + min(22,10) = 32 SKP terhitung. Ambang datang dari `canon_ppl`,
+       tak lagi dari `req`/`reqStr` per-baris yang dapat menyimpang. */
+    { ap: 'Hartono Wijaya', grade: 'Partner · AP', structured: 22, unstructured: 22 },
+    { ap: 'Rudi Gunawan', grade: 'Partner · AP', structured: 20, unstructured: 21 },
+    { ap: 'Sari Dewanti', grade: 'Partner · AP', structured: 18, unstructured: 20 },
+    { ap: 'Anindya Pramesti', grade: 'Manager', structured: 22, unstructured: 10 },
+    { ap: 'Bayu Saputra', grade: 'Manager', structured: 14, unstructured: 10 },
   ];
   /* Rezim per-perikatan: PIE umum 5 th (PP 20/2015 Ps. 11) ·
      sektor jasa keuangan 3 th (POJK 13/POJK.03/2017) · cooling-off 2 th. */

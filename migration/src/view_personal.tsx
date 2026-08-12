@@ -111,7 +111,7 @@ function DataPersonalSaya() {
 
   const rosterA = AMS as { STAFF?: unknown; FIRM_STAFF?: unknown };
   const staff = [...arr<StaffRow>(rosterA.STAFF), ...arr<StaffRow>(rosterA.FIRM_STAFF)].find((s) => s.id === empId);
-  const req = (AMS as { CPE_REQ?: { annual: number; structured: number } }).CPE_REQ || { annual: 40, structured: 20 };
+  const req = (AMS as { CPE_REQ?: { annual: number; structured: number } }).CPE_REQ || { annual: 40, structured: 30 };
   const R = (AMS as { PAYROLL_RATES?: PayRates }).PAYROLL_RATES;
   const ethItems = arr<{ k: string }>((AMS as { ETHICS_ITEMS?: unknown }).ETHICS_ITEMS);
 

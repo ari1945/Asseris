@@ -6,6 +6,7 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Progress, Stat, Tabs } from './ui';
 import { OKv } from './view_onboarding';
+import { pplStatus, PPL_REQ_PMK186 } from './canon_ppl';
 
 /* ============================================================
    Asseris — Pelaporan PPPK (P2PK Kemenkeu)
@@ -30,7 +31,7 @@ function PPPKReport() {
   const ready = R.sections.filter((s: any) => s.status === 'Lengkap').length;
   const daysLeft = Math.round((+new Date(R.dueDate) - +new Date("2026-03-09")) / 864e5);
   const rotationDue = rotation.filter((r: any) => r.status === 'Wajib Rotasi').length;
-  const pplOk = ppl.filter((p: any) => p.total >= p.req && p.structured >= p.reqStr).length;
+  const pplOk = ppl.filter((p: any) => pplStatus({ structured: p.structured, unstructured: p.unstructured }).compliant).length;
   const totalFee = clients.reduce((s: any, c: any) => s + c.fee, 0);
 
   const tabs = [
@@ -130,11 +131,13 @@ function PPPKReport() {
 
           {tab === 'ppl' && (
             <div style={{ padding: 14 }}>
-              <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)', maxWidth: 720 }}>Kewajiban PPL berkelanjutan: <b>40 SKP/tahun</b> dengan minimal <b>20 SKP terstruktur</b> (PMK 154/2017 jo. PMK 186/2021 & ketentuan IAPI). Realisasi seluruh AP & staf kunci dilaporkan dalam Laporan Tahunan KAP.</p>
+              <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-2)', maxWidth: 760 }}>Kewajiban PPL berkelanjutan (<b>{PPL_REQ_PMK186.basis}</b>): <b>{PPL_REQ_PMK186.annual} SKP/tahun</b>, minimal <b>{PPL_REQ_PMK186.structuredMin} SKP terstruktur</b> dan maksimal <b>{PPL_REQ_PMK186.unstructuredCap} SKP tidak terstruktur</b>. Di dalam yang terstruktur wajib ada <b>{PPL_REQ_PMK186.topicPembinaanMin} SKP</b> pembinaan/pengawasan AP-KAP dan <b>{PPL_REQ_PMK186.topicAkuntansiMin} SKP</b> akuntansi/jasa asurans. Kelebihan dapat dibawa ke tahun berikutnya maksimal {PPL_REQ_PMK186.carryForwardCap} SKP; laporan realisasi disampaikan paling lambat akhir Januari tahun berikutnya.</p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {ppl.map((p: any, i: any) => {
-                  const okTotal = p.total >= p.req, okStr = p.structured >= p.reqStr;
-                  const ok = okTotal && okStr;
+                  const st = pplStatus({ structured: p.structured, unstructured: p.unstructured });
+                  const okTotal = !st.shortfalls.includes('total');
+                  const okStr = !st.shortfalls.includes('structured');
+                  const ok = st.compliant;
                   return (
                     <div key={i} className="panel" style={{ padding: '12px 14px', boxShadow: 'none', borderLeft: '3px solid ' + (ok ? 'var(--green)' : 'var(--amber)') }}>
                       <div className="row jb ac" style={{ marginBottom: 8 }}>
@@ -143,14 +146,26 @@ function PPPKReport() {
                       </div>
                       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         <div>
-                          <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="muted">Total SKP</span><span className="mono" style={{ fontWeight: 700, color: okTotal ? 'var(--green)' : 'var(--amber)' }}>{p.total} / {p.req}</span></div>
-                          <Progress value={p.total / p.req * 100} color={okTotal ? 'var(--green)' : 'var(--amber)'} />
+                          <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="muted">SKP Terhitung</span><span className="mono" style={{ fontWeight: 700, color: okTotal ? 'var(--green)' : 'var(--amber)' }}>{st.countedTotal} / {PPL_REQ_PMK186.annual}</span></div>
+                          <Progress value={st.countedTotal / PPL_REQ_PMK186.annual * 100} color={okTotal ? 'var(--green)' : 'var(--amber)'} />
                         </div>
                         <div>
-                          <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="muted">SKP Terstruktur</span><span className="mono" style={{ fontWeight: 700, color: okStr ? 'var(--green)' : 'var(--amber)' }}>{p.structured} / {p.reqStr}</span></div>
-                          <Progress value={p.structured / p.reqStr * 100} color={okStr ? 'var(--green)' : 'var(--amber)'} />
+                          <div className="row jb tiny" style={{ marginBottom: 3 }}><span className="muted">SKP Terstruktur</span><span className="mono" style={{ fontWeight: 700, color: okStr ? 'var(--green)' : 'var(--amber)' }}>{st.structured} / {PPL_REQ_PMK186.structuredMin}</span></div>
+                          <Progress value={st.structured / PPL_REQ_PMK186.structuredMin * 100} color={okStr ? 'var(--green)' : 'var(--amber)'} />
                         </div>
                       </div>
+                      {/* Batas atas tidak terstruktur: kelebihannya HANGUS, tidak menambal
+                          kekurangan terstruktur. Sebelumnya ia diam-diam ikut ke "total". */}
+                      {st.forfeitedUnstructured > 0 && (
+                        <div className="tiny" style={{ marginTop: 7, color: 'var(--amber)', fontWeight: 600 }}>
+                          <I.alert size={11} /> {st.forfeitedUnstructured} SKP tidak terstruktur melampaui batas {PPL_REQ_PMK186.unstructuredCap} SKP — tidak diperhitungkan.
+                        </div>
+                      )}
+                      {!st.topicsTracked && (
+                        <div className="tiny muted" style={{ marginTop: 6 }}>
+                          Materi wajib ({PPL_REQ_PMK186.topicPembinaanMin} SKP pembinaan/pengawasan + {PPL_REQ_PMK186.topicAkuntansiMin} SKP akuntansi/asurans) belum terlacak — kepatuhan penuh Pasal 37 belum dapat dibuktikan dari data ini.
+                        </div>
+                      )}
                     </div>
                   );
                 })}
