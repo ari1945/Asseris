@@ -471,15 +471,41 @@ Setelah arc: perbarui memori, tandai PRD pendahulu `Superseded`.
 | Q4 | Urutan Q-03 | Diubah — independensi didahulukan sebagai **PR-2**, karena gerbangnya dapat dilewati, bukan sekadar kurang persist. |
 | Q5 | Google Calendar | Ditunda, sesuai rekomendasi. |
 
-## 12. Open Questions
+## 12. Open Questions — sebagian DIJAWAB 2026-08-12
 
-1. **Verifikasi kutipan regulasi** (§9) — apakah Anda konfirmasi PMK 186/2021,
-   POJK 13/2017, PP 20/2015 Ps. 11, tenggat 30 April, dan 40/20 SKP sebagaimana
-   tertulis di aplikasi?
-2. **Nasib seed yang memuaskan gerbang** — dicabut total (konsisten dengan
-   pencabutan seed karangan M-04 di arc estimasi), atau dipertahankan berlabel
-   "DEMO" yang tak pernah menembus gerbang?
-3. **Perilaku Governance saat belum ditandatangani** — "Belum dievaluasi"
-   (rekomendasi saya) atau sembunyikan hero sepenuhnya?
-4. **Ambang EQR** — `AJE_EQR_THRESHOLD` Rp 2 M dijadikan turunan materialitas
-   perikatan (rekomendasi saya), atau tetap konstanta kebijakan firma?
+**Q1 · Verifikasi kutipan regulasi — DIJAWAB oleh Ari. Menghasilkan dua cacat baru.**
+
+| Rujukan | Status | Akibat |
+|---|---|---|
+| PMK 186/PMK.01/2021 | Berlaku — perizinan, independensi, PPL, QR laporan, pelaporan tahunan, pemeriksaan, sanksi | dasar utama |
+| PP 20/2015 Ps. 11 | Berlaku — 5 tahun buku berturut, jeda 2 tahun, berlaku untuk **AP individual, bukan KAP** | kutipan aplikasi **benar** |
+| Tenggat akhir April | Benar (Ps. 40) — tiga laporan: kegiatan usaha · keuangan KAP · program pengembangan profesi (bila ada rekan/TK asing) | aplikasi hanya memodelkan satu dari tiga |
+| **POJK 13/POJK.03/2017** | **DICABUT**, digantikan **POJK 9/2023** | dikutip di 11 tempat — **belum diperbaiki (C-6)** |
+| **40/20 SKP** | **SALAH.** Ps. 37: 40 SKP, min **30 terstruktur**, maks **10 tidak terstruktur**; 20 itu materi wajib (4 pembinaan + 16 akuntansi/asurans) DI DALAM yang terstruktur. Laporan realisasi: **akhir Januari**. Carry-forward maks 10 | **ditutup (C-5)** |
+
+**C-5 (baru, DITUTUP) · Ambang PPL keliru → nasihat kepatuhan yang salah.**
+Aplikasi meluluskan AP pada 20 SKP terstruktur padahal syaratnya 30, dan sama
+sekali tidak memodelkan batas atas 10 SKP tidak terstruktur — sehingga "44 SKP"
+yang bernilai 32 SKP terhitung tampil sebagai kelebihan. Ditutup oleh
+`canon_ppl.ts` (PR terpisah, di luar urutan PR-1..7 karena mendesak).
+
+**C-6 (baru, TERBUKA) · Kutipan peraturan yang sudah dicabut.**
+POJK 13/POJK.03/2017 masih menjadi dasar batas rotasi sektor jasa keuangan di
+`data_part1`, `data_part4`, `data_ojk`, `view_people`, `view_dashboard2`.
+Menunggu Q5.
+
+**Q2 · Nasib seed yang memuaskan gerbang — DIJAWAB: pertahankan sementara.**
+Data seed dipertahankan (demo tetap terisi), tetapi ia **tidak boleh memuaskan
+gerbang**: deklarasi ber-provenance seed diperlakukan sebagai *belum dinyatakan*.
+Dikerjakan di PR-2.
+
+**Q3 · Governance saat belum ditandatangani** — belum dijawab; rekomendasi tetap
+"Belum dievaluasi". Diputuskan saat PR-4.
+
+**Q4 · `AJE_EQR_THRESHOLD`** — belum dijawab; diputuskan saat PR-6.
+
+**Q5 (baru) · Substansi POJK 9/2023.** Aplikasi memakai batas **3 tahun buku** +
+cooling-off 2 tahun untuk sektor jasa keuangan, bersumber dari POJK 13/2017 yang
+kini dicabut. **Saya tidak mengetahui apakah POJK 9/2023 mempertahankan angka
+itu.** Memperbarui kutipan tanpa memastikan substansinya berarti mengganti satu
+klaim salah dengan klaim salah lainnya. Butuh konfirmasi sebelum PR-5.
