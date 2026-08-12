@@ -11,7 +11,8 @@ import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
 import { can, capForWrite, CAP } from './rbac';
 import { refreshRoleCache } from './roleStore';
-import { guardSignoffWrite, SIGNOFF_KEYS, type SignoffChange } from './signoff';
+import { guardSignoffWrite, signoffContextNeeds, SIGNOFF_KEYS, type SignoffChange, type SignoffContext } from './signoff';
+import { loadSignoffContext } from './signoffContext';
 import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
 import { redactFindings, redactFindingsWithReport, buildNarrationPrompt } from './llm/redact';
@@ -916,9 +917,16 @@ export const appRouter = router({
         if (SIGNOFF_KEYS.has(key)) {
           const prevDoc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
           const prevValue = prevDoc ? (JSON.parse(prevDoc.valueJson) as unknown) : null;
+          /* PRD prd-sa620-expert-gate-server PR-1 — sebagian aturan menanyakan dokumen
+             SAUDARA (gerbang pakar SA 620: `estimates.v1` + `expertEval.v1`). Pra-cek
+             MURNI menentukan perlu-tidaknya membacanya, sehingga suntingan isi kertas
+             kerja biasa — mayoritas tulisan `wpState` — tetap nol query tambahan. */
+          const needs = signoffContextNeeds(key, prevValue, input.value);
+          let signoffCtx: SignoffContext | undefined;
+          if (needs) signoffCtx = await loadSignoffContext(scope, scopeId, needs);
           signoffChanges = guardSignoffWrite(
             { id: ctx.user.id, name: ctx.user.name, role: ctx.user.role },
-            key, prevValue, input.value,
+            key, prevValue, input.value, undefined, signoffCtx,
           );
         }
         // Metadata-saja (slot+cap, BUKAN isi WP) untuk jejak audit reviu mutu.

@@ -22,8 +22,64 @@ import { decisionTimestampError } from '../../migration/src/aje_approval';
    dengan yang dipakai UI. Gerbang yang hidup di satu sisi saja adalah cara
    paling andal melahirkan celah (pelajaran #23, lalu quickSign). */
 import { wpChainViolations, signatureAttributionViolations } from '../../migration/src/wp_chain';
+/* PRD prd-sa620-expert-gate-server PR-1 — aturan gerbang pakar SA 620. Modul yang
+   SAMA dengan yang dibaca `useEstimateExpertGate`; alasan penolakan server dan hint
+   UI karenanya tak dapat menyimpang (K9). */
+import {
+  expertGateSignatureSlots, expertGateSignatureViolations,
+  type ExpertGateBearer,
+} from '../../migration/src/canon_expert_eval';
+import type { ExpertEvalState } from '../../migration/src/canon_expert_eval';
 
 export type SignoffChange = { what: string; cap: string };
+
+/* ============================================================
+   KONTEKS LINTAS-DOKUMEN (PRD prd-sa620-expert-gate-server · PR-1)
+   ------------------------------------------------------------
+   Sebagian aturan tidak dapat dijawab oleh dokumen yang sedang ditulis saja:
+   gerbang SA 620 menanyakan estimasi mana yang berjalur pakar (`estimates.v1`)
+   dan apa yang sudah dievaluasi (`expertEval.v1`) — dua StateDoc SAUDARA.
+
+   `guardSignoffWrite` tetap MURNI & SINKRON; pemanggil yang memasok konteksnya.
+   Menjadikan guard `async` + ber-Prisma akan menular ke seluruh berkas uji dan
+   mengawinkan modul aturan dengan lapisan data — persis yang dihindari
+   `wp_chain.ts`.
+   ============================================================ */
+
+export interface SignoffContextNeeds {
+  /** Kunci StateDoc pada scope YANG SAMA dengan tulisan. Tabel statis — tak pernah dari input klien. */
+  siblingKeys: readonly string[];
+  /** Koleksi lampiran DMS yang id hidupnya dibutuhkan (kosong sampai PR-3). */
+  attachmentCollections: readonly string[];
+}
+
+export interface SignoffContext {
+  /** Nilai ter-parse per kunci. Kunci yang TIDAK ADA di server sengaja absen di sini
+   *  (bukan `{}`), sehingga "dokumen tak pernah ditulis" dapat dibedakan dari "kosong". */
+  siblings: Record<string, unknown>;
+  liveAttachmentIds: Record<string, readonly string[]>;
+}
+
+const EXPERT_GATE_SIBLINGS = ['estimates.v1', 'expertEval.v1'] as const;
+
+/**
+ * Konteks yang dibutuhkan tulisan ini — `null` bila diff tak menyentuh apa pun
+ * yang digerbang lintas-dokumen. MURNI, dipanggil router SEBELUM guard.
+ */
+export function signoffContextNeeds(key: string, prev: unknown, next: unknown): SignoffContextNeeds | null {
+  if (key !== 'wpState') return null;
+  if (!expertGateSignatureSlots({ prev, next }).length) return null;
+  /* PR-1 menegakkan limb EVALUASI saja; limb dokumen menyala di PR-3 bersama
+     `attachmentCollections: ['sa540']`, sesudah `docUid` pindah ke DMS (PR-2). */
+  return { siblingKeys: EXPERT_GATE_SIBLINGS, attachmentCollections: [] };
+}
+
+/** Registri estimasi dari `estimates.v1` — `null` berarti dokumennya TAK ADA di server. */
+function readEstimateRegister(v: unknown): ExpertGateBearer[] | null {
+  if (!v || typeof v !== 'object') return null;
+  const reg = (v as { register?: unknown }).register;
+  return Array.isArray(reg) ? (reg as ExpertGateBearer[]) : [];
+}
 
 /* Tanda tangan/jejak otoritatif → string kanonik (urutan-kunci tak relevan).
    Menangkap bentuk wpState chain {by,at}, opini signoff {date}, dll. */
@@ -133,9 +189,18 @@ export interface SignoffActor {
  * pertanyaan "apakah tanda tangan ini menyebut orang yang membubuhkannya" tak
  * dapat ditanyakan sama sekali — untuk slot MANA PUN, bukan hanya preparer.
  */
-export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknown, next: unknown, now: number = Date.now()): SignoffChange[] {
+export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknown, next: unknown, now: number = Date.now(), ctx?: SignoffContext): SignoffChange[] {
   const role = actor.role;
   const changes: SignoffChange[] = [];
+  /* FAIL-CLOSED atas celah MEKANISME, bukan celah wewenang. Bila tulisan ini butuh
+     dokumen saudara dan pemanggil tak memasoknya, gerbangnya akan diam-diam lolos —
+     dan gerbang yang dapat dilewati dengan lupa memanggil bukan gerbang. Bukan
+     FORBIDDEN: ini cacat perkabelan server, dan melabelinya sebagai persoalan
+     wewenang akan mengirim auditor mengejar masalah izin yang tidak ada. */
+  const needs = signoffContextNeeds(key, prev, next);
+  if (needs && !ctx) {
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'expert-gate:context-missing' });
+  }
   const need = (cap: string, what: string) => {
     changes.push({ what, cap });
     if (!can(role, cap)) throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${cap}` });
@@ -166,6 +231,32 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
       prev, next, actor: { id: actor.id, name: actor.name }, now, skipOrderRefs: WP_MIRROR_REFS,
     })) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `${v.code}:wp:${v.ref}.${v.slot}: ${v.message}` });
+    }
+    /* GERBANG PAKAR SA 620 — hanya berjalan bila tulisan ini benar-benar memperoleh
+       tanda tangan pada ref yang digerbang (`needs` non-null). */
+    if (needs && ctx) {
+      const register = readEstimateRegister(ctx.siblings['estimates.v1']);
+      if (register === null) {
+        /* Q2 — FAIL-OPEN, TETAPI TERLIHAT. Registri hanya tersimpan setelah seseorang
+           menyuntingnya; tanpa dokumen itu server tak dapat melihat satu pun estimasi
+           berjalur SA 620. Membiarkannya lolos DIAM-DIAM akan menjadikan "jangan simpan
+           registri" sebagai bypass permanen yang tak berjejak. Penanda ini masuk detail
+           `AuditEvent`; padanan yang dilihat penandatangan ada di kertas kerjanya
+           (`useEstimateExpertGate().serverBlind`). */
+        changes.push({ what: 'expert-gate:no-register', cap: '' });
+      } else {
+        for (const v of expertGateSignatureViolations({
+          prev, next,
+          estimates: register,
+          expertEval: ctx.siblings['expertEval.v1'] as ExpertEvalState | undefined,
+          liveDocIds: ctx.liveAttachmentIds['sa540'],
+          /* PR-1: limb dokumen BELUM ditegakkan — lihat ExpertGateOptions.requireDocument. */
+          requireDocument: false,
+        })) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `${v.code}:${v.estimateId}: ${v.message}` });
+        }
+        changes.push({ what: 'expert-gate:pass', cap: '' });
+      }
     }
   } else if (key === 'opinionDoc.v1') {
     const p = asObj(prev), n = asObj(next);
