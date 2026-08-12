@@ -6,6 +6,7 @@ import { CAP } from './rbac';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { usePhaseGate, PhaseGateDialog, eqrStatusFor } from './wp_signoff';
+import { EQR_GATE_LABEL } from './canon_eqr_gate';
 import { wpSignatureStamp } from './wp_chain';
 import { useEthicsGate } from './ethics_gate';
 import { useMemberIndependenceGate } from './view_independence';
@@ -492,9 +493,15 @@ function OpinionSignoff({ doc, patch }: any) {
   const eqrRequired = !!activeClient?.listed;
   /* Q-02 (ISQM 2): ikat penerbitan opini ke penyelesaian EQR SUBSTANTIF di modul
      EQR (review.cleared), bukan sekadar centang `eqr` di rantai tanda tangan.
-     Berlaku bila klien PIE (wajib) ATAU ada review EQR utk engagement ini. */
-  const eqrGate = eqrStatusFor(activeEngagement?.id);
-  const eqrEnforced = eqrRequired || eqrGate.applicable;
+     Berlaku bila klien PIE (wajib) ATAU ada review EQR utk engagement ini.
+
+     Kewajiban PIE kini diteruskan KE DALAM gerbang (canon_eqr_gate), tidak lagi
+     di-OR-kan sesudahnya. Bentuk lama — `eqrRequired || gate.applicable` lalu
+     `!enforced || gate.cleared` — meloloskan klien PIE yang belum punya SATU PUN
+     baris EQR, karena cabang "tak ada baris" mengembalikan `cleared:true`.
+     Gerbang kini GAGAL-TERTUTUP: wajib tanpa penelaahan = tidak lolos. */
+  const eqrGate = eqrStatusFor(activeEngagement?.id, eqrRequired);
+  const eqrEnforced = eqrGate.applicable;
   const eqrSubstantiveDone = !eqrEnforced || eqrGate.cleared;
   /* `today` dulu konstanta '2026-03-14': SETIAP tanda tangan opini — dan setiap
      tanggal finalisasi — tercatat 14 Maret 2026, kapan pun ia dibubuhkan, oleh
@@ -629,7 +636,7 @@ function OpinionSignoff({ doc, patch }: any) {
               {eqrEnforced && <Pill ok={eqrGate.cleared} label="EQR (modul) lolos" />}
             </div>
             {!doc.finalized && eqrEnforced && !eqrGate.cleared && (
-              <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.shield size={12} /> Penelaahan Mutu Perikatan (EQR) belum lolos gerbang di modul EQR — wajib selesai sebelum opini diterbitkan (ISQM 2 ¶19–36).</div>
+              <div className="tiny" style={{ color: eqrGate.reason === 'missing-review' ? 'var(--red)' : 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.shield size={12} /> {EQR_GATE_LABEL[eqrGate.reason]} Wajib selesai sebelum opini diterbitkan (ISQM 2 ¶19–36).</div>
             )}
             {!doc.finalized && !canApprove && (
               <div className="tiny" style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><I.lock size={12} /> Hanya Engagement Partner yang dapat menerbitkan opini (ditegakkan di server).</div>

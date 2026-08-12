@@ -12,6 +12,9 @@
    Bukti memakai store evidence global (per-modul) yg sudah ada.
    ============================================================ */
 import React from 'react';
+import { AMS } from './data';
+import { eqrGateFor, eqrGateDetail, type EqrGate, type EqrReviewRow } from './canon_eqr_gate';
+import { readPersisted } from './persist_scope';
 import { useAudit, useAuditHeavy, useAuth, useFirm, useNav } from './contexts';
 import { engagementEntryGate, engagementEntryContext } from './engagement_entry_gate';
 import { CAP } from './rbac';
@@ -496,27 +499,31 @@ function opinionFinalized(firm: any) {
    utk engagement tsb (gerbang relevan); `cleared`=true bila SEMUA review-nya
    lolos gerbang (checklist tuntas + tak ada temuan terbuka). Mengikat penerbitan
    opini & pengarsipan ke penyelesaian EQR substantif — bukan sekadar centang. */
-type EqrReview = { eng?: string; cleared?: boolean };
-function eqrReviewsLS(): EqrReview[] {
-  try {
-    /* eqrReviews.v2 firm-scoped (registry lintas-engagement, tak di AMS_PERSIST_SCOPE)
-       → cacheKey W6 'ams.v1.firm.<FIRM-WHR>.eqrReviews.v2'. Pembaca ini dulu menunjuk
-       key legacy pra-W6 'ams.v1.eqrReviews.v2' yg tak ditulis pasca-W6 → basi (bug laten,
-       sekelas pembaca opinionDoc). FIRM_SCOPE_ID konstan demo single-firm. */
-    const raw = localStorage.getItem('ams.v1.firm.FIRM-WHR.eqrReviews.v2');
-    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) return d as EqrReview[]; }
-  } catch (e) { /* localStorage/JSON gagal → pakai seed */ }
-  try {
-    const w = window as unknown as { AMS?: { EQR_REVIEWS?: EqrReview[] } };
-    return (w.AMS && w.AMS.EQR_REVIEWS) || [];
-  } catch (e) { return []; }
+/* Registri EQR dari pembaca persist BERSAMA (tier perikatan → firma → legacy),
+   bukan kunci localStorage ber-firm-id hardcode. `FIRM_SCOPE_ID` kini datang dari
+   `persist_scope` — satu konstanta, bukan literal yang menyimpang diam-diam. */
+function eqrReviewsPersisted(): EqrReviewRow[] {
+  const seed = ((AMS as { EQR_REVIEWS?: EqrReviewRow[] }).EQR_REVIEWS) || [];
+  const v = readPersisted<EqrReviewRow[]>('eqrReviews.v2', seed);
+  return Array.isArray(v) ? v : seed;
 }
-function eqrStatusFor(engId: string | null | undefined) {
-  if (!engId) return { applicable: false, cleared: true, count: 0, clearedCount: 0 };
-  const list = eqrReviewsLS().filter((r) => !!r && r.eng === engId);
-  if (!list.length) return { applicable: false, cleared: true, count: 0, clearedCount: 0 };
-  const clearedCount = list.filter((r) => !!r.cleared).length;
-  return { applicable: true, cleared: clearedCount === list.length, count: list.length, clearedCount };
+
+/** EQR wajib untuk perikatan ini? SSOT `engMeta().pie` — sama dengan `client.listed`. */
+function eqrRequiredFor(engId: string | null | undefined): boolean {
+  if (!engId) return false;
+  const meta = (AMS as { engMeta?: (id: string) => { pie?: boolean } | null }).engMeta;
+  if (typeof meta !== 'function') return false;
+  const m = meta(engId);
+  return !!(m && m.pie);
+}
+
+/* Aturan gerbang ada di `canon_eqr_gate` (murni & ber-uji). Fungsi ini hanya
+   adapter data. Sebelumnya cabang "tak ada baris EQR" mengembalikan
+   `cleared:true`, sehingga perikatan PIE tanpa satu pun penelaahan LOLOS —
+   lihat kepala berkas kanon. */
+function eqrStatusFor(engId: string | null | undefined, required?: boolean): EqrGate {
+  const req = required != null ? required : eqrRequiredFor(engId);
+  return eqrGateFor(engId, eqrReviewsPersisted(), req);
 }
 
 /* engagementGate — daftar prasyarat transisi ke fase berikutnya.
@@ -595,7 +602,7 @@ function engagementGate(audit: any, firm: any, opts: any) {
     const eqr = eqrStatusFor(firm && firm.activeEngagementId);
     if (eqr.applicable) {
       criteria.push({ key: 'eqrCleared', label: 'Penelaahan mutu perikatan (EQR) lolos gerbang (ISQM 2)',
-        met: eqr.cleared, detail: `${eqr.clearedCount}/${eqr.count} EQR lolos gerbang`, view: 'eqr' });
+        met: eqr.cleared, detail: eqrGateDetail(eqr), view: 'eqr' });
     }
   }
   const blockers = criteria.filter(c => !c.met);

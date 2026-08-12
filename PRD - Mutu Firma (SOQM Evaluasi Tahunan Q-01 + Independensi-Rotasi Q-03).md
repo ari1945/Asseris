@@ -1,6 +1,7 @@
 # PRD — Mutu Firma: Evaluasi Tahunan SOQM (Q-01) + Independensi & Rotasi (Q-03)
 
-> **Status:** **Draft** — merancang, belum membangun
+> **Status:** **Superseded** — digantikan `PRD - Kesiapan Pemeriksaan P2PK (SPM 1 & SPM 2 Auditable).md` (2026-08-12).
+> Asumsi dasarnya (`useFirmAttest` belum ada) terbukti salah; cakupan gap jauh lebih dalam.
 > Stream: track "Mutu firma" dari [[asseris-gap-matrix-eval]] (lanjutan quick-win commit `138d7d6`).
 > Acuan gap: `Asseris - Matriks Gap SAK SPAP ISQM.xlsx` temuan **Q-01 (ISQM 1)** & **Q-03 (ISQM 1 / Kode Etik IAPI)** — keduanya severitas **Tinggi**.
 > Sifat artefak: **level FIRMA** (bukan engagement-WP) → TIDAK memakai `wpState`/`WP_MODULE_MAP`; memakai `useAmsPersist` (server-backed pasca-W6), pola sama `soqmRisks`.

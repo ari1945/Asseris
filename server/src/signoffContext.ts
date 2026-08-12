@@ -22,7 +22,7 @@ import type { SignoffContext, SignoffContextNeeds } from './signoff';
  * berlaku sama untuk pembacaan ini.
  */
 export async function loadSignoffContext(
-  scope: string, scopeId: string, needs: SignoffContextNeeds,
+  scope: string, scopeId: string, needs: SignoffContextNeeds, firmId?: string | null,
 ): Promise<SignoffContext> {
   const siblings: Record<string, unknown> = {};
   if (needs.siblingKeys.length) {
@@ -38,10 +38,27 @@ export async function loadSignoffContext(
       if (parsed !== null && parsed !== undefined) siblings[r.key] = parsed;
     }
   }
+  /* Registri ber-scope FIRMA (lintas-perikatan). `firmId` datang dari sesi, tak pernah
+     dari input klien; tulisan firm-scope sendiri sudah dipagari `assertStateDocRead`
+     (scopeId === reader.firmId), sehingga pembacaan ini tak memperluas jangkauan
+     siapa pun. Tanpa `firmId` peta dibiarkan KOSONG — dan aturan yang membutuhkannya
+     akan gagal-tertutup, bukan diam-diam lolos. */
+  const firmSiblings: Record<string, unknown> = {};
+  const firmKeys = needs.firmSiblingKeys || [];
+  if (firmKeys.length && firmId) {
+    const rows = await prisma.stateDoc.findMany({
+      where: { scope: 'firm', scopeId: firmId, key: { in: [...firmKeys] } },
+      select: { key: true, valueJson: true },
+    });
+    for (const r of rows) {
+      const parsed: unknown = JSON.parse(r.valueJson);
+      if (parsed !== null && parsed !== undefined) firmSiblings[r.key] = parsed;
+    }
+  }
   const liveAttachmentIds: Record<string, readonly string[]> = {};
   for (const collection of needs.attachmentCollections) {
     const metas = await listAttachments(scope, scopeId, collection);
     liveAttachmentIds[collection] = metas.map((m) => m.id);
   }
-  return { siblings, liveAttachmentIds };
+  return { siblings, liveAttachmentIds, firmSiblings, scope, scopeId };
 }
