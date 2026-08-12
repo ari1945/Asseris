@@ -15,7 +15,12 @@ Perjalanan end-to-end yang menembak stack NYATA (Postgres + server tRPC + SPA ha
    append-only + event `STATE_SET` berantai (hash-chain terverifikasi).
 6. **Budget hidrasi frontend (Tahap 8)** — login fresh → aplikasi siap dalam
    budget waktu (CI), mencegah regresi boot.
-7. **Aksesibilitas & smoke keyboard (Tahap 9)** — pemindaian axe (0 pelanggaran
+7. **Gerbang pakar SA 620 (PRD prd-sa620-expert-gate-server)** — `state.set` ditembak
+   LANGSUNG, tanpa menyentuh UI: tanda tangan SA 540 ditolak saat evaluasi pakar belum
+   4/4, saat laporan pakar tak ditautkan, saat tautannya warisan (uid localStorage), dan
+   sesudah dokumennya dicabut dari DMS; diterima saat dokumennya hidup; pencabutan tanda
+   tangan tetap boleh.
+8. **Aksesibilitas & smoke keyboard (Tahap 9)** — pemindaian axe (0 pelanggaran
    impact `critical` di login/Beranda/Dashboard/Pengaturan) + smoke navigasi
    keyboard: Tab, fokus, Space men-toggle switch native, Escape menutup menu.
 

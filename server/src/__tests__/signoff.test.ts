@@ -494,12 +494,15 @@ describe('guardSignoffWrite — gerbang pakar SA 620 (wpState.sa540)', () => {
       { id: 'E-01', name: 'CKPN', approach: 'Rentang independen' },
     ],
   };
-  /** Konteks seperti yang dimuat `loadSignoffContext` dari StateDoc saudara. */
-  const ctxWith = (estimates: unknown, expertEval: unknown): SignoffContext => {
+  /** Id lampiran DMS yang HIDUP (PR-3) — `docUid` menunjuk ke sini. */
+  const DOC = 'att-9f2c';
+  const FULL_DOC = { ...FULL, docUid: DOC };
+  /** Konteks seperti yang dimuat `loadSignoffContext` (StateDoc saudara + lampiran hidup). */
+  const ctxWith = (estimates: unknown, expertEval: unknown, liveDocs: string[] = [DOC]): SignoffContext => {
     const siblings: Record<string, unknown> = {};
     if (estimates !== undefined) siblings['estimates.v1'] = estimates;
     if (expertEval !== undefined) siblings['expertEval.v1'] = expertEval;
-    return { siblings, liveAttachmentIds: {} };
+    return { siblings, liveAttachmentIds: { sa540: liveDocs } };
   };
   const EMPTY = { sa540: { chain: {} } };
   const signedBySenior = { sa540: { chain: { preparer: sigBy(SENIOR) } } };
@@ -519,20 +522,37 @@ describe('guardSignoffWrite — gerbang pakar SA 620 (wpState.sa540)', () => {
       .toThrow(/Imbalan Kerja — Evaluasi SA 500 ¶8 belum tuntas \(0\/4\)/);
   });
 
-  it('evaluasi 4/4 → lolos, dan hasil gerbang masuk jejak audit (K8)', () => {
-    expect(guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, { 'E-04': FULL })))
+  it('evaluasi 4/4 + laporan pakar HIDUP di DMS → lolos, hasil gerbang masuk jejak audit (K8)', () => {
+    expect(guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, { 'E-04': FULL_DOC })))
       .toEqual([{ what: 'wp:sa540.preparer', cap: CAP.WP_EDIT }, { what: 'expert-gate:pass', cap: '' }]);
   });
 
+  /* PR-3 — limb DOKUMEN. Sebelum PR ini ketiga keadaan di bawah lolos server. */
+  it('K3 — evaluasi 4/4 tetapi laporan pakar TAK DITAUTKAN → ditolak', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, { 'E-04': FULL })))
+      .toThrow(/belum ditautkan dari DMS/);
+  });
+
+  it('K4 — dokumen yang ditautkan sudah DICABUT dari DMS → ditolak', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, { 'E-04': FULL_DOC }, [])))
+      .toThrow(/tidak lagi ada di DMS perikatan \(dicabut\)/);
+  });
+
+  it('Q1 — tautan WARISAN ditolak tanpa grandfathering, dengan sebabnya sendiri', () => {
+    const legacy = { ...FULL, docUid: 'ev-1754976000000-4821' };
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, { 'E-04': legacy })))
+      .toThrow(/Tautan warisan .* unggah ulang/);
+  });
+
   it('3/4 langkah tetap ditolak', () => {
-    const partial = { 'E-04': { competence: true, objectivity: true, scope: true } };
+    const partial = { 'E-04': { competence: true, objectivity: true, scope: true, docUid: DOC } };
     expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, partial)))
       .toThrow(/3\/4/);
   });
 
   it('K5 — PENCABUTAN tanda tangan tidak pernah digerbang', () => {
     expect(() => guardSignoffWrite(
-      SENIOR, 'wpState', signedBySenior, EMPTY, NOW, ctxWith(REGISTER, {}),
+      SENIOR, 'wpState', signedBySenior, EMPTY, NOW, ctxWith(REGISTER, {}, []),
     )).not.toThrow();
   });
 
@@ -573,7 +593,7 @@ describe('guardSignoffWrite — gerbang pakar SA 620 (wpState.sa540)', () => {
   it('kebutuhan konteks menyebut KEDUA dokumen saudara', () => {
     const needs = signoffContextNeeds('wpState', EMPTY, signedBySenior);
     expect(needs?.siblingKeys).toEqual(['estimates.v1', 'expertEval.v1']);
-    /* PR-1: limb dokumen belum menyala — tak ada koleksi lampiran yang dibaca. */
-    expect(needs?.attachmentCollections).toEqual([]);
+    /* PR-3: koleksi lampiran laporan pakar ikut dimuat. */
+    expect(needs?.attachmentCollections).toEqual(['sa540']);
   });
 });

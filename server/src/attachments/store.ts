@@ -11,6 +11,35 @@ import { writeBlob, readBlob } from './blobStore';
 export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const MAX_SCOPE_BYTES = 50 * 1024 * 1024;
 
+/* PRD prd-sa620-expert-gate-server Q4 — batas per-berkas PER KOLEKSI.
+   ------------------------------------------------------------
+   Laporan penilaian KJPP berfoto rutin melampaui 10 MB. Sejak gerbang pakar SA 620
+   menuntut laporan itu ADA di DMS sebelum kertas kerja dapat ditandatangani, batas yang
+   terlalu ketat tidak lagi sekadar merepotkan: ia membuat gerbang TAK DAPAT DIPUASKAN,
+   dan gerbang yang tak dapat dipuaskan akan diakali, bukan dipatuhi.
+
+   Dinaikkan HANYA untuk koleksi yang isinya memang besar secara sah — bukan global,
+   karena batas 10 MB tetap benar untuk bukti audit pada umumnya.
+
+   ANGKA INI TERIKAT `MAX_REQUEST_BODY_BYTES`: unggahan dikirim sebagai base64 (+33%),
+   jadi 20 MB → ~26,7 MB di kawat, plus amplop JSON. Menaikkannya lebih jauh menuntut
+   pelonggaran batas badan permintaan melampaui plafon 32 MB yang ditetapkan tripwire
+   Tahap 3 — itu keputusan pengerasan tersendiri, bukan efek samping PRD ini. Laporan
+   di atas 20 MB karenanya masih ditolak, dengan pesan yang menyebut batasnya. */
+export const COLLECTION_MAX_FILE_BYTES: Record<string, number> = {
+  sa540: 20 * 1024 * 1024,
+};
+
+/** Batas per-berkas yang BERLAKU untuk sebuah koleksi. */
+export function maxFileBytesFor(collection: string): number {
+  return COLLECTION_MAX_FILE_BYTES[collection] ?? MAX_FILE_BYTES;
+}
+
+/** Berkas terbesar yang dapat diterima koleksi mana pun — dasar invarian amplop HTTP. */
+export const LARGEST_FILE_BYTES = Math.max(
+  MAX_FILE_BYTES, ...Object.values(COLLECTION_MAX_FILE_BYTES),
+);
+
 // Allow-list mirrors the client EV_ALLOW (evidence.tsx) — audit-relevant document/image types.
 export const ALLOWED_EXT = ['pdf', 'xlsx', 'xls', 'docx', 'doc', 'csv', 'png', 'jpg', 'jpeg', 'txt'];
 
@@ -80,8 +109,9 @@ export async function createAttachment(input: CreateInput): Promise<AttachmentMe
   if (extOf(input.name) && !ALLOWED_EXT.includes(extOf(input.name))) {
     throw new AttachmentError('bad-type', `jenis berkas tak diizinkan: .${extOf(input.name)}`);
   }
-  if (size > MAX_FILE_BYTES) {
-    throw new AttachmentError('too-big', `berkas ${(size / 1048576).toFixed(1)} MB > batas ${MAX_FILE_BYTES / 1048576} MB`);
+  const maxFile = maxFileBytesFor(input.collection);
+  if (size > maxFile) {
+    throw new AttachmentError('too-big', `berkas ${(size / 1048576).toFixed(1)} MB > batas ${maxFile / 1048576} MB`);
   }
   // Integrity: recompute SHA-256 from the actual bytes and require the client's claim to match.
   // A mismatch means the bytes and the claimed hash disagree — reject rather than store a lie.

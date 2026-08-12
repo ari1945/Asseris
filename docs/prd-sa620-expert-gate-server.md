@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | In Progress — "Proceed." 2026-08-12; **PR-1 & PR-2 terkirim & terverifikasi hidup**; PR-3 belum |
+| Status | In Progress — PR-1·PR-2·PR-3 terkirim & live-verified; **Q1–Q4 semua terjawab**; menunggu merge & tinjauan visual |
 | Tanggal | 2026-08-12 |
 | Arc | Lanjutan arc estimasi terfalsifikasi ([`prd-estimasi-terfalsifikasi.md`](prd-estimasi-terfalsifikasi.md), #182–#187) — menutup utang yang PRD itu catat sendiri di §9a |
 | Basis | master `774412a` · 8/8 gerbang hijau · nol PR terbuka · 1.250 uji frontend |
@@ -325,6 +325,58 @@ Keadaan perikatan dipulihkan (E-04 tanpa `docUid`, nol lampiran hidup).
 
 ---
 
+## 10c. Hasil pelaksanaan PR-3 (2026-08-12)
+
+`npm run verify` 8/8 hijau. Uji server 391 → **397**.
+
+Limb dokumen dinyalakan: `signoffContextNeeds` kini meminta koleksi lampiran `sa540`,
+`loadSignoffContext` membaca DMS lewat `listAttachments` (yang menyaring `deletedAt`), dan
+`requireDocument` menjadi `true` di server. Keputusan **Q1 terpasang tanpa grandfathering**:
+tautan warisan ditolak dengan sebabnya sendiri — "unggah ulang", bukan "dokumen tak
+ditemukan", karena tindakan yang dituntut berbeda.
+
+Spek e2e baru [`08-sa620-expert-gate.spec.ts`](../e2e/tests/08-sa620-expert-gate.spec.ts)
+menembak `state.set` **tanpa menyentuh UI sama sekali**.
+
+### Dua cacat UJI yang ditemukan probe hidup, bukan oleh suite
+
+**1. Assertion penolakan yang VAKUM.** `expect(p).rejects.toMatchObject({ code, message })`
+tidak pernah memeriksa `message`: properti itu **non-enumerable** pada `Error`. Dibuktikan
+dengan menyetel regex ke `/PROBE-SENGAJA-SALAH/` — uji tetap **lulus**. Pola ini dipakai di
+seluruh `signoff_integration.test.ts`, termasuk uji-uji yang sudah ada sebelum arc ini.
+Diganti helper `expectRejected(p, code, message)` yang memeriksa keduanya secara eksplisit
+dan gagal bila tulisannya justru berhasil. Setelah dikonversi, seluruh assertian lama tetap
+lulus — jadi substansinya benar; yang salah adalah bahwa ia tak pernah benar-benar diuji.
+
+**2. Uji K4 ditolak oleh aturan yang SALAH.** Ia menandatangani `preparer` lalu `reviewer`
+dengan aktor yang sama, sehingga ditolak `signature-self-review` (ISQM 2) **sebelum** gerbang
+pakar sempat bicara — uji yang lulus tanpa pernah menguji hal yang diklaimnya. Tertutup rapat
+oleh cacat (1). Diperbaiki dengan mencabut tanda tangan lebih dulu lalu mencoba slot yang
+SAMA. Jebakan yang sama sudah ada di spek e2e yang saya tulis dan ikut diperbaiki sebelum
+dikirim.
+
+### Verifikasi hidup (ENG-2025-014, tRPC melewati UI)
+
+| Probe | Hasil |
+|---|---|
+| K3 — evaluasi 4/4, dokumen tak ditautkan | **403** `… Laporan pakar belum ditautkan dari DMS perikatan` |
+| Q1 — `docUid` warisan `ev-…` | **403** `… Tautan warisan … unggah ulang laporan pakar ke DMS perikatan` |
+| Dokumen HIDUP di DMS → tanda tangan | **200** |
+| K5 — cabut tanda tangan saat dokumen sudah dicabut | **200** — gerbang tak menjebak WP |
+| K4 — tanda tangan BARU sesudah dokumen dicabut | **403** `… tidak lagi ada di DMS perikatan (dicabut)` |
+
+Keadaan perikatan dipulihkan (E-04 0/4, tanpa `docUid`, rantai kosong, nol lampiran hidup).
+
+**Batas jujur (ditutup di CI):** spek e2e tak dapat dijalankan di mesin ini — Postgres/Docker
+tak tersedia — sehingga kebenarannya semula hanya diperiksa terhadap tanda tangan helper &
+skema `attachment.upload`, plus perbaikan jebakan self-review dari probe hidup. **Job
+Playwright pada [PR #190](https://github.com/ari1945/Asseris/pull/190) kemudian menjalankannya
+di atas Postgres nyata dan HIJAU** — validasi itu kini nyata, bukan diasumsikan.
+
+**Utang PR-3:** tinjauan visual Ari belum dilakukan untuk keseluruhan arc.
+
+---
+
 ## 11. Open Questions — SEMUA TERJAWAB
 
 > Ari menjawab ketiganya (2026-08-12) sesuai rekomendasi: **Q1 = blokir tanpa
@@ -350,7 +402,33 @@ Keadaan perikatan dipulihkan (E-04 tanpa `docUid`, nol lampiran hidup).
 > Q3 juga menyederhanakan K5: karena seluruh slot digerbang, aturan "pencabutan tak
 > pernah digerbang" berlaku seragam — tak ada slot yang perlu perlakuan khusus.
 
-## 12. Pertanyaan BARU dari pelaksanaan
+## 12. Pertanyaan BARU dari pelaksanaan — TERJAWAB
+
+> **Ari 2026-08-12: naikkan batas berkas untuk SA 540.** Terimplementasi & terverifikasi
+> hidup sebagai bagian PR-3.
+>
+> **Yang dikerjakan:** batas per-berkas menjadi PER-KOLEKSI (`COLLECTION_MAX_FILE_BYTES`);
+> `sa540` = **20 MB**, koleksi lain tetap 10 MB. Kenaikannya tidak bocor ke mana pun.
+>
+> **Ketergantungan yang muncul saat dikerjakan, dan mengapa 20 MB bukan 40 MB.** Unggahan
+> dikirim base64 (+33%), jadi batas berkas terikat `MAX_REQUEST_BODY_BYTES`. Pada 16 MB,
+> berkas 15 MB pun tertolak **413 sebelum pengecekan ukuran sempat bicara** — batas yang
+> tampak naik tetapi tak dapat dipakai. Amplop HTTP karenanya dinaikkan 16 → **32 MB**,
+> yakni PLAFON yang memang sudah disanksikan tripwire Tahap 3
+> (`stage3_deployment_blockers.test.ts` menuntut `≤ 32 MB`): batas ini bergerak DI DALAM
+> amplop yang ditetapkan pengerasan sebelumnya, bukan melonggarkannya. Melewati 20 MB
+> menuntut plafon itu sendiri dinaikkan — keputusan pengerasan tersendiri, bukan efek
+> samping PRD ini. Invarian tripwire diubah agar memakai berkas TERBESAR yang dapat
+> diterima koleksi mana pun, sehingga kenaikan koleksi berikutnya tak dapat lagi
+> menyelinap melewati amplop HTTP secara diam-diam.
+>
+> **Yang TIDAK diubah:** kuota agregat 50 MB/perikatan. Dengan berkas 20 MB ia masih
+> memuat dua laporan pakar; menaikkannya adalah keputusan biaya penyimpanan yang belum
+> ada pemicunya.
+>
+> **Terverifikasi hidup:** `sa540` 15 MB → **200** (sebelumnya mustahil, dua batas
+> sekaligus menghalanginya) · `dms` 15 MB → **400** `batas 10 MB` (tak bocor) ·
+> `sa540` 21 MB → **400** `batas 20 MB` (masih berbatas).
 
 **Q4 — Batas ukuran DMS (mengunci kelayakan gerbang di dunia nyata).** 10 MB/berkas & 50 MB/perikatan ditetapkan di PRD lain. Laporan KJPP berfoto rutin melampaui 10 MB; bila itu terjadi, gerbang PR-3 menjadi **tak dapat dipuaskan** dan tim akan mencari jalan memutar. Pilihan: (a) biarkan, tangani per kasus; (b) naikkan batas per-berkas untuk `collection:'sa540'` saja; (c) naikkan batas global. Rekomendasi saya: **(b)** — ia menyelesaikan kasus yang menghalangi tanpa melonggarkan penyimpanan firma secara umum. Butuh keputusan Anda sebelum PR-3 dianggap tuntas.
 

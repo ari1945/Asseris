@@ -4,7 +4,7 @@ import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
-import { MAX_FILE_BYTES } from '../attachments/store';
+import { MAX_FILE_BYTES, maxFileBytesFor } from '../attachments/store';
 
 /* F0.1 (PRD 2026-07-19) — real file storage. These pin the SECURITY + INTEGRITY properties the
    old metadata-only "upload" never had: real bytes round-trip, server-side SHA-256 verification
@@ -76,6 +76,42 @@ describe('integrity — checksum is verified against the bytes', () => {
 });
 
 describe('quota — per-file size limit enforced on measured bytes', () => {
+  /* PRD prd-sa620-expert-gate-server Q4 — batas per-KOLEKSI. Gerbang pakar SA 620
+     menuntut laporan pakar ADA di DMS sebelum kertas kerja dapat ditandatangani; batas
+     yang lebih ketat daripada laporan KJPP nyata akan membuat gerbang itu tak dapat
+     dipuaskan. Yang dinaikkan HANYA koleksi `sa540`. */
+  it('koleksi sa540 MENERIMA berkas di atas batas global (laporan pakar KJPP)', async () => {
+    const big = Buffer.alloc(MAX_FILE_BYTES + 1024, 0x41); // 10 MB + 1 KB
+    const meta = await callerAs('Junior Auditor', JR).attachment.upload({
+      scope: 'engagement', scopeId: ENG_A, collection: 'sa540',
+      name: 'Laporan KJPP.pdf', sha256: createHash('sha256').update(big).digest('hex'),
+      dataBase64: big.toString('base64'),
+    });
+    expect(meta.size).toBe(big.length);
+  });
+
+  it('koleksi LAIN tetap ditolak pada batas global — kenaikannya tidak bocor', async () => {
+    const big = Buffer.alloc(MAX_FILE_BYTES + 1024, 0x41);
+    await expect(
+      callerAs('Junior Auditor', JR).attachment.upload({
+        scope: 'engagement', scopeId: ENG_A, collection: 'dms',
+        name: 'besar.pdf', sha256: createHash('sha256').update(big).digest('hex'),
+        dataBase64: big.toString('base64'),
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
+  it('sa540 TETAP punya batas — berkas di atas batas koleksinya ditolak', async () => {
+    const over = Buffer.alloc(maxFileBytesFor('sa540') + 1024, 0x41);
+    await expect(
+      callerAs('Junior Auditor', JR).attachment.upload({
+        scope: 'engagement', scopeId: ENG_A, collection: 'sa540',
+        name: 'terlalu-besar.pdf', sha256: createHash('sha256').update(over).digest('hex'),
+        dataBase64: over.toString('base64'),
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
   it('rejects a file over MAX_FILE_BYTES', async () => {
     const big = Buffer.alloc(MAX_FILE_BYTES + 1, 0x41); // 10 MB + 1
     await expect(

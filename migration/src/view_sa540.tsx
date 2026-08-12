@@ -21,7 +21,7 @@ import {
 import type { ViuParams } from './canon_viu';
 import { retrospectiveSummary, type Retrospective } from './canon_retrospective';
 import { amsAttachEvidence, FileDropField } from './evidence';
-import { isLegacyDocUid, uploadExpertDoc, useExpertDocs, type DropMeta, type ExpertDoc } from './expert_docs';
+import { EXPERT_DOC_MAX_MB, isLegacyDocUid, uploadExpertDoc, useExpertDocs, type DropMeta, type ExpertDoc } from './expert_docs';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 
@@ -456,7 +456,7 @@ function docName(docs: ExpertDoc[], uid?: string) {
     : 'tautan putus — dokumen tak ada lagi di DMS';
 }
 
-/** Ukuran manusiawi; laporan pakar kerap besar dan batasnya nyata (10 MB/berkas). */
+/** Ukuran manusiawi; laporan pakar kerap besar dan batasnya nyata (lihat EXPERT_DOC_MAX_MB). */
 function docSize(bytes: number) {
   return bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
 }
@@ -575,7 +575,7 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
                 {!locked && (
                   <div style={{ marginTop: 8 }}>
                     <FileDropField compact multiple={false}
-                      hint={`Unggah laporan pakar ke DMS perikatan — PDF · XLSX · DOCX, maks 10 MB`}
+                      hint={`Unggah laporan pakar ke DMS perikatan — PDF · XLSX · DOCX, maks ${EXPERT_DOC_MAX_MB} MB`}
                       onFiles={(files: DropMeta[]) => {
                         const f = files && files[0];
                         if (!f) return;

@@ -1,9 +1,15 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 // Deployment hardening: cap both the transport envelope and each persisted StateDoc.
-// A 10 MiB attachment expands to ~13.34 MiB as base64, so the HTTP ceiling leaves enough
-// room for JSON/tRPC metadata while still preventing an unbounded request from reaching parsers.
-export const MAX_REQUEST_BODY_BYTES = 16 * 1024 * 1024;
+// A base64 attachment expands ~33%, so the HTTP ceiling must clear the LARGEST per-collection
+// file limit (see COLLECTION_MAX_FILE_BYTES) plus room for JSON/tRPC metadata, while still
+// preventing an unbounded request from reaching parsers.
+//
+// PRD prd-sa620-expert-gate-server Q4 — dinaikkan 16 → 32 MiB karena laporan pakar SA 540
+// kini boleh 20 MiB (~26,7 MiB sebagai base64). 32 MiB adalah PLAFON yang memang sudah
+// disanksikan tripwire Tahap 3 (`stage3_deployment_blockers.test.ts`), bukan pelonggaran
+// baru: batas ini bergerak DI DALAM amplop yang sudah ditetapkan pengerasan sebelumnya.
+export const MAX_REQUEST_BODY_BYTES = 32 * 1024 * 1024;
 export const MAX_STATE_DOC_BYTES = 5 * 1024 * 1024;
 
 /** Fast-path declared oversized requests before tRPC starts parsing the stream. The tRPC
