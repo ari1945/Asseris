@@ -21,6 +21,7 @@ import { amsEvidenceCount } from './evidence';
 import { finalisationGateCriteria } from './engagement_phase_gate';
 import { checkWtbIntegrity } from './wtb_integrity';
 import { useEthicsGate } from './ethics_gate';
+import { useEstimateExpertGate } from './estimate_gate';
 import { wpToday } from './wp_canon';
 
 const { useState: useStateWPS } = React;
@@ -227,7 +228,13 @@ function WpSignoff({ moduleId }: any) {
   const hasConclusion = !!(conclusion && conclusion.text);
   /* #3 — blokir pembubuhan tanda tangan bila deklarasi Kode Etik/AML penanda tangan belum sah. */
   const eg = useEthicsGate();
-  const doSign = (level: any) => { if (eg.blocked) return; sign(level); };
+  /* PR-5 · butir 20 — kertas kerja estimasi tak boleh ditandatangani selama ada
+     estimasi ber-jalur SA 620 yang pekerjaan pakarnya belum dievaluasi atau
+     dokumennya belum ada di bukti. Pola & lapisan penegakan sama dgn gerbang etik. */
+  const xg = useEstimateExpertGate(moduleId);
+  const barred = eg.blocked || xg.blocked;
+  const barHint = eg.blocked ? 'deklarasi Kode Etik/AML belum sah' : (xg.blocked ? xg.hint : undefined);
+  const doSign = (level: any) => { if (barred) return; sign(level); };
   const Line = ({ role, who, onSign, onUnsign, canSign, noAuthHint }: any) => (
     <div className="row ac gap8" style={{ padding: '7px 0' }}>
       <span style={{ width: 24, height: 24, borderRadius: '50%', flex: '0 0 24px', display: 'grid', placeItems: 'center',
@@ -251,9 +258,21 @@ function WpSignoff({ moduleId }: any) {
           <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}><I.lock size={11} style={{ verticalAlign: -1, color: 'var(--red)' }} /> Tanda tangan dinonaktifkan — {eg.reason} ({eg.name}). Lengkapi <b>Deklarasi Kode Etik &amp; AML/PMPJ</b> tahunan; Partner dapat memberi pengecualian sementara di modul Kode Etik.</div>
         </div>
       )}
-      <Line role="Preparer" who={preparer} canSign={!eg.blocked} onSign={() => doSign('preparer')} onUnsign={() => unsign('preparer')} noAuthHint={eg.blocked ? 'deklarasi Kode Etik/AML belum sah' : undefined} />
+      {xg.blocked && !eg.blocked && (
+        <div className="panel" style={{ padding: '8px 10px', marginBottom: 8, background: 'var(--amber-bg)', borderColor: 'transparent' }}>
+          <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45, marginBottom: 4 }}>
+            <I.lock size={11} style={{ verticalAlign: -1, color: 'var(--amber)' }} /> Tanda tangan dinonaktifkan — estimasi berikut bersandar pada pekerjaan pakar yang belum tuntas dievaluasi (SA 500 ¶8 · SA 620):
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11, lineHeight: 1.5 }}>
+            {xg.blockers.map(b => (
+              <li key={b.id}><b className="mono">{b.id}</b> {b.name} — {b.reasons.join('; ')}.</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <Line role="Preparer" who={preparer} canSign={!barred} onSign={() => doSign('preparer')} onUnsign={() => unsign('preparer')} noAuthHint={barHint} />
       <div style={{ borderTop: '1px solid var(--line-soft)' }} />
-      <Line role="Reviewer" who={reviewer} canSign={!!preparer && canReview && !eg.blocked} noAuthHint={eg.blocked ? 'deklarasi Kode Etik/AML belum sah' : (!canReview ? 'menunggu otoritas berwenang (reviewer)' : 'menunggu preparer')} onSign={() => doSign('reviewer')} onUnsign={() => unsign('reviewer')} />
+      <Line role="Reviewer" who={reviewer} canSign={!!preparer && canReview && !barred} noAuthHint={barHint || (!canReview ? 'menunggu otoritas berwenang (reviewer)' : 'menunggu preparer')} onSign={() => doSign('reviewer')} onUnsign={() => unsign('reviewer')} />
       {!hasConclusion && (
         reviewer
           ? <div className="tiny" style={{ marginTop: 6, color: 'var(--amber)', fontWeight: 600 }}><I.alert size={11} /> Ditelaah tanpa kesimpulan terdokumentasi (SA 230) — lengkapi di bawah.</div>

@@ -19,6 +19,8 @@ import {
   type EffectiveRange, type EstimateDerivation, type Psak48Like, type RangeScenario,
 } from './canon_range';
 import type { ViuParams } from './canon_viu';
+import { retrospectiveSummary, type Retrospective } from './canon_retrospective';
+import { amsEvidenceFor } from './evidence';
 import { KvBox } from './view_analytical';
 import { WpPanel } from './wp_signoff';
 
@@ -103,8 +105,17 @@ function SA540View() {
   const [expertEval, setExpertEval] = useAmsPersist('expertEval.v1', () => ({} as ExpertEvalState));
   const toggleExpert = (ref: string, key: ExpertEvalStepKey, on: boolean) =>
     setExpertEval((m: ExpertEvalState) => ({ ...m, [ref]: { ...(m && m[ref]), [key]: on, by: me, at: estToday() } }));
-
+  const setExpertDoc = (ref: string, uid: string) =>
+    setExpertEval((m: ExpertEvalState) => ({ ...m, [ref]: { ...(m && m[ref]), docUid: uid || undefined, by: me, at: estToday() } }));
   const [tab, setTab] = useState540('inventaris');
+  /* Dokumen yang benar-benar terlampir pada kertas kerja ini — sumber pilihan
+     tautan laporan pakar, sekaligus yang diperiksa gerbang sign-off.
+     Store bukti hidup di localStorage (bukan state React), jadi dibaca ulang
+     saat berpindah tab — cukup untuk alur "lampirkan lalu tautkan". */
+  const evidenceDocs: EvDoc[] = useMemo540(() => {
+    try { return ((amsEvidenceFor('sa540') as EvDoc[]) || []).filter(d => d && d.uid); }
+    catch (e) { return []; }
+  }, [tab]);
   const sig = register.filter(e => e.risk === 'Signifikan').length;
   const uncHi = register.filter(e => e.unc === 'Tinggi').length;
   const biasFlags = bias.filter(b => b.flag !== 'green').length;
@@ -169,8 +180,8 @@ function SA540View() {
 
         {tab === 'inventaris' && <F540Register register={register} setRegister={setRegister} me={me} locked={locked} />}
         {tab === 'risiko' && <F540Risk register={register} setRegister={setRegister} locked={locked} />}
-        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} expertEval={expertEval} toggleExpert={toggleExpert} />}
-        {tab === 'bias' && <F540Bias bias={bias} setBias={setBias} me={me} locked={locked} />}
+        {tab === 'respons' && <F540Response register={register} sensitivity={sensitivity} setSensitivity={setSensitivity} locked={locked} expertEval={expertEval} toggleExpert={toggleExpert} setExpertDoc={setExpertDoc} evidenceDocs={evidenceDocs} />}
+        {tab === 'bias' && <F540Bias bias={bias} setBias={setBias} me={me} locked={locked} register={register} setRegister={setRegister} />}
 
       </div></div>
     </>
@@ -441,7 +452,14 @@ function F540Risk({ register, setRegister, locked }: { register: Estimate[]; set
 }
 
 /* ---------------- Tab: Respons & Rentang ---------------- */
-function F540Response({ register, sensitivity, setSensitivity, locked, expertEval, toggleExpert }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean; expertEval: ExpertEvalState; toggleExpert: (ref: string, key: ExpertEvalStepKey, on: boolean) => void }) {
+type EvDoc = { uid: string; name?: string };
+function docName(docs: EvDoc[], uid?: string) {
+  if (!uid) return 'belum ditautkan';
+  const d = docs.find(x => x.uid === uid);
+  return d ? (d.name || d.uid) : 'tautan putus — dokumen tak ada lagi';
+}
+
+function F540Response({ register, sensitivity, setSensitivity, locked, expertEval, toggleExpert, setExpertDoc, evidenceDocs }: { register: Estimate[]; sensitivity: Record<string, SensDriver[]>; setSensitivity: (id: string, drivers: SensDriver[]) => void; locked: boolean; expertEval: ExpertEvalState; toggleExpert: (ref: string, key: ExpertEvalStepKey, on: boolean) => void; setExpertDoc: (ref: string, uid: string) => void; evidenceDocs: EvDoc[] }) {
   const approaches = [
     { k: 'Uji bagaimana manajemen membuat estimasi', ref: '¶18', d: 'Evaluasi metode, asumsi signifikan, & data; uji penerapan & matematika model.', used: 'Persediaan · Garansi' },
     { k: 'Uji peristiwa hingga tanggal laporan auditor', ref: '¶21(a)', d: 'Bukti dari peristiwa setelah periode yang menguatkan/menyangkal estimasi.', used: 'Piutang (penerimaan kas pasca-periode)' },
@@ -526,6 +544,27 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
                     onChange={(on: boolean) => toggleExpert(sel.id, s.key, on)} />
                 ))}
               </div>
+
+              {/* Tautan ke laporan pakar di bukti kertas kerja. Disimpan sebagai
+                  uid, bukan nama berkas: tautan harus PUTUS bila dokumennya dicabut. */}
+              <div className="field" style={{ marginTop: 10 }}>
+                <label>Laporan pakar (dari bukti kertas kerja)</label>
+                {locked ? (
+                  <div style={{ fontSize: 12 }}>{docName(evidenceDocs, expertEval && expertEval[sel.id] && expertEval[sel.id].docUid)}</div>
+                ) : (
+                  <select className="select" style={{ height: 28 }}
+                    value={(expertEval && expertEval[sel.id] && expertEval[sel.id].docUid) || ''}
+                    onChange={(e: Ev) => setExpertDoc(sel.id, e.target.value)}>
+                    <option value="">— belum ditautkan —</option>
+                    {evidenceDocs.map(d => <option key={d.uid} value={d.uid}>{d.name || d.uid}</option>)}
+                  </select>
+                )}
+                {!evidenceDocs.length && (
+                  <div className="tiny" style={{ color: 'var(--amber)', marginTop: 4, lineHeight: 1.45 }}>
+                    Belum ada dokumen terlampir pada kertas kerja ini — lampirkan laporan pakar lewat tombol <b>Bukti</b> di bilah atas.
+                  </div>
+                )}
+              </div>
               <div className="tiny muted" style={{ marginTop: 9, lineHeight: 1.5 }}>
                 Estimasi ini bergantung sepenuhnya pada pekerjaan pihak ketiga. Kecukupan pekerjaan itu adalah <b>bukti audit</b> (SA 500 ¶8) — bukan asumsi.
               </div>
@@ -586,7 +625,74 @@ function F540Response({ register, sensitivity, setSensitivity, locked, expertEva
 }
 
 /* ---------------- Tab: Bias & Pengungkapan ---------------- */
-function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn: (l: BiasRow[]) => BiasRow[]) => void; me: string; locked: boolean }) {
+/* ---- Telaah retrospektif TERHITUNG (PR-5 · butir 18-19) ----
+   Dulu klaim "CKPN PY understated 42%" adalah teks bebas di baris bias: tak
+   dapat dibantah karena tak berasal dari apa pun. Kini ia turunan dua angka,
+   dan tanpa keduanya panel berkata TAK DAPAT DIHITUNG — bukan 0%. */
+function F540Retrospective({ register, setRegister, locked }: { register: Estimate[]; setRegister: (fn: (l: Estimate[]) => Estimate[]) => void; locked: boolean }) {
+  const summary = retrospectiveSummary(register);
+  const patchRetro = (id: string, p: Partial<Retrospective>) =>
+    setRegister(l => l.map(e => e.id === id ? { ...e, retrospective: { ...(e.retrospective || {}), ...p } } : e));
+  const numOrUndef = (v: string) => v.trim() === '' ? undefined : +v;
+  return (
+    <Panel noBody>
+      <div className="panel-h"><h3>Telaah Retrospektif — Estimasi PY vs Realisasi</h3><span className="sub mono">SA 540 ¶32 · SA 240 ¶32b</span><div style={{ flex: 1 }} />
+        {summary.systematic && <Badge kind="red">Pola berulang</Badge>}
+        <span className="tiny muted" style={{ marginLeft: 8 }}>{summary.rows.length - summary.incomputable.length}/{summary.rows.length} terhitung</span>
+      </div>
+      <table className="dtbl">
+        <thead><tr>
+          <th>Estimasi</th>
+          <th className="num" style={{ width: 92 }}>Estimasi PY</th>
+          <th className="num" style={{ width: 92 }}>Realisasi</th>
+          <th className="num" style={{ width: 96 }}>Selisih</th>
+          <th style={{ width: 108 }}>Arah</th>
+        </tr></thead>
+        <tbody>
+          {summary.rows.map(r => {
+            const v = r.variance;
+            return (
+              <tr key={r.id}>
+                <td style={{ fontWeight: 600, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                  {r.name}
+                  {r.retro && r.retro.source && <div className="tiny muted" style={{ fontWeight: 400, marginTop: 2 }}>{r.retro.source}</div>}
+                </td>
+                <td className="num mono">{locked
+                  ? (r.retro && r.retro.pyEstimate != null ? r.retro.pyEstimate.toLocaleString('id-ID') : '—')
+                  : <input className="input mono" type="number" value={(r.retro && r.retro.pyEstimate) ?? ''} onChange={(e: Ev) => patchRetro(r.id, { pyEstimate: numOrUndef(e.target.value) })} style={{ height: 24, width: 82, textAlign: 'right' }} />}</td>
+                <td className="num mono">{locked
+                  ? (r.retro && r.retro.actual != null ? r.retro.actual.toLocaleString('id-ID') : '—')
+                  : <input className="input mono" type="number" value={(r.retro && r.retro.actual) ?? ''} onChange={(e: Ev) => patchRetro(r.id, { actual: numOrUndef(e.target.value) })} style={{ height: 24, width: 82, textAlign: 'right' }} />}</td>
+                <td className="num mono" style={{ fontWeight: 700, color: v ? (v.favouredProfit ? 'var(--amber)' : 'var(--ink-2)') : 'var(--ink-4)' }}>
+                  {v ? `${v.diff < 0 ? '(' : ''}${Math.abs(v.diff).toLocaleString('id-ID')}${v.diff < 0 ? ')' : ''} · ${(v.pct * 100).toFixed(0)}%` : '—'}
+                </td>
+                <td>
+                  {v
+                    ? <Badge kind={r.flagged ? 'amber' : 'green'}>{v.direction === 'understated' ? 'Understated' : v.direction === 'overstated' ? 'Overstated' : 'Akurat'}</Badge>
+                    : <span className="tiny muted">tak dapat dihitung</span>}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <div className="panel" style={{ margin: 12, padding: '10px 12px', background: summary.systematic ? 'var(--amber-bg)' : 'var(--blue-050)', borderColor: 'transparent' }}>
+        <div className="row gap8" style={{ alignItems: 'flex-start' }}>
+          <span style={{ color: summary.systematic ? 'var(--amber)' : 'var(--blue)', flex: '0 0 auto' }}><I.book size={15} /></span>
+          <span style={{ fontSize: 12, lineHeight: 1.45 }}>
+            {summary.systematic
+              ? <><b>{summary.flagged.length} estimasi</b> meleset ke arah yang menguntungkan laba melebihi ambang — pola berulang seperti ini adalah indikator bias manajemen (¶32) dan wajib dipertimbangkan bersama SA 240 ¶32(b).</>
+              : summary.flagged.length
+                ? <><b>{summary.flagged.map(f => f.id).join(', ')}</b> meleset ke arah yang menguntungkan laba. Satu kejadian belum membentuk pola, tetapi tetap dipertimbangkan dalam evaluasi kewajaran estimasi.</>
+                : <>Selisih hanya dihitung bila estimasi PY <b>dan</b> realisasinya ada. {summary.incomputable.length} estimasi belum dapat ditelaah — isi kedua angkanya agar arah bias dapat dinilai, bukan diklaim.</>}
+          </span>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function F540Bias({ bias, setBias, me, locked, register, setRegister }: { bias: BiasRow[]; setBias: (fn: (l: BiasRow[]) => BiasRow[]) => void; me: string; locked: boolean; register: Estimate[]; setRegister: (fn: (l: Estimate[]) => Estimate[]) => void }) {
   const patch = (id: string, p: Partial<BiasRow>) => setBias(l => l.map(b => b.id === id ? { ...b, ...p, by: me, at: estToday() } : b));
   const add = () => { const id = nextBId(bias); setBias(l => [...l, { id, t: 'Indikator bias baru', est: '', flag: 'amber', d: '', by: me, at: estToday() }]); };
   const del = (id: string) => setBias(l => l.filter(b => b.id !== id));
@@ -624,6 +730,8 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
             </div>
           </div>
         </Panel>
+
+        <F540Retrospective register={register} setRegister={setRegister} locked={locked} />
 
         <Panel noBody>
           <div className="panel-h"><h3>Evaluasi Pengungkapan Estimasi (¶26–27)</h3><div style={{ flex: 1 }} /></div>

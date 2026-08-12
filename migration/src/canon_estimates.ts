@@ -32,6 +32,7 @@
 import type { SadEntry } from './canon_validation';
 import type { SensDriver } from './estimate_sensitivity';
 import { effectiveRange, type EstimateDerivation } from './canon_range';
+import type { Retrospective } from './canon_retrospective';
 
 /** Rp juta → Rp penuh. SATU-SATUNYA tempat faktor ini hidup. Registri estimasi
  *  & kanon PSAK memakai Rp juta; `SadEntry.pbt`/`na` dan materialitas penuh
@@ -54,6 +55,9 @@ export type Estimate = {
   /** DASAR rentang (PR-4). Bila metodenya 'scenarios'/'viu' dengan ≥2 skenario,
    *  `lo`/`hi` di atas TIDAK dipakai — rentang dihitung dari skenario. */
   derivation?: EstimateDerivation | null;
+  /** TELAAH RETROSPEKTIF (PR-5) — estimasi PY vs realisasi. Selisihnya
+   *  DIHITUNG; tanpa kedua angka, permukaan menyatakan tak dapat dihitung. */
+  retrospective?: Retrospective | null;
 };
 export type BiasRow = { id: string; t: string; est: string; flag: string; d: string; by?: string; at?: string };
 export type EstState = { register: Estimate[]; bias: BiasRow[]; sensitivity: Record<string, SensDriver[]> };
@@ -65,9 +69,14 @@ const EST_REG: Estimate[] = [
       { id: 'sc1', label: 'PD dinaikkan ke batas atas kisaran wajar (+10%)', value: 6300, note: 'staging 2–3 memburuk' },
       { id: 'sc2', label: 'LGD pada recovery historis terbaik (−5%)', value: 4600, note: 'agunan terealisasi penuh' },
       { id: 'sc3', label: 'Overlay makro dipertahankan setara PY', value: 5100 },
-    ] } },
+    ] },
+    /* Klaim "understated 42%" DULU teks bebas di baris bias. Kini ia turunan
+       dari dua angka: CKPN yang dibentuk manajemen FY2024 vs penghapusan yang
+       benar-benar terjadi. 42% tak lagi dapat muncul tanpa keduanya. */
+    retrospective: { pyEstimate: 2109, actual: 3640, source: 'Penghapusan piutang aktual FY2025 per buku besar (akun 1-1210) vs CKPN FY2024 audited' } },
   { id: 'E-02', name: 'Penyisihan Persediaan Usang', acct: 'Penyisihan Persediaan', mgmt: 2240, lo: 2050, hi: 2600, unc: 'Sedang', risk: 'Signifikan', method: 'Analisis umur & perputaran SKU; net realizable value', assump: ['Klasifikasi lambat-bergerak (> 180 hari)', 'Estimasi nilai jual bersih SKU usang', 'Rencana likuidasi/diskon manajemen'], approach: 'Uji proses manajemen', plSign: -1, note: 'Dalam rentang; konsisten dengan temuan hitung fisik SA 501 (GBJ-03).' },
-  { id: 'E-03', name: 'Provisi Garansi Produk', acct: 'Provisi', mgmt: 1080, lo: 980, hi: 1240, unc: 'Sedang', risk: 'Non-signifikan', method: 'Tingkat klaim historis × penjualan bergaransi', assump: ['Rasio klaim historis 36 bulan', 'Periode garansi rata-rata', 'Tren kualitas produk'], approach: 'Uji proses manajemen', plSign: -1, note: 'Telaah retrospektif menunjukkan estimasi PY akurat (selisih −6%).' },
+  { id: 'E-03', name: 'Provisi Garansi Produk', acct: 'Provisi', mgmt: 1080, lo: 980, hi: 1240, unc: 'Sedang', risk: 'Non-signifikan', method: 'Tingkat klaim historis × penjualan bergaransi', assump: ['Rasio klaim historis 36 bulan', 'Periode garansi rata-rata', 'Tren kualitas produk'], approach: 'Uji proses manajemen', plSign: -1, note: 'Telaah retrospektif: estimasi PY sedikit konservatif — lihat tab Bias.',
+    retrospective: { pyEstimate: 1150, actual: 1085, source: 'Klaim garansi terealisasi FY2025 vs provisi FY2024 (roll-forward PSAK 57)' } },
   { id: 'E-04', name: 'Liabilitas Imbalan Kerja (PSAK 24)', acct: 'Liabilitas Imbalan Pasti', mgmt: 9650, lo: 9100, hi: 10400, unc: 'Tinggi', risk: 'Signifikan', method: 'Projected Unit Credit oleh aktuaris independen', assump: ['Tingkat diskonto (obligasi korporasi)', 'Kenaikan gaji jangka panjang', 'Tingkat mortalita & pengunduran diri'], approach: 'Gunakan pakar (SA 620)', plSign: -1, note: 'Asumsi diskonto di kisaran wajar; kompetensi & objektivitas aktuaris dievaluasi.',
     /* rentang manual, tetapi BERALASAN — batas diambil dari tabel sensitivitas
        laporan aktuaris, bukan dari pertimbangan tim (TIER C: modelnya di luar). */
@@ -83,7 +92,9 @@ const EST_REG: Estimate[] = [
 /* ---- Indikator bias manajemen (¶32) ---- */
 const BIAS_ROWS: BiasRow[] = [
   { id: 'B-01', t: 'Perubahan estimasi/asumsi yang menggeser laba ke arah menguntungkan', est: 'CKPN Piutang', flag: 'amber', d: 'Titik di paruh bawah rentang; overlay makro dikurangi vs PY.' },
-  { id: 'B-02', t: 'Telaah retrospektif — selisih estimasi PY vs realisasi', est: 'CKPN Piutang', flag: 'amber', d: 'Selisih PY belum terhitung dari data — lihat tab Respons (PR-5).' },
+  /* B-02 DICABUT (PR-5). Butir "telaah retrospektif" tak lagi berupa baris teks
+     yang dapat mengarang persentase; ia kini DITURUNKAN dari `retrospective`
+     tiap estimasi lewat `retrospectiveSummary()` dan dirender terpisah. */
   { id: 'B-03', t: 'Seleksi titik dalam rentang tanpa dasar netral', est: 'Goodwill', flag: 'amber', d: 'WACC di batas bawah kisaran wajar — menaikkan value-in-use.' },
   { id: 'B-04', t: 'Konsistensi metode & asumsi antar periode', est: 'Imbalan Kerja', flag: 'green', d: 'Metode & sumber asumsi aktuaria konsisten dengan PY.' },
 ];
