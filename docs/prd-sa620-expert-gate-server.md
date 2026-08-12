@@ -341,12 +341,26 @@ menembak `state.set` **tanpa menyentuh UI sama sekali**.
 ### Dua cacat UJI yang ditemukan probe hidup, bukan oleh suite
 
 **1. Assertion penolakan yang VAKUM.** `expect(p).rejects.toMatchObject({ code, message })`
-tidak pernah memeriksa `message`: properti itu **non-enumerable** pada `Error`. Dibuktikan
-dengan menyetel regex ke `/PROBE-SENGAJA-SALAH/` — uji tetap **lulus**. Pola ini dipakai di
-seluruh `signoff_integration.test.ts`, termasuk uji-uji yang sudah ada sebelum arc ini.
-Diganti helper `expectRejected(p, code, message)` yang memeriksa keduanya secara eksplisit
-dan gagal bila tulisannya justru berhasil. Setelah dikonversi, seluruh assertian lama tetap
-lulus — jadi substansinya benar; yang salah adalah bahwa ia tak pernah benar-benar diuji.
+tidak pernah menegakkan `message`. Dibuktikan dengan menyetel harapannya ke
+`/PROBE-SENGAJA-SALAH/` — uji tetap **lulus**. Pola ini dipakai di seluruh
+`signoff_integration.test.ts`, termasuk uji-uji yang sudah ada sebelum arc ini. Diganti
+helper `expectRejected(p, code, message)` yang memeriksa keduanya secara eksplisit dan gagal
+bila tulisannya justru berhasil. Setelah dikonversi seluruh assertion lama tetap lulus —
+substansinya benar; yang salah adalah bahwa ia tak pernah benar-benar diuji.
+
+> **KOREKSI sebab (probe lanjutan, 2026-08-12).** Penjelasan pertama saya —
+> "`message` non-enumerable pada `Error`" — **salah**, dan salah dengan cara yang berbahaya:
+> ia menyalahkan `Error`, padahal aturannya jauh lebih luas. Yang vakum adalah **RegExp
+> telanjang sebagai nilai di dalam `toMatchObject`**, untuk properti APA PUN pada objek APA
+> PUN — bukan khusus `message`, bukan khusus `Error`. Dipetakan lewat probe:
+>
+> | Bentuk | Menegakkan? |
+> |---|---|
+> | `toMatchObject({ p: /re/ })` | **TIDAK** — lolos, cocok maupun tidak |
+> | `toMatchObject({ p: 'string' })` | ya |
+> | `toMatchObject({ p: expect.stringMatching(/re/) })` | ya |
+> | `toEqual` / `objectContaining` / `toHaveProperty` dengan regex | ya |
+> | `rejects.toThrow(/re/)` | ya |
 
 **2. Uji K4 ditolak oleh aturan yang SALAH.** Ia menandatangani `preparer` lalu `reviewer`
 dengan aktor yang sama, sehingga ditolak `signature-self-review` (ISQM 2) **sebelum** gerbang
@@ -372,6 +386,15 @@ tak tersedia — sehingga kebenarannya semula hanya diperiksa terhadap tanda tan
 skema `attachment.upload`, plus perbaikan jebakan self-review dari probe hidup. **Job
 Playwright pada [PR #190](https://github.com/ari1945/Asseris/pull/190) kemudian menjalankannya
 di atas Postgres nyata dan HIJAU** — validasi itu kini nyata, bukan diasumsikan.
+
+**Sapuan lanjutan (2026-08-12).** Pemindai berkurung-seimbang atas **506 berkas**
+(`server/src`, `migration/src`, `e2e`, `tools`) menemukan **nol** situs tersisa — satu-satunya
+berkas yang pernah memuatnya sudah dikonversi di PR-3. Agar tak dapat kembali, tripwire
+[`assertion_hygiene.test.ts`](../server/src/__tests__/assertion_hygiene.test.ts) memindai repo
+tiap kali uji berjalan. **Bukan** aturan ESLint: `npm run lint` hanya berjalan atas
+`migration/src`, sedangkan `server/` dan `e2e/` — tempat pola ini sebenarnya hidup — tidak
+dilint sama sekali, jadi aturan lint tak akan pernah melihatnya. Tripwire-nya sendiri diuji
+dapat gagal dengan menanam satu situs pelanggar sementara.
 
 **Utang PR-3:** tinjauan visual Ari belum dilakukan untuk keseluruhan arc.
 
