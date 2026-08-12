@@ -7,6 +7,9 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { reconcileUncorrectedMisstatements, type UncorrResult, type SadEntry, type AjeEntry } from './canon_validation';
 import { EST_SEED, estimateMisstatements, type EstState } from './canon_estimates';
+import { AMS_CANON } from './canon';
+import { hydrateViuDerivations, type Psak48Like } from './canon_range';
+import type { ViuParams } from './canon_viu';
 import type { WTB } from './canon_types';
 import { Avatar, Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { RowKv } from './view_calc';
@@ -117,10 +120,16 @@ function SADLedger() {
      Baris turunan selalu `uncorrected` dan tak dapat disunting di sini: koreksi
      atas estimasi dinyatakan dengan memindahkan titik manajemen di SA 540. */
   const [estState] = useAmsPersist('estimates.v1', () => EST_SEED);
+  /* PR-4 · Q3 — registri dihidrasi dengan skenario nilai pakai HIDUP sebelum
+     diukur, memakai asumsi PSAK 48 yang sama dengan modul SA 540 & PSAK 48.
+     Tanpa hidrasi di sini, ledger akan mengukur E-05 terhadap rentang lain
+     daripada yang dilihat auditor di kertas kerjanya. */
+  const [viuOverride] = useAmsPersist('viuParams.v1', () => ({} as Partial<ViuParams>));
   const items = useMemoSD(() => {
-    const reg = (estState && (estState as EstState).register) || [];
-    return [...stored, ...estimateMisstatements(reg)];
-  }, [stored, estState]);
+    const raw = (estState && (estState as EstState).register) || [];
+    const p48 = AMS_CANON.psak48(wtb, aje, 'reported', viuOverride) as unknown as Psak48Like;
+    return [...stored, ...estimateMisstatements(hydrateViuDerivations(raw, p48))];
+  }, [stored, estState, wtb, aje, viuOverride]);
 
   /* Figur dilaporkan = WTB `unadj` + efek jurnal BERSTATUS POSTED. Sengaja BUKAN
      kolom `adj`: kolom itu memuat AJE-03 & AJE-05 yang masih Proposed, sehingga
@@ -312,6 +321,11 @@ function TabLedger({ items, cycleDisp, calc, fmt, ctt }: any) {
                 <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 6 }}>
                   {m.id}{m.origin === 'prior' && <div><Badge kind="gray">PY</Badge></div>}
                   {m.derived && <div style={{ marginTop: 3 }}><Badge kind="purple">SA 540</Badge></div>}
+                  {m.derived && m.rangeGrounded === false && (
+                    <div style={{ marginTop: 3 }}>
+                      <Badge kind="amber" title="Rentang auditor yang menghasilkan salah saji ini belum menyatakan dasarnya">Rentang tak berdasar</Badge>
+                    </div>
+                  )}
                 </td>
                 <td style={{ maxWidth: 250, whiteSpace: 'normal', lineHeight: 1.35, fontSize: 12, padding: '6px 9px' }}>
                   {m.desc}
