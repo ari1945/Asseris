@@ -666,3 +666,86 @@ describe('guardSignoffWrite — gerbang pakar SA 620 (wpState.sa540)', () => {
     expect(needs?.attachmentCollections).toEqual(['sa540']);
   });
 });
+
+/* ============================================================
+   PR-2b — gerbang Kode Etik & independensi tim di SERVER.
+
+   Sebelum PR ini keduanya nol penegakan server: `ethics_gate.tsx` sendiri
+   mencatat "Penegakan saat ini di LAPISAN UI", dan `memberIndep.v1` hanya
+   di-gate capForWrite=WP_EDIT — setiap auditor dapat menandatangani deklarasi
+   independensi anggota tim MANA PUN lewat tulisan tRPC langsung.
+   ============================================================ */
+const ethCtx = (empId: string | null): SignoffContext =>
+  ({ siblings: {}, liveAttachmentIds: {}, scope: 'firm', scopeId: 'FIRM-WHR', actorEmpId: empId });
+
+describe('guardSignoffWrite — deklarasi Kode Etik (pc.ethics)', () => {
+  const unsigned = { 'EMP-001': { signed: false }, 'EMP-002': { signed: false } };
+  const signBy = (emp: string, a: Actor) => ({ ...unsigned, [emp]: { signed: true, byUserId: a.id, by: a.name } });
+
+  it('menandatangani deklarasi ORANG LAIN ditolak', () => {
+    expect(() => guardSignoffWrite(MANAGER, 'pc.ethics', unsigned, signBy('EMP-001', MANAGER), NOW, ethCtx('EMP-007')))
+      .toThrow(/ethics-decl:not-own:EMP-001/);
+  });
+
+  it('menandatangani deklarasi SENDIRI diterima & berjejak', () => {
+    const changes = guardSignoffWrite(PARTNER, 'pc.ethics', unsigned, signBy('EMP-001', PARTNER), NOW, ethCtx('EMP-001'));
+    expect(changes.map((c) => c.what)).toContain('ethics-decl:EMP-001');
+  });
+
+  it('tanda tangan yang tak menyebut pembubuhnya ditolak', () => {
+    const forged = { ...unsigned, 'EMP-001': { signed: true, byUserId: 'u-lain', by: 'Orang Lain' } };
+    expect(() => guardSignoffWrite(PARTNER, 'pc.ethics', unsigned, forged, NOW, ethCtx('EMP-001')))
+      .toThrow(/signature-identity-mismatch:ethics/);
+  });
+
+  it('sesi tak terpetakan ke personel firma ditolak (gagal-tertutup)', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'pc.ethics', unsigned, signBy('EMP-001', PARTNER), NOW, ethCtx(null)))
+      .toThrow(/ethics-decl:no-emp-mapping/);
+  });
+
+  it('konteks tak dipasok = cacat perkabelan', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'pc.ethics', unsigned, signBy('EMP-001', PARTNER), NOW))
+      .toThrow(/signoff:context-missing/);
+  });
+
+  it('suntingan non-tanda-tangan tidak memicu gerbang', () => {
+    const noted = { ...unsigned, 'EMP-001': { signed: false, exNote: 'catatan' } };
+    expect(signoffContextNeeds('pc.ethics', unsigned, noted)).toBeNull();
+    expect(guardSignoffWrite(JUNIOR, 'pc.ethics', unsigned, noted, NOW)).toEqual([]);
+  });
+});
+
+describe('guardSignoffWrite — independensi anggota tim (memberIndep.v1)', () => {
+  const seeded = { 'Dimas Raharja': { signed: true, seeded: true } };
+  const real = (a: Actor) => ({ 'Dimas Raharja': { signed: true, seeded: false, byUserId: a.id, by: a.name } });
+
+  it('deklarasi SEED tidak memuaskan gerbang, jadi tak memicu guard', () => {
+    expect(guardSignoffWrite(JUNIOR, 'memberIndep.v1', {}, seeded, NOW)).toEqual([]);
+  });
+
+  it('aturannya murni dari diff — tak pernah meminta konteks', () => {
+    expect(signoffContextNeeds('memberIndep.v1', {}, seeded)).toBeNull();
+    expect(signoffContextNeeds('memberIndep.v1', seeded, real(MANAGER))).toBeNull();
+  });
+
+  it('mencabut penanda seed TANPA atribusi ditolak', () => {
+    const laundered = { 'Dimas Raharja': { signed: true, seeded: false } };
+    expect(() => guardSignoffWrite(JUNIOR, 'memberIndep.v1', seeded, laundered, NOW))
+      .toThrow(/signature-missing-identity:indep/);
+  });
+
+  it('menandatangani atas nama orang lain ditolak', () => {
+    expect(() => guardSignoffWrite(JUNIOR, 'memberIndep.v1', seeded, real(MANAGER), NOW))
+      .toThrow(/signature-identity-mismatch:indep/);
+  });
+
+  it('tanda tangan ber-atribusi benar diterima & berjejak', () => {
+    const changes = guardSignoffWrite(MANAGER, 'memberIndep.v1', seeded, real(MANAGER), NOW);
+    expect(changes.map((c) => c.what)).toContain('indep-decl:Dimas Raharja');
+  });
+
+  it('MEMBUKA kembali deklarasi tidak diblokir gerbang ini', () => {
+    expect(() => guardSignoffWrite(JUNIOR, 'memberIndep.v1', real(MANAGER), { 'Dimas Raharja': { signed: false } }, NOW))
+      .not.toThrow();
+  });
+});

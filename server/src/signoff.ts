@@ -58,6 +58,11 @@ export interface SignoffContextNeeds {
      (`eqrReviews.v2` adalah registri EQR seluruh firma), sehingga gerbang atas tulisan
      ber-scope perikatan — penerbitan opini — harus dapat membacanya. Tabel statis. */
   firmSiblingKeys?: readonly string[];
+  /* Butuh id pegawai (EMP-xxx) milik AKTOR. Deklarasi pribadi (Kode Etik) berkunci
+     empId, sehingga "apakah ini deklarasi Anda sendiri" hanya dapat dijawab bila
+     server memetakan sesi → EMP. Resolusinya async, jadi ia dimuat di `loadSignoffContext`
+     dan diserahkan ke guard yang tetap MURNI & SINKRON. */
+  actorEmpId?: boolean;
 }
 
 export interface SignoffContext {
@@ -70,6 +75,8 @@ export interface SignoffContext {
   /** Alamat tulisan yang sedang dijaga — aturan lintas-perikatan menyaring registri dengannya. */
   scope?: string;
   scopeId?: string;
+  /** EMP-xxx aktor; `null` = sesi tak terpetakan ke personel firma. */
+  actorEmpId?: string | null;
 }
 
 const EXPERT_GATE_SIBLINGS = ['estimates.v1', 'expertEval.v1'] as const;
@@ -80,6 +87,33 @@ const EXPERT_GATE_SIBLINGS = ['estimates.v1', 'expertEval.v1'] as const;
 const EQR_GATE_FIRM_SIBLINGS = ['eqrReviews.v2', 'engagements', 'clients'] as const;
 
 function asArray(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
+
+/* --- Gerbang etik & independensi tim (PRD Kesiapan P2PK · PR-2b) -------------
+   Sampai PR ini KEDUA gerbang nol penegakan server: `ethics_gate.tsx` sendiri
+   mencatatnya ("Penegakan saat ini di LAPISAN UI"), dan `memberIndep.v1`
+   di-gate `capForWrite`=WP_EDIT — setiap auditor dapat menandatangani deklarasi
+   independensi anggota tim MANA PUN lewat tulisan tRPC langsung.
+
+   Invarian yang ditegakkan bukan "siapa boleh menulis" melainkan "tanda tangan
+   menyebut orang yang membubuhkannya" — invarian yang sama dengan `wp_chain`. */
+
+/** empId yang deklarasi etiknya BARU menjadi ditandatangani. */
+function ethicsSignedTransitions(prev: unknown, next: unknown): string[] {
+  const p = asObj(prev), n = asObj(next);
+  return Object.keys(n).filter((emp) => !asObj(p[emp]).signed && !!asObj(n[emp]).signed);
+}
+
+/** Deklarasi anggota "memuaskan gerbang" = ditandatangani DAN bukan bawaan seed. */
+function memberIndepCounts(d: unknown): boolean {
+  const o = asObj(d);
+  return !!o.signed && !o.seeded;
+}
+
+/** Anggota yang deklarasinya BARU menjadi memuaskan gerbang. */
+function memberIndepSatisfyTransitions(prev: unknown, next: unknown): string[] {
+  const p = asObj(prev), n = asObj(next);
+  return Object.keys(n).filter((m) => !memberIndepCounts(p[m]) && memberIndepCounts(n[m]));
+}
 
 /**
  * Status PIE perikatan dari registri firma — `null` bila TAK DAPAT ditentukan
@@ -117,6 +151,16 @@ export function signoffContextNeeds(key: string, prev: unknown, next: unknown): 
     }
     return null;
   }
+  /* Deklarasi Kode Etik — pernyataan PRIBADI berkunci empId. */
+  if (key === 'pc.ethics') {
+    return ethicsSignedTransitions(prev, next).length
+      ? { siblingKeys: [], attachmentCollections: [], actorEmpId: true }
+      : null;
+  }
+  /* Deklarasi independensi anggota tim: aturannya MURNI dari diff (atribusi),
+     tak menyentuh dokumen lain — jadi ia sengaja TIDAK meminta konteks. Meminta
+     konteks kosong akan memicu penjaga perkabelan generik dan menolak tulisan
+     yang sah. */
   if (key !== 'wpState') return null;
   if (!expertGateSignatureSlots({ prev, next }).length) return null;
   /* PR-3 — limb DOKUMEN kini menyala: `docUid` menunjuk id lampiran DMS (PR-2),
@@ -199,7 +243,11 @@ export const SIGNOFF_KEYS = new Set(['wpState', 'opinionDoc.v1', 'reviewNotes', 
      gerbang server pada kunci `aje` adalah capForWrite=AJE_EDIT (dimiliki Senior Auditor),
      dan `approvals_ov_*` tak dijaga sama sekali. Klien yang dimodifikasi — atau panggilan
      tRPC langsung — dapat menulis status 'Posted' tanpa hambatan. */
-  'aje', 'approvals_ov_v4']);
+  'aje', 'approvals_ov_v4',
+  /* PR-2b — deklarasi Kode Etik & independensi anggota tim. Keduanya MENGGERBANGI
+     sign-off kertas kerja dan penerbitan opini, tetapi sebelumnya tak dijaga sama
+     sekali: satu-satunya gerbang server adalah capForWrite (HR_MANAGE / WP_EDIT). */
+  'pc.ethics', 'memberIndep.v1']);
 
 /* PR-B — peran-langkah rantai AJE → kapabilitas. Cermin `STEP_CAP` di view_platform.tsx;
    SSOT kapabilitas sama (rbac), sengaja dipisah dari OPINION_APPROVE. */
@@ -346,6 +394,49 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
            pola yang sama dengan `expert-gate:no-register`. */
         changes.push({ what: pie === null ? 'eqr-gate:pie-unknown' : 'eqr-gate:pass', cap: '' });
       }
+    }
+  } else if (key === 'pc.ethics') {
+    /* Deklarasi Kode Etik adalah pernyataan PRIBADI (dasar gerbang penerbitan
+       opini). Dua tuntutan: ia harus deklarasi AKTOR SENDIRI, dan ia harus
+       menyebut aktor sebagai pembubuhnya. Tanpa ini seorang pemegang HR_MANAGE
+       dapat menandatangani deklarasi seorang Partner — lalu gerbang opini
+       Partner itu terbuka atas dasar pernyataan yang tak pernah ia buat. */
+    const emps = ethicsSignedTransitions(prev, next);
+    if (emps.length) {
+      if (!ctx || ctx.actorEmpId === undefined) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'signoff:context-missing' });
+      }
+      if (!ctx.actorEmpId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'ethics-decl:no-emp-mapping: sesi tidak terpetakan ke personel firma — deklarasi Kode Etik tak dapat ditandatangani.' });
+      }
+      for (const emp of emps) {
+        if (emp !== ctx.actorEmpId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `ethics-decl:not-own:${emp}: deklarasi Kode Etik hanya dapat ditandatangani oleh yang bersangkutan.` });
+        }
+        const sigd = asObj(asObj(next)[emp]);
+        if (sigd.byUserId !== actor.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `signature-identity-mismatch:ethics:${emp}: tanda tangan tidak menyebut pembubuhnya.` });
+        }
+        changes.push({ what: `ethics-decl:${emp}`, cap: '' });
+      }
+    }
+  } else if (key === 'memberIndep.v1') {
+    /* Deklarasi independensi anggota tim. Kuncinya adalah NAMA anggota, yang
+       tak dapat diikat ke sesi secara andal (pencocokan nama lossy — pelajaran
+       `amsShortName`). Yang DAPAT ditegakkan, dan yang sesungguhnya penting,
+       adalah ATRIBUSI: sebuah deklarasi yang mulai memuaskan gerbang harus
+       menyebut aktor yang membubuhkannya. Dengan itu "Partner mencatatkan atas
+       nama anggota" menjadi fakta yang terlihat di data, bukan pemalsuan yang
+       tak dapat dibedakan dari pernyataan pribadi. */
+    for (const m of memberIndepSatisfyTransitions(prev, next)) {
+      const d = asObj(asObj(next)[m]);
+      if (!d.byUserId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `signature-missing-identity:indep:${m}: deklarasi independensi tanpa penanda tangan.` });
+      }
+      if (d.byUserId !== actor.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: `signature-identity-mismatch:indep:${m}: tanda tangan menyebut orang lain, bukan pembubuhnya.` });
+      }
+      changes.push({ what: `indep-decl:${m}`, cap: '' });
     }
   } else if (key === 'mat.memo.signoff') {
     /* PR-6a — dokumen ini SENDIRI adalah objek slot ({preparer, manager, partner}),

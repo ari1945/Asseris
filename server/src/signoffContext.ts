@@ -11,6 +11,7 @@
    ============================================================ */
 import { prisma } from './db';
 import { listAttachments } from './attachments/store';
+import { resolveEmpId } from './personalScope';
 import type { SignoffContext, SignoffContextNeeds } from './signoff';
 
 /**
@@ -22,7 +23,9 @@ import type { SignoffContext, SignoffContextNeeds } from './signoff';
  * berlaku sama untuk pembacaan ini.
  */
 export async function loadSignoffContext(
-  scope: string, scopeId: string, needs: SignoffContextNeeds, firmId?: string | null,
+  scope: string, scopeId: string, needs: SignoffContextNeeds,
+  firmId?: string | null,
+  actor?: { email?: string | null; name?: string | null } | null,
 ): Promise<SignoffContext> {
   const siblings: Record<string, unknown> = {};
   if (needs.siblingKeys.length) {
@@ -60,5 +63,9 @@ export async function loadSignoffContext(
     const metas = await listAttachments(scope, scopeId, collection);
     liveAttachmentIds[collection] = metas.map((m) => m.id);
   }
-  return { siblings, liveAttachmentIds, firmSiblings, scope, scopeId };
+  /* EMP-xxx aktor — hanya diminta oleh aturan yang berkunci pegawai (deklarasi
+     Kode Etik). `null` bila sesi tak terpetakan ke roster; guard memperlakukannya
+     sebagai penolakan, bukan sebagai izin. `undefined` berarti TIDAK diminta. */
+  const actorEmpId = needs.actorEmpId ? await resolveEmpId(actor) : undefined;
+  return { siblings, liveAttachmentIds, firmSiblings, scope, scopeId, actorEmpId };
 }
