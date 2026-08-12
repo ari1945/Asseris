@@ -11,7 +11,7 @@
 |---|---|
 | Tanggal | 2026-08-12 |
 | Pemilik | Ari Widodo |
-| Status | In Progress — Tahap 0–9 terkirim (`18d6e69`); Fase R belum, menunggu "Proceed." |
+| Status | In Progress — Tahap 0–9 terkirim (`18d6e69`); **Fase R disetujui ("Proceed." Ari, 2026-08-12)**, R-0 selesai (#179), R-1..R-7 dieksekusi |
 | Engagement ID terkait | — (platform, lintas-engagement) |
 
 ---
@@ -189,8 +189,8 @@ ke alamat yang salah.
 
 **Fase 0–9 — SELESAI DIKIRIM** (`18d6e69`, 2026-08-12). Rincian §4.
 
-**Fase R — remediasi.** Menunggu **"Proceed."** Diurutkan menurut "apa yang memulihkan
-kemampuan mendeteksi lebih dulu".
+**Fase R — remediasi.** **Disetujui ("Proceed." Ari, 2026-08-12).** Diurutkan menurut "apa
+yang memulihkan kemampuan mendeteksi lebih dulu".
 
 | # | Pekerjaan | Kenapa urutan ini | Ukuran |
 |---|---|---|---|
@@ -205,18 +205,20 @@ kemampuan mendeteksi lebih dulu".
 
 ## 11. Open Questions
 
-1. **Q-1 (R-1, memblokir):** ketika pengguna berpindah engagement dengan edit yang masih
-   tertunda — (a) **flush ke engagement lama** sebelum berpindah (aman, edit tersimpan di
-   tempat yang benar, mungkin sedikit menunda perpindahan), atau (b) **buang** edit tertunda
-   dengan peringatan? Rekomendasi saya **(a)** — auditor mengharapkan yang diketik tersimpan,
-   dan membuang diam-diam adalah kehilangan data yang sama saja.
-2. **Q-2:** apakah `mat.pct` = 7 pada ENG-2025-031 di `dev.db` (artefak probe verifikasi hidup)
-   dibersihkan, atau dibiarkan sebagai bukti sampai R-1 hijau? Belum saya sentuh.
-3. **Q-3:** apakah Tahap 2 memang tak pernah ada, atau isinya terserap? Perlu konfirmasi Anda
-   — saya tak menemukan penanda apa pun di kode.
-4. **Q-4:** cakupan retensi CLI — apakah `retention-worker` boleh tetap ada sebagai jalur
-   operator sama sekali, mengingat jalur tRPC sudah punya identitas sesi? Menghapusnya
-   menghilangkan seluruh kelas R-3.
+1. ✅ **Q-1 (R-1) — TERJAWAB 2026-08-12: opsi (a).** Ketika pengguna berpindah engagement
+   dengan edit yang masih tertunda, edit itu **di-flush ke engagement lama** sebelum
+   perpindahan. Alasan: auditor mengharapkan yang diketik tersimpan, dan membuang diam-diam
+   adalah kehilangan data yang sama saja.
+2. ✅ **Q-2 — TERJAWAB: dibersihkan.** Artefak probe (`mat.pct` pada ENG-2025-014 dan
+   ENG-2025-031) sudah dihapus dari `dev.db` beserta 4 baris `StateDocHistory`-nya, dan kunci
+   cache peramban `ams.v1.engagement.ENG-2025-014.mat.pct` dihapus. Baris `AuditLog`
+   seq 513–515 **sengaja dibiarkan** — rantai itu append-only dan menghapusnya justru merusak
+   `audit.verify`.
+3. **Q-3 (terbuka):** apakah Tahap 2 memang tak pernah ada, atau isinya terserap? Tak ada
+   penanda apa pun di kode.
+4. **Q-4 (terbuka):** apakah `retention-worker` CLI perlu tetap ada sebagai jalur operator,
+   mengingat jalur tRPC sudah punya identitas sesi? Menghapusnya menghilangkan seluruh kelas
+   R-3. R-3 di bawah menutup celahnya tanpa memutuskan pertanyaan ini.
 
 ---
 **Sign-off:** ditandai dengan balasan **"Proceed."** (berlaku untuk Fase R; Fase 0–9 sudah
