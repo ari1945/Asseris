@@ -29,6 +29,10 @@ export interface ExpertEval {
   scope?: boolean;
   /** SA 500 ¶8(c) / SA 620 ¶12 — kewajaran temuan pakar dievaluasi. */
   findings?: boolean;
+  /** uid rekaman bukti (DMS) yang MERUPAKAN laporan pakar. Bukan nama berkas:
+   *  nama dapat berubah & pencocokan teks rapuh. uid menautkan ke dokumen yang
+   *  benar-benar terlampir, sehingga tautan putus bila dokumennya dicabut. */
+  docUid?: string;
   by?: string;
   at?: string;
 }
@@ -66,6 +70,51 @@ export function expertEvalMissing(state: ExpertEvalState | null | undefined, ref
     if (!r || seen.has(r)) continue;
     seen.add(r);
     if (!expertEvalComplete(st[r])) out.push(r);
+  }
+  return out;
+}
+
+/* ============================================================
+   GERBANG SIGN-OFF (PR-5 · butir 20 PRD)
+   ------------------------------------------------------------
+   Estimasi yang jalur responsnya "Gunakan pakar (SA 620)" bersandar
+   SEPENUHNYA pada pekerjaan pihak ketiga. Menandatangani kertas kerjanya
+   tanpa mengevaluasi pekerjaan itu — dan tanpa dokumennya ada — berarti
+   menyatakan kecukupan bukti yang tak pernah diperiksa.
+
+   Mengikuti pola gerbang etik/AML yang sudah ada: logika MURNI di sini,
+   hook tipis membacanya, `wp_signoff` memakainya sebagai `canSign`.
+   ============================================================ */
+
+export interface ExpertGateBearer { id: string; name: string; approach: string }
+export interface ExpertGateBlocker { id: string; name: string; reasons: string[] }
+
+export const EXPERT_APPROACH = 'Gunakan pakar (SA 620)';
+
+/**
+ * Estimasi yang MENGHALANGI sign-off, beserta alasannya.
+ * `evidenceUids` = uid dokumen yang benar-benar terlampir pada modul; tautan
+ * ke dokumen yang sudah dicabut dilaporkan sebagai putus, bukan diabaikan.
+ */
+export function expertGateBlockers(
+  estimates: ExpertGateBearer[] | null | undefined,
+  state: ExpertEvalState | null | undefined,
+  evidenceUids: string[] | null | undefined,
+  approach: string = EXPERT_APPROACH,
+): ExpertGateBlocker[] {
+  const st = state || {};
+  const uids = new Set(evidenceUids || []);
+  const out: ExpertGateBlocker[] = [];
+  for (const e of estimates || []) {
+    if (!e || e.approach !== approach) continue;
+    const ev = st[e.id];
+    const reasons: string[] = [];
+    const done = expertEvalDone(ev);
+    if (!expertEvalComplete(ev)) reasons.push(`Evaluasi SA 500 ¶8 belum tuntas (${done}/${EXPERT_EVAL_STEPS.length})`);
+    const uid = ev && ev.docUid;
+    if (!uid) reasons.push('Laporan pakar belum ditautkan dari bukti kertas kerja');
+    else if (!uids.has(uid)) reasons.push('Dokumen pakar yang ditautkan tidak lagi ada di bukti kertas kerja');
+    if (reasons.length) out.push({ id: e.id, name: e.name, reasons });
   }
   return out;
 }

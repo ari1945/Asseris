@@ -2,7 +2,8 @@
    prd-estimasi-terfalsifikasi: empat centang tak boleh lagi berupa literal. */
 import { describe, it, expect } from 'vitest';
 import {
-  EXPERT_EVAL_STEPS, expertEvalComplete, expertEvalDone, expertEvalMissing, expertRefsOf,
+  EXPERT_EVAL_STEPS, EXPERT_APPROACH, expertEvalComplete, expertEvalDone, expertEvalMissing,
+  expertGateBlockers, expertRefsOf,
   type ExpertEvalState,
 } from './canon_expert_eval';
 
@@ -62,6 +63,51 @@ describe('expertEvalMissing', () => {
 
   it('rujukan duplikat tidak dilaporkan dua kali', () => {
     expect(expertEvalMissing({}, ['V-2', 'V-2'])).toEqual(['V-2']);
+  });
+});
+
+describe('expertGateBlockers — gerbang sign-off SA 620 (K11)', () => {
+  const full = { competence: true, objectivity: true, scope: true, findings: true };
+  const est = [
+    { id: 'E-04', name: 'Imbalan Kerja', approach: EXPERT_APPROACH },
+    { id: 'E-01', name: 'CKPN', approach: 'Rentang independen' },
+  ];
+
+  it('estimasi ber-jalur pakar tanpa apa pun → dua alasan', () => {
+    const b = expertGateBlockers(est, {}, []);
+    expect(b).toHaveLength(1);
+    expect(b[0].id).toBe('E-04');
+    expect(b[0].reasons).toHaveLength(2);
+    expect(b[0].reasons[0]).toContain('0/4');
+    expect(b[0].reasons[1]).toContain('belum ditautkan');
+  });
+
+  it('estimasi yang TIDAK memakai pakar tak pernah menghalangi', () => {
+    expect(expertGateBlockers([est[1]], {}, [])).toEqual([]);
+  });
+
+  it('evaluasi tuntas tetapi dokumen belum ditautkan → tetap terblokir', () => {
+    const b = expertGateBlockers(est, { 'E-04': full }, ['ev-1']);
+    expect(b[0].reasons).toEqual(['Laporan pakar belum ditautkan dari bukti kertas kerja']);
+  });
+
+  it('dokumen ditautkan tetapi sudah dicabut dari DMS → tautan putus dilaporkan', () => {
+    const b = expertGateBlockers(est, { 'E-04': { ...full, docUid: 'ev-hilang' } }, ['ev-1']);
+    expect(b[0].reasons[0]).toContain('tidak lagi ada');
+  });
+
+  it('evaluasi tuntas + dokumen ada → tak ada penghalang', () => {
+    expect(expertGateBlockers(est, { 'E-04': { ...full, docUid: 'ev-1' } }, ['ev-1'])).toEqual([]);
+  });
+
+  it('tiga dari empat langkah tetap menghalangi meski dokumen ada', () => {
+    const b = expertGateBlockers(est, { 'E-04': { competence: true, objectivity: true, scope: true, docUid: 'ev-1' } }, ['ev-1']);
+    expect(b[0].reasons[0]).toContain('3/4');
+  });
+
+  it('masukan kosong / null aman', () => {
+    expect(expertGateBlockers(null, null, null)).toEqual([]);
+    expect(expertGateBlockers([], {}, [])).toEqual([]);
   });
 });
 
