@@ -103,3 +103,113 @@ describe('Fase 2 — guard sign-off ditegakkan via state.set (tRPC)', () => {
     expect(r.version).toBe(2);
   });
 });
+
+/* ============================================================
+   PRD prd-sa620-expert-gate-server · PR-1 — WIRING gerbang pakar.
+   ------------------------------------------------------------
+   Unit guard diuji dengan konteks BUATAN TANGAN; yang diuji di sini justru
+   lapisan yang tak dapat dijangkau unit test: apakah `state.set` benar-benar
+   memanggil `signoffContextNeeds`, memuat StateDoc saudara lewat Prisma, dan
+   meneruskannya ke guard. Gerbang yang benar dengan pemuat yang tak terpasang
+   akan lolos 100% unit test dan nol tulisan nyata.
+   ============================================================ */
+describe('PR-1 — gerbang pakar SA 620 ditegakkan via state.set (tRPC + Prisma)', () => {
+  /* Perikatan BERBEDA per uji, bukan reset di antara uji: kunci dedupe outbox audit
+     adalah `statedoc:<scope>:<scopeId>:<key>:v<versi>`, dan jejak audit itu APPEND-ONLY
+     (trigger DB). Menghapus StateDoc lalu menulis ulang v1 karenanya bertabrakan dengan
+     baris audit uji sebelumnya — dan menghapus baris audit demi kenyamanan uji berarti
+     menguji sistem yang tidak kita kirim. */
+  const XPREFIX = 'TEST-ENG-EXPERT-';
+  const xAt = () => new Date().toISOString();
+  const sigMgr = () => ({ by: 'Mira G.', byUserId: 'TEST-MGR', at: xAt() });
+  const REGISTER = {
+    register: [
+      { id: 'E-04', name: 'Imbalan Kerja', approach: 'Gunakan pakar (SA 620)' },
+      { id: 'E-01', name: 'CKPN', approach: 'Rentang independen' },
+    ],
+  };
+  const FULL = { competence: true, objectivity: true, scope: true, findings: true };
+
+  const seedDoc = async (scopeId: string, k: string, value: unknown) => {
+    const valueJson = JSON.stringify(value);
+    await prisma.stateDoc.create({ data: { scope, scopeId, key: k, valueJson, version: 1, updatedBy: 'TEST-MGR' } });
+    await prisma.stateDocHistory.create({ data: { scope, scopeId, key: k, version: 1, valueJson, updatedBy: 'TEST-MGR' } });
+  };
+  /** Perikatan bersih milik satu uji; registri di-seed hanya bila diminta. */
+  const engFor = async (name: string, opts: { register?: boolean; eval?: unknown } = {}) => {
+    const scopeId = XPREFIX + name;
+    await prisma.stateDoc.deleteMany({ where: { scope, scopeId } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId } });
+    if (opts.register) await seedDoc(scopeId, 'estimates.v1', REGISTER);
+    if (opts.eval !== undefined) await seedDoc(scopeId, 'expertEval.v1', opts.eval);
+    return scopeId;
+  };
+
+  afterAll(async () => {
+    await prisma.stateDoc.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope, scopeId: { startsWith: XPREFIX } } });
+  });
+
+  it('K1 — Manager DITOLAK menandatangani sa540 saat evaluasi pakar kosong', async () => {
+    const scopeId = await engFor('k1', { register: true });
+    await expect(
+      manager.state.set({ scope, scopeId, key, baseVersion: 0,
+        value: { sa540: { chain: { preparer: sigMgr() } } } }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN', message: /expert-gate:E-04/ });
+    // tulisan ditolak → dokumen tak pernah dibuat
+    const got = await manager.state.get({ scope, scopeId, key });
+    expect(got.version).toBe(0);
+  });
+
+  it('evaluasi 4/4 tersimpan → tanda tangan yang SAMA diterima', async () => {
+    const scopeId = await engFor('ok', { register: true, eval: { 'E-04': FULL } });
+    const r = await manager.state.set({ scope, scopeId, key, baseVersion: 0,
+      value: { sa540: { chain: { preparer: sigMgr() } } } });
+    expect(r.version).toBe(1);
+  });
+
+  it('K8 — hasil gerbang tercatat di jejak audit', async () => {
+    const scopeId = await engFor('audit', { register: true, eval: { 'E-04': FULL } });
+    await manager.state.set({ scope, scopeId, key, baseVersion: 0,
+      value: { sa540: { chain: { preparer: sigMgr() } } } });
+    const row = await prisma.auditLog.findFirst({ where: { scopeId, key }, orderBy: { seq: 'desc' } });
+    expect(row?.detail).toContain('expert-gate:pass');
+  });
+
+  it('Q2 — registri TAK TERSIMPAN di server: lolos, tetapi jejak audit menandainya', async () => {
+    const scopeId = await engFor('noreg');
+    const r = await manager.state.set({ scope, scopeId, key, baseVersion: 0,
+      value: { sa540: { chain: { preparer: sigMgr() } } } });
+    expect(r.version).toBe(1);
+    const row = await prisma.auditLog.findFirst({ where: { scopeId, key }, orderBy: { seq: 'desc' } });
+    expect(row?.detail).toContain('expert-gate:no-register');
+  });
+
+  it('K5 — pencabutan tanda tangan lolos meski gerbang aktif', async () => {
+    const scopeId = await engFor('revoke', { register: true, eval: { 'E-04': FULL } });
+    await manager.state.set({ scope, scopeId, key, baseVersion: 0,
+      value: { sa540: { chain: { preparer: sigMgr() } } } });
+    /* evaluasi dicabut → gerbang kini aktif; pencabutan tanda tangan harus tetap bisa */
+    await prisma.stateDoc.update({
+      where: { scope_scopeId_key: { scope, scopeId, key: 'expertEval.v1' } },
+      data: { valueJson: JSON.stringify({}) },
+    });
+    const r = await manager.state.set({ scope, scopeId, key, baseVersion: 1,
+      value: { sa540: { chain: {} } } });
+    expect(r.version).toBe(2);
+  });
+
+  it('K7 — suntingan isi kertas kerja sa540 tidak digerbang', async () => {
+    const scopeId = await engFor('edit', { register: true, eval: { 'E-04': FULL } });
+    const sig = sigMgr();
+    await manager.state.set({ scope, scopeId, key, baseVersion: 0,
+      value: { sa540: { chain: { preparer: sig } } } });
+    await prisma.stateDoc.update({
+      where: { scope_scopeId_key: { scope, scopeId, key: 'expertEval.v1' } },
+      data: { valueJson: JSON.stringify({}) },
+    });
+    const r = await manager.state.set({ scope, scopeId, key, baseVersion: 1,
+      value: { sa540: { chain: { preparer: sig }, conclusion: { text: 'kesimpulan' } } } });
+    expect(r.version).toBe(2);
+  });
+});

@@ -18,7 +18,13 @@
    CATATAN LINGKUP: modul ini merekam BAHWA evaluasi dilakukan. Gerbang
    yang menuntut DOKUMEN pakar ber-hash di DMS sebelum sign-off adalah
    PR-5 pada arc yang sama.
+
+   PRD prd-sa620-expert-gate-server PR-1 — modul ini KINI diimpor server
+   (`server/src/signoff.ts`), pola yang sama dengan `wp_chain`/`aje_contract`:
+   aturan SA 620 hidup SEKALI, dipakai gate UI dan penegakan server. Satu-satunya
+   impornya (`wpSigKey`) berasal dari modul yang server sudah impor.
    ============================================================ */
+import { wpSigKey } from './wp_chain';
 
 export interface ExpertEval {
   /** SA 500 ¶8(a) / SA 620 ¶9 — kompetensi & kapabilitas pakar dievaluasi. */
@@ -91,6 +97,19 @@ export interface ExpertGateBlocker { id: string; name: string; reasons: string[]
 
 export const EXPERT_APPROACH = 'Gunakan pakar (SA 620)';
 
+export interface ExpertGateOptions {
+  approach?: string;
+  /**
+   * Tuntut laporan pakar tertaut & masih hidup. Baku `true` (perilaku UI).
+   *
+   * Server memasang `false` selama PR-1: tautan `docUid` hari ini menunjuk uid
+   * `localStorage` yang TAK PERNAH sampai ke server, jadi menegakkan limb ini
+   * sebelum identifiernya pindah ke DMS (PR-2) akan menolak setiap tanda tangan
+   * SA 540 atas dokumen yang sebetulnya ada. Dinyalakan di PR-3.
+   */
+  requireDocument?: boolean;
+}
+
 /**
  * Estimasi yang MENGHALANGI sign-off, beserta alasannya.
  * `evidenceUids` = uid dokumen yang benar-benar terlampir pada modul; tautan
@@ -99,9 +118,11 @@ export const EXPERT_APPROACH = 'Gunakan pakar (SA 620)';
 export function expertGateBlockers(
   estimates: ExpertGateBearer[] | null | undefined,
   state: ExpertEvalState | null | undefined,
-  evidenceUids: string[] | null | undefined,
-  approach: string = EXPERT_APPROACH,
+  evidenceUids: readonly string[] | null | undefined,
+  opts: ExpertGateOptions = {},
 ): ExpertGateBlocker[] {
+  const approach = opts.approach ?? EXPERT_APPROACH;
+  const requireDocument = opts.requireDocument !== false;
   const st = state || {};
   const uids = new Set(evidenceUids || []);
   const out: ExpertGateBlocker[] = [];
@@ -111,10 +132,112 @@ export function expertGateBlockers(
     const reasons: string[] = [];
     const done = expertEvalDone(ev);
     if (!expertEvalComplete(ev)) reasons.push(`Evaluasi SA 500 ¶8 belum tuntas (${done}/${EXPERT_EVAL_STEPS.length})`);
-    const uid = ev && ev.docUid;
-    if (!uid) reasons.push('Laporan pakar belum ditautkan dari bukti kertas kerja');
-    else if (!uids.has(uid)) reasons.push('Dokumen pakar yang ditautkan tidak lagi ada di bukti kertas kerja');
+    if (requireDocument) {
+      const uid = ev && ev.docUid;
+      if (!uid) reasons.push('Laporan pakar belum ditautkan dari bukti kertas kerja');
+      else if (!uids.has(uid)) reasons.push('Dokumen pakar yang ditautkan tidak lagi ada di bukti kertas kerja');
+    }
     if (reasons.length) out.push({ id: e.id, name: e.name, reasons });
+  }
+  return out;
+}
+
+/* ============================================================
+   PENEGAKAN SERVER (PRD prd-sa620-expert-gate-server · PR-1)
+   ------------------------------------------------------------
+   Gate UI menonaktifkan TOMBOL; ia tidak menjaga JALUR TULIS. Panggilan
+   `state.set` langsung dengan `wpState.sa540.chain.preparer` lolos seluruh
+   gerbang server (isolasi perikatan, capForWrite=WP_EDIT, kapabilitas per-slot,
+   aturan rantai) dan menghasilkan kertas kerja bertanda tangan sah atas estimasi
+   yang bersandar pada pakar yang tak pernah dievaluasi. Kelas cacat yang sama
+   dengan #23 (SoD) dan PR-B (overlay persetujuan AJE).
+
+   Yang digerbang adalah PEROLEHAN tanda tangan, bukan pencabutannya: gerbang
+   yang ikut memblokir `unsign` akan MENJEBAK kertas kerja dalam keadaan
+   tertandatangani — persis kebalikan dari tujuannya.
+   ============================================================ */
+
+/** Ref `wpState` yang tanda tangannya tunduk pada gerbang SA 620. */
+export const EXPERT_GATED_REFS: ReadonlySet<string> = new Set(['sa540']);
+
+export interface ExpertGateSlot { ref: string; slot: string }
+
+export interface ExpertGateViolation {
+  code: 'expert-gate';
+  ref: string;
+  slot: string;
+  estimateId: string;
+  message: string;
+}
+
+function asChainObj(v: unknown): Record<string, unknown> {
+  return v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+}
+
+/**
+ * Slot rantai yang MEMPEROLEH tanda tangan pada tulisan ini.
+ *
+ * Seluruh slot yang hadir diperiksa — tidak ada daftar slot yang dipaku
+ * (keputusan Q3: keempatnya digerbang). Slot baru karenanya ikut tergerbang
+ * secara baku, bukan tertinggal diam-diam.
+ *
+ * MURNI & MURAH — dipakai router sebagai pra-cek untuk memutuskan perlu-tidaknya
+ * membaca dokumen saudara, sehingga suntingan isi kertas kerja biasa (mayoritas
+ * tulisan `wpState`) tidak menimbulkan satu query pun.
+ */
+export function expertGateSignatureSlots(input: {
+  prev: unknown; next: unknown; gatedRefs?: ReadonlySet<string>;
+}): ExpertGateSlot[] {
+  const refs = input.gatedRefs || EXPERT_GATED_REFS;
+  const p = asChainObj(input.prev), n = asChainObj(input.next);
+  const out: ExpertGateSlot[] = [];
+  for (const ref of refs) {
+    const pc = asChainObj(asChainObj(p[ref]).chain);
+    const nc = asChainObj(asChainObj(n[ref]).chain);
+    for (const slot of Object.keys(nc).sort()) {
+      const after = wpSigKey(nc[slot]);
+      if (!after) continue;                    // slot kosong / DICABUT — tak digerbang
+      if (after === wpSigKey(pc[slot])) continue;  // tak berubah
+      out.push({ ref, slot });
+    }
+  }
+  return out;
+}
+
+/**
+ * Pelanggaran gerbang pakar atas sebuah tulisan `wpState`.
+ *
+ * Ini ATURAN, bukan otoritas — dalam taksonomi `signoff.ts` yang sama dengan
+ * `posted-immutable:*` dan `signature-*`: tak ada kapabilitas yang memuaskannya,
+ * Rekan Pemimpin sekalipun. Alasannya bukan hierarki melainkan fakta — tidak ada
+ * peran yang membuat pekerjaan pakar yang tak dievaluasi menjadi bukti yang cukup.
+ *
+ * Alasan penolakan berasal dari `expertGateBlockers` yang SAMA dengan yang dibaca
+ * `useEstimateExpertGate`, sehingga pesan server dan hint UI tak dapat menyimpang.
+ */
+export function expertGateSignatureViolations(input: {
+  prev: unknown;
+  next: unknown;
+  estimates?: ExpertGateBearer[] | null;
+  expertEval?: ExpertEvalState | null;
+  liveDocIds?: readonly string[] | null;
+  gatedRefs?: ReadonlySet<string>;
+  requireDocument?: boolean;
+}): ExpertGateViolation[] {
+  const slots = expertGateSignatureSlots(input);
+  if (!slots.length) return [];
+  const blockers = expertGateBlockers(input.estimates, input.expertEval, input.liveDocIds, {
+    requireDocument: input.requireDocument,
+  });
+  if (!blockers.length) return [];
+  const out: ExpertGateViolation[] = [];
+  for (const s of slots) {
+    for (const b of blockers) {
+      out.push({
+        code: 'expert-gate', ref: s.ref, slot: s.slot, estimateId: b.id,
+        message: `${b.name} — ${b.reasons.join('; ')}`,
+      });
+    }
   }
   return out;
 }

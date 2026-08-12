@@ -2,9 +2,10 @@
    Pure (tanpa DB): mem-validasi guardSignoffWrite mendiff & menuntut kapabilitas
    yang tepat, sejajar gate UI. Menutup celah capForWrite per-dokumen (WP_EDIT). */
 import { describe, it, expect } from 'vitest';
-import { guardSignoffWrite } from '../signoff';
+import { guardSignoffWrite, signoffContextNeeds, type SignoffContext } from '../signoff';
 import { CAP } from '../rbac';
 import { amsShortName } from '../../../migration/src/identity';
+import { EXPERT_APPROACH } from '../../../migration/src/canon_expert_eval';
 
 /* PRD prd-wp-signoff-integrity — `guardSignoffWrite` kini menerima IDENTITAS, bukan
    hanya peran. Konstanta di bawah menjadi aktor sehingga seluruh pemanggilan lama
@@ -474,5 +475,105 @@ describe('guardSignoffWrite — stempel waktu keputusan (PR-3)', () => {
     };
     expect(guardSignoffWrite(PARTNER, 'approvals_ov_v4', before, after, NOW))
       .toEqual([{ what: 'approval:APR-AJE-09.Engagement Partner', cap: CAP.AJE_POST }]);
+  });
+});
+
+/* ============================================================
+   PRD prd-sa620-expert-gate-server · PR-1 — GERBANG PAKAR SA 620
+   ------------------------------------------------------------
+   Cacat yang ditutup: gate hanya menonaktifkan TOMBOL. Panggilan `state.set`
+   langsung menulis `wpState.sa540.chain.preparer` dan lolos seluruh gerbang
+   server, menghasilkan kertas kerja bertanda tangan sah atas estimasi yang
+   bersandar pada pakar yang tak pernah dievaluasi.
+   ============================================================ */
+describe('guardSignoffWrite — gerbang pakar SA 620 (wpState.sa540)', () => {
+  const FULL = { competence: true, objectivity: true, scope: true, findings: true };
+  const REGISTER = {
+    register: [
+      { id: 'E-04', name: 'Imbalan Kerja', approach: EXPERT_APPROACH },
+      { id: 'E-01', name: 'CKPN', approach: 'Rentang independen' },
+    ],
+  };
+  /** Konteks seperti yang dimuat `loadSignoffContext` dari StateDoc saudara. */
+  const ctxWith = (estimates: unknown, expertEval: unknown): SignoffContext => {
+    const siblings: Record<string, unknown> = {};
+    if (estimates !== undefined) siblings['estimates.v1'] = estimates;
+    if (expertEval !== undefined) siblings['expertEval.v1'] = expertEval;
+    return { siblings, liveAttachmentIds: {} };
+  };
+  const EMPTY = { sa540: { chain: {} } };
+  const signedBySenior = { sa540: { chain: { preparer: sigBy(SENIOR) } } };
+
+  it('K1 — tanda tangan di atas evaluasi pakar KOSONG ditolak, apa pun perannya', () => {
+    const ctx = ctxWith(REGISTER, {});
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctx))
+      .toThrow(/expert-gate:E-04/);
+    /* ATURAN, bukan otoritas — Rekan Pemimpin pun ditolak. */
+    expect(() => guardSignoffWrite(
+      PARTNER, 'wpState', EMPTY, { sa540: { chain: { preparer: sigBy(PARTNER) } } }, NOW, ctx,
+    )).toThrow(/expert-gate:E-04/);
+  });
+
+  it('pesan penolakan menyebut estimasi & apa yang kurang', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, {})))
+      .toThrow(/Imbalan Kerja — Evaluasi SA 500 ¶8 belum tuntas \(0\/4\)/);
+  });
+
+  it('evaluasi 4/4 → lolos, dan hasil gerbang masuk jejak audit (K8)', () => {
+    expect(guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, { 'E-04': FULL })))
+      .toEqual([{ what: 'wp:sa540.preparer', cap: CAP.WP_EDIT }, { what: 'expert-gate:pass', cap: '' }]);
+  });
+
+  it('3/4 langkah tetap ditolak', () => {
+    const partial = { 'E-04': { competence: true, objectivity: true, scope: true } };
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(REGISTER, partial)))
+      .toThrow(/3\/4/);
+  });
+
+  it('K5 — PENCABUTAN tanda tangan tidak pernah digerbang', () => {
+    expect(() => guardSignoffWrite(
+      SENIOR, 'wpState', signedBySenior, EMPTY, NOW, ctxWith(REGISTER, {}),
+    )).not.toThrow();
+  });
+
+  it('K6 — registri tanpa estimasi berjalur pakar tak terpengaruh', () => {
+    const noExpert = { register: [REGISTER.register[1]] };
+    expect(guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(noExpert, {})))
+      .toEqual([{ what: 'wp:sa540.preparer', cap: CAP.WP_EDIT }, { what: 'expert-gate:pass', cap: '' }]);
+  });
+
+  it('Q2 — registri TAK ADA di server: lolos, tetapi TERTANDAI di jejak audit', () => {
+    expect(guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith(undefined, {})))
+      .toEqual([{ what: 'wp:sa540.preparer', cap: CAP.WP_EDIT }, { what: 'expert-gate:no-register', cap: '' }]);
+  });
+
+  it('registri ADA tetapi kosong ≠ registri tak ada — gerbang berjalan normal', () => {
+    expect(guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW, ctxWith({ register: [] }, {})))
+      .toEqual([{ what: 'wp:sa540.preparer', cap: CAP.WP_EDIT }, { what: 'expert-gate:pass', cap: '' }]);
+  });
+
+  it('K11 — konteks dibutuhkan tetapi tak dipasok → FAIL-CLOSED, bukan lolos senyap', () => {
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW))
+      .toThrow(/expert-gate:context-missing/);
+  });
+
+  it('K7 — suntingan isi kertas kerja tak menuntut konteks (nol query)', () => {
+    const prev = { sa540: { chain: { preparer: sigBy(SENIOR) }, conclusion: { text: 'a' } } };
+    const next = { sa540: { chain: { preparer: sigBy(SENIOR) }, conclusion: { text: 'b' } } };
+    expect(signoffContextNeeds('wpState', prev, next)).toBeNull();
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', prev, next, NOW)).not.toThrow();
+  });
+
+  it('kertas kerja LAIN tak menuntut konteks & tak digerbang', () => {
+    const prev = { B: { chain: {} } }, next = { B: { chain: { preparer: sigBy(SENIOR) } } };
+    expect(signoffContextNeeds('wpState', prev, next)).toBeNull();
+    expect(() => guardSignoffWrite(SENIOR, 'wpState', prev, next, NOW)).not.toThrow();
+  });
+
+  it('kebutuhan konteks menyebut KEDUA dokumen saudara', () => {
+    const needs = signoffContextNeeds('wpState', EMPTY, signedBySenior);
+    expect(needs?.siblingKeys).toEqual(['estimates.v1', 'expertEval.v1']);
+    /* PR-1: limb dokumen belum menyala — tak ada koleksi lampiran yang dibaca. */
+    expect(needs?.attachmentCollections).toEqual([]);
   });
 });

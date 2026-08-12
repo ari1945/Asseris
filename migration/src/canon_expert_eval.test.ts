@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 import {
   EXPERT_EVAL_STEPS, EXPERT_APPROACH, expertEvalComplete, expertEvalDone, expertEvalMissing,
   expertGateBlockers, expertRefsOf,
+  expertGateSignatureSlots, expertGateSignatureViolations,
   type ExpertEvalState,
 } from './canon_expert_eval';
 
@@ -108,6 +109,118 @@ describe('expertGateBlockers — gerbang sign-off SA 620 (K11)', () => {
   it('masukan kosong / null aman', () => {
     expect(expertGateBlockers(null, null, null)).toEqual([]);
     expect(expertGateBlockers([], {}, [])).toEqual([]);
+  });
+});
+
+/* PRD prd-sa620-expert-gate-server PR-1 — aturan yang ditegakkan SERVER.
+   Yang diuji di sini adalah diff-nya (kapan gerbang berjalan); kapabilitas &
+   penolakannya diuji di server/src/__tests__/signoff.test.ts. */
+describe('expertGateSignatureSlots — kapan gerbang berjalan', () => {
+  const SIG = { by: 'Rina K.', byUserId: 'u-rk', at: '2026-08-12T03:00:00.000Z' };
+
+  it('tanda tangan BARU pada ref digerbang → terdeteksi', () => {
+    expect(expertGateSignatureSlots({
+      prev: { sa540: { chain: {} } },
+      next: { sa540: { chain: { preparer: SIG } } },
+    })).toEqual([{ ref: 'sa540', slot: 'preparer' }]);
+  });
+
+  it('PENCABUTAN tanda tangan tidak digerbang — gerbang tak boleh menjebak WP (K5)', () => {
+    expect(expertGateSignatureSlots({
+      prev: { sa540: { chain: { preparer: SIG } } },
+      next: { sa540: { chain: { preparer: null } } },
+    })).toEqual([]);
+    expect(expertGateSignatureSlots({
+      prev: { sa540: { chain: { preparer: SIG } } },
+      next: { sa540: { chain: {} } },
+    })).toEqual([]);
+  });
+
+  it('suntingan ISI tanpa perubahan tanda tangan → nol (K7: nol query)', () => {
+    expect(expertGateSignatureSlots({
+      prev: { sa540: { chain: { preparer: SIG }, conclusion: { text: 'a' } } },
+      next: { sa540: { chain: { preparer: SIG }, conclusion: { text: 'b' } } },
+    })).toEqual([]);
+  });
+
+  it('ref LAIN tak tersentuh — gerbang tak menyentuh yang bukan urusannya', () => {
+    expect(expertGateSignatureSlots({
+      prev: { B: { chain: {} } }, next: { B: { chain: { preparer: SIG } } },
+    })).toEqual([]);
+  });
+
+  it('KEEMPAT slot digerbang, termasuk eqr (keputusan Q3)', () => {
+    const slots = expertGateSignatureSlots({
+      prev: { sa540: { chain: {} } },
+      next: { sa540: { chain: { preparer: SIG, reviewer: SIG, partner: SIG, eqr: SIG } } },
+    }).map(s => s.slot);
+    expect(slots).toEqual(['eqr', 'partner', 'preparer', 'reviewer']);
+  });
+
+  it('penggantian tanda tangan (orang lain di slot yang sama) dihitung perolehan', () => {
+    expect(expertGateSignatureSlots({
+      prev: { sa540: { chain: { preparer: SIG } } },
+      next: { sa540: { chain: { preparer: { ...SIG, byUserId: 'u-lain' } } } },
+    })).toEqual([{ ref: 'sa540', slot: 'preparer' }]);
+  });
+});
+
+describe('expertGateSignatureViolations — penegakan server', () => {
+  const SIG = { by: 'Rina K.', byUserId: 'u-rk', at: '2026-08-12T03:00:00.000Z' };
+  const full = { competence: true, objectivity: true, scope: true, findings: true };
+  const est = [
+    { id: 'E-04', name: 'Imbalan Kerja', approach: EXPERT_APPROACH },
+    { id: 'E-01', name: 'CKPN', approach: 'Rentang independen' },
+  ];
+  const signWrite = { prev: { sa540: { chain: {} } }, next: { sa540: { chain: { preparer: SIG } } } };
+
+  it('tanda tangan di atas evaluasi kosong → dilanggar, menyebut estimasinya', () => {
+    const v = expertGateSignatureViolations({ ...signWrite, estimates: est, expertEval: {}, requireDocument: false });
+    expect(v).toHaveLength(1);
+    expect(v[0].estimateId).toBe('E-04');
+    expect(v[0].slot).toBe('preparer');
+    expect(v[0].message).toContain('0/4');
+  });
+
+  it('EQR menandatangani di atas evaluasi kosong sama-sama ditolak (Q3)', () => {
+    const v = expertGateSignatureViolations({
+      prev: { sa540: { chain: {} } }, next: { sa540: { chain: { eqr: SIG } } },
+      estimates: est, expertEval: {}, requireDocument: false,
+    });
+    expect(v.map(x => x.slot)).toEqual(['eqr']);
+  });
+
+  it('evaluasi tuntas → lolos meski dokumen belum ditautkan (PR-1: limb dokumen mati)', () => {
+    expect(expertGateSignatureViolations({
+      ...signWrite, estimates: est, expertEval: { 'E-04': full }, requireDocument: false,
+    })).toEqual([]);
+  });
+
+  it('limb dokumen menyala (PR-3) → evaluasi tuntas saja tidak cukup', () => {
+    const v = expertGateSignatureViolations({
+      ...signWrite, estimates: est, expertEval: { 'E-04': full }, liveDocIds: [], requireDocument: true,
+    });
+    expect(v[0].message).toContain('belum ditautkan');
+  });
+
+  it('registri tanpa estimasi berjalur pakar → tak pernah menghalangi (K6)', () => {
+    expect(expertGateSignatureViolations({
+      ...signWrite, estimates: [est[1]], expertEval: {}, requireDocument: false,
+    })).toEqual([]);
+  });
+
+  it('PENCABUTAN lolos walau gerbang aktif (K5)', () => {
+    expect(expertGateSignatureViolations({
+      prev: { sa540: { chain: { preparer: SIG } } },
+      next: { sa540: { chain: {} } },
+      estimates: est, expertEval: {}, requireDocument: false,
+    })).toEqual([]);
+  });
+
+  it('alasan berasal dari expertGateBlockers yang SAMA dengan gate UI (K9)', () => {
+    const b = expertGateBlockers(est, {}, [], { requireDocument: false });
+    const v = expertGateSignatureViolations({ ...signWrite, estimates: est, expertEval: {}, requireDocument: false });
+    expect(v[0].message).toBe(`${b[0].name} — ${b[0].reasons.join('; ')}`);
   });
 });
 

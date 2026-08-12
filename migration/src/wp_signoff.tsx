@@ -270,6 +270,18 @@ function WpSignoff({ moduleId }: any) {
           </ul>
         </div>
       )}
+      {/* Q2 — TIDAK dikondisikan pada `!xg.blocked`. Keduanya mengatakan hal berbeda, dan
+          `EST_SEED` selalu memuat estimasi berjalur SA 620: setiap perikatan yang registrinya
+          belum tersimpan karenanya PASTI terblokir, sehingga menekan pesan ini saat terblokir
+          membuatnya tak pernah terlihat justru pada populasi yang ia tuju. Ditemukan lewat
+          verifikasi hidup — seluruh uji lolos di atas surface yang mati. */}
+      {xg.serverBlind && (
+        <div className="panel" style={{ padding: '8px 10px', marginBottom: 8, background: 'var(--surface-2)' }}>
+          <div className="tiny" style={{ fontWeight: 600, lineHeight: 1.45 }}>
+            <I.alert size={11} style={{ verticalAlign: -1, color: 'var(--amber)' }} /> Registri estimasi belum tersimpan di server — gerbang pakar SA 620 <b>tidak dapat ditegakkan</b> untuk tanda tangan ini. Buka <b>Estimasi Akuntansi (SA 540)</b> dan simpan registrinya agar gerbang berlaku. Tanda tangan tetap dapat dibubuhkan, dan tercatat demikian di jejak audit.
+          </div>
+        </div>
+      )}
       <Line role="Preparer" who={preparer} canSign={!barred} onSign={() => doSign('preparer')} onUnsign={() => unsign('preparer')} noAuthHint={barHint} />
       <div style={{ borderTop: '1px solid var(--line-soft)' }} />
       <Line role="Reviewer" who={reviewer} canSign={!!preparer && canReview && !barred} noAuthHint={barHint || (!canReview ? 'menunggu otoritas berwenang (reviewer)' : 'menunggu preparer')} onSign={() => doSign('reviewer')} onUnsign={() => unsign('reviewer')} />

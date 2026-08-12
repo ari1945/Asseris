@@ -10,7 +10,7 @@
 |---|---|
 | Draft | 53 |
 | Approved | 5 |
-| In Progress | 6 |
+| In Progress | 7 |
 | Implemented | 23 |
 | Superseded | 0 |
 
@@ -98,6 +98,7 @@
 | docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
 | docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-sa620-expert-gate-server.md | In Progress — "Proceed." 2026-08-12 (Q1=blokir · Q2=fail-open terlihat · Q3=keempat slot); PR-1 terkirim |
 | docs/prd-sidebar-nav-learning-curve.md | Draft |
 | docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
 | docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
