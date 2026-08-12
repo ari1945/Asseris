@@ -137,7 +137,7 @@ describe('engagement isolation', () => {
 });
 
 describe('list + soft-delete', () => {
-  it('list returns live metadata; remove hides it but keeps the row for audit', async () => {
+  it('list returns live metadata; remove hides it, keeps the row AND the bytes (Stage 6)', async () => {
     const content = 'to be removed';
     const up = await callerAs('Junior Auditor', JR).attachment.upload({
       scope: 'engagement', scopeId: ENG_A, collection: 'pbc',
@@ -152,10 +152,10 @@ describe('list + soft-delete', () => {
     expect(after.some((a) => a.id === up.id)).toBe(false); // hidden from live list
     await expect(
       callerAs('Junior Auditor', JR).attachment.download({ id: up.id }),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' }); // bytes gone
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' }); // hidden — no live download
     const row = await prisma.attachment.findUnique({ where: { id: up.id } });
     expect(row?.deletedAt).not.toBeNull(); // row retained for the audit trail
-    expect(row?.blob).toBeNull(); // bytes purged
+    expect(row?.blob).not.toBeNull(); // Stage 6: soft-delete KEEPS the bytes — purge is the worker's job
   });
 });
 

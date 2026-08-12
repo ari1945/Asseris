@@ -18,6 +18,7 @@ const prodOk = (): NodeJS.ProcessEnv => ({
   APP_SIGNING_KEY: GOOD_SIGN,
   COOKIE_SECURE: '1',
   DATABASE_URL: GOOD_DB,
+  AUDIT_CHECKPOINT_PATH: '/mnt/off-box/audit-checkpoint.json',
 });
 
 const keysOf = (env: NodeJS.ProcessEnv) => prodConfigProblems(env).map((p) => p.key);
@@ -40,6 +41,9 @@ describe('prodConfigProblems — deteksi konfigurasi produksi tidak aman', () =>
     expect(keysOf({ ...prodOk(), COOKIE_SECURE: '0' })).toContain('COOKIE_SECURE');
     expect(keysOf({ ...prodOk(), COOKIE_SECURE: undefined })).toContain('COOKIE_SECURE');
   });
+  it('AUDIT_CHECKPOINT_PATH hilang → ditandai', () => {
+    expect(keysOf({ ...prodOk(), AUDIT_CHECKPOINT_PATH: undefined })).toContain('AUDIT_CHECKPOINT_PATH');
+  });
   it('COOKIE_SECURE=true diterima', () => {
     expect(keysOf({ ...prodOk(), COOKIE_SECURE: 'true' })).not.toContain('COOKIE_SECURE');
   });
@@ -50,7 +54,7 @@ describe('prodConfigProblems — deteksi konfigurasi produksi tidak aman', () =>
   });
   it('banyak masalah sekaligus → semua terkumpul', () => {
     const env: NodeJS.ProcessEnv = { NODE_ENV: 'production' };
-    expect(keysOf(env).sort()).toEqual(['APP_ENCRYPTION_KEY', 'APP_SIGNING_KEY', 'COOKIE_SECURE', 'DATABASE_URL'].sort());
+    expect(keysOf(env).sort()).toEqual(['APP_ENCRYPTION_KEY', 'APP_SIGNING_KEY', 'AUDIT_CHECKPOINT_PATH', 'COOKIE_SECURE', 'DATABASE_URL'].sort());
   });
 });
 
@@ -60,6 +64,8 @@ describe('configSummary — ringkasan ter-redaksi (tanpa nilai rahasia)', () => 
     expect(s).toEqual({
       nodeEnv: 'production', port: '5181', db: 'postgres', cookieSecure: true,
       encryptionKey: 'set', signingKey: 'set', ipAllowlist: false, llm: false,
+      trustedProxy: false,
+      auditCheckpoint: 'configured',
     });
     // Tak ada nilai kunci mentah yang bocor ke ringkasan.
     expect(JSON.stringify(s)).not.toContain(GOOD_ENC);
@@ -85,8 +91,8 @@ describe('assertProdConfig — gerbang boot (exit di produksi, no-op di dev/test
       onProblem: (p) => reported.push(p.key),
       onExit: (n) => { exitCount = n; },
     });
-    expect(exitCount).toBe(4);
-    expect(reported.sort()).toEqual(['APP_ENCRYPTION_KEY', 'APP_SIGNING_KEY', 'COOKIE_SECURE', 'DATABASE_URL'].sort());
+    expect(exitCount).toBe(5);
+    expect(reported.sort()).toEqual(['APP_ENCRYPTION_KEY', 'APP_SIGNING_KEY', 'AUDIT_CHECKPOINT_PATH', 'COOKIE_SECURE', 'DATABASE_URL'].sort());
   });
   it('produksi + config aman → onExit TIDAK dipanggil', () => {
     let exited = false;

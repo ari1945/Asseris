@@ -5,7 +5,9 @@ import { I, MODULE_INDEX } from './icons';
 import { amsLLMConfig } from './llm_providers';
 import { Panel } from './ui';
 import { AMS } from './data';
-import { openCanonicalWp } from './view_wp';
+/* Tahap 8 — helper WP via ESM dari wp_canon (eager). view_wp menjadi lazy
+   chunk; modul eager (ai_extract) tidak boleh menariknya ke bundle boot. */
+import { openCanonicalWp, WP_REFS } from './wp_canon';
 
 /* ============================================================
    Asseris — Ekstraksi Isi Dokumen (FASE 3 · Babel JSX)
@@ -295,7 +297,7 @@ function ExFieldRow({ f, onEdit, readOnly }: any) {
 function ExtractReview({ rec, route, nav, onClose }: any) {
   const kind = exKindFor(rec);
   const sc = EX_SCHEMAS[kind] || EX_SCHEMAS.generic;
-  const wpRefsAll = (typeof window !== 'undefined' && window.WP_REFS) || [{ ref: sc.wpRef, title: sc.summary }];
+  const wpRefsAll = WP_REFS || [{ ref: sc.wpRef, title: sc.summary }];
   const [text, setText] = useStateEX(rec._text || '');
   const [res, setRes] = useStateEX(null);        /* hasil ekstraksi (fields) */
   const [busy, setBusy] = useStateEX(false);

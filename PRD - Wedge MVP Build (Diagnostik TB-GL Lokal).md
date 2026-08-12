@@ -1,7 +1,7 @@
 # PRD — Wedge MVP Build · Diagnostik & Analitik Audit TB+GL (Lokal)
 
 > Basis: `Wedge MVP — Diagnostik & Analitik Audit (SA 240-520-530).md` (definisi referensi).
-> Status: **BUILD AKTIF** · Pemilik: Ari Widodo · Tanggal: 2026-06-22
+> **Status:** **In Progress** — BUILD AKTIF
 > ⚠️ Build ini meng-**override gerbang validasi §11** wedge-doc atas keputusan sadar Ari
 > (tanpa Sprint Discovery). Risiko pasar diterima. Lihat memory `wedge-mvp-build-decision`.
 

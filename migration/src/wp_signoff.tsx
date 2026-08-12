@@ -12,7 +12,7 @@
    Bukti memakai store evidence global (per-modul) yg sudah ada.
    ============================================================ */
 import React from 'react';
-import { useAudit, useAuth, useFirm, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useAuth, useFirm, useNav } from './contexts';
 import { engagementEntryGate, engagementEntryContext } from './engagement_entry_gate';
 import { CAP } from './rbac';
 import { I } from './icons';
@@ -155,7 +155,7 @@ function wpSignersFor(audit: any, moduleId: any, defaults: any) {
 
 /* ---- hook: state sign-off kanonik per modul ---- */
 function useWpSignoff(moduleId: any) {
-  const audit = useAudit();
+  const audit = useAuditHeavy(['reviewNotes']);
   const auth = useAuth();
   const firm = useFirm();
   const me = (auth && auth.user && auth.user.name) || 'Auditor';
@@ -411,7 +411,7 @@ function wpCompletenessFor(audit: any, moduleIds: any) {
    berkesimpulan (penilaian auditor SA 230). Sumber = wpState kanonik + store
    evidence; lingkup = semua modul auditable. */
 function WpCompletenessRecap({ moduleIds }: any) {
-  const audit = useAudit();
+  const audit = useAuditHeavy(['reviewNotes']);
   const ids = moduleIds || Object.keys(WP_MODULE_MAP);
   const r = wpCompletenessFor(audit, ids);
   const Row = ({ label, pct, count, total, color }: any) => (
@@ -574,7 +574,7 @@ function engagementGate(audit: any, firm: any, opts: any) {
 /* EngagementGateSummary — ringkasan prasyarat + tautan "buka modul" untuk
    menyelesaikan blocker. Drop-in (firm board / dialog konfirmasi Fase 1). */
 function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }: any) {
-  const audit = useAudit();
+  const audit = useAuditHeavy(['reviewNotes']);
   const firm = useFirm();
   const nav = useNav();
   const g = gate || engagementGate(audit, firm, { nextPhase, moduleIds });
@@ -619,7 +619,7 @@ function EngagementGateSummary({ nextPhase, moduleIds, gate, compact }: any) {
    - lainnya / terpenuhi tanpa lock: lanjут langsung.
    Konsumen merender <PhaseGateDialog> dari state `pending`. */
 function usePhaseGate() {
-  const audit = useAudit();
+  const audit = useAuditHeavy(['reviewNotes']);
   const firm = useFirm();
   const auth = useAuth();
   /* Override gerbang (maju fase MESKI ada blocker) = Partner-only (PHASE_OVERRIDE).

@@ -2,7 +2,7 @@
 
 > Evaluasi modul isu **#4** (modul SPAP tipis/terputus). Pick kedua: **SA 560 `subsequent`**
 > (pick pertama SA 550 `related` = PR #32). Pola sengaja dicerminkan dari PR #32.
-> Status: **DRAFT — menunggu sign-off ("Proceed.") sebelum implementasi.**
+> **Status:** **Draft** — menunggu sign-off ("Proceed.")
 > Tanggal: 2026-06-25 · Cabang usulan: `feat/subsequent-events-fs-reconciliation` (off `master`).
 
 ---

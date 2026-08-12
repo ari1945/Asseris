@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-06-25 |
 | Pemilik | Ari Widodo |
-| Status | Draft — **menunggu sign-off** |
+| Status | **Draft** — menunggu sign-off |
 | Engagement ID terkait | — (modul level-firma) |
 
 > ⚠️ **Pushback dulu (truth over agreement + aturan anti-duplikasi KERAS).** Permintaan awal: modul "Penerimaan & Keberlanjutan Klien". Setelah grep kode, **sebagian besar "Penerimaan" SUDAH ADA** — membangun ulang = duplikasi. PRD ini mempersempit scope ke **gap yang benar-benar kosong**: *keberlanjutan (continuance) untuk portofolio klien aktif*. Mohon baca §7 dulu, lalu pilih pendekatan di §11.

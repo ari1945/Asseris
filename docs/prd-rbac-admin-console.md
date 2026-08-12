@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-07-03 |
 | Pemilik | Ari Widodo |
-| Status | **Open Questions terjawab — menunggu "Proceed."** |
+| Status | **Draft** — Open Questions terjawab — menunggu "Proceed." |
 | Asal | Permintaan langsung: "Rancang di dalam menu pengaturan untuk dapat melakukan setting akses tiap jenis role... Buat agar customable, dan dapat membuat jenis peran baru. Secara default non auditor tidak akan dapat mengakses semua informasi perikatan." |
 
 ## 1. Problem

@@ -1,6 +1,6 @@
 # PRD — Asseris Engagement Pack (Excel)
 
-> Status: **✅ SIGNED-OFF & DIIMPLEMENTASI (F1+F2 penuh)** · sign-off Ari 2026-07-09 (scope: Full 30+ sheet ·
+> **Status:** **Implemented** — SIGNED-OFF & DIIMPLEMENTASI (F1+F2 penuh) 2026-07-09
 > .xlsx tanpa makro · kosong + contoh mini). Deliverable: `Asseris Engagement Pack (Excel).xlsx` (root) —
 > generator di `tools/excel-pack/` (36 sheet, 0 error formula via Excel COM recalc, nilai kunci terverifikasi:
 > OM/PM/CTT kanon, AJE auto-post, neraca & arus kas check = 0, MUS, Benford).

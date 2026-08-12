@@ -559,7 +559,6 @@ function ProspectForm({ onClose, onAdd }: any) {
   );
 }
 
-Object.assign(window, { ClientOnboarding, OnboardingDrawer, StepAcceptance, StepConvert, ProspectForm, OKv, ScorePick, obGates, obStage, obAccScore, obAccVerdict, OB_STAGES });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

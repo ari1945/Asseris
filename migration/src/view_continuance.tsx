@@ -560,6 +560,5 @@ function ContinuanceRegister() {
   );
 }
 
-Object.assign(window, { ContinuanceRegister });
 
 export { ContinuanceRegister };

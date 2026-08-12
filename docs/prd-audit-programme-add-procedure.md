@@ -6,6 +6,8 @@ module: programme (view_cockpit.tsx · AuditProgramme)
 
 # PRD — Menambah Prosedur Audit & Navigasi Baris
 
+**Status:** **Approved** — Ari "Paket Lengkap Proceed" 2026-06-25
+
 ## Problem
 Modul **Audit Programme** tidak punya cara menambah prosedur dari UI. Daftar
 berasal dari konstanta statis `PROGRAMME`. Tombol **"Saran Prosedur AI"** dan

@@ -6,6 +6,9 @@ import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
 import { amsExportPdf } from './export_pdf';
 import { reconcileOpinionConsistency, type OpinionConsistencyResult } from './canon_validation';
+/* Tahap 8 — mesin opini dibaca via ESM dari view_opinion_parts (berbagi
+   chunk), bukan window.AMSOpinion yang hanya terisi setelah parts dimuat. */
+import { AMSOpinion } from './view_opinion_parts';
 
 /* ============================================================
    Asseris — Audit Opinion Generator
@@ -137,7 +140,7 @@ function buildOpinionBlocks(doc: any, client: any, O: any) {
 
 function AuditOpinionGen() {
   const { activeClient, activeEngagement } = useFirm();
-  const O = window.AMSOpinion;
+  const O = AMSOpinion;
   /* engagement-scoped (AMS_PERSIST_SCOPE: 'opinionDoc.v1' → engagement) — isolasi W7.5
      & RBAC WP_EDIT (bukan firm/FIRM_ADMIN). scopeId = perikatan aktif otomatis. */
   const [doc, setDoc] = useAmsPersist('opinionDoc.v1', () => DEFAULT_DOC_O);
@@ -462,7 +465,6 @@ function fmtDateID(s: any) {
   return `${parseInt(d, 10)} ${M[parseInt(m, 10) - 1]} ${y}`;
 }
 
-Object.assign(window, { AuditOpinionGen });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

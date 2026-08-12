@@ -9,6 +9,9 @@ import { assertProdConfig, configSummary } from './prodConfig';
 import { loadSecretsIntoEnv } from './secrets';
 import { hardenAuditLogImmutability } from './dbHarden';
 import { refreshRoleCache } from './roleStore';
+import { MAX_REQUEST_BODY_BYTES, rejectOversizedContentLength } from './payloadLimits';
+import { auditReadiness, startAuditOutboxWorker } from './audit/log';
+import { applySecurityHeaders } from './security/headers';
 
 // Opt-in (SECRETS_PROVIDER=aws-sm) — no-op otherwise. MUST run before configSummary/assertProdConfig
 // so the fail-fast guard gates the real resolved secrets regardless of source. Fail-closed: a fetch
@@ -33,8 +36,8 @@ assertProdConfig(process.env, {
   },
 });
 
-// K5 — Postgres-only AuditLog immutability trigger (no-op on SQLite dev/test). Best-effort:
-// logs and continues on failure so a missing DDL grant never blocks boot (see dbHarden.ts).
+// K5 — Postgres-only AuditLog immutability trigger (no-op on SQLite dev/test). Production is
+// fail-closed: a missing DDL grant means the audit chain is mutable, so boot/readiness must fail.
 await hardenAuditLogImmutability();
 
 // RBAC admin console — MUST be awaited before listen() below. can() reads a synchronous
@@ -42,12 +45,16 @@ await hardenAuditLogImmutability();
 // including the Partner's own, until the first roles.* mutation happened to refresh it.
 await refreshRoleCache();
 
+// Stage 4 — one serial worker owns chain sequencing. Producers only commit to AuditOutbox.
+startAuditOutboxWorker();
+
 // The tRPC request handler (procedures served at root; the Vite dev proxy strips the /trpc
 // prefix, and prod fronts this with the same path shape). onError feeds the error counter +
 // structured log so observability sees failures without each resolver logging by hand.
 const trpcHandler = createHTTPHandler({
   router: appRouter,
   createContext,
+  maxBodySize: MAX_REQUEST_BODY_BYTES,
   onError({ error, path, type }) {
     inc('http_errors_total');
     log.error('trpc.error', { path: path ?? null, type, code: error.code, message: error.message });
@@ -59,6 +66,30 @@ const trpcHandler = createHTTPHandler({
 // Everything else delegates to tRPC unchanged.
 const server = createServer((req, res) => {
   const path = (req.url ?? '').split('?')[0];
+  applySecurityHeaders(res);
+
+  if (rejectOversizedContentLength(req, res)) return;
+
+  // CSP report collector deliberately stores no report body/URL: violation payloads may contain
+  // sensitive document paths. A counter is enough to stage and observe the policy safely.
+  if (path === '/csp-report') {
+    if (req.method !== 'POST') {
+      res.writeHead(405, { 'content-type': 'text/plain' });
+      res.end('method not allowed');
+      return;
+    }
+    let bytes = 0;
+    req.on('data', (chunk: Buffer) => {
+      bytes += chunk.length;
+      if (bytes > 16_384) req.destroy();
+    });
+    req.on('end', () => {
+      inc('csp_reports_total');
+      res.writeHead(204);
+      res.end();
+    });
+    return;
+  }
 
   if (path === '/healthz') {
     // Liveness + a cheap DB reachability check (the one dependency that matters).
@@ -70,6 +101,20 @@ const server = createServer((req, res) => {
       .catch(() => {
         res.writeHead(503, { 'content-type': 'application/json' });
         res.end(JSON.stringify({ status: 'degraded', db: 'down' }));
+      });
+    return;
+  }
+
+  if (path === '/readyz') {
+    Promise.all([prisma.$queryRaw`SELECT 1`, auditReadiness()])
+      .then(([, audit]) => {
+        const status = audit.ok ? 200 : 503;
+        res.writeHead(status, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status: audit.ok ? 'ready' : 'not-ready', db: 'up', audit }));
+      })
+      .catch((error) => {
+        res.writeHead(503, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status: 'not-ready', db: 'down', error: error instanceof Error ? error.message : String(error) }));
       });
     return;
   }

@@ -1,6 +1,6 @@
 # PRD — SA 315 / ICFR Auditable: Risk-Control Matrix + Evaluasi Defisiensi ter-persist + Sign-off SA 230
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **"jadikan modul display-only auditable"** dari [[asseris-gap-matrix-eval]] — **pola terbukti PR#7–#10** (SA 250/260/265/402/620). Repetisi ke-6, **modul TERBESAR** (`view_icfr.tsx`, 724 baris).
 > Acuan gap: `InternalControl` ([view_icfr.tsx](migration/src/view_icfr.tsx)) sudah ada & sangat kaya (4 tab + mesin uji & evaluasi) tetapi **dua store stateful ephemeral**.
 > Sifat artefak: **level ENGAGEMENT** → `wpState`/`WP_MODULE_MAP` + `useAmsPersist('<key>.<engId>')`.

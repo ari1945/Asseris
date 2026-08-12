@@ -533,7 +533,6 @@ function GCMitigations({ mitigations, setMitigations, me, locked }: { mitigation
   );
 }
 
-Object.assign(window, { GoingConcern });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

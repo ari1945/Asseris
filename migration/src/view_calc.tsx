@@ -148,7 +148,6 @@ function RowKv({ label, v, strong }: any) {
   return <div className="row jb ac"><span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{label}</span><span className="mono" style={{ fontWeight: strong ? 700 : 600, fontSize: strong ? 14 : 12.5, color: strong ? 'var(--navy)' : 'inherit' }}>{v}</span></div>;
 }
 
-Object.assign(window, { ECLCalculator, Kv, RowKv });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

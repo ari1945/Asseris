@@ -259,7 +259,6 @@ function SoqmLineage({ nav }: any) {
   );
 }
 
-Object.assign(window, { soqmPull, SoqmFlow, SoqmComponents, SoqmLineage, PullRow });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

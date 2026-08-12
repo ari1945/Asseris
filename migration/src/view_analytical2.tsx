@@ -443,7 +443,6 @@ function DisaggChart({ series, z, mean, sd, max, isPct, jt }: any) {
   );
 }
 
-Object.assign(window, { RatioAnalysisTab, TrendCommonSizeTab, SubstantiveTab, DisaggregationTab, RatioGauge, ExpResult, DisaggChart });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

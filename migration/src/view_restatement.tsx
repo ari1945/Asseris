@@ -433,6 +433,5 @@ function RestatementView() {
   );
 }
 
-Object.assign(window, { RestatementView });
 
 export { RestatementView };

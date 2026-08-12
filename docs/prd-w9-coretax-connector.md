@@ -1,6 +1,6 @@
 # PRD — W9·2 Konektor Coretax / e-Faktur → firmtax (Integrasi Nyata, konektor ke-2)
 
-> Status: **SELESAI (Proceed. 2026-06-26)** — Fase 0–3 + live-proven (Manager). Branch:
+> **Status:** **Implemented** — SELESAI (Proceed. 2026-06-26) Fase 0–3 + live-proven
 > `feat/w9-coretax-connector`. Lanjutan W9 (Bank Feed SELESAI). Memory: `neosuite-ams-w9-connectors`.
 >
 > **Hasil:** mergeFeedState generik (jalur bank 0 regresi) · runCoretaxSync + reconcileCoretax +

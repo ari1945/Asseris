@@ -106,7 +106,12 @@ yang perlu dikonfirmasi bersama kajian legal (`docs/PDP-COMPLIANCE-ASSESSMENT.md
 
 ## 6. Roadmap teknis (target-state, di luar cakupan sesi ini)
 
-- Job purge otomatis yang menegakkan kelas retensi §1 tanpa intervensi manual.
+- ~~Job purge otomatis yang menegakkan kelas retensi §1 tanpa intervensi manual~~ → **SELESAI
+  (Tahap 6, 2026-08-12)**: `server/src/attachments/retention.ts` + `npm run retention-worker`
+  (list/schedule/approve/purge) menegakkan kelas retensi per-attachment, menghormati Legal Hold
+  server-side (`LegalHold`), dan mengharuskan approval FIRM_ADMIN sebelum byte dihapus. Soft-delete
+  kini hanya menyembunyikan lampiran (byte dipertahankan) — lihat `docs/SPIKE-S3-STORAGE.md` untuk
+  pilihan penyimpanan S3-compatible.
 - Assembly-lock 60 hari nyata (Finding K7) — StateDoc snapshot historis + freeze pasca tanggal
   laporan.
 - Skrip `terminate-firm.sh` yang mengotomasi checklist §3 (backup→serah-terima→hapus S3→terminate

@@ -417,7 +417,6 @@ function F805Report({ sel }: any) {
   );
 }
 
-Object.assign(window, { SA805View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

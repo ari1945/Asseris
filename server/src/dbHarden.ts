@@ -29,6 +29,25 @@ $$ LANGUAGE plpgsql`,
   `DROP TRIGGER IF EXISTS auditlog_no_delete ON "AuditLog"`,
   `CREATE TRIGGER auditlog_no_delete BEFORE DELETE ON "AuditLog"
   FOR EACH ROW EXECUTE FUNCTION auditlog_append_only()`,
+  `CREATE OR REPLACE FUNCTION auditoutbox_guard() RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'AuditOutbox is durable: DELETE not permitted (id=%)', OLD.id;
+  END IF;
+  IF (NEW.id, NEW."idempotencyKey", NEW."enqueuedAt", NEW."actorUserId", NEW."actorRole", NEW.action, NEW.scope, NEW."scopeId", NEW.key, NEW.detail)
+     IS DISTINCT FROM
+     (OLD.id, OLD."idempotencyKey", OLD."enqueuedAt", OLD."actorUserId", OLD."actorRole", OLD.action, OLD.scope, OLD."scopeId", OLD.key, OLD.detail) THEN
+    RAISE EXCEPTION 'AuditOutbox immutable payload cannot be changed (id=%)', OLD.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql`,
+  `DROP TRIGGER IF EXISTS auditoutbox_guard_update ON "AuditOutbox"`,
+  `CREATE TRIGGER auditoutbox_guard_update BEFORE UPDATE ON "AuditOutbox"
+  FOR EACH ROW EXECUTE FUNCTION auditoutbox_guard()`,
+  `DROP TRIGGER IF EXISTS auditoutbox_guard_delete ON "AuditOutbox"`,
+  `CREATE TRIGGER auditoutbox_guard_delete BEFORE DELETE ON "AuditOutbox"
+  FOR EACH ROW EXECUTE FUNCTION auditoutbox_guard()`,
 ];
 
 // Exported for the regression test that pins "one command per call" (see hardening.test.ts).
@@ -38,18 +57,26 @@ export { HARDEN_STATEMENTS };
  * Apply the Postgres-only AuditLog immutability trigger. No-op on SQLite (dev/test rely on being
  * able to UPDATE AuditLog to prove the hash-chain tamper-detection tests — see audit.test.ts). Each
  * statement is issued separately (Postgres forbids multiple commands per prepared-statement call).
- * Failure is logged loudly but NON-FATAL — the app-layer guarantee (no update/delete endpoint) still
- * holds even if the DB user lacks CREATE TRIGGER privilege; ops should treat a harden_failed log line
- * as an action item (grant privileges), not accept it silently.
+ * Failure is fatal in production: without these triggers the database is reachable but not ready
+ * to uphold its append-only contract. Non-production keeps the old best-effort behavior so a local
+ * SQLite-backed test can force this branch without killing its runner.
  */
-export async function hardenAuditLogImmutability(databaseUrl = process.env.DATABASE_URL ?? ''): Promise<void> {
+export async function hardenAuditLogImmutability(
+  databaseUrl = process.env.DATABASE_URL ?? '',
+  options: { required?: boolean } = {},
+): Promise<void> {
   if (!/^postgres(ql)?:\/\//.test(databaseUrl)) return; // SQLite dev/test — nothing to do
+  const required = options.required ?? process.env.NODE_ENV === 'production';
   try {
     for (const stmt of HARDEN_STATEMENTS) {
       await prisma.$executeRawUnsafe(stmt);
     }
-    log.info('db.hardened', { trigger: 'auditlog_append_only' });
+    log.info('db.hardened', { triggers: ['auditlog_append_only', 'auditoutbox_guard'] });
   } catch (e) {
-    log.error('db.harden_failed', { error: e instanceof Error ? e.message : String(e) });
+    const message = e instanceof Error ? e.message : String(e);
+    log.error('db.harden_failed', { error: message, fatal: required });
+    if (required) {
+      throw new Error(`auditlog-trigger-install-failed: ${message}`, { cause: e });
+    }
   }
 }

@@ -6,6 +6,8 @@ date: 2026-07-01
 
 # PRD — Remediasi Gap Matriks Kepatuhan FIRM
 
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
+
 ## 0. Evaluasi Independen atas 5 Klaim Matriks (verifikasi kode, bukan asumsi)
 
 Matriks yang diberikan dievaluasi baris-per-baris terhadap kode aktual di `migration/src/*`. Tiga dari lima baris **overstated atau meleset sebagian** dibanding kondisi kode riil — konsisten dengan pola sebelumnya (`asseris-gap-matrix-eval` memory) bahwa evaluator matriks kerap tidak grep kode dulu.

@@ -167,7 +167,6 @@ function StdVersionStrip({ highlight }: any) {
   );
 }
 
-Object.assign(window, { NoclarEthics, TaxTechEthics, StdVersionStrip });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

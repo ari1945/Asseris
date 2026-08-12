@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-25 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | ENG-2025-014 (perikatan demo/seed) |
 | Asal | Evaluasi modul WTB 2026-07-25 (temuan 1, 4, 6, 8 + cacat kecil) |
 

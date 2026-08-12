@@ -4,7 +4,7 @@ import { AMS_CANON } from './canon';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Panel } from './ui';
+import { Avatar, Badge, Btn, Check, Panel } from './ui';
 
 /* ============================================================
    Asseris — Komunikasi Komite Audit (POJK 55/2015)
@@ -91,7 +91,8 @@ function AuditCommitteeView() {
                     const on = isDone(d);
                     return (
                       <div key={d.ref} className="row gap10" style={{ padding: '10px 14px', alignItems: 'flex-start', borderBottom: i < A.duties.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
-                        <span onClick={() => toggle(d.ref)} style={{ cursor: 'pointer', flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (on ? 'var(--green)' : 'var(--line-strong)'), background: on ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{on && <I.check size={11} style={{ color: '#fff' }} />}</span>
+                        {/* Tahap 9 — checkbox native (input asli, keyboard-operable). */}
+                        <Check on={on} onChange={() => toggle(d.ref)} />
                         <span className="mono tiny" style={{ fontWeight: 700, color: 'var(--purple)', width: 40, flex: '0 0 40px', marginTop: 1 }}>{d.ref}</span>
                         <span style={{ flex: 1, minWidth: 0 }}>
                           <span onClick={() => toggle(d.ref)} style={{ cursor: 'pointer', display: 'block', fontSize: 12, lineHeight: 1.45, color: on ? 'var(--ink-3)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{d.t}</span>
@@ -203,7 +204,6 @@ function AuditCommitteeView() {
   );
 }
 
-Object.assign(window, { AuditCommitteeView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -664,7 +664,6 @@ function TabComms({ items, calc, concl, exceedsOM, exceedsPM, absNet, om, fmt, n
   );
 }
 
-Object.assign(window, { SADLedger });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

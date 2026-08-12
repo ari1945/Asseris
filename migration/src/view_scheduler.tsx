@@ -178,7 +178,6 @@ function BookingForm({ schedule, onClose, onAdd }: any) {
   );
 }
 
-Object.assign(window, { ResourceScheduler });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

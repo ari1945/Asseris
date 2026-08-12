@@ -1,6 +1,6 @@
 # PRD — SA 570 Going Concern Lanjutan: Rasio & Altman Z dari WTB/Canon (SSOT) + Multi-Skenario Tersimpan
 
-> Status: **APPROVED — Ari pra-otorisasi sesi ini** ("Anda dapat menjalankan tanpa persetujuan saya pada sesi ini"). Dokumen ini merancang; implementasi langsung berjalan.
+> **Status:** **Approved** — pra-otorisasi Ari sesi ini; implementasi berjalan
 > Stream: **follow-up eksplisit dari [PR#12](https://github.com/ari1945/Asseris/pull/12)** — dua item Non-Scope-nya (§5: "Derivasi rasio & Altman Z dari WTB/canon" + "multi-skenario tersimpan"). Lihat [[asseris-gap-matrix-eval]], [[neosuite-ams-next-session]].
 > **Beda sifat dari PR#12:** PR#12 memperdalam proyeksi/covenant/mitigasi. PRD ini menutup **dua pelanggaran SSOT tersisa** (rasio & Altman hardcoded) + menambah **multi-skenario** (snapshot stress tersimpan), bukan satu skenario aktif.
 

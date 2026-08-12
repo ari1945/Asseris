@@ -393,7 +393,6 @@ function SocReport({ E, A }: any) {
   );
 }
 
-Object.assign(window, { SJAH3402View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

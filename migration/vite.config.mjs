@@ -20,6 +20,20 @@ export default defineConfig({
       },
     },
   },
+  // Tahap 7 — e2e Playwright menembak SPA hasil `vite build` lewat `vite preview`
+  // (bukan dev server), supaya perjalanan browser diuji atas artefak produksi yang
+  // sesungguhnya. Preview butuh proxy /trpc yang sama dengan dev server.
+  preview: {
+    port: 5180,
+    strictPort: true,
+    proxy: {
+      '/trpc': {
+        target: 'http://localhost:5181',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/trpc/, ''),
+      },
+    },
+  },
   build: {
     target: 'es2020',
     outDir: 'dist',

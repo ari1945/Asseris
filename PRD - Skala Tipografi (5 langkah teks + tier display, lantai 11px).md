@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-25 |
 | Pemilik | Ari Widodo |
-| Status | Draft — menunggu sign-off |
+| Status | **Draft** — menunggu sign-off |
 | Engagement ID terkait | — (perubahan produk lintas-modul) |
 
 ---

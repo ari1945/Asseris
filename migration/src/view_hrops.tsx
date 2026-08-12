@@ -288,7 +288,6 @@ function RowKvBox({ label, v, accent }: any) {
   );
 }
 
-Object.assign(window, { LeaveAttendance, Performance, RowKvBox });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

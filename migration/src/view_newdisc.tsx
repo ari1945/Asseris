@@ -181,7 +181,6 @@ function NewDisclosures2024() {
   );
 }
 
-Object.assign(window, { NewDisclosures2024 });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

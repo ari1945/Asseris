@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-06-24 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | — (infrastruktur produk Asseris) |
 
 ## 1. Problem

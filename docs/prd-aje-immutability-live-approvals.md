@@ -7,7 +7,7 @@
 |---|---|
 | Tanggal | 2026-08-07 |
 | Pemilik | Ari Widodo |
-| Status | **Disetujui & DIIMPLEMENTASIKAN 2026-08-07** — sign-off "Proceed" tanpa menyebut nomor ⇒ seluruh rekomendasi §11 diadopsi (Q1=a · Q2=a · Q3=a · Q4=a · Q5=a · Q6=a). Enam PR di branch `feat/aje-immutability-live-approvals` |
+| Status | **Implemented** — Disetujui & DIIMPLEMENTASIKAN 2026-08-07 |
 | Engagement ID terkait | — (produk Asseris, bukan perikatan klien) |
 | Pemicu | Evaluasi modul AJE 2026-08-07 (6 temuan: 2×P0, 3×P1, 1×P2). Setiap klaim di §1 diverifikasi dengan probe eksekusi, bukan pembacaan kode (Lampiran A) |
 | Arc terkait | PR-A…PR-E AJE (MERGED), PR-B gerbang otorisasi posting, #169 rantai sign-off WP, `docs/prd-wtb-integrity-falsifiable-gates.md` |

@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 import type { User } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from './trpc';
 import { prisma } from './db';
 import { hashPassword, verifyPassword } from './auth/password';
 import { generateSecret, verifyTotp as checkTotp, otpauthUrl } from './auth/totp';
+import { clearTotpFailures, recordTotpFailure, totpThrottleState } from './auth/totpThrottle';
 import { createSession, revokeSession } from './auth/session';
 import { buildSessionCookie, clearSessionCookie } from './auth/cookie';
 import { logAuthEvent } from './auth/events';
@@ -14,7 +14,8 @@ import { refreshRoleCache } from './roleStore';
 import { guardSignoffWrite, SIGNOFF_KEYS, type SignoffChange } from './signoff';
 import { assertEngagementAccess, accessibleEngagementIds } from './engagementAccess';
 import { readLlmConfig } from './llm/config';
-import { redactFindings, buildNarrationPrompt } from './llm/redact';
+import { redactFindings, redactFindingsWithReport, buildNarrationPrompt } from './llm/redact';
+import { consumeLlmConsent, issueLlmConsent } from './llm/consent';
 import { complete } from './llm/providers';
 import { rateLimit } from './llm/ratelimit';
 import { logLlmEvent } from './llm/events';
@@ -27,10 +28,14 @@ import { listConnectors } from './integrations/config';
 import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, listJobs } from './integrations/sync';
 import { handleWebhook } from './integrations/webhook';
 import { PERSONAL_KEYS, personalPopulation, filterPersonalByPopulation, seedForKey } from './personalScope';
+import { assertStateDocRead } from './stateAccess';
 import {
   createAttachment, listAttachments, getMeta, readBytes, softRemove, scopeUsage,
   AttachmentError, MAX_FILE_BYTES, MAX_SCOPE_BYTES,
 } from './attachments/store';
+import { listPurgeCandidates, approvePurge, activeLegalHoldEngagementIds } from './attachments/retention';
+import { StateDocTooLargeError } from './payloadLimits';
+import { mutateStateDoc, StateDocConflictError } from './stateMutation';
 import { submitLeaveRequest, declareSelf } from './personalSelfService';
 import {
   amsShortName, loadTaskSeed, deriveReviewNoteTasks, deriveWpAssignmentTasks, deriveDeadlineTasks,
@@ -57,10 +62,6 @@ const stateKey = z.object({
   scopeId: z.string().min(1),
   key: z.string().min(1),
 });
-
-function isUniqueViolation(e: unknown): boolean {
-  return e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002';
-}
 
 // Brute-force lockout policy.
 const MAX_FAILED = 5;
@@ -99,9 +100,52 @@ function publicUser(u: User) {
   return { id: u.id, name: u.name, initials: u.initials, role: u.role, email: u.email, totpEnabled: u.totpEnabled };
 }
 
+const BOOTSTRAP_PROFILE_KEYS = new Set([
+  'name', 'initials', 'role', 'title', 'email', 'phone', 'photo', 'employeeId',
+  'department', 'office', 'joinDate', 'reportsTo', 'apNumber', 'stan', 'iapiNumber',
+  'cpaSince', 'cpeHours', 'cpeTarget', 'languages',
+]);
+
+function bootstrapProfile(dataJson: string): Record<string, unknown> | null {
+  try {
+    const raw = JSON.parse(dataJson) as unknown;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    return Object.fromEntries(
+      Object.entries(raw as Record<string, unknown>).filter(([key]) => BOOTSTRAP_PROFILE_KEYS.has(key)),
+    );
+  } catch {
+    return null;
+  }
+}
+
 // Generic credential failure — same message for unknown email vs wrong password, so the
 // endpoint can't be used to enumerate accounts.
 const badCreds = () => new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-credentials' });
+
+function totpRateLimitError(retryAfterSec = 1): TRPCError {
+  return new TRPCError({ code: 'TOO_MANY_REQUESTS', message: `totp-rate-limited:${retryAfterSec}` });
+}
+
+/** Verify an OTP against one account and consume the persistent account throttle on failure. */
+async function verifyAccountTotp(
+  user: Pick<User, 'id' | 'totpFailedAttempts' | 'totpLockedUntil'>,
+  secret: string | null,
+  token: string | undefined,
+): Promise<void> {
+  const current = totpThrottleState(user);
+  if (current.locked) throw totpRateLimitError(current.retryAfterSec);
+  // An elapsed lock starts a fresh attempt window; otherwise the first typo after waiting
+  // would immediately re-lock an account whose persisted counter is still at the threshold.
+  const expiredLock = !!user.totpLockedUntil && user.totpLockedUntil.getTime() <= Date.now();
+  if (expiredLock) await clearTotpFailures(user.id);
+  if (!token) throw new TRPCError({ code: 'UNAUTHORIZED', message: 'totp-required' });
+  if (!secret || !checkTotp(secret, token)) {
+    const next = await recordTotpFailure(user.id);
+    if (next.locked) throw totpRateLimitError(next.retryAfterSec);
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-totp' });
+  }
+  if (!expiredLock && (user.totpFailedAttempts || user.totpLockedUntil)) await clearTotpFailures(user.id);
+}
 
 // W7 Fase 1 — server-side RBAC gate for StateDoc writes. The real enforcement boundary:
 // the UI's can() is convenience, this is what actually stops a wrong-role write.
@@ -202,9 +246,11 @@ export const appRouter = router({
         }
         if (user.totpEnabled) {
           const secret = user.totpSecret ? decryptSecret(user.totpSecret) : null;
-          if (!input.totp || !secret || !checkTotp(secret, input.totp)) {
+          try {
+            await verifyAccountTotp(user, secret, input.totp);
+          } catch (error) {
             await logAuthEvent('LOGIN_FAIL', { ...meta, userId: user.id, detail: 'totp' });
-            throw new TRPCError({ code: 'UNAUTHORIZED', message: 'totp-required' });
+            throw error;
           }
         }
         // Success — clear the failure counter and open a session.
@@ -214,11 +260,12 @@ export const appRouter = router({
         const session = await createSession(user.id, meta);
         await logAuthEvent('LOGIN', { ...meta, userId: user.id });
         await appendAudit({ actorUserId: user.id, actorRole: user.role, action: 'LOGIN' });
-        // W10 — issue the session as an httpOnly cookie (the client no longer persists the token
-        // in localStorage). The token is still returned in the body for tests/curl Bearer use.
+        // Stage 5 — the opaque credential is cookie-only at the browser boundary. Tests and
+        // non-browser automation may still use contextForToken/createSession directly, but an
+        // auth.login response can no longer expose a bearer token to JavaScript.
         ctx.setCookie?.(buildSessionCookie(session.token));
         inc('logins_total');
-        return { token: session.token, user: publicUser(user) };
+        return { user: publicUser(user) };
       }),
 
     me: publicProcedure.query(({ ctx }) => (ctx.user ? publicUser(ctx.user) : null)),
@@ -232,40 +279,61 @@ export const appRouter = router({
     }),
 
     changePassword: protectedProcedure
-      .input(z.object({ oldPassword: z.string().min(1), newPassword: z.string().min(12) }))
+      .input(z.object({ oldPassword: z.string().min(1), newPassword: z.string().min(12), totp: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
         const u = await prisma.user.findUnique({ where: { id: ctx.user.id } });
         if (!u?.passwordHash || !(await verifyPassword(input.oldPassword, u.passwordHash))) {
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'wrong-password' });
+        }
+        if (u.totpEnabled) {
+          await verifyAccountTotp(u, u.totpSecret ? decryptSecret(u.totpSecret) : null, input.totp);
         }
         await prisma.user.update({ where: { id: u.id }, data: { passwordHash: await hashPassword(input.newPassword) } });
         await logAuthEvent('PASSWORD_CHANGE', { userId: u.id, ip: ctx.ip, userAgent: ctx.userAgent });
         return { ok: true };
       }),
 
-    // Step 1 of TOTP enrolment: mint a secret (totpEnabled stays false until verifyTotp).
-    enrollTotp: protectedProcedure.mutation(async ({ ctx }) => {
-      const secret = generateSecret();
-      // W10 — store the secret encrypted-at-rest; the otpauthUrl/secret returned here (once, to
-      // show the QR during enrolment) is the only time it leaves the server in the clear.
-      await prisma.user.update({ where: { id: ctx.user.id }, data: { totpSecret: encryptSecret(secret), totpEnabled: false } });
-      await logAuthEvent('TOTP_ENROLL', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
-      return { secret, otpauthUrl: otpauthUrl(secret, ctx.user.email ?? ctx.user.id) };
-    }),
+    // Step 1: require password plus the OLD TOTP when replacing an active authenticator.
+    // The candidate secret is staged separately; the active factor keeps working throughout.
+    enrollTotp: protectedProcedure
+      .input(z.object({ password: z.string().min(1), currentTotp: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const u = await prisma.user.findUnique({ where: { id: ctx.user.id } });
+        if (!u?.passwordHash || !(await verifyPassword(input.password, u.passwordHash))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'wrong-password' });
+        }
+        if (u.totpEnabled) {
+          await verifyAccountTotp(u, u.totpSecret ? decryptSecret(u.totpSecret) : null, input.currentTotp);
+        }
+        const secret = generateSecret();
+        await prisma.user.update({
+          where: { id: ctx.user.id },
+          data: { pendingTotpSecret: encryptSecret(secret) },
+        });
+        await logAuthEvent('TOTP_ENROLL', { userId: ctx.user.id, ip: ctx.ip, userAgent: ctx.userAgent });
+        return { secret, otpauthUrl: otpauthUrl(secret, ctx.user.email ?? ctx.user.id) };
+      }),
 
-    // Step 2: confirm the user can produce a valid code, then arm 2FA.
+    // Step 2: confirm the pending factor, then atomically activate/swap it.
     verifyTotp: protectedProcedure
       .input(z.object({ token: z.string().min(6) }))
       .mutation(async ({ ctx, input }) => {
         const u = await prisma.user.findUnique({ where: { id: ctx.user.id } });
-        const secret = u?.totpSecret ? decryptSecret(u.totpSecret) : null;
-        if (!u || !secret || !checkTotp(secret, input.token)) {
-          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'invalid-totp' });
-        }
-        await prisma.user.update({ where: { id: u.id }, data: { totpEnabled: true } });
+        if (!u?.pendingTotpSecret) throw new TRPCError({ code: 'BAD_REQUEST', message: 'totp-enrollment-not-started' });
+        const secret = decryptSecret(u.pendingTotpSecret);
+        await verifyAccountTotp(u, secret, input.token);
+        await prisma.user.update({
+          where: { id: u.id },
+          data: { totpSecret: u.pendingTotpSecret, pendingTotpSecret: null, totpEnabled: true },
+        });
         await logAuthEvent('TOTP_VERIFY', { userId: u.id, ip: ctx.ip, userAgent: ctx.userAgent });
         return { ok: true };
       }),
+
+    cancelTotpEnrollment: protectedProcedure.mutation(async ({ ctx }) => {
+      await prisma.user.update({ where: { id: ctx.user.id }, data: { pendingTotpSecret: null } });
+      return { ok: true };
+    }),
 
     // This user's live sessions (token never leaves the server) — `current` flags this one.
     sessions: protectedProcedure.query(async ({ ctx }) => {
@@ -317,16 +385,42 @@ export const appRouter = router({
       };
     }),
 
-    // Narrate deterministic diagnostic findings. Gated by CAP.LLM_USE, rate-limited per
-    // user, egress-redacted, audited (usage only). Returns {status:'not-configured'} when
-    // no key is set so the client degrades gracefully instead of erroring.
-    complete: protectedProcedure
+    // Privacy gate, step 1: build the exact redacted text that would leave the system.
+    // This never contacts the provider. Its short-lived receipt is user + payload bound.
+    preview: protectedProcedure
       .input(z.object({ task: z.literal('narrate-diagnostics'), findings: z.array(findingInput).min(1).max(50) }))
       .mutation(async ({ ctx, input }) => {
         if (!can(ctx.user.role, CAP.LLM_USE)) {
           await logLlmEvent('FORBIDDEN', { userId: ctx.user.id });
           throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.LLM_USE}` });
         }
+        const { findings, redactions } = redactFindingsWithReport(input.findings);
+        const { user: preview } = buildNarrationPrompt(findings);
+        const receipt = issueLlmConsent(ctx.user.id, findings);
+        const cfg = readLlmConfig();
+        return {
+          ...receipt, preview, redactions,
+          provider: cfg?.provider ?? null,
+          model: cfg?.model ?? null,
+        };
+      }),
+
+    // Narrate deterministic diagnostic findings. Gated by CAP.LLM_USE, rate-limited per
+    // user, egress-redacted, audited (usage only). Returns {status:'not-configured'} when
+    // no key is set so the client degrades gracefully instead of erroring.
+    complete: protectedProcedure
+      .input(z.object({
+        task: z.literal('narrate-diagnostics'),
+        findings: z.array(findingInput).min(1).max(50),
+        consent: z.literal(true),
+        consentId: z.string().min(16),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!can(ctx.user.role, CAP.LLM_USE)) {
+          await logLlmEvent('FORBIDDEN', { userId: ctx.user.id });
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.LLM_USE}` });
+        }
+        const safe = redactFindings(input.findings);
         const cfg = readLlmConfig();
         if (!cfg) {
           await logLlmEvent('NOT_CONFIGURED', { userId: ctx.user.id });
@@ -337,7 +431,9 @@ export const appRouter = router({
           await logLlmEvent('RATE_LIMIT', { userId: ctx.user.id, detail: `retryAfter=${rl.retryAfterSec}s` });
           throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: `retry-after:${rl.retryAfterSec}` });
         }
-        const safe = redactFindings(input.findings);
+        if (!consumeLlmConsent(ctx.user.id, input.consentId, safe)) {
+          throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'llm-consent-required-or-expired' });
+        }
         const { system, user } = buildNarrationPrompt(safe);
         let result;
         try {
@@ -446,7 +542,10 @@ export const appRouter = router({
   engagement: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const acc = await accessibleEngagementIds(ctx.user);
-      const where = acc === 'all' ? {} : { id: { in: acc } };
+      const where = {
+        firmId: ctx.user.firmId,
+        ...(acc === 'all' ? {} : { id: { in: acc } }),
+      };
       return prisma.engagement.findMany({ where, include: { client: true }, orderBy: { id: 'asc' } });
     }),
 
@@ -683,23 +782,99 @@ export const appRouter = router({
       }),
   }),
 
-  // One round-trip boot payload: core entities + this engagement's WTB + its open state docs.
+  // One round-trip boot payload: public core entities + this engagement's WTB + state metadata.
   // Used by the client to hydrate window.AMS before canon computes. Requires a session AND
   // (W7.5) access to the requested engagement.
   bootstrap: protectedProcedure
     .input(z.object({ engagementId: z.string().min(1) }))
     .query(async ({ input, ctx }) => {
       await assertEngagementAccess(ctx.user, input.engagementId);
+      let firmId: string | undefined = ctx.user.firmId || undefined;
+      if (!firmId) {
+        firmId = (await prisma.user.findUnique({ where: { id: ctx.user.id }, select: { firmId: true } }))?.firmId;
+      }
+      if (!firmId) {
+        firmId = (await prisma.engagement.findUnique({ where: { id: input.engagementId }, select: { firmId: true } }))?.firmId;
+      }
+      if (!firmId) throw new TRPCError({ code: 'FORBIDDEN', message: 'firm-unresolved' });
+
+      const accessible = await accessibleEngagementIds(ctx.user);
+      const engagementWhere = {
+        firmId,
+        ...(accessible === 'all' ? {} : { id: { in: accessible } }),
+      };
+      const visibleUserWhere = accessible === 'all'
+        ? { firmId }
+        : {
+            firmId,
+            OR: [
+              { id: ctx.user.id },
+              { engagementMemberships: { some: { engagementId: { in: accessible } } } },
+            ],
+          };
+
       const [firm, users, team, clients, engagements, wtb, states] = await Promise.all([
-        prisma.firm.findFirst(),
-        prisma.user.findMany(),
-        prisma.teamMember.findMany(),
-        prisma.client.findMany({ orderBy: { id: 'asc' } }),
-        prisma.engagement.findMany({ orderBy: { id: 'asc' } }),
-        prisma.wtbRow.findMany({ where: { engagementId: input.engagementId }, orderBy: { ord: 'asc' } }),
-        prisma.stateDoc.findMany({ where: { scope: 'engagement', scopeId: input.engagementId } }),
+        prisma.firm.findUnique({
+          where: { id: firmId },
+          select: { name: true, short: true, license: true, partners: true, managers: true, staff: true },
+        }),
+        prisma.user.findMany({
+          where: visibleUserWhere,
+          select: { id: true, name: true, initials: true, role: true, email: true, dataJson: true },
+          orderBy: { id: 'asc' },
+        }),
+        prisma.teamMember.findMany({
+          where: { firmId },
+          select: { name: true, role: true, util: true },
+          orderBy: { name: 'asc' },
+        }),
+        prisma.client.findMany({
+          where: { firmId, engagements: accessible === 'all' ? { some: {} } : { some: { id: { in: accessible } } } },
+          select: {
+            id: true, name: true, industry: true, tier: true, risk: true, npwp: true,
+            city: true, listed: true, since: true, partner: true, fee: true, status: true,
+          },
+          orderBy: { id: 'asc' },
+        }),
+        prisma.engagement.findMany({
+          where: engagementWhere,
+          select: {
+            id: true, clientId: true, type: true, fy: true, standard: true, status: true,
+            phase: true, progress: true, partner: true, manager: true, deadline: true,
+            budgetHrs: true, actualHrs: true, risk: true, materiality: true,
+          },
+          orderBy: { id: 'asc' },
+        }),
+        prisma.wtbRow.findMany({
+          where: { engagementId: input.engagementId },
+          select: { ord: true, group: true, code: true, name: true, ly: true, unadj: true, aje: true, lead: true },
+          orderBy: { ord: 'asc' },
+        }),
+        prisma.stateDoc.findMany({
+          where: {
+            scope: 'engagement', scopeId: input.engagementId,
+            key: { notIn: Object.keys(PERSONAL_KEYS) },
+          },
+          select: { key: true, version: true },
+          orderBy: { key: 'asc' },
+        }),
       ]);
-      return { firm, users, team, clients, engagements, wtb, states };
+      const visibleNames = new Set(users.map((user) => user.name));
+      const visibleTeam = accessible === 'all' ? team : team.filter((member) => visibleNames.has(member.name));
+      const publicUsers = users.map(({ dataJson, ...user }) => {
+        if (user.id !== ctx.user.id) return user;
+        const profile = bootstrapProfile(dataJson);
+        return profile ? { ...user, profile } : user;
+      });
+      return {
+        firm,
+        users: publicUsers,
+        team: visibleTeam,
+        clients,
+        engagements,
+        wtb,
+        states,
+      };
     }),
 
   state: router({
@@ -707,7 +882,7 @@ export const appRouter = router({
     // W7.5: an engagement-scoped read requires access to that engagement (isolation applies to
     // reads, not just writes — you can't read another engagement's working papers).
     get: protectedProcedure.input(stateKey).query(async ({ input, ctx }) => {
-      if (input.scope === 'engagement') await assertEngagementAccess(ctx.user, input.scopeId);
+      await assertStateDocRead(ctx.user, input);
       const doc = await prisma.stateDoc.findUnique({
         where: { scope_scopeId_key: input },
       });
@@ -748,87 +923,50 @@ export const appRouter = router({
         }
         // Metadata-saja (slot+cap, BUKAN isi WP) untuk jejak audit reviu mutu.
         const signoffDetail = signoffChanges.length ? ' signoff[' + signoffChanges.map((c) => c.what).join(',') + ']' : '';
-        const valueJson = JSON.stringify(input.value ?? null);
         const updatedBy = ctx.user.id;
-
-        if (baseVersion === 0) {
-          try {
-            // K7 — StateDoc write + its StateDocHistory row are ONE transaction: history can
-            // never drift from what StateDoc actually holds, and this closes the earlier
-            // read-then-write-without-$transaction gap on the CAS path too (below).
-            const created = await prisma.$transaction(async (tx) => {
-              // NOMOR VERSI TIDAK PERNAH DIPAKAI ULANG.
-              // ------------------------------------------------------------------
-              // StateDocHistory menyimpan satu baris per versi yang PERNAH ditulis dan
-              // sengaja tak pernah dihapus (itulah gunanya). StateDoc, sebaliknya, DAPAT
-              // lenyap — reset basis data, seed ulang, pembersihan uji yang hanya
-              // menghapus satu dari dua tabel. Ketika itu terjadi, klien membaca
-              // version 0 dan mengirim baseVersion 0, lalu jalur ini dulu memaksakan
-              // `version: 1` — yang menabrak @@unique([scope,scopeId,key,version])
-              // pada riwayat yang selamat, membatalkan seluruh transaksi, dan membuat
-              // dokumen itu MUSTAHIL dibuat kembali: setiap tulisan berikutnya gagal
-              // dengan cara yang sama, selamanya.
-              //
-              // Probe pada dev.db (2026-08-07): 36 dokumen dalam keadaan itu, termasuk
-              // `wpState` (SELURUH kertas kerja) dan `prospects` (keputusan akseptasi
-              // klien). Pekerjaan auditor tak pernah sampai ke server, dan satu-satunya
-              // gejalanya adalah 409 di konsol.
-              //
-              // Versi karenanya dilanjutkan dari riwayat, bukan dimulai ulang. Itu juga
-              // yang benar bagi sistem audit: satu nomor versi harus menunjuk pada satu
-              // isi, selamanya — memakai ulang v1 untuk isi yang berbeda akan membuat
-              // riwayat berbohong.
-              const last = await tx.stateDocHistory.findFirst({
-                where: { scope, scopeId, key },
-                orderBy: { version: 'desc' },
-                select: { version: true },
-              });
-              const version = (last?.version ?? 0) + 1;
-              const row = await tx.stateDoc.create({ data: { scope, scopeId, key, valueJson, version, updatedBy } });
-              await tx.stateDocHistory.create({ data: { scope, scopeId, key, version, valueJson, updatedBy } });
-              return row;
-            });
-            await appendAudit({
-              actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-              scope, scopeId, key, detail: `v0->v${created.version}` + signoffDetail + lockDetail,
-            });
-            return { version: created.version };
-          } catch (e) {
-            if (isUniqueViolation(e)) {
-              const current = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
-              // Hanya laporkan "sudah ada" bila dokumennya MEMANG ada. Bentuk lama
-              // mengeluarkan `server=?` untuk tabrakan constraint apa pun — pesan yang
-              // menuduh dokumen yang tidak ada, dan menyembunyikan sebab sebenarnya.
-              if (current) {
-                throw new TRPCError({ code: 'CONFLICT', message: `already-exists:server=${current.version}` });
-              }
-              throw new TRPCError({ code: 'CONFLICT', message: 'create-race:refetch-and-retry' });
-            }
-            throw e;
-          }
-        }
-
-        // Atomic CAS: the UPDATE only matches when the stored version equals baseVersion. The
-        // history insert is conditioned on that same match by living inside the interactive
-        // transaction — a lost CAS race (count===0) throws before any history row is written.
-        const newVersion = await prisma.$transaction(async (tx) => {
-          const res = await tx.stateDoc.updateMany({
-            where: { scope, scopeId, key, version: baseVersion },
-            data: { valueJson, version: { increment: 1 }, updatedBy },
+        try {
+          const written = await mutateStateDoc({
+            scope, scopeId, key,
+            expectedVersion: baseVersion,
+            updatedBy,
+            actorUserId: ctx.user.id,
+            actorRole: ctx.user.role,
+            action: 'STATE_SET',
+            auditDetail: (_from, to) => `v${baseVersion}->v${to}` + signoffDetail + lockDetail,
+            mutate: () => ({ value: input.value }),
           });
-          if (res.count === 0) {
-            const current = await tx.stateDoc.findUnique({ where: { scope_scopeId_key: { scope, scopeId, key } } });
-            throw new TRPCError({ code: 'CONFLICT', message: `version-mismatch:server=${current?.version ?? 0}` });
+          return { version: written.version };
+        } catch (e) {
+          if (e instanceof StateDocTooLargeError) {
+            throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: e.message });
           }
-          await tx.stateDocHistory.create({ data: { scope, scopeId, key, version: baseVersion + 1, valueJson, updatedBy } });
-          return baseVersion + 1;
-        });
-        await appendAudit({
-          actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'STATE_SET',
-          scope, scopeId, key, detail: `v${baseVersion}->v${newVersion}` + signoffDetail + lockDetail,
-        });
-        return { version: newVersion };
+          if (e instanceof StateDocConflictError) {
+            const prefix = baseVersion === 0 && e.currentVersion > 0 ? 'already-exists' : 'version-mismatch';
+            throw new TRPCError({ code: 'CONFLICT', message: `${prefix}:server=${e.currentVersion}` });
+          }
+          throw e;
+        }
       }),
+
+    // K7 — append-only history of a StateDoc (SA 230 ¶A21 "what did the working paper say
+    // before it changed, and who changed it, when"). Same read boundary as state.get, so a
+    // non-member can no more read another engagement's history than its current value.
+    // Read-only: the append log is written only inside the StateDoc write transaction
+    // (mutateStateDoc), never through this endpoint.
+    history: protectedProcedure.input(stateKey).query(async ({ input, ctx }) => {
+      await assertStateDocRead(ctx.user, input);
+      const rows = await prisma.stateDocHistory.findMany({
+        where: { scope: input.scope, scopeId: input.scopeId, key: input.key },
+        orderBy: { version: 'asc' },
+        select: { version: true, updatedAt: true, updatedBy: true, valueJson: true },
+      });
+      return rows.map((r) => ({
+        version: r.version,
+        updatedAt: r.updatedAt,
+        updatedBy: r.updatedBy,
+        value: JSON.parse(r.valueJson) as unknown,
+      }));
+    }),
   }),
 
   // 2026-07-01 — row-filtered read for People & Compliance documents that hold PERSONAL
@@ -843,7 +981,7 @@ export const appRouter = router({
       if (!(input.key in PERSONAL_KEYS)) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: `not a personal-scoped key: ${input.key}` });
       }
-      if (input.scope === 'engagement') await assertEngagementAccess(ctx.user, input.scopeId);
+      await assertStateDocRead(ctx.user, input, { personal: true });
       const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: input } });
       // Fallback ke SEED ter-filter (bukan objek kosong) saat belum ada StateDoc — menutup lubang
       // version-0 (klien mengadopsi hasil server ini utk key personal walau version 0, lihat
@@ -940,8 +1078,9 @@ export const appRouter = router({
         return meta;
       }),
 
-    // Soft-delete (retain the row for the audit trail, drop the bytes). Access re-checked on the
-    // row's own scope.
+    // Soft-delete (Stage 6): hide the attachment and retain the row for the audit trail, but KEEP
+    // the bytes — actual deletion is the retention worker's job (attachment.purge.* below), gated
+    // by legal hold + FIRM_ADMIN approval. Access re-checked on the row's own scope.
     remove: protectedProcedure
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ input, ctx }) => {
@@ -957,6 +1096,44 @@ export const appRouter = router({
         });
         return { id: input.id, removed: true };
       }),
+
+    // Stage 6 — retention lifecycle (audit-evidence purge). Soft-delete hides; purge DELETES.
+    // All three gates are enforced here and in attachments/retention.ts: retention period elapsed,
+    // no active legal hold on the engagement, and explicit FIRM_ADMIN approval. list + approve are
+    // exposed so approval can be done in-app with the approver's session identity; the actual
+    // byte-deletion stays worker-side (server/src/retentionWorker.ts, npm run retention-worker).
+    purge: router({
+      // Eligible purge candidates (soft-deleted, retention elapsed, not held) — metadata only.
+      list: protectedProcedure.query(async ({ ctx }) => {
+        if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+        }
+        const [candidates, holds] = await Promise.all([
+          listPurgeCandidates(new Date(), false),
+          activeLegalHoldEngagementIds(),
+        ]);
+        return { candidates, activeLegalHoldEngagements: [...holds] };
+      }),
+
+      // FIRM_ADMIN approves deletion of eligible ids (retention elapsed + no hold re-checked at
+      // approval time). Appends an audited ATTACH_PURGE_APPROVE row with the approver identity.
+      approve: protectedProcedure
+        .input(z.object({ ids: z.array(z.string().min(1)).min(1) }))
+        .mutation(async ({ input, ctx }) => {
+          if (!can(ctx.user.role, CAP.FIRM_ADMIN)) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: `requires:${CAP.FIRM_ADMIN}` });
+          }
+          const approved = await approvePurge(input.ids, ctx.user.id);
+          if (approved === 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'no-eligible-candidates' });
+          }
+          await appendAudit({
+            actorUserId: ctx.user.id, actorRole: ctx.user.role, action: 'ATTACH_PURGE_APPROVE',
+            detail: `approved=${approved} ids=${input.ids.slice(0, 5).join(',')}${input.ids.length > 5 ? ` +${input.ids.length - 5}` : ''}`,
+          });
+          return { approved };
+        }),
+    }),
   }),
 
   // 2026-07-01 — cross-engagement task aggregation for the role-based Beranda (PRD
@@ -971,7 +1148,10 @@ export const appRouter = router({
       const me = amsShortName(ctx.user.name);
       const acc = await accessibleEngagementIds(ctx.user);
       const engagements = await prisma.engagement.findMany({
-        where: acc === 'all' ? {} : { id: { in: acc } },
+        where: {
+          firmId: ctx.user.firmId,
+          ...(acc === 'all' ? {} : { id: { in: acc } }),
+        },
         include: { client: true },
         orderBy: { id: 'asc' },
       });

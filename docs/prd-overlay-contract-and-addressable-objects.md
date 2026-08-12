@@ -7,7 +7,7 @@
 |---|---|
 | Tanggal | 2026-07-30 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | — (produk Asseris, bukan perikatan klien) |
 | Pemicu | Evaluasi konsep pop-up detail komponen Pendapatan di modul Working Papers |
 

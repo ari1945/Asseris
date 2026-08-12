@@ -18,6 +18,18 @@
 | ~~Codemod~~ | `migration/codemod.mjs` | **retired** — running it overwrites canonical `src` |
 
 ## Workflow
+
+Gerbang repo lengkap dijalankan dari root. Runner ini selalu mengeksekusi frontend
+dan backend sampai selesai (tidak berhenti pada kegagalan pertama), lalu mengembalikan
+exit code non-zero bila salah satu gate gagal:
+
+```powershell
+npm run verify
+```
+
+Pada baseline Tahap 0, perintah ini **sengaja merah** pada lima test reproduksi di
+`stage0_*_repro.test.ts`; test tersebut menjadi bukti perbaikan pada tahap berikutnya.
+
 ```powershell
 cd migration
 # 1) edit src/*.jsx | *.js | *.ts
@@ -412,6 +424,80 @@ INTEGRATION_WEBHOOK_SECRET=<hmac-secret>          # absen = webhook not-configur
 (idempoten), 0 console error. 116 server vitest + 59 migration vitest (canon fingerprint identik).
 **Deferred (W9·2+):** konektor ke-2..8 ter-wire; OAuth login-flow interaktif; scheduler cron;
 smoke vs provider berbayar nyata (Coretax/bank/PrivyID/SharePoint).
+
+## Tahap 7 — Naikkan quality gate end-to-end (Playwright × Postgres + coverage CI)
+
+> **SELESAI (2026-08-12).** Dua gerbang baru: (1) lima perjalanan **Playwright** yang menembak
+> stack **Postgres nyata** (bukan mock/sqlite): API tRPC `:5181` + SPA hasil `vite build` yang
+> dilayani `vite preview` `:5180` dengan proxy `/trpc` same-origin; (2) **coverage CI bertahap**
+> tujuh area server dengan threshold per-area yang diukur dari keadaan nyata.
+
+### Lima perjalanan e2e (`e2e/tests/`)
+
+| # | Perjalanan | Yang dibuktikan | Berkas |
+|---|---|---|---|
+| 1 | Login cookie HttpOnly & hidrasi | `ams_session` ber-flag `HttpOnly` + `SameSite=Strict` + `Path=/`, tak terbaca `document.cookie`, tanpa token bearer di localStorage; setelah login dan reload aplikasi terhidrasi dari Postgres (user + engagement aktif); logout menghapus cookie | `01-login-cookie.spec.ts` |
+| 2 | Penolakan engagement lintas-user | Non-anggota ditolak `state.get`/`state.set`/`state.history` (`FORBIDDEN`), switcher UI tidak menawarkan perikatan terlarang; anggota boleh | `02-engagement-isolation.spec.ts` |
+| 3 | Edit lalu berpindah engagement | Edit di ENG-2025-014 → pindah via dropdown ke ENG-2025-031 → WTB rehidrasi (bagan akun berubah, tanpa bocor) → key yang sama ditulis di 031 tanpa menimpa 014 → kembali, kedua nilai hidup berdampingan | `03-edit-switch.spec.ts` |
+| 4 | Sign-off berurutan dengan SoD | Rantai wpState preparer → reviewer → partner → EQR; tiap slot menuntut kapabilitas peran (Junior→reviewer dan Manager→partner DITOLAK); partner yang sama ditolak di EQR (satu-orang-satu-langkah); tiap tulisan tercatat `signoff[wp:<ref>.<slot>]` di audit | `04-signoff-sod.spec.ts` |
+| 5 | Mutasi → StateDocHistory + audit event | Tiap `state.set` menulis baris StateDocHistory (append-only, `updatedBy` = sesi) + event `STATE_SET` berantai (`vN->vN+1`); `audit.verify` utuh | `05-statedoc-audit.spec.ts` |
+
+Semua panggilan API di spek dilakukan **dari browser** (`window.AMS_API`, tRPC client dengan
+`credentials:'include'`) sehingga perjalanan memakai sesi cookie HttpOnly yang sama dengan UI —
+bukan token bearer yang ditempel manual.
+
+### Menjalankan e2e lokal
+
+Prasyarat: Node 22+, Postgres 16 yang bisa dijangkau (cara cepat: `docker compose up -d db` lalu
+`docker compose exec -T db createdb -U neosuite neosuite_e2e`), browser Chromium Playwright.
+
+```powershell
+cd e2e
+npm ci
+npm run install:browsers
+$env:DATABASE_URL='postgresql://neosuite:changeme@localhost:5432/neosuite_e2e'
+npm test
+```
+
+`stack:api` (webServer 1) membuat skema Postgres turunan dari `schema.prisma`
+(`server/prisma/schema.postgres.prisma`, gitignored), `prisma generate` + `migrate deploy`, lalu
+**seed demo DESTRUKTIF** atas `DATABASE_URL` dan menjalankan server. `stack:web` (webServer 2)
+menjalankan `vite build` + `vite preview`. `reuseExistingServer:false` sengaja: e2e menolak
+menembak server dev yang kebetulan berjalan di port sama. Selengkapnya: `e2e/README.md`.
+
+### Coverage CI bertahap (server)
+
+`npm run test:coverage` di `server/` (vitest v8) mengukur tujuh area kunci dengan threshold
+per-area. Baseline diukur 2026-08-12 atas 372 tes server (sqlite test.db); threshold menyisakan
+ruang aman ~2-8 poin agar CI stabil namun tetap menutup regresi berarti:
+
+| Area | Globs | Lines | Stmts | Funcs | Branches (target berikutnya) |
+|---|---|---|---|---|---|
+| Auth | `src/auth/**` | 90 | 90 | 90 | 70 (→ 75) |
+| RBAC | `src/rbac.ts` + `src/roleStore.ts` | 90/85 | 90/85 | 90/85 | 85/70 (→ 90/75) |
+| Isolasi engagement | `src/engagementAccess.ts` + `src/stateAccess.ts` | 90 | 90 | 90 | 90/80 (→ 90/85) |
+| StateDoc | `src/stateMutation.ts` + `src/payloadLimits.ts` | 85/90 | 85/90 | 85/90 | 75/55 (→ 80/60) |
+| Audit | `src/audit/**` | 85 | 85 | 80 | 80 (→ 85) |
+| Attachment | `src/attachments/**` | 90 | 90 | 90 | 60 (→ 65) |
+| Integrasi | `src/integrations/**` | 90 | 90 | 90 | 65 (→ 70) |
+
+CI (`ci.yml` → job `server-coverage`) menjalankan gate ini di setiap PR dan meng-upload
+`coverage/coverage-summary.json` sebagai artefak supaya tren per-gelombang bisa dipantau.
+**Rencana bertahap:** di gelombang berikutnya, naikkan kolom Branches ke target dalam tanda kurung,
+lalu kejar parity dengan Lines; jangan menaikkan threshold bersama perubahan fitur besar dalam satu
+PR (ukur baseline baru lebih dulu).
+
+### Endpoint baru
+
+- `state.history` (`server/src/router.ts`) — baca append-only StateDocHistory dengan boundary
+  akses yang sama seperti `state.get` (engagement: W7.5; firm: allowlist; user: owner/admin).
+  Dipakai perjalanan #5 untuk membuktikan tiap mutasi menulis riwayat.
+
+### Deploy-smoke tetap berjalan
+
+E2e Playwright MELENGKAPI `deploy-smoke.yml` (yang membuktikan migrasi Postgres + boot prod + curl
+login), bukan menggantikannya: deploy-smoke menembak container produksi lewat curl, e2e menembak
+artefak build SPA + server dev-mode di atas Postgres lewat browser sungguhan. Keduanya di-CI.
 
 ## Test harness (W4 — `vitest.config.mjs`)
 - **Scope:** the canon "number engines" (`canon*.js` + `forensic_canon.js`) — pure
@@ -914,3 +1000,71 @@ multi-session boss). Counts = `window.<NS>` reads measured 2026-06-19.
   `window` per-workspace (keep the imperative runtime bus) → promote lint to error.
 - To compare against the frozen baseline, the old prod precompile still works
   from `app/` (`cd build; npm run build`) but its output must NOT be shipped.
+
+## Tahap 8 — Performa & arsitektur frontend
+
+> **SELESAI (2026-08-12).** Target awal tercapai: entry utama **727 KB pre-gzip**
+> (dari 4,79 MB) + preload 356 KB ≈ **1,08 MB total boot**, dengan **~150 chunk
+> rute dimuat on-demand** dan modul berat (XLSX/PDF/qrcode) tetap di luar boot.
+> Gerbang CI baru menjaga angka itu agar tidak menggelinding balik.
+
+### Yang dikerjakan
+
+1. **Route-level `React.lazy`.** `app.tsx` tidak lagi mengimpor ~180 view statis;
+   `src/lazy_views.tsx` memetakan tiap `moduleId` → `React.lazy(() => import('./view_x'))`,
+   dirender di dalam `<Suspense fallback={<RouteFallback/>}>` (fallback default
+   ComplianceView/StubView tetap eager). `main.tsx` kini hanya memuat inti boot
+   (styles, data, canon, contexts, ui, icons, shell, evidence, related_modules,
+   view_palette, view_login, view_compliance, sa_canonical, wp_signoff, minimap, app).
+
+2. **Provider dipisah per domain.** `AppProviders` dipecah menjadi
+   `AuthProvider` (profil/role) → `FirmProvider` (klien/perikatan/aktif) →
+   `AuditProvider` (AJE/risiko/WTB/mat/WP/catatan), masing-masing dengan
+   `Context.Provider` sendiri; komposisi tetap diekspor sebagai `AppProviders`
+   sehingga ~150 call-site `useAuth/useFirm/useAudit` tidak berubah.
+
+3. **State berat dihidrasi hanya saat diperlukan.** Kunci `wtbLedger`,
+   `reviewNotes`, `noteThreads`, `timeEntries`, `taskState`, `logEntries` kini
+   `defer` di `useServerState` (server GET tidak ditembak saat boot); modul yang
+   memakainya memanggil `useAuditHeavy(['wtbLedger'])` (dll.) pada mount untuk
+   memicu hidrasi lewat `hydrateAuditKey`. Nilai konteks tetap utuh untuk
+   konsumen lama.
+
+4. **Dual-publish `window.*` dikurangi (slice pertama).** 162 view file tidak
+   lagi menulis `Object.assign(window, …)` — konsumen kini mengimpor ESM
+   (lihat tabel sisa di bawah). Data seed bersama dipindah ke modul eager
+   (`data_knowledge.STANDARDS_REGISTRY`, `data_programme.PROGRAMME`,
+   `data_confirmations.CONFIRMATIONS`, `prefs.amsApplyPrefs`, helper WP di
+   `wp_canon`) agar modul lazy tidak bergantung pada global yang belum dimuat.
+
+5. **Budget bundle & hidrasi di CI.**
+   - `migration/scripts/check-bundle.mjs` (dipanggil `npm run check:bundle`,
+     dijalankan CI setelah build): entry utama ≤ **1500 KB pre-gzip**
+     (overridable via `BUNDLE_MAIN_KB`), dan xlsx/jspdf/html2canvas wajib
+     chunk on-demand. Baseline saat ini: 727 KB entry + 356 KB preload.
+   - `e2e/tests/06-hydration-budget.spec.ts`: login fresh → topbar/user-chip
+     harus tampil dalam **8.000 ms** (overridable via `E2E_HYDRATION_BUDGET_MS`).
+
+### Sisa dual-publish `window.*` yang DIPERTAHANKAN (slice berikutnya)
+
+Global berikut masih punya pembaca `window.*` aktif sehingga tulisannya dipertahankan:
+
+| Publisher | Global | Pembaca |
+|---|---|---|
+| `view_compliance` | `COMPLIANCE_CONFIG`, `loadLS`, `compliancePct` | fallback router app.tsx + ~23 view (loader localStorage/progres checklist) |
+| `view_palette` | `NOTIFS` | `shell.tsx` |
+| `view_settings` | `amsApplyPrefs` | self (re-export; app.tsx sudah lewat `prefs.ts`) |
+| `view_wtb_deep` | `computeWtbSummary`, `DEFAULT_EXPL` | self / `view_execution` |
+| `view_compmatrix` | `STD_IFRS_ALIAS` | self (re-export ESM) |
+
+`main.tsx` juga tetap mengimpor `view_compliance`/`view_palette`/`view_login`/
+`sa_canonical`/`wp_signoff`/`minimap` — semuanya dibutuhkan shell saat boot.
+
+### Menjalankan gerbang Tahap 8
+
+```powershell
+cd migration
+npm run build:check      # build + bundle budget (harus exit 0)
+npm run check:bundle     # hanya budget, atas dist/ yang sudah ada
+# e2e (setelah stack Postgres siap): npx playwright test tests/06-hydration-budget.spec.ts
+```

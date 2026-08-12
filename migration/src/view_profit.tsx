@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Btn, Panel, Seg, Stat } from './ui';
@@ -50,7 +50,7 @@ function buildEngEcon(extraHoursByEng = {}) {
 function Profitability() {
   const { fmt } = AMS;
   const nav = useNav();
-  const { timeEntries } = useAudit();
+  const { timeEntries } = useAuditHeavy(['timeEntries']);
   const [view, setView] = useStatePRF('engagement');
   const [sel, setSel] = useStatePRF(null);
 
@@ -292,7 +292,6 @@ function LeverageRecovery({ rows, fmt, marginColor }: any) {
   );
 }
 
-Object.assign(window, { Profitability });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

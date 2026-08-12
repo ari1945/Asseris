@@ -223,7 +223,6 @@ function PPPKReport() {
   );
 }
 
-Object.assign(window, { PPPKReport });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

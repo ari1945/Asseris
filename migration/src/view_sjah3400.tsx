@@ -336,7 +336,6 @@ function PfiReport({ E, A }: any) {
   );
 }
 
-Object.assign(window, { SJAH3400View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

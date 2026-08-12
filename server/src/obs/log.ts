@@ -18,6 +18,10 @@ export function inc(name: keyof typeof counters | string, by = 1): void {
   counters[name] = (counters[name] ?? 0) + by;
 }
 
+export function setGauge(name: string, value: number): void {
+  counters[name] = value;
+}
+
 function emit(level: Level, msg: string, fields?: Record<string, unknown>): void {
   const rec = { t: new Date().toISOString(), level, msg, ...(fields ?? {}) };
   const line = JSON.stringify(rec);

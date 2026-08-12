@@ -56,7 +56,10 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-0}          # set 1 when fronted by TLS
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}  # 32B hex/base64 → encrypts totpSecret at rest
       APP_SIGNING_KEY: ${APP_SIGNING_KEY:-}        # base64 PKCS8 Ed25519 → stable export seals across restarts (fail-fast in prod)
+      AUDIT_CHECKPOINT_PATH: /var/lib/asseris-audit-checkpoint/checkpoint.json
+      AUDIT_OUTBOX_STALL_SECONDS: ${AUDIT_OUTBOX_STALL_SECONDS:-60}
       ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}  # optional CSV of IPs/CIDRs for login
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-} # blank for direct :5181 access; set only behind a known proxy
       LLM_API_KEY: ${LLM_API_KEY:-}                # optional — enables LLM narration proxy
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-}
@@ -65,6 +68,9 @@ services:
     command: sh -c "npx prisma migrate deploy && npm start"
     ports:
       - "5181:5181"
+    volumes:
+      # Bind this host path to EFS/NFS in production; it must survive loss/restore of the DB host.
+      - ${AUDIT_CHECKPOINT_DIR:-./audit-checkpoints}:/var/lib/asseris-audit-checkpoint
 
 volumes:
   pgdata:

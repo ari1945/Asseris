@@ -73,18 +73,6 @@ describe('isConflict() — optimistic-concurrency (CAS 409) detection', () => {
   });
 });
 
-describe('auth token (in-memory only — httpOnly cookie is the SSOT)', () => {
-  it('set then get round-trips; falsy clears to null', () => {
-    api.setAuthToken('tok-123');
-    expect(api.getAuthToken()).toBe('tok-123');
-    api.setAuthToken('');
-    expect(api.getAuthToken()).toBeNull();
-    api.setAuthToken('x');
-    api.setAuthToken(null);
-    expect(api.getAuthToken()).toBeNull();
-  });
-});
-
 describe('graceful degradation — reads return null/fallback when the server throws', () => {
   beforeEach(() => { trpc.behavior = 'reject'; });
 
@@ -133,10 +121,10 @@ describe('non-swallowing writes — must throw so the caller can react', () => {
   });
 });
 
-describe('llmNarrateDiagnostics() — defence-in-depth redaction before egress', () => {
+describe('LLM preview/consent client — defence-in-depth projection before egress', () => {
   it('slims each finding to the allow-list and drops everything else', async () => {
     trpc.resolveValue = (arg: unknown) => arg; // echo what the client decided to send
-    const sent = (await api.llmNarrateDiagnostics([
+    const sent = (await api.llmPreviewDiagnostics([
       {
         id: 7,
         detector: 'benford',
@@ -163,7 +151,7 @@ describe('llmNarrateDiagnostics() — defence-in-depth redaction before egress',
 
   it('coerces an illegal severity to low and tolerates missing optionals', async () => {
     trpc.resolveValue = (arg: unknown) => arg;
-    const sent = (await api.llmNarrateDiagnostics([
+    const sent = (await api.llmPreviewDiagnostics([
       { id: 'a', title: 'x', sev: 'CRITICAL' }, // not in {high,med,low}
       { title: 'y' },                            // no id, no sev
     ])) as Narration;
@@ -175,8 +163,14 @@ describe('llmNarrateDiagnostics() — defence-in-depth redaction before egress',
 
   it('handles a null/empty finding list without throwing', async () => {
     trpc.resolveValue = (arg: unknown) => arg;
-    const sent = (await api.llmNarrateDiagnostics(null)) as Narration;
+    const sent = (await api.llmPreviewDiagnostics(null)) as Narration;
     expect(sent.findings).toEqual([]);
+  });
+
+  it('sends explicit consent and its one-use receipt only on completion', async () => {
+    trpc.resolveValue = (arg: unknown) => arg;
+    const sent = await api.llmNarrateDiagnostics([{ id: 'f1', title: 'x', sev: 'low' }], 'receipt-1234567890');
+    expect(sent).toMatchObject({ task: 'narrate-diagnostics', consent: true, consentId: 'receipt-1234567890' });
   });
 });
 

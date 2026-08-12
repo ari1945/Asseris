@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-02 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | — (infra deploy single-tenant, bukan engagement klien) |
 
 ## 1. Problem

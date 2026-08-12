@@ -54,7 +54,10 @@ services:
       # SOMETHING", not "the key is cryptographically valid", so relaxing it loses nothing.
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}   # openssl rand -hex 32 (or via Secrets Manager)
       APP_SIGNING_KEY: ${APP_SIGNING_KEY:-}         # openssl genpkey -algorithm ed25519 -outform DER | base64 -w0 (or via Secrets Manager)
-      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}   # leave EMPTY behind a proxy (see README gotcha)
+      AUDIT_CHECKPOINT_PATH: /var/lib/asseris-audit-checkpoint/checkpoint.json
+      AUDIT_OUTBOX_STALL_SECONDS: ${AUDIT_OUTBOX_STALL_SECONDS:-60}
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-172.16.0.0/12} # only Caddy/private Docker peers may supply XFF
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-}
@@ -67,6 +70,9 @@ services:
     command: sh -c "npx prisma migrate deploy && npm start"   # M4 — versioned Postgres migrations (idempotent)
     expose:
       - "5181"                       # internal only — reached via Caddy, not published
+    volumes:
+      # In production, mount AUDIT_CHECKPOINT_DIR from EFS/NFS or another off-box filesystem.
+      - ${AUDIT_CHECKPOINT_DIR:-./audit-checkpoints}:/var/lib/asseris-audit-checkpoint
 
   web:
     build:

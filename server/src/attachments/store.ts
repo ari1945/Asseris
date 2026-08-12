@@ -1,7 +1,7 @@
 // F0.1 (PRD 2026-07-19) — attachment data operations. Pure persistence + integrity + quota logic;
 // access control (engagement isolation, RBAC) and the AuditLog append stay in router.ts alongside
 // the other write paths (mirrors how submitLeaveRequest / runBankSync are structured).
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { prisma } from '../db';
 import { writeBlob, readBlob } from './blobStore';
 
@@ -69,9 +69,11 @@ export type CreateInput = {
   uploadedBy: string | null;
 };
 
-/** Validate (type, size, quota, checksum), encrypt, and persist a new attachment. Returns metadata
- *  only (never the bytes). Throws AttachmentError on any rejection so the router maps it to a tRPC
- *  code. Does NOT append audit — the router does, after this resolves. */
+/** Validate (type, size, quota, checksum), encrypt (AAD-bound to the row identity + metadata),
+ *  and persist a new attachment. Returns metadata only (never the bytes). Throws AttachmentError
+ *  on any rejection so the router maps it to a tRPC code. Does NOT append audit — the router
+ *  does, after this resolves. The id is generated HERE (before encryption) so the AES-GCM AAD
+ *  can bind the ciphertext to the row's own primary key. */
 export async function createAttachment(input: CreateInput): Promise<AttachmentMeta> {
   const size = input.bytes.length;
   if (size === 0) throw new AttachmentError('empty', 'berkas kosong');
@@ -93,13 +95,18 @@ export async function createAttachment(input: CreateInput): Promise<AttachmentMe
   if (used + size > MAX_SCOPE_BYTES) {
     throw new AttachmentError('quota', `kuota lampiran ${MAX_SCOPE_BYTES / 1048576} MB terlampaui untuk ${input.scope}`);
   }
-  const stored = writeBlob(input.bytes);
+  const id = randomUUID();
+  const stored = await writeBlob(input.bytes, {
+    id, scope: input.scope, scopeId: input.scopeId, collection: input.collection,
+    name: input.name, sha256: actual,
+  });
   const row = await prisma.attachment.create({
     data: {
+      id,
       scope: input.scope, scopeId: input.scopeId, collection: input.collection, refId: input.refId ?? null,
       name: input.name, mime: input.mime ?? null, size, sha256: actual,
       retentionClass: input.retentionClass ?? null,
-      storageKind: stored.storageKind, blob: stored.blob, uploadedBy: input.uploadedBy,
+      storageKind: stored.storageKind, blob: stored.blob, objectKey: stored.objectKey, uploadedBy: input.uploadedBy,
     },
     select: META_SELECT,
   });
@@ -127,28 +134,41 @@ export async function getMeta(id: string): Promise<AttachmentMeta | null> {
   return row ?? null;
 }
 
-/** Decode the raw bytes of a live attachment for download, or null if missing/deleted/undecodable. */
+/** Decode the raw bytes of a live attachment for download, or null if missing/deleted/undecodable.
+ *  Stage 6 — integrity is re-verified AFTER decryption: the SHA-256 is recomputed from the bytes
+ *  the server actually recovered and must match the stored hash, so a corrupted or swapped blob
+ *  fails the download rather than being served as wrong evidence. */
 export async function readBytes(id: string): Promise<{ meta: AttachmentMeta; bytes: Buffer } | null> {
   const row = await prisma.attachment.findFirst({
     where: { id, deletedAt: null },
-    select: { ...META_SELECT, storageKind: true, blob: true },
+    select: {
+      ...META_SELECT, storageKind: true, blob: true, objectKey: true,
+      scope: true, scopeId: true, collection: true, name: true,
+    },
   });
   if (!row) return null;
-  const bytes = readBlob(row);
+  const bytes = await readBlob({
+    storageKind: row.storageKind, blob: row.blob, objectKey: row.objectKey,
+    id: row.id, scope: row.scope, scopeId: row.scopeId, collection: row.collection,
+    name: row.name, sha256: row.sha256,
+  });
   if (!bytes) return null;
-  const { storageKind: _sk, blob: _b, ...meta } = row;
+  const actual = createHash('sha256').update(bytes).digest('hex');
+  if (actual.toLowerCase() !== row.sha256.toLowerCase()) return null; // tamper-evident integrity failure
+  const { storageKind: _sk, blob: _b, objectKey: _ok, ...meta } = row;
   return { meta, bytes };
 }
 
-/** Soft-delete: mark deletedAt/deletedBy and drop the inline bytes (free the space) while keeping the
- *  row for the audit trail. Idempotent-ish: returns the row's scope info for the caller's audit, or
- *  null if it was already gone. */
+/** Soft-delete: mark deletedAt/deletedBy while KEEPING the bytes (Stage 6 — a soft-deleted
+ *  attachment is hidden from list/download but its evidence bytes remain until a retention worker
+ *  purges them with legal-hold + approval). Idempotent-ish: returns the row's scope info for the
+ *  caller's audit, or null if it was already gone. */
 export async function softRemove(id: string, deletedBy: string | null): Promise<AttachmentMeta | null> {
   const row = await prisma.attachment.findFirst({ where: { id, deletedAt: null }, select: META_SELECT });
   if (!row) return null;
   await prisma.attachment.update({
     where: { id },
-    data: { deletedAt: new Date(), deletedBy, blob: null },
+    data: { deletedAt: new Date(), deletedBy },
   });
   return row;
 }

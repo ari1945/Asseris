@@ -2,6 +2,10 @@
 import { useAudit, useFirm, useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
 import { Badge, Panel, Stat } from './ui';
+/* Tahap 8 — import ESM dari wp_canon (eager) alih-alih window.*:
+   view_wp menjadi lazy chunk, jadi helper status/navigasi WP dibaca
+   lewat modul, bukan global yang hanya terisi setelah view dimuat. */
+import { deriveWpStatus, openCanonicalWp } from './wp_canon';
 
 /* ============================================================
    Asseris — Lapisan Referensi + Status SA (Sumber Tunggal)
@@ -47,7 +51,7 @@ function useSACanon(stdId: any) {
   const firm = useFirm();
   const navigate = useNav();
   const map = (SA_WP_MAP as any)[stdId] || { refs: [], focus: '' };
-  const derive = window.deriveWpStatus;
+  const derive = deriveWpStatus;
   const rows = (derive ? map.refs.map((r: any) => derive(r, audit, firm)) : []).filter(Boolean);
   const agg = rows.reduce((a: any, r: any) => ({
     done: a.done + r.done, total: a.total + r.total, exc: a.exc + r.exc,
@@ -93,7 +97,7 @@ function SignoffDots({ signoff }: any) {
 function SACanonicalStatus({ stdId }: any) {
   const { rows, agg, map, navigate } = useSACanon(stdId);
   const meta = (typeof MODULE_INDEX !== 'undefined' && (MODULE_INDEX as any)[stdId]) || { label: stdId };
-  const open = (ref: any) => { if (window.openCanonicalWp) window.openCanonicalWp(navigate, ref); };
+  const open = (ref: any) => { openCanonicalWp(navigate, ref); };
 
   if (!rows.length) return null;
 
@@ -183,7 +187,7 @@ function SACanonicalStatus({ stdId }: any) {
 /* Kartu Sign-off ringkas — menggantikan kartu sign-off statis di halaman SA */
 function SASignoffMini({ stdId }: any) {
   const { rows, navigate } = useSACanon(stdId);
-  const open = (ref: any) => { if (window.openCanonicalWp) window.openCanonicalWp(navigate, ref); };
+  const open = (ref: any) => { openCanonicalWp(navigate, ref); };
   return (
     <Panel title="Sign-off (Kertas Kerja)" sub="Sumber tunggal — dari WP kanonik">
       <div style={{ display: 'grid', gap: 9 }}>

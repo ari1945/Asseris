@@ -507,7 +507,6 @@ function OtherAssurance() {
   );
 }
 
-Object.assign(window, { RelatedServices, AUPPanel, CompilationPanel, OtherAssurance });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

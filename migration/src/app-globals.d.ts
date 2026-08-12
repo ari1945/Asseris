@@ -57,12 +57,13 @@ declare global {
     /* W13 Fase 3 — bus dibaca modul lintas-sektor evidence/ai_insights/
        diagnostics_panel: classifyDoc (klasifikasi unggahan bukti), PROGRAMME/
        CONFIRMATIONS (umpan program audit & konfirmasi utk cross-check AI),
-       logAiUsage (audit pemakaian AI), amsLlmNarrateDiagnostics (proxy narasi
+       logAiUsage (audit pemakaian AI), amsLlmPreviewDiagnostics / amsLlmNarrateDiagnostics (proxy narasi
        LLM P4). Window-strip-2 candidate; `any` di tier app relaks. */
     classifyDoc: any;
     PROGRAMME: any;
     CONFIRMATIONS: any;
     logAiUsage: any;
+    amsLlmPreviewDiagnostics: any;
     amsLlmNarrateDiagnostics: any;
     /* F0.1 (PRD 2026-07-19) — bus lampiran berkas nyata (api.ts): unggah/unduh/hapus byte
        ke server (SHA-256 nyata, terenkripsi). amsHashFile (evidence.tsx) = hash isi berkas. */

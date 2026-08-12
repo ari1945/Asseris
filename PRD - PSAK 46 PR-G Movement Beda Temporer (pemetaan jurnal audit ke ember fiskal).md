@@ -1,6 +1,6 @@
 # PRD — PSAK 46 PR-G · Movement Beda Temporer (pemetaan jurnal audit ke ember fiskal)
 
-**Status:** ✅ **TERPUTUS & TERIMPLEMENTASI (PR-G1)** — 2026-07-29. Ari mendelegasikan penetapan metodologi ("lanjut kerjakan sesuai logika akuntansi dan audit"); §11 diisi oleh saya dengan **dasar hukum dikutip per jurnal**, sehingga tiap penetapan dapat dibatalkan satu per satu tanpa membongkar mekanismenya. Mekanisme yang dipilih: **Opsi 2 + gerbang falsifikasi Opsi 3**, sesuai rekomendasi §7.
+**Status:** **Implemented** — PR-G1 TERPUTUS & TERIMPLEMENTASI 2026-07-29
 **Basis:** master `d9149d0` (setelah PR-F #150 & sapuan `.split` #151).
 **Pendahulu:** `PRD - Rekonsiliasi Fiskal PSAK 46 (PBT kedua yang tersisa).md` (#144 → PR-F #150).
 **Sifat:** PRD ini sengaja BERHENTI di depan pemetaan akun→ember. Pemetaan itu hukum pajak, bukan rekayasa perangkat lunak; mengarangnya berarti sistem menerbitkan posisi fiskal yang tak pernah diputuskan manusia — kelas cacat yang persis sedang ditutup arc ini.

@@ -8,6 +8,19 @@ import { totp } from '../auth/totp';
 
 const FIRM_ID = 'TEST-FIRM-AUTH';
 const anon = createCallerFactory(appRouter)({ user: null, token: null });
+async function loginWithCookie(input: { email: string; password: string; totp?: string }) {
+  let token = '';
+  const caller = createCallerFactory(appRouter)({
+    user: null, token: null,
+    setCookie(cookie: string) {
+      const match = /ams_session=([^;]+)/.exec(cookie);
+      if (match) token = decodeURIComponent(match[1]);
+    },
+  });
+  const result = await caller.auth.login(input);
+  if (!token) throw new Error('login did not issue the HttpOnly session cookie');
+  return { result, token };
+}
 // A caller whose context is resolved from a session token (mirrors the HTTP path).
 async function authed(token: string) {
   return createCallerFactory(appRouter)(await contextForToken(token));
@@ -43,14 +56,14 @@ afterAll(async () => {
 });
 
 describe('auth.login', () => {
-  it('issues a token on correct credentials; me() returns the user', async () => {
+  it('issues only an HttpOnly cookie (no token in body); me() returns the user', async () => {
     const { id, email } = await makeUser('Correct#Horse1');
-    const r = await anon.auth.login({ email, password: 'Correct#Horse1' });
-    expect(r.token).toBeTruthy();
-    expect(r.user.id).toBe(id);
-    expect(r.user).not.toHaveProperty('passwordHash');
+    const { result, token } = await loginWithCookie({ email, password: 'Correct#Horse1' });
+    expect(result).not.toHaveProperty('token');
+    expect(result.user.id).toBe(id);
+    expect(result.user).not.toHaveProperty('passwordHash');
 
-    const me = await (await authed(r.token)).auth.me();
+    const me = await (await authed(token)).auth.me();
     expect(me?.id).toBe(id);
   });
 
@@ -98,7 +111,7 @@ describe('protected procedures require a session', () => {
 describe('session lifecycle', () => {
   it('logout revokes the token (me → null afterwards)', async () => {
     const { email } = await makeUser('Logout#Test12');
-    const { token } = await anon.auth.login({ email, password: 'Logout#Test12' });
+    const { token } = await loginWithCookie({ email, password: 'Logout#Test12' });
     expect(await (await authed(token)).auth.me()).not.toBeNull();
     await (await authed(token)).auth.logout();
     expect(await (await authed(token)).auth.me()).toBeNull();
@@ -106,7 +119,7 @@ describe('session lifecycle', () => {
 
   it('an expired session does not resolve to a user', async () => {
     const { email } = await makeUser('Expire#Test12');
-    const { token } = await anon.auth.login({ email, password: 'Expire#Test12' });
+    const { token } = await loginWithCookie({ email, password: 'Expire#Test12' });
     await prisma.session.update({ where: { token }, data: { expiresAt: new Date(Date.now() - 1000) } });
     expect(await (await authed(token)).auth.me()).toBeNull();
   });
@@ -115,32 +128,47 @@ describe('session lifecycle', () => {
 describe('changePassword', () => {
   it('actually changes the credential (old fails, new works)', async () => {
     const { email } = await makeUser('Old#Password1');
-    const { token } = await anon.auth.login({ email, password: 'Old#Password1' });
+    const { token } = await loginWithCookie({ email, password: 'Old#Password1' });
     await (await authed(token)).auth.changePassword({ oldPassword: 'Old#Password1', newPassword: 'New#Password99' });
     await expect(anon.auth.login({ email, password: 'Old#Password1' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
     const r = await anon.auth.login({ email, password: 'New#Password99' });
-    expect(r.token).toBeTruthy();
+    expect(r.user.email).toBe(email);
   });
 
   it('rejects a wrong old password', async () => {
     const { email } = await makeUser('Keep#Password1');
-    const { token } = await anon.auth.login({ email, password: 'Keep#Password1' });
+    const { token } = await loginWithCookie({ email, password: 'Keep#Password1' });
     await expect(
       (await authed(token)).auth.changePassword({ oldPassword: 'wrong', newPassword: 'New#Password99' }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+
+  it('requires the current TOTP as step-up when 2FA is active', async () => {
+    const password = 'Stepup#Password1';
+    const { email } = await makeUser(password);
+    const { token } = await loginWithCookie({ email, password });
+    const caller = await authed(token);
+    const enrollment = await caller.auth.enrollTotp({ password });
+    await caller.auth.verifyTotp({ token: totp(enrollment.secret) });
+    await expect(caller.auth.changePassword({ oldPassword: password, newPassword: 'Changed#Password2' }))
+      .rejects.toMatchObject({ message: 'totp-required' });
+    await caller.auth.changePassword({
+      oldPassword: password, newPassword: 'Changed#Password2', totp: totp(enrollment.secret),
+    });
+    expect((await anon.auth.login({ email, password: 'Changed#Password2', totp: totp(enrollment.secret) })).user.email).toBe(email);
   });
 });
 
 describe('TOTP 2FA', () => {
   it('enrol → verify arms 2FA; login then requires a valid code', async () => {
     const { email } = await makeUser('Totp#Account1');
-    const { token } = await anon.auth.login({ email, password: 'Totp#Account1' });
+    const { token } = await loginWithCookie({ email, password: 'Totp#Account1' });
     const caller = await authed(token);
 
-    const { secret } = await caller.auth.enrollTotp();
+    const { secret } = await caller.auth.enrollTotp({ password: 'Totp#Account1' });
     expect(secret).toBeTruthy();
     // Not yet armed — login without a code still works.
-    expect((await anon.auth.login({ email, password: 'Totp#Account1' })).token).toBeTruthy();
+    expect((await anon.auth.login({ email, password: 'Totp#Account1' })).user.email).toBe(email);
 
     await caller.auth.verifyTotp({ token: totp(secret) });
 
@@ -150,22 +178,56 @@ describe('TOTP 2FA', () => {
       message: 'totp-required',
     });
     const ok = await anon.auth.login({ email, password: 'Totp#Account1', totp: totp(secret) });
-    expect(ok.token).toBeTruthy();
+    expect(ok.user.email).toBe(email);
   });
 
   it('rejects a bad code at verify', async () => {
     const { email } = await makeUser('Totp#Account2');
-    const { token } = await anon.auth.login({ email, password: 'Totp#Account2' });
+    const { token } = await loginWithCookie({ email, password: 'Totp#Account2' });
     const caller = await authed(token);
-    await caller.auth.enrollTotp();
+    await caller.auth.enrollTotp({ password: 'Totp#Account2' });
     await expect(caller.auth.verifyTotp({ token: '000000' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+
+  it('re-enrolment keeps the old secret active until pending secret is verified and requires both step-up factors', async () => {
+    const password = 'Totp#Replace1';
+    const { id, email } = await makeUser(password);
+    const { token } = await loginWithCookie({ email, password });
+    const caller = await authed(token);
+    const first = await caller.auth.enrollTotp({ password });
+    await caller.auth.verifyTotp({ token: totp(first.secret) });
+
+    await expect(caller.auth.enrollTotp({ password, currentTotp: '000000' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    const replacement = await caller.auth.enrollTotp({ password, currentTotp: totp(first.secret) });
+    const staged = await prisma.user.findUniqueOrThrow({ where: { id } });
+    expect(staged.totpSecret).not.toBe(staged.pendingTotpSecret);
+    expect((await anon.auth.login({ email, password, totp: totp(first.secret) })).user.id).toBe(id);
+
+    await caller.auth.verifyTotp({ token: totp(replacement.secret) });
+    await expect(anon.auth.login({ email, password, totp: totp(first.secret) })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    expect((await anon.auth.login({ email, password, totp: totp(replacement.secret) })).user.id).toBe(id);
+  });
+
+  it('throttles invalid TOTP attempts persistently per account', async () => {
+    const password = 'Totp#Throttle1';
+    const { id, email } = await makeUser(password);
+    const { token } = await loginWithCookie({ email, password });
+    const caller = await authed(token);
+    const enrollment = await caller.auth.enrollTotp({ password });
+    await caller.auth.verifyTotp({ token: totp(enrollment.secret) });
+    for (let i = 0; i < 4; i += 1) {
+      await expect(anon.auth.login({ email, password, totp: '000000' })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    }
+    await expect(anon.auth.login({ email, password, totp: '000000' })).rejects.toMatchObject({ code: 'TOO_MANY_REQUESTS' });
+    const locked = await prisma.user.findUniqueOrThrow({ where: { id } });
+    expect(locked.totpLockedUntil?.getTime()).toBeGreaterThan(Date.now());
   });
 });
 
 describe('sessions & auth events (settings surface)', () => {
   it('lists this session as current and records it in events', async () => {
     const { email } = await makeUser('Sessions#List1');
-    const { token } = await anon.auth.login({ email, password: 'Sessions#List1' });
+    const { token } = await loginWithCookie({ email, password: 'Sessions#List1' });
     const caller = await authed(token);
     const sessions = await caller.auth.sessions();
     expect(sessions.length).toBeGreaterThanOrEqual(1);
@@ -177,7 +239,7 @@ describe('sessions & auth events (settings surface)', () => {
 
   it('revokeOtherSessions keeps the current one and drops the rest', async () => {
     const { email } = await makeUser('Sessions#Revoke1');
-    const a = await anon.auth.login({ email, password: 'Sessions#Revoke1' }); // session A
+    const a = await loginWithCookie({ email, password: 'Sessions#Revoke1' }); // session A
     await anon.auth.login({ email, password: 'Sessions#Revoke1' }); // session B
     const callerA = await authed(a.token);
     expect((await callerA.auth.sessions()).length).toBe(2);

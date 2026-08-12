@@ -255,7 +255,6 @@ function OBAml() {
   );
 }
 
-Object.assign(window, { OBAnalitik, OBAcceptance, OBAml });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

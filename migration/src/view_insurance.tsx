@@ -513,7 +513,6 @@ function InsLineage({ IRM, firm, nav }: any) {
   );
 }
 
-Object.assign(window, { FirmInsurance });
 
 /* ---------- LINEAGE dock: keterkaitan dua-arah Asuransi & Risiko ----------
    Didaftarkan dari berkas babel ini (setelah related_modules.jsx memuat

@@ -554,7 +554,6 @@ function SmMemo({ fmt, activeClient, activeEngagement, risks, sigRisks, om, pm, 
     </Panel>
   );
 }
-Object.assign(window, { StrategyMemo });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

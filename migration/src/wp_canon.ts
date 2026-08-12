@@ -262,3 +262,30 @@ export {
   execStatus, procStatusAt, procStatesFor, wpEvidenceEval, deriveWpStatus, wpProcedureInputs,
   wpToday, WP_SLOT_LABEL, wpChainSelfReview, wpSeedReviewSignature, wpEffectiveChain,
 };
+
+/* ============================================================
+   Tahap 8 — helper navigasi/catatan WP dipindah KE SINI dari
+   view_wp.tsx (yang menjadi lazy chunk). Keduanya MURNI (tanpa
+   React), jadi konsumen eager (sa_canonical, ai_extract) dan lazy
+   (view_sa230, view_workspace, …) memakainya lewat import ESM —
+   bukan window.* — supaya rute bisa di-code-split dengan aman.
+   view_wp.tsx tetap mengekspor ulang keduanya untuk kompatibilitas.
+   ============================================================ */
+
+/* deep-link: open a specific WP in the canonical Working Papers module */
+export function openCanonicalWp(navigate: any, ref: any) {
+  try { localStorage.setItem('ams.wpOpen', ref); } catch (e) {}
+  if (typeof navigate === 'function') navigate('workpapers');
+}
+
+/* expose WP-pinned notes to global Review Notes & My Tasks */
+export function collectWpNotes(wpState: any) {
+  wpState = wpState || {};
+  const rows: any[] = [];
+  Object.entries(WP_SEED_NOTES).forEach(([ref, notes]) => notes.forEach(n => rows.push({ ...n, wpRef: ref })));
+  Object.entries(wpState).forEach(([ref, s]: [string, any]) => (s.notes || []).forEach((n: any) => rows.push({ ...n, wpRef: ref })));
+  return rows.map(n => {
+    const ov = (wpState[n.wpRef] || {}).noteStatus || {};
+    return { ...n, status: ov[n.id] || n.status, wp: true, wpRef: n.wpRef, wpTitle: (WP_TITLE as any)[n.wpRef] || n.wpRef, module: 'workpapers', moduleLabel: 'WP ' + n.wpRef + ' · ' + ((WP_TITLE as any)[n.wpRef] || '') };
+  });
+}

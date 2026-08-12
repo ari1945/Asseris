@@ -1,6 +1,6 @@
 # PRD — SA 540 Estimasi Akuntansi Substantif: Inventaris Estimasi + Indikator Bias ter-persist
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **domain substantif** dari [[asseris-gap-matrix-eval]] — estimasi SA 540 (revisi), bertaut erat dengan fraud bias (SA 240) & going concern.
 > Pola: persis PR#13 (fraud) — display-only→register editable + memo + verify live. `sa540` sudah di `WP_MODULE_MAP` (Q-02) → sign-off SA 230 sudah ada; **tanpa sign-off fiktif** (beda dari SA 240/260/402).
 > Sifat artefak: **level ENGAGEMENT** → `useAmsPersist('estimates.<engId>')`. **Verifikasi live** (recipe PR#12/#13).

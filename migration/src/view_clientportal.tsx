@@ -8,6 +8,9 @@ import { SubBar } from './shell';
 import { Badge, Btn, Donut, Panel, Seg, Stat, Tabs } from './ui';
 import { PEVT, PField, PModal, PThread, PTimeline, PVerList, pNowTime } from './view_docparts';
 import { OKv } from './view_onboarding';
+/* Tahap 8 — status/navigasi WP kanonik via ESM dari wp_canon (eager),
+   bukan window.* yang hanya terisi setelah chunk view_wp dimuat. */
+import { deriveWpStatus, openCanonicalWp } from './wp_canon';
 
 /* ============================================================
    Asseris — Portal Klien / PBC (Prepared By Client)
@@ -51,8 +54,8 @@ const WP_STATUS_ID = { 'Reviewed': 'Direviu', 'In Review': 'Sedang Direviu', 'In
 /* Tarikan status HIDUP kertas kerja dari sumber kebenaran tunggal modul Working Papers
    (window.deriveWpStatus). Portal tidak menyimpan salinan privat status WP. */
 const wpLive = (wp: any, audit: any, firm: any) => {
-  if (!wp || typeof window.deriveWpStatus !== 'function') return null;
-  try { return window.deriveWpStatus(wp, audit || {}, firm || {}); } catch (e) { return null; }
+  if (!wp) return null;
+  try { return deriveWpStatus(wp, audit || {}, firm || {}); } catch (e) { return null; }
 };
 const wpMetaFor = (wp: any) => ((window as any).WP_META || {})[wp] || {};
 
@@ -95,7 +98,7 @@ function ReqLinkage({ r }: any) {
   const wp = wpLive(lk.wp, audit, firm);
   const meta = wpMetaFor(lk.wp);
   const relRisks = (wp && wp.relRisks) || [];
-  const openWp = () => { if (window.openCanonicalWp) window.openCanonicalWp(nav, lk.wp); else nav('workpapers'); };
+  const openWp = () => { openCanonicalWp(nav, lk.wp); };
   return (
     <div style={{ display: 'grid', gap: 7 }}>
       <button type="button" className="pbc-link" onClick={() => nav(lk.module, { from: 'clientportal' })} title={'Buka ' + mod.label}>
@@ -231,7 +234,7 @@ function CoveragePanel({ reqs, today }: any) {
   const audit = useAudit();
   const firm = useFirm();
   const cats = PBC_CATS.filter(c => reqs.some((r: any) => r.cat === c));
-  const openWp = (wp: any) => { if (window.openCanonicalWp) window.openCanonicalWp(nav, wp); else nav('workpapers'); };
+  const openWp = (wp: any) => { openCanonicalWp(nav, wp); };
   return (
     <div style={{ padding: 14 }}>
       <div className="tiny muted" style={{ marginBottom: 12, lineHeight: 1.55 }}>Rekonsiliasi kesiapan per area audit dari <b>satu sumber kebenaran</b>: pengumpulan dokumen (PBC di portal ini), status kertas kerja kanonik (modul Working Papers), bukti terkumpul (Evaluasi Bukti) &amp; arsip DMS — ditarik hidup, bukan salinan privat.</div>
@@ -515,7 +518,6 @@ function ClientPortal() {
   );
 }
 
-Object.assign(window, { ClientPortal });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

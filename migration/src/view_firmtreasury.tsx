@@ -504,7 +504,6 @@ function DepreciationSchedule({ a, onClose }: any) {
   );
 }
 
-Object.assign(window, { FirmTreasury, CashBank, FixedAssets });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

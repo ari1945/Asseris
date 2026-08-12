@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AiInsightPanel } from './ai_insights';
-import { useAudit, useFirm, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Progress, Tabs } from './ui';
@@ -129,7 +129,7 @@ function EngagementCockpit() {
   const { fmt } = AMS;
   const nav = useNav();
   const { activeEngagement, activeClient } = useFirm();
-  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState } = useAudit();  // P5 Fase 2: catatan engagement aktif
+  const { reviewNotesActive, aje, risks, workpapers, team, activity, deadlines, wpState } = useAuditHeavy(['reviewNotes']);  // P5 Fase 2: catatan engagement aktif
   const e = activeEngagement;
   const [tab, setTab] = useStateCkp('ringkasan');
 

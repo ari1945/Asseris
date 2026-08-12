@@ -353,7 +353,6 @@ function SuccessionPlanning() {
   );
 }
 
-Object.assign(window, { OrgChart, SuccessionPlanning });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

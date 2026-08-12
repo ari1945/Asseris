@@ -640,7 +640,6 @@ function FirmLicensing() {
   );
 }
 
-Object.assign(window, { FirmTravel, FirmLicensing });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

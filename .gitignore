@@ -17,6 +17,21 @@ migration/coverage/
 # generated lint report
 migration/.eslint-report.json
 
+# local PostgreSQL portable extraction (never commit — installer runtime, not source)
+.pgzip/
+
+# runtime logs (never commit)
+server/*.log
+e2e/*.log
+
+# Tahap 7 — e2e Playwright (report/artefak gagal regenerable) + coverage server
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+server/coverage/
+# Skema Postgres turunan untuk e2e (dibuat ulang dari schema.prisma oleh e2e/scripts/prepare-postgres.mjs)
+server/prisma/schema.postgres.prisma
+
 # archived originals (24 MB zip + duplicate PDFs + old inlined build)
 _archive/
 

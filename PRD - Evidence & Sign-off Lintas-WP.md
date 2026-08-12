@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-06-18 |
 | Pemilik | Ari Widodo |
-| Status | **Draft / menunggu review** |
+| Status | **Draft** — menunggu review |
 | Sumber masalah | [Evaluasi Fitur — Gap & Pendalaman](Evaluasi%20Fitur%20NeoSuite%20AMS%20-%20Gap%20&%20Pendalaman.md) · Prioritas **P2** |
 | Basis kode | `migration/src` (ESM, canonical, pasca-W5) |
 

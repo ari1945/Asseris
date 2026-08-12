@@ -1,6 +1,6 @@
 # PRD — Persistensi Kesimpulan Auditor di PSAK Suite (P1)
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: lanjutan dari [[neosuite-ams-p2-wp-signoff]] (P2 selesai, commit `4576ec3`).
 > Acuan gap: `Evaluasi Fitur NeoSuite AMS - Gap & Pendalaman.md` §4 (P1, leverage #1).
 

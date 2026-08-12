@@ -452,7 +452,6 @@ function S200Ethics() {
   );
 }
 
-Object.assign(window, { SA200View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

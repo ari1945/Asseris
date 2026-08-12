@@ -1,6 +1,6 @@
 # PRD — AJE PR-E · Penangkapan Klasifikasi Jurnal & Identitas Penyetuju
 
-Status: **menunggu "Proceed."** · Cabang: `feat/aje-pr-e-form-capture-eqr-identity` · Basis: master `4f98fdb`
+**Status:** **Draft** — menunggu "Proceed."
 
 ## Problem
 

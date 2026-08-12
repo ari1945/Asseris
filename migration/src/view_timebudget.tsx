@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { FIRMFIN } from './data_firmfin';
-import { useAudit, useFirm } from './contexts';
+import { useAudit, useAuditHeavy, useFirm } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Panel, Stat, Tabs } from './ui';
@@ -84,7 +84,7 @@ function TBBar({ budget, actual, pct, max }: any) {
 
 function TimeBudget() {
   const { activeEngagement, locked } = useFirm();
-  const { timeEntries, addTimeEntry, team } = useAudit();
+  const { timeEntries, addTimeEntry, team } = useAuditHeavy(['timeEntries']);
   const [tab, setTab] = useTB('overview');
   const e = activeEngagement;
   const m = useTBModel(timeEntries, e);
@@ -525,7 +525,6 @@ function TBEconomics({ m, e }: any) {
   );
 }
 
-Object.assign(window, { TimeBudget });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

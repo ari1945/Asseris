@@ -385,7 +385,6 @@ function RiskDetail({ r, nav, onClose }: any) {
   );
 }
 
-Object.assign(window, { SOQM, RiskDetail, RemediationTab });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

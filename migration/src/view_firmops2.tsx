@@ -233,7 +233,6 @@ function FopsLineage({ oc, spendRecon, nbv, register, B, nav }: any) {
   );
 }
 
-Object.assign(window, { FopsCalendar, FopsVendors, FopsVendorDrawer, FopsLineage });
 
 /* ---------- lineage dock dua-arah ---------- */
 if (window.LINEAGE) {

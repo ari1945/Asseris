@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-06-26 |
 | Pemilik | Ari Widodo |
-| Status | **Draft / menunggu review** |
+| Status | **Draft** — menunggu review |
 | Sumber masalah | Baris Matriks Konektivitas: *"Confirmation Hub · ENG · Working Papers · 🟡 TERISOLASI · Auto-link hasil konfirmasi ke WP terkait"* — **diverifikasi & dikoreksi di bawah** |
 | Standar | SA 505 (Konfirmasi Eksternal) · SA 450 (Evaluasi Salah Saji / SAD) · SA 230 (Dokumentasi) |
 | Basis kode | `migration/src` (ESM, canonical, pasca-W15) |

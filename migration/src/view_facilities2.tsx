@@ -262,7 +262,6 @@ function FacLineage({ FA, firm, nav }: any) {
   );
 }
 
-Object.assign(window, { FacMaintenance, FacLicenses, FacSpace, FacLeaseInsurance, FacLineage });
 
 /* ---------- LINEAGE dock: keterkaitan dua-arah modul Aset & Fasilitas ---------- */
 if (window.LINEAGE) {

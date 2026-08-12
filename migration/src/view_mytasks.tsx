@@ -320,7 +320,6 @@ function MyTasks() {
   );
 }
 
-Object.assign(window, { MyTasks, TaskDetail, BoardCard });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

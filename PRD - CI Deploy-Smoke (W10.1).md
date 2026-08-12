@@ -1,6 +1,6 @@
 # PRD — CI Deploy-Smoke Job (W10.1)
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Penulis: Claude Code. Tanggal: 2026-06-21.
+> **Status:** **Draft** — menunggu sign-off ("Proceed.")
 > Builds on [[neosuite-ams-w10-hardening]]. Branch kerja: `master`.
 
 ## Problem

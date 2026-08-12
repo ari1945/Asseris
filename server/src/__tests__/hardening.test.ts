@@ -7,6 +7,9 @@ import {
 import { ipAllowed, readAllowlist, assertIpAllowed } from '../security/ipAllowlist';
 import { buildSessionCookie, clearSessionCookie, COOKIE_NAME } from '../auth/cookie';
 import { hardenAuditLogImmutability, HARDEN_STATEMENTS } from '../dbHarden';
+import { resolveClientIp } from '../security/clientIp';
+import { SECURITY_HEADERS, CSP_REPORT_ONLY } from '../security/headers';
+import type { IncomingMessage } from 'node:http';
 
 const KEY = randomBytes(32); // 256-bit test key
 
@@ -43,6 +46,26 @@ describe('secretbox — encryption at rest', () => {
 
   it('two encryptions of the same plaintext differ (random IV)', () => {
     expect(encryptSecret('same', KEY)).not.toBe(encryptSecret('same', KEY));
+  });
+
+  it('AAD binding: encrypting with AAD yields enc:v2: and round-trips with the SAME aad', () => {
+    const aad = 'att:v1|id-1|engagement|eng-1|dms|wp.txt|abcd1234';
+    const ct = encryptSecret('isi berkas', KEY, aad);
+    expect(ct.startsWith('enc:v2:')).toBe(true);
+    expect(decryptSecret(ct, KEY, aad)).toBe('isi berkas');
+  });
+
+  it('AAD binding: the WRONG aad fails decryption (metadata-swap tamper-evident)', () => {
+    const ct = encryptSecret('rahasia', KEY, 'att:v1|id-1|engagement|eng-1|dms|wp.txt|abcd1234');
+    expect(decryptSecret(ct, KEY, 'att:v1|id-2|engagement|eng-1|dms|wp.txt|abcd1234')).toBeNull();
+    expect(decryptSecret(ct, KEY)).toBeNull(); // missing aad on enc:v2: → fail closed
+  });
+
+  it('AAD binding: legacy enc:v1: (no aad) still decrypts and ignores the passed aad', () => {
+    const legacy = encryptSecret('totp-legacy', KEY); // no aad → enc:v1:
+    expect(legacy.startsWith('enc:v1:')).toBe(true);
+    expect(decryptSecret(legacy, KEY, 'whatever')).toBe('totp-legacy'); // v1 ignores aad
+    expect(decryptSecret(legacy, KEY)).toBe('totp-legacy');
   });
 
   it('readEncryptionKey parses hex and base64, rejects junk', () => {
@@ -91,6 +114,36 @@ describe('ipAllowlist', () => {
   });
 });
 
+describe('trusted proxy client IP', () => {
+  const req = (peer: string, xff?: string) => ({
+    socket: { remoteAddress: peer }, headers: xff ? { 'x-forwarded-for': xff } : {},
+  }) as unknown as IncomingMessage;
+
+  it('ignores spoofed X-Forwarded-For from an untrusted socket peer', () => {
+    expect(resolveClientIp(req('203.0.113.9', '10.0.0.1'), { TRUSTED_PROXY_CIDRS: '172.16.0.0/12' } as NodeJS.ProcessEnv)).toBe('203.0.113.9');
+  });
+
+  it('walks a trusted proxy chain right-to-left and returns the first untrusted client hop', () => {
+    const env = { TRUSTED_PROXY_CIDRS: '172.16.0.0/12' } as NodeJS.ProcessEnv;
+    expect(resolveClientIp(req('172.20.0.2', '198.51.100.7'), env)).toBe('198.51.100.7');
+    expect(resolveClientIp(req('172.20.0.2', '198.51.100.7, 172.20.0.3'), env)).toBe('198.51.100.7');
+  });
+
+  it('does not accept a spoofed leftmost entry once the first untrusted hop is reached', () => {
+    const env = { TRUSTED_PROXY_CIDRS: '172.16.0.0/12' } as NodeJS.ProcessEnv;
+    expect(resolveClientIp(req('172.20.0.2', '10.0.0.99, 198.51.100.7'), env)).toBe('198.51.100.7');
+  });
+});
+
+describe('progressive security headers', () => {
+  it('uses CSP report-only first and includes the stable baseline headers', () => {
+    expect(SECURITY_HEADERS['Content-Security-Policy-Report-Only']).toBe(CSP_REPORT_ONLY);
+    expect(SECURITY_HEADERS).not.toHaveProperty('Content-Security-Policy');
+    expect(SECURITY_HEADERS['X-Content-Type-Options']).toBe('nosniff');
+    expect(CSP_REPORT_ONLY).toContain('report-uri /csp-report');
+  });
+});
+
 describe('session cookie', () => {
   it('builds an HttpOnly, SameSite=Strict, Path=/ cookie with the token', () => {
     const c = buildSessionCookie('tok123', {} as NodeJS.ProcessEnv);
@@ -113,18 +166,24 @@ describe('session cookie', () => {
 
 // K5 — AuditLog immutability trigger. This is Postgres-only DDL; the real trigger behavior
 // (UPDATE/DELETE raises) can't be exercised against the SQLite test DB, but the SAFETY
-// properties that matter for boot (no-op on non-Postgres, never throws/crashes boot) can be.
+// properties that matter for boot can be pinned without requiring a live Postgres instance.
 describe('dbHarden — AuditLog immutability trigger (K5)', () => {
   it('no-ops for non-Postgres URLs (dev/test SQLite) — resolves without touching the DB', async () => {
     await expect(hardenAuditLogImmutability('file:./dev.db')).resolves.toBeUndefined();
     await expect(hardenAuditLogImmutability('')).resolves.toBeUndefined();
   });
 
-  it('never throws even if the Postgres-only DDL runs against a non-Postgres DB (best-effort, logs and continues)', async () => {
+  it('non-production keeps DDL failure best-effort', async () => {
     // Forces the postgres branch (URL prefix check) while the actual $executeRawUnsafe still
     // targets the process's real (SQLite) prisma client — must fail internally without
     // propagating, matching the "never blocks boot" guarantee in dbHarden.ts.
-    await expect(hardenAuditLogImmutability('postgresql://localhost/nonexistent')).resolves.toBeUndefined();
+    await expect(hardenAuditLogImmutability('postgresql://localhost/nonexistent', { required: false })).resolves.toBeUndefined();
+  });
+
+  it('production readiness fails closed when trigger installation fails', async () => {
+    await expect(
+      hardenAuditLogImmutability('postgresql://localhost/nonexistent', { required: true }),
+    ).rejects.toThrow(/auditlog-trigger-install-failed/);
   });
 
   it('issues each DDL statement as a SEPARATE command (Postgres rejects multiple commands per call)', async () => {
@@ -133,7 +192,7 @@ describe('dbHarden — AuditLog immutability trigger (K5)', () => {
     // Postgres. Mock the executor so this is a pure dialect-independent check of the split.
     const spy = vi.spyOn(prisma, '$executeRawUnsafe').mockResolvedValue(0 as unknown as number);
     try {
-      await hardenAuditLogImmutability('postgresql://localhost/whatever');
+      await hardenAuditLogImmutability('postgresql://localhost/whatever', { required: true });
       expect(spy).toHaveBeenCalledTimes(HARDEN_STATEMENTS.length);
       expect(HARDEN_STATEMENTS.length).toBeGreaterThanOrEqual(2);
       for (const call of spy.mock.calls) {

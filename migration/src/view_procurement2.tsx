@@ -413,7 +413,6 @@ function ProcVendorDrawer({ vendorId, firm, onClose, nav }: any) {
   );
 }
 
-Object.assign(window, { ProcP2P, ProcSpend, ProcDiligence, ProcLineage, ProcVendorDrawer });
 
 /* ---------- LINEAGE dock: keterkaitan dua-arah modul Pengadaan ---------- */
 if (window.LINEAGE) {

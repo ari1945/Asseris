@@ -509,7 +509,6 @@ function SAKRoadmapView() {
   );
 }
 
-Object.assign(window, { SAKRoadmapView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

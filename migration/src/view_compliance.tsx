@@ -332,7 +332,10 @@ function ComplianceView({ stdId }: any) {
                       return (
                         <div key={it.id} style={{ borderBottom: '1px solid var(--line-soft)' }}>
                           <div className="row gap10" style={{ padding: '10px 12px', alignItems: 'flex-start' }}>
-                            <button onClick={() => cycle(it.id)} title="Klik untuk ubah status" style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: 5, marginTop: 1, border: '1.5px solid ' + (st === 'done' ? 'var(--green)' : st === 'na' ? 'var(--line-strong)' : 'var(--line-strong)'), background: st === 'done' ? 'var(--green)' : st === 'na' ? 'var(--surface-3)' : '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+                            <button onClick={() => cycle(it.id)} title="Klik untuk ubah status"
+                              aria-label={'Ubah status prosedur: ' + it.text + ' — saat ini ' + (st === 'done' ? 'selesai' : st === 'na' ? 'tidak berlaku' : 'belum dikerjakan')}
+                              aria-pressed={st === 'done'}
+                              style={{ flex: '0 0 20px', width: 20, height: 20, borderRadius: 5, marginTop: 1, border: '1.5px solid ' + (st === 'done' ? 'var(--green)' : st === 'na' ? 'var(--line-strong)' : 'var(--line-strong)'), background: st === 'done' ? 'var(--green)' : st === 'na' ? 'var(--surface-3)' : '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
                               {st === 'done' && <I.check size={13} style={{ color: '#fff' }} />}
                               {st === 'na' && <span className="tiny" style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-4)' }}>NA</span>}
                             </button>

@@ -1,7 +1,7 @@
 # PRD — SA 530 & SA 540: Tab Analitik dari SSOT
 *(desain/seleksi/generator item · risiko/respons/sensitivitas)*
 
-**Status:** DRAFT — menunggu sign-off ("Proceed.")
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
 **Branch:** `sa530-540-analytical-tabs` (off master pasca-merge PR#16/#17)
 **Konteks:** lanjutan eksplisit roadmap pasca trio substantif (PR#13 fraud / PR#14 estimasi / PR#15 sampling). Lihat memory `asseris-gap-matrix-eval`.
 

@@ -441,7 +441,6 @@ function F580Reliability({ doc, refusedCount }: { doc: Rep580Doc; refusedCount: 
   );
 }
 
-Object.assign(window, { SA580View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

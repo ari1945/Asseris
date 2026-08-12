@@ -326,7 +326,6 @@ function F2400Concl() {
   );
 }
 
-Object.assign(window, { SPR2400View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

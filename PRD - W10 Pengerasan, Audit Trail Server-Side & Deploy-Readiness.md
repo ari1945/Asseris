@@ -1,5 +1,7 @@
 # PRD — W10: Pengerasan, Audit Trail Server-Side & Deploy-Readiness
 
+**Status:** **Implemented** — slice 1 (audit-trail + hardening + observability + deploy-readiness) selesai; item lanjutan tercatat di PRD
+
 > Wave terakhir backlog (W0–W10), slice pertama. Governing eval: `Evaluasi NeoSuite
 > AMS - Kesiapan Pengembangan Claude Code.html` (W10 = "Keamanan, ekspor,
 > observability & deploy"). Lanjutan dari [[neosuite-ams-w7-auth]],

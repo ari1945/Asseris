@@ -5,20 +5,29 @@
   "type": "module",
   "description": "NeoSuite AMS — W6 backend (tRPC + Prisma/SQLite). Server-side SSOT for engagement state; localStorage demotes to offline cache. Dev = SQLite; prod (W10) flips datasource to Postgres.",
   "scripts": {
+    "predev": "prisma generate",
     "dev": "tsx watch src/server.ts",
+    "prestart": "prisma generate",
     "start": "tsx src/server.ts",
     "seed": "tsx src/seed.ts",
     "bootstrap": "tsx src/bootstrap.ts",
+    "pilot:provision": "tsx src/pilotProvision.ts",
     "add-user": "tsx src/addUserCli.ts",
     "rotate-encryption-key": "tsx src/rotateEncryptionKey.ts",
+    "retention-worker": "tsx src/retentionWorker.ts",
     "export-audit-log": "tsx src/exportAuditLog.ts",
+    "smoke:deployment": "tsx src/deploymentSmoke.ts",
     "typecheck": "tsc --noEmit",
+    "pretest": "prisma generate",
     "test": "vitest run",
+    "test:coverage": "prisma generate && vitest run --coverage",
+    "verify": "npm run typecheck && npm test",
     "prisma:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:reset": "prisma db push --skip-generate && tsx src/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1108.0",
     "@aws-sdk/client-secrets-manager": "^3.1102.0",
     "@prisma/client": "^6.2.1",
     "@trpc/server": "^11.0.0",
@@ -28,6 +37,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
+    "@vitest/coverage-v8": "^2.1.9",
     "typescript": "^6.0.3",
     "vitest": "^2.1.8"
   }

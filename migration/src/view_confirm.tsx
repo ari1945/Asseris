@@ -607,7 +607,6 @@ function ConfirmationHub() {
   );
 }
 
-Object.assign(window, { ConfirmationHub });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

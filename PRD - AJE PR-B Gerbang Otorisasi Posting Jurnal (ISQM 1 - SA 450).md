@@ -1,5 +1,7 @@
 # PRD — AJE PR-B: Gerbang Otorisasi Posting Jurnal (ISQM 1 · SA 450)
 
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
+
 **Tanggal:** 2026-07-26 · **Status:** MENUNGGU SIGN-OFF ("Proceed.")
 **Basis:** `master` + PR-A ([#139](https://github.com/ari1945/Asseris/pull/139), `85eabee`)
 **Pendahulu:** `PRD - AJE PR-A SSOT Figur Entitas.md` · `PRD - Penegakan Sign-off Berbasis Peran (Dua-Lapis).md`

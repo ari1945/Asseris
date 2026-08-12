@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-07-18 |
 | Pemilik | Ari Widodo |
-| Status | **Draft — menunggu sign-off** |
+| Status | **Draft** — menunggu sign-off |
 | Engagement ID terkait | — (lintas: `onboarding` + `continuance`, firm-level → siklus engagement) |
 | Asal | Lanjutan dari deep-link Lini Masa → Keberlanjutan (PR #92). Permintaan: "kembangkan lebih detil fitur penerimaan & keberlanjutan klien, termasuk dokumentasinya." |
 | Keputusan scope (dari Ari) | Fokus = **Keduanya (end-to-end)** · Kedalaman = **Penuh** (kuesioner berbobot + tahun-lalu + safeguard + ekspor) · Dokumentasi = **kertas kerja in-app + dokumen developer + segel/ekspor auditable (W10.5)** |

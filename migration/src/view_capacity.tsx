@@ -226,7 +226,6 @@ function CapacityPlanning() {
   );
 }
 
-Object.assign(window, { CapacityPlanning });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

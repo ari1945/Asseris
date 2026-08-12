@@ -1,6 +1,6 @@
 # PRD — W15 · Model Data AMS Bertipe & Reduksi `:any` (boundary) + Test `.js→.ts`
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**
+> **Status:** **Implemented** — ams_types.ts + reduksi any
 > Tanggal: 2026-06-22 · Pemilik: Ari Widodo · Arc: lanjutan W11–W14 (TypeScript migration)
 > Memory terkait: `[[neosuite-ams-w14-typescript-strict]]`, `[[neosuite-ams-next-session]]`, `[[neosuite-ams-w13-typescript-foundation]]`
 

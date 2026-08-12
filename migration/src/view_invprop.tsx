@@ -180,7 +180,6 @@ function InvestmentProperty() {
   );
 }
 
-Object.assign(window, { InvestmentProperty });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -591,7 +591,6 @@ function PSAK48View() {
   );
 }
 
-Object.assign(window, { PSAK48View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

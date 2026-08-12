@@ -318,7 +318,6 @@ const Empty = ({ t, warn }: { t: string; warn?: boolean }) => (
   <div className="tiny" style={{ color: warn ? 'var(--red)' : 'var(--ink-4)', padding: '3px 0' }}>{t}</div>
 );
 
-Object.assign(window, { AssertionMatrix });
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { AssertionMatrix };

@@ -1,6 +1,6 @@
 # W10.1 — deploy-smoke: the gate the sqlite-only CI lacked. Builds the container image from
 # server/Dockerfile and boots the FULL compose stack (server + postgres:16), then asserts the
-# deploy chain `db push → healthz → seed → login`. This is the only job that actually exercises
+# deploy chain `empty database → migrate deploy → healthz → seed → login/state/attachment/audit`.
 # the Docker artifact + the Postgres path + the migration `.js→.ts` seed surface, so it catches
 # the class of footgun that slipped past static review and the sqlite tests (e.g. the missing
 # `COPY migration/package.json` that crashed boot — found 2026-06-21). See BUILD.md §W10.
@@ -30,7 +30,7 @@ on:
 
 jobs:
   deploy-smoke:
-    name: docker build + postgres boot + healthz/seed/login
+    name: empty postgres + migrate deploy + login/state/attachment/audit
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-smoke-pw   # ephemeral CI DB, dropped via `down -v` every run (≠ 'changeme' → passes M2 guard)
@@ -61,6 +61,27 @@ jobs:
           done
           echo "healthz never came up within ~120s"; exit 1
 
+      # The volume starts empty and the server command is `prisma migrate deploy && npm start`.
+      # Pin both the migration ledger and the exact Attachment indexes before demo provisioning.
+      - name: assert empty-db migrations created Attachment + indexes
+        run: |
+          docker compose exec -T db psql -U neosuite -d neosuite -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF to_regclass('public."Attachment"') IS NULL THEN
+              RAISE EXCEPTION 'Attachment table missing after migrate deploy';
+            END IF;
+            IF (SELECT count(*) FROM pg_indexes
+                WHERE schemaname = 'public' AND tablename = 'Attachment'
+                  AND indexname IN ('Attachment_scope_scopeId_collection_idx', 'Attachment_scope_scopeId_refId_idx')) <> 2 THEN
+              RAISE EXCEPTION 'Attachment indexes missing after migrate deploy';
+            END IF;
+            IF EXISTS (SELECT 1 FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL) THEN
+              RAISE EXCEPTION 'Prisma migration ledger contains an incomplete migration';
+            END IF;
+          END $$;
+          SQL
+
       # The W11 regression surface: seedData.ts imports migration/src/data.js → data.ts and
       # data_import.js → data_import.ts. A green seed proves tsx resolves `.js→.ts` in-container
       # AND that the Postgres write path works. (Dev creds; DB is ephemeral.)
@@ -77,6 +98,23 @@ jobs:
             -H 'content-type: application/json' \
             -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
             | grep -q '"token"'
+
+      # Final Stage-3 gate, executed inside the exact production image against the freshly
+      # migrated Postgres volume. It uses app procedures for login, StateDoc CAS, real encrypted
+      # attachment round-trip, and audit.verify; any missing table/index/runtime contract fails CI.
+      - name: deployment acceptance — login + state + attachment + audit verification
+        run: docker compose exec -T server npm run smoke:deployment
+
+      # Boot is not considered ready merely because the DDL call returned: prove the installed
+      # trigger rejects a direct mutation on the now non-empty audit chain.
+      - name: readiness invariant — AuditLog trigger is active
+        run: |
+          if docker compose exec -T db psql -U neosuite -d neosuite -v ON_ERROR_STOP=1 \
+              -c 'UPDATE "AuditLog" SET detail = detail WHERE seq = (SELECT min(seq) FROM "AuditLog");'; then
+            echo "REGRESSION: AuditLog UPDATE succeeded; append-only trigger is not active"
+            exit 1
+          fi
+          echo "OK: AuditLog direct UPDATE rejected by production trigger"
 
       # M2 (§3.2) — prove the guard REFUSES an insecure prod boot: same image, but COOKIE_SECURE=0
       # overridden → assertProdConfig must exit non-zero BEFORE listening. --no-deps: the guard runs

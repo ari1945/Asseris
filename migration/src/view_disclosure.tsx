@@ -4,6 +4,10 @@ import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Btn, Panel, Stat } from './ui';
+/* Tahap 8 — alias IFRS dibaca lewat ESM dari Matriks Kepatuhan (lazy chunk
+   berbagi dengan modul ini), bukan window.STD_IFRS_ALIAS yang hanya terisi
+   setelah chunk compmatrix dimuat. */
+import { STD_IFRS_ALIAS } from './view_compmatrix';
 
 /* ============================================================
    Asseris — Daftar-Uji Pengungkapan (Disclosure Checklist Engine)
@@ -97,7 +101,7 @@ function DisclosureChecklist() {
     return { ...s, total: rs.length, done: d, pct: rs.length ? Math.round(d / rs.length * 100) : 100 };
   });
 
-  const aliasOf = (std: any) => (window.STD_IFRS_ALIAS || {})[std];
+  const aliasOf = (std: any) => (STD_IFRS_ALIAS || {})[std];
   const grouped = DC_STATEMENTS.map(s => ({ ...s, items: visible.filter((r: any) => r.stmt === s.id) })).filter(g => g.items.length);
 
   return (
@@ -186,7 +190,6 @@ function DisclosureChecklist() {
   );
 }
 
-Object.assign(window, { DisclosureChecklist });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

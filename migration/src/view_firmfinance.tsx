@@ -667,7 +667,6 @@ function ServiceLineDrill({ l, total, onClose }: any) {
   );
 }
 
-Object.assign(window, { FirmFinance, WIPValuation });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

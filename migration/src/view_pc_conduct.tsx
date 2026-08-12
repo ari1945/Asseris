@@ -324,7 +324,6 @@ function HRCases() {
   );
 }
 
-Object.assign(window, { EthicsDeclaration, HRCases });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

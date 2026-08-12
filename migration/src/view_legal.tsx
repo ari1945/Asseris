@@ -166,7 +166,6 @@ function LglContractDrawer({ c, onClose, onNav }: any) {
     </PDrawer>
   );
 }
-Object.assign(window, { LGL_CAT, LglSourceChip, ReconBadge, lglObligations, LglContractDrawer });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

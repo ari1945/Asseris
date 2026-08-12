@@ -12,7 +12,7 @@ import type { ProcedureInput, RiskInput, AssertionConclInput, AssertionGroup } f
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, LockBanner, Overlay, Panel, Placeholder, Seg, Stat, Tabs } from './ui';
-import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpSeedReviewSignature, wpEffectiveChain } from './wp_canon';
+import { WP_INDEX, WP_PROCS, procsFor, procStatusAt, procStatesFor, WP_SEED_NOTES, wpEvidenceEval, deriveWpStatus, wpProcedureInputs, WP_TITLE, WP_META, WP_REFS, wpToday, wpSeedReviewSignature, wpEffectiveChain, collectWpNotes, openCanonicalWp } from './wp_canon';
 /* PRD prd-wp-signoff-integrity — aturan rantai tanda tangan (dipakai bersama server). */
 import { WP_SLOT_ORDER, WP_SLOT_LABEL, wpChainSelfReviewBy, wpChainLinks, wpContentHash, wpSignatureStamp, wpFormatSignedAt, signedByActor } from './wp_chain';
 import type { EvRec, TestItem, ExecP } from './wp_canon';
@@ -1318,24 +1318,6 @@ function WPFooter({ ref_, it, status, st, setWp, locked, doneCount, totalProcs, 
             : <span className="tiny muted" style={{ color: 'var(--ink-3)' }}><I.lock size={11} /> Peran Anda tidak berwenang membuka rantai ini</span>}
     </div>
   );
-}
-
-/* ---- Shared helpers: expose WP-pinned notes to global Review Notes & My Tasks ---- */
-function collectWpNotes(wpState: any) {
-  wpState = wpState || {};
-  const rows: any[] = [];
-  Object.entries(WP_SEED_NOTES).forEach(([ref, notes]) => notes.forEach(n => rows.push({ ...n, wpRef: ref })));
-  Object.entries(wpState).forEach(([ref, s]: [string, any]) => (s.notes || []).forEach((n: any) => rows.push({ ...n, wpRef: ref })));
-  return rows.map(n => {
-    const ov = (wpState[n.wpRef] || {}).noteStatus || {};
-    return { ...n, status: ov[n.id] || n.status, wp: true, wpRef: n.wpRef, wpTitle: (WP_TITLE as any)[n.wpRef] || n.wpRef, module: 'workpapers', moduleLabel: 'WP ' + n.wpRef + ' · ' + ((WP_TITLE as any)[n.wpRef] || '') };
-  });
-}
-
-/* deep-link: open a specific WP in the canonical Working Papers module */
-function openCanonicalWp(navigate: any, ref: any) {
-  try { localStorage.setItem('ams.wpOpen', ref); } catch (e) {}
-  if (typeof navigate === 'function') navigate('workpapers');
 }
 
 Object.assign(window, { WorkingPapers, WPDrill, collectWpNotes, WP_REFS, WP_META, deriveWpStatus, openCanonicalWp, wpProcedureInputs, procsFor, WP_PROCS });

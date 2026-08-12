@@ -1,0 +1,23 @@
+/* ============================================================
+   Tahap 8 — CONFIRMATIONS (seed register konfirmasi) pindah KE SINI
+   dari view_confirm_parts.tsx (lazy chunk). Konsumen eager
+   (ai_insights, diagnostics_panel) memakainya via ESM, bukan
+   window.CONFIRMATIONS. view_confirm_parts mengimpor + mengekspor
+   ulang untuk kompatibilitas.
+   ============================================================ */
+export const CONFIRMATIONS = [
+  { id: 'CF-001', type: 'Bank', party: 'PT Bank Central Asia Tbk', amount: 14_200_000_000, sent: '08-01-2026', due: '22-01-2026', status: 'Received', resp: 14_200_000_000, days: 6, method: 'Positif', channel: 'e-Confirm', contact: 'Trade Confirmation Desk · confirm@bca.co.id', reminders: 0, validated: true },
+  { id: 'CF-002', type: 'Bank', party: 'PT Bank Mandiri Tbk', amount: 6_500_000_000, sent: '08-01-2026', due: '22-01-2026', status: 'Received', resp: 6_500_000_000, days: 9, method: 'Positif', channel: 'e-Confirm', contact: 'Audit Confirmation Unit · confirm@bankmandiri.co.id', reminders: 0, validated: true },
+  { id: 'CF-003', type: 'Bank', party: 'PT Bank Negara Indonesia', amount: 1_205_300_000, sent: '08-01-2026', due: '22-01-2026', status: 'Sent', resp: null, days: 32, method: 'Positif', channel: 'e-Confirm', contact: 'Confirmation Center · confirm@bni.co.id', reminders: 1, validated: false },
+  { id: 'CF-004', type: 'Piutang', party: 'PT Ritel Maju Bersama', amount: 4_120_000_000, sent: '10-01-2026', due: '24-01-2026', status: 'Received', resp: 4_120_000_000, days: 8, method: 'Positif', channel: 'Email', contact: 'Rina Marlina · Finance Mgr · ar@ritelmaju.co.id', reminders: 0, validated: true },
+  { id: 'CF-005', type: 'Piutang', party: 'PT Distribusi Andal', amount: 2_880_000_000, sent: '10-01-2026', due: '24-01-2026', status: 'Discrepancy', resp: 2_530_000_000, days: 11, method: 'Positif', channel: 'Pos', contact: 'Bagian Hutang · keuangan@distribusiandal.co.id', reminders: 0, validated: true },
+  { id: 'CF-006', type: 'Piutang', party: 'CV Sumber Rejeki', amount: 1_340_000_000, sent: '10-01-2026', due: '24-01-2026', status: 'No Reply', resp: null, days: 41, method: 'Positif', channel: 'Pos', contact: 'Bp. Hendra · Pemilik · (belum merespons)', reminders: 2, validated: false },
+  { id: 'CF-007', type: 'Piutang', party: 'PT Niaga Sentosa', amount: 1_120_000_000, sent: '10-01-2026', due: '24-01-2026', status: 'Received', resp: 1_120_000_000, days: 14, method: 'Positif', channel: 'Email', contact: 'Dewi Anggraini · AP · ap@niagasentosa.id', reminders: 0, validated: true },
+  { id: 'CF-008', type: 'Piutang', party: 'PT Mitra Dagang Utama', amount: 980_000_000, sent: '12-01-2026', due: '26-01-2026', status: 'Sent', resp: null, days: 28, method: 'Negatif', channel: 'Email', contact: 'Finance · finance@mitradagang.co.id', reminders: 1, validated: false },
+  { id: 'CF-009', type: 'Utang', party: 'PT Pemasok Bahan Baku', amount: 8_400_000_000, sent: '11-01-2026', due: '25-01-2026', status: 'Received', resp: 8_400_000_000, days: 7, method: 'Positif', channel: 'Email', contact: 'Collection Dept · collection@pemasokbb.co.id', reminders: 0, validated: true },
+  { id: 'CF-010', type: 'Utang', party: 'PT Logistik Andalan', amount: 2_100_000_000, sent: '11-01-2026', due: '25-01-2026', status: 'Discrepancy', resp: 2_340_000_000, days: 12, method: 'Positif', channel: 'Pos', contact: 'Piutang · ar@logistikandalan.co.id', reminders: 0, validated: true },
+  { id: 'CF-011', type: 'Legal', party: 'Kantor Hukum Surya & Partners', amount: 0, sent: '09-01-2026', due: '23-01-2026', status: 'Received', resp: 0, days: 10, method: 'Positif', channel: 'Pos', contact: 'Surya Wijaya, S.H. · litigasi@suryapartners.id', reminders: 0, validated: true },
+  { id: 'CF-012', type: 'Legal', party: 'Wibowo Law Office', amount: 0, sent: '09-01-2026', due: '23-01-2026', status: 'No Reply', resp: null, days: 44, method: 'Positif', channel: 'Pos', contact: 'Agus Wibowo, S.H., M.H. · (belum merespons)', reminders: 2, validated: false },
+  { id: 'CF-013', type: 'Pihak Berelasi', party: 'PT Sentosa Holding (induk)', amount: 5_600_000_000, sent: '13-01-2026', due: '27-01-2026', status: 'Received', resp: 5_600_000_000, days: 5, method: 'Positif', channel: 'Email', contact: 'Group Treasury · treasury@sentosaholding.co.id', reminders: 0, validated: true },
+  { id: 'CF-014', type: 'Pihak Berelasi', party: 'PT Makmur Properti (afiliasi)', amount: 1_850_000_000, sent: '13-01-2026', due: '27-01-2026', status: 'Sent', resp: null, days: 26, method: 'Positif', channel: 'Email', contact: 'Finance · finance@makmurproperti.co.id', reminders: 1, validated: false },
+];

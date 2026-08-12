@@ -1,6 +1,6 @@
 # PRD — PR-H1 Group Audit CP-01 Turunan · PR-H2 Default Materialitas yang Dilewati
 
-**Status:** menunggu "Proceed." · **Basis:** master `d9149d0`
+**Status:** **Draft** — menunggu "Proceed."
 **Dua PR terpisah, satu dokumen** (preseden: `PRD - WTB PR-1 SSOT Materialitas & PR-2 Integritas Ingress.md`). Keduanya kecil, tanpa keputusan metodologi, dan tak saling bergantung — boleh dikerjakan berurutan atau paralel.
 
 ---

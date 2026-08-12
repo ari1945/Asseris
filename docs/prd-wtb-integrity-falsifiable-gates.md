@@ -7,7 +7,7 @@
 |---|---|
 | Tanggal | 2026-08-07 |
 | Pemilik | Ari Widodo |
-| Status | **Disetujui 2026-08-07** — Q1 = (a), Q2 = memblok, Q3 = ya (§11) |
+| Status | **Approved** — Disetujui 2026-08-07 (Q1=a · Q2=blok · Q3=ya) |
 | Engagement ID terkait | — (produk Asseris, bukan perikatan klien) |
 | Pemicu | Evaluasi modul Working Trial Balance 2026-08-07; empat temuan di bawah diverifikasi dengan probe atas data seed, bukan dari pembacaan kode saja (Lampiran A) |
 

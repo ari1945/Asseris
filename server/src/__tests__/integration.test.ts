@@ -5,9 +5,9 @@ import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
 import { loadConnectorSeed } from '../seedData';
 import { encryptSecret } from '../crypto/secretbox';
-import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, defaultCoretaxPull } from '../integrations/sync';
+import { runBankSync, reconcileBank, runCoretaxSync, reconcileCoretax, defaultBankPull, defaultCoretaxPull } from '../integrations/sync';
 import { applyMapping } from '../integrations/mapping';
-import { pullBankStatementBroken } from '../integrations/providers/bankFixture';
+import { pullBankStatement, pullBankStatementBroken } from '../integrations/providers/bankFixture';
 import { pullCoretaxFeed, pullCoretaxFeedBroken, pullCoretaxFeedBadInvoice } from '../integrations/providers/coretaxFixture';
 import { readBankHttpConfig, makeHttpBankPull } from '../integrations/providers/httpBank';
 import { readCoretaxHttpConfig, makeHttpCoretaxPull } from '../integrations/providers/httpCoretax';
@@ -96,7 +96,10 @@ beforeAll(async () => {
     },
   });
   await prisma.connectorToken.create({
-    data: { connectorId: 'bank', kind: 'oauth', secretEnc: encryptSecret(JSON.stringify({ accessToken: SECRET_TOKEN })) },
+    data: {
+      connectorId: 'bank', kind: 'oauth',
+      secretEnc: encryptSecret(JSON.stringify({ accessToken: SECRET_TOKEN }), undefined, 'conn:v1|bank'),
+    },
   });
 });
 
@@ -414,6 +417,46 @@ describe('http bank adapter (shape proven against a mock fetch, no credentials)'
     expect(statement.raw).toHaveLength(1);
     expect(m.calls[0].url).toBe('https://api.bank/v2/statements');
     expect((m.calls[0].init.headers as Record<string, string>).authorization).toBe('Bearer secret-bank-tok');
+  });
+});
+
+describe('defaultBankPull — fixture tidak boleh masuk production', () => {
+  const BANK_ENV = ['BANK_API_BASE_URL', 'BANK_API_TOKEN', 'BANK_API_ACCOUNT'];
+  let savedNodeEnv: string | undefined;
+  let savedBank: Record<string, string | undefined>;
+
+  beforeAll(() => {
+    savedNodeEnv = process.env.NODE_ENV;
+    savedBank = Object.fromEntries(BANK_ENV.map((key) => [key, process.env[key]]));
+  });
+  afterAll(() => {
+    if (savedNodeEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = savedNodeEnv;
+    for (const key of BANK_ENV) {
+      if (savedBank[key] === undefined) delete process.env[key]; else process.env[key] = savedBank[key]!;
+    }
+  });
+
+  function clearBankEnv() { for (const key of BANK_ENV) delete process.env[key]; }
+
+  it('production tanpa BANK_API_* menolak, bukan memakai fixture', async () => {
+    clearBankEnv();
+    process.env.NODE_ENV = 'production';
+    const pull = defaultBankPull();
+    expect(pull).not.toBe(pullBankStatement);
+    await expect(pull()).rejects.toThrow(/bank-not-configured/);
+  });
+
+  it('dev/test tanpa BANK_API_* tetap dapat memakai fixture', () => {
+    clearBankEnv();
+    process.env.NODE_ENV = 'test';
+    expect(defaultBankPull()).toBe(pullBankStatement);
+  });
+
+  it('production dengan BANK_API_* memakai adapter HTTP nyata', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.BANK_API_BASE_URL = 'https://api.bank/v2';
+    process.env.BANK_API_TOKEN = 'tok';
+    expect(defaultBankPull()).not.toBe(pullBankStatement);
   });
 });
 

@@ -1,6 +1,6 @@
 # PRD — W12 · Perluasan TypeScript ke Lapisan View (`.jsx → .tsx`)
 
-> Status: **Keputusan terkunci (D1–D4) — menunggu "Proceed." untuk mulai Fase 0** · Penulis: Claude (atas arahan Ari) · 2026-06-20
+> **Status:** **Implemented** — view kini .tsx; lihat BUILD.md
 > Arc terkait: W5 (kanon→TS, selesai) · **W11 (lapisan data→`.ts`, SELESAI)** · memory
 > `[[neosuite-ams-w11-typescript-data]]` · `[[neosuite-ams-arc]]`
 

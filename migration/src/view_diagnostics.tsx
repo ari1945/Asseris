@@ -41,6 +41,5 @@ function TaxAuditDiagnostic() {
   );
 }
 
-Object.assign(window, { TaxAuditDiagnostic });
 
 export { TaxAuditDiagnostic };

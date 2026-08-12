@@ -215,7 +215,6 @@ function WipDetail({ r, onClose, onWriteDown, onReset }: any) {
   );
 }
 
-Object.assign(window, { WIPRealization });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -319,7 +319,6 @@ function EngJadwal() {
   );
 }
 
-Object.assign(window, { EngPortofolio, EngAnggaran, EngStaffing, EngJadwal });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -527,7 +527,6 @@ function EngagementForm({ clients, onClose, onAdd }: any) {
   );
 }
 
-Object.assign(window, { ClientCRM, EngagementMgmt, EngagementDetail });
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
 export { ClientCRM, EngagementDetail, EngagementMgmt };

@@ -202,7 +202,6 @@ function DFRekonsiliasi() {
   );
 }
 
-Object.assign(window, { DFRekonsiliasi });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

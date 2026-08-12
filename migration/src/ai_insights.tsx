@@ -2,7 +2,8 @@
 import React from 'react';
 import { useAudit, useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
-import { PROGRAMME } from './view_cockpit';
+import { PROGRAMME } from './data_programme';
+import { CONFIRMATIONS } from './data_confirmations';
 import { AMS } from './data';
 import { wtbOn } from './canon_base';
 
@@ -150,8 +151,8 @@ function useAiInsights(scope: any) {
 
   const all = useMemoAI(() => amsCrossChecks({
     aje: audit.aje, risks: audit.risks, wtb: audit.wtb, workpapers: audit.workpapers,
-    programme: (typeof PROGRAMME !== 'undefined' && PROGRAMME) || window.PROGRAMME,
-    confirmations: window.CONFIRMATIONS,
+    programme: PROGRAMME,
+    confirmations: CONFIRMATIONS,
   }), [audit.aje, audit.risks, audit.wtb, audit.workpapers]);
 
   const insights = scope ? all.filter((i: any) => i.modules.includes(scope) || i.refs.includes(scope)) : all;

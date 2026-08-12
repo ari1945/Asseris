@@ -425,7 +425,6 @@ function RailChip({ label, value, strong, align, last }: any) {
 /* PR-A — `BENCHMARKS` TIDAK lagi dipublikasikan ke window: tabelnya kini turunan
    WTB per-perikatan, sementara window bersifat global & statis. Fallback
    `window.BENCHMARKS` di canon_part4 kini hanya terpakai oleh stub uji. */
-Object.assign(window, { MaterialityCalc, SliderRow, Compare });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

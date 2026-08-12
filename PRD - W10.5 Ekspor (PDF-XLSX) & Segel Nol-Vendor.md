@@ -1,5 +1,7 @@
 # PRD — W10.5: Ekspor (PDF/XLSX) & Segel Nol-Vendor
 
+**Status:** **Implemented** — SELESAI — ekspor + segel
+
 > Slice kedua dari wave terakhir (W10 = "Keamanan, ekspor, observability & deploy").
 > Slice-1 (audit-trail server-side + pengerasan + observability + deploy-readiness)
 > **SELESAI** — lihat [[neosuite-ams-w10-hardening]]. Slice ini menutup item **ekspor

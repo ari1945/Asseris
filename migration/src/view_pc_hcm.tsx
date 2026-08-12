@@ -289,7 +289,6 @@ function HCMAnalytics() {
   );
 }
 
-Object.assign(window, { Profile360Drawer, HCMAnalytics, profileOf });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

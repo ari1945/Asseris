@@ -260,7 +260,6 @@ function DeliveryDetail({ row, eng, client, today, onToggleMs, onDateMs, onClose
   );
 }
 
-Object.assign(window, { DeliveryMilestones });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

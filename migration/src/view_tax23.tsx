@@ -526,7 +526,6 @@ function BuktiPotongForm({ onClose, onAdd, nextId }: any) {
   );
 }
 
-Object.assign(window, { TaxPPh23 });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -448,7 +448,6 @@ function DueDiligence() {
   );
 }
 
-Object.assign(window, { DueDiligence });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

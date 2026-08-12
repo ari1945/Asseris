@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-03 |
 | Pemilik | Ari Widodo |
-| Status | **Implemented** — seluruh Fase 1-5 dieksekusi & live-verified thd stack Docker lokal (Postgres nyata, `assertProdConfig` aktif) 2026-07-03. |
+| Status | **Implemented** — Fase 1–5 dieksekusi & live-verified 2026-07-03 |
 | Engagement ID terkait | — (infra/deploy-readiness, bukan engagement klien) |
 | Asal temuan | Ditemukan saat menulis `docs/PILOT-ONBOARDING-PLAN.md` (sesi sebelumnya) — dicatat di sana §1.1 sebagai prasyarat teknis, di-spawn sebagai task terpisah (`task_b7e55f6e`), sekarang dikerjakan lewat PRD ini (bukan langsung kode, sesuai instruksi eksplisit Anda). |
 

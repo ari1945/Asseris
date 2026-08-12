@@ -1,6 +1,6 @@
 # PRD — Materialitas Grup SA 600
 
-Status: **menunggu keputusan metodologi Ari** · Basis: master `4f98fdb` (setelah #139–#142)
+**Status:** **Draft** — menunggu keputusan metodologi Ari
 
 ## Koreksi atas perumusan sebelumnya
 

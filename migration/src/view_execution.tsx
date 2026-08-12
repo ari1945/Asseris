@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav, useInitialTab, useMateriality, useAmsPersist } from './contexts';
+import { useAudit, useAuditHeavy, useAuth, useFirm, useNav, useInitialTab, useMateriality, useAmsPersist } from './contexts';
 import { CAP } from './rbac';
 /* PR-E — pilihan klasifikasi jurnal ditarik dari sumbernya masing-masing.
    CATATAN LINGKAR: `view_aje` mengimpor `AJEForm` dari berkas ini, jadi
@@ -347,7 +347,7 @@ const SAMPLE_GL = [
 
 function WtbLedgerDrawer({ onClose }: { onClose: () => void }) {
   const { fmt } = AMS;
-  const { setWtbLedger, wtbLedger, wtb } = useAudit();
+  const { setWtbLedger, wtbLedger, wtb } = useAuditHeavy(['wtbLedger']);
   const { locked } = useFirm();
   const auth = useAuth();
   const canImport = (!auth || typeof auth.can !== 'function' || auth.can(CAP.WP_EDIT)) && !locked; // PR-2c
@@ -1144,7 +1144,6 @@ function WtbImportDrawer({ onClose }: { onClose: () => void }) {
   );
 }
 
-Object.assign(window, { WtbImportDrawer });
 
 /* ---------------- W-WTB·2 · Panel integritas neraca saldo ---------------- */
 function WtbIntegrityPanel({ r, onOpenMapping }: { r: WtbIntegrityResult; onOpenMapping?: (() => void) | null }) {
@@ -1266,7 +1265,7 @@ function WtbIntegrityPanel({ r, onOpenMapping }: { r: WtbIntegrityResult; onOpen
 /* WTB account drill — synthetic sub-ledger transactions + lead schedule link */
 function WtbDrill({ row, onClose, nav }: any) {
   const { fmt } = AMS;
-  const { aje, wtbLedger, fluxState } = useAudit();
+  const { aje, wtbLedger, fluxState } = useAuditHeavy(['wtbLedger']);
   const [dtab, setDtab] = useStateX('ledger');
   // W-WTB·4 — detail GL nyata bila diimpor (tie-out ke unadj, sadar srcCodes); else sintetik
   const glTie: LedgerTieOut = ledgerForRow(wtbLedger || {}, row);

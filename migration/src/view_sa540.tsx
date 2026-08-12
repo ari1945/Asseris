@@ -524,7 +524,6 @@ function F540Bias({ bias, setBias, me, locked }: { bias: BiasRow[]; setBias: (fn
   );
 }
 
-Object.assign(window, { SA540View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

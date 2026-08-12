@@ -1,8 +1,11 @@
 /* [codemod] ESM imports */
 import React from 'react';
-import { useAudit, useFirm, useCurrentAuditor } from './contexts';
+import { useAudit, useAuditHeavy, useFirm, useCurrentAuditor } from './contexts';
 import { I, MODULES } from './icons';
 import { Badge, Btn, Panel } from './ui';
+/* Tahap 8 — catatan WP via ESM dari wp_canon (eager), bukan window.* yang
+   hanya terisi setelah chunk view_wp dimuat. */
+import { collectWpNotes } from './wp_canon';
 
 /* ============================================================
    Asseris — My Tasks workspace (parts):
@@ -45,7 +48,7 @@ function mtSystemTasks(audit: any, me: any) {
     dueOffset: (rnOff as any)[n.priority] ?? 3, est: 1.5, from: n.author,
     sub: [{ id: 's1', t: 'Tinjau catatan & konteks', done: false }, { id: 's2', t: 'Dokumentasikan tanggapan', done: false }, { id: 's3', t: 'Tandai selesai ke reviewer', done: false }],
   }));
-  const wpNotes = window.collectWpNotes ? window.collectWpNotes(wpState) : [];
+  const wpNotes = collectWpNotes(wpState);
   wpNotes.filter((n: any) => n.status === 'open' && (n.to === me || n.author === me)).forEach((n: any) => out.push({
     id: 'wn-' + n.id, src: 'Catatan WP', label: n.text, route: 'workpapers', wpRef: n.wpRef,
     priority: n.priority, dueOffset: 2, est: 2, from: n.author,
@@ -79,7 +82,7 @@ function mtSystemTasks(audit: any, me: any) {
 
 /* combine system + personal tasks with persisted per-task meta */
 function useMyTasks() {
-  const audit = useAudit();
+  const audit = useAuditHeavy(['reviewNotes']);
   const firm = useFirm();
   const { short: me } = useCurrentAuditor();   // identitas sesi nyata (W7) → filter "milik saya"
   const [meta, setMeta] = window.useAmsPersist('mt.meta', {});
@@ -196,10 +199,6 @@ function AddTaskForm({ mt, onClose }: any) {
   );
 }
 
-Object.assign(window, {
-  MT_TODAY, MT_PRIO_K, MT_PRIO_ORDER, MT_SRC_ICON, MT_STATUS, MT_BUCKETS,
-  mtAddDays, mtStartOfDay, mtDueLabel, useMyTasks, TaskCheck, TaskRow, AddTaskForm,
-});
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

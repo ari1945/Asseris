@@ -1,6 +1,6 @@
 # PRD — SA 530 Sampling Substantif: Parameter Kalkulator MUS + Temuan Salah Saji ter-persist
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **domain substantif** dari [[asseris-gap-matrix-eval]] — sampling SA 530. Melengkapi **trio fraud (SA 240) / estimasi (SA 540) / sampling (SA 530)**.
 > Pola: PR#13/#14. `sa530` sudah di `WP_MODULE_MAP` (Q-02) → sign-off SA 230 sudah ada (tanpa sign-off fiktif).
 > Sifat artefak: **level ENGAGEMENT** → `useAmsPersist('sampling.<engId>')`. **Verifikasi live** (recipe PR#12–#14).

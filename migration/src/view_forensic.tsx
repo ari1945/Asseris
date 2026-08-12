@@ -5,9 +5,12 @@ import { FSGEN } from './fsgen_model';
 import { useAudit, useFirm, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel } from './ui';
+import { Badge, Btn, Panel, Switch } from './ui';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { AMS_FORENSIC } from './forensic_canon';
+/* Tahap 8 — register pihak berelasi via ESM dari canon_related (eager),
+   bukan window.RP_* yang hanya terisi setelah chunk modul related dimuat. */
+import { RP_TXN, RP_PARTIES } from './canon_related';
 
 /* ============================================================
    Asseris — Forensic Cash Flow (analitik anomali kas)
@@ -66,8 +69,8 @@ function ForensicCashFlow() {
   const rows = (onlyRisk ? B.flagged : B.cashPop.slice().sort((a: any, b: any) => b.fscore - a.fscore || b.amount - a.amount));
   const selTx = B.cashPop.find((f: any) => f.id === sel) || rows[0];
 
-  const rpTxn = window.RP_TXN || [];
-  const rpById = {}; (window.RP_PARTIES || []).forEach((p: any) => { (rpById as any)[p.id] = p; });
+  const rpTxn = RP_TXN || [];
+  const rpById = {}; RP_PARTIES.forEach((p: any) => { (rpById as any)[p.id] = p; });
   const rpExposed = rpTxn.filter((t: any) => !t.arm || !t.disclosed);
   const rpTotal = rpTxn.reduce((s: any, t: any) => s + t.amount, 0);
 
@@ -185,12 +188,8 @@ function ForensicCashFlow() {
               <Panel noBody>
                 <div className="panel-h"><h3>Transaksi Kas Anomali</h3>
                   <div style={{ flex: 1 }} />
-                  <label className="row ac gap6 tiny muted" style={{ cursor: 'pointer' }} onClick={() => setOnlyRisk((o: any) => !o)}>
-                    <span style={{ width: 30, height: 17, borderRadius: 9, background: onlyRisk ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}>
-                      <span style={{ position: 'absolute', top: 2, left: onlyRisk ? 15 : 2, width: 13, height: 13, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
-                    </span>
-                    Hanya berisiko
-                  </label>
+                  {/* Tahap 9 — switch native (input checkbox asli, role="switch"). */}
+                  <Switch on={onlyRisk} onChange={setOnlyRisk} label="Hanya berisiko" />
                   <span className="tiny muted" style={{ marginLeft: 10 }}>{B.flagged.length} dari {B.cashPop.length} mutasi kas</span>
                 </div>
                 <table className="dtbl">

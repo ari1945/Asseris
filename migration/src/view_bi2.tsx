@@ -320,7 +320,6 @@ function BIPartner() {
   );
 }
 
-Object.assign(window, { BIPendapatan, BIPipeline, BIKlien, BIPartner });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-07-24 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | — (perubahan platform Asseris, lintas-engagement) |
 
 > Disusun dari evaluasi UI/UX sidebar 2026-07-24 (parsing `icons.tsx` + pengukuran DOM live: Managing Partner & Junior Auditor, kedua workspace, viewport 1280×720). Semua angka di bawah **terukur**, bukan estimasi.

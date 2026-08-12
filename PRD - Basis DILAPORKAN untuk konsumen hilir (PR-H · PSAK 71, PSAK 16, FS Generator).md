@@ -1,6 +1,6 @@
 # PRD — Basis DILAPORKAN untuk konsumen hilir (PR-H · PSAK 71, PSAK 16, FS Generator)
 
-**Status:** ✅ **TERIMPLEMENTASI** — 2026-07-29, Opsi C dikerjakan penuh (H0 · H1 · H2 · H3).
+**Status:** **Implemented** — 2026-07-29, Opsi C penuh (H0·H1·H2·H3)
 Ari mendelegasikan ketiga keputusan metodologi ("Proceed" tanpa memilih); §8 diisi oleh saya
 dengan alasan tertulis per keputusan, sehingga masing-masing dapat dibatalkan sendiri-sendiri —
 mengikuti pola PR-G.

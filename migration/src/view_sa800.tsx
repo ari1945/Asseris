@@ -397,7 +397,6 @@ function F800Report({ sel }: any) {
   );
 }
 
-Object.assign(window, { SA800View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

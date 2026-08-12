@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-01 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | — (produk internal Asseris) |
 | Branch dasar | `feat/w9-coretax-connector` (evaluasi dilakukan di sini); target integrasi ke `master` |
 

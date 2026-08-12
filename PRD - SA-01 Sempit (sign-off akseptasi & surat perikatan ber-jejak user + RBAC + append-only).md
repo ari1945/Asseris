@@ -1,6 +1,6 @@
 # PRD — SA-01 (sempit): Sign-off Akseptasi & Surat Perikatan ber-jejak
 
-**Status:** DRAFT — menunggu sign-off ("Proceed.")
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
 **Branch:** `sa01-acceptance-letter-signoff` (off master pasca-merge PR#19)
 **Sumber gap:** Matriks Gap auditor, baris **SA-01** (SA 210 · Tinggi · P1).
 

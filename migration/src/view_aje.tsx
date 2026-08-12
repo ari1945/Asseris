@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAmsPersist, useAudit, useAuth, useFirm, useInitialTab, useMateriality, useNav } from './contexts';
+import { useAmsPersist, useAudit, useAuditHeavy, useAuth, useFirm, useInitialTab, useMateriality, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
@@ -24,6 +24,9 @@ import { checkWtbIntegrity } from './wtb_integrity';
 import { DiagnosticPanel } from './diagnostics_panel';
 import { SAD_SEED } from './view_sad';
 import { amsExportXlsx } from './export_xlsx';
+/* Tahap 8 — navigasi WP kanonik via ESM dari wp_canon (eager), bukan
+   window.openCanonicalWp yang hanya terisi setelah chunk view_wp dimuat. */
+import { openCanonicalWp } from './wp_canon';
 
 /* ============================================================
    Asseris — Adjusting & Reclassifying Journal Entries (deep)
@@ -477,7 +480,7 @@ function AjeDrill({ a, fmt, nav, locked, onSelect }: any) {
           <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{a.desc}</div>
           {/* PR-D — ref WP dulu teks polos; `openCanonicalWp` sudah ada & dipakai modul lain. */}
           <div className="tiny" style={{ color: 'var(--on-navy)', marginTop: 4 }}>{a.std} · <button
-            onClick={() => window.openCanonicalWp && window.openCanonicalWp(nav, a.ref)}
+            onClick={() => openCanonicalWp(nav, a.ref)}
             style={{ background: 'none', border: 0, padding: 0, color: 'inherit', textDecoration: 'underline', font: 'inherit', cursor: 'pointer' }}
             title="Buka kertas kerja">WP {a.ref}</button></div>
         </div>
@@ -1078,7 +1081,7 @@ function AjeApprovals() {
    ============================================================ */
 function AjeTrail() {
   const { items } = useAjeQueue();
-  const { logEntries } = useAudit();
+  const { logEntries } = useAuditHeavy(['logEntries']);
   const [q, setQ] = useStateAJ('');
   const rows = ajeTrailFrom(items);
   /* Jejak aktivitas sesi (`logEntries`) memuat kejadian di luar rantai —
@@ -1342,7 +1345,6 @@ function AjeChainTrack({ chain }: { chain: AjeChainLink[] }) {
   );
 }
 
-Object.assign(window, { AJEView, ajeAssertionIds });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

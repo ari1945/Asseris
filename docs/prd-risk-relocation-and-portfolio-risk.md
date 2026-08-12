@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-06-25 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | — (perubahan platform Asseris, lintas-engagement) |
 
 ---

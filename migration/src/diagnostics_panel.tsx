@@ -6,6 +6,10 @@ import { amsCrossChecks } from './ai_insights';
 import { I } from './icons';
 import { Badge, Btn, Panel } from './ui';
 import { AMS } from './data';
+/* Tahap 8 — seed programme/konfirmasi dibaca via ESM dari data modules
+   (eager), bukan window.* yang hanya terisi setelah chunk modul dimuat. */
+import { PROGRAMME } from './data_programme';
+import { CONFIRMATIONS } from './data_confirmations';
 
 /* ============================================================
    Asseris — Tax Audit Diagnostic · UI (P4 Fase 1-2)
@@ -33,29 +37,41 @@ function llmStatusCached() {
 }
 
 function useLlmNarration(findings: any) {
-  const [phase, setPhase] = useStateDG('idle'); // idle | loading | done | notconfigured | error
+  const [phase, setPhase] = useStateDG('idle'); // idle | previewing | preview | loading | done | notconfigured | error
   const [text, setText] = useStateDG('');
   const [meta, setMeta] = useStateDG(null);
+  const [preview, setPreview] = useStateDG(null);
+  const [consented, setConsented] = useStateDG(false);
   const [status, setStatus] = useStateDG(null); // server status (configured/canUse/provider/model)
   useEffectDG(() => { let live = true; llmStatusCached().then((st: any) => { if (live) setStatus(st); }); return () => { live = false; }; }, []);
+  const requestPreview = async () => {
+    if (!findings.length || !window.amsLlmPreviewDiagnostics) return;
+    setPhase('previewing'); setText(''); setMeta(null); setPreview(null); setConsented(false);
+    try {
+      const r = await window.amsLlmPreviewDiagnostics(findings);
+      setPreview(r); setPhase('preview');
+    } catch (e) { setPhase('error'); }
+  };
   const run = async () => {
-    if (!findings.length || !window.amsLlmNarrateDiagnostics) return;
+    if (!findings.length || !window.amsLlmNarrateDiagnostics || !preview || !consented) return;
     setPhase('loading'); setText(''); setMeta(null);
     try {
-      const r = await window.amsLlmNarrateDiagnostics(findings);
+      const r = await window.amsLlmNarrateDiagnostics(findings, preview.consentId);
       if (!r || r.status === 'not-configured') { setPhase('notconfigured'); return; }
       setText(r.text || ''); setMeta(r); setPhase('done');
     } catch (e) { setPhase('error'); }
   };
-  const reset = () => { setPhase('idle'); setText(''); setMeta(null); };
-  return { phase, text, meta, status, run, reset };
+  const reset = () => { setPhase('idle'); setText(''); setMeta(null); setPreview(null); setConsented(false); };
+  return { phase, text, meta, preview, consented, setConsented, status, requestPreview, run, reset };
 }
 
 /* Blok narasi AI — hanya muncul bila peran boleh memakai LLM (status.canUse). */
 function DiagNarration({ findings }: any) {
-  const { phase, text, meta, status, run, reset } = useLlmNarration(findings);
+  const { phase, text, meta, preview, consented, setConsented, status, requestPreview, run, reset } = useLlmNarration(findings);
   if (!status || !status.canUse || !findings.length) return null;
-  const busy = phase === 'loading';
+  const busy = phase === 'loading' || phase === 'previewing';
+  const redactions = preview && preview.redactions;
+  const redactionTotal = redactions ? Object.values(redactions).reduce((sum: number, n: any) => sum + Number(n || 0), 0) : 0;
   return (
     <div className="panel" style={{ padding: '10px 12px', marginBottom: 10, background: 'var(--surface-2)', borderColor: 'var(--line-soft)' }}>
       <div className="row ac jb" style={{ gap: 8 }}>
@@ -64,10 +80,27 @@ function DiagNarration({ findings }: any) {
           <span style={{ fontWeight: 700, fontSize: 12 }}>Narasi AI</span>
           <span className="tiny muted">model bahasa — bukan deterministik</span>
         </div>
-        {phase === 'done' || phase === 'notconfigured' || phase === 'error'
+        {phase === 'done' || phase === 'notconfigured' || phase === 'error' || phase === 'preview'
           ? <button className="btn sm" onClick={reset}>Tutup</button>
-          : <Btn sm variant="primary" disabled={busy} onClick={run}>{busy ? <>Menyusun…</> : <><I.sparkle size={12} /> Jelaskan {findings.length} temuan</>}</Btn>}
+          : <Btn sm variant="primary" disabled={busy} onClick={requestPreview}>{busy ? <>Menyiapkan pratinjau…</> : <><I.sparkle size={12} /> Pratinjau {findings.length} temuan</>}</Btn>}
       </div>
+
+      {phase === 'preview' && preview && (
+        <div style={{ marginTop: 9 }}>
+          <div className="tiny" style={{ fontWeight: 700, marginBottom: 5 }}>Pratinjau data yang akan dikirim</div>
+          <pre className="tiny" style={{ whiteSpace: 'pre-wrap', maxHeight: 230, overflow: 'auto', margin: 0, padding: '9px 10px', background: 'var(--surface)', border: '1px solid var(--line-soft)', borderRadius: 7, lineHeight: 1.5 }}>{preview.preview}</pre>
+          <div className="tiny muted" style={{ marginTop: 6 }}>
+            {redactionTotal} bagian disamarkan: nominal {redactions.nominal}, ID jurnal {redactions.journalId}, NPWP {redactions.npwp}, nama pihak {redactions.partyName}. Tujuan: {preview.provider || 'provider belum dikonfigurasi'}{preview.model ? ' · ' + preview.model : ''}.
+          </div>
+          <label className="tiny row ac gap6" style={{ marginTop: 9, cursor: 'pointer' }}>
+            <input type="checkbox" checked={consented} onChange={(e: any) => setConsented(e.target.checked)} />
+            Saya telah meninjau data ter-redaksi ini dan menyetujui pengiriman ke provider LLM.
+          </label>
+          <div className="row je" style={{ marginTop: 8 }}>
+            <Btn sm variant="primary" disabled={!consented || busy} onClick={run}><I.shield size={12} /> Setujui & kirim</Btn>
+          </div>
+        </div>
+      )}
 
       {phase === 'done' && (
         <div style={{ marginTop: 9 }}>
@@ -97,7 +130,7 @@ function crossChecksAsFindings(audit: any) {
   try {
     cc = amsCrossChecks({
       aje: audit.aje, risks: audit.risks, wtb: audit.wtb, workpapers: audit.workpapers,
-      programme: window.PROGRAMME, confirmations: window.CONFIRMATIONS,
+      programme: PROGRAMME, confirmations: CONFIRMATIONS,
     }) || [];
   } catch (e) { cc = []; }
   return cc.map(c => ({

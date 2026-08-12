@@ -1,6 +1,6 @@
 # PRD — Intake oleh Manager: gate dokumen `prospects` (FIRM_ADMIN → ENGAGEMENT_MANAGE)
 
-**Status:** DRAFT — menunggu sign-off ("Proceed.")
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
 **Branch:** `prospects-intake-rbac` (off master pasca-merge PR#20)
 **Asal:** temuan terpisah saat **SA-01** (PR#20) — di-flag, kini ditindaklanjuti.
 

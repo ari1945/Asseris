@@ -249,7 +249,6 @@ function RiskAssessment() {
   );
 }
 
-Object.assign(window, { RiskAssessment });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -1,6 +1,6 @@
 # PRD — SA 260 & SA 265 Auditable: Komunikasi TCWG + Register Defisiensi ter-persist + Sign-off SA 230
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **"jadikan modul display-only auditable"** dari [[asseris-gap-matrix-eval]] — **pola terbukti PR#7 (SA 250) & PR#8 (SA 620)**. Ulangi mekanik yang sama atas 2 modul terakhir di file `view_sa2comm.tsx`.
 > Acuan gap: `SA260View` + `SA265View` ([view_sa2comm.tsx](migration/src/view_sa2comm.tsx)) sudah ada & kaya tetapi **display-only** (hardcoded const, local-state, tanpa persist/scope; SA 260 punya **sign-off fiktif**).
 > Sifat artefak: **level ENGAGEMENT** → `wpState`/`WP_MODULE_MAP` + `useAmsPersist('<key>.<engId>')`.

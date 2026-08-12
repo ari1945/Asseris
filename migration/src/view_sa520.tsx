@@ -409,7 +409,6 @@ function F520Final() {
   );
 }
 
-Object.assign(window, { SA520View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

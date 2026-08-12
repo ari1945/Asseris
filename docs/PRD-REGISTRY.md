@@ -1,0 +1,109 @@
+# Registri Status PRD — Asseris (Tahap 9)
+
+> Sumber kebenaran daftar status seluruh PRD. Taksonomi TUNGGAL (Tahap 9):
+> **Draft** · **Approved** · **In Progress** · **Implemented** · **Superseded**.
+> Baris `Status` di tiap PRD harus konsisten dengan tabel ini.
+
+## Ringkasan
+
+| Status | Jumlah |
+|---|---|
+| Draft | 53 |
+| Approved | 5 |
+| In Progress | 5 |
+| Implemented | 22 |
+| Superseded | 0 |
+
+## Daftar
+
+| PRD | Status |
+|---|---|
+| PRD - AI Tax Audit Diagnostic (P4).md | Draft — menunggu sign-off |
+| PRD - AJE PR-A SSOT Figur Entitas (benchmark SA 320 dari WTB).md | Implemented — commit db41dca, branch feat/aje-pr-a-entity-figures |
+| PRD - AJE PR-B Gerbang Otorisasi Posting Jurnal (ISQM 1 - SA 450).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - AJE PR-C Rekonsiliasi SA 450 Hidup, Selisih Nilai & Covenant.md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - AJE PR-E Penangkapan Klasifikasi Jurnal & Identitas Penyetuju.md | Draft — menunggu "Proceed." |
+| PRD - AK-01 Penomoran PSAK (cross-walk lama-baru SSOT + padanan ter-surface).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Basis DILAPORKAN untuk konsumen hilir (PR-H · PSAK 71, PSAK 16, FS Generator).md | Implemented — 2026-07-29, Opsi C penuh (H0·H1·H2·H3) |
+| PRD - CI Deploy-Smoke (W10.1).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Deep-Link Tab Navigasi (Timeline → Modul + Tab).md | Implemented — SELESAI Fase 0–3, gerbang hijau + live-verified |
+| PRD - Deploy-Readiness Single-Tenant.md | Draft |
+| PRD - Engagement-Scoping Review Notes (P5 Fase 2).md | Draft — menunggu sign-off |
+| PRD - Evidence & Sign-off Lintas-WP.md | Draft — menunggu review |
+| PRD - Gerbang Fase Lifecycle Engagement (P5).md | Draft — menunggu sign-off |
+| PRD - Group Audit CP-01 Turunan (PR-H1) & Default Materialitas yang Dilewati (PR-H2).md | Draft — menunggu "Proceed." |
+| PRD - Intake Manager RBAC (prospects doc-gate FIRM_ADMIN→ENGAGEMENT_MANAGE).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Isolasi Data Personal (Privacy) & Halaman Data Personal Saya.md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Jaring Pengaman Test Lapis Klien & Branch Canon (P1+P2).md | Draft |
+| PRD - Kebijakan Presisi Numerik Asseris.md | Draft |
+| PRD - Legacy Track Window-Namespace Strip (Slice 1 PROC).md | In Progress — status Review — strip berjalan |
+| PRD - Materialitas Grup SA 600 (populasi, derivasi & entitas yang sama dua materialitas).md | Draft — menunggu keputusan metodologi Ari |
+| PRD - Mutu Firma (SOQM Evaluasi Tahunan Q-01 + Independensi-Rotasi Q-03).md | Draft — merancang, belum membangun |
+| PRD - PSAK 46 PR-G Movement Beda Temporer (pemetaan jurnal audit ke ember fiskal).md | Implemented — PR-G1 TERPUTUS & TERIMPLEMENTASI 2026-07-29 |
+| PRD - Penegakan Sign-off Berbasis Peran (Dua-Lapis).md | In Progress — Approved ("Proceed."); Fase 0–2 + Q4/Q5 SELESAI, Fase 3 (test+docs) PR #23 |
+| PRD - Persist Kesimpulan Auditor PSAK (P1).md | Draft — merancang, belum membangun |
+| PRD - Quick-Win Desain Visual (kontras token, de-noise kontainer, merah bermakna-ganda).md | Draft — menunggu sign-off |
+| PRD - Rekonsiliasi Fiskal PSAK 46 (PBT kedua yang tersisa).md | Draft — keputusan basis DIAMBIL (Opsi 1); menunggu "Proceed." untuk implementasi |
+| PRD - Remediasi Gap Matriks Kepatuhan FIRM.md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Restrukturisasi Navigasi & Beranda Berbasis Peran.md | In Progress — Approved; Fase 0–3 SELESAI & live-verified, Fase 4–8 menunggu tinjauan |
+| PRD - SA 240 Fraud Substantif (register + segitiga + override persist).md | Draft — merancang, belum membangun |
+| PRD - SA 250 Auditable (NOCLAR register + sign-off SA 230).md | Draft — merancang, belum membangun |
+| PRD - SA 260 & 265 Auditable (komunikasi TCWG + defisiensi).md | Draft — merancang, belum membangun |
+| PRD - SA 315 ICFR Auditable (RCM + evaluasi defisiensi persist).md | Draft — merancang, belum membangun |
+| PRD - SA 402 Auditable (register organisasi jasa + sign-off SA 230).md | Draft — merancang, belum membangun |
+| PRD - SA 505 Confirmation Hub Auditable (persist konfirmasi + populasi WP-evidence + wire SAD).md | Draft — menunggu review |
+| PRD - SA 530 & SA 540 Tab Analitik (desain-seleksi-generator + risiko-respons-sensitivitas dari SSOT).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - SA 530 Sampling Substantif (parameter + temuan persist).md | Draft — merancang, belum membangun |
+| PRD - SA 540 Estimasi Substantif (inventaris + bias persist).md | Draft — merancang, belum membangun |
+| PRD - SA 570 Going Concern Lanjutan (rasio-Altman canon-SSOT + multi-skenario).md | Approved — pra-otorisasi Ari sesi ini; implementasi berjalan |
+| PRD - SA 570 Going Concern Substantif (proyeksi editable + covenant + mitigasi).md | Draft — merancang, belum membangun |
+| PRD - SA 620 Auditable (register pakar persist + sign-off SA 230).md | Draft — merancang, belum membangun |
+| PRD - SA-01 Sempit (sign-off akseptasi & surat perikatan ber-jejak user + RBAC + append-only).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Skala Tipografi (5 langkah teks + tier display, lantai 11px).md | Draft — menunggu sign-off |
+| PRD - W-WTB-1 Ingress TB Nyata (Paste-CSV).md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - W10 Pengerasan, Audit Trail Server-Side & Deploy-Readiness.md | Implemented — slice 1 (audit-trail + hardening + observability + deploy-readiness) selesai; item lanjutan tercatat di PRD |
+| PRD - W10.5 Ekspor (PDF-XLSX) & Segel Nol-Vendor.md | Implemented — SELESAI — ekspor + segel |
+| PRD - W11 Perluasan TypeScript — Lapisan Data.md | Implemented — kanon kini .ts; lihat BUILD.md |
+| PRD - W12 Perluasan TypeScript — Lapisan View (.tsx).md | Implemented — view kini .tsx; lihat BUILD.md |
+| PRD - W13 Fondasi TypeScript & Ratchet noImplicitAny.md | Implemented — ratchet noImplicitAny aktif |
+| PRD - W14 Strict Penuh, Unifikasi tsconfig & Infra .js to .ts.md | Implemented — strict penuh aktif |
+| PRD - W15 Model Data AMS Bertipe & Reduksi any.md | Implemented — ams_types.ts + reduksi any |
+| PRD - W6 Backend & Lapisan Data.md | Implemented — server tRPC + Prisma live |
+| PRD - W7 Auth, Sesi & RBAC.md | Implemented — W7 COMPLETE (Fase 0–3) |
+| PRD - W7.5 Isolasi Data Per-Engagement.md | Implemented — W7.5 COMPLETE (Fase 0–1) |
+| PRD - W8 LLM Proxy.md | Implemented — W8 COMPLETE (Fase 0–2) |
+| PRD - W9 Konektor Data (Integrasi Nyata).md | In Progress — seed & adapters siap; connector Coretax live (prd-w9-coretax-connector) |
+| PRD - WTB PR-1 SSOT Materialitas & PR-2 Integritas Ingress.md | Draft |
+| PRD - WTB PR-3 Konsolidasi SA 520 & PR-4 Sambungan Spine Audit.md | Draft |
+| PRD - WTB PR-6 Otoritas Sign-off Materialitas, SSOT Cache-Dingin & Tipe Konteks.md | Draft — menunggu sign-off ("Proceed.") |
+| PRD - Wedge MVP Build (Diagnostik TB-GL Lokal).md | In Progress — BUILD AKTIF |
+| docs/PRD-asersi-manajemen.md | Implemented — SELESAI — sign-off "Proceed.", terverifikasi live |
+| docs/PRD-excel-engagement-pack.md | Implemented — SIGNED-OFF & DIIMPLEMENTASI (F1+F2 penuh) 2026-07-09 |
+| docs/prd-acceptance-to-engagement-flow-sa210.md | Draft — menunggu sign-off |
+| docs/prd-add-staff-user-cli.md | Implemented — Fase 1–5 dieksekusi & live-verified 2026-07-03 |
+| docs/prd-aje-immutability-live-approvals.md | Implemented — Disetujui & DIIMPLEMENTASIKAN 2026-08-07 |
+| docs/prd-audit-programme-add-procedure.md | Approved — Ari "Paket Lengkap Proceed" 2026-06-25 |
+| docs/prd-backup-restore-dr-hardening.md | Draft |
+| docs/prd-continuance-register-isqm.md | Draft — menunggu sign-off |
+| docs/prd-finalisation-gate-execution-completeness.md | Draft |
+| docs/prd-iac-ec2-provisioning.md | Implemented — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
+| docs/prd-mgmtletter-deficiency-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-overlay-contract-and-addressable-objects.md | Draft |
+| docs/prd-penerimaan-keberlanjutan-detail.md | Draft — menunggu sign-off |
+| docs/prd-performance-baseline-capacity.md | Implemented — Fase 1–7 dieksekusi & live-verified 2026-07-03 |
+| docs/prd-phase-gate-override-rbac.md | Approved — Disetujui ("buat follow-up RBAC override Partner-only") |
+| docs/prd-rbac-admin-console.md | Draft — Open Questions terjawab — menunggu "Proceed." |
+| docs/prd-related-parties-ledger-scan.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-risk-relocation-and-portfolio-risk.md | Draft |
+| docs/prd-sa510-independence-fee-prioryear.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-sidebar-nav-learning-curve.md | Draft |
+| docs/prd-strategy-risk-response-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-subsequent-events-fs-reconciliation.md | Draft — menunggu sign-off ("Proceed.") |
+| docs/prd-w9-coretax-connector.md | Implemented — SELESAI (Proceed. 2026-06-26) Fase 0–3 + live-proven |
+| docs/prd-wp-procedure-execution.md | Approved — Ari "Full audit-tech" + "Pertahankan terpisah" 2026-06-25 |
+| docs/prd-wp-signoff-integrity.md | Draft — open question TERJAWAB — menunggu "Proceed." |
+| docs/prd-wtb-integrity-falsifiable-gates.md | Approved — Disetujui 2026-08-07 (Q1=a · Q2=blok · Q3=ya) |
+
+---
+
+Diperbarui 2026-08-12 (Tahap 9). Bila menandai PRD baru, tambahkan barisnya di sini DAN perbarui baris `Status` di dokumen PRD.

@@ -122,6 +122,8 @@ interface WtbImportDoc {
 export interface AuditContextValue {
   matConfig: MaterialityConfig;
   setMatConfig: (patch: Partial<MaterialityConfig>) => void;
+  /* Tahap 8 — pemicu hidrasi manual untuk state berat yang di-defer. */
+  hydrateAuditKey: (key: string) => void;
   aje: AuditAjeRow[];
   setAje: Setter<AuditAjeRow[]>;
   /* PR-B — antrean persetujuan meneruskan jejak keputusan (`by`/`approvalId`)
@@ -177,7 +179,7 @@ export interface AuditContextValue {
 }
 
 type AuditContextShape = { [K in
-  | 'matConfig' | 'setMatConfig'
+  | 'matConfig' | 'setMatConfig' | 'hydrateAuditKey'
   | 'aje' | 'setAje' | 'toggleAjeStatus' | 'setAjeStatus' | 'addAje' | 'ajeTotalPosted'
   | 'updateAje' | 'reverseAje'
   | 'risks' | 'updateRisk'
@@ -208,6 +210,25 @@ const useFirm  = () => useContext(FirmContext);
    dan modul yang dirender di luar provider tetap gagal seperti dulu. Yang berubah:
    salah-ketik nama field & salah-pakai tipe kini gagal di gerbang, bukan saat runtime. */
 const useAudit = (): AuditContextValue => useContext(AuditContext) as unknown as AuditContextValue;
+
+/**
+ * Tahap 8 — akses state audit BERAT secara lazy (hidrasi ditunda).
+ *
+ * Kunci berat (wtbLedger, reviewNotes, noteThreads, timeEntries, taskState,
+ * logEntries) tidak lagi di-GET server saat boot. Modul yang benar-benar
+ * memakainya memanggil hook ini pada mount; hook mengembalikan nilai konteks
+ * yang SAMA (kontrak destructuring tidak berubah) sambil memicu hidrasi server
+ * untuk kunci yang diminta — sekali per (scope, scopeId, key).
+ */
+export function useAuditHeavy(keys: string[] = []): AuditContextValue {
+  const audit = useAudit();
+  const hydrate = (audit as unknown as { hydrateAuditKey?: (key: string) => void }).hydrateAuditKey;
+  useEffect(() => {
+    if (typeof hydrate !== 'function') return;
+    keys.forEach((k) => hydrate(k));
+  }, [hydrate, keys.join(',')]);
+  return audit;
+}
 
 /**
  * PR-6b — SATU pintu materialitas untuk view (SA 320).
@@ -545,9 +566,16 @@ function cacheRead(cacheKey: any, legacyKey: any, initial: any) {
 }
 function cacheWrite(cacheKey: any, val: any) { try { localStorage.setItem(cacheKey, JSON.stringify(val)); } catch (e) {} }
 
+/* Tahap 8 — hidrasi DEFERRED untuk state berat (wtbLedger, reviewNotes, …):
+   kunci ini tidak memicu server GET saat boot; konsumen yang benar-benar
+   memakainya memanggil `hydrateAuditKey(key)` lewat useAuditHeavy(). Registri
+   di-key oleh cacheKey (scope+scopeId+key) karena scopeId (engagement aktif)
+   berubah-ubah. */
+const deferredHydrators = new Map<string, () => void>();
+
 /* The engine. Returns [val, setVal] with the SAME contract as the old hook,
    including functional updates (setVal(prev => next)), which the app uses widely. */
-function useServerState(key: any, initial: any, scope: any, scopeId: any) {
+function useServerState(key: any, initial: any, scope: any, scopeId: any, opts?: { defer?: boolean }) {
   const cacheKey = 'ams.v1.' + scope + '.' + scopeId + '.' + key;
   const legacyKey = 'ams.v1.' + key;
   const isPersonal = PERSONAL_STATE_KEYS.has(key);
@@ -559,9 +587,7 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any) {
   const targetRef = React.useRef(null);
   targetRef.current = { scope, scopeId, key, cacheKey };
 
-  // Hydrate from the server on mount and whenever the scope target changes
-  // (e.g. switching the active engagement re-points engagement-scoped keys).
-  React.useEffect(() => {
+  const hydrate = React.useCallback(() => {
     let cancelled = false;
     setValRaw(isPersonal ? emptyLike(initial) : cacheRead(cacheKey, legacyKey, initial)); // instant swap to this target's cache (kosong-aman utk personal)
     versionRef.current = 0;
@@ -591,6 +617,17 @@ function useServerState(key: any, initial: any, scope: any, scopeId: any) {
     }).catch(() => { /* offline / no server: keep the cache (personal: kosong-aman) */ });
     return () => { cancelled = true; };
   }, [scope, scopeId, key]);
+
+  // Hydrate from the server on mount and whenever the scope target changes
+  // (e.g. switching the active engagement re-points engagement-scoped keys).
+  // Tahap 8 — `defer` menunda GET server sampai konsumen memintanya.
+  React.useEffect(() => {
+    if (opts && opts.defer) {
+      deferredHydrators.set(cacheKey, hydrate);
+      return () => { deferredHydrators.delete(cacheKey); };
+    }
+    return hydrate();
+  }, [hydrate, cacheKey, opts]);
 
   const flush = React.useCallback((value: any) => {
     const t = targetRef.current;
@@ -709,408 +746,457 @@ function ConflictToaster() {
   );
 }
 
-function AppProviders({ me, onLogout, children }: any) {
+function AuthProvider({ me, onLogout, children }: any) {
   const D: any = AMS;
   const uid = me.id; // authenticated user id (replaces the old AMS.USER guess)
 
-  /* ---- Auth (W7) ---- */
-  /* Identity & role now come from the authenticated SESSION (`me`), not editable client
-     state. `profile` keeps the extra editable fields (photo, phone, credentials), scoped to
-     this user; identity fields from `me` always win. */
-  const [profile, setProfile] = useServerState('profile', { ...D.USER }, 'user', uid);
-  const updateProfile = useCallback((patch: any) => setProfile((p: any) => {
-    const merged = { ...D.USER, ...p, ...(typeof patch === 'function' ? patch(p) : patch) };
-    return merged;
-  }), [setProfile]);
-  /* capability check — same SSOT the server enforces with (rbac.js), so UI never diverges. */
-  const can = useCallback((cap: any) => rbacCan(me.role, cap), [me.role]);
-  /* act-as role switching is removed in W7 — role is whoever you logged in as. Kept as a
-     warning shim so any lingering caller (settings UI, until Fase 3) doesn't crash. */
-  const setRole = useCallback(() => {
-    console.warn('[W7] setRole is disabled — role is determined by the authenticated session.');
-  }, []);
-  const auth = useMemo(() => ({
-    user: { ...D.USER, ...profile, id: me.id, name: me.name, initials: me.initials, email: me.email, role: me.role },
-    profile: { ...D.USER, ...profile },
-    setProfile, updateProfile,
-    firm: D.FIRM, signedIn: true, role: me.role, setRole, can,
-    logout: onLogout, twoFactorEnabled: !!me.totpEnabled,
-  }), [profile, me, can, setRole, onLogout]);
-
-  /* ---- Firm: clients + engagements + active selection ---- */
-  const [clients, setClients] = useServerState('clients', D.CLIENTS, 'firm', FIRM_SCOPE_ID);
-  const [engagements, setEngagements] = useServerState('engagements', D.ENGAGEMENTS, 'firm', FIRM_SCOPE_ID);
-  const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', DEFAULT_ENG_ID, 'user', uid);
-
-  /* ---- W7.5: per-engagement access set (server-filtered engagement.list) ----
-     null = unknown/offline → don't restrict the UI (server still enforces isolation;
-     this only shapes the switcher so users aren't offered engagements they can't load). */
-  const [accessibleEngIds, setAccessibleEngIds] = useState(null);
-  useEffect(() => {
-    let live = true;
-    (api as any).engagement.list.query()
-      .then((rows: any) => { if (live) setAccessibleEngIds(rows.map((r: any) => r.id)); })
-      .catch(() => { if (live) setAccessibleEngIds(null); });
-    return () => { live = false; };
-  }, [uid]);
-  const canAccessEngagement = useCallback(
-    (id: any) => !accessibleEngIds || accessibleEngIds.includes(id),
-    [accessibleEngIds]
-  );
-  /* Guarded switcher — refuse to activate an engagement the user may not access. */
-  const selectEngagement = useCallback((id: any) => {
-    if (accessibleEngIds && !accessibleEngIds.includes(id)) return;
-    setActiveEngagementId(id);
-  }, [accessibleEngIds, setActiveEngagementId]);
-  /* If the active engagement falls outside the accessible set (e.g. stale default for a
-     non-member), move to the first allowed one so the workspace never shows a dead engagement. */
-  useEffect(() => {
-    if (accessibleEngIds && accessibleEngIds.length && !accessibleEngIds.includes(activeEngagementId)) {
-      setActiveEngagementId(accessibleEngIds[0]);
-    }
-  }, [accessibleEngIds, activeEngagementId, setActiveEngagementId]);
-
-  /* ============================================================
-     PR-J — NERACA SALDO MENJADI SADAR-PERIKATAN.
-     ------------------------------------------------------------
-     `hydrateCoreFromApi` DULU hanya dipanggil sekali saat login, dengan
-     `DEFAULT_ENG_ID` yang dipaku (app.tsx). Ia tak pernah dijalankan ulang saat
-     pengguna berganti perikatan, sehingga singleton `AMS.WTB` SELALU berisi neraca
-     saldo perikatan default — dan karena `D = AMS`, `baseWtb` menyalurkannya ke
-     SELURUH modul.
-
-     Akibatnya bukan angka yang salah, melainkan DATA KLIEN LAIN: ENG-2025-040
-     (PT Mandiri Sejahtera Finance, multifinance) menampilkan bagan akun PT Sentosa
-     Makmur lengkap dengan Beban Pokok Penjualan, persediaan, dan aset hak-guna.
-     Kegagalan kerahasiaan sekaligus integritas.
-
-     Efek ini menjadikan hidrasi mengikuti perikatan aktif — termasuk saat boot,
-     sehingga `activeEng` yang dipulihkan dari sesi pengguna dihormati alih-alih
-     ditimpa DEFAULT_ENG_ID. `wtbEpoch` naik setelah tiap hidrasi karena `AMS.WTB`
-     adalah singleton yang dimutasi di luar React: tanpa penanda ini, memo `baseWtb`
-     tak punya alasan untuk menghitung ulang dan layar akan tetap menampilkan
-     neraca saldo perikatan sebelumnya meski datanya sudah berganti. */
-  const [wtbEpoch, setWtbEpoch] = useState(0);
-  useEffect(() => {
-    if (!activeEngagementId) return;
-    let live = true;
-    (async () => {
-      try { await hydrateCoreFromApi(activeEngagementId); } catch (e) { /* offline: seed data.js */ }
-      /* Memo FIG/SRC kanon dibangun dari WTB lama → harus dibuang sebelum konsumen
-         mana pun membacanya kembali. `hydrateCoreFromApi` sudah melakukannya, tetapi
-         diulang di sini agar jalur gagal (offline) pun tak meninggalkan memo basi. */
-      try { (window as unknown as { amsResetFigures?: () => void }).amsResetFigures?.(); } catch (e) { /* noop */ }
-      if (live) setWtbEpoch((n: number) => n + 1);
-    })();
-    return () => { live = false; };
-  }, [activeEngagementId]);
-
-  const PHASE_STATUS = { Perencanaan: 'Planning', Eksekusi: 'Fieldwork', Finalisasi: 'Review', Arsip: 'Completed' };
-  const setEngagementPhase = useCallback((id: any, phase: any) => setEngagements((list: any) => list.map((e: any) =>
-    e.id === id ? { ...e, phase, status: (PHASE_STATUS as any)[phase] || e.status,
-      progress: phase === 'Arsip' ? 100 : phase === 'Finalisasi' ? Math.max(e.progress, 85) : e.progress } : e)), []);
-
-  const addClient = useCallback((c: any) => setClients((list: any) => [{ ...c }, ...list]), []);
-  const updateClient = useCallback((id: any, patch: any) => setClients((list: any) => list.map((c: any) => c.id === id ? { ...c, ...patch } : c)), []);
-  const addEngagement = useCallback((e: any) => setEngagements((list: any) => {
-    const n = list.length + 8;
-    const id = 'ENG-2025-0' + String(n).padStart(2, '0');
-    /* PRD SA 210/220 (M2): default Pra-akseptasi. Engagement baru tanpa warisan
-       akseptasi/surat lahir eksplisit "belum disetujui" agar gerbang masuk Eksekusi
-       (M4) membaca nilai konsisten — bukan undefined. Konverter prospek (M3) menimpa
-       lewat ...e. */
-    const preAcc = { clientKind: 'Klien Baru', originProspectId: null, acceptanceRef: null,
-      engagementLetter: { status: 'none', version: 0, esign: [] } };
-    return [{ id, fy: 'FY2025', status: 'Planning', phase: 'Perencanaan', progress: 5, actualHrs: 0, ...preAcc, ...e }, ...list];
-  }), []);
-
-  const activeEngagement = useMemo(
-    () => engagements.find((e: any) => e.id === activeEngagementId),
-    [engagements, activeEngagementId]
-  );
-  const activeClient = useMemo(
-    () => clients.find((c: any) => c.id === activeEngagement?.clientId),
-    [clients, activeEngagement]
-  );
-  const clientById = useCallback((id: any) => clients.find((c: any) => c.id === id), [clients]);
-  const engagementsForClient = useCallback(
-    (id: any) => engagements.filter((e: any) => e.clientId === id), [engagements]
-  );
-
-  const firm = useMemo(() => ({
-    clients, engagements, activeEngagement, activeClient,
-    activeEngagementId, setActiveEngagementId: selectEngagement, clientById, engagementsForClient,
-    addClient, updateClient, setEngagementPhase, addEngagement,
-    accessibleEngagementIds: accessibleEngIds, canAccessEngagement,
-    locked: activeEngagement?.phase === 'Arsip' || activeEngagement?.status === 'Completed',
-  }), [clients, engagements, activeEngagement, activeClient, activeEngagementId, selectEngagement, clientById, engagementsForClient, addClient, updateClient, setEngagementPhase, addEngagement, accessibleEngIds, canAccessEngagement]);
-
-  /* ---- Audit: documentation state for active engagement ---- */
-  /* user-added AJEs carry structured `lines: [{code, name, debit, credit}]` */
-  /* engagement-scoped: re-hydrate when the active engagement changes */
-  const [aje, setAje] = useServerState('aje', D.AJE, 'engagement', activeEngagementId);
-  /* seed register RoMM dari union, di-filter per perikatan aktif → tiap engagement
-     melihat register-nya sendiri (drill-down konsisten dgn Risiko Portofolio). */
-  const [risks, setRisks] = useServerState('risks', ENG_RISK_SEED.filter((r) => r.engagementId === activeEngagementId), 'engagement', activeEngagementId);
-  const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
-  /* PR-3 — SSOT telaah fluktuasi SA 520. Dulu terbelah dua: tab WTB menulis ke
-     `wtbOverrides.{note,revStatus}` (ber-AJE_EDIT → Junior tak bisa mendokumentasikan),
-     modul `analytical` ke `fluxState.v1` — dua seed bertentangan, dua hitungan "explained".
-     Kini satu store (engagement + WP_EDIT); catatan lama tetap terbaca lewat merge
-     baca-lewat, tanpa tulisan destruktif ke `wtbOverrides`. */
-  const [fluxStateRaw, setFluxState] = useServerState('fluxState.v1', {}, 'engagement', activeEngagementId);
-  const fluxState = useMemo(() => mergeLegacyFlux(fluxStateRaw, wtbOverrides), [fluxStateRaw, wtbOverrides]);
-  /* Ambang investigasi (SA 520 ¶5c) juga SSOT: dulu tab WTB memakai 20% dan modul
-     `analytical` 15%, sehingga himpunan akun ter-flag — dan penyebut "x dari y
-     terjelaskan" — berbeda untuk perikatan yang sama. `absJt` null = turunkan dari PM. */
-  const [fluxThreshold, setFluxThreshold] = useServerState('fluxThreshold.v1', { absJt: null, pctThr: 20 }, 'engagement', activeEngagementId);
-  /* W-WTB·1 — neraca saldo klien terimpor (paste/CSV), per-engagement. null = pakai seed demo D.WTB. */
-  const [wtbImport, setWtbImport] = useServerState('wtbImport', null, 'engagement', activeEngagementId);
-  /* W-WTB·3 — pemetaan bagan akun klien → CoA standar ({kodeKlien: kodeStandar}). */
-  const [wtbMapping, setWtbMapping] = useServerState('wtbMapping', {}, 'engagement', activeEngagementId);
-  /* W-WTB·4 — buku besar (GL) detail per akun ({kode: [baris GL]}) untuk drill sub-ledger nyata. */
-  const [wtbLedger, setWtbLedger] = useServerState('wtbLedger', {}, 'engagement', activeEngagementId);
-  /* PR-4a — penetapan lead schedule per akun ({kode: 'B'}). Heuristik `leadFromCode` hanya
-     TEBAKAN awal; auditor menetapkan yang mengikat di sini. Engagement + WP_EDIT (bukan
-     AJE_EDIT: menetapkan lead adalah penataan kertas kerja, bukan mengubah angka). */
-  const [wtbLeads, setWtbLeads] = useServerState('wtbLeads.v1', {}, 'engagement', activeEngagementId);
-  /* PR-4c — saldo akhir audited TA-1 sebagai sumber INDEPENDEN (SA 510 ¶6). Tanpa ini,
-     penelusuran saldo awal membandingkan `ly` dengan dirinya sendiri → selalu "Cocok". */
-  const [priorYearBalances, setPriorYearBalances] = useServerState('priorYearBalances.v1', null, 'engagement', activeEngagementId);
-  /* PR-6b — konfigurasi materialitas SA 320 dihidrasi DI SINI (bukan hanya saat modul
-     Materialitas dirender). Dulu `view_materiality` satu-satunya penulis cache `mat.*`,
-     sehingga `materialityFor()` di 8 modul hilir memakai default 75% pada browser bersih
-     walau server menyimpan setelan auditor — senyap, dan berbeda antar-mesin.
-     AuditProvider kini PEMILIK TUNGGAL kunci ini; modul Materialitas mengikat ke sini
-     (dua pemilik `useServerState` atas satu kunci TIDAK saling sinkron dalam satu sesi →
-     itu akan jadi split-brain baru, kelas bug yang sedang diperbaiki). */
-  const [matBenchId, setMatBenchId] = useServerState('mat.benchId', 'pbt', 'engagement', activeEngagementId);
-  const [matPct, setMatPct] = useServerState('mat.pct', 5, 'engagement', activeEngagementId);
-  const [matPmPct, setMatPmPct] = useServerState('mat.pmPct', 75, 'engagement', activeEngagementId);
-  const [matCttPct, setMatCttPct] = useServerState('mat.cttPct', 5, 'engagement', activeEngagementId);
-  const [matOverride, setMatOverride] = useServerState('mat.appliedOverride', null, 'engagement', activeEngagementId);
-  const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
-  const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId);
-  const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId); // noteId -> [reply,...] overlay (works for module & WP notes)
-  const [timeEntries, setTimeEntries] = useServerState('timeEntries', D.TIME_ENTRIES || [], 'engagement', activeEngagementId);
-  const [taskState, setTaskState] = useServerState('taskState', {}, 'engagement', activeEngagementId); // taskId -> done
-  /* PR-B - jembatan jejak untuk setAjeStatus/toggleAjeStatus. Dideklarasikan di sini
-     (sebelum logActivity) karena keduanya memakainya lewat `.current`. */
-  const logRef: { current: ((e: unknown) => void) | null } = useRef(null);
-  /* Bentuk minimal baris jurnal yang disentuh transisi status (BUKAN `any`:
-     satu `any` baru meng-un-suppress seluruh berkas pada ratchet ESLint). */
-  type AjeStatusRow = { id: string; status: string };
-  const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId);
-  const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
-  /* PR-B - jembatan agar setAjeStatus/toggleAjeStatus dapat mencatat jejak tanpa
-     menjadikan `logActivity` dependensi yang memutus memo mereka tiap jejak bertambah. */
-  logRef.current = logActivity;
-
-  const addReviewNote = useCallback((note: any) => setReviewNotes((list: any) => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
-  const resolveReviewNote = useCallback((id: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, status: n.status === 'open' ? 'resolved' : 'open' } : n)), []);
-  const updateReviewNote = useCallback((id: any, patch: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, ...patch } : n)), []);
-  /* append a reply/comment/clearance to ANY note's conversation (keyed overlay) */
-  const addNoteReply = useCallback((id: any, reply: any) => setNoteThreads((m: any) => ({ ...m, [id]: [...(m[id] || []), { when: 'baru saja', ...reply }] })), []);
-  const addTimeEntry = useCallback((entry: any) => setTimeEntries((list: any) => [{ id: 'T-' + Date.now(), ...entry }, ...list]), []);
-  const toggleTask = useCallback((id: any) => setTaskState((s: any) => ({ ...s, [id]: !s[id] })), []);
-  /* P5 Fase 2 — catatan engagement aktif (turunan; konsumen berlingkup-engagement memakai ini) */
-  const reviewNotesActive = useMemo(() => notesForEngagement(reviewNotes, activeEngagementId), [reviewNotes, activeEngagementId]);
-
-  /* derive extra per-account adjustment from POSTED user AJEs (those with structured lines) */
-  const userPostDeltas = useMemo(() => {
-    const d = {};
-    aje.forEach((a: any) => {
-      if (a.status === 'Posted' && Array.isArray(a.lines)) {
-        a.lines.forEach((ln: any) => { (d as any)[ln.code] = ((d as any)[ln.code] || 0) + ((+ln.debit || 0) - (+ln.credit || 0)); });
-      }
-    });
-    return d;
-  }, [aje]);
-
-  /* base WTB = neraca saldo terimpor (per-engagement) bila ada, else seed demo D.WTB.
-     W-WTB·3: bila ada pemetaan akun, relabel+merge ke CoA standar dulu agar canon/FSGEN
-     mengenali bagan akun klien. Lapisan override analitis + delta AJE tetap di atasnya (SSOT). */
-  /* PR-J — `wtbEpoch` ada di deps KARENA `D.WTB` (= `AMS.WTB`) adalah singleton yang
-     dimutasi di luar React oleh hidrasi. Tanpa penanda itu memo ini tak pernah
-     menghitung ulang saat perikatan berganti. */
-  const baseWtb = useMemo(() => {
-    const imported = (wtbImport && Array.isArray(wtbImport.rows) && wtbImport.rows.length) ? wtbImport.rows : null;
-    if (!imported) return D.WTB;
-    return (wtbMapping && Object.keys(wtbMapping).length) ? applyMapping(imported, wtbMapping) : imported;
-
-  }, [wtbImport, wtbMapping, wtbEpoch]);
-  // Override analitis di-key per KODE akun (identitas stabil) via overlayWtbOverrides —
-  // bertahan saat WTB di-impor/petakan ulang (key posisi bergeser). SSOT `wtb` view.
-  const wtbBase = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),
-    [baseWtb, wtbOverrides, userPostDeltas]);
-  /* PR-4a — penetapan lead auditor menimpa tebakan heuristik/pemetaan. `leadSrc` ikut
-     ditetapkan agar hilir (chip tabel, XLSX tersegel) dapat membedakan penetapan auditor
-     dari tebakan mesin; tanpa itu keduanya dirender identik. */
-  const wtb = useMemo(() => {
-    if (!wtbLeads || !Object.keys(wtbLeads).length) return wtbBase;
-    return wtbBase.map((r: { code: string; lead?: string }) => (
-      wtbLeads[r.code] ? { ...r, lead: wtbLeads[r.code], leadSrc: 'auditor' } : r
-    ));
-  }, [wtbBase, wtbLeads]);
-
-  /* ============================================================
-     PR-B - STATUS JURNAL ADALAH KELUARAN RANTAI PERSETUJUAN, BUKAN MASUKAN.
-     ------------------------------------------------------------
-     `toggleAjeStatus` DIPERTAHANKAN sebagai jalur tulis-balik yang dipanggil
-     antrean persetujuan (`view_platform.decide()`), tetapi TIDAK BOLEH lagi
-     dipanggil langsung dari UI register: itulah jalan pintas yang membuat
-     seorang Senior Auditor dapat memposting jurnal ke WTB tanpa persetujuan
-     Partner, tanpa alasan, dan tanpa jejak.
-
-     Setiap perubahan status kini mencatat jejak. `logActivity` dirujuk lewat
-     ref agar callback ini tak perlu dibuat ulang tiap perubahan daftar jejak
-     (yang akan memutus memo di seluruh konsumen). */
-  const setAjeStatus = useCallback((id: string, next: 'Posted' | 'Proposed', meta?: { by?: string; reason?: string; approvalId?: string }) => {
-    setAje((list: AjeStatusRow[]) => list.map((a: AjeStatusRow) => {
-      if (a.id !== id || a.status === next) return a;
-      if (logRef.current) {
-        logRef.current({
-          who: (meta && meta.by) || 'Sistem',
-          action: next === 'Posted' ? 'APPROVE' : 'EDIT',
-          module: 'AJE', sourceModule: 'aje', target: id,
-          detail: next === 'Posted'
-            ? `${id} diposting ke WTB` + (meta && meta.approvalId ? ` (persetujuan ${meta.approvalId})` : '')
-            : `${id} dibatalkan postingnya` + (meta && meta.reason ? ` - ${meta.reason}` : ''),
-          before: 'Status: ' + a.status, after: 'Status: ' + next,
-        });
-      }
-      return { ...a, status: next };
-    }));
-  }, []);
-
-  /* Dipanggil HANYA oleh antrean persetujuan pada keputusan final. */
-  const toggleAjeStatus = useCallback((id: string, meta?: { by?: string; approvalId?: string }) => {
-    setAje((list: AjeStatusRow[]) => {
-      const cur = list.find((a: AjeStatusRow) => a.id === id);
-      if (!cur) return list;
-      const next = cur.status === 'Posted' ? 'Proposed' : 'Posted';
-      return list.map((a: AjeStatusRow) => {
-        if (a.id !== id) return a;
-        if (logRef.current) {
-          logRef.current({
-            who: (meta && meta.by) || 'Sistem', action: next === 'Posted' ? 'APPROVE' : 'EDIT',
-            module: 'AJE', sourceModule: 'aje', target: id,
-            detail: `${id} ${next === 'Posted' ? 'diposting ke' : 'ditarik dari'} WTB`
-              + (meta && meta.approvalId ? ` (persetujuan ${meta.approvalId})` : ''),
-            before: 'Status: ' + cur.status, after: 'Status: ' + next,
-          });
-        }
-        return { ...a, status: next };
-      });
-    });
-  }, []);
-
-  /* PR-B - entri baru lahir 'Proposed'. DULU 'Posted': satu tombol di form AJE
-     langsung mengubah angka WTB, dan `buildApprovals` lalu menerbitkan jejak
-     bahwa Manager, Partner, dan EQR telah menyetujui.
-     PR-1 - id dari `nextAjeId` (sufiks tertinggi + 1), bukan `length + 1` yang
-     menghasilkan id GANDA begitu sebuah entri pernah dihapus. */
-  const addAje = useCallback((entry: any) => {
-    /* PR-3 - `proposedOn` distempel di sini dengan jam NYATA. Dulu jurnal buatan
-       auditor tak punya tanggal pengajuan sama sekali: jejak audit menampilkannya
-       sebagai "baru saja" selamanya, dan antrean persetujuan memberinya konstanta
-       '2026-03-09 16:40' seperti semua jurnal lain. */
-    setAje((list: any) => [...list, { id: nextAjeId(list), status: 'Proposed', proposedOn: nowStamp(), ...entry }]);
-  }, []);
-
-  /* ============================================================
-     PR-1 - JURNAL POSTED TIDAK DAPAT DISUNTING (PRD §S1).
-     ------------------------------------------------------------
-     Lapis KLIEN dari aturan yang ditegakkan server (`posted-immutable`).
-     Ia ada bukan sebagai pengaman - server yang menjaga - melainkan supaya UI
-     tak pernah menawarkan aksi yang pasti ditolak, lalu menampilkan nilai baru
-     sesaat sebelum sinkronisasi mengembalikannya. Mengembalikan false bila
-     ditolak; pemanggil menawarkan "Balik & Ganti" sebagai gantinya. */
-  const updateAje = useCallback((id: string, patch: Record<string, unknown>): boolean => {
-    /* Keputusan diambil dari nilai state SEKARANG, bukan dari dalam updater:
-       updater React tidak dijalankan sinkron, jadi nilai balik yang disusun di
-       dalamnya akan selalu terbaca sebagai "belum terjadi" oleh pemanggil. */
-    const cur = (aje as AjeContractEntry[]).find((a) => a.id === id);
-    if (!cur || cur.status === 'Posted') return false;
-    setAje((list: AjeContractEntry[]) => list.map((a) => (a.id === id ? { ...a, ...patch } : a)));
-    return true;
-  }, [aje]);
-
-  /* Satu-satunya jalan koreksi atas jurnal yang sudah diposting: jurnal BALIK
-     baru yang menempuh rantai persetujuan yang sama. Jurnal asal tetap utuh -
-     angkanya sudah mengalir ke WTB/SAD/opini, jadi fakta bahwa ia pernah ada
-     tak boleh dapat dihapus. Mengembalikan id jurnal balik, atau null. */
-  const reverseAje = useCallback((id: string, meta: { reason: string; by?: string }): string | null => {
-    const list = aje as AjeContractEntry[];
-    const cur = list.find((a) => a.id === id);
-    if (!cur || cur.status !== 'Posted') return null;
-    const reason = String(meta.reason || '').trim();
-    if (!reason) return null;                       // pembalikan tanpa alasan bukan jejak audit
-    const newId = nextAjeId(list);
-    const rev = reverseEntryFrom(cur, { id: newId, reason, preparer: meta.by ?? null });
-    setAje((prev: AjeContractEntry[]) => [...prev, rev]);
-    if (logRef.current) {
-      logRef.current({
-        who: meta.by || 'Sistem', action: 'CREATE', module: 'AJE', sourceModule: 'aje', target: newId,
-        detail: `${newId} diajukan sebagai pembalikan ${id} - ${reason}`,
-        before: `${id}: Posted (tidak diubah)`, after: `${newId}: Proposed`,
-      });
-    }
-    return newId;
-  }, [aje]);
-
-  const updateRisk = useCallback((id: any, patch: any) => {
-    setRisks((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
-  }, []);
-
-  const setWp = useCallback((ref: any, patch: any) => setWpState((s: any) => ({ ...s, [ref]: { ...(s[ref] || {}), ...patch } })), []);
-
-  // totals
-  const ajeTotalPosted = useMemo(
-    () => aje.filter((a: any) => a.status === 'Posted').reduce((s: any, a: any) => s + a.amount, 0), [aje]);
-
-  /* PR-6b — konfigurasi materialitas sebagai satu objek reaktif + satu setter ber-patch.
-     Dipakai `useMateriality()` untuk memanggil canon dengan argumen EKSPLISIT (murni),
-     dan oleh modul Materialitas sebagai editor. */
-  const matConfig: MaterialityConfig = useMemo(() => ({
-    benchId: matBenchId, pct: matPct, pmPct: matPmPct, cttPct: matCttPct, appliedOverride: matOverride,
-  }), [matBenchId, matPct, matPmPct, matCttPct, matOverride]);
-  const setMatConfig = useCallback((patch: Partial<MaterialityConfig>) => {
-    if (patch.benchId !== undefined) setMatBenchId(patch.benchId);
-    if (patch.pct !== undefined) setMatPct(patch.pct);
-    if (patch.pmPct !== undefined) setMatPmPct(patch.pmPct);
-    if (patch.cttPct !== undefined) setMatCttPct(patch.cttPct);
-    if (patch.appliedOverride !== undefined) setMatOverride(patch.appliedOverride);
-  }, []);
-
-  const audit = useMemo((): AuditContextShape => ({
-    matConfig, setMatConfig,
-    aje, setAje, toggleAjeStatus, setAjeStatus, addAje, updateAje, reverseAje, ajeTotalPosted,
-    risks, updateRisk,
-    wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
-    fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads,
-    priorYearBalances, setPriorYearBalances,
-    wpState, setWp,
-    reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
-    noteThreads, addNoteReply,
-    timeEntries, addTimeEntry,
-    taskState, toggleTask,
-    logEntries, logActivity,
-    workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
-  }), [matConfig, setMatConfig, aje, toggleAjeStatus, setAjeStatus, addAje, updateAje, reverseAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+    /* ---- Auth (W7) ---- */
+    /* Identity & role now come from the authenticated SESSION (`me`), not editable client
+       state. `profile` keeps the extra editable fields (photo, phone, credentials), scoped to
+       this user; identity fields from `me` always win. */
+    const [profile, setProfile] = useServerState('profile', { ...D.USER }, 'user', uid);
+    const updateProfile = useCallback((patch: any) => setProfile((p: any) => {
+      const merged = { ...D.USER, ...p, ...(typeof patch === 'function' ? patch(p) : patch) };
+      return merged;
+    }), [setProfile]);
+    /* capability check — same SSOT the server enforces with (rbac.js), so UI never diverges. */
+    const can = useCallback((cap: any) => rbacCan(me.role, cap), [me.role]);
+    /* act-as role switching is removed in W7 — role is whoever you logged in as. Kept as a
+       warning shim so any lingering caller (settings UI, until Fase 3) doesn't crash. */
+    const setRole = useCallback(() => {
+      console.warn('[W7] setRole is disabled — role is determined by the authenticated session.');
+    }, []);
+    const auth = useMemo(() => ({
+      user: { ...D.USER, ...profile, id: me.id, name: me.name, initials: me.initials, email: me.email, role: me.role },
+      profile: { ...D.USER, ...profile },
+      setProfile, updateProfile,
+      firm: D.FIRM, signedIn: true, role: me.role, setRole, can,
+      logout: onLogout, twoFactorEnabled: !!me.totpEnabled,
+    }), [profile, me, can, setRole, onLogout]);
 
   return (
-    <AuthContext.Provider value={auth}>
-      <FirmContext.Provider value={firm}>
-        <AuditContext.Provider value={audit}>
-          {children}
-          <ConflictToaster />
-        </AuditContext.Provider>
-      </FirmContext.Provider>
-    </AuthContext.Provider>
+    <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
   );
 }
 
+function FirmProvider({ children }: any) {
+  const D: any = AMS;
+  const uid = (useAuth() as any).user?.id || 'USER-1';
+    const [clients, setClients] = useServerState('clients', D.CLIENTS, 'firm', FIRM_SCOPE_ID);
+    const [engagements, setEngagements] = useServerState('engagements', D.ENGAGEMENTS, 'firm', FIRM_SCOPE_ID);
+    const [activeEngagementId, setActiveEngagementId] = useServerState('activeEng', DEFAULT_ENG_ID, 'user', uid);
+
+    /* ---- W7.5: per-engagement access set (server-filtered engagement.list) ----
+       null = unknown/offline → don't restrict the UI (server still enforces isolation;
+       this only shapes the switcher so users aren't offered engagements they can't load). */
+    const [accessibleEngIds, setAccessibleEngIds] = useState(null);
+    useEffect(() => {
+      let live = true;
+      (api as any).engagement.list.query()
+        .then((rows: any) => { if (live) setAccessibleEngIds(rows.map((r: any) => r.id)); })
+        .catch(() => { if (live) setAccessibleEngIds(null); });
+      return () => { live = false; };
+    }, [uid]);
+    const canAccessEngagement = useCallback(
+      (id: any) => !accessibleEngIds || accessibleEngIds.includes(id),
+      [accessibleEngIds]
+    );
+    /* Guarded switcher — refuse to activate an engagement the user may not access. */
+    const selectEngagement = useCallback((id: any) => {
+      if (accessibleEngIds && !accessibleEngIds.includes(id)) return;
+      setActiveEngagementId(id);
+    }, [accessibleEngIds, setActiveEngagementId]);
+    /* If the active engagement falls outside the accessible set (e.g. stale default for a
+       non-member), move to the first allowed one so the workspace never shows a dead engagement. */
+    useEffect(() => {
+      if (accessibleEngIds && accessibleEngIds.length && !accessibleEngIds.includes(activeEngagementId)) {
+        setActiveEngagementId(accessibleEngIds[0]);
+      }
+    }, [accessibleEngIds, activeEngagementId, setActiveEngagementId]);
+
+    /* ============================================================
+       PR-J — NERACA SALDO MENJADI SADAR-PERIKATAN.
+       ------------------------------------------------------------
+       `hydrateCoreFromApi` DULU hanya dipanggil sekali saat login, dengan
+       `DEFAULT_ENG_ID` yang dipaku (app.tsx). Ia tak pernah dijalankan ulang saat
+       pengguna berganti perikatan, sehingga singleton `AMS.WTB` SELALU berisi neraca
+       saldo perikatan default — dan karena `D = AMS`, `baseWtb` menyalurkannya ke
+       SELURUH modul.
+
+       Akibatnya bukan angka yang salah, melainkan DATA KLIEN LAIN: ENG-2025-040
+       (PT Mandiri Sejahtera Finance, multifinance) menampilkan bagan akun PT Sentosa
+       Makmur lengkap dengan Beban Pokok Penjualan, persediaan, dan aset hak-guna.
+       Kegagalan kerahasiaan sekaligus integritas.
+
+       Efek ini menjadikan hidrasi mengikuti perikatan aktif — termasuk saat boot,
+       sehingga `activeEng` yang dipulihkan dari sesi pengguna dihormati alih-alih
+       ditimpa DEFAULT_ENG_ID. `wtbEpoch` naik setelah tiap hidrasi karena `AMS.WTB`
+       adalah singleton yang dimutasi di luar React: tanpa penanda ini, memo `baseWtb`
+       tak punya alasan untuk menghitung ulang dan layar akan tetap menampilkan
+       neraca saldo perikatan sebelumnya meski datanya sudah berganti. */
+    const PHASE_STATUS = { Perencanaan: 'Planning', Eksekusi: 'Fieldwork', Finalisasi: 'Review', Arsip: 'Completed' };
+    const setEngagementPhase = useCallback((id: any, phase: any) => setEngagements((list: any) => list.map((e: any) =>
+      e.id === id ? { ...e, phase, status: (PHASE_STATUS as any)[phase] || e.status,
+        progress: phase === 'Arsip' ? 100 : phase === 'Finalisasi' ? Math.max(e.progress, 85) : e.progress } : e)), []);
+
+    const addClient = useCallback((c: any) => setClients((list: any) => [{ ...c }, ...list]), []);
+    const updateClient = useCallback((id: any, patch: any) => setClients((list: any) => list.map((c: any) => c.id === id ? { ...c, ...patch } : c)), []);
+    const addEngagement = useCallback((e: any) => setEngagements((list: any) => {
+      const n = list.length + 8;
+      const id = 'ENG-2025-0' + String(n).padStart(2, '0');
+      /* PRD SA 210/220 (M2): default Pra-akseptasi. Engagement baru tanpa warisan
+         akseptasi/surat lahir eksplisit "belum disetujui" agar gerbang masuk Eksekusi
+         (M4) membaca nilai konsisten — bukan undefined. Konverter prospek (M3) menimpa
+         lewat ...e. */
+      const preAcc = { clientKind: 'Klien Baru', originProspectId: null, acceptanceRef: null,
+        engagementLetter: { status: 'none', version: 0, esign: [] } };
+      return [{ id, fy: 'FY2025', status: 'Planning', phase: 'Perencanaan', progress: 5, actualHrs: 0, ...preAcc, ...e }, ...list];
+    }), []);
+
+    const activeEngagement = useMemo(
+      () => engagements.find((e: any) => e.id === activeEngagementId),
+      [engagements, activeEngagementId]
+    );
+    const activeClient = useMemo(
+      () => clients.find((c: any) => c.id === activeEngagement?.clientId),
+      [clients, activeEngagement]
+    );
+    const clientById = useCallback((id: any) => clients.find((c: any) => c.id === id), [clients]);
+    const engagementsForClient = useCallback(
+      (id: any) => engagements.filter((e: any) => e.clientId === id), [engagements]
+    );
+
+    const firm = useMemo(() => ({
+      clients, engagements, activeEngagement, activeClient,
+      activeEngagementId, setActiveEngagementId: selectEngagement, clientById, engagementsForClient,
+      addClient, updateClient, setEngagementPhase, addEngagement,
+      accessibleEngagementIds: accessibleEngIds, canAccessEngagement,
+      locked: activeEngagement?.phase === 'Arsip' || activeEngagement?.status === 'Completed',
+    }), [clients, engagements, activeEngagement, activeClient, activeEngagementId, selectEngagement, clientById, engagementsForClient, addClient, updateClient, setEngagementPhase, addEngagement, accessibleEngIds, canAccessEngagement]);
+
+  return (
+    <FirmContext.Provider value={firm}>{children}</FirmContext.Provider>
+  );
+}
+
+function AuditProvider({ children }: any) {
+  const D: any = AMS;
+  const activeEngagementId = (useFirm() as any).activeEngagementId;
+    /* ============================================================
+       PR-J — NERACA SALDO MENJADI SADAR-PERIKATAN.
+       ------------------------------------------------------------
+       `hydrateCoreFromApi` DULU hanya dipanggil sekali saat login, dengan
+       `DEFAULT_ENG_ID` yang dipaku (app.tsx). Ia tak pernah dijalankan ulang saat
+       pengguna berganti perikatan, sehingga singleton `AMS.WTB` SELALU berisi neraca
+       saldo perikatan default — dan karena `D = AMS`, `baseWtb` menyalurkannya ke
+       SELURUH modul.
+
+       Akibatnya bukan angka yang salah, melainkan DATA KLIEN LAIN: ENG-2025-040
+       (PT Mandiri Sejahtera Finance, multifinance) menampilkan bagan akun PT Sentosa
+       Makmur lengkap dengan Beban Pokok Penjualan, persediaan, dan aset hak-guna.
+       Kegagalan kerahasiaan sekaligus integritas.
+
+       Efek ini menjadikan hidrasi mengikuti perikatan aktif — termasuk saat boot,
+       sehingga `activeEng` yang dipulihkan dari sesi pengguna dihormati alih-alih
+       ditimpa DEFAULT_ENG_ID. `wtbEpoch` naik setelah tiap hidrasi karena `AMS.WTB`
+       adalah singleton yang dimutasi di luar React: tanpa penanda ini, memo `baseWtb`
+       tak punya alasan untuk menghitung ulang dan layar akan tetap menampilkan
+       neraca saldo perikatan sebelumnya meski datanya sudah berganti. */
+    const [wtbEpoch, setWtbEpoch] = useState(0);
+    useEffect(() => {
+      if (!activeEngagementId) return;
+      let live = true;
+      (async () => {
+        try { await hydrateCoreFromApi(activeEngagementId); } catch (e) { /* offline: seed data.js */ }
+        /* Memo FIG/SRC kanon dibangun dari WTB lama → harus dibuang sebelum konsumen
+           mana pun membacanya kembali. `hydrateCoreFromApi` sudah melakukannya, tetapi
+           diulang di sini agar jalur gagal (offline) pun tak meninggalkan memo basi. */
+        try { (window as unknown as { amsResetFigures?: () => void }).amsResetFigures?.(); } catch (e) { /* noop */ }
+        if (live) setWtbEpoch((n: number) => n + 1);
+      })();
+      return () => { live = false; };
+    }, [activeEngagementId]);
+    /* user-added AJEs carry structured `lines: [{code, name, debit, credit}]` */
+    /* engagement-scoped: re-hydrate when the active engagement changes */
+    const [aje, setAje] = useServerState('aje', D.AJE, 'engagement', activeEngagementId);
+    /* seed register RoMM dari union, di-filter per perikatan aktif → tiap engagement
+       melihat register-nya sendiri (drill-down konsisten dgn Risiko Portofolio). */
+    const [risks, setRisks] = useServerState('risks', ENG_RISK_SEED.filter((r) => r.engagementId === activeEngagementId), 'engagement', activeEngagementId);
+    const [wtbOverrides, setWtbOverrides] = useServerState('wtbOverrides', {}, 'engagement', activeEngagementId);
+    /* PR-3 — SSOT telaah fluktuasi SA 520. Dulu terbelah dua: tab WTB menulis ke
+       `wtbOverrides.{note,revStatus}` (ber-AJE_EDIT → Junior tak bisa mendokumentasikan),
+       modul `analytical` ke `fluxState.v1` — dua seed bertentangan, dua hitungan "explained".
+       Kini satu store (engagement + WP_EDIT); catatan lama tetap terbaca lewat merge
+       baca-lewat, tanpa tulisan destruktif ke `wtbOverrides`. */
+    const [fluxStateRaw, setFluxState] = useServerState('fluxState.v1', {}, 'engagement', activeEngagementId);
+    const fluxState = useMemo(() => mergeLegacyFlux(fluxStateRaw, wtbOverrides), [fluxStateRaw, wtbOverrides]);
+    /* Ambang investigasi (SA 520 ¶5c) juga SSOT: dulu tab WTB memakai 20% dan modul
+       `analytical` 15%, sehingga himpunan akun ter-flag — dan penyebut "x dari y
+       terjelaskan" — berbeda untuk perikatan yang sama. `absJt` null = turunkan dari PM. */
+    const [fluxThreshold, setFluxThreshold] = useServerState('fluxThreshold.v1', { absJt: null, pctThr: 20 }, 'engagement', activeEngagementId);
+    /* W-WTB·1 — neraca saldo klien terimpor (paste/CSV), per-engagement. null = pakai seed demo D.WTB. */
+    const [wtbImport, setWtbImport] = useServerState('wtbImport', null, 'engagement', activeEngagementId);
+    /* W-WTB·3 — pemetaan bagan akun klien → CoA standar ({kodeKlien: kodeStandar}). */
+    const [wtbMapping, setWtbMapping] = useServerState('wtbMapping', {}, 'engagement', activeEngagementId);
+    /* W-WTB·4 — buku besar (GL) detail per akun ({kode: [baris GL]}) untuk drill sub-ledger nyata. */
+    /* Tahap 8 — state berat di-defer: server GET hanya terjadi saat modul pemakai
+       memanggil useAuditHeavy(['wtbLedger']) dst. (lihat useAuditHeavy). */
+    const [wtbLedger, setWtbLedger] = useServerState('wtbLedger', {}, 'engagement', activeEngagementId, { defer: true });
+    /* PR-4a — penetapan lead schedule per akun ({kode: 'B'}). Heuristik `leadFromCode` hanya
+       TEBAKAN awal; auditor menetapkan yang mengikat di sini. Engagement + WP_EDIT (bukan
+       AJE_EDIT: menetapkan lead adalah penataan kertas kerja, bukan mengubah angka). */
+    const [wtbLeads, setWtbLeads] = useServerState('wtbLeads.v1', {}, 'engagement', activeEngagementId);
+    /* PR-4c — saldo akhir audited TA-1 sebagai sumber INDEPENDEN (SA 510 ¶6). Tanpa ini,
+       penelusuran saldo awal membandingkan `ly` dengan dirinya sendiri → selalu "Cocok". */
+    const [priorYearBalances, setPriorYearBalances] = useServerState('priorYearBalances.v1', null, 'engagement', activeEngagementId);
+    /* PR-6b — konfigurasi materialitas SA 320 dihidrasi DI SINI (bukan hanya saat modul
+       Materialitas dirender). Dulu `view_materiality` satu-satunya penulis cache `mat.*`,
+       sehingga `materialityFor()` di 8 modul hilir memakai default 75% pada browser bersih
+       walau server menyimpan setelan auditor — senyap, dan berbeda antar-mesin.
+       AuditProvider kini PEMILIK TUNGGAL kunci ini; modul Materialitas mengikat ke sini
+       (dua pemilik `useServerState` atas satu kunci TIDAK saling sinkron dalam satu sesi →
+       itu akan jadi split-brain baru, kelas bug yang sedang diperbaiki). */
+    const [matBenchId, setMatBenchId] = useServerState('mat.benchId', 'pbt', 'engagement', activeEngagementId);
+    const [matPct, setMatPct] = useServerState('mat.pct', 5, 'engagement', activeEngagementId);
+    const [matPmPct, setMatPmPct] = useServerState('mat.pmPct', 75, 'engagement', activeEngagementId);
+    const [matCttPct, setMatCttPct] = useServerState('mat.cttPct', 5, 'engagement', activeEngagementId);
+    const [matOverride, setMatOverride] = useServerState('mat.appliedOverride', null, 'engagement', activeEngagementId);
+    const [wpState, setWpState] = useServerState('wpState', {}, 'engagement', activeEngagementId); // per-WP tickmarks / signoff
+    const [reviewNotes, setReviewNotes] = useServerState('reviewNotes', D.REVIEW_NOTES || [], 'engagement', activeEngagementId, { defer: true });
+    const [noteThreads, setNoteThreads] = useServerState('noteThreads', {}, 'engagement', activeEngagementId, { defer: true }); // noteId -> [reply,...] overlay (works for module & WP notes)
+    const [timeEntries, setTimeEntries] = useServerState('timeEntries', D.TIME_ENTRIES || [], 'engagement', activeEngagementId, { defer: true });
+    const [taskState, setTaskState] = useServerState('taskState', {}, 'engagement', activeEngagementId, { defer: true }); // taskId -> done
+    /* PR-B - jembatan jejak untuk setAjeStatus/toggleAjeStatus. Dideklarasikan di sini
+       (sebelum logActivity) karena keduanya memakainya lewat `.current`. */
+    const logRef: { current: ((e: unknown) => void) | null } = useRef(null);
+    /* Bentuk minimal baris jurnal yang disentuh transisi status (BUKAN `any`:
+       satu `any` baru meng-un-suppress seluruh berkas pada ratchet ESLint). */
+    type AjeStatusRow = { id: string; status: string };
+    const [logEntries, setLogEntries] = useServerState('logEntries', [], 'engagement', activeEngagementId, { defer: true });
+    const logActivity = useCallback((e: any) => setLogEntries((list: any) => [{ ts: new Date().toISOString().slice(0, 16).replace('T', ' '), ...e }, ...list].slice(0, 50)), []);
+    /* PR-B - jembatan agar setAjeStatus/toggleAjeStatus dapat mencatat jejak tanpa
+       menjadikan `logActivity` dependensi yang memutus memo mereka tiap jejak bertambah. */
+    logRef.current = logActivity;
+
+    const addReviewNote = useCallback((note: any) => setReviewNotes((list: any) => [{ id: 'RN-' + Date.now(), status: 'open', author: 'Anindya P.', created: 'baru saja', type: 'review', engagementId: activeEngagementId, thread: [], ...note }, ...list]), [activeEngagementId]);
+    const resolveReviewNote = useCallback((id: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, status: n.status === 'open' ? 'resolved' : 'open' } : n)), []);
+    const updateReviewNote = useCallback((id: any, patch: any) => setReviewNotes((list: any) => list.map((n: any) => n.id === id ? { ...n, ...patch } : n)), []);
+    /* append a reply/comment/clearance to ANY note's conversation (keyed overlay) */
+    const addNoteReply = useCallback((id: any, reply: any) => setNoteThreads((m: any) => ({ ...m, [id]: [...(m[id] || []), { when: 'baru saja', ...reply }] })), []);
+    const addTimeEntry = useCallback((entry: any) => setTimeEntries((list: any) => [{ id: 'T-' + Date.now(), ...entry }, ...list]), []);
+    const toggleTask = useCallback((id: any) => setTaskState((s: any) => ({ ...s, [id]: !s[id] })), []);
+    /* P5 Fase 2 — catatan engagement aktif (turunan; konsumen berlingkup-engagement memakai ini) */
+    const reviewNotesActive = useMemo(() => notesForEngagement(reviewNotes, activeEngagementId), [reviewNotes, activeEngagementId]);
+
+    /* derive extra per-account adjustment from POSTED user AJEs (those with structured lines) */
+    const userPostDeltas = useMemo(() => {
+      const d = {};
+      aje.forEach((a: any) => {
+        if (a.status === 'Posted' && Array.isArray(a.lines)) {
+          a.lines.forEach((ln: any) => { (d as any)[ln.code] = ((d as any)[ln.code] || 0) + ((+ln.debit || 0) - (+ln.credit || 0)); });
+        }
+      });
+      return d;
+    }, [aje]);
+
+    /* base WTB = neraca saldo terimpor (per-engagement) bila ada, else seed demo D.WTB.
+       W-WTB·3: bila ada pemetaan akun, relabel+merge ke CoA standar dulu agar canon/FSGEN
+       mengenali bagan akun klien. Lapisan override analitis + delta AJE tetap di atasnya (SSOT). */
+    /* PR-J — `wtbEpoch` ada di deps KARENA `D.WTB` (= `AMS.WTB`) adalah singleton yang
+       dimutasi di luar React oleh hidrasi. Tanpa penanda itu memo ini tak pernah
+       menghitung ulang saat perikatan berganti. */
+    const baseWtb = useMemo(() => {
+      const imported = (wtbImport && Array.isArray(wtbImport.rows) && wtbImport.rows.length) ? wtbImport.rows : null;
+      if (!imported) return D.WTB;
+      return (wtbMapping && Object.keys(wtbMapping).length) ? applyMapping(imported, wtbMapping) : imported;
+
+    }, [wtbImport, wtbMapping, wtbEpoch]);
+    // Override analitis di-key per KODE akun (identitas stabil) via overlayWtbOverrides —
+    // bertahan saat WTB di-impor/petakan ulang (key posisi bergeser). SSOT `wtb` view.
+    const wtbBase = useMemo(() => overlayWtbOverrides(baseWtb, wtbOverrides, userPostDeltas),
+      [baseWtb, wtbOverrides, userPostDeltas]);
+    /* PR-4a — penetapan lead auditor menimpa tebakan heuristik/pemetaan. `leadSrc` ikut
+       ditetapkan agar hilir (chip tabel, XLSX tersegel) dapat membedakan penetapan auditor
+       dari tebakan mesin; tanpa itu keduanya dirender identik. */
+    const wtb = useMemo(() => {
+      if (!wtbLeads || !Object.keys(wtbLeads).length) return wtbBase;
+      return wtbBase.map((r: { code: string; lead?: string }) => (
+        wtbLeads[r.code] ? { ...r, lead: wtbLeads[r.code], leadSrc: 'auditor' } : r
+      ));
+    }, [wtbBase, wtbLeads]);
+
+    /* ============================================================
+       PR-B - STATUS JURNAL ADALAH KELUARAN RANTAI PERSETUJUAN, BUKAN MASUKAN.
+       ------------------------------------------------------------
+       `toggleAjeStatus` DIPERTAHANKAN sebagai jalur tulis-balik yang dipanggil
+       antrean persetujuan (`view_platform.decide()`), tetapi TIDAK BOLEH lagi
+       dipanggil langsung dari UI register: itulah jalan pintas yang membuat
+       seorang Senior Auditor dapat memposting jurnal ke WTB tanpa persetujuan
+       Partner, tanpa alasan, dan tanpa jejak.
+
+       Setiap perubahan status kini mencatat jejak. `logActivity` dirujuk lewat
+       ref agar callback ini tak perlu dibuat ulang tiap perubahan daftar jejak
+       (yang akan memutus memo di seluruh konsumen). */
+    const setAjeStatus = useCallback((id: string, next: 'Posted' | 'Proposed', meta?: { by?: string; reason?: string; approvalId?: string }) => {
+      setAje((list: AjeStatusRow[]) => list.map((a: AjeStatusRow) => {
+        if (a.id !== id || a.status === next) return a;
+        if (logRef.current) {
+          logRef.current({
+            who: (meta && meta.by) || 'Sistem',
+            action: next === 'Posted' ? 'APPROVE' : 'EDIT',
+            module: 'AJE', sourceModule: 'aje', target: id,
+            detail: next === 'Posted'
+              ? `${id} diposting ke WTB` + (meta && meta.approvalId ? ` (persetujuan ${meta.approvalId})` : '')
+              : `${id} dibatalkan postingnya` + (meta && meta.reason ? ` - ${meta.reason}` : ''),
+            before: 'Status: ' + a.status, after: 'Status: ' + next,
+          });
+        }
+        return { ...a, status: next };
+      }));
+    }, []);
+
+    /* Dipanggil HANYA oleh antrean persetujuan pada keputusan final. */
+    const toggleAjeStatus = useCallback((id: string, meta?: { by?: string; approvalId?: string }) => {
+      setAje((list: AjeStatusRow[]) => {
+        const cur = list.find((a: AjeStatusRow) => a.id === id);
+        if (!cur) return list;
+        const next = cur.status === 'Posted' ? 'Proposed' : 'Posted';
+        return list.map((a: AjeStatusRow) => {
+          if (a.id !== id) return a;
+          if (logRef.current) {
+            logRef.current({
+              who: (meta && meta.by) || 'Sistem', action: next === 'Posted' ? 'APPROVE' : 'EDIT',
+              module: 'AJE', sourceModule: 'aje', target: id,
+              detail: `${id} ${next === 'Posted' ? 'diposting ke' : 'ditarik dari'} WTB`
+                + (meta && meta.approvalId ? ` (persetujuan ${meta.approvalId})` : ''),
+              before: 'Status: ' + cur.status, after: 'Status: ' + next,
+            });
+          }
+          return { ...a, status: next };
+        });
+      });
+    }, []);
+
+    /* PR-B - entri baru lahir 'Proposed'. DULU 'Posted': satu tombol di form AJE
+       langsung mengubah angka WTB, dan `buildApprovals` lalu menerbitkan jejak
+       bahwa Manager, Partner, dan EQR telah menyetujui.
+       PR-1 - id dari `nextAjeId` (sufiks tertinggi + 1), bukan `length + 1` yang
+       menghasilkan id GANDA begitu sebuah entri pernah dihapus. */
+    const addAje = useCallback((entry: any) => {
+      /* PR-3 - `proposedOn` distempel di sini dengan jam NYATA. Dulu jurnal buatan
+         auditor tak punya tanggal pengajuan sama sekali: jejak audit menampilkannya
+         sebagai "baru saja" selamanya, dan antrean persetujuan memberinya konstanta
+         '2026-03-09 16:40' seperti semua jurnal lain. */
+      setAje((list: any) => [...list, { id: nextAjeId(list), status: 'Proposed', proposedOn: nowStamp(), ...entry }]);
+    }, []);
+
+    /* ============================================================
+       PR-1 - JURNAL POSTED TIDAK DAPAT DISUNTING (PRD §S1).
+       ------------------------------------------------------------
+       Lapis KLIEN dari aturan yang ditegakkan server (`posted-immutable`).
+       Ia ada bukan sebagai pengaman - server yang menjaga - melainkan supaya UI
+       tak pernah menawarkan aksi yang pasti ditolak, lalu menampilkan nilai baru
+       sesaat sebelum sinkronisasi mengembalikannya. Mengembalikan false bila
+       ditolak; pemanggil menawarkan "Balik & Ganti" sebagai gantinya. */
+    const updateAje = useCallback((id: string, patch: Record<string, unknown>): boolean => {
+      /* Keputusan diambil dari nilai state SEKARANG, bukan dari dalam updater:
+         updater React tidak dijalankan sinkron, jadi nilai balik yang disusun di
+         dalamnya akan selalu terbaca sebagai "belum terjadi" oleh pemanggil. */
+      const cur = (aje as AjeContractEntry[]).find((a) => a.id === id);
+      if (!cur || cur.status === 'Posted') return false;
+      setAje((list: AjeContractEntry[]) => list.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+      return true;
+    }, [aje]);
+
+    /* Satu-satunya jalan koreksi atas jurnal yang sudah diposting: jurnal BALIK
+       baru yang menempuh rantai persetujuan yang sama. Jurnal asal tetap utuh -
+       angkanya sudah mengalir ke WTB/SAD/opini, jadi fakta bahwa ia pernah ada
+       tak boleh dapat dihapus. Mengembalikan id jurnal balik, atau null. */
+    const reverseAje = useCallback((id: string, meta: { reason: string; by?: string }): string | null => {
+      const list = aje as AjeContractEntry[];
+      const cur = list.find((a) => a.id === id);
+      if (!cur || cur.status !== 'Posted') return null;
+      const reason = String(meta.reason || '').trim();
+      if (!reason) return null;                       // pembalikan tanpa alasan bukan jejak audit
+      const newId = nextAjeId(list);
+      const rev = reverseEntryFrom(cur, { id: newId, reason, preparer: meta.by ?? null });
+      setAje((prev: AjeContractEntry[]) => [...prev, rev]);
+      if (logRef.current) {
+        logRef.current({
+          who: meta.by || 'Sistem', action: 'CREATE', module: 'AJE', sourceModule: 'aje', target: newId,
+          detail: `${newId} diajukan sebagai pembalikan ${id} - ${reason}`,
+          before: `${id}: Posted (tidak diubah)`, after: `${newId}: Proposed`,
+        });
+      }
+      return newId;
+    }, [aje]);
+
+    const updateRisk = useCallback((id: any, patch: any) => {
+      setRisks((list: any) => list.map((r: any) => r.id === id ? { ...r, ...patch } : r));
+    }, []);
+
+    const setWp = useCallback((ref: any, patch: any) => setWpState((s: any) => ({ ...s, [ref]: { ...(s[ref] || {}), ...patch } })), []);
+
+    // totals
+    const ajeTotalPosted = useMemo(
+      () => aje.filter((a: any) => a.status === 'Posted').reduce((s: any, a: any) => s + a.amount, 0), [aje]);
+
+    /* PR-6b — konfigurasi materialitas sebagai satu objek reaktif + satu setter ber-patch.
+       Dipakai `useMateriality()` untuk memanggil canon dengan argumen EKSPLISIT (murni),
+       dan oleh modul Materialitas sebagai editor. */
+    const matConfig: MaterialityConfig = useMemo(() => ({
+      benchId: matBenchId, pct: matPct, pmPct: matPmPct, cttPct: matCttPct, appliedOverride: matOverride,
+    }), [matBenchId, matPct, matPmPct, matCttPct, matOverride]);
+    const setMatConfig = useCallback((patch: Partial<MaterialityConfig>) => {
+      if (patch.benchId !== undefined) setMatBenchId(patch.benchId);
+      if (patch.pct !== undefined) setMatPct(patch.pct);
+      if (patch.pmPct !== undefined) setMatPmPct(patch.pmPct);
+      if (patch.cttPct !== undefined) setMatCttPct(patch.cttPct);
+      if (patch.appliedOverride !== undefined) setMatOverride(patch.appliedOverride);
+    }, []);
+
+    /* Tahap 8 — pemicu hidrasi deferred: memanggil hydrator terdaftar untuk kunci
+       berat pada (scope, scopeId) saat ini. No-op bila kunci tak dikenal/defer —
+       kunci eager sudah terhidrasi sejak mount. */
+    const hydrateAuditKey = useCallback((key: string) => {
+      const cacheKey = 'ams.v1.engagement.' + activeEngagementId + '.' + key;
+      const hydrator = deferredHydrators.get(cacheKey);
+      if (hydrator) hydrator();
+    }, [activeEngagementId]);
+
+    const audit = useMemo((): AuditContextShape => ({
+      matConfig, setMatConfig, hydrateAuditKey,
+      aje, setAje, toggleAjeStatus, setAjeStatus, addAje, updateAje, reverseAje, ajeTotalPosted,
+      risks, updateRisk,
+      wtb, wtbOverrides, setWtbOverrides, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger,
+      fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads,
+      priorYearBalances, setPriorYearBalances,
+      wpState, setWp,
+      reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote,
+      noteThreads, addNoteReply,
+      timeEntries, addTimeEntry,
+      taskState, toggleTask,
+      logEntries, logActivity,
+      workpapers: D.WORKPAPERS, team: D.TEAM, activity: D.ACTIVITY, deadlines: D.DEADLINES,
+    }), [matConfig, setMatConfig, hydrateAuditKey, aje, toggleAjeStatus, setAjeStatus, addAje, updateAje, reverseAje, ajeTotalPosted, risks, updateRisk, wtb, wtbOverrides, fluxState, setFluxState, fluxThreshold, setFluxThreshold, wtbLeads, setWtbLeads, priorYearBalances, setPriorYearBalances, wtbImport, setWtbImport, wtbMapping, setWtbMapping, wtbLedger, setWtbLedger, wpState, setWp, reviewNotes, reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, timeEntries, addTimeEntry, taskState, toggleTask, logEntries, logActivity]);
+
+  return (
+    <AuditContext.Provider value={audit}>
+      {children}
+      <ConflictToaster />
+    </AuditContext.Provider>
+  );
+}
+
+function AppProviders({ me, onLogout, children }: any) {
+  return (
+    <AuthProvider me={me} onLogout={onLogout}>
+      <FirmProvider>
+        <AuditProvider>{children}</AuditProvider>
+      </FirmProvider>
+    </AuthProvider>
+  );
+}
 Object.assign(window, {
   AuthContext, FirmContext, AuditContext, NavContext, NavFromContext,
   useAuth, useFirm, useAudit, useNav, useNavFrom, AppProviders, clearPersisted,

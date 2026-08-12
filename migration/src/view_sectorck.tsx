@@ -143,7 +143,6 @@ function SectorChecklistView() {
   );
 }
 
-Object.assign(window, { SectorChecklistView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -1,6 +1,6 @@
 # PRD — W-WTB·1 · Ingress Working Trial Balance Nyata (Paste/CSV)
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**
+> **Status:** **Draft** — menunggu sign-off ("Proceed.")
 > Penulis: AI (atas arahan Ari Widodo) · Tanggal: 2026-06-25
 > Modul terdampak: `view_execution.tsx` (WTBView), `contexts.tsx`, `data*.ts`, canon SSOT (read-only), server StateDoc + RBAC.
 

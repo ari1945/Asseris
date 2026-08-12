@@ -640,7 +640,6 @@ function ManagementLetter() {
   );
 }
 
-Object.assign(window, { ManagementLetter, ML_FINDINGS_SEED });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

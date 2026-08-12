@@ -244,7 +244,6 @@ function Review2400() {
   );
 }
 
-Object.assign(window, { NonAuditPortfolio, Review2400 });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

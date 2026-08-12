@@ -7,6 +7,9 @@ import { I } from './icons';
 import { SignoffDots } from './sa_canonical';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Tabs } from './ui';
+/* Tahap 8 — helper WP dibaca via ESM dari wp_canon (eager), bukan window.*
+   yang hanya terisi setelah chunk view_wp dimuat. */
+import { WP_REFS, deriveWpStatus, collectWpNotes, openCanonicalWp } from './wp_canon';
 
 /* ============================================================
    Asseris — SA 230 · Dokumentasi Audit
@@ -52,8 +55,8 @@ function useDocCanon() {
   const audit = useAudit();
   const firm = useFirm();
   const nav = useNav();
-  const refs = window.WP_REFS || [];
-  const derive = window.deriveWpStatus;
+  const refs = WP_REFS || [];
+  const derive = deriveWpStatus;
 
   return useMemoD2(() => {
     const rows = (derive ? refs.map((r: any) => derive(r.ref, audit, firm)) : []).filter(Boolean);
@@ -333,7 +336,7 @@ function D2SectionBars({ rows }: any) {
 function D2Atribut({ C }: any) {
   const { rows, agg, nav } = C;
   const [filter, setFilter] = useStateD2('all');
-  const open = (ref: any) => { if (window.openCanonicalWp) window.openCanonicalWp(nav, ref); else nav('workpapers'); };
+  const open = (ref: any) => { openCanonicalWp(nav, ref); };
 
   const filters = [
     { id: 'all', label: 'Semua', n: rows.length },
@@ -398,7 +401,7 @@ function D2Atribut({ C }: any) {
                       : <D2Tick ok={r.attr[a[0]]} />}
                   </td>
                 ))}
-                <td onClick={(e: any) => e.stopPropagation()}>{window.SignoffDots ? <SignoffDots signoff={r.signoff} /> : null}</td>
+                <td onClick={(e: any) => e.stopPropagation()}>{<SignoffDots signoff={r.signoff} />}</td>
                 <td>
                   <div className="row ac gap6">
                     <div className="pbar" style={{ flex: 1 }}><span style={{ width: r.attrPct + '%', background: r.attrPct === 100 ? 'var(--green)' : r.attrPct >= 60 ? 'var(--blue)' : 'var(--amber)' }} /></div>
@@ -455,7 +458,7 @@ function D2Signifikan({ C }: any) {
     return r ? r : null;
   };
   // catatan reviu (¶10 — diskusi hal signifikan)
-  const notes = (window.collectWpNotes ? window.collectWpNotes(audit.wpState || {}) : []).filter((n: any) => n.status === 'open');
+  const notes = collectWpNotes(audit.wpState || {}).filter((n: any) => n.status === 'open');
   const excRows = rows.filter((r: any) => r.exc > 0);
 
   // materialitas — basis pertimbangan (AMS_CANON)
@@ -481,7 +484,7 @@ function D2Signifikan({ C }: any) {
               {risks.map((rk: any) => {
                 const ls = leadStatus(rk.wp);
                 return (
-                  <tr key={rk.id} style={{ cursor: ls ? 'pointer' : 'default' }} onClick={() => ls && window.openCanonicalWp && window.openCanonicalWp(nav, ls.ref)}>
+                  <tr key={rk.id} style={{ cursor: ls ? 'pointer' : 'default' }} onClick={() => ls && openCanonicalWp(nav, ls.ref)}>
                     <td className="mono tiny" style={{ fontWeight: 700, color: 'var(--blue)', verticalAlign: 'top', paddingTop: 8 }}>
                       {rk.id}{rk.fraud && <div><Badge kind="red">Fraud</Badge></div>}
                     </td>
@@ -574,7 +577,7 @@ function D2Penyimpangan({ C, doc }: { C: any; doc: Sa230Doc }) {
       ref: '¶11', icon: 'link2', title: 'Inkonsistensi dengan Kesimpulan Akhir',
       desc: 'Bila informasi tidak konsisten dengan kesimpulan akhir mengenai hal signifikan, dokumentasikan bagaimana ketidaksesuaian itu ditangani.',
       body: inkonsistensi.length
-        ? <D2DepTable items={inkonsistensi} onOpen={(ref: any) => window.openCanonicalWp && window.openCanonicalWp(nav, ref)} />
+        ? <D2DepTable items={inkonsistensi} onOpen={(ref: any) => openCanonicalWp(nav, ref)} />
         : <D2Empty text="Tidak ada bukti yang bertentangan dengan kesimpulan akhir. Seluruh pengecualian telah direkonsiliasi & ditindaklanjuti ke SAD Ledger." />,
     },
     {
@@ -1036,7 +1039,6 @@ function D2LinkCard({ m, dir, onOpen }: any) {
   );
 }
 
-Object.assign(window, { SA230View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

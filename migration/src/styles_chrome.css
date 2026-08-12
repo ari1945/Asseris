@@ -467,6 +467,81 @@ body.dense .panel-body { padding: 10px 12px; }
 .seg button { height: 22px; padding: 0 10px; border: 0; background: transparent; border-radius: 4px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
 .seg button.on { background: var(--surface); color: var(--navy); box-shadow: var(--shadow-sm); }
 
+/* ---- Tahap 9 — kontrol form NATIVE (a11y). Input checkbox asli yang
+   distyle ulang sebagai switch; tetap fokusable, dioperasikan keyboard
+   (Space), dan mengumumkan state ke screen reader. Track/thumb murni
+   CSS; input tak terlihat secara visual tapi tak `display:none`. ---- */
+.switch-native {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+}
+.switch-native input {
+  position: absolute;
+  opacity: 0;
+  width: 38px;
+  height: 21px;
+  margin: 0;
+  cursor: pointer;
+  z-index: 1;               /* di atas track supaya klik mengenai input */
+}
+.switch-native .switch-native-track {
+  width: 38px;
+  height: 21px;
+  border-radius: 11px;
+  background: var(--line-strong);
+  position: relative;
+  flex: 0 0 38px;
+  transition: background .15s;
+  pointer-events: none;
+}
+.switch-native .switch-native-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  transition: left .15s;
+}
+.switch-native input:checked + .switch-native-track { background: var(--blue); }
+.switch-native input:checked + .switch-native-track::after { left: 19px; }
+.switch-native input:focus-visible + .switch-native-track {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.switch-native input:disabled + .switch-native-track { opacity: .5; }
+.switch-native input:disabled { cursor: not-allowed; }
+.switch-native-label { font-size: 12px; font-weight: 600; color: var(--ink); user-select: none; }
+
+/* Checkbox native — persis kotak kecil yang selama ini dibuat manual
+   dengan <span>; kini input checkbox asli (accentColor = warna brand). */
+.check-native {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.check-native input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--blue);
+  cursor: pointer;
+  flex: 0 0 16px;
+}
+.check-native input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.check-native input:disabled { cursor: not-allowed; opacity: .6; }
+.check-native-label { font-size: 12px; line-height: 1.4; color: var(--ink); }
+
 /* progress */
 .pbar { height: 6px; border-radius: 6px; background: var(--surface-3); overflow: hidden; }
 .pbar > span { display: block; height: 100%; border-radius: 6px; background: var(--blue-solid); }

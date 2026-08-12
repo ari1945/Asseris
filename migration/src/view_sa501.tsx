@@ -425,7 +425,6 @@ function F501Segment() {
   );
 }
 
-Object.assign(window, { SA501View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

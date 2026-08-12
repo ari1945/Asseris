@@ -122,6 +122,46 @@ function Seg({ options, value, onChange }: any) {
   );
 }
 
+/* ------------------------------------------------------------
+   Tahap 9 — kontrol FORM NATIVE (a11y).
+   Sebelumnya app memakai ribuan `<span onClick>` / `<div onClick>`
+   yang berpura-pura jadi switch/checkbox: tak fokusable, tak bisa
+   dioperasikan keyboard, dan buta bagi screen reader. Kontrol di
+   bawah ini memakai `<input type="checkbox">` ASLI yang hanya
+   distyle ulang (input tetap di DOM, focusable, dan mengumumkan
+   state-nya). `.switch-native` memvisualkan track/thumb via CSS
+   murni (tak ada elemen dekoratif di aksesibilitas-tree).
+   ------------------------------------------------------------ */
+function Switch({ on, onChange, disabled, label, title }: any) {
+  return (
+    <label className="switch-native" title={title}>
+      <input
+        type="checkbox"
+        role="switch"
+        checked={!!on}
+        disabled={disabled}
+        onChange={(e: any) => onChange && onChange(e.target.checked)}
+      />
+      <span className="switch-native-track" aria-hidden="true" />
+      {label != null && <span className="switch-native-label">{label}</span>}
+    </label>
+  );
+}
+
+function Check({ on, onChange, disabled, label, title }: any) {
+  return (
+    <label className="check-native" title={title}>
+      <input
+        type="checkbox"
+        checked={!!on}
+        disabled={disabled}
+        onChange={(e: any) => onChange && onChange(e.target.checked)}
+      />
+      {label != null && <span className="check-native-label">{label}</span>}
+    </label>
+  );
+}
+
 /* Placeholder block (striped) */
 function Placeholder({ label, height = 120, style }: any) {
   return <div className="placeholder" style={{ height, ...style }}>{label}</div>;
@@ -278,6 +318,7 @@ function StubView({ moduleId }: any) {
 Object.assign(window, {
   Badge, Btn, Portlet, Panel, Stat, Progress, Avatar, Tabs, Seg,
   Placeholder, Spark, MiniBars, Donut, Menu, StubView, LockBanner, AccessDenied,
+  Switch, Check,
 });
 
 /* Print the currently-visible document paper (.doc-paper) to PDF */window.amsPrintDoc = function () {
@@ -292,7 +333,7 @@ Object.assign(window, {
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
-export { AccessDenied, Avatar, Badge, Btn, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Tabs };
+export { AccessDenied, Avatar, Badge, Btn, Check, Donut, LockBanner, Menu, MiniBars, Panel, Placeholder, Portlet, Progress, Seg, Spark, Stat, StubView, Switch, Tabs };
 /* re-ekspor primitif overlay (implementasi di overlay.tsx) */
 export { Overlay, Z };
 export const amsPrintDoc = window.amsPrintDoc;

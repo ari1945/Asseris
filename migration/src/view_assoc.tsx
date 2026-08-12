@@ -206,7 +206,6 @@ function AssociatesEquity() {
   );
 }
 
-Object.assign(window, { AssociatesEquity });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

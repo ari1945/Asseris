@@ -1,5 +1,7 @@
 # PRD — AJE PR-A: SSOT Figur Entitas (benchmark SA 320 ditarik dari WTB)
 
+**Status:** **Implemented** — commit db41dca, branch feat/aje-pr-a-entity-figures
+
 **Tanggal:** 2026-07-26 · **Status:** ✅ **TERIMPLEMENTASI** — commit `db41dca`, branch `feat/aje-pr-a-entity-figures` (belum di-push)
 **Q1 DIPUTUSKAN (Ari, 2026-07-26): koherensi** — konstanta modul yang dikoreksi,
 seed WTB TIDAK diskalakan. Konsekuensi diterima: OM turun, tampilan demo bergeser.

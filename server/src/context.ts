@@ -4,6 +4,7 @@
 // server change; the header path keeps tests and curl simple.
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolveSession } from './auth/session';
+import { resolveClientIp } from './security/clientIp';
 import type { Context } from './trpc';
 
 function readToken(req: IncomingMessage): string | null {
@@ -32,7 +33,7 @@ export async function contextForToken(
 
 export async function createContext(opts: { req: IncomingMessage; res: ServerResponse }): Promise<Context> {
   const { req, res } = opts;
-  const ip = req.socket?.remoteAddress ?? null;
+  const ip = resolveClientIp(req);
   const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null;
   // W10 — let resolvers set the httpOnly session cookie on the shared response. appendHeader
   // preserves any cookie already queued on this (possibly batched) response.

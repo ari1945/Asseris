@@ -1,6 +1,6 @@
 # PRD — W11 · Perluasan TypeScript ke Lapisan Data (`.ts`)
 
-> Status: **DRAFT — menunggu "Proceed."** · Penulis: Claude (atas arahan Ari) · 2026-06-19
+> **Status:** **Implemented** — kanon kini .ts; lihat BUILD.md
 > Arc terkait: W5 (kanon→TS, selesai) · legacy window-strip (selesai) · memory `[[neosuite-ams-arc]]`
 
 ---

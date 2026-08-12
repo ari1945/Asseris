@@ -716,7 +716,6 @@ function EvConclusion({ items, verdict, avgScore, coverage, openContra, firm }: 
   );
 }
 
-Object.assign(window, { EvidenceEvaluation });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

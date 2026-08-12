@@ -3,11 +3,32 @@ import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
+import { MAX_STATE_DOC_BYTES, serializeStateDoc, StateDocTooLargeError } from '../payloadLimits';
 
 // W7 Fase 1 — state.* now require a session. Inject a Partner (all capabilities) so this
 // suite tests compare-and-swap, not authorization (that is authz.test.ts).
 const partner = { id: 'TEST-PARTNER', role: 'Engagement Partner' } as unknown as User;
 const caller = createCallerFactory(appRouter)({ user: partner, token: 'test' });
+
+describe('deployment payload limits', () => {
+  it('accepts a StateDoc at the byte ceiling and rejects one byte above it', () => {
+    const jsonOverhead = Buffer.byteLength('{"data":""}', 'utf8');
+    const atLimit = { data: 'x'.repeat(MAX_STATE_DOC_BYTES - jsonOverhead) };
+    expect(Buffer.byteLength(serializeStateDoc(atLimit), 'utf8')).toBe(MAX_STATE_DOC_BYTES);
+    expect(() => serializeStateDoc({ data: atLimit.data + 'x' })).toThrow(StateDocTooLargeError);
+  });
+
+  it('state.set returns PAYLOAD_TOO_LARGE before writing an oversized document', async () => {
+    const scopeId = 'TEST-ENG-LIMIT';
+    await prisma.stateDoc.deleteMany({ where: { scope: 'engagement', scopeId } });
+    await prisma.stateDocHistory.deleteMany({ where: { scope: 'engagement', scopeId } });
+    await expect(caller.state.set({
+      scope: 'engagement', scopeId, key: 'too-large',
+      value: { data: 'x'.repeat(MAX_STATE_DOC_BYTES) }, baseVersion: 0,
+    })).rejects.toMatchObject({ code: 'PAYLOAD_TOO_LARGE' });
+    expect(await prisma.stateDoc.count({ where: { scope: 'engagement', scopeId } })).toBe(0);
+  });
+});
 
 describe('StateDoc optimistic-concurrency (compare-and-swap)', () => {
   const scope = 'engagement' as const;

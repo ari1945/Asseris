@@ -1,6 +1,6 @@
 # PRD — Isolasi Data Personal (Privacy) & Halaman "Data Personal Saya"
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")** · Penulis: Claude (untuk Ari Widodo) · Tanggal: 2026-07-05
+> **Status:** **Draft** — menunggu sign-off ("Proceed.")
 > Terkait memory: `asseris-firm-people-gap-matrix`, `asseris-nav-beranda-restructure`, `asseris-authoritative-persist-key-recipe`, `neosuite-ams-w7-5-isolation`.
 
 ---

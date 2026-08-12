@@ -5,6 +5,10 @@ import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Panel, Progress, Overlay } from './ui';
+/* Tahap 8 — registri standar kini di data_knowledge (eager); dibaca lewat
+   ESM, bukan window.STANDARDS_REGISTRY yang hanya terisi setelah chunk
+   Matriks Kepatuhan dimuat. */
+import { STANDARDS_REGISTRY } from './data_knowledge';
 
 /* ============================================================
    Asseris — Knowledge Base (modul mendalam)
@@ -223,7 +227,7 @@ function KBCard({ a, onOpen }: any) {
 /* ---------- pembaca artikel (mendalam, tarikan lintas-modul) ---------- */
 function ArticleReader({ code, onClose, onOpenCode }: any) {
   const nav = useNav();
-  const reg = (window.STANDARDS_REGISTRY || []).find((r: any) => r.code === code);
+  const reg = STANDARDS_REGISTRY.find((r: any) => r.code === code);
   /* PRD Fase A — handler Escape lokal DICABUT: kini disediakan <Overlay>
      (bersama focus trap, restore fokus, scroll lock, dan semantik dialog). */
   if (!reg) return null;
@@ -237,7 +241,7 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
 
   /* rujukan-silang standar: dari RELATED_SA[module] → cocokkan ke registri; fallback serumpun */
   const relatedRaw = (window.RELATED_SA || {})[reg.module] || [];
-  const REG = window.STANDARDS_REGISTRY || [];
+  const REG = STANDARDS_REGISTRY;
   const seen = { [reg.code]: 1 };
   let related: any[] = [];
   relatedRaw.forEach((r: any) => {
@@ -394,7 +398,6 @@ function ArticleReader({ code, onClose, onOpenCode }: any) {
   );
 }
 
-Object.assign(window, { KnowledgeBase, KBCard, ArticleReader });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

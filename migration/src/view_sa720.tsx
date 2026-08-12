@@ -419,7 +419,6 @@ function F720Status({ docs }: { docs: OiDoc[] }) {
   );
 }
 
-Object.assign(window, { SA720View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

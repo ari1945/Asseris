@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-02 |
 | Pemilik | Ari Widodo |
-| Status | Implemented — code-complete, `fmt`/`init`/`validate`/`plan`(validasi variabel) teruji nyata; `terraform apply` thd AWS asli belum (tak ada kredensial) |
+| Status | **Implemented** — code-complete; terraform apply thd AWS asli belum (tak ada kredensial) |
 | Engagement ID terkait | — (infra deploy single-tenant, bukan engagement klien) |
 | Keputusan terkunci (AskUserQuestion) | Tool = **Terraform**. Cakupan = **pilot EC2 single-box saja** (bukan jalur produksi App Runner+RDS+CloudFront). |
 

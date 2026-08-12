@@ -1,6 +1,6 @@
 # PRD — Mutu Firma: Evaluasi Tahunan SOQM (Q-01) + Independensi & Rotasi (Q-03)
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track "Mutu firma" dari [[asseris-gap-matrix-eval]] (lanjutan quick-win commit `138d7d6`).
 > Acuan gap: `Asseris - Matriks Gap SAK SPAP ISQM.xlsx` temuan **Q-01 (ISQM 1)** & **Q-03 (ISQM 1 / Kode Etik IAPI)** — keduanya severitas **Tinggi**.
 > Sifat artefak: **level FIRMA** (bukan engagement-WP) → TIDAK memakai `wpState`/`WP_MODULE_MAP`; memakai `useAmsPersist` (server-backed pasca-W6), pola sama `soqmRisks`.

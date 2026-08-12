@@ -167,5 +167,4 @@ function MemberIndependence() {
   );
 }
 
-Object.assign(window, { MemberIndependence });
 export { MemberIndependence };

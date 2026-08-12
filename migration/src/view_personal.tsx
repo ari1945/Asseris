@@ -464,6 +464,5 @@ function DataPersonalSaya() {
   );
 }
 
-Object.assign(window, { DataPersonalSaya });
 
 export { DataPersonalSaya };

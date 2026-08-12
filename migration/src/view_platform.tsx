@@ -443,7 +443,6 @@ function RoutingRulesModal({ onClose }: any) {
   );
 }
 
-Object.assign(window, { Approvals });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -456,7 +456,6 @@ function FirmAPAR() {
   );
 }
 
-Object.assign(window, { FirmGL, FirmAPAR });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

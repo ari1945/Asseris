@@ -706,7 +706,6 @@ function SOConclusion({ orgs }: { orgs: ServiceOrgRow[] }) {
   );
 }
 
-Object.assign(window, { ServiceOrg });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

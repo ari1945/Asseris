@@ -1,6 +1,6 @@
 # PRD — SA 250 Auditable: Register NOCLAR ter-persist + Sign-off & Kesimpulan SA 230
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: lanjutan remediasi gap dari [[asseris-gap-matrix-eval]] — track **"jadikan modul display-only auditable"** (bukan bangun modul baru).
 > Acuan gap: matriks auditor menandai SA 250 "absen"; **verifikasi 23 Jun membuktикan keliru** — `SA250View` ([view_sa2comm.tsx:36](migration/src/view_sa2comm.tsx)) sudah ada & kaya, tetapi **display-only**. Gap nyata = belum auditable.
 > Sifat artefak: **level ENGAGEMENT** (ketidakpatuhan spesifik klien) → memakai `wpState`/`WP_MODULE_MAP` (engagement-scoped) + `useAmsPersist('…<engId>')` — **bukan** firm-scope (beda dari track Mutu Firma).

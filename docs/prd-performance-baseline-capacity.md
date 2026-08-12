@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-03 |
 | Pemilik | Ari Widodo |
-| Status | **Implemented** — seluruh Fase 1-7 dieksekusi & live-verified thd stack Docker lokal 2026-07-03. Hasil: `docs/DEPLOY.md` §19. |
+| Status | **Implemented** — Fase 1–7 dieksekusi & live-verified 2026-07-03 |
 | Engagement ID terkait | — (infra/deploy-readiness, bukan engagement klien) |
 | Keputusan terkunci (AskUserQuestion sesi ini) | Volume WTB uji = **skenario grup/konsolidasi ~5.000+ baris** (bukan rentang bertingkat). Ambang SLA = **p95 baca <1dtk, p95 tulis <2dtk**. Lingkungan uji = **lanjutkan WSL Docker Compose dengan cap CPU/RAM meniru t3.small** (konsisten `docs/DEPLOY.md` §12.3), BUKAN EC2 nyata. Dimensi kapasitas = **staf konkuren DAN volume data/jumlah perikatan aktif** (keduanya). |
 

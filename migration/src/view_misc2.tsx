@@ -280,7 +280,6 @@ function TemplateDetail({ t, onClose }: any) {
   );
 }
 
-Object.assign(window, { Templates });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

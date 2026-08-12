@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-08-07 |
 | Pemilik | Ari Widodo |
-| Status | **Seluruh open question TERJAWAB (2026-08-07) — menunggu "Proceed."** |
+| Status | **Draft** — open question TERJAWAB — menunggu "Proceed." |
 | Modul | `workpapers` (`migration/src/view_wp.tsx`, `wp_canon.ts`, `server/src/signoff.ts`) |
 | Engagement ID terkait | ENG-2025-014 (data demo) |
 | PRD terkait | `prd-aje-immutability-live-approvals.md` (pola yang dipakai ulang) · `prd-overlay-contract-and-addressable-objects.md` (Fase C) |

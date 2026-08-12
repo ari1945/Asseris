@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAmsPersist } from './contexts';
 import { I } from './icons';
-import { Badge, Btn, Panel } from './ui';
+import { Badge, Btn, Check, Panel } from './ui';
 
 /* ============================================================
    Asseris — PSAK 14 · Kertas Kerja NRV per-SKU (WP C-2)
@@ -173,7 +173,8 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
                   <Num v={it.bookedWD ? sc(it.bookedWD) : '—'} dim />
                   <Num v={issue ? sc(it.shortfall) : '—'} b c={issue ? 'var(--red)' : 'var(--green)'} />
                   <td style={{ textAlign: 'center', padding: '7px 8px' }}>
-                    <span onClick={() => toggleSample(it.code)} role="checkbox" aria-checked={inSample} style={{ display: 'inline-grid', placeItems: 'center', width: 17, height: 17, borderRadius: 4, cursor: 'pointer', border: '1.5px solid ' + (inSample ? 'var(--blue)' : 'var(--line-strong)'), background: inSample ? 'var(--blue)' : '#fff' }}>{inSample && <I.check size={11} style={{ color: '#fff' }} />}</span>
+                    {/* Tahap 9 — checkbox native (input asli, keyboard-operable). */}
+                    <Check on={inSample} onChange={() => toggleSample(it.code)} />
                   </td>
                   <td style={{ textAlign: 'center', padding: '7px 8px' }}>
                     <button onClick={() => toggleExc(it.code)} style={{ cursor: 'pointer', border: 0, background: 'none', padding: 0 }}>
@@ -224,7 +225,6 @@ function NRVWorkingPaper({ inv, sc, fmt, nav, ctt, pm }: any) {
   );
 }
 
-Object.assign(window, { NRVWorkingPaper });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

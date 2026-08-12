@@ -1,4 +1,6 @@
 ---
+
+**Status:** **Implemented** — SELESAI — sign-off "Proceed.", terverifikasi live
 title: PRD — Pendalaman WTB / AJE / Working Papers untuk Pengujian Asersi Manajemen
 status: SELESAI (2026-06-25) — di-sign-off "Proceed."; gate typecheck/lint/181 test hijau, terverifikasi live
 owner: Ari Widodo

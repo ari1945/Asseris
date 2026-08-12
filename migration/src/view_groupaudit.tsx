@@ -554,7 +554,6 @@ function GAFindings({ findings, totalSad, fmt, groupMat }: any) {
   );
 }
 
-Object.assign(window, { GroupAudit });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

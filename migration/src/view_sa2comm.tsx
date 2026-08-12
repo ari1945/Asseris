@@ -804,7 +804,6 @@ function S265Comms({ sig, defs }: { sig: number; defs: Deficiency[] }) {
   );
 }
 
-Object.assign(window, { SA250View, SA260View, SA265View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -9,7 +9,7 @@
 |---|---|
 | Tanggal | 2026-06-19 |
 | Pemilik | Ari Widodo |
-| Status | **DRAFT — menunggu sign-off** |
+| Status | **In Progress** — seed & adapters siap; connector Coretax live (prd-w9-coretax-connector) |
 | Engagement ID terkait | (lintas-engagement; firma-ops; demo `ENG-2025-014`) |
 
 ---

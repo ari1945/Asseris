@@ -1,0 +1,7 @@
+{
+  "name": "asseris-audit-system",
+  "private": true,
+  "scripts": {
+    "verify": "node tools/verify.mjs"
+  }
+}

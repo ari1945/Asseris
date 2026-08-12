@@ -3,10 +3,11 @@ import type { User } from '@prisma/client';
 import { appRouter } from '../router';
 import { createCallerFactory } from '../trpc';
 import { prisma } from '../db';
-import { redactFindings, buildNarrationPrompt, type InboundFinding } from '../llm/redact';
+import { redactFindings, redactFindingsWithReport, buildNarrationPrompt, type InboundFinding } from '../llm/redact';
 import { complete } from '../llm/providers';
 import { readLlmConfig } from '../llm/config';
 import { rateLimit, resetRateLimits } from '../llm/ratelimit';
+import { resetLlmConsents } from '../llm/consent';
 
 // Same injection trick as authz.test.ts — RBAC/usage gates read only ctx.user.{id,role}.
 function callerAs(role: string, id = `U-${role}`) {
@@ -14,6 +15,13 @@ function callerAs(role: string, id = `U-${role}`) {
   return createCallerFactory(appRouter)({ user, token: 'test' });
 }
 const anon = createCallerFactory(appRouter)({ user: null, token: null });
+
+async function completeWithConsent(caller: ReturnType<typeof callerAs>, findings: InboundFinding[]) {
+  const preview = await caller.llm.preview({ task: 'narrate-diagnostics', findings });
+  return caller.llm.complete({
+    task: 'narrate-diagnostics', findings, consent: true, consentId: preview.consentId,
+  });
+}
 
 // A fetch double that records the outgoing request and returns a canned provider response.
 function mockFetch(body: unknown, ok = true, status = 200) {
@@ -45,6 +53,7 @@ function clearEnv() {
 afterEach(() => {
   vi.restoreAllMocks();
   resetRateLimits();
+  resetLlmConsents();
   clearEnv();
 });
 
@@ -84,6 +93,22 @@ describe('redaction (egress boundary)', () => {
     expect(system).toContain('Kantor Akuntan Publik');
     expect(user).toContain('5 jurnal manual ≥3 kriteria');
     expect(user).toContain('SA 240 ¶32');
+  });
+
+  it('semantically redacts nominal, journal id, NPWP, and party names embedded in prose', () => {
+    const dirty: InboundFinding[] = [{
+      ...SAMPLE[0],
+      title: 'AJE-05 milik PT Rahasia senilai Rp 2.000.000',
+      detail: 'NPWP 01.234.567.8-901.000 dibayar kepada Dewi Anggraini.',
+    }];
+    const { findings, redactions } = redactFindingsWithReport(dirty);
+    const serialized = JSON.stringify(findings);
+    expect(serialized).toContain('[ID_JURNAL]');
+    expect(serialized).toContain('[NOMINAL]');
+    expect(serialized).toContain('[NPWP]');
+    expect(serialized).toContain('[NAMA_PIHAK]');
+    expect(serialized).not.toMatch(/AJE-05|PT Rahasia|2\.000\.000|Dewi Anggraini/);
+    expect(redactions).toEqual({ nominal: 1, journalId: 1, npwp: 1, partyName: 2 });
   });
 });
 
@@ -134,7 +159,8 @@ describe('rate limit (per-user fixed window)', () => {
 describe('llm router (auth + RBAC + degradation + egress)', () => {
   it('anonymous → UNAUTHORIZED', async () => {
     await expect(anon.llm.status()).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
-    await expect(anon.llm.complete({ task: 'narrate-diagnostics', findings: SAMPLE })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    await expect(anon.llm.preview({ task: 'narrate-diagnostics', findings: SAMPLE })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    await expect(anon.llm.complete({ task: 'narrate-diagnostics', findings: SAMPLE, consent: true, consentId: 'x'.repeat(16) })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
   });
 
   it('no key set → status.configured=false and complete returns not-configured (graceful)', async () => {
@@ -142,27 +168,42 @@ describe('llm router (auth + RBAC + degradation + egress)', () => {
     const st = await callerAs('Audit Manager').llm.status();
     expect(st.configured).toBe(false);
     expect(st.canUse).toBe(true);
-    const r = await callerAs('Audit Manager', 'U-nc').llm.complete({ task: 'narrate-diagnostics', findings: SAMPLE });
+    const r = await completeWithConsent(callerAs('Audit Manager', 'U-nc'), SAMPLE);
     expect(r).toEqual({ status: 'not-configured' });
   });
 
   it('deny-by-default: an unknown/unprivileged role → FORBIDDEN', async () => {
     process.env.LLM_API_KEY = 'k';
     await expect(
-      callerAs('Observer', 'U-obs').llm.complete({ task: 'narrate-diagnostics', findings: SAMPLE }),
+      callerAs('Observer', 'U-obs').llm.preview({ task: 'narrate-diagnostics', findings: SAMPLE }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+
+  it('refuses provider egress without a matching, one-use preview consent receipt', async () => {
+    process.env.LLM_API_KEY = 'k';
+    const caller = callerAs('Audit Manager', 'U-consent');
+    await expect(caller.llm.complete({
+      task: 'narrate-diagnostics', findings: SAMPLE, consent: true, consentId: 'x'.repeat(16),
+    })).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+    const preview = await caller.llm.preview({ task: 'narrate-diagnostics', findings: SAMPLE });
+    const changed = [{ ...SAMPLE[0], title: 'payload changed' }];
+    await expect(caller.llm.complete({
+      task: 'narrate-diagnostics', findings: changed, consent: true, consentId: preview.consentId,
+    })).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
   });
 
   it('configured + granted role → narration text, and egress carries no smuggled identifiers', async () => {
     process.env.LLM_API_KEY = 'k';
     const m = mockFetch(ANTHROPIC_OK);
     vi.stubGlobal('fetch', m.fn);
-    const dirty = [{ ...SAMPLE[0], clientName: 'PT Rahasia', npwp: '01.234.567.8-901.000' }] as unknown as InboundFinding[];
-    const r = await callerAs('Junior Auditor', 'U-jr').llm.complete({ task: 'narrate-diagnostics', findings: dirty });
+    const dirty = [{ ...SAMPLE[0], title: 'AJE-05 PT Rahasia Rp 2.000.000', detail: 'NPWP 01.234.567.8-901.000' }] as InboundFinding[];
+    const r = await completeWithConsent(callerAs('Junior Auditor', 'U-jr'), dirty);
     expect(r).toMatchObject({ status: 'ok', text: 'Narasi ringkas temuan.', provider: 'anthropic' });
     const sentBody = String(m.calls[0].init.body);
     expect(sentBody).not.toContain('PT Rahasia');
     expect(sentBody).not.toContain('01.234.567.8-901.000');
+    expect(sentBody).not.toContain('2.000.000');
+    expect(sentBody).toContain('[NOMINAL]');
     vi.unstubAllGlobals();
   });
 
@@ -170,7 +211,7 @@ describe('llm router (auth + RBAC + degradation + egress)', () => {
     process.env.LLM_API_KEY = 'k';
     const m = mockFetch(ANTHROPIC_OK);
     vi.stubGlobal('fetch', m.fn);
-    await callerAs('Senior Auditor', 'U-audit').llm.complete({ task: 'narrate-diagnostics', findings: SAMPLE });
+    await completeWithConsent(callerAs('Senior Auditor', 'U-audit'), SAMPLE);
     vi.unstubAllGlobals();
     const ev = await prisma.llmEvent.findFirst({ where: { userId: 'U-audit', kind: 'NARRATE' } });
     expect(ev).not.toBeNull();

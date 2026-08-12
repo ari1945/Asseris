@@ -365,7 +365,6 @@ function ATL_Chart({ mode, groups, plan, months, frac, today, done, onOpen }: an
   );
 }
 
-Object.assign(window, { AuditTimeline });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

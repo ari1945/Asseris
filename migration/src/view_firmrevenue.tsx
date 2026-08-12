@@ -266,7 +266,6 @@ function RecognitionDrill({ r, onClose }: any) {
   );
 }
 
-Object.assign(window, { FirmRevenue });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

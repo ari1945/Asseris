@@ -51,3 +51,33 @@ jobs:
       - run: npm run typecheck:test
       - run: npm test
       - run: npm run build
+      # Tahap 8 — gerbang budget bundle: entry utama ≤ 1.500 KB pre-gzip,
+      # library berat (xlsx/jspdf/qrcode/html2canvas) tetap chunk on-demand.
+      - run: node scripts/check-bundle.mjs
+        working-directory: migration
+
+  # Tahap 7 — coverage CI bertahap untuk tujuh area kunci server. Threshold per-area
+  # hidup di server/vitest.config.ts (baseline diukur 2026-08-12; rencana kenaikan:
+  # BUILD.md › Tahap 7). coverage-summary.json di-upload agar tren bisa dipantau.
+  server-coverage:
+    name: server coverage (auth · rbac · isolation · statedoc · audit · attachment · integration)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      # test:coverage = prisma generate && vitest run --coverage (globalSetup mem-push
+      # schema ke test.db sqlite terisolasi, sama seperti job server biasa).
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server-coverage-summary
+          path: server/coverage/coverage-summary.json
+          if-no-files-found: error

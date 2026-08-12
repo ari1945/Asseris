@@ -584,7 +584,6 @@ function IAConclusion({ verdict }: any) {
   );
 }
 
-Object.assign(window, { InternalAudit });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

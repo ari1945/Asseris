@@ -819,7 +819,6 @@ function ExpConclusion({ experts, avgOf }: any) {
 /* Service Org (SA 402) lives in view_serviceorg.jsx — deep workpaper */
 /* Opening Balance (SA 510) lives in view_opening.jsx — deep workpaper */
 
-Object.assign(window, { UseOfExpert });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

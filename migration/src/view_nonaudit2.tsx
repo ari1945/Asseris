@@ -163,7 +163,6 @@ function NAReport({ kind, engId, onClose }: any) {
   );
 }
 
-Object.assign(window, { NAReport });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

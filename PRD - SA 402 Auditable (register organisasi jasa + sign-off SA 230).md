@@ -1,6 +1,6 @@
 # PRD — SA 402 Auditable: Register Organisasi Jasa ter-persist + Sign-off & Kesimpulan SA 230
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **"jadikan modul display-only auditable"** dari [[asseris-gap-matrix-eval]] — **pola terbukti PR#7/#8/#9** (SA 250/620/260/265). Ini repetisi ke-5.
 > Acuan gap: `ServiceOrg` ([view_serviceorg.tsx](migration/src/view_serviceorg.tsx)) sudah ada & kaya (5 tab) tetapi **murni display-only** (const hardcoded, tanpa `setData`); ada **sign-off fiktif** + **narasi kesimpulan hardcoded**.
 > Sifat artefak: **level ENGAGEMENT** → `wpState`/`WP_MODULE_MAP` + `useAmsPersist('serviceorgs.<engId>')`.

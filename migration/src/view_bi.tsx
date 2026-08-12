@@ -226,7 +226,6 @@ function FirmBI() {
   );
 }
 
-Object.assign(window, { FirmBI, BIChart });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

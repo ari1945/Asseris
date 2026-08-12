@@ -215,7 +215,6 @@ function ImportMappingPanel({ reg, fmt, nav }: any) {
   );
 }
 
-Object.assign(window, { AssetRegisterTable, SubLedgerRecon, ImportMappingPanel });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

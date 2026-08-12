@@ -489,7 +489,6 @@ function IntegrationDetail({ it, onToggle }: any) {
   );
 }
 
-Object.assign(window, { Integrations });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

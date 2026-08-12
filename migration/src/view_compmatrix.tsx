@@ -4,6 +4,10 @@ import { useNav } from './contexts';
 import { I, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn, Progress } from './ui';
+/* Tahap 8 — registri standar pindah ke data_knowledge (eager) agar view_kb dan
+   data_knowledge memakainya via ESM, bukan window.* yang hanya terisi setelah
+   chunk Matriks dimuat. Di-re-export untuk kompatibilitas. */
+import { STANDARDS_REGISTRY } from './data_knowledge';
 
 /* ============================================================
    Asseris — Matriks Kepatuhan (Standards Register / Index)
@@ -45,89 +49,6 @@ const IFRS_ALIAS = {
 };
 
 /* coverage: 'checklist' (punya COMPLIANCE_CONFIG) | 'module' (modul fungsional) | 'gap' (belum) */
-const STANDARDS_REGISTRY = [
-  // ——— SA 200: Tanggung jawab umum ———
-  { code: 'SA 200', title: 'Tujuan Keseluruhan Auditor Independen', type: 'SA', phase: 'Perencanaan', coverage: 'module', module: 'sa200' },
-  { code: 'SA 210', title: 'Persetujuan Ketentuan Perikatan Audit', type: 'SA', phase: 'Perencanaan', coverage: 'module', module: 'engagement' },
-  { code: 'SA 220', title: 'Pengendalian Mutu untuk Audit LK', type: 'SA', phase: 'Mutu', coverage: 'module', module: 'soqm' },
-  { code: 'SA 230', title: 'Dokumentasi Audit', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'sa230' },
-  { code: 'SA 240', title: 'Tanggung Jawab atas Kecurangan (Fraud)', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'sa240' },
-  { code: 'SA 250', title: 'Hukum & Regulasi dalam Audit LK', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'sa250' },
-  { code: 'SA 260', title: 'Komunikasi dengan TCWG', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa260' },
-  { code: 'SA 265', title: 'Defisiensi Pengendalian Internal', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa265' },
-  // ——— SA 300/400: Penilaian & respons risiko ———
-  { code: 'SA 300', title: 'Perencanaan Audit LK', type: 'SA', phase: 'Perencanaan', coverage: 'module', module: 'strategy' },
-  { code: 'SA 315', title: 'Identifikasi & Penilaian ROMM', type: 'SA', phase: 'Perencanaan', coverage: 'module', module: 'risk' },
-  { code: 'SA 320', title: 'Materialitas dalam Perencanaan & Pelaksanaan', type: 'SA', phase: 'Perencanaan', coverage: 'module', module: 'materiality' },
-  { code: 'SA 330', title: 'Respons Auditor terhadap Risiko', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'workpapers' },
-  { code: 'SA 402', title: 'Pertimbangan Audit atas Organisasi Jasa', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'serviceorg' },
-  { code: 'SA 450', title: 'Evaluasi Salah Saji', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sad' },
-  // ——— SA 500: Bukti audit ———
-  { code: 'SA 500', title: 'Bukti Audit', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'evidence' },
-  { code: 'SA 501', title: 'Bukti Audit \u2014 Unsur Tertentu', type: 'SA', phase: 'Pelaksanaan', coverage: 'checklist', module: 'sa501' },
-  { code: 'SA 505', title: 'Konfirmasi Eksternal', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'confirm' },
-  { code: 'SA 510', title: 'Perikatan Audit Tahun Pertama \u2014 Saldo Awal', type: 'SA', phase: 'Perencanaan', coverage: 'module', module: 'opening' },
-  { code: 'SA 520', title: 'Prosedur Analitis', type: 'SA', phase: 'Pelaksanaan', coverage: 'checklist', module: 'sa520' },
-  { code: 'SA 530', title: 'Sampling Audit', type: 'SA', phase: 'Pelaksanaan', coverage: 'checklist', module: 'sa530' },
-  { code: 'SA 540', title: 'Audit Estimasi Akuntansi', type: 'SA', phase: 'Pelaksanaan', coverage: 'checklist', module: 'sa540' },
-  { code: 'SA 550', title: 'Pihak Berelasi', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'related' },
-  { code: 'SA 560', title: 'Peristiwa Kemudian', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'subsequent' },
-  { code: 'SA 570', title: 'Kelangsungan Usaha', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'goingconcern' },
-  { code: 'SA 580', title: 'Representasi Tertulis', type: 'SA', phase: 'Pelaporan', coverage: 'checklist', module: 'sa580' },
-  // ——— SA 600: Penggunaan pekerjaan pihak lain ———
-  { code: 'SA 600', title: 'Audit Grup (Komponen)', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'groupaudit' },
-  { code: 'SA 610', title: 'Penggunaan Pekerjaan Auditor Internal', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'internalaudit' },
-  { code: 'SA 620', title: 'Penggunaan Pekerjaan Pakar Auditor', type: 'SA', phase: 'Pelaksanaan', coverage: 'module', module: 'expert' },
-  // ——— SA 700: Kesimpulan & pelaporan ———
-  { code: 'SA 700', title: 'Perumusan Opini & Pelaporan atas LK', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'opinion' },
-  { code: 'SA 701', title: 'Hal Audit Utama (KAM)', type: 'SA', phase: 'Pelaporan', coverage: 'checklist', module: 'sa701' },
-  { code: 'SA 705', title: 'Modifikasi Opini Auditor Independen', type: 'SA', phase: 'Pelaporan', coverage: 'checklist', module: 'sa705' },
-  { code: 'SA 706', title: 'Paragraf Penekanan Suatu Hal & Hal Lain', type: 'SA', phase: 'Pelaporan', coverage: 'checklist', module: 'sa705' },
-  { code: 'SA 710', title: 'Informasi Komparatif', type: 'SA', phase: 'Pelaporan', coverage: 'checklist', module: 'sa710' },
-  { code: 'SA 720', title: 'Informasi Lain dalam Laporan Tahunan', type: 'SA', phase: 'Pelaporan', coverage: 'checklist', module: 'sa720' },
-  // ——— SA 800: Area khusus ———
-  { code: 'SA 800', title: 'Audit LK Kerangka Bertujuan Khusus', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa800' },
-  { code: 'SA 805', title: 'Audit LK Tunggal & Elemen Tertentu', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa805' },
-  { code: 'SA 810', title: 'Perikatan Pelaporan atas Ringkasan LK', type: 'SA', phase: 'Pelaporan', coverage: 'module', module: 'sa810' },
-  // ——— Mutu firma & etika ———
-  { code: 'SPM 1', title: 'Pengelolaan Mutu (SOQM)', type: 'SPM', phase: 'Mutu', coverage: 'module', module: 'governance' },
-  { code: 'SPM 2', title: 'Reviu Pengendalian Mutu Perikatan (EQR)', type: 'SPM', phase: 'Mutu', coverage: 'module', module: 'eqr' },
-  { code: 'KEPAP', title: 'Kode Etik Profesi Akuntan Publik — Independensi & Etika', type: 'KEPAP', phase: 'Mutu', coverage: 'module', module: 'governance' },
-  // ——— Perikatan selain audit ———
-  { code: 'SPR 2400', title: 'Perikatan Reviu atas LK Historis', type: 'SPR', phase: 'Perikatan Lain', coverage: 'module', module: 'spr2400' },
-  { code: 'SPR 2410', title: 'Reviu atas Informasi Keuangan Interim', type: 'SPR', phase: 'Perikatan Lain', coverage: 'module', module: 'spr2410' },
-  { code: 'SPA 4400', title: 'Perikatan Prosedur yang Disepakati', type: 'SPA', phase: 'Perikatan Lain', coverage: 'module', module: 'relatedsvc' },
-  { code: 'SPA 4410', title: 'Perikatan Kompilasi', type: 'SPA', phase: 'Perikatan Lain', coverage: 'module', module: 'relatedsvc' },
-  { code: 'SJAH 3000', title: 'Perikatan Asurans selain Audit/Reviu', type: 'SJAH', phase: 'Perikatan Lain', coverage: 'module', module: 'sjah3000' },
-  { code: 'SJAH 3400', title: 'Pemeriksaan Informasi Keuangan Prospektif', type: 'SJAH', phase: 'Perikatan Lain', coverage: 'module', module: 'sjah3400' },
-  { code: 'SJAH 3402', title: 'Laporan Asurans atas Pengendalian Organisasi Jasa', type: 'SJAH', phase: 'Perikatan Lain', coverage: 'module', module: 'sjah3402' },
-  { code: 'SJAH 3410', title: 'Perikatan Asurans atas Laporan Emisi Gas Rumah Kaca', type: 'SJAH', phase: 'Perikatan Lain', coverage: 'module', module: 'sjah3410' },
-  { code: 'SJAH 3420', title: 'Asurans atas Penyusunan Informasi Keuangan Proforma', type: 'SJAH', phase: 'Perikatan Lain', coverage: 'module', module: 'sjah3420' },
-  // ——— Kerangka akuntansi (PSAK) ———
-  { code: 'PSAK 1', title: 'Penyajian Laporan Keuangan', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak1' },
-  { code: 'PSAK 2', title: 'Laporan Arus Kas', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak2' },
-  { code: 'PSAK 7', title: 'Pengungkapan Pihak Berelasi', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'related' },
-  { code: 'PSAK 8', title: 'Peristiwa Setelah Periode Pelaporan', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'subsequent' },
-  { code: 'PSAK 5', title: 'Segmen Operasi', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'segmen' },
-  { code: 'PSAK 13', title: 'Properti Investasi', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'invprop' },
-  { code: 'PSAK 15', title: 'Investasi pada Entitas Asosiasi & Ventura Bersama', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'assoc' },
-  { code: 'PSAK 14', title: 'Persediaan', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak14' },
-  { code: 'PSAK 16', title: 'Aset Tetap', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak16' },
-  { code: 'PSAK 19', title: 'Aset Takberwujud', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak19' },
-  { code: 'PSAK 22', title: 'Kombinasi Bisnis', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak22' },
-  { code: 'PSAK 24', title: 'Imbalan Kerja', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak24' },
-  { code: 'PSAK 25', title: 'Kebijakan Akuntansi, Perubahan Estimasi & Kesalahan', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak25' },
-  { code: 'PSAK 46', title: 'Pajak Penghasilan', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak46' },
-  { code: 'PSAK 58', title: 'Aset Dimiliki untuk Dijual & Operasi Dihentikan', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak58' },
-  { code: 'PSAK 66', title: 'Pengaturan Bersama (Joint Arrangements)', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak66' },
-  { code: 'PSAK 71', title: 'Instrumen Keuangan', type: 'PSAK', phase: 'Akuntansi', coverage: 'checklist', module: 'psak71' },
-  { code: 'PSAK 72', title: 'Pendapatan dari Kontrak dengan Pelanggan', type: 'PSAK', phase: 'Akuntansi', coverage: 'checklist', module: 'psak72' },
-  { code: 'PSAK 73', title: 'Sewa', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak73' },
-  { code: 'SAK EP', title: 'SAK Entitas Privat (pengganti SAK ETAP)', type: 'SAK', phase: 'Akuntansi', coverage: 'checklist', module: 'sakep' },
-  { code: 'PSAK 65', title: 'Laporan Keuangan Konsolidasian', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak65' },
-  { code: 'PSAK 68', title: 'Pengukuran Nilai Wajar', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak68' },
-  { code: 'PSAK 48/57', title: 'Penurunan Nilai Aset & Provisi', type: 'PSAK', phase: 'Akuntansi', coverage: 'module', module: 'psak48' },
-];
 
 const COV_META = {
   checklist: { label: 'Checklist', kind: 'green' },
@@ -285,6 +206,7 @@ function ComplianceMatrix() {
                         )}
                       </div>
                       <button onClick={(e: any) => { e.stopPropagation(); toggleAppl(r.code); }} title="Tandai keberlakuan untuk engagement aktif"
+                        aria-pressed={!na}
                         className="chip" style={{ cursor: 'pointer', height: 22, fontWeight: 700, border: '1px solid ' + (na ? 'var(--line-strong)' : 'var(--green)'), background: na ? 'var(--surface-3)' : 'var(--green-bg)', color: na ? 'var(--ink-4)' : 'var(--green)' }}>
                         {na ? 'N/A' : 'Berlaku'}
                       </button>

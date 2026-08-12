@@ -555,7 +555,6 @@ function GAElimReview({ p65, fmt, nav, elimVerify, setElimVerify, procDone, setP
 
 /* ===== TAB 5 — TEMUAN TERAGREGASI & KESIMPULAN ================ */
 
-Object.assign(window, { GAPackages, GAConsol, GAElimReview });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

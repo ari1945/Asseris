@@ -1,6 +1,6 @@
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useFirm, useNav, useAmsPersist } from './contexts';
+import { useAudit, useAuditHeavy, useFirm, useNav, useAmsPersist } from './contexts';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacitySeed } from './canon_capacity';
 import { useFirmWip } from './use_firm_wip';
@@ -159,7 +159,7 @@ function HcPerhatian({ items, nav, grip }: { items: PerhatianItem[]; nav: NavFn;
 function HcKualitas({ q, nav, grip }: { q: Quality; nav: NavFn; grip: DragGrip }) {
   return (
     <Panel noBody className="hc-portlet">
-      <div className="panel-h"><span className="hc-grip" {...grip}><I.grip size={14} /></span><h3>Kualitas & Kepatuhan</h3><span className="sub">EQR · Reviu · Risiko</span><div style={{ flex: 1 }} /><Btn sm variant="ghost" onClick={() => nav('eqr', { from: 'home' })}><I.arrowRight size={12} /></Btn></div>
+      <div className="panel-h"><span className="hc-grip" {...grip}><I.grip size={14} /></span><h3>Kualitas & Kepatuhan</h3><span className="sub">EQR · Reviu · Risiko</span><div style={{ flex: 1 }} /><Btn sm variant="ghost" aria-label="Buka Kualitas & Kepatuhan (EQR)" onClick={() => nav('eqr', { from: 'home' })}><I.arrowRight size={12} /></Btn></div>
       <div className="panel-body">
         <div className="hc-gauges">
           <div><div className="hc-g-num">{q.eqrSelesai}/{q.eqrWajib}</div><div className="hc-g-lbl">EQR Selesai</div><Progress value={q.eqrWajib ? q.eqrSelesai / q.eqrWajib * 100 : 0} color="var(--purple)" /></div>
@@ -192,7 +192,7 @@ function HcKeuangan({ fin, nav, grip }: { fin: Finance; nav: NavFn; grip: DragGr
   ));
   return (
     <Panel noBody className="hc-portlet">
-      <div className="panel-h"><span className="hc-grip" {...grip}><I.grip size={14} /></span><h3>Keuangan Firma</h3><span className="sub">WIP {hcRpM(fin.wip)} · Realisasi {fin.realisasi}%</span><div style={{ flex: 1 }} /><Btn sm variant="ghost" onClick={() => nav('firmfinance', { from: 'home' })}><I.arrowRight size={12} /></Btn></div>
+      <div className="panel-h"><span className="hc-grip" {...grip}><I.grip size={14} /></span><h3>Keuangan Firma</h3><span className="sub">WIP {hcRpM(fin.wip)} · Realisasi {fin.realisasi}%</span><div style={{ flex: 1 }} /><Btn sm variant="ghost" aria-label="Buka Keuangan Firma" onClick={() => nav('firmfinance', { from: 'home' })}><I.arrowRight size={12} /></Btn></div>
       <div className="panel-body">
         <div className="hc-g-lbl" style={{ marginBottom: 4 }}>Tren Pendapatan Diakui</div>
         <Spark data={fin.trend} width={520} height={44} />
@@ -209,7 +209,7 @@ function HcKeuangan({ fin, nav, grip }: { fin: Finance; nav: NavFn; grip: DragGr
 function HcTim({ tim, nav, grip }: { tim: Team; nav: NavFn; grip: DragGrip }) {
   return (
     <Panel noBody className="hc-portlet">
-      <div className="panel-h"><span className="hc-grip" {...grip}><I.grip size={14} /></span><h3>Kinerja & Kapasitas Tim</h3><span className="sub">{tim.headcount} personel</span><div style={{ flex: 1 }} /><Btn sm variant="ghost" onClick={() => nav('capacity', { from: 'home' })}><I.arrowRight size={12} /></Btn></div>
+      <div className="panel-h"><span className="hc-grip" {...grip}><I.grip size={14} /></span><h3>Kinerja & Kapasitas Tim</h3><span className="sub">{tim.headcount} personel</span><div style={{ flex: 1 }} /><Btn sm variant="ghost" aria-label="Buka Kinerja & Kapasitas Tim" onClick={() => nav('capacity', { from: 'home' })}><I.arrowRight size={12} /></Btn></div>
       <div className="panel-body">
         {tim.grades.map((g) => (
           <div key={g.grade} className="row ac gap8" style={{ padding: '3px 0' }}>
@@ -236,7 +236,7 @@ function HcTim({ tim, nav, grip }: { tim: Team; nav: NavFn; grip: DragGrip }) {
 function HomeCockpit() {
   const nav = useNav() as unknown as NavFn;
   const firm = useFirm() as unknown as FirmCtx;
-  const audit = useAudit() as unknown as AuditCtx;
+  const audit = useAuditHeavy(['reviewNotes']) as unknown as AuditCtx;
 
   const engagements: EngRow[] = firm.engagements || [];
   const clientById = firm.clientById || (() => undefined);
@@ -433,6 +433,5 @@ function HomeCockpit() {
   );
 }
 
-Object.assign(window, { HomeCockpit });
 
 export { HomeCockpit };

@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-07-19 |
 | Pemilik | Ari Widodo |
-| Status | **Draft — menunggu sign-off ("Proceed.")** |
+| Status | **Draft** — menunggu sign-off ("Proceed.") |
 | Engagement ID terkait | — (lintas: `opening`, `continuance`, `onboarding`, firma → siklus engagement) |
 | Asal | Permintaan Ari: "Kembangkan fitur SA 510 auditor pendahulu, deklarasi independensi per-anggota, persistensi server `priorYear`, analisis konsentrasi fee. Kaitkan dengan jadwal dan timeline audit." |
 | Keputusan scope (dari Ari, 2026-07-19) | Fokus = **keempat fitur** dalam satu PRD, dikerjakan **bertahap (beberapa PR)** · Backend `priorYear` = **rekomendasikan setelah eksplorasi** · Deliverable turn ini = **PRD dulu, tunggu "Proceed."** |

@@ -452,7 +452,6 @@ function GhgReport({ E, A }: any) {
   );
 }
 
-Object.assign(window, { SJAH3410View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

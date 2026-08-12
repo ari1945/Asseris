@@ -7,6 +7,9 @@ import { I } from './icons';
 import { SubBar } from './shell';
 import { Badge, Btn } from './ui';
 import { ML_FINDINGS_SEED } from './view_final3';
+/* Tahap 8 — mesin opini dibaca via ESM dari view_opinion_parts (berbagi
+   chunk), bukan window.AMSOpinion yang hanya terisi setelah parts dimuat. */
+import { AMSOpinion } from './view_opinion_parts';
 
 /* ============================================================
    Asseris — Mode Presentasi Klien
@@ -68,7 +71,7 @@ function prData(firm: any) {
      'ams.v1.engagement.<engId>.opinionDoc.v1' (prLoadLS menambah prefix 'ams.v1.'). */
   const opDoc = prLoadLS('engagement.' + engId + '.opinionDoc.v1', null);
   const opType = opDoc?.type || 'unmodified';
-  const OPN = (window.AMSOpinion && window.AMSOpinion.OPINIONS) || {};
+  const OPN = (AMSOpinion && AMSOpinion.OPINIONS) || {};
   const op = OPN[opType] || { title: 'Wajar Tanpa Modifikasian', short: 'WTM', k: 'green' };
   const kamCount = (opDoc?.opts?.kam !== false && opType !== 'disclaimer') ? (opDoc?.kams?.length || 3) : 0;
   const opFinal = !!opDoc?.finalized;
@@ -885,7 +888,6 @@ const PR_CSS = `
 .pr-cfg-done:hover { background: var(--navy-600); }
 `;
 
-Object.assign(window, { PresentasiKlien });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

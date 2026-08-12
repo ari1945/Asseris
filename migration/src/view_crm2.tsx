@@ -339,7 +339,6 @@ function CRMSegmentasi() {
   );
 }
 
-Object.assign(window, { CRM360, CRMAktivitas, CRMPeluang, CRMSegmentasi });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

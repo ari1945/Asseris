@@ -1,0 +1,84 @@
+# Tahap 7 — Playwright end-to-end atas stack Postgres NYATA.
+# SPA hasil `vite build` dilayani `vite preview` (:5180, proxy /trpc same-origin),
+# API tRPC berjalan di atas service container postgres:16 (:5181). Lima perjalanan:
+# login cookie HttpOnly & hidrasi · penolakan engagement lintas-user · edit lalu
+# pindah engagement · sign-off berurutan dengan SoD · mutasi → StateDocHistory+audit.
+#
+# Workflow terpisah dari ci.yml (pola deploy-smoke) supaya perubahan dokumen/PRD
+# tidak membayar ~2-4 menit build + browser.
+name: e2e
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'server/**'
+      - 'migration/**'
+      - 'e2e/**'
+      - '.github/workflows/e2e.yml'
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'migration/**'
+      - 'e2e/**'
+      - '.github/workflows/e2e.yml'
+
+jobs:
+  e2e-postgres:
+    name: playwright × postgres:16 (5 perjalanan)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: neosuite
+          POSTGRES_PASSWORD: e2e-ci-pw
+          POSTGRES_DB: neosuite_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U neosuite -d neosuite_e2e"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      CI: '1'
+      DATABASE_URL: postgresql://neosuite:e2e-ci-pw@localhost:5432/neosuite_e2e
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: install server deps
+        run: npm ci
+        working-directory: server
+      - name: install migration deps
+        run: npm ci
+        working-directory: migration
+      - name: install e2e deps + browser
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+        working-directory: e2e
+
+      # webServer stack:api melakukan generate + migrate deploy + seed DESTRUKTIF
+      # atas DB service, lalu menjalankan server tRPC. stack:web build + preview SPA.
+      - name: run Playwright (5 perjalanan atas Postgres)
+        run: npm test
+        working-directory: e2e
+
+      - name: upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          if-no-files-found: ignore
+      - name: upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: e2e/test-results/
+          if-no-files-found: ignore

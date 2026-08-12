@@ -741,7 +741,6 @@ function ICDeficiency({ data, locked }: any) {
   );
 }
 
-Object.assign(window, { InternalControl });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

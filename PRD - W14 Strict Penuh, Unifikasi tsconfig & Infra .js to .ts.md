@@ -1,6 +1,6 @@
 # PRD — W14 · Strict Penuh (app-tier), Unifikasi `tsconfig` & Infra `.js → .ts`
 
-> Status: **Keputusan terkunci (D1–D4) — menunggu "Proceed." untuk mulai Fase 0** · Penulis: Claude (atas arahan Ari) · 2026-06-22
+> **Status:** **Implemented** — strict penuh aktif
 > Arc terkait: W11 (data→`.ts`, SELESAI) · W12 (view→`.tsx`, SELESAI 173/173) · **W13 (fondasi→`.tsx` + `noImplicitAny`, SELESAI)** ·
 > memory `[[neosuite-ams-w13-typescript-foundation]]` · `[[neosuite-ams-w12-typescript-view]]` · `[[neosuite-ams-arc]]`
 

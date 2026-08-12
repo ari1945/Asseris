@@ -426,7 +426,6 @@ function F705Eom({ client, doc, patch }: { client: string; doc: ODoc; patch: Pat
   );
 }
 
-Object.assign(window, { SA705View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

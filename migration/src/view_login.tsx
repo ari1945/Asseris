@@ -1,11 +1,10 @@
 /* ============================================================
    W7 Fase 2 — Login screen. Replaces the old `signedIn:true` mock with a real
-   credentialled login against the server (auth.login). Rendered by app.jsx's boot
-   gate when there is no valid session; on success it stores the token and hands the
-   user up so the app hydrates and mounts. Self-contained — no app context deps.
+   credentialled login against the server (auth.login). The session credential is
+   cookie-only and never enters JavaScript; on success the public user is handed up.
    ============================================================ */
 import React from 'react';
-import { api, setAuthToken } from './api';
+import { api } from './api';
 
 const { useState: useStateLG } = React;
 
@@ -23,7 +22,6 @@ export function LoginScreen({ onLoggedIn }: any) {
     setErr(''); setBusy(true);
     try {
       const r = await (api as any).auth.login.mutate({ email: email.trim(), password, totp: totp.trim() || undefined });
-      setAuthToken(r.token);
       onLoggedIn(r.user);
     } catch (ex) {
       const msg = (ex && (ex as any).message) || '';
@@ -33,6 +31,8 @@ export function LoginScreen({ onLoggedIn }: any) {
         setNeedTotp(true);
       } else if (msg === 'account-locked') {
         setErr('Akun terkunci sementara karena terlalu banyak percobaan gagal. Coba lagi dalam beberapa menit.');
+      } else if (msg.startsWith('totp-rate-limited')) {
+        setErr('Terlalu banyak kode 2FA yang salah. Verifikasi 2FA dikunci sementara; coba lagi nanti.');
       } else {
         setErr('Email atau kata sandi salah.');
       }

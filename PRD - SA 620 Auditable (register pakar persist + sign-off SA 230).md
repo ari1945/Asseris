@@ -1,6 +1,6 @@
 # PRD — SA 620 Auditable: Register Pakar ter-persist + Sign-off & Kesimpulan SA 230
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: lanjutan track **"jadikan modul display-only auditable"** dari [[asseris-gap-matrix-eval]]. **Pola terbukti = PR#7 (SA 250)** — ulangi mekanik yang sama.
 > Acuan gap: matriks auditor menandai SA 620 "absen"; **verifikasi membuktikan keliru** — `UseOfExpert` ([view_specifics2.tsx:211](migration/src/view_specifics2.tsx)) sudah ada & kaya (5 tab), tetapi **state ephemeral**. Gap nyata = auditability.
 > Sifat artefak: **level ENGAGEMENT** (pakar per perikatan) → `wpState`/`WP_MODULE_MAP` + `useAmsPersist('experts.<engId>')`.

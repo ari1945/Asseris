@@ -45,14 +45,12 @@ if [ "$LINES" -eq 0 ]; then
 fi
 
 # Read the highest seq from the plain JSONL while we still have it, THEN gzip+encrypt to $OUT.
-# The cursor is only written after encryption succeeds (set -e aborts the script on either
-# failing first) — crash-safe: a failed run leaves the cursor untouched, so the next run just
-# re-exports the same range instead of silently skipping it.
+# The cursor is written only after every configured durability destination succeeds. In
+# particular, when S3 off-box shipping is enabled, a failed upload must leave the cursor untouched
+# so the same range is retried instead of being silently skipped.
 LAST_SEQ=$(tail -n1 "$RAW" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).seq)}catch{process.exit(1)}})")
 gzip -c "$RAW" | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_ENCRYPTION_KEY > "$OUT"
 rm -f "$RAW"
-echo "$LAST_SEQ" > "$CURSOR"
-echo "audit-export → $OUT ($LINES row(s), up to seq=$LAST_SEQ, UTC $STAMP)"
 
 if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
   if aws s3 cp "$OUT" "s3://$BACKUP_S3_BUCKET/audit-log/$(basename "$OUT")" ${BACKUP_S3_ENDPOINT:+--endpoint-url "$BACKUP_S3_ENDPOINT"}; then
@@ -62,3 +60,6 @@ if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
     exit 1
   fi
 fi
+
+echo "$LAST_SEQ" > "$CURSOR"
+echo "audit-export → $OUT ($LINES row(s), up to seq=$LAST_SEQ, UTC $STAMP)"

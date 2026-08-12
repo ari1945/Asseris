@@ -411,7 +411,6 @@ function F3000Report({ sel }: any) {
   );
 }
 
-Object.assign(window, { SJAH3000View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

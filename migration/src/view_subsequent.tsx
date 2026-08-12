@@ -200,7 +200,6 @@ function SubsequentEvents() {
   );
 }
 
-Object.assign(window, { SubsequentEvents });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

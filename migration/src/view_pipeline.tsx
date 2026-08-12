@@ -358,7 +358,6 @@ function InvForm({ onClose, onAdd }: any) {
   );
 }
 
-Object.assign(window, { SalesPipeline, Billing });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

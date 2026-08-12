@@ -175,7 +175,6 @@ function EQRWorkflow() {
   );
 }
 
-Object.assign(window, { EQRWorkflow });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

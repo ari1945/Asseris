@@ -310,7 +310,6 @@ function F701Comms({ doc, patch }: { doc: ODoc; patch: Patch }) {
   );
 }
 
-Object.assign(window, { SA701View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

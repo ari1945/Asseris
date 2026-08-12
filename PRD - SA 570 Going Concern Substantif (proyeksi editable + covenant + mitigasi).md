@@ -1,6 +1,6 @@
 # PRD — SA 570 Going Concern Substantif: Proyeksi Kas Editable + Uji Covenant + Evaluasi Mitigasi Manajemen
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **kedalaman substantif** dari [[asseris-gap-matrix-eval]] — temuan **SA-08 (going concern dangkal + tak persist)**, severitas **Tinggi & NYATA** (bukan overstated).
 > **Beda sifat dari PR#7–#11:** ini bukan "persist UI display-only" — ini **memperdalam logika audit** (input nyata, domain baru: covenant & mitigasi) + persist. `goingconcern` sudah di `WP_MODULE_MAP` (Q-02 → sudah punya sign-off + kesimpulan SA 230).
 > Sifat artefak: **level ENGAGEMENT** → `useAmsPersist('goingconcern.<engId>')`.

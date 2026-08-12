@@ -5,7 +5,6 @@
 // the same runner drives the HTTP adapter (Fase 2) unchanged. Posting writes the firm-scoped
 // StateDoc the cashbank module reads, so "rows posted" == "records consumed" (the tie-out), and a
 // re-run merges by natural key → zero duplicates (idempotent).
-import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { appendAudit } from '../audit/log';
 import { getConnector } from './config';
@@ -14,6 +13,7 @@ import { pullBankStatement, type BankPullFn } from './providers/bankFixture';
 import { readBankHttpConfig, makeHttpBankPull } from './providers/httpBank';
 import { pullCoretaxFeed, type TaxPullFn } from './providers/coretaxFixture';
 import { readCoretaxHttpConfig, makeHttpCoretaxPull } from './providers/httpCoretax';
+import { mutateStateDoc } from '../stateMutation';
 
 const FIRM_SCOPE = 'firm';
 const FIRM_ID = 'FIRM-WHR';
@@ -51,10 +51,6 @@ export interface SyncSummary {
   note?: string;
 }
 
-function isUniqueViolation(e: unknown): boolean {
-  return e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002';
-}
-
 // Generic firm-scoped feed merge under optimistic concurrency, shared by every connector runner.
 // A feed's StateDoc is `{ [collKey]: { <naturalKey>: <stored> }, ...scalars }`. Each row is upserted
 // by its natural key (idempotent: re-running posts the same rows without duplicating); `scalars` are
@@ -69,48 +65,43 @@ interface MergeFeedOpts<TRow> {
   storedOf: (r: TRow) => unknown; // the value persisted under the natural key
   scalars: Record<string, number>; // header figures stored as siblings of the collection
   updatedBy: string;
+  actor: { id: string; role: string };
+  auditDetail: string;
+  auditKey: string;
 }
 
 async function mergeFeedState<TRow>(opts: MergeFeedOpts<TRow>): Promise<number> {
-  const { stateKey, collKey, rows, keyOf, storedOf, scalars, updatedBy } = opts;
-  for (let attempt = 0; attempt < MAX_CAS_RETRIES; attempt++) {
-    const doc = await prisma.stateDoc.findUnique({
-      where: { scope_scopeId_key: { scope: FIRM_SCOPE, scopeId: FIRM_ID, key: stateKey } },
-    });
-    const base: Record<string, unknown> = doc
-      ? (JSON.parse(doc.valueJson) as Record<string, unknown>)
-      : { [collKey]: {}, ...scalars };
-    const coll = (base[collKey] as Record<string, unknown> | undefined) ?? {};
-    for (const r of rows) coll[keyOf(r)] = storedOf(r);
-    base[collKey] = coll;
-    Object.assign(base, scalars);
-    const valueJson = JSON.stringify(base);
-    const consumed = Object.keys(coll).length;
-
-    if (!doc) {
-      try {
-        await prisma.stateDoc.create({
-          data: { scope: FIRM_SCOPE, scopeId: FIRM_ID, key: stateKey, valueJson, version: 1, updatedBy },
-        });
-        return consumed;
-      } catch (e) {
-        if (isUniqueViolation(e)) continue; // someone created it first — retry as an update
-        throw e;
-      }
-    }
-    const res = await prisma.stateDoc.updateMany({
-      where: { scope: FIRM_SCOPE, scopeId: FIRM_ID, key: stateKey, version: doc.version },
-      data: { valueJson, version: { increment: 1 }, updatedBy },
-    });
-    if (res.count === 1) return consumed;
-    // lost the CAS — another writer bumped the version; retry
-  }
-  throw new Error(`${stateKey} CAS contention — exceeded retries`);
+  const { stateKey, collKey, rows, keyOf, storedOf, scalars, updatedBy, actor, auditDetail, auditKey } = opts;
+  const written = await mutateStateDoc<number>({
+    scope: FIRM_SCOPE,
+    scopeId: FIRM_ID,
+    key: stateKey,
+    updatedBy,
+    actorUserId: actor.id,
+    actorRole: actor.role,
+    action: 'SYNC',
+    auditKey,
+    auditDetail,
+    seed: () => ({ [collKey]: {}, ...scalars }),
+    skipIfUnchanged: true,
+    maxRetries: MAX_CAS_RETRIES,
+    mutate: (current) => {
+      const base = current && typeof current === 'object'
+        ? { ...(current as Record<string, unknown>) }
+        : { [collKey]: {}, ...scalars };
+      const coll = { ...((base[collKey] as Record<string, unknown> | undefined) ?? {}) };
+      for (const row of rows) coll[keyOf(row)] = storedOf(row);
+      base[collKey] = coll;
+      Object.assign(base, scalars);
+      return { value: base, result: Object.keys(coll).length };
+    },
+  });
+  return written.result ?? 0;
 }
 
 // Merge transactions into the firm-scoped bank StateDoc. Thin wrapper over mergeFeedState that pins
 // the bank's collection/natural-key/scalars — behavior identical to the pre-W9·2 implementation.
-async function mergeBankState(rows: Array<{ txnId: string } & BankTxn>, opening: number, closing: number): Promise<number> {
+async function mergeBankState(rows: Array<{ txnId: string } & BankTxn>, opening: number, closing: number, actor: { id: string; role: string }): Promise<number> {
   return mergeFeedState({
     stateKey: BANK_STATE_KEY,
     collKey: 'transactions',
@@ -119,14 +110,22 @@ async function mergeBankState(rows: Array<{ txnId: string } & BankTxn>, opening:
     storedOf: (r) => ({ valueDate: r.valueDate, amount: r.amount, remark: r.remark, accountNo: r.accountNo, dc: r.dc }),
     scalars: { openingBalance: opening, closingBalance: closing },
     updatedBy: 'integration:bank',
+    actor,
+    auditDetail: `status=posted; posted=${rows.length}; gate=true`,
+    auditKey: 'bank',
   });
 }
 
-/** Choose the real HTTP adapter when bank env is configured, else the fixture. Evaluated per call
- *  so flipping env takes effect immediately; in dev/test (no BANK_API_*) this is the fixture. */
+/** Choose the real HTTP adapter when configured. Production never falls back to demo data. */
 export function defaultBankPull(): BankPullFn {
   const cfg = readBankHttpConfig();
-  return cfg ? makeHttpBankPull(cfg) : pullBankStatement;
+  if (cfg) return makeHttpBankPull(cfg);
+  if (process.env.NODE_ENV === 'production') {
+    return async () => {
+      throw new Error('bank-not-configured: set BANK_API_* sebelum sync Bank Feed di production');
+    };
+  }
+  return pullBankStatement;
 }
 
 /**
@@ -181,7 +180,7 @@ export async function runBankSync(actor: { id: string; role: string }, pull: Ban
       status = 'staged';
       note = `Gerbang total-kontrol gagal (${controlValue}); ${valid.length} baris ditahan, tidak diposting.`;
     } else {
-      consumed = await mergeBankState(valid, statement.openingBalance, statement.closingBalance);
+      consumed = await mergeBankState(valid, statement.openingBalance, statement.closingBalance, actor);
       posted = valid.length;
       status = 'posted';
       // first successful post marks the connector wired (a real adapter has driven it)
@@ -193,11 +192,13 @@ export async function runBankSync(actor: { id: string; role: string }, pull: Ban
       data: { finishedAt: new Date(), status, rows: mapped.length, valid: valid.length, rejected, posted, controlLabel, controlValue, gatePassed, note, cursor: statement.closingBalance.toString() },
     });
 
-    await appendAudit({
-      actorUserId: actor.id, actorRole: actor.role, action: 'SYNC',
-      scope: FIRM_SCOPE, scopeId: FIRM_ID, key: 'bank',
-      detail: `status=${status}; posted=${posted}; rejected=${rejected}; gate=${gatePassed}`,
-    });
+    if (status === 'staged') {
+      await appendAudit({
+        actorUserId: actor.id, actorRole: actor.role, action: 'SYNC',
+        scope: FIRM_SCOPE, scopeId: FIRM_ID, key: 'bank',
+        detail: `status=${status}; posted=${posted}; rejected=${rejected}; gate=${gatePassed}`,
+      });
+    }
 
     return {
       jobId: job.id, connectorId: 'bank', status,
@@ -347,6 +348,9 @@ export async function runCoretaxSync(actor: { id: string; role: string }, pull: 
         storedOf: (r) => ({ taxpayerId: r.taxpayerId, taxBase: r.taxBase, vatAmount: r.vatAmount, taxPeriod: r.taxPeriod, rate: r.rate }),
         scalars: { declaredVatTotal: feed.declaredVatTotal, vatTotal: computed },
         updatedBy: 'integration:coretax',
+        actor,
+        auditDetail: `status=posted; posted=${valid.length}; rejected=${rejected}; gate=true`,
+        auditKey: 'coretax',
       });
       posted = valid.length;
       status = 'posted';
@@ -359,11 +363,13 @@ export async function runCoretaxSync(actor: { id: string; role: string }, pull: 
       data: { finishedAt: new Date(), status, rows: mapped.length, valid: valid.length, rejected, posted, controlLabel, controlValue, gatePassed, note, cursor: feed.declaredVatTotal.toString() },
     });
 
-    await appendAudit({
-      actorUserId: actor.id, actorRole: actor.role, action: 'SYNC',
-      scope: FIRM_SCOPE, scopeId: FIRM_ID, key: 'coretax',
-      detail: `status=${status}; posted=${posted}; rejected=${rejected}; gate=${gatePassed}`,
-    });
+    if (status === 'staged') {
+      await appendAudit({
+        actorUserId: actor.id, actorRole: actor.role, action: 'SYNC',
+        scope: FIRM_SCOPE, scopeId: FIRM_ID, key: 'coretax',
+        detail: `status=${status}; posted=${posted}; rejected=${rejected}; gate=${gatePassed}`,
+      });
+    }
 
     return {
       jobId: job.id, connectorId: 'coretax', status,

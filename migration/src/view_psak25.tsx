@@ -510,7 +510,6 @@ function PSAK25View() {
   );
 }
 
-Object.assign(window, { PSAK25View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

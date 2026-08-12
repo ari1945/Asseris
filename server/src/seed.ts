@@ -1,4 +1,5 @@
 import { prisma } from './db';
+import { mutateStateDoc } from './stateMutation';
 import { loadAmsSeed, loadConnectorSeed } from './seedData';
 import { hashPassword } from './auth/password';
 import { PERSONAL_KEYS } from './personalScope';
@@ -300,8 +301,15 @@ async function main() {
   ];
   for (const [key, value] of personalSeed) {
     if (!(key in PERSONAL_KEYS)) throw new Error(`personalSeed key "${key}" missing from PERSONAL_KEYS — keep them in sync`);
-    await prisma.stateDoc.create({
-      data: { scope: 'firm', scopeId: FIRM_ID, key, valueJson: JSON.stringify(value), version: 1, updatedBy: PRIMARY_ID },
+    await mutateStateDoc({
+      scope: 'firm', scopeId: FIRM_ID, key,
+      expectedVersion: 0,
+      updatedBy: PRIMARY_ID,
+      actorUserId: PRIMARY_ID,
+      actorRole: 'system:seed',
+      action: 'STATE_SET',
+      auditDetail: (_from, to) => `demo-seed:v${to}`,
+      mutate: () => ({ value }),
     });
   }
 

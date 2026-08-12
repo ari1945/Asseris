@@ -432,7 +432,6 @@ function DocManagement() {
   );
 }
 
-Object.assign(window, { DocManagement });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

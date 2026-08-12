@@ -1,6 +1,6 @@
 # PRD — W13 · Fondasi TypeScript (`.jsx → .tsx`) & Ratchet `noImplicitAny`
 
-> Status: **Keputusan terkunci (D1–D4) — menunggu "Proceed." untuk mulai Fase 0** · Penulis: Claude (atas arahan Ari) · 2026-06-22
+> **Status:** **Implemented** — ratchet noImplicitAny aktif
 > Arc terkait: W5 (kanon→TS, selesai) · W11 (data→`.ts`, SELESAI) · **W12 (view→`.tsx`, SELESAI 173/173)** ·
 > memory `[[neosuite-ams-w11-typescript-data]]` · `[[neosuite-ams-w12-typescript-view]]` · `[[neosuite-ams-arc]]`
 

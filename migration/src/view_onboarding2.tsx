@@ -323,7 +323,6 @@ function StepLetter({ p, onPatch }: any) {
   );
 }
 
-Object.assign(window, { StepPMPJ, StepLetter });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

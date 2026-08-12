@@ -543,7 +543,6 @@ function D2Action({ ok, t, v }: any) {
   );
 }
 
-Object.assign(window, { SoqmHeatmap, SoqmObjectives, SoqmSeverity, SoqmInfoComm, SoqmAnnualEval, D2KPI });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

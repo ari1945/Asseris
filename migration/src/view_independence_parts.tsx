@@ -163,7 +163,6 @@ function LongAssociationTab() {
   );
 }
 
-Object.assign(window, { FeeDependencyTab, NASPreApprovalTab, LongAssociationTab });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

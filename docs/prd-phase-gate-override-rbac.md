@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-06-25 |
 | Pemilik | Ari Widodo |
-| Status | Disetujui ("buat follow-up RBAC override Partner-only") |
+| Status | **Approved** — Disetujui ("buat follow-up RBAC override Partner-only") |
 | Asal | PRD `prd-acceptance-to-engagement-flow-sa210.md` §11 Q4; ditemukan saat M5 |
 
 ## 1. Problem

@@ -5,7 +5,7 @@ import { useAmsPersist, useAuth, useNav } from './contexts';
 import { CAP } from './rbac';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Avatar, Badge, Btn, Panel, Stat, Tabs } from './ui';
+import { Avatar, Badge, Btn, Panel, Stat, Switch, Tabs } from './ui';
 
 /* ============================================================
    Asseris — HCM: Payroll (Penggajian)
@@ -93,7 +93,8 @@ function Payroll() {
   return (
     <>
       <SubBar moduleId="payroll" right={<div className="row gap8 ac">
-        <label className="row ac gap6 tiny" style={{ cursor: 'pointer' }}><span onClick={() => setThr(!thr)} style={{ width: 32, height: 18, borderRadius: 10, background: thr ? 'var(--green)' : 'var(--line-strong)', position: 'relative', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: thr ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff' }} /></span> Sertakan THR</label>
+        {/* Tahap 9 — switch native (input checkbox asli, role="switch"). */}
+        <Switch on={thr} onChange={setThr} label="Sertakan THR" />
         <Badge kind={(STAT as any)[run].k}>{(STAT as any)[run].l}</Badge>
         {run === 'draft' && <Btn sm variant="primary" onClick={() => setRun('approved')}><I.check size={13} /> Setujui Payroll</Btn>}
         {run === 'approved' && <Btn sm variant="primary" onClick={() => setRun('paid')}><I.coins size={13} /> Proses Pembayaran</Btn>}
@@ -267,7 +268,6 @@ function PayslipDrawer({ r, R, onClose, canSend, sent, onSend }: any) {
   );
 }
 
-Object.assign(window, { Payroll, PayslipDrawer, calcPayslip });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

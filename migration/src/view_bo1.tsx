@@ -387,7 +387,6 @@ function RecordsRetentionLegacy() {
   );
 }
 
-Object.assign(window, { BoBadge, BoTabPanel, BoStat, boJt, boM });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

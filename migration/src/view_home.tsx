@@ -243,6 +243,5 @@ function HomeView() {
   );
 }
 
-Object.assign(window, { HomeView });
 
 export { HomeView };

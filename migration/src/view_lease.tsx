@@ -209,7 +209,6 @@ function LeaseCalculator() {
   );
 }
 
-Object.assign(window, { LeaseCalculator });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

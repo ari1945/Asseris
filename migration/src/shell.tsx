@@ -4,7 +4,7 @@ import { useAuth, useFirm, useNav, useNavFrom } from './contexts';
 import { EvidenceControl } from './evidence';
 import { WpSubBarControl } from './wp_signoff';
 import { GROUP_CAP, GROUP_WS, HIDDEN_GROUPS, I, MODULES, MODULE_CAP, MODULE_INDEX, NEW_ALLOW, WORKSPACES, groupsVisibleFor } from './icons';
-import { Avatar } from './ui';
+import { Avatar, Switch } from './ui';
 import { NotificationsPanel, UserMenu } from './view_palette';
 
 /* ============================================================
@@ -510,11 +510,19 @@ function SettingsMenu({ open, onClose, onNavigate }: any) {
   const [dense, setDense] = useStateSH(() => localStorage.getItem('ams.dense') === '1');
   React.useEffect(() => { document.documentElement.classList.toggle('dark', dark); localStorage.setItem('ams.dark', dark ? '1' : '0'); }, [dark]);
   React.useEffect(() => { document.body.classList.toggle('dense', dense); localStorage.setItem('ams.dense', dense ? '1' : '0'); }, [dense]);
+  /* Tahap 9 (a11y) — Escape menutup menu Tampilan, sama dengan kontrak overlay lain. */
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
   if (!open) return null;
   const Row = ({ label, sub, on, set, icon }: any) => (
     <div className="row ac jb" style={{ padding: '10px 12px', borderBottom: '1px solid var(--line-soft)' }}>
       <span className="row ac gap8">{React.createElement((I as any)[icon], { size: 16, style: { color: 'var(--ink-3)' } })}<span><div style={{ fontSize: 12, fontWeight: 600 }}>{label}</div><div className="tiny muted">{sub}</div></span></span>
-      <span onClick={() => set((v: any) => !v)} style={{ width: 38, height: 21, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flex: '0 0 38px', transition: '.15s' }}><span style={{ position: 'absolute', top: 2, left: on ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: '.15s' }} /></span>
+      {/* Tahap 9 — switch native (input checkbox asli, role="switch"). */}
+      <Switch on={on} onChange={(v: boolean) => set(v)} />
     </div>
   );
   return (

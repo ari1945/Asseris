@@ -175,7 +175,6 @@ function StackBar({ parts, height = 9 }: any) {
   );
 }
 
-Object.assign(window, { MSub, KV, SectionTitle, HBars, Funnel, FGauge, LineChart, Delta, StackBar });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

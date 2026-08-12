@@ -1,7 +1,8 @@
 import { TRPCError } from '@trpc/server';
 import { prisma } from './db';
-import { appendAudit } from './audit/log';
 import { resolveEmpId, seedForKey, filterPersonalByPopulation, personalPopulation } from './personalScope';
+import { StateDocTooLargeError } from './payloadLimits';
+import { mutateStateDoc, StateDocConflictError } from './stateMutation';
 
 /* ============================================================
    2026-07-06 — SELF-SERVICE pegawai dari halaman "Data Personal Saya".
@@ -32,35 +33,30 @@ async function writeOwn(
   const empId = await resolveEmpId(user);
   if (!empId) throw new TRPCError({ code: 'FORBIDDEN', message: 'no-emp-mapping' }); // bukan staf terdaftar
   const scopeId = await firmScopeId();
-  const where = { scope: 'firm', scopeId, key };
-  const doc = await prisma.stateDoc.findUnique({ where: { scope_scopeId_key: where } });
-  const current = doc ? (JSON.parse(doc.valueJson) as unknown) : await seedForKey(key);
-  const next = updater(current, empId);
-  const valueJson = JSON.stringify(next ?? null);
-  const updatedBy = user.id;
-
-  let version: number;
-  if (!doc) {
-    const created = await prisma.$transaction(async (tx) => {
-      const row = await tx.stateDoc.create({ data: { ...where, valueJson, version: 1, updatedBy } });
-      await tx.stateDocHistory.create({ data: { ...where, version: 1, valueJson, updatedBy } });
-      return row;
+  let written;
+  try {
+    written = await mutateStateDoc({
+      scope: 'firm', scopeId, key,
+      updatedBy: user.id,
+      actorUserId: user.id,
+      actorRole: user.role,
+      action: 'SELF_SERVICE',
+      auditDetail,
+      seed: () => seedForKey(key),
+      mutate: (current) => ({ value: updater(current, empId) }),
+      maxRetries: 5,
     });
-    version = created.version;
-  } else {
-    version = await prisma.$transaction(async (tx) => {
-      const res = await tx.stateDoc.updateMany({
-        where: { ...where, version: doc.version },
-        data: { valueJson, version: { increment: 1 }, updatedBy },
-      });
-      if (res.count === 0) throw new TRPCError({ code: 'CONFLICT', message: 'version-mismatch' });
-      await tx.stateDocHistory.create({ data: { ...where, version: doc.version + 1, valueJson, updatedBy } });
-      return doc.version + 1;
-    });
+  } catch (e) {
+    if (e instanceof StateDocTooLargeError) {
+      throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: e.message });
+    }
+    if (e instanceof StateDocConflictError) {
+      throw new TRPCError({ code: 'CONFLICT', message: `version-mismatch:server=${e.currentVersion}` });
+    }
+    throw e;
   }
-  await appendAudit({ actorUserId: user.id, actorRole: user.role, action: 'SELF_SERVICE', scope: 'firm', scopeId, key, detail: auditDetail });
   const population = await personalPopulation(user, key);
-  return { value: filterPersonalByPopulation(key, next, population), version };
+  return { value: filterPersonalByPopulation(key, written.value, population), version: written.version };
 }
 
 function daysBetween(from: string, to: string): number {

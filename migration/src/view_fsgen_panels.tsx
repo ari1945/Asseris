@@ -262,7 +262,6 @@ function FSDisclosurePanel({ disclosures, setDisclosures, locked }: any) {
   );
 }
 
-Object.assign(window, { FSStatementNav, FSPresentation, FSSignoff, FSValidationPanel, FSMappingPanel, FSDisclosurePanel });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

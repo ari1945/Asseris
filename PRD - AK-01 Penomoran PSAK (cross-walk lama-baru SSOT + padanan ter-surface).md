@@ -1,6 +1,6 @@
 # PRD — AK-01: Penomoran PSAK (cross-walk lama↔baru, SSOT + padanan ter-surface)
 
-**Status:** DRAFT — menunggu sign-off ("Proceed.")
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
 **Branch:** `ak01-psak-renumber` (off master pasca-merge PR#18)
 **Sumber gap:** Matriks Gap auditor, baris **AK-01** (P2, Severitas Sedang).
 **Sumber kebenaran mapping:** dokumen resmi IAI *"Perubahan Penomoran PSAK dan ISAK dalam SAK Indonesia"* ([iaiglobal.or.id](https://web.iaiglobal.or.id/Berita-IAI/detail/penomoran_psak_dan_isak_dalam_sak_indonesia)) — efektif 1 Jan 2024, **substansi tak berubah**, hanya penomoran.

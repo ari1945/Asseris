@@ -139,7 +139,7 @@ function FirmDashboard() {
   const portlets = {
     kpi: () => (
       <Portlet title="Firm KPI · FY2025" dot="#005085" dragProps={dragP('kpi')}
-        actions={<Btn sm variant="ghost" icon><I.download size={14} /></Btn>}>
+        actions={<Btn sm variant="ghost" icon aria-label="Ekspor KPI (PDF/XLSX)"><I.download size={14} /></Btn>}>
         <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
           {[
             { v: activeEng.length, l: 'Engagement Aktif', d: '+2', dir: 'up' },
@@ -303,7 +303,22 @@ function FirmDashboard() {
     ),
   };
 
-  const defaultOrder = ['kpi', 'engagements', 'phases', 'riskheat', 'deadlines', 'billing', 'team', 'activity'];
+  /* Tahap 9 — kepadatan dashboard sadar-peran: default portlet disesuaikan
+     per peran, bukan satu set 8 portlet untuk semua. Partner/Manager
+     (oversight) dapat semua; auditor lapangan & firm-ops dibuka lebih
+     ringkas (fokus kerja), dengan escape hatch "Reset Layout" & drag untuk
+     menata ulang — urutan tersimpan tetap dihormati (preferensi UI lokal). */
+  const roleForDash = (auth && auth.role) || '';
+  const ROLE_DASH_DEFAULT: Record<string, string[]> = {
+    'Engagement Partner': ['kpi', 'engagements', 'phases', 'riskheat', 'deadlines', 'billing', 'team', 'activity'],
+    'Audit Manager': ['kpi', 'engagements', 'phases', 'riskheat', 'deadlines', 'billing', 'team', 'activity'],
+    'Senior Auditor': ['kpi', 'engagements', 'deadlines', 'activity'],
+    'Junior Auditor': ['kpi', 'engagements', 'deadlines', 'activity'],
+    'Admin & HR Firma': ['kpi', 'deadlines', 'team', 'activity'],
+    'Finance Firma': ['kpi', 'billing', 'deadlines', 'activity'],
+  };
+  const defaultOrder = (ROLE_DASH_DEFAULT as Record<string, string[]>)[roleForDash] ||
+    ['kpi', 'engagements', 'phases', 'riskheat', 'deadlines', 'billing', 'team', 'activity'];
   const { order, handlers, overId, reset } = useDraggablePortlets(defaultOrder, 'ams.dash.order');
   function dragP(id: any) {
     const h = handlers(id);
@@ -331,7 +346,6 @@ function FirmDashboard() {
         <div className="row gap8 ac">
           <span className="tiny muted">Tarik <I.grip size={12} style={{ verticalAlign: 'middle' }} /> untuk menata ulang portlet</span>
           <Btn sm onClick={reset}><I.sync size={13} /> Reset Layout</Btn>
-          <Btn sm variant="primary"><I.plus size={14} /> Tambah Portlet</Btn>
         </div> :
         <Badge kind="blue">FY2025 · Firma-wide</Badge>
       } />
@@ -357,7 +371,6 @@ function FirmDashboard() {
   );
 }
 
-Object.assign(window, { FirmDashboard });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

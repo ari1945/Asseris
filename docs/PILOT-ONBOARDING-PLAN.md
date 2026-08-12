@@ -1,9 +1,13 @@
 # Rencana Training & Onboarding — Firma Pilot Pertama
 
-> **Status: TEMPLATE — belum ada firma pilot bernama/jadwal pasti.** Dokumen ini adalah rencana
-> rollout yang bisa diisi begitu firma pilot sungguhan dikonfirmasi (nama firma, jumlah staf per
-> peran, tanggal mulai). Konsisten dengan pola RTO/RPO di `docs/DEPLOY.md` §7 — proposal berbasis
-> kemampuan teknis, keputusan bisnis final tetap di tangan Ari.
+> **Status: PILOT TAHAP 9 DIPROVISI & LIVE-VERIFIED (2026-08-12).** Satu firma + satu
+> engagement risiko rendah berhasil diprovision & diverifikasi di stack lokal (Postgres
+> `neosuite_pilot`, `npm run pilot:provision` — lihat §0 dan §1.3). Dokumen ini tetap
+> menjadi rencana rollout untuk firma pilot sungguhan; baris §0 di bawah memuat data
+> pilot yang DIPAKAI dalam verifikasi teknis (firma tiruan "KAP Pilot Andalan") —
+> ganti dengan nama/jadwal firma sungguhan saat dikonfirmasi. Konsisten dengan pola
+> RTO/RPO di `docs/DEPLOY.md` §7 — proposal berbasis kemampuan teknis, keputusan
+> bisnis final tetap di tangan Ari.
 >
 > Dokumen ini menjawab **"bagaimana firma pilot pertama dilatih & di-onboard"** — bukan
 > "bagaimana meng-instal aplikasi" (itu `docs/DEPLOY.md`, operator/IT) atau "bagaimana memakai
@@ -16,18 +20,41 @@
 
 | Field | Isi |
 |---|---|
-| Nama firma pilot | *(belum diisi)* |
-| Tanggal mulai persiapan | *(belum diisi)* |
-| Tanggal target go-live | *(belum diisi)* |
-| Jumlah Engagement Partner | *(belum diisi)* |
-| Jumlah Audit Manager | *(belum diisi)* |
-| Jumlah Senior Auditor | *(belum diisi)* |
-| Jumlah Junior Auditor | *(belum diisi)* |
-| Jumlah Admin & HR Firma | *(belum diisi)* |
-| Jumlah Finance Firma | *(belum diisi)* |
-| Perikatan yang dipakai untuk parallel-run (Fase 3) | *(belum diisi — idealnya 1 klien kecil-menengah, risiko rendah, bukan klien PIE/high-risk)* |
+| Nama firma pilot | **KAP Pilot Andalan** (`FIRM-KAPA`) — firma tiruan untuk verifikasi teknis Tahap 9; ganti dengan firma sungguhan saat dikonfirmasi |
+| Tanggal mulai persiapan | 2026-08-12 (provisioning teknis) |
+| Tanggal target go-live | *(belum dijadwalkan — firma sungguhan belum dikonfirmasi)* |
+| Jumlah Engagement Partner | 1 (Partner-admin: `ari@kap-pilot.id`) |
+| Jumlah Audit Manager | 0 (diisi saat firma sungguhan) |
+| Jumlah Senior Auditor | 1 (tim demo: Andi Pratama) |
+| Jumlah Junior Auditor | 1 (tim demo: Bella Kusuma) |
+| Jumlah Admin & HR Firma | 0 (diisi saat firma sungguhan) |
+| Jumlah Finance Firma | 0 (diisi saat firma sungguhan) |
+| Perikatan yang dipakai untuk parallel-run (Fase 3) | **ENG-2026-PLT-001** — klien `C-PLT-001` PT Ritel Sejahtera Nusantara, **risiko rendah (Low)**, fase Perencanaan, FY2026, 12 baris WTB |
 | Penanggung jawab training (fasilitator) | *(belum diisi — biasanya Ari)* |
 | Kanal dukungan selama pilot | *(belum diisi — mis. WhatsApp group, email, jadwal jam kantor)* |
+
+### ✅ 1.3 Provisioning pilot satu firma + satu engagement risiko rendah — BARU (Tahap 9)
+
+`server/src/pilotProvision.ts` (skrip `npm run pilot:provision` di `server/`) membuat
+PERSIS yang dijanjikan pilot: **1 firma, 1 klien berisiko rendah, 1 engagement berisiko
+rendah, 1 Partner-admin, tim minimal, WTB singkat, dan membership** — lalu menulis state
+docs yang dibutuhkan app saat boot. AMAN: menolak bila DB sudah punya firma apa pun
+(pola `bootstrapFirm`), jadi arahkan ke DB pilot yang memang kosong.
+
+**Cara pakai** (dari `server/`, DB Postgres kosong):
+```bash
+DATABASE_URL='postgresql://neosuite:changeme@localhost:5432/neosuite_pilot' \
+PILOT_FIRM_NAME='KAP Pilot Andalan' PILOT_FIRM_SHORT=KAPA \
+PILOT_ADMIN_NAME='Ari Widodo' PILOT_ADMIN_EMAIL='ari@kap-pilot.id' \
+PILOT_ADMIN_PASSWORD='<passphrase ≥ 12 karakter>' PILOT_TOTP=0 \
+npm run pilot:provision
+```
+
+**Verifikasi teknis yang sudah dilakukan (2026-08-12):**
+- `healthz` → `{"status":"ok","db":"up"}`.
+- `auth.login` Partner-admin → cookie sesi HttpOnly + SameSite=Strict.
+- `bootstrap` → persis **1 firma**, **1 klien (risiko Low)**, **1 engagement (risiko Low,
+  fase Perencanaan)**, 12 baris WTB, 1 user.
 
 ---
 

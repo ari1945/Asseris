@@ -8,19 +8,12 @@
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { AMS } from './data';
 
-/* ----- W7 Fase 2 / W10 — session transport -----
-   W10 moved the session to an HttpOnly cookie set by the server on login: JavaScript can no
-   longer read the token, so an XSS can't steal it from localStorage. The token is NO LONGER
-   persisted client-side. We keep it in-memory for the current tab (sent as a Bearer header,
-   belt-and-suspenders), but a reload relies purely on the cookie (credentials:'include' →
-   browser replays it; auth.me restores the session). A 401 anywhere means the session died →
-   broadcast so the boot gate falls back to the login screen. */
+/* ----- Stage 5 — cookie-only browser session transport -----
+   The opaque session credential is issued only as an HttpOnly cookie. JavaScript neither
+   receives nor stores nor retransmits it as a bearer token, removing the XSS-readable copy.
+   A 401 means the cookie session died, so the boot gate returns to the login screen. */
 const LEGACY_TOKEN_KEY = 'ams.auth.token';
 try { localStorage.removeItem(LEGACY_TOKEN_KEY); } catch (e) { /* private mode — nothing to clean */ }
-let authToken: any = null; // in-memory only; intentionally not persisted (httpOnly cookie is the SSOT)
-
-export function setAuthToken(t: any) { authToken = t || null; }
-export function getAuthToken() { return authToken; }
 
 function authFetch(input: any, init?: any) {
   // credentials:'include' → the HttpOnly session cookie rides along (same-origin via Vite proxy).
@@ -34,7 +27,6 @@ export const api: any = createTRPCClient({
   links: [httpBatchLink({
     url: '/trpc',
     fetch: authFetch,
-    headers() { return authToken ? { authorization: 'Bearer ' + authToken } : {}; },
   })],
 });
 
@@ -63,11 +55,8 @@ export async function llmStatus() {
   }
 }
 
-/** Narrate deterministic diagnostic findings via the server proxy. Client also slims the
-    payload to the allow-listed finding fields (defence in depth; the server re-redacts).
-    Returns { status:'ok', text, provider, model, usage } | { status:'not-configured' }. */
-export async function llmNarrateDiagnostics(findings: any) {
-  const slim = (findings || []).map((f: any) => ({
+function slimLlmFindings(findings: any) {
+  return (findings || []).map((f: any) => ({
     id: String(f.id || ''),
     detector: f.detector ? String(f.detector) : undefined,
     sev: (SEV_OK as any)[f.sev] ? f.sev : 'low',
@@ -76,10 +65,26 @@ export async function llmNarrateDiagnostics(findings: any) {
     detail: f.detail ? String(f.detail) : undefined,
     suggestedProcedure: f.suggestedProcedure ? String(f.suggestedProcedure) : undefined,
   }));
-  return api.llm.complete.mutate({ task: 'narrate-diagnostics', findings: slim });
 }
 
-Object.assign(window, { amsLlmStatus: llmStatus, amsLlmNarrateDiagnostics: llmNarrateDiagnostics });
+/** Build an exact server-redacted egress preview. This does not call an LLM provider. */
+export async function llmPreviewDiagnostics(findings: any) {
+  return api.llm.preview.mutate({ task: 'narrate-diagnostics', findings: slimLlmFindings(findings) });
+}
+
+/** Send only after the user explicitly confirms the preview. The one-use receipt is bound
+    server-side to this exact redacted payload, preventing consent replay after data changes. */
+export async function llmNarrateDiagnostics(findings: any, consentId: string) {
+  return api.llm.complete.mutate({
+    task: 'narrate-diagnostics', findings: slimLlmFindings(findings), consent: true, consentId,
+  });
+}
+
+Object.assign(window, {
+  amsLlmStatus: llmStatus,
+  amsLlmPreviewDiagnostics: llmPreviewDiagnostics,
+  amsLlmNarrateDiagnostics: llmNarrateDiagnostics,
+});
 
 /* ============================================================
    W10 — server-side append-only audit trail. The real, tamper-evident chain that replaces
@@ -284,9 +289,9 @@ Object.assign(window, {
    W6 Fase 3 — hydrate AMS core entities from the API at boot.
    The DB (seeded byte-identical to data.js) becomes the OPERATIVE source for
    FIRM/USER/CLIENTS/ENGAGEMENTS/WTB/TEAM; the data.js constants stay as the
-   offline FALLBACK (already on the AMS singleton when this runs). Schema is lossless
-   for all six (User via a dataJson envelope; the rest column-for-column), so the
-   overwrite is zero numeric drift vs the W0 baseline.
+   offline FALLBACK (already on the AMS singleton when this runs). The authenticated
+   user's profile is returned as an allowlisted object (never the DB dataJson envelope);
+   the remaining core entities are public projections of their server rows.
 
    MUST run BEFORE the first React render (canon reads AMS.WTB lazily on
    first FIG/SRC access). On any failure we keep the fallback and let the app run.
@@ -305,7 +310,7 @@ export async function hydrateCoreFromApi(engagementId?: any, userId?: any) {
   // "who I logged in as"), falling back to users[0] when no id is given (pre-W7 behavior).
   const users = Array.isArray(b.users) ? b.users : [];
   const mine = (userId && users.find((u: any) => u.id === userId)) || users[0];
-  if (mine && mine.dataJson) { try { AMS.USER = JSON.parse(mine.dataJson); } catch (e) { /* keep fallback */ } }
+  if (mine && mine.profile) { AMS.USER = mine.profile; }
 
   if (Array.isArray(b.clients) && b.clients.length) {
     AMS.CLIENTS = b.clients.map((c: any) => ({ id: c.id, name: c.name, industry: c.industry, tier: c.tier,

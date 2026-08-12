@@ -244,7 +244,6 @@ function SustainabilityView() {
   );
 }
 
-Object.assign(window, { SustainabilityView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

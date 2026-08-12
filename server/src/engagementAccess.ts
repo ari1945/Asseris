@@ -6,7 +6,7 @@ import { TRPCError } from '@trpc/server';
 import { prisma } from './db';
 import { can, CAP } from './rbac';
 
-type Principal = { id: string; role: string };
+type Principal = { id: string; role: string; firmId?: string | null };
 
 /** True if (userId, engagementId) is a membership row. */
 export async function isEngagementMember(userId: string, engagementId: string): Promise<boolean> {
@@ -18,6 +18,15 @@ export async function isEngagementMember(userId: string, engagementId: string): 
 
 /** Throw FORBIDDEN unless the user may access this engagement's working data. */
 export async function assertEngagementAccess(user: Principal, engagementId: string): Promise<void> {
+  if (user.firmId) {
+    const engagement = await prisma.engagement.findUnique({
+      where: { id: engagementId },
+      select: { firmId: true },
+    });
+    if (!engagement || engagement.firmId !== user.firmId) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'cross-firm-engagement' });
+    }
+  }
   if (can(user.role, CAP.ENGAGEMENT_VIEW_ALL)) return;
   if (await isEngagementMember(user.id, engagementId)) return;
   throw new TRPCError({ code: 'FORBIDDEN', message: 'not-engagement-member' });
@@ -27,7 +36,10 @@ export async function assertEngagementAccess(user: Principal, engagementId: stri
 export async function accessibleEngagementIds(user: Principal): Promise<'all' | string[]> {
   if (can(user.role, CAP.ENGAGEMENT_VIEW_ALL)) return 'all';
   const rows = await prisma.engagementMember.findMany({
-    where: { userId: user.id },
+    where: {
+      userId: user.id,
+      ...(user.firmId ? { engagement: { firmId: user.firmId } } : {}),
+    },
     select: { engagementId: true },
   });
   return rows.map((r) => r.engagementId);

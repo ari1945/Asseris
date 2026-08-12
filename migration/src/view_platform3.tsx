@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg, Stat } from './ui';
@@ -28,7 +28,7 @@ function pseudoHash(str: any) {
 }
 
 function AuditTrail() {
-  const { logEntries } = useAudit();
+  const { logEntries } = useAuditHeavy(['logEntries']);
   const nav = useNav();
   const [q, setQ] = useStateAT('');
   const [actFilter, setActFilter] = useStateAT('All');
@@ -226,7 +226,6 @@ function AuditEntryDrawer({ e, onClose, nav }: any) {
   );
 }
 
-Object.assign(window, { AuditTrail });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -229,7 +229,6 @@ function DataFlow() {
   );
 }
 
-Object.assign(window, { DataFlow });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

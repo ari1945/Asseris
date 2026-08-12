@@ -1,6 +1,6 @@
 # PRD — SA 240 Fraud Substantif: Register Risiko + Faktor Segitiga + Prosedur Override ter-persist + Sign-off SA 230
 
-> Status: **DRAFT — menunggu sign-off ("Proceed.")**. Dokumen ini *merancang*, belum *membangun*.
+> **Status:** **Draft** — merancang, belum membangun
 > Stream: track **kedalaman substantif / domain persist** dari [[asseris-gap-matrix-eval]] — fraud SA 240, area risiko-audit tertinggi.
 > Pola: gabungan PR#7–#11 (display-only→auditable: register editable + sign-off fiktif→WpPanel + memo) — `sa240` sudah di `WP_MODULE_MAP` (Q-02), jadi sign-off + kesimpulan SA 230 sudah ada; gap = **data domain menguap**.
 > Sifat artefak: **level ENGAGEMENT** → `useAmsPersist('fraud.<engId>')`. **Verifikasi live** (recipe terbukti di PR#12).

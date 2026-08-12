@@ -30,19 +30,22 @@ case "$KIND" in
       exit 0
     fi
 
-    echo "Ini akan MENULIS ULANG totpSecret setiap user 2FA di database (re-encrypt in place)."
+    echo "Ini akan MENULIS ULANG seluruh secret terenkripsi di database (re-encrypt in place):"
+    echo "  - totpSecret/pendingTotpSecret setiap user 2FA"
+    echo "  - blob attachment (lampiran bukti audit, inline) — AAD-bound"
+    echo "  - secretEnc token connector"
     printf "Ketik 'ROTATE' untuk lanjut: "
     read -r CONFIRM
     [ "$CONFIRM" = "ROTATE" ] || { echo "Dibatalkan."; exit 1; }
 
-    echo "Re-encrypting setiap totpSecret tersimpan (OLD -> NEW key) ..."
+    echo "Re-encrypting TOTP + attachment blob + connector token (OLD -> NEW key) ..."
     $COMPOSE run --rm -e OLD_APP_ENCRYPTION_KEY="$OLD_APP_ENCRYPTION_KEY" -e NEW_APP_ENCRYPTION_KEY="$NEW_KEY" \
       server npm run rotate-encryption-key
     echo ""
     echo "Langkah MANUAL berikutnya (WAJIB, urutan ini — lihat docs/KEY-ROTATION.md):"
     echo "  1. Update APP_ENCRYPTION_KEY di .env (atau secret JSON di AWS Secrets Manager) -> $NEW_KEY"
     echo "  2. Restart server SEKARANG: \$COMPOSE up -d --force-recreate server"
-    echo "  3. Verifikasi: satu user 2FA login penuh (TOTP terbaca dengan key baru)."
+    echo "  3. Verifikasi: satu user 2FA login penuh (TOTP), satu attachment diunduh (blob), satu sinkronisasi connector."
     echo "  4. Simpan OLD_APP_ENCRYPTION_KEY di tempat aman terpisah sampai langkah 2-3 terbukti sukses, lalu hapus semua salinannya."
     ;;
 

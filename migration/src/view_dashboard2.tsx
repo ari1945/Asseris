@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAmsPersist, useFirm, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useAmsPersist, useFirm, useNav } from './contexts';
 import { capacityModel, seedForwardPlan } from './canon_capacity';
 import type { CapacitySeed } from './canon_capacity';
 import { I } from './icons';
@@ -193,7 +193,7 @@ function DashFinansial() {
 /* ---------------- Mutu & Risiko ---------------- */
 function DashMutu() {
   const nav = useNav();
-  const { risks, reviewNotes } = useAudit();
+  const { risks, reviewNotes } = useAuditHeavy(['reviewNotes']);
   const EQR: any = AMS.EQR_REVIEWS;
   const IND: any = AMS.INDEPENDENCE;
 
@@ -299,7 +299,6 @@ function DashMutu() {
   );
 }
 
-Object.assign(window, { DashOperasional, DashFinansial, DashMutu });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

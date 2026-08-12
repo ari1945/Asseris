@@ -211,7 +211,6 @@ function GovCompDetail({ c, onClose }: any) {
   );
 }
 
-Object.assign(window, { Governance, GovCompDetail });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

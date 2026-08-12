@@ -494,7 +494,6 @@ function CALK({ model, activeClient, f0, disclosures }: any) {
 }
 function fmtPct(tax: any, pbt: any) { const { fmt } = AMS; return pbt ? fmt(tax / pbt * 100, 1) + '%' : '—'; }
 
-Object.assign(window, { FSGenerator });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

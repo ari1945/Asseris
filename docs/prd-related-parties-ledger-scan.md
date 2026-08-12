@@ -1,7 +1,7 @@
 # PRD — SA 550 Pihak Berelasi: Scan Ledger & Rekonsiliasi Kelengkapan
 
 > Evaluasi modul isu **#4** (modul SPAP tipis/terputus). Pick pertama: **SA 550 `related`**.
-> Status: **DRAFT — menunggu sign-off ("Proceed.") sebelum implementasi.**
+> **Status:** **Draft** — menunggu sign-off ("Proceed.")
 > Tanggal: 2026-06-25 · Cabang usulan: `feat/related-parties-ledger-scan` (off `master`).
 
 ---

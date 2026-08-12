@@ -35,6 +35,12 @@ export function prodConfigProblems(env: NodeJS.ProcessEnv = process.env): Config
       problem: "harus '1'/'true' di belakang TLS — jika tidak, cookie sesi httpOnly terkirim tanpa flag Secure",
     });
   }
+  if (!env.AUDIT_CHECKPOINT_PATH?.trim()) {
+    p.push({
+      key: 'AUDIT_CHECKPOINT_PATH',
+      problem: 'wajib menunjuk file pada storage off-box/mount eksternal untuk checkpoint ekor audit',
+    });
+  }
   const db = env.DATABASE_URL;
   if (!db) {
     p.push({ key: 'DATABASE_URL', problem: 'tak diset — produksi wajib URL Postgres eksplisit (jangan diam-diam pakai SQLite dev)' });
@@ -53,7 +59,9 @@ export interface ConfigSummary {
   cookieSecure: boolean;
   encryptionKey: 'set' | 'MISSING';
   signingKey: 'set' | 'MISSING';
+  auditCheckpoint: 'configured' | 'MISSING';
   ipAllowlist: boolean;
+  trustedProxy: boolean;
   llm: boolean;
 }
 
@@ -67,7 +75,9 @@ export function configSummary(env: NodeJS.ProcessEnv = process.env): ConfigSumma
     cookieSecure: env.COOKIE_SECURE === '1' || env.COOKIE_SECURE === 'true',
     encryptionKey: readEncryptionKey(env) ? 'set' : 'MISSING',
     signingKey: readSigningKey(env) ? 'set' : 'MISSING',
+    auditCheckpoint: env.AUDIT_CHECKPOINT_PATH?.trim() ? 'configured' : 'MISSING',
     ipAllowlist: !!env.ADMIN_IP_ALLOWLIST,
+    trustedProxy: !!env.TRUSTED_PROXY_CIDRS,
     llm: !!env.LLM_API_KEY,
   };
 }

@@ -594,7 +594,6 @@ function Tab2410Concl({ concl, setConcl, flagged, client, eng, sc }: any) {
   );
 }
 
-Object.assign(window, { SPR2410View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

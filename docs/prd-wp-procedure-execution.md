@@ -6,6 +6,8 @@ module: workpapers (view_wp.tsx · WPDrill)
 
 # PRD — Menjalankan Prosedur Audit & Mengelola/Menguji Bukti di WP
 
+**Status:** **Approved** — Ari "Full audit-tech" + "Pertahankan terpisah" 2026-06-25
+
 ## Problem
 WP Drill ([view_wp.tsx:292](../migration/src/view_wp.tsx)) tidak bisa *menjalankan*
 prosedur — tab Prosedur hanya menyimpan satu flag status (`Belum/Selesai/

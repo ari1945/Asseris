@@ -656,7 +656,6 @@ function SecTitle({ n, t, mt }: any) {
   );
 }
 
-Object.assign(window, { MatSpecific, MatComponent, MatImpact, MatRevision, MatMemo, MoneyJuta });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

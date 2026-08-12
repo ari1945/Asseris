@@ -67,12 +67,20 @@ model User {
   // brute-force lockout.
   passwordHash String?
   totpSecret   String?
+  // A replacement TOTP secret is staged here and is never made active until the
+  // user proves possession with a valid code. Re-enrolment therefore cannot
+  // accidentally disable or replace the currently working authenticator.
+  pendingTotpSecret String?
   totpEnabled  Boolean   @default(false)
   failedLogins Int       @default(0)
   lockedUntil  DateTime?
+  // Separate, persistent TOTP throttle. Password failures and OTP failures have
+  // different counters so an attacker cannot bypass one limiter via the other.
+  totpFailedAttempts Int       @default(0)
+  totpLockedUntil    DateTime?
 
-  sessions            Session[]
-  authEvents          AuthEvent[]
+  sessions              Session[]
+  authEvents            AuthEvent[]
   engagementMemberships EngagementMember[]
 }
 
@@ -165,9 +173,33 @@ model AuditLog {
   detail      String? // metadata only, e.g. "v3->v4" — never working-paper content
   prevHash    String
   hash        String
+  outboxId    String?  @unique // exactly-once link to the transactional outbox source
 
   @@index([ts])
   @@index([actorUserId])
+}
+
+// Stage 4 — durable hand-off between business commits and the serial hash-chain worker.
+// StateDoc + StateDocHistory + this row are committed in one DB transaction. The worker then
+// creates AuditLog and sets processedAt in another single transaction; AuditLog.outboxId's unique
+// constraint makes a crash/retry incapable of producing a duplicate chain event.
+model AuditOutbox {
+  id             String    @id @default(cuid())
+  idempotencyKey String    @unique
+  enqueuedAt     DateTime  @default(now())
+  processedAt    DateTime?
+  checkpointedAt DateTime?
+  attempts       Int       @default(0)
+  lastError      String?
+  actorUserId    String?
+  actorRole      String?
+  action         String
+  scope          String?
+  scopeId        String?
+  key            String?
+  detail         String?
+
+  @@index([checkpointedAt, enqueuedAt])
 }
 
 // W10.5 — nol-vendor cryptographic seal over an export artifact. NOT a legal e-Meterai / PSrE
@@ -307,17 +339,17 @@ model Client {
 }
 
 model Engagement {
-  id          String   @id
+  id          String             @id
   firmId      String
-  firm        Firm     @relation(fields: [firmId], references: [id])
+  firm        Firm               @relation(fields: [firmId], references: [id])
   clientId    String
-  client      Client   @relation(fields: [clientId], references: [id])
+  client      Client             @relation(fields: [clientId], references: [id])
   type        String?
   fy          String?
   standard    String?
   status      String?
   phase       String?
-  progress    Int      @default(0)
+  progress    Int                @default(0)
   partner     String?
   manager     String?
   deadline    String?
@@ -426,11 +458,38 @@ model Attachment {
   retentionClass String?
   storageKind    String    @default("inline") // 'inline' (blob column) | 's3' (future)
   blob           String? // inline: AES-256-GCM ciphertext (base64) of the file bytes
+  objectKey      String? // s3: object key in the S3-compatible bucket (bytes off-row); inline: null
   uploadedBy     String?
   createdAt      DateTime  @default(now())
   deletedAt      DateTime? // soft-delete marker; row is retained for the audit trail
   deletedBy      String?
+  // Stage 6 — purge lifecycle. Soft-delete (deletedAt) only HIDES the attachment; the bytes stay
+  // in `blob` until a retention worker actually purges them. The worker marks candidates
+  // (purgeScheduledAt), a FIRM_ADMIN approver grants deletion (purgeApprovedAt/By — required,
+  // legal hold suspends), then the worker nulls the blob and stamps purgedAt. `blob` is thus null
+  // either because it never existed (purged) or because storageKind='s3' keeps bytes off-row.
+  purgeScheduledAt DateTime?
+  purgeApprovedAt   DateTime?
+  purgeApprovedBy   String?
+  purgedAt          DateTime?
 
   @@index([scope, scopeId, collection])
   @@index([scope, scopeId, refId])
+  @@index([deletedAt, purgedAt])
+}
+
+// Stage 6 — server-side legal hold registry (per-engagement), the enforcement counterpart of the
+// client registry (migration/src/data_records.ts HOLDS). An ACTIVE hold suspends purge for every
+// soft-deleted attachment of that engagement: the retention worker skips the engagement's rows
+// while status='Aktif'. Only the PUBLIC metadata is stored (subject/reason/by), mirroring the
+// client registry — no engagement data beyond what the hold itself names.
+model LegalHold {
+  id           String   @id @default(cuid())
+  engagementId String   @unique
+  subject      String
+  reason       String
+  status       String   @default("Aktif") // 'Aktif' | 'Dicabut'
+  since        DateTime @default(now())
+  by           String
+  releasedOn   DateTime?
 }

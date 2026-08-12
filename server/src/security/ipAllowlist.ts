@@ -12,9 +12,10 @@ export function readAllowlist(env: NodeJS.ProcessEnv = process.env): string[] {
 
 // Normalize IPv4-mapped IPv6 (::ffff:127.0.0.1 → 127.0.0.1) and bracket forms so localhost and
 // proxied addresses compare predictably.
-function normalize(ip: string): string {
+export function normalizeIp(ip: string): string {
   let s = ip.trim();
   if (s.startsWith('::ffff:')) s = s.slice(7);
+  if (s.startsWith('[') && s.endsWith(']')) s = s.slice(1, -1);
   return s;
 }
 
@@ -42,19 +43,24 @@ function inCidr(ip: string, cidr: string): boolean {
   return (a & mask) === (b & mask);
 }
 
-/** True if `ip` is allowed. Empty list = feature off = allow all. */
-export function ipAllowed(ip: string | null | undefined, list: string[]): boolean {
-  if (!list.length) return true; // off
-  if (!ip) return false; // list configured but no source IP → deny (fail closed)
-  const n = normalize(ip);
+/** Exact IP / IPv4 CIDR matcher shared by allowlists and trusted-proxy resolution. */
+export function ipMatchesAny(ip: string, list: string[]): boolean {
+  const n = normalizeIp(ip);
   for (const entry of list) {
     if (entry.includes('/')) {
       if (inCidr(n, entry)) return true;
-    } else if (normalize(entry) === n) {
+    } else if (normalizeIp(entry) === n) {
       return true;
     }
   }
   return false;
+}
+
+/** True if `ip` is allowed. Empty list = feature off = allow all. */
+export function ipAllowed(ip: string | null | undefined, list: string[]): boolean {
+  if (!list.length) return true; // off
+  if (!ip) return false; // list configured but no source IP → deny (fail closed)
+  return ipMatchesAny(ip, list);
 }
 
 /** Throw FORBIDDEN when `ip` is not allowed by the configured list. No-op when list is empty. */

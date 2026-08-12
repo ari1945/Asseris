@@ -7,7 +7,7 @@
 |---|---|
 | Tanggal | 2026-07-01 (revisi 2, pasca "Proceed.") |
 | Pemilik | Ari Widodo |
-| Status | **Approved — Fase 0-3 SELESAI & live-verified (RBAC 2 peran baru, grup SA salah-tempat, closure baca-personal 10 dokumen). Berhenti di sini atas permintaan Ari untuk ditinjau sebelum Fase 4-8 (agregasi tugas, Beranda, kurasi sidebar, routing).** |
+| Status | **In Progress** — Approved; Fase 0–3 SELESAI & live-verified, Fase 4–8 menunggu tinjauan |
 | Sumber masalah | Permintaan Ari: sidebar kompleks, grup SA salah tempat, tak ada titik masuk berbasis peran + 5 keputusan scope (lihat §0) + temuan celah data personal terbuka (§1‑P4) |
 | Standar | Bukan prosedur audit teknis — restrukturisasi UX/IA & RBAC. |
 | Basis kode | `migration/src` (ESM) + `server/src` (Prisma/tRPC) — scope kini menyentuh KEDUANYA, bukan cuma frontend. |

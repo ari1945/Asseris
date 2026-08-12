@@ -1,11 +1,14 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useAuth, useFirm, useNav, amsShortName } from './contexts';
+import { useAudit, useAuditHeavy, useAuth, useFirm, useNav, amsShortName } from './contexts';
 import { CAP } from './rbac';
 import { I, MODULES, MODULE_INDEX } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Panel, Seg } from './ui';
+/* Tahap 8 — helper WP via ESM dari wp_canon (eager), bukan window.* yang
+   hanya terisi setelah chunk view_wp dimuat. */
+import { WP_REFS, collectWpNotes } from './wp_canon';
 
 /* ============================================================
    Asseris — Review Notes (review-clearance workspace)
@@ -60,7 +63,7 @@ const RN_PHASE_META = {
 function ReviewNotes() {
   const nav = useNav();
   const firm = useFirm();
-  const { reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, wpState, setWp } = useAudit();  // P5 Fase 2: catatan engagement aktif
+  const { reviewNotesActive, addReviewNote, resolveReviewNote, updateReviewNote, noteThreads, addNoteReply, wpState, setWp } = useAuditHeavy(['reviewNotes', 'noteThreads']);  // P5 Fase 2: catatan engagement aktif
   const auth = useAuth();
   /* Otoritas KLIRING/buka-kembali catatan reviu = SIGNOFF_REVIEWER (Partner+Manager). Menutup celah SoD:
      Junior/Senior dapat MERESPONS (composer) tapi tak boleh menuntaskan/membuka catatan — penutupan memberi
@@ -80,13 +83,13 @@ function ReviewNotes() {
   const [composer, setComposer] = useStateWS2('');
   const [draft, setDraft] = useStateWS2({ text: '', type: 'review', module: 'wtb', wpRef: 'B', to: 'Dimas R.', priority: 'medium', due: '2026-03-14', ref: '' });
 
-  const wpRefs = window.WP_REFS || [];
+  const wpRefs = WP_REFS || [];
   const seedById = useMemoWS2(() => Object.fromEntries((AMS.REVIEW_NOTES || []).map((n: any) => [n.id, n])), []);
 
   /* unified, enriched note list (module + WP), with merged seed metadata */
   const allNotes = useMemoWS2(() => {
     const moduleNotes = reviewNotesActive.map((n: any) => ({ type: 'review', thread: [], ...(seedById[n.id] || {}), ...n, wp: false }));
-    const wpNotes = (window.collectWpNotes ? window.collectWpNotes(wpState) : []).map((n: any) => ({ type: 'review', thread: [], ...n }));
+    const wpNotes = collectWpNotes(wpState).map((n: any) => ({ type: 'review', thread: [], ...n }));
     return [...moduleNotes, ...wpNotes];
   }, [reviewNotesActive, wpState, seedById]);
 
@@ -530,7 +533,6 @@ function RN_Meta({ label, value }: any) {
 /* ---------------- My Tasks ---------------- */
 /* MyTasks lives in view_mytasks.jsx (expanded personal task workspace) */
 
-Object.assign(window, { ReviewNotes });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

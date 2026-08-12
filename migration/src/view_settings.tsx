@@ -4,7 +4,10 @@ import { api } from './api';
 import { CAP } from './rbac';
 import { useAuth, useNav } from './contexts';
 import { I } from './icons';
-import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
+import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat, Switch } from './ui';
+/* Tahap 8 — helper preferensi pindah ke modul eager (app.tsx memakainya saat boot
+   tanpa menunggu chunk settings). Di-re-export dari sini agar API lama tetap sama. */
+import { amsApplyPrefs as amsApplyPrefsEager, SETTINGS_ACCENTS } from './prefs';
 
 /* ============================================================
    Asseris — Pengaturan (full settings workspace)
@@ -13,21 +16,7 @@ import { Avatar, Badge, Btn, Overlay, Panel, Seg, Stat } from './ui';
    ============================================================ */
 const { useState: useStateSet, useEffect: useEffectSet } = React;
 
-/* ---- accent presets (override solid blue shades on :root) ---- */
-const SETTINGS_ACCENTS = {
-  biru:   { label: 'Biru KAP', swatch: '#005085', vars: (null as any) },
-  teal:   { label: 'Teal', swatch: '#0a6b73', vars: { '--blue': '#0a6b73', '--blue-600': '#085960', '--blue-400': '#2f8a90' } },
-  indigo: { label: 'Indigo', swatch: '#3a4fa3', vars: { '--blue': '#3a4fa3', '--blue-600': '#31448f', '--blue-400': '#5f72c4' } },
-  plum:   { label: 'Plum', swatch: '#84426a', vars: { '--blue': '#84426a', '--blue-600': '#73385b', '--blue-400': '#a4658a' } },
-};
-function amsApplyPrefs(s: any) {
-  s = s || {};
-  const root = document.documentElement;
-  ['--blue', '--blue-600', '--blue-400'].forEach(v => root.style.removeProperty(v));
-  const acc = (SETTINGS_ACCENTS as any)[s.accent];
-  if (acc && acc.vars) Object.entries(acc.vars).forEach(([k, v]: [string, any]) => root.style.setProperty(k, v));
-  document.body.classList.toggle('reduce-motion', !!s.reduceMotion);
-}
+const amsApplyPrefs = amsApplyPrefsEager;
 window.amsApplyPrefs = amsApplyPrefs;
 
 const SETTINGS_DEFAULTS = {
@@ -43,12 +32,10 @@ const SETTINGS_DEFAULTS = {
 
 /* ---- shared controls ---- */
 function SetToggle({ on, set, disabled }: any) {
-  return (
-    <span onClick={() => !disabled && set(!on)} role="switch" aria-checked={on}
-      style={{ width: 38, height: 21, borderRadius: 11, background: on ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', cursor: disabled ? 'not-allowed' : 'pointer', flex: '0 0 38px', opacity: disabled ? 0.5 : 1 }}>
-      <span style={{ position: 'absolute', top: 2, left: on ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: 'left .15s', boxShadow: '0 1px 2px rgba(0,0,0,.2)' }} />
-    </span>
-  );
+  /* Tahap 9 — switch native: <input type="checkbox" role="switch"> asli,
+     focusable, bisa dioperasikan keyboard (Space), dan state-nya
+     diumumkan ke screen reader. Track/thumb murni CSS. */
+  return <Switch on={on} onChange={(v: any) => !disabled && set(v)} disabled={disabled} />;
 }
 function SRow({ title, sub, children, last }: any) {
   return (
@@ -506,9 +493,11 @@ function SecKeamanan({ s, setGroup, flash }: any) {
   const [totpOn, setTotpOn] = useStateSet(!!auth.twoFactorEnabled);
   const [enroll, setEnroll] = useStateSet(null); // { secret, otpauthUrl }
   const [otp, setOtp] = useStateSet('');
+  const [stepupOpen, setStepupOpen] = useStateSet(false);
+  const [stepup, setStepup] = useStateSet({ password: '', currentTotp: '' });
   const [busy2fa, setBusy2fa] = useStateSet(false);
   // Real password change (server: changePassword).
-  const [pw, setPw] = useStateSet({ old: '', n1: '', n2: '' });
+  const [pw, setPw] = useStateSet({ old: '', n1: '', n2: '', totp: '' });
   const [pwErr, setPwErr] = useStateSet('');
   const [pwBusy, setPwBusy] = useStateSet(false);
   // Real sessions + auth audit events.
@@ -523,8 +512,17 @@ function SecKeamanan({ s, setGroup, flash }: any) {
 
   async function startEnroll() {
     setBusy2fa(true);
-    try { setEnroll(await (api as any).auth.enrollTotp.mutate()); }
-    catch (e) { flash('Gagal memulai 2FA'); }
+    try {
+      setEnroll(await (api as any).auth.enrollTotp.mutate({
+        password: stepup.password,
+        currentTotp: stepup.currentTotp.trim() || undefined,
+      }));
+      setStepupOpen(false); setStepup({ password: '', currentTotp: '' });
+    }
+    catch (e) {
+      const msg = (e && (e as any).message) || '';
+      flash(msg.startsWith('totp-rate-limited') ? 'Verifikasi 2FA dikunci sementara' : 'Kata sandi atau kode 2FA lama salah');
+    }
     finally { setBusy2fa(false); }
   }
   async function confirmEnroll() {
@@ -538,8 +536,11 @@ function SecKeamanan({ s, setGroup, flash }: any) {
     if (pw.n1.length < 12) { setPwErr('Sandi baru minimal 12 karakter.'); return; }
     if (pw.n1 !== pw.n2) { setPwErr('Konfirmasi sandi tidak cocok.'); return; }
     setPwBusy(true);
-    try { await (api as any).auth.changePassword.mutate({ oldPassword: pw.old, newPassword: pw.n1 }); setPw({ old: '', n1: '', n2: '' }); flash('Kata sandi diperbarui'); refresh(); }
-    catch (e) { setPwErr('Sandi saat ini salah.'); }
+    try { await (api as any).auth.changePassword.mutate({ oldPassword: pw.old, newPassword: pw.n1, totp: pw.totp.trim() || undefined }); setPw({ old: '', n1: '', n2: '', totp: '' }); flash('Kata sandi diperbarui'); refresh(); }
+    catch (e) {
+      const msg = (e && (e as any).message) || '';
+      setPwErr(msg.startsWith('totp-rate-limited') ? 'Terlalu banyak kode 2FA salah; coba lagi nanti.' : 'Sandi saat ini atau kode 2FA salah.');
+    }
     finally { setPwBusy(false); }
   }
   async function revokeOthers() {
@@ -553,19 +554,30 @@ function SecKeamanan({ s, setGroup, flash }: any) {
         <div className="panel-h"><h3>Autentikasi</h3></div>
         <SRow title="Autentikasi Dua Faktor (2FA)" sub="Berbasis TOTP (Google Authenticator, Authy, 1Password). Wajib untuk akses kertas kerja emiten (PIE).">
           {totpOn
-            ? <Badge kind="green"><I.check size={11} /> Aktif</Badge>
+            ? <div className="row ac gap8"><Badge kind="green"><I.check size={11} /> Aktif</Badge><Btn sm onClick={() => setStepupOpen(true)} disabled={busy2fa || !!enroll}>Ganti authenticator</Btn></div>
             : (enroll
               ? <span className="tiny muted">Lihat di bawah</span>
-              : <Btn sm variant="primary" onClick={startEnroll} disabled={busy2fa}><I.shield size={12} /> Aktifkan</Btn>)}
+              : <Btn sm variant="primary" onClick={() => setStepupOpen(true)} disabled={busy2fa}><I.shield size={12} /> Aktifkan</Btn>)}
         </SRow>
-        {!totpOn && enroll && (
+        {stepupOpen && !enroll && (
           <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 8, maxWidth: 460 }}>
-            <div className="tiny muted">Tambahkan ke aplikasi authenticator (masukkan kunci ini), lalu masukkan kode 6 digit untuk mengaktifkan:</div>
+            <div className="tiny muted">Konfirmasi identitas sebelum {totpOn ? 'mengganti' : 'mendaftarkan'} authenticator.</div>
+            <input className="input" type="password" autoComplete="current-password" value={stepup.password} onChange={(e: any) => setStepup((p: any) => ({ ...p, password: e.target.value }))} placeholder="Kata sandi saat ini" style={{ height: 32 }} />
+            {totpOn && <input className="input mono" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={stepup.currentTotp} onChange={(e: any) => setStepup((p: any) => ({ ...p, currentTotp: e.target.value.replace(/\D/g, '') }))} placeholder="Kode 2FA lama" style={{ width: 180, height: 32, letterSpacing: 3 }} />}
+            <div className="row ac gap8">
+              <Btn sm variant="primary" onClick={startEnroll} disabled={busy2fa || !stepup.password || (totpOn && stepup.currentTotp.length < 6)}>Lanjutkan</Btn>
+              <Btn sm onClick={() => { setStepupOpen(false); setStepup({ password: '', currentTotp: '' }); }}>Batal</Btn>
+            </div>
+          </div>
+        )}
+        {enroll && (
+          <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 8, maxWidth: 460 }}>
+            <div className="tiny muted">Tambahkan secret pending ini ke aplikasi authenticator, lalu masukkan kode 6 digit. Authenticator lama tetap aktif sampai verifikasi berhasil.</div>
             <div className="mono" style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 7, fontSize: 12, wordBreak: 'break-all', userSelect: 'all' }}>{enroll.secret}</div>
             <div className="row ac gap8">
               <input className="input mono" inputMode="numeric" maxLength={6} value={otp} onChange={(e: any) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="123456" style={{ width: 120, height: 32, letterSpacing: 3 }} />
-              <Btn sm variant="primary" onClick={confirmEnroll} disabled={busy2fa || otp.length < 6}><I.check size={12} /> Verifikasi & Aktifkan</Btn>
-              <Btn sm onClick={() => { setEnroll(null); setOtp(''); }}>Batal</Btn>
+              <Btn sm variant="primary" onClick={confirmEnroll} disabled={busy2fa || otp.length < 6}><I.check size={12} /> Verifikasi & {totpOn ? 'Ganti' : 'Aktifkan'}</Btn>
+              <Btn sm onClick={() => { (api as any).auth.cancelTotpEnrollment.mutate().catch(() => {}); setEnroll(null); setOtp(''); }}>Batal</Btn>
             </div>
           </div>
         )}
@@ -587,6 +599,7 @@ function SecKeamanan({ s, setGroup, flash }: any) {
           <div className="field"><label>Sandi Saat Ini</label><input className="input" type="password" autoComplete="current-password" value={pw.old} onChange={(e: any) => setPw((p: any) => ({ ...p, old: e.target.value }))} placeholder="••••••••" style={{ height: 32 }} /></div>
           <div className="field"><label>Sandi Baru</label><input className="input" type="password" autoComplete="new-password" value={pw.n1} onChange={(e: any) => setPw((p: any) => ({ ...p, n1: e.target.value }))} placeholder="Min. 12 karakter" style={{ height: 32 }} /></div>
           <div className="field"><label>Konfirmasi Sandi Baru</label><input className="input" type="password" autoComplete="new-password" value={pw.n2} onChange={(e: any) => setPw((p: any) => ({ ...p, n2: e.target.value }))} style={{ height: 32 }} /></div>
+          {totpOn && <div className="field"><label>Kode 2FA Saat Ini</label><input className="input mono" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pw.totp} onChange={(e: any) => setPw((p: any) => ({ ...p, totp: e.target.value.replace(/\D/g, '') }))} placeholder="123456" style={{ width: 150, height: 32, letterSpacing: 3 }} /></div>}
           <div className="row je"><Btn sm variant="primary" onClick={changePw} disabled={pwBusy || !pw.old || !pw.n1}><I.lock size={13} /> Perbarui Sandi</Btn></div>
         </div>
       </Panel>

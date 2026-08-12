@@ -1,5 +1,7 @@
 # PRD — AJE PR-C: Rekonsiliasi SA 450 Hidup, Selisih Nilai & Covenant
 
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
+
 **Tanggal:** 2026-07-27 · **Status:** MENUNGGU SIGN-OFF ("Proceed.")
 **Basis:** `master` · **bergantung pada** PR-A ([#139](https://github.com/ari1945/Asseris/pull/139)) untuk bagian covenant
 **Pendahulu:** PRD PR-A (SSOT figur entitas) · PRD PR-B (gerbang otorisasi, [#140](https://github.com/ari1945/Asseris/pull/140))

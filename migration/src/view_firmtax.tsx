@@ -274,7 +274,6 @@ function FirmTax() {
   );
 }
 
-Object.assign(window, { FirmTax });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

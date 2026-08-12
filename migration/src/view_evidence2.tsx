@@ -390,7 +390,6 @@ function EvDossier() {
   );
 }
 
-Object.assign(window, { EvSelection, EvDirection, EvDossier });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

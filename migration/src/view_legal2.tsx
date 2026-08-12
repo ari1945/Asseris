@@ -353,7 +353,6 @@ function FirmLegal() {
   );
 }
 
-Object.assign(window, { FirmLegal, LglRenewalTimeline });
 
 /* lineage dock dua-arah untuk modul Kontrak & Legal (SSOT) */
 if (window.LINEAGE) {

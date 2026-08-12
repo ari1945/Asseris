@@ -1,5 +1,7 @@
 # PRD — WTB PR-6: Otoritas Sign-off Materialitas, SSOT Cache-Dingin & Tipe Konteks
 
+**Status:** **Draft** — menunggu sign-off ("Proceed.")
+
 **Tanggal:** 2026-07-26 · **Status:** MENUNGGU SIGN-OFF ("Proceed.")
 **Basis:** `master` = `484c8a1` (PR-3/4/5 merged, pohon bersih, 0 PR fitur terbuka)
 **Pendahulu:** `PRD - WTB PR-3 Konsolidasi SA 520 & PR-4 Sambungan Spine Audit.md` ·

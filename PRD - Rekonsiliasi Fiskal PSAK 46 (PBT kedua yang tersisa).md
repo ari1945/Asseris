@@ -1,6 +1,6 @@
 # PRD — Rekonsiliasi Fiskal PSAK 46 · PBT kedua yang tersisa
 
-Status: **keputusan basis DIAMBIL (Opsi 1) · menunggu "Proceed." untuk implementasi**
+**Status:** **Draft** — keputusan basis DIAMBIL (Opsi 1); menunggu "Proceed." untuk implementasi
 Basis: master `f3d11ae` (pohon bersih · typecheck 0 · lint 0 · 735 test)
 
 ---

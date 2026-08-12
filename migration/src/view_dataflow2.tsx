@@ -1,7 +1,7 @@
 /* [codemod] ESM imports */
 import React from 'react';
 import { AMS } from './data';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useNav } from './contexts';
 import { I } from './icons';
 import { Badge, Panel, Progress, Seg, Stat } from './ui';
 import { HBars } from './view_fpm_parts';
@@ -150,7 +150,7 @@ function DFPropagasi() {
 /* ---------------- Jejak Audit ---------------- */
 function DFJejak() {
   const nav = useNav();
-  const { logEntries } = useAudit();
+  const { logEntries } = useAuditHeavy(['logEntries']);
   const TRAIL: any = AMS.AUDIT_TRAIL;
   const [mod, setMod] = useDF2('All');
 
@@ -205,7 +205,6 @@ function DFJejak() {
   );
 }
 
-Object.assign(window, { DFAturan, DFPropagasi, DFJejak });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

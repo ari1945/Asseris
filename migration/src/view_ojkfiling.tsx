@@ -137,7 +137,6 @@ function OJKFilingView() {
   );
 }
 
-Object.assign(window, { OJKFilingView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

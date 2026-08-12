@@ -577,7 +577,6 @@ function IndepDrawer({ d, lvl, rec, period, threats, onAddThreat, onUpdateThreat
   );
 }
 
-Object.assign(window, { HCM, CPETracker, Independence });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

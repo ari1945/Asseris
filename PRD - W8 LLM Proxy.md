@@ -13,7 +13,7 @@
 |---|---|
 | Tanggal | 2026-06-18 |
 | Pemilik | Ari Widodo |
-| Status | **DRAFT — menunggu sign-off** |
+| Status | **Implemented** — W8 COMPLETE (Fase 0–2) |
 
 ---
 

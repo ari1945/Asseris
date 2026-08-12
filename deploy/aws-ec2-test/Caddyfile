@@ -26,6 +26,14 @@
 {$PUBLIC_HOST} {
 	import /etc/caddy/tls-{$CADDY_TLS_MODE}.caddy
 	encode gzip
+	header {
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; report-uri /csp-report"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Cross-Origin-Opener-Policy "same-origin"
+	}
 
 	# Edge rate-limiting: before this, NOTHING protected auth.login from brute-force — the only
 	# in-app limiter (server/src/llm/ratelimit.ts) covers just the LLM narration endpoint. Login
@@ -57,8 +65,13 @@
 		reverse_proxy server:5181
 	}
 
+	# Privacy-preserving CSP telemetry: the API counts violations but does not persist report bodies.
+	handle /csp-report {
+		reverse_proxy server:5181
+	}
+
 	# Ops endpoints already live at root on the server — no stripping.
-	@ops path /healthz /metrics
+	@ops path /healthz /readyz /metrics
 	handle @ops {
 		reverse_proxy server:5181
 	}

@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-07-25 |
 | Pemilik | Ari Widodo |
-| Status | Draft |
+| Status | **Draft** |
 | Engagement ID terkait | ENG-2025-014 |
 | Prasyarat | PR-1 (#129) & PR-2 (#130) — MERGED, `master` = `33fb3de` |
 | Asal | Evaluasi modul WTB 2026-07-25, temuan 2, 3, 5, 9, 10 + cacat kecil |

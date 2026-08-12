@@ -6,7 +6,7 @@ import { FSGEN } from './fsgen_model';
 import { useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Btn, Panel, Tabs } from './ui';
+import { Btn, Check, Panel, Tabs } from './ui';
 import { useWpSignoff } from './wp_signoff';
 
 /* ============================================================
@@ -435,13 +435,14 @@ function I35Disclosure({ disc, setDisc }: any) {
       </div>
       <div style={{ display: 'grid', gap: 0 }}>
         {disc.map((d: any, i: any) => (
-          <label key={d.id} className="row gap8" style={{ padding: '8px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(d.id)}>
-            <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (d.done ? 'var(--green)' : 'var(--amber)'), background: d.done ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{d.done && <I.check size={11} style={{ color: '#fff' }} />}</span>
+          /* Tahap 9 — checkbox native (input asli, keyboard-operable). */
+          <div key={d.id} className="row gap8" style={{ padding: '8px 0', alignItems: 'flex-start', borderBottom: i < disc.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+            <Check on={d.done} onChange={() => toggle(d.id)} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, lineHeight: 1.4, color: d.done ? 'var(--ink-2)' : 'var(--ink)', fontWeight: d.done ? 400 : 600 }}>{d.label}</div>
               <div className="mono tiny" style={{ color: 'var(--ink-4)', marginTop: 1 }}>{d.ref}{!d.done && <span style={{ color: 'var(--amber)', fontWeight: 700, marginLeft: 6 }}>belum lengkap</span>}</div>
             </div>
-          </label>
+          </div>
         ))}
       </div>
     </div>
@@ -460,13 +461,14 @@ function I35Audit({ proc, done, setDone, nav }: any) {
       </div>
       <div style={{ display: 'grid', gap: 0 }}>
         {proc.map((p: any, i: any) => (
-          <label key={i} className="row gap8" style={{ padding: '8px 0', cursor: 'pointer', alignItems: 'flex-start', borderBottom: i < proc.length - 1 ? '1px solid var(--line-soft)' : 0 }} onClick={() => toggle(i)}>
-            <span style={{ flex: '0 0 16px', width: 16, height: 16, borderRadius: 4, marginTop: 1, border: '1.5px solid ' + (done[i] ? 'var(--green)' : 'var(--line-strong)'), background: done[i] ? 'var(--green)' : '#fff', display: 'grid', placeItems: 'center' }}>{done[i] && <I.check size={11} style={{ color: '#fff' }} />}</span>
+          /* Tahap 9 — checkbox native (input asli, keyboard-operable). */
+          <div key={i} className="row gap8" style={{ padding: '8px 0', alignItems: 'flex-start', borderBottom: i < proc.length - 1 ? '1px solid var(--line-soft)' : 0 }}>
+            <Check on={done[i]} onChange={() => toggle(i)} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, lineHeight: 1.4, color: done[i] ? 'var(--ink-3)' : 'var(--ink)' }}>{p.t}</div>
               <div className="mono tiny" style={{ color: 'var(--blue)', marginTop: 1, fontWeight: 600 }}>{p.ref}</div>
             </div>
-          </label>
+          </div>
         ))}
       </div>
       <Btn sm style={{ width: '100%', marginTop: 10 }} onClick={() => nav('opinion', { from: 'isak35' })}><I.gavel size={13} /> Lanjut ke Opini Audit</Btn>
@@ -499,7 +501,6 @@ function I35Signoff({ moduleId }: any) {
   );
 }
 
-Object.assign(window, { ISAK35View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

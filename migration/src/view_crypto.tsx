@@ -2,7 +2,7 @@
 import React from 'react';
 import { AMS } from './data';
 import { AMS_CANON } from './canon';
-import { useAudit, useNav } from './contexts';
+import { useAudit, useAuditHeavy, useNav } from './contexts';
 import { I } from './icons';
 import { SubBar } from './shell';
 import { Avatar, Badge, Btn, Donut, Panel, Placeholder, Progress, Seg, Stat } from './ui';
@@ -72,7 +72,7 @@ function crAlgorithms(docs: any, evCount: any, signCount: any, streamLen: any) {
    ============================================================ */
 function CryptoCompliance() {
   const nav = useNav();
-  const { logEntries } = useAudit();
+  const { logEntries } = useAuditHeavy(['logEntries']);
   const [tab, setTab] = useCR('postur');
   const [tamperId, setTamperId] = useCR(null);      // simulasi perubahan (tamper-evidence demo)
   const [verifying, setVerifying] = useCR(false);
@@ -992,7 +992,6 @@ function CRMeterai({ ctx }: any) {
   );
 }
 
-Object.assign(window, { CryptoCompliance });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

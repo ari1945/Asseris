@@ -384,7 +384,6 @@ function F710Impact({ client, mode, comp, compActive }: { client: string; mode: 
   );
 }
 
-Object.assign(window, { SA710View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

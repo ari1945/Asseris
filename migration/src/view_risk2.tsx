@@ -261,7 +261,6 @@ function RiskRespons() {
   );
 }
 
-Object.assign(window, { RiskKontrol, RiskTren, RiskRespons });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -298,7 +298,6 @@ function Learning() {
   );
 }
 
-Object.assign(window, { Recruitment, Learning });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

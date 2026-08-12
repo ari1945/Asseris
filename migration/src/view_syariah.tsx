@@ -602,7 +602,6 @@ function SyariahView() {
   );
 }
 
-Object.assign(window, { SyariahView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

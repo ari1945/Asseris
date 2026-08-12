@@ -8,7 +8,7 @@ import { statusOf, noteOf, upsertFlux, setFluxExpectation, fluxCounts, fluxStatu
 import type { FluxState, FluxStatus } from './flux_state';
 import { I } from './icons';
 import { SubBar } from './shell';
-import { Badge, Btn, Panel } from './ui';
+import { Badge, Btn, Panel, Switch } from './ui';
 import { DisaggregationTab, RatioAnalysisTab, SubstantiveTab, TrendCommonSizeTab } from './view_analytical2';
 
 /* ============================================================
@@ -367,12 +367,8 @@ function FluxTab({ der, pm, fmt }: any) {
             <input type="range" min="5" max="50" value={thr} onChange={(e: any) => setThr(+e.target.value)} style={{ width: 90, accentColor: 'var(--blue)' }} />
             <span className="mono tiny" style={{ fontWeight: 700, width: 30 }}>{thr}%</span>
             <Badge kind="red">{flaggedCount} flagged</Badge>
-            <label className="row ac gap6" style={{ cursor: 'pointer' }} onClick={() => setFlaggedOnly((f: any) => !f)}>
-              <span style={{ width: 28, height: 16, borderRadius: 9, background: flaggedOnly ? 'var(--blue)' : 'var(--line-strong)', position: 'relative', flex: '0 0 auto' }}>
-                <span style={{ position: 'absolute', top: 2, left: flaggedOnly ? 14 : 2, width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: '.15s' }} />
-              </span>
-              <span className="tiny" style={{ fontWeight: 600 }}>Flagged saja</span>
-            </label>
+            {/* Tahap 9 — switch native (input checkbox asli, role="switch"). */}
+            <Switch on={flaggedOnly} onChange={setFlaggedOnly} label="Flagged saja" />
           </div>
         </div>
         <div style={{ maxHeight: 'calc(100vh - 250px)', overflow: 'auto' }}>
@@ -465,7 +461,6 @@ function KvBox({ label, v, accent }: any) {
   );
 }
 
-Object.assign(window, { AnalyticalReview, arDerive, benchVerdict, VERDICT_COLOR, FLUX_SEED, KvBox });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

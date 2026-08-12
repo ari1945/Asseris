@@ -649,7 +649,6 @@ function F240Comms({ client }: any) {
   );
 }
 
-Object.assign(window, { SA240View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

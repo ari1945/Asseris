@@ -243,7 +243,6 @@ function P72_ContractBal({ rev, sc, nav }: any) {
   );
 }
 
-Object.assign(window, { P72_FiveStep, P72_SspTable, P72_ContractBal });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

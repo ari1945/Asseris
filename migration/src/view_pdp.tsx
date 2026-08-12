@@ -335,7 +335,6 @@ function PDPRopaDrawer({ r, onClose, P, nav }: any) {
   );
 }
 
-Object.assign(window, { PDPView });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

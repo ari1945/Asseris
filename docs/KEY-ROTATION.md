@@ -9,11 +9,16 @@
 `APP_ENCRYPTION_KEY` (`server/src/crypto/secretbox.ts`) hanya punya **satu kunci aktif** di
 runtime — tak ada dukungan multi-key/versioned, jadi rotasinya butuh re-encryption pass eksplisit.
 
-- **`APP_ENCRYPTION_KEY`** (AES-256-GCM, TOTP-at-rest): rotasi **AMAN** asalkan dijalankan lewat
-  `rotate-keys.sh encryption` — skrip itu mendekripsi setiap `totpSecret` tersimpan dengan kunci
-  LAMA lalu meng-enkripsi ulang dengan kunci BARU sebelum kunci lama dibuang. Tanpa langkah
-  re-encrypt ini, mengganti env var begitu saja membuat SEMUA 2FA pengguna tak terbaca (server
-  gagal decrypt, bukan silent-wrong — GCM auth tag membuatnya tamper-evident).
+- **`APP_ENCRYPTION_KEY`** (AES-256-GCM, at-rest): rotasi **AMAN** asalkan dijalankan lewat
+  `rotate-keys.sh encryption` — skrip itu mendekripsi SEMUA yang dilindungi kunci dengan kunci
+  LAMA lalu meng-enkripsi ulang dengan kunci BARU sebelum kunci lama dibuang. **Tahap 6** cakupan
+  rotasi diperluas dari TOTP saja menjadi tiga kelas sekaligus: `User.totpSecret`/`pendingTotpSecret`
+  (TOTP), `Attachment.blob` (lampiran bukti audit, inline), dan `ConnectorToken.secretEnc` (token
+  connector). Lampiran & token connector terikat metadata via **AES-GCM AAD** (`enc:v2:`) — skrip
+  menghitung ulang AAD yang sama dengan jalur tulis (`attachmentAad()` / `conn:v1|<connectorId>`),
+  jadi blob tak bisa "dipindahkan" antar baris. Tanpa langkah re-encrypt ini, mengganti env var
+  begitu saja membuat seluruh data terenkripsi tak terbaca (server gagal decrypt, bukan
+  silent-wrong — GCM auth tag membuatnya tamper-evident).
 - **`APP_SIGNING_KEY`** (Ed25519, segel ekspor): rotasi **kini transparan** (K4, 2026-07-02).
   `createSeal()` (`server/src/export/seal.ts`) mengarsipkan kunci publik AKTIF ke tabel
   `SigningKey` sebelum tiap segel ditandatangani (`server/src/crypto/keyArchive.ts`,
@@ -33,7 +38,7 @@ melainkan karena tak ada kebutuhan bisnis untuk merotasinya rutin (beda dengan
 
 | Kunci | Kalender | Event-driven (selalu, di luar jadwal kalender) |
 |---|---|---|
-| `APP_ENCRYPTION_KEY` | Tiap 180 hari (6 bulan) | Staf dengan akses `.env`/Secrets Manager keluar/berganti peran · kunci dicurigai bocor (log, laptop hilang, dsb) · insiden keamanan apa pun yang menyentuh host |
+| `APP_ENCRYPTION_KEY` | Tiap 180 hari (6 bulan) | Staf dengan akses `.env`/Secrets Manager keluar/berganti peran · kunci dicurigai bocor (log, laptop hilang, dsb) · insiden keamanan apa pun yang menyentuh host · **perpindahan penyimpanan lampiran inline→S3 (baris lama harus ikut dirotasi saat migrasi)** |
 | `APP_SIGNING_KEY` | **Tidak dijadwalkan rutin** — tak ada kebutuhan bisnis untuk rotasi rutin (segel lama tetap terverifikasi pasca-K4, jadi ini murni pilihan operasional, bukan lagi keterbatasan teknis) | HANYA bila kunci dicurigai bocor/kompromi. Ini keputusan Partner, bukan operasional rutin. |
 | `BACKUP_ENCRYPTION_KEY` | Tiap 180 hari, selaras `APP_ENCRYPTION_KEY` | Sama seperti di atas |
 | `POSTGRES_PASSWORD` | Tiap 180 hari | Sama seperti di atas |
@@ -57,10 +62,10 @@ keputusan "rotasi sekarang" bukan keputusan operasional sepihak — terutama unt
 ## 3. Prosedur — `APP_ENCRYPTION_KEY`
 
 ```bash
-# 1. Dry-run dulu — SELALU, laporkan tanpa menulis apa pun.
+# 1. Dry-run dulu — SELALU, laporkan tanpa menulis apa pun (TOTP + attachment + connector token).
 OLD_APP_ENCRYPTION_KEY=<nilai-saat-ini> sh deploy/aws-ec2-test/rotate-keys.sh encryption --dry-run
 
-# 2. Rotasi sungguhan (re-encrypt tiap totpSecret + generate kunci baru).
+# 2. Rotasi sungguhan (re-encrypt TOTP + attachment blob + connector token, lalu generate kunci baru).
 OLD_APP_ENCRYPTION_KEY=<nilai-saat-ini> sh deploy/aws-ec2-test/rotate-keys.sh encryption
 #    → skrip mencetak kunci baru SEKALI + langkah manual berikutnya.
 
@@ -71,15 +76,16 @@ OLD_APP_ENCRYPTION_KEY=<nilai-saat-ini> sh deploy/aws-ec2-test/rotate-keys.sh en
 docker compose -f deploy/aws-ec2-test/docker-compose.deploy.yml --env-file deploy/aws-ec2-test/.env \
   up -d --force-recreate server
 
-# 5. Verifikasi: satu user dengan 2FA login penuh (bukti TOTP terbaca dengan kunci baru).
+# 5. Verifikasi: satu user login 2FA penuh (TOTP), satu attachment diunduh (blob), satu sinkronisasi connector.
 
 # 6. Simpan OLD key di tempat aman TERPISAH sampai langkah 4-5 terbukti sukses, baru hapus semua salinannya.
 ```
 
 Jendela waktu antara langkah 2 (re-encrypt DB) dan langkah 4 (restart server dengan kunci baru):
-**jangan biarkan proses server lama menulis `totpSecret` baru** di rentang ini (mis. user lain
-sedang enrol 2FA) — nilainya akan ter-enkripsi dengan kunci LAMA yang baru saja dibuang. Untuk
-firma pilot skala kecil, jalankan di luar jam kerja atau matikan enrolment 2FA sesaat.
+**jangan biarkan proses server lama menulis rahasia baru** di rentang ini (mis. user enrol 2FA,
+upload lampiran, atau refresh token connector) — nilainya akan ter-enkripsi dengan kunci LAMA yang
+baru saja dibuang. Untuk firma pilot skala kecil, jalankan di luar jam kerja atau matikan
+enrolment 2FA / upload / sinkronisasi connector sesaat.
 
 ## 4. Prosedur — `APP_SIGNING_KEY`
 
@@ -107,6 +113,8 @@ segel lama tetap terverifikasi ada di tabel `SigningKey` (DB aplikasi), bukan di
 ## 6. Referensi
 - Generate kunci awal: `docs/DEPLOY.md` §1, §13
 - Skrip: `deploy/aws-ec2-test/rotate-keys.sh` (orkestrasi) + `server/src/rotateEncryptionKey.ts`
-  (re-encryption pass — reuse `encryptSecret`/`decryptSecret` dari `secretbox.ts`, tanpa mengubah
-  format penyimpanan)
+  (re-encryption pass — reuse `encryptSecret`/`decryptSecret` dari `secretbox.ts`; AAD dihitung
+  ulang via `server/src/attachments/aad.ts` agar cocok dengan jalur tulis)
+- Lifecycle bukti audit (hide→approve→purge): `server/src/attachments/retention.ts` · penyimpanan
+  S3-compatible: `docs/SPIKE-S3-STORAGE.md`
 - Gerbang produksi yang menggerbangi kedua kunci: `server/src/prodConfig.ts` (`assertProdConfig`)

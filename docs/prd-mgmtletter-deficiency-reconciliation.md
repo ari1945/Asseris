@@ -2,7 +2,7 @@
 
 > Evaluasi modul isu **#4** (modul SPAP tipis/terputus). Pick ketiga: **`mgmtletter`**
 > (SA 260/265). Pick sebelumnya: SA 550 `related` (#32), SA 560 `subsequent` (#33).
-> Status: **DRAFT — menunggu sign-off ("Proceed.") sebelum implementasi.**
+> **Status:** **Draft** — menunggu sign-off ("Proceed.")
 > Tanggal: 2026-06-25 · Cabang usulan: `feat/mgmtletter-deficiency-reconciliation` (off `master`).
 
 ---

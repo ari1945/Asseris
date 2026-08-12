@@ -222,7 +222,6 @@ function SegmentInfo() {
   );
 }
 
-Object.assign(window, { SegmentInfo });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

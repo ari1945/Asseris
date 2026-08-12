@@ -516,7 +516,6 @@ if (window.LINEAGE) {
   };
 }
 
-Object.assign(window, { FrameworkView, fwDetermine, FW_PORTFOLIO });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

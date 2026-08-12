@@ -6,7 +6,7 @@
 |---|---|
 | Tanggal | 2026-06-19 |
 | Pemilik | Ari Widodo |
-| Status | Review |
+| Status | **In Progress** — status Review — strip berjalan |
 | Engagement ID terkait | — (internal: NeoSuite AMS, arc `neosuite-ams-arc`) |
 
 ## 1. Problem

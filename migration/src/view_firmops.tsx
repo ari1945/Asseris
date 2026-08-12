@@ -221,7 +221,6 @@ function FirmOps() {
     </>
   );
 }
-Object.assign(window, { FirmOps, FopsModuleCard, FOPS_CLS });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

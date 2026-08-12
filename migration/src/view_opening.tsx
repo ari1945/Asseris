@@ -648,7 +648,6 @@ function OBConclusion({ concluded, verdict, score }: { concluded: boolean; verdi
   );
 }
 
-Object.assign(window, { OpeningBalance });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

@@ -430,7 +430,6 @@ function F810Report({ sel }: any) {
   );
 }
 
-Object.assign(window, { SA810View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */

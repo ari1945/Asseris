@@ -4,7 +4,7 @@
 |---|---|
 | Tanggal | 2026-06-25 |
 | Pemilik | Ari Widodo |
-| Status | Draft — **menunggu sign-off** |
+| Status | **Draft** — menunggu sign-off |
 | Engagement ID terkait | — (lintas: `onboarding` firm-level → siklus engagement) |
 | Asal | Evaluasi modul 2026-06-25, isu #2 (flow akseptasi) |
 

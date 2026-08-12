@@ -567,7 +567,6 @@ function F530Evaluation({ interval, tm, findings, setFindings, me, locked }: any
   );
 }
 
-Object.assign(window, { SA530View });
 
 
 /* [codemod] ESM exports (dual-publish; window writes dipertahankan) */
