@@ -69,13 +69,20 @@ jobs:
 
       # Baseline BEFORE backup: row counts (raw SQL, not app-mediated) + a live audit.verify call.
       # The counts file is the ground truth the post-restore step diffs against.
+      # Stage 5 — the session is an HttpOnly cookie; auth.login no longer returns a body token, so
+      # the credential is carried by a curl cookie jar instead of an Authorization header. The old
+      # `sed`-extracted token silently became EMPTY, audit.verify answered 401, and the `||` branch
+      # below blamed the seed for "a broken audit chain" — a wrong diagnosis for an auth-transport
+      # change. Login and chain-integrity are now asserted SEPARATELY so the message matches the
+      # actual failure.
       - name: snapshot baseline (row counts + audit.verify)
         run: |
-          TOKEN=$(curl -fsSk -X POST 'https://localhost/trpc/auth.login?batch=1' \
+          curl -fsSk -c auth_cookies.txt -o login_body.json -X POST 'https://localhost/trpc/auth.login?batch=1' \
             -H 'content-type: application/json' \
-            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
-            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
-          curl -fsSk 'https://localhost/trpc/audit.verify?batch=1' -H "authorization: Bearer $TOKEN" | tee baseline_verify.json
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}'
+          grep -q 'ams_session' auth_cookies.txt \
+            || { echo "login failed to establish a session cookie — an AUTH problem, not a restore/backup one"; cat login_body.json; exit 1; }
+          curl -fsSk -b auth_cookies.txt 'https://localhost/trpc/audit.verify?batch=1' | tee baseline_verify.json
           grep -q '"ok":true' baseline_verify.json || { echo "seed itself produced a broken audit chain — not a restore bug"; exit 1; }
           $COMPOSE exec -T db psql -U neosuite -d neosuite -At -c \
             'select count(*) from "User" union all select count(*) from "AuditLog" union all select count(*) from "StateDoc";' \
@@ -126,11 +133,12 @@ jobs:
       - name: assert audit hash-chain intact post-restore
         run: |
           curl -fsSk https://localhost/healthz | grep -q '"db":"up"'
-          TOKEN=$(curl -fsSk -X POST 'https://localhost/trpc/auth.login?batch=1' \
+          curl -fsSk -c post_cookies.txt -o post_login_body.json -X POST 'https://localhost/trpc/auth.login?batch=1' \
             -H 'content-type: application/json' \
-            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
-            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
-          curl -fsSk 'https://localhost/trpc/audit.verify?batch=1' -H "authorization: Bearer $TOKEN" | tee post_restore_verify.json
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}'
+          grep -q 'ams_session' post_cookies.txt \
+            || { echo "REGRESSION: cannot log in after restore — restored User/Session data is unusable"; cat post_login_body.json; exit 1; }
+          curl -fsSk -b post_cookies.txt 'https://localhost/trpc/audit.verify?batch=1' | tee post_restore_verify.json
           grep -q '"ok":true' post_restore_verify.json || { echo "REGRESSION: audit hash-chain broken after restore"; exit 1; }
           echo "OK: audit.verify reports ok after restore (chain intact AND correctly extended by the new login)"
 

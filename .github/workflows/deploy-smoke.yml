@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-smoke-pw   # ephemeral CI DB, dropped via `down -v` every run (≠ 'changeme' → passes M2 guard)
-      COOKIE_SECURE: "1"               # M2 fail-fast requires this in prod; login smoke uses the BODY token (not the cookie), so HTTP on the runner is fine
+      COOKIE_SECURE: "1"               # M2 fail-fast requires this in prod. Since Stage 5 the session is cookie-only, but this job only INSPECTS the Set-Cookie header (it never replays the cookie over plain HTTP), so http:// on the runner stays fine.
     steps:
       - uses: actions/checkout@v7
 
@@ -91,13 +91,35 @@ jobs:
         run: docker compose run --rm -e ALLOW_DEMO_SEED=1 server npm run seed
 
       # Full chain: server reads seeded Postgres, verifies the scrypt hash, issues a session.
-      - name: assert healthz db:up + login returns a token
+      #
+      # Stage 5 moved the session credential out of the response body into an HttpOnly cookie, so
+      # the old `grep '"token"'` assertion could no longer pass — and it failed while login itself
+      # returned 200, which reads as "deploy broken" when the deploy was fine. Pin the CURRENT
+      # contract in BOTH directions instead: a user payload + a hardened session cookie, and NO
+      # bearer token handed back to JavaScript. The authenticated half of the chain runs in the
+      # next step inside the image (smoke:deployment already asserts `!('token' in login)`).
+      - name: assert healthz db:up + login sets an HttpOnly session cookie (and leaks no body token)
         run: |
           curl -fsS localhost:5181/healthz | grep -q '"db":"up"'
-          curl -fsS -X POST 'localhost:5181/auth.login?batch=1' \
+          curl -fsS -D login_headers.txt -o login_body.json -X POST 'localhost:5181/auth.login?batch=1' \
             -H 'content-type: application/json' \
-            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
-            | grep -q '"token"'
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}'
+          grep -q '"user"' login_body.json \
+            || { echo "REGRESSION: login body carries no user payload"; cat login_body.json; exit 1; }
+          if grep -q '"token"' login_body.json; then
+            echo "REGRESSION: login body leaked a bearer token to JavaScript (Stage 5 cookie-only contract)"
+            cat login_body.json; exit 1
+          fi
+          COOKIE=$(grep -i '^set-cookie: *ams_session=' login_headers.txt || true)
+          [ -n "$COOKIE" ] \
+            || { echo "REGRESSION: login set no ams_session cookie"; cat login_headers.txt; exit 1; }
+          for attr in HttpOnly 'SameSite=Strict' Secure; do
+            case "$COOKIE" in
+              *"$attr"*) ;;
+              *) echo "REGRESSION: session cookie is missing $attr — $COOKIE"; exit 1 ;;
+            esac
+          done
+          echo "OK: login issues an HttpOnly/SameSite=Strict/Secure session cookie and leaks no body token"
 
       # Final Stage-3 gate, executed inside the exact production image against the freshly
       # migrated Postgres volume. It uses app procedures for login, StateDoc CAS, real encrypted
@@ -210,13 +232,30 @@ jobs:
 
       # The actual regression: login THROUGH the edge at /trpc/auth.login (not :5181/auth.login).
       # This is the exact call that 404'd before the Caddyfile strip_prefix fix.
-      - name: assert edge healthz db:up + login through /trpc prefix returns a token
+      #
+      # Since Stage 5 the credential is an HttpOnly cookie, not a body token. What the old
+      # `grep '"token"'` really stood for was "login yields a USABLE credential", so the faithful
+      # port is: store the cookie jar, then make an AUTHENTICATED follow-up call back through
+      # Caddy. That covers strictly more than the token grep did — a cookie that is set but not
+      # accepted on the next request would now fail here instead of passing.
+      - name: assert edge healthz db:up + the session cookie authenticates through the /trpc prefix
         run: |
           curl -fsSk https://localhost/healthz | grep -q '"db":"up"'
-          curl -fsSk -X POST 'https://localhost/trpc/auth.login?batch=1' \
+          curl -fsSk -c edge_cookies.txt -o login_body.json -X POST 'https://localhost/trpc/auth.login?batch=1' \
             -H 'content-type: application/json' \
-            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}' \
-            | grep -q '"token"'
+            -d '{"0":{"email":"hartono.w@whr-cpa.id","password":"Partner#2025!"}}'
+          grep -q '"user"' login_body.json \
+            || { echo "REGRESSION: login through the edge returned no user payload"; cat login_body.json; exit 1; }
+          if grep -q '"token"' login_body.json; then
+            echo "REGRESSION: login body leaked a bearer token to JavaScript (Stage 5 cookie-only contract)"
+            cat login_body.json; exit 1
+          fi
+          grep -q 'ams_session' edge_cookies.txt \
+            || { echo "REGRESSION: no ams_session cookie stored from the edge login"; cat edge_cookies.txt; exit 1; }
+          curl -fsSk -b edge_cookies.txt -o me.json 'https://localhost/trpc/auth.me?batch=1'
+          grep -q 'hartono.w@whr-cpa.id' me.json \
+            || { echo "REGRESSION: the session cookie did not authenticate auth.me through the edge"; cat me.json; exit 1; }
+          echo "OK: edge login sets a working HttpOnly session cookie (no body token)"
 
       # /trpc/auth.login had NO brute-force protection anywhere (edge or app) before this Caddyfile
       # change — proves the new `login_zone` (5 events/min/IP, deploy/aws-ec2-test/Caddyfile) is
