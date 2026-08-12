@@ -49,10 +49,17 @@ describe('ethicsComplianceOf — gerbang sign-off/opini', () => {
     expect(c.overridden).toBe(false);
   });
 
-  it('fail-open bila pengguna tak terpetakan ke pegawai (empId null)', () => {
+  /* ORACLE DIBALIK (PRD Kesiapan P2PK · PR-2, cacat A-5).
+     Bentuk lama menyatakan bahwa pengguna yang TIDAK terpetakan ke personel firma
+     LOLOS gerbang Kode Etik/AML — dan menamainya "fail-open" sebagai fitur. Karena
+     `resolveEmpId` mencocokkan email lalu NAMA, selisih ejaan nama saja sudah cukup
+     membuka gerbang penerbitan opini, tanpa jejak. Untuk gerbang asurans, "tak dapat
+     dinilai" tidak boleh berarti "lolos". */
+  it('GAGAL-TERTUTUP bila pengguna tak terpetakan ke pegawai (empId null)', () => {
     const c = ethicsComplianceOf(decl, aml, {}, null, PERIOD);
-    expect(c.ok).toBe(true);
-    expect(c.blocked).toBe(false);
+    expect(c.ok).toBe(false);
+    expect(c.blocked).toBe(true);
+    expect(c.reason).toMatch(/tidak terpetakan/i);
   });
 });
 

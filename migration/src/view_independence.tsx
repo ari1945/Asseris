@@ -27,6 +27,8 @@ const statusMeta: Record<string, { kind: 'green' | 'amber' | 'red' | 'gray'; lab
   safeguarded: { kind: 'amber', label: 'Ter-safeguard' },
   threat: { kind: 'red', label: 'Ancaman tak-tersafeguard' },
   undeclared: { kind: 'gray', label: 'Belum dinyatakan' },
+  /* Baris bawaan seed: terlihat di matriks, tetapi TIDAK memuaskan gerbang. */
+  seeded: { kind: 'gray', label: 'Contoh demo' },
 };
 
 /* Hook bersama: kesimpulan independensi anggota untuk PERIKATAN AKTIF —
@@ -48,6 +50,7 @@ function MemberIndependence() {
 
   const canAdmin = !!(auth && typeof auth.can === 'function' && auth.can(CAP.FIRM_ADMIN));
   const myName = (auth && auth.user && auth.user.name) || '';
+  const myUserId = (auth && auth.user && (auth.user as { id?: string }).id) || undefined;
   const canEdit = (member: string) => canAdmin || member === myName;
 
   const eng = engagementIndependence(roster, decls as EngagementDeclarations);
@@ -63,7 +66,13 @@ function MemberIndependence() {
   const toggleSign = (member: string) => {
     if (!canEdit(member)) return;
     const cur = (decls as EngagementDeclarations)[member] || EMPTY_DECL;
-    patchDecl(member, cur.signed ? { signed: false, signedAt: undefined } : { signed: true, signedAt: stamp() });
+    /* Tanda tangan NYATA merekam pembubuhnya dan mencabut penanda `seeded` —
+       deklarasi berhenti menjadi contoh demo begitu seseorang menyatakannya.
+       Membuka kembali membersihkan atribusi agar tak tertinggal jejak orang
+       yang tak lagi menyatakan apa pun. */
+    patchDecl(member, cur.signed
+      ? { signed: false, signedAt: undefined, by: undefined, byUserId: undefined, seeded: false }
+      : { signed: true, signedAt: stamp(), by: myName, byUserId: myUserId, seeded: false });
   };
 
   const clientName = (() => {

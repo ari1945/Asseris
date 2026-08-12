@@ -37,6 +37,13 @@ export interface MemberDeclaration {
   note: string;
   signed: boolean;
   signedAt?: string;
+  /** nama & id pengguna yang MEMBUBUHKAN — bukan nama baris yang ditandatangani.
+   *  Sebelumnya bentuk ini tak punya field penanda tangan sama sekali, sehingga
+   *  "siapa yang menyatakan" tak dapat ditanyakan kepada dokumen. */
+  by?: string;
+  byUserId?: string;
+  /** Ditanam SEED demo, bukan dinyatakan orangnya. TIDAK memuaskan gerbang. */
+  seeded?: boolean;
 }
 
 /** Deklarasi seluruh anggota sebuah perikatan (keyed by nama anggota). */
@@ -47,7 +54,7 @@ export interface MemberRef {
   role: string;
 }
 
-export type MemberIndepStatus = 'clean' | 'safeguarded' | 'threat' | 'undeclared';
+export type MemberIndepStatus = 'clean' | 'safeguarded' | 'threat' | 'undeclared' | 'seeded';
 
 export interface MemberIndepRow {
   member: string;
@@ -83,10 +90,24 @@ export function memberIndepStatus(d: MemberDeclaration): { status: MemberIndepSt
   const hasThreat = threats.length > 0;
   const safeguarded = hasThreat && !!(d.safeguards && d.safeguards.trim());
   if (!d.signed) return { status: 'undeclared', blocked: true, threats, safeguarded };
+  /* Deklarasi bawaan SEED bukan pernyataan siapa pun. Ia dipertahankan agar matriks
+     demo tetap terisi, tetapi TIDAK memuaskan gerbang — sebelumnya seluruh roster
+     ditanam `signed:true` sehingga gerbang independensi tim hijau di setiap
+     perikatan sebelum satu orang pun menyatakan apa pun. */
+  if (d.seeded) return { status: 'seeded', blocked: true, threats, safeguarded };
   if (!hasThreat) return { status: 'clean', blocked: false, threats, safeguarded };
   if (safeguarded) return { status: 'safeguarded', blocked: false, threats, safeguarded };
   return { status: 'threat', blocked: true, threats, safeguarded };
 }
+
+/** Kalimat siap-tampil per status (UI Bahasa Indonesia). */
+export const MEMBER_INDEP_LABEL: Record<MemberIndepStatus, string> = {
+  clean: 'Dinyatakan bersih',
+  safeguarded: 'Ancaman ter-safeguard',
+  threat: 'Ancaman tanpa pengaman',
+  undeclared: 'Belum menyatakan',
+  seeded: 'Contoh demo — belum dinyatakan oleh anggota',
+};
 
 /** Roster anggota unik yang di-staffing ke sebuah perikatan (SSOT: SCHEDULE.alloc). */
 export function rosterForEngagement(
@@ -113,7 +134,7 @@ export function engagementIndependence(roster: MemberRef[], decls: EngagementDec
     };
   });
   // urut: pemblokir/ancaman dulu (paling perlu perhatian).
-  const rank: Record<MemberIndepStatus, number> = { undeclared: 0, threat: 1, safeguarded: 2, clean: 3 };
+  const rank: Record<MemberIndepStatus, number> = { undeclared: 0, seeded: 1, threat: 2, safeguarded: 3, clean: 4 };
   rows.sort((a, b) => rank[a.status] - rank[b.status]);
   const blockers = rows.filter((r) => r.blocked).length;
   return {
@@ -127,9 +148,15 @@ export function engagementIndependence(roster: MemberRef[], decls: EngagementDec
   };
 }
 
-/* Seed demo deterministik: semua deklarasi ditandatangani & bersih, KECUALI satu Senior
-   pertama diberi ancaman kedekatan yang SUDAH ter-safeguard (tetap tak memblok) — agar
-   matriks memperlihatkan variasi realistik tanpa memblok penerbitan opini. */
+/* Seed demo deterministik: matriks terisi variasi realistik, TETAPI setiap baris
+   ditandai `seeded` sehingga TIDAK memuaskan gerbang.
+
+   Bentuk lama menanam `signed:true` untuk SELURUH roster, dan komentarnya menyatakan
+   maksudnya terang-terangan: "tanpa memblok penerbitan opini". Gerbang independensi
+   tim karenanya hijau di setiap perikatan sebelum satu orang pun menyatakan apa pun —
+   gerbang yang dirancang agar tidak pernah memblokir sudah gagal sebelum diuji.
+   Keputusan Ari (2026-08-12): data seed DIPERTAHANKAN untuk demo, tetapi ia harus
+   berhenti menembus gerbang. `seeded` adalah penandanya. */
 export function seedDeclarations(roster: MemberRef[]): EngagementDeclarations {
   const out: EngagementDeclarations = {};
   let taggedSenior = false;
@@ -139,11 +166,11 @@ export function seedDeclarations(roster: MemberRef[]): EngagementDeclarations {
         threats: { familiarity: true },
         safeguards: 'Rotasi personel siklus depan + penelaahan tambahan atas area sensitif (SA 220).',
         note: 'Asosiasi profesional lama dengan tim klien.',
-        signed: true, signedAt: '2026-01-15',
+        signed: true, signedAt: '2026-01-15', seeded: true,
       };
       taggedSenior = true;
     } else {
-      out[m.member] = { threats: {}, safeguards: '', note: '', signed: true, signedAt: '2026-01-15' };
+      out[m.member] = { threats: {}, safeguards: '', note: '', signed: true, signedAt: '2026-01-15', seeded: true };
     }
   }
   return out;

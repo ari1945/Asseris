@@ -9,6 +9,10 @@ import { Avatar, Badge, Btn, Panel, Seg, Stat, Tabs } from './ui';
 import { KvBox } from './view_analytical';
 import { NoclarEthics, TaxTechEthics } from './view_ethics_parts';
 import { useEthicsOverrides, ethicsComplianceOf } from './ethics_gate';
+import { resolveEmpId } from './ethics_compliance';
+
+/** Tanggal nyata — bentuk lama memaku '2026-03-09' pada SETIAP deklarasi. */
+const ethToday = () => new Date().toISOString().slice(0, 10);
 
 /* ============================================================
    Asseris — People & Compliance (NEW)
@@ -44,10 +48,33 @@ function EthicsDeclaration() {
   const giftsPending = gifts.filter((g: any) => g.status === 'Menunggu').length;
   const amlPending = aml.filter((a: any) => a.result !== 'Bersih').length;
 
-  const sign = (id: any) => setDecl((d: any) => ({ ...d, [id]: { ...d[id], signed: true, date: '2026-03-09', items: ITEMS.map((_: any, i: any) => (d[id].items[i] ? 1 : 1)) } }));
+  /* Deklarasi Kode Etik adalah pernyataan PRIBADI. Bentuk lama menandatangani
+     `id` SIAPA PUN, dengan tanggal hardcode '2026-03-09', tanpa merekam
+     pembubuhnya — sehingga seorang Admin HR dapat "menandatangani" deklarasi
+     seorang Partner dan dengan itu membuka gerbang penerbitan opini.
+
+     Kini: hanya baris milik sendiri, bertanggal nyata, ber-atribusi. Butir
+     deklarasi diafirmasi seluruhnya saat ditandatangani — semantik yang sama
+     dengan jalur server `personalSelfService.declareSelf`; pengecualian dicatat
+     terpisah di `exceptions`. (Bentuk lama menulisnya lewat ternary `? 1 : 1`
+     yang mengembalikan nilai sama di kedua cabang — kode mati.) */
+  const myEmpId = resolveEmpId(authEth && authEth.user);
+  const canSignOwn = (id: string) => !!myEmpId && id === myEmpId;
+  const sign = (id: any) => {
+    if (!canSignOwn(id)) return;
+    setDecl((d: any) => ({
+      ...d,
+      [id]: {
+        ...d[id], signed: true, date: ethToday(),
+        by: (authEth && authEth.user && authEth.user.name) || undefined,
+        byUserId: (authEth && authEth.user && (authEth.user as { id?: string }).id) || undefined,
+        items: ITEMS.map(() => 1),
+      },
+    }));
+  };
   const requestDecl = () => setDecl((d: EthDecl) => {
     const next: EthDecl = { ...d };
-    for (const s of myStaff) { const cur = next[s.id]; if (cur && !cur.signed) next[s.id] = { ...cur, requested: true, requestedAt: '2026-03-09' }; }
+    for (const s of myStaff) { const cur = next[s.id]; if (cur && !cur.signed) next[s.id] = { ...cur, requested: true, requestedAt: ethToday() }; }
     return next;
   });
   const decideGift = (id: any, status: any) => setGifts((list: any) => list.map((g: any) => g.id === id ? { ...g, status, action: status === 'Disetujui' ? 'Disetujui & dicatat' : g.action } : g));
@@ -84,7 +111,7 @@ function EthicsDeclaration() {
                           return <td key={i} className="num" style={{ textAlign: 'center' }}>{d.signed ? (ok ? <I.check size={14} style={{ color: 'var(--green)' }} /> : ex ? <span title={d.exNote} style={{ color: 'var(--amber)' }}><I.alert size={13} /></span> : '–') : <span className="muted">–</span>}</td>;
                         })}
                         <td className="tiny muted">{d.signed ? new Date(d.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '—'}</td>
-                        <td>{d.signed ? (d.exceptions ? <Badge kind="amber">Dgn Pengecualian</Badge> : <Badge kind="green">Lengkap</Badge>) : <div className="row ac gap6">{d.requested && <span className="chip tiny" style={{ color: 'var(--amber)', borderColor: 'var(--amber)' }} title={'Deklarasi diminta ' + (d.requestedAt || '')}><I.send size={10} /> Diminta</span>}<button className="btn sm" style={{ height: 22, color: 'var(--blue)' }} onClick={() => sign(s.id)}><I.check size={12} /> Tandatangani</button></div>}</td>
+                        <td>{d.signed ? (d.exceptions ? <Badge kind="amber">Dgn Pengecualian</Badge> : <Badge kind="green">Lengkap</Badge>) : <div className="row ac gap6">{d.requested && <span className="chip tiny" style={{ color: 'var(--amber)', borderColor: 'var(--amber)' }} title={'Deklarasi diminta ' + (d.requestedAt || '')}><I.send size={10} /> Diminta</span>}{canSignOwn(s.id) ? <button className="btn sm" style={{ height: 22, color: 'var(--blue)' }} onClick={() => sign(s.id)}><I.check size={12} /> Tandatangani</button> : <span className="tiny muted" title="Deklarasi Kode Etik adalah pernyataan pribadi — hanya yang bersangkutan dapat menandatanganinya">menunggu ybs.</span>}</div>}</td>
                       </tr>
                     );
                   })}
