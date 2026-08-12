@@ -2,7 +2,7 @@
 
 | Field | Nilai |
 |---|---|
-| Status | Draft — menunggu sign-off ("Proceed.") |
+| Status | Implemented — PR-1..PR-5 (#182·#183·#184·#185·#186) merged 2026-08-12; K1–K13 tertutup |
 | Tanggal | 2026-08-12 |
 | Arc | Integritas estimasi — lanjutan pola #169–#181 (temuan lewat probe, bukan lewat uji) |
 | Basis | master `3305826` · 8/8 gerbang hijau · nol PR terbuka |
@@ -199,7 +199,59 @@ Tiap PR: `npm run verify` hijau sebelum dikirim, dan **verifikasi hidup** (bukan
 
 ---
 
-## 10. Open Questions
+## 9a. Hasil pelaksanaan (2026-08-12)
+
+Seluruh arc dieksekusi dalam satu sesi. Tiap PR lolos `npm run verify` (8/8 gerbang)
+**dan** verifikasi hidup pada ENG-2025-014 (peran Audit Manager) — bukan hanya uji.
+
+| PR | Commit | Modul kanon baru | Probe |
+|---|---|---|---|
+| [#182](https://github.com/ari1945/Asseris/pull/182) | `cb6c0b9` | `canon_estimates.ts` (20 uji) | K1–K5, K13 |
+| [#183](https://github.com/ari1945/Asseris/pull/183) | `af5a436` | `canon_fv_disclosure.ts` (18) · `canon_expert_eval.ts` (13) | K6, K7 |
+| [#184](https://github.com/ari1945/Asseris/pull/184) | `b4e9c4d` | `canon_viu.ts` (16) | K8, R5 |
+| [#185](https://github.com/ari1945/Asseris/pull/185) | `bd20d5a` | `canon_range.ts` (22) | K9, butir 13–17 |
+| [#186](https://github.com/ari1945/Asseris/pull/186) | `65de432` | `canon_retrospective.ts` (14) + `estimate_gate.tsx` | K10, K11 |
+
+Uji frontend 1160 → **1250**. Ratchet `no-explicit-any` turun (`view_sad.tsx` 42 → 40).
+
+**Temuan yang tidak diantisipasi PRD ini:**
+
+1. **Pencabutan `M-04` membalik kesimpulan opini demo.** Agregat turun 3.270 → 2.590 jt,
+   yakni **106% → 84%** materialitas keseluruhan. Angka karangan Rp 680 jt selama ini
+   mendorong perikatan demo ke rekomendasi opini modifikasian SA 705.
+2. **Tier B jauh lebih kecil dari perkiraan, jangkauannya jauh lebih besar.** `valueInUse`
+   sudah ada & teruji; yang hilang hanya kemudinya. Setelah dibuka, satu perubahan WACC
+   menggerakkan PSAK 48 → rentang SA 540 → salah saji SAD (13,5%→15,0% ⇒ agregat
+   84% → **136% OM**).
+3. **Rentang E-05 yang diketik `0–1.800` meremehkan sebarannya sendiri.** Sensitivitas
+   yang diakui auditor menyiratkan `0–8.830` pada asumsi dasar — 4,9× lebih lebar.
+
+**Keputusan desain yang diambil saat pelaksanaan (di luar §4):**
+
+- `bsEffect` **tidak** diturunkan untuk baris SAD turunan: efek neraca estimasi menuntut
+  deklarasi sisi aset/liabilitas *dan* klasifikasi lancar/tidak-lancar yang tak ada di
+  registri. Mekanisme `liquidity.missing` yang sudah ada menahan proyeksi rasio lancar
+  dan menyebut barisnya — lebih benar daripada menerka tanda.
+- Rentang tak berdasar **tetap dipakai** mengukur salah saji, hanya ditandai.
+  Menggugurkannya akan menghapus temuan nyata dari agregasi SA 450.
+- Skenario `viu` **tidak di-persist** — dibangkitkan tiap pembacaan agar tautannya hidup.
+- Tautan laporan pakar memakai **`docUid`**, bukan nama berkas, sehingga tautan putus
+  begitu dokumennya dicabut dari bukti.
+
+**Utang yang tersisa:** tinjauan visual Ari baru dilakukan untuk #182; panel baru yang
+paling layak ditinjau adalah **Dasar Rentang** (SA 540 · tab Inventaris) dan **Telaah
+Retrospektif** (tab Bias). Penegakan gerbang pakar ada di **lapisan UI**, sejajar dengan
+gerbang etik/AML — padanan server-side belum ada (lihat catatan lingkup `ethics_gate.tsx`).
+
+---
+
+## 10. Open Questions — SEMUA TERJAWAB
+
+
+
+> Ari menjawab ketiganya dengan **"Proceed."** (2026-08-12): Q1 = batas terdekat ·
+> Q2 = 11/11 prosedur + bukti pakar · Q3 = ya, nilai pakai menurunkan rentang E-05.
+> Ketiganya terimplementasi & terverifikasi hidup.
 
 **Q1 — Dasar pengukuran salah saji (mengunci PR-1).**
 Rekomendasi saya: **batas terdekat**, `0` bila titik manajemen di dalam rentang; kecenderungan arah terhadap titik tengah dipindah menjadi indikator bias ¶32. Ini sesuai SA 540/450 dan memperbaiki dua hal sekaligus. Konsekuensi yang harus Anda terima secara sadar: salah saji terakumulasi **turun**, dan pada data demo M-04 Rp 680 jt kemungkinan menjadi nol. Setuju?
