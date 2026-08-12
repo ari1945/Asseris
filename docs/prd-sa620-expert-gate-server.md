@@ -160,7 +160,11 @@ prevValue ──▶ signoffContextNeeds(key, prev, next)
                           → guardSignoffWrite(..., ctx)
 ```
 
-Bila `needs` non-null tetapi `ctx` absen → `guardSignoffWrite` **melempar** `expert-gate:context-missing` (K11). Gerbang yang dapat dilewati dengan lupa memanggil bukan gerbang.
+Bila `needs` non-null tetapi `ctx` absen → `guardSignoffWrite` **melempar** `signoff:context-missing` (K11). Gerbang yang dapat dilewati dengan lupa memanggil bukan gerbang.
+
+> Pesan ini semula bernama `expert-gate:context-missing`. Sejak PRD Kesiapan
+> Pemeriksaan P2PK (PR-1) pemeriksaan yang sama menjaga **dua** gerbang — pakar
+> SA 620 dan EQR ISQM 2 — sehingga namanya dinetralkan.
 
 ### 8.2 Aturan sebagai satu fungsi murni, dipakai dua sisi
 

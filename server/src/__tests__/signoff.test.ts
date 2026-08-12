@@ -142,8 +142,77 @@ describe('guardSignoffWrite — opinionDoc.v1 slot & finalisasi', () => {
   });
 
   it('finalisasi opini butuh OPINION_APPROVE', () => {
-    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', { finalized: false }, { finalized: true })).toThrow(/opinion\.approve/);
-    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', { finalized: false }, { finalized: true })).not.toThrow();
+    expect(() => guardSignoffWrite(MANAGER, 'opinionDoc.v1', { finalized: false }, { finalized: true }, NOW, eqrCtx({ pie: false }))).toThrow(/opinion\.approve/);
+    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', { finalized: false }, { finalized: true }, NOW, eqrCtx({ pie: false })))
+      .not.toThrow();
+  });
+});
+
+/* ============================================================
+   Gerbang EQR (ISQM 2 / SPM 2) atas penerbitan opini.
+
+   Sebelum PRD Kesiapan P2PK PR-1 gerbang ini HANYA hidup di UI:
+   `state.set('opinionDoc.v1', {finalized:true})` lewat tRPC menembusnya
+   sepenuhnya, karena `guardSignoffWrite` hanya menuntut OPINION_APPROVE.
+   ============================================================ */
+const ENG = 'ENG-2025-063';
+
+/** Konteks gerbang EQR — registri firma seperti yang dimuat `loadSignoffContext`. */
+function eqrCtx(opts: { pie: boolean | null; reviews?: { eng: string; cleared: boolean }[] }): SignoffContext {
+  const firmSiblings: Record<string, unknown> = { 'eqrReviews.v2': opts.reviews || [] };
+  if (opts.pie !== null) {
+    firmSiblings['engagements'] = [{ id: ENG, clientId: 'CLI-1' }];
+    firmSiblings['clients'] = [{ id: 'CLI-1', listed: opts.pie }];
+  }
+  return { siblings: {}, liveAttachmentIds: {}, firmSiblings, scope: 'engagement', scopeId: ENG };
+}
+
+describe('guardSignoffWrite — gerbang EQR atas finalisasi opini', () => {
+  const toFinal = (ctx?: SignoffContext) =>
+    () => guardSignoffWrite(PARTNER, 'opinionDoc.v1', { finalized: false }, { finalized: true }, NOW, ctx);
+
+  it('klien PIE TANPA satu pun baris EQR ditolak (regresi fail-open)', () => {
+    expect(toFinal(eqrCtx({ pie: true }))).toThrow(/eqr-gate:missing-review/);
+  });
+
+  it('klien PIE dengan EQR yang belum lolos ditolak', () => {
+    expect(toFinal(eqrCtx({ pie: true, reviews: [{ eng: ENG, cleared: false }] }))).toThrow(/eqr-gate:open-review/);
+  });
+
+  it('klien PIE dengan seluruh EQR lolos diterima', () => {
+    expect(toFinal(eqrCtx({ pie: true, reviews: [{ eng: ENG, cleared: true }] }))).not.toThrow();
+  });
+
+  it('non-PIE tanpa EQR diterima, tetapi EQR yang ADA tetap mengikat', () => {
+    expect(toFinal(eqrCtx({ pie: false }))).not.toThrow();
+    expect(toFinal(eqrCtx({ pie: false, reviews: [{ eng: ENG, cleared: false }] }))).toThrow(/eqr-gate:open-review/);
+  });
+
+  it('EQR perikatan LAIN tidak memuaskan maupun memblokir gerbang ini', () => {
+    expect(toFinal(eqrCtx({ pie: true, reviews: [{ eng: 'ENG-LAIN', cleared: true }] }))).toThrow(/eqr-gate:missing-review/);
+    expect(toFinal(eqrCtx({ pie: false, reviews: [{ eng: 'ENG-LAIN', cleared: false }] }))).not.toThrow();
+  });
+
+  it('konteks yang tidak dipasok = cacat perkabelan, bukan izin (fail-closed)', () => {
+    expect(toFinal(undefined)).toThrow(/signoff:context-missing/);
+  });
+
+  it('status PIE tak dapat ditentukan → lolos, tetapi BERJEJAK', () => {
+    const changes = guardSignoffWrite(PARTNER, 'opinionDoc.v1', { finalized: false }, { finalized: true }, NOW,
+      eqrCtx({ pie: null }));
+    expect(changes.map((c) => c.what)).toContain('eqr-gate:pie-unknown');
+  });
+
+  it('MEMBATALKAN finalisasi tidak diblokir gerbang EQR', () => {
+    expect(() => guardSignoffWrite(PARTNER, 'opinionDoc.v1', { finalized: true }, { finalized: false }, NOW,
+      eqrCtx({ pie: true }))).not.toThrow();
+  });
+
+  it('konteks hanya diminta pada TRANSISI menjadi final', () => {
+    expect(signoffContextNeeds('opinionDoc.v1', { finalized: false }, { finalized: true })).not.toBeNull();
+    expect(signoffContextNeeds('opinionDoc.v1', { finalized: true }, { finalized: true })).toBeNull();
+    expect(signoffContextNeeds('opinionDoc.v1', { finalized: true }, { finalized: false })).toBeNull();
+    expect(signoffContextNeeds('opinionDoc.v1', {}, { type: 'WTM' })).toBeNull();
   });
 });
 
@@ -574,7 +643,7 @@ describe('guardSignoffWrite — gerbang pakar SA 620 (wpState.sa540)', () => {
 
   it('K11 — konteks dibutuhkan tetapi tak dipasok → FAIL-CLOSED, bukan lolos senyap', () => {
     expect(() => guardSignoffWrite(SENIOR, 'wpState', EMPTY, signedBySenior, NOW))
-      .toThrow(/expert-gate:context-missing/);
+      .toThrow(/signoff:context-missing/);
   });
 
   it('K7 — suntingan isi kertas kerja tak menuntut konteks (nol query)', () => {

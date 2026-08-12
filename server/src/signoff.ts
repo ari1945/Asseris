@@ -22,6 +22,9 @@ import { decisionTimestampError } from '../../migration/src/aje_approval';
    dengan yang dipakai UI. Gerbang yang hidup di satu sisi saja adalah cara
    paling andal melahirkan celah (pelajaran #23, lalu quickSign). */
 import { wpChainViolations, signatureAttributionViolations } from '../../migration/src/wp_chain';
+/* PRD Kesiapan P2PK PR-1 — aturan gerbang EQR (ISQM 2). Modul MURNI yang sama
+   dipakai UI, agar "lolos di layar" dan "lolos di server" tak dapat menyimpang. */
+import { eqrGateFor, type EqrReviewRow } from '../../migration/src/canon_eqr_gate';
 /* PRD prd-sa620-expert-gate-server PR-1 — aturan gerbang pakar SA 620. Modul yang
    SAMA dengan yang dibaca `useEstimateExpertGate`; alasan penolakan server dan hint
    UI karenanya tak dapat menyimpang (K9). */
@@ -51,6 +54,10 @@ export interface SignoffContextNeeds {
   siblingKeys: readonly string[];
   /** Koleksi lampiran DMS yang id hidupnya dibutuhkan (kosong sampai PR-3). */
   attachmentCollections: readonly string[];
+  /* Kunci StateDoc ber-scope FIRMA. Sebagian registri mutu bersifat LINTAS-perikatan
+     (`eqrReviews.v2` adalah registri EQR seluruh firma), sehingga gerbang atas tulisan
+     ber-scope perikatan — penerbitan opini — harus dapat membacanya. Tabel statis. */
+  firmSiblingKeys?: readonly string[];
 }
 
 export interface SignoffContext {
@@ -58,15 +65,58 @@ export interface SignoffContext {
    *  (bukan `{}`), sehingga "dokumen tak pernah ditulis" dapat dibedakan dari "kosong". */
   siblings: Record<string, unknown>;
   liveAttachmentIds: Record<string, readonly string[]>;
+  /** Dokumen ber-scope firma; absen = belum pernah ditulis (sama semantiknya dgn `siblings`). */
+  firmSiblings?: Record<string, unknown>;
+  /** Alamat tulisan yang sedang dijaga — aturan lintas-perikatan menyaring registri dengannya. */
+  scope?: string;
+  scopeId?: string;
 }
 
 const EXPERT_GATE_SIBLINGS = ['estimates.v1', 'expertEval.v1'] as const;
+
+/* PRD Kesiapan P2PK PR-1 — registri yang dibutuhkan gerbang EQR. `eqrReviews.v2`
+   adalah registrinya; `engagements` + `clients` dipakai MENURUNKAN status PIE
+   (SSOT `client.listed` — sama dengan `engMeta().pie` di klien). */
+const EQR_GATE_FIRM_SIBLINGS = ['eqrReviews.v2', 'engagements', 'clients'] as const;
+
+function asArray(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
+
+/**
+ * Status PIE perikatan dari registri firma — `null` bila TAK DAPAT ditentukan
+ * (registri belum pernah ditulis ke server, mis. instalasi baru).
+ *
+ * Membedakan `null` dari `false` disengaja: "bukan PIE" dan "tak tahu apakah PIE"
+ * menuntut perlakuan berbeda di gerbang, dan menyamakannya persis cara cacat
+ * fail-open yang ditutup PR ini lahir.
+ */
+function engagementIsPie(firmSiblings: Record<string, unknown>, engId: string): boolean | null {
+  const engs = asArray(firmSiblings['engagements']);
+  const clients = asArray(firmSiblings['clients']);
+  if (!engs.length || !clients.length) return null;
+  const eng = engs.find((e) => asObj(e).id === engId);
+  if (!eng) return null;
+  const clientId = asObj(eng).clientId;
+  const c = clients.find((x) => asObj(x).id === clientId);
+  if (!c) return null;
+  return !!asObj(c).listed;
+}
 
 /**
  * Konteks yang dibutuhkan tulisan ini — `null` bila diff tak menyentuh apa pun
  * yang digerbang lintas-dokumen. MURNI, dipanggil router SEBELUM guard.
  */
 export function signoffContextNeeds(key: string, prev: unknown, next: unknown): SignoffContextNeeds | null {
+  /* Gerbang EQR (ISQM 2 / SPM 2). Penerbitan opini WAJIB melewati penelaahan mutu
+     perikatan, tetapi sampai PR-1 penegakannya hanya di UI: `state.set` langsung ke
+     `opinionDoc.v1 {finalized:true}` menembusnya sepenuhnya. Konteks hanya diminta
+     pada TRANSISI menjadi final — suntingan draf opini tetap nol query. */
+  if (key === 'opinionDoc.v1') {
+    const p = asObj(prev), n = asObj(next);
+    if (!p.finalized && !!n.finalized) {
+      return { siblingKeys: [], attachmentCollections: [], firmSiblingKeys: EQR_GATE_FIRM_SIBLINGS };
+    }
+    return null;
+  }
   if (key !== 'wpState') return null;
   if (!expertGateSignatureSlots({ prev, next }).length) return null;
   /* PR-3 — limb DOKUMEN kini menyala: `docUid` menunjuk id lampiran DMS (PR-2),
@@ -200,7 +250,10 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
      wewenang akan mengirim auditor mengejar masalah izin yang tidak ada. */
   const needs = signoffContextNeeds(key, prev, next);
   if (needs && !ctx) {
-    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'expert-gate:context-missing' });
+    /* Dinamai `signoff:` sejak PRD Kesiapan P2PK PR-1 — pemeriksaan ini kini menjaga
+       DUA gerbang (pakar SA 620 dan EQR ISQM 2). Nama lamanya (`expert-gate:`) akan
+       mengirim orang yang men-debug perkabelan EQR ke kode SA 620. */
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'signoff:context-missing' });
   }
   const need = (cap: string, what: string) => {
     changes.push({ what, cap });
@@ -272,7 +325,28 @@ export function guardSignoffWrite(actor: SignoffActor, key: string, prev: unknow
       need(OPINION_SLOT_CAP[slot], `opini:${slot}`);
       if (ns[slot]) attribution({ byUserId: ns[slot].byUserId, display: ns[slot].by, at: ns[slot].date }, `opini ${slot}`);
     }
-    if (!!p.finalized !== !!n.finalized) need(CAP.OPINION_APPROVE, 'opini:finalized');
+    if (!!p.finalized !== !!n.finalized) {
+      need(CAP.OPINION_APPROVE, 'opini:finalized');
+      /* Gerbang EQR (ISQM 2 / SPM 2) — hanya saat MENJADI final; membatalkan
+         finalisasi tak pernah diblokir gerbang ini (sama seperti pencabutan
+         tanda tangan pada gerbang pakar). */
+      if (!p.finalized && !!n.finalized) {
+        if (!ctx || !ctx.firmSiblings || !ctx.scopeId) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'eqr-gate:context-missing' });
+        }
+        const reviews = asArray(ctx.firmSiblings['eqrReviews.v2']) as EqrReviewRow[];
+        const pie = engagementIsPie(ctx.firmSiblings, ctx.scopeId);
+        const gate = eqrGateFor(ctx.scopeId, reviews, pie === true);
+        if (gate.applicable && !gate.cleared) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: `eqr-gate:${gate.reason}: penerbitan opini menuntut penelaahan mutu perikatan (EQR) yang lolos gerbang — ISQM 2 / SA 220.36.` });
+        }
+        /* Registri firma belum pernah ditulis → status PIE tak dapat ditentukan di
+           server. Gerbang UI tetap berlaku, tetapi jalur tRPC langsung LOLOS di sini.
+           Ditandai eksplisit di jejak audit agar celah ini berjejak, bukan senyap —
+           pola yang sama dengan `expert-gate:no-register`. */
+        changes.push({ what: pie === null ? 'eqr-gate:pie-unknown' : 'eqr-gate:pass', cap: '' });
+      }
+    }
   } else if (key === 'mat.memo.signoff') {
     /* PR-6a — dokumen ini SENDIRI adalah objek slot ({preparer, manager, partner}),
        bukan peta ber-id seperti wpState. Menandatangani DAN mencabut sama-sama

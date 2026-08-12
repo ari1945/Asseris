@@ -923,7 +923,7 @@ export const appRouter = router({
              kerja biasa — mayoritas tulisan `wpState` — tetap nol query tambahan. */
           const needs = signoffContextNeeds(key, prevValue, input.value);
           let signoffCtx: SignoffContext | undefined;
-          if (needs) signoffCtx = await loadSignoffContext(scope, scopeId, needs);
+          if (needs) signoffCtx = await loadSignoffContext(scope, scopeId, needs, ctx.user.firmId);
           signoffChanges = guardSignoffWrite(
             { id: ctx.user.id, name: ctx.user.name, role: ctx.user.role },
             key, prevValue, input.value, undefined, signoffCtx,
